@@ -1,0 +1,288 @@
+/**
+    libmaus
+    Copyright (C) 2009-2013 German Tischler
+    Copyright (C) 2011-2013 Genome Research Limited
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
+
+#if ! defined(COMPACTREADCONTAINER_HPP)
+#define COMPACTREADCONTAINER_HPP
+
+#include <libmaus/rank/ERank222B.hpp>
+#include <libmaus/fastx/Pattern.hpp>
+#include <libmaus/fastx/FastInterval.hpp>
+#include <libmaus/fastx/CompactFastDecoder.hpp>
+#include <libmaus/bitio/BitWriter.hpp>
+#include <libmaus/util/GetObject.hpp>
+#if ! defined(_WIN32)
+#include <libmaus/network/Interface.hpp>
+#include <libmaus/network/UDPSocket.hpp>
+#endif
+
+namespace libmaus
+{
+	namespace fastx
+	{
+		struct CompactReadContainer
+		{
+			typedef CompactReadContainer this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::rank::ERank222B rank_type;
+			typedef rank_type::unique_ptr_type rank_ptr_type;
+			typedef rank_type::writer_type writer_type;
+			typedef writer_type::data_type data_type;
+			typedef ::libmaus::fastx::Pattern pattern_type;
+
+			::libmaus::fastx::FastInterval FI;
+			uint64_t numreads;
+			::libmaus::autoarray::AutoArray < data_type > designators;
+			rank_ptr_type designatorrank;
+			::libmaus::autoarray::AutoArray< uint16_t > shortpointers;
+			::libmaus::autoarray::AutoArray< uint64_t > longpointers;
+			::libmaus::autoarray::AutoArray< uint8_t > text;
+			::libmaus::fastx::CompactFastDecoderBase CFDB;
+
+			void setupRankDictionary()
+			{
+				designatorrank = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(designators.get(), designators.size()*64)));
+			}
+			
+			void serialise(std::ostream & out) const
+			{
+				::libmaus::fastx::FastInterval::serialise(out,FI);
+				designators.serialize(out);
+				shortpointers.serialize(out);
+				longpointers.serialize(out);
+				text.serialize(out);
+			}
+			
+			#if ! defined(_WIN32)
+			void serialise(::libmaus::network::SocketBase * socket) const
+			{
+				socket->writeString(FI.serialise());
+				socket->writeMessageInBlocks(designators);
+				socket->writeMessageInBlocks(shortpointers);
+				socket->writeMessageInBlocks(longpointers);
+				socket->writeMessageInBlocks(text);
+			}
+			
+			void broadcastSend(
+				::libmaus::network::Interface const & interface,
+				unsigned short const broadcastport,
+				::libmaus::autoarray::AutoArray < ::libmaus::network::ClientSocket::unique_ptr_type > & secondarysockets,
+				unsigned int const packsize = 508
+			) const
+			{
+				std::cerr << "Writing FI...";
+				for ( uint64_t i = 0; i < secondarysockets.size(); ++i )
+					secondarysockets[i]->writeString(FI.serialise());
+				std::cerr << "done.";
+
+				std::cerr << "Broadcasting designators...";
+				::libmaus::network::UDPSocket::sendArrayBroadcast(interface,broadcastport,
+					secondarysockets,designators.get(),designators.size(),packsize);
+				std::cerr << "done.";
+				
+				std::cerr << "Broadcasting shortpointers...";
+				::libmaus::network::UDPSocket::sendArrayBroadcast(interface,broadcastport,
+					secondarysockets,shortpointers.get(),shortpointers.size(),packsize);
+				std::cerr << "done.";	
+				
+				std::cerr << "Broadcasting longpointers...";
+				::libmaus::network::UDPSocket::sendArrayBroadcast(interface,broadcastport,
+					secondarysockets,longpointers.get(),longpointers.size(),packsize);
+				std::cerr << "done.";
+				
+				std::cerr << "Broadcasting text...";
+				::libmaus::network::UDPSocket::sendArrayBroadcast(interface,broadcastport,
+					secondarysockets,text.get(),text.size(),packsize);
+				std::cerr << "done.";
+			}
+			#endif
+			
+			std::string operator[](uint64_t const i) const
+			{
+				pattern_type pat;
+				getPattern(pat,i);
+				return pat.spattern;
+			}
+			
+			void getPattern(pattern_type & pat, uint64_t i) const
+			{
+				assert ( i >= FI.low && i < FI.high );
+
+				uint64_t const j = i-FI.low;
+				uint64_t const offsetbase = longpointers [ designatorrank->rank1(j) ];
+				uint64_t const codepos = offsetbase + shortpointers[j];
+				uint8_t const * code = text.begin()+codepos;
+				::libmaus::util::GetObject<uint8_t const *> G(code);
+				::libmaus::parallel::SynchronousCounter<uint64_t> nextid(i);
+				CompactFastDecoderBase::decode(pat,G,nextid);
+			}
+			
+			static ::libmaus::fastx::FastInterval deserialiseInterval(std::string const & s)
+			{
+				std::istringstream istr(s);
+				return ::libmaus::fastx::FastInterval::deserialise(istr);
+			}
+
+			#if ! defined(_WIN32)
+			CompactReadContainer(
+				::libmaus::network::UDPSocket::unique_ptr_type & broadcastsocket,
+				::libmaus::network::SocketBase::unique_ptr_type & parentsocket
+			)
+			: FI( deserialiseInterval(parentsocket->readString()) ),
+			  numreads(FI.high-FI.low),
+			  designators ( ::libmaus::network::UDPSocket::receiveArrayBroadcast<data_type>(broadcastsocket,parentsocket) ),
+			  shortpointers ( ::libmaus::network::UDPSocket::receiveArrayBroadcast<uint16_t>(broadcastsocket,parentsocket) ),
+			  longpointers ( ::libmaus::network::UDPSocket::receiveArrayBroadcast<uint64_t>(broadcastsocket,parentsocket) ),
+			  text ( ::libmaus::network::UDPSocket::receiveArrayBroadcast<uint8_t>(broadcastsocket,parentsocket) ),
+			  CFDB()
+			{
+				setupRankDictionary();	
+			}
+
+
+			CompactReadContainer(::libmaus::network::SocketBase * socket)
+			{
+				std::cerr << "Receiving FI...";
+				FI = ::libmaus::fastx::FastInterval(deserialiseInterval(socket->readString()));
+				std::cerr << "done, FI=" << FI << std::endl;
+				
+				numreads = FI.high-FI.low;
+				std::cerr << "numreads=" << numreads << std::endl;
+				
+				std::cerr << "Receiving designators...";
+				#if 0
+				designators = socket->readMessage<data_type>();
+				#else
+				designators = socket->readMessageInBlocks<data_type,::libmaus::autoarray::alloc_type_cxx>();
+				#endif
+				std::cerr << "done." << std::endl;
+				
+				std::cerr << "Receiving short pointers...";
+				#if 0
+				shortpointers =socket->readMessage<uint16_t>();
+				#else				
+				shortpointers =socket->readMessageInBlocks<uint16_t,::libmaus::autoarray::alloc_type_cxx>();
+				#endif
+				std::cerr << "done." << std::endl;
+				
+				std::cerr << "Receiving long pointers...";
+				#if 0
+				longpointers = socket->readMessage<uint64_t>();
+				#else
+				longpointers = socket->readMessageInBlocks<uint64_t,::libmaus::autoarray::alloc_type_cxx>();				
+				#endif
+				std::cerr << "done." << std::endl;
+
+				std::cerr << "Receiving text...";
+				#if 0
+				text = socket->readMessage<uint8_t>();
+				#else
+				text = socket->readMessageInBlocks<uint8_t,::libmaus::autoarray::alloc_type_cxx>();				
+				#endif
+				std::cerr << "done." << std::endl;
+				
+				std::cerr << "Setting up rank dict...";
+				setupRankDictionary();	
+				std::cerr << "done." << std::endl;
+			}
+			#endif
+			
+			CompactReadContainer(std::istream & in)
+			:
+			  FI(::libmaus::fastx::FastInterval::deserialise(in)),
+			  numreads(FI.high-FI.low),
+			  designators(in),
+			  shortpointers(in),
+			  longpointers(in),
+			  text(in),
+			  CFDB()
+			{
+				setupRankDictionary();
+			}
+			
+			CompactReadContainer(
+				std::vector<std::string> const & filenames, 
+				::libmaus::fastx::FastInterval const & rFI
+			)
+			: FI(rFI), numreads(FI.high-FI.low), designators( (numreads+63)/64 ), shortpointers(numreads,false), longpointers(), text(FI.fileoffsethigh-FI.fileoffset)
+			{
+				typedef ::libmaus::fastx::CompactFastConcatDecoder reader_type;
+				typedef reader_type::pattern_type pattern_type;
+				reader_type CFD(filenames,FI);
+
+				uint64_t codepos = 0;		
+				uint64_t offsetbase = 0;
+
+				std::vector < uint64_t > prelongpointers;
+				prelongpointers.push_back(0);
+				writer_type W(designators.get());
+				for ( uint64_t i = 0; i < numreads; ++i )
+				{
+					if ( 
+						(
+							codepos-offsetbase 
+							> 
+							static_cast<uint64_t>(std::numeric_limits<uint16_t>::max())
+						) 
+					)
+					{
+						W.writeBit(1);
+						offsetbase = codepos;
+						prelongpointers.push_back(offsetbase);
+					}
+					else
+					{
+						W.writeBit(0);
+					}
+					shortpointers[i] = codepos-offsetbase;
+				
+					CFD.skipPattern(codepos);
+				}
+				W.flush();
+				
+				longpointers = ::libmaus::autoarray::AutoArray< uint64_t >(prelongpointers.size(),false);
+				std::copy(prelongpointers.begin(),prelongpointers.end(),longpointers.begin());
+
+				::libmaus::aio::ReorderConcatGenericInput<uint8_t> RCGI(::libmaus::fastx::CompactFastDecoder::getDataFragments(filenames),64*1024,text.size(),FI.fileoffset);
+				for ( uint64_t i = 0; i < text.size(); ++i )
+					text[i] = RCGI.get();
+					
+				setupRankDictionary();
+
+				#if 0
+				std::cerr << "Checking dict...";
+				reader_type CFD2(filenames,FI);
+				for ( uint64_t i = 0; i < numreads; ++i )
+				{
+					if ( CFD2.istr.getptr != longpointers [ designatorrank->rank1(i) ] + shortpointers[i] )
+					{
+						std::cerr << "Failure for i=" << i << std::endl;
+						std::cerr << "Ptr is " << CFD2.istr.getptr << std::endl;
+						std::cerr << "Expected " << longpointers [ designatorrank->rank1(i) ] + shortpointers[i] << std::endl;
+						assert ( CFD2.istr.getptr == longpointers [ designatorrank->rank1(i) ] + shortpointers[i] );
+					}
+					::libmaus::fastx::Pattern pattern;
+					CFD2.getNextPatternUnlocked(pattern);					
+				}
+				std::cerr << "done." << std::endl;
+				#endif
+			}
+		};
+	}
+}
+#endif

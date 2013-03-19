@@ -1,0 +1,12 @@
+Eva Hash code in src/libmaus/hashing/hash.hpp by Bob Jenkins, public domain
+Oracle LCP code in src/libmaus/lcp/OracleLCP* by Simon Puglisi, published under GPLv2
+Succinct RMQ code in src/libmaus/rmq/FischerSystematicSuccinctRMQ* by Johannes Fischer, published under GPLv2
+NearestNeighbourDictionary code in src/libmaus/util/NearestNeighourDictionary.hpp by Simon Gog from the SDSL library, published under GPLv2
+Pioneer bitmap code in src/libmaus/util/BalancedParenthesesBase.hpp by Simon Gog from SDSL library, published under GPLv2
+popcount code in src/libmaus/rank/popcnt.hpp imported from http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel, public domain code by Sean Eron Anderson
+radixsort code in src/libmaus/sorting/SerialRadixSort64.hpp adapted from code by Andrew I. Schein (see file for license)
+divsufsort code in src/libmaus/suffixsort/divsufsort* by Yuta Mori (see file for license)
+SAIS code in src/libmaus/suffixsort/SAIS_Mori.hpp by Yuta Mori (see file for license)
+md5 code in src/libmaus/util/md5.[ch] by L. Peter Deutsch (Aladdin Enterprises) (see file for license)
+64 bit arithmetic/range encoder/decoder in src/libmaus/arithmetic/*.[ch]pp by Sachin Garg (see file for license)
+Rest by German Tischler published under GPLv2/GPLv3 (some of it written while at Genome Research Limited/WTSI)

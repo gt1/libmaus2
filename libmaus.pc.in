@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libmaus
+Description: succinct data structures
+Requires: @ZLIBREQ@
+Version: @VERSION@
+Libs: -L${libdir} -lmaus @LIBMAUSPKGLIBS@
+Cflags: @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ @ZLIBCPPFLAGS@ -I${includedir}
+Dllib: @DLLIB@
