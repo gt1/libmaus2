@@ -1,4 +1,4 @@
-EXTRA_DIST = configure libmaus.spec.in GPLv2 GPLv3
+EXTRA_DIST = configure GPLv2 GPLv3
 SUBDIRS = src
 ACLOCAL_AMFLAGS=-I m4
 
