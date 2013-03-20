@@ -4,4 +4,4 @@
 
 override_dh_auto_configure:
 	autoreconf -i -f
-	dh_auto_configure -- --with-snappy --disable-kmlocal --disable-ssse3 --disable-sse4
+	dh_auto_configure -- --with-snappy --with-seqan --disable-kmlocal --disable-ssse3 --disable-sse4
