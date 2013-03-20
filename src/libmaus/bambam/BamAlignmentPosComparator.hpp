@@ -20,7 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMALIGNMENTPOSCOMPARATOR_HPP
 
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <bambam/BamAlignmentNameComparator.hpp>
+#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 
 namespace libmaus
 {

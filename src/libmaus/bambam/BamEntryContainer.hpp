@@ -220,14 +220,14 @@ namespace libmaus
 					
 					uint64_t const nummerge = tmpoutcnts.size();
 					::libmaus::autoarray::AutoArray< ::libmaus::bambam::BamAlignment > algns(nummerge);
-					::bambam::BamAlignmentHeapComparator<comparator_type> heapcmp(BAPC,algns.begin());
+					::libmaus::bambam::BamAlignmentHeapComparator<comparator_type> heapcmp(BAPC,algns.begin());
 					::libmaus::autoarray::AutoArray<uint64_t> fileoffsets(nummerge+1,false);
 					for ( uint64_t i = 0; i < nummerge; ++i )
 						fileoffsets [ i ] = tmpoffsetintervals[i].first;
 					fileoffsets[nummerge] = tmpoffsetintervals[nummerge-1].second;
 					
 					::libmaus::lz::SnappyInputStreamArrayFile SISAF(tmpfileoutname,fileoffsets.begin(),fileoffsets.end());
-					::std::priority_queue< uint64_t, std::vector<uint64_t>, ::bambam::BamAlignmentHeapComparator<comparator_type> > Q(heapcmp);
+					::std::priority_queue< uint64_t, std::vector<uint64_t>, ::libmaus::bambam::BamAlignmentHeapComparator<comparator_type> > Q(heapcmp);
 					for ( uint64_t i = 0; i < nummerge; ++i )
 						if ( tmpoutcnts[i]-- )
 						{
