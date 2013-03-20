@@ -729,6 +729,50 @@ namespace libmaus
 				}
 				return seqlen;
 			}
+			template<typename iterator>
+			static iterator decodeQualIt(uint8_t const * D, iterator it, unsigned int const seqlen)
+			{
+				if ( seqlen )
+				{
+					uint8_t const * qual = getQual(D);
+					uint8_t const * const quale = qual + seqlen;
+					
+					if ( qual[0] == 255 )
+					{
+						while ( qual++ != quale )
+							*it++ = '*';
+					}
+					else
+					{
+						while ( qual != quale )
+							*it++ = (*(qual++))+ 33;
+					}
+				}
+
+				return it;
+			}
+			template<typename iterator>
+			static iterator decodeQualRcIt(uint8_t const * D, iterator it, unsigned int const seqlen)
+			{
+				if ( seqlen )
+				{
+					uint8_t const * qual  = getQual(D) + seqlen;
+					uint8_t const * const quala = getQual(D);
+					
+					if ( qual[0] == 255 )
+					{
+						while ( qual-- != quala )
+							*it++ = '*';
+					}
+					else
+					{
+						while ( qual != quala )
+							*it++ = (*(--qual))+ 33;
+					}
+				}
+
+				return it;
+			}
 			static std::string decodeQual(uint8_t const * D)
 			{
 				uint64_t const seqlen = getLseq(D);

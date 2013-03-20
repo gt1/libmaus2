@@ -941,6 +941,31 @@ namespace libmaus
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getFastQLength(D.get());
 			}
+			
+			template<typename iterator>
+			iterator decodeRead(iterator S, uint64_t const seqlen) const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeRead(D.get(),S,seqlen);
+			}
+
+			template<typename iterator>
+			iterator decodeReadRCIt(iterator S, uint64_t const seqlen) const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeReadRCIt(D.get(),S,seqlen);
+			}
+
+                        template<typename iterator>
+                        iterator decodeQual(iterator it, uint64_t const seqlen) const
+                        {
+                        	return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQualIt(D.get(),it,seqlen);
+                        }
+
+                        template<typename iterator>
+                        iterator decodeQualRcIt(iterator it, uint64_t const seqlen) const
+                        {
+                        	return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQualRcIt(D.get(),it,seqlen);
+                        }
+                                                
 		};
 	}
 }
