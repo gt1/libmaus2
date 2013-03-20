@@ -30,7 +30,7 @@ namespace libmaus
 			enum bam_flags
 			{
 				LIBMAUS_BAMBAM_FPAIRED = (1u << 0),
-				LIBMAUS_BAMBAM_FPROPER = (1u << 1),
+				LIBMAUS_BAMBAM_FPROPER_PAIR = (1u << 1),
 				LIBMAUS_BAMBAM_FUNMAP = (1u << 2),
 				LIBMAUS_BAMBAM_FMUNMAP = (1u << 3),
 				LIBMAUS_BAMBAM_FREVERSE = (1u << 4),
@@ -61,7 +61,7 @@ namespace libmaus
 			switch ( f )
 			{
 				case BamFlagBase::LIBMAUS_BAMBAM_FPAIRED: out << "LIBMAUS_BAMBAM_FPAIRED"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FPROPER: out << "LIBMAUS_BAMBAM_FPROPER"; break;
+				case BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR: out << "LIBMAUS_BAMBAM_FPROPER_PAIR"; break;
 				case BamFlagBase::LIBMAUS_BAMBAM_FUNMAP: out << "LIBMAUS_BAMBAM_FUNMAP"; break;
 				case BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP: out << "LIBMAUS_BAMBAM_FMUNMAP"; break;
 				case BamFlagBase::LIBMAUS_BAMBAM_FREVERSE: out << "LIBMAUS_BAMBAM_FREVERSE"; break;
