@@ -19,7 +19,7 @@
 #include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 
 // entry i is 1 iff isdigit(i) is true
-uint8_t const bambam::BamAlignmentNameComparator::digit_table[256] = {
+uint8_t const libmaus::bambam::BamAlignmentNameComparator::digit_table[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

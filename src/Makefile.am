@@ -31,7 +31,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/util/TempFileRemovalContainer.cpp \
 	libmaus/network/LogReceiver.cpp \
 	libmaus/huffman/IndexLoaderBase.cpp \
-	libmaus/bambam/BamAlignment.cpp
+	libmaus/bambam/BamAlignment.cpp \
+	libmaus/bambam/BamAlignmentNameComparator.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@
@@ -101,8 +102,12 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SortedFragDecoder.hpp \
 	libmaus/bambam/ReadEndsContainer.hpp \
 	libmaus/bambam/DuplicationMetrics.hpp \
-	libmaus/bambam/OpticalComparator.hpp
-
+	libmaus/bambam/OpticalComparator.hpp \
+	libmaus/bambam/BamAlignmentHeapComparator.hpp \
+	libmaus/bambam/BamAlignmentNameComparator.hpp \
+	libmaus/bambam/BamAlignmentPosComparator.hpp \
+	libmaus/bambam/BamEntryContainer.hpp
+	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
 	libmaus/arithmetic/ArithCoder.hpp \
