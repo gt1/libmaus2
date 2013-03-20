@@ -35,11 +35,11 @@
 
 #if defined(LIBMAUS_HAVE_AIO)
 #include <aio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #if defined(__FreeBSD__)
 #include <sys/uio.h>
-#include <unistd.h>
-#include <fcntl.h>
 #endif
 
 namespace libmaus
