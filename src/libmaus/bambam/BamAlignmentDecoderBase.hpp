@@ -32,7 +32,7 @@ namespace libmaus
 		struct BamAlignmentDecoderBase : public ::libmaus::bambam::DecoderBase, public ::libmaus::bambam::BamFlagBase
 		{
 			static bool isPaired(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPAIRED; }
-			static bool isProper(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPROPER; }
+			static bool isProper(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPROPER_PAIR; }
 			static bool isUnmap(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FUNMAP; }
 			static bool isMateUnmap(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FMUNMAP; }
 			static bool isReverse(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREVERSE; }
@@ -48,7 +48,7 @@ namespace libmaus
 				switch ( flag )
 				{
 					case LIBMAUS_BAMBAM_FPAIRED: return "LIBMAUS_BAMBAM_FPAIRED";
-					case LIBMAUS_BAMBAM_FPROPER: return "LIBMAUS_BAMBAM_FPROPER";
+					case LIBMAUS_BAMBAM_FPROPER_PAIR: return "LIBMAUS_BAMBAM_FPROPER_PAIR";
 					case LIBMAUS_BAMBAM_FUNMAP: return "LIBMAUS_BAMBAM_FUNMAP";
 					case LIBMAUS_BAMBAM_FMUNMAP: return "LIBMAUS_BAMBAM_FMUNMAP";
 					case LIBMAUS_BAMBAM_FREVERSE: return "LIBMAUS_BAMBAM_FREVERSE";
