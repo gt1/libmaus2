@@ -24,9 +24,9 @@
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/bambam/BamWriter.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
-#include <bambam/BamAlignmentPosComparator.hpp>
-#include <bambam/BamAlignmentNameComparator.hpp>
-#include <bambam/BamAlignmentHeapComparator.hpp>
+#include <libmaus/bambam/BamAlignmentPosComparator.hpp>
+#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
+#include <libmaus/bambam/BamAlignmentHeapComparator.hpp>
 #include <queue>
 
 namespace libmaus
