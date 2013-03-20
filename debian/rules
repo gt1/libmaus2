@@ -4,4 +4,4 @@
 
 override_dh_auto_configure:
 	autoreconf -i -f
-	dh_auto_configure -- --disable-kmlocal
+	dh_auto_configure -- --disable-kmlocal --disable-ssse3 --disable-sse4
