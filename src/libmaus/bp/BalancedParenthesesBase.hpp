@@ -1,8 +1,8 @@
 /**
     libmaus
+    Copyright (C) 2007-2012 Simon Gog All Right Reserved.
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
-    Copyright (C) 2007-2012 Simon Gog All Right Reserved.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
