@@ -1,3 +1,9 @@
+libmaus (0.0.29-1) UNRELEASED; urgency=low
+
+  * bump version after adding function for disabling bam validation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 21 Mar 2013 09:39:22 +0000
+
 libmaus (0.0.28-1) UNRELEASED; urgency=low
 
   * bump version to add tag 
