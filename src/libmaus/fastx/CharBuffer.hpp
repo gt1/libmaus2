@@ -28,14 +28,15 @@ namespace libmaus
 {
 	namespace fastx
 	{
-		template<typename _value_type>
+		template<typename _value_type, ::libmaus::autoarray::alloc_type _atype>
                 struct EntityBuffer
                 {
                 	typedef _value_type value_type;
+                	static const ::libmaus::autoarray::alloc_type atype = _atype;
                 
                         unsigned int buffersize;
                         unsigned int length;
-			::libmaus::autoarray::AutoArray<value_type> abuffer;
+			::libmaus::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
 
                         void bufferPush(value_type c)
@@ -53,7 +54,7 @@ namespace libmaus
                         void expandBuffer()
                         {
                                 unsigned int newbuffersize = 2*buffersize;
-                                ::libmaus::autoarray::AutoArray<value_type> newabuffer(newbuffersize);
+                                ::libmaus::autoarray::AutoArray<value_type,atype> newabuffer(newbuffersize);
                         
                                 std::copy ( abuffer.get(), abuffer.get()+buffersize, newabuffer.get() );
                                 
@@ -65,7 +66,7 @@ namespace libmaus
                         }
                         
                         EntityBuffer(
-                        	::libmaus::autoarray::AutoArray<value_type> & rbuffer,
+                        	::libmaus::autoarray::AutoArray<value_type,atype> & rbuffer,
                         	uint64_t const blocksize)
 			: buffersize(rbuffer.size()), length(blocksize), abuffer(rbuffer), buffer(abuffer.get())
 			{
@@ -105,8 +106,9 @@ namespace libmaus
 			}
                 };
                 
-                typedef EntityBuffer<char> CharBuffer;
-                typedef EntityBuffer<uint8_t> UCharBuffer;
+                typedef EntityBuffer<char,::libmaus::autoarray::alloc_type_cxx> CharBuffer;
+                typedef EntityBuffer<uint8_t,::libmaus::autoarray::alloc_type_cxx> UCharBuffer;
+                typedef EntityBuffer<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> UCharBufferC;
 	}
 }
 #endif

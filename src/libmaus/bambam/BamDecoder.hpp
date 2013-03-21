@@ -119,7 +119,7 @@ namespace libmaus
 
 				/* read alignment block */
 				if ( alignment.blocksize > alignment.D.size() )
-					alignment.D = ::libmaus::autoarray::AutoArray<uint8_t>(alignment.blocksize);
+					alignment.D = ::libmaus::bambam::BamAlignment::D_array_type(alignment.blocksize,false);
 				GZ.read(reinterpret_cast<char *>(alignment.D.begin()),alignment.blocksize);
 
 				if ( static_cast<int64_t>(GZ.gcount()) != static_cast<int64_t>(alignment.blocksize) )

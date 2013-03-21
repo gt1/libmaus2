@@ -301,9 +301,9 @@ namespace libmaus
 				}
 			}
 
-			template<typename value_type>
+			template<typename buffer_type, typename value_type>
 			static void putAuxNumberArray(
-				::libmaus::fastx::UCharBuffer & data,
+				buffer_type & data,
 				std::string const & tag, 
 				char const type, 
 				std::vector<value_type> const & values
@@ -316,39 +316,39 @@ namespace libmaus
 				data.bufferPush('B');
 				data.bufferPush(type);
 
-				putLE< ::libmaus::fastx::UCharBuffer,uint32_t>(data,values.size());
+				putLE<buffer_type,uint32_t>(data,values.size());
 				
 				for ( uint64_t i = 0; i < values.size(); ++i )
 				{
 					switch ( type )
 					{
 						case 'A':
-							putLE< ::libmaus::fastx::UCharBuffer,int8_t>(data,values[i]);
+							putLE< buffer_type,int8_t>(data,values[i]);
 							break;
 						case 'c':
-							putLE< ::libmaus::fastx::UCharBuffer,int8_t>(data,values[i]);
+							putLE< buffer_type,int8_t>(data,values[i]);
 							break;
 						case 'C':
-							putLE< ::libmaus::fastx::UCharBuffer,uint8_t>(data,values[i]);
+							putLE< buffer_type,uint8_t>(data,values[i]);
 							break;
 						case 's':
-							putLE< ::libmaus::fastx::UCharBuffer,int16_t>(data,values[i]);
+							putLE< buffer_type,int16_t>(data,values[i]);
 							break;
 						case 'S':
-							putLE< ::libmaus::fastx::UCharBuffer,uint16_t>(data,values[i]);
+							putLE< buffer_type,uint16_t>(data,values[i]);
 							break;
 						case 'i':
-							putLE< ::libmaus::fastx::UCharBuffer,int32_t>(data,values[i]);
+							putLE< buffer_type,int32_t>(data,values[i]);
 							break;
 						case 'I':
-							putLE< ::libmaus::fastx::UCharBuffer,uint32_t>(data,values[i]);
+							putLE< buffer_type,uint32_t>(data,values[i]);
 							break;
 						case 'f':
 						{
 							numberpun np;
 							np.fvalue = values[i];
 							
-							putLE< ::libmaus::fastx::UCharBuffer,uint32_t>(
+							putLE< buffer_type,uint32_t>(
 								data, np.uvalue
 							);
 						}

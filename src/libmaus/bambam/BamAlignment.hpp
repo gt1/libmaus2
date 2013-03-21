@@ -116,6 +116,26 @@ namespace libmaus
 			
 			return out;
 		}
+		
+		#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+		#pragma pack(push)
+		#pragma pack(1)
+		struct BamAlignmentFixedSizeData
+		{
+			int32_t  RefID;
+		        int32_t  Pos;
+		        uint8_t  NL;
+		        uint8_t  MQ;
+		        uint16_t Bin;
+		        uint16_t NC;
+		        uint16_t Flags;
+		        int32_t  Lseq;
+		        int32_t  NextRefID;
+		        int32_t  NextPos;
+		        int32_t  Tlen;
+		};
+		#pragma pack(pop)
+		#endif
 
 		struct BamAlignment
 		{
@@ -124,8 +144,11 @@ namespace libmaus
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static uint8_t const qnameValidTable[256];
+
+			static const ::libmaus::autoarray::alloc_type D_array_alloc_type = ::libmaus::autoarray::alloc_type_memalign_cacheline;
+			typedef ::libmaus::autoarray::AutoArray<uint8_t,D_array_alloc_type> D_array_type;
 		
-			::libmaus::autoarray::AutoArray<uint8_t> D;
+			D_array_type D;
 			uint64_t blocksize;
 			
 			BamAlignment()
@@ -139,7 +162,7 @@ namespace libmaus
 			{
 				blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(in,4);
 				// std::cerr << "Block size " << blocksize << std::endl;
-				D = ::libmaus::autoarray::AutoArray<uint8_t>(blocksize,false);
+				D = D_array_type(blocksize,false);
 				in.read(reinterpret_cast<char *>(D.begin()),blocksize);
 				
 				if ( static_cast<int64_t>(in.gcount()) != static_cast<int64_t>(blocksize) )
@@ -187,7 +210,15 @@ namespace libmaus
 				// numerical value given in block
 				uint64_t const lreadname = getLReadName();
 				if ( (readname-readnamea)+1 != static_cast<ptrdiff_t>(lreadname) )
+				{
+					std::cerr << "getLReadName(): " << lreadname << std::endl;
+					std::cerr << "strlen():       " << (readname-readnamea)+1 << std::endl;
+					std::cerr << "dec():          " << ::libmaus::bambam::BamAlignmentDecoderBase::getLReadName(D.begin()) << std::endl;
+					
+					std::cerr << "NL offset is " << &(reinterpret_cast<BamAlignmentFixedSizeData const * >(D.begin())->NL) - D.begin() << std::endl;
+					
 					return libmaus_bambam_alignment_validity_queryname_length_inconsistent;
+				}
 				if ( !(readname-readnamea) )
 					return libmaus_bambam_alignment_validity_queryname_empty;
 				for ( uint64_t i = 0; i < lreadname-1; ++i )
@@ -445,7 +476,7 @@ namespace libmaus
 				uint64_t const newseq = (2*seqlen)+1;
 				uint64_t const post   = getNumPostSeqBytes();
 				
-				::libmaus::fastx::UCharBuffer buffer( pre + newseq + post );
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( pre + newseq + post );
 				
 				for ( uint64_t i = 0; i < pre; ++i )
 					buffer.put ( D [ i ] );
@@ -468,7 +499,7 @@ namespace libmaus
 				uint64_t const oldcig = getNumCigarBytes();
 				uint64_t const post   = getNumPostCigarBytes();
 				
-				::libmaus::fastx::UCharBuffer buffer( getNumPreCigarBytes() + cigarlen * sizeof(uint32_t) + getNumPostCigarBytes() );
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( getNumPreCigarBytes() + cigarlen * sizeof(uint32_t) + getNumPostCigarBytes() );
 				
 				for ( uint64_t i = 0; i < pre; ++i )
 					buffer.put ( D [ i ] );
@@ -537,7 +568,7 @@ namespace libmaus
 
 			void putAuxNumberArray(std::string const & tag, std::vector<uint8_t> const & V)
 			{
-				::libmaus::fastx::UCharBuffer data(D,blocksize);
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
 				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',V);
 
@@ -697,7 +728,13 @@ namespace libmaus
 			}
 			int32_t getRefID() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(D.get());
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->RefID;
+				#else
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(D.get());				
+				#endif
+
+
 			}
 			int32_t getRefIDChecked() const
 			{
@@ -710,7 +747,11 @@ namespace libmaus
 			}
 			int32_t getPos() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Pos;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getPos(D.get());
+				#endif
 			}
 			int32_t getPosChecked() const
 			{
@@ -723,7 +764,11 @@ namespace libmaus
 			}
 			int32_t getNextRefID() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NextRefID;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getNextRefID(D.get());
+				#endif
 			}
 			int32_t getNextRefIDChecked() const
 			{
@@ -736,7 +781,11 @@ namespace libmaus
 			}
 			int32_t getNextPos() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NextPos;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getNextPos(D.get());
+				#endif
 			}
 			int32_t getNextPosChecked() const
 			{
@@ -749,23 +798,43 @@ namespace libmaus
 			}
 			uint32_t getBin() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Bin;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getBin(D.get());
+				#endif
 			}
 			uint32_t getMapQ() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->MQ;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getMapQ(D.get());
+				#endif
 			}
 			uint32_t getLReadName() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NL;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getLReadName(D.get());
+				#endif
 			}
 			uint32_t getFlags() const
 			{			
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Flags;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(D.get());
+				#endif
 			}
 			uint32_t getNCigar() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NC;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getNCigar(D.get());			
+				#endif
 			}
 			std::string getCigarString() const
 			{
@@ -793,11 +862,19 @@ namespace libmaus
 			}
 			uint32_t getTlen() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Tlen;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getTlen(D.get());
+				#endif
 			}
 			int32_t getLseq() const
 			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Lseq;
+				#else
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getLseq(D.get());
+				#endif
 			}
 			uint64_t decodeRead(::libmaus::autoarray::AutoArray<char> & A) const
 			{

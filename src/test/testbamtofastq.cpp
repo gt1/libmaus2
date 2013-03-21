@@ -52,7 +52,9 @@ int main(int argc, char * argv[])
 		while ( reader.readAlignment() )
 		{
 			// std::cout << reader.alignment.formatAlignment(header,aux) << std::endl;
-			cnt++;
+
+			if ( ++cnt % (1024*1024) == 0 )
+				std::cerr << "[V] " << cnt/(1024*1024) << std::endl;
 		}		
 		#endif
 	}
