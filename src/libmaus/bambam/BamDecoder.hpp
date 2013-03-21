@@ -44,24 +44,28 @@ namespace libmaus
 			uint64_t patid;
 			uint64_t rank;
 			bool putrank;
+			bool validate;
 			
 			BamDecoder(std::string const & filename, bool const rputrank = false)
 			: PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
 			  PGZ(new ::libmaus::lz::GzipStream(*PISTR)),
-			  GZ(*PGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank)
+			  GZ(*PGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
-			
 			}
 			
 			BamDecoder(std::istream & in, bool const rputrank = false)
-			: PISTR(), PGZ(new ::libmaus::lz::GzipStream(in)), GZ(*PGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank)
+			: PISTR(), PGZ(new ::libmaus::lz::GzipStream(in)), GZ(*PGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
 			}
 			
 			BamDecoder(::libmaus::lz::GzipStream & rGZ, bool const rputrank = false)
-			: PISTR(), PGZ(), GZ(rGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank)
+			: PISTR(), PGZ(), GZ(rGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
+			}
 			
+			void disableValidation()
+			{
+				validate = false;
 			}
 			
 			::libmaus::bambam::BamAlignment::unique_ptr_type ualignment() const
@@ -97,7 +101,8 @@ namespace libmaus
 			static bool readAlignment(
 				stream_type & GZ,
 				::libmaus::bambam::BamAlignment & alignment,
-				::libmaus::bambam::BamHeader const * bamheader = 0
+				::libmaus::bambam::BamHeader const * bamheader = 0,
+				bool const validate = true
 			)
 			{
 				/* read alignment block size */
@@ -125,13 +130,16 @@ namespace libmaus
 					throw se;
 				}
 				
-				libmaus_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
-				if ( validity != ::libmaus::bambam::libmaus_bambam_alignment_validity_ok )
+				if ( validate )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Invalid alignment: " << validity << std::endl;
-					se.finish();
-					throw se;					
+					libmaus_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
+					if ( validity != ::libmaus::bambam::libmaus_bambam_alignment_validity_ok )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Invalid alignment: " << validity << std::endl;
+						se.finish();
+						throw se;					
+					}
 				}
 				
 				return true;
@@ -139,7 +147,7 @@ namespace libmaus
 			
 			bool readAlignment(bool const delayPutRank = false)
 			{
-				bool const ok = readAlignment(GZ,alignment,&bamheader);
+				bool const ok = readAlignment(GZ,alignment,&bamheader,validate);
 				
 				if ( ! ok )
 					return false;
