@@ -1,8 +1,14 @@
-libmaus (0.0.29-1) UNRELEASED; urgency=low
+libmaus (0.0.31-1) unstable; urgency=low
+
+  * change release from UNRELEASED to unstable 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Mar 2013 12:27:08 +0000
+
+libmaus (0.0.29-1) unstable; urgency=low
 
   * bump version after adding function for disabling bam validation 
 
- -- German Tischler <gt1@sanger.ac.uk>  Thu, 21 Mar 2013 09:39:22 +0000
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Mar 2013 12:25:57 +0000
 
 libmaus (0.0.28-1) UNRELEASED; urgency=low
 
