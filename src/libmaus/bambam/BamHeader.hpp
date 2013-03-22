@@ -27,6 +27,7 @@
 #include <libmaus/util/stringFunctions.hpp>
 #include <libmaus/util/unordered_map.hpp>
 #include <libmaus/trie/TrieState.hpp>
+#include <libmaus/lz/BgzfInflateStream.hpp>
 
 namespace libmaus
 {
@@ -474,6 +475,10 @@ namespace libmaus
 			}
 
 			BamHeader(::libmaus::lz::GzipStream & in)
+			{
+				init(in);
+			}
+			BamHeader(libmaus::lz::BgzfInflateStream & in)
 			{
 				init(in);
 			}

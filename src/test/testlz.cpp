@@ -16,17 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-
 #include <libmaus/lz/GzipHeader.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/lz/Deflate.hpp>
 #include <libmaus/lz/Inflate.hpp>
-
+#include <libmaus/lz/BgzfInflateStream.hpp>
 
 int main(int argc, char *argv[])
 {
+	::libmaus::lz::BgzfInflateStream SW(std::cin);
+
+	::libmaus::autoarray::AutoArray<char> BB(200,false);	
+	while ( SW.read(BB.begin(),BB.size()) != 0 )
+	{
+	
+	}
+
 	if ( argc < 2 )
 		return EXIT_FAILURE;
+	
+	
+	return 0;
 	
 	#if 0
 	::libmaus::lz::GzipHeader GZH(argv[1]);

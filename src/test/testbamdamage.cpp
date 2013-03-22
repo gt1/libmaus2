@@ -17,7 +17,7 @@ int main()
 
 		uint64_t red = 0;			
 		uint64_t total = 0;
-		while ( (red = bamdec.GZ.read(C.begin(),C.size())) )
+		while ( (bamdec.GZ.read(C.begin(),C.size())) && (red=bamdec.GZ.gcount()) )
 		{
 			uint64_t off = 0;
 				

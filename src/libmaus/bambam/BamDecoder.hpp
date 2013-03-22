@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMDECODER_HPP
 
 #include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/lz/BgzfInflateStream.hpp>
 
 namespace libmaus
 {
@@ -34,8 +35,11 @@ namespace libmaus
 			typedef ::libmaus::fastx::FASTQEntry pattern_type;
 		
 			::libmaus::util::unique_ptr< std::ifstream >::type PISTR;
+			#if 0
 			::libmaus::lz::GzipStream::unique_ptr_type PGZ;
 			::libmaus::lz::GzipStream & GZ;
+			#endif
+			libmaus::lz::BgzfInflateStream GZ;
 			::libmaus::bambam::BamHeader bamheader;
 
 			::libmaus::bambam::BamAlignment alignment;
@@ -48,20 +52,27 @@ namespace libmaus
 			
 			BamDecoder(std::string const & filename, bool const rputrank = false)
 			: PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
-			  PGZ(new ::libmaus::lz::GzipStream(*PISTR)),
-			  GZ(*PGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
+			  // PGZ(new ::libmaus::lz::GzipStream(*PISTR)),
+			  // GZ(*PGZ), 
+			  GZ(*PISTR),
+			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
 			}
 			
 			BamDecoder(std::istream & in, bool const rputrank = false)
-			: PISTR(), PGZ(new ::libmaus::lz::GzipStream(in)), GZ(*PGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
+			: PISTR(), 
+			  // PGZ(new ::libmaus::lz::GzipStream(in)), GZ(*PGZ), 
+			  GZ(in),
+			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
 			}
 			
+			#if 0
 			BamDecoder(::libmaus::lz::GzipStream & rGZ, bool const rputrank = false)
 			: PISTR(), PGZ(), GZ(rGZ), bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
 			}
+			#endif
 			
 			void disableValidation()
 			{

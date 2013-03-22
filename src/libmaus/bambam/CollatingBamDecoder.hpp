@@ -430,6 +430,8 @@ namespace libmaus
 			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1), 
 			  writeoutlistmax(rwriteoutlistmax), inputcallback(0)
 			{ init(); }
+			
+			/*
 			CollatingBamDecoder(
 				::libmaus::lz::GzipStream & rGZ, 
 				std::string const & rtempfilename,
@@ -441,6 +443,7 @@ namespace libmaus
 			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1), 
 			  writeoutlistmax(rwriteoutlistmax), inputcallback(0)
 			{ init(); }
+			*/
 			
 			alignment_ptr_type get()
 			{
@@ -573,11 +576,14 @@ namespace libmaus
 				std::string const & rtempfilename
 			)
 			: CollatingBamDecoder(in,rtempfilename), id(0) {}
+			
+			#if 0
 			CollatingBamDecoderNoOrphans(
 				::libmaus::lz::GzipStream & rGZ, 
 				std::string const & rtempfilename
 			) 
 			: CollatingBamDecoder(rGZ,rtempfilename), id(0) {}
+			#endif
 			
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
