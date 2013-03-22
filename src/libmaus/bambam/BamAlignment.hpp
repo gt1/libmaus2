@@ -210,15 +210,7 @@ namespace libmaus
 				// numerical value given in block
 				uint64_t const lreadname = getLReadName();
 				if ( (readname-readnamea)+1 != static_cast<ptrdiff_t>(lreadname) )
-				{
-					std::cerr << "getLReadName(): " << lreadname << std::endl;
-					std::cerr << "strlen():       " << (readname-readnamea)+1 << std::endl;
-					std::cerr << "dec():          " << ::libmaus::bambam::BamAlignmentDecoderBase::getLReadName(D.begin()) << std::endl;
-					
-					std::cerr << "NL offset is " << &(reinterpret_cast<BamAlignmentFixedSizeData const * >(D.begin())->NL) - D.begin() << std::endl;
-					
 					return libmaus_bambam_alignment_validity_queryname_length_inconsistent;
-				}
 				if ( !(readname-readnamea) )
 					return libmaus_bambam_alignment_validity_queryname_empty;
 				for ( uint64_t i = 0; i < lreadname-1; ++i )
