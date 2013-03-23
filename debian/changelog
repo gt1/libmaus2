@@ -1,3 +1,9 @@
+libmaus (0.0.32-1) unstable; urgency=low
+
+  * bump version after splitting package into two parts 
+
+ -- German Tischler <baer@german-pc>  Sat, 23 Mar 2013 15:36:54 +0000
+
 libmaus (0.0.31-1) unstable; urgency=low
 
   * change release from UNRELEASED to unstable 
