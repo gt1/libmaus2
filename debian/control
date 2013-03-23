@@ -10,12 +10,10 @@ Vcs-browser: https://github.com/gt1/libmaus.git
 Package: libmaus
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: 
- Runtime library for libmaus
+Description: Runtime library for libmaus
 
 Package: libmaus-dev
 Section: universe/libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libmaus (= ${binary:Version}), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2)
-Description:
- Development files for libmaus (headers, libraries and pkg-config files)
+Description: Development files for libmaus (headers, libraries and pkg-config files)
