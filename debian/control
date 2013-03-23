@@ -1,11 +1,21 @@
 Source: libmaus
 Maintainer: German Tischler <gt1@sanger.ac.uk>
-Section: universe/misc
+Section: universe/libs
 Priority: optional
 Standards-Version: 3.9.2
 Build-Depends: debhelper (>= 7),  autoconf (>= 2.61), automake (>= 1.10), libtool (>= 2.2.6), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2)
+Vcs-Git: git://github.com/gt1/libmaus.git
+Vcs-browser: https://github.com/gt1/libmaus.git
 
 Package: libmaus
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: libmaus
+Description: 
+ Runtime library for libmaus
+
+Package: libmaus-dev
+Section: universe/libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmaus (= ${binary:Version}), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2)
+Description:
+ Development files for libmaus (headers, libraries and pkg-config files)
