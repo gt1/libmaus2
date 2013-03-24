@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
 
 	::libmaus::lz::BgzfDeflate<std::ostream> bdefl(std::cout);
 	char const * str = "Hello, world.\n";
-	bdefl.write(reinterpret_cast<uint8_t const *>(str),strlen(str));
+	bdefl.write(reinterpret_cast<char const *>(str),strlen(str));
 	bdefl.flush();
-	bdefl.write(reinterpret_cast<uint8_t const *>(str),strlen(str));
+	bdefl.write(reinterpret_cast<char const *>(str),strlen(str));
 	bdefl.flush();
 	bdefl.addEOFBlock();
 	return 0;

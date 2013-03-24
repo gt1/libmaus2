@@ -214,8 +214,10 @@ namespace libmaus
 				}
 			}
 			
-			void write(uint8_t const * p, unsigned int n)
+			void write(char const * const cp, unsigned int n)
 			{
+				uint8_t const * p = reinterpret_cast<uint8_t const *>(cp);
+			
 				while ( n )
 				{
 					unsigned int const towrite = std::min(n,static_cast<unsigned int>(pe-pc));

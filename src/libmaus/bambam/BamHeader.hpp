@@ -347,19 +347,20 @@ namespace libmaus
 					return "*";
 			}
 			
-			static void encodeChromosomeVector(std::ostream & ostr, std::vector< ::libmaus::bambam::Chromosome > const & V)
+			template<typename stream_type>
+			static void encodeChromosomeVector(stream_type & ostr, std::vector< ::libmaus::bambam::Chromosome > const & V)
 			{
-				::libmaus::bambam::EncoderBase::putLE<std::ostream,int32_t>(ostr,V.size());
+				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,V.size());
 				
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
 					::libmaus::bambam::Chromosome const & chr = V[i];
 					
-					::libmaus::bambam::EncoderBase::putLE<std::ostream,int32_t>(ostr,chr.name.size()+1);
+					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.name.size()+1);
 					ostr.write(chr.name.c_str(),chr.name.size());
 					ostr.put(0);
 
-					::libmaus::bambam::EncoderBase::putLE<std::ostream,int32_t>(ostr,chr.len);
+					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.len);
 				}
 			}
 
@@ -380,7 +381,7 @@ namespace libmaus
 				ostr.put('\1');
 
 				// length of plain text
-				::libmaus::bambam::EncoderBase::putLE<std::ostream,int32_t>(ostr,text.size()/*+1 */);
+				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,text.size()/*+1 */);
 				// plain text
 				ostr.write(text.c_str(),text.size());
 				// ostr.put(0);

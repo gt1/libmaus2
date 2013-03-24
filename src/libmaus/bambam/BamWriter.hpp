@@ -22,6 +22,7 @@
 #include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
 #include <libmaus/lz/Deflate.hpp>
+#include <libmaus/lz/BgzfDeflate.hpp>
 
 namespace libmaus
 {
@@ -34,7 +35,8 @@ namespace libmaus
 
 			::libmaus::util::unique_ptr<std::ofstream>::type Postr;
 			std::ostream & ostr;
-			::libmaus::lz::BGZFOutputStream bgzfos;
+			// ::libmaus::lz::BGZFOutputStream bgzfos;
+			::libmaus::lz::BgzfDeflate<std::ostream> bgzfos;
 			::libmaus::bambam::BamSeqEncodeTable seqtab;
 			::libmaus::fastx::UCharBuffer ubuffer;
 			::libmaus::bambam::BamHeader header;
@@ -44,7 +46,7 @@ namespace libmaus
 				::libmaus::bambam::BamHeader const & rheader, 
 				int const level = Z_DEFAULT_COMPRESSION
 			)
-			: Postr(), ostr(rostr), bgzfos(ostr,64*1024,level), header(rheader)
+			: Postr(), ostr(rostr), bgzfos(ostr,level), header(rheader)
 			{
 				header.produceHeader();
 				header.serialise(bgzfos);
@@ -54,7 +56,7 @@ namespace libmaus
 				::libmaus::bambam::BamHeader const & rheader, 
 				int const level = Z_DEFAULT_COMPRESSION
 			)
-			: Postr(new std::ofstream(filename.c_str(),std::ios::binary)), ostr(*Postr), bgzfos(ostr,64*1024,level), header(rheader)
+			: Postr(new std::ofstream(filename.c_str(),std::ios::binary)), ostr(*Postr), bgzfos(ostr,level), header(rheader)
 			{
 				header.produceHeader();
 				header.serialise(bgzfos);	
@@ -62,7 +64,7 @@ namespace libmaus
 
 			~BamWriter()
 			{
-				bgzfos.flush();
+				// bgzfos.flush();
 				bgzfos.addEOFBlock();
 				ostr.flush();
 			}
