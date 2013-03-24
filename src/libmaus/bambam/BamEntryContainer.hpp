@@ -248,7 +248,7 @@ namespace libmaus
 
 						if ( tmpoutcnts[t]-- )
 						{
-							::libmaus::bambam::BamDecoder::readAlignment(SISAF[t],algns[t]);
+							::libmaus::bambam::BamDecoder::readAlignment(SISAF[t],algns[t],0 /* bamheader */, false /* do not validate */);
 							Q.push(t);
 						}
 					}
