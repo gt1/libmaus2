@@ -120,12 +120,41 @@ namespace libmaus
 				
 				return res;
 			}
+
+			static int compareInt(uint8_t const * da, uint8_t const * db)
+			{
+				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
+				char const * nameb = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(db);
+
+				int const r = strcmpnum(namea,nameb);
+				
+				if ( r != 0 )
+					return r;
+
+				// read 1 before read 2
+				int const r1 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				int const r2 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				
+				if ( r1 == r2 )
+					return 0;
+				else if ( r1 )
+					return -1;
+				else
+					return 1;
+			}
 			
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				uint8_t const * da = data + a + sizeof(uint32_t);
 				uint8_t const * db = data + b + sizeof(uint32_t);
 				return compare(da,db);
+			}
+
+			int compareInt(uint64_t const a, uint64_t const b) const
+			{
+				uint8_t const * da = data + a + sizeof(uint32_t);
+				uint8_t const * db = data + b + sizeof(uint32_t);
+				return compareInt(da,db);
 			}
 		};
 	}

@@ -43,40 +43,41 @@ namespace libmaus
 				int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(da);
 				int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(db);
 				
-				#if 1
 				return posa < posb;
-				#else
-				if ( posa != posb )
-					return posa < posb;
-				
-				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
-				char const * nameb = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(db);
+			}
 
-				int const r = ::bambam::BamAlignmentNameComparator::strcmpnum(namea,nameb);
-				bool res;
+			static int compareInt(uint8_t const * da, uint8_t const * db)
+			{
+				int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(da);
+				int32_t const refb = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(db);
 				
-				if ( r < 0 )
+				if ( refa != refb )
 				{
-					res = true;
+					if ( static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb) )
+						return -1;
+					else
+						return 1;
 				}
-				else if ( r == 0 )
-				{
-					// read 1 before read 2
-					res = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus::bambam::BamFlagBase::SUDS_BAMBAM_FREAD1;
-				}
+
+				int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(da);
+				int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(db);
+				
+				if ( posa < posb )
+					return -1;
+				else if ( posa > posb )
+					return 1;
 				else
-				{
-					res = false;
-				}
-				
-				return res;
-				
-				#endif
+					return 0;
 			}
 			
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				return compare(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));
+			}
+			
+			int compareInt(uint64_t const a, uint64_t const b) const
+			{
+				return compareInt(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));
 			}
 		};
 	}

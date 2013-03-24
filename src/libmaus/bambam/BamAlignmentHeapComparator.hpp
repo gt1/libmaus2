@@ -39,20 +39,7 @@ namespace libmaus
 
 			bool operator()(uint64_t const a, uint64_t const b)
 			{
-				uint8_t const * const da = A[a].D.begin();
-				uint8_t const * const db = A[b].D.begin();
-				
-				bool const b_lt_a = comparator_type::compare(db,da);
-				
-				if ( b_lt_a )
-					return true;
-
-				bool const a_lt_b = comparator_type::compare(da,db);
-				
-				if ( a_lt_b )
-					return false;
-			
-				return a > b;
+				return comparator_type::compareInt(A[a].D.begin(),A[b].D.begin()) > 0;
 			}
 		};
 	}
