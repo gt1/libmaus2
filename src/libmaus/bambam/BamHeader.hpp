@@ -370,7 +370,8 @@ namespace libmaus
 				return ostr.str();
 			}
 			
-			void serialise(std::ostream & ostr) const
+			template<typename stream_type>
+			void serialise(stream_type & ostr) const
 			{
 				// magic
 				ostr.put('B');

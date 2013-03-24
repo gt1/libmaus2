@@ -21,9 +21,68 @@
 #include <libmaus/lz/Deflate.hpp>
 #include <libmaus/lz/Inflate.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
+#include <libmaus/lz/BgzfDeflate.hpp>
+
+void testBgzfRandom()
+{
+	srand(time(0));
+	::libmaus::autoarray::AutoArray<uint8_t> R(16*1024*1024,false);
+	for ( uint64_t i = 0; i < R.size(); ++i )
+		R[i] = rand() % 256;
+	std::ostringstream zostr;
+	::libmaus::lz::BgzfDeflate<std::ostream> bdeflr(zostr);
+	for ( uint64_t i = 0; i < R.size(); ++i )
+		bdeflr.put(R[i]);
+	bdeflr.addEOFBlock();
+	std::istringstream ristr(zostr.str());
+	::libmaus::lz::BgzfInflateStream rSW(ristr);
+	int c = 0;
+	uint64_t rp = 0;
+	while ( (c=rSW.get()) >= 0 )
+	{
+		assert ( rp < R.size() );
+		assert ( c == R[rp++] );
+	}
+	assert ( rp == R.size() );
+}
+
+void testBgzfMono()
+{
+	srand(time(0));
+	::libmaus::autoarray::AutoArray<uint8_t> R(16*1024*1024,false);
+	for ( uint64_t i = 0; i < R.size(); ++i )
+		R[i] = 'a';
+	std::ostringstream zostr;
+	::libmaus::lz::BgzfDeflate<std::ostream> bdeflr(zostr);
+	for ( uint64_t i = 0; i < R.size(); ++i )
+		bdeflr.put(R[i]);
+	bdeflr.addEOFBlock();
+	std::istringstream ristr(zostr.str());
+	::libmaus::lz::BgzfInflateStream rSW(ristr);
+	int c = 0;
+	uint64_t rp = 0;
+	while ( (c=rSW.get()) >= 0 )
+	{
+		assert ( rp < R.size() );
+		assert ( c == R[rp++] );
+	}
+	assert ( rp == R.size() );
+}
 
 int main(int argc, char *argv[])
 {
+	testBgzfRandom();
+	testBgzfMono();
+
+	::libmaus::lz::BgzfDeflate<std::ostream> bdefl(std::cout);
+	char const * str = "Hello, world.\n";
+	bdefl.write(reinterpret_cast<uint8_t const *>(str),strlen(str));
+	bdefl.flush();
+	bdefl.write(reinterpret_cast<uint8_t const *>(str),strlen(str));
+	bdefl.flush();
+	bdefl.addEOFBlock();
+	return 0;
+	
 	::libmaus::lz::BgzfInflateStream SW(std::cin);
 
 	::libmaus::autoarray::AutoArray<char> BB(200,false);	
