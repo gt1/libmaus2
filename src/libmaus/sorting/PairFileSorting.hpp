@@ -107,18 +107,17 @@ namespace libmaus
 
 			typedef Triple<uint64_t,uint64_t,uint64_t> triple_type;
 
-			template<typename comparator_type, bool keepfirst, bool keepsecond>
+			template<typename comparator_type, typename out_type, bool keepfirst, bool keepsecond>
 			static void mergeTriplesTemplate(
 				uint64_t const numblocks,
 				std::string const & tmpfilename,
-				std::string const & outfilename,
 				uint64_t const elnum,
-				uint64_t const lastblock
+				uint64_t const lastblock,
+				out_type & SGOfinal
 			)
 			{
 				if ( numblocks )
 				{
-					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGOfinal(outfilename,16*1024);
 					::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
 
 					std::priority_queue < 
@@ -170,44 +169,47 @@ namespace libmaus
 						}
 					}
 					
-					SGOfinal.flush();
 				}
 			}
 
-			template<typename comparator_type>
+			template<typename comparator_type, typename out_type>
 			static void mergeTriples(
 				uint64_t const numblocks,
 				std::string const & tmpfilename,
-				std::string const & outfilename,
 				uint64_t const elnum,
 				uint64_t const lastblock,
 				bool const keepfirst,
-				bool const keepsecond
+				bool const keepsecond,
+				out_type & SGOfinal
 			)
 			{
+				
 				if ( keepfirst )
 				{
 					if ( keepsecond )
-						mergeTriplesTemplate<comparator_type,true,true>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+						mergeTriplesTemplate<comparator_type,out_type,true,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
 					else					
-						mergeTriplesTemplate<comparator_type,true,false>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+						mergeTriplesTemplate<comparator_type,out_type,true,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
 				}
 				else
 				{
 					if ( keepsecond )
-						mergeTriplesTemplate<comparator_type,false,true>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+						mergeTriplesTemplate<comparator_type,out_type,false,true>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
 					else					
-						mergeTriplesTemplate<comparator_type,false,false>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+						mergeTriplesTemplate<comparator_type,out_type,false,false>(numblocks,tmpfilename,elnum,lastblock,SGOfinal);
 				}
+
+				SGOfinal.flush();
 			}
 
-			static void sortPairFile(
+			template<typename out_type>
+			static void sortPairFileTemplate(
 				std::vector<std::string> const & filenames, 
 				std::string const & tmpfilename,
-				std::string const & outfilename,
 				bool const second,
 				bool const keepfirst,
 				bool const keepsecond,
+				out_type & SGOfinal,
 				uint64_t const bufsize = 256*1024*1024
 			)
 			{
@@ -263,17 +265,30 @@ namespace libmaus
 				
 				SGO->flush();
 				SGO.reset();
-				
-				system( (std::string("ls -l ") + tmpfilename).c_str());
-	
+
 				if ( second )
-					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t> >(
-						numblocks,tmpfilename,outfilename,elnum,lastblock,
-						keepfirst,keepsecond);
+					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
+						numblocks,tmpfilename,elnum,lastblock,
+						keepfirst,keepsecond,SGOfinal);
 				else
-					mergeTriples< TripleFirstComparator<uint64_t,uint64_t,uint64_t> >(
-						numblocks,tmpfilename,outfilename,elnum,lastblock,
-						keepfirst,keepsecond);
+					mergeTriples< TripleFirstComparator<uint64_t,uint64_t,uint64_t>, out_type >(
+						numblocks,tmpfilename,elnum,lastblock,
+						keepfirst,keepsecond,SGOfinal);
+			}
+
+			static void sortPairFile(
+				std::vector<std::string> const & filenames, 
+				std::string const & tmpfilename,
+				bool const second,
+				bool const keepfirst,
+				bool const keepsecond,
+				std::string const & outfilename,
+				uint64_t const bufsize = 256*1024*1024
+			)
+			{
+				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
+				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGOfinal(outfilename,16*1024);
+				sortPairFileTemplate(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize);
 			}
 		};
 	}
