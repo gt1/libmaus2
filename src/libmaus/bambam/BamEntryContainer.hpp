@@ -38,6 +38,8 @@ namespace libmaus
 		{
 			typedef uint64_t data_type;
 			typedef _comparator_type comparator_type;
+			
+			static unsigned int const snappyoutputbufsize = 256*1024;
 
 			::libmaus::autoarray::AutoArray<data_type> B;
 			
@@ -93,7 +95,7 @@ namespace libmaus
 					
 					::libmaus::aio::CheckedOutputStream & tempfile = getTmpFileOut();
 					uint64_t const prepos = tempfile.tellp();
-					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > SOS(tempfile);
+					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > SOS(tempfile,snappyoutputbufsize);
 									
 					// write entries
 					for ( uint64_t i = 0; i < numel; ++i )
