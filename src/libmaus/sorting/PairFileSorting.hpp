@@ -105,11 +105,109 @@ namespace libmaus
 				}
 			};
 
+			typedef Triple<uint64_t,uint64_t,uint64_t> triple_type;
+
+			template<typename comparator_type, bool keepfirst, bool keepsecond>
+			static void mergeTriplesTemplate(
+				uint64_t const numblocks,
+				std::string const & tmpfilename,
+				std::string const & outfilename,
+				uint64_t const elnum,
+				uint64_t const lastblock
+			)
+			{
+				if ( numblocks )
+				{
+					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGOfinal(outfilename,16*1024);
+					::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
+
+					std::priority_queue < 
+						triple_type, 
+						std::vector<triple_type>, 
+						TripleFirstComparator<uint64_t,uint64_t,uint64_t> 
+					> Q;
+							
+					for ( uint64_t i = 0; i < numblocks; ++i )
+					{
+						uint64_t const rwords = (i+1==numblocks) ?  
+									(lastblock?(2*lastblock):(2*elnum)) : (2*elnum);
+						in[i] = UNIQUE_PTR_MOVE(
+							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type
+							(
+								new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
+									tmpfilename,16*1024,2*i*elnum,
+									rwords
+								) 
+							)
+						);
+				
+						int64_t const a = in[i]->get();
+						int64_t const b = in[i]->get();
+						assert ( a >= 0 );
+						assert ( b >= 0 );
+						
+						Q . push ( triple_type(a,b,i) );
+					}
+					
+				
+					while ( Q.size() )
+					{
+						if ( keepfirst )
+							SGOfinal.put(Q.top().first);
+						if ( keepsecond )
+							SGOfinal.put(Q.top().second);
+
+						uint64_t const id = Q.top().third;
+						
+						Q.pop();
+						
+						uint64_t a = 0;
+						if ( in[id]->getNext(a) )
+						{
+							int64_t const b = in[id]->get();
+							assert ( b >= 0 );				
+							Q.push(triple_type(a,b,id));
+						}
+					}
+					
+					SGOfinal.flush();
+				}
+			}
+
+			template<typename comparator_type>
+			static void mergeTriples(
+				uint64_t const numblocks,
+				std::string const & tmpfilename,
+				std::string const & outfilename,
+				uint64_t const elnum,
+				uint64_t const lastblock,
+				bool const keepfirst,
+				bool const keepsecond
+			)
+			{
+				if ( keepfirst )
+				{
+					if ( keepsecond )
+						mergeTriplesTemplate<comparator_type,true,true>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+					else					
+						mergeTriplesTemplate<comparator_type,true,false>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+				}
+				else
+				{
+					if ( keepsecond )
+						mergeTriplesTemplate<comparator_type,false,true>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+					else					
+						mergeTriplesTemplate<comparator_type,false,false>(numblocks,tmpfilename,outfilename,elnum,lastblock);
+				}
+			}
+
 			static void sortPairFile(
 				std::vector<std::string> const & filenames, 
 				std::string const & tmpfilename,
 				std::string const & outfilename,
-				bool second,
+				bool const second,
+				bool const keepfirst,
+				bool const keepsecond,
 				uint64_t const bufsize = 256*1024*1024
 			)
 			{
@@ -125,7 +223,9 @@ namespace libmaus
 				uint64_t const elnum = (bufsize + 2*sizeof(uint64_t)-1)/(2*sizeof(uint64_t));
 				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(elnum,false);
 				::libmaus::aio::ReorderConcatGenericInput<uint64_t> SGI(frags,16*1024);
-				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(tmpfilename,16*1024);
+				::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
+					new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
+				);
 				uint64_t fullblocks = 0;
 				uint64_t lastblock = 0;
 				uint64_t numblocks = 0;
@@ -149,8 +249,8 @@ namespace libmaus
 					
 					for ( ptrdiff_t i = 0; i < P-A.begin(); ++i )
 					{
-						SGO.put(A[i].first);
-						SGO.put(A[i].second);
+						SGO->put(A[i].first);
+						SGO->put(A[i].second);
 					}
 					
 					if ( P == A.end() )
@@ -161,109 +261,19 @@ namespace libmaus
 					numblocks++;
 				}
 				
-				SGO.flush();
+				SGO->flush();
+				SGO.reset();
 				
-				if ( numblocks )
-				{
-					typedef Triple<uint64_t,uint64_t,uint64_t> triple_type;
-					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGOfinal(outfilename,16*1024);
-					::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
-					
-					if ( second )
-					{
-						std::priority_queue < triple_type, std::vector<triple_type>, TripleSecondComparator<uint64_t,uint64_t,uint64_t> > Q;
-							
-						for ( uint64_t i = 0; i < numblocks; ++i )
-						{
-							in[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
-									new ::libmaus::aio::SynchronousGenericInput<uint64_t>(tmpfilename,16*1024,2*i*elnum,
-										(i+1==numblocks) ?  (lastblock?(2*lastblock):(2*elnum)) : (2*elnum) ) ) );
-							
-							int64_t const a = in[i]->get();
-							int64_t const b = in[i]->get();
-							assert ( a >= 0 );
-							assert ( b >= 0 );
-							
-							Q . push ( triple_type(a,b,i) );
-						}
-						
-					
-						while ( Q.size() )
-						{
-							SGOfinal.put(Q.top().first);
-							SGOfinal.put(Q.top().second);
-							uint64_t const id = Q.top().third;
-							
-							Q.pop();
-							
-							uint64_t a = 0;
-							if ( in[id]->getNext(a) )
-							{
-								int64_t const b = in[id]->get();
-								assert ( b >= 0 );				
-								Q.push(triple_type(a,b,id));
-							}
-						}
-					}
-					else
-					{
-						std::priority_queue < triple_type, std::vector<triple_type>, TripleFirstComparator<uint64_t,uint64_t,uint64_t> > Q;
-							
-						for ( uint64_t i = 0; i < numblocks; ++i )
-						{
-							in[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
-									new ::libmaus::aio::SynchronousGenericInput<uint64_t>(tmpfilename,16*1024,2*i*elnum,
-										(i+1==numblocks) ?  (lastblock?(2*lastblock):(2*elnum)) : (2*elnum) ) ) );
-							
-							int64_t const a = in[i]->get();
-							int64_t const b = in[i]->get();
-							assert ( a >= 0 );
-							assert ( b >= 0 );
-							
-							Q . push ( triple_type(a,b,i) );
-						}
-						
-					
-						while ( Q.size() )
-						{
-							SGOfinal.put(Q.top().first);
-							SGOfinal.put(Q.top().second);
-							uint64_t const id = Q.top().third;
-							
-							Q.pop();
-							
-							uint64_t a = 0;
-							if ( in[id]->getNext(a) )
-							{
-								int64_t const b = in[id]->get();
-								assert ( b >= 0 );				
-								Q.push(triple_type(a,b,id));
-							}
-						}
-					
-					}
-					
-					SGOfinal.flush();
-				}
-
-				if ( numblocks )
-				{
-					::libmaus::aio::SynchronousGenericInput<uint64_t> SGIcheck(outfilename,16*1024);
-					std::pair<uint64_t,uint64_t> prev(0,0);
-					uint64_t a = 0;
-				
-					while ( SGIcheck.getNext(a) )
-					{
-						int64_t const b = SGIcheck.get();
-						assert ( b >= 0 );
-					
-						// std::cerr << a << "," << b << std::endl;
-							
-						prev = std::pair<uint64_t,uint64_t>(a,b);
-					}
-				}
+				system( (std::string("ls -l ") + tmpfilename).c_str());
+	
+				if ( second )
+					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t> >(
+						numblocks,tmpfilename,outfilename,elnum,lastblock,
+						keepfirst,keepsecond);
+				else
+					mergeTriples< TripleFirstComparator<uint64_t,uint64_t,uint64_t> >(
+						numblocks,tmpfilename,outfilename,elnum,lastblock,
+						keepfirst,keepsecond);
 			}
 		};
 	}
