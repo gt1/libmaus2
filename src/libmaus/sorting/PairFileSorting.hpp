@@ -287,7 +287,22 @@ namespace libmaus
 			)
 			{
 				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
-				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGOfinal(outfilename,16*1024);
+				out_type SGOfinal(outfilename,16*1024);
+				sortPairFileTemplate(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize);
+			}
+
+			static void sortPairFile(
+				std::vector<std::string> const & filenames, 
+				std::string const & tmpfilename,
+				bool const second,
+				bool const keepfirst,
+				bool const keepsecond,
+				std::ostream & outstream,
+				uint64_t const bufsize = 256*1024*1024
+			)
+			{
+				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
+				out_type SGOfinal(outstream,16*1024);
 				sortPairFileTemplate(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize);
 			}
 		};
