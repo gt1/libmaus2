@@ -45,12 +45,9 @@ namespace libmaus
 				unsigned int const nd = 63-clz(code);
 				return 1 + (nd<<1);
 			}
-
-			void encode(uint64_t const q)
+			
+			inline void encodeWord(uint64_t const code, unsigned int const codelen)
 			{
-				uint64_t const code = q+1;		
-				unsigned int codelen = getCodeLen(code);
-
 				if ( bav >= codelen )
 				{
 					v <<= codelen;
@@ -63,7 +60,14 @@ namespace libmaus
 					stream.put((v << bav) | (code >> overflow));
 					v = code & ((1ull << overflow)-1);
 					bav = 64-overflow;
-				}
+				}			
+			}
+
+			void encode(uint64_t const q)
+			{
+				uint64_t const code = q+1;	
+				unsigned int codelen = getCodeLen(code);
+				encodeWord(code,codelen);
 			}
 			
 			void flush()

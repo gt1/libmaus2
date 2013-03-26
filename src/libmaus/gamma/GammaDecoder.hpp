@@ -36,6 +36,35 @@ namespace libmaus
 			
 			GammaDecoder(stream_type & rstream) : stream(rstream), v(0), bav(0) {}
 			
+			uint64_t decodeWord(unsigned int const bits)
+			{
+				if ( bits <= bav )
+				{
+					// extract bits
+					uint64_t const code = v >> (64-bits);
+
+					// remove bits from stream
+					v <<= bits;
+					bav -= bits;
+
+					return code;
+				}
+				else
+				{
+					unsigned int const restbits = bits-bav;
+					uint64_t code = (v >> (64-bav)) << restbits;
+					
+					v = stream.get();
+					bav = 64;
+					
+					code |= v >> (64-restbits);
+					v <<= restbits;
+					bav -= restbits;
+					
+					return code;
+				}
+			}
+			
 			uint64_t decode()
 			{
 				unsigned int cl;
