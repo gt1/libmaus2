@@ -62,7 +62,8 @@ libmausautoarray_includedir=$(includedir)/libmaus/autoarray/
 libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp
 
 libmausgamma_includedir=$(includedir)/libmaus/gamma/
-libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp
+libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp \
+	libmaus/gamma/GammaGapEncoder.hpp
 
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp

@@ -152,8 +152,27 @@ void testLow()
 	}
 }
 
+#include <libmaus/gamma/GammaGapEncoder.hpp>
+#include <libmaus/huffman/IndexDecoderDataArray.hpp>
+
+void testgammagap()
+{
+	unsigned int n = 512*1024;
+	std::vector<uint64_t> V(n);
+	for ( uint64_t i = 0; i < V.size(); ++i )
+		V[i] = i & 0xFFull;
+
+	std::string const fn("tmpfile");
+	::libmaus::gamma::GammaGapEncoder GGE(fn);
+	GGE.encode(V.begin(),V.end());
+	
+	::libmaus::huffman::IndexDecoderData IDD(fn);	
+}
+
 int main()
 {
+	testgammagap();
+	return 0;
 	testLow();
 	testRandom(256*1024*1024);
 }

@@ -72,10 +72,13 @@ namespace libmaus
 			
 			void flush()
 			{
-				v <<= bav;
-				stream.put(v);
-				v = 0;
-				bav = 64;
+				if ( bav != 64 )
+				{
+					v <<= bav;
+					stream.put(v);
+					v = 0;
+					bav = 64;
+				}
 			}
 		};
 	}
