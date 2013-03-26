@@ -61,6 +61,9 @@ libmaus_include_HEADERS=libmaus/LibMausConfig.hpp
 libmausautoarray_includedir=$(includedir)/libmaus/autoarray/
 libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp
 
+libmausgamma_includedir=$(includedir)/libmaus/gamma/
+libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp
+
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
 
@@ -147,7 +150,8 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/CompactOffsetArray.hpp \
 	libmaus/bitio/CompactOffsetOneArray.hpp \
 	libmaus/bitio/ArrayDecode.hpp \
-	libmaus/bitio/BitStreamFileDecoder.hpp
+	libmaus/bitio/BitStreamFileDecoder.hpp \
+	libmaus/bitio/Clz.hpp
 
 libmausrank_includedir=$(includedir)/libmaus/rank
 libmausrank_include_HEADERS=\
@@ -674,7 +678,8 @@ noinst_PROGRAMS = \
 	testfastarewrite \
 	testfastarecode \
 	testbamtofastq \
-	testbamdamage
+	testbamdamage \
+	testgamma
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -831,4 +836,5 @@ testbamdamage_LDADD = libmaus.la @SNAPPYLIBS@
 testbamdamage_CPPFLAGS = @SNAPPYCPPFLAGS@
 testbamdamage_LDFLAGS = @SNAPPYLDFLAGS@
 
-           
+testgamma_SOURCES = test/testgamma.cpp
+testgamma_LDADD = libmaus.la
