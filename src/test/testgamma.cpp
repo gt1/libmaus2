@@ -31,7 +31,7 @@ struct VectorPut : public std::vector<T>
 	VectorPut() {}
 	void put(T const v)
 	{
-		push_back(v);
+		std::vector<T>::push_back(v);
 	}
 };
 
