@@ -204,10 +204,8 @@ int main()
 {
 	try
 	{
-		#if 0
 		testLow();
 		testRandom(256*1024*1024);
-		#endif
 		testgammagap();
 	}
 	catch(std::exception const & ex)
