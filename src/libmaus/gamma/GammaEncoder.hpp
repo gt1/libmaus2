@@ -20,6 +20,7 @@
 #define LIBMAUS_GAMMA_GAMMAENCODER_HPP
 
 #include <libmaus/bitio/Clz.hpp>
+#include <libmaus/util/unique_ptr.hpp>
 
 namespace libmaus
 {
@@ -29,6 +30,8 @@ namespace libmaus
 		struct GammaEncoder : public libmaus::bitio::Clz
 		{
 			typedef _stream_type stream_type;
+			typedef GammaEncoder<stream_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
 			uint64_t v;

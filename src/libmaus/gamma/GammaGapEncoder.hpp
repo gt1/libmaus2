@@ -26,6 +26,7 @@
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/bitio/FastWriteBitWriter.hpp>
 #include <libmaus/math/bitsPerNum.hpp>
+#include <libmaus/gamma/GammaGapDecoder.hpp>
 
 namespace libmaus
 {
@@ -33,6 +34,11 @@ namespace libmaus
 	{
 		struct GammaGapEncoder
 		{
+			typedef GammaGapEncoder this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			static uint64_t const blocksize = 256*1024;
+			
 			::libmaus::aio::CheckedOutputStream COS;
 			::std::vector< ::libmaus::huffman::IndexEntry > index;
 			
@@ -41,16 +47,21 @@ namespace libmaus
 			{
 			}
 			
-			template<typename iterator>
-			uint64_t encodeInternal(iterator ita, iterator ite)
+			uint64_t writeFileSize(uint64_t const n)
 			{
-				uint64_t const blocksize = 256*1024;
+				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64);
+				SGO.put(n);
+				SGO.flush();
+				return SGO.getWrittenBytes();
+			}
+			
+			template<typename iterator>
+			uint64_t encodeInternal(iterator ita, iterator ite, uint64_t off)
+			{
 				uint64_t const n = ite-ita;
 				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64*1024);
 				::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > GE(SGO);
 				uint64_t const numblocks = (n + blocksize-1)/blocksize;
-
-				SGO.put(n);
 				
 				for ( uint64_t b = 0; b < numblocks; ++b )
 				{
@@ -70,7 +81,7 @@ namespace libmaus
 					}
 					GE.flush();
 					
-					::libmaus::huffman::IndexEntry const entry(pos,bcnt,vacc);
+					::libmaus::huffman::IndexEntry const entry(pos+off,bcnt,vacc);
 					index.push_back(entry);										
 				}
 				
@@ -128,22 +139,130 @@ namespace libmaus
 
 				gapHEF.flush();				
 			}
+			
+			void writeIndex(uint64_t const indexpos)
+			{
+				::libmaus::aio::SynchronousGenericOutput<uint8_t> SGO(COS,64*1024);
+				::libmaus::aio::SynchronousGenericOutput<uint8_t>::iterator_type it(SGO);
+				::libmaus::bitio::FastWriteBitWriterStream8Std FWBWS(it);
+				writeIndex(FWBWS,indexpos);
+
+				FWBWS.flush();
+				SGO.flush();
+			}
 
 			template<typename iterator>
 			void encode(iterator ita, iterator ite)
 			{
-				uint64_t const indexpos = encodeInternal<iterator>(ita,ite);
-								
-				::libmaus::aio::SynchronousGenericOutput<uint8_t> SGO(COS,64*1024);
-				::libmaus::aio::SynchronousGenericOutput<uint8_t>::iterator_type it(SGO);
-				::libmaus::bitio::FastWriteBitWriterStream8Std FWBWS(it);
-								
-				writeIndex(FWBWS,indexpos);
+				uint64_t const fslen = writeFileSize(ite-ita);
+				uint64_t const indexpos = fslen + encodeInternal<iterator>(ita,ite,fslen);
+												
+				writeIndex(indexpos);
 				
-				FWBWS.flush();
-				SGO.flush();
 				COS.flush();
 			}
+
+			// merge multiple gap arrays to one by adding them up per rank
+			static void merge(
+				std::vector < std::vector<std::string> > const & infilenames,
+				std::string const & outfilename
+			)
+			{
+				if ( ! infilenames.size() )
+				{
+					GammaGapEncoder GGE(outfilename);
+					uint64_t const * p = 0;
+					GGE.encode(p,p);
+				}
+				else
+				{
+					uint64_t const n = GammaGapDecoder::getLength(infilenames[0]);
+					for ( uint64_t i = 1; i < infilenames.size(); ++i  )
+						if ( GammaGapDecoder::getLength(infilenames[i]) != n )
+						{
+							::libmaus::exception::LibMausException se;
+							se.getStream() << "Incoherent gap file sizes in GammaGapEncoder::merge" << std::endl;
+							se.finish();
+							throw se;
+						}
+						
+					GammaGapEncoder::unique_ptr_type GGE(new GammaGapEncoder(outfilename));
+					::libmaus::autoarray::AutoArray<GammaGapDecoder::unique_ptr_type> GGD(infilenames.size());
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+						GGD[i] = UNIQUE_PTR_MOVE(GammaGapDecoder::unique_ptr_type(new GammaGapDecoder(infilenames[i])));
+
+					uint64_t const fslen = GGE->writeFileSize(n);
+					uint64_t const numblocks = (n + blocksize-1)/blocksize;
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
+						new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(GGE->COS,64*1024));
+					::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> >::unique_ptr_type
+						GE(new ::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > (*SGO));
+					
+					for ( uint64_t b = 0; b < numblocks; ++b )
+					{
+						uint64_t const blow = std::min(b*blocksize,n);
+						uint64_t const bhigh = std::min(blow+blocksize,n);
+						uint64_t const bcnt = bhigh-blow;
+
+						uint64_t const pos = SGO->getWrittenBytes();
+						
+						GE->encodeWord(bcnt,32);
+						uint64_t vacc = 0;
+						
+						for ( uint64_t i = 0; i < bcnt; ++i )
+						{
+							uint64_t v = 0;
+							for ( uint64_t j = 0; j < GGD.size(); ++j )
+								v += GGD[j]->decode();
+							vacc += v;
+							GE->encode(v);
+						}
+						GE->flush();
+
+						::libmaus::huffman::IndexEntry const entry(pos+fslen,bcnt,vacc);
+						GGE->index.push_back(entry);						
+					}
+					
+					GE.reset();
+					SGO->flush();
+					uint64_t const indexpos = fslen + SGO->getWrittenBytes();
+					SGO.reset();
+					
+					GGE->writeIndex(indexpos);
+					GGE->COS.flush();
+					GGE.reset();
+
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+						GGD[i].reset();
+						
+					bool const check = true;
+					if ( check )
+					{
+						for ( uint64_t i = 0; i < infilenames.size(); ++i )
+							GGD[i] = UNIQUE_PTR_MOVE(GammaGapDecoder::unique_ptr_type(new GammaGapDecoder(infilenames[i])));
+						GammaGapDecoder OGGD(std::vector<std::string>(1,outfilename));
+						
+						for ( uint64_t i = 0; i < n; ++i )
+						{
+							uint64_t v = 0;
+							for ( uint64_t j = 0; j < infilenames.size(); ++j )
+								v += GGD[j]->decode();
+							
+							uint64_t const vv = OGGD.decode();
+							
+							if ( v != vv )
+							{
+								::libmaus::exception::LibMausException se;
+								se.getStream() << "Merging failed in GammaGapEncoder::merge()";
+								se.finish();
+								throw se;
+							}
+						}
+						
+						std::cerr << "[D] merge succesfull." << std::endl;
+					}
+				}
+			}                                                                                        
 		};
 	}
 }

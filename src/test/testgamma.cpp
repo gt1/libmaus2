@@ -160,17 +160,27 @@ void testLow()
 void testgammagap()
 {
 	unsigned int n = 512*1024+199481101;
-	std::vector<uint64_t> V(n);
+	std::vector<uint64_t> V (n);
+	std::vector<uint64_t> V2(n);
 	for ( uint64_t i = 0; i < V.size(); ++i )
+	{
 		V[i] = i & 0xFFull;
+		V2[i] = rand() % 0xFFull;
+	}
 
 	std::string const fn("tmpfile");
+	std::string const fn2("tmpfile2");
+	std::string const fnm("tmpfile.merged");
 
 	::libmaus::util::TempFileRemovalContainer::setup();
 	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+	::libmaus::util::TempFileRemovalContainer::addTempFile(fn2);
+	::libmaus::util::TempFileRemovalContainer::addTempFile(fnm);
 
 	::libmaus::gamma::GammaGapEncoder GGE(fn);
 	GGE.encode(V.begin(),V.end());
+	::libmaus::gamma::GammaGapEncoder GGE2(fn2);
+	GGE2.encode(V2.begin(),V2.end());
 	
 	::libmaus::huffman::IndexDecoderData IDD(fn);
 	
@@ -183,14 +193,21 @@ void testgammagap()
 		ok = ok && (v == V[i]);
 	}
 	std::cout << "decoding " << (ok ? "ok" : "fail") << std::endl;
+
+	std::vector < std::vector<std::string> > merin;
+	merin.push_back(std::vector<std::string>(1,fn));
+	merin.push_back(std::vector<std::string>(1,fn2));
+	::libmaus::gamma::GammaGapEncoder::merge(merin,fnm);
 }
 
 int main()
 {
 	try
 	{
+		#if 0
 		testLow();
 		testRandom(256*1024*1024);
+		#endif
 		testgammagap();
 	}
 	catch(std::exception const & ex)

@@ -29,23 +29,21 @@ namespace libmaus
 	{
 		struct BwtMergeZBlock
 		{
-			uint64_t zoff;
-			uint64_t zlen;
+			uint64_t zabspos;
 			uint64_t zrank;
 			
 			BwtMergeZBlock()
-			: zoff(0), zlen(0), zrank(0)
+			: zabspos(0), zrank(0)
 			{
 			
 			}
 			
-			BwtMergeZBlock(uint64_t const rzoff, uint64_t const rzlen, uint64_t const rzrank)
-			: zoff(rzoff), zlen(rzlen), zrank(rzrank) {}
+			BwtMergeZBlock(uint64_t const rzabspos, uint64_t const rzrank)
+			: zabspos(rzabspos), zrank(rzrank) {}
 			
 			BwtMergeZBlock(std::istream & stream)
 			:
-				zoff(::libmaus::util::NumberSerialisation::deserialiseNumber(stream)),
-				zlen(::libmaus::util::NumberSerialisation::deserialiseNumber(stream)),
+				zabspos(::libmaus::util::NumberSerialisation::deserialiseNumber(stream)),
 				zrank(::libmaus::util::NumberSerialisation::deserialiseNumber(stream))
 			{
 			
@@ -60,8 +58,7 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,zoff);
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,zlen);
+				::libmaus::util::NumberSerialisation::serialiseNumber(stream,zabspos);
 				::libmaus::util::NumberSerialisation::serialiseNumber(stream,zrank);
 			}
 			
@@ -75,7 +72,7 @@ namespace libmaus
 
 		inline std::ostream & operator<<(std::ostream & out, BwtMergeZBlock const & zblock)
 		{
-			out << "BwtMergeZBlock(" << zblock.zoff << "," << zblock.zlen << "," << zblock.zrank << ")";
+			out << "BwtMergeZBlock(abspos=" << zblock.zabspos << ",rank=" << zblock.zrank << ")";
 			return out;
 		}
 	}
