@@ -159,6 +159,7 @@ void testGetPut64()
 
 void sortCheck()
 {
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
 	std::cerr << "Testing sort using CompactArrayIterator...";
 	
 	srand(time(0));
@@ -202,6 +203,7 @@ void sortCheck()
 			assert ( C.get(i) == V[i] );
 	}	
 	std::cerr << "done." << std::endl;
+#endif
 }
 
 void bubbleSortCheck()
@@ -314,6 +316,7 @@ void stableSortCheck()
 
 void sortSparseCheck()
 {
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
 	srand(time(0));
 
 	for ( unsigned int i = 0; i < 1000; ++i )
@@ -362,6 +365,7 @@ void sortSparseCheck()
 		for ( unsigned int i = 1; i < C.n; ++i )
 			assert ( C.get(i-1) <= C.get(i) );
 	}	
+#endif
 }
 
 void sortStableSparseCheck()
