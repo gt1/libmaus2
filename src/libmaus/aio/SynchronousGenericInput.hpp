@@ -46,6 +46,8 @@ namespace libmaus
 			uint64_t const totalwords;
 			uint64_t totalwordsread;
 			
+			bool checkmod;
+			
 			typedef SynchronousGenericInput<input_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -77,13 +79,17 @@ namespace libmaus
 				return readArrayTemplate< ::libmaus::autoarray::alloc_type_cxx>(inputfilename);			
 			}
 
-			SynchronousGenericInput(std::istream & ristr, uint64_t const rbufsize, uint64_t const rtotalwords)
+			SynchronousGenericInput(std::istream & ristr, uint64_t const rbufsize, 
+				uint64_t const rtotalwords = std::numeric_limits<uint64_t>::max(),
+				bool const rcheckmod = true
+			)
 			: bufsize(rbufsize), buffer(bufsize,false), 
 			  pa(buffer.get()), pc(pa), pe(pa),
 			  Pistr(),
 			  istr(ristr),
 			  totalwords ( rtotalwords ),
-			  totalwordsread(0)
+			  totalwordsread(0),
+			  checkmod(rcheckmod)
 			{
 			
 			}
@@ -99,7 +105,8 @@ namespace libmaus
 			  Pistr(new ifstream_type(filename.c_str(),std::ios::binary)),
 			  istr(*Pistr),
 			  totalwords ( std::min ( ::libmaus::util::GetFileSize::getFileSize(filename) / sizeof(input_type) - roffset, rtotalwords) ),
-			  totalwordsread(0)
+			  totalwordsread(0),
+			  checkmod(true)
 			{
 				if ( ! Pistr->is_open() )
 				{
@@ -134,7 +141,15 @@ namespace libmaus
 				
 				istr.read ( reinterpret_cast<char *>(buffer.get()), toreadwords * sizeof(input_type));
 				uint64_t const bytesread = istr.gcount();
-				assert ( bytesread % sizeof(input_type) == 0 );
+				
+				if ( checkmod && (bytesread % sizeof(input_type) != 0) )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "SynchronousGenericInput::fillBuffer: Number of bytes " << bytesread << " read is not a multiple of entity type." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
 				uint64_t const wordsread = bytesread / sizeof(input_type);
 					
 				if ( wordsread == 0 )

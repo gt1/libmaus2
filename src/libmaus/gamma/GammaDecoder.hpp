@@ -20,6 +20,7 @@
 #define LIBMAUS_GAMMA_GAMMADECODER_HPP
 
 #include <libmaus/bitio/Clz.hpp>
+#include <libmaus/util/unique_ptr.hpp>
 
 namespace libmaus
 {
@@ -29,12 +30,20 @@ namespace libmaus
 		struct GammaDecoder : public libmaus::bitio::Clz
 		{
 			typedef _stream_type stream_type;
+			typedef GammaDecoder<stream_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
 			uint64_t v;
 			uint64_t bav;
 			
 			GammaDecoder(stream_type & rstream) : stream(rstream), v(0), bav(0) {}
+			
+			void flush()
+			{
+				bav = 0;
+				v = 0;
+			}
 			
 			uint64_t decodeWord(unsigned int const bits)
 			{

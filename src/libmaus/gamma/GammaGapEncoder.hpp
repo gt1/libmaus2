@@ -71,7 +71,7 @@ namespace libmaus
 					GE.flush();
 					
 					::libmaus::huffman::IndexEntry const entry(pos,bcnt,vacc);
-					index.push_back(entry);					
+					index.push_back(entry);										
 				}
 				
 				SGO.flush();
@@ -137,6 +137,7 @@ namespace libmaus
 				::libmaus::aio::SynchronousGenericOutput<uint8_t> SGO(COS,64*1024);
 				::libmaus::aio::SynchronousGenericOutput<uint8_t>::iterator_type it(SGO);
 				::libmaus::bitio::FastWriteBitWriterStream8Std FWBWS(it);
+								
 				writeIndex(FWBWS,indexpos);
 				
 				FWBWS.flush();

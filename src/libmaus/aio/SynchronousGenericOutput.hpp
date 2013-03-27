@@ -80,7 +80,8 @@ namespace libmaus
 
                         SynchronousGenericOutput(std::ostream & out, uint64_t const bufsize)
                         : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
-                          W(out)
+                          W(out),
+                          datawrittentofile(0)
                         {
 
                         }

@@ -32,7 +32,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/network/LogReceiver.cpp \
 	libmaus/huffman/IndexLoaderBase.cpp \
 	libmaus/bambam/BamAlignment.cpp \
-	libmaus/bambam/BamAlignmentNameComparator.cpp
+	libmaus/bambam/BamAlignmentNameComparator.cpp \
+	libmaus/huffman/KvInitResult.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@
@@ -63,7 +64,7 @@ libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp
 
 libmausgamma_includedir=$(includedir)/libmaus/gamma/
 libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp \
-	libmaus/gamma/GammaGapEncoder.hpp
+	libmaus/gamma/GammaGapEncoder.hpp libmaus/gamma/GammaGapDecoder.hpp
 
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
@@ -231,7 +232,8 @@ libmaushuffman_include_HEADERS=\
 	libmaus/huffman/RLDecoderIndexBase.hpp \
 	libmaus/huffman/GapDecoderIndexBase.hpp \
 	libmaus/huffman/IndexDecoderDataArray.hpp \
-	libmaus/huffman/HuffmanInputFile.hpp
+	libmaus/huffman/HuffmanInputFile.hpp \
+	libmaus/huffman/KvInitResult.hpp
 
 libmausmath_includedir=$(includedir)/libmaus/math
 libmausmath_include_HEADERS=\

@@ -17,41 +17,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(GAPDECODER_HPP)
-#define GAPDECODER_HPP
+#if ! defined(LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP)
+#define LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP
 
 #include <fstream>
-#include <libmaus/bitio/BitIOInput.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/huffman/RLDecoder.hpp>
 #include <libmaus/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus/huffman/KvInitResult.hpp>
+#include <libmaus/gamma/GammaDecoder.hpp>
+#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus/aio/SynchronousGenericInput.hpp>
 
 namespace libmaus
 {
-	namespace huffman
-	{
-		
-		struct GapDecoder
+	namespace gamma
+	{		
+		struct GammaGapDecoder
 		{
-			typedef GapDecoder this_type;
+			typedef GammaGapDecoder this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			::libmaus::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
 			::libmaus::huffman::IndexDecoderDataArray const & idda;
 			
-			::libmaus::util::unique_ptr<std::ifstream>::type istr;
-			typedef ::libmaus::huffman::BitInputBuffer4 sbis_type;
-			typedef sbis_type::unique_ptr_type sbis_ptr_type;
-			sbis_ptr_type SBIS;			
-			bool needescape;
-			
-			::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type ECE;
-			::libmaus::huffman::CanonicalEncoder::unique_ptr_type CE;
-			
+			::libmaus::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
+			::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
+
 			::libmaus::autoarray::AutoArray<uint64_t, ::libmaus::autoarray::alloc_type_c > decodebuf;
 			uint64_t * pa;
 			uint64_t * pc;
@@ -62,42 +53,43 @@ namespace libmaus
 
 			void openNewFile()
 			{
-				if ( fileptr < idda.data.size() )
+				if ( fileptr < idda.data.size() && blockptr < idda.data[fileptr].numentries )
 				{
 					/* open file */
-					istr = UNIQUE_PTR_MOVE(::libmaus::util::unique_ptr<std::ifstream>::type(
-						new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary)));
-					
-					assert ( istr->is_open() );
-						
-					/* inst SBIS */
-					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
-					SBIS = UNIQUE_PTR_MOVE(sbis_ptr_type(new sbis_type(ript,64*1024)));
-					/* do we need escape symbols */
-					needescape = SBIS->readBit();
-					/* read number of entries in file */
-					/* n = */ ::libmaus::bitio::readElias2(*SBIS);
-					/* deserialise freqs */
-					::libmaus::autoarray::AutoArray< std::pair<int64_t, uint64_t> > dist =
-						::libmaus::huffman::CanonicalEncoder::deserialise(*SBIS);
+					istr = UNIQUE_PTR_MOVE(
+						::libmaus::aio::CheckedInputStream::unique_ptr_type(
+							new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
+						)
+					);
 
-					/* instantiate Huffman decoder */
-					if ( needescape )
-						ECE = UNIQUE_PTR_MOVE(::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::EscapeCanonicalEncoder(dist)));
-					else
-						CE = UNIQUE_PTR_MOVE(::libmaus::huffman::CanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::CanonicalEncoder(dist)));
-					
 					/* seek to block */
-					if ( blockptr < idda.data[fileptr].numentries )
-					{
-						uint64_t const pos = idda.data[fileptr].getPos(blockptr);
+					uint64_t const pos = idda.data[fileptr].getPos(blockptr);
 					
-						istr->clear();
-						istr->seekg ( pos , std::ios::beg );
-						assert ( static_cast<int64_t>(istr->tellg()) == static_cast<int64_t>(pos) );
-						sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
-						SBIS = UNIQUE_PTR_MOVE(sbis_ptr_type(new sbis_type(ript,64*1024)));
+					istr->seekg ( pos , std::ios::beg );
+					
+					if ( static_cast<int64_t>(istr->tellg()) != static_cast<int64_t>(pos) )
+					{
+						::libmaus::exception::LibMausException ex;
+						ex.getStream() << "Failed to seek to position " << pos << " in file " << idda.data[fileptr].filename << std::endl;
+						ex.finish();
+						throw ex;
 					}
+					
+					SGI = UNIQUE_PTR_MOVE(
+						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
+							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
+								*istr,64*1024,
+								::std::numeric_limits<uint64_t>::max(),
+								false /* do not check for multiples of entity size */
+							)
+						)
+					);
+					
+					GD = UNIQUE_PTR_MOVE(
+						::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type(
+							new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
+						)
+					);
 				}
 			}
 			
@@ -105,7 +97,72 @@ namespace libmaus
 			{
 				return idda.kvec.size() ? idda.kvec[idda.kvec.size()-1] : 0;
 			}
+
+			/* decode next block */
+			bool decodeBlock()
+			{
+				/* open new file if necessary */
+				bool changedfile = false;
+				while ( fileptr < idda.data.size() && blockptr == idda.data[fileptr].numentries )
+				{
+					fileptr++;
+					blockptr = 0;
+					changedfile = true;
+				}
+				if ( fileptr == idda.data.size() )
+					return false;
+				if ( changedfile )
+					openNewFile();
+
+				/* align to word boundary */
+				GD->flush();
+				/* read block size */
+				uint64_t const blocksize = GD->decodeWord(32);
+
+				/* increase size of memory buffer if necessary */
+				if ( blocksize > decodebuf.size() )
+					decodebuf.resize(blocksize);
+
+				/* set buffer pointers */
+				pa = decodebuf.begin();
+				pc = pa;
+				pe = pa + blocksize;
+
+				/* decode block */
+				for ( uint64_t i = 0; i < blocksize; ++i )
+					decodebuf[i] = GD->decode();
+
+				/* increment block pointer */
+				blockptr++;
+				
+				return true;
+			}
+
+			/* decode next symbol */
+			uint64_t decode()
+			{
+				if ( pc == pe )
+					decodeBlock();
+				assert ( pc != pe );
+				return *(pc++);	
+			}
 			
+			/* peek at next symbol without advancing decode pointer */
+			uint64_t peek()
+			{
+				if ( pc == pe )
+					decodeBlock();
+				assert ( pc != pe );
+				return *pc;				
+			}
+			
+			/* set current symbol to v */
+			void adjust(uint64_t const v)
+			{
+				assert ( pc != pe );
+				*pc = v;
+			}
+
 			void init(uint64_t offset = 0, uint64_t * psymoffset = 0)
 			{
 				if ( ((idda.kvec.size()!=0) && (idda.kvec[idda.kvec.size()-1] != 0)) )
@@ -142,10 +199,9 @@ namespace libmaus
 				}
 			}
 			
-
-			void initKV(uint64_t kvtarget, KvInitResult & result)
+			void initKV(uint64_t kvtarget, ::libmaus::huffman::KvInitResult & result)
 			{
-				result = KvInitResult();
+				result = ::libmaus::huffman::KvInitResult();
 			
 				if ( 
 					(
@@ -223,10 +279,10 @@ namespace libmaus
 				}
 			}
 			
-			GapDecoder(
+			GammaGapDecoder(
 				::libmaus::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t kvtarget,
-				KvInitResult & result 
+				::libmaus::huffman::KvInitResult & result 
 			)
 			:
 			  Pidda(),
@@ -239,10 +295,10 @@ namespace libmaus
 				initKV(kvtarget, result);
 			}
 
-			GapDecoder(
+			GammaGapDecoder(
 				std::vector<std::string> const & rfilenames,
 				uint64_t kvtarget,
-				KvInitResult & result 
+				::libmaus::huffman::KvInitResult & result 
 			)
 			:
 			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
@@ -255,7 +311,7 @@ namespace libmaus
 				initKV(kvtarget, result);
 			}
 
-			GapDecoder(
+			GammaGapDecoder(
 				std::vector<std::string> const & rfilenames, 
 				uint64_t offset = 0, 
 				uint64_t * psymoffset = 0
@@ -271,7 +327,7 @@ namespace libmaus
 				init(offset,psymoffset);
 			}
 
-			GapDecoder(
+			GammaGapDecoder(
 				::libmaus::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t offset = 0, 
 				uint64_t * psymoffset = 0
@@ -287,92 +343,11 @@ namespace libmaus
 				init(offset,psymoffset);
 			}
 			
-			/* decode next block */
-			bool decodeBlock()
-			{
-				/* open new file if necessary */
-				bool changedfile = false;
-				while ( fileptr < idda.data.size() && blockptr == idda.data[fileptr].numentries )
-				{
-					fileptr++;
-					blockptr = 0;
-					changedfile = true;
-				}
-				if ( fileptr == idda.data.size() )
-					return false;
-				if ( changedfile )
-					openNewFile();
-
-				/* align to byte boundary */
-				SBIS->flush();
-				/* read block size */
-				uint64_t const blocksize = ::libmaus::bitio::readElias2(*SBIS);
-
-				/* align to byte boundary */
-				SBIS->flush();
-			
-				/* increase size of memory buffer if necessary */
-				if ( blocksize > decodebuf.size() )
-					decodebuf.resize(blocksize);
-
-				/* set buffer pointers */
-				pa = decodebuf.begin();
-				pc = pa;
-				pe = pa + blocksize;
-
-				/* decode block */
-				if ( needescape )
-				{
-					for ( uint64_t i = 0; i < blocksize; ++i )
-						decodebuf[i] = ECE->fastDecode(*SBIS);
-					SBIS->flush();
-				}
-				else
-				{
-					for ( uint64_t i = 0; i < blocksize; ++i )
-						decodebuf[i] = CE->fastDecode(*SBIS);
-					SBIS->flush();
-				}
-
-				/* increment block pointer */
-				blockptr++;
-				
-				return true;
-			}
-			
-			/* decode next symbol */
-			uint64_t decode()
-			{
-				if ( pc == pe )
-					decodeBlock();
-				assert ( pc != pe );
-				return *(pc++);	
-			}
-			
-			/* peek at next symbol without advancing decode pointer */
-			uint64_t peek()
-			{
-				if ( pc == pe )
-					decodeBlock();
-				assert ( pc != pe );
-				return *pc;				
-			}
-			
-			/* set current symbol to v */
-			void adjust(uint64_t const v)
-			{
-				assert ( pc != pe );
-				*pc = v;
-			}
-
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				assert ( istr.is_open() );
-				::libmaus::bitio::StreamBitInputStream SBIS(istr);	
-				SBIS.readBit(); // need escape
-				return ::libmaus::bitio::readElias2(SBIS);
+				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(filename,64);
+				return SGI.get();
 			}
 			
 			// get length of vector of files in symbols

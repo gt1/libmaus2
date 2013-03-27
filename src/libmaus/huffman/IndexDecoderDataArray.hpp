@@ -350,7 +350,7 @@ namespace libmaus
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(indexpos) )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "Failed to seek to index position " << indexpos << " in file " << filename << " of size " 
+					se.getStream() << "Failed to seek to position " << indexpos << " of index in file " << filename << " of size " 
 						<< ::libmaus::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;

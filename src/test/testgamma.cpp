@@ -154,25 +154,48 @@ void testLow()
 
 #include <libmaus/gamma/GammaGapEncoder.hpp>
 #include <libmaus/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus/gamma/GammaGapDecoder.hpp>
+#include <libmaus/util/TempFileRemovalContainer.hpp>
 
 void testgammagap()
 {
-	unsigned int n = 512*1024;
+	unsigned int n = 512*1024+199481101;
 	std::vector<uint64_t> V(n);
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		V[i] = i & 0xFFull;
 
 	std::string const fn("tmpfile");
+
+	::libmaus::util::TempFileRemovalContainer::setup();
+	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+
 	::libmaus::gamma::GammaGapEncoder GGE(fn);
 	GGE.encode(V.begin(),V.end());
 	
-	::libmaus::huffman::IndexDecoderData IDD(fn);	
+	::libmaus::huffman::IndexDecoderData IDD(fn);
+	
+	::libmaus::gamma::GammaGapDecoder GGD(std::vector<std::string>(1,fn));
+	
+	bool ok = true;
+	for ( uint64_t i = 0; i < n; ++i )
+	{
+		uint64_t const v = GGD.decode();
+		ok = ok && (v == V[i]);
+	}
+	std::cout << "decoding " << (ok ? "ok" : "fail") << std::endl;
 }
 
 int main()
 {
-	testgammagap();
-	return 0;
-	testLow();
-	testRandom(256*1024*1024);
+	try
+	{
+		testLow();
+		testRandom(256*1024*1024);
+		testgammagap();
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 }

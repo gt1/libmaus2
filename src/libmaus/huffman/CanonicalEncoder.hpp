@@ -46,7 +46,6 @@ namespace libmaus
 			typedef CanonicalEncoder this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			// typedef ::libmaus::util::unordered_map < int64_t , uint64_t >::type symtorank_type;
 			typedef ::libmaus::util::SimpleHashMap<int64_t,uint64_t> symtorank_type;
 			typedef symtorank_type::unique_ptr_type symtorank_ptr_type;
 
@@ -124,7 +123,6 @@ namespace libmaus
 				return ostr.str();
 			}
 			
-
 			static ::libmaus::autoarray::AutoArray< std::pair<int64_t, uint64_t> > deserialise(std::string const & serial)
 			{
 				std::istringstream istr(serial);
