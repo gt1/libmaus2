@@ -29,6 +29,10 @@ namespace libmaus
 	{
 		struct DArray
 		{
+			typedef DArray this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			::libmaus::autoarray::AutoArray<uint64_t> D;
 			
 			template<typename stream_type>
