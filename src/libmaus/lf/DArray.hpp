@@ -93,7 +93,7 @@ namespace libmaus
 				}
 				
 				for ( uint64_t i = 0; i < D.size(); ++i )
-					D[i] != o.D[i];
+					D[i] += o.D[i];
 			}
 		};
 	}
