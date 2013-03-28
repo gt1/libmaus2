@@ -81,6 +81,20 @@ namespace libmaus
 				::libmaus::aio::CheckedOutputStream COS(filename);
 				serialise(COS);
 			}
+			
+			void merge(DArray const & o)
+			{
+				if ( o.D.size() != D.size() )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "DArray::merge(): array sizes are not compatible." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				for ( uint64_t i = 0; i < D.size(); ++i )
+					D[i] != o.D[i];
+			}
 		};
 	}
 }
