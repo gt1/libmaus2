@@ -200,10 +200,52 @@ void testgammagap()
 	::libmaus::gamma::GammaGapEncoder::merge(merin,fnm);
 }
 
+#include <libmaus/gamma/GammaRLEncoder.hpp>
+#include <libmaus/gamma/GammaRLDecoder.hpp>
+
+void testgammarl()
+{
+	srand(time(0));
+	unsigned int n = 128*1024*1024;
+	std::vector<uint64_t> V (n);
+	for ( uint64_t i = 0; i < V.size(); ++i )
+		V[i] = rand() & 7;
+
+	std::string const fn("tmpfile");
+	::libmaus::util::TempFileRemovalContainer::setup();
+	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+	::libmaus::gamma::GammaRLEncoder GE(fn,n);
+	
+	for ( uint64_t i = 0; i < V.size(); ++i )
+		GE.encode(V[i]);
+	
+	GE.flush();
+
+	#if 0
+	::libmaus::huffman::IndexDecoderData IDD(fn);
+	for ( uint64_t i = 0; i < IDD.numentries+1; ++i )
+		std::cerr << IDD.readEntry(i) << std::endl;	
+	#endif
+
+	::libmaus::gamma::GammaRLDecoder GD(std::vector<std::string>(1,fn));
+	assert ( GD.getN() == n );
+
+	for ( uint64_t i = 0; i < n; ++i )
+		assert ( GD.decode() == static_cast<int64_t>(V[i]) );
+	
+	uint64_t const off = n / 2 + 1031;
+	::libmaus::gamma::GammaRLDecoder GD2(std::vector<std::string>(1,fn),off);
+	for ( uint64_t i = off; i < n; ++i )
+		assert ( GD2.decode() == static_cast<int64_t>(V[i]) );
+	
+	remove ( fn.c_str() );
+}
+
 int main()
 {
 	try
 	{
+		testgammarl();
 		testLow();
 		testRandom(256*1024*1024);
 		testgammagap();
