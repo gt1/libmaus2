@@ -53,6 +53,7 @@ namespace libmaus
 
 			uint64_t fileptr;
 			uint64_t blockptr;
+			unsigned int albits;
 
 			uint64_t getN() const
 			{
@@ -70,6 +71,15 @@ namespace libmaus
 				return SGI.get();
 			}
 			
+			// get length of file in symbols
+			static unsigned int getAlBits(std::string const & filename)
+			{
+				::libmaus::aio::CheckedInputStream CIS(filename);
+				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64);
+				SGI.get(); // file length
+				return SGI.get();
+			}
+			
 			// get length of vector of files in symbols
 			static uint64_t getLength(std::vector<std::string> const & filenames)
 			{
@@ -84,6 +94,8 @@ namespace libmaus
 				if ( fileptr < idda.data.size() ) // file ptr valid, does file exist?
 				{
 					assert ( blockptr < idda.data[fileptr].numentries ); // check block pointer
+					
+					albits = getAlBits(idda.data[fileptr].filename);
 
 					// open new input file stream
 					CIS = UNIQUE_PTR_MOVE(
@@ -150,7 +162,7 @@ namespace libmaus
 				// decode symbols
 				for ( uint64_t i = 0; i < bs; ++i )
 				{
-					uint64_t const sym = GD->decodeWord(3);
+					uint64_t const sym = GD->decodeWord(albits);
 					uint64_t const rl  = GD->decode();
 					rlbuffer[i] = rl_pair(sym,rl);
 				}

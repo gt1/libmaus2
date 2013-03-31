@@ -208,13 +208,16 @@ void testgammarl()
 	srand(time(0));
 	unsigned int n = 128*1024*1024;
 	std::vector<uint64_t> V (n);
+	unsigned int const albits = 3;
+	uint64_t const almask = (1ull << albits)-1;
+	
 	for ( uint64_t i = 0; i < V.size(); ++i )
-		V[i] = rand() & 7;
+		V[i] = rand() & almask;
 
 	std::string const fn("tmpfile");
 	::libmaus::util::TempFileRemovalContainer::setup();
 	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-	::libmaus::gamma::GammaRLEncoder GE(fn,n);
+	::libmaus::gamma::GammaRLEncoder GE(fn,albits,n);
 	
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		GE.encode(V[i]);

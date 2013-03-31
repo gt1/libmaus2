@@ -55,11 +55,14 @@ namespace libmaus
 			
 			bool indexwritten;
 			
-			GammaRLEncoder(std::string const & filename, uint64_t const n)
+			unsigned int const albits;
+			
+			GammaRLEncoder(std::string const & filename, unsigned int const ralbits, uint64_t const n)
 			: COS(filename), SGO(COS,8*1024), GE(SGO), 
-			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), cursym(0), curcnt(0), indexwritten(false)
+			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), cursym(0), curcnt(0), indexwritten(false), albits(ralbits)
 			{
 				SGO.put(n);
+				SGO.put(albits);
 			}
 			
 			void implicitFlush()
@@ -75,7 +78,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < bs; ++i )
 					{
 						acc += pa[i].second;
-						GE.encodeWord(pa[i].first,3);
+						GE.encodeWord(pa[i].first,albits);
 						GE.encode(pa[i].second);
 					}
 					GE.flush();
