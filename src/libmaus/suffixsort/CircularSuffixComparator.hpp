@@ -20,6 +20,7 @@
 #define LIBMAUS_SUFFIXSORT_CIRCULARSUFFIXCOMPARATOR_HPP
 
 #include <libmaus/aio/CircularWrapper.hpp>
+#include <stdexcept>
 
 namespace libmaus
 {
@@ -83,10 +84,8 @@ namespace libmaus
 						return ca < cb;
 				}
 				
-				::libmaus::exception::LibMausException se;
-				se.getStream() << "CircularSuffixComparator::operator(iterator,iterator,uint64_t): comparison extends beyond end of given text." << std::endl;
-				se.finish();
-				throw se;
+				std::runtime_error rt("CircularSuffixComparator::operator(iterator,iterator,uint64_t): comparison extends beyond end of given text.");
+				throw rt;
 			}
 
 			// search for smallest suffix in SA that equals q or is larger than q

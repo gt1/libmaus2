@@ -65,6 +65,10 @@ namespace libmaus
 				SGO.put(n);
 				SGO.put(albits);
 			}
+			~GammaRLEncoder()
+			{
+				flush();
+			}
 			
 			void implicitFlush()
 			{

@@ -67,7 +67,9 @@ namespace libmaus
 			static uint64_t getLength(std::string const & filename)
 			{
 				::libmaus::aio::CheckedInputStream CIS(filename);
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64);
+				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
+					std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
+				);
 				return SGI.get();
 			}
 			
@@ -75,7 +77,9 @@ namespace libmaus
 			static unsigned int getAlBits(std::string const & filename)
 			{
 				::libmaus::aio::CheckedInputStream CIS(filename);
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64);
+				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
+					std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
+				);
 				SGI.get(); // file length
 				return SGI.get();
 			}
