@@ -26,6 +26,7 @@
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/bitio/FastWriteBitWriter.hpp>
 #include <libmaus/math/bitsPerNum.hpp>
+#include <libmaus/gamma/GammaRLDecoder.hpp>
 
 namespace libmaus
 {
@@ -136,7 +137,11 @@ namespace libmaus
 				writeIndex(indexpos);				
 			}
 			
-			void writeIndex(::libmaus::bitio::FastWriteBitWriterStream8Std & gapHEF, uint64_t const indexpos)
+			static void writeIndex(
+				::std::vector< ::libmaus::huffman::IndexEntry > const & index,
+				::libmaus::bitio::FastWriteBitWriterStream8Std & gapHEF, 
+				uint64_t const indexpos
+			)
 			{
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
 				unsigned int const posbits = ::libmaus::math::bitsPerNum(maxpos);
@@ -193,7 +198,7 @@ namespace libmaus
 					::libmaus::aio::SynchronousGenericOutput<uint8_t> SGO(COS,64*1024);
 					::libmaus::aio::SynchronousGenericOutput<uint8_t>::iterator_type it(SGO);
 					::libmaus::bitio::FastWriteBitWriterStream8Std FWBWS(it);
-					writeIndex(FWBWS,indexpos);
+					writeIndex(index,FWBWS,indexpos);
 
 					FWBWS.flush();
 					SGO.flush();
@@ -201,7 +206,56 @@ namespace libmaus
 					
 					indexwritten = true;
 				}
-			}			
+			}
+			
+			static void concatenate(std::vector<std::string> const & infilenames, std::string const & outfilename)
+			{
+				uint64_t const n = ::libmaus::gamma::GammaRLDecoder::getLength(infilenames);
+				unsigned int const albits = infilenames.size() ? ::libmaus::gamma::GammaRLDecoder::getAlBits(infilenames[0]) : 0;
+				
+				::libmaus::aio::CheckedOutputStream COS(outfilename);
+				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64);
+				SGO.put(n);
+				SGO.put(albits);
+				SGO.flush();
+				uint64_t const headerlen = 2*sizeof(uint64_t);
+				
+				std::vector < ::libmaus::huffman::IndexEntry > index;
+				uint64_t ioff = headerlen;
+				
+				for ( uint64_t i = 0; i < infilenames.size(); ++i )
+				{
+					uint64_t const indexpos = ::libmaus::huffman::IndexLoaderBase::getIndexPos(infilenames[i]);
+					uint64_t const datalen = indexpos-headerlen;
+					
+					// copy data
+					::libmaus::aio::CheckedInputStream CIS(infilenames[i]);
+					CIS.seekg(headerlen);
+					::libmaus::util::GetFileSize::copy(CIS,COS,datalen);
+					
+					// add entries to index
+					::libmaus::huffman::IndexDecoderData indexdata(infilenames[i]);
+					for ( uint64_t j = 0; j < indexdata.numentries; ++j )
+					{
+						::libmaus::huffman::IndexEntry const ij  = indexdata.readEntry(j);
+						::libmaus::huffman::IndexEntry const ij1 = indexdata.readEntry(j+1);						
+						index.push_back(::libmaus::huffman::IndexEntry((ij.pos - headerlen) + ioff, ij1.kcnt - ij.kcnt, ij1.vcnt - ij.vcnt));
+					}
+					
+					// update position pointer
+					ioff += datalen;
+				}
+
+				// write index
+				::libmaus::aio::SynchronousGenericOutput<uint8_t> SGO8(COS,64*1024);
+				::libmaus::aio::SynchronousGenericOutput<uint8_t>::iterator_type it(SGO8);
+				::libmaus::bitio::FastWriteBitWriterStream8Std FWBWS(it);
+				writeIndex(index,FWBWS,ioff);
+
+				FWBWS.flush();
+				SGO8.flush();
+				COS.flush();
+			}
 		};
 	}
 }

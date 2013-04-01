@@ -207,22 +207,41 @@ void testgammarl()
 {
 	srand(time(0));
 	unsigned int n = 128*1024*1024;
+	unsigned int n2 = 64*1024*1024;
 	std::vector<uint64_t> V (n);
+	std::vector<uint64_t> V2 (n2);
+	std::vector<uint64_t> Vcat;
 	unsigned int const albits = 3;
 	uint64_t const almask = (1ull << albits)-1;
 	
 	for ( uint64_t i = 0; i < V.size(); ++i )
-		V[i] = rand() & almask;
+	{
+		V[i]  = rand() & almask;
+		Vcat.push_back(V[i]);
+	}
+	for ( uint64_t i = 0; i < V2.size(); ++i )
+	{
+		V2[i] = rand() & almask;
+		Vcat.push_back(V2[i]);
+	}
 
 	std::string const fn("tmpfile");
+	std::string const fn2("tmpfile2");
+	std::string const fn3("tmpfile3");
 	::libmaus::util::TempFileRemovalContainer::setup();
 	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-	::libmaus::gamma::GammaRLEncoder GE(fn,albits,n);
-	
+	::libmaus::util::TempFileRemovalContainer::addTempFile(fn2);
+	::libmaus::util::TempFileRemovalContainer::addTempFile(fn3);
+
+	::libmaus::gamma::GammaRLEncoder GE(fn,albits,V.size());	
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		GE.encode(V[i]);
-	
 	GE.flush();
+
+	::libmaus::gamma::GammaRLEncoder GE2(fn2,albits,V2.size());
+	for ( uint64_t i = 0; i < V2.size(); ++i )
+		GE2.encode(V2[i]);
+	GE2.flush();
 
 	#if 0
 	::libmaus::huffman::IndexDecoderData IDD(fn);
@@ -240,8 +259,24 @@ void testgammarl()
 	::libmaus::gamma::GammaRLDecoder GD2(std::vector<std::string>(1,fn),off);
 	for ( uint64_t i = off; i < n; ++i )
 		assert ( GD2.decode() == static_cast<int64_t>(V[i]) );
+		
+	std::vector<std::string> fnv;
+	fnv.push_back(fn);
+	fnv.push_back(fn2);
+	::libmaus::gamma::GammaRLEncoder::concatenate(fnv,fn3);
 	
+	for ( uint64_t off = 0; off < Vcat.size(); off += 18521 )
+	{
+		::libmaus::gamma::GammaRLDecoder GD3(std::vector<std::string>(1,fn3),off);	
+		assert ( GD3.getN() == Vcat.size() );
+		
+		for ( uint64_t i = 0; i < std::min(static_cast<uint64_t>(1024ull),Vcat.size()-off); ++i )
+			assert ( GD3.decode() == static_cast<int64_t>(Vcat[off+i]) );
+	}
+
 	remove ( fn.c_str() );
+	remove ( fn2.c_str() );
+	remove ( fn3.c_str() );	
 }
 
 int main()
