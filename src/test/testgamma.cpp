@@ -233,12 +233,12 @@ void testgammarl()
 	::libmaus::util::TempFileRemovalContainer::addTempFile(fn2);
 	::libmaus::util::TempFileRemovalContainer::addTempFile(fn3);
 
-	::libmaus::gamma::GammaRLEncoder GE(fn,albits,V.size());	
+	::libmaus::gamma::GammaRLEncoder GE(fn,albits,V.size(),256*1024);	
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		GE.encode(V[i]);
 	GE.flush();
 
-	::libmaus::gamma::GammaRLEncoder GE2(fn2,albits,V2.size());
+	::libmaus::gamma::GammaRLEncoder GE2(fn2,albits,V2.size(),256*1024);
 	for ( uint64_t i = 0; i < V2.size(); ++i )
 		GE2.encode(V2[i]);
 	GE2.flush();
