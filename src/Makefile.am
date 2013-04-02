@@ -154,7 +154,9 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/CompactOffsetOneArray.hpp \
 	libmaus/bitio/ArrayDecode.hpp \
 	libmaus/bitio/BitStreamFileDecoder.hpp \
-	libmaus/bitio/Clz.hpp
+	libmaus/bitio/Clz.hpp \
+	libmaus/bitio/CompactDecoderBuffer.hpp \
+	libmaus/bitio/Ctz.hpp
 
 libmausrank_includedir=$(includedir)/libmaus/rank
 libmausrank_include_HEADERS=\
@@ -683,7 +685,8 @@ noinst_PROGRAMS = \
 	testfastarecode \
 	testbamtofastq \
 	testbamdamage \
-	testgamma
+	testgamma \
+	testcompact
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -842,3 +845,6 @@ testbamdamage_LDFLAGS = @SNAPPYLDFLAGS@
 
 testgamma_SOURCES = test/testgamma.cpp
 testgamma_LDADD = libmaus.la
+
+testcompact_SOURCES = test/testcompact.cpp
+testcompact_LDADD = libmaus.la
