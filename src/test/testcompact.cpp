@@ -29,6 +29,16 @@ void testcompact()
 	CA.serialize(COS);
 	
 	::libmaus::bitio::CompactDecoderWrapper W(fn,4096);
+	
+	W.seekg(0,std::ios::end);
+	int64_t const fs = W.tellg();
+	W.seekg(0,std::ios::beg);
+	W.clear();
+	
+	assert ( fs == n );
+	
+	std::cerr << "n=" << n << " fs=" << fs << std::endl;
+	
 	for ( uint64_t i = 0; i < n; ++i )
 	{
 		assert ( W.tellg() == static_cast<int64_t>(i) );

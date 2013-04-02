@@ -125,7 +125,7 @@ namespace libmaus
 							abstarget = cur + off;
 							break;
 						case ::std::ios_base::beg:
-							abstarget = symsread;
+							abstarget = off;
 							break;
 						case ::std::ios_base::end:
 							abstarget = n + off;
