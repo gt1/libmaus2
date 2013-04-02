@@ -243,6 +243,67 @@ namespace libmaus
 					return parseArg<type>(argmap.find(key)->second);
 				}
 			}
+
+			template<typename type>
+			type getValueUnsignedNumeric(std::string const & key, type const defaultVal) const
+			{
+				if ( argmap.find(key) == argmap.end() )
+				{
+					return defaultVal;
+				}
+				else
+				{
+					std::string const & sval = argmap.find(key)->second;
+					uint64_t l = 0;
+					while ( l < sval.size() && isdigit(sval[l]) )
+						++l;
+					
+					if ( ! l )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Value " << sval << " for key " << key << " is not a representation of an unsigned numerical value." << std::endl;
+						se.finish();
+						throw se;
+					}
+					// no unit suffix?
+					if ( l == sval.size() )
+						return parseArg<type>(sval);
+					if ( sval.size() - l > 1 )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Value " << sval << " for key " << key << " has unknown suffix " << sval.substr(sval.size()-l) << std::endl;
+						se.finish();
+						throw se;					
+					}
+					
+					uint64_t mult = 0;
+					
+					switch ( sval[sval.size()-1] )
+					{
+						case 'k': mult = 1024ull; break;
+						case 'K': mult = 1000ull; break;
+						case 'm': mult = 1024ull*1024ull; break;
+						case 'M': mult = 1000ull*1000ull; break;
+						case 'g': mult = 1024ull*1024ull*1024ull; break;
+						case 'G': mult = 1000ull*1000ull*1000ull; break;
+						case 't': mult = 1024ull*1024ull*1024ull*1024ull; break;
+						case 'T': mult = 1000ull*1000ull*1000ull*1000ull; break;						
+						case 'p': mult = 1024ull*1024ull*1024ull*1024ull*1024ull; break;
+						case 'P': mult = 1000ull*1000ull*1000ull*1000ull*1000ull; break;
+						case 'e': mult = 1024ull*1024ull*1024ull*1024ull*1024ull*1024ull; break;
+						case 'E': mult = 1000ull*1000ull*1000ull*1000ull*1000ull*1000ull; break;
+						default:
+						{
+							::libmaus::exception::LibMausException se;
+							se.getStream() << "Value " << sval << " for key " << key << " has unknown suffix " << sval.substr(sval.size()-l) << std::endl;
+							se.finish();
+							throw se;							
+						}
+					}
+					
+					return parseArg<type>(sval.substr(0,l)) * mult;
+				}
+			}
 			
 			bool hasArg(std::string const & key) const
 			{
