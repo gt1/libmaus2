@@ -38,6 +38,7 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> sgo_type;
 			
+			uint64_t const blocksize;
 			
 			::libmaus::aio::CheckedOutputStream COS;
 			sgo_type SGO;
@@ -57,11 +58,12 @@ namespace libmaus
 			
 			unsigned int const albits;
 
-			uint64_t const blocksize;
 			
 			GammaRLEncoder(std::string const & filename, unsigned int const ralbits, uint64_t const n, uint64_t const rblocksize)
-			: COS(filename), SGO(COS,8*1024), GE(SGO), 
-			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), cursym(0), curcnt(0), indexwritten(false), albits(ralbits), blocksize(rblocksize)
+			: 
+			  blocksize(rblocksize),
+			  COS(filename), SGO(COS,8*1024), GE(SGO), 
+			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), cursym(0), curcnt(0), indexwritten(false), albits(ralbits)
 			{
 				SGO.put(n);
 				SGO.put(albits);
