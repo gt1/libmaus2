@@ -37,6 +37,16 @@ namespace libmaus
 			{
 				
 			}
+			CircularWrapper(
+				std::istream & rin, 
+				uint64_t const offset = 0,
+				uint64_t const buffersize = 64*1024, 
+				uint64_t const pushbackspace = 64
+			)
+			: CircularBuffer(rin,offset,buffersize,pushbackspace), ::std::istream(this)
+			{
+				
+			}
 			uint64_t tellg() const
 			{
 				return CircularBuffer::tellg();
@@ -51,6 +61,16 @@ namespace libmaus
 				uint64_t const pushbackspace = 64
 			)
 			: CircularReverseBuffer(filename,offset,buffersize,pushbackspace), ::std::istream(this)
+			{
+				
+			}
+			CircularReverseWrapper(
+				std::istream & rin, 
+				uint64_t const offset = 0,
+				uint64_t const buffersize = 64*1024, 
+				uint64_t const pushbackspace = 64
+			)
+			: CircularReverseBuffer(rin,offset,buffersize,pushbackspace), ::std::istream(this)
 			{
 				
 			}
