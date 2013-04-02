@@ -66,6 +66,17 @@ namespace libmaus
 					return false;
 				}
 			}
+			
+			static uint64_t getFileSize(std::istream & istr)
+			{
+				uint64_t const cur = istr.tellg();
+				istr.seekg(0,std::ios::end);
+				uint64_t const l = istr.tellg();
+				istr.seekg(cur,std::ios::beg);
+				istr.clear();
+				return l;
+			}
+			
 			static uint64_t getFileSize(std::string const & filename)
 			{
 				std::ifstream istr(filename.c_str(),std::ios::binary);

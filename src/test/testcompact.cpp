@@ -27,6 +27,13 @@ void testcompact()
 		CA.set(i,rand() & ((1ull<<b)-1));
 	::libmaus::aio::CheckedOutputStream COS(fn);
 	CA.serialize(COS);
+	COS.flush();
+	COS.close();
+	
+	::libmaus::aio::CheckedInputStream CIS(fn);
+	std::cerr << "compact file size is " << ::libmaus::util::GetFileSize::getFileSize(CIS) << std::endl;
+	assert ( CIS.tellg() == 0 );
+	assert ( CIS.get() >= 0 );
 	
 	::libmaus::bitio::CompactDecoderWrapper W(fn,4096);
 	

@@ -33,7 +33,9 @@ namespace libmaus
 		struct CircularBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus::aio::CheckedInputStream stream;
+			::libmaus::aio::CheckedInputStream::unique_ptr_type Pstream;
+			::std::istream & stream;
+			
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
 			::libmaus::autoarray::AutoArray<char> buffer;
@@ -50,12 +52,31 @@ namespace libmaus
 				::std::size_t rbuffersize, 
 				std::size_t rpushbackspace
 			)
-			: stream(filename),
+			: Pstream(new ::libmaus::aio::CheckedInputStream(filename)),
+			  stream(*Pstream),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), 
 			  streamreadpos(0),
 			  infilesize(::libmaus::util::GetFileSize::getFileSize(filename))
+			{
+				stream.seekg(offset);
+				setg(buffer.end(), buffer.end(), buffer.end());	
+			}
+
+			CircularBuffer(
+				std::istream & rstream,
+				uint64_t const offset, 
+				::std::size_t rbuffersize, 
+				std::size_t rpushbackspace
+			)
+			: Pstream(),
+			  stream(rstream),
+			  buffersize(rbuffersize),
+			  pushbackspace(rpushbackspace),
+			  buffer(buffersize+pushbackspace,false), 
+			  streamreadpos(0),
+			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
 				setg(buffer.end(), buffer.end(), buffer.end());	
@@ -116,7 +137,9 @@ namespace libmaus
 		struct CircularReverseBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus::aio::CheckedInputStream stream;
+			::libmaus::aio::CheckedInputStream::unique_ptr_type Pstream;
+			std::istream & stream;
+			
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
 			::libmaus::autoarray::AutoArray<char> buffer;
@@ -128,11 +151,24 @@ namespace libmaus
 			
 			public:
 			CircularReverseBuffer(std::string const & filename, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: stream(filename),
+			: Pstream(new ::libmaus::aio::CheckedInputStream(filename)),
+			  stream(*Pstream),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
 			  infilesize(::libmaus::util::GetFileSize::getFileSize(filename))
+			{
+				stream.seekg(offset);
+				setg(buffer.end(), buffer.end(), buffer.end());	
+			}
+
+			CircularReverseBuffer(std::istream & rstream, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
+			: Pstream(),
+			  stream(rstream),
+			  buffersize(rbuffersize),
+			  pushbackspace(rpushbackspace),
+			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
+			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
 				setg(buffer.end(), buffer.end(), buffer.end());	
