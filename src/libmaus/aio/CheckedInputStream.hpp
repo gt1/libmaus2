@@ -49,11 +49,11 @@ namespace libmaus
 				}
 			}
 			
-			CheckedInputStream & read(char * c, ::std::streamsize n)
+			CheckedInputStream & read(char * c, ::std::streamsize const n)
 			{
 				std::ifstream::read(c,n);
 				
-				if ( ! gcount() )
+				if ( (n != 0) && (! gcount()) )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "Failed to read from file " << filename << std::endl;

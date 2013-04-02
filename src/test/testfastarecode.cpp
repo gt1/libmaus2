@@ -27,6 +27,8 @@ int main(int argc, char * argv[])
 		std::string const tempfilename = arginfo.getValue<std::string>("tempfilename",deftmpname);
 		std::string const outfilename = arginfo.getValue<std::string>("outputfilename",defoutname);
 		std::string const indexfilename = tempfilename + ".index";
+		unsigned int const addterm = arginfo.getValue<unsigned int>("addterm",0);
+		unsigned int const termadd = addterm ? 1 : 0;
 
 		::libmaus::util::TempFileRemovalContainer::addTempFile(tempfilename);
 		::libmaus::util::TempFileRemovalContainer::addTempFile(indexfilename);
@@ -39,32 +41,35 @@ int main(int argc, char * argv[])
 		::libmaus::aio::CheckedOutputStream COS(outfilename);
 		
 		// 0,A,C,G,T,N
+		// map forward
 		::libmaus::autoarray::AutoArray<char> cmap(256,false);
-		std::fill(cmap.begin(),cmap.end(),5);
-		cmap['\n'] = 0;
-		cmap['a'] = cmap['A'] = 1;
-		cmap['c'] = cmap['C'] = 2;
-		cmap['g'] = cmap['G'] = 3;
-		cmap['t'] = cmap['T'] = 4;
-		cmap['n'] = cmap['N'] = 5;
+		std::fill(cmap.begin(),cmap.end(),5+termadd);
+		cmap['\n'] = 0 + termadd;
+		cmap['a'] = cmap['A'] = 1 + termadd;
+		cmap['c'] = cmap['C'] = 2 + termadd;
+		cmap['g'] = cmap['G'] = 3 + termadd;
+		cmap['t'] = cmap['T'] = 4 + termadd;
+		cmap['n'] = cmap['N'] = 5 + termadd;
 
+		// map to reverse complement
 		::libmaus::autoarray::AutoArray<char> rmap(256,false);
-		std::fill(rmap.begin(),rmap.end(),5);
-		rmap['\n'] = 0;
-		rmap['a'] = rmap['A'] = 4;
-		rmap['c'] = rmap['C'] = 3;
-		rmap['g'] = rmap['G'] = 2;
-		rmap['t'] = rmap['T'] = 1;
-		rmap['n'] = rmap['N'] = 5;
+		std::fill(rmap.begin(),rmap.end(),5+termadd);
+		rmap['\n'] = 0 + termadd;
+		rmap['a'] = rmap['A'] = 4 + termadd;
+		rmap['c'] = rmap['C'] = 3 + termadd;
+		rmap['g'] = rmap['G'] = 2 + termadd;
+		rmap['t'] = rmap['T'] = 1 + termadd;
+		rmap['n'] = rmap['N'] = 5 + termadd;
 
+		// reverse complement for mapped data
 		::libmaus::autoarray::AutoArray<char> xmap(256,false);
-		std::fill(xmap.begin(),xmap.end(),5);
-		xmap[0] = 0;
-		xmap[1] = 4;
-		xmap[2] = 3;
-		xmap[3] = 2;
-		xmap[4] = 1;
-		xmap[5] = 5;
+		std::fill(xmap.begin(),xmap.end(),5+termadd);
+		xmap[0] = 0 + termadd;
+		xmap[1] = 4 + termadd;
+		xmap[2] = 3 + termadd;
+		xmap[3] = 2 + termadd;
+		xmap[4] = 1 + termadd;
+		xmap[5] = 5 + termadd;
 
 		::libmaus::autoarray::AutoArray<char> imap(256,false);
 		for ( uint64_t i = 0; i < imap.size(); ++i )
@@ -122,6 +127,9 @@ int main(int argc, char * argv[])
 				curpos += (info.idlen+2) + (info.seqlen+1);
 			}		
 		}
+		
+		if ( addterm )
+			COS.put(0);
 
 		return EXIT_SUCCESS;
 	}

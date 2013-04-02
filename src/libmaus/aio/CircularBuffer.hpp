@@ -24,6 +24,7 @@
 #include <fstream>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/GetFileSize.hpp>
+#include <libmaus/aio/CheckedInputStream.hpp>
 
 namespace libmaus
 {
@@ -32,7 +33,7 @@ namespace libmaus
 		struct CircularBuffer : public ::std::streambuf
 		{
 			private:
-			std::ifstream stream;
+			::libmaus::aio::CheckedInputStream stream;
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
 			::libmaus::autoarray::AutoArray<char> buffer;
@@ -43,11 +44,17 @@ namespace libmaus
 			CircularBuffer & operator=(CircularBuffer&);
 			
 			public:
-			CircularBuffer(std::string const & filename, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: stream(filename.c_str(),std::ios::binary),
+			CircularBuffer(
+				std::string const & filename, 
+				uint64_t const offset, 
+				::std::size_t rbuffersize, 
+				std::size_t rpushbackspace
+			)
+			: stream(filename),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
-			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
+			  buffer(buffersize+pushbackspace,false), 
+			  streamreadpos(0),
 			  infilesize(::libmaus::util::GetFileSize::getFileSize(filename))
 			{
 				stream.seekg(offset);
@@ -84,7 +91,9 @@ namespace libmaus
 					);
 				::std::memmove(midptr-copyavail,gptr()-copyavail,copyavail);
 
-				if ( static_cast<int64_t>(stream.tellg()) == static_cast<int64_t>(infilesize) )
+				if ( 
+					static_cast<int64_t>(stream.tellg()) == static_cast<int64_t>(infilesize) 
+				)
 				{
 					stream.seekg(0);
 					stream.clear();
@@ -107,7 +116,7 @@ namespace libmaus
 		struct CircularReverseBuffer : public ::std::streambuf
 		{
 			private:
-			std::ifstream stream;
+			::libmaus::aio::CheckedInputStream stream;
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
 			::libmaus::autoarray::AutoArray<char> buffer;
@@ -119,7 +128,7 @@ namespace libmaus
 			
 			public:
 			CircularReverseBuffer(std::string const & filename, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: stream(filename.c_str(),std::ios::binary),
+			: stream(filename),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
