@@ -31,8 +31,11 @@ namespace libmaus
 			std::string const & filename;
 			uint64_t const fs;
 			
-			CircularSuffixComparator(std::string const & rfilename)
-			: filename(rfilename), fs(::libmaus::util::GetFileSize::getFileSize(filename))
+			CircularSuffixComparator(
+				std::string const & rfilename, 
+				uint64_t const rfs
+			)
+			: filename(rfilename), fs(rfs)
 			{
 			}
 			
@@ -90,10 +93,10 @@ namespace libmaus
 
 			// search for smallest suffix in SA that equals q or is larger than q
 			template<typename saidx_t>
-			static uint64_t suffixSearch(saidx_t const * SA, uint64_t const n, uint64_t const o, uint64_t const q, std::string const & filename)
+			static uint64_t suffixSearch(saidx_t const * SA, uint64_t const n, uint64_t const o, uint64_t const q, std::string const & filename, uint64_t const fs)
 			{
 				uint64_t l = 0, r = n;
-				::libmaus::suffixsort::CircularSuffixComparator CSC(filename);
+				::libmaus::suffixsort::CircularSuffixComparator CSC(filename,fs);
 				
 				// binary search
 				while ( r-l > 2 )
@@ -127,10 +130,13 @@ namespace libmaus
 
 			// search for smallest suffix in SA that equals q or is larger than q
 			template<typename saidx_t, typename text_iterator>
-			static uint64_t suffixSearchInternal(saidx_t const * SA, text_iterator texta, text_iterator texte, uint64_t const n, uint64_t const q, std::string const & filename)
+			static uint64_t suffixSearchInternal(
+				saidx_t const * SA, 
+				text_iterator texta, text_iterator texte, 
+				uint64_t const n, uint64_t const q, std::string const & filename, uint64_t const fs)
 			{
 				uint64_t l = 0, r = n;
-				::libmaus::suffixsort::CircularSuffixComparator CSC(filename);
+				::libmaus::suffixsort::CircularSuffixComparator CSC(filename,fs);
 				
 				// binary search
 				while ( r-l > 2 )
@@ -163,16 +169,21 @@ namespace libmaus
 			}
 
 			template<typename saidx_t, typename text_iterator>
-			static uint64_t suffixSearchTryInternal(saidx_t const * SA, text_iterator texta, text_iterator texte, uint64_t const n, uint64_t const o, uint64_t const q, std::string const & filename)
+			static uint64_t suffixSearchTryInternal(
+				saidx_t const * SA, 
+				text_iterator texta, text_iterator texte, 
+				uint64_t const n, uint64_t const o, uint64_t const q, 
+				std::string const & filename,
+				uint64_t const fs)
 			{
 				try
 				{
-					return suffixSearchInternal(SA, texta, texte, n, q, filename);
+					return suffixSearchInternal(SA, texta, texte, n, q, filename, fs);
 				}
 				catch(std::exception const & ex)
 				{
 					// std::cerr << ex.what() << std::endl;
-					return suffixSearch(SA,n,o,q,filename);
+					return suffixSearch(SA,n,o,q,filename,fs);
 				}
 			}
 		};

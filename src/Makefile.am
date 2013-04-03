@@ -156,7 +156,8 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitStreamFileDecoder.hpp \
 	libmaus/bitio/Clz.hpp \
 	libmaus/bitio/CompactDecoderBuffer.hpp \
-	libmaus/bitio/Ctz.hpp
+	libmaus/bitio/Ctz.hpp \
+	libmaus/bitio/CompactArrayWriter.hpp
 
 libmausrank_includedir=$(includedir)/libmaus/rank
 libmausrank_include_HEADERS=\
