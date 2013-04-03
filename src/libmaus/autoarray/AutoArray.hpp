@@ -224,7 +224,6 @@ namespace libmaus
 			private:
 			mutable N * array;
 			mutable uint64_t n;
-			
 						
 			static void increaseTotalAllocation(uint64_t n)
 			{

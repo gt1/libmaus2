@@ -278,6 +278,7 @@ if [[ "${dlfcn_h}" = "yes" ]] ; then
 fi
 
 DLFUNCS=""
+have_dynamic_loading=no
 if [[ "${dlfcn_h}" = "yes" ]] ; then 
 	AC_LANG_PUSH([C++])
 	AC_CHECK_FUNC(dlopen,dlopen_nolib=yes,dlopen_nolib=no)
@@ -346,6 +347,7 @@ if [[ "${dlfcn_h}" = "yes" ]] ; then
 		AC_MSG_RESULT([$dlneedlibdl])
 
 		DLFUNCS="#define LIBMAUS_HAVE_DL_FUNCS"
+		have_dynamic_loading=yes
 	fi
 	
 	# if [[ "${backtrace}" = "yes" ]] ; then
@@ -510,6 +512,8 @@ else
 
 	fi
 fi
+
+
 
 AC_LANG_PUSH([C++])
 CPPFLAGS_SAVE="${CPPFLAGS}"
@@ -1420,9 +1424,118 @@ AC_TRY_COMPILE([#include <cstdlib>],[void * ptr = 0; posix_memalign(&ptr,64,128)
 AC_MSG_RESULT([${posixmemalign}])
 AC_LANG_POP
 
+AC_LANG_PUSH([C++])
+AC_MSG_CHECKING([whether getpagesize is present])
+AC_TRY_COMPILE([#include <unistd.h>],[unsigned int pagesize = getpagesize();],[getpagesize=yes],[getpagesize=no])
+AC_MSG_RESULT([${getpagesize}])
+AC_LANG_POP
+
 HAVEPOSIXMEMALIGN=""
 if test "${posixmemalign}" = "yes" ; then
 	HAVEPOSIXMEMALIGN="#define LIBMAUS_HAVE_POSIX_MEMALIGN"
+fi
+
+HAVEGETPAGESIZE=""
+if test "${getpagesize}" = "yes" ; then
+	HAVEGETPAGESIZE="#define LIBMAUS_HAVE_GETPAGESIZE"
+fi
+
+IOLIBCPPFLAGS=
+IOLIBLDFLAGS=
+IOLIBLIBS=
+IOLIBDEFINE=
+AC_ARG_WITH([io_lib],
+            [AS_HELP_STRING([--with-io_lib@<:@=PATH@:>@], [support for io_lib library @<:@default=no@:>@])],
+            [with_io_lib=${withval}],
+            [with_io_lib=no])
+
+if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixmemalign}" = "yes" -a "${with_io_lib}" != "no" ]] ; then
+	if [[ \( ! -z "${with_io_lib}" \) -a \( "${with_io_lib}" != "yes" \) ]] ; then
+		IOLIBCPPFLAGS="-I${with_io_lib}/include"
+		IOLIBLDFLAGS="-L${with_io_lib}/lib"
+	fi
+
+	IOLIBLIBS="-lstaden-read"
+
+	CPPFLAGSSAVE="${CPPFLAGS}"
+	LDFLAGSSAVE="${LDFLAGS}"
+	LIBSSAVE="${LIBS}"
+	CPPFLAGS="${CPPFLAGS} ${IOLIBCPPFLAGS}"
+	LDFLAGS="${LDFLAGS} ${IOLIBLDFLAGS}"
+	LIBS="${LIBS} ${IOLIBLIBS} ${ZLIBLIBS} -lm"
+
+	AC_LANG_PUSH([C])
+	AC_CHECK_HEADER(io_lib/scram.h, [io_lib_scram_h=yes], [io_lib_scram_h=no])
+	AC_CHECK_FUNC(scram_open,scram_open=yes,scram_open=no)
+	AC_CHECK_FUNC(scram_close,scram_close=yes,scram_close=no)
+	AC_CHECK_FUNC(scram_get_header,scram_get_header=yes,scram_get_header=no)
+	AC_CHECK_FUNC(scram_get_seq,scram_get_seq=yes,scram_get_seq=no)
+	AC_CHECK_FUNC(scram_set_option,scram_set_option=yes,scram_set_option=no)
+	AC_LANG_POP
+
+	if [[ "${io_lib_scram_h}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib headers are not available])
+	fi
+	if [[ "${scram_open}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])
+	fi
+	if [[ "${scram_close}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])
+	fi
+	if [[ "${scram_get_header}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])
+	fi
+	if [[ "${scram_get_seq}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])
+	fi
+	if [[ "${scram_set_option}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])
+	fi
+
+        AC_LANG_PUSH([C])
+        AC_MSG_CHECKING([whether we can compile a program using io_lib])
+                        AC_LINK_IFELSE([AC_LANG_SOURCE([#include <io_lib/scram.h>
+                    #include <stdlib.h>
+
+                    int main() 
+                    {
+			scram_fd * cfd = scram_open("filename","C");
+			SAM_hdr * header = 0;
+			bam_seq_t * s = 0;
+
+			if ( ! cfd )
+				return -1;
+
+			if ( ! (header = scram_get_header(cfd)) )
+			{
+				scram_close(cfd);
+				return -1;
+			}
+
+			while (scram_get_seq(cfd, &s) >= 0) 
+			{
+			}
+
+			if ( ! scram_eof(cfd) )
+			{
+				scram_close(cfd);
+				return -1;
+			}
+
+			scram_close(cfd);
+			return 0;
+                    }])],
+                        have_io_lib=yes,
+                        have_io_lib=no
+                )
+        AC_MSG_RESULT($have_io_lib)
+        AC_LANG_POP
+
+	CPPFLAGS="${CPPFLAGSSAVE}"
+	LDFLAGS="${LDFLAGSSAVE}"
+	LIBS="${LIBSSAVE}"
+
+	IOLIBDEFINE="#define LIBMAUS_HAVE_IO_LIB"
 fi
 
 
@@ -1526,4 +1639,9 @@ AC_SUBST([HAVEPTHREADGETNAME_NP])
 AC_SUBST([HAVEPTHREADGET_NAME_NP])
 AC_SUBST([HAVEPRCTL])
 AC_SUBST([LIBMAUS_SIZEOF_UNSIGNED_LONG])
+AC_SUBST([IOLIBDEFINE])
+AC_SUBST([IOLIBCPPFLAGS])
+AC_SUBST([IOLIBLDFLAGS])
+AC_SUBST([IOLIBLIBS])
+AC_SUBST([HAVEGETPAGESIZE])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

@@ -119,19 +119,13 @@ namespace libmaus
 					int64_t abstarget = 0;
 					int64_t const cur = symsread - (egptr()-gptr());
 					
-					switch ( way )
-					{
-						case ::std::ios_base::cur:
-							abstarget = cur + off;
-							break;
-						case ::std::ios_base::beg:
-							abstarget = off;
-							break;
-						case ::std::ios_base::end:
-							abstarget = n + off;
-							break;
-					}
-					
+					if ( way == ::std::ios_base::cur )
+						abstarget = cur + off;
+					else if ( way == ::std::ios_base::beg )
+						abstarget = off;
+					else // if ( way == ::std::ios_base::end )
+						abstarget = n + off;
+						
 					if ( abstarget - cur == 0 )
 					{
 						return abstarget;

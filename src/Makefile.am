@@ -6,7 +6,7 @@ noinst_LTLIBRARIES = testmod.la
 testmod_la_LDFLAGS = @LIBMAUSLDFLAGS@ ${AM_LDFLAGS} -module -avoid-version -shared -rpath $(abs_builddir)
 testmod_la_SOURCES = test/testmod.cpp
 
-lib_LTLIBRARIES = libmaus.la libmauslsf.la libmaus_kmlocal_mod.la libmaus_consensus_mod.la
+lib_LTLIBRARIES = libmaus.la libmauslsf.la libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray.cpp libmaus/rank/RankTable.cpp \
 	libmaus/rank/log2table.cpp libmaus/fastx/isFastQ.cpp libmaus/wavelet/toWaveletTreeBits.cpp \
@@ -36,7 +36,7 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/huffman/KvInitResult.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
 
 libmauslsf_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -55,6 +55,12 @@ libmaus_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFL
 libmaus_consensus_mod_la_LIBADD   = @SEQANLIBS@ @LIBMAUSLIBS@
 libmaus_consensus_mod_la_SOURCES  = libmaus/consensus/ConsensusBase.cpp libmaus/consensus/ScoringMatrix.cpp \
 	libmaus/fastx/Phred.cpp
+
+libmaus_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS}
+libmaus_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
+libmaus_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic # ${AM_LDFLAGS}
+libmaus_scram_mod_la_LIBADD   = @IOLIBLIBS@ @LIBMAUSLIBS@
+libmaus_scram_mod_la_SOURCES  = libmaus/bambam/Scram.c
 
 libmaus_includedir=$(includedir)/libmaus/
 libmaus_include_HEADERS=libmaus/LibMausConfig.hpp
@@ -114,7 +120,10 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamAlignmentHeapComparator.hpp \
 	libmaus/bambam/BamAlignmentNameComparator.hpp \
 	libmaus/bambam/BamAlignmentPosComparator.hpp \
-	libmaus/bambam/BamEntryContainer.hpp
+	libmaus/bambam/BamEntryContainer.hpp \
+	libmaus/bambam/Scram.h \
+	libmaus/bambam/AlignmentValidity.hpp \
+	libmaus/bambam/ScramDecoder.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -688,7 +697,8 @@ noinst_PROGRAMS = \
 	testbamdamage \
 	testgamma \
 	testcompact \
-	testbytetocompact
+	testbytetocompact \
+	testscramtosam
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -853,3 +863,6 @@ testcompact_LDADD = libmaus.la
 
 testbytetocompact_SOURCES = test/testbytetocompact.cpp
 testbytetocompact_LDADD = libmaus.la
+
+testscramtosam_SOURCES = test/testscramtosam.cpp
+testscramtosam_LDADD = libmaus.la @DLLIB@

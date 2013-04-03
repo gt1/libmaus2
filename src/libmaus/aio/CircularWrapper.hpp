@@ -20,6 +20,8 @@
 #define LIBMAUS_AIO_CIRCULARWRAPPER_HPP
 
 #include <libmaus/aio/CircularBuffer.hpp>
+#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus/bitio/CompactDecoderBuffer.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 
@@ -87,6 +89,64 @@ namespace libmaus
 			uint64_t tellg() const
 			{
 				return CircularReverseBuffer::tellg();
+			}
+		};
+		
+		struct CheckedInputStreamWrapper
+		{
+			::libmaus::aio::CheckedInputStream stream;
+			
+			CheckedInputStreamWrapper(std::string const & filename)
+			: stream(filename)
+			{
+			
+			}
+		};
+		
+		struct CompactDecoderWrapperWrapper
+		{
+			::libmaus::bitio::CompactDecoderWrapper stream;
+			
+			CompactDecoderWrapperWrapper(std::string const & filename)
+			: stream(filename)
+			{
+			
+			}
+		};
+		
+		struct CheckedCircularWrapper : public CheckedInputStreamWrapper, public CircularWrapper
+		{
+			CheckedCircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: CheckedInputStreamWrapper(filename), CircularWrapper(CheckedInputStreamWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		struct CompactCircularWrapper : public CompactDecoderWrapperWrapper, public CircularWrapper
+		{
+			CompactCircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: CompactDecoderWrapperWrapper(filename), CircularWrapper(CompactDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		struct CheckedCircularReverseWrapper : public CheckedInputStreamWrapper, public CircularReverseWrapper
+		{
+			CheckedCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: CheckedInputStreamWrapper(filename), CircularReverseWrapper(CheckedInputStreamWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		struct CompactCircularReverseWrapper : public CompactDecoderWrapperWrapper, public CircularReverseWrapper
+		{
+			CompactCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: CompactDecoderWrapperWrapper(filename), CircularReverseWrapper(CompactDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
 			}
 		};
 	}
