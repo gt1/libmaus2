@@ -93,6 +93,13 @@ namespace libmaus
 				
 				return *this;
 			}
+			
+			static int getSymbolAtPosition(std::string const & filename, uint64_t const offset)
+			{
+				this_type CIS(filename);
+				CIS.seekg(offset);
+				return CIS.get();
+			}
 		};
 	}
 }

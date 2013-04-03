@@ -198,6 +198,13 @@ namespace libmaus
 			{
 				
 			}
+
+			static int getSymbolAtPosition(std::string const & filename, uint64_t const offset)
+			{
+				this_type I(filename);
+				I.seekg(offset);
+				return I.get();
+			}
 		};
 
 	}
