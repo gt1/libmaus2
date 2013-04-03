@@ -20,6 +20,8 @@
 #define LIBMAUS_AIO_CIRCULARWRAPPER_HPP
 
 #include <libmaus/aio/CircularBuffer.hpp>
+#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
 
 namespace libmaus
 {
@@ -27,6 +29,10 @@ namespace libmaus
 	{
 		struct CircularWrapper : public CircularBuffer, public ::std::istream
 		{
+			typedef CircularWrapper this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			CircularWrapper(
 				std::string const & filename, 
 				uint64_t const offset = 0,
@@ -54,6 +60,10 @@ namespace libmaus
 		};
 		struct CircularReverseWrapper : public CircularReverseBuffer, public ::std::istream
 		{
+			typedef CircularReverseWrapper this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			CircularReverseWrapper(
 				std::string const & filename, 
 				uint64_t const offset = 0,
