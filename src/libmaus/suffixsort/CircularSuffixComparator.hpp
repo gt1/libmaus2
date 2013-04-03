@@ -20,18 +20,47 @@
 #define LIBMAUS_SUFFIXSORT_CIRCULARSUFFIXCOMPARATOR_HPP
 
 #include <libmaus/aio/CircularWrapper.hpp>
+#include <libmaus/bitio/CompactDecoderBuffer.hpp>
 #include <stdexcept>
 
 namespace libmaus
 {
 	namespace suffixsort
 	{
-		struct CircularSuffixComparator
+		struct CircularWrapperFactory
 		{
+			typedef ::libmaus::aio::CircularWrapper wrapper_type;
+			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			
+			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
+			{
+				return UNIQUE_PTR_MOVE(wrapper_ptr_type(new wrapper_type(filename,offset)));
+			}
+		};
+
+		struct CompactDecoderWrapperFactory
+		{
+			typedef ::libmaus::bitio::CompactDecoderWrapper wrapper_type;
+			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+				
+			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
+			{
+				wrapper_ptr_type W(new wrapper_type(filename,offset));
+				W->seekg(offset);
+				return UNIQUE_PTR_MOVE(W);
+			}
+		};
+	
+		template<typename _factory_type>
+		struct CircularSuffixComparatorTemplate
+		{
+			typedef _factory_type factory_type;
+			typedef CircularSuffixComparatorTemplate<factory_type> this_type;
+		
 			std::string const & filename;
 			uint64_t const fs;
 			
-			CircularSuffixComparator(
+			CircularSuffixComparatorTemplate(
 				std::string const & rfilename, 
 				uint64_t const rfs
 			)
@@ -48,14 +77,14 @@ namespace libmaus
 				
 				if ( pa == pb )
 					return false;
-					
-				::libmaus::aio::CircularWrapper cwa(filename,pa);
-				::libmaus::aio::CircularWrapper cwb(filename,pb);
+				
+				typename factory_type::wrapper_ptr_type cwa = UNIQUE_PTR_MOVE(factory_type::construct(filename,pa));
+				typename factory_type::wrapper_ptr_type cwb = UNIQUE_PTR_MOVE(factory_type::construct(filename,pb));
 			
 				for ( uint64_t i = 0; i < fs; ++i )
 				{
-					int const ca = cwa.get();
-					int const cb = cwb.get();
+					int const ca = cwa->get();
+					int const cb = cwb->get();
 					
 					assert ( ca >= 0 );
 					assert ( cb >= 0 );
@@ -73,12 +102,12 @@ namespace libmaus
 				assert ( fs );
 				pb %= fs;
 				
-				::libmaus::aio::CircularWrapper cwb(filename,pb);
+				typename factory_type::wrapper_ptr_type cwb = UNIQUE_PTR_MOVE(factory_type::construct(filename,pb));
 				
 				while ( texta != texte )
 				{
 					int const ca = *(texta++);
-					int const cb = cwb.get();
+					int const cb = cwb->get();
 					
 					assert ( ca >= 0 );
 					assert ( cb >= 0 );
@@ -96,7 +125,7 @@ namespace libmaus
 			static uint64_t suffixSearch(saidx_t const * SA, uint64_t const n, uint64_t const o, uint64_t const q, std::string const & filename, uint64_t const fs)
 			{
 				uint64_t l = 0, r = n;
-				::libmaus::suffixsort::CircularSuffixComparator CSC(filename,fs);
+				this_type CSC(filename,fs);
 				
 				// binary search
 				while ( r-l > 2 )
@@ -136,7 +165,7 @@ namespace libmaus
 				uint64_t const n, uint64_t const q, std::string const & filename, uint64_t const fs)
 			{
 				uint64_t l = 0, r = n;
-				::libmaus::suffixsort::CircularSuffixComparator CSC(filename,fs);
+				this_type CSC(filename,fs);
 				
 				// binary search
 				while ( r-l > 2 )
@@ -187,6 +216,9 @@ namespace libmaus
 				}
 			}
 		};
+
+		typedef CircularSuffixComparatorTemplate<CircularWrapperFactory> CircularSuffixComparator;
+		typedef CircularSuffixComparatorTemplate<CompactDecoderWrapperFactory> CompactCircularSuffixComparator;
 	}
 }
 #endif

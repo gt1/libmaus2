@@ -687,7 +687,8 @@ noinst_PROGRAMS = \
 	testbamtofastq \
 	testbamdamage \
 	testgamma \
-	testcompact
+	testcompact \
+	testbytetocompact
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -849,3 +850,6 @@ testgamma_LDADD = libmaus.la
 
 testcompact_SOURCES = test/testcompact.cpp
 testcompact_LDADD = libmaus.la
+
+testbytetocompact_SOURCES = test/testbytetocompact.cpp
+testbytetocompact_LDADD = libmaus.la

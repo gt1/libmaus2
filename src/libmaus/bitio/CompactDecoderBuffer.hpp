@@ -195,6 +195,10 @@ namespace libmaus
 
 		struct CompactDecoderWrapper : public CompactDecoderBuffer, public ::std::istream
 		{
+			typedef CompactDecoderWrapper this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			CompactDecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
 			: CompactDecoderBuffer(filename,buffersize), ::std::istream(this)
 			{

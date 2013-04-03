@@ -94,6 +94,13 @@ namespace libmaus
 				FWBW->write(v,b);
 			}
 			
+			template<typename iterator>
+			void write(iterator it, uint64_t n)
+			{
+				while ( n-- )
+					put(*(it++));
+			}
+			
 			void flush()
 			{
 				FWBW->flush();
