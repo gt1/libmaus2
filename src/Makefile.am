@@ -560,7 +560,8 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/CircularBwt.hpp \
 	libmaus/suffixsort/CircularSuffixComparator.hpp \
 	libmaus/suffixsort/BwtMergeTempFileNameSet.hpp \
-	libmaus/suffixsort/BwtMergeZBlock.hpp
+	libmaus/suffixsort/BwtMergeZBlock.hpp \
+	libmaus/suffixsort/BwtMergeTempFileNameSetVector.hpp
 
 libmausrmq_includedir=$(includedir)/libmaus/rmq
 libmausrmq_include_HEADERS=\
