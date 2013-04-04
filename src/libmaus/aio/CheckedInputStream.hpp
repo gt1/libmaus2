@@ -100,6 +100,13 @@ namespace libmaus
 				CIS.seekg(offset);
 				return CIS.get();
 			}
+			
+			static uint64_t getFileSize(std::string const & filename)
+			{
+				this_type CIS(filename);
+				CIS.seekg(0,std::ios::end);
+				return CIS.tellg();
+			}
 		};
 	}
 }
