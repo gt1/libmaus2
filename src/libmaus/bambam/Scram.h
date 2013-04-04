@@ -37,6 +37,7 @@ typedef struct _libmaus_bambam_ScramDecoder
 	char * referencefilename;
 
 	void * decoder;
+	void * vseq;
 	
 	char * header;
 	uint64_t headerlen;

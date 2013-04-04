@@ -68,6 +68,8 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
+	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
+
 	if ( !(sdecoder->is_bam) && object->referencefilename ) 
 	{
 		cram_load_reference(sdecoder->c, object->referencefilename);
@@ -113,6 +115,11 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_Delete(libmaus_bambam_
 			scram_close(decoder);
 			object->decoder = 0;
 		}
+		if ( object->vseq )
+		{
+			free(object->vseq);
+			object->vseq = 0;
+		}
 		
 		free(object);
 	}
@@ -131,11 +138,19 @@ int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object)
 
 	sdecoder = (scram_fd *)object->decoder;
 	
-	r = scram_get_seq(sdecoder,&seq);
+	r = scram_get_seq(sdecoder,(bam_seq_t**)(&(object->vseq)));
 	
-	if ( r < 0 || ! seq )
-		return -1;
+	if ( r < 0 || ! (object->vseq) )
+	{
+		/* fprintf(stderr, "got code r=%d, eof is %d\n", r, scram_eof(sdecoder)); */
+	
+		if ( !scram_eof(sdecoder) )
+			return -2;
+		else
+			return -1;
+	}
 
+	seq = (bam_seq_t *)(object->vseq);
 	object->blocksize = seq->blk_size;
 	object->buffer = ((uint8_t const *)seq) + 2*sizeof(uint32_t);
 	

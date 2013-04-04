@@ -121,8 +121,21 @@ namespace libmaus
 			
 			bool readAlignment(bool const delayPutRank = false)
 			{
-				if ( d_decode.func(dec) < 0 )
+				int const r = d_decode.func(dec);
+				
+				// std::cerr << "got code " << r << std::endl;
+				
+				if ( r == -2 )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "ScramDecoder::readAlignment(): failed to read alignment without reaching EOF" << std::endl;
+					se.finish();
+					throw se;
+				}
+				else if ( r == -1 )
+				{
 					return false;
+				}
 
 				if ( dec->blocksize > alignment.D.size() )
 					alignment.D = ::libmaus::bambam::BamAlignment::D_array_type(dec->blocksize,false);
