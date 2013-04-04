@@ -562,7 +562,9 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/BwtMergeTempFileNameSet.hpp \
 	libmaus/suffixsort/BwtMergeZBlock.hpp \
 	libmaus/suffixsort/BwtMergeTempFileNameSetVector.hpp \
-	libmaus/suffixsort/BwtMergeBlockSortResult.hpp
+	libmaus/suffixsort/BwtMergeBlockSortResult.hpp \
+	libmaus/suffixsort/BwtMergeZBlockRequest.hpp \
+	libmaus/suffixsort/BwtMergeZBlockRequestVector.hpp
 
 libmausrmq_includedir=$(includedir)/libmaus/rmq
 libmausrmq_include_HEADERS=\
