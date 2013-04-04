@@ -35,6 +35,10 @@ namespace libmaus
 	{
 		struct ScramDecoder
 		{
+			typedef ScramDecoder this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			typedef ::libmaus::fastx::FASTQEntry pattern_type;
 
 			::libmaus::util::DynamicLibrary scram_mod;
