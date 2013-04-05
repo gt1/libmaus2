@@ -114,6 +114,17 @@ namespace libmaus
 			
 			}
 		};
+
+		struct PacDecoderWrapperWrapper
+		{
+			::libmaus::bitio::PacDecoderWrapper stream;
+			
+			PacDecoderWrapperWrapper(std::string const & filename)
+			: stream(filename)
+			{
+			
+			}
+		};
 		
 		struct CheckedCircularWrapper : public CheckedInputStreamWrapper, public CircularWrapper
 		{
