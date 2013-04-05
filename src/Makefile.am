@@ -166,7 +166,8 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/Clz.hpp \
 	libmaus/bitio/CompactDecoderBuffer.hpp \
 	libmaus/bitio/Ctz.hpp \
-	libmaus/bitio/CompactArrayWriter.hpp
+	libmaus/bitio/CompactArrayWriter.hpp \
+	libmaus/bitio/PacDecoderBuffer.hpp
 
 libmausrank_includedir=$(includedir)/libmaus/rank
 libmausrank_include_HEADERS=\
@@ -703,7 +704,8 @@ noinst_PROGRAMS = \
 	testgamma \
 	testcompact \
 	testbytetocompact \
-	testscramtosam
+	testscramtosam \
+	testpacdecode
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -871,3 +873,6 @@ testbytetocompact_LDADD = libmaus.la
 
 testscramtosam_SOURCES = test/testscramtosam.cpp
 testscramtosam_LDADD = libmaus.la @DLLIB@
+
+testpacdecode_SOURCES = test/testpacdecode.cpp
+testpacdecode_LDADD = libmaus.la

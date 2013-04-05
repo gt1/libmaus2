@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_AIO_COMPACTDECODERBUFFER_HPP)
-#define LIBMAUS_AIO_COMPACTDECODERBUFFER_HPP
+#if ! defined(LIBMAUS_AIO_PACDECODERBUFFER_HPP)
+#define LIBMAUS_AIO_PACDECODERBUFFER_HPP
 
 #include <istream>
 #include <fstream>
@@ -35,48 +35,59 @@ namespace libmaus
 {
 	namespace bitio
 	{
-		struct CompactDecoderBuffer : public ::std::streambuf
+		struct PacDecoderBuffer : public ::std::streambuf
 		{
 			private:
-			static uint64_t const headersize = 4*sizeof(uint64_t);
-			
 			::libmaus::aio::CheckedInputStream stream;
 			
 			// log of word size we are using
-			static unsigned int const loglog = 6;
+			static unsigned int const loglog = 3;
 			// bits per word in memory
 			static unsigned int const bitsperentity = (1u << loglog);
 			
 			uint64_t const b;
 			uint64_t const n;
-			uint64_t const s;
-			uint64_t const as;
 			uint64_t const alignmult;
 
 			uint64_t const buffersize;
-			::libmaus::bitio::CompactArray C;
+			::libmaus::autoarray::AutoArray<uint8_t> C;
 			::libmaus::autoarray::AutoArray<char> buffer;
 			
 			uint64_t symsread;
 
-			CompactDecoderBuffer(CompactDecoderBuffer const &);
-			CompactDecoderBuffer & operator=(CompactDecoderBuffer&);
+			PacDecoderBuffer(PacDecoderBuffer const &);
+			PacDecoderBuffer & operator=(PacDecoderBuffer&);
+			
+			static uint64_t getNumberOfSymbols(::libmaus::aio::CheckedInputStream & stream)
+			{
+				stream.seekg(-1,std::ios::end);
+				uint64_t const databytes = stream.tellg();
+				
+				if ( ! databytes )
+					return 0;
+				
+				// number of symbols in last data byte
+				int64_t const last = stream.get();
+				
+				stream.seekg(0);
+				stream.clear();
+				
+				return (4 * (databytes-1))+last;
+			}
 			
 			public:
-			CompactDecoderBuffer(
+			PacDecoderBuffer(
 				std::string const & filename, 
 				::std::size_t rbuffersize
 			)
 			: stream(filename),
-			  b(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
-			  n(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
-			  s(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
-			  as(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
+			  b(2),
+			  n(getNumberOfSymbols(stream)),
 			  // smallest multiple aligning to bitsperentity bits
 			  alignmult(1ull << (loglog-::libmaus::bitio::Ctz::ctz(b))),
 			  // make buffersize multiple of alignmult
 			  buffersize(((rbuffersize + alignmult-1)/alignmult)*alignmult),
-			  C(buffersize,b),
+			  C((buffersize*b+7)/8),
 			  buffer(buffersize,false),
 			  symsread(0)
 			{
@@ -107,7 +118,7 @@ namespace libmaus
 					
 					symsread = tsymsread;
 					stream.clear();
-					stream.seekg(headersize + ((symsread * b) / 8) );
+					stream.seekg( (symsread * b) / 8 );
 					setg(buffer.end(),buffer.end(),buffer.end());
 					underflow();
 					setg(eback(),gptr() + (sp-static_cast<int64_t>(tsymsread)), egptr());
@@ -174,7 +185,7 @@ namespace libmaus
 				uint64_t const bytestoread = wordstoread * (bitsperentity/8);
 				
 				// load packed data into memory
-				stream.read ( reinterpret_cast<char *>(C.D) , bytestoread );
+				stream.read ( reinterpret_cast<char *>(C.begin()) , bytestoread );
 				if ( stream.gcount() != static_cast<int64_t>(bytestoread) )
 				{
 					::libmaus::exception::LibMausException se;
@@ -182,10 +193,11 @@ namespace libmaus
 					se.finish();
 					throw se;
 				}
-				
-				// decode packed data into byte buffer
-				for ( uint64_t i = 0; i < symstoread; ++i )
-					buffer[i] = C[i];
+			
+				// decode array
+				::libmaus::bitio::ArrayDecode::decodeArray(
+					C.begin(), reinterpret_cast<uint8_t *>(buffer.begin()), symstoread, 2
+				);
 				
 				setg(buffer.begin(),buffer.begin(),buffer.begin()+symstoread);
 
@@ -195,15 +207,14 @@ namespace libmaus
 			}
 		};
 
-
-		struct CompactDecoderWrapper : public CompactDecoderBuffer, public ::std::istream
+		struct PacDecoderWrapper : public PacDecoderBuffer, public ::std::istream
 		{
-			typedef CompactDecoderWrapper this_type;
+			typedef PacDecoderWrapper this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			CompactDecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
-			: CompactDecoderBuffer(filename,buffersize), ::std::istream(this)
+			PacDecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
+			: PacDecoderBuffer(filename,buffersize), ::std::istream(this)
 			{
 				
 			}
@@ -221,6 +232,7 @@ namespace libmaus
 				I.seekg(0,std::ios::end);
 				return I.tellg();
 			}
+
 		};
 	}
 }
