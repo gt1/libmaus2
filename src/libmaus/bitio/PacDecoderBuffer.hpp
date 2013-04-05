@@ -189,7 +189,7 @@ namespace libmaus
 				if ( stream.gcount() != static_cast<int64_t>(bytestoread) )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "CompactDecoderBuffer::underflow() failed to read " << bytestoread << " bytes." << std::endl;
+					se.getStream() << "PacDecoderBuffer::underflow() failed to read " << bytestoread << " bytes." << std::endl;
 					se.finish();
 					throw se;
 				}
