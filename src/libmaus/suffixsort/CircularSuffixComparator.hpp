@@ -40,13 +40,24 @@ namespace libmaus
 
 		struct CompactDecoderWrapperFactory
 		{
-			typedef ::libmaus::bitio::CompactDecoderWrapper wrapper_type;
+			typedef ::libmaus::bitio::CompactCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
-				wrapper_ptr_type W(new wrapper_type(filename,1024));
-				W->seekg(offset);
+				wrapper_ptr_type W(new wrapper_type(filename,offset));
+				return UNIQUE_PTR_MOVE(W);
+			}
+		};
+
+		struct PacDecoderWrapperFactory
+		{
+			typedef ::libmaus::bitio::PacCircularWrapper wrapper_type;
+			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+				
+			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
+			{
+				wrapper_ptr_type W(new wrapper_type(filename,offset));
 				return UNIQUE_PTR_MOVE(W);
 			}
 		};
