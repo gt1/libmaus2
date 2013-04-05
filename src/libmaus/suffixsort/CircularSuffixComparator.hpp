@@ -40,7 +40,7 @@ namespace libmaus
 
 		struct CompactDecoderWrapperFactory
 		{
-			typedef ::libmaus::bitio::CompactCircularWrapper wrapper_type;
+			typedef ::libmaus::aio::CompactCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
@@ -52,7 +52,7 @@ namespace libmaus
 
 		struct PacDecoderWrapperFactory
 		{
-			typedef ::libmaus::bitio::PacCircularWrapper wrapper_type;
+			typedef ::libmaus::aio::PacCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
@@ -230,6 +230,7 @@ namespace libmaus
 
 		typedef CircularSuffixComparatorTemplate<CircularWrapperFactory> CircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<CompactDecoderWrapperFactory> CompactCircularSuffixComparator;
+		typedef CircularSuffixComparatorTemplate<PacDecoderWrapperFactory> PacCircularSuffixComparator;
 	}
 }
 #endif

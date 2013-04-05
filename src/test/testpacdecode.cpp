@@ -27,11 +27,16 @@ int main(int argc, char * argv[])
 		::libmaus::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		::libmaus::bitio::PacDecoderWrapper PDW(fn);
+		::libmaus::autoarray::AutoArray<char> C(64*1024);
 		
-		int c;
-		while ( (c=PDW.get()) >= 0 )
-			std::cerr << static_cast<int>(c);
-		std::cerr << std::endl;
+		while ( PDW )
+		{
+			PDW.read(C.begin(),C.size());
+			int64_t const r = PDW.gcount();
+			std::cout.write(C.begin(),r);
+		}
+
+		std::cout.flush();
 	}
 	catch(std::exception const & ex)
 	{
