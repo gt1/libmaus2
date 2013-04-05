@@ -22,6 +22,7 @@
 #include <libmaus/aio/CircularBuffer.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/bitio/CompactDecoderBuffer.hpp>
+#include <libmaus/bitio/PacDecoderBuffer.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 
@@ -132,6 +133,15 @@ namespace libmaus
 			}
 		};
 
+		struct PacCircularWrapper : public PacDecoderWrapperWrapper, public CircularWrapper
+		{
+			PacCircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: PacDecoderWrapperWrapper(filename), CircularWrapper(PacDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
 		struct CheckedCircularReverseWrapper : public CheckedInputStreamWrapper, public CircularReverseWrapper
 		{
 			CheckedCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
@@ -145,6 +155,15 @@ namespace libmaus
 		{
 			CompactCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: CompactDecoderWrapperWrapper(filename), CircularReverseWrapper(CompactDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		struct PacCircularReverseWrapper : public PacDecoderWrapperWrapper, public CircularReverseWrapper
+		{
+			PacCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: PacDecoderWrapperWrapper(filename), CircularReverseWrapper(PacDecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
 			
 			}
