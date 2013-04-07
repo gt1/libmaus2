@@ -1,3 +1,9 @@
+libmaus (0.0.35-0) unstable; urgency=low
+
+  * bump version after adding dependency on io_lib 
+
+ -- German Tischler <baer@german-pc>  Sun, 07 Apr 2013 11:05:15 +0100
+
 libmaus (0.0.34-0) unstable; urgency=low
 
   * bump version number after adding io_lib interfacing code 
