@@ -2,7 +2,7 @@ libmaus (0.0.35-0) unstable; urgency=low
 
   * bump version after adding dependency on io_lib 
 
- -- German Tischler <baer@german-pc>  Sun, 07 Apr 2013 11:05:15 +0100
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 07 Apr 2013 11:05:15 +0100
 
 libmaus (0.0.34-0) unstable; urgency=low
 
@@ -14,13 +14,13 @@ libmaus (0.0.33-0) unstable; urgency=low
 
   * bump version number after updating bam writing code 
 
- -- German Tischler <baer@german-pc>  Sun, 24 Mar 2013 19:33:04 +0000
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 24 Mar 2013 19:33:04 +0000
 
 libmaus (0.0.32-1) unstable; urgency=low
 
   * bump version after splitting package into two parts 
 
- -- German Tischler <baer@german-pc>  Sat, 23 Mar 2013 15:36:54 +0000
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 23 Mar 2013 15:36:54 +0000
 
 libmaus (0.0.31-1) unstable; urgency=low
 
