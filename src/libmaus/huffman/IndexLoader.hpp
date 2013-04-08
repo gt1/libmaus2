@@ -29,6 +29,7 @@
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/bitio/BitIOInput.hpp>
 #include <iostream>
+#include <libmaus/aio/CheckedInputStream.hpp>
 
 #if defined(__linux__)
 #include <byteswap.h>
@@ -57,7 +58,57 @@ namespace libmaus
 				
 				return index;
 			}
-			
+
+			/*
+			 * load index for one file 
+			 */
+			static libmaus::autoarray::AutoArray< IndexEntry >::shared_ptr_type 
+				loadAccIndex(std::string const & filename)
+			{
+				uint64_t const indexpos = getIndexPos(filename);
+
+				::libmaus::aio::CheckedInputStream indexistr(filename);
+				// seek to index position
+				indexistr.seekg(indexpos,std::ios::beg);
+				// 
+				::libmaus::bitio::StreamBitInputStream SBIS(indexistr);
+				
+				// read size of index
+				uint64_t const numentries = ::libmaus::bitio::readElias2(SBIS);
+				// pos bits
+				unsigned int const posbits = ::libmaus::bitio::readElias2(SBIS);
+				
+				// k bits
+				unsigned int const kbits = ::libmaus::bitio::readElias2(SBIS);
+				// k acc
+				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+
+				// v bits
+				unsigned int const vbits = ::libmaus::bitio::readElias2(SBIS);
+				// v acc
+				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				
+				// align
+				SBIS.flush();
+				
+				SBIS.getBitsRead();
+				
+				// std::cerr << "numentries " << numentries << std::endl;
+				
+				// read index
+				libmaus::autoarray::AutoArray< IndexEntry >::shared_ptr_type index(
+					new libmaus::autoarray::AutoArray< IndexEntry >(numentries+1,false));
+				
+				for ( uint64_t i = 0; i < numentries+1; ++i )
+				{
+					uint64_t const pos = SBIS.read(posbits);
+					uint64_t const kcnt = SBIS.read(kbits);
+					uint64_t const vcnt = SBIS.read(vbits);
+					(*index)[i] = IndexEntry(pos,kcnt,vcnt);
+				}
+				
+				return index;
+			}
 
 			/*
 			 * load index for one file 
