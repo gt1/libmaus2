@@ -191,6 +191,8 @@ namespace libmaus
 		typedef FastWriteBitWriterTemplate<uint8_t , ::libmaus::aio::SynchronousGenericOutput<uint8_t>::iterator_type, 0x80, 0xFF > FastWriteBitWriterStream8Std;
 		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus::aio::SynchronousGenericOutputPosix<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriterBuffer64PosixSync;
 		typedef FastWriteBitWriterTemplate<uint64_t , ::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type, 0x8000000000000000ULL, 0xFFFFFFFFFFFFFFFFULL> FastWriteBitWriterBuffer64Sync;
+		typedef FastWriteBitWriterTemplate<uint32_t , ::libmaus::aio::SynchronousGenericOutputPosix<uint32_t>::iterator_type, 0x80000000ULL, 0xFFFFFFFFULL> FastWriteBitWriterBuffer32PosixSync;
+		typedef FastWriteBitWriterTemplate<uint32_t , ::libmaus::aio::SynchronousGenericOutput<uint32_t>::iterator_type, 0x80000000ULL, 0xFFFFFFFFULL> FastWriteBitWriterBuffer32Sync;
 	}
 }
 #endif
