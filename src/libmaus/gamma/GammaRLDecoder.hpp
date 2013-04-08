@@ -54,6 +54,8 @@ namespace libmaus
 			uint64_t fileptr;
 			uint64_t blockptr;
 			unsigned int albits;
+			
+			uint64_t bufsize;
 
 			uint64_t getN() const
 			{
@@ -113,7 +115,7 @@ namespace libmaus
 
 					SGI = UNIQUE_PTR_MOVE(
 						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
-							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024,
+							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,bufsize,
 								std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
 							)
 						)
@@ -238,26 +240,29 @@ namespace libmaus
 			}
 			
 			GammaRLDecoder(
-				std::vector<std::string> const & rfilenames, uint64_t offset = 0
+				std::vector<std::string> const & rfilenames, uint64_t offset = 0, uint64_t const rbufsize = 64*1024
 			)
 			: 
 			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
 			  idda(*Pidda),
 			  pa(0), pc(0), pe(0),
-			  fileptr(0), blockptr(0)
+			  fileptr(0), blockptr(0),
+			  bufsize(rbufsize)
 			{
 				init(offset);
 			}
 
 			GammaRLDecoder(
 				::libmaus::huffman::IndexDecoderDataArray const & ridda,
-				uint64_t offset = 0
+				uint64_t offset = 0,
+				uint64_t const rbufsize = 64*1024
 			)
 			:
 			  Pidda(),
 			  idda(ridda), 
 			  pa(0), pc(0), pe(0),
-			  fileptr(0), blockptr(0)
+			  fileptr(0), blockptr(0),
+			  bufsize(rbufsize)
 			{
 				init(offset);
 			}			

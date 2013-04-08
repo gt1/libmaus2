@@ -59,11 +59,12 @@ namespace libmaus
 			unsigned int const albits;
 
 			
-			GammaRLEncoder(std::string const & filename, unsigned int const ralbits, uint64_t const n, uint64_t const rblocksize)
+			GammaRLEncoder(std::string const & filename, unsigned int const ralbits, uint64_t const n, uint64_t const rblocksize, uint64_t const rbufsize = 64*1024)
 			: 
 			  blocksize(rblocksize),
-			  COS(filename), SGO(COS,8*1024), GE(SGO), 
-			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), cursym(0), curcnt(0), indexwritten(false), albits(ralbits)
+			  COS(filename), SGO(COS,rbufsize), GE(SGO), 
+			  A(blocksize), pa(A.begin()), pc(pa), pe(A.end()), 
+			  cursym(0), curcnt(0), indexwritten(false), albits(ralbits)
 			{
 				SGO.put(n);
 				SGO.put(albits);
