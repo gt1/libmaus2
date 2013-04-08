@@ -43,6 +43,153 @@ namespace libmaus
 {
 	namespace huffman
 	{
+		struct IndexEntryContainer
+		{
+			typedef IndexEntryContainer this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			::libmaus::autoarray::AutoArray< IndexEntry > const index;
+			
+			IndexEntryContainer(libmaus::autoarray::AutoArray< IndexEntry > & rindex)
+			: index(rindex)
+			{
+			
+			}
+			
+			uint64_t getNumKeys() const
+			{
+				if ( index.size() )
+					return index[index.size()-1].kcnt;
+				else
+					return 0;
+			}
+
+			uint64_t getNumValues() const
+			{
+				if ( index.size() )
+					return index[index.size()-1].vcnt;
+				else
+					return 0;
+			}
+			
+			uint64_t lookupKey(uint64_t const k) const
+			{				
+				if ( !index.size() )
+					return 0;
+
+				typedef IndexEntryKeyGetAdapter<IndexEntry const *> adapter_type;
+				adapter_type IEKGA(index.get());
+				::libmaus::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
+				::libmaus::util::ConstIterator<adapter_type,uint64_t> ite(ita);
+				ite += index.size();
+				
+				::libmaus::util::ConstIterator<adapter_type,uint64_t> R =
+					::std::lower_bound(ita,ite,k);
+					
+				if ( R == ite )
+					return index.size()-1;
+					
+				if ( k == *R )
+					return R-ita;
+				else
+					return (R-ita)-1;
+			}
+
+			uint64_t lookupValue(uint64_t const v) const
+			{				
+				if ( !index.size() )
+					return 0;
+
+				typedef IndexEntryValueGetAdapter<IndexEntry const *> adapter_type;
+				adapter_type IEKGA(index.get());
+				::libmaus::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
+				::libmaus::util::ConstIterator<adapter_type,uint64_t> ite(ita);
+				ite += index.size();
+				
+				::libmaus::util::ConstIterator<adapter_type,uint64_t> R =
+					::std::lower_bound(ita,ite,v);
+					
+				if ( R == ite )
+					return index.size()-1;
+					
+				if ( v == *R )
+					return R-ita;
+				else
+					return (R-ita)-1;
+			}
+
+			IndexEntry const * lookupKeyPointer(uint64_t const k) const
+			{
+				uint64_t const i = lookupKey(k);
+				if ( i+1 < index.size() )
+					return &(index[i]);
+				else
+					return 0;
+			}
+
+			IndexEntry const * lookupValuePointer(uint64_t const v) const
+			{
+				uint64_t const i = lookupValue(v);
+				if ( i+1 < index.size() )
+					return &(index[i]);
+				else
+					return 0;
+			}
+			
+			IndexEntry const & operator[](uint64_t const i) const
+			{
+				return index[i];
+			}
+		};
+		
+		struct IndexEntryContainerVector
+		{
+			typedef IndexEntryContainerVector this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A;
+			
+			IndexEntryContainerVector(::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> & rA)
+			: A(rA)
+			{
+			}
+			
+			std::pair<uint64_t,uint64_t> lookupKey(uint64_t k) const
+			{
+				uint64_t fileptr = 0;
+				
+				while ( fileptr < A.size() && k >= A[fileptr]->getNumKeys() )
+				{
+					k -= A[fileptr]->getNumKeys();
+					++fileptr;
+				}
+					
+				if ( fileptr == A.size() )
+					return std::pair<uint64_t,uint64_t>(fileptr,0);
+				else
+					return std::pair<uint64_t,uint64_t>(fileptr,A[fileptr]->lookupKey(k));
+			}
+
+			std::pair<uint64_t,uint64_t> lookupValue(uint64_t v) const
+			{
+				uint64_t fileptr = 0;
+				
+				while ( fileptr < A.size() && v >= A[fileptr]->getNumValues() )
+				{
+					v -= A[fileptr]->getNumValues();
+					++fileptr;
+				}
+					
+				if ( fileptr == A.size() )
+					return std::pair<uint64_t,uint64_t>(fileptr,0);
+				else
+					return std::pair<uint64_t,uint64_t>(fileptr,A[fileptr]->lookupValue(v));
+			}
+		};
+
+	
 		struct IndexLoader : public IndexLoaderBase
 		{
 			/* 
@@ -59,10 +206,22 @@ namespace libmaus
 				return index;
 			}
 
+
+			static IndexEntryContainerVector::unique_ptr_type loadAccIndex(std::vector<std::string> const & filenames)
+			{
+				::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A(filenames.size());
+				for ( uint64_t i = 0; i < filenames.size(); ++i )
+					A[i] = UNIQUE_PTR_MOVE(loadAccIndex(filenames[i]));
+
+				IndexEntryContainerVector::unique_ptr_type IECV(new IndexEntryContainerVector(A));
+				
+				return UNIQUE_PTR_MOVE(IECV);
+			}
+
 			/*
 			 * load index for one file 
 			 */
-			static libmaus::autoarray::AutoArray< IndexEntry >::shared_ptr_type 
+			static IndexEntryContainer::unique_ptr_type
 				loadAccIndex(std::string const & filename)
 			{
 				uint64_t const indexpos = getIndexPos(filename);
@@ -96,18 +255,19 @@ namespace libmaus
 				// std::cerr << "numentries " << numentries << std::endl;
 				
 				// read index
-				libmaus::autoarray::AutoArray< IndexEntry >::shared_ptr_type index(
-					new libmaus::autoarray::AutoArray< IndexEntry >(numentries+1,false));
+				libmaus::autoarray::AutoArray< IndexEntry > index(numentries+1,false);
 				
 				for ( uint64_t i = 0; i < numentries+1; ++i )
 				{
 					uint64_t const pos = SBIS.read(posbits);
 					uint64_t const kcnt = SBIS.read(kbits);
 					uint64_t const vcnt = SBIS.read(vbits);
-					(*index)[i] = IndexEntry(pos,kcnt,vcnt);
+					index[i] = IndexEntry(pos,kcnt,vcnt);
 				}
 				
-				return index;
+				IndexEntryContainer::unique_ptr_type IEC(new IndexEntryContainer(index));
+				
+				return UNIQUE_PTR_MOVE(IEC);
 			}
 
 			/*

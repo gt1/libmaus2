@@ -37,6 +37,44 @@ namespace libmaus
 			: pos(rpos), kcnt(rkcnt), vcnt(rvcnt) {}
 		};
 		
+		template<typename _iterator>
+		struct IndexEntryKeyGetAdapter
+		{
+			typedef _iterator iterator;
+			
+			iterator it;
+			
+			IndexEntryKeyGetAdapter(iterator const & rit)
+			: it(rit)
+			{
+				
+			}
+			
+			uint64_t get(uint64_t const i) const
+			{
+				return it[i].kcnt;
+			}
+		};
+
+		template<typename _iterator>
+		struct IndexEntryValueGetAdapter
+		{
+			typedef _iterator iterator;
+			
+			iterator it;
+			
+			IndexEntryValueGetAdapter(iterator const & rit)
+			: it(rit)
+			{
+				
+			}
+			
+			uint64_t get(uint64_t const i) const
+			{
+				return it[i].vcnt;
+			}
+		};
+		
 		struct IndexEntryValueAdd
 		{
 			uint64_t operator()(uint64_t const & A, IndexEntry const & B) const

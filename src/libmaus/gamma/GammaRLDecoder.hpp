@@ -27,6 +27,7 @@
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/util/IntervalTree.hpp>
 #include <libmaus/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus/huffman/IndexLoader.hpp>
 
 namespace libmaus
 {
@@ -39,6 +40,8 @@ namespace libmaus
 			
 			::libmaus::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
 			::libmaus::huffman::IndexDecoderDataArray const & idda;
+
+			::libmaus::huffman::IndexEntryContainerVector const * iecv;
 
 			typedef std::pair<uint64_t,uint64_t> rl_pair;
 			::libmaus::autoarray::AutoArray < rl_pair > rlbuffer;
@@ -111,7 +114,10 @@ namespace libmaus
 					);
 					
 					// seek to position and check if we succeeded
-					CIS->seekg(idda.data[fileptr].getPos(blockptr),std::ios::beg);
+					if ( iecv )
+						CIS->seekg(iecv->A[fileptr]->index[blockptr].pos,std::ios::beg);
+					else
+						CIS->seekg(idda.data[fileptr].getPos(blockptr),std::ios::beg);
 
 					SGI = UNIQUE_PTR_MOVE(
 						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
@@ -223,10 +229,54 @@ namespace libmaus
 			{
 				if ( offset < idda.vvec[idda.vvec.size()-1] )
 				{
-					::libmaus::huffman::FileBlockOffset const FBO = idda.findVBlock(offset);
-					fileptr = FBO.fileptr;
-					blockptr = FBO.blockptr;
-					uint64_t restoffset = FBO.offset;
+					uint64_t restoffset;
+				
+					if ( iecv )
+					{
+						std::pair<uint64_t,uint64_t> P = iecv->lookupValue(offset);
+						fileptr = P.first;
+						blockptr = P.second;
+						restoffset = offset - iecv->A[fileptr]->index[blockptr].vcnt;
+					}
+					else
+					{
+						::libmaus::huffman::FileBlockOffset const FBO = idda.findVBlock(offset);
+						fileptr = FBO.fileptr;
+						blockptr = FBO.blockptr;
+						restoffset = FBO.offset;
+					}
+					
+					#if 0
+					if ( iecv )
+					{
+						std::pair<uint64_t,uint64_t> P2 = iecv->lookupValue(offset);
+						
+						uint64_t const fileptr2 = P2.first;
+						uint64_t const blockptr2 = P2.second;
+						uint64_t const restoffset2 = 
+							offset - iecv->A[fileptr2]->index[blockptr2].vcnt;
+							
+						bool const ok =
+							(fileptr==fileptr2)
+							&&
+							(blockptr==blockptr2)
+							&&
+							(restoffset2 == restoffset);
+							
+						if ( ok )
+						{
+							std::cerr << "***OK****" << std::endl;
+						}
+						else
+						{
+							std::cerr << "***FAILURE: "
+								<< " fileptr=" << fileptr << " fileptr2=" << fileptr2 
+								<< " blockptr=" << blockptr << " blockptr2=" << blockptr2 
+								<< " restoffset=" << restoffset << " restoffset2=" << restoffset2
+								<< std::endl; 
+						}
+					}
+					#endif
 										
 					openNewFile();
 					
@@ -245,6 +295,7 @@ namespace libmaus
 			: 
 			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
 			  idda(*Pidda),
+			  iecv(0),
 			  pa(0), pc(0), pe(0),
 			  fileptr(0), blockptr(0),
 			  bufsize(rbufsize)
@@ -260,6 +311,24 @@ namespace libmaus
 			:
 			  Pidda(),
 			  idda(ridda), 
+			  iecv(0),
+			  pa(0), pc(0), pe(0),
+			  fileptr(0), blockptr(0),
+			  bufsize(rbufsize)
+			{
+				init(offset);
+			}			
+
+			GammaRLDecoder(
+				::libmaus::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus::huffman::IndexEntryContainerVector const * riecv,
+				uint64_t offset = 0,
+				uint64_t const rbufsize = 64*1024
+			)
+			:
+			  Pidda(),
+			  idda(ridda), 
+			  iecv(riecv),
 			  pa(0), pc(0), pe(0),
 			  fileptr(0), blockptr(0),
 			  bufsize(rbufsize)
