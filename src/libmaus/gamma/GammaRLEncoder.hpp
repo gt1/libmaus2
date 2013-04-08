@@ -242,12 +242,20 @@ namespace libmaus
 					::libmaus::util::GetFileSize::copy(CIS,COS,datalen);
 					
 					// add entries to index
-					::libmaus::huffman::IndexDecoderData indexdata(infilenames[i]);
+					::libmaus::huffman::IndexLoaderSequential indexdata(infilenames[i]);
+					::libmaus::huffman::IndexEntry ij = indexdata.getNext();
+					
+					// ::libmaus::huffman::IndexDecoderData indexdata(infilenames[i]);
 					for ( uint64_t j = 0; j < indexdata.numentries; ++j )
 					{
+						::libmaus::huffman::IndexEntry ij1 = indexdata.getNext();
+						/*
 						::libmaus::huffman::IndexEntry const ij  = indexdata.readEntry(j);
 						::libmaus::huffman::IndexEntry const ij1 = indexdata.readEntry(j+1);						
+						*/
 						index.push_back(::libmaus::huffman::IndexEntry((ij.pos - headerlen) + ioff, ij1.kcnt - ij.kcnt, ij1.vcnt - ij.vcnt));
+						
+						ij = ij1;
 					}
 					
 					// update position pointer

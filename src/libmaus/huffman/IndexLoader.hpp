@@ -189,6 +189,49 @@ namespace libmaus
 			}
 		};
 
+		struct IndexLoaderSequential : public IndexLoaderBase
+		{
+			::libmaus::aio::CheckedInputStream indexistr;
+			::libmaus::bitio::StreamBitInputStream SBIS;
+			
+			uint64_t numentries;
+			unsigned int posbits;
+			unsigned int kbits;
+			unsigned int vbits;		
+			
+			IndexLoaderSequential(std::string const & filename)
+			: indexistr(filename), SBIS(indexistr)
+			{
+				uint64_t const indexpos = getIndexPos(filename);
+				indexistr.seekg(indexpos,std::ios::beg);
+
+				// read size of index
+				numentries = ::libmaus::bitio::readElias2(SBIS);
+				// pos bits
+				posbits = ::libmaus::bitio::readElias2(SBIS);
+				
+				// k bits
+				kbits = ::libmaus::bitio::readElias2(SBIS);
+				// k acc
+				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+
+				// v bits
+				vbits = ::libmaus::bitio::readElias2(SBIS);
+				// v acc
+				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				
+				// align
+				SBIS.flush();
+			}
+
+			IndexEntry getNext()
+			{
+				uint64_t const pos = SBIS.read(posbits);
+				uint64_t const kcnt = SBIS.read(kbits);
+				uint64_t const vcnt = SBIS.read(vbits);
+				return IndexEntry(pos,kcnt,vcnt);
+			}
+		};
 	
 		struct IndexLoader : public IndexLoaderBase
 		{
