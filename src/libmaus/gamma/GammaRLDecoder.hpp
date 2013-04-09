@@ -28,6 +28,7 @@
 #include <libmaus/util/IntervalTree.hpp>
 #include <libmaus/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus/huffman/IndexLoader.hpp>
+#include <libmaus/gamma/GammaDecoder.hpp>
 
 namespace libmaus
 {
