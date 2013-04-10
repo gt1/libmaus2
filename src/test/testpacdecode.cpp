@@ -26,6 +26,8 @@ int main(int argc, char * argv[])
 	{
 		::libmaus::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
+		
+		#if 0
 		::libmaus::bitio::PacDecoderWrapper PDW(fn);
 		::libmaus::autoarray::AutoArray<char> C(64*1024);
 		
@@ -37,6 +39,22 @@ int main(int argc, char * argv[])
 		}
 
 		std::cout.flush();
+		#endif
+
+		{
+		::libmaus::bitio::PacDecoderTermWrapper PDW(fn,16*1024);
+		int r = -1;
+		while ( (r = PDW.get()) >= 0 )
+			std::cout << r;
+		std::cout << std::endl;
+		}
+		{
+		::libmaus::bitio::PacDecoderWrapper PDW(fn,16*1024);
+		int r = -1;
+		while ( (r = PDW.get()) >= 0 )
+			std::cout << r;
+		std::cout << std::endl;
+		}
 	}
 	catch(std::exception const & ex)
 	{

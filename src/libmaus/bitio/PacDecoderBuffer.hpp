@@ -55,6 +55,8 @@ namespace libmaus
 			
 			uint64_t symsread;
 
+			bool addterm;
+
 			PacDecoderBuffer(PacDecoderBuffer const &);
 			PacDecoderBuffer & operator=(PacDecoderBuffer&);
 			
@@ -78,7 +80,8 @@ namespace libmaus
 			public:
 			PacDecoderBuffer(
 				std::string const & filename, 
-				::std::size_t rbuffersize
+				::std::size_t rbuffersize,
+				bool const raddterm = false
 			)
 			: stream(filename),
 			  b(2),
@@ -89,7 +92,8 @@ namespace libmaus
 			  buffersize(((rbuffersize + alignmult-1)/alignmult)*alignmult),
 			  C((buffersize*b+7)/8),
 			  buffer(buffersize,false),
-			  symsread(0)
+			  symsread(0),
+			  addterm(raddterm)
 			{
 				setg(buffer.end(), buffer.end(), buffer.end());	
 			}
@@ -141,7 +145,7 @@ namespace libmaus
 					else if ( way == ::std::ios_base::beg )
 						abstarget = off;
 					else // if ( way == ::std::ios_base::end )
-						abstarget = n + off;
+						abstarget = n + (addterm?1:0) + off;
 						
 					if ( abstarget - cur == 0 )
 					{
@@ -174,12 +178,13 @@ namespace libmaus
 
 				assert ( gptr() == egptr() );
 
-				uint64_t const symsleft = (n-symsread);
+				uint64_t const symsleft = ((n+(addterm?1:0))-symsread);
 				
 				if ( symsleft == 0 )
 					return traits_type::eof();
-				
-				uint64_t const symstoread = std::min(symsleft,buffersize);
+
+				uint64_t const lasttermblock = addterm ? ((symsleft <= buffersize)?1:0) : 0;
+				uint64_t const symstoread = std::min(symsleft-lasttermblock,buffersize);
 				
 				uint64_t const wordstoread = (symstoread * b + (bitsperentity-1))/bitsperentity;
 				uint64_t const bytestoread = wordstoread * (bitsperentity/8);
@@ -199,22 +204,31 @@ namespace libmaus
 					C.begin(), reinterpret_cast<uint8_t *>(buffer.begin()), symstoread, 2
 				);
 				
-				setg(buffer.begin(),buffer.begin(),buffer.begin()+symstoread);
+				if ( addterm )
+					for ( uint64_t i = 0; i < symstoread; ++i )
+						buffer[i] += 1;
+				if ( lasttermblock )
+					buffer[symstoread] = 0;
+				
+				setg(buffer.begin(),buffer.begin(),buffer.begin()+symstoread+lasttermblock);
 
-				symsread += symstoread;
+				symsread += symstoread+lasttermblock;
 				
 				return static_cast<int_type>(*uptr());
 			}
 		};
 
-		struct PacDecoderWrapper : public PacDecoderBuffer, public ::std::istream
+		template<bool _addterm>
+		struct PacDecoderWrapperTemplate : public PacDecoderBuffer, public ::std::istream
 		{
-			typedef PacDecoderWrapper this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			static bool const addterm = _addterm;
+			
+			typedef PacDecoderWrapperTemplate<_addterm> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			PacDecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
-			: PacDecoderBuffer(filename,buffersize), ::std::istream(this)
+			PacDecoderWrapperTemplate(std::string const & filename, uint64_t const buffersize = 64*1024)
+			: PacDecoderBuffer(filename,buffersize,addterm), ::std::istream(this)
 			{
 				
 			}
@@ -232,8 +246,10 @@ namespace libmaus
 				I.seekg(0,std::ios::end);
 				return I.tellg();
 			}
-
 		};
+		
+		typedef PacDecoderWrapperTemplate<false> PacDecoderWrapper;
+		typedef PacDecoderWrapperTemplate<true> PacDecoderTermWrapper;
 	}
 }
 #endif
