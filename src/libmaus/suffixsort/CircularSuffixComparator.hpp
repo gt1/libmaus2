@@ -61,6 +61,18 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(W);
 			}
 		};
+
+		struct PacTermDecoderWrapperFactory
+		{
+			typedef ::libmaus::aio::PacTermCircularWrapper wrapper_type;
+			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+				
+			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
+			{
+				wrapper_ptr_type W(new wrapper_type(filename,offset));
+				return UNIQUE_PTR_MOVE(W);
+			}
+		};
 	
 		template<typename _factory_type>
 		struct CircularSuffixComparatorTemplate
@@ -231,6 +243,7 @@ namespace libmaus
 		typedef CircularSuffixComparatorTemplate<CircularWrapperFactory> CircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<CompactDecoderWrapperFactory> CompactCircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<PacDecoderWrapperFactory> PacCircularSuffixComparator;
+		typedef CircularSuffixComparatorTemplate<PacTermDecoderWrapperFactory> PacTermCircularSuffixComparator;
 	}
 }
 #endif
