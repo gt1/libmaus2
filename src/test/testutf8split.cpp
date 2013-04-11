@@ -21,6 +21,7 @@
 #include <libmaus/util/ArgInfo.hpp>
 #include <libmaus/util/Utf8BlockIndex.hpp>
 #include <libmaus/util/Utf8DecoderBuffer.hpp>
+#include <libmaus/aio/CircularWrapper.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -48,8 +49,8 @@ int main(int argc, char * argv[])
 		assert ( index->blockstarts[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
 		assert ( deco[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
 		
+		#if 0
 		std::vector < wchar_t > W;
-		
 		::libmaus::util::Utf8DecoderWrapper decwr(fn);
 		
 		wchar_t w = -1;
@@ -65,6 +66,15 @@ int main(int argc, char * argv[])
 			
 			for ( uint64_t j = i; j < W.size(); ++j )
 				assert ( decwr.get() == W[j] );
+		}
+		#endif
+		
+		::libmaus::aio::Utf8CircularWrapper CW(fn);
+
+		wchar_t w = -1;
+		while ( (w=CW.get()) >= 0 )
+		{
+			::libmaus::util::UTF8::encodeUTF8(w,std::cout);
 		}
 	}
 	catch(std::exception const & ex)

@@ -25,47 +25,72 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus/util/Utf8DecoderBuffer.hpp>
 
 namespace libmaus
 {
 	namespace aio
 	{
-		struct CircularBuffer : public ::std::streambuf
+		template<typename T>
+		struct UnsignedCharVariant
+		{
+		
+		};
+
+		template<>
+		struct UnsignedCharVariant<char>
+		{
+			typedef unsigned char type;
+		};
+
+		template<>
+		struct UnsignedCharVariant<wchar_t>
+		{
+			typedef wchar_t type;
+		};
+	
+		template<typename _stream_type>
+		struct CircularBufferTemplate : public ::std::basic_streambuf<typename _stream_type::char_type>
 		{
 			private:
-			::libmaus::aio::CheckedInputStream::unique_ptr_type Pstream;
-			::std::istream & stream;
+			typedef _stream_type stream_type;
+			typedef typename stream_type::char_type char_type;
+			typedef ::std::basic_streambuf<char_type> base_type;
+			typedef typename UnsignedCharVariant<char_type>::type unsigned_char_type;
+			
+			typename stream_type::unique_ptr_type Pstream;
+			::std::basic_istream<char_type> & stream;
 			
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus::autoarray::AutoArray<char_type> buffer;
 			uint64_t streamreadpos;
 			uint64_t const infilesize;
 
-			CircularBuffer(CircularBuffer const &);
-			CircularBuffer & operator=(CircularBuffer&);
+			CircularBufferTemplate(CircularBufferTemplate<stream_type> const &);
+			CircularBufferTemplate & operator=(CircularBufferTemplate<stream_type> &);
 			
 			public:
-			CircularBuffer(
+			CircularBufferTemplate(
 				std::string const & filename, 
 				uint64_t const offset, 
 				::std::size_t rbuffersize, 
 				std::size_t rpushbackspace
 			)
-			: Pstream(new ::libmaus::aio::CheckedInputStream(filename)),
+			: Pstream(new stream_type(filename)),
 			  stream(*Pstream),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), 
 			  streamreadpos(0),
-			  infilesize(::libmaus::util::GetFileSize::getFileSize(filename))
+			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 
-			CircularBuffer(
-				std::istream & rstream,
+			CircularBufferTemplate(
+				std::basic_istream<char_type> & rstream,
 				uint64_t const offset, 
 				::std::size_t rbuffersize, 
 				std::size_t rpushbackspace
@@ -79,38 +104,38 @@ namespace libmaus
 			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 			
 			uint64_t tellg() const
 			{
 				// std::cerr << "here." << std::endl;
-				return streamreadpos - (egptr()-gptr());
+				return streamreadpos - (base_type::egptr()-base_type::gptr());
 			}
 			
 			private:
 			// gptr as unsigned pointer
-			uint8_t const * uptr() const
+			unsigned_char_type const * uptr() const
 			{
-				return reinterpret_cast<uint8_t const *>(gptr());
+				return reinterpret_cast<unsigned_char_type const *>(base_type::gptr());
 			}
 			
-			int_type underflow()
+			typename base_type::int_type underflow()
 			{
-				if ( gptr() < egptr() )
-					return static_cast<int_type>(*uptr());
+				if ( base_type::gptr() < base_type::egptr() )
+					return static_cast<typename base_type::int_type>(*uptr());
 					
-				assert ( gptr() == egptr() );
+				assert ( base_type::gptr() == base_type::egptr() );
 					
-				char * midptr = buffer.begin() + pushbackspace;
+				char_type * midptr = buffer.begin() + pushbackspace;
 				uint64_t const copyavail = 
 					std::min(
 						// previously read
-						static_cast<uint64_t>(gptr()-eback()),
+						static_cast<uint64_t>(base_type::gptr()-base_type::eback()),
 						// space we have to copy into
 						static_cast<uint64_t>(midptr-buffer.begin())
 					);
-				::std::memmove(midptr-copyavail,gptr()-copyavail,copyavail);
+				::std::memmove(midptr-copyavail,base_type::gptr()-copyavail,copyavail*sizeof(char_type));
 
 				if ( 
 					static_cast<int64_t>(stream.tellg()) == static_cast<int64_t>(infilesize) 
@@ -125,44 +150,53 @@ namespace libmaus
 				size_t const n = stream.gcount();
 				streamreadpos += n;
 
-				setg(midptr-copyavail, midptr, midptr+n);
+				base_type::setg(midptr-copyavail, midptr, midptr+n);
 
 				if (!n)
-					return traits_type::eof();
+					return base_type::traits_type::eof();
 				
-				return static_cast<int_type>(*uptr());
+				return static_cast<typename base_type::int_type>(*uptr());
 			}
 		};
 
-		struct CircularReverseBuffer : public ::std::streambuf
+		typedef CircularBufferTemplate< ::libmaus::aio::CheckedInputStream  > CircularBuffer;
+		typedef CircularBufferTemplate< ::libmaus::util::Utf8DecoderWrapper > Utf8CircularBuffer;
+
+		template<typename _stream_type>
+		struct CircularReverseBufferTemplate : public ::std::basic_streambuf<typename _stream_type::char_type>
 		{
-			private:
-			::libmaus::aio::CheckedInputStream::unique_ptr_type Pstream;
-			std::istream & stream;
+			protected:
+			typedef _stream_type stream_type;
+			typedef typename stream_type::char_type char_type;
+			typedef ::std::basic_streambuf<char_type> base_type;
+			typedef typename UnsignedCharVariant<char_type>::type unsigned_char_type;
+
+			typename stream_type::unique_ptr_type Pstream;
+			::std::basic_istream<char_type> & stream;
 			
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus::autoarray::AutoArray<char_type> buffer;
 			uint64_t streamreadpos;
 			uint64_t const infilesize;
 
-			CircularReverseBuffer(CircularReverseBuffer const &);
-			CircularReverseBuffer & operator=(CircularReverseBuffer&);
+			CircularReverseBufferTemplate(CircularReverseBufferTemplate const &);
+			CircularReverseBufferTemplate & operator=(CircularReverseBufferTemplate&);
 			
 			public:
-			CircularReverseBuffer(std::string const & filename, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
-			: Pstream(new ::libmaus::aio::CheckedInputStream(filename)),
+			CircularReverseBufferTemplate(std::string const & filename, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
+			: Pstream(new stream_type(filename)),
 			  stream(*Pstream),
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
-			  infilesize(::libmaus::util::GetFileSize::getFileSize(filename))
+			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 
-			CircularReverseBuffer(std::istream & rstream, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
+			CircularReverseBufferTemplate(std::basic_istream<char_type> & rstream, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
 			: Pstream(),
 			  stream(rstream),
 			  buffersize(rbuffersize),
@@ -171,38 +205,38 @@ namespace libmaus
 			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
-				setg(buffer.end(), buffer.end(), buffer.end());	
+				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 			
 			uint64_t tellg() const
 			{
 				// std::cerr << "here." << std::endl;
-				return streamreadpos - (egptr()-gptr());
+				return streamreadpos - (base_type::egptr()-base_type::gptr());
 			}
 			
 			private:
 			// gptr as unsigned pointer
-			uint8_t const * uptr() const
+			unsigned_char_type const * uptr() const
 			{
-				return reinterpret_cast<uint8_t const *>(gptr());
+				return reinterpret_cast<unsigned_char_type const *>(base_type::gptr());
 			}
 			
-			int_type underflow()
+			typename base_type::int_type underflow()
 			{
-				if ( gptr() < egptr() )
-					return static_cast<int_type>(*uptr());
+				if ( base_type::gptr() < base_type::egptr() )
+					return static_cast<typename base_type::int_type>(*uptr());
 					
-				assert ( gptr() == egptr() );
+				assert ( base_type::gptr() == base_type::egptr() );
 					
-				char * midptr = buffer.begin() + pushbackspace;
+				char_type * midptr = buffer.begin() + pushbackspace;
 				uint64_t const copyavail = 
 					std::min(
 						// previously read
-						static_cast<uint64_t>(gptr()-eback()),
+						static_cast<uint64_t>(base_type::gptr()-base_type::eback()),
 						// space we have to copy into
 						static_cast<uint64_t>(midptr-buffer.begin())
 					);
-				::std::memmove(midptr-copyavail,gptr()-copyavail,copyavail);
+				::std::memmove(midptr-copyavail,base_type::gptr()-copyavail,copyavail*sizeof(char_type));
 
 				if ( static_cast<int64_t>(stream.tellg()) == static_cast<int64_t>(0) )
 				{
@@ -225,14 +259,17 @@ namespace libmaus
 				stream.seekg(-static_cast<int64_t>(toread),std::ios::cur);
 				stream.clear();
 
-				setg(midptr-copyavail, midptr, midptr+n);
+				base_type::setg(midptr-copyavail, midptr, midptr+n);
 
 				if (!n)
-					return traits_type::eof();
+					return base_type::traits_type::eof();
 				
-				return static_cast<int_type>(*uptr());
+				return static_cast<typename base_type::int_type>(*uptr());
 			}
 		};
+
+		typedef CircularReverseBufferTemplate< ::libmaus::aio::CheckedInputStream  > CircularReverseBuffer;
+		typedef CircularReverseBufferTemplate< ::libmaus::util::Utf8DecoderWrapper > Utf8CircularReverseBuffer;
 	}
 }
 #endif

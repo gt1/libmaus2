@@ -31,6 +31,7 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::CircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			typedef int int_type;
 			
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -42,6 +43,7 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::CompactCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			typedef int int_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -54,6 +56,7 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::PacCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			typedef int int_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -66,7 +69,21 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::PacTermCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			typedef int int_type;
 				
+			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
+			{
+				wrapper_ptr_type W(new wrapper_type(filename,offset));
+				return UNIQUE_PTR_MOVE(W);
+			}
+		};
+
+		struct Utf8DecoderWrapperFactory
+		{
+			typedef ::libmaus::aio::Utf8CircularWrapperWrapper wrapper_type;
+			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			typedef wint_t int_type;
+
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
 				wrapper_ptr_type W(new wrapper_type(filename,offset));
@@ -106,8 +123,8 @@ namespace libmaus
 			
 				for ( uint64_t i = 0; i < fs; ++i )
 				{
-					int const ca = cwa->get();
-					int const cb = cwb->get();
+					typename factory_type::int_type const ca = cwa->get();
+					typename factory_type::int_type const cb = cwb->get();
 					
 					assert ( ca >= 0 );
 					assert ( cb >= 0 );
@@ -129,8 +146,8 @@ namespace libmaus
 				
 				while ( texta != texte )
 				{
-					int const ca = *(texta++);
-					int const cb = cwb->get();
+					typename factory_type::int_type const ca = *(texta++);
+					typename factory_type::int_type const cb = cwb->get();
 					
 					assert ( ca >= 0 );
 					assert ( cb >= 0 );

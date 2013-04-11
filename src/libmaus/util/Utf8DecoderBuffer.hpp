@@ -38,7 +38,9 @@ namespace libmaus
 	{
 		struct Utf8DecoderBuffer : public ::std::wstreambuf
 		{
-			private:
+			protected:
+			typedef ::std::wstreambuf::char_type char_type;
+			
 			static uint64_t const headersize = 4*sizeof(uint64_t);
 			
 			::libmaus::util::Utf8BlockIndexDecoder indexdecoder;
@@ -218,6 +220,8 @@ namespace libmaus
 			typedef Utf8DecoderWrapper this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			typedef Utf8DecoderBuffer::char_type char_type;
 		
 			Utf8DecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
 			: Utf8DecoderBuffer(filename,buffersize), ::std::wistream(this)

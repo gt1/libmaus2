@@ -61,6 +61,40 @@ namespace libmaus
 				return CircularBuffer::tellg();
 			}
 		};
+
+		struct Utf8CircularWrapper : public Utf8CircularBuffer, public ::std::wistream
+		{
+			typedef Utf8CircularWrapper this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			Utf8CircularWrapper(
+				std::string const & filename, 
+				uint64_t const offset = 0,
+				uint64_t const buffersize = 64*1024, 
+				uint64_t const pushbackspace = 64
+			)
+			: Utf8CircularBuffer(filename,offset,buffersize,pushbackspace), ::std::wistream(this)
+			{
+				
+			}
+			Utf8CircularWrapper(
+				std::wistream & rin, 
+				uint64_t const offset = 0,
+				uint64_t const buffersize = 64*1024, 
+				uint64_t const pushbackspace = 64
+			)
+			: Utf8CircularBuffer(rin,offset,buffersize,pushbackspace), ::std::wistream(this)
+			{
+				
+			}
+			uint64_t tellg() const
+			{
+				return Utf8CircularBuffer::tellg();
+			}
+		};
+
+
 		struct CircularReverseWrapper : public CircularReverseBuffer, public ::std::istream
 		{
 			typedef CircularReverseWrapper this_type;
@@ -92,6 +126,38 @@ namespace libmaus
 				return CircularReverseBuffer::tellg();
 			}
 		};
+
+		struct Utf8CircularReverseWrapper : public Utf8CircularReverseBuffer, public ::std::wistream
+		{
+			typedef Utf8CircularReverseWrapper this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			Utf8CircularReverseWrapper(
+				std::string const & filename, 
+				uint64_t const offset = 0,
+				uint64_t const buffersize = 64*1024, 
+				uint64_t const pushbackspace = 64
+			)
+			: Utf8CircularReverseBuffer(filename,offset,buffersize,pushbackspace), ::std::wistream(this)
+			{
+				
+			}
+			Utf8CircularReverseWrapper(
+				std::wistream & rin, 
+				uint64_t const offset = 0,
+				uint64_t const buffersize = 64*1024, 
+				uint64_t const pushbackspace = 64
+			)
+			: Utf8CircularReverseBuffer(rin,offset,buffersize,pushbackspace), ::std::wistream(this)
+			{
+				
+			}
+			uint64_t tellg() const
+			{
+				return Utf8CircularReverseBuffer::tellg();
+			}
+		};
 		
 		struct CheckedInputStreamWrapper
 		{
@@ -99,6 +165,16 @@ namespace libmaus
 			
 			CheckedInputStreamWrapper(std::string const & filename)
 			: stream(filename)
+			{
+			
+			}
+		};
+
+		struct Utf8DecoderWrapperWrapper
+		{
+			::libmaus::util::Utf8DecoderWrapper stream;
+			
+			Utf8DecoderWrapperWrapper(std::string const & filename) : stream(filename)
 			{
 			
 			}
@@ -173,6 +249,15 @@ namespace libmaus
 			}
 		};
 
+		struct Utf8CircularWrapperWrapper : public Utf8DecoderWrapperWrapper, public Utf8CircularWrapper
+		{
+			Utf8CircularWrapperWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: Utf8DecoderWrapperWrapper(filename), Utf8CircularWrapper(Utf8DecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
 		struct CheckedCircularReverseWrapper : public CheckedInputStreamWrapper, public CircularReverseWrapper
 		{
 			CheckedCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
@@ -204,6 +289,15 @@ namespace libmaus
 		{
 			PacTermCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: PacDecoderTermWrapperWrapper(filename), CircularReverseWrapper(PacDecoderTermWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		struct Utf8CircularReverseWrapperWrapper : public Utf8DecoderWrapperWrapper, public Utf8CircularReverseWrapper
+		{
+			Utf8CircularReverseWrapperWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: Utf8DecoderWrapperWrapper(filename), Utf8CircularReverseWrapper(Utf8DecoderWrapperWrapper::stream,offset,buffersize,pushbackspace)
 			{
 			
 			}
