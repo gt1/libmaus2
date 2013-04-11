@@ -32,6 +32,7 @@ namespace libmaus
 		{
 			uint64_t blocksize;
 			uint64_t lastblocksize;
+			uint64_t maxblockbytes;
 			uint64_t numblocks;
 			
 			::libmaus::aio::CheckedInputStream CIS;
@@ -41,13 +42,14 @@ namespace libmaus
 			{
 				blocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 				lastblocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+				maxblockbytes = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 				numblocks = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 			}
 			
 			uint64_t operator[](uint64_t const i)
 			{
 				CIS.clear();
-				CIS.seekg((3+i)*sizeof(uint64_t));
+				CIS.seekg((4+i)*sizeof(uint64_t));
 				
 				return ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 			}
@@ -60,6 +62,7 @@ namespace libmaus
 
 			uint64_t blocksize;
 			uint64_t lastblocksize;
+			uint64_t maxblockbytes;
 			::libmaus::autoarray::AutoArray<uint64_t> blockstarts;
 			
 			private:
@@ -74,6 +77,7 @@ namespace libmaus
 			{
 				::libmaus::util::NumberSerialisation::serialiseNumber(stream,blocksize);
 				::libmaus::util::NumberSerialisation::serialiseNumber(stream,lastblocksize);
+				::libmaus::util::NumberSerialisation::serialiseNumber(stream,maxblockbytes);
 				::libmaus::util::NumberSerialisation::serialiseNumber(stream,blockstarts.size());
 				for ( uint64_t i = 0; i < blockstarts.size(); ++i )
 					::libmaus::util::NumberSerialisation::serialiseNumber(stream,blockstarts[i]);	
@@ -93,6 +97,7 @@ namespace libmaus
 
 				UP->blocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 				UP->lastblocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+				UP->maxblockbytes = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 				uint64_t const numblocks = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
 				
 				UP->blockstarts = ::libmaus::autoarray::AutoArray<uint64_t>(numblocks,false);
@@ -233,6 +238,11 @@ namespace libmaus
 						syms++;
 					}			
 				}
+				
+				uint64_t maxblockbytes = 0;
+				for ( uint64_t i = 0; i+1 < numblocks; ++i )
+					maxblockbytes = std::max(maxblockbytes,blockstarts[i+1]-blockstarts[i]);
+				maxblockbytes = std::max(maxblockbytes,fs-blockstarts[blockstarts.size()-1]);
 
 				#if defined(UTF8SPLITDEBUG)
 				CIS->clear();
@@ -256,6 +266,7 @@ namespace libmaus
 				unique_ptr_type UP(new this_type);
 				UP->blockstarts = blockstarts;
 				UP->blocksize = blocksize;
+				UP->maxblockbytes = maxblockbytes;
 
 				CIS->clear();
 				uint64_t codelen = UP->blockstarts[UP->blockstarts.size()-1];
