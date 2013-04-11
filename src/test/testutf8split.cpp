@@ -23,6 +23,58 @@
 #include <libmaus/util/Utf8DecoderBuffer.hpp>
 #include <libmaus/aio/CircularWrapper.hpp>
 
+#include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus/select/ImpCacheLineSelectSupport.hpp>
+
+struct Utf8String
+{
+	::libmaus::autoarray::AutoArray<uint8_t> A;
+	::libmaus::rank::ImpCacheLineRank::unique_ptr_type I;
+	::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type S;
+	
+	Utf8String(std::string const & filename)
+	{
+		::libmaus::aio::CheckedInputStream CIS(filename);
+		uint64_t const an = ::libmaus::util::GetFileSize::getFileSize(CIS);
+		A = ::libmaus::autoarray::AutoArray<uint8_t>(an);
+		CIS.read(reinterpret_cast<char *>(A.begin()),an);
+		
+		uint64_t const bitalign = 6*64;
+		
+		I = UNIQUE_PTR_MOVE(::libmaus::rank::ImpCacheLineRank::unique_ptr_type(new ::libmaus::rank::ImpCacheLineRank(((an+(bitalign-1))/bitalign)*bitalign)));
+
+		::libmaus::rank::ImpCacheLineRank::WriteContext WC = I->getWriteContext();
+		for ( uint64_t i = 0; i < an; ++i )
+			if ( (!(A[i] & 0x80)) || ((A[i] & 0xc0) != 0x80) )
+				WC.writeBit(1);
+			else
+				WC.writeBit(0);
+				
+		for ( uint64_t i = an; i % bitalign; ++i )
+			WC.writeBit(0);
+				
+		WC.flush();
+		
+		S = ::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type(new ::libmaus::select::ImpCacheLineSelectSupport(*I,8));
+		
+		#if 0
+		std::cerr << "A.size()=" << A.size() << std::endl;
+		std::cerr << "I.byteSize()=" << I->byteSize() << std::endl;
+		#endif
+	}
+	
+	wchar_t operator[](uint64_t const i) const
+	{
+		uint64_t const p = I->select1(i);
+		::libmaus::util::GetObject<uint8_t const *> G(A.begin()+p);
+		return ::libmaus::util::UTF8::decodeUTF8(G);
+	}
+	wchar_t get(uint64_t const i) const
+	{
+		return (*this)[i];
+	}
+};
+
 int main(int argc, char * argv[])
 {
 	try
@@ -68,13 +120,26 @@ int main(int argc, char * argv[])
 				assert ( decwr.get() == W[j] );
 		}
 		#endif
-		
+
+		#if 0		
 		::libmaus::aio::Utf8CircularWrapper CW(fn);
 
 		wchar_t w = -1;
 		while ( (w=CW.get()) >= 0 )
 		{
 			::libmaus::util::UTF8::encodeUTF8(w,std::cout);
+		}
+		#endif
+		
+		Utf8String us(fn);
+		
+		::libmaus::util::Utf8DecoderWrapper decwr(fn);
+		uint64_t const numsyms = ::libmaus::util::GetFileSize::getFileSize(decwr);
+
+		for ( uint64_t i = 0; i < numsyms; ++i )
+		{
+			assert ( decwr.get() == us[i] );
+			// ::libmaus::util::UTF8::encodeUTF8(us[i],std::cout);
 		}
 	}
 	catch(std::exception const & ex)
