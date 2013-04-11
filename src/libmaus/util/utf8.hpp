@@ -48,6 +48,14 @@ namespace libmaus
 					throw se;
 				}
 				
+				if ( (str0 & 0xc0) == 0x80 )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+					se.finish();
+					throw se;
+				}
+				
 				while ( str0 & mask )
 				{
 					len++;
@@ -72,6 +80,13 @@ namespace libmaus
 						se.finish();
 						throw se;
 					}
+					if ( (strn & 0xc0) != 0x80 )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+						se.finish();
+						throw se;					
+					}
 
 					number |= (strn) & 0x3f;
 				}
@@ -95,6 +110,14 @@ namespace libmaus
 					{
 						::libmaus::exception::LibMausException se;
 						se.getStream() << "EOF in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+						se.finish();
+						throw se;
+					}
+
+					if ( (str0 & 0xc0) == 0x80 )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
 						se.finish();
 						throw se;
 					}
@@ -125,6 +148,13 @@ namespace libmaus
 							se.getStream() << "EOF in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
 							se.finish();
 							throw se;
+						}
+						if ( (strn & 0xc0) != 0x80 )
+						{
+							::libmaus::exception::LibMausException se;
+							se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+							se.finish();
+							throw se;					
 						}
 
 						number |= (strn) & 0x3f;
