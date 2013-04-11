@@ -20,6 +20,7 @@
 #include <iostream>
 #include <libmaus/util/ArgInfo.hpp>
 #include <libmaus/util/Utf8BlockIndex.hpp>
+#include <libmaus/util/Utf8DecoderBuffer.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -52,6 +53,14 @@ int main(int argc, char * argv[])
 			deco[deco.numblocks] == 
 			::libmaus::util::GetFileSize::getFileSize(fn)
 		);
+		
+		::libmaus::util::Utf8DecoderWrapper decwr(fn);
+		
+		wchar_t w = -1;
+		while ( (w=decwr.get()) >= 0 )
+		{
+			::libmaus::util::UTF8::encodeUTF8(w, std::cout);
+		}
 	}
 	catch(std::exception const & ex)
 	{
