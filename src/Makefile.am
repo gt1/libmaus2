@@ -339,7 +339,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/DynamicLoading.hpp \
 	libmaus/util/Object.hpp \
 	libmaus/util/KMP.hpp \
-	libmaus/util/NumberMapSerialisation.hpp
+	libmaus/util/NumberMapSerialisation.hpp \
+	libmaus/util/Utf8BlockIndex.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
@@ -707,7 +708,8 @@ noinst_PROGRAMS = \
 	testcompact \
 	testbytetocompact \
 	testscramtosam \
-	testpacdecode
+	testpacdecode \
+	testutf8split
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -878,3 +880,6 @@ testscramtosam_LDADD = libmaus.la @DLLIB@
 
 testpacdecode_SOURCES = test/testpacdecode.cpp
 testpacdecode_LDADD = libmaus.la
+
+testutf8split_SOURCES = test/testutf8split.cpp
+testutf8split_LDADD = libmaus.la
