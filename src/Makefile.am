@@ -33,7 +33,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/huffman/IndexLoaderBase.cpp \
 	libmaus/bambam/BamAlignment.cpp \
 	libmaus/bambam/BamAlignmentNameComparator.cpp \
-	libmaus/huffman/KvInitResult.cpp
+	libmaus/huffman/KvInitResult.cpp \
+	libmaus/fm/MausFmToBwaConversion.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
