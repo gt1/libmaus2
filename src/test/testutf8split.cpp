@@ -45,21 +45,26 @@ int main(int argc, char * argv[])
 		for ( uint64_t i = 0; i < deco.numblocks; ++i )
 			assert (  deco[i] == index->blockstarts[i] );
 			
-		assert ( 
-			index->blockstarts[deco.numblocks] == 
-			::libmaus::util::GetFileSize::getFileSize(fn)
-		);
-		assert ( 
-			deco[deco.numblocks] == 
-			::libmaus::util::GetFileSize::getFileSize(fn)
-		);
+		assert ( index->blockstarts[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
+		assert ( deco[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
+		
+		std::vector < wchar_t > W;
 		
 		::libmaus::util::Utf8DecoderWrapper decwr(fn);
 		
 		wchar_t w = -1;
 		while ( (w=decwr.get()) >= 0 )
+			W.push_back(w);
+		
+		for ( uint64_t i = 0; i <= W.size(); i += std::min(W.size()-i+1,static_cast<size_t>(rand() % 32)) )
 		{
-			::libmaus::util::UTF8::encodeUTF8(w, std::cout);
+			std::cerr << "i=" << i << std::endl;
+			
+			decwr.clear();
+			decwr.seekg(i);
+			
+			for ( uint64_t j = i; j < W.size(); ++j )
+				assert ( decwr.get() == W[j] );
 		}
 	}
 	catch(std::exception const & ex)
