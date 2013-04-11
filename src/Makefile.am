@@ -501,7 +501,8 @@ libmausfm_includedir=$(includedir)/libmaus/fm
 libmausfm_include_HEADERS=\
 	libmaus/fm/FM.hpp \
 	libmaus/fm/SampledSA.hpp \
-	libmaus/fm/SampledISA.hpp
+	libmaus/fm/SampledISA.hpp \
+	libmaus/fm/MausFmToBwaConversion.hpp
 
 libmauslcp_includedir=$(includedir)/libmaus/lcp
 libmauslcp_include_HEADERS=\
