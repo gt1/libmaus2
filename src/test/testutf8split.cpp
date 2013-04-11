@@ -39,10 +39,19 @@ int main(int argc, char * argv[])
 		COS.close();
 		
 		::libmaus::util::Utf8BlockIndexDecoder deco(idxfn);
-		assert ( deco.numblocks == index->blockstarts.size() );
+		assert ( deco.numblocks+1 == index->blockstarts.size() );
 		
 		for ( uint64_t i = 0; i < deco.numblocks; ++i )
 			assert (  deco[i] == index->blockstarts[i] );
+			
+		assert ( 
+			index->blockstarts[deco.numblocks] == 
+			::libmaus::util::GetFileSize::getFileSize(fn)
+		);
+		assert ( 
+			deco[deco.numblocks] == 
+			::libmaus::util::GetFileSize::getFileSize(fn)
+		);
 	}
 	catch(std::exception const & ex)
 	{
