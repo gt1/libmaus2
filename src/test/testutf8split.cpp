@@ -136,7 +136,9 @@ void testUtf8Seek(std::string const & fn)
 	while ( (w=decwr.get()) >= 0 )
 		W.push_back(w);
 	
-	for ( uint64_t i = 0; i <= W.size(); i += std::min(W.size()-i+1,static_cast<size_t>(rand() % 1024)) )
+	for ( uint64_t i = 0; i <= W.size(); i += std::min(
+		static_cast<uint64_t>(W.size()-i+1),
+		static_cast<uint64_t>(static_cast<size_t>(rand() % 1024))) )
 	{
 		int64_t const newperc = std::floor((i*100.0)/W.size()+0.5);
 		
