@@ -68,6 +68,7 @@ void testUtf8Bwt(std::string const & fn)
 	::libmaus::autoarray::AutoArray<saidx_t> SA(us.A.size());
 	sort_type::divsufsort ( us.A.begin() , SA.begin() , us.A.size() );
 
+	// keep positions of symbol starts
 	uint64_t p = 0;
 	for ( uint64_t i = 0; i < us.A.size(); ++i )
 		if ( (us.A[SA[i]] & 0xc0) != 0x80 )
@@ -75,18 +76,21 @@ void testUtf8Bwt(std::string const & fn)
 	
 	assert ( p == us.size() );
 	
+	// map encoded positions to symbol indices
 	for ( uint64_t i = 0; i < p; ++i )
 	{
 		assert ( (*(us.I))[SA[i]] );
 		SA[i] = us.I->rank1(SA[i])-1;
 	}
 
+	// produce bwt
 	for ( uint64_t i = 0; i < p; ++i )
 		if ( SA[i] )
 			SA[i] = us[SA[i]-1];
 		else
 			SA[i] = -1;
 
+	// produce huffman shaped wavelet tree of bwt
 	::std::map<int64_t,uint64_t> chist = us.getHistogramAsMap();
 	chist[-1] = 1;
 	::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = ::libmaus::huffman::HuffmanBase::createTree(chist);
@@ -99,9 +103,11 @@ void testUtf8Bwt(std::string const & fn)
 		IEWGH.putSymbol(SA[i]);
 	IEWGH.createFinalStream(fn+".hwt");
 
+	// load huffman shaped wavelet tree of bwt
 	::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT =
 		UNIQUE_PTR_MOVE(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
 		
+	// check rank counts
 	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
 		assert ( IHWT->rank(ita->first,p) == ita->second );
 		
@@ -155,7 +161,10 @@ void testUtf8Seek(std::string const & fn)
 		if ( newperc != lastperc )
 		{
 			lastperc = newperc;
-			std::cerr << "\r" << std::string(40,' ') << "\r" << newperc << std::flush;
+			if ( isatty(STDERR_FILENO) )
+				std::cerr << "\r" << std::string(40,' ') << "\r" << newperc << std::flush;
+			else
+				std::cerr << newperc << std::endl;			
 		}
 		
 		decwr.clear();
@@ -165,7 +174,10 @@ void testUtf8Seek(std::string const & fn)
 			assert ( static_cast<wchar_t>(decwr.get()) == W[j] );
 	}
 
-	std::cerr << "\r" << std::string(40,' ') << "\r" << 100 << std::endl;	
+	if ( isatty(STDERR_FILENO) )
+		std::cerr << "\r" << std::string(40,' ') << "\r" << 100 << std::endl;	
+	else
+		std::cerr << 100 << std::endl;			
 }
 
 void testUtf8BlockIndexDecoder(std::string const & fn)
