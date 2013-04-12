@@ -21,59 +21,98 @@
 #include <libmaus/util/ArgInfo.hpp>
 #include <libmaus/util/Utf8BlockIndex.hpp>
 #include <libmaus/util/Utf8DecoderBuffer.hpp>
+#include <libmaus/util/Utf8String.hpp>
 #include <libmaus/aio/CircularWrapper.hpp>
+#include <libmaus/huffman/huffman.hpp>
 
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/select/ImpCacheLineSelectSupport.hpp>
-
-struct Utf8String
+void testUtf8String(std::string const & fn)
 {
-	::libmaus::autoarray::AutoArray<uint8_t> A;
-	::libmaus::rank::ImpCacheLineRank::unique_ptr_type I;
-	::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type S;
+	::libmaus::util::Utf8String::shared_ptr_type us = ::libmaus::util::Utf8String::constructRaw(fn);
+	::libmaus::util::Utf8StringPairAdapter usp(us);
 	
-	Utf8String(std::string const & filename)
-	{
-		::libmaus::aio::CheckedInputStream CIS(filename);
-		uint64_t const an = ::libmaus::util::GetFileSize::getFileSize(CIS);
-		A = ::libmaus::autoarray::AutoArray<uint8_t>(an);
-		CIS.read(reinterpret_cast<char *>(A.begin()),an);
-		
-		uint64_t const bitalign = 6*64;
-		
-		I = UNIQUE_PTR_MOVE(::libmaus::rank::ImpCacheLineRank::unique_ptr_type(new ::libmaus::rank::ImpCacheLineRank(((an+(bitalign-1))/bitalign)*bitalign)));
+	::libmaus::util::Utf8DecoderWrapper decwr(fn);
+	uint64_t const numsyms = ::libmaus::util::GetFileSize::getFileSize(decwr);
+	assert ( us->size() == numsyms );
 
-		::libmaus::rank::ImpCacheLineRank::WriteContext WC = I->getWriteContext();
-		for ( uint64_t i = 0; i < an; ++i )
-			if ( (!(A[i] & 0x80)) || ((A[i] & 0xc0) != 0x80) )
-				WC.writeBit(1);
-			else
-				WC.writeBit(0);
-				
-		for ( uint64_t i = an; i % bitalign; ++i )
-			WC.writeBit(0);
-				
-		WC.flush();
-		
-		S = ::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type(new ::libmaus::select::ImpCacheLineSelectSupport(*I,8));
-		
-		#if 0
-		std::cerr << "A.size()=" << A.size() << std::endl;
-		std::cerr << "I.byteSize()=" << I->byteSize() << std::endl;
-		#endif
+	for ( uint64_t i = 0; i < numsyms; ++i )
+	{
+		assert ( static_cast<wchar_t>(decwr.get()) == us->get(i) );
+		assert ( 
+			us->get(i) ==
+			((usp[2*i] << 12) | (usp[2*i+1]))
+		);
 	}
 	
-	wchar_t operator[](uint64_t const i) const
+	::std::map<int64_t,uint64_t> const chist = us->getHistogramAsMap();
+	::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = ::libmaus::huffman::HuffmanBase::createTree(chist);
+	::libmaus::huffman::EncodeTable<1> ET(htree.get());
+	
+	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
 	{
-		uint64_t const p = I->select1(i);
-		::libmaus::util::GetObject<uint8_t const *> G(A.begin()+p);
-		return ::libmaus::util::UTF8::decodeUTF8(G);
+		::libmaus::util::UTF8::encodeUTF8(ita->first,std::cerr);
+		std::cerr << "\t" << ita->second << "\t" << ET.printCode(ita->first) << std::endl;
 	}
-	wchar_t get(uint64_t const i) const
+}
+
+void testUtf8Circular(std::string const & fn)
+{
+	::libmaus::util::Utf8String us(fn);
+	::libmaus::aio::Utf8CircularWrapper CW(fn);
+
+	for ( uint64_t i = 0; i < 16*us.size(); ++i )
+		assert ( us[i%us.size()] == static_cast<wchar_t>(CW.get()) );
+}
+
+void testUtf8Seek(std::string const & fn)
+{
+	std::vector < wchar_t > W;
+	::libmaus::util::Utf8DecoderWrapper decwr(fn);
+	int64_t lastperc = -1;
+	
+	wchar_t w = -1;
+	while ( (w=decwr.get()) >= 0 )
+		W.push_back(w);
+	
+	for ( uint64_t i = 0; i <= W.size(); i += std::min(W.size()-i+1,static_cast<size_t>(rand() % 1024)) )
 	{
-		return (*this)[i];
+		int64_t const newperc = std::floor((i*100.0)/W.size()+0.5);
+		
+		if ( newperc != lastperc )
+		{
+			lastperc = newperc;
+			std::cerr << "\r" << std::string(40,' ') << "\r" << newperc << std::flush;
+		}
+		
+		decwr.clear();
+		decwr.seekg(i);
+		
+		for ( uint64_t j = i; j < W.size(); ++j )
+			assert ( static_cast<wchar_t>(decwr.get()) == W[j] );
 	}
-};
+
+	std::cerr << "\r" << std::string(40,' ') << "\r" << 100 << std::endl;	
+}
+
+void testUtf8BlockIndexDecoder(std::string const & fn)
+{
+	::libmaus::util::Utf8BlockIndex::unique_ptr_type index = 
+		UNIQUE_PTR_MOVE(::libmaus::util::Utf8BlockIndex::constructFromUtf8File(fn));
+
+	std::string const idxfn = fn + ".idx";
+	::libmaus::aio::CheckedOutputStream COS(idxfn);
+	index->serialise(COS);
+	COS.flush();
+	COS.close();
+	
+	::libmaus::util::Utf8BlockIndexDecoder deco(idxfn);
+	assert ( deco.numblocks+1 == index->blockstarts.size() );
+	
+	for ( uint64_t i = 0; i < deco.numblocks; ++i )
+		assert (  deco[i] == index->blockstarts[i] );
+		
+	assert ( index->blockstarts[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
+	assert ( deco[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
+}
 
 int main(int argc, char * argv[])
 {
@@ -83,64 +122,10 @@ int main(int argc, char * argv[])
 		
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		
-		::libmaus::util::Utf8BlockIndex::unique_ptr_type index = 
-			UNIQUE_PTR_MOVE(::libmaus::util::Utf8BlockIndex::constructFromUtf8File(fn));
-
-		std::string const idxfn = fn + ".idx";
-		::libmaus::aio::CheckedOutputStream COS(idxfn);
-		index->serialise(COS);
-		COS.flush();
-		COS.close();
-		
-		::libmaus::util::Utf8BlockIndexDecoder deco(idxfn);
-		assert ( deco.numblocks+1 == index->blockstarts.size() );
-		
-		for ( uint64_t i = 0; i < deco.numblocks; ++i )
-			assert (  deco[i] == index->blockstarts[i] );
-			
-		assert ( index->blockstarts[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
-		assert ( deco[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
-		
-		#if 0
-		std::vector < wchar_t > W;
-		::libmaus::util::Utf8DecoderWrapper decwr(fn);
-		
-		wchar_t w = -1;
-		while ( (w=decwr.get()) >= 0 )
-			W.push_back(w);
-		
-		for ( uint64_t i = 0; i <= W.size(); i += std::min(W.size()-i+1,static_cast<size_t>(rand() % 32)) )
-		{
-			std::cerr << "i=" << i << std::endl;
-			
-			decwr.clear();
-			decwr.seekg(i);
-			
-			for ( uint64_t j = i; j < W.size(); ++j )
-				assert ( decwr.get() == W[j] );
-		}
-		#endif
-
-		#if 0		
-		::libmaus::aio::Utf8CircularWrapper CW(fn);
-
-		wchar_t w = -1;
-		while ( (w=CW.get()) >= 0 )
-		{
-			::libmaus::util::UTF8::encodeUTF8(w,std::cout);
-		}
-		#endif
-		
-		Utf8String us(fn);
-		
-		::libmaus::util::Utf8DecoderWrapper decwr(fn);
-		uint64_t const numsyms = ::libmaus::util::GetFileSize::getFileSize(decwr);
-
-		for ( uint64_t i = 0; i < numsyms; ++i )
-		{
-			assert ( decwr.get() == us[i] );
-			// ::libmaus::util::UTF8::encodeUTF8(us[i],std::cout);
-		}
+		testUtf8BlockIndexDecoder(fn); // also creates index file
+		testUtf8String(fn);		
+		testUtf8Circular(fn);
+		testUtf8Seek(fn);
 	}
 	catch(std::exception const & ex)
 	{
