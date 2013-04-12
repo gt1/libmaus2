@@ -261,6 +261,7 @@ namespace libmaus
 		typedef CircularSuffixComparatorTemplate<CompactDecoderWrapperFactory> CompactCircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<PacDecoderWrapperFactory> PacCircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<PacTermDecoderWrapperFactory> PacTermCircularSuffixComparator;
+		typedef CircularSuffixComparatorTemplate<Utf8DecoderWrapperFactory> Utf8CircularSuffixComparator;
 	}
 }
 #endif

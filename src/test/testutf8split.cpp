@@ -62,29 +62,11 @@ void testUtf8Bwt(std::string const & fn)
 {
 	::libmaus::util::Utf8String us(fn);
 
-	// suffix sort text
-	typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type;
-	typedef sort_type::saidx_t saidx_t;
-	::libmaus::autoarray::AutoArray<saidx_t> SA(us.A.size());
-	sort_type::divsufsort ( us.A.begin() , SA.begin() , us.A.size() );
-
-	// keep positions of symbol starts
-	uint64_t p = 0;
-	for ( uint64_t i = 0; i < us.A.size(); ++i )
-		if ( (us.A[SA[i]] & 0xc0) != 0x80 )
-			SA[p++] = SA[i];
-	
-	assert ( p == us.size() );
-	
-	// map encoded positions to symbol indices
-	for ( uint64_t i = 0; i < p; ++i )
-	{
-		assert ( (*(us.I))[SA[i]] );
-		SA[i] = us.I->rank1(SA[i])-1;
-	}
+	typedef ::libmaus::util::Utf8String::saidx_t saidx_t;
+	::libmaus::autoarray::AutoArray<saidx_t,::libmaus::autoarray::alloc_type_c> SA = us.computeSuffixArray32();
 
 	// produce bwt
-	for ( uint64_t i = 0; i < p; ++i )
+	for ( uint64_t i = 0; i < SA.size(); ++i )
 		if ( SA[i] )
 			SA[i] = us[SA[i]-1];
 		else
@@ -99,7 +81,7 @@ void testUtf8Bwt(std::string const & fn)
 	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffman IEWGH(htree.get(),tmpgen);
 	
 	IEWGH.putSymbol(us[us.size()-1]);
-	for ( uint64_t i = 0; i < p; ++i )
+	for ( uint64_t i = 0; i < SA.size(); ++i )
 		IEWGH.putSymbol(SA[i]);
 	IEWGH.createFinalStream(fn+".hwt");
 
@@ -109,7 +91,7 @@ void testUtf8Bwt(std::string const & fn)
 		
 	// check rank counts
 	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
-		assert ( IHWT->rank(ita->first,p) == ita->second );
+		assert ( IHWT->rank(ita->first,SA.size()) == ita->second );
 		
 	/* cumulative symbol freqs, shifted by 1 to accomodate for terminator -1 */
 	int64_t const maxsym = chist.rbegin()->first;

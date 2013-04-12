@@ -24,6 +24,7 @@
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/util/utf8.hpp>
 #include <libmaus/util/Histogram.hpp>
+#include <libmaus/suffixsort/divsufsort.hpp>
 
 namespace libmaus
 {
@@ -124,6 +125,39 @@ namespace libmaus
 			{
 				::libmaus::util::Histogram::unique_ptr_type hist = UNIQUE_PTR_MOVE(getHistogram());
 				return hist->getByType<int64_t>();
+			}			
+
+			// suffix sorting class
+			typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type;
+			typedef sort_type::saidx_t saidx_t;
+		
+			::libmaus::autoarray::AutoArray<saidx_t,::libmaus::autoarray::alloc_type_c> 
+				computeSuffixArray32() const
+			{
+				if ( A.size() > static_cast<uint64_t>(::std::numeric_limits<saidx_t>::max()) )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "computeSuffixArray32: input is too large for data type." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				::libmaus::autoarray::AutoArray<saidx_t,::libmaus::autoarray::alloc_type_c> SA(A.size());
+				sort_type::divsufsort ( A.begin() , SA.begin() , A.size() );
+				
+				uint64_t p = 0;
+				for ( uint64_t i = 0; i < SA.size(); ++i )
+					if ( (A[SA[i]] & 0xc0) != 0x80 )
+						SA[p++] = SA[i];
+				SA.resize(p);
+				
+				for ( uint64_t i = 0; i < SA.size(); ++i )
+				{
+					assert ( (*I)[SA[i]] );
+					SA[i] = I->rank1(SA[i])-1;
+				}
+				
+				return SA;
 			}
 		};
 
