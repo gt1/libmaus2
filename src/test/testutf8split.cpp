@@ -185,6 +185,254 @@ void testUtf8BlockIndexDecoder(std::string const & fn)
 	assert ( deco[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
 }
 
+struct ImpWaveletStackElement
+{
+	uint64_t bleft;
+	uint64_t bright;
+	uint64_t sleft;
+	uint64_t sright;
+	unsigned int level;
+	::libmaus::huffman::HuffmanTreeNode const * hnode;
+	
+	ImpWaveletStackElement() : bleft(0), bright(0), sleft(0), sright(0), level(0), hnode(0) {}
+	ImpWaveletStackElement(
+		uint64_t const rbleft,
+		uint64_t const rbright,
+		uint64_t const rsleft,
+		uint64_t const rsright,
+		unsigned int const rlevel,
+		::libmaus::huffman::HuffmanTreeNode const * const rhnode
+	) : bleft(rbleft), bright(rbright), sleft(rsleft), sright(rsright), level(rlevel), hnode(rhnode) {}
+};
+
+std::ostream & operator<<(std::ostream & out, ImpWaveletStackElement const & I)
+{
+	out << "ImpWaveletStackElement(" 
+		<< I.bleft << "," << I.bright << ","
+		<< I.sleft << "," << I.sright << ","
+		<< I.level << ")";
+	return out;
+}
+
+void testUtfWavelet(std::string const & fn)
+{
+	::libmaus::timing::RealTimeClock rtc; rtc.start();	
+	::libmaus::util::Utf8String us(fn);
+	std::cerr << "loaded string in time " << rtc.getElapsedSeconds() << std::endl;
+	
+	rtc.start();
+	::std::map<int64_t,uint64_t> const chist = us.getHistogramAsMap();
+	std::cerr << "computed histogram in time " << rtc.getElapsedSeconds() << std::endl;
+
+	rtc.start();
+	::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = ::libmaus::huffman::HuffmanBase::createTree(chist);
+	std::cerr << "computed Huffman tree in time " << rtc.getElapsedSeconds() << std::endl;
+	
+	rtc.start();
+	::libmaus::huffman::EncodeTable<1> ET(htree.get());
+	std::cerr << "computed Huffman encode table in time " << rtc.getElapsedSeconds() << std::endl;
+
+	#define HWTDEBUG
+	#define WAVELET_RADIX_SORT
+	
+	#if defined(WAVELET_RADIX_SORT)
+	::libmaus::autoarray::AutoArray<uint8_t> Z(us.A.size(),false);
+	#endif
+
+	// std::cerr << "here." << std::endl;
+	
+	rtc.start();	
+	std::stack<ImpWaveletStackElement> S;
+	if ( ! htree->isLeaf() )
+	{
+		S.push(ImpWaveletStackElement(0,us.A.size(),0,us.size(),0,htree.get()));
+	
+		while ( ! S.empty() )
+		{
+			ImpWaveletStackElement const T = S.top();
+			S.pop();
+			
+			// std::cerr << T << std::endl;
+			
+			assert ( ! T.hnode->isLeaf() );
+		
+			unsigned int const level = T.level;
+			uint64_t const srange = T.sright-T.sleft;
+		
+			::libmaus::util::GetObject<uint8_t const *> G(us.A.begin()+T.bleft);
+			#if !defined(WAVELET_RADIX_SORT)
+			uint64_t codelen0 = 0;
+			uint64_t codelen1 = 0;
+			#endif
+			
+			uint64_t numsyms0 = 0;
+			uint64_t numsyms1 = 0;
+			#if defined(WAVELET_RADIX_SORT)
+			::libmaus::util::PutObject<uint8_t *> P0(Z.begin());
+			::libmaus::util::PutObjectReverse<uint8_t *> P1(Z.end());
+			#endif
+			for ( uint64_t i = 0; i < srange; ++i )
+			{
+				uint64_t codelen = 0;
+				wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+				bool const wbit = ET.getBitFromTop(sym,level);
+			
+				if ( wbit )
+				{
+					#if !defined(WAVELET_RADIX_SORT)
+					codelen1 += codelen;
+					#endif
+					numsyms1 += 1;
+
+					#if defined(WAVELET_RADIX_SORT)
+					P1.write(G.p-codelen,codelen);
+					#endif
+				}
+				else
+				{
+					#if !defined(WAVELET_RADIX_SORT)
+					codelen0 += codelen;
+					#endif
+					numsyms0 += 1;
+					
+					#if defined(WAVELET_RADIX_SORT)
+					P0.write(G.p-codelen,codelen);
+					#endif
+				}
+			}
+
+			#if defined(WAVELET_RADIX_SORT)
+			uint64_t const codelen0 = (P0.p-Z.begin());
+			uint64_t const codelen1 = (Z.end()-P1.p);
+			#endif
+
+			#if defined(WAVELET_RADIX_SORT)
+			std::copy(Z.begin(),Z.begin()+codelen0,us.A.begin()+T.bleft);
+			uint8_t const * zp = Z.end();
+			uint8_t * p1 = us.A.begin()+T.bleft+codelen0;
+			uint8_t * const p1e = p1 + codelen1;
+			while ( p1 != p1e )
+				*(p1++) = *(--zp);
+			#else
+			for ( uint64_t sorthalf = 1; sorthalf < srange; sorthalf *=2 )
+			{
+				uint64_t const sortfull = 2*sorthalf;
+				uint64_t const sortparts = (srange + sortfull-1)/sortfull;
+				uint64_t bleft = T.bleft;
+								
+				for ( uint64_t s = 0; s < sortparts; ++s )
+				{
+					uint64_t const lsortbase = s*sortfull;
+					uint64_t const lsortrighta = std::min(lsortbase + sorthalf,srange);
+					uint64_t const lsortrightb = std::min(lsortrighta + sorthalf,srange);
+					
+					uint64_t l_codelen0 = 0;
+					uint64_t l_codelen1 = 0;
+					uint64_t l_numsyms0 = 0;
+					uint64_t l_numsyms1 = 0;
+					uint64_t r_codelen0 = 0;
+					uint64_t r_codelen1 = 0;
+					uint64_t r_numsyms0 = 0;
+					uint64_t r_numsyms1 = 0;
+					
+					::libmaus::util::GetObject<uint8_t const *> LG(us.A.begin()+bleft);
+					for ( uint64_t i = 0; i < (lsortrighta-lsortbase); ++i )
+					{
+						uint64_t codelen = 0;
+						wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+						bool const wbit = ET.getBitFromTop(sym,level);
+					
+						if ( wbit )
+						{
+							l_codelen1 += codelen;
+							l_numsyms1 += 1;
+						}
+						else
+						{
+							l_codelen0 += codelen;
+							l_numsyms0 += 1;
+						}
+						
+					}
+					
+					for ( uint64_t i = 0; i < (lsortrightb-lsortrighta); ++i )
+					{
+						uint64_t codelen = 0;
+						wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+						bool const wbit = ET.getBitFromTop(sym,level);
+					
+						if ( wbit )
+						{
+							r_codelen1 += codelen;
+							r_numsyms1 += 1;
+						}
+						else
+						{
+							r_codelen0 += codelen;
+							r_numsyms0 += 1;
+						}	
+					}
+
+					if ( l_numsyms1 && r_numsyms0 )
+					{
+						std::reverse(us.A.begin() + bleft + l_codelen0             , us.A.begin() + bleft + l_codelen0 + l_codelen1              );
+						std::reverse(us.A.begin() + bleft + l_codelen0 + l_codelen1, us.A.begin() + bleft + l_codelen0 + l_codelen1 + r_codelen0 );
+						std::reverse(us.A.begin() + bleft + l_codelen0             , us.A.begin() + bleft + l_codelen0 + l_codelen1 + r_codelen0 );
+					}
+					
+					bleft += (l_codelen0+l_codelen1+r_codelen0+r_codelen1);
+				}
+			}
+			#endif
+		
+			::libmaus::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const * >(T.hnode);
+			
+			if ( (!(node->right->isLeaf())) )
+				S.push(ImpWaveletStackElement(T.bleft+codelen0,T.bright,T.sleft+numsyms0,T.sright,level+1,node->right));
+			if ( (!(node->left->isLeaf())) )
+				S.push(ImpWaveletStackElement(T.bleft,T.bleft+codelen0,T.sleft,T.sleft+numsyms0,level+1,node->left));
+
+			#if defined(HWTDEBUG)
+			::libmaus::util::GetObject<uint8_t const *> DG(us.A.begin()+T.bleft);
+			uint64_t d_codelen0 = 0;
+			uint64_t d_codelen1 = 0;
+			uint64_t d_numsyms0 = 0;
+			uint64_t d_numsyms1 = 0;
+			for ( uint64_t i = 0; i < srange; ++i )
+			{
+				uint64_t codelen = 0;
+				wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(DG,codelen);
+				bool const wbit = ET.getBitFromTop(sym,level);
+			
+				if ( wbit )
+				{
+					if ( ! d_numsyms1 )
+					{
+						assert ( codelen0 == d_codelen0 );
+						assert ( numsyms0 == d_numsyms0 );
+					}
+				
+					d_codelen1 += codelen;
+					d_numsyms1 += 1;
+				}
+				else
+				{
+					d_codelen0 += codelen;
+					d_numsyms0 += 1;
+				}
+			}
+
+			assert ( codelen0 == d_codelen0 );
+			assert ( codelen1 == d_codelen1 );
+			assert ( numsyms0 == d_numsyms0 );
+			assert ( numsyms1 == d_numsyms1 );
+			#endif
+		}
+	}
+	
+	std::cerr << rtc.getElapsedSeconds() << std::endl;
+}
+
 int main(int argc, char * argv[])
 {
 	try
@@ -194,10 +442,13 @@ int main(int argc, char * argv[])
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		
 		testUtf8BlockIndexDecoder(fn); // also creates index file
+		testUtfWavelet(fn);
+		/*
 		testUtf8Bwt(fn);
 		testUtf8String(fn);		
 		testUtf8Circular(fn);
 		testUtf8Seek(fn);
+		*/
 		
 		remove ( (fn + ".idx").c_str() ); // remove index
 	}

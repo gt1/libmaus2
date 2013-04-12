@@ -54,12 +54,14 @@ namespace libmaus
 			{
 				if ( l0 <= l1 )
 				{
+					// ABB' -> BAB'
 					swapBitBlock(A,offset,offset+l0,l0);
 					offset += l0;
 					l1 -= l0;
 				}
 				else
 				{
+					// AA'B -> ABA'
 					swapBitBlock(A,offset+(l0-l1),offset+l0,l1);
 					l0 -= l1;
 				}
