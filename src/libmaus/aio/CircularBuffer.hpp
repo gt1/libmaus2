@@ -26,29 +26,12 @@
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/util/Utf8DecoderBuffer.hpp>
+#include <libmaus/util/UnsignedCharVariant.hpp>
 
 namespace libmaus
 {
 	namespace aio
 	{
-		template<typename T>
-		struct UnsignedCharVariant
-		{
-		
-		};
-
-		template<>
-		struct UnsignedCharVariant<char>
-		{
-			typedef unsigned char type;
-		};
-
-		template<>
-		struct UnsignedCharVariant<wchar_t>
-		{
-			typedef wchar_t type;
-		};
-	
 		template<typename _stream_type>
 		struct CircularBufferTemplate : public ::std::basic_streambuf<typename _stream_type::char_type>
 		{
@@ -56,7 +39,7 @@ namespace libmaus
 			typedef _stream_type stream_type;
 			typedef typename stream_type::char_type char_type;
 			typedef ::std::basic_streambuf<char_type> base_type;
-			typedef typename UnsignedCharVariant<char_type>::type unsigned_char_type;
+			typedef typename ::libmaus::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
 			
 			typename stream_type::unique_ptr_type Pstream;
 			::std::basic_istream<char_type> & stream;
@@ -169,7 +152,7 @@ namespace libmaus
 			typedef _stream_type stream_type;
 			typedef typename stream_type::char_type char_type;
 			typedef ::std::basic_streambuf<char_type> base_type;
-			typedef typename UnsignedCharVariant<char_type>::type unsigned_char_type;
+			typedef typename ::libmaus::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
 
 			typename stream_type::unique_ptr_type Pstream;
 			::std::basic_istream<char_type> & stream;

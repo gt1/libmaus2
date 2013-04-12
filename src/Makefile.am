@@ -342,7 +342,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/NumberMapSerialisation.hpp \
 	libmaus/util/Utf8BlockIndex.hpp \
 	libmaus/util/Utf8DecoderBuffer.hpp \
-	libmaus/util/Utf8String.hpp
+	libmaus/util/Utf8String.hpp \
+	libmaus/util/UnsignedCharVariant.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
