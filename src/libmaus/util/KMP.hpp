@@ -20,6 +20,7 @@
 #define LIBMAUS_UTIL_KMP_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/util/UnsignedCharVariant.hpp>
 #include <map>
 
 /*
@@ -35,10 +36,13 @@ namespace libmaus
 			template<typename stream_type>
 			struct BestPrefix
 			{
+				typedef typename stream_type::char_type char_type;
+				typedef typename UnsignedCharVariant<char_type>::type unsigned_char_type;
+			
 				std::vector<int64_t> best_prefix;
 				int64_t i;
 				uint64_t j;
-				std::vector<uint8_t> x;
+				std::vector<unsigned_char_type> x;
 				stream_type & stream;
 				uint64_t const m;
 
@@ -48,7 +52,7 @@ namespace libmaus
 					
 					BestPrefixXAdapter(BestPrefix<stream_type> * rowner = 0) : owner(rowner) {}
 					
-					uint8_t operator[](uint64_t const i)
+					unsigned_char_type operator[](uint64_t const i)
 					{
 						if ( i < owner->x.size() )
 							return owner->x[i];
@@ -74,7 +78,7 @@ namespace libmaus
 					
 					if ( m )
 					{
-						int const c = stream.get();
+						typename stream_type::int_type const c = stream.get();
 						assert ( c >= 0 );
 						x.push_back(c);
 					}
@@ -96,7 +100,7 @@ namespace libmaus
 					for ( ; j < m && j <= k; ++j, ++i )
 					{
 						assert ( j == x.size() );
-						int const c = stream.get();
+						typename stream_type::int_type const c = stream.get();
 						assert ( c >= 0 );
 						x.push_back(c);
 						
