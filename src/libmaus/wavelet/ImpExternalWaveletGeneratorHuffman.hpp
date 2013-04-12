@@ -160,7 +160,7 @@ namespace libmaus
 				}
 			}
 			
-			void putSymbol(uint64_t const s)
+			void putSymbol(int64_t const s)
 			{
 				assert ( leafToId.find(s) != leafToId.end() );
 				bit_vector_type const & b = bv [ leafToId.find(s)->second ];

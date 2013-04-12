@@ -75,7 +75,7 @@ namespace libmaus
 					}
 				}
 
-				void putSymbol(uint64_t const s)
+				void putSymbol(int64_t const s)
 				{
 					assert ( leafToId.find(s) != leafToId.end() );
 					::libmaus::autoarray::AutoArray< std::pair<uint64_t,bool> > const & b = bv [ leafToId.find(s)->second ];

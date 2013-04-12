@@ -387,7 +387,7 @@ namespace libmaus
 					i);
 			}
 
-			uint64_t rank(uint64_t const sym, uint64_t i) const
+			uint64_t rank(int64_t const sym, uint64_t i) const
 			{
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
@@ -446,7 +446,7 @@ namespace libmaus
 				return i+1;
 			}
 
-			uint64_t rankm(uint64_t const sym, uint64_t i) const
+			uint64_t rankm(int64_t const sym, uint64_t i) const
 			{
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
@@ -469,7 +469,7 @@ namespace libmaus
 				return i;
 			}
 
-			std::pair<uint64_t,uint64_t> rankm(uint64_t const sym, uint64_t l, uint64_t r) const
+			std::pair<uint64_t,uint64_t> rankm(int64_t const sym, uint64_t l, uint64_t r) const
 			{
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
@@ -495,7 +495,7 @@ namespace libmaus
 			}
 
 			template<typename iterator>
-			std::pair<uint64_t,uint64_t> rankm(uint64_t const sym, uint64_t l, uint64_t r, iterator D) const
+			std::pair<uint64_t,uint64_t> rankm(int64_t const sym, uint64_t l, uint64_t r, iterator D) const
 			{
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];

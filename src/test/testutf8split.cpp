@@ -24,6 +24,10 @@
 #include <libmaus/util/Utf8String.hpp>
 #include <libmaus/aio/CircularWrapper.hpp>
 #include <libmaus/huffman/huffman.hpp>
+#include <libmaus/wavelet/ImpExternalWaveletGeneratorHuffman.hpp>
+#include <libmaus/suffixsort/divsufsort.hpp>
+#include <libmaus/wavelet/ImpHuffmanWaveletTree.hpp>
+#include <libmaus/lf/LF.hpp>
 
 void testUtf8String(std::string const & fn)
 {
@@ -52,6 +56,77 @@ void testUtf8String(std::string const & fn)
 		::libmaus::util::UTF8::encodeUTF8(ita->first,std::cerr);
 		std::cerr << "\t" << ita->second << "\t" << ET.printCode(ita->first) << std::endl;
 	}
+}
+
+void testUtf8Bwt(std::string const & fn)
+{
+	::libmaus::util::Utf8String us(fn);
+
+	// suffix sort text
+	typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type;
+	typedef sort_type::saidx_t saidx_t;
+	::libmaus::autoarray::AutoArray<saidx_t> SA(us.A.size());
+	sort_type::divsufsort ( us.A.begin() , SA.begin() , us.A.size() );
+
+	uint64_t p = 0;
+	for ( uint64_t i = 0; i < us.A.size(); ++i )
+		if ( (us.A[SA[i]] & 0xc0) != 0x80 )
+			SA[p++] = SA[i];
+	
+	assert ( p == us.size() );
+	
+	for ( uint64_t i = 0; i < p; ++i )
+	{
+		assert ( (*(us.I))[SA[i]] );
+		SA[i] = us.I->rank1(SA[i])-1;
+	}
+
+	for ( uint64_t i = 0; i < p; ++i )
+		if ( SA[i] )
+			SA[i] = us[SA[i]-1];
+		else
+			SA[i] = -1;
+
+	::std::map<int64_t,uint64_t> chist = us.getHistogramAsMap();
+	chist[-1] = 1;
+	::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = ::libmaus::huffman::HuffmanBase::createTree(chist);
+
+	::libmaus::util::TempFileNameGenerator tmpgen(fn+"_tmp",3);
+	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffman IEWGH(htree.get(),tmpgen);
+	
+	IEWGH.putSymbol(us[us.size()-1]);
+	for ( uint64_t i = 0; i < p; ++i )
+		IEWGH.putSymbol(SA[i]);
+	IEWGH.createFinalStream(fn+".hwt");
+
+	::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT =
+		UNIQUE_PTR_MOVE(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
+		
+	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
+		assert ( IHWT->rank(ita->first,p) == ita->second );
+		
+	/* cumulative symbol freqs, shifted by 1 to accomodate for terminator -1 */
+	int64_t const maxsym = chist.rbegin()->first;
+	int64_t const shiftedmaxsym = maxsym+1;
+	::libmaus::autoarray::AutoArray<uint64_t> D(shiftedmaxsym+1);
+	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
+		D [ ita->first + 1 ] = ita->second;
+	D.prefixSums();
+	
+	// terminator has rank 0 and is at position us.size()
+	uint64_t rank = 0;
+	int64_t pos = us.size();
+	
+	// decode text backward from bwt
+	while ( --pos >= 0 )
+	{
+		std::pair< int64_t,uint64_t> const is = IHWT->inverseSelect(rank);
+		rank = D[is.first+1] + is.second;		
+		assert ( is.first == us[pos] );
+	}
+	
+	// remove huffman shaped wavelet tree
+	remove ((fn+".hwt").c_str());
 }
 
 void testUtf8Circular(std::string const & fn)
@@ -123,9 +198,12 @@ int main(int argc, char * argv[])
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		
 		testUtf8BlockIndexDecoder(fn); // also creates index file
+		testUtf8Bwt(fn);
 		testUtf8String(fn);		
 		testUtf8Circular(fn);
 		testUtf8Seek(fn);
+		
+		remove ( (fn + ".idx").c_str() ); // remove index
 	}
 	catch(std::exception const & ex)
 	{
