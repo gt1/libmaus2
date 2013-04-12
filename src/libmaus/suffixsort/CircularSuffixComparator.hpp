@@ -31,7 +31,8 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::CircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
-			typedef int int_type;
+			typedef ::std::istream base_istream_type;
+			typedef base_istream_type::int_type int_type;
 			
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -43,7 +44,8 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::CompactCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
-			typedef int int_type;
+			typedef ::std::istream base_istream_type;
+			typedef base_istream_type::int_type int_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -56,7 +58,8 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::PacCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
-			typedef int int_type;
+			typedef ::std::istream base_istream_type;
+			typedef base_istream_type::int_type int_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -69,7 +72,8 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::PacTermCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
-			typedef int int_type;
+			typedef ::std::istream base_istream_type;
+			typedef base_istream_type::int_type int_type;
 				
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -82,7 +86,8 @@ namespace libmaus
 		{
 			typedef ::libmaus::aio::Utf8CircularWrapperWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
-			typedef wint_t int_type;
+			typedef ::std::wistream base_istream_type;
+			typedef base_istream_type::int_type int_type;
 
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
@@ -126,8 +131,8 @@ namespace libmaus
 					typename factory_type::int_type const ca = cwa->get();
 					typename factory_type::int_type const cb = cwb->get();
 					
-					assert ( ca >= 0 );
-					assert ( cb >= 0 );
+					assert ( ca != factory_type::base_istream_type::traits_type::eof() );
+					assert ( cb != factory_type::base_istream_type::traits_type::eof() );
 					
 					if ( ca != cb )
 						return ca < cb;
@@ -149,8 +154,8 @@ namespace libmaus
 					typename factory_type::int_type const ca = *(texta++);
 					typename factory_type::int_type const cb = cwb->get();
 					
-					assert ( ca >= 0 );
-					assert ( cb >= 0 );
+					assert ( ca != factory_type::base_istream_type::traits_type::eof() );
+					assert ( cb != factory_type::base_istream_type::traits_type::eof() );
 
 					if ( ca != cb )
 						return ca < cb;

@@ -79,7 +79,7 @@ namespace libmaus
 					if ( m )
 					{
 						typename stream_type::int_type const c = stream.get();
-						assert ( c >= 0 );
+						assert ( c != stream_type::traits_type::eof() );
 						x.push_back(c);
 					}
 				}
@@ -101,7 +101,7 @@ namespace libmaus
 					{
 						assert ( j == x.size() );
 						typename stream_type::int_type const c = stream.get();
-						assert ( c >= 0 );
+						assert ( c != stream_type::traits_type::eof() );
 						x.push_back(c);
 						
 						if ( x[j] == x[i] )
