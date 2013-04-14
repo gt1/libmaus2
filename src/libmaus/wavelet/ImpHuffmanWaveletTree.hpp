@@ -280,7 +280,7 @@ namespace libmaus
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(dicts.size()); ++i )
 				{
-					std::ifstream istr(filename.c_str(),std::ios::binary);
+					::libmaus::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
 					istr.seekg(nodepos[i],std::ios::beg);
 					dicts[i] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(istr)));
 				}

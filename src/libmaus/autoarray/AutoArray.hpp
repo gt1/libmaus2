@@ -542,7 +542,7 @@ namespace libmaus
 							if ( r )
 							{
 								int const aerrno = r;
-								std::cerr << "allocation failure: " << strerror(aerrno) << " cachelinesize=" << cachelinesize << std::endl;
+								std::cerr << "allocation failure: " << strerror(aerrno) << " cachelinesize=" << cachelinesize << " requested size is " << n*sizeof(N) << std::endl;
 								throw std::bad_alloc();
 							}
 							#else

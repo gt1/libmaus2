@@ -285,6 +285,68 @@ namespace libmaus
 				return (*this)[i];
 			}
 			
+			static ::libmaus::autoarray::AutoArray<uint64_t> computePartStarts(::libmaus::autoarray::AutoArray<uint8_t> const & A, uint64_t const tnumparts)
+			{
+				uint64_t const tpartsize = (A.size() + tnumparts-1)/tnumparts;
+				uint64_t const numparts = (A.size() + tpartsize-1)/tpartsize;
+				::libmaus::autoarray::AutoArray<uint64_t> partstarts(numparts+1,false);
+
+				#if defined(_OPENMP)
+				// #pragma omp parallel for
+				#endif				
+				for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
+				{
+					uint64_t j = std::min(i*tpartsize,A.size());
+					
+					while ( j != A.size() && ((A[j] & 0xc0) == 0x80) )
+						++j;
+						
+					partstarts[i] = j;
+					
+					// std::cerr << "[" << i << "]=" << j << std::endl;
+				}
+				
+				partstarts[numparts] = A.size();
+			
+				return partstarts;
+			}
+			
+			static ::libmaus::util::Histogram::unique_ptr_type getHistogram(::libmaus::autoarray::AutoArray<uint8_t> const & A)
+			{
+				#if defined(_OPENMP)
+				uint64_t const numthreads = omp_get_max_threads();
+				#else
+				uint64_t const numthreads = 1;
+				#endif
+				
+				::libmaus::autoarray::AutoArray<uint64_t> const partstarts = computePartStarts(A,numthreads);
+				uint64_t const numparts = partstarts.size()-1;
+				
+				::libmaus::util::Histogram::unique_ptr_type hist(new ::libmaus::util::Histogram);
+				::libmaus::parallel::OMPLock lock;
+				
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int64_t t = 0; t < static_cast<int64_t>(numparts); ++t )
+				{
+					::libmaus::util::Histogram::unique_ptr_type lhist(new ::libmaus::util::Histogram);
+				
+					uint64_t codelen = 0;
+					uint64_t const tcodelen = partstarts[t+1]-partstarts[t];
+					::libmaus::util::GetObject<uint8_t const *> G(A.begin()+partstarts[t]);
+					
+					while ( codelen != tcodelen )
+						(*lhist)(::libmaus::util::UTF8::decodeUTF8(G,codelen));
+						
+					lock.lock();
+					hist->merge(*lhist);
+					lock.unlock();
+				}
+				
+				return UNIQUE_PTR_MOVE(hist);
+			}
+			
 			::libmaus::util::Histogram::unique_ptr_type getHistogram() const
 			{
 				::libmaus::util::Histogram::unique_ptr_type hist(new ::libmaus::util::Histogram);
@@ -303,6 +365,12 @@ namespace libmaus
 			std::map<int64_t,uint64_t> getHistogramAsMap() const
 			{
 				::libmaus::util::Histogram::unique_ptr_type hist = UNIQUE_PTR_MOVE(getHistogram());
+				return hist->getByType<int64_t>();
+			}			
+
+			static std::map<int64_t,uint64_t> getHistogramAsMap(::libmaus::autoarray::AutoArray<uint8_t> const & A)
+			{
+				::libmaus::util::Histogram::unique_ptr_type hist = UNIQUE_PTR_MOVE(getHistogram(A));
 				return hist->getByType<int64_t>();
 			}			
 
