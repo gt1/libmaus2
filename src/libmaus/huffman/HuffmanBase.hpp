@@ -49,9 +49,10 @@ namespace libmaus
 				return createTree ( probs );
 			}
 
-			static HuffmanTreeNode::shared_ptr_type createTree( ::std::map<int64_t,uint64_t> const & probs )
+			template<typename probs_type>
+			static HuffmanTreeNode::shared_ptr_type createTree(probs_type const & probs)
 			{
-				if ( ! probs.size() )
+				if ( probs.begin() == probs.end() )
 					return HuffmanTreeNode::shared_ptr_type();
 			
 				::std::deque< HuffmanTreeLeaf * >	leafs;
@@ -60,8 +61,8 @@ namespace libmaus
 
 				try
 				{
-					for ( ::std::map<int64_t,uint64_t>::const_iterator ita = probs.begin(); ita != probs.end(); ++ita )
-					{	
+					for ( typename probs_type::const_iterator ita = probs.begin(); ita != probs.end(); ++ita )
+					{
 						HuffmanTreeLeaf * zp = 0;
 						leafs.push_back(zp);
 						leafs.back() = new HuffmanTreeLeaf(ita->first,ita->second);

@@ -76,6 +76,17 @@ namespace libmaus
 			count_type const * cntend() const { return C.end(); }
 			count_type * cntbegin() { return C.begin(); }
 			count_type * cntend() { return C.end(); }
+			
+			uint64_t byteSize() const
+			{
+				return 
+					sizeof(slog)+
+					sizeof(hashsize)+
+					sizeof(hashmask)+
+					sizeof(fill)+
+					H.byteSize()+
+					C.byteSize();
+			}
 
 			void assign(this_type & from)
 			{

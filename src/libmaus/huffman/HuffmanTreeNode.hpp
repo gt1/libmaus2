@@ -95,6 +95,12 @@ namespace libmaus
 				::std::copy ( B.begin(), B.end(), A.get());
 				return A;
 			}
+			
+			virtual uint64_t numsyms() const
+			{
+				return symbolArray().size();
+			}
+			
 			virtual ::libmaus::autoarray::AutoArray<uint64_t> depthArray() const
 			{
 				::std::vector < uint64_t > B;

@@ -36,9 +36,10 @@ namespace libmaus
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::string const filename;
+			char * buffer;
 			
 			CheckedInputStream(std::string const & rfilename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary )
-			: std::ifstream(rfilename.c_str(), mode), filename(rfilename)
+			: std::ifstream(rfilename.c_str(), mode), filename(rfilename), buffer(0)
 			{
 				if ( ! is_open() )
 				{
@@ -47,6 +48,26 @@ namespace libmaus
 					se.finish();
 					throw se;
 				}
+			}
+			void cleanup()
+			{
+				if ( buffer )
+				{
+					delete [] buffer;
+					buffer = 0;
+					rdbuf()->pubsetbuf(0,0); 
+				}			
+			}
+			~CheckedInputStream()
+			{
+				cleanup();				
+			}
+			
+			void setBufferSize(uint64_t const newbufsize)
+			{
+				cleanup();
+				buffer = new char[newbufsize];
+				rdbuf()->pubsetbuf(buffer,newbufsize);
 			}
 			
 			CheckedInputStream & read(char * c, ::std::streamsize const n)

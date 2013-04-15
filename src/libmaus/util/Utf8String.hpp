@@ -27,6 +27,11 @@
 #include <libmaus/suffixsort/divsufsort.hpp>
 #include <libmaus/util/CountPutObject.hpp>
 #include <libmaus/util/iterator.hpp>
+#include <libmaus/util/SimpleCountingHash.hpp>
+#include <libmaus/util/MemUsage.hpp>
+#include <libmaus/parallel/PosixThread.hpp>
+#include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus/util/PutObject.hpp>
 
 namespace libmaus
 {
@@ -285,31 +290,236 @@ namespace libmaus
 				return (*this)[i];
 			}
 			
-			static ::libmaus::autoarray::AutoArray<uint64_t> computePartStarts(::libmaus::autoarray::AutoArray<uint8_t> const & A, uint64_t const tnumparts)
+			static ::libmaus::autoarray::AutoArray<uint64_t> computePartStarts(
+				::libmaus::autoarray::AutoArray<uint8_t> const & A, uint64_t const tnumparts
+			)
 			{
-				uint64_t const tpartsize = (A.size() + tnumparts-1)/tnumparts;
-				uint64_t const numparts = (A.size() + tpartsize-1)/tpartsize;
+				uint64_t const fs = A.size();
+				uint64_t const tpartsize = (fs + tnumparts-1)/tnumparts;
+				uint64_t const numparts = (fs + tpartsize-1)/tpartsize;
 				::libmaus::autoarray::AutoArray<uint64_t> partstarts(numparts+1,false);
 
-				#if defined(_OPENMP)
-				// #pragma omp parallel for
-				#endif				
 				for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 				{
-					uint64_t j = std::min(i*tpartsize,A.size());
+					uint64_t j = std::min(i*tpartsize,fs);
+					::libmaus::util::GetObject<uint8_t const *> G(A.begin()+j);
 					
-					while ( j != A.size() && ((A[j] & 0xc0) == 0x80) )
+					while ( j != fs && ((G.get() & 0xc0) == 0x80) )
 						++j;
 						
-					partstarts[i] = j;
-					
-					// std::cerr << "[" << i << "]=" << j << std::endl;
+					partstarts[i] = j;					
 				}
 				
-				partstarts[numparts] = A.size();
+				partstarts[numparts] = fs;
 			
 				return partstarts;
 			}
+
+			static ::libmaus::autoarray::AutoArray<uint64_t> computePartStarts(
+				std::string const & fn, uint64_t const tnumparts
+			)
+			{
+				uint64_t const fs = ::libmaus::util::GetFileSize::getFileSize(fn);
+				uint64_t const tpartsize = (fs + tnumparts-1)/tnumparts;
+				uint64_t const numparts = (fs + tpartsize-1)/tpartsize;
+				::libmaus::autoarray::AutoArray<uint64_t> partstarts(numparts+1,false);
+
+				for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
+				{
+					uint64_t j = std::min(i*tpartsize,fs);
+					::libmaus::aio::CheckedInputStream G(fn);
+					G.seekg(j);
+					
+					while ( j != fs && ((G.get() & 0xc0) == 0x80) )
+						++j;
+						
+					partstarts[i] = j;					
+				}
+				
+				partstarts[numparts] = fs;
+			
+				return partstarts;
+			}
+			
+			template<typename _get_object_type>
+			struct HistogramThread : public ::libmaus::parallel::PosixThread
+			{
+				typedef _get_object_type get_object_type;
+				typedef HistogramThread<get_object_type> this_type;
+				typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+				get_object_type & G;
+				uint64_t const tcodelen;
+				::libmaus::parallel::PosixMutex & mutex;
+				::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t> & ESCH;
+				uint64_t const t;
+			
+				HistogramThread(
+					get_object_type & rG,
+					uint64_t const rtcodelen,
+					::libmaus::parallel::PosixMutex & rmutex,
+					::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t> & rESCH,
+					uint64_t const rt
+				)
+				: G(rG), tcodelen(rtcodelen), mutex(rmutex), ESCH(rESCH), t(rt)
+				{
+					startStack(32*1024);
+				}
+				
+				virtual void * run()
+				{
+					try
+					{
+						::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t> LESCH(8u);
+						::libmaus::autoarray::AutoArray<uint64_t> low(256);
+						uint64_t codelen = 0;
+						
+						while ( codelen != tcodelen )
+						{
+							uint32_t const code = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+							
+							if ( code < low.size() )
+								low[code]++;
+							else
+							{
+								if ( LESCH.loadFactor() > 0.8 )
+									LESCH.extendInternal();
+								LESCH.insert(code,1);
+							}
+						}
+					
+						// add low key counts to hash map		
+						for ( uint64_t i = 0; i < low.size(); ++i )
+							if ( low[i] )
+							{
+								if ( LESCH.loadFactor() > 0.8 )
+									LESCH.extendInternal();
+								LESCH.insert(i,low[i]);
+							}
+						
+						// add to global hash map
+						mutex.lock();	
+						for ( ::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t>::key_type const * ita =
+							LESCH.begin(); ita != LESCH.end(); ++ita )
+							if ( *ita != ::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t>::unused() )
+							{
+								if ( ESCH.loadFactor() > 0.8 )
+									ESCH.extendInternal();
+								ESCH.insert(*ita,LESCH.getCount(*ita));
+							}
+						mutex.unlock();
+					
+					}
+					catch(std::exception const & ex)
+					{
+						std::cerr << ex.what() << std::endl;
+					}
+					return 0;
+				}	
+			};
+			
+			static ::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > getHistogramAsArray(::libmaus::autoarray::AutoArray<uint8_t> const & A)
+			{			
+				#if defined(_OPENMP)
+				uint64_t const numthreads = omp_get_max_threads();
+				#else
+				uint64_t const numthreads = 1;
+				#endif
+				
+				::libmaus::autoarray::AutoArray<uint64_t> const partstarts = computePartStarts(A,numthreads);
+				uint64_t const numparts = partstarts.size()-1;
+
+				::libmaus::parallel::OMPLock lock;
+				::libmaus::parallel::PosixMutex mutex;
+				::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t> ESCH(8u);
+				
+				typedef HistogramThread< ::libmaus::util::GetObject<uint8_t const *> > thread_type;
+				typedef thread_type::unique_ptr_type thread_ptr_type;
+				::libmaus::autoarray::AutoArray< ::libmaus::util::GetObject<uint8_t const *>::unique_ptr_type > getters(numparts);
+				::libmaus::autoarray::AutoArray<thread_ptr_type> threads(numparts);
+
+				for ( uint64_t i = 0; i < numparts; ++i )
+				{
+					getters[i] = UNIQUE_PTR_MOVE(
+						::libmaus::util::GetObject<uint8_t const *>::unique_ptr_type(
+							new ::libmaus::util::GetObject<uint8_t const *>(A.begin()+partstarts[i])
+						)
+					);
+					threads[i] = UNIQUE_PTR_MOVE(
+						thread_ptr_type(new thread_type(*getters[i],
+							partstarts[i+1]-partstarts[i],mutex,ESCH,i))
+					);
+				}
+				for ( uint64_t i = 0; i < numparts; ++i )
+				{
+					threads[i]->join();
+					threads[i].reset();
+				}	
+
+				::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > R(ESCH.size(),false);
+				uint64_t p = 0;
+				for ( ::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t>::key_type const * ita =
+					ESCH.begin(); ita != ESCH.end(); ++ita )
+					if ( *ita != ::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t>::unused() )
+						R [ p++ ] = std::pair<int64_t,uint64_t>(*ita,ESCH.getCount(*ita));
+						
+				std::sort(R.begin(),R.end());
+				
+				return R;
+			}
+			
+			static ::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > getHistogramAsArray(std::string const & fn)
+			{			
+				#if defined(_OPENMP)
+				uint64_t const numthreads = omp_get_max_threads();
+				#else
+				uint64_t const numthreads = 1;
+				#endif
+				
+				::libmaus::autoarray::AutoArray<uint64_t> const partstarts = computePartStarts(fn,numthreads);
+				uint64_t const numparts = partstarts.size()-1;
+
+				::libmaus::parallel::OMPLock lock;
+				::libmaus::parallel::PosixMutex mutex;
+				::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t> ESCH(8u);
+				
+				typedef HistogramThread< ::libmaus::aio::CheckedInputStream > thread_type;
+				typedef thread_type::unique_ptr_type thread_ptr_type;
+				::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedInputStream::unique_ptr_type > getters(numparts);
+				::libmaus::autoarray::AutoArray<thread_ptr_type> threads(numparts);
+
+				for ( uint64_t i = 0; i < numparts; ++i )
+				{
+					getters[i] = UNIQUE_PTR_MOVE(
+						::libmaus::aio::CheckedInputStream::unique_ptr_type(
+							new ::libmaus::aio::CheckedInputStream(fn)
+						)
+					);
+					getters[i]->setBufferSize(16*1024);
+					getters[i]->seekg(partstarts[i]);
+					threads[i] = UNIQUE_PTR_MOVE(
+						thread_ptr_type(new thread_type(*getters[i],
+							partstarts[i+1]-partstarts[i],mutex,ESCH,i))
+					);
+				}
+				for ( uint64_t i = 0; i < numparts; ++i )
+				{
+					threads[i]->join();
+					threads[i].reset();
+				}	
+
+				::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > R(ESCH.size(),false);
+				uint64_t p = 0;
+				for ( ::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t>::key_type const * ita =
+					ESCH.begin(); ita != ESCH.end(); ++ita )
+					if ( *ita != ::libmaus::util::ExtendingSimpleCountingHash<uint64_t,uint64_t>::unused() )
+						R [ p++ ] = std::pair<int64_t,uint64_t>(*ita,ESCH.getCount(*ita));
+						
+				std::sort(R.begin(),R.end());
+				
+				return R;
+			}
+			
 			
 			static ::libmaus::util::Histogram::unique_ptr_type getHistogram(::libmaus::autoarray::AutoArray<uint8_t> const & A)
 			{

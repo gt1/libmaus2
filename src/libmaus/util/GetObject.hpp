@@ -29,6 +29,9 @@ namespace libmaus
 		struct GetObject
 		{
 			typedef _iterator iterator;
+			typedef GetObject<iterator> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 		
 			iterator p;

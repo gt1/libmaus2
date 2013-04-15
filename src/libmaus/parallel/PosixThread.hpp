@@ -132,6 +132,7 @@ namespace libmaus
 
 					if ( pthread_attr_setstacksize(&attr,stacksize) != 0 )
 					{
+						pthread_attr_destroy(&attr);
 						::libmaus::exception::LibMausException se;
 						se.getStream() << "pthread_attr_setstacksize() failed in PosixThread::startStack(): " << strerror(errno) << std::endl;
 						se.finish();
@@ -141,10 +142,20 @@ namespace libmaus
 					
 					if ( pthread_create(thread.get(),&attr,dispatch,this) )
 					{
+						pthread_attr_destroy(&attr);
 						::libmaus::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
 						throw se; 	
+					}
+
+					if ( pthread_attr_destroy(&attr) )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "pthread_attr_destroy failed:" << strerror(errno);
+						se.finish();
+						throw se; 					
+					
 					}
 				}
 				else
@@ -221,6 +232,7 @@ namespace libmaus
 					
 					if ( pthread_attr_setaffinity_np(&attr,sizeof(cpu_set_t),&cpuset) )
 					{
+						pthread_attr_destroy(&attr);
 						::libmaus::exception::LibMausException se;
 						se.getStream() << "pthread_attr_setaffinity_np failed:" << strerror(errno);
 						se.finish();
@@ -234,6 +246,7 @@ namespace libmaus
 					
 					if ( pthread_create(thread.get(),&attr,dispatch,this) )
 					{
+						pthread_attr_destroy(&attr);
 						::libmaus::exception::LibMausException se;
 						se.getStream() << "pthread_create() failed in PosixThread::start()";
 						se.finish();
