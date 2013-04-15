@@ -487,7 +487,7 @@ namespace libmaus
 						{
 							uint64_t const totalnodebits = vnodebits[npi];
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits);
+							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
 							
 							for ( uint64_t p = 0; p < numparts; ++p )
 							{
@@ -511,6 +511,7 @@ namespace libmaus
 								}
 							}
 							
+							context.writeBit(0);
 							context.flush();
 							
 							nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
@@ -998,7 +999,7 @@ namespace libmaus
 						{
 							uint64_t const totalnodebits = vnodebits[npi];
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits);
+							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
 							
 							for ( uint64_t p = 0; p < numparts; ++p )
 							{
@@ -1022,6 +1023,7 @@ namespace libmaus
 								}
 							}
 							
+							context.writeBit(0);
 							context.flush();
 							
 							nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
@@ -1508,7 +1510,7 @@ namespace libmaus
 						{
 							uint64_t const totalnodebits = vnodebits[npi];
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits);
+							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
 							
 							for ( uint64_t p = 0; p < numparts; ++p )
 							{
@@ -1532,6 +1534,7 @@ namespace libmaus
 								}
 							}
 							
+							context.writeBit(0);
 							context.flush();
 							
 							nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
@@ -2058,7 +2061,7 @@ namespace libmaus
 						{
 							uint64_t const totalnodebits = vnodebits[npi];
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits);
+							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
 							
 							for ( uint64_t p = 0; p < numparts; ++p )
 							{
@@ -2082,6 +2085,7 @@ namespace libmaus
 								}
 							}
 							
+							context.writeBit(0);
 							context.flush();
 							
 							nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
