@@ -33,8 +33,7 @@ namespace libmaus
 	{
 		
 		#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
-		#pragma pack(push)
-		#pragma pack(1)
+		#pragma pack(push,1)
 		struct BamAlignmentFixedSizeData
 		{
 			int32_t  RefID;
