@@ -59,7 +59,7 @@ void testcompact()
 	
 	::libmaus::aio::CheckedInputStream CIS(fn);
 	std::cerr << "compact file size is " << ::libmaus::util::GetFileSize::getFileSize(CIS) << std::endl;
-	assert ( CIS.tellg() == 0 );
+	assert ( CIS.tellg() == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );
 	
 	::libmaus::bitio::CompactDecoderWrapper W(fn,4096);
@@ -75,7 +75,7 @@ void testcompact()
 	
 	for ( uint64_t i = 0; i < n; ++i )
 	{
-		assert ( W.tellg() == static_cast<int64_t>(i) );
+		assert ( W.tellg() == static_cast< ::std::streampos >(i) );
 		int const v = W.get();
 		assert ( v == static_cast<int>(CA[i]) );
 		// std::cerr << static_cast<int>(W.get()) << " " << CA[i] << std::endl;
@@ -90,7 +90,7 @@ void testcompact()
 		
 		for ( uint64_t j = i; j < n; ++j )
 		{
-			assert ( W.tellg() == static_cast<int64_t>(j) );
+			assert ( W.tellg() == static_cast< ::std::streampos >(j) );
 			int const v = W.get();
 			assert ( v == static_cast<int>(CA[j]) );
 		}
@@ -101,7 +101,7 @@ void testcompact()
 
 		for ( uint64_t j = ii; j < n; ++j )
 		{
-			assert ( W.tellg() == static_cast<int64_t>(j) );
+			assert ( W.tellg() == static_cast< ::std::streampos >(j) );
 			int const v = W.get();
 			assert ( v == static_cast<int>(CA[j]) );
 		}

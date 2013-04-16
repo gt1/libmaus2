@@ -54,7 +54,7 @@ namespace libmaus
 				) : bleft(rbleft), bright(rbright), sleft(rsleft), sright(rsright), level(rlevel), hnode(rhnode) {}
 			};
 
-			template<bool radixsort = true>
+			template<bool radixsort>
 			static void constructWaveletTree(
 				std::string const & fn, std::string const & outputfilename,
 				::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = 
@@ -577,7 +577,7 @@ namespace libmaus
 				}		
 			}
 
-			template<bool radixsort = true>
+			template<bool radixsort>
 			static void constructWaveletTree(
 				::libmaus::autoarray::AutoArray<uint8_t> & A, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
@@ -1089,7 +1089,7 @@ namespace libmaus
 				}		
 			}
 
-			template<typename rl_decoder, bool radixsort = true>
+			template<typename rl_decoder, bool radixsort>
 			static void constructWaveletTreeFromRl(
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
@@ -1600,7 +1600,7 @@ namespace libmaus
 				}		
 			}
 
-			template<typename rl_decoder, bool radixsort = true>
+			template<typename rl_decoder, bool radixsort>
 			static void constructWaveletTreeFromRlWithTerm(
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,

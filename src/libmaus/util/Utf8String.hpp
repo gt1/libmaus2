@@ -225,7 +225,7 @@ namespace libmaus
 						
 				WC.flush();
 				
-				S = ::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type(new ::libmaus::select::ImpCacheLineSelectSupport(*I,8));
+				S = UNIQUE_PTR_MOVE(::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type(new ::libmaus::select::ImpCacheLineSelectSupport(*I,8)));
 				
 				#if 0
 				std::cerr << "A.size()=" << A.size() << std::endl;
