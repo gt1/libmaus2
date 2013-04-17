@@ -27,6 +27,7 @@
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/gamma/GammaRLDecoder.hpp>
 #include <libmaus/huffman/RLDecoder.hpp>
+#include <libmaus/parallel/OMPNumThreadsScope.hpp>
 
 namespace libmaus
 {
@@ -58,9 +59,11 @@ namespace libmaus
 			static void constructWaveletTree(
 				std::string const & fn, std::string const & outputfilename,
 				::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = 
-					::libmaus::huffman::HuffmanTreeNode::shared_ptr_type()
+					::libmaus::huffman::HuffmanTreeNode::shared_ptr_type(),
+				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
+				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				if ( ! htree.get() )
@@ -77,12 +80,6 @@ namespace libmaus
 				::libmaus::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! htree->isLeaf() )
 				{
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-					
 					uint64_t const infs = ::libmaus::util::GetFileSize::getFileSize(fn);
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(256*1024), (infs+numthreads-1)/numthreads);
 					uint64_t const tnumparts = (infs + tpartsize - 1) / tpartsize;
@@ -582,9 +579,11 @@ namespace libmaus
 				::libmaus::autoarray::AutoArray<uint8_t> & A, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
 				::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = 
-					::libmaus::huffman::HuffmanTreeNode::shared_ptr_type()
+					::libmaus::huffman::HuffmanTreeNode::shared_ptr_type(),
+				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
+				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				if ( ! htree.get() )
@@ -601,12 +600,6 @@ namespace libmaus
 				::libmaus::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! htree->isLeaf() )
 				{
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-					
 					uint64_t const infs = A.size();
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(256*1024), (infs+numthreads-1)/numthreads);
 					uint64_t const tnumparts = (infs + tpartsize - 1) / tpartsize;
@@ -1094,9 +1087,11 @@ namespace libmaus
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
 				::libmaus::huffman::HuffmanTreeNode const * htree,
-				uint64_t const tpartsizemax = 1024ull*1024ull 
+				uint64_t const tpartsizemax = 1024ull*1024ull,
+				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
+				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				::libmaus::huffman::EncodeTable<1> ET(htree);
@@ -1106,12 +1101,6 @@ namespace libmaus
 				::libmaus::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! htree->isLeaf() )
 				{
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-					
 					uint64_t const infs = rl_decoder::getLength(fn);
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(tpartsizemax), (infs+numthreads-1)/numthreads);
 					uint64_t const numparts = (infs + tpartsize - 1) / tpartsize;
@@ -1607,9 +1596,11 @@ namespace libmaus
 				::libmaus::huffman::HuffmanTreeNode const * htree,
 				uint64_t const termrank,
 				uint64_t const bwtterm,
-				uint64_t const tpartsizemax = 1024ull*1024ull 
+				uint64_t const tpartsizemax = 1024ull*1024ull,
+				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
+				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				::libmaus::huffman::EncodeTable<1> ET(htree);
@@ -1619,12 +1610,6 @@ namespace libmaus
 				::libmaus::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! htree->isLeaf() )
 				{
-					#if defined(_OPENMP)
-					uint64_t const numthreads = omp_get_max_threads();
-					#else
-					uint64_t const numthreads = 1;
-					#endif
-
 					uint64_t const infs = rl_decoder::getLength(fn);
 					
 					uint64_t const pretermsyms = termrank;
