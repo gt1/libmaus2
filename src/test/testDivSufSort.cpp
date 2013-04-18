@@ -25,6 +25,79 @@
 #include <libmaus/lcp/LCP.hpp>
 #include <libmaus/lcp/OracleLCP.hpp>
 
+#include <libmaus/fm/SampledSA.hpp>
+#include <libmaus/fm/SampledISA.hpp>
+
+void testBin()
+{
+	unsigned int const n = 8;
+	typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int64_t *,int64_t const *,256,false /* parallel */> sort_type;
+	::libmaus::autoarray::AutoArray<int64_t> SA(n+1,false);	
+	::libmaus::autoarray::AutoArray<int64_t> ISA(n+1,false);	
+	::libmaus::autoarray::AutoArray<uint8_t> S(n+1,false);
+	::libmaus::autoarray::AutoArray<uint8_t> BWT(n+1,false);
+	S[n] = '$';
+	
+	for ( uint64_t i = 0; i < (1ull<<n); ++i )
+	{
+		for ( uint64_t j = 0; j < n; ++j )
+			S[j] = ((i & ( 1ull << j )) != 0) ? 'b' : 'a';
+
+		sort_type::divsufsort ( S.begin(), SA.get() , n+1 );
+		::libmaus::autoarray::AutoArray<int64_t> PhiLCP = ::libmaus::lcp::computeLcp(S.get(),n+1,SA.get());
+		
+		for ( uint64_t j = 0; j < SA.size(); ++j )
+			ISA[SA[j]] = j;
+			
+		for ( uint64_t j = 0; j < SA.size(); ++j )
+			BWT[j] = S[ (SA[j] + S.size() -1) % S.size() ];
+			
+		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, uint64_t >::unique_ptr_type
+			PW(new ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, uint64_t >(BWT.begin(),BWT.size()));
+		for ( uint64_t j = 0; j < S.size(); ++j )
+			assert ( (*PW)[j] == BWT[j] );
+			
+		::libmaus::lf::LF LF(PW);
+		::libmaus::fm::SimpleSampledSA< ::libmaus::lf::LF > SSA(&LF,8);
+		::libmaus::fm::SampledISA< ::libmaus::lf::LF > SISA(&LF,8);
+		
+		::libmaus::lcp::SuccinctLCP<
+			::libmaus::lf::LF,
+			::libmaus::fm::SimpleSampledSA< ::libmaus::lf::LF >,
+			::libmaus::fm::SampledISA< ::libmaus::lf::LF >
+		> SLCP(LF,SSA,SISA);
+		
+		for ( uint64_t i = 0; i < 2*SA.size(); ++i )
+		{
+			std::cerr << ::libmaus::bitio::getBit(SLCP.LCP,i);
+		}
+		std::cerr << std::endl;
+		
+		for ( uint64_t i = 0; i < SA.size(); ++i )
+			std::cerr << "PLCP[" << i << "]=" << PhiLCP[ISA[i]] 
+				<< ":" << SLCP[ISA[i]]
+				<< std::endl;
+		
+		#if 0
+		bool thecase = false;
+		for ( uint64_t j = 1; j < n; ++j )
+			if ( PhiLCP[ISA[j-1]] == PhiLCP[ISA[j]] )
+				thecase = true;
+		
+		if ( thecase )
+		{
+			std::cerr << "------" << std::endl;
+			
+			for ( uint64_t j = 0; j < n; ++j )
+				std::cerr << "[" << j << "]" << std::string(S.begin()+SA[j],S.end()) << std::endl;
+				
+			for ( uint64_t j = 0; j < n; ++j )
+				std::cerr << "PLCP["<< j << "]=" << "LCP[" << ISA[j] << "]=" << PhiLCP[ISA[j]] << std::endl;
+		}
+		#endif
+	}
+}
+
 void testLCP(::libmaus::autoarray::AutoArray<uint8_t> const & data, ::libmaus::autoarray::AutoArray<int64_t> const & SAdiv0)
 {
 	::libmaus::timing::RealTimeClock drtc; drtc.start();
@@ -71,6 +144,8 @@ void testLCP(::libmaus::autoarray::AutoArray<uint8_t> const & data, ::libmaus::a
 
 int main(int argc, char * argv[])
 {
+	testBin();
+
 	if ( argc < 2 )
 	{
 		std::cerr << "usage: " << argv[0] << " <filename>" << std::endl;
