@@ -389,6 +389,9 @@ namespace libmaus
 
 			uint64_t rank(int64_t const sym, uint64_t i) const
 			{
+				if ( !enctable.checkSymbol(sym) )
+					return 0;
+			
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
@@ -448,6 +451,9 @@ namespace libmaus
 
 			uint64_t rankm(int64_t const sym, uint64_t i) const
 			{
+				if ( !enctable.checkSymbol(sym) )
+					return 0;
+
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
@@ -471,6 +477,9 @@ namespace libmaus
 
 			std::pair<uint64_t,uint64_t> rankm(int64_t const sym, uint64_t l, uint64_t r) const
 			{
+				if ( !enctable.checkSymbol(sym) )
+					return std::pair<uint64_t,uint64_t>(0,0);
+					
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
@@ -497,6 +506,9 @@ namespace libmaus
 			template<typename iterator>
 			std::pair<uint64_t,uint64_t> rankm(int64_t const sym, uint64_t l, uint64_t r, iterator D) const
 			{
+				if ( !enctable.checkSymbol(sym) )
+					return std::pair<uint64_t,uint64_t>(0,0);
+
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;
@@ -522,6 +534,9 @@ namespace libmaus
 
 			uint64_t select(int64_t const sym, uint64_t i) const
 			{
+				if ( !enctable.checkSymbol(sym) )
+					return std::numeric_limits<uint64_t>::max();
+					
 				unsigned int const b = enctable[sym].second;
 				uint64_t const s = enctable[sym].first.A[0];
 				rank_type const * node = root;

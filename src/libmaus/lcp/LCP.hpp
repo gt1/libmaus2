@@ -552,7 +552,7 @@ namespace libmaus
 			};
 
 			template<typename lf_type>
-			static LCPResult::unique_ptr_type computeLCP(lf_type const * LF)
+			static LCPResult::unique_ptr_type computeLCP(lf_type const * LF, bool const zdif = true)
 			{
 				uint64_t const n = LF->getN();
 				LCPResult::small_elem_type const unset = std::numeric_limits< LCPResult::small_elem_type>::max();
@@ -575,6 +575,8 @@ namespace libmaus
 
 				::libmaus::autoarray::AutoArray<uint64_t> symfreq( LF->getSymbolThres() );
 				
+				std::cerr << "[V] symbol threshold is " << symfreq.size() << std::endl;
+				
 				// symbol frequencies			
 				for ( uint64_t i = 0; i < symfreq.getN(); ++i )
 					symfreq[i] = n?LF->W->rank(i,n-1):0;
@@ -587,26 +589,31 @@ namespace libmaus
 				::libmaus::suffixsort::CompactQueue * PQ1 = &Q1;
 
 				uint64_t s = 0;
+				uint64_t cc = 0;
+				uint64_t acc = 0;
 
-				// special handling of zero symbols
-				for ( uint64_t i = 0; i < symfreq[0]; ++i )
+				if ( zdif )
 				{
-					WLCP[i] = 0;
-					Q0.enque(i,i+1);
+					// special handling of zero symbols
+					for ( uint64_t zc = 0; zc < symfreq[0]; ++zc )
+					{
+						WLCP[zc] = 0;
+						Q0.enque(zc,zc+1);
+					}
+					s += symfreq[cc++];
+					acc += symfreq[0];
 				}
-				s += symfreq[0];
 							
 				// other symbols
-				uint64_t acc = symfreq[0];
-				for ( uint64_t i = 1; i < symfreq.getN(); ++i )
+				for ( ; cc < symfreq.getN(); ++cc )
 				{
 					WLCP[acc] = 0;
 					s++;
 					
-					if ( symfreq[i] )
+					if ( symfreq[cc] )
 					{
-						Q0.enque(acc,acc+symfreq[i]);
-						acc += symfreq[i];
+						Q0.enque(acc,acc+symfreq[cc]);
+						acc += symfreq[cc];
 					}
 				}                
 				WLCP[n] = 0;

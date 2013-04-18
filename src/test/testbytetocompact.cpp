@@ -172,12 +172,15 @@ int main(int argc, char * argv[])
 		std::string const input = arginfo.getRestArg<std::string>(0);
 		std::string const output = arginfo.getRestArg<std::string>(1);
 		unsigned int const verbose = arginfo.getValue<unsigned int>("verbose",1);
+		unsigned int const addterm = arginfo.getValue<unsigned int>("addterm",0) ? 1 : 0;
 
 		::libmaus::autoarray::AutoArray<uint64_t> const chist = computeCharHist(input);
 		uint64_t maxsym = 0;
 		for ( uint64_t i = 0; i < chist.size(); ++i )
 			if ( chist[i] )
 				maxsym = i;
+		if ( addterm )
+			maxsym += 1;
 		unsigned int const b = maxsym ? (64-::libmaus::bitio::Clz::clz(maxsym)) : 0;
 
 		uint64_t const n = std::accumulate(chist.begin(),chist.end(),0ull);
@@ -188,7 +191,7 @@ int main(int argc, char * argv[])
 		uint64_t const numblocks = (n+blocksize-1)/blocksize;
 		::libmaus::autoarray::AutoArray<uint8_t> B(blocksize);
 		::libmaus::aio::CheckedInputStream CIS(input);
-		::libmaus::bitio::CompactArrayWriter CAW(output,n,b);
+		::libmaus::bitio::CompactArrayWriter CAW(output,n+addterm,b);
 		int64_t lastperc = -1;
 		
 		if ( verbose )
@@ -201,7 +204,11 @@ int main(int argc, char * argv[])
 			uint64_t const range = high-low;
 			
 			CIS.read ( reinterpret_cast<char *>(B.begin()), range );
-			assert ( CIS.gcount() == static_cast<int64_t>(range) );			
+			assert ( CIS.gcount() == static_cast<int64_t>(range) );
+			
+			if ( addterm )
+				for ( uint64_t i = 0; i < range; ++i )
+					B[i] += 1;
 			
 			CAW.write(B.begin(),range);
 			
@@ -212,10 +219,19 @@ int main(int argc, char * argv[])
 				std::cerr << "(" << newperc << ")";
 			}
 		}
+		if ( addterm )
+			CAW.put(0);
 		if ( verbose )
 			std::cerr << std::endl;
 		
 		CAW.flush();
+		
+		#if 0
+		::libmaus::bitio::CompactDecoderWrapper CDW(output);
+		for ( uint64_t i = 0; i < n+addterm; ++i )
+			std::cerr << CDW.get();
+		std::cerr << std::endl;
+		#endif
 	}
 	catch(std::exception const & ex)
 	{
