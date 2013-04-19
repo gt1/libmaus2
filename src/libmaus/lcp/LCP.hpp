@@ -120,7 +120,7 @@ namespace libmaus
 				isa_type & SISA,
 				lcp_type & LCP,
 				std::ostream & out,
-				bool const verbose = true
+				bool const verbose = false
 			)
 			{
 				uint64_t const n = LF.getN();
