@@ -100,11 +100,104 @@ namespace libmaus
 				}        
 			}
 
+			static void writePlcpDif(::libmaus::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
+			{
+				while ( plcpdif > 63 )
+					FWBW.write(0,64);
+				assert ( plcpdif+1 <= 64 );
+				FWBW.write(1,plcpdif+1);
+			}
+
+			/**
+			 * write an in memory LCP array as succinct version
+			 **/
+			template<typename lf_type, typename isa_type, typename lcp_type>
+			static void writeSuccinctLCP(
+				lf_type & LF,
+				isa_type & SISA,
+				lcp_type & LCP,
+				std::ostream & out
+			)
+			{
+				uint64_t const n = LF.getN();
+				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				::libmaus::serialize::Serialize<uint64_t>::serialize(out,(2*n+63)/64);
+				
+				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
+				::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
+				::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
+
+				uint64_t const isasamplingrate = SISA.isasamplingrate;
+				::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
+				
+				uint64_t const rp0 = SISA.SISA[0];
+				uint64_t const pdif0 = LCP[rp0] + 1 - LCP[LF(rp0)];
+				
+				// std::cerr << pdif0 << std::endl;
+				writePlcpDif(FWBW,pdif0);
+				
+				for ( uint64_t i = 1; i < SISA.SISA.size(); ++i )
+				{
+					uint64_t r = SISA.SISA[i];
+
+					uint64_t * op = plcpbuf.end();
+					uint64_t * const opa = plcpbuf.begin()+1;
+					
+					while ( op != opa )
+					{
+						*(--op) = LCP[r];
+						r = LF(r);				
+					}			
+					*(--op) = LCP[r];
+
+					op = plcpbuf.end()-1;
+					
+					while ( op-- != plcpbuf.begin() )
+						op[1] = (op[1]+1)-op[0];
+						
+					// 1 ...			
+					
+					for ( op = opa; op != plcpbuf.end(); ++op )
+					{
+						// std::cerr << *op << std::endl;			
+						writePlcpDif(FWBW,*op);
+					}
+				}
+				
+				uint64_t const rest = 
+					LF.getN() - ((LF.getN()/isasamplingrate)*isasamplingrate + 1);
+					
+				// std::cerr << "rest=" << rest << std::endl;
+				
+				// LF on rank of position 0
+				uint64_t rr = LF(rp0);
+				
+				for ( uint64_t i = 0; i < rest; ++i )
+				{
+					plcpbuf[plcpbuf.size()-i-1] = LCP[rr];
+					rr = LF(rr);			
+				}
+				plcpbuf[plcpbuf.size()-rest-1] = LCP[rr];
+				
+				for ( uint64_t i = 0; i < rest; ++i )
+				{
+					uint64_t pdif = plcpbuf[plcpbuf.size()-rest+i] + 1 - plcpbuf[plcpbuf.size()-rest+i-1];
+					// std::cerr << "pdif=" << pdif << std::endl;
+					writePlcpDif(FWBW,pdif);
+				}
+
+				FWBW.flush();
+				SGO.flush();
+				out.flush();
+			}
+
+
 			static ::libmaus::autoarray::AutoArray<uint64_t> computeLCP(
 				lf_type const & lf,
 				sampled_sa_type const & SA, 
 				sampled_isa_type const & ISA,
-				uint64_t const n)
+				uint64_t const n,
+				bool const verbose = false)
 			{
 				double const bef = clock();
 				uint64_t const mask = (1ull << 20)-1;
@@ -152,15 +245,17 @@ namespace libmaus
 					r0 = lf.phi(r0);
 					l1 = l0;
 
-					if ( !(i & mask) )
+					if ( verbose && (!(i & mask)) )
 						std::cerr << "\r                                         \r" <<
 							static_cast<double>(i)/n << std::flush;
 				}
 
-				std::cerr << "\r                                         \r" << 1 << std::endl;
+				if ( verbose )
+					std::cerr << "\r                                         \r" << 1 << std::endl;
 				
 				double const aft = clock();
-				std::cerr << "lcpbits = " << lcpbits << " frac " << static_cast<double>(lcpbits)/n << " comptime " << (aft-bef)/CLOCKS_PER_SEC << std::endl;
+				if ( verbose )
+					std::cerr << "lcpbits = " << lcpbits << " frac " << static_cast<double>(lcpbits)/n << " comptime " << (aft-bef)/CLOCKS_PER_SEC << std::endl;
 				
 				return AS;
 			}
@@ -171,7 +266,8 @@ namespace libmaus
 				sampled_sa_type const & SA, 
 				sampled_isa_type const & ISA,
 				uint64_t const n,
-				text_type const & text
+				text_type const & text,
+				bool const verbose = false
 			)
 			{
 				::libmaus::timing::RealTimeClock rtc; rtc.start();
@@ -253,11 +349,14 @@ namespace libmaus
 						l1 = l0;			
 					} 
 
-					std::cerr << "\r                                         \r" << static_cast<double>(superhigh) / n << std::flush;
+					if ( verbose )
+						std::cerr << "\r                                         \r" << static_cast<double>(superhigh) / n << std::flush;
 				}		
-				std::cerr << "\r                                         \r" << 1 << std::endl;
-				
-				std::cerr << "lcpbits = " << lcpbits << " frac " << static_cast<double>(lcpbits)/n << " time " << rtc.getElapsedSeconds() << std::endl;
+				if ( verbose )
+					std::cerr << "\r                                         \r" << 1 << std::endl;
+	
+				if ( verbose )
+					std::cerr << "lcpbits = " << lcpbits << " frac " << static_cast<double>(lcpbits)/n << " time " << rtc.getElapsedSeconds() << std::endl;
 				
 				return AS;
 			}
@@ -278,14 +377,15 @@ namespace libmaus
 				return s;
 			}
 			
-			uint64_t deserialize(std::istream & in)
+			uint64_t deserialize(std::istream & in, bool const verbose = false)
 			{
 				uint64_t s = 0;
 				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
 				s += ALCP.deserialize(in);
 				LCP = ALCP.get();
 				eselect = UNIQUE_PTR_MOVE(select_type::unique_ptr_type( new select_type( LCP, ((2*n+63)/64)*64 ) ));
-				std::cerr << "LCP: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1)) / (1024*1024) << " mb" << std::endl;
+				if ( verbose )
+					std::cerr << "LCP: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1)) / (1024*1024) << " mb" << std::endl;
 				return s;
 			}
 			

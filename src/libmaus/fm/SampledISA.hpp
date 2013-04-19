@@ -128,13 +128,14 @@ namespace libmaus
 			}
 
 
-                        SampledISA(lf_type const * rlf, uint64_t risasamplingrate)
+                        SampledISA(lf_type const * rlf, uint64_t risasamplingrate, bool const verbose = false)
                         : lf(rlf), isasamplingrate(risasamplingrate),
                           SISA ( (lf->getN() + isasamplingrate - 1)/isasamplingrate )
                         {
 				setSamplingRate(risasamplingrate);
 				
-                                std::cerr << "Computing Sampled ISA...";
+				if ( verbose )
+	                                std::cerr << "Computing Sampled ISA...";
 
                                 // find rank of position 0 (i.e. search terminating symbol)
                                 uint64_t r = lf->zeroPosRank();
@@ -142,10 +143,11 @@ namespace libmaus
                                 uint64_t const rr = r;
 
                                 // fill vector
-                                std::cerr << "(fillingArray...";
+                                if ( verbose )
+	                                std::cerr << "(fillingArray...";
                                 for ( int64_t i = (lf->getN()-1); i >= 0; --i )
                                 {
-                                        if ( (i & (1024*1024-1)) == 0 )
+                                        if ( (i & (1024*1024-1)) == 0 && verbose )
                                                 std::cerr << "(" << i/(1024*1024) << ")";
                                 
                                         r = (*lf)(r); // LF mapping
@@ -153,11 +155,13 @@ namespace libmaus
                                         if ( i % isasamplingrate == 0 )
                                                 SISA[i / isasamplingrate] = r;
                                 }
-                                std::cerr << ")";
+                                if ( verbose )
+	                                std::cerr << ")";
 
                                 assert ( r == rr );
-                                
-                                std::cerr << "done." << std::endl;
+        
+        			if ( verbose )
+	                                std::cerr << "done." << std::endl;
                         }
 
                         uint64_t operator[](uint64_t i) const

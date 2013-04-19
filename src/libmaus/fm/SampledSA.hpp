@@ -109,29 +109,36 @@ namespace libmaus
 
 			SampledSA( 
 				lf_type const * rlf,
-				uint64_t rsasamplingrate
+				uint64_t rsasamplingrate,
+				bool const verbose = false
 			)
 			: lf(rlf), padn(((lf->getN() + 63)/64)*64), sasamplingrate(rsasamplingrate), RSA(padn/64,false),
 			  SSA ( (lf->getN() + sasamplingrate - 1)/sasamplingrate )
 			{
-				std::cerr << "Computing Sampled SA...";
+				if ( verbose )
+					std::cerr << "Computing Sampled SA...";
 			
-				std::cerr << "(erasing RSA";
+				if ( verbose )
+					std::cerr << "(erasing RSA";
 				std::fill(RSA.get(), RSA.get()+padn/64, 0);
-				std::cerr << ")";
+				if ( verbose )
+					std::cerr << ")";
 
 				// find rank of position 0 (i.e. search terminating symbol)
-				std::cerr << "(zeroPosRank";
+				if ( verbose )
+					std::cerr << "(zeroPosRank";
 				uint64_t r = lf->zeroPosRank();
-				std::cerr << ")";
+				if ( verbose )
+					std::cerr << ")";
 
 				uint64_t const rr = r;
 
 				// fill vector
-				std::cerr << "(fillingBitVector";
+				if ( verbose )
+					std::cerr << "(fillingBitVector";
 				for ( int64_t i = (lf->getN()-1); i >= 0; --i )
 				{
-					if ( (i & (32*1024*1024-1)) == 0 )
+					if ( (i & (32*1024*1024-1)) == 0 && verbose )
 						std::cerr << "(" << i/(1024*1024) << ")";
 						
 					r = (*lf)(r); // LF mapping
@@ -141,16 +148,18 @@ namespace libmaus
 					else
 						::libmaus::bitio::putBits ( RSA.get(), r, 1, 0);			
 				}
-				std::cerr << ")";
+				if ( verbose )
+					std::cerr << ")";
 
 				assert ( r == rr );
 
 				ARSA = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type ( new ::libmaus::rank::ERank222B(RSA.get(), padn) ));
 
-				std::cerr << "(fillingSampledSuffixArray";
+				if ( verbose )
+					std::cerr << "(fillingSampledSuffixArray";
 				for ( int64_t i = (lf->getN()-1); i >= 0; --i )
 				{
-					if ( (i & (1024*1024-1)) == 0 )
+					if ( (i & (1024*1024-1)) == 0 && verbose )
 						std::cerr << "(" << i/(1024*1024) << ")";
 						
 					r = (*lf)(r); // LF mapping
@@ -158,7 +167,8 @@ namespace libmaus
 					if ( (i & (sasamplingrate-1)) == 0 )
 						SSA [ ARSA->rank1(r) - 1 ] = i;
 				}
-				std::cerr << "done)";
+				if ( verbose )
+					std::cerr << "done)";
 
 				assert ( r == rr );
 
@@ -173,7 +183,8 @@ namespace libmaus
 
 				assert ( r == rr );
 				
-				std::cerr << "done." << std::endl;
+				if ( verbose )
+					std::cerr << "done." << std::endl;
 			}
 
 			uint64_t operator[](uint64_t r) const
@@ -289,26 +300,30 @@ namespace libmaus
 				setSamplingRate(rsasamplingrate);
 			}
 
-			SimpleSampledSA(lf_type const * rlf, uint64_t rsasamplingrate)
+			SimpleSampledSA(lf_type const * rlf, uint64_t rsasamplingrate, bool const verbose = false)
 			: lf(rlf), 
 			  sasamplingrate(rsasamplingrate),
 			  SSA ( (lf->getN() + sasamplingrate - 1)/sasamplingrate )
 			{
 				setSamplingRate(rsasamplingrate);
 			
-				std::cerr << "Computing simple Sampled SA...";
+				if ( verbose )
+					std::cerr << "Computing simple Sampled SA...";
 			
 				// find rank of position 0 (i.e. search terminating symbol)
-				std::cerr << "(zeroPosRank";
+				if ( verbose )
+					std::cerr << "(zeroPosRank";
 				uint64_t r = lf->zeroPosRank();
-				std::cerr << ")";
+				if ( verbose )
+					std::cerr << ")";
 
 				uint64_t const rr = r;
 
-				std::cerr << "(fillingSimpleSampledSuffixArray";
+				if ( verbose )
+					std::cerr << "(fillingSimpleSampledSuffixArray";
 				for ( int64_t i = (lf->getN()-1); i >= 0; --i )
 				{
-					if ( (i & (1024*1024-1)) == 0 )
+					if ( (i & (1024*1024-1)) == 0 && verbose )
 						std::cerr << "(" << i/(1024*1024) << ")";
 						
 					r = (*lf)(r); // LF mapping
@@ -316,7 +331,8 @@ namespace libmaus
 					if ( (r & (sasamplingrate-1)) == 0 )
 						SSA [ r / sasamplingrate ] = i;
 				}
-				std::cerr << "done)";
+				if ( verbose )
+					std::cerr << "done)";
 
 				assert ( r == rr );
 
@@ -342,7 +358,8 @@ namespace libmaus
 
 				assert ( r == rr );
 				
-				std::cerr << "done." << std::endl;
+				if ( verbose )
+					std::cerr << "done." << std::endl;
 			}
 
 			uint64_t operator[](uint64_t r) const

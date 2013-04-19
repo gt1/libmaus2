@@ -28,9 +28,97 @@
 #include <libmaus/fm/SampledSA.hpp>
 #include <libmaus/fm/SampledISA.hpp>
 
+static void writePlcpDif(::libmaus::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
+{
+	while ( plcpdif > 63 )
+		FWBW.write(0,64);
+	assert ( plcpdif+1 <= 64 );
+	FWBW.write(1,plcpdif+1);
+}
+
+template<typename lf_type, typename isa_type, typename lcp_type>
+static void writeSuccinctLCP(
+	lf_type & LF,
+	isa_type & SISA,
+	lcp_type & LCP,
+	std::ostream & out
+)
+{
+	uint64_t const n = LF.getN();
+	::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+	::libmaus::serialize::Serialize<uint64_t>::serialize(out,(2*n+63)/64);
+	
+	::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
+	::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
+	::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
+
+	uint64_t const isasamplingrate = SISA.isasamplingrate;
+	::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
+	
+	uint64_t const rp0 = SISA.SISA[0];
+	uint64_t const pdif0 = LCP[rp0] + 1 - LCP[LF(rp0)];
+	
+	// std::cerr << pdif0 << std::endl;
+	writePlcpDif(FWBW,pdif0);
+	
+	for ( uint64_t i = 1; i < SISA.SISA.size(); ++i )
+	{
+		uint64_t r = SISA.SISA[i];
+
+		uint64_t * op = plcpbuf.end();
+		uint64_t * const opa = plcpbuf.begin()+1;
+		
+		while ( op != opa )
+		{
+			*(--op) = LCP[r];
+			r = LF(r);				
+		}			
+		*(--op) = LCP[r];
+
+		op = plcpbuf.end()-1;
+		
+		while ( op-- != plcpbuf.begin() )
+			op[1] = (op[1]+1)-op[0];
+			
+		// 1 ...			
+		
+		for ( op = opa; op != plcpbuf.end(); ++op )
+		{
+			// std::cerr << *op << std::endl;			
+			writePlcpDif(FWBW,*op);
+		}
+	}
+	
+	uint64_t const rest = 
+		LF.getN() - ((LF.getN()/isasamplingrate)*isasamplingrate + 1);
+		
+	// std::cerr << "rest=" << rest << std::endl;
+	
+	// LF on rank of position 0
+	uint64_t rr = LF(rp0);
+	
+	for ( uint64_t i = 0; i < rest; ++i )
+	{
+		plcpbuf[plcpbuf.size()-i-1] = LCP[rr];
+		rr = LF(rr);			
+	}
+	plcpbuf[plcpbuf.size()-rest-1] = LCP[rr];
+	
+	for ( uint64_t i = 0; i < rest; ++i )
+	{
+		uint64_t pdif = plcpbuf[plcpbuf.size()-rest+i] + 1 - plcpbuf[plcpbuf.size()-rest+i-1];
+		// std::cerr << "pdif=" << pdif << std::endl;
+		writePlcpDif(FWBW,pdif);
+	}
+
+	FWBW.flush();
+	SGO.flush();
+	out.flush();
+}
+
 void testBin()
 {
-	unsigned int const n = 8;
+	unsigned int const n = 13;
 	typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int64_t *,int64_t const *,256,false /* parallel */> sort_type;
 	::libmaus::autoarray::AutoArray<int64_t> SA(n+1,false);	
 	::libmaus::autoarray::AutoArray<int64_t> ISA(n+1,false);	
@@ -66,17 +154,33 @@ void testBin()
 			::libmaus::fm::SimpleSampledSA< ::libmaus::lf::LF >,
 			::libmaus::fm::SampledISA< ::libmaus::lf::LF >
 		> SLCP(LF,SSA,SISA);
+
+		std::ostringstream oout;
+		writeSuccinctLCP(LF,SISA,PhiLCP,oout);
 		
-		for ( uint64_t i = 0; i < 2*SA.size(); ++i )
+		std::istringstream iin(oout.str());
+		::libmaus::lcp::SuccinctLCP<
+			::libmaus::lf::LF,
+			::libmaus::fm::SimpleSampledSA< ::libmaus::lf::LF >,
+			::libmaus::fm::SampledISA< ::libmaus::lf::LF >
+		> defSLCP(iin,SSA);
+		
+		for ( uint64_t j = 0; j < SA.size(); ++j )
 		{
-			std::cerr << ::libmaus::bitio::getBit(SLCP.LCP,i);
+			// std::cerr << "***\t" << SLCP[j] << "\t" << defSLCP[j] << std::endl;
+			assert ( SLCP[j] == defSLCP[j] );
 		}
+
+		#if 0		
+		for ( uint64_t i = 0; i < 2*SA.size(); ++i )
+			std::cerr << ::libmaus::bitio::getBit(SLCP.LCP,i);
 		std::cerr << std::endl;
 		
 		for ( uint64_t i = 0; i < SA.size(); ++i )
 			std::cerr << "PLCP[" << i << "]=" << PhiLCP[ISA[i]] 
 				<< ":" << SLCP[ISA[i]]
 				<< std::endl;
+		#endif
 		
 		#if 0
 		bool thecase = false;
