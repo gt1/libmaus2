@@ -102,12 +102,14 @@ namespace libmaus
 
 			static void writePlcpDif(::libmaus::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
 			{
-				while ( plcpdif > 63 )
+				static uint64_t const maxwritebits = 32;
+				
+				while ( plcpdif+1 > maxwritebits )
 				{
-					FWBW.write(0,64);
-					plcpdif -= 64;
+					FWBW.write(0,maxwritebits);
+					plcpdif -= maxwritebits;
 				}
-				assert ( plcpdif+1 <= 64 );
+				assert ( plcpdif+1 <= maxwritebits );
 				FWBW.write(1,plcpdif+1);
 			}
 
@@ -123,9 +125,12 @@ namespace libmaus
 				bool const verbose = false
 			)
 			{
+				uint64_t const rp0 = SISA.SISA[0];
 				uint64_t const n = LF.getN();
+				uint64_t const numbits = 2*n + LCP[LF(rp0)];
+				uint64_t bitswritten = 0;
 				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,(2*n+63)/64);
+				::libmaus::serialize::Serialize<uint64_t>::serialize(out,(2*numbits+63)/64);
 				
 				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
 				::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
@@ -134,12 +139,12 @@ namespace libmaus
 				uint64_t const isasamplingrate = SISA.isasamplingrate;
 				::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
 				
-				uint64_t const rp0 = SISA.SISA[0];
-				uint64_t const pdif0 = LCP[rp0] + 1 - LCP[LF(rp0)];
+				uint64_t const pdif0 = LCP[rp0] + 1; // - LCP[LF(rp0)];
 				
 				if ( verbose )
 					std::cerr << pdif0 << std::endl;
 				writePlcpDif(FWBW,pdif0);
+				bitswritten += (pdif0+1);
 				
 				for ( uint64_t i = 1; i < SISA.SISA.size(); ++i )
 				{
@@ -167,6 +172,7 @@ namespace libmaus
 						if ( verbose )
 							std::cerr << *op << std::endl;			
 						writePlcpDif(FWBW,*op);
+						bitswritten += (*op)+1;
 					}
 				}
 				
@@ -192,11 +198,14 @@ namespace libmaus
 					if ( verbose )
 						std::cerr << "pdif=" << pdif << std::endl;
 					writePlcpDif(FWBW,pdif);
+					bitswritten += pdif+1;
 				}
 
 				FWBW.flush();
 				SGO.flush();
 				out.flush();
+				
+				// std::cerr << "bitswritten=" << bitswritten << " numbits" << numbits << std::endl;
 			}
 
 
