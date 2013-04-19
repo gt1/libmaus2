@@ -1,3 +1,9 @@
+libmaus (0.0.36-0) unstable; urgency=low
+
+  * bump version after adding succinct lcp serialisation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 19 Apr 2013 10:54:08 +0100
+
 libmaus (0.0.35-0) unstable; urgency=low
 
   * bump version after adding dependency on io_lib 
