@@ -103,7 +103,10 @@ namespace libmaus
 			static void writePlcpDif(::libmaus::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
 			{
 				while ( plcpdif > 63 )
+				{
 					FWBW.write(0,64);
+					plcpdif -= 64;
+				}
 				assert ( plcpdif+1 <= 64 );
 				FWBW.write(1,plcpdif+1);
 			}
@@ -116,7 +119,8 @@ namespace libmaus
 				lf_type & LF,
 				isa_type & SISA,
 				lcp_type & LCP,
-				std::ostream & out
+				std::ostream & out,
+				bool const verbose = true
 			)
 			{
 				uint64_t const n = LF.getN();
@@ -133,7 +137,8 @@ namespace libmaus
 				uint64_t const rp0 = SISA.SISA[0];
 				uint64_t const pdif0 = LCP[rp0] + 1 - LCP[LF(rp0)];
 				
-				// std::cerr << pdif0 << std::endl;
+				if ( verbose )
+					std::cerr << pdif0 << std::endl;
 				writePlcpDif(FWBW,pdif0);
 				
 				for ( uint64_t i = 1; i < SISA.SISA.size(); ++i )
@@ -159,15 +164,17 @@ namespace libmaus
 					
 					for ( op = opa; op != plcpbuf.end(); ++op )
 					{
-						// std::cerr << *op << std::endl;			
+						if ( verbose )
+							std::cerr << *op << std::endl;			
 						writePlcpDif(FWBW,*op);
 					}
 				}
 				
 				uint64_t const rest = 
 					LF.getN() - ((LF.getN()/isasamplingrate)*isasamplingrate + 1);
-					
-				// std::cerr << "rest=" << rest << std::endl;
+				
+				if ( verbose )
+					std::cerr << "rest=" << rest << std::endl;
 				
 				// LF on rank of position 0
 				uint64_t rr = LF(rp0);
@@ -182,7 +189,8 @@ namespace libmaus
 				for ( uint64_t i = 0; i < rest; ++i )
 				{
 					uint64_t pdif = plcpbuf[plcpbuf.size()-rest+i] + 1 - plcpbuf[plcpbuf.size()-rest+i-1];
-					// std::cerr << "pdif=" << pdif << std::endl;
+					if ( verbose )
+						std::cerr << "pdif=" << pdif << std::endl;
 					writePlcpDif(FWBW,pdif);
 				}
 
