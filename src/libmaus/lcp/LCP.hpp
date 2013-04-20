@@ -102,15 +102,17 @@ namespace libmaus
 
 			static void writePlcpDif(::libmaus::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
 			{
-				static uint64_t const maxwritebits = 32;
+				static uint64_t const maxwritebits = 64;
 				
-				while ( plcpdif+1 > maxwritebits )
+				// std::cerr << "writing " << plcpdif << std::endl;
+				
+				while ( plcpdif > maxwritebits )
 				{
-					FWBW.write(0,maxwritebits);
+					FWBW.write(0ull,maxwritebits);
 					plcpdif -= maxwritebits;
 				}
-				assert ( plcpdif+1 <= maxwritebits );
-				FWBW.write(1,plcpdif+1);
+				assert ( plcpdif <= maxwritebits );
+				FWBW.write(1ull,plcpdif);
 			}
 
 			/**
@@ -125,87 +127,174 @@ namespace libmaus
 				bool const verbose = false
 			)
 			{
-				uint64_t const rp0 = SISA.SISA[0];
 				uint64_t const n = LF.getN();
-				uint64_t const numbits = 2*n + LCP[LF(rp0)];
-				uint64_t bitswritten = 0;
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,(2*numbits+63)/64);
 				
-				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
-				::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
-				::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
-
-				uint64_t const isasamplingrate = SISA.isasamplingrate;
-				::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
-				
-				uint64_t const pdif0 = LCP[rp0] + 1; // - LCP[LF(rp0)];
-				
-				if ( verbose )
-					std::cerr << pdif0 << std::endl;
-				writePlcpDif(FWBW,pdif0);
-				bitswritten += (pdif0+1);
-				
-				for ( uint64_t i = 1; i < SISA.SISA.size(); ++i )
+				if ( ! n )
 				{
-					uint64_t r = SISA.SISA[i];
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,0);
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,0);
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,0);
+					out.flush();
+				}
+				else
+				{
+					#if 0
 
-					uint64_t * op = plcpbuf.end();
-					uint64_t * const opa = plcpbuf.begin()+1;
+					uint64_t const rp0 = SISA.SISA[0];
+					uint64_t const numbits = 2*n + LCP[LF(rp0)];
 					
-					while ( op != opa )
-					{
-						*(--op) = LCP[r];
-						r = LF(r);				
-					}			
-					*(--op) = LCP[r];
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+					// number of bits in bit stream
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,numbits);
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,(numbits+63)/64);
 
-					op = plcpbuf.end()-1;
+					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
+					::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
+
+					uint64_t prevlcp = 0;
+					uint64_t r = rp0;
+					uint64_t bitswritten = 0;
 					
-					while ( op-- != plcpbuf.begin() )
-						op[1] = (op[1]+1)-op[0];
-						
-					// 1 ...			
-					
-					for ( op = opa; op != plcpbuf.end(); ++op )
+					for ( uint64_t i = 0; i < n; ++i, r = LF.phi(r) )
 					{
-						if ( verbose )
-							std::cerr << *op << std::endl;			
-						writePlcpDif(FWBW,*op);
-						bitswritten += (*op)+1;
+						assert ( r == SISA[i] );
+						uint64_t const curlcp = LCP[r];
+						uint64_t const dif = (curlcp + 1)-prevlcp;
+						writePlcpDif(FWBW,dif+1);
+						bitswritten += (dif+1);
+						prevlcp = curlcp;
 					}
-				}
+					
+					assert ( numbits == bitswritten );
+					
+					FWBW.flush();
+					SGO.flush();
+					out.flush();
+					
+					#else
 				
-				uint64_t const rest = 
-					LF.getN() - ((LF.getN()/isasamplingrate)*isasamplingrate + 1);
+					#if defined(_OPENMP)
+					uint64_t const numthreads = 1; //omp_get_max_threads();
+					#else
+					uint64_t const numthreads = 1;
+					#endif
+					
+					::libmaus::autoarray::AutoArray<uint64_t> bitsperthread(numthreads);
 				
-				if ( verbose )
-					std::cerr << "rest=" << rest << std::endl;
-				
-				// LF on rank of position 0
-				uint64_t rr = LF(rp0);
-				
-				for ( uint64_t i = 0; i < rest; ++i )
-				{
-					plcpbuf[plcpbuf.size()-i-1] = LCP[rr];
-					rr = LF(rr);			
-				}
-				plcpbuf[plcpbuf.size()-rest-1] = LCP[rr];
-				
-				for ( uint64_t i = 0; i < rest; ++i )
-				{
-					uint64_t pdif = plcpbuf[plcpbuf.size()-rest+i] + 1 - plcpbuf[plcpbuf.size()-rest+i-1];
-					if ( verbose )
-						std::cerr << "pdif=" << pdif << std::endl;
-					writePlcpDif(FWBW,pdif);
-					bitswritten += pdif+1;
-				}
+					uint64_t const numisa = SISA.SISA.size();
+					uint64_t const numisaloop = numisa ? (numisa-1) : 0;
+					
+					uint64_t const isaloopsperthread = (numisaloop + numthreads-1)/numthreads;
+					
+					uint64_t const rp0 = SISA.SISA[0];
+					uint64_t const pdif0 = LCP[rp0] + 1; // - LCP[LF(rp0)];
 
-				FWBW.flush();
-				SGO.flush();
-				out.flush();
-				
-				// std::cerr << "bitswritten=" << bitswritten << " numbits" << numbits << std::endl;
+					uint64_t const numbits = 2*n + LCP[LF(rp0)];
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,numbits);
+					::libmaus::serialize::Serialize<uint64_t>::serialize(out,(numbits+63)/64);
+					
+					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
+					::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
+
+					uint64_t const isasamplingrate = SISA.isasamplingrate;
+										
+					uint64_t bitswritten = 0;
+					if ( verbose )
+						std::cerr << pdif0 << std::endl;
+					writePlcpDif(FWBW,pdif0+1);
+					bitswritten += (pdif0+1);
+					
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						uint64_t const isapacklow = std::min ( isaloopsperthread*t, numisaloop );
+						uint64_t const isapackhigh = std::min ( isapacklow + isaloopsperthread, numisaloop );
+						uint64_t const isapackrange = isapackhigh-isapacklow;
+						uint64_t const loopstart = isapacklow+1;
+						uint64_t const loopend = loopstart + isapackrange;
+						::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
+						uint64_t lbitswritten = 0;
+						
+						// std::cerr << "[" << loopstart << "," << loopend << ")" << " size " << numisa << std::endl;
+						
+						for ( uint64_t i = loopstart; i < loopend; ++i )
+						{
+							uint64_t r = SISA.SISA[i];
+
+							uint64_t * op = plcpbuf.end();
+							uint64_t * const opa = plcpbuf.begin()+1;
+							
+							while ( op != opa )
+							{
+								*(--op) = LCP[r];
+								r = LF(r);				
+							}			
+							*(--op) = LCP[r];
+
+							op = plcpbuf.end()-1;
+							
+							while ( op-- != plcpbuf.begin() )
+								op[1] = (op[1]+1)-op[0];
+								
+							// 1 ...			
+							
+							for ( op = opa; op != plcpbuf.end(); ++op )
+							{
+								if ( verbose )
+									std::cerr << *op << std::endl;			
+								writePlcpDif(FWBW,*op+1);
+								lbitswritten += (*op)+1;
+							}
+						}
+
+						bitsperthread[t] += lbitswritten;
+					}
+					
+					bitswritten += std::accumulate(
+						bitsperthread.begin(),
+						bitsperthread.end(),
+						0ull
+					);
+										
+					uint64_t const loopprocessed = numisa ? (numisa-1)*isasamplingrate : 0;
+					uint64_t const firstprocessed = n ? 1 : 0;
+					uint64_t const processed = firstprocessed + loopprocessed;				
+					uint64_t const rest = LF.getN() - processed;
+					::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
+					
+					if ( verbose )
+						std::cerr << "rest=" << rest << std::endl;
+					
+					// LF on rank of position 0
+					uint64_t rr = LF(rp0);
+					
+					for ( uint64_t i = 0; i < rest; ++i )
+					{
+						plcpbuf[plcpbuf.size()-i-1] = LCP[rr];
+						rr = LF(rr);			
+					}
+					plcpbuf[plcpbuf.size()-rest-1] = LCP[rr];
+					
+					for ( uint64_t i = 0; i < rest; ++i )
+					{
+						uint64_t pdif = plcpbuf[plcpbuf.size()-rest+i] + 1 - plcpbuf[plcpbuf.size()-rest+i-1];
+						if ( verbose )
+							std::cerr << "pdif=" << pdif << std::endl;
+						writePlcpDif(FWBW,pdif+1);
+						bitswritten += pdif+1;
+					}
+
+					FWBW.flush();
+					SGO.flush();
+					out.flush();
+					
+					assert ( numbits == bitswritten );
+					
+					// std::cerr << "bitswritten=" << bitswritten << " numbits" << numbits << std::endl;
+					#endif
+				}
 			}
 
 
@@ -384,12 +473,14 @@ namespace libmaus
 			sampled_sa_type const * SA;
 			::libmaus::autoarray::AutoArray<uint64_t> ALCP;
 			uint64_t const * LCP;
+			uint64_t streambits;
 			select_type::unique_ptr_type eselect;
 
 			uint64_t serialize(std::ostream & out)
 			{
 				uint64_t s = 0;
 				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,streambits);
 				s += ALCP.serialize(out);
 				return s;
 			}
@@ -398,9 +489,10 @@ namespace libmaus
 			{
 				uint64_t s = 0;
 				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&streambits);
 				s += ALCP.deserialize(in);
 				LCP = ALCP.get();
-				eselect = UNIQUE_PTR_MOVE(select_type::unique_ptr_type( new select_type( LCP, ((2*n+63)/64)*64 ) ));
+				eselect = UNIQUE_PTR_MOVE(select_type::unique_ptr_type( new select_type( LCP, ((streambits+63)/64)*64 ) ));
 				if ( verbose )
 					std::cerr << "LCP: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1)) / (1024*1024) << " mb" << std::endl;
 				return s;
@@ -408,13 +500,15 @@ namespace libmaus
 			
 			SuccinctLCP(lf_type const & lf, sampled_sa_type const & rsa, sampled_isa_type const & isa)
 			: n(lf.getN()), SA(&rsa), ALCP(computeLCP(lf,rsa,isa,n)), LCP(ALCP.get()),
-			  eselect( new select_type( LCP, ((2*n+63)/64)*64 ) )
+			  streambits(2*n),
+			  eselect( new select_type( LCP, ((streambits+63)/64)*64 ) )
 			{}
 
 			template<typename text_type>
 			SuccinctLCP(lf_type const & lf, sampled_sa_type const & rsa, sampled_isa_type const & isa, text_type const & text)
 			: n(lf.getN()), SA(&rsa), ALCP(computeLCPText(lf,rsa,isa,n,text)), LCP(ALCP.get()),
-			  eselect( new select_type( LCP, ((2*n+63)/64)*64 ) )
+			  streambits(2*n),
+			  eselect( new select_type( LCP, ((streambits+63)/64)*64 ) )
 			{}
 			
 			SuccinctLCP(std::istream & in, sampled_sa_type const & rsa)
