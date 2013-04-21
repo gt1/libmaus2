@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(POWER_HPP)
-#define POWER_HPP
+#if ! defined(LIBMAUS_MATH_POWER_HPP)
+#define LIBMAUS_MATH_POWER_HPP
 
 #include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
-	namespace util
+	namespace math
 	{
 		inline uint64_t ipow(uint64_t base, uint64_t exponent)
 		{

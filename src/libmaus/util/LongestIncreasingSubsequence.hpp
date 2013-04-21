@@ -20,6 +20,8 @@
 #if ! defined(LONGESTINCREASINGSUBSEQUENCE_HPP)
 #define LONGESTINCREASINGSUBSEQUENCE_HPP
 
+#include <libmaus/types/types.hpp>
+
 namespace libmaus
 {
 	namespace util

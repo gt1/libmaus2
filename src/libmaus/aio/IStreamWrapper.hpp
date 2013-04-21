@@ -23,7 +23,7 @@
 
 namespace libmaus
 {
-	namespace util
+	namespace aio
 	{
 		struct IStreamWrapper
 		{

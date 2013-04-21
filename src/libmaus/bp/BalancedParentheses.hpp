@@ -34,13 +34,13 @@ struct BalancedParentheses : public BalancedParenthesesBase
 
 	// first level pioneer vector
 	// ::libmaus::bitio::IndexedBitVector::unique_ptr_type const pion0;
-	NearestNeighbourDictionary::unique_ptr_type pion0;
+	libmaus::util::NearestNeighbourDictionary::unique_ptr_type pion0;
 	// first level pioneer family bit vector
 	::libmaus::bitio::IndexedBitVector::unique_ptr_type const pio0;
 
 	// second level pioneer vector
 	// ::libmaus::bitio::IndexedBitVector::unique_ptr_type const pion1;
-	NearestNeighbourDictionary::unique_ptr_type pion1;
+	libmaus::util::NearestNeighbourDictionary::unique_ptr_type pion1;
 	// second level pioneer family bit vector
 	::libmaus::bitio::IndexedBitVector::unique_ptr_type const pio1;
 	// lookup table for second level pioneer family

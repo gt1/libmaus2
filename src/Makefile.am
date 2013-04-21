@@ -54,7 +54,17 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/util/GetFileSize.cpp \
 	libmaus/util/Histogram.cpp \
 	libmaus/util/HistogramSet.cpp \
-	libmaus/util/IncreasingList.cpp
+	libmaus/util/IncreasingList.cpp \
+	libmaus/util/IntervalTree.cpp \
+	libmaus/util/GenericIntervalTree.cpp \
+	libmaus/util/LogPipe.cpp \
+	libmaus/util/LogPipeMultiplex.cpp \
+	libmaus/util/LogPipeMultiplexGeneric.cpp \
+	libmaus/util/LookupIntervalTree.cpp \
+	libmaus/util/md5_interface.cpp \
+	libmaus/util/MemLimit.cpp \
+	libmaus/util/MemUsage.cpp \
+	libmaus/util/NearestNeighbourDictionary.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -285,7 +295,8 @@ libmausmath_include_HEADERS=\
 	libmaus/math/DoubleCode.hpp \
 	libmaus/math/iabs.hpp \
 	libmaus/math/IPower.hpp \
-	libmaus/math/Log.hpp
+	libmaus/math/Log.hpp \
+	libmaus/math/ipow.hpp
 
 libmausrl_includedir=$(includedir)/libmaus/rl
 libmausrl_include_HEADERS=\
@@ -304,7 +315,6 @@ libmausutil_include_HEADERS=\
 	libmaus/util/GetFileSize.hpp \
 	libmaus/util/unique_ptr.hpp \
 	libmaus/util/shared_ptr.hpp \
-	libmaus/util/ipow.hpp \
 	libmaus/util/TempFileNameGenerator.hpp \
 	libmaus/util/TempFileNameGeneratorState.hpp \
 	libmaus/util/Demangle.hpp \
@@ -358,7 +368,6 @@ libmausutil_include_HEADERS=\
 	libmaus/util/PutObject.hpp \
 	libmaus/util/CountPutObject.hpp \
 	libmaus/util/CountPutIterator.hpp \
-	libmaus/util/IStreamWrapper.hpp \
 	libmaus/util/PosixFileDescriptor.hpp \
 	libmaus/util/DigitTable.hpp \
 	libmaus/util/TempFileRemovalContainer.hpp \
@@ -373,7 +382,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/LSFSim.hpp \
 	libmaus/util/ForkProcessLSFSim.hpp \
 	libmaus/util/CountGetObject.hpp \
-	libmaus/util/HistogramSet.hpp
+	libmaus/util/HistogramSet.hpp \
+	libmaus/util/GenericIntervalTree.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
@@ -440,7 +450,8 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/CheckedInputStream.hpp \
 	libmaus/aio/CheckedOutputStream.hpp \
 	libmaus/aio/CircularBuffer.hpp \
-	libmaus/aio/CircularWrapper.hpp
+	libmaus/aio/CircularWrapper.hpp \
+	libmaus/aio/IStreamWrapper.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\

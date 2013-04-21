@@ -37,34 +37,12 @@ namespace libmaus
 			::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > const L;
 			unsigned int const lookupshift;
 
-			::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > createLookup()
-			{
-				::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > L(1ull << sublookupbits,false);
-
-				for ( uint64_t i = 0; i < (1ull << sublookupbits); ++i )
-				{
-					uint64_t const low = i << (rangebits-sublookupbits);
-					uint64_t const high = low | ((1ull << (rangebits-sublookupbits))-1ull);
-					L[i] = I.lca(low,high);
-					
-					#if 0
-					std::cerr << std::hex << low << "\t" << high << std::dec
-						<< "\t" << L[i]->isLeaf() << std::endl;
-					#endif
-				}
-				
-				return L;
-			}
-			
+			::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > createLookup();
 			LookupIntervalTree(
 				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & rH,
 				unsigned int const rrangebits,
 				unsigned int const rsublookupbits
-			) : H(rH.clone()), I(H,0,H.size()), rangebits(rrangebits), sublookupbits(rsublookupbits),
-			    L(createLookup()), lookupshift ( rangebits - sublookupbits )
-			{
-
-			}
+			);
 			
 			uint64_t find(uint64_t const v) const
 			{
@@ -73,23 +51,7 @@ namespace libmaus
 				return L[ v >> lookupshift ] -> find(v);	
 			}
 			
-			void test(bool setupRandom = true) const
-			{
-				for ( uint64_t i = 0; i < H.size(); ++i )
-				{
-					assert (  find ( H[i].first ) == I.find(H[i].first) );
-					assert (  find ( H[i].second-1 ) == I.find(H[i].second-1) );
-				}
-				
-				if ( setupRandom )
-					::libmaus::random::Random::setup();
-				
-				for ( uint64_t i = 0; i < 64*1024; ++i )
-				{
-					uint64_t const v = ::libmaus::random::Random::rand64() & ((1ull << (rangebits))-1);
-					assert ( find(v) == I.find(v) );
-				}
-			}
+			void test(bool setupRandom = true) const;
 		};
 	}
 }

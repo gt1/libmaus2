@@ -696,7 +696,7 @@ namespace libmaus
                         	uint64_t const mod = 1, bool const verbose = false)
                         {
                                 std::string hash;
-                                bool const havehash = ::MD5::md5(filenames,fracs,hash);
+                                bool const havehash = ::libmaus::util::MD5::md5(filenames,fracs,hash);
                                 hash += ".idx";
                                 
                                 if ( havehash && ::libmaus::util::GetFileSize::fileExists(hash) )

@@ -26,7 +26,6 @@
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/parallel/OMPLock.hpp>
 #include <libmaus/util/Histogram.hpp>
-#include <libmaus/util/ipow.hpp>
 #include <libmaus/select/ESelectSimple.hpp>
 #include <libmaus/select/ESelect222B.hpp>
 #include <cassert>

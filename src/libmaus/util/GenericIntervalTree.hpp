@@ -17,48 +17,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(INTERVALTREE_HPP)
-#define INTERVALTREE_HPP
+#if ! defined(LIBMAUS_UTIL_GENERICINTERVALTREE_HPP)
+#define LIBMAUS_UTIL_GENERICINTERVALTREE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/bitio/BitVector.hpp>
-#include <vector>
-#include <cassert>
+#include <libmaus/util/IntervalTree.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		struct IntervalTree
+		struct GenericIntervalTree
 		{
-			typedef IntervalTree this_type;
+			typedef GenericIntervalTree this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			unique_ptr_type leftchild;
-			unique_ptr_type rightchild;
-
-			uint64_t split;
+			static ::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > computeNonEmpty(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V);
+			static ::libmaus::bitio::IndexedBitVector::unique_ptr_type computeNonEmptyBV(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V);
 			
-			bool isLeaf() const;
-
-			IntervalTree(
-				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
-				uint64_t const ileft,
-				uint64_t const iright
-			);
-			~IntervalTree();
+			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > nonempty;
+			::libmaus::bitio::IndexedBitVector::unique_ptr_type BV;
+			IntervalTree::unique_ptr_type IT;
 			
-			uint64_t findTrace(std::vector < IntervalTree const * > & trace, uint64_t const v) const;
-			IntervalTree const * lca(uint64_t const v, uint64_t const w) const;
+			GenericIntervalTree(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & H);
 			uint64_t find(uint64_t const v) const;
-			uint64_t getNumLeafs() const;
-			std::ostream & flatten(std::ostream & ostr, uint64_t depth = 0) const;
-
 		};
-
-		std::ostream & operator<<(std::ostream & out, IntervalTree const & I);
 	}
 }
 #endif

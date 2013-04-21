@@ -24,7 +24,7 @@
 #include <libmaus/util/NumberSerialisation.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/lz/IstreamSource.hpp>
-#include <libmaus/util/IStreamWrapper.hpp>
+#include <libmaus/aio/IStreamWrapper.hpp>
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <istream>
 #include <ostream>
@@ -39,11 +39,11 @@ namespace libmaus
 		{
 			static uint64_t compress(std::istream & in, uint64_t const n, std::ostream & out);
 			static uint64_t compress(char const * in, uint64_t const n, std::ostream & out);
-			static uint64_t compress(::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, std::ostream & out);
+			static uint64_t compress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, std::ostream & out);
 
 			static void uncompress(char const * in, uint64_t const insize, std::string & out);
 			static void uncompress(std::istream & in, uint64_t const insize, char * out);
-			static void uncompress(::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, char * out, int64_t const length = -1);
+			static void uncompress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, char * out, int64_t const length = -1);
 
 			static std::string compress(std::istream & in, uint64_t const n)
 			{
@@ -368,8 +368,8 @@ namespace libmaus
 					pc = pa;
 					pe = pa + n;
 
-					::libmaus::util::IStreamWrapper wrapper(in);
-					::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> insource(wrapper,datasize);
+					::libmaus::aio::IStreamWrapper wrapper(in);
+					::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> insource(wrapper,datasize);
 
 					SnappyCompress::uncompress(insource,B.begin(),n);
 

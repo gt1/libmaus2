@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(MD5_HPP)
-#define MD5_HPP
+#if ! defined(LIBMAUS_UTIL_MD5_HPP)
+#define LIBMAUS_UTIL_MD5_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/md5.h>
@@ -26,37 +26,16 @@
 #include <iomanip>
 #include <sstream>
 
-struct MD5
+namespace libmaus
 {
-        static bool md5(std::string const & input, std::string & output)
-        {
-                md5_state_s state;
-                md5_init(&state);
-                md5_append(&state, reinterpret_cast<md5_byte_t const *>(input.c_str()), input.size());
-                md5_byte_t digest[16];
-                md5_finish(&state,digest);
-                
-                std::ostringstream ostr;
-                for ( uint64_t i = 0; i < sizeof(digest)/sizeof(digest[0]); ++i )
-                        ostr << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(digest[i]);
-                output = ostr.str();
-
-                return true;
-        }
-        static bool md5(std::vector<std::string> const & V, std::string & output)
-        {
-                std::ostringstream ostr;
-                for ( uint64_t i = 0; i < V.size(); ++i )
-                        ostr << V[i];
-                return md5(ostr.str(),output);
-        }
-        static bool md5(std::vector<std::string> const & V, uint64_t const k, std::string & output)
-        {
-                std::ostringstream ostr;
-                for ( uint64_t i = 0; i < V.size(); ++i )
-                        ostr << V[i] << ":" << ::libmaus::util::GetFileSize::getFileSize(V[i]) << ":";
-                ostr << k;
-                return md5(ostr.str(),output);
-        }
-};
+	namespace util
+	{
+		struct MD5
+		{
+			static bool md5(std::string const & input, std::string & output);
+			static bool md5(std::vector<std::string> const & V, std::string & output);
+			static bool md5(std::vector<std::string> const & V, uint64_t const k, std::string & output);
+		};
+	}
+}
 #endif

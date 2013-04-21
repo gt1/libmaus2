@@ -21,13 +21,13 @@
 
 #include <libmaus/lz/IstreamSource.hpp>
 #include <libmaus/lz/StdOstreamSink.hpp>
-#include <libmaus/util/IStreamWrapper.hpp>
+#include <libmaus/aio/IStreamWrapper.hpp>
 #if ! defined(LIBMAUS_HAVE_SNAPPY)
 #include <libmaus/util/GetFileSize.hpp>
 #endif
 
 #if defined(LIBMAUS_HAVE_SNAPPY)
-uint64_t libmaus::lz::SnappyCompress::compress(::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, std::ostream & out)
+uint64_t libmaus::lz::SnappyCompress::compress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, std::ostream & out)
 {
 	::libmaus::lz::StdOstreamSink<std::ostream> sostr(out);
 	::snappy::Compress(&in,&sostr);
@@ -35,8 +35,8 @@ uint64_t libmaus::lz::SnappyCompress::compress(::libmaus::lz::IstreamSource< ::l
 }
 uint64_t libmaus::lz::SnappyCompress::compress(std::istream & in, uint64_t const n, std::ostream & out)
 {
-	::libmaus::util::IStreamWrapper ISW(in);
-	::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> sistr(ISW,n);
+	::libmaus::aio::IStreamWrapper ISW(in);
+	::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> sistr(ISW,n);
 	::libmaus::lz::StdOstreamSink<std::ostream> sostr(out);
 	::snappy::Compress(&sistr,&sostr);
 	return sostr.written;
@@ -62,8 +62,8 @@ void libmaus::lz::SnappyCompress::uncompress(char const * in, uint64_t const ins
 }
 void libmaus::lz::SnappyCompress::uncompress(std::istream & in, uint64_t const insize, char * out)
 {
-	::libmaus::util::IStreamWrapper ISW(in);
-	::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> sistr(ISW,insize);
+	::libmaus::aio::IStreamWrapper ISW(in);
+	::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> sistr(ISW,insize);
 
 	bool const ok = ::snappy::RawUncompress(&sistr,out);
 	
@@ -76,7 +76,7 @@ void libmaus::lz::SnappyCompress::uncompress(std::istream & in, uint64_t const i
 	}
 }
 void libmaus::lz::SnappyCompress::uncompress(
-	::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, 
+	::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, 
 	char * out,
 	int64_t const /* length */
 )
@@ -86,13 +86,13 @@ void libmaus::lz::SnappyCompress::uncompress(
 	if ( ! ok )
 	{
 		::libmaus::exception::LibMausException se;
-		se.getStream() << "Failed to decompress snappy data in ::libmaus::lz::SnappyCompress::uncompress(::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, char *, int64_t)" << std::endl;
+		se.getStream() << "Failed to decompress snappy data in ::libmaus::lz::SnappyCompress::uncompress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, char *, int64_t)" << std::endl;
 		se.finish();
 		throw se;	
 	}
 }
 #else
-uint64_t libmaus::lz::SnappyCompress::compress(::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, std::ostream & out)
+uint64_t libmaus::lz::SnappyCompress::compress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, std::ostream & out)
 {
 	uint64_t const n = in.Available();
 	uint64_t r = n;
@@ -138,7 +138,7 @@ void ::libmaus::lz::SnappyCompress::uncompress(std::istream & in, uint64_t const
 	}
 }
 void ::libmaus::lz::SnappyCompress::uncompress(
-	::libmaus::lz::IstreamSource< ::libmaus::util::IStreamWrapper> & in, 
+	::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, 
 	char * out,
 	int64_t const length
 )

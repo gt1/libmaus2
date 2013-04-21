@@ -20,17 +20,7 @@
 #if ! defined(MEMLIMIT_HPP)
 #define MEMLIMIT_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-
-#if defined(LIBMAUS_HAVE_SETRLIMIT)
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-#include <cerrno>
-#include <cstring>
-
 #include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
 
 namespace libmaus
 {
@@ -38,58 +28,10 @@ namespace libmaus
 	{
 	        struct MemLimit
 	        {
-	                static void setLimits(uint64_t const maxmem)
-	                {
-	                        setAddressSpaceLimit(maxmem);
-	                        setDataLimit(maxmem);
-	                        setResidentSetSizeLimit(maxmem);
-	                }
-
-	                static void setAddressSpaceLimit(uint64_t const maxmem)
-	                {
-	                	#if defined(LIBMAUS_HAVE_SETRLIMIT)
-                                rlimit const lim = { 
-                                        static_cast<rlim_t>(maxmem), 
-                                        static_cast<rlim_t>(maxmem) };
-                                if ( setrlimit(RLIMIT_AS,&lim) != 0 )
-                                {
-                                        ::libmaus::exception::LibMausException se;
-                                        se.getStream() << "setrlimit(RLIMIT_AS," << maxmem << ") failed: " << strerror(errno) << std::endl;
-                                        se.finish();
-                                        throw se;					
-                                }   
-                                #endif
-	                }
-	                static void setDataLimit(uint64_t const maxmem)
-	                {
-	                	#if defined(LIBMAUS_HAVE_SETRLIMIT)
-                                rlimit const lim = { 
-                                        static_cast<rlim_t>(maxmem), 
-                                        static_cast<rlim_t>(maxmem) };
-                                if ( setrlimit(RLIMIT_DATA,&lim) != 0 )
-                                {
-                                        ::libmaus::exception::LibMausException se;
-                                        se.getStream() << "setrlimit(RLIMIT_DATA," << maxmem << ") failed: " << strerror(errno) << std::endl;
-                                        se.finish();
-                                        throw se;					
-                                }   
-                                #endif
-	                }
-	                static void setResidentSetSizeLimit(uint64_t const maxmem)
-	                {
-	                	#if defined(LIBMAUS_HAVE_SETRLIMIT)
-                                rlimit const lim = { 
-                                        static_cast<rlim_t>(maxmem), 
-                                        static_cast<rlim_t>(maxmem) };
-                                if ( setrlimit(RLIMIT_RSS,&lim) != 0 )
-                                {
-                                        ::libmaus::exception::LibMausException se;
-                                        se.getStream() << "setrlimit(RLIMIT_RSS," << maxmem << ") failed: " << strerror(errno) << std::endl;
-                                        se.finish();
-                                        throw se;					
-                                }   
-                                #endif
-	                }
+	                static void setLimits(uint64_t const maxmem);
+	                static void setAddressSpaceLimit(uint64_t const maxmem);
+	                static void setDataLimit(uint64_t const maxmem);
+	                static void setResidentSetSizeLimit(uint64_t const maxmem);
 	        };
         }
 }
