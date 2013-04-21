@@ -17,27 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
+#include <libmaus/util/PosixFileDescriptor.hpp>
+			
+libmaus::util::PosixFileDescriptor::PosixFileDescriptor() : fd(-1) {}
+libmaus::util::PosixFileDescriptor::PosixFileDescriptor(int rfd) : fd(rfd) {}
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-
-namespace libmaus
+libmaus::util::PosixFileDescriptor::~PosixFileDescriptor()
 {
-	namespace util
+	if ( fd != -1 )
 	{
-		struct Terminal
-		{
-			static uint64_t getColumns();
-		};
+		close(fd);
+		fd = -1;
 	}
 }
-#endif
+
+ssize_t libmaus::util::PosixFileDescriptor::read(void * buf, size_t cnt)
+{
+	return ::read(fd,buf,cnt);
+}
+
+ssize_t libmaus::util::PosixFileDescriptor::write(void const * buf, size_t cnt)
+{
+	return ::write(fd,buf,cnt);
+}

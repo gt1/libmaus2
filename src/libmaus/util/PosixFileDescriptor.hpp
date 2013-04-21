@@ -31,43 +31,13 @@ namespace libmaus
 		{
 			int fd;
 			
-			PosixFileDescriptor() : fd(-1) {}
-			PosixFileDescriptor(int rfd) : fd(rfd) {}
+			PosixFileDescriptor();
+			PosixFileDescriptor(int rfd);
 			
-			~PosixFileDescriptor()
-			{
-				if ( fd != -1 )
-				{
-					close(fd);
-					fd = -1;
-				}
-			}
-			
-			ssize_t read(void * buf, size_t cnt)
-			{
-				return ::read(fd,buf,cnt);
-			}
-			
-			ssize_t write(void const * buf, size_t cnt)
-			{
-				return ::write(fd,buf,cnt);
-			}
-		};
-		
-		struct PosixInputFile : PosixFileDescriptor
-		{
-			PosixInputFile(std::string const & filename)
-			{
-				PosixFileDescriptor::fd = open(filename.c_str(),O_RDONLY);
-				
-				if ( PosixFileDescriptor::fd < 0 )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "PosixFileDescriptor: failed to open file " << filename << ": " << strerror(errno) << std::endl;
-					se.finish();
-					throw se;
-				}
-			}
+			~PosixFileDescriptor();
+
+			ssize_t read(void * buf, size_t cnt);			
+			ssize_t write(void const * buf, size_t cnt);
 		};
 	}
 }

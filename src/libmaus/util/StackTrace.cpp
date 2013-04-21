@@ -71,3 +71,75 @@ std::string libmaus::util::StackTrace::toString(bool const translate) const
 
         return ostr.str();
 }
+
+void libmaus::util::StackTrace::simpleStackTrace(std::ostream & ostr)
+{
+	#if defined(LIBMAUS_HAVE_BACKTRACE)
+	unsigned int const depth = 20;
+	void *array[depth];
+	size_t const size = backtrace(array,depth);
+	char ** strings = backtrace_symbols(array,size);
+
+	for ( size_t i = 0; i < size; ++i )
+		ostr << "[" << i << "]" << strings[i] << std::endl;
+
+	free(strings);
+	#endif
+}
+
+libmaus::util::StackTrace::StackTrace()
+{
+	#if defined(LIBMAUS_HAVE_BACKTRACE)
+	unsigned int const depth = 20;
+	void *array[depth];
+	size_t const size = backtrace(array,depth);
+	char ** strings = backtrace_symbols(array,size);
+
+	for ( size_t i = 0; i < size; ++i )
+		trace.push_back(strings[i]);
+
+	free(strings);
+	#endif
+}
+
+std::string libmaus::util::StackTrace::getExecPath()
+{
+	#if defined(_linux__)
+	char buf[PATH_MAX+1];
+	std::fill(
+		&buf[0],&buf[sizeof(buf)/sizeof(buf[0])],0);
+	if ( readlink("/proc/self/exe", &buf[0], PATH_MAX) < 0 )
+		throw std::runtime_error("readlink(/proc/self/exe) failed.");
+	return std::string(&buf[0]);
+	#else
+	return "program";
+	#endif
+}
+
+std::pair < std::string, std::string > libmaus::util::StackTrace::components(std::string line, char const start, char const end)
+{
+	uint64_t i = line.size();
+	
+	while ( i != 0 )
+		if ( line[--i] == end )
+			break;
+	
+	if ( line[i] != end || i == 0 )
+		return std::pair<std::string,std::string>(std::string(),std::string());
+	
+	uint64_t const addrend = i;
+
+	while ( i != 0 )
+		if ( line[--i] == start )
+			break;
+		
+	return std::pair<std::string,std::string>(
+		line.substr(0,i),
+		line.substr(i+1, addrend-(i+1) ));
+}
+
+std::string libmaus::util::StackTrace::getStackTrace()
+{
+	StackTrace st;
+	return st.toString();
+}

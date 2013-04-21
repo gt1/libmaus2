@@ -16,27 +16,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
+#if ! defined(LIBMAUS_UTIL_PUTOBJECTREVERSE_HPP)
+#define LIBMAUS_UTIL_PUTOBJECTREVERSE_HPP
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
-
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <iterator>
 
 namespace libmaus
 {
 	namespace util
 	{
-		struct Terminal
+		template<typename _iterator>
+		struct PutObjectReverse
 		{
-			static uint64_t getColumns();
+			typedef _iterator iterator;
+			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
+			
+			iterator p;
+			
+			PutObjectReverse(iterator rp) : p(rp) {}
+			void put(value_type const v) { *(--p) = v; }
+			template<typename copy_value_type>
+			void write(copy_value_type const * v, uint64_t n) 
+			{
+				while ( n-- )
+					*(--p) = *(v++);
+			}
+			
+			operator bool() const { return true; }
 		};
 	}
 }

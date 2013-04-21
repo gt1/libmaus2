@@ -17,27 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
+#include <libmaus/util/NegativeDifferenceArray64.hpp>
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-
-namespace libmaus
+void libmaus::util::NegativeDifferenceArray64::serialise(std::ostream & out) const
 {
-	namespace util
-	{
-		struct Terminal
-		{
-			static uint64_t getColumns();
-		};
-	}
+	A->serialise(out);
 }
-#endif
+
+libmaus::util::NegativeDifferenceArray64::NegativeDifferenceArray64(::std::istream & in)
+: A ( new ::libmaus::util::Array864(in) )
+{
+
+}
+
+libmaus::util::NegativeDifferenceArray64::NegativeDifferenceArray64(::libmaus::util::Array864::unique_ptr_type & rA)
+: A(UNIQUE_PTR_MOVE(rA))
+{
+
+}

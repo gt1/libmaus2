@@ -17,66 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_NEGATIVEDIFFERENCEARRAY_HPP)
-#define LIBMAUS_UTIL_NEGATIVEDIFFERENCEARRAY_HPP
+#if ! defined(LIBMAUS_UTIL_NEGATIVEDIFFERENCEARRAY64_HPP)
+#define LIBMAUS_UTIL_NEGATIVEDIFFERENCEARRAY64_HPP
 
-#include <libmaus/util/Array832.hpp>
 #include <libmaus/util/Array864.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		struct NegativeDifferenceArray32
-		{
-			::libmaus::util::Array832::unique_ptr_type A;
-			typedef NegativeDifferenceArray32 this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			void serialise(std::ostream & out) const
-			{
-				A->serialise(out);
-			}
-			
-			NegativeDifferenceArray32(::std::istream & in)
-			: A ( new ::libmaus::util::Array832(in) )
-			{
-			
-			}
-			
-			NegativeDifferenceArray32(::libmaus::util::Array832::unique_ptr_type & rA)
-			: A(UNIQUE_PTR_MOVE(rA))
-			{
-			
-			}
-			
-			uint32_t operator[](uint64_t const i) const
-			{
-				return i-(*A)[i];
-			}
-		};
 		struct NegativeDifferenceArray64
 		{
 			::libmaus::util::Array864::unique_ptr_type A;
 			typedef NegativeDifferenceArray64 this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			void serialise(std::ostream & out) const
-			{
-				A->serialise(out);
-			}
-			
-			NegativeDifferenceArray64(::std::istream & in)
-			: A ( new ::libmaus::util::Array864(in) )
-			{
-			
-			}
-			
-			NegativeDifferenceArray64(::libmaus::util::Array864::unique_ptr_type & rA)
-			: A(UNIQUE_PTR_MOVE(rA))
-			{
-			
-			}
+			void serialise(std::ostream & out) const;
+
+			NegativeDifferenceArray64(::std::istream & in);
+			NegativeDifferenceArray64(::libmaus::util::Array864::unique_ptr_type & rA);
 			
 			uint64_t operator[](uint64_t const i) const
 			{

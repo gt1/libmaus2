@@ -44,26 +44,6 @@ namespace libmaus
 			
 			operator bool() const { return true; }
 		};
-
-		template<typename _iterator>
-		struct PutObjectReverse
-		{
-			typedef _iterator iterator;
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-			
-			iterator p;
-			
-			PutObjectReverse(iterator rp) : p(rp) {}
-			void put(value_type const v) { *(--p) = v; }
-			template<typename copy_value_type>
-			void write(copy_value_type const * v, uint64_t n) 
-			{
-				while ( n-- )
-					*(--p) = *(v++);
-			}
-			
-			operator bool() const { return true; }
-		};
 	}
 }
 #endif

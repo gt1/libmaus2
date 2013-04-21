@@ -64,7 +64,20 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/util/md5_interface.cpp \
 	libmaus/util/MemLimit.cpp \
 	libmaus/util/MemUsage.cpp \
-	libmaus/util/NearestNeighbourDictionary.cpp
+	libmaus/util/NearestNeighbourDictionary.cpp \
+	libmaus/util/NegativeDifferenceArray32.cpp \
+	libmaus/util/NegativeDifferenceArray64.cpp \
+	libmaus/util/nstat.cpp \
+	libmaus/util/PositiveDifferenceArray32.cpp \
+	libmaus/util/PositiveDifferenceArray64.cpp \
+	libmaus/util/PosixExecute.cpp \
+	libmaus/util/PosixFileDescriptor.cpp \
+	libmaus/util/PosixInputFile.cpp \
+	libmaus/util/SaturatingCounter.cpp \
+	libmaus/util/StringSerialisation.cpp \
+	libmaus/util/Terminal.cpp \
+	libmaus/util/OctetString.cpp \
+	libmaus/util/Utf8String.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -329,8 +342,10 @@ libmausutil_include_HEADERS=\
 	libmaus/util/OffsetArray.hpp \
 	libmaus/util/Array832.hpp \
 	libmaus/util/Array864.hpp \
-	libmaus/util/NegativeDifferenceArray.hpp \
-	libmaus/util/PositiveDifferenceArray.hpp \
+	libmaus/util/NegativeDifferenceArray32.hpp \
+	libmaus/util/NegativeDifferenceArray64.hpp \
+	libmaus/util/PositiveDifferenceArray32.hpp \
+	libmaus/util/PositiveDifferenceArray64.hpp \
 	libmaus/util/UniqueIndex.hpp \
 	libmaus/util/Terminal.hpp \
 	libmaus/util/nstat.hpp \
@@ -366,6 +381,7 @@ libmausutil_include_HEADERS=\
 	libmaus/util/LELoad.hpp \
 	libmaus/util/GetObject.hpp \
 	libmaus/util/PutObject.hpp \
+	libmaus/util/PutObjectReverse.hpp \
 	libmaus/util/CountPutObject.hpp \
 	libmaus/util/CountPutIterator.hpp \
 	libmaus/util/PosixFileDescriptor.hpp \
@@ -383,7 +399,10 @@ libmausutil_include_HEADERS=\
 	libmaus/util/ForkProcessLSFSim.hpp \
 	libmaus/util/CountGetObject.hpp \
 	libmaus/util/HistogramSet.hpp \
-	libmaus/util/GenericIntervalTree.hpp
+	libmaus/util/GenericIntervalTree.hpp \
+	libmaus/util/PosixInputFile.hpp \
+	libmaus/util/OctetString.hpp \
+	libmaus/util/Utf8StringPairAdapter.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

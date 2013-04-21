@@ -17,26 +17,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
+#if ! defined(LIBMAUS_UTIL_POSITIVEDIFFERENCEARRAY64_HPP)
+#define LIBMAUS_UTIL_POSITIVEDIFFERENCEARRAY64_HPP
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/util/Array864.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		struct Terminal
+		struct PositiveDifferenceArray64
 		{
-			static uint64_t getColumns();
+			::libmaus::util::Array864::unique_ptr_type A;
+			typedef PositiveDifferenceArray64 this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			void serialise(std::ostream & out) const;
+			
+			PositiveDifferenceArray64(::std::istream & in);
+			PositiveDifferenceArray64(::libmaus::util::Array864::unique_ptr_type & rA);
+
+			uint64_t operator[](uint64_t const i) const
+			{
+				return i+(*A)[i];
+			}
 		};
 	}
 }

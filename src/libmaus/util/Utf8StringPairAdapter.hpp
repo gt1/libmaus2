@@ -16,27 +16,42 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
+#if ! defined(LIBMAUS_UTIL_UTF8STRINGPAIRADAPTER_HPP)
+#define LIBMAUS_UTIL_UTF8STRINGPAIRADAPTER_HPP
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
-
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/util/Utf8String.hpp>
 
 namespace libmaus
 {
 	namespace util
-	{
-		struct Terminal
+	{		
+		struct Utf8StringPairAdapter
 		{
-			static uint64_t getColumns();
+			Utf8String::shared_ptr_type U;
+			
+			Utf8StringPairAdapter(Utf8String::shared_ptr_type rU) : U(rU) {}
+			
+			uint64_t size() const
+			{
+				return 2*U->size();
+			}
+			
+			wchar_t operator[](uint64_t const i) const
+			{
+				static unsigned int const shift = 12;
+				static wchar_t const mask = (1u << shift)-1;
+				
+				wchar_t const full = U->get(i>>1);
+				
+				if ( i & 1 )
+					return full & mask;
+				else
+					return full >> shift;
+			}
+			wchar_t get(uint64_t const i) const
+			{
+				return (*this)[i];
+			}
 		};
 	}
 }

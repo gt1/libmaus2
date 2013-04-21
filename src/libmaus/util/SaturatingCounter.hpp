@@ -44,11 +44,8 @@ namespace libmaus
 			
 			rank_ptr_type rank;
 			
-			SaturatingCounter(uint64_t const rn)
-			: n(rn), B ( (((n*2)+63)/64) ), A(reinterpret_cast<uint8_t *>(B.get()))
-			{
-			}
-			
+			SaturatingCounter(uint64_t const rn);
+
 			static unsigned int const shift[4];
 			static uint8_t const mask[4];
 						
@@ -72,28 +69,8 @@ namespace libmaus
 				set ( i, nv );
 			}
 			
-			uint64_t size() const
-			{
-				return n;
-			}
-			
-			void shrink()
-			{
-				/* handle first word endian safe */
-				uint64_t C = 0;
-				for ( uint64_t i = 0; i < std::min(n,static_cast<uint64_t>(32)); ++i )
-					::libmaus::bitio::putBit(&C, i, (get(i) == 1) );
-				B [ 0 ] = C;
-
-				/* handle rest, byte order does no longer matter */
-				for ( uint64_t i = 32; i < n; ++i )
-					::libmaus::bitio::putBit(B.get(), i, (get(i) == 1) );
-				
-				/* shorten array */
-				B.resize( (n + 63)/64 );
-				/* set up rank dictionary */
-				rank = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(B.get(),B.size()*64)));
-			}
+			uint64_t size() const;
+			void shrink();
 			
 			uint64_t rank1(uint64_t const i) const
 			{
@@ -109,15 +86,7 @@ namespace libmaus
 			}
 		};	
 		
-		inline std::ostream & operator<<(std::ostream & out, SaturatingCounter const & S)
-		{
-			out << "SaturatingCounter(";
-			
-			for ( uint64_t i = 0; i < S.size(); ++i )
-				out << static_cast<unsigned int>(S.get(i)) << ((i+1<S.size())?";":"");
-			out << ")";
-			return out;
-		}
+		std::ostream & operator<<(std::ostream & out, SaturatingCounter const & S);
 	}
 }
 #endif

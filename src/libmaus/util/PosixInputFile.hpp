@@ -17,26 +17,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#if ! defined(LIBMAUS_UTIL_POSIXINPUTFILE_HPP)
+#define LIBMAUS_UTIL_POSIXINPUTFILE_HPP
+
+#include <libmaus/util/PosixFileDescriptor.hpp>
+#include <string>
 
 namespace libmaus
 {
 	namespace util
 	{
-		struct Terminal
+		struct PosixInputFile : PosixFileDescriptor
 		{
-			static uint64_t getColumns();
+			PosixInputFile(std::string const & filename);
 		};
 	}
 }

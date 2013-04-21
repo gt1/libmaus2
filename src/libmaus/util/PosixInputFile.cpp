@@ -17,27 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
 
-#include <sys/ioctl.h>
+#include <libmaus/util/PosixInputFile.hpp>
+#include <libmaus/exception/LibMausException.hpp>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
 #include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-
-namespace libmaus
+#include <cstring>
+                     
+libmaus::util::PosixInputFile::PosixInputFile(std::string const & filename)
 {
-	namespace util
+	PosixFileDescriptor::fd = open(filename.c_str(),O_RDONLY);
+	
+	if ( PosixFileDescriptor::fd < 0 )
 	{
-		struct Terminal
-		{
-			static uint64_t getColumns();
-		};
+		::libmaus::exception::LibMausException se;
+		se.getStream() << "PosixFileDescriptor: failed to open file " << filename << ": " << strerror(errno) << std::endl;
+		se.finish();
+		throw se;
 	}
 }
-#endif

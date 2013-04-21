@@ -17,27 +17,50 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#if ! defined(LIBMAUS_UTIL_TERMINAL_HPP)
-#define LIBMAUS_UTIL_TERMINAL_HPP
+#include <libmaus/util/Terminal.hpp>
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
-#include <cerrno>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-
-namespace libmaus
+uint64_t libmaus::util::Terminal::getColumns()
 {
-	namespace util
+	int fd = -1;
+	uint64_t cols = 80;
+	
+	try
 	{
-		struct Terminal
+		fd = open("/dev/tty",O_RDWR);
+
+		if ( fd >= 0 )
 		{
-			static uint64_t getColumns();
-		};
+			winsize size;
+			memset(&size,0,sizeof(size));
+			int const stat = ioctl(fd,TIOCGWINSZ,&size);
+			close(fd);
+			fd = -1;
+			
+			if ( stat < 0 )
+			{
+				::libmaus::exception::LibMausException se;
+				se.getStream() << "ioctl failed: " << strerror(errno) << std::endl;		
+				se.finish();
+				throw se;
+			}
+			else
+			{
+				cols = size.ws_col;
+			}
+		}
+		else
+		{
+			::libmaus::exception::LibMausException se;
+			se.getStream() << "open failed: " << strerror(errno) << std::endl;		
+			se.finish();
+			throw se;
+		}
 	}
+	catch(...)
+	{
+		if ( fd >= 0 )
+			close(fd);
+	}
+	
+	return cols;
 }
-#endif

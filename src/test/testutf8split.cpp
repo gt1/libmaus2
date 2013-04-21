@@ -22,6 +22,7 @@
 #include <libmaus/util/Utf8BlockIndex.hpp>
 #include <libmaus/util/Utf8DecoderBuffer.hpp>
 #include <libmaus/util/Utf8String.hpp>
+#include <libmaus/util/Utf8StringPairAdapter.hpp>
 #include <libmaus/aio/CircularWrapper.hpp>
 #include <libmaus/huffman/huffman.hpp>
 #include <libmaus/wavelet/ImpExternalWaveletGeneratorHuffman.hpp>

@@ -28,6 +28,7 @@
 #include <libmaus/gamma/GammaRLDecoder.hpp>
 #include <libmaus/huffman/RLDecoder.hpp>
 #include <libmaus/parallel/OMPNumThreadsScope.hpp>
+#include <libmaus/util/PutObjectReverse.hpp>
 
 namespace libmaus
 {
