@@ -37,79 +37,21 @@ namespace libmaus
 
 			ConcatRequest(
 				std::vector<std::string> const & rinfilenames,
-				std::string const & routfilename)
-			: infilenames(rinfilenames), outfilename(routfilename)
-			{
+				std::string const & routfilename);
+			ConcatRequest(std::istream & in);
 			
-			}
-
-			ConcatRequest(std::istream & in)
-			: 
-			infilenames ( ::libmaus::util::StringSerialisation::deserialiseStringVector(in) ),
-			outfilename ( ::libmaus::util::StringSerialisation::deserialiseString(in) )
-			{
-				
-			}
-			
-			void serialise(std::ostream & out) const
-			{
-				::libmaus::util::StringSerialisation::serialiseStringVector(out,infilenames);
-				::libmaus::util::StringSerialisation::serialiseString(out,outfilename);
-			}
-			
-			void serialise(std::string const & filename) const
-			{
-				std::ofstream ostr(filename.c_str(), std::ios::binary);
-				serialise(ostr);
-				ostr.flush();
-				assert ( ostr );
-				ostr.close();
-			}
-			
+			void serialise(std::ostream & out) const;
+			void serialise(std::string const & filename) const;
 			static void serialise(
 				std::vector<std::string> const & infilenames,
 				std::string const & outfilename,
-				std::string const & requestfilename)
-			{
-				ConcatRequest CR(infilenames,outfilename);
-				CR.serialise(requestfilename);
-			}
-
+				std::string const & requestfilename);
 			static void serialise(
 				std::string const & infilename,
 				std::string const & outfilename,
-				std::string const & requestfilename)
-			{
-				ConcatRequest CR(std::vector<std::string>(1,infilename),outfilename);
-				CR.serialise(requestfilename);
-			}
-			
-			void execute(bool const removeFiles = true) const
-			{
-				::libmaus::util::Concat::concat(infilenames,outfilename,removeFiles);
-			}
-
-			static ::libmaus::util::ConcatRequest::unique_ptr_type load(std::string const & requestfilename)
-			{
-				std::ifstream istr(requestfilename.c_str(),std::ios::binary);
-				if ( ! istr.is_open() )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Failed to open file " << requestfilename << std::endl;
-					se.finish();
-					throw se;
-				}
-				::libmaus::util::ConcatRequest::unique_ptr_type req ( new ::libmaus::util::ConcatRequest(istr) );
-				if ( !istr )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Failed to deserialise from file " << requestfilename << std::endl;
-					se.finish();
-					throw se;
-				}
-
-				return UNIQUE_PTR_MOVE(req);
-			}
+				std::string const & requestfilename);
+			void execute(bool const removeFiles = true) const;
+			static ::libmaus::util::ConcatRequest::unique_ptr_type load(std::string const & requestfilename);
 		};
 	}
 }

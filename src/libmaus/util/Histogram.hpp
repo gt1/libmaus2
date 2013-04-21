@@ -40,52 +40,12 @@ namespace libmaus
 			::libmaus::autoarray::AutoArray<uint64_t> low;
 			
 			public:
-			Histogram(std::map<uint64_t,uint64_t> const & rall, uint64_t const lowsize = 256) : all(rall), low(lowsize) {}
-			Histogram(uint64_t const lowsize = 256) : low(lowsize) {}
+			Histogram(std::map<uint64_t,uint64_t> const & rall, uint64_t const lowsize = 256);
+			Histogram(uint64_t const lowsize = 256);
 			
-			uint64_t getLowSize() const
-			{
-				return low.size();
-			}
-			
-			uint64_t median() const
-			{
-				std::map<uint64_t,uint64_t> M = get();
-				uint64_t sum = 0;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-					sum += ita->second;
-				uint64_t const sum2 = sum/2;
-				
-				if ( ! M.size() )
-					return 0;
-
-				sum = 0;				
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-				{
-					if ( sum2 >= sum && sum2 < sum+ita->second )
-						return ita->first;
-					sum += ita->second;
-				}
-				
-				return M.rbegin()->first;
-			}
-
-			double avg() const
-			{
-				std::map<uint64_t,uint64_t> M = get();
-				uint64_t sum = 0;
-				uint64_t div = 0;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-				{
-					sum += ita->first * ita->second;
-					div += ita->second;
-				}
-				
-				if ( sum )
-					return static_cast<double>(sum)/div;
-				else
-					return 0.0;
-			}
+			uint64_t getLowSize() const;
+			uint64_t median() const;
+			double avg() const;
 			
 			void add(uint64_t const i, uint64_t const v)
 			{			
@@ -103,44 +63,11 @@ namespace libmaus
 					all[i]++;
 			}
 			
-			std::map<uint64_t,uint64_t> get() const
-			{
-				std::map<uint64_t,uint64_t> R = all;
-				
-				for ( uint64_t i = 0; i < low.size(); ++i )
-					if ( low[i] )
-						R[i] += low[i];
+			std::map<uint64_t,uint64_t> get() const;
+			std::vector<uint64_t> getKeyVector();
+			uint64_t getTotal();
+			uint64_t getNumPoints();
 
-				return R;
-			}
-			
-			std::vector<uint64_t> getKeyVector()
-			{
-				std::map<uint64_t,uint64_t> const M = get();
-				std::vector<uint64_t> V;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-					V.push_back(ita->first);
-				return V;
-			}
-			
-			uint64_t getTotal()
-			{		
-				std::map<uint64_t,uint64_t> const M = get();
-				uint64_t total = 0;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-					total += ita->first*ita->second;
-				return total;
-			}
-
-			uint64_t getNumPoints()
-			{		
-				std::map<uint64_t,uint64_t> const M = get();
-				uint64_t total = 0;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-					total += ita->second;
-				return total;
-			}
-			
 			template<typename type>
 			std::ostream & printType(std::ostream & out)
 			{
@@ -152,34 +79,8 @@ namespace libmaus
 				return out;
 			}
 
-			std::ostream & print(std::ostream & out)
-			{
-				std::map<uint64_t,uint64_t> const F = get();
-				
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = F.begin(); ita != F.end();
-					++ita )
-					out << ita->first << "\t" << ita->second << std::endl;
-				return out;
-			}
-			
-			std::ostream & printFrac(std::ostream & out, double const frac = 1)
-			{
-				std::map<uint64_t,uint64_t> const F = get();
-				
-				double total = 0;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = F.begin(); ita != F.end();
-					++ita )
-					total += ita->second;
-
-				double sum = 0;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = F.begin(); ita != F.end() && (sum/total) <= frac;
-					++ita )
-				{
-					out << ita->first << "\t" << ita->second << std::endl;
-					sum += ita->second;
-				}
-				return out;
-			}
+			std::ostream & print(std::ostream & out);
+			std::ostream & printFrac(std::ostream & out, double const frac = 1);
 			
 			template<typename key_type>
 			void fill (std::map<key_type,uint64_t> & M)
@@ -199,74 +100,8 @@ namespace libmaus
 				return M;
 			}			
 
-			std::vector < std::pair<uint64_t,uint64_t > > getFreqSymVector()
-			{
-				std::map < uint64_t, uint64_t > const kmerhistM = get();
-				// copy to vector and sort
-				std::vector < std::pair<uint64_t,uint64_t> > freqsyms;
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = kmerhistM.begin(); ita != kmerhistM.end(); ++ita )
-				{
-					freqsyms.push_back ( std::pair<uint64_t,uint64_t> (ita->second,ita->first) );
-				}
-				std::sort ( freqsyms.begin(), freqsyms.end() );
-				std::reverse ( freqsyms.begin(), freqsyms.end() );
-				
-				return freqsyms;
-			}
-			
-			void merge(::libmaus::util::Histogram const & other)
-			{
-				assert ( this->low.size() == other.low.size() );
-				for ( uint64_t i = 0; i < low.size(); ++i )
-					low[i] += other.low[i];
-				for ( std::map<uint64_t,uint64_t>::const_iterator ita = other.all.begin();
-					ita != other.all.end(); ++ita )
-					all [ ita->first ] += ita->second;
-			}
-		};
-		
-		struct HistogramSet
-		{
-			typedef HistogramSet this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			::libmaus::autoarray::AutoArray < Histogram::unique_ptr_type > H;
-			
-			HistogramSet(uint64_t const numhist, uint64_t const lowsize)
-			: H(numhist)
-			{
-				for ( uint64_t i = 0; i < numhist; ++i )
-					H [ i ] = UNIQUE_PTR_MOVE ( Histogram::unique_ptr_type ( new Histogram(lowsize) ) );
-			}
-			
-			Histogram & operator[](uint64_t const i)
-			{
-				return *(H[i]);
-			}
-			
-			void print(std::ostream & out) const
-			{
-				for ( uint64_t i = 0; i < H.size(); ++i )
-				{
-					out << "--- hist " << i << " ---" << std::endl;
-					H[i]->print(out);
-				}
-			}
-			
-			Histogram::unique_ptr_type merge() const
-			{
-				if ( H.size() )
-				{
-					Histogram::unique_ptr_type hist ( new Histogram(H[0]->getLowSize()) );
-					for ( uint64_t i = 0; i < H.size(); ++i )
-						hist->merge(*H[i]);
-					return UNIQUE_PTR_MOVE(hist);
-				}
-				else
-				{
-					return UNIQUE_PTR_MOVE(Histogram::unique_ptr_type());
-				}
-			}
+			std::vector < std::pair<uint64_t,uint64_t > > getFreqSymVector();
+			void merge(::libmaus::util::Histogram const & other);
 		};
 	}
 }

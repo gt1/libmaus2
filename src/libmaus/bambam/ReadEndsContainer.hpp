@@ -26,6 +26,7 @@
 #include <libmaus/bambam/ReadEnds.hpp>
 #include <libmaus/bambam/SortedFragDecoder.hpp>
 #include <libmaus/util/DigitTable.hpp>
+#include <libmaus/util/CountGetObject.hpp>
 
 namespace libmaus
 {

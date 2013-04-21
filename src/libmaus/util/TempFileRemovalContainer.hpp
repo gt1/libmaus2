@@ -27,6 +27,7 @@
 #include <map>
 #include <libmaus/parallel/OMPLock.hpp>
 #include <semaphore.h>
+#include <unistd.h>
 
 namespace libmaus
 {
@@ -256,6 +257,7 @@ namespace libmaus
 			static ::libmaus::parallel::OMPLock lock;
 			static std::vector < std::string > tmpfilenames;
 			static std::vector < std::string > tmpsemaphores;
+			static std::vector < std::string > tmpdirectories;
 
 			static sighandler_t siginthandler;
 			static sighandler_t sigtermhandler;
@@ -267,6 +269,14 @@ namespace libmaus
 			static void cleanup()
 			{
 				removeTempFiles();
+				removeTempDirectories();
+				removeSemaphores();
+			}
+
+			static void removeTempDirectories()
+			{
+				for ( uint64_t i = 0; i < tmpdirectories.size(); ++i )
+					rmdir ( tmpdirectories[i].c_str() );
 			}
 
 			static void removeTempFiles()

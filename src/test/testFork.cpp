@@ -17,7 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <libmaus/util/ForkProcess.hpp>
+#include <libmaus/util/ForkProcessLSFSim.hpp>
+#include <iostream>
 
 int main()
 {

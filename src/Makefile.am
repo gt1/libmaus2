@@ -34,7 +34,27 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/bambam/BamAlignment.cpp \
 	libmaus/bambam/BamAlignmentNameComparator.cpp \
 	libmaus/huffman/KvInitResult.cpp \
-	libmaus/fm/MausFmToBwaConversion.cpp
+	libmaus/fm/MausFmToBwaConversion.cpp \
+	libmaus/util/TempFileNameGenerator.cpp \
+	libmaus/util/TempFileNameGeneratorState.cpp \
+	libmaus/util/ArgInfo.cpp \
+	libmaus/util/Array832.cpp \
+	libmaus/util/Array864.cpp \
+	libmaus/util/BitList.cpp \
+	libmaus/util/VarBitList.cpp \
+	libmaus/util/Concat.cpp \
+	libmaus/util/ConcatRequest.cpp \
+	libmaus/util/ConsoleColor.cpp \
+	libmaus/util/Demangle.cpp \
+	libmaus/util/DigitTable.cpp \
+	libmaus/util/DynamicLoading.cpp \
+	libmaus/util/ForkProcess.cpp \
+	libmaus/util/LSFSim.cpp \
+	libmaus/util/ForkProcessLSFSim.cpp \
+	libmaus/util/GetFileSize.cpp \
+	libmaus/util/Histogram.cpp \
+	libmaus/util/HistogramSet.cpp \
+	libmaus/util/IncreasingList.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -263,7 +283,9 @@ libmausmath_include_HEADERS=\
 	libmaus/math/primes16.hpp \
 	libmaus/math/ilog.hpp \
 	libmaus/math/DoubleCode.hpp \
-	libmaus/math/iabs.hpp
+	libmaus/math/iabs.hpp \
+	libmaus/math/IPower.hpp \
+	libmaus/math/Log.hpp
 
 libmausrl_includedir=$(includedir)/libmaus/rl
 libmausrl_include_HEADERS=\
@@ -273,6 +295,8 @@ libmausutil_includedir=$(includedir)/libmaus/util
 libmausutil_include_HEADERS=\
 	libmaus/util/stringFunctions.hpp \
 	libmaus/util/BitList.hpp \
+	libmaus/util/VarBitList.hpp \
+	libmaus/util/VarList.hpp \
 	libmaus/util/IntervalTree.hpp \
 	libmaus/util/LookupIntervalTree.hpp \
 	libmaus/util/StringSerialisation.hpp \
@@ -282,6 +306,7 @@ libmausutil_include_HEADERS=\
 	libmaus/util/shared_ptr.hpp \
 	libmaus/util/ipow.hpp \
 	libmaus/util/TempFileNameGenerator.hpp \
+	libmaus/util/TempFileNameGeneratorState.hpp \
 	libmaus/util/Demangle.hpp \
 	libmaus/util/BitsPerNum.hpp \
 	libmaus/util/ArgInfo.hpp \
@@ -344,7 +369,11 @@ libmausutil_include_HEADERS=\
 	libmaus/util/Utf8BlockIndex.hpp \
 	libmaus/util/Utf8DecoderBuffer.hpp \
 	libmaus/util/Utf8String.hpp \
-	libmaus/util/UnsignedCharVariant.hpp
+	libmaus/util/UnsignedCharVariant.hpp \
+	libmaus/util/LSFSim.hpp \
+	libmaus/util/ForkProcessLSFSim.hpp \
+	libmaus/util/CountGetObject.hpp \
+	libmaus/util/HistogramSet.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

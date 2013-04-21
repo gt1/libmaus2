@@ -16,49 +16,39 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-
-#if ! defined(TEMPFILENAMEGENERATOR_HPP)
-#define TEMPFILENAMEGENERATOR_HPP
+#if ! defined(LIBMAUS_UTIL_TEMPFILENAMEGENERATORSTATE_HPP)
+#define LIBMAUS_UTIL_TEMPFILENAMEGENERATORSTATE_HPP
 
 #include <libmaus/math/Log.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/TempFileNameGeneratorState.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <vector>
-#include <string>
-#include <cassert>
 #include <iomanip>
-#include <algorithm>
-
-/* for mkdir */
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#if defined(LIBMAUS_HAVE_UNISTD_H)
-#include <unistd.h>
-#endif
+#include <vector>
 
 namespace libmaus
 {
 	namespace util
 	{	
-		struct TempFileNameGenerator
+		struct TempFileNameGeneratorState
 		{
-			typedef TempFileNameGenerator this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-		
-			::libmaus::parallel::OMPLock lock;
+			static int const dirmod = 64;
+			static int const filemod = 64;
+			static int const maxmod = (dirmod>filemod)?dirmod:filemod;
+			static int const digits = ::libmaus::math::LogCeil<maxmod,10>::log;
 			
-			TempFileNameGeneratorState state;
-			TempFileNameGeneratorState const startstate;
+			unsigned int depth;			
+			std::vector < int > nextdir;
+			int64_t nextfile;
+			std::string const prefix;
 			
-			TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth);
-			~TempFileNameGenerator();
+			bool operator==(TempFileNameGeneratorState const & o) const;
+			bool operator!=(TempFileNameGeneratorState const & o) const;
+
+			TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix);
 			
+			void setup();
+			void next();
+			static std::string numToString(uint64_t const num, unsigned int dig);
 			std::string getFileName();
-			void cleanupDirs();
+			void removeDirs();
 		};
 	}
 }

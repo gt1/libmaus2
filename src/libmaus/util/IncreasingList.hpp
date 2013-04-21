@@ -24,6 +24,7 @@
 #include <libmaus/bitio/CompactArray.hpp>
 #include <libmaus/random/Random.hpp>
 #include <libmaus/rank/ERank222B.hpp>
+#include <libmaus/bitio/putBit.hpp>
 
 namespace libmaus
 {
@@ -56,21 +57,6 @@ namespace libmaus
                         ::libmaus::rank::ERank222B::unique_ptr_type R;
                         
                         public:
-                        uint64_t byteSize() const
-                        {
-                                return 6*sizeof(uint64_t) + Bup.byteSize() + C.byteSize();
-                        }
-                        
-                        void put(uint64_t const i, uint64_t const v)
-                        {
-                                C.set(i,v & m);
-                                ::libmaus::bitio::putBit(Bup.get(), i + (v >> b), true );
-                        }
-                        
-                        void setup()
-                        {
-                                R = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type(new ::libmaus::rank::ERank222B(Bup.get(),Bup.size()*64)));
-                        }
 
                         uint64_t get(uint64_t const i) const
                         {
@@ -82,51 +68,19 @@ namespace libmaus
                                 return get(i);
                         }
 
-                        #if 0
-                        IncreasingList(uint64_t const rn, uint64_t const rU)
-                        : n(rn), n2(2*n), n264( ((n2 + 63)/64)*64 ), Bup(n264/64), U(rU),
-                          b ( ::libmaus::math::numbits( n ? ((U+n-1)/n) : 0 ) ), m(::libmaus::math::lowbits(b)), C(n,b)
+                        void put(uint64_t const i, uint64_t const v)
                         {
-                                if ( n >= 16*1024 )
-                                        std::cerr << "U=" << U << " n=" << n << " b=" << b << " m=" << m << std::endl;
+                                C.set(i,v & m);
+                                ::libmaus::bitio::putBit(Bup.get(), i + (v >> b), true );
                         }
-                        #endif
 
-                        IncreasingList(uint64_t const rn, uint64_t const rb)
-                        : n(rn), b(rb), m(::libmaus::math::lowbits(b)), C(n,b), 
-                          Bup( (((n*m) >> b) + n + 63) / 64 )
-                        {
-                        }
-                        
-                        static void test(std::vector<uint64_t> const & W)
-                        {
-                                if ( W.size() )
-                                {
-                                        std::vector<uint64_t> V = W;
-                                        std::sort(V.begin(),V.end());
-                                        uint64_t const U = V.back() + 1;
-                                        IncreasingList IL(V.size(),U);
-                                        
-                                        for ( uint64_t i = 0; i < V.size(); ++i )
-                                                IL.put(i,V[i]);
-                                        
-                                        IL.setup();
-                                        
-                                        for ( uint64_t i = 0; i < V.size(); ++i )
-                                        {
-                                                assert ( V[i] == IL[i] );
-                                                // std::cerr << V[i] << "\t" << IL[i] << std::endl;
-                                        }
-                                }
-                        }
-                        
-                        static void testRandom(uint64_t const n, uint64_t const k)
-                        {
-                                std::vector < uint64_t > V(n);
-                                for ( uint64_t i = 0; i < n; ++i )
-                                        V[i] = ::libmaus::random::Random::rand64() % k;
-                                test(V);
-                        }
+                        uint64_t byteSize() const;
+                        void setup();
+
+                        IncreasingList(uint64_t const rn, uint64_t const rb);
+
+                        static void test(std::vector<uint64_t> const & W);
+                        static void testRandom(uint64_t const n, uint64_t const k);
                 };
         }
 }

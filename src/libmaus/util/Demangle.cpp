@@ -16,34 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
 
-#include <iterator>
+#include <libmaus/util/Demangle.hpp>
 
-namespace libmaus
-{
-	namespace util
-	{
-		template<typename _iterator>
-		struct GetObject
-		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
-		};
-	}
-}
+#if defined(__GNUC__)
+#include <cxxabi.h>
+#include <cstring>
 #endif
+
+std::string libmaus::util::Demangle::demangleName(std::string const name)
+{
+	#if defined(__GNUC__)
+	int status = 0;
+	char buf[1024];
+	memset(buf,0,sizeof(buf));
+	size_t length = sizeof(buf);
+	__cxxabiv1::__cxa_demangle(name.c_str(),buf,&length,&status);
+	if ( status == 0 )
+		return std::string(buf); // ,buf+length);
+	else
+		return name;
+	#else
+	return name;
+	#endif
+}

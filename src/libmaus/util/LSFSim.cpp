@@ -16,34 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
+#include <libmaus/util/LSFSim.hpp>
 
-#include <iterator>
-
-namespace libmaus
+void libmaus::util::LSFSim::init(std::string const &) {}
+std::string libmaus::util::LSFSim::getClusterName()
 {
-	namespace util
-	{
-		template<typename _iterator>
-		struct GetObject
-		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
-		};
-	}
+	return "local";
 }
-#endif

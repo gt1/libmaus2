@@ -21,11 +21,7 @@
 #define DEMANGLE_HPP
 
 #include <string>
-
-#if defined(__GNUC__)
-#include <cxxabi.h>
-#include <cstring>
-#endif
+#include <typeinfo>
 
 namespace libmaus
 {
@@ -33,22 +29,8 @@ namespace libmaus
 	{
 		struct Demangle
 		{
-			static std::string demangleName(std::string const name)
-			{
-				#if defined(__GNUC__)
-				int status = 0;
-				char buf[1024];
-				memset(buf,0,sizeof(buf));
-				size_t length = sizeof(buf);
-				__cxxabiv1::__cxa_demangle(name.c_str(),buf,&length,&status);
-				if ( status == 0 )
-					return std::string(buf); // ,buf+length);
-				else
-					return name;
-				#else
-				return name;
-				#endif
-			}
+			static std::string demangleName(std::string const name);
+
 			template<typename eclass>
 			static std::string demangle()
 			{

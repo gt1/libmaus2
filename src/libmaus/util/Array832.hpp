@@ -21,6 +21,7 @@
 #define LIBMAUS_UTIL_ARRAY832
 
 #include <libmaus/rank/ERank222B.hpp>
+#include <libmaus/bitio/getBit.hpp>
 
 namespace libmaus
 {
@@ -41,26 +42,10 @@ namespace libmaus
 			::libmaus::autoarray::AutoArray<uint8_t> A8;
 			::libmaus::autoarray::AutoArray<uint32_t> A32;
 			
-			void serialise(std::ostream & out) const
-			{
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-				B.serialize(out);
-				A8.serialize(out);
-				A32.serialize(out);
-			}
-			
-			static uint64_t deserializeNumber(std::istream & in)
-			{
-				uint64_t n;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
-				assert ( in );
-				return n;
-			}
-			
-			Array832(std::istream & in)
-			: n(deserializeNumber(in)), B(in), R(new ::libmaus::rank::ERank222B(B.get(),B.size()*64)), A8(in), A32(in)
-			{
-			}
+			void serialise(std::ostream & out) const;
+			static uint64_t deserializeNumber(std::istream & in);
+
+			Array832(std::istream & in);
 			
 			template<typename iterator>
 			Array832(iterator a, iterator e)

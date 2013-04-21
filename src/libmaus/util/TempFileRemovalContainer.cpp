@@ -21,6 +21,8 @@
 bool ::libmaus::util::SignalHandlerContainer::setupComplete = false;
 
 std::vector < std::string > libmaus::util::TempFileRemovalContainer::tmpfilenames;
+std::vector < std::string > libmaus::util::TempFileRemovalContainer::tmpdirectories;
+std::vector < std::string > libmaus::util::TempFileRemovalContainer::tmpsemaphores;
 bool ::libmaus::util::TempFileRemovalContainer::setupComplete = false;
 libmaus::util::TempFileRemovalContainer::sighandler_t libmaus::util::TempFileRemovalContainer::siginthandler = 0;
 libmaus::util::TempFileRemovalContainer::sighandler_t libmaus::util::TempFileRemovalContainer::sigtermhandler = 0;

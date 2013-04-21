@@ -16,34 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
+#include <libmaus/util/DigitTable.hpp>
 
-#include <iterator>
-
-namespace libmaus
+libmaus::util::DigitTable::DigitTable()
 {
-	namespace util
-	{
-		template<typename _iterator>
-		struct GetObject
-		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
-		};
-	}
+	memset(&A[0],0,sizeof(A));
+	A['0'] = 1;
+	A['1'] = 1;
+	A['2'] = 1;
+	A['3'] = 1;
+	A['4'] = 1;
+	A['5'] = 1;
+	A['6'] = 1;
+	A['7'] = 1;
+	A['8'] = 1;
+	A['9'] = 1;
 }
-#endif

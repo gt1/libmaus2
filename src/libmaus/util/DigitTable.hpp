@@ -30,20 +30,7 @@ namespace libmaus
 		{
 			char A[256];
 			
-			DigitTable()
-			{
-				memset(&A[0],0,sizeof(A));
-				A['0'] = 1;
-				A['1'] = 1;
-				A['2'] = 1;
-				A['3'] = 1;
-				A['4'] = 1;
-				A['5'] = 1;
-				A['6'] = 1;
-				A['7'] = 1;
-				A['8'] = 1;
-				A['9'] = 1;
-			}
+			DigitTable();
 			
 			bool operator[](uint8_t const i) const
 			{

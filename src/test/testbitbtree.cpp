@@ -19,6 +19,7 @@
 
 #include <libmaus/bitbtree/bitbtree.hpp>
 #include <libmaus/util/BitList.hpp>
+#include <libmaus/util/VarBitList.hpp>
 
 template<unsigned int k, unsigned int w>
 int testBitBTreeShort()

@@ -24,7 +24,7 @@
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/ForkProcess.hpp>
+#include <libmaus/util/ForkProcessLSFSim.hpp>
 #include <libmaus/parallel/OMPLock.hpp>
 #include <libmaus/lsf/LSFStateBase.hpp>
 #include <vector>

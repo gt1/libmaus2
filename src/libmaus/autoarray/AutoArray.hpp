@@ -35,6 +35,8 @@
 #include <fstream>
 #include <limits>
 #include <cerrno>
+#include <cstddef>
+#include <cstring>
 #include <libmaus/util/I386CacheLineSize.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
 

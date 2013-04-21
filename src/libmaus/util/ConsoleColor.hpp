@@ -45,135 +45,20 @@ namespace libmaus
 				c_defaultcolor
 				};
 				
-			static bool istty()
-			{
-				bool tty = false;
-
-		#if defined(HAVE_ISATTY)
-				tty = isatty(STDERR_FILENO);
-		#endif
-
-				return tty;	
-			}
-				
-			static std::string color(Color c)
-			{
-				bool const tty = istty();
+			static bool istty();
+			static std::string color(Color c);
+			static std::string black();
+			static std::string red();
+			static std::string green();
+			static std::string yellow();
+			static std::string blue();
+			static std::string magenta();
+			static std::string cyan();
+			static std::string lightgray();
+			static std::string defaultcolor();
 			
-				std::string s;
-
-				if ( tty )
-				{
-					switch (c)
-					{
-						case c_black:
-							s = "\e[0;30m";
-							break;
-						case c_red:
-							s = "\e[0;31m";
-							break;
-						case c_green:
-							s = "\e[0;32m";
-							break;
-						case c_yellow:
-							s = "\e[0;33m";
-							break;
-						case c_blue:
-							s = "\e[0;34m";
-							break;
-						case c_magenta:
-							s = "\e[0;35m";
-							break;
-						case c_cyan:
-							s = "\e[0;36m";
-							break;
-						case c_lightgray:
-							s = "\e[0;37m";
-							break;
-						case c_defaultcolor:
-							s = "\e[0;39m";
-							break;
-					}
-				}
-				else
-				{
-					switch (c)
-					{
-						case c_black:
-							s = "</span><span style=\"color:black\">";
-							break;
-						case c_red:
-							s = "</span><span style=\"color:red\">";
-							break;
-						case c_green:
-							s = "</span><span style=\"color:green\">";
-							break;
-						case c_yellow:
-							s = "</span><span style=\"color:yellow\">";
-							break;
-						case c_blue:
-							s = "</span><span style=\"color:blue\">";
-							break;
-						case c_magenta:
-							s = "</span><span style=\"color:magenta\">";
-							break;
-						case c_cyan:
-							s = "</span><span style=\"color:cyan\">";
-							break;
-						case c_lightgray:
-							s = "</span><span style=\"color:rgb(32,32,32)\">";
-							break;
-						case c_defaultcolor:
-							s = "</span><span style=\"color:black\">";
-							break;
-					}
-				}
-				
-				return s;
-			}
-
-			static std::string black() { return color(c_black); }
-			static std::string red() { return color(c_red);  }
-			static std::string green() { return color(c_green); }
-			static std::string yellow() { return color(c_yellow);  }
-			static std::string blue() { return color(c_blue);  }
-			static std::string magenta() {  return color(c_magenta); }
-			static std::string cyan() { return color(c_cyan); }
-			static std::string lightgray() { return color(c_lightgray); }
-			static std::string defaultcolor() { return color(c_defaultcolor); }
-			
-			static std::string start() {
-				bool const tty = istty();
-
-				std::string s;
-			
-				if ( tty )
-				{
-				
-				}
-				else
-				{
-					s = "<pre><span style=\"color:black\">";
-				}
-				
-				return s;
-			}
-			static std::string stop() {
-				bool const tty = istty();
-
-				std::string s;
-			
-				if ( tty )
-				{
-				
-				}
-				else
-				{
-					s = "</span></pre>";
-				}
-				
-				return s;
-			}
+			static std::string start();
+			static std::string stop();
 		};
 	}
 }

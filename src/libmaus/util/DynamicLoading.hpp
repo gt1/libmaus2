@@ -42,23 +42,8 @@ namespace libmaus
 			std::string const modname;
 			void * lib;
 			
-			DynamicLibrary(std::string const & rmodname)
-			: modname(rmodname), lib(0)
-			{
-				lib = dlopen(modname.c_str(),RTLD_LAZY);
-			
-				if ( ! lib )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Failed to dlopen(\"" << modname << "\",RTLD_LAZY): " << dlerror() << std::endl;
-					se.finish();
-					throw se;
-				}
-			}
-			~DynamicLibrary()
-			{
-				dlclose(lib);
-			}
+			DynamicLibrary(std::string const & rmodname);
+			~DynamicLibrary();
 		};
 		
 		template<typename _func_type>
@@ -109,20 +94,9 @@ namespace libmaus
 		struct DynamicLoading
 		{
 			#if defined(LIBMAUS_HAVE_DL_FUNCS)
-			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr)
-			{
-				typedef int (*func_t)(int, char const *, size_t);
-				DynamicLibraryFunction<func_t> DLF(modname,funcname);				
-				return DLF.func(arg,argstr.c_str(),argstr.size());					
-			}
+			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr);
 			#else
-			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr)
-			{
-				::libmaus::exception::LibMausException se;
-				se.getStream() << "Cannot call function \""<<funcname<<"\" in module \""<<modname<<"\": dynamic loading is not supported." << std::endl;
-				se.finish();
-				throw se;
-			}
+			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr);
 			#endif
 		};
 	}	

@@ -16,34 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
 
-#include <iterator>
+#if ! defined(VARBITLIST_HPP)
+#define VARBITLIST_HPP
+
+#include <cassert>
+#include <list>
+#include <ostream>
+#include <sys/types.h>
+
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		template<typename _iterator>
-		struct GetObject
+		struct VarBitList
 		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			std::list< bool > B;
 			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
+			VarBitList();
+			uint64_t select1(uint64_t rank) const;
+			uint64_t select0(uint64_t rank) const;
+			uint64_t rank1(uint64_t pos);
+			void insertBit(uint64_t pos, bool b);
+			void deleteBit(uint64_t pos);
+			void setBit(uint64_t pos, bool b);
 		};
+
+		std::ostream & operator<<(std::ostream & out, VarBitList const & B);
 	}
 }
 #endif

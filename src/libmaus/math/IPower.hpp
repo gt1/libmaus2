@@ -16,34 +16,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
+#if ! defined(LIBMAUS_MATH_IPOWER_HPP)
+#define LIBMAUS_MATH_IPOWER_HPP
 
-#include <iterator>
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
-	namespace util
+	namespace math
 	{
-		template<typename _iterator>
-		struct GetObject
+		template<uint64_t b, uint64_t e>
+		struct IPower
 		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
+			static uint64_t const n = b * IPower<b,e-1>::n;
 		};
+		
+		template<uint64_t b>
+		struct IPower<b,0>
+		{
+			static uint64_t const n = 1;
+		};	
 	}
 }
 #endif

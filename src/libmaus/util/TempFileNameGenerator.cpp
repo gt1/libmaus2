@@ -16,34 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
+#include <libmaus/util/TempFileNameGenerator.hpp>
 
-#include <iterator>
-
-namespace libmaus
+libmaus::util::TempFileNameGenerator::TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth)
+: state(rdepth,rprefix), startstate(state)
 {
-	namespace util
+	::libmaus::util::TempFileRemovalContainer::setup();
+}
+libmaus::util::TempFileNameGenerator::~TempFileNameGenerator()
+{
+	cleanupDirs();
+}
+
+std::string libmaus::util::TempFileNameGenerator::getFileName()
+{
+	lock.lock();
+	
+	std::string const fn = state.getFileName();
+
+	lock.unlock();
+	
+	return fn;
+}
+
+void libmaus::util::TempFileNameGenerator::cleanupDirs()
+{
+	TempFileNameGeneratorState rmdirstate = startstate;
+	
+	while ( rmdirstate != state )
 	{
-		template<typename _iterator>
-		struct GetObject
-		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
-		};
+		rmdirstate.removeDirs();
 	}
 }
-#endif

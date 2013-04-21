@@ -16,34 +16,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
 
-#include <iterator>
+#include <libmaus/util/Array832.hpp>
 
-namespace libmaus
+void libmaus::util::Array832::serialise(std::ostream & out) const
 {
-	namespace util
-	{
-		template<typename _iterator>
-		struct GetObject
-		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
-		};
-	}
+	::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+	B.serialize(out);
+	A8.serialize(out);
+	A32.serialize(out);
 }
-#endif
+
+uint64_t libmaus::util::Array832::deserializeNumber(std::istream & in)
+{
+	uint64_t n;
+	::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
+	assert ( in );
+	return n;
+}
+
+libmaus::util::Array832::Array832(std::istream & in)
+: n(deserializeNumber(in)), B(in), R(new ::libmaus::rank::ERank222B(B.get(),B.size()*64)), A8(in), A32(in)
+{
+}

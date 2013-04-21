@@ -16,33 +16,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
+#if ! defined(LIBMAUS_MATH_LOG_HPP)
+#define LIBMAUS_MATH_LOG_HPP
 
-#include <iterator>
+#include <libmaus/math/IPower.hpp>
 
 namespace libmaus
 {
-	namespace util
+	namespace math
 	{
-		template<typename _iterator>
-		struct GetObject
+	
+		template<uint64_t num, uint64_t b>
+		struct LogFloor
 		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
+			static int const log = 1 + LogFloor<num/b,b>::log;
+		};
 		
-			iterator p;
-			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
-			{
-				while ( n-- )
-					*(q++) = *(p++);
-			}
+		template<uint64_t b>
+		struct LogFloor<0,b>
+		{
+			static int const log = -1;
+		};
+		
+		template<uint64_t num, uint64_t b>
+		struct LogCeil
+		{
+			static int const log =
+				(::libmaus::math::IPower< b,LogFloor<num,b>::log >::n == num) ? (LogFloor<num,b>::log) : (LogFloor<num,b>::log+1);
 		};
 	}
 }

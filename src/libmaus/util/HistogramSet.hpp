@@ -16,33 +16,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
 
-#include <iterator>
+#if ! defined(HISTOGRAMSET_HPP)
+#define HISTOGRAMSET_HPP
+
+#include <libmaus/util/Histogram.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		template<typename _iterator>
-		struct GetObject
+		struct HistogramSet
 		{
-			typedef _iterator iterator;
-			typedef GetObject<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef HistogramSet this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
-			iterator p;
+			::libmaus::autoarray::AutoArray < Histogram::unique_ptr_type > H;
 			
-			GetObject(iterator rp) : p(rp) {}
-			value_type get() { return *(p++); }
-			void read(value_type * q, uint64_t n)
+			HistogramSet(uint64_t const numhist, uint64_t const lowsize);
+			
+			Histogram & operator[](uint64_t const i)
 			{
-				while ( n-- )
-					*(q++) = *(p++);
+				return *(H[i]);
 			}
+			
+			void print(std::ostream & out) const;
+			Histogram::unique_ptr_type merge() const;
 		};
 	}
 }
