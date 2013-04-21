@@ -26,7 +26,7 @@
 #include <libmaus/bitio/readElias.hpp>
 #include <libmaus/huffman/CanonicalEncoder.hpp>
 #include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/IntervalTree.hpp>
+#include <libmaus/util/GenericIntervalTree.hpp>
 #include <libmaus/huffman/IndexLoader.hpp>
 
 namespace libmaus
