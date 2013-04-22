@@ -79,7 +79,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/util/OctetString.cpp \
 	libmaus/util/Utf8String.cpp \
 	libmaus/util/Utf8BlockIndexDecoder.cpp \
-	libmaus/util/Utf8BlockIndex.cpp
+	libmaus/util/Utf8BlockIndex.cpp \
+	libmaus/util/Utf8DecoderBuffer.cpp \
+	libmaus/util/Utf8DecoderWrapper.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -405,7 +407,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/PosixInputFile.hpp \
 	libmaus/util/OctetString.hpp \
 	libmaus/util/Utf8StringPairAdapter.hpp \
-	libmaus/util/Utf8BlockIndexDecoder.hpp
+	libmaus/util/Utf8BlockIndexDecoder.hpp \
+	libmaus/util/Utf8DecoderWrapper.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

@@ -25,7 +25,7 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/Utf8DecoderBuffer.hpp>
+#include <libmaus/util/Utf8DecoderWrapper.hpp>
 #include <libmaus/util/UnsignedCharVariant.hpp>
 
 namespace libmaus
