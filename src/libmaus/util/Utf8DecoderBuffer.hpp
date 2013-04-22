@@ -85,12 +85,6 @@ namespace libmaus
 			}
 
 			private:
-			// gptr as unsigned pointer
-			uint8_t const * uptr() const
-			{
-				return reinterpret_cast<uint8_t const *>(gptr());
-			}
-			
 			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
 			{
 				if ( which & ::std::ios_base::in )
@@ -161,7 +155,7 @@ namespace libmaus
 			{
 				// if there is still data, then return it
 				if ( gptr() < egptr() )
-					return static_cast<int_type>(*uptr());
+					return static_cast<int_type>(*gptr());
 
 				assert ( gptr() == egptr() );
 				
@@ -210,7 +204,7 @@ namespace libmaus
 
 				symsread += symstoread;
 				
-				return static_cast<int_type>(*uptr());
+				return static_cast<int_type>(*gptr());
 			}
 		};
 
