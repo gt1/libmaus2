@@ -1,3 +1,9 @@
+libmaus (0.0.37-0) unstable; urgency=low
+
+  * bump version after refactoring 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 22 Apr 2013 08:48:22 +0100
+
 libmaus (0.0.36-0) unstable; urgency=low
 
   * bump version after adding succinct lcp serialisation 
