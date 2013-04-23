@@ -171,14 +171,18 @@ namespace libmaus
 			OutputBufferEntry outputBuffer;
 			libmaus::bambam::BamAlignment outputAlgn[2];
 			
+			uint32_t const excludeflags;
+			
 			CircularHashCollatingBamDecoder(
 				std::istream & in,
 				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
 			: bamdec(in), algn(bamdec.alignment), mergealgnptr(0), tmpfilename(rtmpfilename), 
-			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading)
+			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading),
+			  excludeflags(rexcludeflags)
 			{
 			
 			}
@@ -291,6 +295,9 @@ namespace libmaus
 					{
 						if ( bamdec.readAlignment() )
 						{
+							if ( algn.getFlags() & excludeflags )
+								continue;
+						
 							uint8_t const * data = algn.D.begin();
 							uint64_t const datalen = algn.blocksize;
 							
