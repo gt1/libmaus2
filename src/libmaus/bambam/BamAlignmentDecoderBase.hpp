@@ -84,6 +84,27 @@ namespace libmaus
 				return ostr.str();
 			}
 			
+			
+			static uint32_t hash32(uint8_t const * D)
+			{
+				return ::libmaus::hashing::EvaHash::hash(
+					reinterpret_cast<uint8_t const *>(getReadName(D)),
+					getLReadName(D)-1
+				);
+			}
+			
+			static uint64_t putFastQ(
+				uint8_t const * D,
+				libmaus::autoarray::AutoArray<uint8_t> & T
+			)
+			{
+				uint64_t const len = getFastQLength(D);
+				if ( T.size() < len ) 
+					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+				putFastQ(D,T.begin());
+				return len;
+			}
+
 			static uint64_t getFastQLength(uint8_t const * D)
 			{
 				uint32_t const flags = getFlags(D);
@@ -96,14 +117,6 @@ namespace libmaus
 					1 + 1 + // plus line
 					lseq + 1 // quality line
 					;
-			}
-			
-			static uint32_t hash32(uint8_t const * D)
-			{
-				return ::libmaus::hashing::EvaHash::hash(
-					reinterpret_cast<uint8_t const *>(getReadName(D)),
-					getLReadName(D)-1
-				);
 			}
 			
 			template<typename iterator>

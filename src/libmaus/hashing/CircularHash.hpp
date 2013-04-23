@@ -116,10 +116,10 @@ namespace libmaus
 				// position of data
 				pos_type const datapos = (lenpos + sizeof(entry_size_type)) & bmask;
 
-				if ( overflow.needFlush(len) )
+				if ( overflow.needFlush(len,true /* first/full */) )
 					return false;
 					
-				assert ( ! overflow.needFlush(len) );
+				assert ( ! overflow.needFlush(len,true /* first */) );
 
 				// overflow.prepare(len);
 				
