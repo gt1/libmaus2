@@ -270,7 +270,14 @@ void bamtofastq(libmaus::util::ArgInfo const & arginfo)
 
 int main(int argc, char * argv[])
 {
-	libmaus::util::ArgInfo arginfo(argc,argv);
-
-	bamtofastq(arginfo);
+	try
+	{
+		libmaus::util::ArgInfo arginfo(argc,argv);
+		bamtofastq(arginfo);
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 }

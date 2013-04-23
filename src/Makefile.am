@@ -412,7 +412,10 @@ libmausutil_include_HEADERS=\
 	libmaus/util/OctetString.hpp \
 	libmaus/util/Utf8StringPairAdapter.hpp \
 	libmaus/util/Utf8BlockIndexDecoder.hpp \
-	libmaus/util/Utf8DecoderWrapper.hpp
+	libmaus/util/Utf8DecoderWrapper.hpp \
+	libmaus/util/TempFileContainer.hpp \
+	libmaus/util/FileTempFileContainer.hpp \
+	libmaus/util/MemTempFileContainer.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

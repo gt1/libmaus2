@@ -28,6 +28,9 @@
 #include <libmaus/fm/SampledSA.hpp>
 #include <libmaus/fm/SampledISA.hpp>
 
+#include <libmaus/util/MemTempFileContainer.hpp>
+#include <libmaus/util/FileTempFileContainer.hpp>
+
 void testBin()
 {
 	for ( uint64_t n = 1; n <= 14; ++n )
@@ -165,8 +168,33 @@ void testLCP(::libmaus::autoarray::AutoArray<uint8_t> const & data, ::libmaus::a
 	std::cerr << "done." << std::endl;
 }
 
+void testTempFileContainer()
+{
+	libmaus::util::TempFileNameGenerator tmpgen("tmpdir",3);
+	libmaus::util::FileTempFileContainer TMTFC(tmpgen);
+	libmaus::util::TempFileContainer & MTFC = TMTFC;
+	// MemTempFileContainer MTFC;
+
+	MTFC.openOutputTempFile(0);
+	MTFC.getOutputTempFile(0) << "Hello ";
+	MTFC.openOutputTempFile(1);
+	MTFC.getOutputTempFile(1) << "world\n";
+	MTFC.closeOutputTempFile(0);
+	MTFC.closeOutputTempFile(1);
+	
+	for ( uint64_t i = 0; i < 2; ++i )
+	{
+		std::istream & intmp = MTFC.openInputTempFile(i);
+		int c;
+		while ( (c=intmp.get()) != std::istream::traits_type::eof() )
+			std::cout.put(c);
+		MTFC.closeInputTempFile(i);
+	}
+}
+
 int main(int argc, char * argv[])
 {
+
 	testBin();
 
 	if ( argc < 2 )
