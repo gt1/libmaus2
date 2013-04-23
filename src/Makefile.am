@@ -171,7 +171,10 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamEntryContainer.hpp \
 	libmaus/bambam/Scram.h \
 	libmaus/bambam/AlignmentValidity.hpp \
-	libmaus/bambam/ScramDecoder.hpp
+	libmaus/bambam/ScramDecoder.hpp \
+	libmaus/bambam/SnappyAlignmentMergeInput.hpp \
+	libmaus/bambam/BamAlignmentPrinter.hpp \
+	libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -560,7 +563,8 @@ libmaussorting_include_HEADERS=\
 
 libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
-	libmaus/hashing/hash.hpp
+	libmaus/hashing/hash.hpp \
+	libmaus/hashing/CircularHash.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
@@ -779,7 +783,8 @@ noinst_PROGRAMS = \
 	testbytetocompact \
 	testscramtosam \
 	testpacdecode \
-	testutf8split
+	testutf8split \
+	testcirchash
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -953,3 +958,9 @@ testpacdecode_LDADD = libmaus.la
 
 testutf8split_SOURCES = test/testutf8split.cpp
 testutf8split_LDADD = libmaus.la
+
+testcirchash_SOURCES = test/testcirchash.cpp
+testcirchash_CPPFLAGS = @SNAPPYCPPFLAGS@
+testcirchash_LDFLAGS = @SNAPPYLDFLAGS@
+testcirchash_LDADD = libmaus.la @SNAPPYLIBS@
+

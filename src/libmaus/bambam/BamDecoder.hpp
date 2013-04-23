@@ -46,16 +46,20 @@ namespace libmaus
 			bool putrank;
 			bool validate;
 			
+			bool putbackbuffer;
+			
 			BamDecoder(std::string const & filename, bool const rputrank = false)
 			: PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
 			  GZ(*PISTR),
-			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
+			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true),
+			  putbackbuffer(false)
 			{
 			}
 			
 			BamDecoder(std::istream & in, bool const rputrank = false)
 			: PISTR(), GZ(in),
-			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
+			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true),
+			  putbackbuffer(false)
 			{
 			}
 			
@@ -93,8 +97,19 @@ namespace libmaus
 				}			
 			}
 			
+			void putback()
+			{
+				putbackbuffer = true;
+			}
+			
 			bool readAlignment(bool const delayPutRank = false)
 			{
+				if ( putbackbuffer )
+				{
+					putbackbuffer = false;
+					return true;
+				}
+			
 				bool const ok = readAlignment(GZ,alignment,&bamheader,validate);
 				
 				if ( ! ok )

@@ -576,6 +576,11 @@ namespace libmaus
 				}							
 			}
 			
+			uint32_t hash32() const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::hash32(D.begin());
+			}
+
 			uint64_t getLseqByCigar() const
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getLseqByCigar(D.begin());

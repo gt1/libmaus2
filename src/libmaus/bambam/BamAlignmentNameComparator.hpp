@@ -142,6 +142,14 @@ namespace libmaus
 				else
 					return 1;
 			}
+
+			static int compareIntNameOnly(uint8_t const * da, uint8_t const * db)
+			{
+				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
+				char const * nameb = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(db);
+
+				return strcmpnum(namea,nameb);
+			}
 			
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
@@ -155,6 +163,13 @@ namespace libmaus
 				uint8_t const * da = data + a + sizeof(uint32_t);
 				uint8_t const * db = data + b + sizeof(uint32_t);
 				return compareInt(da,db);
+			}
+
+			int compareIntNameOnly(uint64_t const a, uint64_t const b) const
+			{
+				uint8_t const * da = data + a + sizeof(uint32_t);
+				uint8_t const * db = data + b + sizeof(uint32_t);
+				return compareIntNameOnly(da,db);
 			}
 		};
 	}

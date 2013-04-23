@@ -24,6 +24,7 @@
 #include <libmaus/bambam/DecoderBase.hpp>
 #include <libmaus/bambam/BamFormatAuxiliary.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/hashing/hash.hpp>
 
 namespace libmaus
 {
@@ -97,6 +98,14 @@ namespace libmaus
 					;
 			}
 			
+			static uint32_t hash32(uint8_t const * D)
+			{
+				return ::libmaus::hashing::EvaHash::hash(
+					reinterpret_cast<uint8_t const *>(getReadName(D)),
+					getLReadName(D)-1
+				);
+			}
+			
 			template<typename iterator>
 			static iterator putFastQ(uint8_t const * D, iterator it)
 			{
@@ -156,6 +165,42 @@ namespace libmaus
 				
 				return it;
 			}				
+			
+			static uint32_t getLEIntegerWrapped(
+				uint8_t const * D,
+				uint64_t const dn,
+				uint64_t o,
+				unsigned int const l)
+			{
+				uint32_t v = 0;
+				for ( unsigned int i = 0; i < l; ++i, o=((o+1)&(dn-1)) )
+					v |= (static_cast<uint32_t>(D[o]) << (8*i));
+				return v;
+			}
+			static uint32_t getBinMQNLWrapped  (
+				uint8_t const * D,
+				uint64_t const dn,
+				uint64_t const o
+			) { return static_cast<uint32_t>(getLEIntegerWrapped(D,dn,(o+8)&(dn-1),4)); }
+			static uint32_t getLReadNameWrapped(
+				uint8_t const * D,
+				uint64_t const dn,
+				uint64_t const o
+			) { return (getBinMQNLWrapped(D,dn,o) >> 0) & 0xFF; }
+			static uint32_t getReadNameOffset(uint64_t const dn, uint64_t const o)
+			{
+				return (o+32)&(dn-1);
+			}
+			static uint32_t getFlagNCWrapped  (
+				uint8_t const * D,
+				uint64_t const dn,
+				uint64_t const o
+			) { return static_cast<uint32_t>(getLEIntegerWrapped(D,dn,(o+12)&(dn-1),4)); }
+			static uint32_t getFlagsWrapped(
+				uint8_t const * D,
+				uint64_t const dn,
+				uint64_t const o
+			) { return (getFlagNCWrapped(D,dn,o) >> 16) & 0xFFFF; }
 			
 			static  int32_t     getRefID    (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+0,4)); }
 			static  int32_t     getPos      (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+4,4)); }

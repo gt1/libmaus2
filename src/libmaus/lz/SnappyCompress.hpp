@@ -89,10 +89,17 @@ namespace libmaus
 			char * const pe;
 			bool const bigbuf;
 			
-			SnappyOutputStream(stream_type & rout, uint64_t const bufsize = 64*1024)
-			: out(rout), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), bigbuf(bufsize > ((1ull<<31)-1))
+			bool putbigbuf;
+			
+			SnappyOutputStream(stream_type & rout, uint64_t const bufsize = 64*1024, bool delaybigbuf = false)
+			: out(rout), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), bigbuf(bufsize > ((1ull<<31)-1)),
+			  putbigbuf(false)
 			{
-				out.put(bigbuf);
+				if ( ! delaybigbuf )
+				{
+					out.put(bigbuf);
+					putbigbuf = true;				
+				}
 			}
 			~SnappyOutputStream()
 			{
@@ -108,6 +115,11 @@ namespace libmaus
 			{
 				if ( pc != pa )
 				{
+					if ( ! putbigbuf )
+					{
+						out.put(bigbuf);
+						putbigbuf = true;
+					}
 					// compress data
 					std::string const cdata = SnappyCompress::compress(std::string(pa,pc));
 					
@@ -392,6 +404,9 @@ namespace libmaus
 
 		struct SnappyOffsetFileInputStream
 		{
+			typedef SnappyOffsetFileInputStream this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
 			::libmaus::util::unique_ptr<std::ifstream>::type Pistr;
 			std::ifstream & istr;
 			SnappyInputStream instream;
