@@ -32,6 +32,7 @@
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/bitio/CompactQueue.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus/util/TempFileContainer.hpp>
 
 namespace libmaus
 {
@@ -124,6 +125,7 @@ namespace libmaus
 				isa_type & SISA,
 				lcp_type & LCP,
 				std::ostream & out,
+				libmaus::util::TempFileContainer & tmpcont,
 				bool const verbose = false
 			)
 			{
@@ -138,47 +140,14 @@ namespace libmaus
 				}
 				else
 				{
-					#if 0
-
-					uint64_t const rp0 = SISA.SISA[0];
-					uint64_t const numbits = 2*n + LCP[LF(rp0)];
-					
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-					// number of bits in bit stream
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,numbits);
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,(numbits+63)/64);
-
-					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
-					::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
-					::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
-
-					uint64_t prevlcp = 0;
-					uint64_t r = rp0;
-					uint64_t bitswritten = 0;
-					
-					for ( uint64_t i = 0; i < n; ++i, r = LF.phi(r) )
-					{
-						assert ( r == SISA[i] );
-						uint64_t const curlcp = LCP[r];
-						uint64_t const dif = (curlcp + 1)-prevlcp;
-						writePlcpDif(FWBW,dif+1);
-						bitswritten += (dif+1);
-						prevlcp = curlcp;
-					}
-					
-					assert ( numbits == bitswritten );
-					
-					FWBW.flush();
-					SGO.flush();
-					out.flush();
-					
-					#else
-				
 					#if defined(_OPENMP)
-					uint64_t const numthreads = 1; //omp_get_max_threads();
+					uint64_t const numthreads = omp_get_max_threads();
 					#else
 					uint64_t const numthreads = 1;
 					#endif
+					
+					for ( uint64_t i = 0; i < numthreads; ++i )
+						tmpcont.openOutputTempFile(i);
 					
 					::libmaus::autoarray::AutoArray<uint64_t> bitsperthread(numthreads);
 				
@@ -188,7 +157,7 @@ namespace libmaus
 					uint64_t const isaloopsperthread = (numisaloop + numthreads-1)/numthreads;
 					
 					uint64_t const rp0 = SISA.SISA[0];
-					uint64_t const pdif0 = LCP[rp0] + 1; // - LCP[LF(rp0)];
+					uint64_t const pdif0 = LCP[rp0] + 1; // store first difference as absolute
 
 					uint64_t const numbits = 2*n + LCP[LF(rp0)];
 					::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
@@ -207,7 +176,10 @@ namespace libmaus
 					writePlcpDif(FWBW,pdif0+1);
 					bitswritten += (pdif0+1);
 					
-					for ( uint64_t t = 0; t < numthreads; ++t )
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( int64_t t = 0; t < static_cast<int64_t>(numthreads); ++t )
 					{
 						uint64_t const isapacklow = std::min ( isaloopsperthread*t, numisaloop );
 						uint64_t const isapackhigh = std::min ( isapacklow + isaloopsperthread, numisaloop );
@@ -216,6 +188,11 @@ namespace libmaus
 						uint64_t const loopend = loopstart + isapackrange;
 						::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
 						uint64_t lbitswritten = 0;
+
+						std::ostream & ltmpfile = tmpcont.getOutputTempFile(t);
+						::libmaus::aio::SynchronousGenericOutput<uint64_t> lSGO(ltmpfile,8*1024);
+						::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type lSGOit(lSGO);
+						::libmaus::bitio::FastWriteBitWriterBuffer64Sync lFWBW(lSGOit);
 						
 						// std::cerr << "[" << loopstart << "," << loopend << ")" << " size " << numisa << std::endl;
 						
@@ -244,14 +221,48 @@ namespace libmaus
 							{
 								if ( verbose )
 									std::cerr << *op << std::endl;			
-								writePlcpDif(FWBW,*op+1);
+								writePlcpDif(lFWBW,*op+1);
 								lbitswritten += (*op)+1;
 							}
 						}
 
 						bitsperthread[t] += lbitswritten;
+						
+						lFWBW.flush();
+						lSGO.flush();
+						ltmpfile.flush();
+
+						tmpcont.closeOutputTempFile(t);
+					}					
+
+					for ( uint64_t t = 0; t < numthreads; ++t )
+					{
+						std::istream & tmpin = tmpcont.openInputTempFile(t);
+						libmaus::aio::SynchronousGenericInput<uint64_t> SGin(tmpin,8*1024,(bitsperthread[t]+63)/64);
+						uint64_t const completeWords = bitsperthread[t]/(8*sizeof(uint64_t));
+						uint64_t const restbits = bitsperthread[t] - (8*sizeof(uint64_t)*completeWords);
+						uint64_t v = 0;
+						
+						// std::cerr << "thread " << t << " complete " << completeWords << " restbits " << restbits << " total bits " << bitsperthread[t] << std::endl;
+						
+						for ( uint64_t i = 0; i < completeWords; ++i )
+						{
+							bool const ok = SGin.getNext(v);
+							assert ( ok );
+							FWBW.write(v,8*sizeof(uint64_t));
+						}
+						
+						if ( restbits )
+						{
+							bool const ok = SGin.getNext(v);
+							assert ( ok );
+							v >>= (8*sizeof(uint64_t)-restbits);
+							FWBW.write(v,restbits);
+						}
+						
+						tmpcont.closeInputTempFile(t);
 					}
-					
+
 					bitswritten += std::accumulate(
 						bitsperthread.begin(),
 						bitsperthread.end(),
@@ -290,10 +301,7 @@ namespace libmaus
 					SGO.flush();
 					out.flush();
 					
-					assert ( numbits == bitswritten );
-					
-					// std::cerr << "bitswritten=" << bitswritten << " numbits" << numbits << std::endl;
-					#endif
+					assert ( numbits == bitswritten );					
 				}
 			}
 

@@ -72,12 +72,13 @@ void testBin()
 				::libmaus::fm::SampledISA< ::libmaus::lf::LF >
 			> SLCP(LF,SSA,SISA);
 
+			libmaus::util::MemTempFileContainer MTFC;
 			std::ostringstream oout;
 			::libmaus::lcp::SuccinctLCP<
 				::libmaus::lf::LF,
 				::libmaus::fm::SimpleSampledSA< ::libmaus::lf::LF >,
 				::libmaus::fm::SampledISA< ::libmaus::lf::LF >
-			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout);
+			>::writeSuccinctLCP(LF,SISA,PhiLCP,oout,MTFC);
 			
 			std::istringstream iin(oout.str());
 			::libmaus::lcp::SuccinctLCP<
