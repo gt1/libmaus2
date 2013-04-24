@@ -20,6 +20,9 @@
 #define LIBMAUS_BAMBAM_BAMFLAGBASE
 
 #include <ostream>
+#include <deque>
+#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/util/stringFunctions.hpp>
 
 namespace libmaus
 {
@@ -54,6 +57,50 @@ namespace libmaus
 				LIBMAUS_BAMBAM_CEQUAL = 7,
 				LIBMAUS_BAMBAM_CDIFF = 8
 			};			
+
+			static uint64_t stringToFlag(std::string const & s)
+			{
+				if ( s == "PAIRED" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
+				else if ( s == "PROPER_PAIR" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR;
+				else if ( s == "UNMAP" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
+				else if ( s == "MUNMAP" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+				else if ( s == "REVERSE" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
+				else if ( s == "MREVERSE" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
+				else if ( s == "READ1" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				else if ( s == "READ2" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
+				else if ( s == "SECONDARY" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
+				else if ( s == "QCFAIL" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
+				else if ( s == "DUP" )
+					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+				else
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Unknown flag " << s << std::endl;
+					se.finish();
+					throw se;
+				}
+			}
+
+			static uint64_t stringToFlags(std::string const & s)
+			{
+				std::deque<std::string> const tokens = ::libmaus::util::stringFunctions::tokenize(s,std::string(","));
+				uint64_t flags = 0;
+				
+				for ( uint64_t i = 0; i < tokens.size(); ++i )
+					flags |= stringToFlag(tokens[i]);
+					
+				return flags;
+			}
 		};
 		
 		inline std::ostream & operator<<(std::ostream & out, BamFlagBase::bam_flags const f)
