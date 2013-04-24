@@ -87,7 +87,42 @@ void bamcollate(libmaus::util::ArgInfo const & arginfo)
 #include <libmaus/bambam/BamToFastqOutputFileSet.hpp>
 #include <libmaus/util/TempFileRemovalContainer.hpp>
 
-void bamtofastq(libmaus::util::ArgInfo const & arginfo)
+void bamtofastqNonCollating(libmaus::util::ArgInfo const & arginfo)
+{
+	libmaus::timing::RealTimeClock rtc; rtc.start();
+	uint32_t const excludeflags = libmaus::bambam::BamFlagBase::stringToFlags(arginfo.getValue<std::string>("exclude","SECONDARY,QCFAIL"));
+	libmaus::bambam::BamDecoder bamdec(std::cin);
+	libmaus::bambam::BamAlignment const & algn = bamdec.alignment;
+	::libmaus::autoarray::AutoArray<uint8_t> T;
+	uint64_t cnt = 0;
+	uint64_t bcnt = 0;
+	unsigned int const verbshift = 20;
+		
+	while ( bamdec.readAlignment() )
+	{
+		uint64_t const precnt = cnt++;
+		
+		if ( ! (algn.getFlags() & excludeflags) )
+		{
+			uint64_t la = libmaus::bambam::BamAlignmentDecoderBase::putFastQ(algn.D.begin(),T);
+			std::cout.write(reinterpret_cast<char const *>(T.begin()),la);
+			bcnt += la;
+		}
+
+		if ( precnt >> verbshift != cnt >> verbshift )
+		{
+			std::cerr 
+				<< (cnt >> 20) 
+				<< "\t"
+				<< (static_cast<double>(bcnt)/(1024.0*1024.0))/rtc.getElapsedSeconds() << "MB/s"
+				<< "\t" << static_cast<double>(cnt)/rtc.getElapsedSeconds() << std::endl;
+		}
+	}
+		
+	std::cout.flush();
+}
+
+void bamtofastqCollating(libmaus::util::ArgInfo const & arginfo)
 {
 	uint32_t const excludeflags = libmaus::bambam::BamFlagBase::stringToFlags(arginfo.getValue<std::string>("exclude","SECONDARY,QCFAIL"));
 	libmaus::bambam::BamToFastqOutputFileSet OFS(arginfo);
@@ -155,6 +190,14 @@ void bamtofastq(libmaus::util::ArgInfo const & arginfo)
 	}
 	
 	std::cerr << cnt << std::endl;
+}
+
+void bamtofastq(libmaus::util::ArgInfo const & arginfo)
+{
+	if ( arginfo.getValue<uint64_t>("collate",1) )
+		bamtofastqCollating(arginfo);
+	else
+		bamtofastqNonCollating(arginfo);
 }
 
 int main(int argc, char * argv[])
