@@ -22,6 +22,7 @@
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/ScramDecoder.hpp>
 #include <libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp>
+#include <libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <libmaus/hashing/CircularHash.hpp>
 
 namespace libmaus
@@ -154,6 +155,8 @@ namespace libmaus
 			libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type mergeinput;
 			circ_hash_collator_state state;
 			
+			CollatingBamDecoderAlignmentInputCallback * inputcallback;
+			
 			struct OutputBufferEntry
 			{
 				uint8_t const * Da;
@@ -179,13 +182,14 @@ namespace libmaus
 			
 			CircularHashCollatingBamDecoder(
 				std::istream & in,
+				bool const rputrank,
 				std::string const & rtmpfilename,
 				uint32_t const rexcludeflags,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
-			: Pbamdec(new libmaus::bambam::BamDecoder(in)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
-			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading),
+			: Pbamdec(new libmaus::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
+			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading), inputcallback(0),
 			  excludeflags(rexcludeflags)
 			{
 			
@@ -199,7 +203,7 @@ namespace libmaus
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
 			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
-			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading),
+			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading), inputcallback(0),
 			  excludeflags(rexcludeflags)
 			{
 			
@@ -313,6 +317,11 @@ namespace libmaus
 					{
 						if ( bamdec.readAlignment() )
 						{
+							if ( inputcallback )
+								(*inputcallback)(algn);
+								
+							bamdec.putRank();
+								
 							if ( algn.getFlags() & excludeflags )
 								continue;
 						
@@ -523,11 +532,12 @@ namespace libmaus
 		{
 			BamCircularHashCollatingBamDecoder(
 				std::istream & in,
+				bool const rputrank,
 				std::string const & rtmpfilename,
 				uint32_t const rexcludeflags,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : BamDecoderWrapper(in), 
+			) : BamDecoderWrapper(in,rputrank), 
 			    CircularHashCollatingBamDecoder(BamDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
 			
@@ -541,11 +551,12 @@ namespace libmaus
 				std::string const & filename,
 				std::string const & mode,
 				std::string const & reference,
+				bool const rputrank,
 				std::string const & rtmpfilename,
 				uint32_t const rexcludeflags,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
-			) : ScramDecoderWrapper(filename,mode,reference), 
+			) : ScramDecoderWrapper(filename,mode,reference,rputrank), 
 			    CircularHashCollatingBamDecoder(ScramDecoderWrapper::scramdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
 			

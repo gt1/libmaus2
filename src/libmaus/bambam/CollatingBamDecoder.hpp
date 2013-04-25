@@ -23,6 +23,7 @@
 #include <libmaus/bambam/BamAlignmentComparator.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <queue>
 
 #define LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY
@@ -30,12 +31,7 @@
 namespace libmaus
 {
 	namespace bambam
-	{
-		struct CollatingBamDecoderAlignmentInputCallback
-		{
-			virtual void operator()(::libmaus::bambam::BamAlignment const & A) = 0;
-		};
-	
+	{	
 		struct CollatingBamDecoder
 		{
 			typedef CollatingBamDecoder this_type;
