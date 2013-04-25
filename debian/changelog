@@ -1,3 +1,9 @@
+libmaus (0.0.38-0) unstable; urgency=low
+
+  * bump version after adding new collation code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 25 Apr 2013 14:14:34 +0100
+
 libmaus (0.0.37-0) unstable; urgency=low
 
   * bump version after refactoring 
