@@ -22,6 +22,7 @@
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/lz/SnappyCompress.hpp>
 #include <libmaus/util/GetObject.hpp>
+#include <libmaus/util/CountGetObject.hpp>
 #include <libmaus/bambam/BamWriter.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/BamAlignmentPosComparator.hpp>
