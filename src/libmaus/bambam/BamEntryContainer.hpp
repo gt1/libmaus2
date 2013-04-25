@@ -234,7 +234,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < nummerge; ++i )
 						if ( tmpoutcnts[i]-- )
 						{
-							::libmaus::bambam::BamDecoder::readAlignment(SISAF[i],algns[i]);
+							::libmaus::bambam::BamDecoder::readAlignmentGz(SISAF[i],algns[i]);
 							Q.push(i);
 						}
 						
@@ -251,7 +251,7 @@ namespace libmaus
 
 						if ( tmpoutcnts[t]-- )
 						{
-							::libmaus::bambam::BamDecoder::readAlignment(SISAF[t],algns[t],0 /* bamheader */, false /* do not validate */);
+							::libmaus::bambam::BamDecoder::readAlignmentGz(SISAF[t],algns[t],0 /* bamheader */, false /* do not validate */);
 							Q.push(t);
 						}
 					}
