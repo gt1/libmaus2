@@ -29,9 +29,12 @@ namespace libmaus
 {
 	namespace bambam
 	{
-
 		struct CircularHashCollatingBamDecoder
 		{
+			typedef CircularHashCollatingBamDecoder this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			enum circ_hash_collator_state {
 				state_sortbuffer_flushing_intermediate,
 				state_sortbuffer_flushing_intermediate_readout,
@@ -530,6 +533,10 @@ namespace libmaus
 		struct BamCircularHashCollatingBamDecoder :
 			public BamDecoderWrapper, public CircularHashCollatingBamDecoder
 		{
+			typedef BamCircularHashCollatingBamDecoder this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 			BamCircularHashCollatingBamDecoder(
 				std::istream & in,
 				bool const rputrank,
@@ -547,6 +554,10 @@ namespace libmaus
 		struct ScramCircularHashCollatingBamDecoder :
 			public ScramDecoderWrapper, public CircularHashCollatingBamDecoder
 		{
+			typedef ScramCircularHashCollatingBamDecoder this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 			ScramCircularHashCollatingBamDecoder(
 				std::string const & filename,
 				std::string const & mode,
