@@ -551,6 +551,11 @@ namespace libmaus
 			{
 				inputcallback = rinputcallback;
 			}
+
+			libmaus::bambam::BamHeader const & getHeader() const
+			{
+				return bamdecoder.getHeader();
+			}
 		};
 		
 		struct CollatingBamDecoderNoOrphans : public CollatingBamDecoder

@@ -34,6 +34,7 @@ namespace libmaus
 			typedef CircularHashCollatingBamDecoder this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus::bambam::BamAlignment const * alignment_ptr_type;
 		
 			enum circ_hash_collator_state {
 				state_sortbuffer_flushing_intermediate,
@@ -211,6 +212,8 @@ namespace libmaus
 			{
 			
 			}
+			
+			virtual ~CircularHashCollatingBamDecoder() {}
 			
 			OutputBufferEntry const * process()
 			{
@@ -466,17 +469,14 @@ namespace libmaus
 				else
 					return 0;
 			}
-			
-			std::pair <
-				libmaus::bambam::BamAlignment const *,
-				libmaus::bambam::BamAlignment const *
-			> tryPair()
+
+			bool tryPair(std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const *> & P)
 			{
 				OutputBufferEntry const * ob = process();
 				
 				if ( ! ob )
 				{
-					return std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >();
+					return false;
 				}
 				else if ( ob->fpair )
 				{
@@ -490,9 +490,11 @@ namespace libmaus
 					std::copy(ob->Db,ob->Db + ob->blocksizeb, outputAlgn[1].D.begin());
 					outputAlgn[1].blocksize = ob->blocksizeb;
 
-					return std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
+					P = std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
 						&(outputAlgn[0]),&(outputAlgn[1])
 					);
+					
+					return true;
 				}
 				else if ( ob->fsingle )
 				{
@@ -501,9 +503,11 @@ namespace libmaus
 					std::copy(ob->Da,ob->Da + ob->blocksizea, outputAlgn[0].D.begin());
 					outputAlgn[0].blocksize = ob->blocksizea;
 
-					return std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
+					P = std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
 						&(outputAlgn[0]),static_cast<libmaus::bambam::BamAlignment const *>(0)
 					);
+					
+					return true;
 				}
 				else if ( ob->forphan1 )
 				{
@@ -512,9 +516,11 @@ namespace libmaus
 					std::copy(ob->Da,ob->Da + ob->blocksizea, outputAlgn[0].D.begin());
 					outputAlgn[0].blocksize = ob->blocksizea;
 
-					return std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
+					P = std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
 						&(outputAlgn[0]),static_cast<libmaus::bambam::BamAlignment const *>(0)
 					);
+					
+					return true;
 				}
 				else // if ( ob->forphan2 )
 				{
@@ -523,10 +529,22 @@ namespace libmaus
 					std::copy(ob->Da,ob->Da + ob->blocksizea, outputAlgn[0].D.begin());
 					outputAlgn[0].blocksize = ob->blocksizea;
 
-					return std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
+					P = std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const * >(
 						static_cast<libmaus::bambam::BamAlignment const *>(0),&(outputAlgn[0])
 					);
+					
+					return true;
 				}
+			}
+			
+			libmaus::bambam::BamHeader const & getHeader() const
+			{
+				return bamdec.getHeader();
+			}
+
+			void setInputCallback(CollatingBamDecoderAlignmentInputCallback * rinputcallback)
+			{
+				inputcallback = rinputcallback;			
 			}
 		};
 
