@@ -48,14 +48,7 @@ namespace libmaus
 			libmaus_bambam_ScramDecoder * dec;
 
 			::libmaus::bambam::BamHeader bamheader;
-			::libmaus::bambam::BamAlignment alignment;
-			::libmaus::bambam::BamFormatAuxiliary auxiliary;
 					
-			uint64_t patid;
-			uint64_t rank;
-			bool putrank;
-			bool validate;
-			
 			libmaus_bambam_ScramDecoder * allocateDecoder(std::string const & filename, std::string const & mode, std::string const & reference)
 			{
 				libmaus_bambam_ScramDecoder * dec = d_new.func(filename.c_str(),mode.c_str(),reference.size() ? reference.c_str() : 0);
@@ -73,13 +66,13 @@ namespace libmaus
 
 			ScramDecoder(std::string const & filename, std::string const & mode, std::string const & reference, bool const rputrank = false)
 			: 
+				libmaus::bambam::BamAlignmentDecoder(rputrank),
 				scram_mod("libmaus_scram_mod.so"),
 				d_new(scram_mod,"libmaus_bambam_ScramDecoder_New"),
 				d_delete(scram_mod,"libmaus_bambam_ScramDecoder_Delete"),
 				d_decode(scram_mod,"libmaus_bambam_ScramDecoder_Decode"),
 				dec(allocateDecoder(filename,mode,reference)),
-				bamheader(std::string(dec->header,dec->header+dec->headerlen)),
-				patid(0), rank(0), putrank(rputrank), validate(true)
+				bamheader(std::string(dec->header,dec->header+dec->headerlen))
 			{
 			}
 			
@@ -88,35 +81,11 @@ namespace libmaus
 				d_delete.func(dec);
 			}
 
-			void disableValidation()
-			{
-				validate = false;
-			}
-
 			libmaus::bambam::BamHeader const & getHeader() const
 			{
 				return bamheader;
 			}
 
-			std::string formatAlignment()
-			{
-				return alignment.formatAlignment(bamheader,auxiliary);
-			}
-			
-			std::string formatFastq()
-			{
-				return alignment.formatFastq(auxiliary);
-			}
-			
-			void putRank()
-			{
-				uint64_t const lrank = rank++;
-				if ( putrank )
-				{
-					alignment.putRank("ZR",lrank /*,bamheader */);
-				}			
-			}
-			
 			bool readAlignmentInternal(bool const delayPutRank = false)
 			{
 				int const r = d_decode.func(dec);
@@ -158,20 +127,21 @@ namespace libmaus
 			
 				return true;
 			}
+		};
+		
+		struct ScramDecoderWrapper
+		{
+			ScramDecoder scramdec;
 
-			libmaus::bambam::BamAlignment const & getAlignment() const
+			ScramDecoderWrapper(
+				std::string const & filename, 
+				std::string const & mode, 
+				std::string const & reference, 
+				bool const rputrank = false
+			)
+			: scramdec(filename,mode,reference,rputrank)
 			{
-				return alignment;
-			}
 			
-			bool getNextPatternUnlocked(pattern_type & pattern)
-			{
-				if ( !readAlignment() )
-					return false;
-				
-				alignment.toPattern(pattern,patid++);
-				
-				return true;
 			}
 		};
 	}

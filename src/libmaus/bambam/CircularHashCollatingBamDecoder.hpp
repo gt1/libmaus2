@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP
 
 #include <libmaus/bambam/BamDecoder.hpp>
+#include <libmaus/bambam/ScramDecoder.hpp>
 #include <libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp>
 #include <libmaus/hashing/CircularHash.hpp>
 
@@ -27,6 +28,7 @@ namespace libmaus
 {
 	namespace bambam
 	{
+
 		struct CircularHashCollatingBamDecoder
 		{
 			enum circ_hash_collator_state {
@@ -183,6 +185,20 @@ namespace libmaus
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
 			: Pbamdec(new libmaus::bambam::BamDecoder(in)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
+			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading),
+			  excludeflags(rexcludeflags)
+			{
+			
+			}
+
+			CircularHashCollatingBamDecoder(
+				libmaus::bambam::BamAlignmentDecoder & rbamdec,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			)
+			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading),
 			  excludeflags(rexcludeflags)
 			{
@@ -499,6 +515,40 @@ namespace libmaus
 						static_cast<libmaus::bambam::BamAlignment const *>(0),&(outputAlgn[0])
 					);
 				}
+			}
+		};
+
+		struct BamCircularHashCollatingBamDecoder :
+			public BamDecoderWrapper, public CircularHashCollatingBamDecoder
+		{
+			BamCircularHashCollatingBamDecoder(
+				std::istream & in,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			) : BamDecoderWrapper(in), 
+			    CircularHashCollatingBamDecoder(BamDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
+			{
+			
+			}
+		};
+
+		struct ScramCircularHashCollatingBamDecoder :
+			public ScramDecoderWrapper, public CircularHashCollatingBamDecoder
+		{
+			ScramCircularHashCollatingBamDecoder(
+				std::string const & filename,
+				std::string const & mode,
+				std::string const & reference,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			) : ScramDecoderWrapper(filename,mode,reference), 
+			    CircularHashCollatingBamDecoder(ScramDecoderWrapper::scramdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
+			{
+			
 			}
 		};
 	}

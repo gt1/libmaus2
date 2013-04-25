@@ -122,14 +122,13 @@ void bamtofastqNonCollating(libmaus::util::ArgInfo const & arginfo)
 	std::cout.flush();
 }
 
-void bamtofastqCollating(libmaus::util::ArgInfo const & arginfo)
+void bamtofastqCollating(
+	libmaus::util::ArgInfo const & arginfo,
+	libmaus::bambam::CircularHashCollatingBamDecoder & CHCBD
+)
 {
-	uint32_t const excludeflags = libmaus::bambam::BamFlagBase::stringToFlags(arginfo.getValue<std::string>("exclude","SECONDARY,QCFAIL"));
 	libmaus::bambam::BamToFastqOutputFileSet OFS(arginfo);
-	libmaus::util::TempFileRemovalContainer::setup();
-	std::string const tmpfilename = arginfo.getValue<std::string>("T",arginfo.getDefaultTmpFileName());
-	libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilename);
-	libmaus::bambam::CircularHashCollatingBamDecoder CHCBD(std::cin,tmpfilename,excludeflags);
+
 	libmaus::bambam::CircularHashCollatingBamDecoder::OutputBufferEntry const * ob = 0;
 	
 	// number of alignments written to files
@@ -182,6 +181,7 @@ void bamtofastqCollating(libmaus::util::ArgInfo const & arginfo)
 		if ( precnt >> verbshift != cnt >> verbshift )
 		{
 			std::cerr 
+				<< "[V] "
 				<< (cnt >> 20) 
 				<< "\t"
 				<< (static_cast<double>(bcnt)/(1024.0*1024.0))/rtc.getElapsedSeconds() << "MB/s"
@@ -189,7 +189,33 @@ void bamtofastqCollating(libmaus::util::ArgInfo const & arginfo)
 		}
 	}
 	
-	std::cerr << cnt << std::endl;
+	std::cerr << "[V] " << cnt << std::endl;
+}
+
+void bamtofastqCollating(libmaus::util::ArgInfo const & arginfo)
+{
+	uint32_t const excludeflags = libmaus::bambam::BamFlagBase::stringToFlags(arginfo.getValue<std::string>("exclude","SECONDARY,QCFAIL"));
+	libmaus::util::TempFileRemovalContainer::setup();
+	std::string const tmpfilename = arginfo.getValue<std::string>("T",arginfo.getDefaultTmpFileName());
+	libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilename);
+	std::string const inputformat = arginfo.getValue<std::string>("inputformat","bam");
+
+	if ( inputformat == "bam" )
+	{
+		libmaus::bambam::BamCircularHashCollatingBamDecoder CHCBD(std::cin,tmpfilename,excludeflags);
+		bamtofastqCollating(arginfo,CHCBD);
+	}
+	else if ( inputformat == "sam" )
+	{
+		libmaus::bambam::ScramCircularHashCollatingBamDecoder CHCBD("-","r","",tmpfilename,excludeflags);
+		bamtofastqCollating(arginfo,CHCBD);
+	}
+	else if ( inputformat == "cram" )
+	{
+		std::string const reference = arginfo.getValue<std::string>("reference","");
+		libmaus::bambam::ScramCircularHashCollatingBamDecoder CHCBD("-","rc",reference,tmpfilename,excludeflags);
+		bamtofastqCollating(arginfo,CHCBD);
+	}
 }
 
 void bamtofastq(libmaus::util::ArgInfo const & arginfo)
