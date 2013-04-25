@@ -321,7 +321,7 @@ namespace libmaus
 					}
 					else if ( state == state_reading )
 					{
-						if ( bamdec.readAlignment() )
+						if ( bamdec.readAlignment(true /* delay put rank */) )
 						{
 							if ( inputcallback )
 								(*inputcallback)(algn);
