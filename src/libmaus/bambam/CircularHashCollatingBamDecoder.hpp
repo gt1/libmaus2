@@ -133,7 +133,9 @@ namespace libmaus
 					libmaus::bambam::BamAlignmentDecoderBase::isRead1(flagsb));
 			}
 
-			libmaus::bambam::BamDecoder bamdec;
+			libmaus::bambam::BamDecoder::unique_ptr_type Pbamdec;
+			
+			libmaus::bambam::BamAlignmentDecoder & bamdec;
 			libmaus::bambam::BamAlignment const & algn;
 			libmaus::bambam::BamAlignment mergealgn[2];
 			unsigned int mergealgnptr;
@@ -180,7 +182,7 @@ namespace libmaus
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
-			: bamdec(in), algn(bamdec.alignment), mergealgnptr(0), tmpfilename(rtmpfilename), 
+			: Pbamdec(new libmaus::bambam::BamDecoder(in)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading),
 			  excludeflags(rexcludeflags)
 			{
@@ -381,6 +383,14 @@ namespace libmaus
 										libmaus::bambam::BamAlignmentDecoderBase::getLReadName(outputBuffer.Da)
 									)
 									== 0
+									&&
+									libmaus::bambam::BamAlignmentDecoderBase::isRead1(
+										libmaus::bambam::BamAlignmentDecoderBase::getFlags(outputBuffer.Da)
+									)
+									&&							
+									libmaus::bambam::BamAlignmentDecoderBase::isRead2(
+										libmaus::bambam::BamAlignmentDecoderBase::getFlags(outputBuffer.Db)
+									)
 								)
 								{
 									outputBuffer.fpair = true;

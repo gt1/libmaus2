@@ -23,9 +23,8 @@
 #include <iostream>
 #include <cstdlib>
 
-#if defined(LIBMAUS_HAVE_IO_LIB)
 #include <libmaus/bambam/Scram.h>
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/bambam/BamAlignmentDecoder.hpp>
 #include <libmaus/util/DynamicLoading.hpp>
 #include <libmaus/bambam/AlignmentValidity.hpp>
 
@@ -33,7 +32,7 @@ namespace libmaus
 {
 	namespace bambam
 	{
-		struct ScramDecoder
+		struct ScramDecoder : public libmaus::bambam::BamAlignmentDecoder
 		{
 			typedef ScramDecoder this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -93,15 +92,10 @@ namespace libmaus
 			{
 				validate = false;
 			}
-			
-			::libmaus::bambam::BamAlignment::unique_ptr_type ualignment() const
+
+			libmaus::bambam::BamHeader const & getHeader() const
 			{
-				return UNIQUE_PTR_MOVE(alignment.uclone());
-			}
-			
-			::libmaus::bambam::BamAlignment::shared_ptr_type salignment() const
-			{
-				return alignment.sclone();
+				return bamheader;
 			}
 
 			std::string formatAlignment()
@@ -123,7 +117,7 @@ namespace libmaus
 				}			
 			}
 			
-			bool readAlignment(bool const delayPutRank = false)
+			bool readAlignmentInternal(bool const delayPutRank = false)
 			{
 				int const r = d_decode.func(dec);
 				
@@ -164,6 +158,11 @@ namespace libmaus
 			
 				return true;
 			}
+
+			libmaus::bambam::BamAlignment const & getAlignment() const
+			{
+				return alignment;
+			}
 			
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
@@ -177,6 +176,5 @@ namespace libmaus
 		};
 	}
 }
-#endif
 #endif
 

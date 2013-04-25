@@ -61,7 +61,7 @@ namespace libmaus
 								)
 							);
 							
-						assert ( libmaus::bambam::BamDecoder::readAlignment(*(streams[i]),data[i],0,false) );
+						assert ( libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[i]),data[i],0,false) );
 						Q.push(i);
 					}
 			}
@@ -84,7 +84,7 @@ namespace libmaus
 				
 				if ( index[t].second-- )
 				{
-					assert ( libmaus::bambam::BamDecoder::readAlignment(*(streams[t]),data[t],0,false) );
+					assert ( libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[t]),data[t],0,false) );
 					Q.push(t);
 				}
 					

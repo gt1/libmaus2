@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMDECODER_HPP)
 #define LIBMAUS_BAMBAM_BAMDECODER_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/bambam/BamAlignmentDecoder.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{				
-		struct BamDecoder
+		struct BamDecoder : public libmaus::bambam::BamAlignmentDecoder
 		{
 			typedef BamDecoder this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -34,10 +34,14 @@ namespace libmaus
 			
 			typedef ::libmaus::fastx::FASTQEntry pattern_type;
 		
+			// private:
 			::libmaus::util::unique_ptr< std::ifstream >::type PISTR;
 			libmaus::lz::BgzfInflateStream GZ;
+
+			public:
 			::libmaus::bambam::BamHeader bamheader;
 
+			private:
 			::libmaus::bambam::BamAlignment alignment;
 			::libmaus::bambam::BamFormatAuxiliary auxiliary;
 			
@@ -46,20 +50,17 @@ namespace libmaus
 			bool putrank;
 			bool validate;
 			
-			bool putbackbuffer;
-			
+			public:
 			BamDecoder(std::string const & filename, bool const rputrank = false)
 			: PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
 			  GZ(*PISTR),
-			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true),
-			  putbackbuffer(false)
+			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
 			}
 			
 			BamDecoder(std::istream & in, bool const rputrank = false)
 			: PISTR(), GZ(in),
-			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true),
-			  putbackbuffer(false)
+			  bamheader(GZ), patid(0), rank(0), putrank(rputrank), validate(true)
 			{
 			}
 			
@@ -67,17 +68,12 @@ namespace libmaus
 			{
 				validate = false;
 			}
-			
-			::libmaus::bambam::BamAlignment::unique_ptr_type ualignment() const
-			{
-				return UNIQUE_PTR_MOVE(alignment.uclone());
-			}
-			
-			::libmaus::bambam::BamAlignment::shared_ptr_type salignment() const
-			{
-				return alignment.sclone();
-			}
 
+			libmaus::bambam::BamHeader const & getHeader() const
+			{
+				return bamheader;
+			}
+			
 			std::string formatAlignment()
 			{
 				return alignment.formatAlignment(bamheader,auxiliary);
@@ -97,20 +93,9 @@ namespace libmaus
 				}			
 			}
 			
-			void putback()
+			bool readAlignmentInternal(bool const delayPutRank = false)
 			{
-				putbackbuffer = true;
-			}
-			
-			bool readAlignment(bool const delayPutRank = false)
-			{
-				if ( putbackbuffer )
-				{
-					putbackbuffer = false;
-					return true;
-				}
-			
-				bool const ok = readAlignment(GZ,alignment,&bamheader,validate);
+				bool const ok = readAlignmentGz(GZ,alignment,&bamheader,validate);
 				
 				if ( ! ok )
 					return false;
@@ -121,9 +106,14 @@ namespace libmaus
 				return true;
 			}
 			
+			libmaus::bambam::BamAlignment const & getAlignment() const
+			{
+				return alignment;
+			}
+			
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
-				if ( !readAlignment() )
+				if ( !libmaus::bambam::BamAlignmentDecoder::readAlignment() )
 					return false;
 				
 				alignment.toPattern(pattern,patid++);
@@ -132,7 +122,7 @@ namespace libmaus
 			}
 
 			template<typename stream_type>
-			static bool readAlignment(
+			static bool readAlignmentGz(
 				stream_type & GZ,
 				::libmaus::bambam::BamAlignment & alignment,
 				::libmaus::bambam::BamHeader const * bamheader = 0,

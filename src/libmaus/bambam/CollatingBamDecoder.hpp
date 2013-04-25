@@ -255,7 +255,7 @@ namespace libmaus
 					else
 					{	
 						if ( inputcallback )
-							(*inputcallback)(bamdecoder.alignment);
+							(*inputcallback)(bamdecoder.getAlignment());
 							
 						// put rank
 						bamdecoder.putRank();

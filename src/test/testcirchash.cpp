@@ -30,7 +30,7 @@ void bamcollate(libmaus::util::ArgInfo const & arginfo)
 	libmaus::bambam::CircularHashCollatingBamDecoder CHCBD(std::cin,"tmpfile",excludeflags);
 	libmaus::bambam::CircularHashCollatingBamDecoder::OutputBufferEntry const * ob = 0;
 
-	libmaus::bambam::BamHeader const & bamheader = CHCBD.bamdec.bamheader;
+	libmaus::bambam::BamHeader const & bamheader = CHCBD.bamdec.getHeader();
 	std::string const headertext(bamheader.text);
 
 	// add PG line to header
@@ -92,7 +92,7 @@ void bamtofastqNonCollating(libmaus::util::ArgInfo const & arginfo)
 	libmaus::timing::RealTimeClock rtc; rtc.start();
 	uint32_t const excludeflags = libmaus::bambam::BamFlagBase::stringToFlags(arginfo.getValue<std::string>("exclude","SECONDARY,QCFAIL"));
 	libmaus::bambam::BamDecoder bamdec(std::cin);
-	libmaus::bambam::BamAlignment const & algn = bamdec.alignment;
+	libmaus::bambam::BamAlignment const & algn = bamdec.getAlignment();
 	::libmaus::autoarray::AutoArray<uint8_t> T;
 	uint64_t cnt = 0;
 	uint64_t bcnt = 0;

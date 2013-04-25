@@ -176,7 +176,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamAlignmentPrinter.hpp \
 	libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp \
 	libmaus/bambam/CircularHashCollatingBamDecoder.hpp \
-	libmaus/bambam/BamToFastqOutputFileSet.hpp
+	libmaus/bambam/BamToFastqOutputFileSet.hpp \
+	libmaus/bambam/BamAlignmentDecoder.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

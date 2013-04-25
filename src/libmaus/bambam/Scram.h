@@ -22,8 +22,6 @@
 
 #include <libmaus/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_IO_LIB)
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -57,7 +55,5 @@ int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object);
 #if defined(__cplusplus)
 }
 #endif
-
-#endif /* defined(LIBMAUS_HAVE_IO_LIB)*/
 
 #endif
