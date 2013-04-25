@@ -49,6 +49,10 @@ namespace libmaus
 			{
 				return alignment;
 			}
+			libmaus::bambam::BamAlignment & getAlignment()
+			{
+				return alignment;
+			}
 			virtual libmaus::bambam::BamHeader const & getHeader() const = 0;
 
 			void putback()
