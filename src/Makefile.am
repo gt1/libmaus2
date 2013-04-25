@@ -969,5 +969,5 @@ testutf8split_LDADD = libmaus.la
 testcirchash_SOURCES = test/testcirchash.cpp
 testcirchash_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcirchash_LDFLAGS = @SNAPPYLDFLAGS@
-testcirchash_LDADD = libmaus.la @SNAPPYLIBS@
+testcirchash_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 
