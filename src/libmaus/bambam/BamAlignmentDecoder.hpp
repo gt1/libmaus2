@@ -100,6 +100,11 @@ namespace libmaus
 				
 				return true;
 			}
+			
+			uint64_t getRank() const
+			{
+				return rank;
+			}
 
 			void putRank()
 			{

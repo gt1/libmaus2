@@ -546,6 +546,11 @@ namespace libmaus
 			{
 				inputcallback = rinputcallback;			
 			}
+			
+			uint64_t getRank() const
+			{
+				return bamdec.getRank();
+			}
 		};
 
 		struct BamCircularHashCollatingBamDecoder :
