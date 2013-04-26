@@ -58,6 +58,8 @@ namespace libmaus
 			void putback()
 			{
 				putbackbuffer = true;
+				if ( putrank )
+					rank -= 1;
 			}
 			
 			bool readAlignment(bool const delayPutRank = false)
