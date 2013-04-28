@@ -184,6 +184,8 @@ namespace libmaus
 			
 			uint32_t const excludeflags;
 			
+			bool cbputbackflag;
+			
 			CircularHashCollatingBamDecoder(
 				std::istream & in,
 				bool const rputrank,
@@ -194,7 +196,7 @@ namespace libmaus
 			)
 			: Pbamdec(new libmaus::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags)
+			  excludeflags(rexcludeflags), cbputbackflag(false)
 			{
 			
 			}
@@ -208,7 +210,7 @@ namespace libmaus
 			)
 			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags)
+			  excludeflags(rexcludeflags), cbputbackflag(false)
 			{
 			
 			}
@@ -324,7 +326,12 @@ namespace libmaus
 						if ( bamdec.readAlignment(true /* delay put rank */) )
 						{
 							if ( inputcallback )
-								(*inputcallback)(algn);
+							{
+								if ( cbputbackflag )
+									cbputbackflag = false;
+								else
+									(*inputcallback)(algn);
+							}
 								
 							bamdec.putRank();
 								
@@ -373,6 +380,8 @@ namespace libmaus
 									if ( ! CH.putEntry(data,datalen,hv) )
 									{
 										bamdec.putback();
+										if ( inputcallback )
+											cbputbackflag = true;
 										state = state_sortbuffer_flushing_intermediate;
 									}
 								}
