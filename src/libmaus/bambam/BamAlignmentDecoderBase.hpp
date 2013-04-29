@@ -881,6 +881,56 @@ namespace libmaus
 				
 				return 0;
 			}
+			
+			static uint8_t const * getAuxRankData(
+				uint8_t const * E, uint64_t const blocksize
+			)
+			{
+				return getAux(E,blocksize,"ZR");
+			}
+			
+			static uint64_t getAuxRank(uint8_t const * E, uint64_t const blocksize)
+			{
+				uint8_t const * data = getAuxRankData(E,blocksize);
+				
+				if ( ! data )
+					return 0;
+					
+				assert ( data[0] == 'Z' );
+				assert ( data[1] == 'R' );
+				
+				if ( data[2] != 'B' )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Rank aux tag ZR has wrong data type " << data[2] << std::endl;
+					se.finish();
+					throw se;
+				}
+				if ( data[3] != 'C' )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Rank aux tag ZR has wrong data type " << data[3] << std::endl;
+					se.finish();
+					throw se;
+				}
+				if ( data[4] != 8 || data[5] != 0 || data[6] != 0 || data[7] != 0 )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Rank aux tag ZR has wrong array size" << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				return
+					(static_cast<uint64_t>(data[8]) << 56) |
+					(static_cast<uint64_t>(data[9]) << 48) |
+					(static_cast<uint64_t>(data[10]) << 40) |
+					(static_cast<uint64_t>(data[11]) << 32) |
+					(static_cast<uint64_t>(data[12]) << 24) |
+					(static_cast<uint64_t>(data[13]) << 16) |
+					(static_cast<uint64_t>(data[14]) <<  8) |
+					(static_cast<uint64_t>(data[15]) <<  0);
+			}
 
 			static uint8_t const * getAuxEnd(
 				uint8_t const * E, uint64_t const blocksize
