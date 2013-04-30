@@ -978,7 +978,7 @@ namespace libmaus
 				ostr << idToChromosome(getRefID(E),chromosomes) << "\t";
 				ostr << getPos(E)+1 << "\t";
 				ostr << getMapQ(E) << "\t";
-				ostr << getCigarString(E) << "\t";
+				ostr << (getNCigar(E) ? getCigarString(E) : std::string("*")) << "\t";
 				
 				if ( getRefID(E) == getNextRefID(E) && getRefID(E) >= 0 )
 					ostr << "=\t";
