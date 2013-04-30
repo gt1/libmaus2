@@ -144,15 +144,20 @@ namespace libmaus
 
 						if ( !token.size() || token.size() < 3 || token[2] != ':' )
 						{
-							::libmaus::exception::LibMausException se;
-							se.getStream() << "Malformed SAM header line: " << line << std::endl;
-							se.finish();
-							throw se;
+							if ( type != "CO" )
+							{
+								::libmaus::exception::LibMausException se;
+								se.getStream() << "Malformed SAM header line: " << line << std::endl;
+								se.finish();
+								throw se;
+							}
 						}
-						
-						std::string const key = token.substr(0,2);
-						std::string const value = token.substr(3);
-						M [ key ] = value;
+						else
+						{
+							std::string const key = token.substr(0,2);
+							std::string const value = token.substr(3);
+							M [ key ] = value;
+						}
 					}
 				}
 			}
