@@ -35,6 +35,9 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef libmaus::bambam::BamAlignment const * alignment_ptr_type;
+
+			typedef libmaus::bambam::BamAlignmentSortingCircularHashEntryOverflow overflow_type;
+			typedef libmaus::hashing::CircularHash<overflow_type> cht;
 		
 			enum circ_hash_collator_state {
 				state_sortbuffer_flushing_intermediate,
@@ -86,11 +89,9 @@ namespace libmaus
 				return out.str();
 			}
 
-
-			template<typename cht>
 			bool isPair(cht const & CH, libmaus::bambam::BamAlignment const & algn, uint32_t const hv)
 			{
-				std::pair<typename cht::pos_type,typename cht::entry_size_type> const hentry = CH.getEntry(hv);
+				std::pair<cht::pos_type,cht::entry_size_type> const hentry = CH.getEntry(hv);
 
 				// decode length of name in hash entry
 				unsigned int const hrnl = ::libmaus::bambam::BamAlignmentDecoderBase::getLReadNameWrapped(
@@ -148,12 +149,10 @@ namespace libmaus
 			unsigned int mergealgnptr;
 			std::string const tmpfilename;
 
-			typedef libmaus::bambam::BamAlignmentSortingCircularHashEntryOverflow overflow_type;
 			overflow_type NCHEO;
 
 			libmaus::autoarray::AutoArray<uint8_t> T;
 			
-			typedef libmaus::hashing::CircularHash<overflow_type> cht;
 			cht CH;
 
 			libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type mergeinput;
