@@ -163,7 +163,8 @@ namespace libmaus
 				
 				buffer.reset();
 				
-				uint32_t const bin = reg2bin(pos,endpos(pos,cigar,cigarlen));
+				uint32_t const bin = 
+					(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) ? 0 : reg2bin(pos,endpos(pos,cigar,cigarlen));
 				
 				assert ( namelen+1 < (1ul << 8) );
 				assert ( mapq < (1ul << 8) );
