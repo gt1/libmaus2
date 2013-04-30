@@ -23,6 +23,7 @@
 #include <libmaus/bambam/EncoderBase.hpp>
 #include <libmaus/bambam/CigarStringParser.hpp>
 #include <libmaus/util/PutObject.hpp>
+#include <libmaus/bambam/BamFlagBase.hpp>
 	
 namespace libmaus
 {
