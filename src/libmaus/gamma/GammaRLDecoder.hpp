@@ -29,6 +29,7 @@
 #include <libmaus/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus/huffman/IndexLoader.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
+#include <libmaus/aio/SynchronousGenericInput.hpp>
 
 namespace libmaus
 {
