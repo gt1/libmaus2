@@ -218,6 +218,7 @@ namespace libmaus
 			
 			OutputBufferEntry const * process()
 			{
+				/** reset output buffer */
 				if ( outputBuffer.fsingle )
 				{
 					outputBuffer.fsingle = false;
@@ -249,6 +250,7 @@ namespace libmaus
 					outputBuffer.blocksizeb = 0;
 				}
 			
+				/* run fsm until we have obtained a result or reached the end of the stream */
 				while ( 
 					state != state_done && state != state_failed
 					&&
