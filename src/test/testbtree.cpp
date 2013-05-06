@@ -69,7 +69,7 @@ void testRandomType()
 }
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
-struct BTreeNode
+struct BTreeAbstractNode
 {
 	typedef _key_type key_type;
 	static unsigned int const leaf_size = _leaf_size;
@@ -79,10 +79,10 @@ struct BTreeNode
 	typedef _inner_node_size_type inner_node_size_type;
 	typedef _order_type order_type;
 	
-	typedef BTreeNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> base_type;
+	typedef BTreeAbstractNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> base_type;
 	typedef base_type this_type;
 
-	virtual ~BTreeNode()
+	virtual ~BTreeAbstractNode()
 	{
 	
 	}
@@ -105,11 +105,11 @@ struct BTreeNode
 };
 
 /* the btree leaf code below does not work for leaf size < 3, so define a private constructor to prohibit instantiation of the class for leaf_size < 3 */
-template<unsigned int leaf_size> struct BTreeNodeBase {};
-template<> struct BTreeNodeBase<0> { private: BTreeNodeBase() {} };
+template<unsigned int leaf_size> struct StaticParameterCheck {};
+template<> struct StaticParameterCheck<0> { private: StaticParameterCheck() {} };
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
-struct BTreeLeaf : public BTreeNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>, public BTreeNodeBase< (_leaf_size > 2) ? 1 : 0 >
+struct BTreeLeaf : public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>, public StaticParameterCheck< (_leaf_size > 2) ? 1 : 0 >
 {
 	typedef _key_type key_type;
 	static unsigned int const leaf_size = _leaf_size;
@@ -119,7 +119,7 @@ struct BTreeLeaf : public BTreeNode<_key_type,_leaf_size,_inner_node_size,_leaf_
 	typedef _inner_node_size_type inner_node_size_type;
 	typedef _order_type order_type;
 	
-	typedef BTreeNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> base_type;
+	typedef BTreeAbstractNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> base_type;
 	typedef BTreeLeaf<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> this_type;
 	
 	leaf_size_type k;
@@ -222,8 +222,8 @@ struct BTreeLeaf : public BTreeNode<_key_type,_leaf_size,_inner_node_size,_leaf_
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
 struct BTreeInnerNode :
-	public BTreeNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>, 
-	public BTreeNodeBase< ((_leaf_size > 2) && (_inner_node_size > 2)) ? 1 : 0 >
+	public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>, 
+	public StaticParameterCheck< ((_leaf_size > 2) && (_inner_node_size > 2)) ? 1 : 0 >
 {
 	typedef _key_type key_type;
 	static unsigned int const leaf_size = _leaf_size;
@@ -234,7 +234,7 @@ struct BTreeInnerNode :
 	typedef _inner_node_size_type inner_node_size_type;
 	typedef _order_type order_type;
 	
-	typedef BTreeNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> base_type;
+	typedef BTreeAbstractNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> base_type;
 	typedef BTreeInnerNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> this_type;
 	
 	inner_node_size_type k;
@@ -428,7 +428,7 @@ struct BTree
 	typedef _order_type order_type;
 	
 	typedef BTree<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> this_type;
-	typedef BTreeNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> node_type;
+	typedef BTreeAbstractNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> node_type;
 	typedef BTreeLeaf<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> leaf_type;
 	typedef BTreeInnerNode<key_type,leaf_size,inner_node_size,leaf_size_type,inner_node_size_type,order_type> inner_node_type;
 	
@@ -507,7 +507,7 @@ void testLeafInsert()
 	for ( unsigned int j = 0; j <= leaf_size; ++ j )
 	{
 		BTreeLeaf<unsigned int, leaf_size, 4, uint8_t, uint8_t> leaf;
-		BTreeNode<unsigned int, leaf_size, 4, uint8_t, uint8_t> * newnode = 0;
+		BTreeAbstractNode<unsigned int, leaf_size, 4, uint8_t, uint8_t> * newnode = 0;
 		unsigned int newkey;
 	
 		for ( unsigned int i = 0; i < leaf_size; ++i )
