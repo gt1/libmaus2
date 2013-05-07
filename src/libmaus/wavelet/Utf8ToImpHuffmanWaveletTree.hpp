@@ -64,7 +64,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				if ( ! htree.get() )
@@ -90,7 +90,7 @@ namespace libmaus
 					
 					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 					{
@@ -131,7 +131,7 @@ namespace libmaus
 					}
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
@@ -459,7 +459,7 @@ namespace libmaus
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t np = 0; np < static_cast<int64_t>(nodepacks.size()); ++np )
 					{
@@ -584,7 +584,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				if ( ! htree.get() )
@@ -610,7 +610,7 @@ namespace libmaus
 					
 					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 					{
@@ -648,7 +648,7 @@ namespace libmaus
 					}
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
@@ -967,7 +967,7 @@ namespace libmaus
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t np = 0; np < static_cast<int64_t>(nodepacks.size()); ++np )
 					{
@@ -1092,7 +1092,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				::libmaus::huffman::EncodeTable<1> ET(htree);
@@ -1137,7 +1137,7 @@ namespace libmaus
 					}
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
@@ -1474,7 +1474,7 @@ namespace libmaus
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t np = 0; np < static_cast<int64_t>(nodepacks.size()); ++np )
 					{
@@ -1601,7 +1601,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
 				::libmaus::huffman::EncodeTable<1> ET(htree);
@@ -1667,7 +1667,7 @@ namespace libmaus
 					}
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
@@ -2021,7 +2021,7 @@ namespace libmaus
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
-					#pragma omp parallel for
+					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t np = 0; np < static_cast<int64_t>(nodepacks.size()); ++np )
 					{

@@ -93,6 +93,7 @@ struct BTreeAbstractNode : public StaticParameterCheck< ((_leaf_size > 2) && (_i
 
 	virtual bool insert(key_type const key, base_type * & newleaf, key_type & inskey) = 0;
 	virtual uint64_t size() const = 0;
+	virtual std::ostream & print(std::ostream & out) const = 0;
 	
 	virtual void fillVector(std::vector<key_type> & V) const = 0;
 	virtual std::vector<key_type> fillVector() const
@@ -218,6 +219,22 @@ struct BTreeLeaf : public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_siz
 	{
 		for ( uint64_t i = 0; i < k; ++i )
 			V.push_back(keys[i]);
+	}
+
+	std::ostream & print(std::ostream & out) const
+	{
+		out << "BTreeLeaf(";
+		
+		for ( uint64_t i = 0; i < k; ++i )
+		{
+			out << keys[i];
+			if ( i+1 < k )
+				out << ",";
+		}
+		
+		out << ")";
+
+		return out;	
 	}
 };
 
@@ -396,22 +413,28 @@ struct BTreeInnerNode : public BTreeAbstractNode<_key_type,_leaf_size,_inner_nod
 		}
 		children[k]->fillVector(V);
 	}
+
+	std::ostream & print(std::ostream & out) const
+	{
+		out << "BTreeInnerNode(";
+		
+		for ( uint64_t i = 0; i < k; ++i )
+		{
+			children[i]->print(out);
+			out << "," << keys[i] << ",";
+		}
+		children[k]->print(out);
+		
+		out << ")";
+
+		return out;	
+	}
 };
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type>
-std::ostream & operator<<(std::ostream & out, BTreeLeaf<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type> const & leaf)
+std::ostream & operator<<(std::ostream & out, BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type> const & node)
 {
-	out << "BTreeLeaf(";
-	
-	for ( uint64_t i = 0; i < leaf.k; ++i )
-	{
-		out << leaf.keys[i];
-		if ( i+1 < leaf.k )
-			out << ",";
-	}
-	
-	out << ")";
-	return out;
+	return node.print(out);
 }
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
@@ -500,6 +523,17 @@ struct BTree
 	}
 };
 
+template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type>
+std::ostream & operator<<(std::ostream & out, BTree<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type> const & tree)
+{
+	out << "BTree(";
+	if ( tree.root )
+		out << (*(tree.root));
+	out << ")";
+	return out;
+}
+
+
 template<unsigned int leaf_size>
 void testLeafInsert()
 {
@@ -507,7 +541,7 @@ void testLeafInsert()
 	{
 		BTreeLeaf<unsigned int, leaf_size, 4, uint8_t, uint8_t> leaf;
 		BTreeAbstractNode<unsigned int, leaf_size, 4, uint8_t, uint8_t> * newnode = 0;
-		unsigned int newkey;
+		unsigned int newkey = 0;
 	
 		for ( unsigned int i = 0; i < leaf_size; ++i )
 			leaf.insert(2*i+1,newnode,newkey);
@@ -556,6 +590,8 @@ void testBTreeInsert()
 		// std::cerr << "inserting " << i << std::endl;
 		btree.insert(i);
 		assert ( btree.size() == i+1 );
+		
+		// std::cerr << btree << std::endl;
 
 		std::set<unsigned int> S = btree.fillSet();
 		assert ( *(S.begin()) == 0 && *(S.rbegin()) == i );
