@@ -68,8 +68,12 @@ void testRandomType()
 	testRandom < key_type, std::greater <key_type> >();
 }
 
+/* the btree code below does not work for leaf or inner node size < 3, so define a private constructor to prohibit instantiation of the class for leaf_size < 3 */
+template<unsigned int leaf_size> struct StaticParameterCheck {};
+template<> struct StaticParameterCheck<0> { private: StaticParameterCheck() {} };
+
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
-struct BTreeAbstractNode
+struct BTreeAbstractNode : public StaticParameterCheck< ((_leaf_size > 2) && (_inner_node_size > 2)) ? 1 : 0 >
 {
 	typedef _key_type key_type;
 	static unsigned int const leaf_size = _leaf_size;
@@ -105,12 +109,9 @@ struct BTreeAbstractNode
 	}
 };
 
-/* the btree leaf code below does not work for leaf size < 3, so define a private constructor to prohibit instantiation of the class for leaf_size < 3 */
-template<unsigned int leaf_size> struct StaticParameterCheck {};
-template<> struct StaticParameterCheck<0> { private: StaticParameterCheck() {} };
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
-struct BTreeLeaf : public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>, public StaticParameterCheck< (_leaf_size > 2) ? 1 : 0 >
+struct BTreeLeaf : public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>
 {
 	typedef _key_type key_type;
 	static unsigned int const leaf_size = _leaf_size;
@@ -238,9 +239,7 @@ struct BTreeLeaf : public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_siz
 };
 
 template<typename _key_type, unsigned int _leaf_size, unsigned int _inner_node_size, typename _leaf_size_type, typename _inner_node_size_type, typename _order_type = std::less<_key_type> >
-struct BTreeInnerNode :
-	public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>, 
-	public StaticParameterCheck< ((_leaf_size > 2) && (_inner_node_size > 2)) ? 1 : 0 >
+struct BTreeInnerNode : public BTreeAbstractNode<_key_type,_leaf_size,_inner_node_size,_leaf_size_type,_inner_node_size_type,_order_type>
 {
 	typedef _key_type key_type;
 	static unsigned int const leaf_size = _leaf_size;
