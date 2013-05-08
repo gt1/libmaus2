@@ -37,7 +37,9 @@ namespace libmaus
 			typedef libmaus::bambam::BamAlignment const * alignment_ptr_type;
 
 			typedef libmaus::bambam::BamAlignmentSortingCircularHashEntryOverflow overflow_type;
+			typedef overflow_type::unique_ptr_type overflow_ptr_type;
 			typedef libmaus::hashing::CircularHash<overflow_type> cht;
+			typedef cht::unique_ptr_type cht_ptr;
 		
 			enum circ_hash_collator_state {
 				state_sortbuffer_flushing_intermediate,
@@ -149,11 +151,9 @@ namespace libmaus
 			unsigned int mergealgnptr;
 			std::string const tmpfilename;
 
-			overflow_type NCHEO;
-
+			overflow_ptr_type NCHEO;			
+			cht_ptr CH;
 			libmaus::autoarray::AutoArray<uint8_t> T;
-			
-			cht CH;
 
 			libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type mergeinput;
 			circ_hash_collator_state state;
@@ -194,7 +194,7 @@ namespace libmaus
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
 			: Pbamdec(new libmaus::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
-			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading), inputcallback(0),
+			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
 			  excludeflags(rexcludeflags), cbputbackflag(false)
 			{
 			
@@ -208,7 +208,7 @@ namespace libmaus
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			)
 			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
-			  NCHEO(tmpfilename,sortbufsize), CH(NCHEO,hlog), state(state_reading), inputcallback(0),
+			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
 			  excludeflags(rexcludeflags), cbputbackflag(false)
 			{
 			
@@ -259,7 +259,7 @@ namespace libmaus
 				{
 					if ( state == state_sortbuffer_flushing_intermediate )
 					{
-						NCHEO.flush();								
+						NCHEO->flush();								
 						state = state_sortbuffer_flushing_intermediate_readout;
 					}
 					if ( state == state_sortbuffer_flushing_intermediate_readout )
@@ -268,7 +268,7 @@ namespace libmaus
 						uint64_t length = 0;
 						
 						// this call produces pairs in steps
-						if ( NCHEO.getFlushBufEntry(ptr,length) )
+						if ( NCHEO->getFlushBufEntry(ptr,length) )
 						{
 							// read first
 							if ( ! outputBuffer.Da )
@@ -289,7 +289,7 @@ namespace libmaus
 					}
 					else if ( state == state_sortbuffer_flushing_final )
 					{
-						NCHEO.flush();
+						NCHEO->flush();
 						state = state_sortbuffer_flushing_final_readout;
 					}
 					else if ( state == state_sortbuffer_flushing_final_readout )
@@ -298,7 +298,7 @@ namespace libmaus
 						uint64_t length = 0;
 						
 						// as above, this produces pairs in steps
-						if ( NCHEO.getFlushBufEntry(ptr,length) )
+						if ( NCHEO->getFlushBufEntry(ptr,length) )
 						{
 							// read first
 							if ( ! outputBuffer.Da )
@@ -319,7 +319,9 @@ namespace libmaus
 					}
 					else if ( state == state_setup_merging )
 					{
-						mergeinput = UNIQUE_PTR_MOVE(NCHEO.constructMergeInput());
+						CH.reset();
+						mergeinput = UNIQUE_PTR_MOVE(NCHEO->constructMergeInput());
+						NCHEO.reset();
 						state = state_merging;			
 					}
 					else if ( state == state_reading )
@@ -353,32 +355,32 @@ namespace libmaus
 								uint32_t const hv = algn.hash32();
 
 								// see if we found a pair
-								if ( CH.hasEntry(hv) && isPair(CH,algn,hv) )
+								if ( CH->hasEntry(hv) && isPair(*CH,algn,hv) )
 								{
-									std::pair<cht::pos_type,cht::entry_size_type> const hentry = CH.getEntry(hv);
+									std::pair<cht::pos_type,cht::entry_size_type> const hentry = CH->getEntry(hv);
 									
 									if ( algn.isRead1() )
 									{
 										outputBuffer.Da = data;
 										outputBuffer.blocksizea = datalen;
-										outputBuffer.Db = CH.getEntryData(hentry,T);
+										outputBuffer.Db = CH->getEntryData(hentry,T);
 										outputBuffer.blocksizeb = hentry.second;
 										outputBuffer.fpair = true;
 									}
 									else
 									{
-										outputBuffer.Da = CH.getEntryData(hentry,T);
+										outputBuffer.Da = CH->getEntryData(hentry,T);
 										outputBuffer.blocksizea = hentry.second;
 										outputBuffer.Db = data;
 										outputBuffer.blocksizeb = datalen;
 										outputBuffer.fpair = true;
 									}
 									
-									CH.eraseEntry(hv);
+									CH->eraseEntry(hv);
 								}
 								else
 								{
-									if ( ! CH.putEntry(data,datalen,hv) )
+									if ( ! CH->putEntry(data,datalen,hv) )
 									{
 										bamdec.putback();
 										if ( inputcallback )
@@ -390,7 +392,7 @@ namespace libmaus
 						}
 						else
 						{
-							if ( !CH.flush() )
+							if ( !CH->flush() )
 								state = state_sortbuffer_flushing_intermediate;
 							else
 								state = state_sortbuffer_flushing_final;

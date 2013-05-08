@@ -31,6 +31,10 @@ namespace libmaus
 	{
 		struct BamAlignmentSortingCircularHashEntryOverflow
 		{
+			typedef BamAlignmentSortingCircularHashEntryOverflow this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+					
 			std::string const fn;
 			libmaus::aio::CheckedOutputStream COS;
 			libmaus::autoarray::AutoArray<uint64_t> B;
@@ -67,6 +71,7 @@ namespace libmaus
 				flush();
 				COS.flush();
 				COS.close();
+				B.release();
 				return UNIQUE_PTR_MOVE(libmaus::bambam::SnappyAlignmentMergeInput::construct(index,fn));
 			}
 			

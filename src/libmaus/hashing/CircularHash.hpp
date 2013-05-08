@@ -30,6 +30,10 @@ namespace libmaus
 		struct CircularHash
 		{
 			typedef _overflow_type overflow_type;
+			typedef CircularHash<overflow_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 			typedef uint32_t pos_type;
 			typedef uint32_t entry_size_type;
 			typedef uint32_t hash_type;
