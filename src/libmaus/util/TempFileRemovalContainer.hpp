@@ -355,21 +355,27 @@ namespace libmaus
 				sighuphandler = signal(SIGHUP,sigHupHandler);
 				atexit(cleanup);
 			}
-
-			static void setup()
+			
+			static void setupUnlocked()
 			{
-				lock.lock();
 				if ( ! setupComplete )
 				{
 					setupTempFileRemovalRoutines();
 					setupComplete = true;
-				}
+				}			
+			}
+
+			static void setup()
+			{
+				lock.lock();
+				setupUnlocked();
 				lock.unlock();
 			}
 			
 			static void addTempFile(std::string const & filename)
 			{
 				lock.lock();
+				setupUnlocked();
 				tmpfilenames.push_back(filename);
 				lock.unlock();
 			}
