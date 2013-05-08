@@ -169,7 +169,8 @@ namespace libmaus
 			
 			static void freeAligned(N * alignedp)
 			{
-				delete [] ((uint8_t **)((alignedp)))[-1];
+				if ( alignedp )
+					delete [] ((uint8_t **)((alignedp)))[-1];
 			}
 		};
 
