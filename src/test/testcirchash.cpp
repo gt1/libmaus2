@@ -27,10 +27,15 @@
 void bamcollate(libmaus::util::ArgInfo const & arginfo)
 {
 	uint32_t const excludeflags = libmaus::bambam::BamFlagBase::stringToFlags(arginfo.getValue<std::string>("exclude","SECONDARY,QCFAIL"));
-	libmaus::bambam::CircularHashCollatingBamDecoder CHCBD(std::cin,false /* put rank */,"tmpfile",excludeflags);
+	libmaus::bambam::BamCircularHashCollatingBamDecoder CHCBD(
+		std::cin,
+		"tmpfile",
+		excludeflags,
+		false /* put rank */
+	);
 	libmaus::bambam::CircularHashCollatingBamDecoder::OutputBufferEntry const * ob = 0;
 
-	libmaus::bambam::BamHeader const & bamheader = CHCBD.bamdec.getHeader();
+	libmaus::bambam::BamHeader const & bamheader = CHCBD.getHeader();
 	std::string const headertext(bamheader.text);
 
 	// add PG line to header
@@ -202,18 +207,33 @@ void bamtofastqCollating(libmaus::util::ArgInfo const & arginfo)
 
 	if ( inputformat == "bam" )
 	{
-		libmaus::bambam::BamCircularHashCollatingBamDecoder CHCBD(std::cin,false /* put rank */,tmpfilename,excludeflags);
+		libmaus::bambam::BamCircularHashCollatingBamDecoder CHCBD(
+			std::cin,
+			tmpfilename,
+			excludeflags,
+			false /* put rank */
+			);
 		bamtofastqCollating(arginfo,CHCBD);
 	}
 	else if ( inputformat == "sam" )
 	{
-		libmaus::bambam::ScramCircularHashCollatingBamDecoder CHCBD("-","r","",false /* put rank */,tmpfilename,excludeflags);
+		libmaus::bambam::ScramCircularHashCollatingBamDecoder CHCBD(
+			"-","r","",
+			tmpfilename,
+			excludeflags,
+			false /* put rank */
+		);
 		bamtofastqCollating(arginfo,CHCBD);
 	}
 	else if ( inputformat == "cram" )
 	{
 		std::string const reference = arginfo.getValue<std::string>("reference","");
-		libmaus::bambam::ScramCircularHashCollatingBamDecoder CHCBD("-","rc",reference,false/* put rank */,tmpfilename,excludeflags);
+		libmaus::bambam::ScramCircularHashCollatingBamDecoder CHCBD(
+			"-","rc",reference,
+			tmpfilename,
+			excludeflags,
+			false/* put rank */
+		);
 		bamtofastqCollating(arginfo,CHCBD);
 	}
 }

@@ -53,6 +53,24 @@ namespace libmaus
 				state_failed
 			};
 
+			struct OutputBufferEntry
+			{
+				uint8_t const * Da;
+				uint64_t blocksizea;
+				uint8_t const * Db;
+				uint64_t blocksizeb;
+				
+				bool fsingle;
+				bool fpair;
+				bool forphan1;
+				bool forphan2;
+				
+				OutputBufferEntry()
+				: Da(0), blocksizea(0), Db(0), blocksizeb(0), fsingle(false), fpair(false),
+				  forphan1(false), forphan2(false)
+				{}
+			};
+
 			static std::string stateToString(circ_hash_collator_state state)
 			{
 				std::ostringstream out;
@@ -91,6 +109,7 @@ namespace libmaus
 				return out.str();
 			}
 
+			protected:
 			bool isPair(cht const & CH, libmaus::bambam::BamAlignment const & algn, uint32_t const hv)
 			{
 				std::pair<cht::pos_type,cht::entry_size_type> const hentry = CH.getEntry(hv);
@@ -160,24 +179,6 @@ namespace libmaus
 			
 			CollatingBamDecoderAlignmentInputCallback * inputcallback;
 			
-			struct OutputBufferEntry
-			{
-				uint8_t const * Da;
-				uint64_t blocksizea;
-				uint8_t const * Db;
-				uint64_t blocksizeb;
-				
-				bool fsingle;
-				bool fpair;
-				bool forphan1;
-				bool forphan2;
-				
-				OutputBufferEntry()
-				: Da(0), blocksizea(0), Db(0), blocksizeb(0), fsingle(false), fpair(false),
-				  forphan1(false), forphan2(false)
-				{}
-			};
-			
 			OutputBufferEntry outputBuffer;
 			libmaus::bambam::BamAlignment outputAlgn[2];
 			
@@ -214,6 +215,7 @@ namespace libmaus
 			
 			}
 			
+			public:
 			virtual ~CircularHashCollatingBamDecoder() {}
 			
 			OutputBufferEntry const * process()
@@ -574,9 +576,9 @@ namespace libmaus
 			
 			BamCircularHashCollatingBamDecoder(
 				std::istream & in,
-				bool const rputrank,
 				std::string const & rtmpfilename,
-				uint32_t const rexcludeflags,
+				uint32_t const rexcludeflags = 0,
+				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			) : BamDecoderWrapper(in,rputrank), 
@@ -597,9 +599,9 @@ namespace libmaus
 				std::string const & filename,
 				std::string const & mode,
 				std::string const & reference,
-				bool const rputrank,
 				std::string const & rtmpfilename,
-				uint32_t const rexcludeflags,
+				uint32_t const rexcludeflags = 0,
+				bool const rputrank = false,
 				unsigned int const hlog = 18,
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			) : ScramDecoderWrapper(filename,mode,reference,rputrank), 
