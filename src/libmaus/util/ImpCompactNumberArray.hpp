@@ -102,6 +102,11 @@ namespace libmaus
 				return get(i);
 			}
 			
+			uint64_t size() const
+			{
+				return IHWT->n;
+			}
+			
 			uint64_t get(uint64_t const i) const
 			{
 				std::pair<int64_t,uint64_t> const P = IHWT->inverseSelect(i);

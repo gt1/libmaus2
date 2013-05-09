@@ -657,7 +657,8 @@ libmausrmq_includedir=$(includedir)/libmaus/rmq
 libmausrmq_include_HEADERS=\
 	libmaus/rmq/FischerSystematicSuccinctRMQ.hpp \
 	libmaus/rmq/QuickDynamicRMQ.hpp \
-	libmaus/rmq/CartesianTree.hpp
+	libmaus/rmq/CartesianTree.hpp \
+	libmaus/rmq/RMMTree.hpp
 
 libmausnetwork_includedir=$(includedir)/libmaus/network
 libmausnetwork_include_HEADERS=\
