@@ -21,6 +21,7 @@
 #define BITSPERNUM_HPP
 
 #include <sys/types.h>
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
