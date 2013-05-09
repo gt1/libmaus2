@@ -339,7 +339,7 @@ namespace libmaus
 				assert ( mini == dmini );
 				#endif
 				
-				return minv;
+				return mini;
 			}
 		};
 	}
