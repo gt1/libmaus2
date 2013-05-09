@@ -32,6 +32,7 @@
 #include <libmaus/lf/LF.hpp>
 #include <libmaus/util/MemUsage.hpp>
 #include <libmaus/wavelet/Utf8ToImpHuffmanWaveletTree.hpp>
+#include <libmaus/util/FileTempFileContainer.hpp>
 
 void testUtf8String(std::string const & fn)
 {
@@ -82,7 +83,8 @@ void testUtf8Bwt(std::string const & fn)
 	::libmaus::huffman::HuffmanTreeNode::shared_ptr_type htree = ::libmaus::huffman::HuffmanBase::createTree(chist);
 
 	::libmaus::util::TempFileNameGenerator tmpgen(fn+"_tmp",3);
-	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffman IEWGH(htree.get(),tmpgen);
+	::libmaus::util::FileTempFileContainer tmpcnt(tmpgen);
+	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffman IEWGH(htree.get(),tmpcnt);
 	
 	IEWGH.putSymbol(us[us.size()-1]);
 	for ( uint64_t i = 0; i < SA.size(); ++i )
@@ -197,8 +199,10 @@ int main(int argc, char * argv[])
 		::libmaus::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const fn = arginfo.getRestArg<std::string>(0);
+
+		testUtf8BlockIndexDecoder(fn); // also creates index file
+		testUtf8Bwt(fn);
 		
-		// testUtf8BlockIndexDecoder(fn); // also creates index file
 		::libmaus::wavelet::Utf8ToImpHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
 		/*
 		testUtf8Bwt(fn);

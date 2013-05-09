@@ -23,6 +23,8 @@
 
 #include <libmaus/LibMausConfig.hpp>
 #include <libmaus/types/types.hpp>
+#include <sstream>
+#include <iomanip>
 
 #if defined(LIBMAUS_HAVE_WINDOWS_H)
 #include <windows.h>
@@ -36,10 +38,79 @@ namespace libmaus
 {
 	namespace timing
 	{
+		struct RealTimeClockBase
+		{
+			static std::string formatTime(double dsecs)
+			{
+				uint64_t days = 0;
+				uint64_t hours = 0;
+				uint64_t minutes = 0;
+				uint64_t secs = 0;
+				bool printdays = false;
+				bool printhours = false;
+				bool printminutes = false;
+				bool printsecs = false;
+				
+				if ( static_cast<uint64_t>(dsecs) >= 60*60*24 )
+				{
+					days = static_cast<uint64_t>(dsecs)/(60*60*24);
+					dsecs -= days*60ull*60ull*24ull;
+					printdays = true;
+					printhours = true;
+					printminutes = true;
+					printsecs = true;
+				}
+				if ( static_cast<uint64_t>(dsecs) >= 60*60 )
+				{
+					hours = static_cast<uint64_t>(dsecs)/(60*60);
+					dsecs -= hours*60ull*60ull;
+					printhours = true;
+					printminutes = true;
+					printsecs = true;
+				}
+				if ( static_cast<uint64_t>(dsecs) >= 60 )
+				{
+					minutes = static_cast<uint64_t>(dsecs)/(60);
+					dsecs -= minutes*60ull;
+					printminutes = true;
+					printsecs = true;
+				}
+				if ( static_cast<uint64_t>(dsecs) >= 1 )
+				{
+					secs = static_cast<uint64_t>(dsecs);
+					dsecs -= secs;
+					printsecs = true;
+				}
+				std::ostringstream timestr;
+				timestr << std::setfill('0');
+				if ( printdays )
+					timestr << days << ":";
+				if ( printhours )
+					timestr << std::setw(2) << hours << ":";
+				if ( printminutes )
+					timestr << std::setw(2) << minutes << ":";
+				if ( printsecs )
+					timestr << std::setw(2) << secs << ":";
+				
+				unsigned int ddigs = 0;
+				unsigned int const maxddigs = 8;
+				timestr << std::setw(0);
+				while ( dsecs && (ddigs++ < maxddigs) )
+				{
+					dsecs *= 10;
+					unsigned int dig = static_cast<unsigned int>(dsecs);
+					timestr << dig;
+					dsecs -= dig;
+				}
+
+				return timestr.str();
+			}
+		};
+
 #if defined(__linux) || defined(__FreeBSD__) || defined(__APPLE__)
 		typedef uint64_t rtc_u_int64_t;
 
-		struct RealTimeClock
+		struct RealTimeClock : public RealTimeClockBase
 		{
 			private:
 			struct timeval started;
@@ -96,7 +167,7 @@ namespace libmaus
 #else
 		typedef unsigned __int64 rtc_u_int64_t;
 
-		struct RealTimeClock 
+		struct RealTimeClock : public RealTimeClockBase
 		{
 			private:
 			LARGE_INTEGER freq;

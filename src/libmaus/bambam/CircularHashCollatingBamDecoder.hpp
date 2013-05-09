@@ -565,6 +565,11 @@ namespace libmaus
 			{
 				return bamdec.getRank();
 			}
+
+			void disableValidation()
+                        {
+                        	bamdec.disableValidation();
+			}                                                                                
 		};
 
 		struct BamCircularHashCollatingBamDecoder :
