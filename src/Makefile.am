@@ -418,7 +418,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/Utf8DecoderWrapper.hpp \
 	libmaus/util/TempFileContainer.hpp \
 	libmaus/util/FileTempFileContainer.hpp \
-	libmaus/util/MemTempFileContainer.hpp
+	libmaus/util/MemTempFileContainer.hpp \
+	libmaus/util/ImpCompactNumberArray.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
