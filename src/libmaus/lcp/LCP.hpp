@@ -664,7 +664,19 @@ namespace libmaus
 				::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type U;
 				::libmaus::rank::ERank222B::unique_ptr_type Urank;
 				::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type LLCP;
+				
+				typedef libmaus::util::ConstIterator<LCPResult,uint64_t> const_iterator;
+				
+				const_iterator begin() const
+				{
+					return const_iterator(this,0);
+				}
 
+				const_iterator end() const
+				{
+					return const_iterator(this,WLCP->size()-1);
+				}
+				
 				void serialise(std::ostream & out) const
 				{
 					WLCP->serialize(out);
@@ -678,15 +690,7 @@ namespace libmaus
 				
 				static unique_ptr_type load(std::string const & filename)
 				{
-					std::ifstream istr(filename.c_str(),std::ios::binary);
-					
-					if ( ! istr.is_open() )
-					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Failed to open file " << filename << " in LCPResult::load()" << std::endl;
-						se.finish();
-						throw se;
-					}
+					libmaus::aio::CheckedInputStream istr(filename);
 					
 					unique_ptr_type P ( new this_type(istr) );
 					
@@ -750,6 +754,11 @@ namespace libmaus
 						return (*WLCP)[i];
 					else
 						return (*LLCP) [ Urank->rank1(i)-1 ];
+				}
+				
+				uint64_t get(uint64_t const i) const
+				{
+					return (*this)[i];
 				}
 				
 				void setupLargeValueVector(uint64_t const n, small_elem_type const unset)
