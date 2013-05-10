@@ -39,6 +39,7 @@ namespace libmaus
 			unsigned int const numlevels;
 			libmaus::autoarray::AutoArray< libmaus::bitio::CompactArray::unique_ptr_type > I;
 			libmaus::autoarray::AutoArray< libmaus::util::ImpCompactNumberArray::unique_ptr_type > C;
+			libmaus::autoarray::AutoArray< uint64_t > S;
 
 			uint64_t operator()(unsigned int const level, uint64_t const i) const
 			{
@@ -55,7 +56,7 @@ namespace libmaus
 				
 				while ( in > 1 )
 				{
-					in = ( in + k - 1 ) / k;
+					in = ( in + k - 1 ) >> klog;
 					level += 1;
 				}
 
@@ -71,7 +72,7 @@ namespace libmaus
 				libmaus::util::Histogram::unique_ptr_type phist(new libmaus::util::Histogram);
 				libmaus::util::Histogram & hist = *phist;
 
-				uint64_t const full = in/k;
+				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
 			
 				for ( uint64_t i = 0; i < full; ++i )
@@ -129,7 +130,7 @@ namespace libmaus
 				libmaus::util::ImpCompactNumberArrayGenerator & impgen
 			)
 			{
-				uint64_t const full = in/k;
+				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
 			
 				for ( uint64_t i = 0; i < full; ++i )
@@ -169,14 +170,14 @@ namespace libmaus
 			}
 
 			RMMTree(base_layer_type const & rB, uint64_t const rn)
-			: B(rB), n(rn), numlevels(computeNumLevels(n)), I(numlevels), C(numlevels)
+			: B(rB), n(rn), numlevels(computeNumLevels(n)), I(numlevels), C(numlevels), S(numlevels+1)
 			{
 				uint64_t in = n;
 				unsigned int level = 0;
 				
 				while ( in > 1 )
 				{
-					uint64_t const out = (in+k-1)/k;
+					uint64_t const out = (in+k-1) >> klog;
 					
 					// minimal indices for next level
 					I[level] = UNIQUE_PTR_MOVE(libmaus::bitio::CompactArray::unique_ptr_type(
@@ -198,9 +199,13 @@ namespace libmaus
 						
 					C[level] = UNIQUE_PTR_MOVE(impgen.createFinal());
 					
-					in = (in+k-1)/k;
+					in = out;
 					++level;
 				}
+				
+				S[0] = B.size();
+				for ( uint64_t i = 0; i < numlevels; ++i )
+					S[i+1] = I[i]->size();
 				
 				#if defined(RMMTREEDEBUG)
 				for ( uint64_t kk = k, level = 0; kk < n; kk *= k, ++level )
@@ -228,6 +233,66 @@ namespace libmaus
 					}
 				}
 				#endif
+			}
+			
+			/*
+			 * next position of next smaller value after index i (or n if there is no such position)
+			 */
+			uint64_t nsv(uint64_t const i) const
+			{
+				// reference value
+				uint64_t const rval = B[i];
+
+				// tree position of next smaller value (if any)
+				unsigned int nlevel = 0;
+				uint64_t ni = i;
+				uint64_t nval = rval;
+
+				uint64_t ii = i;
+				
+				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
+				{
+					while ( ++ii & kmask && ii < S[level] )
+					{
+						uint64_t t;
+						if ( (t=(*this)(level,ii)) < rval )
+						{
+							nlevel = level;
+							nval = t;
+							ni = ii;
+							goto nsvloopdone;
+						}
+					}
+					--ii;
+
+					ii >>= klog;
+				}
+				nsvloopdone:
+				
+				// if there is no next smaller value
+				if ( nval == rval )
+					ni = n;
+				// otherwise go down tree and search for the nsv
+				else
+					while ( nlevel-- )
+					{
+						ni <<= klog;
+						
+						while ( (*this)(nlevel,ni) >= rval )
+							++ni;
+					}
+					
+				#if defined(RMMTREEDEBUG)
+				uint64_t dni = n;
+				for ( uint64_t z = i+1; (dni==n) && z < n; ++z )
+					if ( B[z] < rval )
+						dni = z;
+				
+				if ( dni != ni )
+					std::cerr << "i=" << i << " dni=" << dni << " ni=" << ni << " rval=" << rval << std::endl;
+				#endif
+				
+				return ni;
 			}
 
 			/**
