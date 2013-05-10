@@ -236,7 +236,7 @@ namespace libmaus
 			}
 			
 			/*
-			 * next position of next smaller value after index i (or n if there is no such position)
+			 * position of next smaller value after index i (or n if there is no such position)
 			 */
 			uint64_t nsv(uint64_t const i) const
 			{
