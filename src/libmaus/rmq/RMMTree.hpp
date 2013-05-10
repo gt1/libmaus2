@@ -41,6 +41,39 @@ namespace libmaus
 			libmaus::autoarray::AutoArray< libmaus::bitio::CompactArray::unique_ptr_type > I;
 			libmaus::autoarray::AutoArray< libmaus::util::ImpCompactNumberArray::unique_ptr_type > C;
 			libmaus::autoarray::AutoArray< uint64_t > S;
+			
+			template<typename stream_type>
+			void serialise(stream_type & out)
+			{
+				libmaus::util::NumberSerialisation::serialiseNumber(out,n);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,numlevels);
+
+				libmaus::util::NumberSerialisation::serialiseNumber(out,I.size());
+				libmaus::util::NumberSerialisation::serialiseNumber(out,C.size());
+
+				S.serialize(out);
+				
+				for ( uint64_t i = 0; i < I.size(); ++i )
+					I[i]->serialize(out);
+				for ( uint64_t i = 0; i < C.size(); ++i )
+					C[i]->serialise(out);
+			}
+			
+			template<typename stream_type>
+			RMMTree(stream_type & in, base_layer_type const & rB)
+			: 
+				B(rB),
+				n(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				numlevels(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				I(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				C(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				S(in)
+			{
+				for ( uint64_t i = 0; i < I.size(); ++i )
+					I[i] = UNIQUE_PTR_MOVE(libmaus::bitio::CompactArray::unique_ptr_type(new libmaus::bitio::CompactArray(in)));
+				for ( uint64_t i = 0; i < C.size(); ++i )
+					C[i] = UNIQUE_PTR_MOVE(libmaus::util::ImpCompactNumberArray::load(in));
+			}
 
 			uint64_t operator()(unsigned int const level, uint64_t const i) const
 			{
