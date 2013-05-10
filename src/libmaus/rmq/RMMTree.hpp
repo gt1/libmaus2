@@ -34,7 +34,7 @@ namespace libmaus
 			static unsigned int const k = (1u << klog);
 			static uint64_t const kmask = (k-1);
 			
-			base_layer_type B;
+			base_layer_type const & B;
 			uint64_t const n;
 			unsigned int const numlevels;
 			libmaus::autoarray::AutoArray< libmaus::bitio::CompactArray::unique_ptr_type > I;
