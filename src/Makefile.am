@@ -793,7 +793,8 @@ noinst_PROGRAMS = \
 	testscramtosam \
 	testpacdecode \
 	testutf8split \
-	testcirchash
+	testcirchash \
+	testrmmtree
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -973,3 +974,5 @@ testcirchash_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcirchash_LDFLAGS = @SNAPPYLDFLAGS@
 testcirchash_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 
+testrmmtree_SOURCES = test/testrmmtree.cpp
+testrmmtree_LDADD = libmaus.la
