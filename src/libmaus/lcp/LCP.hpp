@@ -679,8 +679,8 @@ namespace libmaus
 				
 				void serialise(std::ostream & out) const
 				{
-					WLCP->serialize(out);
 					::libmaus::util::NumberSerialisation::serialiseNumber(out,U.get()!=0);
+					WLCP->serialize(out);
 					if ( U.get() )
 					{
 						U->serialize(out);
@@ -706,9 +706,9 @@ namespace libmaus
 				}
 				
 				LCPResult(std::istream & in)
-				: WLCP(::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint8_t>(in)))
 				{
 					bool const haveU = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					WLCP = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint8_t>(in)));
 					if ( haveU )
 					{
 						U = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint64_t>(in)));
