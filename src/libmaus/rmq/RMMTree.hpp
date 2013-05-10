@@ -237,7 +237,7 @@ namespace libmaus
 					++level;
 				}
 				
-				S[0] = B.size();
+				S[0] = n;
 				for ( uint64_t i = 0; i < numlevels; ++i )
 					S[i+1] = I[i]->size();
 				
