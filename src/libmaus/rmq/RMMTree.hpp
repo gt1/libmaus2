@@ -230,28 +230,36 @@ namespace libmaus
 				#endif
 			}
 
+			/**
+			 * return position of the leftmost minimum in the interval
+			 * of indices [i,j] (including both)
+			 **/
 			uint64_t rmq(uint64_t const i, uint64_t const j) const
 			{
 				unsigned int lminlevel = 0, rminlevel = 0;
 				uint64_t lminv = (*this)(0,i), rminv = (*this)(0,j);
 				uint64_t lmini = i, rmini = j;
-						
+
 				uint64_t ii = i;
 				uint64_t jj = j;
-				unsigned int level = 0;
 				
 				for ( 
-					uint64_t kk = 1;
-					kk < n;
-					(kk <<= klog), ++level
+					unsigned int level = 0;
+					true;
+					++level
 				)
 				{
 					uint64_t const ip = ii>>klog;
 					uint64_t const jp = jj>>klog;
 					
+					// if we have reached the lowest common ancestor node of i and j
 					if ( ip == jp )
 					{
-						for ( int64_t z = static_cast<int64_t>(jj)-1; z >= static_cast<int64_t>(ii+1); --z )
+						for ( 
+							int64_t z = static_cast<int64_t>(jj)-1; 
+							z >= static_cast<int64_t>(ii+1); 
+							--z 
+						)
 						{
 							uint64_t t;
 							if ( (t=(*this)(level,z)) <= rminv )
@@ -263,6 +271,7 @@ namespace libmaus
 						}
 						break;
 					}
+					// otherwise follow the two paths upward
 					else
 					{
 						while ( ++ii & kmask )
@@ -309,16 +318,16 @@ namespace libmaus
 					minlevel = lminlevel;
 				}
 				
+				// #define RMMTREEDEBUG
+				
 				#if defined(RMMTREEDEBUG)
 				assert ( (*this)(minlevel,mini) == minv );
 				#endif
 
+				// follow path to the position of the minimum
 				while ( minlevel != 0 )
 				{
-					mini <<= klog;
-					minlevel--;
-					while ( (*this)(minlevel,mini) != minv )
-						++mini;
+					mini = (mini << klog) + I[--minlevel]->get(mini);
 						
 					#if defined(RMMTREEDEBUG)
 					assert ( (*this)(minlevel,mini) == minv );
