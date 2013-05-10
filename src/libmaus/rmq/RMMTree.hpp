@@ -295,6 +295,68 @@ namespace libmaus
 				return ni;
 			}
 
+			/*
+			 * position of previous smaller value before index i (or -1 if there is no such position)
+			 */
+			int64_t psv(uint64_t const j) const
+			{
+				// reference value
+				uint64_t const rval = B[j];
+
+				// tree position of previous smaller value (if any)
+				unsigned int nlevel = 0;
+				int64_t nj = j;
+				uint64_t nval = rval;
+
+				uint64_t jj = j;
+				
+				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
+				{
+					while ( jj-- & kmask )
+					{
+						uint64_t t;
+						if ( (t=(*this)(level,jj)) < rval )
+						{
+							nlevel = level;
+							nval = t;
+							nj = jj;
+							goto psvloopdone;
+						}
+					}
+
+					++jj;
+					jj >>= klog;
+				}
+				psvloopdone:
+				
+				// if there is no next smaller value
+				if ( nval == rval )
+					nj = -1;
+				// otherwise go down tree and search for the nsv
+				else
+					while ( nlevel-- )
+					{
+						nj = (nj<<klog) + (k-1);
+						
+						while ( (*this)(nlevel,nj) >= rval )
+							--nj;
+					}
+				
+				// #define RMMTREEDEBUG	
+				#if defined(RMMTREEDEBUG)
+				int64_t dnj = -1;
+				for ( int64_t z = static_cast<int64_t>(j)-1; (dnj==-1) && z >= 0; --z )
+					if ( B[z] < rval )
+						dnj = z;
+				
+				if ( dnj != nj )
+					std::cerr << "j=" << j << " dnj=" << dnj << " nj=" << nj << " rval=" << rval << std::endl;
+					
+				#endif
+				
+				return nj;
+			}
+
 			/**
 			 * return position of the leftmost minimum in the interval
 			 * of indices [i,j] (including both)
