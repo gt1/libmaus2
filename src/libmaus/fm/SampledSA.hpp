@@ -205,6 +205,7 @@ namespace libmaus
 		struct SimpleSampledSA
 		{
 			typedef SimpleSampledSA<lf_type> sampled_sa_type;
+			typedef sampled_sa_type this_type;
 			typedef typename ::libmaus::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
 
 			lf_type const * lf;
