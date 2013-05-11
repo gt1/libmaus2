@@ -530,6 +530,12 @@ namespace libmaus
 				s += deserialize(in);
 			}
 
+			static unique_ptr_type load(sampled_sa_type const & rsa, std::string const & fn)
+			{
+				libmaus::aio::CheckedInputStream CIS(fn);
+				return UNIQUE_PTR_TYPE(new this_type(CIS,rsa));
+			}
+
 			uint64_t operator[](uint64_t i) const
 			{
 				uint64_t const sa = (*SA)[i];
