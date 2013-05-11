@@ -31,7 +31,8 @@ namespace libmaus
                 struct SampledISA
                 {
                         typedef SampledISA<lf_type> sampled_isa_type;
-                        typedef typename ::libmaus::util::unique_ptr < sampled_isa_type >::type unique_ptr_type;
+                        typedef sampled_isa_type this_type;
+                        typedef typename ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
 
                         lf_type const * lf;
                         uint64_t isasamplingrate;
@@ -113,6 +114,12 @@ namespace libmaus
                                 SISA = readArray64(in,s);
                                 // std::cerr << "ISA: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1))/(1024*1024) << " mb" << " samplingrate = " << isasamplingrate << std::endl;
                                 return s;
+                        }
+                        
+                        static unique_ptr_type load(lf_type const * lf, std::string const & fn)
+                        {
+                        	libmaus::aio::CheckedInputStream CIS(fn);
+                        	return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(lf,CIS)));
                         }
                         
                         SampledISA(lf_type const * rlf, std::istream & in) : lf(rlf) { deserialize(in); }
