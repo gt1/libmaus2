@@ -29,11 +29,13 @@ namespace libmaus
 		struct RMMTree
 		{
 			typedef _base_layer_type base_layer_type;
-
 			static unsigned int const klog = _klog;
+			static bool const rmmtreedebug = _rmmtreedebug;
+			typedef RMMTree<base_layer_type,klog,rmmtreedebug>  this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			static unsigned int const k = (1u << klog);
 			static uint64_t const kmask = (k-1);
-			static bool const rmmtreedebug = _rmmtreedebug;
 			
 			base_layer_type const & B;
 			uint64_t const n;
@@ -74,6 +76,16 @@ namespace libmaus
 				for ( uint64_t i = 0; i < C.size(); ++i )
 					C[i] = UNIQUE_PTR_MOVE(libmaus::util::ImpCompactNumberArray::load(in));
 			}
+			
+			static unique_ptr_type load(base_layer_type const & B, std::string const & fn)
+			{
+				libmaus::aio::CheckedInputStream CIS(fn);
+				return UNIQUE_PTR_MOVE(
+					unique_ptr_type(
+						new this_type(CIS,B)
+					)
+				);
+			}
 
 			uint64_t operator()(unsigned int const level, uint64_t const i) const
 			{
@@ -112,14 +124,14 @@ namespace libmaus
 				for ( uint64_t i = 0; i < full; ++i )
 				{
 					uint64_t vmin = *(in_it++);
-					unsigned int jmin = 0;
+					//unsigned int jmin = 0;
 					for ( unsigned int j = 1; j < k; ++j )
 					{
 						uint64_t const vj = *(in_it++);
 						if ( vj < vmin )
 						{
 							vmin = vj;
-							jmin = j;
+							// jmin = j;
 						}
 					}
 					
@@ -128,14 +140,14 @@ namespace libmaus
 				if ( rest )
 				{
 					uint64_t vmin = *(in_it++);
-					unsigned int jmin = 0;
+					// unsigned int jmin = 0;
 					for ( unsigned int j = 1; j < rest; ++j )
 					{
 						uint64_t const vj = *(in_it++);
 						if ( vj < vmin )
 						{
 							vmin = vj;
-							jmin = j;
+							// jmin = j;
 						}
 					}
 					
@@ -379,6 +391,67 @@ namespace libmaus
 				if ( rmmtreedebug )
 				{
 					int64_t dnj = -1;
+					for ( int64_t z = static_cast<int64_t>(j)-1; (dnj==-1) && z >= 0; --z )
+						if ( B[z] < rval )
+							dnj = z;
+				
+					if ( dnj != nj )
+						std::cerr << "j=" << j << " dnj=" << dnj << " nj=" << nj << " rval=" << rval << std::endl;
+				}			
+				
+				return nj;
+			}
+
+			/*
+			 * position of previous smaller value before index i (or 0 if there is no such position)
+			 */
+			int64_t psvz(uint64_t const j) const
+			{
+				// reference value
+				uint64_t const rval = B[j];
+
+				// tree position of previous smaller value (if any)
+				unsigned int nlevel = 0;
+				int64_t nj = j;
+				uint64_t nval = rval;
+
+				uint64_t jj = j;
+				
+				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
+				{
+					while ( jj-- & kmask )
+					{
+						uint64_t t;
+						if ( (t=(*this)(level,jj)) < rval )
+						{
+							nlevel = level;
+							nval = t;
+							nj = jj;
+							goto psvloopdone;
+						}
+					}
+
+					++jj;
+					jj >>= klog;
+				}
+				psvloopdone:
+				
+				// if there is no next smaller value
+				if ( nval == rval )
+					nj = 0;
+				// otherwise go down tree and search for the nsv
+				else
+					while ( nlevel-- )
+					{
+						nj = (nj<<klog) + (k-1);
+						
+						while ( (*this)(nlevel,nj) >= rval )
+							--nj;
+					}
+				
+				if ( rmmtreedebug )
+				{
+					int64_t dnj = 0;
 					for ( int64_t z = static_cast<int64_t>(j)-1; (dnj==-1) && z >= 0; --z )
 						if ( B[z] < rval )
 							dnj = z;
