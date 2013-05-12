@@ -342,6 +342,64 @@ namespace libmaus
 			}
 
 			/*
+			 * position of next smaller than rval after index i (or n if there is no such position)
+			 */
+			uint64_t nsv(uint64_t const i, uint64_t const rval) const
+			{
+				// tree position of next smaller value (if any)
+				unsigned int nlevel = 0;
+				uint64_t ni = i;
+				uint64_t nval = rval;
+
+				uint64_t ii = i;
+				
+				for ( unsigned int level = 0; (nval == rval) && level < I.size(); ++level )
+				{
+					while ( ++ii & kmask && ii < S[level] )
+					{
+						uint64_t t;
+						if ( (t=(*this)(level,ii)) < rval )
+						{
+							nlevel = level;
+							nval = t;
+							ni = ii;
+							goto nsvloopdone;
+						}
+					}
+					--ii;
+
+					ii >>= klog;
+				}
+				nsvloopdone:
+				
+				// if there is no next smaller value
+				if ( nval == rval )
+					ni = n;
+				// otherwise go down tree and search for the nsv
+				else
+					while ( nlevel-- )
+					{
+						ni <<= klog;
+						
+						while ( (*this)(nlevel,ni) >= rval )
+							++ni;
+					}
+					
+				if ( rmmtreedebug )
+				{
+					uint64_t dni = n;
+					for ( uint64_t z = i+1; (dni==n) && z < n; ++z )
+						if ( B[z] < rval )
+							dni = z;
+				
+					if ( dni != ni )
+						std::cerr << "i=" << i << " dni=" << dni << " ni=" << ni << " rval=" << rval << std::endl;
+				}
+				
+				return ni;
+			}
+
+			/*
 			 * position of previous smaller value before index i (or -1 if there is no such position)
 			 */
 			int64_t psv(uint64_t const j) const
