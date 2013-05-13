@@ -771,7 +771,7 @@ namespace libmaus
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarField(D.get(),i);
 			}
-			uint32_t getTlen() const
+			int32_t getTlen() const
 			{
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Tlen;
