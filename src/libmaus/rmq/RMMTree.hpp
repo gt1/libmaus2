@@ -44,6 +44,25 @@ namespace libmaus
 			libmaus::autoarray::AutoArray< libmaus::util::ImpCompactNumberArray::unique_ptr_type > C;
 			libmaus::autoarray::AutoArray< uint64_t > S;
 			
+			uint64_t byteSize() const
+			{
+				uint64_t s =
+					sizeof(uint64_t) +
+					sizeof(unsigned int) +
+					I.byteSize() +
+					C.byteSize() +
+					S.byteSize();
+					
+				for ( uint64_t i = 0; i < I.size(); ++i )
+					if ( I[i] )
+						s += I[i]->byteSize();
+				for ( uint64_t i = 0; i < C.size(); ++i )
+					if ( C[i] )
+						s += C[i]->byteSize();
+						
+				return s;
+			}
+			
 			template<typename stream_type>
 			void serialise(stream_type & out)
 			{
