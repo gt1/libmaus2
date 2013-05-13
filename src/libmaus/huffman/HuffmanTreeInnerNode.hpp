@@ -50,6 +50,19 @@ namespace libmaus
                                 return frequency;
                         }
                         
+                        uint64_t byteSize() const
+                        {
+                        	uint64_t s = 0;
+                        	
+                        	s += 2*sizeof(HuffmanTreeNode *) + sizeof(uint64_t);
+                        	if ( left )
+                        		s += left->byteSize();
+                        	if ( right )
+                        		s += right->byteSize();
+                        		
+				return s;
+                        }
+                        
                         void fillParentMap(::std::map < HuffmanTreeNode *, HuffmanTreeInnerNode * > & M)
                         {
                                 if ( left )

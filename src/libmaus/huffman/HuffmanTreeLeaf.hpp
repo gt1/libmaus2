@@ -34,6 +34,11 @@ namespace libmaus
 
                         HuffmanTreeLeaf(int64_t rsymbol, uint64_t rfrequency) : symbol(rsymbol), frequency(rfrequency) {}
                         ~HuffmanTreeLeaf() {}
+                        
+                        uint64_t byteSize() const
+                        {
+                        	return sizeof(int64_t)+sizeof(uint64_t);
+                        }
                                 
                         bool isLeaf() const { return true; }
                         uint64_t getFrequency() const {

@@ -47,6 +47,14 @@ namespace libmaus
 			int64_t maxsym;
 			::libmaus::autoarray::AutoArray< ::std::pair < libmaus::uint::UInt < words >, unsigned int > > codes;
 			::std::vector<bool> codeused;
+			
+			uint64_t byteSize() const
+			{
+				return
+					2*sizeof(uint64_t) +
+					codes.byteSize() + 
+					(codeused.size() + 7)/8;
+			}
 		
 			bool getBitFromTop(int64_t sym, unsigned int bit) const
 			{

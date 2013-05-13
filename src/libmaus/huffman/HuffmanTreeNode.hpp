@@ -51,6 +51,7 @@ namespace libmaus
                         virtual void depthVector(::std::vector < uint64_t > & B, uint64_t depth = 0) const = 0;
                         virtual uint64_t depth() const = 0;
                         virtual void symbolDepthVector(::std::vector < std::pair < int64_t, uint64_t > > & B, uint64_t depth = 0) const = 0;
+                        virtual uint64_t byteSize() const = 0;
 
 			virtual void addPrefix(uint64_t prefix, uint64_t shift) = 0;
 			
