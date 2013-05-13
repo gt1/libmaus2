@@ -483,6 +483,20 @@ namespace libmaus
 			uint64_t const * LCP;
 			uint64_t streambits;
 			select_type::unique_ptr_type eselect;
+			
+			uint64_t byteSize() const
+			{
+				uint64_t s = 0;
+				
+				s += sizeof(uint64_t);
+				s += sizeof(sampled_sa_type const *);
+				s += ALCP.byteSize();
+				s += sizeof(uint64_t const *);
+				s += sizeof(uint64_t);
+				s += eselect->byteSize();				
+				
+				return s;
+			}
 
 			uint64_t serialize(std::ostream & out)
 			{
