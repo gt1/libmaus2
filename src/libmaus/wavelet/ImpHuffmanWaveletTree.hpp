@@ -49,6 +49,23 @@ namespace libmaus
 			
 			std::vector<uint64_t> nodepos;
 			
+			uint64_t byteSize() const
+			{
+				uint64_t s = 0;
+				
+				s += sizeof(uint64_t);
+				s += sroot->byteSize();
+
+				s += dicts.byteSize();
+				for ( uint64_t i = 0; i < dicts.size(); ++i )
+					if ( dicts[i] )
+						s += dicts[i]->byteSize();
+				
+				s += enctable.byteSize();
+				s += sizeof(uint64_t);
+				
+				return s;
+			}
 			
 			bool haveSymbol(::libmaus::huffman::HuffmanTreeNode const * node, int64_t const sym) const
 			{
