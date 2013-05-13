@@ -47,6 +47,19 @@ namespace libmaus
 			
 			friend struct ImpCompactNumberArrayGenerator;
 			
+			uint64_t byteSize() const
+			{
+				uint64_t s =
+					IHWT->byteSize() +
+					C.byteSize();
+					
+				for ( uint64_t i = 0; i < C.size(); ++i )
+					if ( C[i] )
+						s += C[i]->byteSize();
+					
+				return s;
+			}
+			
 			private:
 			ImpCompactNumberArray() {}
 			
