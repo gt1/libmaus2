@@ -987,6 +987,14 @@ namespace libmaus
 			uint64_t const n0;
 			::libmaus::autoarray::AutoArray<uint64_t> D;
 			
+			uint64_t byteSize() const
+			{
+				return 
+					W->byteSize()+
+					2*sizeof(uint64_t)+
+					D.byteSize();
+			}
+			
 			uint64_t getN() const
 			{
 				return n;
