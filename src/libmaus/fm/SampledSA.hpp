@@ -215,6 +215,13 @@ namespace libmaus
 			unsigned int sasamplingshift;
 			::libmaus::autoarray::AutoArray<uint64_t> SSA;
 			
+			uint64_t byteSize() const
+			{
+				return
+					sizeof(lf_type const *) +
+					2*sizeof(uint64_t) + sizeof(unsigned int) + SSA.byteSize();
+			}
+			
 			void setSamplingRate(uint64_t const samplingrate)
 			{
 				sasamplingrate = samplingrate;

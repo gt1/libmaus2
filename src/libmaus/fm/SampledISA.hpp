@@ -40,6 +40,15 @@ namespace libmaus
                         unsigned int isasamplingshift;
                         ::libmaus::autoarray::AutoArray<uint64_t> SISA;	
                         
+                        uint64_t byteSize() const
+                        {
+                        	return
+                        		sizeof(lf_type const *)+
+                        		2*sizeof(uint64_t)+
+                        		sizeof(unsigned int)+
+                        		SISA.byteSize();
+                        }
+                        
                         void setSamplingRate(uint64_t samplingrate)
                         {
                         	isasamplingrate = samplingrate;
