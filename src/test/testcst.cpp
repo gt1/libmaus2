@@ -132,6 +132,29 @@ namespace libmaus
 			}
 			
 			/*
+			 * enumerate children
+			 */
+			template<typename iterator>
+			uint64_t enumerateChildren(Node const & par, iterator it) const
+			{
+				Node node = firstChild(par);
+				iterator const ita = it;
+				
+				while ( node.ep-node.sp )
+				{
+					*(it++)	= node;
+					
+					if ( node.ep == par.ep )
+						break;
+					
+					// next one
+					node = Node(node.ep, RMM->nsv(node.ep,(*LCP)[node.ep]+1));
+				}
+				
+				return it-ita;
+			}
+			
+			/*
 			 * first child of node (or Node(0,0) if none)
 			 */
 			Node firstChild(Node const & node) const
@@ -314,6 +337,9 @@ std::ostream & operator<<(std::ostream & out, libmaus::suffixtree::CompressedSuf
 	return (out << "[" << node.sp << "," << node.ep << ")");
 }
 
+#include <libmaus/eta/LinearETA.hpp>
+#include <libmaus/parallel/SynchronousCounter.hpp>
+
 int main(int argc, char * argv[])
 {
 	try
@@ -325,8 +351,98 @@ int main(int argc, char * argv[])
 		std::string const isaname = prefix+".isa";
 		std::string const lcpname = prefix+".lcp";
 		std::string const rmmname = prefix+".rmm";
+		std::cerr << "Loading suffix tree...";
 		libmaus::suffixtree::CompressedSuffixTree CST(hwtname,saname,isaname,lcpname,rmmname);
+		std::cerr << "done." << std::endl;
 	
+		libmaus::eta::LinearETA eta(CST.n);
+	
+		typedef libmaus::suffixtree::CompressedSuffixTree::Node Node;
+		libmaus::parallel::SynchronousCounter<uint64_t> leafs = 0;
+		std::stack< std::pair<Node,uint64_t> > S; S.push(std::pair<Node,uint64_t>(CST.root(),0));
+		libmaus::autoarray::AutoArray<Node> children(256);
+		
+		std::deque < Node > Q;
+		uint64_t const frac = 128;
+		uint64_t const maxtdepth = 64;
+		
+		while ( S.size() )
+		{
+			std::pair<Node,uint64_t> const P = S.top(); S.pop();
+			Node const & parent = P.first;
+			uint64_t const tdepth = P.second;
+			
+			if ( CST.count(parent) < 2 || CST.count(parent) <= CST.n/frac || tdepth >= maxtdepth )
+			{
+				assert ( parent.ep-parent.sp );
+				Q.push_back(parent);
+			}
+			else
+			{
+				uint64_t const numc = CST.enumerateChildren(parent,children.begin());
+				
+				for ( uint64_t i = 0; i < numc; ++i )
+					S.push(std::pair<Node,uint64_t>(children[numc-i-1],tdepth+1));
+			}
+		}
+		
+		libmaus::parallel::OMPLock lock;
+		
+		#if defined(_OPENMP)
+		#pragma omp parallel
+		#endif
+		while ( Q.size() )
+		{
+			libmaus::autoarray::AutoArray<Node> lchildren(256);
+			Node node(0,0);
+			
+			lock.lock();
+			if ( Q.size() )
+			{
+				node = Q.front();
+				Q.pop_front();
+			}
+			lock.unlock();
+			
+			std::stack<Node> SL;
+			if ( node.ep-node.sp )
+				SL.push(node);
+
+			while ( SL.size() )
+			{
+				Node const parent = SL.top(); SL.pop();
+				
+				if ( parent.ep-parent.sp > 1 )
+				{
+					uint64_t const numc = CST.enumerateChildren(parent,lchildren.begin());
+				
+					for ( uint64_t i = 0; i < numc; ++i )
+						SL.push(lchildren[numc-i-1]);
+				}
+				else
+				{
+					if ( (leafs++ % (32*1024)) == 0 )
+					{
+						lock.lock();
+						std::cerr << static_cast<double>(leafs)/CST.n << "\t" << eta.eta(leafs) << std::endl;	
+						lock.unlock();
+					}
+				}
+			}
+		}
+			
+			#if 0
+			{
+				leafs += 1;
+				
+				if ( leafs % (32*1024) == 0 )
+					std::cerr << static_cast<double>(leafs)/CST.n << "\t" << eta.eta(leafs) << std::endl;
+			}
+			#endif
+		
+		std::cerr << "Q.size()=" << Q.size() << std::endl;
+	
+		#if 0
 		#if 0
 		// serialise cst and read it back	
 		std::ostringstream ostr;
@@ -373,6 +489,7 @@ int main(int argc, char * argv[])
 		std::cerr << CST.child(CST.child(CST.root(),1),1) << std::endl;
 		
 		std::cerr << "byteSize=" << CST.byteSize() << std::endl;
+		#endif
 	}
 	catch(std::exception const & ex)
 	{
