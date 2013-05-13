@@ -54,6 +54,17 @@ namespace libmaus
 			// length of sequence
 			uint64_t n;
 			
+			uint64_t byteSize() const
+			{
+				return
+					LF->byteSize() +
+					SSA->byteSize() +
+					SISA->byteSize() +
+					LCP->byteSize() +
+					RMM->byteSize() +
+					sizeof(uint64_t);
+			}
+			
 			// suffix tree node (interval [sp,ep) on suffix array)
 			struct Node
 			{
@@ -314,13 +325,15 @@ int main(int argc, char * argv[])
 		std::string const isaname = prefix+".isa";
 		std::string const lcpname = prefix+".lcp";
 		std::string const rmmname = prefix+".rmm";
-		libmaus::suffixtree::CompressedSuffixTree rCST(hwtname,saname,isaname,lcpname,rmmname);
+		libmaus::suffixtree::CompressedSuffixTree CST(hwtname,saname,isaname,lcpname,rmmname);
 	
+		#if 0
 		// serialise cst and read it back	
 		std::ostringstream ostr;
-		rCST.serialise(ostr);
+		CST.serialise(ostr);
 		std::istringstream istr(ostr.str());
-		libmaus::suffixtree::CompressedSuffixTree CST(istr);
+		libmaus::suffixtree::CompressedSuffixTree rCST(istr);
+		#endif
 		
 		std::cerr << "[0] = " << CST.backwardExtend(CST.root(),0) << std::endl;
 		std::cerr << "[1] = " << CST.backwardExtend(CST.root(),1) << std::endl;
@@ -358,6 +371,8 @@ int main(int argc, char * argv[])
 			std::cerr << "["<<i<<"]=" << CST.child(CST.root(),i) << std::endl;
 			
 		std::cerr << CST.child(CST.child(CST.root(),1),1) << std::endl;
+		
+		std::cerr << "byteSize=" << CST.byteSize() << std::endl;
 	}
 	catch(std::exception const & ex)
 	{
