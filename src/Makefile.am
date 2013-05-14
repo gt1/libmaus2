@@ -81,7 +81,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray
 	libmaus/util/Utf8BlockIndexDecoder.cpp \
 	libmaus/util/Utf8BlockIndex.cpp \
 	libmaus/util/Utf8DecoderBuffer.cpp \
-	libmaus/util/Utf8DecoderWrapper.cpp
+	libmaus/util/Utf8DecoderWrapper.cpp \
+	libmaus/suffixtree/CompressedSuffixTree.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -652,6 +653,10 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/BwtMergeZBlockRequest.hpp \
 	libmaus/suffixsort/BwtMergeZBlockRequestVector.hpp \
 	libmaus/suffixsort/GapMergePacket.hpp
+
+libmaussuffixtree_includedir=$(includedir)/libmaus/suffixtree
+libmaussuffixtree_include_HEADERS=\
+	libmaus/suffixtree/CompressedSuffixTree.hpp
 
 libmausrmq_includedir=$(includedir)/libmaus/rmq
 libmausrmq_include_HEADERS=\
