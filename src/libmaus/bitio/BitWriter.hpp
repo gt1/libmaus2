@@ -34,7 +34,7 @@ namespace libmaus
 		/**
 		 * bit stream writer class
 		 **/
-		template<typename _data_type, typename _data_iterator, _data_type basemask>
+		template<typename _data_type, typename _data_iterator, _data_type _basemask>
 		struct BitWriterTemplate
 		{
 			public:
@@ -43,6 +43,7 @@ namespace libmaus
 			 **/
 			typedef _data_type data_type;
 			typedef _data_iterator data_iterator;
+			static _data_type const basemask = _basemask;
 			
 			// ptr
 			typedef BitWriterTemplate<data_type,data_iterator,basemask> this_type;
