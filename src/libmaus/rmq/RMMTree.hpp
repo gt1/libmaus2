@@ -20,6 +20,7 @@
 #define LIBMAUS_RMQ_RMMTREE_HPP
 
 #include <libmaus/util/ImpCompactNumberArray.hpp>
+#include <libmaus/util/Array864.hpp>
 
 namespace libmaus
 {
@@ -33,6 +34,10 @@ namespace libmaus
 			static bool const rmmtreedebug = _rmmtreedebug;
 			typedef RMMTree<base_layer_type,klog,rmmtreedebug>  this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			typedef libmaus::util::ImpCompactNumberArray C_type;
+			// typedef libmaus::util::Array864 C_type;
+			typedef C_type::unique_ptr_type C_ptr_type;
 
 			static unsigned int const k = (1u << klog);
 			static uint64_t const kmask = (k-1);
@@ -41,7 +46,7 @@ namespace libmaus
 			uint64_t const n;
 			unsigned int const numlevels;
 			libmaus::autoarray::AutoArray< libmaus::bitio::CompactArray::unique_ptr_type > I;
-			libmaus::autoarray::AutoArray< libmaus::util::ImpCompactNumberArray::unique_ptr_type > C;
+			libmaus::autoarray::AutoArray< C_ptr_type > C;
 			libmaus::autoarray::AutoArray< uint64_t > S;
 			
 			uint64_t byteSize() const
@@ -93,7 +98,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < I.size(); ++i )
 					I[i] = UNIQUE_PTR_MOVE(libmaus::bitio::CompactArray::unique_ptr_type(new libmaus::bitio::CompactArray(in)));
 				for ( uint64_t i = 0; i < C.size(); ++i )
-					C[i] = UNIQUE_PTR_MOVE(libmaus::util::ImpCompactNumberArray::load(in));
+					C[i] = UNIQUE_PTR_MOVE(C_type::load(in));
 			}
 			
 			static unique_ptr_type load(base_layer_type const & B, std::string const & fn)
@@ -143,15 +148,11 @@ namespace libmaus
 				for ( uint64_t i = 0; i < full; ++i )
 				{
 					uint64_t vmin = *(in_it++);
-					//unsigned int jmin = 0;
 					for ( unsigned int j = 1; j < k; ++j )
 					{
 						uint64_t const vj = *(in_it++);
 						if ( vj < vmin )
-						{
 							vmin = vj;
-							// jmin = j;
-						}
 					}
 					
 					hist(libmaus::math::bitsPerNum(vmin));
@@ -159,15 +160,11 @@ namespace libmaus
 				if ( rest )
 				{
 					uint64_t vmin = *(in_it++);
-					// unsigned int jmin = 0;
 					for ( unsigned int j = 1; j < rest; ++j )
 					{
 						uint64_t const vj = *(in_it++);
 						if ( vj < vmin )
-						{
 							vmin = vj;
-							// jmin = j;
-						}
 					}
 					
 					hist(libmaus::math::bitsPerNum(vmin));
@@ -187,12 +184,12 @@ namespace libmaus
 				return snode;
 			}
 
-			template<typename in_iterator>
+			template<typename in_iterator, typename C_generator_type>
 			static void fillSubArrays(
 				in_iterator in_it,
 				uint64_t const in,
 				libmaus::bitio::CompactArray & I,
-				libmaus::util::ImpCompactNumberArrayGenerator & impgen
+				C_generator_type & impgen
 			)
 			{
 				uint64_t const full = in >> klog;
@@ -255,7 +252,7 @@ namespace libmaus
 					else
 						subhist = UNIQUE_PTR_MOVE(fillSubHistogram(C[level-1]->begin(),in));
 					
-					libmaus::util::ImpCompactNumberArrayGenerator impgen(*subhist);
+					C_type::generator_type impgen(*subhist);
 
 					if ( level == 0 )
 						fillSubArrays(B.begin(),in,*(I[level]),impgen);
