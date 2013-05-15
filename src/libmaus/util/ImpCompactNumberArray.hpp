@@ -46,6 +46,7 @@ namespace libmaus
 			typedef libmaus::util::ConstIterator<this_type,uint64_t> const_iterator;
 			
 			friend struct ImpCompactNumberArrayGenerator;
+			typedef ImpCompactNumberArrayGenerator generator_type;
 			
 			uint64_t byteSize() const
 			{
