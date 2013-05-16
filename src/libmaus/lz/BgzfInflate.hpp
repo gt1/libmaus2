@@ -19,146 +19,46 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATE_HPP)
 #define LIBMAUS_LZ_BGZFINFLATE_HPP
 
-#include <zlib.h>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/lz/BgzfInflateBase.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
 		template<typename _stream_type>
-		struct BgzfInflate
+		struct BgzfInflate : public BgzfInflateBase
 		{
 			typedef _stream_type stream_type;
-			static unsigned int const maxblocksize = 64*1024;
 
 			private:
-			static unsigned int const headersize = 18;
-			
-			z_stream strm;
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> header;
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> block;
 			stream_type & stream;
 			uint64_t gcnt;
 
-			void init()
-			{
-				memset(&strm,0,sizeof(z_stream));
-						
-				strm.zalloc = Z_NULL;
-				strm.zfree = Z_NULL;
-				strm.opaque = Z_NULL;
-				strm.avail_in = 0;
-				strm.next_in = Z_NULL;
-						
-				int const ret = inflateInit2(&strm,-15);
-							
-				if (ret != Z_OK)
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::init() failed in inflateInit2";
-					se.finish();
-					throw se;
-				}
-			
-			}
-
 			public:	
-			BgzfInflate(stream_type & rstream)
-			: header(headersize,false), block(maxblocksize,false), stream(rstream), gcnt(0)
-			{
-				init();
-			}
-			~BgzfInflate()
-			{
-				inflateEnd(&strm);
-			}
-			
+			BgzfInflate(stream_type & rstream) : stream(rstream), gcnt(0) {}
+
 			uint64_t read(char * const decomp, uint64_t const n)
 			{
 				gcnt = 0;
-				stream.read(reinterpret_cast<char *>(header.begin()),headersize);
-				
-				if ( stream.gcount() == 0 )
-				{
-					std::cerr << "gcount is 0" << std::endl;
-					return 0;
-				}
-				
-				if ( header[0] != 31 || header[1] != 139 || header[2] != 8 || header[3] != 4 ||
-					header[10] != 6 || header[11] != 0 ||
-					header[12] != 66 || header[13] != 67 || header[14] != 2 || header[15] != 0
-				)
+			
+				/* check if buffer given is large enough */	
+				if ( n < maxblocksize )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
+					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << maxblocksize;
 					se.finish();
-					throw se;			
+					throw se;				
 				}
 				
-				uint64_t const cblocksize = (static_cast<uint32_t>(header[16]) | (static_cast<uint32_t>(header[17]) << 8)) + 1;
-				
-				if ( cblocksize < 18 + 8 )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
-					se.finish();
-					throw se;					
-				}
-				
-				// size of compressed data
-				uint64_t const payloadsize = cblocksize - (18 + 8);
-				// read block
-				stream.read(reinterpret_cast<char *>(block.begin()),payloadsize + 8);
-				
-				if ( stream.gcount() != static_cast<int64_t>(payloadsize + 8) )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): unexpected eof";
-					se.finish();
-					throw se;							
-				}
-				
-				uint32_t const uncompdatasize = 
-					(static_cast<uint32_t>(block[payloadsize+4]) << 0)
-					|
-					(static_cast<uint32_t>(block[payloadsize+5]) << 8)
-					|
-					(static_cast<uint32_t>(block[payloadsize+6]) << 16)
-					|
-					(static_cast<uint32_t>(block[payloadsize+7]) << 24);
-					
-				if ( uncompdatasize > n )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): uncompressed size is too large";
-					se.finish();
-					throw se;									
-				
-				}
+				/* read block */
+				std::pair<uint64_t,uint64_t> const blockinfo = readBlock(stream);
 
-				if ( inflateReset(&strm) != Z_OK )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): inflateReset failed";
-					se.finish();
-					throw se;									
-				}
-				
-				strm.avail_in = payloadsize;
-				strm.next_in = (block.begin());
-				strm.avail_out = uncompdatasize;
-				strm.next_out = reinterpret_cast<Bytef *>(decomp);
-				
-				if ( (inflate(&strm,Z_FINISH) != Z_STREAM_END) || (strm.avail_out != 0) || (strm.avail_in != 0) )
-				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): inflate failed";
-					se.finish();
-					throw se;												
-				}
-				
-				gcnt = uncompdatasize;
+				/* no more data ? */
+				if ( ! blockinfo.first )
+					return 0;
+
+				/* decompress block */
+				gcnt = decompressBlock(decomp,blockinfo);
 				
 				return gcnt;
 			}

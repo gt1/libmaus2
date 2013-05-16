@@ -1,66 +1,47 @@
-#include <iostream>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/bambam/CollatingBamDecoder.hpp>
+/**
+    libmaus
+    Copyright (C) 2009-2013 German Tischler
+    Copyright (C) 2011-2013 Genome Research Limited
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
+#include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>	
 #include <libmaus/util/TempFileRemovalContainer.hpp>
 
-int main(int argc, char * argv[])
+using namespace libmaus::bambam;
+using namespace libmaus::util;
+using namespace std;
+
+int main()
 {
-	uint64_t cnt = 0;
+	typedef BamCircularHashCollatingBamDecoder collator_type;
+	typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
-	try
-	{
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
-		
-		#if 0
-		::libmaus::bambam::BamFormatAuxiliary auxiliary;
-		std::string const tmpfilename = arginfo.getDefaultTmpFileName();
-		::libmaus::util::TempFileRemovalContainer::setup();
-		::libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilename);
-		::libmaus::bambam::CollatingBamDecoder bamdec(std::cin,tmpfilename);
-		::libmaus::bambam::CollatingBamDecoder::alignment_ptr_type algn;
-		::libmaus::autoarray::AutoArray<char> B;
-		uint64_t c = 0;
-		
-		while ( (algn=bamdec.get()) )
+	/* remove temporary file at program exit */
+	string const tmpfilename = "tmpfile";
+	TempFileRemovalContainer::addTempFile(tmpfilename);
+
+	/* set up collator object */	
+	collator_type C(cin,tmpfilename);
+	pair<alignment_ptr_type,alignment_ptr_type> P;
+
+	/* read alignments */	
+	while ( C.tryPair(P) )
+		/* if we have a pair, then print both ends as FastQ */
+		if ( P.first && P.second )
 		{
-			uint64_t const fqlen = algn->getFastQLength();
-			if ( fqlen > B.size() )
-				B = ::libmaus::autoarray::AutoArray<char>(fqlen);
-			char * pe = algn->putFastQ(B.begin());
-			
-			// std::cout.write(B.begin(),pe-B.begin());
-			
-			assert ( pe == B.begin() + fqlen );
-			
-			std::string const reffq = algn->formatFastq(auxiliary);
-			// std::cerr << "expecting " << fqlen << " got " << reffq.size() << std::endl;
-			assert ( reffq.size() == fqlen );
-			for ( uint64_t i = 0; i < fqlen; ++i )
-				assert ( reffq[i] == B[i] );
-		
-			if ( ++c % (1024*1024) == 0 )
-			{
-				std::cerr << "[V] " << c/(1024*1024) << std::endl;
-			}
+			cout << P.first->formatFastq();
+			cout << P.second->formatFastq();
 		}
-		#else
-		::libmaus::bambam::BamDecoder reader(std::cin);
-		::libmaus::bambam::BamHeader & header = reader.bamheader;
-		::libmaus::bambam::BamFormatAuxiliary aux;
-		
-		// std::cout << header.text;
-		while ( reader.readAlignment() )
-		{
-			// std::cout << reader.alignment.formatAlignment(header,aux) << std::endl;
-
-			if ( ++cnt % (1024*1024) == 0 )
-				std::cerr << "[V] " << cnt/(1024*1024) << std::endl;
-		}		
-		#endif
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		std::cerr << "cnt=" << cnt << std::endl;	
-	}
 }

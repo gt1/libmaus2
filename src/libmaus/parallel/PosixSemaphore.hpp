@@ -80,13 +80,74 @@ namespace libmaus
 
                         void post()
                         {
-                                sem_post ( psemaphore );
+                        	while ( sem_post ( psemaphore ) != 0 )
+                        	{
+                        		int const lerrno = errno;
+                        		
+                        		switch ( lerrno )
+                        		{
+                        			case EINTR:
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PosixSemaphore::post(): " << strerror(lerrno) << std::endl;
+							se.finish();
+							throw se;
+						}
+                        		}
+                        	}
                         }
 
                         void wait()
                         {
-                                sem_wait ( psemaphore );
-                        }
+                        	while ( sem_wait ( psemaphore ) != 0 )
+                        	{
+                        		int const lerrno = errno;
+                        		
+                        		switch ( lerrno )
+                        		{
+                        			case EINTR:
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PosixSemaphore::wait(): " << strerror(lerrno) << std::endl;
+							se.finish();
+							throw se;
+						}
+                        		}
+                        	
+                        	}
+			}
+
+                        bool trywait()
+                        {
+                        	while ( sem_trywait ( psemaphore ) != 0 )
+                        	{
+                        		int const lerrno = errno;
+                        		
+                        		switch ( lerrno )
+                        		{
+                        			case EAGAIN:
+                        				return false;
+                        				break;
+                        			case EINTR:
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PosixSemaphore::trywait(): " << strerror(lerrno) << std::endl;
+							se.finish();
+							throw se;
+						}
+                        		}
+                        	}
+                        	
+                        	return true;
+			}
+
+
                         int getValue()
                         {
                         	int v = 0;
@@ -160,13 +221,72 @@ namespace libmaus
 
                         void post()
                         {
-                                sem_post ( psemaphore );
+                        	while ( sem_post ( psemaphore ) != 0 )
+                        	{
+                        		int const lerrno = errno;
+                        		
+                        		switch ( lerrno )
+                        		{
+                        			case EINTR:
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PosixSemaphore::post(): " << strerror(lerrno) << std::endl;
+							se.finish();
+							throw se;
+						}
+                        		}
+                        	}
                         }
 
                         void wait()
                         {
-                                sem_wait ( psemaphore );
-                        }
+                        	while ( sem_wait ( psemaphore ) != 0 )
+                        	{
+                        		int const lerrno = errno;
+                        		
+                        		switch ( lerrno )
+                        		{
+                        			case EINTR:
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PosixSemaphore::wait(): " << strerror(lerrno) << std::endl;
+							se.finish();
+							throw se;
+						}
+                        		}
+                        	
+                        	}
+			}
+
+                        bool trywait()
+                        {
+                        	while ( sem_trywait ( psemaphore ) != 0 )
+                        	{
+                        		int const lerrno = errno;
+                        		
+                        		switch ( lerrno )
+                        		{
+                        			case EAGAIN:
+                        				return false;
+                        				break;
+                        			case EINTR:
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PosixSemaphore::trywait(): " << strerror(lerrno) << std::endl;
+							se.finish();
+							throw se;
+						}
+                        		}
+                        	}
+                        	
+                        	return true;
+			}
                         
                         bool timedWait()
                         {

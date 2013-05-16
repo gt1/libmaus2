@@ -69,8 +69,32 @@ void testBgzfMono()
 	assert ( rp == R.size() );
 }
 
+#include <libmaus/lz/BgzfInflateParallelStream.hpp>
+
 int main(int argc, char *argv[])
 {
+	{
+		libmaus::lz::BgzfInflateParallel BIP(std::cin,4,16);
+		uint64_t c = 0;
+		uint64_t b = 0;
+		uint64_t d = 0;
+		libmaus::timing::RealTimeClock rtc; rtc.start();
+		libmaus::autoarray::AutoArray<uint8_t> adata(64*1024,false);
+		
+		while ( (d=BIP.read(reinterpret_cast<char *>(adata.begin()),adata.size())) != 0 )
+		{
+			b += d;
+			if ( ++c % (16*1024) == 0 )
+			{
+				std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
+			}
+		}
+		
+		std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
+	}
+
+	return 0;
+
 	testBgzfRandom();
 	testBgzfMono();
 

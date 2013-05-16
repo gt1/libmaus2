@@ -30,12 +30,18 @@ namespace libmaus
                 template<typename value_type, typename compare = ::std::less<value_type> >
                 struct TerminatableSynchronousHeap : public SynchronousHeap<value_type,compare>
                 {
-                        typedef SynchronousHeap<value_type> parent_type;
+                        typedef SynchronousHeap<value_type,compare> parent_type;
 
                         PosixMutex terminatelock;
                         volatile bool terminated;
                         
                         TerminatableSynchronousHeap()
+                        {
+                                terminated = false;
+                        }
+
+                        TerminatableSynchronousHeap(compare const & comp)
+                        : parent_type(comp)
                         {
                                 terminated = false;
                         }

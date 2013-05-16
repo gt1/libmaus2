@@ -39,6 +39,17 @@ namespace libmaus
                         PosixMutex lock;
                         PosixSemaphore semaphore;
                         
+                        SynchronousHeap()
+                        {
+                        
+                        }
+                        
+                        SynchronousHeap(compare const & comp)
+                        : Q(comp)
+                        {
+                        
+                        }
+                        
                         unsigned int getFillState()
                         {
                                 lock.lock();

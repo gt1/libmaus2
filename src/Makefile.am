@@ -137,7 +137,12 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BufferedGzipStream.hpp libmaus/lz/StdOstreamSink.hpp libmaus/lz/IstreamSource.hpp \
 	libmaus/lz/SnappyCompress.hpp libmaus/lz/BgzfInflate.hpp libmaus/lz/BgzfInflateWrapper.hpp \
 	libmaus/lz/BgzfInflateStream.hpp \
-	libmaus/lz/BgzfDeflate.hpp
+	libmaus/lz/BgzfDeflate.hpp \
+	libmaus/lz/BgzfInflateBase.hpp \
+	libmaus/lz/BgzfInflateBlock.hpp \
+	libmaus/lz/BgzfInflateParallel.hpp \
+	libmaus/lz/BgzfInflateParallelWrapper.hpp \
+	libmaus/lz/BgzfInflateParallelStream.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
