@@ -74,7 +74,7 @@ namespace libmaus
 				inflateEnd(&strm);
 			}
 			
-			uint64_t read(char const * const decomp, uint64_t const n)
+			uint64_t read(char * const decomp, uint64_t const n)
 			{
 				gcnt = 0;
 				stream.read(reinterpret_cast<char *>(header.begin()),headersize);
@@ -148,7 +148,7 @@ namespace libmaus
 				strm.avail_in = payloadsize;
 				strm.next_in = (block.begin());
 				strm.avail_out = uncompdatasize;
-				strm.next_out = (Bytef *)decomp;
+				strm.next_out = reinterpret_cast<Bytef *>(decomp);
 				
 				if ( (inflate(&strm,Z_FINISH) != Z_STREAM_END) || (strm.avail_out != 0) || (strm.avail_in != 0) )
 				{
