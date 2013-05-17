@@ -28,6 +28,7 @@
 #include <libmaus/util/unordered_map.hpp>
 #include <libmaus/trie/TrieState.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
+#include <libmaus/lz/BgzfInflateParallelStream.hpp>
 
 namespace libmaus
 {
@@ -481,6 +482,10 @@ namespace libmaus
 				init(in);
 			}
 			BamHeader(libmaus::lz::BgzfInflateStream & in)
+			{
+				init(in);
+			}
+			BamHeader(libmaus::lz::BgzfInflateParallelStream & in)
 			{
 				init(in);
 			}

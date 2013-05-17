@@ -74,7 +74,7 @@ void testBgzfMono()
 int main(int argc, char *argv[])
 {
 	{
-		libmaus::lz::BgzfInflateParallel BIP(std::cin,4,16);
+		libmaus::lz::BgzfInflateParallel BIP(std::cin /* ,4,16 */);
 		uint64_t c = 0;
 		uint64_t b = 0;
 		uint64_t d = 0;
@@ -91,6 +91,7 @@ int main(int argc, char *argv[])
 		}
 		
 		std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
+		std::cerr << "decoded " << b << " bytes in " << rtc.getElapsedSeconds() << " seconds." << std::endl;
 	}
 
 	return 0;

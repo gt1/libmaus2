@@ -25,7 +25,8 @@ using namespace std;
 
 int main()
 {
-	typedef BamCircularHashCollatingBamDecoder collator_type;
+	typedef BamParallelCircularHashCollatingBamDecoder collator_type;
+	// typedef BamCircularHashCollatingBamDecoder collator_type;
 	typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
 	/* remove temporary file at program exit */
@@ -33,7 +34,8 @@ int main()
 	TempFileRemovalContainer::addTempFile(tmpfilename);
 
 	/* set up collator object */	
-	collator_type C(cin,tmpfilename);
+	// collator_type C(cin,tmpfilename);
+	collator_type C(cin,8,tmpfilename);
 	pair<alignment_ptr_type,alignment_ptr_type> P;
 
 	/* read alignments */	

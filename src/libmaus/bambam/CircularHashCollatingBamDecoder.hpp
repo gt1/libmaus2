@@ -593,6 +593,28 @@ namespace libmaus
 			}
 		};
 
+		struct BamParallelCircularHashCollatingBamDecoder :
+			public BamParallelDecoderWrapper, public CircularHashCollatingBamDecoder
+		{
+			typedef BamParallelCircularHashCollatingBamDecoder this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			BamParallelCircularHashCollatingBamDecoder(
+				std::istream & in,
+				uint64_t const numthreads,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags = 0,
+				bool const rputrank = false,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			) : BamParallelDecoderWrapper(in,numthreads,rputrank), 
+			    CircularHashCollatingBamDecoder(BamParallelDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
+			{
+			
+			}
+		};
+
 		struct ScramCircularHashCollatingBamDecoder :
 			public ScramDecoderWrapper, public CircularHashCollatingBamDecoder
 		{

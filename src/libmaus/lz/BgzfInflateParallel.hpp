@@ -23,6 +23,7 @@
 #include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
 #include <libmaus/parallel/TerminatableSynchronousHeap.hpp>
 #include <libmaus/parallel/PosixThread.hpp>
+#include <libmaus/parallel/OMPNumThreadsScope.hpp>
 
 namespace libmaus
 {
@@ -149,15 +150,7 @@ namespace libmaus
 			uint64_t eb;
 			uint64_t gcnt;
 			
-			BgzfInflateParallel(std::istream & rin, uint64_t const rnumthreads, uint64_t const rnumblocks)
-			: 
-				in(rin), inid(0), 
-				B(rnumblocks), 
-				inflateheapcomp(this), 
-				inflatedecompressedlist(inflateheapcomp),
-				T(rnumthreads),
-				eb(0),
-				gcnt(0)
+			void init()
 			{
 				for ( uint64_t i = 0; i < B.size(); ++i )
 				{
@@ -170,7 +163,38 @@ namespace libmaus
 				{
 					T[i] = UNIQUE_PTR_MOVE(BgzfInflateParallelThread::unique_ptr_type(new BgzfInflateParallelThread(this)));
 					T[i]->start();
-				}
+				}			
+			}
+			
+			BgzfInflateParallel(std::istream & rin, uint64_t const rnumthreads, uint64_t const rnumblocks)
+			: 
+				in(rin), inid(0), 
+				B(rnumblocks), 
+				inflateheapcomp(this), 
+				inflatedecompressedlist(inflateheapcomp),
+				T(rnumthreads),
+				eb(0),
+				gcnt(0)
+			{
+				init();
+			}
+
+			BgzfInflateParallel(
+				std::istream & rin, 
+				uint64_t const rnumthreads = 
+					std::max(std::max(libmaus::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
+						static_cast<uint64_t>(1))
+			)
+			: 
+				in(rin), inid(0), 
+				B(4*rnumthreads), 
+				inflateheapcomp(this), 
+				inflatedecompressedlist(inflateheapcomp),
+				T(rnumthreads),
+				eb(0),
+				gcnt(0)
+			{
+				init();
 			}
 			
 			uint64_t gcount() const

@@ -30,6 +30,21 @@ namespace libmaus
 	{
 		struct BgzfInflateParallelStream : public ::libmaus::lz::BgzfInflateParallelWrapper, public ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >
 		{
+			typedef BgzfInflateParallelStream this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
+			BgzfInflateParallelStream(std::istream & in)
+			: ::libmaus::lz::BgzfInflateParallelWrapper(in), 
+			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >(::libmaus::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
+			{
+			
+			}
+			BgzfInflateParallelStream(std::istream & in, uint64_t const numthreads)
+			: ::libmaus::lz::BgzfInflateParallelWrapper(in,numthreads), 
+			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >(::libmaus::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
+			{
+			
+			}
 			BgzfInflateParallelStream(std::istream & in, uint64_t const numthreads, uint64_t const numblocks)
 			: ::libmaus::lz::BgzfInflateParallelWrapper(in,numthreads,numblocks), 
 			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >(::libmaus::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)

@@ -21,37 +21,48 @@
 
 #include <libmaus/bambam/BamAlignmentDecoder.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
+#include <libmaus/lz/BgzfInflateParallelStream.hpp>
 
 namespace libmaus
 {
 	namespace bambam
-	{				
-		struct BamDecoder : public libmaus::bambam::BamAlignmentDecoder
+	{	
+		template<typename _bgzf_type>			
+		struct BamDecoderTemplate : public libmaus::bambam::BamAlignmentDecoder
 		{
-			typedef BamDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef _bgzf_type bgzf_type;
+			typedef typename bgzf_type::unique_ptr_type bgzf_ptr_type;
+			typedef BamDecoderTemplate this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			// private:
 			::libmaus::util::unique_ptr< std::ifstream >::type PISTR;
-			libmaus::lz::BgzfInflateStream GZ;
+			bgzf_ptr_type PGZ;
+			bgzf_type & GZ;
 
 			public:
 			::libmaus::bambam::BamHeader bamheader;
 						
 			public:
-			BamDecoder(std::string const & filename, bool const rputrank = false)
+			BamDecoderTemplate(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
 			  PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
-			  GZ(*PISTR),
+			  PGZ(new bgzf_type(*PISTR)), GZ(*PGZ),
 			  bamheader(GZ)
 			{}
 			
-			BamDecoder(std::istream & in, bool const rputrank = false)
+			BamDecoderTemplate(std::istream & in, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), GZ(in),
+			  PISTR(), PGZ(new bgzf_type(in)), GZ(*PGZ),
+			  bamheader(GZ)
+			{}
+
+			BamDecoderTemplate(bgzf_type & rGZ, bool const rputrank = false)
+			: 
+			  libmaus::bambam::BamAlignmentDecoder(rputrank),
+			  PISTR(), PGZ(), GZ(rGZ),
 			  bamheader(GZ)
 			{}
 
@@ -73,6 +84,9 @@ namespace libmaus
 				return true;
 			}			
 		};
+
+		typedef BamDecoderTemplate<libmaus::lz::BgzfInflateStream> BamDecoder;
+		typedef BamDecoderTemplate<libmaus::lz::BgzfInflateParallelStream> BamParallelDecoder;
 		
 		struct BamDecoderWrapper
 		{
@@ -82,6 +96,31 @@ namespace libmaus
 			: bamdec(filename,rputrank) {}
 			BamDecoderWrapper(std::istream & in, bool const rputrank = false)
 			: bamdec(in,rputrank) {}
+		};
+
+		struct BamParallelDecoderWrapper
+		{
+			libmaus::aio::CheckedInputStream::unique_ptr_type Pistr;
+			std::istream & istr;
+			libmaus::lz::BgzfInflateParallelStream bgzf;
+			libmaus::bambam::BamParallelDecoder bamdec;
+			
+			BamParallelDecoderWrapper(
+				std::string const & filename,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
+			  istr(*Pistr),
+			  bgzf(istr,numthreads,4*numthreads),
+			  bamdec(bgzf,rputrank) 
+			{}
+			BamParallelDecoderWrapper(
+				std::istream & in, 
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: Pistr(), istr(in), bgzf(istr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
 		};
 	}
 }

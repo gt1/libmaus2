@@ -29,6 +29,9 @@ namespace libmaus
 	{
 		struct BgzfInflateStream : public ::libmaus::lz::BgzfInflateWrapper, public ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >
 		{
+			typedef BgzfInflateStream this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
 			BgzfInflateStream(std::istream & in)
 			: ::libmaus::lz::BgzfInflateWrapper(in), 
 			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
