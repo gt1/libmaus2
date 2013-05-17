@@ -63,11 +63,11 @@ namespace libmaus
 				return *postr;
 			}
 
-			void finish()
+			void finish(bool translateStackTrace = true)
 			{
 				s = postr->str();
 				s += "\n";
-				s += ::libmaus::util::StackTrace::toString();
+				s += ::libmaus::util::StackTrace::toString(translateStackTrace);
 			}
 
 			char const * what() const throw()

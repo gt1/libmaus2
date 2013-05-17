@@ -70,9 +70,16 @@ void testBgzfMono()
 }
 
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
+#include <libmaus/lz/BgzfDeflate.hpp>
 
 int main(int argc, char *argv[])
 {
+	#if 0
+	{
+		std::cerr << "req=" << libmaus::lz::BgzfDeflateBase::getReqBufSpaceTwo(Z_DEFAULT_COMPRESSION) << std::endl;
+		
+	}
+
 	{
 		libmaus::lz::BgzfInflateParallel BIP(std::cin /* ,4,16 */);
 		uint64_t c = 0;
@@ -95,9 +102,15 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
+	#endif
 
+	std::cerr << "Testing random data on bgzf...";
 	testBgzfRandom();
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "Testing mono...";	
 	testBgzfMono();
+	std::cerr << "done." << std::endl;
 
 	::libmaus::lz::BgzfDeflate<std::ostream> bdefl(std::cout);
 	char const * str = "Hello, world.\n";
