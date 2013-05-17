@@ -1,3 +1,9 @@
+libmaus (0.0.42-0) unstable; urgency=low
+
+  * bump version after adding parallel bam file decoding 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 17 May 2013 11:37:41 +0100
+
 libmaus (0.0.41-0) unstable; urgency=low
 
   * bump version after adding function for disabling validation in collating bam decoder 
