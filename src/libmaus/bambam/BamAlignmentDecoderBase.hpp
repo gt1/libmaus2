@@ -459,7 +459,14 @@ namespace libmaus
 			{
 				switch ( D[2] )
 				{
-					case 'A': case 'c': case 'C': case 's': case 'S': case 'i': case 'I': case 'f': return 2+1+getPrimLengthByType(D[2]);
+					case 'A': case 'c': case 'C': 
+						return 2+1+sizeof(int8_t);
+					case 's': case 'S': 
+						return 2+1+sizeof(int16_t);
+					case 'i': case 'I': 
+						return 2+1+sizeof(int32_t);
+					case 'f': 
+						return 2+1+sizeof(float);
 					case 'Z':
 					case 'H':
 					{
@@ -864,10 +871,14 @@ namespace libmaus
 			}
 			
 			static uint8_t const * getAux(
-				uint8_t const * E, uint64_t const blocksize, std::string const & tag
+				uint8_t const * E, uint64_t const blocksize, 
+				char const * const tag
 			)
 			{
-				assert ( tag.size() == 2 );
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
 				
 				uint8_t const * aux = getAux(E);
 				
@@ -881,7 +892,17 @@ namespace libmaus
 				
 				return 0;
 			}
-			
+
+			static char const * getAuxString(uint8_t const * E, uint64_t const blocksize, char const * const tag)
+			{
+				uint8_t const * data = getAux(E,blocksize,tag);
+				
+				if ( data[2] == 'Z' )
+					return reinterpret_cast<char const *>(data+3);
+				else
+					return 0;
+			}
+						
 			static uint8_t const * getAuxRankData(
 				uint8_t const * E, uint64_t const blocksize
 			)
@@ -956,7 +977,7 @@ namespace libmaus
 				return aux;
 			}
 			
-			static std::string getAuxAsString(uint8_t const * E, uint64_t const blocksize, std::string const & tag)
+			static std::string getAuxAsString(uint8_t const * E, uint64_t const blocksize, char const * const tag)
 			{
 				uint8_t const * D = getAux(E,blocksize,tag);
 				

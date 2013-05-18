@@ -90,14 +90,15 @@ namespace libmaus
 					return chromosomes[refid].name;
 			}
 			
-			int64_t getReadGroupId(std::string const & ID) const
+			int64_t getReadGroupId(char const * ID) const
 			{
-				return RGTrie->searchCompleteNoFailure(ID);
+				return RGTrie->searchCompleteNoFailure(ID,ID+strlen(ID));
 			}
 			
-			::libmaus::bambam::ReadGroup const * getReadGroup(std::string const & ID) const
+			::libmaus::bambam::ReadGroup const * getReadGroup(char const * ID) const
 			{
-				int64_t const id = getReadGroupId(ID);
+				int64_t const id = ID ? getReadGroupId(ID) : -1;
+				
 				if ( id < 0 )
 					return 0;
 				else
@@ -112,14 +113,22 @@ namespace libmaus
 					return libs[libid];			
 			}
 			
-			std::string getLibraryName(std::string const & ID) const
+			std::string getLibraryName(char const * ID) const
 			{
 				return getLibraryName(getLibraryId(ID));
 			}
 			
-			int64_t getLibraryId(std::string const & ID) const
+			int64_t getLibraryId(char const * ID) const
 			{
 				int64_t const rgid = getReadGroupId(ID);
+				if ( rgid < 0 )
+					return numlibs;
+				else
+					return RG[rgid].LBid;
+			}
+
+			int64_t getLibraryId(int64_t const rgid) const
+			{
 				if ( rgid < 0 )
 					return numlibs;
 				else

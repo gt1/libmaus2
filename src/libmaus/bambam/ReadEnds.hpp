@@ -242,6 +242,65 @@ namespace libmaus
 					 this->q = q.sclone();
 				}
 			}
+			
+			static bool parseReadNameValid(uint8_t const * readname, uint8_t const * readnamee)
+			{
+				int cnt[2] = { 0,0 };
+
+				for ( uint8_t const * c = readname; c != readnamee; ++c )
+					cnt [ (static_cast<int>(*c) - ':') == 0 ] ++;
+
+				bool const rnparseok = (cnt[1] == 4);
+				
+				return rnparseok;
+			}
+
+			static void parseReadNameTile(uint8_t const * readname, uint8_t const * readnamee, ::libmaus::bambam::ReadEnds & RE)
+			{
+				uint8_t const * sem[4];
+				uint8_t const ** psem = &sem[0];
+				for ( uint8_t const * c = readname; c != readnamee; ++c )
+					if ( *c == ':' )
+						*(psem++) = c+1;
+				
+				uint8_t const * t = sem[1];
+				while ( D[*t] )
+				{
+					RE.tile *= 10;
+					RE.tile += *(t++)-'0';
+				}
+				RE.tile += 1;
+
+				t = sem[2];
+				while ( D[*t] )
+				{
+					RE.x *= 10;
+					RE.x += *(t++)-'0';
+				}
+
+				t = sem[3];
+				while ( D[*t] )
+				{
+					RE.y *= 10;
+					RE.y += *(t++)-'0';
+				}			
+			}
+			
+			static void fillCommon(
+				::libmaus::bambam::BamAlignment const & p, 
+				::libmaus::bambam::ReadEnds & RE
+			)
+			{
+				RE.read1Sequence = p.getRefIDChecked() + 1;
+				RE.read1Coordinate = p.getCoordinate() + 1;
+				RE.read1IndexInFile = p.getRank();
+
+				uint8_t const * const readname = reinterpret_cast<uint8_t const *>(p.getName());
+				uint8_t const * const readnamee = readname + (p.getLReadName()-1);
+				// parse tile, x, y
+				if ( parseReadNameValid(readname,readnamee) )
+					parseReadNameTile(readname,readnamee,RE);			
+			}
 
 			static void fillFrag(
 				::libmaus::bambam::BamAlignment const & p, 
@@ -249,58 +308,18 @@ namespace libmaus
 				::libmaus::bambam::ReadEnds & RE
 			)
 			{
-				RE.libraryId = p.getLibraryId(header);
-				RE.read1Sequence = p.getRefIDChecked() + 1;
-				RE.read1Coordinate = p.getCoordinate() + 1;
+				fillCommon(p,RE);
+				
 				RE.orientation = p.isReverse() ? ::libmaus::bambam::ReadEnds::R : ::libmaus::bambam::ReadEnds::F;
-				RE.read1IndexInFile = p.getRank();
+
 				RE.score = p.getScore();
 				
 				if ( p.isPaired() && (!p.isMateUnmap()) )
 					RE.read2Sequence = p.getNextRefIDChecked() + 1;
 					
-				char const * readname = p.getName();
-				char const * readnamee = readname + (p.getLReadName()-1);
-
-				int cnt[2] = { 0,0 };
-				for ( char const * c = readname; c != readnamee; ++c )
-					cnt [ (static_cast<int>(*c) - ':') == 0 ] ++;
-				bool const rnparseok = (cnt[1] == 4);
-				
-				// parse tile, x, y
-				if ( rnparseok )
-				{
-					uint8_t const * sem[4];
-					uint8_t const ** psem = &sem[0];
-					for ( uint8_t const * c = reinterpret_cast<uint8_t const *>(readname); c != reinterpret_cast<uint8_t const *>(readnamee); ++c )
-						if ( *c == ':' )
-							*(psem++) = c+1;
-					
-					uint8_t const * t = sem[1];
-					while ( D[*t] )
-					{
-						RE.tile *= 10;
-						RE.tile += *(t++)-'0';
-					}
-					RE.tile += 1;
-
-					t = sem[2];
-					while ( D[*t] )
-					{
-						RE.x *= 10;
-						RE.x += *(t++)-'0';
-					}
-
-					t = sem[3];
-					while ( D[*t] )
-					{
-						RE.y *= 10;
-						RE.y += *(t++)-'0';
-					}
-				}
-				
 				int64_t const rg = p.getReadGroupId(header);
 				RE.readGroup = rg + 1;
+				RE.libraryId = header.getLibraryId(rg);
 			}
 
 			static void fillFragPair(
@@ -310,10 +329,11 @@ namespace libmaus
 				::libmaus::bambam::ReadEnds & RE
 			)
 			{
-				RE.read1Sequence = p.getRefIDChecked() + 1;
-				RE.read1Coordinate = p.getCoordinate() + 1;
+				fillCommon(p,RE);
+
 				RE.read2Sequence = q.getRefIDChecked() + 1;
 				RE.read2Coordinate = q.getCoordinate() + 1;
+				RE.read2IndexInFile = q.getRank();
 				
 				if ( ! p.isReverse() )
 					if ( ! q.isReverse() )
@@ -326,55 +346,14 @@ namespace libmaus
 					else
 						RE.orientation = ::libmaus::bambam::ReadEnds::RR;
 				
-				RE.read1IndexInFile = p.getRank();
-				RE.read2IndexInFile = q.getRank();
 				
 				RE.score = p.getScore() + q.getScore();
 				
 				if ( p.isPaired() && (!p.isMateUnmap()) )
 					RE.read2Sequence = p.getNextRefIDChecked() + 1;
-					
-				char const * readname = p.getName();
-				char const * readnamee = readname + (p.getLReadName()-1);
-
-				int cnt[2] = { 0,0 };
-				for ( char const * c = readname; c != readnamee; ++c )
-					cnt [ (static_cast<int>(*c) - ':') == 0 ] ++;
-				bool const rnparseok = (cnt[1] == 4);
-				
-				// parse tile, x, y
-				if ( rnparseok )
-				{
-					uint8_t const * sem[4];
-					uint8_t const ** psem = &sem[0];
-					for ( uint8_t const * c = reinterpret_cast<uint8_t const *>(readname); c != reinterpret_cast<uint8_t const *>(readnamee); ++c )
-						if ( *c == ':' )
-							*(psem++) = c+1;
-					
-					uint8_t const * t = sem[1];
-					while ( D[*t] )
-					{
-						RE.tile *= 10;
-						RE.tile += *(t++)-'0';
-					}
-					RE.tile += 1;
-
-					t = sem[2];
-					while ( D[*t] )
-					{
-						RE.x *= 10;
-						RE.x += *(t++)-'0';
-					}
-
-					t = sem[3];
-					while ( D[*t] )
-					{
-						RE.y *= 10;
-						RE.y += *(t++)-'0';
-					}
-				}
 				
 				int64_t const rg = p.getReadGroupId(header);
+								
 				RE.readGroup = rg + 1;
 			}
 		};

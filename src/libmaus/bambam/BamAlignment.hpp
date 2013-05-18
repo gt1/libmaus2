@@ -467,7 +467,7 @@ namespace libmaus
 				return P;
 			}
 			
-			std::string getAuxAsString(std::string const & tag) const
+			std::string getAuxAsString(char const * const tag) const
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
 			}
@@ -591,9 +591,9 @@ namespace libmaus
 				return static_cast<int64_t>(getLseqByCigar()) == getLseq();
 			}
 			
-			std::string getReadGroup() const
+			char const * getReadGroup() const
 			{
-				return getAuxAsString("RG");
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,"RG");
 			}
 
 			int64_t getReadGroupId(::libmaus::bambam::BamHeader const & bamheader) const
