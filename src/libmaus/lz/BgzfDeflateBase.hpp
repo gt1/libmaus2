@@ -28,6 +28,9 @@ namespace libmaus
 	{
 		struct BgzfDeflateBase
 		{
+			typedef BgzfDeflateBase this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
 			static unsigned int const maxblocksize = 64*1024;
 			static unsigned int const headersize = 18;
 			static unsigned int const footersize = 8;
@@ -157,6 +160,7 @@ namespace libmaus
 			
 			uint64_t objectid;
 			uint64_t blockid;
+			uint64_t compsize;
 			
 			void destroy()
 			{
@@ -190,7 +194,8 @@ namespace libmaus
 			  pe(inbuf.end()),
 			  flushmode(rflushmode),
 			  objectid(0),
-			  blockid(0)
+			  blockid(0),
+			  compsize(0)
 			{
 				init(level);        
 				setupHeader(outbuf.begin());			

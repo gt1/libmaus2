@@ -71,9 +71,28 @@ void testBgzfMono()
 
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
+#include <libmaus/lz/BgzfDeflateParallel.hpp>
 
 int main(int argc, char *argv[])
 {
+	{
+		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,16,128);
+		
+		while ( std::cin )
+		{
+			libmaus::autoarray::AutoArray<char> B(16384);
+			std::cin.read(B.begin(),B.size());
+			int64_t const r = std::cin.gcount();
+			
+			BDP.write(B.begin(),r);
+		}
+		
+		BDP.flush();
+		std::cout.flush();
+	}
+	
+	return 0;
+
 	#if 0
 	{
 		std::cerr << "req=" << libmaus::lz::BgzfDeflateBase::getReqBufSpaceTwo(Z_DEFAULT_COMPRESSION) << std::endl;
