@@ -897,7 +897,7 @@ namespace libmaus
 			{
 				uint8_t const * data = getAux(E,blocksize,tag);
 				
-				if ( data[2] == 'Z' )
+				if ( data && data[2] == 'Z' )
 					return reinterpret_cast<char const *>(data+3);
 				else
 					return 0;
