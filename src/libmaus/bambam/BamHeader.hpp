@@ -92,7 +92,10 @@ namespace libmaus
 			
 			int64_t getReadGroupId(char const * ID) const
 			{
-				return RGTrie->searchCompleteNoFailure(ID,ID+strlen(ID));
+				if ( id )
+					return RGTrie->searchCompleteNoFailure(ID,ID+strlen(ID));
+				else
+					return -1;
 			}
 			
 			::libmaus::bambam::ReadGroup const * getReadGroup(char const * ID) const
