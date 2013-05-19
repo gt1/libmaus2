@@ -92,7 +92,7 @@ namespace libmaus
 			
 			int64_t getReadGroupId(char const * ID) const
 			{
-				if ( id )
+				if ( ID )
 					return RGTrie->searchCompleteNoFailure(ID,ID+strlen(ID));
 				else
 					return -1;
