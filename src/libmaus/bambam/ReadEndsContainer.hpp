@@ -148,6 +148,21 @@ namespace libmaus
 					return *(reinterpret_cast<uint64_t const *>(p));
 				}
 			};
+
+			struct RadixProjectorTypeOffset
+			{
+				uint8_t const * const A;
+				uint64_t const offset;
+				
+				RadixProjectorTypeOffset(uint8_t const * const rA, uint64_t const roffset) : A(rA), offset(roffset) {}
+				
+				uint64_t operator()(uint64_t const i) const
+				{
+					uint8_t const * p = A+i; 
+					decodeLength(p);
+					return *(reinterpret_cast<uint64_t const *>(p+offset));
+				}
+			};
 			
 			void flush()
 			{
@@ -157,16 +172,53 @@ namespace libmaus
 				
 					// sort entries in buffer
 					::libmaus::bambam::CompactReadEndsComparator const comp(reinterpret_cast<uint8_t const *>(A.begin()));
-					
 					::libmaus::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
+					
 					#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
-					RadixProjectorType RP(reinterpret_cast<uint8_t const *>(A.begin()));
-					uint64_t const radixn = A.end()-iptr;
-					libmaus::sorting::SerialRadixSort64<index_type,RadixProjectorType>::radixSort(
-						iptr,iptr-radixn,radixn,RP
-					);
+					unsigned int const maxradruns = 1;
+					unsigned int const posradruns = minlen >> 3;
+					unsigned int const radruns = std::min(maxradruns,posradruns);
+					// std::cerr << "radruns: " << radruns << std::endl;
+					
+					if ( radruns )
+					{
+						uint64_t const radixn = A.end()-iptr;
+						
+						for ( unsigned int r = 1; r < radruns; ++r )
+						{
+							uint64_t const offset = (radruns-r)<<3;
+							RadixProjectorTypeOffset RP(reinterpret_cast<uint8_t const *>(A.begin()),offset);
+							std::cerr << "offset " << offset << std::endl;
+							libmaus::sorting::SerialRadixSort64<index_type,RadixProjectorTypeOffset>::radixSort(iptr,iptr-radixn,radixn,RP);
+						}
+					
+						RadixProjectorType RP(reinterpret_cast<uint8_t const *>(A.begin()));
+						libmaus::sorting::SerialRadixSort64<index_type,RadixProjectorType>::radixSort(
+							iptr,iptr-radixn,radixn,RP
+						);
+						
+						#if 1
+						uint64_t low = 0;
+						
+						while ( low != radixn )
+						{
+							uint64_t high = std::min(low+16*1024,radixn);
+							while ( high < radixn &&  RP(iptr[high]) == RP(iptr[high-1]) )
+								++high;
+
+							std::sort(iptr+low,iptr+high,comp);
+						
+							low = high;
+						}
+						#else
+						std::sort(iptr,A.end(),comp);						
+						#endif
+					}
+					else
 					#endif
-					std::sort(iptr,A.end(),comp);
+					{
+						std::sort(iptr,A.end(),comp);
+					}
 					::libmaus::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
 					
 					#if 0

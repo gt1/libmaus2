@@ -29,8 +29,80 @@ namespace libmaus
 {
 	namespace util
 	{
+		template<typename stream_type, unsigned int k>
+		struct Utf8Loop
+		{
+			static uint32_t utf8loop(stream_type & stream, uint32_t code)
+			{
+				code <<= 6;
+				code  |= static_cast<uint32_t>(stream.get()) & 0x3Ful;
+				return Utf8Loop<stream_type,k-1>::utf8loop(stream,code);
+			}
+		};
+
+		template<typename stream_type>
+		struct Utf8Loop<stream_type,1>
+		{
+			static uint32_t utf8loop(stream_type &, uint32_t code)
+			{
+				return code;
+			}
+		};
+		
 		struct UTF8
 		{
+			template<typename stream_type>
+			static uint32_t decodeUTF8Unchecked(stream_type & stream)
+			{
+				uint32_t code = stream.get();
+				
+				static unsigned int const tcl[] = { 1,0,2,3,4,5,6 };
+				unsigned int const cl = tcl[__builtin_clz((~static_cast<unsigned int>(code)) << (8*(sizeof(unsigned int)-1)))];
+				
+				switch ( cl )
+				{
+					case 1:          code &= 0x7F;                                                  break;
+					case 2:          code = Utf8Loop<stream_type,2>::utf8loop(stream,code & 0x1Ful); break;
+					case 3:          code = Utf8Loop<stream_type,3>::utf8loop(stream,code & 0x0Ful); break;
+					case 4:          code = Utf8Loop<stream_type,4>::utf8loop(stream,code & 0x07ul); break;
+					case 5:          code = Utf8Loop<stream_type,5>::utf8loop(stream,code & 0x03ul); break;
+					case 6: default: code = Utf8Loop<stream_type,6>::utf8loop(stream,code & 0x01ul); break;
+				}
+
+				return code;
+			}
+
+			template<typename stream_type>
+			static uint32_t decodeUTF8UncheckedEOF(stream_type & stream)
+			{
+				int const c = stream.get();
+
+				if ( c < 0 )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "EOF in decodeUTF8UncheckedEOF(" << ::libmaus::util::Demangle::demangle<stream_type>() <<" &)";
+					se.finish();
+					throw se;
+				}
+
+				uint32_t code = c;
+				
+				static unsigned int const tcl[] = { 1,0,2,3,4,5,6 };
+				unsigned int const cl = tcl[__builtin_clz((~static_cast<unsigned int>(code)) << (8*(sizeof(unsigned int)-1)))];
+				
+				switch ( cl )
+				{
+					case 1:          code &= 0x7F;                                                  break;
+					case 2:          code = Utf8Loop<stream_type,2>::utf8loop(stream,code & 0x1Ful); break;
+					case 3:          code = Utf8Loop<stream_type,3>::utf8loop(stream,code & 0x0Ful); break;
+					case 4:          code = Utf8Loop<stream_type,4>::utf8loop(stream,code & 0x07ul); break;
+					case 5:          code = Utf8Loop<stream_type,5>::utf8loop(stream,code & 0x03ul); break;
+					case 6: default: code = Utf8Loop<stream_type,6>::utf8loop(stream,code & 0x01ul); break;
+				}
+
+				return code;
+			}
+
 			template<typename in_type>
 			static uint32_t decodeUTF8(in_type & istr)
 			{

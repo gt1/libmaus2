@@ -37,7 +37,7 @@ namespace libmaus
 			static uint32_t decodeLength(uint8_t const * & p)
 			{
 				::libmaus::util::GetObject<uint8_t const *> G(p);
-				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8(G);
+				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				p = G.p;
 				return len;
 			}
@@ -48,7 +48,7 @@ namespace libmaus
 			static uint32_t decodeLength(uint8_t * & p)
 			{
 				::libmaus::util::GetObject<uint8_t *> G(p);
-				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8(G);
+				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				p = G.p;
 				return len;
 			}

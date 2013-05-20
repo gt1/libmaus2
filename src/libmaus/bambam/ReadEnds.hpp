@@ -62,15 +62,17 @@ namespace libmaus
 			uint16_t tile;
 			uint32_t x;
 			uint32_t y;
+			
+			static int64_t const signshift = (-(1l<<29))+1;
 
 			static uint32_t signedEncode(int32_t const n)
 			{
-				return static_cast<uint32_t>(static_cast<int64_t>(n) - std::numeric_limits<int32_t>::min());
+				return static_cast<uint32_t>(static_cast<int64_t>(n) - signshift);
 			}
 			
 			static int32_t signedDecode(uint32_t const n)
 			{
-				return static_cast<int32_t>(static_cast<int64_t>(n) + std::numeric_limits<int32_t>::min());
+				return static_cast<int32_t>(static_cast<int64_t>(n) + signshift);
 			}
 			public:
 			bool isPaired() const
@@ -276,21 +278,21 @@ namespace libmaus
 			void get(get_type & G)
 			{
 				#if defined(READENDSBASECOMPACT)
-				this->libraryId = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->read1Sequence = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->read1Coordinate = ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(G);
+				this->libraryId = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				this->read1Sequence = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				this->read1Coordinate = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				this->orientation = static_cast<read_end_orientation>(G.get());
 				
-				this->read2Sequence = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->read2Coordinate = ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(G);
+				this->read2Sequence = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				this->read2Coordinate = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				
 				this->read1IndexInFile = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
 				this->read2IndexInFile = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
 
-				this->score = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->readGroup = ::libmaus::util::UTF8::decodeUTF8(G);
+				this->score = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				this->readGroup = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				
-				this->tile = ::libmaus::util::UTF8::decodeUTF8(G);
+				this->tile = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 
 				this->x = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
 				this->y = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
@@ -306,11 +308,11 @@ namespace libmaus
 				::libmaus::util::UTF8::encodeUTF8(this->libraryId,P);
 
 				::libmaus::util::UTF8::encodeUTF8(this->read1Sequence,P);
-				::libmaus::util::NumberSerialisation::serialiseSignedNumber(P,this->read1Coordinate);
+				::libmaus::util::UTF8::encodeUTF8(this->read1Coordinate,P);
 				P.put(static_cast<uint8_t>(this->orientation));
 
 				::libmaus::util::UTF8::encodeUTF8(this->read2Sequence,P);
-				::libmaus::util::NumberSerialisation::serialiseSignedNumber(P,this->read2Coordinate);
+				::libmaus::util::UTF8::encodeUTF8(this->read2Coordinate,P);
 
 				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->read1IndexInFile);
 				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->read2IndexInFile);
