@@ -27,6 +27,7 @@
 #include <libmaus/bambam/SortedFragDecoder.hpp>
 #include <libmaus/util/DigitTable.hpp>
 #include <libmaus/util/CountGetObject.hpp>
+#include <libmaus/sorting/SerialRadixSort64.hpp>
 
 namespace libmaus
 {
@@ -56,6 +57,8 @@ namespace libmaus
 			std::vector < uint64_t > tmpoutcnts;
 			
 			bool const copyAlignments;
+			
+			uint64_t minlen;
 
 			::libmaus::aio::CheckedOutputStream & getTempFile()
 			{
@@ -73,7 +76,8 @@ namespace libmaus
 			)
 			: A( (bytes + index_type_size - 1) / index_type_size, false ), 
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
-			  tempfilename(rtempfilename), copyAlignments(rcopyAlignments)
+			  tempfilename(rtempfilename), copyAlignments(rcopyAlignments),
+			  minlen(std::numeric_limits<uint64_t>::max())
 			{
 			
 			}
@@ -87,9 +91,20 @@ namespace libmaus
 				);
 			}
 			
+			#define READENDSRADIXSORT
+			
 			uint64_t freeSpace() const
 			{
+				uint64_t const textdata = dptr-reinterpret_cast<uint8_t const *>(A.begin());
+				uint64_t const ptrdata = (A.end() - iptr)*sizeof(index_type);
+				
+				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+				return A.size() * sizeof(index_type) - (2*ptrdata + textdata);
+				#else
+				uint64_t const exfreespace = A.size() * sizeof(index_type) - (ptrdata + textdata);
+				assert ( static_cast<ptrdiff_t>(exfreespace) == (reinterpret_cast<uint8_t const *>(iptr) - dptr) );
 				return reinterpret_cast<uint8_t const *>(iptr) - dptr;
+				#endif
 			}
 			
 			void decodeEntry(uint64_t const ioff, ::libmaus::bambam::ReadEnds & RE) const
@@ -120,13 +135,39 @@ namespace libmaus
 				return RE;
 			}
 			
+			struct RadixProjectorType
+			{
+				uint8_t const * const A;
+				
+				RadixProjectorType(uint8_t const * const rA) : A(rA) {}
+				
+				uint64_t operator()(uint64_t const i) const
+				{
+					uint8_t const * p = A+i; 
+					decodeLength(p);
+					return *(reinterpret_cast<uint64_t const *>(p));
+				}
+			};
+			
 			void flush()
 			{
 				if ( iptr != A.end() )
 				{
+					// std::cerr << "[V] minlen=" << minlen << std::endl;
+				
 					// sort entries in buffer
 					::libmaus::bambam::CompactReadEndsComparator const comp(reinterpret_cast<uint8_t const *>(A.begin()));
+					
+					::libmaus::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
+					#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+					RadixProjectorType RP(reinterpret_cast<uint8_t const *>(A.begin()));
+					uint64_t const radixn = A.end()-iptr;
+					libmaus::sorting::SerialRadixSort64<index_type,RadixProjectorType>::radixSort(
+						iptr,iptr-radixn,radixn,RP
+					);
+					#endif
 					std::sort(iptr,A.end(),comp);
+					::libmaus::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
 					
 					#if 0
 					// std::cerr << "Checking sorting...";
@@ -166,6 +207,11 @@ namespace libmaus
 					{
 						index_type const ioff = *xptr;
 						uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
+						
+						#if 1
+						uint32_t const len = decodeLength(eptr);
+						SOS.write(reinterpret_cast<char const *>(eptr),len);
+						#else
 						/* uint32_t const len = */ decodeLength(eptr);
 						
 						::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
@@ -174,6 +220,7 @@ namespace libmaus
 						RE.put(SOS);
 						
 						// std::cerr << RE << std::endl;
+						#endif
 					}
 
 					SOS.flush();
@@ -192,6 +239,8 @@ namespace libmaus
 					
 					// std::cerr << "block." << std::endl;
 				}
+				
+				minlen = std::numeric_limits<uint64_t>::max();
 			}
 			
 			void put(::libmaus::bambam::ReadEnds const & R)
@@ -202,16 +251,24 @@ namespace libmaus
 				uint64_t const entryspace = getEntryLength(R);
 				uint64_t const numlen = getNumberLength(entryspace);
 				uint64_t const idexlen = sizeof(index_type);
+				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+				uint64_t const reqspace = entryspace+numlen+2*idexlen;
+				#else
 				uint64_t const reqspace = entryspace+numlen+idexlen;
+				#endif
 				
 				assert ( reqspace <= A.size() * sizeof(index_type) );
 				
 				// flush buffer if needed
 				if ( reqspace > freeSpace() )
 					flush();
+					
+				minlen = std::min(entryspace,minlen);
 				
 				// store current offset
 				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
+				
+				// put entry
 				::libmaus::util::PutObject<uint8_t *> P(dptr);
 				// put length
 				::libmaus::util::UTF8::encodeUTF8(entryspace,P);

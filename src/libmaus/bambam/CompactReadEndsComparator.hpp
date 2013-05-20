@@ -21,6 +21,7 @@
 
 #include <libmaus/types/types.hpp>
 #include <libmaus/bambam/CompactReadEndsBase.hpp>
+#include <libmaus/rank/ERankBase.hpp>
 
 namespace libmaus
 {
@@ -35,6 +36,26 @@ namespace libmaus
 			
 			}
 			
+			static void prepare(uint8_t * pa, uint64_t const n)
+			{
+				#if defined(LIBMAUS_HAVE_x86_64)
+				libmaus::timing::RealTimeClock rtc; rtc.start();
+				for ( uint64_t i = 0; i < n; ++i )
+				{
+					uint32_t const lena = decodeLength(pa);
+					unsigned int const awords = lena >> 3;
+					uint32_t const resta = lena-(awords<<3);
+					
+					uint64_t * wa = reinterpret_cast<uint64_t *>(pa);
+					uint64_t * we = wa + awords;
+					for ( ; wa != we; ++wa )
+						*wa = libmaus::rank::BSwapBase::bswap8(*wa);
+						
+					pa = reinterpret_cast<uint8_t *>(wa);
+					pa += resta;
+				}
+				#endif
+			}
 
 			bool operator()(uint32_t const a, uint32_t const b) const
 			{
@@ -43,9 +64,29 @@ namespace libmaus
 				
 				uint32_t const lena = decodeLength(pa);
 				uint32_t const lenb = decodeLength(pb);
-							
+
 				uint8_t const * const pae = pa + lena;
 				uint8_t const * const pbe = pb + lenb;
+				
+				#if defined(LIBMAUS_HAVE_x86_64)
+				unsigned int const awords = lena >> 3;
+				unsigned int const bwords = lenb >> 3;
+				unsigned int const ewords = std::min(awords,bwords);
+				
+				uint64_t const * wa = reinterpret_cast<uint64_t const *>(pa);
+				uint64_t const * const wae = wa + ewords;
+				uint64_t const * wb = reinterpret_cast<uint64_t const *>(pb);
+				
+				while ( wa != wae )
+					if ( *wa != *wb )
+						return *wa < *wb;
+					else
+						++wa, ++wb;
+
+				pa = reinterpret_cast<uint8_t const *>(wa);
+				pb = reinterpret_cast<uint8_t const *>(wb);
+				#endif
+						
 				
 				while ( pa != pae && pb != pbe && *pa == *pb )
 					++pa, ++pb;

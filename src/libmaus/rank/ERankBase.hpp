@@ -36,31 +36,8 @@ namespace libmaus
 {
 	namespace rank
 	{
-		/**
-		 * rank base functions
-		 **/
-		struct ERankBase
+		struct BSwapBase
 		{
-			typedef ERankBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-
-			private:
-			#if defined(RANKTABLES)
-			//! lookup table for popcount function
-			static RankTable const R;
-			static SimpleRankTable const S;
-			#endif
-			protected:
-			/**
-			 * cache for encoding enumerative code
-			 **/
-			static EncodeCache<16,uint16_t> EC16;
-			/**
-			 * cache for decoding enumerative code
-			 **/
-			static DecodeCache<16,uint16_t> DC16;
-			
-			protected:
 			/**
 			 * invert byte order of 2 byte word
 			 * @param val
@@ -116,6 +93,33 @@ namespace libmaus
 					;
 	#endif
 			}
+		};
+	
+		/**
+		 * rank base functions
+		 **/
+		struct ERankBase : public BSwapBase
+		{
+			typedef ERankBase this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			private:
+			#if defined(RANKTABLES)
+			//! lookup table for popcount function
+			static RankTable const R;
+			static SimpleRankTable const S;
+			#endif
+			protected:
+			/**
+			 * cache for encoding enumerative code
+			 **/
+			static EncodeCache<16,uint16_t> EC16;
+			/**
+			 * cache for decoding enumerative code
+			 **/
+			static DecodeCache<16,uint16_t> DC16;
+			
+			protected:
 			
 			// #define RTABLE
 			// #define HAVE_SSE4

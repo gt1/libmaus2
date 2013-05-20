@@ -18,4 +18,4 @@
 **/
 #include <libmaus/bambam/ReadEnds.hpp>
 
-::libmaus::util::DigitTable const ::libmaus::bambam::ReadEnds::D;
+::libmaus::util::DigitTable const ::libmaus::bambam::ReadEndsBase::D;

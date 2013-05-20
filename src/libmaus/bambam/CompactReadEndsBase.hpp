@@ -41,6 +41,17 @@ namespace libmaus
 				p = G.p;
 				return len;
 			}
+
+			/*
+			 * decode number in utf8 representation
+			 */
+			static uint32_t decodeLength(uint8_t * & p)
+			{
+				::libmaus::util::GetObject<uint8_t *> G(p);
+				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8(G);
+				p = G.p;
+				return len;
+			}
 			
 			/**
 			 * get length of number in utf8 representation

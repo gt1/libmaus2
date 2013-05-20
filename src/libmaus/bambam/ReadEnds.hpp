@@ -34,19 +34,25 @@ namespace libmaus
 	{
 		struct ReadEnds;
 		std::ostream & operator<<(std::ostream & out, ReadEnds const & RE);
+		struct OpticalComparator;
 
-		struct ReadEnds
+		struct ReadEndsBase
 		{
+			typedef ReadEndsBase this_type;
 			static ::libmaus::util::DigitTable const D;
-
+			
+			friend std::ostream & operator<<(std::ostream & out, ReadEnds const & RE);
+			friend struct OpticalComparator;
+			
 			enum read_end_orientation { F=0, R=1, FF=2, FR=3, RF=4, RR=5 };
-
+			
+			private:
 			uint16_t libraryId;
-			read_end_orientation orientation;
 			uint32_t read1Sequence;
-			 int32_t read1Coordinate;
+			uint32_t read1Coordinate;
+			read_end_orientation orientation;
 			uint32_t read2Sequence;
-			 int32_t read2Coordinate;
+			uint32_t read2Coordinate;
 
 			uint64_t read1IndexInFile;
 			uint64_t read2IndexInFile;
@@ -56,10 +62,17 @@ namespace libmaus
 			uint16_t tile;
 			uint32_t x;
 			uint32_t y;
+
+			static uint32_t signedEncode(int32_t const n)
+			{
+				return static_cast<uint32_t>(static_cast<int64_t>(n) - std::numeric_limits<int32_t>::min());
+			}
 			
-			BamAlignment::shared_ptr_type p;
-			BamAlignment::shared_ptr_type q;
-			
+			static int32_t signedDecode(uint32_t const n)
+			{
+				return static_cast<int32_t>(static_cast<int64_t>(n) + std::numeric_limits<int32_t>::min());
+			}
+			public:
 			bool isPaired() const
 			{
 				return read2Sequence != 0;
@@ -67,14 +80,28 @@ namespace libmaus
 			
 			std::pair<int64_t,int64_t> getCoord1() const
 			{
-				return std::pair<int64_t,int64_t>(read1Sequence,read1Coordinate);
+				return std::pair<int64_t,int64_t>(read1Sequence,getRead1Coordinate());
 			}
 			std::pair<int64_t,int64_t> getCoord2() const
 			{
-				return std::pair<int64_t,int64_t>(read2Sequence,read2Coordinate);
+				return std::pair<int64_t,int64_t>(read2Sequence,getRead2Coordinate());
 			}
 			
-			ReadEnds()
+			uint16_t getLibraryId() const { return libraryId; }
+			read_end_orientation getOrientation() const { return orientation; }
+			uint32_t getRead1Sequence() const { return read1Sequence; }
+			int32_t getRead1Coordinate() const { return signedDecode(read1Coordinate); }
+			uint32_t getRead2Sequence() const { return read2Sequence; }
+			int32_t getRead2Coordinate() const { return signedDecode(read2Coordinate); }
+			uint64_t getRead1IndexInFile() const { return read1IndexInFile; }
+			uint64_t getRead2IndexInFile() const { return read2IndexInFile; }
+			uint32_t getScore() const { return score; }
+			uint16_t getReadGroup() const { return readGroup; }
+			uint16_t getTile() const { return tile; }
+			uint32_t getX() const { return x; }
+			uint32_t getY() const { return y; }
+			
+			ReadEndsBase()
 			{
 				reset();
 			}
@@ -82,11 +109,9 @@ namespace libmaus
 			void reset()
 			{
 				memset(this,0,sizeof(*this));	
-				p.reset();
-				q.reset();
 			}
 			
-			bool operator<(ReadEnds const & o) const 
+			bool operator<(ReadEndsBase const & o) const 
 			{
 				if ( libraryId != o.libraryId ) return libraryId < o.libraryId;
 				if ( read1Sequence != o.read1Sequence ) return read1Sequence < o.read1Sequence;
@@ -99,7 +124,7 @@ namespace libmaus
 
 				return false;
 			}
-			bool operator>(ReadEnds const & o) const 
+			bool operator>(ReadEndsBase const & o) const 
 			{
 				if ( libraryId != o.libraryId ) return libraryId > o.libraryId;
 				if ( read1Sequence != o.read1Sequence ) return read1Sequence > o.read1Sequence;
@@ -113,7 +138,7 @@ namespace libmaus
 				return false;
 			}
 			
-			bool operator==(ReadEnds const & o) const
+			bool operator==(ReadEndsBase const & o) const
 			{
 				if ( libraryId != o.libraryId ) return false;
 				if ( read1Sequence != o.read1Sequence ) return false;
@@ -126,123 +151,11 @@ namespace libmaus
 				
 				return true;
 			}
-			bool operator!=(ReadEnds const & o) const
+			bool operator!=(ReadEndsBase const & o) const
 			{
 				return ! (*this == o);
 			}
-			
-			ReadEnds recode() const
-			{
-				std::ostringstream ostr;
-				put(ostr);
-				std::istringstream istr(ostr.str());
-				ReadEnds RE;
-				RE.get(istr);
-				return RE;
-			}
 
-			template<typename get_type>
-			void get(get_type & G)
-			{
-				this->libraryId = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->read1Sequence = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->read1Coordinate = ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(G);
-				this->orientation = static_cast<read_end_orientation>(G.get());
-				
-				this->read2Sequence = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->read2Coordinate = ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(G);
-				
-				this->read1IndexInFile = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
-				this->read2IndexInFile = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
-
-				this->score = ::libmaus::util::UTF8::decodeUTF8(G);
-				this->readGroup = ::libmaus::util::UTF8::decodeUTF8(G);
-				
-				this->tile = ::libmaus::util::UTF8::decodeUTF8(G);
-
-				this->x = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
-				this->y = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
-				
-				uint64_t numal = G.get();
-				
-				if ( numal > 0 )
-					p = BamAlignment::shared_ptr_type(new BamAlignment(G));
-				if ( numal > 1 )
-					q = BamAlignment::shared_ptr_type(new BamAlignment(G));
-			}
-
-			template<typename put_type>
-			void put(put_type & P) const
-			{
-				try
-				{
-					::libmaus::util::UTF8::encodeUTF8(this->libraryId,P);
-
-					::libmaus::util::UTF8::encodeUTF8(this->read1Sequence,P);
-					::libmaus::util::NumberSerialisation::serialiseSignedNumber(P,this->read1Coordinate);
-					P.put(static_cast<uint8_t>(this->orientation));
-
-					::libmaus::util::UTF8::encodeUTF8(this->read2Sequence,P);
-					::libmaus::util::NumberSerialisation::serialiseSignedNumber(P,this->read2Coordinate);
-
-					::libmaus::util::NumberSerialisation::serialiseNumber(P,this->read1IndexInFile);
-					::libmaus::util::NumberSerialisation::serialiseNumber(P,this->read2IndexInFile);
-					
-					::libmaus::util::UTF8::encodeUTF8(this->score,P);
-					::libmaus::util::UTF8::encodeUTF8(this->readGroup,P);
-					
-					::libmaus::util::UTF8::encodeUTF8(this->tile,P);
-
-					::libmaus::util::NumberSerialisation::serialiseNumber(P,this->x,2);
-					::libmaus::util::NumberSerialisation::serialiseNumber(P,this->y,2);
-					
-					unsigned int const havep = ((p.get() != 0) ? 1 : 0);
-					unsigned int const haveq = ((q.get() != 0) ? 1 : 0);
-					uint64_t const numal = havep+haveq;
-					P.put(static_cast<uint8_t>(numal));
-					
-					if ( havep )
-						p->serialise(P);
-					if ( haveq )
-						q->serialise(P);
-				}
-				catch(...)
-				{
-					// std::cerr << "Error while putting " << *this << std::endl;
-					throw;
-				}
-			}
-
-			ReadEnds(
-				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::BamHeader const & header,
-				::libmaus::bambam::ReadEnds & RE,
-				bool const copyAlignment = false
-			)
-			{
-				reset();
-				fillFrag(p,header,RE);
-				if ( copyAlignment )
-					 this->p = p.sclone();
-			}
-
-			ReadEnds(
-				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::BamAlignment const & q, 
-				::libmaus::bambam::BamHeader const & header,
-				::libmaus::bambam::ReadEnds & RE,
-				bool const copyAlignment = false
-			)
-			{
-				reset();
-				fillFragPair(p,q,header,RE);
-				if ( copyAlignment )
-				{
-					 this->p = p.sclone();
-					 this->q = q.sclone();
-				}
-			}
-			
 			static bool parseReadNameValid(uint8_t const * readname, uint8_t const * readnamee)
 			{
 				int cnt[2] = { 0,0 };
@@ -255,7 +168,7 @@ namespace libmaus
 				return rnparseok;
 			}
 
-			static void parseReadNameTile(uint8_t const * readname, uint8_t const * readnamee, ::libmaus::bambam::ReadEnds & RE)
+			static void parseReadNameTile(uint8_t const * readname, uint8_t const * readnamee, ::libmaus::bambam::ReadEndsBase & RE)
 			{
 				uint8_t const * sem[4];
 				uint8_t const ** psem = &sem[0];
@@ -288,11 +201,11 @@ namespace libmaus
 			
 			static void fillCommon(
 				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::ReadEnds & RE
+				::libmaus::bambam::ReadEndsBase & RE
 			)
 			{
 				RE.read1Sequence = p.getRefIDChecked() + 1;
-				RE.read1Coordinate = p.getCoordinate() + 1;
+				RE.read1Coordinate = signedEncode(p.getCoordinate() + 1);
 				RE.read1IndexInFile = p.getRank();
 
 				uint8_t const * const readname = reinterpret_cast<uint8_t const *>(p.getName());
@@ -305,12 +218,12 @@ namespace libmaus
 			static void fillFrag(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamHeader const & header,
-				::libmaus::bambam::ReadEnds & RE
+				::libmaus::bambam::ReadEndsBase & RE
 			)
 			{
 				fillCommon(p,RE);
 				
-				RE.orientation = p.isReverse() ? ::libmaus::bambam::ReadEnds::R : ::libmaus::bambam::ReadEnds::F;
+				RE.orientation = p.isReverse() ? ::libmaus::bambam::ReadEndsBase::R : ::libmaus::bambam::ReadEndsBase::F;
 
 				RE.score = p.getScore();
 				
@@ -326,25 +239,25 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
 				::libmaus::bambam::BamHeader const & header,
-				::libmaus::bambam::ReadEnds & RE
+				::libmaus::bambam::ReadEndsBase & RE
 			)
 			{
 				fillCommon(p,RE);
 
 				RE.read2Sequence = q.getRefIDChecked() + 1;
-				RE.read2Coordinate = q.getCoordinate() + 1;
+				RE.read2Coordinate = signedEncode(q.getCoordinate() + 1);
 				RE.read2IndexInFile = q.getRank();
 				
 				if ( ! p.isReverse() )
 					if ( ! q.isReverse() )
-						RE.orientation = ::libmaus::bambam::ReadEnds::FF;
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::FF;
 					else
-						RE.orientation = ::libmaus::bambam::ReadEnds::FR;
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::FR;
 				else
 					if ( ! q.isReverse() )
-						RE.orientation = ::libmaus::bambam::ReadEnds::RF;
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::RF;
 					else
-						RE.orientation = ::libmaus::bambam::ReadEnds::RR;
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::RR;
 				
 				
 				RE.score = p.getScore() + q.getScore();
@@ -356,6 +269,151 @@ namespace libmaus
 								
 				RE.readGroup = rg + 1;
 			}
+			
+			#define READENDSBASECOMPACT
+
+			template<typename get_type>
+			void get(get_type & G)
+			{
+				#if defined(READENDSBASECOMPACT)
+				this->libraryId = ::libmaus::util::UTF8::decodeUTF8(G);
+				this->read1Sequence = ::libmaus::util::UTF8::decodeUTF8(G);
+				this->read1Coordinate = ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(G);
+				this->orientation = static_cast<read_end_orientation>(G.get());
+				
+				this->read2Sequence = ::libmaus::util::UTF8::decodeUTF8(G);
+				this->read2Coordinate = ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(G);
+				
+				this->read1IndexInFile = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
+				this->read2IndexInFile = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
+
+				this->score = ::libmaus::util::UTF8::decodeUTF8(G);
+				this->readGroup = ::libmaus::util::UTF8::decodeUTF8(G);
+				
+				this->tile = ::libmaus::util::UTF8::decodeUTF8(G);
+
+				this->x = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
+				this->y = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
+				#else
+				G.read(reinterpret_cast<char *>(this),sizeof(*this));
+				#endif
+			}
+
+			template<typename put_type>
+			void put(put_type & P) const
+			{
+				#if defined(READENDSBASECOMPACT)
+				::libmaus::util::UTF8::encodeUTF8(this->libraryId,P);
+
+				::libmaus::util::UTF8::encodeUTF8(this->read1Sequence,P);
+				::libmaus::util::NumberSerialisation::serialiseSignedNumber(P,this->read1Coordinate);
+				P.put(static_cast<uint8_t>(this->orientation));
+
+				::libmaus::util::UTF8::encodeUTF8(this->read2Sequence,P);
+				::libmaus::util::NumberSerialisation::serialiseSignedNumber(P,this->read2Coordinate);
+
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->read1IndexInFile);
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->read2IndexInFile);
+				
+				::libmaus::util::UTF8::encodeUTF8(this->score,P);
+				::libmaus::util::UTF8::encodeUTF8(this->readGroup,P);
+				
+				::libmaus::util::UTF8::encodeUTF8(this->tile,P);
+
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->x,2);
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->y,2);					
+				#else
+				P.write(reinterpret_cast<char const *>(this),sizeof(*this));				
+				#endif
+			}
+		};
+
+		struct ReadEnds : public ReadEndsBase
+		{
+	
+			BamAlignment::shared_ptr_type p;
+			BamAlignment::shared_ptr_type q;
+			
+			ReadEnds() : ReadEndsBase()
+			{
+			}
+			
+			void reset()
+			{
+				ReadEndsBase::reset();
+				p.reset();
+				q.reset();
+			}
+			
+			ReadEnds recode() const
+			{
+				std::ostringstream ostr;
+				put(ostr);
+				std::istringstream istr(ostr.str());
+				ReadEnds RE;
+				RE.get(istr);
+				return RE;
+			}
+
+			template<typename get_type>
+			void get(get_type & G)
+			{
+				ReadEndsBase::get(G);
+				
+				uint64_t numal = G.get();
+				
+				if ( numal > 0 )
+					p = BamAlignment::shared_ptr_type(new BamAlignment(G));
+				if ( numal > 1 )
+					q = BamAlignment::shared_ptr_type(new BamAlignment(G));
+			}
+
+			template<typename put_type>
+			void put(put_type & P) const
+			{
+				ReadEndsBase::put(P);
+
+				unsigned int const havep = ((p.get() != 0) ? 1 : 0);
+				unsigned int const haveq = ((q.get() != 0) ? 1 : 0);
+				uint64_t const numal = havep+haveq;
+				P.put(static_cast<uint8_t>(numal));
+					
+				if ( havep )
+					p->serialise(P);
+				if ( haveq )
+					q->serialise(P);
+			}
+
+			ReadEnds(
+				::libmaus::bambam::BamAlignment const & p, 
+				::libmaus::bambam::BamHeader const & header,
+				::libmaus::bambam::ReadEnds & RE,
+				bool const copyAlignment = false
+			)
+			{
+				reset();
+				fillFrag(p,header,RE);
+				if ( copyAlignment )
+					 this->p = p.sclone();
+			}
+
+			ReadEnds(
+				::libmaus::bambam::BamAlignment const & p, 
+				::libmaus::bambam::BamAlignment const & q, 
+				::libmaus::bambam::BamHeader const & header,
+				::libmaus::bambam::ReadEnds & RE,
+				bool const copyAlignment = false
+			)
+			{
+				reset();
+				fillFragPair(p,q,header,RE);
+				if ( copyAlignment )
+				{
+					 this->p = p.sclone();
+					 this->q = q.sclone();
+				}
+			}
+			
 		};
 
 		inline std::ostream & operator<<(std::ostream & out, ReadEnds::read_end_orientation reo)
