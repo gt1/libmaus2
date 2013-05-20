@@ -579,7 +579,8 @@ libmaussorting_include_HEADERS=\
 libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
 	libmaus/hashing/hash.hpp \
-	libmaus/hashing/CircularHash.hpp
+	libmaus/hashing/CircularHash.hpp \
+	libmaus/hashing/ConstantStringHash.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\

@@ -29,6 +29,7 @@
 #include <libmaus/trie/TrieState.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
+#include <libmaus/hashing/ConstantStringHash.hpp>
 
 namespace libmaus
 {
@@ -56,6 +57,18 @@ namespace libmaus
 				}
 				return *this;
 			}
+			
+			template<typename iterator>
+			static uint32_t hash(iterator ita, iterator ite)
+			{
+				return libmaus::hashing::EvaHash::hash(reinterpret_cast<uint8_t const *>(ita),ite-ita);
+			}
+
+			uint32_t hash() const
+			{
+				uint8_t const * ita = reinterpret_cast<uint8_t const *>(ID.c_str());
+				return hash(ita,ita+ID.size());
+			}
 		};
 		
 		inline std::ostream & operator<<(std::ostream & out, ReadGroup const & RG)
@@ -79,6 +92,7 @@ namespace libmaus
 			std::vector< ::libmaus::bambam::Chromosome > chromosomes;
 			std::vector< ::libmaus::bambam::ReadGroup > RG;
 			::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type RGTrie;
+			libmaus::hashing::ConstantStringHash::shared_ptr_type RGCSH;
 			std::vector<std::string> libs;
 			uint64_t numlibs;
 			
@@ -93,7 +107,18 @@ namespace libmaus
 			int64_t getReadGroupId(char const * ID) const
 			{
 				if ( ID )
-					return RGTrie->searchCompleteNoFailure(ID,ID+strlen(ID));
+				{
+					unsigned int const idlen = strlen(ID);
+					
+					if ( RGCSH )
+					{
+						return RGCSH->H[ ReadGroup::hash(ID,ID+idlen) & RGCSH->m ];
+					}
+					else
+					{
+						return RGTrie->searchCompleteNoFailure(ID,ID+idlen);
+					}
+				}
 				else
 					return -1;
 			}
@@ -452,6 +477,21 @@ namespace libmaus
 
 				RG = getReadGroups(text);
 				RGTrie = computeRgTrie(RG);
+				RGCSH = libmaus::hashing::ConstantStringHash::constructShared(RG.begin(),RG.end());
+				
+				if ( !RGCSH )
+				{
+					std::set<std::string> RGids;
+					for ( uint64_t i = 0; i < RG.size(); ++i )
+						RGids.insert(RG[i].ID);
+					if ( RGids.size() != RG.size() )
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "BamHeader::init(): Read group identifiers are not unique." << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
 				
 				// extract all library names
 				std::set < std::string > slibs;
