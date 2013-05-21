@@ -31,12 +31,27 @@ namespace libmaus
 {
         namespace parallel
         {
-                template<typename value_type>
+                template<typename _value_type>
                 struct SynchronousQueue
                 {
+                	typedef _value_type value_type;
+                	typedef SynchronousQueue<value_type> this_type;
+                	
                         std::deque < value_type > Q;
                         PosixMutex lock;
                         PosixSemaphore semaphore;
+                        
+                        this_type * parent;
+                        
+                        SynchronousQueue() : parent(0)
+                        {
+
+                        }
+                        
+                        virtual ~SynchronousQueue()
+                        {
+                        
+                        }
                         
                         unsigned int getFillState()
                         {
@@ -52,8 +67,11 @@ namespace libmaus
                                 Q.push_back(q);
                                 lock.unlock();
                                 semaphore.post();
+                                
+                                if ( parent )
+	                                parent->enque(q);
                         }
-                        value_type deque()
+                        virtual value_type deque()
                         {
                                 semaphore.wait();
                                 lock.lock();
