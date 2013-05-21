@@ -139,7 +139,10 @@ namespace libmaus
 	                                semaphore.post();
                         }
 
-                        void enque(value_type const q, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0)
+                        void enque(
+                        	value_type const q, 
+                        	libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0
+			)
                         {
                                 lock.lock();
                                 preQ.push(q);
@@ -148,7 +151,9 @@ namespace libmaus
 				drainPreQueue(globlist);
                         }
                         
-                        void setReadyFor(uint64_t const rreadyfor, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0)
+                        void setReadyFor(
+                        	uint64_t const rreadyfor, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0
+			)
                         {
                         	lock.lock();
                         	readyfor = rreadyfor;
