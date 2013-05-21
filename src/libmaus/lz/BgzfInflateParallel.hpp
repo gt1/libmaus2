@@ -29,182 +29,211 @@ namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfInflateParallel
+		struct BgzfInflateBlockIdInfo
 		{
-			struct BgzfInflateBlockBlockIdComparator
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> const & inflateB;
+					
+			BgzfInflateBlockIdInfo(
+				libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> const & rinflateB
+			) : inflateB(rinflateB)
 			{
-				BgzfInflateParallel * parent;
-						
-				BgzfInflateBlockBlockIdComparator(BgzfInflateParallel * rparent) : parent(rparent)
-				{
-				
-				}
+			
+			}
 
-				bool operator()(uint64_t const i, uint64_t const j) const
-				{
-					return parent->B[i]->blockid > parent->B[j]->blockid;
-				}		
-			};
-
-			struct BgzfInflateParallelThread : public libmaus::parallel::PosixThread
+			uint64_t operator()(uint64_t const i) const
 			{
-				typedef BgzfInflateParallelThread this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				
-				enum op_type { op_read_block, op_decompress_block, op_none };
+				return inflateB[i]->blockid;
+			}		
+		};
+
+		struct BgzfInflateBlockIdComparator
+		{
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> const & inflateB;
+					
+			BgzfInflateBlockIdComparator(
+				libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> const & rinflateB
+			) : inflateB(rinflateB)
+			{
 			
-				BgzfInflateParallel * parent;
-				
-				BgzfInflateParallelThread(BgzfInflateParallel * rparent) : parent(rparent)
-				{
-				}
-				~BgzfInflateParallelThread()
-				{
-				}
+			}
+
+			bool operator()(uint64_t const i, uint64_t const j) const
+			{
+				return inflateB[i]->blockid > inflateB[j]->blockid;
+			}		
+		};
+		
+		struct BgzfInflateParallelContext
+		{
+			libmaus::parallel::TerminatableSynchronousQueue<uint64_t> inflategloblist;
+
+			std::istream & inflatein;
+			uint64_t inflateinid;
+			libmaus::parallel::PosixMutex inflateinlock;
 			
-				void * run()
+			libmaus::parallel::PosixMutex inflateqlock;
+
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> inflateB;
+			
+			std::deque<uint64_t> inflatefreelist;
+			std::deque<uint64_t> inflatereadlist;
+			BgzfInflateBlockIdComparator inflateheapcomp;
+			BgzfInflateBlockIdInfo inflateheapinfo;
+			libmaus::parallel::SynchronousConsecutiveHeap<uint64_t,BgzfInflateBlockIdInfo,BgzfInflateBlockIdComparator> inflatedecompressedlist;
+			
+			uint64_t inflateeb;
+			uint64_t inflategcnt;
+		
+			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks)
+			:
+				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
+				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
+				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
+				inflateeb(0), inflategcnt(0)
+			{
+				for ( uint64_t i = 0; i < inflateB.size(); ++i )
 				{
-					while ( true )
+					inflateB[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfInflateBlock::unique_ptr_type(new libmaus::lz::BgzfInflateBlock(i)));
+					inflatefreelist.push_back(i);
+				}			
+
+				for ( uint64_t i = 0; i < inflateB.size(); ++i )
+					inflategloblist.enque(i);
+			}
+		};
+
+		struct BgzfInflateParallelThread : public libmaus::parallel::PosixThread
+		{
+			typedef BgzfInflateParallelThread this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			enum op_type { op_read_block, op_decompress_block, op_none };
+		
+			BgzfInflateParallelContext & inflatecontext;
+			
+			BgzfInflateParallelThread(BgzfInflateParallelContext & rinflatecontext) 
+			: inflatecontext(rinflatecontext)
+			{
+			}
+			~BgzfInflateParallelThread()
+			{
+			}
+		
+			void * run()
+			{
+				while ( true )
+				{
+					/* get any id from global list */
+					try
 					{
-						/* get any id from global list */
-						try
-						{
-							parent->globlist.deque();
-						}
-						catch(std::exception const & ex)
-						{
-							/* queue is terminated, break loop */
-							break;
-						}
+						inflatecontext.inflategloblist.deque();
+					}
+					catch(std::exception const & ex)
+					{
+						/* queue is terminated, break loop */
+						break;
+					}
+					
+					/* check which operation we are to perform */
+					op_type op = op_none;
+					uint64_t objectid = 0;
+					
+					{
+						libmaus::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
 						
-						/* check which operation we are to perform */
-						op_type op = op_none;
-						uint64_t objectid = 0;
-						
+						if ( inflatecontext.inflatefreelist.size() )
 						{
-							libmaus::parallel::ScopePosixMutex S(parent->qlock);
-							
-							if ( parent->inflatefreelist.size() )
-							{
-							
-								op = op_read_block;
-								objectid = parent->inflatefreelist.front();
-								parent->inflatefreelist.pop_front();
-							}
-							else if ( parent->inflatereadlist.size() )
-							{
-								op = op_decompress_block;
-								objectid = parent->inflatereadlist.front();
-								parent->inflatereadlist.pop_front();
-							}
+						
+							op = op_read_block;
+							objectid = inflatecontext.inflatefreelist.front();
+							inflatecontext.inflatefreelist.pop_front();
 						}
-						
-						/*   */
-						switch ( op )
+						else if ( inflatecontext.inflatereadlist.size() )
 						{
-							/* read a block */
-							case op_read_block:
-							{
-								libmaus::parallel::ScopePosixMutex I(parent->inlock);
-								parent->B[objectid]->blockid = parent->inid++;
-								parent->B[objectid]->readBlock(parent->in);
-
-								libmaus::parallel::ScopePosixMutex Q(parent->qlock);
-								parent->inflatereadlist.push_back(objectid);
-								parent->globlist.enque(objectid);
-								break;
-							}
-							/* decompress block */
-							case op_decompress_block:
-							{
-								parent->B[objectid]->decompressBlock();
-								libmaus::parallel::ScopePosixMutex Q(parent->qlock);
-								parent->inflatedecompressedlist.enque(objectid);
-								break;
-							}
-							default:
-								break;
+							op = op_decompress_block;
+							objectid = inflatecontext.inflatereadlist.front();
+							inflatecontext.inflatereadlist.pop_front();
 						}
 					}
 					
-					return 0;		
+					/*   */
+					switch ( op )
+					{
+						/* read a block */
+						case op_read_block:
+						{
+							libmaus::parallel::ScopePosixMutex I(inflatecontext.inflateinlock);
+							inflatecontext.inflateB[objectid]->blockid = inflatecontext.inflateinid++;
+							inflatecontext.inflateB[objectid]->readBlock(inflatecontext.inflatein);
+
+							libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+							inflatecontext.inflatereadlist.push_back(objectid);
+							inflatecontext.inflategloblist.enque(objectid);
+							break;
+						}
+						/* decompress block */
+						case op_decompress_block:
+						{
+							inflatecontext.inflateB[objectid]->decompressBlock();
+							libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+							inflatecontext.inflatedecompressedlist.enque(objectid);
+							break;
+						}
+						default:
+							break;
+					}
 				}
-			};
+				
+				return 0;		
+			}
+		};
 
-			std::istream & in;
-			uint64_t inid;
-			libmaus::parallel::PosixMutex inlock;
+		struct BgzfInflateParallel
+		{
 			
-			libmaus::parallel::PosixMutex qlock;
+			BgzfInflateParallelContext inflatecontext;
 
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> B;
-			
-			libmaus::parallel::TerminatableSynchronousQueue<uint64_t> globlist;
-			std::deque<uint64_t> inflatefreelist;
-			std::deque<uint64_t> inflatereadlist;
-			BgzfInflateBlockBlockIdComparator inflateheapcomp;
-			libmaus::parallel::SynchronousHeap<uint64_t,BgzfInflateBlockBlockIdComparator> inflatedecompressedlist;
-			
 			libmaus::autoarray::AutoArray<BgzfInflateParallelThread::unique_ptr_type> T;
-			
-			uint64_t eb;
-			uint64_t gcnt;
 			
 			void init()
 			{
-				for ( uint64_t i = 0; i < B.size(); ++i )
-				{
-					B[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfInflateBlock::unique_ptr_type(new libmaus::lz::BgzfInflateBlock(i)));
-					globlist.enque(i);
-					inflatefreelist.push_back(i);
-				}
 
 				for ( uint64_t i = 0; i < T.size(); ++i )
 				{
-					T[i] = UNIQUE_PTR_MOVE(BgzfInflateParallelThread::unique_ptr_type(new BgzfInflateParallelThread(this)));
+					T[i] = UNIQUE_PTR_MOVE(BgzfInflateParallelThread::unique_ptr_type(new BgzfInflateParallelThread(inflatecontext)));
 					T[i]->start();
 				}			
 			}
 			
-			BgzfInflateParallel(std::istream & rin, uint64_t const rnumthreads, uint64_t const rnumblocks)
+			BgzfInflateParallel(std::istream & rinflatein, uint64_t const rnumthreads, uint64_t const rnumblocks)
 			: 
-				in(rin), inid(0), 
-				B(rnumblocks), 
-				inflateheapcomp(this), 
-				inflatedecompressedlist(inflateheapcomp),
-				T(rnumthreads),
-				eb(0),
-				gcnt(0)
+				inflatecontext(rinflatein,rnumblocks),
+				T(rnumthreads)
 			{
 				init();
 			}
 
 			BgzfInflateParallel(
-				std::istream & rin, 
+				std::istream & rinflatein, 
 				uint64_t const rnumthreads = 
 					std::max(std::max(libmaus::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
 			: 
-				in(rin), inid(0), 
-				B(4*rnumthreads), 
-				inflateheapcomp(this), 
-				inflatedecompressedlist(inflateheapcomp),
-				T(rnumthreads),
-				eb(0),
-				gcnt(0)
+				inflatecontext(rinflatein,4*rnumthreads),
+				T(rnumthreads)
 			{
 				init();
 			}
 			
 			uint64_t gcount() const
 			{
-				return gcnt;
+				return inflatecontext.inflategcnt;
 			}
 			
 			uint64_t read(char * const data, uint64_t const n)
 			{
-				gcnt = 0;
+				inflatecontext.inflategcnt = 0;
 			
 				if ( n < libmaus::lz::BgzfInflateBlock::maxblocksize )
 				{
@@ -220,17 +249,17 @@ namespace libmaus
 				/* get object ids until we have the next expected one, then put out of order entries back */
 				while ( true )
 				{
-					objectid = inflatedecompressedlist.deque();
+					objectid = inflatecontext.inflatedecompressedlist.deque();
 					
 					/* we have an exception, terminate readers and throw it at caller */
-					if ( B[objectid]->failed() )
+					if ( inflatecontext.inflateB[objectid]->failed() )
 					{
-						libmaus::parallel::ScopePosixMutex Q(qlock);
-						globlist.terminate();
-						throw B[objectid]->getException();
+						libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+						inflatecontext.inflategloblist.terminate();
+						throw inflatecontext.inflateB[objectid]->getException();
 					}
 					/* the obtained id is not the next expected one, register it for requeuing */
-					else if ( B[objectid]->blockid != eb )
+					else if ( inflatecontext.inflateB[objectid]->blockid != inflatecontext.inflateeb )
 						putback.push_back(objectid);
 					/* we have what we wanted, break loop */
 					else
@@ -239,35 +268,40 @@ namespace libmaus
 				
 				/* put unwanted ids back */
 				for ( uint64_t i = 0; i < putback.size(); ++i )
-					inflatedecompressedlist.enque(putback[i]);
+					inflatecontext.inflatedecompressedlist.enque(putback[i]);
 
-				uint64_t const blocksize = B[objectid]->blockinfo.second;
+				uint64_t const blocksize = inflatecontext.inflateB[objectid]->blockinfo.second;
+				uint64_t ret = 0;
 				
 				/* empty block (EOF) */
 				if ( ! blocksize )
 				{
-					libmaus::parallel::ScopePosixMutex Q(qlock);
-					globlist.terminate();
+					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+					inflatecontext.inflategloblist.terminate();
 					
-					return 0;
+					ret = 0;
 				}
 				/* block contains data */
 				else
 				{
-					uint64_t const blockid = B[objectid]->blockid;
-					assert ( blockid == eb );
-					eb += 1;
+					uint64_t const blockid = inflatecontext.inflateB[objectid]->blockid;
+					assert ( blockid == inflatecontext.inflateeb );
+					inflatecontext.inflateeb += 1;
 
-					std::copy(B[objectid]->data.begin(), B[objectid]->data.begin()+blocksize, reinterpret_cast<uint8_t *>(data));
+					std::copy(inflatecontext.inflateB[objectid]->data.begin(), inflatecontext.inflateB[objectid]->data.begin()+blocksize, reinterpret_cast<uint8_t *>(data));
 
-					libmaus::parallel::ScopePosixMutex Q(qlock);
-					inflatefreelist.push_back(objectid);
-					globlist.enque(objectid);
+					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+					inflatecontext.inflatefreelist.push_back(objectid);
+					inflatecontext.inflategloblist.enque(objectid);
 					
-					gcnt = blocksize;
+					inflatecontext.inflategcnt = blocksize;
 					
-					return blocksize;
+					ret = blocksize;
+					
+					inflatecontext.inflatedecompressedlist.setReadyFor(blockid+1);
 				}
+				
+				return ret;
 			}
 		};
 	}

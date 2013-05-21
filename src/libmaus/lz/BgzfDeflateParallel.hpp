@@ -29,242 +29,266 @@ namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfDeflateParallel
-		{			
-			struct BgzfDeflateBlockBlockIdComparator
-			{
-				BgzfDeflateParallel * parent;
-						
-				BgzfDeflateBlockBlockIdComparator(BgzfDeflateParallel * rparent) : parent(rparent)
-				{
-				
-				}
-
-				bool operator()(uint64_t const i, uint64_t const j) const
-				{
-					return parent->B[i]->blockid > parent->B[j]->blockid;
-				}		
-			};
-
-			struct BgzfDeflateParallelThread : public libmaus::parallel::PosixThread
-			{
-				typedef BgzfDeflateParallelThread this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				
-				enum op_type { op_compress_block = 0, op_write_block = 1, op_none = 2 };
-
-				BgzfDeflateParallel * parent;
-				
-				BgzfDeflateParallelThread(BgzfDeflateParallel * rparent) : parent(rparent)
-				{
-				}
-				~BgzfDeflateParallelThread()
-				{
-				}
-			
-				void * run()
-				{
-					while ( true )
-					{
-						/* get any id from global list */
-						try
-						{
-							parent->globlist.deque();
-						}
-						catch(std::exception const & ex)
-						{
-							/* queue is terminated, break loop */
-							break;
-						}
-						
-						/* check which operation we are to perform */
-						op_type op = op_none;
-						uint64_t objectid = 0;
-						
-						while ( op == op_none )
-						{
-							{
-								libmaus::parallel::ScopePosixMutex S(parent->qlock);
-							
-								if ( parent->deflatecompqueue.size() )
-								{
-									op = op_compress_block;
-									objectid = parent->deflatecompqueue.front();
-									parent->deflatecompqueue.pop_front();
-								}
-								else if ( parent->deflatewritequeue.size() )
-								{
-									objectid = parent->deflatewritequeue.top();
-									parent->deflatewritequeue.pop();
-
-									libmaus::parallel::ScopePosixMutex O(parent->outlock);
-									
-									if ( parent->B[objectid]->blockid == parent->nextwriteid )
-										op = op_write_block;
-									else
-										parent->deflatewritequeue.push(objectid);
-								}
-							}
-
-							if ( op == op_none )
-							{
-								// wait for 1/100 s
-								struct timespec waittime = { 0, 10000000 };
-								nanosleep(&waittime,0);
-							}
-						}
-						
-						switch ( op )
-						{
-							case op_compress_block:
-							{
-								try
-								{
-									parent->B[objectid]->compsize = parent->B[objectid]->flush(true /* full flush */);								
-								}
-								catch(libmaus::exception::LibMausException const & ex)
-								{								
-									libmaus::parallel::ScopePosixMutex S(parent->exlock);
-						
-									if ( parent->B[objectid]->blockid * 2 + 0 < parent->exceptionid )
-									{
-										parent->exceptionid = parent->B[objectid]->blockid * 2 + 0;
-										parent->pse = UNIQUE_PTR_MOVE(ex.uclone());
-									}
-									
-									parent->B[objectid]->compsize = 0;
-								}
-								catch(std::exception const & ex)
-								{
-									libmaus::parallel::ScopePosixMutex S(parent->exlock);
-
-									if ( parent->B[objectid]->blockid * 2 + 0 < parent->exceptionid )
-									{
-										parent->exceptionid = parent->B[objectid]->blockid * 2 + 0;
-									
-										libmaus::exception::LibMausException se;
-										se.getStream() << ex.what() << std::endl;
-										se.finish();
-										parent->pse = UNIQUE_PTR_MOVE(se.uclone());
-									}
-									
-									parent->B[objectid]->compsize = 0;
-								}
-
-								libmaus::parallel::ScopePosixMutex S(parent->qlock);
-								parent->deflatewritequeue.push(objectid);
-								parent->globlist.enque(objectid);
-								break;
-							}
-							case op_write_block:
-							{
-								libmaus::parallel::ScopePosixMutex O(parent->outlock);
-								try
-								{
-									parent->out.write(
-										reinterpret_cast<char const *>(parent->B[objectid]->outbuf.begin()),
-										parent->B[objectid]->compsize
-									);
-									
-									if ( ! parent->out )
-									{
-										libmaus::exception::LibMausException se;
-										se.getStream() << "BgzfDeflateParallel: output error on output stream." << std::endl;
-										se.finish();
-										throw se;
-									}
-								}
-								catch(libmaus::exception::LibMausException const & ex)
-								{								
-									libmaus::parallel::ScopePosixMutex S(parent->exlock);
-
-									if ( parent->B[objectid]->blockid * 2 + 1 < parent->exceptionid )
-									{
-										parent->exceptionid = parent->B[objectid]->blockid * 2 + 1;
-										parent->pse = UNIQUE_PTR_MOVE(ex.uclone());									
-									}
-								}
-								catch(std::exception const & ex)
-								{
-									libmaus::parallel::ScopePosixMutex S(parent->exlock);
-
-									if ( parent->B[objectid]->blockid * 2 + 1 < parent->exceptionid )
-									{
-										parent->exceptionid = parent->B[objectid]->blockid * 2 + 1;
-									
-										libmaus::exception::LibMausException se;
-										se.getStream() << ex.what() << std::endl;
-										se.finish();
-										parent->pse = UNIQUE_PTR_MOVE(se.uclone());
-									}
-								}
-
-								parent->nextwriteid += 1;								
-								parent->deflatefreelist.enque(objectid);
-								break;
-							}
-							default:
-							{
-								break;
-							}
-						}						
-					}
+		struct BgzfDeflateBlockIdInfo
+		{
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & deflateB;
 					
-					return 0;		
-				}
-			};
+			BgzfDeflateBlockIdInfo(libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & rdeflateB) : deflateB(rdeflateB)
+			{
+			
+			}
 
-			libmaus::parallel::PosixMutex outlock;
+			uint64_t operator()(uint64_t const i) const
+			{
+				return deflateB[i]->blockid;
+			}		
+		};
+	
+		struct BgzfDeflateBlockIdComparator
+		{
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & deflateB;
+					
+			BgzfDeflateBlockIdComparator(libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & rdeflateB) : deflateB(rdeflateB)
+			{
+			
+			}
+
+			bool operator()(uint64_t const i, uint64_t const j) const
+			{
+				return deflateB[i]->blockid > deflateB[j]->blockid;
+			}		
+		};
+
+		struct BgzfDeflateParallelContext
+		{
+			typedef BgzfDeflateParallelContext this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			libmaus::parallel::TerminatableSynchronousQueue<uint64_t> deflategloblist;
+		
+			libmaus::parallel::PosixMutex deflateoutlock;
 			// next block id to be filled with input
-			uint64_t outid;
+			uint64_t deflateoutid;
 			// next block id to be written to compressed stream
-			uint64_t nextwriteid;
-			std::ostream & out;
-			bool outflushed;
+			uint64_t deflatenextwriteid;
+			std::ostream & deflateout;
+			bool deflateoutflushed;
 
-			libmaus::parallel::PosixMutex qlock;
-
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> B;
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> deflateB;
 			libmaus::parallel::SynchronousQueue<uint64_t> deflatefreelist;
 			
-			int64_t curobject;
-			
+			int64_t deflatecurobject;
+
 			// queue for blocks to be compressed
-			libmaus::parallel::TerminatableSynchronousQueue<uint64_t> globlist;
 			std::deque<uint64_t> deflatecompqueue;
 			// queue for compressed blocks to be written to output stream
-			BgzfDeflateBlockBlockIdComparator deflateheapcomp;
-			std::priority_queue<uint64_t,std::vector<uint64_t>,BgzfDeflateBlockBlockIdComparator> deflatewritequeue;
+			BgzfDeflateBlockIdComparator deflateheapcomp;
+			BgzfDeflateBlockIdInfo deflateheapinfo;
+			libmaus::parallel::SynchronousConsecutiveHeap<uint64_t,BgzfDeflateBlockIdInfo,BgzfDeflateBlockIdComparator> deflatewritequeue;
 			
-			libmaus::autoarray::AutoArray < BgzfDeflateParallelThread::unique_ptr_type > T;
-			
-			uint64_t exceptionid;
-			libmaus::exception::LibMausException::unique_ptr_type pse;
-			libmaus::parallel::PosixMutex exlock;
+			uint64_t deflateexceptionid;
+			libmaus::exception::LibMausException::unique_ptr_type deflatepse;
+			libmaus::parallel::PosixMutex deflateexlock;
 
-			BgzfDeflateParallel(std::ostream & rout, uint64_t const rnumthreads, uint64_t const rnumbuffers)
-			: outid(0), nextwriteid(0), out(rout), outflushed(false), B(rnumbuffers), curobject(-1),
-			  deflateheapcomp(this), deflatewritequeue(deflateheapcomp),
-			  T(rnumthreads),
-			  exceptionid(std::numeric_limits<uint64_t>::max())
+			libmaus::parallel::PosixMutex deflateqlock;
+
+
+			BgzfDeflateParallelContext(
+				std::ostream & rdeflateout, uint64_t const rnumbuffers				
+			)
+			: deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false), 
+			  deflateB(rnumbuffers), 
+			  deflatecurobject(-1),
+			  deflateheapcomp(deflateB), 
+			  deflateheapinfo(deflateB),
+			  deflatewritequeue(deflateheapcomp,deflateheapinfo,&deflategloblist),
+			  deflateexceptionid(std::numeric_limits<uint64_t>::max())
 			{
-				for ( uint64_t i = 0; i < B.size(); ++i )
+				for ( uint64_t i = 0; i < deflateB.size(); ++i )
 				{
-					B[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfDeflateBase::unique_ptr_type(
+					deflateB[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfDeflateBase::unique_ptr_type(
 						new libmaus::lz::BgzfDeflateBase()
 					));
 					// completely empty buffer on flush
-					B[i]->flushmode = true;
-					B[i]->objectid = i;
+					deflateB[i]->flushmode = true;
+					deflateB[i]->objectid = i;
 					deflatefreelist.enque(i);
 				}
 					
-				curobject = deflatefreelist.deque();
-				B[curobject]->blockid = outid++;
+				deflatecurobject = deflatefreelist.deque();
+				deflateB[deflatecurobject]->blockid = deflateoutid++;
+			}
+		};
+
+		struct BgzfDeflateParallelThread : public libmaus::parallel::PosixThread
+		{
+			typedef BgzfDeflateParallelThread this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			enum op_type { op_compress_block = 0, op_write_block = 1, op_none = 2 };
+
+			BgzfDeflateParallelContext & deflatecontext;
+			
+			BgzfDeflateParallelThread(BgzfDeflateParallelContext & rdeflatecontext) 
+			: deflatecontext(rdeflatecontext)
+			{
+			}
+			~BgzfDeflateParallelThread()
+			{
+			}
+		
+			void * run()
+			{
+				while ( true )
+				{
+					/* get any id from global list */
+					try
+					{
+						deflatecontext.deflategloblist.deque();
+					}
+					catch(std::exception const & ex)
+					{
+						/* queue is terminated, break loop */
+						break;
+					}
+					
+					/* check which operation we are to perform */
+					op_type op = op_none;
+					uint64_t objectid = 0;
+					
+					{
+						libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
 				
+						if ( deflatecontext.deflatecompqueue.size() )
+						{
+							objectid = deflatecontext.deflatecompqueue.front();
+							deflatecontext.deflatecompqueue.pop_front();
+							op = op_compress_block;
+						}
+						else if ( deflatecontext.deflatewritequeue.getFillState() )
+						{
+							objectid = deflatecontext.deflatewritequeue.deque();
+							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);								
+							assert ( deflatecontext.deflateB[objectid]->blockid == deflatecontext.deflatenextwriteid );
+							op = op_write_block;
+						}									
+
+						assert ( op != op_none );
+					}
+					
+					switch ( op )
+					{
+						case op_compress_block:
+						{
+							try
+							{
+								deflatecontext.deflateB[objectid]->compsize = deflatecontext.deflateB[objectid]->flush(true /* full flush */);								
+							}
+							catch(libmaus::exception::LibMausException const & ex)
+							{								
+								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+					
+								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
+								{
+									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ex.uclone());
+								}
+								
+								deflatecontext.deflateB[objectid]->compsize = 0;
+							}
+							catch(std::exception const & ex)
+							{
+								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+
+								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
+								{
+									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
+								
+									libmaus::exception::LibMausException se;
+									se.getStream() << ex.what() << std::endl;
+									se.finish();
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(se.uclone());
+								}
+								
+								deflatecontext.deflateB[objectid]->compsize = 0;
+							}
+
+							libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
+							deflatecontext.deflatewritequeue.enque(objectid);
+							//deflatecontext.deflategloblist.enque(objectid);
+							break;
+						}
+						case op_write_block:
+						{
+							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
+							try
+							{
+								deflatecontext.deflateout.write(
+									reinterpret_cast<char const *>(deflatecontext.deflateB[objectid]->outbuf.begin()),
+									deflatecontext.deflateB[objectid]->compsize
+								);
+								
+								if ( ! deflatecontext.deflateout )
+								{
+									libmaus::exception::LibMausException se;
+									se.getStream() << "BgzfDeflateParallel: output error on output stream." << std::endl;
+									se.finish();
+									throw se;
+								}
+							}
+							catch(libmaus::exception::LibMausException const & ex)
+							{								
+								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+
+								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
+								{
+									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ex.uclone());									
+								}
+							}
+							catch(std::exception const & ex)
+							{
+								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+
+								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
+								{
+									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
+								
+									libmaus::exception::LibMausException se;
+									se.getStream() << ex.what() << std::endl;
+									se.finish();
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(se.uclone());
+								}
+							}
+
+							deflatecontext.deflatenextwriteid += 1;								
+							deflatecontext.deflatewritequeue.setReadyFor(deflatecontext.deflatenextwriteid);
+							deflatecontext.deflatefreelist.enque(objectid);
+							break;
+						}
+						default:
+						{
+							break;
+						}
+					}						
+				}
+				
+				return 0;		
+			}
+		};
+
+		struct BgzfDeflateParallel
+		{
+			BgzfDeflateParallelContext deflatecontext;
+
+			libmaus::autoarray::AutoArray < BgzfDeflateParallelThread::unique_ptr_type > T;
+
+			BgzfDeflateParallel(std::ostream & rdeflateout, uint64_t const rnumthreads, uint64_t const rnumbuffers)
+			: deflatecontext(rdeflateout,rnumbuffers), T(rnumthreads)
+			{
 				for ( uint64_t i = 0; i < T.size(); ++i )
 				{
-					T[i] = UNIQUE_PTR_MOVE(BgzfDeflateParallelThread::unique_ptr_type(new BgzfDeflateParallelThread(this)));
+					T[i] = UNIQUE_PTR_MOVE(BgzfDeflateParallelThread::unique_ptr_type(new BgzfDeflateParallelThread(deflatecontext)));
 					T[i]->start();
 				}
 			}
@@ -277,43 +301,43 @@ namespace libmaus
 			{
 				while ( n )
 				{
-					uint64_t const freespace = B[curobject]->pe - B[curobject]->pc;
+					uint64_t const freespace = deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe - deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc;
 					uint64_t const towrite = std::min(n,freespace);
-					std::copy(reinterpret_cast<uint8_t const *>(c),reinterpret_cast<uint8_t const *>(c)+towrite,B[curobject]->pc);
+					std::copy(reinterpret_cast<uint8_t const *>(c),reinterpret_cast<uint8_t const *>(c)+towrite,deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc);
 
 					c += towrite;
-					B[curobject]->pc += towrite;
+					deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc += towrite;
 					n -= towrite;
 
-					if ( B[curobject]->pc == B[curobject]->pe )
+					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
 					{
 						{
-							exlock.lock();
+							deflatecontext.deflateexlock.lock();
 
-							if ( exceptionid != std::numeric_limits<uint64_t>::max() )
+							if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
 							{
-								exlock.unlock();
+								deflatecontext.deflateexlock.unlock();
 								
 								drain();
 
-								libmaus::parallel::ScopePosixMutex Q(exlock);
-								throw (*pse);
+								libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
+								throw (*(deflatecontext.deflatepse));
 							}
 							else
 							{
-								exlock.unlock();
+								deflatecontext.deflateexlock.unlock();
 							}
 						}
 					
 						{
-							libmaus::parallel::ScopePosixMutex Q(qlock);
-							deflatecompqueue.push_back(curobject);
+							libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
+							deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
 						}
 
-						globlist.enque(curobject);
+						deflatecontext.deflategloblist.enque(deflatecontext.deflatecurobject);
 						
-						curobject = deflatefreelist.deque();
-						B[curobject]->blockid = outid++;
+						deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
+						deflatecontext.deflateB[deflatecontext.deflatecurobject]->blockid = deflatecontext.deflateoutid++;
 					}
 				}
 			}
@@ -321,20 +345,20 @@ namespace libmaus
 			void drain()
 			{
 				{
-					libmaus::parallel::ScopePosixMutex Q(qlock);
-					if ( B[curobject]->pc != B[curobject]->pa )
+					libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
+					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )
 					{
-						deflatecompqueue.push_back(curobject);
-						globlist.enque(curobject);
+						deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
+						deflatecontext.deflategloblist.enque(deflatecontext.deflatecurobject);
 					}
 					else
 					{
-						deflatefreelist.enque(curobject);
+						deflatecontext.deflatefreelist.enque(deflatecontext.deflatecurobject);
 					}
 				}
 					
 				// wait until all threads are idle
-				while ( deflatefreelist.getFillState() < B.size() )
+				while ( deflatecontext.deflatefreelist.getFillState() < deflatecontext.deflateB.size() )
 				{
 					// wait for 1/100 s
 					// struct timespec waittime = { 0, 10000000 };
@@ -345,34 +369,34 @@ namespace libmaus
 			
 			void flush()
 			{
-				if ( ! outflushed )
+				if ( ! deflatecontext.deflateoutflushed )
 				{
 					drain();
-				
-					globlist.terminate();
+
+					deflatecontext.deflategloblist.terminate();
 
 					{
-						exlock.lock();
+						deflatecontext.deflateexlock.lock();
 
-						if ( exceptionid != std::numeric_limits<uint64_t>::max() )
+						if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
 						{
-							exlock.unlock();
+							deflatecontext.deflateexlock.unlock();
 								
-							libmaus::parallel::ScopePosixMutex Q(exlock);
-							throw (*pse);
+							libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
+							throw (*(deflatecontext.deflatepse));
 						}
 						else
 						{
-							exlock.unlock();
+							deflatecontext.deflateexlock.unlock();
 						}
 					}
 
 					// write default compressed block with size 0 (EOF marker)
 					libmaus::lz::BgzfDeflateBase eofBase;
 					uint64_t const eofflushsize = eofBase.flush(true /* full flush */);
-					out.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
+					deflatecontext.deflateout.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
 					
-					outflushed = true;
+					deflatecontext.deflateoutflushed = true;
 				}
 			}
 		};
