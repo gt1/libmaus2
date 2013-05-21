@@ -135,10 +135,37 @@ namespace libmaus
 				*(footptr++) = (uncompsize >> 24) & 0xFF;
 				
 				return footptr;
-			
+			}
+
+			static uint64_t getOutBufSizeTwo(int const level)
+			{
+				return std::max(static_cast<uint64_t>(maxblocksize),getReqBufSpaceTwo(level));
 			}
 		};
+
+		struct BgzfDeflateOutputBufferBase : public BgzfDeflateHeaderFunctions
+		{
+			::libmaus::autoarray::AutoArray<uint8_t> outbuf;
+
+			BgzfDeflateOutputBufferBase(int const level) : outbuf(getOutBufSizeTwo(level)) 
+			{
+				setupHeader(outbuf.begin());			
+			} 
+		};
 		
+		struct BgzfDeflateInputBufferBase : public BgzfDeflateHeaderFunctions
+		{
+			::libmaus::autoarray::AutoArray<uint8_t> inbuf;
+			
+			uint8_t * const pa;
+			uint8_t * pc;
+			uint8_t * const pe;
+		
+			BgzfDeflateInputBufferBase() : inbuf(maxblocksize), pa(inbuf.begin()), pc(pa), pe(inbuf.end())
+			{
+			}
+		};
+
 		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
 		{
 			z_stream strm;
@@ -208,20 +235,90 @@ namespace libmaus
 				
 				return maxpayload - strm.avail_out;
 			}
+
+			uint64_t flushBound(
+				BgzfDeflateInputBufferBase & in, 
+				BgzfDeflateOutputBufferBase & out, 
+				bool const fullflush
+			)
+			{
+				if ( fullflush )
+				{
+					uint64_t const toflush = in.pc-in.pa;
+					uint64_t const flush0 = (toflush+1)/2;
+					uint64_t const flush1 = toflush-flush0;
+
+					/* compress first half of data */
+					uint64_t const payload0 = compressBlock(in.pa,flush0,out.outbuf.begin());
+					fillHeaderFooter(in.pa,out.outbuf.begin(),payload0,flush0);
+					
+					/* compress second half of data */
+					setupHeader(out.outbuf.begin()+headersize+payload0+footersize);
+					uint64_t const payload1 = compressBlock(in.pa+flush0,flush1,out.outbuf.begin()+headersize+payload0+footersize);
+					fillHeaderFooter(in.pa+flush0,out.outbuf.begin()+headersize+payload0+footersize,payload1,flush1);
+					
+					assert ( 2*headersize+2*footersize+payload0+payload1 <= out.outbuf.size() );
+										
+					in.pc = in.pa;
+
+					/* return number of bytes in output buffer */
+					return 2*headersize+2*footersize+payload0+payload1;
+				}				
+				else
+				{
+					unsigned int const toflush = std::min(static_cast<unsigned int>(in.pc-in.pa),deflbound);
+					unsigned int const unflushed = (in.pc-in.pa)-toflush;
+					
+					/*
+					 * write out compressed data
+					 */
+					uint64_t const payloadsize = compressBlock(in.pa,toflush,out.outbuf.begin());
+					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,toflush);
+					
+					/*
+					 * copy rest of uncompressed data to front of buffer
+					 */
+					if ( unflushed )
+						memmove(in.pa,in.pc-unflushed,unflushed);		
+
+					// set new output pointer
+					in.pc = in.pa + unflushed;
+
+					/* number number of bytes in output buffer */
+					return headersize+footersize+payloadsize;
+				}
+			}
+
+			uint64_t flush(
+				BgzfDeflateInputBufferBase & in, 
+				BgzfDeflateOutputBufferBase & out, 
+				bool const fullflush
+			)
+			{
+				try
+				{
+					uint64_t const payloadsize = compressBlock(in.pa,in.pc-in.pa,out.outbuf.begin());
+					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,in.pc-in.pa);
+
+					in.pc = in.pa;
+
+					return headersize+footersize+payloadsize;
+				}
+				catch(...)
+				{
+					return flushBound(in,out,fullflush);
+				}
+			}
 		};
-	
-		struct BgzfDeflateBase : public BgzfDeflateZStreamBase
+		
+		struct BgzfDeflateBase : 
+			public BgzfDeflateZStreamBase,
+			public BgzfDeflateOutputBufferBase, 
+			public BgzfDeflateInputBufferBase
 		{
 			typedef BgzfDeflateBase this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			::libmaus::autoarray::AutoArray<uint8_t> inbuf;
-			::libmaus::autoarray::AutoArray<uint8_t> outbuf;
-			
-			uint8_t * const pa;
-			uint8_t * pc;
-			uint8_t * const pe;
-			
 			/* flush mode: 
 			   - true: completely empty buffer when it runs full, write more than
 			            one block per flush if needed
@@ -237,83 +334,18 @@ namespace libmaus
 			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
 			:
 			  BgzfDeflateZStreamBase(level),
-			  inbuf(maxblocksize), 
-			  outbuf(std::max(static_cast<uint64_t>(maxblocksize),getReqBufSpaceTwo(level))),
-			  pa(inbuf.begin()),
-			  pc(pa),
-			  pe(inbuf.end()),
+			  BgzfDeflateOutputBufferBase(level),
+			  BgzfDeflateInputBufferBase(),
 			  flushmode(rflushmode),
 			  objectid(0),
 			  blockid(0),
 			  compsize(0)
 			{
-				setupHeader(outbuf.begin());			
 			}
 
-			uint64_t flushBound(bool const fullflush)
-			{
-				if ( fullflush )
-				{
-					uint64_t const toflush = pc-pa;
-					uint64_t const flush0 = (toflush+1)/2;
-					uint64_t const flush1 = toflush-flush0;
-
-					/* compress first half of data */
-					uint64_t const payload0 = BgzfDeflateZStreamBase::compressBlock(pa,flush0,outbuf.begin());
-					fillHeaderFooter(pa,outbuf.begin(),payload0,flush0);
-					
-					/* compress second half of data */
-					setupHeader(outbuf.begin()+headersize+payload0+footersize);
-					uint64_t const payload1 = BgzfDeflateZStreamBase::compressBlock(pa+flush0,flush1,outbuf.begin()+headersize+payload0+footersize);
-					fillHeaderFooter(pa+flush0,outbuf.begin()+headersize+payload0+footersize,payload1,flush1);
-					
-					assert ( 2*headersize+2*footersize+payload0+payload1 <= outbuf.size() );
-										
-					pc = pa;
-
-					/* return number of bytes in output buffer */
-					return 2*headersize+2*footersize+payload0+payload1;
-				}				
-				else
-				{
-					unsigned int const toflush = std::min(static_cast<unsigned int>(pc-pa),deflbound);
-					unsigned int const unflushed = (pc-pa)-toflush;
-					
-					/*
-					 * write out compressed data
-					 */
-					uint64_t const payloadsize = BgzfDeflateZStreamBase::compressBlock(pa,toflush,outbuf.begin());
-					fillHeaderFooter(pa,outbuf.begin(),payloadsize,toflush);
-					
-					/*
-					 * copy rest of uncompressed data to front of buffer
-					 */
-					if ( unflushed )
-						memmove(pa,pc-unflushed,unflushed);		
-
-					// set new output pointer
-					pc = pa + unflushed;
-
-					/* number number of bytes in output buffer */
-					return headersize+footersize+payloadsize;
-				}
-			}
-			
 			uint64_t flush(bool const fullflush)
 			{
-				try
-				{
-					uint64_t const payloadsize = BgzfDeflateZStreamBase::compressBlock(pa,pc-pa,outbuf.begin());
-					fillHeaderFooter(pa,outbuf.begin(),payloadsize,pc-pa);
-
-					pc = pa;
-
-					return headersize+footersize+payloadsize;
-				}
-				catch(...)
-				{
-					return flushBound(fullflush);
-				}
+				return BgzfDeflateZStreamBase::flush(*this,*this,fullflush);
 			}
 		};
 	}

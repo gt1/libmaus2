@@ -215,6 +215,9 @@ namespace libmaus
 				return std::pair<uint64_t,uint64_t>(payloadsize,uncompdatasize);
 			}
 			
+			/**
+			 * decompress block in buffer to array decomp
+			 **/
 			uint64_t decompressBlock(char * const decomp, std::pair<uint64_t,uint64_t> const & blockinfo)
 			{
 				zdecompress(block.begin(),blockinfo.first,decomp,blockinfo.second);
