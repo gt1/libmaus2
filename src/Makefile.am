@@ -143,7 +143,15 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfInflateParallel.hpp \
 	libmaus/lz/BgzfInflateParallelWrapper.hpp \
 	libmaus/lz/BgzfInflateParallelStream.hpp \
-	libmaus/lz/BgzfDeflateBase.hpp
+	libmaus/lz/BgzfDeflateBase.hpp \
+	libmaus/lz/BgzfInflateBlockIdComparator.hpp \
+	libmaus/lz/BgzfInflateBlockIdInfo.hpp \
+	libmaus/lz/BgzfInflateParallelContext.hpp \
+	libmaus/lz/BgzfInflateParallelThread.hpp \
+	libmaus/lz/BgzfDeflateBlockIdInfo.hpp \
+	libmaus/lz/BgzfDeflateBlockIdComparator.hpp \
+	libmaus/lz/BgzfDeflateParallelContext.hpp \
+	libmaus/lz/BgzfDeflateParallelThread.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \

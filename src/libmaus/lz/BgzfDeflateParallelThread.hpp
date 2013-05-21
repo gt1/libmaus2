@@ -126,8 +126,7 @@ namespace libmaus
 							}
 
 							libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
-							deflatecontext.deflatewritequeue.enque(objectid);
-							//deflatecontext.deflategloblist.enque(objectid);
+							deflatecontext.deflatewritequeue.enque(objectid,&(deflatecontext.deflategloblist));
 							break;
 						}
 						case op_write_block:
@@ -174,7 +173,7 @@ namespace libmaus
 							}
 
 							deflatecontext.deflatenextwriteid += 1;								
-							deflatecontext.deflatewritequeue.setReadyFor(deflatecontext.deflatenextwriteid);
+							deflatecontext.deflatewritequeue.setReadyFor(deflatecontext.deflatenextwriteid,&(deflatecontext.deflategloblist));
 							deflatecontext.deflatefreelist.enque(objectid);
 							break;
 						}

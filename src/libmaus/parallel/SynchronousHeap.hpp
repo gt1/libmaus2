@@ -101,14 +101,12 @@ namespace libmaus
                         PosixMutex lock;
                         PosixSemaphore semaphore;
                         uint64_t readyfor;
-                        libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist;
                         
                         SynchronousConsecutiveHeap(
                         	compare const & comp,
-                        	info_type const & rinfo,
-                        	libmaus::parallel::TerminatableSynchronousQueue<value_type> * rgloblist = 0
+                        	info_type const & rinfo
 			)
-                        : info(rinfo), preQ(comp), next(0), readyfor(0), globlist(rgloblist)
+                        : info(rinfo), preQ(comp), next(0), readyfor(0)
                         {
                         
                         }
@@ -121,7 +119,7 @@ namespace libmaus
                                 return fill;
                         }
                         
-                        void drainPreQueue()
+                        void drainPreQueue(libmaus::parallel::TerminatableSynchronousQueue<value_type> * const globlist)
                         {
                         	uint64_t postcnt = 0;
                         
@@ -141,22 +139,22 @@ namespace libmaus
 	                                semaphore.post();
                         }
 
-                        void enque(value_type const q)
+                        void enque(value_type const q, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0)
                         {
                                 lock.lock();
                                 preQ.push(q);
                                 lock.unlock();
 
-				drainPreQueue();                                
+				drainPreQueue(globlist);
                         }
                         
-                        void setReadyFor(uint64_t const rreadyfor)
+                        void setReadyFor(uint64_t const rreadyfor, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0)
                         {
                         	lock.lock();
                         	readyfor = rreadyfor;
                         	lock.unlock();
 
-				drainPreQueue();
+				drainPreQueue(globlist);
                         }
 
                         value_type deque()

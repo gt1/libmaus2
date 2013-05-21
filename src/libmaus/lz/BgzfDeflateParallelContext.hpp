@@ -73,7 +73,7 @@ namespace libmaus
 			  deflatecurobject(-1),
 			  deflateheapcomp(deflateB), 
 			  deflateheapinfo(deflateB),
-			  deflatewritequeue(deflateheapcomp,deflateheapinfo,&deflategloblist),
+			  deflatewritequeue(deflateheapcomp,deflateheapinfo),
 			  deflateexceptionid(std::numeric_limits<uint64_t>::max())
 			{
 				for ( uint64_t i = 0; i < deflateB.size(); ++i )

@@ -75,7 +75,7 @@ void testBgzfMono()
 
 int main(int argc, char *argv[])
 {
-	#if 0
+	#if 1
 	{
 		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,16,128);
 		
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 
-	#if 1
+	#if 0
 	{
 		libmaus::lz::BgzfInflateParallel BIP(std::cin /* ,4,16 */);
 		uint64_t c = 0;
