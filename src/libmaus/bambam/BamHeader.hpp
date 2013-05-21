@@ -519,6 +519,14 @@ namespace libmaus
 				changeSortOrder();
 			}
 			
+			static uint64_t getHeaderSize(std::string const & fn)
+			{
+				libmaus::aio::CheckedInputStream CIS(fn);
+				::libmaus::lz::GzipStream GS(CIS);
+				BamHeader header(GS);
+				return GS.tellg();
+			}
+			
 			BamHeader()
 			{
 			

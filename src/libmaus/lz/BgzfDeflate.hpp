@@ -91,7 +91,7 @@ namespace libmaus
 				if ( pc != pa )
 					flush();
 				// set compression level to default
-				reinit();
+				deflatereinit();
 				// write empty block
 				flush();
 			}

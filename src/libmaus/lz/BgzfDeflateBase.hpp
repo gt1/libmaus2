@@ -26,17 +26,14 @@ namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfDeflateBase
+		struct BgzfDeflateHeaderFunctions
 		{
-			typedef BgzfDeflateBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-		
 			static unsigned int const maxblocksize = 64*1024;
 			static unsigned int const headersize = 18;
 			static unsigned int const footersize = 8;
 			static unsigned int const maxpayload = maxblocksize - (headersize+footersize);
 			
-			static void initz(z_stream * strm, int const level)
+			static void deflateinitz(z_stream * strm, int const level)
 			{
 				memset ( strm , 0, sizeof(z_stream) );
 				strm->zalloc = Z_NULL;
@@ -53,7 +50,7 @@ namespace libmaus
 				}
 			}
 
-			static void destroyz(z_stream * strm)
+			static void deflatedestroyz(z_stream * strm)
 			{
 				deflateEnd(strm);		
 			}
@@ -64,11 +61,11 @@ namespace libmaus
 				
 				LocalDeflateInfo(int const level)
 				{
-					initz(&strm,level);
+					deflateinitz(&strm,level);
 				}
 				~LocalDeflateInfo()
 				{
-					destroyz(&strm);
+					deflatedestroyz(&strm);
 				}
 			};
 			
@@ -140,39 +137,24 @@ namespace libmaus
 				return footptr;
 			
 			}
-
+		};
+		
+		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
+		{
 			z_stream strm;
 			unsigned int deflbound;
-			::libmaus::autoarray::AutoArray<uint8_t> inbuf;
-			::libmaus::autoarray::AutoArray<uint8_t> outbuf;
-			
-			uint8_t * const pa;
-			uint8_t * pc;
-			uint8_t * const pe;
-			
-			/* flush mode: 
-			   - true: completely empty buffer when it runs full, write more than
-			            one block per flush if needed
-			   - false: empty as much as possible from the buffer when it runs full
-			            but never write more than one bgzf block at once
-			 */
-			bool flushmode;
-			
-			uint64_t objectid;
-			uint64_t blockid;
-			uint64_t compsize;
-			
-			void destroy()
+		
+			void deflatedestroy()
 			{
-				destroyz(&strm);		
+				deflatedestroyz(&strm);		
 			}
 			
-			void init(int const level = Z_DEFAULT_COMPRESSION)
+			void deflateinit(int const level = Z_DEFAULT_COMPRESSION)
 			{
-				initz(&strm,level);
+				deflateinitz(&strm,level);
 
 				// search for number of bytes that will never produce more compressed space than we have
-				unsigned int bound = 64*1024;
+				unsigned int bound = maxblocksize;
 				
 				while ( deflateBound(&strm,bound) > (maxblocksize-(headersize+footersize)) )
 					--bound;
@@ -180,31 +162,12 @@ namespace libmaus
 				deflbound = bound;
 			}
 			
-			void reinit(int const level = Z_DEFAULT_COMPRESSION)
+			void deflatereinit(int const level = Z_DEFAULT_COMPRESSION)
 			{
-				destroy();
-				init(level);
+				deflatedestroy();
+				deflateinit(level);
 			}
 
-			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
-			: inbuf(maxblocksize), 
-			  outbuf(std::max(static_cast<uint64_t>(maxblocksize),getReqBufSpaceTwo(level))),
-			  pa(inbuf.begin()),
-			  pc(pa),
-			  pe(inbuf.end()),
-			  flushmode(rflushmode),
-			  objectid(0),
-			  blockid(0),
-			  compsize(0)
-			{
-				init(level);        
-				setupHeader(outbuf.begin());			
-			}
-			~BgzfDeflateBase()
-			{
-				destroy();
-			}
-			
 			void resetz()
 			{
 				if ( deflateReset(&strm) != Z_OK )
@@ -214,6 +177,16 @@ namespace libmaus
 					se.finish();
 					throw se;		
 				}			
+			}
+			
+			BgzfDeflateZStreamBase(int const level = Z_DEFAULT_COMPRESSION)
+			{
+				deflateinit(level);
+			}
+			
+			~BgzfDeflateZStreamBase()
+			{
+				deflatedestroy();
 			}
 
 			uint64_t compressBlock(uint8_t * pa, uint64_t const len, uint8_t * outbuf)
@@ -235,10 +208,46 @@ namespace libmaus
 				
 				return maxpayload - strm.avail_out;
 			}
+		};
+	
+		struct BgzfDeflateBase : public BgzfDeflateZStreamBase
+		{
+			typedef BgzfDeflateBase this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			uint64_t compressBlock(uint8_t * pa, uint64_t const len)
+			::libmaus::autoarray::AutoArray<uint8_t> inbuf;
+			::libmaus::autoarray::AutoArray<uint8_t> outbuf;
+			
+			uint8_t * const pa;
+			uint8_t * pc;
+			uint8_t * const pe;
+			
+			/* flush mode: 
+			   - true: completely empty buffer when it runs full, write more than
+			            one block per flush if needed
+			   - false: empty as much as possible from the buffer when it runs full
+			            but never write more than one bgzf block at once
+			 */
+			bool flushmode;
+			
+			uint64_t objectid;
+			uint64_t blockid;
+			uint64_t compsize;
+			
+			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
+			:
+			  BgzfDeflateZStreamBase(level),
+			  inbuf(maxblocksize), 
+			  outbuf(std::max(static_cast<uint64_t>(maxblocksize),getReqBufSpaceTwo(level))),
+			  pa(inbuf.begin()),
+			  pc(pa),
+			  pe(inbuf.end()),
+			  flushmode(rflushmode),
+			  objectid(0),
+			  blockid(0),
+			  compsize(0)
 			{
-				return compressBlock(pa,len,outbuf.begin());
+				setupHeader(outbuf.begin());			
 			}
 
 			uint64_t flushBound(bool const fullflush)
@@ -250,12 +259,12 @@ namespace libmaus
 					uint64_t const flush1 = toflush-flush0;
 
 					/* compress first half of data */
-					uint64_t const payload0 = compressBlock(pa,flush0,outbuf.begin());
+					uint64_t const payload0 = BgzfDeflateZStreamBase::compressBlock(pa,flush0,outbuf.begin());
 					fillHeaderFooter(pa,outbuf.begin(),payload0,flush0);
 					
 					/* compress second half of data */
 					setupHeader(outbuf.begin()+headersize+payload0+footersize);
-					uint64_t const payload1 = compressBlock(pa+flush0,flush1,outbuf.begin()+headersize+payload0+footersize);
+					uint64_t const payload1 = BgzfDeflateZStreamBase::compressBlock(pa+flush0,flush1,outbuf.begin()+headersize+payload0+footersize);
 					fillHeaderFooter(pa+flush0,outbuf.begin()+headersize+payload0+footersize,payload1,flush1);
 					
 					assert ( 2*headersize+2*footersize+payload0+payload1 <= outbuf.size() );
@@ -273,7 +282,7 @@ namespace libmaus
 					/*
 					 * write out compressed data
 					 */
-					uint64_t const payloadsize = compressBlock(pa,toflush,outbuf.begin());
+					uint64_t const payloadsize = BgzfDeflateZStreamBase::compressBlock(pa,toflush,outbuf.begin());
 					fillHeaderFooter(pa,outbuf.begin(),payloadsize,toflush);
 					
 					/*
@@ -294,7 +303,7 @@ namespace libmaus
 			{
 				try
 				{
-					uint64_t const payloadsize = compressBlock(pa,pc-pa,outbuf.begin());
+					uint64_t const payloadsize = BgzfDeflateZStreamBase::compressBlock(pa,pc-pa,outbuf.begin());
 					fillHeaderFooter(pa,outbuf.begin(),payloadsize,pc-pa);
 
 					pc = pa;
