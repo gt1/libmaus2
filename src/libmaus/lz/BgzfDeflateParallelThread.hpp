@@ -94,7 +94,7 @@ namespace libmaus
 						{
 							try
 							{
-								deflatecontext.deflateB[objectid]->compsize = deflatecontext.deflateB[objectid]->flush(true /* full flush */);								
+								deflatecontext.deflateB[objectid]->compsize = deflatecontext.deflateB[objectid]->flush(true /* full flush */);
 							}
 							catch(libmaus::exception::LibMausException const & ex)
 							{								
