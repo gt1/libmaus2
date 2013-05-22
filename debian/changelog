@@ -1,3 +1,9 @@
+libmaus (0.0.44-0) unstable; urgency=low
+
+  * bump version after importing code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 22 May 2013 14:51:13 +0100
+
 libmaus (0.0.43-0) unstable; urgency=low
 
   * bump version after bambam api changes 
