@@ -1,5 +1,3 @@
-
-
 /**
     libmaus
     Copyright (C) 2009-2013 German Tischler
