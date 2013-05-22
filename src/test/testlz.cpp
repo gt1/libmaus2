@@ -16,8 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#include <libmaus/lz/BgzfDeflateBase.hpp>
 
+#include <libmaus/util/ContainerGetObject.hpp>
+#include <libmaus/lz/BgzfRecode.hpp>
 #include <libmaus/lz/GzipHeader.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/lz/Deflate.hpp>
@@ -74,10 +75,162 @@ void testBgzfMono()
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
 #include <libmaus/lz/BgzfDeflateParallel.hpp>
+#include <libmaus/bambam/BamHeader.hpp>
+
+void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verbose = true)
+{
+	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus::timing::RealTimeClock lrtc; lrtc.start();
+	libmaus::lz::BgzfRecode rec(in,out);
+	
+	bool haveheader = false;
+	uint64_t blockskip = 0;
+	std::vector<uint8_t> headerstr;
+	uint64_t preblocksizes = 0;
+	
+	/* read and copy blocks until we have reached the end of the BAM header */
+	while ( (!haveheader) && rec.getBlock() )
+	{
+		std::copy ( rec.deflatebase.pa, rec.deflatebase.pa + rec.P.second,
+			std::back_insert_iterator < std::vector<uint8_t> > (headerstr) );
+		
+		try
+		{
+			libmaus::util::ContainerGetObject< std::vector<uint8_t> > CGO(headerstr);
+			libmaus::bambam::BamHeader header;
+			header.init(CGO);
+			haveheader = true;
+			blockskip = CGO.i - preblocksizes;
+		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << "[D] " << ex.what() << std::endl;
+		}
+	
+		if ( ! haveheader )
+		{
+			preblocksizes += rec.P.second;
+			rec.putBlock();
+		}
+	}
+
+	/* parser state types and variables */
+	enum parsestate { state_reading_blocklen, state_pre_skip, state_marking, state_post_skip };
+	parsestate state = state_reading_blocklen;
+	unsigned int blocklenred = 0;
+	uint32_t blocklen = 0;
+	uint32_t preskip = 0;
+	uint64_t alcnt = 0;
+	unsigned int const dupflagskip = 15;
+	uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
+			
+	/* while we have alignment data blocks */
+	while ( rec.P.second )
+	{
+		uint8_t * pa       = rec.deflatebase.pa + blockskip;
+		uint8_t * const pc = rec.deflatebase.pc;
+
+		while ( pa != pc )
+			switch ( state )
+			{
+				/* read length of next alignment block */
+				case state_reading_blocklen:
+					/* if this is a little endian machine allowing unaligned access */
+					#if defined(LIBMAUS_HAVE_i386)
+					if ( (!blocklenred) && ((pc-pa) >= static_cast<ptrdiff_t>(sizeof(uint32_t))) )
+					{
+						blocklen = *(reinterpret_cast<uint32_t const *>(pa));
+						blocklenred = sizeof(uint32_t);
+						pa += sizeof(uint32_t);
+						
+						state = state_pre_skip;
+						preskip = dupflagskip;
+					}
+					else
+					#endif
+					{
+						while ( pa != pc && blocklenred < sizeof(uint32_t) )
+							blocklen |= static_cast<uint32_t>(*(pa++)) << ((blocklenred++)*8);
+
+						if ( blocklenred == sizeof(uint32_t) )
+						{
+							state = state_pre_skip;
+							preskip = dupflagskip;
+						}
+					}
+					break;
+				/* skip data before the part we modify */
+				case state_pre_skip:
+					{
+						uint32_t const skip = std::min(pc-pa,static_cast<ptrdiff_t>(preskip));
+						pa += skip;
+						preskip -= skip;
+						blocklen -= skip;
+						
+						if ( ! skip )
+							state = state_marking;
+					}
+					break;
+				/* change data */
+				case state_marking:
+					assert ( pa != pc );
+					*pa &= dupflagmask;
+					state = state_post_skip;
+					// intented fall through to post_skip case
+				/* skip data after part we modify */
+				case state_post_skip:
+				{
+					uint32_t const skip = std::min(pc-pa,static_cast<ptrdiff_t>(blocklen));
+					pa += skip;
+					blocklen -= skip;
+
+					if ( ! blocklen )
+					{
+						state = state_reading_blocklen;
+						blocklenred = 0;
+						blocklen = 0;
+						alcnt++;
+						
+						if ( verbose && ((alcnt & (1024*1024-1)) == 0) )
+						{
+							std::cerr 
+								<< "[V] " << alcnt 
+								<< " "
+								<< (alcnt / rtc.getElapsedSeconds())
+								<< " "
+								<< rtc.getElapsedSeconds()
+								<< " "
+								<< lrtc.getElapsedSeconds()
+								<< std::endl;
+							
+							lrtc.start();
+						}
+					}
+					break;
+				}
+			}
+
+		blockskip = 0;
+		
+		rec.putBlock();			
+		rec.getBlock();
+	}
+			
+	rec.addEOFBlock();
+	std::cout.flush();
+	
+	if ( verbose )
+		std::cerr << "[V] Time " << rtc.getElapsedSeconds() << " alcnt " << alcnt << std::endl;
+}
 
 int main(int argc, char *argv[])
 {
 	#if 1
+	maskBamDuplicateFlag(std::cin,std::cout);
+	return 0;
+	#endif
+
+	#if 0
 	{
 		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,16,128);
 		

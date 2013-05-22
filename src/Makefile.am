@@ -158,7 +158,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfDeflateOutputBufferBase.hpp \
 	libmaus/lz/BgzfDeflateZStreamBase.hpp \
 	libmaus/lz/BgzfInflateHeaderBase.hpp \
-	libmaus/lz/BgzfInflateZStreamBase.hpp
+	libmaus/lz/BgzfInflateZStreamBase.hpp \
+	libmaus/lz/BgzfRecode.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -441,7 +442,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/TempFileContainer.hpp \
 	libmaus/util/FileTempFileContainer.hpp \
 	libmaus/util/MemTempFileContainer.hpp \
-	libmaus/util/ImpCompactNumberArray.hpp
+	libmaus/util/ImpCompactNumberArray.hpp \
+	libmaus/util/ContainerGetObject.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
