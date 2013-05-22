@@ -1,3 +1,5 @@
+
+
 /**
     libmaus
     Copyright (C) 2009-2013 German Tischler
@@ -17,8 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <libmaus/util/ContainerGetObject.hpp>
-#include <libmaus/lz/BgzfRecode.hpp>
 #include <libmaus/lz/GzipHeader.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/lz/Deflate.hpp>
@@ -75,6 +75,10 @@ void testBgzfMono()
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
 #include <libmaus/lz/BgzfDeflateParallel.hpp>
+#include <libmaus/bambam/BamHeader.hpp>
+
+#include <libmaus/util/ContainerGetObject.hpp>
+#include <libmaus/lz/BgzfRecode.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
 
 void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verbose = true)
@@ -222,6 +226,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 	if ( verbose )
 		std::cerr << "[V] Time " << rtc.getElapsedSeconds() << " alcnt " << alcnt << std::endl;
 }
+
 
 int main(int argc, char *argv[])
 {
