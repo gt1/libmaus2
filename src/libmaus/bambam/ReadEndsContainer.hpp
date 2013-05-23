@@ -81,10 +81,18 @@ namespace libmaus
 			{
 			
 			}
+			
+			void releaseArray()
+			{
+				A.release();				
+				iptr = A.end();
+			}
 
 			::libmaus::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
 			{
 				flush();
+				
+				releaseArray();
 				
 				return UNIQUE_PTR_MOVE(
 					::libmaus::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
