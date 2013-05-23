@@ -824,7 +824,8 @@ noinst_PROGRAMS = \
 	testutf8split \
 	testcirchash \
 	testrmmtree \
-	testcst
+	testcst \
+	testbamcmp
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1009,3 +1010,6 @@ testrmmtree_LDADD = libmaus.la
 
 testcst_SOURCES = test/testcst.cpp
 testcst_LDADD = libmaus.la
+
+testbamcmp_SOURCES = test/testbamcmp.cpp
+testbamcmp_LDADD = libmaus.la
