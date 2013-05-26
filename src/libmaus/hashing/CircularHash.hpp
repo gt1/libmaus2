@@ -62,6 +62,19 @@ namespace libmaus
 				return std::numeric_limits<hash_type>::max();
 			}
 			
+			static uint64_t checkBSize(uint64_t const bsize)
+			{
+				if ( bsize-1 <= static_cast<uint64_t>(std::numeric_limits<pos_type>::max()) )
+					return bsize;
+				else
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "CircularHash: table size is too big." << std::endl;
+					se.finish();
+					throw se;
+				}
+			}
+			
 			CircularHash(
 				overflow_type & roverflow,
 				unsigned int const rtablesizelog = 8,
@@ -73,7 +86,7 @@ namespace libmaus
 			  tablesize(1ull << tablesizelog),
 			  tablemask(tablesize-1),
 			  entrysize(rentrysize),
-			  bsize(libmaus::math::nextTwoPow(entrysize * tablesize)),
+			  bsize(checkBSize(libmaus::math::nextTwoPow(entrysize * tablesize))),
 			  bmask(bsize-1),
 			  H(tablesize,false),
 			  B(bsize,false),
