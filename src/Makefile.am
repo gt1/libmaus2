@@ -8,7 +8,9 @@ testmod_la_SOURCES = test/testmod.cpp
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 
-libmaus_la_SOURCES = libmaus/StaticInitialization.cpp libmaus/bitio/CompactArray.cpp libmaus/rank/RankTable.cpp \
+libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
+	libmaus/autoarray/AutoArray.cpp \
+	libmaus/bitio/CompactArray.cpp libmaus/rank/RankTable.cpp \
 	libmaus/rank/log2table.cpp libmaus/fastx/isFastQ.cpp libmaus/wavelet/toWaveletTreeBits.cpp \
 	libmaus/suffixsort/divsufsort.cpp libmaus/rmq/FischerSystematicSuccinctRMQ.cpp libmaus/lcp/OracleLCP.cpp \
 	libmaus/util/StackTrace.cpp libmaus/lcs/OverlapComputation.cpp \
