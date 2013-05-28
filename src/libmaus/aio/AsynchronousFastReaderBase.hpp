@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #if ! defined(ASYNCHRONOUSFASTREADERBASE_HPP)
 #define ASYNCHRONOUSFASTREADERBASE_HPP
 
@@ -26,15 +25,18 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * asynchronous byte wise input class
+		 **/
 		struct AsynchronousFastReaderBase
 		{
 			private:
 			std::vector<std::string> const filenames;
 			::libmaus::aio::AsynchronousBufferReaderList reader;
 			std::pair < char const *, ssize_t > data;
-			u_int8_t const * text;
-			u_int64_t textlength;
-			u_int64_t dataptr;
+			uint8_t const * text;
+			uint64_t textlength;
+			uint64_t dataptr;
 			bool firstbuf;
 			uint64_t c;
 
@@ -77,6 +79,14 @@ namespace libmaus
 			}
 
 			public:
+			/**
+			 * constructor for input from single file
+			 *
+			 * @param rfilename file name
+			 * @param numbuffers number of buffers
+			 * @param bufsize size of each buffer
+			 * @param offset initial read offset in file
+			 **/
 			AsynchronousFastReaderBase(
 				std::string const & rfilename, 
 				unsigned int numbuffers = 16, 
@@ -94,6 +104,14 @@ namespace libmaus
 			{
 			}
 
+			/**
+			 * constructor for input from list of files
+			 *
+			 * @param rfilenames list of input files
+			 * @param numbuffers number of buffers
+			 * @param bufsize size of each buffer
+			 * @param offset initial read offset in files
+			 **/
 			AsynchronousFastReaderBase(
 				std::vector<std::string> const & rfilenames,
 				unsigned int numbuffers = 16, 
@@ -111,16 +129,25 @@ namespace libmaus
 			{
 			}
 
+			/**
+			 * get number of bytes already read
+			 **/
 			uint64_t getC() const
 			{
 				return c;
 			}
 			
+			/**
+			 * @return next character or -1 for EOF
+			 **/
 			int get()
 			{
 				return getNextCharacter();
 			}
 
+			/**
+			 * @return next character or -1 for EOF
+			 **/
 			int getNextCharacter()
 			{
 				if ( dataptr == textlength )
@@ -131,7 +158,7 @@ namespace libmaus
 					bool const readok = reader.getBuffer(data);
 					if ( ! readok )
 						return -1;
-					text = reinterpret_cast<u_int8_t const *>(data.first);
+					text = reinterpret_cast<uint8_t const *>(data.first);
 					textlength = data.second;
 					dataptr = 0;
 				}
