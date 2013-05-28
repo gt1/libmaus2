@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #if ! defined(ASYNCHRONOUSBUFFERREADER_HPP)
 #define ASYNCHRONOUSBUFFERREADER_HPP
 
@@ -29,6 +27,7 @@
 #include <libmaus/LibMausConfig.hpp>
 #include <libmaus/exception/LibMausException.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/util/GetFileSize.hpp>
 
 #if defined(LIBMAUS_HAVE_AIO)
 #include <aio.h>
@@ -43,8 +42,12 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for asynchronous blockwise input
+		 **/
 		struct AsynchronousBufferReader
 		{
+			private:
 			std::string filename;
 			int const fd;
 			unsigned int const numbuffers;
@@ -77,14 +80,26 @@ namespace libmaus
 					std::cerr << "ERROR: " << strerror(errno) << std::endl;
 				}
 			}
+			
+			public:
+			/**
+			 * destructor
+			 **/
 			~AsynchronousBufferReader()
 			{
 				flush();
 				close(fd);
 			}
 
-			AsynchronousBufferReader ( std::string const & rfilename, 
-				uint64_t rnumbuffers = 16, uint64_t rbufsize = 32, uint64_t roffset = 0 )
+			/**
+			 * constructor
+			 *
+			 * @param rfilename file name
+			 * @param rnumbuffers number of buffers
+			 * @param rbufsize size of each buffer
+			 * @param roffset initial file offset
+			 **/
+			AsynchronousBufferReader ( std::string const & rfilename, uint64_t rnumbuffers = 16, uint64_t rbufsize = 32, uint64_t roffset = 0 )
 			: filename(rfilename),
 			  fd( open(filename.c_str(),O_RDONLY ) ), 
 			  numbuffers(rnumbuffers), bufsize(rbufsize), 
@@ -114,7 +129,12 @@ namespace libmaus
 					enqueRead();
 			}
 			
-			
+			/**
+			 * get next buffer
+			 *
+			 * @param data reference to pair that will be filled with block info. the pair will be filled with a data pointer and the block size
+			 * @return true if block was available, false if there are no more blocks
+			 **/
 			bool getBuffer(std::pair < char const *, ssize_t > & data)
 			{
 				ssize_t red = -1;
@@ -127,10 +147,16 @@ namespace libmaus
 				low++;		
 				return red > 0;
 			}
+			/**
+			 * return the last block obtained via getBuffer
+			 **/
 			void returnBuffer()
 			{
 				enqueRead();	
 			}
+			/**
+			 * wait for all read requests already submitted to finish
+			 **/
 			void flush()
 			{
 				while ( high-low )
@@ -150,13 +176,26 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * synchronous input with asynchronous api (for systems without asynchronous input)
+		 **/
 		struct AsynchronousBufferReader : std::ifstream
 		{
+			private:
 			uint64_t const bufsize;
 			::libmaus::autoarray::AutoArray<char> abuffer;
 			char * const buffer;
 			bool av;
 
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rfilename file name
+			 * @param rnumbufs number of buffers
+			 * @param rbufsize size of each buffer
+			 * @param offset initial file offset
+			 **/
 			AsynchronousBufferReader(
 				std::string const & filename, 
 				uint64_t const rnumbufs, 
@@ -168,6 +207,12 @@ namespace libmaus
 			{
 				std::ifstream::seekg(offset,std::ios::beg);
 			}
+			/**
+			 * get next buffer
+			 *
+			 * @param data reference to pair that will be filled with block info. the pair will be filled with a data pointer and the block size
+			 * @return true if block was available, false if there are no more blocks
+			 **/
 			bool getBuffer(std::pair < char const *, ssize_t > & data)
 			{
 				assert ( av );
@@ -182,10 +227,16 @@ namespace libmaus
 				
 				return data.second > 0;
 			}
+			/**
+			 * return the last block obtained via getBuffer
+			 **/
 			void returnBuffer()
 			{
 				av = true;
 			}
+			/**
+			 * wait for all read requests already submitted to finish
+			 **/
 			void flush()
 			{}
 		};
@@ -202,8 +253,12 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * asynchronous input for a list of files
+		 **/
 		struct AsynchronousBufferReaderList
 		{
+			private:
 			typedef std::string element_type;
 			typedef std::list<element_type> container_type;
 			typedef container_type::const_iterator iterator_type;
@@ -219,15 +274,16 @@ namespace libmaus
 
 			reader_ptr_type reader;
 
-			static uint64_t getFileSize(std::string const & filename)
-			{
-				std::ifstream istr(filename.c_str(), std::ios::binary);
-				istr.seekg(0,std::ios::end);
-				uint64_t const l = istr.tellg();
-				istr.close();
-				return l;
-			}
-
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param ina file name list begin iterator
+			 * @param ine file name list end iterator
+			 * @param rnumbuffers number of buffers
+			 * @param rbufsize size of each buffer
+			 * @param offset file offset
+			 **/
 			template<typename in_iterator_type>
 			AsynchronousBufferReaderList(
 				in_iterator_type ina,
@@ -238,9 +294,9 @@ namespace libmaus
 			: 
 				C(ina,ine), ita(C.begin()), ite(C.end()), numbuffers(rnumbuffers), bufsize(rbufsize)
 			{
-				while ( ita != ite && offset >= getFileSize(*ita) )
+				while ( ita != ite && offset >= ::libmaus::util::GetFileSize::getFileSize(*ita) )
 				{
-					offset -= getFileSize(*ita);
+					offset -= ::libmaus::util::GetFileSize::getFileSize(*ita);
 					ita++;
 				}
 
@@ -249,11 +305,20 @@ namespace libmaus
 					reader = UNIQUE_PTR_MOVE(reader_ptr_type(new AsynchronousBufferReader(*ita, numbuffers,bufsize,offset)));
 				}
 			}
+			/**
+			 * destructor
+			 **/
 			~AsynchronousBufferReaderList()
 			{
 				if ( reader.get() )
 					reader->flush();
 			}
+			/**
+			 * get next buffer
+			 *
+			 * @param data reference to pair that will be filled with block info. the pair will be filled with a data pointer and the block size
+			 * @return true if block was available, false if there are no more blocks
+			 **/
 			bool getBuffer(std::pair < char const *, ssize_t > & data)
 			{
 				if ( ! (reader.get()) )
@@ -275,6 +340,9 @@ namespace libmaus
 
 				return false;
 			}
+			/**
+			 * return the last block obtained via getBuffer
+			 **/
 			void returnBuffer()
 			{
 				if ( reader.get() )
@@ -283,5 +351,4 @@ namespace libmaus
 		};
 	}
 }
-
 #endif
