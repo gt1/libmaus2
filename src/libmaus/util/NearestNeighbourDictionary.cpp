@@ -132,3 +132,4 @@ uint64_t libmaus::util::NearestNeighbourDictionary::selectp(uint64_t i) const
 	}
 	return result;
 }
+

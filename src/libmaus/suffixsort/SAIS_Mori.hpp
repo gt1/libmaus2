@@ -653,3 +653,4 @@ namespace libmaus
 
 #endif /* __cplusplus */
 #endif /* _SAIS_HXX */
+

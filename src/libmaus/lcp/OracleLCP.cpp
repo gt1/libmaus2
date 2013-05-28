@@ -47,3 +47,4 @@ const uint32_t libmaus::lcp::OracleLCPBase::_cover_sizes[max_precomputed_cover+1
    sizeof(cover8)/sizeof(cover8[0])
 };
 
+

@@ -91,3 +91,4 @@ const libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc
 		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~63), 
 		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~127)
 	};
+

@@ -97,3 +97,4 @@ template<typename iterator>
 	return UNIQUE_PTR_MOVE(constructQuantiserTemplate<std::vector<uint64_t>::const_iterator>(V.begin(),V.size(),k,runs));
 }
 
+

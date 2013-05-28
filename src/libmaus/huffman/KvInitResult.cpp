@@ -15,3 +15,4 @@ std::ostream & operator<<(std::ostream & out, ::libmaus::huffman::KvInitResult c
 		<< ")";
 	return out;
 }
+
