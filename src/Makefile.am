@@ -84,7 +84,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/util/Utf8BlockIndex.cpp \
 	libmaus/util/Utf8DecoderBuffer.cpp \
 	libmaus/util/Utf8DecoderWrapper.cpp \
-	libmaus/suffixtree/CompressedSuffixTree.cpp
+	libmaus/suffixtree/CompressedSuffixTree.cpp \
+	libmaus/bambam/AlignmentValidity.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
