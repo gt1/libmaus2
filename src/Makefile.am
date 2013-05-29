@@ -492,7 +492,6 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/GenericOutput.hpp \
 	libmaus/aio/MemInBuffer.hpp \
 	libmaus/aio/MemOutBuffer.hpp \
-	libmaus/aio/MultiFileConcatWriter.hpp \
 	libmaus/aio/BufferedOutput.hpp \
 	libmaus/aio/FileFragment.hpp \
 	libmaus/aio/AsynchronousFastReaderBase.hpp \
