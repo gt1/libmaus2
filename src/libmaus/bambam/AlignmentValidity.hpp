@@ -25,6 +25,9 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * bam validation error codes
+		 **/
 		enum libmaus_bambam_alignment_validity {
 			libmaus_bambam_alignment_validity_ok = 0,
 			libmaus_bambam_alignment_validity_block_too_small = 1,
@@ -49,5 +52,12 @@ namespace libmaus
 	}
 }
 
+/**
+ * format string descrption of bam validation error code
+ *
+ * @param out output stream
+ * @param v error code
+ * @return output stream
+ **/
 ::std::ostream & operator<<(std::ostream & out, libmaus::bambam::libmaus_bambam_alignment_validity const v);
 #endif

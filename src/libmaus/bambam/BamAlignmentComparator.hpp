@@ -25,8 +25,19 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * bam alignment simple name comparator using pure lexicographic strcmp order
+		 **/
 		struct BamAlignmentComparator
 		{
+			/**
+			 * compare alignments A and B concerning read names via strcmp and if the names
+			 * are equal then A < B if A is marked as read 1
+			 *
+			 * @param A alignment
+			 * @param B alignment
+			 * @return A < B via simple read name comparison
+			 **/
 			bool operator()(
 				::libmaus::bambam::BamAlignment::shared_ptr_type const & A,
 				::libmaus::bambam::BamAlignment::shared_ptr_type const & B) const
