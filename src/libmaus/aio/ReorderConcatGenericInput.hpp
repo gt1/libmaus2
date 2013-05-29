@@ -29,6 +29,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for reading back reordered file fragments from a list of files
+		 **/
 		template < typename input_type >
 		struct ReorderConcatGenericInput
 		{
@@ -37,30 +40,41 @@ namespace libmaus
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
+			//! fragment vector
 			std::vector < FileFragment > V;
+			//! current pointer in fragment vector
 			std::vector < FileFragment >::const_iterator it;
+			//! input stream type
 			typedef std::ifstream reader_type;
+			//! input stream pointer type
 			typedef ::libmaus::util::unique_ptr<reader_type>::type reader_ptr_type;
 			
+			//! buffer size
 			uint64_t const bufsize;
+			//! input buffer
 			::libmaus::autoarray::AutoArray < input_type > B;
+			//! input buffer start pointer
 			input_type * const pa;
+			//! input buffer current pointer
 			input_type * pc;
+			//! input buffer end pointer
 			input_type * pe;
 			
+			//! reader pointer
 			reader_ptr_type reader;
+			//! number of rest words in current fragmetn
 			uint64_t restwords;
 			
+			//! total words read
 			uint64_t totalwords;
+			//! file offset
 			uint64_t offset;
 			
-			// #define GETDEBUG
-			#if defined(GETDEBUG)
-			public:
-			uint64_t getptr;
-			private:
-			#endif
-			
+			/**
+			 * fill buffer
+			 *
+			 * @return true iff any data could be loaded to the buffer
+			 **/
 			bool fillBuffer()
 			{
 		                while ( (! restwords) && (it != V.end()) )
@@ -98,7 +112,11 @@ namespace libmaus
                                 }
 			}
 			
-			
+			/**
+			 * init object with next file (move to fragment, open it)
+			 *
+			 * @param true iff next fragment has data
+			 **/
 			bool init()
 			{
 			        if ( it != V.end() )
@@ -147,11 +165,22 @@ namespace libmaus
 			}
 			
 			public:
+			/**
+			 * return the default buffer size
+			 **/
 			static unsigned int getDefaultBufferSize()
 			{
 				return 64*1024;
 			}
 			
+			/**
+			 * constructor
+			 *
+			 * @param rV fragment vector
+			 * @param rbufsize size of buffer (in elements)
+			 * @param rlimit maximum number of elements to be read
+			 * @param roffset number of elements to be skipped in the beginning
+			 **/
 			ReorderConcatGenericInput(
 			        std::vector<FileFragment> const & rV,
 			        uint64_t const rbufsize = getDefaultBufferSize(),
@@ -162,9 +191,6 @@ namespace libmaus
 			  reader(), restwords(0),
 			  totalwords( std::min(FileFragment::getTotalLength(V)-roffset,rlimit) ),
 			  offset(roffset)
-			  #if defined(GETDEBUG)
-			  , getptr(0)
-			  #endif
 			{
 			        // std::cerr << "total words " << totalwords << std::endl;
 			
@@ -175,11 +201,20 @@ namespace libmaus
                                 }
 			}
 			
+			/**
+			 * get total number of words to be read
+			 **/
 			uint64_t getTotalWords() const
 			{
 			        return totalwords;
 			}
 			
+			/**
+			 * get next word
+			 *
+			 * @param word reference for storing next word
+			 * @return true iff next word could be read
+			 **/
 			bool getNext(input_type & word)
 			{
 			        if ( pc == pe )
@@ -193,6 +228,12 @@ namespace libmaus
 			        return true;
 			}
 
+			/**
+			 * peek at next word
+			 *
+			 * @param word reference for storing next word
+			 * @return true iff next word could be read
+			 **/
 			bool peekNext(input_type & word)
 			{
 			        if ( pc == pe )
@@ -206,6 +247,9 @@ namespace libmaus
 			        return true;
 			}
 			
+			/**
+			 * @return next character or -1 (EOF)
+			 **/
 			int64_t getNextCharacter()
 			{
 			        input_type word;
@@ -215,7 +259,9 @@ namespace libmaus
                                 else
                                         return -1;
 			}
-			
+			/**
+			 * @return peek at character or return -1 (EOF)
+			 **/			
 			int64_t peekNextCharacter()
 			{
 				input_type word;
@@ -225,15 +271,19 @@ namespace libmaus
 				else
 					return -1;
 			}
+			/**
+			 * @return get next character or -1 for EOF
+			 **/			
 			
 			int64_t get()
 			{
-			        #if defined(GETDEBUG)
-			        getptr++;
-        	                #endif 
 			        return getNextCharacter();
 			}
-			
+			/**
+			 * peek at next character (look at it without removing it from the stream)
+			 *
+			 * @return next character or -1 or EOF
+			 **/						
 			int64_t peek()
 			{
 				return peekNextCharacter();
@@ -241,6 +291,9 @@ namespace libmaus
 
 			typedef std::vector < ::libmaus::aio::FileFragment > fragment_vector;
 
+			/**
+			 * load a fragment vector from a list of files
+			 **/
                         static fragment_vector loadFragmentVector(std::vector<std::string> const & infilenames)
                         {
                                 fragment_vector frags(infilenames.size());
@@ -267,12 +320,25 @@ namespace libmaus
                                 return frags;
                         }
 
+                        /**
+                         * load a fragment vector from a concat request object
+                         *
+                         * @param requestfilename name of file storing the serialised ConcatRequest
+                         **/
 	        	static fragment_vector loadFragmentVectorRequest(std::string const & requestfilename)
         		{
 	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req = UNIQUE_PTR_MOVE(::libmaus::util::ConcatRequest::load(requestfilename));
 		                return loadFragmentVector(req->infilenames);
                         }
 
+                        /**
+                         * instantiate object and return it
+                         * 
+                         * @param requestfilename name of serialised ConcatRequest object
+                         * @param bufsize input buffer size
+                         * @param limit maximum number of elements to be read
+                         * @param offset reading start offset
+                         **/
                         static unique_ptr_type openConcatFile(
                                 std::string const & requestfilename, 
                                 uint64_t const bufsize = 64*1024, 
@@ -285,6 +351,14 @@ namespace libmaus
                                 return UNIQUE_PTR_MOVE(unique_ptr_type( new this_type(frags,bufsize,limit,offset) ));
                         }
 
+                        /**
+                         * instantiate object from a list of single files
+                         *
+                         * @param filenames vector with input file names
+                         * @param bufsize size of input buffer
+                         * @param limit maximum number of elements to be read
+                         * @param offset reading start offset
+                         **/
                         static unique_ptr_type openConcatFile(
                                 std::vector < std::string > const & filenames,
                                 uint64_t const bufsize = 64*1024, 
@@ -296,10 +370,20 @@ namespace libmaus
                                 return UNIQUE_PTR_MOVE(unique_ptr_type( new this_type(frags,bufsize,limit,offset) ));
                         }
 
+                        /**
+                         * get sum of sizes of the files in a vector (in units of value_type)
+                         *
+                         * @param filenames vector of input filenames
+                         **/
                         static uint64_t getSize(std::vector < std::string > const & filenames)
                         {
                                 return ::libmaus::util::GetFileSize::getFileSize(filenames) / sizeof(value_type);
                         }
+                        /**
+                         * get sum of sizes of the files stored in a serialised ConcatRequest object
+                         *
+                         * @param requestfilename file name of serialised ConcatRequest object
+                         **/
                         static uint64_t getSize(std::string const & requestfilename)
                         {
 	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req = UNIQUE_PTR_MOVE(::libmaus::util::ConcatRequest::load(requestfilename));
@@ -312,6 +396,12 @@ namespace libmaus
                                 return len;
                         }
 
+                        /**
+                         * transform a vector of file fragments to one linear file by rewriting
+                         *
+                         * @param fragments vector of file fragments
+                         * @param outputfilename name of output file
+                         **/
                         static void toSerial(
                         	std::vector < ::libmaus::aio::FileFragment > const & fragments,
                         	std::string const & outputfilename
@@ -334,6 +424,13 @@ namespace libmaus
 				ostr.close();
 			}
 
+                        /**
+                         * transform a vector of file fragments to one linear stream by rewriting
+                         *
+                         * @param fragments vector of file fragments
+                         * @param ostr output stream
+                         * @param outputfilename name of the output stream (for verbosity only)
+                         **/
                         static void toSerial(
                         	std::vector < ::libmaus::aio::FileFragment > const & fragments,
                         	std::ostream & ostr,
@@ -382,6 +479,13 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * fill a complete block
+			 *
+			 * @param A block start
+			 * @param n number of elements to be read
+			 * @return number of elements actually read (can be smaller than n in case of EOF)
+			 **/
 			uint64_t fillBlock(input_type * const A, uint64_t n)
 			{
 			        input_type * T = A;

@@ -28,93 +28,53 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for decoding a sequence of 4 bit numbers encoded
+		 * by the CompactEncoder4 class from a sequence of files
+		 **/
 		template < typename filename_container_type = std::vector<std::string> >
 		struct CompactDecoder4 : public ::libmaus::aio::GetLength
 		{
 			typedef CompactDecoder4<filename_container_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
+			private:
+			//! input stream type
 			typedef std::ifstream ifstream_type;
+			//! input stream unique pointer type
 			typedef ::libmaus::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
 			
+			//! buffer for undecoded input data
 			::libmaus::autoarray::AutoArray<uint8_t> decodeBuffer;
+			//! buffer for decoded input data
 			::libmaus::autoarray::AutoArray<uint8_t> buffer;
+			//! current pointer in decoded data
 			uint8_t * pc;
+			//! end pointer for decoded data
 			uint8_t * pe;
 			
+			//! local filename vector
 			filename_container_type const localfilenames;
+			//! reference to list of filenames
 			filename_container_type const & filenames;
+			//! const iterator type for file name vector
 			typename filename_container_type::const_iterator fita;
 
+			//! total length of decoded sequence
 			uint64_t const n;
 			
+			//! current input file
 			ifstream_ptr_type istr;
+			//! number of symbols to be skipped
 			uint64_t skip;
+			//! number of unread symbols in current file
 			uint64_t fileunread;
 				
-			static ::libmaus::autoarray::AutoArray<uint8_t> readFile(std::string const & filename, uint64_t const offset = 0)
-			{
-				CompactDecoder4 CD(filename,offset);
-				::libmaus::autoarray::AutoArray<uint8_t> D(CD.n);
-				for ( uint64_t i = 0; i < D.size(); ++i )
-					D[i] = CD.get();
-				return D;
-			}
-			
-			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments)
-			{
-				uint64_t const n = getLength(V.begin(),V.end());
-				std::vector < uint64_t > points;
-				for ( uint64_t i = 0; i < segments; ++i )
-				{
-					uint64_t const scanstart = i * ((n+segments-1)/segments);
-					// std::cerr << "scanstart " << scanstart << std::endl;
-					this_type CD(V,scanstart);
-					uint64_t offset = 0;
-					while ( (scanstart+offset < n) && (CD.get() != 0) )
-						offset++;
-					points.push_back(scanstart + offset);
-					// std::cerr << "offset " << offset << std::endl;
-				}
-				
-				for ( uint64_t i = 0; i < points.size(); ++i )
-					if ( points[i] != n )
-					{
-						this_type CD(V,points[i]);
-						assert ( CD.get() == 0 );
-					}
-					
-				points.push_back(n);
-					
-				return points;
-			}
-			
-			CompactDecoder4(std::string const & filename, uint64_t const roffset = 0)
-			: 
-			  decodeBuffer(4096,false), buffer(2*decodeBuffer.size(),false), pc(buffer.begin()), pe(buffer.begin()),
-			  localfilenames(1,filename),
-			  filenames(localfilenames),
-			  fita(filenames.begin()),
-			  n(getLength(filenames.begin(),filenames.end()) >= roffset ? getLength(filenames.begin(),filenames.end())-roffset : 0),
-			  skip(roffset),
-			  fileunread(0)
-			{
-			
-			}
-
-			CompactDecoder4(filename_container_type const & rfilenames, uint64_t const roffset = 0)
-			: 
-			  decodeBuffer(4096,false), buffer(2*decodeBuffer.size(),false), pc(buffer.begin()), pe(buffer.begin()),
-			  localfilenames(),
-			  filenames(rfilenames),
-			  fita(filenames.begin()),
-			  n(getLength(filenames.begin(),filenames.end()) >= roffset ? getLength(filenames.begin(),filenames.end())-roffset : 0),
-			  skip(roffset),
-			  fileunread(0)
-			{
-			
-			}
-			
+			/**
+			 * open next file in list
+			 *
+			 * @return if next file was opened successfully
+			 **/
 			bool openNextFile()
 			{
 				while ( fita != filenames.end() && skip >= getLength(*fita) )
@@ -147,6 +107,11 @@ namespace libmaus
 				return true;
 			}
 
+			/**
+			 * fill the input buffer
+			 *
+			 * @return true iff data was successfully put in buffer
+			 **/
 			bool fillBuffer()
 			{
 				while ( pc == pe )
@@ -192,7 +157,50 @@ namespace libmaus
 				
 				return true;
 			}
+
 			
+			public:
+			/**
+			 * constructor from single filename
+			 *
+			 * @param filename name of file
+			 * @param roffset initial reading offset
+			 **/
+			CompactDecoder4(std::string const & filename, uint64_t const roffset = 0)
+			: 
+			  decodeBuffer(4096,false), buffer(2*decodeBuffer.size(),false), pc(buffer.begin()), pe(buffer.begin()),
+			  localfilenames(1,filename),
+			  filenames(localfilenames),
+			  fita(filenames.begin()),
+			  n(getLength(filenames.begin(),filenames.end()) >= roffset ? getLength(filenames.begin(),filenames.end())-roffset : 0),
+			  skip(roffset),
+			  fileunread(0)
+			{
+			
+			}
+
+			/**
+			 * constructor from a list of file names
+			 *
+			 * @param rfilenames list of file names
+			 * @param roffset initial reading offset
+			 **/
+			CompactDecoder4(filename_container_type const & rfilenames, uint64_t const roffset = 0)
+			: 
+			  decodeBuffer(4096,false), buffer(2*decodeBuffer.size(),false), pc(buffer.begin()), pe(buffer.begin()),
+			  localfilenames(),
+			  filenames(rfilenames),
+			  fita(filenames.begin()),
+			  n(getLength(filenames.begin(),filenames.end()) >= roffset ? getLength(filenames.begin(),filenames.end())-roffset : 0),
+			  skip(roffset),
+			  fileunread(0)
+			{
+			
+			}
+			
+			/**
+			 * @return next symbol or -1 for eof
+			 **/
 			int get()
 			{
 				if ( pc == pe )
@@ -203,6 +211,58 @@ namespace libmaus
 				}
 				return *(pc++);
 			}
+
+			/**
+			 * read a complete file to memory
+			 *
+			 * @param filename file name
+			 * @param offset start reading after offset symbols
+			 * @return data in file
+			 **/
+			static ::libmaus::autoarray::AutoArray<uint8_t> readFile(std::string const & filename, uint64_t const offset = 0)
+			{
+				CompactDecoder4 CD(filename,offset);
+				::libmaus::autoarray::AutoArray<uint8_t> D(CD.n);
+				for ( uint64_t i = 0; i < D.size(); ++i )
+					D[i] = CD.get();
+				return D;
+			}
+			
+			/**
+			 * compute a list of segments split points (points where the file has value 0)
+			 *
+			 * @param V list of file names
+			 * @param segments number of split points to be computed
+			 * @return list of split points
+			 **/
+			static std::vector<uint64_t> getSplitPoints(filename_container_type const & V, uint64_t const segments)
+			{
+				uint64_t const n = getLength(V.begin(),V.end());
+				std::vector < uint64_t > points;
+				for ( uint64_t i = 0; i < segments; ++i )
+				{
+					uint64_t const scanstart = i * ((n+segments-1)/segments);
+					// std::cerr << "scanstart " << scanstart << std::endl;
+					this_type CD(V,scanstart);
+					uint64_t offset = 0;
+					while ( (scanstart+offset < n) && (CD.get() != 0) )
+						offset++;
+					points.push_back(scanstart + offset);
+					// std::cerr << "offset " << offset << std::endl;
+				}
+				
+				for ( uint64_t i = 0; i < points.size(); ++i )
+					if ( points[i] != n )
+					{
+						this_type CD(V,points[i]);
+						assert ( CD.get() == 0 );
+					}
+					
+				points.push_back(n);
+					
+				return points;
+			}
+
 		};
 	}
 }

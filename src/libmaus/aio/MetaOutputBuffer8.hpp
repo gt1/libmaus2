@@ -30,8 +30,12 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * asynchronous block wise buffered output class attaching meta information to each block
+		 **/
                 struct MetaOutputBuffer8
                 {
+                	private:
                         ::libmaus::autoarray::AutoArray<uint64_t> B;
                         uint64_t * const pa;
                         uint64_t * pc;
@@ -40,6 +44,14 @@ namespace libmaus
                         ::libmaus::aio::AsynchronousWriter & W;
 			uint64_t const metaid;
 
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rW output writer
+			 * @param bufsize size of buffer
+			 * @param rmetaid meta information for each written block
+			 **/
                         MetaOutputBuffer8(
 				::libmaus::aio::AsynchronousWriter & rW, 
 				uint64_t const bufsize,
@@ -49,11 +61,19 @@ namespace libmaus
 
                         }
 
+                        /**
+                         * flush the buffer
+                         **/
                         void flush()
                         {
                                 writeBuffer();
                         }
 
+                        /**
+                         * write number
+                         *
+                         * @param num number to be written
+                         **/
 			void writeNumber8(uint64_t const num)
 			{
 				W.write (
@@ -62,6 +82,9 @@ namespace libmaus
 				);
 			}
 
+			/**
+			 * written buffer contents
+			 **/
                         void writeBuffer()
                         {
 				if ( pc != pa )
@@ -76,6 +99,11 @@ namespace libmaus
 				}
                         }
 
+                        /**
+                         * put one element in the buffer and flush if necessary
+                         *
+                         * @param c element to be put
+                         **/
                         void put(uint64_t const c)
                         {
                                 *(pc++) = c;

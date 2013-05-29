@@ -27,6 +27,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * synchronous buffered input class with element count limit
+		 **/
 		template < typename input_type >
 		struct LimitedSynchronousGenericInput : public SynchronousGenericInput<input_type>
 		{
@@ -34,6 +37,14 @@ namespace libmaus
 		        typedef LimitedSynchronousGenericInput<value_type> this_type;
 		        typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
+		        /**
+		         * constructor
+		         *
+		         * @param filename name of input file
+		         * @param rbufsize size of buffer in elements
+		         * @param rlimit maximum number of extracted elements
+		         * @param roffset reading start offset
+		         **/
 			LimitedSynchronousGenericInput(
 				std::string const & filename, 
 				uint64_t const rbufsize, 

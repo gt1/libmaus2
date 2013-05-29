@@ -30,6 +30,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * array of 64 bit async output streams
+		 **/
 		struct OutputFile8Array
 		{
 			typedef libmaus::aio::OutputBuffer8 buffer_type;
@@ -37,11 +40,22 @@ namespace libmaus
 			typedef OutputFile8Array this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			//! hash intervals
 			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & HI;
+			//! output buffers
 			::libmaus::autoarray::AutoArray<buffer_ptr_type> buffers;
+			//! output file names
 			std::vector < std::string > filenames;
+			//! interval tree for hash intervals
 			::libmaus::util::IntervalTree IT;
 
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rHI hash intervals
+			 * @param fileprefix prefix for output files
+			 **/
 			OutputFile8Array(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & rHI, std::string const & fileprefix)
 			: HI(rHI), buffers(HI.size()), IT(HI,0,HI.size())
 			{
@@ -56,10 +70,16 @@ namespace libmaus
 					buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(filenames[i],64*1024)));
 				}
 			}
+			/**
+			 * destructor: flush buffers
+			 **/
 			~OutputFile8Array()
 			{
 				flush();
 			}
+			/**
+			 * flush buffers
+			 **/
 			void flush()
 			{
 				for ( uint64_t i = 0; i < buffers.getN(); ++i )
@@ -71,6 +91,12 @@ namespace libmaus
 						std::cerr << ")";
 					}
 			}
+			/**
+			 * get buffer for hash value hashval
+			 *
+			 * @param hashval hash value
+			 * @return buffer for hashval
+			 **/
 			buffer_type & getBuffer(uint64_t const hashval)
 			{
 				uint64_t const i = IT.find(hashval);
@@ -79,6 +105,12 @@ namespace libmaus
 				assert ( hashval < HI[i].second );
 				return *(buffers[i]);
 			}
+			/**
+			 * get buffer by id
+			 *
+			 * @param id
+			 * @return buffer for id
+			 **/
 			buffer_type & getBufferById(uint64_t const id)
 			{
 				return *(buffers[id]);

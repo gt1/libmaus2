@@ -39,11 +39,17 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * generic input class asynchronously reading a vector of elements of type input_type
+		 **/
 		template < typename input_type >
 		struct GenericInput
 		{
 			typedef input_type value_type;
-		
+			typedef GenericInput<input_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			private:		
 			uint64_t const bufsize;
 			::libmaus::aio::AsynchronousBufferReader ABR;
 			uint64_t curbufleft;
@@ -53,9 +59,13 @@ namespace libmaus
 			uint64_t const totalwords;
 			uint64_t totalwordsread;
 			
-			typedef GenericInput<input_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-
+			public:
+			/**
+			 * read an array of type input_type from the file named inputfilename
+			 *
+			 * @param inputfilename file name
+			 * @return array
+			 **/
 			static ::libmaus::autoarray::AutoArray<input_type> readArray(std::string const & inputfilename)
 			{
 				uint64_t const fs =
@@ -77,6 +87,13 @@ namespace libmaus
 				return A;
 			}
 
+			/**
+			 * constructor
+			 *
+			 * @param filename input file name
+			 * @param rbufsize buffer size in elements
+			 * @param roffset offset in file in elements
+			 **/
 			GenericInput(std::string const & filename, uint64_t const rbufsize, uint64_t const roffset = 0)
 			: bufsize(rbufsize), 
 				ABR(filename, 16, bufsize*sizeof(input_type), roffset * sizeof(input_type)), 
@@ -88,10 +105,19 @@ namespace libmaus
 			{
 
 			}
+			/**
+			 * destructor
+			 **/
 			~GenericInput()
 			{
 				ABR.flush();
 			}
+			/**
+			 * get next element
+			 *
+			 * @param word reference for storing the next element
+			 * @return true if a value was deposited in word
+			 **/
 			bool getNext(input_type & word)
 			{
 				if ( ! curbufleft )

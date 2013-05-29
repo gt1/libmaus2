@@ -31,37 +31,30 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * synchronous block wise output class for 8 byte (uint64_t) numbers. this class will not keep the underlying
+		 * output file open across its method calls
+		 **/
                 struct SynchronousOutputBuffer8
                 {
                         typedef SynchronousOutputBuffer8 this_type;
                         typedef ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
                 
+                        private:
+                        //! output file name
 			std::string const filename;
+			//! output buffer
                         ::libmaus::autoarray::AutoArray<uint64_t> B;
+                        //! output buffer start pointer
                         uint64_t * const pa;
+                        //! output buffer current pointer
                         uint64_t * pc;
+                        //! output buffer end pointer
                         uint64_t * const pe;
 
-                        SynchronousOutputBuffer8(std::string const & rfilename, uint64_t const bufsize, bool truncate = true)
-                        : filename(rfilename), B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN())
-                        {
-                                if ( truncate )
-                                {
-        				std::ofstream ostr(filename.c_str(), std::ios::binary);
-	        			ostr.flush();
-                                }
-
-                        }
-			~SynchronousOutputBuffer8()
-			{
-				flush();
-			}
-
-                        void flush()
-                        {
-                                writeBuffer();
-                        }
-
+                        /**
+                         * write output buffer to disk and reset it
+                         **/
                         void writeBuffer()
                         {
 				std::ofstream ostr(filename.c_str(), std::ios::binary | std::ios::app);
@@ -83,11 +76,58 @@ namespace libmaus
                                 pc = pa;
                         }
 
+                        public:
+                        /**
+                         * constructor
+                         *
+                         * @param rfilename output file name
+                         * @param bufsize output buffer size
+                         * @param truncate if true file will be truncated
+                         **/
+                        SynchronousOutputBuffer8(std::string const & rfilename, uint64_t const bufsize, bool truncate = true)
+                        : filename(rfilename), B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN())
+                        {
+                                if ( truncate )
+                                {
+        				std::ofstream ostr(filename.c_str(), std::ios::binary);
+	        			ostr.flush();
+                                }
+
+                        }
+                        /**
+                         * destructor, flushes the buffer
+                         **/
+			~SynchronousOutputBuffer8()
+			{
+				flush();
+			}
+
+			/**
+			 * flushes the output buffer
+			 **/
+                        void flush()
+                        {
+                                writeBuffer();
+                        }
+
+                        /**
+			 * put one element in the buffer and flushes the buffer it is full afterwards
+			 *
+			 * @param c element to be put in the buffer
+			 **/
                         void put(uint64_t const c)
                         {
                                 *(pc++) = c;
                                 if ( pc == pe )
                                         writeBuffer();
+                        }
+                        
+                        /**
+                         * @return file name
+                         **/
+                        std::string const & getFilename() const
+                        {
+                        	return filename;
                         }
                 };
 	}

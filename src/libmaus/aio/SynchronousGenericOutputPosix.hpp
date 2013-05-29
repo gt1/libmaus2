@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #if ! defined(LIBMAUS_AIO_SYNCHRONOUSGENERICOUTPUTPOSIX_HPP)
 #define LIBMAUS_AIO_SYNCHRONOUSGENERICOUTPUTPOSIX_HPP
 
@@ -38,6 +36,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * synchronous block oriented output based on posix system calls
+		 **/
 		template<typename _data_type>
 		struct SynchronousGenericOutputPosix
 		{
@@ -46,26 +47,100 @@ namespace libmaus
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
                 
+			private:
+			//! file name
 			std::string const filename;
+			//! directory name
 			std::string const dirname;
+			//! run sync for meta information
 			bool const metasync;
                 
+			//! output buffer
                         ::libmaus::autoarray::AutoArray<data_type> B;
+                        //! output buffer begin pointer
                         data_type * const pa;
+                        //! output buffer current pointer
                         data_type * pc;
+                        //! output buffer end pointer
                         data_type * const pe;
+                        //! file descriptor
                         int fd;
                         
+                        //! total bytes written
                         uint64_t totalwrittenbytes;
+                        //! total words written
                         uint64_t totalwrittenwords;
-                        
-                        private:
-                        this_type & operator=(this_type const & o)
+
+			//! deactivated assignment operator (private and unimplemented)
+                        this_type & operator=(this_type const & o);
+
+                        /**
+                         * write the buffer contents to the output file
+                         **/
+                        void writeBuffer()
                         {
-                        	return *this;
+                                char const * ca = reinterpret_cast<char const *>(pa);
+                                char const * cc = reinterpret_cast<char const *>(pc);
+                                
+                                while ( ca != cc )
+                                {
+	                                ssize_t const written = write ( fd, ca, cc-ca );
+	                                
+	                                if ( written < 0 )
+	                                {
+	                                	switch ( errno )
+	                                	{
+	                                		case EINTR:
+	                                			std::cerr << "Restarting write() call after interuption by signal." << std::endl;
+	                                			break;
+							default:
+							{
+								::libmaus::exception::LibMausException se;
+								se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
+									<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
+								se.finish();
+								throw se;							
+							}
+	                                	}
+	                                }
+	                                else
+	                                {
+	                                	ca += written;
+	                                }
+                                }
+
+                                totalwrittenbytes += (pc-pa)*sizeof(data_type);
+                                totalwrittenwords += (pc-pa);
+                                pc = pa;
+                                
+                                #if 0
+                                ssize_t written = write ( fd, ca, cc-ca );
+                                
+                                if ( written != cc-ca )
+                                {
+                                        ::libmaus::exception::LibMausException se;
+                                        se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
+                                        	<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
+                                        se.finish();
+                                        throw se;                              
+                                }
+                                
+                                assert ( (cc-ca) % sizeof(data_type) == 0 );
+                                totalwrittenbytes += (cc-ca);
+                                totalwrittenwords += ((cc-ca)/sizeof(data_type));
+                                
+                                pc = pa;
+                                #endif
                         }
+
                         
                         public:
+                        /**
+                         * get sum of file lengths for a list of files
+                         *
+                         * @param filenames list of files
+                         * @return sum of the lengths of the files in list filenames
+                         **/
                         static uint64_t getFileSize(std::vector<std::string> const & filenames)
                         {
                         	uint64_t s = 0;
@@ -73,6 +148,12 @@ namespace libmaus
                         		s += getFileSize(filenames[i]);
 				return s;
                         }
+                        /**
+                         * get file size for a single file filename
+                         *
+                         * @param filename name of file
+                         * @return length of file filename
+                         **/
                         static uint64_t getFileSize(std::string const & filename)
                         {
                         	struct stat sb;
@@ -97,6 +178,12 @@ namespace libmaus
                         	return sb.st_size;
                         }
                         
+                        /**
+                         * write array A to file outputfilename
+                         *
+                         * @param A array to be written
+                         * @param outputfilename name of output file
+                         **/
 			static void writeArray(::libmaus::autoarray::AutoArray<data_type> const & A, 
 				std::string const & outputfilename)
 			{
@@ -108,6 +195,12 @@ namespace libmaus
 				out.flush();
 			}
 
+			/**
+			 * get offset for appending to file filename
+			 * 
+			 * @param filename name of output file
+			 * @return offset for appending to file
+			 **/
 			static uint64_t appendOffset(std::string const & filename)
 			{
 			        if ( ::libmaus::util::GetFileSize::fileExists(filename) )
@@ -116,6 +209,12 @@ namespace libmaus
 			                return 0;
 			}
 
+			/**
+			 * check whether appending and truncating is the same for file filename
+			 *
+			 * @param filename output file name
+			 * @return true iff file does not exist
+			 **/
 			static uint64_t appendTruncate(std::string const & filename)
 			{
 			        if ( ::libmaus::util::GetFileSize::fileExists(filename) )
@@ -124,12 +223,29 @@ namespace libmaus
                                         return true;
 			}
 			
+			/**
+			 * instantiate object for a new file
+			 *
+			 * @param filename name of output file
+			 * @param bufsize size of output buffer
+			 * @param metasync true if flushing should include the syncing of meta data
+			 * @return unique pointer object containg a pointer to the new object
+			 **/
 			static unique_ptr_type instantiateNewFile(std::string const & filename, uint64_t const bufsize, bool const metasync = true)
 			{
 				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(filename,bufsize,true,0,metasync)));
 			}
 
 			public:
+			/**
+			 * constructor
+			 *
+			 * @param rfilename output file name
+			 * @param bufsize size of output buffer in elements
+			 * @param truncate if true file will be truncated
+			 * @param offset initial write offset
+			 * @param rmetasync if true flushing will also sync meta data
+			 **/
                         SynchronousGenericOutputPosix(
                                 std::string const & rfilename, 
                                 uint64_t const bufsize, 
@@ -178,6 +294,9 @@ namespace libmaus
                         }
                         
                         public:
+                        /**
+                         * destructor, close file
+                         **/
                         ~SynchronousGenericOutputPosix()
                         {
                                 flush();
@@ -206,6 +325,10 @@ namespace libmaus
                                 #endif
                         }
                         
+                        /**
+                         * flush meta information by syncing the meta information on the directory 
+                         * contaning our output file
+                         **/
                         void dirflush()
                         {                        
                                 int dirfd = -1;
@@ -282,6 +405,9 @@ namespace libmaus
                                 }
                         }
 
+                        /**
+                         * flush output file
+                         **/
                         void flush()
                         {
                                 writeBuffer();
@@ -365,62 +491,11 @@ namespace libmaus
                                 }
                         }
 
-                        void writeBuffer()
-                        {
-                                char const * ca = reinterpret_cast<char const *>(pa);
-                                char const * cc = reinterpret_cast<char const *>(pc);
-                                
-                                while ( ca != cc )
-                                {
-	                                ssize_t const written = write ( fd, ca, cc-ca );
-	                                
-	                                if ( written < 0 )
-	                                {
-	                                	switch ( errno )
-	                                	{
-	                                		case EINTR:
-	                                			std::cerr << "Restarting write() call after interuption by signal." << std::endl;
-	                                			break;
-							default:
-							{
-								::libmaus::exception::LibMausException se;
-								se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
-									<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
-								se.finish();
-								throw se;							
-							}
-	                                	}
-	                                }
-	                                else
-	                                {
-	                                	ca += written;
-	                                }
-                                }
-
-                                totalwrittenbytes += (pc-pa)*sizeof(data_type);
-                                totalwrittenwords += (pc-pa);
-                                pc = pa;
-                                
-                                #if 0
-                                ssize_t written = write ( fd, ca, cc-ca );
-                                
-                                if ( written != cc-ca )
-                                {
-                                        ::libmaus::exception::LibMausException se;
-                                        se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
-                                        	<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
-                                        se.finish();
-                                        throw se;                              
-                                }
-                                
-                                assert ( (cc-ca) % sizeof(data_type) == 0 );
-                                totalwrittenbytes += (cc-ca);
-                                totalwrittenwords += ((cc-ca)/sizeof(data_type));
-                                
-                                pc = pa;
-                                #endif
-                        }
-
+                        /**
+                         * put one element c in the output buffer
+                         *
+                         * @param c element to be put in the buffer
+                         **/
                         void put(data_type const c)
                         {
                                 *(pc++) = c;
@@ -428,10 +503,17 @@ namespace libmaus
                                         writeBuffer();
                         }
                         
+                        /**
+                         * @return number of words written
+                         **/
                         uint64_t getWrittenWords() const
                         {
                                 return (pc-pa)+totalwrittenwords;
                         }
+                        
+                        /**
+                         * @return number of bytes written
+                         **/
                         uint64_t getWrittenBytes() const
                         {
                                 return (pc-pa)*sizeof(data_type)+totalwrittenbytes;

@@ -26,6 +26,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * output iterator using an objects put function
+		 **/
                 template<typename _data_type, typename _owner_type>
                 struct PutOutputIterator : public ::std::iterator< ::std::output_iterator_tag, _data_type>
                 {
@@ -39,16 +42,49 @@ namespace libmaus
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::reference reference;
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::pointer pointer;
                 
+			//! owner object used for actual output
                 	owner_type * SGOP;
 
+                	/**
+                	 * construct null put iterator
+                	 **/
 			PutOutputIterator() : SGOP(0) {}
+			/**
+			 * construct put iterator from object rSGOP
+			 * 
+			 * @param rSGOP owner
+			 **/
                 	PutOutputIterator(owner_type & rSGOP) : SGOP(&rSGOP) {}
+                	/**
+                	 * destructor
+                	 **/
                 	~PutOutputIterator() {}
 
+                	/**
+                	 * operator dereference
+                	 *
+                	 * @return this
+                	 **/
                 	this_type & operator*() { return *this; }
+                	/**
+                	 * operator prefix increment
+                	 *
+                	 * @return this
+                	 **/
                 	this_type & operator++() { return *this; }
+                	/**
+                	 * operator postfix increment
+                	 *
+                	 * @return this
+                	 **/
                 	this_type & operator++(int) { return *this; }
                 	
+                	/**
+                	 * assignment operator
+                	 *
+                	 * @param v value to be assigned/written
+                	 * @return *this
+                	 **/
                 	this_type & operator=(data_type const & v) { SGOP->put(v); return *this; }
                 };                
 	}

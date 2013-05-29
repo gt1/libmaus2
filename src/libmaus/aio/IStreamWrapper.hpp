@@ -25,12 +25,28 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * wrapper class for object of type std::istream
+		 **/
 		struct IStreamWrapper
 		{
+			//! wrapped object
 			std::istream & in;
 			
+			/**
+			 * constructor
+			 *
+			 * @param rin object to e wrapped
+			 **/
 			IStreamWrapper(std::istream & rin) : in(rin) {}
 			
+			/**
+			 * call wrapped object's read function
+			 *
+			 * @param p input buffer
+			 * @param c number of bytes to be read
+			 * @return number of bytes read
+			 **/
 			ssize_t read(char * p, size_t c)
 			{
 				in.read(p,c);

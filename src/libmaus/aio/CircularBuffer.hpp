@@ -32,6 +32,10 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * streambuf specialisation for circular input, i.e. input wraps at the end and restarts
+		 * at the beginning
+		 **/
 		template<typename _stream_type>
 		struct CircularBufferTemplate : public ::std::basic_streambuf<typename _stream_type::char_type>
 		{
@@ -54,6 +58,14 @@ namespace libmaus
 			CircularBufferTemplate & operator=(CircularBufferTemplate<stream_type> &);
 			
 			public:
+			/**
+			 * constructor from filename
+			 *
+			 * @param filename name of file to be read
+			 * @param offset start offset in file
+			 * @param rbuffersize size of buffer
+			 * @param rpushbackspace size of push back buffer
+			 **/
 			CircularBufferTemplate(
 				std::string const & filename, 
 				uint64_t const offset, 
@@ -72,6 +84,14 @@ namespace libmaus
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 
+			/**
+			 * constructor from stream
+			 *
+			 * @param rstream input stream to be circularised
+			 * @param offset start offset in file
+			 * @param rbuffersize size of buffer
+			 * @param rpushbackspace size of push back buffer
+			 **/
 			CircularBufferTemplate(
 				std::basic_istream<char_type> & rstream,
 				uint64_t const offset, 
@@ -89,20 +109,28 @@ namespace libmaus
 				stream.seekg(offset);
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
-			
+
+			/**
+			 * position in unwrapped input
+			 **/			
 			uint64_t tellg() const
 			{
-				// std::cerr << "here." << std::endl;
 				return streamreadpos - (base_type::egptr()-base_type::gptr());
 			}
 			
 			private:
-			// gptr as unsigned pointer
+			/**
+			 * return *gptr as unsigned character type
+			 **/
 			unsigned_char_type const * uptr() const
 			{
 				return reinterpret_cast<unsigned_char_type const *>(base_type::gptr());
 			}
 			
+			/**
+			 * buffer underflow callback
+			 * @return next symbol
+			 **/
 			typename base_type::int_type underflow()
 			{
 				if ( base_type::gptr() < base_type::egptr() )
@@ -145,6 +173,10 @@ namespace libmaus
 		typedef CircularBufferTemplate< ::libmaus::aio::CheckedInputStream  > CircularBuffer;
 		typedef CircularBufferTemplate< ::libmaus::util::Utf8DecoderWrapper > Utf8CircularBuffer;
 
+		/**
+		 * streambuf specialisation for reverse circular input, 
+		 * input is in read reverse direction (from end to start) and if start is reached wraps back to the end
+		 **/
 		template<typename _stream_type>
 		struct CircularReverseBufferTemplate : public ::std::basic_streambuf<typename _stream_type::char_type>
 		{
@@ -167,7 +199,20 @@ namespace libmaus
 			CircularReverseBufferTemplate & operator=(CircularReverseBufferTemplate&);
 			
 			public:
-			CircularReverseBufferTemplate(std::string const & filename, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
+			/**
+			 * constructor from filename
+			 *
+			 * @param filename name of file to be read
+			 * @param start offset in file
+			 * @param rbuffersize size of streambuf buffer
+			 * @param rpushbackspace size of push back buffer
+			 **/
+			CircularReverseBufferTemplate(
+				std::string const & filename, 
+				uint64_t const offset, 
+				::std::size_t rbuffersize, 
+				std::size_t rpushbackspace
+			)
 			: Pstream(new stream_type(filename)),
 			  stream(*Pstream),
 			  buffersize(rbuffersize),
@@ -179,6 +224,14 @@ namespace libmaus
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 
+			/**
+			 * constructor from input stream
+			 *
+			 * @param rstream input stream
+			 * @param start offset in file
+			 * @param rbuffersize size of streambuf buffer
+			 * @param rpushbackspace size of push back buffer
+			 **/
 			CircularReverseBufferTemplate(std::basic_istream<char_type> & rstream, uint64_t const offset, ::std::size_t rbuffersize, std::size_t rpushbackspace)
 			: Pstream(),
 			  stream(rstream),
@@ -191,19 +244,27 @@ namespace libmaus
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 			
+			/**
+			 * @return absolute position in reverse stream
+			 **/
 			uint64_t tellg() const
 			{
-				// std::cerr << "here." << std::endl;
 				return streamreadpos - (base_type::egptr()-base_type::gptr());
 			}
 			
 			private:
-			// gptr as unsigned pointer
+			/**
+			 * @return gptr as unsigned pointer
+			 **/
 			unsigned_char_type const * uptr() const
 			{
 				return reinterpret_cast<unsigned_char_type const *>(base_type::gptr());
 			}
 			
+			/**
+			 * buffer underflow callback
+			 * @return next symbol
+			 **/
 			typename base_type::int_type underflow()
 			{
 				if ( base_type::gptr() < base_type::egptr() )

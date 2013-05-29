@@ -33,14 +33,28 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * checked output stream similar to std::ofstream, but throws exceptions
+		 * if write or flush operations fail. note that the write/flush functions
+		 * are not virtual, so passing an object of this type as a std::ostream reference
+		 * will loose the throwing functionality.
+		 **/
 		struct CheckedOutputStream : public std::ofstream
 		{
 			typedef CheckedOutputStream this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
+			private:
 			std::string const filename;
 			
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rfilename name of file
+			 * @param mode output mode (see std::ofstream)
+			 **/
 			CheckedOutputStream(std::string const & rfilename, std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary)
 			: std::ofstream(rfilename.c_str(), mode), filename(rfilename)
 			{
@@ -52,11 +66,21 @@ namespace libmaus
 					throw se;
 				}
 			}
+			/**
+			 * destructor (flushes output stream)
+			 **/
 			~CheckedOutputStream()
 			{
 				flush();
 			}
 			
+			/**
+			 * write n bytes from c to output stream. throws an exception if operation fails
+			 * 
+			 * @param c buffer to be written
+			 * @param n size of buffer
+			 * @return *this
+			 **/
 			CheckedOutputStream & write(char const * c, ::std::streamsize n)
 			{
 				std::ofstream::write(c,n);
@@ -72,6 +96,9 @@ namespace libmaus
 				return *this;
 			}
 			
+			/**
+			 * flush streambuf object. throws an exception if stream state goes bad
+			 **/
 			CheckedOutputStream & flush()
 			{
 				std::ofstream::flush();

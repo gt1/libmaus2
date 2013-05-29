@@ -22,6 +22,7 @@
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus/exception/LibMausException.hpp>
 #include <iostream>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
@@ -29,20 +30,39 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * asynchronous block reading data block for FastA/FastQ
+		 **/
 		template<typename reader_type>
                 struct AsynchronousStreamReaderData
                 {
+                	//! type of pattern stored in this data set
                         typedef typename reader_type::pattern_type pattern_type;
+                        //! type of blocks stored in this object
                         typedef typename reader_type::block_type data_type;
 
+                        private:
+                        //! input stream
                         reader_type & file;
                         
+                        //! size of single block (in patterns)
                         unsigned int const blocksize;
+                        //! number of blocks
                         unsigned int const numblocks;
 
+                        //! patterns
                         ::libmaus::autoarray::AutoArray < pattern_type > blocks;
+                        //! pointers/offsets into blocks array demarking blocks
                         ::libmaus::autoarray::AutoArray < data_type > blockp;
 
+                        public:
+                        /**
+                         * constructor
+                         *
+                         * @param rfile FastA/FastQ input file
+                         * @param rblocksize size of each block in patterns
+                         * @param rnumblocks number of blocks
+                         **/
                         AsynchronousStreamReaderData(
                                 reader_type & rfile , 
                                 unsigned int const rblocksize, 
@@ -50,8 +70,6 @@ namespace libmaus
                         )
                         : file(rfile), blocksize(rblocksize), numblocks(rnumblocks), blocks(blocksize*numblocks), blockp(numblocks)
                         {
-                                // std::cerr << "Using cache for " << blocksize*numblocks << " patterns." << std::endl;
-                        
                                 for ( unsigned int i = 0; i < numblocks; ++i )
                                 {
                                         blockp[i].patterns = blocks.get() + i * blocksize;
@@ -59,20 +77,40 @@ namespace libmaus
                                         blockp[i].blockid = i;
                                 }
                         }
-                        
+                       
+                       	/**
+                       	 * @return number of blocks in this object
+                       	 **/ 
                         unsigned int getNumEntities()
                         {
                                 return numblocks;
                         }
                         
+                        /**
+                         * @param id block id
+                         * @return data for block id
+                         **/
                         data_type * getData(unsigned int const id)
                         {
                                 return &blockp[id];
                         }
+                        
+                        /**
+                         * map a data block to its id
+                         *
+                         * @param data block
+                         * @return id of data block
+                         **/
                         unsigned int dataToId(data_type const * data)
                         {
                                return data->blockid; 
                         }
+                        /**
+                         * generate data (fill block blockid)
+                         *
+                         * @param blockid id of block to be filled
+                         * @return true if any data was deposited in the block
+                         **/
                         bool generateData(unsigned int const blockid)
                         {
                                 blockp[blockid].blocksize = file.fillPatternBlock(blockp[blockid].patterns,blocksize);        
@@ -80,92 +118,16 @@ namespace libmaus
                         }
                 };
 
-                template<typename reader_type>
-                struct AsynchronousFastReaderData
-                {
-                        typedef typename reader_type::pattern_type pattern_type;
-                        typedef typename reader_type::block_type data_type;
-
-                        reader_type & file;
-                        
-                        unsigned int const numblocks;
-                        unsigned int const blocksize;
-
-                        ::libmaus::autoarray::AutoArray < data_type > blockp;
-
-                        AsynchronousFastReaderData(reader_type & rfile , unsigned int const rblocksize, unsigned int const rnumblocks)
-                        : file(rfile), numblocks(rnumblocks), blocksize(rblocksize), blockp(numblocks)
-                        {
-                                for ( unsigned int i = 0; i < numblocks; ++i )
-                                        blockp[i].blockid = i;
-                        }
-                        
-                        unsigned int getNumEntities()
-                        {
-                                return numblocks;
-                        }
-                        
-                        data_type * getData(unsigned int const id)
-                        {
-                                return &blockp[id];
-                        }
-                        unsigned int dataToId(data_type const * data)
-                        {
-                               return data->blockid; 
-                        }
-                        bool generateData(unsigned int const blockid)
-                        {
-                                blockp[blockid].blocksize = file.fillPatternBlock(blockp[blockid],blocksize);
-                                return blockp[blockid].blocksize != 0;
-                        }
-                };
-
-                template<typename reader_type>
-                struct AsynchronousFastIdData
-                {
-                        typedef typename reader_type::idfile_type file_type;
-                        typedef typename reader_type::idblock_type data_type;
-
-                        file_type & file;
-                        
-                        unsigned int const numblocks;
-                        unsigned int const blocksize;
-
-                        ::libmaus::autoarray::AutoArray < data_type > blockp;
-
-                        AsynchronousFastIdData(file_type & rfile , unsigned int const rblocksize, unsigned int const rnumblocks)
-                        : file(rfile), numblocks(rnumblocks), blocksize(rblocksize), blockp(numblocks)
-                        {
-                                for ( unsigned int i = 0; i < numblocks; ++i )
-                                        blockp[i].blockid = i;
-                        }
-                        
-                        unsigned int getNumEntities()
-                        {
-                                return numblocks;
-                        }
-                        
-                        data_type * getData(unsigned int const id)
-                        {
-                                return &blockp[id];
-                        }
-                        unsigned int dataToId(data_type const * data)
-                        {
-                               return data->blockid; 
-                        }
-                        bool generateData(unsigned int const blockid)
-                        {
-                                blockp[blockid].blocksize = file.fillPatternBlock(blockp[blockid],blocksize);
-                                return blockp[blockid].blocksize != 0;
-                        }
-                };
-
+		/**
+		 * asynchronous block reading data block for FastA/FastQ (id lines only)
+		 **/
                 template<typename reader_type>
                 struct AsynchronousIdData
                 {
                         typedef reader_type file_type;
                         typedef typename reader_type::idblock_type data_type;
 
+                        private:
                         file_type & file;
                         
                         unsigned int const numblocks;
@@ -173,6 +135,14 @@ namespace libmaus
 
                         ::libmaus::autoarray::AutoArray < data_type > blockp;
 
+                        public:
+                        /**
+                         * constructor
+                         *
+                         * @param rfile FastA/FastQ input file
+                         * @param rblocksize size of each block in patterns
+                         * @param rnumblocks number of blocks
+                         **/
                         AsynchronousIdData(file_type & rfile , unsigned int const rblocksize, unsigned int const rnumblocks)
                         : file(rfile), numblocks(rnumblocks), blocksize(rblocksize), blockp(numblocks)
                         {
@@ -180,19 +150,40 @@ namespace libmaus
                                         blockp[i].blockid = i;
                         }
                         
+                       	/**
+                       	 * @return number of blocks in this object
+                       	 **/ 
                         unsigned int getNumEntities()
                         {
                                 return numblocks;
                         }
                         
+                        /**
+                         * @param id block id
+                         * @return data for block id
+                         **/
                         data_type * getData(unsigned int const id)
                         {
                                 return &blockp[id];
                         }
+
+                        /**
+                         * map a data block to its id
+                         *
+                         * @param data block
+                         * @return id of data block
+                         **/
                         unsigned int dataToId(data_type const * data)
                         {
                                return data->blockid; 
                         }
+
+                        /**
+                         * generate data (fill block blockid)
+                         *
+                         * @param blockid id of block to be filled
+                         * @return true if any data was deposited in the block
+                         **/
                         bool generateData(unsigned int const blockid)
                         {
                                 blockp[blockid].blocksize = file.fillIdBlock(blockp[blockid],blocksize);
@@ -200,39 +191,18 @@ namespace libmaus
                         }
                 };
 
+                /**
+                 * class for asynchronous block wise reading of FastA/FastQ data
+                 **/
                 template<typename data_type>
                 struct AsynchronousStreamReader
                 {
+                	private:
                         data_type & data;        
                         
 			::libmaus::parallel::SynchronousQueue<unsigned int> unfilled;
                         ::libmaus::parallel::TerminatableSynchronousQueue<unsigned int> filled;
                         pthread_t thread;
-                        
-                        typename data_type::data_type * getBlock()
-                        {
-                                unsigned int blockid;
-                                try
-                                {
-                                        blockid = filled.deque();
-                                }
-                                catch(...)
-                                {
-                                        return 0;
-                                }
-
-                                return data.getData(blockid);
-                        }
-                        
-                        void returnBlock(typename data_type::data_type * block)
-                        {
-                                unfilled.enque(data.dataToId(block));
-                        }
-                        
-                        unsigned int getFillState()
-                        {
-                                return filled.getFillState();
-                        }
 
                         void * readerThread()
                         {
@@ -258,6 +228,50 @@ namespace libmaus
                                 return 0;
                         }
 
+                        public:
+                        /**
+                         * get next block
+                         *
+                         * @return next block (returns null pointer if there are no more blocks)
+                         **/
+                        typename data_type::data_type * getBlock()
+                        {
+                                unsigned int blockid;
+                                try
+                                {
+                                        blockid = filled.deque();
+                                }
+                                catch(...)
+                                {
+                                        return 0;
+                                }
+
+                                return data.getData(blockid);
+                        }
+                        
+                        /**
+                         * return block
+                         *
+                         * @param block pointer to block
+                         **/
+                        void returnBlock(typename data_type::data_type * block)
+                        {
+                                unfilled.enque(data.dataToId(block));
+                        }
+                        
+                        /**
+                         * @return number of blocks currently available without blocking
+                         **/
+                        unsigned int getFillState()
+                        {
+                                return filled.getFillState();
+                        }
+
+                        /**
+                         * constructor
+                         *
+                         * @param rdata data object (AsynchronousStreamReaderData or AsynchronousIdData)
+                         **/
                         AsynchronousStreamReader ( data_type & rdata ) : data(rdata)
                         {
                                 for ( unsigned int i = 0; i < data.getNumEntities(); ++i )
@@ -265,9 +279,15 @@ namespace libmaus
                                 
                                 if ( pthread_create ( & thread, 0, dispatcher, this ) )
                                 {
-                                        throw std::runtime_error("Cannot create reader thread.");
+                                	libmaus::exception::LibMausException se;
+                                        se.getStream() << "Cannot create reader thread.";
+                                        se.finish();
+                                        throw se;
                                 }
                         }
+                        /**
+                         * destructor
+                         **/
                         ~AsynchronousStreamReader()
                         {
                                 void * p = 0;

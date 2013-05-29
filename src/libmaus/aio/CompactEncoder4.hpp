@@ -30,13 +30,29 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * encoder class for writing a sequence of 4 bit integers which can be decoded
+		 * using the CompactDecoder4 class
+		 **/
 		struct CompactEncoder4
 		{
+			private:
+			//! ouput stream
 			std::ofstream ostr;
+			//! buffer for output stream
 			::libmaus::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type SGO;
+			//! current partial output byte
 			uint8_t c;
+			//! true if number of elements written so far is odd (and partial information is in c)
 			bool odd;
 			
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param filename name of output file
+			 * @param number of elements to be written
+			 **/
 			CompactEncoder4(std::string const & filename, uint64_t const n)
 			: ostr(filename.c_str(),std::ios::binary), odd(false)
 			{
@@ -44,6 +60,11 @@ namespace libmaus
 				SGO = ::libmaus::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type(new ::libmaus::aio::SynchronousGenericOutput<uint8_t>(ostr,64*1024));
 			}
 			
+			/**
+			 * put next number val
+			 *
+			 * @param number to be written
+			 **/
 			void put(uint8_t const val)
 			{
 				if ( ! odd )
@@ -58,6 +79,9 @@ namespace libmaus
 				odd = !odd;
 			}
 			
+			/**
+			 * flush output
+			 **/
 			void flush()
 			{
 				if ( odd )

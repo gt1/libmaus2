@@ -34,6 +34,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for synchronous buffered output
+		 **/
 		template<typename data_type>
                 struct SynchronousGenericOutput
                 {
@@ -42,64 +45,34 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr< std::ofstream >::type ofstream_ptr_type;
 			typedef ::libmaus::util::unique_ptr< std::fstream  >::type  fstream_ptr_type;
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
-                
+
+
+			private:                
+			//! default append is off
+			static bool const append = false;
+			
+			//! output buffer
                         ::libmaus::autoarray::AutoArray<data_type> B;
+                        //! output buffer start pointer
                         data_type * const pa;
+                        //! output buffer current pointer
                         data_type * pc;
+                        //! output buffer end pointer
                         data_type * const pe;
                         
+                        //! output stream pointer (for truncating)
                         ofstream_ptr_type PW;
+                        //! file stream pointer (for appending)
                          fstream_ptr_type PF;
+                        //! ostream reference
                         std::ostream & W;
                         
+                        //! number of elements written to file
                         uint64_t datawrittentofile;
 
-			template< ::libmaus::autoarray::alloc_type atype >
-			static void writeArray(::libmaus::autoarray::AutoArray<data_type,atype> const & A, 
-				std::string const & outputfilename)
-			{
-				this_type out(outputfilename,64*1024);
-				
-				for ( uint64_t i = 0; i < A.getN(); ++i )
-					out.put(A[i]);
-				
-				out.flush();
-			}
-
-			static bool const append = false;
-
-                        SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize, bool const truncate = true, uint64_t const offset = 0, bool const /* metasync */ = true)
-                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
-                          PW ( truncate ? new std::ofstream(filename.c_str(),std::ios::binary|std::ios::out|std::ios::trunc) : 0),
-                          PF ( truncate ? 0 : new std::fstream(filename.c_str(), std::ios::binary|std::ios::in|std::ios::out|std::ios::ate) ),
-                          W  ( truncate ? (static_cast<std::ostream &>(*PW)) : (static_cast<std::ostream &>(*PF)) ),
-                          datawrittentofile(0)
-                        {
-                        	W.seekp(offset,std::ios::beg);
-                        }
-
-                        SynchronousGenericOutput(std::ostream & out, uint64_t const bufsize)
-                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
-                          W(out),
-                          datawrittentofile(0)
-                        {
-
-                        }
-
-                        void flush()
-                        {
-                                writeBuffer();
-                                W.flush();
-
-                                if ( ! W )
-                                {
-                                        ::libmaus::exception::LibMausException se;
-                                        se.getStream() << "Failed to flush in SynchronousGenericOutput::flush()";
-                                        se.finish();
-                                        throw se;
-                                }
-                        }
-
+                        /**
+                         * write buffer to stream
+                         **/
                         void writeBuffer()
                         {
                                 char const * ca = reinterpret_cast<char const *>(pa);
@@ -118,6 +91,81 @@ namespace libmaus
                                 pc = pa;
                         }
 
+
+                        public:
+                        /**
+                         * write the array A to the file outputfilename
+                         *
+                         * @param A array to be written
+                         * @param outputfilename name of output file
+                         **/
+			template< ::libmaus::autoarray::alloc_type atype >
+			static void writeArray(::libmaus::autoarray::AutoArray<data_type,atype> const & A, 
+				std::string const & outputfilename)
+			{
+				this_type out(outputfilename,64*1024);
+				
+				for ( uint64_t i = 0; i < A.getN(); ++i )
+					out.put(A[i]);
+				
+				out.flush();
+			}
+
+			/**
+			 * constructor by file name
+			 *
+			 * @param filename name of output file
+			 * @param bufsize size of output buffer
+			 * @param truncate true if file should be truncated false data should be appended
+			 * @param offset write offset in bytes
+			 * @param metasync has no effect for this class (parameter is present for compatibility with the posix variant)
+			 **/
+                        SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize, bool const truncate = true, uint64_t const offset = 0, bool const /* metasync */ = true)
+                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
+                          PW ( truncate ? new std::ofstream(filename.c_str(),std::ios::binary|std::ios::out|std::ios::trunc) : 0),
+                          PF ( truncate ? 0 : new std::fstream(filename.c_str(), std::ios::binary|std::ios::in|std::ios::out|std::ios::ate) ),
+                          W  ( truncate ? (static_cast<std::ostream &>(*PW)) : (static_cast<std::ostream &>(*PF)) ),
+                          datawrittentofile(0)
+                        {
+                        	W.seekp(offset,std::ios::beg);
+                        }
+
+                        /**
+                         * constructor by output stream
+                         *
+                         * @param out output stream
+                         * @param bufsize output buffer size
+                         **/
+                        SynchronousGenericOutput(std::ostream & out, uint64_t const bufsize)
+                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
+                          W(out),
+                          datawrittentofile(0)
+                        {
+
+                        }
+
+                        /**
+                         * flush the buffer
+                         **/
+                        void flush()
+                        {
+                                writeBuffer();
+                                W.flush();
+
+                                if ( ! W )
+                                {
+                                        ::libmaus::exception::LibMausException se;
+                                        se.getStream() << "Failed to flush in SynchronousGenericOutput::flush()";
+                                        se.finish();
+                                        throw se;
+                                }
+                        }
+
+                        /**
+                         * put an element in the buffer
+                         *
+                         * @param c element to be put in buffer
+                         **/
                         void put(uint64_t const c)
                         {
                                 *(pc++) = c;
@@ -125,16 +173,28 @@ namespace libmaus
                                         writeBuffer();
                         }
                         
+                        /**
+                         * @return number of words written
+                         **/
                         uint64_t getWrittenWords() const
                         {
                         	return datawrittentofile + (pc-pa);
                         }
                         
+                        /**
+                         * @return number of bytes written
+                         **/
                         uint64_t getWrittenBytes() const
                         {
                         	return getWrittenWords() * sizeof(data_type);
                         }
                         
+                        /**
+                         * put an array of elements
+                         *
+                         * @param A sequence iterator
+                         * @param n number of elements
+                         **/
                         template<typename iterator>
                         void put(iterator A, uint64_t n)
                         {

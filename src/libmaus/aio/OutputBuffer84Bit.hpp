@@ -26,17 +26,31 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for writing 4 bit number aggregated in 8 byte words
+		 **/
 		struct OutputBuffer84Bit : public OutputBuffer8
 		{
+			private:
 			unsigned int cc;
 			uint64_t lv;
 		
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param filename output file name
+			 * @param bufsize size of output bffer in words
+			 **/
 			OutputBuffer84Bit(std::string const & filename, uint64_t const bufsize)
 			: OutputBuffer8(filename,bufsize), cc(0), lv(0)
 			{
 		
 			}
 		
+			/**
+			 * flush buffer
+			 **/
 			void flush()
 			{
 				while ( cc )
@@ -44,6 +58,9 @@ namespace libmaus
 				OutputBuffer8::flush();
 			}
 		
+			/**
+			 * put one element, flush if buffer is full after putting the new element
+			 **/
 			void put(uint8_t const c)
 			{
 				assert ( c < 16 );
@@ -60,6 +77,9 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * write padding
+			 **/
 			void writePad()
 			{
 				flush();

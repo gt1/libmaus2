@@ -46,8 +46,12 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for asynchronous output
+		 **/
 		struct AsynchronousWriter
 		{
+			private:
 			int const fd;
 			bool const releasefd;
 			unsigned int const numbuffers;
@@ -57,6 +61,13 @@ namespace libmaus
 			uint64_t high;
 			::libmaus::parallel::OMPLock lock;
 
+			public:
+			/**
+			 * constructor from file descriptor
+			 *
+			 * @param rfd file descriptor
+			 * @param rnumbuffers number of asynchronous contexts (buffered blocks)
+			 **/
 			AsynchronousWriter ( int const rfd, uint64_t rnumbuffers = 16 )
 			: fd( rfd ), releasefd(false), numbuffers(rnumbuffers), buffers(numbuffers), contexts(numbuffers), low(0), high(0)
 			{
@@ -66,6 +77,12 @@ namespace libmaus
 				}
 				fcntl (fd, F_SETFL, O_APPEND);
 			}
+			/**
+			 * constructor from filename
+			 *
+			 * @param filename name of file
+			 * @param rnumbuffers number of asynchronous contexts (buffered blocks)
+			 **/
 			AsynchronousWriter ( std::string const & filename, uint64_t rnumbuffers = 16 )
 			: fd( open(filename.c_str(),O_WRONLY|O_CREAT|O_APPEND|O_TRUNC,0644) ), releasefd(true), numbuffers(rnumbuffers), buffers(numbuffers), contexts(numbuffers), low(0), high(0)
 			{
@@ -77,6 +94,9 @@ namespace libmaus
 					throw se;
 				}
 			}
+			/**
+			 * destructor
+			 **/
 			~AsynchronousWriter()
 			{
 				flush();
@@ -89,21 +109,26 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * register block for writing
+			 *
+			 * @param sa block start pointer/iterator (inclusive)
+			 * @param se block end pointer/iterator (exclusive)
+			 **/
 			template<typename iterator>
 			void write(iterator sa, iterator se)
 			{
 				lock.lock();
 
+				// wait for free context if all buffers are in use
 				if ( high-low == numbuffers )
 				{
 					aiocb *waitlist[1] = { &contexts[low%numbuffers] };
-					// std::cerr << "waiting for " << low << std::endl;
 					aio_suspend (waitlist,1,0);
 					low++;
 				}
 				
 				uint64_t const len = se-sa;
-				// std::cerr << "writing " << s.size() << std::endl;
 
 				buffers[high % numbuffers] = ::libmaus::autoarray::AutoArray<char>(len);
 				std::copy ( sa, se, buffers[high%numbuffers].get() );
@@ -120,6 +145,9 @@ namespace libmaus
 				lock.unlock();
 			}
 			
+			/**
+			 * wait until all write requests have finished
+			 **/
 			void flush()
 			{
 				while ( high-low )
@@ -137,33 +165,6 @@ namespace libmaus
 					if ( fsync(fd) )
 						std::cerr << "Failure in fsync: " << strerror(errno) << std::endl;
 			}
-			static void writeNumber1(uint64_t const v, uint8_t * buffer)
-			{
-				buffer[0] = v;
-			}
-			static void writeNumber2(uint64_t const v, uint8_t * buffer)
-			{
-				buffer[0] = (v>>8) & 0xFF;
-				buffer[1] = (v>>0) & 0xFF;
-			}
-			static void writeNumber4(uint64_t const v, uint8_t * buffer)
-			{
-				buffer[0] = (v>>24) & 0xFF;
-				buffer[1] = (v>>16) & 0xFF;
-				buffer[2] = (v>>8) & 0xFF;
-				buffer[3] = (v>>0) & 0xFF;
-			}
-			static void writeNumber8(uint64_t const v, uint8_t * buffer)
-			{
-				buffer[0] = (v>>(8*7)) & 0xFF;
-				buffer[1] = (v>>(8*6)) & 0xFF;
-				buffer[2] = (v>>(8*5)) & 0xFF;
-				buffer[3] = (v>>(8*4)) & 0xFF;
-				buffer[4] = (v>>(8*3)) & 0xFF;
-				buffer[5] = (v>>(8*2)) & 0xFF;
-				buffer[6] = (v>>(8*1)) & 0xFF;
-				buffer[7] = (v>>(8*0)) & 0xFF;
-			}
 		};
 	}
 }
@@ -172,22 +173,41 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * asynchronous write replacement class for systems which do not support asynchronous io
+		 **/
 		struct AsynchronousWriter
 		{
+			private:
 			std::ofstream ostr;
 			::libmaus::parallel::OMPLock lock;
 			
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param filename name of file
+			 **/
 			AsynchronousWriter ( std::string const & filename, uint64_t = 16 )
 			: ostr ( filename.c_str() )
 			{
 			
 			}
 			
+			/**
+			 * destructor
+			 **/
 			~AsynchronousWriter()
 			{
 				ostr.close();
 			}
 			
+			/**
+			 * write block
+			 *
+			 * @param sa block start pointer/iterator (inclusive)
+			 * @param se block end pointer/iterator (exclusive)			 
+			 **/
 			template<typename iterator>
 			void write(iterator sa, iterator se)
 			{
@@ -197,6 +217,10 @@ namespace libmaus
 				ostr.write(buf.get(),se-sa);
 				lock.unlock();
 			}
+			
+			/**
+			 * flush output file
+			 **/
 			void flush()
 			{
 				lock.lock();

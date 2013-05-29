@@ -29,8 +29,18 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for get length of file type functions. please use the GetFileSize
+		 * class instead.
+		 **/
 		struct GetLength
 		{
+			/**
+			 * get length of file filename
+			 *
+			 * @param filename name of file
+			 * @return length of file filename in bytes
+			 **/
 			static uint64_t getLength(std::string const & filename)
 			{
 				std::ifstream istr(filename.c_str(),std::ios::binary);
@@ -45,6 +55,13 @@ namespace libmaus
 				return n;
 			}
 
+			/**
+			 * get the sum of the lengths of the files in the given list of file names
+			 *
+			 * @param a file name list begin iterator (inclusive)
+			 * @param b file name list end iterator (exclusive)
+			 * @return sum of the lengths of the files in the given list of file names [a,b)
+			 **/
 			template<typename iterator>
 			static uint64_t getLength(iterator a, iterator b)
 			{

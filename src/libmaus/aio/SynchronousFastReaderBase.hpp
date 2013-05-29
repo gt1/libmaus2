@@ -29,6 +29,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * synchronous base class for FastA/FastQ input
+		 **/
 		struct SynchronousFastReaderBase
 		{
 			typedef SynchronousFastReaderBase this_type;
@@ -36,25 +39,45 @@ namespace libmaus
 		
 			private:
 			std::vector<std::string> const filenames;
-			
+		
+			//! input type	
 			typedef std::ifstream input_type;
+			//! input pointer type
 			typedef ::libmaus::util::unique_ptr<input_type>::type input_type_ptr;
+			//! file pointer first type
 			typedef input_type_ptr fpt_first_type;
+			//! file pointer second type
 			typedef std::vector<std::string>::const_iterator fpt_second_type;
+			//! file pointer type
 			typedef std::pair < fpt_first_type, fpt_second_type > file_pair_type;
+			//! pointer to file pointer type
 			typedef ::libmaus::util::unique_ptr<file_pair_type>::type file_pair_ptr_type;
-			
+			//! offset in file type
 			typedef std::pair< fpt_second_type, uint64_t > file_offset_type;
 
+			//! current file pointer
 			file_pair_ptr_type fpt;
+			//! input buffer
 			::libmaus::autoarray::AutoArray<uint8_t> B;
+			//! input buffer start pointer
 			uint8_t * const pa;
+			//! input buffer current pointer
 			uint8_t * pc;
+			//! input buffer end pointer
 			uint8_t * pe;
+			//! number of symbols extracted
 			uint64_t c;
 			
+			//! character buffer
 			::libmaus::fastx::CharBuffer cb;
 			
+			/**
+			 * get file pointer object for numerical offset in a list of files
+			 *
+			 * @param filenames list of files
+			 * @param offset number of bytes to skip
+			 * @return file offset pair
+			 **/
 			static file_offset_type getFileOffset(
 				std::vector<std::string> const & filenames,
 				uint64_t offset)			
@@ -68,6 +91,13 @@ namespace libmaus
 				return file_offset_type(ita,offset);
 			}
 			
+			/**
+			 * set up input for a list of file names and an offset in bytes
+			 *
+			 * @param filenames list of input files
+			 * @param offset start offset in bytes
+			 * @return file pair pointer
+			 **/
 			static file_pair_ptr_type setupInput(
 				std::vector<std::string> const & filenames,
 				uint64_t offset)
@@ -104,7 +134,9 @@ namespace libmaus
 				}
 			}
 			
-
+			/**
+			 * transform a single file name to a list of file names
+			 **/
 			static std::vector<std::string> singleToList(std::string const & filename)
 			{
 				std::vector<std::string> filenames;
@@ -112,6 +144,11 @@ namespace libmaus
 				return filenames;
 			}
 
+			/**
+			 * read a one byte number and check for eof
+			 *
+			 * @return number
+			 **/
 			uint64_t readNumber1()
 			{
 				int const v = getNextCharacter();
@@ -124,18 +161,33 @@ namespace libmaus
 				}
 				return v;
 			}
+			/**
+			 * read a two byte number and check for eof
+			 *
+			 * @return number
+			 **/
 			uint64_t readNumber2()
 			{
 				uint64_t const v0 = readNumber1();
 				uint64_t const v1 = readNumber1();
 				return (v0<<8)|v1;
 			}
+			/**
+			 * read a four byte number and check for eof
+			 *
+			 * @return number
+			 **/
 			uint64_t readNumber4()
 			{
 				uint64_t const v0 = readNumber2();
 				uint64_t const v1 = readNumber2();
 				return (v0<<16)|v1;
 			}
+			/**
+			 * read a eight byte number and check for eof
+			 *
+			 * @return number
+			 **/
 			uint64_t readNumber8()
 			{
 				uint64_t const v0 = readNumber4();
@@ -144,6 +196,13 @@ namespace libmaus
 			}
 
 			public:
+			/**
+			 * constructor
+			 *
+			 * @param rfilename input file name
+			 * @param bufsize input buffer size
+			 * @param offset read start offset
+			 **/
 			SynchronousFastReaderBase(
 				std::string const & rfilename, 
 				unsigned int = 0, 
@@ -160,6 +219,13 @@ namespace libmaus
 			{
 			}
 
+			/**
+			 * constructor
+			 *
+			 * @param rfilenames list of input file name
+			 * @param bufsize input buffer size
+			 * @param offset read start offset
+			 **/
 			SynchronousFastReaderBase(
 				std::vector<std::string> const & rfilenames,
 				unsigned int = 0, 
@@ -176,16 +242,25 @@ namespace libmaus
 			{
 			}
 
+			/**
+			 * @return number of bytes read
+			 **/
 			uint64_t getC() const
 			{
 				return c;
 			}
 
+			/**
+			 * @return next character or -1 for EOF
+			 **/
 			int get()
 			{
 				return getNextCharacter();
 			}
 
+			/**
+			 * @return next character or -1 for EOF
+			 **/
 			int getNextCharacter()
 			{
 				while ( pc == pe )
@@ -214,6 +289,11 @@ namespace libmaus
 				return *(pc++);
 			}
 			
+			/**
+			 * get line as character array
+			 *
+			 * @return pair of character pointer and line length
+			 **/
 			std::pair < char const *, uint64_t > getLineRaw()
 			{
 				int c;
@@ -227,6 +307,12 @@ namespace libmaus
 					return std::pair<char const *, uint64_t>(cb.buffer,cb.length);
 			}
 			
+			/**
+			 * get line as string object
+			 *
+			 * @param s string object to store the line
+			 * @return true iff line was read (false for eof)
+			 **/
 			bool getLine(std::string & s)
 			{
 				std::pair < char const *, uint64_t > P = getLineRaw();
@@ -242,12 +328,25 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * get line offsets for line number modulo mod equaling zero
+			 *
+			 * @param filename input file name
+			 * @param mod modulo value
+			 * @return line offsets in filename
+			 **/
 			static std::vector < uint64_t > getLineOffsets(std::string const & filename, uint64_t const mod)
 			{
 				SynchronousFastReaderBase SFRB(filename);
 				return SFRB.getLineOffsets(mod);
 			}
 
+			/**
+			 * get line offsets for line number modulo mod equaling zero
+			 *
+			 * @param mod modulo value
+			 * @return line offsets
+			 **/
 			std::vector < uint64_t > getLineOffsets(uint64_t const mod)
 			{
 				std::vector<uint64_t> V;

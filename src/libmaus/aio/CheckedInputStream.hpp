@@ -29,15 +29,40 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * checked input stream. this is a variant of std::ifstream which checks the
+		 * state of the input stream after calls to read and seekg. If the stream
+		 * fails, the functions throw exceptions. Note that the read/seekg functions
+		 * are not virtual, so passing an object of this class as an std::istream &
+		 * will loose the throwing functionality.
+		 **/
 		struct CheckedInputStream : std::ifstream
 		{
 			typedef CheckedInputStream this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
+			private:
 			std::string const filename;
 			char * buffer;
 			
+			void cleanup()
+			{
+				if ( buffer )
+				{
+					delete [] buffer;
+					buffer = 0;
+					rdbuf()->pubsetbuf(0,0); 
+				}			
+			}
+			
+			public:
+			/**
+			 * constructor
+			 * 
+			 * @param rfilename file name
+			 * @param mode file open mode (as for std::ifstream)
+			 **/
 			CheckedInputStream(std::string const & rfilename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary )
 			: std::ifstream(rfilename.c_str(), mode), filename(rfilename), buffer(0)
 			{
@@ -49,20 +74,17 @@ namespace libmaus
 					throw se;
 				}
 			}
-			void cleanup()
-			{
-				if ( buffer )
-				{
-					delete [] buffer;
-					buffer = 0;
-					rdbuf()->pubsetbuf(0,0); 
-				}			
-			}
+			/**
+			 * destructor
+			 **/
 			~CheckedInputStream()
 			{
 				cleanup();				
 			}
 			
+			/**
+			 * set size of underlying streambuf object
+			 **/
 			void setBufferSize(uint64_t const newbufsize)
 			{
 				cleanup();
@@ -70,6 +92,13 @@ namespace libmaus
 				rdbuf()->pubsetbuf(buffer,newbufsize);
 			}
 			
+			/**
+			 * read n bytes from stream to c. throws an exception if n!=0 and no bytes were read
+			 *
+			 * @param c output buffer space
+			 * @param n number of bytes to be read
+			 * @return *this
+			 **/
 			CheckedInputStream & read(char * c, ::std::streamsize const n)
 			{
 				std::ifstream::read(c,n);
@@ -85,6 +114,12 @@ namespace libmaus
 				return *this;
 			}
 			
+			/**
+			 * seek stream to absolute position pos. throws an exception if not successfull
+			 *
+			 * @param pos new absolute position
+			 * @return *this
+			 **/
 			CheckedInputStream & seekg(::std::streampos pos)
 			{
 				std::ifstream::seekg(pos);
@@ -100,6 +135,13 @@ namespace libmaus
 				return *this;
 			}
 
+			/**
+			 * seek stream to relative position pos. throws an exception if not successfull
+			 *
+			 * @param off seek offset
+			 * @param dir seek direction (see std::ifstream::seekg)
+			 * @return *this
+			 **/
 			CheckedInputStream & seekg(::std::streamoff off, ::std::ios_base::seekdir dir)
 			{
 				std::ifstream::seekg(off,dir);
@@ -115,13 +157,26 @@ namespace libmaus
 				return *this;
 			}
 			
+			/**
+			 * get a single symbol from file filename at position offset
+			 *
+			 * @param filename name of file
+			 * @param offset file offset
+			 * @return symbol/byte at position offset in file filename
+			 **/
 			static int getSymbolAtPosition(std::string const & filename, uint64_t const offset)
 			{
 				this_type CIS(filename);
 				CIS.seekg(offset);
 				return CIS.get();
 			}
-			
+
+			/**
+			 * return size of file filename
+			 *
+			 * @param filename name of file
+			 * @return size of file filename in bytes
+			 **/			
 			static uint64_t getFileSize(std::string const & filename)
 			{
 				this_type CIS(filename);

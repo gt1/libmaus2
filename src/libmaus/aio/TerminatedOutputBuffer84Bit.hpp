@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #if ! defined(TERMINATEDOUTPUTBUFFER84BIT_HPP)
 #define TERMINATEDOUTPUTBUFFER84BIT_HPP
 
@@ -27,12 +25,28 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * specialisation of OutputBuffer84Bit introducing a shift and unique terminator symbols sequences
+		 **/
 		struct TerminatedOutputBuffer84Bit : public OutputBuffer84Bit
 		{
+			private:
+			//! terminator base
 			uint64_t const base;
+			//! terminator exponent (length of terminator sequences in symbols)
 			unsigned int const expo;
+			//! terminator buffer
 			::libmaus::autoarray::AutoArray<uint8_t> termbuf;
 		
+			public:
+			/**
+			 * construct
+			 *
+			 * @param filename output file name
+			 * @param bufsize output buffer size
+			 * @param rbase terminator base
+			 * @param rexpo terminator exponent (number of symbols per terminator sequence)
+			 **/
 			TerminatedOutputBuffer84Bit(
 				std::string const & filename, 
 				uint64_t const bufsize, 
@@ -43,11 +57,21 @@ namespace libmaus
 				
 			}
 		
+			/**
+			 * put shift symbol c
+			 *
+			 * @param c symbol to be put
+			 **/
 			void putBase(uint8_t const c)
 			{
 				put( c + base + 1 );
 			}
 		
+			/**
+			  * put terminator num
+			  *
+			  * @param num terminator number
+			  **/
 			void putTerm(uint64_t num)
 			{
 				uint8_t * p = termbuf.get() + termbuf.getN();

@@ -26,6 +26,9 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * base class for block buffer output
+		 **/
 		template<typename _data_type>
 		struct BufferedOutputBase
 		{
@@ -33,28 +36,54 @@ namespace libmaus
 			typedef BufferedOutputBase<data_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			//! block buffer
 			::libmaus::autoarray::AutoArray<data_type> B;
+			//! start of buffer pointer
 			data_type * const pa;
+			//! current pointer
 			data_type * pc;
+			//! end of buffer pointer
 			data_type * const pe;
 			
+			//! total bytes written
 			uint64_t totalwrittenbytes;
+			//! total words written
 			uint64_t totalwrittenwords;
 			
+			/**
+			 * construct buffer of size bufsize
+			 *
+			 * @param bufsize buffer size (in elements)
+			 **/
 			BufferedOutputBase(uint64_t const bufsize)
 			: B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), totalwrittenbytes(0), totalwrittenwords(0)
 			{
 			
 			}
+			/**
+			 * destructor
+			 **/
 			virtual ~BufferedOutputBase() {}
 
+			/**
+			 * flush buffer
+			 **/
 			void flush()
 			{
 				writeBuffer();
 			}
 			
+			/**
+			 * pure virtual buffer writing function
+			 **/
 			virtual void writeBuffer() = 0;
 
+			/**
+			 * put one element
+			 *
+			 * @param v element to be put in buffer
+			 * @return true if buffer is full after putting the element
+			 **/
 			bool put(data_type const & v)
 			{
 				*(pc++) = v;
@@ -69,6 +98,12 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * put a list of elements
+			 *
+			 * @param A list start pointer
+			 * @param n number of elements to be put in buffer
+			 **/
 			void put(data_type const * A, uint64_t n)
 			{
 				while ( n )
@@ -83,43 +118,70 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * put an element without checking whether buffer fills up
+			 *
+			 * @param v element to be put in buffer
+			 **/
 			void uncheckedPut(data_type const & v)
 			{
 				*(pc++) = v;
 			}
 			
+			/**
+			 * @return space available in buffer (in elements)
+			 **/
 			uint64_t spaceLeft() const
 			{
 				return pe-pc;
 			}
 			
+			/**
+			 * @return number of words written (including those still in the buffer)
+			 **/
 			uint64_t getWrittenWords() const
 			{
 				return totalwrittenwords + (pc-pa);
 			}
 			
+			/**
+			 * @return number of bytes written (including those still in the buffer)
+			 **/
 			uint64_t getWrittenBytes() const
 			{
 				return getWrittenWords() * sizeof(data_type);
 			}
 			
+			/**
+			 * increase written accus by number of elements curently in buffer
+			 **/
 			void increaseWritten()
 			{
 				totalwrittenwords += (pc-pa);
 				totalwrittenbytes += (pc-pa)*sizeof(data_type);
 			}
 			
+			/**
+			 * @return number of elements currently in buffer
+			 **/
 			uint64_t fill()
 			{
 				return pc-pa;
 			}
 			
+			/**
+			 * reset buffer
+			 **/
 			void reset()
 			{
 				increaseWritten();
 				pc = pa;
 			}
 		};
+		
+		/**
+		 * class for buffer file output
+		 **/
 		template<typename _data_type>
 		struct BufferedOutput : public BufferedOutputBase<_data_type>
 		{
@@ -128,18 +190,32 @@ namespace libmaus
 			typedef BufferedOutputBase<data_type> base_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			private:
 			std::ostream & out;
 			
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rout output stream
+			 * @param bufsize size of buffer in elements
+			 **/
 			BufferedOutput(std::ostream & rout, uint64_t const bufsize)
 			: BufferedOutputBase<_data_type>(bufsize), out(rout)
 			{
 			
 			}
+			/**
+			 * destructor
+			 **/
 			~BufferedOutput()
 			{
 				base_type::flush();
 			}
 
+			/**
+			 * write buffer to output stream
+			 **/
 			virtual void writeBuffer()
 			{
 				if ( base_type::fill() )
@@ -159,6 +235,10 @@ namespace libmaus
 			}
 		};
 
+		/**
+		 * null write output buffer. data put in buffer is written nowhere.
+		 * this is useful for code directly using the buffer base.
+		 **/
 		template<typename _data_type>
 		struct BufferedOutputNull : public BufferedOutputBase<_data_type>
 		{
@@ -167,15 +247,26 @@ namespace libmaus
 			typedef BufferedOutputBase<data_type> base_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			/**
+			 * constructor
+			 *
+			 * @param bufsize size of buffer
+			 **/
 			BufferedOutputNull(uint64_t const bufsize)
 			: BufferedOutputBase<_data_type>(bufsize)
 			{
 			
 			}
+			/**
+			 * destructor
+			 **/
 			~BufferedOutputNull()
 			{
 				base_type::flush();
 			}
+			/**
+			 * null writeBuffer function (does nothing)
+			 **/
 			virtual void writeBuffer()
 			{
 			}

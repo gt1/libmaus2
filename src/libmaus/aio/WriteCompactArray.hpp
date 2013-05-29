@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #if ! defined(WRITECOMPACTARRAY_HPP)
 #define WRITECOMPACTARRAY_HPP
 
@@ -27,8 +26,18 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class for writing 4 bit numbers as a byte sequence
+		 **/
 		struct WriteCompactArray
 		{
+			/**
+			 * writes compact 4 bit array with big endian header
+			 *
+			 * @param T compacted number array
+			 * @param filename output file name
+			 * @param n number of elements in sequence
+			 **/
 			template<typename N>
 			static void writeArray(::libmaus::autoarray::AutoArray<N,::libmaus::autoarray::alloc_type_c> const & T, std::string const & filename, uint64_t const n)
 			{
@@ -53,6 +62,12 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * compact number array in place. turns a sequence of numbers < 16 a_0 a_1 a_2 \ldots a_{n-1}
+			 * into ((a_0<<4)|a_1)((a_2<<4)|a_3)...
+			 *
+			 * @param T array
+			 **/
 			static void compactArray(::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_c> & T)
 			{
 				uint8_t * outptr = T.begin();
@@ -63,6 +78,12 @@ namespace libmaus
 				T.resize( (T.size() + 1)/2 );
 			}
 
+			/**
+			 * write array as compact sequence of bytes where each byte contains two 4 bit numbers
+			 *
+			 * @param T byte array
+			 * @param filename output file name
+			 **/
 			static void writeCompactArray(::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_c> & T, std::string const & filename)
 			{
 				uint64_t const n = T.size();

@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #if ! defined(OUTPUTBUFFER_HPP)
 #define OUTPUTBUFFER_HPP
 
@@ -27,26 +25,26 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * byte oriented asynchronous output buffer
+		 **/
 		struct OutputBuffer
 		{
+			private:
+			//! buffer
 			::libmaus::autoarray::AutoArray<uint8_t> B;
+			//! buffer start pointer
 			uint8_t * const pa;
+			//! buffer current pointer
 			uint8_t * pc;
+			//! buffer end pointer
 			uint8_t * const pe;
+			//! async writer
 			::libmaus::aio::AsynchronousWriter W;
-		
-			OutputBuffer(std::string const & filename, uint64_t const bufsize)
-			: B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), W(filename,16)
-			{
-		
-			}
-		
-			void flush()
-			{
-				writeBuffer();
-				W.flush();
-			}
-		
+
+			/**
+			 * write buffer contents to writer
+			 **/
 			void writeBuffer()
 			{
 				W.write ( 
@@ -55,6 +53,33 @@ namespace libmaus
 				pc = pa;
 			}
 		
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param filename output file name
+			 * @param bufsize size of output buffer in elements
+			 **/
+			OutputBuffer(std::string const & filename, uint64_t const bufsize)
+			: B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), W(filename,16)
+			{
+		
+			}
+		
+			/**
+			 * flush the output buffer
+			 **/
+			void flush()
+			{
+				writeBuffer();
+				W.flush();
+			}
+		
+			/**
+			 * put one element and flush buffer it is full afterwards
+			 *
+			 * @param c element to be put in buffer
+			 **/
 			void put(uint8_t const c)
 			{
 				*(pc++) = c;

@@ -28,23 +28,42 @@ namespace libmaus
 {
 	namespace aio
 	{
+		template<typename _value_type>
 		struct MemOutBuffer
 		{
-			uint64_t * out;
+			typedef _value_type value_type;
+			typedef MemOutBuffer<value_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
 
-			typedef MemOutBuffer this_type;
-			typedef ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
+			private:
+			//! output pointer
+			value_type * out;
 			
-			MemOutBuffer(uint64_t * const rout)
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rout output buffer pointer
+			 **/
+			MemOutBuffer(value_type * const rout)
 			: out(rout)
 			{
 			
 			}
 			
-			void put(uint64_t const v)
+			/**
+			 * put element
+			 *
+			 * @param v element
+			 **/
+			void put(value_type const v)
 			{
 				*(out++) = v;
 			}
+			
+			/**
+			 * flush buffer (do nothing)
+			 **/
 			void flush()
 			{
 			

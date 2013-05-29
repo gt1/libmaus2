@@ -26,11 +26,25 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * asynchronous generic input with an element count limit
+		 **/
 		template < typename input_type >
 		struct LimitedGenericInput : public GenericInput<input_type>
 		{
+			private:
+			//! limiot
 			uint64_t const limit;
 		
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param filename name of input file
+			 * @param rbufsize size of buffer in elements
+			 * @param rlimit number of elements to be read
+			 * @param roffset in file offset
+			 **/
 			LimitedGenericInput(
 				std::string const & filename, 
 				uint64_t const rbufsize, 
@@ -42,6 +56,12 @@ namespace libmaus
 			
 			}
 
+			/**
+			 * get next element
+			 *
+			 * @param word reference to be filled with next element
+			 * @return true iff next element was available
+			 **/
 			bool getNext(input_type & word)
 			{
 				if ( GenericInput<input_type>::totalwordsread == limit )
