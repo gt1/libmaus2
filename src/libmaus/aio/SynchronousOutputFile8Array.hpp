@@ -37,9 +37,13 @@ namespace libmaus
 		template<typename _buffer_type>
 		struct SynchronousOutputFile8ArrayTemplate
 		{
+			//! buffer type
 			typedef _buffer_type buffer_type;
+			//! buffer pointer type
 			typedef typename ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			//! this type
 			typedef SynchronousOutputFile8ArrayTemplate<buffer_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:

@@ -39,7 +39,9 @@ namespace libmaus
 		template<typename data_type>
                 struct GenericOutput
                 {
+                	//! this type
                         typedef GenericOutput this_type;
+                        //! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
                 
 			private:

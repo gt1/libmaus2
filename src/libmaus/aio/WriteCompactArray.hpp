@@ -63,7 +63,7 @@ namespace libmaus
 			}
 
 			/**
-			 * compact number array in place. turns a sequence of numbers < 16 a_0 a_1 a_2 \ldots a_{n-1}
+			 * compact number array in place. turns a sequence of numbers < 16 a_0 a_1 a_2 ...
 			 * into ((a_0<<4)|a_1)((a_2<<4)|a_3)...
 			 *
 			 * @param T array

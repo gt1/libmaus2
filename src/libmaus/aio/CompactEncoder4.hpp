@@ -51,7 +51,7 @@ namespace libmaus
 			 * constructor
 			 *
 			 * @param filename name of output file
-			 * @param number of elements to be written
+			 * @param n number of elements to be written
 			 **/
 			CompactEncoder4(std::string const & filename, uint64_t const n)
 			: ostr(filename.c_str(),std::ios::binary), odd(false)
@@ -63,7 +63,7 @@ namespace libmaus
 			/**
 			 * put next number val
 			 *
-			 * @param number to be written
+			 * @param val number to be written
 			 **/
 			void put(uint8_t const val)
 			{

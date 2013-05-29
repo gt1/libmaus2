@@ -40,12 +40,16 @@ namespace libmaus
 		template<typename data_type>
                 struct SynchronousGenericOutput
                 {
+                	//! this type
                         typedef SynchronousGenericOutput<data_type> this_type;
+                        //! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! output file stream type
 			typedef ::libmaus::util::unique_ptr< std::ofstream >::type ofstream_ptr_type;
+			//! file stream type
 			typedef ::libmaus::util::unique_ptr< std::fstream  >::type  fstream_ptr_type;
+			//! iterator type
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
-
 
 			private:                
 			//! default append is off
@@ -118,7 +122,6 @@ namespace libmaus
 			 * @param bufsize size of output buffer
 			 * @param truncate true if file should be truncated false data should be appended
 			 * @param offset write offset in bytes
-			 * @param metasync has no effect for this class (parameter is present for compatibility with the posix variant)
 			 **/
                         SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize, bool const truncate = true, uint64_t const offset = 0, bool const /* metasync */ = true)
                         : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 

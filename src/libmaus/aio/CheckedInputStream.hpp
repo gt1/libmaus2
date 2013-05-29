@@ -38,8 +38,11 @@ namespace libmaus
 		 **/
 		struct CheckedInputStream : std::ifstream
 		{
+			//! this type
 			typedef CheckedInputStream this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:

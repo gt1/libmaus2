@@ -41,9 +41,11 @@ namespace libmaus
 		template<typename _data_type>
 		struct BlockBufferTemplate
 		{
+			//! data type
 			typedef _data_type data_type;
-		
+			//! this type
 			typedef BlockBufferTemplate<data_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:	
@@ -132,9 +134,15 @@ namespace libmaus
 		 **/
 		typedef BlockBufferTemplate<uint64_t> BlockBuffer;
 	
+		/**
+		 * synchronous blockwise output class split by hash values. impelemetation
+		 * first writes all files to a single stream and then splits it up upon request
+		 **/
 		struct BlockSynchronousOutputBuffer8
 		{
+			//! output stream type
 			typedef std::ofstream ostr_type;
+			//! output stream pointer type
 			typedef ::libmaus::util::unique_ptr<ostr_type>::type ostr_ptr_type;
 
 			private:
@@ -165,6 +173,13 @@ namespace libmaus
 			}
 
 			public:
+			/**
+			 * constructor
+			 *
+			 * @param rfilename output file name
+			 * @param rh number of buffers
+			 * @param rs buffer size
+			 **/
 			BlockSynchronousOutputBuffer8(
 				std::string const & rfilename, 
 				uint64_t const rh,  /* number of buffers */

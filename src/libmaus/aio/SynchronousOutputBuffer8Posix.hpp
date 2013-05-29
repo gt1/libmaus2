@@ -35,9 +35,12 @@ namespace libmaus
 		 **/
 		struct SynchronousOutputBuffer8Posix
 		{
+			//! this type
 			typedef SynchronousOutputBuffer8Posix this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
 			
+			//! value type
 			typedef uint64_t value_type;
 
 			private:

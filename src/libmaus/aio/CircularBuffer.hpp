@@ -170,7 +170,9 @@ namespace libmaus
 			}
 		};
 
+		//! byte oriented circular buffer
 		typedef CircularBufferTemplate< ::libmaus::aio::CheckedInputStream  > CircularBuffer;
+		//! utf-8 coded circular buffer
 		typedef CircularBufferTemplate< ::libmaus::util::Utf8DecoderWrapper > Utf8CircularBuffer;
 
 		/**
@@ -181,21 +183,34 @@ namespace libmaus
 		struct CircularReverseBufferTemplate : public ::std::basic_streambuf<typename _stream_type::char_type>
 		{
 			protected:
+			//! stream type
 			typedef _stream_type stream_type;
+			//! character type
 			typedef typename stream_type::char_type char_type;
+			//! type of base class
 			typedef ::std::basic_streambuf<char_type> base_type;
+			//! unsigned character type
 			typedef typename ::libmaus::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
 
+			//! stream pointer type
 			typename stream_type::unique_ptr_type Pstream;
+			//! stream
 			::std::basic_istream<char_type> & stream;
 			
+			//! size of buffer
 			uint64_t const buffersize;
+			//! size of push back space
 			uint64_t const pushbackspace;
+			//! input buffer
 			::libmaus::autoarray::AutoArray<char_type> buffer;
+			//! position in stream
 			uint64_t streamreadpos;
+			//! size of input file
 			uint64_t const infilesize;
 
+			//! deactivated copy constructor
 			CircularReverseBufferTemplate(CircularReverseBufferTemplate const &);
+			//! deactivated assignment operator
 			CircularReverseBufferTemplate & operator=(CircularReverseBufferTemplate&);
 			
 			public:
@@ -203,7 +218,7 @@ namespace libmaus
 			 * constructor from filename
 			 *
 			 * @param filename name of file to be read
-			 * @param start offset in file
+			 * @param offset start offset in file
 			 * @param rbuffersize size of streambuf buffer
 			 * @param rpushbackspace size of push back buffer
 			 **/
@@ -228,7 +243,7 @@ namespace libmaus
 			 * constructor from input stream
 			 *
 			 * @param rstream input stream
-			 * @param start offset in file
+			 * @param offset start offset in file
 			 * @param rbuffersize size of streambuf buffer
 			 * @param rpushbackspace size of push back buffer
 			 **/

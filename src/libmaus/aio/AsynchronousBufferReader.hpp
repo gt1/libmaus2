@@ -191,7 +191,7 @@ namespace libmaus
 			/**
 			 * constructor
 			 *
-			 * @param rfilename file name
+			 * @param filename file name
 			 * @param rnumbufs number of buffers
 			 * @param rbufsize size of each buffer
 			 * @param offset initial file offset

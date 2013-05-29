@@ -35,7 +35,9 @@ namespace libmaus
 		template < typename filename_container_type = std::vector<std::string> >
 		struct CompactDecoder4 : public ::libmaus::aio::GetLength
 		{
+			//! this type
 			typedef CompactDecoder4<filename_container_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:

@@ -36,7 +36,9 @@ namespace libmaus
 		 **/ 
                 struct OutputBuffer8
                 {
+                	//! this type
                         typedef OutputBuffer8 this_type;
+                        //! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
                 
 			private:

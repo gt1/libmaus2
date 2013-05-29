@@ -35,9 +35,13 @@ namespace libmaus
 		 **/
 		struct OutputFile8Array
 		{
+			//! buffer type
 			typedef libmaus::aio::OutputBuffer8 buffer_type;
+			//! buffer pointer type
 			typedef ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			//! this type
 			typedef OutputFile8Array this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! hash intervals

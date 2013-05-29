@@ -35,8 +35,11 @@ namespace libmaus
 		template < typename input_type >
 		struct ReorderConcatGenericInput
 		{
+			//! input type
 			typedef input_type value_type;
+			//! this type
 			typedef ReorderConcatGenericInput<value_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
@@ -289,6 +292,7 @@ namespace libmaus
 				return peekNextCharacter();
 			}
 
+			//! fragment vector type
 			typedef std::vector < ::libmaus::aio::FileFragment > fragment_vector;
 
 			/**

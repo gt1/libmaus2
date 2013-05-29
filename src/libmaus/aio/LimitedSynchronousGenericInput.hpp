@@ -33,8 +33,11 @@ namespace libmaus
 		template < typename input_type >
 		struct LimitedSynchronousGenericInput : public SynchronousGenericInput<input_type>
 		{
+			//! input type
 		        typedef input_type value_type;
+		        //! this type
 		        typedef LimitedSynchronousGenericInput<value_type> this_type;
+		        //! unique pointer type
 		        typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 		        /**

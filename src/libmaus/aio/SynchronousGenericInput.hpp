@@ -33,11 +33,15 @@ namespace libmaus
 		template < typename input_type >
 		struct SynchronousGenericInput
 		{
+			//! input type
 			typedef input_type value_type;
+			//! input file stream type
 			typedef ::std::ifstream ifstream_type;
+			//! input file stream pointer type
 			typedef ::libmaus::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
-
+			//! this type
 			typedef SynchronousGenericInput<input_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:

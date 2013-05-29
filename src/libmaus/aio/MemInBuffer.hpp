@@ -34,8 +34,11 @@ namespace libmaus
 		template<typename _value_type>
 		struct MemInBuffer
 		{
+			//! value type
 			typedef _value_type value_type;
+			//! this type
 			typedef MemInBuffer<value_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
 		
 			private:

@@ -42,9 +42,13 @@ namespace libmaus
 		template<typename _data_type>
 		struct SynchronousGenericOutputPosix
 		{
+			//! data type
 			typedef _data_type data_type;
+			//! this type
 			typedef SynchronousGenericOutputPosix<data_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! iterator type
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
                 
 			private:

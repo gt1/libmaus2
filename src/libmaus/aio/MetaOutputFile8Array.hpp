@@ -30,11 +30,18 @@ namespace libmaus
 {
 	namespace aio
 	{
+		/**
+		 * class implementing array of MetaOutputBuffer8 objects
+		 **/
 		struct MetaOutputFile8Array
 		{
+			//! buffer type
 			typedef libmaus::aio::MetaOutputBuffer8 buffer_type;
+			//! buffer pointer type
 			typedef ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			//! this type
 			typedef MetaOutputFile8Array this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! hash intervals
@@ -55,17 +62,35 @@ namespace libmaus
 			//! interval tree for hash intervals
 			::libmaus::util::IntervalTree IT;
 
+			private:
+			/**
+			 * todo triple for list merging
+			 **/
 			struct TodoTriple
 			{
+				//! file name
 				std::string filename;
+				//! id mask
 				uint64_t mask;
+				//! contained ids
 				std::set < uint64_t > ids;
 
+				/**
+				 * constructor
+				 **/
 				TodoTriple() : mask(0) {}
+				/**
+				 * constructor by parameters
+				 * 
+				 * @param rfilename file name
+				 * @param rmask id mask
+				 * @param rids contained id set
+				 **/
 				TodoTriple(std::string const & rfilename, uint64_t const rmask, std::set < uint64_t > rids )
 				: filename(rfilename), mask(rmask), ids(rids) {}
 			};
 
+			public:
 			/**
 			 * construct from hash intervals and file prefix
 			 *

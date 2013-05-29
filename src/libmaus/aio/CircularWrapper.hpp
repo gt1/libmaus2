@@ -35,8 +35,11 @@ namespace libmaus
 		 **/
 		struct CircularWrapper : public CircularBuffer, public ::std::istream
 		{
+			//! this type
 			typedef CircularWrapper this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			/**
@@ -44,7 +47,7 @@ namespace libmaus
 			 * @param filename name of file
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularWrapper(
 				std::string const & filename, 
@@ -61,7 +64,7 @@ namespace libmaus
 			 * @param rin input stream
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularWrapper(
 				std::istream & rin, 
@@ -88,8 +91,11 @@ namespace libmaus
 		 **/
 		struct Utf8CircularWrapper : public Utf8CircularBuffer, public ::std::wistream
 		{
+			//! this type
 			typedef Utf8CircularWrapper this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			/**
@@ -97,7 +103,7 @@ namespace libmaus
 			 * @param filename name of file
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularWrapper(
 				std::string const & filename, 
@@ -114,7 +120,7 @@ namespace libmaus
 			 * @param rin input stream
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularWrapper(
 				std::wistream & rin, 
@@ -140,8 +146,11 @@ namespace libmaus
 		 **/
 		struct CircularReverseWrapper : public CircularReverseBuffer, public ::std::istream
 		{
+			//! this type
 			typedef CircularReverseWrapper this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			/**
@@ -149,7 +158,7 @@ namespace libmaus
 			 * @param filename name of file
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularReverseWrapper(
 				std::string const & filename, 
@@ -166,7 +175,7 @@ namespace libmaus
 			 * @param rin input stream
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			CircularReverseWrapper(
 				std::istream & rin, 
@@ -192,8 +201,11 @@ namespace libmaus
 		 **/
 		struct Utf8CircularReverseWrapper : public Utf8CircularReverseBuffer, public ::std::wistream
 		{
+			//! this type
 			typedef Utf8CircularReverseWrapper this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			/**
@@ -201,7 +213,7 @@ namespace libmaus
 			 * @param filename name of file
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularReverseWrapper(
 				std::string const & filename, 
@@ -218,7 +230,7 @@ namespace libmaus
 			 * @param rin input stream
 			 * @param offset in file
 			 * @param buffersize size of streambuf object
-			 * @param pushbacksize size of push back buffer
+			 * @param pushbackspace size of push back buffer
 			 **/
 			Utf8CircularReverseWrapper(
 				std::wistream & rin, 
@@ -299,7 +311,7 @@ namespace libmaus
 		};
 
 		/**
-		 * class wrapping an object of type ::libmaus::bitio::PacDecoderWrapper
+		 * class wrapping an object of type libmaus::bitio::PacDecoderWrapper
 		 **/
 		struct PacDecoderWrapperWrapper
 		{
@@ -319,7 +331,7 @@ namespace libmaus
 		};
 
 		/**
-		 * class wrapping an object of type ::libmaus::bitio::PacDecoderTermWrapper
+		 * class wrapping an object of type libmaus::bitio::PacDecoderTermWrapper
 		 **/
 		struct PacDecoderTermWrapperWrapper
 		{

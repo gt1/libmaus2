@@ -32,14 +32,22 @@ namespace libmaus
                 template<typename _data_type, typename _owner_type>
                 struct PutOutputIterator : public ::std::iterator< ::std::output_iterator_tag, _data_type>
                 {
+                	//! data type
                 	typedef _data_type data_type;
+                	//! owner type
                 	typedef _owner_type owner_type;
+                	//! this type
                 	typedef PutOutputIterator<data_type,owner_type> this_type;
 
+                	//! iterator category
 			typedef ::std::output_iterator_tag iterator_category;
+			//! value type
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::value_type value_type;
+			//! difference type
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::difference_type difference_type;
+			//! reference type
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::reference reference;
+			//! pointer type
 			typedef typename ::std::iterator< ::std::output_iterator_tag, data_type>::pointer pointer;
                 
 			//! owner object used for actual output

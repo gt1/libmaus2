@@ -45,18 +45,28 @@ namespace libmaus
 		template < typename input_type >
 		struct GenericInput
 		{
+			//! value type
 			typedef input_type value_type;
+			//! this type
 			typedef GenericInput<input_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:		
+			//! buffer size
 			uint64_t const bufsize;
+			//! asynchronous reader class
 			::libmaus::aio::AsynchronousBufferReader ABR;
+			//! elements left in current buffer
 			uint64_t curbufleft;
+			//! current buffer
 			std::pair < char const *, ssize_t > curbuf;
+			//! current word
 			input_type const * curword;
 
+			//! total words
 			uint64_t const totalwords;
+			//! total words read
 			uint64_t totalwordsread;
 			
 			public:

@@ -32,8 +32,11 @@ namespace libmaus
 		template<typename _data_type>
 		struct BufferedOutputBase
 		{
+			//! data type
 			typedef _data_type data_type;
+			//! this type
 			typedef BufferedOutputBase<data_type> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! block buffer
@@ -185,9 +188,13 @@ namespace libmaus
 		template<typename _data_type>
 		struct BufferedOutput : public BufferedOutputBase<_data_type>
 		{
+			//! data type
 			typedef _data_type data_type;
+			//! this type
 			typedef BufferedOutput<data_type> this_type;
+			//! base class type
 			typedef BufferedOutputBase<data_type> base_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
@@ -242,9 +249,13 @@ namespace libmaus
 		template<typename _data_type>
 		struct BufferedOutputNull : public BufferedOutputBase<_data_type>
 		{
+			//! data type
 			typedef _data_type data_type;
+			//! this type
 			typedef BufferedOutputNull<data_type> this_type;
+			//! base class type
 			typedef BufferedOutputBase<data_type> base_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			/**
