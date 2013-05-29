@@ -534,7 +534,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = libmaus/autoarray
+INPUT                  = libmaus/autoarray libmaus/aio
 
 # libmaus/aio libmaus/arithmetic libmaus/autoarray libmaus/bambam libmaus/bitbtree libmaus/bitio libmaus/bp libmaus/btree libmaus/clustering libmaus/consensus libmaus/cumfreq libmaus/deleter libmaus/eta libmaus/exception libmaus/fastx libmaus/fm libmaus/graph libmaus/hashing libmaus/huffman libmaus/lcp libmaus/lcs libmaus/lf libmaus/lru libmaus/lsf libmaus/lz libmaus/math libmaus/network libmaus/parallel libmaus/quantisation libmaus/random libmaus/rank libmaus/regex libmaus/rl libmaus/rmq libmaus/select libmaus/serialize libmaus/sorting libmaus/suffixsort libmaus/sv libmaus/timing libmaus/trie libmaus/types libmaus/uint libmaus/util libmaus/wavelet libmaus/suffixtree libmaus/gamma
 
