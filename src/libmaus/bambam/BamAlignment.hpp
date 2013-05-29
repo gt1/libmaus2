@@ -790,6 +790,7 @@ namespace libmaus
 			/**
 			 * @param bamheader BAM header object
 			 * @return library name for this alignment
+			 **/
 			std::string getLibraryName(::libmaus::bambam::BamHeader const & bamheader) const
 			{
 				return bamheader.getLibraryName(getReadGroup());
