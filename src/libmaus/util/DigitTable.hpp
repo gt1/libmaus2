@@ -26,12 +26,27 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class containing a digit table; the contained array A
+		 * is such that A[i] == true iff isdigit(i)== true for
+		 * 0 <= i < 256
+		 **/
 		struct DigitTable
 		{
+			//! digit table
 			char A[256];
 			
+			/**
+			 * constructor
+			 */
 			DigitTable();
 			
+			/**
+			 * check whether i is a digit
+			 *
+			 * @param i character number such that 0 <= i < 256
+			 * @return true iff i designates a digit
+			 **/
 			bool operator[](uint8_t const i) const
 			{
 				return A[i];

@@ -29,11 +29,21 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * rudimentary class for simulation LSF jobs by ForkProcess objects
+		 **/
 		struct ForkProcessLSFSim : public ForkProcess, public ::libmaus::lsf::LSFStateBase
 		{
+			//! this type
 			typedef ForkProcessLSFSim this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
+			/**
+			 * init the fake LSF system
+			 *
+			 * @param s program name
+			 **/
 			static void initLSF(std::string const & s);
 		        static bool distributeUnique();
 		

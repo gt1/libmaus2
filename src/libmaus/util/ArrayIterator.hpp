@@ -26,47 +26,95 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * const iterator type for an object supporting
+		 * indexed access ([]) operations
+		 **/
 		template<typename array_type>
 		struct ArrayIterator : public ::std::iterator< ::std::random_access_iterator_tag, int64_t>
 		{
+			//! iterator category type
 			typedef ::std::random_access_iterator_tag iterator_category;
+			//! value type
 			typedef ::std::iterator< ::std::random_access_iterator_tag, int64_t>::value_type value_type;
+			//! difference type
 			typedef ::std::iterator< ::std::random_access_iterator_tag, int64_t>::difference_type difference_type;
+			//! reference type
 			typedef ::std::iterator< ::std::random_access_iterator_tag, int64_t>::reference reference;
+			//! pointer type
 			typedef ::std::iterator< ::std::random_access_iterator_tag, int64_t>::pointer pointer;
 
+			//! wrapped array
 			array_type const * A;
+			//! current index
 			int64_t i;
 			
+			/**
+			 * constructor for invalid iterator
+			 **/
 			ArrayIterator() : A(0), i(0) {}
+			/**
+			 * constructor from array pointing the constructed object at the start of the array (index 0)
+			 **/
 			ArrayIterator(array_type const * rA) : A(rA), i(0) {}
 			
+			/**
+			 * dereference operator
+			 *
+			 * @return value at current position
+			 **/
 			value_type operator*() const
 			{
 				return (*A)[i];
 			}
 			
+			/**
+			 * access operator
+			 *
+			 * @param j index offset
+			 * @return value at current position plus j
+			 **/
 			value_type operator[](int64_t j) const
 			{
 				return (*A)[i+j];
 			}
 
+			/**
+			 * prefix increment, increment current position by one and return modified iterator
+			 *
+			 * @return prefix increment of iterator
+			 **/
 			ArrayIterator & operator++()
 			{
 				i++;
 				return *this;
 			}
+			/**
+			 * postfix increment, increment current position by one and return original iterator
+			 *
+			 * @return prefix increment of iterator
+			 **/
 			ArrayIterator operator++(int)
 			{
 				ArrayIterator temp = *this;
 				i++;
 				return temp;
 			}
+			/**
+			 * prefix decrement
+			 *
+			 * @return prefix decrement of iterator
+			 **/
 			ArrayIterator & operator--()
 			{
 				i--;
 				return *this;
 			}
+			/**
+			 * postfix decrement
+			 *
+			 * @return postfix decrement of iterator
+			 **/
 			ArrayIterator operator--(int)
 			{
 				ArrayIterator temp = *this;
@@ -74,31 +122,60 @@ namespace libmaus
 				return temp;
 			}
 
+			/**
+			 * add j to the current position
+			 *
+			 * @param j offset
+			 * @return modfified iterator
+			 **/
 			ArrayIterator & operator+=(int64_t j)
 			{
 				i += j;
 				return *this;
 			}
+			/**
+			 * subtract j to the current position
+			 *
+			 * @param j offset
+			 * @return modfified iterator
+			 **/
 			ArrayIterator & operator-=(int64_t j)
 			{
 				i -= j;
 				return *this;
 			}
 			
+			/**
+			 * @param I other iterator
+			 * @return true iff index of this iterator is smaller than index of other iterator
+			 **/
 			bool operator<(ArrayIterator I) const
 			{
 				return i < I.i;
 			}
+			/**
+			 * @param I other iterator
+			 * @return true iff index of this iterator equals index of other iterator
+			 **/
 			bool operator==(ArrayIterator I) const
 			{
 				return (A == I.A) && (i == I.i);
 			}
+			/**
+			 * @param I other iterator
+			 * @return true iff index of this iterator does not equal index of other iterator
+			 **/
 			bool operator!=(ArrayIterator I) const
 			{
 				return ! ( (*this) == I );
 			}
 		};
 
+		/**
+		 * @param I iterator
+		 * @param j offset
+		 * @return I+j
+		 **/
 		template<typename array_type>
 		inline ArrayIterator<array_type> operator+ ( ArrayIterator<array_type> I, int64_t j )
 		{
@@ -107,6 +184,11 @@ namespace libmaus
 			return J;
 		}
 
+		/**
+		 * @param I iterator
+		 * @param j offset
+		 * @return I-j
+		 **/
 		template<typename array_type>
 		inline ArrayIterator<array_type> operator- ( ArrayIterator<array_type> I, int64_t j )
 		{
@@ -115,6 +197,11 @@ namespace libmaus
 			return J;
 		}
 
+		/**
+		 * @param I iterator
+		 * @param J iterator
+		 * @return distance between the indices of I and J
+		 **/
 		template<typename array_type>
 		inline int64_t operator- ( ArrayIterator<array_type> I, ArrayIterator<array_type> J )
 		{

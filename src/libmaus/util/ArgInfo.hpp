@@ -43,26 +43,79 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class for storing and processing command line arguments
+		 **/
 		struct ArgInfo
 		{
+			//! this type
 			typedef ArgInfo this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			std::string commandline;		
+			//! complete command line
+			std::string commandline;
+			//! program name (i.e. argv[0])
 			std::string progname;
+			//! argument map from key=value pairs
 			std::map < std::string, std::string > argmap;
+			//! rest of arguments behind key=value pairs
 			std::vector < std::string > restargs;
 			
+			/**
+			 * @return true iff argument -h was given first
+			 **/
 			bool helpRequested() const;
+			/**
+			 * compute program file name
+			 *
+			 * @param program path name
+			 * @return program file name
+			 **/
 			static std::string getProgFileName(std::string const & progname);
+			/**
+			 * compute a temp file name base from the given program name
+			 *
+			 * @param program name
+			 * @return temp file name base
+			 **/
 			static std::string getDefaultTmpFileName(std::string const & progname);
+			/**
+			 * @return default temporary file name composed of program name,
+			*          current time and host name
+			 **/
 			std::string getDefaultTmpFileName() const;
+			/**
+			 * @return current working directory
+			 **/
 			static std::string getCurDir();
+			/**
+			 * extract directory name from full path name
+			 *
+			 * @param full path name
+			 * @return directory name part of absprogname
+			 **/
 			static std::string getDirName(std::string absprogname);
+			/**
+			 * @return absolute program path
+			 **/
 			std::string getAbsProgName() const;
+			/**
+			 * @return directory path containing program
+			 **/
 			std::string getProgDirName() const;
+			/**
+			 * initialise object from list of arguments
+			 **/
 			void init(std::vector<std::string> const args);
 			
+			/**
+			 * transform argument array to string vector
+			 *
+			 * @param argc number of arguments
+			 * @param argv argument string array
+			 * @return argument array converted to a vector of strings
+			 **/
 			template<typename char_type>
 			static std::vector<std::string> argsToVector(int argc, char_type * argv[])
 			{
@@ -72,19 +125,57 @@ namespace libmaus
 				return V;
 			}
 			
+			/**
+			 * reconstruct command line from argument array
+			 *
+			 * @param argc number of arguments
+			 * @param argv argument string array
+			 * @return command line
+			 **/
 			static std::string reconstructCommandLine(int argc, char const * argv[]);
 
+			/**
+			 * constructor from argument array
+			 *
+			 * @param argc number of arguments
+			 * @param argv argument string array
+			 **/
 			ArgInfo(int argc, char * argv[]);
+			/**
+			 * constructor from const argument array
+			 *
+			 * @param argc number of arguments
+			 * @param argv argument string array
+			 **/
 			ArgInfo(int argc, char const * argv[]);
+			/**
+			 * constructor from string vector
+			 *
+			 * @param args string vector
+			 **/
 			ArgInfo(std::vector<std::string> const & args);
 			
+			//! key map type
 			typedef std::map<std::string,std::string> keymap_type;
 			
+			/**
+			 * constructor from pre parsed argument information
+			 *
+			 * @param rprogname program name
+			 * @param keymap key=value pair map
+			 * @param rrestargs non/post key=value type arguments
+			 **/
 			ArgInfo(
 				std::string const & rprogname,
 				keymap_type const & keymap = keymap_type(),
 				std::vector<std::string> const & rrestargs = std::vector<std::string>() );
 			
+			/**
+			 * parse given string type argument as type using the corresponding istream operator
+			 *
+			 * @param arg argument
+			 * @return parsed argument
+			 **/
 			template<typename type>
 			static type parseArg(std::string const & arg)
 			{
@@ -105,6 +196,13 @@ namespace libmaus
 				return v;
 			}
 
+			/**
+			 * get value for key. if there is no key=value pair, use defaultVal instead
+			 *
+			 * @param key id of key=value pair
+			 * @param defaultVal default value if no key=value pair is present
+			 * @return value parsed as type
+			 **/
 			template<typename type>
 			type getValue(std::string const & key, type const defaultVal) const
 			{
@@ -118,6 +216,15 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * get value for key; if there is no key=value pair, use defaultVal instead;
+			 * the value is parsed as an unsigned number with a unit like
+			 * k=1024, K=1000, m=1024*1024, M=1000*1000, etc.
+			 *
+			 * @param key id of key=value pair
+			 * @param defaultVal default value if no key=value pair is present
+			 * @return value parsed as type
+			 **/
 			template<typename type>
 			type getValueUnsignedNumeric(std::string const & key, type const defaultVal) const
 			{
@@ -179,8 +286,20 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * check whether a key=value pair is present for key
+			 *
+			 * @param key id of key
+			 * @return true iff a key=value pair is present
+			 **/
 			bool hasArg(std::string const & key) const;
 
+			/**
+			 * get i'th post key=value argument
+			 *
+			 * @param i rank of post key=value argument
+			 * @return i'th post key=value argument parsed as type
+			 **/
 			template<typename type>
 			type getRestArg(uint64_t const i) const
 			{
@@ -197,9 +316,22 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * get i'th post key=value argument as string
+			 *
+			 * @param i rank of post key=value argument
+			 * @return i'th post key=value argument as string
+			 **/
 			std::string stringRestArg(uint64_t const i) const;
 		};
 		
+		/**
+		 * format ArgInfo object for output
+		 *
+		 * @param out output stream
+		 * @param arginfo object to be formatted
+		 * @return out
+		 **/
 		std::ostream & operator<<(std::ostream & out, ArgInfo const & arginfo);
 	}
 }

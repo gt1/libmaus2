@@ -32,7 +32,21 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class for setting the text colour in an output terminal;
+		 * if stderr is not a terminal, then the codes delivered are
+		 * HTML tags
+		 *
+		 * the methods need to be used in the following order (example):
+		 *
+		 * ConsoleColor::start();
+		 * ConsoleColor::green();
+		 * std::cerr << "Hello world." << std::endl;
+		 * ... // more text
+		 * ConsoleColor::stop();
+		 **/
 		struct ConsoleColor {
+			//! available colours
 			enum Color {
 				c_black,
 				c_red,
@@ -45,19 +59,61 @@ namespace libmaus
 				c_defaultcolor
 				};
 				
+			/**
+			 * @return true if stderr is a terminal
+			 **/
 			static bool istty();
+			/**
+			 * return escape code for turning the text color to c 
+			 *
+			 * @param c requested color
+			 * @return escape code for turning text to color c
+			 **/
 			static std::string color(Color c);
+			/**
+			 * @return escape code for turning text colour to black
+			 **/
 			static std::string black();
+			/**
+			 * @return escape code for turning text colour to red
+			 **/
 			static std::string red();
+			/**
+			 * @return escape code for turning text colour to green
+			 **/
 			static std::string green();
+			/**
+			 * @return escape code for turning text colour to yellow
+			 **/
 			static std::string yellow();
+			/**
+			 * @return escape code for turning text colour to blue
+			 **/
 			static std::string blue();
+			/**
+			 * @return escape code for turning text colour to magenta
+			 **/
 			static std::string magenta();
+			/**
+			 * @return escape code for turning text colour to cyan
+			 **/
 			static std::string cyan();
+			/**
+			 * @return escape code for turning text colour to light gray
+			 **/
 			static std::string lightgray();
+			/**
+			 * @return escape code for turning text colour to default colour
+			 **/
 			static std::string defaultcolor();
 			
+			/**
+			 * @return code for starting coloured printing
+			 **/
 			static std::string start();
+			/**
+			 * @return code for ending coloured printing
+			 **/
 			static std::string stop();
 		};
 	}

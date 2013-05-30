@@ -25,30 +25,57 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class mapping output iterator operations
+		 * to put calls on a wrapped object
+		 **/
 		template<typename _output_type, typename _value_type>
 		struct CountPutIterator
 		{
+			//! output type
 			typedef _output_type output_type;
+			//! value type
 			typedef _value_type value_type;
+			//! this type
 			typedef CountPutIterator<output_type,value_type> this_type;
 		
+			//! wrapped object written elements are trasnfered to
 			output_type * out;
+			//! number of elements written
 			uint64_t c;
 		
+			/**
+			 * constructor
+			 *
+			 * @param rout pointer to wrapped object
+			 **/
 			CountPutIterator(output_type * const rout)
 			: out(rout), c(0) {}
 			
+			/**
+			 * @return state of wrapped object
+			 **/
 			operator bool() const
 			{
 				return *out;
 			}
 			
+			/**
+			 * put element v
+			 *
+			 * @param v element to be put
+			 **/
 			void put(value_type const v)
 			{
 				c += 1;
 				out->put(v);
 			}
 			
+			/**
+			 * put string s by putting its symbols
+			 *
+			 * @param s string
+			 **/
 			void put(std::string const & s)
 			{
 				uint8_t const * u = reinterpret_cast<uint8_t const *>(s.c_str());
@@ -58,14 +85,35 @@ namespace libmaus
 					put(*(u++));
 			}
 			
+			/**
+			 * assignment operator calling put operation on wrapped object for v
+			 *
+			 * @param v element to be transferred to wrapped object
+			 * @return *this
+			 **/
 			this_type & operator=(value_type const v)
 			{
 				put(v);
 				return *this;
 			}
 			
+			/**
+			 * dereference operator (does nothing)
+			 *
+			 * @return *this
+			 **/
 			this_type & operator*() { return *this; }
+			/**
+			 * prefix increment (does nothing)
+			 *
+			 * @return *this
+			 **/
 			this_type & operator++() { return *this; }
+			/**
+			 * postfix increment (does nothing)
+			 *
+			 * @return *this
+			 **/
 			this_type & operator++(int) { return *this; }		
 		};	
 	}

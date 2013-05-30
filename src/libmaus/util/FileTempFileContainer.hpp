@@ -31,19 +31,36 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * file based temporary storage container class
+		 **/
 		struct FileTempFileContainer : public libmaus::util::TempFileContainer
 		{
+			//! type of output stream of temporary storage
 			typedef libmaus::aio::CheckedOutputStream output_stream_type;
+			//! pointer to output stream
 			typedef libmaus::util::shared_ptr<output_stream_type>::type output_stream_ptr_type;
+			//! type of input stream for temporary storage
 			typedef libmaus::aio::CheckedInputStream input_stream_type;
+			//! pointer to input stream
 			typedef libmaus::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
 			
+			//! temporary file name generator object
 			libmaus::util::TempFileNameGenerator & tmpgen;
+			//! output streams
 			std::map < uint64_t, output_stream_ptr_type > outstreams;
+			//! output file names
 			std::map < uint64_t, std::string > filenames;
+			//! input streams
 			std::map < uint64_t, input_stream_ptr_type > instreams;
+			//! concurrency lock
 			libmaus::parallel::OMPLock lock;
 			
+			/**
+			 * constructor
+			 *
+			 * @param rtmpgen generator object for temporary file names
+			 **/
 			FileTempFileContainer(
 				libmaus::util::TempFileNameGenerator & rtmpgen
 			) : tmpgen(rtmpgen)
@@ -51,6 +68,13 @@ namespace libmaus
 				libmaus::util::TempFileRemovalContainer::setup();
 			}
 			
+			/**
+			 * open temp file for id and return reference;
+			 * destroys previous files and existing references to id
+			 *
+			 * @param id temp file id
+			 * @return reference to output stream for id
+			 **/
 			std::ostream & openOutputTempFile(uint64_t id)
 			{
 				libmaus::parallel::ScopeLock slock(lock);
@@ -59,11 +83,22 @@ namespace libmaus
 				outstreams[id] = output_stream_ptr_type(new output_stream_type(filenames[id]));
 				return *(outstreams[id]);
 			}
+			/**
+			 * get tempfile for id; openOutputTempFile(id) must have been called before
+			 *
+			 * @param id temp file id
+			 * @return reference to output stream for id
+			 **/
 			std::ostream & getOutputTempFile(uint64_t id)
 			{
 				libmaus::parallel::ScopeLock slock(lock);
 				return *(outstreams[id]);
 			}
+			/**
+			 * close output file for id; this makes id unavailable for getOutputTempFile
+			 *
+			 * @param id file to be closedd
+			 **/
 			void closeOutputTempFile(uint64_t id)
 			{
 				libmaus::parallel::ScopeLock slock(lock);
@@ -74,7 +109,12 @@ namespace libmaus
 					outstreams.erase(outstreams.find(id));
 				}
 			}
-
+			/**
+			 * open file for id
+			 *
+			 * @param id temp file id
+			 * @return input stream for reading the data in temp file for id
+			 **/
 			std::istream & openInputTempFile(uint64_t id)
 			{
 				libmaus::parallel::ScopeLock slock(lock);
@@ -84,6 +124,11 @@ namespace libmaus
 					
 				return *(instreams[id]);
 			}
+			/**
+			 * close temporary file for id and delete it
+			 *
+			 * @param id file to be closed and deleted
+			 **/
 			void closeInputTempFile(uint64_t id)
 			{
 				libmaus::parallel::ScopeLock slock(lock);
