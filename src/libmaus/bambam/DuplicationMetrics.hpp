@@ -177,7 +177,10 @@ namespace libmaus
 			std::ostream & format(std::ostream & out, std::string const libraryName) const
 			{
 				int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(readpairsexamined - opticalduplicates, readpairsexamined - readpairduplicates);                           
-				double const PERCENT_DUPLICATION = (unpairedreadduplicates + 2*readpairduplicates) / static_cast<double> (unpaired + readpairsexamined*2);
+				double const PERCENT_DUPLICATION = 
+					(unpaired + readpairsexamined*2) ?
+					((unpairedreadduplicates + 2*readpairduplicates) / 
+					static_cast<double> (unpaired + readpairsexamined*2)) : 0;
                                                                           
 				out 
 					<< libraryName << "\t"
