@@ -26,35 +26,79 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * base class for decoding BAM files
+		 **/
 		struct BamAlignmentDecoder
 		{
 			protected:
+			//! true if there is an alignment in the put back buffer, i.e. next call to readAlignment will not load a new alignment
 			bool putbackbuffer;
+			//! auxiliary memory space for decoding
 			::libmaus::bambam::BamFormatAuxiliary auxiliary;
+			//! id of next pattern
 			uint64_t patid;
+			//! alignment
 			::libmaus::bambam::BamAlignment alignment;
+			//! rank of next alignment
 			uint64_t rank;
+			//! true if we put a rank aux field in each decoded alignment
 			bool putrank;
+			//! true if validation of alignments on input is active
 			bool validate;
 
 			public:
+			//! pattern type
 			typedef ::libmaus::fastx::FASTQEntry pattern_type;
 		
-			BamAlignmentDecoder(bool const rputrank = false) 
-			: putbackbuffer(false), auxiliary(), patid(0), rank(0), putrank(rputrank), validate(true) {}
+			/**
+			 * constructor
+			 *
+			 * @param rputrank if true then put rank as aux tag in each decoded alignment
+			 **/
+			BamAlignmentDecoder(bool const rputrank = false) : putbackbuffer(false), auxiliary(), patid(0), rank(0), putrank(rputrank), validate(true) {}
+			/**
+			 * destructor
+			 **/
 			virtual ~BamAlignmentDecoder() {}
 			
+			/**
+			 * pure virtual alignment input method
+			 *
+			 * @return bool if alignment input was successfull and a new alignment was stored
+			 **/
 			virtual bool readAlignmentInternal(bool const = false) = 0;
+			
+			/**
+			 * get current alignment
+			 *
+			 * @return current alignment
+			 **/
 			libmaus::bambam::BamAlignment const & getAlignment() const
 			{
 				return alignment;
 			}
+
+			/**
+			 * get current alignment
+			 *
+			 * @return current alignment
+			 **/
 			libmaus::bambam::BamAlignment & getAlignment()
 			{
 				return alignment;
 			}
+			
+			/**
+			 * pure virtual method for retrieving the BAM header
+			 *
+			 * @return BAM header object
+			 **/
 			virtual libmaus::bambam::BamHeader const & getHeader() const = 0;
 
+			/**
+			 * put alignment back into stream; only one alignment can be put back in this way
+			 **/
 			void putback()
 			{
 				putbackbuffer = true;
@@ -62,6 +106,12 @@ namespace libmaus
 					rank -= 1;
 			}
 			
+			/**
+			 * read the next alignment
+			 *
+			 * @param delayPutRank if true, then do not put the rank in this call, even if putrank is active
+			 * @return true if alignment could be read, false is no more alignments are available
+			 **/
 			bool readAlignment(bool const delayPutRank = false)
 			{
 				if ( putbackbuffer )
@@ -73,26 +123,52 @@ namespace libmaus
 				return readAlignmentInternal(delayPutRank);
 			}
 
+			/**
+			 * clone current alignment and return it as a unique pointer
+			 *
+			 * @return clone of current alignment as unique pointer
+			 **/
 			libmaus::bambam::BamAlignment::unique_ptr_type ualignment() const
 			{
 				return UNIQUE_PTR_MOVE(getAlignment().uclone());
 			}
 			
+			/**
+			 * clone current alignment and return it as a shared pointer
+			 *
+			 * @return clone of current alignment as shared pointer
+			 **/
 			libmaus::bambam::BamAlignment::shared_ptr_type salignment() const
 			{
 				return getAlignment().sclone();
 			}
 
+			/**
+			 * format current alignment as SAM line and return it as a string object
+			 *
+			 * @return current alignment formatted as SAM line returned in a string object
+			 **/
 			std::string formatAlignment()
 			{
 				return getAlignment().formatAlignment(getHeader(),auxiliary);
 			}
 			
+			/**
+			 * format current alignment as FastQ entry and return it as a string object
+			 *
+			 * @return current alignment as FastQ entry returned as a string object
+			 **/
 			std::string formatFastq()
 			{
 				return getAlignment().formatFastq(auxiliary);
 			}
 			
+			/**
+			 * fill FastQ pattern
+			 *
+			 * @param pattern FastQ pattern object
+			 * @return true if pattern was filled, false if no more pattern were available
+			 **/
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{
 				if ( !readAlignment() )
@@ -103,11 +179,19 @@ namespace libmaus
 				return true;
 			}
 			
+			/**
+			 * get rank value which will be assigned to the next alignment
+			 *
+			 * @return next rank value
+			 **/
 			uint64_t getRank() const
 			{
 				return rank;
 			}
 
+			/**
+			 * put rank aux tag in current alignment
+			 **/
 			void putRank()
 			{
 				uint64_t const lrank = rank++;
@@ -117,11 +201,23 @@ namespace libmaus
 				}			
 			}
 
+			/**
+			 * disable input validation
+			 **/
 			void disableValidation()
 			{
 				validate = false;
 			}
 
+			/**
+			 * read alignment from an input stream which yields uncompressed BAM data
+			 *
+			 * @param GZ input stream yielding uncompressed BAM entries
+			 * @param alignment block data object
+			 * @param bamheader BAM file header for validating reference sequence ids
+			 * @param validate if true, then validation will be run on alignment
+			 * @return true if alignment could be read, false if no more alignments were available
+			 **/
 			template<typename stream_type>
 			static bool readAlignmentGz(
 				stream_type & GZ,

@@ -29,9 +29,18 @@ namespace libmaus
 {
 	namespace bambam
 	{		
+		/**
+		 * BAM encoding base class
+		 **/
 		struct BamAlignmentEncoderBase : public EncoderBase
 		{
-			/* reg2bin as defined in sam file format spec */
+			/**
+			 * reg2bin as defined in sam file format spec 
+			 *
+			 * @param beg alignment start (inclusive)
+			 * @param end alignment end (exclusive)
+			 * @return bin for alignment interval
+			 **/
 			static inline int reg2bin(uint32_t beg, uint32_t end)
 			{
 				--end;
@@ -43,7 +52,14 @@ namespace libmaus
 				return 0;
 			}
 
-			/* calculate end position of an alignment */
+			/**
+			 * calculate end position of an alignment 
+			 *
+			 * @param pos start position
+			 * @param cigar encoded cigar string
+			 * @param cigarlen number of cigar operations
+			 * @return end position of alignment
+			 **/
 			template<typename cigar_iterator>
 			static uint32_t endpos(
 				int32_t const pos,
@@ -76,6 +92,14 @@ namespace libmaus
 				return end;
 			}
 			
+			/**
+			 * put a single little endian number v in D at offset; the length of
+			 * v is extracted from the data type (value_type) of v
+			 *
+			 * @param D memory block
+			 * @param offset byte offset
+			 * @param v value to be stored
+			 **/
 			template<typename value_type>
 			static void putLESingle(uint8_t * D, uint64_t const offset, value_type const v)
 			{
@@ -83,16 +107,77 @@ namespace libmaus
 				putLE< ::libmaus::util::PutObject<uint8_t *>,value_type >(P,v);
 			}
 			
+			/**
+			 * put reference id v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putRefId(uint8_t * D, int32_t const v) { putLESingle<int32_t>(D,0,v); }
+			/**
+			 * put position v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putPos(uint8_t * D, int32_t const v) { putLESingle<int32_t>(D,4,v); }
+			/**
+			 * put reference id of next/mate v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putNextRefId(uint8_t * D, int32_t const v) { putLESingle<int32_t>(D,20,v); }
+			/**
+			 * put position of next/mate v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putNextPos(uint8_t * D, int32_t const v) { putLESingle<int32_t>(D,24,v); }
+			/**
+			 * put template length v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putTlen(uint8_t * D, int32_t const v) { putLESingle<int32_t>(D,28,v); }
+			/**
+			 * put flags and cigar len compound v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putFlagsCigarLen(uint8_t * D, uint32_t const v) { putLESingle<uint32_t>(D,12,v); }
+			/**
+			 * put flags v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putFlags(uint8_t * D, uint32_t const v) { putLESingle<uint16_t>(D,14,v & 0xFFFFul); }
+			/**
+			 * put cigar len v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putCigarLen(uint8_t * D, uint32_t const v) { putLESingle<uint16_t>(D,12,v & 0xFFFFul); }
+			/**
+			 * put length of query sequence v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
 			static void putSeqLen(uint8_t * D, uint32_t const v) { putLESingle<uint32_t>(D,16,v); }
 			
+			/**
+			 * encode cigar string in buffer
+			 *
+			 * @param buffer output buffer
+			 * @param cigar encoded cigar array
+			 * @param cigarlen number of cigar operations
+			 **/
 			template<typename buffer_type, typename cigar_iterator>
 			static void encodeCigar(
 				buffer_type & buffer,
@@ -110,6 +195,14 @@ namespace libmaus
 				}			
 			}
 			
+			/**
+			 * encode query sequence
+			 *
+			 * @param buffer output buffer
+			 * @param seqenc sequence encoding helper structure for mapping symbols
+			 * @param seq sequence iterator
+			 * @param seqlen length of query sequence
+			 **/
 			template<typename buffer_type, typename seq_iterator>
 			static void encodeSeq(
 				buffer_type & buffer,
@@ -133,7 +226,28 @@ namespace libmaus
 					buffer.put( high<<4 );
 				}
 			}
-				
+			
+			/**
+			 * encode a complete alignment block
+			 *
+			 * @param buffer output buffer
+			 * @param seqenc sequence encoding helper object for encoding sequence symbols
+			 * @param name iterator for name
+			 * @param namelen length of query name
+			 * @param refid reference id
+			 * @param pos position
+			 * @param mapq mapping quality
+			 * @param flags alignment flags
+			 * @param cigar encoded cigar array
+			 * @param cigarlen number of cigar operations
+			 * @param nextrefid reference id of next/mate
+			 * @param nextpos position of next/matex
+			 * @param tlen template length
+			 * @param seq sequence
+			 * @param seqlen length of query sequence
+			 * @param qual quality string
+			 * @param quality offset (default 33)
+			 **/	
 			template<
 				typename name_iterator,
 				typename cigar_iterator,
@@ -198,6 +312,24 @@ namespace libmaus
 					buffer.put ( (*(qual++)) - qualoffset );
 			}
 
+			/**
+			 * encode a complete alignment block
+			 *
+			 * @param buffer output buffer
+			 * @param seqenc sequence encoding helper object for encoding sequence symbols
+			 * @param name string containing query name
+			 * @param refid reference id
+			 * @param pos position
+			 * @param mapq mapping quality
+			 * @param flags alignment flags
+			 * @param cigar string containing the plain text cigar string
+			 * @param nextrefid reference id of next/mate
+			 * @param nextpos position of next/matex
+			 * @param tlen template length
+			 * @param seq string containing the query string
+			 * @param qual string containing the quality string
+			 * @param quality offset (default 33)
+			 **/	
 			static void encodeAlignment(
 				::libmaus::fastx::UCharBuffer & buffer,
 				BamSeqEncodeTable const & seqenc,
@@ -227,6 +359,13 @@ namespace libmaus
 					qual.begin(),qualoffset);
 			}
 
+			/**
+			 * put auxiliary tag for id tag as string
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param value character string
+			 **/
 			template<typename value_type>
 			static void putAuxString(
 				::libmaus::fastx::UCharBuffer & data,
@@ -247,12 +386,23 @@ namespace libmaus
 				data.bufferPush(0);
 			}
 
+			//! number reinterpretation union
 			union numberpun
 			{
+				//! float value
 				float fvalue;
+				//! uint32_t value
 				uint32_t uvalue;
 			};
 
+			/**
+			 * put aux field for tag with number content
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param type number type (see sam spec)
+			 * @param value number
+			 **/
 			template<typename value_type>
 			static void putAuxNumber(
 				::libmaus::fastx::UCharBuffer & data,
@@ -303,6 +453,14 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * put aux field for tag with number array content
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param type number type (see sam spec)
+			 * @param values vector of numbers
+			 **/
 			template<typename buffer_type, typename value_type>
 			static void putAuxNumberArray(
 				buffer_type & data,
@@ -359,6 +517,12 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * write create alignment in buffer to stream
+			 *
+			 * @param buffer memory buffer containing alignment
+			 * @param stream output stream
+			 **/
 			template<typename stream_type>
 			static void writeToStream(
 				::libmaus::fastx::UCharBuffer & buffer,

@@ -1184,30 +1184,6 @@ namespace libmaus
 			}
 			
 			/**
-			 * @return const pointer to end of auxiliary fields
-			 **/
-			uint8_t const * getAuxEnd() const
-			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxEnd(D.get(),blocksize);
-			}
-
-			/**
-			 * @return pointer to end of auxiliary fields
-			 **/
-			uint8_t * getAuxEnd()
-			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxEnd(D.get(),blocksize);
-			}
-			
-			/**
-			 * @return block size by auxiliary end
-			 **/
-			uint64_t payloadSize() const
-			{
-				return getAuxEnd() - D.begin();
-			}
-
-			/**
 			 * @return iff alignment has the pair flag set
 			 **/
 			bool isPaired() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isPaired(getFlags()); }

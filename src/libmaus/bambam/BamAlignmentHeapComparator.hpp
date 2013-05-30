@@ -25,18 +25,37 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * BAM alignments comparator for a min heap
+		 **/
 		template<typename _comparator_type>
 		struct BamAlignmentHeapComparator
 		{
+			//! base comparator type
 			typedef _comparator_type comparator_type;
+			//! comparator object
 			comparator_type const & comp;
+			//! alignments array
 			::libmaus::bambam::BamAlignment const * A;
 
+			/**
+			 * constructor
+			 *
+			 * @param rcomp base comparator type
+			 * @param rA alignments array
+			 **/
 			BamAlignmentHeapComparator(comparator_type const & rcomp, ::libmaus::bambam::BamAlignment const * rA) : comp(rcomp), A(rA)
 			{
 			
 			}
 
+			/**
+			 * compare alignments at indices a and b in A and return true iff A[a] > A[b] according to comp
+			 *
+			 * @param a first index on A
+			 * @param b second index on A
+			 * @return true iff A[a] > A[b] according to comp
+			 **/
 			bool operator()(uint64_t const a, uint64_t const b)
 			{
 				return comparator_type::compareInt(A[a].D.begin(),A[b].D.begin()) > 0;

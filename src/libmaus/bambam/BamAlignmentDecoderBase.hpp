@@ -30,20 +30,73 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * class containing static base functions for BAM alignment encoding and decoding
+		 **/
 		struct BamAlignmentDecoderBase : public ::libmaus::bambam::DecoderBase, public ::libmaus::bambam::BamFlagBase
 		{
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the paired flag set
+			 **/
 			static bool isPaired(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPAIRED; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the proper pair flag set
+			 **/
 			static bool isProper(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPROPER_PAIR; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the unmapped flag set
+			 **/
 			static bool isUnmap(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FUNMAP; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the mate unmapped flag set
+			 **/
 			static bool isMateUnmap(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FMUNMAP; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the reverse flag set
+			 **/
 			static bool isReverse(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREVERSE; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the mate reverse flag set
+			 **/
 			static bool isMateReverse(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FMREVERSE; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the read 1 flag set
+			 **/
 			static bool isRead1(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREAD1; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the read 2 flag set
+			 **/
 			static bool isRead2(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREAD2; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the secondary alignment flag set
+			 **/
 			static bool isSecondary(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FSECONDARY; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the quality control failed flag set
+			 **/
 			static bool isQCFail(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FQCFAIL; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the duplicate flag set
+			 **/
 			static bool isDup(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FDUP; }
 			
+			/**
+			 * convert single bit flag to a string representation
+			 *
+			 * @param flag single bit flag
+			 * @return string representation of flag
+			 **/
 			static char const * flagToString(uint32_t const flag)
 			{
 				switch ( flag )
@@ -63,6 +116,12 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * convert a set of flags to a string representation
+			 *
+			 * @param flags flag bit set
+			 * @return string representation of flags
+			 **/
 			static std::string flagsToString(uint32_t const flags)
 			{
 				unsigned int numflags = 0;
@@ -84,7 +143,12 @@ namespace libmaus
 				return ostr.str();
 			}
 			
-			
+			/**
+			 * compute 32 bit hash value from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return hash value for D
+			 **/
 			static uint32_t hash32(uint8_t const * D)
 			{
 				return ::libmaus::hashing::EvaHash::hash(
@@ -93,6 +157,13 @@ namespace libmaus
 				);
 			}
 			
+			/**
+			 * write FastQ representation of alignment D into array T; T is reallocated if it is too small
+			 *
+			 * @param D alignment block
+			 * @param T output array
+			 * @return number of bytes written
+			 **/
 			static uint64_t putFastQ(
 				uint8_t const * D,
 				libmaus::autoarray::AutoArray<uint8_t> & T
@@ -105,6 +176,12 @@ namespace libmaus
 				return len;
 			}
 
+			/**
+			 * get length of FastQ representation for alignment block D in bytes
+			 *
+			 * @param D alignment block
+			 * @return length of FastQ entry
+			 **/
 			static uint64_t getFastQLength(uint8_t const * D)
 			{
 				uint32_t const flags = getFlags(D);
@@ -119,6 +196,13 @@ namespace libmaus
 					;
 			}
 			
+			/**
+			 * write FastQ representation of alignment block D to iterator it
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @return output iterator after writing
+			 **/
 			template<typename iterator>
 			static iterator putFastQ(uint8_t const * D, iterator it)
 			{
@@ -179,6 +263,15 @@ namespace libmaus
 				return it;
 			}				
 			
+			/**
+			 * get little endian integer from ring buffer array
+			 *
+			 * @param D ring buffer
+			 * @param dn size of ring buffer (must be a power of 2)
+			 * @param o start offset in D
+			 * @param l length of integer in bytes
+			 * @return decoded integer
+			 **/
 			static uint32_t getLEIntegerWrapped(
 				uint8_t const * D,
 				uint64_t const dn,
@@ -190,68 +283,260 @@ namespace libmaus
 					v |= (static_cast<uint32_t>(D[o]) << (8*i));
 				return v;
 			}
+			
+			/**
+			 * get BinMQNL field from alignment block at offset o in ring buffer of length dn
+			 *
+			 * @param D ring buffer
+			 * @param dn length of ring buffer (must be a power of 2)
+			 * @param o start offset of alignment block in D
+			 * @return decoded BinMQNL field
+			 **/
 			static uint32_t getBinMQNLWrapped  (
 				uint8_t const * D,
 				uint64_t const dn,
 				uint64_t const o
 			) { return static_cast<uint32_t>(getLEIntegerWrapped(D,dn,(o+8)&(dn-1),4)); }
+			
+			/**
+			 * get LReadNameWrapped field from alignment block at offset o in ring buffer of length dn
+			 *
+			 * @param D ring buffer
+			 * @param dn length of ring buffer (must be a power of 2)
+			 * @param o start offset of alignment block in D
+			 * @return decoded LReadNameWrapped field
+			 **/
 			static uint32_t getLReadNameWrapped(
 				uint8_t const * D,
 				uint64_t const dn,
 				uint64_t const o
 			) { return (getBinMQNLWrapped(D,dn,o) >> 0) & 0xFF; }
+
+			/**
+			 * get read name offset in ring buffer
+			 *
+			 * @param dn length of ring buffer (must be a power of 2)
+			 * @param o start offset of alignment block in D
+			 **/
 			static uint32_t getReadNameOffset(uint64_t const dn, uint64_t const o)
 			{
 				return (o+32)&(dn-1);
 			}
+
+			/**
+			 * get FlagNC field from alignment block at offset o in ring buffer of length dn
+			 *
+			 * @param D ring buffer
+			 * @param dn length of ring buffer (must be a power of 2)
+			 * @param o start offset of alignment block in D
+			 * @return decoded FlagNC field
+			 **/
 			static uint32_t getFlagNCWrapped  (
 				uint8_t const * D,
 				uint64_t const dn,
 				uint64_t const o
 			) { return static_cast<uint32_t>(getLEIntegerWrapped(D,dn,(o+12)&(dn-1),4)); }
+
+			/**
+			 * get Flags field from alignment block at offset o in ring buffer of length dn
+			 *
+			 * @param D ring buffer
+			 * @param dn length of ring buffer (must be a power of 2)
+			 * @param o start offset of alignment block in D
+			 * @return decoded Flags field
+			 **/
 			static uint32_t getFlagsWrapped(
 				uint8_t const * D,
 				uint64_t const dn,
 				uint64_t const o
 			) { return (getFlagNCWrapped(D,dn,o) >> 16) & 0xFFFF; }
 			
+			/**
+			 * get reference id from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return reference id from D
+			 **/
 			static  int32_t     getRefID    (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+0,4)); }
+			/**
+			 * get position from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return position from D
+			 **/
 			static  int32_t     getPos      (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+4,4)); }
+			/**
+			 * get BinMQNL from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return BinMQNL from D
+			 **/
 			static uint32_t     getBinMQNL  (uint8_t const * D) { return static_cast<uint32_t>(getLEInteger(D+8,4)); }
+			/**
+			 * get FlagNC from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return FlagNC from D
+			 **/
 			static uint32_t     getFlagNC   (uint8_t const * D) { return static_cast<uint32_t>(getLEInteger(D+12,4)); }
+			/**
+			 * get length of sequence from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return length of sequence from D
+			 **/
 			static  int32_t     getLseq     (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+16,4)); }
+			/**
+			 * get reference id of next/mate from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return reference id of next/mate from D
+			 **/
 			static  int32_t     getNextRefID(uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+20,4)); }
+			/**
+			 * get position of next/mate from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return position of next/mate from D
+			 **/
 			static  int32_t     getNextPos  (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+24,4)); }
+			/**
+			 * get template length from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return template length from D
+			 **/
 			static  int32_t     getTlen     (uint8_t const * D) { return static_cast<int32_t>(getLEInteger(D+28,4)); }
+			/**
+			 * get read name from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return read name length from D
+			 **/
 			static char const * getReadName (uint8_t const * D) { return reinterpret_cast< char    const*>(D+32); }
+			/**
+			 * get read name from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return read name length from D
+			 **/
 			static char * getReadName (uint8_t * D) { return reinterpret_cast< char *>(D+32); }
+			/**
+			 * get bin from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return read name length from D
+			 **/
 			static uint32_t     getBin      (uint8_t const * D) { return (getBinMQNL(D) >> 16) & 0xFFFFu; }
+			/**
+			 * get mapping quality from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return mapping quality from D
+			 **/
 			static uint32_t     getMapQ     (uint8_t const * D) { return (getBinMQNL(D) >>  8) & 0xFFu; }
+			/**
+			 * get length of read name from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return length of read name from D
+			 **/
 			static uint32_t     getLReadName(uint8_t const * D) { return ((getBinMQNL(D) >>  0) & 0xFFu); }
+			/**
+			 * get read name from alignment block D as string object
+			 *
+			 * @param D alignment block
+			 * @return read name from D as string object
+			 **/
 			static std::string  getReadNameS(uint8_t const * D) { char const * c = getReadName(D); return std::string(c,c+getLReadName(D)-1); }
+			/**
+			 * get encoded cigar string from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return encoded cigar string from D
+			 **/
 			static uint8_t const * getCigar(uint8_t const * D) { return reinterpret_cast<uint8_t const *>(getReadName(D) + getLReadName(D)); }
+			/**
+			 * get encoded cigar string from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return encoded cigar string from D
+			 **/
 			static uint8_t * getCigar(uint8_t * D) { return reinterpret_cast<uint8_t *>(getReadName(D) + getLReadName(D)); }
+			/**
+			 * get i'th encoded cigar field from alignment block D
+			 *
+			 * @param D alignment block
+			 * @param i cigar operation index
+			 * @return i'th encoded cigar field from D
+			 **/
 			static uint32_t getCigarField(uint8_t const * D, uint64_t const i) { return getLEInteger(getCigar(D)+4*i,4); }
+			/**
+			 * get length of i'th cigar operation from alignment block D
+			 *
+			 * @param D alignment block
+			 * @param i cigar operation index
+			 * @return length of i'th cigar operation from D
+			 **/
 			static uint32_t getCigarFieldLength(uint8_t const * D, uint64_t const i) {  return (getCigarField(D,i) >> 4) & ((1ull<<(32-4))-1); }
+			/**
+			 * get code of i'th cigar operation from alignment block D
+			 *
+			 * @param D alignment block
+			 * @param i cigar operation index
+			 * @return code of i'th cigar operation from D
+			 **/
 			static uint32_t getCigarFieldOp(uint8_t const * D, uint64_t const i) {  return (getCigarField(D,i) >> 0) & ((1ull<<(4))-1); }
 
+			/**
+			 * get number of bytes before the encoded cigar string in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bytes before the encoded cigar string in D
+			 **/
 			static uint64_t getNumPreCigarBytes(uint8_t const * D)
 			{
 				return getCigar(D) - D;
 			}
+			/**
+			 * get number of encoded cigar string bytes in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of encoded cigar string bytes in D
+			 **/
 			static uint64_t getNumCigarBytes(uint8_t const * D)
 			{
 				return getNCigar(D) * sizeof(uint32_t);
 			}
+
+			/**
+			 * get number of bytes before the encoded query sequence in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bytes before the encoded query sequence in D
+			 **/
 			static uint64_t getNumPreSeqBytes(uint8_t const * D)
 			{
 				return getSeq(D)-D;
 			}
+
+			/**
+			 * get number of encoded query sequence bytes in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of encoded query sequence bytes in D
+			 **/
 			static uint64_t getNumSeqBytes(uint8_t const * D)
 			{
 				return ( getLseq(D) + 1 ) / 2;
 			}
 			
+			/**
+			 * map encoded cigar operation i to the sam character representation
+			 *
+			 * @param i encoded cigar operation
+			 * @return sam character representation of encoded cigar operation i
+			 **/
 			static char cigarOpToChar(uint32_t const i)
 			{
 				//                       012345678
@@ -264,6 +549,12 @@ namespace libmaus
 					return '?';
 			}
 			
+			/**
+			 * get length of query sequence as encoded in the cigar string of the alignment block D
+			 *
+			 * @param D alignment block
+			 * @return length of query sequence as encoded in the cigar string of D
+			 **/
 			static uint64_t getLseqByCigar(uint8_t const * D)
 			{
 				uint64_t seqlen = 0;
@@ -291,6 +582,12 @@ namespace libmaus
 				return seqlen;
 			}
 			
+			/**
+			 * get number of reference sequence bases covered by alignment in D
+			 *
+			 * @param D alignment block
+			 * @return number of reference sequence bases covered by alignment in D
+			 **/
 			static uint64_t getReferenceLength(uint8_t const * D)
 			{
 				uint64_t reflen = 0;
@@ -317,6 +614,12 @@ namespace libmaus
 				return reflen;
 			}
 			
+			/**
+			 * get number of bases clipped of the front of query sequence by cigar operations H or S in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bases clipped of the front of query sequence by cigar operations H or S in alignment block D
+			 **/
 			static uint64_t getFrontClipping(uint8_t const * D)
 			{
 				uint32_t const ncigar = getNCigar(D);
@@ -337,6 +640,12 @@ namespace libmaus
 				return frontclip;
 			}
 
+			/**
+			 * get number of bases clipped of the back of the query sequence by cigar operations H or S in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bases clipped of the back of the query sequence by cigar operations H or S in alignment block D
+			 **/
 			static uint64_t getBackClipping(uint8_t const * D)
 			{
 				uint32_t const ncigar = getNCigar(D);
@@ -357,18 +666,34 @@ namespace libmaus
 				return backclip;
 			}
 			
-			// first position of aligned base on reference (1 based coordinate)
+			/**
+			 * get first position of aligned base on reference (1 based coordinate)
+			 *
+			 * @param D alignment block
+			 * @return first position of aligned base on reference (1 based coordinate)
+			 **/
 			static uint64_t getAlignmentStart(uint8_t const * D)
 			{
 				return getPos(D) + 1;
 			}
 
-			// last position of aligned base on reference
+			/**
+			 * get last position of aligned base on reference
+			 *
+			 * @param D alignment block
+			 * @return last position of aligned base on reference
+			 **/
 			static uint64_t getAlignmentEnd(uint8_t const * D)
 			{
 				return getAlignmentStart(D) + getReferenceLength(D) - 1;
 			}
 			
+			/**
+			 * get alignment start minus front clipping in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return alignment start minus front clipping in alignment block D
+			 **/
 			static int64_t getUnclippedStart(uint8_t const * D)
 			{
 				return
@@ -376,6 +701,12 @@ namespace libmaus
 					static_cast<int64_t>(getFrontClipping(D));
 			}
 
+			/**
+			 * get alignment end plus back clipping in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return alignment end plus back clipping in alignment block D
+			 **/
 			static int64_t getUnclippedEnd(uint8_t const * D)
 			{
 				return
@@ -383,6 +714,12 @@ namespace libmaus
 					static_cast<int64_t>(getBackClipping(D));
 			}
 			
+			/**
+			 * get coordinate (position of unclipped 5' end) from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return coordinate (position of unclipped 5' end) from D
+			 **/
 			static int64_t getCoordinate(uint8_t const * D)
 			{
 				if ( isReverse(getFlags(D)) )
@@ -395,10 +732,41 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * get operator of i'th cigar operation as character from alignment block D
+			 *
+			 * @param D alignment block
+			 * @param i cigar operation index
+			 * @return operator of i'th cigar operation as character from D
+			 **/
 			static char getCigarFieldOpAsChar(uint8_t const * D, uint64_t const i) { return cigarOpToChar(getCigarFieldOp(D,i)); }
+			/**
+			 * get flags from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return flags from D
+			 **/
 			static uint32_t     getFlags      (uint8_t const * D) { return (getFlagNC(D) >> 16) & 0xFFFFu; }
+			/**
+			 * get string representation of flags from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return string representation of flags from D
+			 **/
 			static std::string  getFlagsS     (uint8_t const * D) { return flagsToString(getFlags(D)); }
+			/**
+			 * get number of cigar operations from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of cigar operations from D
+			 **/
 			static uint32_t     getNCigar     (uint8_t const * D) { return (getFlagNC(D) >>  0) & 0xFFFFu; }
+			/**
+			 * get decoded cigar string from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return decoded cigar string from D
+			 **/
 			static std::string  getCigarString(uint8_t const * D)
 			{
 				std::ostringstream ostr;
@@ -406,31 +774,72 @@ namespace libmaus
 					ostr << getCigarFieldLength(D,i) << getCigarFieldOpAsChar(D,i);
 				return ostr.str();
 			}
+			/**
+			 * get encoded query sequence from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return encoded query sequence from D
+			 **/
 			static uint8_t const * getSeq(uint8_t const * D)
 			{
 				return getCigar(D) + 4 * getNCigar(D);
 			}
+			/**
+			 * get encoded query sequence from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return encoded query sequence from D
+			 **/
 			static uint8_t * getSeq(uint8_t * D)
 			{
 				return getCigar(D) + 4 * getNCigar(D);
 			}
+			/**
+			 * get encoded quality string from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return encoded quality string from D
+			 **/
 			static uint8_t const * getQual(uint8_t const * D)
 			{
 				return getSeq(D) + ((getLseq(D)+1)/2);
 			}
+			/**
+			 * get encoded quality string from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return encoded quality string from D
+			 **/
 			static uint8_t * getQual(uint8_t * D)
 			{
 				return getSeq(D) + ((getLseq(D)+1)/2);
 			}
+			/**
+			 * get start of auxiliary data from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return get start of auxiliary data from D
+			 **/
 			static uint8_t const * getAux(uint8_t const * D)
 			{
 				return getQual(D) + getLseq(D);
 			}
+			/**
+			 * get start of auxiliary data from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return get start of auxiliary data from D
+			 **/
 			static uint8_t * getAux(uint8_t * D)
 			{
 				return getQual(D) + getLseq(D);
 			}
 			
+			/** get score from alignment block D; the score is the sum of the base quality values not less 15
+			 *
+			 * @param D alignment block
+			 * @return quality score
+			 **/
 			static uint64_t getScore(uint8_t const * D)
 			{
 				uint64_t score = 0;
@@ -443,6 +852,12 @@ namespace libmaus
 				return score;
 			}
 			
+			/**
+			 * get length of primary auxiliary field for type c
+			 *
+			 * @param c aux field type
+			 * @return length of primary field of type c
+			 **/
 			static uint64_t getPrimLengthByType(uint8_t const c)
 			{
 				switch ( c )
@@ -455,6 +870,12 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * get length of auxiliary field at D
+			 *
+			 * @param D encoded auxiliary field
+			 * @return length of auxiliary field at D
+			 **/
 			static uint64_t getAuxLength(uint8_t const * D)
 			{
 				switch ( D[2] )
@@ -493,6 +914,12 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * convert auxiliary field at D to a string
+			 *
+			 * @param D start of auxiliart field
+			 * @return string representation of auxiliary field starting at D
+			 **/
 			static std::string auxValueToString(uint8_t const * D)
 			{
 				std::ostringstream ostr;
@@ -655,13 +1082,24 @@ namespace libmaus
 				return ostr.str();
 			}
 			
-				
+			/**
+			 * decode encoded sequence symbol without applying boundary checks
+			 *
+			 * @param c encoded sequence symbol
+			 * @return decoded symbol for c
+			 **/
 			static uint8_t decodeSymbolUnchecked(uint8_t const c)
 			{
 				static char const C[]     = "=ACMGRSVTWYHKDBN";
 				return C[c];
 			}
 
+			/**
+			 * decode encoded sequence symbol
+			 *
+			 * @param c encoded sequence symbol
+			 * @return decoded symbol for c
+			 **/
 			static uint8_t decodeSymbol(uint8_t const c)
 			{
 				static char const C[]     = "=ACMGRSVTWYHKDBN";
@@ -673,11 +1111,24 @@ namespace libmaus
 				else
 					return '?';
 			}
+
+			/**
+			 * decode reverse complement of encoded sequence symbol without applying boundary checks
+			 *
+			 * @param c encoded sequence symbol
+			 * @return decoded symbol for c
+			 **/
 			static uint8_t decodeSymbolRCUnchecked(uint8_t const c)
 			{
 				static char const C[] = "=TGMCRSVAWYHKDBN";
 				return C[c];
 			}
+			/**
+			 * decode reverse complement of encoded sequence symbol
+			 *
+			 * @param c encoded sequence symbol
+			 * @return decoded symbol for c
+			 **/
 			static uint8_t decodeSymbolRC(uint8_t const c)
 			{
 				static char const C[] = "=TGMCRSVAWYHKDBN";
@@ -688,6 +1139,15 @@ namespace libmaus
 				else
 					return '?';
 			}
+			
+			/**
+			 * decode encoded sequence of length seqlen to iterator S
+			 *
+			 * @param D alignment block
+			 * @param S output iterator
+			 * @param seqlen length of query sequence
+			 * @return iterator after decoding
+			 **/
 			template<typename iterator>
 			static iterator decodeRead(uint8_t const * D, iterator S, uint64_t const seqlen)
 			{
@@ -707,6 +1167,14 @@ namespace libmaus
 				
 				return S;		
 			}
+			/**
+			 * decode reverse complement of encoded sequence of length seqlen to iterator S
+			 *
+			 * @param D alignment block
+			 * @param S output iterator
+			 * @param seqlen length of query sequence
+			 * @return iterator after decoding
+			 **/
 			template<typename iterator>
 			static uint64_t decodeReadRC(uint8_t const * D, iterator S, uint64_t const seqlen)
 			{
@@ -727,6 +1195,14 @@ namespace libmaus
 				
 				return seqlen;			
 			}
+			/**
+			 * decode encoded sequence of length seqlen to iterator S; this version uses S at a forward iterator only
+			 *
+			 * @param D alignment block
+			 * @param S output iterator
+			 * @param seqlen length of query sequence
+			 * @return iterator after decoding
+			 **/
 			template<typename iterator>
 			static iterator decodeReadRCIt(uint8_t const * D, iterator S, uint64_t const seqlen)
 			{
@@ -744,6 +1220,13 @@ namespace libmaus
 				
 				return S;				
 			}
+			/**
+			 * decode query sequence in alignment block D to array A; A is extended if it is too small
+			 *
+			 * @param D alignment block
+			 * @param A output array
+			 * @return length of decoded query sequence
+			 **/
 			static uint64_t decodeRead(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
@@ -755,11 +1238,27 @@ namespace libmaus
 				
 				return seqlen;
 			}
+			/**
+			 * decode query sequence in alignment block D to array A; A is extended if it is too small;
+			 * the query sequence is returned as a string object
+			 *
+			 * @param D alignment block
+			 * @param A output array
+			 * @return string object containing the decode query sequence
+			 **/
 			static std::string decodeReadS(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = decodeRead(D,A);
 				return std::string(A.begin(),A.begin()+seqlen);
 			}
+			/**
+			 * decode reverse complement of query sequence in alignment block D to array A; A is extended if it is too small;
+			 * the decoded sequence is returned as a string object
+			 *
+			 * @param D alignment block
+			 * @param A output array
+			 * @return string object containing the reverse complement of the decoded query sequence
+			 **/
 			static uint64_t decodeReadRC(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
@@ -781,6 +1280,13 @@ namespace libmaus
 				
 				return seqlen;
 			}
+			/**
+			 * decode quality string to array A; A is reallocated if it is too small
+			 *
+			 * @param D alignment block
+			 * @param A output array
+			 * @return length of quality string
+			 **/
 			static uint64_t decodeQual(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
@@ -794,6 +1300,15 @@ namespace libmaus
 				}
 				return seqlen;
 			}
+			
+			/**
+			 * decode quality string of length seqlen to output iterator it
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @param seqlen length of quality string
+			 * @return output iterator after decoding
+			 **/
 			template<typename iterator>
 			static iterator decodeQualIt(uint8_t const * D, iterator it, unsigned int const seqlen)
 			{
@@ -816,6 +1331,15 @@ namespace libmaus
 
 				return it;
 			}
+
+			/**
+			 * decode reverse quality string of length seqlen to output iterator it
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @param seqlen length of quality string
+			 * @return output iterator after decoding
+			 **/
 			template<typename iterator>
 			static iterator decodeQualRcIt(uint8_t const * D, iterator it, unsigned int const seqlen)
 			{
@@ -838,6 +1362,13 @@ namespace libmaus
 
 				return it;
 			}
+			
+			/**
+			 * decode quality string from alignment block D to a string
+			 *
+			 * @param D alignment block
+			 * @return decoded quality string
+			 **/
 			static std::string decodeQual(uint8_t const * D)
 			{
 				uint64_t const seqlen = getLseq(D);
@@ -848,6 +1379,13 @@ namespace libmaus
 				return s;
 			}
 
+			/**
+			 * decode reverse quality string from alignment block D to array A; array A is extended if it is too small
+			 *
+			 * @param D alignment block
+			 * @param A output array
+			 * @return length of decoded quality string
+			 **/
 			static uint64_t decodeQualRC(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
@@ -862,6 +1400,13 @@ namespace libmaus
 				return seqlen;
 			}
 			
+			/**
+			 * map reference sequence id to name
+			 *
+			 * @param id reference sequence identifier
+			 * @param chromosomes vector of reference sequence infos
+			 * @return name of reference sequence or * if undefined
+			 **/
 			static char const * idToChromosome(int32_t const id, std::vector< ::libmaus::bambam::Chromosome > const & chromosomes)
 			{
 				if ( id >= 0 && id < static_cast<int32_t>(chromosomes.size()) )
@@ -870,6 +1415,14 @@ namespace libmaus
 					return "*";
 			}
 			
+			/**
+			 * get auxiliary area in alignment block E of size blocksize for given tag
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag two byte aux tag identifier
+			 * @return pointer to aux area or null pointer if tag is not present
+			 **/
 			static uint8_t const * getAux(
 				uint8_t const * E, uint64_t const blocksize, 
 				char const * const tag
@@ -893,6 +1446,15 @@ namespace libmaus
 				return 0;
 			}
 
+			/**
+			 * get auxiliary area in alignment block E of size blocksize for given tag as a string
+			 * if it is of type Z; returns null pointer if tag is not present or not of type Z
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag two byte aux tag identifier
+			 * @return pointer to aux area data as string or null pointer if tag is not present or is not of type Z
+			 **/
 			static char const * getAuxString(uint8_t const * E, uint64_t const blocksize, char const * const tag)
 			{
 				uint8_t const * data = getAux(E,blocksize,tag);
@@ -902,7 +1464,14 @@ namespace libmaus
 				else
 					return 0;
 			}
-						
+			
+			/**
+			 * get aux area ZR
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @return aux area for tag ZR or null pointer if not present
+			 **/			
 			static uint8_t const * getAuxRankData(
 				uint8_t const * E, uint64_t const blocksize
 			)
@@ -910,6 +1479,13 @@ namespace libmaus
 				return getAux(E,blocksize,"ZR");
 			}
 			
+			/**
+			 * get aux area ZR (rank) decoded as eight byte number
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @return decoded rank field
+			 **/
 			static uint64_t getAuxRank(uint8_t const * E, uint64_t const blocksize)
 			{
 				uint8_t const * data = getAuxRankData(E,blocksize);
@@ -953,30 +1529,14 @@ namespace libmaus
 					(static_cast<uint64_t>(data[15]) <<  0);
 			}
 
-			static uint8_t const * getAuxEnd(
-				uint8_t const * E, uint64_t const blocksize
-			)
-			{
-				uint8_t const * aux = getAux(E);
-				
-				while ( aux < E+blocksize && *aux )
-					aux = aux + getAuxLength(aux);
-				
-				return aux;
-			}
-
-			static uint8_t * getAuxEnd(
-				uint8_t * E, uint64_t const blocksize
-			)
-			{
-				uint8_t * aux = getAux(E);
-				
-				while ( aux < E+blocksize && *aux )
-					aux = aux + getAuxLength(aux);
-				
-				return aux;
-			}
-			
+			/**
+			 * get aux value for tag from alignment block E of size blocksize as string
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag aux tag id
+			 * @return decoded value of aux field for tag as string object
+			 **/
 			static std::string getAuxAsString(uint8_t const * E, uint64_t const blocksize, char const * const tag)
 			{
 				uint8_t const * D = getAux(E,blocksize,tag);
@@ -987,6 +1547,16 @@ namespace libmaus
 					return std::string();
 			}
 			
+			/**
+			 * format alignment block E of size blocksize as SAM file line using the chromosome vector chromosomes
+			 * and the temporary memory block auxdata
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param chromosomes vector of chromosomes
+			 * @param auxdata temporary memory block
+			 * @return alignment block formatted as SAM line stored in string object
+			 **/
 			static std::string formatAlignment(
 				uint8_t const * E, uint64_t const blocksize, std::vector< ::libmaus::bambam::Chromosome > const & chromosomes,
 				::libmaus::bambam::BamFormatAuxiliary & auxdata
@@ -1051,6 +1621,13 @@ namespace libmaus
 				return ostr.str();
 			}
 
+			/**
+			 * format alignment block E as FastQ
+			 *
+			 * @param E alignment block
+			 * @param auxdata temporary memory block
+			 * @return alignment block formatted as FastQ
+			 **/
 			static std::string formatFastq(
 				uint8_t const * E, 
 				::libmaus::bambam::BamFormatAuxiliary & auxdata

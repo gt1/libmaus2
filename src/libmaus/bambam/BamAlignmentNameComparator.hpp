@@ -25,21 +25,38 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * comparator for BAM alignments by name. names are split up into character and number string components:
+		 * name = c_0 n_0 c_1 n_1 ... . The string parts are compared lexicographically. The number parts
+		 * are decoded as numbers and compared numerically. For equivalent names read 1 is smaller than read 2.
+		 **/
 		struct BamAlignmentNameComparator
 		{
+			//! data pointer
 			uint8_t const * data;
+			//! digit table (digit_table[i] == true iff isdigit(i)==true)
 			static uint8_t const digit_table[256];
 			
+			/**
+			 * constructor from data pointer
+			 *
+			 * @param rdata container data 
+			 **/
 			BamAlignmentNameComparator(uint8_t const * rdata)
 			: data(rdata)
 			{
 			
 			}
 			
+			/**
+			 * compare strings a and b as described in class description
+			 *
+			 * @param a first string
+			 * @param b second string
+			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
+			 **/
 			static int strcmpnum(uint8_t const * a, uint8_t const * b)
 			{
-				// std::cerr << "Comparing\na=" << a << "\nb=" << b << "\n";
-			
 				while ( *a && *b )
 				{
 					uint8_t const ca = *a;
@@ -88,6 +105,13 @@ namespace libmaus
 				return 0;	
 			}
 			
+			/**
+			 * compare strings a and b as described in class description
+			 *
+			 * @param a first string
+			 * @param b second string
+			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
+			 **/
 			static int strcmpnum(char const * a, char const * b)
 			{
 				return strcmpnum(
@@ -96,6 +120,14 @@ namespace libmaus
 				);	
 			}
 			
+			/**
+			 * compare alignment blocks da and db by name as described in class description. if names are equal then
+			 * da < db iff da is read 1
+			 *
+			 * @param da first string
+			 * @param db second string
+			 * @return true iff da < db (alignments referenced by da and db, not pointers)
+			 **/
 			static bool compare(uint8_t const * da, uint8_t const * db)
 			{
 				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
@@ -121,6 +153,13 @@ namespace libmaus
 				return res;
 			}
 
+			/**
+			 * compare alignment blocks da and db by name as described in class description. if names are equal then compare by read1 flag (read1 < !read1)
+			 *
+			 * @param da first string
+			 * @param db second string
+			 * @return -1 if da<db, 0 if da == db, 1 if da > db  (alignments referenced by da and db, not pointers)
+			 **/
 			static int compareInt(uint8_t const * da, uint8_t const * db)
 			{
 				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
@@ -143,6 +182,13 @@ namespace libmaus
 					return 1;
 			}
 
+			/**
+			 * compare alignment blocks by name only
+			 *
+			 * @param da alignment block a
+			 * @param db alignment block b
+			 * @return -1 if da < db, 0 if da == db, 1 if da > db by name (alignments referenced by da and db, not pointers)
+			 **/
 			static int compareIntNameOnly(uint8_t const * da, uint8_t const * db)
 			{
 				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
@@ -151,6 +197,13 @@ namespace libmaus
 				return strcmpnum(namea,nameb);
 			}
 			
+			/**
+			 * compare alignments at offsets a and b in the data block
+			 *
+			 * @param a first offset into data block
+			 * @param b second offset into data block
+			 * @return true iff alignment at a < alignment at b (alignments at offset a and b, not offsets and b)
+			 **/
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				uint8_t const * da = data + a + sizeof(uint32_t);
@@ -158,6 +211,13 @@ namespace libmaus
 				return compare(da,db);
 			}
 
+			/**
+			 * compare alignments at offsets a and b in the data block
+			 *
+			 * @param a first offset into data block
+			 * @param b second offset into data block
+			 * @return -1 for a < b, 0 for a == b, 1 for a > b (alignments at offset a and b, not offsets and b)
+			 **/
 			int compareInt(uint64_t const a, uint64_t const b) const
 			{
 				uint8_t const * da = data + a + sizeof(uint32_t);
@@ -165,6 +225,13 @@ namespace libmaus
 				return compareInt(da,db);
 			}
 
+			/**
+			 * compare alignments at offsets a and b in the data block by name only (ignore flags)
+			 *
+			 * @param a first offset into data block
+			 * @param b second offset into data block
+			 * @return -1 for a < b, 0 for a == b, 1 for a > b (alignments at offset a and b, not offsets and b)
+			 **/
 			int compareIntNameOnly(uint64_t const a, uint64_t const b) const
 			{
 				uint8_t const * da = data + a + sizeof(uint32_t);
