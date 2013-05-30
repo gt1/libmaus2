@@ -1,3 +1,9 @@
+libmaus (0.0.46-0) unstable; urgency=low
+
+  * bump version after fixing ReadEndsContainer class for gcc 4.8 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 30 May 2013 10:37:40 +0100
+
 libmaus (0.0.45-0) unstable; urgency=low
 
   * bump version after adding a function to the ReadEndsContainer class
