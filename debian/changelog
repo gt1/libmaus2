@@ -1,3 +1,9 @@
+libmaus (0.0.47-0) unstable; urgency=low
+
+  * bump version after fixing a division by zero in the DuplicationMetrics class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 30 May 2013 15:10:14 +0100
+
 libmaus (0.0.46-0) unstable; urgency=low
 
   * bump version after fixing ReadEndsContainer class for gcc 4.8 
