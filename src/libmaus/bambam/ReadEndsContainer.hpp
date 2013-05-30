@@ -91,7 +91,10 @@ namespace libmaus
 			::libmaus::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
 			{
 				flush();
-				
+
+                                getTempFile().flush();
+                                tempfileout.reset();
+
 				releaseArray();
 				
 				return UNIQUE_PTR_MOVE(

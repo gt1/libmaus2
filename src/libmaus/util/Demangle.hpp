@@ -27,15 +27,30 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class for demangling type names
+		 **/
 		struct Demangle
 		{
+			/**
+			 * demangle name
+			 *
+			 * @param name string to be demangled
+			 * @return demangled name
+			 **/
 			static std::string demangleName(std::string const name);
 
+			/**
+			 * @return demangled name of type eclass
+			 **/
 			template<typename eclass>
 			static std::string demangle()
 			{
 				return demangleName(typeid(eclass).name());
 			}
+			/**
+			 * @return demangled name of type eclass
+			 **/
 			template<typename eclass>
 			static std::string demangle(eclass const &)
 			{

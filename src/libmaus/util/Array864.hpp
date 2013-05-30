@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #if ! defined(LIBMAUS_UTIL_ARRAY864)
 #define LIBMAUS_UTIL_ARRAY864
 
@@ -31,25 +30,44 @@ namespace libmaus
 	{
 		struct Array864Generator;
 		
+		/**
+		 * array class storing a sequence of variable length numbers such that
+		 * - numbers  < 256 are stored using 8 bits
+		 * - numbers >= 256 are stored using 64 bits
+		 * - a bit vector stores for each number in which category it is
+		 * - a rank dictionary is used for category lookups
+		 **/
 		struct Array864
 		{
+			//! this type
 			typedef Array864 this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-
+			//! rank dictionary type
 			typedef ::libmaus::rank::ERank222B rank_type;
+			//! writer type for bit vector used in rank dictionary
 			typedef rank_type::writer_type writer_type;
+			//! data type used for bit vector in rank dictionary
 			typedef writer_type::data_type data_type;
-
+			//! generator type for this array type
 			typedef Array864Generator generator_type;
-			
+			//! const iterator type
 			typedef libmaus::util::ConstIterator<this_type,uint64_t> const_iterator;
 
+			//! length of stored sequence
 			uint64_t n;
+			//! category bit vector
 			::libmaus::autoarray::AutoArray<data_type> B;
+			//! rank dictionary
 			::libmaus::rank::ERank222B::unique_ptr_type R;
+			//! subsequence stored using 8 bits per number
 			::libmaus::autoarray::AutoArray<uint8_t> A8;
+			//! subsequence stored using 64 bits per number
 			::libmaus::autoarray::AutoArray<uint64_t> A64;
 			
+			/**
+			 * @return estimated size of object in bytes
+			 **/
 			uint64_t byteSize() const
 			{
 				return
@@ -60,20 +78,51 @@ namespace libmaus
 					A64.byteSize();
 			}
 			
+			/**
+			 * @return const start iterator (inclusive)
+			 **/
 			const_iterator begin() const
 			{
 				return const_iterator(this,0);
 			}
+			/**
+			 * @return const end iterator (exclusive)
+			 **/
 			const_iterator end() const
 			{
 				return const_iterator(this,n);
 			}
 			
+			/**
+			 * serialise this object to an output stream
+			 *
+			 * @param out output stream
+			 **/
 			void serialise(std::ostream & out) const;
+			/**
+			 * deserialise a number
+			 *
+			 * @param in input stream
+			 * @return deserialised number
+			 **/
 			static uint64_t deserializeNumber(std::istream & in);
+			/**
+			 * constructor for empty array
+			 **/
 			Array864() : n(0) {}
+			/**
+			 * constructor from input stream
+			 *
+			 * @param in input stream
+			 **/
 			Array864(std::istream & in);
 			
+			/**
+			 * load object from file fs and return it encapsulated in a unique pointer
+			 *
+			 * @param fs filename
+			 * @return deserialised object as unique pointer
+			 **/
 			static unique_ptr_type load(std::string const & fs)
 			{
 				libmaus::aio::CheckedInputStream CIS(fs);
@@ -81,12 +130,24 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(u);
 			}
 
+			/**
+			 * load serialised object from CheckedInputStream CIS
+			 *
+			 * @param CIS input stream
+			 * @return deserialised object as unique pointer
+			 **/
 			static unique_ptr_type load(libmaus::aio::CheckedInputStream & CIS)
 			{
 				unique_ptr_type u(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(u);
 			}
 			
+			/**
+			 * constructor from random access sequence
+			 *
+			 * @param a start iterator (inclusive)
+			 * @param e end iterator (exclusive)
+			 **/
 			template<typename iterator>
 			Array864(iterator a, iterator e)
 			{
@@ -134,6 +195,12 @@ namespace libmaus
 				
 			}
 			
+			/**
+			 * access operator
+			 *
+			 * @param i index of element to be accessed
+			 * @return element at index i
+			 **/
 			uint64_t operator[](uint64_t const i) const
 			{
 				if ( i >= n )
@@ -150,21 +217,42 @@ namespace libmaus
 					return A64[R->rank0(i)-1];
 			}
 			
+			/**
+			 * get i'th element
+			 *
+			 * @param i index of element to be accessed
+			 * @return element at index i
+			 **/
 			uint64_t get(uint64_t const i) const
 			{
 				return (*this)[i];
 			}
 		};
 		
+		/**
+		 * generator class for Array864
+		 **/
 		struct Array864Generator
 		{
+			//! count of numbers stored in 8 bits
 			uint64_t const n8;
+			//! count of numbers stored in 64 bits
 			uint64_t const n64;
+			//! n8+n64
 			uint64_t const n;
 
+			//! bit array writer type
 			typedef Array864::writer_type writer_type;
+			//! bit array data type
 			typedef Array864::data_type data_type;
 			
+			/**
+			 * get number of occurences not exceeding thres in histogram hist
+			 *
+			 * @param hist histogram
+			 * @param thres threshold
+			 * @return accumulation of values for keys not exceeding thres in histogram
+			 **/
 			static uint64_t getSmallerEqual(libmaus::util::Histogram & hist, int64_t const thres)
 			{
 				std::map<int64_t,uint64_t> const H = hist.getByType<int64_t>();
@@ -178,11 +266,21 @@ namespace libmaus
 				return c;
 			}
 			
+			//! generated array
 			Array864::unique_ptr_type P;
+			//! writer for bit vector
 			writer_type::unique_ptr_type W;
+			//! count of 8 bit numbers written
 			uint64_t p8;
+			//! count of 64 bit numbers written
 			uint64_t p64;
 
+			/**
+			 * constructor from bit length histogram
+			 * 
+			 * @param hist bit length histogram storing the number of bits necessary
+			 *        to store each number in the sequence to be written by this generator
+			 **/
 			Array864Generator(libmaus::util::Histogram & hist) 
 			: 
 				n8(getSmallerEqual(hist,8)), n64(getSmallerEqual(hist,64)-n8), n(n8+n64),
@@ -196,6 +294,11 @@ namespace libmaus
 				P->n = n;
 			}
 			
+			/**
+			 * add number v to the end of the stored sequence
+			 *
+			 * @param v number to be added
+			 **/
 			void add(uint64_t const v)
 			{
 				if ( v < 256 )
@@ -210,6 +313,9 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * @return final array object
+			 **/
 			Array864::unique_ptr_type createFinal()
 			{
 				W->flush();

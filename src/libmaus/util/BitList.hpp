@@ -31,19 +31,64 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * bit vector stored in form of a linked list
+		 **/
 		struct BitList
 		{
+			//! stored bit vector a linked list
 			std::list< bool > B;
 			
+			/**
+			 * construct bit vector containing words*64 zero bits
+			 *
+			 * @param initial length of list in 64 bit units
+			 **/
 			BitList(uint64_t words);
+			/**
+			 * @param rank selector for 1 bit (zero based)
+			 * @return index of rank'th 1
+			 **/
 			uint64_t select1(uint64_t rank) const;
+			/**
+			 * @param rank selector for 0 bit (zero based)
+			 * @return index of rank'th 0
+			 **/
 			uint64_t select0(uint64_t rank) const;
+			/**
+			 * @param pos position
+			 * @return umber of 1 bits up to and including position pos
+			 **/
 			uint64_t rank1(uint64_t pos) const;
+			/**
+			 * insert bit b at position pos
+			 *
+			 * @param pos position for insertion
+			 * @param b bit to be inserted
+			 **/
 			void insertBit(uint64_t pos, bool b);
+			/**
+			 * delete bit a position pos
+			 *
+			 * @param pos position of bit to be deleted
+			 **/
 			void deleteBit(uint64_t pos);
+			/**
+			 * set bit at position pos to b
+			 *
+			 * @param pos position of bit to be set
+			 * @param b new value for bit
+			 **/
 			void setBit(uint64_t pos, bool b);
 		};
 
+		/**
+		 * print bit list B on stream out
+		 *
+		 * @param out output stream
+		 * @param B bit list
+		 * @return out
+		 **/
 		std::ostream & operator<<(std::ostream & out, BitList const & B);
 	}
 }

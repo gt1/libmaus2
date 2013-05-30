@@ -25,14 +25,29 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * get wrapper class for a linear sequence container;
+		 * the get function returns the elements in the container
+		 * from front to back
+		 **/
 		template<typename container_type>
 		struct ContainerGetObject
 		{
+			//! wrapped container
 			container_type const & container;
+			//! current index
 			uint64_t i;
 			
+			/**
+			 * constructor
+			 *
+			 * @param rcontainer container to be wrapped
+			 **/
 			ContainerGetObject(container_type const & rcontainer) : container(rcontainer), i(0) {}
 			
+			/**
+			 * @return next element
+			 **/
 			int get()
 			{
 				if ( i == container.size() )

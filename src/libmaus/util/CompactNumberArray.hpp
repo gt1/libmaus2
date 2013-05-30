@@ -27,11 +27,28 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class representing read only variable length number array;
+		 * the lengths of the number are stored in a Huffman shaped wavelet tree,
+		 * each number k is stored using \lceil log k \rceil bits
+		 * (in addition to the number of bits required to store the length of the number in bits)
+		 * see also the ImpCompactNumberArray class using \lfloor k \rfloor k
+		 * instead of \lceil k \rceil k bits per number k
+		 **/
 		struct CompactNumberArray
 		{
+			//! huffman shaped wavelet tree storing the length of each number
 			::libmaus::wavelet::HuffmanWaveletTree::unique_ptr_type H;
+			//! fixed size number arrays, one for each bit length required
 			::libmaus::autoarray::AutoArray < ::libmaus::bitio::CompactArray::unique_ptr_type > C;
 
+			/**
+			 * construct number of bits needed array for given sequence
+			 *
+			 * @param a sequence start iterator (inclusive)
+			 * @param e sequence end iterator (exclusive)
+			 * @return array storing number of bits required for each number
+			 **/
 			template<typename iterator>
 			static ::libmaus::autoarray::AutoArray<uint8_t> getBitArray(iterator a, iterator e)
 			{
@@ -41,6 +58,13 @@ namespace libmaus
 					B[i] = ::libmaus::math::bitsPerNum(*(a++));
 				return B;
 			}
+			/**
+			 * construct huffman shaped wavelet tree over bit length vector from sequence
+			 *
+			 * @param a sequence start iterator (inclusive)
+			 * @param e sequence end iterator (exclusive)
+			 * @return unique pointer wrapping Huffman shaped wavelet tree
+			 **/
 			template<typename iterator>
 			static ::libmaus::wavelet::HuffmanWaveletTree::unique_ptr_type getBitWT(iterator a, iterator e)
 			{
@@ -55,6 +79,12 @@ namespace libmaus
 				return H;
 			}
 			
+			/**
+			 * constructor from random access number sequence
+			 *
+			 * @param a sequence start iterator (inclusive)
+			 * @param e sequence end iterator (exclusive)
+			 **/
 			template<typename iterator>
 			CompactNumberArray(iterator a, iterator e)
 			: H(getBitWT(a,e)), C(H->enctable.maxsym+1)
@@ -88,6 +118,12 @@ namespace libmaus
 					assert ( (*this)[j] == (*i) );
 			}
 			
+			/**
+			 * access element i
+			 *
+			 * @param i element index
+			 * @return element at index i
+			 **/
 			uint64_t operator[](uint64_t const i) const
 			{
 				uint64_t const bits = (*H)[i];

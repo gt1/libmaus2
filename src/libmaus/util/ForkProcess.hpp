@@ -30,20 +30,44 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * process created by the fork() system call
+		 **/
 	        struct ForkProcess
 		{
+			//! this type
 			typedef ForkProcess this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			//! process id
 			pid_t id;
-			// 0 read
-			// 1 write
+			//! pipe for receiving errors occuring while calling the program to be started
 			int failpipe[2];
+			//! true if join has been complete
 			bool joined;
+			//! true if exit code 0 was received by join
 			bool result;
+			//! failure message
 			std::string failmessage;
 			
+			/**
+			 * send signal sig to process
+			 *
+			 * @param sig signal number
+			 **/
 			void kill(int sig = SIGTERM);
+			/**
+			 * initialize process
+			 *
+			 * @param exe path to executable
+			 * @param pwd current working directory for new process
+			 * @param rargs arguments for new process
+			 * @param maxmem memory limit per ulimit in bytes, default unlimited
+			 * @param infilename input file name for stdin (empty string means: keep stdin of parent)
+			 * @param outfilename output file name for stdout (empty string means: keep stdout of parent)
+			 * @param errfilename output file name for stderr (empty string means: keep stderr of parent)
+			 **/
 			void init(
 				std::string const & exe,
 				std::string const & pwd,
@@ -53,6 +77,17 @@ namespace libmaus
 				std::string const outfilename = std::string(),
 				std::string const errfilename = std::string()
 				);
+			/**
+			 * constructor
+			 *
+			 * @param exe path to executable
+			 * @param pwd current working directory for new process
+			 * @param rargs arguments for new process
+			 * @param maxmem memory limit per ulimit in bytes, default unlimited
+			 * @param infilename input file name for stdin (empty string means: keep stdin of parent)
+			 * @param outfilename output file name for stdout (empty string means: keep stdout of parent)
+			 * @param errfilename output file name for stderr (empty string means: keep stderr of parent)
+			 **/
 			ForkProcess(
 				std::string const exe,
 				std::string const pwd,
@@ -62,6 +97,16 @@ namespace libmaus
 				std::string const outfilename = std::string(),
 				std::string const errfilename = std::string()
 				);
+			/**
+			 * constructor
+			 *
+			 * @param cmdline command line
+			 * @param pwd current working directory for new process
+			 * @param maxmem memory limit per ulimit in bytes, default unlimited
+			 * @param infilename input file name for stdin (empty string means: keep stdin of parent)
+			 * @param outfilename output file name for stdout (empty string means: keep stdout of parent)
+			 * @param errfilename output file name for stderr (empty string means: keep stderr of parent)
+			 **/
 			ForkProcess(
 				std::string const cmdline,
 				std::string const pwd,
@@ -70,7 +115,15 @@ namespace libmaus
 				std::string const outfilename = std::string(),
 				std::string const errfilename = std::string()
 			);
+			/**
+			 * @return true if process is running
+			 **/
 			bool running();
+			/**
+			 * wait for process to finish
+			 *
+			 * @return true if process exited with code zero
+			 **/
 			bool join();
 		};
 	}
