@@ -1,3 +1,9 @@
+libmaus (0.0.48-0) unstable; urgency=low
+
+  * some API changes in bambam namespace
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 31 May 2013 15:47:58 +0100
+
 libmaus (0.0.47-0) unstable; urgency=low
 
   * bump version after fixing a division by zero in the DuplicationMetrics class 
