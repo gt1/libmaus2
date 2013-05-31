@@ -58,6 +58,14 @@ namespace libmaus
 				init();
 			}
 
+			BgzfInflateParallel(std::istream & rinflatein, std::ostream & rcopyostr, uint64_t const rnumthreads, uint64_t const rnumblocks)
+			: 
+				inflatecontext(rinflatein,rnumblocks,rcopyostr),
+				T(rnumthreads)
+			{
+				init();
+			}
+
 			BgzfInflateParallel(
 				std::istream & rinflatein, 
 				uint64_t const rnumthreads = 
@@ -66,6 +74,20 @@ namespace libmaus
 			)
 			: 
 				inflatecontext(rinflatein,4*rnumthreads),
+				T(rnumthreads)
+			{
+				init();
+			}
+
+			BgzfInflateParallel(
+				std::istream & rinflatein, 
+				std::ostream & rcopyostr,
+				uint64_t const rnumthreads = 
+					std::max(std::max(libmaus::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
+						static_cast<uint64_t>(1))
+			)
+			: 
+				inflatecontext(rinflatein,4*rnumthreads,rcopyostr),
 				T(rnumthreads)
 			{
 				init();

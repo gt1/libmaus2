@@ -51,13 +51,10 @@ namespace libmaus
 			
 			uint64_t inflateeb;
 			uint64_t inflategcnt;
-		
-			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks)
-			:
-				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
-				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
-				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
-				inflateeb(0), inflategcnt(0)
+			
+			std::ostream * copyostr;
+			
+			void init()
 			{
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
 				{
@@ -66,7 +63,27 @@ namespace libmaus
 				}			
 
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
-					inflategloblist.enque(i);
+					inflategloblist.enque(i);			
+			}
+		
+			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks)
+			:
+				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
+				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
+				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
+				inflateeb(0), inflategcnt(0), copyostr(0)
+			{
+				init();
+			}
+
+			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks, std::ostream & rcopyostr)
+			:
+				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
+				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
+				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
+				inflateeb(0), inflategcnt(0), copyostr(&rcopyostr)
+			{
+				init();
 			}
 		};
 	}

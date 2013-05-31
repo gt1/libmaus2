@@ -36,15 +36,17 @@ namespace libmaus
 			 *
 			 * @param in input stream
 			 * @param out output stream
+			 * @return number of bytes written to out
 			 **/
-			static void concat(std::istream & in, std::ostream & out);
+			static uint64_t concat(std::istream & in, std::ostream & out);
 			/**
 			 * append contents of file filename to output stream out
 			 *
 			 * @param filename name of input file
 			 * @param out output stream
+			 * @return number of bytes written to out
 			 **/
-			static void concat(std::string const & filename, std::ostream & out);
+			static uint64_t concat(std::string const & filename, std::ostream & out);
 			/**
 			 * append the files in the list files to the output stream out; if rem is true, then
 			 * remove the files during the process
@@ -52,8 +54,9 @@ namespace libmaus
 			 * @param files list of files to be appended
 			 * @param out output stream
 			 * @param rem if true remove files after concatenation
+			 * @return number of bytes written to out
 			 **/
-			static void concat(std::vector < std::string > const & files, std::ostream & out, bool const rem = true);
+			static uint64_t concat(std::vector < std::string > const & files, std::ostream & out, bool const rem = true);
 			/**
 			 * concatenate files given in the list files by filename in the file with name outputfilename
 			 * in parallel
@@ -61,8 +64,9 @@ namespace libmaus
 			 * @param files list of files to be concatenated
 			 * @param outputfilename output file name
 			 * @param rem if true remove files after concatenation
+			 * @return number of bytes written to output file
 			 **/
-			static void concatParallel(
+			static uint64_t concatParallel(
 				std::vector < std::string > const & files, 
 				std::string const & outputfilename, 
 				bool const rem
@@ -74,8 +78,9 @@ namespace libmaus
 			 * @param files list of files to be concatenated
 			 * @param outputfilename output file name
 			 * @param rem if true remove files after concatenation
+			 * @return number of bytes written to output file
 			 **/
-			static void concatParallel(
+			static uint64_t concatParallel(
 				std::vector < std::vector < std::string > > const & files, 
 				std::string const & outputfilename, 
 				bool const rem
@@ -86,16 +91,18 @@ namespace libmaus
 			 * @param files list of files to be concatenated
 			 * @param outputfilename output file name
 			 * @param rem if true remove files after concatenation
+			 * @return number of bytes written to output file
 			 **/
-			static void concat(std::vector < std::string > const & files, std::string const & outputfile, bool const rem = true);
+			static uint64_t concat(std::vector < std::string > const & files, std::string const & outputfile, bool const rem = true);
 			/**
 			 * concatenate files given in files by filename in the file with name outputfilename
 			 *
 			 * @param files list of files to be concatenated
 			 * @param outputfilename output file name
 			 * @param rem if true remove files after concatenation
+			 * @return number of bytes written to output file
 			 **/
-			static void concat(
+			static uint64_t concat(
 				std::vector < std::vector < std::string > > const & files, 
 				std::string const & outputfilename, 
 				bool const rem

@@ -35,6 +35,13 @@ namespace libmaus
 			: bgzf(rin,rnumthreads) {}
 			BgzfInflateParallelWrapper(std::istream & rin, uint64_t const rnumthreads, uint64_t const rnumblocks)
 			: bgzf(rin,rnumthreads,rnumblocks) {}
+
+			BgzfInflateParallelWrapper(std::istream & rin, std::ostream & out)
+			: bgzf(rin,out) {}
+			BgzfInflateParallelWrapper(std::istream & rin, std::ostream & out, uint64_t const rnumthreads)
+			: bgzf(rin,out,rnumthreads) {}
+			BgzfInflateParallelWrapper(std::istream & rin, std::ostream & out, uint64_t const rnumthreads, uint64_t const rnumblocks)
+			: bgzf(rin,out,rnumthreads,rnumblocks) {}
 		};
 	}
 }

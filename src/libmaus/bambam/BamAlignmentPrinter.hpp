@@ -26,15 +26,33 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * class for printing BAM alignment blocks as SAM lines
+		 **/
 		struct BamAlignmentPrinter
 		{
+			//! BAM header for reference names
 			libmaus::bambam::BamHeader const & header;
+			//! temp mem block for formatting
 			::libmaus::bambam::BamFormatAuxiliary aux;
+			//! output stream
 			std::ostream & out;
 			
+			/**
+			 * constructor
+			 *
+			 * @param rheader BAM header
+			 * @param rout output stream
+			 **/
 			BamAlignmentPrinter(libmaus::bambam::BamHeader const & rheader, std::ostream & rout)
 			: header(rheader), out(rout) {}
 
+			/**
+			 * print alignment block D of length n as SAM line on output stream
+			 *
+			 * @param D alignment block
+			 * @param n size of alignment block
+			 **/
 			void put(uint8_t const * D, uint64_t const n) 
 			{
 				out << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(D,n,header.chromosomes,aux) << "\n";

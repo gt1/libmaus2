@@ -33,6 +33,8 @@ int main()
 	string const tmpfilename = "tmpfile";
 	TempFileRemovalContainer::addTempFile(tmpfilename);
 
+	// libmaus::aio::CheckedOutputStream copystr("copy.bam");
+
 	/* set up collator object */	
 	// collator_type C(cin,tmpfilename);
 	collator_type C(cin,8,tmpfilename);

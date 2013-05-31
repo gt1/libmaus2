@@ -29,11 +29,8 @@ namespace libmaus
 		{
 			::libmaus::lz::BgzfInflate<std::istream> bgzf;
 			
-			BgzfInflateWrapper(std::istream & in)
-			: bgzf(in)
-			{
-			
-			}
+			BgzfInflateWrapper(std::istream & in) : bgzf(in) {}
+			BgzfInflateWrapper(std::istream & in, std::ostream & out) : bgzf(in,out) {}
 		};
 	}
 }

@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFINFLATE_HPP
 
 #include <libmaus/lz/BgzfInflateBase.hpp>
+#include <ostream>
 
 namespace libmaus
 {
@@ -33,9 +34,11 @@ namespace libmaus
 			private:
 			stream_type & stream;
 			uint64_t gcnt;
+			std::ostream * ostr;
 
 			public:	
-			BgzfInflate(stream_type & rstream) : stream(rstream), gcnt(0) {}
+			BgzfInflate(stream_type & rstream) : stream(rstream), gcnt(0), ostr(0) {}
+			BgzfInflate(stream_type & rstream, std::ostream & rostr) : stream(rstream), gcnt(0), ostr(&rostr) {}
 
 			uint64_t read(char * const decomp, uint64_t const n)
 			{
@@ -55,7 +58,36 @@ namespace libmaus
 
 				/* no more data ? */
 				if ( ! blockinfo.first )
+				{
+					if ( ostr )
+					{
+						ostr->flush();
+
+						if ( ! (*ostr) )
+						{
+							libmaus::exception::LibMausException ex;
+							ex.getStream() << "BgzfInflate::read(): failed to flush copy stream." << std::endl;
+							ex.finish();
+							throw ex;
+						}
+					}
+					
 					return 0;
+				}
+					
+				if ( ostr )
+				{
+					ostr->write(reinterpret_cast<char const *>(header.begin()),headersize);
+					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.first + footersize);
+					
+					if ( ! (*ostr) )
+					{
+						libmaus::exception::LibMausException ex;
+						ex.getStream() << "BgzfInflate::read(): failed to write compressed input to copy stream." << std::endl;
+						ex.finish();
+						throw ex;
+					}
+				}
 
 				/* decompress block */
 				gcnt = decompressBlock(decomp,blockinfo);

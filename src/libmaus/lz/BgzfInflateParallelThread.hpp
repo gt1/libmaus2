@@ -96,6 +96,36 @@ namespace libmaus
 							inflatecontext.inflateB[objectid]->blockid = inflatecontext.inflateinid++;
 							inflatecontext.inflateB[objectid]->readBlock(inflatecontext.inflatein);
 
+							/* copy compressed block to copy stream if there is one */
+							if ( (! (inflatecontext.inflateB[objectid]->failed())) && inflatecontext.copyostr )
+							{
+								// copy data
+								if ( inflatecontext.inflateB[objectid]->blockinfo.first )
+								{
+									// bgzf header
+									inflatecontext.copyostr->write(
+										reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->header.begin()),
+										inflatecontext.inflateB[objectid]->headersize
+									);
+									// payload and footer
+									inflatecontext.copyostr->write(
+										reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->block.begin()),
+										inflatecontext.inflateB[objectid]->blockinfo.first + inflatecontext.inflateB[objectid]->footersize
+									);
+								}
+								// flush output stream if there is no more data
+								else
+									inflatecontext.copyostr->flush();
+
+								// check state of stream
+								if ( ! (*(inflatecontext.copyostr)) )
+								{
+									inflatecontext.inflateB[objectid]->ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+									inflatecontext.inflateB[objectid]->ex->getStream() << "Failed to write Bgzf data to copy stream.";
+									inflatecontext.inflateB[objectid]->ex->finish();
+								}
+							}
+
 							libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 							inflatecontext.inflatereadlist.push_back(objectid);
 							inflatecontext.inflategloblist.enque(objectid);

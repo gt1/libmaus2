@@ -51,6 +51,26 @@ namespace libmaus
 			{
 			
 			}	
+
+			BgzfInflateParallelStream(std::istream & in, std::ostream & out)
+			: ::libmaus::lz::BgzfInflateParallelWrapper(in,out), 
+			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >(::libmaus::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
+			{
+			
+			}
+			
+			BgzfInflateParallelStream(std::istream & in, std::ostream & out, uint64_t const numthreads)
+			: ::libmaus::lz::BgzfInflateParallelWrapper(in,out,numthreads), 
+			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >(::libmaus::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
+			{
+			
+			}
+			BgzfInflateParallelStream(std::istream & in, std::ostream & out, uint64_t const numthreads, uint64_t const numblocks)
+			: ::libmaus::lz::BgzfInflateParallelWrapper(in,out,numthreads,numblocks), 
+			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateParallel >(::libmaus::lz::BgzfInflateParallelWrapper::bgzf,64*1024,0)
+			{
+			
+			}	
 		};
 	}
 }

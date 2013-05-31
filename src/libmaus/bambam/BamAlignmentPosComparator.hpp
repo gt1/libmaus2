@@ -26,12 +26,28 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * class for comparing BAM alignment blocks by coordinates
+		 **/
 		struct BamAlignmentPosComparator
 		{
+			//! data block pointer
 			uint8_t const * data;
 			
+			/**
+			 * construct
+			 *
+			 * @param rdata data block pointer
+			 **/
 			BamAlignmentPosComparator(uint8_t const * rdata) : data(rdata) {}
 			
+			/**
+			 * compare alignment blocks at da and db
+			 *
+			 * @param da pointer to first alignment block
+			 * @param db pointer to second alignment block
+			 * @return true iff da < db concerning mapping coordinates
+			 **/
 			static bool compare(uint8_t const * da, uint8_t const * db)
 			{
 				int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(da);
@@ -46,6 +62,13 @@ namespace libmaus
 				return posa < posb;
 			}
 
+			/**
+			 * compare alignment blocks at da and db
+			 *
+			 * @param da pointer to first alignment block
+			 * @param db pointer to second alignment block
+			 * @return -1 if da<db, 0 if da=db, 1 if da>db concerning mapping coordinates
+			 **/
 			static int compareInt(uint8_t const * da, uint8_t const * db)
 			{
 				int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(da);
@@ -69,12 +92,28 @@ namespace libmaus
 				else
 					return 0;
 			}
-			
+
+			/**
+			 * compare alignments at offsets a and b relative to the data block pointer passed to this object
+			 * at construction time
+			 *
+			 * @param a offset of first alignment
+			 * @param b offset of second alignment
+			 * @return true iff a < b concerning mapping coordinates
+			 **/			
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
 				return compare(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));
 			}
 			
+			/**
+			 * compare alignments at offsets a and b relative to the data block pointer passed to this object
+			 * at construction time
+			 *
+			 * @param a offset of first alignment
+			 * @param b offset of second alignment
+			 * @return -1 if a<b, 0 if a=b, 1 if a>b concerning mapping coordinates
+			 **/
 			int compareInt(uint64_t const a, uint64_t const b) const
 			{
 				return compareInt(data + a + sizeof(uint32_t),data + b + sizeof(uint32_t));

@@ -32,7 +32,7 @@ namespace libmaus
 		{
 			typedef _bgzf_type bgzf_type;
 			typedef typename bgzf_type::unique_ptr_type bgzf_ptr_type;
-			typedef BamDecoderTemplate this_type;
+			typedef BamDecoderTemplate<bgzf_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
@@ -90,12 +90,21 @@ namespace libmaus
 		
 		struct BamDecoderWrapper
 		{
+			libmaus::aio::CheckedInputStream::unique_ptr_type Pistr;
+			std::istream & istr;
+			libmaus::lz::BgzfInflateStream bgzf;
+			
 			libmaus::bambam::BamDecoder bamdec;
 			
 			BamDecoderWrapper(std::string const & filename, bool const rputrank = false)
-			: bamdec(filename,rputrank) {}
-			BamDecoderWrapper(std::istream & in, bool const rputrank = false)
-			: bamdec(in,rputrank) {}
+			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
+			  istr(*Pistr),
+			  bgzf(istr),
+			  bamdec(bgzf,rputrank) {}
+			BamDecoderWrapper(std::istream & ristr, bool const rputrank = false)
+			: Pistr(), istr(ristr), bgzf(istr), bamdec(bgzf,rputrank) {}
+			BamDecoderWrapper(std::istream & ristr, std::ostream & copyout, bool const rputrank = false)
+			: Pistr(), istr(ristr), bgzf(istr,copyout), bamdec(bgzf,rputrank) {}
 		};
 
 		struct BamParallelDecoderWrapper
@@ -116,11 +125,29 @@ namespace libmaus
 			  bamdec(bgzf,rputrank) 
 			{}
 			BamParallelDecoderWrapper(
+				std::string const & filename,
+				std::ostream & copyostr,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
+			  istr(*Pistr),
+			  bgzf(istr,copyostr,numthreads,4*numthreads),
+			  bamdec(bgzf,rputrank) 
+			{}
+			BamParallelDecoderWrapper(
 				std::istream & in, 
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
 			: Pistr(), istr(in), bgzf(istr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
+			BamParallelDecoderWrapper(
+				std::istream & in, 
+				std::ostream & copyostr,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: Pistr(), istr(in), bgzf(istr,copyostr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
 		};
 	}
 }

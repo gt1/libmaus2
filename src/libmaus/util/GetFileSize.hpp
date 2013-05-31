@@ -31,20 +31,44 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * file operations class
+		 **/
 		struct GetFileSize
 		{
+			/**
+			 * read file filename containing an array of type data_type to an array
+			 *
+			 * @param filename name of input file
+			 * @return array containing the contents of the input file as elements of type data_type
+			 **/
 			template<typename data_type>
 			static ::libmaus::autoarray::AutoArray<data_type> readFile(std::string const & filename)
 			{
+				// number of bytes
 				uint64_t const n8 = ::libmaus::util::GetFileSize::getFileSize(filename);
-				assert ( n8 % sizeof(data_type) == 0 );
+				if ( n8 % sizeof(data_type) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "GetFileSize::readFile(): size of file " << n8 << " is not a multiple of the data type size " << sizeof(data_type) << std::endl;
+					se.finish();
+					throw se;
+				}
+				// number of entities
 				uint64_t const n = n8/sizeof(data_type);
 				
+				// allocate array
 				::libmaus::autoarray::AutoArray<data_type> A(n,false);
 				
+				// open file
 				std::ifstream istr(filename.c_str(),std::ios::binary);
-				assert ( istr );
-				assert ( istr.is_open() );
+				if ( !(istr && istr.is_open()) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Failed to open file " << filename << " for reading." << std::endl;
+					se.finish();
+					throw se;				
+				}
 				
 				istr.read ( reinterpret_cast<char *>(A.get()), n8 );
 				
@@ -53,6 +77,14 @@ namespace libmaus
 				return A;
 			}
 
+			/**
+			 * copy n elements each multiplier bytes wide from in to out
+			 *
+			 * @param in input stream
+			 * @param out output stream
+			 * @param n number of entities
+			 * @param multiplier size of each entity in bytes
+			 **/
 			template<typename in_type, typename out_type>
 			static void copy(
 				in_type & in, 
@@ -92,6 +124,16 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * copy n elements each multiplier bytes wide from in to out; while
+			 * copying map the bytes from input to output via cmap
+			 *
+			 * @param in input stream
+			 * @param out output stream
+			 * @param cmap character mapping table
+			 * @param n number of entities
+			 * @param multiplier size of each entity in bytes
+			 **/
 			template<typename in_type, typename out_type, typename map_type>
 			static void copyMap(
 				in_type & in, 
@@ -136,6 +178,14 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * copy n elements each multiplier bytes wide from in to out
+			 *
+			 * @param in input stream
+			 * @param out output iterator
+			 * @param n number of entities
+			 * @param multiplier size of each entity in bytes
+			 **/
 			template<typename iterator>
 			static void copyIterator(
 				std::istream & in, 
@@ -161,28 +211,6 @@ namespace libmaus
 				}
 			}
 			
-			template<typename out_type>
-			static uint64_t concatenate(std::vector<std::string> const & infilenames, out_type & out, bool deleteFiles = false)
-			{
-				uint64_t c = 0;
-				
-				for ( uint64_t i = 0; i < infilenames.size(); ++i )
-				{
-					std::string const & fn = infilenames[i];
-					uint64_t const n = getFileSize(fn);
-					::libmaus::aio::CheckedInputStream CIS(fn);
-					copy(CIS,out,n);
-					c += n;
-					
-					if ( deleteFiles )
-						remove ( fn.c_str() );
-				}
-
-				out.flush();
-				
-				return c;
-			}
-
 			static void copy(std::string const & from, std::string const & to);
 			static int getSymbolAtPosition(std::string const & filename, uint64_t const pos);
 			static ::libmaus::autoarray::AutoArray<uint8_t> readFile(std::string const & filename);

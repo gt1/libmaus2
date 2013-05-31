@@ -38,6 +38,12 @@ namespace libmaus
 			{
 			
 			}	
+			BgzfInflateStream(std::istream & in, std::ostream & out)
+			: ::libmaus::lz::BgzfInflateWrapper(in,out), 
+			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			{
+			
+			}	
 		};
 	}
 }
