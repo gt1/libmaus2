@@ -27,6 +27,7 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		//! cigar operation type
 		typedef std::pair<int32_t,int32_t> cigar_operation;
 	}
 }

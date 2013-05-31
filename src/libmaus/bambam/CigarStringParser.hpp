@@ -28,8 +28,17 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * class for parsing cigar strings to cigar operation vectors
+		 **/
 		struct CigarStringParser
-		{
+		{	
+			/**
+			 * parse cigar string
+			 *
+			 * @param cigar SAM type string representation of cigar
+			 * @return encoded cigar operation vector (pairs of operation and length)
+			 **/
 			static std::vector<cigar_operation> parseCigarString(std::string cigar);
 		};
 	}

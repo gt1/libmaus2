@@ -25,9 +25,14 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * auxiliary class for formatting BAM to other formats
+		 **/
 		struct BamFormatAuxiliary
 		{
+			//! for recoding sequence data
 			::libmaus::autoarray::AutoArray<char> seq;
+			//! for recoding quality data
 			::libmaus::autoarray::AutoArray<char> qual;		
 		};
 	}

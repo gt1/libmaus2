@@ -210,15 +210,68 @@ namespace libmaus
 					n -= tocopy;
 				}
 			}
-			
+
+			/**
+			 * copy file from to file to
+			 *
+			 * @param from input file
+			 * @param to output file
+			 **/			
 			static void copy(std::string const & from, std::string const & to);
+			/**
+			 * get symbol at position pos of file filename
+			 *
+			 * @param filename name of input file
+			 * @param pos position in file
+			 * @return symbol at position pos of file filename
+			 **/
 			static int getSymbolAtPosition(std::string const & filename, uint64_t const pos);
+			/**
+			 * read file and store it in a byte array
+			 *
+			 * @param filename input file name
+			 * @return contents of file as byte array
+			 **/
 			static ::libmaus::autoarray::AutoArray<uint8_t> readFile(std::string const & filename);
+			/**
+			 * @param filename input file name
+			 * @return true iff file exists (can be opened for reading)
+			 **/
 			static bool fileExists(std::string const & filename);
+			/**
+			 * return size of stream istr; istr needs to support seek operation
+			 *
+			 * @param istr input stream
+			 * @return size of stream
+			 **/
 			static uint64_t getFileSize(std::istream & istr);
+			/**
+			 * return size of stream istr; istr needs to support seek operation
+			 *
+			 * @param istr input stream
+			 * @return size of stream
+			 **/
 			static uint64_t getFileSize(std::wistream & istr);
+			/**
+			 * return size of file filename
+			 *
+			 * @param filename input file name
+			 * @return size of file filename
+			 **/
 			static uint64_t getFileSize(std::string const & filename);
+			/**
+			 * return sum of the sizes of the files enumerated in the vector filenames
+			 *
+			 * @param filenames vector of file names
+			 * @return sum of the file sizes of the files in filenames
+			 **/
 			static uint64_t getFileSize(std::vector<std::string> const & filenames);
+			/**
+			 * return sum of the sizes of the files enumerated in the vector of vectors filenames
+			 *
+			 * @param filenames vector of vector of file names
+			 * @return sum of the file sizes of the files in filenames
+			 **/
 			static uint64_t getFileSize(std::vector< std::vector<std::string> > const & filenames);
 		};
 	}

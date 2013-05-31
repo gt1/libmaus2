@@ -41,6 +41,7 @@ namespace libmaus
 			typedef ::libmaus::bambam::BamAlignment alignment_type;
 			typedef alignment_type::shared_ptr_type alignment_ptr_type;
 			
+			private:
 			enum decoder_state { reading, merging, done };
 		
 			BamDecoder bamdecoder;
@@ -196,7 +197,7 @@ namespace libmaus
 					for ( std::map<int64_t,uint64_t>::const_iterator ita = writeOutHist.begin();
 						ita != writeOutHist.end(); ++ita )
 					{
-						std::string const name = bamdecoder.bamheader.getRefIDName(ita->first);
+						std::string const name = bamdecoder.getHeader().getRefIDName(ita->first);
 						uint64_t const cnt = ita->second;
 						
 						out << prefix << "\t" << name << "\t" << cnt << std::endl;
@@ -427,20 +428,6 @@ namespace libmaus
 			  writeoutlistmax(rwriteoutlistmax), inputcallback(0)
 			{ init(); }
 			
-			/*
-			CollatingBamDecoder(
-				::libmaus::lz::GzipStream & rGZ, 
-				std::string const & rtempfilename,
-				bool const rputrank = false,
-				unsigned int const rhashbits = defaulthashbits,
-				unsigned int const rwriteoutlistmax = defaultwriteoutlistmax
-			) 
-			: bamdecoder(rGZ,rputrank), tempfilename(rtempfilename),
-			  hashbits(rhashbits), hashsize(1u << hashbits), hashmask(hashsize-1), 
-			  writeoutlistmax(rwriteoutlistmax), inputcallback(0)
-			{ init(); }
-			*/
-			
 			alignment_ptr_type get()
 			{
 				if ( ! outputlist.size() )
@@ -577,14 +564,6 @@ namespace libmaus
 				std::string const & rtempfilename
 			)
 			: CollatingBamDecoder(in,rtempfilename), id(0) {}
-			
-			#if 0
-			CollatingBamDecoderNoOrphans(
-				::libmaus::lz::GzipStream & rGZ, 
-				std::string const & rtempfilename
-			) 
-			: CollatingBamDecoder(rGZ,rtempfilename), id(0) {}
-			#endif
 			
 			bool getNextPatternUnlocked(pattern_type & pattern)
 			{

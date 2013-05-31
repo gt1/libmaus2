@@ -30,72 +30,40 @@
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus/hashing/ConstantStringHash.hpp>
+#include <libmaus/bambam/ReadGroup.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{
-		struct ReadGroup
-		{
-			std::string ID;
-			::libmaus::util::unordered_map<std::string,std::string>::type M;
-			int64_t LBid;
-			
-			ReadGroup()
-			: LBid(-1)
-			{
-			
-			}
-			
-			ReadGroup & operator=(ReadGroup const & o)
-			{
-				if ( this != &o )
-				{
-					this->ID = o.ID;
-					this->M = o.M;
-					this->LBid = o.LBid;
-				}
-				return *this;
-			}
-			
-			template<typename iterator>
-			static uint32_t hash(iterator ita, iterator ite)
-			{
-				return libmaus::hashing::EvaHash::hash(reinterpret_cast<uint8_t const *>(ita),ite-ita);
-			}
-
-			uint32_t hash() const
-			{
-				uint8_t const * ita = reinterpret_cast<uint8_t const *>(ID.c_str());
-				return hash(ita,ita+ID.size());
-			}
-		};
-		
-		inline std::ostream & operator<<(std::ostream & out, ReadGroup const & RG)
-		{
-			out << "ReadGroup(ID=" << RG.ID;
-			
-			for ( ::libmaus::util::unordered_map<std::string,std::string>::type::const_iterator ita = RG.M.begin();
-				ita != RG.M.end(); ++ita )
-				out << "," << ita->first << "=" << ita->second;
-			
-			out << ")";
-
-			return out;
-		}
-	
+		/**
+		 * BAM file header class
+		 **/
 		struct BamHeader : 
 			public ::libmaus::bambam::EncoderBase, 
 			public ::libmaus::bambam::DecoderBase
-		{	
+		{
+			//! header text	
 			std::string text;
+			//! chromosome (reference sequence meta data) vector
 			std::vector< ::libmaus::bambam::Chromosome > chromosomes;
+			//! read groups vector
 			std::vector< ::libmaus::bambam::ReadGroup > RG;
+			//! trie for read group names
 			::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type RGTrie;
+			//! hash for read group names
 			libmaus::hashing::ConstantStringHash::shared_ptr_type RGCSH;
+			//! library names
 			std::vector<std::string> libs;
+			//! number of libaries
 			uint64_t numlibs;
 			
+			/**
+			 * get name for reference id
+			 *
+			 * @param refid reference id
+			 * @return name for reference id or "*" if invalid ref id
+			 **/
 			std::string getRefIDName(int64_t const refid) const
 			{
 				if ( refid < 0 || refid >= static_cast<int64_t>(chromosomes.size()) )
@@ -104,6 +72,12 @@ namespace libmaus
 					return chromosomes[refid].name;
 			}
 			
+			/**
+			 * get read group numerical id for read group name
+			 *
+			 * @param ID read group name
+			 * @return read group numerical id
+			 **/
 			int64_t getReadGroupId(char const * ID) const
 			{
 				if ( ID )
@@ -123,6 +97,12 @@ namespace libmaus
 					return -1;
 			}
 			
+			/**
+			 * get read group object for read group name
+			 *
+			 * @param ID read group name
+			 * @return read group object for ID
+			 **/
 			::libmaus::bambam::ReadGroup const * getReadGroup(char const * ID) const
 			{
 				int64_t const id = ID ? getReadGroupId(ID) : -1;
@@ -133,6 +113,12 @@ namespace libmaus
 					return &(RG[id]);
 			}
 			
+			/**
+			 * get library name for library id
+			 *
+			 * @param libid library id
+			 * @return name of library for libid of "Unknown Library" if libid is invalid
+			 **/
 			std::string getLibraryName(int64_t const libid) const
 			{
 				if ( libid >= static_cast<int64_t>(numlibs) )
@@ -141,11 +127,23 @@ namespace libmaus
 					return libs[libid];			
 			}
 			
+			/**
+			 * get library name for read group id
+			 *
+			 * @param ID read group id
+			 * @return library name for ID
+			 **/
 			std::string getLibraryName(char const * ID) const
 			{
 				return getLibraryName(getLibraryId(ID));
 			}
 			
+			/**
+			 * get library id for read group id
+			 *
+			 * @param ID read group id string
+			 * @return library id for ID
+			 **/
 			int64_t getLibraryId(char const * ID) const
 			{
 				int64_t const rgid = getReadGroupId(ID);
@@ -155,6 +153,12 @@ namespace libmaus
 					return RG[rgid].LBid;
 			}
 
+			/**
+			 * get library id for numerical read group id
+			 *
+			 * @param rgid numerical read group id
+			 * @return library id
+			 **/ 
 			int64_t getLibraryId(int64_t const rgid) const
 			{
 				if ( rgid < 0 )
@@ -163,6 +167,12 @@ namespace libmaus
 					return RG[rgid].LBid;
 			}
 
+			/**
+			 * compute trie for read group names
+			 *
+			 * @param RG read group vector
+			 * @return trie for read group names
+			 **/
 			static ::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type computeRgTrie(std::vector< ::libmaus::bambam::ReadGroup > const & RG)
 			{
 				::libmaus::trie::Trie<char> trienofailure;
@@ -179,6 +189,11 @@ namespace libmaus
 				return LHTsnofailure;
 			}
 
+			/**
+			 * @param s string
+			 * @param prefix other string
+			 * @return true if s starts with prefix
+			 **/
 			static bool startsWith(std::string const & s, std::string const & prefix)
 			{
 				return 
@@ -187,6 +202,12 @@ namespace libmaus
 					s.substr(0,prefix.size()) == prefix;
 			}
 
+			/**
+			 * extract read group vector from header text
+			 *
+			 * @param header text header
+			 * @return read groups vector
+			 **/
 			static std::vector<ReadGroup> getReadGroups(std::string const & header)
 			{
 				std::vector<ReadGroup> RG;
@@ -231,7 +252,12 @@ namespace libmaus
 				return RG;
 			}
 
-			
+			/**
+			 * filter header by removing HD and SQ lines (keep rest)
+			 *
+			 * @param header text header
+			 * @return filtered header
+			 **/
 			static std::string filterHeader(std::string const & header)
 			{
 				std::istringstream istr(header);
@@ -255,6 +281,14 @@ namespace libmaus
 				return ostr.str();
 			}
 			
+			/**
+			 * get version from header; if no HD line is present or it contains no version number, then
+			 * return defaultVersion
+			 *
+			 * @param header text header
+			 * @param defaultVersion is "1.4"
+			 * @return BAM file version
+			 **/
 			static std::string getVersionStatic(std::string const & header, std::string const defaultVersion = "1.4")
 			{
 				std::istringstream istr(header);
@@ -281,16 +315,24 @@ namespace libmaus
 				return version;
 			}
 
+			/**
+			 * get version BAM file version from header text
+			 *
+			 * @param defaultVersion is returned if no version is present in the text
+			 * @return BAM file version
+			 **/
 			std::string getVersion(std::string const defaultVersion = "1.4")
 			{
 				return getVersionStatic(text,defaultVersion);
 			}
-			
-			std::string getSortOrder(std::string const defaultSortorder = "unknown")
-			{
-				return getSortOrderStatic(text,defaultSortorder);
-			}
-			
+
+			/**
+			 * get sort order from header; if sort order is not present in text then return defaultSortOrder
+			 *
+			 * @param header text header
+			 * @param defaultSortOrder order to be assume if no order is given in header
+			 * @return BAM sort order as recorded in header or given default
+			 **/
 			static std::string getSortOrderStatic(std::string const & header, std::string const defaultSortOrder = "unknown")
 			{
 				std::istringstream istr(header);
@@ -317,6 +359,27 @@ namespace libmaus
 				return sortorder;
 			}
 			
+			/**
+			 * @param default sort order if no order is present in the header text
+			 * @return BAM sort order as recorded in header text or defaultSortorder if not given
+			 *
+			 * @param defaultSortorder default order to be returned if no order is recorded in the text
+			 * @return BAM sort order
+			 **/
+			std::string getSortOrder(std::string const defaultSortorder = "unknown")
+			{
+				return getSortOrderStatic(text,defaultSortorder);
+			}
+			
+			
+			/**
+			 * rewrite BAM header text
+			 *
+			 * @param header input header
+			 * @param chromosomes reference sequence information to be inserted in rewritten header
+			 * @param rsortorder sort order override if not the empty string
+			 * @return rewritten header text
+			 **/
 			static std::string rewriteHeader(
 				std::string const & header, std::vector< ::libmaus::bambam::Chromosome > const & chromosomes,
 				std::string const & rsortorder = std::string()
@@ -377,6 +440,12 @@ namespace libmaus
 				return ostr.str();
 			}
 			
+			/**
+			 * map chromosome (ref seq) id to chromosome name
+			 *
+			 * @param id referencen id
+			 * @return name for id or "*" if id is not valid/known
+			 **/
 			char const * idToChromosome(int32_t const id) const
 			{
 				if ( id >= 0 && id < static_cast<int32_t>(chromosomes.size()) )
@@ -385,6 +454,12 @@ namespace libmaus
 					return "*";
 			}
 			
+			/**
+			 * encode binary reference sequence information
+			 *
+			 * @param ostr binary BAM header construction stream
+			 * @param V chromosomes (ref seqs)
+			 **/
 			template<typename stream_type>
 			static void encodeChromosomeVector(stream_type & ostr, std::vector< ::libmaus::bambam::Chromosome > const & V)
 			{
@@ -402,6 +477,12 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * encode chromosome (ref seq info) vector to binary
+			 *
+			 * @param V reference sequence info vector
+			 * @return BAM binary encoding of V
+			 **/
 			static std::string encodeChromosomeVector(std::vector< ::libmaus::bambam::Chromosome > const & V)
 			{
 				std::ostringstream ostr;
@@ -409,6 +490,11 @@ namespace libmaus
 				return ostr.str();
 			}
 			
+			/**
+			 * serialise header to BAM
+			 *
+			 * @param ostr output stream
+			 **/
 			template<typename stream_type>
 			void serialise(stream_type & ostr) const
 			{
@@ -427,6 +513,11 @@ namespace libmaus
 				encodeChromosomeVector(ostr,chromosomes);
 			}
 
+			/**
+			 * init BAM header from uncompressed stream
+			 *
+			 * @param in input stream
+			 **/
 			template<typename stream_type>
 			void init(stream_type & in)
 			{
@@ -509,16 +600,31 @@ namespace libmaus
 						RG[i].LBid = numlibs;
 			}
 			
+			/**
+			 * change sort order to newsortorder; if newsortorder is the empty string then
+			 * just rewrite header keeping the previous sort order description
+			 *
+			 * @param newsortorder
+			 **/
 			void changeSortOrder(std::string const newsortorder = std::string())
 			{
 				text = rewriteHeader(text,chromosomes,newsortorder);
 			}
 			
+			/**
+			 * produce header text
+			 **/
 			void produceHeader()
 			{
 				changeSortOrder();
 			}
 			
+			/**
+			 * get size of BAM header given the name of the BAM file
+			 *
+			 * @param fn BAM file name
+			 * @return length of BAM header
+			 **/
 			static uint64_t getHeaderSize(std::string const & fn)
 			{
 				libmaus::aio::CheckedInputStream CIS(fn);
@@ -527,29 +633,58 @@ namespace libmaus
 				return GS.tellg();
 			}
 			
+			/**
+			 * constructor for empty header
+			 **/
 			BamHeader()
 			{
 			
 			}
+			
+			/**
+			 * constructor from compressed stream in
+			 *
+			 * @param in compressed stream
+			 **/
 			BamHeader(std::istream & in)
 			{
 				::libmaus::lz::GzipStream GS(in);
 				init(GS);
 			}
 
+			/**
+			 * constructor from compressed general GZ type stream
+			 *
+			 * @param in gzip intput stream
+			 **/
 			BamHeader(::libmaus::lz::GzipStream & in)
 			{
 				init(in);
 			}
+			/**
+			 * constructor from serial bgzf decompressor
+			 *
+			 * @param in serial bgzf decompressor
+			 **/
 			BamHeader(libmaus::lz::BgzfInflateStream & in)
 			{
 				init(in);
 			}
+			/**
+			 * constructor from parallel bgzf decompressor
+			 *
+			 * @param in parallel bgzf decompressor
+			 **/
 			BamHeader(libmaus::lz::BgzfInflateParallelStream & in)
 			{
 				init(in);
 			}
 			
+			/**
+			 * constructor from header text
+			 *
+			 * @param text header text
+			 **/
 			BamHeader(std::string const & text)
 			{
 				std::ostringstream ostr;
@@ -591,6 +726,13 @@ namespace libmaus
 				init(istr);
 			}
 			
+			/**
+			 * add a reference sequence to the header
+			 *
+			 * @param name ref seq name
+			 * @param len ref seq length
+			 * @return id of the newly inserted ref seq in this header
+			 **/
 			uint64_t addChromosome(std::string const & name, uint64_t const len)
 			{
 				uint64_t const id = chromosomes.size();

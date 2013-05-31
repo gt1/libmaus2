@@ -28,15 +28,27 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * output file set for BAM to FastQ conversion
+		 **/
 		struct BamToFastqOutputFileSet
 		{
+			//! map of all files
 			std::map < std::string, libmaus::aio::CheckedOutputStream::shared_ptr_type > files;
+			//! first mates file
 			std::ostream & Fout;
+			//! second mates file
 			std::ostream & F2out;
+			//! orphan read 1 file
 			std::ostream & Oout;
+			//! orphan read 2 file
 			std::ostream & O2out;
+			//! single ended file
 			std::ostream & Sout;
 			
+			/**
+			 * open output files
+			 **/
 			static std::map < std::string, libmaus::aio::CheckedOutputStream::shared_ptr_type > openFiles(libmaus::util::ArgInfo const & arginfo)
 			{
 				std::map < std::string, libmaus::aio::CheckedOutputStream::shared_ptr_type > files;
@@ -57,6 +69,13 @@ namespace libmaus
 				return files;	
 			}
 			
+			/**
+			 * get file for identifier opt
+			 *
+			 * @param arginfo argument key=value pairs
+			 * @param opt bamtofastq option (one of "F","F2","O","O2","S")
+			 * @return output stream 
+			 **/
 			static std::ostream & getFile(libmaus::util::ArgInfo const & arginfo, std::string const opt, std::map < std::string, libmaus::aio::CheckedOutputStream::shared_ptr_type > & files)
 			{
 				std::string const fn = arginfo.getValue<std::string>(opt,"-");
@@ -70,6 +89,11 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * construct from ArgInfo object
+			 *
+			 * @param arginfo arguments object
+			 **/
 			BamToFastqOutputFileSet(libmaus::util::ArgInfo const & arginfo)
 			: files(openFiles(arginfo)), 
 			  Fout( getFile(arginfo,"F",files) ),
@@ -80,6 +104,9 @@ namespace libmaus
 			{
 			} 
 			
+			/**
+			 * destructor, flush and close files
+			 **/
 			~BamToFastqOutputFileSet()
 			{
 				Fout.flush(); F2out.flush();

@@ -27,17 +27,30 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * reference sequence info
+		 **/
 		struct Chromosome
 		{
+			//! ref seq name
 			std::string name;
+			//! ref seq length
 			uint64_t len;
+			//! additional key:value fields
 			::libmaus::util::unordered_map<std::string,std::string>::type M;
 				
-			Chromosome()
-			{}
-				
-			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen)
-			{}
+			/**
+			 * constructor for empty reference sequence
+			 **/
+			Chromosome() : len(0) {}
+			
+			/**
+			 * constructor from parameters
+			 *
+			 * @param rname ref seq name
+			 * @param rlen ref seq length
+			 **/
+			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen) {}
 		};
 	}
 }

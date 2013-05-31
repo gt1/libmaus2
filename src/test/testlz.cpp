@@ -228,12 +228,12 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 
 int main(int argc, char *argv[])
 {
-	#if 1
+	#if 0
 	maskBamDuplicateFlag(std::cin,std::cout);
 	return 0;
 	#endif
 
-	#if 0
+	#if 1
 	{
 		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,16,128);
 		

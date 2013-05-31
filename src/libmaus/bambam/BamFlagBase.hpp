@@ -28,8 +28,12 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * base class for BAM flags
+		 **/
 		struct BamFlagBase
 		{
+			//! alignment flags
 			enum bam_flags
 			{
 				LIBMAUS_BAMBAM_FPAIRED = (1u << 0),
@@ -45,6 +49,7 @@ namespace libmaus
 				LIBMAUS_BAMBAM_FDUP = (1u << 10)
 			};
 			
+			//! cigar operator codes
 			enum bam_cigar_ops
 			{
 				LIBMAUS_BAMBAM_CMATCH = 0,
@@ -58,6 +63,12 @@ namespace libmaus
 				LIBMAUS_BAMBAM_CDIFF = 8
 			};			
 
+			/**
+			 * convert a string to an alignment flag bit
+			 *
+			 * @param s string representation of flag (e.g. PAIRED,PROPER_PAIR,...)
+			 * @return numeric value for flag s
+			 **/
 			static uint64_t stringToFlag(std::string const & s)
 			{
 				if ( s == "PAIRED" )
@@ -91,6 +102,12 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * convert comma separated flags in string representation to numeric flag mask
+			 *
+			 * @param s flag string
+			 * @return numeric flags bit mask
+			 **/
 			static uint64_t stringToFlags(std::string const & s)
 			{
 				std::deque<std::string> const tokens = ::libmaus::util::stringFunctions::tokenize(s,std::string(","));
@@ -101,27 +118,7 @@ namespace libmaus
 					
 				return flags;
 			}
-		};
-		
-		inline std::ostream & operator<<(std::ostream & out, BamFlagBase::bam_flags const f)
-		{
-			switch ( f )
-			{
-				case BamFlagBase::LIBMAUS_BAMBAM_FPAIRED: out << "LIBMAUS_BAMBAM_FPAIRED"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR: out << "LIBMAUS_BAMBAM_FPROPER_PAIR"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FUNMAP: out << "LIBMAUS_BAMBAM_FUNMAP"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP: out << "LIBMAUS_BAMBAM_FMUNMAP"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FREVERSE: out << "LIBMAUS_BAMBAM_FREVERSE"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE: out << "LIBMAUS_BAMBAM_FMREVERSE"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FREAD1: out << "LIBMAUS_BAMBAM_FREAD1"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FREAD2: out << "LIBMAUS_BAMBAM_FREAD2"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY: out << "LIBMAUS_BAMBAM_FSECONDARY"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL: out << "LIBMAUS_BAMBAM_FQCFAIL"; break;
-				case BamFlagBase::LIBMAUS_BAMBAM_FDUP: out << "LIBMAUS_BAMBAM_FDUP"; break;
-			}
-			
-			return out;
-		}
+		};		
 	}
 }
 #endif

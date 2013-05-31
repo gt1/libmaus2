@@ -25,10 +25,17 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * helper class for decoding query sequences
+		 **/
 		struct BamSeqEncodeTable
 		{
+			//! mapping table
 			::libmaus::autoarray::AutoArray<uint8_t> A;
 		
+			/**
+			 * constructor
+			 **/
 			BamSeqEncodeTable()
 			: A(256)
 			{
@@ -39,6 +46,12 @@ namespace libmaus
 					A [ s[i] ] = i;
 			}
 			
+			/**
+			 * get code for base i
+			 *
+			 * @param i base symbol
+			 * @return code for i
+			 **/
 			uint8_t operator[](uint8_t const i) const
 			{
 				return A[i];

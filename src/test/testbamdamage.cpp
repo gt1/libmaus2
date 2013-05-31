@@ -13,11 +13,11 @@ int main()
 		// double const errfreq = 1e-6;
 		// srand(time(0));
 		::libmaus::random::Random::setup();
-		::libmaus::bambam::BamWriter writer(std::cout,bamdec.bamheader);
+		::libmaus::bambam::BamWriter writer(std::cout,bamdec.getHeader());
 
 		uint64_t red = 0;			
 		uint64_t total = 0;
-		while ( (bamdec.GZ.read(C.begin(),C.size())) && (red=bamdec.GZ.gcount()) )
+		while ( (bamdec.getStream().read(C.begin(),C.size())) && (red=bamdec.getStream().gcount()) )
 		{
 			uint64_t off = 0;
 				
@@ -34,7 +34,7 @@ int main()
 			}
 				
 				
-			writer.bgzfos.write(C.begin(),red);		
+			writer.getStream().write(C.begin(),red);		
 			total += red;
 		}		
 	}

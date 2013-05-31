@@ -16,28 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_COLLATINGBAMDECODERALIGNMENTINPUTCALLBACK_HPP)
-#define LIBMAUS_BAMBAM_COLLATINGBAMDECODERALIGNMENTINPUTCALLBACK_HPP
+#include <libmaus/bambam/ReadGroup.hpp>
 
-#include <libmaus/bambam/BamAlignment.hpp>
-
-namespace libmaus
+std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadGroup const & RG)
 {
-	namespace bambam
-	{
-		/**
-		 * input callback for collating bam decoders
-		 **/
-		struct CollatingBamDecoderAlignmentInputCallback
-		{
-			/**
-			 * pure virtual input callback; this is to be called each time a collating
-			 * decoder decodes an alignment from the original stream
-			 *
-			 * @param A alignment structure
-			 **/
-			virtual void operator()(::libmaus::bambam::BamAlignment const & A) = 0;
-		};
-	}
+	out << "ReadGroup(ID=" << RG.ID;
+	
+	for ( ::libmaus::util::unordered_map<std::string,std::string>::type::const_iterator ita = RG.M.begin();
+		ita != RG.M.end(); ++ita )
+		out << "," << ita->first << "=" << ita->second;
+	
+	out << ")";
+
+	return out;
 }
-#endif

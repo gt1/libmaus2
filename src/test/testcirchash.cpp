@@ -65,17 +65,17 @@ void bamcollate(libmaus::util::ArgInfo const & arginfo)
 		
 		if ( ob->fpair )
 		{
-			libmaus::bambam::EncoderBase::putLE< libmaus::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.bgzfos,ob->blocksizea);
-			bamwr.bgzfos.write(reinterpret_cast<char const *>(ob->Da),ob->blocksizea);
-			libmaus::bambam::EncoderBase::putLE< libmaus::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.bgzfos,ob->blocksizeb);
-			bamwr.bgzfos.write(reinterpret_cast<char const *>(ob->Db),ob->blocksizeb);
+			libmaus::bambam::EncoderBase::putLE< libmaus::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.getStream(),ob->blocksizea);
+			bamwr.getStream().write(reinterpret_cast<char const *>(ob->Da),ob->blocksizea);
+			libmaus::bambam::EncoderBase::putLE< libmaus::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.getStream(),ob->blocksizeb);
+			bamwr.getStream().write(reinterpret_cast<char const *>(ob->Db),ob->blocksizeb);
 
 			cnt += 2;
 		}
 		else if ( ob->fsingle || ob->forphan1 || ob->forphan2 )
 		{
-			libmaus::bambam::EncoderBase::putLE< libmaus::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.bgzfos,ob->blocksizea);
-			bamwr.bgzfos.write(reinterpret_cast<char const *>(ob->Da),ob->blocksizea);
+			libmaus::bambam::EncoderBase::putLE< libmaus::lz::BgzfDeflate<std::ostream>,uint32_t>(bamwr.getStream(),ob->blocksizea);
+			bamwr.getStream().write(reinterpret_cast<char const *>(ob->Da),ob->blocksizea);
 
 			cnt += 1;
 		}

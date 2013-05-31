@@ -28,19 +28,38 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * BAM file writing class
+		 **/
 		struct BamWriter : public ::libmaus::bambam::BamAlignmentEncoderBase
 		{
+			//! this type
 			typedef BamWriter this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			private:
+			//! output stream pointer
 			::libmaus::util::unique_ptr<std::ofstream>::type Postr;
+			//! output stream reference
 			std::ostream & ostr;
-			// ::libmaus::lz::BGZFOutputStream bgzfos;
+			//! compressor object
 			::libmaus::lz::BgzfDeflate<std::ostream> bgzfos;
+			//! encoding table
 			::libmaus::bambam::BamSeqEncodeTable seqtab;
+			//! encoding buffer
 			::libmaus::fastx::UCharBuffer ubuffer;
+			//! BAM header
 			::libmaus::bambam::BamHeader header;
 			
+			public:
+			/**
+			 * constructor for stream
+			 *
+			 * @param rostr output stream
+			 * @param rheader BAM header
+			 * @param level zlib compression level
+			 **/
 			BamWriter(
 				std::ostream & rostr, 
 				::libmaus::bambam::BamHeader const & rheader, 
@@ -51,6 +70,13 @@ namespace libmaus
 				header.produceHeader();
 				header.serialise(bgzfos);
 			}
+			/**
+			 * constructor for file
+			 *
+			 * @param filename output file name
+			 * @param rheader BAM header
+			 * @param level zlib compression level
+			 **/
 			BamWriter(
 				std::string const & filename, 
 				::libmaus::bambam::BamHeader const & rheader, 
@@ -62,6 +88,9 @@ namespace libmaus
 				header.serialise(bgzfos);	
 			}
 
+			/**
+			 * destructor, writes EOF block and flushes stream
+			 **/
 			~BamWriter()
 			{
 				// bgzfos.flush();
@@ -69,6 +98,25 @@ namespace libmaus
 				ostr.flush();
 			}
 
+			/**
+			 * encode a complete alignment block
+			 *
+			 * @param name iterator for name
+			 * @param namelen length of query name
+			 * @param refid reference id
+			 * @param pos position
+			 * @param mapq mapping quality
+			 * @param flags alignment flags
+			 * @param cigar encoded cigar array
+			 * @param cigarlen number of cigar operations
+			 * @param nextrefid reference id of next/mate
+			 * @param nextpos position of next/matex
+			 * @param tlen template length
+			 * @param seq sequence
+			 * @param seqlen length of query sequence
+			 * @param qual quality string
+			 * @param quality offset (default 33)
+			 **/	
 			template<
 				typename name_iterator,
 				typename cigar_iterator,
@@ -98,6 +146,22 @@ namespace libmaus
 					tlen,seq,seqlen,qual,qualoffset);
 			}
 
+			/**
+			 * encode a complete alignment block
+			 *
+			 * @param name string containing query name
+			 * @param refid reference id
+			 * @param pos position
+			 * @param mapq mapping quality
+			 * @param flags alignment flags
+			 * @param cigar string containing the plain text cigar string
+			 * @param nextrefid reference id of next/mate
+			 * @param nextpos position of next/matex
+			 * @param tlen template length
+			 * @param seq string containing the query string
+			 * @param qual string containing the quality string
+			 * @param quality offset (default 33)
+			 **/	
 			void encodeAlignment(
 				std::string const & name,
 				int32_t const refid,
@@ -117,12 +181,25 @@ namespace libmaus
 					name,refid,pos,mapq,flags,cigar,nextrefid,nextpos,tlen,seq,qual,qualoffset);
 			}
 
+			/**
+			 * put auxiliary tag with string content
+			 *
+			 * @param tag two character aux id
+			 * @param value field content
+			 **/
 			template<typename value_type>
 			void putAuxString(std::string const & tag, value_type const & value)
 			{
 				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString<value_type>(ubuffer,tag,value);
 			}
 
+			/**
+			 * put auxiliary tag with number content
+			 *
+			 * @param tag two character aux id
+			 * @param type field type
+			 * @param value field content
+			 **/
 			template<typename value_type>
 			void putAuxNumber(
 				std::string const & tag,
@@ -133,6 +210,13 @@ namespace libmaus
 				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber<value_type>(ubuffer,tag,type,value);
 			}
 
+			/**
+			 * put auxiliary tag with number array content
+			 *
+			 * @param tag two character aux id
+			 * @param type field type
+			 * @param values field content vector
+			 **/
 			template<typename value_type>
 			void putAuxNumberArray(
 				std::string const & tag, 
@@ -143,11 +227,21 @@ namespace libmaus
 				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray<value_type>(ubuffer,tag,type,values);
 			}
 			
+			/**
+			 * write encoded alignment block to stream
+			 **/
 			void commit()
 			{
 				::libmaus::bambam::BamAlignmentEncoderBase::writeToStream(ubuffer,bgzfos);
 			}
 
+			/**
+			 * @return compressor stream
+			 **/
+			::libmaus::lz::BgzfDeflate<std::ostream> & getStream()
+			{
+				return bgzfos;
+			}
 		};
 	}
 }
