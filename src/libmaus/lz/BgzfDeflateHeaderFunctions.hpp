@@ -112,7 +112,7 @@ namespace libmaus
 			{
 				// set size of compressed block in header
 				unsigned int const blocksize = headersize/*header*/+8/*footer*/+payloadsize-1;
-				assert ( blocksize < 64*1024 );
+				assert ( blocksize < maxblocksize );
 				outbuf[16] = (blocksize >> 0) & 0xFF;
 				outbuf[17] = (blocksize >> 8) & 0xFF;
 				
