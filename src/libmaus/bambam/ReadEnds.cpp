@@ -19,3 +19,42 @@
 #include <libmaus/bambam/ReadEnds.hpp>
 
 ::libmaus::util::DigitTable const ::libmaus::bambam::ReadEndsBase::D;
+
+std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo)
+{
+	switch ( reo )
+	{
+		case libmaus::bambam::ReadEnds::F: out << "F"; break;
+		case libmaus::bambam::ReadEnds::R: out << "R"; break;
+		case libmaus::bambam::ReadEnds::FF: out << "FF"; break;
+		case libmaus::bambam::ReadEnds::FR: out << "FR"; break;
+		case libmaus::bambam::ReadEnds::RF: out << "RF"; break;
+		case libmaus::bambam::ReadEnds::RR: out << "RR"; break;
+	}
+	
+	return out;
+}
+
+std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE)
+{
+	out << "ReadEnds("
+		<< "libId=" << RE.libraryId << ","
+		<< "r1Seq=" << RE.read1Sequence << ","
+		<< "r1Cor=" << RE.read1Coordinate << ","
+		<< "orie=" << RE.orientation << ","
+		<< "r2Seq=" << RE.read2Sequence << ","
+		<< "r2Cor=" << RE.read2Coordinate << ","
+		<< "r1Rank=" << RE.read1IndexInFile << ","
+		<< "r2Rank=" << RE.read2IndexInFile << ","
+		<< "score=" << RE.score << ","
+		<< "RG=" << RE.readGroup << ","
+		<< "tile=" << static_cast<int>(RE.tile) << ","
+		<< "x=" << RE.x << ","
+		<< "y=" << RE.y 
+		<< ")";
+		
+	if ( RE.p )
+		out << "[" << RE.p->getName() << "]";
+		
+	return out;
+}

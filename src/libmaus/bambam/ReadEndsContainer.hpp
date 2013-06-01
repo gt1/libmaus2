@@ -33,33 +33,56 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * container class for ReadEnds objects
+		 **/
 		struct ReadEndsContainer : public ::libmaus::bambam::CompactReadEndsBase 
 		{
+			//! this type
 			typedef ReadEndsContainer this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
+			private:
+			//! digit table
 			static ::libmaus::util::DigitTable const D;
 
+			//! in table index type
 			typedef uint32_t index_type;
+			//! index size
 			enum { index_type_size = sizeof(index_type) };
+			//! buffer array
 			::libmaus::autoarray::AutoArray<index_type> A;
 			
+			//! index insertion pointer (from back of A)
 			index_type * iptr;
+			//! data insert pointer (from front of A)
 			uint8_t * dptr;
 			
+			//! temporary file name
 			std::string const tempfilename;
 			
+			//! temporary output file stream
 			::libmaus::aio::CheckedOutputStream::unique_ptr_type tempfileout;
 			
+			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
+			//! index for blocks in temporary file
 			std::vector < upair > tmpoffsetintervals;
+			//! number of objects stored in each block of temporary file
 			std::vector < uint64_t > tmpoutcnts;
 			
+			//! if true then copy alignments
 			bool const copyAlignments;
 			
+			//! minimum length of stored objcts in bytes (for determining how many runs of radix sort are possible)
 			uint64_t minlen;
 
+			/**
+			 * @return temporary file output stream
+			 **/
 			::libmaus::aio::CheckedOutputStream & getTempFile()
 			{
 				if ( ! tempfileout.get() )
@@ -70,40 +93,11 @@ namespace libmaus
 				return *tempfileout;
 			}
 
-			ReadEndsContainer(
-				uint64_t const bytes, std::string const & rtempfilename,
-				bool const rcopyAlignments = false
-			)
-			: A( (bytes + index_type_size - 1) / index_type_size, false ), 
-			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
-			  tempfilename(rtempfilename), copyAlignments(rcopyAlignments),
-			  minlen(std::numeric_limits<uint64_t>::max())
-			{
-			
-			}
-			
-			void releaseArray()
-			{
-				A.release();				
-				iptr = A.end();
-			}
-
-			::libmaus::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
-			{
-				flush();
-
-                                getTempFile().flush();
-                                tempfileout.reset();
-
-				releaseArray();
-				
-				return UNIQUE_PTR_MOVE(
-					::libmaus::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
-				);
-			}
-			
 			#define READENDSRADIXSORT
 			
+			/**
+			 * @return free space in buffer in bytes
+			 **/
 			uint64_t freeSpace() const
 			{
 				uint64_t const textdata = dptr-reinterpret_cast<uint8_t const *>(A.begin());
@@ -118,6 +112,12 @@ namespace libmaus
 				#endif
 			}
 			
+			/**
+			 * decode entry at offset ioff
+			 *
+			 * @param ioff offset in buffer
+			 * @param RE reference to object to be filled
+			 **/
 			void decodeEntry(uint64_t const ioff, ::libmaus::bambam::ReadEnds & RE) const
 			{
 				uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
@@ -128,6 +128,12 @@ namespace libmaus
 				RE.get(G);	
 			}
 
+			/**
+			 * store compact read ends object at offset ioff in array and return it
+			 *
+			 * @param ioff offset in buffer
+			 * @param compact read ends object at offset ioff in buffer
+			 **/
 			::libmaus::autoarray::AutoArray<uint8_t> decodeEntryArray(uint64_t const ioff) const
 			{
 				uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
@@ -139,6 +145,12 @@ namespace libmaus
 				return A;
 			}
 			
+			/**
+			 * decode and return ReadEnds object at offset ioff
+			 *
+			 * @param ioff offset in buffer
+			 * @return decoded ReadEnds object
+			 **/
 			::libmaus::bambam::ReadEnds decodeEntry(uint64_t const ioff) const
 			{
 				::libmaus::bambam::ReadEnds RE;
@@ -146,12 +158,29 @@ namespace libmaus
 				return RE;
 			}
 			
+			/**
+			 * projector type for radix sort
+			 **/
 			struct RadixProjectorType
 			{
+				private:
+				//! buffer array
 				uint8_t const * const A;
 				
+				public:
+				/**
+				 * constructor
+				 *
+				 * @param rA buffer
+				 **/
 				RadixProjectorType(uint8_t const * const rA) : A(rA) {}
 				
+				/**
+				 * project object at offset i to its first 8 bytes
+				 *
+				 * @param i offset in buffer
+				 * @return first eight bytes of compact object
+				 **/
 				uint64_t operator()(uint64_t const i) const
 				{
 					uint8_t const * p = A+i; 
@@ -160,13 +189,30 @@ namespace libmaus
 				}
 			};
 
+			/**
+			 * projector type for radix sort including offset
+			 **/
 			struct RadixProjectorTypeOffset
 			{
+				private:
+				//! buffer
 				uint8_t const * const A;
+				//! offset
 				uint64_t const offset;
 				
+				public:
+				/**
+				 * construct
+				 *
+				 * @param rA buffer
+				 * @param roffset offset
+				 **/
 				RadixProjectorTypeOffset(uint8_t const * const rA, uint64_t const roffset) : A(rA), offset(roffset) {}
 				
+				/**
+				 * @param i offset in buffer
+				 * @return eight bytes from compact read ends representation starting from offset of object
+				 **/
 				uint64_t operator()(uint64_t const i) const
 				{
 					uint8_t const * p = A+i; 
@@ -174,7 +220,100 @@ namespace libmaus
 					return *(reinterpret_cast<uint64_t const *>(p+offset));
 				}
 			};
+
+			/**
+			 * put R in buffer
+			 *
+			 * @param R object to be put in buffer
+			 **/
+			void put(::libmaus::bambam::ReadEnds const & R)
+			{
+				// assert ( R.recode() == R );
 			
+				// compute space required for adding R
+				uint64_t const entryspace = getEntryLength(R);
+				uint64_t const numlen = getNumberLength(entryspace);
+				uint64_t const idexlen = sizeof(index_type);
+				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+				uint64_t const reqspace = entryspace+numlen+2*idexlen;
+				#else
+				uint64_t const reqspace = entryspace+numlen+idexlen;
+				#endif
+				
+				assert ( reqspace <= A.size() * sizeof(index_type) );
+				
+				// flush buffer if needed
+				if ( reqspace > freeSpace() )
+					flush();
+					
+				minlen = std::min(entryspace,minlen);
+				
+				// store current offset
+				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
+				
+				// put entry
+				::libmaus::util::PutObject<uint8_t *> P(dptr);
+				// put length
+				::libmaus::util::UTF8::encodeUTF8(entryspace,P);
+				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen) );
+				// put entry data
+				R.put(P);
+				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen+entryspace) );
+				
+				dptr = P.p;		
+			}
+
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param bytes size of buffer in bytes
+			 * @param rtempfilename name of temporary file
+			 * @param rcopyAlignments copy alignments along with read ends objects
+			 **/ 
+			ReadEndsContainer(
+				uint64_t const bytes, std::string const & rtempfilename,
+				bool const rcopyAlignments = false
+			)
+			: A( (bytes + index_type_size - 1) / index_type_size, false ), 
+			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
+			  tempfilename(rtempfilename), copyAlignments(rcopyAlignments),
+			  minlen(std::numeric_limits<uint64_t>::max())
+			{
+			
+			}
+			
+			/**
+			 * release buffer array
+			 **/
+			void releaseArray()
+			{
+				A.release();				
+				iptr = A.end();
+			}
+
+			/**
+			 * get decoder for reading back sorted stored objects
+			 *
+			 * @return decoder for reading back sorted stored objects
+			 **/
+			::libmaus::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
+			{
+				flush();
+
+                                getTempFile().flush();
+                                tempfileout.reset();
+
+				releaseArray();
+				
+				return UNIQUE_PTR_MOVE(
+					::libmaus::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
+				);
+			}
+			
+			/**
+			 * flush buffer
+			 **/
 			void flush()
 			{
 				if ( iptr != A.end() )
@@ -306,57 +445,33 @@ namespace libmaus
 				minlen = std::numeric_limits<uint64_t>::max();
 			}
 			
-			void put(::libmaus::bambam::ReadEnds const & R)
-			{
-				// assert ( R.recode() == R );
-			
-				// compute space required for adding R
-				uint64_t const entryspace = getEntryLength(R);
-				uint64_t const numlen = getNumberLength(entryspace);
-				uint64_t const idexlen = sizeof(index_type);
-				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
-				uint64_t const reqspace = entryspace+numlen+2*idexlen;
-				#else
-				uint64_t const reqspace = entryspace+numlen+idexlen;
-				#endif
-				
-				assert ( reqspace <= A.size() * sizeof(index_type) );
-				
-				// flush buffer if needed
-				if ( reqspace > freeSpace() )
-					flush();
-					
-				minlen = std::min(entryspace,minlen);
-				
-				// store current offset
-				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
-				
-				// put entry
-				::libmaus::util::PutObject<uint8_t *> P(dptr);
-				// put length
-				::libmaus::util::UTF8::encodeUTF8(entryspace,P);
-				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen) );
-				// put entry data
-				R.put(P);
-				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen+entryspace) );
-				
-				dptr = P.p;		
-			}
-			
+			/**
+			 * construct fragment ReadEnds object from p and put it in the buffer
+			 *
+			 * @param p alignment
+			 * @param header BAM header
+			 **/
 			void putFrag(::libmaus::bambam::BamAlignment const & p, ::libmaus::bambam::BamHeader const & header)
 			{
-				::libmaus::bambam::ReadEnds RE(p,header,RE, copyAlignments);
+				::libmaus::bambam::ReadEnds RE(p,header, /* RE, */ copyAlignments);
 				// fillFrag(p,header,RE);
 				put(RE);
 			}
 
+			/**
+			 * construct pair ReadEnds object from p and q and put it in the buffer
+			 *
+			 * @param p alignment
+			 * @param q alignment
+			 * @param header BAM header
+			 **/
 			void putPair(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
 				::libmaus::bambam::BamHeader const & header
 			)
 			{
-				::libmaus::bambam::ReadEnds RE(p,q,header,RE, copyAlignments);
+				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments);
 				// fillFragPair(p,q,header,RE);
 				put(RE);
 			}

@@ -27,15 +27,30 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * comparator class for ReadEnds objects in compact representation
+		 **/
 		struct CompactReadEndsComparator : public ::libmaus::bambam::CompactReadEndsBase
 		{
+			//! data block pointer
 			uint8_t const * D;
 			
+			/**
+			 * constructor
+			 *
+			 * @param rD data block pointer
+			 **/
 			CompactReadEndsComparator(uint8_t const * rD) : D(rD)
 			{
 			
 			}
 			
+			/**
+			 * prepare all read ends in block for comparison
+			 *
+			 * @param pa block pointer
+			 * @param n block size
+			 **/
 			static void prepare(uint8_t * pa, uint64_t const n)
 			{
 				#if defined(LIBMAUS_HAVE_x86_64)
@@ -57,6 +72,13 @@ namespace libmaus
 				#endif
 			}
 
+			/**
+			 * compare read ends at offsets a and b in block
+			 *
+			 * @param a offset of first read end
+			 * @param b offset of second read end
+			 * @return a < b
+			 **/
 			bool operator()(uint32_t const a, uint32_t const b) const
 			{
 				uint8_t const * pa = D+a;

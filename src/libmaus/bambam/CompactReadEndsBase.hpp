@@ -29,10 +29,16 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * base class for compact read ends storage
+		 **/
 		struct CompactReadEndsBase
 		{
 			/*
-			 * decode number in utf8 representation
+			 * decode number in utf8 representation; p will be right behind the number when the function returns
+			 *
+			 * @param p input iterator
+			 * @return decoded length
 			 */
 			static uint32_t decodeLength(uint8_t const * & p)
 			{
@@ -43,7 +49,10 @@ namespace libmaus
 			}
 
 			/*
-			 * decode number in utf8 representation
+			 * decode number in utf8 representation; p will be right behind the number when the function returns
+			 *
+			 * @param p input iterator
+			 * @return decoded length
 			 */
 			static uint32_t decodeLength(uint8_t * & p)
 			{
@@ -55,6 +64,9 @@ namespace libmaus
 			
 			/**
 			 * get length of number in utf8 representation
+			 *
+			 * @param n number
+			 * @return length of n in utf8 representation
 			 **/
 			static uint64_t getNumberLength(uint32_t const n)
 			{
@@ -65,6 +77,9 @@ namespace libmaus
 			
 			/*
 			 * get length of compact entry in bytes
+			 *
+			 * @param R read ends object
+			 * @return length of R in compact representation in bytes
 			 */
 			static uint64_t getEntryLength(::libmaus::bambam::ReadEnds const & R)
 			{
@@ -72,6 +87,14 @@ namespace libmaus
 				R.put(P);
 				return P.c;
 			}
+
+			/*
+			 * get length of compact entry plus one alignment in bytes
+			 *
+			 * @param R read ends object
+			 * @param p alignment
+			 * @return length of R in compact representation in bytes plus length of p in bytes
+			 **/
 			static uint64_t getEntryLength(
 				::libmaus::bambam::ReadEnds const & R,
 				::libmaus::bambam::BamAlignment const & p
@@ -82,6 +105,15 @@ namespace libmaus
 				p.serialise(P);
 				return P.c;
 			}
+
+			/*
+			 * get length of compact entry plus two alignments in bytes
+			 *
+			 * @param R read ends object
+			 * @param p first alignment
+			 * @param q second alignment
+			 * @return length of R in compact representation in bytes plus length of p and q in bytes
+			 **/
 			static uint64_t getEntryLength(
 				::libmaus::bambam::ReadEnds const & R,
 				::libmaus::bambam::BamAlignment const & p,

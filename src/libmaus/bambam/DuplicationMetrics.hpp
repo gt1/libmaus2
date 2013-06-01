@@ -27,22 +27,36 @@
 #define LIBMAUS_BAMBAM_DUPLICATIONMETRICS_HPP
 
 #include <libmaus/types/types.hpp>
+#include <libmaus/exception/LibMausException.hpp>
 #include <ostream>
 #include <cmath>
+#include <map>
 
 namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * duplication metrics class
+		 **/
 		struct DuplicationMetrics
 		{
+			//! number of unmapped reads
 			uint64_t unmapped;
+			//! number of unpaired reads
 			uint64_t unpaired;
+			//! number of examined pairs
 			uint64_t readpairsexamined;
+			//! number of unpaired duplicates
 			uint64_t unpairedreadduplicates;
+			//! number of paired duplicates
 			uint64_t readpairduplicates;
+			//! number of optical duplicates
 			uint64_t opticalduplicates;
 			
+			/**
+			 * constructor
+			 **/
 			DuplicationMetrics()
 			:
 				unmapped(0),
@@ -67,6 +81,10 @@ namespace libmaus
 			 *     X = number of distinct molecules in library
 			 *     N = number of read pairs
 			 *     C = number of distinct fragments observed in read pairs
+			 *
+			 * @param readPairs number of read pairs
+			 * @param uniqueReadPairs number of unique read pairs (total minus duplicates)
+			 * @return estimated library size
 			 */
 			static int64_t estimateLibrarySize(int64_t const readPairs, int64_t const uniqueReadPairs) 
 			{
@@ -106,7 +124,15 @@ namespace libmaus
 				}
 			}
 
-			/** Method that is used in the computation of estimated library size. */
+			/**
+			 * function that is used in the computation of the estimated library size;
+			 * yields c/x - 1 + e^(-n/x)
+			 *
+			 * @param x
+			 * @param c
+			 * @param n
+			 * @return c/x - 1 + e^(-n/x)
+			 **/
 			static double f(double const x, double const c, double const n) 
 			{
 				return c/x - 1 + ::std::exp(-n/x);
@@ -128,6 +154,13 @@ namespace libmaus
 			 	return estimatedLibrarySize * ( 1 - ::std::exp(-(x*pairs)/estimatedLibrarySize) ) / uniquePairs;
 			}
 
+			/**
+			 * print header for duplication metrics stats
+			 *
+			 * @param CL command line
+			 * @param out output stream
+			 * @return output stream
+			 **/
                         static std::ostream & printFormatHeader(std::string const & CL, std::ostream & out)
 			{
                                 out << "# " << CL << std::endl << std::endl << "##METRICS" << std::endl;
@@ -138,6 +171,8 @@ namespace libmaus
 			/**
 			 * Calculates a histogram using the estimateRoi method to estimate the effective yield
 			 * doing x sequencing for x=1..10.
+			 *
+			 * @return ROI histogram
 			 */
 			std::map<unsigned int,double> calculateRoiHistogram()  const
 			{
@@ -163,6 +198,12 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * print histogram
+			 *
+			 * @param out output stream
+			 * @return out
+			 **/
 			std::ostream & printHistogram(std::ostream & out) const
 			{
 				std::map<unsigned int,double> const H = calculateRoiHistogram();
@@ -174,6 +215,13 @@ namespace libmaus
 				return out;
 			}
 
+			/**
+			 * print duplication metrics
+			 *
+			 * @param out output stream
+			 * @param libraryName name of seq library
+			 * @return output stream
+			 **/
 			std::ostream & format(std::ostream & out, std::string const libraryName) const
 			{
 				int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(readpairsexamined - opticalduplicates, readpairsexamined - readpairduplicates);                           
@@ -195,19 +243,15 @@ namespace libmaus
 				return out;
 			}
 		};
-
-		inline std::ostream & operator<<(std::ostream & out, DuplicationMetrics const & M)
-		{
-			out << "unmapped\t" << M.unmapped << std::endl;
-			out << "unpaired\t" << M.unpaired << std::endl;
-			out << "readpairsexamined\t" << M.readpairsexamined << std::endl;
-			out << "unpairedreadduplicates\t" << M.unpairedreadduplicates << std::endl;
-			out << "readpairduplicates\t" << M.readpairduplicates << std::endl;
-			out << "opticalduplicates\t" << M.opticalduplicates << std::endl;
-			// out << "unmapped\t" << M.unmapped << std::endl;
-			return out;
-		}
 	}
 }
-#endif
 
+/**
+ * print DuplicationMetrics object on output stream out
+ *
+ * @param out output stream
+ * @param M duplication metrics object
+ * @return output stream
+ **/
+std::ostream & operator<<(std::ostream & out, libmaus::bambam::DuplicationMetrics const & M);
+#endif

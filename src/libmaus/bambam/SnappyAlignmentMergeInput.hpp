@@ -29,23 +29,49 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * merging read back class for snappy encoded, sorted alignment blocks
+		 **/
 		struct SnappyAlignmentMergeInput
 		{
+			//! this type
 			typedef SnappyAlignmentMergeInput this_type;
+			//! unique pointer type
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
+			private:
+			//! block index
 			std::vector < std::pair < uint64_t, uint64_t > > index;
+			//! snappy decoder array
 			libmaus::autoarray::AutoArray < libmaus::lz::SnappyOffsetFileInputStream::unique_ptr_type > streams;
+			//! alignments
 			libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignment > data;
+			//! alignment name comparator
 			libmaus::bambam::BamAlignmentNameComparator const namecomp;
+			//! heap comparator
 			libmaus::bambam::BamAlignmentHeapComparator < libmaus::bambam::BamAlignmentNameComparator > const heapcomp;
+			//! heap
 			std::priority_queue<uint64_t,std::vector<uint64_t>,libmaus::bambam::BamAlignmentHeapComparator < libmaus::bambam::BamAlignmentNameComparator > > Q;
 			
+			public:
+			/**
+			 * construct decoder
+			 *
+			 * @param rindex block index
+			 * @param fn file name
+			 * @return decoder object
+			 **/
 			static unique_ptr_type construct(std::vector < std::pair < uint64_t, uint64_t > > const & rindex, std::string const & fn)
 			{
 				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(rindex,fn)));
 			}
 			
+			/**
+			 * constructor
+			 *
+			 * @param rindex block index
+			 * @param fn file name
+			 **/
 			SnappyAlignmentMergeInput(
 				std::vector < std::pair < uint64_t, uint64_t > > const & rindex,
 				std::string const & fn)
@@ -66,6 +92,12 @@ namespace libmaus
 					}
 			}
 			
+			/**
+			 * decode next alignment
+			 *
+			 * @param algn reference to alignment object to be filled
+			 * @return true iff next alignment could be read, false when no more alignments are available
+			 **/
 			bool readAlignment(libmaus::bambam::BamAlignment & algn)
 			{
 				if ( Q.empty() )

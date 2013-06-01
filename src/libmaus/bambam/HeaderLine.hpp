@@ -31,22 +31,43 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * SAM/BAM header line class
+		 **/
 		struct HeaderLine
 		{
+			//! line text
 			std::string line;
+			//! type of line (HD, SQ, ...)
 			std::string type;
+			//! attribute map
 			std::map<std::string,std::string> M;
 			
+			/**
+			 * constructor for invalid/empty line
+			 **/
 			HeaderLine()
 			{
 			
 			}
 			
+			/**
+			 * check line for key
+			 *
+			 * @param key
+			 * @return true iff attribute for key is present
+			 **/
 			bool hasKey(std::string const & key) const
 			{
 				return M.find(key) != M.end();
 			}
 			
+			/**
+			 * get value for key, throws exception if key is not present
+			 *
+			 * @param key
+			 * @return value for key
+			 **/
 			std::string getValue(std::string const & key) const
 			{
 				if ( ! hasKey(key) )
@@ -60,11 +81,20 @@ namespace libmaus
 				return M.find(key)->second;
 			}
 			
+			/**
+			 * @return true iff line is a PG line
+			 **/
 			bool isProgramLine() const
 			{
 				return type == "PG";
 			}
 			
+			/**
+			 * extract vector of lines from header text
+			 *
+			 * @param headertext header text
+			 * @return vector of header lines
+			 **/
 			static std::vector<HeaderLine> extractLines(std::string const & headertext)
 			{
 				std::istringstream istr(headertext);
@@ -86,6 +116,13 @@ namespace libmaus
 				return lines;
 			}
 
+			/**
+			 * extract vector of lines from header text while keeping only the lines matching the filter
+			 *
+			 * @param headertext header text
+			 * @param filter line type filter
+			 * @return vector of header lines matching filter
+			 **/
 			static std::vector<HeaderLine> extractLinesByType(std::string const & headertext, std::set<std::string> const & filter)
 			{
 				std::istringstream istr(headertext);
@@ -108,6 +145,13 @@ namespace libmaus
 				return lines;
 			}
 			
+			/**
+			 * extract vector of lines from header text; only lines of type are kept
+			 *
+			 * @param headertext header text
+			 * @param type line type
+			 * @return vector of header lines matching type
+			 **/
 			static std::vector<HeaderLine> extractLinesByType(std::string const & header, std::string const & type)
 			{
 				std::set<std::string> S;
@@ -115,11 +159,22 @@ namespace libmaus
 				return extractLinesByType(header,S);
 			}
 			
+			/**
+			 * extract PG lines from header text
+			 *
+			 * @param header header text
+			 * @return vector containing PG lines
+			 **/
 			static std::vector<HeaderLine> extractProgramLines(std::string const & header)
 			{
 				return extractLinesByType(header,"PG");
 			}
 			
+			/**
+			 * construct object from text line
+			 *
+			 * @param rline SAM/BAM header line
+			 **/
 			HeaderLine(std::string const & rline) : line(rline)
 			{
 				std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize(line,std::string("\t"));

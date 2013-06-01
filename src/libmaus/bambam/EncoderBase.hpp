@@ -26,8 +26,17 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * encoder base class
+		 **/
 		struct EncoderBase
 		{
+			/**
+			 * write number N as little endian on stream; sizeof(N) is used for determining the length of the code
+			 *
+			 * @param stream output stream
+			 * @param v number to be encoded
+			 **/
 			template<typename stream_type, typename N>
 			static void putLE(stream_type & stream, N const v)
 			{

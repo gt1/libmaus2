@@ -26,15 +26,29 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * set of PG header lines in a SAM/BAM header
+		 **/
 		struct ProgramHeaderLineSet
 		{
+			//! vector of PG lines
 			std::vector<HeaderLine> lines;
+			//! map ID -> line number
 			std::map<std::string,uint64_t> idmap;
+			//! parent map (parent[i] is the parent of line i, -1 if not parent)
 			std::vector<int64_t> parent;
+			//! vector of roots (this should be exactly one unless the header is broken)
 			std::vector<uint64_t> roots;
+			//! PG tree edges
 			std::map< uint64_t,std::vector<uint64_t> > edges;
 			
+			/**
+			 * constructor for empty PG line set
+			 **/
 			ProgramHeaderLineSet() {}
+			/**
+			 * constructor from SAM/BAM header text
+			 **/
 			ProgramHeaderLineSet(std::string const & headertext)
 			: lines(HeaderLine::extractProgramLines(headertext)), parent(lines.size(),-1)
 			{
@@ -118,6 +132,9 @@ namespace libmaus
 				#endif
 			}		
 			
+			/**
+			 * @return last id in PG id chain
+			 **/
 			std::string getLastIdInChain() const
 			{
 				// no lines -> no parent ID
@@ -144,6 +161,17 @@ namespace libmaus
 				return lines[cur].getValue("ID");
 			}
 
+			/**
+			 * add PG line at the end of the current list; prime symbols (ASCII 39) will be added
+			 * to the ID string until it is unique relative to the already existing ones
+			 *
+			 * @param headertext header text
+			 * @param ID of line to be added
+			 * @param PN program name of line to be added
+			 * @param CL command line of line to be added
+			 * @param PP previous program id (use getLastIdInChain() to obtain it), empty string for none
+			 * @param VN version number of line to be added
+			 **/
 			static std::string addProgramLine(
 				std::string const & headertext,
 				std::string ID,

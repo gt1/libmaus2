@@ -26,8 +26,17 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * decoder base class
+		 **/
 		struct DecoderBase
 		{
+			/**
+			 * get next byte from stream; throws exception on EOF
+			 *
+			 * @param in input stream
+			 * @return next byte
+			 **/
 			template<typename stream_type>	
 			static uint8_t getByte(stream_type & in)
 			{
@@ -44,12 +53,25 @@ namespace libmaus
 				return c;
 			}
 			
+			/**
+			 * get next byte from stream as a word; throws exception on EOF
+			 *
+			 * @param in input stream
+			 * @return next byte as word
+			 **/
 			template<typename stream_type>	
 			static uint64_t getByteAsWord(stream_type & in)
 			{
 				return getByte(in);
 			}
 
+			/**
+			 * get l byte little endian integer from in
+			 *
+			 * @param in input stream
+			 * @param l length of number
+			 * @return decoded number
+			 **/
 			template<typename stream_type>	
 			static uint64_t getLEInteger(stream_type & in, unsigned int const l)
 			{
@@ -59,6 +81,13 @@ namespace libmaus
 				return v;
 			}
 
+			/**
+			 * get l byte little endian integer from D
+			 *
+			 * @param D input array
+			 * @param l length of number
+			 * @return decoded number
+			 **/
 			static uint64_t getLEInteger(uint8_t const * D, unsigned int const l)
 			{
 				uint64_t v = 0;
