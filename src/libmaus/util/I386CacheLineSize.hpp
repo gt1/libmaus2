@@ -29,8 +29,20 @@ namespace libmaus
 	namespace util
 	{
 		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
+		/**
+		 * class for i386 cache line size detection
+		 **/
 		struct I386CacheLineSize
 		{
+			private:
+			/**
+			 * call cpuid function
+			 *
+			 * @param eax register eax
+			 * @param ebx register ebx
+			 * @param ecx register ecx
+			 * @param edx register edx
+			 **/
 			static void cpuid(
 				uint32_t & eax,
 				uint32_t & ebx,
@@ -40,6 +52,11 @@ namespace libmaus
 
 			static unsigned int getCacheLineSizeSingle(unsigned int const val);
 			static unsigned int getCacheLineSize(unsigned int const reg);
+			
+			public:
+			/**
+			 * @return cache line size (0 if it cannot be determined)
+			 **/
 			static unsigned int getCacheLineSize();
 		};
 		#endif

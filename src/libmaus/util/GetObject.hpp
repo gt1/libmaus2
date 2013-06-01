@@ -25,19 +25,41 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * class mapping get operations to iterator reads
+		 **/
 		template<typename _iterator>
 		struct GetObject
 		{
+			//! iterator type
 			typedef _iterator iterator;
+			//! this type
 			typedef GetObject<iterator> this_type;
+			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
+			//! value type
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
-		
+			//! iterator
 			iterator p;
 			
+			/**
+			 * constructor
+			 *
+			 * @param rp iterator
+			 **/
 			GetObject(iterator rp) : p(rp) {}
+			
+			/**
+			 * @return next element
+			 **/
 			value_type get() { return *(p++); }
+			
+			/**
+			 * read next n elements and store them starting at q 
+			 *
+			 * @param q output iterator
+			 * @param n number of elements to extract
+			 **/
 			void read(value_type * q, uint64_t n)
 			{
 				while ( n-- )

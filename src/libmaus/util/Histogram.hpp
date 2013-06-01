@@ -30,23 +30,57 @@ namespace libmaus
 {
 	namespace util
 	{
+		/**
+		 * histogram class; it has a fast low part implemented as an array
+		 * and a slower upper part implemented as a sparse associative array (map)
+		 **/
 		struct Histogram
 		{
+			//! this type
 			typedef Histogram this_type;
+			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
+			//! complete histogram
 			std::map<uint64_t,uint64_t> all;
+			//! low part
 			::libmaus::autoarray::AutoArray<uint64_t> low;
 			
 			public:
+			/**
+			 * constructor with initial histogram
+			 *
+			 * @param rall initial histogram
+			 * @param lowsize size of fast low part
+			 **/
 			Histogram(std::map<uint64_t,uint64_t> const & rall, uint64_t const lowsize = 256);
+			/**
+			 * constructor for empty histogram
+			 *
+			 * @param lowsize size of fast low part
+			 **/
 			Histogram(uint64_t const lowsize = 256);
 			
+			/**
+			 * @return get size of low part
+			 **/
 			uint64_t getLowSize() const;
+			/**
+			 * @return median
+			 **/
 			uint64_t median() const;
+			/**
+			 * @return weighted average
+			 **/
 			double avg() const;
 			
+			/**
+			 * add v to frequency of i
+			 *
+			 * @param i index of value to increase
+			 * @param v value to add
+			 **/
 			void add(uint64_t const i, uint64_t const v)
 			{			
 				if ( i < low.size() )
@@ -55,6 +89,11 @@ namespace libmaus
 					all[i] += v;
 			}
 
+			/**
+			 * increment frequency of i by 1
+			 *
+			 * @param i index whose frequency is to be incremented
+			 **/
 			void operator()(uint64_t const i)
 			{
 				if ( i < low.size() )
@@ -63,11 +102,35 @@ namespace libmaus
 					all[i]++;
 			}
 			
+			/**
+			 * get histogram as map
+			 *
+			 * @return histogram
+			 **/
 			std::map<uint64_t,uint64_t> get() const;
+			/**
+			 * get vector of keys with nonzero values
+			 **/
 			std::vector<uint64_t> getKeyVector();
+			/**
+			 * get total (sum of all frequences)
+			 *
+			 * @return total
+			 **/
 			uint64_t getTotal();
+			/**
+			 * get number of keys with nonzero values
+			 *
+			 * @return number of keys with nonzero values
+			 **/
 			uint64_t getNumPoints();
 
+			/**
+			 * print table with keys printed as type
+			 *
+			 * @param out output stream
+			 * @return out
+			 **/
 			template<typename type>
 			std::ostream & printType(std::ostream & out)
 			{
@@ -79,9 +142,27 @@ namespace libmaus
 				return out;
 			}
 
+			/**
+			 * print table with keys as integers
+			 *
+			 * @param out output stream
+			 * @return out
+			 **/
 			std::ostream & print(std::ostream & out);
+			/**
+			 * print table from low to high keys until cumulative frequency has reached frac times the toal
+			 *
+			 * @param out output stream
+			 * @param frac fragment of histogram to be printed
+			 * @return out
+			 **/
 			std::ostream & printFrac(std::ostream & out, double const frac = 1);
 			
+			/**
+			 * fill given map M with histogram
+			 *
+			 * @param M map to be filled
+			 **/
 			template<typename key_type>
 			void fill (std::map<key_type,uint64_t> & M)
 			{
@@ -92,6 +173,12 @@ namespace libmaus
 					M [ ita->first ] = ita->second;
 				}
 			}
+			
+			/**
+			 * return histogram as map with key_type as key type
+			 *
+			 * @return histogram as map with key_type as key type
+			 **/
 			template<typename key_type>
 			std::map<key_type,uint64_t> getByType()
 			{
@@ -100,7 +187,15 @@ namespace libmaus
 				return M;
 			}			
 
+			/**
+			 * @return vector with (freq,key) pairs
+			 **/
 			std::vector < std::pair<uint64_t,uint64_t > > getFreqSymVector();
+			/**
+			 * merge other histogram into this one
+			 *
+			 * @param other histogram to be merged into this one
+			 **/
 			void merge(::libmaus::util::Histogram const & other);
 		};
 	}
