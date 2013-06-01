@@ -74,6 +74,7 @@ namespace libmaus
 			 *
 			 * @param arginfo argument key=value pairs
 			 * @param opt bamtofastq option (one of "F","F2","O","O2","S")
+			 * @param files file map
 			 * @return output stream 
 			 **/
 			static std::ostream & getFile(libmaus::util::ArgInfo const & arginfo, std::string const opt, std::map < std::string, libmaus::aio::CheckedOutputStream::shared_ptr_type > & files)

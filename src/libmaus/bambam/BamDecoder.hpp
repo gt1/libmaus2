@@ -92,7 +92,7 @@ namespace libmaus
 			/**
 			 * constructor by compressed input stream
 			 *
-			 * @param istream input stream delivering BAM
+			 * @param in input stream delivering BAM
 			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
 			 **/
 			BamDecoderTemplate(std::istream & in, bool const rputrank = false)

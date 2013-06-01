@@ -1403,7 +1403,7 @@ namespace libmaus
 			/**
 			 * decode quality string to S
 			 * 
-			 * @param S output iterator
+			 * @param it output iterator
 			 * @param seqlen length of quality string
 			 * @return output iterator after writing the quality string
 			 **/
@@ -1416,7 +1416,7 @@ namespace libmaus
 			/**
 			 * decode reverse quality string to S
 			 * 
-			 * @param S output iterator
+			 * @param it output iterator
 			 * @param seqlen length of quality string
 			 * @return output iterator after writing the reverse quality string
 			 **/

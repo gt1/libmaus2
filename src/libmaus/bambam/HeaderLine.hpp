@@ -148,7 +148,7 @@ namespace libmaus
 			/**
 			 * extract vector of lines from header text; only lines of type are kept
 			 *
-			 * @param headertext header text
+			 * @param header header text
 			 * @param type line type
 			 * @return vector of header lines matching type
 			 **/

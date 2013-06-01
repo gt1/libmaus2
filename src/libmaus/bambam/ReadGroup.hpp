@@ -41,7 +41,9 @@ namespace libmaus
 			//! library id
 			int64_t LBid;
 			
-			//! construct invalid read group
+			/**
+			 * construct invalid read group
+			 **/
 			ReadGroup()
 			: LBid(-1)
 			{
@@ -93,5 +95,12 @@ namespace libmaus
 	}
 }
 
+/**
+ * format read group for output stream
+ *
+ * @param out output stream
+ * @param RG read group
+ * @return out
+ **/
 std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadGroup const & RG);
 #endif

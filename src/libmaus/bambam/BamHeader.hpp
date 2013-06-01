@@ -360,9 +360,6 @@ namespace libmaus
 			}
 			
 			/**
-			 * @param default sort order if no order is present in the header text
-			 * @return BAM sort order as recorded in header text or defaultSortorder if not given
-			 *
 			 * @param defaultSortorder default order to be returned if no order is recorded in the text
 			 * @return BAM sort order
 			 **/

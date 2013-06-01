@@ -34,7 +34,7 @@ namespace libmaus
 		 **/
 		struct CompactReadEndsBase
 		{
-			/*
+			/**
 			 * decode number in utf8 representation; p will be right behind the number when the function returns
 			 *
 			 * @param p input iterator
@@ -48,7 +48,7 @@ namespace libmaus
 				return len;
 			}
 
-			/*
+			/**
 			 * decode number in utf8 representation; p will be right behind the number when the function returns
 			 *
 			 * @param p input iterator
@@ -75,7 +75,7 @@ namespace libmaus
 				return P.c;
 			}
 			
-			/*
+			/**
 			 * get length of compact entry in bytes
 			 *
 			 * @param R read ends object
@@ -88,7 +88,7 @@ namespace libmaus
 				return P.c;
 			}
 
-			/*
+			/**
 			 * get length of compact entry plus one alignment in bytes
 			 *
 			 * @param R read ends object
@@ -106,7 +106,7 @@ namespace libmaus
 				return P.c;
 			}
 
-			/*
+			/**
 			 * get length of compact entry plus two alignments in bytes
 			 *
 			 * @param R read ends object

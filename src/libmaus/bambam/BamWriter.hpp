@@ -115,7 +115,7 @@ namespace libmaus
 			 * @param seq sequence
 			 * @param seqlen length of query sequence
 			 * @param qual quality string
-			 * @param quality offset (default 33)
+			 * @param qualoffset quality offset (default 33)
 			 **/	
 			template<
 				typename name_iterator,
@@ -160,7 +160,7 @@ namespace libmaus
 			 * @param tlen template length
 			 * @param seq string containing the query string
 			 * @param qual string containing the quality string
-			 * @param quality offset (default 33)
+			 * @param qualoffset quality offset (default 33)
 			 **/	
 			void encodeAlignment(
 				std::string const & name,
