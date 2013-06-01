@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 
 		::libmaus::bambam::ScramDecoder dec("-","rc","");
 
-		std::cout << dec.bamheader.text;
+		std::cout << dec.getHeader().text;
 			
 		while ( dec.readAlignment() )
 		{
