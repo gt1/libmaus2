@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFDEFLATEBLOCKIDCOMPARATOR_HPP
 
 #include <libmaus/lz/BgzfDeflateBase.hpp>
+#include <libmaus/lz/BgzfThreadOpBase.hpp>
 
 namespace libmaus
 {
@@ -37,6 +38,18 @@ namespace libmaus
 			bool operator()(uint64_t const i, uint64_t const j) const
 			{
 				return deflateB[i]->blockid > deflateB[j]->blockid;
+			}		
+
+			bool operator()(
+				std::pair<
+					libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_type,uint64_t
+				> const i,
+				std::pair<
+					libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_type,uint64_t
+				> const j
+			) const
+			{
+				return deflateB[i.second]->blockid > deflateB[j.second]->blockid;
 			}		
 		};
 	}

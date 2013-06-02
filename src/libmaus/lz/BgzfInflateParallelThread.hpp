@@ -27,18 +27,17 @@
 #include <libmaus/lz/BgzfInflateBlockIdComparator.hpp>
 #include <libmaus/lz/BgzfInflateBlockIdInfo.hpp>
 #include <libmaus/lz/BgzfInflateParallelContext.hpp>
+#include <libmaus/lz/BgzfThreadOpBase.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfInflateParallelThread : public libmaus::parallel::PosixThread
+		struct BgzfInflateParallelThread : public libmaus::parallel::PosixThread, public ::libmaus::lz::BgzfThreadOpBase
 		{
 			typedef BgzfInflateParallelThread this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			enum op_type { op_read_block, op_decompress_block, op_none };
-		
+					
 			BgzfInflateParallelContext & inflatecontext;
 			
 			BgzfInflateParallelThread(BgzfInflateParallelContext & rinflatecontext) 
@@ -65,7 +64,7 @@ namespace libmaus
 					}
 					
 					/* check which operation we are to perform */
-					op_type op = op_none;
+					libmaus_lz_bgzf_op_type op = libmaus_lz_bgzf_op_none;
 					uint64_t objectid = 0;
 					
 					{
@@ -74,13 +73,13 @@ namespace libmaus
 						if ( inflatecontext.inflatefreelist.size() )
 						{
 						
-							op = op_read_block;
+							op = libmaus_lz_bgzf_op_read_block;
 							objectid = inflatecontext.inflatefreelist.front();
 							inflatecontext.inflatefreelist.pop_front();
 						}
 						else if ( inflatecontext.inflatereadlist.size() )
 						{
-							op = op_decompress_block;
+							op = libmaus_lz_bgzf_op_decompress_block;
 							objectid = inflatecontext.inflatereadlist.front();
 							inflatecontext.inflatereadlist.pop_front();
 						}
@@ -90,7 +89,7 @@ namespace libmaus
 					switch ( op )
 					{
 						/* read a block */
-						case op_read_block:
+						case libmaus_lz_bgzf_op_read_block:
 						{
 							libmaus::parallel::ScopePosixMutex I(inflatecontext.inflateinlock);
 							inflatecontext.inflateB[objectid]->blockid = inflatecontext.inflateinid++;
@@ -132,7 +131,7 @@ namespace libmaus
 							break;
 						}
 						/* decompress block */
-						case op_decompress_block:
+						case libmaus_lz_bgzf_op_decompress_block:
 						{
 							inflatecontext.inflateB[objectid]->decompressBlock();
 							libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);

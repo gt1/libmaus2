@@ -16,34 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_BGZFDEFLATEBLOCKIDINFO_HPP)
-#define LIBMAUS_LZ_BGZFDEFLATEBLOCKIDINFO_HPP
-
-#include <libmaus/lz/BgzfDeflateBase.hpp>
-#include <libmaus/lz/BgzfThreadOpBase.hpp>
-
+#if ! defined(LIBMAUS_LZ_BGZFTHREADOPBASE_HPP)
+#define LIBMAUS_LZ_BGZFTHREADOPBASE_HPP
 namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfDeflateBlockIdInfo
+		struct BgzfThreadOpBase
 		{
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & deflateB;
-					
-			BgzfDeflateBlockIdInfo(libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & rdeflateB) : deflateB(rdeflateB)
-			{
-			
-			}
-
-			uint64_t operator()(uint64_t const i) const
-			{
-				return deflateB[i]->blockid;
-			}		
-
-			uint64_t operator()(std::pair<libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_type,uint64_t> const i) const
-			{
-				return deflateB[i.second]->blockid;
-			}		
+			enum libmaus_lz_bgzf_op_type { 
+				libmaus_lz_bgzf_op_read_block, 
+				libmaus_lz_bgzf_op_decompress_block, 
+				libmaus_lz_bgzf_op_compress_block, 
+				libmaus_lz_bgzf_op_write_block,
+				libmaus_lz_bgzf_op_none
+			};
 		};
 	}
 }

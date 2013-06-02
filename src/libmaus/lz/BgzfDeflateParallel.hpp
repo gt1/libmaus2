@@ -28,6 +28,7 @@
 #include <libmaus/lz/BgzfDeflateBlockIdComparator.hpp>
 #include <libmaus/lz/BgzfDeflateParallelContext.hpp>
 #include <libmaus/lz/BgzfDeflateParallelThread.hpp>
+#include <libmaus/lz/BgzfThreadOpBase.hpp>
 
 namespace libmaus
 {
@@ -100,6 +101,7 @@ namespace libmaus
 			
 			void drain()
 			{
+				// handle last block
 				{
 					libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
 					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )

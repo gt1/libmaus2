@@ -100,7 +100,7 @@ namespace libmaus
                         std::deque<value_type> Q;
                         PosixMutex lock;
                         PosixSemaphore semaphore;
-                        uint64_t readyfor;
+                        value_type readyfor;
                         
                         SynchronousConsecutiveHeap(
                         	compare const & comp,
@@ -152,7 +152,7 @@ namespace libmaus
                         }
                         
                         void setReadyFor(
-                        	uint64_t const rreadyfor, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0
+                        	value_type const rreadyfor, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0
 			)
                         {
                         	lock.lock();
@@ -172,7 +172,7 @@ namespace libmaus
                                 return v;
                         }
 
-                        void putback(uint64_t const i)
+                        void putback(value_type const i)
                         {
                         	lock.lock();
                         	Q.push_front(i);

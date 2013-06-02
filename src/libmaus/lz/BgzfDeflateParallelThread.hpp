@@ -27,18 +27,17 @@
 #include <libmaus/lz/BgzfDeflateBlockIdInfo.hpp>
 #include <libmaus/lz/BgzfDeflateBlockIdComparator.hpp>
 #include <libmaus/lz/BgzfDeflateParallelContext.hpp>
+#include <libmaus/lz/BgzfThreadOpBase.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfDeflateParallelThread : public libmaus::parallel::PosixThread
+		struct BgzfDeflateParallelThread : public libmaus::parallel::PosixThread, public libmaus::lz::BgzfThreadOpBase
 		{
 			typedef BgzfDeflateParallelThread this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			enum op_type { op_compress_block = 0, op_write_block = 1, op_none = 2 };
-
 			BgzfDeflateParallelContext & deflatecontext;
 			
 			BgzfDeflateParallelThread(BgzfDeflateParallelContext & rdeflatecontext) 
@@ -65,9 +64,9 @@ namespace libmaus
 					}
 					
 					/* check which operation we are to perform */
-					op_type op = op_none;
+					libmaus_lz_bgzf_op_type op = libmaus_lz_bgzf_op_none;
 					uint64_t objectid = 0;
-					
+
 					{
 						libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
 				
@@ -75,22 +74,22 @@ namespace libmaus
 						{
 							objectid = deflatecontext.deflatecompqueue.front();
 							deflatecontext.deflatecompqueue.pop_front();
-							op = op_compress_block;
+							op = libmaus_lz_bgzf_op_compress_block;
 						}
 						else if ( deflatecontext.deflatewritequeue.getFillState() )
 						{
 							objectid = deflatecontext.deflatewritequeue.deque();
 							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);								
 							assert ( deflatecontext.deflateB[objectid]->blockid == deflatecontext.deflatenextwriteid );
-							op = op_write_block;
+							op = libmaus_lz_bgzf_op_write_block;
 						}									
 
-						assert ( op != op_none );
+						assert ( op != libmaus_lz_bgzf_op_none );
 					}
 					
 					switch ( op )
 					{
-						case op_compress_block:
+						case libmaus_lz_bgzf_op_compress_block:
 						{
 							try
 							{
@@ -129,7 +128,7 @@ namespace libmaus
 							deflatecontext.deflatewritequeue.enque(objectid,&(deflatecontext.deflategloblist));
 							break;
 						}
-						case op_write_block:
+						case libmaus_lz_bgzf_op_write_block:
 						{
 							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
 							try
