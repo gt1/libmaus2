@@ -40,16 +40,9 @@ namespace libmaus
 				return deflateB[i]->blockid > deflateB[j]->blockid;
 			}		
 
-			bool operator()(
-				std::pair<
-					libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_type,uint64_t
-				> const i,
-				std::pair<
-					libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_type,uint64_t
-				> const j
-			) const
+			bool operator()(BgzfThreadQueueElement const & i, BgzfThreadQueueElement const & j) const
 			{
-				return deflateB[i.second]->blockid > deflateB[j.second]->blockid;
+				return deflateB[i.objectid]->blockid > deflateB[j.objectid]->blockid;
 			}		
 		};
 	}

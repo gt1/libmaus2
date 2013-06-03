@@ -110,32 +110,22 @@ namespace libmaus
 					throw se;
 				}
 			
-				std::vector < uint64_t > putback;
-				uint64_t objectid = 0;
+				/* get object id */
+				BgzfThreadQueueElement const btqe = inflatecontext.inflatedecompressedlist.deque();
+				uint64_t objectid = btqe.objectid;
 				
-				/* get object ids until we have the next expected one, then put out of order entries back */
-				while ( true )
+				/* we have an exception, terminate readers and throw it at caller */
+				if ( inflatecontext.inflateB[objectid]->failed() )
 				{
-					objectid = inflatecontext.inflatedecompressedlist.deque();
-					
-					/* we have an exception, terminate readers and throw it at caller */
-					if ( inflatecontext.inflateB[objectid]->failed() )
-					{
-						libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
-						inflatecontext.inflategloblist.terminate();
-						throw inflatecontext.inflateB[objectid]->getException();
-					}
-					/* the obtained id is not the next expected one, register it for requeuing */
-					else if ( inflatecontext.inflateB[objectid]->blockid != inflatecontext.inflateeb )
-						putback.push_back(objectid);
-					/* we have what we wanted, break loop */
-					else
-						break;
+					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+					inflatecontext.inflategloblist.terminate();
+					throw inflatecontext.inflateB[objectid]->getException();
 				}
-				
-				/* put unwanted ids back */
-				for ( uint64_t i = 0; i < putback.size(); ++i )
-					inflatecontext.inflatedecompressedlist.enque(putback[i]);
+				/* we have what we want */
+				else
+				{
+					assert ( inflatecontext.inflateB[objectid]->blockid == inflatecontext.inflateeb );
+				}
 
 				uint64_t const blocksize = inflatecontext.inflateB[objectid]->blockinfo.second;
 				uint64_t ret = 0;
@@ -159,13 +149,26 @@ namespace libmaus
 
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflatefreelist.push_back(objectid);
-					inflatecontext.inflategloblist.enque(objectid);
+					// read next block
+					inflatecontext.inflategloblist.enque(
+						BgzfThreadQueueElement(
+							libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_read_block,
+							objectid,
+							0
+						)
+					);
 					
 					inflatecontext.inflategcnt = blocksize;
 					
 					ret = blocksize;
 					
-					inflatecontext.inflatedecompressedlist.setReadyFor(blockid+1);
+					inflatecontext.inflatedecompressedlist.setReadyFor(
+						BgzfThreadQueueElement(
+							libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_none,
+							0,
+							blockid+1
+						)
+					);
 				}
 				
 				return ret;

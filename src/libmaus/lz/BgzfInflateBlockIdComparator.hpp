@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFINFLATEBLOCKIDCOMPARATOR_HPP
 
 #include <libmaus/lz/BgzfInflateBlock.hpp>
+#include <libmaus/lz/BgzfThreadOpBase.hpp>
 
 namespace libmaus
 {
@@ -39,6 +40,11 @@ namespace libmaus
 			bool operator()(uint64_t const i, uint64_t const j) const
 			{
 				return inflateB[i]->blockid > inflateB[j]->blockid;
+			}		
+
+			bool operator()(BgzfThreadQueueElement const & i, BgzfThreadQueueElement const & j) const
+			{
+				return inflateB[i.objectid]->blockid > inflateB[j.objectid]->blockid;
 			}		
 		};
 	}

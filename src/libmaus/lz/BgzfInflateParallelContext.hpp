@@ -33,7 +33,7 @@ namespace libmaus
 	{
 		struct BgzfInflateParallelContext
 		{
-			libmaus::parallel::TerminatableSynchronousQueue<uint64_t> inflategloblist;
+			libmaus::parallel::TerminatableSynchronousQueue<BgzfThreadQueueElement> inflategloblist;
 
 			std::istream & inflatein;
 			uint64_t inflateinid;
@@ -47,7 +47,12 @@ namespace libmaus
 			std::deque<uint64_t> inflatereadlist;
 			BgzfInflateBlockIdComparator inflateheapcomp;
 			BgzfInflateBlockIdInfo inflateheapinfo;
-			libmaus::parallel::SynchronousConsecutiveHeap<uint64_t,BgzfInflateBlockIdInfo,BgzfInflateBlockIdComparator> inflatedecompressedlist;
+			libmaus::parallel::SynchronousConsecutiveHeap<
+				BgzfThreadQueueElement,
+				BgzfInflateBlockIdInfo,
+				BgzfInflateBlockIdComparator
+			>
+				inflatedecompressedlist;
 			
 			uint64_t inflateeb;
 			uint64_t inflategcnt;
@@ -63,7 +68,13 @@ namespace libmaus
 				}			
 
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
-					inflategloblist.enque(i);			
+					inflategloblist.enque(
+						BgzfThreadQueueElement(
+					        	libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_read_block,
+					        	i,
+					        	0
+						)
+					);
 			}
 		
 			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks)

@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFINFLATEBLOCKIDINFO_HPP
 
 #include <libmaus/lz/BgzfInflateBlock.hpp>
+#include <libmaus/lz/BgzfThreadOpBase.hpp>
 
 namespace libmaus
 {
@@ -40,6 +41,11 @@ namespace libmaus
 			{
 				return inflateB[i]->blockid;
 			}		
+
+			BgzfThreadQueueElement const & operator()(BgzfThreadQueueElement const & i) const
+			{
+				return i;
+			}
 		};
 	}
 }

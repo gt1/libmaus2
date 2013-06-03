@@ -53,39 +53,43 @@ namespace libmaus
 				while ( true )
 				{
 					/* get any id from global list */
+					BgzfThreadQueueElement defglob;
 					try
 					{
-						deflatecontext.deflategloblist.deque();
+						defglob = deflatecontext.deflategloblist.deque();
 					}
 					catch(std::exception const & ex)
 					{
 						/* queue is terminated, break loop */
 						break;
 					}
-					
-					/* check which operation we are to perform */
-					libmaus_lz_bgzf_op_type op = libmaus_lz_bgzf_op_none;
-					uint64_t objectid = 0;
 
+					libmaus_lz_bgzf_op_type op = defglob.op;
+					uint64_t objectid = 0;
+					
 					{
 						libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
-				
-						if ( deflatecontext.deflatecompqueue.size() )
+						
+						switch ( op )
 						{
-							objectid = deflatecontext.deflatecompqueue.front();
-							deflatecontext.deflatecompqueue.pop_front();
-							op = libmaus_lz_bgzf_op_compress_block;
+							case libmaus_lz_bgzf_op_compress_block:
+								objectid = deflatecontext.deflatecompqueue.front();
+								deflatecontext.deflatecompqueue.pop_front();
+								break;
+							case libmaus_lz_bgzf_op_write_block:
+							{
+								BgzfThreadQueueElement const btqe = deflatecontext.deflatewritequeue.deque();
+								objectid = btqe.objectid;
+								libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
+								assert ( deflatecontext.deflateB[objectid]->blockid == deflatecontext.deflatenextwriteid );
+								break;
+							}
+							default:
+								break;
 						}
-						else if ( deflatecontext.deflatewritequeue.getFillState() )
-						{
-							objectid = deflatecontext.deflatewritequeue.deque();
-							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);								
-							assert ( deflatecontext.deflateB[objectid]->blockid == deflatecontext.deflatenextwriteid );
-							op = libmaus_lz_bgzf_op_write_block;
-						}									
 
 						assert ( op != libmaus_lz_bgzf_op_none );
-					}
+					}					
 					
 					switch ( op )
 					{
@@ -125,7 +129,14 @@ namespace libmaus
 							}
 
 							libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
-							deflatecontext.deflatewritequeue.enque(objectid,&(deflatecontext.deflategloblist));
+							deflatecontext.deflatewritequeue.enque(
+								BgzfThreadQueueElement(
+									libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_write_block,
+									objectid,
+									deflatecontext.deflateB[objectid]->blockid
+								),
+								&(deflatecontext.deflategloblist)
+							);
 							break;
 						}
 						case libmaus_lz_bgzf_op_write_block:
@@ -172,7 +183,14 @@ namespace libmaus
 							}
 
 							deflatecontext.deflatenextwriteid += 1;								
-							deflatecontext.deflatewritequeue.setReadyFor(deflatecontext.deflatenextwriteid,&(deflatecontext.deflategloblist));
+							deflatecontext.deflatewritequeue.setReadyFor(
+								BgzfThreadQueueElement(
+									libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_write_block,
+									objectid,
+									deflatecontext.deflatenextwriteid
+									),
+								&(deflatecontext.deflategloblist)
+							);
 							deflatecontext.deflatefreelist.enque(objectid);
 							break;
 						}

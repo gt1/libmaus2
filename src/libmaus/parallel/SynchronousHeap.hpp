@@ -106,7 +106,7 @@ namespace libmaus
                         	compare const & comp,
                         	info_type const & rinfo
 			)
-                        : info(rinfo), preQ(comp), next(0), readyfor(0)
+                        : info(rinfo), preQ(comp), next(value_type()), readyfor(value_type())
                         {
                         
                         }
@@ -124,7 +124,11 @@ namespace libmaus
                         	uint64_t postcnt = 0;
                         
                                 lock.lock();
-                                while ( preQ.size() && info(preQ.top()) == next && info(preQ.top()) <= readyfor )
+                                while ( 
+                                	preQ.size() && 
+                                	info(preQ.top()) == next && 
+                                	info(preQ.top()) <= readyfor 
+				)
                                 {
                                 	Q.push_back(preQ.top());
                                 	if ( globlist )

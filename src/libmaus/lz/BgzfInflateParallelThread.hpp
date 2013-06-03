@@ -52,10 +52,12 @@ namespace libmaus
 			{
 				while ( true )
 				{
+					BgzfThreadQueueElement globbtqe;
+					
 					/* get any id from global list */
 					try
 					{
-						inflatecontext.inflategloblist.deque();
+						globbtqe = inflatecontext.inflategloblist.deque();
 					}
 					catch(std::exception const & ex)
 					{
@@ -64,26 +66,28 @@ namespace libmaus
 					}
 					
 					/* check which operation we are to perform */
-					libmaus_lz_bgzf_op_type op = libmaus_lz_bgzf_op_none;
+					libmaus_lz_bgzf_op_type op = globbtqe.op;
 					uint64_t objectid = 0;
-					
+				
+					switch ( op )
 					{
-						libmaus::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
-						
-						if ( inflatecontext.inflatefreelist.size() )
+						case libmaus_lz_bgzf_op_read_block:
 						{
-						
-							op = libmaus_lz_bgzf_op_read_block;
+							libmaus::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
 							objectid = inflatecontext.inflatefreelist.front();
 							inflatecontext.inflatefreelist.pop_front();
+							break;
 						}
-						else if ( inflatecontext.inflatereadlist.size() )
+						case libmaus_lz_bgzf_op_decompress_block:
 						{
-							op = libmaus_lz_bgzf_op_decompress_block;
+							libmaus::parallel::ScopePosixMutex S(inflatecontext.inflateqlock);
 							objectid = inflatecontext.inflatereadlist.front();
 							inflatecontext.inflatereadlist.pop_front();
+							
 						}
-					}
+						default:
+							break;
+					}						
 					
 					/*   */
 					switch ( op )
@@ -124,10 +128,16 @@ namespace libmaus
 									inflatecontext.inflateB[objectid]->ex->finish();
 								}
 							}
-
+							
 							libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 							inflatecontext.inflatereadlist.push_back(objectid);
-							inflatecontext.inflategloblist.enque(objectid);
+							inflatecontext.inflategloblist.enque(
+								BgzfThreadQueueElement(
+									libmaus_lz_bgzf_op_decompress_block,
+									objectid,
+									inflatecontext.inflateB[objectid]->blockid
+								)
+							);
 							break;
 						}
 						/* decompress block */
@@ -135,7 +145,14 @@ namespace libmaus
 						{
 							inflatecontext.inflateB[objectid]->decompressBlock();
 							libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
-							inflatecontext.inflatedecompressedlist.enque(objectid);
+							inflatecontext.inflatedecompressedlist.enque(
+								BgzfThreadQueueElement(
+									libmaus_lz_bgzf_op_none,
+									objectid,
+									inflatecontext.inflateB[objectid]->blockid
+								)
+							);
+							
 							break;
 						}
 						default:

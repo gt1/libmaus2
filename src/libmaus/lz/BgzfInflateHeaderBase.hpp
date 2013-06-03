@@ -49,7 +49,7 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): unexpected EOF while reading header";
-					se.finish();
+					se.finish(false);
 					throw se;						
 				}
 				
@@ -60,7 +60,7 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
-					se.finish();
+					se.finish(false);
 					throw se;			
 				}
 			
@@ -70,7 +70,7 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
-					se.finish();
+					se.finish(false);
 					throw se;					
 				}
 				

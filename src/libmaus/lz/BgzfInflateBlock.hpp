@@ -84,14 +84,14 @@ namespace libmaus
 				{
 					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
 					ex->getStream() << lex.what();
-					ex->finish();
+					ex->finish(false);
 					return false;
 				}
 				catch(...)
 				{
 					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
 					ex->getStream() << "BgzfInflateBlock::readBlock(): unknown exception caught";
-					ex->finish();
+					ex->finish(false);
 					return false;				
 				}
 			}
@@ -121,14 +121,14 @@ namespace libmaus
 				{
 					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
 					ex->getStream() << lex.what();
-					ex->finish();
+					ex->finish(false);
 					return false;
 				}
 				catch(...)
 				{
 					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
 					ex->getStream() << "BgzfInflateBlock::decompressBlock(): unknown exception caught";
-					ex->finish();
+					ex->finish(false);
 					return false;				
 				}
 			}
@@ -141,7 +141,7 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << maxblocksize;
-					se.finish();
+					se.finish(false);
 					throw se;				
 				}
 				

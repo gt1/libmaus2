@@ -18,6 +18,9 @@
 */
 #if ! defined(LIBMAUS_LZ_BGZFTHREADOPBASE_HPP)
 #define LIBMAUS_LZ_BGZFTHREADOPBASE_HPP
+#include <map>
+#include <ostream>
+
 namespace libmaus
 {
 	namespace lz
@@ -31,6 +34,70 @@ namespace libmaus
 				libmaus_lz_bgzf_op_write_block,
 				libmaus_lz_bgzf_op_none
 			};
+		};
+		
+		inline std::ostream & operator<<(std::ostream & out, BgzfThreadOpBase::libmaus_lz_bgzf_op_type const op)
+		{
+			switch ( op )
+			{
+				case BgzfThreadOpBase::libmaus_lz_bgzf_op_read_block:
+					out << "libmaus_lz_bgzf_op_read_block"; break;
+				case BgzfThreadOpBase::libmaus_lz_bgzf_op_decompress_block:
+					out << "libmaus_lz_bgzf_op_decompress_block"; break;
+				case BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block:
+					out << "libmaus_lz_bgzf_op_compress_block"; break;
+				case BgzfThreadOpBase::libmaus_lz_bgzf_op_write_block:
+					out << "libmaus_lz_bgzf_op_write_block"; break;
+				case BgzfThreadOpBase::libmaus_lz_bgzf_op_none:
+					out << "libmaus_lz_bgzf_op_none"; break;
+			}
+			
+			return out;
+		}
+		
+		struct BgzfThreadQueueElement
+		{
+			BgzfThreadOpBase::libmaus_lz_bgzf_op_type op;
+			uint64_t objectid;
+			uint64_t blockid;
+				
+			BgzfThreadQueueElement(
+				BgzfThreadOpBase::libmaus_lz_bgzf_op_type const rop = BgzfThreadOpBase::libmaus_lz_bgzf_op_none, 
+				uint64_t const robjectid = 0,
+				uint64_t const rblockid = 0
+			)
+			: op(rop), objectid(robjectid), blockid(rblockid)
+			{
+			
+			}
+			
+			BgzfThreadQueueElement & operator++()
+			{
+				blockid++;
+				return *this;
+			}
+			
+			BgzfThreadQueueElement operator++(int)
+			{
+				BgzfThreadQueueElement copy = *this;
+				blockid++;
+				return copy;
+			}
+			
+			bool operator<=(BgzfThreadQueueElement const & o) const
+			{
+				return blockid <= o.blockid;
+			}
+
+			bool operator<(BgzfThreadQueueElement const & o) const
+			{
+				return blockid < o.blockid;
+			}
+			
+			bool operator==(BgzfThreadQueueElement const & o) const
+			{
+				return blockid == o.blockid;
+			}
 		};
 	}
 }

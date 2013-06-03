@@ -48,7 +48,7 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): unexpected eof";
-					se.finish();
+					se.finish(false);
 					throw se;
 				}
 				
@@ -69,7 +69,7 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): uncompressed size is too large";
-					se.finish();
+					se.finish(false);
 					throw se;									
 				
 				}

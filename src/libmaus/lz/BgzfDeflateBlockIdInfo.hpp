@@ -40,9 +40,9 @@ namespace libmaus
 				return deflateB[i]->blockid;
 			}		
 
-			uint64_t operator()(std::pair<libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_type,uint64_t> const i) const
+			BgzfThreadQueueElement const & operator()(BgzfThreadQueueElement const & i) const
 			{
-				return deflateB[i.second]->blockid;
+				return i;
 			}		
 		};
 	}

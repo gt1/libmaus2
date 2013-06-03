@@ -91,7 +91,13 @@ namespace libmaus
 							deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
 						}
 
-						deflatecontext.deflategloblist.enque(deflatecontext.deflatecurobject);
+						deflatecontext.deflategloblist.enque(
+							BgzfThreadQueueElement(
+								BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block,
+								deflatecontext.deflatecurobject,
+								0 /* block id */
+							)
+						);
 						
 						deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
 						deflatecontext.deflateB[deflatecontext.deflatecurobject]->blockid = deflatecontext.deflateoutid++;
@@ -107,7 +113,13 @@ namespace libmaus
 					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )
 					{
 						deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
-						deflatecontext.deflategloblist.enque(deflatecontext.deflatecurobject);
+						deflatecontext.deflategloblist.enque(
+							BgzfThreadQueueElement(
+								BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block,
+								deflatecontext.deflatecurobject,
+								0 /* block id */
+							)
+						);
 					}
 					else
 					{

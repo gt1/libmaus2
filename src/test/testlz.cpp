@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 
-	#if 1
+	#if 0
 	{
 		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,16,128);
 		
@@ -253,26 +253,34 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 
-	#if 0
+	#if 1
 	{
-		libmaus::lz::BgzfInflateParallel BIP(std::cin /* ,4,16 */);
-		uint64_t c = 0;
-		uint64_t b = 0;
-		uint64_t d = 0;
-		libmaus::timing::RealTimeClock rtc; rtc.start();
-		libmaus::autoarray::AutoArray<uint8_t> adata(64*1024,false);
-		
-		while ( (d=BIP.read(reinterpret_cast<char *>(adata.begin()),adata.size())) != 0 )
+		try
 		{
-			b += d;
-			if ( ++c % (16*1024) == 0 )
-			{
-				std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
-			}
-		}
+			libmaus::lz::BgzfInflateParallel BIP(std::cin /* ,4,16 */);
+			uint64_t c = 0;
+			uint64_t b = 0;
+			uint64_t d = 0;
+			libmaus::timing::RealTimeClock rtc; rtc.start();
+			libmaus::autoarray::AutoArray<uint8_t> adata(64*1024,false);
 		
-		std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
-		std::cerr << "decoded " << b << " bytes in " << rtc.getElapsedSeconds() << " seconds." << std::endl;
+			while ( (d=BIP.read(reinterpret_cast<char *>(adata.begin()),adata.size())) != 0 )
+			{
+				b += d;
+				if ( ++c % (16*1024) == 0 )
+				{
+					std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
+				}
+			}
+		
+			std::cerr << c << "\t" << b/(1024.0*1024.0*1024.0) << "\t" << static_cast<double>(b)/(1024.0*1024.0*rtc.getElapsedSeconds()) << " MB/s" << std::endl;
+			std::cerr << "decoded " << b << " bytes in " << rtc.getElapsedSeconds() << " seconds." << std::endl;
+		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << ex.what() << std::endl;
+			return EXIT_FAILURE;
+		}
 	}
 
 	return 0;

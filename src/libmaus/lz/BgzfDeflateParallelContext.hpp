@@ -35,9 +35,9 @@ namespace libmaus
 		{
 			typedef BgzfDeflateParallelContext this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			libmaus::parallel::TerminatableSynchronousQueue<BgzfThreadQueueElement> deflategloblist;
 
-			libmaus::parallel::TerminatableSynchronousQueue<uint64_t> deflategloblist;
-		
 			libmaus::parallel::PosixMutex deflateoutlock;
 			// next block id to be filled with input
 			uint64_t deflateoutid;
@@ -48,7 +48,8 @@ namespace libmaus
 
 			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> deflateB;
 			libmaus::parallel::SynchronousQueue<uint64_t> deflatefreelist;
-			
+
+			//! current object handled by input/caller
 			int64_t deflatecurobject;
 
 			// queue for blocks to be compressed
@@ -56,14 +57,19 @@ namespace libmaus
 			// queue for compressed blocks to be written to output stream
 			BgzfDeflateBlockIdComparator deflateheapcomp;
 			BgzfDeflateBlockIdInfo deflateheapinfo;
-			libmaus::parallel::SynchronousConsecutiveHeap<uint64_t,BgzfDeflateBlockIdInfo,BgzfDeflateBlockIdComparator> deflatewritequeue;
+			libmaus::parallel::SynchronousConsecutiveHeap<
+				BgzfThreadQueueElement,
+				BgzfDeflateBlockIdInfo,
+				BgzfDeflateBlockIdComparator
+			> deflatewritequeue;
 			
+			// exception data
 			uint64_t deflateexceptionid;
 			libmaus::exception::LibMausException::unique_ptr_type deflatepse;
 			libmaus::parallel::PosixMutex deflateexlock;
 
+			//! queues lock
 			libmaus::parallel::PosixMutex deflateqlock;
-
 
 			BgzfDeflateParallelContext(
 				std::ostream & rdeflateout, uint64_t const rnumbuffers				
