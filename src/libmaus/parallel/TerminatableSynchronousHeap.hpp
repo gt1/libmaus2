@@ -33,29 +33,29 @@ namespace libmaus
                         typedef SynchronousHeap<value_type,compare> parent_type;
 
                         PosixMutex terminatelock;
-                        volatile bool terminated;
+                        volatile uint64_t terminated;
+                        uint64_t const terminatedthreshold;
                         
-                        TerminatableSynchronousHeap()
+                        TerminatableSynchronousHeap(uint64_t const rterminatedthreshold = 1)
+                        : terminated(0), terminatedthreshold(rterminatedthreshold)
                         {
-                                terminated = false;
                         }
 
-                        TerminatableSynchronousHeap(compare const & comp)
-                        : parent_type(comp)
+                        TerminatableSynchronousHeap(compare const & comp, uint64_t const rterminatedthreshold = 1)
+                        : parent_type(comp), terminated(0), terminatedthreshold(rterminatedthreshold)
                         {
-                                terminated = false;
                         }
                         
                         void terminate()
                         {
                                 terminatelock.lock();
-                                terminated = true;
+                                terminated++;
                                 terminatelock.unlock();
                         }
                         bool isTerminated()
                         {
                                 terminatelock.lock();
-                                bool const isTerm = terminated;
+                                bool const isTerm = terminated >= terminatedthreshold;
                                 terminatelock.unlock();
                                 return isTerm;
                         }
@@ -65,7 +65,7 @@ namespace libmaus
                                 while ( !parent_type::semaphore.timedWait() )
                                 {
                                         terminatelock.lock();
-                                        bool const isterminated = terminated;
+                                        bool const isterminated = terminated >= terminatedthreshold;
                                         terminatelock.unlock();
                                         
                                         if ( isterminated )

@@ -33,7 +33,8 @@ namespace libmaus
 	{
 		struct BgzfInflateParallelContext
 		{
-			libmaus::parallel::TerminatableSynchronousQueue<BgzfThreadQueueElement> inflategloblist;
+			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+				& inflategloblist;
 
 			std::istream & inflatein;
 			uint64_t inflateinid;
@@ -77,8 +78,13 @@ namespace libmaus
 					);
 			}
 		
-			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks)
+			BgzfInflateParallelContext(
+				libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+					& rinflategloblist,
+				std::istream & rinflatein, uint64_t const rnumblocks
+			)
 			:
+				inflategloblist(rinflategloblist),
 				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
 				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
 				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),
@@ -87,8 +93,13 @@ namespace libmaus
 				init();
 			}
 
-			BgzfInflateParallelContext(std::istream & rinflatein, uint64_t const rnumblocks, std::ostream & rcopyostr)
+			BgzfInflateParallelContext(
+				libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+					& rinflategloblist,
+				std::istream & rinflatein, uint64_t const rnumblocks, std::ostream & rcopyostr
+			)
 			:
+				inflategloblist(rinflategloblist),
 				inflatein(rinflatein), inflateinid(0), inflateB(rnumblocks), 
 				inflateheapcomp(inflateB), inflateheapinfo(inflateB), 
 				inflatedecompressedlist(inflateheapcomp,inflateheapinfo),

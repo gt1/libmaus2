@@ -119,7 +119,8 @@ namespace libmaus
                                 return fill;
                         }
                         
-                        void drainPreQueue(libmaus::parallel::TerminatableSynchronousQueue<value_type> * const globlist)
+                        template<typename glob_queue_type>
+                        void drainPreQueue(glob_queue_type * const globlist)
                         {
                         	uint64_t postcnt = 0;
                         
@@ -143,9 +144,10 @@ namespace libmaus
 	                                semaphore.post();
                         }
 
+                        template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
                         void enque(
                         	value_type const q, 
-                        	libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0
+                        	glob_queue_type * const globlist = 0
 			)
                         {
                                 lock.lock();
@@ -155,8 +157,10 @@ namespace libmaus
 				drainPreQueue(globlist);
                         }
                         
+                        template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
                         void setReadyFor(
-                        	value_type const rreadyfor, libmaus::parallel::TerminatableSynchronousQueue<value_type> * globlist = 0
+                        	value_type const rreadyfor, 
+                        	glob_queue_type * const globlist = 0
 			)
                         {
                         	lock.lock();

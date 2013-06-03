@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/lz/BgzfInflateDeflateParallel.hpp>
+#include <libmaus/lz/BgzfInflateDeflateParallelThread.hpp>
+
 #include <libmaus/lz/GzipHeader.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/lz/Deflate.hpp>
@@ -233,9 +236,9 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 
-	#if 0
+	#if 1
 	{
-		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,16,128);
+		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,32,128,Z_DEFAULT_COMPRESSION);
 		
 		while ( std::cin )
 		{
@@ -253,7 +256,7 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 
-	#if 1
+	#if 0
 	{
 		try
 		{

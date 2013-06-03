@@ -36,7 +36,8 @@ namespace libmaus
 			typedef BgzfDeflateParallelContext this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			libmaus::parallel::TerminatableSynchronousQueue<BgzfThreadQueueElement> deflategloblist;
+			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+				& deflategloblist;
 
 			libmaus::parallel::PosixMutex deflateoutlock;
 			// next block id to be filled with input
@@ -72,10 +73,15 @@ namespace libmaus
 			libmaus::parallel::PosixMutex deflateqlock;
 
 			BgzfDeflateParallelContext(
-				std::ostream & rdeflateout, uint64_t const rnumbuffers				
+				libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+					& rdeflategloblist,		
+				std::ostream & rdeflateout, 
+				uint64_t const rnumbuffers,
+				int level
 			)
-			: deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false), 
-			  deflateB(rnumbuffers), 
+			: deflategloblist(rdeflategloblist), 
+			  deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false), 
+			  deflateB(rnumbuffers),
 			  deflatecurobject(-1),
 			  deflateheapcomp(deflateB), 
 			  deflateheapinfo(deflateB),
@@ -85,7 +91,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < deflateB.size(); ++i )
 				{
 					deflateB[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfDeflateBase::unique_ptr_type(
-						new libmaus::lz::BgzfDeflateBase()
+						new libmaus::lz::BgzfDeflateBase(level,true)
 					));
 					// completely empty buffer on flush
 					deflateB[i]->flushmode = true;

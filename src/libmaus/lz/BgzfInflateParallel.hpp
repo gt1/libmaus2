@@ -35,10 +35,13 @@ namespace libmaus
 	{
 		struct BgzfInflateParallel
 		{
-			
+			private:
+			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator> inflategloblist;
 			BgzfInflateParallelContext inflatecontext;
 
 			libmaus::autoarray::AutoArray<BgzfInflateParallelThread::unique_ptr_type> T;
+			
+			bool terminated;
 			
 			void init()
 			{
@@ -50,18 +53,22 @@ namespace libmaus
 				}			
 			}
 			
+			public:
 			BgzfInflateParallel(std::istream & rinflatein, uint64_t const rnumthreads, uint64_t const rnumblocks)
 			: 
-				inflatecontext(rinflatein,rnumblocks),
-				T(rnumthreads)
+				inflategloblist(),
+				inflatecontext(inflategloblist,rinflatein,rnumblocks),
+				T(rnumthreads),
+				terminated(false)
 			{
 				init();
 			}
 
 			BgzfInflateParallel(std::istream & rinflatein, std::ostream & rcopyostr, uint64_t const rnumthreads, uint64_t const rnumblocks)
 			: 
-				inflatecontext(rinflatein,rnumblocks,rcopyostr),
-				T(rnumthreads)
+				inflatecontext(inflategloblist,rinflatein,rnumblocks,rcopyostr),
+				T(rnumthreads),
+				terminated(false)
 			{
 				init();
 			}
@@ -73,8 +80,9 @@ namespace libmaus
 						static_cast<uint64_t>(1))
 			)
 			: 
-				inflatecontext(rinflatein,4*rnumthreads),
-				T(rnumthreads)
+				inflatecontext(inflategloblist,rinflatein,4*rnumthreads),
+				T(rnumthreads),
+				terminated(false)
 			{
 				init();
 			}
@@ -87,8 +95,9 @@ namespace libmaus
 						static_cast<uint64_t>(1))
 			)
 			: 
-				inflatecontext(rinflatein,4*rnumthreads,rcopyostr),
-				T(rnumthreads)
+				inflatecontext(inflategloblist,rinflatein,4*rnumthreads,rcopyostr),
+				T(rnumthreads),
+				terminated(false)
 			{
 				init();
 			}
@@ -101,7 +110,7 @@ namespace libmaus
 			uint64_t read(char * const data, uint64_t const n)
 			{
 				inflatecontext.inflategcnt = 0;
-			
+					
 				if ( n < libmaus::lz::BgzfInflateBlock::maxblocksize )
 				{
 					libmaus::exception::LibMausException se;
@@ -109,6 +118,9 @@ namespace libmaus
 					se.finish();
 					throw se;
 				}
+
+				if ( terminated )
+					return 0;
 			
 				/* get object id */
 				BgzfThreadQueueElement const btqe = inflatecontext.inflatedecompressedlist.deque();
@@ -119,6 +131,7 @@ namespace libmaus
 				{
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
+					terminated = true;
 					throw inflatecontext.inflateB[objectid]->getException();
 				}
 				/* we have what we want */
@@ -135,6 +148,7 @@ namespace libmaus
 				{
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
+					terminated = true;
 					
 					ret = 0;
 				}

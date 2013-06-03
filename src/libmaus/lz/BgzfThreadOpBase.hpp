@@ -28,11 +28,11 @@ namespace libmaus
 		struct BgzfThreadOpBase
 		{
 			enum libmaus_lz_bgzf_op_type { 
-				libmaus_lz_bgzf_op_read_block, 
-				libmaus_lz_bgzf_op_decompress_block, 
-				libmaus_lz_bgzf_op_compress_block, 
-				libmaus_lz_bgzf_op_write_block,
-				libmaus_lz_bgzf_op_none
+				libmaus_lz_bgzf_op_write_block = 0,
+				libmaus_lz_bgzf_op_compress_block = 1, 
+				libmaus_lz_bgzf_op_decompress_block = 2, 
+				libmaus_lz_bgzf_op_read_block = 3, 
+				libmaus_lz_bgzf_op_none = 4
 			};
 		};
 		
@@ -54,7 +54,7 @@ namespace libmaus
 			
 			return out;
 		}
-		
+				
 		struct BgzfThreadQueueElement
 		{
 			BgzfThreadOpBase::libmaus_lz_bgzf_op_type op;
@@ -97,6 +97,19 @@ namespace libmaus
 			bool operator==(BgzfThreadQueueElement const & o) const
 			{
 				return blockid == o.blockid;
+			}
+		};
+
+		struct BgzfThreadQueueElementHeapComparator
+		{
+			bool operator()(BgzfThreadQueueElement const & a, BgzfThreadQueueElement const & b) const
+			{
+				if ( a.op != b.op )
+					return static_cast<int>(a.op) > static_cast<int>(b.op);
+				else if ( a.blockid != b.blockid )
+					return a.blockid > b.blockid;
+				else
+					return a.objectid > b.objectid;
 			}
 		};
 	}
