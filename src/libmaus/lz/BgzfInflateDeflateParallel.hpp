@@ -43,7 +43,7 @@ namespace libmaus
 
 			libmaus::autoarray::AutoArray<BgzfInflateDeflateParallelThread::unique_ptr_type> T;
 			
-			bool terminated;
+			bool inflateterminated;
 
 			void drain()
 			{
@@ -101,7 +101,7 @@ namespace libmaus
 				inflatecontext(globlist,rinflatein,rnumblocks),
 				deflatecontext(globlist,rdeflateout,rnumblocks,level),
 				T(rnumthreads),
-				terminated(false)
+				inflateterminated(false)
 			{
 				init();
 			}
@@ -118,7 +118,7 @@ namespace libmaus
 				inflatecontext(globlist,rinflatein,rnumblocks,rcopyostr),
 				deflatecontext(globlist,rdeflateout,rnumblocks,level),
 				T(rnumthreads),
-				terminated(false)
+				inflateterminated(false)
 			{
 				init();
 			}
@@ -136,7 +136,7 @@ namespace libmaus
 				inflatecontext(globlist,rinflatein,4*rnumthreads),
 				deflatecontext(globlist,rdeflateout,4*rnumthreads,level),
 				T(rnumthreads),
-				terminated(false)
+				inflateterminated(false)
 			{
 				init();
 			}
@@ -155,7 +155,7 @@ namespace libmaus
 				inflatecontext(globlist,rinflatein,4*rnumthreads,rcopyostr),
 				deflatecontext(globlist,rdeflateout,4*rnumthreads,level),
 				T(rnumthreads),
-				terminated(false)
+				inflateterminated(false)
 			{
 				init();
 			}
@@ -182,7 +182,7 @@ namespace libmaus
 					throw se;
 				}
 
-				if ( terminated )
+				if ( inflateterminated )
 					return 0;
 			
 				/* get object id */
@@ -194,7 +194,7 @@ namespace libmaus
 				{
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
-					terminated = true;
+					inflateterminated = true;
 					throw inflatecontext.inflateB[objectid]->getException();
 				}
 				/* we have what we want */
@@ -211,7 +211,7 @@ namespace libmaus
 				{
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
-					terminated = true;
+					inflateterminated = true;
 					
 					ret = 0;
 				}
