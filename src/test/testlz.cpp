@@ -240,9 +240,49 @@ int main(int argc, char *argv[])
 		libmaus::lz::BgzfInflateDeflateParallel BIDP(std::cin,std::cout,Z_DEFAULT_COMPRESSION,32,128);
 		libmaus::autoarray::AutoArray<char> B(64*1024,false);
 		int r;
+		uint64_t t = 0;
+		uint64_t last = std::numeric_limits<uint64_t>::max();
+		uint64_t lcnt = 0;
+		uint64_t const mod = 64*1024*1024;
+		libmaus::timing::RealTimeClock rtc; rtc.start();
+		libmaus::timing::RealTimeClock lrtc; lrtc.start();
 
 		while ( (r = BIDP.read(B.begin(),B.size())) )
+		{
 			BIDP.write(B.begin(),r);
+			
+			lcnt += r;
+			t += r;
+			
+			if ( t/mod != last/mod )
+			{
+				if ( isatty(STDERR_FILENO) )
+					std::cerr 
+						<< "\r" << std::string(60,' ') << "\r";
+
+				std::cerr
+						<< rtc.formatTime(rtc.getElapsedSeconds()) << " " << t/(1024*1024) << "MB, " << (lcnt/lrtc.getElapsedSeconds())/(1024.0*1024.0) << "MB/s";
+				
+				if ( isatty(STDERR_FILENO) )
+					std::cerr << std::flush;
+				else
+					std::cerr << std::endl;
+				
+				lrtc.start();
+				last = t;
+				lcnt = 0;
+			}
+		}
+
+		if ( isatty(STDERR_FILENO) )
+			std::cerr 
+				<< "\r" << std::string(60,' ') << "\r";
+
+		std::cerr
+				<< rtc.formatTime(rtc.getElapsedSeconds()) << " " << t/(1024*1024) << "MB, " << (t/rtc.getElapsedSeconds())/(1024.0*1024.0) << "MB/s";
+				
+		std::cerr << std::endl;
+
 			
 		return 0;
 	}

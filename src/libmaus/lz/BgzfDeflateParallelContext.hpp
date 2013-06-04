@@ -77,7 +77,8 @@ namespace libmaus
 					& rdeflategloblist,		
 				std::ostream & rdeflateout, 
 				uint64_t const rnumbuffers,
-				int level
+				int level,
+				bool const deflategetcur = true
 			)
 			: deflategloblist(rdeflategloblist), 
 			  deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false), 
@@ -98,9 +99,12 @@ namespace libmaus
 					deflateB[i]->objectid = i;
 					deflatefreelist.enque(i);
 				}
-					
-				deflatecurobject = deflatefreelist.deque();
-				deflateB[deflatecurobject]->blockid = deflateoutid++;
+				
+				if ( deflategetcur )
+				{
+					deflatecurobject = deflatefreelist.deque();
+					deflateB[deflatecurobject]->blockid = deflateoutid++;
+				}
 			}
 		};
 	}
