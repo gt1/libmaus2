@@ -34,7 +34,7 @@ namespace libmaus
 			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> block;
 
 			BgzfInflateBase()
-			: BgzfInflateHeaderBase(), block(maxblocksize,false)
+			: BgzfInflateHeaderBase(), block(getBgzfMaxBlockSize(),false)
 			{
 			}
 
@@ -65,7 +65,7 @@ namespace libmaus
 					(static_cast<uint32_t>(block[payloadsize+7]) << 24);
 				#endif
 					
-				if ( uncompdatasize > maxblocksize )
+				if ( uncompdatasize > getBgzfMaxBlockSize() )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): uncompressed size is too large";

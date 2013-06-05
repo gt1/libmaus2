@@ -34,7 +34,7 @@ namespace libmaus
 			uint8_t * pc;
 			uint8_t * const pe;
 		
-			BgzfDeflateInputBufferBase() : inbuf(maxblocksize,false), pa(inbuf.begin()), pc(pa), pe(inbuf.end())
+			BgzfDeflateInputBufferBase() : inbuf(getBgzfMaxBlockSize(),false), pa(inbuf.begin()), pc(pa), pe(inbuf.end())
 			{
 			}
 		};

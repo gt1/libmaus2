@@ -111,10 +111,10 @@ namespace libmaus
 			{
 				inflatecontext.inflategcnt = 0;
 					
-				if ( n < libmaus::lz::BgzfInflateBlock::maxblocksize )
+				if ( n < libmaus::lz::BgzfInflateBlock::getBgzfMaxBlockSize() )
 				{
 					libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflateParallel::read(): buffer provided is too small: " << n << " < " << libmaus::lz::BgzfInflateBlock::maxblocksize << std::endl;
+					se.getStream() << "BgzfInflateParallel::read(): buffer provided is too small: " << n << " < " << libmaus::lz::BgzfInflateBlock::getBgzfMaxBlockSize() << std::endl;
 					se.finish();
 					throw se;
 				}

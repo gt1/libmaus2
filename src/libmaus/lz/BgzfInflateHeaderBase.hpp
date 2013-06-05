@@ -32,20 +32,20 @@ namespace libmaus
 			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> header;
 		
 			BgzfInflateHeaderBase()
-			: header(headersize,false)
+			: header(getBgzfHeaderSize(),false)
 			{
 			}
 
 			template<typename stream_type>
 			uint64_t readHeader(stream_type & stream)
 			{
-				stream.read(reinterpret_cast<char *>(header.begin()),headersize);
+				stream.read(reinterpret_cast<char *>(header.begin()),getBgzfHeaderSize());
 				
 				/* end of file */
 				if ( stream.gcount() == 0 )
 					return false;
 				
-				if ( stream.gcount() != headersize )
+				if ( stream.gcount() != getBgzfHeaderSize() )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): unexpected EOF while reading header";

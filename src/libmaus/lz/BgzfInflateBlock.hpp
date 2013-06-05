@@ -46,7 +46,7 @@ namespace libmaus
 			uint64_t blockid;
 			
 			BgzfInflateBlock(uint64_t const robjectid = 0)
-			: data(maxblocksize,false), state(bgzfinflateblockstate_idle), objectid(robjectid), blockid(0)
+			: data(getBgzfMaxBlockSize(),false), state(bgzfinflateblockstate_idle), objectid(robjectid), blockid(0)
 			{
 			
 			}
@@ -137,10 +137,10 @@ namespace libmaus
 			{
 				state = bgzfinflateblockstate_idle;
 				
-				if ( n < maxblocksize )
+				if ( n < getBgzfMaxBlockSize() )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << maxblocksize;
+					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << getBgzfMaxBlockSize();
 					se.finish(false);
 					throw se;				
 				}

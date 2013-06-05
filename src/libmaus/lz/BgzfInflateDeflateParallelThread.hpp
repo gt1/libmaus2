@@ -62,12 +62,12 @@ namespace libmaus
 							// bgzf header
 							inflatecontext.copyostr->write(
 								reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->header.begin()),
-								inflatecontext.inflateB[objectid]->headersize
+								inflatecontext.inflateB[objectid]->getBgzfHeaderSize()
 							);
 							// payload and footer
 							inflatecontext.copyostr->write(
 								reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->block.begin()),
-								inflatecontext.inflateB[objectid]->blockinfo.first + inflatecontext.inflateB[objectid]->footersize
+								inflatecontext.inflateB[objectid]->blockinfo.first + inflatecontext.inflateB[objectid]->getBgzfFooterSize()
 							);
 						}
 						// flush output stream if there is no more data

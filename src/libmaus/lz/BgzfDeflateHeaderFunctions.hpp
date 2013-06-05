@@ -76,13 +76,13 @@ namespace libmaus
 			
 			static uint64_t getReqBufSpace(int const level)
 			{
-				return headersize + footersize + getFlushBound(maxblocksize,level);
+				return getBgzfHeaderSize() + getBgzfFooterSize() + getFlushBound(getBgzfMaxBlockSize(),level);
 			}
 
 			static uint64_t getReqBufSpaceTwo(int const level)
 			{
-				uint64_t const halfblocksize = (maxblocksize+1)/2;
-				uint64_t const singleblocksize = headersize + footersize + getFlushBound(halfblocksize,level);
+				uint64_t const halfblocksize = (getBgzfMaxBlockSize()+1)/2;
+				uint64_t const singleblocksize = getBgzfHeaderSize() + getBgzfFooterSize() + getFlushBound(halfblocksize,level);
 				uint64_t const doubleblocksize = 2 * singleblocksize;
 				return doubleblocksize;
 			}
@@ -111,12 +111,12 @@ namespace libmaus
 			)
 			{
 				// set size of compressed block in header
-				unsigned int const blocksize = headersize/*header*/+8/*footer*/+payloadsize-1;
-				assert ( blocksize < maxblocksize );
+				unsigned int const blocksize = getBgzfHeaderSize()/*header*/+8/*footer*/+payloadsize-1;
+				assert ( blocksize < getBgzfMaxBlockSize() );
 				outbuf[16] = (blocksize >> 0) & 0xFF;
 				outbuf[17] = (blocksize >> 8) & 0xFF;
 				
-				uint8_t * footptr = outbuf + headersize + payloadsize;
+				uint8_t * footptr = outbuf + getBgzfHeaderSize() + payloadsize;
 
 				// compute crc of uncompressed data
 				uint32_t crc = crc32(0,0,0);
@@ -138,7 +138,7 @@ namespace libmaus
 
 			static uint64_t getOutBufSizeTwo(int const level)
 			{
-				return std::max(static_cast<uint64_t>(maxblocksize),getReqBufSpaceTwo(level));
+				return std::max(static_cast<uint64_t>(getBgzfMaxBlockSize()),getReqBufSpaceTwo(level));
 			}
 		};
 	}

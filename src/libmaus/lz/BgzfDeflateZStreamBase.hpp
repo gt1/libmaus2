@@ -42,9 +42,9 @@ namespace libmaus
 				deflateinitz(&strm,level);
 
 				// search for number of bytes that will never produce more compressed space than we have
-				unsigned int bound = maxblocksize;
+				unsigned int bound = getBgzfMaxBlockSize();
 				
-				while ( deflateBound(&strm,bound) > (maxblocksize-(headersize+footersize)) )
+				while ( deflateBound(&strm,bound) > (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) )
 					--bound;
 
 				deflbound = bound;
@@ -81,8 +81,8 @@ namespace libmaus
 			{
 				resetz();
 				
-				strm.avail_out = maxpayload;
-				strm.next_out  = reinterpret_cast<Bytef *>(outbuf) + headersize;
+				strm.avail_out = getBgzfMaxPayLoad();
+				strm.next_out  = reinterpret_cast<Bytef *>(outbuf) + getBgzfHeaderSize();
 				strm.avail_in  = len;
 				strm.next_in   = reinterpret_cast<Bytef *>(pa);
 				
@@ -94,7 +94,7 @@ namespace libmaus
 					throw se;
 				}
 				
-				return maxpayload - strm.avail_out;
+				return getBgzfMaxPayLoad() - strm.avail_out;
 			}
 
 			uint64_t flushBound(
@@ -114,16 +114,16 @@ namespace libmaus
 					fillHeaderFooter(in.pa,out.outbuf.begin(),payload0,flush0);
 					
 					/* compress second half of data */
-					setupHeader(out.outbuf.begin()+headersize+payload0+footersize);
-					uint64_t const payload1 = compressBlock(in.pa+flush0,flush1,out.outbuf.begin()+headersize+payload0+footersize);
-					fillHeaderFooter(in.pa+flush0,out.outbuf.begin()+headersize+payload0+footersize,payload1,flush1);
+					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
+					uint64_t const payload1 = compressBlock(in.pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
+					fillHeaderFooter(in.pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
 					
-					assert ( 2*headersize+2*footersize+payload0+payload1 <= out.outbuf.size() );
+					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
 										
 					in.pc = in.pa;
 
 					/* return number of bytes in output buffer */
-					return 2*headersize+2*footersize+payload0+payload1;
+					return 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1;
 				}				
 				else
 				{
@@ -146,7 +146,7 @@ namespace libmaus
 					in.pc = in.pa + unflushed;
 
 					/* number number of bytes in output buffer */
-					return headersize+footersize+payloadsize;
+					return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
 				}
 			}
 
@@ -163,7 +163,7 @@ namespace libmaus
 
 					in.pc = in.pa;
 
-					return headersize+footersize+payloadsize;
+					return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
 				}
 				catch(...)
 				{

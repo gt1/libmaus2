@@ -45,10 +45,10 @@ namespace libmaus
 				gcnt = 0;
 			
 				/* check if buffer given is large enough */	
-				if ( n < maxblocksize )
+				if ( n < getBgzfMaxBlockSize() )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << maxblocksize;
+					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << getBgzfMaxBlockSize();
 					se.finish();
 					throw se;				
 				}
@@ -77,8 +77,8 @@ namespace libmaus
 					
 				if ( ostr )
 				{
-					ostr->write(reinterpret_cast<char const *>(header.begin()),headersize);
-					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.first + footersize);
+					ostr->write(reinterpret_cast<char const *>(header.begin()),getBgzfHeaderSize());
+					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.first + getBgzfFooterSize());
 					
 					if ( ! (*ostr) )
 					{
