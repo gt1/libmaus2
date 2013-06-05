@@ -55,6 +55,11 @@ namespace libmaus
 			// length of sequence
 			uint64_t n;
 			
+			uint64_t getSigma() const
+			{
+				return LF->getSymbols().size();
+			}
+			
 			uint64_t byteSize() const
 			{
 				return

@@ -30,7 +30,8 @@ uint64_t countLeafsByTraversal(libmaus::suffixtree::CompressedSuffixTree const &
 	typedef libmaus::suffixtree::CompressedSuffixTree::Node Node;
 	libmaus::parallel::SynchronousCounter<uint64_t> leafs = 0;
 	std::stack< std::pair<Node,uint64_t> > S; S.push(std::pair<Node,uint64_t>(CST.root(),0));
-	libmaus::autoarray::AutoArray<Node> children(256);
+	uint64_t const Sigma = CST.getSigma();
+	libmaus::autoarray::AutoArray<Node> children(Sigma,false);
 	
 	std::deque < Node > Q;
 	uint64_t const frac = 128;
@@ -63,7 +64,7 @@ uint64_t countLeafsByTraversal(libmaus::suffixtree::CompressedSuffixTree const &
 	#endif
 	while ( Q.size() )
 	{
-		libmaus::autoarray::AutoArray<Node> lchildren(256);
+		libmaus::autoarray::AutoArray<Node> lchildren(Sigma,false);
 		Node node(0,0);
 		
 		lock.lock();
