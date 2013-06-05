@@ -144,7 +144,13 @@ namespace libmaus
 	                                semaphore.post();
                         }
 
-                        template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
+			void enque(value_type const q)
+			{
+				enque< libmaus::parallel::TerminatableSynchronousQueue<value_type> >(q,0);
+			}
+
+                        // template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
+                        template<typename glob_queue_type>
                         void enque(
                         	value_type const q, 
                         	glob_queue_type * const globlist = 0
@@ -156,8 +162,14 @@ namespace libmaus
 
 				drainPreQueue(globlist);
                         }
+
+			void setReadyFor(value_type const rreadyfor)
+			{
+				setReadyFor< libmaus::parallel::TerminatableSynchronousQueue<value_type> > (rreadyfor,0);
+			}
                         
-                        template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
+                        // template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
+                        template<typename glob_queue_type>
                         void setReadyFor(
                         	value_type const rreadyfor, 
                         	glob_queue_type * const globlist = 0

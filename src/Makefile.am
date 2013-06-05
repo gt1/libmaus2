@@ -168,7 +168,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfRecode.hpp \
 	libmaus/lz/BgzfThreadOpBase.hpp \
 	libmaus/lz/BgzfInflateDeflateParallel.hpp \
-	libmaus/lz/BgzfInflateDeflateParallelThread.hpp
+	libmaus/lz/BgzfInflateDeflateParallelThread.hpp \
+	libmaus/lz/BgzfDeflateParallel.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
