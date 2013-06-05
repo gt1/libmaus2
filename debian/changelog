@@ -1,3 +1,9 @@
+libmaus (0.0.51-0) unstable; urgency=low
+
+  * bump version after using static functions instead of constants for bgzf parameters
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 05 Jun 2013 12:10:04 +0100
+
 libmaus (0.0.50-0) unstable; urgency=low
 
   * added combined parallel bgzf inflation/deflation class 
