@@ -21,13 +21,13 @@ https://github.com/gt1/libmaus
 libmaus uses the GNU autoconf/automake tool set. It can be compiled on Linux
 using:
 
- autoreconf -i -f
- ./configure
- make
+	autoreconf -i -f
+	./configure
+	make
 
 A full list of configuration parameters can be obtained by calling
 
- ./configure --help
+	./configure --help
 
 libmaus can use functionality from several other code bases. This includes:
 
