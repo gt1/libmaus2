@@ -18,6 +18,9 @@ https://github.com/gt1/libmaus
 
 -------------------------------------------------------------------------------
 
+Compilation
+-----------
+
 libmaus uses the GNU autoconf/automake tool set. It can be compiled on Linux
 using:
 
@@ -55,6 +58,9 @@ GNU compiler, as they contain some classes offering functionality that
 has meanwhile been added to the C++ standard (shared_ptr, unique_ptr,
 unordered_map, ...).
 
+Compilation of boost for libmaus on Darwin
+------------------------------------------
+
 The following lines called in an unpackage boost source tree should be 
 sufficient to compile and install a version of the boost libraries usable
 by libmaus:
@@ -67,6 +73,9 @@ by libmaus:
 	./b2 --prefix=${INSTPREFIX} --build-type=minimal \
 		--layout=system toolset=darwin variant=release link=static \
 		address-model=32_64 threading=multi cxxflags="-arch i386 -arch x86_64" install
+
+Compilation of libmaus on Darwin
+--------------------------------
 
 After installing boost, libmaus can be compiled using:
 
