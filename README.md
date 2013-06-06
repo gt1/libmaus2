@@ -61,7 +61,7 @@ unordered_map, ...).
 Compilation of boost for libmaus on Darwin
 ------------------------------------------
 
-The following lines called in an unpackage boost source tree should be 
+The following lines called in an unpacked boost source tree should be 
 sufficient to compile and install a version of the boost libraries usable
 by libmaus:
 
