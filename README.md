@@ -31,16 +31,16 @@ A full list of configuration parameters can be obtained by calling
 
 libmaus can use functionality from several other code bases. This includes:
 
- - snappy [http://code.google.com/p/snappy/]: a fast and lightweight Lempel-Ziv
+ - snappy [http://code.google.com/p/snappy/] : a fast and lightweight Lempel-Ziv
    type compression/decompression library. This can be used for the compression
    of temporory files (as used in name collating BAM input for instance).
- - io_lib [http://sourceforge.net/p/staden/code/HEAD/tree/io_lib/]: This is
+ - io_lib [http://sourceforge.net/p/staden/code/HEAD/tree/io_lib/] : This is
    part of the Staden package. libmaus can use this library for SAM and CRAM
    file input.
- - SeqAN [http://www.seqan.de/]: libmaus contains a wrapper class for
+ - SeqAN [http://www.seqan.de/] : libmaus contains a wrapper class for
    consensus computation. The actual consensus computation is done by SeqAN.
    libmaus only offers a somewhat simplified interface.
- - kmlocal [http://www.cs.umd.edu/~mount/Projects/KMeans/]: libmaus can use
+ - kmlocal [http://www.cs.umd.edu/~mount/Projects/KMeans/] : libmaus can use
    this kmeans clustering code for the requantisation of FastQ quality values.
 
 The compilation on Darwin (MacOS X) may require the installation of the 
