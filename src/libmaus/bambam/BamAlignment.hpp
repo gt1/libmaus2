@@ -91,6 +91,17 @@ namespace libmaus
 			uint64_t blocksize;
 			
 			/**
+			 * swap this alignment block with another object
+			 *
+			 * @param other block to swap with
+			 **/
+			void swap(BamAlignment & other)
+			{
+				std::swap(D,other.D);
+				std::swap(blocksize,other.blocksize);
+			}
+			
+			/**
 			 * copy data from other alignment into this object
 			 *
 			 * @param from alignment block to be copied
