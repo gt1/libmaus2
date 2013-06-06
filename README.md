@@ -59,25 +59,25 @@ The following lines called in an unpackage boost source tree should be
 sufficient to compile and install a version of the boost libraries usable
 by libmaus:
 
-INSTPREFIX=${HOME}/libs/boost
-./bootstrap.sh --prefix=${INSTPREFIX}
-./b2 --prefix=${INSTPREFIX} --build-type=minimal \
-	--layout=system toolset=darwin variant=release link=static \
-	address-model=32_64 threading=multi cxxflags="-arch i386 -arch x86_64"
-./b2 --prefix=${INSTPREFIX} --build-type=minimal \
-	--layout=system toolset=darwin variant=release link=static \
-	address-model=32_64 threading=multi cxxflags="-arch i386 -arch x86_64" install
+	INSTPREFIX=${HOME}/libs/boost
+	./bootstrap.sh --prefix=${INSTPREFIX}
+	./b2 --prefix=${INSTPREFIX} --build-type=minimal \
+		--layout=system toolset=darwin variant=release link=static \
+		address-model=32_64 threading=multi cxxflags="-arch i386 -arch x86_64"
+	./b2 --prefix=${INSTPREFIX} --build-type=minimal \
+		--layout=system toolset=darwin variant=release link=static \
+		address-model=32_64 threading=multi cxxflags="-arch i386 -arch x86_64" install
 
 After installing boost, libmaus can be compiled using:
 
-export CPPFLAGS="-I${HOME}/libs/boost/include/"
-export CFLAGS="-arch i386 -arch x86_64 -O2"
-export CXXFLAGS="-arch i386 -arch x86_64 -O2"
-export LDFLAGS="-L${HOME}/libs/boost/lib/"
-export LIBS="-arch i386 -arch x86_64"
-export CC="/usr/bin/gcc"
-export CXX="/usr/bin/g++"
-export CPP="/usr/bin/cpp"
-export CXXCPP="/usr/bin/cpp"
-bash configure --prefix=${HOME}/mac/combined/libmaus --disable-shared-libmaus \
-	--disable-asm --disable-dependency-tracking
+	export CPPFLAGS="-I${HOME}/libs/boost/include/"
+	export CFLAGS="-arch i386 -arch x86_64 -O2"
+	export CXXFLAGS="-arch i386 -arch x86_64 -O2"
+	export LDFLAGS="-L${HOME}/libs/boost/lib/"
+	export LIBS="-arch i386 -arch x86_64"
+	export CC="/usr/bin/gcc"
+	export CXX="/usr/bin/g++"
+	export CPP="/usr/bin/cpp"
+	export CXXCPP="/usr/bin/cpp"
+	bash configure --prefix=${HOME}/mac/combined/libmaus --disable-shared-libmaus --disable-asm \
+		--disable-dependency-tracking
