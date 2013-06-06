@@ -77,7 +77,7 @@ by libmaus:
 Compilation of libmaus on Darwin
 --------------------------------
 
-After installing boost, libmaus can be compiled using:
+After installing boost, libmaus can be compiled and installed in ${HOME}/libmaus using:
 
 	export CPPFLAGS="-I${HOME}/libs/boost/include/"
 	export CFLAGS="-arch i386 -arch x86_64 -O2"
@@ -88,5 +88,6 @@ After installing boost, libmaus can be compiled using:
 	export CXX="/usr/bin/g++"
 	export CPP="/usr/bin/cpp"
 	export CXXCPP="/usr/bin/cpp"
-	bash configure --prefix=${HOME}/mac/combined/libmaus --disable-shared-libmaus --disable-asm \
+	bash configure --prefix=${HOME}/libmaus --disable-shared-libmaus --disable-asm \
 		--disable-dependency-tracking
+	make install
