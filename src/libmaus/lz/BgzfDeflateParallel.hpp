@@ -89,6 +89,43 @@ namespace libmaus
 				flush();
 			}
 			
+			void flushInternal()
+			{
+				{
+					deflatecontext.deflateexlock.lock();
+
+					if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
+					{
+						deflatecontext.deflateexlock.unlock();
+						
+						drain();
+
+						libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
+						throw (*(deflatecontext.deflatepse));
+					}
+					else
+					{
+						deflatecontext.deflateexlock.unlock();
+					}
+				}
+			
+				{
+					libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
+					deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
+				}
+
+				deflatecontext.deflategloblist.enque(
+					BgzfThreadQueueElement(
+						BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block,
+						deflatecontext.deflatecurobject,
+						0 /* block id */
+					)
+				);
+				
+				deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
+				deflatecontext.deflateB[deflatecontext.deflatecurobject]->blockid = deflatecontext.deflateoutid++;
+			}
+			
 			void write(char const * c, uint64_t n)
 			{
 				while ( n )
@@ -102,45 +139,20 @@ namespace libmaus
 					n -= towrite;
 
 					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
-					{
-						{
-							deflatecontext.deflateexlock.lock();
-
-							if ( deflatecontext.deflateexceptionid != std::numeric_limits<uint64_t>::max() )
-							{
-								deflatecontext.deflateexlock.unlock();
-								
-								drain();
-
-								libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateexlock);
-								throw (*(deflatecontext.deflatepse));
-							}
-							else
-							{
-								deflatecontext.deflateexlock.unlock();
-							}
-						}
-					
-						{
-							libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
-							deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
-						}
-
-						deflatecontext.deflategloblist.enque(
-							BgzfThreadQueueElement(
-								BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block,
-								deflatecontext.deflatecurobject,
-								0 /* block id */
-							)
-						);
-						
-						deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
-						deflatecontext.deflateB[deflatecontext.deflatecurobject]->blockid = deflatecontext.deflateoutid++;
-					}
+						flushInternal();
 				}
 			}
-			
-			
+
+			void put(uint8_t const c)
+			{
+				assert ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe );
+
+				*((deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc)++) = c;
+
+				if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
+					flushInternal();
+			}
+						
 			void flush()
 			{
 				if ( ! deflatecontext.deflateoutflushed )
