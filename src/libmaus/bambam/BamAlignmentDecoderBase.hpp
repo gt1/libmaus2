@@ -25,11 +25,104 @@
 #include <libmaus/bambam/BamFormatAuxiliary.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/hashing/hash.hpp>
+#include <libmaus/bambam/BamAuxFilterVector.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{
+		//! entry class for sorting BAM aux tag blocks
+		struct BamAuxSortingBufferEntry
+		{
+			//! tag id
+			std::pair<uint8_t,uint8_t> c;
+			//! block offset
+			uint64_t offset;
+			//! block length
+			uint64_t length;
+			
+			/**
+			 * construct for empty/invalid entry
+			 **/
+			BamAuxSortingBufferEntry() : c(0,0), offset(0), length(0) {}
+			/**
+			 * constructor by block parameters
+			 *
+			 * @param ca first character of id
+			 * @param cb second charactoer of id
+			 * @param roffset block offset (in bytes)
+			 * @param rlength block lengt (in bytes)
+			 **/
+			BamAuxSortingBufferEntry(uint8_t const ca, uint8_t const cb, uint64_t const roffset, uint64_t const rlength) : c(ca,cb), offset(roffset), length(rlength) {}
+			
+			/**
+			 * comparator
+			 *
+			 * @param o other entry
+			 * @return true iff *this < o lexicographically
+			 **/
+			bool operator<(BamAuxSortingBufferEntry const & o) const
+			{
+				if ( c != o.c )
+					return c < o.c;
+				else if ( offset < o.offset )
+					return offset < o.offset;
+				else
+					return length < o.length;
+			}
+		};
+		
+		//! aux sorting buffer class
+		struct BamAuxSortingBuffer
+		{
+			//! entry buffer vector
+			libmaus::autoarray::AutoArray<BamAuxSortingBufferEntry> B;
+			//! number of elements in entry buffer vector
+			uint64_t fill;
+			//! buffer for rewriting aux areas
+			libmaus::autoarray::AutoArray<uint8_t> U;
+			
+			//! constructor for empty sorting buffer
+			BamAuxSortingBuffer() : B(), U()
+			{
+			
+			}
+			
+			/**
+			 * add an element to the buffer
+			 *
+			 * @param E entry to be added
+			 **/
+			void push(BamAuxSortingBufferEntry const & E)
+			{
+				if ( fill == B.size() )
+				{
+					uint64_t const newsize = fill ? 2*fill : 1;
+					libmaus::autoarray::AutoArray<BamAuxSortingBufferEntry> N(newsize,false);
+					std::copy(B.begin(),B.end(),N.begin());
+					B = N;
+				}
+				
+				B[fill++] = E;
+			}
+			
+			/**
+			 * empty buffer
+			 **/
+			void reset()
+			{
+				fill = 0;
+			}
+			
+			/**
+			 * sort entry buffer
+			 **/
+			void sort()
+			{
+				::std::sort(B.begin(),B.begin()+fill);
+			}
+		};
+
 		/**
 		 * class containing static base functions for BAM alignment encoding and decoding
 		 **/
@@ -1444,6 +1537,156 @@ namespace libmaus
 				}
 				
 				return 0;
+			}
+
+
+			/**
+			 * sort aux fields by tag id
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param sortbuffer buffer for sorting
+			 **/
+			static void sortAux(uint8_t * E, uint64_t const blocksize, BamAuxSortingBuffer & sortbuffer)
+			{
+				// reset sort buffer
+				sortbuffer.reset();
+			
+				// pointer to auxiliary area
+				uint8_t * aux = getAux(E);
+				// start pointer of aux area
+				uint8_t * const auxa = aux;
+				
+				// scane aux block
+				while ( aux < E+blocksize )
+				{
+					// length of this aux field in bytes
+					uint64_t const auxlen = getAuxLength(aux);
+					// push entry
+					sortbuffer.push(BamAuxSortingBufferEntry(aux[0],aux[1],aux-auxa,auxlen));
+					// go to next tag
+					aux = aux + auxlen;
+				}
+				
+				// sort entries by name
+				sortbuffer.sort();
+				
+				// total number of aux bytes
+				uint64_t const auxtotal = aux-auxa;
+				
+				// check buffer size
+				if ( auxtotal > sortbuffer.U.size() )
+					sortbuffer.U = libmaus::autoarray::AutoArray<uint8_t>(auxtotal,false);
+				
+				// reorder aux blocks
+				uint8_t * outp = sortbuffer.U.begin();
+				for ( uint64_t i = 0; i < sortbuffer.fill; ++i )
+				{
+					BamAuxSortingBufferEntry const & entry = sortbuffer.B[i];
+					uint64_t const auxoff = entry.offset;
+					uint64_t const auxlen = entry.length;
+					
+					std::copy(auxa + auxoff, auxa + auxoff + auxlen, outp);
+					
+					outp += auxlen;
+				}
+				
+				std::copy(sortbuffer.U.begin(),sortbuffer.U.begin()+auxtotal,auxa);
+			}
+			/**
+			 * filter auxiliary tags keeping only those in a given list
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag list of tag identifiers to be kept (null terminated)
+			 * @return updated (reduced) block size
+			 **/
+			static uint64_t filterAux(
+				uint8_t * E, uint64_t const blocksize, 
+				BamAuxFilterVector const & tags
+			)
+			{
+				// pointer to auxiliary area
+				uint8_t * aux = getAux(E);
+				// offset from start of block (length of pre aux data)
+				uint64_t auxoff = (aux - E);
+				// output pointer
+				uint8_t * outp = aux;
+				// size of reduced aux area
+				uint64_t auxsize = 0;
+				
+				while ( aux < E+blocksize )
+				{
+					// search for current tag
+					bool const tagvalid = tags(aux[0],aux[1]);
+					
+					// length of this aux field in bytes
+					uint64_t const auxlen = getAuxLength(aux);
+					
+					// copy data if tag is valid
+					if ( tagvalid )
+					{
+						if ( aux != outp )
+							std::copy(aux,aux+auxlen,outp);
+
+						outp += auxlen;
+						auxsize += auxlen;
+					}
+
+					// go to next tag
+					aux = aux + auxlen;
+				}
+				
+				// return updated block size
+				return auxoff + auxsize;
+			}
+
+			/**
+			 * filter out auxiliary tags in the given list
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag list of tag identifiers to be kept (null terminated)
+			 * @return updated (reduced) block size
+			 **/
+			static uint64_t filterOutAux(
+				uint8_t * E, uint64_t const blocksize, 
+				BamAuxFilterVector const & tags
+			)
+			{
+				// pointer to auxiliary area
+				uint8_t * aux = getAux(E);
+				// offset from start of block (length of pre aux data)
+				uint64_t auxoff = (aux - E);
+				// output pointer
+				uint8_t * outp = aux;
+				// size of reduced aux area
+				uint64_t auxsize = 0;
+				
+				while ( aux < E+blocksize )
+				{
+					// search for current tag
+					bool const tagvalid = !tags(aux[0],aux[1]);
+
+					// length of this aux field in bytes
+					uint64_t const auxlen = getAuxLength(aux);
+					
+					// copy data if tag is valid
+					if ( tagvalid )
+					{
+						if ( aux != outp )
+							std::copy(aux,aux+auxlen,outp);
+
+						outp += auxlen;
+						auxsize += auxlen;
+					}
+
+					// go to next tag
+					aux = aux + auxlen;
+				}
+				
+				// return updated block size
+				return auxoff + auxsize;
 			}
 
 			/**

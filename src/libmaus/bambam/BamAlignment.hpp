@@ -26,12 +26,12 @@
 #include <libmaus/fastx/FASTQEntry.hpp>
 #include <libmaus/hashing/hash.hpp>
 #include <libmaus/util/utf8.hpp>
+#include <libmaus/bitio/BitVector.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{
-		
 		#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 		#pragma pack(push,1)
 		/**
@@ -625,6 +625,22 @@ namespace libmaus
 			std::string getAuxAsString(char const * const tag) const
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
+			}
+
+			/**
+			 * add auxiliary field for id tag containing a number array representing V
+			 *
+			 * @param tag aux id
+			 * @param V number array
+			 **/
+			void putAuxNumber(std::string const & tag, char const type, int64_t const v)
+			{
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				
+				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
+
+				D = data.abuffer;
+				blocksize = data.length;
 			}
 
 			/**
@@ -1455,7 +1471,36 @@ namespace libmaus
                         {
                         	return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQualRcIt(D.get(),it,seqlen);
                         }
-                                                
+
+			/**
+			 * filter auxiliary tags keeping only those in a given list
+			 *
+			 * @param tags list of tag identifiers to be kept
+			 **/
+			void filterAux(BamAuxFilterVector const & tags)
+			{
+				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::filterAux(D.begin(),blocksize,tags);
+			}
+
+			/**
+			 * filter auxiliary tags keeping and remove those in the list
+			 *
+			 * @param tags list of tag identifiers to be removed
+			 **/
+			void filterOutAux(BamAuxFilterVector const & tags)
+			{
+				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(D.begin(),blocksize,tags);
+			}
+
+			/**
+			 * sort aux fields by tag id
+			 *
+			 * @param sortbuffer buffer for sorting
+			 **/
+			void sortAux(BamAuxSortingBuffer & sortbuffer)
+			{
+				::libmaus::bambam::BamAlignmentDecoderBase::sortAux(D.begin(),blocksize,sortbuffer);
+			}                        
 		};
 	}
 }
