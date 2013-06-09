@@ -195,6 +195,25 @@ namespace libmaus
 
 				return v;
 			}
+			
+			/**
+			 * get unparsed (string) value for key
+			 *
+			 * @param key id of key=value pair
+			 * @param defaultVal default value if no key=value pair is present
+			 * @return value
+			 **/
+			std::string getUnparsedValue(std::string const & key, std::string const defaultVal) const
+			{
+				if ( argmap.find(key) == argmap.end() )
+				{
+					return defaultVal;
+				}
+				else
+				{
+					return argmap.find(key)->second;
+				}	
+			}
 
 			/**
 			 * get value for key. if there is no key=value pair, use defaultVal instead
