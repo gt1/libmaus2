@@ -43,6 +43,10 @@ namespace libmaus
 			public ::libmaus::bambam::EncoderBase, 
 			public ::libmaus::bambam::DecoderBase
 		{
+			typedef BamHeader this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			//! header text	
 			std::string text;
 			//! chromosome (reference sequence meta data) vector
@@ -57,6 +61,46 @@ namespace libmaus
 			std::vector<std::string> libs;
 			//! number of libaries
 			uint64_t numlibs;
+			
+			/**
+			 * clone this object and return clone in a unique pointer
+			 *
+			 * @return clone of this object
+			 **/
+			unique_ptr_type uclone() const
+			{
+				unique_ptr_type O(new this_type);
+				O->text = this->text;
+				O->chromosomes = this->chromosomes;
+				O->RG = this->RG;
+				if ( this->RGTrie.get() )
+					O->RGTrie = this->RGTrie->sclone();
+				if ( this->RGCSH.get() )
+					O->RGCSH = this->RGCSH->sclone();
+				O->libs = this->libs;
+				O->numlibs = this->numlibs;
+				return UNIQUE_PTR_MOVE(O);
+			}
+
+			/**
+			 * clone this object and return clone in a shared pointer
+			 *
+			 * @return clone of this object
+			 **/
+			shared_ptr_type sclone() const
+			{
+				shared_ptr_type O(new this_type);
+				O->text = this->text;
+				O->chromosomes = this->chromosomes;
+				O->RG = this->RG;
+				if ( this->RGTrie.get() )
+					O->RGTrie = this->RGTrie->sclone();
+				if ( this->RGCSH.get() )
+					O->RGCSH = this->RGCSH->sclone();
+				O->libs = this->libs;
+				O->numlibs = this->numlibs;
+				return O;
+			}
 			
 			/**
 			 * get name for reference id
@@ -86,7 +130,7 @@ namespace libmaus
 					
 					if ( RGCSH )
 					{
-						return RGCSH->H[ ReadGroup::hash(ID,ID+idlen) & RGCSH->m ];
+						return (*RGCSH)[ ReadGroup::hash(ID,ID+idlen) ];
 					}
 					else
 					{

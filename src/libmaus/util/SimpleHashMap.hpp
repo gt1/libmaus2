@@ -52,6 +52,7 @@ namespace libmaus
 			typedef std::pair<key_type,value_type> pair_type;
 			typedef SimpleHashMap<key_type,value_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			protected:
 			unsigned int slog;
@@ -70,6 +71,20 @@ namespace libmaus
 			::libmaus::parallel::OMPLock elock;
 			
 			public:
+			unique_ptr_type uclone() const
+			{
+				unique_ptr_type O(new this_type(slog));
+				std::copy(H.begin(),H.end(),O->H.begin());
+				return UNIQUE_PTR_MOVE(O);
+			}
+
+			shared_ptr_type sclone() const
+			{
+				shared_ptr_type O(new this_type(slog));
+				std::copy(H.begin(),H.end(),O->H.begin());
+				return O;
+			}
+
 			void serialise(std::ostream & out) const
 			{
 				::libmaus::util::NumberSerialisation::serialiseNumber(out,slog);

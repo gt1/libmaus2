@@ -32,12 +32,34 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
+			private:
 			unsigned int k;
 			uint64_t n;
-			uint64_t m;
-			
+			uint64_t m;			
 			libmaus::autoarray::AutoArray<int64_t> H;
+			
+			ConstantStringHash(ConstantStringHash const & O)
+			: k(O.k), n(O.n), m(O.m), H(O.H.size(),false)
+			{
+				std::copy(O.H.begin(),O.H.end(),H.begin());
+			} 
 
+			public:
+			int64_t operator[](uint64_t const i) const
+			{
+				return H[i & m];
+			}
+			
+			unique_ptr_type uclone() const
+			{
+				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(*this)));
+			}
+
+			shared_ptr_type sclone() const
+			{
+				return shared_ptr_type(new this_type(*this));
+			}
+			
 			template<typename iterator>
 			static unique_ptr_type construct(iterator ita, iterator ite, uint64_t const maxn = 64*1024)
 			{
