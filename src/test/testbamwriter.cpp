@@ -26,7 +26,8 @@ int main()
 		::libmaus::bambam::BamHeader header;
 		header.addChromosome("chr1",2000);
 		
-		::libmaus::bambam::BamWriter bamwriter(std::cout,header);
+		// ::libmaus::bambam::BamWriter bamwriter(std::cout,header);
+		::libmaus::bambam::BamParallelWriter bamwriter(std::cout,8,header);
 		
 		for ( uint64_t i = 0; i < 64*1024; ++i )
 		{
