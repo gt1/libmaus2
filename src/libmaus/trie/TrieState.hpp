@@ -174,9 +174,32 @@ namespace libmaus
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
+			private:
+			LinearHashTrie()
+			: V(), H()
+			{
+			}
+			
+			public:
 			std::vector < LinearTrieStateBase<char_type> > V;
 			typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type H;
 			
+			unique_ptr_type uclone() const
+			{
+				unique_ptr_type O(new this_type);
+				O->V = V;
+				O->H = UNIQUE_PTR_MOVE(H->uclone());
+				return UNIQUE_PTR_MOVE(O);
+			}
+
+			shared_ptr_type sclone() const
+			{
+				shared_ptr_type O(new this_type);
+				O->V = this->V;
+				O->H = UNIQUE_PTR_MOVE(this->H->uclone());
+				return O;
+			}
+						
 			static unsigned int ensureSize(uint64_t const numedges, unsigned int log)
 			{
 				while ( numedges > (1ull << log) )
