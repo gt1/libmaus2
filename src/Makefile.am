@@ -212,7 +212,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamToFastqOutputFileSet.hpp \
 	libmaus/bambam/BamAlignmentDecoder.hpp \
 	libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp \
-	libmaus/bambam/ReadGroup.hpp
+	libmaus/bambam/ReadGroup.hpp \
+	libmaus/bambam/BamAuxFilterVector.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
