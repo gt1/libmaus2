@@ -236,6 +236,7 @@ int main(int argc, char *argv[])
 	return 0;
 	#endif
 
+	#if 0
 	{
 		libmaus::lz::BgzfInflateDeflateParallel BIDP(std::cin,std::cout,Z_DEFAULT_COMPRESSION,32,128);
 		libmaus::autoarray::AutoArray<char> B(64*1024,false);
@@ -286,7 +287,7 @@ int main(int argc, char *argv[])
 			
 		return 0;
 	}
-                                                                                                                                                                                        
+	#endif                                                                                                                                                                            
 
 	#if 1
 	{
