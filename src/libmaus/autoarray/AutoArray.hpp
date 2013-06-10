@@ -1265,4 +1265,6 @@ namespace libmaus
 		}
 	}
 }
+
+std::ostream & operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu);
 #endif
