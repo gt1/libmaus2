@@ -113,9 +113,11 @@ namespace libmaus
 			int64_t F;
 			bool final;
 			std::vector<uint64_t> ids;
+			int64_t parent;
+			int64_t depth;
 
 			LinearTrieStateBase(bool const rfinal = false)
-			: F(-1), final(rfinal)
+			: F(-1), final(rfinal), parent(-1), depth(0)
 			{
 			
 			}
@@ -223,6 +225,7 @@ namespace libmaus
 				return this;
 			}
 			
+			
 			public:
 			static uint64_t pairToHashValue(uint64_t const from, char_type const & c)
 			{
@@ -232,6 +235,36 @@ namespace libmaus
 			void addTransition(uint64_t const from, char_type const & c, uint64_t const to)
 			{
 				H -> insert ( pairToHashValue(from,c), to );
+			}
+
+			void fillDepthParent()
+			{
+				std::vector < uint64_t > edges;
+				
+				for (
+					typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::pair_type const * P = H->begin();
+					P != H->end();
+					++P )
+					if ( P->first != ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unused() )
+					{
+						uint64_t const from = (P->first >> 32);
+						// uint64_t const c = P->first & 0xFFFFFFFFull;
+						uint64_t const to = P->second;
+						
+						V[to].parent = from;
+						
+						edges.push_back(P->first);
+					}
+				
+				std::sort(edges.begin(),edges.end());
+				
+				for ( uint64_t i = 0; i < edges.size(); ++i )
+				{
+					uint64_t const from = (edges[i] >> 32);
+				
+					if ( V[from].parent != -1 )
+						V[from].depth = V[V[from].parent].depth+1;
+				}
 			}
 			
 			bool hasTransition(uint64_t const from, char_type const & c) const
@@ -686,6 +719,8 @@ namespace libmaus
 						S.push(ita->second.get());
 					}
 				}
+				
+				LHT->fillDepthParent();
 				
 				return UNIQUE_PTR_MOVE(LHT);				
 			}
