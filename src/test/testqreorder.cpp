@@ -322,8 +322,10 @@ struct AdapterFilter
 	
 	void searchAdapters(std::string const & s, unsigned int const maxmis)
 	{
-		uint8_t const * u = reinterpret_cast<uint8_t const *>(s.c_str());
-		uint8_t const * const ue = u + s.size();
+		uint64_t n = s.size();
+		uint8_t const * const ua = reinterpret_cast<uint8_t const *>(s.c_str());
+		uint8_t const * u = ua;
+		uint8_t const * const ue = u + n;
 		
 		// std::cerr << "-----" << std::endl;
 
@@ -396,12 +398,12 @@ struct AdapterFilter
 			{
 				std::cerr << "AdapterOffsetStrand(" << itc->adpid << "," << itc->adpoff << "," << itc->adpstr << ")" << std::endl;
 
-				std::string const adp = itc->adpstr ? adaptersr[itc->adpid] : adaptersf[itc->adpid];
+				std::string const & adp = itc->adpstr ? adaptersr[itc->adpid] : adaptersf[itc->adpid];
 
 				uint64_t const matchstart = (itc->adpoff >= 0) ? 0 : -itc->adpoff;
 				uint64_t const adpstart   = (itc->adpoff >= 0) ? itc->adpoff : 0;
 				
-				uint64_t const matchlen = s.size() - matchstart;
+				uint64_t const matchlen = n - matchstart;
 				uint64_t const adplen = adp.size() - adpstart;
 				
 				uint64_t const comlen = std::min(matchlen,adplen);
@@ -417,7 +419,7 @@ struct AdapterFilter
 
 				for ( uint64_t i = 0; i < comlen; ++i )
 				{
-					if ( adp[adpstart+i] == s[matchstart+i] )
+					if ( adp[adpstart+i] == ua[matchstart+i] )
 						cursum += SCORE_MATCH;
 					else
 						cursum += PEN_MISMATCH;
@@ -443,11 +445,11 @@ struct AdapterFilter
 				std::cerr << std::endl;
 
 				for ( uint64_t i = 0; i < comlen; ++i )
-					std::cerr << s[matchstart+i];
+					std::cerr << ua[matchstart+i];
 				std::cerr << std::endl;
 
 				for ( uint64_t i = 0; i < comlen; ++i )
-					if ( adp[adpstart+i] == s[matchstart+i] )
+					if ( adp[adpstart+i] == ua[matchstart+i] )
 						std::cerr << "+";
 					else
 						std::cerr << "-";
