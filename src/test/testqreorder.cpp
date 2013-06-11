@@ -187,7 +187,8 @@ struct AdapterFilter
 
 	unsigned int const seedlength;
 	std::vector<AdapterFragment> fragments;
-	std::vector<std::string> adapters;
+	std::vector<std::string> adaptersf;
+	std::vector<std::string> adaptersr;
 	std::vector<libmaus::bambam::BamAlignment::shared_ptr_type> badapters;
 	libmaus::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type kmerfilter;
 	libmaus::fastx::AutoArrayWordPutObject<uint64_t> A;
@@ -209,7 +210,8 @@ struct AdapterFilter
 			w |= R[*(u++)];
 		}
 		
-		uint16_t adppos = adpstr ? s.size()-seedlength : 0;
+		// uint16_t adppos = adpstr ? s.size()-seedlength : 0;
+		uint16_t adppos = 0;
 		while ( u != ue )
 		{
 			w <<= seedk;
@@ -218,7 +220,8 @@ struct AdapterFilter
 			
 			fragments.push_back(AdapterFragment(w,adpid,adppos,adpstr));
 		
-			adppos = adpstr ? (adppos-1) : (adppos+1);
+			// adppos = adpstr ? (adppos-1) : (adppos+1);
+			adppos++;
 		}
 	}
 
@@ -259,7 +262,8 @@ struct AdapterFilter
 			addFragments(R.begin(),readf,r,false);
 			addFragments(R.begin(),readr,r,true);
 			
-			adapters.push_back(readf);
+			adaptersf.push_back(readf);
+			adaptersr.push_back(libmaus::fastx::reverseComplementUnmapped(readf));
 			badapters.push_back(bamdec.getAlignment().sclone());
 			
 			++r;
@@ -284,6 +288,38 @@ struct AdapterFilter
 		return A;
 	}
 	
+	struct AdapterOffsetStrand
+	{
+		uint16_t adpid;
+		int16_t adpoff;
+		uint16_t adpstr;
+		
+		AdapterOffsetStrand() : adpid(0), adpoff(0), adpstr(0) {}
+		AdapterOffsetStrand(
+			uint16_t const radpid,
+			int16_t const radpoff,
+			uint16_t const radpstr
+		) : adpid(radpid), adpoff(radpoff), adpstr(radpstr) {}
+		
+		bool operator<(AdapterOffsetStrand const & o) const
+		{
+			if ( adpid != o.adpid )
+				return adpid < o.adpid;
+			else if ( adpoff != o.adpoff )
+				return adpoff < o.adpoff;
+			else
+				return adpstr < o.adpstr;
+		}
+		
+		bool operator==(AdapterOffsetStrand const & o) const
+		{
+			return
+				adpid == o.adpid &&
+				adpoff == o.adpoff &&
+				adpstr == o.adpstr;
+		}
+	};
+	
 	void searchAdapters(std::string const & s, unsigned int const maxmis)
 	{
 		uint8_t const * u = reinterpret_cast<uint8_t const *>(s.c_str());
@@ -293,6 +329,8 @@ struct AdapterFilter
 
 		if ( ue-u >= seedlength )
 		{
+			std::vector<AdapterOffsetStrand> AOS;
+		
 			uint64_t w = 0;
 			for ( uint64_t i = 0; i < seedlength-1; ++i )
 			{
@@ -316,7 +354,14 @@ struct AdapterFilter
 						uint64_t const rank = A.A[i];
 						AdapterFragment const & frag = fragments[rank];
 						
-						#if 1
+						AOS.push_back(
+							AdapterOffsetStrand(
+								frag.adpid,
+								static_cast<int16_t>(frag.adppos)-static_cast<int16_t>(matchpos),
+								frag.adpstr)
+						);
+						
+						#if 0
 						std::cerr 
 							<< "matchpos=" << matchpos << " adapter "
 							<< frag.adpid
@@ -330,17 +375,90 @@ struct AdapterFilter
 						
 						std::cerr << s.substr(matchpos,seedlength) << std::endl;
 						
-						std::string const adpfrag = adapters[frag.adpid].substr(frag.adppos,seedlength);
+						std::string const adpfrag = 
+							frag.adpstr ? 
+								adaptersr[frag.adpid].substr(frag.adppos,seedlength)
+								:
+								adaptersf[frag.adpid].substr(frag.adppos,seedlength);
 						
-						if ( frag.adpstr )						
-							std::cerr << libmaus::fastx::reverseComplementUnmapped(adpfrag) << std::endl;
-						else
-							std::cerr << adpfrag << std::endl;
+						std::cerr << adpfrag << std::endl;
 						#endif
 					}
 				}
 				
 				matchpos++;
+			}
+			
+			std::sort(AOS.begin(),AOS.end());
+			std::vector<AdapterOffsetStrand>::const_iterator it = std::unique(AOS.begin(),AOS.end());
+			
+			for ( std::vector<AdapterOffsetStrand>::const_iterator itc = AOS.begin(); itc != it; ++itc )
+			{
+				std::cerr << "AdapterOffsetStrand(" << itc->adpid << "," << itc->adpoff << "," << itc->adpstr << ")" << std::endl;
+
+				std::string const adp = itc->adpstr ? adaptersr[itc->adpid] : adaptersf[itc->adpid];
+
+				uint64_t const matchstart = (itc->adpoff >= 0) ? 0 : -itc->adpoff;
+				uint64_t const adpstart   = (itc->adpoff >= 0) ? itc->adpoff : 0;
+				
+				uint64_t const matchlen = s.size() - matchstart;
+				uint64_t const adplen = adp.size() - adpstart;
+				
+				uint64_t const comlen = std::min(matchlen,adplen);
+				
+				uint64_t curstart = 0;
+				int64_t cursum = 0;
+				int64_t curmax = -1;
+				uint64_t maxstart = 0;
+				uint64_t maxend = 0;
+				
+				int64_t const SCORE_MATCH = 1;
+				int64_t const PEN_MISMATCH = -1;
+
+				for ( uint64_t i = 0; i < comlen; ++i )
+				{
+					if ( adp[adpstart+i] == s[matchstart+i] )
+						cursum += SCORE_MATCH;
+					else
+						cursum += PEN_MISMATCH;
+						
+					if ( cursum <= 0 )
+					{
+						cursum = 0;
+						curstart = i+1;						
+					}
+					
+					if ( cursum > curmax )
+					{
+						curmax = cursum;
+						maxstart = curstart;
+						maxend = i+1;
+					}
+				}
+				
+				std::cerr << "curmax=" << curmax << " maxstart=" << maxstart << " maxend=" << maxend << std::endl;
+
+				for ( uint64_t i = 0; i < comlen; ++i )
+					std::cerr << adp[adpstart+i];
+				std::cerr << std::endl;
+
+				for ( uint64_t i = 0; i < comlen; ++i )
+					std::cerr << s[matchstart+i];
+				std::cerr << std::endl;
+
+				for ( uint64_t i = 0; i < comlen; ++i )
+					if ( adp[adpstart+i] == s[matchstart+i] )
+						std::cerr << "+";
+					else
+						std::cerr << "-";
+				std::cerr << std::endl;
+
+				for ( uint64_t i = 0; i < comlen; ++i )
+					if ( i >= maxstart && i < maxend )
+						std::cerr << "*";
+					else
+						std::cerr << " ";
+				std::cerr << std::endl;
 			}
 		}
 	}
