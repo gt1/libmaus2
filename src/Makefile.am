@@ -587,7 +587,8 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/CompactFastQSingleBlockReader.hpp \
 	libmaus/fastx/CompactFastQMultiBlockReader.hpp \
 	libmaus/fastx/CompactFastTerminator.hpp \
-	libmaus/fastx/CompactFastReplace.hpp
+	libmaus/fastx/CompactFastReplace.hpp \
+	libmaus/fastx/QReorder.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
@@ -836,7 +837,8 @@ noinst_PROGRAMS = \
 	testcirchash \
 	testrmmtree \
 	testcst \
-	testbamcmp
+	testbamcmp \
+	testqreorder
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1024,3 +1026,6 @@ testcst_LDADD = libmaus.la
 
 testbamcmp_SOURCES = test/testbamcmp.cpp
 testbamcmp_LDADD = libmaus.la
+
+testqreorder_SOURCES = test/testqreorder.cpp
+testqreorder_LDADD = libmaus.la
