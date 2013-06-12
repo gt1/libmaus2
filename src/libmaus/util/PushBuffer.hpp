@@ -49,6 +49,19 @@ namespace libmaus
 				A[f++] = o;
 			}
 			
+			value_type & get()
+			{
+				if ( f == A.size() )
+				{
+					uint64_t const newsize = A.size() ? 2*A.size() : 1;
+					libmaus::autoarray::AutoArray<value_type> B(newsize,false);
+					std::copy(A.begin(),A.end(),B.begin());
+					A = B;
+				}
+			
+				return A[f++];
+			}
+			
 			void reset()
 			{
 				f = 0;
