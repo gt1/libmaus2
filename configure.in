@@ -1378,7 +1378,7 @@ case $target_cpu in
 	i386|i486|i586|i686)
 		HAVEI386="#define LIBMAUS_HAVE_i386"
 		;;
-	x86_64)
+	x86_64|amd64)
 		HAVEI386="#define LIBMAUS_HAVE_i386"
 		HAVEX8664="#define LIBMAUS_HAVE_x86_64"
 		;;
