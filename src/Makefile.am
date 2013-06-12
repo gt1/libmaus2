@@ -839,7 +839,8 @@ noinst_PROGRAMS = \
 	testrmmtree \
 	testcst \
 	testbamcmp \
-	testqreorder
+	testqreorder \
+	testfqbgzf
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1030,3 +1031,6 @@ testbamcmp_LDADD = libmaus.la
 
 testqreorder_SOURCES = test/testqreorder.cpp
 testqreorder_LDADD = libmaus.la
+
+testfqbgzf_SOURCES = test/testfqbgzf.cpp
+testfqbgzf_LDADD = libmaus.la
