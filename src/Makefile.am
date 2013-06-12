@@ -455,7 +455,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/FileTempFileContainer.hpp \
 	libmaus/util/MemTempFileContainer.hpp \
 	libmaus/util/ImpCompactNumberArray.hpp \
-	libmaus/util/ContainerGetObject.hpp
+	libmaus/util/ContainerGetObject.hpp \
+	libmaus/util/PushBuffer.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
