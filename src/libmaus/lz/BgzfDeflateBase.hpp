@@ -44,6 +44,7 @@ namespace libmaus
 			uint64_t objectid;
 			uint64_t blockid;
 			uint64_t compsize;
+			uint64_t uncompsize;
 			
 			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
 			:
@@ -53,12 +54,14 @@ namespace libmaus
 			  flushmode(rflushmode),
 			  objectid(0),
 			  blockid(0),
-			  compsize(0)
+			  compsize(0),
+			  uncompsize(0)
 			{
 			}
 
 			uint64_t flush(bool const fullflush)
 			{
+				uncompsize = (pc-pa);
 				return BgzfDeflateZStreamBase::flush(*this,*this,fullflush);
 			}
 		};

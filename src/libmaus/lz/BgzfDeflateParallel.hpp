@@ -36,6 +36,9 @@ namespace libmaus
 	{
 		struct BgzfDeflateParallel
 		{
+			typedef BgzfDeflateParallel this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
 			private:
 			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 				deflategloblist;
@@ -75,8 +78,8 @@ namespace libmaus
 			}
 
 			public:
-			BgzfDeflateParallel(std::ostream & rdeflateout, uint64_t const rnumthreads, uint64_t const rnumbuffers, int const level)
-			: deflategloblist(), deflatecontext(deflategloblist,rdeflateout,rnumbuffers,level), T(rnumthreads)
+			BgzfDeflateParallel(std::ostream & rdeflateout, uint64_t const rnumthreads, uint64_t const rnumbuffers, int const level, std::ostream * rdeflateindexostr = 0)
+			: deflategloblist(), deflatecontext(deflategloblist,rdeflateout,rnumbuffers,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur(),rdeflateindexostr), T(rnumthreads)
 			{
 				for ( uint64_t i = 0; i < T.size(); ++i )
 				{
@@ -143,6 +146,32 @@ namespace libmaus
 				}
 			}
 
+			void writeSynced(char const * c, uint64_t n)
+			{
+				// flush if necessary
+				if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )
+					flushInternal();
+
+				// enque data for compression
+				while ( n )
+				{
+					uint64_t const freespace = deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe - deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc;
+					uint64_t const towrite = std::min(n,freespace);
+					std::copy(reinterpret_cast<uint8_t const *>(c),reinterpret_cast<uint8_t const *>(c)+towrite,deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc);
+
+					c += towrite;
+					deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc += towrite;
+					n -= towrite;
+
+					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
+						flushInternal();
+				}
+
+				// flush if necessary
+				if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )
+					flushInternal();
+			}
+
 			void put(uint8_t const c)
 			{
 				assert ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe );
@@ -181,6 +210,8 @@ namespace libmaus
 					libmaus::lz::BgzfDeflateBase eofBase;
 					uint64_t const eofflushsize = eofBase.flush(true /* full flush */);
 					deflatecontext.deflateout.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
+					
+					// std::cerr << "Writing " << eofflushsize << " bytes for flush" << std::endl;
 					
 					deflatecontext.deflateoutflushed = true;
 				}

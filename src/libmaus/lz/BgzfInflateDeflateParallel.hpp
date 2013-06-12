@@ -99,7 +99,7 @@ namespace libmaus
 			: 
 				globlist(2),
 				inflatecontext(globlist,rinflatein,rnumblocks),
-				deflatecontext(globlist,rdeflateout,rnumblocks,level),
+				deflatecontext(globlist,rdeflateout,rnumblocks,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
 				T(rnumthreads),
 				inflateterminated(false)
 			{
@@ -116,7 +116,7 @@ namespace libmaus
 			: 
 				globlist(2),
 				inflatecontext(globlist,rinflatein,rnumblocks,rcopyostr),
-				deflatecontext(globlist,rdeflateout,rnumblocks,level),
+				deflatecontext(globlist,rdeflateout,rnumblocks,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
 				T(rnumthreads),
 				inflateterminated(false)
 			{
@@ -134,7 +134,7 @@ namespace libmaus
 			: 
 				globlist(2),
 				inflatecontext(globlist,rinflatein,4*rnumthreads),
-				deflatecontext(globlist,rdeflateout,4*rnumthreads,level),
+				deflatecontext(globlist,rdeflateout,4*rnumthreads,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
 				T(rnumthreads),
 				inflateterminated(false)
 			{
@@ -153,7 +153,7 @@ namespace libmaus
 			: 
 				globlist(2),
 				inflatecontext(globlist,rinflatein,4*rnumthreads,rcopyostr),
-				deflatecontext(globlist,rdeflateout,4*rnumthreads,level),
+				deflatecontext(globlist,rdeflateout,4*rnumthreads,level,BgzfDeflateParallelContext::getDefaultDeflateGetCur()),
 				T(rnumthreads),
 				inflateterminated(false)
 			{

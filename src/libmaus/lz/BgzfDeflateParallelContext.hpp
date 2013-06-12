@@ -44,8 +44,11 @@ namespace libmaus
 			uint64_t deflateoutid;
 			// next block id to be written to compressed stream
 			uint64_t deflatenextwriteid;
+			// output stream
 			std::ostream & deflateout;
 			bool deflateoutflushed;
+			// number of output bytes
+			uint64_t deflateoutbytes;
 
 			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> deflateB;
 			libmaus::parallel::SynchronousQueue<uint64_t> deflatefreelist;
@@ -71,23 +74,37 @@ namespace libmaus
 
 			//! queues lock
 			libmaus::parallel::PosixMutex deflateqlock;
+			
+			//! index stream
+			std::ostream * deflateindexstr;
+			
+			static bool getDefaultDeflateGetCur()
+			{
+				return true;
+			}
 
 			BgzfDeflateParallelContext(
-				libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
-					& rdeflategloblist,		
+				libmaus::parallel::TerminatableSynchronousHeap<
+					BgzfThreadQueueElement,
+					BgzfThreadQueueElementHeapComparator
+				>
+				& rdeflategloblist,		
 				std::ostream & rdeflateout, 
 				uint64_t const rnumbuffers,
 				int level,
-				bool const deflategetcur = true
+				bool const deflategetcur = getDefaultDeflateGetCur(),
+				std::ostream * rdeflateindexstr = 0
 			)
 			: deflategloblist(rdeflategloblist), 
 			  deflateoutid(0), deflatenextwriteid(0), deflateout(rdeflateout), deflateoutflushed(false), 
+			  deflateoutbytes(0),
 			  deflateB(rnumbuffers),
 			  deflatecurobject(-1),
 			  deflateheapcomp(deflateB), 
 			  deflateheapinfo(deflateB),
 			  deflatewritequeue(deflateheapcomp,deflateheapinfo),
-			  deflateexceptionid(std::numeric_limits<uint64_t>::max())
+			  deflateexceptionid(std::numeric_limits<uint64_t>::max()),
+			  deflateindexstr(rdeflateindexstr)
 			{
 				for ( uint64_t i = 0; i < deflateB.size(); ++i )
 				{
@@ -105,6 +122,11 @@ namespace libmaus
 					deflatecurobject = deflatefreelist.deque();
 					deflateB[deflatecurobject]->blockid = deflateoutid++;
 				}
+			}
+			~BgzfDeflateParallelContext()
+			{
+				if ( deflateindexstr )
+					deflateindexstr->flush();
 			}
 		};
 	}

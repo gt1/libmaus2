@@ -28,6 +28,7 @@
 #include <libmaus/lz/BgzfDeflateBlockIdComparator.hpp>
 #include <libmaus/lz/BgzfDeflateParallelContext.hpp>
 #include <libmaus/lz/BgzfThreadOpBase.hpp>
+#include <libmaus/util/utf8.hpp>
 
 namespace libmaus
 {
@@ -149,12 +150,28 @@ namespace libmaus
 									deflatecontext.deflateB[objectid]->compsize
 								);
 								
+								deflatecontext.deflateoutbytes += deflatecontext.deflateB[objectid]->compsize;
+								
+								#if 0
+								std::cerr << "compsize " 
+									<< deflatecontext.deflateB[objectid]->compsize 
+									<< " outbytes "
+									<< deflatecontext.deflateoutbytes
+									<< std::endl;
+								#endif
+								
 								if ( ! deflatecontext.deflateout )
 								{
 									libmaus::exception::LibMausException se;
 									se.getStream() << "BgzfDeflateParallel: output error on output stream." << std::endl;
 									se.finish();
 									throw se;
+								}
+								
+								if ( deflatecontext.deflateindexstr )
+								{
+									libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->uncompsize,*(deflatecontext.deflateindexstr));
+									libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->compsize,*(deflatecontext.deflateindexstr));
 								}
 							}
 							catch(libmaus::exception::LibMausException const & ex)

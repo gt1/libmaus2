@@ -201,6 +201,8 @@ namespace libmaus
 							deflatecontext.deflateB[objectid]->compsize
 						);
 						
+						deflatecontext.deflateoutbytes += deflatecontext.deflateB[objectid]->compsize;
+						
 						if ( ! deflatecontext.deflateout )
 						{
 							libmaus::exception::LibMausException se;
