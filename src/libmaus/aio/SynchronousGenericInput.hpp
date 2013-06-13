@@ -44,7 +44,6 @@ namespace libmaus
 			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			private:
 			//! buffer size
 			uint64_t const bufsize;
 			//! input buffer

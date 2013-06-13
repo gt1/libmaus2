@@ -43,7 +43,6 @@ namespace libmaus
 			//! value type
 			typedef uint64_t value_type;
 
-			private:
 			//! output file name
 			std::string const filename;
 			//! output buffer

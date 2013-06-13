@@ -22,6 +22,7 @@
 
 #include <libmaus/network/SocketOutputBuffer8.hpp>
 #include <libmaus/util/IntervalTree.hpp>
+#include <libmaus/util/GenericIntervalTree.hpp>
 
 namespace libmaus
 {

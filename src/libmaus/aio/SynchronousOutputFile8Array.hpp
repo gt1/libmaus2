@@ -46,7 +46,6 @@ namespace libmaus
 			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			private:
 			//! hash intervals
 			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const * HI;
 			//! output buffers

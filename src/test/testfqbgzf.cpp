@@ -238,7 +238,9 @@ int main(int argc, char * argv[])
 		uint64_t fihigh = 0;
 		
 		libmaus::aio::CheckedOutputStream indexCOS(indexfilename);
-		::libmaus::util::NumberSerialisation::serialiseNumber(indexCOS,numblocks);
+		uint64_t const combrate = 4;
+		::libmaus::util::NumberSerialisation::serialiseNumber(indexCOS,(numblocks+combrate-1)/combrate);
+		std::vector < libmaus::fastx::FastInterval > FIV;
 		
 		for ( uint64_t i = 0; i < numblocks; ++i )
 		{
@@ -253,9 +255,22 @@ int main(int argc, char * argv[])
 			
 			// std::cerr << rFI << std::endl;
 			
-			indexCOS << rFI.serialise();
+			FIV.push_back(rFI);
+			
+			if ( FIV.size() == combrate )
+			{
+				indexCOS << libmaus::fastx::FastInterval::merge(FIV.begin(),FIV.end()).serialise();
+				FIV.clear();
+			}
+			// indexCOS << rFI.serialise();
 			
 			filow = fihigh;
+		}
+		
+		if ( FIV.size() )
+		{
+			indexCOS << libmaus::fastx::FastInterval::merge(FIV.begin(),FIV.end()).serialise();
+			FIV.clear();	
 		}
 		
 		indexCOS.flush();
