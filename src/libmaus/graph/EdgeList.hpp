@@ -35,8 +35,8 @@ namespace libmaus
 		struct EdgeListBase
 		{
 			typedef uint32_t edge_count_type;
-			typedef uint32_t edge_target_type;
-			typedef uint8_t edge_weight_type;
+			typedef uint64_t edge_target_type;
+			typedef uint16_t edge_weight_type;
 			
 			static unsigned int const maxweight;
 			static edge_target_type const edge_list_term;
@@ -304,7 +304,7 @@ namespace libmaus
 				::libmaus::network::SocketBase * const socket
 			)
 			{
-				::libmaus::network::SocketOutputBuffer<unsigned char> SOB(socket,64*1024);
+				::libmaus::network::SocketOutputBuffer<edge_weight_type> SOB(socket,64*1024);
 				writeEdgeWeightStream(SOB);
 				socket->writeMessage<uint64_t>(1,0,0);
 			}

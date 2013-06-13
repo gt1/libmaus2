@@ -31,7 +31,7 @@ namespace libmaus
 		struct TripleEdge
 		{
 			typedef TripleEdge this_type;
-			typedef uint32_t node_id_type;
+			typedef uint64_t node_id_type;
 			typedef uint32_t link_weight_type;
 
 			node_id_type a;
@@ -73,8 +73,8 @@ namespace libmaus
 			static TripleEdge random()
 			{
 				return TripleEdge ( 
-					::libmaus::random::Random::rand32() % 8,
-					::libmaus::random::Random::rand32() % 8,
+					::libmaus::random::Random::rand64() % 8,
+					::libmaus::random::Random::rand64() % 8,
 					::libmaus::random::Random::rand16() % 4
 				);
 			}
