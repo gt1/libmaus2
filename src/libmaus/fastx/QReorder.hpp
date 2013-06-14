@@ -20,9 +20,11 @@
 #define LIBMAUS_FASTX_QREORDER_HPP
 
 #include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
 #include <libmaus/types/types.hpp>
 #include <libmaus/math/lowbits.hpp>
 #include <libmaus/rank/popcnt.hpp>
+#include <libmaus/autoarray/AutoArray.hpp>
 #include <cassert>
 
 namespace libmaus
@@ -891,7 +893,7 @@ namespace libmaus
 				return d;
 			}
 
-			uint64_t search(value_type const v, unsigned int const maxmis, AutoArrayWordPutObject<value_type> & A)
+			uint64_t search(value_type const v, unsigned int const maxmis, AutoArrayWordPutObject<value_type> & A) const
 			{
 				A.reset();
 				comp01->search(v,A,maxmis);
@@ -915,7 +917,7 @@ namespace libmaus
 				return A.p;
 			}
 
-			uint64_t searchRanks(value_type const v, unsigned int const maxmis, AutoArrayWordPutObject<value_type> & A)
+			uint64_t searchRanks(value_type const v, unsigned int const maxmis, AutoArrayWordPutObject<value_type> & A) const
 			{
 				search(v,maxmis,A);
 				for ( uint64_t i = 0; i < A.p; ++i )

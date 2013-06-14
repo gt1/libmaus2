@@ -633,11 +633,28 @@ namespace libmaus
 			 * @param tag aux id
 			 * @param V number array
 			 **/
-			void putAuxNumber(std::string const & tag, char const type, int64_t const v)
+			template<typename value_type>
+			void putAuxNumber(std::string const & tag, char const type, value_type const v)
 			{
 				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
 				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
+
+				D = data.abuffer;
+				blocksize = data.length;
+			}
+
+			/**
+			 * add auxiliary field for id tag containing a string value
+			 *
+			 * @param tag aux id
+			 * @param value string
+			 **/
+			void putAuxString(std::string const & tag, std::string const & value)
+			{
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				
+				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value.c_str());
 
 				D = data.abuffer;
 				blocksize = data.length;

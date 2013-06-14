@@ -366,9 +366,9 @@ namespace libmaus
 			 * @param tag aux tag
 			 * @param value character string
 			 **/
-			template<typename value_type>
+			template<typename buffer_type, typename value_type>
 			static void putAuxString(
-				::libmaus::fastx::UCharBuffer & data,
+				buffer_type & data,
 				std::string const & tag, 
 				value_type const & value
 			)

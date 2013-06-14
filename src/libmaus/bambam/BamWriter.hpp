@@ -338,7 +338,7 @@ namespace libmaus
 			template<typename value_type>
 			void putAuxString(std::string const & tag, value_type const & value)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString<value_type>(ubuffer,tag,value);
+				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString< ::libmaus::fastx::UCharBuffer,value_type>(ubuffer,tag,value);
 			}
 
 			/**
