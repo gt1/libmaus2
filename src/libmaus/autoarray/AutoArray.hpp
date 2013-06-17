@@ -575,10 +575,10 @@ namespace libmaus
 					case alloc_type_cxx:
 					case alloc_type_memalign_cacheline:
 						{
-							::libmaus::exception::LibMausException se;
-							se.getStream() << getTypeName() << "::resize() not supported for allocation type " << getAllocTypeName() << std::endl;
-							se.finish();
-							throw se;
+							this_type C(rn,false);
+							uint64_t const copy = std::min(size(),C.size());
+							std::copy(begin(),begin()+copy,C.begin());
+							*this = C;
 						}
 						break;
 				}				

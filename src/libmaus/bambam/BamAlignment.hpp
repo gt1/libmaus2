@@ -418,6 +418,18 @@ namespace libmaus
 			}
 
 			/**
+			 * git cigar operations vector
+			 *
+			 * @param D alignment block
+			 * @param A array for storing vector
+			 * @return number of cigar operations
+			 **/
+			uint32_t getCigarOperations(libmaus::autoarray::AutoArray<cigar_operation> & cigop)
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarOperations(D.begin(),cigop);
+			}
+
+			/**
 			 * @return number of bytes before the query sequence in the alignment
 			 **/
 			uint64_t getNumPreSeqBytes() const
@@ -495,7 +507,7 @@ namespace libmaus
 			{
 				uint64_t const pre    = getNumPreSeqBytes();
 				uint64_t const oldseq = getNumSeqBytes();
-				uint64_t const newseq = (2*seqlen)+1;
+				uint64_t const newseq = (seqlen+1)/2;
 				uint64_t const post   = getNumPostSeqBytes();
 				
 				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( pre + newseq + post );

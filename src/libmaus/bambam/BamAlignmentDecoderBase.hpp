@@ -26,6 +26,7 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/hashing/hash.hpp>
 #include <libmaus/bambam/BamAuxFilterVector.hpp>
+#include <libmaus/bambam/CigarOperation.hpp>
 
 namespace libmaus
 {
@@ -580,6 +581,32 @@ namespace libmaus
 			 * @return code of i'th cigar operation from D
 			 **/
 			static uint32_t getCigarFieldOp(uint8_t const * D, uint64_t const i) {  return (getCigarField(D,i) >> 0) & ((1ull<<(4))-1); }
+
+			/**
+			 * git cigar operations vector
+			 *
+			 * @param D alignment block
+			 * @param A array for storing vector
+			 * @return number of cigar operations
+			 **/
+			static uint32_t getCigarOperations(uint8_t const * D,
+				libmaus::autoarray::AutoArray<cigar_operation> & cigop)
+			{
+				uint32_t const numops = getNCigar(D);
+				
+				if ( numops > cigop.size() )
+					cigop = libmaus::autoarray::AutoArray<cigar_operation>(numops,false);
+					
+				uint8_t const * p = getCigar(D);
+				
+				for ( uint64_t i = 0; i < numops; ++i, p += 4 )
+				{
+					uint32_t const lop = getLEInteger(p,4);
+					cigop[i] = cigar_operation(lop & ((1ul<<4)-1),lop >> 4);
+				}
+				
+				return numops;
+			}
 
 			/**
 			 * get number of bytes before the encoded cigar string in alignment block D
