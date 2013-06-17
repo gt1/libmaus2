@@ -1539,6 +1539,104 @@ namespace libmaus
 				return 0;
 			}
 
+			//! number reinterpretation union
+			union numberpun
+			{
+				//! float value
+				float fvalue;
+				//! uint32_t value
+				uint32_t uvalue;
+			};                                                                                                                                                                                                       
+
+			/**
+			 * get auxiliary area in alignment block E of size blocksize for given tag as number
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag two byte aux tag identifier
+			 * @return number
+			 **/
+			template<typename N>
+			static N getAuxAsNumber(uint8_t const * E, uint64_t const blocksize, char const * const tag)
+			{
+				uint8_t const * p = getAux(E,blocksize,tag);
+				
+				if ( ! p )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				switch ( p[2] )
+				{
+					case 'A': return static_cast<N>(static_cast<int8_t>(p[3]));
+					case 'c': return static_cast<N>(static_cast<int8_t>(p[3]));
+					case 'C': return static_cast<N>(static_cast<uint8_t>(p[3]));
+					case 's': 
+						return static_cast<N>(
+							static_cast<int16_t>(
+								(static_cast<uint16_t>(p[3])<< 0) |
+								(static_cast<uint16_t>(p[4])<< 8)
+							)
+						);
+					case 'S':
+						return static_cast<N>(
+							static_cast<uint16_t>(
+								(static_cast<uint16_t>(p[3])<< 0) |
+								(static_cast<uint16_t>(p[4])<< 8)
+							)
+						);
+					case 'i': 
+						return static_cast<N>(
+							static_cast<int32_t>(
+								(static_cast<uint32_t>(p[3])<< 0) |
+								(static_cast<uint32_t>(p[4])<< 8) |
+								(static_cast<uint32_t>(p[5])<<16) |
+								(static_cast<uint32_t>(p[6])<<24)
+							)
+						);
+					case 'I': 
+						return static_cast<N>(
+							static_cast<uint32_t>(
+								(static_cast<uint32_t>(p[3])<< 0) |
+								(static_cast<uint32_t>(p[4])<< 8) |
+								(static_cast<uint32_t>(p[5])<<16) |
+								(static_cast<uint32_t>(p[6])<<24)
+							)
+						);
+					case 'f': 
+					{
+						uint32_t const v =
+							static_cast<uint32_t>(
+								(static_cast<uint32_t>(p[3])<< 0) |
+								(static_cast<uint32_t>(p[4])<< 8) |
+								(static_cast<uint32_t>(p[5])<<16) |
+								(static_cast<uint32_t>(p[6])<<24)
+							);
+						numberpun np;
+						np.uvalue = v;
+						return np.fvalue;	
+					}
+					default:
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "Unknown type of number " << p[2] << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
+			}
+
+			/**
+			 * get auxiliary area in alignment block E of size blocksize for given tag as number
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag two byte aux tag identifier
+			 * @return pointer to aux area or null pointer if tag is not present
+			 **/
 
 			/**
 			 * sort aux fields by tag id

@@ -628,6 +628,31 @@ namespace libmaus
 			}
 
 			/**
+			 * get auxiliary field for tag as number, throws an exception if tag is not present or
+			 * tag content is not numeric
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @return contents of auxiliary field identified by tag as number
+			 **/
+			template<typename N>
+			N getAuxAsNumber(char const * const tag)
+			{			
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag);
+			}
+
+			/**
+			 * check if auxiliary field for tag is present
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @return true iff tag is present
+			 **/
+			bool hasAux(char const * const tag) const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag) != 0;
+			}
+
+
+			/**
 			 * add auxiliary field for id tag containing a number array representing V
 			 *
 			 * @param tag aux id
