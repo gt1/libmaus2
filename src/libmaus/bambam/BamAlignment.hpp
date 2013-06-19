@@ -469,10 +469,10 @@ namespace libmaus
 			 *
 			 * @param sequence replacement sequence
 			 **/
-			void replaceSequence(std::string const & sequence)
+			void replaceSequence(std::string const & sequence, std::string const & quality)
 			{
 				BamSeqEncodeTable const seqenc;
-				replaceSequence(seqenc,sequence);
+				replaceSequence(seqenc,sequence,quality);
 			}
 
 			/**
@@ -484,10 +484,11 @@ namespace libmaus
 			 **/
 			void replaceSequence(
 				BamSeqEncodeTable const & seqenc,
-				std::string const & sequence
+				std::string const & sequence,
+				std::string const & quality
 			)
 			{
-				replaceSequence(seqenc,sequence.begin(),sequence.size());
+				replaceSequence(seqenc,sequence.begin(),quality.begin(),sequence.size());
 			}
 			
 			/**
@@ -498,13 +499,15 @@ namespace libmaus
 			 * @param seq sequence start iterator
 			 * @param seqlen sequence length
 			 **/
-			template<typename seq_iterator>
+			template<typename seq_iterator, typename qual_iterator>
 			void replaceSequence(
 				BamSeqEncodeTable const & seqenc,
-				seq_iterator seq, 
+				seq_iterator seq,
+				qual_iterator qual,
 				uint32_t const seqlen
 			)
 			{
+				uint64_t const oldlen = getLseq();
 				uint64_t const pre    = getNumPreSeqBytes();
 				uint64_t const oldseq = getNumSeqBytes();
 				uint64_t const newseq = (seqlen+1)/2;
@@ -512,13 +515,20 @@ namespace libmaus
 				
 				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( pre + newseq + post );
 				
+				// pre seq data
 				for ( uint64_t i = 0; i < pre; ++i )
 					buffer.put ( D [ i ] );
 
+				// seq data
 				::libmaus::bambam::BamAlignmentEncoderBase::encodeSeq(buffer,seqenc,seq,seqlen);
+				
+				// quality data
+				for ( uint64_t i = 0; i < seqlen; ++i )
+					buffer.put(*(qual++) - 33);
 
-				for ( uint64_t i = 0; i < post; ++i )
-					buffer.put ( D [ pre + oldseq + i ] );
+				// post seq,qual data
+				for ( uint64_t i = 0; i < post-oldlen; ++i )
+					buffer.put ( D [ pre + oldseq + oldlen + i ] );
 					
 				D = buffer.abuffer;
 				blocksize = buffer.length;
