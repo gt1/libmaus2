@@ -78,8 +78,6 @@ namespace libmaus
 							nb += *b - '0';
 						}
 						
-						// std::cerr << "na=" << na << " nb=" << nb << std::endl;
-						
 						if ( na != nb )
 						{
 							if ( na < nb )
@@ -143,7 +141,18 @@ namespace libmaus
 				else if ( r == 0 )
 				{
 					// read 1 before read 2
-					res = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+					uint32_t const flagsa = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(da);
+					uint32_t const flagsb = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(db);
+					
+					int const r1a = (flagsa & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
+					int const r1b = (flagsb & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
+					int const r2a = (flagsa & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
+					int const r2b = (flagsb & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
+					
+					int const r1 = ((1-r1a) << 1) | (1-r2a);
+					int const r2 = ((1-r1b) << 1) | (1-r2b);
+					
+					return (r1-r2) < 0;					
 				}
 				else
 				{
@@ -208,6 +217,7 @@ namespace libmaus
 			{
 				uint8_t const * da = data + a + sizeof(uint32_t);
 				uint8_t const * db = data + b + sizeof(uint32_t);
+				
 				return compare(da,db);
 			}
 
@@ -237,6 +247,41 @@ namespace libmaus
 				uint8_t const * da = data + a + sizeof(uint32_t);
 				uint8_t const * db = data + b + sizeof(uint32_t);
 				return compareIntNameOnly(da,db);
+			}
+		};
+		
+		struct BamAlignmentNameObject
+		{
+			uint8_t const * D;
+			uint64_t * P;
+			
+			BamAlignmentNameObject(uint8_t const * rD, uint64_t * rP) : D(rD), P(rP) {}
+			
+			uint8_t const * operator[](uint64_t const i) const
+			{
+				return D + P[i] + sizeof(uint32_t);
+			}
+		};
+
+		struct BamAlignmentNameProjector
+		{
+			typedef uint8_t const * value_type;
+			
+			#if defined(QUICKSORT_DEBUG)
+			static value_type proj(BamAlignmentNameObject const & A, unsigned int i)
+			{
+				return A[i];
+			}
+			#endif
+			
+			static void swap(BamAlignmentNameObject & A, unsigned int i, unsigned int j)
+			{
+				std::swap(A.P[i],A.P[j]);
+			}
+
+			static bool comp(BamAlignmentNameObject & A, unsigned int i, unsigned int j)
+			{
+				return BamAlignmentNameComparator::compare(A[i],A[j]);
 			}
 		};
 	}
