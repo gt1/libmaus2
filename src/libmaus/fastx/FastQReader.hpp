@@ -187,6 +187,22 @@ namespace libmaus
 
                         template<typename reader_init_type>
 			FastQReaderTemplate(
+			        reader_init_type * rinit,
+				FastInterval const & rinterval,
+                                uint64_t const bufsize = getDefaultBufferSize()
+			)
+			: reader_base_type(rinit,bufsize),
+                          atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
+                          foundnextmarker(false),
+                          qualityOffset(0), nextid(rinterval.low),
+			  interval(rinterval)
+                        {
+                                rinit->writeString(interval.serialise());
+                                findNextMarker();
+                        }
+
+                        template<typename reader_init_type>
+			FastQReaderTemplate(
 			        reader_init_type * rinit, 
 			        int const rqualityOffset, 
 			        uint64_t const bufsize = getDefaultBufferSize()
