@@ -47,6 +47,7 @@ namespace libmaus
                         pid_t pid;
                         unsigned short port;
                         server_socket_ptr_type seso;
+                        bool intervalserver;
 
                         static void sigchildhandler(int)
                         {
@@ -76,7 +77,8 @@ namespace libmaus
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
                         : filenames(rfilenames), fragments(getFragments(filenames)), intervals(rintervals), port(rport), 
-                          seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),32*1024)))
+                          seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),32*1024))),
+                          intervalserver(false)
                         {
                         }
 
@@ -87,10 +89,16 @@ namespace libmaus
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
                         : filenames(rfragments.size()), fragments(rfragments), intervals(rintervals), port(rport), 
-                          seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),32*1024)))
+                          seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),32*1024))),
+                          intervalserver(false)
                         {
                                 for ( uint64_t i = 0; i < fragments.size(); ++i )
                                         filenames[i] = fragments[i].filename;
+                        }
+                        
+                        void setIntervalMode()
+                        {
+                        	intervalserver = true;
                         }
                         
                         ~FastServer()
@@ -127,43 +135,49 @@ namespace libmaus
                                                         {
                                                                 try
                                                                 {
-                                                                        uint64_t tag,i,ni;
-                                                                        recsock->readMessage<uint64_t>(tag,&i,ni);
+                                                                        libmaus::fastx::FastInterval FI;
                                                                         
-                                                                        if ( i < intervals.size() )
+                                                                        if ( (!intervalserver) )
                                                                         {
-                                                                                ::libmaus::fastx::FastInterval const & FI = intervals[i];
-                                                                                uint64_t const flow = FI.fileoffset;
-                                                                                uint64_t const fhigh = FI.fileoffsethigh;
-                                                                                uint64_t const flen = fhigh-flow;
-                                                                                uint64_t todo = flen;
+	                                                                        uint64_t tag,i,ni;
+        	                                                                recsock->readMessage<uint64_t>(tag,&i,ni);
+        	                                                                
+                                                                         	if ( i < intervals.size() )
+	                                                                                FI = intervals[i];
+										else
+										{
+	                                                                        	std::cerr << "interval out of range: " << i << " (number of intervals is " << intervals.size() << ")" << std::endl;
+	                                                                        	_exit(1);
+										}	
+									}
+									else
+									{
+										FI = libmaus::fastx::FastInterval::deserialise(recsock->readString());
+									}
+                                                                                
+									uint64_t const flow = FI.fileoffset;
+									uint64_t const fhigh = FI.fileoffsethigh;
+									uint64_t const flen = fhigh-flow;
+									uint64_t todo = flen;
 
-                                                                                #if 0
-                                                                                ::libmaus::aio::SynchronousFastReaderBase SFRB(filenames,0,16*1024,flow);
-                                                                                #endif
+									::libmaus::aio::ReorderConcatGenericInput<char> SFRB(
+										fragments,16*1024,fhigh-flow,flow
+									);
 
-                                                                                ::libmaus::aio::ReorderConcatGenericInput<char> SFRB(
-                                                                                	fragments,16*1024,fhigh-flow,flow
-										);
+									uint64_t const blocksize = 16*1024;
+									::libmaus::autoarray::AutoArray<char> B(blocksize,false);
 
-                                                                                uint64_t const blocksize = 16*1024;
-                                                                                ::libmaus::autoarray::AutoArray<char> B(blocksize,false);
+									while ( todo )
+									{
+										uint64_t const toproc = std::min(blocksize,todo);
+										
+										for ( uint64_t k = 0; k < toproc; ++k )
+											B[k] = SFRB.getNextCharacter();
+										recsock->write(B.get(),toproc);
+										
+										todo -= toproc;
+									}
 
-                                                                                while ( todo )
-                                                                                {
-                                                                                        uint64_t const toproc = std::min(blocksize,todo);
-                                                                                        
-                                                                                        for ( uint64_t k = 0; k < toproc; ++k )
-                                                                                                B[k] = SFRB.getNextCharacter();
-                                                                                        recsock->write(B.get(),toproc);
-                                                                                        
-                                                                                        todo -= toproc;
-                                                                                }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                        	std::cerr << "interval out of range: " << i << " (number of intervals is " << intervals.size() << ")" << std::endl;
-                                                                        }
                                                                         _exit(0);
                                                                 }
                                                                 catch(std::exception const & ex)
