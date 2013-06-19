@@ -25,8 +25,8 @@ using namespace std;
 
 int main()
 {
-	typedef BamParallelCircularHashCollatingBamDecoder collator_type;
-	// typedef BamCircularHashCollatingBamDecoder collator_type;
+	// typedef BamParallelCircularHashCollatingBamDecoder collator_type;
+	typedef BamCircularHashCollatingBamDecoder collator_type;
 	typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
 	/* remove temporary file at program exit */
@@ -36,8 +36,8 @@ int main()
 	// libmaus::aio::CheckedOutputStream copystr("copy.bam");
 
 	/* set up collator object */	
-	// collator_type C(cin,tmpfilename);
-	collator_type C(cin,8,tmpfilename);
+	collator_type C(cin,tmpfilename,0,true,20,32*1024*1024);
+	// collator_type C(cin,8,tmpfilename);
 	pair<alignment_ptr_type,alignment_ptr_type> P;
 
 	/* read alignments */	
