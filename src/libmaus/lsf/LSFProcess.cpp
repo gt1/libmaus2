@@ -29,6 +29,8 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+uint64_t ::libmaus::lsf::LSF::Mscale = 1000;
+
 ::libmaus::parallel::OMPLock libmaus::lsf::LSF::lsflock;
 
 void libmaus::lsf::LSF::init(std::string const & sappname)
@@ -90,13 +92,14 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
         std::ostringstream bsubstr;
         bsubstr 
                 << "bsub"
+                << " " << "-G \"" << sproject << "\""
                 << " " << "-P \"" << sproject << "\""
                 << " " << "-q \"" << squeuename << "\""
                 << " " << "-J \"" << sjobname << "\""
                 << " " << "-o \"" << soutfilename << "\""
                 << " " << "-e \"" << serrfilename << "\""
                 << " " << "-i \"" << sinfilename << "\""
-                << " " << "-M \"" << maxmem*1000 << "\""
+                << " " << "-M \"" << maxmem*libmaus::lsf::LSF::Mscale << "\""
                 << " " << "-R'" << "select[(mem>="<<maxmem<<" && type==X86_64";
         if ( tmpspace != 0 )
                 bsubstr << " && tmp>=" << tmpspace;

@@ -40,6 +40,8 @@ namespace libmaus
 			static ::libmaus::parallel::OMPLock lsflock;
 			static void init(std::string const & sappname);
 			static std::string getClusterName();
+			
+			static uint64_t Mscale;
 		};
 	
 		struct LSFProcess : public LSFStateBase
