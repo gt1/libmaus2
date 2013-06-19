@@ -43,6 +43,16 @@ namespace libmaus
 				unsigned int const rrangebits,
 				unsigned int const rsublookupbits
 			);
+
+			template<typename stream_type>
+			LookupIntervalTree(stream_type & in)
+			: H(in), I(H,0,H.size()),
+			  rangebits(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+			  sublookupbits(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+			  L(createLookup()), lookupshift ( rangebits - sublookupbits )
+			{
+			
+			}
 			
 			uint64_t find(uint64_t const v) const
 			{
@@ -52,6 +62,20 @@ namespace libmaus
 			}
 			
 			void test(bool setupRandom = true) const;
+			
+			void serialise(std::ostream & out) const
+			{
+				H.serialize(std::cout);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,rangebits);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,sublookupbits);
+			}
+			
+			std::string serialise() const
+			{
+				std::ostringstream out;
+				serialise(out);
+				return out.str();
+			}
 		};
 	}
 }
