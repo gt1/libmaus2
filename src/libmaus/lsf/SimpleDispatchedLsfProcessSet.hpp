@@ -28,6 +28,10 @@ namespace libmaus
 	{
 		struct SimpleDispatchedLsfProcessSet : public ::libmaus::parallel::PosixThread
 		{
+			typedef SimpleDispatchedLsfProcessSet this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			typedef ::libmaus::lsf::DispatchedLsfProcess::shared_ptr_type proc_ptr;
 			typedef std::map < uint64_t, proc_ptr > map_type;
 			typedef map_type::const_iterator const_iterator;
