@@ -68,6 +68,12 @@ std::vector < std::string > libmaus::util::StringSerialisation::deserialiseStrin
 	return strings;
 }
 
+std::vector < std::string > libmaus::util::StringSerialisation::deserialiseStringVector ( std::string const & in )
+{
+	std::istringstream istr(in);
+	return deserialiseStringVector(istr);
+}
+
 void libmaus::util::StringSerialisation::serialiseStringVectorVector ( std::ostream & out, std::vector < std::vector < std::string > > const & V )
 {
 	serialiseNumber ( out,V.size() );
