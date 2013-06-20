@@ -194,6 +194,85 @@ namespace libmaus
 				typename pattern_iterator_type,
 				typename callback_type
 			>
+			void kmerCallbackPosFail(
+				pattern_iterator_type const pattern,
+				unsigned int const l,
+				callback_type & callback,
+				single_word_buffer_type & forw,
+				single_word_buffer_type & reve,
+				unsigned int const k,
+				uint64_t const minhash = 0,
+				uint64_t const maxhash = std::numeric_limits<uint64_t>::max(),
+				unsigned int const hashshift = 0
+			) const
+			{
+				if ( l >= k )
+				{
+					forw.reset();
+					reve.reset();
+				
+					char const * sequence = pattern;
+					char const * fsequence = sequence;
+					char const * rsequence = (sequence + k);
+
+					// number of indeterminate bases in current kmer		
+					unsigned int e = 0;
+					// fill in first kmer
+					for ( unsigned int i = 0; i < k; ++i )
+					{
+						char const base = *(sequence++);
+						e += E [ base ];
+						forw.pushBackUnmasked( S [ base ]  );
+				
+						char const rbase = *(--rsequence);
+						reve.pushBackUnmasked( R [ rbase ] );
+					}
+				
+					rsequence = pattern + k;
+
+					// iterate over kmers
+					for ( unsigned int z = 0; z < l-k+1; )
+					{
+						if ( e < 1 )
+						{
+							uint64_t const fword = forw.buffer;
+							uint64_t const rword = reve.buffer;
+							
+							if ( fword <= rword )
+							{
+								if ( (fword>>hashshift) >= minhash && (fword>>hashshift) < maxhash )
+									callback(fword,z,false);
+							}
+							else
+							{
+								if ( (rword>>hashshift) >= minhash && (rword>>hashshift) < maxhash )
+									callback(rword,z,true);
+							}					
+						}
+						else
+						{
+							callback.fail(z);
+						}
+				
+						// compute next kmer data if there are more bases
+						if ( ++z < l-k+1 )
+						{
+							e -= E[*(fsequence++)];
+				
+							char const base = *(sequence++);
+							forw.pushBackMasked( S[base] );
+							reve.pushFront( R[base] );
+			
+							e += E[base];
+						}
+					}
+				}
+			}
+
+			template<
+				typename pattern_iterator_type,
+				typename callback_type
+			>
 			void kmerCallbackPosForwardOnly(
 				pattern_iterator_type const pattern,
 				unsigned int const l,
