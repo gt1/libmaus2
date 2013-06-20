@@ -1,3 +1,9 @@
+libmaus (0.0.52-0) unstable; urgency=low
+
+  * bump version after fixing crash due to non transitive order in previous bam alignment name comparison 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Jun 2013 09:59:02 +0100
+
 libmaus (0.0.51-0) unstable; urgency=low
 
   * bump version after using static functions instead of constants for bgzf parameters
