@@ -416,6 +416,10 @@ namespace libmaus
 		
 		struct BGZFOutputStream : public BGZFOutputStreamBuffer, public std::ostream
 		{	
+			typedef BGZFOutputStream this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			BGZFOutputStream(std::ostream & out, uint64_t const rbuffersize = 64*1024, int const level = Z_DEFAULT_COMPRESSION)
 			: BGZFOutputStreamBuffer(out,rbuffersize,level), std::ostream(this)
 			{
