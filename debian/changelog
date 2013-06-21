@@ -1,3 +1,9 @@
+libmaus (0.0.54-0) unstable; urgency=low
+
+  * bump version after fixing compilation on 32 bit machines 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 21 Jun 2013 14:40:20 +0100
+
 libmaus (0.0.53-0) unstable; urgency=low
 
   * bump version after adding pointer types 
