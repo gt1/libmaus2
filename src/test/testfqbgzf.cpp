@@ -117,8 +117,8 @@ int main(int argc, char * argv[])
 					std::copy(buf.A[i].spattern.begin(), buf.A[i].spattern.end(),outp);
 					outp += buf.A[i].spattern.size();
 					lnumsyms += buf.A[i].spattern.size();
-					minlen = std::min(minlen,buf.A[i].spattern.size());
-					maxlen = std::max(maxlen,buf.A[i].spattern.size());
+					minlen = std::min(minlen,static_cast<uint64_t>(buf.A[i].spattern.size()));
+					maxlen = std::max(maxlen,static_cast<uint64_t>(buf.A[i].spattern.size()));
 					*(outp++) = '\n';
 
 					*(outp)++ = '+';
@@ -182,8 +182,8 @@ int main(int argc, char * argv[])
 			std::copy(buf.A[i].spattern.begin(), buf.A[i].spattern.end(),outp);
 			outp += buf.A[i].spattern.size();
 			lnumsyms += buf.A[i].spattern.size();
-			minlen = std::min(minlen,buf.A[i].spattern.size());
-			maxlen = std::max(maxlen,buf.A[i].spattern.size());
+			minlen = std::min(minlen,static_cast<uint64_t>(buf.A[i].spattern.size()));
+			maxlen = std::max(maxlen,static_cast<uint64_t>(buf.A[i].spattern.size()));
 			*(outp++) = '\n';
 
 			*(outp)++ = '+';
