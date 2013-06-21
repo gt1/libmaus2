@@ -1,3 +1,9 @@
+libmaus (0.0.53-0) unstable; urgency=low
+
+  * bump version after adding pointer types 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 21 Jun 2013 09:19:58 +0100
+
 libmaus (0.0.52-0) unstable; urgency=low
 
   * bump version after fixing crash due to non transitive order in previous bam alignment name comparison 
