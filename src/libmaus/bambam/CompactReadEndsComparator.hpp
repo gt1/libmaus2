@@ -51,7 +51,17 @@ namespace libmaus
 			 * @param pa block pointer
 			 * @param n block size
 			 **/
-			static void prepare(uint8_t * pa, uint64_t const n)
+			static void prepare(
+				uint8_t * 
+					#if defined(LIBMAUS_HAVE_x86_64)
+					pa
+					#endif
+					, 
+				uint64_t const 
+					#if defined(LIBMAUS_HAVE_x86_64)
+					n
+					#endif
+			)
 			{
 				#if defined(LIBMAUS_HAVE_x86_64)
 				libmaus::timing::RealTimeClock rtc; rtc.start();
