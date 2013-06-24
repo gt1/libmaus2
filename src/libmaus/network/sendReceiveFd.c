@@ -31,7 +31,7 @@ int libmaus_network_sendFd_C(int const socket, int const fd)
 	struct msghdr hdr;
 	struct cmsghdr *chdr;
 	unsigned char * cdata;
-	size_t i;
+	/* size_t i; */
 
 	/* erase structures */
 	memset(&hdr, 0, sizeof(struct msghdr));
@@ -87,7 +87,7 @@ int libmaus_network_receiveFd_C(int const socket)
 		/* check type of data (should not be necessary...) */
 		if( (chdr->cmsg_level == SOL_SOCKET) && (chdr->cmsg_type == SCM_RIGHTS) )
 		{
-			size_t i;
+			/* size_t i; */
 			int fd;
 			unsigned char const * data = CMSG_DATA(chdr);
 			
