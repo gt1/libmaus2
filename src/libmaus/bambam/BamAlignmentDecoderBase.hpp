@@ -27,6 +27,7 @@
 #include <libmaus/hashing/hash.hpp>
 #include <libmaus/bambam/BamAuxFilterVector.hpp>
 #include <libmaus/bambam/CigarOperation.hpp>
+#include <libmaus/math/IPower.hpp>
 
 namespace libmaus
 {
@@ -271,6 +272,29 @@ namespace libmaus
 			}
 
 			/**
+			 * write FastQ representation of alignment D into array T; T is reallocated if it is too small
+			 *
+			 * @param D alignment block
+			 * @param ranka rank of first mate
+			 * @param rankb rank of second mate
+			 * @param T output array
+			 * @return number of bytes written
+			 **/
+			static uint64_t putFastQRanks(
+				uint8_t const * D,
+				uint64_t const ranka,
+				uint64_t const rankb,
+				libmaus::autoarray::AutoArray<uint8_t> & T
+			)
+			{
+				uint64_t const len = getFastQLengthRanks(D,ranka,rankb);
+				if ( T.size() < len ) 
+					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+				putFastQRanks(D,ranka,rankb,T.begin());
+				return len;
+			}
+
+			/**
 			 * get length of FastQ representation for alignment block D in bytes
 			 *
 			 * @param D alignment block
@@ -288,6 +312,110 @@ namespace libmaus
 					1 + 1 + // plus line
 					lseq + 1 // quality line
 					;
+			}
+
+			/**
+			 * get length of FastQ representation for alignment block D in bytes
+			 * with ranks added to name
+			 *
+			 * @param D alignment block
+			 * @param ranka rank of first read
+			 * @param rankb rank of second read
+			 * @return length of FastQ entry
+			 **/
+			static uint64_t getFastQLengthRanks(uint8_t const * D, uint64_t const ranka, uint64_t const rankb)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				uint64_t const lra = getDecimalNumberLength(ranka);
+				uint64_t const lrb = getDecimalNumberLength(rankb);
+				
+				return
+					1 + namelen +
+					((flags & LIBMAUS_BAMBAM_FPAIRED) ? (2 + lra + lrb) : (1+lra)) + 
+					((flags & LIBMAUS_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
+					lseq + 1 + // seq line
+					1 + 1 + // plus line
+					lseq + 1 // quality line
+					;
+			}
+			
+			/**
+			 * get length of number rank in decimal representation
+			 *
+			 * @param rank
+			 * @return length of number rank in decimal representation
+			 **/
+			static uint64_t getDecimalNumberLength(uint64_t rank)
+			{
+				if ( ! rank )
+				{
+					return 1;
+				}
+				else
+				{
+					unsigned int p = 0;
+					
+					if ( rank >= libmaus::math::IPower<10,16>::n )
+						rank /= libmaus::math::IPower<10,16>::n, p += 16;
+					if ( rank >= libmaus::math::IPower<10, 8>::n )
+						rank /= libmaus::math::IPower<10, 8>::n, p += 8;
+					if ( rank >= libmaus::math::IPower<10, 4>::n )
+						rank /= libmaus::math::IPower<10, 4>::n, p += 4;
+					if ( rank >= libmaus::math::IPower<10, 2>::n )
+						rank /= libmaus::math::IPower<10, 2>::n, p += 2;
+					if ( rank >= libmaus::math::IPower<10, 1>::n )
+						rank /= libmaus::math::IPower<10, 1>::n, p += 1;
+					if ( rank )
+						rank /= 10, p += 1;
+					
+					assert ( ! rank );
+										
+					return p;
+				}				
+			}
+
+			/**
+			 * format number rank to iterator it as decimal
+			 *
+			 * @param it iterator
+			 * @param rank number to be formatted
+			 * @return iterator after output
+			 **/
+			template<typename iterator>
+			static iterator putNumberDecimal(iterator it, uint64_t rank)
+			{
+				if ( ! rank )
+				{
+					*(it++) = '0';
+				}
+				else
+				{
+					// 20 decimal digits is enough for a 64 bit number
+					#if defined(_MSC_VER) || defined(__MINGW32__)
+					uint8_t * S = reinterpret_cast<uint8_t *>(_alloca(20));
+					#else
+					uint8_t * S = reinterpret_cast<uint8_t *>(alloca(20));
+					#endif
+
+					uint8_t * SA = S;
+					
+					// generate digits
+					while ( rank )
+					{
+						*(S++) = rank % 10;
+						rank /= 10;
+					}
+
+					assert ( ! rank );
+					
+					// write them out
+					while ( S != SA )
+						*(it++) = (*(--S)) + '0';
+				}
+				
+				return it;
 			}
 			
 			/**
@@ -309,6 +437,84 @@ namespace libmaus
 				*(it++) = '@';
 				while ( rn != rne )
 					*(it++) = *(rn++);
+				
+				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				{
+					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					{
+						*(it++) = '/';
+						*(it++) = '1';
+					}
+					else
+					{
+						*(it++) = '/';
+						*(it++) = '2';
+					}
+				}
+				
+				*(it++) = '\n';
+				
+				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+					it = decodeReadRCIt(D,it,lseq);
+				else
+					it = decodeRead(D,it,lseq);
+					
+				*(it++) = '\n';				
+
+				*(it++) = '+';
+				*(it++) = '\n';
+
+				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				{
+					uint8_t const * const quale = getQual(D);
+					uint8_t const * qualc = quale + lseq;
+					
+					while ( qualc != quale )
+						*(it++) = *(--qualc) + 33;
+				}
+				else
+				{
+					uint8_t const * qual = getQual(D);
+					uint8_t const * const quale = qual + lseq;
+					
+					while ( qual != quale )
+						*(it++) = (*(qual++)) + 33;				
+				}
+				*(it++) = '\n';
+				
+				return it;
+			}				
+
+			/**
+			 * write FastQ representation of alignment block D to iterator it
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @return output iterator after writing
+			 **/
+			template<typename iterator>
+			static iterator putFastQRanks(uint8_t const * D, uint64_t const ranka, uint64_t const rankb, iterator it)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				char const * rn = getReadName(D);
+				char const * rne = rn + namelen;
+
+				*(it++) = '@';
+
+				it = putNumberDecimal(it,ranka);
+				*(it++) = '_';
+				
+				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				{
+					it = putNumberDecimal(it,rankb);
+					*(it++) = '_';
+				}
+				
+				while ( rn != rne )
+					*(it++) = *(rn++);
+				
 				
 				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
 				{
@@ -1831,6 +2037,53 @@ namespace libmaus
 					return reinterpret_cast<char const *>(data+3);
 				else
 					return 0;
+			}
+			
+			/**
+			 * get aux area ZR decoded as rank
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @return aux area for tag ZR decoded as rank (or -1 if invalid)
+			 **/			
+			static int64_t getRank(uint8_t const * E, uint64_t const blocksize)
+			{			
+				uint8_t const * p = getAux(E,blocksize,"ZR");
+				
+				// check format	
+				if ( 
+					(! p)
+					||
+					(p[0] != 'Z')
+					||
+					(p[1] != 'R')
+					||
+					(p[2] != 'B')
+					||
+					(p[3] != 'C')
+					||
+					(p[4] != 8)
+					||
+					(p[5] != 0)
+					||
+					(p[6] != 0)
+					||
+					(p[7] != 0)
+				)
+					return -1;
+				// decode
+				else
+				{
+					uint64_t r = 0;
+					
+					for ( unsigned int i = 0; i < sizeof(uint64_t); ++i )
+					{
+						r <<= 8;
+						r |= p[8+i];
+					}
+					
+					return r;
+				}							
 			}
 			
 			/**
