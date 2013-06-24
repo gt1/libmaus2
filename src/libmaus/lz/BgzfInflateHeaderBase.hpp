@@ -45,7 +45,7 @@ namespace libmaus
 				if ( stream.gcount() == 0 )
 					return false;
 				
-				if ( stream.gcount() != getBgzfHeaderSize() )
+				if ( static_cast<ssize_t>(stream.gcount()) != static_cast<ssize_t>(getBgzfHeaderSize()) )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): unexpected EOF while reading header";
