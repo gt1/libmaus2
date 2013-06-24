@@ -21,15 +21,17 @@
 
 #if defined(HAVE_LSF)
 #include <lsf/lsbatch.h>
-#include <libmaus/util/WriteableString.hpp>
 #include <iostream>
-#include <libmaus/util/PosixExecute.hpp>
-#include <libmaus/util/stringFunctions.hpp>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
 
-uint64_t ::libmaus::lsf::LSF::Mscale = 1000;
+#include <libmaus/types/types.hpp>
+#include <libmaus/util/WriteableString.hpp>
+#include <libmaus/util/PosixExecute.hpp>
+#include <libmaus/util/stringFunctions.hpp>
+
+uint64_t libmaus::lsf::LSF::Mscale = 1000;
 
 ::libmaus::parallel::OMPLock libmaus::lsf::LSF::lsflock;
 
