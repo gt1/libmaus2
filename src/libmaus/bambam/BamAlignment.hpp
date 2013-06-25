@@ -418,6 +418,30 @@ namespace libmaus
 			}
 
 			/**
+			 * @return number of bytes before the name
+			 **/
+			uint64_t getNumPreNameBytes() const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumPreNameBytes(D.begin());
+			}
+
+			/**
+			 * @return number of bytes in the name
+			 **/
+			uint64_t getNumNameBytes() const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumNameBytes(D.begin());
+			}
+
+			/**
+			 * @return number of bytes after the name
+			 **/
+			uint64_t getNumPostNameBytes() const
+			{
+				return blocksize - (getNumPreNameBytes() + getNumNameBytes());
+			}
+
+			/**
 			 * git cigar operations vector
 			 *
 			 * @param D alignment block
@@ -534,6 +558,28 @@ namespace libmaus
 				blocksize = buffer.length;
 				
 				putSeqLen(seqlen);
+			}
+			
+			template<typename iterator>
+			void replaceName(iterator ita, uint64_t const n)
+			{
+				uint64_t const pre = getNumPreNameBytes();
+				uint64_t const oldname = getNumNameBytes();
+				uint64_t const post = getNumPostNameBytes();
+				uint64_t const newsize =  pre + (n+1) + post ;
+				
+				if ( newsize > D.size() )
+					D.resize(newsize);
+					
+				assert ( D.size() >= newsize );
+				
+				memmove(D.begin() + pre + (n+1),D.begin() + pre + oldname,post);
+				std::copy(ita,ita+n,D.begin()+pre);
+				D[pre+n] = 0;
+				
+				blocksize = newsize;
+
+				D[8] = n+1;				
 			}
 
 			/**
@@ -1565,6 +1611,17 @@ namespace libmaus
 			{
 				::libmaus::bambam::BamAlignmentDecoderBase::sortAux(D.begin(),blocksize,sortbuffer);
 			}                        
+
+			/**
+			 * enumerate aux tags in array A; A will be resized if needed
+			 *
+			 * @param A array for storing aux tag markers
+			 * @return number of markers stored
+			 **/
+			uint64_t enumerateAuxTags(libmaus::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > & A) const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::enumerateAuxTags(D.begin(),blocksize,A);
+			}
 		};
 	}
 }

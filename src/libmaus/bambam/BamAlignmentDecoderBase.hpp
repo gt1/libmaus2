@@ -847,6 +847,28 @@ namespace libmaus
 			}
 
 			/**
+			 * get number of bytes before the encoded name in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of bytes before the encoded name in D
+			 **/
+			static uint64_t getNumPreNameBytes(uint8_t const * D)
+			{
+				return reinterpret_cast<uint8_t const *>(getReadName(D))-D;
+			}
+			
+			/**
+			 * get number of encoded name bytes in alignment block D
+			 *
+			 * @param D alignment block
+			 * @return number of encoded name bytes in D
+			 **/
+			static uint64_t getNumNameBytes(uint8_t const *D)
+			{
+				return getLReadName(D);
+			}
+
+			/**
 			 * get number of encoded query sequence bytes in alignment block D
 			 *
 			 * @param D alignment block
@@ -1770,6 +1792,37 @@ namespace libmaus
 				}
 				
 				return 0;
+			}
+
+			/**
+			 * enumerate aux tags in array A; A will be resized if needed
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param A array for storing aux tag markers
+			 * @return number of markers stored
+			 **/
+			static uint64_t enumerateAuxTags(
+				uint8_t const * E, uint64_t const blocksize,
+				libmaus::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > & A
+			)
+			{
+				uint8_t const * aux = getAux(E);
+				uint64_t cnt = 0;
+				
+				while ( aux < E+blocksize )
+				{
+					if ( cnt == A.size() )
+						A.resize(std::max(static_cast<uint64_t>(1),2*A.size()));
+					
+					assert ( cnt < A.size() );
+					
+					A[cnt++] = std::pair<uint8_t,uint8_t>(aux[0],aux[1]);
+
+					aux = aux + getAuxLength(aux);
+				}
+				
+				return cnt;
 			}
 
 			//! number reinterpretation union

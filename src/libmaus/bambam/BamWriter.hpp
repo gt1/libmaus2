@@ -210,6 +210,8 @@ namespace libmaus
 			typedef BamWriterTemplate<base_type> this_type;
 			//! unique pointer type
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! stream type
+			typedef typename base_type::stream_type stream_type;
 
 			private:
 			//! stream pointer
