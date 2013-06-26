@@ -269,6 +269,10 @@ AC_CHECK_HEADER(unistd.h, [unistd_h=yes], [unistd_h=no])
 AC_LANG_POP
 
 AC_LANG_PUSH([C++])
+AC_CHECK_HEADER(stdint.h, [stdint_h=yes], [stdint_h=no])
+AC_LANG_POP
+
+AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(dlfcn.h, [dlfcn_h=yes], [dlfcn_h=no])
 AC_LANG_POP
 
@@ -359,6 +363,11 @@ fi
 HAVEUNISTDH=
 if [[ "${unistd_h}" = "yes" ]] ; then 
 	HAVEUNISTDH="#define LIBMAUS_HAVE_UNISTD_H"
+fi
+
+HAVESTDINTH=
+if [[ "${stdint_h}" = "yes" ]] ; then 
+	HAVESTDINTH="#define LIBMAUS_HAVE_STDINT_H"
 fi
 
 HAVEAIO=
@@ -1616,6 +1625,7 @@ AC_SUBST([SDSLCXXFLAGS])
 AC_SUBST([SDSLLIBS])
 AC_SUBST([USEASSEMBLY])
 AC_SUBST([HAVEUNISTDH])
+AC_SUBST([HAVESTDINTH])
 AC_SUBST([REGEXH])
 AC_SUBST([SEQAN])
 AC_SUBST([KMLOCAL])
