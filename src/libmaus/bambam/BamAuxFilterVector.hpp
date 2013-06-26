@@ -78,6 +78,16 @@ namespace libmaus
 					1
 				);
 			}
+
+			void clear(uint8_t const ca, uint8_t const cb)
+			{
+				B.set( 
+					(static_cast<uint64_t>(ca) << 8)
+					|
+					(static_cast<uint64_t>(cb) << 0),
+					0
+				);
+			}
 			
 			bool operator()(uint8_t const ca, uint8_t const cb) const
 			{
