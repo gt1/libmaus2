@@ -1622,6 +1622,54 @@ namespace libmaus
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::enumerateAuxTags(D.begin(),blocksize,A);
 			}
+			
+			/**
+			 * copy aux tags from one alignment to another
+			 *
+			 * @param O source alignment
+			 * @param filter tag set to be copied
+			 **/
+			void copyAuxTags(libmaus::bambam::BamAlignment const & O, BamAuxFilterVector const & filter)
+			{
+				/*
+				 * compute number of bytes we will add to this alignment block
+				 */
+				uint8_t const * aux = libmaus::bambam::BamAlignmentDecoderBase::getAux(O.D.begin());
+				uint64_t addlength = 0;
+				
+				while ( aux < O.D.begin() + O.blocksize )
+				{
+					uint64_t const length = libmaus::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
+					
+					if ( filter(aux[0],aux[1]) )
+						addlength += length;
+					
+					aux += length;	
+				}
+				
+				// resize block array if necessary
+				if ( blocksize + addlength > D.size() )
+					D.resize(blocksize + addlength);
+				
+				// copy aux fields
+				aux = libmaus::bambam::BamAlignmentDecoderBase::getAux(O.D.begin());
+				uint8_t * outp = D.begin() + blocksize;
+
+				while ( aux < O.D.begin() + O.blocksize )
+				{
+					uint64_t const length = libmaus::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
+					
+					if ( filter(aux[0],aux[1]) )
+					{
+						std::copy(aux,aux+length,outp);
+						outp += length;
+					}
+					
+					aux += length;	
+				}
+				
+				blocksize += addlength;
+			}
 		};
 	}
 }
