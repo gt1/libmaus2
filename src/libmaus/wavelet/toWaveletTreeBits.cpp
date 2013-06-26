@@ -352,12 +352,14 @@ namespace libmaus
 					std::cerr << "(a";					
 					for ( uint64_t h = 0; h < numpackets; ++h )
 					{
-						ACZ[h] = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type (
+						::libmaus::bitio::CompactArray::unique_ptr_type tACZ(
 							new ::libmaus::bitio::CompactArray( azeroes [ h+1 ] - azeroes[ h ], C->getB() - sb )
-							));
-						ACO[h] = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type (
+						);
+						ACZ[h] = UNIQUE_PTR_MOVE(tACZ);
+						::libmaus::bitio::CompactArray::unique_ptr_type tACO(
 							new ::libmaus::bitio::CompactArray( aones [ h+1 ] - aones[ h ], C->getB() - sb )
-							));
+						);
+						ACO[h] = UNIQUE_PTR_MOVE(tACO);
 					}
 					std::cerr << ")";
 
