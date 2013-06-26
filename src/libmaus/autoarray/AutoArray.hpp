@@ -411,6 +411,8 @@ namespace libmaus
 						return "alloc_type_c";
 					case alloc_type_memalign_cacheline:
 						return "alloc_type_memalign_cacheline";
+					default:
+						return "alloc_type_unknown";
 				}
 			}
 			/**
@@ -1202,7 +1204,10 @@ namespace libmaus
 		void ArrayErase< typename ::boost::interprocess::unique_ptr<N,::libmaus::deleter::Deleter<N> > >::erase(typename ::libmaus::util::unique_ptr<N>::type * array, uint64_t const n)
 		{
 			for ( uint64_t i = 0; i < n; ++i )
-				array[i] = UNIQUE_PTR_MOVE(typename ::libmaus::util::unique_ptr<N>::type());
+			{
+				typename ::libmaus::util::unique_ptr<N>::type ptr;
+				array[i] = UNIQUE_PTR_MOVE(ptr);
+			}
 		}
 		#endif
 
