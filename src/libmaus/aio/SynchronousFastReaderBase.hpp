@@ -114,7 +114,7 @@ namespace libmaus
 				
 				if ( ita != filenames.end() )
 				{
-					input_type_ptr itp = UNIQUE_PTR_MOVE(input_type_ptr(new input_type(ita->c_str(),std::ios::binary)));
+					input_type_ptr itp(new input_type(ita->c_str(),std::ios::binary));
 					
 					if ( !itp->is_open() )
 					{
@@ -134,7 +134,8 @@ namespace libmaus
 				}
 				else
 				{
-					return UNIQUE_PTR_MOVE(file_pair_ptr_type(new file_pair_type()));
+					file_pair_ptr_type fptr(new file_pair_type());
+					return UNIQUE_PTR_MOVE(fptr);
 				}
 			}
 			
