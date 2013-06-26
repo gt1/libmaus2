@@ -1,3 +1,9 @@
+libmaus (0.0.55-0) unstable; urgency=low
+
+  * bump version after API extensions in bambam namespace
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 26 Jun 2013 12:28:01 +0100
+
 libmaus (0.0.54-0) unstable; urgency=low
 
   * bump version after fixing compilation on 32 bit machines 
