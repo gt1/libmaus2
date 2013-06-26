@@ -245,6 +245,92 @@ namespace libmaus
 				
 				return ostr.str();
 			}
+
+			/**
+			 * add PG line at the end of the current list; prime symbols (ASCII 39) will be added
+			 * to the ID string until it is unique relative to the already existing ones; the modified
+			 * ID string is return via the reference given in the ID parameter
+			 *
+			 * @param headertext header text
+			 * @param ID of line to be added
+			 * @param PN program name of line to be added
+			 * @param CL command line of line to be added
+			 * @param PP previous program id (use getLastIdInChain() to obtain it), empty string for none
+			 * @param VN version number of line to be added
+			 **/
+			static std::string addProgramLineRef(
+				std::string const & headertext,
+				std::string & ID,
+				std::string const & PN,
+				std::string const & CL,
+				std::string const & PP,
+				std::string const & VN
+			)
+			{
+				std::vector<HeaderLine> hlv = HeaderLine::extractLines(headertext);
+				
+				std::set<std::string> ids;
+				std::string LPP;
+				int64_t lp = -1;
+				for ( uint64_t i = 0; i < hlv.size(); ++i )
+					if ( hlv[i].type == "PG" )
+					{
+						ids.insert(hlv[i].getValue("ID"));
+						LPP = hlv[i].getValue("ID");
+						lp = i;
+					}
+				
+				// add ' while ID is not unique		
+				while ( ids.find(ID) != ids.end() )
+					ID += (char)39; // prime
+					
+				if ( !ID.size() )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "ID is empty in addProgramLine" << std::endl;
+					se.finish();
+					throw se;
+				}
+				if ( ID == PP )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "ID==PP in addProgramLine" << std::endl;
+					se.finish();
+					throw se;
+				}
+				if ( PP.size() && (ids.find(PP) == ids.end()) )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "PP=" << PP << " does not exist in addProgramLine" << std::endl;
+					se.finish();
+					throw se;				
+				}
+				
+				std::ostringstream ostr;
+				for ( uint64_t i = 0; i < hlv.size(); ++i )
+				{
+					ostr << hlv[i].line << std::endl;
+					if ( 
+						static_cast<int64_t>(i) == lp 
+						||
+						((i+1 == hlv.size()) && lp == -1)
+					)
+					{
+						ostr << "@PG" << "\tID:" << ID;
+						if ( PN.size() )
+							ostr << "\tPN:" << PN;
+						if ( CL.size() )
+							ostr << "\tCL:" << CL;
+						if ( PP.size() )
+							ostr << "\tPP:" << PP;
+						if ( VN.size() )
+							ostr << "\tVN:" << VN;
+						ostr << std::endl;
+					}		
+				}
+				
+				return ostr.str();
+			}
 		};
 	}
 }
