@@ -852,18 +852,23 @@ namespace libmaus
 			 *
 			 * @return rank field or -1 if not present or invalid
 			 **/
-			int64_t getRank() const
+			int64_t getRank(char const * tag = "ZR") const
 			{
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
+			
 				uint8_t const * p = 
-					::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,"ZR");
+					::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag);
 				
 				// check format	
 				if ( 
 					(! p)
 					||
-					(p[0] != 'Z')
+					(p[0] != tag[0])
 					||
-					(p[1] != 'R')
+					(p[1] != tag[1])
 					||
 					(p[2] != 'B')
 					||
