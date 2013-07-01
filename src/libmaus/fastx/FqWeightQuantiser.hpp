@@ -75,7 +75,7 @@ namespace libmaus
 			)
 			{
 				int fqoffset = arginfo.getValue<int>("fqoffset",0);
-				uint64_t const fqmax = arginfo.getValue<int>("fqmax",std::numeric_limits<uint64_t>::max());
+				uint64_t const fqmax = arginfo.getValue<uint64_t>("fqmax",std::numeric_limits<uint64_t>::max());
 				fqoffset = fqoffset ? fqoffset : ::libmaus::fastx::FastQReader::getOffset(filenames);
 						
 				if ( ! fqoffset )

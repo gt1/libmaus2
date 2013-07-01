@@ -115,7 +115,7 @@ namespace libmaus
 				uint64_t const n = root_cnt;
 				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
 
-				bitio::OutputBuffer<uint64_t> ob(16*1024);
+				bitio::OutputBuffer<uint64_t> ob(16*1024,out);
 				bitio::FastWriteBitWriterBuffer64 writer(ob);
 				serialize ( writer );
 				writer.flush();
@@ -1073,7 +1073,7 @@ namespace libmaus
 						{
 							if ( childrenAreLeafs )
 							{
-								if ( (innernode->data[i].cnt == (64*w)) )
+								if ( innernode->data[i].cnt == (64*w) )
 								{
 									bool threewaymerge = false;
 								

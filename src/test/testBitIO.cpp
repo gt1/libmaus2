@@ -278,7 +278,7 @@ void bubbleSortCheck()
 
 void stableSortCheck()
 {
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5)
+#if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5)) && (! defined(__clang__))
 	srand(time(0));
 
 	for ( unsigned int i = 0; i < 1000; ++i )
@@ -316,7 +316,7 @@ void stableSortCheck()
 
 void sortSparseCheck()
 {
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
+#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8) 
 	srand(time(0));
 
 	for ( unsigned int i = 0; i < 1000; ++i )
@@ -370,7 +370,7 @@ void sortSparseCheck()
 
 void sortStableSparseCheck()
 {
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5)
+#if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5)) && (! defined(__clang__))
 	srand(time(0));
 
 	for ( unsigned int i = 0; i < 1000; ++i )
