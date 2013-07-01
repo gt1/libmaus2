@@ -30,42 +30,32 @@ namespace libmaus
 {
 	namespace util
 	{
-		struct SimpleBloomFilter
+		template<uint64_t _lockblocksize>
+		struct SimpleBloomFilterLockBase
 		{
-			typedef SimpleBloomFilter this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			static uint64_t const lockblocksize = _lockblocksize;
 
-			static uint64_t const baseseed = 0x9e3779b97f4a7c13ULL;
-			static uint64_t const lockblocksize = 64;
-			unsigned int const numvectors;
-			unsigned int const vectorsizelog;
 			uint64_t const vectorsize;
-			uint64_t const hashmask;
-			
-			::libmaus::autoarray::AutoArray< ::libmaus::bitio::BitVector::unique_ptr_type > vectors;
 			::libmaus::autoarray::AutoArray< uint64_t > lockvector;
 			
-			SimpleBloomFilter(unsigned int const rnumvectors, unsigned int const rvectorsizelog)
-			: numvectors(rnumvectors), vectorsizelog(rvectorsizelog), vectorsize(1ull << vectorsizelog), hashmask(vectorsize-1ull), vectors(numvectors),
-			  lockvector((vectorsize+lockblocksize-1)/lockblocksize)
+			SimpleBloomFilterLockBase(uint64_t const rvectorsize)
+			: vectorsize(rvectorsize), lockvector((vectorsize+lockblocksize-1)/lockblocksize)
 			{
-				for ( unsigned int i = 0; i < numvectors; ++i )
-					vectors[i] = UNIQUE_PTR_MOVE(::libmaus::bitio::BitVector::unique_ptr_type(new ::libmaus::bitio::BitVector(vectorsize)));
+				
 			}
-			
+
 			void lockBlock(uint64_t const i)
 			{
 				#if defined(LIBMAUS_HAVE_SYNC_OPS)
 				uint64_t const wordoff = i >> 6;
 				uint64_t const bitoff = i - (wordoff<<6);
 				uint64_t const mask = (1ull << bitoff);
-				uint64_t * const word = lockvector.begin()+wordoff;
+				volatile uint64_t * const word = lockvector.begin()+wordoff;
 				
 				bool locked = false;
 				while ( !locked )
 				{
-					uint64_t v;
+					volatile uint64_t v;
 					while ( (v=*word) & mask ) {}
 					
 					locked = __sync_bool_compare_and_swap(word,v,v | mask);
@@ -85,7 +75,7 @@ namespace libmaus
 				uint64_t const bitoff = i - (wordoff<<6);
 				uint64_t const mask = (1ull << bitoff);
 				uint64_t const invmask = ~mask;
-				uint64_t * const word = lockvector.begin()+wordoff;
+				volatile uint64_t * const word = lockvector.begin()+wordoff;
 				__sync_fetch_and_and(word,invmask);
 				#else
 				::libmaus::exception::LibMausException se;
@@ -103,6 +93,32 @@ namespace libmaus
 			{
 				unlockBlock(i/lockblocksize);
 			}
+		};
+	
+		struct SimpleBloomFilter
+		{
+			typedef SimpleBloomFilter this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			static uint64_t const baseseed = 0x9e3779b97f4a7c13ULL;
+			unsigned int const numvectors;
+			unsigned int const vectorsizelog;
+			uint64_t const vectorsize;
+			uint64_t const hashmask;
+						
+			::libmaus::autoarray::AutoArray< ::libmaus::bitio::BitVector::unique_ptr_type > vectors;
+
+			SimpleBloomFilterLockBase<64> lockbase;
+			
+			SimpleBloomFilter(unsigned int const rnumvectors, unsigned int const rvectorsizelog)
+			: numvectors(rnumvectors), vectorsizelog(rvectorsizelog), vectorsize(1ull << vectorsizelog), hashmask(vectorsize-1ull), vectors(numvectors),
+			  lockbase(vectorsize)
+			{
+				for ( unsigned int i = 0; i < numvectors; ++i )
+					vectors[i] = UNIQUE_PTR_MOVE(::libmaus::bitio::BitVector::unique_ptr_type(new ::libmaus::bitio::BitVector(vectorsize)));
+			}
+			
 			
 			uint64_t hash(uint64_t const v, unsigned int const i) const
 			{
@@ -167,7 +183,7 @@ namespace libmaus
 			{
 				uint64_t const h0 = hash(v,0);
 				
-				lockForIndex(h0);
+				lockbase.lockForIndex(h0);
 				
 				bool present = true;
 				
@@ -175,7 +191,7 @@ namespace libmaus
 				for ( unsigned int i = 1; i < numvectors; ++i )
 					present = present && vectors[i]->setSync(hash(v,i)); 
 				
-				unlockForIndex(h0);
+				lockbase.unlockForIndex(h0);
 				
 				return present;
 			}
