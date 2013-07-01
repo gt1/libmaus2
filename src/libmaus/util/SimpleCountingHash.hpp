@@ -40,14 +40,29 @@ namespace libmaus
 				return std::numeric_limits<key_type>::max();
 			}
 		};
+
+		template<typename _key_type>
+		struct SimpleCountingHashBaseType
+		{
+			static uint64_t hash(uint64_t const v)
+			{
+				return libmaus::hashing::EvaHash::hash642(&v,1);
+			}
+		};
 	
-		template<typename _key_type, typename _count_type>
-		struct SimpleCountingHash : public SimpleCountingHashBase<_key_type>
+		template<
+			typename _key_type, 
+			typename _count_type, 
+			typename _base_type = SimpleCountingHashBase<_key_type>,
+			typename _hash_type = SimpleCountingHashBaseType<_key_type>
+		>
+		struct SimpleCountingHash : public _base_type
 		{
 			typedef _key_type key_type;
 			typedef _count_type count_type;
+			typedef _base_type base_type;
+			typedef _hash_type hash_type;
 
-			typedef SimpleCountingHashBase<key_type> base_type;
 			typedef SimpleCountingHash<key_type,count_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
@@ -156,12 +171,12 @@ namespace libmaus
 				std::fill(H.begin(),H.end(),base_type::unused());
 			}
 			
-			uint64_t hash(uint64_t const v) const
+			uint64_t hash(key_type const v) const
 			{
-				return libmaus::hashing::EvaHash::hash642(&v,1) & hashmask;
+				return hash_type::hash(v) & hashmask;
 			}
 			
-			inline uint64_t displace(uint64_t const p, uint64_t const v) const
+			inline uint64_t displace(uint64_t const p, key_type const & v) const
 			{
 				return (p + primes16[v&0xFFFFu]) & hashmask;
 			}
@@ -292,7 +307,7 @@ namespace libmaus
 			}
 			
 			// returns true if value v is contained
-			bool contains(uint64_t const v) const
+			bool contains(key_type const v) const
 			{
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
