@@ -488,6 +488,11 @@ namespace libmaus
 				for ( uint64_t i = 0; i < bit_vectors.getN(); ++i )
 					if ( rank_dictionaries[i]->rank1(n-1) )
 						return rank_dictionaries[i]->select1(0);
+						
+				libmaus::exception::LibMausException se;
+				se.getStream() << "MultiRankLF::zeroPosRank(): failed to find rank, inconsistent data." << std::endl;
+				se.finish();
+				throw se;
 			}
 		};
 

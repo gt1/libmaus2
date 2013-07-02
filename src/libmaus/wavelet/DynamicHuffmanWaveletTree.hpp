@@ -133,7 +133,7 @@ namespace libmaus
 			typename ::libmaus::util::shared_ptr < leaf_node_allocator_type >::type leaf_node_allocator;
 			typename ::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type hroot;
 
-			::libmaus::util::unique_ptr< ::libmaus::huffman::EncodeTable<lookupwords> >::type enctable;
+			typename ::libmaus::util::unique_ptr< ::libmaus::huffman::EncodeTable<lookupwords> >::type enctable;
 			typename DynamicHuffmanWaveletTreeNode::unique_ptr_type data;
 			uint64_t n;
 			

@@ -552,7 +552,7 @@ namespace libmaus
 			// typedef ::libmaus::select::ESelect222B<true> select_type;
 			static unsigned int const selectstepbitslog = 7;
 			typedef ::libmaus::select::ESelectSimple<true,selectstepbitslog> select_type;
-			select_type::unique_ptr_type eselect;
+			typename select_type::unique_ptr_type eselect;
 			//
 			uint64_t const soffset;
 			// name dictionary

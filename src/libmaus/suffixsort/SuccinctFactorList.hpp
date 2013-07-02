@@ -936,7 +936,7 @@ namespace libmaus
 			
 			void pushExplicitWord(uint64_t const word, uint64_t const len)
 			{
-				if ( (blow==bhigh) )
+				if ( blow==bhigh )
 					pushBlock();
 					
 				if ( ! B[bhigh-1]->pushExplicitWord(word,len) )
@@ -949,7 +949,7 @@ namespace libmaus
 			
 			void push(uint64_t const i, uint64_t const j, uint64_t const k)
 			{
-				if ( (blow==bhigh) )
+				if ( blow==bhigh )
 					pushBlock();
 				if ( ! B[bhigh-1]->push(i,j,k) )
 				{

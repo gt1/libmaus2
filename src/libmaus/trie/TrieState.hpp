@@ -533,7 +533,7 @@ namespace libmaus
 			{
 				typename std::map < char_type, typename TrieState<char_type>::shared_ptr_type >::const_iterator ita;
 				while ( cur && ((ita = cur->TT.find(c)) == cur->TT.end()) )
-					cur = cur.F;
+					cur = cur->F;
 				if ( ! cur )
 					return initial.get();
 				else
