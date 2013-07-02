@@ -199,6 +199,7 @@ namespace libmaus
 
 						if ( !token.size() || token.size() < 3 || token[2] != ':' )
 						{
+							#if defined(LIBMAUS_BAMBAM_SAMHEADER_STRICT)
 							if ( type != "CO" )
 							{
 								::libmaus::exception::LibMausException se;
@@ -206,6 +207,9 @@ namespace libmaus
 								se.finish();
 								throw se;
 							}
+							#else
+							std::cerr << "Malformed SAM header line: " << line << std::endl;
+							#endif
 						}
 						else
 						{
