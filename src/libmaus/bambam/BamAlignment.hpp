@@ -1759,6 +1759,18 @@ namespace libmaus
 				
 				blocksize += addlength;
 			}
+
+
+			/**
+			 * replace the query sequence and quality string of this alignment block by its reverse complement in place
+			 **/
+			void reverseComplementInplace()
+                        {
+                        	uint64_t const lseq = getLseq();
+                        	libmaus::bambam::BamAlignmentDecoderBase::reverseComplementInplace(libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin()),lseq);
+                        	uint8_t * qual = libmaus::bambam::BamAlignmentDecoderBase::getQual(D.begin());
+                        	std::reverse(qual,qual+lseq);
+                        }                                                                                                                                                    
 		};
 	}
 }

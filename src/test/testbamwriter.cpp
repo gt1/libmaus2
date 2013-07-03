@@ -19,6 +19,67 @@
 #include <libmaus/bambam/BamWriter.hpp>
 #include <libmaus/bambam/BamFlagBase.hpp>
 
+#include <libmaus/bambam/BamDecoder.hpp>
+
+void testInplaceReverseComplement()
+{
+	::libmaus::bambam::BamHeader header;
+	header.addChromosome("chr1",2000);
+	
+	std::ostringstream ostr;
+	{
+	::libmaus::bambam::BamWriter bamwriter(ostr,header);
+
+	bamwriter.encodeAlignment("name",0,1000,30,
+		::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP, "", 0, 1500, -1, "ACGTATGCA", "HGHGHGHGH"
+	);
+	bamwriter.commit();
+	}
+	
+	std::istringstream istr(ostr.str());
+	libmaus::bambam::BamDecoder bamdec(istr);
+	
+	while ( bamdec.readAlignment() )
+	{
+		libmaus::bambam::BamAlignment & algn = bamdec.getAlignment();
+		
+		for ( unsigned int k = 0; k <= 10; ++k )
+		{
+			for ( uint64_t i = 0; i < (1ull << (2*k)); ++i )
+			{
+				std::string s(k,'A');
+				uint64_t t = i;
+				for ( uint64_t j = 0; j < k; ++j, t>>=2 )
+				{
+					switch ( t & 0x3 )
+					{
+						case 0: s[j] = 'A'; break;
+						case 1: s[j] = 'C'; break;
+						case 2: s[j] = 'G'; break;
+						case 3: s[j] = 'T'; break;
+					}
+				}
+				
+				std::reverse(s.begin(),s.end());
+				
+				algn.replaceSequence(s,std::string(k,'H'));
+			
+				libmaus::bambam::BamAlignment::unique_ptr_type ualgn = UNIQUE_PTR_MOVE(algn.uclone());
+			
+				// std::cout << algn.formatAlignment(header) << std::endl;
+			
+				ualgn->reverseComplementInplace();
+			
+				// std::cout << ualgn->formatAlignment(header) << std::endl;
+			
+				assert ( algn.getReadRC() == ualgn->getRead() );
+			}
+			
+			std::cerr << "k=" << k << std::endl;
+		}
+	}
+}
+
 int main()
 {
 	try
