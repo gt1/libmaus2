@@ -770,6 +770,24 @@ namespace libmaus
 			}
 
 			/**
+			 * add auxiliary field for id tag containing a number array representing V
+			 *
+			 * @param tag aux id
+			 * @param V number array
+			 * @param n length of array V
+			 **/
+			template<typename iterator_type>
+			void putAuxNumberArray(std::string const & tag, iterator_type values, uint64_t const n)
+			{
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				
+				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',values,n);
+
+				D = data.abuffer;
+				blocksize = data.length;
+			}
+
+			/**
 			 * container wrapper mapping the put operation to a push_back on the container
 			 **/
 			template<typename container_type>
