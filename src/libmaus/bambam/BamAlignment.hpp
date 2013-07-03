@@ -485,7 +485,20 @@ namespace libmaus
 			void replaceCigarString(std::string const & cigarstring)
 			{
 				std::vector<cigar_operation> cigar = ::libmaus::bambam::CigarStringParser::parseCigarString(cigarstring);
-				replaceCigarString(cigar.begin(),cigar.size());
+				libmaus::bambam::BamAlignment::D_array_type T;
+				replaceCigarString(cigar.begin(),cigar.size(),T);
+			}
+
+			/**
+			 * replace cigar string in the alignment by the given string
+			 *
+			 * @param cigarstring replacement cigarstring
+			 * @param T temporary array
+			 **/
+			void replaceCigarString(std::string const & cigarstring, libmaus::bambam::BamAlignment::D_array_type & T)
+			{
+				std::vector<cigar_operation> cigar = ::libmaus::bambam::CigarStringParser::parseCigarString(cigarstring);
+				replaceCigarString(cigar.begin(),cigar.size(),T);
 			}
 
 			/**
@@ -512,7 +525,8 @@ namespace libmaus
 				std::string const & quality
 			)
 			{
-				replaceSequence(seqenc,sequence.begin(),quality.begin(),sequence.size());
+				libmaus::autoarray::AutoArray<uint8_t,D_array_alloc_type> T;
+				replaceSequence(seqenc,sequence.begin(),quality.begin(),sequence.size(),T);
 			}
 			
 			/**
@@ -528,16 +542,17 @@ namespace libmaus
 				BamSeqEncodeTable const & seqenc,
 				seq_iterator seq,
 				qual_iterator qual,
-				uint32_t const seqlen
+				uint32_t const seqlen,
+				libmaus::autoarray::AutoArray<uint8_t,D_array_alloc_type> & T
 			)
 			{
 				uint64_t const oldlen = getLseq();
 				uint64_t const pre    = getNumPreSeqBytes();
 				uint64_t const oldseq = getNumSeqBytes();
-				uint64_t const newseq = (seqlen+1)/2;
+				// uint64_t const newseq = (seqlen+1)/2;
 				uint64_t const post   = getNumPostSeqBytes();
 				
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( pre + newseq + post );
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( T, 0 /* pre + newseq + post */ );
 				
 				// pre seq data
 				for ( uint64_t i = 0; i < pre; ++i )
@@ -553,8 +568,9 @@ namespace libmaus
 				// post seq,qual data
 				for ( uint64_t i = 0; i < post-oldlen; ++i )
 					buffer.put ( D [ pre + oldseq + oldlen + i ] );
-					
-				D = buffer.abuffer;
+				
+				D.swap(buffer.abuffer);
+				T.swap(buffer.abuffer);
 				blocksize = buffer.length;
 				
 				putSeqLen(seqlen);
@@ -589,13 +605,16 @@ namespace libmaus
 			 * @param cigarlen number of cigar operations
 			 **/
 			template<typename cigar_iterator>
-			void replaceCigarString(cigar_iterator cigar, uint32_t const cigarlen)
+			void replaceCigarString(
+				cigar_iterator cigar, uint32_t const cigarlen,
+				libmaus::bambam::BamAlignment::D_array_type & T
+			)
 			{
 				uint64_t const pre    = getNumPreCigarBytes();
 				uint64_t const oldcig = getNumCigarBytes();
 				uint64_t const post   = getNumPostCigarBytes();
 				
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( getNumPreCigarBytes() + cigarlen * sizeof(uint32_t) + getNumPostCigarBytes() );
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( T,0 /* getNumPreCigarBytes() + cigarlen * sizeof(uint32_t) + getNumPostCigarBytes() */ );
 				
 				for ( uint64_t i = 0; i < pre; ++i )
 					buffer.put ( D [ i ] );
@@ -609,6 +628,27 @@ namespace libmaus
 				blocksize = buffer.length;
 				
 				putCigarLen(cigarlen);
+			}
+
+			/**
+			 * erase the cigar string
+			 **/
+			void eraseCigarString()
+			{
+				uint64_t const pre    = getNumPreCigarBytes();
+				uint64_t const oldcig = getNumCigarBytes();
+				uint64_t const post   = getNumPostCigarBytes();
+				
+				// move post cigar string bytes to position of old cigar string
+				memmove(
+					D.begin() + pre, // dest
+					D.begin() + pre + oldcig,  // src
+					post // n
+				);
+				
+				blocksize -= oldcig;
+				
+				putCigarLen(0);
 			}
 	
 			/**
@@ -1631,6 +1671,14 @@ namespace libmaus
 			void filterAux(BamAuxFilterVector const & tags)
 			{
 				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::filterAux(D.begin(),blocksize,tags);
+			}
+			
+			/**
+			 * remove all auxiliary fields
+			 **/
+			void eraseAux()
+			{
+				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.begin())-D.begin();
 			}
 
 			/**
