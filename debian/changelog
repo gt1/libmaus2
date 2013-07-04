@@ -1,3 +1,9 @@
+libmaus (0.0.57-0) unstable; urgency=low
+
+  * bump version after API changes in bambam namespace 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 04 Jul 2013 11:31:51 +0100
+
 libmaus (0.0.56-0) unstable; urgency=low
 
   * bump version after fixing locking in bloom filter class 

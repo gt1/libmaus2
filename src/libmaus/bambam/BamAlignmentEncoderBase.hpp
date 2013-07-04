@@ -516,6 +516,141 @@ namespace libmaus
 					}
 				}
 			}
+
+			/**
+			 * put aux field for tag with number array content
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param type number type (see sam spec)
+			 * @param values vector of numbers
+			 * @param n length of vector
+			 **/
+			template<typename buffer_type, typename iterator_type>
+			static void putAuxNumberArray(
+				buffer_type & data,
+				std::string const & tag, 
+				char const type, 
+				iterator_type values,
+				uint64_t const n
+			)
+			{
+				assert ( tag.size() == 2 );
+				
+				data.bufferPush(tag[0]);
+				data.bufferPush(tag[1]);
+				data.bufferPush('B');
+				data.bufferPush(type);
+
+				putLE<buffer_type,uint32_t>(data,n);
+				
+				for ( uint64_t i = 0; i < n; ++i )
+				{
+					switch ( type )
+					{
+						case 'A':
+							putLE< buffer_type,int8_t>(data,*(values++));
+							break;
+						case 'c':
+							putLE< buffer_type,int8_t>(data,*(values++));
+							break;
+						case 'C':
+							putLE< buffer_type,uint8_t>(data,*(values++));
+							break;
+						case 's':
+							putLE< buffer_type,int16_t>(data,*(values++));
+							break;
+						case 'S':
+							putLE< buffer_type,uint16_t>(data,*(values++));
+							break;
+						case 'i':
+							putLE< buffer_type,int32_t>(data,*(values++));
+							break;
+						case 'I':
+							putLE< buffer_type,uint32_t>(data,*(values++));
+							break;
+						case 'f':
+						{
+							numberpun np;
+							np.fvalue = *(values++);
+							
+							putLE< buffer_type,uint32_t>(
+								data, np.uvalue
+							);
+						}
+							break;
+					}
+				}
+			}
+
+			/**
+			 * put aux field for tag with number array content
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param type number type (see sam spec)
+			 * @param values vector of numbers
+			 * @param n length of vector
+			 **/
+			template<typename buffer_type, typename iterator_type>
+			static void putAuxNumberArray(
+				buffer_type & data,
+				char const * const tag,
+				char const type, 
+				iterator_type values,
+				uint64_t const n
+			)
+			{
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
+				
+				data.bufferPush(tag[0]);
+				data.bufferPush(tag[1]);
+				data.bufferPush('B');
+				data.bufferPush(type);
+
+				putLE<buffer_type,uint32_t>(data,n);
+				
+				for ( uint64_t i = 0; i < n; ++i )
+				{
+					switch ( type )
+					{
+						case 'A':
+							putLE< buffer_type,int8_t>(data,*(values++));
+							break;
+						case 'c':
+							putLE< buffer_type,int8_t>(data,*(values++));
+							break;
+						case 'C':
+							putLE< buffer_type,uint8_t>(data,*(values++));
+							break;
+						case 's':
+							putLE< buffer_type,int16_t>(data,*(values++));
+							break;
+						case 'S':
+							putLE< buffer_type,uint16_t>(data,*(values++));
+							break;
+						case 'i':
+							putLE< buffer_type,int32_t>(data,*(values++));
+							break;
+						case 'I':
+							putLE< buffer_type,uint32_t>(data,*(values++));
+							break;
+						case 'f':
+						{
+							numberpun np;
+							np.fvalue = *(values++);
+							
+							putLE< buffer_type,uint32_t>(
+								data, np.uvalue
+							);
+						}
+							break;
+					}
+				}
+			}
 			
 			/**
 			 * write create alignment in buffer to stream

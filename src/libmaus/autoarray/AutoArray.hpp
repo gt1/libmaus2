@@ -585,7 +585,16 @@ namespace libmaus
 						break;
 				}				
 			}
-			
+
+			/**
+			 * swap two objects
+			 **/
+			void swap(AutoArray<N,atype> & o)
+			{
+				std::swap(array,o.array);
+				std::swap(n,o.n);
+			}
+					
 			/**
 			 * @return size of a (level 1) cache line in bytes
 			 **/

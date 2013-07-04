@@ -1430,6 +1430,12 @@ namespace libmaus
 				return ostr.str();
 			}
 			
+			static uint8_t rcEncoded(uint8_t const i)
+			{
+				static uint8_t const C[] = { 0,8,4,12,2,10,6,14,1,9,5,13,3,11,7,15 };
+				return C[i];				
+			}
+						                
 			/**
 			 * decode encoded sequence symbol without applying boundary checks
 			 *
@@ -1451,7 +1457,6 @@ namespace libmaus
 			static uint8_t decodeSymbol(uint8_t const c)
 			{
 				static char const C[]     = "=ACMGRSVTWYHKDBN";
-				// static char const RC[] = "=TGMCRSVAWYHKDBN";
 				static uint32_t const bound = sizeof(C)/sizeof(C[0])-1;
 						
 				if ( c < bound )
@@ -1468,7 +1473,7 @@ namespace libmaus
 			 **/
 			static uint8_t decodeSymbolRCUnchecked(uint8_t const c)
 			{
-				static char const C[] = "=TGMCRSVAWYHKDBN";
+				static char const C[] = "=TGKCYSBAWRDMHVN";
 				return C[c];
 			}
 			/**
@@ -1479,13 +1484,68 @@ namespace libmaus
 			 **/
 			static uint8_t decodeSymbolRC(uint8_t const c)
 			{
-				static char const C[] = "=TGMCRSVAWYHKDBN";
+				static char const C[] = "=TGKCYSBAWRDMHVN";
 				static uint32_t const bound = sizeof(C)/sizeof(C[0])-1;
 						
 				if ( c < bound )
 					return C[c];
 				else
 					return '?';
+			}
+			
+			/**
+			 * replace the query sequence of length seqlen of alignment block D by its reverse complement in place
+			 *
+			 * @param D alignment block
+			 * @param seqlen length of query sequence
+			 **/
+			static void reverseComplementInplace(uint8_t * D, uint64_t const seqlen)
+			{
+				if ( seqlen & 1 )
+				{
+					// point p at last used byte
+					uint8_t * p = D + (seqlen>>1);
+					
+					while ( p != D )
+					{
+						uint8_t const back = (((*(p--)) >> 4) & 0xF); // e
+						uint8_t const front = (*p &0xF); // d
+					
+						// swap the two and apply complement	
+						p[1] = (rcEncoded(back) << 4) | rcEncoded(front);
+					}
+					
+					assert ( p == D );
+					*p = rcEncoded( ((*p) >> 4) & 0xF) << 4;
+					
+					std::reverse(D, D + ((seqlen>>1)+1) );
+				}
+				else if ( seqlen )
+				{
+					uint8_t * f = D;
+					uint8_t * r = D + ((seqlen>>1)-1);
+					
+					while ( f < r )
+					{
+						uint8_t const a = *(f);
+						uint8_t const b = *(r);
+						
+						uint8_t const t = rcEncoded((a >> 4)&0xF) | (rcEncoded(a      &0xF)<<4);
+						
+						*(f++) = rcEncoded((b >> 4)&0xF) | (rcEncoded(b      &0xF)<<4);
+						*(r--) = t;
+					}
+					
+					if ( f == r )
+					{
+						uint8_t const a = *f;
+
+						*f =
+							rcEncoded((a >> 4)&0xF)
+							|
+							(rcEncoded(a      &0xF)<<4);
+					}
+				}
 			}
 			
 			/**

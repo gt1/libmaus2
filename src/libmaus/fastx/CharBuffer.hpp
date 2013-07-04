@@ -34,8 +34,8 @@ namespace libmaus
                 	typedef _value_type value_type;
                 	static const ::libmaus::autoarray::alloc_type atype = _atype;
                 
-                        unsigned int buffersize;
-                        unsigned int length;
+                        uint64_t buffersize;
+                        uint64_t length;
 			::libmaus::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
 
@@ -53,7 +53,7 @@ namespace libmaus
                         
                         void expandBuffer()
                         {
-                                unsigned int newbuffersize = 2*buffersize;
+                                uint64_t newbuffersize = std::max(2*buffersize,static_cast<uint64_t>(1u));
                                 ::libmaus::autoarray::AutoArray<value_type,atype> newabuffer(newbuffersize);
                         
                                 std::copy ( abuffer.get(), abuffer.get()+buffersize, newabuffer.get() );
@@ -73,7 +73,7 @@ namespace libmaus
 			
 			}
 
-                        EntityBuffer(unsigned int const initialsize = 128)
+                        EntityBuffer(uint64_t const initialsize = 128)
                         : buffersize(initialsize), length(0), abuffer(buffersize), buffer(abuffer.get())
                         {
                         
