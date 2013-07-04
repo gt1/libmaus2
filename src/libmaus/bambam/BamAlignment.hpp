@@ -624,7 +624,8 @@ namespace libmaus
 				for ( uint64_t i = 0; i < post; ++i )
 					buffer.put ( D [ pre + oldcig + i ] );
 					
-				D = buffer.abuffer;
+				D.swap(buffer.abuffer);
+				T.swap(buffer.abuffer);
 				blocksize = buffer.length;
 				
 				putCigarLen(cigarlen);
