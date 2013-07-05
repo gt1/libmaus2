@@ -296,7 +296,7 @@ namespace libmaus
 
 			void writeEdgeWeights(std::string const & filename) const
 			{
-				::libmaus::aio::SynchronousGenericOutput<unsigned char> out(filename,8*1024);
+				::libmaus::aio::SynchronousGenericOutput<edge_weight_type> out(filename,8*1024);
 				writeEdgeWeightStream(out);
 			}
 
