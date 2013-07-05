@@ -224,6 +224,51 @@ namespace libmaus
 				return getAdapterName(AOSentry.adpid);
 			}
 			
+			void getAdapterMatchFreqs(
+				uint64_t const n,
+				libmaus::bambam::AdapterOffsetStrand const & AOSentry,
+				uint64_t & fA,
+				uint64_t & fC,
+				uint64_t & fG,
+				uint64_t & fT
+			) const
+			{
+				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
+
+				uint64_t const matchstart = AOSentry.getMatchStart();
+				uint64_t const adpstart   = AOSentry.getAdapterStart();
+				
+				uint64_t const matchlen = n - matchstart;
+				uint64_t const adplen = adp.size() - adpstart;
+				
+				uint64_t const comlen = std::min(matchlen,adplen);
+
+				fA = fC = fG = fT = 0;
+
+				for ( uint64_t i = 0; i < comlen; ++i )
+				{
+					char const sym = adp[adpstart+i];
+					
+					switch ( sym )
+					{
+						case 'a': case 'A': fA++; break;
+						case 'c': case 'C': fC++; break;
+						case 'g': case 'G': fG++; break;
+						case 't': case 'T': fT++; break;
+						default:
+						{
+							switch ( libmaus::random::Random::rand8() % 4 )
+							{
+								case 0: fA++; break;
+								case 1: fC++; break;
+								case 2: fG++; break;
+								case 3: fT++; break;
+							}
+						}
+					}
+				}
+			}
+			
 			void printAdapterMatch(
 				uint8_t const * const ua,
 				uint64_t const n,

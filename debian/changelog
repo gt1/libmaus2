@@ -1,3 +1,9 @@
+libmaus (0.0.58-0) unstable; urgency=low
+
+  * add getAdapterMatchFreqs function to adapter finding class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 05 Jul 2013 10:42:05 +0100
+
 libmaus (0.0.57-0) unstable; urgency=low
 
   * bump version after API changes in bambam namespace 
