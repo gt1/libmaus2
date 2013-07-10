@@ -271,6 +271,7 @@ namespace libmaus
 			rank_ptr_type index;
 		
 			IndexedBitVector(uint64_t const n, uint64_t const pad = 0) : BitVector(n,pad) {}
+			IndexedBitVector(std::istream & in) : BitVector(in) {}
 			
 			void setupIndex()
 			{
