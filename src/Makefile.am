@@ -759,7 +759,8 @@ libmauslcs_include_HEADERS=\
 	libmaus/lcs/CheckOverlapResultInputPushBack.hpp \
 	libmaus/lcs/CheckOverlapResultMergeInput.hpp \
 	libmaus/lcs/CheckOverlapScoreComparatorGreater.hpp \
-	libmaus/lcs/CheckOverlapResultOperations.hpp
+	libmaus/lcs/CheckOverlapResultOperations.hpp \
+	libmaus/lcs/HammingOverlapDetection.hpp
 
 libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
 libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \
@@ -844,7 +845,8 @@ noinst_PROGRAMS = \
 	testcst \
 	testbamcmp \
 	testqreorder \
-	testfqbgzf
+	testfqbgzf \
+	testoverlap
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1038,3 +1040,6 @@ testqreorder_LDADD = libmaus.la
 
 testfqbgzf_SOURCES = test/testfqbgzf.cpp
 testfqbgzf_LDADD = libmaus.la
+
+testoverlap_SOURCES = test/testoverlap.cpp
+testoverlap_LDADD = libmaus.la

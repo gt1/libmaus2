@@ -51,6 +51,7 @@
 #include <libmaus/lcs/OverlapOrientation.hpp>
 #include <libmaus/network/Socket.hpp>
 #include <libmaus/lcs/OrientationWeightEncoding.hpp>
+#include <libmaus/lcs/HammingOverlapDetection.hpp>
 
 namespace libmaus
 {
@@ -667,6 +668,104 @@ namespace libmaus
 				
 				return edgeok;
 			}
+
+			template<typename reader_type, typename srcreads_container_type>
+			static uint64_t processReadsHamming(
+				typename reader_type::unique_ptr_type & blockreader,
+				OverlapComputationBlockRequest const & OCBR,
+				::libmaus::autoarray::AutoArray < edge_type > & edges,
+				srcreads_container_type & srcreads,
+				::libmaus::network::SocketBase * sock,
+				::libmaus::parallel::OMPLock & lock
+				)
+			{
+				typedef typename reader_type::unique_ptr_type reader_ptr_type;
+				typedef typename reader_type::pattern_type pattern_type;
+				
+				libmaus::lcs::HammingOverlapDetection HOD;
+				
+				unsigned int const mintracelength = OCBR.mintracelength;
+				int64_t const minscore = OCBR.minscore;
+				double const maxindelfrac = OCBR.maxindelfrac;
+				double const maxsubstfrac = OCBR.maxsubstfrac;
+				uint64_t const scorewindowsize = OCBR.scorewindowsize;
+				int64_t const windowminscore = OCBR.windowminscore;
+
+				std::cerr << "scorewindowsize=" << scorewindowsize << std::endl;
+				std::cerr << "windowminscore=" << windowminscore << std::endl;
+								
+				pattern_type pattern;
+				
+				edge_type const * edgeit = edges.begin();
+				edge_type * edgeoutit = edges.begin();
+				
+				uint64_t edgeok = 0;
+				uint64_t edgedel = 0;
+				uint64_t patproc = 0;
+				uint64_t edgeperc = 0;
+				while ( blockreader->getNextPatternUnlocked(pattern) )
+				{
+					while ( edgeit != edges.end() && edgeit->b < pattern.patid )
+						++edgeit;
+					if ( edgeit == edges.end() )
+						break;
+
+					std::string const & b = pattern.spattern;
+
+					for ( ; edgeit != edges.end() && edgeit->b == pattern.patid; edgeit++ )
+					{
+						std::string const a = srcreads[edgeit->a];
+
+						libmaus::lcs::OverlapOrientation::overlap_orientation orientation;
+						uint64_t overhang;
+						int64_t maxscore;
+						
+						if ( 
+							HOD.detect(a,b,10,orientation,overhang,maxscore) 
+							&&
+							// check length of trace
+							((b.size() - overhang) >= mintracelength)
+							&&
+							// check score
+							(maxscore >= minscore)
+						)
+						{
+							edgeok ++;							
+							*(edgeoutit++) = edge_type(edgeit->a,edgeit->b,addOrientation(overhang,orientation));
+
+							if ( sock )
+							{
+							}
+							// std::cerr << "Overlap " << edgeit->a << " -> " << edgeit->b << " " << COR.orientation << std::endl;
+						}
+						else
+						{
+							// std::cerr << "No overlap " << edgeit->a << " -> " << edgeit->b << std::endl;
+							edgedel ++;
+						}
+					}
+					
+					if ( (100*(edgeit-edges.begin()))/edges.size() != edgeperc )
+					{
+						lock.lock();
+						edgeperc = (100*(edgeit-edges.begin()))/edges.size();
+						double const bf = (OCBR.blockid+1.0)/static_cast<double>(OCBR.numblocks);
+						std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << edgeperc 
+							<< "(" << (1.0-(edges.size() ? ((edges.end()-edgeit)/static_cast<double>(edges.size())) : 0.0)) << ")" << std::endl;
+						lock.unlock();
+					
+					}
+					
+					patproc++;
+				}	
+
+				lock.lock();
+				double const bf = (OCBR.blockid+1.0)/static_cast<double>(OCBR.numblocks);
+				std::cerr << bf << "," << OCBR.subblockid << "/" << OCBR.numsubblocks << ":" << "Processed " << 100 << "(" << 1.0 << ")" << std::endl;
+				lock.unlock();
+				
+				return edgeok;
+			}
 			
 			#if ! defined(_WIN32)
 			static uint64_t handleBlock(
@@ -706,20 +805,23 @@ namespace libmaus
 						typedef ::libmaus::fastx::FastQReader reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
-						edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					}
 					else
 					{
 						typedef ::libmaus::fastx::FastAReader reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
-						edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
+						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
+						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
 					}
 					#else
 					typedef ::libmaus::fastx::CompactFastConcatDecoder reader_type;
 					typedef reader_type::unique_ptr_type reader_ptr_type;
 					reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
-					edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
+					// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
+					edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
 					#endif
 				}
 				else
@@ -735,7 +837,8 @@ namespace libmaus
 							OCBR.serverhostname,
 							OCBR.sublo,
 							OCBR.subblockid) );
-						edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					}
 					else
 					{
@@ -747,7 +850,8 @@ namespace libmaus
 							OCBR.serverhostname,
 							OCBR.sublo,
 							OCBR.subblockid) );
-						edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					}
 					#else
 					typedef ::libmaus::fastx::FastCClient reader_type;
@@ -758,7 +862,8 @@ namespace libmaus
 						OCBR.serverhostname,
 						OCBR.sublo,
 						OCBR.subblockid) );
-					edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+					// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
+					edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					#endif
 				}
 				
