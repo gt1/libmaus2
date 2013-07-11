@@ -107,7 +107,7 @@ namespace libmaus
 					if ( seedmis <= 2 )
 					{
 						uint64_t const bseedoffset = (b.size()-(bita-b.rbegin()));
-						uint64_t const overlaplength = std::min(bseedoffset + seedlen,a.size());
+						uint64_t const overlaplength = std::min(bseedoffset + seedlen,static_cast<uint64_t>(a.size()));
 						uint64_t const boverlapstart = (bseedoffset + seedlen - overlaplength);
 						uint64_t const aoverlapstart = a.size() - overlaplength;
 
