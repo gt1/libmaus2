@@ -213,6 +213,39 @@ namespace libmaus
 			}
 			
 			/**
+			 * read a number of elements
+			 *
+			 * @param B buffer pointer
+			 * @param n number of elements
+			 * @return number of elements stored
+			 **/
+			uint64_t read(input_type * B, uint64_t n)
+			{
+				input_type * const Ba = B;
+				
+				while ( n )
+				{
+					if ( pc == pe )
+					{
+						bool const ok = fillBuffer();
+						if ( ! ok )
+							break;
+					}
+					
+					assert ( pc != pe );
+					
+					uint64_t const tocopy = std::min(n,static_cast<uint64_t>(pe-pc));
+					std::copy(pc,pc+tocopy,B);
+					
+					pc += tocopy;
+					B += tocopy;
+					n -= tocopy;
+				}
+				
+				return (B-Ba);
+			}
+			
+			/**
 			 * get next word
 			 *
 			 * @param word reference for storing next word
