@@ -1294,6 +1294,7 @@ namespace libmaus
 				{
 					std::cerr << "AsynchronousSocketInputBuffer failed:" << std::endl;
 					std::cerr << ex.what() << std::endl;
+					fullqueue.enque(termtag);
 				}
 				return 0;
 			}
