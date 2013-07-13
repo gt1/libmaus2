@@ -442,6 +442,18 @@ namespace libmaus
 				
 				return c;
 			}
+			
+			/**
+			 * write AutoArray header
+			 *
+			 * @param out output stream
+			 * @param n number of elements
+			 * @return number of bytes written
+			 **/
+			static uint64_t putHeader(std::ostream & out, uint64_t const n)
+			{
+				return ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+			}
 
 			/**
 			 * serialise object to an output stream
@@ -453,7 +465,7 @@ namespace libmaus
 			{
 				uint64_t s = 0;
 				if ( writeHeader )
-					s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+					s += putHeader(out,n);
 				s += ::libmaus::serialize::Serialize<N>::serializeArray(out,array,n);
 				return s;
 			}
