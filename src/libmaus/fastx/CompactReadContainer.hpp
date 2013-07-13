@@ -217,9 +217,10 @@ namespace libmaus
 			
 			CompactReadContainer(
 				std::vector<std::string> const & filenames, 
-				::libmaus::fastx::FastInterval const & rFI
+				::libmaus::fastx::FastInterval const & rFI,
+				bool const verbose = false
 			)
-			: FI(rFI), numreads(FI.high-FI.low), designators( (numreads+63)/64 ), shortpointers(numreads,false), longpointers(), text(FI.fileoffsethigh-FI.fileoffset)
+			: FI(rFI), numreads(FI.high-FI.low), designators( (numreads+63)/64 ), shortpointers(numreads,false), longpointers(), text(FI.fileoffsethigh-FI.fileoffset,false)
 			{
 				typedef ::libmaus::fastx::CompactFastConcatDecoder reader_type;
 				typedef reader_type::pattern_type pattern_type;
@@ -228,6 +229,20 @@ namespace libmaus
 				uint64_t codepos = 0;		
 				uint64_t offsetbase = 0;
 
+				// bool const verbose = true;
+				
+				uint64_t const mod = std::max((numreads+50)/100,static_cast<uint64_t>(1));
+				uint64_t const bmod = libmaus::math::nextTwoPow(mod);
+				uint64_t const bmask = bmod-1;
+               
+				if ( verbose )
+				{
+					if ( isatty(STDERR_FILENO) )
+						std::cerr << "Computing designators/pointers...";
+					else
+						std::cerr << "Computing designators/pointers..." << std::endl;
+				}
+					
 				std::vector < uint64_t > prelongpointers;
 				prelongpointers.push_back(0);
 				writer_type W(designators.get());
@@ -252,18 +267,46 @@ namespace libmaus
 					shortpointers[i] = codepos-offsetbase;
 				
 					CFD.skipPattern(codepos);
+					
+					if ( verbose && ((i & (bmask)) == 0) )
+					{
+						if ( isatty(STDERR_FILENO) )
+							std::cerr << "(" << i/static_cast<double>(numreads)  << ")";
+						else
+							std::cerr << "Finished " << i/static_cast<double>(numreads)  << std::endl;
+					}
 				}
 				W.flush();
 				
 				longpointers = ::libmaus::autoarray::AutoArray< uint64_t >(prelongpointers.size(),false);
 				std::copy(prelongpointers.begin(),prelongpointers.end(),longpointers.begin());
+				
+				if ( verbose )
+					std::cerr << "Done." << std::endl;
 
-				::libmaus::aio::ReorderConcatGenericInput<uint8_t> RCGI(::libmaus::fastx::CompactFastDecoder::getDataFragments(filenames),64*1024,text.size(),FI.fileoffset);
-				for ( uint64_t i = 0; i < text.size(); ++i )
-					text[i] = RCGI.get();
-					
+				if ( verbose )
+					std::cerr << "Loading text...";
+				std::vector < libmaus::aio::FileFragment > const frags =
+					::libmaus::fastx::CompactFastDecoder::getDataFragments(filenames);
+				::libmaus::aio::ReorderConcatGenericInput<uint8_t> RCGI(frags,64*1024,text.size(),FI.fileoffset);
+				uint64_t const textread = RCGI.read(text.begin(),text.size());
+				
+				if ( textread != text.size() )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Failed to read text in CompactReadContainer." << std::endl;
+					se.finish();
+					throw se;
+				}
+				if ( verbose )
+					std::cerr << "done." << std::endl;
+				
+				if ( verbose )
+					std::cerr << "Setting up rank dictionary for designators...";
 				setupRankDictionary();
-
+				if ( verbose )
+					std::cerr << "done." << std::endl;
+				
 				#if 0
 				std::cerr << "Checking dict...";
 				reader_type CFD2(filenames,FI);
