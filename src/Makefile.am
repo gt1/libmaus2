@@ -206,6 +206,7 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/Scram.h \
 	libmaus/bambam/AlignmentValidity.hpp \
 	libmaus/bambam/ScramDecoder.hpp \
+	libmaus/bambam/ScramEncoder.hpp \
 	libmaus/bambam/SnappyAlignmentMergeInput.hpp \
 	libmaus/bambam/BamAlignmentPrinter.hpp \
 	libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp \

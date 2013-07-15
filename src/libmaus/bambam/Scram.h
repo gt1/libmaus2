@@ -53,9 +53,48 @@ typedef struct _libmaus_bambam_ScramDecoder
 	uint64_t        blocksize;
 } libmaus_bambam_ScramDecoder;
 
+typedef struct _libmaus_bambam_ScramHeader
+{
+	/** text */
+	char * text;
+	/** header structure */
+	void * header;
+} libmaus_bambam_ScramHeader;
+
+typedef struct _libmaus_bambam_ScramEncoder
+{
+	/** output file name */
+	char * filename;
+	/** output mode */
+	char * mode;
+	/** reference file name */
+	char * referencefilename;
+	/** header object */
+	libmaus_bambam_ScramHeader * header;
+	
+	/** scram encoder */
+	void * encoder;
+	
+	/** output buffer */
+	char * buffer;
+	/** size of buffer in bytes */
+	uint64_t buffersize;
+} libmaus_bambam_ScramEncoder;
+
 typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename);
 typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_Delete_Type)(libmaus_bambam_ScramDecoder * object);
 typedef int (* libmaus_bambam_ScramDecoder_Decode_Type)(libmaus_bambam_ScramDecoder * object);
+
+typedef libmaus_bambam_ScramHeader *(* libmaus_bambam_ScramHeader_New_Type   )(char const * headertext);
+typedef libmaus_bambam_ScramHeader *(* libmaus_bambam_ScramHeader_Delete_Type)(libmaus_bambam_ScramHeader * header);
+
+typedef libmaus_bambam_ScramEncoder *(* libmaus_bambam_ScramEncoder_New_Type)(
+	char const * headertext,
+	char const * rfilename, char const * rmode, char const * rreferencefilename,
+	int const rverbose
+);
+typedef libmaus_bambam_ScramEncoder *(* libmaus_bambam_ScramEncoder_Delete_Type)(libmaus_bambam_ScramEncoder * object);
+typedef int (* libmaus_bambam_ScramEncoder_Encode_Type)(libmaus_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len);
 
 /**
  * allocate scram decoder
@@ -80,6 +119,52 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_Delete(libmaus_bambam_
  * @return 0=ok, -1=eof, -2=failure
  **/
 int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object);
+
+/**
+ * construct a header from a given text
+ *
+ * @param headertext plain text header
+ * @return scram header object
+ **/
+libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_New(char const * headertext);
+/**
+ * deallocate scram header object
+ *
+ * @param header object
+ * @return null
+ **/
+libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_Delete(libmaus_bambam_ScramHeader * header);
+
+/**
+ * construct an encoder
+ *
+ * @param header scram header object
+ * @param rfilename output file name (- for standard output)
+ * @param rmode file mode
+ * @param rreferencefilename name of reference for cram output
+ **/
+libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
+	char const * headertext,
+	char const * rfilename, 
+	char const * rmode, 
+	char const * rreferencefilename,
+	int const rverbose
+);
+/**
+ * deallocate scram encoder object
+ *
+ * @param object encoder object
+ * @return null
+ **/
+libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_Delete(libmaus_bambam_ScramEncoder * object);
+/**
+ * encode sequence
+ *
+ * @param seq sequence (BAM block)
+ * @param len length of BAM block in bytes
+ * @return -1 on failure
+ **/
+int libmaus_bambam_ScramEncoder_Encode(libmaus_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len);
 
 #if defined(__cplusplus)
 }
