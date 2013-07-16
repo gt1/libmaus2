@@ -22,6 +22,7 @@
 
 #include <libmaus/types/types.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus/util/IntervalTree.hpp>
 #include <vector>
 #include <limits>
 
@@ -208,6 +209,15 @@ namespace libmaus
 			{
 				std::istringstream istr(s);
 				return deserialiseVector(istr);
+			}
+
+			static ::libmaus::util::IntervalTree::unique_ptr_type toIntervalTree(std::vector < FastInterval > const & V)
+			{
+				libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					H[i] = std::pair<uint64_t,uint64_t>(V[i].low,V[i].high);
+				::libmaus::util::IntervalTree::unique_ptr_type PIT(new ::libmaus::util::IntervalTree(H,0,H.size()));
+				return UNIQUE_PTR_MOVE(PIT);
 			}
 		};
 

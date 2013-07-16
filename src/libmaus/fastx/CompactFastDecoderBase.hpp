@@ -49,7 +49,7 @@ namespace libmaus
 			}
 
 			template<typename in_type>
-			inline int64_t skipPattern(
+			static inline int64_t skipPattern(
 				in_type & istr, 
 				uint64_t & patlencodelen, 
 				uint64_t & flagcodelen, 
@@ -77,7 +77,7 @@ namespace libmaus
 			}
 
 			template<typename in_type>
-			inline int64_t skipPattern(
+			static inline int64_t skipPattern(
 				in_type & istr, 
 				uint64_t & codelen)
 			{
@@ -106,7 +106,7 @@ namespace libmaus
 			}
 
 			template<typename in_type>
-			inline int64_t skipPattern(in_type & istr)
+			static inline int64_t skipPattern(in_type & istr)
 			{
 				uint32_t const patlen = decodeUTF8(istr);
 							
@@ -126,6 +126,146 @@ namespace libmaus
 				}
 			}
 			
+
+			template<typename in_type>
+			static uint64_t decodeSimple(in_type & istr, libmaus::autoarray::AutoArray<uint8_t> & D)
+			{
+				try
+				{
+					// decode pattern length
+					uint32_t const patlen = decodeUTF8(istr);
+					
+					// check for terminator
+					if ( patlen == getTerminator() )
+					{
+						return std::numeric_limits<uint64_t>::max();
+					}
+					else
+					{
+						// decode flags
+						uint32_t const flags = decodeUTF8(istr);
+						
+						// resize pattern
+						if ( patlen > D.size() )
+							D = libmaus::autoarray::AutoArray<uint8_t>(patlen,false);
+						
+						// pattern has indeterminate bases
+						if ( flags & 1 )
+						{
+							uint64_t const full = (patlen >> 1);		
+							uint64_t const brok = patlen&1;
+							uint8_t * ita = D.begin();
+							
+							for ( uint64_t i = 0; i < full; ++i )
+							{
+								int v = istr.get();
+								if ( v < 0 )
+								{
+									::libmaus::exception::LibMausException se;
+									se.getStream() << "EOF in getNextPatternUnlocked()";
+									se.finish();
+									throw se;
+								}
+
+								*(ita++) = v & 0xF; v >>= 4;
+								*(ita++) = v & 0xF; v >>= 4;
+							}
+							
+							if ( brok )
+							{
+								int v = istr.get();
+								if ( v < 0 )
+								{
+									::libmaus::exception::LibMausException se;
+									se.getStream() << "EOF in getNextPatternUnlocked()";
+									se.finish();
+									throw se;
+								}
+
+								*(ita++) = v & 0xF; v >>= 4;				
+							}
+						}
+						// pattern has determinate bases only
+						else
+						{
+							// full bytes
+							uint64_t const full = (patlen >> 2);		
+							// fractional rest
+							uint64_t const brok = patlen&3;
+							uint8_t * ita = D.begin();
+							
+							// decode full bytes (four symbols each)
+							for ( uint64_t i = 0; i < full; ++i )
+							{
+								int v = istr.get();
+								if ( v < 0 )
+								{
+									::libmaus::exception::LibMausException se;
+									se.getStream() << "EOF in getNextPatternUnlocked()";
+									se.finish();
+									throw se;
+								}
+
+								*(ita++) = v & 0x3; v >>= 2;
+								*(ita++) = v & 0x3; v >>= 2;
+								*(ita++) = v & 0x3; v >>= 2;
+								*(ita++) = v & 0x3; v >>= 2;
+							}
+							
+							// decode fractional
+							if ( brok == 3 )
+							{
+								int v = istr.get();
+								if ( v < 0 )
+								{
+									::libmaus::exception::LibMausException se;
+									se.getStream() << "EOF in getNextPatternUnlocked()";
+									se.finish();
+									throw se;
+								}
+
+								*(ita++) = v & 0x3; v >>= 2;
+								*(ita++) = v & 0x3; v >>= 2;
+								*(ita++) = v & 0x3; v >>= 2;
+							}
+							else if ( brok == 2 )
+							{
+								int v = istr.get();
+								if ( v < 0 )
+								{
+									::libmaus::exception::LibMausException se;
+									se.getStream() << "EOF in getNextPatternUnlocked()";
+									se.finish();
+									throw se;
+								}
+
+								*(ita++) = v & 0x3; v >>= 2;
+								*(ita++) = v & 0x3; v >>= 2;
+							}
+							else if ( brok == 1 )
+							{
+								int v = istr.get();
+								if ( v < 0 )
+								{
+									::libmaus::exception::LibMausException se;
+									se.getStream() << "EOF in getNextPatternUnlocked()";
+									se.finish();
+									throw se;
+								}
+
+								*(ita++) = v & 0x3; v >>= 2;
+							}
+						}
+								
+						return patlen;
+					}
+				}
+				catch(std::exception const & ex)
+				{
+					std::cerr << "caught exception in CompactFastDecoderBase::decode(): " << ex.what() << std::endl;
+					throw;
+				}
+			}
 
 			template<typename pattern_type, typename in_type>
 			static bool decode(

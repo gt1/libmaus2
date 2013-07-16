@@ -76,7 +76,8 @@ namespace libmaus
 				libmaus::lcs::OverlapOrientation::overlap_orientation const dovetail,
 				bool const overhangab,
 				uint64_t & overhang,
-				int64_t & maxscore
+				int64_t & maxscore,
+				bool const verbose = false
 			) const
 			{
 				uint64_t seed = 0;		
@@ -158,11 +159,12 @@ namespace libmaus
 							{
 								maxscore = score;
 								
-								#if 0
-								std::cerr << "mismatches " << mis << "/" << maxmis << " score " << score << "\n"
-									<< a << "\n"
-									<< std::string(a.size()-overlaplength,' ') << b << "\n";
-								#endif
+								if ( verbose )
+								{
+									std::cerr << "mismatches " << mis << "/" << maxmis << " score " << score << "\n"
+										<< a << "\n"
+										<< std::string(a.size()-overlaplength,' ') << b << "\n";
+								}
 								
 								if ( overlaplength == a.size() && overlaplength == b.size() )
 									orientation = libmaus::lcs::OverlapOrientation::overlap_cover_complete;
@@ -188,22 +190,23 @@ namespace libmaus
 			bool detect(
 				std::string const & a, std::string const & b, unsigned int const maxmisperc, libmaus::lcs::OverlapOrientation::overlap_orientation & orientation,
 				uint64_t & overhang,
-				int64_t & maxscore
+				int64_t & maxscore,
+				bool const verbose = false
 			) const
 			{
 				std::string const ar = libmaus::fastx::reverseComplementUnmapped(a);
 
 				maxscore = ::std::numeric_limits<int64_t>::min();
 
-				detect(a,b,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front,true,overhang,maxscore); 
-				detect(b,a,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back,false,overhang,maxscore); 
-				detect(ar,b,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front,true,overhang,maxscore); 
-				detect(b,ar,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back,false,overhang,maxscore); 
+				detect(a,b,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front,true,overhang,maxscore,verbose); 
+				detect(b,a,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back,false,overhang,maxscore,verbose); 
+				detect(ar,b,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front,true,overhang,maxscore,verbose); 
+				detect(b,ar,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back,false,overhang,maxscore,verbose); 
 				
 				return maxscore != ::std::numeric_limits<int64_t>::min();
 			}
 			
-			static void testOverlapCombinations()
+			static void testOverlapCombinations(bool const verbose = false)
 			{
 				this_type OD;
 
@@ -218,22 +221,22 @@ namespace libmaus
 				std::string const ar = "ATGCTGATGCTGACTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT";
 				std::string const br = "TGTCAGTGGTGACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
-				OD.detect(a,b,10,orientation,overhang,maxscore);
+				OD.detect(a,b,10,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				OD.detect(b,a,10,orientation,overhang,maxscore);
+				OD.detect(b,a,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				OD.detect(af,bf,10,orientation,overhang,maxscore);
+				OD.detect(af,bf,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
-				OD.detect(ar,br,10,orientation,overhang,maxscore);
+				OD.detect(ar,br,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;

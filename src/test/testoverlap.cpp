@@ -23,7 +23,7 @@ int main()
 {
 	try
 	{
-		libmaus::lcs::HammingOverlapDetection::testOverlapCombinations();
+		libmaus::lcs::HammingOverlapDetection::testOverlapCombinations(true);
 	}
 	catch(std::exception const & ex)
 	{

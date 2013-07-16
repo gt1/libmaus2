@@ -847,7 +847,8 @@ noinst_PROGRAMS = \
 	testbamcmp \
 	testqreorder \
 	testfqbgzf \
-	testoverlap
+	testoverlap \
+	testcompactfastrandom
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1044,3 +1045,6 @@ testfqbgzf_LDADD = libmaus.la
 
 testoverlap_SOURCES = test/testoverlap.cpp
 testoverlap_LDADD = libmaus.la
+
+testcompactfastrandom_SOURCES = test/testcompactfastrandom.cpp
+testcompactfastrandom_LDADD = libmaus.la
