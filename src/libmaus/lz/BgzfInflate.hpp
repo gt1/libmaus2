@@ -127,7 +127,7 @@ namespace libmaus
 						}
 					}
 					
-					return 0;
+					return std::pair<uint64_t,uint64_t>(0,0);
 				}
 					
 				if ( ostr )
