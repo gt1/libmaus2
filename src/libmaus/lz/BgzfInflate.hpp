@@ -94,6 +94,64 @@ namespace libmaus
 				
 				return gcnt;
 			}
+
+			std::pair<uint64_t,uint64_t> readPlusInfo(char * const decomp, uint64_t const n)
+			{
+				gcnt = 0;
+			
+				/* check if buffer given is large enough */	
+				if ( n < getBgzfMaxBlockSize() )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << getBgzfMaxBlockSize();
+					se.finish();
+					throw se;				
+				}
+				
+				/* read block */
+				std::pair<uint64_t,uint64_t> const blockinfo = readBlock(stream);
+
+				/* no more data ? */
+				if ( ! blockinfo.first )
+				{
+					if ( ostr )
+					{
+						ostr->flush();
+
+						if ( ! (*ostr) )
+						{
+							libmaus::exception::LibMausException ex;
+							ex.getStream() << "BgzfInflate::read(): failed to flush copy stream." << std::endl;
+							ex.finish();
+							throw ex;
+						}
+					}
+					
+					return 0;
+				}
+					
+				if ( ostr )
+				{
+					ostr->write(reinterpret_cast<char const *>(header.begin()),getBgzfHeaderSize());
+					ostr->write(reinterpret_cast<char const *>(block.begin()),blockinfo.first + getBgzfFooterSize());
+					
+					if ( ! (*ostr) )
+					{
+						libmaus::exception::LibMausException ex;
+						ex.getStream() << "BgzfInflate::read(): failed to write compressed input to copy stream." << std::endl;
+						ex.finish();
+						throw ex;
+					}
+				}
+
+				/* decompress block */
+				gcnt = decompressBlock(decomp,blockinfo);
+				
+				return std::pair<uint64_t,uint64_t>(
+					blockinfo.first+getBgzfHeaderSize()+getBgzfFooterSize(),
+					gcnt // uncompressed size
+				);
+			}
 			
 			uint64_t gcount() const
 			{
