@@ -158,14 +158,7 @@ namespace libmaus
 							if ( score > maxscore )
 							{
 								maxscore = score;
-								
-								if ( verbose )
-								{
-									std::cerr << "mismatches " << mis << "/" << maxmis << " score " << score << "\n"
-										<< a << "\n"
-										<< std::string(a.size()-overlaplength,' ') << b << "\n";
-								}
-								
+														
 								if ( overlaplength == a.size() && overlaplength == b.size() )
 									orientation = libmaus::lcs::OverlapOrientation::overlap_cover_complete;
 								else if ( overlaplength == a.size() )
@@ -180,6 +173,26 @@ namespace libmaus
 										overhang = aboverhang;
 									else
 										overhang = baoverhang;
+								}
+
+								if ( verbose )
+								{
+									std::cerr << "mismatches " << mis << "/" << maxmis << " score " << score << "\n";
+									
+									if ( orientation == dovetail || orientation == libmaus::lcs::OverlapOrientation::overlap_cover_complete )
+										std::cerr << a << "\n"
+											<< std::string(a.size()-overlaplength,' ') << b << "\n";
+									else if ( orientation == cover_a_b )
+									{
+										std::cerr << a << "\n"
+											<< std::string(aoverlapstart,' ') << b << "\n";
+									}
+									else if ( orientation == cover_b_a )
+									{
+										std::cerr
+											<< std::string(boverlapstart,' ') << a << "\n"
+											<< b << "\n";
+									}
 								}
 							}
 						}
