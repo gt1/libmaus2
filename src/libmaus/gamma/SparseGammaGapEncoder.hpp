@@ -62,6 +62,35 @@ namespace libmaus
 				genc.flush();
 				SGO.flush();
 			}
+			
+			template<typename it>
+			static void encodeArray(
+				it const ita, 
+				it const ite, 
+				std::ostream & out
+			)
+			{
+				std::sort(ita,ite);
+				
+				this_type enc(out);
+				
+				it itl = ita;
+				
+				while ( itl != ite )
+				{
+					it ith = itl;
+					
+					while ( ith != ite && *ith == *itl )
+						++ith;
+					
+					enc.encode(*itl,ith-itl);
+					
+					itl = ith;
+				}
+				
+				enc.term();
+				out.flush();
+			}
 		};	
 	}
 }
