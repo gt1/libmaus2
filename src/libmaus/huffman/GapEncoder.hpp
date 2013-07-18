@@ -130,9 +130,8 @@ namespace libmaus
 			}
 
 			template<typename iterator, typename encoder_type>
-			void encode(iterator a, iterator e, encoder_type * encoder)
+			void encode(iterator ita, uint64_t const n, encoder_type * encoder)
 			{
-				uint64_t const n = e-a;
 				uint64_t const blocksize = 32*1024;
 				uint64_t const blocks = (n + blocksize-1)/blocksize;
 				
@@ -150,7 +149,7 @@ namespace libmaus
 					uint64_t sum = 0;
 					for ( uint64_t i = 0; i < bsize; ++i )
 					{
-						uint64_t const v = a[blow+i];
+						uint64_t const v = *(ita++);
 						encoder->encode(gapHEF,v);
 						sum += v;
 					}
@@ -163,9 +162,8 @@ namespace libmaus
 			}
 
 			template<typename iterator, typename encoder_type>
-			void encodeFast(iterator a, iterator e, encoder_type * encoder)
+			void encodeFast(iterator ita, uint64_t const n, encoder_type * encoder)
 			{
-				uint64_t const n = e-a;
 				uint64_t const blocksize = 32*1024;
 				uint64_t const blocks = (n + blocksize-1)/blocksize;
 				
@@ -183,7 +181,7 @@ namespace libmaus
 					uint64_t sum = 0;
 					for ( uint64_t i = 0; i < bsize; ++i )
 					{
-						uint64_t const v = a[blow+i];
+						uint64_t const v = *(ita++);
 						encoder->encodeFast(gapHEF,v);
 						sum += v;
 					}
@@ -195,18 +193,26 @@ namespace libmaus
 			}
 
 			template<typename iterator>
-			void encodeInternal(iterator a, iterator e)
+			void encodeInternal(iterator ita, uint64_t const n)
 			{
 				if ( needescape )
-					encode(a,e,GECE.get());
+					encode(ita,n,GECE.get());
 				else
-					encodeFast(a,e,GCE.get());
+					encodeFast(ita,n,GCE.get());
 			}
 
 			template<typename iterator>
-			void encode(iterator a, iterator e)
+			void encode(iterator ita, iterator ite)
 			{
-				encodeInternal(a,e);
+				encodeInternal(ita,ite-ita);
+				writeIndex();
+				flush();
+			}
+
+			template<typename iterator>
+			void encode(iterator ita, uint64_t const n)
+			{
+				encodeInternal(ita,n);
 				writeIndex();
 				flush();
 			}
@@ -289,7 +295,7 @@ namespace libmaus
 							std::cerr << "maxval = " << maxval << std::endl;
 						#endif
 								
-						enc.encodeInternal(B.begin(),B.begin() + blen);
+						enc.encodeInternal(B.begin(),blen /*B.begin() + blen*/);
 					}
 	
 					enc.writeIndex();
