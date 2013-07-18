@@ -80,12 +80,8 @@ namespace libmaus
 						case 0: // M
 						case 2: // D
 						case 3: // S
-						#if 0
-						/* the two below should probably be included, however
-						   we do not for samtools compatibility */
 						case 7: // =
 						case 8: // X
-						#endif
 							end += len;
 					}
 				}
