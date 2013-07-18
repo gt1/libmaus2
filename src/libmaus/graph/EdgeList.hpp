@@ -423,6 +423,28 @@ namespace libmaus
 						out << (i+edgelow) << "," << p[j] << "," << static_cast<int>(w[j]) << std::endl;
 				}
 			}
+
+			void printHex(std::ostream & out) const
+			{
+				for ( uint64_t i = 0; i < edgehigh-edgelow; ++i )
+				{
+					edge_target_type const * p = edges.get() + i * maxedges;
+					edge_weight_type const * w = weights.get() + i*maxedges;
+					
+					for ( uint64_t j = 0; j < maxedges && p[j] != edge_list_term; ++j )
+						out 
+							<< std::hex << std::setw(16) << std::setfill('0')
+							<< (i+edgelow) 
+							<< std::setw(0)
+							<< "," 
+							<< std::hex << std::setw(16) << std::setfill('0')
+							<< p[j] 
+							<< std::setw(0)
+							<< "," 
+							<< static_cast<int>(w[j]) 
+							<< std::endl;
+				}
+			}
 		};
 		
 		typedef EdgeListTemplate<true> EdgeList;
