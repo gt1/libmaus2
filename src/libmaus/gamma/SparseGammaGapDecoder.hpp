@@ -40,6 +40,41 @@ namespace libmaus
 			libmaus::aio::SynchronousGenericInput<uint64_t> SGI;
 			libmaus::gamma::GammaDecoder<stream_type> gdec;
 			std::pair<uint64_t,uint64_t> p;
+			
+			struct iterator
+			{
+				SparseGammaGapDecoder * owner;
+				uint64_t v;
+				
+				iterator()
+				: owner(0), v(0)
+				{
+				
+				}
+				iterator(SparseGammaGapDecoder * rowner)
+				: owner(rowner), v(owner->decode())
+				{
+				
+				}
+				
+				uint64_t operator*() const
+				{
+					return v;
+				}
+				
+				iterator operator++(int)
+				{
+					iterator copy = *this;
+					v = owner->decode();
+					return copy;
+				}
+				
+				iterator operator++()
+				{
+					v = owner->decode();
+					return *this;
+				}
+			};
 		
 			SparseGammaGapDecoder(std::istream & rstream) : SGI(rstream,64*1024), gdec(SGI), p(0,0)
 			{
@@ -71,6 +106,11 @@ namespace libmaus
 					return retval;
 				}
 			}			
+			
+			iterator begin()
+			{
+				return iterator(this);
+			}
 		};	
 	}
 }

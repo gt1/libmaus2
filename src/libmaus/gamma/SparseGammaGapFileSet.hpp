@@ -21,6 +21,7 @@
 
 #include <libmaus/gamma/SparseGammaGapFile.hpp>
 #include <libmaus/gamma/SparseGammaGapMerge.hpp>
+#include <libmaus/gamma/GammaGapEncoder.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/util/TempFileNameGenerator.hpp>
@@ -101,7 +102,11 @@ namespace libmaus
 				libmaus::aio::CheckedInputStream ina(Sa.fn);
 				libmaus::aio::CheckedInputStream inb(Sb.fn);
 				libmaus::aio::CheckedOutputStream out(nfn);
-				libmaus::gamma::SparseGammaGapMerge::merge(ina,inb,out);					
+				libmaus::gamma::SparseGammaGapMerge::merge(ina,inb,out);
+				
+				// remove input files
+				remove(Sa.fn.c_str());
+				remove(Sb.fn.c_str());
 			}
 			
 			void addFile(std::string const & fn)
@@ -127,6 +132,26 @@ namespace libmaus
 					
 				if ( !Q.empty() )
 					rename(Q.top().fn.c_str(),outputfilename.c_str());
+			}
+
+			void mergeToDense(std::string const & outputfilename, uint64_t const n)
+			{
+				libmaus::parallel::ScopeLock slock(lock);
+
+				while ( canMerge() )
+					doMerge(tmpgen.getFileName());
+					
+				if ( !Q.empty() )
+				{
+					libmaus::aio::CheckedInputStream CIS(Q.top().fn);
+					libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
+					libmaus::gamma::SparseGammaGapDecoder::iterator it = SGGD.begin();
+					
+					libmaus::gamma::GammaGapEncoder GGE(outputfilename);
+					GGE.encode(it,n);
+					
+					remove(Q.top().fn.c_str());
+				}
 			}
 		};
 	}

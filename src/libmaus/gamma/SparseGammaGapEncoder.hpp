@@ -21,6 +21,7 @@
 
 #include <libmaus/gamma/GammaEncoder.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
+#include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/util/shared_ptr.hpp>
@@ -90,6 +91,17 @@ namespace libmaus
 				
 				enc.term();
 				out.flush();
+			}
+
+			template<typename it>
+			static void encodeArray(
+				it const ita, 
+				it const ite, 
+				std::string const & fn
+			)
+			{
+				libmaus::aio::CheckedOutputStream COS(fn);
+				encodeArray(ita,ite,COS);
 			}
 		};	
 	}
