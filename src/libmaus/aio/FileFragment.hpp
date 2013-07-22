@@ -25,6 +25,7 @@
 #include <fstream>
 #include <libmaus/util/StringSerialisation.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus/util/IntervalTree.hpp>
 
 namespace libmaus
 {
@@ -48,6 +49,47 @@ namespace libmaus
 			uint64_t offset;
 			//! length of fragment
 			uint64_t len;
+			
+			/**
+			 * extract interval vector from vector of FileFragment objects
+			 *
+			 * @param V fragment vector
+			 * @return interval vector
+			 **/
+			static libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > toIntervalVector(std::vector<FileFragment> const & V)
+			{
+				libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
+				
+				if ( V.size() )
+				{
+					H[0] = std::pair<uint64_t,uint64_t>(0,V[0].len);
+					
+					for ( uint64_t i = 1; i < V.size(); ++i )
+						H[i] = std::pair<uint64_t,uint64_t>(H[i-1].second,H[i-1].second + V[i].len);
+				}
+					
+				return H;
+			}
+			
+			/**
+			 * extract interval tree from vector of FileFragment objects
+			 *
+			 * @param V fragment vector
+			 * @return interval tree
+			 **/
+			static libmaus::util::IntervalTree::unique_ptr_type toIntervalTree(std::vector<FileFragment> const & V)
+			{
+				if ( ! V.size() )
+				{
+					libmaus::util::IntervalTree::unique_ptr_type ptr;
+					return UNIQUE_PTR_MOVE(ptr);
+				}
+				
+				libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H = toIntervalVector(V);
+				libmaus::util::IntervalTree::unique_ptr_type PIT(new libmaus::util::IntervalTree(H,0,H.size()));
+				
+				return UNIQUE_PTR_MOVE(PIT);
+			}
 			
 			/**
 			 * extract list of file names from a fragment vector

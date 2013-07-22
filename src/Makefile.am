@@ -127,7 +127,9 @@ libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp
 libmausgamma_includedir=$(includedir)/libmaus/gamma/
 libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp \
 	libmaus/gamma/GammaGapEncoder.hpp libmaus/gamma/GammaGapDecoder.hpp \
-	libmaus/gamma/GammaRLDecoder.hpp  libmaus/gamma/GammaRLEncoder.hpp
+	libmaus/gamma/GammaRLDecoder.hpp  libmaus/gamma/GammaRLEncoder.hpp \
+	libmaus/gamma/SparseGammaGapEncoder.hpp libmaus/gamma/SparseGammaGapDecoder.hpp libmaus/gamma/SparseGammaGapMerge.hpp \
+	libmaus/gamma/SparseGammaGapFile.hpp libmaus/gamma/SparseGammaGapFileSet.hpp
 
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
@@ -206,6 +208,7 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/Scram.h \
 	libmaus/bambam/AlignmentValidity.hpp \
 	libmaus/bambam/ScramDecoder.hpp \
+	libmaus/bambam/ScramEncoder.hpp \
 	libmaus/bambam/SnappyAlignmentMergeInput.hpp \
 	libmaus/bambam/BamAlignmentPrinter.hpp \
 	libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp \
@@ -846,7 +849,8 @@ noinst_PROGRAMS = \
 	testbamcmp \
 	testqreorder \
 	testfqbgzf \
-	testoverlap
+	testoverlap \
+	testcompactfastrandom
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1043,3 +1047,6 @@ testfqbgzf_LDADD = libmaus.la
 
 testoverlap_SOURCES = test/testoverlap.cpp
 testoverlap_LDADD = libmaus.la
+
+testcompactfastrandom_SOURCES = test/testcompactfastrandom.cpp
+testcompactfastrandom_LDADD = libmaus.la

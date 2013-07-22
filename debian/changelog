@@ -1,3 +1,23 @@
+libmaus (0.0.59-0) unstable; urgency=low
+
+  * print correct error message when fork() call fails
+  * parameterise edge array in overlap computation
+  * refactor serialisation function in AutoArray class (factor out header writing) 
+  * terminate queue in case of async input failure in AsynchronousSocketInputBuffer
+  * add read method in ReorderConcatGenericInput class
+  * make construction of CompactReadEndContainer class more verbose
+  * add class for scram encoding (cram+sam output via io_lib)
+  * add pseudo random position input for compact fasta files
+  * add verbosity for Hamming distance based overlap detection
+  * add function readPlusInfo in BgzfInflate class which returns size of compressed
+    data in addition to uncompressed one (for BAM indexing)
+  * add parallel sorting option in PairFileSorting class
+  * add sparse gamma code based gap file class and tests
+  * fix edge list terminator in EdgeList class
+  * add function for recomputing the bin of a BAM alignment block
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 22 Jul 2013 13:40:46 +0100
+
 libmaus (0.0.58-0) unstable; urgency=low
 
   * add getAdapterMatchFreqs function to adapter finding class

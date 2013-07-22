@@ -100,13 +100,15 @@ void libmaus::util::PosixExecute::executeOld(::libmaus::util::ArgInfo const & ar
 	
 	if ( pid == -1 )
 	{
+		int const error = errno;
+	
 		close(stdoutfd);
 		close(stderrfd);
 		remove ( stdoutfilename.c_str() );
 		remove ( stderrfilename.c_str() );
 		
 		::libmaus::exception::LibMausException se;
-		se.getStream() << "Failed to fork()";
+		se.getStream() << "Failed to fork(): " << strerror(error);
 		se.finish();
 		throw se;
 	}
@@ -195,6 +197,8 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 	
 	if ( pid == -1 )
 	{
+		int const error = errno;
+	
 		close(stdoutpipe[0]);
 		close(stdoutpipe[0]);
 		close(stdoutpipe[1]);
@@ -202,13 +206,13 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 		
 		if ( donotthrow )
 		{
-			std::cerr << "Failed to fork()" << strerror(errno) << std::endl;
+			std::cerr << "Failed to fork(): " << strerror(error) << std::endl;
 			return EXIT_FAILURE;
 		}
 		else
 		{
 			::libmaus::exception::LibMausException se;
-			se.getStream() << "Failed to fork(): " << strerror(errno);
+			se.getStream() << "Failed to fork(): " << strerror(error);
 			se.finish();
 			throw se;
 		}

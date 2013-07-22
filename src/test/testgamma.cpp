@@ -25,6 +25,12 @@
 #include <libmaus/gamma/GammaEncoder.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
 
+#include <libmaus/gamma/SparseGammaGapEncoder.hpp>
+#include <libmaus/gamma/SparseGammaGapDecoder.hpp>
+#include <libmaus/gamma/SparseGammaGapMerge.hpp>
+#include <libmaus/gamma/SparseGammaGapFile.hpp>
+#include <libmaus/gamma/SparseGammaGapFileSet.hpp>
+
 template<typename T>
 struct VectorPut : public std::vector<T>
 {
@@ -279,10 +285,105 @@ void testgammarl()
 	remove ( fn3.c_str() );	
 }
 
+void testgammasparse()
+{
+	std::ostringstream o0;
+	libmaus::gamma::SparseGammaGapEncoder SE0(o0);
+	std::ostringstream o1;
+	libmaus::gamma::SparseGammaGapEncoder SE1(o1);
+	
+	SE0.encode(4, 7);
+	SE0.encode(6, 3);
+	SE0.term();
+	
+	SE1.encode(0, 1);
+	SE1.encode(2, 5);
+	SE1.encode(6, 2);
+	SE1.encode(8, 7);
+	SE1.term();
+	
+	std::cerr << "o0.size()=" << o0.str().size() << std::endl;
+	std::cerr << "o1.size()=" << o1.str().size() << std::endl;
+	
+	std::istringstream i0(o0.str());
+	libmaus::gamma::SparseGammaGapDecoder SD0(i0);
+	std::istringstream i1(o1.str());
+	libmaus::gamma::SparseGammaGapDecoder SD1(i1);
+	
+	for ( uint64_t i = 0; i < 10; ++i )
+		std::cerr << SD0.decode() << ";";
+	std::cerr << std::endl;
+	for ( uint64_t i = 0; i < 10; ++i )
+		std::cerr << SD1.decode() << ";";
+	std::cerr << std::endl;
+
+	std::istringstream mi0(o0.str());
+	std::istringstream mi1(o1.str());
+	std::ostringstream mo;
+	
+	libmaus::gamma::SparseGammaGapMerge::merge(mi0,mi1,mo);
+	
+	std::istringstream mi(mo.str());
+	libmaus::gamma::SparseGammaGapDecoder SDM(mi);
+
+	for ( uint64_t i = 0; i < 10; ++i )
+		std::cerr << SDM.decode() << ";";
+	std::cerr << std::endl;
+}
+
+void testsparsegammamerge()
+{
+	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus::gamma::SparseGammaGapFileSet SGGF(tmpgen);
+	std::map<uint64_t,uint64_t> refM;
+	
+	for ( uint64_t i = 0; i < 25;  ++i )
+	{
+		std::string const fn = tmpgen.getFileName();
+		libmaus::aio::CheckedOutputStream COS(fn);
+		libmaus::gamma::SparseGammaGapEncoder SGE(COS);
+		
+		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
+		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
+		SGE.encode(2*i+4,i+1); refM[2*i+4] += (i+1);
+		SGE.term();
+		
+		SGGF.addFile(fn);
+	}
+	
+	std::string const ffn = tmpgen.getFileName();
+	SGGF.merge(ffn);
+	
+	libmaus::aio::CheckedInputStream CIS(ffn);
+	libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
+	for ( uint64_t i = 0; i < 60; ++i )
+	{
+		uint64_t dv = SGGD.decode();
+		
+		std::cerr << dv;
+		if ( refM.find(i) != refM.end() )
+		{
+			std::cerr << "(" << refM.find(i)->second << ")";
+			assert ( refM.find(i)->second == dv );
+		}
+		else
+		{
+			std::cerr << "(0)";
+			assert ( dv == 0 );
+		}
+		std::cerr << ";";
+	}
+	std::cerr << std::endl;
+	
+	remove(ffn.c_str());
+}
+
 int main()
 {
 	try
 	{
+		testsparsegammamerge();
+		testgammasparse();
 		testgammarl();
 		testLow();
 		testRandom(256*1024*1024);

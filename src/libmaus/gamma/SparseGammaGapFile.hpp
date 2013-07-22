@@ -16,17 +16,37 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPFILE_HPP)
+#define LIBMAUS_GAMMA_SPARSEGAMMAGAPFILE_HPP
 
-#include <libmaus/lcs/HammingOverlapDetection.hpp>
+#include <string>
+#include <ostream>
+#include <libmaus/types/types.hpp>
 
-int main()
+namespace libmaus
 {
-	try
+	namespace gamma
 	{
-		libmaus::lcs::HammingOverlapDetection::testOverlapCombinations(true);
-	}
-	catch(std::exception const & ex)
-	{
-	
+		struct SparseGammaGapFile
+		{
+			std::string fn;
+			uint64_t level;
+
+			SparseGammaGapFile() : fn(), level(0) {}
+			SparseGammaGapFile(std::string const & rfn, uint64_t const rlevel)
+			: fn(rfn), level(rlevel) {}
+			
+			bool operator<(SparseGammaGapFile const & o) const
+			{
+				return level > o.level;
+			}
+		};
+		
+		inline std::ostream & operator<<(std::ostream & out, SparseGammaGapFile const & SGGF)
+		{
+			out << "SparseGammaGapFile(fn=" << SGGF.fn << ",level=" << SGGF.level << ")";
+			return out;
+		}
 	}
 }
+#endif

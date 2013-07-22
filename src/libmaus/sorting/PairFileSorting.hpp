@@ -24,6 +24,8 @@
 #include <string>
 #include <queue>
 
+#include <parallel/algorithm>
+
 #include <libmaus/aio/FileFragment.hpp>
 #include <libmaus/aio/ReorderConcatGenericInput.hpp>
 #include <libmaus/aio/SynchronousGenericInput.hpp>
@@ -210,7 +212,8 @@ namespace libmaus
 				bool const keepfirst,
 				bool const keepsecond,
 				out_type & SGOfinal,
-				uint64_t const bufsize = 256*1024*1024
+				uint64_t const bufsize = 256*1024*1024,
+				bool const parallel = false
 			)
 			{
 				::std::vector < ::libmaus::aio::FileFragment > frags;
@@ -244,10 +247,20 @@ namespace libmaus
 						*(P++) = std::pair<uint64_t,uint64_t>(w,v);			
 					}
 					
-					if ( second )
-						std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+					if ( parallel )
+					{
+						if ( second )
+							__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+						else
+							__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());					
+					}
 					else
-						std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
+					{
+						if ( second )
+							std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+						else
+							std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
+					}
 					
 					for ( ptrdiff_t i = 0; i < P-A.begin(); ++i )
 					{
@@ -283,12 +296,13 @@ namespace libmaus
 				bool const keepfirst,
 				bool const keepsecond,
 				std::string const & outfilename,
-				uint64_t const bufsize = 256*1024*1024
+				uint64_t const bufsize = 256*1024*1024,
+				bool const parallel = false
 			)
 			{
 				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outfilename,16*1024);
-				sortPairFileTemplate(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel);
 			}
 
 			static void sortPairFile(
@@ -298,12 +312,13 @@ namespace libmaus
 				bool const keepfirst,
 				bool const keepsecond,
 				std::ostream & outstream,
-				uint64_t const bufsize = 256*1024*1024
+				uint64_t const bufsize = 256*1024*1024,
+				bool const parallel = false
 			)
 			{
 				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outstream,16*1024);
-				sortPairFileTemplate(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel);
 			}
 		};
 	}

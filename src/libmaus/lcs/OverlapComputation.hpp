@@ -554,11 +554,11 @@ namespace libmaus
 				}
 			}
 
-			template<typename reader_type, typename srcreads_container_type>
+			template<typename reader_type, typename srcreads_container_type, typename edges_array_type>
 			static uint64_t processReads(
 				typename reader_type::unique_ptr_type & blockreader,
 				OverlapComputationBlockRequest const & OCBR,
-				::libmaus::autoarray::AutoArray < edge_type > & edges,
+				edges_array_type & edges,
 				srcreads_container_type & srcreads,
 				::libmaus::network::SocketBase * sock,
 				::libmaus::parallel::OMPLock & lock
@@ -669,11 +669,11 @@ namespace libmaus
 				return edgeok;
 			}
 
-			template<typename reader_type, typename srcreads_container_type>
+			template<typename reader_type, typename srcreads_container_type, typename edges_array_type>
 			static uint64_t processReadsHamming(
 				typename reader_type::unique_ptr_type & blockreader,
 				OverlapComputationBlockRequest const & OCBR,
-				::libmaus::autoarray::AutoArray < edge_type > & edges,
+				edges_array_type & edges,
 				srcreads_container_type & srcreads,
 				::libmaus::network::SocketBase * sock,
 				::libmaus::parallel::OMPLock & lock
@@ -686,10 +686,12 @@ namespace libmaus
 				
 				unsigned int const mintracelength = OCBR.mintracelength;
 				int64_t const minscore = OCBR.minscore;
-				double const maxindelfrac = OCBR.maxindelfrac;
+				// double const maxindelfrac = OCBR.maxindelfrac;
 				double const maxsubstfrac = OCBR.maxsubstfrac;
 				uint64_t const scorewindowsize = OCBR.scorewindowsize;
 				int64_t const windowminscore = OCBR.windowminscore;
+				
+				uint64_t const maxsubstperc = std::ceil(maxsubstfrac * 100.0);
 
 				std::cerr << "scorewindowsize=" << scorewindowsize << std::endl;
 				std::cerr << "windowminscore=" << windowminscore << std::endl;
@@ -721,7 +723,7 @@ namespace libmaus
 						int64_t maxscore;
 						
 						if ( 
-							HOD.detect(a,b,10,orientation,overhang,maxscore) 
+							HOD.detect(a,b,maxsubstperc,orientation,overhang,maxscore) 
 							&&
 							// check length of trace
 							((b.size() - overhang) >= mintracelength)
@@ -768,10 +770,11 @@ namespace libmaus
 			}
 			
 			#if ! defined(_WIN32)
+			template<typename edges_array_type>
 			static uint64_t handleBlock(
 				OverlapComputationBlockRequest const & OCBR,
 				::libmaus::fastx::CompactReadContainer & srcreads,
-				::libmaus::autoarray::AutoArray < edge_type > & edges,
+				edges_array_type & edges,
 				::libmaus::network::SocketBase * sock,
 				::libmaus::parallel::OMPLock & lock
 			)

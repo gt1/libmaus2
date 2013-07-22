@@ -1375,6 +1375,17 @@ namespace libmaus
 			}
 			
 			/**
+			 * @return computed bin
+			 **/
+			uint64_t computeBin() const
+			{
+				uint64_t const rbeg = getPos();
+				uint64_t const rend = rbeg + getReferenceLength();
+				uint64_t const bin = libmaus::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend);
+				return bin;
+			}
+			
+			/**
 			 * @return length of alignment on reference
 			 **/
 			uint64_t getReferenceLength() const

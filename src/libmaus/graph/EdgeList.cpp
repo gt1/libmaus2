@@ -19,4 +19,5 @@
 #include <libmaus/graph/EdgeList.hpp>
 
 unsigned int const libmaus::graph::EdgeListBase::maxweight = ::libmaus::math::MetaLowBits<8*sizeof(edge_weight_type)>::lowbits;
-libmaus::graph::EdgeListBase::edge_target_type const libmaus::graph::EdgeListBase::edge_list_term = 0xFFFFFFFFUL;
+libmaus::graph::EdgeListBase::edge_target_type const libmaus::graph::EdgeListBase::edge_list_term 
+	= std::numeric_limits<libmaus::graph::EdgeListBase::edge_target_type>::max(); // 0xFFFFFFFFUL;

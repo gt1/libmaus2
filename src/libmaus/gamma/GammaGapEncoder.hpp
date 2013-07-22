@@ -56,9 +56,8 @@ namespace libmaus
 			}
 			
 			template<typename iterator>
-			uint64_t encodeInternal(iterator ita, iterator ite, uint64_t off)
+			uint64_t encodeInternal(iterator ita, uint64_t const n, uint64_t off)
 			{
-				uint64_t const n = ite-ita;
 				::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64*1024);
 				::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > GE(SGO);
 				uint64_t const numblocks = (n + blocksize-1)/blocksize;
@@ -150,16 +149,23 @@ namespace libmaus
 				FWBWS.flush();
 				SGO.flush();
 			}
-
+			
 			template<typename iterator>
-			void encode(iterator ita, iterator ite)
-			{
-				uint64_t const fslen = writeFileSize(ite-ita);
-				uint64_t const indexpos = fslen + encodeInternal<iterator>(ita,ite,fslen);
+			void encode(iterator ita, uint64_t const n)
+			{			
+				uint64_t const fslen = writeFileSize(n);
+				uint64_t const indexpos = fslen + encodeInternal<iterator>(ita,n,fslen);
 												
 				writeIndex(indexpos);
 				
 				COS.flush();
+			}
+
+			template<typename iterator>
+			void encode(iterator ita, iterator ite)
+			{
+				uint64_t const n = ite-ita;
+				encode(ita,n);
 			}
 
 			// merge multiple gap arrays to one by adding them up per rank
