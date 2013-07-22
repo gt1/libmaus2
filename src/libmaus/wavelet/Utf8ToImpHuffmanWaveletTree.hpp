@@ -1601,6 +1601,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
+				libmaus::parallel::OMPLock cerrlock;
 				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
 
@@ -1626,6 +1627,7 @@ namespace libmaus
 					uint64_t const numparts = pretermparts + termparts + posttermparts;
 					
 					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
+					std::cerr << "Allocated " << symsperpart.byteSize() << " bytes for symsperpart." << std::endl;
 					uint64_t jj = 0;
 					for ( uint64_t i = 0; i < pretermparts; ++i )
 					{					
@@ -1658,6 +1660,7 @@ namespace libmaus
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
+					std::cerr << "Num nodes " << numnodes << " numparts " << numparts << std::endl;
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
@@ -1665,6 +1668,7 @@ namespace libmaus
 						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
 						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
+					std::cerr << "Bytes for numnodes*numparts*sizeof(uint64_t)=" << numnodes*numparts*sizeof(uint64_t) << std::endl;
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -1696,6 +1700,14 @@ namespace libmaus
 
 						/* read text */
 						::libmaus::autoarray::AutoArray<uint8_t> A(partsize,false);
+						#if defined(_OPENMP)
+						unsigned int const tid = omp_get_thread_num();
+						#else
+						unsigned int const tid = 0;
+						#endif
+						cerrlock.lock();
+						std::cerr << "{" << tid << "}" << " Allocated " << A.byteSize() << " bytes for A array." << std::endl;
+						cerrlock.unlock();
 						::libmaus::util::PutObject<uint8_t *> PO(A.begin());
 
 						if ( partid == static_cast<int64_t>(pretermparts) )
@@ -1718,7 +1730,12 @@ namespace libmaus
 						
 						::libmaus::autoarray::AutoArray<uint8_t> Z;
 						if ( radixsort )
+						{
 							Z = ::libmaus::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
+							cerrlock.lock();
+							std::cerr << "{" << tid << "} Allocated " << Z.byteSize() << " bytes for Z array." << std::endl;
+							cerrlock.unlock();
+						}
 
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,htree));
@@ -1975,6 +1992,7 @@ namespace libmaus
 						vnodewordcnt[i].prefixSums();
 					
 					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
+					std::cerr << "Allocated " << vnodebits.byteSize() << " bytes for vnodebits array." << std::endl;
 					uint64_t tnumbits = 0;
 					for ( uint64_t nodeid = 0; nodeid < numnodes; ++nodeid )
 					{
@@ -2019,6 +2037,7 @@ namespace libmaus
 					}
 					
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
+					std::cerr << "Allocated " << nodebytesizes.byteSize() << " bytes per nodebytesizes array." << std::endl;
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
