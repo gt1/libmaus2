@@ -23,7 +23,17 @@ int main()
 {
 	try
 	{
-		libmaus::bambam::BamIndex index(std::cin);	
+		libmaus::bambam::BamIndex index(std::cin);
+		
+		for ( uint64_t i = 0; i < 20; ++i )
+		{
+			libmaus::bambam::BamIndexBin const * bin = index.getBin(0,i);
+		
+			if ( bin )
+			{
+				std::cerr << "bin " << i << " size " << bin->chunks.size() << std::endl;
+			}
+		}
 	}
 	catch(std::exception const & ex)
 	{

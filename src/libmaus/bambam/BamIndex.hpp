@@ -31,6 +31,7 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
+			private:
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexRef> refs;
 			
 			template<typename stream_type, typename value_type, unsigned int length>
@@ -95,25 +96,35 @@ namespace libmaus
 					{
 						refs[i].bin = libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin>(distbins,false);
 						
+						libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > pi(distbins,false);
+						libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin> prebins(distbins,false);
+						
 						for ( uint64_t j = 0; j < distbins; ++j )
 						{
 							uint32_t const bin = getLEInteger<stream_type,uint32_t,4>(stream);
 							uint32_t const chunks = getLEInteger<stream_type,uint32_t,4>(stream);
 							
-							std::cerr << "chr " << i << " bin " << bin << " chunks " << chunks << std::endl;
+							// std::cerr << "chr " << i << " bin " << bin << " chunks " << chunks << std::endl;
 							
-							refs[i].bin[j].bin = bin;
-							refs[i].bin[j].chunks = libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin::Chunk>(chunks,false);
+							prebins[j].bin = bin;
+							prebins[j].chunks = libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin::Chunk>(chunks,false);
 							
 							// read chunks
 							for ( uint64_t k = 0; k < chunks; ++k )
 							{
-								refs[i].bin[j].chunks[k].first = getLEInteger<stream_type,uint64_t,8>(stream);
-								refs[i].bin[j].chunks[k].second = getLEInteger<stream_type,uint64_t,8>(stream);
+								prebins[j].chunks[k].first = getLEInteger<stream_type,uint64_t,8>(stream);
+								prebins[j].chunks[k].second = getLEInteger<stream_type,uint64_t,8>(stream);
 							}
+							
+							pi [ j ] = std::pair<uint64_t,uint64_t>(bin,j);
 						}
 						
-						std::sort(refs[i].bin.begin(),refs[i].bin.end());
+						// sort by bin
+						std::sort(pi.begin(),pi.end());
+					
+						// move
+						for ( uint64_t j = 0; j < distbins; ++j )
+							refs[i].bin[j] = prebins[pi[j].second];							
 					}
 					
 					uint32_t const lins = getLEInteger<stream_type,uint32_t,4>(stream);
@@ -128,10 +139,30 @@ namespace libmaus
 				}
 			}
 
+			public:
 			BamIndex() {}
-			
 			BamIndex(std::istream & in) { init(in); }
 			BamIndex(libmaus::aio::CheckedInputStream & in) { init(in); }
+			
+			BamIndexBin const * getBin(uint64_t const ref, uint64_t const i) const
+			{
+				if ( ref >= refs.size() )
+					return 0;
+				
+				BamIndexBin comp;
+				comp.bin = i;
+				BamIndexBin const * p = std::lower_bound(refs[ref].bin.begin(),refs[ref].bin.end(),comp);
+				
+				if ( p == refs[ref].bin.end() || p->bin != i )
+				{
+					return 0;
+				}
+				else
+				{
+					assert ( p->bin == i );
+					return p;
+				}
+			}
 		};
 	}
 }
