@@ -220,7 +220,11 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamAuxFilterVector.hpp \
 	libmaus/bambam/BamDefaultAdapters.hpp \
 	libmaus/bambam/AdapterOffsetStrand.hpp \
-	libmaus/bambam/AdapterFilter.hpp
+	libmaus/bambam/AdapterFilter.hpp \
+	libmaus/bambam/BamIndexBin.hpp \
+	libmaus/bambam/BamIndexLinear.hpp \
+	libmaus/bambam/BamIndexRef.hpp \
+	libmaus/bambam/BamIndex.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -850,7 +854,8 @@ noinst_PROGRAMS = \
 	testqreorder \
 	testfqbgzf \
 	testoverlap \
-	testcompactfastrandom
+	testcompactfastrandom \
+	testbamindex
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1050,3 +1055,6 @@ testoverlap_LDADD = libmaus.la
 
 testcompactfastrandom_SOURCES = test/testcompactfastrandom.cpp
 testcompactfastrandom_LDADD = libmaus.la
+
+testbamindex_SOURCES = test/testbamindex.cpp
+testbamindex_LDADD = libmaus.la
