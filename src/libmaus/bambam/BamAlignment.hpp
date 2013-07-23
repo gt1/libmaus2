@@ -153,6 +153,9 @@ namespace libmaus
 				checkAlignment();
 			}
 			
+			/**
+			 * check alignment for syntactical validity, throws exception if invalid
+			 **/
 			void checkAlignment() const
 			{
 				libmaus_bambam_alignment_validity const validity = valid();	
