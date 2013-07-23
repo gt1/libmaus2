@@ -105,6 +105,10 @@ namespace libmaus
 				libmaus::aio::CheckedOutputStream out(nfn);
 				libmaus::gamma::SparseGammaGapMerge::merge(ina,inb,out);
 				
+				#if 0
+				std::cerr << "merged " << Sa.fn << " and " << Sb.fn << " to " << nfn << std::endl;
+				#endif
+				
 				// remove input files
 				remove(Sa.fn.c_str());
 				remove(Sb.fn.c_str());
