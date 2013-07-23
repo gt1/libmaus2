@@ -150,6 +150,11 @@ namespace libmaus
 					throw se;
 				}
 			
+				checkAlignment();
+			}
+			
+			void checkAlignment() const
+			{
 				libmaus_bambam_alignment_validity const validity = valid();	
 				if ( validity != libmaus_bambam_alignment_validity_ok )
 				{
@@ -157,7 +162,7 @@ namespace libmaus
 					se.getStream() << "Invalid alignment: " << validity << std::endl;
 					se.finish();
 					throw se;					
-				}
+				}			
 			}
 									
 			/**
