@@ -147,6 +147,12 @@ namespace libmaus
 				return *(pc++);	
 			}
 			
+			/* alias for decode() */
+			uint64_t get()
+			{
+				return decode();
+			}
+			
 			/* peek at next symbol without advancing decode pointer */
 			uint64_t peek()
 			{
