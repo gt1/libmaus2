@@ -358,6 +358,46 @@ namespace libmaus
 					s += getLength(filenames[i]);
 				return s;
 			}
+
+			struct iterator
+			{
+				GammaGapDecoder * owner;
+				uint64_t v;
+				
+				iterator()
+				: owner(0), v(0)
+				{
+				
+				}
+				iterator(GammaGapDecoder * rowner)
+				: owner(rowner), v(owner->decode())
+				{
+				
+				}
+				
+				uint64_t operator*() const
+				{
+					return v;
+				}
+				
+				iterator operator++(int)
+				{
+					iterator copy = *this;
+					v = owner->decode();
+					return copy;
+				}
+				
+				iterator operator++()
+				{
+					v = owner->decode();
+					return *this;
+				}
+			};
+			
+			iterator begin()
+			{
+				return iterator(this);
+			}
 		};
 	}
 }
