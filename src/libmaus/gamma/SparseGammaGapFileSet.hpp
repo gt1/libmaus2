@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPFILESET_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPFILESET_HPP
 
+#include <libmaus/gamma/SparseGammaGapDecoder.hpp>
 #include <libmaus/gamma/SparseGammaGapFile.hpp>
 #include <libmaus/gamma/SparseGammaGapMerge.hpp>
 #include <libmaus/gamma/GammaGapEncoder.hpp>
