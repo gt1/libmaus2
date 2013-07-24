@@ -1,3 +1,10 @@
+libmaus (0.0.60-0) unstable; urgency=low
+
+  * add BamIndex class
+  * add level based gamma coding based gap file set class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 24 Jul 2013 09:51:00 +0100
+
 libmaus (0.0.59-0) unstable; urgency=low
 
   * print correct error message when fork() call fails
