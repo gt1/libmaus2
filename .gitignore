@@ -13,6 +13,8 @@ compile_48.sh
 configure
 depcomp
 doconfig.sh
+doconfig32.sh
+doconfigstab.sh
 install-sh
 lic
 ltmain.sh
