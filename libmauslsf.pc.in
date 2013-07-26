@@ -7,5 +7,5 @@ Name: libmauslsf
 Description: succinct data structures lsf module
 Requires: libmaus
 Version: @VERSION@
-Libs: -L${libdir} -lmauslsf
+Libs: -L${libdir} -lmauslsf @LSFLIBS@
 Cflags: -I${includedir} @LSFCPPFLAGS@

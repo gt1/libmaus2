@@ -28,16 +28,13 @@ LIBMAUSLDFLAGS="${LDFLAGS}"
 
 PKG_PROG_PKG_CONFIG
 
-AC_ARG_ENABLE(kmlocal,
-        AS_HELP_STRING([--enable-kmlocal],[enable k means clustering support (default yes)]),
-        [kmlocal=${enableval}],[kmlocal=yes])
+AC_ARG_WITH([kmlocal],
+	[AS_HELP_STRING([--with-kmlocal@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=no@:>@])],
+	[with_kmlocal=${withval}],
+	[with_kmlocal=no])
 
 KMLOCAL=
-if test "$kmlocal" = "yes" ; then
-	AC_ARG_WITH([kmlocal],
-		    [AS_HELP_STRING([--with-kmlocal@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=@:>@])],
-		    [with_kmlocal=${withval}],
-		    [with_kmlocal=])
+if test "${with_kmlocal}" = "no" ; then
 
 	if test ! -z "${with_kmlocal}" ; then
 		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
@@ -1337,22 +1334,42 @@ else
 	AC_MSG_NOTICE([Required thread functionality not found, disabling multi threading.])
 fi
 
-AC_ARG_ENABLE(lsf,
-        AS_HELP_STRING([--enable-lsf],[enable lsf (default yes)]),
-        [lsf=${enableval}],[lsf=yes])
+AC_ARG_WITH([lsf],
+	[AS_HELP_STRING([--with-lsf@<:@=PATH@:>@], [path to installed LSF @<:@default=no@:>@])],
+	[with_lsf=${withval}],
+	[with_lsf=no])
 
-if test "${lsf}" = "yes" ; then
+if test "${with_lsf}" != "no" ; then
 
+    if test \( "${with_lsf}" != "no" \) -a \( ! -z "${with_lsf}" \) ; then
+	LSFCPPFLAGS="-I${with_lsf}/include -I${with_lsf}/../include"
+        LSFLIBDIR="${with_lsf}/lib"
+	LSFLDFLAGS="-L${LSFLIBDIR}"
+        LSFLIBS="${LSFLIBDIR}/libbat.a ${LSFLIBDIR}/liblsf.a -lm -lnsl -ldl"
+        # LSFLIBS="-lbat -llsf -lm -lnsl -ldl -lstdc++"
+    else
+	LSFCPPFLAGS=
+	LSFLDFLAGS=
+        LSFLIBDIR=
+        LSFLIBS=
+    fi
+
+    CPPFLAGS_SAVE="${CPPFLAGS}"
+    CPPFLAGS="${CPPFLAGS} ${LSFCPPFLAGS}"
     AC_LANG_PUSH([C++])
     AC_CHECK_HEADER(lsf/lsbatch.h,[have_lsf_lsbatch_h=yes],[have_lsf_lsbatch_h=no])
     AC_LANG_POP
+    CPPFLAGS="${CPPFLAGS_SAVE}"
 
     if test "${have_lsf_lsbatch_h}" = "yes" ; then
 
         AC_LANG_PUSH([C++])
         CPPFLAGS_SAVE="${CPPFLAGS}"
+        CPPFLAGS="${CPPFLAGS} ${LSFCPPFLAGS}"
         LIBS_SAVE="${LIBS}"
-        LIBS="${LIBS} -llsf -lbat -lnsl"
+        LIBS="${LIBS} ${LSFLIBS}"
+        LDFLAGS_SAVE="${LDFLAGS}"
+        LDFLAGS="${LDFLAGS} ${LSFLDFLAGS}"
         AC_MSG_CHECKING([whether we can compile a program using LSF])
                         AC_LINK_IFELSE([AC_LANG_SOURCE([#include <lsf/lsbatch.h>
                     #include <cstdlib>
@@ -1378,14 +1395,19 @@ if test "${lsf}" = "yes" ; then
         AC_MSG_RESULT($have_lsf)
         CPPFLAGS="${CPPFLAGS_SAVE}"
         LIBS="${LIBS_SAVE}"
+        LDFLAGS="${LDFLAGS_SAVE}"
         AC_LANG_POP
 
         if test "${have_lsf}" = "yes" ; then
-		LSFCPPFLAGS="-DHAVE_LSF"
-		LSFLIBS="${LIBMAUSLIBS} -llsf -lbat -lnsl"
+		LSFCPPFLAGS="-DHAVE_LSF ${LSFCPPFLAGS}"
+		LSFLDFLAGS="${LSFLDFLAGS}"
+                LSFLIBDIR="${LSFLIBDIR}"
+		LSFLIBS="${LIBMAUSLIBS} ${LSFLIBS}"
         else
 		LSFCPPFLAGS=""
+                LSFLDFLAGS=""
 		LSFLIBS=""
+                LSFLIBDIR=""
         fi
     fi
 
@@ -1608,6 +1630,8 @@ AC_SUBST([LIBMAUSARCHCFLAGS])
 AC_SUBST([LSFCPPFLAGS])
 AC_SUBST([LSFCXXFLAGS])
 AC_SUBST([LSFLIBS])
+AC_SUBST([LSFLDFLAGS])
+AC_SUBST([LSFLIBDIR])
 AC_SUBST([COMPUTEHASHFREQUENCIESLSF])
 AC_SUBST([COMPUTERELATIONMATRIXLSF])
 AC_SUBST([FILTERRELATIONMATRIX])

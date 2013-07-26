@@ -94,7 +94,7 @@ libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
 
-libmauslsf_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
+libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
 libmauslsf_la_CPPFLAGS = ${LSFCPPFLAGS}
 libmauslsf_la_LIBADD = libmaus.la ${LSFLIBS}
@@ -791,7 +791,7 @@ libmausconsensus_include_HEADERS =\
 	libmaus/consensus/Consensus.hpp \
 	libmaus/consensus/ScoringMatrix.hpp
 
-EXTRA_PROGRAMS = testlsf
+EXTRA_PROGRAMS = testlsf testlsflist
 noinst_PROGRAMS = \
 	testAIO \
 	testArithmetic \
@@ -835,6 +835,7 @@ noinst_PROGRAMS = \
 	testlsfdispatcher \
 	testlsfclient \
 	testlsfclientfw \
+	testlsflist \
 	testdl \
 	testdifenc \
 	testbwtmergeinternal \
@@ -974,6 +975,7 @@ testsnappy_LDADD = libmaus.la @SNAPPYLIBS@
 
 testlsf_SOURCES = test/testlsf.cpp
 testlsf_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
+testlsf_LDFLAGS = ${LSFLDFLAGS}
 testlsf_LDADD = libmaus.la libmauslsf.la ${LSFLIBS}
 
 testlsfdispatcher_SOURCES = test/testlsfdispatcher.cpp
@@ -1059,3 +1061,8 @@ testcompactfastrandom_LDADD = libmaus.la
 
 testbamindex_SOURCES = test/testbamindex.cpp
 testbamindex_LDADD = libmaus.la
+
+testlsflist_SOURCES = test/testlsflist.cpp
+testlsflist_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
+testlsflist_LDFLAGS = ${LSFLDFLAGS}
+testlsflist_LDADD = libmaus.la libmauslsf.la ${LSFLIBS}
