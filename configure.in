@@ -34,7 +34,7 @@ AC_ARG_WITH([kmlocal],
 	[with_kmlocal=no])
 
 KMLOCAL=
-if test "${with_kmlocal}" = "no" ; then
+if test "${with_kmlocal}" != "no" ; then
 
 	if test ! -z "${with_kmlocal}" ; then
 		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
@@ -1411,6 +1411,47 @@ if test "${with_lsf}" != "no" ; then
         fi
     fi
 
+fi
+
+AC_ARG_WITH([cuda],
+	[AS_HELP_STRING([--with-cuda@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=/usr/local/cuda@:>@])],
+	[with_cuda=${withval}],
+	[with_cuda=/usr/local/cuda])
+
+CUDADIR=
+if test "${with_cuda}" != "no" ; then
+	AC_MSG_CHECKING([whether ${with_cuda}/bin/nvcc exists])
+
+	if test -x "${with_cuda}/bin/nvcc" ; then
+		CUDANVCC="${with_cuda}/bin/nvcc"
+		AC_MSG_RESULT([yes])
+	else
+		CUDANVCC="no"
+		AC_MSG_RESULT([no])
+	fi
+
+	if test "${CUDANVCC}" != "no" ; then
+		AC_MSG_CHECKING([whether we can compile a program using ${with_cuda}/bin/nvcc])	
+
+		CXXSAVE="${CXX}"
+		CXX="${CUDANVCC}"
+		CXXFLAGSSAVE="${CXXFLAGS}"
+		CXXFLAGS=""
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS=""
+
+	        AC_LANG_PUSH([C++])
+
+		AC_TRY_COMPILE([#include <cuda.h>],[cuInit(0);],[nvcc_compile=yes],[nvcc_compile=no])
+		AC_MSG_RESULT([${nvcc_compile}])
+
+		AC_LANG_POP
+
+		CXX="${CXXSAVE}"
+		CXXFLAGS="${CXXFLAGSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+
+	fi
 fi
 
 case $target_cpu in
