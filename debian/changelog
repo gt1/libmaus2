@@ -1,3 +1,10 @@
+libmaus (0.0.61-0) unstable; urgency=low
+
+  * add BamRange classes 
+  * use CheckedInputStream for blockwise snappy input
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 29 Jul 2013 20:27:48 +0100
+
 libmaus (0.0.60-0) unstable; urgency=low
 
   * add BamIndex class
