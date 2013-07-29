@@ -89,7 +89,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/BamFlagBase.cpp \
 	libmaus/bambam/ReadGroup.cpp \
 	libmaus/bambam/DuplicationMetrics.cpp \
-	libmaus/bambam/BamDefaultAdapters.cpp
+	libmaus/bambam/BamDefaultAdapters.cpp \
+	libmaus/bambam/BamRange.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -225,7 +226,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamIndexBin.hpp \
 	libmaus/bambam/BamIndexLinear.hpp \
 	libmaus/bambam/BamIndexRef.hpp \
-	libmaus/bambam/BamIndex.hpp
+	libmaus/bambam/BamIndex.hpp \
+	libmaus/bambam/BamRange.hpp \
+	libmaus/bambam/BamRangeParser.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

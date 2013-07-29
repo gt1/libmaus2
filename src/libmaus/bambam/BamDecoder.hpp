@@ -51,8 +51,10 @@ namespace libmaus
 			bgzf_ptr_type PGZ;
 			//! decompressor
 			bgzf_type & GZ;
+			//! BAM header pointer
+			::libmaus::bambam::BamHeader::unique_ptr_type Pbamheader;
 			//! BAM header
-			::libmaus::bambam::BamHeader bamheader;
+			::libmaus::bambam::BamHeader const & bamheader;
 
 			/**
 			 * interval alignment input method
@@ -86,7 +88,8 @@ namespace libmaus
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
 			  PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
 			  PGZ(new bgzf_type(*PISTR)), GZ(*PGZ),
-			  bamheader(GZ)
+			  Pbamheader(new BamHeader(GZ)),
+			  bamheader(*Pbamheader)
 			{}
 			
 			/**
@@ -99,7 +102,8 @@ namespace libmaus
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
 			  PISTR(), PGZ(new bgzf_type(in)), GZ(*PGZ),
-			  bamheader(GZ)
+			  Pbamheader(new BamHeader(GZ)),
+			  bamheader(*Pbamheader)
 			{}
 
 			/**
@@ -112,7 +116,8 @@ namespace libmaus
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
 			  PISTR(), PGZ(), GZ(rGZ),
-			  bamheader(GZ)
+			  Pbamheader(new BamHeader(GZ)),
+			  bamheader(*Pbamheader)
 			{}
 
 			/**

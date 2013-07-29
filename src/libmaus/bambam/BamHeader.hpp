@@ -780,6 +780,24 @@ namespace libmaus
 				chromosomes.push_back(Chromosome(name,len));
 				return id;
 			}
+			
+			/**
+			 * get id for reference name
+			 *
+			 * @param name reference name
+			 * @return id for name
+			 **/
+			uint64_t getIdForRefName(std::string const & name) const
+			{
+				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
+					if ( name == chromosomes[i].name )
+						return i;
+						
+				libmaus::exception::LibMausException se;
+				se.getStream() << "Reference name " << name << " does not exist in file." << std::endl;
+				se.finish();
+				throw se;
+			}
 		};
 	}
 }
