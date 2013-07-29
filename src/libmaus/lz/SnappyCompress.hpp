@@ -407,14 +407,20 @@ namespace libmaus
 			typedef SnappyOffsetFileInputStream this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
+			typedef libmaus::aio::CheckedInputStream stream_type;
+			typedef stream_type::unique_ptr_type stream_ptr_type;
+		
+			#if 0
 			::libmaus::util::unique_ptr<std::ifstream>::type Pistr;
 			std::ifstream & istr;
+			#endif
+			stream_ptr_type Pistr;
+			stream_type & istr;
 			SnappyInputStream instream;
 			
-			::libmaus::util::unique_ptr<std::ifstream>::type openFileAtOffset(std::string const & filename, uint64_t const offset)
+			stream_ptr_type openFileAtOffset(std::string const & filename, uint64_t const offset)
 			{
-				::libmaus::util::unique_ptr<std::ifstream>::type Pistr(new std::ifstream(filename.c_str(),std::ios::binary));
-				assert ( *Pistr );
+				stream_ptr_type Pistr(new stream_type(filename.c_str()));
 				Pistr->seekg(offset,std::ios::beg);
 				
 				return UNIQUE_PTR_MOVE(Pistr);
