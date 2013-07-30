@@ -121,6 +121,21 @@ namespace libmaus
 			{}
 
 			/**
+			 * constructor by decompressor object and BAM header
+			 *
+			 * @param rGZ decompressor object
+			 * @param rheader BAM header object
+			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
+			 **/
+			BamDecoderTemplate(bgzf_type & rGZ, libmaus::bambam::BamHeader const & rheader, bool const rputrank = false)
+			: 
+			  libmaus::bambam::BamAlignmentDecoder(rputrank),
+			  PISTR(), PGZ(), GZ(rGZ),
+			  Pbamheader(),
+			  bamheader(rheader)
+			{}
+
+			/**
 			 * @return BAM header
 			 **/
 			libmaus::bambam::BamHeader const & getHeader() const
@@ -170,6 +185,24 @@ namespace libmaus
 			  bgzf(istr),
 			  bamdec(bgzf,rputrank) {}
 			/**
+			 * constructor from file name and virtual offsets
+			 *
+			 * @param filename input file name
+			 * @param startoffset virtual start offset
+			 * @param endoffset virtual end offset
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamDecoderWrapper(
+				std::string const & filename,
+				libmaus::bambam::BamHeader const & header,
+				libmaus::lz::BgzfVirtualOffset const & startoffset,
+				libmaus::lz::BgzfVirtualOffset const & endoffset,
+				bool const rputrank = false)
+			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
+			  istr(*Pistr),
+			  bgzf(istr,startoffset,endoffset),
+			  bamdec(bgzf,header,rputrank) {}
+			/**
 			 * constructor from input stream
 			 *
 			 * @param ristr input stream
@@ -177,6 +210,20 @@ namespace libmaus
 			 **/
 			BamDecoderWrapper(std::istream & ristr, bool const rputrank = false)
 			: Pistr(), istr(ristr), bgzf(istr), bamdec(bgzf,rputrank) {}
+			/**
+			 * constructor from input stream, header and interval (input stream needs to be seekable)
+			 *
+			 * @param ristr input stream
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamDecoderWrapper(
+				std::istream & ristr, 
+				libmaus::bambam::BamHeader const & header,
+				libmaus::lz::BgzfVirtualOffset const & startoffset,
+				libmaus::lz::BgzfVirtualOffset const & endoffset,
+				bool const rputrank = false
+			)
+			: Pistr(), istr(ristr), bgzf(istr,startoffset,endoffset), bamdec(bgzf,header,rputrank) {}
 			/**
 			 * constructor from input stream and output stream;
 			 * the original input stream will be copied to the output stream

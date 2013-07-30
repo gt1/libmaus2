@@ -155,7 +155,7 @@ namespace libmaus
 									throw se;
 								}
 								
-							A[i] = UNIQUE_PTR_MOVE(libmaus::bambam::BamRange::unique_ptr_type(new libmaus::bambam::BamRangeInterval(refname,start-1,end-1,header)));						
+							A[i] = UNIQUE_PTR_MOVE(libmaus::bambam::BamRange::unique_ptr_type(new libmaus::bambam::BamRangeInterval(refname,start-1,end,header)));						
 						}
 					}
 				}

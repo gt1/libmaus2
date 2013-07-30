@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFINFLATE_HPP
 
 #include <libmaus/lz/BgzfInflateBase.hpp>
+#include <libmaus/lz/BgzfVirtualOffset.hpp>
 #include <ostream>
 
 namespace libmaus
@@ -36,13 +37,46 @@ namespace libmaus
 			uint64_t gcnt;
 			std::ostream * ostr;
 
+			bool const haveoffsets;
+			libmaus::lz::BgzfVirtualOffset const startoffset;
+			libmaus::lz::BgzfVirtualOffset const endoffset;
+			
+			uint64_t compressedread;
+			
+			bool terminated;
+
 			public:	
-			BgzfInflate(stream_type & rstream) : stream(rstream), gcnt(0), ostr(0) {}
-			BgzfInflate(stream_type & rstream, std::ostream & rostr) : stream(rstream), gcnt(0), ostr(&rostr) {}
+			BgzfInflate(stream_type & rstream) 
+			: stream(rstream), gcnt(0), ostr(0), 
+			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
+			BgzfInflate(
+				stream_type & rstream, 
+				libmaus::lz::BgzfVirtualOffset const rstartoffset,
+				libmaus::lz::BgzfVirtualOffset const rendoffset
+			) 
+			: 
+				stream(rstream),
+				gcnt(0), ostr(0), 
+				haveoffsets(true), startoffset(rstartoffset), endoffset(rendoffset), 
+				compressedread(0), terminated(false) 
+			{
+				stream.clear();
+				stream.seekg(startoffset.getBlockOffset(), std::ios::beg);
+				stream.clear();
+			}
+			BgzfInflate(stream_type & rstream, std::ostream & rostr) 
+			: stream(rstream), gcnt(0), ostr(&rostr), 
+			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
 
 			uint64_t read(char * const decomp, uint64_t const n)
-			{
+			{			
 				gcnt = 0;
+
+				if ( terminated )
+					return 0;
+				
+				bool const firstblock = haveoffsets && (compressedread == 0);	
+				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
 			
 				/* check if buffer given is large enough */	
 				if ( n < getBgzfMaxBlockSize() )
@@ -92,12 +126,35 @@ namespace libmaus
 				/* decompress block */
 				gcnt = decompressBlock(decomp,blockinfo);
 				
+				if ( lastblock )
+				{
+					gcnt = std::min(gcnt,endoffset.getSubOffset());
+					terminated = true;
+				}
+				if ( firstblock )
+				{
+					uint64_t const soff = startoffset.getSubOffset();
+					if ( soff )
+					{
+						memmove(decomp,decomp+soff,gcnt-soff);
+						gcnt -= soff;
+					}
+				}
+				
+				compressedread += getBgzfHeaderSize() + blockinfo.first + getBgzfFooterSize();
+				
 				return gcnt;
 			}
 
 			std::pair<uint64_t,uint64_t> readPlusInfo(char * const decomp, uint64_t const n)
 			{
 				gcnt = 0;
+
+				if ( terminated )
+					return 0;
+
+				bool const firstblock = haveoffsets && (compressedread == 0);	
+				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
 			
 				/* check if buffer given is large enough */	
 				if ( n < getBgzfMaxBlockSize() )
@@ -146,6 +203,23 @@ namespace libmaus
 
 				/* decompress block */
 				gcnt = decompressBlock(decomp,blockinfo);
+
+				if ( lastblock )
+				{
+					gcnt = std::min(gcnt,endoffset.getSubOffset());
+					terminated = true;
+				}
+				if ( firstblock )
+				{
+					uint64_t const soff = startoffset.getSubOffset();
+					if ( soff )
+					{
+						memmove(decomp,decomp+soff,gcnt-soff);
+						gcnt -= soff;
+					}
+				}
+
+				compressedread += getBgzfHeaderSize() + blockinfo.first + getBgzfFooterSize();
 				
 				return std::pair<uint64_t,uint64_t>(
 					blockinfo.first+getBgzfHeaderSize()+getBgzfFooterSize(),

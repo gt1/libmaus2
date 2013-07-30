@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMRANGE_HPP
 
 #include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/bambam/BamIndex.hpp>
 #include <libmaus/fastx/SpaceTable.hpp>
 
 namespace libmaus
@@ -45,12 +46,23 @@ namespace libmaus
 			virtual interval_rel_pos operator()(libmaus::bambam::BamAlignment const &) const = 0;
 			//! return range as string
 			virtual std::ostream & toStream(std::ostream & ostr) const = 0;
+			//! get reference id
+			virtual uint64_t getRefID() const = 0;
+			//! get position range
+			virtual std::pair<uint64_t,uint64_t> getRange() const = 0;
+			//! get chunks
+			virtual std::vector< std::pair<uint64_t,uint64_t> > getChunks(libmaus::bambam::BamIndex const & index) const
+			{
+				return index.reg2chunks(getRefID(),getRange().first,getRange().second);
+			}
 		};
 
 		struct BamRangeChromosome : public BamRange
 		{
 			std::string name;
 			int64_t id;
+			uint64_t beg;
+			uint64_t end;
 			
 			BamRangeChromosome() : name(), id(-1)
 			{
@@ -58,7 +70,7 @@ namespace libmaus
 			}
 			
 			BamRangeChromosome(std::string const & rname, libmaus::bambam::BamHeader const & header)
-			: name(rname), id(header.getIdForRefName(name))
+			: name(rname), id(header.getIdForRefName(name)), beg(0), end(header.chromosomes[id].len)
 			{
 			
 			}
@@ -77,8 +89,20 @@ namespace libmaus
 
 			std::ostream & toStream(std::ostream & ostr) const
 			{
-				ostr << "BamRangeChromosome(" << name << "," << id << ")";
+				ostr << "BamRangeChromosome(" << name << "," << id << ",[" << beg << "," << end << "))";
 				return ostr;
+			}
+
+			//! get position range
+			std::pair<uint64_t,uint64_t> getRange() const
+			{
+				return std::pair<uint64_t,uint64_t>(beg,end);
+			}
+
+			//! get reference id
+			uint64_t getRefID() const
+			{
+				return id;
 			}
 		};
 
@@ -87,14 +111,15 @@ namespace libmaus
 			std::string name;
 			int64_t id;
 			int64_t start;
+			int64_t end;
 			
-			BamRangeHalfOpen() : name(), id(-1), start(-1)
+			BamRangeHalfOpen() : name(), id(-1), start(-1), end(-1)
 			{
 			
 			}
 			
 			BamRangeHalfOpen(std::string const & rname, uint64_t const rstart, libmaus::bambam::BamHeader const & header)
-			: name(rname), id(header.getIdForRefName(name)), start(rstart)
+			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(header.chromosomes[id].len)
 			{
 			
 			}
@@ -121,8 +146,20 @@ namespace libmaus
 
 			std::ostream & toStream(std::ostream & ostr) const
 			{
-				ostr << "BamRangeHalfOpen(" << name << "," << id << "," << start << ")";
+				ostr << "BamRangeHalfOpen(" << name << "," << id << ",[" << start << "," << end << "))";
 				return ostr;
+			}
+
+			//! get position range
+			std::pair<uint64_t,uint64_t> getRange() const
+			{
+				return std::pair<uint64_t,uint64_t>(start,end);
+			}
+
+			//! get reference id
+			uint64_t getRefID() const
+			{
+				return id;
 			}
 		};
 
@@ -171,8 +208,20 @@ namespace libmaus
 
 			std::ostream & toStream(std::ostream & ostr) const
 			{
-				ostr << "BamRangeInterval(" << name << "," << id << "," << start << "," << end << ")";
+				ostr << "BamRangeInterval(" << name << "," << id << ",[" << start << "," << end << "))";
 				return ostr;
+			}
+
+			//! get position range
+			std::pair<uint64_t,uint64_t> getRange() const
+			{
+				return std::pair<uint64_t,uint64_t>(start,end);
+			}
+
+			//! get reference id
+			uint64_t getRefID() const
+			{
+				return id;
 			}
 		};
 

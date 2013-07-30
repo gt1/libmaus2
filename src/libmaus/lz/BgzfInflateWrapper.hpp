@@ -31,6 +31,7 @@ namespace libmaus
 			
 			BgzfInflateWrapper(std::istream & in) : bgzf(in) {}
 			BgzfInflateWrapper(std::istream & in, std::ostream & out) : bgzf(in,out) {}
+			BgzfInflateWrapper(std::istream & in, libmaus::lz::BgzfVirtualOffset const & start, libmaus::lz::BgzfVirtualOffset const & end) : bgzf(in,start,end) {}
 		};
 	}
 }

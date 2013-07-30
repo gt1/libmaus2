@@ -91,7 +91,9 @@ namespace libmaus
 				{
 					uint32_t const distbins = getLEInteger<stream_type,uint32_t,4>(stream);
 					
+					#if 0
 					std::cerr << "chr " << i << " distbins " << distbins << std::endl;
+					#endif
 					
 					if ( distbins )
 					{
@@ -207,7 +209,7 @@ namespace libmaus
 				uint64_t beg, 
 				uint64_t end, 
 				libmaus::autoarray::AutoArray<BamIndexBin const *> & bins
-			)
+			) const
 			{
 				libmaus::util::PushBuffer<BamIndexBin const *> PB;
 				PB.A = bins;
@@ -226,6 +228,58 @@ namespace libmaus
 				
 				return PB.f;
 			
+			}
+			
+			/**
+			 * return chunks for interval [beg,end)
+			 *
+			 * @param refid reference id
+			 * @param beg start offset
+			 * @param end end offset
+			 * @return list of chunks
+			 **/
+			std::vector < std::pair<uint64_t,uint64_t> > reg2chunks(
+				uint64_t const refid,
+				uint64_t const beg,
+				uint64_t const end) const
+			{
+				libmaus::autoarray::AutoArray<BamIndexBin const *> bins;
+				uint64_t const numbins = reg2bins(refid,beg,end,bins);
+				std::vector < std::pair<uint64_t,uint64_t> > C;
+				
+				for ( uint64_t b = 0; b < numbins; ++b )
+				{
+					BamIndexBin const * bin = bins[b];
+					
+					for ( uint64_t i = 0; i < bin->chunks.size(); ++i )
+					{
+						C.push_back(bin->chunks[i]);
+					}
+				}
+				
+				std::sort(C.begin(),C.end());
+				
+				uint64_t low = 0;
+				uint64_t out = 0;
+				
+				while ( low != C.size() )
+				{
+					uint64_t high = low+1;
+					
+					while ( high != C.size() && C[high-1].second == C[high].first )
+						++high;
+						
+					for ( uint64_t i = low+1; i < high; ++i )
+						assert ( C[i-1].second == C[i].first );
+					
+					C[out++] = std::pair<uint64_t,uint64_t>(C[low].first,C[high-1].second);
+					
+					low = high;
+				}
+				
+				C.resize(out);
+				
+				return C;
 			}
 		};
 	}
