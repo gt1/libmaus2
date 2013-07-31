@@ -151,7 +151,7 @@ namespace libmaus
 				gcnt = 0;
 
 				if ( terminated )
-					return 0;
+					return std::pair<uint64_t,uint64_t>(0,0);
 
 				bool const firstblock = haveoffsets && (compressedread == 0);	
 				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());

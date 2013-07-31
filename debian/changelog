@@ -1,3 +1,9 @@
+libmaus (0.0.63-0) unstable; urgency=low
+
+  * fix BgzfInflate class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 31 Jul 2013 13:45:51 +0100
+
 libmaus (0.0.62-0) unstable; urgency=low
 
   * added BamRangeDecoder class 
