@@ -1,3 +1,9 @@
+libmaus (0.0.62-0) unstable; urgency=low
+
+  * added BamRangeDecoder class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 31 Jul 2013 12:16:22 +0100
+
 libmaus (0.0.61-0) unstable; urgency=low
 
   * add BamRange classes 
