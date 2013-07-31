@@ -77,6 +77,23 @@ namespace libmaus
 				
 				}
 				
+				std::ostream & toStream(std::ostream & out) const
+				{
+					out 
+						<< "Triple("
+						<< std::setw(16) << std::setfill('0') << std::hex << first << std::dec << std::setw(0) << ","
+						<< std::setw(16) << std::setfill('0') << std::hex << second << std::dec << std::setw(0) << ","
+						<< std::setw(16) << std::setfill('0') << std::hex << third << std::dec << std::setw(0) << ")";
+
+					return out;
+				}
+				
+				std::string toString() const
+				{
+					std::ostringstream ostr;
+					toStream(ostr);
+					return ostr.str();
+				}
 			};
 
 			template<typename first_type, typename second_type, typename third_type>
@@ -125,7 +142,7 @@ namespace libmaus
 					std::priority_queue < 
 						triple_type, 
 						std::vector<triple_type>, 
-						TripleFirstComparator<uint64_t,uint64_t,uint64_t> 
+						comparator_type
 					> Q;
 							
 					for ( uint64_t i = 0; i < numblocks; ++i )
@@ -142,12 +159,15 @@ namespace libmaus
 							)
 						);
 				
-						int64_t const a = in[i]->get();
-						int64_t const b = in[i]->get();
-						assert ( a >= 0 );
-						assert ( b >= 0 );
+						uint64_t a = 0, b = 0;
+						bool const aok = in[i]->getNext(a);
+						bool const bok = in[i]->getNext(b);
+						assert ( aok );
+						assert ( bok );
 						
-						Q . push ( triple_type(a,b,i) );
+						triple_type triple(a,b,i);
+						
+						Q . push ( triple );						
 					}
 					
 				
@@ -159,15 +179,21 @@ namespace libmaus
 							SGOfinal.put(Q.top().second);
 
 						uint64_t const id = Q.top().third;
+
+						// std::cerr << Q.top().toString() << std::endl;
 						
 						Q.pop();
 						
 						uint64_t a = 0;
 						if ( in[id]->getNext(a) )
 						{
-							int64_t const b = in[id]->get();
-							assert ( b >= 0 );				
-							Q.push(triple_type(a,b,id));
+							uint64_t b = 0;
+							bool const bok = in[id]->getNext(b);
+							assert ( bok );
+							
+							triple_type triple(a,b,id);
+							
+							Q.push(triple);
 						}
 					}
 					
@@ -217,68 +243,86 @@ namespace libmaus
 			)
 			{
 				::std::vector < ::libmaus::aio::FileFragment > frags;
+				uint64_t tlen = 0;
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
+					// length in elements of size uint64_t
 					uint64_t const len = ::libmaus::util::GetFileSize::getFileSize(filenames[i])/sizeof(uint64_t);
 					::libmaus::aio::FileFragment const frag(filenames[i],0,len);
 					frags.push_back(frag);
+					tlen += len;
 				}
 				
-				assert ( bufsize );
+				assert ( tlen % 2 == 0 );
+				uint64_t const tlen2 = tlen/2;
+
 				uint64_t const elnum = (bufsize + 2*sizeof(uint64_t)-1)/(2*sizeof(uint64_t));
-				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(elnum,false);
-				::libmaus::aio::ReorderConcatGenericInput<uint64_t> SGI(frags,16*1024);
-				::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
-					new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
-				);
-				uint64_t fullblocks = 0;
-				uint64_t lastblock = 0;
-				uint64_t numblocks = 0;
-					
-				while ( SGI.peek() >= 0 )
+				uint64_t const numblocks = (tlen2 + elnum-1)/elnum;
+				uint64_t const fullblocks = tlen2/elnum;
+				uint64_t const lastblock = tlen2 - fullblocks*elnum;
+
+				if ( ! libmaus::util::GetFileSize::fileExists(tmpfilename) )
 				{
-					std::pair<uint64_t,uint64_t> * P = A.begin();
-					uint64_t w = 0, v = 0;
+					assert ( bufsize );
+					::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(elnum,false);
+					::libmaus::aio::ReorderConcatGenericInput<uint64_t> SGI(frags,16*1024);
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
+						new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
+					);
+					
+					uint64_t dfullblocks = 0;
+					uint64_t dlastblock = 0;
+					uint64_t dnumblocks = 0;
+						
+					while ( SGI.peek() >= 0 )
+					{
+						std::pair<uint64_t,uint64_t> * P = A.begin();
+						uint64_t w = 0, v = 0;
 
-					while ( (P != A.end()) && SGI.getNext(w) )
-					{
-						bool const ok = SGI.getNext(v);
-						assert ( ok );
-						*(P++) = std::pair<uint64_t,uint64_t>(w,v);			
-					}
-					
-					if ( parallel )
-					{
-						if ( second )
-							__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+						while ( (P != A.end()) && SGI.getNext(w) )
+						{
+							bool const ok = SGI.getNext(v);
+							assert ( ok );
+							*(P++) = std::pair<uint64_t,uint64_t>(w,v);			
+						}
+						
+						if ( parallel )
+						{
+							if ( second )
+								__gnu_parallel::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+							else
+								__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());					
+						}
 						else
-							__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());					
-					}
-					else
-					{
-						if ( second )
-							std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+						{
+							if ( second )
+								std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
+							else
+								std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
+						}
+						
+						for ( ptrdiff_t i = 0; i < P-A.begin(); ++i )
+						{
+							SGO->put(A[i].first);
+							SGO->put(A[i].second);
+						}
+						
+						if ( P == A.end() )
+							dfullblocks++;
 						else
-							std::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());
-					}
-					
-					for ( ptrdiff_t i = 0; i < P-A.begin(); ++i )
-					{
-						SGO->put(A[i].first);
-						SGO->put(A[i].second);
-					}
-					
-					if ( P == A.end() )
-						fullblocks++;
-					else
-						lastblock = P-A.begin();
+							dlastblock = P-A.begin();
 
-					numblocks++;
+						dnumblocks++;
+					}
+					
+					SGO->flush();
+					SGO.reset();
+
+					assert ( dfullblocks == fullblocks );
+					assert ( dlastblock = lastblock );
+					assert ( dnumblocks == numblocks );
 				}
 				
-				SGO->flush();
-				SGO.reset();
-
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
 						numblocks,tmpfilename,elnum,lastblock,
