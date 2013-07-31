@@ -229,7 +229,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamIndexRef.hpp \
 	libmaus/bambam/BamIndex.hpp \
 	libmaus/bambam/BamRange.hpp \
-	libmaus/bambam/BamRangeParser.hpp
+	libmaus/bambam/BamRangeParser.hpp \
+	libmaus/bambam/BamRangeDecoder.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -846,6 +847,7 @@ noinst_PROGRAMS = \
 	testfastarewrite \
 	testfastarecode \
 	testbamtofastq \
+	testbamrange \
 	testbamdamage \
 	testgamma \
 	testcompact \
@@ -1013,6 +1015,9 @@ testbamtofastq_SOURCES = test/testbamtofastq.cpp
 testbamtofastq_LDADD = libmaus.la @SNAPPYLIBS@
 testbamtofastq_CPPFLAGS = @SNAPPYCPPFLAGS@
 testbamtofastq_LDFLAGS = @SNAPPYLDFLAGS@
+
+testbamrange_SOURCES = test/testbamrange.cpp
+testbamrange_LDADD = libmaus.la
 
 testbamdamage_SOURCES = test/testbamdamage.cpp
 testbamdamage_LDADD = libmaus.la @SNAPPYLIBS@
