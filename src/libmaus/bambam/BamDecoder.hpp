@@ -22,6 +22,7 @@
 #include <libmaus/bambam/BamAlignmentDecoder.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
+#include <libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp>
 
 namespace libmaus
 {
@@ -156,6 +157,8 @@ namespace libmaus
 		typedef BamDecoderTemplate<libmaus::lz::BgzfInflateStream> BamDecoder;
 		//! BAM file decoding class based on parallel bgzf input
 		typedef BamDecoderTemplate<libmaus::lz::BgzfInflateParallelStream> BamParallelDecoder;
+		//! BAM file decoding class based on parallel bgzf input
+		typedef BamDecoderTemplate<libmaus::lz::BgzfInflateDeflateParallelInputStream> BamParallelRewriteDecoder;
 		
 		/**
 		 * wrapper class for serial BAM decoder

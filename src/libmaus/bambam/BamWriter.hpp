@@ -172,6 +172,53 @@ namespace libmaus
 			}
 		};
 
+		/**
+		 * stream base for parallel BAM file rewriting
+		 **/
+		struct BamWriterParallelRewriteStreamBase
+		{
+			public:
+			//! stream type
+			typedef ::libmaus::lz::BgzfInflateDeflateParallel stream_type;
+			//! this type
+			typedef BamWriterParallelRewriteStreamBase this_type;
+			//! unique pointer type
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+			private:
+			//! compressor object
+			stream_type & bgzfos;
+		
+			public:
+			/**
+			 * constructor for stream
+			 *
+			 * @param rostr output stream
+			 * @param rheader BAM header
+			 * @param level zlib compression level
+			 **/
+			BamWriterParallelRewriteStreamBase(stream_type & rbgzfos) 
+			: bgzfos(rbgzfos) {}
+			
+			/**
+			 * destructor
+			 **/
+			~BamWriterParallelRewriteStreamBase()
+			{
+				bgzfos.flush();
+			}
+			
+			/**
+			 * @return output stream
+			 **/
+			stream_type & getStream()
+			{
+				return bgzfos;
+			}
+		};
+
 		struct BamWriterParallelStreamBaseWrapper
 		{
 			//! wrapped stream
@@ -196,6 +243,22 @@ namespace libmaus
 			BamWriterParallelStreamBaseWrapper(std::string const & filename, uint64_t const numthreads, int const level = Z_DEFAULT_COMPRESSION) 
 			: bwpsb(filename,numthreads,level) {}
 			
+		};
+
+		struct BamWriterParallelRewriteStreamBaseWrapper
+		{
+			//! wrapped stream
+			BamWriterParallelRewriteStreamBase bwpsb;
+			
+			/**
+			 * constructor for stream
+			 *
+			 * @param rstream recompression stream object
+			 **/
+			BamWriterParallelRewriteStreamBaseWrapper(
+				BamWriterParallelRewriteStreamBase::stream_type & rstream
+			) 
+			: bwpsb(rstream) {}
 		};
 	
 		/**
@@ -460,6 +523,27 @@ namespace libmaus
 				int const level = Z_DEFAULT_COMPRESSION
 			)
 			: BamWriterParallelStreamBaseWrapper(filename,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader)
+			{
+			}
+		};
+
+		struct BamParallelRewriteWriter : 
+			public BamWriterParallelRewriteStreamBaseWrapper, 
+			public BamWriterTemplate<BamWriterParallelRewriteStreamBase>
+		{
+			/**
+			 * constructor for stream
+			 *
+			 * @param rostr output stream
+			 * @param rheader BAM header
+			 * @param level zlib compression level
+			 **/
+			BamParallelRewriteWriter(
+				BamWriterParallelRewriteStreamBase::stream_type & stream,
+				libmaus::bambam::BamHeader const & rheader
+			)
+			: BamWriterParallelRewriteStreamBaseWrapper(stream), 
+			  BamWriterTemplate<BamWriterParallelRewriteStreamBase>(BamWriterParallelRewriteStreamBaseWrapper::bwpsb,rheader)
 			{
 			}
 		};

@@ -175,7 +175,9 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfInflateDeflateParallel.hpp \
 	libmaus/lz/BgzfInflateDeflateParallelThread.hpp \
 	libmaus/lz/BgzfDeflateParallel.hpp \
-	libmaus/lz/BgzfVirtualOffset.hpp
+	libmaus/lz/BgzfVirtualOffset.hpp \
+	libmaus/lz/BgzfInflateDeflateParallelWrapper.hpp \
+	libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -230,7 +232,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamIndex.hpp \
 	libmaus/bambam/BamRange.hpp \
 	libmaus/bambam/BamRangeParser.hpp \
-	libmaus/bambam/BamRangeDecoder.hpp
+	libmaus/bambam/BamRangeDecoder.hpp \
+	libmaus/bambam/BamParallelRewrite.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -863,7 +866,8 @@ noinst_PROGRAMS = \
 	testfqbgzf \
 	testoverlap \
 	testcompactfastrandom \
-	testbamindex
+	testbamindex \
+	testbamrewrite
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1075,3 +1079,6 @@ testlsflist_SOURCES = test/testlsflist.cpp
 testlsflist_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
 testlsflist_LDFLAGS = ${LSFLDFLAGS}
 testlsflist_LDADD = libmaus.la libmauslsf.la ${LSFLIBS}
+
+testbamrewrite_SOURCES = test/testbamrewrite.cpp
+testbamrewrite_LDADD = libmaus.la

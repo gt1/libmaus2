@@ -29,6 +29,7 @@
 #include <libmaus/trie/TrieState.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
+#include <libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp>
 #include <libmaus/hashing/ConstantStringHash.hpp>
 #include <libmaus/bambam/ReadGroup.hpp>
 
@@ -717,6 +718,15 @@ namespace libmaus
 			 * @param in parallel bgzf decompressor
 			 **/
 			BamHeader(libmaus::lz::BgzfInflateParallelStream & in)
+			{
+				init(in);
+			}
+			/**
+			 * constructor from parallel bgzf decompressor
+			 *
+			 * @param in parallel bgzf decompressor
+			 **/
+			BamHeader(libmaus::lz::BgzfInflateDeflateParallelInputStream & in)
 			{
 				init(in);
 			}
