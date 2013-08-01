@@ -1,3 +1,9 @@
+libmaus (0.0.64-0) unstable; urgency=low
+
+  * add BamParallelRewrite class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 01 Aug 2013 13:47:17 +0100
+
 libmaus (0.0.63-0) unstable; urgency=low
 
   * fix BgzfInflate class 
