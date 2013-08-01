@@ -250,6 +250,11 @@ namespace libmaus
 				
 				return ret;
 			}
+			
+			void put(uint8_t const c)
+			{
+				write(reinterpret_cast<char const *>(&c),1);
+			}
 
 			void write(char const * c, uint64_t n)
 			{
