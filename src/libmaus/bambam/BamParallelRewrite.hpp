@@ -58,6 +58,25 @@ namespace libmaus
 				uint64_t const numthreads,
 				uint64_t const blocksperthread = 4)
 			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,dec.getHeader()) {}
+
+			/**
+			 * constructor
+			 *
+			 * @param in input stream
+			 * @param header output BAM header
+			 * @param out output stream
+			 * @param level zlib compression level for output stream
+			 * @param numthreads number of threads used for decompression and compression
+			 * @param blocksperthread number of memory (bgzf) blocks per thread
+			 **/
+			BamParallelRewrite(
+				std::istream & in,
+				libmaus::bambam::BamHeader const & header,
+				std::ostream & out,
+				int const level, // Z_DEFAULT_COMPRESSION
+				uint64_t const numthreads,
+				uint64_t const blocksperthread = 4)
+			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,header) {}
 			
 			/**
 			 * @return decoder
