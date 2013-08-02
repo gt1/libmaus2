@@ -23,6 +23,7 @@
 #include <libmaus/fastx/acgtnMap.hpp>
 #include <libmaus/lcs/OverlapOrientation.hpp>
 #include <libmaus/lcs/OrientationWeightEncoding.hpp>
+#include <libmaus/util/Terminal.hpp>
 
 namespace libmaus
 {
@@ -67,6 +68,32 @@ namespace libmaus
 			: R0(computeR0()), R1(computeR1())
 			{
 			
+			}
+			
+			static void printStringPair(
+				std::ostream & out, 
+				std::string s, std::string t, 
+				uint64_t const prelinelength = ::libmaus::util::Terminal::getColumns()
+			)
+			{
+				uint64_t const linelength = prelinelength-2;
+				
+				uint64_t const maxlen = std::max(s.size(),t.size());
+				
+				if ( s.size() < maxlen )
+					s = s + std::string(maxlen-s.size(),' ');
+				if ( t.size() < maxlen )
+					t = t + std::string(maxlen-t.size(),' ');
+					
+				for ( uint64_t l = 0; l < (maxlen+linelength-1)/linelength; ++l )
+				{
+					uint64_t const low  = l*linelength;
+					uint64_t const high = std::min(low+linelength,maxlen);
+					uint64_t const len = high-low;
+					
+					out << "A " << s.substr(low,len) << std::endl;
+					out << "B " << t.substr(low,len) << std::endl;
+				}
 			}
 			
 			void detect(
@@ -177,21 +204,42 @@ namespace libmaus
 
 								if ( verbose )
 								{
-									std::cerr << "mismatches " << mis << "/" << maxmis << " score " << score << "\n";
+									std::cerr 
+										<< "mismatches " << mis << "/" << maxmis << " score " << score
+										<< " overlap " << overlaplength
+										<< " aboverhang " << aboverhang
+										<< " baoverhang " << baoverhang
+										<< " overhang " << overhang
+										<< "\n";
 									
+									uint64_t const linelen = ::libmaus::util::Terminal::getColumns();
+																		
 									if ( orientation == dovetail || orientation == libmaus::lcs::OverlapOrientation::overlap_cover_complete )
-										std::cerr << a << "\n"
-											<< std::string(a.size()-overlaplength,' ') << b << "\n";
+									{
+										printStringPair(
+											std::cerr,
+											a,
+											std::string(a.size()-overlaplength,' ') + b,
+											linelen
+										);
+									}
 									else if ( orientation == cover_a_b )
 									{
-										std::cerr << a << "\n"
-											<< std::string(aoverlapstart,' ') << b << "\n";
+										printStringPair(
+											std::cerr,
+											a,
+											std::string(aoverlapstart,' ') + b,
+											linelen
+										);
 									}
 									else if ( orientation == cover_b_a )
 									{
-										std::cerr
-											<< std::string(boverlapstart,' ') << a << "\n"
-											<< b << "\n";
+										printStringPair(
+											std::cerr,
+											std::string(boverlapstart,' ') + a,
+											b,
+											linelen
+										);
 									}
 								}
 							}

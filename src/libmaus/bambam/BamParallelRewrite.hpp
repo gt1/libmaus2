@@ -27,6 +27,21 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		//! bam header rewriting interface
+		struct BamHeaderRewriteCallback
+		{
+			//! destructor
+			virtual ~BamHeaderRewriteCallback() {}
+			
+			/**
+			 * rewrite callback
+			 *
+			 * @param header BAM header
+			 * @return rewritten/modified BAM header
+			 **/
+			virtual libmaus::bambam::BamHeader::unique_ptr_type operator()(libmaus::bambam::BamHeader const & header) const = 0;
+		};
+	
 		//! class for parallel rewriting of a BAM file
 		struct BamParallelRewrite
 		{
@@ -39,6 +54,8 @@ namespace libmaus
 			libmaus::lz::BgzfInflateDeflateParallelInputStream stream;
 			//! decoder
 			decoder_type dec;
+			//! rewritten header
+			libmaus::bambam::BamHeader::unique_ptr_type rewrittenheader;
 			//! writer
 			writer_type writer;
 
@@ -77,6 +94,25 @@ namespace libmaus
 				uint64_t const numthreads,
 				uint64_t const blocksperthread = 4)
 			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,header) {}
+
+			/**
+			 * constructor
+			 *
+			 * @param in input stream
+			 * @param rewritecallback BAM header rewriting callback
+			 * @param out output stream
+			 * @param level zlib compression level for output stream
+			 * @param numthreads number of threads used for decompression and compression
+			 * @param blocksperthread number of memory (bgzf) blocks per thread
+			 **/
+			BamParallelRewrite(
+				std::istream & in,
+				BamHeaderRewriteCallback const & rewritecallback,
+				std::ostream & out,
+				int const level, // Z_DEFAULT_COMPRESSION
+				uint64_t const numthreads,
+				uint64_t const blocksperthread = 4)
+			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(UNIQUE_PTR_MOVE(rewritecallback(dec.getHeader()))), writer(stream.bgzf,*rewrittenheader) {}
 			
 			/**
 			 * @return decoder
