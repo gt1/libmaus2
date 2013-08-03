@@ -39,7 +39,9 @@ namespace libmaus
 				overlap_a_covers_b     = 5,
 				overlap_b_covers_a     = 6,
 				overlap_ar_covers_b    = 7,
-				overlap_b_covers_ar    = 8
+				overlap_b_covers_ar    = 8,
+				overlap_a_complete_b   = 9,
+				overlap_ar_complete_b  = 10
 			};
 			
 			static overlap_orientation getInverse(overlap_orientation const o)
@@ -71,6 +73,10 @@ namespace libmaus
 						return overlap_b_covers_ar;
 					case overlap_b_covers_ar:
 						return overlap_ar_covers_b;
+					case overlap_a_complete_b:
+						return overlap_a_complete_b;
+					case overlap_ar_complete_b:
+						return overlap_ar_complete_b;
 					default:
 					{
 						::libmaus::exception::LibMausException se;
@@ -141,6 +147,8 @@ namespace libmaus
 				case OverlapOrientation::overlap_b_covers_a: out << "overlap_b_covers_a"; break;
 				case OverlapOrientation::overlap_ar_covers_b: out << "overlap_ar_covers_b"; break;
 				case OverlapOrientation::overlap_b_covers_ar: out << "overlap_b_covers_ar"; break;
+				case OverlapOrientation::overlap_a_complete_b: out << "overlap_a_complete_b"; break;
+				case OverlapOrientation::overlap_ar_complete_b: out << "overlap_ar_complete_b"; break;
 			}
 			return out;
 		}
