@@ -248,6 +248,42 @@ namespace libmaus
 					}
 				}		
 			}
+
+			static void printOverlap(
+				std::ostream & out,
+				std::string const & a,
+				std::string const & b,
+				libmaus::lcs::OverlapOrientation::overlap_orientation const o,
+				uint64_t const overhang
+				)
+			{
+				uint64_t const overlap = b.size() - overhang;
+				uint64_t const indent = a.size()-overlap;
+				
+				switch ( o )
+				{
+					case libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front:
+						printStringPair(out,a,std::string(indent,' ')+b);
+						break;
+					case libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front:
+						printStringPair(out,libmaus::fastx::reverseComplementUnmapped(a),std::string(indent,' ')+b);
+						break;
+					case libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back:
+						printStringPair(out,a,std::string(indent,' ')+libmaus::fastx::reverseComplementUnmapped(b));
+						break;
+					case libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back:
+						printStringPair(out,libmaus::fastx::reverseComplementUnmapped(a),std::string(indent,' ')+libmaus::fastx::reverseComplementUnmapped(b));
+						break;
+					case libmaus::lcs::OverlapOrientation::overlap_a_complete_b:
+						printStringPair(out,a,b);
+						break;
+					case libmaus::lcs::OverlapOrientation::overlap_ar_complete_b:
+						printStringPair(out,libmaus::fastx::reverseComplementUnmapped(a),b);
+						break;
+					default:
+						break;
+				}
+			}
 			
 			bool detect(
 				std::string const & a, std::string const & b, unsigned int const maxmisperc, libmaus::lcs::OverlapOrientation::overlap_orientation & orientation,
@@ -257,6 +293,7 @@ namespace libmaus
 			) const
 			{
 				std::string const ar = libmaus::fastx::reverseComplementUnmapped(a);
+				std::string const br = libmaus::fastx::reverseComplementUnmapped(b);
 
 				maxscore = ::std::numeric_limits<int64_t>::min();
 
@@ -264,9 +301,18 @@ namespace libmaus
 				detect(b,a,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_a_complete_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back,false,overhang,maxscore,verbose); 
 				detect(ar,b,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front,true,overhang,maxscore,verbose); 
 				detect(b,ar,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back,false,overhang,maxscore,verbose); 
+
+				detect(br,ar,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_a_complete_b,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_front,false,overhang,maxscore,verbose); 
+				detect(ar,br,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_a_complete_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_a,libmaus::lcs::OverlapOrientation::overlap_a_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_back,true,overhang,maxscore,verbose); 
+				detect(br,a,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_a_front_dovetail_b_front,false,overhang,maxscore,verbose); 
+				detect(a,br,maxmisperc,orientation,libmaus::lcs::OverlapOrientation::overlap_ar_complete_b,libmaus::lcs::OverlapOrientation::overlap_b_covers_ar,libmaus::lcs::OverlapOrientation::overlap_ar_covers_b,libmaus::lcs::OverlapOrientation::overlap_a_back_dovetail_b_back,true,overhang,maxscore,verbose); 
+			
+				if ( verbose )
+					printOverlap(std::cerr,a,b,orientation,overhang);
 				
 				return maxscore != ::std::numeric_limits<int64_t>::min();
 			}
+			
 			
 			static void testOverlapCombinations(bool const verbose = false)
 			{
