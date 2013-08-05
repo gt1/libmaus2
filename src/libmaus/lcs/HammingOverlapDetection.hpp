@@ -329,35 +329,71 @@ namespace libmaus
 				std::string const ar = "ATGCTGATGCTGACTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT";
 				std::string const br = "TGTCAGTGGTGACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
+				#if 0
+				overlap_ar_complete_b:14
+				#endif
+
+				// overlap_a_back_dovetail_b_front:6
 				OD.detect(a,b,10,orientation,overhang,maxscore,verbose);
 
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
+				// overlap_a_front_dovetail_b_back:10
 				OD.detect(b,a,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
+				// overlap_a_front_dovetail_b_front:14
 				OD.detect(af,bf,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
+				// overlap_a_back_dovetail_b_back:14
 				OD.detect(ar,br,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
+				// overlap_a_complete_b:14
 				OD.detect(a,a,10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
 
+				// overlap_ar_complete_b:14
 				OD.detect(a,libmaus::fastx::reverseComplementUnmapped(a),10,orientation,overhang,maxscore,verbose);
 				
 				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
 					std::cerr << orientation << ":" << overhang << std::endl;
+
+				// reverse complement of second read
+				// overlap_a_back_dovetail_b_front:6 -> overlap_a_back_dovetail_b_back:6
+				OD.detect(a,libmaus::fastx::reverseComplementUnmapped(b),10,orientation,overhang,maxscore,verbose);
+
+				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
+					std::cerr << orientation << ":" << overhang << std::endl;
+
+				// overlap_a_front_dovetail_b_back:10 -> overlap_a_front_dovetail_b_front:10
+				OD.detect(b,libmaus::fastx::reverseComplementUnmapped(a),10,orientation,overhang,maxscore,verbose);
+				
+				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
+					std::cerr << orientation << ":" << overhang << std::endl;
+
+				// overlap_a_front_dovetail_b_front:14 -> overlap_a_front_dovetail_b_back:14
+				OD.detect(af,libmaus::fastx::reverseComplementUnmapped(bf),10,orientation,overhang,maxscore,verbose);
+				
+				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
+					std::cerr << orientation << ":" << overhang << std::endl;
+
+				// overlap_a_back_dovetail_b_back:14 -> overlap_a_back_dovetail_b_front:14
+				OD.detect(ar,libmaus::fastx::reverseComplementUnmapped(br),10,orientation,overhang,maxscore,verbose);
+				
+				if ( maxscore != ::std::numeric_limits<int64_t>::min() )
+					std::cerr << orientation << ":" << overhang << std::endl;
+				
 			}
 		};
 	}
