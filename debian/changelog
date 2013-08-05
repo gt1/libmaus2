@@ -1,3 +1,10 @@
+libmaus (0.0.66-0) unstable; urgency=low
+
+  * add next0 function to bitbtree
+  * improve Hamming distance based overlap detection 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 05 Aug 2013 09:47:53 +0100
+
 libmaus (0.0.65-0) unstable; urgency=low
 
   * add BamHeaderRewriteCallback class for BamParallelRewrite 
