@@ -335,6 +335,11 @@ namespace libmaus
 			{
 				return count1() != 0;
 			}
+
+			bool hasNext0() const
+			{
+				return count0() != 0;
+			}
 			
 			uint64_t next1(uint64_t const p) const
 			{
@@ -351,6 +356,24 @@ namespace libmaus
 						return select1(0);
 					else
 						return select1(is1.second);
+				}
+			}
+
+			uint64_t next0(uint64_t const p) const
+			{
+				assert ( hasNext0() );
+				
+				std::pair<uint64_t,uint64_t> const is0 = inverseSelect0(p);
+				
+				// 0 bit at position p?
+				if ( !is0.first )
+					return p;
+				else
+				{
+					if ( is0.second == count0() )
+						return select0(0);
+					else
+						return select0(is0.second);
 				}
 			}
 			
@@ -1655,6 +1678,37 @@ namespace libmaus
 				}
 			}
 
+			std::pair<uint64_t,uint64_t> inverseSelect0(uint64_t node, uint64_t i) const
+			{
+				if ( isLeaf(node) )
+				{
+					leaf_type const & leaf = getLeaf(node);
+					return std::pair<uint64_t,uint64_t>(leaf.data.getBit(i),leaf.data.rank0(i));
+				}
+				else
+				{
+					inner_node_type const & innernode = getNode(node);
+					
+					uint64_t zcnt = 0;
+					
+					for ( uint64_t j = 0; j < innernode.dataFilled; ++j )
+					{
+						if ( i < innernode.data[j].cnt )
+						{
+							std::pair < uint64_t, uint64_t > P = inverseSelect0(innernode.data[j].ptr,i);
+							return std::pair<uint64_t,uint64_t>(P.first,zcnt + P.second);
+						}
+						else
+						{
+							i -= innernode.data[j].cnt;
+							zcnt += (innernode.data[j].cnt - innernode.data[j].bcnt);
+						}
+					}
+					
+					throw std::out_of_range("Position does not exist.");
+				}
+			}
+
 			uint64_t select1(uint64_t node, uint64_t i) const
 			{
 				if ( isLeaf(node) )
@@ -1734,6 +1788,11 @@ namespace libmaus
 			std::pair<uint64_t,uint64_t> inverseSelect1(uint64_t i) const
 			{
 				return inverseSelect1(root,i);
+			}
+
+			std::pair<uint64_t,uint64_t> inverseSelect0(uint64_t i) const
+			{
+				return inverseSelect0(root,i);
 			}
 
 			uint64_t rank1(uint64_t i) const
