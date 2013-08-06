@@ -609,7 +609,9 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/CompactFastQMultiBlockReader.hpp \
 	libmaus/fastx/CompactFastTerminator.hpp \
 	libmaus/fastx/CompactFastReplace.hpp \
-	libmaus/fastx/QReorder.hpp
+	libmaus/fastx/QReorder.hpp \
+	libmaus/fastx/StreamFastReaderBase.hpp \
+	libmaus/fastx/StreamFastQReader.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
@@ -867,7 +869,8 @@ noinst_PROGRAMS = \
 	testoverlap \
 	testcompactfastrandom \
 	testbamindex \
-	testbamrewrite
+	testbamrewrite \
+	testfastqstream
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1082,3 +1085,6 @@ testlsflist_LDADD = libmaus.la libmauslsf.la ${LSFLIBS}
 
 testbamrewrite_SOURCES = test/testbamrewrite.cpp
 testbamrewrite_LDADD = libmaus.la
+
+testfastqstream_SOURCES = test/testfastqstream.cpp
+testfastqstream_LDADD = libmaus.la
