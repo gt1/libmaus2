@@ -248,9 +248,9 @@ namespace libmaus
 				}
 				int32_t const tlen = getTlen();
 				if ( 
-					tlen < ((-(1ll<<29))+1) 
+					tlen < ((-(1ll<<31))+1) 
 					|| 
-					tlen > ((1ll<<29)-1)
+					tlen > ((1ll<<31)-1)
 				)
 					return libmaus_bambam_alignment_validity_invalid_tlen;
 					
