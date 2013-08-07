@@ -1,3 +1,9 @@
+libmaus (0.0.67-0) unstable; urgency=low
+
+  * update position checking according to new SAM specification 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 07 Aug 2013 11:33:04 +0100
+
 libmaus (0.0.66-0) unstable; urgency=low
 
   * add next0 function to bitbtree
