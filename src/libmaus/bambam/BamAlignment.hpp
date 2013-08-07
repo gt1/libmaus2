@@ -237,10 +237,12 @@ namespace libmaus
 					return libmaus_bambam_alignment_validity_cigar_is_inconsistent_with_sequence_length;
 					
 				int32_t const pos = getPos();
-				if ( pos < -1 || pos > (((1ll<<29)-1)-1) )
+				if ( pos < -1 || pos > (((1ll<<31)-1)-1) )
+				{
 					return libmaus_bambam_alignment_validity_invalid_mapping_position;
+				}
 				int32_t const nextpos = getNextPos();
-				if ( nextpos < -1 || nextpos > (((1ll<<29)-1)-1) )
+				if ( nextpos < -1 || nextpos > (((1ll<<31)-1)-1) )
 				{
 					return libmaus_bambam_alignment_validity_invalid_next_mapping_position;
 				}
