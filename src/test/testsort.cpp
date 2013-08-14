@@ -1,0 +1,311 @@
+/*
+    libmaus
+    Copyright (C) 2009-2013 German Tischler
+    Copyright (C) 2011-2013 Genome Research Limited
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#include <iostream>
+#include <cassert>
+#include <algorithm>
+#include <limits>
+
+template<typename copy_type>
+void blockswap(void * pa, void * pb, uint64_t const s)
+{
+	uint64_t const full = s/sizeof(copy_type);
+	uint64_t const frac = s - full * sizeof(copy_type);
+
+	copy_type * ca = reinterpret_cast<copy_type *>(pa);
+	copy_type * cb = reinterpret_cast<copy_type *>(pb);
+	
+	#if 1
+	copy_type * ce = ca + full;
+	
+	while ( ca != ce )
+		std::swap(*(ca++),*(cb++));
+		
+	uint8_t * ua = reinterpret_cast<uint8_t *>(ca);
+	uint8_t * ue = ua + frac;
+	uint8_t * ub = reinterpret_cast<uint8_t *>(cb);
+	
+	while ( ua != ue )
+		std::swap(*(ua++),*(ub++));	
+	#else
+	#if defined(_OPENMP)
+	#pragma omp parallel for
+	#endif
+	for ( int64_t i = 0; i < static_cast<int64_t>(full); ++i )
+		std::swap(ca[i],cb[i]);
+
+	uint8_t * ua = reinterpret_cast<uint8_t *>(ca+full);
+	uint8_t * ue = ua + frac;
+	uint8_t * ub = reinterpret_cast<uint8_t *>(cb+full);
+	
+	while ( ua != ue )
+		std::swap(*(ua++),*(ub++));	
+	#endif
+}
+
+template<typename copy_type>
+void blockswap(void * vpa, uint64_t s, uint64_t t)
+{
+	uint8_t * pa = reinterpret_cast<uint8_t *>(vpa);
+
+	while ( s && t )
+	{
+		if ( s <= t )
+		{
+			blockswap<copy_type>(pa,pa+s,s);
+			pa += s;
+			t -= s;
+		}
+		else // if ( t < s )
+		{
+			uint8_t * pe = pa+s+t;
+			blockswap<copy_type>(pe-2*t,pe-t,t);
+			s -= t;
+		}
+	}
+}
+
+void testBlockSwapDifferent()
+{
+	uint8_t p[256];
+	
+	for ( uint64_t s = 0; s <= sizeof(p); ++s )
+	{
+		uint8_t *pp = &p[0];
+		uint64_t t = sizeof(p)/sizeof(p[0])-s;
+		for ( uint64_t i = 0; i < s; ++i )
+			*(pp++) = 1;
+		for ( uint64_t i = s; i < (s+t); ++i )
+			*(pp++) = 0;
+		
+		blockswap<uint64_t>(&p[0],s,t);
+	
+		for ( uint64_t i = 0; i < t; ++i )
+			assert ( p[i] == 0 );
+		for ( uint64_t i = 0; i < s; ++i )
+			assert ( p[t+i] == 1 );
+	}
+}
+
+void testBlockSwap()
+{
+	uint8_t p[2*89];
+	uint8_t q[2*89];
+	
+	for ( uint64_t i = 0; i < 89; ++i )
+	{
+		p[i] = i;
+		p[i+89] = (89-i-1);
+
+		q[i+89] = i;
+		q[i   ] = (89-i-1);
+	}
+		
+	blockswap<uint64_t>(&p[0],&p[0]+89,89);
+	
+	for ( uint64_t i = 0; i < 2*89; ++i )
+	{
+		//std::cerr << "p[" << i << "]=" << static_cast<int64_t>(p[i]) << std::endl;
+		assert ( p[i] == q[i] );
+	}
+}
+
+struct MergeStepBinSearchResult
+{
+	uint64_t l0;
+	uint64_t l1;
+	uint64_t r0;
+	uint64_t r1;
+	int64_t nbest;
+	
+	MergeStepBinSearchResult() : l0(0), l1(0), r0(0), r1(0), nbest(std::numeric_limits<int64_t>::max()) {}
+	MergeStepBinSearchResult(
+		uint64_t const rl0,
+		uint64_t const rl1,
+		uint64_t const rr0,
+		uint64_t const rr1,
+		int64_t const rnbest
+	) : l0(rl0), l1(rl1), r0(rr0), r1(rr1), nbest(rnbest) {}
+	
+	MergeStepBinSearchResult sideswap() const
+	{
+		return MergeStepBinSearchResult(r0,r1,l0,l1,nbest);
+	}
+};
+
+template<typename iterator>
+MergeStepBinSearchResult mergestepbinsearch(iterator aa, iterator ae, iterator ba, iterator be)
+{
+	typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+
+	uint64_t const s = ae-aa;
+	uint64_t const t = be-ba;
+
+	uint64_t l = 0;
+	uint64_t r = s;
+	
+	while ( r-l > 2 )
+	{
+		uint64_t const m = (l+r) >> 1;
+		value_type const & v = aa[m];
+
+		iterator bm = std::lower_bound(ba,be,v);
+
+		int64_t n = static_cast<int64_t>((bm-ba) + m) - ((s+t)/2);
+		
+		if ( n < 0 && (bm != be) && *bm == v )
+		{
+			std::pair<iterator,iterator> const eqr = ::std::equal_range(ba,be,v);
+			n += std::min(-n,static_cast<int64_t>(eqr.second-eqr.first));
+		}
+					
+		if ( n < 0 )
+			l = m+1; // l excluded
+		else // n >= 0
+			r = m+1; // r included
+	}
+	
+	uint64_t lbest = l;
+	int64_t nbest = std::numeric_limits<int64_t>::max();
+	iterator bmbest = ba;
+	
+	for ( uint64_t m = (l ? (l-1):l); m < r; ++m )
+	{
+		value_type const v = aa[m];
+	
+		iterator bm = std::lower_bound(ba,be,v);
+
+		int64_t n = static_cast<int64_t>((bm-ba) + m) - ((s+t)/2);
+		
+		if ( n < 0 && bm != be && *bm == v )
+		{
+			std::pair<iterator,iterator> const eqr = ::std::equal_range(ba,be,v);
+			uint64_t const add = std::min(-n,static_cast<int64_t>(eqr.second-eqr.first));
+			n += add;
+			bm += add;
+		}
+		
+		if ( std::abs(n) < std::abs(nbest) )
+		{
+			lbest = m;
+			nbest = n;
+			bmbest = bm;
+		}
+	}
+
+	uint64_t const l0 = lbest;
+	uint64_t const l1 = s-l0;
+		
+	uint64_t const r0 = bmbest-ba;
+	uint64_t const r1 = t-r0;
+
+	return MergeStepBinSearchResult(l0,l1,r0,r1,nbest);
+}
+
+template<typename iterator>
+void mergestep(iterator p, uint64_t const s, uint64_t const t)
+{
+	if ( (!s) || (!t) )
+	{
+	
+	}
+	else
+	{
+
+		iterator aa = p;
+		iterator ae = p + s;
+		iterator ba = ae;
+		iterator be = ba + t;
+
+		MergeStepBinSearchResult const msbsr_l = mergestepbinsearch(aa,ae,ba,be);
+		MergeStepBinSearchResult const msbsr_r = mergestepbinsearch(ba,be,aa,ae).sideswap();
+		MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
+		
+		uint64_t const l0 = msbsr.l0;
+		uint64_t const l1 = msbsr.l1;
+		
+		uint64_t const r0 = msbsr.r0;
+		uint64_t const r1 = msbsr.r1;
+
+		// std::cerr << "l=" << l0 << " n=" << (l0+r0) << " (s+t)/2=" << (s+t)/2 << std::endl;
+		
+		if ( (s+t)/2 != (l0+r0) )
+		{
+			std::cerr << "split uneven." << std::endl;
+		
+			#if 0
+			std::cerr << "l0=";
+			for ( uint64_t i = 0; i < l0; ++i )
+				std::cerr << p[i] << ";";
+			std::cerr << std::endl;
+
+			std::cerr << "l1=";
+			for ( uint64_t i = 0; i < l1; ++i )
+				std::cerr << p[l0+i] << ";";
+			std::cerr << std::endl;
+
+			std::cerr << "r0=";
+			for ( uint64_t i = 0; i < r0; ++i )
+				std::cerr << p[l0+l1+i] << ";";
+			std::cerr << std::endl;
+
+			std::cerr << "r1=";
+			for ( uint64_t i = 0; i < r1; ++i )
+				std::cerr << p[l0+l1+r0+i] << ";";
+			std::cerr << std::endl;
+			#endif
+		}
+		
+		// l0 l1 r0 r1 -> l0 r0 l1 r1
+		typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+		blockswap<uint64_t>(p+l0,l1*sizeof(value_type),r0*sizeof(value_type));
+		
+		mergestep(p,l0,r0);
+		mergestep(p+l0+r0,l1,r1);
+	}
+}
+
+void testblockmerge()
+{
+	uint32_t A[256];
+	
+	for ( uint64_t i = 0; i < 128; ++i )
+	{
+		A[i] = i;
+		A[i+128] = 3*i+1;
+	}
+	
+	mergestep(&A[0],128,128);
+	
+	#if 0
+	for ( uint64_t i = 0; i < 256; ++i )
+	{
+		std::cerr << "A[" << i << "]=" << A[i] << std::endl;
+	}
+	#endif
+	
+	for ( uint64_t i = 1; i < sizeof(A)/sizeof(A[0]); ++i )
+		assert ( A[i-1] <= A[i] );
+}
+
+int main(int argc, char * argv[])
+{
+	testBlockSwapDifferent();
+	testBlockSwap();
+	testblockmerge();
+}

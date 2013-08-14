@@ -90,7 +90,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/ReadGroup.cpp \
 	libmaus/bambam/DuplicationMetrics.cpp \
 	libmaus/bambam/BamDefaultAdapters.cpp \
-	libmaus/bambam/BamRange.cpp
+	libmaus/bambam/BamRange.cpp \
+	libmaus/graph/GraphEdge.cpp
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -678,7 +679,9 @@ libmausgraph_include_HEADERS=\
 	libmaus/graph/EdgeBufferLocalLocked.hpp \
 	libmaus/graph/EdgeListLockedSet.hpp \
 	libmaus/graph/LocalEdgeSet.hpp \
-	libmaus/graph/TripleEdgeCompact.hpp
+	libmaus/graph/TripleEdgeCompact.hpp \
+	libmaus/graph/FilteredGraphTypes.hpp \
+	libmaus/graph/GraphEdge.hpp
 
 libmausbtree_includedir=$(includedir)/libmaus/btree
 libmausbtree_include_HEADERS=\
@@ -870,7 +873,8 @@ noinst_PROGRAMS = \
 	testcompactfastrandom \
 	testbamindex \
 	testbamrewrite \
-	testfastqstream
+	testfastqstream \
+	testsort
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1088,3 +1092,6 @@ testbamrewrite_LDADD = libmaus.la
 
 testfastqstream_SOURCES = test/testfastqstream.cpp
 testfastqstream_LDADD = libmaus.la
+
+testsort_SOURCES = test/testsort.cpp
+testsort_LDADD = libmaus.la

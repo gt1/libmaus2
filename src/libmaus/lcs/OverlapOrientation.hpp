@@ -44,6 +44,20 @@ namespace libmaus
 				overlap_ar_complete_b  = 10
 			};
 			
+			static bool isDovetail(overlap_orientation const o)
+			{
+				switch ( o )
+				{
+					case overlap_a_back_dovetail_b_front:
+					case overlap_a_front_dovetail_b_back:
+					case overlap_a_front_dovetail_b_front:
+					case overlap_a_back_dovetail_b_back:
+						return true;
+					default:
+						return false;
+				}			
+			}
+			
 			static overlap_orientation getInverse(overlap_orientation const o)
 			{
 				switch ( o )
