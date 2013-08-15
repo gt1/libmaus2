@@ -127,10 +127,37 @@ void testinplacesort()
 		assert ( A[i-1] <= A[i] );
 }
 
+void testinplacesort2()
+{
+	uint64_t const n = 8ull*1024ull*1024ull*1024ull;
+	libmaus::autoarray::AutoArray<uint32_t> A(n,false);
+	
+	#if defined(_OPENMP)
+	#pragma omp parallel for
+	#endif
+	for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
+		A[i] = n-i-1;
+
+	// libmaus::sorting::InPlaceParallelSort::ParallelFixedSizeBaseSort<uint32_t *, std::less<uint32_t> > TBS(512*1024, 4096) ;
+	// FixedSizeBaseSort TBS(32*1024);
+	// TrivialBaseSort TBS;
+	// libmaus::sorting::InPlaceParallelSort::inplacesort(&A[0],&A[n],std::less<uint32_t>(),TBS);
+	libmaus::sorting::InPlaceParallelSort::inplacesort2(&A[0],&A[n]);
+	
+	#if 0
+	for ( uint64_t i = 0; i < n; ++i )
+		std::cerr << "A[" << i << "]=" << A[i] << std::endl;
+	#endif
+
+	for ( uint64_t i = 1; i < n; ++i )
+		assert ( A[i-1] <= A[i] );
+}
+
 int main()
 {
 	testBlockSwapDifferent();
 	testBlockSwap();
 	testblockmerge();
-	testinplacesort();
+	//testinplacesort();
+	testinplacesort2();
 }
