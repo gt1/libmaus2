@@ -627,7 +627,8 @@ libmaussorting_include_HEADERS=\
 	libmaus/sorting/sorting.hpp \
 	libmaus/sorting/ParallelRadixSort.hpp \
 	libmaus/sorting/SerialRadixSort64.hpp \
-	libmaus/sorting/PairFileSorting.hpp
+	libmaus/sorting/PairFileSorting.hpp \
+	libmaus/sorting/InPlaceParallelSort.hpp
 
 libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
