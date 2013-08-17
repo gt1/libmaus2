@@ -20,6 +20,9 @@
 #include <libmaus/graph/FilteredGraphTypes.hpp>
 #include <libmaus/lcs/OverlapOrientation.hpp>
 
+#if ! defined(LIBMAUS_GRAPH_GRAPHEDGE_HPP)
+#define LIBMAUS_GRAPH_GRAPHEDGE_HPP
+
 namespace libmaus
 {
 	namespace graph
@@ -146,3 +149,4 @@ namespace libmaus
 		std::ostream & operator<<(std::ostream & out, GraphEdge const & GE);
 	}
 }
+#endif
