@@ -345,6 +345,25 @@ namespace libmaus
 					else
 						p = displace(p,v);
 			}
+			
+			uint64_t valueAtLeast(value_type const thres)
+			{
+				fill = 0;
+				
+				for ( pair_type * it = begin(); it != end(); ++it )
+					if ( it->first != base_type::unused() )
+					{
+						if ( it->second >= thres )
+							++fill;
+						else
+						{
+							it->first = base_type::unused();
+							it->second = 0;
+						}
+					}
+
+				return fill;
+			}
 		};
 
 		template<typename _key_type, typename _value_type>
