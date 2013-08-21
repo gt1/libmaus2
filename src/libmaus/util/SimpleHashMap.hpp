@@ -26,6 +26,7 @@
 #include <libmaus/parallel/OMPLock.hpp>
 #include <libmaus/math/primes16.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus/parallel/SynchronousCounter.hpp>
 
 namespace libmaus
 {
@@ -344,25 +345,6 @@ namespace libmaus
 						return H[p].second;
 					else
 						p = displace(p,v);
-			}
-			
-			uint64_t valueAtLeast(value_type const thres)
-			{
-				fill = 0;
-				
-				for ( pair_type * it = begin(); it != end(); ++it )
-					if ( it->first != base_type::unused() )
-					{
-						if ( it->second >= thres )
-							++fill;
-						else
-						{
-							it->first = base_type::unused();
-							it->second = 0;
-						}
-					}
-
-				return fill;
 			}
 		};
 
