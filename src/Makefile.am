@@ -683,7 +683,10 @@ libmausgraph_include_HEADERS=\
 	libmaus/graph/TripleEdgeCompact.hpp \
 	libmaus/graph/FilteredGraphTypes.hpp \
 	libmaus/graph/GraphEdge.hpp \
-	libmaus/graph/GraphEdgeBuffer.hpp
+	libmaus/graph/GraphEdgeBuffer.hpp \
+	libmaus/graph/GraphEdgeBlockBuffer.hpp \
+	libmaus/graph/GraphEdgeHeapComparator.hpp \
+	libmaus/graph/GraphEdgeMerge.hpp
 
 libmausbtree_includedir=$(includedir)/libmaus/btree
 libmausbtree_include_HEADERS=\
