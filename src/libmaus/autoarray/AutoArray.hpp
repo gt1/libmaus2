@@ -429,7 +429,7 @@ namespace libmaus
 			 * @return sum over all elements of the array before prefix sum computation
 			 *  (i.e. first element in the prefix sums array beyond the end)
 			 **/
-			uint64_t prefixSums()
+			N prefixSums()
 			{
 				N c = N();
 				
@@ -441,6 +441,60 @@ namespace libmaus
 				}
 				
 				return c;
+			}
+			
+			/**
+			 * compute prefix sums in parallel
+			 * @return sum over all elements of the array before prefix sum computation
+			 **/
+			N prefixSumsParallel()
+			{
+				#if defined(_OPENMP)
+				uint64_t const numthreads = omp_get_max_threads();
+				#else
+				uint64_t const numthreads = 1;
+				#endif
+				
+				uint64_t const elperthread = (getN() + numthreads-1)/numthreads;
+				uint64_t const parts = (getN() + elperthread-1)/elperthread;
+				
+				libmaus::autoarray::AutoArray<N> partial(parts+1,false);
+				
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int64_t t = 0; t < static_cast<int64_t>(parts); ++t )
+				{
+					uint64_t const low = t * elperthread;
+					uint64_t const high = std::min(low+elperthread,getN());
+					
+					N acc = N();
+					for ( uint64_t i = low; i < high; ++i )
+						acc += (*this)[i];
+					partial[t] = acc;
+				}
+				
+				partial.prefixSums();
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int64_t t = 0; t < static_cast<int64_t>(parts); ++t )
+				{
+					uint64_t const low = t * elperthread;
+					uint64_t const high = std::min(low+elperthread,getN());
+					
+					N acc = partial[t];
+					for ( uint64_t i = low; i < high; ++i )
+					{
+						N const t = (*this)[i];
+						(*this)[i] = acc;
+						acc += t;
+					}
+					partial[t] = acc;
+				}
+				
+				return partial[partial.size()-1];
 			}
 			
 			/**
