@@ -29,7 +29,7 @@ namespace libmaus
 	namespace bambam
 	{
 		//! BAM decoder supporting ranges
-		struct BamRangeDecoder
+		struct BamRangeDecoder : public libmaus::bambam::BamAlignmentDecoder
 		{
 			private:
 			/**
@@ -114,26 +114,101 @@ namespace libmaus
 			libmaus::bambam::BamRange const * rangecur;
 
 			//! bam decoder wrapper			
-			libmaus::bambam::BamDecoderWrapper::unique_ptr_type wrapper;
+			libmaus::bambam::BamDecoderResetableWrapper wrapper;
 			//! chunks for current range
 			std::vector< std::pair<uint64_t,uint64_t> > chunks;
 			//! next element to be processed in chunks
 			uint64_t chunkidx;
 			
 			//! decoder for current chunk
-			libmaus::bambam::BamAlignmentDecoder * decoder;
+			libmaus::bambam::BamAlignmentDecoder & decoder;
 			//! alignment object in decoder
-			libmaus::bambam::BamAlignment * algn;
+			libmaus::bambam::BamAlignment & algn;
 			
+			//! true if decoder is still active
+			bool active;
+
+			//! set up decoder for next chunk
+			bool setup()
+			{
+				while ( true )
+				{
+					// next chunk
+					if ( chunkidx < chunks.size() )
+					{
+						wrapper.resetStream(chunks[chunkidx].first,chunks[chunkidx].second);
+						chunkidx++;
+						return true;
+					}
+					// next range
+					else if ( rangeidx < ranges.size() )
+					{
+						rangecur = ranges[rangeidx++].get();
+						chunks = rangecur->getChunks(index);
+						chunkidx = 0;							
+					}
+					// no more ranges
+					else
+					{
+						return false;
+					}
+				}				
+			}
+
+			/**
+			 * read next alignment.
+			 *
+			 * @return true iff an alignment could be obtained
+			 **/
+			bool readAlignmentInRange()
+			{
+				while ( active )
+				{
+					bool const ok = decoder.readAlignment();
+					
+					if ( ok )
+					{
+						if ( (*rangecur)(algn) == libmaus::bambam::BamRange::interval_rel_pos_matching )
+							return true;
+					}
+					else
+						active = setup();
+				}
+				
+				return false;
+			}
+
+			/**
+			 * interval alignment input method
+			 *
+			 * @param delayPutRank if true, then rank aux tag will not be inserted by this call
+			 * @return true iff next alignment could be successfully read, false if no more alignment were available
+			 **/
+			bool readAlignmentInternal(bool const delayPutRank = false)
+			{
+				bool const ok = readAlignmentInRange();
+				
+				if ( ! ok )
+					return false;
+			
+				if ( ! delayPutRank )
+					putRank();
+			
+				return true;
+			}
+
 			public:
 			/**
 			 * constructor
 			 *
 			 * @param rfilename name of BAM file
 			 * @param rranges range descriptor string
+			 * @param rputrank put ranks on alignments
 			 **/
-			BamRangeDecoder(std::string const & rfilename, std::string const & rranges)
-			: filename(rfilename), indexname(deriveBamIndexName(filename)),
+			BamRangeDecoder(std::string const & rfilename, std::string const & rranges, bool const rputrank = false)
+			:
+			  libmaus::bambam::BamAlignmentDecoder(rputrank), 
+			  filename(rfilename), indexname(deriveBamIndexName(filename)),
 			  Pheader(UNIQUE_PTR_MOVE(loadHeader(filename))),
 			  header(*Pheader),
 			  Pindex(UNIQUE_PTR_MOVE(loadIndex(indexname))),
@@ -141,78 +216,15 @@ namespace libmaus
 			  ranges(libmaus::bambam::BamRangeParser::parse(rranges,header)),
 			  rangeidx(0),
 			  rangecur(0),
-			  wrapper(),
+			  wrapper(filename,header),
 			  chunks(),
 			  chunkidx(0),
-			  decoder(0),
-			  algn(0)
+			  decoder(wrapper.getDecoder()),
+			  algn(decoder.getAlignment()),
+			  active(setup())
 			{
-			
 			}
-			
-			/**
-			 * read next alignment. if the function yields true, then
-			 * the alignment can be retrieved getAlignment. Any call
-			 * to readAlignment invalidates a previous return values
-			 * of the getAlignment method.
-			 *
-			 * @return true iff an alignment could be obtained
-			 **/
-			bool readAlignment()
-			{
-				while ( true )
-				{
-					if ( ! wrapper )
-					{
-						// next chunk
-						if ( chunkidx < chunks.size() )
-						{
-							wrapper = UNIQUE_PTR_MOVE(
-								libmaus::bambam::BamDecoderWrapper::unique_ptr_type(
-									new
-										libmaus::bambam::BamDecoderWrapper(
-											filename,
-											header,
-											chunks[chunkidx].first,
-											chunks[chunkidx].second
-										)
-								)
-							);
-							
-							decoder = &(wrapper->getDecoder());
-							algn = &(decoder->getAlignment());
-							
-							chunkidx++;
-						}
-						// next range
-						else if ( rangeidx < ranges.size() )
-						{
-							rangecur = ranges[rangeidx++].get();
-							chunks = rangecur->getChunks(index);
-							chunkidx = 0;							
-						}
-						// no more ranges
-						else
-						{
-							decoder = 0;
-							algn = 0;
-							return false;
-						}
-					}
-					else
-					{
-						if ( decoder->readAlignment() )
-						{
-							if ( (*rangecur)(*algn) == libmaus::bambam::BamRange::interval_rel_pos_matching )
-								return true;
-						}
-						else
-						{
-							wrapper.reset();
-						}
-					}
-				}
-			}
+						
 			
 			/**
 			 * get next alignment. Calling this function is only valid
@@ -222,7 +234,7 @@ namespace libmaus
 			 **/
 			libmaus::bambam::BamAlignment & getAlignment()
 			{
-				return *algn;
+				return algn;
 			}
 
 			/**
@@ -233,7 +245,7 @@ namespace libmaus
 			 **/
 			libmaus::bambam::BamAlignment const & getAlignment() const
 			{
-				return *algn;
+				return algn;
 			}
 			
 			/**
@@ -242,6 +254,28 @@ namespace libmaus
 			libmaus::bambam::BamHeader const & getHeader() const
 			{
 				return header;
+			}
+		};
+		
+		/**
+		 * wrapper for a BamRangeDecoder object
+		 **/
+		struct BamRangeDecoderWrapper
+		{
+			//! decoder object
+			BamRangeDecoder decoder;
+
+			/**
+			 * constructor
+			 *
+			 * @param rfilename name of BAM file
+			 * @param rranges range descriptor string
+			 * @param rputrank put ranks on alignments
+			 **/
+			BamRangeDecoderWrapper(std::string const & rfilename, std::string const & rranges, bool const rputrank = false)
+			: decoder(rfilename,rranges,rputrank)
+			{
+			
 			}
 		};
 	}

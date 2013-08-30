@@ -135,6 +135,20 @@ namespace libmaus
 			  Pbamheader(),
 			  bamheader(rheader)
 			{}
+			
+			/**
+			 * constructor from header. A compressed stream needs to be set before
+			 * alignments can be extracted.
+			 *
+			 * @param rheader BAM header object
+			 **/
+			BamDecoderTemplate(libmaus::bambam::BamHeader const & rheader)
+			:
+			  libmaus::bambam::BamAlignmentDecoder(false),
+			  PISTR(), PGZ(), GZ(0), Pbamheader(), bamheader(rheader)
+			{
+			
+			}
 
 			/**
 			 * @return BAM header
@@ -150,6 +164,24 @@ namespace libmaus
 			bgzf_type & getStream()
 			{
 				return *GZ;
+			}			
+			
+			/**
+			 * @return true if there is a decompressor object
+			 **/
+			bool hasStream()
+			{
+				return GZ != 0;
+			}
+			
+			/**
+			 * set decompressor object
+			 *
+			 * @param rGZ decompressor object
+			 **/
+			void setStream(bgzf_type * rGZ)
+			{
+				GZ = rGZ;
 			}			
 		};
 
@@ -339,6 +371,67 @@ namespace libmaus
 				bool const rputrank = false
 			)
 			: Pistr(), istr(in), bgzf(istr,copyostr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
+
+			/**
+			 * @return wrapped decoder
+			 **/
+			libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			{
+				return bamdec;
+			}
+		};
+
+		/**
+		 * resetable wrapper class for serial BAM decoder
+		 **/
+		struct BamDecoderResetableWrapper
+		{
+			//! this type
+			typedef BamDecoderResetableWrapper this_type;
+			//! unique pointer type
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			protected:
+			//! compressed input stream pointer
+			libmaus::aio::CheckedInputStream::unique_ptr_type Pistr;
+			//! decompressor
+			libmaus::lz::BgzfInflateStream::unique_ptr_type bgzf;
+			//! BAM file decoder
+			libmaus::bambam::BamDecoder bamdec;
+			
+			public:
+			/**
+			 * constructor from file name and header. The wrapped decoder is not ready for
+			 * reading alignments until resetStream() is called.
+			 *
+			 * @param filename input file name
+			 * @param header BAM header object
+			 **/
+			BamDecoderResetableWrapper(std::string const & filename, libmaus::bambam::BamHeader const & header)
+			: Pistr(new libmaus::aio::CheckedInputStream(filename)), bgzf(), bamdec(header)
+			{
+			
+			}
+			
+			void resetStream(
+				libmaus::lz::BgzfVirtualOffset const & startoffset,
+				libmaus::lz::BgzfVirtualOffset const & endoffset
+			)
+			{
+				Pistr->clear();
+				
+				bgzf = UNIQUE_PTR_MOVE(
+					libmaus::lz::BgzfInflateStream::unique_ptr_type(
+						new libmaus::lz::BgzfInflateStream(
+							*Pistr,startoffset,endoffset
+						)
+					)
+				);
+				
+				bamdec.setStream(bgzf.get());
+			}
 
 			/**
 			 * @return wrapped decoder

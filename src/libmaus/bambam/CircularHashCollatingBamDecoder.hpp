@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP
 
 #include <libmaus/bambam/BamDecoder.hpp>
+#include <libmaus/bambam/BamRangeDecoder.hpp>
 #include <libmaus/bambam/ScramDecoder.hpp>
 #include <libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp>
 #include <libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
@@ -837,6 +838,45 @@ namespace libmaus
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			) : ScramDecoderWrapper(filename,mode,reference,rputrank), 
 			    CircularHashCollatingBamDecoder(ScramDecoderWrapper::scramdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
+			{
+			
+			}
+		};
+
+		/**
+		 * circular hash based BAM collation class based on range restricted BAM decoding
+		 **/
+		struct BamRangeCircularHashCollatingBamDecoder :
+			public BamRangeDecoderWrapper, public CircularHashCollatingBamDecoder
+		{
+			//! this type
+			typedef BamRangeCircularHashCollatingBamDecoder this_type;
+			//! unique pointer type
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			/**
+			 * constructor
+			 * 
+			 * @param filename input file name
+			 * @param ranges range selection string
+			 * @param rtmpfilename temporary file name for collation
+			 * @param rexcludeflags ignore alignments matching any of these flags
+			 * @param rputrank put rank (line number) on alignments at input time
+			 * @param hlog log_2 of hash table size used for collation
+			 * @param sortbufsize overflow sort buffer size in bytes
+			 **/
+			BamRangeCircularHashCollatingBamDecoder(
+				std::string const & filename,
+				std::string const & ranges,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags = 0,
+				bool const rputrank = false,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			) : BamRangeDecoderWrapper(filename,ranges,rputrank), 
+			    CircularHashCollatingBamDecoder(BamRangeDecoderWrapper::decoder,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
 			
 			}

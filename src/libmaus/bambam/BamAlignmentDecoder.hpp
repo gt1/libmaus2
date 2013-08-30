@@ -74,7 +74,7 @@ namespace libmaus
 			 *
 			 * @return current alignment
 			 **/
-			libmaus::bambam::BamAlignment const & getAlignment() const
+			virtual libmaus::bambam::BamAlignment const & getAlignment() const
 			{
 				return alignment;
 			}
@@ -84,7 +84,7 @@ namespace libmaus
 			 *
 			 * @return current alignment
 			 **/
-			libmaus::bambam::BamAlignment & getAlignment()
+			virtual libmaus::bambam::BamAlignment & getAlignment()
 			{
 				return alignment;
 			}

@@ -83,6 +83,11 @@ namespace libmaus
 				setg(buffer.end(), buffer.end(), buffer.end());	
 			}
 
+			uint64_t getB() const
+			{
+				return C.getB();
+			}
+
 			private:
 			// gptr as unsigned pointer
 			uint8_t const * uptr() const
@@ -193,6 +198,7 @@ namespace libmaus
 				
 				return static_cast<int_type>(*uptr());
 			}
+			
 		};
 
 
