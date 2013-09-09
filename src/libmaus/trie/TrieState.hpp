@@ -297,6 +297,20 @@ namespace libmaus
 				else
 					return -1;
 			}
+
+			template<typename iterator>
+			int64_t searchCompleteNoFailureZ(iterator ita) const
+			{
+				int64_t cur = 0;
+				
+				for ( iterator itc = ita; (cur != -1) && (*itc); ++itc )
+					cur = hasTransition(cur,*itc) ? H->get(pairToHashValue(cur,*itc)) : -1;
+				
+				if ( cur != -1 && cur < static_cast<int64_t>(V.size()) && V[cur].final && V[cur].ids.size() == 1 )
+					return V[cur].ids[0];
+				else
+					return -1;
+			}
 			
 			template<typename container>
 			int64_t searchCompleteNoFailure(container const & cont) const
