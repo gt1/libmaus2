@@ -1,3 +1,9 @@
+libmaus (0.0.70-0) unstable; urgency=low
+
+  * add searchCompleteNoFailureZ method for LinearHashTrie class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 09 Sep 2013 11:58:36 +0100
+
 libmaus (0.0.69-0) unstable; urgency=low
 
   * add range restricted collating BAM decoding 
