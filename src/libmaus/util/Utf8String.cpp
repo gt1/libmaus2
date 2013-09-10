@@ -398,7 +398,7 @@ std::map<int64_t,uint64_t> libmaus::util::Utf8String::getHistogramAsMap(::libmau
 }			
 
 ::libmaus::autoarray::AutoArray<libmaus::util::Utf8String::saidx_t,::libmaus::autoarray::alloc_type_c> 
-	libmaus::util::Utf8String::computeSuffixArray32() const
+	libmaus::util::Utf8String::computeSuffixArray32(bool const parallel) const
 {
 	if ( A.size() > static_cast<uint64_t>(::std::numeric_limits<saidx_t>::max()) )
 	{
@@ -409,7 +409,10 @@ std::map<int64_t,uint64_t> libmaus::util::Utf8String::getHistogramAsMap(::libmau
 	}
 	
 	::libmaus::autoarray::AutoArray<saidx_t,::libmaus::autoarray::alloc_type_c> SA(A.size());
-	sort_type::divsufsort ( A.begin() , SA.begin() , A.size() );
+	if ( parallel )
+		sort_type_parallel::divsufsort ( A.begin() , SA.begin() , A.size() );
+	else
+		sort_type_serial::divsufsort ( A.begin() , SA.begin() , A.size() );
 	
 	uint64_t p = 0;
 	for ( uint64_t i = 0; i < SA.size(); ++i )

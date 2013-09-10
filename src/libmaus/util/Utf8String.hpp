@@ -111,11 +111,12 @@ namespace libmaus
 			static std::map<int64_t,uint64_t> getHistogramAsMap(::libmaus::autoarray::AutoArray<uint8_t> const & A);
 
 			// suffix sorting class
-			typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type;
-			typedef sort_type::saidx_t saidx_t;
+			typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,true> sort_type_parallel;
+			typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,256,false> sort_type_serial;
+			typedef sort_type_serial::saidx_t saidx_t;
 		
 			::libmaus::autoarray::AutoArray<saidx_t,::libmaus::autoarray::alloc_type_c> 
-				computeSuffixArray32() const;
+				computeSuffixArray32(bool const parallel = false) const;
 		};
 	}
 }
