@@ -1706,10 +1706,13 @@ namespace libmaus
 
 						/* read text */
 						::libmaus::autoarray::AutoArray<uint8_t> A(partsize,false);
+						
+						#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 						#if defined(_OPENMP)
 						unsigned int const tid = omp_get_thread_num();
 						#else
 						unsigned int const tid = 0;
+						#endif
 						#endif
 
 						#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
