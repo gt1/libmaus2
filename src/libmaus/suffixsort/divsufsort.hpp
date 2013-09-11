@@ -1631,11 +1631,6 @@ namespace libmaus
 				       saidx_t n) {
 			index_iterator PAb, ISAb, buf;
 
-			#ifdef _OPENMP
-			  index_iterator curbuf;
-			  saidx_t l;
-			  saint_t d0, d1;
-			#endif
 
 			  saidx_t i, j, k, t, m, bufsize;
 			  saint_t c0, c1;
@@ -1694,6 +1689,10 @@ namespace libmaus
 			#if defined(_OPENMP)
 			  if ( ompparallel )
 			  {
+                               index_iterator curbuf;
+                               saidx_t l;
+                               saint_t d0, d1;
+
                               buf = SA + m, bufsize = (n - (2 * m)) / omp_get_max_threads();
                               c0 = ALPHABET_SIZE - 2, c1 = ALPHABET_SIZE - 1, j = m;
                               

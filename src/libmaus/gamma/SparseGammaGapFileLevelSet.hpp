@@ -90,7 +90,7 @@ namespace libmaus
 				remove(Sa.fn.c_str());
 				remove(Sb.fn.c_str());
 
-				#if 1
+				#if 0
 				std::cerr << "merged " << Sa << " and " << Sb << " to " << N << std::endl;
 				#endif
 

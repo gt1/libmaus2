@@ -79,7 +79,7 @@ std::map<int64_t,uint64_t> libmaus::util::OctetString::getHistogramAsMap() const
 }			
 
 ::libmaus::autoarray::AutoArray<libmaus::util::OctetString::saidx_t,::libmaus::autoarray::alloc_type_c> 
-	libmaus::util::OctetString::computeSuffixArray32() const
+	libmaus::util::OctetString::computeSuffixArray32(bool const parallel) const
 {
 	if ( A.size() > static_cast<uint64_t>(::std::numeric_limits<saidx_t>::max()) )
 	{
@@ -90,7 +90,10 @@ std::map<int64_t,uint64_t> libmaus::util::OctetString::getHistogramAsMap() const
 	}
 	
 	::libmaus::autoarray::AutoArray<saidx_t,::libmaus::autoarray::alloc_type_c> SA(A.size());
-	sort_type::divsufsort ( A.begin() , SA.begin() , A.size() );
+	if ( parallel )
+		sort_type_parallel::divsufsort ( A.begin() , SA.begin() , A.size() );
+	else
+		sort_type_serial::divsufsort ( A.begin() , SA.begin() , A.size() );
 	
 	return SA;
 }
