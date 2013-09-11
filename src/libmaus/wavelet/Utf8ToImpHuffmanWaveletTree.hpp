@@ -1627,7 +1627,9 @@ namespace libmaus
 					uint64_t const numparts = pretermparts + termparts + posttermparts;
 					
 					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
+					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << symsperpart.byteSize() << " bytes for symsperpart." << std::endl;
+					#endif
 					uint64_t jj = 0;
 					for ( uint64_t i = 0; i < pretermparts; ++i )
 					{					
@@ -1660,7 +1662,9 @@ namespace libmaus
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
+					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Num nodes " << numnodes << " numparts " << numparts << std::endl;
+					#endif
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
@@ -1668,7 +1672,9 @@ namespace libmaus
 						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
 						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
+					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Bytes for numnodes*numparts*sizeof(uint64_t)=" << numnodes*numparts*sizeof(uint64_t) << std::endl;
+					#endif
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -1705,9 +1711,13 @@ namespace libmaus
 						#else
 						unsigned int const tid = 0;
 						#endif
+
+						#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 						cerrlock.lock();
 						std::cerr << "{" << tid << "}" << " Allocated " << A.byteSize() << " bytes for A array." << std::endl;
 						cerrlock.unlock();
+						#endif
+						
 						::libmaus::util::PutObject<uint8_t *> PO(A.begin());
 
 						if ( partid == static_cast<int64_t>(pretermparts) )
@@ -1732,9 +1742,11 @@ namespace libmaus
 						if ( radixsort )
 						{
 							Z = ::libmaus::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
+							#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 							cerrlock.lock();
 							std::cerr << "{" << tid << "} Allocated " << Z.byteSize() << " bytes for Z array." << std::endl;
 							cerrlock.unlock();
+							#endif
 						}
 
 						std::stack<ImpWaveletStackElement> S;
@@ -1992,7 +2004,9 @@ namespace libmaus
 						vnodewordcnt[i].prefixSums();
 					
 					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
+					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << vnodebits.byteSize() << " bytes for vnodebits array." << std::endl;
+					#endif
 					uint64_t tnumbits = 0;
 					for ( uint64_t nodeid = 0; nodeid < numnodes; ++nodeid )
 					{
@@ -2037,7 +2051,9 @@ namespace libmaus
 					}
 					
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
+					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << nodebytesizes.byteSize() << " bytes per nodebytesizes array." << std::endl;
+					#endif
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
