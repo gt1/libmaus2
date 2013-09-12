@@ -77,7 +77,8 @@ namespace libmaus
 						// check state of stream
 						if ( ! (*(inflatecontext.copyostr)) )
 						{
-							inflatecontext.inflateB[objectid]->ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+							libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+							inflatecontext.inflateB[objectid]->ex = UNIQUE_PTR_MOVE(tex);
 							inflatecontext.inflateB[objectid]->ex->getStream() << "Failed to write Bgzf data to copy stream.";
 							inflatecontext.inflateB[objectid]->ex->finish();
 						}
@@ -144,7 +145,8 @@ namespace libmaus
 						if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
 						{
 							deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
-							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ex.uclone());
+							libmaus::exception::LibMausException::unique_ptr_type tex(ex.uclone());
+							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 						}
 						
 						deflatecontext.deflateB[objectid]->compsize = 0;
@@ -160,7 +162,9 @@ namespace libmaus
 							libmaus::exception::LibMausException se;
 							se.getStream() << ex.what() << std::endl;
 							se.finish();
-							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(se.uclone());
+							
+							libmaus::exception::LibMausException::unique_ptr_type ptr(se.uclone());
+							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ptr);
 						}
 						
 						deflatecontext.deflateB[objectid]->compsize = 0;
@@ -218,7 +222,8 @@ namespace libmaus
 						if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
 						{
 							deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
-							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ex.uclone());									
+							libmaus::exception::LibMausException::unique_ptr_type ptr(ex.uclone());
+							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ptr);									
 						}
 					}
 					catch(std::exception const & ex)
@@ -232,7 +237,9 @@ namespace libmaus
 							libmaus::exception::LibMausException se;
 							se.getStream() << ex.what() << std::endl;
 							se.finish();
-							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(se.uclone());
+
+							libmaus::exception::LibMausException::unique_ptr_type ptr(se.uclone());
+							deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ptr);
 						}
 					}
 

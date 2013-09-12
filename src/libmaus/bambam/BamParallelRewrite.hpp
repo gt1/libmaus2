@@ -112,7 +112,7 @@ namespace libmaus
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
 				uint64_t const blocksperthread = 4)
-			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(UNIQUE_PTR_MOVE(rewritecallback(dec.getHeader()))), writer(stream.bgzf,*rewrittenheader) {}
+			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(rewritecallback(dec.getHeader())), writer(stream.bgzf,*rewrittenheader) {}
 			
 			/**
 			 * @return decoder

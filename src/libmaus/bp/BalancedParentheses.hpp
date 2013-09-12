@@ -386,7 +386,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 	  // first level pioneer data
 	  pion0(BalancedParenthesesBase::calculatePioneerBitVectorNND(UUB,blocksize)),
 	  // pion0(BalancedParenthesesBase::calculatePioneerBitVector(UUB, blocksize)),
-	  pio0(UNIQUE_PTR_MOVE(BalancedParenthesesBase::extractPioneerFamily(UUB,*pion0))),
+	  pio0(BalancedParenthesesBase::extractPioneerFamily(UUB,*pion0)),
 	  // second level pioneer data
 	  pion1(BalancedParenthesesBase::calculatePioneerBitVectorNND(*pio0,blocksize)),
 	  // pion1(BalancedParenthesesBase::calculatePioneerBitVector(*pio0, blocksize)),

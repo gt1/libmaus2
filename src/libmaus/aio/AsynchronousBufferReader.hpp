@@ -302,7 +302,8 @@ namespace libmaus
 
 				if ( ita != ite )
 				{
-					reader = UNIQUE_PTR_MOVE(reader_ptr_type(new AsynchronousBufferReader(*ita, numbuffers,bufsize,offset)));
+					reader_ptr_type treader(new AsynchronousBufferReader(*ita, numbuffers,bufsize,offset));
+					reader = UNIQUE_PTR_MOVE(treader);
 				}
 			}
 			/**
@@ -332,7 +333,8 @@ namespace libmaus
 					while ( ++ita != ite )
 					{
 						reader.reset();
-						reader = UNIQUE_PTR_MOVE(reader_ptr_type(new AsynchronousBufferReader(*ita,numbuffers,bufsize,0)));
+						reader_ptr_type treader(new AsynchronousBufferReader(*ita,numbuffers,bufsize,0));
+						reader = UNIQUE_PTR_MOVE(treader);
 						if ( reader->getBuffer(data) )
 							return true;
 					}

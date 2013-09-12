@@ -64,7 +64,8 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
 				{
-					inflateB[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfInflateBlock::unique_ptr_type(new libmaus::lz::BgzfInflateBlock(i)));
+					libmaus::lz::BgzfInflateBlock::unique_ptr_type tinflateB(new libmaus::lz::BgzfInflateBlock(i));
+					inflateB[i] = UNIQUE_PTR_MOVE(tinflateB);
 					inflatefreelist.push_back(i);
 				}			
 

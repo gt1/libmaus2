@@ -574,7 +574,8 @@ template<typename input_array_type>
 	for ( uint64_t i = 0; i < s.size(); ++i )
 		maxi = std::max(maxi,reinterpret_cast<unsigned char const *>(s.c_str())[i]);
 	unsigned int b = ::libmaus::math::bitsPerNum(maxi);
-	return UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(s.begin(),s.end(),b,pad)));
+	::libmaus::bitio::CompactArray::unique_ptr_type ptr(new ::libmaus::bitio::CompactArray(s.begin(),s.end(),b,pad));
+	return UNIQUE_PTR_MOVE(ptr);
 }
 
 #if 0

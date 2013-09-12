@@ -244,7 +244,8 @@ namespace libmaus
 			
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 				{
-					dicts [ i ] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(in)));
+					rank_ptr_type tdictsi(new rank_type(in));
+					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
 					dicts [ i ] -> checkSanity();
 				}
 					
@@ -273,7 +274,10 @@ namespace libmaus
 				s += 2*sizeof(uint64_t);
 			
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
-					dicts [ i ] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(in,s)));
+				{
+					rank_ptr_type tdictsi(new rank_type(in,s));
+					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
+				}
 					
 				nodepos = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 				::libmaus::util::NumberSerialisation::deserialiseNumber(in); // index position
@@ -299,7 +303,8 @@ namespace libmaus
 				{
 					::libmaus::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
 					istr.seekg(nodepos[i],std::ios::beg);
-					dicts[i] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(istr)));
+					rank_ptr_type tdictsi(new rank_type(istr));
+					dicts[i] = UNIQUE_PTR_MOVE(tdictsi);
 				}
 			
 				init();

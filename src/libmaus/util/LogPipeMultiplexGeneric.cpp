@@ -56,13 +56,12 @@ libmaus::util::LogPipeMultiplexGeneric::LogPipeMultiplexGeneric(
 	stderrpipe[0] = stderrpipe[1] = -1;
 
 	// connect
-	sock = UNIQUE_PTR_MOVE(
-		::libmaus::network::ClientSocket::unique_ptr_type(
-			new ::libmaus::network::ClientSocket(
-				port,serverhostname.c_str()
-			)
-		)
-	);
+	::libmaus::network::ClientSocket::unique_ptr_type tsock(
+                        new ::libmaus::network::ClientSocket(
+                                port,serverhostname.c_str()
+                        )
+                );
+	sock = UNIQUE_PTR_MOVE(tsock);
 	
 	// no delay on socket
 	sock->setNoDelay();

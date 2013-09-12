@@ -66,8 +66,9 @@ namespace libmaus
 					assert ( blockptr < idda.data[fileptr].numentries ); // check block pointer
 
 					// open new input file stream
-					istr = UNIQUE_PTR_MOVE(::libmaus::util::unique_ptr<std::ifstream>::type(
-						new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary)));
+					::libmaus::util::unique_ptr<std::ifstream>::type tistr(
+                                                new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary));
+					istr = UNIQUE_PTR_MOVE(tistr);
 				
 					// check whether file is open
 					if ( ! istr->is_open() )
@@ -94,11 +95,10 @@ namespace libmaus
 
 					// set up bit input
 					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
-					SBIS = UNIQUE_PTR_MOVE(
-						sbis_type::unique_ptr_type(
-							new sbis_type(ript,static_cast<uint64_t>(64*1024))
-						)
-					);
+					sbis_type::unique_ptr_type tSBIS(
+                                                        new sbis_type(ript,static_cast<uint64_t>(64*1024))
+                                                );
+					SBIS = UNIQUE_PTR_MOVE(tSBIS);
 
 					return true;
 				}
@@ -141,7 +141,7 @@ namespace libmaus
 				std::vector<std::string> const & rfilenames, uint64_t offset = 0
 			)
 			: 
-			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
+			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  pa(0), pc(0), pe(0),
 			  fileptr(0), blockptr(0)
@@ -198,9 +198,15 @@ namespace libmaus
 				::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type esccntdec;
 				::libmaus::huffman::CanonicalEncoder::unique_ptr_type cntdec;
 				if ( cntescape )
-					esccntdec = UNIQUE_PTR_MOVE(::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::EscapeCanonicalEncoder(cntmap)));
+				{
+					::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tesccntdec(new ::libmaus::huffman::EscapeCanonicalEncoder(cntmap));
+					esccntdec = UNIQUE_PTR_MOVE(tesccntdec);
+				}
 				else
-					cntdec = UNIQUE_PTR_MOVE(::libmaus::huffman::CanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::CanonicalEncoder(cntmap)));
+				{
+					::libmaus::huffman::CanonicalEncoder::unique_ptr_type tcntdec(new ::libmaus::huffman::CanonicalEncoder(cntmap));
+					cntdec = UNIQUE_PTR_MOVE(tcntdec);
+				}
 				
 				// increase buffersize if necessary
 				if ( bs > rlbuffer.size() )

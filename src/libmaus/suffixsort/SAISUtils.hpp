@@ -301,7 +301,7 @@ namespace libmaus
 		{
 			uint64_t const threads = 8;
 		
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype = UNIQUE_PTR_MOVE(computeSParallel(C,n,threads));
+			::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype(computeSParallel(C,n,threads));
 			::libmaus::bitio::IndexedBitVector & stype = *pstype;
 
 			sToSastParallel(stype,threads);
@@ -586,9 +586,12 @@ namespace libmaus
 			  K(numcol + numnoncol)
 			{
 				for ( uint64_t i = 0; i < S.size(); ++i )
-					S[i] = UNIQUE_PTR_MOVE(array_ptr_type(
-						new array_type( 1ull << (i*b) , numsubbits )
-						));
+				{
+					array_ptr_type Si(
+                                                new array_type( 1ull << (i*b) , numsubbits )
+                                                );
+					S[i] = UNIQUE_PTR_MOVE(Si);
+				}
 			}
 			
 			uint64_t byteSize() const
@@ -749,9 +752,11 @@ namespace libmaus
 				// hash table
 				HH = ::libmaus::autoarray::AutoArray<hash_type> ( 1ull << hashbits );
 				// collision bit vector
-				ColBV = UNIQUE_PTR_MOVE(::libmaus::bitio::IndexedBitVector::unique_ptr_type(new ::libmaus::bitio::IndexedBitVector(HH.size()) ));
+				::libmaus::bitio::IndexedBitVector::unique_ptr_type tColBV(new ::libmaus::bitio::IndexedBitVector(HH.size()) );
+				ColBV = UNIQUE_PTR_MOVE(tColBV);
 				// non collision bit vector
-				NonColBV = UNIQUE_PTR_MOVE(::libmaus::bitio::IndexedBitVector::unique_ptr_type(new ::libmaus::bitio::IndexedBitVector( HH.size() ) ));
+				::libmaus::bitio::IndexedBitVector::unique_ptr_type tNonColBV(new ::libmaus::bitio::IndexedBitVector( HH.size() ) );
+				NonColBV = UNIQUE_PTR_MOVE(tNonColBV);
 				
 				if ( verbose )
 					std::cerr << "(bs="

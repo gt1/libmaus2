@@ -59,7 +59,8 @@ void libmaus::util::ForkProcess::init(
 	
 	for ( uint64_t i = 0; i < args.size(); ++i )
 	{
-		wargv[i] = UNIQUE_PTR_MOVE(string_ptr_type(new string_type(args[i])));
+		string_ptr_type twargvi(new string_type(args[i]));
+		wargv[i] = UNIQUE_PTR_MOVE(twargvi);
 		aargv[i] = wargv[i]->A.get();
 	}
 	

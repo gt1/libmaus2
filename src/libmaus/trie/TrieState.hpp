@@ -198,7 +198,8 @@ namespace libmaus
 			{
 				shared_ptr_type O(new this_type);
 				O->V = this->V;
-				O->H = UNIQUE_PTR_MOVE(this->H->uclone());
+				typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type tOH(this->H->uclone());
+				O->H = UNIQUE_PTR_MOVE(tOH);
 				return O;
 			}
 						

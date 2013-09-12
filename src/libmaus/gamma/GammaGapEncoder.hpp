@@ -195,7 +195,10 @@ namespace libmaus
 					GammaGapEncoder::unique_ptr_type GGE(new GammaGapEncoder(outfilename));
 					::libmaus::autoarray::AutoArray<GammaGapDecoder::unique_ptr_type> GGD(infilenames.size());
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
-						GGD[i] = UNIQUE_PTR_MOVE(GammaGapDecoder::unique_ptr_type(new GammaGapDecoder(infilenames[i])));
+					{
+						GammaGapDecoder::unique_ptr_type tGGDi(new GammaGapDecoder(infilenames[i]));
+						GGD[i] = UNIQUE_PTR_MOVE(tGGDi);
+					}
 
 					uint64_t const fslen = GGE->writeFileSize(n);
 					uint64_t const numblocks = (n + blocksize-1)/blocksize;
@@ -245,7 +248,10 @@ namespace libmaus
 					if ( check )
 					{
 						for ( uint64_t i = 0; i < infilenames.size(); ++i )
-							GGD[i] = UNIQUE_PTR_MOVE(GammaGapDecoder::unique_ptr_type(new GammaGapDecoder(infilenames[i])));
+						{
+							GammaGapDecoder::unique_ptr_type tGGDi(new GammaGapDecoder(infilenames[i]));
+							GGD[i] = UNIQUE_PTR_MOVE(tGGDi);
+						}
 						GammaGapDecoder OGGD(std::vector<std::string>(1,outfilename));
 						
 						for ( uint64_t i = 0; i < n; ++i )

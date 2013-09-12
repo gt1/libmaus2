@@ -56,11 +56,10 @@ namespace libmaus
 				if ( fileptr < idda.data.size() && blockptr < idda.data[fileptr].numentries )
 				{
 					/* open file */
-					istr = UNIQUE_PTR_MOVE(
-						::libmaus::aio::CheckedInputStream::unique_ptr_type(
-							new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
-						)
-					);
+					::libmaus::aio::CheckedInputStream::unique_ptr_type tistr(
+                                                        new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
+                                                );
+					istr = UNIQUE_PTR_MOVE(tistr);
 
 					/* seek to block */
 					uint64_t const pos = idda.data[fileptr].getPos(blockptr);
@@ -75,21 +74,20 @@ namespace libmaus
 						throw ex;
 					}
 					
-					SGI = UNIQUE_PTR_MOVE(
-						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
-							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
-								*istr,64*1024,
-								::std::numeric_limits<uint64_t>::max(),
-								false /* do not check for multiples of entity size */
-							)
-						)
-					);
+					::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+                                                        new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
+                                                                *istr,64*1024,
+                                                                ::std::numeric_limits<uint64_t>::max(),
+                                                                false /* do not check for multiples of entity size */
+                                                        )
+                                                );
+					SGI = UNIQUE_PTR_MOVE(tSGI);
 					
-					GD = UNIQUE_PTR_MOVE(
-						::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type(
-							new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
-						)
-					);
+					::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
+                                                        new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
+                                                );
+
+					GD = UNIQUE_PTR_MOVE(tGD);
 				}
 			}
 			
@@ -307,7 +305,7 @@ namespace libmaus
 				::libmaus::huffman::KvInitResult & result 
 			)
 			:
-			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
+			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 
@@ -323,7 +321,7 @@ namespace libmaus
 				uint64_t * psymoffset = 0
 			)
 			:
-			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
+			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 

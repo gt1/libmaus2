@@ -130,7 +130,8 @@ namespace libmaus
 			 **/
 			libmaus::bambam::BamAlignment::unique_ptr_type ualignment() const
 			{
-				return UNIQUE_PTR_MOVE(getAlignment().uclone());
+				libmaus::bambam::BamAlignment::unique_ptr_type ptr(getAlignment().uclone());
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			/**

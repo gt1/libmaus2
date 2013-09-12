@@ -44,7 +44,8 @@ void libmaus::util::Utf8String::setup()
 {
 	uint64_t const bitalign = 6*64;
 	
-	I = UNIQUE_PTR_MOVE(::libmaus::rank::ImpCacheLineRank::unique_ptr_type(new ::libmaus::rank::ImpCacheLineRank(((A.size()+(bitalign-1))/bitalign)*bitalign)));
+	::libmaus::rank::ImpCacheLineRank::unique_ptr_type tI(new ::libmaus::rank::ImpCacheLineRank(((A.size()+(bitalign-1))/bitalign)*bitalign));
+	I = UNIQUE_PTR_MOVE(tI);
 
 	::libmaus::rank::ImpCacheLineRank::WriteContext WC = I->getWriteContext();
 	for ( uint64_t i = 0; i < A.size(); ++i )
@@ -58,7 +59,8 @@ void libmaus::util::Utf8String::setup()
 			
 	WC.flush();
 	
-	S = UNIQUE_PTR_MOVE(::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type(new ::libmaus::select::ImpCacheLineSelectSupport(*I,8)));
+	::libmaus::select::ImpCacheLineSelectSupport::unique_ptr_type tS(new ::libmaus::select::ImpCacheLineSelectSupport(*I,8));
+	S = UNIQUE_PTR_MOVE(tS);
 	
 	#if 0
 	std::cerr << "A.size()=" << A.size() << std::endl;
@@ -254,15 +256,13 @@ struct HistogramThread : public ::libmaus::parallel::PosixThread
 
 	for ( uint64_t i = 0; i < numparts; ++i )
 	{
-		getters[i] = UNIQUE_PTR_MOVE(
-			::libmaus::util::GetObject<uint8_t const *>::unique_ptr_type(
-				new ::libmaus::util::GetObject<uint8_t const *>(A.begin()+partstarts[i])
-			)
-		);
-		threads[i] = UNIQUE_PTR_MOVE(
-			thread_ptr_type(new thread_type(*getters[i],
-				partstarts[i+1]-partstarts[i],mutex,ESCH,i))
-		);
+		::libmaus::util::GetObject<uint8_t const *>::unique_ptr_type tgettersi(
+                                new ::libmaus::util::GetObject<uint8_t const *>(A.begin()+partstarts[i])
+                        );
+		getters[i] = UNIQUE_PTR_MOVE(tgettersi);
+		thread_ptr_type tthreadsi(new thread_type(*getters[i],
+                                partstarts[i+1]-partstarts[i],mutex,ESCH,i));
+		threads[i] = UNIQUE_PTR_MOVE(tthreadsi);
 	}
 	for ( uint64_t i = 0; i < numparts; ++i )
 	{
@@ -304,17 +304,15 @@ struct HistogramThread : public ::libmaus::parallel::PosixThread
 
 	for ( uint64_t i = 0; i < numparts; ++i )
 	{
-		getters[i] = UNIQUE_PTR_MOVE(
-			::libmaus::aio::CheckedInputStream::unique_ptr_type(
-				new ::libmaus::aio::CheckedInputStream(fn)
-			)
-		);
+		::libmaus::aio::CheckedInputStream::unique_ptr_type tgettersi(
+                                new ::libmaus::aio::CheckedInputStream(fn)
+                        );
+		getters[i] = UNIQUE_PTR_MOVE(tgettersi);
 		getters[i]->setBufferSize(16*1024);
 		getters[i]->seekg(partstarts[i]);
-		threads[i] = UNIQUE_PTR_MOVE(
-			thread_ptr_type(new thread_type(*getters[i],
-				partstarts[i+1]-partstarts[i],mutex,ESCH,i))
-		);
+		thread_ptr_type tthreadsi(new thread_type(*getters[i],
+                                partstarts[i+1]-partstarts[i],mutex,ESCH,i));
+		threads[i] = UNIQUE_PTR_MOVE(tthreadsi);
 	}
 	for ( uint64_t i = 0; i < numparts; ++i )
 	{
@@ -387,13 +385,13 @@ struct HistogramThread : public ::libmaus::parallel::PosixThread
 
 std::map<int64_t,uint64_t> libmaus::util::Utf8String::getHistogramAsMap() const
 {
-	::libmaus::util::Histogram::unique_ptr_type hist = UNIQUE_PTR_MOVE(getHistogram());
+	::libmaus::util::Histogram::unique_ptr_type hist(getHistogram());
 	return hist->getByType<int64_t>();
 }			
 
 std::map<int64_t,uint64_t> libmaus::util::Utf8String::getHistogramAsMap(::libmaus::autoarray::AutoArray<uint8_t> const & A)
 {
-	::libmaus::util::Histogram::unique_ptr_type hist = UNIQUE_PTR_MOVE(getHistogram(A));
+	::libmaus::util::Histogram::unique_ptr_type hist(getHistogram(A));
 	return hist->getByType<int64_t>();
 }			
 

@@ -51,7 +51,7 @@ int main()
 	::libmaus::trie::LinearTrie<char> linear = trie.toLinear();
 	std::cout << linear;
 
-	::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHT = UNIQUE_PTR_MOVE(trie.toLinearHashTrie<uint32_t>());
+	::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHT(trie.toLinearHashTrie<uint32_t>());
 	std::cout << *LHT;
 
 	std::string const text = "ccaabab_abaaa";
@@ -62,7 +62,7 @@ int main()
 	::libmaus::trie::Trie<char> trienofailure;
 	// std::vector<std::string> dict2;
 	trienofailure.insertContainer(dict);
-	::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure = UNIQUE_PTR_MOVE(trienofailure.toLinearHashTrie<uint32_t>());
+	::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure(trienofailure.toLinearHashTrie<uint32_t>());
 	std::cout << LHTnofailure->searchCompleteNoFailure(dict[0]) << std::endl;
 	std::cout << LHTnofailure->searchCompleteNoFailure(dict[1]) << std::endl;
 	std::cout << LHTnofailure->searchCompleteNoFailure(dict[2]) << std::endl;

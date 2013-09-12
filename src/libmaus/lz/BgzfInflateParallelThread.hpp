@@ -123,7 +123,8 @@ namespace libmaus
 								// check state of stream
 								if ( ! (*(inflatecontext.copyostr)) )
 								{
-									inflatecontext.inflateB[objectid]->ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+									libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+									inflatecontext.inflateB[objectid]->ex = UNIQUE_PTR_MOVE(tex);
 									inflatecontext.inflateB[objectid]->ex->getStream() << "Failed to write Bgzf data to copy stream.";
 									inflatecontext.inflateB[objectid]->ex->finish();
 								}

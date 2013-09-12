@@ -101,7 +101,8 @@ int main(int argc, char * argv[])
 			
 		std::cerr << "[V] max seq len " << maxseqlen << std::endl;
 
-		infodec = UNIQUE_PTR_MOVE(::libmaus::fastx::FastAReader::RewriteInfoDecoder::unique_ptr_type(new ::libmaus::fastx::FastAReader::RewriteInfoDecoder(indexfilename)));
+		::libmaus::fastx::FastAReader::RewriteInfoDecoder::unique_ptr_type tinfodec(new ::libmaus::fastx::FastAReader::RewriteInfoDecoder(indexfilename));
+		infodec = UNIQUE_PTR_MOVE(tinfodec);
 		
 		if ( maxseqlen <= 256*1024 )
 		{

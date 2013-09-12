@@ -388,7 +388,10 @@ namespace libmaus
 							writeoutints.push_back(writeoutindex[i].first);
 						writeoutints.push_back(writeoutindex.back().second);
 
-						temparrayin = UNIQUE_PTR_MOVE(::libmaus::lz::SnappyInputStreamArrayFile::construct(tempfilename,writeoutints.begin(),writeoutints.end()));
+						::libmaus::lz::SnappyInputStreamArrayFile::unique_ptr_type ttemparrayin(
+							::libmaus::lz::SnappyInputStreamArrayFile::construct(tempfilename,writeoutints.begin(),writeoutints.end())
+						);
+						temparrayin = UNIQUE_PTR_MOVE(ttemparrayin);
 						#else
 						::libmaus::util::unique_ptr<std::ifstream>::type rtmpfile(new std::ifstream(tempfilename.c_str(),std::ios::binary));
 						tempfilein = UNIQUE_PTR_MOVE(rtmpfile);

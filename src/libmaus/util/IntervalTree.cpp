@@ -76,8 +76,10 @@ libmaus::util::IntervalTree::IntervalTree(
 	{
 		uint64_t const imiddle = (ileft + iright)/2;
 		split = H[imiddle].first;
-		leftchild = UNIQUE_PTR_MOVE(unique_ptr_type(new IntervalTree(H,ileft,imiddle)));
-		rightchild = UNIQUE_PTR_MOVE(unique_ptr_type(new IntervalTree(H,imiddle,iright)));
+		unique_ptr_type tleftchild(new IntervalTree(H,ileft,imiddle));
+		leftchild = UNIQUE_PTR_MOVE(tleftchild);
+		unique_ptr_type trightchild(new IntervalTree(H,imiddle,iright));
+		rightchild = UNIQUE_PTR_MOVE(trightchild);
 	}
 }
 

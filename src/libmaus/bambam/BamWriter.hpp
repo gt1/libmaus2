@@ -298,7 +298,7 @@ namespace libmaus
 			 * @param rheader BAM header
 			 **/
 			BamWriterTemplate(base_type & rstream, ::libmaus::bambam::BamHeader const & rheader)
-			: Pstream(), stream(rstream), pheader(UNIQUE_PTR_MOVE(rheader.uclone())), header(*pheader)
+			: Pstream(), stream(rstream), pheader(rheader.uclone()), header(*pheader)
 			{
 				header.produceHeader();
 				header.serialise(getStream());			

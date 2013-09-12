@@ -108,10 +108,9 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 	::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedInputStream::unique_ptr_type > thrstreams(numthreads,false);
 	for ( uint64_t t = 0; t < numthreads; ++t )
 	{
-		thrstreams[t] = UNIQUE_PTR_MOVE(
-			::libmaus::aio::CheckedInputStream::unique_ptr_type
-			(new ::libmaus::aio::CheckedInputStream(fn))
-		);
+		::libmaus::aio::CheckedInputStream::unique_ptr_type thrstreamst
+                        (new ::libmaus::aio::CheckedInputStream(fn));
+		thrstreams[t] = UNIQUE_PTR_MOVE(thrstreamst);
 	}
 	
 	#if defined(_OPENMP)

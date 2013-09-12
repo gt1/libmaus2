@@ -52,7 +52,8 @@ namespace libmaus
 			
 			unique_ptr_type uclone() const
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(*this)));
+				unique_ptr_type ptr(new this_type(*this));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			shared_ptr_type sclone() const
@@ -70,7 +71,8 @@ namespace libmaus
 				}			
 				catch(...)
 				{
-					return UNIQUE_PTR_MOVE(unique_ptr_type());
+					unique_ptr_type ptr;
+					return UNIQUE_PTR_MOVE(ptr);
 				}
 			}
 

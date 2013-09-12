@@ -288,7 +288,8 @@ namespace libmaus
 				p8(0), p64(0)
 			{
 				P->B = ::libmaus::autoarray::AutoArray<data_type>((n+63)/64);
-				W = UNIQUE_PTR_MOVE(writer_type::unique_ptr_type(new writer_type(P->B.begin())));
+				writer_type::unique_ptr_type twriter(new writer_type(P->B.begin()));
+				W = UNIQUE_PTR_MOVE(twriter);
 				P->A8 = ::libmaus::autoarray::AutoArray<uint8_t>(n8);
 				P->A64 = ::libmaus::autoarray::AutoArray<uint64_t>(n64);
 				P->n = n;
@@ -319,7 +320,8 @@ namespace libmaus
 			Array864::unique_ptr_type createFinal()
 			{
 				W->flush();
-				P->R = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type(new ::libmaus::rank::ERank222B(P->B.get(), P->B.size()*64)));
+				::libmaus::rank::ERank222B::unique_ptr_type tPR(new ::libmaus::rank::ERank222B(P->B.get(), P->B.size()*64));
+				P->R = UNIQUE_PTR_MOVE(tPR);
 				return UNIQUE_PTR_MOVE(P);
 			}
 		};

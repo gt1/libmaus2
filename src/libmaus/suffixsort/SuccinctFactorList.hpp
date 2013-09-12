@@ -914,7 +914,8 @@ namespace libmaus
 			{
 				if ( bhigh == B.size() )
 					extendBlockArray();
-				B[bhigh++] = UNIQUE_PTR_MOVE(block_ptr_type(new block_type(context.get(),bufsize)));
+				block_ptr_type tBhigh(new block_type(context.get(),bufsize));
+				B[bhigh++] = UNIQUE_PTR_MOVE(tBhigh);
 			}
 			
 			static uint64_t computeLogN(uint64_t const n)
@@ -999,7 +1000,10 @@ namespace libmaus
 					B[bhigh-i-1] = UNIQUE_PTR_MOVE(R0);
 				}
 				if ( (bhigh-blow) & 1 )
-					B[blow+(bhigh-blow)/2] = UNIQUE_PTR_MOVE(B[blow+(bhigh-blow)/2]->reverse());
+				{
+					block_ptr_type tB(B[blow+(bhigh-blow)/2]->reverse());
+					B[blow+(bhigh-blow)/2] = UNIQUE_PTR_MOVE(tB);
+				}
 			}
 
 			template<typename iterator>

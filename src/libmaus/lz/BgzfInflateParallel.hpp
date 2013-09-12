@@ -48,7 +48,8 @@ namespace libmaus
 
 				for ( uint64_t i = 0; i < T.size(); ++i )
 				{
-					T[i] = UNIQUE_PTR_MOVE(BgzfInflateParallelThread::unique_ptr_type(new BgzfInflateParallelThread(inflatecontext)));
+					BgzfInflateParallelThread::unique_ptr_type tTi(new BgzfInflateParallelThread(inflatecontext));
+					T[i] = UNIQUE_PTR_MOVE(tTi);
 					T[i]->start();
 				}			
 			}

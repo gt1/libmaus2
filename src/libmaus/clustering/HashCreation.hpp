@@ -428,7 +428,10 @@ namespace libmaus
 				#pragma omp parallel for schedule(dynamic,1)
 				#endif				
 				for ( int64_t h = 0; h < static_cast<int64_t>(numthreads); ++h )
-					hashtables[h] = UNIQUE_PTR_MOVE(hashtableptrtype(new hashtabletype(hashtablesize)));
+				{
+					hashtableptrtype thashtablesh(new hashtabletype(hashtablesize));
+					hashtables[h] = UNIQUE_PTR_MOVE(thashtablesh);
+				}
 		
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
@@ -966,8 +969,9 @@ namespace libmaus
 				
 				if ( ! rtmpgen )
 				{
-					ptmpgen = UNIQUE_PTR_MOVE(::libmaus::util::TempFileNameGenerator::unique_ptr_type(
-						new ::libmaus::util::TempFileNameGenerator(tempfileprefix + "_tmpdir" , 4 )));
+					::libmaus::util::TempFileNameGenerator::unique_ptr_type tptmpgen(
+                                                new ::libmaus::util::TempFileNameGenerator(tempfileprefix + "_tmpdir" , 4 ));
+					ptmpgen = UNIQUE_PTR_MOVE(tptmpgen);
 					tmpgen = ptmpgen.get();
 				}
 				else
@@ -979,8 +983,11 @@ namespace libmaus
 				#pragma omp parallel for schedule(dynamic,1)
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(numthreads); ++i )
-					bufferarrays[i] = UNIQUE_PTR_MOVE(output_file_array_type::unique_ptr_type(
-						new output_file_array_type(HI,*tmpgen)));
+				{
+					output_file_array_type::unique_ptr_type tbufferarraysi(
+                                                new output_file_array_type(HI,*tmpgen));
+					bufferarrays[i] = UNIQUE_PTR_MOVE(tbufferarraysi);
+				}
 		
 				/**
 				 * static scheduling is necessary for Phusion2 compatibility

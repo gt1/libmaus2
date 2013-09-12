@@ -64,7 +64,7 @@ void testInplaceReverseComplement()
 				
 				algn.replaceSequence(s,std::string(k,'H'));
 			
-				libmaus::bambam::BamAlignment::unique_ptr_type ualgn = UNIQUE_PTR_MOVE(algn.uclone());
+				libmaus::bambam::BamAlignment::unique_ptr_type ualgn(algn.uclone());
 			
 				// std::cout << algn.formatAlignment(header) << std::endl;
 			

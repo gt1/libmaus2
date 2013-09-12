@@ -58,11 +58,14 @@ libmaus::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus:
 	m_ones = ones;
 	m_size = v.size();
 	// initialize absolute samples m_abs_samples[0]=0
-	m_abs_samples = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray( m_ones/nndblocksize + 1, ::libmaus::math::numbits(v.size()-1) )));
+	::libmaus::bitio::CompactArray::unique_ptr_type tm_abs_samples(new ::libmaus::bitio::CompactArray( m_ones/nndblocksize + 1, ::libmaus::math::numbits(v.size()-1) ));
+	m_abs_samples = UNIQUE_PTR_MOVE(tm_abs_samples);
 	// initialize different values
-	m_differences = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray( m_ones - m_ones/nndblocksize, ::libmaus::math::numbits(max_distance_between_two_ones) )));
+	::libmaus::bitio::CompactArray::unique_ptr_type tm_differences(new ::libmaus::bitio::CompactArray( m_ones - m_ones/nndblocksize, ::libmaus::math::numbits(max_distance_between_two_ones) ));
+	m_differences = UNIQUE_PTR_MOVE(tm_differences);
 	// initialize m_contains_abs_sample
-	m_contains_abs_sample = UNIQUE_PTR_MOVE(::libmaus::bitio::IndexedBitVector::unique_ptr_type(new ::libmaus::bitio::IndexedBitVector( (v.size()+nndblocksize-1)/nndblocksize )));
+	::libmaus::bitio::IndexedBitVector::unique_ptr_type tm_contains_abs_sample(new ::libmaus::bitio::IndexedBitVector( (v.size()+nndblocksize-1)/nndblocksize ));
+	m_contains_abs_sample = UNIQUE_PTR_MOVE(tm_contains_abs_sample);
 
 	ones = 0;
 	for (uint64_t i=0, last_one_pos=0; i < v.size(); ++i) 

@@ -35,9 +35,11 @@ std::string libmaus::network::LogReceiver::computeSessionId()
 	uint64_t const id,
 	::libmaus::network::DispatchCallback * dc)
 {
-	return UNIQUE_PTR_MOVE(::libmaus::network::LogReceiverTestProcess::construct(
-		sid,hostname,port,id,getOpenFds(),dc)
+	::libmaus::network::LogReceiverTestProcess::unique_ptr_type ptr(
+		::libmaus::network::LogReceiverTestProcess::construct(
+                sid,hostname,port,id,getOpenFds(),dc)
 	);
+	return UNIQUE_PTR_MOVE(ptr);
 }
 
 std::vector<int> libmaus::network::LogReceiver::getOpenFds() const

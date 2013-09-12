@@ -51,7 +51,8 @@ namespace libmaus
 				std::vector<int> const & rcloseFds,
 				DispatchCallback * dc)
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(rsid,rloghostname,rport,rid,rcloseFds,dc)));
+				unique_ptr_type ptr(new this_type(rsid,rloghostname,rport,rid,rcloseFds,dc));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			LogReceiverTestProcess(

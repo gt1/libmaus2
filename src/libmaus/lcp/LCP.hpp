@@ -514,7 +514,8 @@ namespace libmaus
 				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&streambits);
 				s += ALCP.deserialize(in);
 				LCP = ALCP.get();
-				eselect = UNIQUE_PTR_MOVE(select_type::unique_ptr_type( new select_type( LCP, ((streambits+63)/64)*64 ) ));
+				select_type::unique_ptr_type teselect( new select_type( LCP, ((streambits+63)/64)*64 ) );
+				eselect = UNIQUE_PTR_MOVE(teselect);
 				if ( verbose )
 					std::cerr << "LCP: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1)) / (1024*1024) << " mb" << std::endl;
 				return s;
@@ -547,7 +548,8 @@ namespace libmaus
 			static unique_ptr_type load(sampled_sa_type const & rsa, std::string const & fn)
 			{
 				libmaus::aio::CheckedInputStream CIS(fn);
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(CIS,rsa)));
+				unique_ptr_type ptr(new this_type(CIS,rsa));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			uint64_t operator[](uint64_t i) const
@@ -728,14 +730,18 @@ namespace libmaus
 				LCPResult(std::istream & in)
 				{
 					bool const haveU = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-					WLCP = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint8_t>(in)));
+					::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type tWLCP(new ::libmaus::autoarray::AutoArray<uint8_t>(in));
+					WLCP = UNIQUE_PTR_MOVE(tWLCP);
 					if ( haveU )
 					{
-						U = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint64_t>(in)));
-						LLCP = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint64_t>(in)));
+						::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tU(new ::libmaus::autoarray::AutoArray<uint64_t>(in));
+						U = UNIQUE_PTR_MOVE(tU);
+						::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tLLCP(new ::libmaus::autoarray::AutoArray<uint64_t>(in));
+						LLCP = UNIQUE_PTR_MOVE(tLLCP);
 						uint64_t const n = WLCP->size()-1;
 						uint64_t const n64 = (n+63)/64;
-						Urank = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type(new ::libmaus::rank::ERank222B(U->get(),n64*64)));
+						::libmaus::rank::ERank222B::unique_ptr_type tUrank(new ::libmaus::rank::ERank222B(U->get(),n64*64));
+						Urank = UNIQUE_PTR_MOVE(tUrank);
 					}
 				}
 				
@@ -785,14 +791,17 @@ namespace libmaus
 				{
 					// set up large value bit vector
 					uint64_t const n64 = (n+63)/64;
-					this->U = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint64_t>(n64)));
+					::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tU(new ::libmaus::autoarray::AutoArray<uint64_t>(n64));
+					this->U = UNIQUE_PTR_MOVE(tU);
 					for ( uint64_t i = 0; i < n; ++i )
 						if ( (*WLCP)[i] == unset )
 							::libmaus::bitio::putBit(this->U->get(),i,1);
 					// set up rank dictionary for large value bit vector
-					this->Urank = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type(new ::libmaus::rank::ERank222B(this->U->get(),n64*64)));
+					::libmaus::rank::ERank222B::unique_ptr_type tUrank(new ::libmaus::rank::ERank222B(this->U->get(),n64*64));
+					this->Urank = UNIQUE_PTR_MOVE(tUrank);
 					// set up array for large values
-					this->LLCP = UNIQUE_PTR_MOVE(::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint64_t>(this->Urank->rank1(n-1))));
+					::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tLLCP(new ::libmaus::autoarray::AutoArray<uint64_t>(this->Urank->rank1(n-1)));
+					this->LLCP = UNIQUE_PTR_MOVE(tLLCP);
 					// mark all large values as unset
 					for ( uint64_t i = 0; i < this->LLCP->size(); ++i )
 						(*(this->LLCP))[i] = std::numeric_limits<uint64_t>::max();				

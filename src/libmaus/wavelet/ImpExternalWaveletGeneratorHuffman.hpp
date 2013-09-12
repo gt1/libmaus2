@@ -122,8 +122,11 @@ namespace libmaus
 				// set up bit writer contexts
 				contexts = ::libmaus::autoarray::AutoArray<context_ptr_type>(nodeToId.size());
 				for ( uint64_t i = 0; i < contexts.size(); ++i )
-					contexts[i] = UNIQUE_PTR_MOVE(context_ptr_type(new context_type(
-						tmpcnt.openOutputTempFile(i), 0, false /* no header */)));
+				{
+					context_ptr_type tcontextsi(new context_type(
+                                                tmpcnt.openOutputTempFile(i), 0, false /* no header */));
+					contexts[i] = UNIQUE_PTR_MOVE(tcontextsi);
+				}
 					
 				bv = ::libmaus::autoarray::AutoArray < bit_vector_type >(leafMap.size());
 				uint64_t lid = 0;

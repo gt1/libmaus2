@@ -129,7 +129,8 @@ namespace libmaus
                                                 if ( Q.get(i) & 1 )
                                                         lfill += 1;
                                         
-                                        contexts[z] =  UNIQUE_PTR_MOVE(DequeContext::unique_ptr_type (new DequeContext(left,lfill)));
+					DequeContext::unique_ptr_type tcontextsz(new DequeContext(left,lfill));
+                                        contexts[z] =  UNIQUE_PTR_MOVE(tcontextsz);
                                 }
                                 
                                 return contexts;
@@ -227,7 +228,8 @@ namespace libmaus
                         
                         EnqueBuffer::unique_ptr_type createEnqueBuffer(uint64_t const bufsize = 64*1024)
                         {
-                                return UNIQUE_PTR_MOVE(EnqueBuffer::unique_ptr_type(new EnqueBuffer(this,bufsize)));
+				EnqueBuffer::unique_ptr_type ptr(new EnqueBuffer(this,bufsize));
+                                return UNIQUE_PTR_MOVE(ptr);
                         }
                 };                
         }

@@ -545,7 +545,8 @@ namespace libmaus
 			
 			static unique_ptr_type construct(std::vector<std::string> const & filenames)
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(filenames)));
+				unique_ptr_type ptr(new this_type(filenames));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			IndexDecoderDataArray(std::vector<std::string> const & filenames)

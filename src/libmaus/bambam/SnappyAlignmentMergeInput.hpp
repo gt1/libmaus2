@@ -63,7 +63,8 @@ namespace libmaus
 			 **/
 			static unique_ptr_type construct(std::vector < std::pair < uint64_t, uint64_t > > const & rindex, std::string const & fn)
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(rindex,fn)));
+				unique_ptr_type ptr(new this_type(rindex,fn));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			/**
@@ -80,12 +81,11 @@ namespace libmaus
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					if ( index[i].second-- )
 					{
+						libmaus::lz::SnappyOffsetFileInputStream::unique_ptr_type tstreamsi(
+                                                                        new libmaus::lz::SnappyOffsetFileInputStream(fn,index[i].first)
+                                                                );
 						streams [ i ] =
-							UNIQUE_PTR_MOVE(
-								libmaus::lz::SnappyOffsetFileInputStream::unique_ptr_type(
-									new libmaus::lz::SnappyOffsetFileInputStream(fn,index[i].first)
-								)
-							);
+							UNIQUE_PTR_MOVE(tstreamsi);
 							
 						assert ( libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[i]),data[i],0,false) );
 						Q.push(i);

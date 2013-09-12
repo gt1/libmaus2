@@ -209,9 +209,9 @@ namespace libmaus
 			:
 			  libmaus::bambam::BamAlignmentDecoder(rputrank), 
 			  filename(rfilename), indexname(deriveBamIndexName(filename)),
-			  Pheader(UNIQUE_PTR_MOVE(loadHeader(filename))),
+			  Pheader(loadHeader(filename)),
 			  header(*Pheader),
-			  Pindex(UNIQUE_PTR_MOVE(loadIndex(indexname))),
+			  Pindex(loadIndex(indexname)),
 			  index(*Pindex),
 			  ranges(libmaus::bambam::BamRangeParser::parse(rranges,header)),
 			  rangeidx(0),

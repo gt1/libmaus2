@@ -283,9 +283,10 @@ namespace libmaus
 				/**
 				 * rank dictionary for large superblock vector
 				 **/	
-				SLr = UNIQUE_PTR_MOVE(::libmaus::util::unique_ptr <  ::libmaus::rank::ERank222B >::type (
-					new ::libmaus::rank::ERank222B( SL.get(), ((numsuper + 63)/64)*64 )
-				));
+				::libmaus::util::unique_ptr <  ::libmaus::rank::ERank222B >::type tSLr (
+                                        new ::libmaus::rank::ERank222B( SL.get(), ((numsuper + 63)/64)*64 )
+                                );
+				SLr = UNIQUE_PTR_MOVE(tSLr);
 				
 				uint64_t numlargesuper = SLr->rank1(numsuper - 1);
 				uint64_t numsmallsuper = SLr->rank0(numsuper - 1);
@@ -376,7 +377,8 @@ namespace libmaus
 				/**
 				 * construct rank dictionary for large miniblock vector
 				 **/
-				MLr = UNIQUE_PTR_MOVE(::libmaus::util::unique_ptr< ::libmaus::rank::ERank222B >::type ( new  ::libmaus::rank::ERank222B( ML.get(), ((m + 63)/64)*64 ) ));
+				::libmaus::util::unique_ptr< ::libmaus::rank::ERank222B >::type tMLr ( new  ::libmaus::rank::ERank222B( ML.get(), ((m + 63)/64)*64 ) );
+				MLr = UNIQUE_PTR_MOVE(tMLr);
 				
 				uint64_t largemini = MLr->rank1(m - 1);
 				uint64_t smallmini = MLr->rank0(m - 1);

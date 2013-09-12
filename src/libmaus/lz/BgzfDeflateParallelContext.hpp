@@ -108,9 +108,10 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < deflateB.size(); ++i )
 				{
-					deflateB[i] = UNIQUE_PTR_MOVE(libmaus::lz::BgzfDeflateBase::unique_ptr_type(
-						new libmaus::lz::BgzfDeflateBase(level,true)
-					));
+					libmaus::lz::BgzfDeflateBase::unique_ptr_type tdeflateBi(
+                                                new libmaus::lz::BgzfDeflateBase(level,true)
+                                        );
+					deflateB[i] = UNIQUE_PTR_MOVE(tdeflateBi);
 					// completely empty buffer on flush
 					deflateB[i]->flushmode = true;
 					deflateB[i]->objectid = i;

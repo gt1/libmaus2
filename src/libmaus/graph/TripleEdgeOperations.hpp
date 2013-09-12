@@ -148,9 +148,12 @@ namespace libmaus
 				::libmaus::autoarray::AutoArray<input_ptr_type> inputs(inputfilenames.size());
 				
 				for ( uint64_t i = 0; i < inputfilenames.size(); ++i )
-					inputs[i] = UNIQUE_PTR_MOVE(input_ptr_type (
-						new input_type ( inputfilenames[i] , 32*1024 )
-						));
+				{
+					input_ptr_type tinputsi (
+                                                new input_type ( inputfilenames[i] , 32*1024 )
+                                                );
+					inputs[i] = UNIQUE_PTR_MOVE(tinputsi);
+				}
 						
 				::libmaus::autoarray::AutoArray < ::libmaus::graph::TripleEdge > triples(inputfilenames.size());
 				::libmaus::autoarray::AutoArray < bool > ok(inputfilenames.size());

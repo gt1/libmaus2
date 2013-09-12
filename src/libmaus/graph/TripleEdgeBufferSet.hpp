@@ -40,7 +40,10 @@ namespace libmaus
 			: numparts(rnumparts), buffers(numparts)
 			{
 				for ( uint64_t i = 0; i < numparts; ++i )
-					buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type ( new buffer_type (tmpgen) ) );
+				{
+					buffer_ptr_type tbuffersi( new buffer_type (tmpgen) );
+					buffers[i] = UNIQUE_PTR_MOVE(tbuffersi);
+				}
 			}
 
 			void registerFileName(uint64_t const part, std::string const & filename)

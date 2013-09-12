@@ -109,11 +109,10 @@ namespace libmaus
 					albits = getAlBits(idda.data[fileptr].filename);
 
 					// open new input file stream
-					CIS = UNIQUE_PTR_MOVE(
-						::libmaus::aio::CheckedInputStream::unique_ptr_type(
-							new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
-						)
-					);
+					::libmaus::aio::CheckedInputStream::unique_ptr_type tCIS(
+                                                        new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
+                                                );
+					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
 					// seek to position and check if we succeeded
 					if ( iecv )
@@ -121,19 +120,17 @@ namespace libmaus
 					else
 						CIS->seekg(idda.data[fileptr].getPos(blockptr),std::ios::beg);
 
-					SGI = UNIQUE_PTR_MOVE(
-						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(
-							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,bufsize,
-								std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
-							)
-						)
-					);
+					::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+                                                        new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,bufsize,
+                                                                std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
+                                                        )
+                                                );
+					SGI = UNIQUE_PTR_MOVE(tSGI);
 					
-					GD = UNIQUE_PTR_MOVE(
-						::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type(
-							new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
-						)
-					);
+					::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
+                                                        new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
+                                                );
+					GD = UNIQUE_PTR_MOVE(tGD);
 
 					return true;
 				}
@@ -295,7 +292,7 @@ namespace libmaus
 				std::vector<std::string> const & rfilenames, uint64_t offset = 0, uint64_t const rbufsize = 64*1024
 			)
 			: 
-			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
+			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  iecv(0),
 			  pa(0), pc(0), pe(0),

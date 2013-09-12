@@ -189,7 +189,10 @@ namespace libmaus
 			  idxfilename(filename+".idx"), h(rh), s(rs), B(h), idx(new ::libmaus::aio::SynchronousOutputBuffer8(idxfilename,1024))
 			{
 				for ( uint64_t i = 0; i < h; ++i )
-					B[i] = UNIQUE_PTR_MOVE(BlockBuffer::unique_ptr_type ( new BlockBuffer(s) ));
+				{
+					BlockBuffer::unique_ptr_type tBi( new BlockBuffer(s) );
+					B[i] = UNIQUE_PTR_MOVE(tBi);
+				}
 			}
 
 			/**

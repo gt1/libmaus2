@@ -65,14 +65,16 @@ namespace libmaus
 				if ( fileptr < idda.data.size() )
 				{
 					/* open file */
-					istr = UNIQUE_PTR_MOVE(::libmaus::util::unique_ptr<std::ifstream>::type(
-						new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary)));
+					::libmaus::util::unique_ptr<std::ifstream>::type tistr(
+                                                new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary));
+					istr = UNIQUE_PTR_MOVE(tistr);
 					
 					assert ( istr->is_open() );
 						
 					/* inst SBIS */
 					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
-					SBIS = UNIQUE_PTR_MOVE(sbis_ptr_type(new sbis_type(ript,64*1024)));
+					sbis_ptr_type tSBIS(new sbis_type(ript,64*1024));
+					SBIS = UNIQUE_PTR_MOVE(tSBIS);
 					/* do we need escape symbols */
 					needescape = SBIS->readBit();
 					/* read number of entries in file */
@@ -83,9 +85,15 @@ namespace libmaus
 
 					/* instantiate Huffman decoder */
 					if ( needescape )
-						ECE = UNIQUE_PTR_MOVE(::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::EscapeCanonicalEncoder(dist)));
+					{
+						::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tECE(new ::libmaus::huffman::EscapeCanonicalEncoder(dist));
+						ECE = UNIQUE_PTR_MOVE(tECE);
+					}
 					else
-						CE = UNIQUE_PTR_MOVE(::libmaus::huffman::CanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::CanonicalEncoder(dist)));
+					{
+						::libmaus::huffman::CanonicalEncoder::unique_ptr_type tCE(new ::libmaus::huffman::CanonicalEncoder(dist));
+						CE = UNIQUE_PTR_MOVE(tCE);
+					}
 					
 					/* seek to block */
 					if ( blockptr < idda.data[fileptr].numentries )
@@ -96,7 +104,8 @@ namespace libmaus
 						istr->seekg ( pos , std::ios::beg );
 						assert ( static_cast<int64_t>(istr->tellg()) == static_cast<int64_t>(pos) );
 						sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
-						SBIS = UNIQUE_PTR_MOVE(sbis_ptr_type(new sbis_type(ript,64*1024)));
+						sbis_ptr_type tSBIS(new sbis_type(ript,64*1024));
+						SBIS = UNIQUE_PTR_MOVE(tSBIS);
 					}
 				}
 			}
@@ -245,7 +254,7 @@ namespace libmaus
 				KvInitResult & result 
 			)
 			:
-			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
+			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 
@@ -261,7 +270,7 @@ namespace libmaus
 				uint64_t * psymoffset = 0
 			)
 			:
-			  Pidda(UNIQUE_PTR_MOVE(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames))),
+			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 

@@ -422,13 +422,12 @@ namespace libmaus
 			{
 				Pistr->clear();
 				
-				bgzf = UNIQUE_PTR_MOVE(
-					libmaus::lz::BgzfInflateStream::unique_ptr_type(
-						new libmaus::lz::BgzfInflateStream(
-							*Pistr,startoffset,endoffset
-						)
-					)
-				);
+				libmaus::lz::BgzfInflateStream::unique_ptr_type tbgzf(
+                                                new libmaus::lz::BgzfInflateStream(
+                                                        *Pistr,startoffset,endoffset
+                                                )
+                                        );
+				bgzf = UNIQUE_PTR_MOVE(tbgzf);
 				
 				bamdec.setStream(bgzf.get());
 			}

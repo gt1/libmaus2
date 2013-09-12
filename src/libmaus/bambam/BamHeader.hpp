@@ -225,8 +225,8 @@ namespace libmaus
 				for ( uint64_t i = 0; i < RG.size(); ++i )
 					dict.push_back(RG[i].ID);
 				trienofailure.insertContainer(dict);
-				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure = 
-					UNIQUE_PTR_MOVE(trienofailure.toLinearHashTrie<uint32_t>());
+				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+					(trienofailure.toLinearHashTrie<uint32_t>());
 				::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type LHTsnofailure(
 					LHTnofailure.release()
 					);

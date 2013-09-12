@@ -77,19 +77,22 @@ namespace libmaus
 				}
 				catch(libmaus::exception::LibMausException const & lex)
 				{
-					ex = UNIQUE_PTR_MOVE(lex.uclone());
+					libmaus::exception::LibMausException::unique_ptr_type tex(lex.uclone());
+					ex = UNIQUE_PTR_MOVE(tex);
 					return false;
 				}
 				catch(std::exception const & lex)
 				{
-					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << lex.what();
 					ex->finish(false);
 					return false;
 				}
 				catch(...)
 				{
-					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << "BgzfInflateBlock::readBlock(): unknown exception caught";
 					ex->finish(false);
 					return false;				
@@ -114,19 +117,22 @@ namespace libmaus
 				}
 				catch(libmaus::exception::LibMausException const & lex)
 				{
-					ex = UNIQUE_PTR_MOVE(lex.uclone());
+					libmaus::exception::LibMausException::unique_ptr_type tex(lex.uclone());
+					ex = UNIQUE_PTR_MOVE(tex);
 					return false;
 				}
 				catch(std::exception const & lex)
 				{
-					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << lex.what();
 					ex->finish(false);
 					return false;
 				}
 				catch(...)
 				{
-					ex = UNIQUE_PTR_MOVE(libmaus::exception::LibMausException::unique_ptr_type(new libmaus::exception::LibMausException));
+					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << "BgzfInflateBlock::decompressBlock(): unknown exception caught";
 					ex->finish(false);
 					return false;				

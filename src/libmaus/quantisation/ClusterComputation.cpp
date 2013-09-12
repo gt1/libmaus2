@@ -82,19 +82,22 @@ template<typename iterator>
 ::libmaus::quantisation::Quantiser::unique_ptr_type libmaus::quantisation::ClusterComputation::constructQuantiser(
 	std::vector<double> const & V, uint64_t const k, uint64_t const runs)
 {
-	return UNIQUE_PTR_MOVE(constructQuantiserTemplate<std::vector<double>::const_iterator>(V.begin(),V.size(),k,runs));
+	::libmaus::quantisation::Quantiser::unique_ptr_type ptr(constructQuantiserTemplate<std::vector<double>::const_iterator>(V.begin(),V.size(),k,runs));
+	return UNIQUE_PTR_MOVE(ptr);
 }
 
 ::libmaus::quantisation::Quantiser::unique_ptr_type libmaus::quantisation::ClusterComputation::constructQuantiser(
 	std::vector<unsigned int> const & V, uint64_t const k, uint64_t const runs)
 {
-	return UNIQUE_PTR_MOVE(constructQuantiserTemplate<std::vector<unsigned int>::const_iterator>(V.begin(),V.size(),k,runs));
+	::libmaus::quantisation::Quantiser::unique_ptr_type ptr(constructQuantiserTemplate<std::vector<unsigned int>::const_iterator>(V.begin(),V.size(),k,runs));
+	return UNIQUE_PTR_MOVE(ptr);
 }
 
 ::libmaus::quantisation::Quantiser::unique_ptr_type libmaus::quantisation::ClusterComputation::constructQuantiser(
 	std::vector<uint64_t> const & V, uint64_t const k, uint64_t const runs)
 {
-	return UNIQUE_PTR_MOVE(constructQuantiserTemplate<std::vector<uint64_t>::const_iterator>(V.begin(),V.size(),k,runs));
+	::libmaus::quantisation::Quantiser::unique_ptr_type ptr(constructQuantiserTemplate<std::vector<uint64_t>::const_iterator>(V.begin(),V.size(),k,runs));
+	return UNIQUE_PTR_MOVE(ptr);
 }
 
 

@@ -252,9 +252,15 @@ namespace libmaus
 				::libmaus::huffman::HuffmanTreeNode::unique_ptr_type root;
 				
 				if ( cvec.size() == 1 )
-					root = UNIQUE_PTR_MOVE(::libmaus::huffman::HuffmanTreeNode::unique_ptr_type(new ::libmaus::huffman::HuffmanTreeLeaf(cvec[0].second,0)));
+				{
+					::libmaus::huffman::HuffmanTreeNode::unique_ptr_type troot(new ::libmaus::huffman::HuffmanTreeLeaf(cvec[0].second,0));
+					root = UNIQUE_PTR_MOVE(troot);
+				}
 				else if ( cvec.size() > 1 )
-					root = UNIQUE_PTR_MOVE(::libmaus::huffman::HuffmanTreeNode::unique_ptr_type(new ::libmaus::huffman::HuffmanTreeInnerNode(0,0,0)));
+				{
+					::libmaus::huffman::HuffmanTreeNode::unique_ptr_type troot(new ::libmaus::huffman::HuffmanTreeInnerNode(0,0,0));
+					root = UNIQUE_PTR_MOVE(troot);
+				}
 				
 				// build tree in breadth first order
 				if ( cvec.size() > 1 )
@@ -521,7 +527,8 @@ namespace libmaus
 					double const maxloadf = 0.85;
 					if ( syms.size() > maxloadf * (1ull << tablog) )
 						tablog++;
-					symtorank = UNIQUE_PTR_MOVE(symtorank_ptr_type(new symtorank_type(tablog)));
+					symtorank_ptr_type tsymtorank(new symtorank_type(tablog));
+					symtorank = UNIQUE_PTR_MOVE(tsymtorank);
 
 					// reverse hash table (symbol to rank in sorted table)
 					for ( uint64_t i = 0; i < syms.size(); ++i )

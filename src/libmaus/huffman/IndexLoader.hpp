@@ -254,7 +254,10 @@ namespace libmaus
 			{
 				::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A(filenames.size());
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					A[i] = UNIQUE_PTR_MOVE(loadAccIndex(filenames[i]));
+				{
+					IndexEntryContainer::unique_ptr_type tAi(loadAccIndex(filenames[i]));
+					A[i] = UNIQUE_PTR_MOVE(tAi);
+				}
 
 				IndexEntryContainerVector::unique_ptr_type IECV(new IndexEntryContainerVector(A));
 				

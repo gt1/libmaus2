@@ -417,7 +417,8 @@ namespace libmaus
 				if ( fileptr < sizevec.size() )
 				{
 					assert ( offset < sizevec[fileptr] );
-					BI = UNIQUE_PTR_MOVE(BlockInflate::unique_ptr_type(new BlockInflate(filenames[fileptr],offset)));
+					BlockInflate::unique_ptr_type tBI(new BlockInflate(filenames[fileptr],offset));
+					BI = UNIQUE_PTR_MOVE(tBI);
 					// BI->ignore(offset);
 				}
 				else
@@ -509,7 +510,10 @@ namespace libmaus
 						fileptr++;
 						BI.reset();
 						if ( fileptr < filenames.size() )
-							BI = UNIQUE_PTR_MOVE(BlockInflate::unique_ptr_type(new BlockInflate(filenames[fileptr])));
+						{
+							BlockInflate::unique_ptr_type tBI(new BlockInflate(filenames[fileptr]));
+							BI = UNIQUE_PTR_MOVE(tBI);
+						}
 					}
 				}
 				

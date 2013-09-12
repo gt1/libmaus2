@@ -275,7 +275,8 @@ namespace libmaus
 			
 			void setupIndex()
 			{
-				index = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(A.get(),A.size()*64)));
+				rank_ptr_type tindex(new rank_type(A.get(),A.size()*64));
+				index = UNIQUE_PTR_MOVE(tindex);
 			}
 			
 			uint64_t rank1(uint64_t const i) const
@@ -335,7 +336,8 @@ namespace libmaus
 			
 			void setupIndex()
 			{
-				index = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(A.get(),A.size()*64)));
+				rank_ptr_type tindex(new rank_type(A.get(),A.size()*64));
+				index = UNIQUE_PTR_MOVE(tindex);
 			}
 			
 			uint64_t rank1(uint64_t const i) const

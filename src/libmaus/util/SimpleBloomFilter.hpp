@@ -116,7 +116,10 @@ namespace libmaus
 			  lockbase(vectorsize)
 			{
 				for ( unsigned int i = 0; i < numvectors; ++i )
-					vectors[i] = UNIQUE_PTR_MOVE(::libmaus::bitio::BitVector::unique_ptr_type(new ::libmaus::bitio::BitVector(vectorsize)));
+				{
+					::libmaus::bitio::BitVector::unique_ptr_type tvectorsi(new ::libmaus::bitio::BitVector(vectorsize));
+					vectors[i] = UNIQUE_PTR_MOVE(tvectorsi);
+				}
 			}
 			
 			
@@ -220,7 +223,8 @@ namespace libmaus
 				unsigned int const optk = optimalK(optm,n);
 				unsigned int const logoptm = ::libmaus::math::ilog(optm);
 				// std::cerr << "optm=" << optm << " logoptm=" << logoptm << " optk=" << optk << std::endl;
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(optk,logoptm)));
+				unique_ptr_type ptr(new this_type(optk,logoptm));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};
 	}

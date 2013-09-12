@@ -84,23 +84,24 @@ namespace libmaus
 			template<typename stream_type>
 			void deserialise(stream_type & in)
 			{
-				IHWT = UNIQUE_PTR_MOVE(libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type(new libmaus::wavelet::ImpHuffmanWaveletTree(in)));
+				libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type tIHWT(new libmaus::wavelet::ImpHuffmanWaveletTree(in));
+				IHWT = UNIQUE_PTR_MOVE(tIHWT);
 				C = libmaus::autoarray::AutoArray< ::libmaus::bitio::CompactArray::unique_ptr_type >(IHWT->enctable.maxsym+1);
 
 				if ( IHWT->getN() )
 					for ( int s = IHWT->enctable.minsym; s <= IHWT->enctable.maxsym; ++s )
 						if ( s > 1 && IHWT->rank(s,IHWT->getN()-1) )
 						{
-							C[s] = UNIQUE_PTR_MOVE(
-								::libmaus::bitio::CompactArray::unique_ptr_type(
-									new ::libmaus::bitio::CompactArray(in)));
+							::libmaus::bitio::CompactArray::unique_ptr_type tCs(
+                                                                        new ::libmaus::bitio::CompactArray(in));
+							C[s] = UNIQUE_PTR_MOVE(tCs);
 						}
 			}
 			
 			template<typename stream_type>
 			static unique_ptr_type load(stream_type & in)
 			{
-				unique_ptr_type P = UNIQUE_PTR_MOVE(unique_ptr_type(new this_type));
+				unique_ptr_type P(new this_type);
 				P->deserialise(in);
 				return UNIQUE_PTR_MOVE(P);
 			}
@@ -108,7 +109,8 @@ namespace libmaus
 			static unique_ptr_type loadFile(std::string const & filename)
 			{
 				libmaus::aio::CheckedInputStream CIS(filename);
-				return UNIQUE_PTR_MOVE(load(CIS));
+				unique_ptr_type ptr(load(CIS));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			uint64_t operator[](uint64_t const i) const
@@ -166,11 +168,10 @@ namespace libmaus
 					if ( i > 1 && E.checkSymbol(i) )
 					{
 						uint64_t const numsyms = probs.find(i)->second;
-						ICNA->C[i] = UNIQUE_PTR_MOVE(
-							::libmaus::bitio::CompactArray::unique_ptr_type(
-								new ::libmaus::bitio::CompactArray(numsyms,i-1)
-							)
-						);
+						::libmaus::bitio::CompactArray::unique_ptr_type ICNACi(
+                                                                new ::libmaus::bitio::CompactArray(numsyms,i-1)
+                                                        );
+						ICNA->C[i] = UNIQUE_PTR_MOVE(ICNACi);
 					}
 			}
 			
@@ -192,11 +193,10 @@ namespace libmaus
 				IEWGH.createFinalStream(hwtostr);
 				
 				std::istringstream hwtistr(hwtostr.str());
-				ICNA->IHWT = UNIQUE_PTR_MOVE(
-					libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type(
-						new libmaus::wavelet::ImpHuffmanWaveletTree(hwtistr)
-					)
-				);
+				libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type tICNAIHWT(
+                                                new libmaus::wavelet::ImpHuffmanWaveletTree(hwtistr)
+                                        );
+				ICNA->IHWT = UNIQUE_PTR_MOVE(tICNAIHWT);
 				
 				return UNIQUE_PTR_MOVE(ICNA);		
 			}
@@ -206,8 +206,9 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < n; ++i )
 					add(*(it_in++));
+				ImpCompactNumberArray::unique_ptr_type ptr(createFinal());
 				
-				return UNIQUE_PTR_MOVE(createFinal());
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			template<typename iterator_in>
@@ -218,8 +219,10 @@ namespace libmaus
 					hist ( libmaus::math::bitsPerNum(*it_a) );
 
 				ImpCompactNumberArrayGenerator gen(hist);
+
+				ImpCompactNumberArray::unique_ptr_type ptr(gen.construct(it_in,n));
 				
-				return UNIQUE_PTR_MOVE(gen.construct(it_in,n));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};
 	}

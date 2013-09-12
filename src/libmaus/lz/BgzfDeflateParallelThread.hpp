@@ -107,7 +107,8 @@ namespace libmaus
 								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
 								{
 									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
-									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ex.uclone());
+									libmaus::exception::LibMausException::unique_ptr_type tex(ex.uclone());
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 								}
 								
 								deflatecontext.deflateB[objectid]->compsize = 0;
@@ -123,7 +124,9 @@ namespace libmaus
 									libmaus::exception::LibMausException se;
 									se.getStream() << ex.what() << std::endl;
 									se.finish();
-									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(se.uclone());
+
+									libmaus::exception::LibMausException::unique_ptr_type tex(se.uclone());
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 								}
 								
 								deflatecontext.deflateB[objectid]->compsize = 0;
@@ -181,7 +184,8 @@ namespace libmaus
 								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
 								{
 									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
-									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(ex.uclone());									
+									libmaus::exception::LibMausException::unique_ptr_type tex(ex.uclone());
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);									
 								}
 							}
 							catch(std::exception const & ex)
@@ -195,7 +199,10 @@ namespace libmaus
 									libmaus::exception::LibMausException se;
 									se.getStream() << ex.what() << std::endl;
 									se.finish();
-									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(se.uclone());
+
+									libmaus::exception::LibMausException::unique_ptr_type tex(se.uclone());
+
+									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 								}
 							}
 

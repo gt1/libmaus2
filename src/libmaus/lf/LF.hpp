@@ -109,7 +109,8 @@ namespace libmaus
 			uint64_t deserialize(std::istream & istr)
 			{
 				uint64_t s = 0;
-				W = UNIQUE_PTR_MOVE(wt_ptr_type ( new wt_type (istr,s) ));
+				wt_ptr_type tW( new wt_type (istr,s) );
+				W = UNIQUE_PTR_MOVE(tW);
 				D = computeD(W.get());
 				std::cerr << "LF: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1))/(1024*1024) << " mb " << std::endl;
 				return s;
@@ -135,7 +136,8 @@ namespace libmaus
 			{
 				// compute wavelet tree bits
 				::libmaus::autoarray::AutoArray<uint64_t> AW = ::libmaus::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
-				W = UNIQUE_PTR_MOVE(wt_ptr_type ( new wt_type( AW, ABWT->n, ABWT->getB()) ));
+				wt_ptr_type tW( new wt_type( AW, ABWT->n, ABWT->getB()) );
+				W = UNIQUE_PTR_MOVE(tW);
 				
 				D = computeD(W.get());
 				
@@ -145,7 +147,8 @@ namespace libmaus
 			{
 				// compute wavelet tree bits
 				::libmaus::autoarray::AutoArray<uint64_t> AW = ::libmaus::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
-				W = UNIQUE_PTR_MOVE(wt_ptr_type ( new wt_type ( AW, ABWT->n, ABWT->getB()) ));
+				wt_ptr_type tW( new wt_type ( AW, ABWT->n, ABWT->getB()) );
+				W = UNIQUE_PTR_MOVE(tW);
 				
 				D = computeD(W.get());
 				
@@ -323,12 +326,13 @@ namespace libmaus
 			{
 				for ( uint64_t j = 0; j < bit_vectors.getN(); ++j )
 				{
-					rank_dictionaries[j] = UNIQUE_PTR_MOVE(rank_ptr_type (
-							new rank_type (
-								bit_vectors[j]->get(),
-								bit_vectors[j]->getN() * bitsperword
-							)
-						));						
+					rank_ptr_type trank_dictionariesj (
+                                                        new rank_type (
+                                                                bit_vectors[j]->get(),
+                                                                bit_vectors[j]->getN() * bitsperword
+                                                        )
+                                                );
+					rank_dictionaries[j] = UNIQUE_PTR_MOVE(trank_dictionariesj);
 				}
 			
 			}
@@ -337,12 +341,13 @@ namespace libmaus
 			{
 				for ( uint64_t j = 0; j < bit_vectors.getN(); ++j )
 				{
-					rank_dictionaries[j] = UNIQUE_PTR_MOVE(rank_ptr_type (
-							new rank_type (
-								bit_vectors[j]->get(),
-								bit_vectors[j]->getN() * bitsperword
-							)
-						));						
+					rank_ptr_type trank_dictionariesj (
+                                                        new rank_type (
+                                                                bit_vectors[j]->get(),
+                                                                bit_vectors[j]->getN() * bitsperword
+                                                        )
+                                                );
+					rank_dictionaries[j] = UNIQUE_PTR_MOVE(trank_dictionariesj);
 				}
 			
 			}
@@ -365,17 +370,18 @@ namespace libmaus
 					for ( uint64_t i = 0; i < maxval+1; ++i )
 					{
 						// add one word for correct rankm1 at border
-						bit_vectors[i] =
-							UNIQUE_PTR_MOVE(bit_vector_ptr_type (
-								new bit_vector_type(
-									( ( n + bitsperword - 1 ) / bitsperword + 1 )
-								)
-							));
-						writers[i] = UNIQUE_PTR_MOVE(writer_ptr_type (
-							new writer_type(
-								bit_vectors[i]->get()
-							)
-						));
+						bit_vector_ptr_type tbit_vectorsi (
+                                                                new bit_vector_type(
+                                                                        ( ( n + bitsperword - 1 ) / bitsperword + 1 )
+                                                                )
+                                                        );
+						bit_vectors[i] = UNIQUE_PTR_MOVE(tbit_vectorsi);
+						writer_ptr_type twritersi(
+                                                        new writer_type(
+                                                                bit_vectors[i]->get()
+                                                        )
+                                                );
+						writers[i] = UNIQUE_PTR_MOVE(twritersi);
 					}
 					
 					for ( uint64_t i = 0; i < n; ++i )
@@ -391,12 +397,13 @@ namespace libmaus
 					for ( uint64_t j = 0; j < maxval+1; ++j )
 					{
 						writers[j]->flush();
-						rank_dictionaries[j] = UNIQUE_PTR_MOVE(rank_ptr_type (
-								new rank_type (
-									bit_vectors[j]->get(),
-									bit_vectors[j]->getN() * bitsperword
-								)
-							));
+						rank_ptr_type trank_dictionariesj (
+                                                                new rank_type (
+                                                                        bit_vectors[j]->get(),
+                                                                        bit_vectors[j]->getN() * bitsperword
+                                                                )
+                                                        );
+						rank_dictionaries[j] = UNIQUE_PTR_MOVE(trank_dictionariesj);
 						
 						D[j] = rank_dictionaries[j] -> rank1 (n - 1);
 					}					
@@ -524,7 +531,8 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
-						rank_dictionaries[i] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(n+1)));
+						rank_ptr_type trank_dictionariesi(new rank_type(n+1));
+						rank_dictionaries[i] = UNIQUE_PTR_MOVE(trank_dictionariesi);
 						writer_type writer = rank_dictionaries[i]->getWriteContext();
 						
 						for ( uint64_t j = 0; j < n; ++j )
@@ -629,7 +637,8 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
-						rank_dictionaries[i] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(n+1)));
+						rank_ptr_type trank_dictionariesi(new rank_type(n+1));
+						rank_dictionaries[i] = UNIQUE_PTR_MOVE(trank_dictionariesi);
 						writers[i] = rank_dictionaries[i]->getWriteContext();
 					}
 					
@@ -779,7 +788,8 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
-						rank_dictionaries[i] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(n+1)));
+						rank_ptr_type trank_dictionariesi(new rank_type(n+1));
+						rank_dictionaries[i] = UNIQUE_PTR_MOVE(trank_dictionariesi);
 						writers[i] = rank_dictionaries[i]->getWriteContext();
 					}
 					
@@ -918,7 +928,8 @@ namespace libmaus
 					IEWG.createFinalStream(tmpfilename);
 					
 					std::ifstream istr(tmpfilename.c_str(),std::ios::binary);
-					W = UNIQUE_PTR_MOVE(wt_ptr_type(new wt_type(istr)));
+					wt_ptr_type tW(new wt_type(istr));
+					W = UNIQUE_PTR_MOVE(tW);
 					istr.close();
 					remove ( tmpfilename.c_str() );
 					
@@ -1078,7 +1089,8 @@ namespace libmaus
 
 			static unique_ptr_type load(std::string const & filename)
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(filename)));
+				unique_ptr_type ptr(new this_type(filename));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			ImpHuffmanWaveletLF(std::istream & in)

@@ -67,7 +67,8 @@ namespace libmaus
 				for ( uint64_t i = 0; i < tbs.numparts; ++i )
 				{
 					std::string const filename = getNextFileName();
-					outputs[i] = UNIQUE_PTR_MOVE(output_ptr_type ( new output_type (filename, bufsize) ) );
+					output_ptr_type toutputsi ( new output_type (filename, bufsize) );
+					outputs[i] = UNIQUE_PTR_MOVE(toutputsi);
 				}
 			}
 
@@ -125,7 +126,8 @@ namespace libmaus
 					output.flush();
 					tbs.registerFileName(h, output.filename );
 					outputs[h].reset();
-					outputs[h] = UNIQUE_PTR_MOVE(output_ptr_type ( new output_type ( getNextFileName(), bufsize ) ) );
+					output_ptr_type toutputsh ( new output_type ( getNextFileName(), bufsize ) );
+					outputs[h] = UNIQUE_PTR_MOVE(toutputsh);
 				}
 			}
 		};

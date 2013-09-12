@@ -96,19 +96,24 @@ namespace libmaus
 				S(in)
 			{
 				for ( uint64_t i = 0; i < I.size(); ++i )
-					I[i] = UNIQUE_PTR_MOVE(libmaus::bitio::CompactArray::unique_ptr_type(new libmaus::bitio::CompactArray(in)));
+				{
+					libmaus::bitio::CompactArray::unique_ptr_type tIi(new libmaus::bitio::CompactArray(in));
+					I[i] = UNIQUE_PTR_MOVE(tIi);
+				}
 				for ( uint64_t i = 0; i < C.size(); ++i )
-					C[i] = UNIQUE_PTR_MOVE(C_type::load(in));
+				{
+					C_ptr_type Ci(C_type::load(in));					
+					C[i] = UNIQUE_PTR_MOVE(Ci);
+				}
 			}
 			
 			static unique_ptr_type load(base_layer_type const & B, std::string const & fn)
 			{
 				libmaus::aio::CheckedInputStream CIS(fn);
-				return UNIQUE_PTR_MOVE(
-					unique_ptr_type(
-						new this_type(CIS,B)
-					)
-				);
+				unique_ptr_type ptr(
+                                                new this_type(CIS,B)
+                                        );
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			uint64_t operator()(unsigned int const level, uint64_t const i) const
@@ -242,15 +247,22 @@ namespace libmaus
 					uint64_t const out = (in+k-1) >> klog;
 					
 					// minimal indices for next level
-					I[level] = UNIQUE_PTR_MOVE(libmaus::bitio::CompactArray::unique_ptr_type(
-						new libmaus::bitio::CompactArray(out,klog)));
+					libmaus::bitio::CompactArray::unique_ptr_type tIlevel(
+                                                new libmaus::bitio::CompactArray(out,klog));
+					I[level] = UNIQUE_PTR_MOVE(tIlevel);
 
 					libmaus::util::Histogram::unique_ptr_type subhist;
 
 					if ( level == 0 )
-						subhist = UNIQUE_PTR_MOVE(fillSubHistogram(B.begin(),in));
+					{
+						libmaus::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(B.begin(),in));
+						subhist = UNIQUE_PTR_MOVE(tsubhist);
+					}
 					else
-						subhist = UNIQUE_PTR_MOVE(fillSubHistogram(C[level-1]->begin(),in));
+					{
+						libmaus::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(C[level-1]->begin(),in));
+						subhist = UNIQUE_PTR_MOVE(tsubhist);
+					}
 					
 					C_type::generator_type impgen(*subhist);
 
@@ -259,7 +271,8 @@ namespace libmaus
 					else
 						fillSubArrays(C[level-1]->begin(),in,*(I[level]),impgen);
 						
-					C[level] = UNIQUE_PTR_MOVE(impgen.createFinal());
+					C_ptr_type tClevel(impgen.createFinal());
+					C[level] = UNIQUE_PTR_MOVE(tClevel);
 					
 					in = out;
 					++level;

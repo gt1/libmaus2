@@ -98,7 +98,7 @@ namespace libmaus
 				std::string const & filename,
 				int level = Z_DEFAULT_COMPRESSION,
 				bool const addHeader = true
-			) : out_ptr ( UNIQUE_PTR_MOVE(out_file_ptr_type(new std::ofstream(filename.c_str(),std::ios::binary) )) ),
+			) : out_ptr ( out_file_ptr_type(new std::ofstream(filename.c_str(),std::ios::binary) ) ),
 			    out(*out_ptr)
 			{
 				if ( addHeader )

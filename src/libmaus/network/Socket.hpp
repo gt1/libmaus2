@@ -874,11 +874,14 @@ namespace libmaus
 			static SocketBase::unique_ptr_type baseAlloc(unsigned short const port, char const * const hostname)
 			{
 				ClientSocket::unique_ptr_type ptr ( new ClientSocket(port,hostname) );
-				return UNIQUE_PTR_MOVE(baseCast(ptr));
+				SocketBase::unique_ptr_type baseptr = baseCast(ptr);
+				return UNIQUE_PTR_MOVE(baseptr);
 			}
 			static SocketBase::unique_ptr_type baseAlloc(unsigned short const port, std::string const & hostname)
 			{
-				return UNIQUE_PTR_MOVE(baseAlloc(port,hostname.c_str()));
+
+				SocketBase::unique_ptr_type baseptr = baseAlloc(port,hostname.c_str());
+				return UNIQUE_PTR_MOVE(baseptr);
 			}
 		};
 
@@ -900,9 +903,8 @@ namespace libmaus
 				std::string const & hostname,
 				unsigned int tries)
 			{
-				return UNIQUE_PTR_MOVE(
-					allocateServerSocket(port,backlog,hostname.c_str(),tries)
-				);
+				unique_ptr_type ptr(allocateServerSocket(port,backlog,hostname.c_str(),tries));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			static unique_ptr_type allocateServerSocket(
@@ -986,7 +988,7 @@ namespace libmaus
 
 			SocketBase::shared_ptr_type acceptShared()
 			{
-				SocketBase::unique_ptr_type uptr = UNIQUE_PTR_MOVE(accept());
+				SocketBase::unique_ptr_type uptr(accept());
 				SocketBase * ptr = uptr.release();
 				SocketBase::shared_ptr_type sptr(ptr);
 				return sptr;

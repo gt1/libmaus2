@@ -283,9 +283,9 @@ namespace libmaus
 				filenames(rfilenames),
 				fragments(CompactFastDecoder::getDataFragments(filenames)),
 				fragmentintervals(::libmaus::aio::FileFragment::toIntervalVector(fragments)),
-				fragmenttree(UNIQUE_PTR_MOVE(::libmaus::aio::FileFragment::toIntervalTree(fragments))),
+				fragmenttree(::libmaus::aio::FileFragment::toIntervalTree(fragments)),
 				index(CompactFastDecoder::loadIndex(filenames)),
-				indextree(UNIQUE_PTR_MOVE(libmaus::fastx::FastInterval::toIntervalTree(index)))
+				indextree(libmaus::fastx::FastInterval::toIntervalTree(index))
 			{
 			
 			}

@@ -93,7 +93,8 @@ namespace libmaus
 				std::vector < uint64_t > const & rtmpoutcnts		
 			)
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(filename,tmpoffsetintervals,rtmpoutcnts)));
+				unique_ptr_type ptr(new this_type(filename,tmpoffsetintervals,rtmpoutcnts));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			/**

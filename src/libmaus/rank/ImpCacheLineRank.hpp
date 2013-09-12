@@ -191,11 +191,13 @@ namespace libmaus
 				
 				static unique_ptr_type construct(std::string const & filename, uint64_t const n, bool const writeHeader = true)
 				{
-					return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(filename,n,writeHeader)));
+					unique_ptr_type ptr(new this_type(filename,n,writeHeader));
+					return UNIQUE_PTR_MOVE(ptr);
 				}
 				static unique_ptr_type construct(std::ostream & out, uint64_t const n, bool const writeHeader = true)
 				{
-					return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(out,n,writeHeader)));
+					unique_ptr_type ptr(new this_type(out,n,writeHeader));
+					return UNIQUE_PTR_MOVE(ptr);
 				}
 			
 				uint64_t bitpos;
@@ -228,8 +230,9 @@ namespace libmaus
 						::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,words);
 					}
 					// instantiate output buffer
-					out = UNIQUE_PTR_MOVE(::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type(
-						new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(ostr,64*1024)));
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tout(
+                                                new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(ostr,64*1024));
+					out = UNIQUE_PTR_MOVE(tout);
 				}
 
 				WriteContextExternal(std::ostream & rostr, uint64_t const n, bool const writeHeader = true)
@@ -247,8 +250,9 @@ namespace libmaus
 						::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,words);
 					}
 					// instantiate output buffer
-					out = UNIQUE_PTR_MOVE(::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type(
-						new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(ostr,64*1024)));
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tout(
+                                                new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(ostr,64*1024));
+					out = UNIQUE_PTR_MOVE(tout);
 				}
 				~WriteContextExternal()
 				{

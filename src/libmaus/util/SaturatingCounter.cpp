@@ -49,7 +49,8 @@ void libmaus::util::SaturatingCounter::shrink()
 	/* shorten array */
 	B.resize( (n + 63)/64 );
 	/* set up rank dictionary */
-	rank = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(B.get(),B.size()*64)));
+	rank_ptr_type trank(new rank_type(B.get(),B.size()*64));
+	rank = UNIQUE_PTR_MOVE(trank);
 }
 		
 std::ostream & libmaus::util::operator<<(std::ostream & out, libmaus::util::SaturatingCounter const & S)

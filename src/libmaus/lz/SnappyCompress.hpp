@@ -460,11 +460,12 @@ namespace libmaus
 			{
 				uint64_t i = 0;
 				for ( iterator offc = offa; offc != offe && offc+1 != offe; ++offc, ++i )
-					A [ i ] = UNIQUE_PTR_MOVE(
-						SnappyInputStream::unique_ptr_type(
-							new SnappyInputStream(in,*offc,true,*(offc+1))
-						)
-					);
+				{
+					SnappyInputStream::unique_ptr_type ptr(
+                                                        new SnappyInputStream(in,*offc,true,*(offc+1))
+                                                );
+					A [ i ] = UNIQUE_PTR_MOVE(ptr);
+				}
 			}
 			
 			SnappyInputStream & operator[](uint64_t const i)
@@ -497,13 +498,14 @@ namespace libmaus
 			template<typename iterator>
 			static unique_ptr_type construct(std::string const & filename, iterator offa, iterator offe)
 			{
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(filename,offa,offe)));
+				unique_ptr_type ptr(new this_type(filename,offa,offe));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			static unique_ptr_type construct(std::string const & filename, std::vector<uint64_t> const & V)
 			{
-				return
-					UNIQUE_PTR_MOVE(construct(filename,V.begin(),V.end()));
+				unique_ptr_type ptr(construct(filename,V.begin(),V.end()));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 
 			SnappyInputStream & operator[](uint64_t const i)

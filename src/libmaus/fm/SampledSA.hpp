@@ -98,7 +98,8 @@ namespace libmaus
 				uint64_t s = 0;
 				sasamplingrate = readUnsignedInt(in,s);
 				RSA = readArray64(in,s);
-				ARSA = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type ( new ::libmaus::rank::ERank222B(RSA.get(), padn) ));
+				::libmaus::rank::ERank222B::unique_ptr_type tARSA( new ::libmaus::rank::ERank222B(RSA.get(), padn) );
+				ARSA = UNIQUE_PTR_MOVE(tARSA);
 				SSA = readArray64(in,s);
 				// std::cerr << "SA: " << s << " bytes = " << s*8 << " bits = " << (s+(1024*1024-1))/(1024*1024) << " mb" << " samplingrate = " << sasamplingrate << std::endl;
 				return s;
@@ -153,7 +154,8 @@ namespace libmaus
 
 				assert ( r == rr );
 
-				ARSA = UNIQUE_PTR_MOVE(::libmaus::rank::ERank222B::unique_ptr_type ( new ::libmaus::rank::ERank222B(RSA.get(), padn) ));
+				::libmaus::rank::ERank222B::unique_ptr_type tARSA( new ::libmaus::rank::ERank222B(RSA.get(), padn) );
+				ARSA = UNIQUE_PTR_MOVE(tARSA);
 
 				if ( verbose )
 					std::cerr << "(fillingSampledSuffixArray";
@@ -300,7 +302,8 @@ namespace libmaus
 			static unique_ptr_type load(lf_type const * lf, std::string const & filename)
 			{
 				libmaus::aio::CheckedInputStream CIS(filename);
-				return UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(lf,CIS)));
+				unique_ptr_type ptr(new this_type(lf,CIS));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			SimpleSampledSA(lf_type const * rlf, std::istream & in) : lf(rlf) { deserialize(in); }

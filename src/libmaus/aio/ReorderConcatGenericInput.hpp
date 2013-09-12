@@ -125,8 +125,8 @@ namespace libmaus
 			        if ( it != V.end() )
 			        {
 			                // std::cerr << "Switching to " << it->toString() << " offset " << offset << std::endl;
-			        
-			                reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(it->filename.c_str(),std::ios::binary)));
+					reader_ptr_type treader(new reader_type(it->filename.c_str(),std::ios::binary));
+			                reader = UNIQUE_PTR_MOVE(treader);
 			                if ( !reader->is_open() )
 			                {
 			                        ::libmaus::exception::LibMausException se;
@@ -364,7 +364,7 @@ namespace libmaus
                          **/
 	        	static fragment_vector loadFragmentVectorRequest(std::string const & requestfilename)
         		{
-	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req = UNIQUE_PTR_MOVE(::libmaus::util::ConcatRequest::load(requestfilename));
+	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req(::libmaus::util::ConcatRequest::load(requestfilename));
 		                return loadFragmentVector(req->infilenames);
                         }
 
@@ -383,7 +383,7 @@ namespace libmaus
                                 uint64_t const offset = 0
                         )
                         {
-	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req = UNIQUE_PTR_MOVE(::libmaus::util::ConcatRequest::load(requestfilename));
+	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req(::libmaus::util::ConcatRequest::load(requestfilename));
 		                fragment_vector frags = loadFragmentVector(req->infilenames);
                                 return UNIQUE_PTR_MOVE(unique_ptr_type( new this_type(frags,bufsize,limit,offset) ));
                         }
@@ -423,7 +423,7 @@ namespace libmaus
                          **/
                         static uint64_t getSize(std::string const & requestfilename)
                         {
-	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req = UNIQUE_PTR_MOVE(::libmaus::util::ConcatRequest::load(requestfilename));
+	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req(::libmaus::util::ConcatRequest::load(requestfilename));
 		                fragment_vector frags = loadFragmentVector(req->infilenames);
 		                uint64_t len = 0;
 		                

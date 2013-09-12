@@ -74,7 +74,7 @@ libmaus::util::OctetString::OctetString(std::istream & CIS, uint64_t const octet
 
 std::map<int64_t,uint64_t> libmaus::util::OctetString::getHistogramAsMap() const
 {
-	::libmaus::util::Histogram::unique_ptr_type hist = UNIQUE_PTR_MOVE(getHistogram());
+	::libmaus::util::Histogram::unique_ptr_type hist(getHistogram());
 	return hist->getByType<int64_t>();
 }			
 

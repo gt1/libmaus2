@@ -75,7 +75,8 @@ namespace libmaus
 							
 					if ( sempos == outertoken.size() )
 					{
-						A[i] = UNIQUE_PTR_MOVE(libmaus::bambam::BamRange::unique_ptr_type(new libmaus::bambam::BamRangeChromosome(outertoken,header)));
+						libmaus::bambam::BamRange::unique_ptr_type tAi(new libmaus::bambam::BamRangeChromosome(outertoken,header));
+						A[i] = UNIQUE_PTR_MOVE(tAi);
 					}
 					else
 					{
@@ -111,7 +112,8 @@ namespace libmaus
 									throw se;
 								}
 								
-							A[i] = UNIQUE_PTR_MOVE(libmaus::bambam::BamRange::unique_ptr_type(new libmaus::bambam::BamRangeHalfOpen(refname,num-1,header)));
+							libmaus::bambam::BamRange::unique_ptr_type tAi(new libmaus::bambam::BamRangeHalfOpen(refname,num-1,header));
+							A[i] = UNIQUE_PTR_MOVE(tAi);
 						}
 						else
 						{
@@ -155,7 +157,8 @@ namespace libmaus
 									throw se;
 								}
 								
-							A[i] = UNIQUE_PTR_MOVE(libmaus::bambam::BamRange::unique_ptr_type(new libmaus::bambam::BamRangeInterval(refname,start-1,end,header)));						
+							libmaus::bambam::BamRange::unique_ptr_type tAi(new libmaus::bambam::BamRangeInterval(refname,start-1,end,header));
+							A[i] = UNIQUE_PTR_MOVE(tAi);						
 						}
 					}
 				}

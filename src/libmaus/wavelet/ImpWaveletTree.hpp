@@ -80,7 +80,8 @@ namespace libmaus
 				if ( b )
 				{
 					dicts[0] = rank_array_type( 1 );	
-					dicts[0][0] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(in)));
+					rank_ptr_type tdicts00(new rank_type(in));
+					dicts[0][0] = UNIQUE_PTR_MOVE(tdicts00);
 					root = dicts[0][0].get();
 					
 					for ( uint64_t ib = 1; ib < b; ++ib )
@@ -88,7 +89,8 @@ namespace libmaus
 						dicts[ib] = rank_array_type( 1ull << ib );	
 						for ( uint64_t i = 0; i < dicts[ib].size(); ++i )
 						{
-							dicts[ib][i] = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(in)));
+							rank_ptr_type tdictsibi(new rank_type(in));
+							dicts[ib][i] = UNIQUE_PTR_MOVE(tdictsibi);
 							
 							if ( i & 1 )
 							{

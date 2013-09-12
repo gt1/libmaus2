@@ -101,8 +101,10 @@ namespace libmaus
 			// allocate for computing BWT from sorted s* suffixes
 			if ( mode == mode_induce )
 			{
-				BBB = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(n,b)));
-				E = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(wtsize,b)));
+				::libmaus::bitio::CompactArray::unique_ptr_type tBBB(new ::libmaus::bitio::CompactArray(n,b));
+				BBB = UNIQUE_PTR_MOVE(tBBB);
+				::libmaus::bitio::CompactArray::unique_ptr_type tE(new ::libmaus::bitio::CompactArray(wtsize,b));
+				E = UNIQUE_PTR_MOVE(tE);
 			
 				#if defined(INDUCE_DEBUG)
 				B_L = VVptr(new std::vector < std::vector < uint8_t > >(k));
@@ -143,10 +145,20 @@ namespace libmaus
 				Psi = ::libmaus::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
 				sortedL = ::libmaus::autoarray::AutoArray<list_ptr_type>( k );
 				sortedS = ::libmaus::autoarray::AutoArray<list_ptr_type>( k );
-				wtbase = UNIQUE_PTR_MOVE(::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(wtsize,b)));
-				for ( uint64_t i = 0; i < sortedL.size(); ++i ) sortedL[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
-				for ( uint64_t i = 0; i < sortedS.size(); ++i ) sortedS[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
-				Phi  = UNIQUE_PTR_MOVE(::libmaus::util::IncreasingList::unique_ptr_type(new ::libmaus::util::IncreasingList(n,b)));
+				::libmaus::bitio::CompactArray::unique_ptr_type twtbase(new ::libmaus::bitio::CompactArray(wtsize,b));
+				wtbase = UNIQUE_PTR_MOVE(twtbase);
+				for ( uint64_t i = 0; i < sortedL.size(); ++i )
+				{
+					list_ptr_type tsortedLi(new list_type(it,n,b,sentinel));
+					sortedL[i] = UNIQUE_PTR_MOVE(tsortedLi);
+				}
+				for ( uint64_t i = 0; i < sortedS.size(); ++i )
+				{
+					list_ptr_type tsortedSi(new list_type(it,n,b,sentinel));
+					sortedS[i] = UNIQUE_PTR_MOVE(tsortedSi);
+				}
+				::libmaus::util::IncreasingList::unique_ptr_type tPhi(new ::libmaus::util::IncreasingList(n,b));
+				Phi  = UNIQUE_PTR_MOVE(tPhi);
 				Phi->put(0,0);
 				Hlow = Clow.clone();
 				Hhigh = ::libmaus::autoarray::AutoArray<uint64_t>(k+1,false);
@@ -184,7 +196,10 @@ namespace libmaus
 				// bucket sort by last character
 				::libmaus::autoarray::AutoArray<list_ptr_type> Sast( k );
 				for ( uint64_t i = 0; i < Sast.size(); ++i ) 
-					Sast[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
+				{
+					list_ptr_type Sasti(new list_type(it,n,b,sentinel));
+					Sast[i] = UNIQUE_PTR_MOVE(Sasti);
+				}
 
 				/**
 				 * copy given s* type substrings to their buckets
@@ -242,7 +257,10 @@ namespace libmaus
 			/* general */
 			::libmaus::autoarray::AutoArray<list_ptr_type> Lex( kruns );
 			for ( uint64_t i = 0; i < Lex.size(); ++i ) 
-				Lex[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
+			{
+				list_ptr_type tLexi(new list_type(it,n,b,sentinel));
+				Lex[i] = UNIQUE_PTR_MOVE(tLexi);
+			}
 			
 			list_ptr_type LS = list_ptr_type(new list_type(it,n,b,sentinel));
 			
@@ -265,7 +283,10 @@ namespace libmaus
 
 				::libmaus::autoarray::AutoArray<list_ptr_type> Lin( khigh-klow );
 				for ( uint64_t i = 0; i < Lin.size(); ++i ) 
-					Lin[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
+				{
+					list_ptr_type tLin(new list_type(it,n,b,sentinel));
+					Lin[i] = UNIQUE_PTR_MOVE(tLin);
+				}
 					
 				while ( ! Lex[krun]->empty() )
 				{
@@ -537,7 +558,10 @@ namespace libmaus
 
 			::libmaus::autoarray::AutoArray<list_ptr_type> Sex( kruns );
 			for ( uint64_t i = 0; i < Sex.size(); ++i ) 
-				Sex[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
+			{
+				list_ptr_type tSexi(new list_type(it,n,b,sentinel));
+				Sex[i] = UNIQUE_PTR_MOVE(tSexi);
+			}
 			Sex[term/kfragsize]->push(n-1,n);
 			Sex[term/kfragsize]->cycle();
 
@@ -573,7 +597,10 @@ namespace libmaus
 
 				::libmaus::autoarray::AutoArray<list_ptr_type> Sin( khigh-klow );
 				for ( uint64_t i = 0; i < Sin.size(); ++i ) 
-					Sin[i] = UNIQUE_PTR_MOVE(list_ptr_type(new list_type(it,n,b,sentinel)));
+				{
+					list_ptr_type Sini(new list_type(it,n,b,sentinel));
+					Sin[i] = UNIQUE_PTR_MOVE(Sini);
+				}
 					
 				while ( ! Sex[krun]->empty() )
 				{

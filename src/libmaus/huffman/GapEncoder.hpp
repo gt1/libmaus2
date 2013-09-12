@@ -53,9 +53,15 @@ namespace libmaus
 				// std::cerr << "need escape: " << needescape << std::endl;
 			
 				if ( needescape )
-					GECE = UNIQUE_PTR_MOVE(::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::EscapeCanonicalEncoder(gaphist.getFreqSymVector())));
+				{
+					::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tGECE(new ::libmaus::huffman::EscapeCanonicalEncoder(gaphist.getFreqSymVector()));
+					GECE = UNIQUE_PTR_MOVE(tGECE);
+				}
 				else
-					GCE = UNIQUE_PTR_MOVE(::libmaus::huffman::CanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::CanonicalEncoder(gaphist.getByType<int64_t>())));
+				{
+					::libmaus::huffman::CanonicalEncoder::unique_ptr_type tGCE(new ::libmaus::huffman::CanonicalEncoder(gaphist.getByType<int64_t>()));
+					GCE = UNIQUE_PTR_MOVE(tGCE);
+				}
 
 				gapHEF.writeBit(needescape);
 				gapHEF.writeElias2(numentries);
@@ -249,7 +255,8 @@ namespace libmaus
 						for ( uint64_t j = 0; j < infilenames[i].size(); ++j )
 							assert ( ::libmaus::util::GetFileSize::fileExists(infilenames[i][j]) );
 						
-						decoders[i] = UNIQUE_PTR_MOVE(decoder_ptr_type(new decoder_type(infilenames[i])));
+						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
+						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
 					}
 
 					// compute histogram for output
@@ -268,7 +275,10 @@ namespace libmaus
 
 					// set up decoders
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
-						decoders[i] = UNIQUE_PTR_MOVE(decoder_ptr_type(new decoder_type(infilenames[i])));
+					{
+						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
+						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
+					}
 					
 					uint64_t const bs = 32*1024;
 					uint64_t const blocks = ( n + bs - 1 ) / bs;
@@ -309,7 +319,10 @@ namespace libmaus
 						std::cerr << "Checking merged...";
 						// set up decoders
 						for ( uint64_t i = 0; i < infilenames.size(); ++i )
-							decoders[i] = UNIQUE_PTR_MOVE(decoder_ptr_type(new decoder_type(infilenames[i])));
+						{
+							decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
+							decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
+						}
 						GapDecoder wdec(std::vector<std::string>(1,outfilename));
 						
 						for ( uint64_t i = 0; i < n; ++i )

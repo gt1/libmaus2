@@ -402,7 +402,8 @@ namespace libmaus
 					else if ( state == state_setup_merging )
 					{
 						CH.reset();
-						mergeinput = UNIQUE_PTR_MOVE(NCHEO->constructMergeInput());
+						libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type tmergeinput(NCHEO->constructMergeInput());
+						mergeinput = UNIQUE_PTR_MOVE(tmergeinput);
 						NCHEO.reset();
 						state = state_merging;			
 					}

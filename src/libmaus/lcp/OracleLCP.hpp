@@ -233,7 +233,8 @@ namespace libmaus
             lengths.release();
 
             //preprocess _ell for RMQs
-            _rmq = UNIQUE_PTR_MOVE(rmq_ptr_type ( new rmq_type(_ell.get(),_m) ));
+	    rmq_ptr_type t_rmq( new rmq_type(_ell.get(),_m) );
+            _rmq = UNIQUE_PTR_MOVE(t_rmq);
          }
 
          void dc_lcp_construct(){

@@ -71,7 +71,8 @@ namespace libmaus
 					for ( uint64_t i = 0; i < numbuffers; ++i )
 					{
 						outputfilenames.push_back(tmpgen.getFileName());
-						B [ i ] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(outputfilenames.back(),bufsize)));
+						buffer_ptr_type Bi(new buffer_type(outputfilenames.back(),bufsize));
+						B [ i ] = UNIQUE_PTR_MOVE(Bi);
 					}
 				}
 
@@ -222,7 +223,10 @@ namespace libmaus
 				}
 
 				for ( uint64_t i = 0; i < B.size(); ++i )
-					B[i] = UNIQUE_PTR_MOVE(BufferTypeSet::unique_ptr_type(new BufferTypeSet( nodeToId.size(), tmpgen, bv, leafToId )));
+				{
+					BufferTypeSet::unique_ptr_type Bi(new BufferTypeSet( nodeToId.size(), tmpgen, bv, leafToId ));
+					B[i] = UNIQUE_PTR_MOVE(Bi);
+				}
 			}
 
 			template<typename ostream_type>

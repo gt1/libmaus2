@@ -90,7 +90,8 @@ namespace libmaus
 					
 				for ( uint64_t i = 0; i < args.size(); ++i )
 				{
-					wargv[i] = UNIQUE_PTR_MOVE(string_ptr_type(new string_type(args[i])));
+					string_ptr_type twargvi(new string_type(args[i]));
+					wargv[i] = UNIQUE_PTR_MOVE(twargvi);
 					aargv[i] = wargv[i]->A.get();
 				}
 					
@@ -157,12 +158,10 @@ namespace libmaus
 					::libmaus::util::LogPipeMultiplexGeneric LPMG(loghostname,port,sid,id);
 					
 					// connect
-					::libmaus::network::ClientSocket::unique_ptr_type controlsock = UNIQUE_PTR_MOVE(
-							::libmaus::network::ClientSocket::unique_ptr_type(
+					::libmaus::network::ClientSocket::unique_ptr_type controlsock(
 								new ::libmaus::network::ClientSocket(
 									port,loghostname.c_str()
 								)
-							)
 						);
 							
 					// write session id

@@ -56,7 +56,8 @@ namespace libmaus
 
 			void setupRankDictionary()
 			{
-				designatorrank = UNIQUE_PTR_MOVE(rank_ptr_type(new rank_type(designators.get(), designators.size()*64)));
+				rank_ptr_type tdesignatorrank(new rank_type(designators.get(), designators.size()*64));
+				designatorrank = UNIQUE_PTR_MOVE(tdesignatorrank);
 			}
 			
 			void serialise(std::ostream & out) const

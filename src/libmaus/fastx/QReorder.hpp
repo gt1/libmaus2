@@ -722,7 +722,7 @@ namespace libmaus
 				iterator ita, iterator ite, 
 				unsigned int const rlookupbits
 			)
-			: qreorder(UNIQUE_PTR_MOVE(rqreorder.uclone())), 
+			: qreorder(rqreorder.uclone()), 
 			  C(generateC(*qreorder,ita,ite)),
 			  recomp(*qreorder),
 			  cache(C.begin(),C.end(),rlookupbits,qreorder)
@@ -845,12 +845,26 @@ namespace libmaus
 			typename QReorderTemplate4<k,select_two_13>::unique_ptr_type reorder13;
 			typename QReorderTemplate4<k,select_two_23>::unique_ptr_type reorder23;
 
-			typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >::unique_ptr_type comp01;
-			typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_02> >::unique_ptr_type comp02;
-			typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_03> >::unique_ptr_type comp03;
-			typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_12> >::unique_ptr_type comp12;
-			typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_13> >::unique_ptr_type comp13;
-			typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_23> >::unique_ptr_type comp23;
+			typedef QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> > comp01_type;
+			typedef QReorder4Component< value_type,QReorderTemplate4<k,select_two_02> > comp02_type;
+			typedef QReorder4Component< value_type,QReorderTemplate4<k,select_two_03> > comp03_type;
+			typedef QReorder4Component< value_type,QReorderTemplate4<k,select_two_12> > comp12_type;
+			typedef QReorder4Component< value_type,QReorderTemplate4<k,select_two_13> > comp13_type;
+			typedef QReorder4Component< value_type,QReorderTemplate4<k,select_two_23> > comp23_type;
+
+			typedef typename comp01_type::unique_ptr_type comp01_ptr_type;
+			typedef typename comp02_type::unique_ptr_type comp02_ptr_type;
+			typedef typename comp03_type::unique_ptr_type comp03_ptr_type;
+			typedef typename comp12_type::unique_ptr_type comp12_ptr_type;
+			typedef typename comp13_type::unique_ptr_type comp13_ptr_type;
+			typedef typename comp23_type::unique_ptr_type comp23_ptr_type;
+
+			comp01_ptr_type comp01;
+			comp02_ptr_type comp02;
+			comp03_ptr_type comp03;
+			comp12_ptr_type comp12;
+			comp13_ptr_type comp13;
+			comp23_ptr_type comp23;
 
 			template<typename iterator>			
 			QReorder4Set(unsigned int l, iterator ita, iterator ite, unsigned int const rlookupbits)
@@ -870,11 +884,21 @@ namespace libmaus
 				typename QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >::unique_ptr_type 
 					rcomp01(new QReorder4Component< value_type,QReorderTemplate4<k,select_two_01> >(*reorder01, ita, ite, rlookupbits)); 
 				comp01 = UNIQUE_PTR_MOVE(rcomp01);
-				comp02 = UNIQUE_PTR_MOVE(comp01->getReorderedClone(*reorder02));
-				comp03 = UNIQUE_PTR_MOVE(comp01->getReorderedClone(*reorder03));
-				comp12 = UNIQUE_PTR_MOVE(comp01->getReorderedClone(*reorder12));
-				comp13 = UNIQUE_PTR_MOVE(comp01->getReorderedClone(*reorder13));
-				comp23 = UNIQUE_PTR_MOVE(comp01->getReorderedClone(*reorder23));
+				
+				comp02_ptr_type tcomp02(comp01->getReorderedClone(*reorder02));
+				comp02 = UNIQUE_PTR_MOVE(tcomp02);
+
+				comp03_ptr_type tcomp03(comp01->getReorderedClone(*reorder03));
+				comp03 = UNIQUE_PTR_MOVE(tcomp03);
+
+				comp12_ptr_type tcomp12(comp01->getReorderedClone(*reorder12));
+                                comp12 = UNIQUE_PTR_MOVE(tcomp12);
+
+				comp13_ptr_type tcomp13(comp01->getReorderedClone(*reorder13));
+                                comp13 = UNIQUE_PTR_MOVE(tcomp13);
+
+				comp23_ptr_type tcomp23(comp01->getReorderedClone(*reorder23));
+                                comp23 = UNIQUE_PTR_MOVE(tcomp23);
 			}
 
 			uint64_t slowComp(uint64_t a, uint64_t b) const

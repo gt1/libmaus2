@@ -56,7 +56,7 @@ int testBitBTreeShort()
 	
 	for ( uint64_t i = 0; i < 5000; ++i )
 	{
-		typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type cloned = UNIQUE_PTR_MOVE(B.clone());
+		typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type cloned(B.clone());
 		
 		uint64_t const pos = rand() % (B.getN()+1);
 		// uint64_t const pos = B.getN();
@@ -185,7 +185,7 @@ int testBitBTreeFunctionalityInsertDelete()
 #endif
 			std::cerr << "\r                               \r" << B.getN() << "\t" << B.bitSize();
 		
-		typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type clone = UNIQUE_PTR_MOVE(B.clone());
+		typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type clone(B.clone());
 
 		bool b = rand() % 2;
 		uint64_t p = rand() % (B.getN()+1);

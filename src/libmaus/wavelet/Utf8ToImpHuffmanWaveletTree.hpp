@@ -449,11 +449,10 @@ namespace libmaus
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						tmpCOS[np] = UNIQUE_PTR_MOVE(
-							::libmaus::aio::CheckedOutputStream::unique_ptr_type(
-								new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
-							)
-						);
+						::libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
+                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+                                                        );
+						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSnp);
 					}
 					
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
@@ -472,13 +471,11 @@ namespace libmaus
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							tmpCIS[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::CheckedInputStream::unique_ptr_type(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]))
-							);
+							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							tmpSGI[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024))
-							);
+							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
 						for ( uint64_t npi = nplow; npi < nphigh; ++npi )
@@ -957,11 +954,10 @@ namespace libmaus
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						tmpCOS[np] = UNIQUE_PTR_MOVE(
-							::libmaus::aio::CheckedOutputStream::unique_ptr_type(
-								new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
-							)
-						);
+						::libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOSi(
+                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+                                                        );
+						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSi);
 					}
 					
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
@@ -980,13 +976,11 @@ namespace libmaus
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							tmpCIS[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::CheckedInputStream::unique_ptr_type(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]))
-							);
+							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							tmpSGI[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024))
-							);
+							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
 						for ( uint64_t npi = nplow; npi < nphigh; ++npi )
@@ -1464,11 +1458,10 @@ namespace libmaus
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						tmpCOS[np] = UNIQUE_PTR_MOVE(
-							::libmaus::aio::CheckedOutputStream::unique_ptr_type(
-								new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
-							)
-						);
+						::libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
+                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+                                                        );
+						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSnp);
 					}
 					
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
@@ -1487,13 +1480,11 @@ namespace libmaus
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							tmpCIS[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::CheckedInputStream::unique_ptr_type(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]))
-							);
+							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							tmpSGI[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024))
-							);
+							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
 						for ( uint64_t npi = nplow; npi < nphigh; ++npi )
@@ -2046,11 +2037,10 @@ namespace libmaus
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						tmpCOS[np] = UNIQUE_PTR_MOVE(
-							::libmaus::aio::CheckedOutputStream::unique_ptr_type(
-								new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
-							)
-						);
+						::libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOSnp(
+                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+                                                        );
+						tmpCOS[np] = UNIQUE_PTR_MOVE(tmpCOSnp);
 					}
 					
 					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
@@ -2072,13 +2062,11 @@ namespace libmaus
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							tmpCIS[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::CheckedInputStream::unique_ptr_type(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]))
-							);
+							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							tmpSGI[i] = UNIQUE_PTR_MOVE(
-								::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024))
-							);
+							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
 						for ( uint64_t npi = nplow; npi < nphigh; ++npi )

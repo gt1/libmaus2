@@ -92,8 +92,8 @@ void testUtf8Bwt(std::string const & fn)
 	IEWGH.createFinalStream(fn+".hwt");
 
 	// load huffman shaped wavelet tree of bwt
-	::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT =
-		UNIQUE_PTR_MOVE(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
+	::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT
+		(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
 		
 	// check rank counts
 	for ( ::std::map<int64_t,uint64_t>::const_iterator ita = chist.begin(); ita != chist.end(); ++ita )
@@ -173,7 +173,7 @@ void testUtf8Seek(std::string const & fn)
 void testUtf8BlockIndexDecoder(std::string const & fn)
 {
 	::libmaus::util::Utf8BlockIndex::unique_ptr_type index = 
-		UNIQUE_PTR_MOVE(::libmaus::util::Utf8BlockIndex::constructFromUtf8File(fn));
+		(::libmaus::util::Utf8BlockIndex::constructFromUtf8File(fn));
 
 	std::string const idxfn = fn + ".idx";
 	::libmaus::aio::CheckedOutputStream COS(idxfn);

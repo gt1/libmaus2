@@ -32,7 +32,7 @@ int testImpCompactArray()
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 		V.push_back(libmaus::random::Random::rand64() % 128);
 
-	libmaus::util::ImpCompactNumberArray::unique_ptr_type P = UNIQUE_PTR_MOVE(
+	libmaus::util::ImpCompactNumberArray::unique_ptr_type P(
 		libmaus::util::ImpCompactNumberArrayGenerator::constructFromArray(V.begin(),V.size())
 	);
 	libmaus::util::ImpCompactNumberArray & I = *P;
@@ -40,7 +40,7 @@ int testImpCompactArray()
 	std::ostringstream ostr;
 	I.serialise(ostr);
 	std::istringstream istr(ostr.str());
-	libmaus::util::ImpCompactNumberArray::unique_ptr_type P2 = UNIQUE_PTR_MOVE(libmaus::util::ImpCompactNumberArray::load(istr));
+	libmaus::util::ImpCompactNumberArray::unique_ptr_type P2(libmaus::util::ImpCompactNumberArray::load(istr));
 	
 	for ( libmaus::util::ImpCompactNumberArray::const_iterator ita = P2->begin(); ita != P2->end(); ++ita )
 	{

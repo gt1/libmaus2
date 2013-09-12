@@ -49,11 +49,10 @@ namespace libmaus
 				SGO.put( (n*b+63)/64 );
 
 				::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type it(SGO);
-				FWBW = UNIQUE_PTR_MOVE(
-					::libmaus::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type(
-						new ::libmaus::bitio::FastWriteBitWriterBuffer64Sync(it)
-					)
-				);	
+				::libmaus::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type tFWBW(
+                                                new ::libmaus::bitio::FastWriteBitWriterBuffer64Sync(it)
+                                        );
+				FWBW = UNIQUE_PTR_MOVE(tFWBW);
 			}
 			
 			CompactArrayWriter(

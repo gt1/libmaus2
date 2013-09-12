@@ -96,17 +96,19 @@ namespace libmaus
 				for ( uint64_t i = 0; i < b; ++i )
 				{
 					uint64_t const numfiles = 1ull<<i;
-					outputfiles[i] = UNIQUE_PTR_MOVE(output_file_ptr_array_ptr_type(
-						new output_file_ptr_array_type(numfiles)
-						));
+					output_file_ptr_array_ptr_type outputfilesi(
+                                                new output_file_ptr_array_type(numfiles)
+                                                );
+					outputfiles[i] = UNIQUE_PTR_MOVE(outputfilesi);
 				
 					for ( uint64_t j = 0; j < numfiles; ++j )
 					{
 						std::string const fn = tmpgen.getFileName();
 						filenames.push_back(std::pair<std::string,uint64_t>(fn,0));
-						(*outputfiles[i])[j] = UNIQUE_PTR_MOVE(output_file_ptr_type(
-							new output_file_type(fn,bufsize)
-							));
+						output_file_ptr_type toutputfilesij(
+                                                        new output_file_type(fn,bufsize)
+                                                        );
+						(*outputfiles[i])[j] = UNIQUE_PTR_MOVE(toutputfilesij);
 						#if 0
 						std::cerr << "i=" << i << " j=" << j << std::endl;
 						#endif

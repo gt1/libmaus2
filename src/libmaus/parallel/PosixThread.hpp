@@ -112,7 +112,8 @@ namespace libmaus
 			{
 				if ( ! thread.get() )
 				{
-					thread = UNIQUE_PTR_MOVE(thread_ptr_type(new pthread_t));
+					thread_ptr_type tthread(new pthread_t);
+					thread = UNIQUE_PTR_MOVE(tthread);
 
 					#if 0
 					std::cerr << "Creating thread without affinity." << std::endl;
@@ -172,7 +173,8 @@ namespace libmaus
 			{
 				if ( ! thread.get() )
 				{
-					thread = UNIQUE_PTR_MOVE(thread_ptr_type(new pthread_t));
+					thread_ptr_type tthread(new pthread_t);
+					thread = UNIQUE_PTR_MOVE(tthread);
 
 					#if 0
 					std::cerr << "Creating thread without affinity." << std::endl;

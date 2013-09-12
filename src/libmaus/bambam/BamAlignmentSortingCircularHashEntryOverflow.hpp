@@ -114,7 +114,8 @@ namespace libmaus
 				COS.flush();
 				COS.close();
 				B.release();
-				return UNIQUE_PTR_MOVE(libmaus::bambam::SnappyAlignmentMergeInput::construct(index,fn));
+				libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type ptr(libmaus::bambam::SnappyAlignmentMergeInput::construct(index,fn));
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			/**

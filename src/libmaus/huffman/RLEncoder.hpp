@@ -192,9 +192,15 @@ namespace libmaus
 					
 					bool const cntesc = ::libmaus::huffman::EscapeCanonicalEncoder::needEscape(cntfreqs);
 					if ( cntesc )
-						esccntenc = UNIQUE_PTR_MOVE(::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::EscapeCanonicalEncoder(cntfreqs)));
+					{
+						::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tesccntenc(new ::libmaus::huffman::EscapeCanonicalEncoder(cntfreqs));
+						esccntenc = UNIQUE_PTR_MOVE(tesccntenc);
+					}
 					else
-						cntenc = UNIQUE_PTR_MOVE(::libmaus::huffman::CanonicalEncoder::unique_ptr_type(new ::libmaus::huffman::CanonicalEncoder(cnthist.getByType<int64_t>())));
+					{
+						::libmaus::huffman::CanonicalEncoder::unique_ptr_type tcntenc(new ::libmaus::huffman::CanonicalEncoder(cnthist.getByType<int64_t>()));
+						cntenc = UNIQUE_PTR_MOVE(tcntenc);
+					}
 
 					// std::cerr << "Writing block of size " << (pc-pa) << std::endl;
 					

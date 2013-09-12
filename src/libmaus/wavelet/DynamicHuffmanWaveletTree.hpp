@@ -59,7 +59,8 @@ namespace libmaus
 					if ( ! (node->left->isLeaf()) )
 					{
 						::libmaus::huffman::HuffmanTreeInnerNode const * const hleft = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(node->left);
-						left = UNIQUE_PTR_MOVE(unique_ptr_type ( new DynamicHuffmanWaveletTreeNode(hleft,inner_node_allocator,leaf_node_allocator) ) );
+						unique_ptr_type tleft ( new DynamicHuffmanWaveletTreeNode(hleft,inner_node_allocator,leaf_node_allocator) ) ;
+						left = UNIQUE_PTR_MOVE(tleft);
 					}
 					#if 0
 					else
@@ -71,7 +72,8 @@ namespace libmaus
 					if ( ! (node->right->isLeaf()) )
 					{
 						::libmaus::huffman::HuffmanTreeInnerNode const * const hright = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(node->right);
-						right = UNIQUE_PTR_MOVE(unique_ptr_type(new DynamicHuffmanWaveletTreeNode(hright,inner_node_allocator,leaf_node_allocator)));
+						unique_ptr_type tright(new DynamicHuffmanWaveletTreeNode(hright,inner_node_allocator,leaf_node_allocator));
+						right = UNIQUE_PTR_MOVE(tright);
 					}
 					#if 0
 					else
@@ -96,7 +98,7 @@ namespace libmaus
 					if ( right.get() )
 						Hnode->right = right->serialize(writer,offset);
 						
-					return Hnode;
+					return UNIQUE_PTR_MOVE(Hnode);
 				}
 				template<typename writer_type>
 				HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type serialize(writer_type & writer) const
@@ -189,9 +191,10 @@ namespace libmaus
 			{
 				if ( ! hroot->isLeaf() )	
 				{
-					data = UNIQUE_PTR_MOVE(typename DynamicHuffmanWaveletTreeNode::unique_ptr_type (
-						new DynamicHuffmanWaveletTreeNode(dynamic_cast<huffman::HuffmanTreeInnerNode const *>(hroot.get()),inner_node_allocator,leaf_node_allocator)
-					));
+					typename DynamicHuffmanWaveletTreeNode::unique_ptr_type tdata (
+                                                new DynamicHuffmanWaveletTreeNode(dynamic_cast<huffman::HuffmanTreeInnerNode const *>(hroot.get()),inner_node_allocator,leaf_node_allocator)
+                                        );
+					data = UNIQUE_PTR_MOVE(tdata);
 				}
 			}
 			

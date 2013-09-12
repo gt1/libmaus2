@@ -306,9 +306,10 @@ namespace libmaus
 
 				releaseArray();
 				
-				return UNIQUE_PTR_MOVE(
+				::libmaus::bambam::SortedFragDecoder::unique_ptr_type ptr(
 					::libmaus::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
 				);
+				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
 			/**

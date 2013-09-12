@@ -28,12 +28,14 @@ libmaus::util::LogPipe::LogPipe(
 	)
 : pid(-1)
 {
-	outsock = UNIQUE_PTR_MOVE(::libmaus::network::ClientSocket::unique_ptr_type(new ::libmaus::network::ClientSocket(outport,serverhostname.c_str())));
+	::libmaus::network::ClientSocket::unique_ptr_type toutsock(new ::libmaus::network::ClientSocket(outport,serverhostname.c_str()));
+	outsock = UNIQUE_PTR_MOVE(toutsock);
 	outsock->setNoDelay();
 	outsock->writeMessage<uint64_t>(0,&rank,1);
 	outsock->writeString(0,sid);
 		
-	errsock = UNIQUE_PTR_MOVE(::libmaus::network::ClientSocket::unique_ptr_type(new ::libmaus::network::ClientSocket(errport,serverhostname.c_str())));
+	::libmaus::network::ClientSocket::unique_ptr_type terrsock(new ::libmaus::network::ClientSocket(errport,serverhostname.c_str()));
+	errsock = UNIQUE_PTR_MOVE(terrsock);
 	errsock->setNoDelay();
 	errsock->writeMessage<uint64_t>(0,&rank,1);
 	errsock->writeString(0,sid);

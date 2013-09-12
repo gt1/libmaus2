@@ -46,10 +46,10 @@ namespace libmaus
 				
 				singlestream.reset();
 				
-				singlestream =
-					UNIQUE_PTR_MOVE(GzipSingleStream::unique_ptr_type(
-						new GzipSingleStream(in)
-					));
+				GzipSingleStream::unique_ptr_type tsinglestream(
+                                                new GzipSingleStream(in)
+                                        );
+				singlestream = UNIQUE_PTR_MOVE(tsinglestream);
 					
 				return true;
 			}

@@ -215,7 +215,7 @@ namespace libmaus
 				uint64_t const offset = 0)
 			: 
 				filenames(singleToList(rfilename)),
-				fpt(UNIQUE_PTR_MOVE(setupInput(filenames,offset))),
+				fpt(setupInput(filenames,offset)),
 				B(bufsize),
 				pa(B.get()),
 				pc(pa),
@@ -238,7 +238,7 @@ namespace libmaus
 				uint64_t const offset = 0)
 			: 
 				filenames(rfilenames),
-				fpt(UNIQUE_PTR_MOVE(setupInput(filenames,offset))),
+				fpt(setupInput(filenames,offset)),
 				B(bufsize),
 				pa(B.get()),
 				pc(pa),
@@ -286,7 +286,10 @@ namespace libmaus
 						fpt->second++;
 						fpt->first.reset();
 						if ( fpt->second != filenames.end() )
-							fpt->first = UNIQUE_PTR_MOVE(input_type_ptr(new input_type(fpt->second->c_str(),std::ios::binary)));
+						{
+							input_type_ptr tfptfirst(new input_type(fpt->second->c_str(),std::ios::binary));
+							fpt->first = UNIQUE_PTR_MOVE(tfptfirst);
+						}
 					}
 				}
 				
