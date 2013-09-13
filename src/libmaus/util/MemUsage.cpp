@@ -19,8 +19,15 @@
 
 #include <libmaus/util/MemUsage.hpp>
 
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#endif
+
 libmaus::util::MemUsage::MemUsage()
+: VmPeak(0), VmSize(0), VmLck(0), VmHWM(0), VmRSS(0),
+  VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0)
 {
+	#if defined(__linux__)
 	std::map<std::string,std::string> const M = getProcSelfStatusMap();
 	VmPeak = getMemParam(M,"VmPeak");
 	VmSize = getMemParam(M,"VmSize");
@@ -32,6 +39,16 @@ libmaus::util::MemUsage::MemUsage()
 	VmExe = getMemParam(M,"VmExe");
 	VmLib = getMemParam(M,"VmLib");
 	VmPTE = getMemParam(M,"VmPTE");
+	#elif defined(__APPLE__)
+	struct task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+	
+	if (KERN_SUCCESS == task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count))
+	{
+		VmSize = t_info.virtual_size;
+		VmRSS = t_info.resident_size;
+	}
+	#endif
 }
 
 libmaus::util::MemUsage::MemUsage(MemUsage const & o)
