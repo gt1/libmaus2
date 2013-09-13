@@ -81,9 +81,20 @@ for ax_openmp_flag in $ax_openmp_flags; do
     none) []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[] ;;
     *) []_AC_LANG_PREFIX[]FLAGS="$save[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flag" ;;
   esac
-  AC_TRY_LINK_FUNC(omp_set_num_threads,
-	[ax_cv_[]_AC_LANG_ABBREV[]_openmp=$ax_openmp_flag; break])
+  dnl AC_TRY_LINK_FUNC(omp_set_num_threads, [ax_openmp_tmp=$ax_openmp_flag; break])
+  AC_TRY_LINK([#include <omp.h>],
+  [
+  	omp_set_num_threads(2);
+  	
+  	#pragma omp parallel for
+  	for ( int i = 0; i < 2; ++i )
+  	{
+  	}
+  	
+  	return 0;
+  ], [ax_cv_[]_AC_LANG_ABBREV[]_openmp=$ax_openmp_flag; break])
 done
+
 []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[]FLAGS
 ])
 if test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then

@@ -1414,7 +1414,7 @@ if test "${with_lsf}" != "no" ; then
 fi
 
 AC_ARG_WITH([cuda],
-	[AS_HELP_STRING([--with-cuda@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=/usr/local/cuda@:>@])],
+	[AS_HELP_STRING([--with-cuda@<:@=PATH@:>@], [path to installed CUDA tools @<:@default=/usr/local/cuda@:>@])],
 	[with_cuda=${withval}],
 	[with_cuda=/usr/local/cuda])
 
@@ -1468,19 +1468,31 @@ HAVESYNCOPS=""
 case "${target_cpu}" in
 	i386|i486|i586|i686)
 		AC_LANG_PUSH([C++])
-		CXXFLAGS_SAVE="${CXXFLAGS}"
-		CXXFLAGS="-march=i586"
-		AC_MSG_CHECKING([whether the C++ compiler supports the -march=i586 option and synchronous add operations])
-		AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
-		AC_MSG_RESULT([${syncops}])
-		CXXFLAGS="${CXXFLAGS_SAVE}"
-		AC_LANG_POP
+                AC_MSG_CHECKING([whether the C++ compiler supports synchronous add operations])
+                AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
+                AC_MSG_RESULT([${syncops}])
+                AC_LANG_POP
 
-		if test "${syncops}" = "yes" ; then
-			LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -march=i586"
-			LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -march=i586"
-			LIBMAUSARCHCFLAGS="${LIBMAUSARCHCFLAGS} -march=i586"
-			HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+                if test "${syncops}" = "yes" ; then
+                        HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+                fi
+
+		if test "${syncops}" = "no" ; then
+			AC_LANG_PUSH([C++])
+			CXXFLAGS_SAVE="${CXXFLAGS}"
+			CXXFLAGS="-march=i586"
+			AC_MSG_CHECKING([whether the C++ compiler supports the -march=i586 option and synchronous add operations])
+			AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
+			AC_MSG_RESULT([${syncops}])
+			CXXFLAGS="${CXXFLAGS_SAVE}"
+			AC_LANG_POP
+
+			if test "${syncops}" = "yes" ; then
+				LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -march=i586"
+				LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -march=i586"
+				LIBMAUSARCHCFLAGS="${LIBMAUSARCHCFLAGS} -march=i586"
+				HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+			fi
 		fi
 		;;
 	x86_64)
