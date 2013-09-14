@@ -221,6 +221,13 @@ namespace libmaus
 			bool const bigbuf;
 			uint64_t gcnt;
 			
+			bool eofthrow;
+			
+			void setEofThrow(bool const v)
+			{
+				eofthrow = v;
+			}
+			
 			uint8_t checkedGet()
 			{
 				if ( setpos )
@@ -251,7 +258,7 @@ namespace libmaus
 				uint64_t rendpos = std::numeric_limits<uint64_t>::max()
 			)
 			: in(rin), readpos(rreadpos), setpos(rsetpos), endpos(rendpos),
-			  B(), pa(0), pc(0), pe(0), bigbuf(checkedGet()), gcnt(0)
+			  B(), pa(0), pc(0), pe(0), bigbuf(checkedGet()), gcnt(0), eofthrow(false)
 			{
 			}
 			
@@ -290,7 +297,17 @@ namespace libmaus
 					if ( pc == pe )
 					{
 						gcnt = 0;
-						return -1;
+						if ( eofthrow )
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "EOF in SnappyInputStream::get()" << std::endl;
+							se.finish();
+							throw se;
+						}
+						else
+						{
+							return -1;
+						}
 					}
 				}
 				
@@ -392,11 +409,11 @@ namespace libmaus
 		
 		struct SnappyFileInputStream
 		{
-			std::ifstream istr;
+			libmaus::aio::CheckedInputStream istr;
 			SnappyInputStream instream;
 			
 			SnappyFileInputStream(std::string const & filename)
-			: istr(filename.c_str(),std::ios::binary), instream(istr,0,true) {}
+			: istr(filename), instream(istr,0,true) {}
 			int get() { return instream.get(); }
 			uint64_t read(char * c, uint64_t const n) { return instream.read(c,n); }
 			uint64_t gcount() const { return instream.gcount(); }
@@ -410,10 +427,6 @@ namespace libmaus
 			typedef libmaus::aio::CheckedInputStream stream_type;
 			typedef stream_type::unique_ptr_type stream_ptr_type;
 		
-			#if 0
-			::libmaus::util::unique_ptr<std::ifstream>::type Pistr;
-			std::ifstream & istr;
-			#endif
 			stream_ptr_type Pistr;
 			stream_type & istr;
 			SnappyInputStream instream;
@@ -456,7 +469,7 @@ namespace libmaus
 
 			template<typename iterator>			
 			SnappyInputStreamArray(std::istream & in, iterator offa, iterator offe)
-			: A(offe-offa)
+			: A( (offe-offa) ? ((offe-offa)-1) : 0 )
 			{
 				uint64_t i = 0;
 				for ( iterator offc = offa; offc != offe && offc+1 != offe; ++offc, ++i )
@@ -464,6 +477,7 @@ namespace libmaus
 					SnappyInputStream::unique_ptr_type ptr(
                                                         new SnappyInputStream(in,*offc,true,*(offc+1))
                                                 );
+					assert ( i < A.size() );
 					A [ i ] = UNIQUE_PTR_MOVE(ptr);
 				}
 			}
@@ -477,6 +491,12 @@ namespace libmaus
 			{
 				return *(A[i]);
 			}
+
+			void setEofThrow(bool const v)
+			{
+				for ( uint64_t i = 0; i < A.size(); ++i )
+					A[i]->setEofThrow(v);
+			}
 		};
 		
 		struct SnappyInputStreamArrayFile
@@ -485,12 +505,12 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			std::ifstream istr;
+			libmaus::aio::CheckedInputStream istr;
 			SnappyInputStreamArray array;
 			
 			template<typename iterator>
 			SnappyInputStreamArrayFile(std::string const & filename, iterator offa, iterator offe)
-			: istr(filename.c_str(),std::ios::binary), array(istr,offa,offe)
+			: istr(filename), array(istr,offa,offe)
 			{
 			
 			}
@@ -516,6 +536,11 @@ namespace libmaus
 			SnappyInputStream const & operator[](uint64_t const i) const
 			{
 				return array[i];
+			}
+
+			void setEofThrow(bool const v)
+			{
+				array.setEofThrow(v);
 			}
 		};
 	}

@@ -113,6 +113,8 @@ namespace libmaus
 			  tmpoutcnts(rtmpoutcnts),
 			  tmpincnts(tmpoutcnts.size(),0)
 			{
+				infilearray->setEofThrow(true);
+				
 				for ( uint64_t i = 0; i < tmpoffsetintervals.size(); ++i )
 					if ( tmpincnts[i] != tmpoutcnts[i] )
 					{
