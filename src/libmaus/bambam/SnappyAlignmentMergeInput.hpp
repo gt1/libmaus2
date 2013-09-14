@@ -86,8 +86,16 @@ namespace libmaus
                                                                 );
 						streams [ i ] =
 							UNIQUE_PTR_MOVE(tstreamsi);
-							
-						assert ( libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[i]),data[i],0,false) );
+						
+						#if !defined(NDEBUG)
+						bool const alok = 
+						#endif
+						        libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[i]),data[i],0,false);
+						        
+						#if !defined(NDEBUG)
+						assert ( alok );
+						#endif
+						
 						Q.push(i);
 					}
 			}
@@ -116,7 +124,15 @@ namespace libmaus
 				
 				if ( index[t].second-- )
 				{
-					assert ( libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[t]),data[t],0,false) );
+					#if !defined(NDEBUG)
+					bool const alok = 
+					#endif
+					        libmaus::bambam::BamDecoder::readAlignmentGz(*(streams[t]),data[t],0,false);
+					        
+					#if !defined(NDEBUG)
+					assert ( alok );
+					#endif
+					
 					Q.push(t);
 				}
 					
