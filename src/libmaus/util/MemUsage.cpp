@@ -23,6 +23,16 @@
 #include <mach/mach.h>
 #endif
 
+#if defined(__FreeBSD__)
+#include <fcntl.h>
+#include <kvm.h>
+#include <paths.h>
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <sys/user.h>
+#include <unistd.h>
+#endif
+
 libmaus::util::MemUsage::MemUsage()
 : VmPeak(0), VmSize(0), VmLck(0), VmHWM(0), VmRSS(0),
   VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0)
@@ -48,6 +58,22 @@ libmaus::util::MemUsage::MemUsage()
 		VmSize = t_info.virtual_size;
 		VmRSS = t_info.resident_size;
 	}
+	#elif defined(__FreeBSD__)
+	pid_t const pid = getpid();
+	uint64_t const pagesize = getpagesize();
+	int cnt;
+	kvm_t * kd = kvm_open(getbootfile(),"/dev/null",NULL,O_RDONLY,0);
+	struct kinfo_proc *ki = kd ? kvm_getprocs(kd,KERN_PROC_PID,pid,&cnt) : 0;
+	if ( ki )
+	{
+		VmSize = ki->ki_size;
+		VmRSS = (ki->ki_rssize*pagesize);
+		VmPeak = ki->ki_rusage.ru_maxrss*1024;
+	}
+	if ( kd )
+	{
+		kvm_close(kd);
+	}                                                                                                                                                        
 	#endif
 }
 
