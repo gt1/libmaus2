@@ -43,6 +43,12 @@ namespace libmaus
 			 * constructor for empty reference sequence
 			 **/
 			Chromosome() : len(0) {}
+
+			/**
+			 * constructor from other object
+			 **/
+			Chromosome(Chromosome const & o)
+			: name(o.name), len(o.len), M(o.M) {}
 			
 			/**
 			 * constructor from parameters
@@ -51,6 +57,23 @@ namespace libmaus
 			 * @param rlen ref seq length
 			 **/
 			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen) {}
+
+			/**
+			 * assignment operator
+			 *
+			 * @param o other object
+			 * @return *this
+			 **/
+			Chromosome & operator=(Chromosome const & o)
+			{
+				if ( this != &o )
+				{
+					this->name = o.name;
+					this->len = o.len;
+					this->M = o.M;
+				}
+				return *this;
+			}
 		};
 	}
 }

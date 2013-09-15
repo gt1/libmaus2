@@ -1640,6 +1640,17 @@ case $host_os in
     ;;
 esac
 
+case $host_os in
+  freebsd*)
+    LIBMAUSLIBS="${LIBMAUSLIBS} -lkvm"
+    LIBMAUSPKGLIBS="${LIBMAUSPKGLIBS} -lkvm"
+    ;;
+  *)
+    LIBMAUSLIBS="${LIBMAUSLIBS}"
+    LIBMAUSPKGLIBS="${LIBMAUSPKGLIBS}"
+    ;;
+esac
+
 CPPFLAGS="${CPPFLAGS} ${LIBMAUSCPPFLAGS}"
 CFLAGS="${CFLAGS} ${LIBMAUSCFLAGS}"
 CXXFLAGS="${CXXFLAGS} ${LIBMAUSCXXFLAGS}"

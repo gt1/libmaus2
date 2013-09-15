@@ -215,7 +215,8 @@ namespace libmaus
 			{
 				if ( ! thread.get() )
 				{
-					thread = UNIQUE_PTR_MOVE(thread_ptr_type(new pthread_t));
+					thread_ptr_type tthread(new pthread_t);
+					thread = UNIQUE_PTR_MOVE(tthread);
 				
 					pthread_attr_t attr;
 					if ( pthread_attr_init(&attr) )

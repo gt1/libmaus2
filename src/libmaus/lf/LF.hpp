@@ -680,7 +680,8 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
-						rank_dictionaries[i] = rank_ptr_type(new rank_type(n+1));
+						rank_ptr_type trank_dictionariesi(new rank_type(n+1));
+						rank_dictionaries[i] = UNIQUE_PTR_MOVE(trank_dictionariesi);
 						writer_type writer = rank_dictionaries[i]->getWriteContext();
 						
 						for ( uint64_t j = 0; j < n; ++j )
@@ -891,7 +892,8 @@ namespace libmaus
 					IEWG.createFinalStream(tmpfilename);
 					
 					std::ifstream istr(tmpfilename.c_str(),std::ios::binary);
-					W = wt_ptr_type(new wt_type(istr));
+					wt_ptr_type tW(new wt_type(istr));
+					W = UNIQUE_PTR_MOVE(tW);
 					istr.close();
 					remove ( tmpfilename.c_str() );
 					

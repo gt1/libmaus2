@@ -163,7 +163,8 @@ namespace libmaus
 					
 					W.flush();
 				
-					R = ::libmaus::rank::ERank222B::unique_ptr_type(new ::libmaus::rank::ERank222B(B.get(), B.size()*64));
+					::libmaus::rank::ERank222B::unique_ptr_type tR(new ::libmaus::rank::ERank222B(B.get(), B.size()*64));
+					R = UNIQUE_PTR_MOVE(tR);
 					
 					uint64_t const n8 = R->rank1(n-1);
 					uint64_t const n64 = R->rank0(n-1);
