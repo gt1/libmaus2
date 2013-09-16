@@ -1,3 +1,9 @@
+libmaus (0.0.71-0) unstable; urgency=low
+
+  * fix compilation on Darwin, make code compile with clang 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 16 Sep 2013 13:53:42 +0100
+
 libmaus (0.0.70-0) unstable; urgency=low
 
   * add searchCompleteNoFailureZ method for LinearHashTrie class
