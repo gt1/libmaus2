@@ -174,13 +174,13 @@ namespace libmaus
 	}
 }
 
-#include "HuffmanBase.hpp"
+#include <libmaus/huffman/HuffmanBase.hpp>
 
-#include "EncodeTable.hpp"
-#include "CompressTable.hpp"
-#include "DecodeTable.hpp"
+#include <libmaus/huffman/EncodeTable.hpp>
+#include <libmaus/huffman/CompressTable.hpp>
+#include <libmaus/huffman/DecodeTable.hpp>
 
-#include "hufEncodeString.hpp"
-#include "HuffmanSorting.hpp"
+#include <libmaus/huffman/hufEncodeString.hpp>
+#include <libmaus/huffman/HuffmanSorting.hpp>
 
 #endif

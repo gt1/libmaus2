@@ -21,7 +21,7 @@
 #if ! defined(LIBMAUS_TYPES__TYPES_HPP)
 #define LIBMAUS_TYPES__TYPES_HPP
 
-#include "libmaus/LibMausConfig.hpp"
+#include <libmaus/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
 #include <cstdint>

@@ -25,7 +25,6 @@
 #include <new>
 #include <sstream>
 #include <stack>
-#include <sys/types.h>
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/uint/uint.hpp>
@@ -33,6 +32,7 @@
 #include <libmaus/util/shared_ptr.hpp>
 #include <libmaus/bitio/FastWriteBitWriter.hpp>
 #include <libmaus/bitio/getBit.hpp>
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {

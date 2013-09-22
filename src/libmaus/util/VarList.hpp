@@ -23,7 +23,6 @@
 #include <cassert>
 #include <list>
 #include <ostream>
-#include <sys/types.h>
 
 #include <libmaus/types/types.hpp>
 

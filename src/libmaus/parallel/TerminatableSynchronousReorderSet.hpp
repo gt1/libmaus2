@@ -20,7 +20,7 @@
 #if ! defined(TERMINATABLESYNCHRONOUSREORDERSET_HPP)
 #define TERMINATABLESYNCHRONOUSREORDERSET_HPP
 
-#include "SynchronousReorderSet.hpp"
+#include <libmaus/parallel/SynchronousReorderSet.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
 namespace libmaus

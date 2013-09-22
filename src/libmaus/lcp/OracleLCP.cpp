@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "OracleLCP.hpp"
+#include <libmaus/lcp/OracleLCP.hpp>
 
 static const uint32_t cover0[] = {0};
 static const uint32_t cover1[] = {0,1};

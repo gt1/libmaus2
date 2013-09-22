@@ -20,7 +20,7 @@
 #if ! defined(TERMINATABLESYNCHRONOUSQUEUE_HPP)
 #define TERMINATABLESYNCHRONOUSQUEUE_HPP
 
-#include "SynchronousQueue.hpp"
+#include <libmaus/parallel/SynchronousQueue.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
 namespace libmaus

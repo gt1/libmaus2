@@ -19,7 +19,7 @@
 #if ! defined(SLOWCUMFREQ_HPP)
 #define SLOWCUMFREQ_HPP
 
-#include <sys/types.h>
+#include <libmaus/types/types.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 
 namespace libmaus
