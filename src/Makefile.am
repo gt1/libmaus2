@@ -719,7 +719,8 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/BwtMergeBlockSortResult.hpp \
 	libmaus/suffixsort/BwtMergeZBlockRequest.hpp \
 	libmaus/suffixsort/BwtMergeZBlockRequestVector.hpp \
-	libmaus/suffixsort/GapMergePacket.hpp
+	libmaus/suffixsort/GapMergePacket.hpp \
+	libmaus/suffixsort/BwtMergeEnumBase.hpp
 
 libmaussuffixtree_includedir=$(includedir)/libmaus/suffixtree
 libmaussuffixtree_include_HEADERS=\
