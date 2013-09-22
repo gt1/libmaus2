@@ -279,6 +279,13 @@ namespace libmaus
 			{
 			
 			}
+
+			RLEncoderTemplate(std::string const & filename, unsigned int const /* albits */, uint64_t const n, uint64_t const bufsize)
+			: huffmanencoderfile_type(filename), RLEncoderBaseTemplate< huffmanencoderfile_type >(*this,n,bufsize)
+			{
+			
+			}
+			
 			~RLEncoderTemplate()
 			{
 				flush();
