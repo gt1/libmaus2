@@ -721,6 +721,11 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/BwtMergeZBlockRequestVector.hpp \
 	libmaus/suffixsort/GapMergePacket.hpp \
 	libmaus/suffixsort/BwtMergeEnumBase.hpp
+	libmaus/suffixsort/ByteInputTypes.hpp \
+	libmaus/suffixsort/CompactInputTypes.hpp \
+	libmaus/suffixsort/PacInputTypes.hpp \
+	libmaus/suffixsort/PacTermInputTypes.hpp \
+	libmaus/suffixsort/Utf8InputTypes.hpp
 
 libmaussuffixtree_includedir=$(includedir)/libmaus/suffixtree
 libmaussuffixtree_include_HEADERS=\
