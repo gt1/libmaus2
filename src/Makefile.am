@@ -720,7 +720,7 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/BwtMergeZBlockRequest.hpp \
 	libmaus/suffixsort/BwtMergeZBlockRequestVector.hpp \
 	libmaus/suffixsort/GapMergePacket.hpp \
-	libmaus/suffixsort/BwtMergeEnumBase.hpp
+	libmaus/suffixsort/BwtMergeEnumBase.hpp \
 	libmaus/suffixsort/ByteInputTypes.hpp \
 	libmaus/suffixsort/CompactInputTypes.hpp \
 	libmaus/suffixsort/PacInputTypes.hpp \
