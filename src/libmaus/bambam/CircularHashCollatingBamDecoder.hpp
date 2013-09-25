@@ -238,8 +238,6 @@ namespace libmaus
 			uint32_t const excludeflags;
 			//! put back flag
 			bool cbputbackflag;
-			//! last input position from input file
-			std::pair<int32_t,int32_t> inpos;
 			
 			public:
 			/**
@@ -262,8 +260,7 @@ namespace libmaus
 			)
 			: Pbamdec(new libmaus::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags), cbputbackflag(false), 
-			  inpos(std::numeric_limits<int32_t>::min(),std::numeric_limits<int32_t>::min())
+			  excludeflags(rexcludeflags), cbputbackflag(false)
 			{
 			
 			}
@@ -286,8 +283,7 @@ namespace libmaus
 			)
 			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags), cbputbackflag(false),
-			  inpos(std::numeric_limits<int32_t>::min(),std::numeric_limits<int32_t>::min())
+			  excludeflags(rexcludeflags), cbputbackflag(false)
 			{
 			
 			}
@@ -415,10 +411,6 @@ namespace libmaus
 					{
 						if ( bamdec.readAlignment(true /* delay put rank */) )
 						{
-							// set input position
-							if ( algn.isMapped() )
-								inpos = std::pair<int32_t,int32_t>(algn.getRefID(),algn.getPos());
-
 							if ( inputcallback )
 							{
 								if ( cbputbackflag )
@@ -681,14 +673,6 @@ namespace libmaus
 			void disableValidation()
                         {
                         	bamdec.disableValidation();
-			}                                                                                
-
-			/**
-			 * return position of mapped alignment most recently read from input
-			 */
-			std::pair<int32_t,int32_t> const & getInputPosition() const
-			{
-				return inpos;
 			}
 		};
 
