@@ -1474,7 +1474,7 @@ if test "${syncops}" = "yes" ; then
 		i386|i486|i586|i686)
 			AC_LANG_PUSH([C++])
 			AC_MSG_CHECKING([whether the C++ compiler supports synchronous add operations])
-			AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
+			AC_TRY_LINK([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
 			AC_MSG_RESULT([${syncops}])
 			AC_LANG_POP
 
@@ -1487,7 +1487,7 @@ if test "${syncops}" = "yes" ; then
 				CXXFLAGS_SAVE="${CXXFLAGS}"
 				CXXFLAGS="-march=i586"
 				AC_MSG_CHECKING([whether the C++ compiler supports the -march=i586 option and synchronous add operations])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				CXXFLAGS="${CXXFLAGS_SAVE}"
 				AC_LANG_POP
