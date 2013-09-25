@@ -238,6 +238,8 @@ namespace libmaus
 			uint32_t const excludeflags;
 			//! put back flag
 			bool cbputbackflag;
+			//! last input position from input file
+			std::pair<int32_t,int32_t> inpos;
 			
 			public:
 			/**
@@ -260,7 +262,8 @@ namespace libmaus
 			)
 			: Pbamdec(new libmaus::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags), cbputbackflag(false)
+			  excludeflags(rexcludeflags), cbputbackflag(false), 
+			  inpos(std::numeric_limits<int32_t>::min(),std::numeric_limits<int32_t>::min())
 			{
 			
 			}
@@ -283,7 +286,8 @@ namespace libmaus
 			)
 			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags), cbputbackflag(false)
+			  excludeflags(rexcludeflags), cbputbackflag(false),
+			  inpos(std::numeric_limits<int32_t>::min(),std::numeric_limits<int32_t>::min())
 			{
 			
 			}
@@ -411,6 +415,10 @@ namespace libmaus
 					{
 						if ( bamdec.readAlignment(true /* delay put rank */) )
 						{
+							// set input position
+							if ( algn.isMapped() )
+								inpos = std::pair<int32_t,int32_t>(algn.getRefID(),algn.getPos());
+
 							if ( inputcallback )
 							{
 								if ( cbputbackflag )
@@ -418,15 +426,16 @@ namespace libmaus
 								else
 									(*inputcallback)(algn);
 							}
-								
+
 							bamdec.putRank();
-								
+															
 							if ( algn.getFlags() & excludeflags )
 								continue;
 						
 							uint8_t const * data = algn.D.begin();
 							uint64_t const datalen = algn.blocksize;
 							
+							// output single end immediately
 							if ( ! algn.isPaired() )
 							{
 								outputBuffer.Da = data;
@@ -435,6 +444,7 @@ namespace libmaus
 							}
 							else
 							{
+								// compute hash value for new alignment
 								uint32_t const hv = algn.hash32();
 
 								// see if we found a pair
@@ -461,6 +471,7 @@ namespace libmaus
 									
 									CH->eraseEntry(hv);
 								}
+								// not a pair, insert alignment into hash
 								else
 								{
 									if ( ! CH->putEntry(data,datalen,hv) )
@@ -671,6 +682,14 @@ namespace libmaus
                         {
                         	bamdec.disableValidation();
 			}                                                                                
+
+			/**
+			 * return position of mapped alignment most recently read from input
+			 */
+			std::pair<int32_t,int32_t> const & getInputPosition() const
+			{
+				return inpos;
+			}
 		};
 
 		/**
