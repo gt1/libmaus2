@@ -28,6 +28,9 @@ using:
 	./configure
 	make
 
+Running autoreconf requires a complete set of tools including autoconf, automake,
+autoheader, aclocal and libtool.
+
 A full list of configuration parameters can be obtained by calling
 
 	./configure --help
