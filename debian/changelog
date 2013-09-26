@@ -1,3 +1,9 @@
+libmaus (0.0.72-0) unstable; urgency=low
+
+  * check for availability of MSG_CMSG_CLOEXEC in configure 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 26 Sep 2013 21:40:46 +0100
+
 libmaus (0.0.71-0) unstable; urgency=low
 
   * fix compilation on Darwin, make code compile with clang 
