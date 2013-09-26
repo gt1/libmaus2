@@ -1636,6 +1636,21 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 	IOLIBDEFINE="#define LIBMAUS_HAVE_IO_LIB"
 fi
 
+AC_MSG_CHECKING([whether MSG_CMSG_CLOEXEC is defined])	
+
+AC_LANG_PUSH([C])
+
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>],[const int flag = MSG_CMSG_CLOEXEC;],[flag_MSG_CMSG_CLOEXEC=yes],[flag__MSG_CMSG_CLOEXEC=no])
+AC_MSG_RESULT([${flag_MSG_CMSG_CLOEXEC}])
+
+AC_LANG_POP
+
+if [[ "${flag_MSG_CMSG_CLOEXEC}" = "yes" ]] ; then
+	HAVEMSGCMSGCLOEXEC="#define LIBMAUS_HAVE_MSG_CMSG_CLOEXEC"	
+fi
 
 case $host_os in
   *mingw32*)
@@ -1756,4 +1771,5 @@ AC_SUBST([IOLIBCPPFLAGS])
 AC_SUBST([IOLIBLDFLAGS])
 AC_SUBST([IOLIBLIBS])
 AC_SUBST([HAVEGETPAGESIZE])
+AC_SUBST([HAVEMSGCMSGCLOEXEC])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
