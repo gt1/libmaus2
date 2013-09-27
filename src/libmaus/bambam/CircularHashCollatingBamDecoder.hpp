@@ -660,6 +660,16 @@ namespace libmaus
 			}
 
 			/**
+			 * set first expunge callback
+			 *
+			 * @param callback
+			 **/
+			void setPrimaryExpungeCallback(libmaus::bambam::BamAlignmentExpungeCallback * callback)
+			{
+				CH->setExpungeCallback(callback);
+			}
+
+			/**
 			 * set secondary expunge callback
 			 *
 			 * @param callback
@@ -668,7 +678,7 @@ namespace libmaus
 			{
 				NCHEO->setExpungeCallback(callback);
 			}
-			
+
 			/**
 			 * @return next rank
 			 **/

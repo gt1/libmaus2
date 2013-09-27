@@ -21,6 +21,7 @@
 #define LIBMAUS_HASHING_CIRCULARHASH_HPP
 
 #include <libmaus/bitbtree/bitbtree.hpp>
+#include <libmaus/bambam/BamAlignmentExpungeCallback.hpp>
 
 namespace libmaus
 {
@@ -57,6 +58,8 @@ namespace libmaus
 			// current insert pointer
 			pos_type ipos;
 			
+			libmaus::bambam::BamAlignmentExpungeCallback * expungecallback;
+			
 			static hash_type unused()
 			{
 				return std::numeric_limits<hash_type>::max();
@@ -91,7 +94,8 @@ namespace libmaus
 			  H(tablesize,false),
 			  B(bsize,false),
 			  R(B.size(),false),
-			  ipos(0)
+			  ipos(0),
+			  expungecallback(0)
 			{
 				std::fill(H.begin(),H.end(),unused());
 			}
@@ -142,8 +146,11 @@ namespace libmaus
 				
 				// can we write without wrap around?
 				if ( datapos + len <= B.size() )
-				{
+				{											
 					overflow.write(B.begin()+datapos,len,true,len);
+
+					if ( expungecallback )
+						expungecallback->expunged(B.begin()+datapos,len);
 				}
 				else
 				{
@@ -152,6 +159,9 @@ namespace libmaus
 
 					overflow.write(B.begin()+datapos,flen,true,len);
 					overflow.write(B.begin(),slen,false,len);
+
+					if ( expungecallback )
+						expungecallback->expunged(B.begin()+datapos,flen,B.begin(),slen);
 				}
 			
 				// assert ( R[elpos] );	
@@ -296,6 +306,16 @@ namespace libmaus
 				}
 				
 				return true;
+			}
+
+			/**
+			 * set expunge callback
+			 *
+			 * @param rrexpungecallback callback
+			 **/
+			void setExpungeCallback(libmaus::bambam::BamAlignmentExpungeCallback * rexpungecallback)
+			{
+				expungecallback = rexpungecallback;
 			}
 		};
 	}
