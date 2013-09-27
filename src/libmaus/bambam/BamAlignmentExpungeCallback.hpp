@@ -42,6 +42,19 @@ namespace libmaus
 			 * @param len length of D in bytes
 			 **/
 			virtual void expunged(uint8_t const * D, uint32_t const len) = 0;
+			/**
+			 * called whenever an alignment is expunged from a data structure
+			 * and is written in two blocks from a circular buffer with wrap around
+			 *
+			 * @param Da alignment data block, first part
+			 * @param lena length of Da in bytes
+			 * @param Db alignment data block, second part
+			 * @param lenb length of Db in bytes
+			 **/
+			virtual void expunged(
+				uint8_t const * Da, uint32_t const lena,
+				uint8_t const * Db, uint32_t const lenb
+				) = 0;
 		};
 	}
 }
