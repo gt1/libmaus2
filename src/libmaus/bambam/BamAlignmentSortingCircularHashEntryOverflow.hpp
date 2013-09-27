@@ -24,11 +24,12 @@
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus/bambam/SnappyAlignmentMergeInput.hpp>
+#include <libmaus/bambam/BamAlignmentExpungeCallback.hpp>
 
 namespace libmaus
 {
 	namespace bambam
-	{
+	{		
 		/**
 		 * overflow class for collating BAM input
 		 **/
@@ -68,6 +69,9 @@ namespace libmaus
 			uint64_t flushbufptr;
 			//! number of elements in the flush buffer
 			uint64_t flushbufcnt;
+			
+			//! expunge callback
+			BamAlignmentExpungeCallback * expungecallback;
 
 			/**
 			 * get length of i'th entry in buffer
@@ -100,7 +104,8 @@ namespace libmaus
 			  D(Da),
 			  BANC(Da),
 			  flushbufptr(0),
-			  flushbufcnt(0)
+			  flushbufcnt(0),
+			  expungecallback(0)
 			{
 			
 			}
@@ -136,29 +141,63 @@ namespace libmaus
 				uint64_t occnt = 0;
 				uint64_t outp = 0;
 				uint64_t inp = 0;
-				while ( inp != nump )
-				{
-					if ( 
-						inp+1 < nump && 
-						BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
-						(libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
-						!=
-						libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
-					)
-					{
-						P [ occnt ++ ] = P[inp++];
-						P [ occnt ++ ] = P[inp++];
-					}
-					else
-					{
-						uint32_t len = 0;
-						for ( unsigned int j = 0; j < sizeof(uint32_t); ++j )
-							len |= static_cast<uint32_t>(Da[P[inp]+j]) << (8*j);
 				
-						snapOut.write ( reinterpret_cast<char const *>(Da + P[inp]), len + sizeof(uint32_t) );
-						
-						outp++;
-						inp++;
+				if ( expungecallback )
+				{
+					while ( inp != nump )
+					{
+						if ( 
+							inp+1 < nump && 
+							BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
+							(libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
+							!=
+							libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
+						)
+						{
+							P [ occnt ++ ] = P[inp++];
+							P [ occnt ++ ] = P[inp++];
+						}
+						else
+						{
+							uint32_t len = 0;
+							for ( unsigned int j = 0; j < sizeof(uint32_t); ++j )
+								len |= static_cast<uint32_t>(Da[P[inp]+j]) << (8*j);
+					
+							snapOut.write ( reinterpret_cast<char const *>(Da + P[inp]), len + sizeof(uint32_t) );
+							
+							expungecallback->expunged(Da + P[inp] + sizeof(uint32_t), len);
+							
+							outp++;
+							inp++;
+						}
+					}
+				}
+				else
+				{
+					while ( inp != nump )
+					{
+						if ( 
+							inp+1 < nump && 
+							BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
+							(libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
+							!=
+							libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
+						)
+						{
+							P [ occnt ++ ] = P[inp++];
+							P [ occnt ++ ] = P[inp++];
+						}
+						else
+						{
+							uint32_t len = 0;
+							for ( unsigned int j = 0; j < sizeof(uint32_t); ++j )
+								len |= static_cast<uint32_t>(Da[P[inp]+j]) << (8*j);
+					
+							snapOut.write ( reinterpret_cast<char const *>(Da + P[inp]), len + sizeof(uint32_t) );
+							
+							outp++;
+							inp++;
+						}
 					}
 				}
 
@@ -250,6 +289,14 @@ namespace libmaus
 				// copy data
 				std::copy(p,p+n,D);
 				D += n;
+			}
+
+			/**
+			 * set callback which is called whenever an alignment is written to secondary storage
+			 **/
+			void setExpungeCallback(BamAlignmentExpungeCallback * rexpungecallback)
+			{
+				expungecallback = rexpungecallback;
 			}
 		};
 	}

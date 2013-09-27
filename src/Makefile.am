@@ -234,7 +234,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamRange.hpp \
 	libmaus/bambam/BamRangeParser.hpp \
 	libmaus/bambam/BamRangeDecoder.hpp \
-	libmaus/bambam/BamParallelRewrite.hpp
+	libmaus/bambam/BamParallelRewrite.hpp \
+	libmaus/bambam/BamAlignmentExpungeCallback.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

@@ -85,7 +85,7 @@ namespace libmaus
 			typedef libmaus::hashing::CircularHash<overflow_type> cht;
 			//! hash table pointer type
 			typedef cht::unique_ptr_type cht_ptr;
-		
+
 			//! collator state enum
 			enum circ_hash_collator_state {
 				state_sortbuffer_flushing_intermediate,
@@ -657,6 +657,16 @@ namespace libmaus
 			void setInputCallback(CollatingBamDecoderAlignmentInputCallback * rinputcallback)
 			{
 				inputcallback = rinputcallback;			
+			}
+
+			/**
+			 * set secondary expunge callback
+			 *
+			 * @param callback
+			 **/
+			void setSecondaryExpungeCallback(libmaus::bambam::BamAlignmentExpungeCallback * callback)
+			{
+				NCHEO->setExpungeCallback(callback);
 			}
 			
 			/**
