@@ -49,6 +49,18 @@ namespace libmaus
 				else
 					return A.y < B.y;	
 			}
+			/**
+			 * compare optical parameter of objects A and B; this lexicographically involves the attributes
+			 * readGroup, tile, x and y
+			 *
+			 * @param A first read ends object
+			 * @param B second read ends object
+			 * @return A < B for optical parameters
+			 **/
+			bool operator()(::libmaus::bambam::ReadEnds const * A, ::libmaus::bambam::ReadEnds const * B)
+			{
+				return (*this)(*A,*B);
+			}
 		};
 	}
 }
