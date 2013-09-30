@@ -1789,6 +1789,31 @@ namespace libmaus
                         	uint8_t * qual = libmaus::bambam::BamAlignmentDecoderBase::getQual(D.begin());
                         	std::reverse(qual,qual+lseq);
                         }                                                                                                                                                    
+
+                        /**
+                         * check whether this alignment is clipped
+                         *
+                         * @return true iff cigar string contains clipping operations
+                         **/
+                         bool isClipped() const
+                         {
+                         	if ( isUnmap() )
+                         		return false;
+                         
+				// check whether all cigar operators are known	
+				for ( uint64_t i = 0; i < getNCigar(); ++i )
+				{
+					uint64_t const cigop = getCigarFieldOp(i);
+					if ( 
+						cigop == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
+						||
+						cigop == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+					)
+						return true;
+				}
+				
+				return false;
+			}
 		};
 	}
 }
