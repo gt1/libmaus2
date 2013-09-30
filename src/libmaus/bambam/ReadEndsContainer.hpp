@@ -221,47 +221,6 @@ namespace libmaus
 				}
 			};
 
-			/**
-			 * put R in buffer
-			 *
-			 * @param R object to be put in buffer
-			 **/
-			void put(::libmaus::bambam::ReadEnds const & R)
-			{
-				// assert ( R.recode() == R );
-			
-				// compute space required for adding R
-				uint64_t const entryspace = getEntryLength(R);
-				uint64_t const numlen = getNumberLength(entryspace);
-				uint64_t const idexlen = sizeof(index_type);
-				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
-				uint64_t const reqspace = entryspace+numlen+2*idexlen;
-				#else
-				uint64_t const reqspace = entryspace+numlen+idexlen;
-				#endif
-				
-				assert ( reqspace <= A.size() * sizeof(index_type) );
-				
-				// flush buffer if needed
-				if ( reqspace > freeSpace() )
-					flush();
-					
-				minlen = std::min(entryspace,minlen);
-				
-				// store current offset
-				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
-				
-				// put entry
-				::libmaus::util::PutObject<uint8_t *> P(dptr);
-				// put length
-				::libmaus::util::UTF8::encodeUTF8(entryspace,P);
-				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen) );
-				// put entry data
-				R.put(P);
-				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen+entryspace) );
-				
-				dptr = P.p;		
-			}
 
 			public:
 			/**
@@ -475,6 +434,48 @@ namespace libmaus
 				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments);
 				// fillFragPair(p,q,header,RE);
 				put(RE);
+			}
+
+			/**
+			 * put R in buffer
+			 *
+			 * @param R object to be put in buffer
+			 **/
+			void put(::libmaus::bambam::ReadEnds const & R)
+			{
+				// assert ( R.recode() == R );
+			
+				// compute space required for adding R
+				uint64_t const entryspace = getEntryLength(R);
+				uint64_t const numlen = getNumberLength(entryspace);
+				uint64_t const idexlen = sizeof(index_type);
+				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+				uint64_t const reqspace = entryspace+numlen+2*idexlen;
+				#else
+				uint64_t const reqspace = entryspace+numlen+idexlen;
+				#endif
+				
+				assert ( reqspace <= A.size() * sizeof(index_type) );
+				
+				// flush buffer if needed
+				if ( reqspace > freeSpace() )
+					flush();
+					
+				minlen = std::min(entryspace,minlen);
+				
+				// store current offset
+				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
+				
+				// put entry
+				::libmaus::util::PutObject<uint8_t *> P(dptr);
+				// put length
+				::libmaus::util::UTF8::encodeUTF8(entryspace,P);
+				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen) );
+				// put entry data
+				R.put(P);
+				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen+entryspace) );
+				
+				dptr = P.p;		
 			}
 		};
 	}
