@@ -10,7 +10,7 @@ mv .gitignore .gitignore_
 git add ${ADDFILES}
 git commit -m "Release ${RELEASE}"
 mv .gitignore_ .gitignore
-#git tag ${RELEASE}
-#git push origin ${RELEASE}
+git tag ${RELEASE}
+git push origin ${RELEASE}
 git checkout master
 git branch -D ${RELEASE}-branch
