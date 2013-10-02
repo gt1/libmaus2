@@ -675,7 +675,7 @@ namespace libmaus
 				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)				
 				return ::libmaus::util::I386CacheLineSize::getCacheLineSize();				
 				#else
-				return 0;
+				return 64ull;
 				#endif
 			}
 			#elif defined(_WIN32)
