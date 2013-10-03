@@ -1,3 +1,9 @@
+libmaus (0.0.75-0) unstable; urgency=low
+
+  * fix BamWriter destruction crashes due to wronger pointer types 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 03 Oct 2013 22:23:20 +0100
+
 libmaus (0.0.74-0) unstable; urgency=low
 
   * add default cache line size for older linux systems 
