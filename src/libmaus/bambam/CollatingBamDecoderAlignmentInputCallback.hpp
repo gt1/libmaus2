@@ -30,6 +30,7 @@ namespace libmaus
 		 **/
 		struct CollatingBamDecoderAlignmentInputCallback
 		{
+			virtual ~CollatingBamDecoderAlignmentInputCallback() {}
 			/**
 			 * pure virtual input callback; this is to be called each time a collating
 			 * decoder decodes an alignment from the original stream
