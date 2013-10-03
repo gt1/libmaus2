@@ -459,6 +459,11 @@ namespace libmaus
 		
 		struct BamWriter : public BamWriterSerialStreamBaseWrapper, public BamWriterTemplate<BamWriterSerialStreamBase>
 		{
+			//! this type
+			typedef BamWriter this_type;
+			//! unique pointer type
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
 			/**
 			 * constructor for stream
 			 *
@@ -493,6 +498,11 @@ namespace libmaus
 
 		struct BamParallelWriter : public BamWriterParallelStreamBaseWrapper, public BamWriterTemplate<BamWriterParallelStreamBase>
 		{
+			//! this type
+			typedef BamParallelWriter this_type;
+			//! unique pointer type
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
 			/**
 			 * constructor for stream
 			 *
@@ -531,6 +541,11 @@ namespace libmaus
 			public BamWriterParallelRewriteStreamBaseWrapper, 
 			public BamWriterTemplate<BamWriterParallelRewriteStreamBase>
 		{
+			//! this type
+			typedef BamParallelRewriteWriter this_type;
+			//! unique pointer type
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			/**
 			 * constructor for stream
 			 *
