@@ -46,6 +46,7 @@
 #include <libmaus/rank/ERank.hpp>
 #include <libmaus/rank/ERank222BP.hpp>
 #include <libmaus/rank/ERank222BAppend.hpp>
+#include <libmaus/rank/ERank222BAppendDynamic.hpp>
 
 #include <libmaus/rank/log2table.hpp>
 
@@ -217,7 +218,7 @@ bool checkE2Append(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr 
-		<< "rank class " << ::libmaus::util::Demangle::demangle<eclass>() << " "
+		<< "rank class " << ::libmaus::util::Demangle::demangle<eappclass>() << " "
 		<< "writer type " << ::libmaus::util::Demangle::demangle<writer_type>() << " "
 		<< "data type " << ::libmaus::util::Demangle::demangle<data_type>() << std::endl;
 
@@ -229,50 +230,47 @@ bool checkE2Append(unsigned int const rvecsize)
 	
 	for ( unsigned int i = 0; i < loops; ++i )
 	{
+		std::cerr << "loop " << i+1 << std::endl;
+	
+		// initialize random bit vector
 		writer_type B(AA.get());
 		randomBitVect(B,vecsize);
 
+		// initialize rank dictionary on AA
 		eclass E2(AA.get(),vecsize);
-		eappclass E2APP(AA.get(),vecsize);
 		
 		#if 0
-		while ( E2APP.nc != E2APP.n )
-		{
-			uint64_t toapp = (rand() % (E2APP.n-E2APP.nc)) + 1;
-			E2APP.append( toapp );	
-			
-			for ( unsigned int j = 0; j < E2APP.nc; ++j )
-				assert ( E2APP.rank1(j) == E2.rank1(j) );
-		}
+		::libmaus::autoarray::AutoArray< data_type > AAA( AA.size(), false );
+		eappclass E2APP(AAA.get(),vecsize);
+		#else
+		libmaus::rank::ERank222BAppendDynamic E2APP;
 		#endif
 		
-		#if 0
-		assert ( E2.nummini == E2APP.nummini );
-		assert ( E2.numsuper == E2APP.numsuper );
+		std::cerr << ::libmaus::util::Demangle::demangle< libmaus::rank::ERank222BAppendDynamic >() << " loop " << (i+1) << std::endl;
 		
-		for ( uint64_t i = 0; i < E2.nummini; ++i )
+		for ( uint64_t j = 0; j < vecsize; ++j )
 		{
-			bool const lok = E2.M[i] == E2APP.M[i];
+			bool const bit = libmaus::bitio::getBit(AA.get(),j);
+			E2APP.appendBit(bit);
 			
-			if ( ! lok )
+			if ( j % 1921 == 0 )
 			{
-				std::cerr << "Failure for i=" << i << " E2.M=" << E2.M[i] << " E2APP.M=" << E2APP.M[i] << std::endl;
-			}
-			
-			assert ( lok );
-		}
-		for ( uint64_t i = 0; i < E2.numsuper; ++i )
-		{
-			bool const lok = E2.S[i] == E2APP.S[i];
-			
-			if ( ! lok )
-			{
-				std::cerr << "Failure for i=" << i << std::endl;
-			}
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int k = 0; k <= static_cast<int>(j); ++k )
+					assert ( E2APP.rank1(k) == E2.rank1(k) );
 				
-			assert ( lok );
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int k = 0; k <= static_cast<int>(j); ++k )
+					if ( libmaus::bitio::getBit(AA.get(),k) )
+						assert ( E2APP.select1(E2APP.rank1(k)-1) == static_cast<unsigned int>(k) );
+					else
+						assert ( E2APP.select0(E2APP.rank0(k)-1) == static_cast<unsigned int>(k) );
+			}
 		}
-		#endif
 	}
 	
 	return ok;
@@ -1702,6 +1700,7 @@ int main()
 {
 	initRand();
 
+	checkE2Append(1024*1024);
 	callWaveletTreeRankSelectRandom(128);
 	waveletTreeSmallerLargerRandom(10);
 	testCacheLineRank();
@@ -1714,7 +1713,6 @@ int main()
 	waveletTreeRankSelect();
 	waveletTreeCheckRMQ();
 
-	checkE2Append(5*256*1024);
 	checkBPS();
 	checkStreams8(1000000);
 	checkStreams64(10000000);

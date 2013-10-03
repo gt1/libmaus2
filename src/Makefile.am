@@ -303,7 +303,9 @@ libmausrank_include_HEADERS=\
 	libmaus/rank/Proc01.hpp \
 	libmaus/rank/EncodeCache.hpp \
 	libmaus/rank/CacheLineRank.hpp \
-	libmaus/rank/ImpCacheLineRank.hpp
+	libmaus/rank/ImpCacheLineRank.hpp \
+	libmaus/rank/ERank222BBase.hpp \
+	libmaus/rank/ERank222BAppendDynamic.hpp
 	
 libmausselect_includedir=$(includedir)/libmaus/select
 libmausselect_include_HEADERS=\

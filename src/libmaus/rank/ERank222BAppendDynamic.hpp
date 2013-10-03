@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(ERANK222BAPPEND_HPP)
-#define ERANK222BAPPEND_HPP
+#if ! defined(ERANK222BAPPENDDYNAMIC_HPP)
+#define ERANK222BAPPENDDYNAMIC_HPP
 
 #include <libmaus/rank/ERankBase.hpp>
 #include <libmaus/rank/ERank222BBase.hpp>
@@ -38,30 +38,27 @@ namespace libmaus
 		 * population count function. if the machine instruction set
 		 * does not provide a 64 bit popcount function, these calls
 		 * are simulated by using a precomputed 16 bit lookup table.
-		 * This class starts with an empty bit vector of predefined
-		 * maximal length. Bits can be appended up to the predefined
-		 * size.
+		 * This class starts with an empty bit vector. Bits can be appended.
 		 **/
-		struct ERank222BAppend : public ERankBase, public ERank222BBase
+		struct ERank222BAppendDynamic : public ERankBase, public ERank222BBase
 		{
 			public:
-			typedef ERank222BAppend this_type;
+			typedef ERank222BAppendDynamic this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
-			uint64_t * const UUUUUUUU;
-			uint64_t const n;
-			uint64_t const numsuper;
-			uint64_t const nummini;
-			uint64_t activesuper;
-			uint64_t activemini;
-			uint64_t * activepointer;
+			//! bit vector
+			std::vector<uint64_t> UUUUUUUU;
 			uint64_t activemask;
+			//! total number of bits inserted
 			uint64_t nc;
+			//! number of 1 bits inserted
 			uint64_t nr;
 			
-			::libmaus::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
-			::libmaus::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
+			//! super block dictionary
+			std::vector<uint64_t> S;
+			//! mini block dictionary
+			std::vector<uint16_t> M;
 
 			/**
 			 * return superblock containing i th 1 bit,
@@ -70,7 +67,7 @@ namespace libmaus
 			uint64_t selectSuper(uint64_t const ii) const
 			{
 				// search largest superblock index s such that ii < S[s]
-				uint64_t left = 0, right = activesuper;
+				uint64_t left = 0, right = S.size();
 
 				while ( right-left > 1 )
 				{
@@ -95,7 +92,7 @@ namespace libmaus
 			{
 				uint64_t const ii = iii - S[s];
 				uint64_t left = (s << sbbitwidth) >>  mbbitwidth;
-				uint64_t right = ::std::min( activemini, ((s+1) << sbbitwidth) >>  mbbitwidth);
+				uint64_t right = ::std::min( M.size(), ((s+1) << sbbitwidth) >>  mbbitwidth);
 			
 				while ( right-left > 1 )
 				{
@@ -116,15 +113,9 @@ namespace libmaus
 			
 			public:		
 			/**
-			 * @param rUUUUUUUU bit vector
-			 * @param rn number of bits in vector (has to be a multiple of 64)
+			 *
 			 **/
-			ERank222BAppend(uint64_t * const rUUUUUUUU, uint64_t const rn) 
-			: UUUUUUUU(rUUUUUUUU), n(rn),
-			  numsuper( divUp(n,sbsize) ), nummini( divUp(n,mbsize) ),
-			  activesuper(0), activemini(0), activepointer(UUUUUUUU-1), activemask(0),
-			  nc(0), nr(0),
-			  S( numsuper , false ), M( nummini, false)
+			ERank222BAppendDynamic() : activemask(0), nc(0), nr(0)
 			{
 			}
 			
@@ -145,24 +136,20 @@ namespace libmaus
 				// start new word if activemask is null
 				if ( ! activemask )
 				{
-					*(++activepointer) = 0;
+					// update superblock dictionary if necessary
+					if ( ! (M.size() & sbmbmask) )
+						S.push_back(nr);
+					// update miniblock dictionary
+					M.push_back ( nr - S.back() );
+					
+					UUUUUUUU.push_back(0);
 					activemask = (1ull<<63);
 				}
 				// add bit if it is one
 				if ( b )
-					*activepointer |= activemask;
+					UUUUUUUU.back() |= activemask;
 				// shift active mask to next position
 				activemask >>= 1;
-				// update miniblock dictionary if necessary
-				if ( !(nc & mbmask) )
-				{
-					// update superblock dictionary if necessary
-					//if ( !(nc & sbmask) ) 
-					if ( ! (activemini & sbmbmask) )
-						S [ activesuper++ ] = nr;
-
-					M [ activemini++ ] = nr - S [ activesuper-1 ];
-				}
 				// update rank accu
 				if ( b )
 					++nr;
@@ -172,7 +159,7 @@ namespace libmaus
 						
 			bool operator[](uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(UUUUUUUU,i);
+				return ::libmaus::bitio::getBit(&(UUUUUUUU[i >> mbbitwidth]),i & mbmask);
 			}
 			
 			/**
@@ -183,8 +170,8 @@ namespace libmaus
 				return 
 					sizeof(uint64_t *) + 
 					3*sizeof(uint64_t) +
-					S.byteSize() + 
-					M.byteSize();
+					S.size() * sizeof(uint64_t) + 
+					M.size() * sizeof(uint16_t);
 			}
 			
 			/**
