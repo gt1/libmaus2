@@ -22,6 +22,7 @@
 
 #include <libmaus/rank/ERankBase.hpp>
 #include <libmaus/rank/ERank222BBase.hpp>
+#include <libmaus/bitio/getBit.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <cassert>
