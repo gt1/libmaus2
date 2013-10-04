@@ -26,6 +26,8 @@
 #include <libmaus/fastx/FastQReader.hpp>
 #include <libmaus/fastx/Phred.hpp>
 #include <libmaus/util/ArgInfo.hpp>
+#include <libmaus/lz/BufferedGzipStream.hpp>
+#include <libmaus/fastx/StreamFastQReader.hpp>
 
 namespace libmaus
 {
@@ -67,17 +69,50 @@ namespace libmaus
 				rephred(r.begin(),r.end(),offset);
 				return r;
 			}
-
-			static std::map<uint64_t,uint64_t> getFastQWeightHistogram(
+			
+			static int getQualityOffset(
 				::libmaus::util::ArgInfo const & arginfo,
 				std::vector<std::string> const & filenames,
 				std::ostream * logstr = 0
 			)
 			{
+				// input is compressed
+				bool const gzinput = arginfo.getValue<unsigned int>("bgzf",0);
+
+				// fastq quality offset
 				int fqoffset = arginfo.getValue<int>("fqoffset",0);
-				uint64_t const fqmax = arginfo.getValue<uint64_t>("fqmax",std::numeric_limits<uint64_t>::max());
-				fqoffset = fqoffset ? fqoffset : ::libmaus::fastx::FastQReader::getOffset(filenames);
+				
+				if ( gzinput )
+				{
+					for ( uint64_t f = 0; (!fqoffset) && f < filenames.size(); ++f )
+					{
+						libmaus::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus::lz::BufferedGzipStream BGS(CIS);
+						libmaus::fastx::StreamFastQReaderWrapper fqin(BGS);
+						fqoffset = fqin.getOffset();
+					}
+					
+					if ( logstr )
+					{
+						if ( fqoffset )
+							(*logstr) << "Got quality offset " << fqoffset << " from compressed input." << std::endl;
+						else
+							(*logstr) << "Failed to get quality offset from compressed input." << std::endl;
+					}
+				}
+				else
+				{
+					fqoffset = fqoffset ? fqoffset : ::libmaus::fastx::FastQReader::getOffset(filenames);
 						
+					if ( logstr )
+					{
+						if ( fqoffset )
+							(*logstr) << "Got quality offset " << fqoffset << " from uncompressed input." << std::endl;
+						else
+							(*logstr) << "Failed to get quality offset from uncompressed input." << std::endl;
+					}
+				}
+
 				if ( ! fqoffset )
 				{
 					::libmaus::exception::LibMausException se;
@@ -85,7 +120,23 @@ namespace libmaus
 					se.finish();
 					throw se;
 				}
-				
+			
+				return fqoffset;
+			}
+
+			static std::map<uint64_t,uint64_t> getFastQWeightHistogram(
+				::libmaus::util::ArgInfo const & arginfo,
+				std::vector<std::string> const & filenames,
+				std::ostream * logstr = 0
+			)
+			{
+				// input is compressed
+				bool const gzinput = arginfo.getValue<unsigned int>("bgzf",0);
+				// maximum number of reads considered
+				uint64_t const fqmax = arginfo.getValue<uint64_t>("fqmax",std::numeric_limits<uint64_t>::max());
+				// get quality offset				
+				int const fqoffset = getQualityOffset(arginfo,filenames,logstr);
+
 				if ( logstr )
 					(*logstr) << "Computing weight histogram from " 
 						<< ((fqmax == std::numeric_limits<uint64_t>::max()) ? std::string("all") :
@@ -98,16 +149,44 @@ namespace libmaus
 				for ( uint64_t i = 40; i < qtab.size(); ++i )
 					qtab[i] = 40;
 				
-				::libmaus::fastx::FastQReader reader(filenames,fqoffset);
-				::libmaus::fastx::FastQReader::pattern_type pattern;
 				::libmaus::util::Histogram hist;
-				while ( reader.getNextPatternUnlocked(pattern) && pattern.patid < fqmax )
+
+				if ( gzinput )
 				{
-					uint8_t const * q = reinterpret_cast<uint8_t const *>(pattern.quality.c_str());
-					for ( uint64_t i = 0; i < pattern.getPatternLength(); ++i )
-						hist ( qtab[q[i]] );
-					if ( logstr && (pattern.patid & (1024*1024-1)) == 0 )
-						(*logstr) << "(" << (pattern.patid/(1024*1024)) << ")";
+					uint64_t decoded = 0;
+					
+					for ( uint64_t f = 0; decoded < fqmax && f < filenames.size(); ++f )
+					{
+						libmaus::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus::lz::BufferedGzipStream BGS(CIS);
+						libmaus::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
+						::libmaus::fastx::StreamFastQReaderWrapper::pattern_type pattern;
+
+						while ( fqin.getNextPatternUnlocked(pattern) && decoded++ < fqmax )
+						{
+							uint8_t const * q = reinterpret_cast<uint8_t const *>(pattern.quality.c_str());
+							for ( uint64_t i = 0; i < pattern.getPatternLength(); ++i )
+								hist ( qtab[q[i]] );
+							if ( logstr && (decoded & (1024*1024-1)) == 0 )
+								(*logstr) << "(" << (decoded/(1024*1024)) << ")";
+						}
+					}
+					
+					if ( logstr )
+						(*logstr) << "Decoded " << decoded << " reads from compressed files." << std::endl;
+				}
+				else
+				{
+					::libmaus::fastx::FastQReader reader(filenames,fqoffset);
+					::libmaus::fastx::FastQReader::pattern_type pattern;
+					while ( reader.getNextPatternUnlocked(pattern) && pattern.patid < fqmax )
+					{
+						uint8_t const * q = reinterpret_cast<uint8_t const *>(pattern.quality.c_str());
+						for ( uint64_t i = 0; i < pattern.getPatternLength(); ++i )
+							hist ( qtab[q[i]] );
+						if ( logstr && (pattern.patid & (1024*1024-1)) == 0 )
+							(*logstr) << "(" << (pattern.patid/(1024*1024)) << ")";
+					}
 				}
 				
 				std::map<uint64_t,uint64_t> const M = hist.get();
@@ -479,30 +558,53 @@ namespace libmaus
 				std::ostream * logstr = 0
 			)
 			{
+				rephredFastq(filenames,arginfo,std::cout,logstr);
+			}
+
+			static void rephredFastq(
+				std::vector<std::string> const & filenames,
+				::libmaus::util::ArgInfo const & arginfo,
+				std::ostream & out,
+				std::ostream * logstr = 0
+			)
+			{
+				// input is compressed
+				bool const gzinput = arginfo.getValue<unsigned int>("bgzf",0);
 				uint64_t const numsteps = arginfo.getValue<uint64_t>("fqquantsteps",8);
 				FqWeightQuantiser fqwq(filenames,numsteps,&arginfo,logstr);
 
-				int fqoffset = arginfo.getValue<int>("fqoffset",0);
-				fqoffset = fqoffset ? fqoffset : ::libmaus::fastx::FastQReader::getOffset(filenames);
-						
-				if ( ! fqoffset )
+				// get quality offset				
+				int const fqoffset = getQualityOffset(arginfo,filenames,logstr);
+				
+				if ( gzinput )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Unable to guess fastq quality format offset." << std::endl;
-					se.finish();
-					throw se;
+					for ( uint64_t f = 0; f < filenames.size(); ++f )
+					{
+						libmaus::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus::lz::BufferedGzipStream BGS(CIS);
+						libmaus::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
+						::libmaus::fastx::StreamFastQReader::pattern_type pattern;
+
+						while ( fqin.getNextPatternUnlocked(pattern) )
+						{
+							pattern.quality = fqwq.rephred(pattern.quality,fqoffset);
+							out << pattern;
+						}
+					}
+				}
+				else
+				{				
+					::libmaus::fastx::FastQReader reader(filenames,fqoffset);
+					::libmaus::fastx::FastQReader::pattern_type pattern;
+				
+					while ( reader.getNextPatternUnlocked(pattern) )
+					{
+						pattern.quality = fqwq.rephred(pattern.quality,fqoffset);
+						out << pattern;
+					}
 				}
 				
-				::libmaus::fastx::FastQReader reader(filenames,fqoffset);
-				::libmaus::fastx::FastQReader::pattern_type pattern;
-				
-				while ( reader.getNextPatternUnlocked(pattern) )
-				{
-					pattern.quality = fqwq.rephred(pattern.quality,fqoffset);
-					std::cout << pattern;
-				}
-				
-				std::cout.flush();
+				out.flush();
 			}
 			
 			
