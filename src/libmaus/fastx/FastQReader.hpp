@@ -469,17 +469,11 @@ namespace libmaus
                                 
                                 return i;
                         }
-
-			static int getOffset(std::string const & inputfile)
-			{
-				return getOffset(std::vector<std::string>(1,inputfile));
-			}
-
-                        static int getOffset(std::vector<std::string> const & inputfiles)
+                        
+                        int getOffset()
                         {
-                                reader_type file ( inputfiles );
                                 FASTQEntry entry;
-                                while ( file.getNextPatternUnlocked(entry) )
+                                while ( getNextPatternUnlocked(entry) )
                                 {
                                         std::string const & quality = entry.quality;
                                         
@@ -493,6 +487,18 @@ namespace libmaus
                                 }
                                 
                                 return 0;
+                        
+                        }
+
+			static int getOffset(std::string const & inputfile)
+			{
+				return getOffset(std::vector<std::string>(1,inputfile));
+			}
+
+                        static int getOffset(std::vector<std::string> const & inputfiles)
+                        {
+                                reader_type file ( inputfiles );
+                                return file.getOffset();
                         }
 
                         /**
