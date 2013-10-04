@@ -93,7 +93,7 @@ namespace libmaus
 			{
 				uint64_t const ii = iii - S[s];
 				uint64_t left = (s << sbbitwidth) >>  mbbitwidth;
-				uint64_t right = ::std::min( M.size(), ((s+1) << sbbitwidth) >>  mbbitwidth);
+				uint64_t right = ::std::min( static_cast<uint64_t>(M.size()), ((s+1) << sbbitwidth) >>  mbbitwidth);
 			
 				while ( right-left > 1 )
 				{
@@ -161,6 +161,14 @@ namespace libmaus
 			bool operator[](uint64_t const i) const
 			{
 				return ::libmaus::bitio::getBit(&(UUUUUUUU[i >> mbbitwidth]),i & mbmask);
+			}
+			
+			/**
+			 * @return length of vector in bits
+			 **/
+			uint64_t size() const
+			{
+				return nc;
 			}
 			
 			/**
