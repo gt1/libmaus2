@@ -1,3 +1,4 @@
+
 /*
     libmaus
     Copyright (C) 2009-2013 German Tischler
@@ -18,6 +19,7 @@
 */
 
 #include <libmaus/util/KMP.hpp>
+#include <libmaus/util/SuccinctBorderArray.hpp>
 #include <libmaus/random/Random.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/util/ArgInfo.hpp>
@@ -122,10 +124,20 @@ void findSplitCommon(
 		<< std::endl;
 }
 
+void testSuccinctBorderArray()
+{
+	bool const fibok = libmaus::util::SuccinctBorderArray::checkFibonacci(20);
+	assert ( fibok );
+	std::string const s = "abaababaaba";
+	libmaus::util::SuccinctBorderArray::check(s);
+}
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		testSuccinctBorderArray();
+			
 		::libmaus::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		

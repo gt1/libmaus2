@@ -77,6 +77,7 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/util/PosixInputFile.cpp \
 	libmaus/util/SaturatingCounter.cpp \
 	libmaus/util/StringSerialisation.cpp \
+	libmaus/util/SuccinctBorderArray.cpp \
 	libmaus/util/Terminal.cpp \
 	libmaus/util/OctetString.cpp \
 	libmaus/util/Utf8String.cpp \
@@ -480,7 +481,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/MemTempFileContainer.hpp \
 	libmaus/util/ImpCompactNumberArray.hpp \
 	libmaus/util/ContainerGetObject.hpp \
-	libmaus/util/PushBuffer.hpp
+	libmaus/util/PushBuffer.hpp \
+	libmaus/util/SuccinctBorderArray.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
