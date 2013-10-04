@@ -32,6 +32,7 @@ namespace libmaus
                 struct StreamFastQReaderWrapper : public StreamFastQReader
                 {
                 	StreamFastQReaderWrapper(std::istream & in) : StreamFastQReader(&in,getDefaultQualityOffset()) {}
+                	StreamFastQReaderWrapper(std::istream & in, int const qualityOffset) : StreamFastQReader(&in,qualityOffset) {}
                 };
 	}
 }
