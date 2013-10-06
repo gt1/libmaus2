@@ -282,6 +282,109 @@ namespace libmaus
 			{
 			}
 		};
+
+		/**
+		 * class for sorting buffer file output
+		 **/
+		template<typename _data_type, typename _order_type = std::less<_data_type> >
+		struct SortingBufferedOutput : public BufferedOutputBase<_data_type>
+		{
+			//! data type
+			typedef _data_type data_type;
+			//! order type
+			typedef _order_type order_type;
+			//! this type
+			typedef SortingBufferedOutput<data_type,order_type> this_type;
+			//! base class type
+			typedef BufferedOutputBase<data_type> base_type;
+			//! unique pointer type
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! order pointer type
+			typedef typename ::libmaus::util::unique_ptr<order_type>::type order_ptr_type;
+			
+			private:
+			std::ostream & out;
+			order_ptr_type Porder;
+			order_type & order;
+			std::vector<uint64_t> blocksizes;
+			
+			public:
+			/**
+			 * constructor
+			 *
+			 * @param rout output stream
+			 * @param bufsize size of buffer in elements
+			 **/
+			SortingBufferedOutput(std::ostream & rout, uint64_t const bufsize)
+			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(new order_type), order(*Porder), blocksizes()
+			{
+			
+			}
+
+			/**
+			 * constructor
+			 *
+			 * @param rout output stream
+			 * @param bufsize size of buffer in elements
+			 * @param rorder sort order
+			 **/
+			SortingBufferedOutput(std::ostream & rout, uint64_t const bufsize, order_type & rorder)
+			: BufferedOutputBase<_data_type>(bufsize), out(rout), Porder(), order(rorder), blocksizes()
+			{
+			
+			}
+			
+			/**
+			 * destructor
+			 **/
+			~SortingBufferedOutput()
+			{
+				base_type::flush();
+			}
+
+			/**
+			 * flush the buffer
+			 **/			
+			void flush()
+			{
+				base_type::flush();
+			}
+
+			/**
+			 * write buffer to output stream
+			 **/
+			virtual void writeBuffer()
+			{
+				if ( base_type::fill() )
+				{
+					std::sort(base_type::pa,base_type::pc,order);
+					
+					out.write ( reinterpret_cast<char const *>(base_type::pa), base_type::fill()*sizeof(data_type) );
+					
+					if ( ! out )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Failed to write " << base_type::fill()*sizeof(data_type) << " bytes." << std::endl;
+						se.finish();
+						throw se;
+					}
+					
+					blocksizes.push_back(base_type::fill());
+					
+					base_type::reset();
+				}
+			}
+			
+			/**
+			 * get block sizes (number of elements written in each block)
+			 *
+			 * @return block size vector
+			 **/
+			std::vector<uint64_t> const & getBlockSizes() const
+			{
+				return blocksizes;
+			}
+		};
 	}
 }
 #endif
