@@ -339,7 +339,7 @@ namespace libmaus
 			 **/
 			~SortingBufferedOutput()
 			{
-				base_type::flush();
+				flush();
 			}
 
 			/**
@@ -348,6 +348,7 @@ namespace libmaus
 			void flush()
 			{
 				base_type::flush();
+				out.flush();
 			}
 
 			/**

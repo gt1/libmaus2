@@ -633,7 +633,9 @@ libmaussorting_include_HEADERS=\
 	libmaus/sorting/ParallelRadixSort.hpp \
 	libmaus/sorting/SerialRadixSort64.hpp \
 	libmaus/sorting/PairFileSorting.hpp \
-	libmaus/sorting/InPlaceParallelSort.hpp
+	libmaus/sorting/InPlaceParallelSort.hpp \
+	libmaus/sorting/MergingReadBack.hpp \
+	libmaus/sorting/SortingBufferedOutputFile.hpp
 
 libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
@@ -890,7 +892,8 @@ noinst_PROGRAMS = \
 	testbamindex \
 	testbamrewrite \
 	testfastqstream \
-	testsort
+	testsort \
+	testexternalsort
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1111,3 +1114,6 @@ testfastqstream_LDADD = libmaus.la
 
 testsort_SOURCES = test/testsort.cpp
 testsort_LDADD = libmaus.la
+
+testexternalsort_SOURCES = test/testexternalsort.cpp
+testexternalsort_LDADD = libmaus.la
