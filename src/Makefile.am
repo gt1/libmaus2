@@ -619,7 +619,8 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/QReorder.hpp \
 	libmaus/fastx/StreamFastReaderBase.hpp \
 	libmaus/fastx/StreamFastQReader.hpp \
-	libmaus/fastx/GzipStreamFastQReader.hpp
+	libmaus/fastx/GzipStreamFastQReader.hpp \
+	libmaus/fastx/GzipFileFastQReader.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
