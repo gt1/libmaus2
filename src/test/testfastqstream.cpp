@@ -19,11 +19,50 @@
 
 #include <libmaus/fastx/StreamFastQReader.hpp>
 #include <libmaus/lz/BufferedGzipStream.hpp>
+#include <libmaus/fastx/GzipStreamFastQReader.hpp>
+#include <libmaus/fastx/GzipFileFastQReader.hpp>
+#include <libmaus/util/ArgInfo.hpp>
 
+void decodeGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
+{
+	libmaus::aio::CheckedInputStream FICIS(indexfilename);
+	std::vector < libmaus::fastx::FastInterval > FIV = 
+		libmaus::fastx::FastInterval::deserialiseVector(FICIS);
+		
+	for ( uint64_t i = 0; i < FIV.size(); ++i )
+	{
+		std::cerr << FIV[i] << std::endl;
+			
+		libmaus::fastx::GzipFileFastQReader reader(filename,FIV[i]);
+		libmaus::fastx::GzipFileFastQReader::pattern_type pattern;
+
+		while ( reader.getNextPatternUnlocked(pattern) )
+			std::cout << pattern;		
+	}
+}
+
+void decodeGzipFastQStream(std::istream & in, std::ostream & out)
+{
+	libmaus::fastx::GzipStreamFastQReader reader(in);
+	libmaus::fastx::GzipStreamFastQReader::pattern_type pattern;
+	while ( reader.getNextPatternUnlocked(pattern) )
+		out << pattern;	
+}
+
+void decodeGzipFastqBlocksByParameters(int argc, char * argv[])
+{
+	libmaus::util::ArgInfo const arginfo(argc,argv);		
+	std::string const filename = arginfo.stringRestArg(0);
+	std::string const indexfilename = arginfo.stringRestArg(1);
+	decodeGzipFastqBlocks(filename,indexfilename);
+}
+
+/* int main(int argc, char * argv[]) */
 int main()
 {
 	try
 	{
+
 		/*
 		 * test libmaus::fastx::StreamFastQReaderWrapper class by 
 		 * reading a gzip compressed FastQ file and outputting it
