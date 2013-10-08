@@ -27,15 +27,15 @@ namespace libmaus
 {
 	namespace fastx
 	{
-                struct GzipStreamFastQReader : public BufferedGzipStreamWrapper, public StreamFastQReaderWrapper
+                struct GzipStreamFastQReader : public libmaus::lz::BufferedGzipStreamWrapper, public StreamFastQReaderWrapper
                 {
                 	GzipStreamFastQReader(std::istream & in)
-                	: BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
+                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
                 	{
                 	}
 
                 	GzipStreamFastQReader(std::istream & in, int const qualityOffset)
-                	: BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object,qualityOffset)
+                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus::lz::BufferedGzipStreamWrapper::object,qualityOffset)
                 	{
                 	}
                 };
