@@ -116,6 +116,28 @@ namespace libmaus
 				
 				return *this;
 			}
+
+			/**
+			 * read n bytes from stream to c in blocks of size b. 
+			 * throws an exception if n!=0 and no bytes were read
+			 *
+			 * @param c output buffer space
+			 * @param n number of bytes to be read
+			 * @param b block size
+			 * @return *this
+			 **/
+			CheckedInputStream & read(char * c, ::std::streamsize n, ::std::streamsize const b)
+			{
+				while ( n )
+				{
+					::std::streamsize const toread = std::min(n,b);
+					read(c,toread);
+					c += toread;
+					n -= toread;
+				}
+				
+				return *this;
+			}
 			
 			/**
 			 * seek stream to absolute position pos. throws an exception if not successfull

@@ -33,6 +33,14 @@ namespace libmaus
 			
 			}	
 		};
+		
+		struct BufferedGzipStreamWrapper
+		{
+			BufferedGzipStream object;
+			
+			BufferedGzipStreamWrapper(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
+			: object(in,bufsize,pushbacksize) {}
+		};
 	}
 }
 #endif

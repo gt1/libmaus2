@@ -1254,7 +1254,7 @@ namespace libmaus
 				CIS.seekg(0, std::ios::beg);
 				
 				AutoArray<N> A(length,false);
-				CIS.read ( reinterpret_cast<char *>(A.begin()), length*sizeof(N));
+				CIS.read ( reinterpret_cast<char *>(A.begin()), length*sizeof(N), 64ull*1024ull);
 				return A;
 			}
 		};
