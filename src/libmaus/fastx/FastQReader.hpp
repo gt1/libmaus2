@@ -90,6 +90,8 @@ namespace libmaus
                         uint64_t nextid;
 
 			FastInterval interval;
+			
+			bool checkbytecount;
                         
                         FastQReaderTemplate(
 				std::string const & filename, 
@@ -102,7 +104,8 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(rnextid),
-			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus::util::GetFileSize::getFileSize(filename), 0 /* syms */, 0 /* minlen */, 0 /* maxlen */)
+			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus::util::GetFileSize::getFileSize(filename), 0 /* syms */, 0 /* minlen */, 0 /* maxlen */),
+			  checkbytecount(true)
                         {
                                 findNextMarker();
                         }
@@ -133,7 +136,8 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(rnextid),
-			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus::util::GetFileSize::getFileSize(filenames), 0 /* numsyms */, 0 /* minlen */, 0 /* maxlen */)
+			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus::util::GetFileSize::getFileSize(filenames), 0 /* numsyms */, 0 /* minlen */, 0 /* maxlen */),
+			  checkbytecount(true)
                         {
                                 findNextMarker();
                         }
@@ -149,7 +153,7 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(rinterval.low),
-			  interval(rinterval)
+			  interval(rinterval), checkbytecount(true)
                         {
                                 findNextMarker();
                         }
@@ -164,7 +168,7 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(rinterval.low),
-			  interval(rinterval)
+			  interval(rinterval), checkbytecount(true)
                         {
                                 findNextMarker();
                         }
@@ -179,7 +183,7 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(0), nextid(intervals[i].low),
-			  interval(intervals[i])
+			  interval(intervals[i]), checkbytecount(true)
                         {
                                 rinit->writeMessage(0,&i,1);
                                 findNextMarker();
@@ -195,7 +199,7 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(0), nextid(rinterval.low),
-			  interval(rinterval)
+			  interval(rinterval), checkbytecount(true)
                         {
                                 rinit->writeString(interval.serialise());
                                 findNextMarker();
@@ -211,10 +215,29 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(0),
-			  interval(nextid,std::numeric_limits<uint64_t>::max(),0,std::numeric_limits<uint64_t>::max(), 0 /* syms */, 0 /* minlen */, 0 /* maxlen */)
+			  interval(nextid,std::numeric_limits<uint64_t>::max(),0,std::numeric_limits<uint64_t>::max(), 0 /* syms */, 0 /* minlen */, 0 /* maxlen */),
+			  checkbytecount(true)
                         {
                                 findNextMarker();
                         }
+
+                        template<typename reader_init_type>
+			FastQReaderTemplate(
+			        reader_init_type * rinit,
+			        int const rqualityOffset,
+				FastInterval const & rinterval,
+                                uint64_t const bufsize = getDefaultBufferSize()
+			)
+			: reader_base_type(rinit,bufsize),
+                          atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
+                          foundnextmarker(false),
+                          qualityOffset(rqualityOffset), nextid(rinterval.low),
+			  interval(rinterval),
+			  checkbytecount(true)
+                        {
+                                findNextMarker();
+                        }
+
 
                         void findNextMarker()
                         {
@@ -345,6 +368,11 @@ namespace libmaus
                         {
                         	return getElements(std::vector<std::string>(1,filename));
                         }
+                        
+                        void disableByteCountChecking()
+                        {
+                        	checkbytecount = false;
+                        }
 
                         bool getNextPatternUnlocked(pattern_type & pattern)
                         {
@@ -354,7 +382,7 @@ namespace libmaus
                                 /* left region of interest in file */
 				if ( nextid >= interval.high )
 					return false;
-				if ( reader_base_type::getC() >= (interval.fileoffsethigh-interval.fileoffset) )
+				if ( checkbytecount && (reader_base_type::getC() >= (interval.fileoffsethigh-interval.fileoffset)) )
 					return false;
 
                                 foundnextmarker = false;
