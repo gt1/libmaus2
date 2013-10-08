@@ -31,12 +31,21 @@ namespace libmaus
                 {
                 	GzipStreamFastQReader(std::istream & in)
                 	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
+                	{}
+
+                	GzipStreamFastQReader(std::istream & in, libmaus::fastx::FastInterval const & FI)
+                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object,FI)
                 	{
+                		disableByteCountChecking();
                 	}
 
                 	GzipStreamFastQReader(std::istream & in, int const qualityOffset)
                 	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus::lz::BufferedGzipStreamWrapper::object,qualityOffset)
+                	{}
+                	GzipStreamFastQReader(std::istream & in, int const qualityOffset, libmaus::fastx::FastInterval const & FI)
+                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus::lz::BufferedGzipStreamWrapper::object,qualityOffset,FI)
                 	{
+                		disableByteCountChecking();                	
                 	}
                 };
 	}
