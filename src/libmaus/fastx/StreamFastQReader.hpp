@@ -33,6 +33,8 @@ namespace libmaus
                 {
                 	StreamFastQReaderWrapper(std::istream & in) : StreamFastQReader(&in,getDefaultQualityOffset()) {}
                 	StreamFastQReaderWrapper(std::istream & in, int const qualityOffset) : StreamFastQReader(&in,qualityOffset) {}
+                	StreamFastQReaderWrapper(std::istream & in, libmaus::fastx::FastInterval const & FI) : StreamFastQReader(&in,getDefaultQualityOffset(),FI) {}
+                	StreamFastQReaderWrapper(std::istream & in, int const qualityOffset, libmaus::fastx::FastInterval const & FI) : StreamFastQReader(&in,qualityOffset,FI) {}
                 };
 	}
 }
