@@ -32,11 +32,20 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			std::istream & in;
-			::libmaus::lz::GzipHeader header;
 			::libmaus::lz::Inflate infl;
 			bool finished;
 			
-			GzipSingleStream(std::istream & rin) : in(rin), header(in), infl(in,-15), finished(false) {}
+			GzipSingleStream(std::istream & rin) 
+			: in(rin), infl(in,-15), finished(true) 
+			{
+			}
+			
+			void startNewBlock()
+			{
+				::libmaus::lz::GzipHeaderSimple::ignoreHeader(in);
+				infl.zreset();
+				finished = false;
+			}
 			
 			uint64_t read(char * buffer, uint64_t n)
 			{
@@ -48,13 +57,13 @@ namespace libmaus
 				while ( n )
 				{
 					uint64_t subred = infl.read(buffer,n);
+
 					if ( ! subred )
 					{
+						// put back unprocessed rest
 						infl.ungetRest();
-
-						std::ostringstream crcostr;	
-						/* uint32_t const crc32 = */ ::libmaus::lz::GzipHeader::getLEInteger(in,4,&crcostr);
-						/* uint32_t const isize = */ ::libmaus::lz::GzipHeader::getLEInteger(in,4,&crcostr);
+						// ignore CRC and timestamp
+						in.ignore(8);
 						
 						finished = true;
 
