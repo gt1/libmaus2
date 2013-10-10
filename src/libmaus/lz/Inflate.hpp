@@ -50,6 +50,21 @@ namespace libmaus
 			uint64_t outbuffill;
 			uint8_t const * op;
 			int ret;
+
+			void zreset()
+			{
+				if ( (ret=inflateReset(&strm)) != Z_OK )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Inflate::zreset(): inflateReset failed";
+					se.finish();
+					throw se;									
+				}
+				
+				ret = Z_OK;
+				outbuffill = 0;
+				op = 0;
+			}
 						
 			void init(int windowSizeLog)
 			{
