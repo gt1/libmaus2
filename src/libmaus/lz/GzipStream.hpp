@@ -31,105 +31,66 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			::libmaus::lz::StreamWrapper< ::std::istream > in;
-			GzipSingleStream::unique_ptr_type singlestream;
-			int64_t blockid;
-			int64_t readblockid;
+			GzipSingleStream singlestream;
 			uint64_t gcnt;
 			uint64_t gpos;
-			uint64_t bpos;
-			uint64_t compressedblockstartpos;
 			
 			bool openNextStream()
 			{
+				// std::cerr << "opening new stream." << std::endl;
+			
 				if ( in.peek() < 0 )
+				{
+					// std::cerr << "peek() returned -1" << std::endl;
 					return false;
+				}
 				
-				singlestream.reset();
-				
-				GzipSingleStream::unique_ptr_type tsinglestream(
-                                                new GzipSingleStream(in)
-                                        );
-				singlestream = UNIQUE_PTR_MOVE(tsinglestream);
+				singlestream.startNewBlock();
 					
 				return true;
 			}
 			
 			GzipStream(std::istream & rin)
 			: 
-			  in(rin,::libmaus::lz::Inflate::input_buffer_size,::libmaus::lz::Inflate::input_buffer_size), blockid(-1), readblockid(-1),
-			  gcnt(0), gpos(0), bpos(0), compressedblockstartpos(0)
+			  in(rin,::libmaus::lz::Inflate::input_buffer_size,::libmaus::lz::Inflate::input_buffer_size),
+			  singlestream(in),
+			  gcnt(0),
+			  gpos(0)
 			{
 				
 			}
 			
-			uint64_t tellg() const
+			uint64_t tellg()
 			{
 				return gpos;
-			}
-			
-			uint64_t getPositionInBlock() const
-			{
-				return bpos;
-			}
-			
-			uint64_t getBlockId() const
-			{
-				return (blockid >= 0) ? blockid : 0;
-			}
-			
-			uint64_t getCompressedBlockStartPos() const
-			{
-				return compressedblockstartpos;
 			}
 			
 			uint64_t read(char * buffer, uint64_t n)
 			{
 				uint64_t red = 0;
-				int64_t lreadblockid = -1;
-				
+
 				while ( n )
 				{
-					if ( ! singlestream.get() )
-					{
-						// std::cerr << "Opening new stream at " << in.tellg() << std::endl;
-						compressedblockstartpos = in.tellg();
-						
-						bool ok = openNextStream();
-						
-						// std::cerr << "Here." << std::endl;
-						
-						if ( ! ok )
-							break;
-						else
-						{
-							++blockid;
-							bpos = 0;
-						}
-					}
-
-					assert ( singlestream.get() );
-					
-					uint64_t subred = singlestream->read(buffer,n);
+					uint64_t subred = singlestream.read(buffer,n);
 					
 					if ( subred )
 					{
-						if ( lreadblockid < 0 )
-							lreadblockid = blockid;
-					
 						buffer += subred;
 						n -= subred;
 						red += subred;
 					}
 					else
 					{
-						singlestream.reset();
+						if ( ! openNextStream() )
+						{
+							// std::cerr << "no next stream." << std::endl;
+							n = 0;
+						}
 					}
 				}
 				
-				readblockid = lreadblockid;	
 				gcnt = red;
 				gpos += red;
-				bpos += red;
 								
 				return red;
 			}
