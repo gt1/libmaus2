@@ -96,6 +96,74 @@ namespace libmaus
 				flush();
 			}
 		};                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+		template<typename _stream_type>
+		struct BgzfDeflateWrapper
+		{
+			typedef _stream_type stream_type;
+			
+			BgzfDeflate<stream_type> object;
+
+			BgzfDeflateWrapper(stream_type & rstream, int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
+			: object(rstream,level,rflushmode)
+			{
+			}
+			
+		};
+
+		struct BgzfOutputStreamBuffer : public BgzfDeflateWrapper<std::ostream>, public ::std::streambuf
+		{
+			::libmaus::autoarray::AutoArray<char> buffer;
+		
+			BgzfOutputStreamBuffer(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION)
+			: BgzfDeflateWrapper<std::ostream>(out,level,true), buffer(BgzfConstants::getBgzfMaxBlockSize(),false) 
+			{
+				setp(buffer.begin(),buffer.end());
+			}
+			
+			int_type overflow(int_type c = traits_type::eof())
+			{
+				if ( c != traits_type::eof() )
+				{
+					*pptr() = c;
+					pbump(1);
+					doSync();
+				}
+
+				return c;
+			}
+			
+			void doSync()
+			{
+				int64_t const n = pptr()-pbase();
+				pbump(-n);
+				BgzfDeflateWrapper<std::ostream>::object.write(pbase(),n);
+			}
+			int sync()
+			{
+				doSync();
+				BgzfDeflateWrapper<std::ostream>::object.flush();
+				return 0; // no error, -1 for error
+			}
+			
+			void addEOFBlock()
+			{
+				BgzfDeflateWrapper<std::ostream>::object.addEOFBlock();
+			}
+		};
+		
+		struct BgzfOutputStream : public BgzfOutputStreamBuffer, public std::ostream
+		{	
+			typedef BgzfOutputStream this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			BgzfOutputStream(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION)
+			: BgzfOutputStreamBuffer(out,level), std::ostream(this)
+			{
+			}
+		};
+
 	}
 }
 #endif
