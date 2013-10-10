@@ -49,28 +49,13 @@ namespace libmaus
 			: I1(rI1), I2(rI2), L(rL), data(rdata) 
 			{}
 		};
-	
-		struct GzipHeader
+		
+		struct GzipHeaderConstantsBase
 		{
 			static uint8_t const ID1 = 0x1F;
 			static uint8_t const ID2 = 0x8B;
 			static uint8_t const CM = 8; // compression method: deflate
-			uint8_t FLG; // flags
-			uint32_t MTIME; // modification time
-			uint8_t XFL; // extra flags, 2 for maximum compression, 4 for fastest
-			uint8_t OS; // operating system, 0xFF for unspecified
-			
-			uint16_t XLEN; // length of extra field
-			
-			std::string extradata;
-			std::string filename; // original file name
-			std::string comment; // comment
-			
-			uint16_t CRC16; // CRC
-			
-			std::vector < GzipExtraData > extradataVector;
-			uint16_t bcblocksize;
-			
+		
 			static uint8_t const FTEXT = (1u << 0);
 			static uint8_t const FHCRC = (1u << 1);
 			static uint8_t const FEXTRA = (1u << 2);
@@ -143,13 +128,30 @@ namespace libmaus
 				// std::cerr << "payload size " << payloadsize << std::endl;
 				// block size - 1 (including header an footer)
 			}
+		};
+	
+		struct GzipHeader : public GzipHeaderConstantsBase
+		{
+			uint8_t FLG; // flags
+			uint32_t MTIME; // modification time
+			uint8_t XFL; // extra flags, 2 for maximum compression, 4 for fastest
+			uint8_t OS; // operating system, 0xFF for unspecified
 			
+			uint16_t XLEN; // length of extra field
+			
+			std::string extradata;
+			std::string filename; // original file name
+			std::string comment; // comment
+			
+			uint16_t CRC16; // CRC
+			
+			std::vector < GzipExtraData > extradataVector;
+			uint16_t bcblocksize;
+						
 			void init(std::istream & in)
 			{
-				std::ostringstream headerdata;
-			
-				uint8_t const FID1 = getByte(in,&headerdata);
-				uint8_t const FID2 = getByte(in,&headerdata);
+				uint8_t const FID1 = getByte(in);
+				uint8_t const FID2 = getByte(in);
 				
 				if ( (FID1 != ID1) || (FID2 != ID2) )
 				{
@@ -163,7 +165,7 @@ namespace libmaus
 					throw se;				
 				}
 				
-				uint8_t const FCM = getByte(in,&headerdata);
+				uint8_t const FCM = getByte(in);
 
 				if ( FCM != CM )
 				{
@@ -173,16 +175,16 @@ namespace libmaus
 					throw se;				
 				}			
 				
-				FLG = getByte(in,&headerdata);
+				FLG = getByte(in);
 				
 				if ( FLG & FRES )
 				{
 					std::cerr << "WARNING: gzip header has unknown flags set." << std::endl;
 				}
 				
-				MTIME = getLEInteger(in,4,&headerdata);
+				MTIME = getLEInteger(in,4);
 
-				XFL = getByte(in,&headerdata);
+				XFL = getByte(in);
 				
 				if ( (XFL != 0 && XFL != 2 && XFL != 4) )
 				{
@@ -190,14 +192,14 @@ namespace libmaus
 						static_cast<int>(XFL) << std::endl;
 				}
 				
-				OS = getByte(in,&headerdata);
+				OS = getByte(in);
 				
 				if ( (FLG & FEXTRA) )
 				{
-					uint64_t const xtralen = getLEInteger(in,2,&headerdata);
+					uint64_t const xtralen = getLEInteger(in,2);
 					std::vector<uint8_t> vextra(xtralen);
 					for ( uint64_t i = 0; i < xtralen; ++i )
-						vextra[i] = getByte(in,&headerdata);
+						vextra[i] = getByte(in);
 					extradata = std::string(vextra.begin(),vextra.end());
 
 
@@ -249,7 +251,7 @@ namespace libmaus
 				{
 					std::vector<uint8_t> vfn;
 					uint8_t sym;
-					while ( (sym=getByte(in,&headerdata)) != 0 )
+					while ( (sym=getByte(in)) != 0 )
 						vfn.push_back(sym);
 					filename = std::string(vfn.begin(),vfn.end());	
 					
@@ -260,7 +262,7 @@ namespace libmaus
 				{
 					std::vector<uint8_t> vcomment;
 					uint8_t sym;
-					while ( (sym=getByte(in,&headerdata)) != 0 )
+					while ( (sym=getByte(in)) != 0 )
 						vcomment.push_back(sym);
 					comment = std::string(vcomment.begin(),vcomment.end());
 					
@@ -271,46 +273,6 @@ namespace libmaus
 				{
 					getLEInteger(in,2); // read crc for header
 				}
-
-
-				#if 0
-				StreamWrapper< ::std::istream > in(rin,::libmaus::lz::Inflate::input_buffer_size);
-
-					while ( in )
-					{
-						int const nextc = in.peek();
-						
-						if ( nextc < 0 )
-							break;
-					
-						
-						// std::cerr << "header data length " << headerdata.str().size() << std::endl;
-						
-						::libmaus::lz::Inflate infl(in,-15);
-						
-						int c;
-						uint64_t dec = 0;
-						while ( (c=infl.get()) >= 0 )
-						{
-							// std::cout << static_cast<uint8_t>(c);
-							dec++;
-						}
-						
-						infl.ungetRest(); // put data not used by inflate back into stream
-
-						std::ostringstream crcostr;	
-						/* uint32_t const crc32 = */ getLEInteger(in,4,&crcostr);
-						/* uint32_t const isize = */ getLEInteger(in,4,&crcostr);
-
-						if ( ++blockcnt % (1024) == 0 )
-							std::cerr << blockcnt << std::endl;
-					}
-				}
-				catch(std::exception const & ex)
-				{
-					std::cerr << ex.what() << std::endl;
-				}
-				#endif
 			}
 
 			GzipHeader(std::istream & in)
@@ -319,6 +281,188 @@ namespace libmaus
 			}
 			
 			GzipHeader(std::string const & filename)
+			{
+				std::ifstream istr(filename.c_str(),std::ios::binary);
+				if ( ! istr.is_open() )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "GzipHeader::GzipHeader(): failed to open file " << filename << std::endl;
+					se.finish();
+					throw se;				
+				}
+				init(istr);
+			}
+		};
+
+		struct GzipHeaderSimple : public GzipHeaderConstantsBase
+		{
+			uint8_t FLG; // flags
+			uint32_t MTIME; // modification time
+			uint8_t XFL; // extra flags, 2 for maximum compression, 4 for fastest
+			uint8_t OS; // operating system, 0xFF for unspecified
+			uint16_t XLEN; // length of extra field
+			uint16_t CRC16; // CRC			
+			uint16_t bcblocksize;
+						
+			void init(std::istream & in)
+			{
+				uint8_t const FID1 = getByte(in);
+				uint8_t const FID2 = getByte(in);
+				
+				if ( (FID1 != ID1) || (FID2 != ID2) )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "GzipHeader::init(): file starts with non GZIP magic, expected " 
+						<< std::hex << static_cast<int>(ID1)  << ":" << static_cast<int>(ID2) << std::dec
+						<< " got "
+						<< std::hex << static_cast<int>(FID1) << ":" << static_cast<int>(FID2) << std::dec
+						<< std::endl;
+					se.finish();
+					throw se;				
+				}
+				
+				uint8_t const FCM = getByte(in);
+
+				if ( FCM != CM )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "GzipHeader::init(): unknown compression method " << static_cast<int>(FCM) << std::endl;
+					se.finish();
+					throw se;				
+				}			
+				
+				FLG = getByte(in);
+				
+				if ( FLG & FRES )
+				{
+					std::cerr << "WARNING: gzip header has unknown flags set." << std::endl;
+				}
+				
+				MTIME = getLEInteger(in,4);
+
+				XFL = getByte(in);
+				
+				if ( (XFL != 0 && XFL != 2 && XFL != 4) )
+				{
+					std::cerr << "WARNING: gzip header has unknown XFL flag value " << 
+						static_cast<int>(XFL) << std::endl;
+				}
+				
+				OS = getByte(in);
+				
+				if ( (FLG & FEXTRA) )
+				{
+					uint64_t const xtralen = getLEInteger(in,2);
+					for ( uint64_t i = 0; i < xtralen; ++i )
+						getByte(in);
+				}
+				
+				if ( (FLG & FNAME) )
+				{
+					while ( getByte(in) != 0 )
+					{
+					}
+				}
+
+				if ( (FLG & FCOMMENT) )
+				{
+					while ( getByte(in) != 0 )
+					{
+					
+					}
+				}
+				
+				if ( (FLG & FHCRC) )
+				{
+					getLEInteger(in,2); // read crc for header
+				}
+			}
+
+			static void ignoreHeader(std::istream & in)
+			{
+				uint8_t FLG; // flags
+				uint32_t MTIME; // modification time
+				uint8_t XFL; // extra flags, 2 for maximum compression, 4 for fastest
+				uint8_t OS; // operating system, 0xFF for unspecified
+				
+				uint8_t const FID1 = getByte(in);
+				uint8_t const FID2 = getByte(in);
+				
+				if ( (FID1 != ID1) || (FID2 != ID2) )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "GzipHeader::init(): file starts with non GZIP magic, expected " 
+						<< std::hex << static_cast<int>(ID1)  << ":" << static_cast<int>(ID2) << std::dec
+						<< " got "
+						<< std::hex << static_cast<int>(FID1) << ":" << static_cast<int>(FID2) << std::dec
+						<< std::endl;
+					se.finish();
+					throw se;				
+				}
+				
+				uint8_t const FCM = getByte(in);
+
+				if ( FCM != CM )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "GzipHeader::init(): unknown compression method " << static_cast<int>(FCM) << std::endl;
+					se.finish();
+					throw se;				
+				}			
+				
+				FLG = getByte(in);
+				
+				if ( FLG & FRES )
+				{
+					std::cerr << "WARNING: gzip header has unknown flags set." << std::endl;
+				}
+				
+				MTIME = getLEInteger(in,4);
+
+				XFL = getByte(in);
+				
+				if ( (XFL != 0 && XFL != 2 && XFL != 4) )
+				{
+					std::cerr << "WARNING: gzip header has unknown XFL flag value " << 
+						static_cast<int>(XFL) << std::endl;
+				}
+				
+				OS = getByte(in);
+				
+				if ( (FLG & FEXTRA) )
+				{
+					uint64_t const xtralen = getLEInteger(in,2);
+					for ( uint64_t i = 0; i < xtralen; ++i )
+						getByte(in);
+				}
+				
+				if ( (FLG & FNAME) )
+				{
+					while ( getByte(in) != 0 )
+					{
+					}
+				}
+
+				if ( (FLG & FCOMMENT) )
+				{
+					while ( getByte(in) != 0 )
+					{
+					
+					}
+				}
+				
+				if ( (FLG & FHCRC) )
+				{
+					getLEInteger(in,2); // read crc for header
+				}
+			}
+
+			GzipHeaderSimple(std::istream & in)
+			{
+				init(in);
+			}
+			
+			GzipHeaderSimple(std::string const & filename)
 			{
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
