@@ -173,6 +173,55 @@ namespace libmaus
 					flushInternal();
 			}
 
+			/**
+			 * write block c of length n. stream needs to be synced
+			 * before using this function.
+			 *
+			 * @param c block data
+			 * @param n number of bytes in c
+			 * @return number of bgzf blocks written
+			 **/
+			uint64_t writeSyncedCount(char const * c, uint64_t n)
+			{
+				// check whether buffer is empty
+				if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Call to BgzfDeflateParallel::writeSyncedCount() but stream is not synced." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				uint64_t bcnt = 0;
+
+				// enque data for compression
+				while ( n )
+				{
+					uint64_t const freespace = deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe - deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc;
+					uint64_t const towrite = std::min(n,freespace);
+					std::copy(reinterpret_cast<uint8_t const *>(c),reinterpret_cast<uint8_t const *>(c)+towrite,deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc);
+
+					c += towrite;
+					deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc += towrite;
+					n -= towrite;
+
+					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
+					{
+						flushInternal();
+						bcnt += 1;
+					}
+				}
+
+				// flush if necessary
+				if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pa )
+				{
+					flushInternal();
+					bcnt += 1;
+				}
+				
+				return bcnt;
+			}
+
 			void put(uint8_t const c)
 			{
 				assert ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc != deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe );
