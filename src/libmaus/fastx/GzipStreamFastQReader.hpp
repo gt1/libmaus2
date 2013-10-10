@@ -30,6 +30,9 @@ namespace libmaus
 	{
                 struct GzipStreamFastQReader : public libmaus::lz::BufferedGzipStreamWrapper, public StreamFastQReaderWrapper
                 {
+                	typedef GzipStreamFastQReader this_type;
+                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                
                 	GzipStreamFastQReader(std::istream & in)
                 	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
                 	{}

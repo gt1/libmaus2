@@ -29,6 +29,9 @@ namespace libmaus
 	{
 		struct GzipFileFastQReader : public libmaus::aio::CheckedInputStreamAtOffsetWrapper, GzipStreamFastQReader
 		{
+                	typedef GzipFileFastQReader this_type;
+                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
 			GzipFileFastQReader(std::string const & filename)
 			: libmaus::aio::CheckedInputStreamAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus::aio::CheckedInputStreamAtOffsetWrapper::object)
 			{
