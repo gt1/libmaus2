@@ -32,6 +32,8 @@ namespace libmaus
 		{	
 			typedef BgzfDeflateBase base_type;
 			typedef _stream_type stream_type;
+			typedef BgzfDeflate<_stream_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
 
@@ -53,11 +55,13 @@ namespace libmaus
 				}		
 			}
 
-			void flush()
+			uint64_t flush()
 			{
 				uint64_t const outbytes = base_type::flush(flushmode);
 				/* write data to stream */
 				streamWrite(outbuf.begin(),outbytes);
+				/* return number of compressed bytes written */
+				return outbytes;
 			}
 			
 			void write(char const * const cp, unsigned int n)
@@ -77,6 +81,49 @@ namespace libmaus
 						flush();
 				}
 			}
+
+			std::pair<uint64_t,uint64_t> writeSyncedCount(char const * const cp, unsigned int n)
+			{
+				// check that buffer is empty before we start
+				if ( pc != pa )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BgzfDeflate::writeSyncedCount() called for unsynced object." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				assert ( ! flushmode ); // flush should write exactly one block
+			
+				uint64_t bcnt = 0;
+				uint64_t ccnt = 0;
+				uint8_t const * p = reinterpret_cast<uint8_t const *>(cp);
+			
+				while ( n )
+				{
+					unsigned int const towrite = std::min(n,static_cast<unsigned int>(pe-pc));
+					std::copy(p,p+towrite,pc);
+
+					p += towrite;
+					pc += towrite;
+					n -= towrite;
+					
+					if ( pc == pe )
+					{
+						ccnt += flush();
+						bcnt++;
+					}
+				}
+				
+				// drain buffer
+				while ( pc != pa )
+				{
+					ccnt += flush();
+					bcnt++;				
+				}
+				
+				return std::pair<uint64_t,uint64_t>(bcnt,ccnt);
+			}
 			
 			void put(uint8_t const c)
 			{
@@ -88,7 +135,7 @@ namespace libmaus
 			void addEOFBlock()
 			{
 				// flush, if there is any uncompressed data
-				if ( pc != pa )
+				while ( pc != pa )
 					flush();
 				// set compression level to default
 				deflatereinit();
