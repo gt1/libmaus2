@@ -116,18 +116,18 @@ namespace libmaus
                         	
                         		if ( !o.spattern.size() )
                         		{
-                        			//std::cerr << "spattern empty, copying pointer." << std::endl;
+                        			//std::cerr << "spattern empty, copying pointer." << '\n';
 	                        		pattern = o.pattern;
 					}
 					else
 					{
-						//std::cerr << "spattern not empty, copying string." << std::endl;
+						//std::cerr << "spattern not empty, copying string." << '\n';
 						pattern = spattern.c_str();
 					}
                         	}
                         	else
                         	{
-                        		//std::cerr << "self copy." << std::endl;
+                        		//std::cerr << "self copy." << '\n';
                         	}
                         	return *this;
                         }
@@ -151,7 +151,7 @@ namespace libmaus
                         Pattern() : PatternBase(), pattern(0) {}
                         Pattern(Pattern const & o) : PatternBase(), pattern(0)
                         {
-                        	//std::cerr << "copy construct." << std::endl;
+                        	//std::cerr << "copy construct." << '\n';
                         	*this = o;
                         }
                         
@@ -217,19 +217,19 @@ namespace libmaus
 
 		inline std::ostream & operator<< ( std::ostream & out, Pattern const & p)
 		{
-			out << ">" << p.getStringId() << std::endl;
+			out << ">" << p.getStringId() << '\n';
 			if ( p.pattern )
-				out << p.pattern << std::endl;
+				out << p.pattern << '\n';
 			else
-				out << "null" << std::endl;
+				out << "null" << '\n';
 			return out;
 		}
 
 		inline std::ostream & oneline ( std::ostream & out, Pattern const & p)
 		{
-			out << ">" << p.getStringId() << "\t";
+			out << ">" << p.getStringId() << '\t';
 			if ( p.pattern ) out << p.pattern;
-                        out << "\n";
+                        out << '\n';
 			return out;
 		}
 		struct PatternCount

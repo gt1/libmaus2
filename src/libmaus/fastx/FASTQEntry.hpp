@@ -51,14 +51,14 @@ namespace libmaus
 			{
 				if ( this != &o )
 				{
-					// std::cerr << "FASTQ copy." << std::endl;
+					// std::cerr << "FASTQ copy." << '\n';
 					Pattern::operator=(static_cast<Pattern const &>(o));
 					plus = o.plus;
 					quality = o.quality;
 				}
 				else
 				{
-					//std::cerr << "FASTQ self copy." << std::endl;
+					//std::cerr << "FASTQ self copy." << '\n';
 				}
 				return *this;
 			}
@@ -66,22 +66,22 @@ namespace libmaus
 
 		inline std::ostream & operator<< ( std::ostream & out, FASTQEntry const & p )
 		{
-			out << "@" << p.getStringId() << std::endl;
+			out << '@' << p.getStringId() << '\n';
 			if ( p.pattern )
-				out << p.pattern << std::endl;
+				out << p.pattern << '\n';
 			else
-				out << "null" << std::endl;
-			out << "+" << p.plus << std::endl;
-			out << p.quality << std::endl;
+				out << "null" << '\n';
+			out << '+' << p.plus << '\n';
+			out << p.quality << '\n';
 			return out;
 		}
 
 		inline std::ostream & oneline ( std::ostream & out, FASTQEntry const & p )
 		{
-			out << "@" << p.getStringId() << "\t";
+			out << '@' << p.getStringId() << '\t';
 			if ( p.pattern )
 				out << p.pattern;
-                        out << "\t" << "+" << p.plus << "\t" << p.quality << "\n";
+                        out << '\t' << '+' << p.plus << '\t' << p.quality << '\n';
 			return out;
 		}
 	}
