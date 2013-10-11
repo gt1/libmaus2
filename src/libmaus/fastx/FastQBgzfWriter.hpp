@@ -202,62 +202,66 @@ namespace libmaus
 			
 			void flush()
 			{
-				internalFlush();
-
-				bgzfenc->flush();
-				bgzfenc.reset();
-				fioutstr->flush();
-				fioutstr.reset();
-
-				libmaus::aio::CheckedOutputStream indexCOS(indexfilename);
-				::libmaus::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
-				libmaus::aio::CheckedInputStream fiCIS(fifilename);
-				
-				#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
-				bgzfidoutstr->flush();
-				bgzfidoutstr.reset();
-				bgzfidxcntoutstr->flush();
-				bgzfidxcntoutstr.reset();
-				
-				libmaus::aio::CheckedInputStream bgzfidxCIS(bgzfidxfilename);
-				libmaus::aio::CheckedInputStream bgzfidxcntCIS(bgzfidxcntfilename);
-				
-				uint64_t uncompacc = 0;
-				uint64_t compacc = 0;
-				
-				for ( uint64_t i = 0; i < blockcnt; ++i )
+				if ( bgzfenc )
 				{
-					uint64_t const bgzfblocks = libmaus::util::UTF8::decodeUTF8(bgzfidxcntCIS);
-					uint64_t uncomp = 0;
-					uint64_t comp = 0;
+					internalFlush();
+
+					bgzfenc->flush();
+					bgzfenc->addEOFBlock();
+					bgzfenc.reset();
+					fioutstr->flush();
+					fioutstr.reset();
+
+					libmaus::aio::CheckedOutputStream indexCOS(indexfilename);
+					::libmaus::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
+					libmaus::aio::CheckedInputStream fiCIS(fifilename);
 					
-					for ( uint64_t j = 0; j < bgzfblocks; ++j )
+					#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+					bgzfidoutstr->flush();
+					bgzfidoutstr.reset();
+					bgzfidxcntoutstr->flush();
+					bgzfidxcntoutstr.reset();
+					
+					libmaus::aio::CheckedInputStream bgzfidxCIS(bgzfidxfilename);
+					libmaus::aio::CheckedInputStream bgzfidxcntCIS(bgzfidxcntfilename);
+					
+					uint64_t uncompacc = 0;
+					uint64_t compacc = 0;
+					
+					for ( uint64_t i = 0; i < blockcnt; ++i )
 					{
-						uncomp += libmaus::util::UTF8::decodeUTF8(bgzfidxCIS);
-						comp += libmaus::util::UTF8::decodeUTF8(bgzfidxCIS);
+						uint64_t const bgzfblocks = libmaus::util::UTF8::decodeUTF8(bgzfidxcntCIS);
+						uint64_t uncomp = 0;
+						uint64_t comp = 0;
+						
+						for ( uint64_t j = 0; j < bgzfblocks; ++j )
+						{
+							uncomp += libmaus::util::UTF8::decodeUTF8(bgzfidxCIS);
+							comp += libmaus::util::UTF8::decodeUTF8(bgzfidxCIS);
+						}
+
+						libmaus::fastx::FastInterval FI = libmaus::fastx::FastInterval::deserialise(fiCIS);
+						FI.fileoffset = compacc;
+						FI.fileoffsethigh = compacc + comp;
+						
+						uncompacc += uncomp;
+						compacc += comp;
+						
+						indexCOS << FI.serialise();
 					}
-
-					libmaus::fastx::FastInterval FI = libmaus::fastx::FastInterval::deserialise(fiCIS);
-					FI.fileoffset = compacc;
-					FI.fileoffsethigh = compacc + comp;
 					
-					uncompacc += uncomp;
-					compacc += comp;
+					#else
+
+					for ( uint64_t i = 0; i < blockcnt; ++i )
+					{
+						libmaus::fastx::FastInterval FI = libmaus::fastx::FastInterval::deserialise(fiCIS);
+						indexCOS << FI.serialise();
+					}
 					
-					indexCOS << FI.serialise();
-				}
-				
-				#else
+					#endif
 
-				for ( uint64_t i = 0; i < blockcnt; ++i )
-				{
-					libmaus::fastx::FastInterval FI = libmaus::fastx::FastInterval::deserialise(fiCIS);
-					indexCOS << FI.serialise();
+					indexCOS.flush();
 				}
-				
-				#endif
-
-				indexCOS.flush();
 			}
 		};
 	}
