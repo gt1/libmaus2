@@ -72,20 +72,39 @@ namespace libmaus
 			
 			uint64_t cacc;
 
-			template<typename pattern_type>
-			uint64_t getFastQLength(pattern_type const & pattern)
+			struct FastQEntryStats
 			{
-				uint64_t const qlen = pattern.spattern.size();
-				uint64_t const nlen = pattern.sid.size();
-				uint64_t const psize = pattern.plus.size();
-				uint64_t const fqlen =  
+				uint64_t namelen;
+				uint64_t seqlen;
+				uint64_t pluslen;
+			};
+
+			void computeEntryStats(char const * e, FastQEntryStats & entry) const
+			{
+				char const * la;
+				la = e; while ( *e != '\n' ) { ++e; } entry.namelen = e-la; ++e ;
+				la = e; while ( *e != '\n' ) { ++e; } entry.seqlen = e-la; ++e ;
+				la = e; while ( *e != '\n' ) { ++e; } entry.pluslen = e-la; ++e ;
+				
+				entry.namelen -= 1;
+				entry.pluslen -= 1;
+			}
+
+			
+			uint64_t getFastQLength(uint64_t const qlen, uint64_t const nlen, uint64_t const psize)
+			{
+				return   
 					1 /* @ */ + nlen /* name length */ + 1 /* new line */ + 
 					qlen + 1 + 
 					1 /* + */ + psize + 1 + 
 					qlen + 1
 				;
+			}
 
-				return fqlen;
+			template<typename pattern_type>
+			uint64_t getFastQLength(pattern_type const & pattern)
+			{
+				return getFastQLength(pattern.spattern.size(),pattern.sid.size(),pattern.plus.size());
 			}
 
 			void reset()
@@ -178,24 +197,6 @@ namespace libmaus
 					return 0;
 			}
 			
-			struct FastQEntryStats
-			{
-				uint64_t namelen;
-				uint64_t seqlen;
-				uint64_t pluslen;
-			};
-
-			void computeEntryStats(char const * e, FastQEntryStats & entry) const
-			{
-				char const * la;
-				la = e; while ( *e != '\n' ) { ++e; } entry.namelen = e-la; ++e ;
-				la = e; while ( *e != '\n' ) { ++e; } entry.seqlen = e-la; ++e ;
-				la = e; while ( *e != '\n' ) { ++e; } entry.pluslen = e-la; ++e ;
-				
-				entry.namelen -= 1;
-				entry.pluslen -= 1;
-			}
-
 
 			public:
 			FastQBgzfWriter(
