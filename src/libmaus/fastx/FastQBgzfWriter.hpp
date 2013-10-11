@@ -127,6 +127,76 @@ namespace libmaus
 				}	
 			}
 
+			char const * prevStart(char const * e) const
+			{
+				if ( e == C.begin() )
+					return 0;
+				
+				assert ( e[-1] == '\n' );
+				// step over last/quality line's newline
+				--e;
+				
+				// search for plus line's newline
+				while ( *--e != '\n' ) {}
+				// search for sequence line's newline
+				while ( *--e != '\n' ) {}
+				// search for id line's newline
+				while ( *--e != '\n' ) {}
+				// search for start of line
+				while ( e != C.begin() && e[-1] != '\n' )
+					--e;
+					
+				return e;
+			}
+			
+			char const * nextStart(char const * e) const
+			{
+				while ( *e != '\n' ) { ++e; } ++e ;
+				while ( *e != '\n' ) { ++e; } ++e ;
+				while ( *e != '\n' ) { ++e; } ++e ;
+				while ( *e != '\n' ) { ++e; } ++e ;
+				
+				if ( e == pc )
+					return 0;
+				else
+					return e;
+			}
+			
+			char const* getEnd() const
+			{
+				if ( pc != C.begin() )
+					return pc;
+				else
+					return 0;
+			}
+
+			char const* getStart() const
+			{
+				if ( pc != C.begin() )
+					return C.begin();
+				else
+					return 0;
+			}
+			
+			struct FastQEntryStats
+			{
+				uint64_t namelen;
+				uint64_t seqlen;
+				uint64_t pluslen;
+			};
+
+			void computeEntryStats(char const * e, FastQEntryStats & entry) const
+			{
+				char const * la;
+				la = e; while ( *e != '\n' ) { ++e; } entry.namelen = e-la; ++e ;
+				la = e; while ( *e != '\n' ) { ++e; } entry.seqlen = e-la; ++e ;
+				la = e; while ( *e != '\n' ) { ++e; } entry.pluslen = e-la; ++e ;
+				
+				entry.namelen -= 1;
+				entry.pluslen -= 1;
+			}
+
+
 			public:
 			FastQBgzfWriter(
 				::std::string rindexfilename,
@@ -157,7 +227,37 @@ namespace libmaus
 			    cacc(0)
 			{
 			}
-			
+
+			void testPrevStart() const
+			{
+				char const * e = getEnd();
+		
+				while ( e )
+				{
+					std::cerr << std::string(80,'-') << std::endl;
+					std::cerr << std::string(e,static_cast<char const *>(pc));
+					e = prevStart(e);
+				}
+			}
+
+			void testNextStart() const
+			{
+				char const * e = getStart();
+		
+				while ( e )
+				{
+					std::cerr << std::string(80,'-') << std::endl;
+					std::cerr << std::string(e,static_cast<char const *>(pc));
+					
+					FastQEntryStats entry;
+					computeEntryStats(e,entry);
+					std::cerr << "namelen=" << entry.namelen << ",seqlen=" << entry.seqlen
+						<< ",pluslen=" << entry.pluslen << std::endl;
+					
+					e = nextStart(e);
+				}
+			}
+						
 			void put(libmaus::fastx::FastQReader::pattern_type const & pattern)
 			{
 				uint64_t const patlen = getFastQLength(pattern);
@@ -166,7 +266,6 @@ namespace libmaus
 				{
 					uint64_t const off = pc-C.begin();
 					uint64_t const newclen = std::max(2*C.size(),static_cast<uint64_t>(1ull));
-					// std::cerr << "extend to " << newclen << std::endl;
 					C.resize(newclen);
 					pc = C.begin()+off;
 				}
