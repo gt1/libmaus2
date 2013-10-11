@@ -568,7 +568,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/TerminatableSynchronousReorderSet.hpp  \
 	libmaus/parallel/SynchronousCounter.hpp \
 	libmaus/parallel/PosixProcess.hpp \
-	libmaus/parallel/OMPNumThreadsScope.hpp
+	libmaus/parallel/OMPNumThreadsScope.hpp \
+	libmaus/parallel/LockedBool.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
