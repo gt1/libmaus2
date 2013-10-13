@@ -22,8 +22,17 @@
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/gamma/GammaRLDecoder.hpp>
+#include <libmaus/huffman/RLDecoder.hpp>
 #include <libmaus/bitio/FastWriteBitWriter.hpp>
 #include <set>
+
+#define HUFRL
+
+#if defined(HUFRL)
+typedef ::libmaus::huffman::RLDecoder rl_decoder;
+#else
+typedef ::libmaus::gamma::GammaRLDecoder rl_decoder;
+#endif
 
 /*
  * load cumulative symbol frequences for 5 symbol alphabet (4 regular symbols + 1 terminator symbol)
@@ -130,7 +139,7 @@ void libmaus::fm::MausFmToBwaConversion::rewriteBwt(std::string const & infn, st
 	SGO64.flush();
 
 	// write bwt without terminator symbol
-	::libmaus::gamma::GammaRLDecoder GD(std::vector<std::string>(1,infn));
+	rl_decoder GD(std::vector<std::string>(1,infn));
 	::libmaus::aio::SynchronousGenericOutput<uint32_t> SGO32(out,16*1024);
 	::libmaus::aio::SynchronousGenericOutput<uint32_t>::iterator_type it32(SGO32);
 	::libmaus::bitio::FastWriteBitWriterBuffer32Sync FWBW(it32);
@@ -153,7 +162,10 @@ void libmaus::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, std
 	
 	::libmaus::autoarray::AutoArray<uint64_t> L2 = loadL2(infn);
 	
-	uint64_t const n = ::libmaus::gamma::GammaRLDecoder::getLength(infn);
+	uint64_t const n = rl_decoder::getLength(infn);
+	
+	std::cerr << "[D] n=" << n << std::endl;
+	
 	std::string const insa = ::libmaus::util::OutputFileNameTools::clipOff(infn,".bwt") + ".sa";
 	::libmaus::aio::CheckedInputStream saCIS(insa);
 
@@ -183,6 +195,8 @@ void libmaus::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, std
 
 	uint64_t const nsa_in = (n+sasamplingrate-1)/sasamplingrate;
 	uint64_t const nsa_out = (n+sasamplingrate)/sasamplingrate;
+	
+	std::cerr << "[D] nsa_in" << nsa_in << " nsa_out=" << nsa_out << " sasamplingrate=" << sasamplingrate << std::endl;
 
 	::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO64(out,64);
 	SGO64.put(primary);
