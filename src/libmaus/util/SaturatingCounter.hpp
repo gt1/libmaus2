@@ -34,7 +34,12 @@ namespace libmaus
 		{
 			typedef SaturatingCounter this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
+			private:
+			SaturatingCounter & operator=(SaturatingCounter const &);
+			SaturatingCounter(SaturatingCounter const &);
 		
+			public:
 			uint64_t const n;
 			::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> B;
 			uint8_t * const A;
