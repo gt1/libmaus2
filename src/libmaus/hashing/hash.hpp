@@ -126,9 +126,9 @@ namespace libmaus
 				/*---------------------------------------- handle most of the key */
 				while (len >= 12)
 				{
-					a += (k[0] +((uint32_t)k[1]<<8) +((uint32_t)k[2]<<16) +((uint32_t)k[3]<<24));
-					b += (k[4] +((uint32_t)k[5]<<8) +((uint32_t)k[6]<<16) +((uint32_t)k[7]<<24));
-					c += (k[8] +((uint32_t)k[9]<<8) +((uint32_t)k[10]<<16)+((uint32_t)k[11]<<24));
+					a += (k[0] +(static_cast<uint32_t>(k[1])<<8) +(static_cast<uint32_t>(k[2])<<16) +(static_cast<uint32_t>(k[3])<<24));
+					b += (k[4] +(static_cast<uint32_t>(k[5])<<8) +(static_cast<uint32_t>(k[6])<<16) +(static_cast<uint32_t>(k[7])<<24));
+					c += (k[8] +(static_cast<uint32_t>(k[9])<<8) +(static_cast<uint32_t>(k[10])<<16)+(static_cast<uint32_t>(k[11])<<24));
 					mix(a,b,c);
 					k += 12; len -= 12;
 				}
@@ -137,17 +137,17 @@ namespace libmaus
 				c += length;
 				switch(len)              /* all the case statements fall through */
 				{
-					case 11: c+=((uint32_t)k[10]<<24);
-					case 10: c+=((uint32_t)k[9]<<16);
-					case 9 : c+=((uint32_t)k[8]<<8);
+					case 11: c+=(static_cast<uint32_t>(k[10])<<24);
+					case 10: c+=(static_cast<uint32_t>(k[9])<<16);
+					case 9 : c+=(static_cast<uint32_t>(k[8])<<8);
 					/* the first byte of c is reserved for the length */
-					case 8 : b+=((uint32_t)k[7]<<24);
-					case 7 : b+=((uint32_t)k[6]<<16);
-					case 6 : b+=((uint32_t)k[5]<<8);
+					case 8 : b+=(static_cast<uint32_t>(k[7])<<24);
+					case 7 : b+=(static_cast<uint32_t>(k[6])<<16);
+					case 6 : b+=(static_cast<uint32_t>(k[5])<<8);
 					case 5 : b+=k[4];
-					case 4 : a+=((uint32_t)k[3]<<24);
-					case 3 : a+=((uint32_t)k[2]<<16);
-					case 2 : a+=((uint32_t)k[1]<<8);
+					case 4 : a+=(static_cast<uint32_t>(k[3])<<24);
+					case 3 : a+=(static_cast<uint32_t>(k[2])<<16);
+					case 2 : a+=(static_cast<uint32_t>(k[1])<<8);
 					case 1 : a+=k[0];
 					/* case 0: nothing left to add */
 				}
@@ -285,12 +285,12 @@ namespace libmaus
 				/*---------------------------------------- handle most of the key */
 				while (len >= 24)
 				{
-					a += (k[0]        +((uint64_t)k[ 1]<< 8)+((uint64_t)k[ 2]<<16)+((uint64_t)k[ 3]<<24)
-						+((uint64_t)k[4 ]<<32)+((uint64_t)k[ 5]<<40)+((uint64_t)k[ 6]<<48)+((uint64_t)k[ 7]<<56));
-					b += (k[8]        +((uint64_t)k[ 9]<< 8)+((uint64_t)k[10]<<16)+((uint64_t)k[11]<<24)
-						+((uint64_t)k[12]<<32)+((uint64_t)k[13]<<40)+((uint64_t)k[14]<<48)+((uint64_t)k[15]<<56));
-					c += (k[16]       +((uint64_t)k[17]<< 8)+((uint64_t)k[18]<<16)+((uint64_t)k[19]<<24)
-						+((uint64_t)k[20]<<32)+((uint64_t)k[21]<<40)+((uint64_t)k[22]<<48)+((uint64_t)k[23]<<56));
+					a += (k[0]        +(static_cast<uint64_t>(k[ 1])<< 8)+(static_cast<uint64_t>(k[ 2])<<16)+(static_cast<uint64_t>(k[ 3])<<24)
+						+(static_cast<uint64_t>(k[4 ])<<32)+(static_cast<uint64_t>(k[ 5])<<40)+(static_cast<uint64_t>(k[ 6])<<48)+(static_cast<uint64_t>(k[ 7])<<56));
+					b += (k[8]        +(static_cast<uint64_t>(k[ 9])<< 8)+(static_cast<uint64_t>(k[10])<<16)+(static_cast<uint64_t>(k[11])<<24)
+						+(static_cast<uint64_t>(k[12])<<32)+(static_cast<uint64_t>(k[13])<<40)+(static_cast<uint64_t>(k[14])<<48)+(static_cast<uint64_t>(k[15])<<56));
+					c += (k[16]       +(static_cast<uint64_t>(k[17])<< 8)+(static_cast<uint64_t>(k[18])<<16)+(static_cast<uint64_t>(k[19])<<24)
+						+(static_cast<uint64_t>(k[20])<<32)+(static_cast<uint64_t>(k[21])<<40)+(static_cast<uint64_t>(k[22])<<48)+(static_cast<uint64_t>(k[23])<<56));
 					mix64(a,b,c);
 					k += 24; len -= 24;
 				}
@@ -299,30 +299,30 @@ namespace libmaus
 				c += length;
 				switch(len)              /* all the case statements fall through */
 				{
-					case 23: c+=((uint64_t)k[22]<<56);
-					case 22: c+=((uint64_t)k[21]<<48);
-					case 21: c+=((uint64_t)k[20]<<40);
-					case 20: c+=((uint64_t)k[19]<<32);
-					case 19: c+=((uint64_t)k[18]<<24);
-					case 18: c+=((uint64_t)k[17]<<16);
-					case 17: c+=((uint64_t)k[16]<<8);
+					case 23: c+=(static_cast<uint64_t>(k[22])<<56);
+					case 22: c+=(static_cast<uint64_t>(k[21])<<48);
+					case 21: c+=(static_cast<uint64_t>(k[20])<<40);
+					case 20: c+=(static_cast<uint64_t>(k[19])<<32);
+					case 19: c+=(static_cast<uint64_t>(k[18])<<24);
+					case 18: c+=(static_cast<uint64_t>(k[17])<<16);
+					case 17: c+=(static_cast<uint64_t>(k[16])<<8);
 					/* the first byte of c is reserved for the length */
-					case 16: b+=((uint64_t)k[15]<<56);
-					case 15: b+=((uint64_t)k[14]<<48);
-					case 14: b+=((uint64_t)k[13]<<40);
-					case 13: b+=((uint64_t)k[12]<<32);
-					case 12: b+=((uint64_t)k[11]<<24);
-					case 11: b+=((uint64_t)k[10]<<16);
-					case 10: b+=((uint64_t)k[ 9]<<8);
-					case  9: b+=((uint64_t)k[ 8]);
-					case  8: a+=((uint64_t)k[ 7]<<56);
-					case  7: a+=((uint64_t)k[ 6]<<48);
-					case  6: a+=((uint64_t)k[ 5]<<40);
-					case  5: a+=((uint64_t)k[ 4]<<32);
-					case  4: a+=((uint64_t)k[ 3]<<24);
-					case  3: a+=((uint64_t)k[ 2]<<16);
-					case  2: a+=((uint64_t)k[ 1]<<8);
-					case  1: a+=((uint64_t)k[ 0]);
+					case 16: b+=(static_cast<uint64_t>(k[15])<<56);
+					case 15: b+=(static_cast<uint64_t>(k[14])<<48);
+					case 14: b+=(static_cast<uint64_t>(k[13])<<40);
+					case 13: b+=(static_cast<uint64_t>(k[12])<<32);
+					case 12: b+=(static_cast<uint64_t>(k[11])<<24);
+					case 11: b+=(static_cast<uint64_t>(k[10])<<16);
+					case 10: b+=(static_cast<uint64_t>(k[ 9])<<8);
+					case  9: b+=(static_cast<uint64_t>(k[ 8]));
+					case  8: a+=(static_cast<uint64_t>(k[ 7])<<56);
+					case  7: a+=(static_cast<uint64_t>(k[ 6])<<48);
+					case  6: a+=(static_cast<uint64_t>(k[ 5])<<40);
+					case  5: a+=(static_cast<uint64_t>(k[ 4])<<32);
+					case  4: a+=(static_cast<uint64_t>(k[ 3])<<24);
+					case  3: a+=(static_cast<uint64_t>(k[ 2])<<16);
+					case  2: a+=(static_cast<uint64_t>(k[ 1])<<8);
+					case  1: a+=(static_cast<uint64_t>(k[ 0]));
 					/* case 0: nothing left to add */
 				}
 				
