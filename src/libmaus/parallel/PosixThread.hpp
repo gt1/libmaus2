@@ -68,7 +68,7 @@ namespace libmaus
 			
 			public:
 			PosixThread(std::string const rname = std::string())
-			: name(rname)
+			: thread(), name(rname)
 			{
 			
 			}
