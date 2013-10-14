@@ -819,7 +819,7 @@ namespace libmaus
 
 				std::stack < TraversalNode > st;
 				st.push( TraversalNode(0,n) );
-				typedef PrintMultiCallback<lf_type> print_callback_type;
+				// typedef PrintMultiCallback<lf_type> print_callback_type;
 				PrintMultiCallback<lf_type> PMC(*LF,st);
 
 				while ( ! st.empty() )
