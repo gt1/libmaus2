@@ -88,9 +88,10 @@ namespace libmaus
                         
                         OutputBufferIteratorProxy(OutputBuffer<_data_type> & rbuffer) : buffer(rbuffer) {}
                         
-                         void operator=(data_type D)
+                         OutputBufferIteratorProxy<data_type> & operator=(data_type D)
                          {
                                 buffer.writeData(D);
+                                return *this;
                          }
                 };
 
