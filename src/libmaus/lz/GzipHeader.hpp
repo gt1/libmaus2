@@ -381,9 +381,9 @@ namespace libmaus
 			static void ignoreHeader(std::istream & in)
 			{
 				uint8_t FLG; // flags
-				uint32_t MTIME; // modification time
+				// uint32_t MTIME; // modification time
 				uint8_t XFL; // extra flags, 2 for maximum compression, 4 for fastest
-				uint8_t OS; // operating system, 0xFF for unspecified
+				// uint8_t OS; // operating system, 0xFF for unspecified
 				
 				uint8_t const FID1 = getByte(in);
 				uint8_t const FID2 = getByte(in);
@@ -417,7 +417,7 @@ namespace libmaus
 					std::cerr << "WARNING: gzip header has unknown flags set." << std::endl;
 				}
 				
-				MTIME = getLEInteger(in,4);
+				/* MTIME = */ getLEInteger(in,4);
 
 				XFL = getByte(in);
 				
@@ -427,7 +427,7 @@ namespace libmaus
 						static_cast<int>(XFL) << std::endl;
 				}
 				
-				OS = getByte(in);
+				/* OS = */ getByte(in);
 				
 				if ( (FLG & FEXTRA) )
 				{
