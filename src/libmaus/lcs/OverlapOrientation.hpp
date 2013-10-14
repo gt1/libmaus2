@@ -29,6 +29,8 @@ namespace libmaus
 	{
 		struct OverlapOrientation
 		{
+			virtual ~OverlapOrientation() {}
+		
 			enum overlap_orientation 
 			{
 				overlap_cover_complete = 0,
@@ -94,7 +96,7 @@ namespace libmaus
 					default:
 					{
 						::libmaus::exception::LibMausException se;
-						se.getStream() << "Orientation " << o << " has no inverse." << std::endl;
+						se.getStream() << "Orientation " << static_cast<int>(o) << " has no inverse." << std::endl;
 						se.finish();
 						throw se;
 					}
