@@ -47,16 +47,18 @@ namespace libmaus
 
 			typedef ERank222B this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-		
-			private:
 			
+			private:
+			ERank222B & operator=(ERank222B const &);
+			ERank222B(ERank222B const &);
+		
+			private:			
 			// super block size 2^16 bits
 			static unsigned int const sbbitwidth = 16;
 			// mini block size 2^6 = 64 bits
 			static unsigned int const mbbitwidth = 6;
 			
-			// derived numbers
-			
+			// derived numbers	
 			// actual block sizes
 			static uint64_t const sbsize = 1u << sbbitwidth;
 			static uint64_t const mbsize = 1u << mbbitwidth;
