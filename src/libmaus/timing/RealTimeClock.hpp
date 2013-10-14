@@ -40,6 +40,8 @@ namespace libmaus
 	{
 		struct RealTimeClockBase
 		{
+			virtual ~RealTimeClockBase() {}
+		
 			static std::string formatTime(double dsecs)
 			{
 				uint64_t days = 0;
@@ -117,7 +119,7 @@ namespace libmaus
 			mutable struct timezone tz;
       
 			public:
-			RealTimeClock() 
+			RealTimeClock() : started(), tz()
 			{
 				tz.tz_minuteswest = 0;
 				tz.tz_dsttime = 0;
