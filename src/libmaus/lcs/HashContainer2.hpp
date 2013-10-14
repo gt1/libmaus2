@@ -133,6 +133,7 @@ namespace libmaus
 			//
 			HashContainer2(unsigned int const rk, unsigned int const rm)
 			: k(rk), hashbits(k<<1), hashlen(1u<<hashbits), hashmask(hashlen-1), forw(k),
+			  trace(),
 			  m(rm), mp(m-k+1), 
 			  O(::libmaus::math::ilog(2*m))
 			{}
