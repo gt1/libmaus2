@@ -308,6 +308,8 @@ namespace libmaus
 				std::istringstream istr(ostr.str());
 				return ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(istr);
 			}
+			
+			virtual ~NumberSerialisation() {}
 		};
 	}
 }

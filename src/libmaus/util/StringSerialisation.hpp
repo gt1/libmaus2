@@ -50,6 +50,7 @@ namespace libmaus
 			static std::string serialiseDouble(double const v);
 			static double deserialiseDouble(std::istream & in);
 			static double deserialiseDouble(std::string const & s);
+			virtual ~StringSerialisation() {}
 		};
 	}
 }
