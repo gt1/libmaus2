@@ -675,7 +675,7 @@ namespace libmaus
 				libmaus::lz::BgzfInflateStream bgzfin(in);
 				BamHeaderParserState state;
 				
-				while ( ! parseHeader(bgzfin,1,state) )
+				while ( ! parseHeader(bgzfin,state,1).first )
 				{
 				
 				}
@@ -694,7 +694,9 @@ namespace libmaus
 			}
 
 			template<typename stream_type>
-			static bool parseHeader(stream_type & in, uint64_t const n, BamHeaderParserState & state)
+			static std::pair<bool,uint64_t> parseHeader(stream_type & in, BamHeaderParserState & state, 
+				uint64_t const n = std::numeric_limits<uint64_t>::max()
+			)
 			{
 				uint64_t r = 0;
 				
@@ -899,7 +901,8 @@ namespace libmaus
 					throw se;
 				}
 				
-				return state.state == bam_header_read_done;
+				return 
+					std::pair<bool,uint64_t>(state.state == bam_header_read_done,r);
 			}
 			
 			void initSetup()
