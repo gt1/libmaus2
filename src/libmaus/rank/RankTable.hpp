@@ -39,6 +39,9 @@ namespace libmaus
 			uint8_t const * const table;
 			static uint8_t * generateTable();
 			
+			RankTable & operator=(RankTable const &);
+			RankTable(RankTable const &);
+			
 			public:
 			/**
 			 * compute population count of the i+1 most significant bits in m
@@ -73,6 +76,9 @@ namespace libmaus
 			private:
 			uint8_t const * const table;
 			static uint8_t * generateTable();
+			
+			SimpleRankTable & operator=(SimpleRankTable const &);
+			SimpleRankTable(SimpleRankTable const &);
 			
 			public:
 			/**
