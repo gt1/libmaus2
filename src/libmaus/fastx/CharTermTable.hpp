@@ -32,6 +32,9 @@ namespace libmaus
 			::libmaus::autoarray::AutoArray<bool> atable;
 			bool * table;
 			
+			CharTermTable & operator=(CharTermTable const &);
+			CharTermTable(CharTermTable const &);
+			
 			public:
 			bool operator[](int i) const
 			{
