@@ -60,18 +60,25 @@ namespace libmaus
 		
 		struct NumBits8
 		{
+			private:
+			NumBits8 & operator=(NumBits8 const &);
+			NumBits8(NumBits8 const &);
+		
+			protected:
 			::libmaus::autoarray::AutoArray<unsigned int> T;
 			
+			public:
 			NumBits8() : T(256)
 			{
 				for ( unsigned int i = 0; i < T.size(); ++i )
 					T[i] = ::libmaus::math::numbits(i);
 			}
+			virtual ~NumBits8() {}
 			
 			unsigned int operator()(unsigned int const i) const
 			{
 				return T[i];
-			}
+			}			
 		};
 		
 		struct NumBits32 : public NumBits8
