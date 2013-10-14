@@ -32,6 +32,7 @@ namespace libmaus
 		template<unsigned int intsize>
 		struct PopCnt4Base
 		{
+			virtual ~PopCnt4Base() {}
 			/**
 			 * Population count (number of 1 bits)
 			 * imported from http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
@@ -49,6 +50,7 @@ namespace libmaus
 		template<unsigned int longsize>
 		struct PopCnt8Base
 		{
+			virtual ~PopCnt8Base() {}
 			/**
 			 * 64 bit extension of code above
 			 * @param x number
@@ -78,6 +80,8 @@ namespace libmaus
 		template<>
 		struct PopCnt4Base<4>
 		{
+			virtual ~PopCnt4Base() {}
+			
 			static unsigned int popcnt4(uint32_t v)
 			{
 				return sse4popcnt(v);
@@ -86,6 +90,8 @@ namespace libmaus
 		template<>
 		struct PopCnt8Base<8>
 		{
+			virtual ~PopCnt8Base() {}
+			
 			static unsigned int popcnt8(uint64_t v)
 			{
 				return sse4popcnt(v);
@@ -148,6 +154,8 @@ namespace libmaus
 		template<>
 		struct PopCnt4Base<4>
 		{
+			virtual ~PopCnt4Base() {}
+			
 			static unsigned int popcnt4(uint32_t v)
 			{
 				return ssse3popcnt(v);
@@ -156,6 +164,8 @@ namespace libmaus
 		template<>
 		struct PopCnt8Base<8>
 		{
+			virtual ~PopCnt8Base() {}
+			
 			static unsigned int popcnt8(uint64_t v)
 			{
 				return ssse3popcnt(v);
@@ -165,6 +175,8 @@ namespace libmaus
 		template<>
 		struct PopCnt4Base<2>
 		{
+			virtual ~PopCnt4Base() {}
+			
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -179,6 +191,8 @@ namespace libmaus
 		template<>
 		struct PopCnt4Base<4>
 		{
+			virtual ~PopCnt4Base() {}
+			
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -194,6 +208,8 @@ namespace libmaus
 		template<>
 		struct PopCnt8Base<4>
 		{
+			virtual ~PopCnt8Base() {}
+			
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -208,6 +224,8 @@ namespace libmaus
 		template<>
 		struct PopCnt8Base<8>
 		{
+			virtual ~PopCnt8Base() {}
+			
 			/**
 			 * Population count (number of 1 bits)
 			 * using the gnu compilers builtin function for unsigned long types
@@ -225,6 +243,8 @@ namespace libmaus
 		struct PopCnt4 : public PopCnt4Base<intsize>
 		{
 			typedef uint32_t input_type;
+			
+			virtual ~PopCnt4() {}
 			
 			static unsigned int dataBits()
 			{
@@ -268,6 +288,8 @@ namespace libmaus
 		template<unsigned int longsize>
 		struct PopCnt8 : public PopCnt8Base<longsize>
 		{
+			virtual ~PopCnt8() {}
+			
 			static unsigned int popcnt8(uint64_t v)
 			{
 				return PopCnt8Base<longsize>::popcnt8(v);
