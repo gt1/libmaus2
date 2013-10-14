@@ -47,6 +47,7 @@ namespace libmaus
 			static void simpleStackTrace(std::ostream & ostr = std::cerr);
 
 			StackTrace();
+			virtual ~StackTrace();
 			
 			static std::string getExecPath();
 			static std::pair < std::string, std::string > components(std::string line, char const start, char const end);

@@ -29,6 +29,8 @@ static std::string chomp(std::string s)
         return s;
 }
 
+libmaus::util::StackTrace::~StackTrace() {}
+
 std::string libmaus::util::StackTrace::toString(bool const translate) const
 {
         std::ostringstream ostr;
@@ -87,7 +89,7 @@ void libmaus::util::StackTrace::simpleStackTrace(std::ostream & ostr)
 	#endif
 }
 
-libmaus::util::StackTrace::StackTrace()
+libmaus::util::StackTrace::StackTrace() : trace()
 {
 	#if defined(LIBMAUS_HAVE_BACKTRACE)
 	unsigned int const depth = 20;
