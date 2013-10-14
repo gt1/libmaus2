@@ -37,8 +37,13 @@ namespace libmaus
 			std::string * ids;
 			uint64_t idbase;
 			
+			private:
+			FastIDBlock & operator=(FastIDBlock const &);
+			FastIDBlock(FastIDBlock const &);
+			
+			public:
 			FastIDBlock ( )
-			: numid(0), blocksize(0), aids(numid,false), ids(aids.get()), idbase(0) {}
+			: blockid(0), numid(0), blocksize(0), aids(numid,false), ids(aids.get()), idbase(0) {}
 			
 			void setup(uint64_t rnumid)
 			{
