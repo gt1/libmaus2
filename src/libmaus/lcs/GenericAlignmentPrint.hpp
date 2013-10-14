@@ -30,6 +30,8 @@ namespace libmaus
 	{
 		struct GenericAlignmentPrint : public BaseConstants
 		{
+			virtual ~GenericAlignmentPrint() {}
+		
 			static std::string stepToString(step_type const s)
 			{
 				switch ( s )

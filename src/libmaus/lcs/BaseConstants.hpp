@@ -29,6 +29,8 @@ namespace libmaus
 		struct BaseConstants
 		{
 			enum step_type { STEP_MATCH, STEP_MISMATCH, STEP_INS, STEP_DEL };
+			
+			virtual ~BaseConstants() {}
 		};
 		
 		inline std::ostream & operator<<(std::ostream & out, BaseConstants::step_type const s)
