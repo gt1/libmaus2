@@ -60,6 +60,8 @@ namespace libmaus
 		
 				return j;
 			}
+			
+			virtual ~CodeBase() {}
 		};
 	}
 }
