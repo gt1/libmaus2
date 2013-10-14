@@ -40,7 +40,14 @@ namespace libmaus
                         char const * transposed;
 
                         PatternBase() : patlen(0), patid(0), mapped(0), transposed(0) {}
+                        
+                        virtual ~PatternBase() {}
+                        
+                        private:
+                        PatternBase(PatternBase const &);
+                        PatternBase & operator=(PatternBase const &);
 
+                        public:
                         unsigned int getQuality(unsigned int const /* i */) const
                         {
                                 return 30;
@@ -84,6 +91,10 @@ namespace libmaus
                         {
                                 return quality[i];
                         }	
+                        
+                        private:
+                        PatternQualityBase(PatternQualityBase const &);
+                        PatternQualityBase & operator=(PatternQualityBase const &);
                 };
 
                 struct Pattern : public PatternBase
@@ -148,8 +159,8 @@ namespace libmaus
 					return sid.substr(0,j);
                         }
                         
-                        Pattern() : PatternBase(), pattern(0) {}
-                        Pattern(Pattern const & o) : PatternBase(), pattern(0)
+                        Pattern() : PatternBase(), sid(), spattern(), pattern(0), smapped(), stransposed() {}
+                        Pattern(Pattern const & o) : PatternBase(), sid(), spattern(), pattern(0), smapped(), stransposed()
                         {
                         	//std::cerr << "copy construct." << '\n';
                         	*this = o;
