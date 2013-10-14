@@ -38,6 +38,8 @@ namespace libmaus
 	{
 		struct BSwapBase
 		{
+			virtual ~BSwapBase() {}
+		
 			/**
 			 * invert byte order of 2 byte word
 			 * @param val
