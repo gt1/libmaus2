@@ -95,6 +95,8 @@ namespace libmaus
                                 pc = pa;
                         }
 
+			SynchronousGenericOutput<data_type> & operator=(SynchronousGenericOutput<data_type> const &);
+			SynchronousGenericOutput(SynchronousGenericOutput<data_type> const &);
 
                         public:
                         /**

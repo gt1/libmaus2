@@ -76,7 +76,8 @@ namespace libmaus
                         uint64_t totalwrittenwords;
 
 			//! deactivated assignment operator (private and unimplemented)
-                        this_type & operator=(this_type const & o);
+                        this_type & operator=(this_type const &);
+                        SynchronousGenericOutputPosix(this_type const &);
 
                         /**
                          * write the buffer contents to the output file

@@ -33,7 +33,13 @@ namespace libmaus
                 {
                 	typedef _value_type value_type;
                 	static const ::libmaus::autoarray::alloc_type atype = _atype;
+                	typedef EntityBuffer<value_type,_atype> this_type;
+                	
+                	private:
+                	this_type operator=(this_type const &);
+                	EntityBuffer(this_type const &);
                 
+                	public:
                         uint64_t buffersize;
                         uint64_t length;
 			::libmaus::autoarray::AutoArray<value_type,atype> abuffer;

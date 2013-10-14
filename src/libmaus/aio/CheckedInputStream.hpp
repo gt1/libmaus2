@@ -59,6 +59,9 @@ namespace libmaus
 				}			
 			}
 			
+			CheckedInputStream & operator=(CheckedInputStream &);
+			CheckedInputStream(CheckedInputStream const &);
+			
 			public:
 			/**
 			 * constructor

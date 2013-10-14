@@ -199,6 +199,9 @@ namespace libmaus
 				uint64_t const v1 = readNumber4();
 				return (v0<<32)|v1;
 			}
+			
+			SynchronousFastReaderBase(SynchronousFastReaderBase const &);
+			SynchronousFastReaderBase & operator=(SynchronousFastReaderBase const &);
 
 			public:
 			/**
@@ -220,7 +223,8 @@ namespace libmaus
 				pa(B.get()),
 				pc(pa),
 				pe(pc),
-				c(0)
+				c(0),
+				cb()
 			{
 			}
 
@@ -243,7 +247,8 @@ namespace libmaus
 				pa(B.get()),
 				pc(pa),
 				pe(pc),
-				c(0)
+				c(0),
+				cb()
 			{
 			}
 
