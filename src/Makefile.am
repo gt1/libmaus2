@@ -899,7 +899,8 @@ noinst_PROGRAMS = \
 	testfastqstream \
 	testsort \
 	testexternalsort \
-	testcollatespeed
+	testcollatespeed \
+	testbamheaderparser
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1128,3 +1129,6 @@ testcollatespeed_SOURCES = test/testcollatespeed.cpp
 testcollatespeed_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcollatespeed_LDFLAGS = @SNAPPYLDFLAGS@
 testcollatespeed_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+
+testbamheaderparser_SOURCES = test/testbamheaderparser.cpp
+testbamheaderparser_LDADD = libmaus.la
