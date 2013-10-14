@@ -257,6 +257,8 @@ namespace libmaus
 			 **/	
 			ERank3C(uint16_t const * const U, uint64_t const rn) 
 			: n(rn), 
+			  n1(0),
+			  CU(),
 			  nums( ERANK2DIVUP(n,sbsize) ),
 			  S( nums ),
 			  SE( nums ),
