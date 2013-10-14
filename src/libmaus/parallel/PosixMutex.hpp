@@ -34,7 +34,7 @@ namespace libmaus
                 {
                         pthread_mutex_t mutex;
                         
-                        PosixMutex()
+                        PosixMutex() : mutex()
                         {
                                 pthread_mutex_init(&mutex,0);
                         }
