@@ -42,7 +42,7 @@ namespace libmaus
 			std::string plus;
 			std::string quality;
 			
-			FastQElement()
+			FastQElement() : name(), query(), plus(), quality()
 			{
 			
 			}
