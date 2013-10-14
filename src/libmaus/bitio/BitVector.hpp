@@ -81,6 +81,8 @@ namespace libmaus
 			}
 			BitVectorTemplate(uint64_t const rn, uint64_t const pad = 0) : n(rn), A( (n+bitsperword-1)/bitsperword + pad ) {}
 			
+			virtual ~BitVectorTemplate() {}
+			
 			data_type const * get() const
 			{
 				return A.get();
@@ -270,8 +272,8 @@ namespace libmaus
 			
 			rank_ptr_type index;
 		
-			IndexedBitVector(uint64_t const n, uint64_t const pad = 0) : BitVector(n,pad) {}
-			IndexedBitVector(std::istream & in) : BitVector(in) {}
+			IndexedBitVector(uint64_t const n, uint64_t const pad = 0) : BitVector(n,pad), index() {}
+			IndexedBitVector(std::istream & in) : BitVector(in), index() {}
 			
 			void setupIndex()
 			{
@@ -332,7 +334,7 @@ namespace libmaus
 
 			rank_ptr_type index;
 		
-			IndexedBitVectorCompressed(uint64_t const n, uint64_t const pad = 0) : BitVector2(n,pad) {}
+			IndexedBitVectorCompressed(uint64_t const n, uint64_t const pad = 0) : BitVector2(n,pad), index() {}
 			
 			void setupIndex()
 			{
