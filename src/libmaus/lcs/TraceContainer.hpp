@@ -28,6 +28,13 @@ namespace libmaus
 	{
 		struct TraceContainer : public PenaltyConstants
 		{
+			private:
+			TraceContainer & operator=(TraceContainer const &);
+			TraceContainer(TraceContainer const &);
+		
+			public:
+			virtual ~TraceContainer() {}
+		
 			// trace
 			::libmaus::autoarray::AutoArray<step_type> trace;
 			//
