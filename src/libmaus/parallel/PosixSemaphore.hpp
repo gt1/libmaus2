@@ -42,6 +42,11 @@ namespace libmaus
 	{
 		struct NamedPosixSemaphore
 		{
+			private:
+			NamedPosixSemaphore & operator=(NamedPosixSemaphore const &);
+			NamedPosixSemaphore(NamedPosixSemaphore const &);
+		
+			public:
 			std::string const semname;
 			bool const primary;
 			sem_t * psemaphore;
@@ -56,7 +61,7 @@ namespace libmaus
 			}
 			
 			NamedPosixSemaphore(std::string const & rsemname, bool rprimary)
-			: semname(rsemname), primary(rprimary)
+			: semname(rsemname), primary(rprimary), psemaphore(0)
 			{
 				if ( primary )
 					psemaphore = sem_open(semname.c_str(), O_CREAT | O_EXCL, 0700, 0);
@@ -178,8 +183,13 @@ namespace libmaus
 			#endif
 		        sem_t semaphore;
 			sem_t * psemaphore;
-
-                        PosixSemaphore()
+			
+			private:
+			PosixSemaphore(PosixSemaphore const &);
+			PosixSemaphore operator=(PosixSemaphore const &);
+			
+			public:
+                        PosixSemaphore() : semaphore(), psemaphore(0)
                         {
 				#if defined(__APPLE__)
 				std::ostringstream semnamestr;
