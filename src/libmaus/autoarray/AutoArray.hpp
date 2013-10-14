@@ -975,7 +975,7 @@ namespace libmaus
 			 * copy constructor. retrieves array from o and invalidates o.
 			 * @param o
 			 **/
-			AutoArray(AutoArray<N,atype> const & o) : array(0) 
+			AutoArray(AutoArray<N,atype> const & o) : array(0), n(0)
 			{
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(AutoArray &), " << this << std::endl;
@@ -1326,7 +1326,7 @@ namespace libmaus
 		void AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(N * alignedp)
 		{
 			if ( alignedp )
-				delete [] ((uint8_t **)((alignedp)))[-1];
+				delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
 		}
 
 		template<typename N, alloc_type atype>
