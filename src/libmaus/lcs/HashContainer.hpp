@@ -207,6 +207,7 @@ namespace libmaus
 			//
 			HashContainer(unsigned int const rk, unsigned int const rm)
 			: k(rk), hashbits(k<<1), hashlen(1u<<hashbits), hashmask(hashlen-1), forw(k),
+			  trace(),
 			  m(rm), mp(m-k+1), 
 			  #if defined(HASHCONTAINER_PARTIALFUNCTION)
 			  T(hashlen,false), C(mp,false), clen(0), O(mp*mp,false)
