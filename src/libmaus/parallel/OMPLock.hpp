@@ -36,6 +36,9 @@ namespace libmaus
 #endif
 
 			OMPLock()
+#if defined(_OPENMP)
+			: lock_obj()
+#endif
 			{
 #if defined(_OPENMP)
 				omp_init_lock(&lock_obj);
