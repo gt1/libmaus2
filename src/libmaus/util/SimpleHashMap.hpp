@@ -41,6 +41,8 @@ namespace libmaus
 			{
 				return std::numeric_limits<key_type>::max();
 			}
+			
+			virtual ~SimpleHashMapConstants() {}
 		};
 			
 		template<typename _key_type, typename _value_type>
@@ -105,6 +107,8 @@ namespace libmaus
 			{
 			
 			}
+			
+			virtual ~SimpleHashMap() {}
 			
 			void clear()
 			{
@@ -177,7 +181,7 @@ namespace libmaus
 			}
 
 			SimpleHashMap(unsigned int const rslog)
-			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false)
+			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false), elock()
 			{
 				std::fill(H.begin(),H.end(),pair_type(base_type::unused(),value_type()));
 			}
