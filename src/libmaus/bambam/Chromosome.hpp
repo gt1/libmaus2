@@ -42,7 +42,7 @@ namespace libmaus
 			/**
 			 * constructor for empty reference sequence
 			 **/
-			Chromosome() : len(0) {}
+			Chromosome() : name(), len(0), M() {}
 
 			/**
 			 * constructor from other object
@@ -56,7 +56,7 @@ namespace libmaus
 			 * @param rname ref seq name
 			 * @param rlen ref seq length
 			 **/
-			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen) {}
+			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen), M() {}
 
 			/**
 			 * assignment operator
