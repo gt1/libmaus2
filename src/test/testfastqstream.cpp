@@ -21,6 +21,7 @@
 #include <libmaus/lz/BufferedGzipStream.hpp>
 #include <libmaus/fastx/GzipStreamFastQReader.hpp>
 #include <libmaus/fastx/GzipFileFastQReader.hpp>
+#include <libmaus/parallel/LockedBool.hpp>
 #include <libmaus/util/ArgInfo.hpp>
 
 void decodeGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
@@ -41,6 +42,80 @@ void decodeGzipFastqBlocks(std::string const & filename, std::string const & ind
 	}
 }
 
+
+std::string getNameBase(std::string const & s)
+{
+	uint64_t d = s.size();
+	for ( uint64_t i = 0; i < s.size(); ++i )
+		if ( s[i] == '/' )
+			d = i;
+	
+	return s.substr(0,d);
+}
+
+void countReadsGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
+{
+	libmaus::aio::CheckedInputStream FICIS(indexfilename);
+	std::vector < libmaus::fastx::FastInterval > FIV = 
+		libmaus::fastx::FastInterval::deserialiseVector(FICIS);
+
+	LockedBool ok(true);
+
+	#if defined(_OPENMP)
+	#pragma omp parallel for schedule(dynamic,1)
+	#endif
+	for ( int64_t i = 0; i < static_cast<int64_t>(FIV.size()); ++i )
+	{
+		if ( ok.get() )
+		{
+			// std::cerr << FIV[i] << std::endl;			
+			libmaus::fastx::GzipFileFastQReader reader(filename,FIV[i]);
+			libmaus::fastx::GzipFileFastQReader::pattern_type pattern;
+
+			uint64_t cnt = 0;
+			std::string prevname;
+			bool nok = true;
+			while ( nok && reader.getNextPatternUnlocked(pattern) )
+			{
+				++cnt;
+
+				if ( cnt % 2 == 0 )
+				{
+					if ( getNameBase(prevname) != getNameBase(pattern.sid) )
+					{
+						nok = false;
+					}
+				}
+				
+				prevname = pattern.sid;				
+			}
+			
+			if ( i % 1024 == 0 )
+				std::cerr << FIV[i] << std::endl;
+			if ( cnt != FIV[i].high - FIV[i].low )
+			{
+				std::cerr << cnt << "\t" << FIV[i].high - FIV[i].low << std::endl;
+				ok.set(false);
+			}
+			if ( cnt % 2 != 0 )
+			{
+				std::cerr << cnt << " is uneven " << std::endl;
+				ok.set(false);			
+			}
+			if ( ! nok )
+			{
+				std::cerr << "name fail " << std::endl;
+				ok.set(false);						
+			}
+		}
+	}
+	
+	if ( ! ok.get() )
+		std::cerr << "failed." << std::endl;
+	else
+		std::cerr << "Ok." << std::endl;
+}
+
 void decodeGzipFastQStream(std::istream & in, std::ostream & out)
 {
 	libmaus::fastx::GzipStreamFastQReader reader(in);
@@ -57,22 +132,41 @@ void decodeGzipFastqBlocksByParameters(int argc, char * argv[])
 	decodeGzipFastqBlocks(filename,indexfilename);
 }
 
-/* int main(int argc, char * argv[]) */
-int main()
+#include <libmaus/lz/BgzfInflate.hpp>
+#include <libmaus/fastx/FastQBgzfWriter.hpp>
+
+void testNextStart()
+{
+	libmaus::fastx::FastQBgzfWriter writer("index.id",1024,std::cout);
+	
+	char input[] = "@A/1\nACGT\n+\nHHHH\n@AAA/2\nTGCAT\n+plus\nHHHHH\n";
+	std::istringstream istr(input);
+	libmaus::fastx::StreamFastQReaderWrapper fqin(istr);
+	libmaus::fastx::StreamFastQReaderWrapper::pattern_type pattern;
+		
+	while ( fqin.getNextPatternUnlocked(pattern) )
+	{
+		// std::cerr << pattern;
+		writer.put(pattern);
+	}
+		
+	// writer.testPrevStart();
+	writer.testNextStart();
+}
+
+int main(int argc, char * argv[])
 {
 	try
 	{
-
-		/*
-		 * test libmaus::fastx::StreamFastQReaderWrapper class by 
-		 * reading a gzip compressed FastQ file and outputting it
-		 * in uncompressed FastQ format
-		 */
-		libmaus::lz::BufferedGzipStream GZ(std::cin);
-		libmaus::fastx::StreamFastQReaderWrapper reader(GZ);
-		libmaus::fastx::StreamFastQReaderWrapper::pattern_type pattern;
-		while ( reader.getNextPatternUnlocked(pattern) )
-			std::cout << pattern;	
+		libmaus::util::ArgInfo const arginfo(argc,argv);
+		
+		testNextStart();
+		
+		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
+		{
+			std::string const filename = arginfo.stringRestArg(i);
+			countReadsGzipFastqBlocks(filename,filename+".idx");
+		}
 	}
 	catch(std::exception const & ex)
 	{
