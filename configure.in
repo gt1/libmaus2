@@ -438,10 +438,25 @@ AC_MSG_RESULT([${sse4flag}])
 CXXFLAGS="${CXXFLAGS_SAVE}"
 AC_LANG_POP
 
+WARNCPPFLAGS=
 
-if test "${CXX}" = "g++" ; then
-	CPPFLAGS="${CPPFLAGS} -W -Wall"
-fi
+# effc++ strict-null-sentinel no-non-template-friend old-style-cast overloaded-virtual sign-promo non-virtual-dtor abi extra
+
+for flag in "" all abi non-virtual-dtor ; do
+	AC_LANG_PUSH([C++])
+	CPPFLAGS_SAVE="${CPPFLAGS}"
+	CPPFLAGS="-W${flag}"
+	AC_MSG_CHECKING([whether the C++ compiler supports the -W${flag} flag])
+	AC_TRY_COMPILE([],[int c = 0;],[wflag=yes],[wflag=no])
+	AC_MSG_RESULT([${wflag}])
+	CPPFLAGS="${CPPFLAGS_SAVE}"
+	AC_LANG_POP
+
+	if test "${wflag}" = "yes" ; then
+		WARNCPPFLAGS="${WARNCPPFLAGS} -W${flag}"
+	fi
+done
+
 if test "${CXX}" = "cl.exe" ; then
 	CXXFLAGS="${CXXFLAGS} -EHsc -Gr"
 	CPPFLAGS="${CPPFLAGS} -W1" # -Wall
@@ -1772,4 +1787,5 @@ AC_SUBST([IOLIBLDFLAGS])
 AC_SUBST([IOLIBLIBS])
 AC_SUBST([HAVEGETPAGESIZE])
 AC_SUBST([HAVEMSGCMSGCLOEXEC])
+AC_SUBST([WARNCPPFLAGS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
