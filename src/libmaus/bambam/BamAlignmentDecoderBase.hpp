@@ -185,6 +185,11 @@ namespace libmaus
 			 * @return true iff flags have the duplicate flag set
 			 **/
 			static bool isDup(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FDUP; }
+			/**
+			 * @param flags flag word
+			 * @return true iff flags have the supplementary flag set
+			 **/
+			static bool isSupplementary(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FSUPPLEMENTARY; }
 			
 			/**
 			 * convert single bit flag to a string representation
@@ -207,6 +212,7 @@ namespace libmaus
 					case LIBMAUS_BAMBAM_FSECONDARY: return "LIBMAUS_BAMBAM_FSECONDARY";
 					case LIBMAUS_BAMBAM_FQCFAIL: return "LIBMAUS_BAMBAM_FQCFAIL";
 					case LIBMAUS_BAMBAM_FDUP: return "LIBMAUS_BAMBAM_FDUP";
+					case LIBMAUS_BAMBAM_FSUPPLEMENTARY: return "LIBMAUS_BAMBAM_FSUPPLEMENTARY";
 					default: return "LIBMAUS_BAMBAM_F?";
 				}
 			}
