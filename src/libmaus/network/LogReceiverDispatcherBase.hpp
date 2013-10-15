@@ -32,6 +32,7 @@ namespace libmaus
 		struct DispatchCallback
 		{
 			virtual int operator()(::libmaus::util::ArgInfo const &, int const) = 0;
+			virtual ~DispatchCallback() {}
 		};
 			
 		struct StringRecDispatchCallback : public DispatchCallback
