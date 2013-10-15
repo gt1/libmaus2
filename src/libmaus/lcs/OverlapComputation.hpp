@@ -564,7 +564,7 @@ namespace libmaus
 				::libmaus::parallel::OMPLock & lock
 				)
 			{
-				typedef typename reader_type::unique_ptr_type reader_ptr_type;
+				// typedef typename reader_type::unique_ptr_type reader_ptr_type;
 				typedef typename reader_type::pattern_type pattern_type;
 				
 				unsigned int const mintracelength = OCBR.mintracelength;
@@ -679,7 +679,7 @@ namespace libmaus
 				::libmaus::parallel::OMPLock & lock
 				)
 			{
-				typedef typename reader_type::unique_ptr_type reader_ptr_type;
+				// typedef typename reader_type::unique_ptr_type reader_ptr_type;
 				typedef typename reader_type::pattern_type pattern_type;
 				
 				libmaus::lcs::HammingOverlapDetection HOD;

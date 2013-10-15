@@ -224,7 +224,7 @@ namespace libmaus
 			: FI(rFI), numreads(FI.high-FI.low), designators( (numreads+63)/64 ), shortpointers(numreads,false), longpointers(), text(FI.fileoffsethigh-FI.fileoffset,false)
 			{
 				typedef ::libmaus::fastx::CompactFastConcatDecoder reader_type;
-				typedef reader_type::pattern_type pattern_type;
+				// typedef reader_type::pattern_type pattern_type;
 				reader_type CFD(filenames,FI);
 
 				uint64_t codepos = 0;		

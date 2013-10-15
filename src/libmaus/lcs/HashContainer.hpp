@@ -685,10 +685,10 @@ namespace libmaus
 							// std::cerr << std::string(pattern+alignposb,pattern+alignposb+alignlenb) << std::endl;
 							#endif
 							
-							typedef typename ::std::iterator_traits<iterator>::value_type char_type;
-							typedef typename ::std::iterator_traits<iterator>::reference char_reference_type;
-							typedef typename ::std::iterator_traits<iterator>::pointer char_pointer_type;
-							typedef typename ::std::iterator_traits<iterator>::difference_type char_difference_type;
+							// typedef typename ::std::iterator_traits<iterator>::value_type char_type;
+							// typedef typename ::std::iterator_traits<iterator>::reference char_reference_type;
+							// typedef typename ::std::iterator_traits<iterator>::pointer char_pointer_type;
+							// typedef typename ::std::iterator_traits<iterator>::difference_type char_difference_type;
 							typedef ::std::reverse_iterator<iterator> reverse_iterator;
 							
 							iterator refstart = ref+alignposa;
