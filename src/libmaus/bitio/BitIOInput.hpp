@@ -345,6 +345,147 @@ namespace libmaus
 		};
 
 		typedef StreamBitInputStreamTemplate<std::istream> StreamBitInputStream;
+
+		// class for bitwise input
+		template<typename _stream_type>
+		class MarkerStreamBitInputStreamTemplate
+		{
+			public:
+			typedef _stream_type stream_type;
+			typedef MarkerStreamBitInputStreamTemplate<stream_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			private:	
+			// input stream
+			stream_type & in;
+			// current byte
+			uint8_t curByte;
+			// number of bits processed in current byte (mask)
+			uint8_t curByteMask;
+			// total number of bits read
+			uint64_t bitsRead;
+
+			public:
+			// constructor by iterators
+			MarkerStreamBitInputStreamTemplate(stream_type & rin)
+			: in(rin) {
+				bitsRead = curByte = curByteMask = 0;
+			}
+
+			// get number of bits read
+			inline uint64_t getBitsRead() const
+			{
+				return bitsRead;
+			}
+			
+			void fillByteChecked()
+			{
+				int const ncurByte = in.get();
+
+				if ( ncurByte < 0 )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "EOF in MarkerStreamBitInputStream::fillByteChecked()." << std::endl;
+					se.finish();
+					throw se;					
+				}
+				
+				if ( ncurByte == 0xFE )
+				{
+					curByteMask = 0x40;
+					curByte = ncurByte >> 1;
+				}
+				else
+				{
+					curByteMask = 0x80;
+					curByte = ncurByte;
+				}
+			}
+
+			void fillByteUnchecked()
+			{
+				int const ncurByte = in.get();
+
+				if ( ncurByte == 0xFE )
+				{
+					curByteMask = 0x40;
+					curByte = ncurByte >> 1;
+				}
+				else
+				{
+					curByteMask = 0x80;
+					curByte = ncurByte;
+				}
+			}
+
+			// read one bit
+			inline bool readBit()
+			{
+				if ( ! curByteMask )
+					fillByteChecked();
+
+				++bitsRead;
+
+				bool bit = (curByte & curByteMask)!=0;
+				curByteMask >>= 1;
+				return bit;
+			}
+
+			// flush (align to byte bound)
+			inline void flush()
+			{
+				while ( curByteMask )
+					readBit();
+			}
+
+			// read numbits unsigned number
+			inline uint64_t read(unsigned int numbits)
+			{
+				bitsRead += static_cast<uint64_t>(numbits);
+				uint64_t result = 0;
+			
+				while ( numbits )
+				{
+					// check how many bits are left in the buffer
+					unsigned int const bitsleft = curByteMask ? (sizeof(unsigned int)*8-__builtin_clz(curByteMask)) : 0;
+				
+					// we have sufficient bits in the current word to finish
+					if ( numbits <= bitsleft ) 
+					{
+						unsigned int const shift = (bitsleft - numbits);
+						uint8_t const shifted = static_cast<uint8_t>(curByte >> shift);
+						
+						result <<= numbits;
+						result |= ::libmaus::math::lowbits(numbits) & shifted;
+						// all requested bits read
+						curByteMask >>= numbits;
+						numbits = 0;
+					}
+					// current word does not contain sufficient bits, copy all bits to output
+					else
+					{
+						result <<= bitsleft;
+						result |= (::libmaus::math::lowbits(bitsleft) & curByte);
+						fillByteChecked();
+						numbits -= bitsleft;
+					}
+				}
+				
+				return result;
+			}
+
+			inline uint64_t readElias() {
+				unsigned int numbits = 0;
+				
+				while ( readBit() == 0 )
+					numbits++;
+					
+				return read(numbits);
+			}
+		};
+
+		typedef MarkerStreamBitInputStreamTemplate<std::istream> MarkerStreamBitInputStream;
 	}
 }
 #endif

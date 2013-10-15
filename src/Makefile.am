@@ -280,7 +280,8 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/CompactDecoderBuffer.hpp \
 	libmaus/bitio/Ctz.hpp \
 	libmaus/bitio/CompactArrayWriter.hpp \
-	libmaus/bitio/PacDecoderBuffer.hpp
+	libmaus/bitio/PacDecoderBuffer.hpp \
+	libmaus/bitio/MarkerFastWriteBitWriter.hpp
 
 libmausrank_includedir=$(includedir)/libmaus/rank
 libmausrank_include_HEADERS=\

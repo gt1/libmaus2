@@ -534,11 +534,50 @@ struct UIntProjector
 	}
 };
 
+#include <libmaus/bitio/MarkerFastWriteBitWriter.hpp>
+
+void testMarkerBitIO()
+{
+	std::ostringstream ostr;
+	std::ostream_iterator<uint8_t> ostrit(ostr);
+	libmaus::bitio::MarkerFastWriteBitWriterStream8 W(ostrit);
+	
+	uint64_t const n = 16*1024*1024;
+	
+	for ( uint64_t i = 0; i < n; ++i )
+		W.write( i & 0xFF, 8 );
+	W.flush();
+	
+	std::cerr << "size of stream is " << ostr.str().size() << std::endl;
+	
+	libmaus::timing::RealTimeClock rtc; rtc.start();
+	uint64_t const loop = 32;
+	std::istringstream istr(ostr.str());
+
+	for ( uint64_t l = 0; l < loop; ++l )
+	{
+		istr.clear();
+		istr.seekg(0);
+		libmaus::bitio::MarkerStreamBitInputStream R(istr);
+	
+		for ( uint64_t i = 0; i < n; ++i )
+		{
+			//std::cout << R.read(8) << std::endl;
+			assert ( R.read(8) == (i & 0xFF) );
+		}
+	}
+	
+	double const secs = rtc.getElapsedSeconds();
+	
+	std::cerr << "MarkerStreamBitInputStream decoding speed " << (static_cast<double>(loop*n)/(1024.0*1024.0)) / secs << " MB/s" << std::endl;
+}
                      
 int main()
 {
 	try
 	{
+		testMarkerBitIO();
+	
 		{
 		::libmaus::bitio::BitVector B(17);
 		std::cerr << B << std::endl;
