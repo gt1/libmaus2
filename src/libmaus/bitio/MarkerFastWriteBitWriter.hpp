@@ -124,7 +124,7 @@ namespace libmaus
 					// save low bit
 					data_type const lowbit = (cur & static_cast<data_type>(1));
 					// shift by one to avoid word with all bits set
-					*(U++) = cur & 0xFE;
+					*(U++) = cur & (fullmask-1);
 					// reset for next byte	
 					reset();
 					// insert saved low bit	
