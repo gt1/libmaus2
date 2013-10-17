@@ -999,7 +999,10 @@ namespace libmaus
 				fd_set fds;
 				FD_ZERO(&fds);
 				FD_SET(getFD(),&fds);
-				struct timeval timeout = { t, 0};
+				struct timeval timeout = { 
+					static_cast<long>(t), 
+					static_cast<long>(0)
+				};
 			
 				int const r = ::select(getFD()+1,&fds,0,0,&timeout);
 				
