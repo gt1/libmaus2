@@ -1,3 +1,9 @@
+libmaus (0.0.76-0) unstable; urgency=low
+
+  * add FSM based BAM header parsing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 17 Oct 2013 09:36:51 +0100
+
 libmaus (0.0.75-0) unstable; urgency=low
 
   * fix BamWriter destruction crashes due to wronger pointer types 
