@@ -292,8 +292,8 @@ namespace libmaus
 				assert ( pc <= C.end() );
 				
 				lnumsyms += pattern.spattern.size();
-				minlen = std::min(minlen,pattern.spattern.size());
-				maxlen = std::max(maxlen,pattern.spattern.size());
+				minlen = std::min(minlen,static_cast<uint64_t>(pattern.spattern.size()));
+				maxlen = std::max(maxlen,static_cast<uint64_t>(pattern.spattern.size()));
 				pathigh++;
 				
 				if ( pathigh - patlow == patperblock )
