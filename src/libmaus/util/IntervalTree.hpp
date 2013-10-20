@@ -46,7 +46,8 @@ namespace libmaus
 			IntervalTree(
 				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
 				uint64_t const ileft,
-				uint64_t const iright
+				uint64_t const iright,
+				bool const check = true
 			);
 			~IntervalTree();
 			

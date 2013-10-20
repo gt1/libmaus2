@@ -27,10 +27,11 @@ bool libmaus::util::IntervalTree::isLeaf() const
 libmaus::util::IntervalTree::IntervalTree(
 	::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
 	uint64_t const ileft,
-	uint64_t const iright
+	uint64_t const iright,
+	bool const check
 )
 {
-	if ( ileft == 0 && iright == H.size() )
+	if ( check && ileft == 0 && iright == H.size() )
 	{
 		for ( uint64_t i = 1; i < H.size(); ++i )
 		{
