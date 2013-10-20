@@ -483,7 +483,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/ImpCompactNumberArray.hpp \
 	libmaus/util/ContainerGetObject.hpp \
 	libmaus/util/PushBuffer.hpp \
-	libmaus/util/SuccinctBorderArray.hpp
+	libmaus/util/SuccinctBorderArray.hpp \
+	libmaus/util/LineAccessor.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
