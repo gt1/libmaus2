@@ -56,6 +56,10 @@ namespace libmaus
 			
 			public:
 			/**
+			 * copy constructor
+			 **/
+			BitWriterTemplate(this_type const & o) : U(o.U), mask(o.mask), cur(o.cur) {}
+			/**
 			 * initialize writer with pointer to array
 			 **/
 			BitWriterTemplate(data_iterator rU) : U(rU), mask(basemask), cur(0) {}
