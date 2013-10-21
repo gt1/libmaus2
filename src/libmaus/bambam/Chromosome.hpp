@@ -190,7 +190,8 @@ namespace libmaus
 				// simple case, all equal
 				if ( samevecs )
 				{
-					chromosomes = *V[0];
+					if ( V.size() )
+						chromosomes = *V[0];
 					std::vector<uint64_t> cmap;
 					for ( uint64_t i = 0; i < chromosomes.size(); ++i )
 						cmap.push_back(i);
