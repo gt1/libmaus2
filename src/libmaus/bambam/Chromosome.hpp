@@ -196,6 +196,8 @@ namespace libmaus
 						cmap.push_back(i);
 					for ( uint64_t i = 0; i < V.size(); ++i )
 						chromosomesmap.push_back(cmap);
+						
+					topological = true;
 				}
 				// otherwise try to perform topological sorting
 				else

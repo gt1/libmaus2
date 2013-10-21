@@ -237,7 +237,10 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamRangeDecoder.hpp \
 	libmaus/bambam/BamParallelRewrite.hpp \
 	libmaus/bambam/BamAlignmentExpungeCallback.hpp \
-	libmaus/bambam/StrCmpNum.hpp
+	libmaus/bambam/StrCmpNum.hpp \
+	libmaus/bambam/BamCatHeader.hpp \
+	libmaus/bambam/BamCat.hpp \
+	libmaus/bambam/BamMerge.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -904,7 +907,9 @@ noinst_PROGRAMS = \
 	testsort \
 	testexternalsort \
 	testcollatespeed \
-	testbamheaderparser
+	testbamheaderparser \
+	testbammerge \
+	testbamcat
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1136,3 +1141,9 @@ testcollatespeed_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 
 testbamheaderparser_SOURCES = test/testbamheaderparser.cpp
 testbamheaderparser_LDADD = libmaus.la
+
+testbammerge_SOURCES = test/testbammerge.cpp
+testbammerge_LDADD = libmaus.la
+
+testbamcat_SOURCES = test/testbamcat.cpp
+testbamcat_LDADD = libmaus.la
