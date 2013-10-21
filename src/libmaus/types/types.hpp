@@ -17,11 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #if ! defined(LIBMAUS_TYPES__TYPES_HPP)
 #define LIBMAUS_TYPES__TYPES_HPP
 
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define expect_true(x)      __builtin_expect (x, 1)
+#define expect_false(x)     __builtin_expect (x, 0)
+#else
+#define expect_true(x) x
+#define expect_false(x) x
+#endif
+
 #include <libmaus/LibMausConfig.hpp>
+#include <cstdlib>
 
 #if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
 #include <cstdint>
