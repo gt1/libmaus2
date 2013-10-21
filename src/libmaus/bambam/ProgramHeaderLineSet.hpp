@@ -367,8 +367,13 @@ namespace libmaus
 				std::vector < std::vector < HeaderLine > > headerlines;
 				std::vector < std::map<std::string,std::string> > PGlinesmappingS;
 				
+				std::vector<std::string> lastinchain;
+				
 				for ( uint64_t i = 0; i < headers.size(); ++i )
+				{
 					headerlines.push_back(HeaderLine::extractProgramLines(*(headers[i])));
+					lastinchain.push_back(ProgramHeaderLineSet(*(headers[i])).getLastIdInChain());
+				}
 				
 				std::ostringstream PGtextstr;
 				std::set < std::string > gids;	
@@ -391,6 +396,9 @@ namespace libmaus
 						
 						lidmap [ origID ] = ID;
 						gids.insert(ID);
+						
+						if ( lastinchain[i] == origID )
+							lastinchain[i] = ID;
 					}
 
 					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
@@ -399,6 +407,8 @@ namespace libmaus
 						
 						if ( line.hasKey("PP") )
 							line.M["PP"] = lidmap.find(line.getValue("PP"))->second;
+						else if ( i > 0 && lastinchain[i-1].size() )
+							line.M["PP"] = lastinchain[i-1];
 							
 						line.constructLine();
 						
