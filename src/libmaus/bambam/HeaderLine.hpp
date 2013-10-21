@@ -51,6 +51,16 @@ namespace libmaus
 			
 			}
 			
+			void constructLine()
+			{
+				std::ostringstream ostr;
+				ostr << '@' << type;
+				for ( std::map<std::string,std::string>::const_iterator ita = M.begin();
+					ita != M.end(); ++ita )
+					ostr << '\t' << ita->first << ":" << ita->second;
+				line = ostr.str();
+			}
+			
 			/**
 			 * check line for key
 			 *
@@ -167,7 +177,54 @@ namespace libmaus
 			 **/
 			static std::vector<HeaderLine> extractProgramLines(std::string const & header)
 			{
-				return extractLinesByType(header,"PG");
+				std::vector<HeaderLine> const lines = extractLinesByType(header,"PG");
+				
+				std::vector<std::string> idvec;
+				for ( uint64_t i = 0; i < lines.size(); ++i )
+				{
+					if ( ! lines[i].hasKey("ID") )
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "PG line without ID field: " << lines[i].line << std::endl;
+						se.finish();
+						throw se;
+					}
+					
+					idvec.push_back(lines[i].getValue("ID"));
+				}
+				
+				std::sort(idvec.begin(),idvec.end());
+				
+				for ( uint64_t i = 1; i < idvec.size(); ++i )
+					if ( idvec[i] == idvec[i-1] )
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "PG ID " << idvec[i] << " is not unique." << std::endl;
+						se.finish();
+						throw se;					
+					}
+
+				for ( uint64_t i = 0; i < lines.size(); ++i )
+					if ( 
+						lines[i].hasKey("PP")
+					)
+					{
+						std::string const PP = lines[i].getValue("PP");
+						std::pair < 
+							std::vector<std::string>::const_iterator,
+							std::vector<std::string>::const_iterator >
+							const interval = ::std::equal_range(idvec.begin(),idvec.end(),PP);
+						
+						if ( interval.first == interval.second )
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "PG line " << lines[i].line << " references unknown PG ID via PP key." << std::endl;
+							se.finish();
+							throw se;					
+						}
+					}
+				
+				return lines;
 			}
 			
 			/**
@@ -208,7 +265,8 @@ namespace libmaus
 								throw se;
 							}
 							#else
-							std::cerr << "Malformed SAM header line: " << line << std::endl;
+							if ( type != "CO" )
+								std::cerr << "Malformed SAM header line: " << line << std::endl;
 							#endif
 						}
 						else

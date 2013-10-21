@@ -34,7 +34,7 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/network/LogReceiver.cpp \
 	libmaus/huffman/IndexLoaderBase.cpp \
 	libmaus/bambam/BamAlignment.cpp \
-	libmaus/bambam/BamAlignmentNameComparator.cpp \
+	libmaus/bambam/StrCmpNum.cpp \
 	libmaus/huffman/KvInitResult.cpp \
 	libmaus/fm/MausFmToBwaConversion.cpp \
 	libmaus/util/TempFileNameGenerator.cpp \
@@ -236,7 +236,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamRangeParser.hpp \
 	libmaus/bambam/BamRangeDecoder.hpp \
 	libmaus/bambam/BamParallelRewrite.hpp \
-	libmaus/bambam/BamAlignmentExpungeCallback.hpp
+	libmaus/bambam/BamAlignmentExpungeCallback.hpp \
+	libmaus/bambam/StrCmpNum.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -484,7 +485,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/ContainerGetObject.hpp \
 	libmaus/util/PushBuffer.hpp \
 	libmaus/util/SuccinctBorderArray.hpp \
-	libmaus/util/LineAccessor.hpp
+	libmaus/util/LineAccessor.hpp \
+	libmaus/util/StringMapCompare.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

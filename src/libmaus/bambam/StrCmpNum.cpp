@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
+#include <src/libmaus/bambam/StrCmpNum.hpp>
 
 // entry i is 1 iff isdigit(i) is true
-uint8_t const libmaus::bambam::BamAlignmentNameComparator::digit_table[256] = {
+uint8_t const libmaus::bambam::StrCmpNum::digit_table[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

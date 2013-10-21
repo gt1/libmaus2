@@ -332,6 +332,132 @@ namespace libmaus
 				return ostr.str();
 			}
 		};
+
+		/**
+		 **/
+		struct ProgramHeaderLinesMerge
+		{
+			typedef ProgramHeaderLinesMerge this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			std::string PGtext;
+			std::vector < std::string > PGids;
+			libmaus::autoarray::AutoArray< ::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type > tries;
+			std::vector < std::vector<uint64_t> > triedictmaps;
+
+			std::string const & mapPG(uint64_t const srcfileid, char const * from)
+			{
+				uint64_t const len = strlen(from);
+				int64_t const id = tries[srcfileid]->searchCompleteNoFailure(from,from+len);
+				
+				if ( id >= 0 && id < PGids.size() )
+					return PGids[triedictmaps[srcfileid][id]];
+				else
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "Unknown PG id in mapPG: " << std::string(from,from+len) << std::endl;
+					se.finish();
+					throw se;
+				}
+			}
+		
+			ProgramHeaderLinesMerge(std::vector< std::string const * > const & headers) : tries(headers.size())
+			{
+				std::vector < HeaderLine > PGlines;
+				std::vector < std::vector < HeaderLine > > headerlines;
+				std::vector < std::map<std::string,std::string> > PGlinesmappingS;
+				
+				for ( uint64_t i = 0; i < headers.size(); ++i )
+					headerlines.push_back(HeaderLine::extractProgramLines(*(headers[i])));
+				
+				std::ostringstream PGtextstr;
+				std::set < std::string > gids;	
+				for ( uint64_t i = 0; i < headerlines.size(); ++i )
+				{
+					std::map<std::string,std::string> lidmap;
+					
+					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
+					{
+						HeaderLine & line = headerlines[i][j];
+						assert ( line.hasKey("ID") );
+						
+						std::string const origID = line.getValue("ID");
+						std::string ID = origID;
+						
+						while ( gids.find(ID) != gids.end() )
+							ID += '\'';
+						
+						line.M["ID"] = ID;
+						
+						lidmap [ origID ] = ID;
+						gids.insert(ID);
+					}
+
+					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
+					{
+						HeaderLine & line = headerlines[i][j];
+						
+						if ( line.hasKey("PP") )
+							line.M["PP"] = lidmap.find(line.getValue("PP"))->second;
+							
+						line.constructLine();
+						
+						PGlines.push_back(line);
+						PGtextstr << line.line << std::endl;
+					}
+					
+					PGlinesmappingS.push_back(lidmap);
+				}
+
+				std::map < std::string, uint64_t > PGidmap;
+				for ( std::set < std::string >::const_iterator ita = gids.begin();
+					ita != gids.end(); ++ita )
+				{
+					PGidmap [ *ita ] = PGids.size();
+					PGids.push_back(*ita);
+				}
+
+				for ( uint64_t i = 0; i < PGlinesmappingS.size(); ++i )
+				{
+					std::map<std::string,std::string> const & M = PGlinesmappingS[i];
+					std::vector < std::string > ldict;
+					std::vector < uint64_t > ldictmap;
+					
+					for ( std::map<std::string,std::string>::const_iterator ita = M.begin();
+						ita != M.end(); ++ita )
+					{
+						std::string const & from = ita->first;
+						std::string const & to = ita->second;
+						uint64_t const toid = PGidmap.find(to)->second;
+						ldictmap.push_back(toid);
+						ldict.push_back(from);
+					}
+					
+					::libmaus::trie::Trie<char> trienofailure;
+					trienofailure.insertContainer(ldict);
+					::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+						(trienofailure.toLinearHashTrie<uint32_t>());
+						
+					tries[i] = UNIQUE_PTR_MOVE(LHTnofailure);
+						
+					triedictmaps.push_back(ldictmap);
+				}
+				
+				PGtext = PGtextstr.str();
+				
+				#if 0
+				headerlines.resize(0);
+				for ( uint64_t i = 0; i < headers.size(); ++i )
+					headerlines.push_back(HeaderLine::extractProgramLines(*(headers[i])));
+				for ( uint64_t i = 0; i < headerlines.size(); ++i )
+					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
+					{
+						HeaderLine const & H = headerlines[i][j];
+						std::cerr << H.getValue("ID") << "\t" << mapPG(i,H.getValue("ID").c_str()) << std::endl;
+					}
+				#endif
+			}
+		};
 	}
 }
 #endif

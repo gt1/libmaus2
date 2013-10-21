@@ -905,6 +905,14 @@ namespace libmaus
 					std::pair<bool,uint64_t>(state.state == bam_header_read_done,r);
 			}
 			
+			struct HeaderLineSQNameComparator
+			{
+				bool operator()(HeaderLine const & A, HeaderLine const & B)
+				{
+					return A.getValue("SN") < B.getValue("SN");
+				}
+			};
+			
 			void initSetup()
 			{
 				text = rewriteHeader(text,chromosomes);
@@ -941,6 +949,47 @@ namespace libmaus
 						RG[i].LBid = std::lower_bound(libs.begin(),libs.end(),RG[i].M.find("LB")->second) - libs.begin();
 					else
 						RG[i].LBid = numlibs;
+						
+				std::vector<HeaderLine> headerlines = libmaus::bambam::HeaderLine::extractLinesByType(text,"SQ");
+				std::sort(headerlines.begin(),headerlines.end(),HeaderLineSQNameComparator());
+				
+				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
+				{
+					typedef std::vector<HeaderLine>::const_iterator it;
+					HeaderLine ref;
+					ref.type = "SQ";
+					ref.M["SN"] = chromosomes[i].name;
+					std::pair<it,it> const p = std::equal_range(headerlines.begin(),headerlines.end(),ref,HeaderLineSQNameComparator());
+					if ( p.first != p.second )
+					{
+						HeaderLine const & line = *(p.first);
+						for ( std::map<std::string,std::string>::const_iterator ita = line.M.begin();
+							ita != line.M.end(); ++ita )
+						{
+							std::pair<std::string,std::string> const pp = *ita;
+							
+							if ( pp.first == "SN" )
+								assert ( pp.second == chromosomes[i].name );
+							else if ( pp.first == "LN" )
+							{
+								std::istringstream istr(pp.second);
+								uint64_t len;
+								istr >> len;
+								if ( chromosomes[i].len != len )
+								{
+									libmaus::exception::LibMausException se;
+									se.getStream() << "BAM header is not consistent (binary and text do not match) for " << line.line << std::endl;
+									se.finish();
+									throw se;
+								}
+							}
+							else
+							{
+								chromosomes[i].M[pp.first] = pp.second;
+							}
+						}
+					}
+				}
 			}
 
 			/**

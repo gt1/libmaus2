@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP
 
 #include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/bambam/StrCmpNum.hpp>
 
 namespace libmaus
 {
@@ -30,12 +31,10 @@ namespace libmaus
 		 * name = c_0 n_0 c_1 n_1 ... . The string parts are compared lexicographically. The number parts
 		 * are decoded as numbers and compared numerically. For equivalent names read 1 is smaller than read 2.
 		 **/
-		struct BamAlignmentNameComparator
+		struct BamAlignmentNameComparator : public StrCmpNum
 		{
 			//! data pointer
 			uint8_t const * data;
-			//! digit table (digit_table[i] == true iff isdigit(i)==true)
-			static uint8_t const digit_table[256];
 			
 			/**
 			 * constructor from data pointer
@@ -48,75 +47,6 @@ namespace libmaus
 			
 			}
 			
-			/**
-			 * compare strings a and b as described in class description
-			 *
-			 * @param a first string
-			 * @param b second string
-			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
-			 **/
-			static int strcmpnum(uint8_t const * a, uint8_t const * b)
-			{
-				while ( *a && *b )
-				{
-					uint8_t const ca = *a;
-					uint8_t const cb = *b;
-			
-					if ( digit_table[ca] && digit_table[cb] )
-					{
-						uint64_t na = ca - '0';
-						uint64_t nb = cb - '0';
-						
-						while ( (*(++a)) && digit_table[*a] )
-						{
-							na *= 10;
-							na += *a - '0';
-						}
-						while ( (*(++b)) && digit_table[*b] )
-						{
-							nb *= 10;
-							nb += *b - '0';
-						}
-						
-						if ( na != nb )
-						{
-							if ( na < nb )
-								return -1;
-							else
-								return 1;
-						}
-					}
-					else if ( ca != cb )
-					{
-						if ( ca < cb )
-							return -1;
-						else
-							return 1;
-					}
-					else
-					{
-						++a;
-						++b;
-					}
-				}
-				
-				return 0;	
-			}
-			
-			/**
-			 * compare strings a and b as described in class description
-			 *
-			 * @param a first string
-			 * @param b second string
-			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
-			 **/
-			static int strcmpnum(char const * a, char const * b)
-			{
-				return strcmpnum(
-					reinterpret_cast<uint8_t const *>(a),
-					reinterpret_cast<uint8_t const *>(b)
-				);	
-			}
 			
 			/**
 			 * compare alignment blocks da and db by name as described in class description. if names are equal then

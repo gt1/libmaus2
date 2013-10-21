@@ -1014,6 +1014,15 @@ namespace libmaus
 			}
 
 			/**
+			 * @param tag aux field tag
+			 * @return contents of the aux field (null pointer if not present)
+			 **/
+			char const * getAuxString(char const * tagname) const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,tagname);
+			}
+
+			/**
 			 * @param bamheader BAM header object
 			 * @return read group id or -1 if not defined
 			 **/
