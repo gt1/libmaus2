@@ -53,7 +53,7 @@ namespace libmaus
 				{
 					if ( expect_false(! decoder) )
 					{
-						if ( ++fileid == filenames.size() )
+						if ( static_cast<uint64_t>(++fileid) == filenames.size() )
 						{
 							return false;
 						}
