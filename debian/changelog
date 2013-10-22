@@ -1,3 +1,9 @@
+libmaus (0.0.77-0) unstable; urgency=low
+
+  * add BAM merging code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 22 Oct 2013 13:43:23 +0100
+
 libmaus (0.0.76-0) unstable; urgency=low
 
   * add FSM based BAM header parsing 
