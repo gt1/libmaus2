@@ -16,50 +16,36 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMMERGECOORDINATE_HPP)
-#define LIBMAUS_BAMBAM_BAMMERGECOORDINATE_HPP
+#if ! defined(LIBMAUS_BAMBAM_BAMMERGEQUERYNAME_HPP)
+#define LIBMAUS_BAMBAM_BAMMERGEQUERYNAME_HPP
 
 #include <libmaus/bambam/BamCatHeader.hpp>
 #include <libmaus/bambam/BamMergeTemplate.hpp>
+#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{
-		struct BamMergeCoordinateHeapComparator
+		struct BamMergeQueyNameHeapComparator
 		{
 			libmaus::bambam::BamAlignment ** algns;
 			
-			BamMergeCoordinateHeapComparator(libmaus::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
+			BamMergeQueyNameHeapComparator(libmaus::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
 		
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
-				libmaus::bambam::BamAlignment const * A = algns[a];
-				libmaus::bambam::BamAlignment const * B = algns[b];
-			
-				uint32_t const refida = A->getRefID();
-				uint32_t const refidb = B->getRefID();
-				
-				if ( refida != refidb )
-					return refida > refidb;
-				
-				uint32_t const posa = A->getPos();
-				uint32_t const posb = B->getPos();
-				
-				if ( posa != posb )
-					return posa > posb;
-					
-				return a > b;
+				return libmaus::bambam::BamAlignmentNameComparator::compareInt(*algns[a],*algns[b]) > 0;
 			}
 		};
 
-		typedef BamMergeTemplate<BamMergeCoordinateHeapComparator,BamCatHeader::IsCoordinateSorted> BamMergeCoordinate;
-		
-		struct BamMergeCoordinateWrapper
+		typedef BamMergeTemplate<BamMergeQueyNameHeapComparator,BamCatHeader::IsQueryNameSorted> BamMergeQueryName;
+
+		struct BamMergeQueryNameWrapper
 		{
-			BamMergeCoordinate object;
+			BamMergeQueryName object;
 			
-			BamMergeCoordinateWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
+			BamMergeQueryNameWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(filenames,putrank) {}
 		};
 	}

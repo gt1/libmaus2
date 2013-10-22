@@ -22,6 +22,8 @@
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/BamRangeDecoder.hpp>
 #include <libmaus/bambam/ScramDecoder.hpp>
+#include <libmaus/bambam/BamMergeCoordinate.hpp>
+#include <libmaus/bambam/BamMergeQueryName.hpp>
 #include <libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp>
 #include <libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <libmaus/hashing/CircularHash.hpp>
@@ -754,6 +756,80 @@ namespace libmaus
 				uint64_t const sortbufsize = 128ull*1024ull*1024ull
 			) : BamDecoderWrapper(in,copyout,rputrank), 
 			    CircularHashCollatingBamDecoder(BamDecoderWrapper::bamdec,rtmpfilename,rexcludeflags,hlog,sortbufsize)
+			{
+			
+			}
+		};
+
+		/**
+		 * circular hash based BAM collation class based on merging by coordinate input
+		 **/
+		struct BamMergeCoordinateCircularHashCollatingBamDecoder :
+			public BamMergeCoordinateWrapper, public CircularHashCollatingBamDecoder
+		{
+			//! this type
+			typedef BamMergeCoordinateCircularHashCollatingBamDecoder this_type;
+			//! unique pointer type
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			/**
+			 * constructor from input stream
+			 *
+			 * @param in input stream
+			 * @param rtmpfilename temporary file name
+			 * @param rexcludeflags ignore alignments matching any of these flags
+			 * @param rputrank put rank (line number) on alignments at input time
+			 * @param hlog log_2 of hash table size used for collation
+			 * @param sortbufsize overflow sort buffer size in bytes
+			 **/
+			BamMergeCoordinateCircularHashCollatingBamDecoder(
+				std::vector<std::string> const & filenames,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags = 0,
+				bool const rputrank = false,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			) : BamMergeCoordinateWrapper(filenames,rputrank), 
+			    CircularHashCollatingBamDecoder(BamMergeCoordinateWrapper::object,rtmpfilename,rexcludeflags,hlog,sortbufsize)
+			{
+			
+			}
+		};
+
+		/**
+		 * circular hash based BAM collation class based on queryname based merging
+		 **/
+		struct BamMergeQueryNameCircularHashCollatingBamDecoder :
+			public BamMergeQueryNameWrapper, public CircularHashCollatingBamDecoder
+		{
+			//! this type
+			typedef BamMergeQueryNameCircularHashCollatingBamDecoder this_type;
+			//! unique pointer type
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			//! shared pointer type
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			/**
+			 * constructor from input stream
+			 *
+			 * @param in input stream
+			 * @param rtmpfilename temporary file name
+			 * @param rexcludeflags ignore alignments matching any of these flags
+			 * @param rputrank put rank (line number) on alignments at input time
+			 * @param hlog log_2 of hash table size used for collation
+			 * @param sortbufsize overflow sort buffer size in bytes
+			 **/
+			BamMergeQueryNameCircularHashCollatingBamDecoder(
+				std::vector<std::string> const & filenames,
+				std::string const & rtmpfilename,
+				uint32_t const rexcludeflags = 0,
+				bool const rputrank = false,
+				unsigned int const hlog = 18,
+				uint64_t const sortbufsize = 128ull*1024ull*1024ull
+			) : BamMergeQueryNameWrapper(filenames,rputrank), 
+			    CircularHashCollatingBamDecoder(BamMergeQueryNameWrapper::object,rtmpfilename,rexcludeflags,hlog,sortbufsize)
 			{
 			
 			}
