@@ -18,6 +18,31 @@
 */
 #include <libmaus/util/ArgInfo.hpp>
 #include <libmaus/bambam/BamCat.hpp>
+#include <libmaus/bambam/BamWriter.hpp>
+
+#include "config.h"
+
+::libmaus::bambam::BamHeader::unique_ptr_type updateHeader(
+	::libmaus::util::ArgInfo const & arginfo,
+	::libmaus::bambam::BamHeader const & header
+)
+{
+	std::string const headertext(header.text);
+
+	// add PG line to header
+	std::string const upheadtext = ::libmaus::bambam::ProgramHeaderLineSet::addProgramLine(
+		headertext,
+		"testbamcat", // ID
+		"testbamcat", // PN
+		arginfo.commandline, // CL
+		::libmaus::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
+		std::string(PACKAGE_VERSION) // VN			
+	);
+	// construct new header
+	::libmaus::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus::bambam::BamHeader(upheadtext));
+	
+	return UNIQUE_PTR_MOVE(uphead);
+}
 
 int main(int argc, char * argv[])
 {
@@ -26,11 +51,14 @@ int main(int argc, char * argv[])
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 
 		std::vector<std::string> const & inputfilenames = arginfo.restargs;
-		libmaus::bambam::BamCat bamdec(inputfilenames,true);
+		libmaus::bambam::BamCat bamdec(inputfilenames /* ,true */);
 		libmaus::bambam::BamAlignment const & algn = bamdec.getAlignment();
 		libmaus::bambam::BamHeader const & header = bamdec.getHeader();
+		::libmaus::bambam::BamHeader::unique_ptr_type uphead(updateHeader(arginfo,header));
+		libmaus::bambam::BamWriter writer(std::cout,*uphead);
+		libmaus::bambam::BamWriter::stream_type & bamoutstr = writer.getStream();
 		while ( bamdec.readAlignment() )
-			std::cout << algn.formatAlignment(header) << std::endl;		
+			algn.serialise(bamoutstr);
 	}
 	catch(std::exception const & ex)
 	{

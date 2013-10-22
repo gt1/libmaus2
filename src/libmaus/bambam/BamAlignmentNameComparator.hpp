@@ -93,6 +93,19 @@ namespace libmaus
 			}
 
 			/**
+			 * compare alignment blocks da and db by name as described in class description. if names are equal then
+			 * da < db iff da is read 1
+			 *
+			 * @param da first alignment
+			 * @param db second alignment
+			 * @return true iff da < db (alignments referenced by da and db, not pointers)
+			 **/
+			static bool compare(libmaus::bambam::BamAlignment const & A, libmaus::bambam::BamAlignment const & B)
+			{
+				return compare(A.D.begin(),B.D.begin());
+			}
+
+			/**
 			 * compare alignment blocks da and db by name as described in class description. if names are equal then compare by read1 flag (read1 < !read1)
 			 *
 			 * @param da first string
@@ -119,6 +132,19 @@ namespace libmaus
 					return -1;
 				else
 					return 1;
+			}
+
+			/**
+			 * compare alignment blocks da and db by name as described in class description. if names are equal then
+			 * da < db iff da is read 1
+			 *
+			 * @param da first alignment
+			 * @param db second alignment
+			 * @return true iff da < db (alignments referenced by da and db, not pointers)
+			 **/
+			static bool compareInt(libmaus::bambam::BamAlignment const & A, libmaus::bambam::BamAlignment const & B)
+			{
+				return compareInt(A.D.begin(),B.D.begin());
 			}
 
 			/**

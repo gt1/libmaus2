@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMMERGE_HPP)
-#define LIBMAUS_BAMBAM_BAMMERGE_HPP
+#if ! defined(LIBMAUS_BAMBAM_BAMMERGETEMPLATE_HPP)
+#define LIBMAUS_BAMBAM_BAMMERGETEMPLATE_HPP
 
 #include <libmaus/bambam/BamCatHeader.hpp>
 
@@ -28,42 +28,21 @@ namespace libmaus
 		/**
 		 * class for merging BAM input
 		 **/
-		struct BamMerge : public BamAlignmentDecoder
+		template<typename _heap_comparator_type, typename _sort_check_type>
+		struct BamMergeTemplate : public BamAlignmentDecoder
 		{
 			private:
-			struct BamMergeHeapComparator
-			{
-				libmaus::bambam::BamAlignment ** algns;
-				
-				BamMergeHeapComparator(libmaus::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
+			typedef _heap_comparator_type heap_comparator_type;
+			typedef _sort_check_type sort_check_type;
+			typedef BamMergeTemplate<heap_comparator_type,sort_check_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-				bool operator()(uint64_t const a, uint64_t const b) const
-				{
-					libmaus::bambam::BamAlignment const * A = algns[a];
-					libmaus::bambam::BamAlignment const * B = algns[b];
-				
-					uint32_t const refida = A->getRefID();
-					uint32_t const refidb = B->getRefID();
-					
-					if ( refida != refidb )
-						return refida > refidb;
-					
-					uint32_t const posa = A->getPos();
-					uint32_t const posb = B->getPos();
-					
-					if ( posa != posb )
-						return posa > posb;
-						
-					return a > b;
-				}
-			};
-
 			std::vector<std::string> const filenames;
 			libmaus::bambam::BamCatHeader const header;
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamDecoder::unique_ptr_type> decoders;
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignment *> algns;
-			BamMergeHeapComparator comp;
-			std::priority_queue < uint64_t, std::vector< uint64_t >, BamMergeHeapComparator > Q;
+			heap_comparator_type comp;
+			std::priority_queue < uint64_t, std::vector< uint64_t >, heap_comparator_type > Q;
 			
 			void tryLoad(uint64_t const id)
 			{
@@ -75,9 +54,25 @@ namespace libmaus
 			}
 			
 			public:
-			BamMerge(std::vector<std::string> const & rfilenames, bool const putrank = false) 
+			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false) 
 			: BamAlignmentDecoder(putrank), filenames(rfilenames), header(filenames), decoders(filenames.size()), algns(filenames.size()), comp(algns.begin()), Q(comp)
 			{
+				if ( ! sort_check_type::issorted(header) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BamMergeTemplate::BamMergeTemplate(): cannot merge, not all files are marked as sorted." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				if ( ! sort_check_type::istopological(header) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BamMergeTemplate::BamMergeTemplate(): cannot merge, order of reference sequences is inconsistent between files (no topological sorting of order graph possible)." << std::endl;
+					se.finish();
+					throw se;				
+				}
+			
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					libmaus::bambam::BamDecoder::unique_ptr_type tdecoder(new libmaus::bambam::BamDecoder(filenames[i]));

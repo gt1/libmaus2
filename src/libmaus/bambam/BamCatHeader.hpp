@@ -40,8 +40,37 @@ namespace libmaus
 			libmaus::bambam::ProgramHeaderLinesMerge::unique_ptr_type programHeaderLinesMergeInfo;
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type> inputbamheaders;
 			libmaus::bambam::BamHeader::unique_ptr_type bamheader;
+			bool orderedCoordinates;
+			bool orderedNames;
+			
+			struct IsCoordinateSorted
+			{
+				static bool issorted(BamCatHeader const & header)
+				{
+					return header.orderedCoordinates;
+				}
+				
+				static bool istopological(BamCatHeader const & header)
+				{
+					return header.chromosomeMergeInfo->topological;
+				}
+			};
+
+			struct IsQueryNameSorted
+			{
+				static bool issorted(BamCatHeader const & header)
+				{
+					return header.orderedNames;
+				}
+
+				static bool istopological(BamCatHeader const & header)
+				{
+					return true;
+				}
+			};
 
 			BamCatHeader(std::vector<std::string> const & filenames)
+			: orderedCoordinates(true), orderedNames(true)
 			{
 				rgfilter.set("RG");
 				pgfilter.set("PG");
@@ -62,6 +91,11 @@ namespace libmaus
 					
 					libmaus::bambam::BamHeader::unique_ptr_type tinputbamheader(decs[i]->getHeader().uclone());
 					inputbamheaders[i] = UNIQUE_PTR_MOVE(tinputbamheader);			
+
+					std::string const SO = libmaus::bambam::BamHeader::getSortOrderStatic(decs[i]->getHeader().text);	
+					
+					orderedCoordinates = orderedCoordinates && (SO == "coordinate");
+					orderedNames = orderedNames && (SO == "queryname");
 				}
 
 				libmaus::bambam::ChromosomeVectorMerge::unique_ptr_type tchromosomeMergeInfo(new libmaus::bambam::ChromosomeVectorMerge(V));
