@@ -350,7 +350,7 @@ namespace libmaus
 				uint64_t const len = strlen(from);
 				int64_t const id = tries[srcfileid]->searchCompleteNoFailure(from,from+len);
 				
-				if ( id >= 0 && id < PGids.size() )
+				if ( id >= 0 && id < static_cast<int64_t>(PGids.size()) )
 					return PGids[triedictmaps[srcfileid][id]];
 				else
 				{

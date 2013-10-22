@@ -63,7 +63,7 @@ namespace libmaus
 					return header.orderedNames;
 				}
 
-				static bool istopological(BamCatHeader const & header)
+				static bool istopological(BamCatHeader const &)
 				{
 					return true;
 				}
