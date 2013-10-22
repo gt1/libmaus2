@@ -116,6 +116,7 @@ void libmaus::util::ArgInfo::init(std::vector<std::string> const args)
 	{
 		std::pair<std::string,std::string> valpair = ::libmaus::util::stringFunctions::tokenizePair<std::string>(args[i],std::string("="));
 		argmap[valpair.first] = valpair.second;
+		argmultimap.insert(std::pair<std::string,std::string>(valpair.first,valpair.second));
 	}
 	
 	for ( ; i < args.size(); ++i )

@@ -59,6 +59,8 @@ namespace libmaus
 			std::string progname;
 			//! argument map from key=value pairs
 			std::map < std::string, std::string > argmap;
+			//! argument multimap from key=value pairs
+			std::multimap < std::string, std::string > argmultimap;
 			//! rest of arguments behind key=value pairs
 			std::vector < std::string > restargs;
 			
@@ -342,6 +344,54 @@ namespace libmaus
 			 * @return i'th post key=value argument as string
 			 **/
 			std::string stringRestArg(uint64_t const i) const;
+			
+			/**
+			 * get number of key=value pairs for key
+			 *
+			 * @param key
+			 * @return number of key=value pairs
+			 **/
+			uint64_t getPairCount(std::string const & key) const
+			{
+				std::pair <
+					std::multimap < std::string, std::string >::const_iterator,
+					std::multimap < std::string, std::string >::const_iterator
+				> P = argmultimap.equal_range(key);
+				
+				uint64_t cnt = 0;
+				while ( P.first != P.second )
+				{
+					++cnt;
+					++P.first;
+				}
+				
+				return cnt;
+			}
+			
+			/**
+			 * get values for key=value pairs
+			 *
+			 * @param key
+			 * @return vector of values
+			 **/
+			std::vector<std::string> getPairValues(std::string const & key) const
+			{
+				std::pair <
+					std::multimap < std::string, std::string >::const_iterator,
+					std::multimap < std::string, std::string >::const_iterator
+				> P = argmultimap.equal_range(key);
+				
+				std::vector<std::string> V;
+				
+				while ( P.first != P.second )
+				{
+					V.push_back(P.first->second);
+					P.first++;
+				}
+				
+				return V;
+			
+			}
 		};
 		
 		/**
