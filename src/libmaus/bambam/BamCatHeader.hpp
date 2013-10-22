@@ -169,12 +169,18 @@ namespace libmaus
 					algn.putNextRefId(chromosomeMergeInfo->chromosomesmap[fileid][algn.getNextRefID()]);
 				
 				// replace read group if any
-				int64_t const rgid = inputbamheaders[fileid]->getReadGroupId(algn.getReadGroup());
+				char const * oldRG = algn.getReadGroup();
+				int64_t const rgid = inputbamheaders[fileid]->getReadGroupId(oldRG);
 				if ( rgid >= 0 )
 				{
-					std::string const newID = bamheader->RG[readGroupMergeInfo->readgroupsmapping[fileid][rgid]].ID;
-					algn.filterOutAux(rgfilter);
-					algn.putAuxString("RG",newID);
+					std::string const & newID = bamheader->RG[readGroupMergeInfo->readgroupsmapping[fileid][rgid]].ID;
+					
+					// replace if there is a change
+					if ( strcmp(oldRG,newID.c_str()) )
+					{
+						algn.filterOutAux(rgfilter);
+						algn.putAuxString("RG",newID);
+					}
 				}
 				
 				// map PG aux field if present
@@ -182,8 +188,13 @@ namespace libmaus
 				if ( pg )
 				{
 					std::string const & newPG = programHeaderLinesMergeInfo->mapPG(fileid, pg);
-					algn.filterOutAux(pgfilter);
-					algn.putAuxString("PG",newPG);
+					
+					// replace if there is a change
+					if ( strcmp(pg,newPG.c_str()) )
+					{
+						algn.filterOutAux(pgfilter);
+						algn.putAuxString("PG",newPG);
+					}
 				}
 			}
 		};
