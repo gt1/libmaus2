@@ -1129,6 +1129,42 @@ namespace libmaus
 			 * @return const reference to i'th element
 			 **/
 			N const & get(uint64_t i) const { return array[i]; }
+			/**
+			 * retrieve reference to i'th element with range checking.
+			 * the methods throws an exception if i is out of range
+			 * @param i
+			 * @return reference to i'th element
+			 **/
+			N       & at(uint64_t i)       
+			{
+				if ( i < size() )
+					return array[i]; 
+				else
+				{
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "AutoArray<"<<getTypeName()<<">::at(" << i << "): index is out of bounds for array of size " << size() << std::endl;
+					ex.finish();
+					throw ex;
+				}
+			}
+			/**
+			 * retrieve reference to i'th element with range checking.
+			 * the methods throws an exception if i is out of range
+			 * @param i
+			 * @return reference to i'th element
+			 **/
+			N const & at(uint64_t i) const
+			{
+				if ( i < size() )
+					return array[i]; 
+				else
+				{
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "AutoArray<"<<getTypeName()<<">::at(" << i << "): index is out of bounds for array of size " << size() << std::endl;
+					ex.finish();
+					throw ex;
+				}
+			}
 		
 			/**
 			 * assignment. retrieves array from o and invalidates o
