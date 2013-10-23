@@ -32,11 +32,48 @@ namespace libmaus
 	{
 		struct BwtMergeTempFileNameSet
 		{
+			private:
+			static std::string constructFileName(
+				std::string const & tmpfilenamebase,
+				uint64_t const id,
+				std::string const & suffix
+			)
+			{
+				std::ostringstream hwtnamestr;			
+				hwtnamestr << tmpfilenamebase << "_" << std::setw(4) << std::setfill('0') << id << std::setw(0) << suffix;
+				std::string const hwtname = hwtnamestr.str();
+				::libmaus::util::TempFileRemovalContainer::addTempFile(hwtname);
+
+				return hwtname;
+			}
+
 			std::string gt;
 			std::string bwt;
 			std::string hwt;
 			std::string hist;
 			std::string sampledisa;
+			
+			public:
+			std::string const & getGT() const { return gt; }
+			std::string const & getBWT() const { return bwt; }
+			std::string const & getHWT() const { return hwt; }
+			std::string const & getHist() const { return hist; }
+			std::string const & getSampledISA() const { return sampledisa; }
+			
+			void setGT(std::string const & rgt) { gt = rgt; }
+			void setBWT(std::string const & rbwt) { bwt = rbwt; }
+			void setHWT(std::string const & rhwt) { hwt = rhwt; }
+			void setHist(std::string const & rhist) { hist = rhist; }
+			void setSampledISA(std::string const & rsampledisa) { sampledisa = rsampledisa; }
+			
+			void setPrefix(std::string const & prefix)
+			{
+				setGT(prefix+".gt");
+				setBWT(prefix+".bwt");
+				setHWT(prefix+".hwt");
+				setHist(prefix+".hist");
+				setSampledISA(prefix+".sampledisa");
+			}
 			
 			void removeFilesButBwt() const
 			{
@@ -52,31 +89,11 @@ namespace libmaus
 
 			void removeFiles() const
 			{
-				if ( gt.size() )
-					remove ( gt.c_str() );
+				removeFilesButBwt();
 				if ( bwt.size() )
 					remove ( bwt.c_str() );
-				if ( hwt.size() )
-					remove ( hwt.c_str() );
-				if ( hist.size() )
-					remove ( hist.c_str() );
-				if ( sampledisa.size() )
-					remove ( sampledisa.c_str() );
 			}
 
-			static std::string constructFileName(
-				std::string const & tmpfilenamebase,
-				uint64_t const id,
-				std::string const & suffix
-			)
-			{
-				std::ostringstream hwtnamestr;			
-				hwtnamestr << tmpfilenamebase << "_" << std::setw(4) << std::setfill('0') << id << std::setw(0) << suffix;
-				std::string const hwtname = hwtnamestr.str();
-				::libmaus::util::TempFileRemovalContainer::addTempFile(hwtname);
-
-				return hwtname;
-			}
 			
 			BwtMergeTempFileNameSet()
 			{}
