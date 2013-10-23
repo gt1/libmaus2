@@ -27,8 +27,10 @@ namespace libmaus
 	{
 		struct BwtMergeZBlockRequestVector
 		{
+			private:
 			std::vector < ::libmaus::suffixsort::BwtMergeZBlockRequest > requests;
 			
+			public:
 			BwtMergeZBlockRequestVector()
 			{
 			
