@@ -54,6 +54,11 @@ namespace libmaus
 				{
 					return header.chromosomeMergeInfo->topological;
 				}
+				
+				static char const * getSortOrder()
+				{
+					return "coordinate";
+				}
 			};
 
 			struct IsQueryNameSorted
@@ -66,6 +71,11 @@ namespace libmaus
 				static bool istopological(BamCatHeader const &)
 				{
 					return true;
+				}
+
+				static char const * getSortOrder()
+				{
+					return "queryname";
 				}
 			};
 

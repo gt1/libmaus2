@@ -38,7 +38,7 @@ namespace libmaus
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			std::vector<std::string> const filenames;
-			libmaus::bambam::BamCatHeader const header;
+			libmaus::bambam::BamCatHeader header;
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamDecoder::unique_ptr_type> decoders;
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignment *> algns;
 			heap_comparator_type comp;
@@ -72,6 +72,8 @@ namespace libmaus
 					se.finish();
 					throw se;				
 				}
+				
+				header.bamheader->changeSortOrder(sort_check_type::getSortOrder());
 			
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
