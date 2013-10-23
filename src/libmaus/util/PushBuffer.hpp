@@ -36,6 +36,18 @@ namespace libmaus
 			
 			PushBuffer() : A(), f(0) {}
 			
+			value_type const & operator[](uint64_t const i) const
+			{
+				return A[i];
+			}
+
+			value_type const & at(uint64_t const i) const
+			{
+				if ( i >= f )
+					throw std::out_of_range("index out of range in PushBuffer<>::at()");
+				return A[i];
+			}
+			
 			void push(value_type const & o)
 			{
 				if ( f == A.size() )
