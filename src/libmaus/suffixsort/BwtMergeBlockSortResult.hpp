@@ -28,6 +28,7 @@ namespace libmaus
 	{
 		struct BwtMergeBlockSortResult
 		{
+			private:
 			uint64_t blockp0rank;
 			std::vector < ::libmaus::suffixsort::BwtMergeZBlock > zblocks;
 			
@@ -36,11 +37,27 @@ namespace libmaus
 			
 			::libmaus::suffixsort::BwtMergeTempFileNameSet files;
 
+			public:
 			BwtMergeBlockSortResult()
 			: blockp0rank(0), zblocks(), blockstart(0), cblocksize(0), files()
 			{
 			
 			}
+			
+			uint64_t getBlockP0Rank() const { return blockp0rank; }
+			uint64_t getBlockStart() const { return blockstart; }
+			uint64_t getCBlockSize() const { return cblocksize; }
+			void setBlockP0Rank(uint64_t const rblockp0rank) { blockp0rank = rblockp0rank; }
+			void setBlockStart(uint64_t const rblockstart) { blockstart = rblockstart; }
+			void setCBlockSize(uint64_t const rcblocksize) { cblocksize = rcblocksize; }
+			::libmaus::suffixsort::BwtMergeTempFileNameSet const & getFiles() const { return files; }
+			void removeFiles() const { files.removeFiles(); }
+			void removeFilesButBwt() const { files.removeFilesButBwt(); }
+			void setTempPrefixAndRegisterAsTemp(std::string const & prefix) { files.setPrefixAndRegisterAsTemp(prefix); }
+			std::vector < ::libmaus::suffixsort::BwtMergeZBlock > const & getZBlocks() const { return zblocks; }
+			void resizeZBlocks(uint64_t const n) { zblocks.resize(n); }
+			void setZBlock(uint64_t const i, ::libmaus::suffixsort::BwtMergeZBlock const & z) { zblocks.at(i) = z; }
+			void setTempFileSet(::libmaus::suffixsort::BwtMergeTempFileNameSet const & rfiles) { files = rfiles; }
 			
 			BwtMergeBlockSortResult(std::istream & stream)
 			{

@@ -27,8 +27,10 @@ namespace libmaus
 	{
 		struct BwtMergeTempFileNameSetVector
 		{
+			private:
 			std::vector < ::libmaus::suffixsort::BwtMergeTempFileNameSet > V;
 			
+			public:
 			BwtMergeTempFileNameSetVector(std::string const & tmpfilenamebase, uint64_t const num)
 			{
 				for ( uint64_t i = 0; i < num; ++i )

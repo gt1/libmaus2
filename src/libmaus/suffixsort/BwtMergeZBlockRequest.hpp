@@ -29,8 +29,10 @@ namespace libmaus
 	{
 		struct BwtMergeZBlockRequest
 		{
+			private:
 			uint64_t zabspos;
 			
+			public:
 			BwtMergeZBlockRequest(uint64_t rzabspos = 0) : zabspos(rzabspos) {}
 			BwtMergeZBlockRequest(std::istream & in) : zabspos(::libmaus::util::NumberSerialisation::deserialiseNumber(in)) {}
 			
@@ -44,6 +46,11 @@ namespace libmaus
 				std::ostringstream ostr;
 				serialise(ostr);
 				return ostr.str();
+			}
+			
+			uint64_t getZAbsPos() const
+			{
+				return zabspos;
 			}
 			
 			operator uint64_t() const

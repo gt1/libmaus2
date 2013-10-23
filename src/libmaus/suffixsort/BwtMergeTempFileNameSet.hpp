@@ -75,6 +75,16 @@ namespace libmaus
 				setSampledISA(prefix+".sampledisa");
 			}
 			
+			void setPrefixAndRegisterAsTemp(std::string const & prefix)
+			{
+				setPrefix(prefix);
+				::libmaus::util::TempFileRemovalContainer::addTempFile(getGT());
+				::libmaus::util::TempFileRemovalContainer::addTempFile(getBWT());
+				::libmaus::util::TempFileRemovalContainer::addTempFile(getHWT());
+				::libmaus::util::TempFileRemovalContainer::addTempFile(getHist());
+				::libmaus::util::TempFileRemovalContainer::addTempFile(getSampledISA());			
+			}
+			
 			void removeFilesButBwt() const
 			{
 				if ( gt.size() )
