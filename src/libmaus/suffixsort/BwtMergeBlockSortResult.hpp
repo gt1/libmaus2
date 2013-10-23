@@ -42,40 +42,6 @@ namespace libmaus
 			
 			}
 			
-			static std::vector < ::libmaus::suffixsort::BwtMergeZBlock > mergeZBlockVectors(std::vector<BwtMergeBlockSortResult> const & V)
-			{
-				std::vector < std::vector< ::libmaus::suffixsort::BwtMergeZBlock >::const_iterator > VIT;
-				bool running = V.size() != 0;
-				for ( uint64_t i = 0; i < V.size(); ++i )
-				{
-					VIT.push_back(V[i].zblocks.begin());
-					running = running && (VIT.back() != V[i].zblocks.end() );
-				}
-					
-				std::vector < ::libmaus::suffixsort::BwtMergeZBlock > R;
-				
-				while ( running )
-				{
-					uint64_t acc = 0;
-					for ( uint64_t i = 0; i < VIT.size(); ++i )
-					{
-						assert ( VIT[i] != V[i].zblocks.end() );
-						assert ( VIT[i]->zabspos == VIT[0]->zabspos );
-						acc += VIT[i]->zrank;
-					}
-					
-					uint64_t const zabspos = VIT[0]->zabspos;
-					
-					R.push_back(::libmaus::suffixsort::BwtMergeZBlock(zabspos,acc));
-
-					for ( uint64_t i = 0; i < VIT.size(); ++i )
-						if ( ++VIT[i] == V[i].zblocks.end() )
-							running = false;
-				}
-						
-				return R;
-			}
-			
 			BwtMergeBlockSortResult(std::istream & stream)
 			{
 				blockp0rank = ::libmaus::util::NumberSerialisation::deserialiseNumber(stream);
