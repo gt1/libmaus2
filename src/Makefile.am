@@ -911,6 +911,7 @@ noinst_PROGRAMS = \
 	testcollatespeed \
 	testbamheaderparser \
 	testbammergecoordinate \
+	testbammergecollate \
 	testbammergequeryname \
 	testbamcat
 
@@ -1153,3 +1154,8 @@ testbammergequeryname_LDADD = libmaus.la
 
 testbamcat_SOURCES = test/testbamcat.cpp
 testbamcat_LDADD = libmaus.la
+
+testbammergecollate_SOURCES = test/testbammergecollate.cpp
+testbammergecollate_LDFLAGS = @SNAPPYLDFLAGS@
+testbammergecollate_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testbammergecollate_CPPFLAGS = @SNAPPYCPPFLAGS@
