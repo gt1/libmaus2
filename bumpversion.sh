@@ -23,5 +23,6 @@ git add configure.in
 git commit
 git push
 
-git tag -a libmaus_${FIRST}_${SECOND}_${NEXTTHIRD} -m "libmaus version ${FIRST}_${SECOND}_${NEXTTHIRD}"
-git push origin libmaus_${FIRST}_${SECOND}_${NEXTTHIRD}
+TAG=libmaus_experimental_${FIRST}_${SECOND}_${NEXTTHIRD}
+git tag -a ${TAG} -m "libmaus experimental version ${FIRST}_${SECOND}_${NEXTTHIRD}"
+git push origin ${TAG}
