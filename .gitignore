@@ -15,6 +15,7 @@ depcomp
 doconfig.sh
 doconfig32.sh
 doconfigstab.sh
+doconfig48.sh
 doconfig49.sh
 install-sh
 lic

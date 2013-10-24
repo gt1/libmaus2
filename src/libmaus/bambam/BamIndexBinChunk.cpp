@@ -18,7 +18,7 @@
 */
 #include <libmaus/bambam/BamIndexBinChunk.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamIndexBinChunk const & BC)
+::std::ostream & ::libmaus::bambam::operator<<(::std::ostream & out, ::libmaus::bambam::BamIndexBinChunk const & BC)
 {
 	out 
 		<< "BamIndexBinChunk("

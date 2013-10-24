@@ -54,8 +54,9 @@ namespace libmaus
 					return pos < o.pos;
 			}
 		};
+		
+		::std::ostream & operator<<(::std::ostream & out, BamIndexLinearChunk const & o);
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamIndexLinearChunk const & o);
 #endif

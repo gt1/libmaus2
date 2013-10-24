@@ -18,7 +18,7 @@
 */
 #include <libmaus/bambam/BamIndexLinearChunk.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamIndexLinearChunk const & o)
+::std::ostream & libmaus::bambam::operator<<(::std::ostream & out, ::libmaus::bambam::BamIndexLinearChunk const & o)
 {
 	out << "BamIndexLinearChunk(refid=" << o.refid << ",pos=" << o.pos << ",alcmpstart=" << o.alcmpstart << ",alstart=" << o.alstart << ")";
 	return out;

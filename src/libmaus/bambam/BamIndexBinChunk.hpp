@@ -72,8 +72,9 @@ namespace libmaus
 				return false;
 			}
 		};
+
+		::std::ostream & operator<<(::std::ostream & out, BamIndexBinChunk const & BC);
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamIndexBinChunk const & BC);
 #endif
