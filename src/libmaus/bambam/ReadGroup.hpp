@@ -186,6 +186,7 @@ namespace libmaus
 					ReadGroup RG = V[M[low].first]->at(M[low].second);
 					while ( idsused.find(RG.ID) != idsused.end() )
 						RG.ID += '\'';
+					idsused.insert(RG.ID);
 					
 					for ( uint64_t i = low; i < high; ++i )
 						readgroupsmapping[M[i].first][M[i].second] = readgroups.size();
