@@ -1,3 +1,9 @@
+libmaus (0.0.78-0) unstable; urgency=low
+
+  * set sort order in BamMergeTemplate class according to input data 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 24 Oct 2013 09:12:09 +0100
+
 libmaus (0.0.77-0) unstable; urgency=low
 
   * add BAM merging code 
