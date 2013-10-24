@@ -32,9 +32,10 @@ namespace libmaus
 			
 			public:
 			BwtMergeTempFileNameSetVector(std::string const & tmpfilenamebase, uint64_t const num)
+			: V(num)
 			{
 				for ( uint64_t i = 0; i < num; ++i )
-					V.push_back(::libmaus::suffixsort::BwtMergeTempFileNameSet(tmpfilenamebase,i));
+					V[i] = ::libmaus::suffixsort::BwtMergeTempFileNameSet(tmpfilenamebase,i);
 			}
 			
 			::libmaus::suffixsort::BwtMergeTempFileNameSet const & operator[](size_t i) const

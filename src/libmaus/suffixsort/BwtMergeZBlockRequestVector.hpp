@@ -28,7 +28,7 @@ namespace libmaus
 		struct BwtMergeZBlockRequestVector
 		{
 			private:
-			std::vector < ::libmaus::suffixsort::BwtMergeZBlockRequest > requests;
+			libmaus::autoarray::AutoArray< ::libmaus::suffixsort::BwtMergeZBlockRequest > requests;
 			
 			public:
 			BwtMergeZBlockRequestVector()
@@ -36,11 +36,23 @@ namespace libmaus
 			
 			}
 			
+			BwtMergeZBlockRequestVector(BwtMergeZBlockRequestVector const & o) : requests(o.requests.clone()) {}
+			
 			BwtMergeZBlockRequestVector(std::istream & in)
 			{
 				uint64_t const siz = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				resize(siz);
 				for ( uint64_t i = 0; i < siz; ++i )
-					push_back ( ::libmaus::suffixsort::BwtMergeZBlockRequest(in) );
+					(*this)[i] = ::libmaus::suffixsort::BwtMergeZBlockRequest(in);
+			}
+			
+			BwtMergeZBlockRequestVector & operator=(BwtMergeZBlockRequestVector const & o)
+			{
+				if ( this != &o )
+				{
+					requests = o.requests.clone();
+				}
+				return *this;
 			}
 			
 			template<typename stream_type>
@@ -58,9 +70,9 @@ namespace libmaus
 				return ostr.str();
 			}
 			
-			void push_back(::libmaus::suffixsort::BwtMergeZBlockRequest const & req)
+			void resize(uint64_t const n)
 			{
-				requests.push_back(req);
+				requests.resize(n);
 			}
 			
 			uint64_t size() const
