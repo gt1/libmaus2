@@ -27,6 +27,47 @@ namespace libmaus
 {
 	namespace lz
 	{
+		struct BgzfDeflateZStreamBaseFlushInfo
+		{
+			unsigned int blocks;
+
+			uint32_t block_a_u;
+			uint32_t block_a_c;
+			
+			uint32_t block_b_u;
+			uint32_t block_b_c;
+			
+			BgzfDeflateZStreamBaseFlushInfo() : blocks(0), block_a_u(0), block_a_c(0), block_b_u(0), block_b_c(0) {}
+			BgzfDeflateZStreamBaseFlushInfo(BgzfDeflateZStreamBaseFlushInfo const & o)
+			: blocks(o.blocks), block_a_u(o.block_a_u), block_a_c(o.block_a_c), block_b_u(o.block_b_u), block_b_c(o.block_b_c)  {}
+			
+			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c) 
+			: blocks(1), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(0), block_b_c(0) {}
+
+			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c, uint32_t const r_block_b_u, uint32_t const r_block_b_c) 
+			: blocks(2), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(r_block_b_u), block_b_c(r_block_b_c) {}
+			
+			BgzfDeflateZStreamBaseFlushInfo & operator=(BgzfDeflateZStreamBaseFlushInfo const & o)
+			{
+				blocks = o.blocks;
+				block_a_u = o.block_a_u;
+				block_a_c = o.block_a_c;
+				block_b_u = o.block_b_u;
+				block_b_c = o.block_b_c;
+				return *this;
+			}
+			
+			uint64_t getCompressedSize() const
+			{
+				if ( blocks == 0 )
+					return 0;
+				else if ( blocks == 1 )
+					return block_a_c;
+				else
+					return block_a_c + block_b_c;
+			}
+		};
+	
 		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
 		{
 			z_stream strm;
@@ -79,13 +120,19 @@ namespace libmaus
 
 			uint64_t compressBlock(uint8_t * pa, uint64_t const len, uint8_t * outbuf)
 			{
+				// reset zlib object
 				resetz();
 				
+				// maximum number of output bytes
 				strm.avail_out = getBgzfMaxPayLoad();
+				// next compressed output byte
 				strm.next_out  = reinterpret_cast<Bytef *>(outbuf) + getBgzfHeaderSize();
+				// number of bytes to be compressed
 				strm.avail_in  = len;
+				// data to be compressed
 				strm.next_in   = reinterpret_cast<Bytef *>(pa);
 				
+				// call deflate
 				if ( deflate(&strm,Z_FINISH) != Z_STREAM_END )
 				{
 					libmaus::exception::LibMausException se;
@@ -97,12 +144,14 @@ namespace libmaus
 				return getBgzfMaxPayLoad() - strm.avail_out;
 			}
 
-			uint64_t flushBound(
+			//uint64_t 
+			BgzfDeflateZStreamBaseFlushInfo flushBound(
 				BgzfDeflateInputBufferBase & in, 
 				BgzfDeflateOutputBufferBase & out, 
-				bool const fullflush
+				bool const fullflush 
 			)
 			{
+				// full flush, compress block in two halves
 				if ( fullflush )
 				{
 					uint64_t const toflush = in.pc-in.pa;
@@ -123,8 +172,15 @@ namespace libmaus
 					in.pc = in.pa;
 
 					/* return number of bytes in output buffer */
-					return 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1;
-				}				
+					// return 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1;
+					return
+						BgzfDeflateZStreamBaseFlushInfo(
+							flush0,
+							getBgzfHeaderSize()+getBgzfFooterSize()+payload0,
+							flush1,
+							getBgzfHeaderSize()+getBgzfFooterSize()+payload1
+						);
+				}
 				else
 				{
 					unsigned int const toflush = std::min(static_cast<unsigned int>(in.pc-in.pa),deflbound);
@@ -146,11 +202,13 @@ namespace libmaus
 					in.pc = in.pa + unflushed;
 
 					/* number number of bytes in output buffer */
-					return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
+					// return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
+					return BgzfDeflateZStreamBaseFlushInfo(toflush,getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize);
 				}
 			}
 
-			uint64_t flush(
+			//uint64_t 
+			BgzfDeflateZStreamBaseFlushInfo flush(
 				BgzfDeflateInputBufferBase & in, 
 				BgzfDeflateOutputBufferBase & out, 
 				bool const fullflush
@@ -158,12 +216,14 @@ namespace libmaus
 			{
 				try
 				{
-					uint64_t const payloadsize = compressBlock(in.pa,in.pc-in.pa,out.outbuf.begin());
-					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,in.pc-in.pa);
+					uint64_t const uncompressedsize = in.pc-in.pa;
+					uint64_t const payloadsize = compressBlock(in.pa,uncompressedsize,out.outbuf.begin());
+					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,uncompressedsize);
 
 					in.pc = in.pa;
 
-					return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
+					return BgzfDeflateZStreamBaseFlushInfo(uncompressedsize,getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize);
+					// return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
 				}
 				catch(...)
 				{

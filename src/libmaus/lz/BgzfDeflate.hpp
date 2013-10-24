@@ -57,7 +57,8 @@ namespace libmaus
 
 			uint64_t flush()
 			{
-				uint64_t const outbytes = base_type::flush(flushmode);
+				BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = base_type::flush(flushmode);
+				uint64_t const outbytes = BDZSBFI.getCompressedSize();
 				/* write data to stream */
 				streamWrite(outbuf.begin(),outbytes);
 				/* return number of compressed bytes written */

@@ -59,7 +59,7 @@ namespace libmaus
 			{
 			}
 
-			uint64_t flush(bool const fullflush)
+			BgzfDeflateZStreamBaseFlushInfo flush(bool const fullflush)
 			{
 				uncompsize = (pc-pa);
 				return BgzfDeflateZStreamBase::flush(*this,*this,fullflush);

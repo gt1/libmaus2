@@ -258,7 +258,8 @@ namespace libmaus
 
 					// write default compressed block with size 0 (EOF marker)
 					libmaus::lz::BgzfDeflateBase eofBase;
-					uint64_t const eofflushsize = eofBase.flush(true /* full flush */);
+					BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = eofBase.flush(true /* full flush */);
+					uint64_t const eofflushsize = BDZSBFI.getCompressedSize();
 					deflatecontext.deflateout.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
 					
 					// std::cerr << "Writing " << eofflushsize << " bytes for flush" << std::endl;

@@ -57,7 +57,8 @@ namespace libmaus
 			
 			void putBlock()
 			{
-				uint64_t const writesize = deflatebase.flush(true);
+				BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = deflatebase.flush(true);
+				uint64_t const writesize = BDZSBFI.getCompressedSize();
 				out.write(reinterpret_cast<char const *>(deflatebase.outbuf.begin()), writesize);
 			}
 			
@@ -65,7 +66,8 @@ namespace libmaus
 			{
 				deflatebase.deflatereinit();
 				deflatebase.pc = deflatebase.pa;
-				uint64_t const writesize = deflatebase.flush(true);
+				BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = deflatebase.flush(true);
+				uint64_t const writesize = BDZSBFI.getCompressedSize();
 				out.write(reinterpret_cast<char const *>(deflatebase.outbuf.begin()), writesize);		
 			}
 		};
