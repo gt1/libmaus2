@@ -246,8 +246,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamMergeCoordinate.hpp \
 	libmaus/bambam/BamMergeTemplate.hpp \
 	libmaus/bambam/BamMergeQueryName.hpp \
-	libmaus/bambam/BamIndexBinChunk.cpp \
-	libmaus/bambam/BamIndexLinearChunk.cpp
+	libmaus/bambam/BamIndexBinChunk.hpp \
+	libmaus/bambam/BamIndexLinearChunk.hpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
