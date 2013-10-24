@@ -559,7 +559,8 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/CircularBuffer.hpp \
 	libmaus/aio/CircularWrapper.hpp \
 	libmaus/aio/IStreamWrapper.hpp \
-	libmaus/aio/CheckedInputStreamAtOffset.hpp
+	libmaus/aio/CheckedInputStreamAtOffset.hpp \
+	libmaus/aio/Buffer.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
