@@ -92,7 +92,10 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/DuplicationMetrics.cpp \
 	libmaus/bambam/BamDefaultAdapters.cpp \
 	libmaus/bambam/BamRange.cpp \
-	libmaus/graph/GraphEdge.cpp
+	libmaus/graph/GraphEdge.cpp \
+	libmaus/bambam/BamIndexBinChunk.cpp \
+	libmaus/bambam/BamIndexLinearChunk.cpp
+
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
@@ -242,7 +245,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamCat.hpp \
 	libmaus/bambam/BamMergeCoordinate.hpp \
 	libmaus/bambam/BamMergeTemplate.hpp \
-	libmaus/bambam/BamMergeQueryName.hpp
+	libmaus/bambam/BamMergeQueryName.hpp \
+	libmaus/bambam/BamIndexBinChunk.cpp \
+	libmaus/bambam/BamIndexLinearChunk.cpp
 	     
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
