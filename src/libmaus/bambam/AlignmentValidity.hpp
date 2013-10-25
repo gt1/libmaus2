@@ -49,15 +49,16 @@ namespace libmaus
 			libmaus_bambam_alignment_validity_invalid_auxiliary_data = 17
 		};
 
+
+		/**
+		 * format string descrption of bam validation error code
+		 *
+		 * @param out output stream
+		 * @param v error code
+		 * @return output stream
+		 **/
+		::std::ostream & operator<<(::std::ostream & out, libmaus_bambam_alignment_validity const v);
 	}
 }
 
-/**
- * format string descrption of bam validation error code
- *
- * @param out output stream
- * @param v error code
- * @return output stream
- **/
-::std::ostream & operator<<(std::ostream & out, libmaus::bambam::libmaus_bambam_alignment_validity const v);
 #endif

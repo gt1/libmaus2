@@ -18,7 +18,7 @@
 */
 #include <libmaus/bambam/AlignmentValidity.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::libmaus_bambam_alignment_validity const v)
+::std::ostream & libmaus::bambam::operator<<(::std::ostream & out, libmaus::bambam::libmaus_bambam_alignment_validity const v)
 {
 	switch ( v )
 	{
