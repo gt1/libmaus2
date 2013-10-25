@@ -1,3 +1,9 @@
+libmaus (0.0.79-0) unstable; urgency=low
+
+  * fix BAM read group processing in merging 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 25 Oct 2013 08:49:02 +0100
+
 libmaus (0.0.78-0) unstable; urgency=low
 
   * set sort order in BamMergeTemplate class according to input data 
