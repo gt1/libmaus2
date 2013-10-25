@@ -30,6 +30,10 @@ namespace libmaus
 	{
 		struct BgzfDeflateOutputCallbackMD5 : public ::libmaus::lz::BgzfDeflateOutputCallback
 		{
+			typedef BgzfDeflateOutputCallbackMD5 this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			md5_state_t pms;
 			md5_byte_t digest[16];
 			std::string sdigest;
