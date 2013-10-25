@@ -1,3 +1,10 @@
+libmaus (0.0.82-0) unstable; urgency=low
+
+  * add block output callback in BgzfRecode
+  * add callback passing in BamParallelRewrite
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 26 Oct 2013 00:08:39 +0100
+
 libmaus (0.0.81-0) unstable; urgency=low
 
   * add pointer types for bgzf/BAM callbacks and digest saving 
