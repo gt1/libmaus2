@@ -123,8 +123,12 @@ namespace libmaus
 				deflatebase.pc = deflatebase.pa;
 				BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = deflatebase.flush(true);
 				assert ( ! BDZSBFI.movesize );
+				#if 0
 				uint64_t const writesize = BDZSBFI.getCompressedSize();
-				out.write(reinterpret_cast<char const *>(deflatebase.outbuf.begin()), writesize);		
+				out.write(reinterpret_cast<char const *>(deflatebase.outbuf.begin()), writesize);
+				#endif
+				
+				streamWrite(deflatebase.inbuf.begin(),deflatebase.outbuf.begin(),BDZSBFI);
 			}
 		};
 	}
