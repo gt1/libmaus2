@@ -36,16 +36,24 @@ namespace libmaus
 			
 			uint32_t block_b_u;
 			uint32_t block_b_c;
+
+			uint8_t * moveto;			
+			uint8_t * movefrom;
+			uint64_t movesize;
 			
-			BgzfDeflateZStreamBaseFlushInfo() : blocks(0), block_a_u(0), block_a_c(0), block_b_u(0), block_b_c(0) {}
+			BgzfDeflateZStreamBaseFlushInfo() 
+			: blocks(0), block_a_u(0), block_a_c(0), block_b_u(0), block_b_c(0), moveto(0), movefrom(0), movesize(0) {}
 			BgzfDeflateZStreamBaseFlushInfo(BgzfDeflateZStreamBaseFlushInfo const & o)
-			: blocks(o.blocks), block_a_u(o.block_a_u), block_a_c(o.block_a_c), block_b_u(o.block_b_u), block_b_c(o.block_b_c)  {}
+			: blocks(o.blocks), block_a_u(o.block_a_u), block_a_c(o.block_a_c), block_b_u(o.block_b_u), block_b_c(o.block_b_c), moveto(o.moveto), movefrom(o.movefrom), movesize(o.movesize)  {}
 			
 			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c) 
-			: blocks(1), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(0), block_b_c(0) {}
+			: blocks(1), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(0), block_b_c(0), moveto(0), movefrom(0), movesize(0) {}
+
+			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c, uint8_t * rmoveto, uint8_t * rmovefrom, uint64_t rmovesize) 
+			: blocks(1), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(0), block_b_c(0), moveto(rmoveto), movefrom(rmovefrom), movesize(rmovesize) {}
 
 			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c, uint32_t const r_block_b_u, uint32_t const r_block_b_c) 
-			: blocks(2), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(r_block_b_u), block_b_c(r_block_b_c) {}
+			: blocks(2), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(r_block_b_u), block_b_c(r_block_b_c), moveto(0), movefrom(0), movesize(0) {}
 			
 			BgzfDeflateZStreamBaseFlushInfo & operator=(BgzfDeflateZStreamBaseFlushInfo const & o)
 			{
@@ -54,6 +62,9 @@ namespace libmaus
 				block_a_c = o.block_a_c;
 				block_b_u = o.block_b_u;
 				block_b_c = o.block_b_c;
+				moveto = o.moveto;
+				movefrom = o.movefrom;
+				movesize = o.movesize;
 				return *this;
 			}
 			
@@ -65,6 +76,14 @@ namespace libmaus
 					return block_a_c;
 				else
 					return block_a_c + block_b_c;
+			}
+			
+			uint8_t * moveUncompressedRest()
+			{
+				if ( movesize )
+					::std::memmove(moveto,movefrom,movesize);
+					
+				return moveto + movesize;
 			}
 		};
 	
@@ -118,6 +137,8 @@ namespace libmaus
 				deflatedestroy();
 			}
 
+			// compress block of length len from input pa to output outbuf
+			// returns the number of compressed bytes produced
 			uint64_t compressBlock(uint8_t * pa, uint64_t const len, uint8_t * outbuf)
 			{
 				// reset zlib object
@@ -144,7 +165,6 @@ namespace libmaus
 				return getBgzfMaxPayLoad() - strm.avail_out;
 			}
 
-			//uint64_t 
 			BgzfDeflateZStreamBaseFlushInfo flushBound(
 				BgzfDeflateInputBufferBase & in, 
 				BgzfDeflateOutputBufferBase & out, 
@@ -171,8 +191,6 @@ namespace libmaus
 										
 					in.pc = in.pa;
 
-					/* return number of bytes in output buffer */
-					// return 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1;
 					return
 						BgzfDeflateZStreamBaseFlushInfo(
 							flush0,
@@ -192,6 +210,7 @@ namespace libmaus
 					uint64_t const payloadsize = compressBlock(in.pa,toflush,out.outbuf.begin());
 					fillHeaderFooter(in.pa,out.outbuf.begin(),payloadsize,toflush);
 					
+					#if 0
 					/*
 					 * copy rest of uncompressed data to front of buffer
 					 */
@@ -200,14 +219,21 @@ namespace libmaus
 
 					// set new output pointer
 					in.pc = in.pa + unflushed;
+					#endif
 
 					/* number number of bytes in output buffer */
 					// return getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize;
-					return BgzfDeflateZStreamBaseFlushInfo(toflush,getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize);
+					return BgzfDeflateZStreamBaseFlushInfo(
+						toflush,
+						getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize,
+						in.pa, // moveto
+						in.pc-unflushed, // movefrom
+						unflushed // movesize
+					);
 				}
 			}
 
-			//uint64_t 
+			// flush input buffer into output buffer
 			BgzfDeflateZStreamBaseFlushInfo flush(
 				BgzfDeflateInputBufferBase & in, 
 				BgzfDeflateOutputBufferBase & out, 

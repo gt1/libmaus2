@@ -57,7 +57,6 @@ namespace libmaus
 			 * constructor for stream
 			 *
 			 * @param rostr output stream
-			 * @param rheader BAM header
 			 * @param level zlib compression level
 			 **/
 			BamWriterSerialStreamBase(std::ostream & rostr, int const level = Z_DEFAULT_COMPRESSION) : Postr(), ostr(rostr), bgzfos(ostr,level) {}
@@ -65,7 +64,6 @@ namespace libmaus
 			 * constructor for file
 			 *
 			 * @param filename output file name
-			 * @param rheader BAM header
 			 * @param level zlib compression level
 			 **/
 			BamWriterSerialStreamBase(std::string const & filename, int const level = Z_DEFAULT_COMPRESSION) : Postr(new std::ofstream(filename.c_str(),std::ios::binary)), ostr(*Postr), bgzfos(ostr,level) {}
@@ -97,7 +95,6 @@ namespace libmaus
 			 * constructor for stream
 			 *
 			 * @param rostr output stream
-			 * @param rheader BAM header
 			 * @param level zlib compression level
 			 **/
 			BamWriterSerialStreamBaseWrapper(std::ostream & rostr, int const level = Z_DEFAULT_COMPRESSION) : bwssb(rostr,level) {}
@@ -105,7 +102,6 @@ namespace libmaus
 			 * constructor for file
 			 *
 			 * @param filename output file name
-			 * @param rheader BAM header
 			 * @param level zlib compression level
 			 **/
 			BamWriterSerialStreamBaseWrapper(std::string const & filename, int const level = Z_DEFAULT_COMPRESSION) : bwssb(filename,level) {}
@@ -139,7 +135,6 @@ namespace libmaus
 			 * constructor for stream
 			 *
 			 * @param rostr output stream
-			 * @param rheader BAM header
 			 * @param level zlib compression level
 			 **/
 			BamWriterParallelStreamBase(std::ostream & rostr, uint64_t const numthreads, int const level = Z_DEFAULT_COMPRESSION) 
@@ -148,7 +143,6 @@ namespace libmaus
 			 * constructor for file
 			 *
 			 * @param filename output file name
-			 * @param rheader BAM header
 			 * @param level zlib compression level
 			 **/
 			BamWriterParallelStreamBase(std::string const & filename, uint64_t const numthreads, int const level = Z_DEFAULT_COMPRESSION) 
@@ -195,9 +189,7 @@ namespace libmaus
 			/**
 			 * constructor for stream
 			 *
-			 * @param rostr output stream
-			 * @param rheader BAM header
-			 * @param level zlib compression level
+			 * @param rbgzfos output stream
 			 **/
 			BamWriterParallelRewriteStreamBase(stream_type & rbgzfos) 
 			: bgzfos(rbgzfos) {}
@@ -228,7 +220,7 @@ namespace libmaus
 			 * constructor for stream
 			 *
 			 * @param rostr output stream
-			 * @param rheader BAM header
+			 * @param numthreads number of threads
 			 * @param level zlib compression level
 			 **/
 			BamWriterParallelStreamBaseWrapper(std::ostream & rostr, uint64_t const numthreads, int const level = Z_DEFAULT_COMPRESSION) 
@@ -237,7 +229,7 @@ namespace libmaus
 			 * constructor for file
 			 *
 			 * @param filename output file name
-			 * @param rheader BAM header
+			 * @param numthreads number of threads
 			 * @param level zlib compression level
 			 **/
 			BamWriterParallelStreamBaseWrapper(std::string const & filename, uint64_t const numthreads, int const level = Z_DEFAULT_COMPRESSION) 
@@ -297,9 +289,17 @@ namespace libmaus
 			 * @param rstream bgzf encoder object
 			 * @param rheader BAM header
 			 **/
-			BamWriterTemplate(base_type & rstream, ::libmaus::bambam::BamHeader const & rheader)
+			BamWriterTemplate(
+				base_type & rstream, 
+				::libmaus::bambam::BamHeader const & rheader,
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0
+			)
 			: Pstream(), stream(rstream), pheader(rheader.uclone()), header(*pheader)
 			{
+				if ( blockoutputcallbacks )
+					for ( uint64_t i = 0; i < blockoutputcallbacks->size(); ++i )
+						stream.getStream().registerBlockOutputCallback(blockoutputcallbacks->at(i));
+			
 				header.produceHeader();
 				header.serialise(getStream());			
 			}
@@ -464,6 +464,11 @@ namespace libmaus
 			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
+			static int getDefaultCompression()
+			{
+				return Z_DEFAULT_COMPRESSION;
+			}
+		
 			/**
 			 * constructor for stream
 			 *
@@ -474,9 +479,10 @@ namespace libmaus
 			BamWriter(
 				std::ostream & rostr, 
 				::libmaus::bambam::BamHeader const & rheader, 
-				int const level = Z_DEFAULT_COMPRESSION
+				int const level = getDefaultCompression(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
-			: BamWriterSerialStreamBaseWrapper(rostr,level), BamWriterTemplate<BamWriterSerialStreamBase>(BamWriterSerialStreamBaseWrapper::bwssb,rheader)
+			: BamWriterSerialStreamBaseWrapper(rostr,level), BamWriterTemplate<BamWriterSerialStreamBase>(BamWriterSerialStreamBaseWrapper::bwssb,rheader,rblockoutputcallbacks)
 			{
 			}
 			/**
@@ -489,9 +495,10 @@ namespace libmaus
 			BamWriter(
 				std::string const & filename, 
 				::libmaus::bambam::BamHeader const & rheader, 
-				int const level = Z_DEFAULT_COMPRESSION
+				int const level = getDefaultCompression(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
-			: BamWriterSerialStreamBaseWrapper(filename,level), BamWriterTemplate<BamWriterSerialStreamBase>(BamWriterSerialStreamBaseWrapper::bwssb,rheader)
+			: BamWriterSerialStreamBaseWrapper(filename,level), BamWriterTemplate<BamWriterSerialStreamBase>(BamWriterSerialStreamBaseWrapper::bwssb,rheader,rblockoutputcallbacks)
 			{
 			}
 		};
@@ -502,6 +509,11 @@ namespace libmaus
 			typedef BamParallelWriter this_type;
 			//! unique pointer type
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
+			static int getDefaultCompression()
+			{
+				return Z_DEFAULT_COMPRESSION;
+			}
 			
 			/**
 			 * constructor for stream
@@ -514,9 +526,10 @@ namespace libmaus
 				std::ostream & rostr, 
 				uint64_t const numthreads,
 				::libmaus::bambam::BamHeader const & rheader, 
-				int const level = Z_DEFAULT_COMPRESSION
+				int const level = getDefaultCompression(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0				
 			)
-			: BamWriterParallelStreamBaseWrapper(rostr,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader)
+			: BamWriterParallelStreamBaseWrapper(rostr,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader,rblockoutputcallbacks)
 			{
 			}
 			/**
@@ -530,9 +543,10 @@ namespace libmaus
 				std::string const & filename, 
 				uint64_t const numthreads,
 				::libmaus::bambam::BamHeader const & rheader, 
-				int const level = Z_DEFAULT_COMPRESSION
+				int const level = getDefaultCompression(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0			
 			)
-			: BamWriterParallelStreamBaseWrapper(filename,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader)
+			: BamWriterParallelStreamBaseWrapper(filename,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader,rblockoutputcallbacks)
 			{
 			}
 		};
@@ -555,10 +569,11 @@ namespace libmaus
 			 **/
 			BamParallelRewriteWriter(
 				BamWriterParallelRewriteStreamBase::stream_type & stream,
-				libmaus::bambam::BamHeader const & rheader
+				libmaus::bambam::BamHeader const & rheader,
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: BamWriterParallelRewriteStreamBaseWrapper(stream), 
-			  BamWriterTemplate<BamWriterParallelRewriteStreamBase>(BamWriterParallelRewriteStreamBaseWrapper::bwpsb,rheader)
+			  BamWriterTemplate<BamWriterParallelRewriteStreamBase>(BamWriterParallelRewriteStreamBaseWrapper::bwpsb,rheader,rblockoutputcallbacks)
 			{
 			}
 		};

@@ -26,6 +26,7 @@
 #include <libmaus/parallel/OMPNumThreadsScope.hpp>
 #include <libmaus/lz/BgzfDeflateBlockIdInfo.hpp>
 #include <libmaus/lz/BgzfDeflateBlockIdComparator.hpp>
+#include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
 
 namespace libmaus
 {
@@ -44,8 +45,10 @@ namespace libmaus
 			uint64_t deflateoutid;
 			// next block id to be written to compressed stream
 			uint64_t deflatenextwriteid;
+			private:
 			// output stream
 			std::ostream & deflateout;
+			public:
 			bool deflateoutflushed;
 			// number of output bytes
 			uint64_t deflateoutbytes;
@@ -77,7 +80,10 @@ namespace libmaus
 			
 			//! index stream
 			std::ostream * deflateindexstr;
-			
+
+			//! output callbacks
+			std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
+
 			static bool getDefaultDeflateGetCur()
 			{
 				return true;
@@ -104,7 +110,8 @@ namespace libmaus
 			  deflateheapinfo(deflateB),
 			  deflatewritequeue(deflateheapcomp,deflateheapinfo),
 			  deflateexceptionid(std::numeric_limits<uint64_t>::max()),
-			  deflateindexstr(rdeflateindexstr)
+			  deflateindexstr(rdeflateindexstr),
+			  blockoutputcallbacks()
 			{
 				for ( uint64_t i = 0; i < deflateB.size(); ++i )
 				{
@@ -128,6 +135,57 @@ namespace libmaus
 			{
 				if ( deflateindexstr )
 					deflateindexstr->flush();
+			}
+
+
+			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
+			{
+				blockoutputcallbacks.push_back(cb);
+			}
+
+
+			void streamWrite(
+				uint8_t const * in,
+				uint64_t const incnt,
+				uint8_t const * out,
+				uint64_t const outcnt
+			)
+			{
+				deflateout.write(reinterpret_cast<char const *>(out),outcnt);
+
+				if ( ! deflateout )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
+					se.finish();
+					throw se;				
+				}
+				
+				for ( uint64_t i = 0; i < blockoutputcallbacks.size(); ++i )
+					(*(blockoutputcallbacks[i]))(in,incnt,out,outcnt);
+			}
+			void streamWrite(
+				uint8_t const * in, 
+				uint8_t const * out, 
+				BgzfDeflateZStreamBaseFlushInfo const & FI
+			)
+			{
+				assert ( FI.blocks == 0 || FI.blocks == 1 || FI.blocks == 2 );
+				
+				if ( FI.blocks == 0 )
+				{
+				
+				}
+				else if ( FI.blocks == 1 )
+				{
+					streamWrite(in,FI.block_a_u,out,FI.block_a_c);
+				}
+				else
+				{
+					assert ( FI.blocks == 2 );
+					streamWrite(in             ,FI.block_a_u,out             ,FI.block_a_c);
+					streamWrite(in+FI.block_a_u,FI.block_b_u,out+FI.block_a_c,FI.block_b_c);					
+				}
 			}
 		};
 	}

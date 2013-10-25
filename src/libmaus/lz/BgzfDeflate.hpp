@@ -21,6 +21,7 @@
 
 #include <libmaus/lz/GzipHeader.hpp>
 #include <libmaus/lz/BgzfDeflateBase.hpp>
+#include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
 #include <zlib.h>
 
 namespace libmaus
@@ -36,15 +37,30 @@ namespace libmaus
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
+			std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 
-			BgzfDeflate(stream_type & rstream, int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
-			: BgzfDeflateBase(level,rflushmode), stream(rstream)
+			BgzfDeflate(
+				stream_type & rstream, 
+				int const level = Z_DEFAULT_COMPRESSION, 
+				bool const rflushmode = false
+			)
+			: BgzfDeflateBase(level,rflushmode), stream(rstream), blockoutputcallbacks()
 			{
 			}
 
-			void streamWrite(uint8_t const * p, uint64_t const n)
+			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
 			{
-				stream.write(reinterpret_cast<char const *>(p),n);
+				blockoutputcallbacks.push_back(cb);
+			}
+
+			void streamWrite(
+				uint8_t const * in,
+				uint64_t const incnt,
+				uint8_t const * out,
+				uint64_t const outcnt
+			)
+			{
+				stream.write(reinterpret_cast<char const *>(out),outcnt);
 
 				if ( ! stream )
 				{
@@ -52,17 +68,55 @@ namespace libmaus
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
 					throw se;				
-				}		
+				}
+				
+				for ( uint64_t i = 0; i < blockoutputcallbacks.size(); ++i )
+					(*(blockoutputcallbacks[i]))(in,incnt,out,outcnt);
+			}
+
+			void streamWrite(
+				uint8_t const * in,
+				uint8_t const * out,
+				BgzfDeflateZStreamBaseFlushInfo const & BDZSBFI)
+			{
+				assert ( BDZSBFI.blocks == 1 || BDZSBFI.blocks == 2 );
+				
+				if ( BDZSBFI.blocks == 1 )
+				{
+					/* write data to stream, one block */
+					streamWrite(in, BDZSBFI.block_a_u, out, BDZSBFI.block_a_c);
+				}
+				else
+				{
+					assert ( BDZSBFI.blocks == 2 );
+					/* write data to stream, two blocks */
+					streamWrite(in                    , BDZSBFI.block_a_u, out                    , BDZSBFI.block_a_c);
+					streamWrite(in + BDZSBFI.block_a_u, BDZSBFI.block_b_u, out + BDZSBFI.block_a_c, BDZSBFI.block_b_c);
+				}
 			}
 
 			uint64_t flush()
 			{
-				BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = base_type::flush(flushmode);
-				uint64_t const outbytes = BDZSBFI.getCompressedSize();
-				/* write data to stream */
-				streamWrite(outbuf.begin(),outbytes);
+				/* flush, compress */
+				BgzfDeflateZStreamBaseFlushInfo BDZSBFI = base_type::flush(flushmode);
+								
+				/* write blocks */
+				streamWrite(inbuf.begin(), outbuf.begin(), BDZSBFI);
+
+				if ( flushmode )
+				{
+					assert ( ! BDZSBFI.movesize );
+				}
+				else
+				{
+					if ( BDZSBFI.movesize )
+						BgzfDeflateInputBufferBase::pc = BDZSBFI.moveUncompressedRest();
+					else
+						BgzfDeflateInputBufferBase::pc = BgzfDeflateInputBufferBase::pa;
+				}
+
 				/* return number of compressed bytes written */
-				return outbytes;
+				return BDZSBFI.getCompressedSize();
 			}
 			
 			void write(char const * const cp, unsigned int n)

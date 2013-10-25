@@ -26,6 +26,7 @@
 #include <libmaus/lz/Inflate.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
+#include <libmaus/lz/BgzfDeflateParallel.hpp>
 
 void testBgzfRandom()
 {
@@ -35,9 +36,11 @@ void testBgzfRandom()
 		R[i] = rand() % 256;
 	std::ostringstream zostr;
 	::libmaus::lz::BgzfDeflate<std::ostream> bdeflr(zostr);
+	// ::libmaus::lz::BgzfDeflateParallel bdeflr(zostr,8,64,-1);
 	for ( uint64_t i = 0; i < R.size(); ++i )
 		bdeflr.put(R[i]);
 	bdeflr.addEOFBlock();
+	// bdeflr.flush();
 	std::istringstream ristr(zostr.str());
 	::libmaus::lz::BgzfInflateStream rSW(ristr);
 	int c = 0;
@@ -289,7 +292,7 @@ int main(int argc, char *argv[])
 	}
 	#endif                                                                                                                                                                            
 
-	#if 1
+	#if 0
 	{
 		::libmaus::lz::BgzfDeflateParallel BDP(std::cout,32,128,Z_DEFAULT_COMPRESSION);
 		

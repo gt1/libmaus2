@@ -137,7 +137,9 @@ namespace libmaus
 					try
 					{
 						BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = deflatecontext.deflateB[objectid]->flush(true /* full flush */);
+						assert ( ! BDZSBFI.movesize );
 						deflatecontext.deflateB[objectid]->compsize = BDZSBFI.getCompressedSize();
+						deflatecontext.deflateB[objectid]->flushinfo = BDZSBFI;
 					}
 					catch(libmaus::exception::LibMausException const & ex)
 					{								
@@ -151,6 +153,7 @@ namespace libmaus
 						}
 						
 						deflatecontext.deflateB[objectid]->compsize = 0;
+						deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 					}
 					catch(std::exception const & ex)
 					{
@@ -169,6 +172,7 @@ namespace libmaus
 						}
 						
 						deflatecontext.deflateB[objectid]->compsize = 0;
+						deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 					}
 
 					libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
@@ -201,13 +205,21 @@ namespace libmaus
 					libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
 					try
 					{
+						#if 0
 						deflatecontext.deflateout.write(
 							reinterpret_cast<char const *>(deflatecontext.deflateB[objectid]->outbuf.begin()),
 							deflatecontext.deflateB[objectid]->compsize
 						);
+						#endif
+						deflatecontext.streamWrite(
+							deflatecontext.deflateB[objectid]->inbuf.begin(),
+							deflatecontext.deflateB[objectid]->outbuf.begin(),
+							deflatecontext.deflateB[objectid]->flushinfo
+						);
 						
 						deflatecontext.deflateoutbytes += deflatecontext.deflateB[objectid]->compsize;
 						
+						#if 0 // this check is done in streamWrite
 						if ( ! deflatecontext.deflateout )
 						{
 							libmaus::exception::LibMausException se;
@@ -215,6 +227,7 @@ namespace libmaus
 							se.finish();
 							throw se;
 						}
+						#endif
 					}
 					catch(libmaus::exception::LibMausException const & ex)
 					{								

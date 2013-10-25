@@ -99,7 +99,9 @@ namespace libmaus
 							try
 							{
 								BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = deflatecontext.deflateB[objectid]->flush(true /* full flush */);
+								assert ( !BDZSBFI.movesize );
 								deflatecontext.deflateB[objectid]->compsize = BDZSBFI.getCompressedSize();
+								deflatecontext.deflateB[objectid]->flushinfo = BDZSBFI;
 							}
 							catch(libmaus::exception::LibMausException const & ex)
 							{								
@@ -113,6 +115,7 @@ namespace libmaus
 								}
 								
 								deflatecontext.deflateB[objectid]->compsize = 0;
+								deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 							}
 							catch(std::exception const & ex)
 							{
@@ -131,6 +134,7 @@ namespace libmaus
 								}
 								
 								deflatecontext.deflateB[objectid]->compsize = 0;
+								deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 							}
 
 							libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
@@ -149,9 +153,16 @@ namespace libmaus
 							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
 							try
 							{
+								#if 0
 								deflatecontext.deflateout.write(
 									reinterpret_cast<char const *>(deflatecontext.deflateB[objectid]->outbuf.begin()),
 									deflatecontext.deflateB[objectid]->compsize
+								);
+								#endif
+								deflatecontext.streamWrite(
+									deflatecontext.deflateB[objectid]->inbuf.begin(),
+									deflatecontext.deflateB[objectid]->outbuf.begin(),
+									deflatecontext.deflateB[objectid]->flushinfo
 								);
 								
 								deflatecontext.deflateoutbytes += deflatecontext.deflateB[objectid]->compsize;
@@ -164,6 +175,7 @@ namespace libmaus
 									<< std::endl;
 								#endif
 								
+								#if 0 // this test is done in streamWrite()
 								if ( ! deflatecontext.deflateout )
 								{
 									libmaus::exception::LibMausException se;
@@ -171,11 +183,26 @@ namespace libmaus
 									se.finish();
 									throw se;
 								}
+								#endif
 								
 								if ( deflatecontext.deflateindexstr )
 								{
-									libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->uncompsize,*(deflatecontext.deflateindexstr));
-									libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->compsize,*(deflatecontext.deflateindexstr));
+									if ( deflatecontext.deflateB[objectid]->flushinfo.blocks == 0 )
+									{
+									
+									}
+									else if ( deflatecontext.deflateB[objectid]->flushinfo.blocks == 1 )
+									{
+										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_u,*(deflatecontext.deflateindexstr));
+										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_c,*(deflatecontext.deflateindexstr));
+									}
+									else if ( deflatecontext.deflateB[objectid]->flushinfo.blocks == 2 )
+									{
+										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_u,*(deflatecontext.deflateindexstr));
+										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_c,*(deflatecontext.deflateindexstr));
+										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_b_u,*(deflatecontext.deflateindexstr));
+										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_b_c,*(deflatecontext.deflateindexstr));
+									}
 								}
 							}
 							catch(libmaus::exception::LibMausException const & ex)

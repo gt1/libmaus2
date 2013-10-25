@@ -92,6 +92,11 @@ namespace libmaus
 			{
 				flush();
 			}
+
+			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
+			{
+				deflatecontext.blockoutputcallbacks.push_back(cb);
+			}
 			
 			void flushInternal()
 			{
@@ -259,8 +264,10 @@ namespace libmaus
 					// write default compressed block with size 0 (EOF marker)
 					libmaus::lz::BgzfDeflateBase eofBase;
 					BgzfDeflateZStreamBaseFlushInfo const BDZSBFI = eofBase.flush(true /* full flush */);
-					uint64_t const eofflushsize = BDZSBFI.getCompressedSize();
-					deflatecontext.deflateout.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
+					assert ( ! BDZSBFI.movesize );
+					// uint64_t const eofflushsize = BDZSBFI.getCompressedSize();
+					// deflatecontext.deflateout.write(reinterpret_cast<char const *>(eofBase.outbuf.begin()),eofflushsize);
+					deflatecontext.streamWrite(eofBase.inbuf.begin(),eofBase.outbuf.begin(),BDZSBFI);
 					
 					// std::cerr << "Writing " << eofflushsize << " bytes for flush" << std::endl;
 					

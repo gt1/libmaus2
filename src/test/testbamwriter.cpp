@@ -80,6 +80,9 @@ void testInplaceReverseComplement()
 	}
 }
 
+#include <libmaus/lz/BgzfDeflateOutputCallbackMD5.hpp>
+#include <libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp>
+
 int main()
 {
 	try
@@ -87,8 +90,14 @@ int main()
 		::libmaus::bambam::BamHeader header;
 		header.addChromosome("chr1",2000);
 		
-		// ::libmaus::bambam::BamWriter bamwriter(std::cout,header);
-		::libmaus::bambam::BamParallelWriter bamwriter(std::cout,8,header);
+		::libmaus::lz::BgzfDeflateOutputCallbackMD5 md5cb;
+		libmaus::bambam::BgzfDeflateOutputCallbackBamIndex indexcb("index_tmp",true,true);
+		std::vector< ::libmaus::lz::BgzfDeflateOutputCallback * > cbs;
+		cbs.push_back(&md5cb);
+		cbs.push_back(&indexcb);
+		
+		::libmaus::bambam::BamWriter::unique_ptr_type bamwriter(new ::libmaus::bambam::BamWriter(std::cout,header,::libmaus::bambam::BamWriter::getDefaultCompression(),&cbs));
+		// ::libmaus::bambam::BamParallelWriter::unique_ptr_type bamwriter(new ::libmaus::bambam::BamParallelWriter(std::cout,8,header,::libmaus::bambam::BamParallelWriter::getDefaultCompression(),&cbs));
 		
 		for ( uint64_t i = 0; i < 64*1024; ++i )
 		{
@@ -96,15 +105,20 @@ int main()
 			rnstr << "r" << "_" << std::setw(6) << std::setfill('0') << i;
 			std::string const rn = rnstr.str();
 			
-			bamwriter.encodeAlignment(rn,0,1000,30, ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED | ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1, "9M", 0,1500, -1, "ACGTATGCA", "HGHGHGHGH");
-			bamwriter.putAuxString("XX","HelloWorld");
-			bamwriter.commit();
+			bamwriter->encodeAlignment(rn,0,1000+i*100,30, ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED | ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1, "9M", 0,1500, -1, "ACGTATGCA", "HGHGHGHGH");
+			bamwriter->putAuxString("XX","HelloWorld");
+			bamwriter->commit();
 			
-			bamwriter.encodeAlignment(rn,0,1500, 20,::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED | ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2,"4=1X4=",0,1000,-1,"TTTTATTTT","HHHHAHHHH");
-			bamwriter.putAuxNumber("XY",'i',42);
-			bamwriter.putAuxNumber("XZ",'f',3.141592);
-			bamwriter.commit();				
+			bamwriter->encodeAlignment(rn,0,1000+i*100+50, 20,::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED | ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2,"4=1X4=",0,1000,-1,"TTTTATTTT","HHHHAHHHH");
+			bamwriter->putAuxNumber("XY",'i',42);
+			bamwriter->putAuxNumber("XZ",'f',3.141592);
+			bamwriter->commit();				
 		}
+		
+		bamwriter.reset();
+		
+		std::cerr << "md5: " << md5cb.getDigest() << std::endl;
+		indexcb.flush(std::string("t.bai"));
 	}
 	catch(std::exception const & ex)
 	{
