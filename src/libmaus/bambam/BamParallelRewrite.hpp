@@ -60,6 +60,11 @@ namespace libmaus
 			writer_type writer;
 
 			/**
+			 * @return default blocks per thread
+			 **/
+			static uint64_t getDefaultBlocksPerThread() { return 4; }
+
+			/**
 			 * constructor
 			 *
 			 * @param in input stream
@@ -73,8 +78,10 @@ namespace libmaus
 				std::ostream & out,
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
-				uint64_t const blocksperthread = 4)
-			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,dec.getHeader()) {}
+				uint64_t const blocksperthread = getDefaultBlocksPerThread(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+			)
+			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,dec.getHeader(),rblockoutputcallbacks) {}
 
 			/**
 			 * constructor
@@ -92,8 +99,10 @@ namespace libmaus
 				std::ostream & out,
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
-				uint64_t const blocksperthread = 4)
-			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,header) {}
+				uint64_t const blocksperthread = getDefaultBlocksPerThread(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+			)
+			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,header,rblockoutputcallbacks) {}
 
 			/**
 			 * constructor
@@ -111,8 +120,10 @@ namespace libmaus
 				std::ostream & out,
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
-				uint64_t const blocksperthread = 4)
-			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(rewritecallback(dec.getHeader())), writer(stream.bgzf,*rewrittenheader) {}
+				uint64_t const blocksperthread = getDefaultBlocksPerThread(),
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+			)
+			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(rewritecallback(dec.getHeader())), writer(stream.bgzf,*rewrittenheader,rblockoutputcallbacks) {}
 			
 			/**
 			 * @return decoder
