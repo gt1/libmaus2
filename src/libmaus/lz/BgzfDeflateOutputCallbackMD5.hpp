@@ -68,6 +68,20 @@ namespace libmaus
 				
 				return sdigest;
 			}
+			
+			template<typename stream_type>
+			void saveDigest(stream_type & stream)
+			{
+				stream << getDigest();
+			}
+			
+			void saveDigestAsFile(std::string const & filename)
+			{
+				libmaus::aio::CheckedOutputStream COS(filename);
+				saveDigest(COS);
+				COS.flush();
+				COS.close();
+			}
 		};
 	}
 }
