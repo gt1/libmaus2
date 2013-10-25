@@ -1,3 +1,9 @@
+libmaus (0.0.81-0) unstable; urgency=low
+
+  * add pointer types for bgzf/BAM callbacks and digest saving 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 25 Oct 2013 21:41:15 +0100
+
 libmaus (0.0.80-0) unstable; urgency=low
 
   * add bgzf/BAM output callbacks for MD5 and BAM indexing 
