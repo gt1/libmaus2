@@ -1,3 +1,9 @@
+libmaus (0.0.80-0) unstable; urgency=low
+
+  * add bgzf/BAM output callbacks for MD5 and BAM indexing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 25 Oct 2013 20:39:22 +0100
+
 libmaus (0.0.79-0) unstable; urgency=low
 
   * fix BAM read group processing in merging 
