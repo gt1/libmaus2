@@ -260,7 +260,14 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/DupSetCallback.hpp \
 	libmaus/bambam/DupSetCallbackSet.hpp \
 	libmaus/bambam/DupSetCallbackStream.hpp \
-	libmaus/bambam/DupSetCallbackVector.hpp
+	libmaus/bambam/DupSetCallbackVector.hpp \
+	libmaus/bambam/BamAlignmentListNode.hpp \
+	libmaus/bambam/BamAlignmentPairListNode.hpp \
+	libmaus/bambam/ReadEndsListNode.hpp \
+	libmaus/bambam/BamAlignmentFreeList.hpp \
+	libmaus/bambam/BamAlignmentPairFreeList.hpp \
+	libmaus/bambam/ReadEndsFreeList.hpp \
+	libmaus/bambam/DupMarkBase.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -509,7 +516,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/PushBuffer.hpp \
 	libmaus/util/SuccinctBorderArray.hpp \
 	libmaus/util/LineAccessor.hpp \
-	libmaus/util/StringMapCompare.hpp
+	libmaus/util/StringMapCompare.hpp \
+	libmaus/util/FreeList.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
