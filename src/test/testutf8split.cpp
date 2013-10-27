@@ -204,6 +204,14 @@ int main(int argc, char * argv[])
 		testUtf8Bwt(fn);
 		
 		::libmaus::wavelet::Utf8ToImpHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
+		// load huffman shaped wavelet tree of bwt
+		::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT
+			(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
+		::libmaus::util::Utf8String::shared_ptr_type us = ::libmaus::util::Utf8String::constructRaw(fn);
+		std::cerr << "checking length " << us->size() << std::endl;
+		for ( uint64_t i = 0; i < us->size(); ++i )
+			assert ( (*us)[i] == (*IHWT)[i] );
+			
 		/*
 		testUtf8Bwt(fn);
 		testUtf8String(fn);		

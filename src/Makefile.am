@@ -128,7 +128,7 @@ libmaus_includedir=$(includedir)/libmaus/
 libmaus_include_HEADERS=libmaus/LibMausConfig.hpp
 
 libmausautoarray_includedir=$(includedir)/libmaus/autoarray/
-libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp
+libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp libmaus/autoarray/AutoArray2d.hpp
 
 libmausgamma_includedir=$(includedir)/libmaus/gamma/
 libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp \
@@ -184,7 +184,9 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfInflateDeflateParallelWrapper.hpp \
 	libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp \
 	libmaus/lz/BgzfDeflateOutputCallback.hpp \
-	libmaus/lz/BgzfDeflateOutputCallbackMD5.hpp
+	libmaus/lz/BgzfDeflateOutputCallbackMD5.hpp \
+	libmaus/lz/BgzfParallelRecodeDeflateBase.hpp \
+	libmaus/lz/BgzfRecodeParallel.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -251,7 +253,14 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamIndexBinChunk.hpp \
 	libmaus/bambam/BamIndexLinearChunk.hpp \
 	libmaus/bambam/BamIndexGenerator.hpp \
-	libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp
+	libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp \
+	libmaus/bambam/BamAlignmentInputCallbackBam.hpp \
+	libmaus/bambam/BamAlignmentInputCallbackSnappy.hpp \
+	libmaus/bambam/BamHeaderUpdate.hpp \
+	libmaus/bambam/DupSetCallback.hpp \
+	libmaus/bambam/DupSetCallbackSet.hpp \
+	libmaus/bambam/DupSetCallbackStream.hpp \
+	libmaus/bambam/DupSetCallbackVector.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -924,7 +933,8 @@ noinst_PROGRAMS = \
 	testbammergecoordinate \
 	testbammergecollate \
 	testbammergequeryname \
-	testbamcat
+	testbamcat \
+	testautoarray2d
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1170,3 +1180,6 @@ testbammergecollate_SOURCES = test/testbammergecollate.cpp
 testbammergecollate_LDFLAGS = @SNAPPYLDFLAGS@
 testbammergecollate_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 testbammergecollate_CPPFLAGS = @SNAPPYCPPFLAGS@
+
+testautoarray2d_SOURCES = test/testautoarray2d.cpp
+testautoarray2d_LDADD = libmaus.la

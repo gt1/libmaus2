@@ -29,6 +29,7 @@
 #include <libmaus/huffman/RLDecoder.hpp>
 #include <libmaus/parallel/OMPNumThreadsScope.hpp>
 #include <libmaus/util/PutObjectReverse.hpp>
+#include <libmaus/autoarray/AutoArray2d.hpp>
 
 namespace libmaus
 {
@@ -122,6 +123,7 @@ namespace libmaus
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
+					#if 0
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
@@ -129,14 +131,21 @@ namespace libmaus
 						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
 						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
+					#endif
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
+						#if 0
 						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
 						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						#endif
+						uint64_t * const nodebitcnt = vnodebitcnt[partid];
+						uint64_t * const nodewordcnt = vnodewordcnt[partid];
 						uint64_t lnodeid = 0;
 
 						uint64_t const partsize = partstarts[partid+1]-partstarts[partid];
@@ -399,7 +408,8 @@ namespace libmaus
 							#endif			
 						}
 
-						assert ( lnodeid == nodebitcnt.size() );
+						// assert ( lnodeid == nodebitcnt.size() );
+						assert ( lnodeid == numnodes );
 						
 						tmpSGO->flush();
 						tmpSGO.reset();
@@ -410,7 +420,8 @@ namespace libmaus
 
 					// accumulate word offsets
 					for ( uint64_t i = 0; i < numparts; ++i )
-						vnodewordcnt[i].prefixSums();
+						// vnodewordcnt[i].prefixSums();
+						vnodewordcnt.prefixSums(i);
 					
 					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					uint64_t tnumbits = 0;
@@ -636,6 +647,7 @@ namespace libmaus
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
+					#if 0
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
@@ -643,14 +655,21 @@ namespace libmaus
 						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
 						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
+					#endif
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
+						#if 0
 						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
 						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						#endif
+						uint64_t * const nodebitcnt = vnodebitcnt[partid];
+						uint64_t * const nodewordcnt = vnodewordcnt[partid];
 						uint64_t lnodeid = 0;
 
 						uint64_t const partsize = partstarts[partid+1]-partstarts[partid];
@@ -904,7 +923,10 @@ namespace libmaus
 							#endif			
 						}
 
+						#if 0
 						assert ( lnodeid == nodebitcnt.size() );
+						#endif
+						assert ( lnodeid == numnodes );
 						
 						tmpSGO->flush();
 						tmpSGO.reset();
@@ -915,7 +937,8 @@ namespace libmaus
 
 					// accumulate word offsets
 					for ( uint64_t i = 0; i < numparts; ++i )
-						vnodewordcnt[i].prefixSums();
+						//vnodewordcnt[i].prefixSums();
+						vnodewordcnt.prefixSums(i);
 					
 					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					uint64_t tnumbits = 0;
@@ -1122,6 +1145,7 @@ namespace libmaus
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
+					#if 0
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
@@ -1129,14 +1153,21 @@ namespace libmaus
 						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
 						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
+					#endif
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
+						#if 0
 						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
 						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						#endif
+						uint64_t * const nodebitcnt = vnodebitcnt[partid];
+						uint64_t * const nodewordcnt = vnodewordcnt[partid];
 						uint64_t lnodeid = 0;
 						
 						uint64_t const numsyms = symsperpart[partid+1]-symsperpart[partid];
@@ -1408,7 +1439,8 @@ namespace libmaus
 							#endif			
 						}
 
-						assert ( lnodeid == nodebitcnt.size() );
+						// assert ( lnodeid == nodebitcnt.size() );
+						assert ( lnodeid == numnodes );
 						
 						tmpSGO->flush();
 						tmpSGO.reset();
@@ -1419,7 +1451,8 @@ namespace libmaus
 
 					// accumulate word offsets
 					for ( uint64_t i = 0; i < numparts; ++i )
-						vnodewordcnt[i].prefixSums();
+						//vnodewordcnt[i].prefixSums();
+						vnodewordcnt.prefixSums(i);
 					
 					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					uint64_t tnumbits = 0;
@@ -1656,6 +1689,7 @@ namespace libmaus
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Num nodes " << numnodes << " numparts " << numparts << std::endl;
 					#endif
+					#if 0
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
 					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
@@ -1663,6 +1697,9 @@ namespace libmaus
 						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
 						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
+					#endif
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Bytes for numnodes*numparts*sizeof(uint64_t)=" << numnodes*numparts*sizeof(uint64_t) << std::endl;
 					#endif
@@ -1672,8 +1709,12 @@ namespace libmaus
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
+						#if 0
 						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
 						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						#endif
+						uint64_t * const nodebitcnt = vnodebitcnt[partid];
+						uint64_t * const nodewordcnt = vnodewordcnt[partid];
 						uint64_t lnodeid = 0;
 						
 						uint64_t const numsyms = symsperpart[partid+1]-symsperpart[partid];
@@ -1984,7 +2025,8 @@ namespace libmaus
 							#endif			
 						}
 
-						assert ( lnodeid == nodebitcnt.size() );
+						// assert ( lnodeid == nodebitcnt.size() );
+						assert ( lnodeid == numnodes );
 						
 						tmpSGO->flush();
 						tmpSGO.reset();
@@ -1995,7 +2037,8 @@ namespace libmaus
 
 					// accumulate word offsets
 					for ( uint64_t i = 0; i < numparts; ++i )
-						vnodewordcnt[i].prefixSums();
+						//vnodewordcnt[i].prefixSums();
+						vnodewordcnt.prefixSums(i);
 					
 					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPHUFFMANWAVELETTREE_DEBUG)
