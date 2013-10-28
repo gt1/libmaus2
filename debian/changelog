@@ -1,3 +1,9 @@
+libmaus (0.0.83-0) unstable; urgency=low
+
+  * extend API in bambam namespace with duplicate marking code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 28 Oct 2013 12:08:43 +0000
+
 libmaus (0.0.82-0) unstable; urgency=low
 
   * add block output callback in BgzfRecode
