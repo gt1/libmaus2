@@ -21,16 +21,21 @@
 
 #include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>
 #include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus/bambam/BamAlignmentInputPositionCallbackNull.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{
-		struct BamAlignmentInputCallbackBam : public ::libmaus::bambam::CollatingBamDecoderAlignmentInputCallback
+		template<typename _update_base_type = libmaus::bambam::BamAlignmentInputPositionCallbackNull>
+		struct BamAlignmentInputCallbackBam : 
+			public ::libmaus::bambam::CollatingBamDecoderAlignmentInputCallback,
+			public _update_base_type
 		{
-			typedef BamAlignmentInputCallbackBam this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef _update_base_type update_base_type;
+			typedef BamAlignmentInputCallbackBam<update_base_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			uint64_t als;
 			::libmaus::bambam::BamWriter::unique_ptr_type BWR;
@@ -40,7 +45,7 @@ namespace libmaus
 				::libmaus::bambam::BamHeader const & bamheader,
 				int const rewritebamlevel
 			)
-			: als(0), BWR(new ::libmaus::bambam::BamWriter(filename,bamheader,rewritebamlevel))
+			: update_base_type(bamheader), als(0), BWR(new ::libmaus::bambam::BamWriter(filename,bamheader,rewritebamlevel))
 			{
 				
 			}
@@ -51,8 +56,8 @@ namespace libmaus
 
 			void operator()(::libmaus::bambam::BamAlignment const & A)
 			{
-				// std::cerr << "Callback." << std::endl;
 				als++;
+				update_base_type::updatePosition(A);
 				A.serialise(BWR->getStream());
 			}	
 		};

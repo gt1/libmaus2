@@ -19,23 +19,31 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKSNAPPY_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKSNAPPY_HPP
 
+#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/bambam/BamAlignmentInputPositionCallbackNull.hpp>
 #include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>
 
 namespace libmaus
 {
 	namespace bambam
 	{
-		struct BamAlignmentInputCallbackSnappy : public ::libmaus::bambam::CollatingBamDecoderAlignmentInputCallback
+		template<typename _update_base_type = libmaus::bambam::BamAlignmentInputPositionCallbackNull>
+		struct BamAlignmentInputCallbackSnappy : 
+			public ::libmaus::bambam::CollatingBamDecoderAlignmentInputCallback,
+			public _update_base_type
 		{
-			typedef BamAlignmentInputCallbackSnappy this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef _update_base_type update_base_type;
+			typedef BamAlignmentInputCallbackSnappy<update_base_type> this_type;
+
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			uint64_t als;
 			::libmaus::lz::SnappyFileOutputStream::unique_ptr_type SFOS;
-			
-			BamAlignmentInputCallbackSnappy(std::string const & filename)
-			: als(0), SFOS(new ::libmaus::lz::SnappyFileOutputStream(filename))
+
+			BamAlignmentInputCallbackSnappy(std::string const & filename, libmaus::bambam::BamHeader const & bamheader)
+			: update_base_type(bamheader), als(0), SFOS(new ::libmaus::lz::SnappyFileOutputStream(filename))
 			{
 				
 			}
@@ -47,8 +55,8 @@ namespace libmaus
 
 			void operator()(::libmaus::bambam::BamAlignment const & A)
 			{
-				// std::cerr << "Callback." << std::endl;
 				als++;
+				update_base_type::updatePosition(A);
 				A.serialise(*SFOS);
 			}
 			
