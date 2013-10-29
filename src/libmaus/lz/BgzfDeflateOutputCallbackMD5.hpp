@@ -21,6 +21,7 @@
 
 #include <libmaus/util/md5.h>
 #include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
+#include <libmaus/aio/CheckedOutputStream.hpp>
 #include <sstream>
 #include <iomanip>
 
