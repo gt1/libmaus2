@@ -398,7 +398,8 @@ libmaushuffman_include_HEADERS=\
 	libmaus/huffman/GapDecoderIndexBase.hpp \
 	libmaus/huffman/IndexDecoderDataArray.hpp \
 	libmaus/huffman/HuffmanInputFile.hpp \
-	libmaus/huffman/KvInitResult.hpp
+	libmaus/huffman/KvInitResult.hpp \
+	libmaus/huffman/HuffmanTree.hpp
 
 libmausmath_includedir=$(includedir)/libmaus/math
 libmausmath_include_HEADERS=\
