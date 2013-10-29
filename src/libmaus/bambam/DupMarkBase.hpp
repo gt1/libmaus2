@@ -850,7 +850,7 @@ namespace libmaus
 					else if ( outputisfile )
 						indexfilename = outputfilename + ".bai";
 					else
-						std::cerr << "[V] no filename for index given, not creating hash" << std::endl;
+						std::cerr << "[V] no filename for index given, not creating index" << std::endl;
 
 					if ( indexfilename.size() )
 					{
