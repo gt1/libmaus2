@@ -1,11 +1,3 @@
-#include <libmaus/huffman/HuffmanTree.hpp>
-
-::std::ostream & libmaus::huffman::operator<<(::std::ostream & out, libmaus::huffman::HuffmanTree const & H)
-{
-	H.printRec(out,H.root());
-	return out;
-}
-
 /*
     libmaus
     Copyright (C) 2009-2013 German Tischler
@@ -32,6 +24,7 @@
 #include <libmaus/math/isqrt.hpp>
 #include <libmaus/wavelet/HuffmanWaveletTree.hpp>
 #include <libmaus/huffman/CanonicalEncoder.hpp>
+#include <libmaus/huffman/HuffmanTree.hpp>
 
 bool checkNontrivial(std::string const & s)
 {
