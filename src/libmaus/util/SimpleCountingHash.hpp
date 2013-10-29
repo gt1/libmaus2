@@ -92,6 +92,15 @@ namespace libmaus
 			count_type * cntbegin() { return C.begin(); }
 			count_type * cntend() { return C.end(); }
 			
+			void clear()
+			{
+				for ( key_type * p = begin(); p != end(); ++p )
+					*p = base_type::unused();
+				for ( count_type * p = cntbegin(); p != cntend(); ++p )
+					*p = count_type();
+				fill = 0;
+			}
+			
 			uint64_t byteSize() const
 			{
 				return 
