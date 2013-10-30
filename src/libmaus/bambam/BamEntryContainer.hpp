@@ -389,9 +389,15 @@ namespace libmaus
 			 * @param verbose if true then progress information will be printed on std::cerr
 			 **/
 			template<typename stream_type>
-			void createOutput(stream_type & stream, ::libmaus::bambam::BamHeader const & bamheader, int const level = Z_DEFAULT_COMPRESSION, int const verbose = 0)
+			void createOutput(
+				stream_type & stream, 
+				::libmaus::bambam::BamHeader const & bamheader, 
+				int const level = Z_DEFAULT_COMPRESSION, 
+				int const verbose = 0,
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0
+			)
 			{
-				::libmaus::bambam::BamWriter writer(stream,bamheader,level);
+				::libmaus::bambam::BamWriter writer(stream,bamheader,level,blockoutputcallbacks);
 				BamWriterWrapper BWW(writer);
 				createOutput(BWW,verbose);
 			}
