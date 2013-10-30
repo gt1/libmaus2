@@ -1,3 +1,9 @@
+libmaus (0.0.85-0) unstable; urgency=low
+
+  * add block write callback parameter in BamEntryContainer's output production course 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 30 Oct 2013 09:36:11 +0000
+
 libmaus (0.0.84-0) unstable; urgency=low
 
   * add HuffmanTree class 
