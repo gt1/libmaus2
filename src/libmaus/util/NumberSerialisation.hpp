@@ -159,6 +159,13 @@ namespace libmaus
 				return u;
 			}
 
+			template<typename stream_type>
+			static uint64_t deserialiseNumberCount(stream_type & in, uint64_t & s)
+			{
+				s += 8;
+				return deserialiseNumber(in);
+			}
+
 			template<typename N>
 			static std::vector<N> deserialiseNumberVector(std::istream & in)
 			{
@@ -210,7 +217,7 @@ namespace libmaus
 			}
 
 			template<typename put_type>
-			static void serialiseSignedNumber(put_type & P, int64_t const m)
+			static uint64_t serialiseSignedNumber(put_type & P, int64_t const m)
 			{
 				uint8_t f;
 				unsigned int b;
@@ -246,11 +253,17 @@ namespace libmaus
 					f = 0x80 | b;
 				}
 				
+				unsigned int o = 1;
 				// put sign bit and length of number
 				P.put(f);
 				// put number
 				for ( int ib = (static_cast<int>(b)-1); ib >= 0; --ib )
+				{
 					P.put( (n >> (8*ib)) & 0xFF );
+					o += 1;
+				}
+
+				return o;
 			}
 
 			template<typename get_type>
@@ -276,6 +289,56 @@ namespace libmaus
 				{
 					n <<= 8;
 					n |= G.get();
+				}
+				
+				if ( f & 0xf0 )
+				{
+					return n;				
+				}
+				else
+				{
+					switch ( b )
+					{
+						case 0: break;
+						case 1: assert (n <=               0xffull ); n =               0xffull-n; break;
+						case 2: assert (n <=             0xffffull ); n =             0xffffull-n; break;
+						case 3: assert (n <=           0xffffffull ); n =           0xffffffull-n; break;
+						case 4: assert (n <=         0xffffffffull ); n =         0xffffffffull-n; break;
+						case 5: assert (n <=       0xffffffffffull ); n =       0xffffffffffull-n; break;
+						case 6: assert (n <=     0xffffffffffffull ); n =     0xffffffffffffull-n; break;
+						case 7: assert (n <=   0xffffffffffffffull ); n =   0xffffffffffffffull-n; break;
+						case 8: assert (n <= 0xffffffffffffffffull ); n = 0xffffffffffffffffull-n; break;
+					}	
+					
+					return - static_cast<int64_t>(n);
+				}
+			}
+
+			template<typename get_type>
+			static int64_t deserialiseSignedNumberCount(get_type & G, uint64_t & s)
+			{
+				uint8_t const f = G.get();
+				s += 1;
+				uint8_t b;
+				
+				// positive
+				if ( f & 0xf0 )
+				{
+					b =    f & 0x7F ;
+				}
+				// negative
+				else
+				{
+					b = 8-(f & 0x7F);
+				}
+					
+				uint64_t n = 0;
+					
+				for ( unsigned int ib = 0; ib < b; ++ib )
+				{
+					n <<= 8;
+					n |= G.get();
+					s += 1;
 				}
 				
 				if ( f & 0xf0 )
