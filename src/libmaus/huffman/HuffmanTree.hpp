@@ -40,7 +40,7 @@ namespace libmaus
 				int64_t sym;
 				uint64_t cnt;
 
-				HuffmanLeafNode & operator=(HuffmanLeafNode const & o) { sym = o.sym; cnt = o.cnt; return *this; }
+				// HuffmanLeafNode & operator=(HuffmanLeafNode const & o) { sym = o.sym; cnt = o.cnt; return *this; }
 				
 				int64_t getSym() const { return sym; }
 				uint64_t getCnt() const { return cnt; }
@@ -71,7 +71,7 @@ namespace libmaus
 				uint32_t right;
 				uint64_t cnt;
 				
-				HuffmanInnerNode & operator=(HuffmanInnerNode const & o) { left = o.left; right = o.right; cnt = o.cnt; return *this; }
+				// HuffmanInnerNode & operator=(HuffmanInnerNode const & o) { left = o.left; right = o.right; cnt = o.cnt; return *this; }
 				
 				bool operator<(HuffmanInnerNode const & o) const
 				{
@@ -231,25 +231,55 @@ namespace libmaus
 					throw ex;
 				}
 			}
-			
-			template<typename stream_type>
-			void serialise(stream_type & out) const
-			{
-				libmaus::util::NumberSerialisation::serialiseNumber(out,N.size());
+
+			HuffmanTree(std::istream & in, uint64_t & s) 
+			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false)
+                                      {
 				for ( uint64_t i = 0; i < leafs(); ++i )
 				{
-					libmaus::util::NumberSerialisation::serialiseSignedNumber(out,N[i].node.L.sym);
-					libmaus::util::NumberSerialisation::serialiseNumber(out,N[i].node.L.cnt);
+					N[i].node.L.sym = libmaus::util::NumberSerialisation::deserialiseSignedNumberCount(in,s);
+					N[i].node.L.cnt = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+				}
+				for ( uint64_t i = 0; i < inner(); ++i )
+				{	
+					uint64_t const lr = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+					N[leafs()+i].node.I.left  = (lr >> 32) & 0xFFFFFFFFULL;
+					N[leafs()+i].node.I.right = (lr >>  0) & 0xFFFFFFFFULL;
+					N[leafs()+i].node.I.cnt   = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+				}
+				setcode = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+			
+				if ( ! in )
+				{
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "HuffmanTree: failed to deserialise tree." << std::endl;
+					ex.finish();
+					throw ex;
+				}
+			}
+			
+			template<typename stream_type>
+			uint64_t serialise(stream_type & out) const
+			{
+				uint64_t o = 0;
+				
+				o += libmaus::util::NumberSerialisation::serialiseNumber(out,N.size());
+				for ( uint64_t i = 0; i < leafs(); ++i )
+				{
+					o += libmaus::util::NumberSerialisation::serialiseSignedNumber(out,N[i].node.L.sym);
+					o += libmaus::util::NumberSerialisation::serialiseNumber(out,N[i].node.L.cnt);
 				}
 				for ( uint64_t i = 0; i < inner(); ++i )
 				{
-					libmaus::util::NumberSerialisation::serialiseNumber(out,
+					o += libmaus::util::NumberSerialisation::serialiseNumber(out,
 						(static_cast<uint64_t>(N[leafs()+i].node.I.left)<<32) |
 						(static_cast<uint64_t>(N[leafs()+i].node.I.right)<<0)
 					);
-					libmaus::util::NumberSerialisation::serialiseNumber(out,N[leafs()+i].node.I.cnt);
+					o += libmaus::util::NumberSerialisation::serialiseNumber(out,N[leafs()+i].node.I.cnt);
 				}
-				libmaus::util::NumberSerialisation::serialiseNumber(out,setcode);
+				o += libmaus::util::NumberSerialisation::serialiseNumber(out,setcode);
+				
+				return o;
 			}
 			
 			std::string serialise() const
@@ -261,7 +291,7 @@ namespace libmaus
 			
 			// copy constructor
 			HuffmanTree(HuffmanTree const & o)
-			: N(o.N.size())
+			: N(o.N.size()), setcode(o.setcode)
 			{
 				uint64_t const l = o.leafs();
 				uint64_t const i = o.inner();
@@ -445,6 +475,12 @@ namespace libmaus
 			bool isLeaf(uint64_t const i) const
 			{
 				return i < leafs();
+			}
+			
+			int64_t getSymbol(uint64_t const i) const
+			{
+				assert ( isLeaf(i) );
+				return N[i].node.L.sym;
 			}
 			
 			uint64_t leftChild(uint64_t const i) const
