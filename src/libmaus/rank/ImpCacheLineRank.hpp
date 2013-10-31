@@ -46,15 +46,20 @@ namespace libmaus
 			uint64_t const numblocks;
 			::libmaus::autoarray::AutoArray<uint64_t, ::libmaus::autoarray::alloc_type_memalign_cacheline> A;
 
+			#define LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS
+			#if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			ImpCacheLineRank * left;
 			ImpCacheLineRank * right;
 			ImpCacheLineRank * parent;
+			#endif
 			
 			uint64_t byteSize() const
 			{
 				return 
 					4*sizeof(uint64_t)+
+					#if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 					3*sizeof(ImpCacheLineRank *)+
+					#endif
 					A.byteSize();
 			}
 			
@@ -82,14 +87,19 @@ namespace libmaus
 			ImpCacheLineRank(uint64_t const rn)
 			: n(rn), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
-			  A (datawords+indexwords,false), left(0), right(0), parent(0)
+			  A (datawords+indexwords,false)
+			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  , left(0), right(0), parent(0)
+			  #endif
 			{}
 
 			ImpCacheLineRank(::libmaus::network::SocketBase * in)
 			: n(in->readSingle<uint64_t>()), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
-			  A(in->readMessageInBlocks<uint64_t,::libmaus::autoarray::alloc_type_memalign_cacheline>()), 
-			  left(0), right(0), parent(0)
+			  A(in->readMessageInBlocks<uint64_t,::libmaus::autoarray::alloc_type_memalign_cacheline>())
+			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  , left(0), right(0), parent(0)
+			  #endif
 			{
 			
 			}
@@ -97,7 +107,10 @@ namespace libmaus
 			ImpCacheLineRank(std::istream & in)
 			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
-			  A(in), left(0), right(0), parent(0)
+			  A(in)
+			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  , left(0), right(0), parent(0)
+			  #endif
 			{
 			
 			}
@@ -105,7 +118,10 @@ namespace libmaus
 			ImpCacheLineRank(std::istream & in, uint64_t & s)
 			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
-			  A(in,s), left(0), right(0), parent(0)
+			  A(in,s)
+			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  , left(0), right(0), parent(0)
+			  #endif
 			{
 				s += sizeof(uint64_t);
 			}
