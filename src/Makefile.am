@@ -368,7 +368,10 @@ libmauswavelet_include_HEADERS=\
 	libmaus/wavelet/ImpExternalWaveletGeneratorHuffmanParallel.hpp \
 	libmaus/wavelet/ImpExternalWaveletGeneratorHuffman.hpp \
 	libmaus/wavelet/ImpHuffmanWaveletTree.hpp \
-	libmaus/wavelet/Utf8ToImpHuffmanWaveletTree.hpp
+	libmaus/wavelet/Utf8ToImpHuffmanWaveletTree.hpp \
+	libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp \
+	libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp \
+	libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp
 
 libmaushuffman_includedir=$(includedir)/libmaus/huffman
 libmaushuffman_include_HEADERS=\

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(IMPEXTERNALWAVELETGENERATORHUFFMAN_HPP)
-#define IMPEXTERNALWAVELETGENERATORHUFFMAN_HPP
+#if ! defined(LIBMAUS_WAVELET_IMPEXTERNALWAVELETGENERATORCOMPACTHUFFMAN_HPP)
+#define LIBMAUS_WAVELET_IMPEXTERNALWAVELETGENERATORCOMPACTHUFFMAN_HPP
 
 #include <libmaus/util/TempFileNameGenerator.hpp>
 #include <libmaus/bitio/BufferIterator.hpp>
@@ -32,6 +32,7 @@
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/util/TempFileContainer.hpp>
+#include <libmaus/huffman/HuffmanTree.hpp>
 
 #include <libmaus/util/unordered_map.hpp>
 
@@ -39,9 +40,9 @@ namespace libmaus
 {
 	namespace wavelet
 	{
-		struct ImpExternalWaveletGeneratorHuffman
+		struct ImpExternalWaveletGeneratorCompactHuffman
 		{
-			typedef ImpExternalWaveletGeneratorHuffman this_type;
+			typedef ImpExternalWaveletGeneratorCompactHuffman this_type;
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			// rank type
@@ -52,6 +53,7 @@ namespace libmaus
 			typedef context_type::unique_ptr_type context_ptr_type;
 			// vector of contexts
 			typedef ::libmaus::autoarray::AutoArray<context_ptr_type> context_vector_type;
+			
 			// pair of context pointer and bit
 			typedef std::pair < context_type * , bool > bit_type;
 			// vector of bit type
@@ -60,18 +62,21 @@ namespace libmaus
 			typedef ::libmaus::autoarray::AutoArray < bit_vector_type > bit_vectors_type;
 
 			private:
-			static uint64_t const bufsize = 64*1024;
-		
-			::libmaus::huffman::HuffmanTreeNode const * root;
+			// huffman tree		
+			libmaus::huffman::HuffmanTree const & H;
+			// huffman encode table
+			libmaus::huffman::HuffmanTree::EncodeTable const E;
+			// temp file container
 			::libmaus::util::TempFileContainer & tmpcnt;
-			// ::libmaus::util::TempFileNameGenerator & tmpgen;
-			
-			// std::vector < std::string > outputfilenames;
-			
+			// bit writing contexts
 			::libmaus::autoarray::AutoArray<context_ptr_type> contexts;
-			bit_vectors_type bv;
-			std::map<int64_t,uint64_t> leafToId;
-
+			// symbol to rank (position of leaf in H)
+			libmaus::autoarray::AutoArray<uint64_t> symtorank;
+			// symbol to offset in bv
+			libmaus::autoarray::AutoArray<uint64_t> symtooffset;
+			// (contexts,bit) vector
+			bit_vector_type bv;
+			// number of symbols written
 			uint64_t symbols;
 
 			void flush()
@@ -85,107 +90,92 @@ namespace libmaus
 			}
 			
 			public:
-			ImpExternalWaveletGeneratorHuffman(
-				::libmaus::huffman::HuffmanTreeNode const * rroot, 
+			ImpExternalWaveletGeneratorCompactHuffman(
+				libmaus::huffman::HuffmanTree const & rH,
 				::libmaus::util::TempFileContainer & rtmpcnt
 			)
-			: root(rroot), tmpcnt(rtmpcnt), symbols(0)
+			: H(rH), E(H), tmpcnt(rtmpcnt), symbols(0), contexts(H.inner()), symtorank(E.maxsym-E.minsym+1,false), symtooffset(E.maxsym-E.minsym+1,false)
 			{
-				std::map < ::libmaus::huffman::HuffmanTreeNode const * , ::libmaus::huffman::HuffmanTreeInnerNode const * > parentMap;
-				std::map < ::libmaus::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
-				std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf const * > leafMap;
-				
-				std::stack < ::libmaus::huffman::HuffmanTreeNode const * > S;
-				S.push(root);
-				
-				while ( ! S.empty() )
-				{
-					::libmaus::huffman::HuffmanTreeNode const * cur = S.top();
-					S.pop();
-
-					if ( cur->isLeaf() )
-					{
-						::libmaus::huffman::HuffmanTreeLeaf const * leaf = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(cur);
-						leafMap [ leaf->symbol ] = leaf;
-					}
-					else
-					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(cur);
-						uint64_t const id = nodeToId.size();
-
-						// assert ( id == outputfilenames.size() );
-						nodeToId [ node ] = id;
-						// outputfilenames.push_back(tmpgen.getFileName());
-						
-						parentMap [ node->left ] = node;
-						parentMap [ node->right ] = node;
-
-						// push children
-						S.push ( node->right );
-						S.push ( node->left );
-					}
-				}
-
-				// set up bit writer contexts
-				contexts = ::libmaus::autoarray::AutoArray<context_ptr_type>(nodeToId.size());
-				for ( uint64_t i = 0; i < contexts.size(); ++i )
-				{
-					context_ptr_type tcontextsi(new context_type(
-                                                tmpcnt.openOutputTempFile(i), 0, false /* no header */));
+				// set up contexts
+				for ( uint64_t i = 0; i < H.inner(); ++i )
+				{				
+					context_ptr_type tcontextsi(new context_type(tmpcnt.openOutputTempFile(i), 0, false /* no header */));
 					contexts[i] = UNIQUE_PTR_MOVE(tcontextsi);
 				}
-					
-				bv = ::libmaus::autoarray::AutoArray < bit_vector_type >(leafMap.size());
-				uint64_t lid = 0;
-				for ( std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf const * >::const_iterator ita = leafMap.begin();
-					ita != leafMap.end(); ++ita, ++lid )
+				
+				// compute parent map
+				libmaus::autoarray::AutoArray<uint32_t> P(H.leafs()+H.inner(),false);
+				for ( uint64_t i = 0; i < H.inner(); ++i )
 				{
-					uint64_t d = 0;
-					::libmaus::huffman::HuffmanTreeLeaf const * const leaf = ita->second;
-					::libmaus::huffman::HuffmanTreeNode const * cur = leaf;
+					P[H.leftChild(H.leafs()+i)] = H.leafs()+i;
+					P[H.rightChild(H.leafs()+i)] = H.leafs()+i;					
+				}
+				P[H.root()] = H.root();
+				
+				uint64_t totalbits = 0;
+				for ( uint64_t i = 0; i < H.leafs(); ++i )
+				{
+					int64_t const sym = H.getSymbol(i);
+					totalbits += E.getCodeLength(sym);
+					symtorank[sym-E.minsym] = i;
+				}
+				
+				bv = bit_vector_type(totalbits,false);
+				
+				uint64_t offset = 0;
+
+				for ( uint64_t i = 0; i < H.leafs(); ++i )
+				{
+					// get symbol
+					int64_t const sym = H.getSymbol(i);
+					// store offset in bv table
+					symtooffset[sym-E.minsym] = offset;
+					// code length
+					unsigned int const numbits = E.getCodeLength(sym);
+					// code
+					uint64_t const code = E.getCode(sym);
 					
-					// compute code length
-					while ( parentMap.find(cur) != parentMap.end() )
+					uint64_t node = i;
+					for ( uint64_t j = 0; j < numbits; ++j )
 					{
-						cur = parentMap.find(cur)->second;
-						++d;
+						node = P[node];
+						assert ( ! H.isLeaf(node) );
+						bv[offset + numbits - j - 1] = bit_type(contexts[node-H.leafs()].get(),code&(1ull<<j));
 					}
 					
-					bv [ lid ] = bit_vector_type(d);
-					leafToId[leaf->symbol] = lid;
-					
-					cur = leaf;
-					d = 0;
-					
-					// store code vector and adjoint contexts
-					while ( parentMap.find(cur) != parentMap.end() )
-					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(cur)->second;
-						uint64_t const parentid = nodeToId.find(parent)->second;
-
-						if ( cur == parent->left )
-							bv [lid][d] = bit_type(contexts[parentid].get(),false);
-						else
-							bv [lid][d] = bit_type(contexts[parentid].get(),true);						
-
-						cur = parent;
-						++d;
-					}
+					offset += numbits;
 				}
 			}
 			
 			void putSymbol(int64_t const s)
 			{
-				assert ( leafToId.find(s) != leafToId.end() );
-				bit_vector_type const & b = bv [ leafToId.find(s)->second ];
+				unsigned int codelen = E.getCodeLength(s);				
+				bit_type const * btp = bv.begin() + symtooffset[s-E.minsym];
 				
+				for ( unsigned int i = 0; i < codelen; ++i )
+					btp[i].first->writeBit(btp[i].second);
 				
-				for ( uint64_t i = 0; i < b.size(); ++i )
-					b [ i ] . first -> writeBit( b[i].second );
+				#if 0
+				uint64_t const code = E.getCode(s);
+				
+				uint64_t node = H.root();
+				uint64_t flagmask = 1ull << (codelen-1);
+				
+				while ( codelen-- )
+				{
+					bool const b = (code & flagmask);
+					flagmask >>= 1;
+					
+					contexts[node-H.leafs()]->writeBit(b);
+					
+					if ( b )
+						node = H.rightChild(node);
+					else
+						node = H.leftChild(node);
+				}
+				#endif
 
 				symbols += 1;
-
-				// std::cerr << "Putting symbol " << s << " code length " << b.size() << " symbols now " << symbols << std::endl;
 			}
 
 			template<typename stream_type>
@@ -195,7 +185,7 @@ namespace libmaus
 
 				uint64_t p = 0;
 				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,symbols); // n
-				p += root->serialize(out); // huffman code tree
+				p += H.serialise(out); // root->serialize(out); // huffman code tree
 				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,contexts.size()); // number of bit vectors
 				
 				std::vector<uint64_t> nodeposvec;

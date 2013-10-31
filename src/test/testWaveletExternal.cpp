@@ -25,6 +25,9 @@
 #include <libmaus/wavelet/ImpHuffmanWaveletTree.hpp>
 #include <libmaus/lf/LFZero.hpp>
 
+#include <libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp>
+#include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+
 void testImpExternalWaveletGenerator()
 {
 	::libmaus::util::TempFileNameGenerator tmpgen("tmpdir",1);
@@ -258,8 +261,167 @@ void testHuffmanWaveletSer()
 	std::cerr << std::endl;
 }
 
+#include <libmaus/util/MemTempFileContainer.hpp>
+#include <libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp>
+
+void testCompactHuffman()
+{
+	std::map<int64_t,uint64_t> F;
+	F[0] = 1;
+	F[1] = 1;
+	F[2] = 1;
+	F[3] = 1;
+	libmaus::huffman::HuffmanTree H(F.begin(),F.size(),false,true);
+	
+	// std::cerr << H;
+	
+	libmaus::util::MemTempFileContainer MTFC;
+	libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
+	// libmaus::util::TempFileNameGenerator tmpgen("tmpdir",2);
+	// libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,8);
+	
+	// std::cerr << "left construction." << std::endl;
+
+	uint64_t A[] = { 0,0,0,0,0,0,3,3,1,3,2,1,2,1,1,2,1,1,1,2,1 };
+	uint64_t const n = sizeof(A)/sizeof(A[0]);
+	// uint64_t A[] = { 0,0,0,0,0,0  };
+	
+	for ( uint64_t i = 0; i < n; ++i )
+		IEWGHN.putSymbol(A[i]);
+	
+	std::ostringstream ostr;
+	IEWGHN.createFinalStream(ostr);
+	std::istringstream istr(ostr.str());
+	libmaus::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
+	
+	// std::cerr << IHWTN.size() << std::endl;
+	assert ( IHWTN.size() == n );
+	
+	std::map<uint64_t,uint64_t> R;
+
+	for ( uint64_t i = 0; i < IHWTN.size(); ++i )
+	{
+		std::cerr << IHWTN[i] << ";";
+		assert ( IHWTN[i] == A[i] );
+
+		// std::cerr << "[" << i << "," << IHWTN.select(A[i],R[A[i]]) << "]" << ";";
+		assert ( i == IHWTN.select(A[i],R[A[i]]) );
+
+		assert ( IHWTN.rankm(A[i],i) == R[A[i]] );
+		R[A[i]]++;
+		assert ( IHWTN.rank (A[i],i) == R[A[i]] );
+	}
+	std::cerr << std::endl;
+	
+	for ( uint64_t i = 0; i <= IHWTN.size(); ++i )
+		for ( uint64_t j = i; j <= IHWTN.size(); ++j )
+		{
+			assert ( IHWTN.enumerateSymbolsInRange(i,j) == IHWTN.enumerateSymbolsInRangeSlow(i,j) );
+		}
+
+	// ImpExternalWaveletGeneratorCompactHuffman(libmaus::huffman::HuffmanTree const & rH, ::libmaus::util::TempFileContainer & rtmpcnt)
+
+}
+
+void testCompactHuffmanPar()
+{
+	std::vector<uint8_t> A;
+	std::map<int64_t,uint64_t> F;
+	// uint64_t const n = 1024*1024;
+	uint64_t const n = 64*1024*1024;
+	for ( uint64_t i = 0; i < n; ++i )
+	{
+		A.push_back(libmaus::random::Random::rand8() & 0xFF);
+		F[A.back()]++;
+	}
+	libmaus::huffman::HuffmanTree H(F.begin(),F.size(),false,true);
+	
+	std::cerr << H;
+	
+	libmaus::util::MemTempFileContainer MTFC;
+	// libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
+	libmaus::util::TempFileNameGenerator tmpgen("tmpdir",2);
+	#if defined(_OPENMP)
+	uint64_t const numthreads = omp_get_max_threads();
+	#else
+	uint64_t const numthreads = 1;
+	#endif
+	libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,numthreads);
+	
+	// std::cerr << "left construction." << std::endl;
+
+	#if 0
+	uint64_t A[] = { 0,0,0,0,0,0,3,3,1,3,2,1,2,1,1,2,1,1,1,2,1 };
+	uint64_t const n = sizeof(A)/sizeof(A[0]);
+	// uint64_t A[] = { 0,0,0,0,0,0  };
+	#endif
+	
+	uint64_t const perthread = (n + numthreads-1)/numthreads;
+	
+	#if defined(_OPENMP)
+	#pragma omp parallel for
+	#endif
+	for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
+	{
+		uint64_t const tid = omp_get_thread_num();
+		IEWGHN[tid].putSymbol(A[i]);
+	}
+	
+	std::string tmpfilename = "tmp.hwt";
+	// std::ostringstream ostr;
+	libmaus::aio::CheckedOutputStream COS(tmpfilename);
+	IEWGHN.createFinalStream(COS);
+	COS.close();
+	// std::istringstream istr(ostr.str());
+	// libmaus::wavelet::ImpCompactHuffmanWaveletTree IHWTN(tmpfilename);
+	libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename));
+	libmaus::wavelet::ImpCompactHuffmanWaveletTree const & IHWTN = *pIHWTN;
+	// libmaus::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
+	remove(tmpfilename.c_str());
+	
+	// std::cerr << IHWTN.size() << std::endl;
+	assert ( IHWTN.size() == n );
+	
+	std::map<uint64_t,uint64_t> R;
+
+	for ( uint64_t i = 0; i < IHWTN.size(); ++i )
+	{
+		if ( i % (32*1024) == 0 )
+			std::cerr << static_cast<double>(i) / n << std::endl;
+		// std::cerr << IHWTN[i] << ";";
+		assert ( IHWTN[i] == A[i] );
+
+		// std::cerr << "[" << i << "," << IHWTN.select(A[i],R[A[i]]) << "]" << ";";
+		assert ( i == IHWTN.select(A[i],R[A[i]]) );
+
+		assert ( IHWTN.rankm(A[i],i) == R[A[i]] );
+		R[A[i]]++;
+		assert ( IHWTN.rank (A[i],i) == R[A[i]] );
+	}
+	std::cerr << std::endl;
+	
+	if ( n <= 128 )
+	{
+		#if defined(_OPENMP)
+		#pragma omp parallel for
+		#endif
+		for ( uint64_t i = 0; i <= IHWTN.size(); ++i )
+			for ( uint64_t j = i; j <= IHWTN.size(); ++j )
+			{
+				assert ( IHWTN.enumerateSymbolsInRange(i,j) == IHWTN.enumerateSymbolsInRangeSlow(i,j) );
+			}
+	}
+
+	// ImpExternalWaveletGeneratorCompactHuffman(libmaus::huffman::HuffmanTree const & rH, ::libmaus::util::TempFileContainer & rtmpcnt)
+
+}
+
 int main()
 {
+	testCompactHuffmanPar();
+	
+	return 0;
+	
 	#if 0
 	::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IMP(new ::libmaus::wavelet::ImpHuffmanWaveletTree(std::cin));
 	::libmaus::autoarray::AutoArray<uint32_t>::unique_ptr_type Z(new ::libmaus::autoarray::AutoArray<uint32_t>(64));
