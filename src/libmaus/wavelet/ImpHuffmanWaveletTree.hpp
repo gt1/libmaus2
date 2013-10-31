@@ -287,6 +287,7 @@ namespace libmaus
 				init();
 			}
 			
+			private:
 			ImpHuffmanWaveletTree(
 				std::string const & filename,
 				uint64_t const rn,
@@ -310,6 +311,7 @@ namespace libmaus
 				init();
 			}
 			
+			public:
 			static unique_ptr_type load(std::string const & filename)
 			{
 				::libmaus::aio::CheckedInputStream in(filename.c_str());
