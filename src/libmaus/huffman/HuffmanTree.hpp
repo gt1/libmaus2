@@ -177,9 +177,202 @@ namespace libmaus
 				}
 			}
 
+			void computeSubTreeCounts()
+			{
+				for ( uint64_t i = leafs(); i < leafs() + inner(); ++i )
+				{
+					uint64_t const leftcnt = 
+						isLeaf(leftChild(i)) 
+						? 
+						1 
+						: 
+							(
+								1
+								+
+								((N[leftChild(i)].node.I.cnt >> 32)&0xFFFFFFFFULL)
+								+
+								((N[leftChild(i)].node.I.cnt >>  0)&0xFFFFFFFFULL)
+							);
+					uint64_t const rightcnt = 
+						isLeaf(rightChild(i)) 
+						? 
+						1 
+						: 
+							(
+								1
+								+
+								((N[rightChild(i)].node.I.cnt >> 32)&0xFFFFFFFFULL)
+								+
+								((N[rightChild(i)].node.I.cnt >>  0)&0xFFFFFFFFULL)
+							);
+					
+					N[i].node.I.cnt = (leftcnt << 32) | (rightcnt << 0);
+				}
+			}
+
+			void computeSubTreeCountsNoLeafs()
+			{
+				for ( uint64_t i = leafs(); i < leafs() + inner(); ++i )
+				{
+					uint64_t const leftcnt = 
+						isLeaf(leftChild(i)) 
+						? 
+						0
+						: 
+							(
+								1
+								+
+								((N[leftChild(i)].node.I.cnt >> 32)&0xFFFFFFFFULL)
+								+
+								((N[leftChild(i)].node.I.cnt >>  0)&0xFFFFFFFFULL)
+							);
+					uint64_t const rightcnt = 
+						isLeaf(rightChild(i)) 
+						? 
+						0 
+						: 
+							(
+								1
+								+
+								((N[rightChild(i)].node.I.cnt >> 32)&0xFFFFFFFFULL)
+								+
+								((N[rightChild(i)].node.I.cnt >>  0)&0xFFFFFFFFULL)
+							);
+					
+					N[i].node.I.cnt = (leftcnt << 32) | (rightcnt << 0);
+				}
+			}
+			
+			void assignDfsIds()
+			{
+				computeSubTreeCountsNoLeafs();
+			
+				if ( inner() )
+				{
+					uint64_t const rightmask = 0xFFFFFFFF00000000ULL;
+					
+					// set dfs id for root
+					N[root()].node.I.cnt &= rightmask;
+				
+					// traverse tree and set new ids
+					for ( uint64_t i = 0; i < inner(); ++i )
+					{
+						uint64_t const node = N.size()-i-1;
+						
+						// number of nodes in left sub tree
+						uint64_t const leftcnt = (N[node].node.I.cnt >> 32) & 0xFFFFFFFFULL;
+						// own id
+						uint64_t const ownid   = (N[node].node.I.cnt >>  0) & 0xFFFFFFFFULL;
+						
+						if ( ! isLeaf(leftChild(node)) )
+						{
+							N[leftChild(node)].node.I.cnt &= rightmask;
+							N[leftChild(node)].node.I.cnt |= (ownid+1);
+						}
+						if ( ! isLeaf(rightChild(node)) )
+						{
+							N[rightChild(node)].node.I.cnt &= rightmask;
+							N[rightChild(node)].node.I.cnt |= (ownid+leftcnt+1);						
+						}
+						
+						// remove left subtree count
+						N[node].node.I.cnt &= 0xFFFFFFFFULL;
+					}
+				}
+			}
+			
+			struct InnerNodeCountComparator
+			{
+				bool operator()(HuffmanNode const & A, HuffmanNode const & B) const
+				{
+					return A.node.I.cnt < B.node.I.cnt;
+				}
+			};
+			
+			
+			void checkDfsIds(uint64_t node, uint64_t & id)
+			{
+				bool const ok = ( id == N[node].node.I.cnt );
+				
+				if ( ! ok )
+				{
+					std::cerr << "expected " << id << " got " << N[node].node.I.cnt << std::endl;
+				}
+				
+				assert ( ok );
+				id++;
+				
+				if ( ! isLeaf(leftChild(node)) )
+					checkDfsIds(leftChild(node),id);
+				if ( ! isLeaf(rightChild(node)) )
+					checkDfsIds(rightChild(node),id);
+			}
+			
+			void checkDfsIds()
+			{
+				uint64_t id = 0;
+				checkDfsIds(root(),id);
+			}
+			
+			void testAssignDfsIds()
+			{
+				assignDfsIds();
+				checkDfsIds();
+			}
+			
+			uint64_t fillCntMap(uint64_t node, std::map<uint64_t,uint64_t> & M)
+			{
+				if ( isLeaf(node) )
+					M[node] = 1;
+				else
+					M[node] = 1 + fillCntMap(leftChild(node),M) + fillCntMap(rightChild(node),M);
+
+				return M[node];
+			}
+			
+			void testComputeSubTreeCounts()
+			{
+				std::map<uint64_t,uint64_t> M;
+				fillCntMap(root(),M);
+				computeSubTreeCounts();
+			
+				std::cerr << "Checking " << inner() << " inner nodes." << std::endl;	
+				for ( uint64_t i = leafs(); i < N.size(); ++i )
+				{
+					assert (
+						((N[i].node.I.cnt >> 32) & 0xFFFFFFFFULL)
+						+
+						((N[i].node.I.cnt >>  0) & 0xFFFFFFFFULL)
+						+
+						1
+						==
+						M.find(i)->second
+					);
+				}
+			}
+
+			void reorderByDfs()
+			{
+				assignDfsIds();
+				
+				// reassign pointers
+				for ( uint64_t i = leafs(); i < N.size(); ++i )
+				{
+					if ( N[i].node.I.left >= leafs() )
+						N[i].node.I.left = N[ N[i].node.I.left ] . node.I.cnt + leafs();
+					if ( N[i].node.I.right >= leafs() )
+						N[i].node.I.right = N[ N[i].node.I.right ] . node.I.cnt + leafs();
+				}
+				
+				std::sort(N.begin()+leafs(),N.end(),InnerNodeCountComparator());
+				
+				treeroot = leafs();
+			}
+
 			// huffman tree
 			libmaus::autoarray::AutoArray<HuffmanNode> N;
 			bool setcode;
+			uint64_t treeroot;
 
 			public:
 			// size of alphabet
@@ -201,13 +394,13 @@ namespace libmaus
 			}
 			
 			// empty constructor
-			HuffmanTree() : N(), setcode(false)
+			HuffmanTree() : N(), setcode(false), treeroot(0)
 			{
 				
 			}
 			
 			HuffmanTree(std::istream & in) 
-			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false)
+			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false), treeroot(0)
 			{
 				for ( uint64_t i = 0; i < leafs(); ++i )
 				{
@@ -221,7 +414,9 @@ namespace libmaus
 					N[leafs()+i].node.I.right = (lr >>  0) & 0xFFFFFFFFULL;
 					N[leafs()+i].node.I.cnt   = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 				}
-				setcode = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+			
+				setcode  = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				treeroot = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 			
 				if ( ! in )
 				{
@@ -233,7 +428,7 @@ namespace libmaus
 			}
 
 			HuffmanTree(std::istream & in, uint64_t & s) 
-			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false)
+			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false), treeroot(0)
                                       {
 				for ( uint64_t i = 0; i < leafs(); ++i )
 				{
@@ -247,7 +442,8 @@ namespace libmaus
 					N[leafs()+i].node.I.right = (lr >>  0) & 0xFFFFFFFFULL;
 					N[leafs()+i].node.I.cnt   = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
 				}
-				setcode = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+				setcode  = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+				treeroot = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
 			
 				if ( ! in )
 				{
@@ -278,6 +474,7 @@ namespace libmaus
 					o += libmaus::util::NumberSerialisation::serialiseNumber(out,N[leafs()+i].node.I.cnt);
 				}
 				o += libmaus::util::NumberSerialisation::serialiseNumber(out,setcode);
+				o += libmaus::util::NumberSerialisation::serialiseNumber(out,treeroot);
 				
 				return o;
 			}
@@ -291,7 +488,7 @@ namespace libmaus
 			
 			// copy constructor
 			HuffmanTree(HuffmanTree const & o)
-			: N(o.N.size()), setcode(o.setcode)
+			: N(o.N.size()), setcode(o.setcode), treeroot(o.treeroot)
 			{
 				uint64_t const l = o.leafs();
 				uint64_t const i = o.inner();
@@ -301,10 +498,11 @@ namespace libmaus
 				for ( uint64_t j = 0; j < i; ++j, ++p ) N[p].node.I = o.N[p].node.I;
 			}
 			
+			
 			// construct tree from array of pairs (sym,freq)
 			template<typename iterator>
-			HuffmanTree(iterator F, uint64_t const s, bool const sortbydepth = false, bool const rsetcode = false)
-			: N(s ? (2*s-1) : 0 , false), setcode(rsetcode)
+			HuffmanTree(iterator F, uint64_t const s, bool const sortbydepth = false, bool const rsetcode = false, bool const rdfsorder = false)
+			: N(s ? (2*s-1) : 0 , false), setcode(rsetcode), treeroot(s ? (N.size()-1) : 0)
 			{
 				for ( uint64_t i = 0; i < s; ++i, ++F )
 				{
@@ -425,8 +623,10 @@ namespace libmaus
 				
 				if ( sortbydepth )
 					sortSymbols();
+			
+				if ( rdfsorder )
+					reorderByDfs();
 			}
-				
 
 			// assignment operator
 			HuffmanTree & operator=(HuffmanTree const & o)
@@ -440,6 +640,9 @@ namespace libmaus
 					N = libmaus::autoarray::AutoArray<HuffmanNode>(o.N.size(),false);
 					for ( uint64_t j = 0; j < l; ++j, ++p ) N[p].node.L = o.N[p].node.L;
 					for ( uint64_t j = 0; j < i; ++j, ++p ) N[p].node.I = o.N[p].node.I;
+					
+					setcode = o.setcode;
+					treeroot = o.treeroot;
 				}
 				
 				return *this;
@@ -463,13 +666,13 @@ namespace libmaus
 			std::string toString() const
 			{
 				std::ostringstream ostr;
-				printRec(ostr,N.size()-1);
+				printRec(ostr,root());
 				return ostr.str();
 			}
 			
 			uint64_t root() const
 			{
-				return N.size()-1;
+				return treeroot;
 			}
 			
 			bool isLeaf(uint64_t const i) const
@@ -499,7 +702,7 @@ namespace libmaus
 					out << ((c & (1ull << (b-i-1))) != 0);
 				return out;
 			}
-			
+
 			static std::ostream & printCode(std::ostream & out, uint64_t const c)
 			{
 				return printCode(out,c >> 6,c & 0x3F);
@@ -528,6 +731,11 @@ namespace libmaus
 				for ( uint64_t i = 0; i < inner(); ++i )
 					if ( N[leafs()+i].node.I != o.N[leafs()+i].node.I )
 						return false;
+						
+				if ( setcode != o.setcode )
+					return false;
+				if ( treeroot != o.treeroot )
+					return false;
 						
 				return true;
 			}
@@ -613,10 +821,19 @@ namespace libmaus
 				{
 					return C[i-minsym] & 0x3F;
 				}
+				
+				bool getBitFromTop(int64_t const sym, unsigned int const level) const
+				{
+					assert ( hasSymbol(sym) );
+					uint64_t const code = getCode(sym);
+					unsigned int const len = getCodeLength(sym);
+					return code & (1ull << (len-level-1));
+				}
 			};
 		};
 
 		::std::ostream & operator<<(::std::ostream & out, HuffmanTree const & H);
+		::std::ostream & operator<<(::std::ostream & out, HuffmanTree::EncodeTable const & E);
 	}
 }
 #endif
