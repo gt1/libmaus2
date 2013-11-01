@@ -586,8 +586,18 @@ void testHuffmanTree()
 	std::istringstream istr(ser);
 	libmaus::huffman::HuffmanTree H2(istr);
 	assert ( H == H2 );
+	#if 0
+	H2.testComputeSubTreeCounts();
+	H2.assignDfsIds();
+	std::cerr << "start dfs" << std::endl;
+	std::cerr << H2;
+	H2.testAssignDfsIds();
+	#endif
 	
-	
+	libmaus::huffman::HuffmanTree H3(M.begin(),M.size(),true /* sort leafs by depth */,true /* assign codes */,true /* order by inner nodes by dfs */);
+	std::cerr << "start reordered: " << H3.root()-H3.leafs() << std::endl;
+	std::cerr << H3;
+		
 	std::ostringstream ostrout;
 	libmaus::bitio::BitWriterStream8 BWS8(ostrout);
 	libmaus::huffman::HuffmanTree::EncodeTable E(H);
@@ -610,6 +620,8 @@ void testHuffmanTree()
 int main()
 {
 	testHuffmanTree();	
+	
+	return 0;
 
 	::libmaus::util::Histogram hist;
 	unsigned int seq[] = { 0,1,1,0,1,2,4,1,3,1,5,1,1,1 };
