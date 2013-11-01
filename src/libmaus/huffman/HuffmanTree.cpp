@@ -23,3 +23,18 @@
 	H.printRec(out,H.root());
 	return out;
 }
+
+::std::ostream & libmaus::huffman::operator<<(::std::ostream & out, libmaus::huffman::HuffmanTree::EncodeTable const & E)
+{
+	for ( int64_t i = E.minsym; i <= E.maxsym; ++i )
+		if ( E.hasSymbol(i) )
+		{
+			out << i << "\t" << E.getCode(i) << "\t" << E.getCodeLength(i) << "\t";
+			libmaus::huffman::HuffmanTree::printCode(out,E.getCode(i),E.getCodeLength(i));
+			out << "\t";
+			for ( unsigned int j = 0; j < E.getCodeLength(i); ++j )
+				out << (E.getBitFromTop(i,j)!=0);
+			out << std::endl;
+		}
+	return out;
+}
