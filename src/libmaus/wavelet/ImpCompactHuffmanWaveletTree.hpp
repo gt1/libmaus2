@@ -43,8 +43,12 @@ namespace libmaus
 			libmaus::huffman::HuffmanTree::EncodeTable::unique_ptr_type E;
 			rank_array_type dicts;
 			uint64_t maxdepth;
-			
 			std::vector<uint64_t> nodepos;
+			
+			libmaus::autoarray::AutoArray<int64_t> symbolArray() const
+			{
+				return H->symbolArray();
+			}
 			
 			uint64_t byteSize() const
 			{
@@ -360,7 +364,7 @@ namespace libmaus
 			{
 				uint64_t node = H->root();
 				
-				while ( node )
+				while ( !H->isLeaf(node) )
 				{
 					unsigned int sym;
 					uint64_t const r1 = dicts[node-H->leafs()]->inverseSelect1(i,sym);
