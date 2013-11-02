@@ -192,7 +192,7 @@ void testUtf8BlockIndexDecoder(std::string const & fn)
 	assert ( deco[deco.numblocks] == ::libmaus::util::GetFileSize::getFileSize(fn) );
 }
 
-#include <libmaus/wavelet/Utf8ToCompactImpHuffmanWaveletTree.hpp>
+#include <libmaus/wavelet/Utf8ToImpCompactHuffmanWaveletTree.hpp>
 
 int main(int argc, char * argv[])
 {
