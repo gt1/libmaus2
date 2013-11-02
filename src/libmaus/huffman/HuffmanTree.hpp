@@ -763,6 +763,15 @@ namespace libmaus
 				return N[cur].node.L.sym;
 			}
 			
+			libmaus::autoarray::AutoArray<int64_t> symbolArray() const
+			{
+				libmaus::autoarray::AutoArray<int64_t> A(leafs(),false);
+				for ( uint64_t i = 0; i < leafs(); ++i )
+					A[i] = N[i].node.L.sym;
+				std::sort(A.begin(),A.end());
+				return A;
+			}
+			
 			struct EncodeTable
 			{
 				typedef EncodeTable this_type;
