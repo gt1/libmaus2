@@ -94,7 +94,7 @@ namespace libmaus
 				libmaus::huffman::HuffmanTree const & rH,
 				::libmaus::util::TempFileContainer & rtmpcnt
 			)
-			: H(rH), E(H), tmpcnt(rtmpcnt), symbols(0), contexts(H.inner()), symtorank(E.maxsym-E.minsym+1,false), symtooffset(E.maxsym-E.minsym+1,false)
+			: H(rH), E(H), tmpcnt(rtmpcnt), contexts(H.inner()), symtorank(E.maxsym-E.minsym+1,false), symtooffset(E.maxsym-E.minsym+1,false), symbols(0)
 			{
 				// set up contexts
 				for ( uint64_t i = 0; i < H.inner(); ++i )
