@@ -75,8 +75,6 @@ namespace libmaus
 			// libmaus::autoarray::AutoArray<uint64_t> symtorank;
 			// symbol to offset in bv
 			libmaus::autoarray::AutoArray<uint64_t> symtooffset;
-			// number of symbols written
-			uint64_t symbols;
 
 			// (contexts,bit) vector
 			bit_vector_type bv;
@@ -140,7 +138,7 @@ namespace libmaus
 				::libmaus::util::TempFileNameGenerator & rtmpcnt,
 				uint64_t const rnumthreads
 			)
-			: H(rH), E(H), tmpcnt(rtmpcnt), numthreads(rnumthreads), symbols(0), 
+			: H(rH), E(H), tmpcnt(rtmpcnt), numthreads(rnumthreads),
 			  // symtorank(E.maxsym-E.minsym+1,false), 
 			  symtooffset(E.maxsym-E.minsym+1,false),
 			  outstreamfilenames(numthreads * H.inner()),
