@@ -22,6 +22,7 @@
 #if defined(LIBMAUS_HAVE_IO_LIB)
 #include <libmaus/bambam/Scram.h>
 #include <io_lib/scram.h>
+#include <io_lib/sam_header.h>
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
