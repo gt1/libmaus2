@@ -353,17 +353,20 @@ namespace libmaus
 			/**
 			 * specialisation of WriterWrapperBase for writing BAM files
 			 **/
+			template<typename _writer_type>
 			struct BamWriterWrapper : public WriterWrapperBase
 			{
+				typedef _writer_type writer_type;
+				
 				//! BAM writer object
-				::libmaus::bambam::BamWriter & writer;
+				writer_type & writer;
 				
 				/**
 				 * constructor
 				 *
 				 * @param rwriter BAM writer object
 				 **/
-				BamWriterWrapper(::libmaus::bambam::BamWriter & rwriter) : writer(rwriter) {}
+				BamWriterWrapper(writer_type & rwriter) : writer(rwriter) {}
 				
 				/**
 				 * write alignment block of size blocksize
@@ -373,10 +376,7 @@ namespace libmaus
 				 **/
 				virtual void write(char const * data, uint32_t const blocksize)
 				{
-					// write block size
-					::libmaus::bambam::EncoderBase::putLE(writer.getStream(),blocksize);
-					// write bam entry data
-					writer.getStream().write(data,blocksize);
+					writer.writeBamBlock(reinterpret_cast<uint8_t const *>(data),blocksize);
 				}
 			};
 			
@@ -398,9 +398,29 @@ namespace libmaus
 			)
 			{
 				::libmaus::bambam::BamWriter writer(stream,bamheader,level,blockoutputcallbacks);
-				BamWriterWrapper BWW(writer);
+				BamWriterWrapper< ::libmaus::bambam::BamWriter > BWW(writer);
 				createOutput(BWW,verbose);
 			}
+
+			/**
+			 * create final sorted output
+			 *
+			 * @param stream output stream
+			 * @param bamheader BAM file header
+			 * @param level compression level
+			 * @param verbose if true then progress information will be printed on std::cerr
+			 **/
+			void createOutput(
+				libmaus::bambam::BamBlockWriterBase & writerbase,
+				int const level = Z_DEFAULT_COMPRESSION, 
+				int const verbose = 0,
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0
+			)
+			{
+				BamWriterWrapper< libmaus::bambam::BamBlockWriterBase > BWW(writerbase);
+				createOutput(BWW,verbose);
+			}
+			
 		};
 	}
 }
