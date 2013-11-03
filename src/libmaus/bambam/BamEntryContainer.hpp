@@ -410,12 +410,7 @@ namespace libmaus
 			 * @param level compression level
 			 * @param verbose if true then progress information will be printed on std::cerr
 			 **/
-			void createOutput(
-				libmaus::bambam::BamBlockWriterBase & writerbase,
-				int const level = Z_DEFAULT_COMPRESSION, 
-				int const verbose = 0,
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0
-			)
+			void createOutput(libmaus::bambam::BamBlockWriterBase & writerbase, int const verbose = 0)
 			{
 				BamWriterWrapper< libmaus::bambam::BamBlockWriterBase > BWW(writerbase);
 				createOutput(BWW,verbose);
