@@ -1,3 +1,9 @@
+libmaus (0.0.86-0) unstable; urgency=low
+
+  * add alignment writer factory class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 03 Nov 2013 18:07:08 +0000
+
 libmaus (0.0.85-0) unstable; urgency=low
 
   * add block write callback parameter in BamEntryContainer's output production course 
