@@ -455,6 +455,17 @@ namespace libmaus
 			{
 				return stream.getStream();
 			}
+			
+			/**
+			 * write a BAM data block
+			 **/
+			void writeBamBlock(uint8_t const * data, uint64_t const blocksize)
+			{
+				// write block size
+				::libmaus::bambam::EncoderBase::putLE(getStream(),blocksize);
+				// write bam entry data
+				getStream().write(data,blocksize);
+			}
 		};
 		
 		struct BamWriter : public BamWriterSerialStreamBaseWrapper, public BamWriterTemplate<BamWriterSerialStreamBase>
