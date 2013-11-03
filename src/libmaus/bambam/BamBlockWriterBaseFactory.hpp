@@ -37,7 +37,7 @@ namespace libmaus
 			BamBlockWriterBaseFactory() {}
 			virtual ~BamBlockWriterBaseFactory() {}
 
-			int checkCompressionLevel(int const level)
+			static int checkCompressionLevel(int const level)
 			{
 				switch ( level )
 				{
