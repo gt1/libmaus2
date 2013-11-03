@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus/bambam/BamBlockWriterBase.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
 #include <libmaus/lz/BgzfDeflateParallel.hpp>
 #include <libmaus/lz/BgzfInflateDeflateParallel.hpp>
@@ -257,7 +258,7 @@ namespace libmaus
 		 * BAM file writing class template
 		 **/
 		template<typename _base_type>
-		struct BamWriterTemplate : public ::libmaus::bambam::BamAlignmentEncoderBase
+		struct BamWriterTemplate : public ::libmaus::bambam::BamAlignmentEncoderBase, public libmaus::bambam::BamBlockWriterBase
 		{
 			//! base type
 			typedef _base_type base_type;
@@ -307,7 +308,7 @@ namespace libmaus
 			/**
 			 * destructor, writes EOF block and flushes stream
 			 **/
-			~BamWriterTemplate()
+			virtual ~BamWriterTemplate()
 			{
 			}
 
@@ -464,7 +465,7 @@ namespace libmaus
 				// write block size
 				::libmaus::bambam::EncoderBase::putLE(getStream(),blocksize);
 				// write bam entry data
-				getStream().write(data,blocksize);
+				getStream().write(reinterpret_cast<char const *>(data),blocksize);
 			}
 		};
 		

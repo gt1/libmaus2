@@ -26,6 +26,7 @@
 #include <libmaus/bambam/BamHeader.hpp>
 #include <libmaus/bambam/Scram.h>
 #include <libmaus/util/DynamicLoading.hpp>
+#include <libmaus/bambam/BamBlockWriterBase.hpp>
 
 namespace libmaus
 {
@@ -34,7 +35,7 @@ namespace libmaus
 		/**
 		 * scram encoder class; alignment encoder based on io_lib
 		 **/
-		struct ScramEncoder
+		struct ScramEncoder : public libmaus::bambam::BamBlockWriterBase
 		{
 			//! this type
 			typedef ScramEncoder this_type;
@@ -94,14 +95,17 @@ namespace libmaus
 				}
 			}
 			
-			~ScramEncoder()
+			virtual ~ScramEncoder()
 			{
 				e_delete.func(encoder);
 			}
 
-			void encode(libmaus::bambam::BamAlignment const & A)
+			/**
+			 * write a BAM data block
+			 **/
+			void writeBamBlock(uint8_t const * data, uint64_t const blocksize)
 			{
-				int const r = e_encode.func(encoder,A.D.begin(),A.blocksize);
+				int const r = e_encode.func(encoder,data,blocksize);
 				
 				if ( r < 0 )
 				{
@@ -110,6 +114,11 @@ namespace libmaus
 					se.finish();
 					throw se;
 				}
+			}
+
+			void encode(libmaus::bambam::BamAlignment const & A)
+			{
+				writeBamBlock(A.D.begin(),A.blocksize);
 			}
 		};
 	}
