@@ -272,7 +272,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamAlignmentSnappyInput.hpp \
 	libmaus/bambam/BamAlignmentInputPositionUpdateCallback.hpp \
 	libmaus/bambam/BamAlignmentInputPositionCallbackNull.hpp \
-	libmaus/bambam/BamBlockWriterBase.hpp
+	libmaus/bambam/BamBlockWriterBase.hpp \
+	libmaus/bambam/BamBlockWriterBaseFactory.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
