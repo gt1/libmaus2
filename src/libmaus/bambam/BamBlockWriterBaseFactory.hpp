@@ -72,7 +72,7 @@ namespace libmaus
 			{
 				std::string const outputformat = arginfo.getValue<std::string>("outputformat","bam");
 				uint64_t const outputthreads = std::max(static_cast<uint64_t>(1),arginfo.getValue<uint64_t>("outputthreads",1));
-				bool const outputisstdout = (!arginfo.hasKey("O")) || arginfo.getUnparsedValue("O","-") == std::string("-") );
+				bool const outputisstdout = (!arginfo.hasArg("O")) || arginfo.getUnparsedValue("O","-") == std::string("-") );
 				std::string const outputfilename = arginfo.getUnparsedValue("O","-");
 
 				if ( outputformat == "bam" )
