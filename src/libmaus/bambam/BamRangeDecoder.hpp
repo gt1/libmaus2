@@ -260,7 +260,7 @@ namespace libmaus
 		/**
 		 * wrapper for a BamRangeDecoder object
 		 **/
-		struct BamRangeDecoderWrapper
+		struct BamRangeDecoderWrapper : public libmaus::bambam::BamAlignmentDecoderWrapper
 		{
 			//! decoder object
 			BamRangeDecoder decoder;
@@ -276,6 +276,11 @@ namespace libmaus
 			: decoder(rfilename,rranges,rputrank)
 			{
 			
+			}
+			
+			libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			{
+				return decoder;
 			}
 		};
 	}

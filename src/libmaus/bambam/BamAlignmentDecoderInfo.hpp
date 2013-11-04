@@ -36,6 +36,7 @@ namespace libmaus
 			std::string reference;
 			bool putrank;
 			std::ostream * copystr;
+			std::string range;
 
 			static std::vector<libmaus::bambam::BamAlignmentDecoderInfo> filenameToInfo(std::vector<std::string> const & filenames)
 			{
@@ -75,21 +76,27 @@ namespace libmaus
 				return 0;
 			}
 			
+			static std::string getDefaultRange()
+			{
+				return "";
+			}
+			
 			BamAlignmentDecoderInfo(BamAlignmentDecoderInfo const & o)
 			: inputfilename(o.inputfilename), inputformat(o.inputformat), inputthreads(o.inputthreads),
-			  reference(o.reference), putrank(o.putrank), copystr(o.copystr) {}
+			  reference(o.reference), putrank(o.putrank), copystr(o.copystr), range(o.range) {}
 			BamAlignmentDecoderInfo(
 				std::string rinputfilename = getDefaultInputFileName(),
 				std::string rinputformat = getDefaultInputFormat(),
 				uint64_t rinputthreads = getDefaultThreads(),
 				std::string rreference = getDefaultReference(),
 				bool rputrank = getDefaultPutRank(),
-				std::ostream * rcopystr = getDefaultCopyStr()
+				std::ostream * rcopystr = getDefaultCopyStr(),
+				std::string const rrange = getDefaultRange()
 			)
 			: inputfilename(rinputfilename), inputformat(rinputformat), inputthreads(rinputthreads),
-			  reference(rreference), putrank(rputrank), copystr(rcopystr) {}
+			  reference(rreference), putrank(rputrank), copystr(rcopystr), range(rrange) {}
 			  
-			BamAlignmentDecoderInfo & operator==(BamAlignmentDecoderInfo const & o)
+			BamAlignmentDecoderInfo & operator=(BamAlignmentDecoderInfo const & o)
 			{
 				if ( this != &o )
 				{
@@ -99,6 +106,7 @@ namespace libmaus
 					reference = o.reference;
 					putrank = o.putrank;
 					copystr = o.copystr;
+					range = o.range;
 				}
 				return *this;
 			}

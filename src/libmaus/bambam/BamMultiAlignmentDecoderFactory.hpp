@@ -31,10 +31,10 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			std::vector<BamAlignmentDecoderInfo> const BADI;
+			std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const BADI;
 			bool const putrank;
 			
-			BamMultiAlignmentDecoderFactory(std::vector<BamAlignmentDecoderInfo> const & rBADI, bool const rputrank) : BADI(rBADI), putrank(rputrank) {}
+			BamMultiAlignmentDecoderFactory(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & rBADI, bool const rputrank = false) : BADI(rBADI), putrank(rputrank) {}
 			virtual ~BamMultiAlignmentDecoderFactory() {}
 
 			static std::set<std::string> getValidInputFormatsSet()
@@ -54,8 +54,8 @@ namespace libmaus
 			}
 			
 			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
-				std::vector<BamAlignmentDecoderInfo> const & BADI,
-				bool const putrank
+				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & BADI,
+				bool const putrank = false
 			)
 			{
 				if ( ! BADI.size() || BADI.size() > 1 )
@@ -72,11 +72,51 @@ namespace libmaus
 							BADI[0].inputthreads,
 							BADI[0].reference,
 							putrank,
-							BADI[0].copystr)
+							BADI[0].copystr,
+							BADI[0].range)
 					);
 
 					return UNIQUE_PTR_MOVE(tptr);
 				}			
+			}
+			
+			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(libmaus::util::ArgInfo const & arginfo, bool const putrank = false, std::ostream * copystr = 0)
+			{
+				std::vector<std::string> const I = arginfo.getPairValues("I");
+				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
+				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
+				std::string const reference = arginfo.getValue<std::string>("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
+				std::string const range = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
+
+				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> V;
+				for ( uint64_t i = 0; i < I.size(); ++i )
+					V.push_back(
+						libmaus::bambam::BamAlignmentDecoderInfo(
+							I[i],
+							inputformat,
+							inputthreads,
+							reference,
+							false,
+							copystr,
+							range
+						)
+					);
+					
+				if ( ! I.size() )
+					V.push_back(
+						libmaus::bambam::BamAlignmentDecoderInfo(
+							std::string("-"),
+							inputformat,
+							inputthreads,
+							reference,
+							false,
+							copystr,
+							range
+						)
+					);
+					
+				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank));
+				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
 	}

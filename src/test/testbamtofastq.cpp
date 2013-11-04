@@ -20,6 +20,8 @@
 #include <libmaus/util/TempFileRemovalContainer.hpp>
 #include <libmaus/util/ArgInfo.hpp>
 
+#include <libmaus/bambam/BamMultiAlignmentDecoderFactory.hpp>
+
 using namespace libmaus::bambam;
 using namespace libmaus::util;
 using namespace std;
@@ -30,52 +32,39 @@ int main(int argc, char * argv[])
 	{
 		ArgInfo const arginfo(argc,argv);
 		
-		if ( arginfo.restargs.size() >= 2 )
-		{
-			typedef BamRangeCircularHashCollatingBamDecoder collator_type;
-			typedef collator_type::alignment_ptr_type alignment_ptr_type;
+		libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type decwrapper(
+			libmaus::bambam::BamMultiAlignmentDecoderFactory::construct(
+				arginfo,false // put rank
+			)
+		);
 
-			/* remove temporary file at program exit */
-			string const tmpfilename = "tmpfile";
-			TempFileRemovalContainer::addTempFile(tmpfilename);
+		/* remove temporary file at program exit */
+		string const tmpfilename = "tmpfile";
+		TempFileRemovalContainer::addTempFile(tmpfilename);
 
-			/* set up collator object */	
-			collator_type C(arginfo.getRestArg<std::string>(0),arginfo.getRestArg<std::string>(1),tmpfilename,0,true,20,32*1024*1024);
-			pair<alignment_ptr_type,alignment_ptr_type> P;
+		// collator type
+		typedef libmaus::bambam::CircularHashCollatingBamDecoder collator_type;
+		// typedef BamParallelCircularHashCollatingBamDecoder collator_type;
+		typedef collator_type::alignment_ptr_type alignment_ptr_type;
+		// set up collator
+		collator_type C(
+			decwrapper->getDecoder(),
+			tmpfilename,
+			0, // exclude
+			20, // hlog
+			128ull*1024ull*1024ull // sortbufsize
+		);
+		// collator_type C(cin,8,tmpfilename);
+		pair<alignment_ptr_type,alignment_ptr_type> P;
 
-			/* read alignments */	
-			while ( C.tryPair(P) )
-				/* if we have a pair, then print both ends as FastQ */
-				if ( P.first && P.second )
-				{
-					cout << P.first->formatFastq();
-					cout << P.second->formatFastq();
-				}
-		}
-		else
-		{
-			typedef BamCircularHashCollatingBamDecoder collator_type;
-			// typedef BamParallelCircularHashCollatingBamDecoder collator_type;
-			typedef collator_type::alignment_ptr_type alignment_ptr_type;
-
-			/* remove temporary file at program exit */
-			string const tmpfilename = "tmpfile";
-			TempFileRemovalContainer::addTempFile(tmpfilename);
-
-			/* set up collator object */	
-			collator_type C(cin,tmpfilename,0,true,20,32*1024*1024);
-			// collator_type C(cin,8,tmpfilename);
-			pair<alignment_ptr_type,alignment_ptr_type> P;
-
-			/* read alignments */	
-			while ( C.tryPair(P) )
-				/* if we have a pair, then print both ends as FastQ */
-				if ( P.first && P.second )
-				{
-					cout << P.first->formatFastq();
-					cout << P.second->formatFastq();
-				}
-		}
+		/* read alignments */	
+		while ( C.tryPair(P) )
+			/* if we have a pair, then print both ends as FastQ */
+			if ( P.first && P.second )
+			{
+				cout << P.first->formatFastq();
+				cout << P.second->formatFastq();
+			}
 			
 		return EXIT_SUCCESS;
 	}
