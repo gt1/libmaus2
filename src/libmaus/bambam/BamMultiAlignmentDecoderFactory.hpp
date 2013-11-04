@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMMULTIALIGNMENTDECODERFACTORY_HPP
 
 #include <libmaus/bambam/BamAlignmentDecoderFactory.hpp>
+#include <libmaus/bambam/BamMergeCoordinate.hpp>
 
 namespace libmaus
 {
