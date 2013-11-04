@@ -115,6 +115,14 @@ namespace libmaus
 				bool const outputisstdout = (!arginfo.hasArg("O")) || ( arginfo.getUnparsedValue("O","-") == std::string("-") );
 				std::string const outputfilename = arginfo.getUnparsedValue("O","-");
 
+				if ( (outputformat != "bam") && rblockoutputcallbacks && rblockoutputcallbacks->size() )
+				{
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "libmaus::bambam::BamBlockWriterBaseFactory: output callbacks are not supported for output formats other than bam" << std::endl;
+					ex.finish();
+					throw ex;
+				}
+				
 				if ( outputformat == "bam" )
 				{
 					int const level = checkCompressionLevel(arginfo.getValue("level",Z_DEFAULT_COMPRESSION));
@@ -149,6 +157,7 @@ namespace libmaus
 				#if defined(LIBMAUS_HAVE_IO_LIB)
 				else if ( outputformat == "sam" )
 				{
+
 					if ( outputisstdout )
 					{
 						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,"-","ws","",true /* verbose */));
