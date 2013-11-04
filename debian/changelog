@@ -1,3 +1,10 @@
+libmaus (0.0.87-0) unstable; urgency=low
+
+  * add alignment reading factory class
+  * fixes for BAM writing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 04 Nov 2013 20:50:13 +0000
+
 libmaus (0.0.86-0) unstable; urgency=low
 
   * add alignment writer factory class 
