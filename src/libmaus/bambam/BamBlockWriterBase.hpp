@@ -22,6 +22,7 @@
 #include <libmaus/types/types.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
+#include <libmaus/bambam/BamAlignment.hpp>
 
 namespace libmaus
 {
@@ -39,6 +40,14 @@ namespace libmaus
 			 * write a BAM data block
 			 **/
 			virtual void writeBamBlock(uint8_t const *, uint64_t const) = 0;
+			
+			/**
+			 * write alignment
+			 **/
+			virtual void writeAlignment(libmaus::bambam::BamAlignment const & A)
+			{
+				writeBamBlock(A.D.begin(),A.blocksize);
+			}
 		};
 	}
 }
