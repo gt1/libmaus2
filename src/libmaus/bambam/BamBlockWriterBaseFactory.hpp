@@ -36,6 +36,16 @@ namespace libmaus
 		
 			BamBlockWriterBaseFactory() {}
 			virtual ~BamBlockWriterBaseFactory() {}
+			
+			static std::set<int> getValidCompressionLevels()
+			{
+				std::set<int> S;
+				S.insert(Z_DEFAULT_COMPRESSION);
+				S.insert(Z_BEST_SPEED);
+				S.insert(Z_BEST_COMPRESSION);
+				S.insert(Z_NO_COMPRESSION);
+				return S;
+			}
 
 			static int checkCompressionLevel(int const level)
 			{
@@ -63,6 +73,36 @@ namespace libmaus
 				
 				return level;
 			}
+			
+			static std::set<std::string> getValidOutputFormatsSet()
+			{
+				std::set<std::string> S;
+				S.insert("bam");
+
+				#if defined(LIBMAUS_HAVE_IO_LIB)
+				S.insert("sam");
+				S.insert("cram");
+				#endif
+				
+				return S;
+			}
+			
+			static std::string getValidOutputFormats()
+			{
+				std::set<std::string> const S = getValidOutputFormatsSet();
+
+				std::ostringstream ostr;
+				for ( std::set<std::string>::const_iterator ita = S.begin();
+					ita != S.end(); ++ita )
+					ostr << ((ita!=S.begin())?",":"") << (*ita);
+				
+				return ostr.str();
+			}
+			
+			static std::string getDefaultOutputFormat()
+			{
+				return "bam";
+			}
 
 			static libmaus::bambam::BamBlockWriterBase::unique_ptr_type construct(
 				libmaus::bambam::BamHeader const & bamheader,
@@ -70,7 +110,7 @@ namespace libmaus
 				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			{
-				std::string const outputformat = arginfo.getValue<std::string>("outputformat","bam");
+				std::string const outputformat = arginfo.getValue<std::string>("outputformat",getDefaultOutputFormat());
 				uint64_t const outputthreads = std::max(static_cast<uint64_t>(1),arginfo.getValue<uint64_t>("outputthreads",1));
 				bool const outputisstdout = (!arginfo.hasArg("O")) || ( arginfo.getUnparsedValue("O","-") == std::string("-") );
 				std::string const outputfilename = arginfo.getUnparsedValue("O","-");

@@ -31,6 +31,11 @@ namespace libmaus
 		 **/
 		struct BamAlignmentDecoder
 		{
+			public:
+			typedef BamAlignmentDecoder this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			protected:
 			//! true if there is an alignment in the put back buffer, i.e. next call to readAlignment will not load a new alignment
 			bool putbackbuffer;
@@ -266,6 +271,16 @@ namespace libmaus
 				
 				return true;
 			}
+		};
+		
+		struct BamAlignmentDecoderWrapper
+		{
+			typedef BamAlignmentDecoderWrapper this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			virtual ~BamAlignmentDecoderWrapper() {}
+			virtual BamAlignmentDecoder & getDecoder() = 0;
 		};
 	}
 }

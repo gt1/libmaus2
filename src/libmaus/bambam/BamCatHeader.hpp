@@ -22,6 +22,7 @@
 #include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/ProgramHeaderLineSet.hpp>
+#include <libmaus/bambam/BamAlignmentDecoderFactory.hpp>
 
 namespace libmaus
 {
@@ -78,23 +79,22 @@ namespace libmaus
 					return "queryname";
 				}
 			};
-
-			BamCatHeader(std::vector<std::string> const & filenames)
-			: orderedCoordinates(true), orderedNames(true)
+			
+			template<typename iterator>
+			void init(
+				iterator decs,
+				uint64_t const decssize
+				// libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder::unique_ptr_type > & decs
+			)
 			{
 				rgfilter.set("RG");
 				pgfilter.set("PG");
-				libmaus::autoarray::AutoArray < libmaus::bambam::BamDecoder::unique_ptr_type > decs(filenames.size());
-				inputbamheaders = libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type>(filenames.size());
+				inputbamheaders = libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type>(decssize);
 				std::vector < std::vector<libmaus::bambam::Chromosome> const * > V;
 				std::vector < std::vector<libmaus::bambam::ReadGroup> const * > R;
 				std::vector< std::string const * > H;
-				for ( uint64_t i = 0; i < decs.size(); ++i )
+				for ( uint64_t i = 0; i < decssize; ++i )
 				{
-					std::string const fn = filenames[i];
-					libmaus::bambam::BamDecoder::unique_ptr_type tdec(new libmaus::bambam::BamDecoder(fn));
-					decs[i] = UNIQUE_PTR_MOVE(tdec);
-					
 					V.push_back( & (decs[i]->getHeader().chromosomes) );
 					R.push_back( & (decs[i]->getHeader().RG) );
 					H.push_back( & (decs[i]->getHeader().text) );
@@ -118,7 +118,7 @@ namespace libmaus
 				programHeaderLinesMergeInfo = UNIQUE_PTR_MOVE(tprogramHeaderLinesMergeInfo);
 				
 				std::ostringstream headertextstr;
-				if ( decs.size() == 1 )
+				if ( decssize == 1 )
 					headertextstr << "@HD\tVN:1.5\tSO:" << libmaus::bambam::BamHeader::getSortOrderStatic(decs[0]->getHeader().text) << std::endl;
 				else
 					headertextstr << "@HD\tVN:1.5\tSO:unknown" << std::endl;
@@ -132,7 +132,7 @@ namespace libmaus
 				headertextstr << programHeaderLinesMergeInfo->PGtext;
 
 				std::vector<std::string> otherlines;
-				for ( uint64_t i = 0; i < decs.size(); ++i )
+				for ( uint64_t i = 0; i < decssize; ++i )
 				{
 					std::vector<libmaus::bambam::HeaderLine> lines = libmaus::bambam::HeaderLine::extractLines(decs[i]->getHeader().text);
 					
@@ -167,9 +167,46 @@ namespace libmaus
 				bamheader = UNIQUE_PTR_MOVE(tbamheader);
 				
 				// std::cerr << "topologically sorted: " << chromosomeMergeInfo->topological << std::endl;
-				// std::cerr << bamheader->text;
+				// std::cerr << bamheader->text;			
+			}
+
+			BamCatHeader(std::vector<std::string> const & filenames)
+			: orderedCoordinates(true), orderedNames(true)
+			{
+				// open files
+				libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder::unique_ptr_type > decs(filenames.size());
+				for ( uint64_t i = 0; i < decs.size(); ++i )
+				{
+					std::string const fn = filenames[i];
+					libmaus::bambam::BamAlignmentDecoder::unique_ptr_type tdec(new libmaus::bambam::BamDecoder(fn));
+					decs[i] = UNIQUE_PTR_MOVE(tdec);				
+				}
+				
+				init(decs.begin(),decs.size());
+			}
+
+			BamCatHeader(libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder::unique_ptr_type > & decs)
+			: orderedCoordinates(true), orderedNames(true)
+			{
+				init(decs.begin(),decs.size());
 			}
 			
+			BamCatHeader(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & V)
+			: orderedCoordinates(true), orderedNames(true)
+			{
+				libmaus::autoarray::AutoArray< libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type > wraps(V.size());
+				libmaus::autoarray::AutoArray< libmaus::bambam::BamAlignmentDecoder * > decs(V.size());
+				
+				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr ( BamAlignmentDecoderFactory::construct(V[i]) );
+					wraps[i] = UNIQUE_PTR_MOVE(tptr);
+					decs[i] = &(wraps[i]->getDecoder());
+				}
+				
+				init(decs.begin(),decs.size());
+			}
+						
 			void updateAlignment(uint64_t const fileid, libmaus::bambam::BamAlignment & algn) const
 			{
 				// update ref ids (including unmapped reads to keep order)

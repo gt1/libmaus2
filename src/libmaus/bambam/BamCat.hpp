@@ -30,16 +30,26 @@ namespace libmaus
 		 **/
 		struct BamCat : public BamAlignmentDecoder
 		{
-			std::vector<std::string> const filenames;
+			std::vector<libmaus::bambam::BamAlignmentDecoderInfo> infos;
 			libmaus::bambam::BamCatHeader const header;
 			std::vector<std::string>::const_iterator filenameit;
 			int64_t fileid;
-			libmaus::bambam::BamDecoder::unique_ptr_type decoder;
+			libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type wrapper;
+			libmaus::bambam::BamAlignmentDecoder * decoder;
 			libmaus::bambam::BamAlignment * algnptr;
-		
-			BamCat(std::vector<std::string> const & rfilenames, bool const putrank = false) : BamAlignmentDecoder(putrank), filenames(rfilenames), header(filenames), fileid(-1), decoder()
-			{
 			
+			BamCat(std::vector<std::string> const & rfilenames, bool const putrank = false) 
+			: BamAlignmentDecoder(putrank), infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)), header(infos), fileid(-1), 
+			  wrapper(), 
+			  decoder(0)
+			{
+			}
+
+			BamCat(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & rinfos, bool const putrank = false) 
+			: BamAlignmentDecoder(putrank), infos(rinfos), header(infos), fileid(-1), 
+			  wrapper(), 
+			  decoder(0)
+			{
 			}
 		
 			/**
@@ -53,14 +63,15 @@ namespace libmaus
 				{
 					if ( expect_false(! decoder) )
 					{
-						if ( static_cast<uint64_t>(++fileid) == filenames.size() )
+						if ( static_cast<uint64_t>(++fileid) == infos.size() )
 						{
 							return false;
 						}
 						else
 						{
-							libmaus::bambam::BamDecoder::unique_ptr_type tdecoder(new libmaus::bambam::BamDecoder(filenames[fileid]));
-							decoder = UNIQUE_PTR_MOVE(tdecoder);
+							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr ( libmaus::bambam::BamAlignmentDecoderFactory::construct(infos[fileid]) );
+							wrapper = UNIQUE_PTR_MOVE(tptr);
+							decoder = &(wrapper->getDecoder());
 							algnptr = &(decoder->getAlignment());
 						}
 					}
@@ -79,7 +90,8 @@ namespace libmaus
 					}
 					else
 					{
-						decoder.reset();
+						wrapper.reset();
+						decoder = 0;
 						algnptr = 0;
 					}
 				}

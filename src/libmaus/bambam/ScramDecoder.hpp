@@ -169,7 +169,7 @@ namespace libmaus
 		/**
 		 * class wrapping a ScramDecoder object
 		 **/		
-		struct ScramDecoderWrapper
+		struct ScramDecoderWrapper : public libmaus::bambam::BamAlignmentDecoderWrapper
 		{
 			//! wrapped object
 			ScramDecoder scramdec;
@@ -191,6 +191,11 @@ namespace libmaus
 			: scramdec(filename,mode,reference,rputrank)
 			{
 			
+			}
+			
+			libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			{
+				return scramdec;
 			}
 		};
 	}

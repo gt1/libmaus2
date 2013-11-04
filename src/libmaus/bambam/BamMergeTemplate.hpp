@@ -29,7 +29,7 @@ namespace libmaus
 		 * class for merging BAM input
 		 **/
 		template<typename _heap_comparator_type, typename _sort_check_type>
-		struct BamMergeTemplate : public BamAlignmentDecoder
+		struct BamMergeTemplate : public BamAlignmentDecoder, public BamAlignmentDecoderWrapper
 		{
 			private:
 			typedef _heap_comparator_type heap_comparator_type;
@@ -37,9 +37,11 @@ namespace libmaus
 			typedef BamMergeTemplate<heap_comparator_type,sort_check_type> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
+			std::vector<libmaus::bambam::BamAlignmentDecoderInfo> infos;
 			std::vector<std::string> const filenames;
 			libmaus::bambam::BamCatHeader header;
-			libmaus::autoarray::AutoArray<libmaus::bambam::BamDecoder::unique_ptr_type> decoders;
+			libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type> wrappers;
+			libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignmentDecoder *> decoders;
 			libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignment *> algns;
 			heap_comparator_type comp;
 			std::priority_queue < uint64_t, std::vector< uint64_t >, heap_comparator_type > Q;
@@ -53,9 +55,7 @@ namespace libmaus
 				}
 			}
 			
-			public:
-			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false) 
-			: BamAlignmentDecoder(putrank), filenames(rfilenames), header(filenames), decoders(filenames.size()), algns(filenames.size()), comp(algns.begin()), Q(comp)
+			void init()
 			{
 				if ( ! sort_check_type::issorted(header) )
 				{
@@ -75,13 +75,39 @@ namespace libmaus
 				
 				header.bamheader->changeSortOrder(sort_check_type::getSortOrder());
 			
-				for ( uint64_t i = 0; i < filenames.size(); ++i )
+				for ( uint64_t i = 0; i < infos.size(); ++i )
 				{
-					libmaus::bambam::BamDecoder::unique_ptr_type tdecoder(new libmaus::bambam::BamDecoder(filenames[i]));
-					decoders[i] = UNIQUE_PTR_MOVE(tdecoder);
+					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr ( libmaus::bambam::BamAlignmentDecoderFactory::construct(infos[i]) );
+					wrappers[i] = UNIQUE_PTR_MOVE(tptr);
+					decoders[i] = &(wrappers[i]->getDecoder());
 					algns[i] = &(decoders[i]->getAlignment());
 					tryLoad(i);
 				}
+			}
+			
+			public:
+			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false) 
+			: BamAlignmentDecoder(putrank), 
+			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)),
+			  header(infos),
+			  decoders(infos.size()), 
+			  algns(infos.size()), 
+			  comp(algns.begin()), 
+			  Q(comp)
+			{
+				init();
+			}
+
+			BamMergeTemplate(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & rinfos, bool const putrank = false)
+			: BamAlignmentDecoder(putrank), 
+			  infos(rinfos),
+			  header(infos),
+			  decoders(infos.size()), 
+			  algns(infos.size()), 
+			  comp(algns.begin()), 
+			  Q(comp)
+			{
+				init();
 			}
 
 			/**
@@ -114,6 +140,11 @@ namespace libmaus
 			virtual libmaus::bambam::BamHeader const & getHeader() const
 			{
 				return *(header.bamheader);
+			}
+			
+			virtual libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			{
+				return *this;
 			}
 		};
 	}

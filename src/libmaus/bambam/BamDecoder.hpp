@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMDECODER_HPP)
 #define LIBMAUS_BAMBAM_BAMDECODER_HPP
 
+#include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/bambam/BamAlignmentDecoder.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
@@ -47,7 +48,7 @@ namespace libmaus
 
 			private:
 			//! compressed input stream
-			::libmaus::util::unique_ptr< std::ifstream >::type PISTR;
+			libmaus::aio::CheckedInputStream::unique_ptr_type PISTR;
 			//! decmopressor pointer
 			bgzf_ptr_type PGZ;
 			//! decompressor
@@ -87,7 +88,7 @@ namespace libmaus
 			BamDecoderTemplate(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(new std::ifstream(filename.c_str(),std::ios::binary)),
+			  PISTR(new libmaus::aio::CheckedInputStream(filename)),
 			  PGZ(new bgzf_type(*PISTR)), GZ(PGZ.get()),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
@@ -195,7 +196,7 @@ namespace libmaus
 		/**
 		 * wrapper class for serial BAM decoder
 		 **/
-		struct BamDecoderWrapper
+		struct BamDecoderWrapper : public BamAlignmentDecoderWrapper
 		{
 			//! this type
 			typedef BamDecoderWrapper this_type;
@@ -290,7 +291,7 @@ namespace libmaus
 		/**
 		 * wrapper class for parallel BAM decoder
 		 **/
-		struct BamParallelDecoderWrapper
+		struct BamParallelDecoderWrapper : public BamAlignmentDecoderWrapper
 		{
 			protected:
 			//! input stream pointer
@@ -384,7 +385,7 @@ namespace libmaus
 		/**
 		 * resetable wrapper class for serial BAM decoder
 		 **/
-		struct BamDecoderResetableWrapper
+		struct BamDecoderResetableWrapper : public BamAlignmentDecoderWrapper
 		{
 			//! this type
 			typedef BamDecoderResetableWrapper this_type;
