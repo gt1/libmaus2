@@ -1107,7 +1107,7 @@ testfastarecode_LDADD = libmaus.la
 testbamtofastq_SOURCES = test/testbamtofastq.cpp
 testbamtofastq_LDADD = libmaus.la @SNAPPYLIBS@
 testbamtofastq_CPPFLAGS = @SNAPPYCPPFLAGS@
-testbamtofastq_LDFLAGS = @SNAPPYLDFLAGS@
+testbamtofastq_LDFLAGS = @SNAPPYLDFLAGS@ @DLLIB@
 
 testbamrange_SOURCES = test/testbamrange.cpp
 testbamrange_LDADD = libmaus.la
@@ -1190,13 +1190,13 @@ testbamheaderparser_SOURCES = test/testbamheaderparser.cpp
 testbamheaderparser_LDADD = libmaus.la
 
 testbammergecoordinate_SOURCES = test/testbammergecoordinate.cpp
-testbammergecoordinate_LDADD = libmaus.la
+testbammergecoordinate_LDADD = libmaus.la @DLLIB@
 
 testbammergequeryname_SOURCES = test/testbammergequeryname.cpp
-testbammergequeryname_LDADD = libmaus.la
+testbammergequeryname_LDADD = libmaus.la @DLLIB@
 
 testbamcat_SOURCES = test/testbamcat.cpp
-testbamcat_LDADD = libmaus.la
+testbamcat_LDADD = libmaus.la @DLLIB@
 
 testbammergecollate_SOURCES = test/testbammergecollate.cpp
 testbammergecollate_LDFLAGS = @SNAPPYLDFLAGS@
