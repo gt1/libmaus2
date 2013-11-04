@@ -279,8 +279,10 @@ namespace libmaus
 					deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc += towrite;
 					n -= towrite;
 
+					// if block is now full
 					if ( deflatecontext.deflateB[deflatecontext.deflatecurobject]->pc == deflatecontext.deflateB[deflatecontext.deflatecurobject]->pe )
 					{
+						// check for exceptions on output
 						{
 							deflatecontext.deflateexlock.lock();
 
@@ -299,11 +301,13 @@ namespace libmaus
 							}
 						}
 					
+						// push data object id into deflate queue
 						{
 							libmaus::parallel::ScopePosixMutex Q(deflatecontext.deflateqlock);
 							deflatecontext.deflatecompqueue.push_back(deflatecontext.deflatecurobject);
 						}
 
+						// register task in global todo list
 						deflatecontext.deflategloblist.enque(
 							BgzfThreadQueueElement(
 								BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block,
@@ -312,7 +316,9 @@ namespace libmaus
 							)
 						);
 						
+						// get next object
 						deflatecontext.deflatecurobject = deflatecontext.deflatefreelist.deque();
+						// set block id of next object
 						deflatecontext.deflateB[deflatecontext.deflatecurobject]->blockid = deflatecontext.deflateoutid++;
 					}
 				}
