@@ -463,7 +463,7 @@ namespace libmaus
 			void writeBamBlock(uint8_t const * data, uint64_t const blocksize)
 			{
 				// write block size
-				::libmaus::bambam::EncoderBase::putLE(getStream(),blocksize);
+				::libmaus::bambam::EncoderBase::putLE<typename base_type::stream_type,uint32_t>(getStream(),blocksize);
 				// write bam entry data
 				getStream().write(reinterpret_cast<char const *>(data),blocksize);
 			}
