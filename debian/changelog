@@ -1,3 +1,9 @@
+libmaus (0.0.88-0) unstable; urgency=low
+
+  * fix BAM indexing
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 06 Nov 2013 12:42:51 +0000
+
 libmaus (0.0.87-0) unstable; urgency=low
 
   * add alignment reading factory class
