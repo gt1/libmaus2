@@ -18,20 +18,87 @@
 */
 
 #include <libmaus/bambam/BamIndex.hpp>
+#include <libmaus/bambam/BamIndexGenerator.hpp>
+#include <libmaus/lz/BgzfInflate.hpp>
+#include <libmaus/bambam/BamDecoder.hpp>
 
-int main()
+libmaus::aio::CheckedInputStream::unique_ptr_type openFile(std::string const & fn)
+{
+	libmaus::aio::CheckedInputStream::unique_ptr_type bamCIS(new libmaus::aio::CheckedInputStream(fn));
+	return UNIQUE_PTR_MOVE(bamCIS);
+}
+
+int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::bambam::BamIndex index(std::cin);
-		
-		for ( uint64_t i = 0; i < 20; ++i )
+		libmaus::util::ArgInfo const arginfo(argc,argv);
+		std::string const fn = arginfo.stringRestArg(0);
+
+		std::ostringstream indexostr;
+		if ( !libmaus::util::GetFileSize::fileExists(fn+".bai") )
 		{
-			libmaus::bambam::BamIndexBin const * bin = index.getBin(0,i);
+			libmaus::bambam::BamIndexGenerator indexgen("indextmp",true,true,false/*debug*/);
+			libmaus::aio::CheckedInputStream::unique_ptr_type bamCIS(openFile(fn));
+			libmaus::lz::BgzfInflate<libmaus::aio::CheckedInputStream> bgzfin(*bamCIS);
 		
-			if ( bin )
+			std::pair<uint64_t,uint64_t> P;
+			libmaus::autoarray::AutoArray<uint8_t> B(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
+			while ( (P=bgzfin.readPlusInfo(reinterpret_cast<char *>(B.begin()), B.size())).second )
+				indexgen.addBlock(B.begin(),P.first,P.second);		
+			indexgen.flush(indexostr);
+			bamCIS.reset();
+			
+			libmaus::aio::CheckedOutputStream COS(fn+".bai");
+			std::string const & index = indexostr.str();
+			COS.write(index.c_str(),index.size());
+			COS.flush();
+			COS.close();
+		}
+		
+		libmaus::autoarray::AutoArray<char> const indexA = libmaus::autoarray::AutoArray<char>::readFile(fn+".bai");
+		indexostr.write(indexA.begin(),indexA.size());
+		std::istringstream indexistr(indexostr.str());
+		libmaus::bambam::BamIndex index(indexistr);
+
+		libmaus::bambam::BamDecoder::unique_ptr_type pbamdec(new libmaus::bambam::BamDecoder(fn));
+		libmaus::bambam::BamHeader::unique_ptr_type bamheader = pbamdec->getHeader().uclone();
+		pbamdec.reset();
+		
+		assert ( index.getRefs().size() == bamheader->chromosomes.size() );
+
+		libmaus::bambam::BamDecoderResetableWrapper BDRW(fn, *bamheader);
+
+		for ( uint64_t r = 0; r < index.getRefs().size(); ++r )
+		{
+			libmaus::bambam::BamIndexRef const & ref = index.getRefs()[r];
+			libmaus::bambam::BamIndexLinear const & lin = ref.lin;
+			for ( uint64_t i = 0; i < lin.intervals.size(); ++i )
 			{
-				std::cerr << "bin " << i << " size " << bin->chunks.size() << std::endl;
+				
+			}
+			
+			for ( uint64_t i = 0; i < ref.bin.size(); ++i )
+			{
+				libmaus::bambam::BamIndexBin const & bin = ref.bin[i];
+
+				for ( uint64_t j = 0; j < bin.chunks.size(); ++j )
+				{
+					libmaus::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
+					std::cerr 
+						<< "refid=" << r 
+						<< " bin=" << bin.bin 
+						<< " chunk=" 
+						<< "(" << (c.first>>16) << "," << (c.first&((1ull<<16)-1)) << ")"
+						<< ","
+						<< "(" << (c.second>>16) << "," << (c.second&((1ull<<16)-1)) << ")"
+						<< std::endl;
+					BDRW.resetStream(c.first,c.second);
+					while ( BDRW.getDecoder().readAlignment() )
+					{
+					
+					}
+				}
 			}
 		}
 	}
