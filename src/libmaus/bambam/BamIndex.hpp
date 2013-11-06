@@ -281,6 +281,11 @@ namespace libmaus
 				
 				return C;
 			}
+
+			libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexRef> const & getRefs() const
+			{
+				return refs;
+			}
 		};
 	}
 }
