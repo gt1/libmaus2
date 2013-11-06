@@ -425,19 +425,23 @@ namespace libmaus
 									if ( validate )
 										algn.checkAlignment();
 								
+									// information for this new alignment
 									int64_t const thisrefid = algn.getRefID();
 									int64_t const thispos = algn.getPos();
 									int64_t const thisbin = 
 										(thisrefid >= 0 && thispos >= 0) ? algn.computeBin() : -1;
 
+									// map negative to maximum positive for checking order
 									int64_t const thischeckrefid = (thisrefid >= 0) ? thisrefid : std::numeric_limits<int64_t>::max();
 									int64_t const thischeckpos   = (thispos >= 0) ? thispos : std::numeric_limits<int64_t>::max();
 									
+									// true iff order is ok
 									bool const orderok =
 										(thischeckrefid > prevcheckrefid)
 										||
 										(thischeckrefid == prevcheckrefid && thischeckpos >= prevcheckpos);
-										
+									
+									// throw exception if alignment stream is not sorted by coordinate
 									if ( ! orderok )
 									{
 										::libmaus::exception::LibMausException se;
@@ -445,7 +449,8 @@ namespace libmaus
 										se.finish();
 										throw se;
 									}
-										
+									
+									// check if this alignment is in a different linear chunk than the previous one
 									if ( 
 										thisrefid != prevrefid ||
 										(
@@ -453,6 +458,7 @@ namespace libmaus
 										)
 									)
 									{
+										// note linear chunk start if position is valid
 										if ( thisrefid >= 0 && thispos >= 0 )
 										{
 											::libmaus::bambam::BamIndexLinearChunk LC(thisrefid,thispos,alcmpstart,alstart);
@@ -469,12 +475,14 @@ namespace libmaus
 										}
 									}	
 
+									// check if this alignment is in a different bin than the previous one
 									if ( 
 										thisbin != prevbin 
 										||
 										thisrefid != prevrefid
 									)
 									{
+										// write previous bin
 										if ( prevbin >= 0 )
 										{
 											uint64_t binalcmpend = alcmpstart;
@@ -524,8 +532,15 @@ namespace libmaus
 									blocklenred = 0;
 									blocklen = 0;
 
-									uint64_t const nextalcmpstart = cacct - rinfo.first;
-									uint64_t const nextalstart = pa - Bbegin;
+									// start of next alignment:
+									//   - if pc != pa, then next alignment starts in this block
+									//   - if pc == pa, then next alignment starts in next block
+									// block start
+									uint64_t const nextalcmpstart = 
+										(pc != pa) ? (cacct - rinfo.first) : cacct;
+									// offset in block
+									uint64_t const nextalstart = 
+										(pc != pa) ? (pa - Bbegin) : 0;
 
 									alcnt++;
 									alcmpstart = nextalcmpstart;
