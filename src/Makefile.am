@@ -95,7 +95,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/graph/GraphEdge.cpp \
 	libmaus/bambam/BamIndexBinChunk.cpp \
 	libmaus/bambam/BamIndexLinearChunk.cpp \
-	libmaus/huffman/HuffmanTree.cpp
+	libmaus/huffman/HuffmanTree.cpp \
+	libmaus/bambam/BamAlignmentDecoderInfo.cpp
 
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@

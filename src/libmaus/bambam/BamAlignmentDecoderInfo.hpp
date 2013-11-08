@@ -111,6 +111,8 @@ namespace libmaus
 				return *this;
 			}
 		};
+		
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamAlignmentDecoderInfo const & o);
 	}
 }
 #endif
