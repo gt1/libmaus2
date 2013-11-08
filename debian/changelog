@@ -1,3 +1,9 @@
+libmaus (0.0.89-0) unstable; urgency=low
+
+  * fix BAM merging crashes 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 08 Nov 2013 13:11:00 +0000
+
 libmaus (0.0.88-0) unstable; urgency=low
 
   * fix BAM indexing
