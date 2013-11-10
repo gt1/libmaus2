@@ -188,7 +188,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfDeflateOutputCallback.hpp \
 	libmaus/lz/BgzfDeflateOutputCallbackMD5.hpp \
 	libmaus/lz/BgzfParallelRecodeDeflateBase.hpp \
-	libmaus/lz/BgzfRecodeParallel.hpp
+	libmaus/lz/BgzfRecodeParallel.hpp \
+	libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \

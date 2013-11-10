@@ -22,71 +22,12 @@
 #include <libmaus/lz/BgzfDeflateHeaderFunctions.hpp>
 #include <libmaus/lz/BgzfDeflateInputBufferBase.hpp>
 #include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfDeflateZStreamBaseFlushInfo
-		{
-			unsigned int blocks;
-
-			uint32_t block_a_u;
-			uint32_t block_a_c;
-			
-			uint32_t block_b_u;
-			uint32_t block_b_c;
-
-			uint8_t * moveto;			
-			uint8_t * movefrom;
-			uint64_t movesize;
-			
-			BgzfDeflateZStreamBaseFlushInfo() 
-			: blocks(0), block_a_u(0), block_a_c(0), block_b_u(0), block_b_c(0), moveto(0), movefrom(0), movesize(0) {}
-			BgzfDeflateZStreamBaseFlushInfo(BgzfDeflateZStreamBaseFlushInfo const & o)
-			: blocks(o.blocks), block_a_u(o.block_a_u), block_a_c(o.block_a_c), block_b_u(o.block_b_u), block_b_c(o.block_b_c), moveto(o.moveto), movefrom(o.movefrom), movesize(o.movesize)  {}
-			
-			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c) 
-			: blocks(1), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(0), block_b_c(0), moveto(0), movefrom(0), movesize(0) {}
-
-			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c, uint8_t * rmoveto, uint8_t * rmovefrom, uint64_t rmovesize) 
-			: blocks(1), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(0), block_b_c(0), moveto(rmoveto), movefrom(rmovefrom), movesize(rmovesize) {}
-
-			BgzfDeflateZStreamBaseFlushInfo(uint32_t const r_block_a_u, uint32_t const r_block_a_c, uint32_t const r_block_b_u, uint32_t const r_block_b_c) 
-			: blocks(2), block_a_u(r_block_a_u), block_a_c(r_block_a_c), block_b_u(r_block_b_u), block_b_c(r_block_b_c), moveto(0), movefrom(0), movesize(0) {}
-			
-			BgzfDeflateZStreamBaseFlushInfo & operator=(BgzfDeflateZStreamBaseFlushInfo const & o)
-			{
-				blocks = o.blocks;
-				block_a_u = o.block_a_u;
-				block_a_c = o.block_a_c;
-				block_b_u = o.block_b_u;
-				block_b_c = o.block_b_c;
-				moveto = o.moveto;
-				movefrom = o.movefrom;
-				movesize = o.movesize;
-				return *this;
-			}
-			
-			uint64_t getCompressedSize() const
-			{
-				if ( blocks == 0 )
-					return 0;
-				else if ( blocks == 1 )
-					return block_a_c;
-				else
-					return block_a_c + block_b_c;
-			}
-			
-			uint8_t * moveUncompressedRest()
-			{
-				if ( movesize )
-					::std::memmove(moveto,movefrom,movesize);
-					
-				return moveto + movesize;
-			}
-		};
-	
 		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
 		{
 			z_stream strm;

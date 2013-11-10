@@ -31,7 +31,7 @@ namespace libmaus
 	{
 		struct CompressedSuffixTree
 		{
-			typedef libmaus::lf::ImpHuffmanWaveletLF lf_type;
+			typedef libmaus::lf::ImpCompactHuffmanWaveletLF lf_type;
 			typedef lf_type::unique_ptr_type lf_ptr_type;
 			typedef libmaus::fm::SimpleSampledSA<lf_type> ssa_type;
 			typedef ssa_type::unique_ptr_type ssa_ptr_type;
