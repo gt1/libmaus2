@@ -96,11 +96,19 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/BamIndexBinChunk.cpp \
 	libmaus/bambam/BamIndexLinearChunk.cpp \
 	libmaus/huffman/HuffmanTree.cpp \
-	libmaus/bambam/BamAlignmentDecoderInfo.cpp
+	libmaus/bambam/BamAlignmentDecoderInfo.cpp \
+	libmaus/lz/Lz4Base.cpp \
+	libmaus/lz/Lz4Compress.cpp \
+	libmaus/lz/Lz4DecoderBuffer.cpp \
+	libmaus/lz/lz4.c \
+	libmaus/fm/BidirectionalIndexInterval.cpp  \
+	libmaus/fm/BidirectionalIndexIntervalSymbol.cpp
+
+noinst_HEADERS = libmaus/lz/lz4.h
 
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ 
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -189,7 +197,15 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfDeflateOutputCallbackMD5.hpp \
 	libmaus/lz/BgzfParallelRecodeDeflateBase.hpp \
 	libmaus/lz/BgzfRecodeParallel.hpp \
-	libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp
+	libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp \
+	libmaus/lz/Lz4Base.hpp \
+	libmaus/lz/Lz4CompressStreamBuffer.hpp \
+	libmaus/lz/Lz4CompressWrapper.hpp \
+	libmaus/lz/Lz4Decoder.hpp \
+	libmaus/lz/Lz4Index.hpp \
+	libmaus/lz/Lz4Compress.hpp \
+	libmaus/lz/Lz4CompressStream.hpp \
+	libmaus/lz/Lz4DecoderBuffer.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -713,8 +729,11 @@ libmausfm_include_HEADERS=\
 	libmaus/fm/FM.hpp \
 	libmaus/fm/SampledSA.hpp \
 	libmaus/fm/SampledISA.hpp \
-	libmaus/fm/MausFmToBwaConversion.hpp
-
+	libmaus/fm/MausFmToBwaConversion.hpp \
+	libmaus/fm/BidirectionalIndexInterval.hpp \
+	libmaus/fm/BidirectionalIndexIntervalSymbol.hpp \
+	libmaus/fm/DictionaryInfo.hpp  libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp
+	
 libmauslcp_includedir=$(includedir)/libmaus/lcp
 libmauslcp_include_HEADERS=\
 	libmaus/lcp/LCP.hpp \

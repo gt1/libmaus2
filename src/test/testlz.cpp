@@ -231,9 +231,76 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 		std::cerr << "[V] Time " << rtc.getElapsedSeconds() << " alcnt " << alcnt << std::endl;
 }
 
+#include <libmaus/lz/Lz4CompressStream.hpp>
+#include <libmaus/lz/Lz4Decoder.hpp>
+#include <libmaus/random/Random.hpp>
+
+void testlz4()
+{
+	std::ostringstream ostr;
+	
+	{
+		libmaus::lz::Lz4CompressStream compressor(ostr,16*1024);
+		libmaus::aio::CheckedInputStream CIS("configure");
+		int c;
+		while ( (c=CIS.get()) > 0 )
+			compressor.put(c);
+		compressor.writeIndex();
+	}
+
+	libmaus::autoarray::AutoArray<char> const C = libmaus::autoarray::AutoArray<char>::readFile("configure");
+
+	std::istringstream istr(ostr.str());
+	libmaus::lz::Lz4Decoder dec(istr);
+	
+	{
+
+		for ( uint64_t i = 0; i < C.size(); i += 100 )
+		{
+			if ( i % 16 == 0 )
+				std::cerr << "i=" <<i << std::endl;
+		
+			int c;
+			dec.clear();
+			dec.seekg(i);
+			uint64_t j = i;
+			while ( (c=dec.get()) > 0 )
+			{
+				assert ( c == static_cast<uint8_t>(C[j++]) );
+			}
+		}
+			
+		uint64_t i = C.size()-1;
+		int c;
+		dec.clear();
+		dec.seekg(i);
+		uint64_t j = i;
+		while ( (c=dec.get()) > 0 )
+		{
+			assert ( c == static_cast<uint8_t>(C[j++]) );
+		}
+	}
+	
+	libmaus::random::Random::setup(time(0));
+	
+	dec.clear();
+	for ( uint64_t j = 0; j < 16384; ++j )
+	{
+		uint64_t const r = 10;
+		uint64_t const p = libmaus::random::Random::rand64() % ( C.size()-r );
+		
+		dec.seekg(p);
+		for ( uint64_t i = 0; i < r; ++i )
+		{
+			assert ( dec.get() == static_cast<uint8_t>(C[p+i]) );
+		}
+	}
+}
 
 int main(int argc, char *argv[])
 {
+	testlz4();
+
 	#if 0
 	maskBamDuplicateFlag(std::cin,std::cout);
 	return 0;
