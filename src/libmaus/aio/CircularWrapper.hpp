@@ -23,6 +23,7 @@
 #include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/bitio/CompactDecoderBuffer.hpp>
 #include <libmaus/bitio/PacDecoderBuffer.hpp>
+#include <libmaus/lz/Lz4Decoder.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 
@@ -351,6 +352,26 @@ namespace libmaus
 		};
 		
 		/**
+		 * class wrapping an object of type libmaus::lz::Lz4Decoder
+		 **/
+		struct Lz4DecoderWrapper
+		{
+			//! wrapped object
+			::libmaus::lz::Lz4Decoder stream;
+			
+			/**
+			 * constructor from file name
+			 *
+			 * @param filename file name
+			 **/
+			Lz4DecoderWrapper(std::string const & filename)
+			: stream(filename)
+			{
+			
+			}
+		};
+		
+		/**
 		 * class for instantiating a circular input stream
 		 **/
 		struct CheckedCircularWrapper : public CheckedInputStreamWrapper, public CircularWrapper
@@ -440,6 +461,26 @@ namespace libmaus
 			 **/
 			PacTermCircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: PacDecoderTermWrapperWrapper(filename), CircularWrapper(PacDecoderTermWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		/**
+		 * class for instantiating a circular lz4 input stream
+		 **/
+		struct Lz4CircularWrapper : public Lz4DecoderWrapper, public CircularWrapper
+		{
+			/**
+			 * constructor
+			 *
+			 * @param filename file name
+			 * @param offset initial file offset
+			 * @param buffersize size of streambuf object
+			 * @param pushbackspace size of push back buffer
+			 **/
+			Lz4CircularWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: Lz4DecoderWrapper(filename), CircularWrapper(Lz4DecoderWrapper::stream,offset,buffersize,pushbackspace)
 			{
 			
 			}
@@ -540,6 +581,26 @@ namespace libmaus
 			 **/
 			PacTermCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
 			: PacDecoderTermWrapperWrapper(filename), CircularReverseWrapper(PacDecoderTermWrapperWrapper::stream,offset,buffersize,pushbackspace)
+			{
+			
+			}
+		};
+
+		/**
+		 * class for instantiating a circular reversed lz4 input stream
+		 **/
+		struct Lz4CircularReverseWrapper : public Lz4DecoderWrapper, public CircularReverseWrapper
+		{
+			/**
+			 * constructor
+			 *
+			 * @param filename file name
+			 * @param offset initial file offset
+			 * @param buffersize size of streambuf object
+			 * @param pushbackspace size of push back buffer
+			 **/
+			Lz4CircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
+			: Lz4DecoderWrapper(filename), CircularReverseWrapper(Lz4DecoderWrapper::stream,offset,buffersize,pushbackspace)
 			{
 			
 			}

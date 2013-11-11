@@ -809,7 +809,8 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/CompactInputTypes.hpp \
 	libmaus/suffixsort/PacInputTypes.hpp \
 	libmaus/suffixsort/PacTermInputTypes.hpp \
-	libmaus/suffixsort/Utf8InputTypes.hpp
+	libmaus/suffixsort/Utf8InputTypes.hpp \
+	libmaus/suffixsort/Lz4InputTypes.hpp
 
 libmaussuffixtree_includedir=$(includedir)/libmaus/suffixtree
 libmaussuffixtree_include_HEADERS=\

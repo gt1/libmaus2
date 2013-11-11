@@ -31,7 +31,8 @@ namespace libmaus
 				bwt_merge_input_type_compact = 1,
 				bwt_merge_input_type_pac = 2,
 				bwt_merge_input_type_pac_term = 3,
-				bwt_merge_input_type_utf8 = 4
+				bwt_merge_input_type_utf8 = 4,
+				bwt_merge_input_type_lz4 = 5
 			};
 		};
 	}

@@ -82,6 +82,20 @@ namespace libmaus
 			}
 		};
 
+		struct Lz4DecoderWrapperFactory
+		{
+			typedef ::libmaus::aio::Lz4CircularWrapper wrapper_type;
+			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
+			typedef ::std::istream base_istream_type;
+			typedef base_istream_type::int_type int_type;
+				
+			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
+			{
+				wrapper_ptr_type W(new wrapper_type(filename,offset));
+				return UNIQUE_PTR_MOVE(W);
+			}
+		};
+
 		struct Utf8DecoderWrapperFactory
 		{
 			typedef ::libmaus::aio::Utf8CircularWrapperWrapper wrapper_type;
@@ -266,6 +280,7 @@ namespace libmaus
 		typedef CircularSuffixComparatorTemplate<CompactDecoderWrapperFactory> CompactCircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<PacDecoderWrapperFactory> PacCircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<PacTermDecoderWrapperFactory> PacTermCircularSuffixComparator;
+		typedef CircularSuffixComparatorTemplate<Lz4DecoderWrapperFactory> Lz4CircularSuffixComparator;
 		typedef CircularSuffixComparatorTemplate<Utf8DecoderWrapperFactory> Utf8CircularSuffixComparator;
 	}
 }
