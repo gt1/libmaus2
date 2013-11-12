@@ -160,6 +160,20 @@ namespace libmaus
 			{
 				findNextMarker();
 			}
+
+			template<typename reader_init_type>
+			FastAReaderTemplate(
+			        reader_init_type * rinit,
+			        FastInterval const & FI,
+				uint64_t const bufsize = 16*1024
+			)
+			: reader_base_type(rinit,bufsize),
+                          scanterm('>'), newlineterm('\n'),
+                          foundnextmarker(false), nextid(FI.low),
+			  interval(FI)
+			{
+				findNextMarker();
+			}
                         
                         void findNextMarker()
                         {
