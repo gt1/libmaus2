@@ -1,3 +1,9 @@
+libmaus (0.0.90-0) unstable; urgency=low
+
+  * add generic buffered gzip output stream class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 14 Nov 2013 16:58:00 +0000
+
 libmaus (0.0.89-0) unstable; urgency=low
 
   * fix BAM merging crashes 
