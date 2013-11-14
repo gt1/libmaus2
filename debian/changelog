@@ -1,3 +1,9 @@
+libmaus (0.0.91-0) unstable; urgency=low
+
+  * add gz option in bamtofastq output stream container class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 14 Nov 2013 19:36:45 +0000
+
 libmaus (0.0.90-0) unstable; urgency=low
 
   * add generic buffered gzip output stream class 
