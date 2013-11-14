@@ -205,7 +205,9 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/Lz4Index.hpp \
 	libmaus/lz/Lz4Compress.hpp \
 	libmaus/lz/Lz4CompressStream.hpp \
-	libmaus/lz/Lz4DecoderBuffer.hpp
+	libmaus/lz/Lz4DecoderBuffer.hpp \
+	libmaus/lz/GzipOutputStreamBuffer.hpp \
+	libmaus/lz/GzipOutputStream.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -338,6 +340,7 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/CompactDecoderBuffer.hpp \
 	libmaus/bitio/Ctz.hpp \
 	libmaus/bitio/CompactArrayWriter.hpp \
+	libmaus/bitio/CompactArrayWriterFile.hpp \
 	libmaus/bitio/PacDecoderBuffer.hpp \
 	libmaus/bitio/MarkerFastWriteBitWriter.hpp
 
@@ -733,7 +736,8 @@ libmausfm_include_HEADERS=\
 	libmaus/fm/MausFmToBwaConversion.hpp \
 	libmaus/fm/BidirectionalIndexInterval.hpp \
 	libmaus/fm/BidirectionalIndexIntervalSymbol.hpp \
-	libmaus/fm/DictionaryInfo.hpp  libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp
+	libmaus/fm/DictionaryInfo.hpp  libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
+	libmaus/fm/BidirectionalDnaIndexTemplate.hpp
 	
 libmauslcp_includedir=$(includedir)/libmaus/lcp
 libmauslcp_include_HEADERS=\
