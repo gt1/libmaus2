@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/lz/GzipOutputStream.hpp>
+
 #include <libmaus/lz/BgzfInflateDeflateParallel.hpp>
 #include <libmaus/lz/BgzfInflateDeflateParallelThread.hpp>
 
@@ -297,8 +299,37 @@ void testlz4()
 	}
 }
 
+#include <libmaus/lz/BufferedGzipStream.hpp>
+
+void testGzip()
+{
+	libmaus::aio::CheckedInputStream CIS("configure");
+	std::ostringstream ostr;
+	{
+		libmaus::lz::GzipOutputStream GZOS(ostr);
+		int c = -1;
+		while ( ( c = CIS.get() ) >= 0 )
+			GZOS.put(c);
+	}
+	
+	CIS.clear();
+	CIS.seekg(0);
+	
+	std::istringstream istr(ostr.str());
+	libmaus::lz::BufferedGzipStream BGS(istr);
+	
+	int c = -1;
+	while ( (c=CIS.get()) >= 0 )
+	{
+		int d = BGS.get();
+		assert ( d == c );
+	}
+	assert ( BGS.get() < 0 );
+}
+
 int main(int argc, char *argv[])
 {
+	testGzip();
 	testlz4();
 
 	#if 0
