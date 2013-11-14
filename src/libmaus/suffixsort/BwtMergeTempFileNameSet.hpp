@@ -49,6 +49,7 @@ namespace libmaus
 
 			std::string gt;
 			std::string bwt;
+			std::string hwtreq;
 			std::string hwt;
 			std::string hist;
 			std::string sampledisa;
@@ -56,12 +57,14 @@ namespace libmaus
 			public:
 			std::string const & getGT() const { return gt; }
 			std::string const & getBWT() const { return bwt; }
+			std::string const & getHWTReq() const { return hwtreq; }
 			std::string const & getHWT() const { return hwt; }
 			std::string const & getHist() const { return hist; }
 			std::string const & getSampledISA() const { return sampledisa; }
 			
 			void setGT(std::string const & rgt) { gt = rgt; }
 			void setBWT(std::string const & rbwt) { bwt = rbwt; }
+			void setHWTReq(std::string const & rhwtreq) { hwtreq = rhwtreq; }
 			void setHWT(std::string const & rhwt) { hwt = rhwt; }
 			void setHist(std::string const & rhist) { hist = rhist; }
 			void setSampledISA(std::string const & rsampledisa) { sampledisa = rsampledisa; }
@@ -70,6 +73,7 @@ namespace libmaus
 			{
 				setGT(prefix+".gt");
 				setBWT(prefix+".bwt");
+				setHWTReq(prefix+".hwtreq");
 				setHWT(prefix+".hwt");
 				setHist(prefix+".hist");
 				setSampledISA(prefix+".sampledisa");
@@ -89,6 +93,8 @@ namespace libmaus
 			{
 				if ( gt.size() )
 					remove ( gt.c_str() );
+				if ( hwtreq.size() )
+					remove ( hwtreq.c_str() );
 				if ( hwt.size() )
 					remove ( hwt.c_str() );
 				if ( hist.size() )
@@ -112,6 +118,7 @@ namespace libmaus
 			: 
 				gt(constructFileName(tmpfilenamebase,id,".gt")),
 				bwt(constructFileName(tmpfilenamebase,id,".bwt")),
+				hwtreq(constructFileName(tmpfilenamebase,id,".hwtreq")),
 				hwt(constructFileName(tmpfilenamebase,id,".hwt")),
 				hist(constructFileName(tmpfilenamebase,id,".hist")),
 				sampledisa(constructFileName(tmpfilenamebase,id,".sampledisa"))
@@ -124,6 +131,7 @@ namespace libmaus
 			: 
 				gt(::libmaus::util::StringSerialisation::deserialiseString(in)),
 				bwt(::libmaus::util::StringSerialisation::deserialiseString(in)),
+				hwtreq(::libmaus::util::StringSerialisation::deserialiseString(in)),
 				hwt(::libmaus::util::StringSerialisation::deserialiseString(in)),
 				hist(::libmaus::util::StringSerialisation::deserialiseString(in)),
 				sampledisa(::libmaus::util::StringSerialisation::deserialiseString(in))
@@ -142,6 +150,7 @@ namespace libmaus
 			{
 				::libmaus::util::StringSerialisation::serialiseString(out,gt);
 				::libmaus::util::StringSerialisation::serialiseString(out,bwt);
+				::libmaus::util::StringSerialisation::serialiseString(out,hwtreq);
 				::libmaus::util::StringSerialisation::serialiseString(out,hwt);
 				::libmaus::util::StringSerialisation::serialiseString(out,hist);
 				::libmaus::util::StringSerialisation::serialiseString(out,sampledisa);
