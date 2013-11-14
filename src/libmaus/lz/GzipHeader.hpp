@@ -128,6 +128,17 @@ namespace libmaus
 				// std::cerr << "payload size " << payloadsize << std::endl;
 				// block size - 1 (including header an footer)
 			}
+
+			static void writeSimpleHeader(std::ostream & out)
+			{
+				out.put(ID1); // ID
+				out.put(ID2); // ID
+				out.put(8);   // CM
+				out.put(0);   // FLG, none
+				putLEInteger(out,0,4); // MTIME
+				out.put(0); // XFL
+				out.put(255); // undefined OS
+			}
 		};
 	
 		struct GzipHeader : public GzipHeaderConstantsBase
