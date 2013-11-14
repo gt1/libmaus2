@@ -477,6 +477,12 @@ namespace libmaus
 				
 				return std::pair<uint64_t,uint64_t>(l,r);
 			}
+			
+			uint64_t count(int64_t const sym, uint64_t const l, uint64_t const r) const
+			{
+				std::pair<uint64_t,uint64_t> const P = rankm(sym,l,r);
+				return P.second-P.first;
+			}
 
 			template<typename iterator>
 			std::pair<uint64_t,uint64_t> rankm(int64_t const sym, uint64_t l, uint64_t r, iterator D) const
@@ -663,6 +669,18 @@ namespace libmaus
 				}
 				
 				return M;
+			}
+
+			template<typename iterator>
+			uint64_t enumerateSymbolsInRangeSorted(uint64_t const l, uint64_t const r, iterator P) const
+			{
+				return enumerateSymbolsInRange<iterator,true>(l,r,P);
+			}
+
+			template<typename iterator>
+			uint64_t enumerateSymbolsInRangeUnsorted(uint64_t const l, uint64_t const r, iterator P) const
+			{
+				return enumerateSymbolsInRange<iterator,false>(l,r,P);
 			}
 
 			template<typename iterator, bool sort /* = true */>
