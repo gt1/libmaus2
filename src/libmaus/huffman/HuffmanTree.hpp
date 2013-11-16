@@ -498,7 +498,6 @@ namespace libmaus
 				for ( uint64_t j = 0; j < i; ++j, ++p ) N[p].node.I = o.N[p].node.I;
 			}
 			
-			
 			// construct tree from array of pairs (sym,freq)
 			template<typename iterator>
 			HuffmanTree(iterator F, uint64_t const s, bool const sortbydepth = false, bool const rsetcode = false, bool const rdfsorder = false)
@@ -770,6 +769,23 @@ namespace libmaus
 					A[i] = N[i].node.L.sym;
 				std::sort(A.begin(),A.end());
 				return A;
+			}
+			
+			uint64_t maxDepth() const
+			{
+				if ( ! setcode )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "HuffmanTree::maxDepth: cannot compute depth for object constructed with setcode option unset" << std::endl;
+					se.finish();
+					throw se;					
+				}
+			
+				uint64_t maxdepth = 0;
+				for ( uint64_t i = 0; i < leafs(); ++i )
+					maxdepth = std::max(maxdepth,N[i].node.L.cnt & 0x3F);
+					
+				return maxdepth;
 			}
 			
 			struct EncodeTable
