@@ -80,7 +80,7 @@ namespace libmaus
 				
 				assert ( H );
 				
-				if ( ! (H->root()-H->leafs()) == 0 )
+				if ( H->root()-H->leafs() != 0 )
 				{
 					libmaus::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTree(): inner nodes in tree need to be ordered by DFS" << std::endl;
@@ -192,7 +192,7 @@ namespace libmaus
 							ImpWaveletStackElement const T = S.top();
 							S.pop();
 							
-							assert ( ! H->isLeaf(T.node) );
+							assert ( (! H->isLeaf(T.node)) );
 						
 							unsigned int const level = T.level;
 							uint64_t const srange = T.sright-T.sleft;
@@ -624,7 +624,7 @@ namespace libmaus
 
 				assert ( H );
 				
-				if ( ! (H->root()-H->leafs()) == 0 )
+				if ( H->root()-H->leafs() != 0 )
 				{
 					libmaus::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTree(): inner nodes in tree need to be ordered by DFS" << std::endl;
@@ -1139,7 +1139,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				if ( ! (H.root()-H.leafs()) == 0 )
+				if ( H.root()-H.leafs() != 0 )
 				{
 					libmaus::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTreeFromRl(): inner nodes in tree need to be ordered by DFS" << std::endl;
@@ -1665,7 +1665,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				if ( ! (H.root()-H.leafs()) == 0 )
+				if ( H.root()-H.leafs() != 0 )
 				{
 					libmaus::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTreeFromRlWithTerm(): inner nodes in tree need to be ordered by DFS" << std::endl;
