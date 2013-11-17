@@ -1021,7 +1021,9 @@ namespace libmaus
 					smap [ s[i] ]++;
 					uint64_t srank = smap[s[i]];
 					
+					#if 0
 					std::pair < ::libmaus::uint::UInt < lookupwords >, unsigned int > code = H0.enctable [ s[i] ];
+					#endif
 					
 					uint64_t frank = H0.rank(s[i],i);
 					

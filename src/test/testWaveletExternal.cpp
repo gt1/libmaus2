@@ -302,7 +302,7 @@ void testCompactHuffman()
 	for ( uint64_t i = 0; i < IHWTN.size(); ++i )
 	{
 		std::cerr << IHWTN[i] << ";";
-		assert ( IHWTN[i] == A[i] );
+		assert ( IHWTN[i] == static_cast<int64_t>(A[i]) );
 
 		// std::cerr << "[" << i << "," << IHWTN.select(A[i],R[A[i]]) << "]" << ";";
 		assert ( i == IHWTN.select(A[i],R[A[i]]) );
@@ -356,7 +356,9 @@ void testCompactHuffmanPar()
 	// uint64_t A[] = { 0,0,0,0,0,0  };
 	#endif
 	
+	#if 0
 	uint64_t const perthread = (n + numthreads-1)/numthreads;
+	#endif
 	
 	#if defined(_OPENMP)
 	#pragma omp parallel for

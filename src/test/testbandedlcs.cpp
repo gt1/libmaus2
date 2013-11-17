@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 			uint64_t const dif = (na>=nb) ? (na-nb) : (nb-na);
 
 			::libmaus::lcs::BandedEditDistance BED(na,nb,2*dif);
-			::libmaus::lcs::EditDistanceResult EDR = BED.process(pa.pattern,pb.pattern,na,nb);
+			/* ::libmaus::lcs::EditDistanceResult EDR = */ BED.process(pa.pattern,pb.pattern,na,nb);
 
 			BED.printAlignmentLines(std::cout,pa.spattern,pb.spattern,80);
 		}

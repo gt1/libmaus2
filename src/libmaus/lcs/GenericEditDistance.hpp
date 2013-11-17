@@ -103,7 +103,7 @@ namespace libmaus
 				element_type * q = M.begin();
 				
 				// fill dynamic programming matrix
-				iterator_b const ba = b;
+				// iterator_b const ba = b;
 				iterator_b const be = b+m;
 				iterator_a const ae = a+n;
 				while ( b != be )
