@@ -493,7 +493,7 @@ namespace libmaus
 				else
 				{
 					// query symbol
-					uint64_t const qsym = s[s.size()-backoffset-1];			
+					int64_t const qsym = s[s.size()-backoffset-1];			
 					// number of symbols we can extend by
 					uint64_t const nsym = backwardExtendMulti(BI,E);
 					// number of matches

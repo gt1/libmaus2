@@ -243,8 +243,9 @@ namespace libmaus
 				uint64_t const bufsize = 256*1024*1024,
 				bool const 
 				#if defined(_OPENMP)
-					parallel = false
+					parallel 
 				#endif
+					= false
 			)
 			{
 				::std::vector < ::libmaus::aio::FileFragment > frags;
