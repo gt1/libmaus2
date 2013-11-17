@@ -221,7 +221,7 @@ namespace libmaus
 			{}
 			
 			private:
-			LinearHashTrie & operator=(LinearHashTrie const & o)
+			LinearHashTrie & operator=(LinearHashTrie const & /* o */)
 			{
 				return this;
 			}

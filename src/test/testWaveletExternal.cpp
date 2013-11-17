@@ -363,7 +363,11 @@ void testCompactHuffmanPar()
 	#endif
 	for ( int64_t i = 0; i < static_cast<int64_t>(n); ++i )
 	{
+		#if defined(_OPENMP)
 		uint64_t const tid = omp_get_thread_num();
+		#else
+		uint64_t const tid = 0;
+		#endif
 		IEWGHN[tid].putSymbol(A[i]);
 	}
 	

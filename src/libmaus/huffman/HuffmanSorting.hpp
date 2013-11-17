@@ -375,9 +375,9 @@ namespace libmaus
 
 			template<unsigned int words>
 			static void printDecoded(
-				huffman::EncodeTable<words> const & enctable,
+				huffman::EncodeTable<words> const & /* enctable */,
 				huffman::DecodeTable const & dectable,
-				::std::string const & s,
+				::std::string const & /* s */,
 				uint64_t const n,
 				uint64_t const * const acode,
 				uint64_t const codelength

@@ -87,7 +87,7 @@ namespace libmaus
 							(*ps) |= halfs;							
 						}
 						// if ( (bitpos % ((blocksize-1)*64)) == 0 )
-						if ( (bitpos == ((blocksize-1)*64)) )
+						if ( bitpos == ((blocksize-1)*64) )
 						{
 							bitpos = 0;
 						}

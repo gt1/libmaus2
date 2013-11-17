@@ -50,7 +50,7 @@ namespace libmaus
 		{
 			private:
 			template<typename it>
-			static uint64_t getNumBits(it a, uint64_t const n) { return 0; }
+			static uint64_t getNumBits(it /*a */, uint64_t const /* n */) { return 0; }
 		};
 		template<typename symbol_type>
 		struct GetNumBits<symbol_type, false>

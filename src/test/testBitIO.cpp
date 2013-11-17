@@ -159,7 +159,7 @@ void testGetPut64()
 
 void sortCheck()
 {
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
+#if defined(__GNUC__) && ( __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8) ) && (!defined(__clang__))
 	std::cerr << "Testing sort using CompactArrayIterator...";
 	
 	srand(time(0));
@@ -278,7 +278,7 @@ void bubbleSortCheck()
 
 void stableSortCheck()
 {
-#if (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5)) && (! defined(__clang__))
+#if defined(__GNUC__) && ( (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 5)) && (! defined(__clang__)) )
 	srand(time(0));
 
 	for ( unsigned int i = 0; i < 1000; ++i )
@@ -316,7 +316,7 @@ void stableSortCheck()
 
 void sortSparseCheck()
 {
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8) 
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8))  && (! defined(__clang__))
 	srand(time(0));
 
 	for ( unsigned int i = 0; i < 1000; ++i )

@@ -232,7 +232,7 @@ namespace libmaus
 			static void receiveSocket(				
 				::libmaus::network::SocketBase * const socket,
 				std::string const & filename,
-				bool const append
+				bool const /* append */
 				)
 			{
 				::libmaus::aio::SynchronousGenericOutput<type> out(filename,8*1024);

@@ -48,5 +48,5 @@ libmaus::autoarray::AutoArray<uint8_t> libmaus::select::ESelectBase<sym>::comput
 }
 
 
-template class ::libmaus::select::ESelectBase<false>;
-template class ::libmaus::select::ESelectBase<true>;
+template struct ::libmaus::select::ESelectBase<false>;
+template struct ::libmaus::select::ESelectBase<true>;

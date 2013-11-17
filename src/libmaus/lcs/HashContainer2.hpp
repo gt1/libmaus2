@@ -501,7 +501,7 @@ namespace libmaus
 									#endif
 									
 									::libmaus::lcs::BandedEditDistance lcsobj(alignlena,alignlenb,indellen);
-									::libmaus::lcs::EditDistanceResult R = 
+									/* ::libmaus::lcs::EditDistanceResult R = */
 										lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
 
 									#if defined(HASHSPDEBUG)
@@ -520,7 +520,7 @@ namespace libmaus
 									#endif
 									
 									::libmaus::lcs::GenericEditDistance lcsobj(alignlena,alignlenb,indellen);
-									::libmaus::lcs::EditDistanceResult R = 
+									/* ::libmaus::lcs::EditDistanceResult R = */
 										lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
 
 									#if defined(HASHSPDEBUG)
@@ -590,7 +590,7 @@ namespace libmaus
 								#endif
 								
 								::libmaus::lcs::BandedEditDistance lcsobj(alignlenb,alignlena,indellen);
-								::libmaus::lcs::EditDistanceResult R = 
+								/* ::libmaus::lcs::EditDistanceResult R = */
 									lcsobj.process(revpatstart,revrefstart,alignlenb,alignlena,0,0);
 
 								lcsobj.removeFrontInserts();
@@ -608,7 +608,7 @@ namespace libmaus
 								#endif
 								
 								::libmaus::lcs::GenericEditDistance lcsobj(alignlenb,alignlena,indellen);
-								::libmaus::lcs::EditDistanceResult R = 
+								/* ::libmaus::lcs::EditDistanceResult R = */
 									lcsobj.process(revpatstart,revrefstart,alignlenb,alignlena,0,0);
 
 								lcsobj.removeFrontInserts();
@@ -707,7 +707,7 @@ namespace libmaus
 											#endif
 											
 											::libmaus::lcs::BandedEditDistance lcsobj(alignlena,alignlenb,indellen);
-											::libmaus::lcs::EditDistanceResult R = 
+											/* ::libmaus::lcs::EditDistanceResult R = */
 												lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
 
 											#if defined(HASHSPDEBUG)
@@ -726,7 +726,7 @@ namespace libmaus
 											#endif
 											
 											::libmaus::lcs::GenericEditDistance lcsobj(alignlena,alignlenb,indellen);
-											::libmaus::lcs::EditDistanceResult R = 
+											/* ::libmaus::lcs::EditDistanceResult R = */
 												lcsobj.process(ref+alignposa,pattern+alignposb,alignlena,alignlenb,1,1);
 
 											#if defined(HASHSPDEBUG)

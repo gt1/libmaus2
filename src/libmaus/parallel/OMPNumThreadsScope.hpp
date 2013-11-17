@@ -40,7 +40,11 @@ namespace libmaus
 			
 			uint64_t const prevnumthreads;
 		
-			OMPNumThreadsScope(uint64_t const newnumthreads = getMaxThreads())
+			OMPNumThreadsScope(uint64_t const 
+				#if defined(_OPENMP)
+				newnumthreads = getMaxThreads()
+				#endif
+			)
 			: prevnumthreads(getMaxThreads())
 			{
 				#if defined(_OPENMP)
