@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPMARKBASE_HPP)
 #define LIBMAUS_BAMBAM_DUPMARKBASE_HPP
 
+#include <libmaus/bambam/OpticalComparator.hpp>
 #include <libmaus/bambam/ReadEnds.hpp>
 #include <libmaus/bambam/DupSetCallback.hpp>
 #include <libmaus/math/iabs.hpp>

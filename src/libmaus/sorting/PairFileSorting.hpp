@@ -24,7 +24,9 @@
 #include <string>
 #include <queue>
 
+#if defined(_OPENMP)
 #include <parallel/algorithm>
+#endif
 
 #include <libmaus/aio/FileFragment.hpp>
 #include <libmaus/aio/ReorderConcatGenericInput.hpp>
@@ -239,7 +241,10 @@ namespace libmaus
 				bool const keepsecond,
 				out_type & SGOfinal,
 				uint64_t const bufsize = 256*1024*1024,
-				bool const parallel = false
+				bool const 
+				#if defined(_OPENMP)
+					parallel = false
+				#endif
 			)
 			{
 				::std::vector < ::libmaus::aio::FileFragment > frags;
@@ -286,6 +291,7 @@ namespace libmaus
 							*(P++) = std::pair<uint64_t,uint64_t>(w,v);			
 						}
 						
+						#if defined(_OPENMP)
 						if ( parallel )
 						{
 							if ( second )
@@ -294,6 +300,7 @@ namespace libmaus
 								__gnu_parallel::sort(A.begin(),P,FirstComp<uint64_t,uint64_t>());					
 						}
 						else
+						#endif
 						{
 							if ( second )
 								std::sort(A.begin(),P,SecondComp<uint64_t,uint64_t>());
