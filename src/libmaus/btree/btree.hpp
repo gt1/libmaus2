@@ -228,7 +228,7 @@ namespace libmaus
 		
 		struct BTreeKeyNodeContainedException : public std::exception
 		{
-			char const * what()
+			virtual char const * what() const throw()
 			{
 				return "BTreeKeyNodeContainedException()";
 			}
