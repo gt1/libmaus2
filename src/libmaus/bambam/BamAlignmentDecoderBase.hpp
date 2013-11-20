@@ -795,7 +795,54 @@ namespace libmaus
 			static uint32_t getCigarFieldOp(uint8_t const * D, uint64_t const i) {  return (getCigarField(D,i) >> 0) & ((1ull<<(4))-1); }
 
 			/**
-			 * git cigar operations vector
+			 * get number of insertions(+)/padding(+)/deletions(-) before first matching/mismatching base
+			 *
+			 * @param D alignment block
+			 * @return number of insertions
+			 **/
+			static int64_t getOffsetBeforeMatch(uint8_t const * D)
+			{
+				uint32_t const numops = getNCigar(D);
+			
+				uint8_t const * p = getCigar(D);
+				int64_t icnt = 0;
+				bool running = true;
+				
+				for ( uint64_t i = 0; running && i < numops; ++i, p += 4 )
+				{
+					uint32_t const lop = getLEInteger(p,4);
+					uint32_t const len = lop >> 4;
+					uint32_t const op = lop & ((1ul<<4)-1);
+					
+					switch ( op )
+					{
+						// insertion
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+							icnt += static_cast<int64_t>(len);
+							break;
+						// padding (silent insertion, base not in this read, so ignore)
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+							break;
+						// deletion from reference
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+						// reference/intron skip (deletion)
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+							icnt -= static_cast<int64_t>(len);
+							break;
+						// match/mismatch
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+							running = false;
+							break;
+					}
+				}
+				
+				return icnt;
+			}
+
+			/**
+			 * get cigar operations vector
 			 *
 			 * @param D alignment block
 			 * @param A array for storing vector

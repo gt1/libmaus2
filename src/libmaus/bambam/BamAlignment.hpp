@@ -1510,6 +1510,20 @@ namespace libmaus
 				else
 					return -1;
 			}
+
+			/**
+			 * get number of insertions(+)/padding(+)/deletions(-) before first matching/mismatching base
+			 *
+			 * @param D alignment block
+			 * @return number of insertions
+			 **/
+			int64_t getOffsetBeforeMatch() const
+			{
+				if ( !isUnmap() )
+					return ::libmaus::bambam::BamAlignmentDecoderBase::getOffsetBeforeMatch(D.get()); 
+				else
+					return 0;
+			}
 			
 			/**
 			 * get quality value
