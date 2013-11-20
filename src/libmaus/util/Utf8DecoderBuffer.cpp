@@ -51,7 +51,7 @@ libmaus::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 		
 		// call relative seek, if target is in range
 		if ( sp >= curlow && sp <= curhigh )
-			return seekoff(sp - cur, ::std::ios_base::cur, which);
+			return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
 
 		// target is out of range, we really need to seek
 		uint64_t tsymsread = (sp / buffersize)*buffersize;
@@ -62,7 +62,7 @@ libmaus::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 		stream.seekg( indexdecoder[tsymsread / blocksize] );
 		setg(buffer.end(),buffer.end(),buffer.end());
 		underflow();
-		setg(eback(),gptr() + (sp-static_cast<int64_t>(tsymsread)), egptr());
+		setg(eback(),gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), egptr());
 	
 		return sp;
 	}
