@@ -798,6 +798,15 @@ namespace libmaus
 					
 				return maxdepth;
 			}
+
+			int64_t maxSymbol() const
+			{
+				int64_t maxsym = std::numeric_limits<int64_t>::min();
+				for ( uint64_t i = 0; i < leafs(); ++i )
+					maxsym = std::max(maxsym,N[i].node.L.sym);
+					
+				return maxsym;
+			}
 			
 			struct EncodeTable
 			{
