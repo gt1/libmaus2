@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
 	::libmaus::lz::BgzfInflateStream SW(std::cin);
 
 	::libmaus::autoarray::AutoArray<char> BB(200,false);	
-	while ( SW.read(BB.begin(),BB.size()) != 0 )
+	while ( SW.read(BB.begin(),BB.size()) )
 	{
 	
 	}

@@ -22,16 +22,22 @@
 #include <libmaus/util/PosixExecute.hpp>
 #endif
 
+#if defined(__linux__)
 static std::string chomp(std::string s)
 {
         while ( s.size() && isspace(s[s.size()-1]) )
                 s = s.substr(0,s.size()-1);
         return s;
 }
+#endif
 
 libmaus::util::StackTrace::~StackTrace() {}
 
-std::string libmaus::util::StackTrace::toString(bool const translate) const
+std::string libmaus::util::StackTrace::toString(bool const
+#if defined(__linux)
+translate
+#endif
+) const
 {
         std::ostringstream ostr;
 
@@ -74,7 +80,11 @@ std::string libmaus::util::StackTrace::toString(bool const translate) const
         return ostr.str();
 }
 
-void libmaus::util::StackTrace::simpleStackTrace(std::ostream & ostr)
+void libmaus::util::StackTrace::simpleStackTrace(std::ostream &
+#if defined(LIBMAUS_HAVE_BACKTRACE)
+ostr
+#endif
+)
 {
 	#if defined(LIBMAUS_HAVE_BACKTRACE)
 	unsigned int const depth = 20;

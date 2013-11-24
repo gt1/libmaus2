@@ -110,7 +110,7 @@ namespace libmaus
 					
 					// call relative seek, if target is in range
 					if ( sp >= curlow && sp <= curhigh )
-						return seekoff(sp - cur, ::std::ios_base::cur, which);
+						return seekoff(static_cast<int64_t>(sp) - cur, ::std::ios_base::cur, which);
 
 					// target is out of range, we really need to seek
 					uint64_t tsymsread = (sp / index.blocksize)*index.blocksize;
@@ -126,7 +126,7 @@ namespace libmaus
 					// read next block
 					underflow();
 					// skip bytes in block to get to final position
-					setg(eback(),gptr() + (sp-static_cast<int64_t>(tsymsread)), egptr());
+					setg(eback(),gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), egptr());
 				
 					return sp;
 				}
