@@ -76,6 +76,11 @@ namespace libmaus
 				socket->writeSingle<uint64_t>(n);
 				socket->writeMessageInBlocks<uint64_t,::libmaus::autoarray::alloc_type_memalign_cacheline>(A);
 			}
+			
+			uint64_t serialisedSize() const
+			{
+				return sizeof(uint64_t) + A.serialisedSize();
+			}
 
 			uint64_t deserialiseNumber(std::istream & in)
 			{
