@@ -486,6 +486,11 @@ namespace libmaus
 				return ostr.str();
 			}
 			
+			uint64_t serialisedSize() const
+			{
+				return serialise().size();
+			}
+			
 			// copy constructor
 			HuffmanTree(HuffmanTree const & o)
 			: N(o.N.size()), setcode(o.setcode), treeroot(o.treeroot)
@@ -646,7 +651,13 @@ namespace libmaus
 				
 				return *this;
 			}
-
+			
+			unique_ptr_type uclone() const
+			{
+				unique_ptr_type ptr(new this_type(*this));
+				return UNIQUE_PTR_MOVE(ptr);
+			}
+			
 			void printRec(std::ostream & out, uint64_t const node, uint64_t const indent = 0) const
 			{
 				out << std::string(indent,' ');
