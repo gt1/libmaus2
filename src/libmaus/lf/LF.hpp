@@ -1294,6 +1294,12 @@ namespace libmaus
 			{
 			}
 			
+			ImpCompactHuffmanWaveletLF(wt_ptr_type & ptr)
+			: W(UNIQUE_PTR_MOVE(ptr)), n(W->n), n0((n && W->haveSymbol(0)) ? W->rank(0,n-1) : 0), D(computeD())
+			{
+			
+			}
+			
 			uint64_t operator()(uint64_t const r) const
 			{
 				std::pair< int64_t,uint64_t> const is = W->inverseSelect(r);
