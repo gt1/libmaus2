@@ -45,6 +45,29 @@ namespace libmaus
 			uint64_t maxdepth;
 			std::vector<uint64_t> nodepos;
 			
+			ImpCompactHuffmanWaveletTree(
+				uint64_t const rn,
+				libmaus::huffman::HuffmanTree const & rH,
+				rank_array_type & rdicts
+			) 
+				: n(rn),
+				  H(rH.uclone()),
+				  E(new libmaus::huffman::HuffmanTree::EncodeTable(*H)),
+				  dicts(rdicts),
+				  maxdepth(H->maxDepth()),
+				  nodepos(dicts.size())
+			{
+				uint64_t p = 0;
+				p += sizeof(uint64_t);
+				p += H->serialisedSize();
+				p += sizeof(uint64_t);
+				for ( uint64_t i = 0; i < dicts.size(); ++i )
+				{
+					nodepos[i] = p;
+					p += dicts[i]->serialisedSize();
+				}
+			}
+
 			libmaus::autoarray::AutoArray<int64_t> symbolArray() const
 			{
 				return H->symbolArray();
