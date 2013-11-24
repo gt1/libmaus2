@@ -525,6 +525,18 @@ namespace libmaus
 			}
 			
 			/**
+			 * @return size of serialised object
+			 **/
+			uint64_t serialisedSize(bool const writeHeader = true) const
+			{
+				uint64_t s = 0;
+				if ( writeHeader )
+					s += sizeof(uint64_t);
+				s += n * sizeof(N);
+				return s;
+			}
+			
+			/**
 			 * serialise object to a file
 			 * @param filename name of file object is serialised to
 			 * @param writeHeader if true an AutoArray header is written (necessary for deserialisation)
