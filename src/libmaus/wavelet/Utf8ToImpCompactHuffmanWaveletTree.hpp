@@ -1656,7 +1656,8 @@ namespace libmaus
 
 			template<typename rl_decoder, bool radixsort>
 			static void constructWaveletTreeFromRlWithTerm(
-				std::string const & fn, std::string const & outputfilename,
+				std::vector<std::string> const & fn, 
+				std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
 				::libmaus::huffman::HuffmanTree const & H,
 				uint64_t const termrank,
@@ -1776,7 +1777,7 @@ namespace libmaus
 						else
 						{
 							typename rl_decoder::unique_ptr_type rldec(new rl_decoder(
-								std::vector<std::string>(1,fn),
+								fn,
 								symsperpart[partid]));
 							for ( uint64_t i = 0; i < numsyms; ++i )
 								::libmaus::util::UTF8::encodeUTF8(rldec->decode(),CPO);
@@ -1810,7 +1811,7 @@ namespace libmaus
 						else
 						{
 							typename rl_decoder::unique_ptr_type rldec(new rl_decoder(
-								std::vector<std::string>(1,fn),
+								fn,
 								symsperpart[partid]));
 
 							for ( uint64_t i = 0; i < numsyms; ++i )
