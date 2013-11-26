@@ -80,7 +80,7 @@ namespace libmaus
 				return SGI.get();
 			}
 			
-			// get length of file in symbols
+			// get alphabet bits
 			static unsigned int getAlBits(std::string const & filename)
 			{
 				::libmaus::aio::CheckedInputStream CIS(filename);
@@ -89,6 +89,23 @@ namespace libmaus
 				);
 				SGI.get(); // file length
 				return SGI.get();
+			}
+
+			// get alphabet bits
+			static unsigned int getAlBits(std::vector<std::string> const & filenames)
+			{
+				if ( ! filenames.size() )
+					return 0;
+					
+				unsigned int const albits_0 = getAlBits(filenames[0]);
+				
+				for ( uint64_t i = 1; i < filenames.size(); ++i )
+				{
+					unsigned int const albits_i = getAlBits(filenames[i]);
+					assert ( albits_i == albits_0 );
+				}
+				
+				return albits_0;
 			}
 			
 			// get length of vector of files in symbols
