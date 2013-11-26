@@ -1,5 +1,5 @@
 /**
-    suds
+    libmaus
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -69,10 +69,12 @@ namespace libmaus
 			void setBlockP0Rank(uint64_t const rblockp0rank) { blockp0rank = rblockp0rank; }
 			void setBlockStart(uint64_t const rblockstart) { blockstart = rblockstart; }
 			void setCBlockSize(uint64_t const rcblocksize) { cblocksize = rcblocksize; }
+			void setBWT(std::vector<std::string> const & bwt) { files.setBWT(bwt); }
 			::libmaus::suffixsort::BwtMergeTempFileNameSet const & getFiles() const { return files; }
 			void removeFiles() const { files.removeFiles(); }
 			void removeFilesButBwt() const { files.removeFilesButBwt(); }
-			void setTempPrefixAndRegisterAsTemp(std::string const & prefix) { files.setPrefixAndRegisterAsTemp(prefix); }
+			void setTempPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt) 
+			{ files.setPrefixAndRegisterAsTemp(prefix,numbwt); }
 			libmaus::autoarray::AutoArray < ::libmaus::suffixsort::BwtMergeZBlock > const & getZBlocks() const { return zblocks; }
 			void resizeZBlocks(uint64_t const n) { zblocks.resize(n); }
 			void setZBlock(uint64_t const i, ::libmaus::suffixsort::BwtMergeZBlock const & z) { zblocks.at(i) = z; }
