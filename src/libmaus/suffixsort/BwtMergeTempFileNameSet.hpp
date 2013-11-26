@@ -47,8 +47,34 @@ namespace libmaus
 				return hwtname;
 			}
 
+			static std::vector<std::string> constructFileNameVector(
+				std::string const & tmpfilenamebase,
+				uint64_t const id,
+				std::string const & suffix,
+				uint64_t const num
+			)
+			{
+				std::vector<std::string> V;
+			
+				for ( uint64_t i = 0; i < num; ++i )
+				{
+					std::ostringstream hwtnamestr;			
+					hwtnamestr << tmpfilenamebase 
+						<< '_'
+						<< std::setw(4) << std::setfill('0') << id  << std::setw(0) 
+						<< '_'
+						<< std::setw(4) << std::setfill('0') << i  << std::setw(0) 
+						<< suffix;
+					std::string const hwtname = hwtnamestr.str();
+					::libmaus::util::TempFileRemovalContainer::addTempFile(hwtname);
+					V.push_back(hwtname);
+				}
+				
+				return V;
+			}
+
 			std::string gt;
-			std::string bwt;
+			std::vector<std::string> bwt;
 			std::string hwtreq;
 			std::string hwt;
 			std::string hist;
@@ -56,34 +82,46 @@ namespace libmaus
 			
 			public:
 			std::string const & getGT() const { return gt; }
-			std::string const & getBWT() const { return bwt; }
+			std::vector<std::string> const & getBWT() const { return bwt; }
 			std::string const & getHWTReq() const { return hwtreq; }
 			std::string const & getHWT() const { return hwt; }
 			std::string const & getHist() const { return hist; }
 			std::string const & getSampledISA() const { return sampledisa; }
 			
 			void setGT(std::string const & rgt) { gt = rgt; }
-			void setBWT(std::string const & rbwt) { bwt = rbwt; }
+			void setBWT(std::vector<std::string> const & rbwt) { bwt = rbwt; }
 			void setHWTReq(std::string const & rhwtreq) { hwtreq = rhwtreq; }
 			void setHWT(std::string const & rhwt) { hwt = rhwt; }
 			void setHist(std::string const & rhist) { hist = rhist; }
 			void setSampledISA(std::string const & rsampledisa) { sampledisa = rsampledisa; }
 			
-			void setPrefix(std::string const & prefix)
+			void setPrefix(std::string const & prefix, uint64_t const numbwt)
 			{
 				setGT(prefix+".gt");
-				setBWT(prefix+".bwt");
+				
+				std::vector<std::string> bwtfilenames(numbwt);
+				for ( uint64_t i = 0; i < numbwt; ++i )
+				{
+					std::ostringstream ostr;
+					ostr << prefix << '_' 
+						<< std::setw(4) << std::setfill('0') << i << std::setw(0)
+						<< ".bwt";
+					bwtfilenames.push_back(ostr.str());
+				}
+				
+				setBWT(bwtfilenames);
 				setHWTReq(prefix+".hwtreq");
 				setHWT(prefix+".hwt");
 				setHist(prefix+".hist");
 				setSampledISA(prefix+".sampledisa");
 			}
 			
-			void setPrefixAndRegisterAsTemp(std::string const & prefix)
+			void setPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt)
 			{
-				setPrefix(prefix);
+				setPrefix(prefix, numbwt);
 				::libmaus::util::TempFileRemovalContainer::addTempFile(getGT());
-				::libmaus::util::TempFileRemovalContainer::addTempFile(getBWT());
+				for ( uint64_t i = 0; i < getBWT().size(); ++i )
+					::libmaus::util::TempFileRemovalContainer::addTempFile(getBWT()[i]);
 				::libmaus::util::TempFileRemovalContainer::addTempFile(getHWT());
 				::libmaus::util::TempFileRemovalContainer::addTempFile(getHist());
 				::libmaus::util::TempFileRemovalContainer::addTempFile(getSampledISA());			
@@ -106,18 +144,19 @@ namespace libmaus
 			void removeFiles() const
 			{
 				removeFilesButBwt();
-				if ( bwt.size() )
-					remove ( bwt.c_str() );
+				for ( uint64_t i = 0; i < bwt.size(); ++i )
+					if ( bwt[i].size() )
+						remove ( bwt[i].c_str() );
 			}
 
 			
 			BwtMergeTempFileNameSet()
 			{}
 			
-			BwtMergeTempFileNameSet(std::string const & tmpfilenamebase, uint64_t const id)
+			BwtMergeTempFileNameSet(std::string const & tmpfilenamebase, uint64_t const id, uint64_t const numbwtfiles)
 			: 
 				gt(constructFileName(tmpfilenamebase,id,".gt")),
-				bwt(constructFileName(tmpfilenamebase,id,".bwt")),
+				bwt(constructFileNameVector(tmpfilenamebase,id,".bwt",numbwtfiles)),
 				hwtreq(constructFileName(tmpfilenamebase,id,".hwtreq")),
 				hwt(constructFileName(tmpfilenamebase,id,".hwt")),
 				hist(constructFileName(tmpfilenamebase,id,".hist")),
@@ -130,7 +169,7 @@ namespace libmaus
 			BwtMergeTempFileNameSet(stream_type & in)
 			: 
 				gt(::libmaus::util::StringSerialisation::deserialiseString(in)),
-				bwt(::libmaus::util::StringSerialisation::deserialiseString(in)),
+				bwt(::libmaus::util::StringSerialisation::deserialiseStringVector(in)),
 				hwtreq(::libmaus::util::StringSerialisation::deserialiseString(in)),
 				hwt(::libmaus::util::StringSerialisation::deserialiseString(in)),
 				hist(::libmaus::util::StringSerialisation::deserialiseString(in)),
@@ -149,7 +188,7 @@ namespace libmaus
 			void serialise(stream_type & out) const
 			{
 				::libmaus::util::StringSerialisation::serialiseString(out,gt);
-				::libmaus::util::StringSerialisation::serialiseString(out,bwt);
+				::libmaus::util::StringSerialisation::serialiseStringVector(out,bwt);
 				::libmaus::util::StringSerialisation::serialiseString(out,hwtreq);
 				::libmaus::util::StringSerialisation::serialiseString(out,hwt);
 				::libmaus::util::StringSerialisation::serialiseString(out,hist);
