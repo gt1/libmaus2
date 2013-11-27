@@ -283,6 +283,11 @@ namespace libmaus
 				return std::pair<int64_t,uint64_t>(sym,freq);
 			}
 			
+			inline void putBack(std::pair<int64_t,uint64_t> const & P)
+			{
+				*(--pc) = P;
+			}
+			
 			inline int get()
 			{
 				return decode();
