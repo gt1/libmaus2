@@ -37,10 +37,95 @@ namespace libmaus
 			int shift = -1;
 			uint64_t v = 0;
 			
+			static uint64_t getLength(std::string const & fn)
+			{
+				libmaus::aio::CheckedInputStream CIS(fn);
+				CIS.seekg(-8,std::ios::end);
+				libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,1);
+				uint64_t n = 0;
+				bool const ok = SGI.getNext(n);
+				assert ( ok );
+				return n;
+			}
+			
+			static uint64_t getLength(std::vector<std::string> const & V)
+			{
+				uint64_t n = 0;
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					n += getLength(V[i]);
+				return n;
+			}
+			
+			static std::pair<uint64_t,uint64_t> getOffset(std::vector<std::string> const & V, uint64_t offset)
+			{
+				uint64_t f = 0;
+				
+				while ( f < V.size() )
+				{
+					uint64_t const n = getLength(V[f]);
+					if ( offset < n )
+						return std::pair<uint64_t,uint64_t>(f,offset);
+					else
+					{
+						offset -= n;
+						f++;
+					}
+				}
+				
+				return std::pair<uint64_t,uint64_t>(f,0);
+			}
+			
 			BitVectorInput(std::vector<std::string> const & rfilenames)
 			: filenames(rfilenames), nextfile(0), bitsleft(0), shift(-1), v(0)
 			{
 			
+			}
+
+			BitVectorInput(std::vector<std::string> const & rfilenames, uint64_t const offset)
+			: filenames(rfilenames), nextfile(0), bitsleft(0), shift(-1), v(0)
+			{
+				std::pair<uint64_t,uint64_t> O = getOffset(filenames,offset);
+				nextfile = O.first;
+				
+				if ( nextfile < filenames.size() )
+				{
+					std::string const fn = filenames[nextfile++];
+
+					libmaus::aio::CheckedInputStream::unique_ptr_type tistr(
+						new libmaus::aio::CheckedInputStream(fn)
+					);
+					istr = UNIQUE_PTR_MOVE(tistr);
+							
+					istr->seekg(-8,std::ios::end);
+							
+					libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type nSGI(
+						new libmaus::aio::SynchronousGenericInput<uint64_t>(*istr,1)
+					);
+					
+					bool const ok = nSGI->getNext(bitsleft);
+					assert ( ok );
+					
+					// number of complete words to skip
+					uint64_t wordskip = O.second / 64;
+
+					istr->clear();
+					istr->seekg(8*wordskip,std::ios::beg);
+					
+					bitsleft -= 64*wordskip;
+					O.second -= 64*wordskip;
+
+					libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+						new libmaus::aio::SynchronousGenericInput<uint64_t>(*istr,8*1024)
+					);
+					SGI = UNIQUE_PTR_MOVE(tSGI);
+					
+					// skip over rest of offset by reading the bits
+					while ( O.second )
+					{
+						readBit();
+						--O.second;
+					}
+				}
 			}
 
 			bool readBit()

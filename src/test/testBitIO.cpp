@@ -613,54 +613,65 @@ void testMarkerBitIO4()
 	#endif
 }
 
+void testBitVectorIO()
+{
+	srand(5);
+	libmaus::bitio::BitVectorOutput bout0("t0");
+	libmaus::bitio::BitVectorOutput bout1("t1");
 
+	std::vector<bool> bits;		
+
+	uint64_t n0 = 512;
+	for ( uint64_t i = 0; i < n0; ++i )
+	{
+		bool const bit = rand() % 2 == 1;
+		bits.push_back(bit);
+		bout0.writeBit(bit);
+	}
+	bout0.flush();
+
+	uint64_t n1 = 1024;
+	for ( uint64_t i = 0; i < n1; ++i )
+	{
+		bool const bit = rand() % 2 == 1;
+		bits.push_back(bit);
+		bout1.writeBit(bit);
+	}	
+	bout1.flush();	
+	
+	std::vector<std::string> V;
+	V.push_back("t0");
+	V.push_back("t1");
+	libmaus::bitio::BitVectorInput bin(V);
+	
+	for ( uint64_t i = 0; i < n0+n1; ++i )
+	{
+		bool const bit = bin.readBit();
+		assert ( bit == bits[i] );
+	}
+	
+	for ( uint64_t offset = 0; offset <= n0+n1; ++offset )
+	{
+		// std::cerr << "offset=" << offset << std::endl;
+		libmaus::bitio::BitVectorInput bin(V,offset);
+		
+		for ( uint64_t j = offset; j < n0+n1; ++j )
+		{
+			bool const bit = bin.readBit();
+			assert ( bit == bits[j] );
+		}
+	}
+	
+	remove("t0");
+	remove("t1");
+}
                      
 int main()
 {
-	{
-		srand(5);
-		libmaus::bitio::BitVectorOutput bout0("t0");
-		libmaus::bitio::BitVectorOutput bout1("t1");
-
-		std::vector<bool> bits;		
-
-		uint64_t n0 = 512;
-		for ( uint64_t i = 0; i < n0; ++i )
-		{
-			bool const bit = rand() % 2 == 1;
-			bits.push_back(bit);
-			bout0.writeBit(bit);
-		}
-		bout0.flush();
-
-		uint64_t n1 = 1024;
-		for ( uint64_t i = 0; i < n1; ++i )
-		{
-			bool const bit = rand() % 2 == 1;
-			bits.push_back(bit);
-			bout1.writeBit(bit);
-		}	
-		bout1.flush();	
-		
-		std::vector<std::string> V;
-		V.push_back("t0");
-		V.push_back("t1");
-		libmaus::bitio::BitVectorInput bin(V);
-		
-		for ( uint64_t i = 0; i < n0+n1; ++i )
-		{
-			bool const bit = bin.readBit();
-			assert ( bit == bits[i] );
-		}
-		
-		remove("t0");
-		remove("t1");
-	}
-	
-	return 0;
-
 	try
 	{
+		testBitVectorIO();
+		
 		#if 0
 		testMarkerBitIO4();		
 		return 0;
