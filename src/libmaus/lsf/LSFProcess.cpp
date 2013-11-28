@@ -85,7 +85,8 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
         std::string const & serrfilename,
         std::vector < std::string > const * hosts,
         char const * rcwd,
-        uint64_t const tmpspace
+        uint64_t const tmpspace,
+        char const * model
         )
 {
 	// no lock, submitting happens in a different process
@@ -103,6 +104,8 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
                 << " " << "-i \"" << sinfilename << "\""
                 << " " << "-M \"" << maxmem*libmaus::lsf::LSF::Mscale << "\""
                 << " " << "-R'" << "select[(mem>="<<maxmem<<" && type==X86_64";
+	if ( model != 0 )
+		bsubstr << " && model==" << model;
         if ( tmpspace != 0 )
                 bsubstr << " && tmp>=" << tmpspace;
         bsubstr << ")] rusage[mem="<<maxmem;
@@ -179,9 +182,10 @@ libmaus::lsf::LSFProcess::LSFProcess(
         std::string const & serrfilename,
         std::vector < std::string > const * hosts,
         char const * cwd,
-        uint64_t const tmpspace
+        uint64_t const tmpspace,
+        char const * model
         )
-: id(submitJob(scommand,sjobname,sproject,squeuename,numcpu,maxmem,sinfilename,soutfilename,serrfilename,hosts,cwd,tmpspace))
+: id(submitJob(scommand,sjobname,sproject,squeuename,numcpu,maxmem,sinfilename,soutfilename,serrfilename,hosts,cwd,tmpspace,model))
 {
 }
         		

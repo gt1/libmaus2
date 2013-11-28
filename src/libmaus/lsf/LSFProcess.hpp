@@ -67,7 +67,8 @@ namespace libmaus
         		        std::string const & serrfilename,
         		        std::vector < std::string > const * hosts = 0,
         		        char const * cwd = 0,
-        		        uint64_t const tmpspace = 0
+        		        uint64_t const tmpspace = 0,
+        		        char const * model = 0
                         );
 
         		LSFProcess(
@@ -82,7 +83,8 @@ namespace libmaus
         		        std::string const & serrfilename = "/dev/null",
         		        std::vector < std::string > const * hosts = 0,
         		        char const * cwd = 0,
-        		        uint64_t const tmpspace = 0
+        		        uint64_t const tmpspace = 0,
+        		        char const * model = 0
                 		);
 
 			bool isKnown() const;

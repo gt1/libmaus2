@@ -472,7 +472,8 @@ namespace libmaus
                                 char const * cwd = 0, // working directory
                                 uint64_t const tmpspace = 0, // tmp space
                                 uint64_t const shostlimit = std::numeric_limits<uint64_t>::max(), // number of different hosts
-                                uint64_t const valgrind = 0 // start processes under valgrind
+                                uint64_t const valgrind = 0, // start processes under valgrind
+                                char const * model = 0
                                 )
 			{
                                 std::string const dispatchername = "computeLSFGenericDispatcher";
@@ -520,7 +521,8 @@ namespace libmaus
                                                         serrfilename,
                                                         hosts,
                                                         cwd,
-                                                        tmpspace
+                                                        tmpspace,
+                                                        model
                                                         )
                                                 ));
                                         std::cerr << "done." << std::endl;
@@ -547,7 +549,8 @@ namespace libmaus
                                 char const * cwd = 0, // working directory
                                 uint64_t const tmpspace = 0, // tmp space
                                 uint64_t const shostlimit = std::numeric_limits<uint64_t>::max(), // number of different hosts
-                                uint64_t const valgrind = 0 // start processes under valgrind
+                                uint64_t const valgrind = 0, // start processes under valgrind
+                                char const * model = 0
                                 )
                         {
                                 std::string const dispatchername = "computeLSFGenericDispatcher";
@@ -589,7 +592,8 @@ namespace libmaus
                                                         serrfilename,
                                                         hosts,
                                                         cwd,
-                                                        tmpspace
+                                                        tmpspace,
+                                                        model
                                                         )
                                                 ));
                                         std::cerr << "done." << std::endl;
@@ -655,7 +659,8 @@ namespace libmaus
                                 std::vector < std::string > const * hosts = 0,
                                 char const * cwd = 0,
                                 uint64_t const tmpspace = 0,
-                                uint64_t const valgrind = 0
+                                uint64_t const valgrind = 0,
+                                char const * model = 0
                                 )
                         {
                                  assert ( size() == 0 );
@@ -667,7 +672,7 @@ namespace libmaus
 	                                while ( shosts.size() < numinst )
 					{
                                         	start(quant,base,scommand,rsjobname,sproject,queuename,numcpu,maxmem,
-                                                	sinfilename,soutfilename,serrfilename,hosts,cwd,tmpspace,numinst,valgrind);
+                                                	sinfilename,soutfilename,serrfilename,hosts,cwd,tmpspace,numinst,valgrind,model);
                                         	base += quant;
 					}
                                         compact(numinst);
