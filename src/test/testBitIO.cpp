@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/bitio/BitVectorInput.hpp>
+#include <libmaus/bitio/BitVectorOutput.hpp>
+
 #include <libmaus/bitio/CompactArray.hpp>
 #include <libmaus/bitio/SwapWordBitBlock.hpp>
 #include <libmaus/bitio/CompactSparseArray.hpp>
@@ -609,9 +612,53 @@ void testMarkerBitIO4()
 	std::cerr << "MarkerStreamBitInputStream decoding speed " << (static_cast<double>(loop*n)/(1024.0*1024.0)) / secs << " MB/s" << std::endl;
 	#endif
 }
+
+
                      
 int main()
 {
+	{
+		srand(5);
+		libmaus::bitio::BitVectorOutput bout0("t0");
+		libmaus::bitio::BitVectorOutput bout1("t1");
+
+		std::vector<bool> bits;		
+
+		uint64_t n0 = 512;
+		for ( uint64_t i = 0; i < n0; ++i )
+		{
+			bool const bit = rand() % 2 == 1;
+			bits.push_back(bit);
+			bout0.writeBit(bit);
+		}
+		bout0.flush();
+
+		uint64_t n1 = 1024;
+		for ( uint64_t i = 0; i < n1; ++i )
+		{
+			bool const bit = rand() % 2 == 1;
+			bits.push_back(bit);
+			bout1.writeBit(bit);
+		}	
+		bout1.flush();	
+		
+		std::vector<std::string> V;
+		V.push_back("t0");
+		V.push_back("t1");
+		libmaus::bitio::BitVectorInput bin(V);
+		
+		for ( uint64_t i = 0; i < n0+n1; ++i )
+		{
+			bool const bit = bin.readBit();
+			assert ( bit == bits[i] );
+		}
+		
+		remove("t0");
+		remove("t1");
+	}
+	
+	return 0;
+
 	try
 	{
 		#if 0

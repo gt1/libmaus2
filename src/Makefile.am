@@ -342,7 +342,9 @@ libmausbitio_include_HEADERS=\
 	libmaus/bitio/CompactArrayWriter.hpp \
 	libmaus/bitio/CompactArrayWriterFile.hpp \
 	libmaus/bitio/PacDecoderBuffer.hpp \
-	libmaus/bitio/MarkerFastWriteBitWriter.hpp
+	libmaus/bitio/MarkerFastWriteBitWriter.hpp \
+	libmaus/bitio/BitVectorInput.hpp \
+	libmaus/bitio/BitVectorOutput.hpp
 
 libmausrank_includedir=$(includedir)/libmaus/rank
 libmausrank_include_HEADERS=\
