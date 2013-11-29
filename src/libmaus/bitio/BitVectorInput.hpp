@@ -33,9 +33,9 @@ namespace libmaus
 			std::vector<std::string> filenames;
 			uint64_t nextfile;
 
-			uint64_t bitsleft = 0;
-			int shift = -1;
-			uint64_t v = 0;
+			uint64_t bitsleft;
+			int shift;
+			uint64_t v;
 			
 			static uint64_t getLength(std::string const & fn)
 			{
