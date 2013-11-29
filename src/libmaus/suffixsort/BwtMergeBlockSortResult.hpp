@@ -70,11 +70,13 @@ namespace libmaus
 			void setBlockStart(uint64_t const rblockstart) { blockstart = rblockstart; }
 			void setCBlockSize(uint64_t const rcblocksize) { cblocksize = rcblocksize; }
 			void setBWT(std::vector<std::string> const & bwt) { files.setBWT(bwt); }
+			void setGT(std::vector<std::string> const & gt) { files.setGT(gt); }
 			::libmaus::suffixsort::BwtMergeTempFileNameSet const & getFiles() const { return files; }
 			void removeFiles() const { files.removeFiles(); }
 			void removeFilesButBwt() const { files.removeFilesButBwt(); }
-			void setTempPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt) 
-			{ files.setPrefixAndRegisterAsTemp(prefix,numbwt); }
+			void removeFilesButBwtAndGt() const { files.removeFilesButBwtAndGt(); }
+			void setTempPrefixAndRegisterAsTemp(std::string const & prefix, uint64_t const numbwt, uint64_t const numgt) 
+			{ files.setPrefixAndRegisterAsTemp(prefix,numbwt,numgt); }
 			libmaus::autoarray::AutoArray < ::libmaus::suffixsort::BwtMergeZBlock > const & getZBlocks() const { return zblocks; }
 			void resizeZBlocks(uint64_t const n) { zblocks.resize(n); }
 			void setZBlock(uint64_t const i, ::libmaus::suffixsort::BwtMergeZBlock const & z) { zblocks.at(i) = z; }
