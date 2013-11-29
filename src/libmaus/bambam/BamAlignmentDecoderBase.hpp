@@ -2321,7 +2321,7 @@ namespace libmaus
 			 * @param blocksize size of alignment block
 			 * @return contents of the RG aux field (null pointer if not present)
 			 **/
-			char const * getReadGroup(uint8_t const * E, uint64_t const blocksize) const
+			static char const * getReadGroup(uint8_t const * E, uint64_t const blocksize) const
 			{
 				return getAuxString(E,blocksize,"RG");
 			}
