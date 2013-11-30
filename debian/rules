@@ -1,7 +1,0 @@
-#!/usr/bin/make -f
-%:
-	dh $@ 
-
-override_dh_auto_configure:
-	autoreconf -i -f
-	dh_auto_configure -- --with-snappy --with-seqan --with-io_lib --disable-kmlocal --disable-ssse3 --disable-sse4

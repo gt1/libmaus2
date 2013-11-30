@@ -1,7 +1,0 @@
-usr/include
-usr/lib/libmaus.so
-usr/lib/libmauslsf.so
-usr/lib/libmaus.a
-usr/lib/libmauslsf.a
-usr/lib/*.la
-usr/lib/pkgconfig
