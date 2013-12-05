@@ -27,9 +27,27 @@ namespace libmaus
 	{
 		struct SparseGammaGapFileIndexMultiDecoder
 		{
+			typedef SparseGammaGapFileIndexMultiDecoder this_type;
+			typedef SparseGammaGapFileIndexDecoder::value_type value_type;
+		
 			std::vector<std::string> filenames;
 			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H;
 			libmaus::util::IntervalTree::unique_ptr_type I;
+			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > BC;
+			libmaus::util::IntervalTree::unique_ptr_type B;
+			uint64_t numentries;
+
+			typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+
+			const_iterator begin() const
+			{
+				return const_iterator(this,0);
+			}
+
+			const_iterator end() const
+			{
+				return const_iterator(this,numentries);
+			}
 			
 			std::vector<std::string> filterFilenames(std::vector<std::string> const & filenames)
 			{
@@ -41,18 +59,20 @@ namespace libmaus
 			}
 			
 			SparseGammaGapFileIndexMultiDecoder(std::vector<std::string> const & rfilenames) 
-			: filenames(filterFilenames(rfilenames)), H(filenames.size())
+			: filenames(filterFilenames(rfilenames)), H(filenames.size()), BC(filenames.size())
 			{
-				#if 0
+				if ( BC.size() )
+					BC[0].first = 0;
+					
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
-					std::cerr << "[" << i << "] : " << SparseGammaGapFileIndexDecoder(filenames[i]).numentries << std::endl;
-				}
-				#endif
+					SparseGammaGapFileIndexDecoder dec(filenames[i]);
+					H[i].first = dec.getMinKey();
+					
+					if ( i > 0 )
+						BC[i].first = BC[i-1].second;
 
-				for ( uint64_t i = 0; i < filenames.size(); ++i )
-				{
-					H[i].first = SparseGammaGapFileIndexDecoder(filenames[i]).getMinKey();
+					BC[i].second = BC[i].first + dec.numentries;
 				}
 				for ( uint64_t i = 0; i+1 < filenames.size(); ++i )
 				{
@@ -66,6 +86,11 @@ namespace libmaus
 				
 				libmaus::util::IntervalTree::unique_ptr_type tI(new libmaus::util::IntervalTree(H,0,H.size()));
 				I = UNIQUE_PTR_MOVE(tI);
+
+				libmaus::util::IntervalTree::unique_ptr_type tB(new libmaus::util::IntervalTree(BC,0,BC.size()));
+				B = UNIQUE_PTR_MOVE(tB);
+				
+				numentries = BC.size() ? BC[BC.size()-1].second : 0;
 			}
 			
 			std::pair<uint64_t,uint64_t> getBlockIndex(uint64_t const ikey)
@@ -87,7 +112,143 @@ namespace libmaus
 					return std::pair<uint64_t,uint64_t>(findex,dec.getBlockIndex(ikey));
 				}
 			}
-		};
+			
+			SparseGammaGapFileIndexDecoder::value_type get(uint64_t const i) const
+			{
+				if ( i >= numentries )
+				{
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "SparseGammaGapFileIndexMultiDecoder::get(): index out of range" << std::endl;
+					ex.finish();
+					throw ex;
+				}
+				
+				uint64_t const fileptr = B->find(i);
+				uint64_t const blockptr = i - BC[fileptr].first;
+				
+				return SparseGammaGapFileIndexDecoder(filenames[fileptr]).get(blockptr);
+			}
+
+			struct SparseGammaGapFileIndexMultiDecoderBlockCountAccessor
+			{
+				SparseGammaGapFileIndexMultiDecoder const * owner;
+				
+				SparseGammaGapFileIndexMultiDecoderBlockCountAccessor(SparseGammaGapFileIndexMultiDecoder const * rowner) : owner(rowner) {}
+				
+				uint64_t get(uint64_t const ikey) const
+				{
+					SparseGammaGapFileIndexMultiDecoder::const_iterator itc =
+						std::lower_bound(
+							owner->begin(),
+							owner->end(),
+							ikey	
+					);
+					
+					return itc - owner->begin();
+				}			
+			};
+			
+			SparseGammaGapFileIndexMultiDecoderBlockCountAccessor getBlockCountAccessor() const
+			{
+				return SparseGammaGapFileIndexMultiDecoderBlockCountAccessor(this);
+			}
+			
+			struct SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined
+			{
+				typedef SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined this_type;
+				
+				SparseGammaGapFileIndexMultiDecoderBlockCountAccessor accessora;
+				SparseGammaGapFileIndexMultiDecoderBlockCountAccessor accessorb;
+				uint64_t range;
+
+				typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+
+				const_iterator begin() const
+				{
+					return const_iterator(this,0);
+				}
+
+				const_iterator end() const
+				{
+					return const_iterator(this,range);
+				}
+				
+				uint64_t totalBlocks() const
+				{
+					return
+						accessora.owner->numentries + 
+						accessorb.owner->numentries;
+				}
+				
+				SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined(
+					SparseGammaGapFileIndexMultiDecoderBlockCountAccessor raccessora,
+					SparseGammaGapFileIndexMultiDecoderBlockCountAccessor raccessorb,
+					uint64_t const rrange
+				) : accessora(raccessora), accessorb(raccessorb), range(rrange)
+				{
+				
+				}
+
+				SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined(
+					SparseGammaGapFileIndexMultiDecoder const & rA,
+					SparseGammaGapFileIndexMultiDecoder const & rB,
+					uint64_t const rrange
+				) : accessora(rA.getBlockCountAccessor()), accessorb(rB.getBlockCountAccessor()), range(rrange)
+				{
+				
+				}
+								
+				uint64_t get(uint64_t const ikey) const
+				{
+					return accessora.get(ikey) + accessorb.get(ikey);
+				}
+			};
+			
+			static SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined getCombinedAccessor(
+				SparseGammaGapFileIndexMultiDecoder const & A,
+				SparseGammaGapFileIndexMultiDecoder const & B,
+				uint64_t const range)
+			{
+				return SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined(A,B,range);
+			}
+			
+			static std::vector<uint64_t> getSplitKeys(
+				SparseGammaGapFileIndexMultiDecoder const & A,
+				SparseGammaGapFileIndexMultiDecoder const & B,
+				uint64_t const range,
+				uint64_t const numkeys
+			)
+			{
+				SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined CA = 
+					getCombinedAccessor(A,B,range);
+										
+				uint64_t const totalblocks = CA.totalBlocks();
+				uint64_t const blocksperkey = (totalblocks + numkeys-1)/numkeys;
+				std::vector<uint64_t> keys;
+				
+				for ( uint64_t i = 0; i < numkeys; ++i )
+				{
+					uint64_t const tblock = std::min(i * blocksperkey, totalblocks);
+					uint64_t const ikey = std::lower_bound(CA.begin(),CA.end(),tblock) - CA.begin();
+					if ( (! keys.size()) || (ikey != keys.back()) )
+						keys.push_back(ikey);
+				}
+				
+				return keys;
+			}
+
+			static std::vector<uint64_t> getSplitKeys(
+				std::vector<std::string> const & fna,
+				std::vector<std::string> const & fnb,
+				uint64_t const range,
+				uint64_t const numkeys
+			)
+			{
+				SparseGammaGapFileIndexMultiDecoder A(fna);
+				SparseGammaGapFileIndexMultiDecoder B(fnb);
+				return getSplitKeys(A,B,range,numkeys);
+			}
+		};	
 	}
 }
 #endif
