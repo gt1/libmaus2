@@ -258,6 +258,18 @@ namespace libmaus
 				}
 			}			
 			
+			std::pair<uint64_t,uint64_t> nextPair()
+			{
+				p.first = gdec->decode();
+				p.second = gdec->decode();
+				
+				// no more non zero values
+				while ( (!p.second) && fileptr < filenames.size() )
+					openNextFile();
+
+				return p;
+			}
+			
 			iterator begin()
 			{
 				return iterator(this);
