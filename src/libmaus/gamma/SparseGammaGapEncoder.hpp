@@ -43,7 +43,7 @@ namespace libmaus
 			int64_t prevkey;
 			libmaus::gamma::GammaEncoder<stream_type> genc;
 		
-			SparseGammaGapEncoder(std::ostream & out) : SGO(out,64*1024), prevkey(-1), genc(SGO)
+			SparseGammaGapEncoder(std::ostream & out, int64_t const rprevkey = -1) : SGO(out,64*1024), prevkey(rprevkey), genc(SGO)
 			{
 			}
 			

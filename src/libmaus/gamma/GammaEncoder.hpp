@@ -83,6 +83,11 @@ namespace libmaus
 					bav = 64;
 				}
 			}
+			
+			uint64_t getOffset() const
+			{
+				return 64 * stream.getWrittenWords() + (64-bav);
+			}
 		};
 	}
 }

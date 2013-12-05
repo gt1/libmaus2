@@ -426,10 +426,106 @@ void testsparsegammalevelmerge()
 	remove(ffn.c_str());
 }
 
+
+#include <libmaus/gamma/SparseGammaGapBlockEncoder.hpp>
+#include <libmaus/gamma/SparseGammaGapConcatDecoder.hpp>
+
+void testSparseGammaConcat()
+{
+	for ( uint64_t An = 1; An <= 512; ++An )
+		for ( uint64_t z = 0; z < 4; ++z )
+		{
+			// set up array with random numbers
+			uint64_t const Amod = (An+1)/2 + (rand() % An);
+			libmaus::autoarray::AutoArray<uint64_t> A(An,false);
+			for ( uint64_t i = 0; i < A.size(); ++i )
+				A[i] = rand() % Amod;
+
+			// file name prefix
+			std::string const fnpref = "tmp_g";
+			
+			// encode array
+			std::vector<std::string> concfn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(
+				&A[0], &A[An], fnpref, 7 /* parts */, 5 /* block size */);
+				
+			// store data in map for reference
+			std::map<uint64_t,uint64_t> M;
+			for ( uint64_t i = 0; i < An; ++i )
+				M[A[i]]++;
+		
+			// test reading back starting from beginning	
+			libmaus::gamma::SparseGammaGapConcatDecoder SGGCD(concfn);
+			for ( uint64_t i = 0; i < Amod; ++i )
+			{
+				uint64_t const v = SGGCD.decode();
+				// std::cerr << i << "\t" << v << "\t" << M[i] << std::endl;
+				assert ( v == M[i] );
+			}
+			
+			// test reading back from given starting position
+			for ( uint64_t j = 0; j < Amod; ++j )
+			{
+				// std::cerr << "*** j=" << j << " ***" << std::endl;
+				libmaus::gamma::SparseGammaGapConcatDecoder SGGCD(concfn,j);
+			
+				for ( uint64_t i = j; i < Amod; ++i )
+				{
+					uint64_t const v = SGGCD.decode();
+					if ( v != M[i] )
+						std::cerr << j << "\t" << i << "\t" << v << "\t" << M[i] << std::endl;
+					assert ( v == M[i] );
+				}
+			}
+			
+			// remove files
+			for ( uint64_t i = 0; i < concfn.size(); ++i )
+				remove(concfn[i].c_str());
+			
+			std::cerr << An << "\t" << z+1 << std::endl;
+		}
+}
+
+void testSparseGammaIndexing()
+{
+	std::stringstream datastr;
+	std::stringstream indexstr;
+	libmaus::gamma::SparseGammaGapBlockEncoder SGGBE(datastr,indexstr,-1 /* prevkey */,2);
+	SGGBE.encode(2,3);
+	SGGBE.encode(7,2);
+	SGGBE.encode(11,1);
+	SGGBE.encode(12,5);
+	SGGBE.encode(13,4);
+	SGGBE.term();
+	
+	std::istringstream istr(datastr.str());
+	libmaus::gamma::SparseGammaGapFileIndexDecoder SGGFID(istr);
+	
+	for ( libmaus::gamma::SparseGammaGapFileIndexDecoder::const_iterator ita = SGGFID.begin(); ita != SGGFID.end(); ++ita )
+	{
+		std::cerr << *ita << std::endl;
+	}
+	
+	std::cerr << std::string(80,'-') << std::endl;
+			
+	// std::cerr << SGGFID.getBlockIndex(1) << std::endl;
+	std::cerr << SGGFID.getBlockIndex(2) << std::endl;
+	std::cerr << SGGFID.getBlockIndex(7) << std::endl;
+	std::cerr << SGGFID.getBlockIndex(11) << std::endl;
+	std::cerr << SGGFID.getBlockIndex(12) << std::endl;
+	std::cerr << SGGFID.getBlockIndex(13) << std::endl;
+	std::cerr << SGGFID.getBlockIndex(512) << std::endl;
+}
+
 int main()
 {
 	try
 	{
+		// srand(time(0));
+		srand(5);
+		
+		testSparseGammaConcat();
+		testSparseGammaIndexing();
+
 		testsparsegammalevelmerge();
 		
 		return 0;

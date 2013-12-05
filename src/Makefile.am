@@ -102,7 +102,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lz/Lz4DecoderBuffer.cpp \
 	libmaus/lz/lz4.c \
 	libmaus/fm/BidirectionalIndexInterval.cpp  \
-	libmaus/fm/BidirectionalIndexIntervalSymbol.cpp
+	libmaus/fm/BidirectionalIndexIntervalSymbol.cpp \
+	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -146,7 +147,11 @@ libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/Gamm
 	libmaus/gamma/GammaRLDecoder.hpp  libmaus/gamma/GammaRLEncoder.hpp \
 	libmaus/gamma/SparseGammaGapEncoder.hpp libmaus/gamma/SparseGammaGapDecoder.hpp libmaus/gamma/SparseGammaGapMerge.hpp \
 	libmaus/gamma/SparseGammaGapFile.hpp libmaus/gamma/SparseGammaGapFileSet.hpp \
-	libmaus/gamma/SparseGammaGapFileLevelSet.hpp
+	libmaus/gamma/SparseGammaGapFileLevelSet.hpp \
+	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.hpp \
+	libmaus/gamma/SparseGammaGapFileIndexDecoder.hpp \
+	libmaus/gamma/SparseGammaGapFileIndexMultiDecoder.hpp \
+	libmaus/gamma/SparseGammaGapConcatDecoder.hpp
 
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
@@ -970,6 +975,7 @@ noinst_PROGRAMS = \
 	testrmmtree \
 	testcst \
 	testbamcmp \
+	testbamdif \
 	testqreorder \
 	testfqbgzf \
 	testoverlap \
@@ -1177,6 +1183,9 @@ testcst_LDADD = libmaus.la
 
 testbamcmp_SOURCES = test/testbamcmp.cpp
 testbamcmp_LDADD = libmaus.la
+
+testbamdif_SOURCES = test/testbamdif.cpp
+testbamdif_LDADD = libmaus.la
 
 testqreorder_SOURCES = test/testqreorder.cpp
 testqreorder_LDADD = libmaus.la
