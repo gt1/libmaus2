@@ -84,11 +84,17 @@ namespace libmaus
 					H[H.size()-1].second = std::numeric_limits<uint64_t>::max();
 				}
 				
-				libmaus::util::IntervalTree::unique_ptr_type tI(new libmaus::util::IntervalTree(H,0,H.size()));
-				I = UNIQUE_PTR_MOVE(tI);
+				if ( H.size() )
+				{
+					libmaus::util::IntervalTree::unique_ptr_type tI(new libmaus::util::IntervalTree(H,0,H.size()));
+					I = UNIQUE_PTR_MOVE(tI);
+				}
 
-				libmaus::util::IntervalTree::unique_ptr_type tB(new libmaus::util::IntervalTree(BC,0,BC.size()));
-				B = UNIQUE_PTR_MOVE(tB);
+				if ( BC.size() )
+				{
+					libmaus::util::IntervalTree::unique_ptr_type tB(new libmaus::util::IntervalTree(BC,0,BC.size()));
+					B = UNIQUE_PTR_MOVE(tB);
+				}
 				
 				numentries = BC.size() ? BC[BC.size()-1].second : 0;
 			}
@@ -128,7 +134,49 @@ namespace libmaus
 				
 				return SparseGammaGapFileIndexDecoder(filenames[fileptr]).get(blockptr);
 			}
-
+			
+			bool hasPrevKey(uint64_t const ikey) const
+			{
+				if ( ! numentries )
+					return false;
+				else
+				{
+					uint64_t const minkey = get(0).ikey;
+					
+					if ( ikey <= minkey )
+						return false;
+					else
+						return true;
+				}
+			}
+			
+			bool isEmpty() const
+			{
+				return numentries == 0;
+			}
+			
+			bool hasMaxKey() const
+			{
+				return numentries;
+			}
+			
+			uint64_t getMaxKey() const
+			{
+				assert ( hasMaxKey() );
+				return SparseGammaGapFileIndexDecoder(filenames[filenames.size()-1]).getMaxKey();
+			}
+			
+			uint64_t getMinKey() const
+			{
+				assert ( !isEmpty() );
+				return get(0).ikey;
+			}
+						
+			bool hasKeysLargerEqual(uint64_t const ikey) const
+			{
+				return hasMaxKey() && (ikey <= getMaxKey());
+			}
+			
 			struct SparseGammaGapFileIndexMultiDecoderBlockCountAccessor
 			{
 				SparseGammaGapFileIndexMultiDecoder const * owner;
@@ -247,6 +295,21 @@ namespace libmaus
 				SparseGammaGapFileIndexMultiDecoder A(fna);
 				SparseGammaGapFileIndexMultiDecoder B(fnb);
 				return getSplitKeys(A,B,range,numkeys);
+			}
+
+			static std::vector<uint64_t> getSplitKeys(
+				std::vector<std::string> const & fna,
+				std::vector<std::string> const & fnb,
+				uint64_t const numkeys
+			)
+			{
+				bool const aempty = this_type(fna).isEmpty();
+				bool const bempty = this_type(fnb).isEmpty();
+				
+				uint64_t const maxa = aempty ? 0 : this_type(fna).getMaxKey();
+				uint64_t const maxb = bempty ? 0 : this_type(fnb).getMaxKey();
+				uint64_t const maxv = std::max(maxa,maxb);
+				return getSplitKeys(fna,fnb,maxv,numkeys);
 			}
 		};	
 	}

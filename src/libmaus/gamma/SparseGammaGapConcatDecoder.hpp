@@ -111,10 +111,82 @@ namespace libmaus
 				openNextFile();
 			}
 			
+			bool hasNextKey() const
+			{
+				return p.second != 0;
+			}
+			
+			static uint64_t getNextKey(std::vector<std::string> const & filenames, uint64_t const ikey)
+			{
+				this_type dec(filenames,ikey);
+				assert ( dec.hasNextKey() );
+				return ikey + dec.p.first;
+			}
+
+			static bool hasNextKey(std::vector<std::string> const & filenames, uint64_t const ikey)
+			{
+				return this_type(filenames,ikey).hasNextKey();
+			}
+			
+			// khigh is exclusive
+			static bool hasKeyInRange(std::vector<std::string> const & filenames, uint64_t const klow, uint64_t const khigh)
+			{
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
+				return !(index.isEmpty() || (index.getMinKey() >= khigh) || (index.getMaxKey() < klow));
+			}
+			
+			static bool hasPrevKey(std::vector<std::string> const & filenames, uint64_t const ikey)
+			{
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
+				return (!index.isEmpty()) && index.getMinKey() < ikey;
+			}
+			
+			static uint64_t getPrevKeyBlockStart(std::vector<std::string> const & filenames, uint64_t const ikey)
+			{
+				assert ( hasPrevKey(filenames,ikey) );
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
+				std::pair<uint64_t,uint64_t> const p = index.getBlockIndex(ikey-1);
+				assert ( p.first < filenames.size() );
+				libmaus::gamma::SparseGammaGapFileIndexDecoder index1(filenames[p.first]);
+				return index1.get(index1.getBlockIndex(ikey-1)).ikey;
+			}
+			
+			// get highest non-zero key before ikey or -1 if there is no such key
+			static int64_t getPrevKey(std::vector<std::string> const & filenames, uint64_t const ikey)
+			{
+				if ( ! hasPrevKey(filenames,ikey) )
+					return -1;
+					
+				uint64_t const prevblockstart = getPrevKeyBlockStart(filenames,ikey);
+				
+				this_type dec(filenames,prevblockstart);
+				
+				assert ( dec.p.first == 0 );
+				
+				uint64_t curkey = prevblockstart;
+				
+				while ( true )
+				{
+					std::pair<uint64_t,uint64_t> const p = dec.nextPair();
+					
+					if ( ! p.second )
+						return curkey;
+					
+					uint64_t const nextkey = curkey + (1 + p.first);
+					
+					if ( nextkey >= ikey )
+						return curkey;
+					else
+						curkey = nextkey;
+				}
+			}
+			
 			void seek(uint64_t const ikey)
 			{
 				p.first = 0;
 				p.second = 0;
+				
+				// std::cerr << "seeking to " << ikey << std::endl;
 				
 				std::pair<uint64_t,uint64_t> const P = SparseGammaGapFileIndexMultiDecoder(filenames).getBlockIndex(ikey);
 				fileptr = P.first;
@@ -184,6 +256,8 @@ namespace libmaus
 						// we seeked to a block start, this should not be zero
 						assert ( p.second );
 						
+						// std::cerr << "offset " << offset << std::endl;
+						
 						// skip value if we do not stay on the start of the block
 						if ( offset )
 						{
@@ -194,6 +268,8 @@ namespace libmaus
 							p.first = gdec->decode();
 							p.second = gdec->decode();
 						}
+						
+						// std::cerr << "p=" << p.first << "," << p.second << std::endl;
 
 						while ( offset >= p.first+1 )
 						{
@@ -215,8 +291,13 @@ namespace libmaus
 						
 						assert ( p.second == 0 || offset <= p.first );
 
-						while ( offset-- )
+						for ( ; offset; --offset )
 							decode();
+						
+						// make sure p.second is not 0 if there is still more data
+						// (not necessary for decode(), but confusing for others)	
+						while ( p.second == 0 && fileptr != filenames.size() )
+							openNextFile();
 					}
 				}			
 			
@@ -268,6 +349,17 @@ namespace libmaus
 					openNextFile();
 
 				return p;
+			}
+			
+			uint64_t nextFirst()
+			{
+				nextPair();
+				return p.first;
+			}
+			
+			uint64_t nextSecond()
+			{
+				return p.second;
 			}
 			
 			iterator begin()

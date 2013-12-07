@@ -455,18 +455,39 @@ void testSparseGammaConcat()
 		
 			std::vector<uint64_t> const splitkeys = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(concfn,concfn,Amod,8);
 			
+			#if 0
 			std::cerr << "splitkeys: ";
 			for ( uint64_t i = 0; i < splitkeys.size(); ++i )
 				std::cerr << splitkeys[i] << ";";
 			std::cerr << std::endl;
+			
+			for ( std::map<uint64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
+				std::cerr << "(k" << ita->first << ",v=" << ita->second << ")";
+			std::cerr << std::endl;
+			#endif
 		
 			// test reading back starting from beginning	
 			libmaus::gamma::SparseGammaGapConcatDecoder SGGCD(concfn);
+			int64_t prevkey = -1;
 			for ( uint64_t i = 0; i < Amod; ++i )
 			{
 				uint64_t const v = SGGCD.decode();
 				// std::cerr << i << "\t" << v << "\t" << M[i] << std::endl;
 				assert ( v == M[i] );
+				
+				bool const prevok = ( prevkey == libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concfn,i) );
+				
+				#if 0
+				if ( ! prevok )
+				{
+					std::cerr << "expected " << prevkey << " got " << libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concfn,i) << std::endl;
+				}
+				#endif
+				
+				assert ( prevok );
+				
+				if ( v )
+					prevkey = i;
 			}
 			
 			// test reading back from given starting position
@@ -523,10 +544,76 @@ void testSparseGammaIndexing()
 	std::cerr << SGGFID.getBlockIndex(512) << std::endl;
 }
 
+void testSparseGammaGapMerging()
+{
+	// uint64_t A[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 }; uint64_t const An = sizeof(A)/sizeof(A[0]);
+	uint64_t A[] = { 1,3,50,52,75,77,1000,1002,2000,3000 }; uint64_t const An = sizeof(A)/sizeof(A[0]);
+	// uint64_t A[] = { /* 1,6,1,7,21,1,6,6,7,4 */ }; uint64_t const An = sizeof(A)/sizeof(A[0]);
+	// uint64_t B[] = { 1,6,1,7,21,1,6,6,7,5,43,13,18,24,29,95,86,72,77 }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
+	uint64_t B[] = { 11,13,60,62,82,83 }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
+	// uint64_t B[] = { /* 1,6,1,7,21,1,6,6,7,5 */ }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
+
+	std::cerr << "An=" << An << " Bn=" << Bn << std::endl;
+
+	// file name prefix
+	std::string const fnprefa = "tmp_a";
+	std::string const fnprefb = "tmp_b";
+	std::string const fnout = "tmp_o";
+			
+	// encode array
+	std::vector<std::string> concafn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(&A[0], &A[An], fnprefa, 7 /* parts */, 2 /* block size */);
+	std::vector<std::string> concbfn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(&B[0], &B[Bn], fnprefb, 7 /* parts */, 2 /* block size */);
+	
+	#if 0
+	for ( uint64_t i = 0; i < concafn.size(); ++i )
+		std::cerr << "concafn[i]=" << concafn[i] << std::endl;
+	for ( uint64_t i = 0; i < concbfn.size(); ++i )
+		std::cerr << "concbfn[i]=" << concbfn[i] << std::endl;
+	#endif
+
+	// libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,0,std::numeric_limits<uint64_t>::max(),fnout);
+	std::vector<std::string> const concofn = libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,fnout,10);
+
+	#if 0
+	for ( uint64_t i = 0; i < concofn.size(); ++i )
+		std::cerr << "concofn[i]=" << concofn[i] << std::endl;
+	#endif
+	
+	std::map<uint64_t,uint64_t> M;
+	for ( uint64_t i = 0; i < An; ++i ) M[A[i]]++;
+	for ( uint64_t i = 0; i < Bn; ++i ) M[B[i]]++;
+	uint64_t const maxv = M.size() ? M.rbegin()->first : 0;
+	
+	libmaus::gamma::SparseGammaGapConcatDecoder dec(concofn /* std::vector<std::string>(1,fnout) */);
+	
+	for ( uint64_t i = 0; i <= maxv; ++i )
+	{
+		uint64_t const v = dec.decode();
+		uint64_t const Mi = (M.find(i) != M.end()) ? M.find(i)->second : 0;
+		
+		if ( v != Mi )
+			std::cerr << i << "\t" << v << "\t" << Mi << std::endl;
+		
+		assert ( v == Mi );
+	}
+
+	// remove files
+	for ( uint64_t i = 0; i < concafn.size(); ++i )
+		remove(concafn[i].c_str());
+	for ( uint64_t i = 0; i < concbfn.size(); ++i )
+		remove(concbfn[i].c_str());
+	for ( uint64_t i = 0; i < concofn.size(); ++i )
+		remove(concofn[i].c_str());
+}
+
 int main()
 {
 	try
 	{
+		testSparseGammaGapMerging();
+		
+		return 0;
+		
 		// srand(time(0));
 		srand(5);
 		

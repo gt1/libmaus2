@@ -22,6 +22,7 @@
 #include <libmaus/gamma/GammaEncoder.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
 #include <libmaus/gamma/SparseGammaGapConcatDecoder.hpp>
+#include <libmaus/gamma/SparseGammaGapBlockEncoder.hpp>
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/util/shared_ptr.hpp>
@@ -32,6 +33,144 @@ namespace libmaus
 	{
 		struct SparseGammaGapMerge
 		{
+			static std::vector<std::string> merge(
+				std::vector<std::string> const & fna,
+				std::vector<std::string> const & fnb,
+				std::string const fnpref,
+				uint64_t tparts
+			)
+			{
+				std::vector<uint64_t> sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(fna,fnb,tparts);
+				uint64_t const parts = sp.size();
+				bool const aempty = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).isEmpty();
+				bool const bempty = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).isEmpty();				
+				uint64_t const maxa = aempty ? 0 : libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).getMaxKey();
+				uint64_t const maxb = bempty ? 0 : libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).getMaxKey();
+				uint64_t const maxv = std::max(maxa,maxb);
+				sp.push_back(maxv+1);
+				
+				std::vector<std::string> outputfilenames(parts);
+				for ( uint64_t p = 0; p < parts; ++p )
+				{
+					std::ostringstream fnostr;
+					fnostr << fnpref << "_" << std::setw(6) << std::setfill('0') << p << std::setw(0);
+					std::string const fn = fnostr.str();
+					outputfilenames[p] = fn;
+					std::string const indexfn = fn + ".idx";
+					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
+
+					libmaus::aio::CheckedOutputStream COS(fn);
+					std::fstream indexstr(indexfn.c_str(),std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+					
+					// std::cerr << fn << "\t" << indexfn << "\t" << sp.at(p) << "\t" << sp.at(p+1) << std::endl;
+					
+					merge(fna,fnb,sp.at(p),sp.at(p+1),COS,indexstr);
+					
+					remove(indexfn.c_str());
+				}
+				
+				return outputfilenames;
+			}
+		
+			static void merge(
+				std::vector<std::string> const & fna,
+				std::vector<std::string> const & fnb,
+				uint64_t const klow,  // inclusive
+				uint64_t const khigh, // exclusive
+				std::string const & outputfilename
+			)
+			{
+				std::string const indexfilename = outputfilename + ".idx";
+				libmaus::util::TempFileRemovalContainer::addTempFile(indexfilename);
+				
+				libmaus::aio::CheckedOutputStream COS(outputfilename);
+				std::fstream indexstr(indexfilename.c_str(),std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+				
+				merge(fna,fnb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
+				
+				remove(indexfilename.c_str());
+			}
+		
+			static void merge(
+				std::vector<std::string> const & fna,
+				std::vector<std::string> const & fnb,
+				uint64_t const klow,  // inclusive
+				uint64_t const khigh, // exclusive
+				std::ostream & stream_out,
+				std::iostream & index_str
+			)
+			{
+				// true if a contains any relevant keys
+				bool const aproc = libmaus::gamma::SparseGammaGapConcatDecoder::hasKeyInRange(fna,klow,khigh);
+				// true if b contains any relevant keys
+				bool const bproc = libmaus::gamma::SparseGammaGapConcatDecoder::hasKeyInRange(fnb,klow,khigh);
+								
+				// first key in stream a (or 0 if none)
+				uint64_t const firstkey_a = aproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fna,klow) : std::numeric_limits<uint64_t>::max();
+				// first key in stream b (or 0 if none)
+				uint64_t const firstkey_b = bproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fnb,klow) : std::numeric_limits<uint64_t>::max();
+				// first key in output block
+				uint64_t const firstkey_ab = std::min(firstkey_a,firstkey_b);
+				
+				// previous non zero key (or -1 if none)
+				int64_t const prevkey_a = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(fna,klow);
+				int64_t const prevkey_b = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(fnb,klow);
+				int64_t const prevkey_ab = std::max(prevkey_a,prevkey_b);
+				
+				// set up encoder
+				libmaus::gamma::SparseGammaGapBlockEncoder oenc(stream_out,index_str,prevkey_ab);
+				// set up decoders
+				libmaus::gamma::SparseGammaGapConcatDecoder adec(fna,firstkey_a);
+				libmaus::gamma::SparseGammaGapConcatDecoder bdec(fnb,firstkey_b);
+
+				// current key,value pairs for stream a and b
+				std::pair<uint64_t,uint64_t> aval(firstkey_a,adec.p.second);
+				std::pair<uint64_t,uint64_t> bval(firstkey_b,bdec.p.second);
+				
+				// while both streams have keys in range
+				while ( aval.second && aval.first < khigh && bval.second && bval.first < khigh )
+				{
+					if ( aval.first == bval.first )
+					{
+						oenc.encode(aval.first,aval.second+bval.second);
+						aval.first += adec.nextFirst() + 1;
+						aval.second = adec.nextSecond();
+						bval.first += bdec.nextFirst() + 1;
+						bval.second = bdec.nextSecond();
+					}
+					else if ( aval.first < bval.first )
+					{
+						oenc.encode(aval.first,aval.second);						
+						aval.first += adec.nextFirst() + 1;
+						aval.second = adec.nextSecond();
+					}
+					else // if ( bval.first < aval.first )
+					{
+						oenc.encode(bval.first,bval.second);						
+						bval.first += bdec.nextFirst() + 1;
+						bval.second = bdec.nextSecond();
+					}				
+				}
+
+				// rest keys in stream a
+				while ( aval.second && aval.first < khigh )
+				{
+					oenc.encode(aval.first,aval.second);						
+					aval.first += adec.nextFirst() + 1;
+					aval.second = adec.nextSecond();				
+				}
+
+				// rest keys in stream b
+				while ( bval.second && bval.first < khigh )
+				{
+					oenc.encode(bval.first,bval.second);						
+					bval.first += bdec.nextFirst() + 1;
+					bval.second = bdec.nextSecond();
+				}
+				
+				oenc.term();
+			}
+		
 			static void merge(
 				std::istream & stream_in_a,
 				std::istream & stream_in_b,

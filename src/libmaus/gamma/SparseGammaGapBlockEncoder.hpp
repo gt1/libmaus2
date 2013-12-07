@@ -26,6 +26,7 @@
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 #include <libmaus/util/GetFileSize.hpp>
+#include <libmaus/util/TempFileRemovalContainer.hpp>
 
 namespace libmaus
 {
