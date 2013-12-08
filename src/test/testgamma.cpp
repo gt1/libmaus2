@@ -621,7 +621,7 @@ void testSparseGammaGapMergingSmall()
 	uint64_t const B2[] = { 1000,1002,1004,1006,1008,1010,1012, 1014, 1017, 1020 };
 	uint64_t const B3[] = { };
 	uint64_t const B4[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 };
-	uint64_t const *B[] = { &B0[0], &B1[1], &B2[2], &B3[0], &B4[0], 0 };
+	uint64_t const *B[] = { &B0[0], &B1[0], &B2[2], &B3[0], &B4[0], 0 };
 	uint64_t const Bn[] = { sizeof(B0)/sizeof(B0[0]), sizeof(B1)/sizeof(B1[0]), sizeof(B2)/sizeof(B2[0]), sizeof(B3)/sizeof(B3[0]), sizeof(B4)/sizeof(B4[0]), 0 };
 	
 	for ( uint64_t a = 0; A[a]; ++a )
@@ -630,7 +630,7 @@ void testSparseGammaGapMergingSmall()
 			libmaus::autoarray::AutoArray<uint64_t> At(An[a],false);
 			libmaus::autoarray::AutoArray<uint64_t> Bt(Bn[b],false);
 			std::copy(A[a],A[a]+An[a],At.begin());
-			std::copy(B[b],B[b]+Bn[b],Bt.begin());
+			std::copy(B[b],B[b]+Bn[b],Bt.begin());			
 			testSparseGammaGapMergingSmall(At.begin(),An[a],Bt.begin(),Bn[b]);
 		}
 	
