@@ -75,8 +75,6 @@ namespace libmaus
 			static void merge(
 				std::vector<std::string> const & fna,
 				std::vector<std::string> const & fnb,
-				uint64_t const klow,  // inclusive
-				uint64_t const khigh, // exclusive
 				std::string const & outputfilename
 			)
 			{
