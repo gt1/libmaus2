@@ -154,7 +154,8 @@ libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/Gamm
 	libmaus/gamma/SparseGammaGapFileIndexDecoder.hpp \
 	libmaus/gamma/SparseGammaGapFileIndexMultiDecoder.hpp \
 	libmaus/gamma/SparseGammaGapConcatDecoder.hpp \
-	libmaus/gamma/SparseGammaGapMultiFileSet.hpp
+	libmaus/gamma/SparseGammaGapMultiFileSet.hpp \
+	libmaus/gamma/SparseGammaGapMultiFileLevelSet.hpp
 
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
