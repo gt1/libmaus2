@@ -20,7 +20,6 @@
 #if ! defined(LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP)
 #define LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP
 
-#include <fstream>
 #include <libmaus/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus/huffman/KvInitResult.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>

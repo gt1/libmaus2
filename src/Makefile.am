@@ -146,12 +146,15 @@ libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/Gamm
 	libmaus/gamma/GammaGapEncoder.hpp libmaus/gamma/GammaGapDecoder.hpp \
 	libmaus/gamma/GammaRLDecoder.hpp  libmaus/gamma/GammaRLEncoder.hpp \
 	libmaus/gamma/SparseGammaGapEncoder.hpp libmaus/gamma/SparseGammaGapDecoder.hpp libmaus/gamma/SparseGammaGapMerge.hpp \
-	libmaus/gamma/SparseGammaGapFile.hpp libmaus/gamma/SparseGammaGapFileSet.hpp \
+	libmaus/gamma/SparseGammaGapFile.hpp \
+	libmaus/gamma/SparseGammaGapMultiFile.hpp \
+	libmaus/gamma/SparseGammaGapFileSet.hpp \
 	libmaus/gamma/SparseGammaGapFileLevelSet.hpp \
 	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.hpp \
 	libmaus/gamma/SparseGammaGapFileIndexDecoder.hpp \
 	libmaus/gamma/SparseGammaGapFileIndexMultiDecoder.hpp \
-	libmaus/gamma/SparseGammaGapConcatDecoder.hpp
+	libmaus/gamma/SparseGammaGapConcatDecoder.hpp \
+	libmaus/gamma/SparseGammaGapMultiFileSet.hpp
 
 libmausregex_includedir=$(includedir)/libmaus/regex/
 libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
@@ -629,7 +632,8 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/IStreamWrapper.hpp \
 	libmaus/aio/CheckedInputStreamAtOffset.hpp \
 	libmaus/aio/Buffer.hpp \
-	libmaus/aio/SingleFileFragmentMerge.hpp
+	libmaus/aio/SingleFileFragmentMerge.hpp \
+	libmaus/aio/CheckedInputOutputStream.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\

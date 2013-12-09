@@ -75,7 +75,7 @@ namespace libmaus
 				if ( ! is_open() )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "Cannot open file " << filename << std::endl;
+					se.getStream() << "CheckedInputStream::CheckedInputStream(): Cannot open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}

@@ -332,52 +332,6 @@ void testgammasparse()
 	std::cerr << std::endl;
 }
 
-void testsparsegammamerge()
-{
-	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
-	libmaus::gamma::SparseGammaGapFileSet SGGF(tmpgen);
-	std::map<uint64_t,uint64_t> refM;
-	
-	for ( uint64_t i = 0; i < 25;  ++i )
-	{
-		std::string const fn = tmpgen.getFileName();
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::gamma::SparseGammaGapEncoder SGE(COS);
-		
-		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
-		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
-		SGE.encode(2*i+4,i+1); refM[2*i+4] += (i+1);
-		SGE.term();
-		
-		SGGF.addFile(fn);
-	}
-	
-	std::string const ffn = tmpgen.getFileName();
-	SGGF.merge(ffn);
-	
-	libmaus::aio::CheckedInputStream CIS(ffn);
-	libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
-	for ( uint64_t i = 0; i < 60; ++i )
-	{
-		uint64_t dv = SGGD.decode();
-		
-		std::cerr << dv;
-		if ( refM.find(i) != refM.end() )
-		{
-			std::cerr << "(" << refM.find(i)->second << ")";
-			assert ( refM.find(i)->second == dv );
-		}
-		else
-		{
-			std::cerr << "(0)";
-			assert ( dv == 0 );
-		}
-		std::cerr << ";";
-	}
-	std::cerr << std::endl;
-	
-	remove(ffn.c_str());
-}
 
 void testsparsegammalevelmerge()
 {
@@ -706,12 +660,115 @@ void testSparseGammaGapMergingSmall()
 		}
 }
 
+#include <libmaus/gamma/SparseGammaGapMultiFileSet.hpp>
+
+void testsparsegammamerge()
+{
+	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus::gamma::SparseGammaGapFileSet SGGF(tmpgen);
+	std::map<uint64_t,uint64_t> refM;
+	
+	for ( uint64_t i = 0; i < 25;  ++i )
+	{
+		std::string const fn = tmpgen.getFileName();
+		libmaus::aio::CheckedOutputStream COS(fn);
+		libmaus::gamma::SparseGammaGapEncoder SGE(COS);
+		
+		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
+		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
+		SGE.encode(2*i+4,i+1); refM[2*i+4] += (i+1);
+		SGE.term();
+		
+		SGGF.addFile(fn);
+	}
+	
+	std::string const ffn = tmpgen.getFileName();
+	SGGF.merge(ffn);
+	
+	libmaus::aio::CheckedInputStream CIS(ffn);
+	libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
+	for ( uint64_t i = 0; i < 60; ++i )
+	{
+		uint64_t dv = SGGD.decode();
+		
+		std::cerr << dv;
+		if ( refM.find(i) != refM.end() )
+		{
+			std::cerr << "(" << refM.find(i)->second << ")";
+			assert ( refM.find(i)->second == dv );
+		}
+		else
+		{
+			std::cerr << "(0)";
+			assert ( dv == 0 );
+		}
+		std::cerr << ";";
+	}
+	std::cerr << std::endl;
+	
+	remove(ffn.c_str());
+}
+
+
+void testsparsegammamultimerge()
+{
+	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus::gamma::SparseGammaGapMultiFileSet SGGF(tmpgen,4);
+	std::map<uint64_t,uint64_t> refM;
+	
+	for ( uint64_t i = 0; i < 25;  ++i )
+	{
+		std::string const fn = tmpgen.getFileName();
+		std::string const indexfn = fn+".idx";
+		libmaus::aio::CheckedOutputStream COS(fn);
+		libmaus::aio::CheckedInputOutputStream indexCIOS(indexfn);
+		libmaus::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
+		remove(indexfn.c_str());
+		
+		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
+		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
+		SGE.encode(2*i+4,i+1); refM[2*i+4] += (i+1);
+		SGE.term();
+		
+		SGGF.addFile(fn);
+	}
+	
+	std::string const ffn = tmpgen.getFileName();
+	std::vector<std::string> const fno = SGGF.merge(ffn);
+	
+	// libmaus::aio::CheckedInputStream CIS(ffn);
+	libmaus::gamma::SparseGammaGapConcatDecoder SGGD(fno);
+	for ( uint64_t i = 0; i < 60; ++i )
+	{
+		uint64_t dv = SGGD.decode();
+		
+		std::cerr << dv;
+		if ( refM.find(i) != refM.end() )
+		{
+			std::cerr << "(" << refM.find(i)->second << ")";
+			assert ( refM.find(i)->second == dv );
+		}
+		else
+		{
+			std::cerr << "(0)";
+			assert ( dv == 0 );
+		}
+		std::cerr << ";";
+	}
+	std::cerr << std::endl;
+
+	for ( uint64_t i = 0; i < fno.size(); ++i )
+		remove(fno[i].c_str());
+}
+
+
 int main()
 {
 	try
 	{
 		srand(time(0));
 		
+		testsparsegammamultimerge();
 		testSparseGammaGapMergingRandom();
 		testSparseGammaGapMergingSmall();		
 		testSparseGammaConcat();

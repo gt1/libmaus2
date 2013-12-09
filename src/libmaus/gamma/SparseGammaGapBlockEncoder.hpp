@@ -22,6 +22,7 @@
 #include <libmaus/gamma/GammaEncoder.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
 #include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus/aio/CheckedInputOutputStream.hpp>
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/util/shared_ptr.hpp>
@@ -44,7 +45,7 @@ namespace libmaus
 			// w output stream
 			libmaus::aio::CheckedOutputStream::unique_ptr_type SGOCOS;
 			// rw index stream
-			libmaus::util::unique_ptr<std::fstream>::type indexUP;
+			libmaus::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
 			
 			std::ostream & SGOout;
 			std::iostream & indexout;
@@ -83,7 +84,7 @@ namespace libmaus
 				uint64_t const rblocksize = 64*1024
 			)
 			: SGOCOS(new libmaus::aio::CheckedOutputStream(filename)), 
-			  indexUP(new std::fstream(indexfilename)),
+			  indexUP(new libmaus::aio::CheckedInputOutputStream(indexfilename)),
 			  SGOout(*SGOCOS), 
 			  indexout(*indexUP),
 			  SGO(SGOout,8*1024),
@@ -202,14 +203,7 @@ namespace libmaus
 					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);				
 					
 					libmaus::aio::CheckedOutputStream COS(fn);
-					std::fstream indexstr(indexfn, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
-					if ( ! indexstr.is_open() )
-					{
-						libmaus::exception::LibMausException ex;
-						ex.getStream() << "SparseGammaGapBlockEncoder::encodeArray(): failed  to open file " << indexfn << std::endl;
-						ex.finish();
-						throw ex;
-					}
+					libmaus::aio::CheckedInputOutputStream indexstr(indexfn);
 
 					this_type enc(
 						COS,indexstr,

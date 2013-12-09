@@ -26,6 +26,7 @@
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/aio/SynchronousGenericInput.hpp>
 #include <libmaus/util/shared_ptr.hpp>
+#include <libmaus/parallel/OMPLock.hpp>
 
 namespace libmaus
 {
@@ -33,11 +34,68 @@ namespace libmaus
 	{
 		struct SparseGammaGapMerge
 		{
-			static std::vector<std::string> merge(
+			struct SparseGammaGapMergeInfo
+			{
+				std::vector<std::string> fna;
+				std::vector<std::string> fnb;
+				std::vector<std::string> fno;
+				std::vector<uint64_t> sp;
+				
+				libmaus::parallel::OMPLock lock;
+				uint64_t next;
+
+				SparseGammaGapMergeInfo() : next(0) {}
+				SparseGammaGapMergeInfo(
+					std::vector<std::string> rfna,
+					std::vector<std::string> rfnb,
+					std::vector<std::string> rfno,
+					std::vector<uint64_t> rsp	
+				) : fna(rfna), fnb(rfnb), fno(rfno), sp(rsp), next(0) {}
+				
+				void dispatch(uint64_t const p) const
+				{
+					std::string const & fn = fno.at(p);
+					std::string const indexfn = fn + ".idx";
+					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
+					libmaus::aio::CheckedOutputStream COS(fn);
+					libmaus::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
+					merge(fna,fnb,sp.at(p),sp.at(p+1),COS,indexstr);
+					remove(indexfn.c_str());			
+				}
+				
+				void dispatch()
+				{
+					while ( dispatchNext() )
+					{
+						// dispatch(i);
+					}
+				}
+				
+				bool dispatchNext()
+				{
+					uint64_t id = fno.size();
+					
+					{
+						libmaus::parallel::ScopeLock slock(lock);
+						if ( next == fno.size() )
+							id = fno.size();
+						else
+							id = next++;
+					}
+					
+					if ( id < fno.size() )
+						dispatch(id);
+						
+					return id < fno.size();
+				}
+			};
+
+			static SparseGammaGapMergeInfo getMergeInfo(
 				std::vector<std::string> const & fna,
 				std::vector<std::string> const & fnb,
 				std::string const fnpref,
-				uint64_t tparts
+				uint64_t tparts,
+				bool registerTempFiles = true
 			)
 			{
 				std::vector<uint64_t> sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(fna,fnb,tparts);
@@ -54,22 +112,27 @@ namespace libmaus
 				{
 					std::ostringstream fnostr;
 					fnostr << fnpref << "_" << std::setw(6) << std::setfill('0') << p << std::setw(0);
-					std::string const fn = fnostr.str();
-					outputfilenames[p] = fn;
-					std::string const indexfn = fn + ".idx";
-					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-
-					libmaus::aio::CheckedOutputStream COS(fn);
-					std::fstream indexstr(indexfn.c_str(),std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
-					
-					// std::cerr << fn << "\t" << indexfn << "\t" << sp.at(p) << "\t" << sp.at(p+1) << std::endl;
-					
-					merge(fna,fnb,sp.at(p),sp.at(p+1),COS,indexstr);
-					
-					remove(indexfn.c_str());
+					outputfilenames[p] = fnostr.str();				
+					if ( registerTempFiles )
+						libmaus::util::TempFileRemovalContainer::addTempFile(outputfilenames[p]);
 				}
 				
-				return outputfilenames;
+				SparseGammaGapMergeInfo SGGMI(fna,fnb,outputfilenames,sp);
+
+				return SGGMI;
+			}
+
+			static std::vector<std::string> merge(
+				std::vector<std::string> const & fna,
+				std::vector<std::string> const & fnb,
+				std::string const fnpref,
+				uint64_t tparts,
+				bool const registerTempFiles = true
+			)
+			{
+				SparseGammaGapMergeInfo SGGMI = getMergeInfo(fna,fnb,fnpref,tparts,registerTempFiles);
+				SGGMI.dispatch();
+				return SGGMI.fno;
 			}
 		
 			static void merge(
@@ -82,7 +145,7 @@ namespace libmaus
 				libmaus::util::TempFileRemovalContainer::addTempFile(indexfilename);
 				
 				libmaus::aio::CheckedOutputStream COS(outputfilename);
-				std::fstream indexstr(indexfilename.c_str(),std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+				libmaus::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
 				
 				merge(fna,fnb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
 				
