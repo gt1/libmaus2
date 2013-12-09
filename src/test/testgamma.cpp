@@ -547,15 +547,6 @@ void testSparseGammaIndexing()
 
 void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * B, uint64_t const Bn)
 {
-	// uint64_t A[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 }; uint64_t const An = sizeof(A)/sizeof(A[0]);
-	// uint64_t A[] = { 1,3,50,52,75,77,1000,1002,2000,3000 }; uint64_t const An = sizeof(A)/sizeof(A[0]);
-	// uint64_t A[] = { /* 1,6,1,7,21,1,6,6,7,4 */ }; uint64_t const An = sizeof(A)/sizeof(A[0]);
-	// uint64_t B[] = { 1,6,1,7,21,1,6,6,7,5,43,13,18,24,29,95,86,72,77 }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
-	// uint64_t B[] = { 11,13,60,62,82,83 }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
-	// uint64_t B[] = { /* 1,6,1,7,21,1,6,6,7,5 */ }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
-
-	std::cerr << "An=" << An << " Bn=" << Bn << std::endl;
-
 	// file name prefix
 	std::string const fnprefa = "tmp_a";
 	std::string const fnprefb = "tmp_b";
@@ -565,17 +556,14 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 	std::vector<std::string> concafn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(&A[0], &A[An], fnprefa, 7 /* parts */, 2 /* block size */);
 	std::vector<std::string> concbfn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(&B[0], &B[Bn], fnprefb, 7 /* parts */, 2 /* block size */);
 	
+	// libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,0,std::numeric_limits<uint64_t>::max(),fnout);
+	std::vector<std::string> const concofn = libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,fnout,10);
+
 	#if 0
 	for ( uint64_t i = 0; i < concafn.size(); ++i )
 		std::cerr << "concafn[i]=" << concafn[i] << std::endl;
 	for ( uint64_t i = 0; i < concbfn.size(); ++i )
 		std::cerr << "concbfn[i]=" << concbfn[i] << std::endl;
-	#endif
-
-	// libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,0,std::numeric_limits<uint64_t>::max(),fnout);
-	std::vector<std::string> const concofn = libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,fnout,10);
-
-	#if 0
 	for ( uint64_t i = 0; i < concofn.size(); ++i )
 		std::cerr << "concofn[i]=" << concofn[i] << std::endl;
 	#endif
@@ -585,7 +573,7 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 	for ( uint64_t i = 0; i < Bn; ++i ) M[B[i]]++;
 	uint64_t const maxv = M.size() ? M.rbegin()->first : 0;
 	
-	libmaus::gamma::SparseGammaGapConcatDecoder dec(concofn /* std::vector<std::string>(1,fnout) */);
+	libmaus::gamma::SparseGammaGapConcatDecoder dec(concofn);
 	
 	for ( uint64_t i = 0; i <= maxv; ++i )
 	{
@@ -605,6 +593,89 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 		remove(concbfn[i].c_str());
 	for ( uint64_t i = 0; i < concofn.size(); ++i )
 		remove(concofn[i].c_str());
+}
+
+libmaus::autoarray::AutoArray<uint64_t> randomArray(uint64_t const n, uint64_t const klow, uint64_t const khigh)
+{
+	if ( ! n )
+		return libmaus::autoarray::AutoArray<uint64_t>(0);
+	
+	assert ( khigh-klow );
+	
+	libmaus::autoarray::AutoArray<uint64_t> A(n,false);
+	
+	for ( uint64_t i = 0; i < n; ++i )
+		A[i] = klow + ( libmaus::random::Random::rand64() % (khigh-klow) );
+	
+	return A;
+}
+
+void testSparseGammaGapMergingRandom(
+	uint64_t const nl,
+	uint64_t const kll,
+	uint64_t const klh,
+	uint64_t const nr,
+	uint64_t const krl,
+	uint64_t const krh
+)
+{
+	libmaus::autoarray::AutoArray<uint64_t> Al = randomArray(nl,kll,klh);
+	libmaus::autoarray::AutoArray<uint64_t> Ar = randomArray(nr,krl,krh);
+	testSparseGammaGapMergingSmall(Al.begin(),Al.size(),Ar.begin(),Ar.size());
+}
+
+void testSparseGammaGapMergingRandom()
+{
+	// test full overlapping
+	uint64_t const loops = 32;
+	for ( uint64_t i = 0; i < loops; ++i )
+	{
+		uint64_t const k0 = libmaus::random::Random::rand64() % 1024;
+		uint64_t const k1 = k0 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const nl = libmaus::random::Random::rand64() % 1024;
+		uint64_t const nr = libmaus::random::Random::rand64() % 1024;
+		
+		testSparseGammaGapMergingRandom(nl,k0,k1,nr,k0,k1);
+		testSparseGammaGapMergingRandom(nr,k0,k1,nr,k0,k1);
+		
+		std::cerr << "(" << nl << "," << nr << "," << k0 << "," << k1 << ")";
+	}
+	std::cerr << std::endl;
+
+	// test part overlapping
+	for ( uint64_t i = 0; i < loops; ++i )
+	{
+		uint64_t const k0 = libmaus::random::Random::rand64() % 1024;
+		uint64_t const k1 = k0 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const ksl = k1-(k1-k0)/2;
+		uint64_t const k2 = k1 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const ksr = k2-(k2-k1)/2;
+		uint64_t const nl = libmaus::random::Random::rand64() % 1024;
+		uint64_t const nr = libmaus::random::Random::rand64() % 1024;
+		
+		testSparseGammaGapMergingRandom(nl,k0,ksl,nr,ksr,k2);
+		testSparseGammaGapMergingRandom(nr,ksr,k2,nl,k0,ksl);
+		
+		std::cerr << "(" << nl << "," << nr << "," << k0 << "," << k1 << "," << k2 << ")";
+	}
+	std::cerr << std::endl;
+
+	// test non overlapping
+	for ( uint64_t i = 0; i < loops; ++i )
+	{
+		uint64_t const k0 = libmaus::random::Random::rand64() % 1024;
+		uint64_t const k1 = k0 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const k2 = k1 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const nl = libmaus::random::Random::rand64() % 1024;
+		uint64_t const nr = libmaus::random::Random::rand64() % 1024;
+		
+		testSparseGammaGapMergingRandom(nl,k0,k1,nr,k1,k2);
+		testSparseGammaGapMergingRandom(nr,k1,k2,nl,k0,k1);
+		
+		std::cerr << "(" << nl << "," << nr << "," << k0 << "," << k1 << "," << k2 << ")";
+	}
+	std::cerr << std::endl;
+
 }
 
 void testSparseGammaGapMergingSmall()
@@ -633,36 +704,19 @@ void testSparseGammaGapMergingSmall()
 			std::copy(B[b],B[b]+Bn[b],Bt.begin());			
 			testSparseGammaGapMergingSmall(At.begin(),An[a],Bt.begin(),Bn[b]);
 		}
-	
-	#if 0
-	// uint64_t A[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 }; uint64_t const An = sizeof(A)/sizeof(A[0]);
-	uint64_t A[] = { 1,3,50,52,75,77,1000,1002,2000,3000 }; uint64_t const An = sizeof(A)/sizeof(A[0]);
-	// uint64_t A[] = { /* 1,6,1,7,21,1,6,6,7,4 */ }; uint64_t const An = sizeof(A)/sizeof(A[0]);
-	// uint64_t B[] = { 1,6,1,7,21,1,6,6,7,5,43,13,18,24,29,95,86,72,77 }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
-	uint64_t B[] = { 11,13,60,62,82,83 }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
-	// uint64_t B[] = { /* 1,6,1,7,21,1,6,6,7,5 */ }; uint64_t const Bn = sizeof(B)/sizeof(B[0]);
-	#endif
 }
-
 
 int main()
 {
 	try
 	{
-		testSparseGammaGapMergingSmall();
+		srand(time(0));
 		
-		return 0;
-		
-		// srand(time(0));
-		srand(5);
-		
+		testSparseGammaGapMergingRandom();
+		testSparseGammaGapMergingSmall();		
 		testSparseGammaConcat();
 		testSparseGammaIndexing();
-
-		testsparsegammalevelmerge();
-		
-		return 0;
-		
+		testsparsegammalevelmerge();		
 		testsparsegammamerge();
 		testgammasparse();
 		testgammarl();
