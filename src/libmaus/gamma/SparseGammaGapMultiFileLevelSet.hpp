@@ -188,6 +188,11 @@ namespace libmaus
 						libmaus::parallel::ScopeLock slock(lock);
 						if ( ptr->incrementFinished() )
 						{
+							for ( uint64_t i = 0; i < ptr->fna.size(); ++i )
+								remove(ptr->fna[i].c_str());
+							for ( uint64_t i = 0; i < ptr->fnb.size(); ++i )
+								remove(ptr->fnb[i].c_str());
+						
 							libmaus::gamma::SparseGammaGapMultiFile const N(ptr->fno,l+1);
 							L[l+1].push_back(N);
 							
@@ -196,7 +201,7 @@ namespace libmaus
 							assert ( mergefinishq.find(packetid) != mergefinishq.end() );
 
 							mergeallq.erase(mergeallq.find(packetid));		
-							mergefinishq.erase(mergefinishq.find(packetid));							
+							mergefinishq.erase(mergefinishq.find(packetid));
 						}
 					}
 				}
@@ -258,6 +263,11 @@ namespace libmaus
 
 							if ( ptr->incrementFinished() )
 							{
+								for ( uint64_t i = 0; i < ptr->fna.size(); ++i )
+									remove(ptr->fna[i].c_str());
+								for ( uint64_t i = 0; i < ptr->fnb.size(); ++i )
+									remove(ptr->fnb[i].c_str());
+
 								libmaus::gamma::SparseGammaGapMultiFile const N(ptr->fno,P.second.level+1);
 								Q.push(N);
 								
@@ -298,7 +308,9 @@ namespace libmaus
 			{
 				std::string const tmpfilename = tmpgen.getFileName();				
 				std::vector<std::string> const fno = merge(tmpfilename);
-				uint64_t const partsize = (n+parts-1)/parts;
+				// uint64_t const lparts = 1;
+				uint64_t const lparts = parts;
+				uint64_t const partsize = (n+lparts-1)/lparts;
 				uint64_t const aparts = (n+partsize-1)/partsize;
 				std::vector<std::string> outputfilenames(aparts);
 
@@ -319,6 +331,19 @@ namespace libmaus
 					libmaus::gamma::GammaGapEncoder GGE(fn);
 					GGE.encode(it,high-low);
 				}
+				
+				#if 0
+				std::cerr << "verifying." << std::endl;
+				libmaus::gamma::SparseGammaGapConcatDecoder SGGD(fno);
+				libmaus::gamma::GammaGapDecoder GGD(outputfilenames);
+				for ( uint64_t i = 0; i < n; ++i )
+				{
+					uint64_t const v0= SGGD.decode();
+					uint64_t const v1 = GGD.decode();
+					assert ( v0 == v1 );
+				}
+				std::cerr << "done." << std::endl;
+				#endif
 
 				for ( uint64_t i = 0; i < fno.size(); ++i )
 					remove(fno[i].c_str());
