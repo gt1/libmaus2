@@ -36,6 +36,10 @@ namespace libmaus
 		{
 			struct SparseGammaGapMergeInfo
 			{
+				typedef SparseGammaGapMergeInfo this_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			
 				std::vector<std::string> fna;
 				std::vector<std::string> fnb;
 				std::vector<std::string> fno;
@@ -43,14 +47,15 @@ namespace libmaus
 				
 				libmaus::parallel::OMPLock lock;
 				uint64_t next;
+				uint64_t finished;
 
-				SparseGammaGapMergeInfo() : next(0) {}
+				SparseGammaGapMergeInfo() : next(0), finished(0) {}
 				SparseGammaGapMergeInfo(
 					std::vector<std::string> rfna,
 					std::vector<std::string> rfnb,
 					std::vector<std::string> rfno,
 					std::vector<uint64_t> rsp	
-				) : fna(rfna), fnb(rfnb), fno(rfno), sp(rsp), next(0) {}
+				) : fna(rfna), fnb(rfnb), fno(rfno), sp(rsp), next(0), finished(0) {}
 				
 				void dispatch(uint64_t const p) const
 				{
@@ -87,6 +92,28 @@ namespace libmaus
 						dispatch(id);
 						
 					return id < fno.size();
+				}
+				
+				bool getNextDispatchId(uint64_t & id)
+				{
+					id = fno.size();
+
+					{
+						libmaus::parallel::ScopeLock slock(lock);
+						if ( next == fno.size() )
+							id = fno.size();
+						else
+							id = next++;
+					}
+						
+					return id < fno.size();
+				}
+				
+				bool incrementFinished()
+				{
+					libmaus::parallel::ScopeLock slock(lock);
+					bool const done = ++finished >= fno.size();
+					return done;
 				}
 			};
 
