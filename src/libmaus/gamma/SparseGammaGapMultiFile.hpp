@@ -50,7 +50,7 @@ namespace libmaus
 			for ( uint64_t i = 0; i < SGGF.fn.size(); ++i )
 			{
 				out << SGGF.fn[i];
-				if ( i+1 << SGGF.fn.size() )
+				if ( i+1 < SGGF.fn.size() )
 					out << ",";
 			}
 			out << "},level=" << SGGF.level << ")";
