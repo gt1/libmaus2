@@ -143,11 +143,11 @@ namespace libmaus
 			}
 			
 			template<typename it>
-			static void encodeArray(it const ita, it const ite, std::ostream & out, std::ostream & indexout)
+			static void encodeArray(it const ita, it const ite, std::ostream & out, std::iostream & indexout)
 			{
 				std::sort(ita,ite);
 				
-				this_type enc(out);
+				this_type enc(out,indexout);
 				
 				it itl = ita;
 				
@@ -240,7 +240,7 @@ namespace libmaus
 				libmaus::aio::CheckedOutputStream COS(fn);
 				std::string const indexfn = fn+".idx";
 				libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-				libmaus::aio::CheckedOutputStream indexCOS(indexfn);
+				libmaus::aio::CheckedInputOutputStream indexCOS(indexfn);
 				encodeArray(ita,ite,COS,indexCOS);
 				remove(indexfn.c_str());
 			}
