@@ -198,7 +198,7 @@ namespace libmaus
 				// first key in stream b (or 0 if none)
 				uint64_t const firstkey_b = bproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fnb,klow) : std::numeric_limits<uint64_t>::max();
 				// first key in output block
-				uint64_t const firstkey_ab = std::min(firstkey_a,firstkey_b);
+				// uint64_t const firstkey_ab = std::min(firstkey_a,firstkey_b);
 				
 				// previous non zero key (or -1 if none)
 				int64_t const prevkey_a = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(fna,klow);
