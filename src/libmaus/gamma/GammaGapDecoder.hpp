@@ -90,6 +90,7 @@ namespace libmaus
 				}
 			}
 			
+			// total number of keys (length of gap array)
 			uint64_t getN() const
 			{
 				return idda.kvec.size() ? idda.kvec[idda.kvec.size()-1] : 0;
@@ -154,8 +155,11 @@ namespace libmaus
 			uint64_t peek()
 			{
 				if ( pc == pe )
-					decodeBlock();
-				assert ( pc != pe );
+				{
+					decodeBlock();				
+					assert ( pc != pe );
+				}
+				
 				return *pc;				
 			}
 			
@@ -206,6 +210,7 @@ namespace libmaus
 			{
 				result = ::libmaus::huffman::KvInitResult();
 			
+				// if stream is not empty
 				if ( 
 					(
 						(idda.kvec.size()!=0) 
@@ -214,6 +219,7 @@ namespace libmaus
 					) 
 				)
 				{
+					// if kv target is beyond end of file
 					if ( 
 						kvtarget >= 
 						idda.kvec[idda.kvec.size()-1] + idda.vvec[idda.vvec.size()-1]
@@ -229,6 +235,7 @@ namespace libmaus
 					}
 					else
 					{
+						// search for block
 						::libmaus::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
@@ -240,15 +247,14 @@ namespace libmaus
 						assert ( blockok );
 						
 						/* key/symbol offset of block (sum over elements of previous blocks) */
-						uint64_t kvoffset = idda.data[FBO.fileptr].getKeyValueCnt(FBO.blockptr);
-						uint64_t voffset = idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
-						uint64_t koffset = idda.data[FBO.fileptr].getKeyCnt(FBO.blockptr);
+						uint64_t kvoffset = idda.kvec[FBO.fileptr] + idda.vvec[FBO.fileptr] + idda.data[FBO.fileptr].getKeyValueCnt(FBO.blockptr);
+						uint64_t voffset  = idda.vvec[FBO.fileptr] +                          idda.data[FBO.fileptr].getValueCnt(FBO.blockptr);
+						uint64_t koffset  = idda.kvec[FBO.fileptr] +                          idda.data[FBO.fileptr].getKeyCnt(FBO.blockptr);
 						
 						assert ( kvtarget >= kvoffset );
 						kvtarget -= kvoffset;
 						
-						// std::cerr << "fileptr=" << fileptr << " blockptr=" << blockptr << " kvtarget=" << kvtarget << std::endl;
-						
+						// while we can skip the next key and its value
 						while ( kvtarget >= peek() + 1 )
 						{
 							uint64_t const gi = decode();
@@ -257,6 +263,8 @@ namespace libmaus
 							voffset += gi;
 							koffset += 1;
 						}
+						
+						// if we can process the last value
 						if ( koffset + 1 == getN() && kvtarget >= peek() )
 						{
 							uint64_t const gi = decode();
@@ -265,18 +273,23 @@ namespace libmaus
 							voffset  += gi;
 							koffset  += 0;
 						}
+						// otherwise adapt current value *pc
 						else
 						{
-							assert ( pc != pe );
 							assert ( kvtarget <= peek() );
+							assert ( pc != pe );
 							assert ( kvtarget <= *pc );
 
 							*pc -= kvtarget;
 						}
 						
+						// key offset
 						result.koffset  = koffset;
+						// value offset of key offset
 						result.voffset  = voffset;
+						// key/value offset of key
 						result.kvoffset = kvoffset;
+						// rest offset relative to original kvtarget
 						result.kvtarget = kvtarget;
 					}
 				}
