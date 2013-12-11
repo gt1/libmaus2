@@ -28,6 +28,7 @@
 #include <libmaus/util/TempFileNameGenerator.hpp>
 #include <libmaus/util/TempFileRemovalContainer.hpp>
 #include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus/parallel/PosixSemaphore.hpp>
 #include <queue>
 
 namespace libmaus
@@ -46,11 +47,45 @@ namespace libmaus
 			std::map<uint64_t, SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type> mergehandoutq;
 			std::map<uint64_t, SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type> mergefinishq;
 			std::map<uint64_t, SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type> mergeallq;
+			
+			std::vector<libmaus::parallel::PosixSemaphore *> mergepacksem;
+			std::vector<libmaus::parallel::PosixSemaphore *> termsem;
+			uint64_t termsemcnt;
+			libmaus::parallel::OMPLock semlock;
 
 			SparseGammaGapMultiFileLevelSet(
 				libmaus::util::TempFileNameGenerator & rtmpgen,
 				uint64_t const rparts
 			) : tmpgen(rtmpgen), addcnt(0), parts(rparts), nextmergeQid(0) {}
+			
+			void registerMergePackSemaphore(libmaus::parallel::PosixSemaphore * sema)
+			{
+				mergepacksem.push_back(sema);
+			}
+
+			void registerTermSemaphore(libmaus::parallel::PosixSemaphore * sema)
+			{
+				termsem.push_back(sema);
+			}
+			
+			void setTermSemCnt(uint64_t const rtermsemcnt)
+			{
+				termsemcnt = rtermsemcnt;
+			}
+			
+			bool trySemPair(libmaus::parallel::PosixSemaphore & A, libmaus::parallel::PosixSemaphore & B)
+			{
+				semlock.lock();
+				
+				bool const res = A.trywait();
+				
+				if ( res )
+					B.wait();
+				
+				semlock.unlock();
+				
+				return res;
+			}
 			
 			/**
 			 * check whether merging is possible and return a pair to be merged if it is
@@ -103,10 +138,6 @@ namespace libmaus
 				for ( uint64_t i = 0; i < Sb.fn.size(); ++i )
 					remove(Sb.fn[i].c_str());
 
-				#if 0
-				std::cerr << "merged " << Sa << " and " << Sb << " to " << N << std::endl;
-				#endif
-
 				return N;
 			}
 			
@@ -126,7 +157,7 @@ namespace libmaus
 				assert ( ok );
 
 				// is this the last subid?
-				if ( it->second->next == it->second->fno.size() )
+				if ( it->second->isHandoutFinished() )
 				{
 					mergefinishq[it->first] = it->second;
 					mergehandoutq.erase(it);
@@ -141,22 +172,117 @@ namespace libmaus
 				SparseGammaGapMerge::SparseGammaGapMergeInfo * ptr = mergeallq.find(packetid)->second.get();
 				return ptr;
 			}
-			
-			void queueMergeInfo(libmaus::gamma::SparseGammaGapMultiFile const & A, libmaus::gamma::SparseGammaGapMultiFile const & B)
+
+			// this method is not thread safe, so lock must be held when calling this method in parallel mode
+			libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * queueMergeInfo(libmaus::gamma::SparseGammaGapMultiFile const & A, libmaus::gamma::SparseGammaGapMultiFile const & B)
 			{
 				libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo SGGMI = 
-					libmaus::gamma::SparseGammaGapMerge::getMergeInfo(A.fn,B.fn,tmpgen.getFileName(),parts);
-						
-				if ( SGGMI.fno.size() )
-				{
-					libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type sptr(
-						new libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo
+					libmaus::gamma::SparseGammaGapMerge::getMergeInfoDelayedInit(
+						A.fn,B.fn,tmpgen.getFileName(),parts
 					);
-					*sptr = SGGMI;
-					uint64_t const mergeid = nextmergeQid++;
-					mergehandoutq[mergeid] = sptr;
-					mergeallq[mergeid] = sptr;
-				}			
+				SGGMI.setLevel(std::max(A.level,B.level)+1);
+										
+				libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type sptr(
+					new libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo
+				);
+
+				*sptr = SGGMI;
+
+				uint64_t const mergeid = nextmergeQid++;
+				mergehandoutq[mergeid] = sptr;
+				mergeallq[mergeid] = sptr;
+				
+				sptr->setSemaphoreInfo(&semlock,&mergepacksem);
+				
+				return sptr.get();
+				// sptr->initialise();
+			}
+			
+			bool isMergingQueueEmpty()
+			{
+				libmaus::parallel::ScopeLock slock(lock);
+				return mergeallq.size() == 0;
+			}
+
+			void putFile(std::vector<std::string> const & fn)
+			{
+				for ( uint64_t i = 0; i < fn.size(); ++i )
+					libmaus::util::TempFileRemovalContainer::addTempFile(fn[i]);
+				
+				SparseGammaGapMultiFile Sa(fn,0);
+				SparseGammaGapMultiFile Sb;
+				libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
+				
+				{
+					libmaus::parallel::ScopeLock slock(lock);
+					addcnt += 1;
+					
+					if ( L[0].size() )
+					{
+						Sb = L[0].front();
+						L[0].pop_front();
+						nptr = queueMergeInfo(Sa,Sb);
+					}
+					else
+						L[0].push_back(Sa);
+				}		
+				
+				if ( nptr )
+					nptr->initialise();
+			}
+			
+			void checkMergeSingle(bool const checkterm = false)
+			{
+				uint64_t packetid = 0;
+				uint64_t subid = 0;
+					
+				if ( checkMergePacket(packetid,subid) )
+				{
+					SparseGammaGapMerge::SparseGammaGapMergeInfo * ptr = getMergeInfo(packetid);
+					ptr->dispatch(subid);
+						
+					if ( ptr->incrementFinished() )
+					{
+						libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
+					
+						ptr->removeInputFiles();
+
+						{						
+							libmaus::parallel::ScopeLock slock(lock);
+							uint64_t const level = ptr->getLevel();
+
+							libmaus::gamma::SparseGammaGapMultiFile Sa(ptr->getOutputFileNames(),level);
+							
+							if ( L[level].size() )
+							{
+								libmaus::gamma::SparseGammaGapMultiFile Sb = L[level].front(); 
+								L[level].pop_front();
+								nptr = queueMergeInfo(Sa,Sb);
+							}
+							else
+								L[level].push_front(Sa);
+
+							assert ( mergeallq.find(packetid) != mergeallq.end() );
+							assert ( mergehandoutq.find(packetid) == mergehandoutq.end() );
+							assert ( mergefinishq.find(packetid) != mergefinishq.end() );
+
+							mergeallq.erase(mergeallq.find(packetid));		
+							mergefinishq.erase(mergefinishq.find(packetid));
+							
+							if ( checkterm && (mergeallq.size() == 0) )
+							{
+								semlock.lock();
+								for ( uint64_t i = 0; i < termsemcnt; ++i )
+									for ( uint64_t j = 0; j < termsem.size(); ++j )
+										termsem[j]->post();
+								semlock.unlock();
+							}
+						}
+						
+						if ( nptr )
+							nptr->initialise();
+					}
+				}				
 			}
 			
 			void checkMerge()
@@ -171,12 +297,13 @@ namespace libmaus
 					std::pair<libmaus::gamma::SparseGammaGapMultiFile,libmaus::gamma::SparseGammaGapMultiFile> P;
 					uint64_t packetid = 0;
 					uint64_t subid = 0;
+					libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
 					
 					if ( needMerge(l,P) )
 					{
 						finished = false;		
 						libmaus::parallel::ScopeLock slock(lock);
-						queueMergeInfo(P.first,P.second);
+						nptr = queueMergeInfo(P.first,P.second);
 					}
 					else if ( checkMergePacket(packetid,subid) )
 					{
@@ -185,16 +312,14 @@ namespace libmaus
 						SparseGammaGapMerge::SparseGammaGapMergeInfo * ptr = getMergeInfo(packetid);
 						ptr->dispatch(subid);
 						
-						libmaus::parallel::ScopeLock slock(lock);
 						if ( ptr->incrementFinished() )
 						{
-							for ( uint64_t i = 0; i < ptr->fna.size(); ++i )
-								remove(ptr->fna[i].c_str());
-							for ( uint64_t i = 0; i < ptr->fnb.size(); ++i )
-								remove(ptr->fnb[i].c_str());
+							ptr->removeInputFiles();
 						
-							libmaus::gamma::SparseGammaGapMultiFile const N(ptr->fno,l+1);
-							L[l+1].push_back(N);
+							libmaus::parallel::ScopeLock slock(lock);
+							uint64_t const l = ptr->getLevel();
+							libmaus::gamma::SparseGammaGapMultiFile const N(ptr->getOutputFileNames(),l);
+							L[l].push_back(N);
 							
 							assert ( mergeallq.find(packetid) != mergeallq.end() );
 							assert ( mergehandoutq.find(packetid) == mergehandoutq.end() );
@@ -204,6 +329,9 @@ namespace libmaus
 							mergefinishq.erase(mergefinishq.find(packetid));
 						}
 					}
+					
+					if ( nptr )
+						nptr->initialise();
 				}
 			}
 
@@ -248,7 +376,8 @@ namespace libmaus
 					P.first = Q.top(); Q.pop();
 					P.second = Q.top(); Q.pop();
 
-					queueMergeInfo(P.first,P.second);
+					libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = queueMergeInfo(P.first,P.second);
+					nptr->initialise();
 					
 					#pragma omp parallel
 					{
@@ -263,12 +392,9 @@ namespace libmaus
 
 							if ( ptr->incrementFinished() )
 							{
-								for ( uint64_t i = 0; i < ptr->fna.size(); ++i )
-									remove(ptr->fna[i].c_str());
-								for ( uint64_t i = 0; i < ptr->fnb.size(); ++i )
-									remove(ptr->fnb[i].c_str());
+								ptr->removeInputFiles();
 
-								libmaus::gamma::SparseGammaGapMultiFile const N(ptr->fno,P.second.level+1);
+								libmaus::gamma::SparseGammaGapMultiFile const N(ptr->getOutputFileNames(),P.second.level+1);
 								Q.push(N);
 								
 								assert ( mergeallq.find(packetid) != mergeallq.end() );
