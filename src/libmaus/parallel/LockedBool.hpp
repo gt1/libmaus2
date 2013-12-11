@@ -21,30 +21,36 @@
 
 #include <libmaus/parallel/OMPLock.hpp>
 
-struct LockedBool
+namespace libmaus
 {
-	libmaus::parallel::OMPLock lock;
-	volatile bool b;
-	
-	LockedBool(bool const rb)
-	: b(rb)
+	namespace parallel
 	{
+		struct LockedBool
+		{
+			libmaus::parallel::OMPLock lock;
+			volatile bool b;
+			
+			LockedBool(bool const rb)
+			: b(rb)
+			{
+			}
+			
+			bool get()
+			{
+				bool rb;
+				lock.lock();
+				rb = b;
+				lock.unlock();
+				return rb;
+			}
+			
+			void set(bool const rb)
+			{
+				lock.lock();
+				b = rb;
+				lock.unlock();
+			}
+		};
 	}
-	
-	bool get()
-	{
-		bool rb;
-		lock.lock();
-		rb = b;
-		lock.unlock();
-		return rb;
-	}
-	
-	void set(bool const rb)
-	{
-		lock.lock();
-		b = rb;
-		lock.unlock();
-	}
-};
+}
 #endif

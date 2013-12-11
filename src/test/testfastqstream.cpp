@@ -59,7 +59,7 @@ void countReadsGzipFastqBlocks(std::string const & filename, std::string const &
 	std::vector < libmaus::fastx::FastInterval > FIV = 
 		libmaus::fastx::FastInterval::deserialiseVector(FICIS);
 
-	LockedBool ok(true);
+	libmaus::parallel::LockedBool ok(true);
 
 	#if defined(_OPENMP)
 	#pragma omp parallel for schedule(dynamic,1)
