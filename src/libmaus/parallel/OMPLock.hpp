@@ -25,12 +25,19 @@
 #include <omp.h>
 #endif
 
+#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
+
 namespace libmaus
 {
 	namespace parallel
 	{
 		struct OMPLock
 		{
+			typedef OMPLock this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 #if defined(_OPENMP)
 			omp_lock_t lock_obj;
 #endif
