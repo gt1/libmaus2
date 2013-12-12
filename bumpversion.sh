@@ -14,7 +14,7 @@ pushd ../libmaus-debian
 pushd debian
 export DEBEMAIL=gt1@sanger.ac.uk
 export DEBFULLNAME="German Tischler"
-dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-0
+dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}
 dch --release
 # dch --release -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
 popd
