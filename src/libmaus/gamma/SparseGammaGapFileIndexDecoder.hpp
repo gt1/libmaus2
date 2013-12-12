@@ -24,11 +24,15 @@
 #include <libmaus/util/GenericIntervalTree.hpp>
 #include <libmaus/util/iterator.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus/parallel/OMPLock.hpp>
 
 namespace libmaus
 {
 	namespace gamma
 	{
+		struct SparseGammaGapFileIndexDecoder;
+		std::ostream & operator<<(std::ostream & out, SparseGammaGapFileIndexDecoder const & o);
+
 		struct SparseGammaGapFileIndexDecoder
 		{
 			typedef SparseGammaGapFileIndexDecoder this_type;
@@ -37,20 +41,12 @@ namespace libmaus
 
 			typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
 
+			private:
 			libmaus::aio::CheckedInputStream::unique_ptr_type CIS;
 			std::istream & in;
 			uint64_t maxkey;
 			uint64_t numentries;
-			
-			const_iterator begin() const
-			{
-				return const_iterator(this,0);
-			}
-
-			const_iterator end() const
-			{
-				return const_iterator(this,numentries);
-			}
+			mutable libmaus::parallel::OMPLock lock;
 			
 			void init()
 			{
@@ -60,6 +56,17 @@ namespace libmaus
 				numentries = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 			}
 
+			const_iterator begin() const
+			{
+				return const_iterator(this,0);
+			}
+
+			const_iterator end() const
+			{
+				return const_iterator(this,numentries);
+			}
+
+			public:
 			SparseGammaGapFileIndexDecoder(std::istream & rin)
 			: in(rin)
 			{	
@@ -82,6 +89,7 @@ namespace libmaus
 					throw se;
 				}
 			
+				libmaus::parallel::ScopeLock slock(lock);
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t)-2*numentries*sizeof(uint64_t) + i*(2*sizeof(uint64_t)), std::ios::end);
 				uint64_t const ikey = libmaus::util::NumberSerialisation::deserialiseNumber(in);
@@ -142,7 +150,22 @@ namespace libmaus
 					return index-1;
 				}
 			}
-		};		
+			
+			uint64_t size() const
+			{
+				return numentries;
+			}
+	
+			friend std::ostream & operator<<(std::ostream & out, SparseGammaGapFileIndexDecoder const & o);
+		};
+		
+		inline std::ostream & operator<<(std::ostream & out, SparseGammaGapFileIndexDecoder const & O)
+		{
+			for ( SparseGammaGapFileIndexDecoder::const_iterator ita = O.begin(); ita != O.end(); ++ita )
+				out << *ita << std::endl;
+
+			return out;
+		}
 	}
 }
 #endif

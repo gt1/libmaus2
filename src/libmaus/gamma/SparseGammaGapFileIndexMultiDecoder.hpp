@@ -72,7 +72,7 @@ namespace libmaus
 					if ( i > 0 )
 						BC[i].first = BC[i-1].second;
 
-					BC[i].second = BC[i].first + dec.numentries;
+					BC[i].second = BC[i].first + dec.size();
 				}
 				for ( uint64_t i = 0; i+1 < filenames.size(); ++i )
 				{
@@ -310,6 +310,17 @@ namespace libmaus
 				uint64_t const maxb = bempty ? 0 : this_type(fnb).getMaxKey();
 				uint64_t const maxv = std::max(maxa,maxb);
 				return getSplitKeys(fna,fnb,maxv,numkeys);
+			}
+
+			// khigh is exclusive
+			bool hasKeyInRange(uint64_t const klow, uint64_t const khigh)
+			{
+				return !(isEmpty() || (getMinKey() >= khigh) || (getMaxKey() < klow));
+			}
+			
+			bool hasPrevKey(uint64_t const ikey)
+			{
+				return (!isEmpty()) && getMinKey() < ikey;
 			}
 		};	
 	}

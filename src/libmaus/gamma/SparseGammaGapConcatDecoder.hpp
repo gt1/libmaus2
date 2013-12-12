@@ -128,33 +128,20 @@ namespace libmaus
 				return this_type(filenames,ikey).hasNextKey();
 			}
 			
-			// khigh is exclusive
-			static bool hasKeyInRange(std::vector<std::string> const & filenames, uint64_t const klow, uint64_t const khigh)
-			{
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
-				return !(index.isEmpty() || (index.getMinKey() >= khigh) || (index.getMaxKey() < klow));
-			}
-			
-			static bool hasPrevKey(std::vector<std::string> const & filenames, uint64_t const ikey)
-			{
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
-				return (!index.isEmpty()) && index.getMinKey() < ikey;
-			}
-			
 			static uint64_t getPrevKeyBlockStart(std::vector<std::string> const & filenames, uint64_t const ikey)
 			{
-				assert ( hasPrevKey(filenames,ikey) );
 				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
+				assert ( index.hasPrevKey(ikey) );
 				std::pair<uint64_t,uint64_t> const p = index.getBlockIndex(ikey-1);
 				assert ( p.first < filenames.size() );
 				libmaus::gamma::SparseGammaGapFileIndexDecoder index1(filenames[p.first]);
-				return index1.get(index1.getBlockIndex(ikey-1)).ikey;
+				return index1.get(p.second).ikey;
 			}
 			
 			// get highest non-zero key before ikey or -1 if there is no such key
 			static int64_t getPrevKey(std::vector<std::string> const & filenames, uint64_t const ikey)
 			{
-				if ( ! hasPrevKey(filenames,ikey) )
+				if ( ! libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(filenames).hasPrevKey(ikey) )
 					return -1;
 					
 				uint64_t const prevblockstart = getPrevKeyBlockStart(filenames,ikey);

@@ -482,10 +482,7 @@ void testSparseGammaIndexing()
 	std::istringstream istr(datastr.str());
 	libmaus::gamma::SparseGammaGapFileIndexDecoder SGGFID(istr);
 	
-	for ( libmaus::gamma::SparseGammaGapFileIndexDecoder::const_iterator ita = SGGFID.begin(); ita != SGGFID.end(); ++ita )
-	{
-		std::cerr << *ita << std::endl;
-	}
+	std::cerr << SGGFID;
 	
 	std::cerr << std::string(80,'-') << std::endl;
 			
@@ -877,10 +874,7 @@ int main()
 		srand(time(0));
 
 		testsparsegammamultifilesetmergedense();		
-		// testsparsegammamultifilesetmerge();		
-		
-		return 0;
-		
+		testsparsegammamultifilesetmerge();				
 		testsparsegammamultimerge();
 		testSparseGammaGapMergingRandom();
 		testSparseGammaGapMergingSmall();		
