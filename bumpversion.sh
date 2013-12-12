@@ -11,6 +11,7 @@ awk -v first=${FIRST} -v second=${SECOND} -v third=${THIRD} '/^AC_INIT/ {gsub(fi
 mv configure.in.tmp configure.in
 
 pushd ../libmaus-debian
+git checkout experimental
 pushd debian
 export DEBEMAIL=gt1@sanger.ac.uk
 export DEBFULLNAME="German Tischler"
