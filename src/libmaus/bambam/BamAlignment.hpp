@@ -1206,6 +1206,14 @@ namespace libmaus
 			}
 			
 			/**
+			 * @return end of alignment on reference
+			 **/
+			uint64_t getAlignmentEnd() const
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAlignmentEnd(D.get());
+			}
+			
+			/**
 			 * @return bin field
 			 **/
 			uint32_t getBin() const
@@ -1491,6 +1499,10 @@ namespace libmaus
 			 * @return iff alignment has the secondary alignment flag set
 			 **/
 			bool isSecondary() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isSecondary(getFlags()); }
+			/**
+			 * @return iff alignment has the supplementary alignment flag set
+			 **/
+			bool isSupplementary() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isSupplementary(getFlags()); }
 			/**
 			 * @return iff alignment has the quality control failed flag set
 			 **/
@@ -1836,6 +1848,106 @@ namespace libmaus
 				}
 				
 				return false;
+			}
+
+			/**
+			 * compute insert size (inspired by Picard code)
+			 *
+			 * @param A first alignment
+			 * @param B second alignment
+			 * @return note that when storing insert size on the secondEnd, the return value must be negated.
+			 */
+			static int64_t computeInsertSize(BamAlignment const & A, BamAlignment const & B)
+			{
+				// unmapped end?
+				if (A.isUnmap() || B.isUnmap()) { return 0; }
+				// different ref seq?
+				if (A.getRefID() != B.getRefID()) { return 0; }
+
+				// compute 5' end positions
+				int64_t const A5  = A.isReverse() ? A.getAlignmentEnd() : A.getPos();
+				int64_t const B5  = B.isReverse() ? B.getAlignmentEnd() : B.getPos();
+				
+				// return insert size for (A,B), use negative value for (B,A)
+				return B5 - A5;
+			}
+			
+			/**
+			 * make mate pair information of two alignments consistent (inspired by Picard code)
+			 */
+			static void fixMateInformation(
+				libmaus::bambam::BamAlignment & rec1, 
+				libmaus::bambam::BamAlignment & rec2,
+				libmaus::bambam::BamAuxFilterVector const & MQfilter
+				)
+			{
+				static uint32_t const next_rev_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
+				static uint32_t const next_unmap_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+				
+				// both mapped
+				if (!rec1.isUnmap() && !rec2.isUnmap()) 
+				{
+					rec1.putNextRefId(rec2.getRefID());
+					rec1.putNextPos(rec2.getPos());
+					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+
+					rec2.putNextRefId(rec1.getRefID());
+					rec2.putNextPos(rec1.getPos());
+					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+
+					rec1.filterOutAux(MQfilter);
+					rec2.filterOutAux(MQfilter);
+					rec1.putAuxNumber("MQ", 'i', rec2.getMapQ());
+					rec2.putAuxNumber("MQ", 'i', rec1.getMapQ());
+
+					int64_t const insertSize = computeInsertSize(rec1, rec2);
+					rec1.putTlen(insertSize);
+					rec2.putTlen(-insertSize);
+				}
+				// both unmapped
+				else if (rec1.isUnmap() && rec2.isUnmap())
+				{
+					rec1.putRefId(-1);
+					rec1.putPos(-1);
+					rec1.putNextRefId(-1);
+					rec1.putNextPos(-1);
+					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
+					rec1.putTlen(0);
+
+					rec2.putRefId(-1);
+					rec2.putPos(-1);
+					rec2.putNextRefId(-1);
+					rec2.putNextPos(-1);
+					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
+					rec2.putTlen(0);
+					
+					rec1.filterOutAux(MQfilter);
+					rec2.filterOutAux(MQfilter);
+				}
+				// one mapped and other one unmapped
+				else
+				{
+					libmaus::bambam::BamAlignment & mapped   = rec1.isUnmap() ? rec2 : rec1;
+					libmaus::bambam::BamAlignment & unmapped = rec1.isUnmap() ? rec1 : rec2;
+					
+					unmapped.putRefId(mapped.getRefID());
+					unmapped.putPos(mapped.getPos());
+
+					mapped.putNextRefId(unmapped.getRefID());
+					mapped.putNextPos(unmapped.getPos());
+					mapped.putFlags( (unmapped.isReverse() ? (mapped.getFlags() | next_rev_flag) : (mapped.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );					
+					mapped.putTlen(0);
+
+					unmapped.putNextRefId(mapped.getRefID());
+					unmapped.putNextPos(mapped.getPos());
+					unmapped.putFlags( (mapped.isReverse() ? (unmapped.getFlags() | next_rev_flag) : (unmapped.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+					unmapped.putTlen(0);
+
+					mapped.filterOutAux(MQfilter);
+					unmapped.filterOutAux(MQfilter);
+					
+					unmapped.putAuxNumber("MQ", 'i', mapped.getMapQ());
+				}
 			}
 		};
 	}
