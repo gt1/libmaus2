@@ -336,9 +336,9 @@ namespace libmaus
 			)
 			{
 				// true if a contains any relevant keys
-				bool const aproc = libmaus::gamma::SparseGammaGapConcatDecoder::hasKeyInRange(fna,klow,khigh);
+				bool const aproc = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).hasKeyInRange(klow,khigh);
 				// true if b contains any relevant keys
-				bool const bproc = libmaus::gamma::SparseGammaGapConcatDecoder::hasKeyInRange(fnb,klow,khigh);
+				bool const bproc = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).hasKeyInRange(klow,khigh);
 								
 				// first key in stream a (or 0 if none)
 				uint64_t const firstkey_a = aproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fna,klow) : std::numeric_limits<uint64_t>::max();
