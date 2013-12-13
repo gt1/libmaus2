@@ -406,8 +406,10 @@ void testSparseGammaConcat()
 			std::map<uint64_t,uint64_t> M;
 			for ( uint64_t i = 0; i < An; ++i )
 				M[A[i]]++;
-		
-			std::vector<uint64_t> const splitkeys = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(concfn,concfn,Amod,8);
+
+			uint64_t maxv = 0;		
+			std::vector<uint64_t> const splitkeys = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(
+				concfn,concfn,/* Amod, */8,maxv);
 			
 			#if 0
 			std::cerr << "splitkeys: ";

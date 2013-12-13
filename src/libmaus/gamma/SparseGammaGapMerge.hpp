@@ -62,6 +62,9 @@ namespace libmaus
 				
 				libmaus::parallel::OMPLock * semlock;
 				std::vector < libmaus::parallel::PosixSemaphore * > * mergepacksem;
+				
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type indexa;
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type indexb;
 
 				public:
 				SparseGammaGapMergeInfo() 
@@ -72,6 +75,7 @@ namespace libmaus
 				  semlock(0),
 				  mergepacksem(0)
 				{}
+				
 				SparseGammaGapMergeInfo(
 					std::vector<std::string> rfna,
 					std::vector<std::string> rfnb,
@@ -85,6 +89,9 @@ namespace libmaus
 				    mergepacksem(0)
 				{}
 				
+				/**
+				 * constructor for delayed initialisation
+				 **/
 				SparseGammaGapMergeInfo(
 					std::vector<std::string> const & rfna,
 					std::vector<std::string> const & rfnb,
@@ -114,16 +121,27 @@ namespace libmaus
 				void initialise()
 				{
 					libmaus::parallel::ScopeLock slock(*initlock);
-					
+
+					if ( ! indexa )
+					{
+						libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type tindexa(
+							new libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna)
+						);
+						indexa = tindexa;
+					}
+					if ( ! indexb )
+					{
+						libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type tindexb(
+							new libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb)
+						);
+						indexb = tindexb;
+					}
 					if ( ! initialised )
 					{
-						sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(fna,fnb,tparts);
+					
+						uint64_t maxv = 0;
+						sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(*indexa,*indexb,tparts,maxv);
 						uint64_t const parts = sp.size();
-						bool const aempty = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).isEmpty();
-						bool const bempty = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).isEmpty();				
-						uint64_t const maxa = aempty ? 0 : libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).getMaxKey();
-						uint64_t const maxb = bempty ? 0 : libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).getMaxKey();
-						uint64_t const maxv = std::max(maxa,maxb);
 						sp.push_back(maxv+1);
 						
 						std::vector<std::string> outputfilenames(parts);
@@ -159,7 +177,11 @@ namespace libmaus
 					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
 					libmaus::aio::CheckedOutputStream COS(fn);
 					libmaus::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
-					merge(fna,fnb,sp.at(p),sp.at(p+1),COS,indexstr);
+					merge(
+						fna,fnb,
+						*indexa,*indexb,
+						sp.at(p),sp.at(p+1),COS,indexstr
+					);
 					remove(indexfn.c_str());			
 				}
 
@@ -251,6 +273,9 @@ namespace libmaus
 				}
 			};
 
+			/**
+			 * compute parallel merging info
+			 **/
 			static SparseGammaGapMergeInfo getMergeInfoDelayedInit(
 				std::vector<std::string> const & fna,
 				std::vector<std::string> const & fnb,
@@ -270,15 +295,9 @@ namespace libmaus
 				bool registerTempFiles = true
 			)
 			{
-				std::vector<uint64_t> sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(
-					fna,fnb,tparts
-				);
+				uint64_t maxv = 0;
+				std::vector<uint64_t> sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(fna,fnb,tparts,maxv);
 				uint64_t const parts = sp.size();
-				bool const aempty = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).isEmpty();
-				bool const bempty = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).isEmpty();				
-				uint64_t const maxa = aempty ? 0 : libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).getMaxKey();
-				uint64_t const maxb = bempty ? 0 : libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).getMaxKey();
-				uint64_t const maxv = std::max(maxa,maxb);
 				sp.push_back(maxv+1);
 				
 				std::vector<std::string> outputfilenames(parts);
@@ -321,7 +340,10 @@ namespace libmaus
 				libmaus::aio::CheckedOutputStream COS(outputfilename);
 				libmaus::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
 				
-				merge(fna,fnb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder indexa(fna);
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder indexb(fnb);
+				
+				merge(fna,fnb,indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
 				
 				remove(indexfilename.c_str());
 			}
@@ -329,6 +351,8 @@ namespace libmaus
 			static void merge(
 				std::vector<std::string> const & fna,
 				std::vector<std::string> const & fnb,
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & indexa,
+				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & indexb,
 				uint64_t const klow,  // inclusive
 				uint64_t const khigh, // exclusive
 				std::ostream & stream_out,
@@ -336,16 +360,14 @@ namespace libmaus
 			)
 			{
 				// true if a contains any relevant keys
-				bool const aproc = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna).hasKeyInRange(klow,khigh);
+				bool const aproc = indexa.hasKeyInRange(klow,khigh);
 				// true if b contains any relevant keys
-				bool const bproc = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb).hasKeyInRange(klow,khigh);
-								
+				bool const bproc = indexb.hasKeyInRange(klow,khigh);
+
 				// first key in stream a (or 0 if none)
 				uint64_t const firstkey_a = aproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fna,klow) : std::numeric_limits<uint64_t>::max();
 				// first key in stream b (or 0 if none)
 				uint64_t const firstkey_b = bproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fnb,klow) : std::numeric_limits<uint64_t>::max();
-				// first key in output block
-				// uint64_t const firstkey_ab = std::min(firstkey_a,firstkey_b);
 				
 				// previous non zero key (or -1 if none)
 				int64_t const prevkey_a = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(fna,klow);

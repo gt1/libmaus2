@@ -37,6 +37,7 @@ namespace libmaus
 		{
 			typedef SparseGammaGapFileIndexDecoder this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef libmaus::gamma::SparseGammaGapFileIndexDecoderEntry value_type;
 
 			typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
@@ -46,7 +47,9 @@ namespace libmaus
 			std::istream & in;
 			uint64_t maxkey;
 			uint64_t numentries;
+
 			mutable libmaus::parallel::OMPLock lock;
+			mutable std::map<uint64_t,value_type> cache;
 			
 			void init()
 			{
@@ -90,11 +93,21 @@ namespace libmaus
 				}
 			
 				libmaus::parallel::ScopeLock slock(lock);
+
+				// check cache
+				if ( cache.find(i) != cache.end() )
+					return cache.find(i)->second;
+				
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t)-2*numentries*sizeof(uint64_t) + i*(2*sizeof(uint64_t)), std::ios::end);
 				uint64_t const ikey = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 				uint64_t const ibitoff = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				return value_type(ikey,ibitoff);
+				value_type const v(ikey,ibitoff);
+				
+				// extend cache
+				cache[i] = v;
+				
+				return v;
 			}
 			
 			value_type operator[](uint64_t const i) const

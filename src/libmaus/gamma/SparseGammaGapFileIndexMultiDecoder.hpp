@@ -28,15 +28,57 @@ namespace libmaus
 		struct SparseGammaGapFileIndexMultiDecoder
 		{
 			typedef SparseGammaGapFileIndexMultiDecoder this_type;
-			typedef SparseGammaGapFileIndexDecoder::value_type value_type;
-		
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef SparseGammaGapFileIndexDecoder single_decoder_type;
+			typedef single_decoder_type::value_type value_type;
+			typedef single_decoder_type::unique_ptr_type single_decoder_ptr_type;
+
+			private:
 			std::vector<std::string> filenames;
+			libmaus::autoarray::AutoArray<single_decoder_ptr_type> decs;
+			
 			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H;
 			libmaus::util::IntervalTree::unique_ptr_type I;
 			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > BC;
 			libmaus::util::IntervalTree::unique_ptr_type B;
 			uint64_t numentries;
 
+			static libmaus::autoarray::AutoArray<single_decoder_ptr_type> openDecoders(
+				std::vector<std::string> & filenames
+			)
+			{
+				libmaus::autoarray::AutoArray<single_decoder_ptr_type> decs(filenames.size());
+				uint64_t numdecs = 0;
+				
+				for ( uint64_t i = 0; i < decs.size(); ++i )
+				{
+					single_decoder_ptr_type Tdec(new single_decoder_type(filenames[i]));
+					
+					if ( ! Tdec->isEmpty() )
+					{
+						filenames[numdecs] = filenames[i];
+						decs[numdecs] = UNIQUE_PTR_MOVE(Tdec);
+						numdecs += 1;
+					}
+				}
+				
+				if ( numdecs != filenames.size() )
+				{
+					while ( filenames.size() > numdecs )
+						filenames.pop_back();
+						
+					libmaus::autoarray::AutoArray<single_decoder_ptr_type> tdecs(numdecs);
+					for ( uint64_t i = 0; i < numdecs; ++i )
+						tdecs[i] = UNIQUE_PTR_MOVE(decs[i]);
+						
+					decs = tdecs;
+				}
+
+				return decs;
+			}
+
+			public:
 			typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
 
 			const_iterator begin() const
@@ -48,31 +90,21 @@ namespace libmaus
 			{
 				return const_iterator(this,numentries);
 			}
-			
-			std::vector<std::string> filterFilenames(std::vector<std::string> const & filenames)
-			{
-				std::vector<std::string> outfilenames;
-				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					if ( ! SparseGammaGapFileIndexDecoder(filenames[i]).isEmpty() )
-						outfilenames.push_back(filenames[i]);
-				return outfilenames;
-			}
-			
+									
 			SparseGammaGapFileIndexMultiDecoder(std::vector<std::string> const & rfilenames) 
-			: filenames(filterFilenames(rfilenames)), H(filenames.size()), BC(filenames.size())
+			: filenames(rfilenames), decs(openDecoders(filenames)), H(filenames.size()), BC(filenames.size())
 			{
 				if ( BC.size() )
 					BC[0].first = 0;
 					
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
-					SparseGammaGapFileIndexDecoder dec(filenames[i]);
-					H[i].first = dec.getMinKey();
+					H[i].first = decs[i]->getMinKey();
 					
 					if ( i > 0 )
 						BC[i].first = BC[i-1].second;
 
-					BC[i].second = BC[i].first + dec.size();
+					BC[i].second = BC[i].first + decs[i]->size();
 				}
 				for ( uint64_t i = 0; i+1 < filenames.size(); ++i )
 				{
@@ -114,12 +146,11 @@ namespace libmaus
 					uint64_t const findex = I->find(ikey);
 					assert ( ikey >= H[findex].first );
 					assert ( ikey  < H[findex].second );
-					SparseGammaGapFileIndexDecoder dec(filenames[findex]);
-					return std::pair<uint64_t,uint64_t>(findex,dec.getBlockIndex(ikey));
+					return std::pair<uint64_t,uint64_t>(findex,decs[findex]->getBlockIndex(ikey));
 				}
 			}
 			
-			SparseGammaGapFileIndexDecoder::value_type get(uint64_t const i) const
+			value_type get(uint64_t const i) const
 			{
 				if ( i >= numentries )
 				{
@@ -132,7 +163,20 @@ namespace libmaus
 				uint64_t const fileptr = B->find(i);
 				uint64_t const blockptr = i - BC[fileptr].first;
 				
-				return SparseGammaGapFileIndexDecoder(filenames[fileptr]).get(blockptr);
+				return decs[fileptr]->get(blockptr);
+			}
+			
+			value_type get(uint64_t const fileptr, uint64_t const blockptr) const
+			{
+				if ( fileptr >= decs.size() || blockptr >= decs[fileptr]->size() )
+				{				
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "SparseGammaGapFileIndexMultiDecoder::get(): index out of range" << std::endl;
+					ex.finish();
+					throw ex;
+				}
+				
+				return decs[fileptr]->get(blockptr);
 			}
 			
 			bool hasPrevKey(uint64_t const ikey) const
@@ -163,7 +207,7 @@ namespace libmaus
 			uint64_t getMaxKey() const
 			{
 				assert ( hasMaxKey() );
-				return SparseGammaGapFileIndexDecoder(filenames[filenames.size()-1]).getMaxKey();
+				return decs[decs.size()-1]->getMaxKey();
 			}
 			
 			uint64_t getMinKey() const
@@ -260,7 +304,8 @@ namespace libmaus
 				return SparseGammaGapFileIndexMultiDecoderBlockCountAccessorCombined(A,B,range);
 			}
 			
-			static std::vector<uint64_t> getSplitKeys(
+			private:
+			static std::vector<uint64_t> getSplitKeysInternal(
 				SparseGammaGapFileIndexMultiDecoder const & A,
 				SparseGammaGapFileIndexMultiDecoder const & B,
 				uint64_t const range,
@@ -285,31 +330,40 @@ namespace libmaus
 				return keys;
 			}
 
+			public:
 			static std::vector<uint64_t> getSplitKeys(
-				std::vector<std::string> const & fna,
-				std::vector<std::string> const & fnb,
-				uint64_t const range,
-				uint64_t const numkeys
+				this_type & indexa,
+				this_type & indexb,
+				uint64_t const numkeys,
+				uint64_t & rmaxv
 			)
-			{
-				SparseGammaGapFileIndexMultiDecoder A(fna);
-				SparseGammaGapFileIndexMultiDecoder B(fnb);
-				return getSplitKeys(A,B,range,numkeys);
+			{			
+				// is a empty?
+				bool const aempty = indexa.isEmpty();
+				// is b empty?
+				bool const bempty = indexb.isEmpty();				
+				// maximum key in a (or 0 for none)
+				uint64_t const maxa = aempty ? 0 : indexa.getMaxKey();
+				// maximum key in b (or 0 for none)
+				uint64_t const maxb = bempty ? 0 : indexb.getMaxKey();
+				// maximum key over both input arrays
+				uint64_t const maxv = std::max(maxa,maxb);
+				// copy maximum value
+				rmaxv = maxv;
+
+				return getSplitKeysInternal(indexa,indexb,maxv+1,numkeys);
 			}
 
 			static std::vector<uint64_t> getSplitKeys(
 				std::vector<std::string> const & fna,
 				std::vector<std::string> const & fnb,
-				uint64_t const numkeys
+				uint64_t const numkeys,
+				uint64_t & rmaxv
 			)
 			{
-				bool const aempty = this_type(fna).isEmpty();
-				bool const bempty = this_type(fnb).isEmpty();
-				
-				uint64_t const maxa = aempty ? 0 : this_type(fna).getMaxKey();
-				uint64_t const maxb = bempty ? 0 : this_type(fnb).getMaxKey();
-				uint64_t const maxv = std::max(maxa,maxb);
-				return getSplitKeys(fna,fnb,maxv,numkeys);
+				this_type indexa(fna);
+				this_type indexb(fnb);
+				return getSplitKeys(indexa,indexb,numkeys,rmaxv);
 			}
 
 			// khigh is exclusive

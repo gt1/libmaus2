@@ -105,22 +105,30 @@ namespace libmaus
 				}
 			}
 		
+			#if 0
 			SparseGammaGapConcatDecoder(std::vector<std::string> const & rfilenames)
 			: filenames(rfilenames), fileptr(0), p(0,0)
 			{
 				openNextFile();
 			}
-			
-			bool hasNextKey() const
+			#endif
+
+			SparseGammaGapConcatDecoder(std::vector<std::string> const & rfilenames, uint64_t const ikey = 0)
+			: filenames(rfilenames)
 			{
-				return p.second != 0;
+				seek(ikey);
 			}
-			
+						
 			static uint64_t getNextKey(std::vector<std::string> const & filenames, uint64_t const ikey)
 			{
 				this_type dec(filenames,ikey);
 				assert ( dec.hasNextKey() );
 				return ikey + dec.p.first;
+			}
+
+			bool hasNextKey() const
+			{
+				return p.second != 0;
 			}
 
 			static bool hasNextKey(std::vector<std::string> const & filenames, uint64_t const ikey)
@@ -290,11 +298,6 @@ namespace libmaus
 			
 			}
 
-			SparseGammaGapConcatDecoder(std::vector<std::string> const & rfilenames, uint64_t const ikey)
-			: filenames(rfilenames)
-			{
-				seek(ikey);
-			}
 			
 			uint64_t decode()
 			{
