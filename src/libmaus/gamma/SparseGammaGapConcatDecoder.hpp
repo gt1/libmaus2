@@ -33,6 +33,9 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef libmaus::aio::SynchronousGenericInput<uint64_t> stream_type;
+
+			SparseGammaGapFileIndexMultiDecoder::unique_ptr_type Pindex;
+			SparseGammaGapFileIndexMultiDecoder & index;
 			
 			std::vector<std::string> const filenames;
 			uint64_t fileptr;
@@ -104,77 +107,25 @@ namespace libmaus
 					p.second = 0;
 				}
 			}
-		
-			#if 0
-			SparseGammaGapConcatDecoder(std::vector<std::string> const & rfilenames)
-			: filenames(rfilenames), fileptr(0), p(0,0)
-			{
-				openNextFile();
-			}
-			#endif
-
+				
 			SparseGammaGapConcatDecoder(std::vector<std::string> const & rfilenames, uint64_t const ikey = 0)
-			: filenames(rfilenames)
+			: Pindex(new SparseGammaGapFileIndexMultiDecoder(rfilenames)), index(*Pindex), filenames(index.getFileNames())
+			{
+				seek(ikey);
+			}
+
+			SparseGammaGapConcatDecoder(SparseGammaGapFileIndexMultiDecoder & rindex, uint64_t const ikey = 0)
+			: Pindex(), index(rindex), filenames(index.getFileNames())
 			{
 				seek(ikey);
 			}
 						
-			static uint64_t getNextKey(std::vector<std::string> const & filenames, uint64_t const ikey)
-			{
-				this_type dec(filenames,ikey);
-				assert ( dec.hasNextKey() );
-				return ikey + dec.p.first;
-			}
 
 			bool hasNextKey() const
 			{
 				return p.second != 0;
 			}
 
-			static bool hasNextKey(std::vector<std::string> const & filenames, uint64_t const ikey)
-			{
-				return this_type(filenames,ikey).hasNextKey();
-			}
-			
-			static uint64_t getPrevKeyBlockStart(std::vector<std::string> const & filenames, uint64_t const ikey)
-			{
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
-				assert ( index.hasPrevKey(ikey) );
-				std::pair<uint64_t,uint64_t> const p = index.getBlockIndex(ikey-1);
-				assert ( p.first < filenames.size() );
-				libmaus::gamma::SparseGammaGapFileIndexDecoder index1(filenames[p.first]);
-				return index1.get(p.second).ikey;
-			}
-			
-			// get highest non-zero key before ikey or -1 if there is no such key
-			static int64_t getPrevKey(std::vector<std::string> const & filenames, uint64_t const ikey)
-			{
-				if ( ! libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(filenames).hasPrevKey(ikey) )
-					return -1;
-					
-				uint64_t const prevblockstart = getPrevKeyBlockStart(filenames,ikey);
-				
-				this_type dec(filenames,prevblockstart);
-				
-				assert ( dec.p.first == 0 );
-				
-				uint64_t curkey = prevblockstart;
-				
-				while ( true )
-				{
-					std::pair<uint64_t,uint64_t> const p = dec.nextPair();
-					
-					if ( ! p.second )
-						return curkey;
-					
-					uint64_t const nextkey = curkey + (1 + p.first);
-					
-					if ( nextkey >= ikey )
-						return curkey;
-					else
-						curkey = nextkey;
-				}
-			}
 			
 			void seek(uint64_t const ikey)
 			{
@@ -183,19 +134,20 @@ namespace libmaus
 				
 				// std::cerr << "seeking to " << ikey << std::endl;
 				
-				std::pair<uint64_t,uint64_t> const P = SparseGammaGapFileIndexMultiDecoder(filenames).getBlockIndex(ikey);
+				std::pair<uint64_t,uint64_t> const P = index.getBlockIndex(ikey);
 				fileptr = P.first;
 				
 				// std::cerr << "fileptr=" << fileptr << " blockptr=" << P.second << std::endl;
 				
 				if ( fileptr < filenames.size() )
 				{
-					std::string const fn = filenames[fileptr++];
+					uint64_t const curfileid = fileptr++;
+					std::string const fn = filenames[curfileid];
 
 					libmaus::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus::aio::CheckedInputStream(fn));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
-					SparseGammaGapFileIndexDecoder indexdec(*CIS);
+					SparseGammaGapFileIndexDecoder & indexdec = index.getSingleDecoder(curfileid); // (*CIS);
 					uint64_t const minkey = indexdec.getMinKey();
 					
 					// std::cerr << "minkey=" << minkey << std::endl;
@@ -203,7 +155,7 @@ namespace libmaus
 					if ( ikey < minkey )
 					{
 						// this should only happen for the first file
-						assert ( fileptr == 1 ); // value has been incremented above
+						assert ( curfileid == 0 ); // value has been incremented above
 						assert ( indexdec.getBlockIndex(ikey) == 0 );
 						assert ( indexdec.get(indexdec.getBlockIndex(ikey)).ibitoff == 0 );
 						
@@ -355,6 +307,60 @@ namespace libmaus
 			iterator begin()
 			{
 				return iterator(this);
+			}
+
+			static uint64_t getNextKey(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
+			{
+				this_type dec(index,ikey);
+				assert ( dec.hasNextKey() );
+				return ikey + dec.p.first;
+			}
+			static bool hasNextKey(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
+			{
+				return this_type(index,ikey).hasNextKey();
+			}
+			
+			private:
+			static uint64_t getPrevKeyBlockStart(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
+			{
+				assert ( index.hasPrevKey(ikey) );
+				std::pair<uint64_t,uint64_t> const p = index.getBlockIndex(ikey-1);
+				assert ( p.first < index.getFileNames().size() );
+				libmaus::gamma::SparseGammaGapFileIndexDecoder const & index1 = index.getSingleDecoder(p.first); // (filenames[p.first]);
+				return index1.get(p.second).ikey;
+			}
+			
+			public:
+			// get highest non-zero key before ikey or -1 if there is no such key
+			static int64_t getPrevKey(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
+			{
+				// libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
+			
+				if ( ! index.hasPrevKey(ikey) )
+					return -1;
+					
+				uint64_t const prevblockstart = getPrevKeyBlockStart(index,ikey);
+				
+				this_type dec(index,prevblockstart);
+				
+				assert ( dec.p.first == 0 );
+
+				uint64_t curkey = prevblockstart;
+				
+				while ( true )
+				{
+					std::pair<uint64_t,uint64_t> const p = dec.nextPair();
+					
+					if ( ! p.second )
+						return curkey;
+					
+					uint64_t const nextkey = curkey + (1 + p.first);
+					
+					if ( nextkey >= ikey )
+						return curkey;
+					else
+						curkey = nextkey;
+				}
 			}
 		};	
 	}

@@ -178,7 +178,7 @@ namespace libmaus
 					libmaus::aio::CheckedOutputStream COS(fn);
 					libmaus::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
 					merge(
-						fna,fnb,
+						/* fna,fnb, */
 						*indexa,*indexb,
 						sp.at(p),sp.at(p+1),COS,indexstr
 					);
@@ -343,14 +343,12 @@ namespace libmaus
 				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder indexa(fna);
 				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder indexb(fnb);
 				
-				merge(fna,fnb,indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
+				merge(indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
 				
 				remove(indexfilename.c_str());
 			}
 		
 			static void merge(
-				std::vector<std::string> const & fna,
-				std::vector<std::string> const & fnb,
 				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & indexa,
 				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & indexb,
 				uint64_t const klow,  // inclusive
@@ -365,20 +363,20 @@ namespace libmaus
 				bool const bproc = indexb.hasKeyInRange(klow,khigh);
 
 				// first key in stream a (or 0 if none)
-				uint64_t const firstkey_a = aproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fna,klow) : std::numeric_limits<uint64_t>::max();
+				uint64_t const firstkey_a = aproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(indexa,klow) : std::numeric_limits<uint64_t>::max();
 				// first key in stream b (or 0 if none)
-				uint64_t const firstkey_b = bproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(fnb,klow) : std::numeric_limits<uint64_t>::max();
+				uint64_t const firstkey_b = bproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(indexb,klow) : std::numeric_limits<uint64_t>::max();
 				
 				// previous non zero key (or -1 if none)
-				int64_t const prevkey_a = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(fna,klow);
-				int64_t const prevkey_b = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(fnb,klow);
+				int64_t const prevkey_a = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexa,klow);
+				int64_t const prevkey_b = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexb,klow);
 				int64_t const prevkey_ab = std::max(prevkey_a,prevkey_b);
 				
 				// set up encoder
 				libmaus::gamma::SparseGammaGapBlockEncoder oenc(stream_out,index_str,prevkey_ab);
 				// set up decoders
-				libmaus::gamma::SparseGammaGapConcatDecoder adec(fna,firstkey_a);
-				libmaus::gamma::SparseGammaGapConcatDecoder bdec(fnb,firstkey_b);
+				libmaus::gamma::SparseGammaGapConcatDecoder adec(indexa,firstkey_a);
+				libmaus::gamma::SparseGammaGapConcatDecoder bdec(indexb,firstkey_b);
 
 				// current key,value pairs for stream a and b
 				std::pair<uint64_t,uint64_t> aval(firstkey_a,adec.p.second);

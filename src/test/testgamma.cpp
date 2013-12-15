@@ -422,7 +422,8 @@ void testSparseGammaConcat()
 			std::cerr << std::endl;
 			#endif
 		
-			// test reading back starting from beginning	
+			// test reading back starting from beginning
+			libmaus::gamma::SparseGammaGapFileIndexMultiDecoder concindex(concfn);	
 			libmaus::gamma::SparseGammaGapConcatDecoder SGGCD(concfn);
 			int64_t prevkey = -1;
 			for ( uint64_t i = 0; i < Amod; ++i )
@@ -431,12 +432,12 @@ void testSparseGammaConcat()
 				// std::cerr << i << "\t" << v << "\t" << M[i] << std::endl;
 				assert ( v == M[i] );
 				
-				bool const prevok = ( prevkey == libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concfn,i) );
+				bool const prevok = ( prevkey == libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concindex,i) );
 				
 				#if 0
 				if ( ! prevok )
 				{
-					std::cerr << "expected " << prevkey << " got " << libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concfn,i) << std::endl;
+					std::cerr << "expected " << prevkey << " got " << libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concindex,i) << std::endl;
 				}
 				#endif
 				
@@ -637,8 +638,8 @@ void testSparseGammaGapMergingSmall()
 	uint64_t const A1[] = { 1,3,50,52,75,77,1000,1002,2000,3000 };
 	uint64_t const A2[] = { 11,13,60,62,82,83 };
 	uint64_t const A3[] = { };
-	uint64_t const *A[] = { &A0[0], &A1[0], &A2[0], 0 };
-	uint64_t const An[] = { sizeof(A0)/sizeof(A0[0]), sizeof(A1)/sizeof(A1[0]), sizeof(A2)/sizeof(A2[0]), 0 };
+	uint64_t const *A[] = { &A0[0], &A1[0], &A2[0], &A3[0], 0 };
+	uint64_t const An[] = { sizeof(A0)/sizeof(A0[0]), sizeof(A1)/sizeof(A1[0]), sizeof(A2)/sizeof(A2[0]), sizeof(A3)/sizeof(A3[0]), 0 };
 	
 	uint64_t const B0[] = { 1,6,1,7,21,1,6,6,7,5,43,13,18,24,29,95,86,72,77 };
 	uint64_t const B1[] = { 11,13,60,62,82,83 };

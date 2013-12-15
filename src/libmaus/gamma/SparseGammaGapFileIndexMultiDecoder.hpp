@@ -90,6 +90,11 @@ namespace libmaus
 			{
 				return const_iterator(this,numentries);
 			}
+			
+			std::vector<std::string> const & getFileNames() const
+			{
+				return filenames;
+			}
 									
 			SparseGammaGapFileIndexMultiDecoder(std::vector<std::string> const & rfilenames) 
 			: filenames(rfilenames), decs(openDecoders(filenames)), H(filenames.size()), BC(filenames.size())
@@ -129,6 +134,19 @@ namespace libmaus
 				}
 				
 				numentries = BC.size() ? BC[BC.size()-1].second : 0;
+			}
+			
+			single_decoder_type & getSingleDecoder(uint64_t const i)
+			{
+				if ( i >= decs.size() )
+				{
+					libmaus::exception::LibMausException ex;
+					ex.getStream() << "SparseGammaGapFileIndexMultiDecoder::getSingleDecoder(): index out of range" << std::endl;
+					ex.finish();
+					throw ex;
+				}
+				
+				return *(decs[i]);
 			}
 			
 			std::pair<uint64_t,uint64_t> getBlockIndex(uint64_t const ikey)
