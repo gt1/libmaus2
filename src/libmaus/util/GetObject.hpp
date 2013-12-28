@@ -20,6 +20,7 @@
 #define LIBMAUS_UTIL_GETOBJECT_HPP
 
 #include <iterator>
+#include <libmaus/util/unique_ptr.hpp>
 
 namespace libmaus
 {

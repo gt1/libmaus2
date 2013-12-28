@@ -21,6 +21,7 @@
 
 #include <libmaus/bitio/Clz.hpp>
 #include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/math/lowbits.hpp>
 
 namespace libmaus
 {
@@ -61,7 +62,8 @@ namespace libmaus
 				{
 					unsigned int const overflow = (codelen-bav);
 					stream.put((v << bav) | (code >> overflow));
-					v = code & ((1ull << overflow)-1);
+					v = code & libmaus::math::lowbits(overflow); 
+						// ((1ull << overflow)-1);
 					bav = 64-overflow;
 				}			
 			}

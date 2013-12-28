@@ -1696,9 +1696,115 @@ void checkBPS()
 	BalancedParentheses BP(PUUB);
 }
 
+#include <libmaus/rank/RunLengthBitVectorStream.hpp>
+#include <libmaus/rank/RunLengthBitVector.hpp>
+#include <libmaus/rank/RunLengthBitVectorGenerator.hpp>
+
+void testrl(std::vector<bool> const & B)
+{
+	
+	std::stringstream ostr;
+	std::stringstream indexstr;
+	libmaus::rank::RunLengthBitVectorGenerator RLBVG(ostr,indexstr,B.size(),256);
+	
+	for ( uint64_t i = 0; i < B.size(); ++i )
+		RLBVG.putbit(B[i]);
+	uint64_t const size = RLBVG.flush();
+	
+	assert ( size == ostr.str().size() );
+	// std::cerr << "size=" << size << " str=" << ostr.str().size() << std::endl;
+	
+	#if 1
+	{
+		ostr.clear();
+		ostr.seekg(0,std::ios::beg);
+		libmaus::rank::RunLengthBitVectorStream RLBV(ostr);
+		
+		if ( RLBV.n != B.size() )
+		{
+			std::cerr << B.size() << "\t" << RLBV.n << std::endl;
+		}
+		
+		assert ( RLBV.n == B.size() );
+		
+		uint64_t r1 = 0;
+		for ( uint64_t i = 0; i < B.size(); ++i )
+		{
+			assert ( r1 == RLBV.rankm1(i) );
+			if ( B[i] )
+				r1++;
+			// std::cerr << i << "\t" << B[i] << "\t" << RLBV.get(i) << "\t" << r1 << "\t" << RLBV.rank1(i) << std::endl;
+			assert ( B[i] == RLBV[i] );
+			assert ( r1 == RLBV.rank1(i) );
+		}
+	}
+	#endif
+
+	{
+		ostr.clear();
+		ostr.seekg(0,std::ios::beg);
+		libmaus::rank::RunLengthBitVector RLBVint(ostr);
+
+		uint64_t r1 = 0;
+		for ( uint64_t i = 0; i < B.size(); ++i )
+		{
+			assert ( r1 == RLBVint.rankm1(i) );
+			if ( B[i] )
+				r1++;
+			// std::cerr << i << "\t" << B[i] << "\t" << RLBV.get(i) << "\t" << r1 << "\t" << RLBV.rank1(i) << std::endl;
+			assert ( B[i] == RLBVint[i] );
+			assert ( r1 == RLBVint.rank1(i) );
+			unsigned int sym;
+			
+			if ( B[i] )
+				assert ( r1 == RLBVint.inverseSelect1(i,sym) );
+			else
+				assert ( RLBVint.rank0(i) == RLBVint.inverseSelect1(i,sym) );				
+		}
+	}
+}
+
+void testrl()
+{
+	{
+	std::vector<bool> B;
+	B.push_back(0);
+	B.push_back(1);
+	B.push_back(0);
+	B.push_back(0);
+	B.push_back(1);
+	B.push_back(1);
+	B.push_back(1);
+	B.push_back(0);
+	B.push_back(0);
+	B.push_back(1);
+	B.push_back(1);
+	
+	testrl(B);
+	}
+	
+	{
+		srand(5);
+		for ( uint64_t z = 0; z < 1024; ++z )
+		{
+			std::vector<bool> B;
+			uint64_t const r = (rand() % (32*1024))+1;
+			std::cerr << "r=" << r << std::endl;
+			for ( uint64_t i = 0; i < r; ++i )
+				B.push_back(rand() & 1);
+			testrl(B);
+		}
+	
+	}
+}
+
 int main()
 {
 	initRand();
+	
+	testrl();
+	
+	return 0;
 
 	checkE2Append(1024*1024);
 	callWaveletTreeRankSelectRandom(128);
