@@ -300,7 +300,7 @@ namespace libmaus
 			 *
 			 * @return OutputBufferEntry pointer or null pointer if no more data was available
 			 **/
-			OutputBufferEntry const * process()
+			OutputBufferEntry * process()
 			{
 				/** reset output buffer */
 				if ( outputBuffer.fsingle )
