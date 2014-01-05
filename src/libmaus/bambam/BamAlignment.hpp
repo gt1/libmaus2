@@ -119,6 +119,26 @@ namespace libmaus
 				// copy data
 				std::copy(from.D.begin(),from.D.begin()+from.blocksize,D.begin());
 			}
+
+			/**
+			 * copy data from other alignment into this object
+			 *
+			 * @param fromD alignment block data to be copied
+			 * @param fromblocksize length of fromD in bytes
+			 **/
+			void copyFrom(uint8_t const * fromD, uint64_t const fromblocksize)
+			{
+				if ( fromblocksize > D.size() )
+				{
+					blocksize = 0;
+					D = D_array_type(fromblocksize,false);
+				}
+				
+				// set new block size
+				blocksize = fromblocksize;
+				// copy data
+				std::copy(fromD,fromD+fromblocksize,D.begin());
+			}
 			
 			/**
 			 * constructor for invalid/empty alignment
