@@ -889,6 +889,15 @@ namespace libmaus
 			}
 
 			/**
+			 * @return number of bytes after the cigar string in the alignment representation
+			 **/
+			static uint64_t getNumPostCigarBytes(uint8_t const * D, uint64_t const blocksize)
+			{
+				return blocksize - (getNumPreCigarBytes(D) + getNumCigarBytes(D));
+			}
+
+
+			/**
 			 * get number of bytes before the encoded query sequence in alignment block D
 			 *
 			 * @param D alignment block

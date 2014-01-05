@@ -638,24 +638,38 @@ namespace libmaus
 			}
 
 			/**
-			 * erase the cigar string
+			 * erase the cigar string of an alignment block and return the new block size
+			 *
+			 * @param D alignment block data
+			 * @param blocksize input block size
+			 * @return new block size
 			 **/
-			void eraseCigarString()
+			static uint64_t eraseCigarString(uint8_t * const D, uint64_t blocksize)
 			{
-				uint64_t const pre    = getNumPreCigarBytes();
-				uint64_t const oldcig = getNumCigarBytes();
-				uint64_t const post   = getNumPostCigarBytes();
+				uint64_t const pre    = ::libmaus::bambam::BamAlignmentDecoderBase::getNumPreCigarBytes(D);
+				uint64_t const oldcig = ::libmaus::bambam::BamAlignmentDecoderBase::getNumCigarBytes(D);
+				uint64_t const post   = ::libmaus::bambam::BamAlignmentDecoderBase::getNumPostCigarBytes(D,blocksize);
 				
 				// move post cigar string bytes to position of old cigar string
 				memmove(
-					D.begin() + pre, // dest
-					D.begin() + pre + oldcig,  // src
+					D + pre, // dest
+					D + pre + oldcig,  // src
 					post // n
 				);
 				
 				blocksize -= oldcig;
 				
-				putCigarLen(0);
+				::libmaus::bambam::BamAlignmentEncoderBase::putCigarLen(D,0);
+				
+				return blocksize;
+			}
+
+			/**
+			 * erase the cigar string
+			 **/
+			void eraseCigarString()
+			{
+				blocksize = eraseCigarString(D.begin(),blocksize);
 			}
 	
 			/**
@@ -1344,16 +1358,21 @@ namespace libmaus
 				#endif
 			}
 			
+			static int32_t getLseq(uint8_t const * D)
+			{
+				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D)->Lseq;
+				#else
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getLseq(D);
+				#endif			
+			}
+
 			/**
 			 * @return sequence length field
 			 **/
 			int32_t getLseq() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
-				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Lseq;
-				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getLseq(D.get());
-				#endif
+				return getLseq(D.begin());
 			}
 			
 			/**
@@ -1728,10 +1747,21 @@ namespace libmaus
 			
 			/**
 			 * remove all auxiliary fields
+			 *
+			 * @param D alignment block data
+			 * @return new size of block
+			 **/
+			static uint64_t eraseAux(uint8_t const * const D)
+			{
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D)-D;
+			}
+
+			/**
+			 * remove all auxiliary fields
 			 **/
 			void eraseAux()
 			{
-				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.begin())-D.begin();
+				blocksize = eraseAux(D.begin());
 			}
 
 			/**
@@ -1817,12 +1847,20 @@ namespace libmaus
 			/**
 			 * replace the query sequence and quality string of this alignment block by its reverse complement in place
 			 **/
+			static void reverseComplementInplace(uint8_t * const D)
+                        {
+                        	uint64_t const lseq = getLseq(D);
+                        	libmaus::bambam::BamAlignmentDecoderBase::reverseComplementInplace(libmaus::bambam::BamAlignmentDecoderBase::getSeq(D),lseq);
+                        	uint8_t * qual = libmaus::bambam::BamAlignmentDecoderBase::getQual(D);
+                        	std::reverse(qual,qual+lseq);
+                        }                                                                                                                                                    
+
+			/**
+			 * replace the query sequence and quality string of this alignment block by its reverse complement in place
+			 **/
 			void reverseComplementInplace()
                         {
-                        	uint64_t const lseq = getLseq();
-                        	libmaus::bambam::BamAlignmentDecoderBase::reverseComplementInplace(libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin()),lseq);
-                        	uint8_t * qual = libmaus::bambam::BamAlignmentDecoderBase::getQual(D.begin());
-                        	std::reverse(qual,qual+lseq);
+                        	reverseComplementInplace(D.begin());
                         }                                                                                                                                                    
 
                         /**
