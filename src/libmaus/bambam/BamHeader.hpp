@@ -169,6 +169,26 @@ namespace libmaus
 			}
 			
 			/**
+			 * get vector of read groups
+			 *
+			 * @return read group vector
+			 **/
+			std::vector<ReadGroup> const & getReadGroups() const
+			{
+				return RG;
+			}
+			
+			/**
+			 * get number of read groups
+			 *
+			 * @return number of read groups
+			 **/
+			uint64_t getNumReadGroups() const
+			{
+				return RG.size();
+			}
+			
+			/**
 			 * get read group numerical id for read group name
 			 *
 			 * @param ID read group name
