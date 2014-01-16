@@ -242,6 +242,7 @@ namespace libmaus
 			bool cbputbackflag;
 			
 			public:
+			
 			/**
 			 * constructor from input stream
 			 *
@@ -695,6 +696,18 @@ namespace libmaus
 			void disableValidation()
                         {
                         	bamdec.disableValidation();
+			}
+
+			/**
+			 * print circular hash expunge counters (if present)
+			 *
+			 * @param out stream used for printing
+			 * @return out
+			 **/
+			std::ostream & printCounters(std::ostream & out) const
+			{
+				if ( CH )
+					return CH->printCounters(out);
 			}
 		};
 

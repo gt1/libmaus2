@@ -60,6 +60,15 @@ namespace libmaus
 			
 			libmaus::bambam::BamAlignmentExpungeCallback * expungecallback;
 			
+			uint64_t hashexpunge;
+			uint64_t wrapexpunge;
+			
+			std::ostream & printCounters(std::ostream & out) const
+			{
+				out << "hashexpunge=" << hashexpunge << " wrapexpunge=" << wrapexpunge << std::endl;
+				return out;
+			}
+			
 			static hash_type unused()
 			{
 				return std::numeric_limits<hash_type>::max();
@@ -95,7 +104,9 @@ namespace libmaus
 			  B(bsize,false),
 			  R(B.size(),false),
 			  ipos(0),
-			  expungecallback(0)
+			  expungecallback(0),
+			  hashexpunge(0),
+			  wrapexpunge(0)
 			{
 				std::fill(H.begin(),H.end(),unused());
 			}
@@ -256,6 +267,8 @@ namespace libmaus
 					// remove element
 					if ( ! overflowEntry(elpos,hv) )
 						return false;
+						
+					hashexpunge += 1;
 				}
 				
 				// assert ( H[hv&tablemask] == unused() );
@@ -269,6 +282,8 @@ namespace libmaus
 					// assert ( R[next1] );
 					if ( ! overflowEntry(next1) )
 						return false;
+						
+					wrapexpunge += 1;
 				}
 				
 				pos_type const inspos = ipos;
