@@ -244,6 +244,32 @@ namespace libmaus
 				}
 				return out;
                         }
+                        std::ostream & printMultiLine(std::ostream & out, unsigned int const cols, uint64_t & offset) const
+                        {
+                        	std::string const id = getStringId();
+                        	
+				out << '>' << id << '\n';
+				
+				offset += 2 + id.size();
+				
+				if ( pattern )
+				{
+					char const * ita = pattern;
+					uint64_t rem = patlen;
+					
+					while ( rem )
+					{
+						uint64_t const toprint = std::min(static_cast<uint64_t>(cols),rem);
+						out.write(ita,toprint);
+						out.put('\n');
+						rem -= toprint;
+						ita += toprint;
+						
+						offset += toprint + 1;
+					}
+				}
+				return out;
+                        }
                 };
 
 		inline std::ostream & operator<< ( std::ostream & out, Pattern const & p)
