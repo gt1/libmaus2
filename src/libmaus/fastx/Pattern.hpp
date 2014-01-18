@@ -224,6 +224,26 @@ namespace libmaus
                                 for ( uint64_t i = 0; i < spattern.size(); ++i )
                                         spattern[i] = ::libmaus::fastx::remapChar(spattern[i]);
                         }
+                        
+                        std::ostream & printMultiLine(std::ostream & out, unsigned int const cols) const
+                        {
+				out << ">" << getStringId() << '\n';
+				if ( pattern )
+				{
+					char const * ita = pattern;
+					uint64_t rem = patlen;
+					
+					while ( rem )
+					{
+						uint64_t const toprint = std::min(static_cast<uint64_t>(cols),rem);
+						out.write(ita,toprint);
+						out.put('\n');
+						rem -= toprint;
+						ita += toprint;
+					}
+				}
+				return out;
+                        }
                 };
 
 		inline std::ostream & operator<< ( std::ostream & out, Pattern const & p)
