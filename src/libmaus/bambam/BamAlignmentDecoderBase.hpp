@@ -278,6 +278,25 @@ namespace libmaus
 			}
 
 			/**
+			 * write FastA representation of alignment D into array T; T is reallocated if it is too small
+			 *
+			 * @param D alignment block
+			 * @param T output array
+			 * @return number of bytes written
+			 **/
+			static uint64_t putFastA(
+				uint8_t const * D,
+				libmaus::autoarray::AutoArray<uint8_t> & T
+			)
+			{
+				uint64_t const len = getFastALength(D);
+				if ( T.size() < len ) 
+					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+				putFastA(D,T.begin());
+				return len;
+			}
+
+			/**
 			 * write FastQ representation of alignment D into array T; T is reallocated if it is too small
 			 *
 			 * @param D alignment block
@@ -317,6 +336,24 @@ namespace libmaus
 					lseq + 1 + // seq line
 					1 + 1 + // plus line
 					lseq + 1 // quality line
+					;
+			}
+
+			/**
+			 * get length of FastA representation for alignment block D in bytes
+			 *
+			 * @param D alignment block
+			 * @return length of FastA entry
+			 **/
+			static uint64_t getFastALength(uint8_t const * D)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				
+				return
+					1 + namelen + ((flags & LIBMAUS_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
+					lseq + 1 // seq line
 					;
 			}
 
@@ -488,6 +525,52 @@ namespace libmaus
 				}
 				*(it++) = '\n';
 				
+				return it;
+			}				
+
+			/**
+			 * write FastA representation of alignment block D to iterator it
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @return output iterator after writing
+			 **/
+			template<typename iterator>
+			static iterator putFastA(uint8_t const * D, iterator it)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				char const * rn = getReadName(D);
+				char const * rne = rn + namelen;
+
+				*(it++) = '>';
+				while ( rn != rne )
+					*(it++) = *(rn++);
+				
+				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				{
+					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					{
+						*(it++) = '/';
+						*(it++) = '1';
+					}
+					else
+					{
+						*(it++) = '/';
+						*(it++) = '2';
+					}
+				}
+				
+				*(it++) = '\n';
+				
+				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+					it = decodeReadRCIt(D,it,lseq);
+				else
+					it = decodeRead(D,it,lseq);
+					
+				*(it++) = '\n';				
+
 				return it;
 			}				
 
