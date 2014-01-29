@@ -68,6 +68,13 @@ namespace libmaus
 			: stream(rstream), gcnt(0), ostr(&rostr), 
 			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
 
+			/**
+			 * read a bgzf block
+			 *
+			 * @param decomp space for decompressed data
+			 * @param n number of bytes availabel in decomp, must be at least the BGZF block size (64k)
+			 * @return number of bytes in block
+			 **/
 			uint64_t read(char * const decomp, uint64_t const n)
 			{			
 				gcnt = 0;
@@ -75,9 +82,11 @@ namespace libmaus
 				if ( terminated )
 					return 0;
 				
-				bool const firstblock = haveoffsets && (compressedread == 0);	
+				// first block flag if we are processing an interval on the file
+				bool const firstblock = haveoffsets && (compressedread == 0);
+				// last block flag if we are processing an interval on the file	
 				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
-			
+
 				/* check if buffer given is large enough */	
 				if ( n < getBgzfMaxBlockSize() )
 				{
@@ -108,7 +117,8 @@ namespace libmaus
 					
 					return 0;
 				}
-					
+				
+				// copy compressed block if ostr is not null
 				if ( ostr )
 				{
 					ostr->write(reinterpret_cast<char const *>(header.begin()),getBgzfHeaderSize());
@@ -126,11 +136,14 @@ namespace libmaus
 				/* decompress block */
 				gcnt = decompressBlock(decomp,blockinfo);
 				
+				// if this is the last block we will read, then set the terminate flag
+				// and cut off
 				if ( lastblock )
 				{
 					gcnt = std::min(gcnt,endoffset.getSubOffset());
 					terminated = true;
 				}
+				// if this is the first block then move data into place as required
 				if ( firstblock )
 				{
 					uint64_t const soff = startoffset.getSubOffset();
@@ -141,8 +154,10 @@ namespace libmaus
 					}
 				}
 				
+				// increase number of compressed bytes we have read by this block
 				compressedread += getBgzfHeaderSize() + blockinfo.first + getBgzfFooterSize();
 				
+				// return number of uncompressed bytes in buffer
 				return gcnt;
 			}
 
@@ -153,7 +168,9 @@ namespace libmaus
 				if ( terminated )
 					return std::pair<uint64_t,uint64_t>(0,0);
 
+				// first block flag if we are processing an interval on the file
 				bool const firstblock = haveoffsets && (compressedread == 0);	
+				// last block flag if we are processing an interval on the file	
 				bool const lastblock = haveoffsets && (compressedread == endoffset.getBlockOffset()-startoffset.getBlockOffset());
 			
 				/* check if buffer given is large enough */	
@@ -187,6 +204,7 @@ namespace libmaus
 					return std::pair<uint64_t,uint64_t>(0,0);
 				}
 					
+				// copy compressed block if ostr is not null
 				if ( ostr )
 				{
 					ostr->write(reinterpret_cast<char const *>(header.begin()),getBgzfHeaderSize());
@@ -204,11 +222,14 @@ namespace libmaus
 				/* decompress block */
 				gcnt = decompressBlock(decomp,blockinfo);
 
+				// if this is the last block we will read, then set the terminate flag
+				// and cut off
 				if ( lastblock )
 				{
 					gcnt = std::min(gcnt,endoffset.getSubOffset());
 					terminated = true;
 				}
+				// if this is the first block then move data into place as required
 				if ( firstblock )
 				{
 					uint64_t const soff = startoffset.getSubOffset();
@@ -219,6 +240,7 @@ namespace libmaus
 					}
 				}
 
+				// increase number of compressed bytes we have read by this block
 				compressedread += getBgzfHeaderSize() + blockinfo.first + getBgzfFooterSize();
 				
 				return std::pair<uint64_t,uint64_t>(

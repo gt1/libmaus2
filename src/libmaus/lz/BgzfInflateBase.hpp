@@ -38,6 +38,13 @@ namespace libmaus
 			{
 			}
 
+			/**
+			 * read bgzf block data plus footer (checksum + uncompressed size)
+			 *
+			 * @param stream
+			 * @param payloadsize length of compressed data
+			 * @return length of uncompressed block
+			 **/
 			template<typename stream_type>
 			uint64_t readData(stream_type & stream, uint64_t const payloadsize)
 			{
@@ -77,16 +84,29 @@ namespace libmaus
 				return uncompdatasize;
 			}
 
+			/**
+			 * read a bgzf block from stream
+			 *
+			 * @param stream
+			 * @return pair of compressed payload size (gzip block minus header and footer) and uncompressed size
+			 **/
 			template<typename stream_type>
 			std::pair<uint64_t,uint64_t> readBlock(stream_type & stream)
 			{
 				/* read block header */
 				uint64_t const payloadsize = readHeader(stream);
-				if ( ! payloadsize )
-					return std::pair<uint64_t,uint64_t>(0,0);
 
-				/* read block data */
+				/* read block data and footer */
 				uint64_t const uncompdatasize = readData(stream,payloadsize);
+
+				/* check consistency */				
+				if ( (! payloadsize) && (uncompdatasize>0) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BgzfInflateBase::readBlock: broken BGZF file (block payloadsize is zero but uncompressed data length is not)" << std::endl;
+					se.finish();
+					throw se;
+				}
 				
 				return std::pair<uint64_t,uint64_t>(payloadsize,uncompdatasize);
 			}
