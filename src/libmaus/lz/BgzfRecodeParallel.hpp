@@ -51,13 +51,16 @@ namespace libmaus
 			{
 				BIDP.registerBlockOutputCallback(cb);
 			}
+
 			
 			bool getBlock()
 			{
-				P.second = BIDP.read(reinterpret_cast<char *>(deflatebase.B.begin()),deflatebase.B.size());
+				BgzfInflateInfo const info = 
+					BIDP.readAndInfo(reinterpret_cast<char *>(deflatebase.B.begin()),deflatebase.B.size());
+				P.second = info.uncompressed;
 				deflatebase.pc = deflatebase.pa + P.second;
 				
-				return P.second != 0;
+				return !((info.uncompressed==0) && info.streameof);
 			}
 			
 			void putBlock()

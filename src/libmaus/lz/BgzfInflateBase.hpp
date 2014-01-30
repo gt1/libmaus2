@@ -22,6 +22,7 @@
 #include <zlib.h>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/lz/BgzfConstants.hpp>
+#include <libmaus/lz/BgzfInflateInfo.hpp>
 #include <libmaus/lz/BgzfInflateHeaderBase.hpp>
 #include <libmaus/lz/BgzfInflateZStreamBase.hpp>
 

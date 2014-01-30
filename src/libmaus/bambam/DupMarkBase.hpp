@@ -354,6 +354,7 @@ namespace libmaus
 					rec.registerBlockOutputCallback(Pcbs->at(i));
 				
 				bool haveheader = false;
+				bool recactive = false;
 				uint64_t blockskip = 0;
 				
 				libmaus::bambam::BamHeader::BamHeaderParserState bhps;
@@ -361,7 +362,7 @@ namespace libmaus
 				std::cerr << "[D] using incremental BAM header parser on serial decoder." << std::endl;
 				
 				/* read  blocks until we have reached the end of the BAM header */
-				while ( (!haveheader) && rec.getBlock() )
+				while ( (!haveheader) && (recactive = !(rec.getBlockPlusEOF().second)) )
 				{
 					libmaus::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
 					std::pair<bool,uint64_t> const ps = libmaus::bambam::BamHeader::parseHeader(G,bhps,rec.P.second);
@@ -378,7 +379,7 @@ namespace libmaus
 					blockskip = 0;
 					
 					if ( ! bytesused )
-						rec.getBlock();
+						(recactive = !(rec.getBlockPlusEOF().second));
 				}
 
 				/* parser state types and variables */
@@ -392,7 +393,7 @@ namespace libmaus
 				// uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
 						
 				/* while we have alignment data blocks */
-				while ( rec.P.second )
+				while ( recactive )
 				{
 					uint8_t * pa       = rec.deflatebase.pa;
 					uint8_t * const pc = rec.deflatebase.pc;
@@ -475,7 +476,7 @@ namespace libmaus
 						}
 
 					rec.putBlock();			
-					rec.getBlock();
+					(recactive = !(rec.getBlockPlusEOF().second));
 				}
 						
 				rec.addEOFBlock();
@@ -544,6 +545,7 @@ namespace libmaus
 				libmaus::timing::RealTimeClock locrtc; locrtc.start();
 				
 				bool haveheader = false;
+				bool recactive = false;
 				uint64_t blockskip = 0;
 
 				libmaus::bambam::BamHeader::BamHeaderParserState bhps;
@@ -551,7 +553,7 @@ namespace libmaus
 				std::cerr << "[D] using incremental BAM header parser on parallel recoder." << std::endl;
 				
 				/* read  blocks until we have reached the end of the BAM header */
-				while ( (!haveheader) && rec.getBlock() )
+				while ( (!haveheader) && (recactive=rec.getBlock()) )
 				{
 					libmaus::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
 					std::pair<bool,uint64_t> const ps = libmaus::bambam::BamHeader::parseHeader(G,bhps,rec.P.second);
@@ -568,7 +570,7 @@ namespace libmaus
 					blockskip = 0;
 					
 					if ( ! bytesused )
-						rec.getBlock();
+						(recactive=rec.getBlock());
 				}
 
 				/* parser state types and variables */
@@ -582,7 +584,7 @@ namespace libmaus
 				// uint8_t const dupflagmask = static_cast<uint8_t>(~(4u));
 						
 				/* while we have alignment data blocks */
-				while ( rec.P.second )
+				while ( recactive )
 				{
 					uint8_t * pa       = rec.deflatebase.pa;
 					uint8_t * const pc = rec.deflatebase.pc;
@@ -665,7 +667,7 @@ namespace libmaus
 						}
 
 					rec.putBlock();			
-					rec.getBlock();
+					(recactive=rec.getBlock());
 				}
 						
 				rec.addEOFBlock();

@@ -44,17 +44,22 @@ namespace libmaus
 			
 			}
 			
-			uint64_t getBlock()
+			std::pair<uint64_t,bool> getBlockPlusEOF()
 			{
 				P = inflatebase.readBlock(in);
 				
-				if ( ! P.second )
-					return false;
+				if ( (! P.second) && (in.get() == std::istream::traits_type::eof()) )
+					return std::pair<uint64_t,bool>(P.second,true);
 				
 				inflatebase.decompressBlock(reinterpret_cast<char *>(deflatebase.pa),P);
 				deflatebase.pc = deflatebase.pa + P.second;
 				
-				return P.second;
+				return std::pair<uint64_t,bool>(P.second,false);
+			}
+
+			uint64_t getBlock()
+			{
+				return !(getBlockPlusEOF().second);
 			}
 
 			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
