@@ -22,6 +22,7 @@
 #define LIBMAUS_LZ_BGZFINFLATEDEFLATEPARALLELINPUTSTREAM_HPP
 
 #include <libmaus/lz/StreamWrapper.hpp>
+#include <libmaus/lz/BgzfStreamWrapper.hpp>
 #include <libmaus/lz/BgzfInflateDeflateParallelWrapper.hpp>
 
 namespace libmaus
@@ -30,7 +31,7 @@ namespace libmaus
 	{
 		struct BgzfInflateDeflateParallelInputStream : 
 			public ::libmaus::lz::BgzfInflateDeflateParallelWrapper, 
-			public ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateDeflateParallel >
+			public ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflateDeflateParallel >
 		{
 			typedef BgzfInflateDeflateParallelInputStream this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -43,10 +44,10 @@ namespace libmaus
 				uint64_t const rblocksperthread = 1
 			)
 			: ::libmaus::lz::BgzfInflateDeflateParallelWrapper(in,out,level,rnumthreads,rblocksperthread), 
-			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflateDeflateParallel >(
+			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflateDeflateParallel >(
 			  	::libmaus::lz::BgzfInflateDeflateParallelWrapper::bgzf,64*1024,0)
 			{
-			
+				exceptions(std::ios::badbit);
 			}
 		};
 	}

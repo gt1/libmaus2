@@ -103,21 +103,20 @@ namespace libmaus
 							if ( (! (inflatecontext.inflateB[objectid]->failed())) && inflatecontext.copyostr )
 							{
 								// copy data
-								if ( inflatecontext.inflateB[objectid]->blockinfo.compressed )
-								{
-									// bgzf header
-									inflatecontext.copyostr->write(
-										reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->header.begin()),
-										inflatecontext.inflateB[objectid]->getBgzfHeaderSize()
-									);
-									// payload and footer
-									inflatecontext.copyostr->write(
-										reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->block.begin()),
-										inflatecontext.inflateB[objectid]->blockinfo.compressed + inflatecontext.inflateB[objectid]->getBgzfFooterSize()
-									);
-								}
-								// flush output stream if there is no more data
-								else
+								
+								// bgzf header
+								inflatecontext.copyostr->write(
+									reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->header.begin()),
+									inflatecontext.inflateB[objectid]->getBgzfHeaderSize()
+								);
+								// payload and footer
+								inflatecontext.copyostr->write(
+									reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->block.begin()),
+									inflatecontext.inflateB[objectid]->blockinfo.compressed + inflatecontext.inflateB[objectid]->getBgzfFooterSize()
+								);
+
+								// flush output stream if block is empty (might be EOF)
+								if ( ! inflatecontext.inflateB[objectid]->blockinfo.uncompressed )
 									inflatecontext.copyostr->flush();
 
 								// check state of stream
@@ -153,7 +152,6 @@ namespace libmaus
 									inflatecontext.inflateB[objectid]->blockid
 								)
 							);
-							
 							break;
 						}
 						default:

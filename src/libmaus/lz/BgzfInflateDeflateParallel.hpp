@@ -180,8 +180,8 @@ namespace libmaus
 			{
 				return inflatecontext.inflategcnt;
 			}
-			
-			uint64_t read(char * const data, uint64_t const n)
+
+			BgzfInflateInfo readAndInfo(char * const data, uint64_t const n)
 			{
 				inflatecontext.inflategcnt = 0;
 					
@@ -194,7 +194,9 @@ namespace libmaus
 				}
 
 				if ( inflateterminated )
-					return 0;
+				{
+					return BgzfInflateInfo(0,0,true);
+				}
 			
 				/* get object id */
 				BgzfThreadQueueElement const btqe = inflatecontext.inflatedecompressedlist.deque();
@@ -214,17 +216,15 @@ namespace libmaus
 					assert ( inflatecontext.inflateB[objectid]->blockid == inflatecontext.inflateeb );
 				}
 
-				uint64_t const blocksize = inflatecontext.inflateB[objectid]->blockinfo.uncompressed;
-				uint64_t ret = 0;
+				BgzfInflateInfo const info = inflatecontext.inflateB[objectid]->blockinfo;
 				
 				/* empty block (EOF) */
-				if ( ! blocksize )
+				if ( (! info.uncompressed) && info.streameof )
 				{
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
 					inflateterminated = true;
-					
-					ret = 0;
+					return info;
 				}
 				/* block contains data */
 				else
@@ -233,7 +233,7 @@ namespace libmaus
 					assert ( blockid == inflatecontext.inflateeb );
 					inflatecontext.inflateeb += 1;
 
-					std::copy(inflatecontext.inflateB[objectid]->data.begin(), inflatecontext.inflateB[objectid]->data.begin()+blocksize, reinterpret_cast<uint8_t *>(data));
+					std::copy(inflatecontext.inflateB[objectid]->data.begin(), inflatecontext.inflateB[objectid]->data.begin()+info.uncompressed, reinterpret_cast<uint8_t *>(data));
 
 					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflatefreelist.push_back(objectid);
@@ -246,9 +246,7 @@ namespace libmaus
 						)
 					);
 					
-					inflatecontext.inflategcnt = blocksize;
-					
-					ret = blocksize;
+					inflatecontext.inflategcnt = info.uncompressed;
 					
 					inflatecontext.inflatedecompressedlist.setReadyFor(
 						BgzfThreadQueueElement(
@@ -257,9 +255,14 @@ namespace libmaus
 							blockid+1
 						)
 					);
-				}
-				
-				return ret;
+					
+					return info;
+				}				
+			}
+			
+			uint64_t read(char * const data, uint64_t const n)
+			{
+				return readAndInfo(data,n).uncompressed;
 			}
 			
 			void put(uint8_t const c)
