@@ -103,7 +103,7 @@ namespace libmaus
 							if ( (! (inflatecontext.inflateB[objectid]->failed())) && inflatecontext.copyostr )
 							{
 								// copy data
-								if ( inflatecontext.inflateB[objectid]->blockinfo.first )
+								if ( inflatecontext.inflateB[objectid]->blockinfo.compressed )
 								{
 									// bgzf header
 									inflatecontext.copyostr->write(
@@ -113,7 +113,7 @@ namespace libmaus
 									// payload and footer
 									inflatecontext.copyostr->write(
 										reinterpret_cast<char const *>(inflatecontext.inflateB[objectid]->block.begin()),
-										inflatecontext.inflateB[objectid]->blockinfo.first + inflatecontext.inflateB[objectid]->getBgzfFooterSize()
+										inflatecontext.inflateB[objectid]->blockinfo.compressed + inflatecontext.inflateB[objectid]->getBgzfFooterSize()
 									);
 								}
 								// flush output stream if there is no more data

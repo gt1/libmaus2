@@ -214,7 +214,7 @@ namespace libmaus
 					assert ( inflatecontext.inflateB[objectid]->blockid == inflatecontext.inflateeb );
 				}
 
-				uint64_t const blocksize = inflatecontext.inflateB[objectid]->blockinfo.second;
+				uint64_t const blocksize = inflatecontext.inflateB[objectid]->blockinfo.uncompressed;
 				uint64_t ret = 0;
 				
 				/* empty block (EOF) */

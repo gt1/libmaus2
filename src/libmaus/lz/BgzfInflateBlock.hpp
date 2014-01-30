@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFINFLATEBLOCK_HPP
 
 #include <libmaus/lz/BgzfInflateBase.hpp>
+#include <libmaus/lz/BgzfInflateInfo.hpp>
 
 namespace libmaus
 {
@@ -38,7 +39,7 @@ namespace libmaus
 			};
 		
 			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> data;
-			std::pair<uint64_t,uint64_t> blockinfo;
+			::libmaus::lz::BgzfInflateInfo blockinfo;
 			libmaus::exception::LibMausException::unique_ptr_type ex;
 			bgzfinflateblockstate state;
 
@@ -62,6 +63,12 @@ namespace libmaus
 				return *ex;
 			}
 			
+			/**
+			 * read a block from stream
+			 *
+			 * @param stream input channel
+			 * @return true in case of success, false for failure or EOF
+			 **/
 			template<typename stream_type>
 			bool readBlock(stream_type & stream)
 			{
@@ -72,8 +79,15 @@ namespace libmaus
 				
 				try
 				{
-					blockinfo = BgzfInflateBase::readBlock(stream);
-					return blockinfo.first;
+					std::pair<uint64_t,uint64_t> preblockinfo = BgzfInflateBase::readBlock(stream);
+					
+					blockinfo = ::libmaus::lz::BgzfInflateInfo(
+						preblockinfo.first,
+						preblockinfo.second,
+						preblockinfo.second ? false : (stream.peek() == stream_type::traits_type::eof())
+					);
+										
+					return blockinfo.uncompressed;
 				}
 				catch(libmaus::exception::LibMausException const & lex)
 				{
@@ -99,27 +113,34 @@ namespace libmaus
 				}
 			}
 			
+			/**
+			 * decompress the currenctly buffered block
+			 *
+			 * @return number of uncompressed bytes in block, zero for EOF or failure
+			 **/
 			uint64_t decompressBlock()
 			{
 				state = bgzfinflateblockstate_decompressed_block;
 
 				if ( failed() )
-					return false;
+					return 0;
 
-			
-				if ( ! blockinfo.first )
-					return false;
+				if ( ! blockinfo.uncompressed )
+					return 0;
 				
 				try
 				{
-					BgzfInflateBase::decompressBlock(reinterpret_cast<char *>(data.begin()),blockinfo);
-					return blockinfo.second;
+					BgzfInflateBase::decompressBlock(
+						reinterpret_cast<char *>(data.begin()),
+						std::make_pair(blockinfo.compressed,blockinfo.uncompressed)
+					);
+					return blockinfo.uncompressed;
 				}
 				catch(libmaus::exception::LibMausException const & lex)
 				{
 					libmaus::exception::LibMausException::unique_ptr_type tex(lex.uclone());
 					ex = UNIQUE_PTR_MOVE(tex);
-					return false;
+					return 0;
 				}
 				catch(std::exception const & lex)
 				{
@@ -127,7 +148,7 @@ namespace libmaus
 					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << lex.what();
 					ex->finish(false);
-					return false;
+					return 0;
 				}
 				catch(...)
 				{
@@ -135,10 +156,17 @@ namespace libmaus
 					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << "BgzfInflateBlock::decompressBlock(): unknown exception caught";
 					ex->finish(false);
-					return false;				
+					return 0;				
 				}
 			}
 			
+			/**
+			 * read out the data in the decompressed block
+			 *
+			 * @param ldata buffer for storing the decompressed block
+			 * @param n size of buffer ldata in bytes
+			 * @return the number of uncompressed bytes in the buffer
+			 **/
 			uint64_t read(char * const ldata, uint64_t const n)
 			{
 				state = bgzfinflateblockstate_idle;
@@ -154,11 +182,11 @@ namespace libmaus
 				if ( failed() )
 					throw getException();
 
-				uint64_t const ndata = blockinfo.second;
+				uint64_t const ndata = blockinfo.uncompressed;
 					
 				std::copy ( data.begin(), data.begin() + ndata, reinterpret_cast<uint8_t *>(ldata) );
 				
-				blockinfo = std::pair<uint64_t,uint64_t>(0,0);
+				blockinfo = ::libmaus::lz::BgzfInflateInfo(0,0,true);
 				
 				return ndata;
 			}
