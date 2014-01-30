@@ -105,7 +105,7 @@ namespace libmaus
 					if ( ! (*ostr) )
 					{
 						libmaus::exception::LibMausException ex;
-						ex.getStream() << "BgzfInflate::readPlusInfo(): failed to write compressed input to copy stream." << std::endl;
+						ex.getStream() << "BgzfInflate::readAndInfo(): failed to write compressed input to copy stream." << std::endl;
 						ex.finish();
 						throw ex;
 					}
@@ -120,7 +120,7 @@ namespace libmaus
 					if ( ! (*ostr) )
 					{
 						libmaus::exception::LibMausException ex;
-						ex.getStream() << "BgzfInflate::read(): failed to flush copy stream." << std::endl;
+						ex.getStream() << "BgzfInflate::readAndInfo(): failed to flush copy stream." << std::endl;
 						ex.finish();
 						throw ex;
 					}
@@ -179,7 +179,7 @@ namespace libmaus
 			 **/
 			uint64_t read(char * const decomp, uint64_t const n)
 			{			
-				return readPlusInfo(decomp,n).second;
+				return readAndInfo(decomp,n).uncompressed;
 			}
 
 			/**

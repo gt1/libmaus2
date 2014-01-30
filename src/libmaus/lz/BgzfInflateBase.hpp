@@ -54,7 +54,7 @@ namespace libmaus
 				if ( stream.gcount() != static_cast<int64_t>(payloadsize + 8) )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): unexpected eof";
+					se.getStream() << "BgzfInflateBase::readData(): unexpected eof" << std::endl;
 					se.finish(false);
 					throw se;
 				}
@@ -75,7 +75,7 @@ namespace libmaus
 				if ( uncompdatasize > getBgzfMaxBlockSize() )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflate::decompressBlock(): uncompressed size is too large";
+					se.getStream() << "BgzfInflateBase::readData(): uncompressed size is too large";
 					se.finish(false);
 					throw se;									
 				
