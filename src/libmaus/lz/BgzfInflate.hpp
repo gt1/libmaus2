@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_BGZFINFLATE_HPP
 
 #include <libmaus/lz/BgzfInflateBase.hpp>
+#include <libmaus/lz/BgzfInflateInfo.hpp>
 #include <libmaus/lz/BgzfVirtualOffset.hpp>
 #include <ostream>
 
@@ -68,33 +69,6 @@ namespace libmaus
 			: stream(rstream), gcnt(0), ostr(&rostr), 
 			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
 
-			struct BgzfInflateInfo
-			{
-				uint64_t compressed;
-				uint64_t uncompressed;
-				bool streameof;
-				
-				BgzfInflateInfo() : compressed(0), uncompressed(0), streameof(false) {}
-				BgzfInflateInfo(BgzfInflateInfo const & o)
-				: compressed(o.compressed), uncompressed(o.uncompressed), streameof(o.streameof) {}
-				BgzfInflateInfo(
-					uint64_t const rcompressed,
-					uint64_t const runcompressed,
-					bool const rstreameof
-				)
-				: compressed(rcompressed), uncompressed(runcompressed), streameof(rstreameof)
-				{
-				
-				}
-				
-				BgzfInflateInfo & operator=(BgzfInflateInfo const & o)
-				{
-					compressed = o.compressed;
-					uncompressed = o.uncompressed;
-					streameof = o.streameof;
-					return *this;
-				}
-			};
 
 			BgzfInflateInfo readAndInfo(char * const decomp, uint64_t const n)
 			{
