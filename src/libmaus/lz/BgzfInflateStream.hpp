@@ -22,34 +22,39 @@
 
 #include <libmaus/lz/BgzfInflateWrapper.hpp>
 #include <libmaus/lz/StreamWrapper.hpp>
+#include <libmaus/lz/BgzfStreamWrapper.hpp>
 #include <libmaus/lz/BgzfVirtualOffset.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct BgzfInflateStream : public ::libmaus::lz::BgzfInflateWrapper, public ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >
+		struct BgzfInflateStream : 
+			public ::libmaus::lz::BgzfInflateWrapper, 
+			public ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >
 		{
 			typedef BgzfInflateStream this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			BgzfInflateStream(std::istream & in)
 			: ::libmaus::lz::BgzfInflateWrapper(in), 
-			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
 			{
+				exceptions(std::ios::badbit);
 			}
 
 			BgzfInflateStream(std::istream & in, std::ostream & out)
 			: ::libmaus::lz::BgzfInflateWrapper(in,out), 
-			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
 			{
-			
+				exceptions(std::ios::badbit);
 			}
 			
 			BgzfInflateStream(std::istream & in, libmaus::lz::BgzfVirtualOffset const & start, libmaus::lz::BgzfVirtualOffset const & end)
 			: ::libmaus::lz::BgzfInflateWrapper(in,start,end), 
-			  ::libmaus::lz::StreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
 			{
+				exceptions(std::ios::badbit);
 			}
 		};
 	}

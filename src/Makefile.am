@@ -218,7 +218,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/Lz4DecoderBuffer.hpp \
 	libmaus/lz/GzipOutputStreamBuffer.hpp \
 	libmaus/lz/GzipOutputStream.hpp \
-	libmaus/lz/BgzfInflateInfo.hpp
+	libmaus/lz/BgzfInflateInfo.hpp \
+	libmaus/lz/BgzfStreamWrapper.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
