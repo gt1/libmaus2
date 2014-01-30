@@ -40,12 +40,13 @@ int main(int argc, char * argv[])
 		{
 			libmaus::bambam::BamIndexGenerator indexgen("indextmp",true,true,false/*debug*/);
 			libmaus::aio::CheckedInputStream::unique_ptr_type bamCIS(openFile(fn));
-			libmaus::lz::BgzfInflate<libmaus::aio::CheckedInputStream> bgzfin(*bamCIS);
+			// libmaus::lz::BgzfInflate<libmaus::aio::CheckedInputStream> bgzfin(*bamCIS);
+			libmaus::lz::BgzfInflate<std::istream> bgzfin(*bamCIS);
 		
-			std::pair<uint64_t,uint64_t> P;
+			libmaus::lz::BgzfInflateInfo P;
 			libmaus::autoarray::AutoArray<uint8_t> B(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
-			while ( (P=bgzfin.readPlusInfo(reinterpret_cast<char *>(B.begin()), B.size())).second )
-				indexgen.addBlock(B.begin(),P.first,P.second);		
+			while ( !(P=bgzfin.readAndInfo(reinterpret_cast<char *>(B.begin()), B.size())).streameof )
+				indexgen.addBlock(B.begin(),P.compressed,P.uncompressed);
 			indexgen.flush(indexostr);
 			bamCIS.reset();
 			
