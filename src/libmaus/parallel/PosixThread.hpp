@@ -304,7 +304,12 @@ namespace libmaus
 				}
 			}
 			
-			void setName(std::string const & name)
+			void setName(
+				std::string const & 
+				#if defined(LIBMAUS_HAVE_PRCTL)
+					name
+				#endif
+			)
 			{
 				#if defined(LIBMAUS_HAVE_PRCTL)
 				prctl(PR_SET_NAME,name.c_str(),0,0,0);
