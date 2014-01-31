@@ -708,6 +708,8 @@ namespace libmaus
 			{
 				if ( CH )
 					return CH->printCounters(out);
+				else
+					return out;
 			}
 		};
 
