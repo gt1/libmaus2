@@ -27,6 +27,7 @@
 #endif
 
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/sorting/MergeStepBinSearchResult.hpp>
 
 namespace libmaus
 {
@@ -149,106 +150,6 @@ namespace libmaus
 				}
 			}
 
-			struct MergeStepBinSearchResult
-			{
-				uint64_t l0;
-				uint64_t l1;
-				uint64_t r0;
-				uint64_t r1;
-				int64_t nbest;
-				
-				MergeStepBinSearchResult() : l0(0), l1(0), r0(0), r1(0), nbest(std::numeric_limits<int64_t>::max()) {}
-				MergeStepBinSearchResult(
-					uint64_t const rl0,
-					uint64_t const rl1,
-					uint64_t const rr0,
-					uint64_t const rr1,
-					int64_t const rnbest
-				) : l0(rl0), l1(rl1), r0(rr0), r1(rr1), nbest(rnbest) {}
-				
-				MergeStepBinSearchResult sideswap() const
-				{
-					return MergeStepBinSearchResult(r0,r1,l0,l1,nbest);
-				}
-			};
-
-			template<typename iterator, typename order_type>
-			static MergeStepBinSearchResult mergestepbinsearch(
-				iterator const aa, 
-				iterator const ae, 
-				iterator const ba, 
-				iterator const be, 
-				order_type order)
-			{
-				typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
-
-				uint64_t const s = ae-aa;
-				uint64_t const t = be-ba;
-
-				uint64_t l = 0;
-				uint64_t r = s;
-				
-				while ( r-l > 2 )
-				{
-					uint64_t const m = (l+r) >> 1;
-					value_type const & v = aa[m];
-
-					iterator bm = std::lower_bound(ba,be,v,order);
-
-					int64_t n = static_cast<int64_t>((bm-ba) + m) - ((s+t)/2);
-					
-					if ( 
-						n < 0 && (bm != be) && 
-						(!(order(*bm,v))) &&
-						(!(order(v,*bm)))
-					)
-					{
-						std::pair<iterator,iterator> const eqr = ::std::equal_range(ba,be,v,order);
-						n += std::min(-n,static_cast<int64_t>(eqr.second-eqr.first));
-					}
-								
-					if ( n < 0 )
-						l = m+1; // l excluded
-					else // n >= 0
-						r = m+1; // r included
-				}
-				
-				uint64_t lbest = l;
-				int64_t nbest = std::numeric_limits<int64_t>::max();
-				iterator bmbest = ba;
-				
-				for ( uint64_t m = (l ? (l-1):l); m < r; ++m )
-				{
-					value_type const v = aa[m];
-				
-					iterator bm = std::lower_bound(ba,be,v,order);
-
-					int64_t n = static_cast<int64_t>((bm-ba) + m) - ((s+t)/2);
-					
-					if ( n < 0 && bm != be && (!(order(*bm,v))) && (!(order(v,*bm))) )
-					{
-						std::pair<iterator,iterator> const eqr = ::std::equal_range(ba,be,v,order);
-						uint64_t const add = std::min(-n,static_cast<int64_t>(eqr.second-eqr.first));
-						n += add;
-						bm += add;
-					}
-					
-					if ( std::abs(n) < std::abs(nbest) )
-					{
-						lbest = m;
-						nbest = n;
-						bmbest = bm;
-					}
-				}
-
-				uint64_t const l0 = lbest;
-				uint64_t const l1 = s-l0;
-					
-				uint64_t const r0 = bmbest-ba;
-				uint64_t const r1 = t-r0;
-
-				return MergeStepBinSearchResult(l0,l1,r0,r1,nbest);
-			}
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void mergestepRecSerial(
@@ -274,8 +175,8 @@ namespace libmaus
 					iterator const ba = ae;
 					iterator const be = ba + t;
 
-					MergeStepBinSearchResult const msbsr_l = mergestepbinsearch(aa,ae,ba,be,order);
-					MergeStepBinSearchResult const msbsr_r = mergestepbinsearch(ba,be,aa,ae,order).sideswap();
+					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
+					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
 					MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 					
 					uint64_t const l0 = msbsr.l0;
@@ -369,8 +270,8 @@ namespace libmaus
 					iterator const ba = ae;
 					iterator const be = ba + t;
 
-					MergeStepBinSearchResult const msbsr_l = mergestepbinsearch(aa,ae,ba,be,order);
-					MergeStepBinSearchResult const msbsr_r = mergestepbinsearch(ba,be,aa,ae,order).sideswap();
+					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
+					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
 					MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 					
 					uint64_t const l0 = msbsr.l0;
@@ -451,8 +352,8 @@ namespace libmaus
 					iterator const ba = ae;
 					iterator const be = ba + t;
 
-					MergeStepBinSearchResult const msbsr_l = mergestepbinsearch(aa,ae,ba,be,order);
-					MergeStepBinSearchResult const msbsr_r = mergestepbinsearch(ba,be,aa,ae,order).sideswap();
+					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
+					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
 					MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 					
 					uint64_t const l0 = msbsr.l0;

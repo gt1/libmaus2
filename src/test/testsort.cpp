@@ -18,6 +18,8 @@
 */
 
 #include <libmaus/sorting/InPlaceParallelSort.hpp>
+#include <libmaus/sorting/ParallelStableSort.hpp>
+#include <libmaus/random/Random.hpp>
 
 void testBlockSwapDifferent()
 {
@@ -153,8 +155,76 @@ void testinplacesort2()
 		assert ( A[i-1] <= A[i] );
 }
 
+
+void testMultiMerge()
+{
+	libmaus::random::Random::setup();
+	
+	uint64_t n = 105812;
+	libmaus::autoarray::AutoArray<uint64_t> V(n,false);
+	libmaus::autoarray::AutoArray<uint64_t> W(n,false);
+	for ( uint64_t i = 0; i < n; ++i )
+		V[i] = ((i*29)%(31));
+		// V[i] = libmaus::random::Random::rand8() % 2;
+	
+	uint64_t const l = n/2;
+	uint64_t const r = n-l;
+	uint64_t const l0 = l/2;
+	uint64_t const l1 = l-l0;
+	uint64_t const r0 = r/2;
+	uint64_t const r1 = r-r0;
+	
+	std::sort(V.begin(),V.begin()+l);
+	std::sort(V.begin()+l,V.begin()+l+r);
+
+	#if 0	
+	for ( uint64_t i = 0; i < l; ++i )
+		std::cerr << V[i] << ";";
+	std::cerr << std::endl;
+	for ( uint64_t i = 0; i < r; ++i )
+		std::cerr << V[l+i] << ";";
+	std::cerr << std::endl;
+	#endif
+
+	libmaus::sorting::ParallelStableSort::parallelMerge(V.begin(),V.begin()+l,V.begin()+l,V.begin()+l+r,W.begin(),std::less<uint64_t>());
+	
+	std::cerr << std::string(80,'-') << std::endl;
+	for ( uint64_t i = 0; i < W.size(); ++i )
+	{
+		std::cerr << W[i] << ";";
+		assert ( i == 0 || W[i-1] <= W[i] );
+	}
+	std::cerr << std::endl;
+}
+
+void testMultiSort()
+{
+	libmaus::random::Random::setup();
+	
+	uint64_t rn = 16384;
+	libmaus::autoarray::AutoArray<uint64_t> V(rn,false);
+	libmaus::autoarray::AutoArray<uint64_t> W(rn,false);
+	for ( uint64_t i = 0; i < V.size(); ++i )
+		V[i] = ((i*29)%(31));
+		// V[i] = libmaus::random::Random::rand8() % 2;
+		// V[i] = libmaus::random::Random::rand8();
+
+	std::less<uint64_t> order;
+	uint64_t const * in = libmaus::sorting::ParallelStableSort::parallelSort(V.begin(),V.end(),W.begin(),W.end(),order);
+	
+	for ( uint64_t i = 0; i < V.size(); ++i )
+	{
+		std::cerr << in[i] << ";";
+		assert ( i == 0 || in[i-1] <= in[i] );
+	}
+	std::cerr << std::endl;
+}
+
 int main()
 {
+	// testMultiMerge();
+	testMultiSort();
+	return 0;
 	testBlockSwapDifferent();
 	testBlockSwap();
 	testblockmerge();

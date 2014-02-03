@@ -732,7 +732,9 @@ libmaussorting_include_HEADERS=\
 	libmaus/sorting/PairFileSorting.hpp \
 	libmaus/sorting/InPlaceParallelSort.hpp \
 	libmaus/sorting/MergingReadBack.hpp \
-	libmaus/sorting/SortingBufferedOutputFile.hpp
+	libmaus/sorting/SortingBufferedOutputFile.hpp \
+	libmaus/sorting/MergeStepBinSearchResult.hpp \
+	libmaus/sorting/ParallelStableSort.hpp
 
 libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
