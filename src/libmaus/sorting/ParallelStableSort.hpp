@@ -71,10 +71,10 @@ namespace libmaus
 
 			template<typename iterator, typename order_type>
 			static iterator parallelSort(
-				iterator aa,
-				iterator ae,
-				iterator ba,
-				iterator be,
+				iterator const aa,
+				iterator const ae,
+				iterator const ba,
+				iterator const be,
 				order_type order = std::less< typename std::iterator_traits<iterator>::value_type >(),
 				uint64_t const num_threads =
 				#if defined(_OPENMP)
@@ -82,6 +82,8 @@ namespace libmaus
 				#else
 				1
 				#endif
+				,
+				bool const copyback = true
 			)
 			{
 				uint64_t const n = ae-aa;
@@ -95,7 +97,7 @@ namespace libmaus
 				{
 					uint64_t const low = t * pack;
 					uint64_t const high = std::min(low+pack,n);
-					std::sort(aa + low, aa + high, order);
+					std::stable_sort(aa + low, aa + high, order);
 				}
 				
 				iterator in = aa;
@@ -136,6 +138,13 @@ namespace libmaus
 					pack <<= 1;
 				}
 				
+				if ( copyback && (in != aa) )
+				{
+					std::copy(in,in+n,out);
+					std::swap(in,out);
+					assert ( in == aa );
+				}
+								
 				return in;
 			}
 		};

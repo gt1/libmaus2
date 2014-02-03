@@ -28,6 +28,7 @@
 #include <libmaus/bambam/BamAlignmentPosComparator.hpp>
 #include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus/bambam/BamAlignmentHeapComparator.hpp>
+#include <libmaus/sorting/ParallelStableSort.hpp>
 #include <queue>
 
 namespace libmaus
@@ -74,6 +75,29 @@ namespace libmaus
 			
 			//! comparator for alignments
 			comparator_type const BAPC;
+			
+			//! parallel processing (number of threads used for block sorting)
+			uint64_t const parallel;
+
+			/**
+			 * pack alignment pointers at end of array
+			 **/
+			void packPointers()
+			{
+				if ( parallel > 1 )
+				{
+					uint64_t * outpp = B.end();
+					uint64_t * inpp = B.end();
+				
+					while ( inpp != pp )
+					{
+						*(--outpp) = *(--inpp);
+						--inpp;
+					}
+				
+					pp = outpp;
+				}
+			}
 
 			/**
 			 * @return temporary file output stream
@@ -113,6 +137,7 @@ namespace libmaus
 				{
 					// flush buffer
 					flush();
+					
 					// flush file
 					if ( Ptmpfileout )
 					{
@@ -166,12 +191,25 @@ namespace libmaus
 				// all alignments are still in memory
 				else
 				{
+					packPointers();
+
+					// number of alignments in buffer
+					uint64_t const numel = B.end()-pp;
+				
 					// sort entries
 					comparator_type BAPC(pa);
 					std::reverse(pp,B.end());
-					std::stable_sort(pp,B.end(),BAPC);		
+					
+					if ( parallel > 1 )
+						libmaus::sorting::ParallelStableSort::parallelSort(
+							pp,B.end(),
+							pp-numel,pp,
+							BAPC,
+							parallel
+						);
+					else
+						std::stable_sort(pp,B.end(),BAPC);		
 
-					uint64_t const numel = B.end()-pp;
 					// write entries
 					uint64_t outcnt = 0;
 					for ( uint64_t i = 0; i < numel; ++i )
@@ -180,12 +218,6 @@ namespace libmaus
 						char const * data = reinterpret_cast<char const *>(pa + off);
 						writer.writeData(data);
 						
-						#if 0
-						::libmaus::util::CountGetObject<char const *> G(data);
-						uint64_t const blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(G,4);				
-						writer.bgzfos.write(data,sizeof(uint32_t) + blocksize);
-						#endif
-
 						if ( verbose && (++outcnt % (1024*1024) == 0) )
 							std::cerr << "[V]" << outcnt/(1024*1024) << std::endl;
 					}
@@ -206,12 +238,13 @@ namespace libmaus
 			 * @param bufsize size of buffer in bytes
 			 * @param rtmpfileoutname temp file name
 			 **/
-			BamEntryContainer(uint64_t const bufsize, std::string const & rtmpfileoutname)
+			BamEntryContainer(uint64_t const bufsize, std::string const & rtmpfileoutname, uint64_t const rparallel = 1)
 			: B( bufsize/sizeof(data_type), false ), pp(B.end()),
 			  pa(reinterpret_cast<uint8_t *>(B.begin())),
 			  pc(pa),
 			  tmpfileoutname(rtmpfileoutname),
-			  BAPC(pa)
+			  BAPC(pa),
+			  parallel(rparallel)
 			{
 				assert ( B.size() ) ;
 			}
@@ -221,14 +254,26 @@ namespace libmaus
 			 **/
 			void flush()
 			{
-				uint64_t const numel = B.end()-pp;
-				
-				if ( numel )
+				if ( (B.end() - pp) )
 				{
+					packPointers();
+
+					uint64_t const numel = B.end()-pp;
+						
 					// std::cerr << "flushing for " << numel << std::endl;
 					comparator_type BAPC(pa);
 					std::reverse(pp,B.end());
-					std::stable_sort(pp,B.end(),BAPC);
+
+
+					if ( parallel > 1 )
+						libmaus::sorting::ParallelStableSort::parallelSort(
+							pp,B.end(),
+							pp-numel,pp,
+							BAPC,
+							parallel
+						);
+					else
+						std::stable_sort(pp,B.end(),BAPC);		
 					
 					::libmaus::aio::CheckedOutputStream & tempfile = getTmpFileOut();
 					uint64_t const prepos = tempfile.tellp();
@@ -252,40 +297,8 @@ namespace libmaus
 					// number of elements
 					tmpoutcnts.push_back(numel);
 
-					// printBuffer(std::cerr);
-
 					pc = pa;
 					pp = B.end();
-				
-					// std::cerr << "flushed." << std::endl;
-				
-					// exit(0);
-				}
-			}
-			
-			/**
-			 * print current content of buffer to out
-			 *
-			 * @param out output stream
-			 **/
-			void printBuffer(std::ostream & out) const
-			{
-				uint64_t const numel = B.end()-pp;
-				
-				for ( uint64_t i = 0; i < numel; ++i )
-				{
-					uint64_t const off = pp[i];
-					::libmaus::util::CountGetObject<char const *> G( reinterpret_cast<char const *>(pa + off));
-					::libmaus::bambam::BamAlignment lalgn(G);
-
-					int32_t const refid = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(
-						reinterpret_cast<uint8_t const *>(pa + off + sizeof(uint32_t))
-					);
-					int32_t const pos = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(
-						reinterpret_cast<uint8_t const *>(pa + off + sizeof(uint32_t))
-					);
-					
-					out << lalgn.getName() << "\t" << refid << "\t" << pos << std::endl;
 				}
 			}
 			
@@ -296,13 +309,30 @@ namespace libmaus
 			 **/
 			void putAlignment(::libmaus::bambam::BamAlignment const & algn)
 			{
-				uint64_t const reqsize = algn.serialisedByteSize() + sizeof(data_type);
+				uint64_t const reqsize = 
+					algn.serialisedByteSize() + 
+					((parallel > 1) ? 2 : 1) * sizeof(data_type);
 				
 				if ( reqsize > freeSpace() )
+				{
 					flush();
+					
+					if ( reqsize > freeSpace() )
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "BamEntryContainer::putAlignment(): buffer is too small for single alignment" << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
 				
 				// put pointer
 				*(--pp) = (pc-pa);
+
+				// reserve space for parallel processing
+				if ( parallel > 1 )
+					*(--pp) = 0;
+				
 				// put data
 				::libmaus::util::PutObject<char *> P(reinterpret_cast<char *>(pc));
 				algn.serialise(P);
