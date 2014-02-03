@@ -222,9 +222,8 @@ void testMultiSort()
 
 int main()
 {
-	// testMultiMerge();
+	testMultiMerge();
 	testMultiSort();
-	return 0;
 	testBlockSwapDifferent();
 	testBlockSwap();
 	testblockmerge();
