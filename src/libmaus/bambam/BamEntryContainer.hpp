@@ -20,7 +20,8 @@
 #define LIBMAUS_BAMBAM_BAMENTRYCONTAINER_HPP
 
 #include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/SnappyInputStreamArrayFile.hpp>
+#include <libmaus/lz/SnappyOutputStream.hpp>
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/util/CountGetObject.hpp>
 #include <libmaus/bambam/BamWriter.hpp>

@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTSNAPPYINPUT_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTSNAPPYINPUT_HPP
 
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/SnappyFileInputStream.hpp>
 #include <libmaus/bambam/BamAlignment.hpp>
 
 namespace libmaus

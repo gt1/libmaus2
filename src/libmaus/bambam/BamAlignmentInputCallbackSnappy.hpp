@@ -20,7 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKSNAPPY_HPP
 
 #include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/SnappyFileOutputStream.hpp>
 #include <libmaus/bambam/BamAlignmentInputPositionCallbackNull.hpp>
 #include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>
 
