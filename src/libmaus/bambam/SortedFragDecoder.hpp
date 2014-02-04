@@ -23,7 +23,7 @@
 #include <libmaus/bambam/ReadEndsHeapPairComparator.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/SnappyInputStreamArrayFile.hpp>
 #include <queue>
 
 namespace libmaus

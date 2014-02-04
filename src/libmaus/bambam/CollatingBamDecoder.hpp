@@ -22,7 +22,8 @@
 #include <libmaus/bambam/MergeQueueElement.hpp>
 #include <libmaus/bambam/BamAlignmentComparator.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/SnappyInputStreamArrayFile.hpp>
+#include <libmaus/lz/SnappyOutputStream.hpp>
 #include <libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <queue>
 

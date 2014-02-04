@@ -22,7 +22,7 @@
 #include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus/bambam/BamAlignmentHeapComparator.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/SnappyOffsetFileInputStream.hpp>
 #include <queue>
 
 namespace libmaus

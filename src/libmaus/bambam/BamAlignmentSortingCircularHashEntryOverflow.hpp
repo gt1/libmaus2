@@ -25,6 +25,7 @@
 #include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus/bambam/SnappyAlignmentMergeInput.hpp>
 #include <libmaus/bambam/BamAlignmentExpungeCallback.hpp>
+#include <libmaus/lz/SnappyOutputStream.hpp>
 
 namespace libmaus
 {

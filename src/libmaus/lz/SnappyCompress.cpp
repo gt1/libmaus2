@@ -91,6 +91,10 @@ void libmaus::lz::SnappyCompress::uncompress(
 		throw se;	
 	}
 }
+bool ::libmaus::lz::SnappyCompress::rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed)
+{
+	return snappy::RawUncompress(compressed,compressed_length,uncompressed);
+}
 #else
 uint64_t libmaus::lz::SnappyCompress::compress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, std::ostream & out)
 {
@@ -158,5 +162,11 @@ void ::libmaus::lz::SnappyCompress::uncompress(
 		out += tocopy;		
 		r -= tocopy;
 	}	
+}
+
+bool ::libmaus::lz::SnappyCompress::rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed)
+{
+	std::copy(compressed,compressed+compressed_length,uncompressed);
+	return true;
 }
 #endif

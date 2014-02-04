@@ -163,7 +163,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < nummerge; ++i )
 						if ( tmpoutcnts[i]-- )
 						{
-							::libmaus::bambam::BamDecoder::readAlignmentGz(SISAF[i],algns[i]);
+							::libmaus::bambam::BamDecoder::readAlignmentGz(SISAF[i],algns[i],0 /* no header for validation */,false /* no validation */);
 							Q.push(i);
 						}
 						
@@ -254,17 +254,20 @@ namespace libmaus
 			 **/
 			void flush()
 			{
+				// if buffer is not empty
 				if ( (B.end() - pp) )
 				{
 					packPointers();
 
+					// number of elements in buffer
 					uint64_t const numel = B.end()-pp;
 						
-					// std::cerr << "flushing for " << numel << std::endl;
+					// construct comparator
 					comparator_type BAPC(pa);
+					// reverse pointer array (top to bottom)
 					std::reverse(pp,B.end());
 
-
+					// sort the internal memory buffer
 					if ( parallel > 1 )
 						libmaus::sorting::ParallelStableSort::parallelSort(
 							pp,B.end(),

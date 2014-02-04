@@ -28,6 +28,7 @@
 #include <libmaus/util/DigitTable.hpp>
 #include <libmaus/util/CountGetObject.hpp>
 #include <libmaus/sorting/SerialRadixSort64.hpp>
+#include <libmaus/lz/SnappyOutputStream.hpp>
 
 namespace libmaus
 {

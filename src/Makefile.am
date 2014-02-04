@@ -219,7 +219,27 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/GzipOutputStreamBuffer.hpp \
 	libmaus/lz/GzipOutputStream.hpp \
 	libmaus/lz/BgzfInflateInfo.hpp \
-	libmaus/lz/BgzfStreamWrapper.hpp
+	libmaus/lz/BgzfStreamWrapper.hpp \
+	libmaus/lz/CompressorObject.hpp \
+	libmaus/lz/CompressorObjectFactory.hpp \
+	libmaus/lz/SimpleCompressedOutputStream.hpp \
+	libmaus/lz/SnappyCompressorObject.hpp \
+	libmaus/lz/SnappyCompressorObjectFactory.hpp \
+	libmaus/lz/DecompressorObject.hpp \
+	libmaus/lz/DecompressorObjectFactory.hpp \
+	libmaus/lz/SnappyDecompressorObject.hpp \
+	libmaus/lz/SnappyDecompressorObjectFactory.hpp \
+	libmaus/lz/SimpleCompressedInputStream.hpp \
+	libmaus/lz/SimpleCompressedConcatInputStreamFragment.hpp \
+	libmaus/lz/SimpleCompressedConcatInputStream.hpp \
+	libmaus/lz/SnappyInputStreamArrayFile.hpp \
+	libmaus/lz/SnappyInputStreamArray.hpp \
+	libmaus/lz/SnappyStringInputStream.hpp \
+	libmaus/lz/SnappyOffsetFileInputStream.hpp \
+	libmaus/lz/SnappyFileInputStream.hpp \
+	libmaus/lz/SnappyInputStream.hpp \
+	libmaus/lz/SnappyFileOutputStream.hpp \
+	libmaus/lz/SnappyOutputStream.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -955,6 +975,7 @@ noinst_PROGRAMS = \
 	testkmlocal \
 	testarraydecode \
 	testsnappy \
+	testsnappyconcat \
 	testgunzip \
 	testlogging \
 	testregex \
@@ -1120,6 +1141,11 @@ testsnappy_SOURCES = test/testsnappy.cpp
 testsnappy_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsnappy_LDFLAGS = @SNAPPYLDFLAGS@
 testsnappy_LDADD = libmaus.la @SNAPPYLIBS@
+
+testsnappyconcat_SOURCES = test/testsnappyconcat.cpp
+testsnappyconcat_CPPFLAGS = @SNAPPYCPPFLAGS@
+testsnappyconcat_LDFLAGS = @SNAPPYLDFLAGS@
+testsnappyconcat_LDADD = libmaus.la @SNAPPYLIBS@
 
 testlsf_SOURCES = test/testlsf.cpp
 testlsf_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
