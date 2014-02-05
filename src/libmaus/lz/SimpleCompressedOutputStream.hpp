@@ -33,6 +33,8 @@ namespace libmaus
 		struct SimpleCompressedOutputStream
 		{
 			typedef _stream_type stream_type;
+			typedef SimpleCompressedOutputStream<stream_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			stream_type & out;
 			CompressorObject::unique_ptr_type compressor;
