@@ -49,7 +49,7 @@ namespace libmaus
 				return O_RDONLY|O_NOATIME|O_LARGEFILE;
 			}
 			
-			PosixFdInput(int const rfd) : fd(0)
+			PosixFdInput(int const rfd) : fd(rfd)
 			{
 			}
 			
