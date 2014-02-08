@@ -22,6 +22,10 @@
 
 #include <libmaus/bambam/BamMultiAlignmentDecoderFactory.hpp>
 
+#include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
+
+#include <libmaus/bambam/BamEntryContainer.hpp>
+
 using namespace libmaus::bambam;
 using namespace libmaus::util;
 using namespace std;
