@@ -30,6 +30,7 @@
 #include <libmaus/util/MemUsage.hpp>
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp>
+#include <libmaus/aio/PosixFdInputStream.hpp>
 
 namespace libmaus
 {
@@ -959,12 +960,13 @@ namespace libmaus
 					else if ( arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "") )
 					{
 						std::string const inputfilename = arginfo.getValue<std::string>("I","I");
-						libmaus::aio::CheckedInputStream CIS(inputfilename);
+						//libmaus::aio::CheckedInputStream CIS(inputfilename);
+						libmaus::aio::PosixFdInputStream PFIS(inputfilename,2*1024*1024);
 					
 						if ( markthreads == 1 )
-							addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,CIS,Pcbs,progid,packageversion);
+							addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,PFIS /* CIS */,Pcbs,progid,packageversion);
 						else
-							addBamDuplicateFlagParallel(arginfo,verbose,bamheader,maxrank,mod,level,DSC,CIS,markthreads,Pcbs,progid,packageversion);
+							addBamDuplicateFlagParallel(arginfo,verbose,bamheader,maxrank,mod,level,DSC,PFIS /* CIS */,markthreads,Pcbs,progid,packageversion);
 					}
 					else
 					{

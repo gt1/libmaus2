@@ -239,7 +239,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/SnappyFileInputStream.hpp \
 	libmaus/lz/SnappyInputStream.hpp \
 	libmaus/lz/SnappyFileOutputStream.hpp \
-	libmaus/lz/SnappyOutputStream.hpp
+	libmaus/lz/SnappyOutputStream.hpp \
+	libmaus/lz/SimpleCompressedStreamInterval.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -661,7 +662,10 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/CheckedInputStreamAtOffset.hpp \
 	libmaus/aio/Buffer.hpp \
 	libmaus/aio/SingleFileFragmentMerge.hpp \
-	libmaus/aio/CheckedInputOutputStream.hpp
+	libmaus/aio/CheckedInputOutputStream.hpp \
+	libmaus/aio/PosixFdInput.hpp \
+	libmaus/aio/PosixFdInputWrapper.hpp \
+	libmaus/aio/PosixFdInputStream.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\

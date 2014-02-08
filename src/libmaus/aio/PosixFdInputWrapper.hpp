@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_AIO_POSIXFDINPUTWRAPPER_HPP)
 #define LIBMAUS_AIO_POSIXFDINPUTWRAPPER_HPP
 
-#include <libmaus/exception/PosixFdInput.hpp>
+#include <libmaus/aio/PosixFdInput.hpp>
 
 namespace libmaus
 {
@@ -27,7 +27,7 @@ namespace libmaus
 	{
 		struct PosixFdInputWrapper
 		{
-			PosixFdInput object;
+			libmaus::aio::PosixFdInput object;
 			
 			PosixFdInputWrapper(int const rfd) : object(rfd) {}
 			PosixFdInputWrapper(std::string const & filename, int const rflags = PosixFdInput::getDefaultFlags()) : object(filename,rflags) {}

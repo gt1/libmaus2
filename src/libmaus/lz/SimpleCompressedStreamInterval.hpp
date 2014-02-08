@@ -30,8 +30,8 @@ namespace libmaus
 			std::pair<uint64_t,uint64_t> start;
 			std::pair<uint64_t,uint64_t> end;
 			
-			SimpleCompressedStreamStartEnd() : start(0,0), end(0,0) {}
-			SimpleCompressedStreamStartEnd(
+			SimpleCompressedStreamInterval() : start(0,0), end(0,0) {}
+			SimpleCompressedStreamInterval(
 				std::pair<uint64_t,uint64_t> const & rstart,
 				std::pair<uint64_t,uint64_t> const & rend
 			) : start(rstart), end(rend)

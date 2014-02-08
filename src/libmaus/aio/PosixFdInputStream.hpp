@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_AIO_POSIXFDINPUT_HPP)
-#define LIBMAUS_AIO_POSIXFDINPUT_HPP
+#if ! defined(LIBMAUS_AIO_POSIXFDINPUTSTREAM_HPP)
+#define LIBMAUS_AIO_POSIXFDINPUTSTREAM_HPP
 
 #include <libmaus/aio/PosixFdInputWrapper.hpp>
 #include <libmaus/lz/StreamWrapper.hpp>

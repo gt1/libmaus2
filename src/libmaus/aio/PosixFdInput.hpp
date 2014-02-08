@@ -25,6 +25,7 @@
 #include <cerrno>
 #include <cstring>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/lz/StreamWrapper.hpp>
 
 namespace libmaus
 {
@@ -32,17 +33,27 @@ namespace libmaus
 	{
 		struct PosixFdInput
 		{
+			public:
+			typedef PosixFdInput this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 			private:
 			std::string filename;
 			int fd;
 			ssize_t gcnt;
 			
 			public:
+			static int getDefaultFlags()
+			{
+				return O_RDONLY|O_NOATIME|O_LARGEFILE;
+			}
+			
 			PosixFdInput(int const rfd) : fd(0)
 			{
 			}
 			
-			PosixFdInput(std::string const & rfilename, int const rflags = O_RDONLY|O_NOATIME|O_LARGEFILE)
+			PosixFdInput(std::string const & rfilename, int const rflags = getDefaultFlags())
 			: filename(rfilename), fd(-1), gcnt(0)
 			{
 				while ( fd == -1 )
