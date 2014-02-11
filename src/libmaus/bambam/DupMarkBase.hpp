@@ -961,7 +961,8 @@ namespace libmaus
 					{
 						std::string const inputfilename = arginfo.getValue<std::string>("I","I");
 						//libmaus::aio::CheckedInputStream CIS(inputfilename);
-						libmaus::aio::PosixFdInputStream PFIS(inputfilename,2*1024*1024);
+						uint64_t const inputbuffersize = arginfo.getValueUnsignedNumeric<uint64_t>("inputbuffersize",2*1024*1024);
+						libmaus::aio::PosixFdInputStream PFIS(inputfilename,inputbuffersize);
 					
 						if ( markthreads == 1 )
 							addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,PFIS /* CIS */,Pcbs,progid,packageversion);
