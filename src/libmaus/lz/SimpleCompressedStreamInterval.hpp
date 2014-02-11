@@ -20,6 +20,7 @@
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDSTREAMINTERVAL_HPP
 
 #include <map>
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
