@@ -30,7 +30,14 @@
 #include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus/bambam/BamAlignmentHeapComparator.hpp>
 #include <libmaus/sorting/ParallelStableSort.hpp>
+#include <libmaus/util/TempFileRemovalContainer.hpp>
 #include <queue>
+
+#include <libmaus/lz/SnappyCompressorObjectFactory.hpp>
+#include <libmaus/lz/SimpleCompressedOutputStream.hpp>
+#include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
+#include <libmaus/lz/SnappyDecompressorObjectFactory.hpp>
+#include <libmaus/lz/SimpleCompressedConcatInputStream.hpp>
 
 namespace libmaus
 {
@@ -48,6 +55,8 @@ namespace libmaus
 			typedef BamEntryContainer<comparator_type> this_type;
 
 			private:
+			//! compressed stream type
+			typedef ::libmaus::lz::SimpleCompressedOutputStream< ::libmaus::aio::CheckedOutputStream > compressed_stream_type;
 			//! buffer data type
 			typedef uint64_t data_type;
 			//! size of snappy blocks in bytes
@@ -62,11 +71,17 @@ namespace libmaus
 			//! buffer current pointer
 			uint8_t * pc;
 
-			//! temporary file name
-			std::string const tmpfileoutname;
-			//! temporary output stream
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type Ptmpfileout;
-			
+			//! temporary file name base
+			std::string const tmpfileoutnamebase;
+			//! temporary file names
+			std::vector<std::string> tmpfileoutnames;
+			//! temporary output streams
+			::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedOutputStream::unique_ptr_type> Ptmpfileout;
+			//! temporary output compressed streams
+			::libmaus::autoarray::AutoArray< compressed_stream_type::unique_ptr_type> Ptmpfilecompout;
+			//! intervals
+			std::vector < std::vector< ::libmaus::lz::SimpleCompressedStreamInterval> > tmpfileintervals;
+						
 			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
 			//! file position intervals of temp file blocks
@@ -103,14 +118,55 @@ namespace libmaus
 			/**
 			 * @return temporary file output stream
 			 **/
-			::libmaus::aio::CheckedOutputStream & getTmpFileOut()
+			compressed_stream_type & getTmpFileOut(uint64_t const j)
 			{
-				if ( ! Ptmpfileout )
+				if ( ! Ptmpfileout.size() )
 				{
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type t(new ::libmaus::aio::CheckedOutputStream(tmpfileoutname));
-					Ptmpfileout = UNIQUE_PTR_MOVE(t);
+					uint64_t const numfiles = std::max(parallel,static_cast<uint64_t>(1ull));
+
+					Ptmpfileout = ::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedOutputStream::unique_ptr_type>(numfiles);
+					Ptmpfilecompout = ::libmaus::autoarray::AutoArray< ::libmaus::lz::SimpleCompressedOutputStream< ::libmaus::aio::CheckedOutputStream >::unique_ptr_type>(numfiles);
+
+					tmpfileoutnames.resize(numfiles);
+					
+					libmaus::lz::SnappyCompressorObjectFactory compfact;
+
+					for ( uint64_t i = 0; i < numfiles; ++i )
+					{
+						std::ostringstream fnostr;
+						fnostr << tmpfileoutnamebase << "_" << std::setw(6) << std::setfill('0') << i;
+						std::string const fn = fnostr.str();
+						tmpfileoutnames[i] = fn;
+						
+						libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+					
+						::libmaus::aio::CheckedOutputStream::unique_ptr_type t(new ::libmaus::aio::CheckedOutputStream(fn));
+						Ptmpfileout[i] = UNIQUE_PTR_MOVE(t);
+						
+						::libmaus::lz::SimpleCompressedOutputStream< ::libmaus::aio::CheckedOutputStream >::unique_ptr_type tscos(
+							new ::libmaus::lz::SimpleCompressedOutputStream< ::libmaus::aio::CheckedOutputStream >(*(Ptmpfileout[i]),compfact,64*1024));
+						Ptmpfilecompout[i] = UNIQUE_PTR_MOVE(tscos);
+					}
 				}
-				return *Ptmpfileout;
+				
+				assert ( Ptmpfileout.size() );
+				assert ( j < Ptmpfileout.size() );
+				
+				return *(Ptmpfilecompout[j]);
+			}
+			/**
+			 * flush temp files
+			 **/
+			void flushTmpFileOut()
+			{
+				for ( uint64_t i = 0; i < Ptmpfileout.size(); ++i )
+				{
+					Ptmpfilecompout[i]->flush();
+					Ptmpfilecompout[i].reset();
+					Ptmpfileout[i]->flush();
+					Ptmpfileout[i]->close();						
+					Ptmpfileout[i].reset();
+				}
 			}
 
 			/**
@@ -140,31 +196,50 @@ namespace libmaus
 					flush();
 					
 					// flush file
-					if ( Ptmpfileout )
-					{
-						Ptmpfileout->flush();
-						Ptmpfileout->close();
-					}
-					// deallocate file
-					Ptmpfileout.reset();
+					flushTmpFileOut();
+
 					// deallocate buffer
 					B.release();
 		
 					// number of input blocks to be merged			
 					uint64_t const nummerge = tmpoutcnts.size();
+					
 					::libmaus::autoarray::AutoArray< ::libmaus::bambam::BamAlignment > algns(nummerge);
 					::libmaus::bambam::BamAlignmentHeapComparator<comparator_type> heapcmp(BAPC,algns.begin());
-					::libmaus::autoarray::AutoArray<uint64_t> fileoffsets(nummerge+1,false);
-					for ( uint64_t i = 0; i < nummerge; ++i )
-						fileoffsets [ i ] = tmpoffsetintervals[i].first;
-					fileoffsets[nummerge] = tmpoffsetintervals[nummerge-1].second;
 					
-					::libmaus::lz::SnappyInputStreamArrayFile SISAF(tmpfileoutname,fileoffsets.begin(),fileoffsets.end());
+					::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedInputStream::unique_ptr_type > infiles(tmpfileoutnames.size());
+					for ( uint64_t i = 0; i < tmpfileoutnames.size(); ++i )
+					{
+						::libmaus::aio::CheckedInputStream::unique_ptr_type tptr(new ::libmaus::aio::CheckedInputStream(tmpfileoutnames[i]));
+						infiles[i] = UNIQUE_PTR_MOVE(tptr);						
+					}
+					libmaus::lz::SnappyDecompressorObjectFactory decfact;
+					::libmaus::autoarray::AutoArray< ::libmaus::lz::SimpleCompressedConcatInputStream< ::libmaus::aio::CheckedInputStream>::unique_ptr_type > instreams(nummerge);
+					
+					typedef ::libmaus::lz::SimpleCompressedConcatInputStreamFragment< ::libmaus::aio::CheckedInputStream > fragment_type;
+					
+					for ( uint64_t i = 0; i < tmpfileintervals.size(); ++i )
+					{
+						std::vector< ::libmaus::lz::SimpleCompressedStreamInterval> const & subint = tmpfileintervals[i];
+						std::vector< fragment_type > frags;
+						
+						for ( uint64_t j = 0; j < subint.size(); ++j )
+							frags.push_back(fragment_type(subint[j].start,subint[j].end,infiles[j].get()));
+							
+						::libmaus::lz::SimpleCompressedConcatInputStream< ::libmaus::aio::CheckedInputStream>::unique_ptr_type tptr(
+							new ::libmaus::lz::SimpleCompressedConcatInputStream< ::libmaus::aio::CheckedInputStream>(
+								frags,decfact
+							)
+						);
+
+						instreams[i] = UNIQUE_PTR_MOVE(tptr);
+					}
+
 					::std::priority_queue< uint64_t, std::vector<uint64_t>, ::libmaus::bambam::BamAlignmentHeapComparator<comparator_type> > Q(heapcmp);
 					for ( uint64_t i = 0; i < nummerge; ++i )
 						if ( tmpoutcnts[i]-- )
 						{
-							::libmaus::bambam::BamDecoder::readAlignmentGz(SISAF[i],algns[i],0 /* no header for validation */,false /* no validation */);
+							::libmaus::bambam::BamDecoder::readAlignmentGz(*instreams[i],algns[i],0 /* no header for validation */,false /* no validation */);
 							Q.push(i);
 						}
 						
@@ -181,7 +256,7 @@ namespace libmaus
 
 						if ( tmpoutcnts[t]-- )
 						{
-							::libmaus::bambam::BamDecoder::readAlignmentGz(SISAF[t],algns[t],0 /* bamheader */, false /* do not validate */);
+							::libmaus::bambam::BamDecoder::readAlignmentGz(*instreams[t],algns[t],0 /* bamheader */, false /* do not validate */);
 							Q.push(t);
 						}
 					}
@@ -237,13 +312,13 @@ namespace libmaus
 			 * constructor
 			 *
 			 * @param bufsize size of buffer in bytes
-			 * @param rtmpfileoutname temp file name
+			 * @param rtmpfileoutnamebase temp file name
 			 **/
-			BamEntryContainer(uint64_t const bufsize, std::string const & rtmpfileoutname, uint64_t const rparallel = 1)
+			BamEntryContainer(uint64_t const bufsize, std::string const & rtmpfileoutnamebase, uint64_t const rparallel = 1)
 			: B( bufsize/sizeof(data_type), false ), pp(B.end()),
 			  pa(reinterpret_cast<uint8_t *>(B.begin())),
 			  pc(pa),
-			  tmpfileoutname(rtmpfileoutname),
+			  tmpfileoutnamebase(rtmpfileoutnamebase),
 			  BAPC(pa),
 			  parallel(rparallel)
 			{
@@ -279,9 +354,9 @@ namespace libmaus
 					else
 						std::stable_sort(pp,B.end(),BAPC);		
 					
-					::libmaus::aio::CheckedOutputStream & tempfile = getTmpFileOut();
-					uint64_t const prepos = tempfile.tellp();
-					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > SOS(tempfile,snappyoutputbufsize);
+					compressed_stream_type & tempfile = getTmpFileOut(0);
+					
+					std::pair<uint64_t,uint64_t> const preoff = tempfile.getOffset();
 									
 					// write entries
 					for ( uint64_t i = 0; i < numel; ++i )
@@ -289,15 +364,18 @@ namespace libmaus
 						uint64_t const off = pp[i];
 						char const * data = reinterpret_cast<char const *>(pa + off);
 						::libmaus::util::CountGetObject<char const *> G(data);
-						uint64_t const blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(G,4);				
-						SOS.write(data,4+blocksize);
+						uint64_t const blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(G,4);
+						tempfile.write(data,4+blocksize);						
 					}
 
-					SOS.flush();
-					uint64_t const postpos = tempfile.tellp();
-							
+					std::pair<uint64_t,uint64_t> const postoff = tempfile.getOffset();
+					
 					// file positions
-					tmpoffsetintervals.push_back(upair(prepos,postpos));
+					tmpfileintervals.push_back(
+						std::vector< ::libmaus::lz::SimpleCompressedStreamInterval >(
+							1,::libmaus::lz::SimpleCompressedStreamInterval(preoff,postoff)
+						)
+					);
 					// number of elements
 					tmpoutcnts.push_back(numel);
 
