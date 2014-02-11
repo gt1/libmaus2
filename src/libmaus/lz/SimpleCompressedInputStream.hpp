@@ -46,6 +46,8 @@ namespace libmaus
 			uint64_t streambytesread;
 			bool const blockseek;
 			
+			uint64_t gcnt;
+			
 			bool fillBuffer()
 			{
 				if ( blockseek )
@@ -112,7 +114,7 @@ namespace libmaus
 				std::pair<uint64_t,uint64_t> const offset = std::pair<uint64_t,uint64_t>(0,0),
 				bool rblockseek = false
 			)
-			: stream(rstream), decompressor(decompfactory()), B(), pa(0), pc(0), pe(0), streambytesread(0), blockseek(rblockseek)
+			: stream(rstream), decompressor(decompfactory()), B(), pa(0), pc(0), pe(0), streambytesread(0), blockseek(rblockseek), gcnt(0)
 			{
 				if ( offset != std::pair<uint64_t,uint64_t>(0,0) )
 				{
@@ -162,7 +164,10 @@ namespace libmaus
 					{
 						bool const ok = fillBuffer();
 						if ( ! ok )
+						{
+							gcnt = r;
 							return r;
+						}
 					}
 						
 					uint64_t const avail = pe-pc;
@@ -176,6 +181,7 @@ namespace libmaus
 					r += ln;
 				}
 				
+				gcnt = r;
 				return r;
 			}
 			
@@ -185,10 +191,19 @@ namespace libmaus
 				{
 					bool ok = fillBuffer();
 					if ( ! ok )
+					{
+						gcnt = 0;
 						return -1;
+					}
 				}
 					
-				return *(pc++);
+				gcnt = 1;
+				return static_cast<int>(static_cast<uint8_t>(*(pc++)));
+			}
+			
+			uint64_t gcount() const
+			{
+				return gcnt;
 			}
 		};
 	}

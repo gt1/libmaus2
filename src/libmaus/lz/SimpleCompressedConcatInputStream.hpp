@@ -49,6 +49,8 @@ namespace libmaus
 			
 			uint64_t curstream;
 			uint64_t curstreampos;
+			
+			uint64_t gcnt;
 
 			bool fillBuffer()
 			{
@@ -56,6 +58,7 @@ namespace libmaus
 					return false;
 				
 				// seek
+				fragments[curstream].stream->clear();
 				fragments[curstream].stream->seekg(curstreampos);
 					
 				if ( ! (*(fragments[curstream].stream)) )
@@ -140,7 +143,7 @@ namespace libmaus
 			)
 			: fragments(SimpleCompressedConcatInputStreamFragment<stream_type>::filter(rfragments)),
 			  decompressor(decompfact()),
-			  B(), pa(0), pc(0), pe(0), curstream(0), curstreampos(0)
+			  B(), pa(0), pc(0), pe(0), curstream(0), curstreampos(0), gcnt(0)
 			{
 				if ( fragments.size() )
 				{
@@ -159,7 +162,10 @@ namespace libmaus
 					{
 						bool const ok = fillBuffer();
 						if ( ! ok )
+						{
+							gcnt = r;
 							return r;
+						}
 					}
 						
 					uint64_t const avail = pe-pc;
@@ -173,6 +179,7 @@ namespace libmaus
 					r += ln;
 				}
 				
+				gcnt = r;
 				return r;
 			}
 			
@@ -182,10 +189,19 @@ namespace libmaus
 				{
 					bool const ok = fillBuffer();
 					if ( ! ok )
+					{
+						gcnt = 0;
 						return -1;
+					}
 				}
 					
-				return *(pc++);
+				gcnt = 1;
+				return static_cast<int>(static_cast<uint8_t>(*(pc++)));
+			}
+			
+			uint64_t gcount() const
+			{
+				return gcnt;
 			}
 		};
 	}
