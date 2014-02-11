@@ -34,6 +34,8 @@ namespace libmaus
 		struct SimpleCompressedConcatInputStream
 		{
 			typedef _stream_type stream_type;
+			typedef SimpleCompressedConcatInputStream<stream_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			std::vector< ::libmaus::lz::SimpleCompressedConcatInputStreamFragment<stream_type> > fragments;
