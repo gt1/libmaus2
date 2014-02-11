@@ -1030,7 +1030,8 @@ noinst_PROGRAMS = \
 	testbammergecollate \
 	testbammergequeryname \
 	testbamcat \
-	testautoarray2d
+	testautoarray2d \
+	testhist
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1287,3 +1288,6 @@ testbammergecollate_CPPFLAGS = @SNAPPYCPPFLAGS@
 
 testautoarray2d_SOURCES = test/testautoarray2d.cpp
 testautoarray2d_LDADD = libmaus.la
+
+testhist_SOURCES = test/testhist.cpp
+testhist_LDADD = libmaus.la
