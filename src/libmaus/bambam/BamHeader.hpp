@@ -171,7 +171,7 @@ namespace libmaus
 			/**
 			 * get reference id length
 			 **/
-			int64_t getRefIDLengt(int64_t const refid) const
+			int64_t getRefIDLength(int64_t const refid) const
 			{
 				if ( refid < 0 || refid >= static_cast<int64_t>(chromosomes.size()) )
 					return -1;
