@@ -20,6 +20,8 @@
 #define LIBMAUS_BAMBAM_BAMAUXFILTERVECTOR_HPP
 
 #include <libmaus/bitio/BitVector.hpp>
+#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus/util/stringFunctions.hpp>
 
 namespace libmaus
 {
@@ -31,6 +33,38 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			libmaus::bitio::BitVector B;
+
+			static libmaus::bambam::BamAuxFilterVector::unique_ptr_type parseAuxFilterList(libmaus::util::ArgInfo const & arginfo)
+			{
+				libmaus::bambam::BamAuxFilterVector::unique_ptr_type pfilter;
+				
+				if ( arginfo.hasArg("auxfilter") )
+				{
+					libmaus::bambam::BamAuxFilterVector::unique_ptr_type tfilter(
+						new libmaus::bambam::BamAuxFilterVector
+					);
+
+					std::string const filterlist = arginfo.getUnparsedValue("auxfilter","");
+					std::deque<std::string> tokens = libmaus::util::stringFunctions::tokenize<std::string>(filterlist,std::string(","));
+					
+					for ( uint64_t i = 0; i < tokens.size(); ++i )
+					{
+						if ( tokens[i].size() != 2 )
+						{
+							libmaus::exception::LibMausException se;
+							se.getStream() << "Malformed tag name " << tokens[i] << std::endl;
+							se.finish();
+							throw se;
+						}
+						
+						tfilter->set(tokens[i]);
+					}
+					
+					pfilter = UNIQUE_PTR_MOVE(tfilter);
+				}
+				
+				return UNIQUE_PTR_MOVE(pfilter);
+			}
 			
 			BamAuxFilterVector() : B(256*256)  {}
 			BamAuxFilterVector(char const * const * tags) : B(256*256) 
