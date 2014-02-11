@@ -27,6 +27,9 @@ namespace libmaus
 	{
 		struct BamAuxFilterVector
 		{
+			typedef BamAuxFilterVector this_type;
+			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		
 			libmaus::bitio::BitVector B;
 			
 			BamAuxFilterVector() : B(256*256)  {}
