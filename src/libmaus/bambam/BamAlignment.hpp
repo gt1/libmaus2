@@ -1671,6 +1671,12 @@ namespace libmaus
 			 **/
 			void putFlags(uint32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putFlags(D.get(),v); }
 			/**
+			 * replace flags by v
+			 *
+			 * @param v new flags
+			 **/
+			void putMapQ(uint8_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putMapQ(D.get(),v); }
+			/**
 			 * replace number of cigar operations by v
 			 *
 			 * @param v new number of cigar operations

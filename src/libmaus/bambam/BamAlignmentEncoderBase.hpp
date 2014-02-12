@@ -166,6 +166,17 @@ namespace libmaus
 			 * @param v new value
 			 **/
 			static void putSeqLen(uint8_t * D, uint32_t const v) { putLESingle<uint32_t>(D,16,v); }
+			/**
+			 * put mapping quality in D
+			 *
+			 * @param D alignment block
+			 * @param v new value for mapping quality
+			 **/
+			static void putMapQ(uint8_t * D, uint8_t const v)
+			{
+				// single byte
+				D[9] = v;
+			}
 			
 			/**
 			 * encode cigar string in buffer
