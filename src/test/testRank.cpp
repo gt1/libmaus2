@@ -1803,9 +1803,6 @@ int main()
 	initRand();
 	
 	testrl();
-	
-	return 0;
-
 	checkE2Append(1024*1024);
 	callWaveletTreeRankSelectRandom(128);
 	waveletTreeSmallerLargerRandom(10);
