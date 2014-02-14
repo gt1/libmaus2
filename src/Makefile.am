@@ -103,7 +103,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lz/lz4.c \
 	libmaus/fm/BidirectionalIndexInterval.cpp  \
 	libmaus/fm/BidirectionalIndexIntervalSymbol.cpp \
-	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp
+	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp \
+	libmaus/fastx/FastALineParserLineInfo.cpp \
+	libmaus/fastx/FastAMatchTable.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -738,7 +740,12 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/GzipStreamFastQReader.hpp \
 	libmaus/fastx/GzipFileFastQReader.hpp \
 	libmaus/fastx/FastQBgzfWriter.hpp \
-	libmaus/fastx/StreamFastAReader.hpp
+	libmaus/fastx/StreamFastAReader.hpp \
+	libmaus/fastx/FastALineParserLineInfo.hpp \
+	libmaus/fastx/FastADefinedBasesTable.hpp \
+	libmaus/fastx/FastAMapTable.hpp \
+	libmaus/fastx/FastAMatchTable.hpp \
+	libmaus/fastx/FastALineParser.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
@@ -1031,7 +1038,8 @@ noinst_PROGRAMS = \
 	testbammergequeryname \
 	testbamcat \
 	testautoarray2d \
-	testhist
+	testhist \
+	testfastaparse
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1291,3 +1299,6 @@ testautoarray2d_LDADD = libmaus.la
 
 testhist_SOURCES = test/testhist.cpp
 testhist_LDADD = libmaus.la
+
+testfastaparse_SOURCES = test/testfastaparse.cpp
+testfastaparse_LDADD = libmaus.la
