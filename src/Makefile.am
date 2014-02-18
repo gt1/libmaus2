@@ -1039,7 +1039,8 @@ noinst_PROGRAMS = \
 	testbamcat \
 	testautoarray2d \
 	testhist \
-	testfastaparse
+	testfastaparse \
+	testvalidatebamindex
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1302,3 +1303,6 @@ testhist_LDADD = libmaus.la
 
 testfastaparse_SOURCES = test/testfastaparse.cpp
 testfastaparse_LDADD = libmaus.la
+
+testvalidatebamindex_SOURCES = test/testvalidatebamindex.cpp
+testvalidatebamindex_LDADD = libmaus.la

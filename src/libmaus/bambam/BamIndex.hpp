@@ -21,6 +21,8 @@
 
 #include <libmaus/bambam/BamIndexRef.hpp>
 #include <libmaus/util/PushBuffer.hpp>
+#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus/util/OutputFileNameTools.hpp>
 
 namespace libmaus
 {
@@ -146,6 +148,34 @@ namespace libmaus
 			BamIndex() {}
 			BamIndex(std::istream & in) { init(in); }
 			BamIndex(libmaus::aio::CheckedInputStream & in) { init(in); }
+			BamIndex(std::string const & fn)
+			{
+				
+				std::string const clipped = libmaus::util::OutputFileNameTools::clipOff(fn,".bam");
+				
+				if ( libmaus::util::GetFileSize::fileExists(clipped + ".bai") )
+				{
+					libmaus::aio::CheckedInputStream CIS(clipped + ".bai");
+					init(CIS);
+				}
+				else if ( libmaus::util::GetFileSize::fileExists(fn + ".bai") )
+				{
+					libmaus::aio::CheckedInputStream CIS(fn + ".bai");
+					init(CIS);
+				}
+				else if ( libmaus::util::GetFileSize::fileExists(fn) )
+				{
+					libmaus::aio::CheckedInputStream CIS(fn);
+					init(CIS);
+				}
+				else
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BamIndex::BamIndex(std::string const &): Cannot find index " << fn << std::endl;
+					se.finish();
+					throw se;
+				}
+			}
 			
 			BamIndexBin const * getBin(uint64_t const ref, uint64_t const i) const
 			{
