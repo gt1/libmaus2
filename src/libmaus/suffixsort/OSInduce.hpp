@@ -73,7 +73,7 @@ namespace libmaus
 
 			typedef ::libmaus::suffixsort::SuccinctFactorList<iterator> list_type;
 			typedef typename list_type::unique_ptr_type list_ptr_type;
-			typedef ::libmaus::util::unique_ptr< std::vector < std::vector < uint8_t > > >::type VVptr;
+			// typedef ::libmaus::util::unique_ptr< std::vector < std::vector < uint8_t > > >::type VVptr;
 
 			// character histogram
 			::libmaus::autoarray::AutoArray<uint64_t> Clow( k+1 );

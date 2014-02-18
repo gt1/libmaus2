@@ -418,7 +418,7 @@ namespace libmaus
 				
 				uint64_t const numthreads = getMaxThreads();
 		
-				typedef typename reader_type::block_type block_type;
+				// typedef typename reader_type::block_type block_type;
 		
 				typedef ::libmaus::autoarray::AutoArray<uint64_t> hashtabletype;
 				typedef hashtabletype::unique_ptr_type hashtableptrtype;

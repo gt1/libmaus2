@@ -613,7 +613,7 @@ void testHuffmanTree()
 	for ( uint64_t i = 0; i < 16; ++i )
 	{
 		// std::cerr << H.decodeSlow(BIN) << std::endl;
-		assert ( H.decodeSlow(BIN) == i % 15 );
+		assert ( static_cast<int64_t>(H.decodeSlow(BIN)) == static_cast<int64_t>(i % 15) );
 	}
 }
 

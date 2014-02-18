@@ -734,7 +734,7 @@ namespace libmaus
 			    stypecomp(C,stype),
 			    LB(uintbits+1)
 			{
-				typedef typename array_type::const_iterator compact_const_it;
+				// typedef typename array_type::const_iterator compact_const_it;
 				
 				uint64_t const maxhashmem = std::max ( static_cast<uint64_t>(((n*b+7)/8)/fraction) , static_cast<uint64_t>(1024) );
 				hashbits = 1;
