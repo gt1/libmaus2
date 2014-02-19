@@ -164,6 +164,35 @@ namespace libmaus
 			}
 
 			template<typename stream_type>
+			static std::pair<int64_t,int64_t> getLinearMaxChunk(stream_type & stream)
+			{
+				int64_t refid = -1;
+				int64_t maxpos = 0;
+				
+				::libmaus::bambam::BamIndexLinearChunk LC;
+				
+				while ( stream.peek() != stream_type::traits_type::eof() )
+				{
+					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+					
+					if ( refid == -1 )
+						refid = LC.refid;
+					
+					// put back element, if it has a different refid	
+					if ( static_cast<int64_t>(LC.refid) != refid )
+					{
+						stream.clear();
+						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+						break;
+					}
+					
+					maxpos = std::max(maxpos,LC.chunkid);
+				}
+				
+				return std::pair<int64_t,int64_t>(refid,maxpos);
+			}
+
+			template<typename stream_type>
 			static bool peekLinearChunk(stream_type & stream, uint64_t const refid)
 			{
 				::libmaus::bambam::BamIndexLinearChunk LC;
@@ -176,6 +205,21 @@ namespace libmaus
 				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
 				
 				return LC.refid == refid;
+			}
+
+			template<typename stream_type>
+			static bool peekLinearChunk(stream_type & stream, uint64_t const refid, int64_t const chunkid)
+			{
+				::libmaus::bambam::BamIndexLinearChunk LC;
+
+				if ( stream.peek() == stream_type::traits_type::eof() )
+					return false;
+				
+				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+				stream.clear();
+				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+				
+				return LC.refid == refid && LC.chunkid == chunkid;
 			}
 
 			template<typename stream_type>
@@ -229,10 +273,21 @@ namespace libmaus
 					std::pair<int64_t,uint64_t> const B = countDistinctBins(binCIS);
 					
 					if ( L.first != B.first )
+					{
+						std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent L.first=" << L.first << " != B.first=" << B.first << std::endl;
 						return false;
+					}
 						
 					if ( L.first >= static_cast<int64_t>(numrefseq) )
+					{
+						std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent L.first=" << L.first << " >= numrefseq=" << numrefseq << std::endl;
 						return false;
+					}
+				}
+				
+				if ( binCIS.peek() != linCIS.peek() )
+				{
+					std::cerr << "BamIndexGenerator::checkConsisteny(): inconsistent binCIS.peek()=" << binCIS.peek() << " != linCIS.peek()=" << linCIS.peek() << std::endl;				
 				}
 
 				return binCIS.peek() == linCIS.peek();
@@ -271,6 +326,7 @@ namespace libmaus
 			int64_t prevbin;
 			int64_t prevcheckrefid;
 			int64_t prevcheckpos;
+			int64_t prevlinchunkid;
 			
 			std::string const binchunktmpfilename;
 			std::string const linchunktmpfilename;
@@ -298,6 +354,7 @@ namespace libmaus
 			  cacct(0), rinfo(), bamheaderparsestate(), state(state_reading_blocklen), blocklenred(0),
 			  blocklen(0), alcnt(0), alcmpstart(0), alstart(0), binalcmpstart(0), binalstart(0), algn(),
 			  copyptr(0), prevrefid(-1), prevpos(-1), prevbin(-1), prevcheckrefid(-1), prevcheckpos(-1),
+			  prevlinchunkid(-1),
 			  binchunktmpfilename(tmpfileprefix+".bin"), linchunktmpfilename(tmpfileprefix+".lin"),
 			  chunkCOS(), linCOS(),
 			  BCB(), binchunkfrags(), BLC(), linearchunkfrags(),
@@ -440,6 +497,9 @@ namespace libmaus
 										(thischeckrefid > prevcheckrefid)
 										||
 										(thischeckrefid == prevcheckrefid && thischeckpos >= prevcheckpos);
+
+									if ( thisrefid != prevrefid )
+										prevlinchunkid = -1;
 									
 									// throw exception if alignment stream is not sorted by coordinate
 									if ( ! orderok )
@@ -450,20 +510,39 @@ namespace libmaus
 										throw se;
 									}
 									
+									// linear chunk of last mapped position (or position if unmapped)
+									int64_t const thislinchunkid =
+										(algn.isMapped() ?((algn.getPos()+algn.getReferenceLength())-1) : algn.getPos()) >> 14;
+										
 									// check if this alignment is in a different linear chunk than the previous one
 									if ( 
-										thisrefid != prevrefid ||
+										algn.isMapped() 
+										&&
 										(
-											(thisrefid == prevrefid) && (thispos>>14)!=(prevpos>>14)
+											thisrefid != prevrefid 
+											||
+											thislinchunkid > prevlinchunkid
 										)
 									)
 									{
 										// note linear chunk start if position is valid
-										if ( thisrefid >= 0 && thispos >= 0 )
+										if ( thisrefid >= 0 && thispos >= 0 && thislinchunkid >= 0 )
 										{
-											::libmaus::bambam::BamIndexLinearChunk LC(thisrefid,thispos,alcmpstart,alstart);
-											if ( BLC.put(LC) )
-												linearchunkfrags.push_back(BLC.flush(*linCOS));
+											int64_t const linstart = (thispos >> 14);
+											int64_t const linend = thislinchunkid;
+											
+											for ( int64_t lini = linstart; lini <= linend; ++lini )
+												if ( lini > prevlinchunkid )
+												{
+													::libmaus::bambam::BamIndexLinearChunk LC(
+														thisrefid,thispos,alcmpstart,alstart,lini
+													);
+													
+													if ( BLC.put(LC) )
+														linearchunkfrags.push_back(BLC.flush(*linCOS));
+													
+													prevlinchunkid = lini;
+												}
 										}
 
 										if ( debug )
@@ -603,7 +682,7 @@ namespace libmaus
 				
 				if ( verbose )
 					std::cerr << "[V] " << alcnt << std::endl;
-
+					
 				::libmaus::aio::SingleFileFragmentMerge< ::libmaus::bambam::BamIndexBinChunk>::merge(binchunktmpfilename,binchunkfrags);
 				::libmaus::aio::SingleFileFragmentMerge< ::libmaus::bambam::BamIndexLinearChunk>::merge(linchunktmpfilename,linearchunkfrags);
 
@@ -675,7 +754,7 @@ namespace libmaus
 								binCIS.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus::bambam::BamIndexBinChunk));
 								
 								// chunk data
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpstart<<16)|(BC.alstart));	
+								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpstart<<16)|(BC.alstart));
 								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpend<<16)|(BC.alend));	
 								
 								if ( debug )
@@ -686,33 +765,35 @@ namespace libmaus
 						}
 
 						uint64_t const lprepos = linCIS.tellg();
-						std::pair<int64_t,uint64_t> const Q = getLinearMaxPos(linCIS);
+						std::pair<int64_t,int64_t> const Q = getLinearMaxChunk(linCIS);
 						assert ( Q.first == static_cast<int64_t>(i) );
 						linCIS.seekg(lprepos,std::ios::beg);
 						linCIS.clear();
 						
-						uint64_t const posperchunk = (1ull<<14);
-						uint64_t const numchunks = ((Q.second+1) + posperchunk-1)/posperchunk;
+						uint64_t const numchunks = Q.second+1; // maximum chunk id + 1
 
 						// number of linear chunks bins
-						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);	
+						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
+						// previous offset value
+						uint64_t prevoff = 0;
 						
 						for ( uint64_t c = 0; c < numchunks; ++c )
 						{
-							if ( peekLinearChunk(linCIS,P.first,c*posperchunk,14) )
+							if ( peekLinearChunk(linCIS,P.first,c /*c*posperchunk,14*/) )
 							{
 								::libmaus::bambam::BamIndexLinearChunk LC;
 								linCIS.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(LC.alcmpstart<<16)|(LC.alstart));	
+								prevoff = LC.getOffset();
+								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);	
 
 								if ( debug )
-									std::cerr << "LC[" << c << "]=" << LC << std::endl;
+									std::cerr << "LC[" << c << "]=" << LC << " -> " << prevoff << std::endl;
 							}
 							else
 							{
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,0);					
+								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
 								if ( debug )
-									std::cerr << "LC[" << c << "]=" << "null" << std::endl;
+									std::cerr << "LC[" << c << "]=" << "null -> " << prevoff << std::endl;
 							}
 						}
 					}

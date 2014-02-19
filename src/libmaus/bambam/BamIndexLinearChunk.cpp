@@ -20,6 +20,6 @@
 
 ::std::ostream & libmaus::bambam::operator<<(::std::ostream & out, ::libmaus::bambam::BamIndexLinearChunk const & o)
 {
-	out << "BamIndexLinearChunk(refid=" << o.refid << ",pos=" << o.pos << ",alcmpstart=" << o.alcmpstart << ",alstart=" << o.alstart << ")";
+	out << "BamIndexLinearChunk(refid=" << o.refid << ",pos=" << o.pos << ",alcmpstart=" << o.alcmpstart << ",alstart=" << o.alstart << ",chunkid=" << o.chunkid << ")";
 	return out;
 }

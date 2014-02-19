@@ -123,9 +123,10 @@ int main(int argc, char * argv[])
 			
 			libmaus::bambam::BamIndexRef const & ref = index.getRefs()[r];
 			libmaus::bambam::BamIndexLinear const & lin = ref.lin;
+			std::cerr << "[L" << lin.intervals.size() << "]";
 			for ( uint64_t i = 0; i < lin.intervals.size(); ++i )
 			{
-				
+				std::cerr << "L[" << i << "]=" << lin.intervals[i] << std::endl;	
 			}
 			
 			for ( uint64_t i = 0; i < ref.bin.size(); ++i )

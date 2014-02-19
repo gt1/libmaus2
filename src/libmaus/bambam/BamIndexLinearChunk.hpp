@@ -32,26 +32,33 @@ namespace libmaus
 			uint64_t pos;
 			uint64_t alcmpstart;
 			uint64_t alstart;
+			int64_t chunkid;
 			
-			BamIndexLinearChunk()
+			BamIndexLinearChunk() : refid(0), pos(0), alcmpstart(0), alstart(0), chunkid(-1)
 			{
 			
 			}
-			
+
 			BamIndexLinearChunk(
 				uint64_t const rrefid,
 				uint64_t const rpos,
 				uint64_t const ralcmpstart,
-				uint64_t const ralstart
+				uint64_t const ralstart,
+				int64_t  const rchunkid
 			)
-			: refid(rrefid), pos(rpos), alcmpstart(ralcmpstart), alstart(ralstart) {}
+			: refid(rrefid), pos(rpos), alcmpstart(ralcmpstart), alstart(ralstart), chunkid(rchunkid) {}
 			
 			bool operator<(BamIndexLinearChunk const & o) const
 			{
 				if ( refid != o.refid )
 					return refid < o.refid;
 				else
-					return pos < o.pos;
+					return chunkid < o.chunkid;
+			}
+			
+			uint64_t getOffset() const
+			{
+				return (alcmpstart<<16)|(alstart);
 			}
 		};
 		
