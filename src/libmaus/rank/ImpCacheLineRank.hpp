@@ -235,6 +235,40 @@ namespace libmaus
 				
 				uint64_t blockswritten;
 				
+				void fillHeader()
+				{
+					fillHeader(blockswritten * 6 * 64);
+				}
+				
+				void fillHeader(uint64_t const n)
+				{
+					ostr.seekp(0,std::ios::beg);
+
+					uint64_t const words = ((((n+63)/64)+5)/6)*8;
+					// write n
+					::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,n);
+					// write auto array header
+					::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,words);					
+				}
+				
+				WriteContextExternal(std::string const & filename)
+				: bitpos(0), w(0), s(0), 
+				  B(8), p(B.begin()), ps(p),
+				  Postr(new std::ofstream(filename.c_str(),std::ios::binary)),
+				  ostr(*Postr),
+				  blockswritten(0)
+				{
+					// space for n
+					::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,0);
+					// space for auto array header
+					::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,0);
+
+					// instantiate output buffer
+					::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tout(
+                                                new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(ostr,64*1024));
+					out = UNIQUE_PTR_MOVE(tout);
+				}
+
 				WriteContextExternal(std::string const & filename, uint64_t const n, bool const writeHeader = true)
 				: bitpos(0), w(0), s(0), 
 				  B(8), p(B.begin()), ps(p),
