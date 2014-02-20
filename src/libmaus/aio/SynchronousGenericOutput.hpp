@@ -171,7 +171,7 @@ namespace libmaus
                          *
                          * @param c element to be put in buffer
                          **/
-                        void put(uint64_t const c)
+                        void put(data_type const c)
                         {
                                 *(pc++) = c;
                                 if ( pc == pe )
