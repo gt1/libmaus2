@@ -767,7 +767,7 @@ namespace libmaus
 						if ( metaIn.peekNext(meta) && meta.refid == static_cast<int64_t>(i) )
 							metaIn.getNext(meta);
 							
-						bool const havemeta = (meta.refid == i);
+						bool const havemeta = (meta.refid == static_cast<int64_t>(i));
 					
 						uint64_t const bprepos = binCIS.tellg();
 						if ( debug )
