@@ -169,10 +169,10 @@ void testMultiMerge()
 	
 	uint64_t const l = n/2;
 	uint64_t const r = n-l;
-	uint64_t const l0 = l/2;
-	uint64_t const l1 = l-l0;
-	uint64_t const r0 = r/2;
-	uint64_t const r1 = r-r0;
+	// uint64_t const l0 = l/2;
+	// uint64_t const l1 = l-l0;
+	// uint64_t const r0 = r/2;
+	// uint64_t const r1 = r-r0;
 	
 	std::sort(V.begin(),V.begin()+l);
 	std::sort(V.begin()+l,V.begin()+l+r);

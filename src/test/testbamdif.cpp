@@ -191,7 +191,7 @@ struct SequenceComparison
 					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
 					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
 					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
-						for ( uint64_t j = 0; j < cigop[i].second; ++j )
+						for ( int64_t j = 0; j < cigop[i].second; ++j )
 							M[readpos++] = refpos++;
 						break;
 					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
@@ -268,7 +268,7 @@ int main(int argc, char * argv[])
 		libmaus::bambam::BamDecoder bamb(fnb);
 
 		libmaus::bambam::BamHeader const & heada = bama.getHeader();
-		libmaus::bambam::BamHeader const & headb = bamb.getHeader();
+		// libmaus::bambam::BamHeader const & headb = bamb.getHeader();
 		
 		libmaus::bambam::BamAlignment & ala = bama.getAlignment();
 		libmaus::bambam::BamAlignment & alb = bamb.getAlignment();
@@ -277,9 +277,9 @@ int main(int argc, char * argv[])
 		libmaus::bambam::BamAlignment alb_1, alb_2;
 		
 		::libmaus::bambam::BamFormatAuxiliary aux;
-		uint64_t alcnt = 0;
-		bool eq = true;
-		uint64_t const mod = 16*1024*1024;
+		// uint64_t alcnt = 0;
+		// bool eq = true;
+		// uint64_t const mod = 16*1024*1024;
 		
 		SequenceComparison seqcomp(heada);
 		
@@ -372,13 +372,13 @@ int main(int argc, char * argv[])
 					int64_t const mapq_b_2 = alb_2.isMapped() ? alb_2.getMapQ() : 0;
 					
 					if ( 
-						ala_1.isMapped() && mapq_a_1 <= 3
+						(ala_1.isMapped() && (mapq_a_1 <= 3))
 						||
-						ala_2.isMapped() && mapq_a_2 <= 3
+						(ala_2.isMapped() && (mapq_a_2 <= 3))
 						||
-						alb_1.isMapped() && mapq_b_1 <= 3
+						(alb_1.isMapped() && (mapq_b_1 <= 3))
 						||
-						alb_2.isMapped() && mapq_b_2 <= 3
+						(alb_2.isMapped() && (mapq_b_2 <= 3))
 					)
 					{
 						cntdiflow++;

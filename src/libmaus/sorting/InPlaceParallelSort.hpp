@@ -310,7 +310,7 @@ namespace libmaus
 					}
 					
 					// l0 l1 r0 r1 -> l0 r0 l1 r1
-					typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+					// typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
 					//blockswap<uint64_t>(p+l0,l1*sizeof(value_type),r0*sizeof(value_type));
 					
 					parallelblockswap(
@@ -392,7 +392,7 @@ namespace libmaus
 					}
 					
 					// l0 l1 r0 r1 -> l0 r0 l1 r1
-					typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
+					// typedef typename ::std::iterator_traits<iterator>::value_type value_type;		
 					//blockswap<uint64_t>(p+l0,l1*sizeof(value_type),r0*sizeof(value_type));
 					
 					parallelblockswap(

@@ -44,7 +44,8 @@ void testSingle(std::string const & s0)
 				lzout_0.write(s0.c_str(),b_0);
 				std::pair<uint64_t,uint64_t> start_0 = lzout_0.getOffset();
 				lzout_0.write(s0.c_str()+b_0,b_1);
-				std::pair<uint64_t,uint64_t> end_0 = lzout_0.getOffset();
+				// std::pair<uint64_t,uint64_t> end_0 = 
+					lzout_0.getOffset();
 				lzout_0.write(s0.c_str()+b_0+b_1,s0.size()-(b_0+b_1));
 				lzout_0.flush();
 						
@@ -61,7 +62,8 @@ void testSingle(std::string const & s0)
 					assert ( c == u0[j++] );
 				}
 				
-				uint64_t const r = decomp.read(C.begin(),l0-(b_0+b_1));
+				// uint64_t const r = 
+					decomp.read(C.begin(),l0-(b_0+b_1));
 				assert ( decomp.get() == std::istream::traits_type::eof() );
 			}
 }
