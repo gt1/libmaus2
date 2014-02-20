@@ -1374,7 +1374,10 @@ namespace libmaus
 		void AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(N * alignedp)
 		{
 			if ( alignedp )
-				delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
+				// delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
+				delete [] (
+					(uint8_t **)(alignedp)
+				)[-1];
 		}
 
 		template<typename N, alloc_type atype>
