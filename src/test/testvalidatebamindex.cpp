@@ -57,7 +57,7 @@ uint64_t writeMappedFile(std::string const & bamfn, std::string const & rankfn, 
 	return r;
 }
 
-uint64_t getBinHistogram(std::string const & bamfn, libmaus::util::Histogram & binhist)
+void getBinHistogram(std::string const & bamfn, libmaus::util::Histogram & binhist)
 {
 	libmaus::bambam::BamDecoder bamdec(bamfn);
 	libmaus::bambam::BamHeader const & header = bamdec.getHeader();
@@ -133,41 +133,44 @@ int main(int argc, char * argv[])
 			{
 				libmaus::bambam::BamIndexBin const & bin = ref.bin[i];
 
-				for ( uint64_t j = 0; j < bin.chunks.size(); ++j )
+				if ( bin.bin < 37450 )
 				{
-					libmaus::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
-					BDRW.resetStream(c.first,c.second);
-					libmaus::bambam::BamAlignment const & algn = BDRW.getDecoder().getAlignment();
-					uint64_t z = 0;
-					bool brok = false;
-					while ( BDRW.getDecoder().readAlignment() )
+					for ( uint64_t j = 0; j < bin.chunks.size(); ++j )
 					{
-						if ( algn.isMapped() && bin.bin != algn.getBin() )
+						libmaus::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
+						BDRW.resetStream(c.first,c.second);
+						libmaus::bambam::BamAlignment const & algn = BDRW.getDecoder().getAlignment();
+						uint64_t z = 0;
+						bool brok = false;
+						while ( BDRW.getDecoder().readAlignment() )
 						{
-							std::cerr 
-								<< "refid=" << r 
-								<< " bin=" << bin.bin 
-								<< " chunk=" 
-								<< "(" << (c.first>>16) << "," << (c.first&((1ull<<16)-1)) << ")"
-								<< ","
-								<< "(" << (c.second>>16) << "," << (c.second&((1ull<<16)-1)) << ")"
-								<< std::endl;
+							if ( algn.isMapped() && bin.bin != algn.getBin() )
+							{
+								std::cerr 
+									<< "refid=" << r 
+									<< " bin=" << bin.bin 
+									<< " chunk=" 
+									<< "(" << (c.first>>16) << "," << (c.first&((1ull<<16)-1)) << ")"
+									<< ","
+									<< "(" << (c.second>>16) << "," << (c.second&((1ull<<16)-1)) << ")"
+									<< std::endl;
 
-							std::cerr << bin.bin << "\t" << algn.getBin() << "\t" << algn.computeBin() << " z=" << z << std::endl;
+								std::cerr << bin.bin << "\t" << algn.getBin() << "\t" << algn.computeBin() << " z=" << z << std::endl;
+								
+								brok = true;
+							}
 							
-							brok = true;
+							if ( algn.isMapped() )
+							{
+								readhist(algn.getBin());
+							}
+							
+							++z;
 						}
 						
-						if ( algn.isMapped() )
-						{
-							readhist(algn.getBin());
-						}
-						
-						++z;
+						if ( brok )
+							std::cerr << "[brok total] " << z << std::endl;
 					}
-					
-					if ( brok )
-						std::cerr << "[brok total] " << z << std::endl;
 				}
 			}
 		}
