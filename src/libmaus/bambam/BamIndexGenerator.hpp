@@ -23,11 +23,14 @@
 #include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/aio/SingleFileFragmentMerge.hpp>
+#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/bambam/EncoderBase.hpp>
 #include <libmaus/bambam/BamIndexLinearChunk.hpp>
 #include <libmaus/bambam/BamIndexBinChunk.hpp>
 #include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus/bambam/BamIndexMetaInfo.hpp>
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/util/TempFileRemovalContainer.hpp>
 
@@ -328,10 +331,16 @@ namespace libmaus
 			int64_t prevcheckpos;
 			int64_t prevlinchunkid;
 			
+			uint64_t mappedcnt;
+			uint64_t unmappedcnt;
+			uint64_t refstart;
+			
 			std::string const binchunktmpfilename;
 			std::string const linchunktmpfilename;
+			std::string const metatmpfilename;
 			::libmaus::aio::CheckedOutputStream::unique_ptr_type chunkCOS;
 			::libmaus::aio::CheckedOutputStream::unique_ptr_type linCOS;
+			::libmaus::aio::SynchronousGenericOutput< ::libmaus::bambam::BamIndexMetaInfo >::unique_ptr_type metaOut;
 
 			::libmaus::aio::Buffer< ::libmaus::bambam::BamIndexBinChunk> BCB;
 			std::vector< std::pair<uint64_t,uint64_t> > binchunkfrags;
@@ -355,20 +364,27 @@ namespace libmaus
 			  blocklen(0), alcnt(0), alcmpstart(0), alstart(0), binalcmpstart(0), binalstart(0), algn(),
 			  copyptr(0), prevrefid(-1), prevpos(-1), prevbin(-1), prevcheckrefid(-1), prevcheckpos(-1),
 			  prevlinchunkid(-1),
+			  mappedcnt(0), unmappedcnt(0), refstart(0),
 			  binchunktmpfilename(tmpfileprefix+".bin"), linchunktmpfilename(tmpfileprefix+".lin"),
-			  chunkCOS(), linCOS(),
+			  metatmpfilename(tmpfileprefix+".meta"),
+			  chunkCOS(), linCOS(), metaOut(),
 			  BCB(), binchunkfrags(), BLC(), linearchunkfrags(),
 			  verbose(rverbose), validate(rvalidate), debug(rdebug),
 			  blocksetup(false)
 			{
 				::libmaus::util::TempFileRemovalContainer::addTempFile(binchunktmpfilename);
 				::libmaus::util::TempFileRemovalContainer::addTempFile(linchunktmpfilename);
+				::libmaus::util::TempFileRemovalContainer::addTempFile(metatmpfilename);
 
 				::libmaus::aio::CheckedOutputStream::unique_ptr_type tchunkCOS(new ::libmaus::aio::CheckedOutputStream(binchunktmpfilename));
 				::libmaus::aio::CheckedOutputStream::unique_ptr_type tlinCOS(new ::libmaus::aio::CheckedOutputStream(linchunktmpfilename));
+				::libmaus::aio::SynchronousGenericOutput< ::libmaus::bambam::BamIndexMetaInfo >::unique_ptr_type tmetaOut(
+					new ::libmaus::aio::SynchronousGenericOutput< ::libmaus::bambam::BamIndexMetaInfo >(metatmpfilename,128)
+				);
 				
 				chunkCOS = UNIQUE_PTR_MOVE(tchunkCOS);
 				linCOS = UNIQUE_PTR_MOVE(tlinCOS);
+				metaOut = UNIQUE_PTR_MOVE(tmetaOut);
 			}
 			
 			//! add block
@@ -487,6 +503,26 @@ namespace libmaus
 									int64_t const thispos = algn.getPos();
 									int64_t const thisbin = 
 										(thisrefid >= 0 && thispos >= 0) ? algn.computeBin() : -1;
+
+									if ( thisrefid != prevrefid )
+									{
+										if ( mappedcnt + unmappedcnt )
+										{
+											if ( verbose )
+												std::cerr << "[V] " << header.getRefIDName(prevrefid) << " " << mappedcnt << " " << unmappedcnt << std::endl;
+											
+											metaOut->put ( ::libmaus::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
+										}
+									
+										mappedcnt = 0;
+										unmappedcnt = 0;
+										refstart = (alcmpstart << 16) | alstart;
+									}
+									
+									if ( algn.isUnmap() )
+										unmappedcnt++;
+									else
+										mappedcnt++;
 
 									// map negative to maximum positive for checking order
 									int64_t const thischeckrefid = (thisrefid >= 0) ? thisrefid : std::numeric_limits<int64_t>::max();
@@ -672,6 +708,14 @@ namespace libmaus
 				if ( !BLC.empty() )
 					linearchunkfrags.push_back(BLC.flush(*linCOS));
 
+				if ( mappedcnt + unmappedcnt )
+				{
+					if ( verbose )
+						std::cerr << "[V] " << header.getRefIDName(prevrefid) << " " << mappedcnt << " " << unmappedcnt << std::endl;
+
+					metaOut->put ( ::libmaus::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
+				}
+
 				chunkCOS->flush();
 				chunkCOS->close();
 				chunkCOS.reset();
@@ -679,6 +723,9 @@ namespace libmaus
 				linCOS->flush();
 				linCOS->close();
 				linCOS.reset();
+				
+				metaOut->flush();
+				metaOut.reset();
 				
 				if ( verbose )
 					std::cerr << "[V] " << alcnt << std::endl;
@@ -700,6 +747,7 @@ namespace libmaus
 				/* write index */
 				::libmaus::aio::CheckedInputStream binCIS(binchunktmpfilename);
 				::libmaus::aio::CheckedInputStream linCIS(linchunktmpfilename);
+				::libmaus::aio::SynchronousGenericInput< ::libmaus::bambam::BamIndexMetaInfo > metaIn(metatmpfilename,128);
 					
 				out.put('B');
 				out.put('A');
@@ -714,6 +762,13 @@ namespace libmaus
 				
 					if ( peekBin(binCIS) == static_cast<int64_t>(i) )
 					{
+						::libmaus::bambam::BamIndexMetaInfo meta;
+
+						if ( metaIn.peekNext(meta) && meta.refid == static_cast<int64_t>(i) )
+							metaIn.getNext(meta);
+							
+						bool const havemeta = (meta.refid == i);
+					
 						uint64_t const bprepos = binCIS.tellg();
 						if ( debug )
 							std::cerr << "bprepos=" << bprepos << std::endl;
@@ -726,7 +781,7 @@ namespace libmaus
 							std::cerr << "Distinct bins " << P.second << std::endl;
 						
 						// number of distinct bins
-						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,P.second);
+						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,P.second + (havemeta?1:0));
 						
 						// iterate over bins
 						for ( uint64_t b = 0; b < P.second; ++b )
@@ -762,6 +817,22 @@ namespace libmaus
 									std::cerr << BC << std::endl;
 								}
 							}
+						}
+						
+						if ( havemeta )
+						{
+							// bin id
+							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,37450 /* meta bin id */);	
+							// number of chunks
+							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,2);	
+							// start of ref id
+							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.start);	
+							// end of ref id
+							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.end);	
+							// number of mapped reads
+							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.mapped);	
+							// number of unmapped reads
+							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);	
 						}
 
 						uint64_t const lprepos = linCIS.tellg();
@@ -804,6 +875,14 @@ namespace libmaus
 						// number of linear index chunks
 						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
 					}
+				}
+
+				::libmaus::bambam::BamIndexMetaInfo meta;
+
+				if ( metaIn.peekNext(meta) && (meta.refid == -1) )
+				{
+					metaIn.getNext(meta);
+					::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);	
 				}
 
 				out.flush();	
