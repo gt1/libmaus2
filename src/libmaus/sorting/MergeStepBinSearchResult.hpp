@@ -219,8 +219,8 @@ namespace libmaus
 					ba += binres.r0;
 					p  -= 1;
 					
-					assert ( ae-aa == binres.l1 );
-					assert ( be-ba == binres.r1 );
+					assert ( ae-aa == static_cast<ptrdiff_t>(binres.l1) );
+					assert ( be-ba == static_cast<ptrdiff_t>(binres.r1) );
 				}
 				
 				if ( p )
