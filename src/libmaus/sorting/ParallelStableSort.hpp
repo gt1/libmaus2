@@ -74,7 +74,11 @@ namespace libmaus
 				iterator const aa,
 				iterator const ae,
 				iterator const ba,
-				iterator const be,
+				iterator const 
+					#if 0
+					be
+					#endif
+					,
 				order_type order = std::less< typename std::iterator_traits<iterator>::value_type >(),
 				uint64_t const num_threads =
 				#if defined(_OPENMP)

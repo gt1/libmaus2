@@ -91,7 +91,11 @@ namespace libmaus
 				std::string const & inputfilename = BamAlignmentDecoderInfo::getDefaultInputFileName(),
 				std::string const & inputformat = BamAlignmentDecoderInfo::getDefaultInputFormat(),
 				uint64_t const inputthreads = BamAlignmentDecoderInfo::getDefaultThreads(),
-				std::string const & reference = BamAlignmentDecoderInfo::getDefaultReference(),
+				std::string const & 
+					#if defined(LIBMAUS_HAVE_IO_LIB)
+					reference
+					#endif
+					= BamAlignmentDecoderInfo::getDefaultReference(),
 				bool const putrank = BamAlignmentDecoderInfo::getDefaultPutRank(),
 				std::ostream * copystr = BamAlignmentDecoderInfo::getDefaultCopyStr(),
 				std::string const & range = BamAlignmentDecoderInfo::getDefaultRange()
