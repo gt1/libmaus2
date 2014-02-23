@@ -29,6 +29,7 @@ int main()
 {
 	try
 	{
+		#if 0
 		#if 1
 		std::string const b = "lichtensteijn";
 		std::string const a = "lichesxein";
@@ -36,18 +37,24 @@ int main()
 		std::string const a = "schokolade lecker";
 		std::string const b = "iss schokolade";
 		#endif
+		#endif
+		
+		std::string const a = "aaaaaab";
+		std::string const b = "aaaaba";
 		
 		std::cerr << a << std::endl;
 		std::cerr << b << std::endl;
 		
 		libmaus::lcs::EditDistance E(a.size(),b.size());
 		libmaus::lcs::EditDistanceResult EDR = E.process(a.begin(),b.begin());
+		std::cout << EDR << std::endl;
 		
 		E.printAlignmentLines(std::cout,a,b,80);
 
 		libmaus::lcs::BandedEditDistance BE(a.size(),b.size(),dif(a.size(),b.size()));
 		
 		libmaus::lcs::EditDistanceResult EDRB = BE.process(a.begin(),b.begin());
+		std::cout << EDRB << std::endl;
 
 		BE.printAlignmentLines(std::cout,a,b,80);
 	}
