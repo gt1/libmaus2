@@ -385,7 +385,7 @@ namespace libmaus
 						a -= (k21-pskip-1);
 					}
 
-					#if 1
+					#if 0
 					for ( uint64_t i = 0; i < m1; ++i )
 					{
 						for ( uint64_t j = 0; j < n1; ++j )
