@@ -16,34 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/lcs/EditDistanceResult.hpp>
 
-#if ! defined(EDITDISTANCERESULT_HPP)
-#define EDITDISTANCERESULT_HPP
-
-#include <libmaus/types/types.hpp>
-#include <ostream>
-
-namespace libmaus
+std::ostream & libmaus::lcs::operator<<(std::ostream & out, ::libmaus::lcs::EditDistanceResult const & o)
 {
-	namespace lcs
-	{
-		struct EditDistanceResult
-		{
-			uint64_t numins;
-			uint64_t numdel;
-			uint64_t nummat;
-			uint64_t nummis;
-			
-			EditDistanceResult()
-			: numins(0), numdel(0), nummat(0), nummis(0)
-			{}
-			
-			EditDistanceResult(uint64_t rnumins, uint64_t rnumdel, uint64_t rnummat, uint64_t rnummis)
-			: numins(rnumins), numdel(rnumdel), nummat(rnummat), nummis(rnummis)
-			{}
-		};
-		
-		std::ostream & operator<<(std::ostream & out, EditDistanceResult const &);
-	}
+	out << "libmaus::lcs::EditDistanceResult("
+		<<  "+=" << o.nummat
+		<< ",-=" << o.nummis
+		<< ",I=" << o.numins
+		<< ",D=" << o.numdel
+		<< ")";
+	return out;
 }
-#endif

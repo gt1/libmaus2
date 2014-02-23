@@ -105,7 +105,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/fm/BidirectionalIndexIntervalSymbol.cpp \
 	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp \
 	libmaus/fastx/FastALineParserLineInfo.cpp \
-	libmaus/fastx/FastAMatchTable.cpp
+	libmaus/fastx/FastAMatchTable.cpp \
+	libmaus/lcs/EditDistanceResult.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
