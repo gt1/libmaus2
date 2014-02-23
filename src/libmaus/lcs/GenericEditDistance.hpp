@@ -192,8 +192,7 @@ namespace libmaus
 				}
 
 				return EditDistanceResult(numin,numdel,nummat,nummis);
-			}
-			
+			}	
 		};
 		
 		struct BandedEditDistance : public GenericTraceContainer

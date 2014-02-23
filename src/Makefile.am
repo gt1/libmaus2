@@ -935,7 +935,11 @@ libmauslcs_include_HEADERS=\
 	libmaus/lcs/CheckOverlapResultMergeInput.hpp \
 	libmaus/lcs/CheckOverlapScoreComparatorGreater.hpp \
 	libmaus/lcs/CheckOverlapResultOperations.hpp \
-	libmaus/lcs/HammingOverlapDetection.hpp
+	libmaus/lcs/HammingOverlapDetection.hpp \
+	libmaus/lcs/AlignmentPrint.hpp \
+	libmaus/lcs/AlignmentTraceContainer.hpp \
+	libmaus/lcs/EditDistance.hpp \
+	libmaus/lcs/BandedEditDistance.hpp
 
 libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
 libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \
@@ -1041,7 +1045,8 @@ noinst_PROGRAMS = \
 	testautoarray2d \
 	testhist \
 	testfastaparse \
-	testvalidatebamindex
+	testvalidatebamindex \
+	testeditdistance
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1307,3 +1312,6 @@ testfastaparse_LDADD = libmaus.la
 
 testvalidatebamindex_SOURCES = test/testvalidatebamindex.cpp
 testvalidatebamindex_LDADD = libmaus.la
+
+testeditdistance_SOURCES = test/testeditdistance.cpp
+testeditdistance_LDADD = libmaus.la
