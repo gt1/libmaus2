@@ -41,6 +41,20 @@ namespace libmaus
 			EditDistanceResult(uint64_t rnumins, uint64_t rnumdel, uint64_t rnummat, uint64_t rnummis)
 			: numins(rnumins), numdel(rnumdel), nummat(rnummat), nummis(rnummis)
 			{}
+			
+			bool operator==(EditDistanceResult const & o) const
+			{
+				return
+					numins == o.numins &&
+					numdel == o.numdel &&
+					nummat == o.nummat &&
+					nummis == o.nummis;
+			}
+			
+			bool operator!=(EditDistanceResult const & o) const
+			{
+				return !operator==(o);
+			}
 		};
 		
 		std::ostream & operator<<(std::ostream & out, EditDistanceResult const &);
