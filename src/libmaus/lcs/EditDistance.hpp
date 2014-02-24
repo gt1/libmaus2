@@ -209,7 +209,7 @@ namespace libmaus
 							pq -= n1;
 							numins++;
 							break;
-						// previos column
+						// previous column
 						case STEP_DEL:
 							pq -= 1;
 							numdel++;
