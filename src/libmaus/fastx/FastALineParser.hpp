@@ -40,8 +40,11 @@ namespace libmaus
 			libmaus::autoarray::AutoArray<uint8_t> id;
 			int64_t idlen;
 			
+			bool haveputback;
+			::libmaus::fastx::FastALineParserLineInfo putbackinfo;
+			
 			FastALineParser(stream_type & rstream)
-			: stream(rstream), newlineterm('\n'), idlen(-1)
+			: stream(rstream), newlineterm('\n'), idlen(-1), haveputback(false)
 			{
 				int c = stream_type::traits_type::eof();
 				
@@ -52,9 +55,22 @@ namespace libmaus
 					else
 						stream.get();
 			}
+			
+			void putback(::libmaus::fastx::FastALineParserLineInfo const & info)
+			{
+				putbackinfo = info;
+				haveputback = true;
+			}
 
 			bool getNextLine(::libmaus::fastx::FastALineParserLineInfo & info)
 			{
+				if ( haveputback )
+				{
+					haveputback = false;
+					info = putbackinfo;
+					return true;
+				}
+			
 				uint8_t * pa = data.begin();
 				uint8_t * pc = pa;
 				uint8_t * pe = data.end();
