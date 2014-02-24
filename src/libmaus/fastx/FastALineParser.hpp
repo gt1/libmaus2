@@ -68,7 +68,7 @@ namespace libmaus
 				{
 					haveputback = false;
 					info = putbackinfo;
-					return true;
+					return info.linetype != ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line_eof;
 				}
 			
 				uint8_t * pa = data.begin();
@@ -115,8 +115,7 @@ namespace libmaus
 						id = libmaus::autoarray::AutoArray<uint8_t>(info.linelen);
 						
 					idlen = info.linelen;
-					std::copy(info.line,info.line+info.linelen,id.begin());
-					
+					memcpy(id.begin(),info.line,info.linelen);
 					return true;
 				}
 				else
