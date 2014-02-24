@@ -192,6 +192,27 @@ namespace libmaus
 							// move pointer in current row
 							p++;
 							
+							if ( left >= top )
+							{
+								if ( left >= diag )								
+									// left
+									*p = element_type(left,STEP_DEL);
+								else
+									// diag
+									*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+							}
+							// top > left
+							else
+							{
+								if ( top >= diag )
+									// top
+									*p = element_type(top,STEP_INS);
+								else
+									// diag
+									*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+							}
+							
+							#if 0
 							if ( diag >= left )
 							{
 								if ( diag >= top )
@@ -210,6 +231,7 @@ namespace libmaus
 									// top
 									*p = element_type(top,STEP_INS);
 							}
+							#endif
 						}
 						
 						// no top for last column
@@ -230,10 +252,17 @@ namespace libmaus
 							// move pointer in current row
 							p++;
 							
+							if ( left >= diag )							
+								*p = element_type(left,STEP_DEL);
+							else
+								*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+							
+							#if 0
 							if ( diag >= left )
 								*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
 							else
 								*p = element_type(left,STEP_DEL);
+							#endif
 						}
 						
 						p++;
@@ -260,10 +289,17 @@ namespace libmaus
 						q++;
 						similarity_type af_top = q->first - penalty_ins;
 						
+						if ( af_top >= af_diag )
+							*p = element_type(af_top,STEP_INS);
+						else						
+							*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+
+						#if 0
 						if ( af_diag >= af_top )
 							*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
 						else
 							*p = element_type(af_top,STEP_INS);
+						#endif
 						
 						iterator_a const ae = a + (k21-1) - 1;
 						while ( a != ae )
@@ -286,6 +322,27 @@ namespace libmaus
 							// move pointer in current row
 							p++;
 							
+							if ( left >= top )
+							{
+								if ( left >= diag )
+									// left
+									*p = element_type(left,STEP_DEL);
+								else
+									// diag
+									*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);								
+							}
+							// top > left
+							else
+							{
+								if ( top >= diag )
+									// top
+									*p = element_type(top,STEP_INS);
+								else
+									// diag
+									*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+							}
+						
+							#if 0	
 							if ( diag >= left )
 							{
 								if ( diag >= top )
@@ -304,6 +361,7 @@ namespace libmaus
 									// top
 									*p = element_type(top,STEP_INS);
 							}
+							#endif
 						}
 						
 						// no top for last column
@@ -323,11 +381,18 @@ namespace libmaus
 							q++;
 							// move pointer in current row
 							p++;
+
+							if ( left >= diag )
+								*p = element_type(left,STEP_DEL);
+							else
+								*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
 							
+							#if 0
 							if ( diag >= left )
 								*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
 							else
 								*p = element_type(left,STEP_DEL);
+							#endif
 						}
 						
 						p++;
@@ -346,10 +411,17 @@ namespace libmaus
 						q++;
 						similarity_type af_top = q->first - penalty_ins;
 						
+						if ( af_top >= af_diag )
+							*p = element_type(af_top,STEP_INS);
+						else
+							*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+
+						#if 0
 						if ( af_diag >= af_top )
 							*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
 						else
 							*p = element_type(af_top,STEP_INS);
+						#endif
 						
 						iterator_a const ae = aa + n;
 						while ( a != ae )
@@ -372,6 +444,27 @@ namespace libmaus
 							// move pointer in current row
 							p++;
 							
+							if ( left >= top )
+							{
+								if ( left >= diag )
+									// left
+									*p = element_type(left,STEP_DEL);
+								else
+									// diag
+									*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+							}
+							// top > left
+							else
+							{
+								if ( top >= diag )								
+									// top
+									*p = element_type(top,STEP_INS);
+								else
+									// diag
+									*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+							}
+						
+							#if 0	
 							if ( diag >= left )
 							{
 								if ( diag >= top )
@@ -390,6 +483,7 @@ namespace libmaus
 									// top
 									*p = element_type(top,STEP_INS);
 							}
+							#endif
 						}
 						
 						p++;

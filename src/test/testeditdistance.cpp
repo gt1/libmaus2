@@ -151,6 +151,9 @@ int main()
 		libmaus::lcs::EditDistance E;
 		libmaus::lcs::BandedEditDistance BE;
 		testEdit("bbbbbba","bbbbb",E,BE,true);
+		testEdit("bbbbb","bbbbbba",E,BE,true);
+		testEdit("bbababb"  ,
+		         "bbaabbaab",E,BE,true);
 
 		runtestmeta();
 		runtestconcrete();

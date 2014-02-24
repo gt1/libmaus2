@@ -161,6 +161,27 @@ namespace libmaus
 						// move pointer in current row
 						p++;
 						
+						if ( left >= top )
+						{
+							if ( left >= diag )
+								// left
+								*p = element_type(left,STEP_DEL);
+							else							
+								// diag
+								*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+						}
+						// top >= left
+						else
+						{
+							if ( top >= diag )
+								// top
+								*p = element_type(top,STEP_INS);
+							else
+								// diag
+								*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+						}
+						
+						#if 0
 						if ( diag >= left )
 						{
 							if ( diag >= top )
@@ -179,6 +200,7 @@ namespace libmaus
 								// top
 								*p = element_type(top,STEP_INS);
 						}
+						#endif
 					}	
 					
 					p++;
