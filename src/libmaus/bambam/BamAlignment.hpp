@@ -474,7 +474,7 @@ namespace libmaus
 			 * @param A array for storing vector
 			 * @return number of cigar operations
 			 **/
-			uint32_t getCigarOperations(libmaus::autoarray::AutoArray<cigar_operation> & cigop)
+			uint32_t getCigarOperations(libmaus::autoarray::AutoArray<cigar_operation> & cigop) const
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarOperations(D.begin(),cigop);
 			}
