@@ -944,7 +944,8 @@ libmauslcs_include_HEADERS=\
 	libmaus/lcs/AlignmentTraceContainer.hpp \
 	libmaus/lcs/EditDistance.hpp \
 	libmaus/lcs/BandedEditDistance.hpp \
-	libmaus/lcs/MetaEditDistance.hpp
+	libmaus/lcs/MetaEditDistance.hpp \
+	libmaus/lcs/EditDistanceTraceContainer.hpp
 
 libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
 libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \
