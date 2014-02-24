@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/lcs/MetaEditDistance.hpp>
 #include <libmaus/lcs/EditDistance.hpp>
 #include <libmaus/lcs/BandedEditDistance.hpp>
 #include <libmaus/random/Random.hpp>
@@ -26,12 +27,15 @@ static inline uint64_t dif(uint64_t const a, uint64_t const b)
 	return static_cast<uint64_t>(std::abs(static_cast<int64_t>(a)-static_cast<int64_t>(b)));
 }
 
-static void testEdit(std::string const & a, std::string const & b, uint64_t const k)
+template<typename edit_a, typename edit_b>
+static void testEdit(
+	std::string const & a, std::string const & b, uint64_t const k,
+	edit_a & E,
+	edit_b & BE
+)
 {
-	libmaus::lcs::EditDistance E(a.size(),b.size());
-	libmaus::lcs::EditDistanceResult EDR = E.process(a.begin(),b.begin());
-	libmaus::lcs::BandedEditDistance BE(a.size(),b.size(),k);
-	libmaus::lcs::EditDistanceResult EDRB = BE.process(a.begin(),b.begin());
+	libmaus::lcs::EditDistanceResult EDR = E.process(a.begin(),a.size(),b.begin(),b.size(),k);
+	libmaus::lcs::EditDistanceResult EDRB = BE.process(a.begin(),a.size(),b.begin(),b.size(),k);
 	
 	bool const EDRBvalid = EDRB.nummis + EDRB.numins + EDRB.numdel <= k;
 	bool const EDRcheck  = EDR.nummis  + EDR.numins  + EDR.numdel  <= k;
@@ -53,16 +57,18 @@ static void testEdit(std::string const & a, std::string const & b, uint64_t cons
 		
 	if ( EDRcheck )
 	{
-		assert ( E.traceToString() == BE.traceToString() );
+		assert ( E.getTrace() == BE.getTrace() );
 	}
 }
 
-static void testEdit(std::string const & a, std::string const & b)
+template<typename edit_a, typename edit_b>
+static void testEdit(std::string const & a, std::string const & b, edit_a & E, edit_b & BE)
 {
-	testEdit(a,b,dif(a.size(),b.size()));
+	testEdit(a,b,dif(a.size(),b.size()),E,BE);
 }
 
-static void enumerate(uint64_t const n, uint64_t const k)
+template<typename edit_a, typename edit_b>
+static void enumerate(uint64_t const n, uint64_t const k, edit_a & E, edit_b & BE)
 {
 	uint64_t z = 1;
 	for ( uint64_t i = 0; i < n; ++i )
@@ -84,38 +90,55 @@ static void enumerate(uint64_t const n, uint64_t const k)
 		}
 		
 		uint64_t const kmin = dif(a.size(),b.size());
-		testEdit(a,b,kmin);
-		testEdit(a,b,kmin+1);
-		testEdit(a,b,kmin+2);
+		testEdit(a,b,kmin,E,BE);
+		testEdit(a,b,kmin+1,E,BE);
+		testEdit(a,b,kmin+2,E,BE);
 	}
 }
 
-void runtest()
+template<typename edit_a, typename edit_b>
+void runtest(edit_a & E, edit_b & BE)
 {
 	libmaus::random::Random::setup(5);
+
 	
-	testEdit("lichesxein","lichtensteijn");
-	testEdit("lichtensteijn","lichesxein");
+	testEdit("lichesxein","lichtensteijn",E,BE);
+	testEdit("lichtensteijn","lichesxein",E,BE);
 	
-	testEdit("schokolade lecker","iss schokolade");
-	testEdit("iss schokolade","schokolade lecker");
+	testEdit("schokolade lecker","iss schokolade",E,BE);
+	testEdit("iss schokolade","schokolade lecker",E,BE);
 	
-	testEdit("aaaaaab","aaaaba");
-	testEdit("aaaaba","aaaaaab");
+	testEdit("aaaaaab","aaaaba",E,BE);
+	testEdit("aaaaba","aaaaaab",E,BE);
 	
 	std::cerr << "16,2" << std::endl;
-	enumerate(16,2);
+	enumerate(16,2,E,BE);
 	std::cerr << "12,3" << std::endl;
-	enumerate(12,3);
+	enumerate(12,3,E,BE);
 	std::cerr << "12,4" << std::endl;
-	enumerate(12,4);
+	enumerate(12,4,E,BE);
+}
+
+void runtestconcrete()
+{
+	libmaus::lcs::EditDistance E;
+	libmaus::lcs::BandedEditDistance BE;
+	runtest(E,BE);
+}
+
+void runtestmeta()
+{
+	libmaus::lcs::EditDistance E;
+	libmaus::lcs::MetaEditDistance BE;
+	runtest(E,BE);
 }
 
 int main()
 {
 	try
 	{
-		runtest();
+		runtestmeta();
+		runtestconcrete();
 	}
 	catch(std::exception const & ex)
 	{

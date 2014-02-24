@@ -28,7 +28,7 @@ namespace libmaus
 	{		
 		struct EditDistanceTraceContainer : public AlignmentTraceContainer, public AlignmentPrint
 		{	
-			EditDistanceTraceContainer(uint64_t const tracelen) : AlignmentTraceContainer(tracelen) {}
+			EditDistanceTraceContainer(uint64_t const tracelen = 0) : AlignmentTraceContainer(tracelen) {}
 
 			template<typename iterator>
 			std::ostream & printAlignment(
@@ -47,6 +47,20 @@ namespace libmaus
 			{
 				AlignmentPrint::printAlignmentLines(out,a,b,rlinewidth,ta,te);
 				return out;
+			}
+			
+			void resize(uint64_t const tracelen)
+			{
+				AlignmentTraceContainer::resize(tracelen);
+			}
+			uint64_t capacity() const
+			{
+				return AlignmentTraceContainer::capacity();
+			}
+			
+			AlignmentTraceContainer const & getTrace()
+			{
+				return static_cast<AlignmentTraceContainer const &>(*this);
 			}
 		};
 	}

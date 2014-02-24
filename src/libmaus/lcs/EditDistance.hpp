@@ -43,22 +43,32 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
-			uint64_t const n; // rows
-			uint64_t const m; // columns
-			uint64_t const n1;
-			uint64_t const m1;
+			uint64_t n; // rows
+			uint64_t m; // columns
+			uint64_t n1;
+			uint64_t m1;
 
 			// matrix stored column wise
 			typedef std::pair < similarity_type, step_type > element_type;
 			::libmaus::autoarray::AutoArray<element_type> M;
-
-			public:
-			EditDistance(uint64_t const rn, uint64_t const rm, uint64_t const = 0)
-			: EditDistanceTraceContainer(rn+rm), n(rn), m(rm), n1(n+1), m1(m+1), M( n1*m1, false )
-			{
-				// std::cerr << "n=" << n << " m=" << m << " n1=" << n1 << " m1=" << m1 << std::endl;
-			}
 			
+			void setup(
+				uint64_t const rn,
+				uint64_t const rm,
+				uint64_t const /* rk */ = 0
+			)
+			{
+				n = rn;
+				m = rm;
+				n1 = n+1;
+				m1 = m+1;
+			
+				if ( M.size() < n1*m1 )
+					M = ::libmaus::autoarray::AutoArray<element_type>(n1*m1,false);
+				if ( EditDistanceTraceContainer::capacity() < n+m )
+					EditDistanceTraceContainer::resize(n+m);
+			}
+
 			element_type operator()(uint64_t const i, uint64_t const j) const
 			{
 				return M [ i * n1 + j ];
@@ -89,16 +99,27 @@ namespace libmaus
 				}
 			
 			}
+
+			public:
+			EditDistance()
+			{
+			}
+			
 			
 			template<typename iterator_a, typename iterator_b>
 			EditDistanceResult process(
-				iterator_a a, iterator_b b,
+				iterator_a a, 
+				uint64_t const n,
+				iterator_b b,
+				uint64_t const m,
+				uint64_t const k = 0,
 				similarity_type const gain_match = 1,
 				similarity_type const penalty_subst = 1,
 				similarity_type const penalty_ins = 1,
 				similarity_type const penalty_del = 1
 			)
 			{
+				setup(n,m,k);
 			
 				element_type * p = M.begin();
 

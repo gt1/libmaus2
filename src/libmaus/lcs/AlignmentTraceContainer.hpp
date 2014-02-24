@@ -39,13 +39,25 @@ namespace libmaus
 			// trace
 			::libmaus::autoarray::AutoArray<step_type> trace;
 			//
-			step_type * const te;
+			step_type * te;
 			step_type * ta;
 
-			AlignmentTraceContainer(uint64_t const tracelen)
+			AlignmentTraceContainer(uint64_t const tracelen = 0)
 			: trace(tracelen), te(trace.end()), ta(te)
 			{
 			
+			}
+			
+			void resize(uint64_t const tracelen)
+			{
+				trace = ::libmaus::autoarray::AutoArray<step_type>(tracelen,false);
+				te = trace.end();
+				ta = te;
+			}
+			
+			uint64_t capacity() const
+			{
+				return trace.size();
 			}
 			
 			uint64_t getTraceLength() const
@@ -113,6 +125,26 @@ namespace libmaus
 			int32_t getTraceScore() const
 			{
 				return getTraceScore(ta,te);
+			}
+			
+			bool operator==(AlignmentTraceContainer const & o) const
+			{
+				if ( getTraceLength() != o.getTraceLength() )
+					return false;
+				
+				step_type *  tc =   ta;
+				step_type * otc = o.ta;
+				
+				while ( tc != te )
+					if ( *(tc++) != *(otc++) )
+						return false;
+						
+				return true;
+			}
+			
+			bool operator!=(AlignmentTraceContainer const & o) const
+			{
+				return ! operator==(o);
 			}
 		};
 	}

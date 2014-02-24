@@ -33,49 +33,16 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:			
-			uint64_t const n; // columns
-			uint64_t const n1; // n+1
-			uint64_t const m;
-			uint64_t const m1;
-			uint64_t const k;
-			uint64_t const k21;
+			uint64_t n; // columns
+			uint64_t n1; // n+1
+			uint64_t m;
+			uint64_t m1;
+			uint64_t k;
+			uint64_t k21;
 
 			typedef std::pair < similarity_type, step_type > element_type;
 			libmaus::autoarray::AutoArray<element_type> M;
-			
-			public:
-			static bool validParameters(
-				uint64_t const n,
-				uint64_t const m,
-				uint64_t const k				
-			)
-			{
-				return 
-					(n+1) >= (2*(k+1))
-					&&
-					(m+1) >= (2*(k+1))
-					&&
-					((std::max(n,m)-std::min(n,m)) <= k)
-				;
-			}
-			
-			BandedEditDistance(
-				uint64_t const rn,
-				uint64_t const rm,
-				uint64_t const rk
-			)
-			: EditDistanceTraceContainer(rn+rm+1), 
-			  n(rn), n1(n+1), m(rm), m1(m+1), k(rk), k21(2*k+1), M(m1 * k21,false)
-			{
-				if ( ! validParameters(n,m,k) )
-				{
-					libmaus::exception::LibMausException se;
-					se.getStream() << "BandedEditDistance::BandedEditDistance(): parameters n=" << n << " m=" << m << " k=" << k << " are invalid." << std::endl;
-					se.finish();
-					throw se;
-				}
-			}
-			
+
 			element_type operator()(
 				uint64_t const i, uint64_t const j
 			) const
@@ -121,17 +88,65 @@ namespace libmaus
 				ostr << "(" << P.first << "," << P.second << ")";
 				return ostr.str();
 			}
+
+			void setup(uint64_t const rn, uint64_t const rm, uint64_t rk)
+			{
+				if ( ! validParameters(rn,rm,rk) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BandedEditDistance::BandedEditDistance(): parameters n=" << n << " m=" << m << " k=" << k << " are invalid." << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				n = rn;
+				n1 = n+1;
+				m = rm;
+				m1 = m+1;
+				k = rk;
+				k21 = (k<<1)+1;
+				
+				if ( M.size() < m1 * k21 )
+					M = libmaus::autoarray::AutoArray<element_type>(m1 * k21,false);
+				if ( EditDistanceTraceContainer::capacity() < rn+rm+1 )
+					EditDistanceTraceContainer::resize(rn+rm+1);					
+			}
+			
+			public:
+			static bool validParameters(
+				uint64_t const n,
+				uint64_t const m,
+				uint64_t const k				
+			)
+			{
+				return 
+					(n+1) >= (2*(k+1))
+					&&
+					(m+1) >= (2*(k+1))
+					&&
+					((std::max(n,m)-std::min(n,m)) <= k)
+				;
+			}
+			
+			BandedEditDistance()
+			{
+			}
 			
 			template<typename iterator_a, typename iterator_b>
 			EditDistanceResult process(
 				iterator_a aa,
+				uint64_t const rn,
 				iterator_b bb,
+				uint64_t const rm,
+				uint64_t const rk,
 				similarity_type const gain_match = 1,
 				similarity_type const penalty_subst = 1,
 				similarity_type const penalty_ins = 1,
 				similarity_type const penalty_del = 1
 			)
 			{
+				setup(rn,rm,rk);
+			
 				if ( k )
 				{
 					element_type * p = M.begin();
