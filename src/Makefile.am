@@ -747,7 +747,10 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastADefinedBasesTable.hpp \
 	libmaus/fastx/FastAMapTable.hpp \
 	libmaus/fastx/FastAMatchTable.hpp \
-	libmaus/fastx/FastALineParser.hpp
+	libmaus/fastx/FastALineParser.hpp \
+	libmaus/fastx/FastAStreamWrapper.hpp \
+	libmaus/fastx/FastAStream.hpp \
+	libmaus/fastx/FastAStreamSet.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
