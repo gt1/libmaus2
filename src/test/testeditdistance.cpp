@@ -31,7 +31,8 @@ template<typename edit_a, typename edit_b>
 static void testEdit(
 	std::string const & a, std::string const & b, uint64_t const k,
 	edit_a & E,
-	edit_b & BE
+	edit_b & BE,
+	bool const verbose = false
 )
 {
 	libmaus::lcs::EditDistanceResult EDR = E.process(a.begin(),a.size(),b.begin(),b.size(),k);
@@ -41,6 +42,17 @@ static void testEdit(
 	bool const EDRcheck  = EDR.nummis  + EDR.numins  + EDR.numdel  <= k;
 	
 	assert ( EDRcheck == EDRBvalid );
+	
+	if ( verbose )
+	{
+		std::cout << a << std::endl;
+		std::cout << b << std::endl;
+	
+		std::cout << EDR << std::endl;		
+		E.printAlignmentLines(std::cout,a,b,80);
+		std::cout << EDRB << std::endl;
+		BE.printAlignmentLines(std::cout,a,b,80);	
+	}
 
 	#if 0
 	if ( EDRBvalid && E.traceToString() != BE.traceToString() )
@@ -62,9 +74,9 @@ static void testEdit(
 }
 
 template<typename edit_a, typename edit_b>
-static void testEdit(std::string const & a, std::string const & b, edit_a & E, edit_b & BE)
+static void testEdit(std::string const & a, std::string const & b, edit_a & E, edit_b & BE, bool const verbose = false)
 {
-	testEdit(a,b,dif(a.size(),b.size()),E,BE);
+	testEdit(a,b,dif(a.size(),b.size()),E,BE,verbose);
 }
 
 template<typename edit_a, typename edit_b>
@@ -101,7 +113,6 @@ void runtest(edit_a & E, edit_b & BE)
 {
 	libmaus::random::Random::setup(5);
 
-	
 	testEdit("lichesxein","lichtensteijn",E,BE);
 	testEdit("lichtensteijn","lichesxein",E,BE);
 	
@@ -137,6 +148,10 @@ int main()
 {
 	try
 	{
+		libmaus::lcs::EditDistance E;
+		libmaus::lcs::BandedEditDistance BE;
+		testEdit("bbbbbba","bbbbb",E,BE,true);
+
 		runtestmeta();
 		runtestconcrete();
 	}
