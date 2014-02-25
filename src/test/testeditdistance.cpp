@@ -130,33 +130,44 @@ void runtest(edit_a & E, edit_b & BE)
 	enumerate(12,4,E,BE);
 }
 
+template<libmaus::lcs::edit_distance_priority_type edit_distance_priority>
 void runtestconcrete()
 {
-	libmaus::lcs::EditDistance E;
-	libmaus::lcs::BandedEditDistance BE;
+	libmaus::lcs::EditDistance<edit_distance_priority> E;
+	libmaus::lcs::BandedEditDistance<edit_distance_priority> BE;
 	runtest(E,BE);
 }
 
+template<libmaus::lcs::edit_distance_priority_type edit_distance_priority>
 void runtestmeta()
 {
-	libmaus::lcs::EditDistance E;
-	libmaus::lcs::MetaEditDistance BE;
+	libmaus::lcs::EditDistance<edit_distance_priority> E;
+	libmaus::lcs::MetaEditDistance<edit_distance_priority> BE;
 	runtest(E,BE);
+}
+
+template<libmaus::lcs::edit_distance_priority_type edit_distance_priority>
+void runtestshort()
+{
+	libmaus::lcs::EditDistance<edit_distance_priority> E;
+	libmaus::lcs::BandedEditDistance<edit_distance_priority> BE;
+	testEdit("bbbbbba","bbbbb",E,BE,true);
+	testEdit("bbbbb","bbbbbba",E,BE,true);
+	testEdit("bbababb","bbaabbaab",E,BE,true);
 }
 
 int main()
 {
 	try
 	{
-		libmaus::lcs::EditDistance E;
-		libmaus::lcs::BandedEditDistance BE;
-		testEdit("bbbbbba","bbbbb",E,BE,true);
-		testEdit("bbbbb","bbbbbba",E,BE,true);
-		testEdit("bbababb"  ,
-		         "bbaabbaab",E,BE,true);
+		runtestshort< ::libmaus::lcs::diag_del_ins >();
+		runtestshort< ::libmaus::lcs::del_ins_diag >();
 
-		runtestmeta();
-		runtestconcrete();
+		runtestmeta< ::libmaus::lcs::diag_del_ins >();
+		runtestconcrete< ::libmaus::lcs::diag_del_ins >();
+
+		runtestmeta< ::libmaus::lcs::del_ins_diag >();
+		runtestconcrete< ::libmaus::lcs::del_ins_diag >();
 	}
 	catch(std::exception const & ex)
 	{
