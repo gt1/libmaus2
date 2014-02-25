@@ -106,7 +106,7 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp \
 	libmaus/fastx/FastALineParserLineInfo.cpp \
 	libmaus/fastx/FastAMatchTable.cpp \
-	libmaus/lcs/EditDistanceResult.cpp
+	libmaus/lcs/EditDistanceResult.cpp 
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -945,7 +945,8 @@ libmauslcs_include_HEADERS=\
 	libmaus/lcs/EditDistance.hpp \
 	libmaus/lcs/BandedEditDistance.hpp \
 	libmaus/lcs/MetaEditDistance.hpp \
-	libmaus/lcs/EditDistanceTraceContainer.hpp
+	libmaus/lcs/EditDistanceTraceContainer.hpp \
+	libmaus/lcs/EditDistancePriorityType.hpp
 
 libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
 libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \

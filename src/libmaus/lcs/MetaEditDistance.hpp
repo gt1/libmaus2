@@ -26,13 +26,17 @@ namespace libmaus
 {
 	namespace lcs
 	{		
+		template<
+			libmaus::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus::lcs::del_ins_diag
+		>
 		struct MetaEditDistance : public EditDistanceTraceContainer
 		{
-			typedef MetaEditDistance this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
+			typedef MetaEditDistance<edit_distance_priority> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			::libmaus::lcs::EditDistance E;
-			::libmaus::lcs::BandedEditDistance BE;
+			::libmaus::lcs::EditDistance<edit_distance_priority> E;
+			::libmaus::lcs::BandedEditDistance<edit_distance_priority> BE;
 			
 			MetaEditDistance()
 			{
@@ -51,7 +55,7 @@ namespace libmaus
 				similarity_type const penalty_del = 1
 			)
 			{
-				if ( ::libmaus::lcs::BandedEditDistance::validParameters(rn,rm,rk) )
+				if ( ::libmaus::lcs::BandedEditDistance<edit_distance_priority>::validParameters(rn,rm,rk) )
 				{
 					EditDistanceResult const R = BE.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
 					ta = BE.ta;
