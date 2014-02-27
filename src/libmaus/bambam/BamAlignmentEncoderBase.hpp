@@ -393,6 +393,36 @@ namespace libmaus
 				data.bufferPush(0);
 			}
 
+			/**
+			 * put auxiliary tag for id tag as string
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param value character string
+			 **/
+			template<typename buffer_type, typename value_type>
+			static void putAuxString(
+				buffer_type & data,
+				char const * tag, 
+				value_type const & value
+			)
+			{
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
+				
+				data.bufferPush(tag[0]);
+				data.bufferPush(tag[1]);
+				data.bufferPush('Z');
+				
+				char const * c = reinterpret_cast<char const *>(value);
+				uint64_t const len = strlen(c);
+				for ( uint64_t i = 0; i < len; ++i )
+					data.bufferPush(c[i]);
+				data.bufferPush(0);
+			}
+
 			//! number reinterpretation union
 			union numberpun
 			{

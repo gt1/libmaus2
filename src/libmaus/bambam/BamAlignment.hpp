@@ -805,6 +805,24 @@ namespace libmaus
 			 * add auxiliary field for id tag containing a number array representing V
 			 *
 			 * @param tag aux id
+			 * @param type number type
+			 * @param v number value
+			 **/
+			template<typename value_type>
+			void putAuxNumber(char const * const tag, char const type, value_type const v)
+			{
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				
+				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
+
+				D = data.abuffer;
+				blocksize = data.length;
+			}
+
+			/**
+			 * add auxiliary field for id tag containing a number array representing V
+			 *
+			 * @param tag aux id
 			 * @param V number array
 			 **/
 			template<typename value_type>
@@ -829,6 +847,22 @@ namespace libmaus
 				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
 				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value.c_str());
+
+				D = data.abuffer;
+				blocksize = data.length;
+			}
+
+			/**
+			 * add auxiliary field for id tag containing a string value
+			 *
+			 * @param tag aux id
+			 * @param value string
+			 **/
+			void putAuxString(char const * tag, char const * value)
+			{
+				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+
+				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value);
 
 				D = data.abuffer;
 				blocksize = data.length;
