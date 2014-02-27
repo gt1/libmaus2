@@ -2126,6 +2126,95 @@ namespace libmaus
 			 * @param E alignment block
 			 * @param blocksize size of alignment block
 			 * @param tag two byte aux tag identifier
+			 * @param num place to store number
+			 * @return true if field is present
+			 **/
+			template<typename N>
+			static bool getAuxAsNumber(
+				uint8_t const * E, uint64_t const blocksize, char const * const tag, N & num
+			)
+			{
+				uint8_t const * p = getAux(E,blocksize,tag);
+				
+				// field is not present
+				if ( ! p )
+					return false;
+				
+				switch ( p[2] )
+				{
+					case 'A':
+						num = static_cast<N>(static_cast<int8_t>(p[3]));
+						return true;
+					case 'c': 
+						num = static_cast<N>(static_cast<int8_t>(p[3]));
+						return true;
+					case 'C': 
+						num = static_cast<N>(static_cast<uint8_t>(p[3]));
+						return true;
+					case 's': 
+						num = static_cast<N>(
+							static_cast<int16_t>(
+								(static_cast<uint16_t>(p[3])<< 0) |
+								(static_cast<uint16_t>(p[4])<< 8)
+							)
+						);
+						return true;
+					case 'S':
+						num = static_cast<N>(
+							static_cast<uint16_t>(
+								(static_cast<uint16_t>(p[3])<< 0) |
+								(static_cast<uint16_t>(p[4])<< 8)
+							)
+						);
+						return true;
+					case 'i': 
+						num = static_cast<N>(
+							static_cast<int32_t>(
+								(static_cast<uint32_t>(p[3])<< 0) |
+								(static_cast<uint32_t>(p[4])<< 8) |
+								(static_cast<uint32_t>(p[5])<<16) |
+								(static_cast<uint32_t>(p[6])<<24)
+							)
+						);
+						std::cerr << "set " << num << std::endl;
+						return true;
+					case 'I': 
+						num = static_cast<N>(
+							static_cast<uint32_t>(
+								(static_cast<uint32_t>(p[3])<< 0) |
+								(static_cast<uint32_t>(p[4])<< 8) |
+								(static_cast<uint32_t>(p[5])<<16) |
+								(static_cast<uint32_t>(p[6])<<24)
+							)
+						);
+						return true;
+					case 'f': 
+					{
+						uint32_t const v =
+							static_cast<uint32_t>(
+								(static_cast<uint32_t>(p[3])<< 0) |
+								(static_cast<uint32_t>(p[4])<< 8) |
+								(static_cast<uint32_t>(p[5])<<16) |
+								(static_cast<uint32_t>(p[6])<<24)
+							);
+						numberpun np;
+						np.uvalue = v;
+						num = np.fvalue;	
+						return true;
+					}
+					default:
+					{
+						return false;
+					}
+				}
+			}
+
+			/**
+			 * get auxiliary area in alignment block E of size blocksize for given tag as number
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag two byte aux tag identifier
 			 * @return pointer to aux area or null pointer if tag is not present
 			 **/
 

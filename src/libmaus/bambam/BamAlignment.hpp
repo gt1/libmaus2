@@ -23,6 +23,7 @@
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus/bambam/MdStringComputationContext.hpp>
 #include <libmaus/fastx/FASTQEntry.hpp>
 #include <libmaus/hashing/hash.hpp>
 #include <libmaus/util/utf8.hpp>
@@ -787,6 +788,19 @@ namespace libmaus
 			N getAuxAsNumber(char const * const tag)
 			{			
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag);
+			}
+
+			/**
+			 * get auxiliary field for tag as number
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @param num space for storing number
+			 * @return true if field is present and can be extracted
+			 **/
+			template<typename N>
+			bool getAuxAsNumber(char const * const tag, N & num)
+			{			
+				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag,num);
 			}
 
 			/**
@@ -2045,6 +2059,361 @@ namespace libmaus
 					unmapped.filterOutAux(MQfilter);
 					
 					unmapped.putAuxNumber("MQ", 'i', mapped.getMapQ());
+				}
+			}
+
+			/**
+			 * @return true if read fragment contains any non A,C,G or T
+			 **/
+			bool hasNonACGT() const
+			{
+				static const uint8_t calmd_eqcheck[16] =
+				{
+					0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				};
+				
+				// length of read in bases
+				uint64_t const readlength = getLseq();
+				// encoded sequence
+				uint8_t const * seq = libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin());
+				
+				uint64_t const fullwords = readlength >> 4; // 2 bases per byte -> 16 bases per 64 bit word
+				uint64_t const restbases = readlength - (fullwords<<4); // number of rest bases
+				uint8_t const * rseq = seq;
+				unsigned int seqbits = 0;
+				uint8_t prod = 1;
+				
+				for ( uint64_t i = 0; i < fullwords; ++i )
+				{
+					uint64_t v = 0;
+					
+					for ( unsigned int i = 0; i < 8; ++i )
+					{
+						uint8_t const u = *(rseq++);
+						v <<= 8;
+						v |= u;
+						prod &= calmd_eqcheck[(u>>4) & 0xF];
+						prod &= calmd_eqcheck[(u>>0) & 0xF];
+					}
+					
+					seqbits += libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);
+				}
+				if ( restbases )
+				{
+					uint64_t v = 0;
+					
+					unsigned int const restbytes = (restbases >> 1);
+					assert ( restbytes < 8 );
+					for ( unsigned int i = 0; i < restbytes; ++i )
+					{
+						uint8_t const u = *(rseq++);
+						v <<= 8;
+						v |= u;
+						prod &= calmd_eqcheck[(u>>4) & 0xF];
+						prod &= calmd_eqcheck[(u>>0) & 0xF];
+					}
+					if ( restbases & 1 )
+					{
+						uint8_t const u = *(rseq++);
+						v <<= 8;
+						v |= (u >> 4) & 0xF;
+						prod &= calmd_eqcheck[(u>>4) & 0xF];
+					}
+					
+					seqbits += libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);			
+				}
+				
+				if ( prod )
+					return seqbits != readlength;
+				else
+				{
+					rseq = seq;
+					
+					for ( uint64_t i = 0; i < (readlength>>1); ++i )
+					{
+						uint8_t const c = *(rseq++);
+						uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
+						uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 0) & 0xFF);
+						
+						switch ( c0 )
+						{
+							case 'A': case 'C': case 'G': case 'T':
+								break;
+							default:
+								return true;
+						}
+						switch ( c1 )
+						{
+							case 'A': case 'C': case 'G': case 'T':
+								break;
+							default:
+								return true;
+						}
+					}
+					if ( readlength & 1 )
+					{
+						uint8_t const c = *(rseq++);
+						uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
+						switch ( c0 )
+						{
+							case 'A': case 'C': case 'G': case 'T':
+								break;
+							default:
+								return true;
+						}
+					}
+					
+					return false;
+				}
+			}
+
+			template<typename it_a>
+			void calculateMd(
+				::libmaus::bambam::MdStringComputationContext & context,
+				it_a itref,
+				bool const warnchanges = true
+			)
+			{
+				static const bool calmd_preterm[] =
+				{
+					true, // LIBMAUS_BAMBAM_CMATCH = 0,
+					false, // LIBMAUS_BAMBAM_CINS = 1,
+					false, // LIBMAUS_BAMBAM_CDEL = 2,
+					false, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					false, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					false, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					false, // LIBMAUS_BAMBAM_CPAD = 6,
+					true, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					true // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_insmult[] =
+				{
+					0, // LIBMAUS_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS_BAMBAM_CINS = 1,
+					0, // LIBMAUS_BAMBAM_CDEL = 2,
+					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS_BAMBAM_CPAD = 6,
+					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_delmult[] =
+				{
+					0, // LIBMAUS_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS_BAMBAM_CINS = 1,
+					1, // LIBMAUS_BAMBAM_CDEL = 2,
+					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS_BAMBAM_CPAD = 6,
+					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_softclipmult[] =
+				{
+					0, // LIBMAUS_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS_BAMBAM_CINS = 1,
+					0, // LIBMAUS_BAMBAM_CDEL = 2,
+					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS_BAMBAM_CPAD = 6,
+					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_readadvance[] =
+				{
+					1, // LIBMAUS_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS_BAMBAM_CINS = 1,
+					0, // LIBMAUS_BAMBAM_CDEL = 2,
+					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS_BAMBAM_CPAD = 6,
+					1, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+
+				static const uint8_t calmd_refadvance[] =
+				{
+					1, // LIBMAUS_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS_BAMBAM_CINS = 1,
+					1, // LIBMAUS_BAMBAM_CDEL = 2,
+					1, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS_BAMBAM_CPAD = 6,
+					1, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+
+				if ( isMapped() )
+				{
+					// length of read in bases
+					uint64_t const readlength = getLseq();
+					// encoded sequence
+					uint8_t const * seq = libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin());
+					
+					// number of cigar operations
+					libmaus::autoarray::AutoArray<libmaus::bambam::cigar_operation> & cigop = context.cigop;
+					uint32_t const numcigop = getCigarOperations(cigop);
+
+					// length of unrolled cigar operatios
+					uint64_t cigsum = 0;
+					for ( uint64_t i = 0; i < numcigop; ++i )
+						cigsum += cigop[i].second;
+					
+					context.checkSize(cigsum);	
+					
+					// insertions and deletions
+					uint64_t numins = 0;
+					uint64_t numdel = 0;
+					uint64_t nummis = 0;
+					// position on read
+					uint64_t readpos = 0;
+					// index on RL cigar string
+					uint64_t cigi = 0;
+					
+					for ( ; cigi != numcigop && (!calmd_preterm[cigop[cigi].first]); ++cigi )
+					{
+						int32_t const cigo = cigop[cigi].first;
+						uint64_t const cigp = cigop[cigi].second;
+						
+						numins += calmd_insmult[cigo] * cigp;
+						numdel += calmd_delmult[cigo] * cigp;
+						readpos += calmd_softclipmult[cigo] * cigp;
+					}
+					
+					it_a const itreforg = itref;
+					uint64_t a = 0;
+					char * mdp = context.md.begin();
+
+					for ( ; cigi != numcigop; ++cigi )
+					{
+						int32_t const cigo = cigop[cigi].first;
+						uint64_t const cigp = cigop[cigi].second;
+						
+						if ( calmd_preterm[cigo] )
+						{
+							uint64_t l = 0;
+							while ( l != cigp )
+							{
+								uint64_t h = l;
+								
+								uint64_t const startoff = readpos + h;
+								uint8_t const * lseq = seq + (startoff>>1);
+								if ( startoff & 1 )
+								{
+									uint8_t const c = *(lseq++);
+									uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(c & 0xF);
+									
+									if (  context.T0[c1] != context.T1[itref[h]] )
+										goto cmpdone;
+
+									++h;
+								}
+										
+								while ( cigp - h > 1 )
+								{
+									uint8_t const c = *(lseq++);
+									uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
+									
+									if ( context.T0[c0] != context.T1[itref[h]] )
+										goto cmpdone;
+
+									++h;
+
+									uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>0)&0xF);
+
+									if ( context.T0[c1] != context.T1[itref[h]] )
+										goto cmpdone;
+
+									++h;
+								}
+								
+								if ( cigp - h )
+								{
+									uint8_t const c = *(lseq++);
+									uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
+
+									if (
+										context.T0[c0]
+										==
+										context.T1[itref[h]]
+									)
+										++h;
+								}
+
+								cmpdone:
+								
+								if ( h != cigp )
+								{
+									mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,h-l+a);
+									*(mdp++) = itref[h];
+									h += 1;
+									a = 0;
+									nummis += 1;
+								}
+								else
+								{
+									a += h-l;
+								}
+								
+								l = h;
+							}		
+						}
+						else if ( cigo == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL )
+						{
+							mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,a);
+							a = 0;
+							*(mdp++) =  '^';
+							for ( uint64_t i = 0; i < cigp; ++i )
+								*(mdp++) = itref[i];
+
+							numdel += cigp;
+						}
+
+						readpos += calmd_readadvance[cigo] * cigp;
+						itref   += calmd_refadvance[cigo] * cigp;
+						numins  += calmd_insmult[cigo] * cigp;
+					}
+					mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,a);
+					*(mdp++) = 0;
+
+					uint64_t const nm = numins+numdel+nummis;
+					
+					char const * const prevmd = getAuxString("MD");
+					int32_t prevnm = -1;
+					bool const haveprevnm = getAuxAsNumber<int32_t>("NM",prevnm);
+					
+					bool const mddiff = (!prevmd) || strcmp(context.md.get(),prevmd);
+					bool const nmdiff = (!haveprevnm) || (prevnm != static_cast<int32_t>(nm));
+					bool const diff = mddiff | nmdiff;
+					
+					if ( warnchanges )
+					{
+						if ( mddiff && prevmd )
+							std::cerr << "[D] update MD from " << prevmd << " to " << context.md.get() << "\n";
+						if ( haveprevnm && (prevnm != static_cast<int32_t>(nm)) )
+							std::cerr << "[D] update NM from " << prevnm << " to " << nm << " " << getAuxAsNumber<int32_t>("NM") << "\n";
+					}
+					
+					assert ( readpos == readlength );
+					assert ( itref == itreforg + getReferenceLength() );				
+					
+					if ( diff )
+					{
+						if ( prevmd || haveprevnm )
+							filterOutAux(context.auxvec);
+						putAuxString("MD",context.md.get());
+						putAuxNumber("NM",'i',nm);
+					}
+					
 				}
 			}
 		};

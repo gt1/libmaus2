@@ -491,6 +491,67 @@ namespace libmaus
 			}
 
 			/**
+			 * put aux field for tag with number content
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param type number type (see sam spec)
+			 * @param value number
+			 **/
+			template<typename buffer_type, typename value_type>
+			static void putAuxNumber(
+				buffer_type & data,
+				char const * const tag,
+				char const type, 
+				value_type const & value
+			)
+			{
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
+				
+				data.bufferPush(tag[0]);
+				data.bufferPush(tag[1]);
+				data.bufferPush(type);
+
+				switch ( type )
+				{
+					case 'A':
+						putLE< buffer_type,int8_t>(data,value);
+						break;
+					case 'c':
+						putLE< buffer_type,int8_t>(data,value);
+						break;
+					case 'C':
+						putLE< buffer_type,uint8_t>(data,value);
+						break;
+					case 's':
+						putLE< buffer_type,int16_t>(data,value);
+						break;
+					case 'S':
+						putLE< buffer_type,uint16_t>(data,value);
+						break;
+					case 'i':
+						putLE< buffer_type,int32_t>(data,value);
+						break;
+					case 'I':
+						putLE< buffer_type,uint32_t>(data,value);
+						break;
+					case 'f':
+					{
+						numberpun np;
+						np.fvalue = value;
+						
+						putLE< buffer_type,uint32_t>(
+							data, np.uvalue
+						);
+					}
+						break;
+				}
+			}
+
+			/**
 			 * put aux field for tag with number array content
 			 *
 			 * @param data output buffer
