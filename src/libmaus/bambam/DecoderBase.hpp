@@ -90,10 +90,27 @@ namespace libmaus
 			 **/
 			static uint64_t getLEInteger(uint8_t const * D, unsigned int const l)
 			{
+				#if defined(LIBMAUS_HAVE_i386)
+				switch ( l )
+				{
+					case 1: return *D;
+					case 2: return *(reinterpret_cast<uint16_t const *>(D));
+					case 4: return *(reinterpret_cast<uint32_t const *>(D));
+					case 8: return *(reinterpret_cast<uint64_t const *>(D));
+					default:
+					{
+						uint64_t v = 0;
+						for ( unsigned int i = 0; i < l; ++i )
+							v |= static_cast<uint64_t>(D[i]) << (8*i);
+						return v;
+					}
+				}
+				#else
 				uint64_t v = 0;
 				for ( unsigned int i = 0; i < l; ++i )
 					v |= static_cast<uint64_t>(D[i]) << (8*i);
 				return v;
+				#endif
 			}
 		};
 	}

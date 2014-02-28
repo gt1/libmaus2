@@ -16,15 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamAlignment.hpp>
+#if ! defined(LIBMAUS_AIO_POSIXFDOUTPUTSTREAM_HPP)
+#define LIBMAUS_AIO_POSIXFDOUTPUTSTREAM_HPP
 
-uint8_t const ::libmaus::bambam::BamAlignment::qnameValidTable[256] = {
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-};
+#include <libmaus/aio/PosixFdOutputStreamBuffer.hpp>
+
+namespace libmaus
+{
+	namespace aio
+	{
+		struct PosixFdOutputStream : public PosixFdOutputStreamBuffer, public std::ostream
+		{	
+			typedef PosixFdOutputStream this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			PosixFdOutputStream(int const rfd, uint64_t const rbuffersize = 64*1024)
+			: PosixFdOutputStreamBuffer(rfd,rbuffersize), std::ostream(this)
+			{
+				exceptions(std::ios::badbit);
+			}
+			~PosixFdOutputStream()
+			{
+				flush();
+			}
+		};
+	}
+}
+#endif

@@ -23,7 +23,6 @@
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/MdStringComputationContext.hpp>
 #include <libmaus/fastx/FASTQEntry.hpp>
 #include <libmaus/hashing/hash.hpp>
 #include <libmaus/util/utf8.hpp>
@@ -77,9 +76,6 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-
-			//! valid query name symbols table
-			static uint8_t const qnameValidTable[256];
 
 			//! memory allocation type of data block
 			static const ::libmaus::autoarray::alloc_type D_array_alloc_type = ::libmaus::autoarray::alloc_type_memalign_cacheline;
@@ -188,7 +184,7 @@ namespace libmaus
 					throw se;					
 				}			
 			}
-									
+
 			/**
 			 * check alignment validity excluding reference sequence ids
 			 *
@@ -196,204 +192,7 @@ namespace libmaus
 			 **/
 			libmaus_bambam_alignment_validity valid() const
 			{
-				// fixed length fields are 32 bytes
-				if ( blocksize < 32 )
-					return libmaus_bambam_alignment_validity_block_too_small;
-
-				uint8_t const * blocke = D.begin() + blocksize;					
-				uint8_t const * readname = reinterpret_cast<uint8_t const *>(::libmaus::bambam::BamAlignmentDecoderBase::getReadName(D.begin()));
-				uint8_t const * const readnamea = readname;
-				
-				// look for end of readname
-				while ( readname != blocke && *readname )
-					++readname;
-								
-				// read name extends beyond block
-				if ( readname == blocke )
-					return libmaus_bambam_alignment_validity_queryname_extends_over_block;
-
-				// readname should be pointing to a null byte now
-				if ( readname != blocke )
-					assert ( ! *readname );
-
-				// check whether actual length of read name is consistent with
-				// numerical value given in block
-				uint64_t const lreadname = getLReadName();
-				if ( (readname-readnamea)+1 != static_cast<ptrdiff_t>(lreadname) )
-					return libmaus_bambam_alignment_validity_queryname_length_inconsistent;
-				if ( !(readname-readnamea) )
-					return libmaus_bambam_alignment_validity_queryname_empty;
-				for ( uint64_t i = 0; i < lreadname-1; ++i )
-					if ( ! qnameValidTable[readnamea[i]] )
-						return libmaus_bambam_alignment_validity_queryname_contains_illegal_symbols;
-
-				// check if cigar string ends before block end
-				uint8_t const * cigar = ::libmaus::bambam::BamAlignmentDecoderBase::getCigar(D.begin());
-				if ( cigar + getNCigar()*sizeof(uint32_t) > blocke )
-					return libmaus_bambam_alignment_validity_cigar_extends_over_block;
-
-				// check if sequence ends before block end
-				uint8_t const * seq = ::libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin());
-				if ( seq + ((getLseq()+1)/2) > blocke )
-					return libmaus_bambam_alignment_validity_sequence_extends_over_block;
-				
-				// check if quality string ends before block end
-				uint8_t const * const qual = ::libmaus::bambam::BamAlignmentDecoderBase::getQual(D.begin());
-				if ( qual + getLseq() > blocke )
-					return libmaus_bambam_alignment_validity_quality_extends_over_block;
-				
-				// check whether all cigar operators are known	
-				for ( uint64_t i = 0; i < getNCigar(); ++i )
-				{
-					uint64_t const cigop = getCigarFieldOp(i);
-					if ( cigop > ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF )
-						return libmaus_bambam_alignment_validity_unknown_cigar_op;
-				}
-
-				// check if cigar string is consistent with sequence length
-				if ( 
-					isMapped() && 
-					static_cast<int64_t>(getLseqByCigar()) != getLseq() 
-				)
-					return libmaus_bambam_alignment_validity_cigar_is_inconsistent_with_sequence_length;
-					
-				int32_t const pos = getPos();
-				if ( pos < -1 )
-				{
-					return libmaus_bambam_alignment_validity_invalid_mapping_position;
-				}
-				int32_t const nextpos = getNextPos();
-				if ( nextpos < -1 )
-				{
-					return libmaus_bambam_alignment_validity_invalid_next_mapping_position;
-				}
-				int32_t const tlen = getTlen();
-				if ( tlen < ((-(1ll<<31))+1) )
-					return libmaus_bambam_alignment_validity_invalid_tlen;
-					
-				uint64_t const lseq = getLseq();
-				uint8_t const * const quale = qual + lseq;
-				for ( uint8_t const * qualc = qual; qualc != quale; ++qualc )
-					if ( static_cast<int>(*qualc) > static_cast<int>('~'-33) )
-					{
-						if ( *qualc == 255 )
-						{
-							if ( qualc - qual )
-							{
-								return libmaus_bambam_alignment_validity_invalid_quality_value;
-							}
-							
-							while ( qualc != quale )
-								if ( *(qualc++) != 255 )
-									return libmaus_bambam_alignment_validity_invalid_quality_value;
-							
-							// go back by one to leave loop above
-							--qualc;
-						}
-						else
-							return libmaus_bambam_alignment_validity_invalid_quality_value;
-					}
-
-				uint8_t const * aux = ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.begin());
-
-				while ( aux != D.begin()+blocksize )
-				{
-					if ( ((D.begin()+blocksize)-aux) < 3 )
-						return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-						
-					switch ( aux[2] )
-					{
-						case 'A':
-							if ( ((D.begin()+blocksize)-aux) < 3+1 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							if ( aux[3] < '!' || aux[3] > '~' )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							break;
-						case 'c':
-						case 'C':
-							if ( ((D.begin()+blocksize)-aux) < 3+1 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							break;
-						case 's':
-						case 'S':
-							if ( ((D.begin()+blocksize)-aux) < 3+2 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							break;
-						case 'i':
-						case 'I':
-						case 'f':
-							if ( ((D.begin()+blocksize)-aux) < 3+4 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							break;
-						case 'B':
-						{
-							if ( ((D.begin()+blocksize)-aux) < 3 + 1 /* data type */ + 4 /* length of array */ )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							/* length of array */
-							uint64_t const alen = static_cast<int32_t>(::libmaus::bambam::BamAlignmentDecoderBase::getLEInteger(aux+4,4));
-							/* valid element data types */
-							switch ( aux[3] )
-							{
-								case 'c':
-								case 'C':
-									if ( ((D.begin()+blocksize)-aux) < static_cast<ptrdiff_t>(3+1+4+1*alen) )
-										return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-									break;
-								case 's':
-								case 'S':
-									if ( ((D.begin()+blocksize)-aux) < static_cast<ptrdiff_t>(3+1+4 + 2*alen) )
-										return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-									break;
-								case 'i':
-								case 'I':
-								case 'f':
-									if ( ((D.begin()+blocksize)-aux) < static_cast<ptrdiff_t>(3+1+4 + 4*alen) )
-										return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-									break;
-								default:
-									return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							}
-							break;
-						}
-						case 'Z':
-						{
-							uint8_t const * p = aux+3;
-							uint8_t const * const pe = D.begin() + blocksize;
-							
-							while ( p != pe && *p )
-								++p;
-							
-							// if terminator byte 0 is not inside block
-							if ( p == pe )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-
-							break;
-						}
-						case 'H':
-						{
-							uint8_t const * const pa = aux+3;
-							uint8_t const * p = pa;
-							uint8_t const * const pe = D.begin() + blocksize;
-							
-							while ( p != pe && *p )
-								++p;
-							
-							// if terminator byte 0 is not inside block
-							if ( p == pe )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-
-							break;
-						}
-						default:
-							return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
-							break;
-					}
-
-					aux = aux + ::libmaus::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
-				}
-
-
-				return libmaus_bambam_alignment_validity_ok;
+				return ::libmaus::bambam::BamAlignmentDecoderBase::valid(D.begin(),blocksize);
 			}
 
 			/**
@@ -2067,354 +1866,36 @@ namespace libmaus
 			 **/
 			bool hasNonACGT() const
 			{
-				static const uint8_t calmd_eqcheck[16] =
+				return BamAlignmentDecoderBase::hasNonACGT(D.begin());
+			}
+			
+			void fillMd(::libmaus::bambam::MdStringComputationContext & context)
+			{
+				if ( context.diff )
 				{
-					0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-				};
-				
-				// length of read in bases
-				uint64_t const readlength = getLseq();
-				// encoded sequence
-				uint8_t const * seq = libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin());
-				
-				uint64_t const fullwords = readlength >> 4; // 2 bases per byte -> 16 bases per 64 bit word
-				uint64_t const restbases = readlength - (fullwords<<4); // number of rest bases
-				uint8_t const * rseq = seq;
-				unsigned int seqbits = 0;
-				uint8_t prod = 1;
-				
-				for ( uint64_t i = 0; i < fullwords; ++i )
-				{
-					uint64_t v = 0;
-					
-					for ( unsigned int i = 0; i < 8; ++i )
-					{
-						uint8_t const u = *(rseq++);
-						v <<= 8;
-						v |= u;
-						prod &= calmd_eqcheck[(u>>4) & 0xF];
-						prod &= calmd_eqcheck[(u>>0) & 0xF];
-					}
-					
-					seqbits += libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);
-				}
-				if ( restbases )
-				{
-					uint64_t v = 0;
-					
-					unsigned int const restbytes = (restbases >> 1);
-					assert ( restbytes < 8 );
-					for ( unsigned int i = 0; i < restbytes; ++i )
-					{
-						uint8_t const u = *(rseq++);
-						v <<= 8;
-						v |= u;
-						prod &= calmd_eqcheck[(u>>4) & 0xF];
-						prod &= calmd_eqcheck[(u>>0) & 0xF];
-					}
-					if ( restbases & 1 )
-					{
-						uint8_t const u = *(rseq++);
-						v <<= 8;
-						v |= (u >> 4) & 0xF;
-						prod &= calmd_eqcheck[(u>>4) & 0xF];
-					}
-					
-					seqbits += libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);			
-				}
-				
-				if ( prod )
-					return seqbits != readlength;
-				else
-				{
-					rseq = seq;
-					
-					for ( uint64_t i = 0; i < (readlength>>1); ++i )
-					{
-						uint8_t const c = *(rseq++);
-						uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
-						uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 0) & 0xFF);
-						
-						switch ( c0 )
-						{
-							case 'A': case 'C': case 'G': case 'T':
-								break;
-							default:
-								return true;
-						}
-						switch ( c1 )
-						{
-							case 'A': case 'C': case 'G': case 'T':
-								break;
-							default:
-								return true;
-						}
-					}
-					if ( readlength & 1 )
-					{
-						uint8_t const c = *(rseq++);
-						uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
-						switch ( c0 )
-						{
-							case 'A': case 'C': case 'G': case 'T':
-								break;
-							default:
-								return true;
-						}
-					}
-					
-					return false;
+					if ( context.eraseold )
+						filterOutAux(context.auxvec);
+					putAuxString("MD",context.md.get());
+					putAuxNumber("NM",'i',context.nm);
 				}
 			}
 
+			/**
+			 * calculate MD and NM fields
+			 *
+			 * @param context temporary space and result storage
+			 * @param pointer to reference at position of first match/mismatch
+			 * @param warnchanges warn about changes on stderr if previous values are present
+			 **/
 			template<typename it_a>
 			void calculateMd(
 				::libmaus::bambam::MdStringComputationContext & context,
 				it_a itref,
 				bool const warnchanges = true
 			)
-			{
-				static const bool calmd_preterm[] =
-				{
-					true, // LIBMAUS_BAMBAM_CMATCH = 0,
-					false, // LIBMAUS_BAMBAM_CINS = 1,
-					false, // LIBMAUS_BAMBAM_CDEL = 2,
-					false, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					false, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					false, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					false, // LIBMAUS_BAMBAM_CPAD = 6,
-					true, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					true // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
-				static const uint8_t calmd_insmult[] =
-				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					1, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
-				static const uint8_t calmd_delmult[] =
-				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS_BAMBAM_CINS = 1,
-					1, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
-				static const uint8_t calmd_softclipmult[] =
-				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
-				static const uint8_t calmd_readadvance[] =
-				{
-					1, // LIBMAUS_BAMBAM_CMATCH = 0,
-					1, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					1, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					1 // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
-				static const uint8_t calmd_refadvance[] =
-				{
-					1, // LIBMAUS_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS_BAMBAM_CINS = 1,
-					1, // LIBMAUS_BAMBAM_CDEL = 2,
-					1, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					1, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					1 // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
-				if ( isMapped() )
-				{
-					// length of read in bases
-					uint64_t const readlength = getLseq();
-					// encoded sequence
-					uint8_t const * seq = libmaus::bambam::BamAlignmentDecoderBase::getSeq(D.begin());
-					
-					// number of cigar operations
-					libmaus::autoarray::AutoArray<libmaus::bambam::cigar_operation> & cigop = context.cigop;
-					uint32_t const numcigop = getCigarOperations(cigop);
-
-					// length of unrolled cigar operatios
-					uint64_t cigsum = 0;
-					for ( uint64_t i = 0; i < numcigop; ++i )
-						cigsum += cigop[i].second;
-					
-					context.checkSize(cigsum);	
-					
-					// insertions and deletions
-					uint64_t numins = 0;
-					uint64_t numdel = 0;
-					uint64_t nummis = 0;
-					// position on read
-					uint64_t readpos = 0;
-					// index on RL cigar string
-					uint64_t cigi = 0;
-					
-					for ( ; cigi != numcigop && (!calmd_preterm[cigop[cigi].first]); ++cigi )
-					{
-						int32_t const cigo = cigop[cigi].first;
-						uint64_t const cigp = cigop[cigi].second;
-						
-						numins += calmd_insmult[cigo] * cigp;
-						numdel += calmd_delmult[cigo] * cigp;
-						readpos += calmd_softclipmult[cigo] * cigp;
-					}
-					
-					it_a const itreforg = itref;
-					uint64_t a = 0;
-					char * mdp = context.md.begin();
-
-					for ( ; cigi != numcigop; ++cigi )
-					{
-						int32_t const cigo = cigop[cigi].first;
-						uint64_t const cigp = cigop[cigi].second;
-						
-						if ( calmd_preterm[cigo] )
-						{
-							uint64_t l = 0;
-							while ( l != cigp )
-							{
-								uint64_t h = l;
-								
-								uint64_t const startoff = readpos + h;
-								uint8_t const * lseq = seq + (startoff>>1);
-								if ( startoff & 1 )
-								{
-									uint8_t const c = *(lseq++);
-									uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(c & 0xF);
-									
-									if (  context.T0[c1] != context.T1[itref[h]] )
-										goto cmpdone;
-
-									++h;
-								}
-										
-								while ( cigp - h > 1 )
-								{
-									uint8_t const c = *(lseq++);
-									uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
-									
-									if ( context.T0[c0] != context.T1[itref[h]] )
-										goto cmpdone;
-
-									++h;
-
-									uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>0)&0xF);
-
-									if ( context.T0[c1] != context.T1[itref[h]] )
-										goto cmpdone;
-
-									++h;
-								}
-								
-								if ( cigp - h )
-								{
-									uint8_t const c = *(lseq++);
-									uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
-
-									if (
-										context.T0[c0]
-										==
-										context.T1[itref[h]]
-									)
-										++h;
-								}
-
-								cmpdone:
-								
-								if ( h != cigp )
-								{
-									mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,h-l+a);
-									*(mdp++) = itref[h];
-									h += 1;
-									a = 0;
-									nummis += 1;
-								}
-								else
-								{
-									a += h-l;
-								}
-								
-								l = h;
-							}		
-						}
-						else if ( cigo == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL )
-						{
-							mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,a);
-							a = 0;
-							*(mdp++) =  '^';
-							for ( uint64_t i = 0; i < cigp; ++i )
-								*(mdp++) = itref[i];
-
-							numdel += cigp;
-						}
-
-						readpos += calmd_readadvance[cigo] * cigp;
-						itref   += calmd_refadvance[cigo] * cigp;
-						numins  += calmd_insmult[cigo] * cigp;
-					}
-					mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,a);
-					*(mdp++) = 0;
-
-					uint64_t const nm = numins+numdel+nummis;
-					
-					char const * const prevmd = getAuxString("MD");
-					int32_t prevnm = -1;
-					bool const haveprevnm = getAuxAsNumber<int32_t>("NM",prevnm);
-					
-					bool const mddiff = (!prevmd) || strcmp(context.md.get(),prevmd);
-					bool const nmdiff = (!haveprevnm) || (prevnm != static_cast<int32_t>(nm));
-					bool const diff = mddiff | nmdiff;
-					
-					if ( warnchanges )
-					{
-						if ( mddiff && prevmd )
-							std::cerr << "[D] update MD from " << prevmd << " to " << context.md.get() << "\n";
-						if ( haveprevnm && (prevnm != static_cast<int32_t>(nm)) )
-							std::cerr << "[D] update NM from " << prevnm << " to " << nm << " " << getAuxAsNumber<int32_t>("NM") << "\n";
-					}
-					
-					assert ( readpos == readlength );
-					assert ( itref == itreforg + getReferenceLength() );				
-					
-					if ( diff )
-					{
-						if ( prevmd || haveprevnm )
-							filterOutAux(context.auxvec);
-						putAuxString("MD",context.md.get());
-						putAuxNumber("NM",'i',nm);
-					}
-					
-				}
+			{	
+				libmaus::bambam::BamAlignmentDecoderBase::calculateMd(D.begin(),blocksize,context,itref,warnchanges);
+				fillMd(context);	
 			}
 		};
 	}

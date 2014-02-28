@@ -34,6 +34,11 @@ namespace libmaus
 			libmaus::autoarray::AutoArray<uint8_t> T0;
 			libmaus::autoarray::AutoArray<uint8_t> T1;
 			libmaus::bambam::BamAuxFilterVector auxvec;
+			uint64_t nm;
+			bool mddiff;
+			bool nmdiff;
+			bool diff;
+			bool eraseold;
 			
 			void checkSize(uint64_t const cigsum)
 			{
@@ -42,7 +47,7 @@ namespace libmaus
 			}
 			
 			MdStringComputationContext()
-			: T0(256,false), T1(256,false)
+			: T0(256,false), T1(256,false), nm(0)
 			{
 				std::fill(T0.begin(),T0.end(),4);
 				std::fill(T1.begin(),T1.end(),5);

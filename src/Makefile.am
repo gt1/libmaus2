@@ -33,7 +33,7 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/util/TempFileRemovalContainer.cpp \
 	libmaus/network/LogReceiver.cpp \
 	libmaus/huffman/IndexLoaderBase.cpp \
-	libmaus/bambam/BamAlignment.cpp \
+	libmaus/bambam/BamAlignmentDecoderBase.cpp \
 	libmaus/bambam/StrCmpNum.cpp \
 	libmaus/huffman/KvInitResult.cpp \
 	libmaus/fm/MausFmToBwaConversion.cpp \
@@ -670,7 +670,9 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/CheckedInputOutputStream.hpp \
 	libmaus/aio/PosixFdInput.hpp \
 	libmaus/aio/PosixFdInputWrapper.hpp \
-	libmaus/aio/PosixFdInputStream.hpp
+	libmaus/aio/PosixFdInputStream.hpp \
+	libmaus/aio/PosixFdOutputStreamBuffer.hpp \
+	libmaus/aio/PosixFdOutputStream.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
