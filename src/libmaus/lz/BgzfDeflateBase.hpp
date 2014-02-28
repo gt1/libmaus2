@@ -51,7 +51,9 @@ namespace libmaus
 			:
 			  BgzfDeflateZStreamBase(level),
 			  BgzfDeflateOutputBufferBase(level),
-			  BgzfDeflateInputBufferBase(),
+			  BgzfDeflateInputBufferBase(
+			  	level == 0 ? computeDeflateBound(level) : getBgzfMaxBlockSize()
+			  ),
 			  flushmode(rflushmode),
 			  objectid(0),
 			  blockid(0),

@@ -38,6 +38,23 @@ namespace libmaus
 				deflatedestroyz(&strm);		
 			}
 			
+			static uint64_t computeDeflateBound(int const level)
+			{
+				z_stream strm;
+				deflateinitz(&strm,level);
+
+				// search for number of bytes that will never produce more compressed space than we have
+				unsigned int bound = getBgzfMaxBlockSize();
+				
+				while ( 
+					deflateBound(&strm,bound) > 
+					(getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) 
+				)
+					--bound;
+					
+				return bound;
+			}
+			
 			void deflateinit(int const level = Z_DEFAULT_COMPRESSION)
 			{
 				deflateinitz(&strm,level);
