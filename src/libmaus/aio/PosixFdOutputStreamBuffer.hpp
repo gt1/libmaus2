@@ -60,7 +60,7 @@ namespace libmaus
 			{
 				int fd = -1;
 				
-				while ( fd = open(filename.c_str(),O_WRONLY,0644) < 0 )
+				while ( (fd = open(filename.c_str(),O_WRONLY,0644)) < 0 )
 				{
 					int const error = errno;
 					
