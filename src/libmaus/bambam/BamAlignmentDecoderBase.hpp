@@ -2181,7 +2181,6 @@ namespace libmaus
 								(static_cast<uint32_t>(p[6])<<24)
 							)
 						);
-						std::cerr << "set " << num << std::endl;
 						return true;
 					case 'I': 
 						num = static_cast<N>(
@@ -2895,7 +2894,7 @@ namespace libmaus
 						if ( context.mddiff && prevmd )
 							std::cerr << "[D] update MD from " << prevmd << " to " << context.md.get() << "\n";
 						if ( haveprevnm && (prevnm != static_cast<int32_t>(context.nm)) )
-							std::cerr << "[D] update NM from " << prevnm << " to " << context.nm << " " << libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int32_t>(B,blocksize,"NM") << "\n";
+							std::cerr << "[D] update NM from " << prevnm << " to " << context.nm << "\n";
 					}
 					
 					assert ( readpos == readlength );
