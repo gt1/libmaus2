@@ -2741,6 +2741,19 @@ namespace libmaus
 					1 // LIBMAUS_BAMBAM_CDIFF = 8
 				};
 			
+				static const uint8_t calmd_softclipinsmult[] =
+				{
+					0, // LIBMAUS_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS_BAMBAM_CINS = 1,
+					0, // LIBMAUS_BAMBAM_CDEL = 2,
+					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS_BAMBAM_CPAD = 6,
+					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS_BAMBAM_CDIFF = 8
+				};
+				
 				context.diff = false;
 
 				if ( ! libmaus::bambam::BamAlignmentDecoderBase::isUnmap(
@@ -2780,7 +2793,7 @@ namespace libmaus
 						
 						numins += calmd_insmult[cigo] * cigp;
 						numdel += calmd_delmult[cigo] * cigp;
-						readpos += calmd_softclipmult[cigo] * cigp;
+						readpos += calmd_softclipinsmult[cigo] * cigp;
 					}
 					
 					it_a const itreforg = itref;
@@ -2892,9 +2905,9 @@ namespace libmaus
 					if ( warnchanges )
 					{
 						if ( context.mddiff && prevmd )
-							std::cerr << "[D] update MD from " << prevmd << " to " << context.md.get() << "\n";
+							std::cerr << "[D] " << libmaus::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus::bambam::BamAlignmentDecoderBase::getFlags(B) << " update MD from " << prevmd << " to " << context.md.get() << "\n";
 						if ( haveprevnm && (prevnm != static_cast<int32_t>(context.nm)) )
-							std::cerr << "[D] update NM from " << prevnm << " to " << context.nm << "\n";
+							std::cerr << "[D] " << libmaus::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus::bambam::BamAlignmentDecoderBase::getFlags(B) << " update NM from " << prevnm << " to " << context.nm << "\n";
 					}
 					
 					assert ( readpos == readlength );
