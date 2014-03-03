@@ -1667,6 +1667,38 @@ if [[ "${flag_MSG_CMSG_CLOEXEC}" = "yes" ]] ; then
 	HAVEMSGCMSGCLOEXEC="#define LIBMAUS_HAVE_MSG_CMSG_CLOEXEC"	
 fi
 
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADER(lzma.h, [have_lzma_h=yes], [have_lzma_h=no])
+AC_LANG_POP
+
+if [[ "${have_lzma_h}" = "yes" ]] ; then
+	LIBS_SAVE="${LIBS}"
+	LIBS="${LIBS} -llzma"
+
+	AC_MSG_CHECKING([whether we can compile a program using the lzma library])	
+	AC_LANG_PUSH([C++])
+        AC_TRY_LINK([#include <lzma.h>
+#include <cstring>
+],[
+        /* init LZMA decoder */
+        lzma_stream lstr = LZMA_STREAM_INIT;
+
+        #if LZMA_VERSION <= UINT32_C(49990030)
+        int ret = lzma_auto_decoder(&lstr, NULL, NULL);
+        #else
+        int ret = lzma_auto_decoder(&lstr, UINT64_MAX, 0);
+        #endif
+
+	lzma_end(&lstr);
+	],[have_lzma=yes],[have_lzma=no])
+        AC_MSG_RESULT([${have_lzma}])
+	LIBS="${LIBSSAVE}"
+	CPPFLAGS="${CPPFLAGSSAVE}"
+        AC_LANG_POP
+	
+	LIBS="${LIBS_SAVE}"
+fi
+
 case $host_os in
   *mingw32*)
     LIBMAUSLDFLAGS="${LIBMAUSLDFLAGS} -no-undefined" # -avoid-version

@@ -129,7 +129,7 @@ namespace libmaus
 				// block size - 1 (including header an footer)
 			}
 
-			static void writeSimpleHeader(std::ostream & out)
+			static uint64_t writeSimpleHeader(std::ostream & out)
 			{
 				out.put(ID1); // ID
 				out.put(ID2); // ID
@@ -138,6 +138,9 @@ namespace libmaus
 				putLEInteger(out,0,4); // MTIME
 				out.put(0); // XFL
 				out.put(255); // undefined OS
+				
+				// number of bytes written
+				return 10;
 			}
 		};
 	
