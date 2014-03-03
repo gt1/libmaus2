@@ -304,16 +304,21 @@ void testlz4()
 void testGzip()
 {
 	libmaus::aio::CheckedInputStream CIS("configure");
+	uint64_t t = 0;
 	std::ostringstream ostr;
 	{
 		libmaus::lz::GzipOutputStream GZOS(ostr);
 		int c = -1;
 		while ( ( c = CIS.get() ) >= 0 )
 			GZOS.put(c);
+			
+		t = GZOS.terminate();		
 	}
 	
 	CIS.clear();
 	CIS.seekg(0);
+	
+	assert ( t == ostr.str().size() );
 	
 	std::istringstream istr(ostr.str());
 	libmaus::lz::BufferedGzipStream BGS(istr);

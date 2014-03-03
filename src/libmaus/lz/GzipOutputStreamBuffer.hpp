@@ -30,6 +30,7 @@ namespace libmaus
 	{
 		struct GzipOutputStreamBuffer : public ::std::streambuf
 		{
+			private:
 			std::ostream & out;
 			uint64_t const buffersize;
 			::libmaus::autoarray::AutoArray<char> inbuffer;
@@ -37,6 +38,9 @@ namespace libmaus
 			z_stream strm;
 			uint32_t crc;
 			uint32_t isize;
+			
+			uint64_t compressedwritten;
+			bool terminated;
 
 			void init(int const level)
 			{
@@ -55,31 +59,159 @@ namespace libmaus
 				}
 			}
 
+			void doSync()
+			{
+				int64_t const n = pptr()-pbase();
+				pbump(-n);
+
+				if ( ! terminated )
+				{
+					strm.avail_in = n;
+					strm.next_in  = reinterpret_cast<Bytef *>(pbase());
+
+					crc = crc32(crc, strm.next_in, strm.avail_in);        
+					isize += strm.avail_in;
+
+					do
+					{
+						strm.avail_out = outbuffer.size();
+						strm.next_out  = reinterpret_cast<Bytef *>(outbuffer.begin());
+						int ret = deflate(&strm,Z_NO_FLUSH);
+						if ( ret == Z_STREAM_ERROR )
+						{
+							::libmaus::exception::LibMausException se;
+							se.getStream() << "deflate failed (Z_STREAM_ERROR).";
+							se.finish();
+							throw se;
+						}
+						uint64_t const have = outbuffer.size() - strm.avail_out;
+						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
+						compressedwritten += have;
+					} 
+					while (strm.avail_out == 0);
+
+					assert ( strm.avail_in == 0);					
+				}
+				else if ( n )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "GzipOutputStreamBuffer: data was written on terminated stream.";
+					se.finish();
+					throw se;					
+				}
+			}
+
+			void doFullFlush()
+			{
+				if ( ! terminated )
+				{
+					int ret;
+					
+					do
+					{
+						strm.avail_in = 0;
+						strm.next_in = 0;
+						strm.avail_out = outbuffer.size();
+						strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
+						ret = deflate(&strm,Z_FULL_FLUSH);
+						if ( ret == Z_STREAM_ERROR )
+						{
+							::libmaus::exception::LibMausException se;
+							se.getStream() << "GzipOutputStreamBuffer::deflate() failed.";
+							se.finish();
+							throw se;
+						}
+						uint64_t have = outbuffer.size() - strm.avail_out;
+						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
+						compressedwritten += have;
+						
+						// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
+					} while (strm.avail_out == 0);
+							
+					assert ( ret == Z_OK );
+				}			
+			}
+
+
+			void doFinish()
+			{
+				if ( ! terminated )
+				{
+					int ret;
+
+					do
+					{
+						strm.avail_in = 0;
+						strm.next_in = 0;
+						strm.avail_out = outbuffer.size();
+						strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
+						ret = deflate(&strm,Z_FINISH );
+						if ( ret == Z_STREAM_ERROR )
+						{
+							::libmaus::exception::LibMausException se;
+							se.getStream() << "GzipOutputStreamBuffer::deflate() failed.";
+							se.finish();
+							throw se;
+						}
+						uint64_t have = outbuffer.size() - strm.avail_out;
+						out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
+						compressedwritten += have;
+						
+						// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
+					} while (strm.avail_out == 0);
+							
+					assert ( ret == Z_STREAM_END );
+				}
+			}
+			
+			uint64_t doTerminate()
+			{
+				if ( ! terminated )
+				{
+					doSync();
+					doFinish();
+
+					deflateEnd(&strm);
+
+					// crc
+					out . put ( (crc >> 0)  & 0xFF );
+					out . put ( (crc >> 8)  & 0xFF );
+					out . put ( (crc >> 16) & 0xFF );
+					out . put ( (crc >> 24) & 0xFF );
+					// uncompressed size
+					out . put ( (isize >> 0)  & 0xFF );
+					out . put ( (isize >> 8)  & 0xFF );
+					out . put ( (isize >> 16) & 0xFF );
+					out . put ( (isize >> 24) & 0xFF );
+									
+					compressedwritten += 8;
+
+					out.flush();
+
+					terminated = true;			
+				}
+				
+				return compressedwritten;
+			}
+
+			public:
 			GzipOutputStreamBuffer(std::ostream & rout, uint64_t const rbuffersize, int const level = Z_DEFAULT_COMPRESSION)
 			: out(rout), buffersize(rbuffersize), inbuffer(buffersize,false), outbuffer(buffersize,false),
-			  crc(crc32(0,0,0)), isize(0)
+			  crc(crc32(0,0,0)), isize(0), compressedwritten(0), terminated(false)
 			{
-				libmaus::lz::GzipHeaderConstantsBase::writeSimpleHeader(out);
+				compressedwritten += libmaus::lz::GzipHeaderConstantsBase::writeSimpleHeader(out);
 				init(level);
 				setp(inbuffer.begin(),inbuffer.end()-1);
 			}
-
+			
 			~GzipOutputStreamBuffer()
 			{
-				deflateEnd(&strm);
-
-				// crc
-				out . put ( (crc >> 0)  & 0xFF );
-				out . put ( (crc >> 8)  & 0xFF );
-				out . put ( (crc >> 16) & 0xFF );
-				out . put ( (crc >> 24) & 0xFF );
-				// uncompressed size
-				out . put ( (isize >> 0)  & 0xFF );
-				out . put ( (isize >> 8)  & 0xFF );
-				out . put ( (isize >> 16) & 0xFF );
-				out . put ( (isize >> 24) & 0xFF );
-				
-				out.flush();
+				doTerminate();
+			}
+			
+			uint64_t terminate()
+			{
+				return doTerminate();
 			}
 			
 			int_type overflow(int_type c = traits_type::eof())
@@ -94,66 +226,15 @@ namespace libmaus
 				return c;
 			}
 			
-			void doSync()
-			{
-				int64_t const n = pptr()-pbase();
-				pbump(-n);
-
-				strm.avail_in = n;
-				strm.next_in  = reinterpret_cast<Bytef *>(pbase());
-
-				crc = crc32(crc, strm.next_in, strm.avail_in);        
-				isize += strm.avail_in;
-
-				do
-				{
-					strm.avail_out = outbuffer.size();
-					strm.next_out  = reinterpret_cast<Bytef *>(outbuffer.begin());
-					int ret = deflate(&strm,Z_NO_FLUSH);
-					if ( ret == Z_STREAM_ERROR )
-					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "deflate failed (Z_STREAM_ERROR).";
-						se.finish();
-						throw se;
-					}
-					uint64_t const have = outbuffer.size() - strm.avail_out;
-					out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
-				} 
-				while (strm.avail_out == 0);
-
-				assert ( strm.avail_in == 0);					
-			}
+			
 			int sync()
 			{
+				// flush input buffer
 				doSync();
-
-				int ret;
-				
-				do
-				{
-					strm.avail_in = 0;
-					strm.next_in = 0;
-					strm.avail_out = outbuffer.size();
-					strm.next_out = reinterpret_cast<Bytef *>(outbuffer.begin());
-					ret = deflate(&strm,Z_FINISH );
-					if ( ret == Z_STREAM_ERROR )
-					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "GzipOutputStreamBuffer::deflate() failed.";
-						se.finish();
-						throw se;
-					}
-					uint64_t have = outbuffer.size() - strm.avail_out;
-					out.write(reinterpret_cast<char const *>(outbuffer.begin()),have);
-					
-					// std::cerr << "Writing " << have << " bytes in flush" << std::endl;
-				} while (strm.avail_out == 0);
-						
-				assert ( ret == Z_STREAM_END );
-				
-				out.flush();
-				
+				// flush zlib state
+				doFullFlush();
+				// flush output stream
+				out.flush();	
 				return 0; // no error, -1 for error
 			}			
 		};

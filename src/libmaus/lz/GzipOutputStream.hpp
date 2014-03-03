@@ -34,10 +34,16 @@ namespace libmaus
 			GzipOutputStream(std::ostream & out, uint64_t const rbuffersize = 64*1024, int const level = Z_DEFAULT_COMPRESSION)
 			: GzipOutputStreamBuffer(out,rbuffersize,level), std::ostream(this)
 			{
+				exceptions(std::ios::badbit);
 			}
 			~GzipOutputStream()
 			{
 				flush();
+			}
+			
+			uint64_t terminate()
+			{
+				return GzipOutputStreamBuffer::terminate();
 			}
 		};
 	}
