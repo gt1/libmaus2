@@ -2702,19 +2702,6 @@ namespace libmaus
 					0 // LIBMAUS_BAMBAM_CDIFF = 8
 				};
 
-				static const uint8_t calmd_softclipmult[] =
-				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
-				};
-
 				static const uint8_t calmd_readadvance[] =
 				{
 					1, // LIBMAUS_BAMBAM_CMATCH = 0,

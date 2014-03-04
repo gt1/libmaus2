@@ -32,6 +32,9 @@ namespace libmaus
 		struct BgzfInflate : public BgzfInflateBase
 		{
 			typedef _stream_type stream_type;
+			typedef BgzfInflate<stream_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
 			stream_type & stream;

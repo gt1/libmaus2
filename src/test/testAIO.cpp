@@ -21,9 +21,40 @@
 #include <libmaus/aio/AsynchronousWriter.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 
+#include <libmaus/aio/PosixFdInputStream.hpp>
+
 #include <vector>
 #include <map>
 #include <cmath>
+
+void testPosixFdInput()
+{
+	::libmaus::autoarray::AutoArray<unsigned char> A = libmaus::util::GetFileSize::readFile("configure");
+	libmaus::aio::PosixFdInputStream PFIS("configure",64*1024);
+	
+	PFIS.clear();
+	PFIS.seekg(0,std::ios::end);
+	assert ( PFIS.tellg() == A.size() );
+	PFIS.clear();
+	PFIS.seekg(0,std::ios::beg);
+	uint64_t const inc = 127;
+	
+	for ( uint64_t i = 0; i <= A.size(); i += inc )
+	{
+		PFIS.clear();
+		PFIS.seekg(i,std::ios::beg);
+	
+		int c = -1;
+		uint64_t p = i;
+		while ( ( c = PFIS.get() ) != std::istream::traits_type::eof() )
+		{
+			assert ( c == A[p++] );
+		}
+	
+		// if ( (i & (1024-1)) == 0 )
+			std::cerr << "i=" << i << std::endl;
+	}	
+}
 
 int main(int argc, char * argv[])
 {
@@ -32,7 +63,7 @@ int main(int argc, char * argv[])
 		std::cerr << "usage: " << argv[0] << " <in0> <in1> ... <out>" << std::endl;
 		return EXIT_FAILURE;
 	}
-
+	
 	try
 	{
 		::libmaus::timing::RealTimeClock rtc;
@@ -70,6 +101,8 @@ int main(int argc, char * argv[])
 			<< (copied/(1024.0*1024.0))/rtc.getElapsedSeconds()
 			<< "MB/s"
 			<< std::endl;
+			
+		testPosixFdInput();
 	}
 	catch(std::exception const & ex)
 	{

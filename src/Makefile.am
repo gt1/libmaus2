@@ -106,7 +106,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp \
 	libmaus/fastx/FastALineParserLineInfo.cpp \
 	libmaus/fastx/FastAMatchTable.cpp \
-	libmaus/lcs/EditDistanceResult.cpp 
+	libmaus/lcs/EditDistanceResult.cpp \
+	libmaus/fastx/FastABgzfIndexEntry.cpp \
+	libmaus/fastx/FastABgzfIndex.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -672,7 +674,8 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/PosixFdInputWrapper.hpp \
 	libmaus/aio/PosixFdInputStream.hpp \
 	libmaus/aio/PosixFdOutputStreamBuffer.hpp \
-	libmaus/aio/PosixFdOutputStream.hpp
+	libmaus/aio/PosixFdOutputStream.hpp \
+	libmaus/aio/PosixFdInputStreamBuffer.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
@@ -753,7 +756,14 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastALineParser.hpp \
 	libmaus/fastx/FastAStreamWrapper.hpp \
 	libmaus/fastx/FastAStream.hpp \
-	libmaus/fastx/FastAStreamSet.hpp
+	libmaus/fastx/FastAStreamSet.hpp \
+	libmaus/fastx/BgzfFastAIndexEntry.hpp \
+	libmaus/fastx/BgzfFastAIndexEntryNameComparator.hpp \
+	libmaus/fastx/BgzfFastAIndexEntryIdComparator.hpp \
+	libmaus/fastx/FastABgzfIndexEntry.hpp \
+	libmaus/fastx/FastABgzfIndex.hpp \
+	libmaus/fastx/FastABgzfDecoder.hpp \
+	libmaus/fastx/FastABgzfDecoderBuffer.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\

@@ -38,6 +38,11 @@ namespace libmaus
 			{
 				assert ( bufsize <= getBgzfMaxBlockSize() );
 			}
+			
+			uint64_t getInputBufferSize() const
+			{
+				return inbuf.size();
+			}
 		};
 	}
 }

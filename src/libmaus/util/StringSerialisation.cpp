@@ -18,9 +18,13 @@
 */
 
 #include <libmaus/util/StringSerialisation.hpp>
+#include <libmaus/util/CountPutObject.hpp>
 
-void libmaus::util::StringSerialisation::serialiseString(std::ostream & out, std::string const & s)
+uint64_t libmaus::util::StringSerialisation::serialiseString(std::ostream & out, std::string const & s)
 {
+	::libmaus::util::CountPutObject CPO;
+	::libmaus::util::UTF8::encodeUTF8(s.size(),CPO);
+
 	::libmaus::util::UTF8::encodeUTF8(s.size(),out);
 	out.write ( s.c_str(), s.size() );
 
@@ -31,6 +35,8 @@ void libmaus::util::StringSerialisation::serialiseString(std::ostream & out, std
 		se.finish();
 		throw se;
 	}
+	
+	return CPO.c + s.size();
 }
 
 std::string libmaus::util::StringSerialisation::deserialiseString(std::istream & in)

@@ -114,6 +114,36 @@ namespace libmaus
 
 				return gcnt;
 			}
+
+			off_t lseek(uint64_t const n)
+			{
+				off_t r = static_cast<off_t>(-1);
+				
+				while ( fd >= 0 && r == static_cast<off_t>(-1) )
+				{
+					r = ::lseek(fd,n,SEEK_SET);
+					
+					if ( r < 0 )
+					{
+						switch ( errno )
+						{
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+							{
+								int const error = errno;
+								libmaus::exception::LibMausException se;
+								se.getStream() << "PosixFdInput::lseek(" << filename << "," << n << "): " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
+						}
+					}
+				}
+
+				return r;
+			}
 			
 			ssize_t gcount() const
 			{
@@ -149,6 +179,45 @@ namespace libmaus
 						fd = -1;
 					}
 				}
+			}
+
+			uint64_t size()
+			{
+				int r = -1;
+				struct stat sb;
+
+				while ( fd >= 0 && r < 0 )
+				{
+					r = fstat(fd,&sb);
+					
+					if ( r < 0 )
+					{
+						switch ( errno )
+						{
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+							{
+								int const error = errno;
+								libmaus::exception::LibMausException se;
+								se.getStream() << "PosixFdInput::size(" << filename << "): " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
+						}
+					}
+				}
+
+				if ( ! S_ISREG(sb.st_mode) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "PosixFdInput::size(" << filename << "): file descriptor does not designate a (regular) file" << std::endl;
+					se.finish();
+					throw se;				
+				}
+
+				return sb.st_size;
 			}
 		};
 	}

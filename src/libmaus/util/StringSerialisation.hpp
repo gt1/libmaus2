@@ -37,7 +37,7 @@ namespace libmaus
 	{
 		struct StringSerialisation : public NumberSerialisation
 		{
-			static void serialiseString(std::ostream & out, std::string const & s);
+			static uint64_t serialiseString(std::ostream & out, std::string const & s);
 			static std::string deserialiseString(std::istream & in);
 			static void serialiseStringVector ( std::ostream & out, std::vector < std::string > const & V );
 			static std::vector < std::string > deserialiseStringVector ( std::istream & in );

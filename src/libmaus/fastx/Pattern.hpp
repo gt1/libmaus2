@@ -227,7 +227,11 @@ namespace libmaus
                         
                         std::ostream & printMultiLine(std::ostream & out, unsigned int const cols) const
                         {
-				out << ">" << getStringId() << '\n';
+                        	std::string const id = getStringId();
+                        
+                        	out.put('>');
+                        	out.write(id.c_str(),id.size());
+                        	out.put('\n');
 				if ( pattern )
 				{
 					char const * ita = pattern;
