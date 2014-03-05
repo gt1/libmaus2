@@ -39,7 +39,7 @@ namespace libmaus
 			std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 			
 			BgzfRecode(std::istream & rin, std::ostream & rout, int const level = Z_DEFAULT_COMPRESSION)
-			: inflatebase(), deflatebase(level,true), in(rin), out(rout)
+			: inflatebase(), deflatebase(level,true,BgzfConstants::getBgzfMaxBlockSize()), in(rin), out(rout)
 			{
 			
 			}

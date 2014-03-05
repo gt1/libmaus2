@@ -47,12 +47,12 @@ namespace libmaus
 			uint64_t uncompsize;
 			BgzfDeflateZStreamBaseFlushInfo flushinfo;
 			
-			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false)
+			BgzfDeflateBase(int const level = Z_DEFAULT_COMPRESSION, bool const rflushmode = false, int64_t const rbufsize = -1)
 			:
 			  BgzfDeflateZStreamBase(level),
 			  BgzfDeflateOutputBufferBase(level),
 			  BgzfDeflateInputBufferBase(
-			  	level == 0 ? computeDeflateBound(level) : getBgzfMaxBlockSize()
+			  	(rbufsize > 0) ? rbufsize : (level == 0 ? computeDeflateBound(level) : getBgzfMaxBlockSize())
 			  ),
 			  flushmode(rflushmode),
 			  objectid(0),

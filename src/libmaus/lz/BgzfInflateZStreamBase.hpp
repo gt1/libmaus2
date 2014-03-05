@@ -87,8 +87,14 @@ namespace libmaus
 				inflatestrm.next_in = in;
 				inflatestrm.avail_out = outlen;
 				inflatestrm.next_out = reinterpret_cast<Bytef *>(out);
+								
+				int const r = inflate(&inflatestrm,Z_FINISH);
 				
-				if ( (inflate(&inflatestrm,Z_FINISH) != Z_STREAM_END) || (inflatestrm.avail_out != 0) || (inflatestrm.avail_in != 0) )
+				bool ok = (r == Z_STREAM_END)
+				     && (inflatestrm.avail_out == 0)
+				     && (inflatestrm.avail_in == 0);
+				
+				if ( !ok )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): inflate failed";
