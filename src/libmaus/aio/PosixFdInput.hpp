@@ -212,12 +212,46 @@ namespace libmaus
 				if ( ! S_ISREG(sb.st_mode) )
 				{
 					libmaus::exception::LibMausException se;
-					se.getStream() << "PosixFdInput::size(" << filename << "): file descriptor does not designate a (regular) file" << std::endl;
+					se.getStream() << "PosixFdInput::size(" << filename << "," << fd << "): file descriptor does not designate a (regular) file" << std::endl;
 					se.finish();
 					throw se;				
 				}
 
 				return sb.st_size;
+			}
+
+			int64_t sizeChecked()
+			{
+				int r = -1;
+				struct stat sb;
+
+				while ( fd >= 0 && r < 0 )
+				{
+					r = fstat(fd,&sb);
+					
+					if ( r < 0 )
+					{
+						switch ( errno )
+						{
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+							{
+								int const error = errno;
+								libmaus::exception::LibMausException se;
+								se.getStream() << "PosixFdInput::size(" << filename << "): " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
+						}
+					}
+				}
+
+				if ( S_ISREG(sb.st_mode) )
+					return sb.st_size;
+				else
+					return -1;
 			}
 		};
 	}

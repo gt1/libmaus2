@@ -39,7 +39,7 @@ void testPosixFdInput()
 	PFIS.seekg(0,std::ios::beg);
 	uint64_t const inc = 127;
 	
-	for ( uint64_t i = 0; i <= A.size(); i += inc )
+	for ( uint64_t i = 0; i <= A.size(); i += std::min(inc,A.size()-i) )
 	{
 		PFIS.clear();
 		PFIS.seekg(i,std::ios::beg);
@@ -50,14 +50,21 @@ void testPosixFdInput()
 		{
 			assert ( c == A[p++] );
 		}
+		
+		assert ( p == A.size() );
 	
 		// if ( (i & (1024-1)) == 0 )
 			std::cerr << "i=" << i << std::endl;
+			
+		if ( i == A.size() )
+			break;			
 	}	
 }
 
 int main(int argc, char * argv[])
 {
+	testPosixFdInput();
+
 	if ( argc < 3 )
 	{
 		std::cerr << "usage: " << argv[0] << " <in0> <in1> ... <out>" << std::endl;

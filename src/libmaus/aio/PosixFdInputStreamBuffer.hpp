@@ -32,7 +32,7 @@ namespace libmaus
 		{
 			private:
 			::libmaus::aio::PosixFdInput stream;
-			uint64_t const filesize;
+			int64_t const filesize;
 
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
@@ -60,7 +60,7 @@ namespace libmaus
 			)
 			: 
 			  stream(rstream),
-			  filesize(stream.size()),
+			  filesize(stream.sizeChecked()),
 			  blocksize(rblocksize),
 			  putbackspace(rputbackspace),
 			  buffer(putbackspace + blocksize,false),
@@ -177,11 +177,13 @@ namespace libmaus
 
 				assert ( gptr() == egptr() );
 
+				#if 0
 				// number of bytes left
 				uint64_t const symsleft = (filesize-symsread);
 
 				if ( symsleft == 0 )
 					return traits_type::eof();
+				#endif
 					
 				// number of bytes for putback buffer
 				uint64_t const putbackcopy = std::min(
@@ -206,7 +208,10 @@ namespace libmaus
 
 				symsread += uncompressedsize;
 				
-				return static_cast<int_type>(*uptr());
+				if ( uncompressedsize )
+					return static_cast<int_type>(*uptr());
+				else
+					return traits_type::eof();
 			}
 		};
 	}
