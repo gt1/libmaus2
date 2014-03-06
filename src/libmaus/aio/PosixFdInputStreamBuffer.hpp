@@ -44,12 +44,13 @@ namespace libmaus
 			PosixFdInputStreamBuffer(PosixFdInputStreamBuffer const &);
 			PosixFdInputStreamBuffer & operator=(PosixFdInputStreamBuffer &);
 			
-			void init()
+			void init(bool const repos)
 			{
 				// set empty buffer
 				setg(buffer.end(), buffer.end(), buffer.end());
 				// seek
-				stream.lseek(symsread);
+				if ( repos )
+					stream.lseek(symsread);
 			}
 			
 			public:
@@ -66,7 +67,7 @@ namespace libmaus
 			  buffer(putbackspace + blocksize,false),
 			  symsread(0)
 			{
-				init();
+				init(false);
 			}
 
 			private:
@@ -101,7 +102,7 @@ namespace libmaus
 					symsread = tsymsread;
 
 					// reinit
-					init();
+					init(true);
 
 					// read next block
 					underflow();
@@ -177,14 +178,6 @@ namespace libmaus
 
 				assert ( gptr() == egptr() );
 
-				#if 0
-				// number of bytes left
-				uint64_t const symsleft = (filesize-symsread);
-
-				if ( symsleft == 0 )
-					return traits_type::eof();
-				#endif
-					
 				// number of bytes for putback buffer
 				uint64_t const putbackcopy = std::min(
 					static_cast<uint64_t>(gptr() - eback()),
