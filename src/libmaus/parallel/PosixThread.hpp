@@ -277,6 +277,30 @@ namespace libmaus
 			
 			virtual void * run() = 0;
 			
+			void * tryJoin()
+			{
+				if ( thread.get() )
+				{
+					void * p = 0;
+
+					if ( pthread_join(*thread,&p) )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "pthread_join() failed in PosixThread::join()";
+						se.finish();
+						throw se;				
+					}
+					
+					thread.reset();
+	
+					return p;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+			
 			void * join()
 			{
 				if ( thread.get() )

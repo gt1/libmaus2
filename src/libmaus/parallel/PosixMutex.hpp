@@ -21,6 +21,8 @@
 
 #include <libmaus/LibMausConfig.hpp>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
 #include <cerrno>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
@@ -32,6 +34,10 @@ namespace libmaus
 	{
                 struct PosixMutex
                 {
+                	typedef PosixMutex this_type;
+                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                
                         pthread_mutex_t mutex;
                         
                         PosixMutex() : mutex()

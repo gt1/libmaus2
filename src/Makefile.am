@@ -108,7 +108,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/fastx/FastAMatchTable.cpp \
 	libmaus/lcs/EditDistanceResult.cpp \
 	libmaus/fastx/FastABgzfIndexEntry.cpp \
-	libmaus/fastx/FastABgzfIndex.cpp
+	libmaus/fastx/FastABgzfIndex.cpp \
+	libmaus/parallel/ThreadWorkPackage.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -694,7 +695,14 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SynchronousCounter.hpp \
 	libmaus/parallel/PosixProcess.hpp \
 	libmaus/parallel/OMPNumThreadsScope.hpp \
-	libmaus/parallel/LockedBool.hpp
+	libmaus/parallel/LockedBool.hpp \
+	libmaus/parallel/ThreadWorkPackage.hpp \
+	libmaus/parallel/ThreadWorkPackageComparator.hpp \
+	libmaus/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp \
+	libmaus/parallel/ThreadWorkPackageDispatcher.hpp \
+	libmaus/parallel/ThreadPoolInterface.hpp \
+	libmaus/parallel/ThreadPoolThread.hpp \
+	libmaus/parallel/ThreadPool.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -1066,10 +1074,14 @@ noinst_PROGRAMS = \
 	testhist \
 	testfastaparse \
 	testvalidatebamindex \
-	testeditdistance
+	testeditdistance \
+	testthreadpool
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
+
+testthreadpool_SOURCES = test/testthreadpool.cpp
+testthreadpool_LDADD = libmaus.la
 
 testsyncfastreaderbase_SOURCES = test/testsyncfastreaderbase.cpp
 testsyncfastreaderbase_LDADD = libmaus.la
