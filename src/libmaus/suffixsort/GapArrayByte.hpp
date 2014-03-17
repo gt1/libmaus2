@@ -95,6 +95,10 @@ namespace libmaus
 				
 				tmpCOS = UNIQUE_PTR_MOVE(ttmpCOS);
 			}
+			~GapArrayByte()
+			{
+				remove(tmpfilename.c_str());
+			}
 				
 			void flush()
 			{
