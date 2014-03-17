@@ -42,7 +42,7 @@ namespace libmaus
 				uint64_t const bufsize
 			) : decoder(rdecoder), B(bufsize), pa(B.begin()), pc(pa), pe(pa)
 			{
-			
+				assert ( bufsize );
 			}
 			
 			bool getNext(uint64_t & v)
@@ -52,7 +52,7 @@ namespace libmaus
 					if ( decoder.offset == decoder.gsize )
 						return false;
 						
-					uint64_t const tocopy = std::min(static_cast<ptrdiff_t>(decoder.gsize - decoder.offset), pe-pa);
+					uint64_t const tocopy = std::min(static_cast<ptrdiff_t>(decoder.gsize - decoder.offset), static_cast<ptrdiff_t>(B.size()));
 					
 					decoder.decode(pa, tocopy);
 					
