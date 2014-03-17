@@ -97,7 +97,7 @@ namespace libmaus
 			  pSGI(openWordPairFile(*pCIS,sparsecnt,roffset)),
 			  offset(roffset)
 			{
-			
+				assert ( offset <= gsize );
 			}
 			
 			template<typename iterator>
