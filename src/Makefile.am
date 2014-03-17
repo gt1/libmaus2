@@ -893,7 +893,11 @@ libmaussuffixsort_include_HEADERS=\
 	libmaus/suffixsort/PacInputTypes.hpp \
 	libmaus/suffixsort/PacTermInputTypes.hpp \
 	libmaus/suffixsort/Utf8InputTypes.hpp \
-	libmaus/suffixsort/Lz4InputTypes.hpp
+	libmaus/suffixsort/Lz4InputTypes.hpp \
+	libmaus/suffixsort/GapArrayByteDecoderBuffer.hpp \
+	libmaus/suffixsort/GapArrayByte.hpp \
+	libmaus/suffixsort/GapArrayByteDecoder.hpp \
+	libmaus/suffixsort/GapArrayByteOverflowKeyAccessor.hpp
 
 libmaussuffixtree_includedir=$(includedir)/libmaus/suffixtree
 libmaussuffixtree_include_HEADERS=\
@@ -1075,7 +1079,8 @@ noinst_PROGRAMS = \
 	testfastaparse \
 	testvalidatebamindex \
 	testeditdistance \
-	testthreadpool
+	testthreadpool \
+	testgaparraybyte
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1347,3 +1352,6 @@ testvalidatebamindex_LDADD = libmaus.la
 
 testeditdistance_SOURCES = test/testeditdistance.cpp
 testeditdistance_LDADD = libmaus.la
+
+testgaparraybyte_SOURCES = test/testgaparraybyte.cpp
+testgaparraybyte_LDADD = libmaus.la
