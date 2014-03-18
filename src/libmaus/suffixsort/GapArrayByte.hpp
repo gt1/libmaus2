@@ -218,7 +218,7 @@ namespace libmaus
 				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t0decbuf(
 					new libmaus::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
 				pdecbuf = UNIQUE_PTR_MOVE(t0decbuf);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = t0decbuf->begin();
+				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = pdecbuf->begin();
 					
 				::libmaus::util::Histogram gaphist;
 				for ( uint64_t i = 0; i < G.size(); ++i )
@@ -229,7 +229,7 @@ namespace libmaus
 				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t1decbuf(
 					new libmaus::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
 				pdecbuf = UNIQUE_PTR_MOVE(t1decbuf);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it1 = t1decbuf->begin();
+				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it1 = pdecbuf->begin();
 
 				::libmaus::huffman::GapEncoder GE(gapfile,gaphist,G.size());
 				GE.encode(it1,G.size());
@@ -251,7 +251,7 @@ namespace libmaus
 				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t0decbuf(
 					new libmaus::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
 				pdecbuf = UNIQUE_PTR_MOVE(t0decbuf);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = t0decbuf->begin();
+				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = pdecbuf->begin();
 
 				::libmaus::gamma::GammaGapEncoder GE(gapfile);
 				GE.encode(it0,G.size());
