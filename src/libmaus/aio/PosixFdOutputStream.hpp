@@ -36,6 +36,11 @@ namespace libmaus
 			{
 				exceptions(std::ios::badbit);
 			}
+			PosixFdOutputStream(std::string const & rfilename, uint64_t const rbuffersize = 64*1024)
+			: PosixFdOutputStreamBuffer(rfilename,rbuffersize), std::ostream(this)
+			{
+				exceptions(std::ios::badbit);
+			}
 			~PosixFdOutputStream()
 			{
 				flush();
