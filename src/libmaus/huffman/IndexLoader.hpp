@@ -407,11 +407,12 @@ namespace libmaus
 					#endif
 				}
 				
-				for ( uint64_t i = numentries-1; i >= 1; --i )
-				{
-					index[i].kcnt -= index[i-1].kcnt;
-					index[i].vcnt -= index[i-1].vcnt;
-				}
+				if ( numentries )
+					for ( uint64_t i = numentries-1; i >= 1; --i )
+					{
+						index[i].kcnt -= index[i-1].kcnt;
+						index[i].vcnt -= index[i-1].vcnt;
+					}
 					
 				#if defined(INDEXLOADERDEBUG)
 				for ( uint64_t i = 0; i < numentries; ++i )
