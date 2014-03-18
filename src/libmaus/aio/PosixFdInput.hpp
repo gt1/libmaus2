@@ -46,7 +46,11 @@ namespace libmaus
 			public:
 			static int getDefaultFlags()
 			{
+				#if defined(__APPLE__)
+				return O_RDONLY;
+				#else
 				return O_RDONLY|O_NOATIME|O_LARGEFILE;
+				#endif
 			}
 			
 			PosixFdInput(int const rfd) : fd(rfd)
