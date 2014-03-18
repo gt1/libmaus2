@@ -68,88 +68,115 @@ namespace libmaus
 						order);
 				}
 			}
+			
+			template<typename iterator, typename order_type>
+			struct ParallelStableSortContextBase
+			{
+				iterator const aa;
+				iterator const ae;
+				iterator const ba;
+				iterator const be;
+				order_type const order;
+				uint64_t const num_threads;
+				bool const copyback;
+				uint64_t const n;
+				uint64_t pack;
+				uint64_t const numpacks;
+				
+				iterator in;
+				iterator out;
+
+				ParallelStableSortContextBase(
+					iterator const raa,
+					iterator const rae,
+					iterator const rba,
+					iterator const rbe,
+					order_type const rorder,
+					uint64_t const rnum_threads,
+					bool const rcopyback
+				)
+				: aa(raa), ae(rae), ba(rba), be(rbe), order(rorder), num_threads(rnum_threads), copyback(rcopyback),
+				  n(ae-aa), pack((n + num_threads - 1)/num_threads), numpacks((n + pack - 1)/pack),
+				  in(aa), out(ba)
+				{
+					
+				}
+			};
 
 			template<typename iterator, typename order_type>
 			static iterator parallelSort(
-				iterator const aa,
-				iterator const ae,
-				iterator const ba,
-				iterator const 
-					#if 0
-					be
-					#endif
-					,
-				order_type order = std::less< typename std::iterator_traits<iterator>::value_type >(),
-				uint64_t const num_threads =
+				iterator const raa,
+				iterator const rae,
+				iterator const rba,
+				iterator const rbe,
+				order_type const rorder = std::less< typename std::iterator_traits<iterator>::value_type >(),
+				uint64_t const rnum_threads =
 				#if defined(_OPENMP)
 				omp_get_max_threads()
 				#else
 				1
 				#endif
 				,
-				bool const copyback = true
+				bool const rcopyback = true
 			)
 			{
-				uint64_t const n = ae-aa;
-				uint64_t pack = (n + num_threads - 1)/num_threads;
-				uint64_t const numpacks = (n + pack - 1)/pack;
+				ParallelStableSortContextBase<iterator,order_type> context(
+					raa,rae,rba,rbe,rorder,rnum_threads,rcopyback
+				);
 				
 				#if defined(_OPENMP)
-				#pragma omp parallel for num_threads(num_threads)
+				#pragma omp parallel for num_threads(context.num_threads)
 				#endif
-				for ( int64_t t = 0; t < static_cast<int64_t>(numpacks); ++t )
+				for ( int64_t t = 0; t < static_cast<int64_t>(context.numpacks); ++t )
 				{
-					uint64_t const low = t * pack;
-					uint64_t const high = std::min(low+pack,n);
-					std::stable_sort(aa + low, aa + high, order);
+					uint64_t const low = t * context.pack;
+					uint64_t const high = std::min(low+context.pack,context.n);
+					std::stable_sort(context.aa + low, context.aa + high, context.order);
 				}
 				
-				iterator in = aa;
-				iterator out = ba;
-				
-				while ( pack < n )
+				while ( context.pack < context.n )
 				{
-					uint64_t const mergesize = pack<<1;
-					uint64_t const mergesteps = (n + mergesize-1)/mergesize;
+					uint64_t const mergesize = context.pack<<1;
+					uint64_t const mergesteps = (context.n + mergesize-1)/mergesize;
 					
 					for ( uint64_t t = 0; t < mergesteps; ++t )
 					{
 						uint64_t const low = t*mergesize;
-						uint64_t const high = std::min(low+mergesize,n);
+						uint64_t const high = std::min(low+mergesize,context.n);
 						
 						// merge
-						if ( high-low > pack )
+						if ( high-low > context.pack )
 						{
-							uint64_t const l = pack;
-							uint64_t const r = (high-low)-pack;
+							uint64_t const l = context.pack;
+							uint64_t const r = (high-low)-context.pack;
 							
 							parallelMerge(
-								in + low,
-								in + low + l,
-								in + low + l,
-								in + low + l + r,
-								out + low,
-								order,
-								num_threads
+								context.in + low,
+								context.in + low + l,
+								context.in + low + l,
+								context.in + low + l + r,
+								context.out + low,
+								context.order,
+								context.num_threads
 							);
 						}
 						// incomplete packet, copy it to other array as is
 						else
-							std::copy(in+low,in+high,out+low);
+							std::copy(context.in+low,context.in+high,context.out+low);
 					}
 					
-					std::swap(in,out);
-					pack <<= 1;
+					std::swap(context.in,context.out);
+					context.pack <<= 1;
 				}
 				
-				if ( copyback && (in != aa) )
+				if ( context.copyback && (context.in != context.aa) )
 				{
-					std::copy(in,in+n,out);
-					std::swap(in,out);
-					assert ( in == aa );
+					std::copy(context.in,context.in+context.n,context.out);
+					std::swap(context.in,context.out);
+					assert ( context.in == context.aa );
 				}
 								
-				return in;
+				return context.in;
 			}
 		};
 	}
