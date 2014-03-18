@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP)
 #define LIBMAUS_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP
 
+#include <libmaus/bambam/BamAlignmentFilter.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/BamRangeDecoder.hpp>
 #include <libmaus/bambam/ScramDecoder.hpp>
@@ -240,6 +241,8 @@ namespace libmaus
 			uint32_t const excludeflags;
 			//! put back flag
 			bool cbputbackflag;
+			//! alignment filter
+			libmaus::bambam::BamAlignmentFilter const * filter;
 			
 			public:
 			
@@ -263,7 +266,7 @@ namespace libmaus
 			)
 			: Pbamdec(new libmaus::bambam::BamDecoder(in,rputrank)), bamdec(*Pbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags), cbputbackflag(false)
+			  excludeflags(rexcludeflags), cbputbackflag(false), filter(0)
 			{
 			
 			}
@@ -286,7 +289,7 @@ namespace libmaus
 			)
 			: Pbamdec(), bamdec(rbamdec), algn(bamdec.getAlignment()), mergealgnptr(0), tmpfilename(rtmpfilename), 
 			  NCHEO(new overflow_type(tmpfilename,sortbufsize)), CH(new cht(*NCHEO,hlog)), state(state_reading), inputcallback(0),
-			  excludeflags(rexcludeflags), cbputbackflag(false)
+			  excludeflags(rexcludeflags), cbputbackflag(false), filter(0)
 			{
 			
 			}
@@ -425,6 +428,9 @@ namespace libmaus
 							bamdec.putRank();
 															
 							if ( algn.getFlags() & excludeflags )
+								continue;
+								
+							if ( filter && ! (*filter)(algn) )
 								continue;
 						
 							uint8_t const * data = algn.D.begin();
@@ -710,6 +716,16 @@ namespace libmaus
 					return CH->printCounters(out);
 				else
 					return out;
+			}
+
+			/**
+			 * set alignment filter
+			 *
+			 * @param rfilter alignment filter
+			 **/
+			void setFilter(libmaus::bambam::BamAlignmentFilter const * rfilter)
+			{
+				filter = rfilter;
 			}
 		};
 

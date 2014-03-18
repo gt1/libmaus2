@@ -337,7 +337,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamAlignmentDecoderFactory.hpp \
 	libmaus/bambam/BamMultiAlignmentDecoderFactory.hpp \
 	libmaus/bambam/BamIndexMetaInfo.hpp \
-	libmaus/bambam/MdStringComputationContext.hpp
+	libmaus/bambam/MdStringComputationContext.hpp \
+	libmaus/bambam/BamAlignmentFilter.hpp \
+	libmaus/bambam/BamAlignmentReadGroupFilter.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

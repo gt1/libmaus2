@@ -25,6 +25,7 @@
 #include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
 
 #include <libmaus/bambam/BamEntryContainer.hpp>
+#include <libmaus/bambam/BamAlignmentReadGroupFilter.hpp>
 
 using namespace libmaus::bambam;
 using namespace libmaus::util;
