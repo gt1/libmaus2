@@ -68,7 +68,7 @@ namespace libmaus
 			
 			uint64_t get()
 			{
-				uint64_t v;
+				uint64_t v = 0;
 				getNext(v);
 				return v;
 			}
