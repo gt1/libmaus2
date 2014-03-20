@@ -19,6 +19,8 @@
 #include <libmaus/parallel/ThreadPool.hpp>
 #include <libmaus/lz/BgzfInflateBase.hpp>
 #include <libmaus/parallel/LockedBool.hpp>
+#include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus/util/GetObject.hpp>
 
 libmaus::parallel::PosixMutex cerrmutex;
 
@@ -87,7 +89,21 @@ struct BamThreadPoolDecodeContextBase
 	libmaus::parallel::PosixMutex bamParseLock;
 	uint64_t bamParseCnt;
 	libmaus::parallel::LockedBool bamParseComplete;
-			
+
+	libmaus::parallel::LockedBool haveheader;
+	::libmaus::bambam::BamHeader::BamHeaderParserState bamheaderparsestate;
+	libmaus::bambam::BamHeader header;
+	
+	enum bam_parser_state_type {
+		bam_parser_state_read_blocklength,
+		bam_parser_state_read_blockdata
+	};
+	
+	bam_parser_state_type bamParserState;
+	unsigned int bamBlockSizeRead;
+	uint32_t bamBlockSizeValue;
+	uint32_t bamBlockDataRead;
+		
 	BamThreadPoolDecodeContextBase(
 		std::istream & rin,
 		uint64_t const numInflateBases
@@ -113,7 +129,14 @@ struct BamThreadPoolDecodeContextBase
 	  bamParseNextBlock(0),
 	  bamParseLock(),
 	  bamParseCnt(0),
-	  bamParseComplete(false)
+	  bamParseComplete(false),
+	  haveheader(false),
+	  bamheaderparsestate(),
+	  header(),
+	  bamParserState(bam_parser_state_read_blocklength),
+	  bamBlockSizeRead(0),
+	  bamBlockSizeValue(0),
+	  bamBlockDataRead(0)
 	{
 		for ( uint64_t i = 0; i < inflateBases.size(); ++i )
 		{
@@ -361,6 +384,66 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		cerrmutex.unlock();
 		#endif
 
+		char const * const decompressSpace = contextbase.getDecompressSpace(RP.baseid);
+
+		uint8_t const * pa = reinterpret_cast<uint8_t const *>(decompressSpace);
+		uint8_t const * pc = pa + RP.blockmeta.second;
+
+		if ( (! contextbase.haveheader.get()) && (pa != pc) )
+		{			
+			::libmaus::util::GetObject<uint8_t const *> G(pa);
+			std::pair<bool,uint64_t> const P = ::libmaus::bambam::BamHeader::parseHeader(G,contextbase.bamheaderparsestate,pc-pa);
+
+			// header complete?
+			if ( P.first )
+			{
+				contextbase.header.init(contextbase.bamheaderparsestate);
+				contextbase.haveheader.set(true);
+				pa += P.second;
+				
+				std::cerr << contextbase.header.text;
+			}
+		}
+
+		while ( pa != pc )
+		{
+			switch ( contextbase.bamParserState )
+			{
+				case contextbase.bam_parser_state_read_blocklength:
+					while ( pa != pc && contextbase.bamBlockSizeRead < 4 )
+					{
+						contextbase.bamBlockSizeValue |= static_cast<uint32_t>(*(pa++)) << (8*((contextbase.bamBlockSizeRead++)));
+					}
+					if ( contextbase.bamBlockSizeRead == 4)
+					{
+						contextbase.bamParserState = contextbase.bam_parser_state_read_blockdata;
+						contextbase.bamBlockDataRead = 0;
+					}
+					break;
+				case contextbase.bam_parser_state_read_blockdata:
+					while ( pa != pc && contextbase.bamBlockDataRead != contextbase.bamBlockSizeValue )
+					{
+						uint64_t const skip = 
+							std::min(
+								static_cast<uint64_t>(pc-pa),
+								static_cast<uint64_t>(contextbase.bamBlockSizeValue - contextbase.bamBlockDataRead)
+							);
+						
+						contextbase.bamBlockDataRead += skip;
+						pa += skip;
+					}
+					if ( contextbase.bamBlockDataRead == contextbase.bamBlockSizeValue )
+					{
+						contextbase.bamBlockSizeRead = 0;
+						contextbase.bamBlockSizeValue = 0;
+						contextbase.bamParserState = contextbase.bam_parser_state_read_blocklength;						
+					}
+					break;
+			}
+			
+			assert ( contextbase.haveheader.get() );
+		}
+
 		libmaus::parallel::ScopePosixMutex lbamParseLock(contextbase.bamParseLock);
 		contextbase.bamParseCnt += 1;
 		if ( contextbase.decompressComplete.get() && (contextbase.bamParseCnt == contextbase.decompressCnt) )
@@ -426,7 +509,13 @@ struct BamThreadPoolDecodeContext : public BamThreadPoolDecodeContextBase
 
 int main()
 {
-	libmaus::parallel::ThreadPool TP(8);
+	#if defined(_OPENMP)
+	uint64_t const numthreads = omp_get_max_threads();
+	#else
+	uint64_t const numthreads = 1;
+	#endif
+
+	libmaus::parallel::ThreadPool TP(numthreads);
 
 	BamThreadPoolDecodeReadPackageDispatcher readdispatcher;
 	TP.registerDispatcher(BamThreadPoolDecodeContext::bamthreadpooldecodecontextbase_dispatcher_id_read,&readdispatcher);
@@ -435,7 +524,7 @@ int main()
 	BamThreadPoolDecodeBamParsePackageDispatcher bamparsedispatcher;
 	TP.registerDispatcher(BamThreadPoolDecodeContext::bamthreadpooldecodecontextbase_dispatcher_id_bamparse,&bamparsedispatcher);
 
-	BamThreadPoolDecodeContext context(std::cin,8,TP);
+	BamThreadPoolDecodeContext context(std::cin,8*numthreads,TP);
 	context.startup();
 
 #if 0
