@@ -32,6 +32,10 @@ namespace libmaus
 	{
 		struct BgzfInflateBase : public BgzfInflateHeaderBase, BgzfInflateZStreamBase
 		{
+			typedef BgzfInflateBase this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> block;
 
 			BgzfInflateBase()

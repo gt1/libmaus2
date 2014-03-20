@@ -1082,6 +1082,7 @@ noinst_PROGRAMS = \
 	testvalidatebamindex \
 	testeditdistance \
 	testthreadpool \
+	testthreadpoolbamdecode \
 	testgaparraybyte
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1089,6 +1090,9 @@ testgunzip_LDADD = libmaus.la
 
 testthreadpool_SOURCES = test/testthreadpool.cpp
 testthreadpool_LDADD = libmaus.la
+
+testthreadpoolbamdecode_SOURCES = test/testthreadpoolbamdecode.cpp
+testthreadpoolbamdecode_LDADD = libmaus.la
 
 testsyncfastreaderbase_SOURCES = test/testsyncfastreaderbase.cpp
 testsyncfastreaderbase_LDADD = libmaus.la
