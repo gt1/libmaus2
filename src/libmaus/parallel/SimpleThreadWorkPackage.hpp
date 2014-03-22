@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_THREADWORKPACKAGE_HPP)
-#define LIBMAUS_PARALLEL_THREADWORKPACKAGE_HPP
+#if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGE_HPP)
+#define LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGE_HPP
 
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
@@ -27,9 +27,9 @@ namespace libmaus
 {
 	namespace parallel
 	{
-		struct ThreadWorkPackage
+		struct SimpleThreadWorkPackage
 		{
-			typedef ThreadWorkPackage this_type;
+			typedef SimpleThreadWorkPackage this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
@@ -37,12 +37,12 @@ namespace libmaus
 			uint64_t dispatcherid;
 			uint64_t packageid;
 	
-			ThreadWorkPackage()
+			SimpleThreadWorkPackage()
 			: priority(0), dispatcherid(0), packageid(0)
 			{
 			
 			}		
-			ThreadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
+			SimpleThreadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
 			: priority(rpriority), dispatcherid(rdispatcherid), packageid(rpackageid)
 			{
 			
@@ -53,13 +53,11 @@ namespace libmaus
 				dispatcherid = rdispatcherid;
 				packageid = rpackageid;
 			}
-			virtual ~ThreadWorkPackage() {}
-			virtual unique_ptr_type uclone() const = 0;
-			virtual shared_ptr_type sclone() const = 0;
+			virtual ~SimpleThreadWorkPackage() {}
 		};
 
-		std::ostream & operator<<(std::ostream & out, ThreadWorkPackage const & T);
-		std::ostream & operator<<(std::ostream & out, ThreadWorkPackage const * T);
+		std::ostream & operator<<(std::ostream & out, SimpleThreadWorkPackage const & T);
+		std::ostream & operator<<(std::ostream & out, SimpleThreadWorkPackage const * T);
 	}
 }
 #endif

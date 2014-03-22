@@ -52,6 +52,11 @@ namespace libmaus
                         {
                         
                         }
+
+                        bool empty()
+                        {
+                        	return getFillState() == 0;
+                        }
                         
                         unsigned int getFillState()
                         {

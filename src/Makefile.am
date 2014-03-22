@@ -109,7 +109,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lcs/EditDistanceResult.cpp \
 	libmaus/fastx/FastABgzfIndexEntry.cpp \
 	libmaus/fastx/FastABgzfIndex.cpp \
-	libmaus/parallel/ThreadWorkPackage.cpp
+	libmaus/parallel/ThreadWorkPackage.cpp \
+	libmaus/parallel/SimpleThreadWorkPackage.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -704,7 +705,15 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/ThreadWorkPackageDispatcher.hpp \
 	libmaus/parallel/ThreadPoolInterface.hpp \
 	libmaus/parallel/ThreadPoolThread.hpp \
-	libmaus/parallel/ThreadPool.hpp
+	libmaus/parallel/ThreadPool.hpp \
+	libmaus/parallel/SimpleThreadPool.hpp \
+	libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp \
+	libmaus/parallel/SimpleThreadPoolInterface.hpp \
+	libmaus/parallel/SimpleThreadPoolThread.hpp \
+	libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp \
+	libmaus/parallel/SimpleThreadWorkPackageComparator.hpp \
+	libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp \
+	libmaus/parallel/SimpleThreadWorkPackage.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -1082,7 +1091,9 @@ noinst_PROGRAMS = \
 	testvalidatebamindex \
 	testeditdistance \
 	testthreadpool \
+	testsimplethreadpool \
 	testthreadpoolbamdecode \
+	testsimplethreadpoolbamdecode \
 	testgaparraybyte
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1091,8 +1102,14 @@ testgunzip_LDADD = libmaus.la
 testthreadpool_SOURCES = test/testthreadpool.cpp
 testthreadpool_LDADD = libmaus.la
 
+testsimplethreadpool_SOURCES = test/testsimplethreadpool.cpp
+testsimplethreadpool_LDADD = libmaus.la
+
 testthreadpoolbamdecode_SOURCES = test/testthreadpoolbamdecode.cpp
 testthreadpoolbamdecode_LDADD = libmaus.la
+
+testsimplethreadpoolbamdecode_SOURCES = test/testsimplethreadpoolbamdecode.cpp
+testsimplethreadpoolbamdecode_LDADD = libmaus.la
 
 testsyncfastreaderbase_SOURCES = test/testsyncfastreaderbase.cpp
 testsyncfastreaderbase_LDADD = libmaus.la
