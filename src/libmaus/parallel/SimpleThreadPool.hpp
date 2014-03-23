@@ -25,6 +25,7 @@
 #include <libmaus/parallel/SimpleThreadPoolInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageComparator.hpp>
+#include <libmaus/parallel/OMPLock.hpp>
 #include <libmaus/util/unordered_map.hpp>
 
 namespace libmaus
@@ -38,7 +39,7 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			uint64_t nextpackageid;
-			libmaus::parallel::PosixMutex nextpackageidlock;
+			libmaus::parallel::OMPLock nextpackageidlock;
 			
 			// semaphore for notifying about start completion
 			libmaus::parallel::PosixSemaphore startsem;
@@ -85,7 +86,7 @@ namespace libmaus
 						
 			void enque(SimpleThreadWorkPackage * P)
 			{
-				libmaus::parallel::ScopePosixMutex lock(nextpackageidlock);
+				libmaus::parallel::ScopeLock lock(nextpackageidlock);
 				P->packageid = nextpackageid++;
 				Q.enque(P);
 			}

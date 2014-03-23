@@ -32,7 +32,7 @@ namespace libmaus
 			typedef _package_type package_type;
 			typedef typename package_type::unique_ptr_type package_ptr_type;
 			
-			libmaus::parallel::PosixMutex lock;
+			libmaus::parallel::OMPLock lock;
 			libmaus::autoarray::AutoArray<package_ptr_type> packages;
 			libmaus::autoarray::AutoArray<package_type *> freelist;
 			uint64_t freelistFill;
@@ -41,7 +41,7 @@ namespace libmaus
 			
 			package_type * getPackage()
 			{
-				libmaus::parallel::ScopePosixMutex llock(lock);
+				libmaus::parallel::ScopeLock llock(lock);
 			
 				if ( ! freelistFill )
 				{
@@ -70,7 +70,7 @@ namespace libmaus
 			
 			void returnPackage(package_type * ptr)
 			{
-				libmaus::parallel::ScopePosixMutex llock(lock);
+				libmaus::parallel::ScopeLock llock(lock);
 				freelist[freelistFill++] = ptr;
 			}
 		};
