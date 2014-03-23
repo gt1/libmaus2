@@ -20,6 +20,7 @@
 #define LIBMAUS_PARALLEL_SIMPLETHREADPOOLWORKPACKAGEFREELIST_HPP
 
 #include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus/parallel/PosixSpinLock.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 
 namespace libmaus
@@ -32,7 +33,7 @@ namespace libmaus
 			typedef _package_type package_type;
 			typedef typename package_type::unique_ptr_type package_ptr_type;
 			
-			libmaus::parallel::OMPLock lock;
+			libmaus::parallel::PosixSpinLock lock;
 			libmaus::autoarray::AutoArray<package_ptr_type> packages;
 			libmaus::autoarray::AutoArray<package_type *> freelist;
 			uint64_t freelistFill;
@@ -41,7 +42,7 @@ namespace libmaus
 			
 			package_type * getPackage()
 			{
-				libmaus::parallel::ScopeLock llock(lock);
+				libmaus::parallel::ScopePosixSpinLock llock(lock);
 			
 				if ( ! freelistFill )
 				{
@@ -70,7 +71,7 @@ namespace libmaus
 			
 			void returnPackage(package_type * ptr)
 			{
-				libmaus::parallel::ScopeLock llock(lock);
+				libmaus::parallel::ScopePosixSpinLock llock(lock);
 				freelist[freelistFill++] = ptr;
 			}
 		};

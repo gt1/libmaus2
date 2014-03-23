@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOL_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADPOOL_HPP
 
+#include <libmaus/parallel/PosixSpinLock.hpp>
 #include <libmaus/parallel/PosixSemaphore.hpp>
 #include <libmaus/parallel/TerminatableSynchronousHeap.hpp>
 #include <libmaus/parallel/SimpleThreadPoolThread.hpp>
 #include <libmaus/parallel/SimpleThreadPoolInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageComparator.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
 #include <libmaus/util/unordered_map.hpp>
 
 namespace libmaus
@@ -39,7 +39,7 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			uint64_t nextpackageid;
-			libmaus::parallel::OMPLock nextpackageidlock;
+			libmaus::parallel::PosixSpinLock nextpackageidlock;
 			
 			// semaphore for notifying about start completion
 			libmaus::parallel::PosixSemaphore startsem;
@@ -86,7 +86,7 @@ namespace libmaus
 						
 			void enque(SimpleThreadWorkPackage * P)
 			{
-				libmaus::parallel::ScopeLock lock(nextpackageidlock);
+				libmaus::parallel::ScopePosixSpinLock lock(nextpackageidlock);
 				P->packageid = nextpackageid++;
 				Q.enque(P);
 			}

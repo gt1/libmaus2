@@ -47,20 +47,7 @@ namespace libmaus
 			: SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), mutex(rmutex), meta(rmeta)
 			{
 			
-			}
-			
-			void reset(
-				uint64_t const rpriority, 
-				uint64_t const rdispatcherid, 
-				libmaus::parallel::PosixMutex * rmutex,
-				DummyThreadWorkPackageMeta * rmeta,
-				uint64_t const rpackageid = 0			
-			)
-			{
-				SimpleThreadWorkPackage::reset(rpriority,rdispatcherid);
-				mutex = rmutex;
-				meta = rmeta;
-			}
+			}			
 		};
 		
 		struct DummyThreadWorkPackageMeta
@@ -103,7 +90,7 @@ namespace libmaus
 						if ( spawn*DP->packageid+i < numpacks )
 						{
 							libmaus::parallel::DummyThreadWorkPackage * pack0 = meta->freelist.getPackage();
-							pack0->reset(
+							*pack0 = libmaus::parallel::DummyThreadWorkPackage(
 								DP->priority,
 								DP->dispatcherid,
 								DP->mutex,
@@ -140,7 +127,7 @@ int main()
 	libmaus::parallel::PosixMutex printmutex;
 	
 	libmaus::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
-	pack->reset(0 /* priority */, dispid, &printmutex, &meta);
+	*pack = libmaus::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
 
 	TP.enque(pack);
 	

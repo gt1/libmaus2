@@ -685,6 +685,7 @@ libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
 	libmaus/parallel/OMPLock.hpp \
 	libmaus/parallel/PosixMutex.hpp \
+	libmaus/parallel/PosixSpinLock.hpp \
 	libmaus/parallel/PosixSemaphore.hpp \
 	libmaus/parallel/SynchronousQueue.hpp \
 	libmaus/parallel/TerminatableSynchronousQueue.hpp \

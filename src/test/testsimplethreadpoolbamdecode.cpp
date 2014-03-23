@@ -137,7 +137,7 @@ struct LockedQueue
 {
 	typedef _value_type value_type;
 
-	libmaus::parallel::OMPLock lock;
+	libmaus::parallel::PosixSpinLock lock;
 	std::deque<value_type> Q;
 	
 	LockedQueue()
@@ -148,55 +148,55 @@ struct LockedQueue
 	
 	uint64_t size()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		return Q.size();
 	}
 	
 	bool empty()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		return Q.size() == 0;	
 	}
 	
 	void push_back(value_type const v)
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		Q.push_back(v);
 	}
 
 	void push_front(value_type const v)
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		Q.push_front(v);
 	}
 
 	void pop_back()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		Q.pop_back();
 	}
 
 	void pop_front()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		Q.pop_front();
 	}
 
 	value_type front()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		return Q.front();
 	}
 
 	value_type back()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		return Q.back();
 	}
 
 	value_type dequeFront()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		value_type const v = Q.front();
 		Q.pop_front();
 		return v;
@@ -204,7 +204,7 @@ struct LockedQueue
 
 	value_type dequeBack()
 	{
-		libmaus::parallel::ScopeLock llock(lock);
+		libmaus::parallel::ScopePosixSpinLock llock(lock);
 		value_type const v = Q.back();
 		Q.pop_back();
 		return v;
@@ -363,16 +363,16 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	libmaus::parallel::SynchronousQueue<uint64_t> inflateBasesFreeList;
 	uint64_t nextInputBlockId;
 	
-	libmaus::parallel::OMPLock decompressLock;
+	libmaus::parallel::PosixSpinLock decompressLock;
 	uint64_t decompressCnt;
 	libmaus::parallel::LockedBool decompressComplete;
 	
-	libmaus::parallel::OMPLock bamParseQueueLock;
+	libmaus::parallel::PosixSpinLock bamParseQueueLock;
 	std::priority_queue<BamThreadPoolDecodeBamParseQueueInfo> bamparseQueue;
 	std::priority_queue<BamThreadPoolDecodeBamParseQueueInfo> bamparseStall;
 	uint64_t bamParseNextBlock;
 
-	libmaus::parallel::OMPLock bamParseLock;
+	libmaus::parallel::PosixSpinLock bamParseLock;
 	uint64_t bamParseCnt;
 	libmaus::parallel::LockedBool bamParseComplete;
 
@@ -394,7 +394,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	libmaus::autoarray::AutoArray<BamProcessBuffer::unique_ptr_type> processBuffers;
 	LockedQueue<uint64_t> processBuffersFreeList;
 	uint64_t nextProcessBufferIdIn;
-	libmaus::parallel::OMPLock nextProcessBufferIdOutLock;
+	libmaus::parallel::PosixSpinLock nextProcessBufferIdOutLock;
 	uint64_t nextProcessBufferIdOut;
 
 	libmaus::parallel::LockedBool bamProcessComplete;
@@ -549,7 +549,7 @@ struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel
 		cerrmutex.unlock();
 		#endif
 
-		libmaus::parallel::ScopeLock ldecompressLock(contextbase.decompressLock);
+		libmaus::parallel::ScopePosixSpinLock ldecompressLock(contextbase.decompressLock);
 		contextbase.decompressCnt += 1;
 		if ( contextbase.readComplete.get() && (contextbase.decompressCnt == contextbase.readCnt) )
 		{
@@ -567,7 +567,7 @@ struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel
 			BamThreadPoolDecodeBamParseQueueInfo qinfo(0,RP.blockmeta,RP.baseid,RP.blockid);
 
 			// enque the parse info object
-			libmaus::parallel::ScopeLock lbamParseQueueLock(contextbase.bamParseQueueLock);
+			libmaus::parallel::ScopePosixSpinLock lbamParseQueueLock(contextbase.bamParseQueueLock);
 			contextbase.bamparseQueue.push(qinfo);
 			
 			// check whether this is the next block for parsing
@@ -803,7 +803,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		if ( ! stall )
 		{
 			
-			libmaus::parallel::ScopeLock lbamParseLock(contextbase.bamParseLock);
+			libmaus::parallel::ScopePosixSpinLock lbamParseLock(contextbase.bamParseLock);
 			contextbase.bamParseCnt += 1;
 			if ( contextbase.decompressComplete.get() && (contextbase.bamParseCnt == contextbase.decompressCnt) )
 			{
@@ -844,7 +844,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 			);
 
 			// enque the parse info object in the stall queue
-			libmaus::parallel::ScopeLock lbamParseQueueLock(contextbase.bamParseQueueLock);
+			libmaus::parallel::ScopePosixSpinLock lbamParseQueueLock(contextbase.bamParseQueueLock);
 			contextbase.bamparseStall.push(qinfo);
 		}
 
@@ -881,7 +881,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		{
 			// process next bam parse object if any is available
 			{
-				libmaus::parallel::ScopeLock lbamParseQueueLock(contextbase.bamParseQueueLock);
+				libmaus::parallel::ScopePosixSpinLock lbamParseQueueLock(contextbase.bamParseQueueLock);
 				contextbase.bamParseNextBlock += 1;
 
 				if ( contextbase.bamParseNextBlock == contextbase.bamparseQueue.top().blockid )
@@ -942,12 +942,12 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 		contextbase.processBuffersFreeList.push_back(RP.baseid);
 		
 		{
-		libmaus::parallel::ScopeLock lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
+		libmaus::parallel::ScopePosixSpinLock lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
 		contextbase.nextProcessBufferIdOut += 1;
 		}
 
 		{
-			libmaus::parallel::ScopeLock lbamParseQueueLock(contextbase.bamParseQueueLock);
+			libmaus::parallel::ScopePosixSpinLock lbamParseQueueLock(contextbase.bamParseQueueLock);
 			
 			if ( contextbase.bamparseStall.size() )
 			{
@@ -972,7 +972,7 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 		}
 
 		{
-		libmaus::parallel::ScopeLock lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
+		libmaus::parallel::ScopePosixSpinLock lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
 		#if 0
 		cerrmutex.lock();
 		std::cerr 
