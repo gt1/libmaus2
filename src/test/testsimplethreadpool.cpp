@@ -48,6 +48,11 @@ namespace libmaus
 			{
 			
 			}			
+
+			virtual char const * getPackageName() const
+			{
+				return "DummyThreadWorkPackage";
+			}
 		};
 		
 		struct DummyThreadWorkPackageMeta
