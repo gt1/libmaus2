@@ -35,11 +35,20 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			SimpleThreadPoolInterface & tpi;
+
+			libmaus::parallel::PosixSpinLock curpacklock;
+			libmaus::parallel::SimpleThreadWorkPackage * curpack;
 			
-			SimpleThreadPoolThread(SimpleThreadPoolInterface & rtpi) : tpi(rtpi)
+			SimpleThreadPoolThread(SimpleThreadPoolInterface & rtpi) : tpi(rtpi), curpack(0)
 			{
 			}
 			virtual ~SimpleThreadPoolThread() {}
+			
+			libmaus::parallel::SimpleThreadWorkPackage * getCurrentPackage()
+			{
+				libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
+				return curpack;				
+			}
 		
 			void * run()
 			{
@@ -47,12 +56,20 @@ namespace libmaus
 				{
 					// notify pool this thread is now running
 					tpi.notifyThreadStart();
-				
+					
 					while ( true )
 					{
 						libmaus::parallel::SimpleThreadWorkPackage * P = tpi.getPackage();
+						{
+							libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
+							curpack = P;
+						}
 						SimpleThreadWorkPackageDispatcher * disp = tpi.getDispatcher(P);
 						disp->dispatch(P,tpi);
+						{
+							libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
+							curpack = 0;							
+						}
 					}
 				}
 				catch(std::exception const & ex)
