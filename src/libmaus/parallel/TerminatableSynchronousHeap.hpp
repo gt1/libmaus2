@@ -32,7 +32,7 @@ namespace libmaus
                 {
                         typedef SynchronousHeap<value_type,compare> parent_type;
 
-                        PosixMutex terminatelock;
+                        PosixSpinLock terminatelock;
                         volatile uint64_t terminated;
                         uint64_t const terminatedthreshold;
                         
