@@ -52,6 +52,46 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadWorkPackageComparator
 			> Q;
 			
+			void printPendingHistogram(std::ostream & out)
+			{
+				std::vector<libmaus::parallel::SimpleThreadWorkPackage *> pending =
+					Q.pending();
+				std::map<char const *, uint64_t> hist;
+				for ( uint64_t i = 0; i < pending.size(); ++i )
+					hist[pending[i]->getPackageName()]++;
+				for ( std::map<char const *, uint64_t>::const_iterator ita = hist.begin();
+					ita != hist.end(); ++ita )
+				{
+					out << "P\t" << ita->first << "\t" << ita->second << "\n";
+				}
+			}
+			
+			void printRunningHistogram(std::ostream & out)
+			{
+				std::vector<libmaus::parallel::SimpleThreadWorkPackage *> running;
+				for ( uint64_t i = 0; i < threads.size(); ++i )
+				{
+					libmaus::parallel::SimpleThreadWorkPackage * pack =
+						threads[i]->getCurrentPackage();
+					if ( pack )
+						running.push_back(pack);
+				}
+				std::map<char const *, uint64_t> hist;
+				for ( uint64_t i = 0; i < running.size(); ++i )
+					hist[running[i]->getPackageName()]++;
+				for ( std::map<char const *, uint64_t>::const_iterator ita = hist.begin();
+					ita != hist.end(); ++ita )
+				{
+					out << "R\t" << ita->first << "\t" << ita->second << "\n";
+				}
+			}
+			
+			void printStateHistogram(std::ostream & out)
+			{
+				printPendingHistogram(out);
+				printRunningHistogram(out);
+			}
+			
 			// dispatcher map
 			libmaus::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type dispatchers;
 			
