@@ -54,6 +54,8 @@ namespace libmaus
 				packageid = rpackageid;
 			}
 			virtual ~SimpleThreadWorkPackage() {}
+			
+			virtual char const * getPackageName() const = 0;
 		};
 
 		std::ostream & operator<<(std::ostream & out, SimpleThreadWorkPackage const & T);
