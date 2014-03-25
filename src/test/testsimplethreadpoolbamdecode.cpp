@@ -480,17 +480,17 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamThreadPoolDecodeBamSortPackage> bamSortFreeList;
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamThreadPoolDecodeBamWritePackage> bamWriteFreeList;
 	
-	libmaus::parallel::PosixMutex inputLock;
+	libmaus::parallel::PosixSpinLock inputLock;
 	libmaus::timing::RealTimeClock inputRtc;
 	std::istream & in;
-	uint64_t readCnt;
-	uint64_t readCompCnt;
+	libmaus::parallel::SynchronousCounter<uint64_t> readCnt;
+	libmaus::parallel::SynchronousCounter<uint64_t> readCompCnt;
 	libmaus::parallel::LockedBool readComplete;
 	libmaus::parallel::PosixSemaphore readSem;
 	libmaus::autoarray::AutoArray< libmaus::lz::BgzfInflateBase::unique_ptr_type > inflateBases;
 	libmaus::autoarray::AutoArray< char > inflateDecompressSpace;
 	libmaus::parallel::SynchronousQueue<uint64_t> inflateBasesFreeList;
-	uint64_t nextInputBlockId;
+	libmaus::parallel::SynchronousCounter<uint64_t> nextInputBlockId;
 	
 	libmaus::parallel::PosixSpinLock decompressLock;
 	uint64_t decompressCnt;
@@ -653,81 +653,69 @@ struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus::parallel::Simp
 		
 		BamThreadPoolDecodeReadPackage & RP = *dynamic_cast<BamThreadPoolDecodeReadPackage *>(P);
 		BamThreadPoolDecodeContextBase & contextbase = *(RP.contextbase);
-		libmaus::parallel::PosixMutex & inputLock = contextbase.inputLock;
-		libmaus::parallel::ScopePosixMutex slock(inputLock);
 		
 		// handle empty input file
-		if ( 
-			contextbase.readCnt == 0 &&
-			contextbase.in.peek() == std::istream::traits_type::eof()
-		)
+		if ( contextbase.readCnt.get() == 0 )
 		{
-			contextbase.readComplete.set(true);
-			contextbase.decompressComplete.set(true);
-			contextbase.bamParseComplete.set(true);
-			contextbase.bamProcessComplete.set(true);
-			contextbase.bamSortComplete.set(true);
-			tpi.terminate();
+			libmaus::parallel::ScopePosixSpinLock slock(contextbase.inputLock);
+			
+			if ( contextbase.in.peek() == std::istream::traits_type::eof() )
+			{
+				contextbase.readComplete.set(true);
+				contextbase.decompressComplete.set(true);
+				contextbase.bamParseComplete.set(true);
+				contextbase.bamProcessComplete.set(true);
+				contextbase.bamSortComplete.set(true);
+				tpi.terminate();
+			}
 		}
 
 		if ( ! contextbase.readComplete.get() )
 		{
 			assert ( contextbase.in.peek() != std::istream::traits_type::eof() );
 			
-			uint64_t const nextInputBlockId = (contextbase.nextInputBlockId++);
-			uint64_t const baseid = contextbase.inflateBasesFreeList.deque();
-			
-			std::pair<uint64_t,uint64_t> const blockmeta = contextbase.inflateBases[baseid]->readBlock(contextbase.in);
-			contextbase.readCnt += 1;
-			contextbase.readCompCnt += blockmeta.first;
-			
-			if ( contextbase.readCnt % 16384 == 0 )
-			{
-				contextbase.cerrlock.lock();
-				std::cerr << "[D] input rate " << (contextbase.readCompCnt / contextbase.inputRtc.getElapsedSeconds())/(1024.0*1024.0) << std::endl;
-				contextbase.TP.printStateHistogram(std::cerr);
-				contextbase.cerrlock.unlock();
-			}
-			
-			#if 0
-			contextbase.cerrlock.lock();
-			std::cerr << "got block " << nextInputBlockId << "\t(" << blockmeta.first << "," << blockmeta.second << ")" << std::endl;
-			contextbase.cerrlock.unlock();
-			#endif
-			
-			if ( contextbase.in.peek() == std::istream::traits_type::eof() )
-			{
-				contextbase.readComplete.set(true);
-				contextbase.cerrlock.lock();
-				std::cerr << "read complete." << std::endl;
-				contextbase.cerrlock.unlock();
-			}
-			
+			uint64_t baseid;
 
-			BamThreadPoolDecodeDecompressPackage * pBTPDDP = RP.contextbase->decompressFreeList.getPackage();
-			*pBTPDDP = BamThreadPoolDecodeDecompressPackage(
-				0,
-				RP.contextbase,
-				blockmeta,
-				baseid,
-				nextInputBlockId
-			);
-
-			tpi.enque(pBTPDDP);
-
-			uint64_t nextbaseid;
-			bool const nextbaseidok = contextbase.inflateBasesFreeList.trydeque(nextbaseid);
-			
-			if ( nextbaseidok )
+			while (  contextbase.inflateBasesFreeList.trydeque(baseid) )
 			{
-				BamThreadPoolDecodeReadPackage * pBTPDRP = RP.contextbase->readFreeList.getPackage();
-				*pBTPDRP = BamThreadPoolDecodeReadPackage(0,RP.contextbase);
-				tpi.enque(pBTPDRP);
+				uint64_t const nextInputBlockId = (contextbase.nextInputBlockId++);
+
+				uint64_t readCnt;
+				uint64_t readCompCnt;
+				std::pair<uint64_t,uint64_t> blockmeta;
+				
+				{			
+					libmaus::parallel::ScopePosixSpinLock slock(contextbase.inputLock);
+					blockmeta = contextbase.inflateBases[baseid]->readBlock(contextbase.in);
+
+					readCnt = contextbase.readCnt++;
+					contextbase.readCompCnt += blockmeta.first;
+					readCompCnt = contextbase.readCompCnt.get();
+
+					if ( contextbase.in.peek() == std::istream::traits_type::eof() )
+					{
+						contextbase.readComplete.set(true);
+						contextbase.cerrlock.lock();
+						std::cerr << "read complete." << std::endl;
+						contextbase.cerrlock.unlock();
+					}
+				}
+							
+				if ( readCnt % 16384 == 0 )
+				{
+					contextbase.cerrlock.lock();
+					std::cerr << "[D] input rate " << (readCompCnt / contextbase.inputRtc.getElapsedSeconds())/(1024.0*1024.0) << std::endl;
+					contextbase.TP.printStateHistogram(std::cerr);
+					contextbase.cerrlock.unlock();
+				}
+				
+				BamThreadPoolDecodeDecompressPackage * pBTPDDP = RP.contextbase->decompressFreeList.getPackage();
+				*pBTPDDP = BamThreadPoolDecodeDecompressPackage(0,RP.contextbase,blockmeta,baseid,nextInputBlockId);
+
+				tpi.enque(pBTPDDP);
 			}
-			else
-			{
-				contextbase.readSem.post();
-			}
+
+			contextbase.readSem.post();
 		}
 		
 		RP.contextbase->readFreeList.returnPackage(dynamic_cast<BamThreadPoolDecodeReadPackage *>(P));
@@ -1685,13 +1673,13 @@ int main(int argc, char * argv[])
 		BamThreadPoolDecodeBamWritePackageDispatcher bamwritedispatcher;
 		TP.registerDispatcher(BamThreadPoolDecodeContext::bamthreadpooldecodecontextbase_dispatcher_id_bamwrite,&bamwritedispatcher);
 
-		uint64_t numProcessBuffers = 8; // 2*numthreads;
+		uint64_t numProcessBuffers = 2; // 2*numthreads;
 		uint64_t processBufferMemory = 4*1024ull*1024ull*1024ull;
 		// uint64_t processBufferMemory = 512ull*1024ull;
 		uint64_t processBufferSize = (processBufferMemory + numProcessBuffers-1)/numProcessBuffers;
 
-		libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO,64*1024);
-		BamThreadPoolDecodeContext context(PFIS,16*numthreads /* inflate bases */,numProcessBuffers,processBufferSize,tmpfilenamebase,numthreads,TP);
+		// libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO,64*1024);
+		BamThreadPoolDecodeContext context(std::cin,16*numthreads /* inflate bases */,numProcessBuffers,processBufferSize,tmpfilenamebase,numthreads,TP);
 		context.startup();
 		
 		TP.join();
