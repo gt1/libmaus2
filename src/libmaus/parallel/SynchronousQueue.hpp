@@ -88,6 +88,22 @@ namespace libmaus
                                 Q.pop_front();
                                 return v;
                         }
+                        virtual bool trydeque(value_type & v)
+                        {
+                        	bool const ok = semaphore.trywait();
+                                
+                                if ( ok )
+                                {
+	                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+	                        	v = Q.front();
+                	                Q.pop_front();
+                	                return true;
+				}
+				else
+				{
+					return false;
+				}
+                        }
                         value_type peek()
                         {
                         	lock.lock();

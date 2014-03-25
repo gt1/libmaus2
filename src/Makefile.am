@@ -714,7 +714,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp \
 	libmaus/parallel/SimpleThreadWorkPackageComparator.hpp \
 	libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp \
-	libmaus/parallel/SimpleThreadWorkPackage.hpp
+	libmaus/parallel/SimpleThreadWorkPackage.hpp \
+	libmaus/parallel/LockedQueue.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -1110,7 +1111,9 @@ testthreadpoolbamdecode_SOURCES = test/testthreadpoolbamdecode.cpp
 testthreadpoolbamdecode_LDADD = libmaus.la
 
 testsimplethreadpoolbamdecode_SOURCES = test/testsimplethreadpoolbamdecode.cpp
-testsimplethreadpoolbamdecode_LDADD = libmaus.la
+testsimplethreadpoolbamdecode_LDADD = libmaus.la @SNAPPYLIBS@
+testsimplethreadpoolbamdecode_CPPFLAGS = @SNAPPYCPPFLAGS@
+testsimplethreadpoolbamdecode_LDFLAGS = @SNAPPYLDFLAGS@
 
 testsyncfastreaderbase_SOURCES = test/testsyncfastreaderbase.cpp
 testsyncfastreaderbase_LDADD = libmaus.la

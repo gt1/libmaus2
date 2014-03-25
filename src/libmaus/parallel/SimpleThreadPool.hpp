@@ -26,6 +26,7 @@
 #include <libmaus/parallel/SimpleThreadPoolInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageComparator.hpp>
+#include <libmaus/parallel/LockedBool.hpp>
 #include <libmaus/util/unordered_map.hpp>
 
 namespace libmaus
@@ -95,7 +96,9 @@ namespace libmaus
 			// dispatcher map
 			libmaus::util::unordered_map<uint64_t,SimpleThreadWorkPackageDispatcher *>::type dispatchers;
 			
-			SimpleThreadPool(uint64_t const rnumthreads)
+			SimpleThreadPool(
+				uint64_t const rnumthreads
+			)
 			: nextpackageid(0), threads(rnumthreads)
 			{
 				for ( uint64_t i = 0; i < threads.size(); ++i )
