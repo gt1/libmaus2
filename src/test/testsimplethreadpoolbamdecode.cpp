@@ -1678,8 +1678,8 @@ int main(int argc, char * argv[])
 		// uint64_t processBufferMemory = 512ull*1024ull;
 		uint64_t processBufferSize = (processBufferMemory + numProcessBuffers-1)/numProcessBuffers;
 
-		// libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO,64*1024);
-		BamThreadPoolDecodeContext context(std::cin,16*numthreads /* inflate bases */,numProcessBuffers,processBufferSize,tmpfilenamebase,numthreads,TP);
+		libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO,64*1024);
+		BamThreadPoolDecodeContext context(PFIS,16*numthreads /* inflate bases */,numProcessBuffers,processBufferSize,tmpfilenamebase,numthreads,TP);
 		context.startup();
 		
 		TP.join();
