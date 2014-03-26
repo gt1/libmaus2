@@ -605,7 +605,8 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	  bamSortComplete(false),
 	  tmpfilenames(numthreads),
 	  tmpfiles(numthreads),
-	  compressorFactory(Z_BEST_SPEED),
+	  // compressorFactory(Z_BEST_SPEED),
+	  compressorFactory(-1),
 	  compressedTmpFiles(numthreads),
 	  writesNext(numthreads,0),
 	  writesPending(numthreads),
@@ -1073,6 +1074,10 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		{
 			for ( uint64_t i = 0; i < finishedBuffers.size(); ++i )
 			{
+				contextbase.cerrlock.lock();
+				std::cerr << "queueing process block." << std::endl;
+				contextbase.cerrlock.unlock();
+			
 				BamThreadPoolDecodeBamProcessQueueInfo qinfo(
 					0,
 					finishedBuffers[i],

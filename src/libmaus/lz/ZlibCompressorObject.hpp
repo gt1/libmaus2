@@ -34,41 +34,40 @@ namespace libmaus
 			int const level;
 			z_stream strm;
 			
-			libmaus::autoarray::AutoArray<uint8_t> outbuf;
-			uint64_t inBound;
-			
-			ZlibCompressorObject(int const rlevel = Z_DEFAULT_COMPRESSION) 
-			: level(rlevel), outbuf(), inBound(0)
+			uint64_t inputBound;
+			uint64_t outputBound;
+						
+			ZlibCompressorObject(int const rlevel = Z_DEFAULT_COMPRESSION) : level(rlevel), inputBound(0), outputBound(0)
 			{
 				BgzfDeflateHeaderFunctions::deflateinitz(&strm,level);		
+				outputBound = deflateBound(&strm,inputBound);
 			}
 			~ZlibCompressorObject() 
 			{
 				BgzfDeflateHeaderFunctions::deflatedestroyz(&strm);
 			}
-			
-			virtual std::string compress(std::string const & s)
+
+			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output)
 			{
 				deflateReset(&strm);
-
-				if ( (!inBound) || (s.size() > inBound) )
+		
+				if ( inputLength > inputBound )
 				{
-					uint64_t const outbound = deflateBound(&strm,s.size());
-					
-					if ( outbound > outbuf.size() )
-						outbuf = libmaus::autoarray::AutoArray<uint8_t>(outbound,false);
-										
-					inBound = s.size();
+					inputBound = inputLength;
+					outputBound = deflateBound(&strm,inputBound);
 				}
 
+				if ( outputBound > output.size() )
+					output = libmaus::autoarray::AutoArray<char>(outputBound,false);
+										
 				// maximum number of output bytes
-				strm.avail_out = outbuf.size();
+				strm.avail_out = output.size();
 				// next compressed output byte
-				strm.next_out  = reinterpret_cast<Bytef *>(outbuf.begin());
+				strm.next_out  = reinterpret_cast<Bytef *>(output.begin());
 				// number of bytes to be compressed
-				strm.avail_in  = s.size();
+				strm.avail_in  = inputLength;
 				// data to be compressed
-				strm.next_in   = const_cast<Bytef *>(reinterpret_cast<Bytef const *>(s.c_str()));
+				strm.next_in   = const_cast<Bytef *>(reinterpret_cast<Bytef const *>(input));
 				
 				int const retcode = deflate(&strm,Z_FINISH);
 				
@@ -84,10 +83,9 @@ namespace libmaus
 					throw se;
 				}
 				
-				uint64_t const compsize = outbuf.size() - strm.avail_out;
-				char const * c = reinterpret_cast<char const *>(outbuf.begin());
-				
-				return std::string(c,c+compsize);
+				uint64_t const compsize = output.size() - strm.avail_out;
+
+				return compsize;
 			}
 		};
 	}

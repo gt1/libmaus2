@@ -20,7 +20,7 @@
 #define LIBMAUS_LZ_COMPRESSOROBJECT_HPP
 
 #include <libmaus/util/unique_ptr.hpp>
-#include <string>
+#include <libmaus/autoarray/AutoArray.hpp>
 
 namespace libmaus
 {
@@ -33,7 +33,7 @@ namespace libmaus
 			
 			virtual ~CompressorObject() {}
 			
-			virtual std::string compress(std::string const & s) = 0;
+			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output) = 0;
 		};
 	}
 }
