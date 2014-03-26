@@ -21,6 +21,7 @@
 #include <libmaus/bambam/BamHeader.hpp>
 #include <libmaus/lz/BgzfInflateBase.hpp>
 #include <libmaus/lz/SnappyCompressorObjectFactory.hpp>
+#include <libmaus/lz/ZlibCompressorObjectFactory.hpp>
 #include <libmaus/lz/SimpleCompressedOutputStream.hpp>
 #include <libmaus/parallel/LockedBool.hpp>
 #include <libmaus/parallel/LockedQueue.hpp>
@@ -170,10 +171,10 @@ struct BamThreadPoolDecodeContextBaseConstantsBase
 		bamthreadpooldecodecontextbase_dispatcher_id_bamwrite = 5
 	};
 	
-	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_read = 0;
-	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_decompress = 0;
-	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamparse = 0;
-	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamprocess = 0;
+	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_read = 10;
+	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_decompress = 10;
+	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamparse = 10;
+	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamprocess = 10;
 	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamsort = 0;
 	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamwrite = 0;
 };
@@ -534,8 +535,20 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 
 	std::vector<std::string> tmpfilenames;
 	libmaus::autoarray::AutoArray<libmaus::aio::CheckedOutputStream::unique_ptr_type> tmpfiles;
-	libmaus::lz::SnappyCompressorObjectFactory snappyCompressorFactory;
+	// libmaus::lz::SnappyCompressorObjectFactory snappyCompressorFactory;
+	libmaus::lz::ZlibCompressorObjectFactory compressorFactory;
 	libmaus::autoarray::AutoArray<libmaus::lz::SimpleCompressedOutputStream<std::ostream>::unique_ptr_type> compressedTmpFiles;
+	libmaus::parallel::PosixSpinLock tmpfileblockslock;
+	std::vector< 
+		std::vector< 
+			std::pair<
+				std::pair<uint64_t,uint64_t>,
+				std::pair<uint64_t,uint64_t>
+			> 
+		> 
+	> tmpfileblocks;
+	std::vector< std::vector<uint64_t> > tmpfileblockcnts;
+	std::vector< uint64_t > tmpfileblockcntsums;
 	
 	libmaus::parallel::PosixSpinLock writesPendingLock;
 	std::vector< uint64_t > writesNext;
@@ -592,7 +605,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	  bamSortComplete(false),
 	  tmpfilenames(numthreads),
 	  tmpfiles(numthreads),
-	  snappyCompressorFactory(),
+	  compressorFactory(Z_BEST_SPEED),
 	  compressedTmpFiles(numthreads),
 	  writesNext(numthreads,0),
 	  writesPending(numthreads),
@@ -627,7 +640,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 			tmpfiles[i] = UNIQUE_PTR_MOVE(tptr);
 			
 			libmaus::lz::SimpleCompressedOutputStream<std::ostream>::unique_ptr_type tcptr(
-				new libmaus::lz::SimpleCompressedOutputStream<std::ostream>(*tmpfiles[i],snappyCompressorFactory)
+				new libmaus::lz::SimpleCompressedOutputStream<std::ostream>(*tmpfiles[i],compressorFactory)
 			);
 			
 			compressedTmpFiles[i] = UNIQUE_PTR_MOVE(tcptr);
@@ -1326,6 +1339,34 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 
 					BamBlockWriteInfo::shared_ptr_type blockWriteInfo(new BamBlockWriteInfo(processBuffer,writepackets));
 
+					{
+						libmaus::parallel::ScopePosixSpinLock ltmpfileblockslock(contextbase.tmpfileblockslock);
+
+						while ( ! (RP.blockid < contextbase.tmpfileblocks.size() ) )
+							contextbase.tmpfileblocks.push_back(
+								std::vector< 
+									std::pair<
+										std::pair<uint64_t,uint64_t> ,
+										std::pair<uint64_t,uint64_t>
+									>
+								>(
+									numthreads
+								)
+							);
+						
+						while ( ! (RP.blockid < contextbase.tmpfileblockcnts.size() ) )
+						{
+							contextbase.tmpfileblockcnts.push_back(
+								std::vector<uint64_t>(numthreads)
+							);						
+						}
+						
+						while ( ! (RP.blockid < contextbase.tmpfileblockcntsums.size() ) )
+						{
+							contextbase.tmpfileblockcntsums.push_back(0);
+						}
+					}
+
 					libmaus::parallel::ScopePosixSpinLock lwritesPendingLock(contextbase.writesPendingLock);
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
@@ -1501,6 +1542,8 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 		libmaus::lz::SimpleCompressedOutputStream<std::ostream> * compout =
 			contextbase.compressedTmpFiles[RP.write_block_id].get();
 	
+		std::pair<uint64_t,uint64_t> const preoff = compout->getOffset();
+		assert ( preoff.second == 0 );
 		for ( BamProcessBuffer::pointer_type const * pc = pa; pc != pe; ++pc )
 		{
 			uint64_t const off = *pc;
@@ -1517,6 +1560,8 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 			}
 			compout->write(reinterpret_cast<char const *>(c),len+4);
 		}
+		std::pair<uint64_t,uint64_t> const postoff = compout->getOffset();
+		compout->flush();
 
 		contextbase.cerrlock.lock();
 		std::cerr << "BamWrite " 
@@ -1524,6 +1569,17 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 			<< "," << (writeinfo->packets[RP.write_block_id].second-writeinfo->packets[RP.write_block_id].first)
 			<< std::endl;
 		contextbase.cerrlock.unlock();
+
+		{
+			libmaus::parallel::ScopePosixSpinLock ltmpfileblockslock(contextbase.tmpfileblockslock);
+			contextbase.tmpfileblocks[RP.blockid][RP.write_block_id] =
+				std::pair<
+					std::pair<uint64_t,uint64_t>,
+					std::pair<uint64_t,uint64_t>
+				>(preoff,postoff);
+			contextbase.tmpfileblockcnts[RP.blockid][RP.write_block_id] = (pe-pa);
+			contextbase.tmpfileblockcntsums[RP.blockid] += (pe-pa);
+		}
 
 		// enque next block for stream writing (if any is present)
 		{
@@ -1673,8 +1729,8 @@ int main(int argc, char * argv[])
 		BamThreadPoolDecodeBamWritePackageDispatcher bamwritedispatcher;
 		TP.registerDispatcher(BamThreadPoolDecodeContext::bamthreadpooldecodecontextbase_dispatcher_id_bamwrite,&bamwritedispatcher);
 
-		uint64_t numProcessBuffers = 2; // 2*numthreads;
-		uint64_t processBufferMemory = 4*1024ull*1024ull*1024ull;
+		uint64_t numProcessBuffers = 4; // 2*numthreads;
+		uint64_t processBufferMemory = 16*1024ull*1024ull*1024ull;
 		// uint64_t processBufferMemory = 512ull*1024ull;
 		uint64_t processBufferSize = (processBufferMemory + numProcessBuffers-1)/numProcessBuffers;
 
@@ -1683,6 +1739,10 @@ int main(int argc, char * argv[])
 		context.startup();
 		
 		TP.join();
+
+		std::cerr << "produced " << context.tmpfileblockcntsums.size() << " blocks: " << std::endl;
+		for ( uint64_t i = 0; i < context.tmpfileblockcntsums.size(); ++i )
+			std::cerr << "block[" << i << "]=" << context.tmpfileblockcntsums[i] << std::endl;
 	}
 	catch(std::exception const & ex)
 	{

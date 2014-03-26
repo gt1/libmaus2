@@ -90,7 +90,7 @@ namespace libmaus
 				
 				streambytesread += CPO.c;
 
-				bool const ok = decompressor->rawuncompress(C.begin(),comp,B.begin());
+				bool const ok = decompressor->rawuncompress(C.begin(),comp,B.begin(),uncomp);
 
 				if ( ! ok )
 				{

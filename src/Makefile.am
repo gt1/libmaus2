@@ -247,7 +247,11 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/SnappyInputStream.hpp \
 	libmaus/lz/SnappyFileOutputStream.hpp \
 	libmaus/lz/SnappyOutputStream.hpp \
-	libmaus/lz/SimpleCompressedStreamInterval.hpp
+	libmaus/lz/SimpleCompressedStreamInterval.hpp \
+	libmaus/lz/ZlibCompressorObjectFactory.hpp \
+	libmaus/lz/ZlibDecompressorObjectFactory.hpp \
+	libmaus/lz/ZlibCompressorObject.hpp \
+	libmaus/lz/ZlibDecompressorObject.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -1096,7 +1100,8 @@ noinst_PROGRAMS = \
 	testsimplethreadpool \
 	testthreadpoolbamdecode \
 	testsimplethreadpoolbamdecode \
-	testgaparraybyte
+	testgaparraybyte \
+	testzlibconcat
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1382,3 +1387,7 @@ testeditdistance_LDADD = libmaus.la
 
 testgaparraybyte_SOURCES = test/testgaparraybyte.cpp
 testgaparraybyte_LDADD = libmaus.la
+
+testzlibconcat_SOURCES = test/testzlibconcat.cpp
+testzlibconcat_LDADD = libmaus.la
+testzlibconcat_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@

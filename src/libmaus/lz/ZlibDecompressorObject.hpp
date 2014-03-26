@@ -16,25 +16,44 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECT_HPP)
-#define LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECT_HPP
+#if ! defined(LIBMAUS_LZ_ZLIBDECOMPRESSOROBJECT_HPP)
+#define LIBMAUS_LZ_ZLIBDECOMPRESSOROBJECT_HPP
 
 #include <libmaus/lz/DecompressorObject.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct SnappyDecompressorObject : public DecompressorObject
+		struct ZlibDecompressorObject : public DecompressorObject
 		{
-			typedef SnappyDecompressorObject this_type;
+			typedef ZlibDecompressorObject this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			virtual ~SnappyDecompressorObject() {}
-			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed, size_t /* uncompressed_length */)
+			::libmaus::lz::BgzfInflateZStreamBase inflatebase;
+			
+			ZlibDecompressorObject()
+			: inflatebase()
 			{
-				return SnappyCompress::rawuncompress(compressed,compressed_length,uncompressed);
+				
+			}
+			virtual ~ZlibDecompressorObject() {}
+			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed, size_t uncompressed_length)
+			{
+				try
+				{
+					inflatebase.zdecompress(
+						const_cast<uint8_t *>(reinterpret_cast<uint8_t const *>(compressed)),
+						compressed_length,
+						uncompressed,
+						uncompressed_length);
+					return true;
+				}
+				catch(...)
+				{
+					return false;
+				}
 			}
 		};
 	}

@@ -16,26 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_DECOMPRESSOROBJECT_HPP)
-#define LIBMAUS_LZ_DECOMPRESSOROBJECT_HPP
+#if ! defined(LIBMAUS_LZ_ZLIBCOMPRESSOROBJECTFACTORY_HPP)
+#define LIBMAUS_LZ_ZLIBCOMPRESSOROBJECTFACTORY_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/lz/ZlibCompressorObject.hpp>
+#include <libmaus/lz/CompressorObjectFactory.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct DecompressorObject
+		struct ZlibCompressorObjectFactory : public CompressorObjectFactory
 		{
-			typedef DecompressorObject this_type;
+			typedef ZlibCompressorObjectFactory this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			virtual ~DecompressorObject() {}
-			virtual bool rawuncompress(
-				char const * compressed, 
-				size_t compressed_length, 
-				char * uncompressed,
-				size_t uncompressed_length) = 0;
+			int const level;
+			
+			ZlibCompressorObjectFactory(int const rlevel = Z_DEFAULT_COMPRESSION)
+			: level(rlevel) {}
+			virtual ~ZlibCompressorObjectFactory() {}
+			virtual CompressorObject::unique_ptr_type operator()()
+			{
+				CompressorObject::unique_ptr_type ptr(new ZlibCompressorObject(level));
+				return UNIQUE_PTR_MOVE(ptr);
+			}
 		};
 	}
 }
