@@ -36,7 +36,7 @@ namespace libmaus
 			stream_type * stream;
 			
 			SimpleCompressedConcatInputStreamFragment()
-			: low(0,0), high(0,0)
+			: low(0,0), high(0,0), stream(0)
 			{
 			
 			}
@@ -46,6 +46,14 @@ namespace libmaus
 				std::pair<uint64_t,uint64_t> const rhigh,
 				stream_type * rstream
 			) : low(rlow), high(rhigh), stream(rstream)
+			{
+			
+			}
+			
+			SimpleCompressedConcatInputStreamFragment(
+				libmaus::lz::SimpleCompressedStreamInterval const & rmeta,
+				stream_type * rstream				
+			) : low(rmeta.start), high(rmeta.end), stream(rstream)
 			{
 			
 			}
