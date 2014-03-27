@@ -588,7 +588,8 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	std::vector< std::vector< libmaus::lz::SimpleCompressedStreamInterval > > tmpfileblocks;
 	std::vector< std::vector<uint64_t> > tmpfileblockcnts;
 	std::vector< uint64_t > tmpfileblockcntsums;
-
+	libmaus::parallel::PosixSpinLock tmpfileblockcntsumsacclock;
+	uint64_t tmpfileblockcntsumsacc;
 
 	MergeInfo getMergeInfo() const
 	{
@@ -656,6 +657,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	  bamSortComplete(false),
 	  tmpfilenames(numthreads),
 	  tmpfiles(numthreads),
+	  tmpfileblockcntsumsacc(0),
 	  compressorFactory(Z_DEFAULT_COMPRESSION),
 	  compressedTmpFiles(numthreads),
 	  writesNext(numthreads,0),
@@ -761,12 +763,15 @@ struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus::parallel::Simp
 					if ( contextbase.in.peek() == std::istream::traits_type::eof() )
 					{
 						contextbase.readComplete.set(true);
+						#if 0
 						contextbase.cerrlock.lock();
 						std::cerr << "read complete." << std::endl;
 						contextbase.cerrlock.unlock();
+						#endif
 					}
 				}
-							
+				
+				#if 0
 				if ( readCnt % 16384 == 0 )
 				{
 					contextbase.cerrlock.lock();
@@ -774,6 +779,7 @@ struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus::parallel::Simp
 					contextbase.TP.printStateHistogram(std::cerr);
 					contextbase.cerrlock.unlock();
 				}
+				#endif
 				
 				BamThreadPoolDecodeDecompressPackage<order_type> * pBTPDDP = RP.contextbase->decompressFreeList.getPackage();
 				*pBTPDDP = BamThreadPoolDecodeDecompressPackage<order_type>(0,RP.contextbase,blockmeta,baseid,nextInputBlockId);
@@ -813,7 +819,7 @@ struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel
 		{
 			contextbase.decompressComplete.set(true);
 
-			#if 1
+			#if 0
 			contextbase.cerrlock.lock();
 			std::cerr << "decompress complete." << std::endl;
 			contextbase.cerrlock.unlock();
@@ -901,9 +907,11 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 				contextbase.haveheader.set(true);
 				pa += P.second;
 				
+				#if 0
 				contextbase.cerrlock.lock();
 				std::cerr << contextbase.header.text;
 				contextbase.cerrlock.unlock();
+				#endif
 			}
 			else
 			{
@@ -1049,9 +1057,11 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 			contextbase.bamParseCnt += 1;
 			if ( contextbase.decompressComplete.get() && (contextbase.bamParseCnt == contextbase.decompressCnt) )
 			{
+				#if 0
 				contextbase.cerrlock.lock();
 				std::cerr << "bamParse complete." << std::endl;
 				contextbase.cerrlock.unlock();
+				#endif
 				contextbase.bamParseComplete.set(true);
 
 				// queue final finished buffer
@@ -1071,7 +1081,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 
 			RP.blockmeta.second = pc-pa;
 
-			#if 1
+			#if 0
 			contextbase.cerrlock.lock();
 			std::cerr << "stalling, rest " << pc-pa << std::endl;
 			contextbase.cerrlock.unlock();
@@ -1095,9 +1105,11 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		{
 			for ( uint64_t i = 0; i < finishedBuffers.size(); ++i )
 			{
+				#if 0
 				contextbase.cerrlock.lock();
 				std::cerr << "queueing process block." << std::endl;
 				contextbase.cerrlock.unlock();
+				#endif
 			
 				BamThreadPoolDecodeBamProcessQueueInfo qinfo(
 					0,
@@ -1194,7 +1206,9 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 			)
 			{
 				contextbase.bamProcessComplete.set(true);
+				#if 0
 				std::cerr << "bamProcess complete" << std::endl;
+				#endif
 			}
 		}
 
@@ -1261,9 +1275,11 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 			{
 				if ( sortControl.mergeLevels.levelsFinished.get() == sortControl.mergeLevels.levels.size() )
 				{
+					#if 0
 					contextbase.cerrlock.lock();
 					std::cerr << "sorted buffer " << contextbase.processBuffers[RP.baseid]->pa-contextbase.processBuffers[RP.baseid]->pc << std::endl;
 					contextbase.cerrlock.unlock();
+					#endif
 
 					BamProcessBuffer * processBuffer = contextbase.processBuffers[RP.baseid].get();
 					order_type BAPC(processBuffer->ca);
@@ -1434,9 +1450,11 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 						contextbase.nextProcessBufferIdOut == contextbase.buffersSorted
 					)
 					{
+						#if 0
 						contextbase.cerrlock.lock();
 						std::cerr << "bamSort complete" << std::endl;
 						contextbase.cerrlock.unlock();
+						#endif
 
 						contextbase.bamSortComplete.set(true);
 						// tpi.terminate();
@@ -1533,12 +1551,14 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 		std::pair<uint64_t,uint64_t> const postoff = compout->getOffset();
 		compout->flush();
 
+		#if 0
 		contextbase.cerrlock.lock();
 		std::cerr << "BamWrite " 
 			<< RP.blockid << "," << RP.write_block_id 
 			<< "," << (writeinfo->packets[RP.write_block_id].second-writeinfo->packets[RP.write_block_id].first)
 			<< std::endl;
 		contextbase.cerrlock.unlock();
+		#endif
 
 		{
 			libmaus::parallel::ScopePosixSpinLock ltmpfileblockslock(contextbase.tmpfileblockslock);
@@ -1572,6 +1592,15 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 		
 		if ( packetsWritten == writeinfo->packets.size() )
 		{
+			{
+				libmaus::parallel::ScopePosixSpinLock ltmpfileblockcntsumsacclock(contextbase.tmpfileblockcntsumsacclock);
+				contextbase.tmpfileblockcntsumsacc += contextbase.tmpfileblockcntsums[RP.blockid];
+				
+				contextbase.cerrlock.lock();
+				std::cerr << "[V] " << contextbase.tmpfileblockcntsumsacc << std::endl;
+				contextbase.cerrlock.unlock();		
+			}
+		
 			// return buffer to free list
 			contextbase.processBuffers[RP.baseid]->reset();
 			contextbase.processBuffersFreeList.push_back(RP.baseid);
@@ -1594,9 +1623,11 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 						bqinfo.blockid
 					);
 
+					#if 0
 					contextbase.cerrlock.lock();
 					std::cerr << "reinserting stalled block " << bqinfo.blockid << std::endl;
 					contextbase.cerrlock.unlock();
+					#endif
 		
 					tpi.enque(pBTPDBPP);			
 				}
@@ -1620,9 +1651,11 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 					contextbase.tmpfiles[i].reset();
 				}
 
+				#if 0
 				contextbase.cerrlock.lock();
 				std::cerr << "bamWrite done." << std::endl;
 				contextbase.cerrlock.unlock();
+				#endif
 				
 				contextbase.bamWriteComplete.set(true);
 				tpi.terminate();
@@ -1711,9 +1744,9 @@ MergeInfo produceSortedBlocks(libmaus::util::ArgInfo const & arginfo)
 	TP.join();
 	
 
-	std::cerr << "produced " << context.tmpfileblockcntsums.size() << " blocks: " << std::endl;
+	std::cerr << "[V] produced " << context.tmpfileblockcntsums.size() << " blocks: " << std::endl;
 	for ( uint64_t i = 0; i < context.tmpfileblockcntsums.size(); ++i )
-		std::cerr << "block[" << i << "]=" << context.tmpfileblockcntsums[i] << std::endl;
+		std::cerr << "[V] block[" << i << "]=" << context.tmpfileblockcntsums[i] << std::endl;
 
 	MergeInfo const mergeinfo = context.getMergeInfo();
 
