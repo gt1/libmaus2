@@ -2835,9 +2835,11 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 		BamThreadPoolMergeMergePackage<order_type> & RP = *dynamic_cast<BamThreadPoolMergeMergePackage<order_type> *>(P);
 		BamThreadPoolMergeContextBase<order_type> & contextbase = *(RP.contextbase);
 
+		#if 0
 		contextbase.cerrlock.lock();
 		std::cerr << "MERGE, mergeQ.size()=" << contextbase.mergeQ.size() << std::endl;
 		contextbase.cerrlock.unlock();
+		#endif
 
 		libmaus::parallel::ScopePosixSpinLock lalPerBlockLock(contextbase.alPerBlockLock);
 		
