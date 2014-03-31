@@ -30,6 +30,9 @@ namespace libmaus
 		struct LockedQueue
 		{
 			typedef _value_type value_type;
+			typedef LockedQueue<value_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			libmaus::parallel::PosixSpinLock lock;
 			std::deque<value_type> Q;
@@ -94,6 +97,21 @@ namespace libmaus
 				value_type const v = Q.front();
 				Q.pop_front();
 				return v;
+			}
+			
+			bool tryDequeFront(value_type & v)
+			{
+				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				if ( Q.size() )
+				{
+					v = Q.front();
+					Q.pop_front();
+					return true;
+				}		
+				else
+				{
+					return false;
+				}	
 			}
 
 			value_type dequeBack()

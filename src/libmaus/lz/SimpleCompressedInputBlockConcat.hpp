@@ -104,6 +104,8 @@ namespace libmaus
 				
 				streampos += (block.metasize+block.compsize);
 				
+				bool const gcountok = Pcis->gcount() == static_cast<int64_t>(block.compsize);
+				
 				if ( block.blockstreampos == currentInterval->end.first )
 				{
 					Pcis.reset();
@@ -116,7 +118,7 @@ namespace libmaus
 						block.eof = true;
 				}
 					
-				if ( Pcis->gcount() == static_cast<int64_t>(block.compsize) )
+				if ( gcountok )
 					return true;
 				else
 					return false;
