@@ -621,7 +621,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 			
 			tmpfilenamedblocks.push_back(subblocks);
 		}
-	
+			
 		return MergeInfo(tmpfileblockcnts,tmpfilenames,tmpfileblocks,tmpfilenamedblocks,tmpfileblockcntsums,header);
 	}
 
@@ -686,9 +686,9 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	  bamSortComplete(false),
 	  tmpfilenames(numthreads),
 	  tmpfiles(numthreads),
-	  tmpfileblockcntsumsacc(0),
 	  compressorFactory(Z_DEFAULT_COMPRESSION),
 	  compressedTmpFiles(numthreads),
+	  tmpfileblockcntsumsacc(0),
 	  writesNext(numthreads,0),
 	  writesPending(numthreads),
 	  buffersWritten(0),
@@ -777,17 +777,26 @@ struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus::parallel::Simp
 			{
 				uint64_t const nextInputBlockId = (contextbase.nextInputBlockId++);
 
+				#if 0
 				uint64_t readCnt;
 				uint64_t readCompCnt;
+				#endif
 				std::pair<uint64_t,uint64_t> blockmeta;
 				
 				{			
 					libmaus::parallel::ScopePosixSpinLock slock(contextbase.inputLock);
 					blockmeta = contextbase.inflateBases[baseid]->readBlock(contextbase.in);
 
-					readCnt = contextbase.readCnt++;
+					#if 0
+					readCnt = 
+					#endif
+						contextbase.readCnt++;
+					
 					contextbase.readCompCnt += blockmeta.first;
+					
+					#if 0
 					readCompCnt = contextbase.readCompCnt.get();
+					#endif
 
 					if ( contextbase.in.peek() == std::istream::traits_type::eof() )
 					{
@@ -1336,6 +1345,12 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 						writepackets[i] = std::pair<BamProcessBuffer::pointer_type const *, BamProcessBuffer::pointer_type const *>(
 							pa + allow, pa + alhigh
 						);
+
+						#if 0
+						contextbase.cerrlock.lock();
+						std::cerr << "writepacket " << allow << " " << alhigh << std::endl;
+						contextbase.cerrlock.unlock();
+						#endif
 						
 						allow = alhigh;
 					}
@@ -1414,6 +1429,7 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 					
 					contextbase.cerrlock.lock();	
 					uint8_t const * prev = 0;
+					bool ok = true;
 					for ( BamProcessBuffer::pointer_type * pc = pa ; pc != pe; ++pc )
 					{
 						uint8_t const * c = processBuffer->ca + (*pc)+4;
@@ -1429,12 +1445,14 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 							
 						if ( prev )
 						{
-							assert ( ! (BAPC( *pc , *(pc-1) )) );
+							ok = ok && ( ! (BAPC( *pc , *(pc-1) )) );
+							// assert ( ! (BAPC( *pc , *(pc-1) )) );
 							// std::cerr << BAPC( *pc , *(pc-1) ) << std::endl;
 						}
 							
 						prev = c;
 					}
+					std::cerr << "order: " << (ok?"ok":"failed") << std::endl;
 					contextbase.cerrlock.unlock();
 					#endif
 					
@@ -1559,8 +1577,38 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 		libmaus::lz::SimpleCompressedOutputStream<std::ostream> * compout =
 			contextbase.compressedTmpFiles[RP.write_block_id].get();
 	
+		#if 0
+		order_type BAPC(buffer->ca);
+		BamProcessBuffer::pointer_type const * prev = 0;
+		bool gok = true;
+		#endif
+		
+		#if 0
+		if ( pa != pe )
+		{
+			::libmaus::bambam::BamFormatAuxiliary aux;
+			
+			contextbase.cerrlock.lock();
+			std::cerr << "first " 
+				<< 
+					libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+						ca + *pa + 4,
+						(static_cast<uint32_t>((ca + *pa)[0]) << 0) |
+						(static_cast<uint32_t>((ca + *pa)[1]) << 8) |
+						(static_cast<uint32_t>((ca + *pa)[2]) << 16) |
+						(static_cast<uint32_t>((ca + *pa)[3]) << 24),
+						contextbase.header.chromosomes,
+						aux
+					)
+				<< std::endl;
+			contextbase.cerrlock.unlock();
+		}
+		#endif
+		
 		std::pair<uint64_t,uint64_t> const preoff = compout->getOffset();
+		#if 0
 		assert ( preoff.second == 0 );
+		#endif
 		for ( BamProcessBuffer::pointer_type const * pc = pa; pc != pe; ++pc )
 		{
 			uint64_t const off = *pc;
@@ -1569,18 +1617,41 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 			uint32_t len = 0;
 			for ( unsigned int i = 0; i < 4; ++i )
 				len |= (static_cast<uint32_t>(c[i]) << (i*8));
-			
+		
+			#if 0	
 			if ( (pc-pa) % contextbase.alperpackalign == 0 )
 			{
 				compout->flush();
 				assert ( compout->getOffset().second == 0 );
 			}
+			#endif
 			compout->write(reinterpret_cast<char const *>(c),len+4);
+			
+			#if 0
+			if ( prev )
+			{
+				bool const ok = !BAPC(*pc,*prev);
+				if ( ! ok )
+				{
+					contextbase.cerrlock.lock();
+					std::cerr << "comp failed" << std::endl;
+					contextbase.cerrlock.unlock();
+				}
+				
+				gok = gok && ok;
+			}
+			
+			prev = pc;
+			#endif
 		}
 		std::pair<uint64_t,uint64_t> const postoff = compout->getOffset();
 		compout->flush();
 
 		#if 0
+		contextbase.cerrlock.lock();
+		std::cerr << "interval comp " << (gok?"ok":"failed") << std::endl;
+		contextbase.cerrlock.unlock();
+		
 		contextbase.cerrlock.lock();
 		std::cerr << "BamWrite " 
 			<< RP.blockid << "," << RP.write_block_id 
@@ -2025,7 +2096,50 @@ struct BamThreadPoolMergeProcessBufferInfo
 	: blockid(rblockid), seqid(rseqid), bufferid(rbufferid), eof(reof), buffer(rbuffer),
 	  pc(buffer->pc), pe(buffer->pa)
 	{
-		std::reverse(buffer->pc,buffer->pa);
+		std::reverse(buffer->pc,buffer->pa);		
+	}
+	
+	template<typename _order_type>
+	bool checkOrder(libmaus::bambam::BamHeader const & header) const
+	{
+		BamProcessBuffer::pointer_type * prev = 0;
+		bool ok = true;
+		
+		::libmaus::bambam::BamFormatAuxiliary aux;
+		
+		for ( BamProcessBuffer::pointer_type * tc = pc; tc != pe; ++tc )
+		{
+			if ( prev )
+			{
+				uint8_t const * ca = buffer->ca + (*prev) + 4;
+				uint8_t const * cb = buffer->ca + (*tc) + 4;
+				uint32_t const la =
+					(static_cast<uint32_t>(ca[0]) << 0) |
+					(static_cast<uint32_t>(ca[1]) << 8) |
+					(static_cast<uint32_t>(ca[2]) << 16) |
+					(static_cast<uint32_t>(ca[3]) << 24);
+				uint32_t const lb =
+					(static_cast<uint32_t>(cb[0]) << 0) |
+					(static_cast<uint32_t>(cb[1]) << 8) |
+					(static_cast<uint32_t>(cb[2]) << 16) |
+					(static_cast<uint32_t>(cb[3]) << 24);
+				
+				int const r = _order_type::compareInt(ca,cb);
+				
+				if ( r > 0 )
+				{
+					std::cerr << "*order broken* " << std::endl;
+					std::cerr << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+						ca,la,header.chromosomes,aux) << std::endl;
+					std::cerr << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+						cb,lb,header.chromosomes,aux) << std::endl;
+				}
+			}
+			
+			prev = tc;
+		}
+		
+		return ok;
 	}
 };
 
@@ -2167,9 +2281,7 @@ struct BamThreadPoolMergeContextBase : public BamThreadPoolMergeContextBaseConst
 	uint64_t alFinished;
 	uint64_t alTotal;
 	std::vector < BamThreadPoolMergeProcessBufferInfo > activeMergeBuffers;
-	
-	uint64_t outputMerged;
-	
+
 	std::priority_queue<
 		std::pair<uint64_t,uint8_t const *>,
 		std::vector< 
@@ -2177,16 +2289,55 @@ struct BamThreadPoolMergeContextBase : public BamThreadPoolMergeContextBaseConst
 		>,
 		BamThreadPoolMergeHeapComparator<order_type>
 	> mergeQ;
+
+	uint64_t outputMerged;
+	
+	struct BamThreadPoolMergeContextBaseDeflateBufferHeapComparator
+	{
+		bool operator()(
+			std::pair<uint64_t, uint64_t> const & A,
+			std::pair<uint64_t, uint64_t> const & B
+		)
+		{
+			return A.first > B.first;
+		}
+	};
+	
+	libmaus::autoarray::AutoArray< libmaus::lz::BgzfDeflateBase::unique_ptr_type > deflateBuffers;
+	libmaus::parallel::LockedQueue<uint64_t> deflateBuffersFreeList;
+	uint64_t deflateBufferSeq;
+	uint64_t deflateBufferNext;
+	libmaus::parallel::PosixSpinLock writePendingLock;
+	std::priority_queue<
+		std::pair<uint64_t,uint64_t>,
+		std::vector< std::pair<uint64_t,uint64_t> >,
+		BamThreadPoolMergeContextBaseDeflateBufferHeapComparator
+	> writePending;
+	libmaus::parallel::SynchronousQueue< BamThreadPoolMergeMergePackage<order_type> * > mergeStallList;
+	libmaus::autoarray::AutoArray<uint8_t> mergeWritePending;
+	uint64_t mergeWritePendingFill;
+	
+	libmaus::parallel::LockedBool mergeFinished;
+	
+	std::ostream & out;
+	
+	#if 0
+	libmaus::bambam::BamAlignment thisAlgn;
+	uint64_t thisAlgnBlock;
+	libmaus::bambam::BamAlignment prevAlgn;
+	uint64_t prevAlgnBlock;
+	#endif
 		
 	BamThreadPoolMergeContextBase(
 		libmaus::parallel::SimpleThreadPool & rTP,
 		MergeInfo const & rmergeinfo,
 		libmaus::lz::DecompressorObjectFactory & decfact,
 		uint64_t const inputBlocksPerBlock,
-		uint64_t const inputBuffersPerBlock,
-		uint64_t const inputBufferSize,
 		uint64_t const processBuffersPerBlock,
-		uint64_t const processBuffersSize
+		uint64_t const processBuffersSize,
+		uint64_t const numDeflateBuffers,
+		int const level,
+		std::ostream & rout
 	)
 	: 
 		cerrlock(),
@@ -2224,9 +2375,19 @@ struct BamThreadPoolMergeContextBase : public BamThreadPoolMergeContextBaseConst
 		alPerBlockFinished(numblocks,0),
 		alFinished(0),
 		alTotal(std::accumulate(mergeinfo.tmpfileblockcntsums.begin(),mergeinfo.tmpfileblockcntsums.end(),0ull)),
-		mergeQ(),
 		activeMergeBuffers(numblocks),
-		outputMerged(0)
+		mergeQ(),
+		outputMerged(0),
+		deflateBuffers(numDeflateBuffers),
+		deflateBuffersFreeList(),
+		deflateBufferSeq(0),
+		deflateBufferNext(0),
+		writePendingLock(),
+		writePending(),
+		mergeStallList(),
+		mergeWritePendingFill(0),
+		mergeFinished(false),
+		out(rout)
 	{
 		assert ( inputBlocksPerBlock );
 	
@@ -2272,6 +2433,14 @@ struct BamThreadPoolMergeContextBase : public BamThreadPoolMergeContextBaseConst
 			typename libmaus::parallel::SynchronousQueue < BamThreadPoolMergeProcessPackage<order_type> * >::unique_ptr_type 	
 				tptr(new libmaus::parallel::SynchronousQueue < BamThreadPoolMergeProcessPackage<order_type> * >);
 			processStallList[i] = UNIQUE_PTR_MOVE(tptr);
+		}
+		for ( uint64_t i = 0; i < deflateBuffers.size(); ++i )
+		{
+			libmaus::lz::BgzfDeflateBase::unique_ptr_type tptr(
+				new libmaus::lz::BgzfDeflateBase(level,true)
+			);
+			deflateBuffers[i] = UNIQUE_PTR_MOVE(tptr);
+			deflateBuffersFreeList.push_back(i);
 		}
 	}
 };
@@ -2376,11 +2545,10 @@ struct BamThreadPoolMergeDecompressPackageDispatcher : public libmaus::parallel:
 		
 		uint64_t const blockid = RP.blockid;
 		uint64_t const baseid = RP.baseid;
-		uint64_t const seqid = RP.seqid;
 		
 		#if 0
 		contextbase.cerrlock.lock();
-		std::cerr << "decompress " << blockid << "," << baseid << "," << seqid << std::endl;
+		std::cerr << "decompress " << blockid << "," << baseid << "," << RP.seqid << std::endl;
 		contextbase.cerrlock.unlock();
 		#endif
 
@@ -2438,11 +2606,10 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 		
 		uint64_t const blockid = RP.blockid;
 		uint64_t const baseid = RP.baseid;
-		uint64_t const seqid = RP.seqid;
 		
 		#if 0
 		contextbase.cerrlock.lock();
-		std::cerr << "process blockid=" << blockid << ",baseid=" << baseid << ",seqid=" << seqid << std::endl;
+		std::cerr << "process blockid=" << blockid << ",baseid=" << baseid << ",seqid=" << RP.seqid << std::endl;
 		contextbase.cerrlock.unlock();
 		#endif
 
@@ -2463,7 +2630,7 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 		if ( processBuffer )
 		{
 			contextbase.cerrlock.lock();
-			std::cerr << "process blockid=" << blockid << ",baseid=" << baseid << ",seqid=" << seqid << " buffer fill " 
+			std::cerr << "process blockid=" << blockid << ",baseid=" << baseid << ",seqid=" << RP.seqid << " buffer fill " 
 				<< processBuffer->getFill() 
 				<< " running=" << running
 				<< " stalled=" << stalled
@@ -2486,7 +2653,7 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 						&&
 						(pe-pc) >= 4
 						&&
-						(pe-pc) >= (4+(parserState.blocklen=parserState.blocklen=decodeLEInteger4(pc)))
+						(pe-pc) >= (4+(parserState.blocklen=decodeLEInteger4(pc)))
 					)
 					{
 						while ( 
@@ -2494,7 +2661,7 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 							&&
 							(pe-pc) >= 4
 							&&
-							(pe-pc) >= (4+(parserState.blocklen=parserState.blocklen=decodeLEInteger4(pc)))
+							(pe-pc) >= (4+(parserState.blocklen=decodeLEInteger4(pc)))
 						)
 						{
 							if ( processBuffer->put(pc+4,parserState.blocklen) )
@@ -2523,7 +2690,7 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 					{
 						#if 0
 						contextbase.cerrlock.lock();
-						std::cerr << "rest bl blockid=" << blockid << " seqid=" << seqid 
+						std::cerr << "rest bl blockid=" << blockid << " seqid=" << RP.seqid 
 							<< " blocklen=" << parserState.blocklen 
 							<< " pe-pc=" << (pe-pc) 
 							<< " blocklenred=" << parserState.blocklenred
@@ -2542,7 +2709,7 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 
 							#if 0
 							contextbase.cerrlock.lock();
-							std::cerr << "bl blockid=" << blockid << " seqid=" << seqid << " blocklen=" << parserState.blocklen << std::endl;
+							std::cerr << "bl blockid=" << blockid << " seqid=" << RP.seqid << " blocklen=" << parserState.blocklen << std::endl;
 							contextbase.cerrlock.unlock();
 							#endif
 							
@@ -2597,12 +2764,14 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 			running = running && (pc != pe);
 		}
 
-		if ( datablock.eof && !stalled )
+		bool const eof = datablock.eof;
+
+		if ( eof && !stalled )
 		{
 			// insert last finished buffer
 			finishedBuffers.push_back(processBufferId);
 
-			#if 0
+			#if 1
 			contextbase.cerrlock.lock();
 			std::cerr << "parsing finished for block " << blockid << std::endl;
 			contextbase.cerrlock.unlock();
@@ -2623,7 +2792,7 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 
 		#if 0
 		contextbase.cerrlock.lock();
-		std::cerr << "process blockid=" << blockid << ",baseid=" << baseid << ",seqid=" << seqid << " finished " << finishedBuffers.size() << std::endl;
+		std::cerr << "process blockid=" << blockid << ",baseid=" << baseid << ",seqid=" << RP.seqid << " finished " << finishedBuffers.size() << std::endl;
 		contextbase.cerrlock.unlock();
 		#endif
 		
@@ -2641,6 +2810,17 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 				contextbase.processBuffers[finishedBuffers[i]].get()
 			);
 			contextbase.bufferInfoPending[blockid].push(info);
+
+			#if 0
+			contextbase.cerrlock.lock();
+			std::cerr << "checking blockid=" 
+				<< blockid << " seqid " << info.seqid 
+				<< " bufferid " << finishedBuffers[i]
+				<< std::endl;
+			contextbase.cerrlock.unlock();
+			
+			info.checkOrder<order_type>(*(contextbase.mergeinfo.sheader));
+			#endif
 			
 			if ( info.seqid == 0 )
 				if ( (++contextbase.bufferInfoInitComplete) == contextbase.numblocks )
@@ -2703,8 +2883,9 @@ struct BamThreadPoolMergeProcessPackageDispatcher : public libmaus::parallel::Si
 
 		if ( ! stalled )
 		{
-			// reinsert unfinished process buffer
-			contextbase.processBuffersFreeLists[blockid]->push_front(processBufferId);
+			// reinsert process buffer if it is unfinished
+			if ( ! eof )
+				contextbase.processBuffersFreeLists[blockid]->push_front(processBufferId);
 			
 			// return read buffer
 			{
@@ -2824,6 +3005,15 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 {
 	typedef _order_type order_type;
 	
+	uint32_t decodeLE4(uint8_t const * v)
+	{
+		return
+			(static_cast<uint32_t>(v[0]) << 0) |
+			(static_cast<uint32_t>(v[1]) << 8) |
+			(static_cast<uint32_t>(v[2]) << 16) |
+			(static_cast<uint32_t>(v[3]) << 24) ;
+	}
+	
 	virtual ~BamThreadPoolMergeMergePackageDispatcher() {}
 	virtual void dispatch(
 		libmaus::parallel::SimpleThreadWorkPackage * P, 
@@ -2842,13 +3032,143 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 		#endif
 
 		libmaus::parallel::ScopePosixSpinLock lalPerBlockLock(contextbase.alPerBlockLock);
-		
-		bool running = (contextbase.mergeQ.size() != 0);
+
+		uint64_t deflatebufferid = 0;
+		bool stalled = !contextbase.deflateBuffersFreeList.tryDequeFront(deflatebufferid);
+		libmaus::lz::BgzfDeflateBase * deflateBuffer =
+			stalled ? 0 : contextbase.deflateBuffers[deflatebufferid].get();
+		assert ( deflateBuffer == 0 || deflateBuffer->pc != deflateBuffer->pe );
+		std::deque<uint64_t> compressPendingBuffer;
+
+		// handle pending write data
+		while ( (!stalled) && (contextbase.mergeWritePendingFill) )
+		{
+			uint64_t const spaceinbuffer = (deflateBuffer->pe - deflateBuffer->pc);	
+			uint64_t const bufferwrite = std::min(spaceinbuffer,contextbase.mergeWritePendingFill);
+			
+			std::copy(
+				contextbase.mergeWritePending.begin(),
+				contextbase.mergeWritePending.begin()+bufferwrite,
+				deflateBuffer->pc
+			);
+			
+			deflateBuffer->pc += bufferwrite;
+			
+			if ( bufferwrite != contextbase.mergeWritePendingFill )
+				// move rest to front of pending buffer
+				std::memmove(
+					contextbase.mergeWritePending.begin(),
+					contextbase.mergeWritePending.begin() + bufferwrite,
+					contextbase.mergeWritePendingFill - bufferwrite
+				);
+				
+			contextbase.mergeWritePendingFill -= bufferwrite;
+			
+			// check whether buffer is full now
+			if ( deflateBuffer->pc == deflateBuffer->pe )
+			{
+				contextbase.cerrlock.lock();
+				contextbase.cerrlock.unlock();
+				
+				// pass to compression
+				compressPendingBuffer.push_back(deflatebufferid);
+				// try to get next buffer
+				stalled = !contextbase.deflateBuffersFreeList.tryDequeFront(deflatebufferid);
+				// set new buffer pointer
+				deflateBuffer = stalled ? 0 : contextbase.deflateBuffers[deflatebufferid].get();
+			}
+		}
+
+		bool running = (contextbase.mergeQ.size() != 0) && (!stalled);
 		
 		while ( running )
 		{
 			std::pair<uint64_t,uint8_t const *> const P = contextbase.mergeQ.top();
 			contextbase.mergeQ.pop();
+			
+			uint32_t const blocklen = decodeLE4(P.second);
+			uint8_t const * pa = P.second;
+			uint8_t const * pc = pa;
+			uint8_t const * pe = pa + blocklen + 4;
+			
+			#if 0
+			if ( contextbase.thisAlgn.D.size() < blocklen )
+				contextbase.thisAlgn.D = libmaus::bambam::BamAlignment::D_array_type(blocklen,false);
+			contextbase.thisAlgn.blocksize = blocklen;
+			contextbase.thisAlgnBlock = P.first;
+			std::copy(pa+4,pe,contextbase.thisAlgn.D.begin());
+			
+			if ( contextbase.prevAlgn.blocksize )
+			{
+				if ( 
+					order_type::compareInt(contextbase.prevAlgn.D.begin(),contextbase.thisAlgn.D.begin()) > 0 
+				)
+				{
+					contextbase.cerrlock.lock();
+					std::cerr << "order wrong " << contextbase.prevAlgnBlock << " " << contextbase.thisAlgnBlock << std::endl;
+					std::cerr << contextbase.prevAlgn.formatAlignment(*(contextbase.mergeinfo.sheader)) << std::endl;
+					std::cerr << contextbase.thisAlgn.formatAlignment(*(contextbase.mergeinfo.sheader)) << std::endl;
+					contextbase.cerrlock.unlock();
+				}
+			}
+			
+			contextbase.prevAlgn.copyFrom(contextbase.thisAlgn);
+			contextbase.prevAlgnBlock = contextbase.thisAlgnBlock;
+			#endif
+			
+			while ( pc != pe )
+			{
+				// number of bytes still pending
+				uint64_t const writepending = pe-pc;
+				// amount of space in buffer
+				uint64_t const bufferspace = deflateBuffer->pe - deflateBuffer->pc;
+
+				if ( bufferspace )
+				{
+					// copy as much as possible to output buffer
+					uint64_t const tocopy = std::min(writepending,bufferspace);
+					// copy
+					std::copy(pc,pc+tocopy,deflateBuffer->pc);
+
+					// advance pointers
+					pc += tocopy;
+					deflateBuffer->pc += tocopy;
+				}
+				
+				// if buffer is full
+				if ( deflateBuffer->pc == deflateBuffer->pe )
+				{
+					// pass to compression
+					compressPendingBuffer.push_back(deflatebufferid);
+					// try to get next buffer
+					stalled = !contextbase.deflateBuffersFreeList.tryDequeFront(deflatebufferid);
+					// set new buffer pointer
+					deflateBuffer = stalled ? 0 : contextbase.deflateBuffers[deflatebufferid].get();
+					
+					// no more buffers?
+					if ( stalled )
+					{
+						// copy pending data to pending buffer
+						uint64_t const writepending = pe-pc;
+						
+						// check buffer size
+						if ( contextbase.mergeWritePending.size() < writepending )
+							contextbase.mergeWritePending = libmaus::autoarray::AutoArray<uint8_t>(writepending,false);
+						
+						// copy data
+						std::copy(pc,pe,contextbase.mergeWritePending.begin());
+						// set number of bytes in buffer
+						contextbase.mergeWritePendingFill = writepending;
+
+						// quit loop, there is no more buffer space available					
+						running = false;
+						// quit inner loop
+						pc += writepending;
+						// sanity check
+						assert ( pc == pe );
+					}
+				}
+			}
 			
 			if ( ((++contextbase.outputMerged) & (1024*1024-1)) == 0 )
 			{
@@ -3027,13 +3347,86 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 					
 					running = false;
 					
+					contextbase.mergeFinished.set(true);
+					
 					tpi.terminate();
 				}
 			}
 		}
 
+		if ( ! stalled )
+		{
+			if ( contextbase.mergeFinished.get() )
+			{
+				compressPendingBuffer.push_back(deflatebufferid);
+				
+				contextbase.cerrlock.lock();
+				std::cerr << "should write last buffer" << std::endl;
+				contextbase.cerrlock.unlock();					
+			}
+			else
+			{
+				contextbase.cerrlock.lock();
+				std::cerr << "no stall, reinsering buffer" << std::endl;
+				contextbase.cerrlock.unlock();	
+				
+				contextbase.deflateBuffersFreeList.push_front(deflatebufferid);
+			}
+		}
+
+		if ( compressPendingBuffer.size() )
+		{
+			for ( uint64_t i = 0; i < compressPendingBuffer.size(); ++i )
+			{
+				if ( 
+					contextbase.deflateBuffers[compressPendingBuffer[i]]->pc
+					==
+					contextbase.deflateBuffers[compressPendingBuffer[i]]->pa
+				)
+				{
+					contextbase.cerrlock.lock();
+					std::cerr << "empty buffer." << std::endl;
+					contextbase.cerrlock.unlock();
+				}
+			
+				libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const FI = 
+					contextbase.deflateBuffers[compressPendingBuffer[i]]->flush(true);
+					
+				uint64_t const compsize = FI.getCompressedSize();
+				contextbase.out.write(
+					reinterpret_cast<char const *>(contextbase.deflateBuffers[compressPendingBuffer[i]]->outbuf.begin()),
+					compsize
+				);
+			
+				#if 0
+				contextbase.deflateBuffers[compressPendingBuffer[i]]->pc = 
+					contextbase.deflateBuffers[compressPendingBuffer[i]]->pa
+					;
+				#endif
+				
+				contextbase.deflateBuffersFreeList.push_back(compressPendingBuffer[i]);
+			}
+
+			#if 0
+			contextbase.cerrlock.lock();
+			std::cerr << "produced " << compressPendingBuffer.size() << " stall " << stalled << std::endl;
+			contextbase.cerrlock.unlock();
+			#endif
+				
+			if ( stalled )
+				tpi.enque(P);			
+		}
+		else
+		{
+			contextbase.cerrlock.lock();
+			std::cerr << "nothing produced, stall " << stalled << std::endl;
+			contextbase.cerrlock.unlock();	
+		}
+		
+
 		// return package to free list
-		contextbase.mergeFreeList.returnPackage(dynamic_cast<BamThreadPoolMergeMergePackage<order_type> *>(P));
+		if ( ! stalled )
+			contextbase.mergeFreeList.returnPackage(dynamic_cast<BamThreadPoolMergeMergePackage<order_type> *>(P));
 	}
 };
 
@@ -3047,12 +3440,15 @@ struct BamThreadPoolMergeContext : public BamThreadPoolMergeContextBase<_order_t
 		MergeInfo const & mergeinfo,
 		libmaus::lz::DecompressorObjectFactory	& decfact,
 		uint64_t const inputBlocksPerBlock,
-		uint64_t const inputBuffersPerBlock,
-		uint64_t const inputBufferSize,
 		uint64_t const processBuffersPerBlock,
-		uint64_t const processBuffersSize
+		uint64_t const processBuffersSize,
+		uint64_t const numDeflateBuffers,
+		int const level,
+		std::ostream & out
 	)
-	: BamThreadPoolMergeContextBase<order_type>(TP,mergeinfo,decfact,inputBlocksPerBlock,inputBuffersPerBlock,inputBufferSize,processBuffersPerBlock,processBuffersSize)
+	: BamThreadPoolMergeContextBase<order_type>(
+		TP,mergeinfo,decfact,inputBlocksPerBlock,
+		processBuffersPerBlock,processBuffersSize,numDeflateBuffers,level,out)
 	{
 	
 	}
@@ -3073,8 +3469,149 @@ void bamparsort(libmaus::util::ArgInfo const & arginfo, std::string const & newo
 {
 	typedef _order_type order_type;
 	MergeInfo const mergeinfo = produceSortedBlocks<order_type>(arginfo);
+
+	#if 0
+	std::cerr << "CHECKING SORTING OF BLOCKS..." << std::endl;
+	{
+	libmaus::autoarray::AutoArray<libmaus::aio::CheckedInputStream::unique_ptr_type> inputfiles(mergeinfo.tmpfilenames.size());
+	libmaus::lz::ZlibDecompressorObjectFactory decfact;
+	for ( uint64_t i = 0; i < inputfiles.size(); ++i )
+	{
+		libmaus::aio::CheckedInputStream::unique_ptr_type tptr(new libmaus::aio::CheckedInputStream(mergeinfo.tmpfilenames[i]));
+		inputfiles[i] = UNIQUE_PTR_MOVE(tptr);
+	}
+	
+	libmaus::autoarray::AutoArray<libmaus::lz::SimpleCompressedConcatInputStream<std::istream>::unique_ptr_type> concfiles(mergeinfo.tmpfileblocks.size());
+	for ( uint64_t i = 0; i < mergeinfo.tmpfileblocks.size(); ++i )
+	{
+		std::vector<libmaus::lz::SimpleCompressedConcatInputStreamFragment<std::istream> > fragments;
+		
+		for ( uint64_t j = 0; j < mergeinfo.tmpfileblocks[i].size(); ++j )
+			fragments.push_back(
+				libmaus::lz::SimpleCompressedConcatInputStreamFragment<std::istream>(
+					mergeinfo.tmpfileblocks[i][j],
+					inputfiles[j].get()
+				)
+			);
+			
+		libmaus::lz::SimpleCompressedConcatInputStream<std::istream>::unique_ptr_type tptr(
+			new libmaus::lz::SimpleCompressedConcatInputStream<std::istream>(fragments,decfact)
+		);
+		concfiles[i] = UNIQUE_PTR_MOVE(tptr);
+	}
+
+	for ( uint64_t i = 0; i < mergeinfo.tmpfileblocks.size(); ++i )
+	{
+		libmaus::bambam::BamAlignment prev, cur;
+
+		for ( uint64_t j = 0; j < mergeinfo.tmpfileblockcntsums[i]; ++j )
+		{
+			::libmaus::bambam::BamDecoder::readAlignmentGz(*concfiles[i],cur,0 /* no header for validation */,false /* no validation */);
+
+			if ( prev.blocksize )
+			{
+				int const r = _order_type::compareInt(
+					prev.D.begin(),
+					cur.D.begin()
+				);
+				
+				if ( r > 0 )
+				{
+					std::cerr << "NO" << std::endl;
+				}
+			}
+
+			prev.copyFrom(cur);
+		}
+	}
+
+	}
+	std::cerr << "CHECKING SORTING OF BLOCKS DONE." << std::endl;
+
+	std::cerr << "CHECKING SORTING OF BLOCKS BY BLOCK CONCAT." << std::endl;
+	{
+		for ( uint64_t i = 0; i < mergeinfo.tmpfilenamedblocks.size(); ++i )
+		{
+			std::cerr << "block " << (i) << "/" << mergeinfo.tmpfilenamedblocks.size() << std::endl;
+			
+			libmaus::lz::SimpleCompressedInputBlockConcat conc(mergeinfo.tmpfilenamedblocks[i]);
+			libmaus::lz::ZlibDecompressorObjectFactory decfact;
+			libmaus::lz::SimpleCompressedInputBlockConcatBlock block(decfact);
+			std::ostringstream ostr;
+			
+			while ( conc.readBlock(block) )
+			{
+				block.uncompressBlock();
+				ostr.write(
+					reinterpret_cast<char const *>(block.O.begin()),
+					block.uncompsize
+				);
+			
+				if ( block.eof )
+					break;
+			}
+			
+			std::string const sdata = ostr.str();
+			char const * cdata = sdata.c_str();
+			uint8_t const * udata = reinterpret_cast<uint8_t const *>(cdata);
+			uint64_t datalen = sdata.size();
+			uint8_t const * udataend = udata + datalen;
+			
+			uint8_t const * prev = 0;
+			uint32_t prevlen = 0;
+			uint64_t alcnt = 0;
+			uint64_t failcnt = 0;
+			int64_t firstfail = -1;
+			
+			while ( udata != udataend )
+			{
+				uint32_t const len =
+					(static_cast<uint32_t>(udata[0]) << 0) |
+					(static_cast<uint32_t>(udata[1]) << 8) |
+					(static_cast<uint32_t>(udata[2]) << 16) |
+					(static_cast<uint32_t>(udata[3]) << 24);
+
+				if ( prev )
+				{
+					int const r = _order_type::compareInt(
+						prev+4,
+						udata+4
+					);
+
+					if ( r > 0 )
+					{
+						if ( firstfail < 0 )
+							firstfail = alcnt;
+						// std::cerr << "NO" << std::endl;
+						++failcnt;						
+					}
+				}
+				alcnt += 1;
+					
+				prevlen = len;
+				prev = udata;
+				udata += len+4;
+			}
+
+			std::cerr << "block " << (i) << "/" << mergeinfo.tmpfilenamedblocks[i].size() << " done, alcnt=" << alcnt << " failcnt=" << failcnt << " first fail=" << firstfail << std::endl;
+		}	
+	}
+	std::cerr << "CHECKING SORTING OF BLOCKS DONE BY BLOCK CONCAT DONE." << std::endl;
+	#endif
 	
 	{
+	
+	// write bam header
+	{
+		std::ostringstream headerostr;
+		libmaus::lz::BgzfOutputStream writer(headerostr);
+		mergeinfo.sheader->changeSortOrder(neworder);
+		mergeinfo.sheader->serialise(writer);
+		writer.flush();
+		std::string const & sheader = headerostr.str();
+		std::cout.write(sheader.c_str(),sheader.size());
+	}
+	
 	std::string const tmpfilenamebase = arginfo.getDefaultTmpFileName();
 
 	#if defined(_OPENMP)
@@ -3098,15 +3635,32 @@ void bamparsort(libmaus::util::ArgInfo const & arginfo, std::string const & newo
 
 	libmaus::lz::ZlibDecompressorObjectFactory decfact;
 	uint64_t const inputBlocksPerBlock = 4;
-	uint64_t const inputBuffersperBlock = 4;
-	uint64_t const inputBufferSize = 256*1024;
 	uint64_t const processBuffersPerBlock = 2;
 	uint64_t const processBuffersSize = 1024*1024;
 
-	BamThreadPoolMergeContext<order_type> mergecontext(TP,mergeinfo,decfact,inputBlocksPerBlock,inputBuffersperBlock,inputBufferSize,processBuffersPerBlock,processBuffersSize);
+	BamThreadPoolMergeContext<order_type> mergecontext(TP,mergeinfo,decfact,inputBlocksPerBlock,
+		/* inputBuffersperBlock,inputBufferSize,*/
+		processBuffersPerBlock,processBuffersSize,
+		// 4*numthreads,
+		1,
+		Z_DEFAULT_COMPRESSION,
+		std::cout);
 	
 	mergecontext.startup();
 	TP.join();
+
+	// write bam footer
+	{
+		std::ostringstream footerostr;
+		libmaus::lz::BgzfOutputStream writer(footerostr);
+		writer.flush();
+		writer.addEOFBlock();
+		std::string const & sfooter = footerostr.str();
+		std::cout.write(sfooter.c_str(),sfooter.size());
+	}
+
+	
+	std::cout.flush();
 	
 	exit(0);
 	}
