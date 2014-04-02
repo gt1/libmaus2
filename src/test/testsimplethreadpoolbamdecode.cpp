@@ -3102,7 +3102,24 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 			(static_cast<uint32_t>(v[2]) << 16) |
 			(static_cast<uint32_t>(v[3]) << 24) ;
 	}
-	
+
+	static void enqueCompress(
+		BamThreadPoolMergeMergePackage<order_type> & RP,
+		uint64_t const deflatebufferid,
+		libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+	)
+	{
+		BamThreadPoolMergeCompressPackage<order_type> * ccpack =
+			RP.contextbase->compressFreeList.getPackage();
+		*ccpack = BamThreadPoolMergeCompressPackage<order_type>(
+			RP.contextbase,
+			deflatebufferid,
+			RP.contextbase->deflateBufferSeq++
+		);
+				
+		tpi.enque(ccpack);			
+	}
+
 	virtual ~BamThreadPoolMergeMergePackageDispatcher() {}
 	virtual void dispatch(
 		libmaus::parallel::SimpleThreadWorkPackage * P, 
@@ -3160,7 +3177,9 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 				contextbase.cerrlock.unlock();
 				
 				// pass to compression
-				compressPendingBuffer.push_back(deflatebufferid);
+				contextbase.mergeWriteIn += 1;
+				enqueCompress(RP,deflatebufferid,tpi);
+				// compressPendingBuffer.push_back(deflatebufferid);
 				// try to get next buffer
 				stalled = !contextbase.deflateBuffersFreeList.tryDequeFront(deflatebufferid);
 				// set new buffer pointer
@@ -3229,7 +3248,9 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 				if ( deflateBuffer->pc == deflateBuffer->pe )
 				{
 					// pass to compression
-					compressPendingBuffer.push_back(deflatebufferid);
+					contextbase.mergeWriteIn += 1;
+					enqueCompress(RP,deflatebufferid,tpi);
+					// compressPendingBuffer.push_back(deflatebufferid);
 					// try to get next buffer
 					stalled = !contextbase.deflateBuffersFreeList.tryDequeFront(deflatebufferid);
 					// set new buffer pointer
@@ -3280,7 +3301,8 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 			contextbase.alPerBlockFinished[P.first]++;
 			
 			if ( 
-				contextbase.alPerBlockFinished[P.first] != contextbase.mergeinfo.tmpfileblockcntsums[P.first] 
+				contextbase.alPerBlockFinished[P.first] != 
+				contextbase.mergeinfo.tmpfileblockcntsums[P.first] 
 			)
 			{
 				BamThreadPoolMergeProcessBufferInfo & info = contextbase.activeMergeBuffers[P.first];
@@ -3444,11 +3466,16 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 			}
 		}
 
+		if ( finishflag )
+			contextbase.mergeFinished.set(true);
+
 		if ( ! stalled )
 		{
 			if ( finishflag )
 			{
-				compressPendingBuffer.push_back(deflatebufferid);
+				contextbase.mergeWriteIn += 1;
+				enqueCompress(RP,deflatebufferid,tpi);
+				// compressPendingBuffer.push_back(deflatebufferid);
 				
 				contextbase.cerrlock.lock();
 				std::cerr << "should write last buffer" << std::endl;
@@ -3464,74 +3491,14 @@ struct BamThreadPoolMergeMergePackageDispatcher : public libmaus::parallel::Simp
 			}
 		}
 		
-		contextbase.mergeWriteIn += compressPendingBuffer.size();
+		#if 0
+		for ( uint64_t i = 0; i < compressPendingBuffer.size(); ++i )
+			enqueCompress(RP,compressPendingBuffer[i],tpi);
+		#endif
 
-		if ( finishflag )
-			contextbase.mergeFinished.set(true);
-
-		if ( compressPendingBuffer.size() )
-		{
-			for ( uint64_t i = 0; i < compressPendingBuffer.size(); ++i )
-			{
-				if ( 
-					contextbase.deflateBuffers[compressPendingBuffer[i]]->pc
-					==
-					contextbase.deflateBuffers[compressPendingBuffer[i]]->pa
-				)
-				{
-					contextbase.cerrlock.lock();
-					std::cerr << "empty buffer." << std::endl;
-					contextbase.cerrlock.unlock();
-				}
-			
-				BamThreadPoolMergeCompressPackage<order_type> * ccpack =
-					contextbase.compressFreeList.getPackage();
-				*ccpack = BamThreadPoolMergeCompressPackage<order_type>(
-					RP.contextbase,
-					compressPendingBuffer[i],
-					contextbase.deflateBufferSeq++
-				);
-				
-				tpi.enque(ccpack);
-			
-				#if 0
-				libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const FI = 
-					contextbase.deflateBuffers[compressPendingBuffer[i]]->flush(true);
-					
-				uint64_t const compsize = FI.getCompressedSize();
-				contextbase.out.write(
-					reinterpret_cast<char const *>(contextbase.deflateBuffers[compressPendingBuffer[i]]->outbuf.begin()),
-					compsize
-				);
-			
-				contextbase.deflateBuffersFreeList.push_back(compressPendingBuffer[i]);
-				#endif
-			}
-
-			#if 0
-			contextbase.cerrlock.lock();
-			std::cerr << "produced " << compressPendingBuffer.size() << " stall " << stalled << std::endl;
-			contextbase.cerrlock.unlock();
-			#endif
-		
-			#if 0		
-			if ( stalled )
-				tpi.enque(P);			
-			#endif
-			
-			if ( stalled )
-				contextbase.mergeStallList.enque(dynamic_cast<BamThreadPoolMergeMergePackage<order_type> *>(P));
-		}
+		if ( stalled )
+			contextbase.mergeStallList.enque(dynamic_cast<BamThreadPoolMergeMergePackage<order_type> *>(P));
 		else
-		{
-			contextbase.cerrlock.lock();
-			std::cerr << "nothing produced, stall " << stalled << std::endl;
-			contextbase.cerrlock.unlock();	
-		}
-		
-
-		// return package to free list
-		if ( ! stalled )
 			contextbase.mergeFreeList.returnPackage(dynamic_cast<BamThreadPoolMergeMergePackage<order_type> *>(P));
 	}
 };
@@ -3887,13 +3854,29 @@ void bamparsort(libmaus::util::ArgInfo const & arginfo, std::string const & newo
 	TP.registerDispatcher(BamThreadPoolMergeContextBaseConstantsBase::bamthreadpooldecodecontextbase_dispatcher_id_write,&writedispatcher);
 
 	libmaus::lz::ZlibDecompressorObjectFactory decfact;
-	uint64_t const inputBlocksPerBlock = 4;
-	uint64_t const processBuffersPerBlock = 2;
-	uint64_t const processBuffersSize = 1024*1024;
+	uint64_t const numblocks = mergeinfo.tmpfilenamedblocks.size();
+	uint64_t const mem = arginfo.getValueUnsignedNumeric<uint64_t>("mem",16*1024ull*1024ull*1024ull);
+	// input blocks, output blocks, process buffers
+	uint64_t const inputBlockMemory = 0.1 * mem;
+	uint64_t const inputMemoryPerBlock = std::max ( static_cast<uint64_t>(1), (inputBlockMemory + numblocks-1)/numblocks);
+	uint64_t const inputBlocksPerBlock = std::max ( static_cast<uint64_t>(1), (inputMemoryPerBlock + (2*64*1024-1))/(2*64*1024));
+	
+	uint64_t const processBlockMemory = 0.6 * mem;
+	uint64_t const processBuffersPerBlock = 16;
+	uint64_t const processBuffersSize = ( processBlockMemory + (processBuffersPerBlock*numblocks) - 1 ) / (processBuffersPerBlock*numblocks);
+	
+	uint64_t const deflateMemory = 0.1 * mem;
+	uint64_t const numDeflateBlocks = std::max ( static_cast<uint64_t>(1), (deflateMemory + (2*64*1024-1)) / (2*64*1024) );
 
-	BamThreadPoolMergeContext<order_type> mergecontext(TP,mergeinfo,decfact,inputBlocksPerBlock,
+	std::cerr << "input blocks per block: " << inputBlocksPerBlock << std::endl;
+	std::cerr << "processBuffersPerBlock: " << processBuffersPerBlock << std::endl;
+	std::cerr << "processBuffersSize:     " << processBuffersSize << std::endl;
+	std::cerr << "numDeflateBlocks:       " << numDeflateBlocks << std::endl;
+
+	BamThreadPoolMergeContext<order_type> mergecontext(TP,mergeinfo,decfact,
+		inputBlocksPerBlock,
 		processBuffersPerBlock,processBuffersSize,
-		4*numthreads,
+		numDeflateBlocks,
 		Z_DEFAULT_COMPRESSION,
 		std::cout);
 	
