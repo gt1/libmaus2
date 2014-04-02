@@ -21,6 +21,7 @@
 
 #include <map>
 #include <vector>
+#include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
 
 namespace libmaus
 {
