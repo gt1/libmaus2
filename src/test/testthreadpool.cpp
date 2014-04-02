@@ -38,7 +38,7 @@ namespace libmaus
 			libmaus::parallel::PosixMutex::shared_ptr_type mutex;
 			DummyThreadWorkPackageMeta * meta;
 		
-			DummyThreadWorkPackage() : mutex(0), meta(0) {}
+			DummyThreadWorkPackage() : mutex(), meta(0) {}
 			DummyThreadWorkPackage(
 				uint64_t const rpriority, 
 				uint64_t const rdispatcherid, 
