@@ -686,7 +686,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 			
 			switch ( contextbase.bamParserState )
 			{
-				case contextbase.bam_parser_state_read_blocklength:
+				case BamThreadPoolDecodeContextBase::bam_parser_state_read_blocklength:
 				{
 					if ( contextbase.bamBlockSizeRead == 0 )
 					{
@@ -742,7 +742,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 					}
 					break;
 				}
-				case contextbase.bam_parser_state_read_blockdata:
+				case BamThreadPoolDecodeContextBase::bam_parser_state_read_blockdata:
 				{
 					assert ( pa != pc );
 				
