@@ -48,7 +48,9 @@ namespace libmaus
 				uint64_t num_threads;
 				bool copyback;
 				uint64_t n;
+				// packet size
 				uint64_t pack;
+				// number of packets
 				uint64_t numpacks;
 				
 				iterator in;
@@ -71,8 +73,11 @@ namespace libmaus
 					uint64_t rnum_threads,
 					bool rcopyback
 				)
-				: aa(raa), ae(rae), ba(rba), be(rbe), order(&rorder), num_threads(rnum_threads), copyback(rcopyback),
-				  n(ae-aa), pack((n + num_threads - 1)/num_threads), numpacks((n + pack - 1)/pack),
+				: aa(raa), ae(rae), ba(rba), be(rbe), order(&rorder), 
+				  num_threads(rnum_threads), copyback(rcopyback),
+				  n(ae-aa), 
+				  pack((n + num_threads - 1)/num_threads), 
+				  numpacks( num_threads ), // ( pack ? ((n + pack - 1)/pack) : 0),
 				  in(aa), out(ba)
 				{
 					
@@ -201,7 +206,7 @@ namespace libmaus
 					
 					for ( uint64_t t = 0; t < mergesteps; ++t )
 					{
-						uint64_t const low = t*mergesize;
+						uint64_t const low =  std::min(t*mergesize  ,context.n);
 						uint64_t const high = std::min(low+mergesize,context.n);
 						
 						// merge
@@ -309,7 +314,7 @@ namespace libmaus
 				{
 					for ( int64_t t = 0; t < static_cast<int64_t>(context->numpacks); ++t )
 					{
-						uint64_t const low = t * context->pack;
+						uint64_t const low  = std::min(t * context->pack,context->n);
 						uint64_t const high = std::min(low+context->pack,context->n);
 						baseSortRequests[t] = request_type(
 							context->aa + low, context->aa + high, *context->order
