@@ -43,7 +43,11 @@ void testGapArrayByte()
 	for ( uint64_t i = 0; i < gsize; ++i )
 		for ( uint64_t j = 0; j < GG[i]; ++j )
 			if ( GAB(i) )
+				#if defined(_OPENMP)
 				GAB(i,omp_get_thread_num());
+				#else
+				GAB(i,0);				
+				#endif
 
 	GAB.flush();
 	
