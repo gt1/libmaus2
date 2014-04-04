@@ -186,6 +186,6 @@ uint64_t libmaus::lz::SnappyCompress::compressBound(uint64_t length)
 uint64_t libmaus::lz::SnappyCompress::rawcompress(char const * uncompressed, uint64_t uncompressed_length, char * compressed)
 {
 	std::copy(uncompressed,uncompressed+uncompressed_length,compressed);
-	return uncompressed;
+	return uncompressed_length;
 }
 #endif
