@@ -210,13 +210,13 @@ namespace libmaus
 				
 				if ( (FLG & FEXTRA) )
 				{
-					uint64_t const xtralen = getLEInteger(in,2);
+					uint64_t const xtralen = getLEInteger(in,2);					
 					std::vector<uint8_t> vextra(xtralen);
 					for ( uint64_t i = 0; i < xtralen; ++i )
 						vextra[i] = getByte(in);
 					extradata = std::string(vextra.begin(),vextra.end());
-
-
+					
+					#if 0
 					std::istringstream eistr(extradata);
 					
 					while ( eistr )
@@ -234,7 +234,7 @@ namespace libmaus
 							std::string const s(V.begin(),V.end());
 							extradataVector.push_back(GzipExtraData(i1,i2,l,s));
 					
-							#if 0		
+							#if 0
 							std::cerr << "extra data " 
 								<< std::hex << static_cast<int>(i1) << std::dec
 								<< std::hex << static_cast<int>(i2) << std::dec
@@ -256,9 +256,8 @@ namespace libmaus
 								#endif
 							}
 						}
-					}
-										
-					// std::cerr << "Got extra field of length " << xtralen << std::endl;
+					}										
+					#endif
 				}
 				
 				if ( (FLG & FNAME) )
