@@ -126,7 +126,7 @@ namespace libmaus
 						bm += add;
 					}
 					
-					if ( std::abs(n) < std::abs(nbest) )
+					if ( iabs(n) < iabs(nbest) )
 					{
 						lbest = m;
 						nbest = n;
@@ -178,6 +178,14 @@ namespace libmaus
 				return MergeStepBinSearchResult(l0,l1,r0,r1,nbest);
 			}
 
+			static int64_t iabs(int64_t const v)
+			{
+				if ( v < 0 )
+					return -v;
+				else
+					return v;
+			}
+
 			template<typename iterator, typename order_type>
 			static MergeStepBinSearchResult mergestepbinsearchOpt(
 				iterator const aa, 
@@ -191,7 +199,7 @@ namespace libmaus
 			{
 				MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order,xc,xd);
 				MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order,xc,xd).sideswap();
-				MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
+				MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 				return msbsr;
 			}
 			
