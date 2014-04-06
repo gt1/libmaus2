@@ -245,7 +245,8 @@ namespace libmaus
 				#if defined(_OPENMP)
 					parallel 
 				#endif
-					= false
+					= false,
+				bool const deleteinput = false
 			)
 			{
 				::std::vector < ::libmaus::aio::FileFragment > frags;
@@ -331,6 +332,10 @@ namespace libmaus
 					assert ( dnumblocks == numblocks );
 				}
 				
+				if ( deleteinput )
+					for ( uint64_t i = 0; i < filenames.size(); ++i )
+						remove(filenames[i].c_str());
+				
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(
 						numblocks,tmpfilename,elnum,lastblock,
@@ -349,12 +354,13 @@ namespace libmaus
 				bool const keepsecond,
 				std::string const & outfilename,
 				uint64_t const bufsize = 256*1024*1024,
-				bool const parallel = false
+				bool const parallel = false,
+				bool const deleteinput = false
 			)
 			{
 				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outfilename,16*1024);
-				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel,deleteinput);
 			}
 
 			static void sortPairFile(
@@ -365,12 +371,13 @@ namespace libmaus
 				bool const keepsecond,
 				std::ostream & outstream,
 				uint64_t const bufsize = 256*1024*1024,
-				bool const parallel = false
+				bool const parallel = false,
+				bool const deleteinput = false
 			)
 			{
 				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outstream,16*1024);
-				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel);
+				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel,deleteinput);
 			}
 		};
 	}
