@@ -36,10 +36,56 @@ namespace libmaus
 			std::vector<uint64_t> binoffsets;
 			std::vector<uint32_t> celloffsets;
 			
+			uint64_t blocksize;
 			uint64_t headerlength;
+			
+			static bool hasRazfHeader(std::istream & in, uint64_t & headerlength, uint64_t & blocksize)
+			{
+				in.clear();
+				in.seekg(0,std::ios::beg);
+
+				try
+				{
+					libmaus::lz::GzipHeader firstHeader(in);
+					
+					if ( 
+						firstHeader.extradata.size() != 7
+						||
+						firstHeader.extradata.substr(0,4) != "RAZF"
+					)
+						return false;
+					
+					uint8_t const * bp = reinterpret_cast<uint8_t const *>(firstHeader.extradata.c_str());
+					blocksize = 
+						(static_cast<uint64_t>(bp[5]) << 8) |
+						(static_cast<uint64_t>(bp[6]) << 0);
+						
+					headerlength = in.tellg();
+
+					in.clear();
+					in.seekg(0,std::ios::beg);
+					
+					return true;
+				}
+				catch(...)
+				{
+					in.clear();
+					in.seekg(0,std::ios::beg);
+
+					return false;
+				}
+			}
 			
 			void init(std::istream & in)
 			{
+				if ( ! hasRazfHeader(in,headerlength,blocksize) )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "RAZFIndex::init(): file does not have a valid razf header" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t),std::ios::end);
 				
@@ -63,13 +109,7 @@ namespace libmaus
 					celloffsets[i] = libmaus::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
 
 				assert ( in.tellg() == static_cast<int64_t>(indexpos) );
-				
-				in.clear();
-				in.seekg(0,std::ios::beg);
-				libmaus::lz::GzipHeader firstHeader(in);
-			
-				headerlength = in.tellg();
-				
+	
 				in.clear();
 				in.seekg(0,std::ios::beg);
 			}
