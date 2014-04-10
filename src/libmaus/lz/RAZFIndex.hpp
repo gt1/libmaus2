@@ -38,7 +38,7 @@ namespace libmaus
 			
 			uint64_t blocksize;
 			uint64_t headerlength;
-			
+						
 			static bool hasRazfHeader(std::istream & in, uint64_t & headerlength, uint64_t & blocksize)
 			{
 				in.clear();
@@ -74,6 +74,18 @@ namespace libmaus
 
 					return false;
 				}
+			}
+
+			static bool hasRazfHeader(std::istream & in)
+			{
+				uint64_t headerlength, blocksize;
+				return hasRazfHeader(in,headerlength,blocksize);
+			}
+			
+			static bool hasRazfHeader(std::string const & filename)
+			{
+				libmaus::aio::CheckedInputStream CIS(filename);
+				return hasRazfHeader(CIS);
 			}
 			
 			void init(std::istream & in)
