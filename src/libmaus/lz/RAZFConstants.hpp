@@ -27,9 +27,9 @@ namespace libmaus
 	{
 		struct RAZFConstants
 		{
-			static unsigned int const razf_window_bits = 15;
-			static uint64_t const razf_block_size = 1ull << razf_window_bits;
-			static uint64_t const razf_bin_size = (1ull << 32) / razf_block_size;
+			static unsigned int const razf_window_bits;
+			static uint64_t const razf_block_size;
+			static uint64_t const razf_bin_size;
 		};
 	}
 }
