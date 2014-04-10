@@ -111,7 +111,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/fastx/FastABgzfIndex.cpp \
 	libmaus/parallel/ThreadWorkPackage.cpp \
 	libmaus/parallel/SimpleThreadWorkPackage.cpp \
-	libmaus/lz/RAZFIndex.cpp
+	libmaus/lz/RAZFIndex.cpp \
+	libmaus/fastx/FastAIndexEntry.cpp \
+	libmaus/fastx/FastAIndex.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -797,7 +799,9 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastABgzfIndexEntry.hpp \
 	libmaus/fastx/FastABgzfIndex.hpp \
 	libmaus/fastx/FastABgzfDecoder.hpp \
-	libmaus/fastx/FastABgzfDecoderBuffer.hpp
+	libmaus/fastx/FastABgzfDecoderBuffer.hpp \
+	libmaus/fastx/FastAIndexEntry.hpp \
+	libmaus/fastx/FastAIndex.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
@@ -1112,7 +1116,8 @@ noinst_PROGRAMS = \
 	testgaparraybyte \
 	testzlibconcat \
 	testsimplecompressblock \
-	testrazdec
+	testrazdec \
+	testfaindex
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1411,3 +1416,6 @@ testsimplecompressblock_LDFLAGS = @SNAPPYLDFLAGS@
 testrazdec_SOURCES = test/testrazdec.cpp
 testrazdec_LDADD = libmaus.la
 testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
+
+testfaindex_SOURCES = test/testfaindex.cpp
+testfaindex_LDADD = libmaus.la
