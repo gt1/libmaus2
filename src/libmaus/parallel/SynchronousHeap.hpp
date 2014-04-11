@@ -25,6 +25,7 @@
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
 #include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus/parallel/PosixSpinLock.hpp>
 #include <libmaus/parallel/PosixSemaphore.hpp>
 #include <deque>
 #include <queue>
@@ -37,7 +38,7 @@ namespace libmaus
                 struct SynchronousHeap
                 {
                         std::priority_queue < value_type, std::vector<value_type>, compare > Q;
-                        PosixMutex lock;
+                        PosixSpinLock lock;
                         PosixSemaphore semaphore;
                         
                         SynchronousHeap()
@@ -61,19 +62,36 @@ namespace libmaus
                         
                         void enque(value_type const q)
                         {
-                                lock.lock();
+                        	{
+                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
                                 Q.push(q);
-                                lock.unlock();
+                                }
                                 semaphore.post();
                         }
                         value_type deque()
                         {
                                 semaphore.wait();
-                                lock.lock();
+                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
                                 value_type const v = Q.top();
                                 Q.pop();
-                                lock.unlock();
                                 return v;
+                        }
+                        
+                        std::vector<value_type> pending()
+                        {
+	                        std::priority_queue < value_type, std::vector<value_type>, compare > C;
+	                        {
+	                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+	                        	C = Q;
+				}
+	                        std::vector<value_type> V;
+	                        while ( ! C.empty() )
+	                        {
+	                        	V.push_back(C.top());
+	                        	C.pop();
+				}
+				
+				return V;
                         }
                 };
                 
@@ -98,7 +116,7 @@ namespace libmaus
                         std::priority_queue < value_type, std::vector<value_type>, compare > preQ;
                         value_type next;
                         std::deque<value_type> Q;
-                        PosixMutex lock;
+                        PosixSpinLock lock;
                         PosixSemaphore semaphore;
                         value_type readyfor;
                         
@@ -124,21 +142,22 @@ namespace libmaus
                         {
                         	uint64_t postcnt = 0;
                         
-                                lock.lock();
-                                while ( 
-                                	preQ.size() && 
-                                	info(preQ.top()) == next && 
-                                	info(preQ.top()) <= readyfor 
-				)
-                                {
-                                	Q.push_back(preQ.top());
-                                	if ( globlist )
-	                                	globlist->enque(preQ.top());
-                                	preQ.pop();
-                                	++next;
-                                	++postcnt;
-                                }                                
-                                lock.unlock();
+                        	{
+					libmaus::parallel::ScopePosixSpinLock llock(lock);
+					while ( 
+						preQ.size() && 
+						info(preQ.top()) == next && 
+						info(preQ.top()) <= readyfor 
+					)
+					{
+						Q.push_back(preQ.top());
+						if ( globlist )
+							globlist->enque(preQ.top());
+						preQ.pop();
+						++next;
+						++postcnt;
+					}                                
+                                }
 
                                 for ( uint64_t i = 0; i < postcnt; ++i )
 	                                semaphore.post();
@@ -156,9 +175,10 @@ namespace libmaus
                         	glob_queue_type * const globlist = 0
 			)
                         {
-                                lock.lock();
-                                preQ.push(q);
-                                lock.unlock();
+                        	{
+					libmaus::parallel::ScopePosixSpinLock llock(lock);
+        	                        preQ.push(q);
+                                }
 
 				drainPreQueue(globlist);
                         }
@@ -175,9 +195,10 @@ namespace libmaus
                         	glob_queue_type * const globlist = 0
 			)
                         {
-                        	lock.lock();
-                        	readyfor = rreadyfor;
-                        	lock.unlock();
+                        	{
+					libmaus::parallel::ScopePosixSpinLock llock(lock);
+        	                	readyfor = rreadyfor;
+                        	}
 
 				drainPreQueue(globlist);
                         }
@@ -185,18 +206,18 @@ namespace libmaus
                         value_type deque()
                         {
                                 semaphore.wait();
-                                lock.lock();
+				libmaus::parallel::ScopePosixSpinLock llock(lock);
                                 value_type const v = Q.front();
                                 Q.pop_front();
-                                lock.unlock();
                                 return v;
                         }
 
                         void putback(value_type const i)
                         {
-                        	lock.lock();
-                        	Q.push_front(i);
-                        	lock.unlock();
+                        	{
+					libmaus::parallel::ScopePosixSpinLock llock(lock);
+        	                	Q.push_front(i);
+                        	}
                         	semaphore.post();
                         }
                 };                

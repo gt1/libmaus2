@@ -95,7 +95,7 @@ namespace libmaus
 					throw se;
 				}
 				
-				bool const ok = decompressor->rawuncompress(C.begin(),comp,B.begin());
+				bool const ok = decompressor->rawuncompress(C.begin(),comp,B.begin(),uncomp);
 
 				if ( ! ok )
 				{

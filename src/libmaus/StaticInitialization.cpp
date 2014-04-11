@@ -102,3 +102,9 @@ unsigned char const ::libmaus::util::SaturatingCounter::mask[4] = {
 		static_cast<uint8_t>(~(3 << 2)),
 		static_cast<uint8_t>(~(3 << 0))
 };
+
+#include <libmaus/lz/RAZFConstants.hpp>
+
+unsigned int const libmaus::lz::RAZFConstants::razf_window_bits = 15;
+uint64_t const libmaus::lz::RAZFConstants::razf_block_size = 1ull << razf_window_bits;
+uint64_t const libmaus::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_block_size;

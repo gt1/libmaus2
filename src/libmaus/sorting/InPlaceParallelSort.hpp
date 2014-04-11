@@ -150,6 +150,13 @@ namespace libmaus
 				}
 			}
 
+			static int64_t iabs(int64_t const v)
+			{
+				if ( v < 0 )
+					return -v;
+				else
+					return v;
+			}
 
 			template<typename iterator, typename order_type, typename base_sort>
 			static void mergestepRecSerial(
@@ -177,7 +184,7 @@ namespace libmaus
 
 					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
 					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
-					MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
+					MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 					
 					uint64_t const l0 = msbsr.l0;
 					uint64_t const l1 = msbsr.l1;
@@ -272,7 +279,7 @@ namespace libmaus
 
 					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
 					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
-					MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
+					MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 					
 					uint64_t const l0 = msbsr.l0;
 					uint64_t const l1 = msbsr.l1;
@@ -354,7 +361,7 @@ namespace libmaus
 
 					MergeStepBinSearchResult const msbsr_l = MergeStepBinSearchResult::mergestepbinsearch(aa,ae,ba,be,order);
 					MergeStepBinSearchResult const msbsr_r = MergeStepBinSearchResult::mergestepbinsearch(ba,be,aa,ae,order).sideswap();
-					MergeStepBinSearchResult const msbsr = (std::abs(msbsr_l.nbest) <= std::abs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
+					MergeStepBinSearchResult const msbsr = (iabs(msbsr_l.nbest) <= iabs(msbsr_r.nbest)) ? msbsr_l : msbsr_r;
 					
 					uint64_t const l0 = msbsr.l0;
 					uint64_t const l1 = msbsr.l1;

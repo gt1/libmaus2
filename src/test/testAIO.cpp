@@ -34,7 +34,7 @@ void testPosixFdInput()
 	
 	PFIS.clear();
 	PFIS.seekg(0,std::ios::end);
-	assert ( PFIS.tellg() == A.size() );
+	assert ( PFIS.tellg() == static_cast<int64_t>(A.size()) );
 	PFIS.clear();
 	PFIS.seekg(0,std::ios::beg);
 	uint64_t const inc = 127;

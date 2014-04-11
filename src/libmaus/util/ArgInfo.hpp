@@ -392,6 +392,55 @@ namespace libmaus
 				return V;
 			
 			}
+
+			/**
+			 * format a number using a unit which can be parsed by getValueUnsignedNumeric
+			 *
+			 * @param n number
+			 * @return reformatted number as a string
+			 **/
+			static std::string numToUnitNum(uint64_t n)
+			{
+				std::ostringstream ostr;
+				
+				if ( ! n )
+				{
+					ostr << n;
+				}
+				if ( n % 1024 == 0 )
+				{
+					char u[] = {'k','m','g','t','p','e',0};
+					
+					unsigned int i = 0;
+					while ( u[i] && (n % 1024 == 0) )
+					{
+						++i;
+						n /= 1024;
+					}
+					
+					ostr << n << u[i-1];
+				}
+				else if ( n % 1000 == 0 )
+				{
+					char u[] = {'K','M','G','T','P','E',0};
+					
+					unsigned int i = 0;
+					while ( u[i] && (n % 1000 == 0) )
+					{
+						++i;
+						n /= 1000;
+					}
+					
+					ostr << n << u[i-1];
+				
+				}
+				else
+				{
+					ostr << n;
+				}
+				
+				return ostr.str();
+			}
 		};
 		
 		/**

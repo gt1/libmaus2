@@ -467,6 +467,14 @@ namespace libmaus
 				// write bam entry data
 				getStream().write(reinterpret_cast<char const *>(data),blocksize);
 			}
+			
+			std::pair<uint8_t const *,uint64_t> getAlignment() const
+			{
+				return
+					std::pair<uint8_t const *,uint64_t>(
+						ubuffer.buffer, ubuffer.length
+					);
+			}
 		};
 		
 		struct BamWriter : public BamWriterSerialStreamBaseWrapper, public BamWriterTemplate<BamWriterSerialStreamBase>

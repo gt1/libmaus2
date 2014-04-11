@@ -380,7 +380,7 @@ namespace libmaus
 				return ::libmaus::bitio::readElias2(SBIS);
 			}
 			
-			static void concatenate(std::vector<std::string> const & filenames, std::string const & outfilename)
+			static void concatenate(std::vector<std::string> const & filenames, std::string const & outfilename, bool const removeinput = false)
 			{
 				uint64_t const n = getLength(filenames);
 				huffmanencoderfile_type writer(outfilename);
@@ -390,7 +390,11 @@ namespace libmaus
 				
 				std::vector< IndexEntry > index;
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
+				{
 					appendTemplate(writer,filenames[i],index);
+					if ( removeinput )
+						remove(filenames[i].c_str());
+				}
 				
 				writer.flushBitStream();
 

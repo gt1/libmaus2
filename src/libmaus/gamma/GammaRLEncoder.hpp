@@ -216,7 +216,7 @@ namespace libmaus
 				}
 			}
 			
-			static void concatenate(std::vector<std::string> const & infilenames, std::string const & outfilename)
+			static void concatenate(std::vector<std::string> const & infilenames, std::string const & outfilename, bool const removeinput = false)
 			{
 				uint64_t const n = ::libmaus::gamma::GammaRLDecoder::getLength(infilenames);
 				unsigned int const albits = infilenames.size() ? ::libmaus::gamma::GammaRLDecoder::getAlBits(infilenames[0]) : 0;
@@ -260,6 +260,9 @@ namespace libmaus
 					
 					// update position pointer
 					ioff += datalen;
+					
+					if ( removeinput )
+						remove(infilenames[i].c_str());
 				}
 
 				// write index

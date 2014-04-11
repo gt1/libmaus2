@@ -47,6 +47,12 @@ namespace libmaus
 			{
 			
 			}
+			void reset(uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0)
+			{
+				priority = rpriority;
+				dispatcherid = rdispatcherid;
+				packageid = rpackageid;
+			}
 			virtual ~ThreadWorkPackage() {}
 			virtual unique_ptr_type uclone() const = 0;
 			virtual shared_ptr_type sclone() const = 0;

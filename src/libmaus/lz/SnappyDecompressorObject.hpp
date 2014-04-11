@@ -32,7 +32,7 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			virtual ~SnappyDecompressorObject() {}
-			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed)
+			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed, size_t /* uncompressed_length */)
 			{
 				return SnappyCompress::rawuncompress(compressed,compressed_length,uncompressed);
 			}

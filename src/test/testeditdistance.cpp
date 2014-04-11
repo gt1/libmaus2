@@ -22,9 +22,17 @@
 #include <libmaus/lcs/BandedEditDistance.hpp>
 #include <libmaus/random/Random.hpp>
 
+static int64_t iabs(int64_t const v)
+{
+	if ( v < 0 )
+		return -v;
+	else
+		return v;
+}
+
 static inline uint64_t dif(uint64_t const a, uint64_t const b)
 {
-	return static_cast<uint64_t>(std::abs(static_cast<int64_t>(a)-static_cast<int64_t>(b)));
+	return static_cast<uint64_t>(iabs(static_cast<int64_t>(a)-static_cast<int64_t>(b)));
 }
 
 template<typename edit_a, typename edit_b>

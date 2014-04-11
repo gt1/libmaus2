@@ -33,10 +33,14 @@ namespace libmaus
 			
 			SnappyCompressorObject() {}
 			~SnappyCompressorObject() {}
-			
-			virtual std::string compress(std::string const & s)
+
+			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output)
 			{
-				return SnappyCompress::compress(s);
+				uint64_t compressBound = SnappyCompress::compressBound(inputLength);
+				if ( output.size() < compressBound )
+					output = libmaus::autoarray::AutoArray<char>(compressBound,false);
+				
+				return SnappyCompress::rawcompress(input,inputLength,output.begin());
 			}
 		};
 	}

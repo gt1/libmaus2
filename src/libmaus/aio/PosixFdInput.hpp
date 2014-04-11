@@ -49,7 +49,7 @@ namespace libmaus
 				#if defined(__APPLE__)
 				return O_RDONLY;
 				#else
-				return O_RDONLY|O_NOATIME|O_LARGEFILE;
+				return O_RDONLY|O_LARGEFILE;
 				#endif
 			}
 			

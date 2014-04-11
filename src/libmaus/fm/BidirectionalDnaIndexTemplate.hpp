@@ -446,15 +446,15 @@ namespace libmaus
 			 * within a distance of maxdif
 			 */
 			uint64_t hammingSearchRec(
-				std::string const & s, 
-				libmaus::fm::BidirectionalIndexInterval const & BI,
-				uint64_t const backoffset, 
-				uint64_t const curdif, 
-				uint64_t const maxdif,
-				libmaus::fm::BidirectionalIndexIntervalSymbol * E,
-				std::vector<libmaus::fm::BidirectionalIndexInterval> & VBI,
-				uint64_t & totalmatches,
-				uint64_t const maxtotalmatches
+				std::string const & s, // query string
+				libmaus::fm::BidirectionalIndexInterval const & BI, // current interval
+				uint64_t const backoffset, // offset from back of query
+				uint64_t const curdif, // current number of mismatches
+				uint64_t const maxdif, // maximum number of mismatches
+				libmaus::fm::BidirectionalIndexIntervalSymbol * E, // space for query intervals
+				std::vector<libmaus::fm::BidirectionalIndexInterval> & VBI, // result vector
+				uint64_t & totalmatches, // current total number of matches
+				uint64_t const maxtotalmatches // maximum number of matches
 			) const
 			{
 				// std::cerr << "backoffset=" << backoffset << std::endl;
@@ -521,6 +521,90 @@ namespace libmaus
 					return nump;
 				}
 			}
+
+			/*
+			 * recursive backward search under hamming distance
+			 * only up to half of the mismatches is allowed in the first half
+			 * of the pattern, so the result has to be merged with
+			 * a query for the reverse complement to find all matches
+			 * within a distance of maxdif
+			 */
+			uint64_t hammingSearchRec(
+				std::string const & s, // query string
+				libmaus::fm::BidirectionalIndexInterval const & BI, // current interval
+				uint64_t const backoffset, // offset from back of query
+				uint64_t const curdif, // current number of mismatches
+				uint64_t const maxdif, // maximum number of mismatches
+				libmaus::fm::BidirectionalIndexIntervalSymbol * E, // space for query intervals
+				std::vector< std::pair<uint64_t, libmaus::fm::BidirectionalIndexInterval > > & VBI, // result vector
+				uint64_t & totalmatches, // current total number of matches
+				uint64_t const maxtotalmatches // maximum number of matches
+			) const
+			{
+				// std::cerr << "backoffset=" << backoffset << std::endl;
+				if ( totalmatches > maxtotalmatches )
+				{
+					return 0;
+				}
+				else if ( backoffset == s.size() )
+				{
+					#if 0
+					std::string const remapped = remapString(s);
+					std::cerr << std::string(30,'*');
+					std::cerr << " mismatches=" << curdif << " ";
+					std::cerr << std::string(30,'*') << std::endl;
+					std::cerr << "original=" << remapped << std::endl;
+					for ( uint64_t i = 0; i < BI.siz; ++i )
+					{
+						std::string const matched = getTextUnmapped(BI.spf+i,s.size());
+						std::cerr << "matched =" << matched  << std::endl;
+						std::cerr << "         ";
+						for ( uint64_t j = 0; j < s.size(); ++j )
+							if ( remapped[j] == matched[j] )
+								std::cerr.put('+');
+							else
+								std::cerr.put('-');
+						std::cerr << std::endl;
+					}
+					#endif
+					
+					VBI.push_back(std::pair<uint64_t, libmaus::fm::BidirectionalIndexInterval>(curdif,BI));
+					
+					totalmatches += BI.siz;
+					
+					return BI.siz;
+				}
+				else
+				{
+					// query symbol
+					int64_t const qsym = s[s.size()-backoffset-1];			
+					// number of symbols we can extend by
+					uint64_t const nsym = backwardExtendMulti(BI,E);
+					// number of matches
+					uint64_t nump = 0;
+					
+					for ( uint64_t i = 0; i < nsym; ++i )
+					{
+						assert ( E[i].siz );
+
+						if ( E[i].sym == qsym && qsym != 5 )
+						{
+							nump += hammingSearchRec(s,E[i],backoffset+1,curdif,maxdif,E+symbols.size(),VBI,totalmatches,maxtotalmatches);
+						}
+						// else if ( curdif+1 <= maxdif )
+						else if (
+							(backoffset <= s.size()/2 && (curdif+1) <= (maxdif+1)/2)
+							||
+							(backoffset  > s.size()/2 && (curdif+1) <= maxdif      )
+						)
+						{
+							nump += hammingSearchRec(s,E[i],backoffset+1,curdif+1,maxdif,E+symbols.size(),VBI,totalmatches,maxtotalmatches);
+						}
+					}
+					
+					return nump;
+				}
+			}
 			
 			static void mapStringInPlace(std::string & s)
 			{
@@ -547,10 +631,11 @@ namespace libmaus
 				return t;
 			}
 			
+
 			/*
 			 * search a pattern with up to maxdif mismatches
 			 */
-			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches)
+			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches, std::vector<libmaus::fm::BidirectionalIndexInterval> & VBI)
 			{
 				// compute reverse complement
 				std::string rquery = libmaus::fastx::reverseComplementUnmapped(query);
@@ -558,9 +643,6 @@ namespace libmaus
 				// map clear text to codes used in index
 				mapStringInPlace(query);
 				mapStringInPlace(rquery);
-
-				// vector of result intervals
-				std::vector<libmaus::fm::BidirectionalIndexInterval> VBI;
 
 				// stack
 				libmaus::autoarray::AutoArray<libmaus::fm::BidirectionalIndexIntervalSymbol> E(query.size()*symbols.size(),false);
@@ -589,6 +671,60 @@ namespace libmaus
 				uint64_t nump = 0;
 				for ( uint64_t i = 0; i < VBI.size(); ++i )
 					nump += VBI[i].siz;
+				
+				return nump;
+			}
+
+			/*
+			 * search a pattern with up to maxdif mismatches
+			 */
+			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches)
+			{
+				// vector of result intervals
+				std::vector<libmaus::fm::BidirectionalIndexInterval> VBI;
+				//
+				return hammingSearchRecUnmapped(query,maxdif,maxtotalmatches,VBI);
+			}
+
+			/*
+			 * search a pattern with up to maxdif mismatches
+			 */
+			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches, std::vector< std::pair<uint64_t, libmaus::fm::BidirectionalIndexInterval> > & VBI)
+			{
+				// compute reverse complement
+				std::string rquery = libmaus::fastx::reverseComplementUnmapped(query);
+				
+				// map clear text to codes used in index
+				mapStringInPlace(query);
+				mapStringInPlace(rquery);
+
+				// stack
+				libmaus::autoarray::AutoArray<libmaus::fm::BidirectionalIndexIntervalSymbol> E(query.size()*symbols.size(),false);
+
+				// total matches
+				uint64_t totalmatches = 0;
+				
+				// search reverse complement
+				hammingSearchRec(rquery,epsilon(),0,0,maxdif,E.begin(),VBI,totalmatches,maxtotalmatches);
+				// turn into intervals for forward
+				for ( uint64_t i = 0; i < VBI.size(); ++i )
+					VBI[i].second.swapInPlace();
+					
+				// reset number of matches
+				totalmatches = 0;
+				// search straight/non rc pattern
+				hammingSearchRec(query ,epsilon(),0,0,maxdif,E.begin(),VBI,totalmatches,maxtotalmatches);
+				
+				// sort intervals
+				std::sort(VBI.begin(),VBI.end());
+				
+				// drop duplicates
+				VBI.resize(std::unique(VBI.begin(),VBI.end())-VBI.begin());
+				
+				// compute number of matches
+				uint64_t nump = 0;
+				for ( uint64_t i = 0; i < VBI.size(); ++i )
+					nump += VBI[i].second.siz;
 				
 				return nump;
 			}

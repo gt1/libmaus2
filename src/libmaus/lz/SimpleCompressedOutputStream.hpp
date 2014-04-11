@@ -43,6 +43,8 @@ namespace libmaus
 			char *       pc;
 			char * const pe;
 
+			::libmaus::autoarray::AutoArray<char> O;
+
 			uint64_t compressedwritten;
 			
 			SimpleCompressedOutputStream(
@@ -72,19 +74,20 @@ namespace libmaus
 					libmaus::util::CountPutObject CPO;
 					
 					// compress data
-					std::string const cdata = compressor->compress(std::string(pa,pc));
+					// std::string const cdata = compressor->compress(std::string(pa,pc));
+					uint64_t const cdatasize = compressor->compress(pa,(pc-pa),O);
 
 					// number of uncompressed bytes					
 					::libmaus::util::UTF8::encodeUTF8(pc-pa,out);
 					::libmaus::util::UTF8::encodeUTF8(pc-pa,CPO);
 					
 					//  number of compressed bytes
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,cdata.size());
-					::libmaus::util::NumberSerialisation::serialiseNumber(CPO,cdata.size());
+					::libmaus::util::NumberSerialisation::serialiseNumber(out,cdatasize);
+					::libmaus::util::NumberSerialisation::serialiseNumber(CPO,cdatasize);
 
 					// write compressed data
-					out.write(cdata.c_str(),cdata.size());
-					CPO.write(cdata.c_str(),cdata.size());
+					out.write(O.begin(),cdatasize);
+					CPO.write(O.begin(),cdatasize);
 					
 					if ( ! out )
 					{
