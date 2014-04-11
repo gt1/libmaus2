@@ -957,7 +957,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/FileDescriptorPasser.hpp \
 	libmaus/network/LogReceiverTestProcess.hpp \
 	libmaus/network/LogReceiver.hpp \
-	libmaus/network/LogReceiverDispatcherBase.hpp
+	libmaus/network/LogReceiverDispatcherBase.hpp \
+	libmaus/network/CurlInit.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1117,7 +1118,10 @@ noinst_PROGRAMS = \
 	testzlibconcat \
 	testsimplecompressblock \
 	testrazdec \
-	testfaindex
+	testfaindex \
+	testcurl \
+	testfastablockrecode \
+	testhttp
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1419,3 +1423,14 @@ testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testfaindex_SOURCES = test/testfaindex.cpp
 testfaindex_LDADD = libmaus.la
+
+testcurl_SOURCES = test/testcurl.cpp
+testcurl_LDADD = libmaus.la
+testcurl_CPPFLAGS =  @LIBCURLCPPFLAGS@ @WARNCPPFLAGS@
+testcurl_LDFLAGS = @LIBCURLLIBS@
+
+testfastablockrecode_SOURCES = test/testfastablockrecode.cpp
+testfastablockrecode_LDADD = libmaus.la
+
+testhttp_SOURCES = test/testhttp.cpp
+testhttp_LDADD = libmaus.la
