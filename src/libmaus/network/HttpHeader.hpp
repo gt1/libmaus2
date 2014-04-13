@@ -138,10 +138,11 @@ namespace libmaus
 					{
 						SIS->readsome(c.begin(),c.size());
 						ssize_t r = SIS->gcount();
-
+						
+						// buffer is empty, try to fill it
 						if ( ! r )
 						{
-							SIS->read(c.begin(),c.size());
+							SIS->read(c.begin(),1);
 							r = SIS->gcount();
 							
 							if ( ! r )
@@ -150,6 +151,11 @@ namespace libmaus
 								lme.getStream() << "HttpHeader: unexpected EOF/error while reading header" << std::endl;
 								lme.finish();
 								throw lme;	
+							}
+							else
+							{
+								SIS->unget();
+								continue;
 							}
 						}
 						
