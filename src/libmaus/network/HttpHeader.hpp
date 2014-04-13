@@ -20,6 +20,8 @@
 #define LIBMAUS_NETWORK_HTTPHEADER_HPP
 
 #include <libmaus/network/HttpAbsoluteUrl.hpp>
+#include <libmaus/network/Socket.hpp>
+#include <libmaus/network/OpenSSLSocket.hpp>
 #include <libmaus/network/SocketInputStream.hpp>
 #include <libmaus/util/stringFunctions.hpp>
 #include <deque>
@@ -40,12 +42,6 @@ namespace libmaus
 				return std::string(d.begin(),d.end());
 			}
 			
-			static bool isAbsoluteURL(std::string const & s)
-			{
-				std::string const prefix = "http://";
-				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;
-			}
-			
 			static std::string tolower(std::string s)
 			{
 				for ( uint64_t i = 0; i < s.size(); ++i )
@@ -58,6 +54,8 @@ namespace libmaus
 			::libmaus::network::HttpAbsoluteUrl url;
 
 			libmaus::network::ClientSocket::unique_ptr_type CS;
+			libmaus::network::OpenSSLSocket::unique_ptr_type OS;
+			libmaus::network::SocketInputOutputInterface * SIOS;
 			libmaus::network::SocketInputStream::unique_ptr_type SIS;
 
 			int64_t getContentLength() const
@@ -88,19 +86,40 @@ namespace libmaus
 				return *SIS;
 			}
 			
-			void init(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80)
+			void init(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80, bool ssl = false)
 			{
 				bool headercomplete = false;
 				
 				while ( ! headercomplete )
 				{
 					fields.clear();
+					
+					CS.reset();
+					OS.reset();
+					SIS.reset();
+					SIOS = 0;
 
-					libmaus::network::ClientSocket::unique_ptr_type tCS(new libmaus::network::ClientSocket(port,host.c_str()));
-					CS = UNIQUE_PTR_MOVE(tCS);
-					libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*CS,64*1024));
-					SIS = UNIQUE_PTR_MOVE(tSIS);
-				
+					if ( ssl )
+					{
+						libmaus::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus::network::OpenSSLSocket(host,port,0,"/etc/ssl/certs",true));
+						OS = UNIQUE_PTR_MOVE(tOS);
+						
+						SIOS = OS.get();
+
+						libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*OS,64*1024));
+						SIS = UNIQUE_PTR_MOVE(tSIS);
+					}
+					else
+					{
+						libmaus::network::ClientSocket::unique_ptr_type tCS(new libmaus::network::ClientSocket(port,host.c_str()));
+						CS = UNIQUE_PTR_MOVE(tCS);
+
+						SIOS = CS.get();
+
+						libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*CS,64*1024));
+						SIS = UNIQUE_PTR_MOVE(tSIS);
+					}
+					
 					std::ostringstream reqastr;
 					reqastr << method << " " << path << " HTTP/1.1\r\n";
 					reqastr << "Host: " << host << "\r\n";
@@ -109,7 +128,7 @@ namespace libmaus
 					std::string const reqa = reqastr.str();
 
 					libmaus::autoarray::AutoArray<char> c(128,false);
-					CS->write(reqa.c_str(),reqa.size());
+					SIOS->write(reqa.c_str(),reqa.size());
 					char last4[4] = {0,0,0,0};
 					bool done = false;
 					
@@ -284,15 +303,20 @@ namespace libmaus
 
 							// std::cerr << "redirecting " << statuscode << " to " << location << std::endl;
 							
-							if ( ::libmaus::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(location) )
+							if ( 
+								::libmaus::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(location) 
+								||
+								::libmaus::network::HttpAbsoluteUrl::isHttpsAbsoluteUrl(location) 
+							)
 							{
 								::libmaus::network::HttpAbsoluteUrl url(location);
 								host = url.host;
 								port = url.port;
 								path = url.path;
+								ssl = url.ssl;
 							}
 							else if ( ::libmaus::network::HttpAbsoluteUrl::isAbsoluteUrl(location) )
-							{						
+							{
 								libmaus::exception::LibMausException lme;
 								lme.getStream() << "HttpHeader: unsupported protocol in location " << location << std::endl;
 								lme.finish();
@@ -323,18 +347,19 @@ namespace libmaus
 				
 				url.host = host;
 				url.port = port;
-				url.path = path;		
+				url.path = path;
+				url.ssl = ssl;		
 			}
 
 			HttpHeader() {}
 			HttpHeader(std::string method, std::string addreq, std::string url)
 			{
 				::libmaus::network::HttpAbsoluteUrl absurl(url);
-				init(method,addreq,absurl.host,absurl.path,absurl.port);
+				init(method,addreq,absurl.host,absurl.path,absurl.port,absurl.ssl);
 			}
-			HttpHeader(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80)
+			HttpHeader(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80, bool ssl = false)
 			{
-				init(method,addreq,host,path,port);
+				init(method,addreq,host,path,port,ssl);
 			}
 			
 			bool isChunked() const

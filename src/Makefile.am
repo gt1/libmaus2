@@ -963,7 +963,9 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/OpenSSLInit.hpp \
 	libmaus/network/SocketInputStreamBuffer.hpp \
 	libmaus/network/SocketInputStream.hpp \
-	libmaus/network/HttpAbsoluteUrl.hpp
+	libmaus/network/HttpAbsoluteUrl.hpp \
+	libmaus/network/SocketInputOutputInterface.hpp \
+	libmaus/network/OpenSSLSocket.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1439,3 +1441,5 @@ testfastablockrecode_LDADD = libmaus.la
 
 testhttp_SOURCES = test/testhttp.cpp
 testhttp_LDADD = libmaus.la
+testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
+testhttp_LDFLAGS = @OPENSSLLIBS@

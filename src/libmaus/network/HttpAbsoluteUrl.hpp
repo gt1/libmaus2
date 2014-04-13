@@ -32,6 +32,7 @@ namespace libmaus
 			std::string host;
 			unsigned int port;
 			std::string path;
+			bool ssl;
 
 			static bool isAbsoluteUrl(std::string const & s)
 			{
@@ -52,12 +53,21 @@ namespace libmaus
 				std::string const prefix = "http://";
 				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;				
 			}
+
+			static bool isHttpsAbsoluteUrl(std::string const & s)
+			{
+				std::string const prefix = "https://";
+				return (s.size() > prefix.size()) && s.substr(0,prefix.size()) == prefix;				
+			}
 			
 			HttpAbsoluteUrl() {}
 			HttpAbsoluteUrl(std::string const url)
-			: port(80)
 			{
-				if ( ! isHttpAbsoluteUrl(url) )
+				if ( 
+					! isHttpAbsoluteUrl(url) 
+					&&
+					! isHttpsAbsoluteUrl(url)
+				)
 				{
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "HttpAbsoluteUrl: malformed url " << url << std::endl;
@@ -65,7 +75,16 @@ namespace libmaus
 					throw lme;		
 				}
 				
-				std::string rest = url.substr(::std::strlen("http://"));
+				ssl = isHttpsAbsoluteUrl(url);
+				
+				port = ssl ? 443 : 80;
+				
+				std::string rest = 
+					ssl ? 
+					url.substr(::std::strlen("https://"))
+					:
+					url.substr(::std::strlen("http://"))
+					;
 				
 				uint64_t slash = 0;
 				while ( slash < rest.size() && rest[slash] != '/' )

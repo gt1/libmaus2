@@ -48,6 +48,7 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/network/GetHostName.hpp>
+#include <libmaus/network/SocketInputOutputInterface.hpp>
 #include <stdexcept>
 
 #include <libmaus/parallel/PosixThread.hpp>
@@ -57,7 +58,7 @@ namespace libmaus
 {
 	namespace network
 	{
-		struct SocketBase
+		struct SocketBase : public SocketInputOutputInterface
 		{
 			public:
 			typedef SocketBase this_type;

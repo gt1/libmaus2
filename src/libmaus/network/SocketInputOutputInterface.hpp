@@ -16,28 +16,22 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_AIO_SOCKETINPUTSTREAM_HPP)
-#define LIBMAUS_AIO_SOCKETINPUTSTREAM_HPP
+#if ! defined(LIBMAUS_NETWORK_SOCKETINPUTOUTPUTINTERFACE_HPP)
+#define LIBMAUS_NETWORK_SOCKETINPUTOUTPUTINTERFACE_HPP
 
-#include <libmaus/network/SocketInputStreamBuffer.hpp>
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
 	namespace network
 	{
-		struct SocketInputStream : public SocketInputStreamBuffer, public std::istream
+		struct SocketInputOutputInterface
 		{
-			typedef SocketInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			SocketInputStream(
-				libmaus::network::SocketInputOutputInterface & rbase, 
-				uint64_t const bufsize, 
-				uint64_t const pushbacksize = 0
-			) 
-			: SocketInputStreamBuffer(rbase,bufsize,pushbacksize), std::istream(this)
-			{}
+			virtual ~SocketInputOutputInterface() {}
+			
+			virtual void write(char const * p, uint64_t n) = 0;
+			virtual ssize_t readPart(char * p, size_t n) = 0;
+			virtual ssize_t read(char * p, size_t n) = 0;
 		};
 	}
 }
