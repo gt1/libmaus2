@@ -16,64 +16,56 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/network/HttpBody.hpp>
+#include <libmaus/network/HttpHeader.hpp>
+#include <libmaus/util/ArgInfo.hpp>
 
-#include <libmaus/network/Socket.hpp>
-
-int main()
+int main(int argc, char * argv[])
 {
 	try
 	{	
-		std::string const host = "ngs.sanger.ac.uk";
-		libmaus::network::ClientSocket CS(80,host.c_str());
-		std::ostringstream reqastr;
-		reqastr << "HEAD /production/ensembl/regulation/hg19/trackDb.txt HTTP/1.1\n";
-		// reqastr << "HEAD / HTTP/1.1\n";
-		reqastr << "Host: " << host << "\n\n";
-		std::string const reqa = reqastr.str();
-
-		CS.write(reqa.c_str(),reqa.size());
-		char last4[4] = {0,0,0,0};
-		bool done = false;
-
-		std::ostringstream headstr;
+		libmaus::util::ArgInfo const arginfo(argc,argv);
 		
-		while ( !done )
+		std::string const url = arginfo.getRestArg<std::string>(0);
+		libmaus::network::HttpHeader preheader("HEAD","",url);
+		int64_t const length = preheader.getContentLength();
+		
+		if ( length >= 0 && preheader.hasRanges() )
 		{
-			char c[16];
-			ssize_t const r = CS.readPart(&c[0],sizeof(c));
+			uint64_t const packetsize = 2048;
+			uint64_t const numpackets = (length + packetsize - 1)/packetsize;
+			libmaus::autoarray::AutoArray<char> A(256,false);
 			
-			for ( ssize_t i = 0; (!done) && i < r; ++i )
+			for ( uint64_t p = 0; p < numpackets; ++p )
 			{
-				headstr.put(c[i]);
+				uint64_t const low = p * packetsize;
+				uint64_t const high = std::min(low+packetsize,static_cast<uint64_t>(length));
 				
-				last4[0] = last4[1];
-				last4[1] = last4[2];
-				last4[2] = last4[3];
-				last4[3] = c[i];
-			
-				if ( last4[0] == '\r' && last4[1] == '\n' && last4[2] == '\r' && last4[3] == '\n' )
-					done = true;
-			}			
+				std::ostringstream addreqstr;
+				addreqstr << "Range: bytes=" << low << "-" << (high-1) << "\r\n";
+				std::string const addreq = addreqstr.str();
+
+				libmaus::network::HttpHeader header("GET",addreq,url);
+				libmaus::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
+
+				uint64_t n = 0;
+				while ( (n = body.read(A.begin(),A.size())) != 0 )
+					std::cout.write(A.begin(),n);				
+			}
 		}
-		
-		std::istringstream linestr(headstr.str());
-		std::vector<std::string> lines;
-		while ( linestr )
+		else
 		{
-			std::string line;
-			std::getline(linestr,line);
-			
-			while ( line.size() && isspace(line[line.size()-1]) )
-			{
-				line = line.substr(0,line.size()-1);
-			}
-			
-			if ( line.size() )
-			{
-				lines.push_back(line);
-				std::cerr << "[" << lines.size()-1 << "]=" << lines.back() << std::endl;
-			}
+			libmaus::network::HttpHeader header("GET","",url);
+			libmaus::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
+		
+			libmaus::autoarray::AutoArray<char> A(256,false);
+			uint64_t n = 0;
+			while ( (n = body.read(A.begin(),A.size())) != 0 )
+				std::cout.write(A.begin(),n);
+
 		}
+
+		std::cout.flush();
 	}
 	catch(std::exception const & ex)
 	{

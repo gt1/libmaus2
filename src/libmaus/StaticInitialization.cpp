@@ -113,3 +113,8 @@ uint64_t const libmaus::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_b
 
 uint64_t libmaus::network::CurlInit::initcomplete = 0;
 libmaus::parallel::PosixSpinLock libmaus::network::CurlInit::lock;
+
+#include <libmaus/network/OpenSSLInit.hpp>
+
+uint64_t libmaus::network::OpenSSLInit::initcomplete = 0;
+libmaus::parallel::PosixSpinLock libmaus::network::OpenSSLInit::lock;

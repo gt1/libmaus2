@@ -113,13 +113,14 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/parallel/SimpleThreadWorkPackage.cpp \
 	libmaus/lz/RAZFIndex.cpp \
 	libmaus/fastx/FastAIndexEntry.cpp \
-	libmaus/fastx/FastAIndex.cpp
+	libmaus/fastx/FastAIndex.cpp \
+	libmaus/network/HttpAbsoluteUrl.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
+libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -958,7 +959,11 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/LogReceiverTestProcess.hpp \
 	libmaus/network/LogReceiver.hpp \
 	libmaus/network/LogReceiverDispatcherBase.hpp \
-	libmaus/network/CurlInit.hpp
+	libmaus/network/CurlInit.hpp \
+	libmaus/network/OpenSSLInit.hpp \
+	libmaus/network/SocketInputStreamBuffer.hpp \
+	libmaus/network/SocketInputStream.hpp \
+	libmaus/network/HttpAbsoluteUrl.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
