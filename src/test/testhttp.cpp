@@ -26,24 +26,7 @@ int main(int argc, char * argv[])
 	try
 	{	
 		libmaus::util::ArgInfo const arginfo(argc,argv);
-		
-		#if defined(LIBMAUS_HAVE_OPENSSL)
-		{
-			std::string const host = "www.google.com";
-			libmaus::network::OpenSSLSocket sock(host,443,NULL,"/etc/ssl/certs",true);
-			std::ostringstream reqstr;
-			reqstr << 
-				"HEAD / HTTP/1.1\r\nHost: " << host << "\r\n" << "\r\n";
-			std::string const req = reqstr.str();
-			sock.write(req.c_str(),req.size());
-
-			char c = -1;
-			while ( sock.read(&c,1) == 1 )
-				std::cout.put(c);
-		}
-		#endif
-
-		
+				
 		std::string const url = arginfo.getRestArg<std::string>(0);
 		libmaus::network::HttpHeader preheader("HEAD","",url);
 		int64_t const length = preheader.getContentLength();
