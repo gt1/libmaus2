@@ -86,10 +86,65 @@ namespace libmaus
 				return *SIS;
 			}
 			
-			void init(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80, bool ssl = false)
+			static bool hasHttpProxy()
+			{
+				char const * proxystring = getenv("http_proxy");
+				
+				if ( ! proxystring )
+					return false;
+					
+				if ( 
+					!
+						(
+							libmaus::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(proxystring)
+							||
+							libmaus::network::HttpAbsoluteUrl::isHttpsAbsoluteUrl(proxystring)
+						)
+				)
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "HttpHeader: unknown http_proxy setting " << proxystring << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+				
+				return true;
+			}
+
+			static bool hasHttpsProxy()
+			{
+				char const * proxystring = getenv("https_proxy");
+				
+				if ( ! proxystring )
+					return false;
+					
+				if ( 
+					!
+						(
+							libmaus::network::HttpAbsoluteUrl::isHttpAbsoluteUrl(proxystring)
+							||
+							libmaus::network::HttpAbsoluteUrl::isHttpsAbsoluteUrl(proxystring)
+						)
+				)
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "HttpHeader: unknown https_proxy setting " << proxystring << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+				
+				return true;
+			}
+			
+			void init(
+				std::string method, 
+				std::string addreq, 
+				std::string host, 
+				std::string path, unsigned int port = 80, bool ssl = false
+			)
 			{
 				bool headercomplete = false;
-				
+
 				while ( ! headercomplete )
 				{
 					fields.clear();
@@ -98,37 +153,92 @@ namespace libmaus
 					OS.reset();
 					SIS.reset();
 					SIOS = 0;
-
-					if ( ssl )
-					{
-						libmaus::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus::network::OpenSSLSocket(host,port,0,"/etc/ssl/certs",true));
-						OS = UNIQUE_PTR_MOVE(tOS);
+					
+					bool const hasproxy =
+						(ssl && hasHttpsProxy())
+						||
+						((!ssl) && hasHttpProxy());
 						
-						SIOS = OS.get();
+					if ( hasproxy )
+					{
+						HttpAbsoluteUrl proxyurl =
+							ssl ? HttpAbsoluteUrl(getenv("https_proxy")) : HttpAbsoluteUrl(getenv("http_proxy"));
+						
+						// std::cerr << "[D] using proxy " << proxyurl << std::endl;
+							
+						if ( proxyurl.ssl )
+						{
+							libmaus::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus::network::OpenSSLSocket(proxyurl.host,proxyurl.port,0,"/etc/ssl/certs",true));
+							OS = UNIQUE_PTR_MOVE(tOS);
+						
+							SIOS = OS.get();
 
-						libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*OS,64*1024));
-						SIS = UNIQUE_PTR_MOVE(tSIS);
+							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*OS,64*1024));
+							SIS = UNIQUE_PTR_MOVE(tSIS);
+						}
+						else
+						{
+							libmaus::network::ClientSocket::unique_ptr_type tCS(new libmaus::network::ClientSocket(proxyurl.port,proxyurl.host.c_str()));
+							CS = UNIQUE_PTR_MOVE(tCS);
+
+							SIOS = CS.get();
+						
+							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*CS,64*1024));
+							SIS = UNIQUE_PTR_MOVE(tSIS);
+						}						
 					}
 					else
 					{
-						libmaus::network::ClientSocket::unique_ptr_type tCS(new libmaus::network::ClientSocket(port,host.c_str()));
-						CS = UNIQUE_PTR_MOVE(tCS);
+						if ( ssl )
+						{
+							libmaus::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus::network::OpenSSLSocket(host,port,0,"/etc/ssl/certs",true));
+							OS = UNIQUE_PTR_MOVE(tOS);
+						
+							SIOS = OS.get();
 
-						SIOS = CS.get();
+							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*OS,64*1024));
+							SIS = UNIQUE_PTR_MOVE(tSIS);
+						}
+						else
+						{
+							libmaus::network::ClientSocket::unique_ptr_type tCS(new libmaus::network::ClientSocket(port,host.c_str()));
+							CS = UNIQUE_PTR_MOVE(tCS);
 
-						libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*CS,64*1024));
-						SIS = UNIQUE_PTR_MOVE(tSIS);
+							SIOS = CS.get();
+						
+							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*CS,64*1024));
+							SIS = UNIQUE_PTR_MOVE(tSIS);
+						}
 					}
 					
 					std::ostringstream reqastr;
-					reqastr << method << " " << path << " HTTP/1.1\r\n";
-					reqastr << "Host: " << host << "\r\n";
+
+					if ( hasproxy )
+					{
+						reqastr << method << " " 
+							<< (ssl ? "https" : "http")
+							<< "://"
+							<< host
+							<< ":"
+							<< port
+							<< path 
+							<< " HTTP/1.1\r\n";
+						// reqastr << "Connection: close\r\n";
+					}
+					else
+					{
+						reqastr << method << " " << path << " HTTP/1.1\r\n";
+						reqastr << "Host: " << host << "\r\n";
+					}
+
 					reqastr << addreq;
 					reqastr << "\r\n";
+
+					// send request
 					std::string const reqa = reqastr.str();
+					SIOS->write(reqa.c_str(),reqa.size());
 
 					libmaus::autoarray::AutoArray<char> c(128,false);
-					SIOS->write(reqa.c_str(),reqa.size());
 					char last4[4] = {0,0,0,0};
 					bool done = false;
 					

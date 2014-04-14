@@ -80,7 +80,7 @@ namespace libmaus
 					gptr()-putbackcopy,
 					putbackcopy
 				);
-								
+				
 				// load data
 				uint64_t const uncompressedsize = stream.readPart(
 						buffer.begin()+putbackspace,

@@ -282,12 +282,12 @@ namespace libmaus
 			{
 				ssize_t totalred = 0;
 				
-				while ( ! totalred )
+				while ( (! totalred) && len )
 				{
 					#if ! defined(__APPLE__)
 					pollfd pfd = { getFD(), POLLIN, 0 };
 					int const ready = poll(&pfd, 1, checkinterval);
-					
+										
 					if ( ready == 1 && (pfd.revents & POLLIN) )
 					{
 						ssize_t red = ::read(fd,data,len);
@@ -360,7 +360,7 @@ namespace libmaus
 					if ( ! he )
 					{
 						::libmaus::exception::LibMausException se;
-						se.getStream() << "failed to get address via gethostbyname: " << hstrerror(h_errno);
+						se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 						se.finish();
 						throw se;		
 					}
@@ -370,7 +370,7 @@ namespace libmaus
 					if ( he->h_addr_list[0] == 0 )
 					{
 						::libmaus::exception::LibMausException se;
-						se.getStream() << "failed to get address via gethostbyname (no address returned)";
+						se.getStream() << "failed to get address for " << hostname << " via gethostbyname (no address returned)";
 						se.finish();
 						throw se;		
 					}

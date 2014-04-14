@@ -139,7 +139,17 @@ namespace libmaus
 					if ( length >= 0 )
 					{
 						uint64_t toread = std::min(n,static_cast<uint64_t>(length));
-						in.read(p,toread);
+						
+						in.readsome(p,toread);
+						
+						if ( ! in.gcount() )
+						{
+							in.get();
+							in.unget();
+
+							in.readsome(p,toread);
+						}
+						
 						length -= in.gcount();
 						if ( in.gcount() == 0 )
 							eof = true;
@@ -147,7 +157,16 @@ namespace libmaus
 					}
 					else
 					{
-						in.read(p,n);
+						in.readsome(p,n);
+						
+						if ( ! in.gcount() )
+						{
+							in.get();
+							in.unget();
+
+							in.readsome(p,n);
+						}
+																		
 						if ( in.gcount() == 0 )
 							eof = true;
 						return in.gcount();
