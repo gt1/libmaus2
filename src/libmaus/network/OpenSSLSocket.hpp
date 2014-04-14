@@ -21,6 +21,7 @@
 
 #include <libmaus/network/OpenSSLInit.hpp>
 #include <libmaus/network/SocketInputOutputInterface.hpp>
+#include <cstring>
 
 namespace libmaus
 {
@@ -213,6 +214,17 @@ namespace libmaus
 				lme.finish();
 				throw lme;				
 				#endif
+
+				SSL_CIPHER const * cipher = SSL_get_current_cipher(ssl);
+				std::cerr << "[D] using cipher " << SSL_CIPHER_get_name(cipher) << " version " << SSL_CIPHER_get_version(cipher) << std::endl;
+
+				char ciphdesc[256];
+				std::memset(&ciphdesc[0],0,sizeof(ciphdesc));
+				char const * desc = SSL_CIPHER_description(cipher,&ciphdesc[0],sizeof(ciphdesc));
+				
+				std::cerr << "[D] cipher description " << desc;
+				// int     SSL_CIPHER_get_bits(const SSL_CIPHER *c,int *alg_bits);
+
 			}
 			
 			~OpenSSLSocket()
