@@ -92,6 +92,9 @@ namespace libmaus
 				
 				if ( ! proxystring )
 					return false;
+
+				if ( ! strlen(proxystring) )
+					return false;
 					
 				if ( 
 					!
@@ -116,6 +119,9 @@ namespace libmaus
 				char const * proxystring = getenv("https_proxy");
 				
 				if ( ! proxystring )
+					return false;
+					
+				if ( ! strlen(proxystring) )
 					return false;
 					
 				if ( 
