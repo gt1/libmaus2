@@ -29,7 +29,7 @@ namespace libmaus
 		{
 			virtual ~SocketInputOutputInterface() {}
 			
-			virtual void write(char const * p, uint64_t n) = 0;
+			virtual void write(char const * p, size_t n) = 0;
 			virtual ssize_t readPart(char * p, size_t n) = 0;
 			virtual ssize_t read(char * p, size_t n) = 0;
 		};
