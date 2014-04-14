@@ -129,13 +129,13 @@ namespace libmaus
                         void lock()
                         {
                         	// spin until we have the lock
-                        	while ( __sync_lock_test_and_set(&v,1) == 1 )
+                        	while ( __sync_lock_test_and_set(&spinlock,1) == 1 )
                         	{
                         	}                        
                         }
                         void unlock()
                         {
-				__sync_lock_release(&v);
+				__sync_lock_release(&spinlock);
                         }
                         /**
                          * try to lock spin lock. returns true if locking was succesful, false if lock
@@ -143,7 +143,7 @@ namespace libmaus
                          **/
                         bool trylock()
                         {
-                        	if ( __sync_lock_test_and_set(&v,1) == 0 )
+                        	if ( __sync_lock_test_and_set(&spinlock,1) == 0 )
                         		return true;
 				else
 					return false;
