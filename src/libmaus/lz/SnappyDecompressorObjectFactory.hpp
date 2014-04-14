@@ -34,7 +34,7 @@ namespace libmaus
 			virtual ~SnappyDecompressorObjectFactory() {}
 			virtual DecompressorObject::unique_ptr_type operator()()
 			{
-				SnappyDecompressorObject::unique_ptr_type ptr(new SnappyDecompressorObject);
+				DecompressorObject::unique_ptr_type ptr(new SnappyDecompressorObject);
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};
