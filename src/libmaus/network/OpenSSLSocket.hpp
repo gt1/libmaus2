@@ -237,7 +237,7 @@ namespace libmaus
 					p
 					#endif
 				,
-				uint64_t 
+				size_t 
 					#if defined(LIBMAUS_HAVE_OPENSSL)
 					n
 					#endif

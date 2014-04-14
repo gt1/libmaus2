@@ -34,7 +34,7 @@ namespace libmaus
 			virtual ~ZlibDecompressorObjectFactory() {}
 			virtual DecompressorObject::unique_ptr_type operator()()
 			{
-				ZlibDecompressorObject::unique_ptr_type ptr(new ZlibDecompressorObject);
+				DecompressorObject::unique_ptr_type ptr(new ZlibDecompressorObject);
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};
