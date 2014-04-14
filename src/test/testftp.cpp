@@ -19,13 +19,14 @@
 
 #include <libmaus/network/FtpUrl.hpp>
 #include <libmaus/network/Socket.hpp>
+#include <libmaus/network/SocketInputStream.hpp>
 #include <libmaus/util/stringFunctions.hpp>
 
 namespace libmaus
 {
 	namespace network
 	{
-		struct FtpSocket
+		struct FtpSocket : public SocketInputInterface
 		{
 			typedef ::libmaus::network::ServerSocket server_socket_type;
 			typedef server_socket_type::unique_ptr_type server_socket_ptr_type;
@@ -35,6 +36,7 @@ namespace libmaus
 			std::string statusline;
 			libmaus::network::SocketBase::unique_ptr_type recsock;
 			bool verbose;
+			libmaus::network::SocketInputStream::unique_ptr_type Pstream;
 
 			uint64_t readServerMessage()
 			{
@@ -210,6 +212,7 @@ namespace libmaus
 						new libmaus::network::ClientSocket(passiveport,passivehost.c_str())
 					);
 					recsock = UNIQUE_PTR_MOVE(tCS);
+
 				}
 				// server does not support passive mode, try active
 				else
@@ -263,6 +266,16 @@ namespace libmaus
 					libmaus::network::SocketBase::unique_ptr_type trecsock = seso->accept();
 					recsock = UNIQUE_PTR_MOVE(trecsock);		
 				}
+
+				libmaus::network::SocketInputStream::unique_ptr_type Tstream(
+					new libmaus::network::SocketInputStream(*this,64*1024)
+				);
+				Pstream = UNIQUE_PTR_MOVE(Tstream);
+			}
+			
+			std::istream & getStream()
+			{
+				return *Pstream;
 			}
 			
 			ssize_t read(char * p, size_t n)
@@ -285,6 +298,11 @@ namespace libmaus
 				
 				return r;
 			}
+
+			ssize_t readPart(char * p, size_t n)
+			{
+				return read(p,n);
+			}
 		};
 	}
 }
@@ -298,11 +316,20 @@ int main(int argc, char * argv[])
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		std::string const url = arginfo.getRestArg<std::string>(0);
 		libmaus::network::FtpSocket ftpsock(url,true);
+		std::istream & ftpstream = ftpsock.getStream();
 		
-		char buf[2048];
-		ssize_t r = -1;
-		while ( (r=ftpsock.read(&buf[0],sizeof(buf))) > 0 )
-			std::cout.write(&buf[0],r);
+		libmaus::autoarray::AutoArray<char> A(1024*1024,false);
+		uint64_t r = 0;
+		while ( ftpstream )
+		{
+			ftpstream.read(A.begin(),A.size());
+			std::cout.write(A.begin(),ftpstream.gcount());
+			r += ftpstream.gcount();
+			
+			std::cerr << "\r" << std::string(80,' ') << "\r" << "[V] " << r/(1024*1024);
+		}
+		
+		std::cerr << "\r" << std::string(80,' ') << "\r" << "[V] " << r/(1024*1024) << "\n";
 	}
 	catch(std::exception const & ex)
 	{

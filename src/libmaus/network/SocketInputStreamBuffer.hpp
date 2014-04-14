@@ -30,7 +30,7 @@ namespace libmaus
 		struct SocketInputStreamBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus::network::SocketInputOutputInterface & stream;
+			::libmaus::network::SocketInputInterface & stream;
 
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
@@ -41,7 +41,7 @@ namespace libmaus
 			SocketInputStreamBuffer & operator=(SocketInputStreamBuffer &);
 						
 			public:
-			SocketInputStreamBuffer(::libmaus::network::SocketInputOutputInterface & rstream, uint64_t const rblocksize, uint64_t const rputbackspace = 0)
+			SocketInputStreamBuffer(::libmaus::network::SocketInputInterface & rstream, uint64_t const rblocksize, uint64_t const rputbackspace = 0)
 			: 
 			  stream(rstream),
 			  blocksize(rblocksize),

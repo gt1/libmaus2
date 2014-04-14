@@ -32,7 +32,7 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			SocketInputStream(
-				libmaus::network::SocketInputOutputInterface & rbase, 
+				libmaus::network::SocketInputInterface & rbase, 
 				uint64_t const bufsize, 
 				uint64_t const pushbacksize = 0
 			) 

@@ -25,13 +25,22 @@ namespace libmaus
 {
 	namespace network
 	{
-		struct SocketInputOutputInterface
+		struct SocketInputInterface
 		{
-			virtual ~SocketInputOutputInterface() {}
-			
-			virtual void write(char const * p, size_t n) = 0;
+			virtual ~SocketInputInterface() {}
 			virtual ssize_t readPart(char * p, size_t n) = 0;
 			virtual ssize_t read(char * p, size_t n) = 0;
+		};
+		
+		struct SocketOutputInterface
+		{
+			virtual ~SocketOutputInterface() {}
+			virtual void write(char const * p, size_t n) = 0;			
+		};
+		
+		struct SocketInputOutputInterface : public SocketInputInterface, public SocketOutputInterface
+		{
+			virtual ~SocketInputOutputInterface() {}
 		};
 	}
 }
