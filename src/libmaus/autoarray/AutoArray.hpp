@@ -715,8 +715,12 @@ namespace libmaus
 			{
 				uint64_t cachelinesize = 0;
 				size_t cachelinesizelen = sizeof(cachelinesize);
+				#if defined(NDEBUG)
+				sysctlbyname("hw.cachelinesize", &cachelinesize, &cachelinesizelen, 0, 0);
+				#else
 				int const sysctlretname = sysctlbyname("hw.cachelinesize", &cachelinesize, &cachelinesizelen, 0, 0);
 				assert ( ! sysctlretname );
+				#endif
 				return cachelinesize;
 			}
 			#elif defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
