@@ -223,7 +223,7 @@ namespace libmaus
 							<< port
 							<< path 
 							<< " HTTP/1.1\r\n";
-						// reqastr << "Connection: close\r\n";
+						reqastr << "Connection: close\r\n";
 					}
 					else
 					{
