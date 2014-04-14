@@ -62,7 +62,7 @@ namespace libmaus
 				}
 			};
 
-			template<typename iterator, typename projector = MarkDuplicateProjectorIdentity>
+			template<typename iterator, typename projector>
 			static uint64_t markDuplicatePairs(
 				iterator const lfrags_a,
 				iterator const lfrags_e,
@@ -168,6 +168,16 @@ namespace libmaus
 				return lfragssize ? 2*(lfragssize - 1) : 0;
 			}
 
+			template<typename iterator>
+			static uint64_t markDuplicatePairs(
+				iterator const lfrags_a,
+				iterator const lfrags_e,
+				::libmaus::bambam::DupSetCallback & DSC,
+				unsigned int const optminpixeldif = 100
+			)
+			{
+				return markDuplicatePairs<iterator,MarkDuplicateProjectorIdentity>(lfrags_a,lfrags_e,DSC,optminpixeldif);
+			}
 
 			static uint64_t markDuplicatePairsVector(std::vector< ::libmaus::bambam::ReadEnds > & lfrags, ::libmaus::bambam::DupSetCallback & DSC, unsigned int const optminpixeldif = 100)
 			{
@@ -181,7 +191,7 @@ namespace libmaus
 			}
 
 
-			template<typename iterator, typename projector = MarkDuplicateProjectorIdentity>
+			template<typename iterator, typename projector>
 			static uint64_t markDuplicateFrags(iterator const lfrags_a, iterator const lfrags_e, ::libmaus::bambam::DupSetCallback & DSC)
 			{
 				uint64_t const lfragssize = lfrags_e - lfrags_a;
@@ -262,6 +272,12 @@ namespace libmaus
 				{
 					return 0;
 				}
+			}
+
+			template<typename iterator>
+			static uint64_t markDuplicateFrags(iterator const lfrags_a, iterator const lfrags_e, ::libmaus::bambam::DupSetCallback & DSC)
+			{
+				return markDuplicateFrags<iterator,MarkDuplicateProjectorIdentity>(lfrags_a,lfrags_e,DSC);
 			}
 
 			static uint64_t markDuplicateFrags(std::vector< ::libmaus::bambam::ReadEnds > const & lfrags, ::libmaus::bambam::DupSetCallback & DSC)
