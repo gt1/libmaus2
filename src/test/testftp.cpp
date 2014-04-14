@@ -112,20 +112,20 @@ namespace libmaus
 					std::cerr << "[D] helostat=" << helostat << " " << statusline << std::endl;
 				
 				// send username
-				writeCommand("USER anonymous\n");
+				writeCommand("USER anonymous\r\n");
 				uint64_t const userstat = checkedReadServerMessage();
 				if ( verbose )
 					std::cerr << "[D] userstat=" << userstat << " " << statusline << std::endl;
 					
 				// send "password"
-				writeCommand("PASS anon@\n");
+				writeCommand("PASS anon@\r\n");
 				uint64_t const passstat = checkedReadServerMessage();
 				if ( verbose )
 					std::cerr << "[D] passstat=" << passstat << " " << statusline << std::endl;
 
 
 				// binary mode
-				writeCommand("TYPE I\n");
+				writeCommand("TYPE I\r\n");
 				uint64_t const binstat = checkedReadServerMessage();
 				if ( verbose )
 					std::cerr << "[D] binstat=" << binstat << " " << statusline << std::endl;
@@ -142,7 +142,7 @@ namespace libmaus
 				
 				// change directory
 				std::ostringstream cwdostr;
-				cwdostr << "CWD " << dir << "\n";
+				cwdostr << "CWD " << dir << "\r\n";
 				std::string const cwd = cwdostr.str();
 				writeCommand(cwd);
 				uint64_t const cwdstat = checkedReadServerMessage();
@@ -150,7 +150,7 @@ namespace libmaus
 					std::cerr << "[D] cwdstat=" << cwdstat << " " << statusline << std::endl;
 					
 				// see if we can use passive mode
-				writeCommand("PASV\n");
+				writeCommand("PASV\r\n");
 				uint64_t const pasvstat = checkedReadServerMessage();
 				if ( verbose )
 					std::cerr << "[D] pasvstat=" << pasvstat << " " << statusline << std::endl;
@@ -240,7 +240,7 @@ namespace libmaus
 					std::reverse(dport.begin(),dport.end());
 					for ( uint64_t i = 0; i < dport.size(); ++i )
 						portostr << "," << dport[i];
-					portostr << "\n";
+					portostr << "\r\n";
 				
 					// send port command
 					writeCommand(portostr.str());
@@ -251,7 +251,7 @@ namespace libmaus
 				
 				// send RETR command
 				std::ostringstream retrostr;
-				retrostr << "RETR " << file << "\n";
+				retrostr << "RETR " << file << "\r\n";
 				writeCommand(retrostr.str());
 				uint64_t const retrstat = checkedReadServerMessage();
 				if ( verbose )
@@ -277,7 +277,7 @@ namespace libmaus
 					if ( verbose )
 						std::cerr << "[D] postretrstat=" << postretrstat << " " << statusline << std::endl;
 
-					writeCommand("QUIT\n");
+					writeCommand("QUIT\r\n");
 					uint64_t const quitstat = checkedReadServerMessage();
 					if ( verbose )
 						std::cerr << "[D] quitstat=" << quitstat << " " << statusline << std::endl;
