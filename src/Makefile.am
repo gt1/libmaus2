@@ -966,7 +966,9 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/HttpAbsoluteUrl.hpp \
 	libmaus/network/SocketInputOutputInterface.hpp \
 	libmaus/network/OpenSSLSocket.hpp \
-	libmaus/network/FtpUrl.hpp
+	libmaus/network/FtpUrl.hpp \
+	libmaus/network/HttpBody.hpp \
+	libmaus/network/HttpHeader.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
