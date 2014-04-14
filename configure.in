@@ -1238,6 +1238,27 @@ AC_MSG_RESULT([${pthread}])
 CXXFLAGS="${CXXFLAGS_SAVE}"
 AC_LANG_POP
 
+POSIXSPINLOCKS=
+if test "${pthread}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-pthread"
+	AC_MSG_CHECKING([for pthread spin lock support])
+	AC_TRY_COMPILE([#include <pthread.h>],[pthread_spinlock_t spinlock;
+		pthread_spin_init(&spinlock,0);
+		pthread_spin_lock(&spinlock);
+		pthread_spin_unlock(&spinlock);
+		pthread_spin_destroy(&spinlock);
+	],[pthreadspinlocks=yes],[pthreadspinlocks=no])
+	AC_MSG_RESULT([${pthreadspinlocks}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+
+	if test "${pthreadspinlocks}" = "yes" ; then
+		POSIXSPINLOCKS="#define LIBMAUS_HAVE_POSIX_SPINLOCKS"
+	fi
+fi
+
 if test "${pthread}" = "yes" ; then
 	CXXFLAGS_SAVE="${CXXFLAGS}"
 	CXXFLAGS="${CXXFLAGS} -pthread"
@@ -1524,6 +1545,58 @@ if test "${syncops}" = "yes" ; then
 
 			if test "${syncops}" = "yes" ; then
 				HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+			fi
+			;;
+		*)
+			;;
+	esac
+fi
+
+AC_ARG_ENABLE(synclock,
+        AS_HELP_STRING([--enable-synclock],[use atomic lock primitives (default yes)]),
+        [synclock=${enableval}],[synclock=yes])
+
+if test "${synclock}" = "yes" ; then
+	LIBMAUS_HAVE_SYNC_LOCK=""
+	case "${target_cpu}" in
+		i386|i486|i586|i686)
+			AC_LANG_PUSH([C++])
+			AC_MSG_CHECKING([whether the C++ compiler supports synchronous lock operations])
+			AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+			AC_MSG_RESULT([${synclock}])
+			AC_LANG_POP
+
+			if test "${synclock}" = "yes" ; then
+				HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+			fi
+
+			if test "${synclock}" = "no" ; then
+				AC_LANG_PUSH([C++])
+				CXXFLAGS_SAVE="${CXXFLAGS}"
+				CXXFLAGS="-march=i586"
+				AC_MSG_CHECKING([whether the C++ compiler supports the -march=i586 option and synchronous lock operations])
+				AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+				AC_MSG_RESULT([${synclock}])
+				CXXFLAGS="${CXXFLAGS_SAVE}"
+				AC_LANG_POP
+
+				if test "${synclock}" = "yes" ; then
+					LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -march=i586"
+					LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -march=i586"
+					LIBMAUSARCHCFLAGS="${LIBMAUSARCHCFLAGS} -march=i586"
+					HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+				fi
+			fi
+			;;
+		x86_64)
+			AC_LANG_PUSH([C++])
+			AC_MSG_CHECKING([whether the C++ compiler supports synchronous lock operations])
+			AC_TRY_COMPILE([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+			AC_MSG_RESULT([${synclock}])
+			AC_LANG_POP
+
+			if test "${synclock}" = "yes" ; then
+				HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
 			fi
 			;;
 		*)
@@ -1932,4 +2005,6 @@ AC_SUBST([LIBCURLLIBS])
 AC_SUBST([OPENSSL])
 AC_SUBST([OPENSSLCPPFLAGS])
 AC_SUBST([OPENSSLLIBS])
+AC_SUBST([POSIXSPINLOCKS])
+AC_SUBST([HAVESYNCLOCK])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
