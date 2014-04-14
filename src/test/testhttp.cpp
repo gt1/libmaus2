@@ -31,6 +31,7 @@ int main(int argc, char * argv[])
 		libmaus::network::HttpHeader preheader("HEAD","",url);
 		int64_t const length = preheader.getContentLength();
 		
+		// if length is known and server supports range then read document in blocks of size 2048
 		if ( length >= 0 && preheader.hasRanges() )
 		{
 			uint64_t const packetsize = 2048;
@@ -54,6 +55,7 @@ int main(int argc, char * argv[])
 					std::cout.write(A.begin(),n);				
 			}
 		}
+		// otherwise read document in one go
 		else
 		{
 			libmaus::network::HttpHeader header("GET","",url);
