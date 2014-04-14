@@ -965,7 +965,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/SocketInputStream.hpp \
 	libmaus/network/HttpAbsoluteUrl.hpp \
 	libmaus/network/SocketInputOutputInterface.hpp \
-	libmaus/network/OpenSSLSocket.hpp
+	libmaus/network/OpenSSLSocket.hpp \
+	libmaus/network/FtpUrl.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1128,7 +1129,8 @@ noinst_PROGRAMS = \
 	testfaindex \
 	testcurl \
 	testfastablockrecode \
-	testhttp
+	testhttp \
+	testftp
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1443,3 +1445,8 @@ testhttp_SOURCES = test/testhttp.cpp
 testhttp_LDADD = libmaus.la
 testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
 testhttp_LDFLAGS = @OPENSSLLIBS@
+
+testftp_SOURCES = test/testftp.cpp
+testftp_LDADD = libmaus.la
+testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
+testftp_LDFLAGS = @OPENSSLLIBS@
