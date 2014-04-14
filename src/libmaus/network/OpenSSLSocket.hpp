@@ -208,13 +208,7 @@ namespace libmaus
 						std::cerr << "[V] server did not present a certificate" << std::endl;
 					}		
 				}
-				#else
-				libmaus::exception::LibMausException lme;
-				lme.getStream() << "OpenSSLSocket: openssl support is not present" << std::endl;
-				lme.finish();
-				throw lme;				
-				#endif
-
+				
 				SSL_CIPHER const * cipher = SSL_get_current_cipher(ssl);
 				std::cerr << "[D] using cipher " << SSL_CIPHER_get_name(cipher) << " version " << SSL_CIPHER_get_version(cipher) << std::endl;
 
@@ -223,8 +217,13 @@ namespace libmaus
 				char const * desc = SSL_CIPHER_description(cipher,&ciphdesc[0],sizeof(ciphdesc));
 				
 				std::cerr << "[D] cipher description " << desc;
-				// int     SSL_CIPHER_get_bits(const SSL_CIPHER *c,int *alg_bits);
-
+				// int     SSL_CIPHER_get_bits(const SSL_CIPHER *c,int *alg_bits);				
+				#else
+				libmaus::exception::LibMausException lme;
+				lme.getStream() << "OpenSSLSocket: openssl support is not present" << std::endl;
+				lme.finish();
+				throw lme;				
+				#endif
 			}
 			
 			~OpenSSLSocket()
