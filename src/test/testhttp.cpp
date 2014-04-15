@@ -31,12 +31,15 @@ int main(int argc, char * argv[])
 		libmaus::network::HttpHeader preheader("HEAD","",url);
 		int64_t const length = preheader.getContentLength();
 		
+		
 		// if length is known and server supports range then read document in blocks of size 2048
 		if ( length >= 0 && preheader.hasRanges() )
 		{
 			uint64_t const packetsize = 2048;
 			uint64_t const numpackets = (length + packetsize - 1)/packetsize;
 			libmaus::autoarray::AutoArray<char> A(256,false);
+
+			std::cerr << preheader.statusline << std::endl;
 			
 			for ( uint64_t p = 0; p < numpackets; ++p )
 			{
@@ -59,6 +62,7 @@ int main(int argc, char * argv[])
 		else
 		{
 			libmaus::network::HttpHeader header("GET","",url);
+			std::cerr << header.statusline << std::endl;
 			libmaus::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
 		
 			libmaus::autoarray::AutoArray<char> A(256,false);

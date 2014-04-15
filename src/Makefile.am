@@ -968,7 +968,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/OpenSSLSocket.hpp \
 	libmaus/network/FtpUrl.hpp \
 	libmaus/network/HttpBody.hpp \
-	libmaus/network/HttpHeader.hpp
+	libmaus/network/HttpHeader.hpp \
+	libmaus/network/FtpSocket.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\

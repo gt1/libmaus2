@@ -142,6 +142,51 @@ namespace libmaus
 				return true;
 			}
 			
+			struct InitParameters
+			{
+				std::string method;
+				std::string addreq;
+				std::string host;
+				std::string path;
+				unsigned int port;
+				bool ssl;
+				
+				InitParameters() : port(0), ssl(false) {}
+				InitParameters(
+					std::string rmethod,
+					std::string raddreq,
+					std::string rhost,
+					std::string rpath,
+					unsigned int rport,
+					bool rssl			
+				)
+				: method(rmethod), addreq(raddreq), host(rhost), path(rpath), port(rport), ssl(rssl)
+				{
+				
+				}
+				
+				bool operator==(InitParameters const & o) const
+				{
+					return
+						method==o.method &&
+						addreq==o.addreq &&
+						host==o.host &&
+						path==o.path &&
+						port==o.port &&
+						ssl==o.ssl;
+				}
+				bool operator<(InitParameters const & o) const
+				{
+					if ( method != o.method ) return method < o.method;
+					if ( addreq != o.addreq ) return addreq < o.addreq;
+					if ( host != o.host ) return host < o.host;
+					if ( path != o.path ) return path < o.path;
+					if ( port != o.port ) return port < o.port;
+					if ( ssl != o.ssl ) return ssl < o.ssl;
+					return false;
+				}
+			};
+			
 			void init(
 				std::string method, 
 				std::string addreq, 
@@ -150,9 +195,23 @@ namespace libmaus
 			)
 			{
 				bool headercomplete = false;
+				
+				std::set<InitParameters> seen;
 
 				while ( ! headercomplete )
 				{
+					InitParameters const initparams(method,addreq,host,path,port,ssl);
+					
+					if ( seen.find(initparams) != seen.end() )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "HttpHeader: redirect loop detected" << std::endl;
+						lme.finish();
+						throw lme;	
+					}
+					
+					seen.insert(initparams);
+				
 					fields.clear();
 					
 					CS.reset();
