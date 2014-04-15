@@ -62,8 +62,9 @@ struct FastAInfo
 		libmaus::util::UTF8::encodeUTF8(sid.size(),out);
 		out.write(sid.c_str(),sid.size());
 	}
-	
-	uint64_t serialise(std::ostream & out) const
+
+	template<typename stream_type>	
+	uint64_t serialise(stream_type & out) const
 	{
 		libmaus::util::CountPutObject CPO;
 		serialiseInternal(CPO);
@@ -110,6 +111,10 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 	uint64_t totalseqlen = 0;
 
 	std::vector<FastAInfo> infovec;		
+	std::vector<uint64_t> seqsizes;
+	// FastAInfo
+	// blockptrs
+	// blocks
 	while ( S.getNextPatternUnlocked(pat) )
 	{
 		std::string & s = pat.spattern;		
@@ -122,6 +127,10 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 		std::vector<uint64_t> blocksizes;
 		FastAInfo const fainfo(pat.sid,s.size());
 		infovec.push_back(fainfo);
+		
+		libmaus::util::CountPutObject FAICPO;
+		fainfo.serialise(FAICPO);
+		uint64_t const numblocks = (s.size() + bs - 1)/bs;
 		
 		uint64_t low = 0;
 		while ( low != s.size() )
@@ -270,6 +279,9 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 			sum += t;
 		}
 		blocksizes.push_back(sum);
+
+		uint64_t const seqsize = FAICPO.c + (numblocks+1)*sizeof(uint64_t) + blocksizes.back();
+		seqsizes.push_back(seqsize);
 		
 		libmaus::util::NumberSerialisation::serialiseNumberVector(blockptrCOS,blocksizes);
 		
@@ -306,6 +318,15 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 	// number of sequences
 	filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,infovec.size());
 
+	uint64_t const blockptrstart = filepos;
+	uint64_t seqacc = 0;
+	for ( uint64_t s = 0; s < seqsizes.size(); ++s )
+	{
+		uint64_t const seqpos_s = blockptrstart + seqsizes.size() * sizeof(uint64_t) + seqacc;
+		filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,seqpos_s);
+		seqacc += seqsizes[s];
+	}
+
 	for ( uint64_t s = 0; s < infovec.size(); ++s )
 	{
 		FastAInfo const & info = infovec[s];
@@ -317,8 +338,9 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 		std::vector<uint64_t> blockptrs = libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(blockptrCIS);
 		uint64_t datasize = blockptrs[blockptrs.size()-1] - blockptrs[0];
 		uint64_t bpsize = 0;
+		uint64_t bpoffset = (blockptrs.size()*sizeof(uint64_t));
 		for ( uint64_t i = 0; i < blockptrs.size(); ++i )
-			bpsize += libmaus::util::NumberSerialisation::serialiseNumber(finalout,blockptrs[i] + filepos);
+			bpsize += libmaus::util::NumberSerialisation::serialiseNumber(finalout,blockptrs[i] + filepos + bpoffset);
 			
 		filepos += bpsize;
 		
@@ -327,10 +349,6 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 		filepos += datasize;
 	}
 	
-	// sequence start pointers
-	for ( uint64_t s = 0; s < seqpos.size(); ++s )
-		filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,seqpos[s]);
-		
 	finalout.flush();
 	
 	std::cerr << "[V] total bases " << totalseqlen << std::endl;
@@ -363,17 +381,27 @@ int main(int argc, char * argv[])
 		magic[4] = 0;
 		assert ( strcmp(&magic[0],"FAB\0") == 0 );
 		
+		// block size in symbols
 		uint64_t const bs = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
 		assert ( bs == 64*1024 );
 		
+		// number of sequences
 		uint64_t const numseq = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
 		uint64_t totalbases = 0;
 		
 		libmaus::autoarray::AutoArray<char> Bin((bs+1)/2,false);
 		libmaus::autoarray::AutoArray<char> Bout(bs,false);
 		
+		// pointers to sequence start positions
+		std::vector<uint64_t> seqpos;
+		for ( uint64_t s = 0; s < numseq; ++s )
+			seqpos.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
+		
 		for ( uint64_t s = 0; s < numseq; ++s )
 		{
+			// check sequence start pointer
+			assert ( istr.tellg() == static_cast<int64_t>(seqpos[s]) );
+		
 			FastAInfo info(istr);
 			std::cerr << ">" << info.sid << std::endl;
 			
@@ -388,10 +416,15 @@ int main(int argc, char * argv[])
 				
 			for ( uint64_t i = 0; i < numblocks; ++i )
 			{
+				// check block pointer
+				assert ( istr.tellg() == static_cast<int64_t>(blockptrs[i]) );
+				
 				uint64_t const low = i * bs;
 				uint64_t const high = std::min(low+bs,numsym);
 				
 				int const blocktype = istr.get();
+				assert ( blocktype >= 0 );
+				assert ( blocktype < 3 );
 				
 				#if 0
 				std::cerr << "[D] block type " << blocktype << std::endl;
@@ -502,6 +535,8 @@ int main(int argc, char * argv[])
 						break;
 				}
 			}
+
+			assert ( istr.tellg() == static_cast<int64_t>(blockptrs[numblocks]) );
 		}
 		
 		std::cerr << totalbases/rtc.getElapsedSeconds() << " bases/s" << std::endl;
