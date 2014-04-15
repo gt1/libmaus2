@@ -367,179 +367,187 @@ int main(int argc, char * argv[])
 		
 		std::ostringstream ostr;
 		countFastA(arginfo,std::cin,ostr);
-		
-		libmaus::timing::RealTimeClock rtc; rtc.start();
-		std::istringstream istr(ostr.str());
-		
-		char magic[5];
-		for ( unsigned int i = 0; i < 4; ++i )
-		{
-			int c = istr.get();
-			assert ( c >= 0 );
-			magic[i] = c;
-		}
-		magic[4] = 0;
-		assert ( strcmp(&magic[0],"FAB\0") == 0 );
-		
-		// block size in symbols
-		uint64_t const bs = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
-		assert ( bs == 64*1024 );
-		
-		// number of sequences
-		uint64_t const numseq = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
-		uint64_t totalbases = 0;
-		
-		libmaus::autoarray::AutoArray<char> Bin((bs+1)/2,false);
-		libmaus::autoarray::AutoArray<char> Bout(bs,false);
-		
-		// pointers to sequence start positions
-		std::vector<uint64_t> seqpos;
-		for ( uint64_t s = 0; s < numseq; ++s )
-			seqpos.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
-		
-		for ( uint64_t s = 0; s < numseq; ++s )
-		{
-			// check sequence start pointer
-			assert ( istr.tellg() == static_cast<int64_t>(seqpos[s]) );
-		
-			FastAInfo info(istr);
-			std::cerr << ">" << info.sid << std::endl;
-			
-			uint64_t const numsym = info.len;
-			uint64_t const numblocks = (numsym + bs-1)/bs;
-			
-			totalbases += numsym;
-			
-			std::vector<uint64_t> blockptrs;
-			for ( uint64_t i = 0; i < numblocks+1; ++i )
-				blockptrs.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
-				
-			for ( uint64_t i = 0; i < numblocks; ++i )
+
+		std::vector<double> rates;
+		for ( uint64_t zz = 0; zz < 20; ++zz )
+		{		
+			std::istringstream istr(ostr.str());
+
+			libmaus::timing::RealTimeClock rtc; rtc.start();			
+			char magic[5];
+			for ( unsigned int i = 0; i < 4; ++i )
 			{
-				// check block pointer
-				assert ( istr.tellg() == static_cast<int64_t>(blockptrs[i]) );
-				
-				uint64_t const low = i * bs;
-				uint64_t const high = std::min(low+bs,numsym);
-				
-				int const blocktype = istr.get();
-				assert ( blocktype >= 0 );
-				assert ( blocktype < 3 );
-				
-				#if 0
-				std::cerr << "[D] block type " << blocktype << std::endl;
-				#endif
-				
-				switch ( blocktype )
-				{
-					case 0:
-					{
-						istr.read(Bin.begin(),(high-low+3)/4);
-						assert ( istr.gcount() == static_cast<int64_t>((high-low+3)/4) );
-						uint64_t k = 0;
-						
-						for ( uint64_t j = 0; j < (high-low)/4; ++j )
-						{
-							uint8_t const u = static_cast<uint8_t>(Bin[j]);
-							
-							Bout[k++] = libmaus::fastx::remapChar((u >> 6) & 3);
-							Bout[k++] = libmaus::fastx::remapChar((u >> 4) & 3);
-							Bout[k++] = libmaus::fastx::remapChar((u >> 2) & 3);
-							Bout[k++] = libmaus::fastx::remapChar((u >> 0) & 3);
-						}
-						
-						if ( (high-low) % 4 )
-						{
-							uint8_t const u = static_cast<uint8_t>(Bin[(high-low)/4]);
-
-							for ( uint64_t j = 0; j < ((high-low)%4); ++j )								
-								Bout[k++] = libmaus::fastx::remapChar((u >> (6-2*j)) & 3);								
-						}
-						
-						assert ( k == high-low );
-						
-						#if 0
-						std::cout.write(Bout.begin(),k);
-						std::cout.put('\n');
-						#endif
-						
-						break;
-					}
-					case 1:
-					{
-						istr.read(Bin.begin(),(high-low+2)/3);
-						assert ( istr.gcount() == static_cast<int64_t>((high-low+2)/3) );
-						uint64_t k = 0;
-					
-						for ( uint64_t j = 0; j < (high-low)/3; ++j )
-						{
-							uint8_t const u = Bin[j];
-							
-							Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-							Bout[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
-							Bout[k++] = libmaus::fastx::remapChar((u/(1*1))%5);
-						}
-						if ( (high-low) % 3 )
-						{
-							uint8_t const u = Bin[(high-low)/3];
-							
-							switch ( (high-low) % 3 )
-							{
-								case 1:
-									Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-									break;
-								case 2:
-									Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-									Bout[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
-									break;
-							}
-						}
-						
-						assert ( k == high-low );
-						
-						#if 0
-						std::cout.write(Bout.begin(),k);
-						std::cout.put('\n');
-						#endif
-
-						break;
-					}
-					case 2:
-					{
-						istr.read(Bin.begin(),(high-low+1)/2);
-						assert ( istr.gcount() == static_cast<int64_t>((high-low+1)/2) );
-						uint64_t k = 0;
-
-						for ( uint64_t j = 0; j < (high-low)/2; ++j )
-						{
-							uint8_t const u = Bin[j];
-
-							Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4 );
-							Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u & 0xF);
-						}
-						if ( (high-low)&1 )
-						{
-							uint8_t const u = Bin[(high-low)/2];
-							Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
-						}
-						
-						assert ( k == high-low );
-
-						#if 0
-						std::cout.write(Bout.begin(),k);						
-						std::cout.put('\n');
-						#endif
-						break;
-					}
-					default:
-						break;
-				}
+				int c = istr.get();
+				assert ( c >= 0 );
+				magic[i] = c;
 			}
+			magic[4] = 0;
+			assert ( strcmp(&magic[0],"FAB\0") == 0 );
+			
+			// block size in symbols
+			uint64_t const bs = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+			assert ( bs == 64*1024 );
+			
+			// number of sequences
+			uint64_t const numseq = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+			uint64_t totalbases = 0;
+			
+			libmaus::autoarray::AutoArray<char> Bin((bs+1)/2,false);
+			libmaus::autoarray::AutoArray<char> Bout(bs,false);
+			
+			// pointers to sequence start positions
+			std::vector<uint64_t> seqpos;
+			for ( uint64_t s = 0; s < numseq; ++s )
+				seqpos.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
+			
+			for ( uint64_t s = 0; s < numseq; ++s )
+			{
+				// check sequence start pointer
+				assert ( istr.tellg() == static_cast<int64_t>(seqpos[s]) );
+			
+				FastAInfo info(istr);
+				std::cerr << ">" << info.sid << std::endl;
+				
+				uint64_t const numsym = info.len;
+				uint64_t const numblocks = (numsym + bs-1)/bs;
+				
+				totalbases += numsym;
+				
+				std::vector<uint64_t> blockptrs;
+				for ( uint64_t i = 0; i < numblocks+1; ++i )
+					blockptrs.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
+					
+				for ( uint64_t i = 0; i < numblocks; ++i )
+				{
+					// check block pointer
+					assert ( istr.tellg() == static_cast<int64_t>(blockptrs[i]) );
+					
+					uint64_t const low = i * bs;
+					uint64_t const high = std::min(low+bs,numsym);
+					
+					int const blocktype = istr.get();
+					assert ( blocktype >= 0 );
+					assert ( blocktype < 3 );
+					
+					#if 0
+					std::cerr << "[D] block type " << blocktype << std::endl;
+					#endif
+					
+					switch ( blocktype )
+					{
+						case 0:
+						{
+							istr.read(Bin.begin(),(high-low+3)/4);
+							assert ( istr.gcount() == static_cast<int64_t>((high-low+3)/4) );
+							uint64_t k = 0;
+							
+							for ( uint64_t j = 0; j < (high-low)/4; ++j )
+							{
+								uint8_t const u = static_cast<uint8_t>(Bin[j]);
+								
+								Bout[k++] = libmaus::fastx::remapChar((u >> 6) & 3);
+								Bout[k++] = libmaus::fastx::remapChar((u >> 4) & 3);
+								Bout[k++] = libmaus::fastx::remapChar((u >> 2) & 3);
+								Bout[k++] = libmaus::fastx::remapChar((u >> 0) & 3);
+							}
+							
+							if ( (high-low) % 4 )
+							{
+								uint8_t const u = static_cast<uint8_t>(Bin[(high-low)/4]);
 
-			assert ( istr.tellg() == static_cast<int64_t>(blockptrs[numblocks]) );
+								for ( uint64_t j = 0; j < ((high-low)%4); ++j )								
+									Bout[k++] = libmaus::fastx::remapChar((u >> (6-2*j)) & 3);								
+							}
+							
+							assert ( k == high-low );
+							
+							#if 0
+							std::cout.write(Bout.begin(),k);
+							std::cout.put('\n');
+							#endif
+							
+							break;
+						}
+						case 1:
+						{
+							istr.read(Bin.begin(),(high-low+2)/3);
+							assert ( istr.gcount() == static_cast<int64_t>((high-low+2)/3) );
+							uint64_t k = 0;
+						
+							for ( uint64_t j = 0; j < (high-low)/3; ++j )
+							{
+								uint8_t const u = Bin[j];
+								
+								Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+								Bout[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
+								Bout[k++] = libmaus::fastx::remapChar((u/(1*1))%5);
+							}
+							if ( (high-low) % 3 )
+							{
+								uint8_t const u = Bin[(high-low)/3];
+								
+								switch ( (high-low) % 3 )
+								{
+									case 1:
+										Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+										break;
+									case 2:
+										Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+										Bout[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
+										break;
+								}
+							}
+							
+							assert ( k == high-low );
+							
+							#if 0
+							std::cout.write(Bout.begin(),k);
+							std::cout.put('\n');
+							#endif
+
+							break;
+						}
+						case 2:
+						{
+							istr.read(Bin.begin(),(high-low+1)/2);
+							assert ( istr.gcount() == static_cast<int64_t>((high-low+1)/2) );
+							uint64_t k = 0;
+
+							for ( uint64_t j = 0; j < (high-low)/2; ++j )
+							{
+								uint8_t const u = Bin[j];
+
+								Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4 );
+								Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u & 0xF);
+							}
+							if ( (high-low)&1 )
+							{
+								uint8_t const u = Bin[(high-low)/2];
+								Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
+							}
+							
+							assert ( k == high-low );
+
+							#if 0
+							std::cout.write(Bout.begin(),k);						
+							std::cout.put('\n');
+							#endif
+							break;
+						}
+						default:
+							break;
+					}
+				}
+
+				assert ( istr.tellg() == static_cast<int64_t>(blockptrs[numblocks]) );
+			}
+		
+			rates.push_back(totalbases/rtc.getElapsedSeconds());
+			std::cerr << rates.back() << " bases/s" << std::endl;
 		}
 		
-		std::cerr << totalbases/rtc.getElapsedSeconds() << " bases/s" << std::endl;
+		double avg = std::accumulate(rates.begin(),rates.end(),0.0)/rates.size();
+		std::cerr << "average rate " << avg << " bases/s" << std::endl;
 	}
 	catch(std::exception const & ex)
 	{
