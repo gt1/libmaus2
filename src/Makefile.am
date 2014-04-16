@@ -114,7 +114,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lz/RAZFIndex.cpp \
 	libmaus/fastx/FastAIndexEntry.cpp \
 	libmaus/fastx/FastAIndex.cpp \
-	libmaus/network/HttpAbsoluteUrl.cpp
+	libmaus/network/HttpAbsoluteUrl.cpp \
+	libmaus/hashing/Crc32.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -802,7 +803,8 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastABgzfDecoder.hpp \
 	libmaus/fastx/FastABgzfDecoderBuffer.hpp \
 	libmaus/fastx/FastAIndexEntry.hpp \
-	libmaus/fastx/FastAIndex.hpp
+	libmaus/fastx/FastAIndex.hpp \
+	libmaus/fastx/FastAInfo.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
@@ -828,7 +830,8 @@ libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
 	libmaus/hashing/hash.hpp \
 	libmaus/hashing/CircularHash.hpp \
-	libmaus/hashing/ConstantStringHash.hpp
+	libmaus/hashing/ConstantStringHash.hpp \
+	libmaus/hashing/Crc32.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\

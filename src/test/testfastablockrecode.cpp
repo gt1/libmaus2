@@ -17,85 +17,36 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/fastx/FastAInfo.hpp>
+
 #include <libmaus/exception/LibMausException.hpp>
 #include <libmaus/fastx/StreamFastAReader.hpp>
 
 #include <libmaus/fastx/FastADefinedBasesTable.hpp>
 #include <libmaus/util/CountPutObject.hpp>
 
-struct FastAInfo
-{
-	std::string sid;
-	uint64_t len;
-	
-	FastAInfo()
-	{
-
-	}
-	FastAInfo(
-		std::string const & rsid, 
-		uint64_t const rlen
-	) : sid(rsid), len(rlen) 
-	{
-	
-	}
-	FastAInfo(std::istream & in)
-	{
-		len = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-		uint64_t const sidlen = libmaus::util::UTF8::decodeUTF8(in);
-		libmaus::autoarray::AutoArray<char> B(sidlen,false);
-		in.read(B.begin(),sidlen);
-		if ( in.gcount() != static_cast<int64_t>(sidlen) )
-		{
-			libmaus::exception::LibMausException lme;
-			lme.getStream() << "FastAInfo(std::istream &): unexpected EOF/IO failure" << std::endl;
-			lme.finish();
-			throw lme;		
-		}
-		sid = std::string(B.begin(),B.end());
-	}
-	
-	template<typename stream_type>
-	void serialiseInternal(stream_type & out) const
-	{
-		libmaus::util::NumberSerialisation::serialiseNumber(out,len);
-		libmaus::util::UTF8::encodeUTF8(sid.size(),out);
-		out.write(sid.c_str(),sid.size());
-	}
-
-	template<typename stream_type>	
-	uint64_t serialise(stream_type & out) const
-	{
-		libmaus::util::CountPutObject CPO;
-		serialiseInternal(CPO);
-		serialiseInternal(out);
-		return CPO.c;
-	}
-};
+#include <libmaus/hashing/Crc32.hpp>
 
 #include <libmaus/util/TempFileRemovalContainer.hpp>
 #include <libmaus/aio/CheckedOutputStream.hpp>
 #include <libmaus/bambam/BamSeqEncodeTable.hpp>
+#include <zlib.h>
 
-void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std::ostream & finalout)
+#include <libmaus/fastx/FastAStreamSet.hpp>
+
+struct FastABPConstants
 {
-	std::string const tmpprefix = arginfo.getUnparsedValue("T",arginfo.getDefaultTmpFileName());
+	static uint8_t const base_block_4    =   0;
+	static uint8_t const base_block_5    =   1;
+	static uint8_t const base_block_16   =   2;
+	static uint8_t const base_block_mask = 0x3;
+	// marker: last block for a sequence
+	static uint8_t const base_block_last      = (1u << 2);
+};
 
-	std::string const blockptrstmpfilename = tmpprefix + "_blockptrs";	
-	libmaus::util::TempFileRemovalContainer::addTempFile(blockptrstmpfilename);
-	std::string const datatmpfilename = tmpprefix + "_data";	
-	libmaus::util::TempFileRemovalContainer::addTempFile(datatmpfilename);
-	
-	libmaus::aio::CheckedOutputStream blockptrCOS(blockptrstmpfilename);
-	libmaus::aio::CheckedOutputStream dataCOS(datatmpfilename);
-
-	libmaus::fastx::StreamFastAReaderWrapper S(fain);
-	libmaus::fastx::StreamFastAReaderWrapper::pattern_type pat;
-	uint64_t const bs = 64*1024;
-	uint64_t ncnt = 0;
-	uint64_t rcnt = 0;
-	uint64_t rncnt = 0;
-	
+void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std::ostream & finalout, uint64_t const bs = 64*1024)
+{
+	// to upper case table
 	libmaus::autoarray::AutoArray<uint8_t> toup(256,false);
 	for ( uint64_t i = 0; i < 256; ++i )
 		if ( isalpha(i) )
@@ -103,259 +54,721 @@ void countFastA(libmaus::util::ArgInfo const & arginfo, std::istream & fain, std
 		else
 			toup[i] = i;
 
+	// base check table
 	libmaus::fastx::FastADefinedBasesTable deftab;
+	// histogram
 	libmaus::autoarray::AutoArray<uint64_t> H(256,false);
+	// bam encoding table
 	libmaus::bambam::BamSeqEncodeTable const bamencodetab;
+
+	// tmp file name prefix
+	std::string const tmpprefix = arginfo.getUnparsedValue("T",arginfo.getDefaultTmpFileName());
 	
-	uint64_t totaldatasize = 0;
+	// block pointers tmp file
+	std::string const blockptrstmpfilename = tmpprefix + "_blockptrs";	
+	libmaus::util::TempFileRemovalContainer::addTempFile(blockptrstmpfilename);
+
+	// write file magic
+	char cmagic[] = { 'F', 'A', 'S', 'T', 'A', 'B', 'P', '\0' };
+	std::string const magic(&cmagic[0],&cmagic[sizeof(cmagic)]);
+	uint64_t filepos = 0;
+	for ( unsigned int i = 0; i < magic.size(); ++i, ++filepos )
+		finalout.put(magic[i]);
+	// write block size
+	filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,bs);
+
+	std::vector<uint64_t> seqmetaposlist;
+	libmaus::fastx::FastAStreamSet streamset(fain);
+	std::pair<std::string,libmaus::fastx::FastAStream::shared_ptr_type> P;
+	libmaus::autoarray::AutoArray<char> Bin(bs,false);
+	libmaus::autoarray::AutoArray<char> Bout((bs+1)/2,false);
+	uint64_t rcnt = 0;
+	uint64_t rncnt = 0;
+	uint64_t ncnt = 0;
 	uint64_t totalseqlen = 0;
-
-	std::vector<FastAInfo> infovec;		
-	std::vector<uint64_t> seqsizes;
-	// FastAInfo
-	// blockptrs
-	// blocks
-	while ( S.getNextPatternUnlocked(pat) )
+	while ( streamset.getNextStream(P) )
 	{
-		std::string & s = pat.spattern;		
-		char const * cpat = s.c_str();
-		uint8_t const * upat = reinterpret_cast<uint8_t const *>(cpat);
+		std::string const & sid = P.first;
+		std::istream & in = *(P.second);
+		std::vector<uint64_t> blockstarts;
+		uint64_t prevblocksize = bs;
+		uint64_t seqlen = 0;
 		
-		for ( uint64_t i = 0; i < s.size(); ++i )
-			s[i] = toup[static_cast<uint8_t>(s[i])];
-
-		std::vector<uint64_t> blocksizes;
-		FastAInfo const fainfo(pat.sid,s.size());
-		infovec.push_back(fainfo);
+		// std::cerr << "[V] processing " << sid << std::endl;
 		
-		libmaus::util::CountPutObject FAICPO;
-		fainfo.serialise(FAICPO);
-		uint64_t const numblocks = (s.size() + bs - 1)/bs;
-		
-		uint64_t low = 0;
-		while ( low != s.size() )
+		if ( ! sid.size() )
 		{
-			uint64_t const high = std::min(low+bs,static_cast<uint64_t>(s.size()));
-			std::fill(H.begin(),H.end(),0ull);
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "Empty sequence names are not supported." << std::endl;
+			lme.finish();
+			throw lme;
+		}
+		
+		// length of name
+		filepos += libmaus::util::UTF8::encodeUTF8(sid.size(),finalout);
+		// name
+		finalout.write(sid.c_str(),sid.size());
+		filepos += sid.size();
+		
+		while ( filepos % sizeof(uint64_t) )
+		{
+			finalout.put(0);
+			filepos++;
+		}
+		
+		while ( in )
+		{
+			in.read(Bin.begin(),bs);
+			uint64_t const n = in.gcount();
 			
-			for ( uint64_t i = low; i != high; ++i )
-				H[toup[upat[i]]]++;
-			
-			uint64_t const regcnt = H['A'] + H['C'] + H['G'] + H['T'];
-			uint64_t const regncnt = regcnt + H['N'];
-			
-			uint64_t blockdatasize = 0;
-			
-			// A,C,G,T only
-			if ( regcnt == (high-low) )
+			if ( n )
 			{
-				// block type
-				dataCOS.put(0);
-				blockdatasize++;
+				// check block size consistency
+				assert ( prevblocksize == bs );
+				prevblocksize = n;
+				
+				bool const lastblock = (n != bs);
+				uint8_t const lastblockflag = lastblock ? FastABPConstants::base_block_last : 0;
+				
+				//
+				seqlen += n;
+				
+				// block start
+				blockstarts.push_back(filepos);
 			
-				uint8_t const * inp = upat + low;
-				for ( uint64_t i = 0; i < (high-low)/4; ++i )
-				{
-					uint8_t v = 0;
-					         v |= libmaus::fastx::mapChar(*(inp++));
-					v <<= 2; v |= libmaus::fastx::mapChar(*(inp++));
-					v <<= 2; v |= libmaus::fastx::mapChar(*(inp++));
-					v <<= 2; v |= libmaus::fastx::mapChar(*(inp++));
-					dataCOS.put(v);
-					blockdatasize++;
-				}
-				uint64_t rlow = low + ((high-low)/4)*4;
-				uint64_t rest = high-rlow;
-				assert ( rest < 4 );
-				if ( rest )
-				{
-					uint8_t v = 0;
-					for ( uint64_t i = 0; i < rest; ++i )
-						v |= libmaus::fastx::mapChar(*(inp++)) << (6-2*i);
-					dataCOS.put(v);
-					blockdatasize++;
-				}
-				assert ( inp == upat + high );
-				assert ( blockdatasize == 1+(high-low+3)/4 );
-			
-				rcnt += 1;
-			}
-			// A,C,G,T,N only
-			else if ( regncnt == (high-low) )
-			{
-				// block type
-				dataCOS.put(1);
-				blockdatasize++;
-
-				uint8_t const * inp = upat + low;
-				for ( uint64_t i = 0; i < (high-low)/3; ++i )
-				{
-					uint8_t v = 0;
-					        v += libmaus::fastx::mapChar(*(inp++));
-					v *= 5; v += libmaus::fastx::mapChar(*(inp++));
-					v *= 5; v += libmaus::fastx::mapChar(*(inp++));
-					dataCOS.put(v);
-					blockdatasize++;
-				}
-				uint64_t rlow = low + ((high-low)/3)*3;
-				uint64_t rest = high-rlow;
-				assert ( rest < 3 );
-
-				if ( rest == 2 )
-				{
-					uint8_t v = 0;
-					        v += libmaus::fastx::mapChar(*(inp++));
-					v *= 5; v += libmaus::fastx::mapChar(*(inp++));
-					v *= 5;						
-					dataCOS.put(v);
-					blockdatasize++;
-				}
-				else if ( rest == 1 )
-				{
-					assert ( rest == 1 );
-					dataCOS.put( libmaus::fastx::mapChar(*(inp++)) * 5 * 5 );
-					blockdatasize++;
-				}
-				assert ( inp == upat + high );
+				// clear histogram table	
+				std::fill(H.begin(),H.end(),0ull);
 				
-				// std::cerr << "block data size " << blockdatasize << " expected " << (high-low+2)/3 << std::endl;
-				
-				assert ( blockdatasize == 1+(high-low+2)/3 );
+				// convert to upper case and fill histogram
+				for ( uint64_t i = 0; i < n; ++i )
+				{
+					uint8_t const v = toup[static_cast<uint8_t>(Bin[i])];
+					H[v]++;
+					Bin[i] = static_cast<char>(v);
+				}
 
-				rncnt += 1;
-			}
-			// more than A,C,G,T,N
-			else
-			{
-				ncnt += 1;
+				uint64_t const regcnt = H['A'] + H['C'] + H['G'] + H['T'];
+				uint64_t const regncnt = regcnt + H['N'];
 				
-				for ( uint64_t i = low; i < high; ++i )
-					if ( (! deftab[upat[i]]) && (upat[i] != 'N') )
+				// output block pointer
+				uint8_t * outp = reinterpret_cast<uint8_t *>(Bout.begin());
+				
+				if ( regcnt == n )
+				{
+					// block type
+					finalout.put(FastABPConstants::base_block_4 | lastblockflag);
+					filepos++;
+					
+					// store length if last block
+					if ( lastblockflag )
+						filepos += libmaus::util::UTF8::encodeUTF8(n,finalout);
+				
+					char const * inp = Bin.begin();
+					
+					while ( inp != Bin.begin() + (n/4)*4 )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "Sequence " << pat.sid << " contains unknown symbol " << upat[i] << std::endl;
-						lme.finish();
-						throw lme;
+						uint8_t v = 0;
+							 v |= libmaus::fastx::mapChar(*(inp++));
+						v <<= 2; v |= libmaus::fastx::mapChar(*(inp++));
+						v <<= 2; v |= libmaus::fastx::mapChar(*(inp++));
+						v <<= 2; v |= libmaus::fastx::mapChar(*(inp++));
+						*(outp++) = v;
+					}
+					uint64_t const rest = n % 4;
+					
+					if ( rest )
+					{
+						uint8_t v = 0;
+						for ( uint64_t i = 0; i < rest; ++i )
+							v |= libmaus::fastx::mapChar(*(inp++)) << (6-2*i);
+						*(outp++) = v;
+					}
+					
+					assert ( outp == reinterpret_cast<uint8_t *>(Bout.begin() + (n+3)/4) );
+
+					++rcnt;
+				}
+				else if ( regncnt == n )
+				{
+					// block type
+					finalout.put(FastABPConstants::base_block_5 | lastblockflag);
+					filepos++;
+
+					if ( lastblockflag )
+						filepos += libmaus::util::UTF8::encodeUTF8(n,finalout);
+
+					char const * inp = Bin.begin();
+					while ( inp != Bin.begin() + (n/3)*3 )
+					{
+						uint8_t v = 0;
+							v += libmaus::fastx::mapChar(*(inp++));
+						v *= 5; v += libmaus::fastx::mapChar(*(inp++));
+						v *= 5; v += libmaus::fastx::mapChar(*(inp++));
+						*(outp++) = v;
+					}
+					uint64_t const rest = n%3;
+					if ( rest == 2 )
+					{
+						uint8_t v = 0;
+							v += libmaus::fastx::mapChar(*(inp++));
+						v *= 5; v += libmaus::fastx::mapChar(*(inp++));
+						v *= 5;						
+						*(outp++) = v;
+					}
+					else if ( rest == 1 )
+					{
+						*(outp++) = libmaus::fastx::mapChar(*(inp++)) * 5 * 5;
 					}
 
+					assert ( outp == reinterpret_cast<uint8_t *>(Bout.begin() + (n+2)/3) );
 
-				// block type
-				dataCOS.put(2);
-				blockdatasize++;
-
-				uint8_t const * inp = upat + low;
-				for ( uint64_t i = 0; i < (high-low)/2; ++i )
-				{
-					uint8_t  v = 0;
-					         v |= bamencodetab[*(inp++)];
-					v <<= 4; v |= bamencodetab[*(inp++)];
-					dataCOS.put(v);
-					blockdatasize++;
+					++rncnt;
 				}
-				uint64_t rlow = low + ((high-low)/2)*2;
-				uint64_t rest = high-rlow;
-				assert ( rest < 2 );
-
-				if ( rest )
+				else
 				{
-					dataCOS.put(bamencodetab[*(inp++)] << 4);
-					blockdatasize++;
+					// block type
+					finalout.put(FastABPConstants::base_block_16 | lastblockflag);
+					filepos++;
+
+					if ( lastblockflag )
+						filepos += libmaus::util::UTF8::encodeUTF8(n,finalout);
+
+					// check whether all symbols are valid
+					for ( uint64_t i = 0; i < n; ++i )
+						if ( (! deftab[static_cast<uint8_t>(Bin[i])]) && (Bin[i] != 'N') )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "Sequence " << sid << " contains unknown symbol " << Bin[i] << std::endl;
+							lme.finish();
+							throw lme;
+						}
+
+
+					char const * inp = Bin.begin();
+					while ( inp != Bin.begin() + (n/2)*2 )
+					{
+						uint8_t  v = 0;
+						         v |= bamencodetab[*(inp++)];
+						v <<= 4; v |= bamencodetab[*(inp++)];
+						*(outp++) = v;
+					}
+					uint64_t const rest = n % 2;
+
+					if ( rest )
+						*(outp++) = bamencodetab[*(inp++)] << 4;	
+
+					assert ( outp == reinterpret_cast<uint8_t *>(Bout.begin() + (n+1)/2) );
+						
+					++ncnt;
 				}
-				assert ( inp == upat + high );
 				
-				assert ( blockdatasize == 1+(high-low+1)/2 );				
+				uint64_t const outbytes = outp-reinterpret_cast<uint8_t *>(Bout.begin());
+				finalout.write(Bout.begin(),outbytes);
+				filepos += outbytes;
+				
+				while ( filepos%8 != 0 )
+				{
+					finalout.put(0);
+					filepos++;
+				}
+
+				// input crc
+				uint32_t const crcin = libmaus::hashing::Crc32::crc32_8bytes(Bin.begin(),n,0 /*prev*/);
+				for ( unsigned int i = 0; i < sizeof(uint32_t); ++i )
+				{
+					finalout.put((crcin >> (24-i*8)) & 0xFF);
+					filepos += 1;
+				}
+				// output crc
+				uint32_t const crcout = libmaus::hashing::Crc32::crc32_8bytes(Bout.begin(),outbytes,0 /*prev*/);
+				for ( unsigned int i = 0; i < sizeof(uint32_t); ++i )
+				{
+					finalout.put((crcout >> (24-i*8)) & 0xFF);
+					filepos += 1;
+				}
 			}
+		}
+		
+		std::cerr << "[V] processed " << sid << " length " << seqlen << std::endl;
+
+		uint64_t const seqmetapos = filepos;
+		seqmetaposlist.push_back(seqmetapos);
+
+		libmaus::fastx::FastAInfo const fainfo(sid,seqlen);
+		filepos += fainfo.serialise(finalout);
+		
+		// write block pointers
+		for ( uint64_t i = 0; i < blockstarts.size(); ++i )
+			filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,blockstarts[i]);
 			
-			blocksizes.push_back(blockdatasize);
-
-			low = high;
-		}
-		
-		uint64_t sum = 0;
-		for ( uint64_t i = 0; i < blocksizes.size(); ++i )
-		{
-			uint64_t t = blocksizes[i];
-			blocksizes[i] = sum;
-			sum += t;
-		}
-		blocksizes.push_back(sum);
-
-		uint64_t const seqsize = FAICPO.c + (numblocks+1)*sizeof(uint64_t) + blocksizes.back();
-		seqsizes.push_back(seqsize);
-		
-		libmaus::util::NumberSerialisation::serialiseNumberVector(blockptrCOS,blocksizes);
-		
-		totaldatasize += sum;
-		
-		std::cerr << "[V] " << pat.sid << " " << sum << " " << totaldatasize << std::endl;		
-		
-		totalseqlen += s.size();
+		totalseqlen += seqlen;
 	}
 	
-	blockptrCOS.flush();
-	dataCOS.flush();
-	blockptrCOS.close();
-	dataCOS.close();
+	for ( unsigned int i = 0; i < sizeof(uint64_t); ++i )
+	{
+		finalout.put(0);
+		filepos += 1;
+	}
 	
-	libmaus::aio::CheckedInputStream blockptrCIS(blockptrstmpfilename);
-	libmaus::aio::CheckedInputStream dataCIS(datatmpfilename);
-
-	std::cerr << "[V] rcnt=" << rcnt << std::endl;
-	std::cerr << "[V] rncnt=" << rncnt << std::endl;
-	std::cerr << "[V] ncnt=" << ncnt << std::endl;
-	
-	std::vector<uint64_t> seqpos;
-	
-	uint64_t filepos = 0;
-	finalout.put('F');
-	finalout.put('A');
-	finalout.put('B');
-	finalout.put('\0');
-	// length of magic
-	filepos += 4;
-	// block size
-	filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,bs);
+	uint64_t const metapos = filepos;
 	// number of sequences
-	filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,infovec.size());
+	filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,seqmetaposlist.size());
+	for ( uint64_t i = 0; i < seqmetaposlist.size(); ++i )
+		// sequence meta data pointers
+		filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,seqmetaposlist[i]);
 
-	uint64_t const blockptrstart = filepos;
-	uint64_t seqacc = 0;
-	for ( uint64_t s = 0; s < seqsizes.size(); ++s )
-	{
-		uint64_t const seqpos_s = blockptrstart + seqsizes.size() * sizeof(uint64_t) + seqacc;
-		filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,seqpos_s);
-		seqacc += seqsizes[s];
-	}
-
-	for ( uint64_t s = 0; s < infovec.size(); ++s )
-	{
-		FastAInfo const & info = infovec[s];
-		seqpos.push_back(filepos);	
-		
-		// sequence meta data (name + length)
-		filepos += info.serialise(finalout);
-		
-		std::vector<uint64_t> blockptrs = libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(blockptrCIS);
-		uint64_t datasize = blockptrs[blockptrs.size()-1] - blockptrs[0];
-		uint64_t bpsize = 0;
-		uint64_t bpoffset = (blockptrs.size()*sizeof(uint64_t));
-		for ( uint64_t i = 0; i < blockptrs.size(); ++i )
-			bpsize += libmaus::util::NumberSerialisation::serialiseNumber(finalout,blockptrs[i] + filepos + bpoffset);
-			
-		filepos += bpsize;
-		
-		libmaus::util::GetFileSize::copy(dataCIS,finalout,datasize);
-		
-		filepos += datasize;
-	}
+	// meta data pointer
+	filepos += libmaus::util::NumberSerialisation::serialiseNumber(finalout,metapos);	
 	
-	finalout.flush();
-	
-	std::cerr << "[V] total bases " << totalseqlen << std::endl;
-	std::cerr << "[V] " << static_cast<double>(filepos*8)/totalseqlen << " bits per base" << std::endl;
+	std::cerr << "[V] number of sequences        " << seqmetaposlist.size() << std::endl;
+	std::cerr << "[V] number of A,C,G,T   blocks " << rcnt << std::endl;
+	std::cerr << "[V] number of A,C,G,T,N blocks " << rncnt << std::endl;
+	std::cerr << "[V] number of ambiguity blocks " << ncnt << std::endl;
+	std::cerr << "[V] file size                  " << filepos << std::endl;
+	std::cerr << "[V] total number of bases      " << totalseqlen << std::endl;
+	std::cerr << "[V] bits per base              " << static_cast<double>(filepos*8)/totalseqlen << std::endl;
 }
 
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
+
+struct FastaBPSequenceDecoder
+{
+	typedef FastaBPSequenceDecoder this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+
+	std::istream & in;
+	uint64_t const bs;
+	libmaus::autoarray::AutoArray<char> Bin;
+	bool eof;
+	
+	FastaBPSequenceDecoder(std::istream & rin, uint64_t const rbs)
+	: in(rin), bs(rbs), Bin((bs+1)/2,false), eof(false)
+	{
+	
+	}
+
+	ssize_t read(char * p, uint64_t const m)
+	{
+		if ( eof )
+			return 0;
+
+		uint64_t bytesread = 0;
+	
+		int const flags = in.get();
+		if ( flags < 0 )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block flags" << std::endl;
+			lme.finish();
+			throw lme;			
+		}
+		bytesread += 1;
+				
+		// check whether this is the last block
+		eof = ( flags & FastABPConstants::base_block_last );
+		// determine number of bytes to be produced from this block
+		uint64_t const toread = eof ? libmaus::util::UTF8::decodeUTF8(in,bytesread) : bs;
+		
+		if ( m < toread )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPSequenceDecoder::read(): buffer is too small for block data" << std::endl;
+			lme.finish();
+			throw lme;					
+		}
+
+		switch ( flags & FastABPConstants::base_block_mask )
+		{
+			case FastABPConstants::base_block_4:
+			{
+				in.read(Bin.begin(),(toread+3)/4);
+				if ( in.gcount() != static_cast<int64_t>((toread+3)/4) )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
+					lme.finish();
+					throw lme;					
+				}
+				bytesread += in.gcount();
+				uint64_t k = 0;
+				
+				for ( uint64_t j = 0; j < toread/4; ++j )
+				{
+					uint8_t const u = static_cast<uint8_t>(Bin[j]);
+					
+					p[k++] = libmaus::fastx::remapChar((u >> 6) & 3);
+					p[k++] = libmaus::fastx::remapChar((u >> 4) & 3);
+					p[k++] = libmaus::fastx::remapChar((u >> 2) & 3);
+					p[k++] = libmaus::fastx::remapChar((u >> 0) & 3);
+				}
+				
+				if ( (toread) % 4 )
+				{
+					uint8_t const u = static_cast<uint8_t>(Bin[toread/4]);
+
+					for ( uint64_t j = 0; j < ((toread)%4); ++j )								
+						p[k++] = libmaus::fastx::remapChar((u >> (6-2*j)) & 3);								
+				}								
+				break;
+			}
+			case FastABPConstants::base_block_5:
+			{
+				in.read(Bin.begin(),(toread+2)/3);
+				if ( in.gcount() != static_cast<int64_t>((toread+2)/3) )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+				bytesread += in.gcount();
+				uint64_t k = 0;
+			
+				for ( uint64_t j = 0; j < (toread)/3; ++j )
+				{
+					uint8_t const u = Bin[j];
+					
+					p[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+					p[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
+					p[k++] = libmaus::fastx::remapChar((u/(1*1))%5);
+				}
+				if ( toread % 3 )
+				{
+					uint8_t const u = Bin[toread/3];
+					
+					switch ( toread % 3 )
+					{
+						case 1:
+							p[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+							break;
+						case 2:
+							p[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+							p[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
+							break;
+					}
+				}
+				
+				assert ( k == toread );
+				break;
+			}
+			case FastABPConstants::base_block_16:
+			{
+				in.read(Bin.begin(),(toread+1)/2);
+				if ( in.gcount() != static_cast<int64_t>((toread+1)/2) )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+				bytesread += in.gcount();
+				uint64_t k = 0;
+
+				for ( uint64_t j = 0; j < toread/2; ++j )
+				{
+					uint8_t const u = Bin[j];
+
+					p[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4 );
+					p[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u & 0xF);
+				}
+				if ( toread&1 )
+				{
+					uint8_t const u = Bin[toread/2];
+					p[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
+				}
+				
+				assert ( k == toread );
+				break;
+			}
+			default:
+			{
+				libmaus::exception::LibMausException lme;
+				lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block type" << std::endl;
+				lme.finish();
+				throw lme;
+			}
+		}
+		
+		uint64_t const inputcount = in.gcount();
+		
+		// align file
+		if ( bytesread % 8 )
+		{
+			uint64_t const toskip = 8-(bytesread % 8);
+			in.ignore(toskip);
+			if ( in.gcount() != static_cast<int64_t>(toskip) )
+			{
+				libmaus::exception::LibMausException lme;
+				lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while aligning file to 8 byte boundary" << std::endl;
+				lme.finish();
+				throw lme;
+			}
+		}
+		
+		// read crc
+		uint8_t crcbytes[8];
+		in.read(reinterpret_cast<char *>(&crcbytes[0]),sizeof(crcbytes));
+		if ( in.gcount() != static_cast<int64_t>(sizeof(crcbytes)) )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block crc" << std::endl;
+			lme.finish();
+			throw lme;
+		}
+		
+		uint32_t const crcin = 
+			(static_cast<uint32_t>(crcbytes[0]) << 24) |
+			(static_cast<uint32_t>(crcbytes[1]) << 16) |
+			(static_cast<uint32_t>(crcbytes[2]) <<  8) |
+			(static_cast<uint32_t>(crcbytes[3]) <<  0);
+		uint32_t const crcout = 
+			(static_cast<uint32_t>(crcbytes[4]) << 24) |
+			(static_cast<uint32_t>(crcbytes[5]) << 16) |
+			(static_cast<uint32_t>(crcbytes[6]) <<  8) |
+			(static_cast<uint32_t>(crcbytes[7]) <<  0);
+
+		uint32_t const crcincomp = libmaus::hashing::Crc32::crc32_8bytes(p,toread,0 /*prev*/);
+		uint32_t const crcoutcomp = libmaus::hashing::Crc32::crc32_8bytes(Bin.begin(),inputcount,0 /*prev*/);
+		
+		if ( crcin != crcincomp )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on uncompressed data" << std::endl;
+			lme.finish();
+			throw lme;		
+		}
+		if ( crcout != crcoutcomp )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on compressed data" << std::endl;
+			lme.finish();
+			throw lme;				
+		}
+
+		return toread;
+	}
+};
+
+struct FastaBPDecoder
+{
+	libmaus::aio::CheckedInputStream::unique_ptr_type pCIS;
+	std::istream & in;
+	
+	// block size
+	uint64_t const bs;
+	// meta position
+	uint64_t const metapos;
+	// number of sequences
+	uint64_t const numseq;
+	
+	uint64_t readBlockSize() const
+	{
+		char magic[8];
+		in.read(&magic[0],8);
+		if ( in.gcount() != 8 )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPDecoder::readBlockSize(): EOF/error while reading magic" << std::endl;
+			lme.finish();
+			throw lme;	
+		}
+		if ( std::string(&magic[0],&magic[8]) != std::string("FASTABP\0",8) )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPDecoder::readBlockSize(): magic is wrong, this is not a fab file" << std::endl;
+			lme.finish();
+			throw lme;		
+		}
+		
+		return libmaus::util::NumberSerialisation::deserialiseNumber(in);
+	}
+	
+	uint64_t readMetaPos() const
+	{
+		in.clear();
+		in.seekg(-static_cast<int>(sizeof(uint64_t)),std::ios::end);
+		return libmaus::util::NumberSerialisation::deserialiseNumber(in);
+	}
+
+	uint64_t readNumSeq() const
+	{
+		in.clear();
+		in.seekg(metapos,std::ios::beg);
+		return libmaus::util::NumberSerialisation::deserialiseNumber(in);
+	}
+
+	uint64_t readSequencePointer(uint64_t const seq) const
+	{
+		if ( seq >= numseq )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPDecoder::readSequencePointer: sequence id " << seq << " is out of range." << std::endl;
+			lme.finish();
+			throw lme;		
+		}
+
+		in.clear();
+		in.seekg(metapos + (1+seq)*sizeof(uint64_t),std::ios::beg);
+		return libmaus::util::NumberSerialisation::deserialiseNumber(in);
+	}
+	
+	libmaus::fastx::FastAInfo readSequenceInfo(uint64_t const seq) const
+	{
+		uint64_t const seqpos = readSequencePointer(seq);
+		in.clear();
+		in.seekg(seqpos);
+		libmaus::fastx::FastAInfo info(in);
+		return info;
+	}
+	
+	uint64_t getNumBlocks(uint64_t const seq) const
+	{
+		libmaus::fastx::FastAInfo info = readSequenceInfo(seq);
+		return (info.len+bs-1)/bs;
+	}
+	
+	std::string getSequenceName(uint64_t const seq) const
+	{
+		return readSequenceInfo(seq).sid;
+	}
+
+	uint64_t getSequenceLength(uint64_t const seq) const
+	{
+		return readSequenceInfo(seq).len;
+	}
+	
+	uint64_t getTotalSequenceLength() const
+	{
+		uint64_t s = 0;
+		for ( uint64_t i = 0; i < numseq; ++i )
+			s += getSequenceLength(i);
+		return s;
+	}
+	
+	uint64_t getBlockPointer(uint64_t const seq, uint64_t const blockid) const
+	{
+		uint64_t const numblocks = getNumBlocks(seq);
+
+		if ( blockid >= numblocks )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPDecoder::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
+			lme.finish();
+			throw lme;		
+		}
+
+		in.clear();
+		in.seekg(blockid * sizeof(uint64_t), std::ios::cur);
+		return libmaus::util::NumberSerialisation::deserialiseNumber(in);
+	}
+	
+	uint64_t getRestSymbols(uint64_t const seq, uint64_t const blockid) const
+	{
+		uint64_t const numblocks = getNumBlocks(seq);
+		
+		if ( blockid >= numblocks )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "FastaBPDecoder::readSequencePointer: block id " << blockid << " is out of range for sequence " << seq << std::endl;
+			lme.finish();
+			throw lme;		
+		}
+		
+		return getSequenceLength(seq) - blockid * bs;
+	}
+		
+	FastaBPDecoder(std::string const & s)
+	: pCIS(new libmaus::aio::CheckedInputStream(s)), in(*pCIS), bs(readBlockSize()), metapos(readMetaPos()),
+	  numseq(readNumSeq())
+	{
+	}
+	
+	FastaBPDecoder(std::istream & rin)
+	: pCIS(), in(rin), bs(readBlockSize()), metapos(readMetaPos()),
+	  numseq(readNumSeq())
+	{
+	}	
+	
+	FastaBPSequenceDecoder::unique_ptr_type getSequenceDecoder(uint64_t const seqid, uint64_t const blockid) const
+	{
+		uint64_t const bp = getBlockPointer(seqid,blockid);
+		in.clear();
+		in.seekg(bp);
+		FastaBPSequenceDecoder::unique_ptr_type tptr(new FastaBPSequenceDecoder(in,bs));
+		return UNIQUE_PTR_MOVE(tptr);
+	}
+	
+	void checkBlockPointers(uint64_t const seq) const
+	{
+		libmaus::autoarray::AutoArray<char> Bout(bs,false);
+		FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(seq,0));
+
+		uint64_t i = 0;
+
+		uint64_t const p = in.tellg();
+		uint64_t const bp = getBlockPointer(seq,i++);
+		assert ( bp == p );
+		in.clear();
+		in.seekg(p,std::ios::beg);
+			
+		uint64_t n = 0;
+		while ( (n = ptr->read(Bout.begin(),Bout.size())) )
+		{
+			if ( ! ptr->eof )
+			{
+				uint64_t const p = in.tellg();
+				uint64_t const bp = getBlockPointer(seq,i++);
+				assert ( bp == p );
+				in.clear();
+				in.seekg(p,std::ios::beg);	
+			}
+		}
+	}
+
+	void checkBlockPointers() const
+	{
+		for ( uint64_t i = 0; i < numseq; ++i )
+			checkBlockPointers(i);	
+	}
+
+	void decodeSequenceNull(uint64_t const seq) const
+	{
+		getSequenceName(seq);
+
+		libmaus::autoarray::AutoArray<char> Bout(bs,false);
+		FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(seq,0));
+			
+		uint64_t n = 0;
+		while ( (n = ptr->read(Bout.begin(),Bout.size())) )
+		{
+		}
+	}
+
+	void decodeSequencesNull() const
+	{
+		for ( uint64_t i = 0; i < numseq; ++i )
+			decodeSequenceNull(i);
+	}
+
+	void printSequence(std::ostream & out, uint64_t const seq) const
+	{
+		out << ">" << getSequenceName(seq) << "\n";
+
+		libmaus::autoarray::AutoArray<char> Bout(bs,false);
+		FastaBPSequenceDecoder::unique_ptr_type ptr(getSequenceDecoder(seq,0));
+			
+		uint64_t n = 0;
+		while ( (n = ptr->read(Bout.begin(),Bout.size())) )
+			std::cout.write(Bout.begin(),n);
+		out.put('\n');	
+	}
+	
+	void printSequences(std::ostream & out) const
+	{
+		for ( uint64_t i = 0; i < numseq; ++i )
+			printSequence(out,i);	
+	}
+};
 
 int main(int argc, char * argv[])
 {
@@ -363,191 +776,35 @@ int main(int argc, char * argv[])
 	{
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 
-		// countFastA(arginfo,std::cin,std::cout);	
-		
 		std::ostringstream ostr;
-		countFastA(arginfo,std::cin,ostr);
+		countFastA(arginfo,std::cin,ostr);	
 
-		std::vector<double> rates;
-		for ( uint64_t zz = 0; zz < 20; ++zz )
-		{		
-			std::istringstream istr(ostr.str());
-
-			libmaus::timing::RealTimeClock rtc; rtc.start();			
-			char magic[5];
-			for ( unsigned int i = 0; i < 4; ++i )
-			{
-				int c = istr.get();
-				assert ( c >= 0 );
-				magic[i] = c;
-			}
-			magic[4] = 0;
-			assert ( strcmp(&magic[0],"FAB\0") == 0 );
-			
-			// block size in symbols
-			uint64_t const bs = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
-			assert ( bs == 64*1024 );
-			
-			// number of sequences
-			uint64_t const numseq = libmaus::util::NumberSerialisation::deserialiseNumber(istr);
-			uint64_t totalbases = 0;
-			
-			libmaus::autoarray::AutoArray<char> Bin((bs+1)/2,false);
-			libmaus::autoarray::AutoArray<char> Bout(bs,false);
-			
-			// pointers to sequence start positions
-			std::vector<uint64_t> seqpos;
-			for ( uint64_t s = 0; s < numseq; ++s )
-				seqpos.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
-			
-			for ( uint64_t s = 0; s < numseq; ++s )
-			{
-				// check sequence start pointer
-				assert ( istr.tellg() == static_cast<int64_t>(seqpos[s]) );
-			
-				FastAInfo info(istr);
-				std::cerr << ">" << info.sid << std::endl;
-				
-				uint64_t const numsym = info.len;
-				uint64_t const numblocks = (numsym + bs-1)/bs;
-				
-				totalbases += numsym;
-				
-				std::vector<uint64_t> blockptrs;
-				for ( uint64_t i = 0; i < numblocks+1; ++i )
-					blockptrs.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(istr));
-					
-				for ( uint64_t i = 0; i < numblocks; ++i )
-				{
-					// check block pointer
-					assert ( istr.tellg() == static_cast<int64_t>(blockptrs[i]) );
-					
-					uint64_t const low = i * bs;
-					uint64_t const high = std::min(low+bs,numsym);
-					
-					int const blocktype = istr.get();
-					assert ( blocktype >= 0 );
-					assert ( blocktype < 3 );
-					
-					#if 0
-					std::cerr << "[D] block type " << blocktype << std::endl;
-					#endif
-					
-					switch ( blocktype )
-					{
-						case 0:
-						{
-							istr.read(Bin.begin(),(high-low+3)/4);
-							assert ( istr.gcount() == static_cast<int64_t>((high-low+3)/4) );
-							uint64_t k = 0;
-							
-							for ( uint64_t j = 0; j < (high-low)/4; ++j )
-							{
-								uint8_t const u = static_cast<uint8_t>(Bin[j]);
-								
-								Bout[k++] = libmaus::fastx::remapChar((u >> 6) & 3);
-								Bout[k++] = libmaus::fastx::remapChar((u >> 4) & 3);
-								Bout[k++] = libmaus::fastx::remapChar((u >> 2) & 3);
-								Bout[k++] = libmaus::fastx::remapChar((u >> 0) & 3);
-							}
-							
-							if ( (high-low) % 4 )
-							{
-								uint8_t const u = static_cast<uint8_t>(Bin[(high-low)/4]);
-
-								for ( uint64_t j = 0; j < ((high-low)%4); ++j )								
-									Bout[k++] = libmaus::fastx::remapChar((u >> (6-2*j)) & 3);								
-							}
-							
-							assert ( k == high-low );
-							
-							#if 0
-							std::cout.write(Bout.begin(),k);
-							std::cout.put('\n');
-							#endif
-							
-							break;
-						}
-						case 1:
-						{
-							istr.read(Bin.begin(),(high-low+2)/3);
-							assert ( istr.gcount() == static_cast<int64_t>((high-low+2)/3) );
-							uint64_t k = 0;
-						
-							for ( uint64_t j = 0; j < (high-low)/3; ++j )
-							{
-								uint8_t const u = Bin[j];
-								
-								Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-								Bout[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
-								Bout[k++] = libmaus::fastx::remapChar((u/(1*1))%5);
-							}
-							if ( (high-low) % 3 )
-							{
-								uint8_t const u = Bin[(high-low)/3];
-								
-								switch ( (high-low) % 3 )
-								{
-									case 1:
-										Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-										break;
-									case 2:
-										Bout[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-										Bout[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
-										break;
-								}
-							}
-							
-							assert ( k == high-low );
-							
-							#if 0
-							std::cout.write(Bout.begin(),k);
-							std::cout.put('\n');
-							#endif
-
-							break;
-						}
-						case 2:
-						{
-							istr.read(Bin.begin(),(high-low+1)/2);
-							assert ( istr.gcount() == static_cast<int64_t>((high-low+1)/2) );
-							uint64_t k = 0;
-
-							for ( uint64_t j = 0; j < (high-low)/2; ++j )
-							{
-								uint8_t const u = Bin[j];
-
-								Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4 );
-								Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u & 0xF);
-							}
-							if ( (high-low)&1 )
-							{
-								uint8_t const u = Bin[(high-low)/2];
-								Bout[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
-							}
-							
-							assert ( k == high-low );
-
-							#if 0
-							std::cout.write(Bout.begin(),k);						
-							std::cout.put('\n');
-							#endif
-							break;
-						}
-						default:
-							break;
-					}
-				}
-
-				assert ( istr.tellg() == static_cast<int64_t>(blockptrs[numblocks]) );
-			}
+		std::istringstream istrpre(ostr.str());
+		FastaBPDecoder fabd(istrpre);
 		
-			rates.push_back(totalbases/rtc.getElapsedSeconds());
-			std::cerr << rates.back() << " bases/s" << std::endl;
+		fabd.checkBlockPointers();
+		
+		fabd.printSequences(std::cout);
+		
+		uint64_t const totalseqlength = fabd.getTotalSequenceLength();
+		
+		uint64_t const runs = 10;
+		std::vector<double> dectimes;
+		for ( uint64_t i = 0; i < runs; ++i )
+		{
+			libmaus::timing::RealTimeClock rtc;
+			rtc.start();
+			fabd.decodeSequencesNull();
+			dectimes.push_back(totalseqlength / rtc.getElapsedSeconds());
 		}
+		double const avg = std::accumulate(dectimes.begin(),dectimes.end(),0.0) / dectimes.size();
+		double var = 0;
+		for ( uint64_t i = 0; i < dectimes.size(); ++i )
+			var += (dectimes[i]-avg)*(dectimes[i]-avg);
+		var /= dectimes.size();
+		double const stddev = ::std::sqrt(var);
 		
-		double avg = std::accumulate(rates.begin(),rates.end(),0.0)/rates.size();
-		std::cerr << "average rate " << avg << " bases/s" << std::endl;
+		std::cerr << "[V] decoding speed " << avg << " += " << stddev << " bases/s" << std::endl;
 	}
 	catch(std::exception const & ex)
 	{
