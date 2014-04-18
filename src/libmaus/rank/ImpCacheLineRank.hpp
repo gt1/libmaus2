@@ -314,6 +314,32 @@ namespace libmaus
 					flush();
 				}
 				
+				void reset()
+				{
+					bitpos = 0;
+					w = 0;
+					s = 0;
+					p = B.begin();
+					ps = p;
+					blockswritten = 0;
+				}
+				
+				void reinit(uint64_t const n, bool const writeHeader = true)
+				{
+					shallowFlush();
+					
+					reset();
+
+					if ( writeHeader )
+					{
+						uint64_t const words = ((((n+63)/64)+5)/6)*8;
+						// write n
+						::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,n);
+						// write auto array header
+						::libmaus::serialize::Serialize<uint64_t>::serialize(ostr,words);
+					}
+				}
+				
 				void writeBit(bool const rb)
 				{				
 					// save sum if new block
@@ -356,6 +382,13 @@ namespace libmaus
 						writeBit(0);
 					out->flush();
 					ostr.flush();
+				}
+				void shallowFlush()
+				{
+					// finish word
+					while ( bitpos )
+						writeBit(0);
+					out->shallowFlush();
 				}
 				uint64_t wordsWritten() const
 				{
