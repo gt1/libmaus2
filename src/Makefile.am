@@ -2,10 +2,6 @@ ACLOCAL_AMFLAGS=-I m4
 
 abs_builddir = @abs_builddir@
 
-noinst_LTLIBRARIES = testmod.la
-testmod_la_LDFLAGS = @LIBMAUSLDFLAGS@ ${AM_LDFLAGS} -module -avoid-version -shared -rpath $(abs_builddir)
-testmod_la_SOURCES = test/testmod.cpp
-
 lib_LTLIBRARIES = libmaus.la libmauslsf.la libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
