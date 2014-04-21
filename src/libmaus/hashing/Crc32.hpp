@@ -20,7 +20,7 @@
 #if ! defined(LIBMAUS_HASHING_CRC32_HPP)
 #define LIBMAUS_HASHING_CRC32_HPP
  
-#include <cstdint> 
+#include <libmaus/types/types.hpp>
 #include <cstdlib>
 
 namespace libmaus
