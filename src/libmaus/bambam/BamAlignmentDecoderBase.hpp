@@ -568,7 +568,7 @@ namespace libmaus
 				char const * const altqual = getAuxString(D,blocksize,"OQ");
 				
 				// use OQ field if it is present and has the correct length
-				if ( altqual && (strlen(altqual) == getLseq(D)) )
+				if ( altqual && (static_cast<int64_t>(strlen(altqual)) == static_cast<int64_t>(getLseq(D))) )
 					return putFastQ(D,it,altqual);
 				else
 					return putFastQ(D,it);
