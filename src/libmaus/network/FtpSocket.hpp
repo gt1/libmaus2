@@ -254,7 +254,7 @@ namespace libmaus
 					unsigned short serverport = 1024;
 					std::string const & hostname = libmaus::network::GetHostName::getHostName();
 					server_socket_ptr_type tseso(
-						UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(serverport,128,hostname.c_str(),32*1024)));
+						server_socket_type::allocateServerSocket(serverport,128,hostname.c_str(),32*1024));
 					seso = UNIQUE_PTR_MOVE(tseso);
 
 					// construct PORT command		
