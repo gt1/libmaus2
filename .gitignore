@@ -39,3 +39,9 @@ src/libmaus/LibMausConfig.hpp
 stamp-h1
 ubuntu.sh
 src/test[a-zA-Z]*
+*/.dirstamp
+*/*/.dirstamp
+*/*/*/.dirstamp
+*/.deps
+*/*/.deps
+*/*/*/.deps

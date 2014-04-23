@@ -242,22 +242,25 @@ namespace libmaus
 			}
 
 			template<typename out_type>
-			static void encodeUTF8(uint32_t num, out_type & out)
+			static unsigned int encodeUTF8(uint32_t num, out_type & out)
 			{
 				if ( num <= 0x7F )
 				{
 					out.put(static_cast<uint8_t>(num));
+					return 1;
 				}
 				else if ( num <= 0x7FF )
 				{
 					out.put(static_cast<uint8_t>(128 | 64 | (((1<<5)-1) & (num >> 6))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num))));
+					return 2;
 				}
 				else if ( num <= 0x0000FFFF )
 				{
 					out.put(static_cast<uint8_t>(128 | 64 | 32 | (((1<<4)-1) & (num >> 12))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 6))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num))));
+					return 3;
 				}
 				else if ( num <= 0x001FFFFF )
 				{
@@ -265,6 +268,7 @@ namespace libmaus
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 12))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 6))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num))));
+					return 4;
 				}
 				else if ( num <= 0x03FFFFFF )
 				{
@@ -273,6 +277,7 @@ namespace libmaus
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 12))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 6))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num))));
+					return 5;
 				}
 				else if ( num <= 0x7FFFFFFF )
 				{
@@ -282,6 +287,7 @@ namespace libmaus
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 12))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num >> 6))));
 					out.put(static_cast<uint8_t>(128 | (((1<<6)-1) & (num))));
+					return 6;
 				}
 				else
 				{

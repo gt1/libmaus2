@@ -126,7 +126,7 @@ namespace libmaus
 			 * @param offset write offset in bytes
 			 **/
                         SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize, bool const truncate = true, uint64_t const offset = 0, bool const /* metasync */ = true)
-                        : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
+                        : B(bufsize,false), pa(B.get()), pc(pa), pe(pa+B.getN()), 
                           PW ( truncate ? new std::ofstream(filename.c_str(),std::ios::binary|std::ios::out|std::ios::trunc) : 0),
                           PF ( truncate ? 0 : new std::fstream(filename.c_str(), std::ios::binary|std::ios::in|std::ios::out|std::ios::ate) ),
                           W  ( truncate ? (static_cast<std::ostream &>(*PW)) : (static_cast<std::ostream &>(*PF)) ),
@@ -150,11 +150,21 @@ namespace libmaus
                         }
 
                         /**
+                         * flush the internal buffer but not the file stream
+                         **/
+                        void shallowFlush()
+                        {
+                                writeBuffer();
+                        }
+
+                        /**
                          * flush the buffer
                          **/
                         void flush()
                         {
-                                writeBuffer();
+                        	// empty buffer
+                        	shallowFlush();
+                        	// flush file stream
                                 W.flush();
 
                                 if ( ! W )

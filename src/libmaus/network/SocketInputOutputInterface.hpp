@@ -16,27 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECTFACTORY_HPP)
-#define LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECTFACTORY_HPP
+#if ! defined(LIBMAUS_NETWORK_SOCKETINPUTOUTPUTINTERFACE_HPP)
+#define LIBMAUS_NETWORK_SOCKETINPUTOUTPUTINTERFACE_HPP
 
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/lz/SnappyDecompressorObject.hpp>
+#include <libmaus/types/types.hpp>
 
 namespace libmaus
 {
-	namespace lz
+	namespace network
 	{
-		struct SnappyDecompressorObjectFactory : public DecompressorObjectFactory
+		struct SocketInputInterface
 		{
-			typedef SnappyDecompressorObjectFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			virtual ~SnappyDecompressorObjectFactory() {}
-			virtual DecompressorObject::unique_ptr_type operator()()
-			{
-				DecompressorObject::unique_ptr_type ptr(new SnappyDecompressorObject);
-				return UNIQUE_PTR_MOVE(ptr);
-			}
+			virtual ~SocketInputInterface() {}
+			virtual ssize_t readPart(char * p, size_t n) = 0;
+			virtual ssize_t read(char * p, size_t n) = 0;
+		};
+		
+		struct SocketOutputInterface
+		{
+			virtual ~SocketOutputInterface() {}
+			virtual void write(char const * p, size_t n) = 0;			
+		};
+		
+		struct SocketInputOutputInterface : public SocketInputInterface, public SocketOutputInterface
+		{
+			virtual ~SocketInputOutputInterface() {}
 		};
 	}
 }

@@ -1,10 +1,10 @@
-AC_INIT(libmaus,0.0.112,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:112:0
+AC_INIT(libmaus,0.0.115,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:115:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([std-options subdir-objects])
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -1238,6 +1238,27 @@ AC_MSG_RESULT([${pthread}])
 CXXFLAGS="${CXXFLAGS_SAVE}"
 AC_LANG_POP
 
+POSIXSPINLOCKS=
+if test "${pthread}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-pthread"
+	AC_MSG_CHECKING([for pthread spin lock support])
+	AC_TRY_COMPILE([#include <pthread.h>],[pthread_spinlock_t spinlock;
+		pthread_spin_init(&spinlock,0);
+		pthread_spin_lock(&spinlock);
+		pthread_spin_unlock(&spinlock);
+		pthread_spin_destroy(&spinlock);
+	],[pthreadspinlocks=yes],[pthreadspinlocks=no])
+	AC_MSG_RESULT([${pthreadspinlocks}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+
+	if test "${pthreadspinlocks}" = "yes" ; then
+		POSIXSPINLOCKS="#define LIBMAUS_HAVE_POSIX_SPINLOCKS"
+	fi
+fi
+
 if test "${pthread}" = "yes" ; then
 	CXXFLAGS_SAVE="${CXXFLAGS}"
 	CXXFLAGS="${CXXFLAGS} -pthread"
@@ -1531,6 +1552,58 @@ if test "${syncops}" = "yes" ; then
 	esac
 fi
 
+AC_ARG_ENABLE(synclock,
+        AS_HELP_STRING([--enable-synclock],[use atomic lock primitives (default yes)]),
+        [synclock=${enableval}],[synclock=yes])
+
+if test "${synclock}" = "yes" ; then
+	LIBMAUS_HAVE_SYNC_LOCK=""
+	case "${target_cpu}" in
+		i386|i486|i586|i686)
+			AC_LANG_PUSH([C++])
+			AC_MSG_CHECKING([whether the C++ compiler supports synchronous lock operations])
+			AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+			AC_MSG_RESULT([${synclock}])
+			AC_LANG_POP
+
+			if test "${synclock}" = "yes" ; then
+				HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+			fi
+
+			if test "${synclock}" = "no" ; then
+				AC_LANG_PUSH([C++])
+				CXXFLAGS_SAVE="${CXXFLAGS}"
+				CXXFLAGS="-march=i586"
+				AC_MSG_CHECKING([whether the C++ compiler supports the -march=i586 option and synchronous lock operations])
+				AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+				AC_MSG_RESULT([${synclock}])
+				CXXFLAGS="${CXXFLAGS_SAVE}"
+				AC_LANG_POP
+
+				if test "${synclock}" = "yes" ; then
+					LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -march=i586"
+					LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -march=i586"
+					LIBMAUSARCHCFLAGS="${LIBMAUSARCHCFLAGS} -march=i586"
+					HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+				fi
+			fi
+			;;
+		x86_64)
+			AC_LANG_PUSH([C++])
+			AC_MSG_CHECKING([whether the C++ compiler supports synchronous lock operations])
+			AC_TRY_COMPILE([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+			AC_MSG_RESULT([${synclock}])
+			AC_LANG_POP
+
+			if test "${synclock}" = "yes" ; then
+				HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+			fi
+			;;
+		*)
+			;;
+	esac
+fi
+
 AC_LANG_PUSH([C++])
 AC_MSG_CHECKING([whether posix_memalign is present])
 AC_TRY_COMPILE([#include <cstdlib>],[void * ptr = 0; posix_memalign(&ptr,64,128);],[posixmemalign=yes],[posixmemalign=no])
@@ -1699,6 +1772,112 @@ if [[ "${have_lzma_h}" = "yes" ]] ; then
 	LIBS="${LIBS_SAVE}"
 fi
 
+AC_ARG_WITH([libcurl],
+	[AS_HELP_STRING([--with-libcurl@<:@=PATH@:>@], [path to installed libcurl library @<:@default=no@:>@])],
+	[with_libcurl=${withval}],
+	[with_libcurl=no])
+
+LIBCURL=
+if test "${with_libcurl}" != "no" ; then
+
+	if test ! -z "${with_libcurl}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_libcurl}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_libcurl}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([libcurl],[libcurl >= 1.7.2],[libcurlpkg=yes],[libcurlpkg=no])
+
+	if test ! -z "${with_libcurl}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	LIBCURL=
+	if [[ "${libcurlpkg}" = "yes" ]] ; then
+		AC_LANG_PUSH([C++])
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${libcurl_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS="${CPPFLAGS} ${libcurl_CFLAGS}"
+		AC_MSG_CHECKING([whether we can compile a libcurl program])
+		AC_TRY_LINK([#include <curl/curl.h>
+	],[curl_global_init(CURL_GLOBAL_ALL);],[libcurl=yes],[libcurl=no])
+		AC_MSG_RESULT([${libcurl}])
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+		AC_LANG_POP
+
+		if [[ "$libcurl" = "no" ]] ; then
+			AC_MSG_ERROR([Failed to compile libcurl program.]);
+		else
+			LIBCURL="#define LIBMAUS_HAVE_LIBCURL"
+			LIBCURLLIBS="${libcurl_LIBS}"
+			LIBCURLCPPFLAGS="${libcurl_CFLAGS}"
+		fi
+	fi
+
+fi
+
+AC_ARG_WITH([openssl],
+	[AS_HELP_STRING([--with-openssl@<:@=PATH@:>@], [path to installed openssl library @<:@default=no@:>@])],
+	[with_openssl=${withval}],
+	[with_openssl=no])
+
+OPENSSL=
+if test "${with_openssl}" != "no" ; then
+
+	if test ! -z "${with_openssl}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_openssl}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_openssl}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([openssl],[openssl >= 1.0.1],[opensslpkg=yes],[opensslpkg=no])
+
+	if test ! -z "${with_openssl}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	OPENSSL=
+	if [[ "${opensslpkg}" = "yes" ]] ; then
+		AC_LANG_PUSH([C++])
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${openssl_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS="${CPPFLAGS} ${openssl_CFLAGS}"
+		AC_MSG_CHECKING([whether we can compile a openssl program])
+		AC_TRY_LINK([#include <openssl/bio.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>],[SSL_library_init();
+SSL_load_error_strings();
+ERR_load_BIO_strings();
+],[openssl=yes],[openssl=no])
+		AC_MSG_RESULT([${openssl}])
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+		AC_LANG_POP
+
+		if [[ "$openssl" = "no" ]] ; then
+			AC_MSG_ERROR([Failed to compile openssl program.]);
+		else
+			OPENSSL="#define LIBMAUS_HAVE_OPENSSL"
+			OPENSSLLIBS="${openssl_LIBS}"
+			OPENSSLCPPFLAGS="${openssl_CFLAGS}"
+		fi
+	fi
+
+fi
+
 case $host_os in
   *mingw32*)
     LIBMAUSLDFLAGS="${LIBMAUSLDFLAGS} -no-undefined" # -avoid-version
@@ -1820,4 +1999,12 @@ AC_SUBST([IOLIBLIBS])
 AC_SUBST([HAVEGETPAGESIZE])
 AC_SUBST([HAVEMSGCMSGCLOEXEC])
 AC_SUBST([WARNCPPFLAGS])
+AC_SUBST([LIBCURL])
+AC_SUBST([LIBCURLCPPFLAGS])
+AC_SUBST([LIBCURLLIBS])
+AC_SUBST([OPENSSL])
+AC_SUBST([OPENSSLCPPFLAGS])
+AC_SUBST([OPENSSLLIBS])
+AC_SUBST([POSIXSPINLOCKS])
+AC_SUBST([HAVESYNCLOCK])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

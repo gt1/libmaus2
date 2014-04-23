@@ -24,6 +24,7 @@
 #include <libmaus/util/utf8.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
 #include <libmaus/util/CountPutObject.hpp>
+#include <map>
 
 namespace libmaus
 {
@@ -108,10 +109,12 @@ namespace libmaus
 			}
 			
 			public:
+			typedef std::pair<uint64_t,uint64_t> u64pair;
+			
 			SimpleCompressedInputStream(
 				stream_type & rstream, 
 				libmaus::lz::DecompressorObjectFactory & decompfactory,
-				std::pair<uint64_t,uint64_t> const offset = std::pair<uint64_t,uint64_t>(0,0),
+				u64pair const offset = u64pair(0,0),
 				bool rblockseek = false
 			)
 			: stream(rstream), decompressor(decompfactory()), B(), pa(0), pc(0), pe(0), streambytesread(0), blockseek(rblockseek), gcnt(0)

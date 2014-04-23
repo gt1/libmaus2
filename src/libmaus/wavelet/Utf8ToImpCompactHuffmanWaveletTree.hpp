@@ -1196,7 +1196,7 @@ namespace libmaus
 					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
-					#pragma omp parallel for num_threads(numthreads)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
@@ -1560,38 +1560,42 @@ namespace libmaus
 							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
-						for ( uint64_t npi = nplow; npi < nphigh; ++npi )
 						{
-							uint64_t const totalnodebits = vnodebits[npi];
+							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,0,false);
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
-							
-							for ( uint64_t p = 0; p < numparts; ++p )
+							for ( uint64_t npi = nplow; npi < nphigh; ++npi )
 							{
-								uint64_t bitstowrite = vnodebitcnt[p][npi];
-								uint64_t word = 0;
-								int shift = -1;
+								uint64_t const totalnodebits = vnodebits[npi];
+
+								context.reinit(totalnodebits+1,true);
 								
-								while ( bitstowrite )
+								for ( uint64_t p = 0; p < numparts; ++p )
 								{
-									if ( shift < 0 )
+									uint64_t bitstowrite = vnodebitcnt[p][npi];
+									uint64_t word = 0;
+									int shift = -1;
+									
+									while ( bitstowrite )
 									{
-										tmpSGI[p]->getNext(word);
-										shift = 63;
+										if ( shift < 0 )
+										{
+											tmpSGI[p]->getNext(word);
+											shift = 63;
+										}
+										
+										bool const bit = (word >> shift) & 1;
+										context.writeBit(bit);
+										
+										--bitstowrite;
+										--shift;
 									}
-									
-									bool const bit = (word >> shift) & 1;
-									context.writeBit(bit);
-									
-									--bitstowrite;
-									--shift;
 								}
+								
+								context.writeBit(0);
+								context.shallowFlush();
+								
+								nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
 							}
-							
-							context.writeBit(0);
-							context.flush();
-							
-							nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
 						}
 						
 						npout.flush();
@@ -1666,6 +1670,7 @@ namespace libmaus
 				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
+				// check tree order
 				if ( H.root()-H.leafs() != 0 )
 				{
 					libmaus::exception::LibMausException se;
@@ -1675,26 +1680,34 @@ namespace libmaus
 				}
 
 				libmaus::parallel::OMPLock cerrlock;
-				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
 				::libmaus::util::TempFileRemovalContainer::setup();
-
+				// set up huffman encode table
 				::libmaus::huffman::HuffmanTree::EncodeTable ET(H);
 
 				// #define HWTDEBUG
 				
-				::libmaus::timing::RealTimeClock rtc; rtc.start();	
+				::libmaus::timing::RealTimeClock rtc; rtc.start();
+				// check whether we have more than one alphabet symbol
 				if ( ! H.isLeaf(H.root()) )
 				{
+					// total length of file in symbols
 					uint64_t const infs = rl_decoder::getLength(fn);
 					
+					// number of symbols before terminator
 					uint64_t const pretermsyms = termrank;
+					// terminator
 					uint64_t const termsyms = 1;
+					// number of symbols after terminator
 					uint64_t const posttermsyms = infs-(pretermsyms+termsyms);
 					
+					// target part size 
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(tpartsizemax), (infs+numthreads-1)/numthreads);
 					
+					// parts before terminator
 					uint64_t const pretermparts = (pretermsyms + tpartsize - 1) / tpartsize;
+					// terminator parts
 					uint64_t const termparts = (termsyms + tpartsize - 1) / tpartsize;
+					// parts after terminator
 					uint64_t const posttermparts = (posttermsyms + tpartsize -1) / tpartsize;
 					
 					uint64_t const numparts = pretermparts + termparts + posttermparts;
@@ -1753,8 +1766,9 @@ namespace libmaus
 					std::cerr << "Bytes for numnodes*numparts*sizeof(uint64_t)=" << numnodes*numparts*sizeof(uint64_t) << std::endl;
 					#endif
 
+					libmaus::timing::RealTimeClock rtc;
 					#if defined(_OPENMP)
-					#pragma omp parallel for num_threads(numthreads)
+					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
@@ -1783,6 +1797,7 @@ namespace libmaus
 								::libmaus::util::UTF8::encodeUTF8(rldec->decode(),CPO);
 						}
 
+						// size of part in bytes (not symbols)
 						uint64_t const partsize = CPO.c;
 
 						/* read text */
@@ -2085,7 +2100,7 @@ namespace libmaus
 						tmpCOS->close();
 						tmpCOS.reset();
 					}
-
+					
 					// accumulate word offsets
 					for ( uint64_t i = 0; i < numparts; ++i )
 						//vnodewordcnt[i].prefixSums();
@@ -2163,40 +2178,44 @@ namespace libmaus
 							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
-						for ( uint64_t npi = nplow; npi < nphigh; ++npi )
 						{
-							uint64_t const totalnodebits = vnodebits[npi];
-
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
-							
-							for ( uint64_t p = 0; p < numparts; ++p )
+							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,0,false);
+							for ( uint64_t npi = nplow; npi < nphigh; ++npi )
 							{
-								uint64_t bitstowrite = vnodebitcnt[p][npi];
-								uint64_t word = 0;
-								int shift = -1;
+								uint64_t const totalnodebits = vnodebits[npi];
+
+								context.reinit(totalnodebits+1,true);
 								
-								while ( bitstowrite )
+								for ( uint64_t p = 0; p < numparts; ++p )
 								{
-									if ( shift < 0 )
+									uint64_t bitstowrite = vnodebitcnt[p][npi];
+									uint64_t word = 0;
+									int shift = -1;
+									
+									while ( bitstowrite )
 									{
-										tmpSGI[p]->getNext(word);
-										shift = 63;
+										if ( shift < 0 )
+										{
+											tmpSGI[p]->getNext(word);
+											shift = 63;
+										}
+										
+										bool const bit = (word >> shift) & 1;
+										context.writeBit(bit);
+										
+										--bitstowrite;
+										--shift;
 									}
-									
-									bool const bit = (word >> shift) & 1;
-									context.writeBit(bit);
-									
-									--bitstowrite;
-									--shift;
 								}
+								
+								context.writeBit(0);
+								context.shallowFlush();
+								
+								nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
 							}
 							
-							context.writeBit(0);
 							context.flush();
-							
-							nodebytesizes[npi] = (2 /* header */+context.wordsWritten())*sizeof(uint64_t);
 						}
-						
 						npout.flush();
 						tmpCOS[np].reset();
 					}

@@ -283,6 +283,26 @@ namespace libmaus
 			}
 
 			/**
+			 * write FastQ representation of alignment D into array T; T is reallocated if it is too small
+			 *
+			 * @param D alignment block
+			 * @param T output array
+			 * @return number of bytes written
+			 **/
+			static uint64_t putFastQTryOQ(
+				uint8_t const * D,
+				uint64_t const blocksize,
+				libmaus::autoarray::AutoArray<uint8_t> & T
+			)
+			{
+				uint64_t const len = getFastQLength(D);
+				if ( T.size() < len ) 
+					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+				putFastQTryOQ(D,blocksize,T.begin());
+				return len;
+			}
+
+			/**
 			 * write FastA representation of alignment D into array T; T is reallocated if it is too small
 			 *
 			 * @param D alignment block
@@ -527,6 +547,96 @@ namespace libmaus
 					
 					while ( qual != quale )
 						*(it++) = (*(qual++)) + 33;				
+				}
+				*(it++) = '\n';
+				
+				return it;
+			}				
+
+			/**
+			 * write FastQ representation of alignment block D to iterator it
+			 * if present use OQ field instead of quality field
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @param altqual alternative quality string
+			 * @return output iterator after writing
+			 **/
+			template<typename iterator>
+			static iterator putFastQTryOQ(uint8_t const * D, uint64_t const blocksize, iterator it)
+			{			
+				char const * const altqual = getAuxString(D,blocksize,"OQ");
+				
+				// use OQ field if it is present and has the correct length
+				if ( altqual && (static_cast<int64_t>(strlen(altqual)) == static_cast<int64_t>(getLseq(D))) )
+					return putFastQ(D,it,altqual);
+				else
+					return putFastQ(D,it);
+			}
+
+			/**
+			 * write FastQ representation of alignment block D to iterator it
+			 * use alternative quality string
+			 *
+			 * @param D alignment block
+			 * @param it output iterator
+			 * @param altqual alternative quality string
+			 * @return output iterator after writing
+			 **/
+			template<typename iterator>
+			static iterator putFastQ(uint8_t const * D, iterator it, char const * const altqual)
+			{
+				uint32_t const flags = getFlags(D);
+				uint64_t const namelen = getLReadName(D)-1;
+				uint64_t const lseq = getLseq(D);
+				char const * rn = getReadName(D);
+				char const * rne = rn + namelen;
+
+				*(it++) = '@';
+				while ( rn != rne )
+					*(it++) = *(rn++);
+				
+				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				{
+					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					{
+						*(it++) = '/';
+						*(it++) = '1';
+					}
+					else
+					{
+						*(it++) = '/';
+						*(it++) = '2';
+					}
+				}
+				
+				*(it++) = '\n';
+				
+				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+					it = decodeReadRCIt(D,it,lseq);
+				else
+					it = decodeRead(D,it,lseq);
+					
+				*(it++) = '\n';				
+
+				*(it++) = '+';
+				*(it++) = '\n';
+
+				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				{
+					char const * const quale = altqual;
+					char const * qualc = quale + lseq;
+					
+					while ( qualc != quale )
+						*(it++) = *(--qualc);
+				}
+				else
+				{
+					char const * qual = altqual;
+					char const * const quale = qual + lseq;
+					
+					while ( qual != quale )
+						*(it++) = (*(qual++));
 				}
 				*(it++) = '\n';
 				

@@ -16,27 +16,28 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECTFACTORY_HPP)
-#define LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECTFACTORY_HPP
+#if ! defined(LIBMAUS_AIO_SOCKETINPUTSTREAM_HPP)
+#define LIBMAUS_AIO_SOCKETINPUTSTREAM_HPP
 
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/lz/SnappyDecompressorObject.hpp>
+#include <libmaus/network/SocketInputStreamBuffer.hpp>
 
 namespace libmaus
 {
-	namespace lz
+	namespace network
 	{
-		struct SnappyDecompressorObjectFactory : public DecompressorObjectFactory
+		struct SocketInputStream : public SocketInputStreamBuffer, public std::istream
 		{
-			typedef SnappyDecompressorObjectFactory this_type;
+			typedef SocketInputStream this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			
-			virtual ~SnappyDecompressorObjectFactory() {}
-			virtual DecompressorObject::unique_ptr_type operator()()
-			{
-				DecompressorObject::unique_ptr_type ptr(new SnappyDecompressorObject);
-				return UNIQUE_PTR_MOVE(ptr);
-			}
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			SocketInputStream(
+				libmaus::network::SocketInputInterface & rbase, 
+				uint64_t const bufsize, 
+				uint64_t const pushbacksize = 0
+			) 
+			: SocketInputStreamBuffer(rbase,bufsize,pushbacksize), std::istream(this)
+			{}
 		};
 	}
 }

@@ -48,6 +48,7 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/network/GetHostName.hpp>
+#include <libmaus/network/SocketInputOutputInterface.hpp>
 #include <stdexcept>
 
 #include <libmaus/parallel/PosixThread.hpp>
@@ -57,7 +58,7 @@ namespace libmaus
 {
 	namespace network
 	{
-		struct SocketBase
+		struct SocketBase : public SocketInputOutputInterface
 		{
 			public:
 			typedef SocketBase this_type;
@@ -277,6 +278,78 @@ namespace libmaus
 				return totalred;
 			}
 
+			ssize_t readPart(char * data, size_t len)
+			{
+				ssize_t totalred = 0;
+				
+				while ( (! totalred) && len )
+				{
+					#if ! defined(__APPLE__)
+					pollfd pfd = { getFD(), POLLIN, 0 };
+					int const ready = poll(&pfd, 1, checkinterval);
+										
+					if ( ready == 1 && (pfd.revents & POLLIN) )
+					{
+						ssize_t red = ::read(fd,data,len);
+					
+						if ( red > 0 )
+						{
+							totalred += red;
+							data += red;
+							len -= red;
+						}
+						else if ( red < 0 && errno == EINTR )
+						{
+							std::cerr << "read interupted by signal." << std::endl;
+						}
+						else
+						{
+							len = 0;
+						}
+					}
+					else if ( ready == 1 && (pfd.revents & POLLHUP) )
+					{
+						len = 0;
+					}
+					else
+					{
+						std::cerr << "Waiting for fd=" << getFD() << " to become ready for reading, ready " << ready << " events " << pfd.revents; 
+						if ( remaddrset )
+						{
+							uint32_t const rem = ntohl(remaddr.sin_addr.s_addr);
+							std::cerr << " remote " 
+								<< ((rem >> 24) & 0xFF) << "."
+								<< ((rem >> 16) & 0xFF) << "."
+								<< ((rem >>  8) & 0xFF) << "."
+								<< ((rem >>  0) & 0xFF);
+						}
+						std::cerr << std::endl;
+						::libmaus::util::StackTrace ST;
+						std::cerr << ST.toString(false);
+					}
+					#else // __APPLE__
+					ssize_t red = ::read(fd,data,len);
+					
+					if ( red > 0 )
+					{
+						totalred += red;
+						data += red;
+						len -= red;
+					}
+					else if ( red < 0 && errno == EINTR )
+					{
+						std::cerr << "read interupted by signal." << std::endl;
+					}
+					else
+					{
+						len = 0;
+					}
+					#endif
+				}
+				
+				return totalred;
+			}
+
 			protected:
 			static void setAddress(char const * hostname, sockaddr_in & recadr)
 			{
@@ -287,7 +360,7 @@ namespace libmaus
 					if ( ! he )
 					{
 						::libmaus::exception::LibMausException se;
-						se.getStream() << "failed to get address via gethostbyname: " << hstrerror(h_errno);
+						se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 						se.finish();
 						throw se;		
 					}
@@ -297,7 +370,7 @@ namespace libmaus
 					if ( he->h_addr_list[0] == 0 )
 					{
 						::libmaus::exception::LibMausException se;
-						se.getStream() << "failed to get address via gethostbyname (no address returned)";
+						se.getStream() << "failed to get address for " << hostname << " via gethostbyname (no address returned)";
 						se.finish();
 						throw se;		
 					}
@@ -375,24 +448,32 @@ namespace libmaus
 			
 			void setNonBlocking()
 			{
-				int const flags = ioctl(fd,F_GETFL);
+				#if 0
+				int const flags = ::ioctl(fd,F_GETFL);
 				
 				if ( flags == -1 )
 				{
+					int const error = errno;
+					
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "ioctl() failed: " << strerror(errno);
+					se.getStream() << "ioctl("<<fd<<"," << F_GETFL << ",0" <<") failed: " << strerror(error) << std::endl;
 					se.finish();
-					throw;				
-				}
-				
+					throw se;
+				}				
+				#else
+				int const flags = 0;
+				#endif
+
 				int const r = ioctl(fd,F_SETFL,flags | O_NONBLOCK);
 
 				if ( r == -1 )
 				{
+					int const error = errno;
+					
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "ioctl() failed: " << strerror(errno);
+					se.getStream() << "ioctl() failed: " << strerror(error);
 					se.finish();
-					throw;				
+					throw se;				
 				}
 			}
 			

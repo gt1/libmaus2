@@ -21,6 +21,7 @@
 
 #include <libmaus/LibMausConfig.hpp>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/parallel/PosixMutex.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 #include <cerrno>
@@ -32,6 +33,8 @@ namespace libmaus
 {
 	namespace parallel
 	{
+		// direct support posix spin locks
+		#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
                 struct PosixSpinLock
                 {
                 	typedef PosixSpinLock this_type;
@@ -105,6 +108,63 @@ namespace libmaus
 				return r;
                         }
                 };
+                // no posix api for spin locks but sync lock support
+                #elif defined(LIBMAUS_HAVE_SYNC_LOCK)
+                struct PosixSpinLock
+                {
+                	typedef PosixSpinLock this_type;
+                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                
+                	unsigned int spinlock;
+                        
+                        PosixSpinLock() : spinlock()
+                        {
+                                spinlock = 0;
+                        }
+                        ~PosixSpinLock()
+                        {
+                        }
+                        
+                        void lock()
+                        {
+                        	// spin until we have the lock
+                        	while ( __sync_lock_test_and_set(&spinlock,1) == 1 )
+                        	{
+                        	}                        
+                        }
+                        void unlock()
+                        {
+				__sync_lock_release(&spinlock);
+                        }
+                        /**
+                         * try to lock spin lock. returns true if locking was succesful, false if lock
+                         * was already locked
+                         **/
+                        bool trylock()
+                        {
+                        	if ( __sync_lock_test_and_set(&spinlock,1) == 0 )
+                        		return true;
+				else
+					return false;
+                        }
+                        
+                        /*
+                         * try to lock spin lock. if succesful, lock is unlocked and return value is true,
+                         * otherwise return value is false
+                         */
+                        bool tryLockUnlock()
+                        {
+                        	bool const r = trylock();
+                        	if ( r )
+                        		unlock();
+				return r;
+                        }
+                };                
+                // none of the two above, use mutexes instead
+                #else
+                typedef PosixMutex PosixSpinLock;
+                #endif
                 
                 struct ScopePosixSpinLock
                 {

@@ -160,81 +160,6 @@ namespace libmaus
 			
 			void init()
 			{
-				#if 0
-				std::map < ::libmaus::huffman::HuffmanTreeNode const * , ::libmaus::huffman::HuffmanTreeInnerNode const * > parentMap;
-				std::map < ::libmaus::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
-				
-				std::stack < ::libmaus::huffman::HuffmanTreeNode const * > S;
-				S.push(sroot.get());
-				
-				while ( ! S.empty() )
-				{
-					::libmaus::huffman::HuffmanTreeNode const * cur = S.top();
-					S.pop();
-
-					if ( !cur->isLeaf() )
-					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(cur);
-						uint64_t const id = nodeToId.size();
-						nodeToId [ node ] = id;
-
-						parentMap [ node->left ] = node;
-						parentMap [ node->right ] = node;
-
-						// push children
-						S.push ( node->right );
-						S.push ( node->left );
-					}
-				}
-				
-				for ( std::map < ::libmaus::huffman::HuffmanTreeInnerNode const *, uint64_t >::const_iterator ita = nodeToId.begin();
-					ita != nodeToId.end(); ++ita )
-				{
-					::libmaus::huffman::HuffmanTreeInnerNode const * node = ita->first;
-					uint64_t const nodeid = ita->second;
-					
-					if ( parentMap.find(node) != parentMap.end() )
-					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(node)->second;
-						uint64_t const parentid = nodeToId.find(parent)->second;
-						
-						dicts [ nodeid ] -> parent = dicts [ parentid ].get();
-						
-						assert ( node == parent->left || node == parent->right );
-						
-						if ( node == parent->left )
-						{
-							dicts [ parentid ] -> left = dicts [ nodeid ].get();
-						}
-						else
-						{
-							dicts [ parentid ] -> right = dicts [ nodeid ] .get();
-						}
-					}
-					
-					#if 0
-					if ( node->left->isLeaf() )
-					{
-						dicts[nodeid]->left = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(node->left)->symbol;
-					}
-					if ( node->right->isLeaf() )
-					{
-						dicts[nodeid]->right = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(node->right)->symbol;
-					}
-					#endif
-				}
-
-				if ( dicts.size() )
-				{
-					root = dicts[0].get();
-				}
-				
-				::libmaus::autoarray::AutoArray<uint64_t> depth = sroot->depthArray();
-				maxdepth = 0;
-				for ( uint64_t i = 0; i < depth.size(); ++i )
-					maxdepth = std::max(maxdepth,depth[i]);
-				#endif
-				
 				maxdepth = 0;
 				for ( uint64_t i = 0; i < H->leafs(); ++i )
 					maxdepth = std::max(maxdepth,static_cast<uint64_t>(E->getCodeLength(H->getSymbol(i))));
@@ -259,7 +184,7 @@ namespace libmaus
 				{
 					rank_ptr_type tdictsi(new rank_type(in));
 					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
-					dicts [ i ] -> checkSanity();
+					// dicts [ i ] -> checkSanity();
 				}
 					
 				nodepos = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);

@@ -108,3 +108,13 @@ unsigned char const ::libmaus::util::SaturatingCounter::mask[4] = {
 unsigned int const libmaus::lz::RAZFConstants::razf_window_bits = 15;
 uint64_t const libmaus::lz::RAZFConstants::razf_block_size = 1ull << razf_window_bits;
 uint64_t const libmaus::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_block_size;
+
+#include <libmaus/network/CurlInit.hpp>
+
+uint64_t libmaus::network::CurlInit::initcomplete = 0;
+libmaus::parallel::PosixSpinLock libmaus::network::CurlInit::lock;
+
+#include <libmaus/network/OpenSSLInit.hpp>
+
+uint64_t libmaus::network::OpenSSLInit::initcomplete = 0;
+libmaus::parallel::PosixSpinLock libmaus::network::OpenSSLInit::lock;

@@ -2,10 +2,6 @@ ACLOCAL_AMFLAGS=-I m4
 
 abs_builddir = @abs_builddir@
 
-noinst_LTLIBRARIES = testmod.la
-testmod_la_LDFLAGS = @LIBMAUSLDFLAGS@ ${AM_LDFLAGS} -module -avoid-version -shared -rpath $(abs_builddir)
-testmod_la_SOURCES = test/testmod.cpp
-
 lib_LTLIBRARIES = libmaus.la libmauslsf.la libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
@@ -113,13 +109,15 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/parallel/SimpleThreadWorkPackage.cpp \
 	libmaus/lz/RAZFIndex.cpp \
 	libmaus/fastx/FastAIndexEntry.cpp \
-	libmaus/fastx/FastAIndex.cpp
+	libmaus/fastx/FastAIndex.cpp \
+	libmaus/network/HttpAbsoluteUrl.cpp \
+	libmaus/hashing/Crc32.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
+libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -355,7 +353,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamIndexMetaInfo.hpp \
 	libmaus/bambam/MdStringComputationContext.hpp \
 	libmaus/bambam/BamAlignmentFilter.hpp \
-	libmaus/bambam/BamAlignmentReadGroupFilter.hpp
+	libmaus/bambam/BamAlignmentReadGroupFilter.hpp \
+	libmaus/bambam/MdNmRecalculation.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -801,7 +800,8 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastABgzfDecoder.hpp \
 	libmaus/fastx/FastABgzfDecoderBuffer.hpp \
 	libmaus/fastx/FastAIndexEntry.hpp \
-	libmaus/fastx/FastAIndex.hpp
+	libmaus/fastx/FastAIndex.hpp \
+	libmaus/fastx/FastAInfo.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
@@ -827,7 +827,8 @@ libmaushashing_includedir=$(includedir)/libmaus/hashing
 libmaushashing_include_HEADERS=\
 	libmaus/hashing/hash.hpp \
 	libmaus/hashing/CircularHash.hpp \
-	libmaus/hashing/ConstantStringHash.hpp
+	libmaus/hashing/ConstantStringHash.hpp \
+	libmaus/hashing/Crc32.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
@@ -957,7 +958,18 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/FileDescriptorPasser.hpp \
 	libmaus/network/LogReceiverTestProcess.hpp \
 	libmaus/network/LogReceiver.hpp \
-	libmaus/network/LogReceiverDispatcherBase.hpp
+	libmaus/network/LogReceiverDispatcherBase.hpp \
+	libmaus/network/CurlInit.hpp \
+	libmaus/network/OpenSSLInit.hpp \
+	libmaus/network/SocketInputStreamBuffer.hpp \
+	libmaus/network/SocketInputStream.hpp \
+	libmaus/network/HttpAbsoluteUrl.hpp \
+	libmaus/network/SocketInputOutputInterface.hpp \
+	libmaus/network/OpenSSLSocket.hpp \
+	libmaus/network/FtpUrl.hpp \
+	libmaus/network/HttpBody.hpp \
+	libmaus/network/HttpHeader.hpp \
+	libmaus/network/FtpSocket.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1117,7 +1129,11 @@ noinst_PROGRAMS = \
 	testzlibconcat \
 	testsimplecompressblock \
 	testrazdec \
-	testfaindex
+	testfaindex \
+	testcurl \
+	testfastablockrecode \
+	testhttp \
+	testftp
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1419,3 +1435,21 @@ testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testfaindex_SOURCES = test/testfaindex.cpp
 testfaindex_LDADD = libmaus.la
+
+testcurl_SOURCES = test/testcurl.cpp
+testcurl_LDADD = libmaus.la
+testcurl_CPPFLAGS =  @LIBCURLCPPFLAGS@ @WARNCPPFLAGS@
+testcurl_LDFLAGS = @LIBCURLLIBS@
+
+testfastablockrecode_SOURCES = test/testfastablockrecode.cpp
+testfastablockrecode_LDADD = libmaus.la
+
+testhttp_SOURCES = test/testhttp.cpp
+testhttp_LDADD = libmaus.la
+testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
+testhttp_LDFLAGS = @OPENSSLLIBS@
+
+testftp_SOURCES = test/testftp.cpp
+testftp_LDADD = libmaus.la
+testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
+testftp_LDFLAGS = @OPENSSLLIBS@
