@@ -240,9 +240,25 @@ namespace libmaus
 				return static_cast<double>(fill) / H.size();
 			}
 
+			count_type insertExtend(key_type const v, uint64_t const inc = 1, double const loadthres = 0.8)
+			{
+				if ( loadFactor() >= loadthres || fill == H.size() )
+					extendInternal();
+				
+				return insert(v,inc);
+			}
+
 			// insert value and return count after insertion			
 			count_type insert(key_type const v, uint64_t const inc = 1)
 			{
+				if ( v == base_type::unused() )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "SimpleCountingHash::insert(): cannot insert key " << v << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+			
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
 				
