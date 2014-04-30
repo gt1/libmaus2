@@ -617,7 +617,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/LineAccessor.hpp \
 	libmaus/util/StringMapCompare.hpp \
 	libmaus/util/FreeList.hpp \
-	libmaus/util/ToUpperTable.hpp
+	libmaus/util/ToUpperTable.hpp \
+	libmaus/util/BorderArray.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

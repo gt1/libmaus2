@@ -18,8 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/KMP.hpp>
+#include <libmaus/util/BorderArray.hpp>
 #include <libmaus/util/SuccinctBorderArray.hpp>
+#include <libmaus/util/KMP.hpp>
 #include <libmaus/random/Random.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/util/ArgInfo.hpp>
@@ -132,10 +133,19 @@ void testSuccinctBorderArray()
 	libmaus::util::SuccinctBorderArray::check(s);
 }
 
+void testBorderArray()
+{
+	bool const fibok = libmaus::util::BorderArray<uint32_t>::checkFibonacci(20);
+	assert ( fibok );
+	std::string const s = "abaababaaba";
+	libmaus::util::BorderArray<uint32_t>::check(s);
+}
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		testBorderArray();
 		testSuccinctBorderArray();
 			
 		::libmaus::util::ArgInfo const arginfo(argc,argv);
