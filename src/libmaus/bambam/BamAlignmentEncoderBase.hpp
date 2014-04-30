@@ -222,14 +222,36 @@ namespace libmaus
 				{
 					uint8_t const high = seqenc[(*(seq++))];
 					uint8_t const low  = seqenc[(*(seq++))];
-					assert ( high < 16 );
-					assert ( low < 16 );
+					
+					if ( high >= 16 )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentEncoderBase::encodeSeq: " << seq[-2] << " is not a valid BAM symbol" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					if ( low >= 16 )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentEncoderBase::encodeSeq: " << seq[-1] << " is not a valid BAM symbol" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
 					buffer.put( (high << 4) | low );
 				}
 				if ( seqlen & 1 )
 				{				
 					uint8_t const high = seqenc[(*(seq++))];
-					assert ( high < 16 );
+
+					if ( high >= 16 )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentEncoderBase::encodeSeq: " << seq[-1] << " is not a valid BAM symbol" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
 					buffer.put( high<<4 );
 				}
 			}

@@ -205,6 +205,14 @@ namespace libmaus
 			{
 				return static_cast<double>(fill) / H.size();
 			}
+			
+			void insertExtend(key_type const v, uint64_t const w, double const loadthres)
+			{
+				if ( loadFactor() >= loadthres || (fill == H.size()) )
+					extendInternal();
+				
+				insert(v,w);
+			}
 
 			// insert value and return count after insertion			
 			void insert(key_type const v, uint64_t const w)
