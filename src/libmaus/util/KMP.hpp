@@ -251,6 +251,66 @@ namespace libmaus
 
 			// compute the first position of the longest prefix of x matching in y
 			// returns pair (position,matchlength)
+			template<typename const_iterator_x, typename const_iterator_y, typename pi_type>
+			static inline std::pair<uint64_t, uint64_t> PREFIX_SEARCH_INTERNAL_RESTRICTED_BOUNDED(
+				const_iterator_x x, uint64_t const m, pi_type & pi, 
+				const_iterator_y & y, uint64_t const n, 
+				uint64_t const restrict,
+				uint64_t const bound,
+				bool first = true
+			)
+			{
+				typedef int64_t key_type;
+				
+				int64_t i = 0;
+				
+				uint64_t maxj = 0;
+				uint64_t maxi = 0;
+
+				// iterate over input until position of match surely is at least restrict
+				// the formula is (j+1)-(i+1), where we have (i+1) as i may be incremented
+				// by one before we check (j+1)-i < restirct below
+				for ( uint64_t j = 0; j < n && (((j+1)-(i+1)) < restrict); ++j )
+				{
+					// std::cerr << "j=" << j << " i=" << i << std::endl;
+				
+					// read input
+					key_type const a = y.get();
+					
+					// use failure function if we have a full match
+					if ( i == static_cast<int>(m) )
+						i = pi[m];
+					
+					// follow failure function while we have no match for next symbol
+					while ( (i >= 0) && (a != x[i]) )
+						i = pi[i];
+
+					i += 1;
+					
+					// i is now the match length
+					
+					// we have a new maximal match
+					if ( 
+						i > static_cast<int>(maxi) && ((j+1)-i) < restrict 
+					)
+					{
+						maxi = i, maxj = j;
+						// std::cerr << "set maxi to " << i << std::endl;
+						
+						if ( i >= static_cast<int64_t>(bound) )
+							return std::pair<uint64_t, uint64_t>((maxj+1)-maxi,maxi);					
+					}
+					
+					// if we want the first match and have a full match, return result
+					if ( first && (i == static_cast<int>(m)) )
+						return std::pair<uint64_t, uint64_t>((maxj+1)-maxi,maxi);
+				}
+
+				return std::pair<uint64_t, uint64_t>((maxj+1)-maxi,maxi);
+			}
+
+			// compute the first position of the longest prefix of x matching in y
+			// returns pair (position,matchlength)
 			template<typename const_iterator_x, typename const_iterator_y>
 			static inline std::pair<uint64_t, uint64_t> PREFIX_SEARCH(
 				const_iterator_x x, uint64_t const m, 
