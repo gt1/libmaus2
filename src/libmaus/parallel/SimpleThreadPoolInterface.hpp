@@ -33,6 +33,9 @@ namespace libmaus
 			
 			virtual void notifyThreadStart() = 0;
 			virtual void registerDispatcher(uint64_t const id, SimpleThreadWorkPackageDispatcher * D) = 0;
+			virtual void panic(std::exception const &) = 0;
+			virtual void panic(libmaus::exception::LibMausException const &) = 0;
+			virtual bool isInPanicMode() = 0;
 
 			virtual SimpleThreadWorkPackage * getPackage() = 0;
 			virtual SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus::parallel::SimpleThreadWorkPackage * P) = 0;
