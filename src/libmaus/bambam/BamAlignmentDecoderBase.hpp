@@ -3078,10 +3078,20 @@ namespace libmaus
 					if ( cigop > ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF )
 						return libmaus_bambam_alignment_validity_unknown_cigar_op;
 				}
+				
+				uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(D);
+				bool const unmapped = ::libmaus::bambam::BamAlignmentDecoderBase::isUnmap(flags);
+				bool const mapped = !unmapped;
+				bool const qcfail = ::libmaus::bambam::BamAlignmentDecoderBase::isQCFail(flags);
+				bool const secondary = ::libmaus::bambam::BamAlignmentDecoderBase::isSecondary(flags);
+				// annotation (see SAM spec section 3.2, padded)
+				bool const annot = qcfail && secondary;
 
 				// check if cigar string is consistent with sequence length
 				if ( 
-					(!::libmaus::bambam::BamAlignmentDecoderBase::isUnmap(::libmaus::bambam::BamAlignmentDecoderBase::getFlags(D)))
+					mapped
+					&&
+					(!annot)
 					&&
 					static_cast<int64_t>(::libmaus::bambam::BamAlignmentDecoderBase::getLseqByCigar(D)) != static_cast<int64_t>(seqlen)
 				)
