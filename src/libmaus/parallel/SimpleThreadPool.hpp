@@ -41,7 +41,10 @@ namespace libmaus
 			
 			uint64_t nextpackageid;
 			libmaus::parallel::PosixSpinLock nextpackageidlock;
-			
+			bool panicflag;
+			libmaus::parallel::PosixSpinLock panicflaglock;
+			libmaus::exception::LibMausException::unique_ptr_type lme;
+						
 			// semaphore for notifying about start completion
 			libmaus::parallel::PosixSemaphore startsem;
 				
@@ -52,8 +55,41 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadWorkPackage *,
 				libmaus::parallel::SimpleThreadWorkPackageComparator
 			> Q;
-			
-			void printPendingHistogram(std::ostream & out)
+
+                        void panic(libmaus::exception::LibMausException const & ex)
+                        {
+                        	libmaus::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
+                        	Q.terminate();
+                        	panicflag = true;
+                        	
+                        	if ( ! lme.get() )
+                        		lme = UNIQUE_PTR_MOVE(ex.uclone());
+                        }
+
+                        void panic(std::exception const & ex)
+                        {
+                        	libmaus::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
+                        	Q.terminate();
+                        	panicflag = true;
+                        	
+                        	if ( ! lme.get() )
+                        	{
+                        		libmaus::exception::LibMausException::unique_ptr_type tlme(
+                        			new libmaus::exception::LibMausException
+                        		);
+                        		lme = UNIQUE_PTR_MOVE(tlme);
+                        		lme->getStream() << ex.what();
+                        		lme->finish();
+                        	}
+                        }
+                        
+                        bool isInPanicMode()
+                        {
+                        	libmaus::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
+				return panicflag;                        
+                        }
+                        
+                        void printPendingHistogram(std::ostream & out)
 			{
 				std::vector<libmaus::parallel::SimpleThreadWorkPackage *> pending =
 					Q.pending();
@@ -113,9 +149,15 @@ namespace libmaus
 					startsem.wait();
 				}
 			}
+
+			void internalJoin()
+			{
+				for ( uint64_t i = 0; i < threads.size(); ++i )
+					threads[i]->tryJoin();			
+			}
 			~SimpleThreadPool()
 			{
-				join();
+				internalJoin();
 				
 				for ( uint64_t i = 0; i < threads.size(); ++i )
 					threads[i].reset();			
@@ -123,8 +165,10 @@ namespace libmaus
 			
 			void join()
 			{
-				for ( uint64_t i = 0; i < threads.size(); ++i )
-					threads[i]->tryJoin();			
+				internalJoin();
+				
+				if ( lme.get() )
+					throw *lme;
 			}
 						
 			void enque(SimpleThreadWorkPackage * P)

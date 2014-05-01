@@ -57,7 +57,8 @@ namespace libmaus
 					// notify pool this thread is now running
 					tpi.notifyThreadStart();
 					
-					while ( true )
+					bool running = true;
+					while ( running )
 					{
 						libmaus::parallel::SimpleThreadWorkPackage * P = tpi.getPackage();
 						{
@@ -65,7 +66,20 @@ namespace libmaus
 							curpack = P;
 						}
 						SimpleThreadWorkPackageDispatcher * disp = tpi.getDispatcher(P);
-						disp->dispatch(P,tpi);
+						
+						try
+						{
+							disp->dispatch(P,tpi);
+						}
+						catch(libmaus::exception::LibMausException const & ex)
+						{
+							tpi.panic(ex);
+						}
+						catch(std::exception const & ex)
+						{
+							tpi.panic(ex);
+						}
+						
 						{
 							libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
 							curpack = 0;							

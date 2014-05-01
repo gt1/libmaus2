@@ -116,10 +116,57 @@ namespace libmaus
 				meta->freelist.returnPackage(DP);
 			}
 		};
+
+		struct DummyThreadWorkPackageRandomExceptionDispatcher : public SimpleThreadWorkPackageDispatcher
+		{
+			virtual ~DummyThreadWorkPackageRandomExceptionDispatcher() {}
+			virtual void dispatch(
+				SimpleThreadWorkPackage * P, 
+				SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+			)
+			{
+				DummyThreadWorkPackage * DP = dynamic_cast<DummyThreadWorkPackage *>(P);
+				assert ( DP );
+				DummyThreadWorkPackageMeta * meta = DP->meta;
+
+				static const uint64_t numpacks = 1024;
+				static const uint64_t spawn = 3;
+
+				{
+				libmaus::parallel::ScopePosixMutex mutex(*(DP->mutex));
+				std::cerr << DP << std::endl;
+				}
+
+				if ( rand() % 16 == 4 )
+				{
+					throw std::runtime_error("Random exception");
+				}
+
+				for ( uint64_t i = 1; i <= spawn; ++i )
+				{
+					if ( spawn*DP->packageid+i < numpacks )
+					{
+						libmaus::parallel::DummyThreadWorkPackage * pack0 = meta->freelist.getPackage();
+						*pack0 = libmaus::parallel::DummyThreadWorkPackage(
+							DP->priority,
+							DP->dispatcherid,
+							DP->mutex,
+							DP->meta
+						);
+						tpi.enque(pack0);
+					}
+				}
+				
+				if ( ++ meta->finished == numpacks )
+					tpi.terminate();
+				
+				meta->freelist.returnPackage(DP);
+			}
+		};
 	}
 }
 
-int main()
+void testDummyPackages()
 {
 	libmaus::parallel::SimpleThreadPool TP(8);
 
@@ -136,7 +183,38 @@ int main()
 
 	TP.enque(pack);
 	
-	TP.join();
-	
-	std::cerr << meta.freelist.freelist.size() << std::endl;
+	TP.join();	
+}
+
+void testDummyRandomExceptionPackages()
+{
+	try
+	{
+		libmaus::parallel::SimpleThreadPool TP(8);
+
+		uint64_t const dispid = 0;
+
+		libmaus::parallel::DummyThreadWorkPackageRandomExceptionDispatcher dummydisp;
+		TP.registerDispatcher(dispid,&dummydisp);
+		
+		libmaus::parallel::DummyThreadWorkPackageMeta meta;
+		libmaus::parallel::PosixMutex printmutex;
+		
+		libmaus::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
+		*pack = libmaus::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
+
+		TP.enque(pack);
+		
+		TP.join();	
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+	}
+}
+
+int main()
+{
+	// testDummyPackages();
+	testDummyRandomExceptionPackages();
 }
