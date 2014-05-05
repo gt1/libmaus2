@@ -617,9 +617,30 @@ void testHuffmanTree()
 	}
 }
 
+void testHuffmanTreeNoCnt()
+{
+	std::vector<uint8_t> syms;
+	syms.push_back(0);
+	syms.push_back(1);
+	syms.push_back(2);
+	syms.push_back(3);
+	syms.push_back(4);
+	syms.push_back(5);
+	syms.push_back(6);
+	syms.push_back(8);
+	syms.push_back(10);
+	syms.push_back(16);
+	syms.push_back(33);
+	libmaus::huffman::HuffmanTree H(syms);
+	libmaus::huffman::HuffmanTree::EncodeTable E(H);
+	std::cerr << H;
+	std::cerr << E;
+}
+
 int main()
 {
-	testHuffmanTree();	
+	testHuffmanTreeNoCnt();
+	//testHuffmanTree();	
 	
 	return 0;
 

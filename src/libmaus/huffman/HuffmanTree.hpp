@@ -23,6 +23,7 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
 #include <libmaus/bitio/BitVector.hpp>
+#include <libmaus/math/numbits.hpp>
 
 namespace libmaus
 {
@@ -503,6 +504,140 @@ namespace libmaus
 				for ( uint64_t j = 0; j < i; ++j, ++p ) N[p].node.I = o.N[p].node.I;
 			}
 			
+			// construct tree from symbols by value (equal freq)
+			template<typename symbol_type>
+			HuffmanTree(std::vector<symbol_type> const & syms)
+			: N(syms.size() ? (2*syms.size()-1) : 0, false), setcode(true),  treeroot(syms.size() ? (N.size()-1) : 0)
+			{
+				// fill leafs				
+				for ( uint64_t i = 0; i < syms.size(); ++i )
+				{
+					N[i].node.L.sym = syms[i];
+					N[i].node.L.cnt = 0;
+				}
+
+				// sort leafs by symbol (all counts are zero)
+				std::stable_sort(N.begin(),N.begin()+syms.size(),HuffmanNodeLeafComparator());
+
+				// copy symbol to count
+				for ( uint64_t i = 0; i < syms.size(); ++i )
+					N[i].node.L.cnt = N[i].node.L.sym;
+				
+				typedef std::pair<uint64_t,uint64_t> upair;
+				std::deque<upair> Q;
+				
+				if ( syms.size() > 1 )
+					Q.push_back(upair(0,syms.size()));
+				
+				uint64_t nodeid = 0;	
+				while ( Q.size() )
+				{
+					upair const P = Q.front();
+					
+					// clip off top bit if top is equal for all symbols
+					while ( 
+						libmaus::math::numbits(N[P.first].node.L.cnt)
+						==
+						libmaus::math::numbits(N[P.second-1].node.L.cnt)
+					)
+					{
+						unsigned int const bits = libmaus::math::numbits(N[P.first].node.L.cnt);
+						assert ( bits );
+						uint64_t const mask = ~(1ull << (bits-1));
+							
+						for ( uint64_t i = P.first; i < P.second; ++i )
+							N[i].node.L.cnt &= mask;
+					}
+					
+					uint64_t const shift = libmaus::math::numbits(N[P.second-1].node.L.cnt)-1;
+					uint64_t cnt[2] = {0,0};
+					for ( uint64_t i = P.first; i < P.second; ++i )
+					{
+						assert ( (N[i].node.L.cnt >> shift) < 2 );
+						cnt[N[i].node.L.cnt >> shift]++;
+					}
+					
+					assert ( cnt[0] * cnt[1] );
+
+					uint64_t insinner = N.size()-nodeid-1;
+					// leaf
+					if ( cnt[0] == 1 )
+						N[insinner].node.I.left = P.first;
+					else
+					{
+						N[insinner].node.I.left = N.size()-(nodeid+Q.size())-1;
+						Q.push_back(upair(P.first,P.first+cnt[0]));
+					}
+					if ( cnt[1] == 1 )
+						N[insinner].node.I.right = P.second-1;
+					else
+					{
+						N[insinner].node.I.right = N.size()-(nodeid+Q.size())-1;
+						Q.push_back(upair(P.second-cnt[1],P.second));
+					}
+						
+					Q.pop_front();
+					nodeid++;
+				}
+
+				assert ( nodeid == N.size()/2 );
+
+				// set depth of tree root
+				if ( nodeid )
+					N[N.size()-1].node.I.cnt = 0;
+				else if ( syms.size() )
+					N[N.size()-1].node.L.cnt = 0;
+			
+				for ( uint64_t i = 0; i < nodeid; ++i )
+				{
+					uint64_t const j = N.size()-i-1;
+					
+					if ( N[j].node.I.left < syms.size() )
+						N [ N[j].node.I.left ] . node . L . cnt = N[j].node.I.cnt+1;
+					else
+						N [ N[j].node.I.left ] . node . I . cnt = N[j].node.I.cnt+1;
+
+					if ( N[j].node.I.right < syms.size() )
+						N [ N[j].node.I.right ] . node . L . cnt = N[j].node.I.cnt+1;
+					else
+						N [ N[j].node.I.right ] . node . I . cnt = N[j].node.I.cnt+1;
+				}
+				
+				uint64_t maxdepth = 0;
+				for ( uint64_t i = 0; i < leafs(); ++i )
+					maxdepth = std::max(maxdepth,N[i].node.L.cnt);
+
+				if ( maxdepth > 58 )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "HuffmanTree: cannot store code in tree for maximal depth " << maxdepth << " exceeding 58" << std::endl;
+					se.finish();
+					throw se;
+				}
+			
+				for ( uint64_t i = 0; i < inner(); ++i )
+				{
+					uint64_t const j = N.size()-i-1;
+
+					uint64_t const depth = (N[j].node.I.cnt) & 0x3F;
+					uint64_t const code  = (N[j].node.I.cnt) >> 6;
+					uint64_t const leftword  = (depth+1) | (((code << 1) | 0) << 6);
+					uint64_t const rightword = (depth+1) | (((code << 1) | 1) << 6);
+					
+					if ( N[j].node.I.left < leafs() )
+						N [ N[j].node.I.left ] . node . L . cnt = leftword;
+					else
+						N [ N[j].node.I.left ] . node . I . cnt = leftword;
+
+					if ( N[j].node.I.right < leafs() )
+						N [ N[j].node.I.right ] . node . L . cnt = rightword;
+					else
+						N [ N[j].node.I.right ] . node . I . cnt = rightword;
+				}
+
+				reorderByDfs();
+			}
+			
 			// construct tree from array of pairs (sym,freq)
 			template<typename iterator>
 			HuffmanTree(iterator F, uint64_t const s, bool const sortbydepth = false, bool const rsetcode = false, bool const rdfsorder = false)
@@ -570,7 +705,7 @@ namespace libmaus
 				// replace symbol counts by node depth
 				
 				// set depth of tree root
-				if ( procinner )
+				if (	 procinner )
 					N[N.size()-1].node.I.cnt = 0;
 				else if ( s )
 					N[N.size()-1].node.L.cnt = 0;
