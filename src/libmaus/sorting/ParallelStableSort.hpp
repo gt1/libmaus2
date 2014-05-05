@@ -247,7 +247,7 @@ namespace libmaus
 					unsigned int const num_threads = context.num_threads;
 					#pragma omp parallel for num_threads(num_threads)
 					#endif
-					for ( int64_t t = 0; t < mergeRequests.size(); ++t )
+					for ( int64_t t = 0; t < static_cast<int64_t>(mergeRequests.size()); ++t )
 						mergeRequests[t].dispatch();				
 				}
 			};
