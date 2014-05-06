@@ -56,7 +56,8 @@ namespace libmaus
 			
 			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & BADI,
-				bool const putrank = false
+				bool const putrank = false,
+				std::istream & stdin = std::cin
 			)
 			{
 				if ( ! BADI.size() || BADI.size() > 1 )
@@ -68,6 +69,7 @@ namespace libmaus
 				{
 					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 						libmaus::bambam::BamAlignmentDecoderFactory::construct(
+							stdin,
 							BADI[0].inputfilename,
 							BADI[0].inputformat,
 							BADI[0].inputthreads,
@@ -81,13 +83,19 @@ namespace libmaus
 				}			
 			}
 			
-			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(libmaus::util::ArgInfo const & arginfo, bool const putrank = false, std::ostream * copystr = 0)
+			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+				libmaus::util::ArgInfo const & arginfo,
+				bool const putrank = false, 
+				std::ostream * copystr = 0,
+				std::istream & stdin = std::cin)
 			{
 				std::vector<std::string> const I = arginfo.getPairValues("I");
 				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
 				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
 				std::string const reference = arginfo.getValue<std::string>("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
-				std::string const range = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
+				std::string const prange = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
+				std::string const pranges = arginfo.getUnparsedValue("ranges",std::string(""));
+				std::string const range = pranges.size() ? pranges : prange;
 
 				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> V;
 				for ( uint64_t i = 0; i < I.size(); ++i )
@@ -116,7 +124,7 @@ namespace libmaus
 						)
 					);
 					
-				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank));
+				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,stdin));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
