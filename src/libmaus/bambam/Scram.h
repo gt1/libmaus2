@@ -82,6 +82,7 @@ typedef struct _libmaus_bambam_ScramEncoder
 } libmaus_bambam_ScramEncoder;
 
 typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename);
+typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Range_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * ref, int64_t const start, int64_t const end);
 typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_Delete_Type)(libmaus_bambam_ScramDecoder * object);
 typedef int (* libmaus_bambam_ScramDecoder_Decode_Type)(libmaus_bambam_ScramDecoder * object);
 
@@ -105,6 +106,15 @@ typedef int (* libmaus_bambam_ScramEncoder_Encode_Type)(libmaus_bambam_ScramEnco
  * @return scram decoder object or null if creation failed
  **/
 libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfilename, char const * rmode, char const * rreferencefilename);
+/**
+ * allocate scram decoder
+ *
+ * @param rfilename input file name, - for stdin
+ * @param rmode input mode; r, rb or rc for SAM, BAM or CRAM
+ * @param rreferencefilename reference filename, null pointer for none
+ * @return scram decoder object or null if creation failed
+ **/
+libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * ref, int64_t const start, int64_t const end);
 /**
  * deallocate scram decoder
  *

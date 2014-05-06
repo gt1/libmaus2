@@ -239,6 +239,10 @@ namespace libmaus
 				}
 				else if ( inputformat == "cram" )
 				{
+					std::string rangeref;
+					int64_t rangestart = -1;
+					int64_t rangeend = -1;
+					
 					if ( copystr )
 					{
 						libmaus::exception::LibMausException ex;
@@ -248,10 +252,67 @@ namespace libmaus
 					}
 					if ( range.size() )
 					{
-						libmaus::exception::LibMausException ex;
-						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are only supported for BAM input format" << std::endl;
-						ex.finish();
-						throw ex;		
+						if ( inputisstdin )
+						{
+							libmaus::exception::LibMausException ex;
+							ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for input via stdin" << std::endl;
+							ex.finish();
+							throw ex;		
+						}
+
+						std::size_t const colpos = range.find(":");
+						if ( colpos == std::string::npos )
+						{
+							libmaus::exception::LibMausException ex;
+							ex.getStream() << "BamAlignmentDecoderFactory::construct(): cannot parse CRAM input range " << range << " (does not contain :)" << std::endl;
+							ex.finish();
+							throw ex;
+						}
+
+						rangeref = range.substr(0,colpos);
+
+						std::string rangerest = range.substr(colpos+1);
+						std::size_t const minpos = rangerest.find("-");
+
+						if ( minpos == std::string::npos )
+						{
+							libmaus::exception::LibMausException ex;
+							ex.getStream() << "BamAlignmentDecoderFactory::construct(): cannot parse CRAM input range " << range << " (range does not contain -)" << std::endl;
+							ex.finish();
+							throw ex;
+						}
+						
+						std::string const sstart = rangerest.substr(0,minpos);
+						std::string const send = rangerest.substr(minpos+1);
+						
+						rangestart = 0;
+						for ( uint64_t i = 0; i < sstart.size(); ++i )
+							if ( ! isdigit(static_cast<uint8_t>(sstart[i])) )
+							{
+								libmaus::exception::LibMausException ex;
+								ex.getStream() << "BamAlignmentDecoderFactory::construct(): cannot parse CRAM input range " << range << " (start point is not a number)" << std::endl;
+								ex.finish();
+								throw ex;		
+							}
+							else
+							{
+								rangestart *= 10;
+								rangestart += (sstart[i]-'0');
+							}
+						rangeend = 0;
+						for ( uint64_t i = 0; i < send.size(); ++i )
+							if ( ! isdigit(static_cast<uint8_t>(send[i])) )
+							{
+								libmaus::exception::LibMausException ex;
+								ex.getStream() << "BamAlignmentDecoderFactory::construct(): cannot parse CRAM input range " << range << " (end point is not a number)" << std::endl;
+								ex.finish();
+								throw ex;		
+							}
+							else
+							{
+								rangeend *= 10;
+								rangeend += (send[i]-'0');
+							}
 					}
 
 					if ( inputisstdin )
@@ -263,10 +324,20 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,putrank)
-						);
-						return UNIQUE_PTR_MOVE(tptr);					
+						if ( rangeref.size() )
+						{
+							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,rangeref,rangestart,rangeend,putrank)
+							);
+							return UNIQUE_PTR_MOVE(tptr);											
+						}
+						else
+						{
+							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,putrank)
+							);
+							return UNIQUE_PTR_MOVE(tptr);					
+						}
 					}
 				}
 				#endif
