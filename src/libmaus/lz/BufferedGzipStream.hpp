@@ -27,6 +27,10 @@ namespace libmaus
 	{
 		struct BufferedGzipStream : public GzipStreamWrapper, ::libmaus::lz::StreamWrapper< ::libmaus::lz::GzipStream >
 		{
+			typedef BufferedGzipStream this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			BufferedGzipStream(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			: GzipStreamWrapper(in), ::libmaus::lz::StreamWrapper< ::libmaus::lz::GzipStream >(GZ,bufsize,pushbacksize)
 			{

@@ -92,6 +92,122 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 		
 	return object;
 }
+
+libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * rref, int64_t const start, int64_t const end)
+{
+	libmaus_bambam_ScramDecoder * object = 0;
+	size_t filenamelen = 0;
+	size_t modelen = 0;
+	size_t referencefilenamelen = 0;
+	SAM_hdr * samheader = 0;
+	scram_fd * sdecoder = 0;
+	int64_t refid = -1;
+	char * ref = 0;
+	cram_range r;
+	char ID_type[] = "SQ";
+	char ID_key[] = "SN";
+	
+	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
+	
+	if ( ! object )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+		
+	memset(object,0,sizeof(*object));
+	
+	modelen = strlen(rmode);
+	filenamelen = strlen(rfilename);
+	
+	if ( ! (object->filename = (char *)malloc(filenamelen+1)) )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+	if ( ! (object->mode = (char *)malloc(modelen+1)) )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+	
+	memcpy(object->filename,rfilename,filenamelen);
+	object->filename[filenamelen] = 0;
+	memcpy(object->mode,rmode,modelen);
+	object->mode[modelen] = 0;
+
+	if ( rreferencefilename )
+	{
+		referencefilenamelen = strlen(rreferencefilename);
+		if ( ! (object->referencefilename = (char *)malloc(referencefilenamelen+1)) )
+			return libmaus_bambam_ScramDecoder_Delete(object);
+		memcpy(object->referencefilename,rreferencefilename,referencefilenamelen);
+		object->referencefilename[referencefilenamelen] = 0;
+	}
+	
+	if ( !(object->decoder = scram_open(object->filename,object->mode)) )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+		
+	sdecoder = (scram_fd *)(object->decoder);
+
+	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
+
+	if ( !(sdecoder->is_bam) && object->referencefilename ) 
+	{
+		cram_load_reference(sdecoder->c, object->referencefilename);
+		if ( !sdecoder->c->refs ) 
+			return libmaus_bambam_ScramDecoder_Delete(object);
+	}
+
+	samheader = scram_get_header(sdecoder);
+	
+	if ( ! samheader )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+		
+	if ( ! (object->header = (char *)malloc(samheader->text->length)) )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+	
+	memcpy ( object->header,samheader->text->str,samheader->text->length );
+	object->headerlen = samheader->text->length;
+
+	/* range decoding is not supported for non cram formats */
+	if ( sdecoder->is_bam )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+
+	/* load cram index, returns -1 on failure */
+	if ( cram_index_load(sdecoder->c, object->filename) < 0 )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+
+	/* check if we have a sequence name */
+	if ( ! rref )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+	
+	/* duplicate reference id string */
+	ref = strdup(rref);
+
+	/* check */
+	if ( ! ref )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+	
+	/* get numerical id of ref seq */
+	refid = sam_hdr_name2ref(sdecoder->c->header, ref);
+	
+	/* dealloc duplicate */
+	free(ref);
+	
+	/* get whether ref id is valid */
+	if ( refid < 0 || refid >= sdecoder->c->header->nref )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+
+	// fprintf(stderr,"***%s %u\n",sdecoder->c->header->ref[refid].name,sdecoder->c->header->ref[refid].len);
+
+	/* set up range object */
+	r.refid = refid;
+	r.start = start;
+
+	if ( end >= 0 )
+		r.end = end;
+	else
+		r.end = INT_MAX;
+
+	/* set range */
+	if (scram_set_option(sdecoder, CRAM_OPT_RANGE, &r))
+		return libmaus_bambam_ScramDecoder_Delete(object);
+				
+	return object;
+}
+
 libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_Delete(libmaus_bambam_ScramDecoder * object)
 {
 	if ( object )

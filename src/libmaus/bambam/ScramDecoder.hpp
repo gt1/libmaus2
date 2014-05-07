@@ -52,6 +52,8 @@ namespace libmaus
 			::libmaus::util::DynamicLibrary scram_mod;
 			//! decoder allocate function handle
 			::libmaus::util::DynamicLibraryFunction<libmaus_bambam_ScramDecoder_New_Type> d_new;
+			//! decoder allocate function handle with range
+			::libmaus::util::DynamicLibraryFunction<libmaus_bambam_ScramDecoder_New_Range_Type> d_new_range;
 			//! decoder deallocation function handle
 			::libmaus::util::DynamicLibraryFunction<libmaus_bambam_ScramDecoder_Delete_Type> d_delete;
 			//! decoder decoding function handle
@@ -79,6 +81,50 @@ namespace libmaus
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode << std::endl;
+					se.finish();
+					throw se;
+				}
+			
+				return dec;
+			}
+
+			/**
+			 * allocate scram decoder object with range; throws exception on failure
+			 *
+			 * @param filename input filename, - for stdin
+			 * @param mode file mode r (SAM), rb (BAM) or rc (CRAM)
+			 * @param reference reference file name (empty string for none)
+			 * @return decoder object
+			 **/					
+			libmaus_bambam_ScramDecoder * allocateDecoder(
+				std::string const & filename, std::string const & mode, std::string const & reference,
+				std::string const & ref,
+				int64_t const start,
+				int64_t const end
+			)
+			{
+				if ( mode != "rc" )
+				{				
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode 
+						<< " with range (" << ref << "," << start << "," << end << "), "
+						<< "ranges are only supported for CRAM input" << std::endl;
+					se.finish();
+					throw se;
+				}
+			
+				libmaus_bambam_ScramDecoder * dec = d_new_range.func(
+					filename.c_str(),mode.c_str(),reference.size() ? reference.c_str() : 0,
+					ref.c_str(),
+					start,end
+				);
+				
+				if ( ! dec )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "ScramDecoder: failed to open file " << filename << " in mode " << mode 
+						<< " with range (" << ref << "," << start << "," << end << ")"
+						<< std::endl;
 					se.finish();
 					throw se;
 				}
@@ -142,9 +188,38 @@ namespace libmaus
 				libmaus::bambam::BamAlignmentDecoder(rputrank),
 				scram_mod("libmaus_scram_mod.so"),
 				d_new(scram_mod,"libmaus_bambam_ScramDecoder_New"),
+				d_new_range(scram_mod,"libmaus_bambam_ScramDecoder_New_Range"),
 				d_delete(scram_mod,"libmaus_bambam_ScramDecoder_Delete"),
 				d_decode(scram_mod,"libmaus_bambam_ScramDecoder_Decode"),
 				dec(allocateDecoder(filename,mode,reference)),
+				bamheader(std::string(dec->header,dec->header+dec->headerlen))
+			{
+			}
+
+			/**
+			 * constructor
+			 *
+			 * @param filename input filename, - for stdin
+			 * @param mode file mode r (SAM), rb (BAM) or rc (CRAM)
+			 * @param reference reference file name (empty string for none)
+			 * @param ref name of reference sequence for range
+			 * @param start range start
+			 * @param end range end
+			 * @param rputrank put rank (line number) on alignments
+			 **/
+			ScramDecoder(std::string const & filename, std::string const & mode, std::string const & reference,
+				std::string const & ref,
+				int64_t const start,
+				int64_t const end,
+				bool const rputrank = false)
+			: 
+				libmaus::bambam::BamAlignmentDecoder(rputrank),
+				scram_mod("libmaus_scram_mod.so"),
+				d_new(scram_mod,"libmaus_bambam_ScramDecoder_New"),
+				d_new_range(scram_mod,"libmaus_bambam_ScramDecoder_New_Range"),
+				d_delete(scram_mod,"libmaus_bambam_ScramDecoder_Delete"),
+				d_decode(scram_mod,"libmaus_bambam_ScramDecoder_Decode"),
+				dec(allocateDecoder(filename,mode,reference,ref,start,end)),
 				bamheader(std::string(dec->header,dec->header+dec->headerlen))
 			{
 			}
@@ -189,6 +264,30 @@ namespace libmaus
 				bool const rputrank = false
 			)
 			: scramdec(filename,mode,reference,rputrank)
+			{
+			
+			}
+			/**
+			 * constructor
+			 *
+			 * @param filename input filename, - for stdin
+			 * @param mode file mode r (SAM), rb (BAM) or rc (CRAM)
+			 * @param reference reference file name (empty string for none)
+			 * @param ref name of reference sequence for range
+			 * @param start range start
+			 * @param end range end
+			 * @param rputrank put rank (line number) on alignments
+			 **/
+			ScramDecoderWrapper(
+				std::string const & filename, 
+				std::string const & mode, 
+				std::string const & reference, 
+				std::string const & ref,
+				int64_t const start,
+				int64_t const end,
+				bool const rputrank = false
+			)
+			: scramdec(filename,mode,reference,ref,start,end,rputrank)
 			{
 			
 			}
