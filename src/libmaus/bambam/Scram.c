@@ -104,6 +104,8 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	int64_t refid = -1;
 	char * ref = 0;
 	cram_range r;
+	char ID_type[] = "SQ";
+	char ID_key[] = "SN";
 	
 	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
 	
@@ -185,13 +187,19 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	free(ref);
 	
 	/* get whether ref id is valid */
-	if ( refid < 0 )
+	if ( refid < 0 || refid >= sdecoder->c->header->nref )
 		return libmaus_bambam_ScramDecoder_Delete(object);
-	
+
+	// fprintf(stderr,"***%s %u\n",sdecoder->c->header->ref[refid].name,sdecoder->c->header->ref[refid].len);
+
 	/* set up range object */
 	r.refid = refid;
 	r.start = start;
-	r.end = end;
+
+	if ( end >= 0 )
+		r.end = end;
+	else
+		r.end = INT_MAX;
 
 	/* set range */
 	if (scram_set_option(sdecoder, CRAM_OPT_RANGE, &r))
