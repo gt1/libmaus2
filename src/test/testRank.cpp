@@ -1756,10 +1756,7 @@ void testrl(std::vector<bool> const & B)
 			assert ( r1 == RLBVint.rank1(i) );
 			unsigned int sym;
 			
-			if ( B[i] )
-				assert ( r1 == RLBVint.inverseSelect1(i,sym) );
-			else
-				assert ( RLBVint.rank0(i) == RLBVint.inverseSelect1(i,sym) );				
+			assert ( r1 == RLBVint.inverseSelect1(i,sym) );
 		}
 	}
 }
