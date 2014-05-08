@@ -31,6 +31,10 @@ namespace libmaus
 	{
 		struct RunLengthBitVector
 		{
+			typedef RunLengthBitVector this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			// size of a single block in encoded bits
 			uint64_t const blocksize;
 			// total length of bit stream in bits
@@ -266,7 +270,6 @@ namespace libmaus
 
 			uint64_t inverseSelect1(uint64_t i, unsigned int & rsym) const
 			{
-				uint64_t const ii = i;
 				assert ( i < n );
 				
 				uint64_t const block = i / blocksize;
@@ -299,13 +302,9 @@ namespace libmaus
 				rsym = sym;
 
 				if ( sym )
-				{
 					return r+i+1;
-				}
 				else
-				{
-					return ii+1-r;
-				}
+					return r;
 			}
 		};
 	}
