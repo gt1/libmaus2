@@ -32,6 +32,10 @@ namespace libmaus
 	{
 		struct RunLengthBitVectorGenerator
 		{
+			typedef RunLengthBitVectorGenerator this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			// block size in symbols
 			uint64_t const blocksize;
 			
