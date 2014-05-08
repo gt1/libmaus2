@@ -41,7 +41,7 @@ namespace libmaus
 			  // process eight bytes at once (Slicing-by-8)
 			  while (length >= 8)
 			  {
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if defined(LIBMAUS_BYTE_ORDER_BIG_ENDIAN)
 			    uint32_t one = *current++ ^ swap(crc);
 			    uint32_t two = *current++;
 			    crc  = Crc32Lookup[0][ two      & 0xFF] ^
