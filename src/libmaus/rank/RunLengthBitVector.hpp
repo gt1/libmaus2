@@ -22,7 +22,10 @@
 #include <libmaus/rank/RunLengthBitVectorBase.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
+#include <libmaus/gamma/GammaEncoder.hpp>
+#include <libmaus/parallel/SynchronousCounter.hpp>
 #include <libmaus/util/GetObject.hpp>
+#include <libmaus/util/HistogramSet.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
 
 namespace libmaus
@@ -71,6 +74,115 @@ namespace libmaus
 			bool operator[](uint64_t const i) const
 			{
 				return get(i);
+			}
+			
+			uint64_t getNumBlocks() const
+			{
+				return (n+blocksize-1) / blocksize;
+			}
+			
+			double getAvgBlockBitLength() const
+			{
+				uint64_t const nb = getNumBlocks();
+				libmaus::parallel::SynchronousCounter<uint64_t> cnt;
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int64_t b = 0; b < static_cast<int64_t>(nb); ++b )
+					cnt += getBlockBitLength(b);
+					
+				return static_cast<double>(cnt.get()) / static_cast<double>(nb);
+			}
+			
+			uint64_t getBlockBitLength(uint64_t const b) const
+			{
+				assert ( b < getNumBlocks() );
+				uint64_t bl = std::min(n-b*blocksize,blocksize);
+				uint64_t bitlen = 0;
+				
+				uint64_t const blockptr = getBlockPointer(b);		
+				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
+				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
+				
+				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				if ( bitoff )
+				{
+					GD.decodeWord(bitoff);
+					bitlen += bitoff;
+				}
+
+				// rank acc bits
+				GD.decodeWord(rankaccbits); // 1 bit accumulator
+				bitlen += rankaccbits;
+				// current symbol
+				GD.decodeWord(1);
+				bitlen += 1;
+				
+				while ( bl )
+				{
+					uint64_t const rl = GD.decode()+1;
+					assert ( rl <= bl );
+					bl -= rl;
+					bitlen += libmaus::gamma::GammaEncoderBase::getCodeLen(rl);
+				}
+				
+				return bitlen;
+			}
+
+			void getBlockRunLengthHistogram(uint64_t const b, libmaus::util::Histogram & hist) const
+			{
+				assert ( b < getNumBlocks() );
+				uint64_t bl = std::min(n-b*blocksize,blocksize);
+				
+				uint64_t const blockptr = getBlockPointer(b);		
+				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
+				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
+				
+				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				if ( bitoff )
+					GD.decodeWord(bitoff);
+
+				// rank acc bits
+				GD.decodeWord(rankaccbits); // 1 bit accumulator
+				// current symbol
+				GD.decodeWord(1);
+				
+				while ( bl )
+				{
+					uint64_t const rl = GD.decode()+1;
+					assert ( rl <= bl );
+					bl -= rl;
+					hist(rl);
+				}
+			}
+
+			libmaus::util::Histogram::unique_ptr_type getRunLengthHistogram() const
+			{
+				uint64_t const nb = getNumBlocks();
+				#if defined(_OPENMP)
+				uint64_t const numthreads = omp_get_max_threads();
+				#else
+				uint64_t const numthreads = 1;
+				#endif
+				
+				libmaus::util::HistogramSet HS(numthreads,256);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( int64_t b = 0; b < static_cast<int64_t>(nb); ++b )
+					#if defined(_OPENMP)
+					getBlockRunLengthHistogram(b,HS[omp_get_thread_num()]);
+					#else
+					getBlockRunLengthHistogram(b,HS[0]);					
+					#endif
+					
+				libmaus::util::Histogram::unique_ptr_type tptr(HS.merge());
+				
+				return UNIQUE_PTR_MOVE(tptr);
 			}
 			
 			bool get(uint64_t i) const
