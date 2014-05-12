@@ -63,7 +63,10 @@ namespace libmaus
                         	panicflag = true;
                         	
                         	if ( ! lme.get() )
-                        		lme = UNIQUE_PTR_MOVE(ex.uclone());
+                        	{
+                        		libmaus::exception::LibMausException::unique_ptr_type tex(ex.uclone());
+                        		lme = UNIQUE_PTR_MOVE(tex);
+				}
                         }
 
                         void panic(std::exception const & ex)
