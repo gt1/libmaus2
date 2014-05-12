@@ -66,7 +66,7 @@ namespace libmaus
 			{
 				blockcnt[0] = blockcnt[1] = 0;
 			}
-
+			
 			void putrun(bool const sym, uint64_t len)
 			{
 				// std::cerr << size() << " " << "putrun(" << sym << "," << len << ")" << std::endl;
@@ -85,20 +85,14 @@ namespace libmaus
 					{
 						// bit offset for block
 						uint64_t const bitoff = GE.getOffset();
-							// (getNumPreDataWords()*8*sizeof(uint64_t))
-							;
-						
-						// std::cerr << "block " << blocks << " blockptr=" << bitoff << std::endl;
-						
 						// write bit offset
-						// libmaus::util::NumberSerialisation::serialiseNumber(indexstr,bitoff);
 						libmaus::serialize::Serialize<uint64_t>::serialize(indexstr,bitoff);
-						// increment number of blocks
-						blocks += 1;
 						// write accumulator bacc
 						GE.encodeWord(bacc,rankaccbits);
 						// encode first bit				
 						GE.encodeWord(sym,1);
+						// increment number of blocks
+						blocks += 1;
 					}
 					
 					assert ( oldsum < blocksize );
