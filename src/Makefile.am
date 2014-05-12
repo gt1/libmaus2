@@ -1137,7 +1137,8 @@ noinst_PROGRAMS = \
 	testcurl \
 	testfastablockrecode \
 	testhttp \
-	testftp
+	testftp \
+	testrlhist
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1457,3 +1458,6 @@ testftp_SOURCES = test/testftp.cpp
 testftp_LDADD = libmaus.la
 testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
 testftp_LDFLAGS = @OPENSSLLIBS@
+
+testrlhist_SOURCES = test/testrlhist.cpp
+testrlhist_LDADD = libmaus.la
