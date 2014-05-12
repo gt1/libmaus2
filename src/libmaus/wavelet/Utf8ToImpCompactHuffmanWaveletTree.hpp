@@ -58,11 +58,16 @@ namespace libmaus
 				) : bleft(rbleft), bright(rbright), sleft(rsleft), sright(rsright), level(rlevel), node(rnode) {}
 			};
 			
+			static uint64_t getDefaultMaxThreads()
+			{
+				return ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads();
+			}
+			
 			template<bool radixsort>
 			static void constructWaveletTree(
 				std::string const & fn, std::string const & outputfilename,
 				libmaus::huffman::HuffmanTree const * H = 0,
-				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const numthreads = getDefaultMaxThreads()
 			)
 			{
 				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
