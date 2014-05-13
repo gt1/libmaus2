@@ -27,6 +27,7 @@
 #include <libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp>
 #include <libmaus/fm/SampledSA.hpp>
 #include <libmaus/lf/LF.hpp>
+#include <libmaus/lf/ImpCompactHuffmanWaveletLF.hpp>
 #include <libmaus/util/OutputFileNameTools.hpp>
 #include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
 
