@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LCP_HPP)
-#define LCP_HPP
+#if ! defined(LIBMAUS_LCP_LCP_HPP)
+#define LIBMAUS_LCP_LCP_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
 
@@ -26,6 +26,9 @@
 #include <omp.h>
 #endif
 
+#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus/bitio/putBit.hpp>
 #include <libmaus/fm/SampledSA.hpp>
 #include <libmaus/fm/SampledISA.hpp>
 #include <libmaus/lf/LF.hpp>
@@ -353,7 +356,7 @@ namespace libmaus
 					}
 					
 					uint64_t const I = l0+1-l1;
-					bitio::putBit(S,lcpbits+I,1);
+					::libmaus::bitio::putBit(S,lcpbits+I,1);
 					lcpbits += (I+1);
 
 					r0 = lf.phi(r0);
@@ -457,7 +460,7 @@ namespace libmaus
 						}
 						
 						uint64_t const I = l0+1-l1;
-						bitio::putBit(S,lcpbits+I,1);
+						::libmaus::bitio::putBit(S,lcpbits+I,1);
 						lcpbits += (I+1);
 
 						l1 = l0;			

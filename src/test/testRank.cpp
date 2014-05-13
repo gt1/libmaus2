@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/lf/MultiRankCacheLF.hpp>
 #include <libmaus/bp/BalancedParentheses.hpp>
 #include <libmaus/util/IncreasingStack.hpp>
 #include <libmaus/rank/CacheLineRank.hpp>

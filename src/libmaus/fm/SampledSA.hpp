@@ -21,6 +21,7 @@
 #define SAMPLEDSA_HPP
 
 #include <libmaus/lf/LF.hpp>
+#include <libmaus/bitio/putBits.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 
 namespace libmaus

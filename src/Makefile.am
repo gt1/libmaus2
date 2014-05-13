@@ -839,7 +839,17 @@ libmauslf_include_HEADERS=\
 	libmaus/lf/LF.hpp \
 	libmaus/lf/HuffmanLF.hpp \
 	libmaus/lf/LFZero.hpp \
-	libmaus/lf/DArray.hpp
+	libmaus/lf/DArray.hpp \
+	libmaus/lf/ImpCompactHuffmanWaveletLF.hpp \
+	libmaus/lf/LFBase.hpp \
+	libmaus/lf/QuickLF.hpp \
+	libmaus/lf/MultiRankLF.hpp \
+	libmaus/lf/MultiRankCacheLF.hpp \
+	libmaus/lf/ImpCacheLineRankLF.hpp \
+	libmaus/lf/ImpCacheLineRankLFNonZero.hpp \
+	libmaus/lf/ImpHuffmanWaveletLF.hpp \
+	libmaus/lf/ImpWTLF.hpp \
+	libmaus/lf/RLIndexLF.hpp
 
 libmausfm_includedir=$(includedir)/libmaus/fm
 libmausfm_include_HEADERS=\
