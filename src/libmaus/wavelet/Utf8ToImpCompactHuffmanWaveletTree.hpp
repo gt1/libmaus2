@@ -1227,8 +1227,13 @@ namespace libmaus
 						/* read text */
 						::libmaus::autoarray::AutoArray<uint8_t> A(partsize,false);
 
-						rldec = UNIQUE_PTR_MOVE(typename rl_decoder::unique_ptr_type(new rl_decoder(
-							std::vector<std::string>(1,fn),symsperpart[partid])));
+						typename rl_decoder::unique_ptr_type trldec(
+							new rl_decoder(
+								std::vector<std::string>(1,fn),
+								symsperpart[partid]
+								)
+							);
+						rldec = UNIQUE_PTR_MOVE(trldec);
 						::libmaus::util::PutObject<uint8_t *> PO(A.begin());
 						for ( uint64_t i = 0; i < numsyms; ++i )
 							::libmaus::util::UTF8::encodeUTF8(rldec->decode(),PO);

@@ -138,8 +138,8 @@ namespace libmaus
 				if ( pa == pb )
 					return false;
 				
-				typename factory_type::wrapper_ptr_type cwa = UNIQUE_PTR_MOVE(factory_type::construct(filename,pa));
-				typename factory_type::wrapper_ptr_type cwb = UNIQUE_PTR_MOVE(factory_type::construct(filename,pb));
+				typename factory_type::wrapper_ptr_type cwa(factory_type::construct(filename,pa));
+				typename factory_type::wrapper_ptr_type cwb(factory_type::construct(filename,pb));
 			
 				for ( uint64_t i = 0; i < fs; ++i )
 				{
@@ -162,7 +162,7 @@ namespace libmaus
 				assert ( fs );
 				pb %= fs;
 				
-				typename factory_type::wrapper_ptr_type cwb = UNIQUE_PTR_MOVE(factory_type::construct(filename,pb));
+				typename factory_type::wrapper_ptr_type cwb(factory_type::construct(filename,pb));
 				
 				while ( texta != texte )
 				{
