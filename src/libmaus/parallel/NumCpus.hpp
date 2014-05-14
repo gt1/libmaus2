@@ -21,6 +21,7 @@
 
 #include <libmaus/LibMausConfig.hpp>
 #include <libmaus/types/types.hpp>
+#include <cassert>
 
 #if defined(_OPENMP)
 #include <omp.h>
