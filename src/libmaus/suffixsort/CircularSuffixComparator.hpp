@@ -36,7 +36,7 @@ namespace libmaus
 			
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
-				wrapper_ptr_type tptr(new wrapper_type(filename,offset))
+				wrapper_ptr_type tptr(new wrapper_type(filename,offset));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
