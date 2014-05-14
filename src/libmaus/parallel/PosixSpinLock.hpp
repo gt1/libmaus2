@@ -26,6 +26,10 @@
 #include <libmaus/util/shared_ptr.hpp>
 #include <cerrno>
 
+#if defined(LIBMAUS_HAVE_DARWIN_SPINLOCKS)
+#include <libkern/OSAtomic.h>
+#endif
+
 #if defined(LIBMAUS_HAVE_PTHREADS)
 #include <pthread.h>
 
@@ -108,7 +112,53 @@ namespace libmaus
 				return r;
                         }
                 };
-                // no posix api for spin locks but sync lock support
+                // no posix spin locks but Darwin type OS spin locks
+                #elif defined(LIBMAUS_HAVE_DARWIN_SPINLOCKS)
+                struct PosixSpinLock
+                {
+                	typedef PosixSpinLock this_type;
+                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                
+                	OSSpinLock spinlock;
+                        
+                        PosixSpinLock() : spinlock(OS_SPINLOCK_INIT)
+                        {
+                        }
+                        ~PosixSpinLock()
+                        {
+                        }
+                        
+                        void lock()
+                        {
+                        	OSSpinLockLock(&spinlock);
+                        }
+                        void unlock()
+                        {
+                        	OSSpinLockUnlock(&spinlock);
+                        }
+                        /**
+                         * try to lock spin lock. returns true if locking was succesful, false if lock
+                         * was already locked
+                         **/
+                        bool trylock()
+                        {
+                        	return OSSpinLockTry(&spinlock);
+                        }
+                        
+                        /*
+                         * try to lock spin lock. if succesful, lock is unlocked and return value is true,
+                         * otherwise return value is false
+                         */
+                        bool tryLockUnlock()
+                        {
+                        	bool const r = trylock();
+                        	if ( r )
+                        		unlock();
+				return r;
+                        }
+                };                
+                // no posix or Darwin api for spin locks but sync lock support
                 #elif defined(LIBMAUS_HAVE_SYNC_LOCK)
                 struct PosixSpinLock
                 {
