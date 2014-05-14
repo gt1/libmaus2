@@ -733,7 +733,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SimpleThreadWorkPackageComparator.hpp \
 	libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp \
 	libmaus/parallel/SimpleThreadWorkPackage.hpp \
-	libmaus/parallel/LockedQueue.hpp
+	libmaus/parallel/LockedQueue.hpp \
+	libmaus/parallel/NumCpus.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -1148,7 +1149,8 @@ noinst_PROGRAMS = \
 	testfastablockrecode \
 	testhttp \
 	testftp \
-	testrlhist
+	testrlhist \
+	testnumcpus
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1471,3 +1473,6 @@ testftp_LDFLAGS = @OPENSSLLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
 testrlhist_LDADD = libmaus.la
+
+testnumcpus_SOURCES = test/testnumcpus.cpp
+testnumcpus_LDADD = libmaus.la
