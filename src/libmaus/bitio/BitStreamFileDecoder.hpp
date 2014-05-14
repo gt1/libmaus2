@@ -42,7 +42,7 @@ namespace libmaus
 
 			BitStreamFileDecoder(std::string const & infile, uint64_t const bitpos = 0)
 			:
-				istr(UNIQUE_PTR_MOVE(openFileAtPosition(infile,bitpos/8))),
+				istr(openFileAtPosition(infile,bitpos/8)),
 				ript(new sbis_type::raw_input_type(*istr)),
 				SBIS(new sbis_type(ript,static_cast<uint64_t>(64*1024)))
 			{
