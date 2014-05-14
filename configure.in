@@ -1878,6 +1878,34 @@ ERR_load_BIO_strings();
 
 fi
 
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADER(libkern/OSAtomic.h, [libkern_osatomic_h=yes], [libkern_osatomic_h=no])
+AC_LANG_POP
+
+HAVEDARWINSPINLOCKS=
+if test "${libkern_osatomic_h}" = "yes" ; then
+	AC_MSG_CHECKING([for Darwin type spin locks])
+	AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <libkern/OSAtomic.h>],[
+	OSSpinLock lock = OS_SPINLOCK_INIT;
+
+	OSSpinLockLock(&lock);
+	OSSpinLockUnlock(&lock);
+	
+	if ( OSSpinLockTry(&lock) )
+		OSSpinLockUnlock(&lock);
+
+	return 0;
+],[have_darwin_spinlocks=yes],[have_darwin_spinlocks=no])
+		AC_MSG_RESULT([${have_darwin_spinlocks}])
+		AC_LANG_POP
+
+		if test "$have_darwin_spinlocks" = "no" ; then
+			HAVEDARWINSPINLOCKS="#define LIBMAUS_HAVE_DARWIN_SPINLOCKS"
+		fi
+
+fi
+
 case $host_os in
   *mingw32*)
     LIBMAUSLDFLAGS="${LIBMAUSLDFLAGS} -no-undefined" # -avoid-version
@@ -2007,4 +2035,5 @@ AC_SUBST([OPENSSLCPPFLAGS])
 AC_SUBST([OPENSSLLIBS])
 AC_SUBST([POSIXSPINLOCKS])
 AC_SUBST([HAVESYNCLOCK])
+AC_SUBST([HAVEDARWINSPINLOCKS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
