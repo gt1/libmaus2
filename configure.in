@@ -1900,7 +1900,7 @@ if test "${libkern_osatomic_h}" = "yes" ; then
 		AC_MSG_RESULT([${have_darwin_spinlocks}])
 		AC_LANG_POP
 
-		if test "$have_darwin_spinlocks" = "no" ; then
+		if test "$have_darwin_spinlocks" = "yes" ; then
 			HAVEDARWINSPINLOCKS="#define LIBMAUS_HAVE_DARWIN_SPINLOCKS"
 		fi
 
