@@ -379,7 +379,9 @@ namespace libmaus
 					libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = queueMergeInfo(P.first,P.second);
 					nptr->initialise();
 					
+					#if defined(_OPENMP)
 					#pragma omp parallel
+					#endif
 					{
 						uint64_t packetid = 0, subid = 0;
 						
@@ -440,7 +442,9 @@ namespace libmaus
 				uint64_t const aparts = (n+partsize-1)/partsize;
 				std::vector<std::string> outputfilenames(aparts);
 
+				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
+				#endif
 				for ( uint64_t p = 0; p < aparts; ++p )
 				{
 					std::ostringstream fnostr;
