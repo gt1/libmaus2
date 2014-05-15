@@ -151,15 +151,15 @@ namespace libmaus
 					{
 						uint64_t const rwords = (i+1==numblocks) ?  
 									(lastblock?(2*lastblock):(2*elnum)) : (2*elnum);
-						in[i] = UNIQUE_PTR_MOVE(
-							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type
-							(
-								new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
-									tmpfilename,16*1024,2*i*elnum,
-									rwords
-								) 
-							)
+						
+						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tini(
+							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
+								tmpfilename,16*1024,2*i*elnum,
+								rwords
+							) 
 						);
+						
+						in[i] = UNIQUE_PTR_MOVE(tini);
 				
 						uint64_t a = 0, b = 0;
 						bool const aok = in[i]->getNext(a);

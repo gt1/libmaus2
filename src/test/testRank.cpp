@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/lf/MultiRankCacheLF.hpp>
 #include <libmaus/bp/BalancedParentheses.hpp>
 #include <libmaus/util/IncreasingStack.hpp>
 #include <libmaus/rank/CacheLineRank.hpp>
@@ -1756,10 +1757,7 @@ void testrl(std::vector<bool> const & B)
 			assert ( r1 == RLBVint.rank1(i) );
 			unsigned int sym;
 			
-			if ( B[i] )
-				assert ( r1 == RLBVint.inverseSelect1(i,sym) );
-			else
-				assert ( RLBVint.rank0(i) == RLBVint.inverseSelect1(i,sym) );				
+			assert ( r1 == RLBVint.inverseSelect1(i,sym) );
 		}
 	}
 }

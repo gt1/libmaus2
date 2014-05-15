@@ -126,20 +126,20 @@ libmauslsf_la_LIBADD = libmaus.la ${LSFLIBS}
 
 libmaus_kmlocal_mod_la_CPPFLAGS = @KMLOCALCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus_kmlocal_mod_la_CXXFLAGS = @KMLOCALCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module -avoid-version -shared -export-dynamic # ${AM_LDFLAGS}
+libmaus_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module -avoid-version -shared -export-dynamic ${AM_LDFLAGS}
 libmaus_kmlocal_mod_la_LIBADD   = @KMLOCALLIBS@     @LIBMAUSLIBS@
 libmaus_kmlocal_mod_la_SOURCES  = libmaus/quantisation/KMLocalInterface.cpp
 
 libmaus_consensus_mod_la_CPPFLAGS = @SEQANCPPFLAGS@                 @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus_consensus_mod_la_CXXFLAGS = @SEQANCXXFLAGS@                 @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic # ${AM_LDFLAGS}
+libmaus_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic ${AM_LDFLAGS}
 libmaus_consensus_mod_la_LIBADD   = @SEQANLIBS@ @LIBMAUSLIBS@
 libmaus_consensus_mod_la_SOURCES  = libmaus/consensus/ConsensusBase.cpp libmaus/consensus/ScoringMatrix.cpp \
 	libmaus/fastx/Phred.cpp
 
 libmaus_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic # ${AM_LDFLAGS}
+libmaus_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic ${AM_LDFLAGS}
 libmaus_scram_mod_la_LIBADD   = @IOLIBLIBS@ @LIBMAUSLIBS@
 libmaus_scram_mod_la_SOURCES  = libmaus/bambam/Scram.c
 
@@ -432,7 +432,9 @@ libmausrank_include_HEADERS=\
 	libmaus/rank/RunLengthBitVectorBase.hpp \
 	libmaus/rank/RunLengthBitVector.hpp \
 	libmaus/rank/RunLengthBitVectorGenerator.hpp \
-	libmaus/rank/RunLengthBitVectorStream.hpp
+	libmaus/rank/RunLengthBitVectorStream.hpp \
+	libmaus/rank/RunLengthBitVectorGeneratorBase.hpp \
+	libmaus/rank/RunLengthBitVectorGeneratorGammaBase.hpp
 	
 libmausselect_includedir=$(includedir)/libmaus/select
 libmausselect_include_HEADERS=\
@@ -731,7 +733,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SimpleThreadWorkPackageComparator.hpp \
 	libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp \
 	libmaus/parallel/SimpleThreadWorkPackage.hpp \
-	libmaus/parallel/LockedQueue.hpp
+	libmaus/parallel/LockedQueue.hpp \
+	libmaus/parallel/NumCpus.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -837,7 +840,17 @@ libmauslf_include_HEADERS=\
 	libmaus/lf/LF.hpp \
 	libmaus/lf/HuffmanLF.hpp \
 	libmaus/lf/LFZero.hpp \
-	libmaus/lf/DArray.hpp
+	libmaus/lf/DArray.hpp \
+	libmaus/lf/ImpCompactHuffmanWaveletLF.hpp \
+	libmaus/lf/LFBase.hpp \
+	libmaus/lf/QuickLF.hpp \
+	libmaus/lf/MultiRankLF.hpp \
+	libmaus/lf/MultiRankCacheLF.hpp \
+	libmaus/lf/ImpCacheLineRankLF.hpp \
+	libmaus/lf/ImpCacheLineRankLFNonZero.hpp \
+	libmaus/lf/ImpHuffmanWaveletLF.hpp \
+	libmaus/lf/ImpWTLF.hpp \
+	libmaus/lf/RLIndexLF.hpp
 
 libmausfm_includedir=$(includedir)/libmaus/fm
 libmausfm_include_HEADERS=\
@@ -1135,7 +1148,9 @@ noinst_PROGRAMS = \
 	testcurl \
 	testfastablockrecode \
 	testhttp \
-	testftp
+	testftp \
+	testrlhist \
+	testnumcpus
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1455,3 +1470,9 @@ testftp_SOURCES = test/testftp.cpp
 testftp_LDADD = libmaus.la
 testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
 testftp_LDFLAGS = @OPENSSLLIBS@
+
+testrlhist_SOURCES = test/testrlhist.cpp
+testrlhist_LDADD = libmaus.la
+
+testnumcpus_SOURCES = test/testnumcpus.cpp
+testnumcpus_LDADD = libmaus.la

@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_BAMALIGNMENTENCODERBASE_HPP
 	
 #include <libmaus/bambam/BamSeqEncodeTable.hpp>
+#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus/bambam/EncoderBase.hpp>
 #include <libmaus/bambam/CigarStringParser.hpp>
 #include <libmaus/util/PutObject.hpp>
@@ -303,6 +304,14 @@ namespace libmaus
 				uint8_t const qualoffset = 33
 			)
 			{
+				if ( ! libmaus::bambam::BamAlignmentDecoderBase::nameValid(name,name+namelen) )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentEncoderBase::encodeAlignment(): name " << std::string(name,name+namelen) << " is invalid (cannot be stored in a BAM file)" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			
 				typedef ::libmaus::fastx::UCharBuffer UCharBuffer;
 				
 				buffer.reset();

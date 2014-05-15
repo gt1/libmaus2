@@ -19,6 +19,7 @@
 
 #include <libmaus/bitio/CompactArray.hpp>
 #include <libmaus/bitio/SignedCompactArray.hpp>
+#include <libmaus/math/bitsPerNum.hpp>
 #include <libmaus/util/GetFileSize.hpp>
 #include <libmaus/suffixsort/divsufsort.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>

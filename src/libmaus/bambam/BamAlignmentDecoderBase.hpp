@@ -3015,6 +3015,70 @@ namespace libmaus
 			}
 
 			/**
+			 * check whether s contains a valid BAM query name
+			 *
+			 * @param s string to be tested
+			 * @return true iff s contains a valid BAM query name
+			 */
+			static bool nameValid(std::string const & s)
+			{
+				if ( s.size() < 1 || s.size() > 255 )
+					return false;
+			
+				unsigned char const * p = reinterpret_cast<unsigned char const *>(s.c_str());
+				unsigned char const * pe = p + s.size();
+				
+				while ( p != pe )
+					if ( !qnameValidTable[*(p++)] )
+						return false;
+						
+				return true;
+			}
+
+			/**
+			 * check whether c contains a valid BAM query name
+			 *
+			 * @param c string to be tested
+			 * @return true iff c contains a valid BAM query name
+			 */
+			static bool nameValid(char const * c)
+			{
+				unsigned char const * p = reinterpret_cast<unsigned char const *>(c);
+				
+				while ( *p )
+					if ( !qnameValidTable[*(p++)] )
+						return false;
+						
+				ptrdiff_t len = p - reinterpret_cast<unsigned char const *>(c);
+				
+				if ( len < 1 || len > 255 )
+					return false;
+						
+				return true;
+			}
+
+			/**
+			 * check whether character range contains a valid BAM query name
+			 *
+			 * @param c string to be tested
+			 * @return true iff c contains a valid BAM query name
+			 */
+			template<typename iterator>
+			static bool nameValid(iterator p, iterator pe)
+			{
+				ptrdiff_t len = pe-p;
+				
+				if ( len < 1 || len > 255 )
+					return false;
+					
+				while ( p != pe )
+					if ( !qnameValidTable[static_cast<uint8_t>(*(p++))] )
+						return false;
+						
+				return true;
+			}
+
+			/**
 			 * check alignment validity excluding reference sequence ids
 			 *
 			 * @param D alignment block

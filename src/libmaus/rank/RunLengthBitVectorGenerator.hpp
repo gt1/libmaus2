@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2009-2014 German Tischler
+    Copyright (C) 2011-2014 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 #if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATOR_HPP)
 #define LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATOR_HPP
 
+#include <libmaus/rank/RunLengthBitVectorGeneratorGammaBase.hpp>
+#include <libmaus/rank/RunLengthBitVectorGeneratorBase.hpp>
 #include <libmaus/aio/SynchronousGenericOutput.hpp>
 #include <libmaus/gamma/GammaEncoder.hpp>
 #include <libmaus/gamma/GammaDecoder.hpp>
@@ -30,31 +32,20 @@ namespace libmaus
 {
 	namespace rank
 	{
-		struct RunLengthBitVectorGenerator
+		struct RunLengthBitVectorGenerator 
+			: 
+				public RunLengthBitVectorGeneratorGammaBase,
+				public RunLengthBitVectorGeneratorBase
 		{
-			// block size in symbols
-			uint64_t const blocksize;
-			
+			typedef RunLengthBitVectorGenerator this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			// current bit symbol for putbit method
 			bool single_cursym;
 			// current run length in putbit
 			uint64_t single_runlength;
-			
-			// number of 0 and 1 bits in current block
-			uint64_t blockcnt[2];
-			// accumulator for 1 bits
-			uint64_t bacc;
-			// number of blocks
-			uint64_t blocks;
-			
-			std::ostream & ostr;
-			std::iostream & indexstr;
-
-			::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO;
-			::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > GE;
-			
-			uint64_t const rankaccbits;
-			
+						
 			/*
 			 * file format:
 			 * - blocksize
@@ -75,40 +66,29 @@ namespace libmaus
 				std::ostream & rostr,
 				std::iostream & rindexstr,
 				uint64_t const rn,
-				uint64_t const rblocksize = 64ull*1024ull
+				uint64_t const rblocksize = 64ull*1024ull,
+				bool const putheader = true
 			)
-			: blocksize(rblocksize), 
+			:
+			  RunLengthBitVectorGeneratorGammaBase(rostr),
+			  RunLengthBitVectorGeneratorBase(0,rblocksize,RunLengthBitVectorGeneratorGammaBase::GE,rindexstr), 
 			  single_cursym(true), 
-			  single_runlength(0), 
-			  bacc(0),
-			  blocks(0),
-			  ostr(rostr),
-			  indexstr(rindexstr),
-			  SGO(ostr,64*1024),
-			  GE(SGO),
-			  rankaccbits(libmaus::rank::RunLengthBitVectorBase::getRankAccBits())
+			  single_runlength(0)
 			{
-				blockcnt[0] = blockcnt[1] = 0;
+				if ( putheader )
+				{
+					// space for block size
+					SGO.put(0);
+					// space for length of vector in bits
+					SGO.put(rn);
 
-				// space for block size
-				SGO.put(0);
-				// space for length of vector in bits
-				SGO.put(rn);
-
-				// space for index position
-				SGO.put(0);		
-				// space for auto array header
-				SGO.put(0);
+					// space for index position
+					SGO.put(0);		
+					// space for auto array header
+					SGO.put(0);
+				}
 			}
 			
-			uint64_t size() const
-			{
-				return blocks ? 
-						(
-							(blockcnt[0]+blockcnt[1]) ? (blocks-1)*blocksize+blockcnt[0]+blockcnt[1] : (blocks*blocksize)
-						) 
-						: 0;
-			}
 			
 			void runFlush()
 			{
@@ -124,8 +104,8 @@ namespace libmaus
 			{
 				runFlush();
 				
-				GE.flush();
-				SGO.flush();
+				RunLengthBitVectorGeneratorGammaBase::GE.flush();
+				RunLengthBitVectorGeneratorGammaBase::SGO.flush();
 				uint64_t const indexpos = SGO.getWrittenBytes();
 				
 				// seek to start of index file
@@ -135,8 +115,16 @@ namespace libmaus
 				
 				// write number of blocks
 				libmaus::serialize::Serialize<uint64_t>::serialize(ostr,blocks);
-				// copy index
-				libmaus::util::GetFileSize::copy(indexstr,ostr,blocks*sizeof(uint64_t));
+				
+				// index pointers
+				for ( uint64_t i = 0; i < blocks; ++i )
+				{
+					uint64_t v;
+					libmaus::serialize::Serialize<uint64_t>::deserialize(indexstr,&v);
+					assert ( v >= (getNumPreDataWords()*8*sizeof(uint64_t)) );
+					v -= (getNumPreDataWords()*8*sizeof(uint64_t));
+					libmaus::serialize::Serialize<uint64_t>::serialize(ostr,v);
+				}
 				
 				// seek to start of file
 				ostr.seekp(
@@ -184,71 +172,7 @@ namespace libmaus
 					// length of data
 					indexpos;
 			}
-			
-			void putrun(bool const sym, uint64_t len)
-			{
-				// std::cerr << size() << " " << "putrun(" << sym << "," << len << ")" << std::endl;
-			
-				assert ( len );
-				
-				// block is not complete
-				do
-				{
-					// std::cerr << "subputrun(" << sym << "," << len << ")" << std::endl;
-				
-					uint64_t const oldsum = blockcnt[0] + blockcnt[1];
-			
-					// start of new block?
-					if ( !oldsum )
-					{
-						// bit offset for block
-						uint64_t const bitoff = GE.getOffset() - (getNumPreDataWords()*8*sizeof(uint64_t));
 						
-						// std::cerr << "block " << blocks << " blockptr=" << bitoff << std::endl;
-						
-						// write bit offset
-						// libmaus::util::NumberSerialisation::serialiseNumber(indexstr,bitoff);
-						libmaus::serialize::Serialize<uint64_t>::serialize(indexstr,bitoff);
-						// increment number of blocks
-						blocks += 1;
-						// write accumulator bacc
-						GE.encodeWord(bacc,rankaccbits);
-						// encode first bit				
-						GE.encodeWord(sym,1);
-					}
-					
-					assert ( oldsum < blocksize );
-					uint64_t const space = blocksize - oldsum;
-
-					// block is not yet complete
-					if ( len < space )
-					{
-						// write run (sym,len)
-						GE.encode(len-1);
-						
-						blockcnt[sym] += len;
-						len = 0;
-					}
-					// block is completed by this run
-					else
-					{
-						// write run (sym,towrite)
-						GE.encode(space-1);
-						
-						blockcnt[sym] += space;
-						len -= space;
-						
-						assert ( blockcnt[0] + blockcnt[1] == blocksize );
-						
-						// update rank accumulator
-						bacc += blockcnt[1];
-						// reset in block counters
-						blockcnt[0] = blockcnt[1] = 0;
-					}
-				}
-				while ( len ) ;
-			}
-			
 			void putbit(bool const bit)
 			{
 				// run continued

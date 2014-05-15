@@ -21,6 +21,7 @@
 #define LIBMAUS_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP
 
 #include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus/rank/RunLengthBitVector.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
 #include <libmaus/huffman/HuffmanTree.hpp>
 #include <libmaus/math/numbits.hpp>
@@ -29,13 +30,14 @@ namespace libmaus
 {
 	namespace wavelet
 	{
-		struct ImpCompactHuffmanWaveletTree
+		template<typename _rank_type>
+		struct ImpCompactHuffmanWaveletTreeTemplate
 		{
-			typedef ImpCompactHuffmanWaveletTree this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef _rank_type rank_type;
+			typedef ImpCompactHuffmanWaveletTreeTemplate<rank_type> this_type;
+			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			typedef ::libmaus::rank::ImpCacheLineRank rank_type;
-			typedef rank_type::unique_ptr_type rank_ptr_type;
+			typedef typename rank_type::unique_ptr_type rank_ptr_type;
 			typedef ::libmaus::autoarray::AutoArray<rank_ptr_type> rank_array_type;
 			
 			uint64_t const n;
@@ -45,7 +47,7 @@ namespace libmaus
 			uint64_t maxdepth;
 			std::vector<uint64_t> nodepos;
 			
-			ImpCompactHuffmanWaveletTree(
+			ImpCompactHuffmanWaveletTreeTemplate(
 				uint64_t const rn,
 				libmaus::huffman::HuffmanTree const & rH,
 				rank_array_type & rdicts
@@ -115,7 +117,7 @@ namespace libmaus
 				else if ( syms[0] < 0 )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "ImpCompactHuffmanWaveletTree::getB() called on tree containing negative symbols in alphabet." << std::endl;
+					se.getStream() << "ImpCompactHuffmanWaveletTreeTemplate::getB() called on tree containing negative symbols in alphabet." << std::endl;
 					se.finish();
 					throw se;
 				}
@@ -166,7 +168,7 @@ namespace libmaus
 			}
 			
 			template<typename stream_type>
-			ImpCompactHuffmanWaveletTree(stream_type & in)
+			ImpCompactHuffmanWaveletTreeTemplate(stream_type & in)
 			:
 				// number of symbols
 				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
@@ -194,7 +196,7 @@ namespace libmaus
 			}
 
 			template<typename stream_type>
-			ImpCompactHuffmanWaveletTree(stream_type & in, uint64_t & s)
+			ImpCompactHuffmanWaveletTreeTemplate(stream_type & in, uint64_t & s)
 			:
 				// number of symbols
 				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
@@ -223,7 +225,7 @@ namespace libmaus
 			}
 			
 			private:
-			ImpCompactHuffmanWaveletTree(
+			ImpCompactHuffmanWaveletTreeTemplate(
 				std::string const & filename,
 				uint64_t const rn,
 				libmaus::huffman::HuffmanTree const & rH,
@@ -255,7 +257,7 @@ namespace libmaus
 				if ( ! in.is_open() )
 				{
 					::libmaus::exception::LibMausException se;
-					se.getStream() << "ImpCompactHuffmanWaveletTree::load(): failed to open file " << filename << std::endl;
+					se.getStream() << "ImpCompactHuffmanWaveletTreeTemplate::load(): failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}
@@ -1165,6 +1167,9 @@ namespace libmaus
 				return s;
 			}
 		};
+		
+		typedef ImpCompactHuffmanWaveletTreeTemplate< ::libmaus::rank::ImpCacheLineRank > ImpCompactHuffmanWaveletTree;
+		typedef ImpCompactHuffmanWaveletTreeTemplate< ::libmaus::rank::RunLengthBitVector > ImpCompactRLHuffmanWaveletTree;
 	}
 }
 #endif

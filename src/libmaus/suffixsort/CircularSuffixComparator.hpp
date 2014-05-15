@@ -36,7 +36,8 @@ namespace libmaus
 			
 			static wrapper_ptr_type construct(std::string const & filename, uint64_t const offset)
 			{
-				return UNIQUE_PTR_MOVE(wrapper_ptr_type(new wrapper_type(filename,offset)));
+				wrapper_ptr_type tptr(new wrapper_type(filename,offset));
+				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
 
@@ -137,8 +138,8 @@ namespace libmaus
 				if ( pa == pb )
 					return false;
 				
-				typename factory_type::wrapper_ptr_type cwa = UNIQUE_PTR_MOVE(factory_type::construct(filename,pa));
-				typename factory_type::wrapper_ptr_type cwb = UNIQUE_PTR_MOVE(factory_type::construct(filename,pb));
+				typename factory_type::wrapper_ptr_type cwa(factory_type::construct(filename,pa));
+				typename factory_type::wrapper_ptr_type cwb(factory_type::construct(filename,pb));
 			
 				for ( uint64_t i = 0; i < fs; ++i )
 				{
@@ -161,7 +162,7 @@ namespace libmaus
 				assert ( fs );
 				pb %= fs;
 				
-				typename factory_type::wrapper_ptr_type cwb = UNIQUE_PTR_MOVE(factory_type::construct(filename,pb));
+				typename factory_type::wrapper_ptr_type cwb(factory_type::construct(filename,pb));
 				
 				while ( texta != texte )
 				{

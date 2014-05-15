@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP)
 #define LIBMAUS_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP
 
-#include <libmaus/lf/LF.hpp>
+#include <libmaus/lf/ImpCompactHuffmanWaveletLF.hpp>
 #include <libmaus/fm/SampledSA.hpp>
 #include <libmaus/fm/SampledISA.hpp>
 #include <libmaus/lcp/LCP.hpp>

@@ -27,8 +27,17 @@ namespace libmaus
 {
 	namespace gamma
 	{
+		struct GammaEncoderBase : public libmaus::bitio::Clz
+		{
+			static inline unsigned int getCodeLen(uint64_t const code)
+			{
+				unsigned int const nd = 63-clz(code);
+				return 1 + (nd<<1);
+			}		
+		};
+	
 		template<typename _stream_type>
-		struct GammaEncoder : public libmaus::bitio::Clz
+		struct GammaEncoder : public GammaEncoderBase
 		{
 			typedef _stream_type stream_type;
 			typedef GammaEncoder<stream_type> this_type;
@@ -43,13 +52,7 @@ namespace libmaus
 			{
 			
 			}
-			
-			static inline unsigned int getCodeLen(uint64_t const code)
-			{
-				unsigned int const nd = 63-clz(code);
-				return 1 + (nd<<1);
-			}
-			
+						
 			inline void encodeWord(uint64_t const code, unsigned int const codelen)
 			{
 				if ( bav >= codelen )
