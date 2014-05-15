@@ -34,6 +34,8 @@ namespace libmaus
 			virtual ~CompressorObject() {}
 			
 			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output) = 0;
+
+			virtual std::string getDescription() const = 0;
 		};
 	}
 }

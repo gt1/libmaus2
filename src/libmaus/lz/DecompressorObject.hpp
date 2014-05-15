@@ -36,6 +36,7 @@ namespace libmaus
 				size_t compressed_length, 
 				char * uncompressed,
 				size_t uncompressed_length) = 0;
+			virtual std::string getDescription() const = 0;
 		};
 	}
 }

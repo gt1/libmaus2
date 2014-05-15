@@ -37,6 +37,10 @@ namespace libmaus
 				DecompressorObject::unique_ptr_type ptr(new SnappyDecompressorObject);
 				return UNIQUE_PTR_MOVE(ptr);
 			}
+			virtual std::string getDescription() const
+			{
+				return "SnappyDecompressorObjectFactory";
+			}
 		};
 	}
 }

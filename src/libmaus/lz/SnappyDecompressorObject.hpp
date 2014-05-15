@@ -36,6 +36,10 @@ namespace libmaus
 			{
 				return SnappyCompress::rawuncompress(compressed,compressed_length,uncompressed);
 			}
+			virtual std::string getDescription() const
+			{
+				return "SnappyDecompressorObject";
+			}
 		};
 	}
 }
