@@ -117,7 +117,20 @@ namespace libmaus
 						throw se;
 					}
 
-					while( f(M*c, c, n) >= 0 ) M *= 10.0;
+					uint64_t po = 0;
+					uint64_t const polimit = 16*1024;
+					while( f(M*c, c, n) >= 0 && po < polimit )
+					{
+						M *= 10.0;
+						po += 1;
+					}
+					if ( po == polimit )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "[E] Detected (most likely) non terminating while loop" << std::endl;
+						se.finish();
+						throw se;					
+					}
 
 					for ( int i=0; i < 40; ++i ) 
 					{
@@ -192,7 +205,10 @@ namespace libmaus
 				
 				try
 				{
-					int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(readpairsexamined - opticalduplicates, readpairsexamined - readpairduplicates);
+					int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(
+						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(opticalduplicates), 
+						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(readpairduplicates)
+					);
 					
 					if ( ESTIMATED_LIBRARY_SIZE < 0 )
 						return H;
