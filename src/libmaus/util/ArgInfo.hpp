@@ -34,6 +34,8 @@
 #include <libgen.h>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/network/GetHostName.hpp>
+#include <libmaus/util/StringSerialisation.hpp>
+#include <libmaus/util/NumberSerialisation.hpp>
 
 #if defined(_WIN32)
 #include <direct.h>
@@ -63,6 +65,78 @@ namespace libmaus
 			std::multimap < std::string, std::string > argmultimap;
 			//! rest of arguments behind key=value pairs
 			std::vector < std::string > restargs;
+			
+			bool operator==(ArgInfo const & o) const
+			{
+				return
+					commandline == o.commandline &&
+					progname == o.progname &&
+					argmap == o.argmap &&
+					argmultimap == o.argmultimap &&
+					restargs == o.restargs;
+			}
+			
+			bool operator!=(ArgInfo const & o) const
+			{
+				return !(*this == o);
+			}
+			
+			/**
+			 * serialise object
+			 *
+			 * @param ostream output stream
+			 **/
+			void serialise(std::ostream & out) const
+			{
+				libmaus::util::StringSerialisation::serialiseString(out,commandline);
+				libmaus::util::StringSerialisation::serialiseString(out,progname);
+
+				libmaus::util::NumberSerialisation::serialiseNumber(out,argmap.size());
+				for ( std::map < std::string, std::string >::const_iterator ita = argmap.begin();
+					ita != argmap.end(); ++ita )
+				{
+					libmaus::util::StringSerialisation::serialiseString(out,ita->first);
+					libmaus::util::StringSerialisation::serialiseString(out,ita->second);
+				}
+
+				libmaus::util::NumberSerialisation::serialiseNumber(out,argmultimap.size());
+				for ( std::multimap < std::string, std::string >::const_iterator ita = argmultimap.begin();
+					ita != argmultimap.end(); ++ita )
+				{
+					libmaus::util::StringSerialisation::serialiseString(out,ita->first);
+					libmaus::util::StringSerialisation::serialiseString(out,ita->second);
+				}
+				
+				libmaus::util::StringSerialisation::serialiseStringVector(out,restargs);
+			}
+			
+			/**
+			 * deserialise object from input stream
+			 *
+			 * @param in input stream
+			 **/
+			void deserialise(std::istream & in)
+			{
+				commandline = libmaus::util::StringSerialisation::deserialiseString(in);
+				progname = libmaus::util::StringSerialisation::deserialiseString(in);
+				
+				uint64_t const mapsize = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				for ( uint64_t i = 0; i < mapsize; ++i )
+				{
+					std::string const key = libmaus::util::StringSerialisation::deserialiseString(in);
+					std::string const val = libmaus::util::StringSerialisation::deserialiseString(in);
+					argmap[key] = val;
+				}
+				uint64_t const multimapsize = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				for ( uint64_t i = 0; i < multimapsize; ++i )
+				{
+					std::string const key = libmaus::util::StringSerialisation::deserialiseString(in);
+					std::string const val = libmaus::util::StringSerialisation::deserialiseString(in);
+					argmap.insert(std::pair<std::string,std::string>(key,val));
+				}
+
+				restargs = libmaus::util::StringSerialisation::deserialiseStringVector(in);
+			}
 			
 			/**
 			 * @return true iff argument -h was given first
@@ -135,6 +209,16 @@ namespace libmaus
 			 * @return command line
 			 **/
 			static std::string reconstructCommandLine(int argc, char const * argv[]);
+
+			/**
+			 * constructor from serialised object
+			 *
+			 * @param istr input stream
+			 **/
+			ArgInfo(std::istream & in)
+			{
+				deserialise(in);
+			}
 
 			/**
 			 * constructor from argument array
