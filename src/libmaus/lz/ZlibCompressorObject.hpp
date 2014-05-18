@@ -21,6 +21,7 @@
 
 #include <libmaus/lz/CompressorObject.hpp>
 #include <libmaus/lz/BgzfDeflateBase.hpp>
+#include <sstream>
 
 namespace libmaus
 {
@@ -86,6 +87,13 @@ namespace libmaus
 				uint64_t const compsize = output.size() - strm.avail_out;
 
 				return compsize;
+			}
+
+			virtual std::string getDescription() const
+			{
+				std::ostringstream ostr;
+				ostr << "ZlibCompressorObject(" << level << ")";
+				return ostr.str();
 			}
 		};
 	}

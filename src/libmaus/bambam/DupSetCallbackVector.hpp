@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/DupSetCallback.hpp>
 #include <libmaus/bambam/DuplicationMetrics.hpp>
+#include <libmaus/util/unique_ptr.hpp>
 
 namespace libmaus
 {
@@ -28,9 +29,39 @@ namespace libmaus
 	{
 		struct DupSetCallbackVector : public ::libmaus::bambam::DupSetCallback
 		{
+			typedef std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> map_type;
+			typedef libmaus::util::unique_ptr<map_type>::type map_ptr_type;
+			
 			::libmaus::bitio::BitVector B;
+			map_ptr_type Pmetrics;
+			map_type & metrics;
 
-			std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> & metrics;
+			void serialise(std::ostream & out) const
+			{
+				B.serialise(out);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,metrics.size());
+				for (
+					std::map<uint64_t,::libmaus::bambam::DuplicationMetrics>::const_iterator ita = metrics.begin();
+					ita != metrics.end();
+					++ita 
+				)
+				{
+					libmaus::util::NumberSerialisation::serialiseNumber(out,ita->first);
+					ita->second.serialise(out);
+				}
+			}
+
+			DupSetCallbackVector(std::istream & in)
+			: B(in), Pmetrics(new map_type), metrics(*Pmetrics)
+			{
+				uint64_t const nummet = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				for ( uint64_t i = 0; i < nummet; ++i )
+				{
+					uint64_t const j = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					::libmaus::bambam::DuplicationMetrics met(in);
+					metrics[j] = met;
+				}
+			}
 
 			DupSetCallbackVector(
 				uint64_t const n,

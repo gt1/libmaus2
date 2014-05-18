@@ -37,6 +37,10 @@ namespace libmaus
 				CompressorObject::unique_ptr_type ptr(new SnappyCompressorObject);
 				return UNIQUE_PTR_MOVE(ptr);
 			}
+			virtual std::string getDescription() const
+			{
+				return "SnappyCompressorObjectFactory";
+			}
 		};
 	}
 }

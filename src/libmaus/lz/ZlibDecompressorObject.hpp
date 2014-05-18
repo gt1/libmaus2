@@ -55,6 +55,10 @@ namespace libmaus
 					return false;
 				}
 			}
+			virtual std::string getDescription() const
+			{
+				return "ZlibDecompressorObject";
+			}
 		};
 	}
 }

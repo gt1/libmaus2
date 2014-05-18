@@ -427,6 +427,7 @@ namespace libmaus
 				int64_t const rg = p.getReadGroupId(header);
 								
 				RE.readGroup = rg + 1;
+				RE.libraryId = header.getLibraryId(rg);
 			}
 			
 			#define READENDSBASECOMPACT

@@ -28,6 +28,7 @@
 
 #include <libmaus/types/types.hpp>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/util/NumberSerialisation.hpp>
 #include <ostream>
 #include <cmath>
 #include <map>
@@ -54,6 +55,7 @@ namespace libmaus
 			//! number of optical duplicates
 			uint64_t opticalduplicates;
 			
+			
 			/**
 			 * constructor
 			 **/
@@ -67,6 +69,16 @@ namespace libmaus
 				opticalduplicates(0)
 			{
 				
+			}
+			
+			/**
+			 * constructor from stream
+			 *
+			 * @param istr input stream
+			 **/
+			DuplicationMetrics(std::istream & in)
+			{
+				deserialise(in);
 			}
 
 			/**
@@ -105,7 +117,20 @@ namespace libmaus
 						throw se;
 					}
 
-					while( f(M*c, c, n) >= 0 ) M *= 10.0;
+					uint64_t po = 0;
+					uint64_t const polimit = 16*1024;
+					while( f(M*c, c, n) >= 0 && po < polimit )
+					{
+						M *= 10.0;
+						po += 1;
+					}
+					if ( po == polimit )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "[E] Detected (most likely) non terminating while loop" << std::endl;
+						se.finish();
+						throw se;					
+					}
 
 					for ( int i=0; i < 40; ++i ) 
 					{
@@ -180,7 +205,10 @@ namespace libmaus
 				
 				try
 				{
-					int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(readpairsexamined - opticalduplicates, readpairsexamined - readpairduplicates);
+					int64_t const ESTIMATED_LIBRARY_SIZE = estimateLibrarySize(
+						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(opticalduplicates), 
+						static_cast<int64_t>(readpairsexamined) - static_cast<int64_t>(readpairduplicates)
+					);
 					
 					if ( ESTIMATED_LIBRARY_SIZE < 0 )
 						return H;
@@ -241,6 +269,36 @@ namespace libmaus
 					<< PERCENT_DUPLICATION << "\t"
 					<< ESTIMATED_LIBRARY_SIZE << "\n";
 				return out;
+			}
+
+			/**
+			 * serialise to stream
+			 *
+			 * @param ostr output stream
+			 **/
+			void serialise(std::ostream & out) const
+			{
+				libmaus::util::NumberSerialisation::serialiseNumber(out,unmapped);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,unpaired);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,readpairsexamined);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,unpairedreadduplicates);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,readpairduplicates);
+				libmaus::util::NumberSerialisation::serialiseNumber(out,opticalduplicates);
+			}
+			
+			/**
+			 * read object from stream
+			 *
+			 * @param in inputstream
+			 **/
+			void deserialise(std::istream & in)
+			{
+				unmapped = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				unpaired = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				readpairsexamined = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				unpairedreadduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				readpairduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				opticalduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 			}
 		};
 	}

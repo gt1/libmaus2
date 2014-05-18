@@ -32,6 +32,7 @@ namespace libmaus
 			
 			virtual ~DecompressorObjectFactory() {}
 			virtual DecompressorObject::unique_ptr_type operator()() = 0;
+			virtual std::string getDescription() const = 0;
 		};
 	}
 }

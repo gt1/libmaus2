@@ -111,7 +111,7 @@ namespace libmaus
 
 				element_type * pl = p;
 				element_type * plmax = p;
-				similarity_type maxinfixscore = std::numeric_limits<similarity_type>::min();
+				// similarity_type maxinfixscore = std::numeric_limits<similarity_type>::min();
 
 				if ( m )
 				{
@@ -213,7 +213,7 @@ namespace libmaus
 					p++;
 					q++;
 				
-					maxinfixscore = plmax->first;	
+					// maxinfixscore = plmax->first;	
 				}
 				
 				// length of suffix of b we do not use
