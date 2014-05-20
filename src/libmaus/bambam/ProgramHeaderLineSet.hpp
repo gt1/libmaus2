@@ -361,7 +361,10 @@ namespace libmaus
 				}
 			}
 		
-			ProgramHeaderLinesMerge(std::vector< std::string const * > const & headers) : tries(headers.size())
+			ProgramHeaderLinesMerge(
+				std::vector< std::string const * > const & headers
+			) 
+			: tries(headers.size())
 			{
 				std::vector < HeaderLine > PGlines;
 				std::vector < std::vector < HeaderLine > > headerlines;
@@ -369,12 +372,46 @@ namespace libmaus
 				
 				std::vector<std::string> lastinchain;
 				
+				// extract pg lines and get last in chain ids
 				for ( uint64_t i = 0; i < headers.size(); ++i )
 				{
 					headerlines.push_back(HeaderLine::extractProgramLines(*(headers[i])));
 					lastinchain.push_back(ProgramHeaderLineSet(*(headers[i])).getLastIdInChain());
 				}
-				
+
+				// count number of occurences for each PG ID
+				std::map<std::string,uint64_t> idcntmap;
+				for ( uint64_t i = 0; i < headerlines.size(); ++i )
+					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
+					{
+						HeaderLine & line = headerlines[i][j];
+						
+						if ( ! line.hasKey("ID") )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "ProgramHeaderLinesMerge: PG line without ID field is invalid: " << line.line << std::endl;
+							lme.finish();
+							throw lme;
+						}
+
+						idcntmap[line.getValue("ID")]++;
+					}
+
+				// assign new numerical id to each occuring more than once
+				std::map<std::string,uint64_t> idcntremap;
+				std::map< std::pair<uint64_t,uint64_t>, uint64_t > idremap;
+				for ( uint64_t i = 0; i < headerlines.size(); ++i )
+					for ( uint64_t j = 0; j < headerlines[i].size(); ++j )
+					{
+						HeaderLine & line = headerlines[i][j];
+						std::string const ID = line.getValue("ID");
+						std::map<std::string,uint64_t>::const_iterator it = idcntmap.find(ID);
+						assert ( it != idcntmap.end() );
+						assert ( it->second > 0 );
+						if ( it->second > 1 )
+							idremap[ std::pair<uint64_t,uint64_t>(i,j) ] = idcntremap[ID]++;
+					}
+									
 				std::ostringstream PGtextstr;
 				std::set < std::string > gids;	
 				for ( uint64_t i = 0; i < headerlines.size(); ++i )
@@ -389,8 +426,20 @@ namespace libmaus
 						std::string const origID = line.getValue("ID");
 						std::string ID = origID;
 						
+						if ( idremap.find(std::pair<uint64_t,uint64_t>(i,j)) != idremap.end() )
+						{
+							std::ostringstream idostr;
+							idostr << origID << "_" << idremap.find(std::pair<uint64_t,uint64_t>(i,j))->second;
+							ID = idostr.str();
+						}
+						
 						while ( gids.find(ID) != gids.end() )
 							ID += '\'';
+							
+						#if 0
+						if ( ID != origID )
+							std::cerr << "[D] replacing PG ID " << origID << " by " << ID << std::endl;
+						#endif
 						
 						line.M["ID"] = ID;
 						
