@@ -697,7 +697,9 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/PosixFdInputStream.hpp \
 	libmaus/aio/PosixFdOutputStreamBuffer.hpp \
 	libmaus/aio/PosixFdOutputStream.hpp \
-	libmaus/aio/PosixFdInputStreamBuffer.hpp
+	libmaus/aio/PosixFdInputStreamBuffer.hpp \
+	libmaus/aio/LinuxStreamingPosixFdOutputStreamBuffer.hpp \
+	libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
@@ -1150,7 +1152,9 @@ noinst_PROGRAMS = \
 	testhttp \
 	testftp \
 	testrlhist \
-	testnumcpus
+	testnumcpus \
+	testdiag \
+	testlinuxstreamingwrite
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1476,3 +1480,13 @@ testrlhist_LDADD = libmaus.la
 
 testnumcpus_SOURCES = test/testnumcpus.cpp
 testnumcpus_LDADD = libmaus.la
+
+testdiag_SOURCES = test/testdiag.cpp
+testdiag_LDADD = libmaus.la
+testdiag_CPPFLAGS = ${AM_CPPFLAGS}
+testdiag_LDFLAGS = ${AM_LDFLAGS}
+
+testlinuxstreamingwrite_SOURCES = test/testlinuxstreamingwrite.cpp
+testlinuxstreamingwrite_LDADD = libmaus.la
+testlinuxstreamingwrite_CPPFLAGS = ${AM_CPPFLAGS}
+testlinuxstreamingwrite_LDFLAGS = ${AM_LDFLAGS}
