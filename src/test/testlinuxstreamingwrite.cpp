@@ -29,10 +29,17 @@ void writeStreaming(std::string const & fn, uint64_t const bufsize, uint64_t con
 	
 	libmaus::timing::RealTimeClock rtc; rtc.start();
 	uint64_t written = 0;
+	uint64_t prevprint = 0;
 	for ( uint64_t i = 0; i < numbufs; ++i )
 	{
 		stream.write(B.begin(),B.size());	
 		written += B.size();
+		
+		if ( written / (128*1024*1024) != prevprint / (128*1024*1024) )
+		{
+			std::cerr << written/(1024*1024) << "\t" << (written/rtc.getElapsedSeconds())/(1024*1024) << std::endl;
+			prevprint = written;
+		}
 	}
 	
 	stream.flush();
@@ -48,10 +55,17 @@ void writeNonStreaming(std::string const & fn, uint64_t const bufsize, uint64_t 
 	
 	libmaus::timing::RealTimeClock rtc; rtc.start();
 	uint64_t written = 0;
-	for ( uint64_t i = 0; i < 1024; ++i )
+	uint64_t prevprint = 0;
+	for ( uint64_t i = 0; i < numbufs; ++i )
 	{
 		stream.write(B.begin(),B.size());	
 		written += B.size();
+
+		if ( written / (128*1024*1024) != prevprint / (128*1024*1024) )
+		{
+			std::cerr << written/(1024*1024) << "\t" << (written/rtc.getElapsedSeconds())/(1024*1024) << std::endl;
+			prevprint = written;
+		}
 	}
 	
 	stream.flush();
@@ -72,7 +86,7 @@ int main(int argc, char * argv[])
 		remove(fnnonstreaming.c_str());
 		sleep(5);
 		uint64_t const bufsize = 8*1024*1024;
-		uint64_t const numbufs = 10*1024;
+		uint64_t const numbufs = 128;
 		writeStreaming(fnstreaming,bufsize,numbufs);
 		writeNonStreaming(fnnonstreaming,bufsize,numbufs);
 	}
