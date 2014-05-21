@@ -423,6 +423,17 @@ namespace libmaus
 				SuffixPrefixAlignmentPrint::printAlignmentLines(out,a,b,SPR,rlinewidth,ta,te);
 				return out;
 			}
+			
+			bool startsWithDeletion() const
+			{
+				return
+					(te!=ta) && (*ta == STEP_DEL);
+			}
+			bool endsWithInsertion() const
+			{
+				return
+					(te!=ta) && (te[-1] == STEP_INS);
+			}
 		};
 
 		typedef SuffixPrefixTemplate<ScoreGeneric> SuffixPrefix;
