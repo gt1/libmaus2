@@ -699,7 +699,8 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/PosixFdOutputStream.hpp \
 	libmaus/aio/PosixFdInputStreamBuffer.hpp \
 	libmaus/aio/LinuxStreamingPosixFdOutputStreamBuffer.hpp \
-	libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp
+	libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp \
+	libmaus/aio/IsKnownLocalFileSystem.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\

@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/aio/IsKnownLocalFileSystem.hpp>
 #include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
 #include <libmaus/aio/PosixFdOutputStream.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
@@ -43,7 +44,6 @@ void writeStreaming(std::string const & fn, uint64_t const bufsize, uint64_t con
 	}
 	
 	stream.flush();
-	// stream.close();
 	
 	std::cout << "streaming written " << (written / rtc.getElapsedSeconds()) / (1024*1024) << std::endl;
 }
@@ -69,24 +69,39 @@ void writeNonStreaming(std::string const & fn, uint64_t const bufsize, uint64_t 
 	}
 	
 	stream.flush();
-	// stream.close();
 	
 	std::cout << "non streaming written " << (written / rtc.getElapsedSeconds()) / (1024*1024) << std::endl;
 }
+
 
 int main(int argc, char * argv[])
 {
 	try
 	{
 		libmaus::util::ArgInfo const arginfo(argc,argv);
+				
+		uint64_t const bufsize = arginfo.getValueUnsignedNumeric<uint64_t>("bufsize",8ull*1024ull*1024ull);
+		uint64_t const osize = arginfo.getValueUnsignedNumeric<uint64_t>("bytes",1024ull*1024ull*1024ull);
 		std::string const fn = arginfo.restargs.at(0);
+
 		std::string const fnstreaming = fn + ".streaming";
 		std::string const fnnonstreaming = fn + ".nonstreaming";
 		remove(fnstreaming.c_str());
 		remove(fnnonstreaming.c_str());
+
+		bool const local = libmaus::aio::IsKnownLocalFileSystem::isKnownLocalFileSystemCreate(fnstreaming);
+
+		if ( ! local )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "file " << fnstreaming << " does not seem to be located on local storage." << std::endl;
+			lme.finish();
+			throw lme;		
+		}
+
 		sleep(5);
-		uint64_t const bufsize = 8*1024*1024;
-		uint64_t const numbufs = 128;
+		
+		uint64_t const numbufs = (osize+bufsize-1)/bufsize;
 		writeStreaming(fnstreaming,bufsize,numbufs);
 		writeNonStreaming(fnnonstreaming,bufsize,numbufs);
 	}
