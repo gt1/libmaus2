@@ -1897,6 +1897,25 @@ namespace libmaus
 				libmaus::bambam::BamAlignmentDecoderBase::calculateMd(D.begin(),blocksize,context,itref,warnchanges);
 				fillMd(context);	
 			}
+			
+			/**
+			 * get soft clipped bases at beginning of read
+			 *
+			 * @return soft clipped bases at beginning of read
+			 **/
+			uint64_t getFrontSoftClipping() const
+			{
+				return libmaus::bambam::BamAlignmentDecoderBase::getFrontSoftClipping(D.begin());
+			}
+			/**
+			 * get soft clipped bases at end of read
+			 *
+			 * @return soft clipped bases at end of read
+			 **/
+			uint64_t getBackSoftClipping() const
+			{
+				return libmaus::bambam::BamAlignmentDecoderBase::getBackSoftClipping(D.begin());
+			}
 		};
 	}
 }
