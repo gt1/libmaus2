@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.124,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:124:0
+AC_INIT(libmaus,0.0.126,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:126:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
@@ -858,6 +858,7 @@ fi
 
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(sys/types.h, [sys_types=yes], [sys_types=no])
+AC_CHECK_HEADER(sys/vfs.h, [sys_vfs_h=yes], [sys_vfs_h=no])
 AC_CHECK_HEADER(windows.h, [windows_h=yes], [windows_h=no])
 AC_CHECK_HEADER(sys/time.h, [sys_time_h=yes], [sys_time_h=no])
 AC_CHECK_HEADER(regex.h, [regex_h=yes], [regex_h=no])
@@ -1156,6 +1157,11 @@ if [[ "${sys_types}" = "yes" ]] ; then
 else
 	SYS_TYPES_H=
 fi
+if [[ "${sys_vfs_h}" = "yes" ]] ; then 
+	HAVESYSVFSH="#define LIBMAUS_HAVE_SYS_VFS_H"
+else
+	HAVESYSVFSH=
+fi
 if [[ "${cstdint}" = "yes" ]] ; then 
 	CSTDINT="#define LIBMAUS_HAVE_CSTDINT"
 else
@@ -1173,7 +1179,6 @@ else
 fi
 
 if [[ "${regex_h}" = "yes" ]] ; then 
-
 
 AC_MSG_CHECKING([whether we can compile a program using posix regex])
                 AC_LINK_IFELSE([AC_LANG_SOURCE([#include <sys/types.h>
@@ -1203,6 +1208,29 @@ AC_MSG_RESULT([$have_posix_regex])
 	fi
 else
 	REGEXH=
+fi
+
+if [[ "${sys_vfs_h}" = "yes" ]] ; then 
+	AC_MSG_CHECKING([whether we can compile a program using statfs])
+                AC_LINK_IFELSE([AC_LANG_SOURCE([#include <sys/vfs.h>
+
+            int main() {
+		struct statfs stfs;
+		statfs("file",&stfs);
+		return 0;
+            }])],
+                have_statfs=yes,
+                have_statfs=no
+        )
+AC_MSG_RESULT([$have_statfs])
+
+	if test "${have_statfs}" = "yes" ; then
+		LIBMAUS_HAVE_STATFS="#define LIBMAUS_HAVE_STATFS"
+	else
+		LIBMAUS_HAVE_STATFS=""
+	fi
+else
+	LIBMAUS_HAVE_STATFS=
 fi
 
 HAVESSE4=
@@ -2036,4 +2064,6 @@ AC_SUBST([OPENSSLLIBS])
 AC_SUBST([POSIXSPINLOCKS])
 AC_SUBST([HAVESYNCLOCK])
 AC_SUBST([HAVEDARWINSPINLOCKS])
+AC_SUBST([HAVESYSVFSH])
+AC_SUBST([LIBMAUS_HAVE_STATFS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

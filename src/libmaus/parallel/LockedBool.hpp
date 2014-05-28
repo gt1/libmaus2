@@ -21,13 +21,21 @@
 
 #include <libmaus/parallel/OMPLock.hpp>
 
+#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+#include <libmaus/parallel/PosixSpinLock.hpp>
+#endif
+
 namespace libmaus
 {
 	namespace parallel
 	{
 		struct LockedBool
 		{
+			#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+			libmaus::parallel::PosixSpinLock lock;
+			#else
 			libmaus::parallel::OMPLock lock;
+			#endif
 			volatile bool b;
 			
 			LockedBool(bool const rb)

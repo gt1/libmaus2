@@ -100,6 +100,22 @@ namespace libmaus
 			}
 			
 			/**
+			 * remove all SQ type lines
+			 * 
+			 * @param headertext input header text
+			 * @return text without SQ lines
+			 **/
+			static std::string removeSequenceLines(std::string const & headertext)
+			{
+				std::vector<HeaderLine> const lines = extractLines(headertext);
+				std::ostringstream ostr;
+				for ( uint64_t i = 0; i < lines.size(); ++i )
+					if ( lines[i].type != "SQ" )
+						ostr << lines[i].line << '\n';
+				return ostr.str();
+			}
+			
+			/**
 			 * extract vector of lines from header text
 			 *
 			 * @param headertext header text

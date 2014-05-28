@@ -25,7 +25,9 @@
 #include <sstream>
 #include <iostream>
 
-#if defined(_OPENMP)
+#if defined(LIBMAUS_HAVE_PTHREADS) 
+libmaus::parallel::PosixSpinLock libmaus::autoarray::AutoArray_lock;
+#elif defined(_OPENMP)
 libmaus::parallel::OMPLock libmaus::autoarray::AutoArray_lock;
 #endif
 
