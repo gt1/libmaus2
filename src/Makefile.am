@@ -354,7 +354,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/MdStringComputationContext.hpp \
 	libmaus/bambam/BamAlignmentFilter.hpp \
 	libmaus/bambam/BamAlignmentReadGroupFilter.hpp \
-	libmaus/bambam/MdNmRecalculation.hpp
+	libmaus/bambam/MdNmRecalculation.hpp \
+	libmaus/bambam/CramRange.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
