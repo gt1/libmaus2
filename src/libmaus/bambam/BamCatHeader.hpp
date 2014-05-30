@@ -202,6 +202,12 @@ namespace libmaus
 			{
 				init(decs.begin(),decs.size());
 			}
+
+			BamCatHeader(libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder * > & decs)
+			: orderedCoordinates(true), orderedNames(true)
+			{
+				init(decs.begin(),decs.size());
+			}
 			
 			BamCatHeader(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & V)
 			: orderedCoordinates(true), orderedNames(true)
