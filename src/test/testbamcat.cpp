@@ -51,7 +51,8 @@ int main(int argc, char * argv[])
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 
 		std::vector<std::string> const & inputfilenames = arginfo.restargs;
-		libmaus::bambam::BamCat bamdec(inputfilenames /* ,true */);
+		bool const streaming = arginfo.getValue<unsigned int>("streaming",false);
+		libmaus::bambam::BamCat bamdec(inputfilenames, false /* put rank */, streaming);
 		libmaus::bambam::BamAlignment const & algn = bamdec.getAlignment();
 		libmaus::bambam::BamHeader const & header = bamdec.getHeader();
 		::libmaus::bambam::BamHeader::unique_ptr_type uphead(updateHeader(arginfo,header));

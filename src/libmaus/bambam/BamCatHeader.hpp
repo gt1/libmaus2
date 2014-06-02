@@ -80,30 +80,23 @@ namespace libmaus
 				}
 			};
 			
-			template<typename iterator>
-			void init(
-				iterator decs,
-				uint64_t const decssize
-				// libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder::unique_ptr_type > & decs
-			)
+			void init()
 			{
 				rgfilter.set("RG");
 				pgfilter.set("PG");
-				inputbamheaders = libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type>(decssize);
+
 				std::vector < std::vector<libmaus::bambam::Chromosome> const * > V;
 				std::vector < std::vector<libmaus::bambam::ReadGroup> const * > R;
 				std::vector< std::string const * > H;
-				for ( uint64_t i = 0; i < decssize; ++i )
+				for ( uint64_t i = 0; i < inputbamheaders.size(); ++i )
 				{
-					V.push_back( & (decs[i]->getHeader().chromosomes) );
-					R.push_back( & (decs[i]->getHeader().RG) );
-					H.push_back( & (decs[i]->getHeader().text) );
+					libmaus::bambam::BamHeader const & header = *inputbamheaders[i];
 					
-					libmaus::bambam::BamHeader::unique_ptr_type tinputbamheader(decs[i]->getHeader().uclone());
-					inputbamheaders[i] = UNIQUE_PTR_MOVE(tinputbamheader);			
-
-					std::string const SO = libmaus::bambam::BamHeader::getSortOrderStatic(decs[i]->getHeader().text);	
+					V.push_back( & (header.chromosomes) );
+					R.push_back( & (header.RG) );
+					H.push_back( & (header.text) );
 					
+					std::string const SO = libmaus::bambam::BamHeader::getSortOrderStatic(header.text);
 					orderedCoordinates = orderedCoordinates && (SO == "coordinate");
 					orderedNames = orderedNames && (SO == "queryname");
 				}
@@ -118,8 +111,8 @@ namespace libmaus
 				programHeaderLinesMergeInfo = UNIQUE_PTR_MOVE(tprogramHeaderLinesMergeInfo);
 				
 				std::ostringstream headertextstr;
-				if ( decssize == 1 )
-					headertextstr << "@HD\tVN:1.5\tSO:" << libmaus::bambam::BamHeader::getSortOrderStatic(decs[0]->getHeader().text) << std::endl;
+				if ( inputbamheaders.size() == 1 )
+					headertextstr << "@HD\tVN:1.5\tSO:" << libmaus::bambam::BamHeader::getSortOrderStatic(inputbamheaders[0]->text) << std::endl;
 				else
 					headertextstr << "@HD\tVN:1.5\tSO:unknown" << std::endl;
 				
@@ -132,9 +125,9 @@ namespace libmaus
 				headertextstr << programHeaderLinesMergeInfo->PGtext;
 
 				std::vector<std::string> otherlines;
-				for ( uint64_t i = 0; i < decssize; ++i )
+				for ( uint64_t i = 0; i < inputbamheaders.size(); ++i )
 				{
-					std::vector<libmaus::bambam::HeaderLine> lines = libmaus::bambam::HeaderLine::extractLines(decs[i]->getHeader().text);
+					std::vector<libmaus::bambam::HeaderLine> lines = libmaus::bambam::HeaderLine::extractLines(inputbamheaders[i]->text);
 					
 					for ( uint64_t j = 0; j < lines.size(); ++j )
 					{
@@ -169,23 +162,48 @@ namespace libmaus
 				// std::cerr << "topologically sorted: " << chromosomeMergeInfo->topological << std::endl;
 				// std::cerr << bamheader->text;			
 			}
+			
+			template<typename iterator>
+			void init(iterator decs, uint64_t const decssize)
+			{
+				// allocate clone array
+				inputbamheaders = libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type>(decssize);
+
+				// clone headers
+				for ( uint64_t i = 0; i < decssize; ++i )
+				{
+					libmaus::bambam::BamHeader::unique_ptr_type tinputbamheader(decs[i]->getHeader().uclone());
+					inputbamheaders[i] = UNIQUE_PTR_MOVE(tinputbamheader);			
+				}
+
+				init();
+			}
 
 			BamCatHeader(std::vector<std::string> const & filenames)
 			: orderedCoordinates(true), orderedNames(true)
 			{
-				// open files
-				libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder::unique_ptr_type > decs(filenames.size());
-				for ( uint64_t i = 0; i < decs.size(); ++i )
+				// allocate header clone array
+				inputbamheaders = libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type>(filenames.size());
+
+				// open files one at a time and extract headers
+				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
-					std::string const fn = filenames[i];
-					libmaus::bambam::BamAlignmentDecoder::unique_ptr_type tdec(new libmaus::bambam::BamDecoder(fn));
-					decs[i] = UNIQUE_PTR_MOVE(tdec);				
+					libmaus::bambam::BamDecoder dec(filenames[i]);
+					libmaus::bambam::BamHeader::unique_ptr_type tinputbamheader(dec.getHeader().uclone());
+					inputbamheaders[i] = UNIQUE_PTR_MOVE(tinputbamheader);					
 				}
 				
-				init(decs.begin(),decs.size());
+				// merge headers
+				init();
 			}
 
 			BamCatHeader(libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder::unique_ptr_type > & decs)
+			: orderedCoordinates(true), orderedNames(true)
+			{
+				init(decs.begin(),decs.size());
+			}
+
+			BamCatHeader(libmaus::autoarray::AutoArray < libmaus::bambam::BamAlignmentDecoder * > & decs)
 			: orderedCoordinates(true), orderedNames(true)
 			{
 				init(decs.begin(),decs.size());

@@ -21,6 +21,7 @@
 
 #include <libmaus/types/types.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
+#include <libmaus/bambam/CramRange.hpp>
 
 #if defined(LIBMAUS_HAVE_IO_LIB)
 #include <libmaus/bambam/ScramDecoder.hpp>
@@ -88,91 +89,6 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 			
-			struct CramRange
-			{
-				std::string rangeref;
-				int64_t rangestart;
-				int64_t rangeend;
-				
-				CramRange()
-				: rangeref(), rangestart(-1), rangeend(-1)
-				{
-				
-				}
-				CramRange(std::string const & range)
-				: rangeref(), rangestart(-1), rangeend(-1)
-				{
-					std::size_t const colpos = range.find(":");
-					// just ref seq name
-					if ( colpos == std::string::npos )
-					{
-						rangeref = range;
-						rangestart = 0;
-						rangeend = -1;
-					}
-					else
-					{
-						rangeref = range.substr(0,colpos);
-
-						std::string rangerest = range.substr(colpos+1);
-						std::size_t const minpos = rangerest.find("-");
-
-						// no interval, just start index
-						if ( minpos == std::string::npos )
-						{
-							rangestart = 0;
-							for ( uint64_t i = 0; i < rangerest.size(); ++i )
-								if ( isdigit(static_cast<uint8_t>(rangerest[i])) )
-								{
-									rangestart *= 10;
-									rangestart += (rangerest[i]-'0');
-								}
-								else
-								{
-									libmaus::exception::LibMausException ex;
-									ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (part after colon contains no minus and is not a number)" << std::endl;
-									ex.finish();
-									throw ex;
-								}
-							rangeend = -1;
-						}
-						else
-						{
-							std::string const sstart = rangerest.substr(0,minpos);
-							std::string const send = rangerest.substr(minpos+1);
-							
-							rangestart = 0;
-							for ( uint64_t i = 0; i < sstart.size(); ++i )
-								if ( ! isdigit(static_cast<uint8_t>(sstart[i])) )
-								{
-									libmaus::exception::LibMausException ex;
-									ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (start point is not a number)" << std::endl;
-									ex.finish();
-									throw ex;		
-								}
-								else
-								{
-									rangestart *= 10;
-									rangestart += (sstart[i]-'0');
-								}
-							rangeend = 0;
-							for ( uint64_t i = 0; i < send.size(); ++i )
-								if ( ! isdigit(static_cast<uint8_t>(send[i])) )
-								{
-									libmaus::exception::LibMausException ex;
-									ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (end point is not a number)" << std::endl;
-									ex.finish();
-									throw ex;		
-								}
-								else
-								{
-									rangeend *= 10;
-									rangeend += (send[i]-'0');
-								}
-						}
-					}
-				}
-			};
 
 			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::istream & stdin = std::cin,
