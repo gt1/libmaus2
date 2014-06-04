@@ -43,4 +43,11 @@
 #include <stdint.h>
 #endif
 
+#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+namespace libmaus
+{
+	typedef unsigned __int128 uint128_t;
+}
+#endif
+
 #endif
