@@ -255,7 +255,7 @@ namespace libmaus
 
 			uint64_t rankm1(uint64_t i) const
 			{
-				assert ( i < n );
+				assert ( i <= n );
 				
 				uint64_t const block = i / blocksize;
 				i -= block*blocksize;

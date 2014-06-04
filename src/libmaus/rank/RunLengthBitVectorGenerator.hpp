@@ -90,11 +90,11 @@ namespace libmaus
 			}
 			
 			
-			void runFlush()
+			void runFlush(uint64_t const rlpad)
 			{
-				if ( single_runlength )
+				if ( single_runlength + rlpad )
 				{
-					putrun(single_cursym,single_runlength);
+					putrun(single_cursym,single_runlength + rlpad);
 					single_runlength = 0;
 					single_cursym = ! single_cursym;
 				}
@@ -102,7 +102,10 @@ namespace libmaus
 			
 			uint64_t flush()
 			{
-				runFlush();
+				// bit padding at end for rankm calls
+				static uint64_t const rlpad = 1;
+			
+				runFlush(rlpad);
 				
 				RunLengthBitVectorGeneratorGammaBase::GE.flush();
 				RunLengthBitVectorGeneratorGammaBase::SGO.flush();
@@ -111,7 +114,7 @@ namespace libmaus
 				// seek to start of index file
 				indexstr.seekg(indexstr.tellp());
 				indexstr.seekg(-static_cast<int64_t>(sizeof(uint64_t) * blocks),std::ios::cur);
-				assert ( indexstr.tellg() == 0 );
+				assert ( static_cast<int64_t>(indexstr.tellg()) == static_cast<int64_t>(0) );
 				
 				// write number of blocks
 				libmaus::serialize::Serialize<uint64_t>::serialize(ostr,blocks);
@@ -137,11 +140,11 @@ namespace libmaus
 					std::ios::cur
 				);
 				// check
-				assert ( ostr.tellp() == 0 );
+				assert ( static_cast<int64_t>(ostr.tellp()) == static_cast<int64_t>(0) );
 				// write block size
 				libmaus::util::NumberSerialisation::serialiseNumber(ostr,blocksize);
 				// write size of bit vector in bits
-				libmaus::util::NumberSerialisation::serialiseNumber(ostr,size());
+				libmaus::util::NumberSerialisation::serialiseNumber(ostr,size()-rlpad);
 				// write position of index
 				libmaus::util::NumberSerialisation::serialiseNumber(ostr,indexpos);
 				assert ( indexpos % sizeof(uint64_t) == 0 );
@@ -153,7 +156,7 @@ namespace libmaus
 				
 				// seek back to end of file
 				ostr.seekp(-static_cast<int64_t>(4*sizeof(uint64_t)),std::ios::cur);
-				assert ( ostr.tellp() == 0 );
+				assert ( static_cast<int64_t>(ostr.tellp()) == static_cast<int64_t>(0) );
 				ostr.seekp(
 					static_cast<int64_t>(
 						// length of index
