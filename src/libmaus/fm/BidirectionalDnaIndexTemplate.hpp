@@ -731,7 +731,8 @@ namespace libmaus
 			}
 		};
 
-		typedef BidirectionalDnaIndexTemplate<libmaus::lf::ImpCompactHuffmanWaveletLF> BidirectionalDnaIndexImpCompactHuffmanWaveletTree;
+		typedef BidirectionalDnaIndexTemplate<libmaus::lf::ImpCompactHuffmanWaveletLF>   BidirectionalDnaIndexImpCompactHuffmanWaveletTree;
+		typedef BidirectionalDnaIndexTemplate<libmaus::lf::ImpCompactRLHuffmanWaveletLF> BidirectionalDnaIndexImpCompactRLHuffmanWaveletTree;
 	}
 }
 #endif

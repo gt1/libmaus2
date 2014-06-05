@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.127,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:127:0
+AC_INIT(libmaus,0.0.128,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:128:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
@@ -1931,7 +1931,20 @@ if test "${libkern_osatomic_h}" = "yes" ; then
 		if test "$have_darwin_spinlocks" = "yes" ; then
 			HAVEDARWINSPINLOCKS="#define LIBMAUS_HAVE_DARWIN_SPINLOCKS"
 		fi
+fi
 
+AC_MSG_CHECKING([for unsigned __int128])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <iostream>],[
+	unsigned __int128 i = 5;
+	std::cout << static_cast<int>(i) << std::endl;
+	return 0;
+],[have_unsigned_int128=yes],[have_unsigned_int128=no])
+AC_MSG_RESULT([${have_unsigned_int128}])
+AC_LANG_POP
+
+if test "$have_unsigned_int128" = "yes" ; then
+	HAVEUNSIGNEDINT128="#define LIBMAUS_HAVE_UNSIGNED_INT128"
 fi
 
 case $host_os in
@@ -2066,4 +2079,5 @@ AC_SUBST([HAVESYNCLOCK])
 AC_SUBST([HAVEDARWINSPINLOCKS])
 AC_SUBST([HAVESYSVFSH])
 AC_SUBST([LIBMAUS_HAVE_STATFS])
+AC_SUBST([HAVEUNSIGNEDINT128])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

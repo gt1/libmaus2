@@ -120,7 +120,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < indexsize; ++i )
 					celloffsets[i] = libmaus::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
 
-				assert ( in.tellg() == static_cast<int64_t>(indexpos) );
+				assert ( static_cast<int64_t>(in.tellg()) == static_cast<int64_t>(indexpos) );
 	
 				in.clear();
 				in.seekg(0,std::ios::beg);
