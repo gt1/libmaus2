@@ -3,6 +3,7 @@ LIBRARY_VERSION=0:128:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
 
 AM_INIT_AUTOMAKE([std-options subdir-objects])
 AM_CONFIG_HEADER(config.h)
@@ -266,6 +267,10 @@ AC_CHECK_HEADER(unistd.h, [unistd_h=yes], [unistd_h=no])
 AC_LANG_POP
 
 AC_LANG_PUSH([C++])
+AC_CHECK_HEADER(features.h, [features_h=yes], [features_h=no])
+AC_LANG_POP
+
+AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(stdint.h, [stdint_h=yes], [stdint_h=no])
 AC_LANG_POP
 
@@ -360,6 +365,11 @@ fi
 HAVEUNISTDH=
 if [[ "${unistd_h}" = "yes" ]] ; then 
 	HAVEUNISTDH="#define LIBMAUS_HAVE_UNISTD_H"
+fi
+
+HAVEFEATURESH=
+if [[ "${features_h}" = "yes" ]] ; then
+        HAVEHAVEFEATURESH="#define LIBMAUS_HAVE_FEATURES_H"
 fi
 
 HAVESTDINTH=
@@ -2080,4 +2090,5 @@ AC_SUBST([HAVEDARWINSPINLOCKS])
 AC_SUBST([HAVESYSVFSH])
 AC_SUBST([LIBMAUS_HAVE_STATFS])
 AC_SUBST([HAVEUNSIGNEDINT128])
+AC_SUBST([HAVEHAVEFEATURESH])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

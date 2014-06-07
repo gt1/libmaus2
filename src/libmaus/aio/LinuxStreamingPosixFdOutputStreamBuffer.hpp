@@ -26,6 +26,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#if defined(LIBMAUS_HAVE_FEATURES_H)
+#include <features.h>
+#endif
+
 namespace libmaus
 {
 	namespace aio
@@ -146,7 +150,8 @@ namespace libmaus
 					{
 						assert ( w <= static_cast<int64_t>(n) );
 						
-						#if defined(__linux__)
+						#if defined(__GLIBC__)
+						#if __GLIBC_PREREQ(2,6)
 						// non block buffer cache flush request for range we have just written
 						if ( w )
 						{
@@ -159,6 +164,7 @@ namespace libmaus
 							// tell kernel we no longer need the pages
 							::posix_fadvise(fd, prevwrite.first, prevwrite.second, POSIX_FADV_DONTNEED);
 						}
+						#endif
 						#endif
 
 						prevwrite.first  = prevwrite.first + prevwrite.second;
