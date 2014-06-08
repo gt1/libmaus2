@@ -3,7 +3,6 @@ LIBRARY_VERSION=0:129:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
-AM_PROG_CC_C_O
 
 AM_INIT_AUTOMAKE([std-options subdir-objects])
 AM_CONFIG_HEADER(config.h)
@@ -12,6 +11,7 @@ AC_CONFIG_MACRO_DIR([m4])
 CFLAGS_SAVE="${CFLAGS}"
 CFLAGS=""
 AC_PROG_CC
+AM_PROG_CC_C_O
 CFLAGS="${CFLAGS_SAVE}"
 
 abs_builddir="${PWD}"
