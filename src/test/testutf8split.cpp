@@ -194,6 +194,31 @@ void testUtf8BlockIndexDecoder(std::string const & fn)
 
 #include <libmaus/wavelet/Utf8ToImpCompactHuffmanWaveletTree.hpp>
 
+void testUtf8ToImpHuffmanWaveletTree(std::string const & fn)
+{
+	{
+		::libmaus::wavelet::Utf8ToImpHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
+		// load huffman shaped wavelet tree of bwt
+		::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT
+			(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
+		::libmaus::util::Utf8String::shared_ptr_type us = ::libmaus::util::Utf8String::constructRaw(fn);
+		std::cerr << "checking length " << us->size() << std::endl;
+		for ( uint64_t i = 0; i < us->size(); ++i )
+			assert ( (*us)[i] == (*IHWT)[i] );
+	}
+	
+	{
+		::libmaus::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
+		// load huffman shaped wavelet tree of bwt
+		::libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT
+			(::libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(fn+".hwt"));
+		::libmaus::util::Utf8String::shared_ptr_type us = ::libmaus::util::Utf8String::constructRaw(fn);
+		std::cerr << "checking length " << us->size() << "," << IHWT->size() << std::endl;
+		for ( uint64_t i = 0; i < us->size(); ++i )
+			assert ( (*us)[i] == (*IHWT)[i] );		
+	}
+}
+
 int main(int argc, char * argv[])
 {
 	try
@@ -205,39 +230,21 @@ int main(int argc, char * argv[])
 		testUtf8BlockIndexDecoder(fn); // also creates index file
 		testUtf8Bwt(fn);
 		
-		{
-			::libmaus::wavelet::Utf8ToImpHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
-			// load huffman shaped wavelet tree of bwt
-			::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT
-				(::libmaus::wavelet::ImpHuffmanWaveletTree::load(fn+".hwt"));
-			::libmaus::util::Utf8String::shared_ptr_type us = ::libmaus::util::Utf8String::constructRaw(fn);
-			std::cerr << "checking length " << us->size() << std::endl;
-			for ( uint64_t i = 0; i < us->size(); ++i )
-				assert ( (*us)[i] == (*IHWT)[i] );
-		}
-		
-		{
-			::libmaus::wavelet::Utf8ToImpCompactHuffmanWaveletTree::constructWaveletTree<true>(fn,fn+".hwt");
-			// load huffman shaped wavelet tree of bwt
-			::libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type IHWT
-				(::libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(fn+".hwt"));
-			::libmaus::util::Utf8String::shared_ptr_type us = ::libmaus::util::Utf8String::constructRaw(fn);
-			std::cerr << "checking length " << us->size() << "," << IHWT->size() << std::endl;
-			for ( uint64_t i = 0; i < us->size(); ++i )
-				assert ( (*us)[i] == (*IHWT)[i] );		
-		}
-			
-		/*
-		testUtf8Bwt(fn);
+		#if !defined(__GNUC__) || (defined(__GNUC__) && GCC_VERSION >= 40200)
+		testUtf8ToImpHuffmanWaveletTree(fn);	
+		#endif
+
+		#if 0
 		testUtf8String(fn);		
 		testUtf8Circular(fn);
 		testUtf8Seek(fn);
-		*/
+		#endif
 		
 		remove ( (fn + ".idx").c_str() ); // remove index
 	}
-	catch(int)//(std::exception const & ex)
+	catch(std::exception const & ex)
 	{
-		// std::cerr << ex.what() << std::endl;	
+		std::cerr << ex.what() << std::endl;	
+		return EXIT_FAILURE;
 	}
 }
