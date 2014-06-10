@@ -1326,6 +1326,7 @@ if test "${pthread}" = "yes" ; then
 	AC_CHECK_FUNC(pthread_set_name_np,pthread_set_name_np_func=yes,pthread_set_name_np_func=no)
 	AC_CHECK_FUNC(pthread_getname_np,pthread_getname_np_func=yes,pthread_getname_np_func=no)
 	AC_CHECK_FUNC(pthread_get_name_np,pthread_get_name_np_func=yes,pthread_get_name_np_func=no)
+	AC_CHECK_FUNC(pthread_setaffinity_np,pthread_setaffinity_np_func=yes,pthread_setaffinity_np_func=no)
 	AC_CHECK_FUNC(prctl,prctl_func=yes,prctl_func=no)
 	AC_LANG_POP
 
@@ -1390,6 +1391,12 @@ HAVEPRCTL=
 if [[ "${ac_cv_func_prctl}" = "yes" ]] ; then
 	HAVEPRCTL="#define LIBMAUS_HAVE_PRCTL"
 fi
+
+HAVEPTHREADSETAFFINITYNP=
+if [[ "${ac_cv_func_pthread_setaffinity_np}" = "yes" ]] ; then
+	HAVEPTHREADSETAFFINITYNP="#define LIBMAUS_HAVE_PTHREAD_SETAFFINITY_NP"
+fi
+
 
 HAVEPTHREADS=
 if test "${pthread}" = "yes" ; then
@@ -2091,4 +2098,5 @@ AC_SUBST([HAVESYSVFSH])
 AC_SUBST([LIBMAUS_HAVE_STATFS])
 AC_SUBST([HAVEUNSIGNEDINT128])
 AC_SUBST([HAVEHAVEFEATURESH])
+AC_SUBST([HAVEPTHREADSETAFFINITYNP])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

@@ -82,7 +82,7 @@ namespace libmaus
 			typedef cpuset_t cpu_set_t;
 			#endif
 			
-			#if defined(__linux__) || defined(__FreeBSD__)
+			#if defined(LIBMAUS_HAVE_PTHREAD_SETAFFINITY_NP)
 			void setaffinity(std::vector<uint64_t> const & procs)
 			{
 				cpu_set_t cpuset;
@@ -205,7 +205,7 @@ namespace libmaus
 			}
 			#endif
 
-			#if defined(__linux__) || defined(__FreeBSD__)
+			#if defined(LIBMAUS_HAVE_PTHREAD_SETAFFINITY_NP)
 			void start(uint64_t const proc)
 			{
 				start ( std::vector<uint64_t>(1,proc) );
