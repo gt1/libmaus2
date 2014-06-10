@@ -42,7 +42,7 @@ namespace libmaus
 			  while (length >= 8)
 			  {
 #if defined(LIBMAUS_BYTE_ORDER_BIG_ENDIAN)
-			    uint32_t one = *current++ ^ swap(crc);
+			    uint32_t one = *current++ ^ __builtin_bswap32(crc);
 			    uint32_t two = *current++;
 			    crc  = Crc32Lookup[0][ two      & 0xFF] ^
 				   Crc32Lookup[1][(two>> 8) & 0xFF] ^
