@@ -32,6 +32,7 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		#if defined(LIBMAUS_HAVE_DL_FUNCS)
 		/**
 		 * scram decoder class; alignment decoder based on io_lib
 		 **/
@@ -297,6 +298,7 @@ namespace libmaus
 				return scramdec;
 			}
 		};
+		#endif
 	}
 }
 #endif

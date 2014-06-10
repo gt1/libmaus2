@@ -933,6 +933,7 @@ namespace libmaus
 			}
 		};
 
+		#if defined(LIBMAUS_HAVE_DL_FUNCS)
 		/**
 		 * circular hash based BAM collation class based on io_lib input (for SAM, BAM and CRAM)
 		 **/
@@ -973,6 +974,7 @@ namespace libmaus
 			
 			}
 		};
+		#endif
 
 		/**
 		 * circular hash based BAM collation class based on range restricted BAM decoding
