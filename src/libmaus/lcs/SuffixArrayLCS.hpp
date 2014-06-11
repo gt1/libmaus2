@@ -88,8 +88,23 @@ namespace libmaus
 				int32_t const k = ( (I.right+1 >= n) || (LCP[I.left] > LCP[I.right+1]) ) ? I.left : (I.right+1);
 				return QNode(prev[k],next[k]-1,LCP[k],I.symmask,I.right-I.left+1);
 			}
+			
+			struct LCSResult
+			{
+				uint32_t maxlcp;
+				uint32_t maxpos_a;
+				uint32_t maxpos_b;
+				
+				LCSResult() : maxlcp(0), maxpos_a(0), maxpos_b(0) {}
+				LCSResult(
+					uint32_t const rmaxlcp,
+					uint32_t const rmaxpos_a,
+					uint32_t const rmaxpos_b	
+				) : maxlcp(rmaxlcp), maxpos_a(rmaxpos_a), maxpos_b(rmaxpos_b) {}
+			};
 
-			static std::pair<uint32_t,uint32_t> lcs(std::string const & a, std::string const & b)
+			template<unsigned int alphabet_size>
+			static LCSResult lcs(std::string const & a, std::string const & b)
 			{
 				/* concatenate a and b into string c */
 				std::string c(a.size()+b.size()+2,' ');
@@ -104,8 +119,7 @@ namespace libmaus
 				::libmaus::autoarray::AutoArray<int32_t> SA(c.size(),false);
 				
 				// perform suffix sorting
-				typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,8> sort_type;
-				typedef sort_type::saidx_t saidx_t;
+				typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,alphabet_size+2> sort_type;
 				sort_type::divsufsort(reinterpret_cast<uint8_t const *>(c.c_str()), SA.get(), c.size());
 
 				// compute LCP array
@@ -173,7 +187,8 @@ namespace libmaus
 				
 				// maximum lcp value
 				int32_t maxlcp = 0;
-				uint32_t maxpos = 0;
+				uint32_t maxpos_a = 0;
+				uint32_t maxpos_b = 0;
 				
 				// consider all finished nodes
 				for ( hash_const_iterator_type it = H.begin(); it != H.end(); ++it )
@@ -185,14 +200,23 @@ namespace libmaus
 					// we need to have nodes from both strings a and b under this
 					// node (sym mask has bits for 1 and 2 set) and the lcp value must be 
 					// larger than what we already have
-					if ( it->symmask == 3 && it->depth > maxlcp )
+					if ( 
+						it->symmask == 3 && it->depth > maxlcp 
+					)
 					{
 						maxlcp = it->depth;
-						maxpos = SA[it->left];
+						
+						for ( int32_t q = it->left; q <= it->right; ++q )
+						{
+							if ( SA[q] < static_cast<int32_t>(a.size()) )
+								maxpos_a = SA[q];
+							else
+								maxpos_b = SA[q] - (a.size()+1);
+						}
 					}
 				}
 				
-				return std::pair<uint32_t,uint32_t>(maxlcp,maxpos);
+				return LCSResult(maxlcp,maxpos_a,maxpos_b);
 			}
 		};
 	}
