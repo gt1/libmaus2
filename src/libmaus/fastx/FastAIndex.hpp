@@ -95,7 +95,7 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 			
-			libmaus::autoarray::AutoArray<char> readSequence(std::istream & in, int64_t const seqid)
+			libmaus::autoarray::AutoArray<char> readSequence(std::istream & in, int64_t const seqid) const
 			{
 				if ( seqid < 0 || seqid >= static_cast<int64_t>(sequences.size()) )
 				{
@@ -146,6 +146,105 @@ namespace libmaus
 						}	
 					}				
 				}
+				
+				return A;
+			}
+
+			libmaus::autoarray::AutoArray<char> readSequenceRange(std::istream & in, int64_t const seqid, int64_t const low, int64_t const high) const
+			{
+				if ( seqid < 0 || seqid >= static_cast<int64_t>(sequences.size()) )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "FastAIndexEntry::readSequenceRange(): sequence id " << seqid << " is out of range" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+				
+				libmaus::fastx::FastAIndexEntry const entry = sequences.at(seqid);
+
+				if ( low < 0 || high > static_cast<int64_t>(entry.length) || low > high )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "FastAIndexEntry::readSequenceRange(): invalid range" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+
+				uint64_t const lineskip = entry.bytesperline-entry.basesperline;
+
+				uint64_t todo = high-low;
+				libmaus::autoarray::AutoArray<char> A(todo,false);
+				char * cur = A.begin();
+				
+				// seek to position on sequence
+				in.clear();
+				in.seekg(entry.offset + ( low / entry.basesperline ) * entry.bytesperline + (low % entry.basesperline), std::ios::beg);
+				
+				// if we are not at a line start, then read to (at most) end of line
+				if ( (low % entry.basesperline) != 0 )
+				{
+					uint64_t const re = std::min(todo,entry.basesperline - (low % entry.basesperline));
+
+					in.read(cur,re);
+					
+					if ( in.gcount() != static_cast<int64_t>(re) )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "FastAIndexEntry::readSequenceRange(): failed to read sequence " << entry.name << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+
+					cur += re;
+					todo -= re;
+					
+					if ( todo )
+					{
+						in.ignore(lineskip);
+
+						if ( in.gcount() != static_cast<int64_t>(lineskip) )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "FastAIndexEntry::readSequenceRange(): failed to read sequence " << entry.name << std::endl;
+							lme.finish();
+							throw lme;				
+						}	
+					}				
+				}
+				
+				// read rest
+				while ( todo )
+				{
+					uint64_t const re = std::min(todo,entry.basesperline);
+					
+					in.read(cur,re);
+					
+					if ( in.gcount() != static_cast<int64_t>(re) )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "FastAIndexEntry::readSequenceRange(): failed to read sequence " << entry.name << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+
+					cur += re;
+					todo -= re;
+					
+					if ( todo )
+					{
+						in.ignore(lineskip);
+
+						if ( in.gcount() != static_cast<int64_t>(lineskip) )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "FastAIndexEntry::readSequenceRange(): failed to read sequence " << entry.name << std::endl;
+							lme.finish();
+							throw lme;				
+						}	
+					}				
+				}
+				
+				assert ( cur == A.end() );
 				
 				return A;
 			}
