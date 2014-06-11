@@ -1916,6 +1916,45 @@ namespace libmaus
 			{
 				return libmaus::bambam::BamAlignmentDecoderBase::getBackSoftClipping(D.begin());
 			}
+
+			/**
+			 * @return clipped query sequence as string
+			 **/
+			std::string getClippedRead() const
+			{
+				::libmaus::autoarray::AutoArray<char> A;
+				uint64_t const len = decodeRead(A);
+				return std::string(
+					A.begin() + getFrontSoftClipping(),
+					A.begin() + len - getBackSoftClipping()
+				);
+			}
+			
+			/**
+			 * @return front clipped bases
+			 **/
+			std::string getFrontClippedBases() const
+			{
+				::libmaus::autoarray::AutoArray<char> A;
+				decodeRead(A);
+				return std::string(
+					A.begin(),
+					A.begin() + getFrontSoftClipping()
+				);
+			}
+
+			/**
+			 * @return back clipped bases
+			 **/
+			std::string getBackClippedBases() const
+			{
+				::libmaus::autoarray::AutoArray<char> A;
+				uint64_t const len = decodeRead(A);
+				return std::string(
+					A.begin() + len - getBackSoftClipping(),
+					A.begin() + len
+				);
+			}
 		};
 	}
 }
