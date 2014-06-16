@@ -303,6 +303,10 @@ AC_LANG_PUSH([C++])
 AC_HEADER_STDC
 AC_LANG_POP
 
+AC_ARG_ENABLE(aio,
+        AS_HELP_STRING([--enable-aio],[enable asynchronous I/O classes if available (default yes)]),
+        [useaio=${enableval}],[useaio=yes])
+
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(aio.h, [aio_h=yes], [aio_h=no])
 AC_LANG_POP
@@ -431,7 +435,7 @@ if [[ "${stdint_h}" = "yes" ]] ; then
 fi
 
 HAVEAIO=
-if [[ "${aio_h}" = "yes" ]] ; then 
+if [[ \( "${aio_h}" = "yes" \) -a \( "${useaio}" = "yes" \) ]] ; then 
 	AC_LANG_PUSH([C++])
 	AC_CHECK_LIB([rt],[aio_suspend],[aiolib=yes],[aiolib=no])
 	AC_LANG_POP
@@ -469,7 +473,7 @@ if [[ "${setrlimit}" = "yes" ]] ; then
 	HAVESETRLIMIT="#define LIBMAUS_HAVE_SETRLIMIT"
 fi
 
-LIBMAUSLIBS="${LIBMAUSLIBS} -lz"
+LIBMAUSLIBS="${LIBMAUSLIBS} ${ZLIBLIBS}"
 
 AC_LANG_PUSH([C++])
 CXXFLAGS_SAVE="${CXXFLAGS}"
