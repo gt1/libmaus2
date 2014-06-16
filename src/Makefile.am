@@ -111,13 +111,14 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/fastx/FastAIndexEntry.cpp \
 	libmaus/fastx/FastAIndex.cpp \
 	libmaus/network/HttpAbsoluteUrl.cpp \
-	libmaus/hashing/Crc32.cpp
+	libmaus/hashing/Crc32.cpp \
+	libmaus/lz/IGzipDeflate.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@
-libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@
+libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @IGZIPCPPFLAGS@
+libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -260,7 +261,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/RAZFConstants.hpp \
 	libmaus/lz/RAZFDecoderBuffer.hpp \
 	libmaus/lz/RAZFDecoder.hpp \
-	libmaus/lz/RAZFIndex.hpp
+	libmaus/lz/RAZFIndex.hpp \
+	libmaus/lz/IGzipDeflate.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \

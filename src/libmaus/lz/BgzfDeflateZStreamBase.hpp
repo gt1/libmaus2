@@ -23,6 +23,7 @@
 #include <libmaus/lz/BgzfDeflateInputBufferBase.hpp>
 #include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
 #include <libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
+#include <libmaus/lz/IGzipDeflate.hpp>
 
 namespace libmaus
 {
@@ -30,49 +31,48 @@ namespace libmaus
 	{
 		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
 		{
+			private:
 			z_stream strm;
 			unsigned int deflbound;
+			int level;
 		
 			void deflatedestroy()
 			{
-				deflatedestroyz(&strm);		
+				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
+					deflatedestroyz(&strm);
 			}
 			
-			static uint64_t computeDeflateBound(int const level)
+			void deflateinit(int const rlevel)
 			{
-				z_stream strm;
-				deflateinitz(&strm,level);
-
-				// search for number of bytes that will never produce more compressed space than we have
-				unsigned int bound = getBgzfMaxBlockSize();
+				level = rlevel;
 				
-				while ( 
-					deflateBound(&strm,bound) > 
-					(getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) 
-				)
-					--bound;
-					
-				return bound;
-			}
-			
-			void deflateinit(int const level = Z_DEFAULT_COMPRESSION)
-			{
-				deflateinitz(&strm,level);
+				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
+				{
+					deflateinitz(&strm,level);
 
-				// search for number of bytes that will never produce more compressed space than we have
-				unsigned int bound = getBgzfMaxBlockSize();
+					// search for number of bytes that will never produce more compressed space than we have
+					unsigned int bound = getBgzfMaxBlockSize();
 				
-				while ( deflateBound(&strm,bound) > (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) )
-					--bound;
+					while ( deflateBound(&strm,bound) > (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) )
+						--bound;
 
-				deflbound = bound;
+					deflbound = bound;
+				}
+				#if defined(LIBMAUS_HAVE_IGZIP)
+				else if ( level == libmaus::lz::IGzipDeflate::getCompressionLevel() )
+				{
+					deflbound = (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize()))/2;
+				}
+				#endif
+				else
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "BgzfDeflateZStreamBase::deflateinit(): unknown/unsupported compression level " << level << std::endl;
+					se.finish();
+					throw se;							
+				}
 			}
 			
-			void deflatereinit(int const level = Z_DEFAULT_COMPRESSION)
-			{
-				deflatedestroy();
-				deflateinit(level);
-			}
 
 			void resetz()
 			{
@@ -84,43 +84,61 @@ namespace libmaus
 					throw se;		
 				}			
 			}
-			
-			BgzfDeflateZStreamBase(int const level = Z_DEFAULT_COMPRESSION)
-			{
-				deflateinit(level);
-			}
-			
-			~BgzfDeflateZStreamBase()
-			{
-				deflatedestroy();
-			}
 
 			// compress block of length len from input pa to output outbuf
 			// returns the number of compressed bytes produced
 			uint64_t compressBlock(uint8_t * pa, uint64_t const len, uint8_t * outbuf)
 			{
-				// reset zlib object
-				resetz();
-				
-				// maximum number of output bytes
-				strm.avail_out = getBgzfMaxPayLoad();
-				// next compressed output byte
-				strm.next_out  = reinterpret_cast<Bytef *>(outbuf) + getBgzfHeaderSize();
-				// number of bytes to be compressed
-				strm.avail_in  = len;
-				// data to be compressed
-				strm.next_in   = reinterpret_cast<Bytef *>(pa);
-				
-				// call deflate
-				if ( deflate(&strm,Z_FINISH) != Z_STREAM_END )
-				{
-					libmaus::exception::LibMausException se;
-					se.getStream() << "deflate() failed." << std::endl;
-					se.finish(false /* do not translate stack trace */);
-					throw se;
+				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
+				{				
+					// reset zlib object
+					resetz();
+					
+					// maximum number of output bytes
+					strm.avail_out = getBgzfMaxPayLoad();
+					// next compressed output byte
+					strm.next_out  = reinterpret_cast<Bytef *>(outbuf) + getBgzfHeaderSize();
+					// number of bytes to be compressed
+					strm.avail_in  = len;
+					// data to be compressed
+					strm.next_in   = reinterpret_cast<Bytef *>(pa);
+					
+					// call deflate
+					if ( deflate(&strm,Z_FINISH) != Z_STREAM_END )
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "deflate() failed." << std::endl;
+						se.finish(false /* do not translate stack trace */);
+						throw se;
+					}
+					
+					return getBgzfMaxPayLoad() - strm.avail_out;
 				}
-				
-				return getBgzfMaxPayLoad() - strm.avail_out;
+				#if defined(LIBMAUS_HAVE_IGZIP)
+				else if ( level == 11 )
+				{
+					int64_t const compsize = libmaus::lz::IGzipDeflate::deflate(
+						pa,len,outbuf+getBgzfHeaderSize(),getBgzfMaxPayLoad()
+					);
+					
+					if ( compsize < 0 )
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "deflate() failed." << std::endl;
+						se.finish(false /* do not translate stack trace */);
+						throw se;					
+					}
+					
+					return compsize;
+				}
+				#endif
+				else
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "BgzfDeflateZStreamBase::compressBlock(): unknown/unsupported compression level " << level << std::endl;
+					se.finish();
+					throw se;							
+				}
 			}
 
 			BgzfDeflateZStreamBaseFlushInfo flushBound(
@@ -190,6 +208,34 @@ namespace libmaus
 					);
 				}
 			}
+			
+			public:
+			static uint64_t computeDeflateBound(int const rlevel)
+			{
+				z_stream strm;
+				deflateinitz(&strm,rlevel);
+
+				// search for number of bytes that will never produce more compressed space than we have
+				unsigned int bound = getBgzfMaxBlockSize();
+				
+				while ( 
+					deflateBound(&strm,bound) > 
+					(getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize())) 
+				)
+					--bound;
+					
+				return bound;
+			}
+
+			BgzfDeflateZStreamBase(int const rlevel = Z_DEFAULT_COMPRESSION)
+			{
+				deflateinit(rlevel);
+			}
+			
+			~BgzfDeflateZStreamBase()
+			{
+				deflatedestroy();
+			}
 
 			// flush input buffer into output buffer
 			BgzfDeflateZStreamBaseFlushInfo flush(
@@ -213,6 +259,12 @@ namespace libmaus
 				{
 					return flushBound(in,out,fullflush);
 				}
+			}
+
+			void deflatereinit(int const rlevel = Z_DEFAULT_COMPRESSION)
+			{
+				deflatedestroy();
+				deflateinit(rlevel);
 			}
 		};
 	}

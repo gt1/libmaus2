@@ -32,6 +32,27 @@ namespace libmaus
 	{
 		struct BgzfDeflateHeaderFunctions : public BgzfConstants
 		{
+			private:
+			// maximum space used for compressed version of a block of size blocksize
+			static uint64_t getFlushBound(unsigned int const blocksize, int const level)
+			{
+				if ( level >= Z_DEFAULT_COMPRESSION && level <= Z_BEST_COMPRESSION )
+				{
+					LocalDeflateInfo LDI(level);
+					return deflateBound(&(LDI.strm),blocksize);
+				}
+				else
+				{
+					return std::max(blocksize,getBgzfMaxBlockSize()) << 1;
+				}
+			}
+
+			static uint64_t getReqBufSpace(int const level)
+			{
+				return getBgzfHeaderSize() + getBgzfFooterSize() + getFlushBound(getBgzfMaxBlockSize(),level);
+			}
+			
+			public:
 			static void deflateinitz(z_stream * strm, int const level)
 			{
 				memset ( strm , 0, sizeof(z_stream) );
@@ -68,17 +89,6 @@ namespace libmaus
 				}
 			};
 			
-			static uint64_t getFlushBound(unsigned int const blocksize, int const level)
-			{
-				LocalDeflateInfo LDI(level);
-				return deflateBound(&(LDI.strm),blocksize);
-			}
-			
-			static uint64_t getReqBufSpace(int const level)
-			{
-				return getBgzfHeaderSize() + getBgzfFooterSize() + getFlushBound(getBgzfMaxBlockSize(),level);
-			}
-
 			static uint64_t getReqBufSpaceTwo(int const level)
 			{
 				uint64_t const halfblocksize = (getBgzfMaxBlockSize()+1)/2;

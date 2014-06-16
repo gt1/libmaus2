@@ -44,6 +44,9 @@ namespace libmaus
 				S.insert(Z_BEST_SPEED);
 				S.insert(Z_BEST_COMPRESSION);
 				S.insert(Z_NO_COMPRESSION);
+				#if defined(LIBMAUS_HAVE_IGZIP)
+				S.insert(libmaus::lz::IGzipDeflate::getCompressionLevel());
+				#endif
 				return S;
 			}
 
@@ -55,6 +58,9 @@ namespace libmaus
 					case Z_BEST_SPEED:
 					case Z_BEST_COMPRESSION:
 					case Z_DEFAULT_COMPRESSION:
+					#if defined(LIBMAUS_HAVE_IGZIP)
+					case libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL:
+					#endif
 						break;
 					default:
 					{
@@ -64,7 +70,11 @@ namespace libmaus
 							<< " level=" << Z_DEFAULT_COMPRESSION << " (default) or"
 							<< " level=" << Z_BEST_SPEED << " (fast) or"
 							<< " level=" << Z_BEST_COMPRESSION << " (best) or"
-							<< " level=" << Z_NO_COMPRESSION << " (no compression)" << std::endl;
+							<< " level=" << Z_NO_COMPRESSION << " (no compression)"
+							#if defined(LIBMAUS_HAVE_IGZIP)
+							<< " or level=" << libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL << " (igzip)"
+							#endif
+							<< std::endl;
 						se.finish();
 						throw se;
 					}

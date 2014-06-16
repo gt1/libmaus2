@@ -29,6 +29,59 @@ LIBMAUSLDFLAGS="${LDFLAGS}"
 
 PKG_PROG_PKG_CONFIG
 
+LIBMAUS_HAVE_IGZIP=
+AC_ARG_WITH([igzip],
+	[AS_HELP_STRING([--with-igzip@<:@=PATH@:>@], [path to installed igzip library @<:@default=no@:>@])],
+	[with_igzip=${withval}],
+	[with_igzip=no])
+
+IGZIPCPPFLAGS=
+IGZIPLDFLAGS=
+IGZIPLIBS=
+if test "${with_igzip}" != "no" ; then
+	IGZIPPATH=${with_igzip}
+	
+	IGZIPCPPFLAGS=
+	IGZIPLDFLAGS=
+	IGZIPLIBS="-ligzip1c"
+	
+	if test ! -z "${IGZIPPATH}" ; then
+		IGZIPCPPFLAGS="-I${IGZIPPATH}/include"
+		IGZIPLDFLAGS="-L${IGZIPPATH}/lib -Wl,-rpath=${IGZIPPATH}/lib"
+	fi
+	
+	CPPFLAGS_SAVE="${CPPFLAGS}"
+	LDFLAGS_SAVE="${LDFLAGS}"
+	LIBS_SAVE="${LIBS}"
+	
+	LIBS="${LIBS} ${IGZIPLIBS}"
+	LDFLAGS="${LDFLAGS} ${IGZIPLDFLAGS}"
+	CPPFLAGS="${CPPFLAGS} ${IGZIPCPPFLAGS}"
+
+	AC_LANG_PUSH([C++])
+	AC_MSG_CHECKING([whether we can compile a igzip program])
+	AC_TRY_LINK([extern "C" {
+#include <igzip_lib.h>
+	}
+	],[
+	LZ_Stream2 stream;   
+	init_stream(&stream);
+	fast_lz(&stream);
+	],[igzip=yes],[igzip=no])
+		AC_MSG_RESULT([${igzip}])
+	AC_LANG_POP
+	
+	CPPFLAGS="${CPPFLAGS_SAVE}"
+	LDFLAGS="${LDFLAGS_SAVE}"
+	LIBS="${LIBS_SAVE}"
+	
+	if test ${igzip} = "yes" ; then
+		LIBMAUS_HAVE_IGZIP="#define LIBMAUS_HAVE_IGZIP"
+		LIBMAUSPKGLIBS="${LIBMAUSPKGLIBS} ${IGZIPLDFLAGS} ${IGZIPLIBS}"
+		LIBMAUSPKGCPPFLAGS="${LIBMAUSPKGCPPFLAGS} ${IGZIPCPPFLAGS}"
+	fi
+fi
+
 AC_ARG_WITH([kmlocal],
 	[AS_HELP_STRING([--with-kmlocal@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=no@:>@])],
 	[with_kmlocal=${withval}],
@@ -2099,4 +2152,8 @@ AC_SUBST([LIBMAUS_HAVE_STATFS])
 AC_SUBST([HAVEUNSIGNEDINT128])
 AC_SUBST([HAVEHAVEFEATURESH])
 AC_SUBST([HAVEPTHREADSETAFFINITYNP])
+AC_SUBST([LIBMAUS_HAVE_IGZIP])
+AC_SUBST([IGZIPCPPFLAGS])
+AC_SUBST([IGZIPLDFLAGS])
+AC_SUBST([IGZIPLIBS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
