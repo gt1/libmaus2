@@ -13,27 +13,27 @@ if [ ! -f igzip-src.tar.gz ] ; then
 	rm -fR igzip-src
 fi
 
-NASMVERSION=1.2.0
+YASMVERSION=1.2.0
 
-if [ ! -f yasm-${NASMVERSION}.tar.gz ] ; then
-	wget http://www.tortall.net/projects/yasm/releases/yasm-${NASMVERSION}.tar.gz
+if [ ! -f yasm-${YASMVERSION}.tar.gz ] ; then
+	wget http://www.tortall.net/projects/yasm/releases/yasm-${YASMVERSION}.tar.gz
 fi
 
 BASEDIR=${PWD}
 
-tar xzf yasm-${NASMVERSION}.tar.gz
-mv yasm-${NASMVERSION} yasm-${NASMVERSION}-src
-mkdir -p yasm-${NASMVERSION}-build
-cd yasm-${NASMVERSION}-build
-../yasm-${NASMVERSION}-src/configure --prefix=${BASEDIR}/yasm-bin/${NASMVERSION}
+tar xzf yasm-${YASMVERSION}.tar.gz
+mv yasm-${YASMVERSION} yasm-${YASMVERSION}-src
+mkdir -p yasm-${YASMVERSION}-build
+cd yasm-${YASMVERSION}-build
+../yasm-${YASMVERSION}-src/configure --prefix=${BASEDIR}/yasm-bin/${YASMVERSION}
 make
 make install
 cd ..
-rm -fR yasm-${NASMVERSION}-src yasm-${NASMVERSION}-build
+rm -fR yasm-${YASMVERSION}-src yasm-${YASMVERSION}-build
 
 tar xzf igzip-src.tar.gz
 cd igzip-src/igzip
-sed < Makefile "s|^YASM *:= *.*|YASM := ${BASEDIR}/yasm-bin/${NASMVERSION}/bin/yasm|" >Makefile.patched
+sed < Makefile "s|^YASM *:= *.*|YASM := ${BASEDIR}/yasm-bin/${YASMVERSION}/bin/yasm|" >Makefile.patched
 mv Makefile.patched Makefile
 sed < options.inc "s|^;%define GENOME_SAM|%define GENOME_SAM|;s|^;%define GENOME_BAM|%define GENOME_BAM|;s|;%define ONLY_DEFLATE|%define ONLY_DEFLATE|" > options.inc.patched
 mv options.inc.patched options.inc
@@ -63,5 +63,5 @@ tar czf igzip-bin.tar.gz igzip-bin
 rm -fR igzip-src
 rm -fR igzip-bin
 
-rm -fR yasm-${NASMVERSION}.tar.gz
+rm -fR yasm-${YASMVERSION}.tar.gz
 rm -fR igzip-src.tar.gz
