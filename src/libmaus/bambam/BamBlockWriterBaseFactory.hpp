@@ -37,6 +37,49 @@ namespace libmaus
 			BamBlockWriterBaseFactory() {}
 			virtual ~BamBlockWriterBaseFactory() {}
 			
+			static std::string levelToString(int const level)
+			{
+				switch ( level )
+				{
+					case Z_DEFAULT_COMPRESSION:
+						return "zlib default";
+					case Z_BEST_SPEED:
+						return "fast";
+					case Z_BEST_COMPRESSION:
+						return "best";
+					case Z_NO_COMPRESSION:
+						return "uncompressed";				
+					#if defined(LIBMAUS_HAVE_IGZIP)
+					case libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL:
+						return "igzip";
+					#endif
+					default:
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "BamBlockWriterBaseFactory::levelToString(): Unknown compression level " << level << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
+			}
+			
+			static std::string getLevelHelpText()
+			{
+				std::set<int> S = getValidCompressionLevels();
+				std::vector<int> V(S.begin(),S.end());
+				
+				std::ostringstream ostr;
+				for ( std::vector<int>::size_type i = 0; i < V.size(); ++i )
+					ostr << V[i] << "=" << levelToString(V[i]) << ((i+1<V.size())?",":"");
+					
+				return ostr.str();
+			}
+			
+			static std::string getBamOutputLevelHelpText()
+			{
+				return std::string("compression settings for output bam file (") + getLevelHelpText() + std::string(")");
+			}
+			
 			static std::set<int> getValidCompressionLevels()
 			{
 				std::set<int> S;
