@@ -19,7 +19,7 @@
 
 #include <libmaus/util/I386CacheLineSize.hpp>
 
-#if defined(LIBMAUS_USE_ASSEMBLY)
+#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
 void libmaus::util::I386CacheLineSize::cpuid(
 	uint32_t & eax,
 	uint32_t & ebx,
@@ -218,5 +218,174 @@ unsigned int libmaus::util::I386CacheLineSize::getCacheLineSize()
 	}
 
 	return cachelinesize;
+}
+
+/**
+ * @return true if CPU supports SSE
+ **/
+bool libmaus::util::I386CacheLineSize::hasSSE()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((edx>>25)&1) == 1;
+}
+/**
+ * @return true if CPU supports SSE2
+ **/
+bool libmaus::util::I386CacheLineSize::hasSSE2()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((edx>>26)&1) == 1;
+}
+/**
+ * @return true if CPU supports SSE3
+ **/
+bool libmaus::util::I386CacheLineSize::hasSSE3()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((ecx>>0)&1) == 1;
+}
+/**
+ * @return true if CPU supports SSSE3
+ **/
+bool libmaus::util::I386CacheLineSize::hasSSSE3()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((ecx>>9)&1) == 1;
+}
+/**
+ * @return true if CPU supports SSE4.1
+ **/
+bool libmaus::util::I386CacheLineSize::hasSSE41()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((ecx>>19)&1) == 1;
+}
+/**
+ * @return true if CPU supports SSE4.2
+ **/
+bool libmaus::util::I386CacheLineSize::hasSSE42()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((ecx>>20)&1) == 1;
+}
+/**
+ * @return true if CPU supports popcnt
+ **/
+bool libmaus::util::I386CacheLineSize::hasPopCnt()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	return ((ecx>>23)&1) == 1;
 }
 #endif

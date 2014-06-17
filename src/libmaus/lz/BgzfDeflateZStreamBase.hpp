@@ -25,6 +25,10 @@
 #include <libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
 #include <libmaus/lz/IGzipDeflate.hpp>
 
+#if defined(LIBMAUS_HAVE_IGZIP)
+#include <libmaus/util/I386CacheLineSize.hpp>
+#endif
+
 namespace libmaus
 {
 	namespace lz
@@ -61,6 +65,7 @@ namespace libmaus
 				#if defined(LIBMAUS_HAVE_IGZIP)
 				else if ( level == libmaus::lz::IGzipDeflate::getCompressionLevel() )
 				{
+					// half a block should fit
 					deflbound = (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize()))/2;
 				}
 				#endif
@@ -115,7 +120,7 @@ namespace libmaus
 					return getBgzfMaxPayLoad() - strm.avail_out;
 				}
 				#if defined(LIBMAUS_HAVE_IGZIP)
-				else if ( level == 11 )
+				else if ( level == libmaus::lz::IGzipDeflate::getCompressionLevel() )
 				{
 					int64_t const compsize = libmaus::lz::IGzipDeflate::deflate(
 						pa,len,outbuf+getBgzfHeaderSize(),getBgzfMaxPayLoad()
@@ -137,7 +142,7 @@ namespace libmaus
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase::compressBlock(): unknown/unsupported compression level " << level << std::endl;
 					se.finish();
-					throw se;							
+					throw se;
 				}
 			}
 
@@ -229,6 +234,19 @@ namespace libmaus
 
 			BgzfDeflateZStreamBase(int const rlevel = Z_DEFAULT_COMPRESSION)
 			{
+				#if defined(LIBMAUS_HAVE_IGZIP)
+				if ( rlevel == libmaus::lz::IGzipDeflate::getCompressionLevel() )
+				{
+					if ( ! libmaus::util::I386CacheLineSize::hasSSE42() )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "BgzfDeflateZStreamBase(): igzip requested, but machine does not support SSE4.2" << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
+				#endif
+
 				deflateinit(rlevel);
 			}
 			

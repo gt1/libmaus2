@@ -58,6 +58,34 @@ namespace libmaus
 			 * @return cache line size (0 if it cannot be determined)
 			 **/
 			static unsigned int getCacheLineSize();
+			/**
+			 * @return true if CPU supports SSE
+			 **/
+			static bool hasSSE();
+			/**
+			 * @return true if CPU supports SSE2
+			 **/
+			static bool hasSSE2();
+			/**
+			 * @return true if CPU supports SSE3
+			 **/
+			static bool hasSSE3();
+			/**
+			 * @return true if CPU supports SSSE3
+			 **/
+			static bool hasSSSE3();
+			/**
+			 * @return true if CPU supports SSE4.1
+			 **/
+			static bool hasSSE41();
+			/**
+			 * @return true if CPU supports SSE4.2
+			 **/
+			static bool hasSSE42();
+			/**
+			 * @return true if CPU supports popcnt
+			 **/
+			static bool hasPopCnt();
 		};
 		#endif
 	}
