@@ -16,26 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/lcs/LocalEditDistanceResult.hpp>
 
-#if ! defined(LIBMAUS_LCS_PENALTYCONSTANTS_HPP)
-#define LIBMAUS_LCS_PENALTYCONSTANTS_HPP
-
-#include <libmaus/lcs/BaseConstants.hpp>
-
-namespace libmaus
+std::ostream & libmaus::lcs::operator<<(std::ostream & out, ::libmaus::lcs::LocalEditDistanceResult const & o)
 {
-	namespace lcs
-	{
-		struct PenaltyConstants : public BaseConstants
-		{
-			typedef int32_t similarity_type;
-			static similarity_type const penalty_ins = 3;
-			static similarity_type const penalty_del = 3;
-			static similarity_type const penalty_subst = 1;
-			static similarity_type const gain_match = 1;		
-			
-			virtual ~PenaltyConstants() {}
-		};
-	}
+	out << "libmaus::lcs::LocalEditDistanceResult("
+		<<  "+=" << o.nummat
+		<< ",-=" << o.nummis
+		<< ",I=" << o.numins
+		<< ",D=" << o.numdel
+		<< ",a_clip_left=" << o.a_clip_left
+		<< ",a_clip_right=" << o.a_clip_right
+		<< ",b_clip_left=" << o.b_clip_left
+		<< ",b_clip_right=" << o.b_clip_right
+		<< ")";
+	return out;
 }
-#endif

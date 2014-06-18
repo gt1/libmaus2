@@ -16,26 +16,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/lcs/LocalBaseConstants.hpp>
 
-#if ! defined(LIBMAUS_LCS_PENALTYCONSTANTS_HPP)
-#define LIBMAUS_LCS_PENALTYCONSTANTS_HPP
-
-#include <libmaus/lcs/BaseConstants.hpp>
-
-namespace libmaus
+std::ostream & libmaus::lcs::operator<<(std::ostream & out, libmaus::lcs::LocalBaseConstants::step_type const s)
 {
-	namespace lcs
+	switch ( s )
 	{
-		struct PenaltyConstants : public BaseConstants
-		{
-			typedef int32_t similarity_type;
-			static similarity_type const penalty_ins = 3;
-			static similarity_type const penalty_del = 3;
-			static similarity_type const penalty_subst = 1;
-			static similarity_type const gain_match = 1;		
-			
-			virtual ~PenaltyConstants() {}
-		};
+		case LocalBaseConstants::STEP_MATCH: out << "+"; break;
+		case LocalBaseConstants::STEP_MISMATCH: out << "-"; break;
+		case LocalBaseConstants::STEP_INS: out << "I"; break;
+		case LocalBaseConstants::STEP_DEL: out << "D"; break;
+		case LocalBaseConstants::STEP_RESET: out << "R"; break;
 	}
+	return out;
 }
-#endif
+

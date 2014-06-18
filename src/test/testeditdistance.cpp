@@ -164,10 +164,21 @@ void runtestshort()
 	testEdit("bbababb","bbaabbaab",E,BE,true);
 }
 
+#include <libmaus/lcs/LocalEditDistance.hpp>
+#include <libmaus/lcs/LocalAlignmentPrint.hpp>
+
 int main()
 {
 	try
 	{
+		libmaus::lcs::LocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+		std::string const a = "XXXXXAABAAYYYY";
+		std::string const b = "ZAAAAZZ";
+		libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size());
+		
+		std::cerr << LEDR << std::endl;
+		libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			
 		runtestshort< ::libmaus::lcs::diag_del_ins >();
 		runtestshort< ::libmaus::lcs::del_ins_diag >();
 

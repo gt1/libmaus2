@@ -17,25 +17,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_LCS_PENALTYCONSTANTS_HPP)
-#define LIBMAUS_LCS_PENALTYCONSTANTS_HPP
+#if ! defined(LIBMAUS_LCS_LOCALBASECONSTANTS_HPP)
+#define LIBMAUS_LCS_LOCALBASECONSTANTS_HPP
 
-#include <libmaus/lcs/BaseConstants.hpp>
+#include <ostream>
 
 namespace libmaus
 {
 	namespace lcs
 	{
-		struct PenaltyConstants : public BaseConstants
+		struct LocalBaseConstants
 		{
-			typedef int32_t similarity_type;
-			static similarity_type const penalty_ins = 3;
-			static similarity_type const penalty_del = 3;
-			static similarity_type const penalty_subst = 1;
-			static similarity_type const gain_match = 1;		
+			enum step_type { STEP_MATCH, STEP_MISMATCH, STEP_INS, STEP_DEL, STEP_RESET };
 			
-			virtual ~PenaltyConstants() {}
+			virtual ~LocalBaseConstants() {}
 		};
+		
+		std::ostream & operator<<(std::ostream & out, LocalBaseConstants::step_type const s);
 	}
 }
 #endif

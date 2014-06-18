@@ -112,7 +112,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/fastx/FastAIndex.cpp \
 	libmaus/network/HttpAbsoluteUrl.cpp \
 	libmaus/hashing/Crc32.cpp \
-	libmaus/lz/IGzipDeflate.cpp
+	libmaus/lz/IGzipDeflate.cpp \
+	libmaus/lcs/LocalBaseConstants.cpp \
+	libmaus/lcs/LocalEditDistanceResult.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -1034,7 +1036,14 @@ libmauslcs_include_HEADERS=\
 	libmaus/lcs/BandedEditDistance.hpp \
 	libmaus/lcs/MetaEditDistance.hpp \
 	libmaus/lcs/EditDistanceTraceContainer.hpp \
-	libmaus/lcs/EditDistancePriorityType.hpp
+	libmaus/lcs/EditDistancePriorityType.hpp \
+	libmaus/lcs/LocalBaseConstants.hpp \
+	libmaus/lcs/LocalPenaltyConstants.hpp \
+	libmaus/lcs/LocalAlignmentTraceContainer.hpp \
+	libmaus/lcs/LocalEditDistanceTraceContainer.hpp \
+	libmaus/lcs/LocalAlignmentPrint.hpp \
+	libmaus/lcs/LocalEditDistance.hpp \
+	libmaus/lcs/LocalEditDistanceResult.hpp
 
 libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
 libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \
