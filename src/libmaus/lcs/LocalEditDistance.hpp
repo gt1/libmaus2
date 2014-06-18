@@ -242,9 +242,6 @@ namespace libmaus
 				uint64_t const offbackb = offback / n1;
 				uint64_t const offbacka = offback - (offbackb*n1);
 				
-				std::cerr << "offbacka=" << offbacka << std::endl;
-				std::cerr << "offbackb=" << offbackb << std::endl;
-
 				ta = te;
 				
 				uint64_t numdel = 0;
