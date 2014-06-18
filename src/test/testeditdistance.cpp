@@ -166,6 +166,7 @@ void runtestshort()
 
 #include <libmaus/lcs/LocalEditDistance.hpp>
 #include <libmaus/lcs/LocalAlignmentPrint.hpp>
+#include <libmaus/lcs/MetaLocalEditDistance.hpp>
 
 int main()
 {
