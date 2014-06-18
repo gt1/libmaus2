@@ -47,7 +47,7 @@ if test "${with_igzip}" != "no" ; then
 	
 	if test ! -z "${IGZIPPATH}" ; then
 		IGZIPCPPFLAGS="-I${IGZIPPATH}/include"
-		IGZIPLDFLAGS="-L${IGZIPPATH}/lib -Wl,-rpath=${IGZIPPATH}/lib"
+		IGZIPLDFLAGS="-L${IGZIPPATH}/lib -Wl,-rpath,${IGZIPPATH}/lib"
 	fi
 	
 	CPPFLAGS_SAVE="${CPPFLAGS}"
