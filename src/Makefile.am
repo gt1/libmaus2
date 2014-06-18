@@ -1044,7 +1044,8 @@ libmauslcs_include_HEADERS=\
 	libmaus/lcs/LocalAlignmentPrint.hpp \
 	libmaus/lcs/LocalEditDistance.hpp \
 	libmaus/lcs/LocalEditDistanceResult.hpp \
-	libmaus/lcs/MetaLocalEditDistance.hpp
+	libmaus/lcs/MetaLocalEditDistance.hpp \
+	libmaus/lcs/BandedLocalEditDistance.hpp
 
 libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
 libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \

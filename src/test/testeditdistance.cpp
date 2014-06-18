@@ -166,19 +166,59 @@ void runtestshort()
 
 #include <libmaus/lcs/LocalEditDistance.hpp>
 #include <libmaus/lcs/LocalAlignmentPrint.hpp>
+#include <libmaus/lcs/BandedLocalEditDistance.hpp>
 #include <libmaus/lcs/MetaLocalEditDistance.hpp>
 
 int main()
 {
 	try
 	{
-		libmaus::lcs::LocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
-		std::string const a = "XXXXXAABAAYYYY";
-		std::string const b = "ZAAAAZZ";
-		libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size());
+		{
+			libmaus::lcs::LocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			std::string const a = "XXXXXAABAAYYYY";
+			std::string const b = "ZAAAAZZ";
+			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size());
 		
-		std::cerr << LEDR << std::endl;
-		libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			std::cerr << LEDR << std::endl;
+			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+		}
+		{
+			libmaus::lcs::MetaLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			std::string const a = "XXXXXAABAAYYYY";
+			std::string const b = "ZAAAAZZ";
+			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size(),a.size()-b.size());
+		
+			std::cerr << LEDR << std::endl;
+			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+		}
+		{
+			libmaus::lcs::BandedLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			std::string const a = "XXAABAAY";
+			std::string const b = "ZAAAAZZ";
+			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(
+				a.begin(),a.size(),
+				b.begin(),b.size(),
+				// a.size()
+				2*(std::max(a.size(),b.size())-std::min(a.size(),b.size()))
+			);
+		
+			std::cerr << LEDR << std::endl;
+			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+		}
+		{
+			libmaus::lcs::MetaLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			std::string const a = "XXAABAAY";
+			std::string const b = "ZAAAAZZ";
+			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(
+				a.begin(),a.size(),
+				b.begin(),b.size(),
+				// a.size()
+				2*(std::max(a.size(),b.size())-std::min(a.size(),b.size()))
+			);
+		
+			std::cerr << LEDR << std::endl;
+			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+		}
 			
 		runtestshort< ::libmaus::lcs::diag_del_ins >();
 		runtestshort< ::libmaus::lcs::del_ins_diag >();
