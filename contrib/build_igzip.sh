@@ -16,7 +16,7 @@ function download
 
 if [ ! -f igzip-src.tar.gz ] ; then
 	if [ ! -f igzip_042.zip ] ; then
-		download https://software.intel.com/sites/default/files/managed/2d/63/igzip_042.zip > igzip_042.zip
+		download https://software.intel.com/sites/default/files/managed/2d/63/igzip_042.zip
 	fi
 
 	mkdir -p igzip-src
