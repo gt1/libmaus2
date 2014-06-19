@@ -32,7 +32,7 @@ namespace libmaus
 			uint64_t spr;
 			uint64_t siz;
 			
-			BidirectionalIndexInterval() {}
+			BidirectionalIndexInterval() : spf(0), spr(0), siz(0) {}
 			BidirectionalIndexInterval(uint64_t const rspf, uint64_t const rspr, uint64_t const rsiz)
 			: spf(rspf), spr(rspr), siz(rsiz) {}
 			
