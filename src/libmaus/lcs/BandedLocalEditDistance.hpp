@@ -639,7 +639,7 @@ namespace libmaus
 					uint64_t const offfrontdiaga = offfront - (offfrontb * k21);
 					int64_t const offfronta = (static_cast<int64_t>(offfrontb) - static_cast<int64_t>(k)) + offfrontdiaga;
 
-					return result_type(numins,numdel,nummat,nummis,offfronta,offfrontb,n-offbacka,m-offbackb);
+					return result_type(numins,numdel,nummat,nummis,offfronta,n-offbacka,offfrontb,m-offbackb);
 				}
 				else
 				{
