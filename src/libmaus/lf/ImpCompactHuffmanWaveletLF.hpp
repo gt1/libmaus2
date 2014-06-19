@@ -70,10 +70,10 @@ namespace libmaus
 					return 0;
 			}
 
-			::libmaus::autoarray::AutoArray<uint64_t> computeD() const
+			::libmaus::autoarray::AutoArray<uint64_t> computeD(int64_t const rmaxsym = std::numeric_limits<int64_t>::min()) const
 			{
 				::libmaus::autoarray::AutoArray<int64_t> const symbols = getSymbols();
-				int64_t maxsym = std::numeric_limits<int64_t>::min();
+				int64_t maxsym = rmaxsym;
 				int64_t minsym = std::numeric_limits<int64_t>::max();
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
 				{
@@ -103,6 +103,11 @@ namespace libmaus
 				D.prefixSums();	
 
 				return D;		
+			}
+			
+			void recomputeD(int64_t const rmaxsym = std::numeric_limits<int64_t>::min())
+			{
+				D = computeD(rmaxsym);
 			}
 			
 			static unique_ptr_type loadSequential(std::string const & filename)
