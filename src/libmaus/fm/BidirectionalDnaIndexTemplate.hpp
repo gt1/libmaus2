@@ -56,15 +56,25 @@ namespace libmaus
 			sa_ptr_type SA;
 			::libmaus::autoarray::AutoArray<int64_t> const symbols;
 			
+			static ::libmaus::autoarray::AutoArray<int64_t> computeSymbolVector()
+			{
+				::libmaus::autoarray::AutoArray<int64_t> S(6);
+				for ( uint64_t i = 0; i < S.size(); ++i )
+					S[i] = i;
+				return S;
+			}
+			
 			BidirectionalDnaIndexTemplate(std::string const & rdictname)
 			: dictname(rdictname), 
 			  basename(libmaus::util::OutputFileNameTools::clipOff(dictname,rank_dictionary_info_type::getDictionaryFileSuffix())),
 			  saname(basename+rank_dictionary_info_type::getSampledSuffixArraySuffix()),
 			  LF(lf_type::load(dictname)),
 			  SA(sa_type::load(LF.get(),saname)),
-			  symbols(LF->getSymbols())
+			  // symbols(LF->getSymbols())
+			  symbols(computeSymbolVector())
 			{
-			
+				if ( LF->D.size() < 6 )
+					LF->recomputeD(5);
 			}	
 
 			libmaus::fm::BidirectionalIndexInterval epsilon() const
