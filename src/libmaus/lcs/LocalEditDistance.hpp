@@ -44,7 +44,7 @@ namespace libmaus
 		struct LocalEditDistance : public LocalEditDistanceTraceContainer
 		{
 			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
-			typedef EditDistance<edit_distance_priority> this_type;
+			typedef LocalEditDistance<edit_distance_priority> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef LocalEditDistanceResult result_type;
 		
@@ -235,8 +235,8 @@ namespace libmaus
 				
 				b -= m;
 
-				uint64_t i = n;
-				uint64_t j = m;
+				//uint64_t i = n;
+				//uint64_t j = m;
 				element_type * pq = maxel; // M.get() + j*n1 + i;
 				
 				uint64_t const offback = pq-M.begin();
