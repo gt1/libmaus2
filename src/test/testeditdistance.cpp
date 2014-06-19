@@ -174,6 +174,21 @@ int main()
 	try
 	{
 		{
+			libmaus::lcs::BandedLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			std::string const a = "CTCCCCGGTTGCAGAATCGCGCAGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGCCG";
+			std::string const b =   "NCCCGGTTGCAGAATCGCGCATGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGN";
+			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(
+				a.begin(),a.size(),
+				b.begin(),b.size(),
+				// a.size()
+				2*(std::max(a.size(),b.size())-std::min(a.size(),b.size()))
+			);
+		
+			std::cerr << LEDR << std::endl;
+			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+		}
+		
+		{
 			libmaus::lcs::LocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
 			std::string const a = "XXXXXAABAAYYYY";
 			std::string const b = "ZAAAAZZ";
