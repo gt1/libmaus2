@@ -43,8 +43,8 @@ static void testEdit(
 	bool const verbose = false
 )
 {
-	libmaus::lcs::EditDistanceResult EDR = E.process(a.begin(),a.size(),b.begin(),b.size(),k);
-	libmaus::lcs::EditDistanceResult EDRB = BE.process(a.begin(),a.size(),b.begin(),b.size(),k);
+	typename edit_a::result_type const EDR = E.process(a.begin(),a.size(),b.begin(),b.size(),k);
+	typename edit_b::result_type const EDRB = BE.process(a.begin(),a.size(),b.begin(),b.size(),k);
 	
 	bool const EDRBvalid = EDRB.nummis + EDRB.numins + EDRB.numdel <= k;
 	bool const EDRcheck  = EDR.nummis  + EDR.numins  + EDR.numdel  <= k;

@@ -46,6 +46,7 @@ namespace libmaus
 			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
 			typedef EditDistance<edit_distance_priority> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef LocalEditDistanceResult result_type;
 		
 			private:
 			uint64_t n; // rows

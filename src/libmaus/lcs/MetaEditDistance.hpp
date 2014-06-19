@@ -38,12 +38,14 @@ namespace libmaus
 			::libmaus::lcs::EditDistance<edit_distance_priority> E;
 			::libmaus::lcs::BandedEditDistance<edit_distance_priority> BE;
 			
+			typedef typename ::libmaus::lcs::EditDistance<edit_distance_priority>::result_type result_type;
+			
 			MetaEditDistance()
 			{
 			}
 			
 			template<typename iterator_a, typename iterator_b>
-			EditDistanceResult process(
+			result_type process(
 				iterator_a aa,
 				uint64_t const rn,
 				iterator_b bb,
@@ -57,14 +59,14 @@ namespace libmaus
 			{
 				if ( ::libmaus::lcs::BandedEditDistance<edit_distance_priority>::validParameters(rn,rm,rk) )
 				{
-					EditDistanceResult const R = BE.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
+					result_type const R = BE.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
 					ta = BE.ta;
 					te = BE.te;
 					return R;
 				}
 				else
 				{
-					EditDistanceResult const R = E.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
+					result_type const R = E.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
 					ta = E.ta;
 					te = E.te;
 					return R;			

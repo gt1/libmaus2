@@ -36,6 +36,7 @@ namespace libmaus
 			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
 			typedef BandedLocalEditDistance<edit_distance_priority> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef LocalEditDistanceResult result_type;
 
 			private:			
 			uint64_t n; // columns
@@ -138,7 +139,7 @@ namespace libmaus
 			}
 			
 			template<typename iterator_a, typename iterator_b>
-			LocalEditDistanceResult process(
+			result_type process(
 				iterator_a aa,
 				int64_t const rn,
 				iterator_b bb,
@@ -638,7 +639,7 @@ namespace libmaus
 					uint64_t const offfrontdiaga = offfront - (offfrontb * k21);
 					int64_t const offfronta = (static_cast<int64_t>(offfrontb) - static_cast<int64_t>(k)) + offfrontdiaga;
 
-					return LocalEditDistanceResult(numins,numdel,nummat,nummis,offfronta,offfrontb,n-offbacka,m-offbackb);
+					return result_type(numins,numdel,nummat,nummis,offfronta,offfrontb,n-offbacka,m-offbackb);
 				}
 				else
 				{
@@ -661,7 +662,7 @@ namespace libmaus
 							*(tc++) = STEP_MISMATCH;
 						}
 
-					return LocalEditDistanceResult(0,0,nummat,nummis,0,0,0,0);
+					return result_type(0,0,nummat,nummis,0,0,0,0);
 				}
 			}
 		};
