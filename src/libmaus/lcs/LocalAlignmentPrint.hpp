@@ -84,6 +84,8 @@ namespace libmaus
 							out << " ";
 							// ita++;
 							break;
+						default:
+							break;
 					}
 				}
 				out << std::endl;
@@ -100,6 +102,8 @@ namespace libmaus
 						case STEP_DEL:
 							out << " ";
 							// ita++;
+							break;
+						default:
 							break;
 					}
 				}
@@ -141,6 +145,8 @@ namespace libmaus
 							astr << " ";
 							// ita++;
 							break;
+						default:
+							break;
 					}
 				}
 				astr << std::string(ita,aend);
@@ -162,6 +168,8 @@ namespace libmaus
 						case STEP_DEL:
 							bstr << " ";
 							// ita++;
+							break;
+						default:
 							break;
 					}
 				}
