@@ -355,7 +355,7 @@ namespace libmaus
 				uint8_t const qualoffset = 33
 			)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(ubuffer,seq,
+				::libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(ubuffer,seqtab,
 					name,namelen,refid,pos,mapq,flags,cigar,cigarlen,nextrefid,nextpos,
 					tlen,seq,seqlen,qual,qualoffset);
 			}
