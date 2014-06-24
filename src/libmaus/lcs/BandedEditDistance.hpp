@@ -296,7 +296,7 @@ namespace libmaus
 						typename std::iterator_traits<iterator_b>::value_type const bchar = *(b++);
 						assert ( ((p-M.begin()) % k21) == 0 );
 						assert ( ((q-M.begin()) % k21) == 0 );
-						assert ( a-aa == i-k-1 );
+						assert ( static_cast<int64_t>(a-aa) == static_cast<int64_t>(i-k-1) );
 						
 						bool const af_dmatch = ( (*(a++)) == bchar);
 						similarity_type af_diag = af_dmatch ? (q->first + gain_match) : (q->first - penalty_subst);
@@ -425,7 +425,7 @@ namespace libmaus
 						a -= (k21-1);
 					}
 					
-					for ( uint64_t pskip = 1; (b - bb) != m; ++pskip )
+					for ( uint64_t pskip = 1; (b - bb) != static_cast<int64_t>(m); ++pskip )
 					{
 						assert ( ((p-M.begin()) % k21) == 0 );
 						assert ( ((q-M.begin()) % k21) == 0 );
