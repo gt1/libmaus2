@@ -22,6 +22,10 @@
 #include <ostream>
 #include <libmaus/autoarray/AutoArray.hpp>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 namespace libmaus
 {
 	namespace aio
