@@ -48,6 +48,7 @@
 #include <libmaus/rank/ERank222BP.hpp>
 #include <libmaus/rank/ERank222BAppend.hpp>
 #include <libmaus/rank/ERank222BAppendDynamic.hpp>
+#include <libmaus/rank/FastRank.hpp>
 
 #include <libmaus/rank/log2table.hpp>
 
@@ -1799,6 +1800,52 @@ void testrl()
 int main()
 {
 	initRand();
+	
+	{
+		char s[] = { 0,1,1,0,1,1,2,0,1,0,1,1,2,1,0,0,1,0,0,0,1,1,1,0};
+		uint64_t const n = sizeof(s)/sizeof(s[0]);
+		
+		{
+			libmaus::rank::FastRank<uint8_t,uint32_t> R(&s[0],n);
+			std::map<char,uint64_t> M;
+			for ( uint64_t i = 0; i < n; ++i )
+			{
+				M[s[i]]++;
+				for ( uint64_t j = 0; j < 256; ++j )
+				{
+					int64_t const expect = M[j];
+					int64_t const got = R.rank(j,i);
+					
+					if ( expect != got )
+					{
+						std::cerr << "i=" << i << " j=" << j << " expected " << expect << " got " << got << std::endl;
+						assert ( expect == got );
+					}
+				}
+			}
+		}
+		{
+			libmaus::rank::FastRank<uint8_t,uint32_t> R(&s[0],n,2);
+			std::map<char,uint64_t> M;
+			for ( uint64_t i = 0; i < n; ++i )
+			{
+				M[s[i]]++;
+				for ( uint64_t j = 0; j < 256; ++j )
+				{
+					int64_t const expect = M[j];
+					int64_t const got = R.rank(j,i);
+					
+					if ( expect != got )
+					{
+						std::cerr << "i=" << i << " j=" << j << " expected " << expect << " got " << got << std::endl;
+						assert ( expect == got );
+					}
+				}
+			}
+		}
+	}
+	
+	exit(0);
 	
 	testrl();
 	checkE2Append(1024*1024);
