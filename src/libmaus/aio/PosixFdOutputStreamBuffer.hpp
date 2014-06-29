@@ -21,6 +21,7 @@
 
 #include <ostream>
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/aio/PosixFdInput.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -33,8 +34,24 @@ namespace libmaus
 		struct PosixFdOutputStreamBuffer : public ::std::streambuf
 		{
 			private:
+			static uint64_t getDefaultBlockSize()
+			{
+				return 64*1024;
+			}
+
+			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
+			{
+				int64_t const fsopt = libmaus::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
+				
+				if ( fsopt <= 0 )
+					return getDefaultBlockSize();
+				else
+					return fsopt;
+			}
+			
 			int fd;
 			bool closefd;
+			int64_t const optblocksize;
 			uint64_t const buffersize;
 			::libmaus::autoarray::AutoArray<char> buffer;
 
@@ -150,16 +167,26 @@ namespace libmaus
 				
 				assert ( ! n );
 			}
+			
 
 			public:
-			PosixFdOutputStreamBuffer(int const rfd, uint64_t const rbuffersize)
-			: fd(rfd), closefd(false), buffersize(rbuffersize), buffer(buffersize,false)
+			PosixFdOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
+			: fd(rfd), 
+			  closefd(false), 
+			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,std::string()) : rbuffersize),
+			  buffersize(optblocksize), 
+			  buffer(buffersize,false)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
 
-			PosixFdOutputStreamBuffer(std::string const & fn, uint64_t const rbuffersize)
-			: fd(doOpen(fn)), closefd(true), buffersize(rbuffersize), buffer(buffersize,false)
+			PosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize)
+			: 
+			  fd(doOpen(fn)), 
+			  closefd(true), 
+			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,fn) : rbuffersize),
+			  buffersize(optblocksize), 
+			  buffer(buffersize,false)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}

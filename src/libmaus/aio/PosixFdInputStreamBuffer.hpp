@@ -31,7 +31,14 @@ namespace libmaus
 		struct PosixFdInputStreamBuffer : public ::std::streambuf
 		{
 			private:
+			static int64_t getDefaultBlockSize()
+			{
+				return 64*1024;
+			}
+			
 			::libmaus::aio::PosixFdInput stream;
+			int64_t const optblocksize;
+			
 			int64_t const filesize;
 
 			uint64_t const blocksize;
@@ -53,16 +60,27 @@ namespace libmaus
 					stream.lseek(symsread);
 			}
 			
+			uint64_t getOptimalBlockSize()
+			{
+				int64_t const optblocksize = stream.getOptimalIOBlockSize();
+				
+				if ( optblocksize <= 0 )
+					return getDefaultBlockSize();
+				else
+					return optblocksize;
+			}
+			
 			public:
 			PosixFdInputStreamBuffer(
 				::libmaus::aio::PosixFdInput & rstream,
-				uint64_t const rblocksize,
+				int64_t const rblocksize,
 				uint64_t const rputbackspace = 0
 			)
 			: 
 			  stream(rstream),
+			  optblocksize(getOptimalBlockSize()),
 			  filesize(stream.sizeChecked()),
-			  blocksize(rblocksize),
+			  blocksize((rblocksize < 0) ? optblocksize : rblocksize),
 			  putbackspace(rputbackspace),
 			  buffer(putbackspace + blocksize,false),
 			  symsread(0)

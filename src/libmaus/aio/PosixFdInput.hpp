@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/vfs.h>
 #include <cerrno>
 #include <cstring>
 #include <libmaus/exception/LibMausException.hpp>
@@ -53,7 +54,7 @@ namespace libmaus
 				#endif
 			}
 			
-			PosixFdInput(int const rfd) : fd(rfd)
+			PosixFdInput(int const rfd) : filename(), fd(rfd), gcnt(0)
 			{
 			}
 			
@@ -256,6 +257,45 @@ namespace libmaus
 					return sb.st_size;
 				else
 					return -1;
+			}
+			
+			int64_t getOptimalIOBlockSize()
+			{
+				return getOptimalIOBlockSize(fd, filename);
+			}
+			
+			static int64_t getOptimalIOBlockSize(int const fd, std::string const & filename)
+			{
+				struct statfs buf;
+				int r = -1;
+
+				while ( fd >= 0 && r < 0 )
+				{
+					r = fstatfs(fd,&buf);
+					
+					if ( r < 0 )
+					{
+						switch ( errno )
+						{
+							case EINTR:
+							case EAGAIN:
+								break;
+							// file system does not support statfs
+							case ENOSYS:
+								return -1;
+							default:
+							{
+								int const error = errno;
+								libmaus::exception::LibMausException se;
+								se.getStream() << "PosixFdInput::size(" << filename << "): " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+							}
+						}
+					}
+				}
+
+				return buf.f_bsize;
 			}
 		};
 	}
