@@ -61,9 +61,86 @@ void testPosixFdInput()
 	}	
 }
 
+#include <libmaus/aio/PosixFdOutputStream.hpp>
+#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
+
 int main(int argc, char * argv[])
 {
+	{
+		std::string const fn = "nonexistant.test.file";
+		std::string const text1 = "Hello world.";
+		std::string const text2 = "new text";
+		
+		{
+			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			PFOS << text1;
+			PFOS.flush();
+		}
+		
+		{
+			libmaus::aio::CheckedInputStream CIS(fn);
+			libmaus::autoarray::AutoArray<char> C(text1.size());
+			CIS.read(C.begin(),C.size());
+			assert ( CIS.get() < 0 );
+			assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
+		}
+
+		{
+			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			PFOS << text2;
+			PFOS.flush();
+		}
+		
+		{
+			libmaus::aio::CheckedInputStream CIS(fn);
+			libmaus::autoarray::AutoArray<char> C(text2.size());
+			CIS.read(C.begin(),C.size());
+			assert ( CIS.get() < 0 );
+			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
+		}
+		
+		remove(fn.c_str());
+	}
+
+	{
+		std::string const fn = "nonexistant.test.file";
+		std::string const text1 = "Hello world.";
+		std::string const text2 = "new text";
+		
+		{
+			libmaus::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
+			PFOS << text1;
+			PFOS.flush();
+		}
+		
+		{
+			libmaus::aio::CheckedInputStream CIS(fn);
+			libmaus::autoarray::AutoArray<char> C(text1.size());
+			CIS.read(C.begin(),C.size());
+			assert ( CIS.get() < 0 );
+			assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
+		}
+
+		{
+			libmaus::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
+			PFOS << text2;
+			PFOS.flush();
+		}
+		
+		{
+			libmaus::aio::CheckedInputStream CIS(fn);
+			libmaus::autoarray::AutoArray<char> C(text2.size());
+			CIS.read(C.begin(),C.size());
+			assert ( CIS.get() < 0 );
+			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
+		}
+		
+		remove(fn.c_str());
+	}
+
+
 	testPosixFdInput();
+	
 
 	if ( argc < 3 )
 	{
