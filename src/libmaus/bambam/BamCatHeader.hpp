@@ -93,8 +93,8 @@ namespace libmaus
 				{
 					libmaus::bambam::BamHeader const & header = *inputbamheaders[i];
 					
-					V.push_back( & (header.chromosomes) );
-					R.push_back( & (header.RG) );
+					V.push_back( & (header.getChromosomes()) );
+					R.push_back( & (header.getReadGroups()) );
 					H.push_back( & (header.text) );
 					
 					std::string const SO = libmaus::bambam::BamHeader::getSortOrderStatic(header.text);
@@ -239,7 +239,7 @@ namespace libmaus
 				int64_t const rgid = inputbamheaders[fileid]->getReadGroupId(oldRG);
 				if ( rgid >= 0 )
 				{
-					std::string const & newID = bamheader->RG[readGroupMergeInfo->readgroupsmapping[fileid][rgid]].ID;
+					std::string const & newID = bamheader->getReadGroupIdentifierAsString(readGroupMergeInfo->readgroupsmapping[fileid][rgid]);
 					
 					// replace if there is a change
 					if ( strcmp(oldRG,newID.c_str()) )

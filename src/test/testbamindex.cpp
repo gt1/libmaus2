@@ -66,7 +66,7 @@ int main(int argc, char * argv[])
 		libmaus::bambam::BamHeader::unique_ptr_type bamheader = pbamdec->getHeader().uclone();
 		pbamdec.reset();
 		
-		assert ( index.getRefs().size() == bamheader->chromosomes.size() );
+		assert ( index.getRefs().size() == bamheader->getNumRef() );
 
 		libmaus::bambam::BamDecoderResetableWrapper BDRW(fn, *bamheader);
 
