@@ -150,7 +150,7 @@ namespace libmaus
 						// start of next line
 						iterator const itn = itc+1;
 						
-						bool const newsuper = itn - itsuper >= superblocksize;
+						bool const newsuper = static_cast<int64_t>(itn - itsuper) >= static_cast<int64_t>(superblocksize);
 						
 						if ( newsuper )
 						{
@@ -161,7 +161,7 @@ namespace libmaus
 
 						supercallback.bit(newsuper);
 						
-						assert ( itn-itsuper < superblocksize );
+						assert ( static_cast<int64_t>(itn-itsuper) < static_cast<int64_t>(superblocksize) );
 						minicallback(itn-itsuper);
 						
 						itl = itn;
@@ -173,7 +173,7 @@ namespace libmaus
 				if ( ita != ite && ite[-1] != '\n' )
 				{
 					iterator const itn = ite;
-					bool const newsuper = itn - itsuper >= superblocksize;
+					bool const newsuper = static_cast<int64_t>(itn - itsuper) >= static_cast<int64_t>(superblocksize);
 
 					if ( newsuper )
 					{
@@ -184,7 +184,7 @@ namespace libmaus
 					
 					supercallback.bit(newsuper);
 
-					assert ( itn-itsuper < superblocksize );
+					assert ( static_cast<int64_t>(itn-itsuper) < static_cast<int64_t>(superblocksize) );
 					minicallback(itn-itsuper);
 
 					itl = itn;

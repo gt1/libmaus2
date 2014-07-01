@@ -816,7 +816,7 @@ namespace libmaus
 				text = Atext.begin();
 				
 				in.read(text,l_text);
-				if ( in.gcount() != l_text )
+				if ( static_cast<int64_t>(in.gcount()) != static_cast<int64_t>(l_text) )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "Failed to read header text in BamHeaderLowMem constructor" << std::endl;
@@ -883,7 +883,7 @@ namespace libmaus
 						se.finish();
 						throw se;					
 					}
-					if ( l_ref != LNvec[i] )
+					if ( static_cast<int64_t>(l_ref) != static_cast<int64_t>(LNvec[i]) )
 					{
 						::libmaus::exception::LibMausException se;
 						se.getStream() << "BamHeaderLowMem: text and binary header information is not consistent for sequence " << name.begin() << ":\n";
