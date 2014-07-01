@@ -114,7 +114,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/hashing/Crc32.cpp \
 	libmaus/lz/IGzipDeflate.cpp \
 	libmaus/lcs/LocalBaseConstants.cpp \
-	libmaus/lcs/LocalEditDistanceResult.cpp
+	libmaus/lcs/LocalEditDistanceResult.cpp \
+	libmaus/bambam/BamHeader.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 

@@ -37,57 +37,21 @@ namespace libmaus
 {
 	namespace bambam
 	{
-			enum bam_header_parse_state
-			{
-				bam_header_read_magic,
-				bam_header_read_l_text,
-				bam_header_read_text,
-				bam_header_read_n_ref,
-				bam_header_reaf_ref_l_name,
-				bam_header_read_ref_name,
-				bam_header_read_ref_l_ref,
-				bam_header_read_done,
-				bam_header_read_failed
-			};
-			
-		inline std::ostream & operator<<(std::ostream & out, bam_header_parse_state const & state)
+		enum bam_header_parse_state
 		{
-			switch(state)
-			{
-				case bam_header_read_magic:
-					out << "bam_header_read_magic";
-					break;
-				case bam_header_read_l_text:
-					out << "bam_header_read_l_text";
-					break;
-				case bam_header_read_text:
-					out << "bam_header_read_text";
-					break;
-				case bam_header_read_n_ref:
-					out << "bam_header_read_n_ref";
-					break;
-				case bam_header_reaf_ref_l_name:
-					out << "bam_header_reaf_ref_l_name";
-					break;
-				case bam_header_read_ref_name:
-					out << "bam_header_read_ref_name";
-					break;
-				case bam_header_read_ref_l_ref:
-					out << "bam_header_read_ref_l_ref";
-					break;
-				case bam_header_read_done:
-					out << "bam_header_read_done";
-					break;
-				case bam_header_read_failed:
-					out << "bam_header_read_failed";
-					break;
-				default:
-					out << "bam_header_read_unknown";
-					break;
-			}
+			bam_header_read_magic,
+			bam_header_read_l_text,
+			bam_header_read_text,
+			bam_header_read_n_ref,
+			bam_header_reaf_ref_l_name,
+			bam_header_read_ref_name,
+			bam_header_read_ref_l_ref,
+			bam_header_read_done,
+			bam_header_read_failed
+		};
+			
+		std::ostream & operator<<(std::ostream & out, bam_header_parse_state const & state);
 
-			return out;
-		}
 		/**
 		 * BAM file header class
 		 **/
