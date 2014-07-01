@@ -59,12 +59,15 @@ namespace libmaus
 			public ::libmaus::bambam::EncoderBase, 
 			public ::libmaus::bambam::DecoderBase
 		{
+			public:
 			typedef BamHeader this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			//! header text	
 			std::string text;
+			
+			private:
 			//! chromosome (reference sequence meta data) vector
 			std::vector< ::libmaus::bambam::Chromosome > chromosomes;
 			//! read groups vector
@@ -78,6 +81,7 @@ namespace libmaus
 			//! number of libaries
 			uint64_t numlibs;
 			
+			public:
 			/**
 			 * clone this object and return clone in a unique pointer
 			 *
@@ -159,6 +163,16 @@ namespace libmaus
 			std::vector<ReadGroup> const & getReadGroups() const
 			{
 				return RG;
+			}
+
+			/**
+			 * get vector of chromosomes
+			 *
+			 * @return chromosome vector
+			 **/
+			std::vector<Chromosome> const & getChromosomes() const
+			{
+				return chromosomes;
 			}
 
 			/**
@@ -960,23 +974,44 @@ namespace libmaus
 				std::vector<HeaderLine> headerlines = libmaus::bambam::HeaderLine::extractLinesByType(text,"SQ");
 				std::sort(headerlines.begin(),headerlines.end(),HeaderLineSQNameComparator());
 				
+				// fill information from text into refseq info
 				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
 				{
 					typedef std::vector<HeaderLine>::const_iterator it;
 					HeaderLine ref;
+					
 					ref.type = "SQ";
 					ref.M["SN"] = chromosomes[i].name;
-					std::pair<it,it> const p = std::equal_range(headerlines.begin(),headerlines.end(),ref,HeaderLineSQNameComparator());
+					
+					// look for chromosome/refseq in parsed text
+					std::pair<it,it> const p = std::equal_range(
+						headerlines.begin(),headerlines.end(),
+						ref,
+						HeaderLineSQNameComparator()
+					);
+
+					// if line is in text
 					if ( p.first != p.second )
 					{
+						// get line
 						HeaderLine const & line = *(p.first);
+						// build string from rest of arguments
+						std::ostringstream restkvostr;
+						// 
+						uint64_t restkvostrcont = 0;
+
+						// iterate over key:value pairs
 						for ( std::map<std::string,std::string>::const_iterator ita = line.M.begin();
 							ita != line.M.end(); ++ita )
 						{
 							std::pair<std::string,std::string> const pp = *ita;
 							
+							// sequence name should fit (or the equal_range call above is broken)
 							if ( pp.first == "SN" )
+							{
 								assert ( pp.second == chromosomes[i].name );
+							}
+							// check that sequence length is consistent between text and binary
 							else if ( pp.first == "LN" )
 							{
 								std::istringstream istr(pp.second);
@@ -992,9 +1027,17 @@ namespace libmaus
 							}
 							else
 							{
-								chromosomes[i].M[pp.first] = pp.second;
+								if ( restkvostrcont++ )
+									restkvostr.put('\t');
+									
+								restkvostr << pp.first << ":" << pp.second;
+									
+								// chromosomes[i].addKeyValuePair(pp.first,pp.second);
 							}
 						}
+						
+						if ( restkvostrcont )
+							chromosomes[i].setRestKVString(restkvostr.str());
 					}
 				}
 			}

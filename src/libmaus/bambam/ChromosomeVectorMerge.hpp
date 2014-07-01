@@ -48,7 +48,10 @@ namespace libmaus
 						return CA.len < CB.len;
 					else if ( compareNonSNLN )
 					{
-						bool const res = libmaus::util::StringMapCompare::compare(CA.M,CB.M);
+						// bool const res = libmaus::util::StringMapCompare::compare(CA.M,CB.M);
+						bool const res = libmaus::util::StringMapCompare::compareSortedStringPairVectors(
+							CA.getSortedKeyValuePairs(),
+							CB.getSortedKeyValuePairs());
 						#if 0
 						std::cerr << "comparing for " << CA.name << "," << CA.len << std::endl;
 						std::cerr << CA.createLine() << std::endl;

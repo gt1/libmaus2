@@ -42,23 +42,73 @@ namespace libmaus
 		 **/
 		struct Chromosome
 		{
+			public:
 			//! ref seq name
 			std::string name;
 			//! ref seq length
 			uint64_t len;
+
+			private:
 			//! additional key:value fields
-			::libmaus::util::unordered_map<std::string,std::string>::type M;
+			std::string restkv;
+			
+			public:
+			// get sorted vector of key=value pairs
+			std::vector< std::pair<std::string,std::string> > getSortedKeyValuePairs() const
+			{
+				std::vector< std::pair<std::string,std::string> > V;
+			
+				// extract key:value pairs	
+				uint64_t low = 0;
+				while ( low != restkv.size() )
+				{
+					// search for next tab
+					uint64_t high = low;
+					while ( high != restkv.size() && restkv[high] != '\t' )
+						++high;
+						
+					// search for end of key
+					uint64_t klow = low;
+					uint64_t khigh = klow;
+					while ( khigh != high && restkv[khigh] != ':' )
+						++khigh;
+					
+					assert ( (khigh-klow==2) && restkv[khigh] == ':' );
+									
+					uint64_t vlow = khigh + 1;
+					uint64_t vhigh = high;
+					
+					V.push_back(
+						std::pair<std::string,std::string>(
+							restkv.substr(klow,khigh-klow),
+							restkv.substr(vlow,vhigh-vlow)
+						)
+					);
+					
+					low = high;
+				}
+							
+				// sort key:value pairs	
+				std::sort(V.begin(),V.end());
 				
+				return V;
+			}
+			// rest string containing rest of tab separated key:value pairs
+			void setRestKVString(std::string const & rrestkv)
+			{
+				restkv = rrestkv;
+			}
+			
 			/**
 			 * constructor for empty reference sequence
 			 **/
-			Chromosome() : name(), len(0), M() {}
+			Chromosome() : name(), len(0), restkv() {}
 
 			/**
 			 * constructor from other object
 			 **/
 			Chromosome(Chromosome const & o)
-			: name(o.name), len(o.len), M(o.M) {}
+			: name(o.name), len(o.len), restkv(o.restkv) {}
 			
 			/**
 			 * constructor from parameters
@@ -66,7 +116,7 @@ namespace libmaus
 			 * @param rname ref seq name
 			 * @param rlen ref seq length
 			 **/
-			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen), M() {}
+			Chromosome(std::string const & rname, uint64_t const rlen) : name(rname), len(rlen), restkv() {}
 
 			/**
 			 * assignment operator
@@ -80,7 +130,7 @@ namespace libmaus
 				{
 					this->name = o.name;
 					this->len = o.len;
-					this->M = o.M;
+					this->restkv = o.restkv;
 				}
 				return *this;
 			}			
@@ -92,9 +142,9 @@ namespace libmaus
 					<< "\t" << "SN:" << name
 					<< "\t" << "LN:" << len;
 
-				for ( ::libmaus::util::unordered_map<std::string,std::string>::type::const_iterator ita = M.begin();
-					ita != M.end(); ++ita )
-					linestr << "\t" << ita->first << ":" << ita->second;
+				// append rest of key:value pairs if any				
+				if ( restkv.size() )
+					linestr << '\t' << restkv;
 				
 				return linestr.str();
 			}

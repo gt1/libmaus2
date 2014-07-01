@@ -38,18 +38,12 @@ namespace libmaus
 				ostr << "(" << P.first << "," << P.second << ")";
 				return ostr.str();
 			}
-		
-			template<typename map_type>
-			static bool compare(map_type const & MA, map_type const & MB)
+			
+			static bool compareSortedStringPairVectors(
+				std::vector< std::pair<std::string,std::string> > const & SA,
+				std::vector< std::pair<std::string,std::string> > const & SB
+			)
 			{
-				std::vector < std::pair<std::string,std::string> > SA, SB;
-				for ( typename map_type::const_iterator ita = MA.begin(); ita != MA.end(); ++ita )
-					SA.push_back(std::pair<std::string,std::string>(ita->first,ita->second));
-				for ( typename map_type::const_iterator ita = MB.begin(); ita != MB.end(); ++ita )
-					SB.push_back(std::pair<std::string,std::string>(ita->first,ita->second));
-				std::sort(SA.begin(),SA.end());
-				std::sort(SB.begin(),SB.end());
-				
 				uint64_t ia = 0, ib = 0;
 				
 				for ( ; ia != SA.size() && ib != SB.size() ; ++ia, ++ib )
@@ -72,6 +66,20 @@ namespace libmaus
 					}
 
 				return ia < ib;
+			}
+		
+			template<typename map_type>
+			static bool compare(map_type const & MA, map_type const & MB)
+			{
+				std::vector < std::pair<std::string,std::string> > SA, SB;
+				for ( typename map_type::const_iterator ita = MA.begin(); ita != MA.end(); ++ita )
+					SA.push_back(std::pair<std::string,std::string>(ita->first,ita->second));
+				for ( typename map_type::const_iterator ita = MB.begin(); ita != MB.end(); ++ita )
+					SB.push_back(std::pair<std::string,std::string>(ita->first,ita->second));
+				std::sort(SA.begin(),SA.end());
+				std::sort(SB.begin(),SB.end());
+				
+				return compareSortedStringPairVectors(SA,SB);
 			}
 		};
 	}
