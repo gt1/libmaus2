@@ -359,7 +359,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamAlignmentFilter.hpp \
 	libmaus/bambam/BamAlignmentReadGroupFilter.hpp \
 	libmaus/bambam/MdNmRecalculation.hpp \
-	libmaus/bambam/CramRange.hpp
+	libmaus/bambam/CramRange.hpp \
+	libmaus/bambam/ChromosomeVectorMerge.hpp \
+	libmaus/bambam/BamHeaderLowMem.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -1170,7 +1172,8 @@ noinst_PROGRAMS = \
 	testrlhist \
 	testnumcpus \
 	testdiag \
-	testlinuxstreamingwrite
+	testlinuxstreamingwrite \
+	testlowmembamheaderparser
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1506,3 +1509,8 @@ testlinuxstreamingwrite_SOURCES = test/testlinuxstreamingwrite.cpp
 testlinuxstreamingwrite_LDADD = libmaus.la
 testlinuxstreamingwrite_CPPFLAGS = ${AM_CPPFLAGS}
 testlinuxstreamingwrite_LDFLAGS = ${AM_LDFLAGS}
+
+testlowmembamheaderparser_SOURCES = test/testlowmembamheaderparser.cpp
+testlowmembamheaderparser_LDADD = libmaus.la
+testlowmembamheaderparser_CPPFLAGS = ${AM_CPPFLAGS}
+testlowmembamheaderparser_LDFLAGS = ${AM_LDFLAGS}

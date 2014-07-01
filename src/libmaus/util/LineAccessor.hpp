@@ -36,17 +36,27 @@ namespace libmaus
 			typedef rank_type::writer_type rank_writer_type;
 			typedef rank_writer_type::data_type rank_data_type;
 			
+			// rank word bits (64)
 			static uint64_t const rank_word_bits = 8*sizeof(rank_data_type);
 
+			// true iff text ends on a new line
 			bool const endsonnewline;
+			// (number of super blocks, number of lines)
 			std::pair<uint64_t,uint64_t> nlns;
+			// number of super blocks
 			uint64_t const numlines;
+			// number of lines
 			uint64_t const numsuperblocks;
+			// super block start pointers
 			libmaus::autoarray::AutoArray<uint64_t> S;
+			// line start pointers in super blocks
 			libmaus::autoarray::AutoArray<uint16_t> M;
+			// bit vector marking lines starting a new super block
 			libmaus::autoarray::AutoArray<rank_data_type> B;
+			// rank dictionary on B
 			rank_ptr_type R;
 			
+			// super block size (2^16)
 			static const uint64_t superblocksize = (1ull << 8*(sizeof(uint16_t)));
 			
 			struct NullCallback
@@ -196,18 +206,25 @@ namespace libmaus
 			template<typename iterator>
 			LineAccessor(iterator ita, iterator ite)
 			:
+			  // check whether text ends with a new line character
 			  endsonnewline( ite != ita && ite[-1] == '\n' ), 
+			  // count number of super blocks and number of lines
 			  nlns(countSuperBlocks(ita,ite,NullCallback(),NullCallback())), numlines(nlns.second), numsuperblocks(nlns.first), 
+			  // allocate super block start array
 			  S(numsuperblocks,false), 
+			  // allocate line start array
 			  M(numlines+1,false),
+			  // super block marker bit array
 			  B((M.size()+rank_word_bits-1)/rank_word_bits,false)
 			{
+				// fill arrays
 				countSuperBlocks(
 					ita,ite,
 					SuperCallback(S.begin(),B.begin()),
 					PushCallback<uint16_t *>(M.begin())
 				);
 				
+				// set up rank dictionary
 				rank_ptr_type tR(new rank_type(B.begin(),B.size()*rank_word_bits));
 				R = UNIQUE_PTR_MOVE(tR);		
 			}

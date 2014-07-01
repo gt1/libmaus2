@@ -23,6 +23,7 @@
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/ProgramHeaderLineSet.hpp>
 #include <libmaus/bambam/BamAlignmentDecoderFactory.hpp>
+#include <libmaus/bambam/ChromosomeVectorMerge.hpp>
 
 namespace libmaus
 {

@@ -55,7 +55,7 @@ namespace libmaus
 			 **/
 			void put(uint8_t const * D, uint64_t const n) 
 			{
-				out << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(D,n,header.chromosomes,aux) << "\n";
+				out << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(D,n,header,aux) << "\n";
 			}
 		};
 	}

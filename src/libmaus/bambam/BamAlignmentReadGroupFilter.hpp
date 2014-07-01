@@ -37,16 +37,15 @@ namespace libmaus
 			) : header(rheader)
 			{
 				std::set<std::string> const rgset(rgnames.begin(),rgnames.end());
-				std::vector<libmaus::bambam::ReadGroup> const & readgroups = header.getReadGroups();
 				
 				// set up and erase vector
-				libmaus::bitio::BitVector::unique_ptr_type tBV(new libmaus::bitio::BitVector(readgroups.size()));
+				libmaus::bitio::BitVector::unique_ptr_type tBV(new libmaus::bitio::BitVector(header.getNumReadGroups()));
 				pBV = UNIQUE_PTR_MOVE(tBV);
-				for ( uint64_t i = 0; i < readgroups.size(); ++i )
+				for ( uint64_t i = 0; i < header.getNumReadGroups(); ++i )
 					pBV->set(i,0);
 				
-				for ( uint64_t i = 0; i < readgroups.size(); ++i )
-					if ( rgset.find(readgroups[i].ID) != rgset.end() )
+				for ( uint64_t i = 0; i < header.getNumReadGroups(); ++i )
+					if ( rgset.find( header.getReadGroupIdentifierAsString(i) ) != rgset.end() )
 						pBV->set(i,1);
 			}
 			virtual ~BamAlignmentReadGroupFilter() {}

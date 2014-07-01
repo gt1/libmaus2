@@ -1597,7 +1597,7 @@ struct BamThreadPoolDecodeBamWritePackageDispatcher : public libmaus::parallel::
 						(static_cast<uint32_t>((ca + *pa)[1]) << 8) |
 						(static_cast<uint32_t>((ca + *pa)[2]) << 16) |
 						(static_cast<uint32_t>((ca + *pa)[3]) << 24),
-						contextbase.header.chromosomes,
+						contextbase.header,
 						aux
 					)
 				<< std::endl;
@@ -2219,9 +2219,9 @@ struct BamThreadPoolMergeProcessBufferInfo
 				{
 					std::cerr << "*order broken* " << std::endl;
 					std::cerr << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
-						ca,la,header.chromosomes,aux) << std::endl;
+						ca,la,header,aux) << std::endl;
 					std::cerr << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
-						cb,lb,header.chromosomes,aux) << std::endl;
+						cb,lb,header,aux) << std::endl;
 				}
 			}
 			

@@ -201,7 +201,8 @@ namespace libmaus
 			 * @param header bam header
 			 * @return alignment validty code
 			 **/
-			libmaus_bambam_alignment_validity valid(::libmaus::bambam::BamHeader const & header) const
+			template<typename header_type>
+			libmaus_bambam_alignment_validity valid(header_type const & header) const
 			{
 				libmaus_bambam_alignment_validity validity = valid();
 				
@@ -209,11 +210,11 @@ namespace libmaus
 					return validity;
 				
 				int32_t const refseq = getRefID();
-				if ( !((refseq == -1) || refseq < static_cast<int64_t>(header.chromosomes.size())) )
+				if ( !((refseq == -1) || refseq < static_cast<int64_t>(header.getNumRef())) )
 					return libmaus_bambam_alignment_validity_invalid_refseq;
 
 				int32_t const nextrefseq = getNextRefID();
-				if ( !((nextrefseq == -1) || nextrefseq < static_cast<int64_t>(header.chromosomes.size())) )
+				if ( !((nextrefseq == -1) || nextrefseq < static_cast<int64_t>(header.getNumRef())) )
 					return libmaus_bambam_alignment_validity_invalid_next_refseq;
 				
 				return libmaus_bambam_alignment_validity_ok;
@@ -907,7 +908,8 @@ namespace libmaus
 			 * @param bamheader BAM header object
 			 * @return read group id or -1 if not defined
 			 **/
-			int64_t getReadGroupId(::libmaus::bambam::BamHeader const & bamheader) const
+			template<typename header_type>
+			int64_t getReadGroupId(header_type const & bamheader) const
 			{
 				return bamheader.getReadGroupId(getReadGroup());
 			}
@@ -916,7 +918,8 @@ namespace libmaus
 			 * @param bamheader BAM header object
 			 * @return library id or -1 if not defined
 			 **/
-			int64_t getLibraryId(::libmaus::bambam::BamHeader const & bamheader) const
+			template<typename header_type>
+			int64_t getLibraryId(header_type const & bamheader) const
 			{
 				return bamheader.getLibraryId(getReadGroup());
 			}
@@ -925,7 +928,8 @@ namespace libmaus
 			 * @param bamheader BAM header object
 			 * @return library name for this alignment
 			 **/
-			std::string getLibraryName(::libmaus::bambam::BamHeader const & bamheader) const
+			template<typename header_type>
+			std::string getLibraryName(header_type const & bamheader) const
 			{
 				return bamheader.getLibraryName(getReadGroup());
 			}
@@ -943,7 +947,7 @@ namespace libmaus
 			) const
 			{
 				return ::libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
-					D.get(),blocksize,bamheader.chromosomes,auxiliary);
+					D.get(),blocksize,bamheader,auxiliary);
 			}
 			
 			/**

@@ -70,7 +70,7 @@ namespace libmaus
 			}
 			
 			BamRangeChromosome(std::string const & rname, libmaus::bambam::BamHeader const & header)
-			: name(rname), id(header.getIdForRefName(name)), beg(0), end(header.chromosomes[id].len)
+			: name(rname), id(header.getIdForRefName(name)), beg(0), end(header.getRefIDLength(id))
 			{
 			
 			}
@@ -119,7 +119,7 @@ namespace libmaus
 			}
 			
 			BamRangeHalfOpen(std::string const & rname, uint64_t const rstart, libmaus::bambam::BamHeader const & header)
-			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(header.chromosomes[id].len)
+			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(header.getRefIDLength(id))
 			{
 			
 			}

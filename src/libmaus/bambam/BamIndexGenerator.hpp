@@ -734,7 +734,7 @@ namespace libmaus
 				::libmaus::aio::SingleFileFragmentMerge< ::libmaus::bambam::BamIndexLinearChunk>::merge(linchunktmpfilename,linearchunkfrags);
 
 				/* check consistency */
-				bool const consistent = checkConsisteny(binchunktmpfilename,linchunktmpfilename,header.chromosomes.size());
+				bool const consistent = checkConsisteny(binchunktmpfilename,linchunktmpfilename,header.getNumRef());
 				
 				if ( ! consistent )
 				{
@@ -753,12 +753,12 @@ namespace libmaus
 				out.put('A');
 				out.put('I');
 				out.put('\1');
-				::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,header.chromosomes.size());
+				::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,header.getNumRef());
 				
-				for ( uint64_t i = 0; i < header.chromosomes.size(); ++i )
+				for ( uint64_t i = 0; i < header.getNumRef(); ++i )
 				{
 					if ( debug )
-						std::cerr << "chromosome " << header.chromosomes[i].name << std::endl;
+						std::cerr << "chromosome " << header.getRefIDName(i) << std::endl;
 				
 					if ( peekBin(binCIS) == static_cast<int64_t>(i) )
 					{

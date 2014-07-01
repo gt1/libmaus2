@@ -19,8 +19,8 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
 
-#include <libmaus/bambam/Chromosome.hpp>
 #include <libmaus/bambam/BamFlagBase.hpp>
+#include <libmaus/bambam/BamHeader.hpp>
 #include <libmaus/bambam/DecoderBase.hpp>
 #include <libmaus/bambam/BamFormatAuxiliary.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
@@ -2133,22 +2133,7 @@ namespace libmaus
 				}
 				return seqlen;
 			}
-			
-			/**
-			 * map reference sequence id to name
-			 *
-			 * @param id reference sequence identifier
-			 * @param chromosomes vector of reference sequence infos
-			 * @return name of reference sequence or * if undefined
-			 **/
-			static char const * idToChromosome(int32_t const id, std::vector< ::libmaus::bambam::Chromosome > const & chromosomes)
-			{
-				if ( id >= 0 && id < static_cast<int32_t>(chromosomes.size()) )
-					return chromosomes[id].name.c_str();
-				else
-					return "*";
-			}
-			
+						
 			/**
 			 * get auxiliary area in alignment block E of size blocksize for given tag
 			 *
@@ -2706,17 +2691,19 @@ namespace libmaus
 			}
 			
 			/**
-			 * format alignment block E of size blocksize as SAM file line using the chromosome vector chromosomes
+			 * format alignment block E of size blocksize as SAM file line using the header
 			 * and the temporary memory block auxdata
 			 *
 			 * @param E alignment block
 			 * @param blocksize size of alignment block
-			 * @param chromosomes vector of chromosomes
+			 * @param bam header
 			 * @param auxdata temporary memory block
 			 * @return alignment block formatted as SAM line stored in string object
 			 **/
+			template<typename header_type>
 			static std::string formatAlignment(
-				uint8_t const * E, uint64_t const blocksize, std::vector< ::libmaus::bambam::Chromosome > const & chromosomes,
+				uint8_t const * E, uint64_t const blocksize, 
+				header_type const & header,
 				::libmaus::bambam::BamFormatAuxiliary & auxdata
 			)
 			{
@@ -2724,7 +2711,7 @@ namespace libmaus
 
 				ostr << getReadNameS(E) << "\t";
 				ostr << getFlags(E) << "\t";
-				ostr << idToChromosome(getRefID(E),chromosomes) << "\t";
+				ostr << header.getRefIDName(getRefID(E)) << "\t";
 				ostr << getPos(E)+1 << "\t";
 				ostr << getMapQ(E) << "\t";
 				ostr << (getNCigar(E) ? getCigarString(E) : std::string("*")) << "\t";
@@ -2732,7 +2719,7 @@ namespace libmaus
 				if ( getRefID(E) == getNextRefID(E) && getRefID(E) >= 0 )
 					ostr << "=\t";
 				else
-					ostr << idToChromosome(getNextRefID(E),chromosomes) << "\t";
+					ostr << header.getRefIDName(getNextRefID(E)) << "\t";
 
 				ostr << getNextPos(E)+1 << "\t";
 				ostr << getTlen(E) << "\t";

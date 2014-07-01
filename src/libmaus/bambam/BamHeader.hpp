@@ -196,7 +196,25 @@ namespace libmaus
 			{
 				return RG;
 			}
-			
+
+			/**
+			 * get string identifier fur numeric read group i
+			 *
+			 * @param i numeric identifier for read group
+			 * @return string identifier for read group i in the header
+			 **/
+			std::string const & getReadGroupIdentifierAsString(int64_t const i) const
+			{
+				if ( i < 0 || i >= static_cast<int64_t>(getNumReadGroups()) )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() << "BamHeader::getReadGroupIdentifierAsString(): invalid numeric id " << i << std::endl;
+					se.finish();
+					throw se;					
+				}
+				return RG[i].ID;
+			}
+
 			/**
 			 * get number of read groups
 			 *
@@ -570,20 +588,6 @@ namespace libmaus
 				ostr << filterHeader(header);
 				
 				return ostr.str();
-			}
-			
-			/**
-			 * map chromosome (ref seq) id to chromosome name
-			 *
-			 * @param id referencen id
-			 * @return name for id or "*" if id is not valid/known
-			 **/
-			char const * idToChromosome(int32_t const id) const
-			{
-				if ( id >= 0 && id < static_cast<int32_t>(chromosomes.size()) )
-					return chromosomes[id].name.c_str();
-				else
-					return "*";
 			}
 			
 			/**
