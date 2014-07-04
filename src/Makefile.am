@@ -115,7 +115,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lz/IGzipDeflate.cpp \
 	libmaus/lcs/LocalBaseConstants.cpp \
 	libmaus/lcs/LocalEditDistanceResult.cpp \
-	libmaus/bambam/BamHeader.cpp
+	libmaus/bambam/BamHeader.cpp \
+	libmaus/bambam/GeneFlatFile.cpp \
+	libmaus/bambam/GeneFlatFileEntry.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -265,7 +267,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/RAZFDecoderBuffer.hpp \
 	libmaus/lz/RAZFDecoder.hpp \
 	libmaus/lz/RAZFIndex.hpp \
-	libmaus/lz/IGzipDeflate.hpp
+	libmaus/lz/IGzipDeflate.hpp \
+	libmaus/lz/IsGzip.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -362,7 +365,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/MdNmRecalculation.hpp \
 	libmaus/bambam/CramRange.hpp \
 	libmaus/bambam/ChromosomeVectorMerge.hpp \
-	libmaus/bambam/BamHeaderLowMem.hpp
+	libmaus/bambam/BamHeaderLowMem.hpp \
+	libmaus/bambam/GeneFlatFile.hpp \
+	libmaus/bambam/GeneFlatFileEntry.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -1174,7 +1179,8 @@ noinst_PROGRAMS = \
 	testnumcpus \
 	testdiag \
 	testlinuxstreamingwrite \
-	testlowmembamheaderparser
+	testlowmembamheaderparser \
+	testgeneflatfile
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1515,3 +1521,8 @@ testlowmembamheaderparser_SOURCES = test/testlowmembamheaderparser.cpp
 testlowmembamheaderparser_LDADD = libmaus.la
 testlowmembamheaderparser_CPPFLAGS = ${AM_CPPFLAGS}
 testlowmembamheaderparser_LDFLAGS = ${AM_LDFLAGS}
+
+testgeneflatfile_SOURCES = test/testgeneflatfile.cpp
+testgeneflatfile_LDADD = libmaus.la
+testgeneflatfile_CPPFLAGS = ${AM_CPPFLAGS}
+testgeneflatfile_LDFLAGS = ${AM_LDFLAGS}
