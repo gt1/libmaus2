@@ -420,6 +420,27 @@ namespace libmaus
 					throw se;
 				}
 			}
+
+			/**
+			 * get i'th post key=value argument
+			 *
+			 * @param i rank of post key=value argument
+			 * @return i'th post key=value argument
+			 **/
+			std::string getUnparsedRestArg(uint64_t const i) const
+			{
+				if ( i < restargs.size() )
+				{
+					return restargs[i];
+				}
+				else
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Argument index out of range in getUnparsedRestArg()";
+					se.finish();
+					throw se;
+				}
+			}
 			
 			/**
 			 * get i'th post key=value argument as string

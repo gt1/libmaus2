@@ -30,10 +30,21 @@ int main(int argc, char * argv[])
 		std::string const url = arginfo.getRestArg<std::string>(0);
 		libmaus::network::HttpHeader preheader("HEAD","",url);
 		int64_t const length = preheader.getContentLength();
-		
+		int64_t const packetsize = 
+			(
+				arginfo.hasArg("packetsize")
+				&& 
+				arginfo.getUnparsedValue("packetsize","").size() 
+				&&
+				isdigit(arginfo.getUnparsedValue("packetsize","")[0])
+			)
+			?
+			arginfo.getValueUnsignedNumeric<uint64_t>("packetsize",2*1024)
+			:
+			arginfo.getValue<int64_t>("packetsize",2*1024);
 		
 		// if length is known and server supports range then read document in blocks of size 2048
-		if ( length >= 0 && preheader.hasRanges() )
+		if ( length >= 0 && preheader.hasRanges() && packetsize > 0 )
 		{
 			uint64_t const packetsize = 2048;
 			uint64_t const numpackets = (length + packetsize - 1)/packetsize;
