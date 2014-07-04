@@ -1157,7 +1157,10 @@ namespace libmaus
 			std::pair<char const *, uint64_t> getReadGroupIdentifier(int64_t const i) const
 			{
 				if ( i < 0 || i >= static_cast<int64_t>(getNumReadGroups()) )
-					return std::pair<char const *, uint64_t>(0,0);
+				{
+					char const * null = 0;
+					return std::pair<char const *, uint64_t>(null,0);
+				}
 				
 				uint64_t const lineid = rglines.at(i);
 				
@@ -1220,7 +1223,10 @@ namespace libmaus
 			std::pair<char const *, uint64_t> getLibraryIdentifier(int64_t const i) const
 			{
 				if ( i < 0 || i >= static_cast<int64_t>(getNumReadGroups()) )
-					return std::pair<char const *, uint64_t>(0,0);
+				{
+					char const * null = 0;
+					return std::pair<char const *, uint64_t>(null,0);
+				}
 				
 				uint64_t const lineid = rglines.at(i);
 				
@@ -1248,7 +1254,10 @@ namespace libmaus
 					++j;
 			
 				if ( j+2 >= P.second )
-					return std::pair<char const *, uint64_t>(0,0);
+				{
+					char const * null = 0;
+					return std::pair<char const *, uint64_t>(null,0);
+				}
 				
 				uint64_t idstart = j+3;
 				uint64_t idend = idstart;
