@@ -22,7 +22,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#if defined(__linux__)
 #include <sys/vfs.h>
+#elif defined(__APPLE__)
+#include <sys/param.h>
+#include <sys/mount.h>          
+#endif
+
 #include <cerrno>
 #include <cstring>
 #include <libmaus/exception/LibMausException.hpp>
