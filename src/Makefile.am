@@ -1001,7 +1001,17 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/FtpUrl.hpp \
 	libmaus/network/HttpBody.hpp \
 	libmaus/network/HttpHeader.hpp \
-	libmaus/network/FtpSocket.hpp
+	libmaus/network/FtpSocket.hpp \
+	libmaus/network/UrlBase.hpp \
+	libmaus/network/HttpHeaderWrapper.hpp \
+	libmaus/network/HttpBodyWrapper.hpp \
+	libmaus/network/FtpSocketWrapper.hpp \
+	libmaus/network/HttpSocketInputStreamBuffer.hpp \
+	libmaus/network/HttpSocketInputStream.hpp \
+	libmaus/network/FtpSocketInputStreamBuffer.hpp \
+	libmaus/network/FtpSocketInputStream.hpp \
+	libmaus/network/FileUrl.hpp \
+	libmaus/network/UrlInputStreamBufferWrapper.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1180,7 +1190,8 @@ noinst_PROGRAMS = \
 	testdiag \
 	testlinuxstreamingwrite \
 	testlowmembamheaderparser \
-	testgeneflatfile
+	testgeneflatfile \
+	testurlinputstream
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1500,6 +1511,11 @@ testftp_SOURCES = test/testftp.cpp
 testftp_LDADD = libmaus.la
 testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
 testftp_LDFLAGS = @OPENSSLLIBS@
+
+testurlinputstream_SOURCES = test/testurlinputstream.cpp
+testurlinputstream_LDADD = libmaus.la
+testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
+testurlinputstream_LDFLAGS = @OPENSSLLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
 testrlhist_LDADD = libmaus.la

@@ -30,6 +30,11 @@ namespace libmaus
 	{
 		struct PosixFdInputStreamBuffer : public ::std::streambuf
 		{
+			public:
+			typedef PosixFdInputStreamBuffer this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			private:
 			static int64_t getDefaultBlockSize()
 			{

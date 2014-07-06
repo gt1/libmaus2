@@ -22,12 +22,13 @@
 #include <istream>
 #include <cassert>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/network/SocketInputOutputInterface.hpp>
 
 namespace libmaus
 {
 	namespace network
 	{
-		struct HttpBody
+		struct HttpBody : public libmaus::network::SocketInputInterface
 		{
 			std::istream & in;
 			bool eof;
@@ -41,7 +42,7 @@ namespace libmaus
 			
 			}
 			
-			uint64_t read(char * p, uint64_t n)
+			int64_t read(char * p, uint64_t n)
 			{
 				if ( ! n )
 					return 0;
@@ -173,6 +174,11 @@ namespace libmaus
 					}
 				}
 				return 0;
+			}
+
+			ssize_t readPart(char * p, size_t n)
+			{
+				return read(p,n);
 			}
 		};
 	}

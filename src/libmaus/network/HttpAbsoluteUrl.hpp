@@ -22,32 +22,19 @@
 #include <string>
 #include <cstring>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/network/UrlBase.hpp>
 
 namespace libmaus
 {
 	namespace network
 	{
-		struct HttpAbsoluteUrl
+		struct HttpAbsoluteUrl : public ::libmaus::network::UrlBase
 		{
 			std::string host;
 			unsigned int port;
 			std::string path;
 			bool ssl;
 
-			static bool isAbsoluteUrl(std::string const & s)
-			{
-				if ( s.find("://") == std::string::npos )
-					return false;
-					
-				std::string const prot = s.substr(0,s.find("://"));
-				
-				for ( uint64_t i = 0; i < prot.size(); ++i )
-					if ( ! isalpha(prot[i]) )
-						return false;
-				
-				return true;
-			}
-			
 			static bool isHttpAbsoluteUrl(std::string const & s)
 			{
 				std::string const prefix = "http://";
