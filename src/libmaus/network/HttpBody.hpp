@@ -152,7 +152,7 @@ namespace libmaus
 						}
 						
 						length -= in.gcount();
-						if ( in.gcount() == 0 )
+						if ( in.gcount() == 0 || length == 0 )
 							eof = true;
 						return in.gcount();
 					}
