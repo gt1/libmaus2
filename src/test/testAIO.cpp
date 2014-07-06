@@ -137,11 +137,43 @@ int main(int argc, char * argv[])
 		
 		remove(fn.c_str());
 	}
-
+	
+	// test putback buffer in PosixFdInputStream
+	{
+		std::string const fn = "configure";
+		uint64_t const fs = libmaus::util::GetFileSize::getFileSize(fn);
+		libmaus::autoarray::AutoArray<char> A(fs,false);
+		
+		{
+			libmaus::aio::CheckedInputStream CIS(fn);
+			CIS.read(A.begin(),fs);
+		}
+		
+		uint64_t const putbacksize = 2048;
+		
+		if ( fs >= putbacksize )
+		{
+			libmaus::aio::PosixFdInputStream PFIS(fn,64*1024,putbacksize);
+			
+			for ( uint64_t z = 0; z < (fs-putbacksize+1); ++z )
+			{
+				for ( uint64_t i = 0 ; i < putbacksize; ++i )
+				{
+					int const c = PFIS.get();
+					assert ( c >= 0 );
+					assert ( c == A[z+i] );
+				}
+				
+				PFIS.clear();
+				
+				for ( int64_t i = putbacksize-1; i >= 1; --i )
+					PFIS.putback(A[z+i]);
+			}
+		}
+	}
 
 	testPosixFdInput();
 	
-
 	if ( argc < 3 )
 	{
 		std::cerr << "usage: " << argv[0] << " <in0> <in1> ... <out>" << std::endl;

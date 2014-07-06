@@ -215,7 +215,10 @@ namespace libmaus
 					);
 				
 				// set buffer pointers
-				setg(buffer.begin()+putbackspace-putbackcopy,buffer.begin()+putbackspace,buffer.begin()+uncompressedsize);
+				setg(
+					buffer.begin()+putbackspace-putbackcopy,
+					buffer.begin()+putbackspace,
+					buffer.begin()+putbackspace+uncompressedsize);
 
 				symsread += uncompressedsize;
 				
