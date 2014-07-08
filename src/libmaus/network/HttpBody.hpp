@@ -42,7 +42,7 @@ namespace libmaus
 			
 			}
 			
-			int64_t read(char * p, uint64_t n)
+			ssize_t read(char * p, uint64_t n)
 			{
 				if ( ! n )
 					return 0;
