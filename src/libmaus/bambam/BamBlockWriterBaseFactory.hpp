@@ -225,15 +225,16 @@ namespace libmaus
 				else if ( outputformat == "cram" )
 				{
 					std::string const reference = arginfo.getUnparsedValue("reference","");
+					bool const scramverbose = arginfo.getValue<unsigned int>("scramverbose",false);
 				
 					if ( outputisstdout )
 					{
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,"-","ws",reference,true /* verbose */));
+						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,"-","wc",reference,scramverbose /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
 					{					
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,outputfilename,"ws",reference,true /* verbose */));
+						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,outputfilename,"wc",reference,scramverbose /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 				}
