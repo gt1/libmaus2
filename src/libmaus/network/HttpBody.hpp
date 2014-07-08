@@ -142,7 +142,7 @@ namespace libmaus
 				{
 					if ( length >= 0 )
 					{
-						uint64_t toread = std::min(n,static_cast<uint64_t>(length));
+						uint64_t toread = std::min(static_cast<uint64_t>(n),static_cast<uint64_t>(length));
 						
 						in.readsome(p,toread);
 						
