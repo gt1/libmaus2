@@ -199,7 +199,15 @@ namespace libmaus
 				if ( it == acc.end() )
 					return 0;
 				else
-					return &(PGidsort [ it-acc.begin() ]);
+				{
+					IdSortInfo const & ISI = PGidsort [ it-acc.begin() ];
+
+					// check name
+					if ( strcmp(c,PGidtext.begin() + ISI.idtextoffset) == 0 )
+						return &ISI;
+					else
+						return 0;
+				}
 			}
 
 			IdSortInfo const * findRG(char const * c) const
@@ -958,7 +966,7 @@ namespace libmaus
 				uint64_t seqid = 0;
 				
 				for ( uint64_t i = 0; i < PLA->size(); ++i )
-				{
+				{				
 					std::pair<uint64_t,uint64_t> P = PLA->lineInterval(i);
 					if ( P.second != P.first && text[P.second-1] == '\r' )
 						--P.second;
@@ -1014,25 +1022,25 @@ namespace libmaus
 						while ( 
 							j+2 < P.second &&
 							(
-								text[j] != 'I' ||
-								text[j+1] != 'D' ||
-								text[j+2] != ':'
+								(text[j] != 'I') ||
+								(text[j+1] != 'D') ||
+								(text[j+2] != ':')
 							)
 						)
 							++j;
 					
 						assert ( j+2 < P.second );
 					
-						uint64_t idstart = j+3;
+						uint64_t idstart = j+3;						
 						uint64_t idend = idstart;
 						
-						while ( idend != P.second && text[idend] != '\t' )
+						while ( idend < P.second && text[idend] != '\t' )
 							++idend;
 							
 						assert ( idstart != idend );
-
-						IdSortInfo const * idinfo = findPG(std::string(text+idstart,text+idend).c_str());
 						
+						IdSortInfo const * idinfo = findPG(std::string(text+idstart,text+idend).c_str());
+												
 						assert ( idinfo );
 						
 						ostr.write(
@@ -1041,7 +1049,10 @@ namespace libmaus
 						);
 						ostr.put('\n');
 						
-						if ( noparidstring && (strcmp(PGidtext.begin() + idinfo->idtextoffset,noparidstring) == 0) )
+						if ( 
+							noparidstring && 
+							(strcmp(PGidtext.begin() + idinfo->idtextoffset,noparidstring) == 0) 
+						)
 						{
 							std::ostringstream pgostr;
 							pgostr << "@PG" << "\tID:" << getUniquePGId(pgID);
@@ -1076,7 +1087,7 @@ namespace libmaus
 						);
 						ostr.put('\n');
 					}
-				}
+				}				
 			}
 
 			public:
@@ -1390,7 +1401,7 @@ namespace libmaus
 				// compute length of header text
 				libmaus::util::CountPutObject CPO;
 				writeTextSubset(CPO,IBV,pgID,pgPN,pgCL,pgVN);
-
+				
 				// write length of text
 				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,CPO.c);
 				// write text
