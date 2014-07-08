@@ -40,12 +40,21 @@ namespace libmaus
 				
 				bool operator()(Chromosome const & CA, Chromosome const & CB) const
 				{
-					if ( CA.name != CB.name )
+					std::pair<char const *, char const *> namea = CA.getName();
+					std::pair<char const *, char const *> nameb = CB.getName();
+					int const namecmpres = strcmpnum(
+						namea.first,
+						namea.second,
+						nameb.first,
+						nameb.second
+					);
+				
+					if ( namecmpres )
 					{
-						return strcmpnum(CA.name.c_str(),CB.name.c_str()) < 0;
+						return namecmpres < 0;
 					}
-					else if ( CA.len != CB.len )
-						return CA.len < CB.len;
+					else if ( CA.getLength() != CB.getLength() )
+						return CA.getLength() < CB.getLength();
 					else if ( compareNonSNLN )
 					{
 						// bool const res = libmaus::util::StringMapCompare::compare(CA.M,CB.M);
@@ -258,12 +267,12 @@ namespace libmaus
 					{
 						Chromosome & chr = chromosomes[i];
 						
-						while ( seenids.find(chr.name) != seenids.end() )
-							chr.name += '\'';
+						while ( seenids.find(chr.getNameString()) != seenids.end() )
+							chr.setName(chr.getNameString() + '\'');
 						
 						// std::cerr << chr.createLine() << std::endl;
 						
-						seenids.insert(chr.name);
+						seenids.insert(chr.getNameString());
 					}
 				}
 			}

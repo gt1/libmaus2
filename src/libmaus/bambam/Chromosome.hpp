@@ -42,7 +42,7 @@ namespace libmaus
 		 **/
 		struct Chromosome
 		{
-			public:
+			private:
 			//! ref seq name
 			std::string name;
 			//! ref seq length
@@ -147,6 +147,26 @@ namespace libmaus
 					linestr << '\t' << restkv;
 				
 				return linestr.str();
+			}
+			
+			std::pair<char const *, char const *> getName() const
+			{
+				return std::pair<char const *, char const *>(name.c_str(),name.c_str() + name.size());
+			}
+			
+			std::string getNameString() const
+			{
+				return name;
+			}
+			
+			uint64_t getLength() const
+			{
+				return len;
+			}
+			
+			void setName(std::string const & rname)
+			{
+				name = rname;
 			}
 		};		
 	}

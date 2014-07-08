@@ -34,6 +34,90 @@ namespace libmaus
 			 * compare strings a and b as described in class description
 			 *
 			 * @param a first string
+			 * @param ae pointer beyond end of first string
+			 * @param b second string
+			 * @param ae pointer beyond end of second string
+			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
+			 **/
+			static int strcmpnum(
+				uint8_t const * a, 
+				uint8_t const * ae,
+				uint8_t const * b,
+				uint8_t const * be
+			)
+			{
+				while ( (a!=ae) && (b!=be) )
+				{
+					uint8_t const ca = *a;
+					uint8_t const cb = *b;
+			
+					if ( digit_table[ca] && digit_table[cb] )
+					{
+						uint64_t na = ca - '0';
+						uint64_t nb = cb - '0';
+						
+						while ( (*(++a)) && digit_table[*a] )
+						{
+							na *= 10;
+							na += *a - '0';
+						}
+						while ( (*(++b)) && digit_table[*b] )
+						{
+							nb *= 10;
+							nb += *b - '0';
+						}
+						
+						if ( na != nb )
+						{
+							if ( na < nb )
+								return -1;
+							else
+								return 1;
+						}
+					}
+					else if ( ca != cb )
+					{
+						if ( ca < cb )
+							return -1;
+						else
+							return 1;
+					}
+					else
+					{
+						++a;
+						++b;
+					}
+				}
+				
+				return 0;	
+			}
+
+			/**
+			 * compare strings a and b as described in class description
+			 *
+			 * @param a first string
+			 * @param b second string
+			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
+			 **/
+			static int strcmpnum(
+				char const * a, 
+				char const * ae,
+				char const * b,
+				char const * be
+			)
+			{
+				return strcmpnum(
+					reinterpret_cast<uint8_t const *>(a),
+					reinterpret_cast<uint8_t const *>(ae),
+					reinterpret_cast<uint8_t const *>(b),
+					reinterpret_cast<uint8_t const *>(be)
+				);	
+			}
+
+			/**
+			 * compare strings a and b as described in class description
+			 *
+			 * @param a first string
 			 * @param b second string
 			 * @return -1 if a<b, 0 if a==b, 1 if a>b (names at a and b, not pointers)
 			 **/

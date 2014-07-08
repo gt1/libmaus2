@@ -133,7 +133,10 @@ namespace libmaus
 				if ( refid < 0 || refid >= static_cast<int64_t>(chromosomes.size()) )
 					return "*";
 				else
-					return chromosomes[refid].name;
+				{
+					std::pair<char const *,char const *> const P = chromosomes[refid].getName();
+					return std::string(P.first,P.second);
+				}
 			}
 			
 			/**
@@ -144,7 +147,7 @@ namespace libmaus
 				if ( refid < 0 || refid >= static_cast<int64_t>(chromosomes.size()) )
 					return -1;
 				else
-					return chromosomes[refid].len;
+					return chromosomes[refid].getLength();
 			}
 			
 			/**
@@ -558,10 +561,15 @@ namespace libmaus
 						<< "\n";
 					
 				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
-					if ( sqmap.find(chromosomes[i].name) != sqmap.end() )
-						ostr << sqmap.find(chromosomes[i].name)->second->line << std::endl;
+				{
+					std::pair<char const *,char const *> chrP = chromosomes[i].getName();
+					std::string const chrname(chrP.first,chrP.second);
+				
+					if ( sqmap.find(chrname) != sqmap.end() )
+						ostr << sqmap.find(chrname)->second->line << std::endl;
 					else
-						ostr << "@SQ\tSN:" << chromosomes[i].name << "\tLN:" << chromosomes[i].len << "\n";
+						ostr << "@SQ\tSN:" << chrname << "\tLN:" << chromosomes[i].getLength() << "\n";
+				}
 					
 				ostr << filterHeader(header);
 				
@@ -582,12 +590,13 @@ namespace libmaus
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
 					::libmaus::bambam::Chromosome const & chr = V[i];
+					std::pair<char const *, char const *> P = chr.getName();
 					
-					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.name.size()+1);
-					ostr.write(chr.name.c_str(),chr.name.size());
+					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,(P.second-P.first)+1);
+					ostr.write(P.first,P.second-P.first);
 					ostr.put(0);
 
-					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.len);
+					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.getLength());
 				}
 			}
 
@@ -981,7 +990,7 @@ namespace libmaus
 					HeaderLine ref;
 					
 					ref.type = "SQ";
-					ref.M["SN"] = chromosomes[i].name;
+					ref.M["SN"] = chromosomes[i].getNameString();
 					
 					// look for chromosome/refseq in parsed text
 					std::pair<it,it> const p = std::equal_range(
@@ -1009,7 +1018,7 @@ namespace libmaus
 							// sequence name should fit (or the equal_range call above is broken)
 							if ( pp.first == "SN" )
 							{
-								assert ( pp.second == chromosomes[i].name );
+								assert ( pp.second == chromosomes[i].getNameString() );
 							}
 							// check that sequence length is consistent between text and binary
 							else if ( pp.first == "LN" )
@@ -1017,7 +1026,7 @@ namespace libmaus
 								std::istringstream istr(pp.second);
 								uint64_t len;
 								istr >> len;
-								if ( chromosomes[i].len != len )
+								if ( chromosomes[i].getLength() != len )
 								{
 									libmaus::exception::LibMausException se;
 									se.getStream() << "BAM header is not consistent (binary and text do not match) for " << line.line << std::endl;
@@ -1254,8 +1263,28 @@ namespace libmaus
 			uint64_t getIdForRefName(std::string const & name) const
 			{
 				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
-					if ( name == chromosomes[i].name )
-						return i;
+				{
+					std::pair<char const *, char const *> const P = chromosomes[i].getName();
+					char const * qa = P.first;
+					char const * qe = P.second;
+					char const * ca = name.c_str();
+					char const * ce = ca + name.size();
+					
+					// same length
+					if ( qe-qa == ce-ca )
+					{
+						// check for equal sequence of letters
+						for ( ; qa != qe ; ++qa, ++ca )
+							if ( *qa != *ca )
+								break;
+								
+						if ( qa == qe )
+						{
+							assert ( name == chromosomes[i].getNameString() );
+							return i;
+						}
+					}					
+				}
 						
 				libmaus::exception::LibMausException se;
 				se.getStream() << "Reference name " << name << " does not exist in file." << std::endl;
