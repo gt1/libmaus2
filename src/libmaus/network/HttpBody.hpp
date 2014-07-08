@@ -105,7 +105,10 @@ namespace libmaus
 						}
 					}
 					
-					uint64_t toread = std::min(n,chunkunread);
+					uint64_t toread = std::min(
+						static_cast<uint64_t>(n),
+						static_cast<uint64_t>(chunkunread)
+					);
 					in.read(p,toread);
 					uint64_t const got = in.gcount();
 					chunkunread -= got;
