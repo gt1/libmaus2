@@ -48,6 +48,9 @@ namespace libmaus
 			SnappyOffsetFileInputStream(std::string const & filename, uint64_t const roffset)
 			: Pistr(openFileAtOffset(filename,roffset)), 
 			  istr(*Pistr), instream(istr,roffset,true) {}
+			SnappyOffsetFileInputStream(stream_type & ristr, uint64_t const roffset)
+			: Pistr(), 
+			  istr(ristr), instream(istr,roffset,true) {}
 			int get() { return instream.get(); }
 			int peek() { return instream.peek(); }
 			uint64_t read(char * c, uint64_t const n) { return instream.read(c,n); }

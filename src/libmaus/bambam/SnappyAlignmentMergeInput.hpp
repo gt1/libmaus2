@@ -40,6 +40,8 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
+			//! file stream
+			libmaus::aio::CheckedInputStream::unique_ptr_type Psingle;
 			//! block index
 			std::vector < std::pair < uint64_t, uint64_t > > index;
 			//! snappy decoder array
@@ -78,15 +80,51 @@ namespace libmaus
 				std::string const & fn)
 			: index(rindex), streams(index.size()), data(index.size()), namecomp(static_cast<uint8_t const *>(0)), heapcomp(namecomp,data.begin()), Q(heapcomp)
 			{
+				bool openok = true;
+			
+				try
+				{
+					for ( uint64_t i = 0; i < index.size(); ++i )
+						if ( index[i].second )
+						{
+							libmaus::lz::SnappyOffsetFileInputStream::unique_ptr_type tstreamsi(
+                                	                                        new libmaus::lz::SnappyOffsetFileInputStream(fn,index[i].first)
+                                        	                        );
+							streams [ i ] = UNIQUE_PTR_MOVE(tstreamsi);
+						}
+				}
+				catch(std::exception const & ex)
+				{
+					openok = false;
+				}
+				
+				if ( ! openok )
+				{
+					std::cerr << "[V] failed to open a file handle for each single collation block, trying to merge through a single file handle" << std::endl;
+
+					for ( uint64_t i = 0; i < index.size(); ++i )
+						if ( index[i].second )
+							streams[i].reset();
+					
+					libmaus::aio::CheckedInputStream::unique_ptr_type TCIS(new libmaus::aio::CheckedInputStream(fn));
+					Psingle	= UNIQUE_PTR_MOVE(TCIS);
+
+					for ( uint64_t i = 0; i < index.size(); ++i )
+						if ( index[i].second )
+						{
+							libmaus::lz::SnappyOffsetFileInputStream::unique_ptr_type tstreamsi
+							(
+                                	                	new libmaus::lz::SnappyOffsetFileInputStream(*Psingle,index[i].first)
+                                        	        );
+							streams [ i ] = UNIQUE_PTR_MOVE(tstreamsi);
+						}
+				}
+					
 				for ( uint64_t i = 0; i < index.size(); ++i )
-					if ( index[i].second-- )
+					if ( index[i].second )
 					{
-						libmaus::lz::SnappyOffsetFileInputStream::unique_ptr_type tstreamsi(
-                                                                        new libmaus::lz::SnappyOffsetFileInputStream(fn,index[i].first)
-                                                                );
-						streams [ i ] =
-							UNIQUE_PTR_MOVE(tstreamsi);
-						
+						index[i].second -= 1;
+
 						#if !defined(NDEBUG)
 						bool const alok = 
 						#endif
