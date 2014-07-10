@@ -221,7 +221,7 @@ namespace libmaus
 					if ( range.size() )
 					{
 						libmaus::exception::LibMausException ex;
-						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are only supported for BAM input format" << std::endl;
+						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for the sam input format" << std::endl;
 						ex.finish();
 						throw ex;		
 					}
@@ -237,6 +237,38 @@ namespace libmaus
 					{
 						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 							new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rs","",putrank)
+						);
+						return UNIQUE_PTR_MOVE(tptr);					
+					}
+				}
+				else if ( inputformat == "sbam" )
+				{
+					if ( copystr )
+					{
+						libmaus::exception::LibMausException ex;
+						ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for io_lib based input" << std::endl;
+						ex.finish();
+						throw ex;		
+					}
+					if ( range.size() )
+					{
+						libmaus::exception::LibMausException ex;
+						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for the sbam input format" << std::endl;
+						ex.finish();
+						throw ex;		
+					}
+					
+					if ( inputisstdin )
+					{
+						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus::bambam::ScramDecoderWrapper("-","rb","",putrank)
+						);
+						return UNIQUE_PTR_MOVE(tptr);						
+					}
+					else
+					{
+						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rb","",putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);					
 					}
