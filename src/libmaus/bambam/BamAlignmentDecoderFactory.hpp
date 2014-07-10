@@ -326,7 +326,7 @@ namespace libmaus
 				else
 				{
 					libmaus::exception::LibMausException ex;
-					ex.getStream() << "Invalid input input format " << inputformat << std::endl;
+					ex.getStream() << "Invalid input format " << inputformat << std::endl;
 					ex.finish();
 					throw ex;
 				}
