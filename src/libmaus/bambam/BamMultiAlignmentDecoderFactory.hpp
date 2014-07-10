@@ -92,7 +92,7 @@ namespace libmaus
 				std::vector<std::string> const I = arginfo.getPairValues("I");
 				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
 				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
-				std::string const reference = arginfo.getValue<std::string>("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
+				std::string const reference = arginfo.getUnparsedValue("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
 				std::string const prange = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
 				std::string const pranges = arginfo.getUnparsedValue("ranges",std::string(""));
 				std::string const range = pranges.size() ? pranges : prange;
