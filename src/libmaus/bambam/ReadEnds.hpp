@@ -285,7 +285,7 @@ namespace libmaus
 			 *
 			 * @param readname name start pointer
 			 * @param readnamee name end pointer
-			 * @return true iff name has optical fields
+			 * @return true iff name has optical fields (number of ":" in name is >= 2 and <= 4)
 			 **/
 			static bool parseReadNameValid(uint8_t const * readname, uint8_t const * readnamee)
 			{
@@ -294,13 +294,15 @@ namespace libmaus
 				for ( uint8_t const * c = readname; c != readnamee; ++c )
 					cnt [ (static_cast<int>(*c) - ':') == 0 ] ++;
 
-				bool const rnparseok = (cnt[1] == 4);
+				bool const rnparseok = (cnt[1] <= 4) && (cnt[1] >= 2);
 				
 				return rnparseok;
 			}
 
 			/**
 			 * parse optical parameters from read name
+			 *
+			 * assumes tile, x and y are separated by the last 2 ":" in the read name
 			 *
 			 * @param readname name start pointer
 			 * @param readnamee name end pointer
@@ -309,12 +311,14 @@ namespace libmaus
 			static void parseReadNameTile(uint8_t const * readname, uint8_t const * readnamee, ::libmaus::bambam::ReadEndsBase & RE)
 			{
 				uint8_t const * sem[4];
+				sem[2] = readname;
 				uint8_t const ** psem = &sem[0];
-				for ( uint8_t const * c = readname; c != readnamee; ++c )
+				uint8_t const * c = readnamee;
+				for ( --c; c >= readname; --c )
 					if ( *c == ':' )
 						*(psem++) = c+1;
 				
-				uint8_t const * t = sem[1];
+				uint8_t const * t = sem[2];
 				while ( D[*t] )
 				{
 					RE.tile *= 10;
@@ -322,14 +326,14 @@ namespace libmaus
 				}
 				RE.tile += 1;
 
-				t = sem[2];
+				t = sem[1];
 				while ( D[*t] )
 				{
 					RE.x *= 10;
 					RE.x += *(t++)-'0';
 				}
 
-				t = sem[3];
+				t = sem[0];
 				while ( D[*t] )
 				{
 					RE.y *= 10;
