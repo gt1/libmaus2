@@ -205,7 +205,7 @@ namespace libmaus
 					if ( seen.find(initparams) != seen.end() )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "HttpHeader: redirect loop detected" << std::endl;
+						lme.getStream() << "HttpHeader: redirect loop detected, method=" << method << " host=" << host << " path=" << path << " port=" << port << " ssl=" << ssl << std::endl;
 						lme.finish();
 						throw lme;	
 					}
