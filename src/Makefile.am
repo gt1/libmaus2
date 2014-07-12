@@ -117,7 +117,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lcs/LocalEditDistanceResult.cpp \
 	libmaus/bambam/BamHeader.cpp \
 	libmaus/bambam/GeneFlatFile.cpp \
-	libmaus/bambam/GeneFlatFileEntry.cpp
+	libmaus/bambam/GeneFlatFileEntry.cpp \
+	libmaus/trie/SimpleTrie.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -660,7 +661,8 @@ libmauseta_include_HEADERS=\
 
 libmaustrie_includedir=$(includedir)/libmaus/trie
 libmaustrie_include_HEADERS=\
-	libmaus/trie/TrieState.hpp 
+	libmaus/trie/TrieState.hpp \
+	libmaus/trie/SimpleTrie.hpp
 
 libmausaio_includedir=$(includedir)/libmaus/aio
 libmausaio_include_HEADERS=\
@@ -1191,10 +1193,14 @@ noinst_PROGRAMS = \
 	testlinuxstreamingwrite \
 	testlowmembamheaderparser \
 	testgeneflatfile \
-	testurlinputstream
+	testurlinputstream \
+	testsimpletrie
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
+
+testsimpletrie_SOURCES = test/testsimpletrie.cpp
+testsimpletrie_LDADD = libmaus.la
 
 testthreadpool_SOURCES = test/testthreadpool.cpp
 testthreadpool_LDADD = libmaus.la
