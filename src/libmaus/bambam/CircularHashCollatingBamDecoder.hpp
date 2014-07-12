@@ -232,7 +232,7 @@ namespace libmaus
 			//! state of collator
 			circ_hash_collator_state state;
 			//! BAM alignment input callback for passing alignments to rewriting
-			CollatingBamDecoderAlignmentInputCallback * inputcallback;
+			std::vector<CollatingBamDecoderAlignmentInputCallback *> inputcallback;
 			//! current output buffer
 			OutputBufferEntry outputBuffer;
 			//! output alignment pair for tryPair
@@ -417,12 +417,15 @@ namespace libmaus
 					{
 						if ( bamdec.readAlignment(true /* delay put rank */) )
 						{
-							if ( inputcallback )
+							if ( inputcallback.size() )
 							{
 								if ( cbputbackflag )
 									cbputbackflag = false;
 								else
-									(*inputcallback)(algn);
+								{
+									for ( uint64_t i = 0; i < inputcallback.size(); ++i )
+										(*(inputcallback[i]))(algn);
+								}
 							}
 
 							bamdec.putRank();
@@ -478,7 +481,7 @@ namespace libmaus
 									if ( ! CH->putEntry(data,datalen,hv) )
 									{
 										bamdec.putback();
-										if ( inputcallback )
+										if ( inputcallback.size() )
 											cbputbackflag = true;
 										state = state_sortbuffer_flushing_intermediate;
 									}
@@ -665,7 +668,20 @@ namespace libmaus
 			 **/
 			void setInputCallback(CollatingBamDecoderAlignmentInputCallback * rinputcallback)
 			{
-				inputcallback = rinputcallback;			
+				inputcallback.resize(0);
+				if ( rinputcallback )
+					inputcallback.push_back(rinputcallback);
+			}
+
+			/**
+			 * add input call back which is called every time a single alignment line is read from the BAM file
+			 *
+			 * @param rinputcallback pointer to callback object (null for none)
+			 **/
+			void addInputCallback(CollatingBamDecoderAlignmentInputCallback * rinputcallback)
+			{
+				assert ( rinputcallback );
+				inputcallback.push_back(rinputcallback);
 			}
 
 			/**
