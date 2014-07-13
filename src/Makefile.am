@@ -1013,7 +1013,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/FtpSocketInputStreamBuffer.hpp \
 	libmaus/network/FtpSocketInputStream.hpp \
 	libmaus/network/FileUrl.hpp \
-	libmaus/network/UrlInputStreamBufferWrapper.hpp
+	libmaus/network/UrlInputStreamBufferWrapper.hpp \
+	libmaus/network/UrlInputStream.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
