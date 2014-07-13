@@ -39,9 +39,10 @@ namespace libmaus
 			uint64_t insertTransition(uint64_t const from, uint8_t const sym)
 			{
 				uint64_t const trans = (from<<8) | sym;
+				uint64_t curtarg;
 				
-				if ( H.contains(trans) )
-					return H.getUnchecked(trans);
+				if ( H.contains(trans,curtarg) )
+					return curtarg;
 				else
 				{
 					while ( H.loadFactor() >= critload )
