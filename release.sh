@@ -1,4 +1,23 @@
 #! /bin/bash
+
+# update branches
+git checkout experimental
+git pull
+git checkout experimental-debian
+git pull
+git checkout debian
+git pull
+git checkout master
+git pull
+
+# merge
+git checkout master
+git merge experimental
+
+git checkout debian
+git merge experimental-debian
+
+# add release tag/branch
 git checkout master
 VERSION=`grep <configure.ac "AC_INIT" | perl -p -e "s/.*AC_INIT\(//" | awk -F ',' '{print $2}'`
 DATE=`date +"%Y%m%d%H%M%S"`
