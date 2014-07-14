@@ -13,9 +13,11 @@ git pull
 # merge
 git checkout master
 git merge experimental
+git push
 
 git checkout debian
 git merge experimental-debian
+git push
 
 # add release tag/branch
 git checkout master
