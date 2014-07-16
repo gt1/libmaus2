@@ -295,6 +295,7 @@ namespace libmaus
 			{
 				bool const notdup = 
 					A.getLibraryId()       != B.getLibraryId()       ||
+					A.getTagId()           != B.getTagId()           ||
 					A.getRead1Sequence()   != B.getRead1Sequence()   ||
 					A.getRead1Coordinate() != B.getRead1Coordinate() ||
 					A.getOrientation()     != B.getOrientation()     ||
@@ -308,7 +309,8 @@ namespace libmaus
 			static bool isDupFrag(::libmaus::bambam::ReadEnds const & A, ::libmaus::bambam::ReadEnds const & B)
 			{
 				bool const notdup = 
-					A.getLibraryId()      != B.getLibraryId()       ||
+					A.getLibraryId()       != B.getLibraryId()       ||
+					A.getTagId()           != B.getTagId()           ||
 					A.getRead1Sequence()   != B.getRead1Sequence()   ||
 					A.getRead1Coordinate() != B.getRead1Coordinate() ||
 					A.getOrientation()     != B.getOrientation()
