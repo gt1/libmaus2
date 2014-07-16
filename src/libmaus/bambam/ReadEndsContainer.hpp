@@ -412,9 +412,9 @@ namespace libmaus
 			 * @param p alignment
 			 * @param header BAM header
 			 **/
-			void putFrag(::libmaus::bambam::BamAlignment const & p, ::libmaus::bambam::BamHeader const & header)
+			void putFrag(::libmaus::bambam::BamAlignment const & p, ::libmaus::bambam::BamHeader const & header, uint64_t const tagid = 0)
 			{
-				::libmaus::bambam::ReadEnds RE(p,header, /* RE, */ copyAlignments);
+				::libmaus::bambam::ReadEnds RE(p,header, /* RE, */ copyAlignments,tagid);
 				// fillFrag(p,header,RE);
 				put(RE);
 			}
@@ -429,10 +429,11 @@ namespace libmaus
 			void putPair(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
-				::libmaus::bambam::BamHeader const & header
+				::libmaus::bambam::BamHeader const & header,
+				uint64_t tagid = 0
 			)
 			{
-				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments);
+				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
 				put(RE);
 			}
