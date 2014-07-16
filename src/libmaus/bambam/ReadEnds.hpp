@@ -65,6 +65,8 @@ namespace libmaus
 			private:
 			//! library id
 			uint16_t libraryId;
+			//! tag id
+			uint32_t tagId;
 			//! sequence id for end 1
 			uint32_t read1Sequence;
 			//! coordinate for end 1
@@ -145,6 +147,10 @@ namespace libmaus
 			 **/
 			uint16_t getLibraryId() const { return libraryId; }
 			/**
+			 * @return tag id
+			 **/
+			uint32_t getTagId() const { return tagId; }
+			/**
 			 * @return orientation
 			 **/
 			read_end_orientation getOrientation() const { return orientation; }
@@ -218,6 +224,7 @@ namespace libmaus
 			bool operator<(ReadEndsBase const & o) const 
 			{
 				if ( libraryId != o.libraryId ) return libraryId < o.libraryId;
+				if ( tagId != o.tagId ) return tagId < o.tagId;
 				if ( read1Sequence != o.read1Sequence ) return read1Sequence < o.read1Sequence;
 				if ( read1Coordinate != o.read1Coordinate ) return read1Coordinate < o.read1Coordinate;
 				if ( orientation != o.orientation ) return orientation < o.orientation;
@@ -238,6 +245,7 @@ namespace libmaus
 			bool operator>(ReadEndsBase const & o) const 
 			{
 				if ( libraryId != o.libraryId ) return libraryId > o.libraryId;
+				if ( tagId != o.tagId ) return tagId > o.tagId;
 				if ( read1Sequence != o.read1Sequence ) return read1Sequence > o.read1Sequence;
 				if ( read1Coordinate != o.read1Coordinate ) return read1Coordinate > o.read1Coordinate;
 				if ( orientation != o.orientation ) return orientation > o.orientation;
@@ -258,6 +266,7 @@ namespace libmaus
 			bool operator==(ReadEndsBase const & o) const
 			{
 				if ( libraryId != o.libraryId ) return false;
+				if ( tagId != o.tagId ) return false;
 				if ( read1Sequence != o.read1Sequence ) return false;
 				if ( read1Coordinate != o.read1Coordinate ) return false;
 				if ( orientation != o.orientation ) return false;
@@ -280,6 +289,7 @@ namespace libmaus
 				return ! (*this == o);
 			}
 
+			private:
 			/**
 			 * determine if readname contains optical parameters
 			 *
@@ -363,17 +373,20 @@ namespace libmaus
 					parseReadNameTile(readname,readnamee,RE);			
 			}
 
+			public:
 			/**
 			 * fill fragment type ReadEndsBase object
 			 *
 			 * @param p alignment
 			 * @param header BAM header
 			 * @param RE ReadEndsBase object to be filled
+			 * @param tagId tag id for object
 			 **/
 			static void fillFrag(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamHeader const & header,
-				::libmaus::bambam::ReadEndsBase & RE
+				::libmaus::bambam::ReadEndsBase & RE,
+				uint32_t const rtagid = 0
 			)
 			{
 				fillCommon(p,RE);
@@ -388,6 +401,7 @@ namespace libmaus
 				int64_t const rg = p.getReadGroupId(header);
 				RE.readGroup = rg + 1;
 				RE.libraryId = header.getLibraryId(rg);
+				RE.tagId = rtagid;
 			}
 
 			/**
@@ -402,7 +416,8 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
 				::libmaus::bambam::BamHeader const & header,
-				::libmaus::bambam::ReadEndsBase & RE
+				::libmaus::bambam::ReadEndsBase & RE,
+				uint32_t const rtagId = 0
 			)
 			{
 				fillCommon(p,RE);
@@ -432,6 +447,7 @@ namespace libmaus
 								
 				RE.readGroup = rg + 1;
 				RE.libraryId = header.getLibraryId(rg);
+				RE.tagId = rtagId;
 			}
 			
 			#define READENDSBASECOMPACT
@@ -446,6 +462,7 @@ namespace libmaus
 			{
 				#if defined(READENDSBASECOMPACT)
 				this->libraryId = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				this->tagId = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				this->read1Sequence = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				this->read1Coordinate = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				this->orientation = static_cast<read_end_orientation>(G.get());
@@ -478,6 +495,8 @@ namespace libmaus
 			{
 				#if defined(READENDSBASECOMPACT)
 				::libmaus::util::UTF8::encodeUTF8(this->libraryId,P);
+
+				::libmaus::util::UTF8::encodeUTF8(this->tagId,P);
 
 				::libmaus::util::UTF8::encodeUTF8(this->read1Sequence,P);
 				::libmaus::util::UTF8::encodeUTF8(this->read1Coordinate,P);
@@ -595,11 +614,12 @@ namespace libmaus
 			ReadEnds(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamHeader const & header,
-				bool const copyAlignment = false
+				bool const copyAlignment = false,
+				uint32_t const rtagId = 0
 			)
 			{
 				reset();
-				fillFrag(p,header,*this);
+				fillFrag(p,header,*this,rtagId);
 				if ( copyAlignment )
 					 this->p = p.sclone();
 			}
@@ -616,11 +636,12 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
 				::libmaus::bambam::BamHeader const & header,
-				bool const copyAlignment = false
+				bool const copyAlignment = false,
+				uint32_t const rtagId = 0
 			)
 			{
 				reset();
-				fillFragPair(p,q,header,*this);
+				fillFragPair(p,q,header,*this,rtagId);
 				if ( copyAlignment )
 				{
 					 this->p = p.sclone();
