@@ -66,7 +66,7 @@ namespace libmaus
 			//! library id
 			uint16_t libraryId;
 			//! tag id
-			uint32_t tagId;
+			uint64_t tagId;
 			//! sequence id for end 1
 			uint32_t read1Sequence;
 			//! coordinate for end 1
@@ -149,7 +149,7 @@ namespace libmaus
 			/**
 			 * @return tag id
 			 **/
-			uint32_t getTagId() const { return tagId; }
+			uint64_t getTagId() const { return tagId; }
 			/**
 			 * @return orientation
 			 **/
@@ -386,7 +386,7 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamHeader const & header,
 				::libmaus::bambam::ReadEndsBase & RE,
-				uint32_t const rtagid = 0
+				uint64_t const rtagid = 0
 			)
 			{
 				fillCommon(p,RE);
@@ -417,7 +417,7 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & q, 
 				::libmaus::bambam::BamHeader const & header,
 				::libmaus::bambam::ReadEndsBase & RE,
-				uint32_t const rtagId = 0
+				uint64_t const rtagId = 0
 			)
 			{
 				fillCommon(p,RE);
@@ -462,7 +462,7 @@ namespace libmaus
 			{
 				#if defined(READENDSBASECOMPACT)
 				this->libraryId = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
-				this->tagId = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				this->tagId = ::libmaus::util::NumberSerialisation::deserialiseNumber(G);
 				this->read1Sequence = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				this->read1Coordinate = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 				this->orientation = static_cast<read_end_orientation>(G.get());
@@ -496,7 +496,7 @@ namespace libmaus
 				#if defined(READENDSBASECOMPACT)
 				::libmaus::util::UTF8::encodeUTF8(this->libraryId,P);
 
-				::libmaus::util::UTF8::encodeUTF8(this->tagId,P);
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->tagId);
 
 				::libmaus::util::UTF8::encodeUTF8(this->read1Sequence,P);
 				::libmaus::util::UTF8::encodeUTF8(this->read1Coordinate,P);
@@ -615,7 +615,7 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamHeader const & header,
 				bool const copyAlignment = false,
-				uint32_t const rtagId = 0
+				uint64_t const rtagId = 0
 			)
 			{
 				reset();
@@ -637,7 +637,7 @@ namespace libmaus
 				::libmaus::bambam::BamAlignment const & q, 
 				::libmaus::bambam::BamHeader const & header,
 				bool const copyAlignment = false,
-				uint32_t const rtagId = 0
+				uint64_t const rtagId = 0
 			)
 			{
 				reset();
