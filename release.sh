@@ -36,3 +36,15 @@ git push origin ${RELEASE}
 git checkout master
 git branch -D ${RELEASE}-branch
 git checkout experimental
+
+# launchpad branch update
+git checkout debian
+tar czvf debian.tar.gz debian
+git checkout debian-launchpad
+git merge master
+tar xzvf debian.tar.gz
+rm debian.tar.gz
+sed -i -e  "s|libstaden-read-dev (>= 1\.13\.0)|staden-io-lib-current-dev (>= 1.13.0)|" debian/control
+git commit -a -m "update dependency for launchpad"
+git push
+git checkout experimental
