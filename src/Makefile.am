@@ -825,7 +825,8 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastABgzfDecoderBuffer.hpp \
 	libmaus/fastx/FastAIndexEntry.hpp \
 	libmaus/fastx/FastAIndex.hpp \
-	libmaus/fastx/FastAInfo.hpp
+	libmaus/fastx/FastAInfo.hpp \
+	libmaus/fastx/FastATwoBitTable.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
