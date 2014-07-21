@@ -50,7 +50,7 @@ git merge experimental
 pushd debian
 export DEBEMAIL=gt1@sanger.ac.uk
 export DEBFULLNAME="German Tischler"
-dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}
+dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
 dch --release
 popd
 git add debian/changelog
