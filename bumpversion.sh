@@ -53,8 +53,13 @@ export DEBFULLNAME="German Tischler"
 dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
 dch --release
 popd
+sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus0.install
+
 git add debian/changelog
+git add debian/libmaus0.install
+
 git commit -F "${COMMITFILE}"
+
 git push
 
 # back to experimental branch
