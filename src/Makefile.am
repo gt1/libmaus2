@@ -2,7 +2,10 @@ ACLOCAL_AMFLAGS=-I m4
 
 abs_builddir = @abs_builddir@
 
-lib_LTLIBRARIES = libmaus.la libmauslsf.la libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
+lib_LTLIBRARIES = libmaus.la libmauslsf.la 
+
+libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
+libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/autoarray/AutoArray.cpp \
@@ -134,20 +137,20 @@ libmauslsf_la_LIBADD = libmaus.la ${LSFLIBS}
 
 libmaus_kmlocal_mod_la_CPPFLAGS = @KMLOCALCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus_kmlocal_mod_la_CXXFLAGS = @KMLOCALCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module -avoid-version -shared -export-dynamic ${AM_LDFLAGS}
+libmaus_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
 libmaus_kmlocal_mod_la_LIBADD   = @KMLOCALLIBS@     @LIBMAUSLIBS@
 libmaus_kmlocal_mod_la_SOURCES  = libmaus/quantisation/KMLocalInterface.cpp
 
 libmaus_consensus_mod_la_CPPFLAGS = @SEQANCPPFLAGS@                 @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus_consensus_mod_la_CXXFLAGS = @SEQANCXXFLAGS@                 @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic ${AM_LDFLAGS}
+libmaus_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
 libmaus_consensus_mod_la_LIBADD   = @SEQANLIBS@ @LIBMAUSLIBS@
 libmaus_consensus_mod_la_SOURCES  = libmaus/consensus/ConsensusBase.cpp libmaus/consensus/ScoringMatrix.cpp \
 	libmaus/fastx/Phred.cpp
 
 libmaus_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module -avoid-version -shared -export-dynamic ${AM_LDFLAGS}
+libmaus_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
 libmaus_scram_mod_la_LIBADD   = @IOLIBLIBS@ @LIBMAUSLIBS@
 libmaus_scram_mod_la_SOURCES  = libmaus/bambam/Scram.c
 

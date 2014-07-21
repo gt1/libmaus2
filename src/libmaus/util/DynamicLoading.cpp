@@ -19,11 +19,72 @@
 #include <libmaus/util/DynamicLoading.hpp>
 
 #if defined(LIBMAUS_HAVE_DL_FUNCS)
+extern "C" {
+	void libmaus_dlopen_dummy() 
+	{
+	
+	}
+}
+
+#include <libgen.h>
+#include <libmaus/autoarray/AutoArray.hpp>
+#include <config.h>
+
+static std::string getLibraryPath()
+{
+	Dl_info libinfo;
+	int const r = dladdr(reinterpret_cast<void*>(libmaus_dlopen_dummy), &libinfo);
+		
+	if ( ! r )
+	{
+		::libmaus::exception::LibMausException se;
+		se.getStream() << "dladdr failed: " << dlerror() << std::endl;
+		se.finish();
+		throw se;	
+	}
+	
+	libmaus::autoarray::AutoArray<char> D(strlen(libinfo.dli_fname)+1,true);
+	std::copy(libinfo.dli_fname,libinfo.dli_fname + strlen(libinfo.dli_fname),D.begin());
+		
+	char * dn = dirname(D.begin());
+
+	return std::string(dn);
+}
+
+static std::string getLibraryName()
+{
+	Dl_info libinfo;
+	int const r = dladdr(reinterpret_cast<void*>(libmaus_dlopen_dummy), &libinfo);
+		
+	if ( ! r )
+	{
+		::libmaus::exception::LibMausException se;
+		se.getStream() << "dladdr failed: " << dlerror() << std::endl;
+		se.finish();
+		throw se;	
+	}
+	
+	libmaus::autoarray::AutoArray<char> D(strlen(libinfo.dli_fname)+1,true);
+	std::copy(libinfo.dli_fname,libinfo.dli_fname + strlen(libinfo.dli_fname),D.begin());
+		
+	char * bn = basename(D.begin());
+
+	return std::string(bn);
+}
+
 libmaus::util::DynamicLibrary::DynamicLibrary(std::string const & rmodname)
 : modname(rmodname), lib(0)
 {
+	// try without subdirectory (uninstalled module)
 	lib = dlopen(modname.c_str(),RTLD_LAZY);
-
+	
+	// if not found then try with directory (installed module)
+	if ( ! lib )
+	{	
+		std::string const instmodname = getLibraryPath() + std::string("/") + std::string(PACKAGE_NAME)+std::string("/")+std::string(PACKAGE_VERSION)+std::string("/")+modname;
+		lib = dlopen(instmodname.c_str(),RTLD_LAZY);
+	}
+	
 	if ( ! lib )
 	{
 		::libmaus::exception::LibMausException se;
