@@ -168,7 +168,9 @@ namespace libmaus
 					std::cerr << "GnuTLSSocket: TLS session info " << desc << std::endl;
 					gnutls_free(desc);
 					#endif
+					#if 0
 					std::cerr << "GnuTLSSocket: TLS session ok" << std::endl;
+					#endif
 				}
 				#else
 				libmaus::exception::LibMausException lme;
