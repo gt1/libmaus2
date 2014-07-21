@@ -2013,16 +2013,18 @@ if test "${with_gnutls}" != "no" ; then
 	if [[ "${gnutlspkg}" = "yes" ]] ; then
 		AC_LANG_PUSH([C++])
 		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${libcurl_LIBS}"
+		LIBS="${LIBS} ${gnutls_LIBS}"
 		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${libcurl_CFLAGS}"
+		
+		CPPFLAGS="${CPPFLAGS} ${gnutls_CFLAGS}"
 		AC_MSG_CHECKING([whether we can compile a gnutls program])
 		AC_TRY_LINK([#include <gnutls/gnutls.h>
 #include <gnutls/x509.h>		
 	],[;],[gnutls=yes],[gnutls=no])
-		AC_MSG_RESULT([${libcurl}])
+		AC_MSG_RESULT([${gnutls}])
 		LIBS="${LIBSSAVE}"
 		CPPFLAGS="${CPPFLAGSSAVE}"
+		
 		AC_LANG_POP
 
 		if [[ "$gnutls" = "no" ]] ; then

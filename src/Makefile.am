@@ -1516,18 +1516,18 @@ testfastablockrecode_LDADD = libmaus.la
 
 testhttp_SOURCES = test/testhttp.cpp
 testhttp_LDADD = libmaus.la
-testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
-testhttp_LDFLAGS = @OPENSSLLIBS@
+testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testhttp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testftp_SOURCES = test/testftp.cpp
 testftp_LDADD = libmaus.la
-testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
-testftp_LDFLAGS = @OPENSSLLIBS@
+testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testftp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testurlinputstream_SOURCES = test/testurlinputstream.cpp
 testurlinputstream_LDADD = libmaus.la
-testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @WARNCPPFLAGS@
-testurlinputstream_LDFLAGS = @OPENSSLLIBS@
+testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testurlinputstream_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
 testrlhist_LDADD = libmaus.la
