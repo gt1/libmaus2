@@ -269,7 +269,7 @@ namespace libmaus
                                 	{
                                 		case EINTR:
                                 		{
-                                			std::cerr << "Restarting open() system call interupted by signal." << std::endl;
+                                			std::cerr << "Restarting open() system call interrupted by signal." << std::endl;
                                 			break;
                                 		}
                                 		default:
@@ -346,7 +346,7 @@ namespace libmaus
                                         	{
                                         		case EINTR:
                                         		{
-                                        			std::cerr << "Restarting open() call for directory interupted by signal." << std::endl;
+                                        			std::cerr << "Restarting open() call for directory interrupted by signal." << std::endl;
                                         			break;
 							}
 							default:
@@ -370,7 +370,7 @@ namespace libmaus
                                         	{
                                         		case EINTR:
                                         		{
-                                        			std::cerr << "Restarting close() call for directory interupted by signal." << std::endl;
+                                        			std::cerr << "Restarting close() call for directory interrupted by signal." << std::endl;
                                         			break;                                        		
                                         		}
                                         		default:
@@ -393,7 +393,7 @@ namespace libmaus
                                         	{
                                         		case EINTR:
                                         		{
-                                        			std::cerr << "Restarting close() call for directory interupted by signal." << std::endl;
+                                        			std::cerr << "Restarting close() call for directory interrupted by signal." << std::endl;
                                         			break;                                        		
                                         		}
                                         		default:

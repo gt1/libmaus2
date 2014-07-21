@@ -169,7 +169,7 @@ namespace libmaus
 						{
 							if ( errno == EINTR )
 							{
-								std::cerr << "write interupted by signal." << std::endl;
+								std::cerr << "write interrupted by signal." << std::endl;
 							}
 							else
 							{
@@ -228,7 +228,7 @@ namespace libmaus
 						}
 						else if ( red < 0 && errno == EINTR )
 						{
-							std::cerr << "read interupted by signal." << std::endl;
+							std::cerr << "read interrupted by signal." << std::endl;
 						}
 						else
 						{
@@ -266,7 +266,7 @@ namespace libmaus
 					}
 					else if ( red < 0 && errno == EINTR )
 					{
-						std::cerr << "read interupted by signal." << std::endl;
+						std::cerr << "read interrupted by signal." << std::endl;
 					}
 					else
 					{
@@ -300,7 +300,7 @@ namespace libmaus
 						}
 						else if ( red < 0 && errno == EINTR )
 						{
-							std::cerr << "read interupted by signal." << std::endl;
+							std::cerr << "read interrupted by signal." << std::endl;
 						}
 						else
 						{
@@ -338,7 +338,7 @@ namespace libmaus
 					}
 					else if ( red < 0 && errno == EINTR )
 					{
-						std::cerr << "read interupted by signal." << std::endl;
+						std::cerr << "read interrupted by signal." << std::endl;
 					}
 					else
 					{

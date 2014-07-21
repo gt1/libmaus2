@@ -265,7 +265,7 @@ int libmaus::network::LogReceiver::run()
 
 		if ( ready < 0 )
 		{
-			// interupted by signal? try again
+			// interrupted by signal? try again
 			if ( errno == EINTR || errno == EAGAIN )
 			{
 				// sleep(1);
