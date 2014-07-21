@@ -22,6 +22,7 @@
 #include <libmaus/network/HttpAbsoluteUrl.hpp>
 #include <libmaus/network/Socket.hpp>
 #include <libmaus/network/OpenSSLSocket.hpp>
+#include <libmaus/network/GnuTLSSocket.hpp>
 #include <libmaus/network/SocketInputStream.hpp>
 #include <libmaus/util/stringFunctions.hpp>
 #include <deque>
@@ -55,6 +56,7 @@ namespace libmaus
 
 			libmaus::network::ClientSocket::unique_ptr_type CS;
 			libmaus::network::OpenSSLSocket::unique_ptr_type OS;
+			libmaus::network::GnuTLSSocket::unique_ptr_type GTLSIOS;
 			libmaus::network::SocketInputOutputInterface * SIOS;
 			libmaus::network::SocketInputStream::unique_ptr_type SIS;
 
@@ -217,6 +219,7 @@ namespace libmaus
 					CS.reset();
 					OS.reset();
 					SIS.reset();
+					GTLSIOS.reset();
 					SIOS = 0;
 					
 					bool const hasproxy =
@@ -233,12 +236,17 @@ namespace libmaus
 							
 						if ( proxyurl.ssl )
 						{
+							#if defined(LIBMAUS_HAVE_GNUTLS)
+							libmaus::network::GnuTLSSocket::unique_ptr_type tGTLSIOS(new libmaus::network::GnuTLSSocket(proxyurl.host,proxyurl.port,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs",true));
+							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
+							SIOS = GTLSIOS.get();
+							#else	
 							libmaus::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus::network::OpenSSLSocket(proxyurl.host,proxyurl.port,0,"/etc/ssl/certs",true));
-							OS = UNIQUE_PTR_MOVE(tOS);
-						
+							OS = UNIQUE_PTR_MOVE(tOS);						
 							SIOS = OS.get();
+							#endif
 
-							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*OS,64*1024));
+							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*SIOS,64*1024));
 							SIS = UNIQUE_PTR_MOVE(tSIS);
 						}
 						else
@@ -256,12 +264,19 @@ namespace libmaus
 					{
 						if ( ssl )
 						{
+							#if defined(LIBMAUS_HAVE_GNUTLS)
+							libmaus::network::GnuTLSSocket::unique_ptr_type tGTLSIOS(new libmaus::network::GnuTLSSocket(host,port,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs",true));
+							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
+							
+							SIOS = GTLSIOS.get();
+							#else
 							libmaus::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus::network::OpenSSLSocket(host,port,0,"/etc/ssl/certs",true));
 							OS = UNIQUE_PTR_MOVE(tOS);
 						
 							SIOS = OS.get();
+							#endif
 
-							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*OS,64*1024));
+							libmaus::network::SocketInputStream::unique_ptr_type tSIS(new libmaus::network::SocketInputStream(*SIOS,64*1024));
 							SIS = UNIQUE_PTR_MOVE(tSIS);
 						}
 						else

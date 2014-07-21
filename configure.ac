@@ -1982,8 +1982,63 @@ ERR_load_BIO_strings();
 			OPENSSLCPPFLAGS="${openssl_CFLAGS}"
 		fi
 	fi
+fi
+
+AC_ARG_WITH([gnutls],
+	[AS_HELP_STRING([--with-gnutls@<:@=PATH@:>@], [path to installed gnutls library @<:@default=no@:>@])],
+	[with_gnutls=${withval}],
+	[with_gnutls=no])
+
+GNUTLS=
+if test "${with_gnutls}" != "no" ; then
+
+	if test ! -z "${with_gnutls}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_gnutls}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_gnutls}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([gnutls],[gnutls >= 2.12.14],[gnutlspkg=yes],[gnutlspkg=no])
+
+	if test ! -z "${with_gnutls}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	GNUTLS=
+	if [[ "${gnutlspkg}" = "yes" ]] ; then
+		AC_LANG_PUSH([C++])
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${libcurl_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS="${CPPFLAGS} ${libcurl_CFLAGS}"
+		AC_MSG_CHECKING([whether we can compile a gnutls program])
+		AC_TRY_LINK([#include <gnutls/gnutls.h>
+#include <gnutls/x509.h>		
+	],[;],[gnutls=yes],[gnutls=no])
+		AC_MSG_RESULT([${libcurl}])
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+		AC_LANG_POP
+
+		if [[ "$gnutls" = "no" ]] ; then
+			AC_MSG_ERROR([Failed to compile gnutls program.]);
+		else
+			GNUTLS="#define LIBMAUS_HAVE_GNUTLS"
+			GNUTLSLDFLAGS=""
+			GNUTLSLIBS="${gnutls_LIBS}"
+			GNUTLSCPPFLAGS="${gnutls_CFLAGS}"
+		fi
+	else
+		AC_MSG_ERROR([GNU TLS not found in required version])
+	fi
 
 fi
+
 
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(libkern/OSAtomic.h, [libkern_osatomic_h=yes], [libkern_osatomic_h=no])
@@ -2165,4 +2220,8 @@ AC_SUBST([LIBMAUS_HAVE_IGZIP])
 AC_SUBST([IGZIPCPPFLAGS])
 AC_SUBST([IGZIPLDFLAGS])
 AC_SUBST([IGZIPLIBS])
+AC_SUBST([GNUTLSLIBS])
+AC_SUBST([GNUTLSCPPFLAGS])
+AC_SUBST([GNUTLSLDFLAGS])
+AC_SUBST([GNUTLS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

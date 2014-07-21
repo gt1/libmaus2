@@ -118,13 +118,14 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/BamHeader.cpp \
 	libmaus/bambam/GeneFlatFile.cpp \
 	libmaus/bambam/GeneFlatFileEntry.cpp \
-	libmaus/trie/SimpleTrie.cpp
+	libmaus/trie/SimpleTrie.cpp \
+	libmaus/network/GnuTLSInit.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @IGZIPCPPFLAGS@
-libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@
+libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @IGZIPCPPFLAGS@
+libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -1015,7 +1016,9 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/FtpSocketInputStream.hpp \
 	libmaus/network/FileUrl.hpp \
 	libmaus/network/UrlInputStreamBufferWrapper.hpp \
-	libmaus/network/UrlInputStream.hpp
+	libmaus/network/UrlInputStream.hpp \
+	libmaus/network/GnuTLSInit.hpp \
+	libmaus/network/GnuTLSSocket.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1196,7 +1199,8 @@ noinst_PROGRAMS = \
 	testlowmembamheaderparser \
 	testgeneflatfile \
 	testurlinputstream \
-	testsimpletrie
+	testsimpletrie \
+	testgnutls
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1550,3 +1554,8 @@ testgeneflatfile_SOURCES = test/testgeneflatfile.cpp
 testgeneflatfile_LDADD = libmaus.la
 testgeneflatfile_CPPFLAGS = ${AM_CPPFLAGS}
 testgeneflatfile_LDFLAGS = ${AM_LDFLAGS}
+
+testgnutls_SOURCES = test/testgnutls.cpp
+testgnutls_LDADD = libmaus.la
+testgnutls_CPPFLAGS = ${AM_CPPFLAGS} @GNUTLSCPPFLAGS@
+testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
