@@ -1742,7 +1742,7 @@ AC_ARG_WITH([io_lib],
             [with_io_lib=${withval}],
             [with_io_lib=no])
 
-if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixmemalign}" = "yes" -a "${with_io_lib}" != "no" ]] ; then
+if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixmemalign}" = "yes" -a "${with_io_lib}" != "no" -a "${sharedlibmaus}" != "no" ]] ; then
 	if [[ \( ! -z "${with_io_lib}" \) -a \( "${with_io_lib}" != "yes" \) ]] ; then
 		IOLIBCPPFLAGS="-I${with_io_lib}/include"
 		IOLIBLDFLAGS="-L${with_io_lib}/lib"
