@@ -797,7 +797,10 @@ namespace libmaus
 					if ( ! DSC.isMarked(r) )
 						alignment.serialise(writer.getStream());
 					else if ( dupwriter )
+					{
+						alignment.putFlags(alignment.getFlags() | libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
 						alignment.serialise(dupwriter->getStream());
+					}
 					
 					if ( verbose && ((r+1) & bmask) == 0 )
 					{
