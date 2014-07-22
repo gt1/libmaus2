@@ -774,14 +774,15 @@ namespace libmaus
 			}
 
 
-			template<typename decoder_type, typename writer_type>
+			template<typename decoder_type, typename writer_type, typename dup_writer_type>
 			static void removeDuplicatesFromFileTemplate(
 				bool const verbose,
 				uint64_t const maxrank,
 				uint64_t const mod,
 				::libmaus::bambam::DupSetCallback const & DSC,
 				decoder_type & decoder,
-				writer_type & writer
+				writer_type & writer,
+				dup_writer_type * dupwriter
 			)
 			{
 				libmaus::timing::RealTimeClock globrtc, locrtc;
@@ -795,6 +796,8 @@ namespace libmaus
 				{
 					if ( ! DSC.isMarked(r) )
 						alignment.serialise(writer.getStream());
+					else if ( dupwriter )
+						alignment.serialise(dupwriter->getStream());
 					
 					if ( verbose && ((r+1) & bmask) == 0 )
 					{
@@ -841,10 +844,13 @@ namespace libmaus
 						static_cast<uint64_t>(1),arginfo.getValue<uint64_t>("markthreads",defaultmarkthreads)
 					);
 					
-				bool const outputisfile = arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "");
-				std::string outputfilename = outputisfile ? arginfo.getValue<std::string>("O","") : "";
+				bool const outputisfile = arginfo.hasArg("O") && (arginfo.getUnparsedValue("O","") != "");
+				std::string outputfilename = outputisfile ? arginfo.getUnparsedValue("O","") : "";
+				std::string dupoutputfilename = rmdup ? arginfo.getUnparsedValue("D","") : std::string();
 				std::string md5filename;
 				std::string indexfilename;
+				std::string dupmd5filename;
+				std::string dupindexfilename;
 
 				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback * > cbs;
 				::libmaus::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Pmd5cb;
@@ -884,6 +890,42 @@ namespace libmaus
 				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback * > * Pcbs = 0;
 				if ( cbs.size() )
 					Pcbs = &cbs;
+
+				/* dup file, if any */
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback * > dupcbs;
+				::libmaus::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Pdupmd5cb;
+				if ( dupoutputfilename.size() && arginfo.getValue<unsigned int>("dupmd5",defaultmd5) )
+				{
+					if ( arginfo.hasArg("dupmd5filename") &&  arginfo.getUnparsedValue("dupmd5filename","") != "" )
+						dupmd5filename = arginfo.getUnparsedValue("dupmd5filename","");
+					else
+						dupmd5filename = dupoutputfilename + ".md5";
+
+					if ( dupmd5filename.size() )
+					{
+						::libmaus::lz::BgzfDeflateOutputCallbackMD5::unique_ptr_type Tdupmd5cb(new ::libmaus::lz::BgzfDeflateOutputCallbackMD5);
+						Pdupmd5cb = UNIQUE_PTR_MOVE(Tdupmd5cb);
+						dupcbs.push_back(Pdupmd5cb.get());
+					}
+				}
+				libmaus::bambam::BgzfDeflateOutputCallbackBamIndex::unique_ptr_type Pdupindex;
+				if ( dupoutputfilename.size() && arginfo.getValue<unsigned int>("dupindex",defaultindex) )
+				{
+					if ( arginfo.hasArg("dupindexfilename") &&  arginfo.getUnparsedValue("dupindexfilename","") != "" )
+						dupindexfilename = arginfo.getUnparsedValue("dupindexfilename","");
+					else if ( outputisfile )
+						dupindexfilename = dupoutputfilename + ".bai";
+
+					if ( dupindexfilename.size() )
+					{
+						libmaus::bambam::BgzfDeflateOutputCallbackBamIndex::unique_ptr_type Tdupindex(new libmaus::bambam::BgzfDeflateOutputCallbackBamIndex(tmpfilenameindex+"_dup"));
+						Pdupindex = UNIQUE_PTR_MOVE(Tdupindex);
+						dupcbs.push_back(Pdupindex.get());
+					}
+				}
+				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback * > * Pdupcbs = 0;
+				if ( dupcbs.size() )
+					Pdupcbs = &dupcbs;
 				
 				#if 0
 				cbs.push_back(&md5cb);
@@ -922,7 +964,8 @@ namespace libmaus
 							libmaus::bambam::BamMergeCoordinate decoder(inputfilenames);
 							decoder.disableValidation();
 							::libmaus::bambam::BamWriter::unique_ptr_type writer(new ::libmaus::bambam::BamWriter(outputstr,*uphead,level,Pcbs));
-							removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer);
+							::libmaus::bambam::BamWriter::unique_ptr_type dupwriter(dupoutputfilename.size() ? new ::libmaus::bambam::BamWriter(dupoutputfilename,*uphead,level,Pdupcbs) : NULL);
+							removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get());
 						}
 						// single input file
 						else
@@ -939,7 +982,8 @@ namespace libmaus
 								::libmaus::bambam::BamDecoder decoder(inputfilename);
 								decoder.disableValidation();
 								::libmaus::bambam::BamWriter::unique_ptr_type writer(new ::libmaus::bambam::BamWriter(outputstr,*uphead,level,Pcbs));	
-								removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer);
+								::libmaus::bambam::BamWriter::unique_ptr_type dupwriter(dupoutputfilename.size() ? new ::libmaus::bambam::BamWriter(dupoutputfilename,*uphead,level,Pdupcbs) : NULL);
+								removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get());
 							}
 							else
 							{
@@ -948,7 +992,8 @@ namespace libmaus
 								libmaus::bambam::BamParallelRewrite BPR(CIS,UH,outputstr,level,markthreads,libmaus::bambam::BamParallelRewrite::getDefaultBlocksPerThread() /* blocks per thread */,Pcbs);
 								libmaus::bambam::BamAlignmentDecoder & dec = BPR.getDecoder();
 								libmaus::bambam::BamParallelRewrite::writer_type & writer = BPR.getWriter();
-								removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,dec,writer);
+								::libmaus::bambam::BamWriter::unique_ptr_type dupwriter(dupoutputfilename.size() ? new ::libmaus::bambam::BamWriter(dupoutputfilename,*uphead,level,Pdupcbs) : NULL);
+								removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,dec,writer,dupwriter.get());
 							}
 						}
 					}
@@ -958,7 +1003,8 @@ namespace libmaus
 						if ( verbose )
 							std::cerr << "[V] Reading snappy alignments from " << recompressedalignments << std::endl;
 						::libmaus::bambam::BamWriter::unique_ptr_type writer(new ::libmaus::bambam::BamWriter(outputstr,*uphead,level,Pcbs));
-						removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer);
+						::libmaus::bambam::BamWriter::unique_ptr_type dupwriter(dupoutputfilename.size() ? new ::libmaus::bambam::BamWriter(dupoutputfilename,*uphead,level,Pdupcbs) : NULL);
+						removeDuplicatesFromFileTemplate(verbose,maxrank,mod,DSC,decoder,*writer,dupwriter.get());
 					}
 
 					outputstr.flush();
@@ -1015,6 +1061,14 @@ namespace libmaus
 				if ( Pindex )
 				{
 					Pindex->flush(std::string(indexfilename));
+				}
+				if ( Pdupmd5cb )
+				{
+					Pdupmd5cb->saveDigestAsFile(dupmd5filename);
+				}
+				if ( Pdupindex )
+				{
+					Pdupindex->flush(std::string(dupindexfilename));
 				}
 			}
 		};
