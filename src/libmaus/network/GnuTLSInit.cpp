@@ -18,5 +18,41 @@
 */
 #include <libmaus/network/GnuTLSInit.hpp>
 
+#if defined(LIBMAUS_HAVE_GNUTLS)
+#include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
+#endif
+
+#include <libmaus/exception/LibMausException.hpp>
+
 libmaus::parallel::PosixSpinLock libmaus::network::GnuTLSInit::lock;
 uint64_t libmaus::network::GnuTLSInit::initcomplete = 0;
+
+libmaus::network::GnuTLSInit::GnuTLSInit()
+{
+	libmaus::parallel::ScopePosixSpinLock slock(lock);
+	if ( ! initcomplete++ )
+	{
+		#if defined(LIBMAUS_HAVE_GNUTLS)
+		if (gnutls_check_version("2.12.14") == NULL) 
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "Required GnuTLS 2.12.14 not available" << "\n";
+			lme.finish();
+			throw lme;
+		}
+		
+		gnutls_global_init();	
+		#endif
+	}
+}
+libmaus::network::GnuTLSInit::~GnuTLSInit()
+{
+	libmaus::parallel::ScopePosixSpinLock slock(lock);
+	if ( ! --initcomplete )
+	{
+		#if defined(LIBMAUS_HAVE_GNUTLS)
+		gnutls_global_deinit();
+		#endif
+	}
+}

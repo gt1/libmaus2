@@ -20,16 +20,7 @@
 #define LIBMAUS_NETWORK_GNUTLSINIT_HPP
 
 #include <libmaus/LibMausConfig.hpp>
-
-#if defined(LIBMAUS_HAVE_GNUTLS)
-#include <gnutls/gnutls.h>
-#include <gnutls/x509.h>
-#endif
-
-#include <stdexcept>
-#include <iostream>
-
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/types/types.hpp>
 #include <libmaus/parallel/PosixSpinLock.hpp>
 
 namespace libmaus
@@ -41,36 +32,9 @@ namespace libmaus
 			static libmaus::parallel::PosixSpinLock lock;
 			static uint64_t initcomplete;
 			
-			GnuTLSInit()
-			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
-				if ( ! initcomplete++ )
-				{
-					#if defined(LIBMAUS_HAVE_GNUTLS)
-					if (gnutls_check_version("2.12.14") == NULL) 
-					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "Required GnuTLS 2.12.14 not available" << "\n";
-						lme.finish();
-						throw lme;
-					}
-					
-					gnutls_global_init();	
-					#endif
-				}
-			}
-			~GnuTLSInit()
-			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
-				if ( ! --initcomplete )
-				{
-					#if defined(LIBMAUS_HAVE_GNUTLS)
-					gnutls_global_deinit();
-					#endif
-				}
-			}
+			GnuTLSInit();
+			~GnuTLSInit();
 		};
 	}
 }
 #endif
-

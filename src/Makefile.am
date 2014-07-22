@@ -122,7 +122,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/GeneFlatFile.cpp \
 	libmaus/bambam/GeneFlatFileEntry.cpp \
 	libmaus/trie/SimpleTrie.cpp \
-	libmaus/network/GnuTLSInit.cpp
+	libmaus/network/GnuTLSInit.cpp \
+	libmaus/network/GnuTLSSocket.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
