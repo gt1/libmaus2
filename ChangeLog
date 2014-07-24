@@ -1,0 +1,783 @@
+libmaus (0.0.152-1) unstable; urgency=low
+
+  * add support for two output files in duplicate removal
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 23 Jul 2014 09:13:49 +0100
+
+libmaus (0.0.151-1) unstable; urgency=low
+
+  * refactor GNU TLS interface classes 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 22 Jul 2014 09:16:35 +0100
+
+libmaus (0.0.150-1) unstable; urgency=medium
+
+  * add GNU TLS interface 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 21 Jul 2014 21:56:10 +0100
+
+libmaus (0.0.149-1) unstable; urgency=low
+
+  * extend tag in ReadEnds class to 64 bits 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 18 Jul 2014 19:55:18 +0100
+
+libmaus (0.0.148-1) unstable; urgency=low
+
+  * add infrastructure for tag splitting in duplicate marking 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 16 Jul 2014 14:26:41 +0100
+
+libmaus (0.0.147-1) unstable; urgency=low
+
+  * versioning cleanup 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 14 Jul 2014 10:20:01 +0100
+
+libmaus (0.0.146-1) unstable; urgency=low
+
+  * add SimpleTrie class
+  * improve error message when detecting redirect loop in http(s) 
+  * generalise optical coordinate parsing in ReadEnds (D. Jackson)
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 14 Jul 2014 10:05:32 +0100
+
+libmaus (0.0.143-1) unstable; urgency=low
+
+  * avoid failing the merging state of collation due to too many open files
+    by merging through a single file handle if required
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 10 Jul 2014 16:51:39 +0100
+
+libmaus (0.0.142-1) unstable; urgency=low
+
+  * add sbam input format in alignment decoder factory (bam input via io_lib) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 10 Jul 2014 09:28:20 +0100
+
+libmaus (0.0.141-1) unstable; urgency=low
+
+  * fix cram writer instantiation in factory class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 08 Jul 2014 23:26:55 +0100
+
+libmaus (0.0.140-1) unstable; urgency=low
+
+  * fix findRG method in BamHeaderLowMemory class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 08 Jul 2014 13:30:10 +0100
+
+libmaus (0.0.139-1) unstable; urgency=low
+
+  * fix compilation issues 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 08 Jul 2014 09:45:16 +0100
+
+libmaus (0.0.138-1) unstable; urgency=medium
+
+  * fix eof detection in HttpBody class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 06 Jul 2014 20:15:53 +0100
+
+libmaus (0.0.137-1) unstable; urgency=low
+
+  * add url (http/https/ftp/file) input stream classes
+  * fix putback region in PosixFdInputStreamBuffer
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 06 Jul 2014 19:59:18 +0100
+
+libmaus (0.0.136-1) unstable; urgency=low
+
+  * added GeneFlatFile class
+  * added getUnparsedRestArg method in ArgInfo class
+  * added IsGzip class
+  * various compilation fixes
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 04 Jul 2014 16:32:52 +0100
+
+libmaus (0.0.135-1) unstable; urgency=low
+
+  * fix insallation path of include files 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 02 Jul 2014 19:13:10 +0100
+
+libmaus (0.0.134-1) unstable; urgency=low
+
+  * change exec flags in packaging 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 02 Jul 2014 08:36:08 +0100
+
+libmaus (0.0.133-1) unstable; urgency=low
+
+  * reduce memory usage in Chromosome class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 01 Jul 2014 23:31:28 +0100
+
+libmaus (0.0.132-1) unstable; urgency=low
+
+  * add BamHeaderLowMem class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 01 Jul 2014 12:43:11 +0100
+
+libmaus (0.0.131-1) unstable; urgency=low
+
+  * fix compilation of alignment construction variant in BamWriter 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 24 Jun 2014 09:43:04 +0100
+
+libmaus (0.0.130-1) unstable; urgency=low
+
+  * add test for pthread_setaffinity_np (instead of checking for linux)
+  * fix compilation for big endian systems
+  * do not attempt to build scram decoder if dl functions are missing
+  * add soft clipping read extraction methods in BamAlignment class
+  * add sub range extraction for indexed FastA
+  * improve LCS computation
+  * support non standard locations for zlib
+  * add option for disabling AIO classes
+  * add support for igzip in bgzf compression
+  * add run-time checks for various instruction sets
+  * improve help messages
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 17 Jun 2014 14:07:33 +0100
+
+libmaus (0.0.129-1) unstable; urgency=medium
+
+  * modifications for compilation using glibc < 2.6 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 08 Jun 2014 13:06:45 +0100
+
+libmaus (0.0.128-1) unstable; urgency=low
+
+  * add check for 128 bit integers
+  * add compressed HWT based LF variant
+  * fix compilation on gcc 4.1.2 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 05 Jun 2014 09:30:27 +0100
+
+libmaus (0.0.127-1) unstable; urgency=low
+
+  * implement streaming mode for bam concatenation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 31 May 2014 17:11:49 +0100
+
+libmaus (0.0.126-1) unstable; urgency=low
+
+  * add methods for getting front and back soft clipping of an alignment 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 27 May 2014 19:01:28 +0100
+
+libmaus (0.0.125-1) unstable; urgency=low
+
+  * add method for removing SQ lines fro a BAM header 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 23 May 2014 16:16:39 +0100
+
+libmaus (0.0.124-1) unstable; urgency=low
+
+  * fix duplication metrics computation for multiple libraries 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 17 May 2014 22:46:15 +0100
+
+libmaus (0.0.122-1) unstable; urgency=low
+
+  * add name checking during alignment construction
+  * add spin lock class based on Darwin API
+  * add wavelet tree with run length compressed node bit vectors 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 14 May 2014 14:57:01 +0100
+
+libmaus (0.0.121-1) unstable; urgency=low
+
+  * fix compilation on Darwin 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 08 May 2014 10:25:23 +0100
+
+libmaus (0.0.120-1) unstable; urgency=low
+
+  * improve CRAM sub range support 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 07 May 2014 10:08:46 +0100
+
+libmaus (0.0.119-1) unstable; urgency=low
+
+  * add subrange decoding support for cram through io_lib 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 06 May 2014 16:41:15 +0100
+
+libmaus (0.0.118-1) unstable; urgency=low
+
+  * update bam validation to allow annotation lines in bam file input 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 01 May 2014 13:41:03 +0100
+
+libmaus (0.0.117-1) unstable; urgency=low
+
+  * implement exception handling in simple thread pool 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 01 May 2014 10:18:17 +0100
+
+libmaus (0.0.116-1) unstable; urgency=low
+
+  * add insertExtend method in SimpleCountingHash and SimpleHashMap
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 29 Apr 2014 16:36:08 +0100
+
+libmaus (0.0.115-1) unstable; urgency=medium
+
+  * implement MD/NM calculation for BAM sorting output 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 18 Apr 2014 23:01:31 +0100
+
+libmaus (0.0.114-1) unstable; urgency=medium
+
+  * import CRC32 code by Stephan Brumme
+  * avoid excessive amount of flush operations while creating wavelet tree for large alphabet RLE data
+  * extend BamAlignmentDecoderBase API for with method for outputting original quality instead of quality field when converting to FastQ
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 18 Apr 2014 21:14:21 +0100
+
+libmaus (0.0.113-1) unstable; urgency=low
+
+  * fix compilation on Darwin 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 14 Apr 2014 21:58:04 +0100
+
+libmaus (0.0.112-1) unstable; urgency=low
+
+  * fix compilation without optimisation flags 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 10 Apr 2014 20:11:53 +0100
+
+libmaus (0.0.111-1) unstable; urgency=low
+
+  * add RAZF file format decoder
+  * add FastA (.fai) index decoder
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 10 Apr 2014 17:52:17 +0100
+
+libmaus (0.0.110-1) unstable; urgency=low
+
+  * bug/warning fixes
+  * add number formatting function in ArgInfo class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 03 Apr 2014 13:55:42 +0100
+
+libmaus (0.0.109-1) unstable; urgency=low
+
+  * add simplified thread pool
+  * add posix spin lock class
+  * refactor parallel stable sorting for use in thread pools
+  * add zlib compressor/decompressor objects for simple compressed i/o
+  * extend search options in BidirectionalDnaIndexTemplate
+  * add block wise compressed file input for use in thread pools
+  * do not use O_NOATIME by default when opening files based on posix api
+  * add parallel bam sorting test program
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 02 Apr 2014 09:22:26 +0100
+
+libmaus (0.0.108-1) unstable; urgency=low
+
+  * fix PosixFdOutputStream construction by file name
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 19 Mar 2014 09:13:45 +0000
+
+libmaus (0.0.107-1) unstable; urgency=low
+
+  * added gap array variant using one byte per index plus overflow buffer 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 18 Mar 2014 09:46:19 +0000
+
+libmaus (0.0.106-1) unstable; urgency=low
+
+  * add pseudo random access bgzf input stream 
+  * make posix fd based input stream seekable
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 06 Mar 2014 13:58:25 +0000
+
+libmaus (0.0.105-1) unstable; urgency=low
+
+  * add computation of MD/NM aux fields for BamAlignment 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 02 Mar 2014 18:32:12 +0000
+
+libmaus (0.0.104-1) unstable; urgency=low
+
+  * add meta information in BAM indexing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 21 Feb 2014 09:15:16 +0000
+
+libmaus (0.0.103-1) unstable; urgency=low
+
+  * fixes for linear part of BAM indexing
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Feb 2014 12:42:54 +0000
+
+libmaus (0.0.102-1) unstable; urgency=low
+
+  * add method for setting the mapping quality field in a BamAlignment object 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 12 Feb 2014 09:46:01 +0000
+
+libmaus (0.0.101-1) unstable; urgency=low
+
+  * API extension in BamAuxFilterVector class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 11 Feb 2014 19:27:50 +0000
+
+libmaus (0.0.100-1) unstable; urgency=low
+
+  * use new compressed stream infrastructre in BamEntryContainer 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 11 Feb 2014 15:49:40 +0000
+
+libmaus (0.0.99-1) unstable; urgency=low
+
+  * improve handling of empty bgzf blocks 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 31 Jan 2014 12:32:39 +0000
+
+libmaus (0.0.98-1) unstable; urgency=low
+
+  * add putFastA method in BamAlignmentDecoderBase 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 26 Jan 2014 12:39:12 +0000
+
+libmaus (0.0.97-1) unstable; urgency=low
+
+  * extend Pattern class in fastx namespace with line oriented printing methods 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 20 Jan 2014 09:01:22 +0000
+
+libmaus (0.0.96-1) unstable; urgency=low
+
+  * extend BamAlignment for allowing reset operations on raw alignment blocks 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 05 Jan 2014 17:11:43 +0000
+
+libmaus (0.0.95-1) unstable; urgency=low
+
+  * no change version bump to set up experimental branch in libmaus-debian 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 12 Dec 2013 16:22:34 +0000
+
+libmaus (0.0.94-1) unstable; urgency=low
+
+  * add methods for mate pair information fixing in BamAlignment class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 12 Dec 2013 15:55:49 +0000
+
+libmaus (0.0.93-1) unstable; urgency=low
+
+  * fix compilation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 29 Nov 2013 15:17:23 +0000
+
+libmaus (0.0.92-1) unstable; urgency=low
+
+  * add getReadGroup function in BamAlignmentDecoderBase 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 29 Nov 2013 14:06:59 +0000
+
+libmaus (0.0.91-1) unstable; urgency=low
+
+  * add gz option in bamtofastq output stream container class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 14 Nov 2013 19:36:45 +0000
+
+libmaus (0.0.90-1) unstable; urgency=low
+
+  * add generic buffered gzip output stream class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 14 Nov 2013 16:58:00 +0000
+
+libmaus (0.0.89-1) unstable; urgency=low
+
+  * fix BAM merging crashes 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 08 Nov 2013 13:11:00 +0000
+
+libmaus (0.0.88-1) unstable; urgency=low
+
+  * fix BAM indexing
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 06 Nov 2013 12:42:51 +0000
+
+libmaus (0.0.87-1) unstable; urgency=low
+
+  * add alignment reading factory class
+  * fixes for BAM writing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 04 Nov 2013 20:50:13 +0000
+
+libmaus (0.0.86-1) unstable; urgency=low
+
+  * add alignment writer factory class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 03 Nov 2013 18:07:08 +0000
+
+libmaus (0.0.85-1) unstable; urgency=low
+
+  * add block write callback parameter in BamEntryContainer's output production course 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 30 Oct 2013 09:36:11 +0000
+
+libmaus (0.0.84-1) unstable; urgency=low
+
+  * add HuffmanTree class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 29 Oct 2013 13:52:11 +0000
+
+libmaus (0.0.83-1) unstable; urgency=low
+
+  * extend API in bambam namespace with duplicate marking code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 28 Oct 2013 12:08:43 +0000
+
+libmaus (0.0.82-1) unstable; urgency=low
+
+  * add block output callback in BgzfRecode
+  * add callback passing in BamParallelRewrite
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 26 Oct 2013 00:08:39 +0100
+
+libmaus (0.0.81-1) unstable; urgency=low
+
+  * add pointer types for bgzf/BAM callbacks and digest saving 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 25 Oct 2013 21:41:15 +0100
+
+libmaus (0.0.80-1) unstable; urgency=low
+
+  * add bgzf/BAM output callbacks for MD5 and BAM indexing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 25 Oct 2013 20:39:22 +0100
+
+libmaus (0.0.79-1) unstable; urgency=low
+
+  * fix BAM read group processing in merging 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 25 Oct 2013 08:49:02 +0100
+
+libmaus (0.0.78-1) unstable; urgency=low
+
+  * set sort order in BamMergeTemplate class according to input data 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 24 Oct 2013 09:12:09 +0100
+
+libmaus (0.0.77-1) unstable; urgency=low
+
+  * add BAM merging code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 22 Oct 2013 13:43:23 +0100
+
+libmaus (0.0.76-1) unstable; urgency=low
+
+  * add FSM based BAM header parsing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 17 Oct 2013 09:36:51 +0100
+
+libmaus (0.0.75-1) unstable; urgency=low
+
+  * fix BamWriter destruction crashes due to wronger pointer types 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 03 Oct 2013 22:23:20 +0100
+
+libmaus (0.0.74-1) unstable; urgency=low
+
+  * add default cache line size for older linux systems 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 02 Oct 2013 09:44:16 +0100
+
+libmaus (0.0.73-1) unstable; urgency=low
+
+  * API extensions (ReadEnds comparator class, BamAlignment) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 02 Oct 2013 08:41:43 +0100
+
+libmaus (0.0.72-1) unstable; urgency=low
+
+  * check for availability of MSG_CMSG_CLOEXEC in configure 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 26 Sep 2013 21:40:46 +0100
+
+libmaus (0.0.71-1) unstable; urgency=low
+
+  * fix compilation on Darwin, make code compile with clang 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 16 Sep 2013 13:53:42 +0100
+
+libmaus (0.0.70-1) unstable; urgency=low
+
+  * add searchCompleteNoFailureZ method for LinearHashTrie class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 09 Sep 2013 11:58:36 +0100
+
+libmaus (0.0.69-1) unstable; urgency=low
+
+  * add range restricted collating BAM decoding 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 30 Aug 2013 11:48:00 +0100
+
+libmaus (0.0.68-1) unstable; urgency=low
+
+  * update checking of the observed template length to new SAM specs 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 07 Aug 2013 12:39:15 +0100
+
+libmaus (0.0.67-1) unstable; urgency=low
+
+  * update position checking according to new SAM specification 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 07 Aug 2013 11:33:04 +0100
+
+libmaus (0.0.66-1) unstable; urgency=low
+
+  * add next0 function to bitbtree
+  * improve Hamming distance based overlap detection 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 05 Aug 2013 09:47:53 +0100
+
+libmaus (0.0.65-1) unstable; urgency=low
+
+  * add BamHeaderRewriteCallback class for BamParallelRewrite 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 02 Aug 2013 11:41:16 +0100
+
+libmaus (0.0.64-1) unstable; urgency=low
+
+  * add BamParallelRewrite class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 01 Aug 2013 13:47:17 +0100
+
+libmaus (0.0.63-1) unstable; urgency=low
+
+  * fix BgzfInflate class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 31 Jul 2013 13:45:51 +0100
+
+libmaus (0.0.62-1) unstable; urgency=low
+
+  * added BamRangeDecoder class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 31 Jul 2013 12:16:22 +0100
+
+libmaus (0.0.61-1) unstable; urgency=low
+
+  * add BamRange classes 
+  * use CheckedInputStream for blockwise snappy input
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 29 Jul 2013 20:27:48 +0100
+
+libmaus (0.0.60-1) unstable; urgency=low
+
+  * add BamIndex class
+  * add level based gamma coding based gap file set class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 24 Jul 2013 09:51:00 +0100
+
+libmaus (0.0.59-1) unstable; urgency=low
+
+  * print correct error message when fork() call fails
+  * parameterise edge array in overlap computation
+  * refactor serialisation function in AutoArray class (factor out header writing) 
+  * terminate queue in case of async input failure in AsynchronousSocketInputBuffer
+  * add read method in ReorderConcatGenericInput class
+  * make construction of CompactReadEndContainer class more verbose
+  * add class for scram encoding (cram+sam output via io_lib)
+  * add pseudo random position input for compact fasta files
+  * add verbosity for Hamming distance based overlap detection
+  * add function readPlusInfo in BgzfInflate class which returns size of compressed
+    data in addition to uncompressed one (for BAM indexing)
+  * add parallel sorting option in PairFileSorting class
+  * add sparse gamma code based gap file class and tests
+  * fix edge list terminator in EdgeList class
+  * add function for recomputing the bin of a BAM alignment block
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 22 Jul 2013 13:40:46 +0100
+
+libmaus (0.0.58-1) unstable; urgency=low
+
+  * add getAdapterMatchFreqs function to adapter finding class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 05 Jul 2013 10:42:05 +0100
+
+libmaus (0.0.57-1) unstable; urgency=low
+
+  * bump version after API changes in bambam namespace 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 04 Jul 2013 11:31:51 +0100
+
+libmaus (0.0.56-1) unstable; urgency=low
+
+  * bump version after fixing locking in bloom filter class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 02 Jul 2013 21:59:20 +0100
+
+libmaus (0.0.55-1) unstable; urgency=low
+
+  * bump version after API extensions in bambam namespace
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 26 Jun 2013 12:28:01 +0100
+
+libmaus (0.0.54-1) unstable; urgency=low
+
+  * bump version after fixing compilation on 32 bit machines 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 21 Jun 2013 14:40:20 +0100
+
+libmaus (0.0.53-1) unstable; urgency=low
+
+  * bump version after adding pointer types 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 21 Jun 2013 09:19:58 +0100
+
+libmaus (0.0.52-1) unstable; urgency=low
+
+  * bump version after fixing crash due to non transitive order in previous bam alignment name comparison 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Jun 2013 09:59:02 +0100
+
+libmaus (0.0.51-1) unstable; urgency=low
+
+  * bump version after using static functions instead of constants for bgzf parameters
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 05 Jun 2013 12:10:04 +0100
+
+libmaus (0.0.50-1) unstable; urgency=low
+
+  * added combined parallel bgzf inflation/deflation class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 03 Jun 2013 19:35:44 +0100
+
+libmaus (0.0.49-1) unstable; urgency=low
+
+  * more API changes in bambam namespace 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 01 Jun 2013 22:36:03 +0100
+
+libmaus (0.0.48-1) unstable; urgency=low
+
+  * some API changes in bambam namespace
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 31 May 2013 15:47:58 +0100
+
+libmaus (0.0.47-1) unstable; urgency=low
+
+  * bump version after fixing a division by zero in the DuplicationMetrics class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 30 May 2013 15:10:14 +0100
+
+libmaus (0.0.46-1) unstable; urgency=low
+
+  * bump version after fixing ReadEndsContainer class for gcc 4.8 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 30 May 2013 10:37:40 +0100
+
+libmaus (0.0.45-1) unstable; urgency=low
+
+  * bump version after adding a function to the ReadEndsContainer class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 23 May 2013 11:55:00 +0100
+
+libmaus (0.0.44-1) unstable; urgency=low
+
+  * bump version after importing code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 22 May 2013 14:51:13 +0100
+
+libmaus (0.0.43-1) unstable; urgency=low
+
+  * bump version after bambam api changes 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 21 May 2013 07:07:16 +0100
+
+libmaus (0.0.42-1) unstable; urgency=low
+
+  * bump version after adding parallel bam file decoding 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 17 May 2013 11:37:41 +0100
+
+libmaus (0.0.41-1) unstable; urgency=low
+
+  * bump version after adding function for disabling validation in collating bam decoder 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 09 May 2013 11:50:20 +0100
+
+libmaus (0.0.40-1) unstable; urgency=low
+
+  * bump version after changing parameter order in collation class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 08 May 2013 12:20:37 +0100
+
+libmaus (0.0.39-1) unstable; urgency=low
+
+  * bump version after fixing new collation code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 28 Apr 2013 22:10:31 +0100
+
+libmaus (0.0.38-1) unstable; urgency=low
+
+  * bump version after adding new collation code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 25 Apr 2013 14:14:34 +0100
+
+libmaus (0.0.37-1) unstable; urgency=low
+
+  * bump version after refactoring 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 22 Apr 2013 08:48:22 +0100
+
+libmaus (0.0.36-1) unstable; urgency=low
+
+  * bump version after adding succinct lcp serialisation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 19 Apr 2013 10:54:08 +0100
+
+libmaus (0.0.35-1) unstable; urgency=low
+
+  * bump version after adding dependency on io_lib 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 07 Apr 2013 11:05:15 +0100
+
+libmaus (0.0.34-1) unstable; urgency=low
+
+  * bump version number after adding io_lib interfacing code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 04 Apr 2013 09:17:57 +0100
+
+libmaus (0.0.33-1) unstable; urgency=low
+
+  * bump version number after updating bam writing code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 24 Mar 2013 19:33:04 +0000
+
+libmaus (0.0.32-1) unstable; urgency=low
+
+  * bump version after splitting package into two parts 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 23 Mar 2013 15:36:54 +0000
+
+libmaus (0.0.31-1) unstable; urgency=low
+
+  * change release from UNRELEASED to unstable 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Mar 2013 12:27:08 +0000
+
+libmaus (0.0.29-1) unstable; urgency=low
+
+  * bump version after adding function for disabling bam validation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Mar 2013 12:25:57 +0000
+
+libmaus (0.0.28-1) UNRELEASED; urgency=low
+
+  * bump version to add tag 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 20 Mar 2013 09:47:26 +0000
+
+libmaus (0.0.27-1) UNRELEASED; urgency=low
+
+  * initial build
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 19 Mar 2013 10:43:37 +0000
