@@ -62,8 +62,15 @@ git commit -F "${COMMITFILE}"
 
 git push
 
+cp debian/changelog cl
+
 # back to experimental branch
 git checkout experimental
+
+mv cl ChangeLog
+git add ChangeLog
+git commit -F "${COMMITFILE}"
+git push
 
 TAG=libmaus_experimental_${FIRST}_${SECOND}_${NEXTTHIRD}
 git tag -a ${TAG} -m "libmaus experimental version ${FIRST}_${SECOND}_${NEXTTHIRD}"
