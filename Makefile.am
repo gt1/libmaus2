@@ -8,4 +8,4 @@ pkgconfig_DATA = libmaus.pc libmauslsf.pc
 doc_DATA = ChangeLog
 
 install-data-hook:
-	cd ${DESTDIR}${docdir} && mv ChangeLog changelog && gzip -9 changelog
+	cd ${DESTDIR}${docdir} && mv ChangeLog changelog && gzip -n -9 changelog
