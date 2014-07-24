@@ -4,4 +4,8 @@ ACLOCAL_AMFLAGS=-I m4
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libmaus.pc libmauslsf.pc
-# pkginclude_HEADERS = LibMausConfig.hpp
+
+doc_DATA = ChangeLog
+
+install-data-hook:
+	cd ${DESTDIR}${docdir} && mv ChangeLog changelog && gzip -9 changelog
