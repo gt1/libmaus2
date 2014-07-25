@@ -885,8 +885,10 @@ libmausfm_include_HEADERS=\
 	libmaus/fm/MausFmToBwaConversion.hpp \
 	libmaus/fm/BidirectionalIndexInterval.hpp \
 	libmaus/fm/BidirectionalIndexIntervalSymbol.hpp \
-	libmaus/fm/DictionaryInfo.hpp  libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
-	libmaus/fm/BidirectionalDnaIndexTemplate.hpp
+	libmaus/fm/DictionaryInfo.hpp \
+	libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
+	libmaus/fm/BidirectionalDnaIndexTemplate.hpp \
+	libmaus/fm/KmerCache.hpp
 	
 libmauslcp_includedir=$(includedir)/libmaus/lcp
 libmauslcp_include_HEADERS=\
