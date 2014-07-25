@@ -116,6 +116,14 @@ namespace libmaus
 					ita->first = base_type::unused();
 			}
 			
+			void clear(uint64_t * keys, uint64_t n)
+			{
+				for ( uint64_t i = 0; i < n; ++i )
+					keys[i] = getIndex(keys[i]);
+				for ( uint64_t i = 0; i < n; ++i )
+					H[keys[i]] = base_type::unused();
+			}
+			
 			pair_type const * begin() const { return H.begin(); }
 			pair_type const * end() const { return H.end(); }
 			pair_type * begin() { return H.begin(); }
@@ -311,6 +319,37 @@ namespace libmaus
 				} while ( p != p0 );
 				
 				return false;
+			}
+
+			// 
+			uint64_t getIndex(key_type const v) const
+			{
+				uint64_t const p0 = hash(v);
+				uint64_t p = p0;
+
+				do
+				{
+					// position in use?
+					if ( H[p].first == base_type::unused() )
+					{
+						// break loop and fall through to exception below
+						p = p0;
+					}
+					// correct value stored
+					else if ( H[p].first == v )
+					{
+						return p;
+					}
+					else
+					{
+						p = displace(p,v);
+					}
+				} while ( p != p0 );
+				
+				libmaus::exception::LibMausException lme;
+				lme.getStream() << "SimpleHashMap::getIndex called for non-existing key " << v << std::endl;
+				lme.finish();
+				throw lme;
 			}
 
 			// returns true if value v is contained
