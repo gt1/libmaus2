@@ -585,7 +585,7 @@ namespace libmaus
 			 * @return contents of auxiliary field identified by tag as number
 			 **/
 			template<typename N>
-			N getAuxAsNumber(char const * const tag)
+			N getAuxAsNumber(char const * const tag) const
 			{			
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag);
 			}
@@ -598,7 +598,7 @@ namespace libmaus
 			 * @return true if field is present and can be extracted
 			 **/
 			template<typename N>
-			bool getAuxAsNumber(char const * const tag, N & num)
+			bool getAuxAsNumber(char const * const tag, N & num) const
 			{			
 				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag,num);
 			}

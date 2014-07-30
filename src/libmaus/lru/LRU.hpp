@@ -16,16 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
-#if ! defined(LRU_HPP)
-#define LRU_HPP
+#if ! defined(LIBMAUS_LRU_HPP)
+#define LIBMAUS_LRU_HPP
 
 #include <vector>
 #include <map>
-#include <stack>
 
-#include <libmaus/types/types.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 
 namespace libmaus
@@ -87,68 +83,6 @@ namespace libmaus
 			}
 		};
 		
-		struct FileBunchLRU : public LRU
-		{
-			typedef FileBunchLRU this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-		
-			uint64_t const lrusize;
-			std::vector < std::string > filenames;
-			
-			// file id -> lru id
-			::libmaus::autoarray::AutoArray < uint64_t > mapping;
-			// lru id -> file id
-			::libmaus::autoarray::AutoArray < uint64_t > rmapping;
-			
-			// file pointers
-			typedef ::libmaus::util::unique_ptr< std::ofstream  >::type file_ptr_type;
-			::libmaus::autoarray::AutoArray < file_ptr_type > files;
-
-			FileBunchLRU ( std::vector < std::string > const & rfilenames, uint64_t rlrusize = 1024)
-			: LRU(rlrusize), lrusize(rlrusize), filenames ( rfilenames ), mapping(filenames.size()), rmapping(lrusize), files(lrusize)
-			{
-				std::fill ( mapping.get(), mapping.get() + mapping.getN(), lrusize );
-			}
-			
-			~FileBunchLRU()
-			{
-				for ( uint64_t i = 0; i < files.size(); ++i )
-					if ( files[i].get() )
-					{
-						files[i] -> flush();
-						files[i] -> close();
-						files[i].reset();
-					}
-			}
-			
-			std::ofstream & getFile(uint64_t const fileid)
-			{
-				if ( mapping[fileid] != lrusize )
-				{
-					update(mapping[fileid]);
-					return *(files[mapping[fileid]]);
-				}
-				
-				std::pair < std::pair < uint64_t, uint64_t >, bool > P = add();
-				
-				if ( ! P.second )
-				{
-					uint64_t const kickedlruid = P.first.first;
-					uint64_t const kickedfileid = rmapping[kickedlruid];
-					files [ kickedlruid ] -> flush ();
-					files [ kickedlruid ] -> close ();
-					files [ kickedlruid ] . reset ( );
-					mapping [ kickedfileid ] = lrusize;
-					rmapping [ kickedlruid ] = 0;
-				}
-				
-				mapping [ fileid ] = P.first.first;
-				rmapping [ P.first.first ] = fileid;
-				files [ mapping [ fileid] ] = UNIQUE_PTR_MOVE(file_ptr_type(new std::ofstream( filenames[fileid].c_str(), std::ios::binary | std::ios::app ) ));
-				
-				return *(files[mapping[fileid]]);
-			}
-		};
 	}
 }
 #endif

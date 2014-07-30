@@ -1,5 +1,61 @@
 /*
     libmaus
+    Copyright (C) 2009-2014 German Tischler
+    Copyright (C) 2011-2014 Genome Research Limited
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#if !defined(LIBMAUS_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP)
+#define LIBMAUS_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP
+
+#include <libmaus/types/types.hpp>
+#include <libmaus/hashing/hash.hpp>
+
+namespace libmaus
+{
+	namespace util
+	{	
+		template<typename _key_type>
+		struct SimpleHashMapHashCompute
+		{
+			typedef _key_type key_type;
+			
+			inline static uint64_t hash(uint64_t const v)
+			{
+				return libmaus::hashing::EvaHash::hash642(&v,1);
+			}
+		};
+
+		#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+		template<>
+		struct SimpleHashMapHashCompute<libmaus::uint128_t>
+		{
+			typedef libmaus::uint128_t key_type;
+			
+			inline static uint64_t hash(libmaus::uint128_t const v)
+			{
+				return libmaus::hashing::EvaHash::hash642(reinterpret_cast<uint64_t const *>(&v),2);
+			}
+		};
+		#endif
+	}
+}
+#endif
+
+
+/*
+    libmaus
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,6 +76,8 @@
 #if ! defined(SIMPLEHASHMAP_HPP)
 #define SIMPLEHASHMAP_HPP
 
+#include <libmaus/util/SimpleHashMapKeyPrint.hpp>
+#include <libmaus/util/SimpleHashMapConstants.hpp>
 #include <libmaus/exception/LibMausException.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/hashing/hash.hpp>
@@ -32,21 +90,8 @@ namespace libmaus
 {
 	namespace util
 	{
-		template<typename _key_type>
-		struct SimpleHashMapConstants
-		{
-			typedef _key_type key_type;
-			
-			static key_type const unused()
-			{
-				return std::numeric_limits<key_type>::max();
-			}
-			
-			virtual ~SimpleHashMapConstants() {}
-		};
-			
 		template<typename _key_type, typename _value_type>
-		struct SimpleHashMap : public SimpleHashMapConstants<_key_type>
+		struct SimpleHashMap : public SimpleHashMapConstants<_key_type>, public SimpleHashMapKeyPrint<_key_type>, public SimpleHashMapHashCompute<_key_type>
 		{
 			typedef _key_type key_type;
 			typedef _value_type value_type;
@@ -114,14 +159,16 @@ namespace libmaus
 			{
 				for ( pair_type * ita = begin(); ita != end(); ++ita )
 					ita->first = base_type::unused();
+				fill = 0;
 			}
 			
-			void clear(uint64_t * keys, uint64_t n)
+			void clear(_key_type * keys, uint64_t const n)
 			{
 				for ( uint64_t i = 0; i < n; ++i )
 					keys[i] = getIndex(keys[i]);
 				for ( uint64_t i = 0; i < n; ++i )
-					H[keys[i]] = base_type::unused();
+					H[keys[i]].first = base_type::unused();
+				fill = 0;
 			}
 			
 			pair_type const * begin() const { return H.begin(); }
@@ -188,15 +235,29 @@ namespace libmaus
 				H = O->H;
 			}
 
+			void extendInternalNonSync()
+			{
+				unique_ptr_type O(new this_type(slog+1));
+				for ( uint64_t i = 0; i < H.size(); ++i )
+					if ( H[i].first != base_type::unused() )
+						O->insertNonSync ( H[i].first, H[i].second );
+				
+				slog = O->slog;
+				hashsize = O->hashsize;
+				hashmask = O->hashmask;
+				fill = O->fill;
+				H = O->H;
+			}
+
 			SimpleHashMap(unsigned int const rslog)
 			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false), elock()
 			{
 				std::fill(H.begin(),H.end(),pair_type(base_type::unused(),value_type()));
 			}
 			
-			uint64_t hash(uint64_t const v) const
+			inline uint64_t hash(uint64_t const v) const
 			{
-				return libmaus::hashing::EvaHash::hash642(&v,1) & hashmask;
+				return SimpleHashMapHashCompute<_key_type>::hash(v) & hashmask;
 			}
 			
 			inline uint64_t displace(uint64_t const p, uint64_t const v) const
@@ -214,7 +275,7 @@ namespace libmaus
 				return static_cast<double>(fill) / H.size();
 			}
 			
-			void insertExtend(key_type const v, uint64_t const w, double const loadthres)
+			void insertExtend(key_type const v, value_type const w, double const loadthres)
 			{
 				if ( loadFactor() >= loadthres || (fill == H.size()) )
 					extendInternal();
@@ -222,8 +283,16 @@ namespace libmaus
 				insert(v,w);
 			}
 
-			// insert value and return count after insertion			
-			void insert(key_type const v, uint64_t const w)
+			void insertNonSyncExtend(key_type const v, value_type const w, double const loadthres)
+			{
+				if ( loadFactor() >= loadthres || (fill == H.size()) )
+					extendInternalNonSync();
+				
+				insertNonSync(v,w);
+			}
+
+			// insert key value pair
+			void insert(key_type const v, value_type const w)
 			{
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
@@ -276,6 +345,64 @@ namespace libmaus
 								clock.unlock();
 								#endif
 							}
+
+							H[p].second = w;
+							return;
+						}
+						// someone else snapped position p before we got it
+						else
+						{			
+							p = displace(p,v);
+						}
+					}
+				} while ( p != p0 );
+				
+				::libmaus::exception::LibMausException se;
+				se.getStream() << "SimpleHashMap::insert(): unable to insert, table is full." << std::endl;
+				se.finish();
+				throw se;
+			}
+
+			// insert key value pair
+			void insertNonSync(key_type const v, value_type const w)
+			{
+				uint64_t const p0 = hash(v);
+				uint64_t p = p0;
+				
+				// uint64_t loopcnt = 0;
+
+				do
+				{
+					// position in use?
+					if ( H[p].first != base_type::unused() )
+					{
+						// value already present
+						if ( H[p].first == v )
+						{
+							H[p].second = w;
+							return;
+						}
+						// in use but by other value (collision)
+						else
+						{
+							p = displace(p,v);
+						}
+					}
+					// position is not currently in use, try to get it
+					else
+					{
+						bool const ok = (H[p].first == base_type::unused());
+						if ( ok )
+							H[p].first = v;
+						
+						assert ( H[p].first != base_type::unused() );
+						
+						// got it
+						if ( H[p].first == v )
+						{
+							// if this inserted the value, then increment fill
+							if ( ok )
+								fill++;
 
 							H[p].second = w;
 							return;
@@ -347,7 +474,9 @@ namespace libmaus
 				} while ( p != p0 );
 				
 				libmaus::exception::LibMausException lme;
-				lme.getStream() << "SimpleHashMap::getIndex called for non-existing key " << v << std::endl;
+				lme.getStream() << "SimpleHashMap::getIndex called for non-existing key ";
+				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
+				lme.getStream() << std::endl;
 				lme.finish();
 				throw lme;
 			}
@@ -397,7 +526,9 @@ namespace libmaus
 					else if ( H[p].first == base_type::unused() )
 					{
 						::libmaus::exception::LibMausException se;
-						se.getStream() << "SimpleHashMap::get() called for key " << v << " which is not contained." << std::endl;
+						se.getStream() << "SimpleHashMap::get() called for key ";
+						SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(), v);
+						se.getStream() << " which is not contained." << std::endl;
 						se.finish();
 						throw se;
 					}
@@ -408,7 +539,9 @@ namespace libmaus
 				} while ( p != p0 );
 				
 				::libmaus::exception::LibMausException se;
-				se.getStream() << "SimpleHashMap::get() called for key " << v << " which is not contained." << std::endl;
+				se.getStream() << "SimpleHashMap::get() called for key ";
+				SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(),v);
+				se.getStream() << " which is not contained." << std::endl;
 				se.finish();
 				throw se;
 			}

@@ -97,6 +97,7 @@ namespace libmaus
 			//! shift to make signed numbers non-negative
 			static int64_t const signshift = (-(1l<<29))+1;
 
+			public:
 			/**
 			 * shift n to make it non-negative
 			 *
@@ -118,7 +119,7 @@ namespace libmaus
 			{
 				return static_cast<int32_t>(static_cast<int64_t>(n) + signshift);
 			}
-			public:
+
 			/**
 			 * @return true if object is paired (i.e. read2Sequence != 0)
 			 **/

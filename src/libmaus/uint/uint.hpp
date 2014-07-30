@@ -36,9 +36,11 @@ namespace libmaus
 {
 	namespace uint
 	{
-		template<unsigned int words>
+		template<unsigned int _words>
 		struct UInt
 		{
+			static unsigned int const words = _words;
+		
 			uint64_t A[words];
 
 			static unsigned int popcnt(uint64_t const u)

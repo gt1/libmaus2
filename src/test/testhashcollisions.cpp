@@ -22,6 +22,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <libmaus/util/SimpleHashMap.hpp>
 
 void testHashCollisions()
 {
@@ -68,5 +69,17 @@ void testHashCollisions()
 
 int main(/* int argc, char * argv[] */)
 {
+	libmaus::uint::UInt<1> U;
+	libmaus::util::SimpleHashMapKeyPrint< libmaus::uint::UInt<1> >::printKey(std::cerr,U);
+	std::cerr << std::endl;
+
+	libmaus::util::SimpleHashMapConstants< libmaus::uint::UInt<2> > SHMC;
+
+	std::cerr << "unused " << SHMC.unused() << std::endl;
+	
+	libmaus::util::SimpleHashMap< libmaus::uint::UInt<1>, uint64_t > H(1);
+	
+	H.insertNonSyncExtend(libmaus::uint::UInt<1>(5), 5, 0.8 );
+
 	testHashCollisions();
 }

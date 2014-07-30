@@ -2221,7 +2221,11 @@ namespace libmaus
 				if ( ! p )
 				{
 					libmaus::exception::LibMausException se;
-					se.getStream() << "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag << std::endl;
+					se.getStream() 
+						<< "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag 
+						<< " for read " 
+						<< getReadName(E)
+						<< std::endl;
 					se.finish();
 					throw se;
 				}
