@@ -644,7 +644,10 @@ libmausutil_include_HEADERS=\
 	libmaus/util/SimpleHashMapConstants.hpp \
 	libmaus/util/SimpleHashMapKeyPrint.hpp \
 	libmaus/util/GrowingFreeList.hpp \
-	libmaus/util/SimpleHashMapHashCompute.hpp
+	libmaus/util/SimpleHashMapHashCompute.hpp \
+	libmaus/util/SimpleHashMapInsDel.hpp \
+	libmaus/util/SimpleHashMapNumberCast.hpp \
+	libmaus/util/SimpleHashSetInsDel.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

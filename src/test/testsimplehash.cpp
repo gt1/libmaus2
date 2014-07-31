@@ -19,26 +19,35 @@
 #include <libmaus/util/SimpleHashMap.hpp>
 #include <libmaus/util/SimpleHashSet.hpp>
 #include <libmaus/util/SimpleHashMapInsDel.hpp>
+#include <libmaus/util/SimpleHashSetInsDel.hpp>
 
 void testSimpleHash()
 {
 	try
 	{
-		libmaus::util::SimpleHashMapInsDel<uint64_t,uint64_t> SHMID(6);
-		for ( uint64_t i = 0; i < 64; ++i )
-			SHMID.insert(i,3*i+5);
-		for ( uint64_t i = 0; i < 64; ++i )
-			assert ( SHMID.get(i) == 3*i+5 );
-		for ( uint64_t i = 0; i < 64; i += 2 )
-			SHMID.erase(i);
-		for ( uint64_t i = 1; i < 64; i += 2 )
-			assert ( SHMID.get(i) == 3*i+5 );
-		for ( uint64_t i = 0; i < 64; i += 2 )
-			assert ( ! SHMID.contains(i) );
-		for ( uint64_t i = 0; i < 64; i += 2 )
-			SHMID.insert(i,3*i+5);
-		for ( uint64_t i = 0; i < 64; ++i )
-			assert ( SHMID.get(i) == 3*i+5 );
+		libmaus::util::SimpleHashMapInsDel<uint64_t,uint64_t> SHMID(0);
+		
+		for ( uint64_t z = 0; z < 128; ++z )
+		{
+			for ( uint64_t i = 0; i < 64; ++i )
+				SHMID.insertExtend(i,3*i+5,.8);
+			for ( uint64_t i = 0; i < 64; ++i )
+				assert ( SHMID.get(i) == 3*i+5 );
+			for ( uint64_t i = 0; i < 64; i += 2 )
+				SHMID.erase(i);
+			for ( uint64_t i = 1; i < 64; i += 2 )
+				assert ( SHMID.get(i) == 3*i+5 );
+			for ( uint64_t i = 0; i < 64; i += 2 )
+				assert ( ! SHMID.contains(i) );
+			for ( uint64_t i = 0; i < 64; i += 2 )
+				SHMID.insert(i,3*i+5);
+			for ( uint64_t i = 0; i < 64; ++i )
+				assert ( SHMID.get(i) == 3*i+5 );
+			for ( uint64_t i = 0; i < 64; ++i )
+				SHMID.erase(i);
+				
+			assert ( SHMID.size() == 0 );
+		}
 			
 		::libmaus::util::ExtendingSimpleHashSet<uint64_t> HH(8);
 		HH.insert(5);

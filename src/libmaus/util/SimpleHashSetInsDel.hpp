@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_UTIL_SIMPLEHASHMAPINSDEL_HPP)
-#define LIBMAUS_UTIL_SIMPLEHASHMAPINSDEL_HPP
+#if ! defined(LIBMAUS_UTIL_SIMPLEHASHSETINSDEL_HPP)
+#define LIBMAUS_UTIL_SIMPLEHASHSETINSDEL_HPP
 
 #include <libmaus/util/SimpleHashMapNumberCast.hpp>
 #include <libmaus/util/SimpleHashMapHashCompute.hpp>
@@ -26,28 +26,23 @@
 #include <libmaus/exception/LibMausException.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/hashing/hash.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
 #include <libmaus/math/primes16.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		template<typename _key_type, typename _value_type>
-		struct SimpleHashMapInsDel : 
+		template<typename _key_type>
+		struct SimpleHashSetInsDel : 
 			public SimpleHashMapConstants<_key_type>, 
 			public SimpleHashMapKeyPrint<_key_type>, 
 			public SimpleHashMapHashCompute<_key_type>,
 			public SimpleHashMapNumberCast<_key_type>
 		{
 			typedef _key_type key_type;
-			typedef _value_type value_type;
 
 			typedef SimpleHashMapConstants<key_type> base_type;
-			typedef std::pair<key_type,value_type> pair_type;
-			typedef SimpleHashMapInsDel<key_type,value_type> this_type;
+			typedef SimpleHashSetInsDel<key_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -59,9 +54,9 @@ namespace libmaus
 			uint64_t deleted;
 			
 			// hash array
-			::libmaus::autoarray::AutoArray<pair_type> H;
+			::libmaus::autoarray::AutoArray<key_type> H;
 			// shrink array
-			::libmaus::autoarray::AutoArray<pair_type> R;
+			::libmaus::autoarray::AutoArray<key_type> R;
 
 			inline uint64_t hash(key_type const & v) const
 			{
@@ -79,7 +74,7 @@ namespace libmaus
 				{
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
-						if ( base_type::isInUse(H[i].first) )
+						if ( base_type::isInUse(H[i]) )
 						{
 							R[o++] = H[i];
 						}
@@ -90,14 +85,14 @@ namespace libmaus
 					fill = 0;
 					deleted = 0;
 					
-					H = ::libmaus::autoarray::AutoArray<pair_type>(hashsize,false);
+					H = ::libmaus::autoarray::AutoArray<key_type>(hashsize,false);
 					for ( uint64_t i = 0; i < hashsize; ++i )
-						H[i].first = base_type::unused();
+						H[i] = base_type::unused();
 					
 					for ( uint64_t i = 0; i < o; ++i )
-						insert(R[i].first,R[i].second);
+						insert(R[i]);
 						
-					R = ::libmaus::autoarray::AutoArray<pair_type>(hashsize,false);					
+					R = ::libmaus::autoarray::AutoArray<key_type>(hashsize,false);					
 				}
 				else
 				{
@@ -107,12 +102,12 @@ namespace libmaus
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
 					{
-						if ( base_type::isInUse(H[i].first) )
+						if ( base_type::isInUse(H[i]) )
 							R[o++] = H[i];
-						H[i].first = base_type::unused();
+						H[i] = base_type::unused();
 					}
 					for ( uint64_t i = hashsize; i < 2*hashsize; ++i )
-						H[i].first = base_type::unused();
+						H[i] = base_type::unused();
 
 					hashsize <<= 1;
 					slog += 1;
@@ -121,7 +116,7 @@ namespace libmaus
 					deleted = 0;
 
 					for ( uint64_t i = 0; i < o; ++i )
-						insert(R[i].first,R[i].second);
+						insert(R[i]);
 				}
 			}
 			
@@ -134,9 +129,9 @@ namespace libmaus
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
 					{
-						if ( base_type::isInUse(H[i].first) )
+						if ( base_type::isInUse(H[i]) )
 							R[o++] = H[i];
-						H[i].first = base_type::unused();
+						H[i] = base_type::unused();
 					}
 						
 					hashsize >>= 1;
@@ -146,22 +141,22 @@ namespace libmaus
 					deleted = 0;
 
 					for ( uint64_t i = 0; i < o; ++i )
-						insert(R[i].first,R[i].second);						
+						insert(R[i]);						
 				}
 			}
 
 			public:			
-			SimpleHashMapInsDel(unsigned int const rslog)
+			SimpleHashSetInsDel(unsigned int const rslog)
 			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false), R(hashsize,false)
 			{
-				std::fill(H.begin(),H.end(),pair_type(base_type::unused(),value_type()));
+				std::fill(H.begin(),H.end(),base_type::unused());
 			}
-			virtual ~SimpleHashMapInsDel() {}
+			virtual ~SimpleHashSetInsDel() {}
 
-			pair_type const * begin() const { return H.begin(); }
-			pair_type const * end() const { return begin()+hashsize; }
-			pair_type * begin() { return H.begin(); }
-			pair_type * end() { return begin()+hashsize; }
+			key_type const * begin() const { return H.begin(); }
+			key_type const * end() const { return begin()+hashsize; }
+			key_type * begin() { return H.begin(); }
+			key_type * end() { return begin()+hashsize; }
 			
 			uint64_t getTableSize() const
 			{
@@ -179,22 +174,12 @@ namespace libmaus
 			}
 			
 			
-			value_type const & getValue(uint64_t const i) const
-			{
-				return H[i].second;
-			}
-
-			value_type & getValue(uint64_t const i)
-			{
-				return H[i].second;
-			}
-
-			void insertExtend(key_type const & v, value_type const & w, double const loadthres)
+			void insertExtend(key_type const & v, double const loadthres)
 			{
 				if ( loadFactor() >= loadthres || (fill == hashsize) )
 					extendInternal();
 				
-				insert(v,w);
+				insert(v);
 			}
 
 			// returns true if value v is contained
@@ -206,12 +191,12 @@ namespace libmaus
 				do
 				{
 					// correct value stored
-					if ( H[p].first == v )
+					if ( H[p] == v )
 					{
 						return true;
 					}
 					// position in use?
-					else if ( H[p].first == base_type::unused() )
+					else if ( H[p] == base_type::unused() )
 					{
 						return false;
 					}
@@ -233,12 +218,12 @@ namespace libmaus
 				do
 				{
 					// correct value stored
-					if ( H[p].first == v )
+					if ( H[p] == v )
 					{
 						return p;
 					}
 					// position in use?
-					else if ( H[p].first == base_type::unused() )
+					else if ( H[p] == base_type::unused() )
 					{
 						// break loop and fall through to exception below
 						p = p0;
@@ -250,85 +235,11 @@ namespace libmaus
 				} while ( p != p0 );
 				
 				libmaus::exception::LibMausException lme;
-				lme.getStream() << "SimpleHashMapInsDel::getIndex called for non-existing key ";
+				lme.getStream() << "SimpleHashSetInsDel::getIndex called for non-existing key ";
 				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
 				lme.getStream() << std::endl;
 				lme.finish();
 				throw lme;
-			}
-
-			// returns true if value v is contained
-			bool contains(key_type const & v, value_type & r) const
-			{
-				uint64_t const p0 = hash(v);
-				uint64_t p = p0;
-
-				do
-				{
-					// correct value stored
-					if ( H[p].first == v )
-					{
-						r = H[p].second;
-						return true;
-					}
-					// position in use?
-					else if ( H[p].first == base_type::unused() )
-					{
-						return false;
-					}
-					else
-					{
-						p = displace(p,v);
-					}
-				} while ( p != p0 );
-				
-				return false;
-			}
-			
-			// get count for value v
-			value_type get(key_type const & v) const
-			{
-				uint64_t const p0 = hash(v);
-				uint64_t p = p0;
-
-				do
-				{
-					// position in use?
-					// correct value stored
-					if ( H[p].first == v )
-					{
-						return H[p].second;
-					}
-					else if ( H[p].first == base_type::unused() )
-					{
-						// trigger exception below
-						p = p0;
-					}
-					else
-					{
-						p = displace(p,v);
-					}
-				} while ( p != p0 );
-				
-				::libmaus::exception::LibMausException se;
-				se.getStream() << "SimpleHashMapInsDel::get() called for key ";
-				SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(),v);
-				se.getStream() << " which is not contained." << std::endl;
-				se.finish();
-				throw se;
-			}
-
-			// get count for value v without checks
-			value_type getUnchecked(key_type const & v) const
-			{
-				uint64_t p = hash(v);
-
-				while ( true )
-					// correct value stored
-					if ( H[p].first == v )
-						return H[p].second;
-					else
-						p = displace(p,v);
 			}
 
 			// 
@@ -338,7 +249,7 @@ namespace libmaus
 
 				while ( true )
 				{
-					if ( H[p].first == v )
+					if ( H[p] == v )
 					{
 						return p;
 					}
@@ -358,12 +269,12 @@ namespace libmaus
 				do
 				{
 					// correct value stored
-					if ( H[p].first == v )
+					if ( H[p] == v )
 					{
 						return p;
 					}
 					// position in use?
-					else if ( H[p].first == base_type::unused() )
+					else if ( H[p] == base_type::unused() )
 					{
 						// break loop and fall through to exception below
 						p = p0;
@@ -378,7 +289,7 @@ namespace libmaus
 			}
 
 			// insert key value pair
-			void insert(key_type const & v, value_type const & w)
+			void insert(key_type const & v)
 			{
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
@@ -386,12 +297,11 @@ namespace libmaus
 				do
 				{
 					// position in use?
-					if ( isInUse(H[p].first) )
+					if ( isInUse(H[p]) )
 					{
 						// key already present, replace value
-						if ( H[p].first == v )
+						if ( H[p] == v )
 						{
-							H[p].second = w;
 							return;
 						}
 						// in use but by other value (collision)
@@ -404,25 +314,24 @@ namespace libmaus
 					else
 					{
 						// replacing deleted index
-						if ( H[p].first == base_type::deleted() )
+						if ( H[p] == base_type::deleted() )
 						{
 							assert ( deleted );
 							deleted--;
 						}
 						else
 						{
-							assert ( H[p].first == base_type::unused() );
+							assert ( H[p] == base_type::unused() );
 						}
 					
-						H[p].first = v;
-						H[p].second = w;						
+						H[p] = v;
 						fill += 1;
 						return;
 					}
 				} while ( p != p0 );
 				
 				::libmaus::exception::LibMausException se;
-				se.getStream() << "SimpleHashMapInsDel::insert(): unable to insert, table is full." << std::endl;
+				se.getStream() << "SimpleHashSetInsDel::insert(): unable to insert, table is full." << std::endl;
 				se.finish();
 				throw se;
 			}
@@ -436,9 +345,9 @@ namespace libmaus
 				do
 				{
 					// correct value found
-					if ( H[p].first == v )
+					if ( H[p] == v )
 					{
-						H[p].first = base_type::deleted();
+						H[p] = base_type::deleted();
 						fill -= 1;
 						deleted += 1;
 
@@ -448,7 +357,7 @@ namespace libmaus
 						return;
 					}
 					// position in use?
-					else if ( H[p].first == base_type::unused() )
+					else if ( H[p] == base_type::unused() )
 					{
 						// break loop and fall through to exception below
 						p = p0;
@@ -460,7 +369,7 @@ namespace libmaus
 				} while ( p != p0 );
 				
 				libmaus::exception::LibMausException lme;
-				lme.getStream() << "SimpleHashMapInsDel::erase called for non-existing key ";
+				lme.getStream() << "SimpleHashSetInsDel::erase called for non-existing key ";
 				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
 				lme.getStream() << std::endl;
 				lme.finish();
@@ -469,7 +378,7 @@ namespace libmaus
 
 			void eraseIndex(uint64_t const i)
 			{
-				H[i].first = base_type::deleted();
+				H[i] = base_type::deleted();
 				deleted++;
 				fill--;
 				
