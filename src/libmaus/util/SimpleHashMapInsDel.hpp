@@ -386,7 +386,7 @@ namespace libmaus
 				do
 				{
 					// position in use?
-					if ( isInUse(H[p].first) )
+					if ( base_type::isInUse(H[p].first) )
 					{
 						// key already present, replace value
 						if ( H[p].first == v )
