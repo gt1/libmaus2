@@ -43,6 +43,18 @@ namespace libmaus
 				return unused()-1;
 			}
 			
+			// unused or deleted
+			static bool isFree(key_type const & v)
+			{
+				return (v & deleted()) == deleted();
+			}
+			
+			// in use (not unused or deleted)
+			static bool isInUse(key_type const & v)
+			{
+				return !isFree(v);
+			}
+			
 			virtual ~SimpleHashMapConstants() {}
 		};
 
@@ -70,8 +82,10 @@ namespace libmaus
 
 			static key_type computeDeletedValue()
 			{
+				// get full mask
 				key_type U = computeUnusedValue();
-				U.A[0] &= (~static_cast<uint64_t>(1));
+				// erase top bit
+				U.setBit(k*64-1, 0);
 				return U;
 			}
 						
@@ -83,6 +97,16 @@ namespace libmaus
 			key_type const & deleted() const
 			{
 				return deletedValue;
+			}
+
+			bool isFree(key_type const & v) const
+			{
+				return (v & deletedValue) == deletedValue;
+			}
+			
+			bool isInUse(key_type const & v) const
+			{
+				return !isFree(v);
 			}
 			
 			SimpleHashMapConstants() : unusedValue(computeUnusedValue()), deletedValue(computeDeletedValue()) {}
