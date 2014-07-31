@@ -643,7 +643,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/BorderArray.hpp \
 	libmaus/util/SimpleHashMapConstants.hpp \
 	libmaus/util/SimpleHashMapKeyPrint.hpp \
-	libmaus/util/GrowingFreeList.hpp
+	libmaus/util/GrowingFreeList.hpp \
+	libmaus/util/SimpleHashMapHashCompute.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

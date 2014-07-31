@@ -37,6 +37,11 @@ namespace libmaus
 			{
 				return std::numeric_limits<key_type>::max();
 			}
+
+			static key_type const deleted()
+			{
+				return unused()-1;
+			}
 			
 			virtual ~SimpleHashMapConstants() {}
 		};
@@ -46,9 +51,10 @@ namespace libmaus
 		{
 			typedef libmaus::uint::UInt<k> key_type;
 			
-			key_type const mask;
+			key_type const unusedValue;
+			key_type const deletedValue;
 			
-			static key_type computeMask()
+			static key_type computeUnusedValue()
 			{
 				key_type U;
 				key_type Ulow(std::numeric_limits<uint64_t>::max());
@@ -61,13 +67,25 @@ namespace libmaus
 				
 				return U;
 			}
+
+			static key_type computeDeletedValue()
+			{
+				key_type U = computeUnusedValue();
+				U.A[0] &= (~static_cast<uint64_t>(1));
+				return U;
+			}
 						
 			key_type const & unused() const
 			{
-				return mask;
+				return unusedValue;
+			}
+
+			key_type const & deleted() const
+			{
+				return deletedValue;
 			}
 			
-			SimpleHashMapConstants() : mask(computeMask()) {}
+			SimpleHashMapConstants() : unusedValue(computeUnusedValue()), deletedValue(computeDeletedValue()) {}
 			virtual ~SimpleHashMapConstants() {}
 		};
 	}
