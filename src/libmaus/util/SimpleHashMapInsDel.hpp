@@ -189,12 +189,12 @@ namespace libmaus
 				return H[i].second;
 			}
 
-			void insertExtend(key_type const & v, value_type const & w, double const loadthres)
+			uint64_t insertExtend(key_type const & v, value_type const & w, double const loadthres)
 			{
 				if ( loadFactor() >= loadthres || (fill == hashsize) )
 					extendInternal();
 				
-				insert(v,w);
+				return insert(v,w);
 			}
 
 			// returns true if value v is contained
@@ -269,6 +269,35 @@ namespace libmaus
 					if ( H[p].first == v )
 					{
 						r = H[p].second;
+						return true;
+					}
+					// position in use?
+					else if ( H[p].first == base_type::unused() )
+					{
+						return false;
+					}
+					else
+					{
+						p = displace(p,v);
+					}
+				} while ( p != p0 );
+				
+				return false;
+			}
+			
+			// returns true if value v is contained
+			// store index of element (if any) in index
+			bool containsKey(key_type const & v, uint64_t & index) const
+			{
+				uint64_t const p0 = hash(v);
+				uint64_t p = p0;
+
+				do
+				{
+					// correct value stored
+					if ( H[p].first == v )
+					{
+						index = p;
 						return true;
 					}
 					// position in use?
@@ -378,7 +407,7 @@ namespace libmaus
 			}
 
 			// insert key value pair
-			void insert(key_type const & v, value_type const & w)
+			uint64_t insert(key_type const & v, value_type const & w)
 			{
 				uint64_t const p0 = hash(v);
 				uint64_t p = p0;
@@ -392,7 +421,7 @@ namespace libmaus
 						if ( H[p].first == v )
 						{
 							H[p].second = w;
-							return;
+							return p;
 						}
 						// in use but by other value (collision)
 						else
@@ -417,7 +446,7 @@ namespace libmaus
 						H[p].first = v;
 						H[p].second = w;						
 						fill += 1;
-						return;
+						return p;
 					}
 				} while ( p != p0 );
 				
