@@ -290,6 +290,24 @@ namespace libmaus
 				return ! (*this == o);
 			}
 
+			/**
+			 * parse optical information (if any) into tile, x and y
+			 **/
+			static bool parseOptical(uint8_t const * readname, uint16_t & tile, uint32_t & x, uint32_t & y)
+			{
+				size_t const l = strlen(reinterpret_cast<char const *>(readname));
+				
+				if ( parseReadNameValid(readname,readname+l) )
+				{
+					parseReadNameTile(readname,readname+l,tile,x,y);
+					return tile != 0;
+				}
+				else
+				{
+					return false;
+				}
+			}
+
 			private:
 			/**
 			 * determine if readname contains optical parameters
@@ -330,6 +348,7 @@ namespace libmaus
 						*(psem++) = c+1;
 				
 				uint8_t const * t = sem[2];
+				RE.tile = 0;
 				while ( D[*t] )
 				{
 					RE.tile *= 10;
@@ -338,6 +357,7 @@ namespace libmaus
 				RE.tile += 1;
 
 				t = sem[1];
+				RE.x = 0;
 				while ( D[*t] )
 				{
 					RE.x *= 10;
@@ -345,6 +365,7 @@ namespace libmaus
 				}
 
 				t = sem[0];
+				RE.y = 0;
 				while ( D[*t] )
 				{
 					RE.y *= 10;
@@ -417,6 +438,7 @@ namespace libmaus
 
 				uint8_t const * const readname = reinterpret_cast<uint8_t const *>(p.getName());
 				uint8_t const * const readnamee = readname + (p.getLReadName()-1);
+				
 				// parse tile, x, y
 				if ( parseReadNameValid(readname,readnamee) )
 					parseReadNameTile(readname,readnamee,RE);			
@@ -496,7 +518,7 @@ namespace libmaus
 								
 				RE.readGroup = rg + 1;
 				RE.libraryId = header.getLibraryId(rg);
-				RE.tagId = rtagId;
+				RE.tagId = rtagId;				
 			}
 			
 			#define READENDSBASECOMPACT
