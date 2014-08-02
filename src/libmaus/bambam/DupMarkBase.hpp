@@ -111,7 +111,7 @@ namespace libmaus
 						if ( high-low > 1 && projector::deref(*low).getTile() )
 						{
 							#if defined(DEBUG)
-							std::cerr << "[D] Range " << high-low << " for " << projector::deref(lfrags[low]) << std::endl;
+							std::cerr << "[D] Range " << high-low << std::endl; // << " for " << projector::deref(*low) << std::endl;
 							#endif
 						
 							std::vector<bool> opt(high-low,false);
@@ -121,7 +121,7 @@ namespace libmaus
 							{
 								for ( 
 									iterator j = i+1; 
-									j != high && projector::deref(*j).getX() - projector::deref(*low).getX() <= optminpixeldif;
+									j != high && projector::deref(*j).getX() - projector::deref(*i).getX() <= optminpixeldif;
 									++j 
 								)
 									if ( 
