@@ -549,8 +549,8 @@ namespace libmaus
 				
 				this->tile = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
 
-				this->x = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
-				this->y = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,2);
+				this->x = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,4);
+				this->y = ::libmaus::util::NumberSerialisation::deserialiseNumber(G,4);
 				#else
 				G.read(reinterpret_cast<char *>(this),sizeof(*this));
 				#endif
@@ -584,8 +584,8 @@ namespace libmaus
 				
 				::libmaus::util::UTF8::encodeUTF8(this->tile,P);
 
-				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->x,2);
-				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->y,2);					
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->x,4);
+				::libmaus::util::NumberSerialisation::serialiseNumber(P,this->y,4);					
 				#else
 				P.write(reinterpret_cast<char const *>(this),sizeof(*this));				
 				#endif
