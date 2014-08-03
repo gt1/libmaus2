@@ -147,7 +147,7 @@ namespace libmaus
 
 			public:			
 			SimpleHashSetInsDel(unsigned int const rslog)
-			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false), R(hashsize,false)
+			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), deleted(0), H(hashsize,false), R(hashsize,false)
 			{
 				std::fill(H.begin(),H.end(),base_type::unused());
 			}
@@ -172,7 +172,6 @@ namespace libmaus
 			{
 				return static_cast<double>(fill+deleted) / hashsize;
 			}
-			
 			
 			void insertExtend(key_type const & v, double const loadthres)
 			{

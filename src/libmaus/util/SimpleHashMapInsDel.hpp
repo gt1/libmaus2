@@ -152,7 +152,7 @@ namespace libmaus
 
 			public:			
 			SimpleHashMapInsDel(unsigned int const rslog)
-			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false), R(hashsize,false)
+			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), deleted(0), H(hashsize,false), R(hashsize,false)
 			{
 				std::fill(H.begin(),H.end(),pair_type(base_type::unused(),value_type()));
 			}
