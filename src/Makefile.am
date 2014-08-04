@@ -123,7 +123,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/GeneFlatFileEntry.cpp \
 	libmaus/trie/SimpleTrie.cpp \
 	libmaus/network/GnuTLSInit.cpp \
-	libmaus/network/GnuTLSSocket.cpp
+	libmaus/network/GnuTLSSocket.cpp \
+	libmaus/bambam/BamStreamingMarkDuplicatesSupport.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -373,7 +374,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ChromosomeVectorMerge.hpp \
 	libmaus/bambam/BamHeaderLowMem.hpp \
 	libmaus/bambam/GeneFlatFile.hpp \
-	libmaus/bambam/GeneFlatFileEntry.hpp
+	libmaus/bambam/GeneFlatFileEntry.hpp \
+	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
+	libmaus/bambam/BamStreamingMarkDuplicates.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

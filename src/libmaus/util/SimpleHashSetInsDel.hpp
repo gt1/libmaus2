@@ -32,17 +32,26 @@ namespace libmaus
 {
 	namespace util
 	{
-		template<typename _key_type>
+		template<
+			typename _key_type, 
+			typename _constants_type = SimpleHashMapConstants<_key_type>,
+			typename _key_print_type = SimpleHashMapKeyPrint<_key_type>, 
+			typename _hash_compute_type = SimpleHashMapHashCompute<_key_type>, 
+			typename _number_cast_type = SimpleHashMapNumberCast<_key_type>
+		>
 		struct SimpleHashSetInsDel : 
-			public SimpleHashMapConstants<_key_type>, 
-			public SimpleHashMapKeyPrint<_key_type>, 
-			public SimpleHashMapHashCompute<_key_type>,
-			public SimpleHashMapNumberCast<_key_type>
+			public _constants_type, 
+			public _key_print_type, 
+			public _hash_compute_type,
+			public _number_cast_type
 		{
 			typedef _key_type key_type;
+			typedef _constants_type constants_type;
+			typedef _key_print_type key_print_type;
+			typedef _hash_compute_type hash_compute_type;
+			typedef _number_cast_type number_cast_type;
 
-			typedef SimpleHashMapConstants<key_type> base_type;
-			typedef SimpleHashSetInsDel<key_type> this_type;
+			typedef SimpleHashSetInsDel<key_type,constants_type,key_print_type,hash_compute_type,number_cast_type> this_type;
 			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -60,12 +69,12 @@ namespace libmaus
 
 			inline uint64_t hash(key_type const & v) const
 			{
-				return SimpleHashMapHashCompute<_key_type>::hash(v) & hashmask;
+				return hash_compute_type::hash(v) & hashmask;
 			}
 			
 			inline uint64_t displace(uint64_t const p, key_type const & k) const
 			{
-				return (p + primes16[SimpleHashMapNumberCast<key_type>::cast(k)&0xFFFFu]) & hashmask;
+				return (p + primes16[number_cast_type::cast(k)&0xFFFFu]) & hashmask;
 			}
 
 			void extendInternal()
@@ -74,7 +83,7 @@ namespace libmaus
 				{
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
-						if ( base_type::isInUse(H[i]) )
+						if ( constants_type::isInUse(H[i]) )
 						{
 							R[o++] = H[i];
 						}
@@ -87,7 +96,7 @@ namespace libmaus
 					
 					H = ::libmaus::autoarray::AutoArray<key_type>(hashsize,false);
 					for ( uint64_t i = 0; i < hashsize; ++i )
-						H[i] = base_type::unused();
+						H[i] = constants_type::unused();
 					
 					for ( uint64_t i = 0; i < o; ++i )
 						insert(R[i]);
@@ -102,12 +111,12 @@ namespace libmaus
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
 					{
-						if ( base_type::isInUse(H[i]) )
+						if ( constants_type::isInUse(H[i]) )
 							R[o++] = H[i];
-						H[i] = base_type::unused();
+						H[i] = constants_type::unused();
 					}
 					for ( uint64_t i = hashsize; i < 2*hashsize; ++i )
-						H[i] = base_type::unused();
+						H[i] = constants_type::unused();
 
 					hashsize <<= 1;
 					slog += 1;
@@ -129,9 +138,9 @@ namespace libmaus
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < hashsize; ++i )
 					{
-						if ( base_type::isInUse(H[i]) )
+						if ( constants_type::isInUse(H[i]) )
 							R[o++] = H[i];
-						H[i] = base_type::unused();
+						H[i] = constants_type::unused();
 					}
 						
 					hashsize >>= 1;
@@ -149,7 +158,7 @@ namespace libmaus
 			SimpleHashSetInsDel(unsigned int const rslog)
 			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), deleted(0), H(hashsize,false), R(hashsize,false)
 			{
-				std::fill(H.begin(),H.end(),base_type::unused());
+				std::fill(H.begin(),H.end(),constants_type::unused());
 			}
 			virtual ~SimpleHashSetInsDel() {}
 
@@ -195,7 +204,7 @@ namespace libmaus
 						return true;
 					}
 					// position in use?
-					else if ( H[p] == base_type::unused() )
+					else if ( H[p] == constants_type::unused() )
 					{
 						return false;
 					}
@@ -222,7 +231,7 @@ namespace libmaus
 						return p;
 					}
 					// position in use?
-					else if ( H[p] == base_type::unused() )
+					else if ( H[p] == constants_type::unused() )
 					{
 						// break loop and fall through to exception below
 						p = p0;
@@ -235,7 +244,7 @@ namespace libmaus
 				
 				libmaus::exception::LibMausException lme;
 				lme.getStream() << "SimpleHashSetInsDel::getIndex called for non-existing key ";
-				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
+				key_print_type::printKey(lme.getStream(),v);
 				lme.getStream() << std::endl;
 				lme.finish();
 				throw lme;
@@ -273,7 +282,7 @@ namespace libmaus
 						return p;
 					}
 					// position in use?
-					else if ( H[p] == base_type::unused() )
+					else if ( H[p] == constants_type::unused() )
 					{
 						// break loop and fall through to exception below
 						p = p0;
@@ -296,7 +305,7 @@ namespace libmaus
 				do
 				{
 					// position in use?
-					if ( base_type::isInUse(H[p]) )
+					if ( constants_type::isInUse(H[p]) )
 					{
 						// key already present, replace value
 						if ( H[p] == v )
@@ -313,14 +322,14 @@ namespace libmaus
 					else
 					{
 						// replacing deleted index
-						if ( H[p] == base_type::deleted() )
+						if ( H[p] == constants_type::deleted() )
 						{
 							assert ( deleted );
 							deleted--;
 						}
 						else
 						{
-							assert ( H[p] == base_type::unused() );
+							assert ( H[p] == constants_type::unused() );
 						}
 					
 						H[p] = v;
@@ -346,7 +355,7 @@ namespace libmaus
 					// correct value found
 					if ( H[p] == v )
 					{
-						H[p] = base_type::deleted();
+						H[p] = constants_type::deleted();
 						fill -= 1;
 						deleted += 1;
 
@@ -356,7 +365,7 @@ namespace libmaus
 						return;
 					}
 					// position in use?
-					else if ( H[p] == base_type::unused() )
+					else if ( H[p] == constants_type::unused() )
 					{
 						// break loop and fall through to exception below
 						p = p0;
@@ -369,7 +378,7 @@ namespace libmaus
 				
 				libmaus::exception::LibMausException lme;
 				lme.getStream() << "SimpleHashSetInsDel::erase called for non-existing key ";
-				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
+				key_print_type::printKey(lme.getStream(),v);
 				lme.getStream() << std::endl;
 				lme.finish();
 				throw lme;
@@ -377,7 +386,7 @@ namespace libmaus
 
 			void eraseIndex(uint64_t const i)
 			{
-				H[i] = base_type::deleted();
+				H[i] = constants_type::deleted();
 				deleted++;
 				fill--;
 				
