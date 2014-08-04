@@ -82,7 +82,8 @@ namespace libmaus
 				
 				mapping [ fileid ] = P.first.first;
 				rmapping [ P.first.first ] = fileid;
-				files [ mapping [ fileid] ] = UNIQUE_PTR_MOVE(file_ptr_type(new std::ofstream( filenames[fileid].c_str(), std::ios::binary | std::ios::app ) ));
+				file_ptr_type tptr(new std::ofstream( filenames[fileid].c_str(), std::ios::binary | std::ios::app ) );
+				files [ mapping [ fileid] ] = UNIQUE_PTR_MOVE(tptr);
 				
 				return *(files[mapping[fileid]]);
 			}
