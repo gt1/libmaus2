@@ -29,7 +29,7 @@
 #include <libmaus/util/FreeList.hpp>
 #include <libmaus/util/GrowingFreeList.hpp>
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace libmaus
 {
