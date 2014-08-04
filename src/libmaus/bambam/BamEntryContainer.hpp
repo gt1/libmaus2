@@ -222,28 +222,81 @@ namespace libmaus
 					else
 						std::stable_sort(pp,B.end(),BAPC);		
 					
-					compressed_stream_type & tempfile = getTmpFileOut(0);
-					
-					std::pair<uint64_t,uint64_t> const preoff = tempfile.getOffset();
-									
-					// write entries
-					for ( uint64_t i = 0; i < numel; ++i )
+					if ( parallel <= 1 )
 					{
-						uint64_t const off = pp[i];
-						char const * data = reinterpret_cast<char const *>(pa + off);
-						::libmaus::util::CountGetObject<char const *> G(data);
-						uint64_t const blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(G,4);
-						tempfile.write(data,4+blocksize);						
-					}
+						compressed_stream_type & tempfile = getTmpFileOut(0);
+						
+						std::pair<uint64_t,uint64_t> const preoff = tempfile.getOffset();
+										
+						// write entries
+						for ( uint64_t i = 0; i < numel; ++i )
+						{
+							uint64_t const off = pp[i];
+							char const * data = reinterpret_cast<char const *>(pa + off);
+							::libmaus::util::CountGetObject<char const *> G(data);
+							uint64_t const blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(G,4);
+							tempfile.write(data,4+blocksize);						
+						}
 
-					std::pair<uint64_t,uint64_t> const postoff = tempfile.getOffset();
+						std::pair<uint64_t,uint64_t> const postoff = tempfile.getOffset();
+						
+						// file positions
+						tmpfileintervals.push_back(
+							std::vector< ::libmaus::lz::SimpleCompressedStreamInterval >(
+								1,::libmaus::lz::SimpleCompressedStreamInterval(preoff,postoff)
+							)
+						);
+					}
+					else
+					{
+						if ( !tmpfileintervals.size() )
+							for ( int64_t t = 0; t < static_cast<int64_t>(parallel); ++t )
+								getTmpFileOut(t);
 					
-					// file positions
-					tmpfileintervals.push_back(
-						std::vector< ::libmaus::lz::SimpleCompressedStreamInterval >(
-							1,::libmaus::lz::SimpleCompressedStreamInterval(preoff,postoff)
-						)
-					);
+						assert ( parallel > 1 );
+						// target elements per thread
+						uint64_t const telperthread = (numel + parallel-1)/parallel;
+						// number of threads
+						uint64_t const threads = (numel + telperthread-1)/telperthread;
+						// elements per thread
+						uint64_t const elperthread = (numel+threads-1)/threads;
+
+						std::vector< ::libmaus::lz::SimpleCompressedStreamInterval > tmpintervalvec(threads);
+						for ( uint64_t i = 0; i < threads; ++i )
+							tmpintervalvec[i] = ::libmaus::lz::SimpleCompressedStreamInterval(
+								std::pair<uint64_t,uint64_t>(0,0),
+								std::pair<uint64_t,uint64_t>(0,0)
+							);
+							
+						#if defined(_OPENMP)
+						#pragma omp parallel for num_threads(parallel)
+						#endif
+						for ( int64_t t = 0; t < static_cast<int64_t>(threads); ++t )
+						{
+							uint64_t const low = t * elperthread;
+							uint64_t const high = std::min(low+elperthread,numel);
+		
+							compressed_stream_type & tempfile = getTmpFileOut(t);
+						
+							std::pair<uint64_t,uint64_t> const preoff = tempfile.getOffset();
+
+							// write entries
+							for ( uint64_t i = low; i < high; ++i )
+							{
+								uint64_t const off = pp[i];
+								char const * data = reinterpret_cast<char const *>(pa + off);
+								::libmaus::util::CountGetObject<char const *> G(data);
+								uint64_t const blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(G,4);
+								tempfile.write(data,4+blocksize);						
+							}
+
+							std::pair<uint64_t,uint64_t> const postoff = tempfile.getOffset();
+							
+							tmpintervalvec[t] = ::libmaus::lz::SimpleCompressedStreamInterval(preoff,postoff);
+						}
+
+						tmpfileintervals.push_back(tmpintervalvec);
+					}
 					// number of elements
 					tmpoutcnts.push_back(numel);
 
