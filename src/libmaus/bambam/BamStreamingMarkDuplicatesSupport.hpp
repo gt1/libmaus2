@@ -29,6 +29,8 @@
 #include <libmaus/util/FreeList.hpp>
 #include <libmaus/util/GrowingFreeList.hpp>
 
+#include <cstdint>
+
 namespace libmaus
 {
 	namespace bambam
@@ -37,7 +39,7 @@ namespace libmaus
 		{
 			struct SignCoding
 			{
-				static int64_t const signshift = std::numeric_limits<int32_t>::min();
+				static int64_t const signshift = INT32_MIN;
 
 				static uint32_t signEncode(int32_t const coord)
 				{
