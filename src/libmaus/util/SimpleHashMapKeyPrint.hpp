@@ -54,7 +54,7 @@ namespace libmaus
 			{
 				libmaus::uint128_t v = rv;
 				if ( ! v )
-					out << '0';
+					return out << '0';
 				else
 				{
 					// uint128_t number can be no more than ceil(log(2^128-1)/log(10)) = 39 decimal digits long
