@@ -1,3 +1,15 @@
+libmaus (0.0.153-1) unstable; urgency=low
+
+  * enable parallel writing of temporary files in BamEntryContainer
+  * add SimpleHashMapInsDel/SimpleHashSetInsDel classes
+  * add streaming alignment duplicate marking class
+  * fix several bugs in optical duplicate counting
+  * add sparse LRU class and file set
+  * add support methods for streaming duplicate marking in BamAlignment class 
+  * add KmerCache class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 04 Aug 2014 16:28:59 +0100
+
 libmaus (0.0.152-1) unstable; urgency=low
 
   * add support for two output files in duplicate removal
