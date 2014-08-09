@@ -1,3 +1,9 @@
+libmaus (0.0.154-1) unstable; urgency=low
+
+  * add IntegerInterval class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 09 Aug 2014 16:07:09 +0100
+
 libmaus (0.0.153-1) unstable; urgency=low
 
   * enable parallel writing of temporary files in BamEntryContainer
