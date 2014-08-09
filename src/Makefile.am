@@ -536,7 +536,8 @@ libmausmath_include_HEADERS=\
 	libmaus/math/iabs.hpp \
 	libmaus/math/IPower.hpp \
 	libmaus/math/Log.hpp \
-	libmaus/math/ipow.hpp
+	libmaus/math/ipow.hpp \
+	libmaus/math/IntegerInterval.hpp
 
 libmausrl_includedir=$(includedir)/libmaus/rl
 libmausrl_include_HEADERS=\
