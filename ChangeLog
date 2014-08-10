@@ -1,3 +1,9 @@
+libmaus (0.0.155-1) unstable; urgency=medium
+
+  * update packaging files 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 10 Aug 2014 21:28:37 +0100
+
 libmaus (0.0.154-1) unstable; urgency=low
 
   * add IntegerInterval class 
