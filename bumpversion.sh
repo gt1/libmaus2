@@ -50,7 +50,7 @@ git merge experimental
 pushd debian
 export DEBEMAIL=gt1@sanger.ac.uk
 export DEBFULLNAME="German Tischler"
-dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
+dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1 "New upstream version ${FIRST}.${SECOND}.${NEXTTHIRD}"
 dch --release
 popd
 sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus0.install
@@ -62,12 +62,11 @@ git commit -F "${COMMITFILE}"
 
 git push
 
-cp debian/changelog cl
-
 # back to experimental branch
 git checkout experimental
 
-mv cl ChangeLog
+CHANGELOG=ChangeLog dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
+
 git add ChangeLog
 git commit -F "${COMMITFILE}"
 git push
