@@ -4,6 +4,8 @@ FIRST=`echo $VERSION | awk -F'.' '{print $1}'`
 SECOND=`echo $VERSION | awk -F'.' '{print $2}'`
 THIRD=`echo $VERSION | awk -F'.' '{print $3}'`
 NEXTTHIRD=`expr ${THIRD} + 1`
+export DEBEMAIL=gt1@sanger.ac.uk
+export DEBFULLNAME="German Tischler"
 
 function cleanup
 {
@@ -36,8 +38,12 @@ awk -v first=${FIRST} -v second=${SECOND} -v third=${THIRD} '/^AC_INIT/ {gsub(fi
 	> configure.ac.tmp
 mv configure.ac.tmp configure.ac
 
-# commit file
-git add configure.ac
+# update change log
+CHANGELOG=ChangeLog dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
+
+# commit files
+git add configure.ac ChangeLog
+
 git commit -F "${COMMITFILE}"
 git push
 
@@ -48,8 +54,6 @@ git merge experimental
 
 # create change log message
 pushd debian
-export DEBEMAIL=gt1@sanger.ac.uk
-export DEBFULLNAME="German Tischler"
 dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1 "New upstream version ${FIRST}.${SECOND}.${NEXTTHIRD}"
 dch --release ""
 popd
@@ -64,12 +68,6 @@ git push
 
 # back to experimental branch
 git checkout experimental
-
-CHANGELOG=ChangeLog dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1
-
-git add ChangeLog
-git commit -F "${COMMITFILE}"
-git push
 
 TAG=libmaus_experimental_${FIRST}_${SECOND}_${NEXTTHIRD}
 git tag -a ${TAG} -m "libmaus experimental version ${FIRST}_${SECOND}_${NEXTTHIRD}"
