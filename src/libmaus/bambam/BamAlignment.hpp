@@ -1904,6 +1904,41 @@ namespace libmaus
 			}
 
 			/**
+			 * add tag of mate as aux field if present
+			 */
+			static void addMateTag(
+				libmaus::bambam::BamAlignment & rec1, 
+				libmaus::bambam::BamAlignment & rec2,
+				libmaus::bambam::BamAuxFilterVector const & MTfilter,
+				char const * tagname
+				)
+			{
+				char const * MT1 = rec1.getAuxString(tagname);
+				char const * MT2 = rec2.getAuxString(tagname);
+
+				rec1.filterOutAux(MTfilter);
+				rec2.filterOutAux(MTfilter);
+				
+				if ( MT2 )
+					rec1.putAuxString("MT",MT2);
+				if ( MT1 )
+					rec2.putAuxString("MT",MT1);								
+			}
+
+			/**
+			 * add tag of mate as aux field if present
+			 */
+			static void addMateTag(
+				libmaus::bambam::BamAlignment & rec1, 
+				libmaus::bambam::BamAlignment & rec2,
+				libmaus::bambam::BamAuxFilterVector const & MTfilter,
+				std::string const & tagname
+				)
+			{
+				addMateTag(rec1,rec2,MTfilter,tagname.c_str());
+			}
+
+			/**
 			 * @return true if read fragment contains any non A,C,G or T
 			 **/
 			bool hasNonACGT() const
