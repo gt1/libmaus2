@@ -31,6 +31,10 @@ namespace libmaus
 		//! BAM decoder supporting ranges
 		struct BamRangeDecoder : public libmaus::bambam::BamAlignmentDecoder
 		{
+			typedef BamRangeDecoder this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			private:
 			/**
 			 * derive .bai file name from .bam file name. The function
