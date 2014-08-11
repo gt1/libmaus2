@@ -62,7 +62,7 @@ namespace libmaus
 			{
 				typedef PairHashKeyType this_type;
 
-				typedef libmaus::uint::UInt<5> key_type;
+				typedef libmaus::uint::UInt<4> key_type;
 
 				key_type key;
 
@@ -77,7 +77,8 @@ namespace libmaus
 				
 				PairHashKeyType(
 					libmaus::bambam::BamAlignment const & algn,
-					libmaus::bambam::BamHeader const & header
+					libmaus::bambam::BamHeader const & header,
+					uint64_t tagid
 				) : key()
 				{
 					int64_t const thisref = algn.getRefID();
@@ -150,8 +151,7 @@ namespace libmaus
 						|
 						(leftflag) | (uorientation << 1)
 						;
-					key.A[3] = 0; // tag
-					key.A[4] = 0; // tag
+					key.A[3] = tagid; // tag
 				}
 				
 				bool operator==(this_type const & o) const
@@ -194,14 +194,9 @@ namespace libmaus
 					return (((key.A[2] & 0xFFFFFFFFUL) & 1) == 0);
 				}
 
-				uint64_t getTag1() const
+				uint64_t getTag() const
 				{
 					return key.A[3];
-				}
-
-				uint64_t getTag2() const
-				{
-					return key.A[4];
 				}
 			};
 
@@ -240,7 +235,8 @@ namespace libmaus
 				FragmentHashKeyType(
 					libmaus::bambam::BamAlignment const & algn,
 					libmaus::bambam::BamHeader const & header,
-					bool const usemate = false
+					bool const usemate,
+					uint64_t const tagid
 				) : key()
 				{
 					if ( usemate )
@@ -255,7 +251,7 @@ namespace libmaus
 							(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
 							;
 						key.A[1] = (static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32) | ufragor;
-						key.A[2] = 0; // tag		
+						key.A[2] = tagid; // tag		
 					}
 					else
 					{
@@ -269,7 +265,7 @@ namespace libmaus
 							(static_cast<uint64_t>(signEncode(thiscoord)) << 0)
 							;
 						key.A[1] = (static_cast<uint64_t>(signEncode(algn.getLibraryId(header))) << 32) | ufragor;
-						key.A[2] = 0; // tag
+						key.A[2] = tagid; // tag
 					}
 				}
 
@@ -296,6 +292,11 @@ namespace libmaus
 				fragment_orientation_type getOrientation() const
 				{
 					return static_cast<fragment_orientation_type>(key.A[1] & 0x1);
+				}
+
+				uint64_t getTag() const
+				{
+					return key.A[2];
 				}
 			};
 
