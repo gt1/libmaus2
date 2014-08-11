@@ -111,7 +111,7 @@ namespace libmaus
 			libmaus::bambam::BamIndex const & index;
 			
 			//! range array
-			libmaus::autoarray::AutoArray<libmaus::bambam::BamRange::unique_ptr_type> const ranges;
+			libmaus::autoarray::AutoArray<libmaus::bambam::BamRange::unique_ptr_type> ranges;
 			//! next element to be processed in ranges
 			uint64_t rangeidx;
 			//! pointer to range which is currently processed
@@ -228,7 +228,16 @@ namespace libmaus
 			  active(setup())
 			{
 			}
-						
+			
+			void setRange(std::string const & rranges)
+			{
+				ranges = libmaus::bambam::BamRangeParser::parse(rranges,header);
+				rangeidx = 0;
+				rangecur = 0;
+				chunks.resize(0);
+				chunkidx = 0;
+				active = setup();
+			}
 			
 			/**
 			 * get next alignment. Calling this function is only valid
