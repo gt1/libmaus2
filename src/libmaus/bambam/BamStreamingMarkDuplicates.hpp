@@ -30,7 +30,7 @@ namespace libmaus
 {
 	namespace bambam
 	{
-		struct BamStreamingMarkDuplicates : public libmaus::bambam::BamStreamingMarkDuplicatesSupport
+		struct BamStreamingMarkDuplicates : public libmaus::bambam::BamStreamingMarkDuplicatesSupport, public libmaus::bambam::BamBlockWriterBase
 		{
 			static int getDefaultMaxReadLen() { return 300; }
 			static int getDefaultOptMinPixelDif() { return 100; }
@@ -134,7 +134,8 @@ namespace libmaus
 			double const hashloadfactor;
 			int64_t prevcheckrefid;
 			int64_t prevcheckpos;
-
+			
+			libmaus::bambam::BamAlignment tmpalgn;
 
 			BamStreamingMarkDuplicates(
 				libmaus::util::ArgInfo const & arginfo, 
@@ -166,7 +167,7 @@ namespace libmaus
 			{
 				libmaus::util::TempFileRemovalContainer::addTempFile(optfn);
 			}
-			
+
 			void addAlignment(libmaus::bambam::BamAlignment & algn)
 			{
 				int64_t const thisref = algn.getRefID();
@@ -595,6 +596,18 @@ namespace libmaus
 				
 				pM.reset();
 			}
+
+			void writeBamBlock(uint8_t const * D, uint64_t const bs)
+			{
+				tmpalgn.copyFrom(D,bs);
+				addAlignment(tmpalgn);								
+			}
+			
+			void writeAlignment(libmaus::bambam::BamAlignment const & A)
+			{
+				tmpalgn.copyFrom(A);
+				addAlignment(tmpalgn);
+			}			
 		};
 	}
 }
