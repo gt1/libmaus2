@@ -1,3 +1,12 @@
+libmaus (0.0.156-1) unstable; urgency=low
+
+  * add setRange method in BamRangeDecoder class
+  * add addMateTag method in BamAlignment
+  * add BamBlockWriterBase interface methods in BamStreamingMarkDuplicates
+  * add tag support in streaming duplicate marking
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 12 Aug 2014 21:33:32 +0100
+
 libmaus (0.0.155-1) unstable; urgency=medium
 
   * update packaging files 
