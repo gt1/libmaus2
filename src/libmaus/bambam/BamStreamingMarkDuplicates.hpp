@@ -290,6 +290,7 @@ namespace libmaus
 						// 
 						bool const is1 = (!algn.isPaired()) || algn.isRead1();
 						
+						assert ( ctag );
 						tag1 = is1  ? algn.getAuxString(ctag) : algn.getAuxString("MT");
 						l1 = tag1 ? strlen(tag1) : 0;
 
@@ -328,16 +329,29 @@ namespace libmaus
 					}
 					case tag_type_nucleotide:
 					{
+						assert ( cnucltag );
+
 						// tags
 						char const * tag1 = 0;
 						char const * tag2 = 0;
-						// 
-						bool const is1 = (!algn.isPaired()) || algn.isRead1();
 						
-						tag1 = is1  ? algn.getAuxString(ctag) : algn.getAuxString("MT");
-
 						if ( algn.isPaired() )
-							tag2 = is1  ? algn.getAuxString("MT") : algn.getAuxString(ctag);
+						{
+							if ( algn.isRead1() )
+							{
+								tag1 = algn.getAuxString(cnucltag);						
+								tag2 = algn.getAuxString("MT");
+							}
+							else
+							{
+								tag2 = algn.getAuxString(cnucltag);						
+								tag1 = algn.getAuxString("MT");							
+							}
+						}
+						else
+						{
+							tag1 = algn.getAuxString(cnucltag);
+						}						
 
 						tagid = (FATBT(tag1) << 32) | FATBT(tag2);
 						

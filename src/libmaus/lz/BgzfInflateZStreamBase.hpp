@@ -30,6 +30,10 @@ namespace libmaus
 	{
 		struct BgzfInflateZStreamBase
 		{
+			typedef BgzfInflateZStreamBase this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			z_stream inflatestrm;
 		
 			void zinit()

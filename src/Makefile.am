@@ -376,7 +376,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/GeneFlatFile.hpp \
 	libmaus/bambam/GeneFlatFileEntry.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
-	libmaus/bambam/BamStreamingMarkDuplicates.hpp
+	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
+	libmaus/bambam/BamParallelDecodingControl.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -769,7 +770,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp \
 	libmaus/parallel/SimpleThreadWorkPackage.hpp \
 	libmaus/parallel/LockedQueue.hpp \
-	libmaus/parallel/NumCpus.hpp
+	libmaus/parallel/NumCpus.hpp \
+	libmaus/parallel/LockedFreeList.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -1221,7 +1223,8 @@ noinst_PROGRAMS = \
 	testurlinputstream \
 	testsimpletrie \
 	testgnutls \
-	testlru
+	testlru \
+	testparallelbamdecompression
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1583,3 +1586,6 @@ testgnutls_SOURCES = test/testgnutls.cpp
 testgnutls_LDADD = libmaus.la
 testgnutls_CPPFLAGS = ${AM_CPPFLAGS} @GNUTLSCPPFLAGS@
 testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
+
+testparallelbamdecompression_SOURCES = test/testparallelbamdecompression.cpp
+testparallelbamdecompression_LDADD = libmaus.la

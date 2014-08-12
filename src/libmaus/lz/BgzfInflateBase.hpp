@@ -36,6 +36,7 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			// space for compressed input data
 			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> block;
 
 			BgzfInflateBase()
@@ -118,6 +119,10 @@ namespace libmaus
 			
 			/**
 			 * decompress block in buffer to array decomp
+			 *
+			 * @param decomp space for decompressed data
+			 * @param blockinfo pair as returned by readBlock method
+			 * @return number of bytes stored in decomp
 			 **/
 			uint64_t decompressBlock(char * const decomp, std::pair<uint64_t,uint64_t> const & blockinfo)
 			{
