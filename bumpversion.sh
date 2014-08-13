@@ -58,6 +58,7 @@ dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1 "New upstream v
 dch --release ""
 popd
 sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus0.install
+sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/shlibs
 
 git add debian/changelog
 git add debian/libmaus0.install
