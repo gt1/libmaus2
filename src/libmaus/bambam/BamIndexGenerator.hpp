@@ -307,7 +307,7 @@ namespace libmaus
 			uint64_t cacct; // accumulated compressed bytes we have read from file
 			std::pair<uint64_t,uint64_t> rinfo;
 
-			::libmaus::bambam::BamHeader::BamHeaderParserState bamheaderparsestate;
+			::libmaus::bambam::BamHeaderParserState bamheaderparsestate;
 
 			parsestate state;
 
@@ -401,7 +401,7 @@ namespace libmaus
 				if ( (! haveheader) && (pa != pc) )
 				{			
 					::libmaus::util::GetObject<uint8_t const *> G(Bbegin);
-					std::pair<bool,uint64_t> const P = ::libmaus::bambam::BamHeader::parseHeader(G,bamheaderparsestate,uncompsize);
+					std::pair<bool,uint64_t> const P = bamheaderparsestate.parseHeader(G,uncompsize);
 
 					// header complete?
 					if ( P.first )

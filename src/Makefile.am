@@ -118,7 +118,7 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/lz/IGzipDeflate.cpp \
 	libmaus/lcs/LocalBaseConstants.cpp \
 	libmaus/lcs/LocalEditDistanceResult.cpp \
-	libmaus/bambam/BamHeader.cpp \
+	libmaus/bambam/BamHeaderParserStateBase.cpp \
 	libmaus/bambam/GeneFlatFile.cpp \
 	libmaus/bambam/GeneFlatFileEntry.cpp \
 	libmaus/trie/SimpleTrie.cpp \
@@ -377,7 +377,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/GeneFlatFileEntry.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
-	libmaus/bambam/BamParallelDecodingControl.hpp
+	libmaus/bambam/BamParallelDecodingControl.hpp \
+	libmaus/bambam/BamHeaderParserStateBase.hpp \
+	libmaus/bambam/BamHeaderParserState.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

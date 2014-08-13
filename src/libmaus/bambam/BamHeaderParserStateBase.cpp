@@ -18,35 +18,35 @@
 */
 #include <libmaus/bambam/BamHeader.hpp>
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::bam_header_parse_state const & state)
+std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::BamHeaderParserStateBase::bam_header_parse_state const & state)
 {
 	switch(state)
 	{
-		case libmaus::bambam::bam_header_read_magic:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_magic:
 			out << "bam_header_read_magic";
 			break;
-		case libmaus::bambam::bam_header_read_l_text:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_l_text:
 			out << "bam_header_read_l_text";
 			break;
-		case libmaus::bambam::bam_header_read_text:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_text:
 			out << "bam_header_read_text";
 			break;
-		case libmaus::bambam::bam_header_read_n_ref:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_n_ref:
 			out << "bam_header_read_n_ref";
 			break;
-		case libmaus::bambam::bam_header_reaf_ref_l_name:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_reaf_ref_l_name:
 			out << "bam_header_reaf_ref_l_name";
 			break;
-		case libmaus::bambam::bam_header_read_ref_name:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_ref_name:
 			out << "bam_header_read_ref_name";
 			break;
-		case libmaus::bambam::bam_header_read_ref_l_ref:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_ref_l_ref:
 			out << "bam_header_read_ref_l_ref";
 			break;
-		case libmaus::bambam::bam_header_read_done:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_done:
 			out << "bam_header_read_done";
 			break;
-		case libmaus::bambam::bam_header_read_failed:
+		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_failed:
 			out << "bam_header_read_failed";
 			break;
 		default:

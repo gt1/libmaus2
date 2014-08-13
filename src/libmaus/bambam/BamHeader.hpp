@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMHEADER_HPP)
 #define LIBMAUS_BAMBAM_BAMHEADER_HPP
 
+#include <libmaus/bambam/BamHeaderParserState.hpp>
 #include <libmaus/lz/GzipStream.hpp>
 #include <libmaus/bambam/Chromosome.hpp>
 #include <libmaus/bambam/EncoderBase.hpp>
@@ -37,20 +38,6 @@ namespace libmaus
 {
 	namespace bambam
 	{
-		enum bam_header_parse_state
-		{
-			bam_header_read_magic,
-			bam_header_read_l_text,
-			bam_header_read_text,
-			bam_header_read_n_ref,
-			bam_header_reaf_ref_l_name,
-			bam_header_read_ref_name,
-			bam_header_read_ref_l_ref,
-			bam_header_read_done,
-			bam_header_read_failed
-		};
-			
-		std::ostream & operator<<(std::ostream & out, bam_header_parse_state const & state);
 
 		/**
 		 * BAM file header class
@@ -636,76 +623,13 @@ namespace libmaus
 				encodeChromosomeVector(ostr,chromosomes);
 			}
 			
-			struct BamHeaderParserState
-			{
-				// state
-				bam_header_parse_state state;
-			
-				// number of magic bytes read
-				uint64_t b_magic_read;
-				
-				// number of text length bytes read
-				uint64_t b_l_text_read;
-				// length of text
-				uint64_t l_text;
-				libmaus::autoarray::AutoArray<char> text;
-				
-				// number of text bytes read
-				uint64_t b_text_read;
-				
-				// number of nref bytes read
-				uint64_t b_n_ref;
-				// number of reference sequences
-				uint64_t n_ref;
-				// number of references read
-				uint64_t b_ref;
-				
-				// number of name length bytes read
-				uint64_t b_l_name_read;
-				// length of name
-				uint64_t l_name;
-				
-				// number of name bytes read
-				uint64_t b_name_read;
-				// name
-				libmaus::autoarray::AutoArray<char> name;
-				
-				// number of reference sequence length bytes read
-				uint64_t b_l_ref_read;
-				// length of ref seq
-				uint64_t l_ref;
-
-				//! chromosome (reference sequence meta data) vector
-				std::vector< ::libmaus::bambam::Chromosome > chromosomes;
-				
-				BamHeaderParserState()
-				: state(bam_header_read_magic),
-				  b_magic_read(0),
-				  b_l_text_read(0),
-				  l_text(0),
-				  text(),
-				  b_text_read(0),
-				  b_n_ref(0),
-				  n_ref(0),
-				  b_ref(0),
-				  b_l_name_read(0),
-				  l_name(0),
-				  b_name_read(0),
-				  name(0),
-				  b_l_ref_read(0),
-				  l_ref(0),
-				  chromosomes()
-				{
-				
-				}
-			};
 
 			static void parseHeader(std::istream & in)
 			{
 				libmaus::lz::BgzfInflateStream bgzfin(in);
 				BamHeaderParserState state;
 				
-				while ( ! parseHeader(bgzfin,state,1).first )
+				while ( ! state.parseHeader(bgzfin,1).first )
 				{
 				
 				}
@@ -721,218 +645,6 @@ namespace libmaus
 				text = std::string(state.text.begin(),state.text.begin()+state.l_text);
 				chromosomes.swap(state.chromosomes);
 				initSetup();
-			}
-
-			template<typename stream_type>
-			static std::pair<bool,uint64_t> parseHeader(stream_type & in, BamHeaderParserState & state, 
-				uint64_t const n = std::numeric_limits<uint64_t>::max()
-			)
-			{
-				uint64_t r = 0;
-				
-				while ( r != n && state.state != bam_header_read_done && state.state != bam_header_read_failed )
-				{
-					switch ( state.state )
-					{
-						case bam_header_read_magic:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-							
-							if ( 
-								(state.b_magic_read == 0 && sym == 'B')
-								||
-								(state.b_magic_read == 1 && sym == 'A')
-								||
-								(state.b_magic_read == 2 && sym == 'M')
-								||
-								(state.b_magic_read == 3 && sym == '\1')
-							)
-							{
-								state.b_magic_read++;
-							}
-							else
-							{
-								libmaus::exception::LibMausException se;
-								se.getStream() << "Wrong magic number for BAM file." << std::endl;
-								se.finish();
-								throw se;
-							}
-							
-							// switch to next state if we got the whole magic
-							if ( state.b_magic_read == 4 )
-								state.state = bam_header_read_l_text;
-							
-							break;
-						}
-						case bam_header_read_l_text:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-							
-							state.l_text |= static_cast<uint64_t>(sym) << (8*state.b_l_text_read);
-							
-							state.b_l_text_read++;
-							
-							if ( state.b_l_text_read == 4 )
-							{
-								if ( state.l_text )
-								{
-									state.text.resize(state.l_text);
-									state.state = bam_header_read_text;
-								}
-								else
-									state.state = bam_header_read_n_ref;
-							}
-							break;
-						}
-						case bam_header_read_text:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-							
-							state.text[state.b_text_read++] = static_cast<char>(static_cast<unsigned char>(sym));
-							
-							if ( state.b_text_read == state.l_text )
-							{
-								// removing padding null bytes
-								while ( state.l_text && (!state.text[state.l_text-1]) )
-									--state.l_text;
-									
-								#if 0
-								std::cerr << 
-									std::string(
-										state.text.begin(),
-										state.text.begin()+state.l_text);
-								#endif
-							
-								state.state = bam_header_read_n_ref;
-							}
-							
-							break;
-						}
-						case bam_header_read_n_ref:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-							
-							state.n_ref |= static_cast<uint64_t>(sym) << (8*state.b_n_ref);
-							state.b_n_ref += 1;
-							
-							if ( state.b_n_ref == 4 )
-							{
-								state.chromosomes.resize(state.n_ref);
-								
-								if ( state.n_ref )
-									state.state = bam_header_reaf_ref_l_name;
-								else
-									state.state = bam_header_read_done;
-							}
-							
-							break;
-						}
-						case bam_header_reaf_ref_l_name:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-
-							state.l_name |= static_cast<uint64_t>(sym) << (8*state.b_l_name_read);
-							state.b_l_name_read += 1;
-							
-							if ( state.b_l_name_read == 4 )
-							{
-								state.b_name_read = 0;
-								if ( state.l_name > state.name.size() )
-									state.name.resize(state.l_name);
-								
-								if ( state.l_name )
-									state.state = bam_header_read_ref_name;
-								else
-									state.state = bam_header_read_ref_l_ref;
-							}
-							break;
-						}
-						case bam_header_read_ref_name:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-							
-							state.name[state.b_name_read] = static_cast<char>(static_cast<unsigned char>(sym));
-							state.b_name_read += 1;
-							
-							if ( state.b_name_read == state.l_name )
-								state.state = bam_header_read_ref_l_ref;
-							
-							break;
-						}
-						case bam_header_read_ref_l_ref:
-						{
-							uint8_t const sym = getByte(in);
-							r += 1;
-							
-							state.l_ref |= static_cast<uint64_t>(sym) << (8*state.b_l_ref_read);
-							state.b_l_ref_read += 1;
-							
-							if ( state.b_l_ref_read == 4 )
-							{
-								// remove padding null bytes from name
-								while ( state.l_name && (!state.name[state.l_name-1]) )
-									-- state.l_name;							
-
-								state.chromosomes[state.b_ref] = ::libmaus::bambam::Chromosome(
-									std::string(state.name.begin(),state.name.begin()+state.l_name),
-									state.l_ref
-								);
-
-								#if 0
-								std::cerr << 
-									std::string(state.name.begin(),state.name.begin()+state.l_name)
-									<< "\t"
-									<< state.l_ref << std::endl;
-								#endif
-
-								state.b_ref += 1;
-								
-								if ( state.b_ref == state.n_ref )
-								{
-									state.state = bam_header_read_done;
-								}
-								else
-								{
-									state.b_l_name_read = 0;
-									state.l_name = 0;
-									state.b_name_read = 0;
-									state.b_l_ref_read = 0;
-									state.l_ref = 0;
-									state.state = bam_header_reaf_ref_l_name;
-								}
-							}				
-							break;
-						}
-						case bam_header_read_done:
-						{
-							break;
-						}
-						case bam_header_read_failed:
-						{
-							break;
-						}
-						default:
-							state.state = bam_header_read_failed;
-							break;
-					}
-				} 
-				
-				if ( state.state == bam_header_read_failed )
-				{
-					libmaus::exception::LibMausException se;
-					se.getStream() << "BamHeader::parseHeader failed." << std::endl;
-					se.finish();
-					throw se;
-				}
-				
-				return 
-					std::pair<bool,uint64_t>(state.state == bam_header_read_done,r);
 			}
 			
 			struct HeaderLineSQNameComparator

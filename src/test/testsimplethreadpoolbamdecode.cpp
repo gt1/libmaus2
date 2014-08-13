@@ -564,7 +564,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	libmaus::parallel::LockedBool bamParseComplete;
 
 	libmaus::parallel::LockedBool haveheader;
-	::libmaus::bambam::BamHeader::BamHeaderParserState bamheaderparsestate;
+	::libmaus::bambam::BamHeaderParserState bamheaderparsestate;
 	libmaus::bambam::BamHeader header;
 	
 	enum bam_parser_state_type {
@@ -936,7 +936,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		if ( (! contextbase.haveheader.get()) && (pa != pc) )
 		{			
 			::libmaus::util::GetObject<uint8_t const *> G(pa);
-			std::pair<bool,uint64_t> const P = ::libmaus::bambam::BamHeader::parseHeader(G,contextbase.bamheaderparsestate,pc-pa);
+			std::pair<bool,uint64_t> const P = contextbase.bamheaderparsestate.parseHeader(G,pc-pa);
 
 			// header complete?
 			if ( P.first )
