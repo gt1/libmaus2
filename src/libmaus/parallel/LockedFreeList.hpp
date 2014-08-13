@@ -32,6 +32,7 @@ namespace libmaus
 			typedef libmaus::util::FreeList<element_type> base_type;
 			typedef LockedFreeList<element_type> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			libmaus::parallel::PosixSpinLock lock;
 
