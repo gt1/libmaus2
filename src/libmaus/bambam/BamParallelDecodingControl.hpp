@@ -19,19 +19,22 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMDECOMPRESSIONCONTROL_HPP)
 #define LIBMAUS_BAMBAM_BAMDECOMPRESSIONCONTROL_HPP
 
+#include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus/bambam/BamHeaderParserState.hpp>
 #include <libmaus/bambam/BamHeaderLowMem.hpp>
 #include <libmaus/lz/BgzfInflateBase.hpp>
 #include <libmaus/lz/BgzfInflateHeaderBase.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/PosixMutex.hpp>
 #include <libmaus/parallel/LockedFreeList.hpp>
+#include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/util/FreeList.hpp>
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/util/GrowingFreeList.hpp>
 
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <stack>
 
 namespace libmaus
 {
@@ -100,6 +103,57 @@ namespace libmaus
 			}
 		};
 		
+		enum bam_parallel_decoding_dispatcher_id_type
+		{
+			bam_parallel_decoding_dispatcher_id_input_block
+		};
+		
+		struct BamParallelDecodingInputBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+		{
+			std::istream * stream;
+			uint64_t streamid;
+			uint64_t blockid;
+			
+			void init()
+			{
+				dispatcherid = bam_parallel_decoding_dispatcher_id_input_block;	
+			}
+		
+			BamParallelDecodingInputBlockWorkPackage()
+			: libmaus::parallel::SimpleThreadWorkPackage(), stream(0), streamid(0), blockid(0)
+			{
+				init();
+			}
+			
+			BamParallelDecodingInputBlockWorkPackage(
+				uint64_t const rpriority, 
+				uint64_t const rdispatcherid, 
+				uint64_t const rpackageid = 0
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), stream(0), streamid(0), blockid(0)
+			{			
+				init();
+			}
+
+			BamParallelDecodingInputBlockWorkPackage(
+				uint64_t const rpriority, 
+				uint64_t const rdispatcherid, 
+				std::istream * const rstream,
+				uint64_t const rstreamid,
+				uint64_t const rblockid,		
+				uint64_t const rpackageid = 0
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), stream(rstream), streamid(rstreamid), blockid(rblockid)
+			{
+				init();			
+			}
+		
+			char const * getPackageName() const
+			{
+				return "BamParallelDecodingInputBlockWorkPackage";
+			}
+		};
+		
 		struct BamParallelDecodingDecompressedBlock
 		{
 			typedef BamParallelDecodingDecompressedBlock this_type;
@@ -148,6 +202,41 @@ namespace libmaus
 				return decompressBlock(deccont,inblock.C.begin(),inblock.payloadsize,uncompdatasize);
 			}
 		};
+
+		struct BamParallelDecodingPushBackSpace
+		{
+			libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> algnFreeList;
+			std::stack<libmaus::bambam::BamAlignment *> putbackStack;
+
+			BamParallelDecodingPushBackSpace()
+			: algnFreeList(), putbackStack()
+			{
+			
+			}
+			
+			void push(uint8_t const * D, uint64_t const bs)
+			{
+				libmaus::bambam::BamAlignment * algn = algnFreeList.get();
+				algn->copyFrom(D,bs);
+				putbackStack.push(algn);
+			}
+			
+			bool empty() const
+			{
+				return putbackStack.empty();
+			}
+			
+			libmaus::bambam::BamAlignment * top()
+			{
+				assert ( ! empty() );
+				return putbackStack.top();
+			}
+			
+			void pop()
+			{
+				putbackStack.pop();
+			}
+		};
 		
 		struct BamParallelDecodingAlignmentBuffer
 		{
@@ -173,7 +262,7 @@ namespace libmaus
 			
 			uint64_t fill() const
 			{
-				return (reinterpret_cast<pointer_type const *>(A.end()) - pP) / pointerdif;
+				return (reinterpret_cast<pointer_type const *>(A.end()) - pP);
 			}
 			
 			void reset()
@@ -200,20 +289,104 @@ namespace libmaus
 			
 			void reorder()
 			{
+				uint64_t const pref = (reinterpret_cast<pointer_type *>(A.end()) - pP) / pointerdif;
+			
 				// compact pointer array if pointerdif>1
 				if ( pointerdif > 1 )
 				{
-					pointer_type * i = pP;
-					pointer_type * j = pP;
+					// start at the end
+					pointer_type * i = reinterpret_cast<pointer_type *>(A.end());
+					pointer_type * j = reinterpret_cast<pointer_type *>(A.end());
 					
-					while ( i != reinterpret_cast<pointer_type *>(A.end()) )
+					// work back to front
+					while ( i != pP )
 					{
-						*(j++) = *i;
-						i += pointerdif;
+						i -= pointerdif;
+						j -= 1;
+						
+						*j = *i;
 					}
+					
+					// reset pointer
+					pP = j;
+				}
+
+				std::reverse(pP,reinterpret_cast<pointer_type *>(A.end()));
+				
+				uint64_t const postf = reinterpret_cast<pointer_type *>(A.end()) - pP;
+				
+				assert ( pref == postf );
+			}
+			
+			uint64_t removeLastName(BamParallelDecodingPushBackSpace & BPDPBS)
+			{
+				uint64_t const c = countLastName();
+				uint64_t const f = fill();
+				
+				for ( uint64_t i = 0; i < c; ++i )
+				{
+					uint64_t const p = pP[f-i-1];
+					BPDPBS.push(A.begin()+p+4,decodeLength(p));
+				}
+
+				// start at the end
+				pointer_type * i = reinterpret_cast<pointer_type *>(A.end())-c;
+				pointer_type * j = reinterpret_cast<pointer_type *>(A.end());
+				
+				// move pointers to back
+				while ( i != pP )
+				{
+					--i;
+					--j;
+					*j = *i;
 				}
 				
-				std::reverse(pP,pP+fill());
+				pP = j;
+				
+				return c;
+			}
+			
+			uint64_t countLastName() const
+			{
+				uint64_t const f = fill();
+				
+				if ( f <= 1 )
+					return f;
+				
+				char const * lastname = libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-1] + 4);
+				
+				uint64_t s = 1;
+				
+				while ( 
+					s < f 
+					&&
+					strcmp(
+						lastname,
+						libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-s-1] + 4)	
+					) == 0
+				)
+					++s;
+				
+				#if 0	
+				for ( uint64_t i = 0; i < s; ++i )
+				{
+					std::cerr << "[" << i << "]=" << libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-i-1] + 4) << std::endl;
+				}
+				#endif
+				
+				if ( s != f )
+				{
+					assert (
+						strcmp(
+							lastname,
+							libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-s-1] + 4)
+						)
+						!= 
+						0
+					);
+				}
+					
+				return s;
 			}
 			
 			bool checkValidPacked() const
@@ -237,7 +410,8 @@ namespace libmaus
 
 			bool checkValidUnpacked() const
 			{
-				uint64_t const f = fill();
+				// number of elements in buffer
+				uint64_t const f = fill() / pointerdif;
 				bool ok = true;
 				
 				for ( uint64_t i = 0; ok && i < f; ++i )
@@ -280,19 +454,18 @@ namespace libmaus
 				}
 			}
 		};
-
+		
 		struct BamParallelDecodingParseInfo
 		{
 			typedef BamParallelDecodingParseInfo this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
+			BamParallelDecodingPushBackSpace BPDPBS;
+			
 			libmaus::bambam::BamHeaderParserState BHPS;
 			bool headerComplete;
 			libmaus::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
-			
-			libmaus::autoarray::AutoArray<char> putbackBuffer;
-			unsigned int putbackBufferFill;
 
 			libmaus::autoarray::AutoArray<char> concatBuffer;
 			unsigned int concatBufferFill;
@@ -307,8 +480,7 @@ namespace libmaus
 			uint32_t blocklen;
 			
 			BamParallelDecodingParseInfo()
-			: BHPS(), headerComplete(false),
-			  putbackBuffer(), putbackBufferFill(0),
+			: BPDPBS(), BHPS(), headerComplete(false),
 			  concatBuffer(), concatBufferFill(0), 
 			  parser_state(parser_state_read_blocklength),
 			  blocklengthread(0), blocklen(0)
@@ -325,6 +497,16 @@ namespace libmaus
 					(static_cast<uint32_t>(B[1]) << 8)  |
 					(static_cast<uint32_t>(B[2]) << 16) |
 					(static_cast<uint32_t>(B[3]) << 24) ;
+			}
+			
+			void putBackLastName(BamParallelDecodingAlignmentBuffer & algnbuf)
+			{
+				algnbuf.removeLastName(BPDPBS);
+			}
+			
+			bool putBackBufferEmpty() const
+			{
+				return BPDPBS.empty();
 			}
 
 			bool parseBlock(
@@ -352,13 +534,16 @@ namespace libmaus
 						Pheader = UNIQUE_PTR_MOVE(Theader);						
 					}
 				}
-			
-				if ( putbackBufferFill )
-				{
-					if ( ! (algnbuf.put(putbackBuffer.begin(),putbackBufferFill)) )
-						return false;
 
-					putbackBufferFill = 0;
+				// check put back buffer
+				while ( ! BPDPBS.empty() )
+				{
+					libmaus::bambam::BamAlignment * talgn = BPDPBS.top();
+					
+					if ( ! (algnbuf.put(reinterpret_cast<char const *>(talgn->D.begin()),talgn->blocksize)) )
+						return false;
+						
+					BPDPBS.pop();
 				}
 				
 				// concat buffer contains data
@@ -522,6 +707,7 @@ namespace libmaus
 				bool running = true;
 				BamParallelDecodingParseInfo BPDP;
 				// BamParallelDecodingAlignmentBuffer BPDAB(2*1024ull*1024ull*1024ull,2);
+				// BamParallelDecodingAlignmentBuffer BPDAB(1024ull*1024ull,2);
 				BamParallelDecodingAlignmentBuffer BPDAB(1024ull*1024ull,2);
 				uint64_t pcnt = 0;
 				uint64_t cnt = 0;
@@ -537,10 +723,17 @@ namespace libmaus
 					outblock->decompressBlock(decoders,*inblock);
 
 					running = running && (!(outblock->final));
-					
+
 					while ( ! BPDP.parseBlock(*outblock,BPDAB) )
 					{
+						//BPDAB.checkValidUnpacked();
+						BPDAB.reorder();
+						// BPDAB.checkValidPacked();
+						
+						BPDP.putBackLastName(BPDAB);
+
 						cnt += BPDAB.fill();
+								
 						BPDAB.reset();
 						
 						if ( cnt / (1024*1024) != pcnt / (1024*1024) )
@@ -555,7 +748,35 @@ namespace libmaus
 					decompressedBlockFreeList.put(outblock);
 					inputBlockFreeList.put(inblock);	
 				}
-				
+
+				while ( ! BPDP.putBackBufferEmpty() )
+				{				
+					decompressed_block_type * outblock = decompressedBlockFreeList.get();
+					assert ( ! outblock->uncompdatasize );
+					
+					while ( ! BPDP.parseBlock(*outblock,BPDAB) )
+					{
+						//BPDAB.checkValidUnpacked();
+						BPDAB.reorder();
+						// BPDAB.checkValidPacked();
+						
+						BPDP.putBackLastName(BPDAB);
+
+						cnt += BPDAB.fill();
+						
+						BPDAB.reset();
+
+						if ( cnt / (1024*1024) != pcnt / (1024*1024) )
+						{
+							std::cerr << "cnt=" << cnt << " als/sec=" << (static_cast<double>(cnt) / rtc.getElapsedSeconds()) << std::endl;
+							pcnt = cnt;			
+						}
+					}
+											
+					decompressedBlockFreeList.put(outblock);
+				}
+
+				BPDAB.reorder();
 				cnt += BPDAB.fill();
 				
 				std::cerr << "cnt=" << cnt << " als/sec=" << (static_cast<double>(cnt) / rtc.getElapsedSeconds()) << std::endl;
