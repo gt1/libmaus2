@@ -62,6 +62,7 @@ sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHI
 
 git add debian/changelog
 git add debian/libmaus0.install
+git add debian/libmaus0.shlibs
 
 git commit -F "${COMMITFILE}"
 
