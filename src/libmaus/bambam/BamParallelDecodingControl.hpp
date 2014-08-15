@@ -778,6 +778,7 @@ namespace libmaus
 
 				BPDAB.reorder();
 				cnt += BPDAB.fill();
+				BPDAB.reset();
 				
 				std::cerr << "cnt=" << cnt << " als/sec=" << (static_cast<double>(cnt) / rtc.getElapsedSeconds()) << std::endl;
 			}
