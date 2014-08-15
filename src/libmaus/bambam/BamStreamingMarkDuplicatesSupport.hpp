@@ -355,7 +355,7 @@ namespace libmaus
 
 				uint64_t const entriespertmpfile;
 
-				libmaus::bambam::BamAuxFilterVector zrtag;
+				libmaus::bambam::BamAuxFilterVector tagfilter;
 
 				libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignment *> OL;
 				uint64_t olsizefill;
@@ -370,6 +370,7 @@ namespace libmaus
 					writer_type & rwr,
 					libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> & rBAFL,	
 					std::string const & rtmpfileprefix,
+					std::vector<std::string> const & filtertagvec,
 					uint64_t const rentriespertmpfile = 16*1024
 				) 
 				: wr(rwr), BAFL(rBAFL), order(), OQ(), nextout(0), 
@@ -377,7 +378,9 @@ namespace libmaus
 				  OL(entriespertmpfile,false), olsizefill(0), tmpfileprefix(rtmpfileprefix),
 				  reorderfiles(tmpfileprefix,16)
 				{
-					zrtag.set('Z','R');
+					tagfilter.set('Z','R');
+					for ( uint64_t i = 0; i < filtertagvec.size(); ++i )
+						tagfilter.set(filtertagvec[i]);
 				}
 				
 				// flush output list
@@ -386,9 +389,8 @@ namespace libmaus
 					for ( uint64_t i = 0; i < olsizefill; ++i )
 					{
 						libmaus::bambam::BamAlignment * palgn = OL[i];
-						palgn->filterOutAux(zrtag);
+						palgn->filterOutAux(tagfilter);
 						wr.writeAlignment(*palgn);
-						// palgn->serialise(wr.getStream());
 						BAFL.put(palgn);
 					}
 					
@@ -431,8 +433,7 @@ namespace libmaus
 
 					for ( uint64_t i = 0; i < n; ++i )
 					{
-						algns[i].second->filterOutAux(zrtag);
-						// algns[i].second->serialise(wr.getStream());
+						algns[i].second->filterOutAux(tagfilter);
 						wr.writeAlignment(*(algns[i].second));
 						BAFL.put(algns[i].second);
 					}
