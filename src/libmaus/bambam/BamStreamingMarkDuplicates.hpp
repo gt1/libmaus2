@@ -34,6 +34,10 @@ namespace libmaus
 	{
 		struct BamStreamingMarkDuplicates : public libmaus::bambam::BamStreamingMarkDuplicatesSupport, public libmaus::bambam::BamBlockWriterBase
 		{
+			typedef BamStreamingMarkDuplicates this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+					
 			static int getDefaultMaxReadLen() { return 300; }
 			static int getDefaultOptMinPixelDif() { return 100; }
 
@@ -86,6 +90,7 @@ namespace libmaus
 			unsigned int const optminpixeldif;
 			int64_t const maxreadlen;
 			std::string const tmpfilenamebase;
+			bool const filterdupmarktags;
 			
 			libmaus::bambam::BamHeader const & header;
 
@@ -160,20 +165,32 @@ namespace libmaus
 
 			libmaus::autoarray::AutoArray<char> tagbuffer;
 			libmaus::fastx::FastATwoBitTable const FATBT;
+			
+			static std::vector<std::string> getFilterTags()
+			{
+				std::vector<std::string> V;
+				V.push_back("MQ");
+				V.push_back("MS");
+				V.push_back("MC");
+				V.push_back("MT");
+				return V;
+			}
 
 			BamStreamingMarkDuplicates(
 				libmaus::util::ArgInfo const & arginfo, 
 				libmaus::bambam::BamHeader const & rheader,
-				libmaus::bambam::BamBlockWriterBase & rwr
+				libmaus::bambam::BamBlockWriterBase & rwr,
+				bool const rfilterdupmarktags
 			)
 			: optminpixeldif(arginfo.getValue<unsigned int>("optminpixeldif",getDefaultOptMinPixelDif())),
 			  maxreadlen(arginfo.getValue<uint64_t>("maxreadlen",getDefaultMaxReadLen())),
 			  tmpfilenamebase(arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName())),
+			  filterdupmarktags(rfilterdupmarktags),
 			  header(rheader),
 			  wr(rwr),
 			  BAFL(),
 			  OILNFL(32*1024),
-			  OQ(wr,BAFL,tmpfilenamebase),
+			  OQ(wr,BAFL,tmpfilenamebase,filterdupmarktags ? getFilterTags() : std::vector<std::string>()),
 			  optfn(tmpfilenamebase+"_opt"),
 			  optSBOF(optfn),
 			  Qpair(),
