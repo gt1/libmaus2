@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
 
 namespace libmaus
