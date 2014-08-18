@@ -26,6 +26,7 @@
 #include <libmaus/parallel/SimpleThreadPoolInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageComparator.hpp>
+#include <libmaus/parallel/SynchronousCounter.hpp>
 #include <libmaus/parallel/LockedBool.hpp>
 #include <libmaus/util/unordered_map.hpp>
 
@@ -38,6 +39,9 @@ namespace libmaus
 			typedef SimpleThreadPool this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			libmaus::parallel::SynchronousCounter<uint64_t> nextDispatcherId;
+			
 			
 			uint64_t nextpackageid;
 			libmaus::parallel::PosixSpinLock nextpackageidlock;
@@ -55,6 +59,11 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadWorkPackage *,
 				libmaus::parallel::SimpleThreadWorkPackageComparator
 			> Q;
+			
+			uint64_t getNumThreads() const
+			{
+				return threads.size();
+			}
 
                         void panic(libmaus::exception::LibMausException const & ex)
                         {
@@ -203,6 +212,10 @@ namespace libmaus
 			void registerDispatcher(uint64_t const id, SimpleThreadWorkPackageDispatcher * D)
 			{
 				dispatchers[id] = D;
+			}
+			uint64_t getNextDispatcherId()
+			{
+				return nextDispatcherId++;
 			}
 		};
 	}
