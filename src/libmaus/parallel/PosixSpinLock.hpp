@@ -220,10 +220,11 @@ namespace libmaus
                 {
                 	PosixSpinLock & spinlock;
                 	
-                	ScopePosixSpinLock(PosixSpinLock & rspinlock)
+                	ScopePosixSpinLock(PosixSpinLock & rspinlock, bool prelocked = false)
                 	: spinlock(rspinlock)
                 	{
-                		spinlock.lock();
+                		if ( ! prelocked )
+	                		spinlock.lock();
                 	}
                 	~ScopePosixSpinLock()
                 	{
