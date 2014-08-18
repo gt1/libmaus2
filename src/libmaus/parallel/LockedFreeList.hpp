@@ -55,6 +55,16 @@ namespace libmaus
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::get();
 			}
+
+			element_type * getIf()
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				
+				if ( base_type::empty() )
+					return 0;
+				else
+					return base_type::get();
+			}
 			
 			void put(element_type * ptr)
 			{
