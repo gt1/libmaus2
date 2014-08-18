@@ -1,3 +1,9 @@
+libmaus (0.0.158-1) unstable; urgency=low
+
+  * fix compilation with glibc 2.4 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 18 Aug 2014 09:43:49 +0100
+
 libmaus (0.0.157-1) unstable; urgency=low
 
   * add tag filtering on streaming bam duplicate marking output
