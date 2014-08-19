@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/rank/ERankBase.hpp>
+
 #include <libmaus/lf/MultiRankCacheLF.hpp>
 #include <libmaus/bp/BalancedParentheses.hpp>
 #include <libmaus/util/IncreasingStack.hpp>

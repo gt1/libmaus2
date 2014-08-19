@@ -458,7 +458,8 @@ libmausrank_include_HEADERS=\
 	libmaus/rank/RunLengthBitVectorStream.hpp \
 	libmaus/rank/RunLengthBitVectorGeneratorBase.hpp \
 	libmaus/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
-	libmaus/rank/FastRank.hpp
+	libmaus/rank/FastRank.hpp \
+	libmaus/rank/BSwapBase.hpp
 	
 libmausselect_includedir=$(includedir)/libmaus/select
 libmausselect_include_HEADERS=\

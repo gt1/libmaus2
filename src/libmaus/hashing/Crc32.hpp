@@ -21,6 +21,7 @@
 #define LIBMAUS_HASHING_CRC32_HPP
  
 #include <libmaus/types/types.hpp>
+#include <libmaus/rank/BSwapBase.hpp>
 #include <cstdlib>
 
 namespace libmaus
@@ -42,7 +43,7 @@ namespace libmaus
 			  while (length >= 8)
 			  {
 #if defined(LIBMAUS_BYTE_ORDER_BIG_ENDIAN)
-			    uint32_t one = *current++ ^ __builtin_bswap32(crc);
+			    uint32_t one = *current++ ^ libmaus::rank::BSwapBase::bswap4(crc);
 			    uint32_t two = *current++;
 			    crc  = Crc32Lookup[0][ two      & 0xFF] ^
 				   Crc32Lookup[1][(two>> 8) & 0xFF] ^
