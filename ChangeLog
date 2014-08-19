@@ -1,3 +1,9 @@
+libmaus (0.0.160-1) unstable; urgency=low
+
+  * avoid x86 specific asm when not compiling for x86 architecture 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 19 Aug 2014 14:38:31 +0100
+
 libmaus (0.0.159-1) unstable; urgency=low
 
   * remove usage of gcc builtin for byte swapping 
