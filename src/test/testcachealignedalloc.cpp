@@ -21,7 +21,7 @@
 
 void testCacheAlignedAlloc()
 {
-	#if defined(LIBMAUS_USE_ASSEMBLY)
+	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
 	{
 	unsigned int const linesize = ::libmaus::util::I386CacheLineSize::getCacheLineSize();
 	std::cerr << "linesize = " << linesize << std::endl;
