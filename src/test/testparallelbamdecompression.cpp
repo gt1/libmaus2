@@ -22,7 +22,8 @@ int main()
 {
 	try
 	{
-		libmaus::bambam::BamParallelDecodingControl::serialTestDecode1(std::cin,std::cout);
+		// libmaus::bambam::BamParallelDecodingControl::serialTestDecode1(std::cin,std::cout);
+		libmaus::bambam::BamParallelDecodingControl::serialParallelDecode1(std::cin);
 	}
 	catch(std::exception const & ex)
 	{
