@@ -22,7 +22,7 @@
 
 #include <libmaus/fastx/FastQReader.hpp>
 #include <libmaus/fastx/StreamFastQReader.hpp>
-#include <libmaus/lz/BufferedGzipStream.hpp>
+#include <libmaus/lz/BufferedGzipStreamWrapper.hpp>
 
 namespace libmaus
 {

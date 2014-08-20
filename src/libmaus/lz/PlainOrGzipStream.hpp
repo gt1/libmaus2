@@ -16,27 +16,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(BUFFEREDGZIPSTREAM_HPP)
-#define BUFFEREDGZIPSTREAM_HPP
+#if ! defined(PLAINORGZIPSTREAM_HPP)
+#define PLAINORGZIPSTREAM_HPP
 
-#include <libmaus/lz/GzipStreamWrapper.hpp>
+#include <libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct BufferedGzipStream : public GzipStreamWrapper, ::libmaus::lz::StreamWrapper< ::libmaus::lz::GzipStream >
+		struct PlainOrGzipStream : PlainOrGzipStreamBufferWrapper, std::istream
 		{
-			typedef BufferedGzipStream this_type;
+			typedef PlainOrGzipStream this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			BufferedGzipStream(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
-			: GzipStreamWrapper(in), ::libmaus::lz::StreamWrapper< ::libmaus::lz::GzipStream >(GZ,bufsize,pushbacksize)
+
+			PlainOrGzipStream(int const rfd, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
+			: PlainOrGzipStreamBufferWrapper(rfd,bufsize,pushbacksize), std::istream(PlainOrGzipStreamBufferWrapper::getStreamBuffer())
 			{
 			
-			}	
-		};		
+			}			
+			PlainOrGzipStream(std::istream & istr, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
+			: PlainOrGzipStreamBufferWrapper(istr,bufsize,pushbacksize), std::istream(PlainOrGzipStreamBufferWrapper::getStreamBuffer())
+			{
+			
+			}			
+		};
 	}
 }
 #endif

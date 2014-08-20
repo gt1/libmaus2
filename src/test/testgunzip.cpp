@@ -16,13 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/lz/PlainOrGzipStream.hpp>
 #include <libmaus/lz/BufferedGzipStream.hpp>
+// #include <libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp>
 
 int main()
 {
 	try
 	{
-		::libmaus::lz::BufferedGzipStream BGS(std::cin);
+		// ::libmaus::lz::BufferedGzipStream BGS(std::cin);
+		libmaus::lz::PlainOrGzipStream BGS(std::cin);
 		::libmaus::autoarray::AutoArray<char> B(64*1024);
 		
 		while ( BGS )
