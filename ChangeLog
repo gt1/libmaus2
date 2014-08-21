@@ -1,3 +1,9 @@
+libmaus (0.0.162-1) unstable; urgency=low
+
+  * fix chunk merging for range restricted bam decoding 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 21 Aug 2014 14:29:48 +0100
+
 libmaus (0.0.161-1) unstable; urgency=low
 
   * add PlainOrGzipStream class 
