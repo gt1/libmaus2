@@ -273,36 +273,38 @@ namespace libmaus
 				uint64_t const beg,
 				uint64_t const end) const
 			{
+				// get set of matching bins
 				libmaus::autoarray::AutoArray<BamIndexBin const *> bins;
 				uint64_t const numbins = reg2bins(refid,beg,end,bins);
 				std::vector < std::pair<uint64_t,uint64_t> > C;
 				
+				// extract chunks
 				for ( uint64_t b = 0; b < numbins; ++b )
 				{
 					BamIndexBin const * bin = bins[b];
 					
 					for ( uint64_t i = 0; i < bin->chunks.size(); ++i )
-					{
 						C.push_back(bin->chunks[i]);
-					}
 				}
 				
+				// sort chunks
 				std::sort(C.begin(),C.end());
 				
+				// merge chunks
 				uint64_t low = 0;
 				uint64_t out = 0;
-				
+								
 				while ( low != C.size() )
 				{
 					uint64_t high = low+1;
-					
-					while ( high != C.size() && C[high-1].second == C[high].first )
+
+					while ( high != C.size() && C[low].second >= C[high].first )
+					{
+						C[low].second = std::max(C[low].second,C[high].second);
 						++high;
-						
-					for ( uint64_t i = low+1; i < high; ++i )
-						assert ( C[i-1].second == C[i].first );
-					
-					C[out++] = std::pair<uint64_t,uint64_t>(C[low].first,C[high-1].second);
+					}
+										
+					C[out++] = C[low];
 					
 					low = high;
 				}
