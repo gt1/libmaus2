@@ -25,7 +25,7 @@
 
 #if defined(__linux__)
 #include <sys/vfs.h>
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/param.h>
 #include <sys/mount.h>          
 #endif
@@ -54,7 +54,7 @@ namespace libmaus
 			public:
 			static int getDefaultFlags()
 			{
-				#if defined(__APPLE__)
+				#if defined(__APPLE__) || defined(__FreeBSD__)
 				return O_RDONLY;
 				#else
 				return O_RDONLY|O_LARGEFILE;
@@ -290,6 +290,10 @@ namespace libmaus
 							// file system does not support statfs
 							case ENOSYS:
 								return -1;
+							#if defined(__FreeBSD__)
+							case EINVAL:
+								return -1;
+							#endif
 							default:
 							{
 								int const error = errno;
