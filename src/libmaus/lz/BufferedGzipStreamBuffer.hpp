@@ -16,28 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(STREAMWRAPPER_HPP)
-#define STREAMWRAPPER_HPP
+#if ! defined(BUFFEREDGZIPSTREAMBUFFER_HPP)
+#define BUFFEREDGZIPSTREAMBUFFER_HPP
 
-#include <libmaus/lz/StreamWrapperBuffer.hpp>
+#include <libmaus/lz/GzipStreamWrapper.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		template<typename stream_type>
-		struct StreamWrapper : public StreamWrapperBuffer<stream_type>, public ::std::istream
+		struct BufferedGzipStreamBuffer : public GzipStreamWrapper, ::libmaus::lz::StreamWrapperBuffer< ::libmaus::lz::GzipStream >
 		{
-			StreamWrapper(stream_type & stream, uint64_t const buffersize, uint64_t const pushbackspace)
-			: StreamWrapperBuffer<stream_type>(stream,buffersize,pushbackspace), ::std::istream(this)
+			typedef BufferedGzipStreamBuffer this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			BufferedGzipStreamBuffer(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
+			: GzipStreamWrapper(in), ::libmaus::lz::StreamWrapperBuffer< ::libmaus::lz::GzipStream >(GZ,bufsize,pushbacksize)
 			{
-				
-			}
-			uint64_t tellg() const
-			{
-				return StreamWrapperBuffer<stream_type>::tellg();
-			}
-		};
+			
+			}	
+		};		
 	}
 }
 #endif

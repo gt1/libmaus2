@@ -19,7 +19,7 @@
 #if ! defined(ERANKBASE_HPP)
 #define ERANKBASE_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus/rank/BSwapBase.hpp>
 #include <libmaus/rank/RankTable.hpp>
 #include <libmaus/rank/EncodeCache.hpp>
 #include <libmaus/rank/DecodeCache.hpp>
@@ -36,67 +36,6 @@ namespace libmaus
 {
 	namespace rank
 	{
-		struct BSwapBase
-		{
-			virtual ~BSwapBase() {}
-		
-			/**
-			 * invert byte order of 2 byte word
-			 * @param val
-			 * @return val in inverted byte order
-			 **/
-			static inline uint16_t bswap2(uint16_t val)
-			{
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386) 
-				__asm__("xchg %%al,%%ah" : "+a"(val));
-				return val;
-	#else
-				return ((val&0xFF)<<8) | ((val&0xFF00)>>8);
-	#endif
-			}
-			/**
-			 * invert byte order of 4 byte word
-			 * @param val
-			 * @return val in inverted byte order
-			 **/
-			static inline uint32_t bswap4(uint32_t val)
-			{
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
-				__asm__("bswap %0" : "+r"(val));
-				return val;
-	#else
-				return
-					  ((val & 0xff000000) >> 24) 
-					| ((val & 0x000000ff) << 24)
-					| ((val & 0x00ff0000) >>  8) 
-					| ((val & 0x0000ff00) <<  8) 
-					;
-	#endif
-			}
-			/**
-			 * invert byte order of 8 byte word
-			 * @param val
-			 * @return val in inverted byte order
-			 **/
-			static inline uint64_t bswap8(uint64_t val)
-			{
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64)
-				__asm__("bswap %0" : "+r"(val));
-				return val;
-	#else
-				return    ((val & 0xff00000000000000ull) >> 56)
-					| ((val & 0x00000000000000ffull) << 56)
-					| ((val & 0x00ff000000000000ull) >> 40)
-					| ((val & 0x000000000000ff00ull) << 40)
-					| ((val & 0x0000ff0000000000ull) >> 24)
-					| ((val & 0x0000000000ff0000ull) << 24)
-					| ((val & 0x000000ff00000000ull) >> 8)
-					| ((val & 0x00000000ff000000ull) << 8)
-					;
-	#endif
-			}
-		};
-	
 		/**
 		 * rank base functions
 		 **/

@@ -84,6 +84,46 @@ namespace libmaus
 				return c;
 			}
 			
+			static bool checkGzipMagic(::std::istream & in)
+			{
+				// stream already bad?
+				if ( ! in )
+					return false;
+					
+				int const c0 = in.get();
+				if ( c0 < 0 )
+				{
+					in.clear();	
+					return false;
+				}
+				if ( c0 != ID1 )
+				{
+					in.putback(c0);
+					return false;
+				}
+				
+				int const c1 = in.get();
+				if ( c1 < 0 )
+				{
+					in.clear();
+					in.putback(c0);
+					return false;
+				}
+				if ( c1 != ID2 )
+				{
+					in.putback(c1);
+					in.putback(c0);
+					return false;
+				}
+				
+				assert ( c0 == ID1 );
+				assert ( c1 == ID2 );
+
+				in.putback(c1);
+				in.putback(c0);
+				return true;
+			}
+			
 			static uint64_t getByteAsWord(::std::istream & in, std::ostream * out = 0)
 			{
 				return getByte(in,out);

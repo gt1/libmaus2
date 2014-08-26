@@ -16,27 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(STREAMWRAPPER_HPP)
-#define STREAMWRAPPER_HPP
+#if ! defined(BUFFEREDGZIPSTREAMWRAPPER_HPP)
+#define BUFFEREDGZIPSTREAMWRAPPER_HPP
 
-#include <libmaus/lz/StreamWrapperBuffer.hpp>
+#include <libmaus/lz/BufferedGzipStream.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		template<typename stream_type>
-		struct StreamWrapper : public StreamWrapperBuffer<stream_type>, public ::std::istream
+		struct BufferedGzipStreamWrapper
 		{
-			StreamWrapper(stream_type & stream, uint64_t const buffersize, uint64_t const pushbackspace)
-			: StreamWrapperBuffer<stream_type>(stream,buffersize,pushbackspace), ::std::istream(this)
-			{
-				
-			}
-			uint64_t tellg() const
-			{
-				return StreamWrapperBuffer<stream_type>::tellg();
-			}
+			BufferedGzipStream object;
+			
+			BufferedGzipStreamWrapper(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
+			: object(in,bufsize,pushbacksize) {}
 		};
 	}
 }

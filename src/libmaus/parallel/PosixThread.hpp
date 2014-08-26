@@ -335,7 +335,7 @@ namespace libmaus
 				#endif
 			)
 			{
-				#if defined(LIBMAUS_HAVE_PRCTL)
+				#if defined(LIBMAUS_HAVE_PRCTL) && defined(PR_SET_NAME)
 				prctl(PR_SET_NAME,name.c_str(),0,0,0);
 				#endif
 			}

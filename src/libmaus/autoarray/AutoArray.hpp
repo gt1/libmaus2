@@ -682,7 +682,7 @@ namespace libmaus
 			/**
 			 * @return size of a (level 1) cache line in bytes
 			 **/
-			#if defined(__linux__)
+			#if defined(__linux__) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
 			static uint64_t getCacheLineSize()
 			{
 				uint64_t sclinesize = sysconf (_SC_LEVEL1_DCACHE_LINESIZE);
