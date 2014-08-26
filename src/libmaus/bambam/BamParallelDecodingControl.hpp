@@ -27,6 +27,7 @@
 #include <libmaus/lz/BgzfInflateHeaderBase.hpp>
 #include <libmaus/parallel/LockedFreeList.hpp>
 #include <libmaus/parallel/LockedGrowingFreeList.hpp>
+#include <libmaus/parallel/LockedQueue.hpp>
 #include <libmaus/parallel/PosixMutex.hpp>
 #include <libmaus/parallel/PosixSpinLock.hpp>
 #include <libmaus/parallel/SimpleThreadPool.hpp>
@@ -54,7 +55,7 @@ namespace libmaus
 			libmaus::lz::BgzfInflateHeaderBase inflateheaderbase;
 			//! size of block payload
 			uint64_t payloadsize;
-			//! decompressed data
+			//! compressed data
 			libmaus::autoarray::AutoArray<char> C;
 			//! size of decompressed data
 			uint64_t uncompdatasize;
@@ -137,11 +138,6 @@ namespace libmaus
 			}
 		};
 		
-		enum bam_parallel_decoding_dispatcher_id_type
-		{
-			bam_parallel_decoding_dispatcher_id_input_block
-		};
-		
 		struct BamParallelDecodingInputBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
 		{
 			typedef BamParallelDecodingInputBlockWorkPackage this_type;
@@ -149,22 +145,20 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			BamParallelDecodingControlInputInfo * inputinfo;
-		
-			void init()
-			{
-				dispatcherid = bam_parallel_decoding_dispatcher_id_input_block;	
-			}
-		
+
 			BamParallelDecodingInputBlockWorkPackage()
-			: libmaus::parallel::SimpleThreadWorkPackage(), inputinfo(0)
+			: 
+				libmaus::parallel::SimpleThreadWorkPackage(), 
+				inputinfo(0)
 			{
-				init();
 			}
 			
-			BamParallelDecodingInputBlockWorkPackage(uint64_t const rpriority, BamParallelDecodingControlInputInfo * rinputinfo)
-			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,bam_parallel_decoding_dispatcher_id_input_block), inputinfo(rinputinfo)
+			BamParallelDecodingInputBlockWorkPackage(
+				uint64_t const rpriority, BamParallelDecodingControlInputInfo * rinputinfo,
+				uint64_t const rreadDispatcherId
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rreadDispatcherId), inputinfo(rinputinfo)
 			{
-				init();			
 			}
 		
 			char const * getPackageName() const
@@ -173,12 +167,14 @@ namespace libmaus
 			}
 		};
 		
+		// return input block work package
 		struct BamParallelDecodingInputBlockWorkPackageReturnInterface
 		{
 			virtual ~BamParallelDecodingInputBlockWorkPackageReturnInterface() {}
 			virtual void putBamParallelDecodingInputBlockWorkPackage(BamParallelDecodingInputBlockWorkPackage * package) = 0;
 		};
 
+		// add input block pending decompression
 		struct BamParallelDecodingInputBlockAddPendingInterface
 		{
 			virtual ~BamParallelDecodingInputBlockAddPendingInterface() {}
@@ -269,15 +265,43 @@ namespace libmaus
 			char const * P;
 			//! true if this is the last block in the stream
 			bool final;
+			//! stream id
+			uint64_t streamid;
+			//! block id
+			uint64_t blockid;
 			
 			BamParallelDecodingDecompressedBlock() 
 			: 
 				D(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
 				uncompdatasize(0), 
 				P(0),
-				final(false)
+				final(false),
+				streamid(0),
+				blockid(0)
 			{}
 			
+			uint64_t decompressBlock(
+				libmaus::lz::BgzfInflateZStreamBase * decoder,
+				char * in,
+				unsigned int const inlen,
+				unsigned int const outlen
+			)
+			{
+				decoder->zdecompress(reinterpret_cast<uint8_t *>(in),inlen,D.begin(),outlen);
+				return outlen;
+			}
+
+			uint64_t decompressBlock(
+				libmaus::lz::BgzfInflateZStreamBase * decoder,
+				BamParallelDecodingInputBlock * inblock
+			)
+			{
+				uncompdatasize = inblock->uncompdatasize;
+				final = inblock->final;
+				P = D.begin();
+				return decompressBlock(decoder,inblock->C.begin(),inblock->payloadsize,uncompdatasize);
+			}
+
 			uint64_t decompressBlock(
 				libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase> & deccont,
 				char * in,
@@ -286,10 +310,9 @@ namespace libmaus
 			)
 			{
 				libmaus::lz::BgzfInflateZStreamBase * decoder = deccont.get();				
-				decoder->zdecompress(reinterpret_cast<uint8_t *>(in),inlen,D.begin(),outlen);
+				uint64_t const r = decompressBlock(decoder,in,inlen,outlen);
 				deccont.put(decoder);
-				
-				return outlen;
+				return r;
 			}
 			
 			uint64_t decompressBlock(
@@ -302,6 +325,113 @@ namespace libmaus
 				P = D.begin();
 				return decompressBlock(deccont,inblock.C.begin(),inblock.payloadsize,uncompdatasize);
 			}
+		};
+
+		struct BamParallelDecodingDecompressBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+		{
+			typedef BamParallelDecodingDecompressBlockWorkPackage this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			BamParallelDecodingControlInputInfo::input_block_type * inputblock;
+			BamParallelDecodingDecompressedBlock * outputblock;
+			libmaus::lz::BgzfInflateZStreamBase * decoder;
+
+			BamParallelDecodingDecompressBlockWorkPackage()
+			: 
+				libmaus::parallel::SimpleThreadWorkPackage(), 
+				inputblock(0),
+				outputblock(0),
+				decoder(0)
+			{
+			}
+			
+			BamParallelDecodingDecompressBlockWorkPackage(
+				uint64_t const rpriority, 
+				BamParallelDecodingControlInputInfo::input_block_type * rinputblock,
+				BamParallelDecodingDecompressedBlock * routputblock,
+				libmaus::lz::BgzfInflateZStreamBase * rdecoder,
+				uint64_t const rdecompressDispatcherId
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), inputblock(rinputblock), outputblock(routputblock), decoder(rdecoder)
+			{
+			}
+		
+			char const * getPackageName() const
+			{
+				return "BamParallelDecodingDecompressBlockWorkPackage";
+			}
+		};
+
+		// return decompress block work package
+		struct BamParallelDecodingDecompressBlockWorkPackageReturnInterface
+		{
+			virtual ~BamParallelDecodingDecompressBlockWorkPackageReturnInterface() {}
+			virtual void putBamParallelDecodingDecompressBlockWorkPackage(BamParallelDecodingDecompressBlockWorkPackage * package) = 0;
+		};
+
+		// return input block after decompression
+		struct BamParallelDecodingInputBlockReturnInterface
+		{
+			virtual ~BamParallelDecodingInputBlockReturnInterface() {}
+			virtual void putBamParallelDecodingInputBlockReturn(BamParallelDecodingControlInputInfo::input_block_type * block) = 0;
+		};
+		
+		// add decompressed block to pending list
+		struct BamParallelDecodingDecompressedBlockAddPendingInterface
+		{
+			virtual ~BamParallelDecodingDecompressedBlockAddPendingInterface() {}
+			virtual void putBamParallelDecodingDecompressedBlockAddPending(BamParallelDecodingDecompressedBlock * block) = 0;
+		};
+
+		// return a bgzf decoder object		
+		struct BamParallelDecodingBgzfInflateZStreamBaseReturnInterface
+		{
+			virtual ~BamParallelDecodingBgzfInflateZStreamBaseReturnInterface() {}
+			virtual void putBamParallelDecodingBgzfInflateZStreamBaseReturn(libmaus::lz::BgzfInflateZStreamBase * decoder) = 0;
+		};
+
+		// dispatcher for block decompression
+		struct BamParallelDecodingDecompressBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+		{
+			BamParallelDecodingDecompressBlockWorkPackageReturnInterface & packageReturnInterface;
+			BamParallelDecodingInputBlockReturnInterface & inputBlockReturnInterface;
+			BamParallelDecodingDecompressedBlockAddPendingInterface & decompressedBlockPendingInterface;
+			BamParallelDecodingBgzfInflateZStreamBaseReturnInterface & decoderReturnInterface;
+
+			BamParallelDecodingDecompressBlockWorkPackageDispatcher(
+				BamParallelDecodingDecompressBlockWorkPackageReturnInterface & rpackageReturnInterface,
+				BamParallelDecodingInputBlockReturnInterface & rinputBlockReturnInterface,
+				BamParallelDecodingDecompressedBlockAddPendingInterface & rdecompressedBlockPendingInterface,
+				BamParallelDecodingBgzfInflateZStreamBaseReturnInterface & rdecoderReturnInterface
+
+			) : packageReturnInterface(rpackageReturnInterface), inputBlockReturnInterface(rinputBlockReturnInterface),
+			    decompressedBlockPendingInterface(rdecompressedBlockPendingInterface), decoderReturnInterface(rdecoderReturnInterface)
+			{
+			
+			}
+		
+			virtual void dispatch(
+				libmaus::parallel::SimpleThreadWorkPackage * P, 
+				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+			)
+			{
+				BamParallelDecodingDecompressBlockWorkPackage * BP = dynamic_cast<BamParallelDecodingDecompressBlockWorkPackage *>(P);
+				assert ( BP );
+
+				BP->outputblock->decompressBlock(
+					BP->decoder,
+					BP->inputblock
+				);
+				
+				BP->outputblock->streamid = BP->inputblock->streamid;
+				BP->outputblock->blockid = BP->inputblock->blockid;
+
+				decoderReturnInterface.putBamParallelDecodingBgzfInflateZStreamBaseReturn(BP->decoder);
+				inputBlockReturnInterface.putBamParallelDecodingInputBlockReturn(BP->inputblock);
+				decompressedBlockPendingInterface.putBamParallelDecodingDecompressedBlockAddPending(BP->outputblock);
+				packageReturnInterface.putBamParallelDecodingDecompressBlockWorkPackage(BP);
+			}		
 		};
 
 		struct BamParallelDecodingPushBackSpace
@@ -767,7 +897,11 @@ namespace libmaus
 
 		struct BamParallelDecodingControl :
 			public BamParallelDecodingInputBlockWorkPackageReturnInterface,
-			public BamParallelDecodingInputBlockAddPendingInterface
+			public BamParallelDecodingInputBlockAddPendingInterface,
+			public BamParallelDecodingDecompressBlockWorkPackageReturnInterface,
+			public BamParallelDecodingInputBlockReturnInterface,
+			public BamParallelDecodingDecompressedBlockAddPendingInterface,
+			public BamParallelDecodingBgzfInflateZStreamBaseReturnInterface
 		{
 			typedef BamParallelDecodingControl this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -778,17 +912,23 @@ namespace libmaus
 			libmaus::parallel::SimpleThreadPool & STP;
 			BamParallelDecodingInputBlockWorkPackageDispatcher readDispatcher;
 			uint64_t readDispatcherId;
+			
+			BamParallelDecodingDecompressBlockWorkPackageDispatcher decompressDispatcher;
+			uint64_t decompressDispatcherId;
 
 			uint64_t numthreads;
 
 			BamParallelDecodingControlInputInfo inputinfo;
 
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingInputBlockWorkPackage> readWorkPackages;
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingDecompressBlockWorkPackage> decompressWorkPackages;
 
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase>::unique_ptr_type Pdecoders;
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase> & decoders;
 			
 			libmaus::parallel::LockedFreeList<decompressed_block_type> decompressedBlockFreeList;
+			
+			libmaus::parallel::LockedQueue<BamParallelDecodingControlInputInfo::input_block_type *> decompressPending;
 
 			// return a read work package to the free list
 			void putBamParallelDecodingInputBlockWorkPackage(BamParallelDecodingInputBlockWorkPackage * package)
@@ -796,15 +936,84 @@ namespace libmaus
 				readWorkPackages.returnPackage(package);
 			}
 
+			// return decompress block work package
+			virtual void putBamParallelDecodingDecompressBlockWorkPackage(BamParallelDecodingDecompressBlockWorkPackage * package)
+			{
+				decompressWorkPackages.returnPackage(package);
+			}
+
+			// check whether we can decompress packages			
+			void checkDecompressPendingList()
+			{
+				bool running = true;
+				
+				while ( running )
+				{
+					BamParallelDecodingControlInputInfo::input_block_type * inputblock = 0;
+					libmaus::lz::BgzfInflateZStreamBase * decoder = 0;
+					decompressed_block_type * outputblock = 0;
+					
+					bool ok = true;
+					ok = ok && decompressPending.tryDequeFront(inputblock);
+					ok = ok && ((decoder = decoders.getIf()) != 0);
+					ok = ok && ((outputblock = decompressedBlockFreeList.getIf()) != 0);
+					
+					if ( ok )
+					{
+						BamParallelDecodingDecompressBlockWorkPackage * package = decompressWorkPackages.getPackage();
+						*package = BamParallelDecodingDecompressBlockWorkPackage(0,inputblock,outputblock,decoder,decompressDispatcherId);
+						STP.enque(package);
+					}
+					else
+					{
+						running = false;
+						
+						if ( outputblock )
+							decompressedBlockFreeList.put(outputblock);
+						if ( decoder )
+							decoders.put(decoder);
+						if ( inputblock )
+							decompressPending.push_front(inputblock);
+					}
+				}
+			}
+
 			// add a compressed bgzf block to the pending list
 			void putBamParallelDecodingInputBlockAddPending(BamParallelDecodingControlInputInfo::input_block_type * block)
 			{
-				// put it in the free list
+				// put package in the pending list
+				decompressPending.push_back(block);
+				// check whether we have sufficient resources to decompress next package
+				checkDecompressPendingList();
+			}
+
+			// add decompressed block to pending list
+			virtual void putBamParallelDecodingDecompressedBlockAddPending(BamParallelDecodingDecompressedBlock * block)
+			{
+				// add block to the free list
+				decompressedBlockFreeList.put(block);
+				// check whether we have sufficient resources to decompress next package
+				checkDecompressPendingList();
+			}
+
+			// return a bgzf decoder object		
+			virtual void putBamParallelDecodingBgzfInflateZStreamBaseReturn(libmaus::lz::BgzfInflateZStreamBase * decoder)
+			{
+				// add decoder to the free list
+				decoders.put(decoder);
+				// check whether we have sufficient resources to decompress next package
+				checkDecompressPendingList();
+			}
+
+			// return input block after decompression
+			virtual void putBamParallelDecodingInputBlockReturn(BamParallelDecodingControlInputInfo::input_block_type * block)
+			{
+				// put package in the free list
 				inputinfo.inputBlockFreeList.put(block);
 
+				// enque next read
 				BamParallelDecodingInputBlockWorkPackage * package = readWorkPackages.getPackage();
-				*package = BamParallelDecodingInputBlockWorkPackage(0 /* priority */, &inputinfo);
-
+				*package = BamParallelDecodingInputBlockWorkPackage(0 /* priority */, &inputinfo,readDispatcherId);
 				STP.enque(package);
 			}
 
@@ -813,6 +1022,8 @@ namespace libmaus
 				STP(rSTP),
 				readDispatcher(*this,*this),
 				readDispatcherId(STP.getNextDispatcherId()),
+				decompressDispatcher(*this,*this,*this,*this),
+				decompressDispatcherId(STP.getNextDispatcherId()),
 				numthreads(STP.getNumThreads()),
 				inputinfo(ristr,rstreamid,numthreads),
 				readWorkPackages(),
@@ -821,6 +1032,7 @@ namespace libmaus
 				decompressedBlockFreeList(numthreads)
 			{
 				STP.registerDispatcher(readDispatcherId,&readDispatcher);
+				STP.registerDispatcher(decompressDispatcherId,&decompressDispatcher);
 			}
 			
 			void serialTestDecode(std::ostream & out)
@@ -916,13 +1128,13 @@ namespace libmaus
 			void enqueReadPackage()
 			{
 				BamParallelDecodingInputBlockWorkPackage * package = readWorkPackages.getPackage();
-				*package = BamParallelDecodingInputBlockWorkPackage(0 /* priority */, &inputinfo);
+				*package = BamParallelDecodingInputBlockWorkPackage(0 /* priority */, &inputinfo,readDispatcherId);
 				STP.enque(package);
 			}
 
 			static void serialParallelDecode1(std::istream & in)
 			{
-				libmaus::parallel::SimpleThreadPool STP(1);
+				libmaus::parallel::SimpleThreadPool STP(8);
 				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/);
 				BPDC.enqueReadPackage();
 				
