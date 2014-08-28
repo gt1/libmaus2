@@ -1,3 +1,11 @@
+libmaus (0.0.163-1) unstable; urgency=low
+
+  * fixing compilation on freebsd
+  * add getErrorRate method in local edit distance result
+  * add shallowMerge method in FastInterval
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 28 Aug 2014 21:25:09 +0100
+
 libmaus (0.0.162-1) unstable; urgency=low
 
   * fix chunk merging for range restricted bam decoding 
