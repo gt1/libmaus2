@@ -166,6 +166,9 @@ namespace libmaus
 			libmaus::autoarray::AutoArray<char> tagbuffer;
 			libmaus::fastx::FastATwoBitTable const FATBT;
 			
+			bool const putrank;
+			uint64_t nextrank;
+			
 			static std::vector<std::string> getFilterTags()
 			{
 				std::vector<std::string> V;
@@ -180,7 +183,8 @@ namespace libmaus
 				libmaus::util::ArgInfo const & arginfo, 
 				libmaus::bambam::BamHeader const & rheader,
 				libmaus::bambam::BamBlockWriterBase & rwr,
-				bool const rfilterdupmarktags
+				bool const rfilterdupmarktags,
+				bool const rputrank = false
 			)
 			: optminpixeldif(arginfo.getValue<unsigned int>("optminpixeldif",getDefaultOptMinPixelDif())),
 			  maxreadlen(arginfo.getValue<uint64_t>("maxreadlen",getDefaultMaxReadLen())),
@@ -212,7 +216,9 @@ namespace libmaus
 			  nucltag(arginfo.getUnparsedValue("nucltag","no tag")),
 			  tag_type(havetag ? tag_type_string : (havenucltag ? tag_type_nucleotide : tag_type_none)),
 			  ctag(havetag ? tag.c_str() : 0),
-			  cnucltag(havenucltag ? nucltag.c_str() : 0)
+			  cnucltag(havenucltag ? nucltag.c_str() : 0),
+			  putrank(rputrank),
+			  nextrank(0)
 			{
 				libmaus::util::TempFileRemovalContainer::addTempFile(optfn);
 
@@ -251,6 +257,9 @@ namespace libmaus
 
 			void addAlignment(libmaus::bambam::BamAlignment & algn)
 			{
+				if ( putrank )
+					algn.putRank("ZR",nextrank++);
+			
 				int64_t const thisref = algn.getRefID();
 				int64_t const thispos = algn.getPos();
 
