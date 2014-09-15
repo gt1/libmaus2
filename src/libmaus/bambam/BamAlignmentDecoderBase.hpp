@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
 
-#include <libmaus/bambam/BamFlagBase.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/DecoderBase.hpp>
-#include <libmaus/bambam/BamFormatAuxiliary.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/bambam/BamAuxFilterVector.hpp>
-#include <libmaus/bambam/CigarOperation.hpp>
-#include <libmaus/math/IPower.hpp>
-#include <libmaus/bambam/MdStringComputationContext.hpp>
 #include <libmaus/bambam/AlignmentValidity.hpp>
 #include <libmaus/bambam/BamAlignmentReg2Bin.hpp>
+#include <libmaus/bambam/BamAuxFilterVector.hpp>
+#include <libmaus/bambam/BamFlagBase.hpp>
+#include <libmaus/bambam/BamFormatAuxiliary.hpp>
+#include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus/bambam/DecoderBase.hpp>
+#include <libmaus/bambam/MdStringComputationContext.hpp>
+#include <libmaus/hashing/hash.hpp>
+#include <libmaus/bambam/CigarOperation.hpp>
+#include <libmaus/math/IPower.hpp>
 
 namespace libmaus
 {
