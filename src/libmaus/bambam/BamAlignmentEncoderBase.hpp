@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTENCODERBASE_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTENCODERBASE_HPP
 	
-#include <libmaus/bambam/BamSeqEncodeTable.hpp>
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/EncoderBase.hpp>
-#include <libmaus/bambam/CigarStringParser.hpp>
-#include <libmaus/util/PutObject.hpp>
-#include <libmaus/bambam/BamFlagBase.hpp>
 #include <libmaus/bambam/BamAlignmentReg2Bin.hpp>
+#include <libmaus/bambam/BamFlagBase.hpp>
+#include <libmaus/bambam/BamSeqEncodeTable.hpp>
+#include <libmaus/bambam/CigarStringParser.hpp>
+#include <libmaus/bambam/EncoderBase.hpp>
+#include <libmaus/util/PutObject.hpp>
 	
 namespace libmaus
 {
@@ -143,7 +143,50 @@ namespace libmaus
 			 * @param D alignment block
 			 * @param v new value
 			 **/
-			static void putCigarLen(uint8_t * D, uint32_t const v) { putLESingle<uint16_t>(D,12,v & 0xFFFFul); }
+			static void putCigarLen(uint8_t * D, uint32_t const v) 
+			{
+				// put low 16 bits
+				putLESingle<uint16_t>(D,12,v & 0xFFFFul); 
+				
+				// get flags
+				uint16_t flags = static_cast<uint16_t>(D[14]) | (static_cast<uint16_t>(D[15])<<8);
+				// flag for value requiring more than 16 bits
+				uint16_t const flag32 = static_cast<uint16_t>(libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32);
+
+				// does value fit in the lower 16 bits?
+				if ( expect_true(v <= 0xFFFFul) )
+				{
+					// erase LIBMAUS_BAMBAM_FCIGAR32 flag
+					flags &= ~flag32;
+					// store flags
+					putFlags(D,flags);					
+				}
+				else
+				{
+					// set LIBMAUS_BAMBAM_FCIGAR32 flag
+					flags |= flag32;
+					// store flags
+					putFlags(D,flags);
+					// put top 16 bits in bin field
+					putLESingle<uint16_t>(D,10,v>>16);
+				}
+			}
+			/**
+			 * put bin value v in D
+			 *
+			 * @param D alignment block
+			 * @param v new value
+			 **/
+			static void putBin(uint8_t * D, uint16_t const v)
+			{
+				// get flags
+				uint16_t const flags = static_cast<uint16_t>(D[14]) | (static_cast<uint16_t>(D[15])<<8);
+
+				// put bin value if bin field is not used for storing top 16 bits of cigar length value
+				if ( expect_true( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32) ) )
+					putLESingle<uint16_t>(D,10,v);					
+			}
+			
 			/**
 			 * put length of query sequence v in D
 			 *
@@ -301,7 +344,12 @@ namespace libmaus
 				buffer.reset();
 				
 				uint32_t const bin = 
+					(cigarlen > 0xFFFFul)
+					?
+					(cigarlen >> 16)
+					:
 					(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) ? 0 : reg2bin(pos,endpos(pos,cigar,cigarlen));
+				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32) : flags;
 				
 				assert ( namelen+1 < (1ul << 8) );
 				assert ( mapq < (1ul << 8) );
@@ -312,7 +360,7 @@ namespace libmaus
 				putLE<UCharBuffer, int32_t>(buffer,refid); // offset 0
 				putLE<UCharBuffer, int32_t>(buffer,pos);   // offset 4
 				putLE<UCharBuffer,uint32_t>(buffer,((bin & 0xFFFFul) << 16)|((mapq & 0xFF) << 8)|(namelen+1)); // offset 8
-				putLE<UCharBuffer,uint32_t>(buffer,((flags&0xFFFFu)<<16)|(cigarlen&0xFFFFu)); // offset 12
+				putLE<UCharBuffer,uint32_t>(buffer,((cflags&0xFFFFu)<<16)|(cigarlen&0xFFFFu)); // offset 12
 				putLE<UCharBuffer, int32_t>(buffer,seqlen); // offset 16
 				putLE<UCharBuffer, int32_t>(buffer,nextrefid); // offset 20
 				putLE<UCharBuffer, int32_t>(buffer,nextpos); // offset 24
