@@ -30,6 +30,8 @@
 #include <libmaus/lz/BgzfDeflate.hpp>
 #include <libmaus/lz/BgzfDeflateParallel.hpp>
 
+#include <libmaus/lz/LineSplittingGzipOutputStream.hpp>
+
 void testBgzfRandom()
 {
 	srand(time(0));
@@ -334,6 +336,13 @@ void testGzip()
 
 int main(int argc, char *argv[])
 {
+	{
+		libmaus::lz::LineSplittingGzipOutputStream LSG("gzsplit",4,17);
+		
+		for ( uint64_t i = 0; i < 17; ++i )
+			LSG << "line_" << i << "\n";		
+	}
+
 	testGzip();
 	testlz4();
 

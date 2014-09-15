@@ -59,6 +59,8 @@ namespace libmaus
 			uint64_t const buffersize;
 			::libmaus::autoarray::AutoArray<char> buffer;
 			
+			bool reopenpending;
+			
 			void doFlush()
 			{
 				while ( fsync(fd) < 0 )
@@ -182,12 +184,23 @@ namespace libmaus
 				
 				while ( n )
 				{
+					if ( reopenpending )
+					{
+						doFlush();
+						doClose();
+						fd = doOpen();
+						reopenpending = false;					
+					}
+				
 					char * pe = p + n;
 					char * pc = p;
 					
 					while ( pc != pe )
 						if ( *(pc++) == '\n' && ((++linecnt) % linemod) == 0 )
+						{
+							reopenpending = true;
 							break;
+						}
 							
 					uint64_t const t = pc - p;
 				
@@ -195,13 +208,6 @@ namespace libmaus
 					
 					p += t;
 					n -= t;
-					
-					if ( n )
-					{
-						doFlush();
-						doClose();
-						fd = doOpen();
-					}
 				}
 			}
 			
@@ -215,7 +221,8 @@ namespace libmaus
 			  fd(doOpen()), 
 			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,fn) : rbuffersize),
 			  buffersize(optblocksize), 
-			  buffer(buffersize,false)
+			  buffer(buffersize,false),
+			  reopenpending(false)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
