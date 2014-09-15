@@ -30,6 +30,7 @@
 #include <libmaus/math/IPower.hpp>
 #include <libmaus/bambam/MdStringComputationContext.hpp>
 #include <libmaus/bambam/AlignmentValidity.hpp>
+#include <libmaus/bambam/BamAlignmentReg2Bin.hpp>
 
 namespace libmaus
 {
@@ -931,7 +932,25 @@ namespace libmaus
 			 * @param D alignment block
 			 * @return read name length from D
 			 **/
-			static uint32_t     getBin      (uint8_t const * D) { return (getBinMQNL(D) >> 16) & 0xFFFFu; }
+			static uint32_t     getBin      (uint8_t const * D) 
+			{
+				// bin flag stores part of cigar string length
+				if ( 
+					expect_false
+					(
+					getFlags(D) & LIBMAUS_BAMBAM_FCIGAR32
+					) 
+				)
+				{
+					// compute bin from alignment data
+					return computeBin(D);
+				}
+				else
+				{
+					// get bin from field
+					return (getBinMQNL(D) >> 16) & 0xFFFFu;				
+				}
+			}
 			/**
 			 * get mapping quality from alignment block D
 			 *
@@ -1434,7 +1453,24 @@ namespace libmaus
 			 * @param D alignment block
 			 * @return number of cigar operations from D
 			 **/
-			static uint32_t     getNCigar     (uint8_t const * D) { return (getFlagNC(D) >>  0) & 0xFFFFu; }
+			static uint32_t     getNCigar     (uint8_t const * D) 
+			{
+				uint32_t const low = (getFlagNC(D) >>  0) & 0xFFFFu;
+				
+				if ( 
+					expect_false
+					(
+					getFlags(D) & LIBMAUS_BAMBAM_FCIGAR32
+					) 
+				)
+				{
+					return (getBinMQNL(D) & 0xFFFF0000ul) | low;
+				}
+				else
+				{
+					return low;
+				}
+			}
 			/**
 			 * get decoded cigar string from alignment block D
 			 *
@@ -3463,6 +3499,16 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * @return computed bin
+			 **/
+			static uint64_t computeBin(uint8_t const * D)
+			{
+				uint64_t const rbeg = getPos(D);
+				uint64_t const rend = rbeg + getReferenceLength(D);
+				uint64_t const bin = ::libmaus::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
+				return bin;
+			}
 		};
 	}
 }

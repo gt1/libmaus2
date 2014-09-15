@@ -47,7 +47,8 @@ namespace libmaus
 				LIBMAUS_BAMBAM_FSECONDARY = (1u << 8),
 				LIBMAUS_BAMBAM_FQCFAIL = (1u << 9),
 				LIBMAUS_BAMBAM_FDUP = (1u << 10),
-				LIBMAUS_BAMBAM_FSUPPLEMENTARY = (1u << 11)
+				LIBMAUS_BAMBAM_FSUPPLEMENTARY = (1u << 11),
+				LIBMAUS_BAMBAM_FCIGAR32 = (1u << 15)
 			};
 			
 			//! cigar operator codes

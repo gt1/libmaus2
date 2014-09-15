@@ -25,34 +25,18 @@
 #include <libmaus/bambam/CigarStringParser.hpp>
 #include <libmaus/util/PutObject.hpp>
 #include <libmaus/bambam/BamFlagBase.hpp>
+#include <libmaus/bambam/BamAlignmentReg2Bin.hpp>
 	
 namespace libmaus
 {
 	namespace bambam
-	{		
+	{
+		
 		/**
 		 * BAM encoding base class
 		 **/
-		struct BamAlignmentEncoderBase : public EncoderBase
+		struct BamAlignmentEncoderBase : public EncoderBase, public BamAlignmentReg2Bin
 		{
-			/**
-			 * reg2bin as defined in sam file format spec 
-			 *
-			 * @param beg alignment start (inclusive)
-			 * @param end alignment end (exclusive)
-			 * @return bin for alignment interval
-			 **/
-			static inline int reg2bin(uint32_t beg, uint32_t end)
-			{
-				--end;
-				if (beg>>14 == end>>14) return ((1ul<<15)-1ul)/7ul + (beg>>14);
-				if (beg>>17 == end>>17) return ((1ul<<12)-1ul)/7ul + (beg>>17);
-				if (beg>>20 == end>>20) return ((1ul<<9)-1ul)/7ul  + (beg>>20);
-				if (beg>>23 == end>>23) return ((1ul<<6)-1ul)/7ul + (beg>>23);
-				if (beg>>26 == end>>26) return ((1ul<<3)-1ul)/7ul + (beg>>26);
-				return 0;
-			}
-
 			/**
 			 * calculate end position of an alignment 
 			 *

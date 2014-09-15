@@ -382,7 +382,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/GeneFlatFileEntry.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
-	libmaus/bambam/BamParallelDecodingControl.hpp
+	libmaus/bambam/BamParallelDecodingControl.hpp \
+	libmaus/bambam/BamAlignmentReg2Bin.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -1230,10 +1231,14 @@ noinst_PROGRAMS = \
 	testsimpletrie \
 	testgnutls \
 	testlru \
-	testparallelbamdecompression
+	testparallelbamdecompression \
+	testbytecnt
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
+
+testbytecnt_SOURCES = test/testbytecnt.cpp
+testbytecnt_LDADD = libmaus.la
 
 testlru_SOURCES = test/testlru.cpp
 testlru_LDADD = libmaus.la
