@@ -935,15 +935,16 @@ namespace libmaus
 			static uint32_t     getBin      (uint8_t const * D) 
 			{
 				// bin flag stores part of cigar string length
-				if ( 
-					expect_false
-					(
-					getFlags(D) & LIBMAUS_BAMBAM_FCIGAR32
-					) 
-				)
+				uint16_t const flags = getFlags(D);
+				
+				if ( expect_false(flags & LIBMAUS_BAMBAM_FCIGAR32) )
 				{
-					// compute bin from alignment data
-					return computeBin(D);
+					if ( flags & LIBMAUS_BAMBAM_FUNMAP )
+						// return 0 for unmapped read (cigar data and positions are invalid)
+						return 0;
+					else
+						// compute bin from alignment data
+						return computeBin(D);
 				}
 				else
 				{
