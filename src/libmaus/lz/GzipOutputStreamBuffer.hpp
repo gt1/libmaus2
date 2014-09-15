@@ -209,6 +209,11 @@ namespace libmaus
 				doTerminate();
 			}
 			
+			/**
+			 * terminate stream
+			 *
+			 * @return number of bytes written to compressed stream (complete gzip file)
+			 **/
 			uint64_t terminate()
 			{
 				return doTerminate();
