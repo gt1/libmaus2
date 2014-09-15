@@ -63,9 +63,18 @@ void testPosixFdInput()
 
 #include <libmaus/aio/PosixFdOutputStream.hpp>
 #include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
+#include <libmaus/aio/LineSplittingPosixFdOutputStream.hpp>
 
 int main(int argc, char * argv[])
 {
+	{
+		libmaus::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,142);
+		for ( uint64_t i = 0; i < 17; ++i )
+		{
+			LSOUT << "line_" << i << "\n";
+		}
+	}
+	
 	{
 		std::string const fn = "nonexistant.test.file";
 		std::string const text1 = "Hello world.";
