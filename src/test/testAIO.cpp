@@ -19,9 +19,11 @@
 
 #include <libmaus/aio/AsynchronousBufferReader.hpp>
 #include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-
+#include <libmaus/aio/LineSplittingPosixFdOutputStream.hpp>
+#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
 #include <libmaus/aio/PosixFdInputStream.hpp>
+#include <libmaus/aio/PosixFdOutputStream.hpp>
+#include <libmaus/timing/RealTimeClock.hpp>
 
 #include <vector>
 #include <map>
@@ -61,9 +63,6 @@ void testPosixFdInput()
 	}	
 }
 
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
-#include <libmaus/aio/LineSplittingPosixFdOutputStream.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -73,6 +72,10 @@ int main(int argc, char * argv[])
 		{
 			LSOUT << "line_" << i << "\n";
 		}
+	}
+
+	{
+		libmaus::aio::LineSplittingPosixFdOutputStream LSOUT("nosplit",4,32);
 	}
 		
 	{

@@ -343,6 +343,10 @@ int main(int argc, char *argv[])
 			LSG << "line_" << i << "\n";		
 	}
 
+	{
+		libmaus::lz::LineSplittingGzipOutputStream LSG("nogzsplit",4,17);		
+	}
+
 	testGzip();
 	testlz4();
 
