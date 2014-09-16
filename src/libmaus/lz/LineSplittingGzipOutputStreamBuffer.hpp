@@ -46,12 +46,16 @@ namespace libmaus
 			z_stream strm;
 			uint32_t crc;
 			uint32_t isize;
+			uint64_t usize;
 			
 			bool reopenpending;
+			
+			std::string openfilename;
 
 			void doInit(int const level)
 			{
 				isize = 0;
+				usize = 0;
 				crc = crc32(0,0,0);
 				
 				memset ( &strm , 0, sizeof(z_stream) );
@@ -76,6 +80,7 @@ namespace libmaus
 
 				crc = crc32(crc, strm.next_in, strm.avail_in);        
 				isize += strm.avail_in;
+				usize += strm.avail_in;
 
 				do
 				{
@@ -203,6 +208,9 @@ namespace libmaus
 
 				// reset output stream
 				Pout.reset();
+				
+				openfilename = std::string();
+				usize = 0;
 			}
 			
 			void doOpen()
@@ -220,6 +228,8 @@ namespace libmaus
 				libmaus::lz::GzipHeaderConstantsBase::writeSimpleHeader(*Pout);
 				// init compressor
 				doInit(level);
+				
+				openfilename = filename;
 			}
 
 			public:
@@ -238,7 +248,14 @@ namespace libmaus
 			~LineSplittingGzipOutputStreamBuffer()
 			{
 				doSync();
+				
+				bool const deletefile = (fileno==1) && (usize==0);
+				std::string deletefilename = openfilename;
+				
 				doTerminate();
+				
+				if ( deletefile )
+					remove(deletefilename.c_str());
 			}
 
 			int_type overflow(int_type c = traits_type::eof())
