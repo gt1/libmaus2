@@ -20,6 +20,8 @@
 #define LIBMAUS_AIO_LINESPLITTINGPOSIXFDOUTPUTBUFFER_HPP
 
 #include <ostream>
+#include <sstream>
+#include <iomanip>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/aio/PosixFdInput.hpp>
 
