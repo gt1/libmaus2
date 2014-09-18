@@ -48,3 +48,5 @@ sed -i -e  "s|libstaden-read-dev (>= 1\.13\.0)|staden-io-lib-current-dev (>= 1.1
 git commit -a -m "update dependency for launchpad"
 git push
 git checkout experimental
+
+rm -fR debian

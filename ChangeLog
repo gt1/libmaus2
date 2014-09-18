@@ -1,3 +1,35 @@
+libmaus (0.0.167-1) unstable; urgency=low
+
+  * fix line splitting gzipped output stream
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 17 Sep 2014 07:29:20 +0100
+
+libmaus (0.0.166-1) unstable; urgency=low
+
+  * add line split output variants in BamToFastqOutputFileSet 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 16 Sep 2014 09:56:39 +0100
+
+libmaus (0.0.165-1) unstable; urgency=low
+
+  * add line splitting output streams (plain and gzip) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 15 Sep 2014 15:20:47 +0100
+
+libmaus (0.0.164-1) unstable; urgency=low
+
+  * add option to put rank on alignment input in streaming bam duplicate marking 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 02 Sep 2014 09:58:32 +0100
+
+libmaus (0.0.163-1) unstable; urgency=low
+
+  * fixing compilation on freebsd
+  * add getErrorRate method in local edit distance result
+  * add shallowMerge method in FastInterval
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 28 Aug 2014 21:25:09 +0100
+
 libmaus (0.0.162-1) unstable; urgency=low
 
   * fix chunk merging for range restricted bam decoding 

@@ -110,6 +110,25 @@ namespace libmaus
 					return FastInterval(0,0,0,0,0,0,0);
 				}
 			}
+
+			template<typename iterator>
+			static FastInterval shallowMerge(iterator a, iterator e)
+			{
+				if ( e != a )
+				{
+					return FastInterval ( 
+						a->low,
+						(e-1)->high,
+						a->fileoffset,
+						(e-1)->fileoffsethigh,
+						0,0,0
+						);
+				}
+				else
+				{
+					return FastInterval(0,0,0,0,0,0,0);
+				}
+			}
 			
 			static std::vector < FastInterval > combine(std::vector < FastInterval > const & index, uint64_t const c)
 			{

@@ -39,6 +39,7 @@ namespace libmaus
 			uint64_t b_clip_left;
 			uint64_t b_clip_right;
 			
+			
 			LocalEditDistanceResult()
 			: numins(0), numdel(0), nummat(0), nummis(0)
 			{}
@@ -69,6 +70,12 @@ namespace libmaus
 			bool operator!=(LocalEditDistanceResult const & o) const
 			{
 				return !operator==(o);
+			}
+
+			double getErrorRate() const
+			{
+				return
+					static_cast<double>(numins + numdel + nummis) / static_cast<double>(numins+numdel+nummat+nummis);
 			}
 		};
 		

@@ -280,7 +280,9 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/StreamWrapperBuffer.hpp \
 	libmaus/lz/BufferedGzipStreamBuffer.hpp \
 	libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp \
-	libmaus/lz/PlainOrGzipStream.hpp
+	libmaus/lz/PlainOrGzipStream.hpp \
+	libmaus/lz/LineSplittingGzipOutputStreamBuffer.hpp \
+	libmaus/lz/LineSplittingGzipOutputStream.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -384,7 +386,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
 	libmaus/bambam/BamParallelDecodingControl.hpp \
 	libmaus/bambam/BamHeaderParserStateBase.hpp \
-	libmaus/bambam/BamHeaderParserState.hpp
+	libmaus/bambam/BamHeaderParserState.hpp \
+	libmaus/bambam/BamAlignmentReg2Bin.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -741,7 +744,9 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/PosixFdInputStreamBuffer.hpp \
 	libmaus/aio/LinuxStreamingPosixFdOutputStreamBuffer.hpp \
 	libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp \
-	libmaus/aio/IsKnownLocalFileSystem.hpp
+	libmaus/aio/IsKnownLocalFileSystem.hpp \
+	libmaus/aio/LineSplittingPosixFdOutputStreamBuffer.hpp \
+	libmaus/aio/LineSplittingPosixFdOutputStream.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
@@ -1232,10 +1237,14 @@ noinst_PROGRAMS = \
 	testsimpletrie \
 	testgnutls \
 	testlru \
-	testparallelbamdecompression
+	testparallelbamdecompression \
+	testbytecnt
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
+
+testbytecnt_SOURCES = test/testbytecnt.cpp
+testbytecnt_LDADD = libmaus.la
 
 testlru_SOURCES = test/testlru.cpp
 testlru_LDADD = libmaus.la

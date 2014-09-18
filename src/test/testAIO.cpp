@@ -19,9 +19,11 @@
 
 #include <libmaus/aio/AsynchronousBufferReader.hpp>
 #include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-
+#include <libmaus/aio/LineSplittingPosixFdOutputStream.hpp>
+#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
 #include <libmaus/aio/PosixFdInputStream.hpp>
+#include <libmaus/aio/PosixFdOutputStream.hpp>
+#include <libmaus/timing/RealTimeClock.hpp>
 
 #include <vector>
 #include <map>
@@ -61,11 +63,21 @@ void testPosixFdInput()
 	}	
 }
 
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
 
 int main(int argc, char * argv[])
 {
+	{
+		libmaus::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
+		for ( uint64_t i = 0; i < 17; ++i )
+		{
+			LSOUT << "line_" << i << "\n";
+		}
+	}
+
+	{
+		libmaus::aio::LineSplittingPosixFdOutputStream LSOUT("nosplit",4,32);
+	}
+		
 	{
 		std::string const fn = "nonexistant.test.file";
 		std::string const text1 = "Hello world.";
