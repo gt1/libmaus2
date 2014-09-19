@@ -1091,6 +1091,75 @@ namespace libmaus
 			}		
 		};
 
+		struct BamParallelDecodingValidateBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+		{
+			typedef BamParallelDecodingValidateBlockWorkPackage this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			BamParallelDecodingAlignmentBuffer * parseBlock;
+
+			BamParallelDecodingValidateBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(0) {}
+			
+			BamParallelDecodingValidateBlockWorkPackage(
+				uint64_t const rpriority, 
+				BamParallelDecodingAlignmentBuffer * rparseBlock,
+				uint64_t const rparseDispatcherId
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock)
+			{
+			}
+		
+			char const * getPackageName() const
+			{
+				return "BamParallelDecodingValidateBlockWorkPackage";
+			}
+		};
+
+		struct BamParallelDecodingValidatePackageReturnInterface
+		{
+			virtual ~BamParallelDecodingValidatePackageReturnInterface() {}
+			virtual void putBamParallelDecodingReturnValidatePackage(BamParallelDecodingValidateBlockWorkPackage * package) = 0;
+		};
+
+		// add validate block to pending list
+		struct BamParallelDecodingValidateBlockAddPendingInterface
+		{
+			virtual ~BamParallelDecodingValidateBlockAddPendingInterface() {}
+			virtual void putBamParallelDecodingValidatedBlockAddPending(BamParallelDecodingAlignmentBuffer * algn, bool const ok) = 0;
+		};
+
+		// dispatcher for block validation
+		struct BamParallelDecodingValidateBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+		{
+			BamParallelDecodingValidatePackageReturnInterface   & packageReturnInterface;
+			BamParallelDecodingValidateBlockAddPendingInterface & addValidatedPendingInterface;
+
+			BamParallelDecodingValidateBlockWorkPackageDispatcher(
+				BamParallelDecodingValidatePackageReturnInterface   & rpackageReturnInterface,
+				BamParallelDecodingValidateBlockAddPendingInterface & raddValidatedPendingInterface
+
+			) : packageReturnInterface(rpackageReturnInterface), addValidatedPendingInterface(raddValidatedPendingInterface)
+			{
+			}
+		
+			virtual void dispatch(
+				libmaus::parallel::SimpleThreadWorkPackage * P, 
+				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+			)
+			{
+				BamParallelDecodingValidateBlockWorkPackage * BP = dynamic_cast<BamParallelDecodingValidateBlockWorkPackage *>(P);
+				assert ( BP );
+
+				bool const ok = BP->parseBlock->checkValidPacked();
+				
+				addValidatedPendingInterface.putBamParallelDecodingValidatedBlockAddPending(BP->parseBlock,ok);
+								
+				// return the work package				
+				packageReturnInterface.putBamParallelDecodingReturnValidatePackage(BP);				
+			}		
+		};
+
 		struct BamParallelDecodingControl :
 			public BamParallelDecodingInputBlockWorkPackageReturnInterface,
 			public BamParallelDecodingInputBlockAddPendingInterface,
@@ -1101,7 +1170,9 @@ namespace libmaus
 			public BamParallelDecodingDecompressedBlockReturnInterface,
 			public BamParallelDecodingParsedBlockAddPendingInterface,
 			public BamParallelDecodingParsedBlockStallInterface,
-			public BamParallelDecodingParsePackageReturnInterface
+			public BamParallelDecodingParsePackageReturnInterface,
+			public BamParallelDecodingValidatePackageReturnInterface,
+			public BamParallelDecodingValidateBlockAddPendingInterface
 		{
 			typedef BamParallelDecodingControl this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -1119,6 +1190,9 @@ namespace libmaus
 			BamParallelDecodingParseBlockWorkPackageDispatcher parseDispatcher;
 			uint64_t parseDispatcherId;
 
+			BamParallelDecodingValidateBlockWorkPackageDispatcher validateDispatcher;
+			uint64_t validateDispatcherId;
+
 			uint64_t numthreads;
 
 			BamParallelDecodingControlInputInfo inputinfo;
@@ -1126,7 +1200,8 @@ namespace libmaus
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingInputBlockWorkPackage> readWorkPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingDecompressBlockWorkPackage> decompressWorkPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingParseBlockWorkPackage> parseWorkPackages;
-			
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingValidateBlockWorkPackage> validateWorkPackages;
+
 			// free list for bgzf decompressors
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase>::unique_ptr_type Pdecoders;
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase> & decoders;
@@ -1153,6 +1228,17 @@ namespace libmaus
 			BamParallelDecodingParseInfo parseInfo;
 			
 			libmaus::parallel::LockedBool lastParseBlockSeen;
+			libmaus::parallel::SynchronousCounter<uint64_t> readsSeen;
+
+			libmaus::parallel::SynchronousCounter<uint64_t> parseBlocksSeen;
+			libmaus::parallel::SynchronousCounter<uint64_t> parseBlocksValidated;
+
+			libmaus::parallel::LockedBool lastParseBlockValidated;
+
+			virtual void putBamParallelDecodingReturnValidatePackage(BamParallelDecodingValidateBlockWorkPackage * package)
+			{
+				validateWorkPackages.returnPackage(package);
+			}
 
 			virtual void putBamParallelDecodingReturnParsePackage(BamParallelDecodingParseBlockWorkPackage * package)
 			{
@@ -1302,16 +1388,28 @@ namespace libmaus
 			
 			virtual void putBamParallelDecodingParsedBlockAddPending(BamParallelDecodingAlignmentBuffer * algn)
 			{
-				bool const ok = algn->checkValidPacked();
-				
-				if ( ok )
-					std::cerr.put('+');
-				else
-					std::cerr.put('!');
+				parseBlocksSeen += 1;
 					
 				if ( algn->final )
 					lastParseBlockSeen.set(true);
 			
+				BamParallelDecodingValidateBlockWorkPackage * package = validateWorkPackages.getPackage();
+				*package = BamParallelDecodingValidateBlockWorkPackage(
+					0 /* prio */,
+					algn,
+					validateDispatcherId
+				);
+				STP.enque(package);
+			}
+
+			virtual void putBamParallelDecodingValidatedBlockAddPending(BamParallelDecodingAlignmentBuffer * algn, bool const ok)
+			{
+				readsSeen += algn->fill();
+				
+				parseBlocksValidated += 1;
+				if ( lastParseBlockSeen.get() && parseBlocksValidated == parseBlocksSeen )
+					lastParseBlockValidated.set(true);
+
 				// reset block
 				algn->reset();
 				
@@ -1365,6 +1463,8 @@ namespace libmaus
 				decompressDispatcherId(STP.getNextDispatcherId()),
 				parseDispatcher(*this,*this,*this,*this,*this),
 				parseDispatcherId(STP.getNextDispatcherId()),
+				validateDispatcher(*this,*this),
+				validateDispatcherId(STP.getNextDispatcherId()),
 				numthreads(STP.getNumThreads()),
 				inputinfo(ristr,rstreamid,numthreads),
 				readWorkPackages(),
@@ -1374,11 +1474,15 @@ namespace libmaus
 				parseBlockFreeList(numthreads,BamParallelDecodingAlignmentBufferAllocator(rparsebuffersize,2)),
 				nextDecompressedBlockToBeParsed(0),
 				parseStallSlot(0),
-				lastParseBlockSeen(false)
+				lastParseBlockSeen(false),
+				parseBlocksSeen(0),
+				parseBlocksValidated(0),
+				lastParseBlockValidated(false)
 			{
 				STP.registerDispatcher(readDispatcherId,&readDispatcher);
 				STP.registerDispatcher(decompressDispatcherId,&decompressDispatcher);
 				STP.registerDispatcher(parseDispatcherId,&parseDispatcher);
+				STP.registerDispatcher(validateDispatcherId,&validateDispatcher);
 			}
 			
 			void serialTestDecode(std::ostream & out)
@@ -1484,12 +1588,14 @@ namespace libmaus
 				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */);
 				BPDC.enqueReadPackage();
 				
-				while ( ! BPDC.lastParseBlockSeen.get() )
+				while ( ! BPDC.lastParseBlockValidated.get() )
 				{
 					sleep(1);
 				}
 				
 				STP.terminate();
+				
+				std::cerr << "number of reads " << BPDC.readsSeen << std::endl;
 			}
 		};	
 	}
