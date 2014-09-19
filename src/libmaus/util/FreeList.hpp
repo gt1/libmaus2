@@ -26,14 +26,34 @@ namespace libmaus
 	namespace util
 	{
 		template<typename _element_type>
+		struct FreeListDefaultAllocator
+		{
+			typedef _element_type element_type;
+			
+			FreeListDefaultAllocator()
+			{
+			}
+			~FreeListDefaultAllocator()
+			{
+			}
+			
+			element_type * operator()() const
+			{
+				return new element_type;
+			}
+		};
+	
+		template<typename _element_type, typename _allocator_type = FreeListDefaultAllocator<_element_type> >
 		struct FreeList
 		{
 			typedef _element_type element_type;
-			typedef FreeList<element_type> this_type;
+			typedef _allocator_type allocator_type;
+			typedef FreeList<element_type,allocator_type> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			libmaus::autoarray::AutoArray< element_type * > freelist;
 			uint64_t freecnt;
+			allocator_type allocator;
 			
 			void cleanup()
 			{
@@ -44,14 +64,14 @@ namespace libmaus
 				}	
 			}
 			
-			FreeList(uint64_t const numel) : freelist(numel), freecnt(numel)
+			FreeList(uint64_t const numel, allocator_type rallocator = allocator_type()) : freelist(numel), freecnt(numel), allocator(rallocator)
 			{
 				try
 				{
 					for ( uint64_t i = 0; i < numel; ++i )
 						freelist[i] = 0;
 					for ( uint64_t i = 0; i < numel; ++i )
-						freelist[i] = new element_type;
+						freelist[i] = allocator();
 				}
 				catch(...)
 				{

@@ -37,7 +37,7 @@ namespace libmaus
 			#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
 			mutable ::libmaus::parallel::OMPLock lock;
 			#endif
-			value_type cnt;
+			volatile value_type cnt;
 			
 			SynchronousCounter(value_type const rcnt = value_type()) : cnt(rcnt) {}
 			SynchronousCounter(SynchronousCounter const & o) : cnt(o.cnt) {}

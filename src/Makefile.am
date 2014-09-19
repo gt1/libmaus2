@@ -784,7 +784,9 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SimpleThreadWorkPackage.hpp \
 	libmaus/parallel/LockedQueue.hpp \
 	libmaus/parallel/NumCpus.hpp \
-	libmaus/parallel/LockedFreeList.hpp
+	libmaus/parallel/LockedFreeList.hpp \
+	libmaus/parallel/LockedHeap.hpp \
+	libmaus/parallel/LockedCounter.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\

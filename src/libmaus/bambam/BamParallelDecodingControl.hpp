@@ -25,8 +25,10 @@
 #include <libmaus/bambam/BamHeaderLowMem.hpp>
 #include <libmaus/lz/BgzfInflateBase.hpp>
 #include <libmaus/lz/BgzfInflateHeaderBase.hpp>
+#include <libmaus/parallel/LockedCounter.hpp>
 #include <libmaus/parallel/LockedFreeList.hpp>
 #include <libmaus/parallel/LockedGrowingFreeList.hpp>
+#include <libmaus/parallel/LockedHeap.hpp>
 #include <libmaus/parallel/LockedQueue.hpp>
 #include <libmaus/parallel/PosixMutex.hpp>
 #include <libmaus/parallel/PosixSpinLock.hpp>
@@ -34,6 +36,7 @@
 #include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus/parallel/SynchronousCounter.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/util/FreeList.hpp>
 #include <libmaus/util/GetObject.hpp>
@@ -419,17 +422,20 @@ namespace libmaus
 				BamParallelDecodingDecompressBlockWorkPackage * BP = dynamic_cast<BamParallelDecodingDecompressBlockWorkPackage *>(P);
 				assert ( BP );
 
-				BP->outputblock->decompressBlock(
-					BP->decoder,
-					BP->inputblock
-				);
+				// decompress the block
+				BP->outputblock->decompressBlock(BP->decoder,BP->inputblock);
 				
+				// set stream and block id
 				BP->outputblock->streamid = BP->inputblock->streamid;
 				BP->outputblock->blockid = BP->inputblock->blockid;
 
+				// return zstream base (decompressor)
 				decoderReturnInterface.putBamParallelDecodingBgzfInflateZStreamBaseReturn(BP->decoder);
+				// return input block
 				inputBlockReturnInterface.putBamParallelDecodingInputBlockReturn(BP->inputblock);
+				// mark output block as pending
 				decompressedBlockPendingInterface.putBamParallelDecodingDecompressedBlockAddPending(BP->outputblock);
+				// return work meta package
 				packageReturnInterface.putBamParallelDecodingDecompressBlockWorkPackage(BP);
 			}		
 		};
@@ -480,8 +486,10 @@ namespace libmaus
 			
 			uint64_t pointerdif;
 			
+			bool final;
+			
 			BamParallelDecodingAlignmentBuffer(uint64_t const buffersize, uint64_t const rpointerdif = 1)
-			: A(buffersize,false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif)
+			: A(buffersize,false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false)
 			{
 				assert ( pointerdif >= 1 );
 			}
@@ -740,6 +748,13 @@ namespace libmaus
 				return BPDPBS.empty();
 			}
 
+			/**
+			 * parsed decompressed bam block into algnbuf
+			 *
+			 * @param block decompressed bam block data
+			 * @param algnbuf alignment buffer
+			 * @return true if block was fully processed
+			 **/
 			bool parseBlock(
 				BamParallelDecodingDecompressedBlock & block,
 				BamParallelDecodingAlignmentBuffer & algnbuf
@@ -895,13 +910,198 @@ namespace libmaus
 			}
 		};
 
+		struct BamParallelDecodingParseBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+		{
+			typedef BamParallelDecodingParseBlockWorkPackage this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			BamParallelDecodingDecompressedBlock * decompressedblock;
+			BamParallelDecodingAlignmentBuffer * parseBlock;
+			BamParallelDecodingParseInfo * parseInfo;
+
+			BamParallelDecodingParseBlockWorkPackage()
+			: 
+				libmaus::parallel::SimpleThreadWorkPackage(), 
+				decompressedblock(0),
+				parseBlock(0),
+				parseInfo(0)
+			{
+			}
+			
+			BamParallelDecodingParseBlockWorkPackage(
+				uint64_t const rpriority, 
+				BamParallelDecodingDecompressedBlock * rdecompressedblock,
+				BamParallelDecodingAlignmentBuffer * rparseBlock,
+				BamParallelDecodingParseInfo * rparseInfo,
+				uint64_t const rparseDispatcherId
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), 
+			  decompressedblock(rdecompressedblock), parseBlock(rparseBlock), parseInfo(rparseInfo)
+			{
+			}
+		
+			char const * getPackageName() const
+			{
+				return "BamParallelDecodingParseBlockWorkPackage";
+			}
+		};
+
+		struct BamParallelDecodingDecompressedPendingObject : std::pair<uint64_t, libmaus::bambam::BamParallelDecodingDecompressedBlock *>
+		{
+			typedef std::pair<uint64_t, libmaus::bambam::BamParallelDecodingDecompressedBlock *> base_type;
+		
+			BamParallelDecodingDecompressedPendingObject() : base_type(0,0) {}
+			BamParallelDecodingDecompressedPendingObject(
+				uint64_t const rid,
+				libmaus::bambam::BamParallelDecodingDecompressedBlock * robj
+			) : base_type(rid,robj) {}
+		};
+		
+		struct BamParallelDecodingDecompressedPendingObjectHeapComparator
+		{
+			bool operator()(
+				BamParallelDecodingDecompressedPendingObject const & A,
+				BamParallelDecodingDecompressedPendingObject const & B
+			)
+			{
+				return A.first > B.first;
+			}
+		};
+		
+		struct BamParallelDecodingAlignmentBufferAllocator
+		{
+			uint64_t bufferSize;
+			uint64_t mult;
+			
+			BamParallelDecodingAlignmentBufferAllocator()
+			: bufferSize(0), mult(0)
+			{
+			
+			}
+			
+			BamParallelDecodingAlignmentBufferAllocator(uint64_t const rbufferSize, uint64_t const rmult)
+			: bufferSize(rbufferSize), mult(rmult)
+			{
+			
+			}
+			
+			BamParallelDecodingAlignmentBuffer * operator()() const
+			{
+				return new BamParallelDecodingAlignmentBuffer(bufferSize,mult);
+			}
+		};
+
+		// add decompressed block to free list
+		struct BamParallelDecodingDecompressedBlockReturnInterface
+		{
+			virtual ~BamParallelDecodingDecompressedBlockReturnInterface() {}
+			virtual void putBamParallelDecodingDecompressedBlockReturn(BamParallelDecodingDecompressedBlock * block) = 0;
+		};
+		
+		// add parsed block to pending list
+		struct BamParallelDecodingParsedBlockAddPendingInterface
+		{
+			virtual ~BamParallelDecodingParsedBlockAddPendingInterface() {}
+			virtual void putBamParallelDecodingParsedBlockAddPending(BamParallelDecodingAlignmentBuffer * algn) = 0;
+		};
+
+		// put unfinished parse block in stall slot
+		struct BamParallelDecodingParsedBlockStallInterface
+		{
+			virtual ~BamParallelDecodingParsedBlockStallInterface() {}
+			virtual void putBamParallelDecodingParsedBlockStall(BamParallelDecodingAlignmentBuffer * algn) = 0;
+		};
+		
+		struct BamParallelDecodingParsePackageReturnInterface
+		{
+			virtual ~BamParallelDecodingParsePackageReturnInterface() {}
+			virtual void putBamParallelDecodingReturnParsePackage(BamParallelDecodingParseBlockWorkPackage * package) = 0;
+		};
+
+		// dispatcher for block parsing
+		struct BamParallelDecodingParseBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+		{
+			BamParallelDecodingDecompressedBlockAddPendingInterface & addDecompressedPendingInterface;
+			BamParallelDecodingDecompressedBlockReturnInterface     & returnDecompressedInterface;
+			BamParallelDecodingParsedBlockAddPendingInterface       & addParsedPendingInterface;
+			BamParallelDecodingParsedBlockStallInterface            & parseStallInterface;
+			BamParallelDecodingParsePackageReturnInterface          & packageReturnInterface;
+
+			BamParallelDecodingParseBlockWorkPackageDispatcher(
+				BamParallelDecodingDecompressedBlockAddPendingInterface & raddDecompressedPendingInterface,
+				BamParallelDecodingDecompressedBlockReturnInterface     & rreturnDecompressedInterface,
+				BamParallelDecodingParsedBlockAddPendingInterface       & raddParsedPendingInterface,
+				BamParallelDecodingParsedBlockStallInterface            & rparseStallInterface,
+				BamParallelDecodingParsePackageReturnInterface          & rpackageReturnInterface
+			) : addDecompressedPendingInterface(raddDecompressedPendingInterface),
+			    returnDecompressedInterface(rreturnDecompressedInterface),
+			    addParsedPendingInterface(raddParsedPendingInterface),
+			    parseStallInterface(rparseStallInterface),
+			    packageReturnInterface(rpackageReturnInterface)
+			{
+			
+			}
+		
+			virtual void dispatch(
+				libmaus::parallel::SimpleThreadWorkPackage * P, 
+				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+			)
+			{
+				BamParallelDecodingParseBlockWorkPackage * BP = dynamic_cast<BamParallelDecodingParseBlockWorkPackage *>(P);
+				assert ( BP );
+				
+				// can we parse all information in the decompressed input block?
+				if ( BP->parseInfo->parseBlock(*(BP->decompressedblock),*(BP->parseBlock)) )
+				{
+					// if this is the last input block
+					if ( BP->decompressedblock->final )
+					{
+						// post process block (reorder pointers to original input order)
+						BP->parseBlock->reorder();
+						BP->parseBlock->final = true;
+						addParsedPendingInterface.putBamParallelDecodingParsedBlockAddPending(BP->parseBlock);
+					}
+					// otherwise parse block might not be full yet, stall it
+					else
+					{
+						parseStallInterface.putBamParallelDecodingParsedBlockStall(BP->parseBlock);
+					}
+					
+					// return decompressed input block (implies we are ready for the next one)
+					returnDecompressedInterface.putBamParallelDecodingDecompressedBlockReturn(BP->decompressedblock);
+				}
+				else
+				{
+					// post process block (reorder pointers to original input order)
+					BP->parseBlock->reorder();
+					// put back last name
+					BP->parseInfo->putBackLastName(*(BP->parseBlock));
+					// not the last one
+					BP->parseBlock->final = false;
+					
+					// parse block is full, add it to pending list
+					addParsedPendingInterface.putBamParallelDecodingParsedBlockAddPending(BP->parseBlock);
+					// decompressed input block still has more data, mark it as pending again
+					addDecompressedPendingInterface.putBamParallelDecodingDecompressedBlockAddPending(BP->decompressedblock);
+				}
+
+				// return the work package				
+				packageReturnInterface.putBamParallelDecodingReturnParsePackage(BP);				
+			}		
+		};
+
 		struct BamParallelDecodingControl :
 			public BamParallelDecodingInputBlockWorkPackageReturnInterface,
 			public BamParallelDecodingInputBlockAddPendingInterface,
 			public BamParallelDecodingDecompressBlockWorkPackageReturnInterface,
 			public BamParallelDecodingInputBlockReturnInterface,
 			public BamParallelDecodingDecompressedBlockAddPendingInterface,
-			public BamParallelDecodingBgzfInflateZStreamBaseReturnInterface
+			public BamParallelDecodingBgzfInflateZStreamBaseReturnInterface,
+			public BamParallelDecodingDecompressedBlockReturnInterface,
+			public BamParallelDecodingParsedBlockAddPendingInterface,
+			public BamParallelDecodingParsedBlockStallInterface,
+			public BamParallelDecodingParsePackageReturnInterface
 		{
 			typedef BamParallelDecodingControl this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -916,19 +1116,55 @@ namespace libmaus
 			BamParallelDecodingDecompressBlockWorkPackageDispatcher decompressDispatcher;
 			uint64_t decompressDispatcherId;
 
+			BamParallelDecodingParseBlockWorkPackageDispatcher parseDispatcher;
+			uint64_t parseDispatcherId;
+
 			uint64_t numthreads;
 
 			BamParallelDecodingControlInputInfo inputinfo;
 
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingInputBlockWorkPackage> readWorkPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingDecompressBlockWorkPackage> decompressWorkPackages;
-
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingParseBlockWorkPackage> parseWorkPackages;
+			
+			// free list for bgzf decompressors
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase>::unique_ptr_type Pdecoders;
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase> & decoders;
 			
+			// free list for decompressed blocks
 			libmaus::parallel::LockedFreeList<decompressed_block_type> decompressedBlockFreeList;
 			
+			// free list for alignment buffers
+			libmaus::parallel::LockedFreeList<BamParallelDecodingAlignmentBuffer,BamParallelDecodingAlignmentBufferAllocator> parseBlockFreeList;
+			
+			// input blocks ready to be decompressed
 			libmaus::parallel::LockedQueue<BamParallelDecodingControlInputInfo::input_block_type *> decompressPending;
+			
+			// decompressed blocks ready to be parsed
+			libmaus::parallel::LockedHeap<BamParallelDecodingDecompressedPendingObject,BamParallelDecodingDecompressedPendingObjectHeapComparator> parsePending;
+
+			// id of next block to be parsed
+			libmaus::parallel::LockedCounter nextDecompressedBlockToBeParsed;
+			libmaus::parallel::PosixSpinLock nextDecompressedBlockToBeParsedLock;
+			
+			BamParallelDecodingAlignmentBuffer * parseStallSlot;
+			libmaus::parallel::PosixSpinLock parseStallSlotLock;
+
+			BamParallelDecodingParseInfo parseInfo;
+			
+			libmaus::parallel::LockedBool lastParseBlockSeen;
+
+			virtual void putBamParallelDecodingReturnParsePackage(BamParallelDecodingParseBlockWorkPackage * package)
+			{
+				parseWorkPackages.returnPackage(package);
+			}
+
+			virtual void putBamParallelDecodingParsedBlockStall(BamParallelDecodingAlignmentBuffer * algn)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(parseStallSlotLock);
+				assert ( parseStallSlot == 0 );
+				parseStallSlot = algn;
+			}
 
 			// return a read work package to the free list
 			void putBamParallelDecodingInputBlockWorkPackage(BamParallelDecodingInputBlockWorkPackage * package)
@@ -987,13 +1223,111 @@ namespace libmaus
 				checkDecompressPendingList();
 			}
 
-			// add decompressed block to pending list
-			virtual void putBamParallelDecodingDecompressedBlockAddPending(BamParallelDecodingDecompressedBlock * block)
+			void checkParsePendingList()
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(nextDecompressedBlockToBeParsedLock);
+				libmaus::parallel::ScopePosixSpinLock alock(parseStallSlotLock);
+
+				BamParallelDecodingAlignmentBuffer * algnbuffer = 0;
+				
+				if ( 
+					parsePending.size() &&
+					(parsePending.top().first == static_cast<uint64_t>(nextDecompressedBlockToBeParsed)) &&
+					(algnbuffer=parseStallSlot)
+				)
+				{
+					parseStallSlot = 0;
+					BamParallelDecodingDecompressedPendingObject obj = parsePending.pop();		
+					
+					BamParallelDecodingParseBlockWorkPackage * package = parseWorkPackages.getPackage();
+					*package = BamParallelDecodingParseBlockWorkPackage(
+						0 /* prio */,
+						obj.second,
+						algnbuffer,
+						&parseInfo,
+						parseDispatcherId
+					);
+					STP.enque(package);
+				}
+
+				if ( 
+					parsePending.size() && 
+					(parsePending.top().first == static_cast<uint64_t>(nextDecompressedBlockToBeParsed)) &&
+					(algnbuffer = parseBlockFreeList.getIf())
+				)
+				{
+					BamParallelDecodingDecompressedPendingObject obj = parsePending.pop();		
+										
+					BamParallelDecodingParseBlockWorkPackage * package = parseWorkPackages.getPackage();
+					*package = BamParallelDecodingParseBlockWorkPackage(
+						0 /* prio */,
+						obj.second,
+						algnbuffer,
+						&parseInfo,
+						parseDispatcherId
+					);
+					STP.enque(package);
+
+					#if 0
+					// move this to when parsing is finished
+					nextDecompressedBlockToBeParsed++;
+
+					// add parsed block to the pending list
+					putBamParallelDecodingParsedBlockAddPending(algnbuffer);
+
+					// add decompressed block to the free list
+					putBamParallelDecodingDecompressedBlockReturn(obj.second);
+					#endif
+				}			
+			}
+
+			// return a decompressed block after parsing
+			virtual void putBamParallelDecodingDecompressedBlockReturn(BamParallelDecodingDecompressedBlock * block)
 			{
 				// add block to the free list
 				decompressedBlockFreeList.put(block);
+
+				// ready for next block
+				{
+				libmaus::parallel::ScopePosixSpinLock slock(nextDecompressedBlockToBeParsedLock);
+				nextDecompressedBlockToBeParsed++;
+				}
+
 				// check whether we have sufficient resources to decompress next package
-				checkDecompressPendingList();
+				checkDecompressPendingList();			
+
+				// see if we can parse the next block now
+				checkParsePendingList();
+			}
+			
+			virtual void putBamParallelDecodingParsedBlockAddPending(BamParallelDecodingAlignmentBuffer * algn)
+			{
+				bool const ok = algn->checkValidPacked();
+				
+				if ( ok )
+					std::cerr.put('+');
+				else
+					std::cerr.put('!');
+					
+				if ( algn->final )
+					lastParseBlockSeen.set(true);
+			
+				// reset block
+				algn->reset();
+				
+				// add algnbuffer to the free list
+				parseBlockFreeList.put(algn);
+
+				// see if we can parse the next block now
+				checkParsePendingList();
+			}
+
+			// add decompressed block to pending list
+			virtual void putBamParallelDecodingDecompressedBlockAddPending(BamParallelDecodingDecompressedBlock * block)
+			{
+				parsePending.push(BamParallelDecodingDecompressedPendingObject(block->blockid,block));
+
+				checkParsePendingList();
 			}
 
 			// return a bgzf decoder object		
@@ -1017,22 +1351,34 @@ namespace libmaus
 				STP.enque(package);
 			}
 
-			BamParallelDecodingControl(libmaus::parallel::SimpleThreadPool & rSTP, std::istream & ristr, uint64_t const rstreamid)
+			BamParallelDecodingControl(
+				libmaus::parallel::SimpleThreadPool & rSTP, 
+				std::istream & ristr, 
+				uint64_t const rstreamid,
+				uint64_t const rparsebuffersize
+			)
 			: 
 				STP(rSTP),
 				readDispatcher(*this,*this),
 				readDispatcherId(STP.getNextDispatcherId()),
 				decompressDispatcher(*this,*this,*this,*this),
 				decompressDispatcherId(STP.getNextDispatcherId()),
+				parseDispatcher(*this,*this,*this,*this,*this),
+				parseDispatcherId(STP.getNextDispatcherId()),
 				numthreads(STP.getNumThreads()),
 				inputinfo(ristr,rstreamid,numthreads),
 				readWorkPackages(),
 				Pdecoders(new libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase>(numthreads)),
 				decoders(*Pdecoders),
-				decompressedBlockFreeList(numthreads)
+				decompressedBlockFreeList(numthreads),
+				parseBlockFreeList(numthreads,BamParallelDecodingAlignmentBufferAllocator(rparsebuffersize,2)),
+				nextDecompressedBlockToBeParsed(0),
+				parseStallSlot(0),
+				lastParseBlockSeen(false)
 			{
 				STP.registerDispatcher(readDispatcherId,&readDispatcher);
 				STP.registerDispatcher(decompressDispatcherId,&decompressDispatcher);
+				STP.registerDispatcher(parseDispatcherId,&parseDispatcher);
 			}
 			
 			void serialTestDecode(std::ostream & out)
@@ -1121,7 +1467,7 @@ namespace libmaus
 			static void serialTestDecode1(std::istream & in, std::ostream & out)
 			{
 				libmaus::parallel::SimpleThreadPool STP(1);
-				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/);
+				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */);
 				BPDC.serialTestDecode(out);
 			}
 			
@@ -1135,10 +1481,10 @@ namespace libmaus
 			static void serialParallelDecode1(std::istream & in)
 			{
 				libmaus::parallel::SimpleThreadPool STP(8);
-				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/);
+				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */);
 				BPDC.enqueReadPackage();
 				
-				while ( ! BPDC.inputinfo.getEOF() )
+				while ( ! BPDC.lastParseBlockSeen.get() )
 				{
 					sleep(1);
 				}
