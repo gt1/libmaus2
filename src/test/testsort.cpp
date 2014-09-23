@@ -191,10 +191,10 @@ void testMultiMerge()
 	std::cerr << std::string(80,'-') << std::endl;
 	for ( uint64_t i = 0; i < W.size(); ++i )
 	{
-		std::cerr << W[i] << ";";
+		// std::cerr << W[i] << ";";
 		assert ( i == 0 || W[i-1] <= W[i] );
 	}
-	std::cerr << std::endl;
+	// std::cerr << std::endl;
 }
 
 void testMultiSort()
@@ -214,10 +214,10 @@ void testMultiSort()
 	
 	for ( uint64_t i = 0; i < V.size(); ++i )
 	{
-		std::cerr << in[i] << ";";
+		// std::cerr << in[i] << ";";
 		assert ( i == 0 || in[i-1] <= in[i] );
 	}
-	std::cerr << std::endl;
+	// std::cerr << std::endl;
 }
 
 int main()
