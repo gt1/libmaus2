@@ -1865,6 +1865,86 @@ namespace libmaus
 				}
 			}
 
+			void putAuxIntegerNumberFast(char const t1, char const t2, int32_t i)
+			{
+				if ( blocksize + 3 + sizeof(int32_t) > D.size() )
+					D.resize(blocksize + 3 + sizeof(int32_t));
+					
+				D[blocksize++] = t1;
+				D[blocksize++] = t2;
+				D[blocksize++] = 'i';
+				
+				for ( unsigned int j = 0; j < sizeof(int32_t); ++j, i >>= 8 )
+					D[blocksize++] = (i & 0xFF);
+			}
+
+			/**
+			 * make mate pair information of two alignments consistent (inspired by Picard code)
+			 */
+			static void fixMateInformationPreFiltered(libmaus::bambam::BamAlignment & rec1, libmaus::bambam::BamAlignment & rec2)
+			{
+				static uint32_t const next_rev_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
+				static uint32_t const next_unmap_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+				
+				// both mapped
+				if (!rec1.isUnmap() && !rec2.isUnmap()) 
+				{
+					rec1.putNextRefId(rec2.getRefID());
+					rec1.putNextPos(rec2.getPos());
+					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+
+					rec2.putNextRefId(rec1.getRefID());
+					rec2.putNextPos(rec1.getPos());
+					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+
+					rec1.putAuxIntegerNumberFast('M', 'Q', rec2.getMapQ());
+					rec2.putAuxIntegerNumberFast('M', 'Q', rec1.getMapQ());
+					
+					int64_t const insertSize = computeInsertSize(rec1, rec2);
+					rec1.putTlen(insertSize);
+					rec2.putTlen(-insertSize);
+				}
+				// both unmapped
+				else if (rec1.isUnmap() && rec2.isUnmap())
+				{
+					rec1.putRefId(-1);
+					rec1.putPos(-1);
+					rec1.putNextRefId(-1);
+					rec1.putNextPos(-1);
+					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
+					rec1.putTlen(0);
+
+					rec2.putRefId(-1);
+					rec2.putPos(-1);
+					rec2.putNextRefId(-1);
+					rec2.putNextPos(-1);
+					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
+					rec2.putTlen(0);					
+				}
+				// one mapped and other one unmapped
+				else
+				{
+					libmaus::bambam::BamAlignment & mapped   = rec1.isUnmap() ? rec2 : rec1;
+					libmaus::bambam::BamAlignment & unmapped = rec1.isUnmap() ? rec1 : rec2;
+					
+					unmapped.putRefId(mapped.getRefID());
+					unmapped.putPos(mapped.getPos());
+
+					mapped.putNextRefId(unmapped.getRefID());
+					mapped.putNextPos(unmapped.getPos());
+					mapped.putFlags( (unmapped.isReverse() ? (mapped.getFlags() | next_rev_flag) : (mapped.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );					
+					mapped.putTlen(0);
+
+					unmapped.putNextRefId(mapped.getRefID());
+					unmapped.putNextPos(mapped.getPos());
+					unmapped.putFlags( (mapped.isReverse() ? (unmapped.getFlags() | next_rev_flag) : (unmapped.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+					unmapped.putTlen(0);
+
+					unmapped.putAuxIntegerNumberFast('M', 'Q', mapped.getMapQ());
+				}
+			}
+			
+
 			/**
 			 * add quality score of mate as aux field
 			 */
@@ -1884,6 +1964,19 @@ namespace libmaus
 				rec2.putAuxNumber("MS",'i',score1);								
 			}
 
+
+			/**
+			 * add quality score of mate as aux field
+			 */
+			static void addMateBaseScorePreFiltered(libmaus::bambam::BamAlignment & rec1, libmaus::bambam::BamAlignment & rec2)
+			{
+				uint64_t const score1 = rec1.getScore();
+				uint64_t const score2 = rec2.getScore();
+				
+				rec1.putAuxIntegerNumberFast('M', 'S', score2);
+				rec2.putAuxIntegerNumberFast('M', 'S', score1);
+			}
+
 			/**
 			 * add mapping coordinate of mate as aux field
 			 */
@@ -1901,6 +1994,18 @@ namespace libmaus
 				
 				rec1.putAuxNumber("MC",'i',coord2);
 				rec2.putAuxNumber("MC",'i',coord1);								
+			}
+
+			/**
+			 * add mapping coordinate of mate as aux field
+			 */
+			static void addMateCoordinatePreFiltered(libmaus::bambam::BamAlignment & rec1, libmaus::bambam::BamAlignment & rec2)
+			{
+				uint64_t const coord1 = rec1.getCoordinate();
+				uint64_t const coord2 = rec2.getCoordinate();
+				
+				rec1.putAuxIntegerNumberFast('M', 'C', coord2);
+				rec2.putAuxIntegerNumberFast('M', 'C', coord1);
 			}
 
 			/**
@@ -1928,6 +2033,24 @@ namespace libmaus
 			/**
 			 * add tag of mate as aux field if present
 			 */
+			static void addMateTagPreFiltered(
+				libmaus::bambam::BamAlignment & rec1, 
+				libmaus::bambam::BamAlignment & rec2,
+				char const * tagname
+				)
+			{
+				char const * MT1 = rec1.getAuxString(tagname);
+				char const * MT2 = rec2.getAuxString(tagname);
+				
+				if ( MT2 )
+					rec1.putAuxString("MT",MT2);
+				if ( MT1 )
+					rec2.putAuxString("MT",MT1);								
+			}
+
+			/**
+			 * add tag of mate as aux field if present
+			 */
 			static void addMateTag(
 				libmaus::bambam::BamAlignment & rec1, 
 				libmaus::bambam::BamAlignment & rec2,
@@ -1936,6 +2059,18 @@ namespace libmaus
 				)
 			{
 				addMateTag(rec1,rec2,MTfilter,tagname.c_str());
+			}
+
+			/**
+			 * add tag of mate as aux field if present
+			 */
+			static void addMateTagPreFiltered(
+				libmaus::bambam::BamAlignment & rec1, 
+				libmaus::bambam::BamAlignment & rec2,
+				std::string const & tagname
+				)
+			{
+				addMateTagPreFiltered(rec1,rec2,tagname.c_str());
 			}
 
 			/**
