@@ -30,6 +30,10 @@ namespace libmaus
 			virtual ~SimpleThreadPoolInterfaceEnqueTermInterface() {}
 			virtual void enque(SimpleThreadWorkPackage * P) = 0;		
 			virtual void terminate() = 0;
+
+			virtual void addLogString(std::string const & s) = 0;
+			virtual void addLogStringWithThreadId(std::string const & s) = 0;
+			virtual libmaus::parallel::PosixSpinLock & getGlobalLock() = 0;
 		};
 	}
 }

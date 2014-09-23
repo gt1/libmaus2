@@ -24,6 +24,11 @@
 #include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
+#if defined(__linux__)
+#include <unistd.h>
+#include <sys/syscall.h>
+#endif
+
 namespace libmaus
 {
 	namespace parallel
@@ -39,7 +44,9 @@ namespace libmaus
 			libmaus::parallel::PosixSpinLock curpacklock;
 			libmaus::parallel::SimpleThreadWorkPackage * curpack;
 			
-			SimpleThreadPoolThread(SimpleThreadPoolInterface & rtpi) : tpi(rtpi), curpack(0)
+			uint64_t const threadid;
+			
+			SimpleThreadPoolThread(SimpleThreadPoolInterface & rtpi, uint64_t const rthreadid) : tpi(rtpi), curpack(0), threadid(rthreadid)
 			{
 			}
 			virtual ~SimpleThreadPoolThread() {}
@@ -54,6 +61,11 @@ namespace libmaus
 			{
 				try
 				{
+					#if defined(__linux__)
+					long const tid = syscall(SYS_gettid);
+					tpi.setTaskId(threadid,tid);
+					#endif
+				
 					// notify pool this thread is now running
 					tpi.notifyThreadStart();
 					
@@ -65,6 +77,15 @@ namespace libmaus
 							libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
 							curpack = P;
 						}
+						
+						#if 0
+						{
+						tpi.getGlobalLock().lock();
+						std::cerr << "running " << P->getPackageName() << std::endl;
+						tpi.getGlobalLock().unlock();
+						}
+						#endif
+						
 						SimpleThreadWorkPackageDispatcher * disp = tpi.getDispatcher(P);
 						
 						try

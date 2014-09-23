@@ -30,6 +30,11 @@
 #include <libmaus/parallel/LockedBool.hpp>
 #include <libmaus/util/unordered_map.hpp>
 
+#if defined(__linux__)
+#include <unistd.h>
+#include <sys/syscall.h>
+#endif
+
 namespace libmaus
 {
 	namespace parallel
@@ -42,10 +47,9 @@ namespace libmaus
 			
 			libmaus::parallel::SynchronousCounter<uint64_t> nextDispatcherId;
 			
-			
 			uint64_t nextpackageid;
 			libmaus::parallel::PosixSpinLock nextpackageidlock;
-			bool panicflag;
+			bool volatile panicflag;
 			libmaus::parallel::PosixSpinLock panicflaglock;
 			libmaus::exception::LibMausException::unique_ptr_type lme;
 						
@@ -59,6 +63,22 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadWorkPackage *,
 				libmaus::parallel::SimpleThreadWorkPackageComparator
 			> Q;
+			
+			libmaus::parallel::PosixSpinLock globallock;
+			
+			#if defined(__linux__)
+			// map linux tid -> thread id in this pool
+			std::map<uint64_t,uint64_t> pmap;
+			#endif
+			
+			std::vector<std::string> logvector;
+			uint64_t logvectorcur;
+			libmaus::parallel::PosixSpinLock logvectorlock;
+			
+			libmaus::parallel::PosixSpinLock & getGlobalLock()
+			{
+				return globallock;
+			}
 			
 			uint64_t getNumThreads() const
 			{
@@ -147,11 +167,11 @@ namespace libmaus
 			SimpleThreadPool(
 				uint64_t const rnumthreads
 			)
-			: nextpackageid(0), threads(rnumthreads)
+			: nextpackageid(0), panicflag(false), threads(rnumthreads), logvector(64), logvectorcur(0)
 			{
 				for ( uint64_t i = 0; i < threads.size(); ++i )
 				{
-					SimpleThreadPoolThread::unique_ptr_type tptr(new SimpleThreadPoolThread(*this));
+					SimpleThreadPoolThread::unique_ptr_type tptr(new SimpleThreadPoolThread(*this,i));
 					threads[i] = UNIQUE_PTR_MOVE(tptr);
 				}
 				for ( uint64_t i = 0; i < threads.size(); ++i )
@@ -216,6 +236,72 @@ namespace libmaus
 			uint64_t getNextDispatcherId()
 			{
 				return nextDispatcherId++;
+			}
+
+			#if defined(__linux__)
+			void setTaskId(uint64_t const threadid, uint64_t const taskid)
+			{
+				pmap[taskid] = threadid;
+			}
+			#endif
+
+			virtual uint64_t getThreadId()
+			{
+				#if defined(__linux__)
+				long const tid = syscall(SYS_gettid);
+				return pmap.find(tid)->second;
+				#else
+				pthread_t self = pthread_self();
+				
+				for ( uint64_t i = 0; i < threads.size(); ++i )
+					if ( threads[i]->isCurrent() )
+						return i;
+						
+				libmaus::exception::LibmausException lme;
+				lme.getStream() << "SimpleThreadPool::getThreadId(): unable to find thread\n";
+				lme.finish();
+				throw lme;
+				#endif
+			}
+
+			virtual void addLogString(std::string const & s)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(logvectorlock);
+				logvector[(logvectorcur++)%logvector.size()] = s;
+			}
+			
+			uint64_t rdtsc(void)
+			{
+				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64)
+				uint64_t x;
+				uint32_t a, d;
+			      
+				__asm__ volatile("rdtsc" : "=a" (a), "=d" (d));
+			         
+			        return static_cast<uint64_t>(a) | (static_cast<uint64_t>(d)<<32);
+			        #else
+			        return 0;
+			        #endif
+			}
+			            
+			virtual void addLogStringWithThreadId(std::string const & s)
+			{
+				std::ostringstream ostr;
+				ostr << "[" << getThreadId() << "," << rdtsc() << "] " << s;
+				addLogString(ostr.str());
+			}
+			virtual void printLog(std::ostream & out = std::cerr)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(logvectorlock);
+				
+				uint64_t const numlogentries = logvectorcur;
+				uint64_t const numlogentriestoprint = std::min(numlogentries,static_cast<uint64_t>(logvector.size()));
+
+				for ( uint64_t i = 0; i < numlogentriestoprint; ++i )
+				{
+					uint64_t const id = (logvectorcur + logvector.size() - numlogentriestoprint + i) % logvector.size();
+					out << logvector[id] << '\n';
+				}
 			}
 		};
 	}

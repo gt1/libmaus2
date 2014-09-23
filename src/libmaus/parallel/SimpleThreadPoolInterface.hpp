@@ -39,6 +39,14 @@ namespace libmaus
 
 			virtual SimpleThreadWorkPackage * getPackage() = 0;
 			virtual SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus::parallel::SimpleThreadWorkPackage * P) = 0;
+			
+			#if defined(__linux__)
+			virtual void setTaskId(uint64_t const threadid, uint64_t const taskid) = 0;
+			#endif
+			
+			virtual uint64_t getThreadId() = 0;
+			
+			virtual void printLog(std::ostream & out = std::cerr) = 0;
 		};
 	}
 }
