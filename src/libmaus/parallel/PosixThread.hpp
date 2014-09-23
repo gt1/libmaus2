@@ -339,6 +339,12 @@ namespace libmaus
 				prctl(PR_SET_NAME,name.c_str(),0,0,0);
 				#endif
 			}
+			
+			bool isCurrent()
+			{
+				pthread_t self = pthread_self();
+				return pthread_equal(self,*thread);
+			}
 		};
 	}
 }
