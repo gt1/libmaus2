@@ -39,7 +39,7 @@ libmaus can use functionality from several other code bases. This includes:
 
  - snappy [http://code.google.com/p/snappy/] : a fast and lightweight Lempel-Ziv
    type compression/decompression library. This can be used for the compression
-   of temporory files (as used in name collating BAM input for instance).
+   of temporary files (as used in name collating BAM input for instance).
  - io_lib [http://sourceforge.net/p/staden/code/HEAD/tree/io_lib/] : This is
    part of the Staden package. libmaus can use this library for SAM and CRAM
    file input.
