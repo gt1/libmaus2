@@ -47,9 +47,15 @@ namespace libmaus
                 
                         pthread_spinlock_t spinlock;
                         
-                        PosixSpinLock() : spinlock()
+                        PosixSpinLock()
                         {
-                                pthread_spin_init(&spinlock,0);
+                                if ( pthread_spin_init(&spinlock,PTHREAD_PROCESS_PRIVATE) )
+                                {
+                        		::libmaus::exception::LibMausException se;
+                        		se.getStream() << "pthread_spin_init failed" << std::endl;
+                        		se.finish();
+                        		throw se;                                	
+                                }
                         }
                         ~PosixSpinLock()
                         {
@@ -166,7 +172,7 @@ namespace libmaus
                 	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
                 	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
                 
-                	unsigned int spinlock;
+                	unsigned int volatile spinlock;
                         
                         PosixSpinLock() : spinlock()
                         {
