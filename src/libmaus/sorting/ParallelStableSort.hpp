@@ -37,6 +37,9 @@ namespace libmaus
 		 **/
 		struct ParallelStableSort : public libmaus::sorting::MergeStepBinSearchResult
 		{
+			/**
+			 * sort context
+			 **/
 			template<typename iterator, typename order_type>
 			struct ParallelStableSortContextBase
 			{
@@ -84,13 +87,18 @@ namespace libmaus
 				}
 			};
 
+			/**
+			 * sort request interface
+			 **/
 			struct SortRequest
 			{
 				virtual ~SortRequest() {}
 				virtual void dispatch() = 0;
 			};
-		
 			
+			/**
+			 * merge request
+			 **/
 			template<typename iterator, typename order_type>
 			struct MergeRequest : public SortRequest
 			{
@@ -120,6 +128,9 @@ namespace libmaus
 				}
 			};
 		
+			/**
+			 * create multi threaded plan for merging
+			 **/
 			template<typename iterator, typename order_type>
 			static void parallelMergePlan(
 				iterator aa,
@@ -147,6 +158,9 @@ namespace libmaus
 				}
 			}
 
+			/**
+			 * parallel OMP based merging
+			 **/
 			template<typename iterator, typename order_type>
 			static void parallelMerge(
 				iterator aa,
@@ -181,7 +195,9 @@ namespace libmaus
 				}
 			}
 			
-			
+			/**
+			 * one level of merging
+			 **/
 			template<typename iterator, typename order_type>
 			struct MergeLevel
 			{
@@ -199,6 +215,9 @@ namespace libmaus
 				
 				}
 			
+				/**
+				 * create plan for merging
+				 **/
 				void dispatch()
 				{
 					uint64_t const mergesize = context.pack<<1;
@@ -241,6 +260,9 @@ namespace libmaus
 
 				}
 				
+				/**
+				 * execute plan for merging (parallel through openmp)
+				 **/
 				void subdispatch()
 				{
 					#if defined(_OPENMP)
@@ -252,6 +274,9 @@ namespace libmaus
 				}
 			};
 
+			/**
+			 * set of merge levels for sorting
+			 **/
 			template<typename iterator, typename order_type>
 			struct MergeLevels
 			{
@@ -275,10 +300,10 @@ namespace libmaus
 				
 				void dispatch()
 				{
-					for ( uint64_t i = 0; i < levels.size(); ++i )
+					for ( level_type * cur = levels.size() ? &levels[0] : 0; cur; cur = cur->next )
 					{
-						levels[i].dispatch();
-						levels[i].subdispatch();
+						cur->dispatch();
+						cur->subdispatch();					
 					}
 				}
 			};
@@ -333,8 +358,89 @@ namespace libmaus
 						baseSortRequests[t].dispatch();
 				}
 			};
-			
-			
+
+			template<typename _iterator, typename _order_type>
+			struct ParallelSortControlState
+			{
+
+				typedef _iterator iterator;
+				typedef _order_type order_type;
+				typedef typename MergeLevels<iterator,order_type>::level_type level_type;
+
+				enum parallel_sort_state
+				{
+					sort_state_base_sort,
+					sort_state_plan_merge,
+					sort_state_execute_merge,
+					sort_state_copy_back,
+					sort_state_done
+				};
+
+				parallel_sort_state state;
+				BaseSortRequestSet<iterator,order_type> *basesortreqs;
+				level_type * level;
+				bool needCopyBack;
+				iterator copyBackFrom;
+				iterator copyBackTo;
+				uint64_t copyBackN;
+				
+				ParallelSortControlState() : state(sort_state_base_sort), level(0), needCopyBack(false), copyBackFrom(iterator()), copyBackTo(iterator()), copyBackN(0)
+				{
+				
+				}
+				
+				ParallelSortControlState(
+					BaseSortRequestSet<iterator,order_type> * rbasesortreqs,
+					level_type * rlevel,
+					bool const rneedCopyBack,
+					iterator rcopyBackFrom,
+					iterator rcopyBackTo,
+					uint64_t rcopyBackN
+				) : state(sort_state_base_sort), basesortreqs(rbasesortreqs), level(rlevel), needCopyBack(rneedCopyBack), copyBackFrom(rcopyBackFrom), copyBackTo(rcopyBackTo), copyBackN(rcopyBackN) {}
+				
+				void serialStep()
+				{
+					switch ( state )
+					{
+						case sort_state_base_sort:
+							for ( uint64_t i = 0; i < basesortreqs->baseSortRequests.size(); ++i )
+								basesortreqs->baseSortRequests[i]->dispatch();
+							
+							if ( level )
+								state = sort_state_plan_merge;
+							else
+								state = sort_state_copy_back;	
+							
+							break;
+						case sort_state_plan_merge:
+							level->dispatch();
+							state = sort_state_execute_merge;
+
+							break;
+						case sort_state_execute_merge:
+							for ( uint64_t i = 0; i < level->mergeRequests.size(); ++i )
+								level->mergeRequests[i].dispatch();
+							
+							level = level->next;
+							
+							if ( level )
+								state = sort_state_plan_merge;
+							else
+								state = sort_state_copy_back;
+							
+							break;
+						case sort_state_copy_back:
+						
+							if ( needCopyBack )
+								std::copy(copyBackFrom,copyBackFrom+copyBackN,copyBackTo);			
+						
+							state = sort_state_done;
+						
+							break;
+					}
+				}
+			};
+						
 			template<typename _iterator, typename _order_type>
 			struct ParallelSortControl
 			{
@@ -343,12 +449,12 @@ namespace libmaus
 				typedef ParallelSortControl<iterator,order_type> this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+				
 				ParallelStableSortContextBase<iterator,order_type> context;
 				BaseSortRequestSet<iterator,order_type> baseSortRequests;
 				MergeLevels<iterator,order_type> mergeLevels;
 				bool const needCopyBack;
-	
+
 				ParallelSortControl(		
 					iterator const raa,
 					iterator const rae,
