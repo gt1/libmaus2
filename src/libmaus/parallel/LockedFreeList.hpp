@@ -45,7 +45,7 @@ namespace libmaus
 			{
 			}
 			
-			bool empty() const
+			bool empty()
 			{
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::empty();
