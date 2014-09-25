@@ -37,6 +37,7 @@
 #include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/parallel/SynchronousCounter.hpp>
+#include <libmaus/sorting/ParallelStableSort.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/util/FreeList.hpp>
 #include <libmaus/util/GetObject.hpp>
@@ -907,6 +908,24 @@ namespace libmaus
 					(static_cast<uint32_t>(B[2]) << 16) |
 					(static_cast<uint32_t>(B[3]) << 24) ;
 			}
+
+			int64_t decodeCoordinate(uint64_t const off) const
+			{
+				uint8_t const * B = A.begin() + off + sizeof(uint32_t);
+				
+				return
+					static_cast<int64_t>
+					((static_cast<uint64_t>(B[0]) << 0)  |
+					(static_cast<uint64_t>(B[1]) << 8)  |
+					(static_cast<uint64_t>(B[2]) << 16) |
+					(static_cast<uint64_t>(B[3]) << 24) |
+					(static_cast<uint64_t>(B[4]) << 32) |
+					(static_cast<uint64_t>(B[5]) << 40) |
+					(static_cast<uint64_t>(B[6]) << 48) |
+					(static_cast<uint64_t>(B[7]) << 56)) 
+					
+					;
+			}
 						
 			BamParallelDecodingAlignmentRewriteBuffer(uint64_t const buffersize, uint64_t const rpointerdif = 1)
 			: A(buffersize,false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif)
@@ -967,6 +986,17 @@ namespace libmaus
 				assert ( pref == postf );
 			}
 			
+			std::pair<pointer_type *,uint64_t> getPointerArray()
+			{
+				return std::pair<pointer_type *,uint64_t>(pP,fill());
+			}
+			
+			std::pair<pointer_type *,uint64_t> getAuxPointerArray()
+			{
+				uint64_t const numauxpointers = (pointerdif - 1)*fill();
+				return std::pair<pointer_type *,uint64_t>(pP - numauxpointers,numauxpointers);
+			}
+			
 			bool put(char const * p, uint64_t const n)
 			{
 				if ( n + sizeof(uint32_t) + pointerdif * sizeof(pointer_type) <= free() )
@@ -992,7 +1022,87 @@ namespace libmaus
 					return false;
 				}
 			}
+
+			bool put(char const * p, uint64_t const n, int64_t const coord)
+			{
+				if ( n + sizeof(uint32_t) + sizeof(uint64_t) + pointerdif * sizeof(pointer_type) <= free() )
+				{
+					// store pointer
+					pP -= pointerdif;
+					*pP = pA-A.begin();
+
+					// store length
+					*(pA++) = (n >>  0) & 0xFF;
+					*(pA++) = (n >>  8) & 0xFF;
+					*(pA++) = (n >> 16) & 0xFF;
+					*(pA++) = (n >> 24) & 0xFF;
+					
+					// store coordinate
+					uint64_t const ucoord = coord;
+					*(pA++) = (ucoord >>  0) & 0xFF;
+					*(pA++) = (ucoord >>  8) & 0xFF;
+					*(pA++) = (ucoord >> 16) & 0xFF;
+					*(pA++) = (ucoord >> 24) & 0xFF;
+					*(pA++) = (ucoord >> 32) & 0xFF;
+					*(pA++) = (ucoord >> 40) & 0xFF;
+					*(pA++) = (ucoord >> 48) & 0xFF;
+					*(pA++) = (ucoord >> 56) & 0xFF;
+					
+					// copy alignment data
+					// std::copy(p,p+n,reinterpret_cast<char *>(pA));
+					memcpy(pA,p,n);
+					pA += n;
+														
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
 		};
+
+		struct BamAlignmentRewriteBufferPosComparator
+		{
+			BamParallelDecodingAlignmentRewriteBuffer * buffer;
+			uint8_t const * text;
+			
+			BamAlignmentRewriteBufferPosComparator(BamParallelDecodingAlignmentRewriteBuffer * rbuffer)
+			: buffer(rbuffer), text(buffer->A.begin())
+			{
+			
+			}
+			
+			bool operator()(BamParallelDecodingAlignmentRewriteBuffer::pointer_type A, BamParallelDecodingAlignmentRewriteBuffer::pointer_type B) const
+			{
+				uint8_t const * pa = text + A + (sizeof(uint32_t) + sizeof(uint64_t));
+				uint8_t const * pb = text + B + (sizeof(uint32_t) + sizeof(uint64_t));
+
+				int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(pa);
+				int32_t const refb = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(pb);
+			
+				if ( refa != refb )
+					return  static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb);
+
+				int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(pa);
+				int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(pb);
+				
+				return posa < posb;
+			}
+		};
+
+		struct BamAlignmentRewriteBufferCoordinateComparator
+		{
+			BamParallelDecodingAlignmentRewriteBuffer * buffer;
+			
+			BamAlignmentRewriteBufferCoordinateComparator(BamParallelDecodingAlignmentRewriteBuffer * rbuffer) : buffer(rbuffer) {}
+			
+			bool operator()(BamParallelDecodingAlignmentRewriteBuffer::pointer_type A, BamParallelDecodingAlignmentRewriteBuffer::pointer_type B) const
+			{
+				return buffer->decodeCoordinate(A) < buffer->decodeCoordinate(B);
+			}
+		};
+
 		
 		struct BamParallelDecodingParseInfo
 		{
@@ -1674,8 +1784,9 @@ namespace libmaus
 						while ( algns.size() )
 						{
 							libmaus::bambam::BamAlignment * algn = algns.front();
+							int64_t const coordinate = algn->getCoordinate();
 							
-							if ( BP->rewriteBlock->put(reinterpret_cast<char const *>(algn->D.begin()),algn->blocksize) )
+							if ( BP->rewriteBlock->put(reinterpret_cast<char const *>(algn->D.begin()),algn->blocksize,coordinate) )
 							{
 								BP->parseBlock->returnAlignment(algn);
 								algns.pop_front();
@@ -1728,6 +1839,312 @@ namespace libmaus
 			}		
 		};
 
+		struct BamAlignmentRewritePosSortContextBaseBlockSortedInterface
+		{
+			virtual ~BamAlignmentRewritePosSortContextBaseBlockSortedInterface() {}
+			virtual void baseBlockSorted() = 0;
+		};
+		
+		struct BamAlignmentRewritePosSortContextMergePackageFinished
+		{
+			virtual ~BamAlignmentRewritePosSortContextMergePackageFinished() {}
+			virtual void mergePackageFinished() = 0;
+		};
+		
+		template<typename _order_type>
+		struct BamAlignmentRewritePosSortBaseSortPackage : public libmaus::parallel::SimpleThreadWorkPackage
+		{
+			typedef _order_type order_type;
+			typedef BamParallelDecodingAlignmentRewriteBuffer::pointer_type * iterator;
+		
+			typedef BamAlignmentRewritePosSortBaseSortPackage<order_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
+			typedef libmaus::sorting::ParallelStableSort::BaseSortRequest<iterator,order_type> request_type;
+			request_type * request;
+			BamAlignmentRewritePosSortContextBaseBlockSortedInterface * blockSortedInterface;
+
+			BamAlignmentRewritePosSortBaseSortPackage() : libmaus::parallel::SimpleThreadWorkPackage(), request(0) {}
+			
+			BamAlignmentRewritePosSortBaseSortPackage(
+				uint64_t const rpriority, 
+				request_type * rrequest,
+				BamAlignmentRewritePosSortContextBaseBlockSortedInterface * rblockSortedInterface,
+				uint64_t const rdispatcherId
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), request(rrequest), blockSortedInterface(rblockSortedInterface)
+			{
+			}
+		
+			char const * getPackageName() const
+			{
+				return "BamAlignmentRewritePosSortBaseSortPackage";
+			}
+		};
+
+		template<typename _order_type>
+		struct BamParallelDecodingBaseSortWorkPackageReturnInterface
+		{
+			typedef _order_type order_type;
+			
+			virtual ~BamParallelDecodingBaseSortWorkPackageReturnInterface() {}
+			virtual void putBamParallelDecodingBaseSortWorkPackage(BamAlignmentRewritePosSortBaseSortPackage<order_type> * package) = 0;
+		};
+
+		// dispatcher for block base sorting
+		template<typename _order_type>
+		struct BamParallelDecodingBaseSortWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+		{
+			typedef _order_type order_type;
+			
+			BamParallelDecodingBaseSortWorkPackageReturnInterface<order_type> & packageReturnInterface;
+			
+			BamParallelDecodingBaseSortWorkPackageDispatcher(
+				BamParallelDecodingBaseSortWorkPackageReturnInterface<order_type> & rpackageReturnInterface
+			) : packageReturnInterface(rpackageReturnInterface) 
+			{
+			}
+		
+			virtual void dispatch(
+				libmaus::parallel::SimpleThreadWorkPackage * P, 
+				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+			)
+			{
+				BamAlignmentRewritePosSortBaseSortPackage<order_type> * BP = dynamic_cast<BamAlignmentRewritePosSortBaseSortPackage<order_type> *>(P);
+				assert ( BP );
+				
+				BP->request->dispatch();
+				BP->blockSortedInterface->baseBlockSorted();
+				
+				// return the work package				
+				packageReturnInterface.putBamParallelDecodingBaseSortWorkPackage(BP);				
+			}		
+		};
+
+		template<typename _order_type>
+		struct BamAlignmentRewritePosMergeSortPackage : public libmaus::parallel::SimpleThreadWorkPackage
+		{
+			typedef BamParallelDecodingAlignmentRewriteBuffer::pointer_type * iterator;
+			typedef _order_type order_type;
+			
+			typedef BamAlignmentRewritePosMergeSortPackage<order_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+						
+			typedef libmaus::sorting::ParallelStableSort::MergeRequest<iterator,order_type> request_type;
+		
+			request_type * request;
+			BamAlignmentRewritePosSortContextMergePackageFinished * mergedInterface;
+
+			BamAlignmentRewritePosMergeSortPackage() : libmaus::parallel::SimpleThreadWorkPackage(), request(0) {}
+			
+			BamAlignmentRewritePosMergeSortPackage(
+				uint64_t const rpriority, 
+				request_type * rrequest,
+				BamAlignmentRewritePosSortContextMergePackageFinished * rmergedInterface,
+				uint64_t const rdispatcherId
+			)
+			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), request(rrequest), mergedInterface(rmergedInterface)
+			{
+			}
+		
+			char const * getPackageName() const
+			{
+				return "BamAlignmentRewritePosMergeSortPackage";
+			}
+		};
+		
+		template<typename order_type>
+		struct BamParallelDecodingBaseMergeSortWorkPackageReturnInterface
+		{
+			virtual ~BamParallelDecodingBaseMergeSortWorkPackageReturnInterface() {}
+			virtual void putBamParallelDecodingMergeSortWorkPackage(BamAlignmentRewritePosMergeSortPackage<order_type> * package) = 0;
+		};
+
+		// dispatcher for block merging
+		template<typename _order_type>
+		struct BamParallelDecodingMergeSortWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+		{
+			typedef _order_type order_type;
+		
+			BamParallelDecodingBaseMergeSortWorkPackageReturnInterface<order_type> & packageReturnInterface;
+			
+			BamParallelDecodingMergeSortWorkPackageDispatcher(
+				BamParallelDecodingBaseMergeSortWorkPackageReturnInterface<order_type> & rpackageReturnInterface
+			) : packageReturnInterface(rpackageReturnInterface) 
+			{
+			}
+		
+			virtual void dispatch(
+				libmaus::parallel::SimpleThreadWorkPackage * P, 
+				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+			)
+			{
+				BamAlignmentRewritePosMergeSortPackage<order_type> * BP = dynamic_cast<BamAlignmentRewritePosMergeSortPackage<order_type> *>(P);
+				assert ( BP );
+				
+				BP->request->dispatch();
+				BP->mergedInterface->mergePackageFinished();
+				
+				// return the work package				
+				packageReturnInterface.putBamParallelDecodingMergeSortWorkPackage(BP);				
+			}		
+		};
+
+		struct BamParallelDecodingSortFinishedInterface
+		{
+			virtual ~BamParallelDecodingSortFinishedInterface() {}
+			virtual void putBamParallelDecodingSortFinished(BamParallelDecodingAlignmentRewriteBuffer * buffer) = 0;
+		};
+
+		template<typename _order_type>
+		struct BamAlignmentRewritePosSortContext : 
+			public BamAlignmentRewritePosSortContextBaseBlockSortedInterface,
+			public BamAlignmentRewritePosSortContextMergePackageFinished
+		{
+			typedef _order_type order_type;
+			typedef BamAlignmentRewritePosSortContext<order_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			typedef BamParallelDecodingAlignmentRewriteBuffer::pointer_type * iterator;
+		
+			BamParallelDecodingAlignmentRewriteBuffer * const buffer;
+			order_type comparator;
+			libmaus::sorting::ParallelStableSort::ParallelSortControl<iterator,order_type> PSC;
+			libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & STPI;
+
+			typename libmaus::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * volatile level;
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamAlignmentRewritePosMergeSortPackage<order_type> > & mergeSortPackages;
+			uint64_t const mergeSortDispatcherId;
+			
+			BamParallelDecodingSortFinishedInterface & sortFinishedInterface;
+			
+			enum state_type
+			{
+				state_base_sort, state_merge_plan, state_merge_execute, state_copy_back, state_done
+			};
+			
+			state_type volatile state;
+			
+			BamAlignmentRewritePosSortContext(
+				BamParallelDecodingAlignmentRewriteBuffer * rbuffer,
+				uint64_t const numthreads,
+				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & rSTPI,
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamAlignmentRewritePosMergeSortPackage<order_type> > & rmergeSortPackages,
+				uint64_t const rmergeSortDispatcherId,
+				BamParallelDecodingSortFinishedInterface & rsortFinishedInterface
+			)
+			: buffer(rbuffer), comparator(buffer), PSC(				
+				buffer->getPointerArray().first,
+				buffer->getPointerArray().first + buffer->fill(),
+				buffer->getAuxPointerArray().first,
+				buffer->getAuxPointerArray().first + buffer->fill(),
+				comparator,
+				numthreads,
+				true /* copy back */), 
+				STPI(rSTPI),
+				level(PSC.mergeLevels.levels.size() ? &(PSC.mergeLevels.levels[0]) : 0),
+				mergeSortPackages(rmergeSortPackages),
+				mergeSortDispatcherId(rmergeSortDispatcherId),
+				sortFinishedInterface(rsortFinishedInterface),
+				state((buffer->fill() > 1) ? state_base_sort : state_done)
+			{
+			
+			}
+			
+			void enqueBaseSortPackages(
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamAlignmentRewritePosSortBaseSortPackage<order_type> > & baseSortPackages,
+				uint64_t const baseSortDispatcher
+			)
+			{
+				for ( uint64_t i = 0; i < PSC.baseSortRequests.baseSortRequests.size(); ++i )
+				{
+					BamAlignmentRewritePosSortBaseSortPackage<order_type> * package = baseSortPackages.getPackage();
+					*package = BamAlignmentRewritePosSortBaseSortPackage<order_type>(
+						0 /* prio */,
+						&(PSC.baseSortRequests.baseSortRequests[i]),
+						this,
+						baseSortDispatcher
+					);
+					
+					STPI.enque(package);
+				}
+			}
+							
+			/* make sure result is in place of original data */
+			void copyBack()
+			{
+				state = state_copy_back;
+				
+				if ( PSC.needCopyBack )
+				{
+					std::copy(PSC.context.in,PSC.context.in+PSC.context.n,PSC.context.out);
+				}
+				
+				state = state_done;
+
+				sortFinishedInterface.putBamParallelDecodingSortFinished(buffer);
+			}
+			
+			void planMerge()
+			{
+				state = state_merge_plan;
+				assert ( level );
+				level->dispatch();
+				executeMerge();
+			}
+			
+			void executeMerge()
+			{
+				state = state_merge_execute;
+				
+				assert ( level );
+				for ( uint64_t i = 0; i < level->mergeRequests.size(); ++i )
+				{
+					BamAlignmentRewritePosMergeSortPackage<order_type> * package = mergeSortPackages.getPackage();
+					*package = BamAlignmentRewritePosMergeSortPackage<order_type>(
+						0 /* prio */,
+						&(level->mergeRequests[i]),
+						this,
+						mergeSortDispatcherId
+					);
+					STPI.enque(package);
+				}
+			}
+
+			virtual void baseBlockSorted()
+			{
+				if ( (++PSC.baseSortRequests.requestsFinished) == PSC.baseSortRequests.baseSortRequests.size() )
+				{
+					if ( PSC.mergeLevels.levels.size() )
+					{
+						planMerge();
+					}
+					else
+					{
+						copyBack();
+					}
+				}
+			}
+
+			virtual void mergePackageFinished()
+			{
+				if ( (++(level->requestsFinished)) == level->mergeRequests.size() )
+				{
+					level = level->next;
+					
+					if ( level )
+						planMerge();
+					else
+						copyBack();
+				}
+			}
+		};
+
+		// BamAlignmentRewriteBufferPosComparator
+		template<typename _order_type>
 		struct BamParallelDecodingControl :
 			public BamParallelDecodingInputBlockWorkPackageReturnInterface,
 			public BamParallelDecodingInputBlockAddPendingInterface,
@@ -1745,11 +2162,16 @@ namespace libmaus
 			public BamParallelDecodingAlignmentBufferReturnInterface,
 			public BamParallelDecodingAlignmentBufferReinsertInterface,
 			public BamParallelDecodingAlignmentRewriteBufferAddPendingInterface,
-			public BamParallelDecodingAlignmentRewriteBufferReinsertForFillingInterface
+			public BamParallelDecodingAlignmentRewriteBufferReinsertForFillingInterface,
+			public BamParallelDecodingBaseSortWorkPackageReturnInterface<_order_type>,
+			public BamParallelDecodingBaseMergeSortWorkPackageReturnInterface<_order_type>,
+			public BamParallelDecodingSortFinishedInterface
 		{
-			typedef BamParallelDecodingControl this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef _order_type order_type;
+		
+			typedef BamParallelDecodingControl<order_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef libmaus::bambam::BamParallelDecodingDecompressedBlock decompressed_block_type;
 			
@@ -1769,7 +2191,13 @@ namespace libmaus
 			
 			BamParallelDecodingRewriteBlockWorkPackageDispatcher rewriteDispatcher;
 			uint64_t const rewriteDispatcherId;
-
+			
+			BamParallelDecodingBaseSortWorkPackageDispatcher<order_type> baseSortDispatcher;
+			uint64_t const baseSortDispatcherId;
+			
+			BamParallelDecodingMergeSortWorkPackageDispatcher<order_type> mergeSortDispatcher;
+			uint64_t const mergeSortDispatcherId;
+			
 			uint64_t const numthreads;
 
 			BamParallelDecodingControlInputInfo inputinfo;
@@ -1779,6 +2207,8 @@ namespace libmaus
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingParseBlockWorkPackage> parseWorkPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingValidateBlockWorkPackage> validateWorkPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingRewriteBlockWorkPackage> rewriteWorkPackages;
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamAlignmentRewritePosSortBaseSortPackage<order_type> > baseSortPackages;
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamAlignmentRewritePosMergeSortPackage<order_type> > mergeSortPackages;
 
 			// free list for bgzf decompressors
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase>::unique_ptr_type Pdecoders;
@@ -1810,9 +2240,9 @@ namespace libmaus
 			BamParallelDecodingParseInfo parseInfo;
 			
 			libmaus::parallel::LockedBool lastParseBlockSeen;
-			libmaus::parallel::SynchronousCounter<uint64_t> readsSeen;
-			libmaus::parallel::PosixSpinLock readsSeenLock;
-			uint64_t volatile readsSeenLastPrint;
+			libmaus::parallel::SynchronousCounter<uint64_t> readsParsed;
+			libmaus::parallel::PosixSpinLock readsParsedLock;
+			uint64_t volatile readsParsedLastPrint;
 
 			libmaus::parallel::SynchronousCounter<uint64_t> parseBlocksSeen;
 			libmaus::parallel::SynchronousCounter<uint64_t> parseBlocksValidated;
@@ -1827,6 +2257,88 @@ namespace libmaus
 			libmaus::parallel::LockedQueue<BamParallelDecodingAlignmentBuffer *> rewritePending;
 
 			libmaus::parallel::SynchronousCounter<uint64_t> readsRewritten;
+			
+			// list of rewritten blocks to be sorted
+			libmaus::parallel::LockedQueue<BamParallelDecodingAlignmentRewriteBuffer *> sortPending;
+			
+			// blocks currently being sorted
+			std::map < BamParallelDecodingAlignmentRewriteBuffer *, typename BamAlignmentRewritePosSortContext<order_type>::shared_ptr_type > sortActive;
+			libmaus::parallel::PosixSpinLock sortActiveLock;
+			
+			libmaus::parallel::SynchronousCounter<uint64_t> numSortBlocksIn;
+			libmaus::parallel::SynchronousCounter<uint64_t> numSortBlocksOut;
+
+			libmaus::parallel::LockedBool lastSortBlockFinished;
+			libmaus::parallel::SynchronousCounter<uint64_t> readsSorted;
+
+			virtual void putBamParallelDecodingSortFinished(BamParallelDecodingAlignmentRewriteBuffer * buffer)
+			{
+				typename BamAlignmentRewritePosSortContext<order_type>::shared_ptr_type context;
+				
+				{
+					libmaus::parallel::ScopePosixSpinLock slock(sortActiveLock);
+					typename std::map < BamParallelDecodingAlignmentRewriteBuffer *, typename BamAlignmentRewritePosSortContext<order_type>::shared_ptr_type >::iterator ita =
+						sortActive.find(buffer);
+					assert ( ita != sortActive.end() );
+					context = ita->second;
+					sortActive.erase(ita);
+				}
+				
+				#if 0
+				{
+					uint64_t const f = buffer->fill();
+					for ( uint64_t i = 1; i < f; ++i )
+					{
+						uint8_t const * pa = buffer->A.begin() + buffer->pP[i-1] + sizeof(uint32_t) + sizeof(uint64_t);
+						uint8_t const * pb = buffer->A.begin() + buffer->pP[  i] + sizeof(uint32_t) + sizeof(uint64_t);
+
+						int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(pa);
+						int32_t const refb = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(pb);
+			
+						if ( refa != refb )
+						{
+							assert ( static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb) );
+						}
+						else
+						{
+							int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(pa);
+							int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(pb);
+							
+							assert ( posa <= posb );
+						}
+					}
+				}
+				#endif
+				
+				readsSorted += buffer->fill();
+
+				// return buffer
+				buffer->reset();
+				rewriteBlockFreeList.put(buffer);
+				// check if we can process another buffer now
+				checkRewritePending();
+				
+				numSortBlocksOut++;
+				
+				if ( 
+					lastParseBlockRewritten.get()
+					&&
+					static_cast<uint64_t>(numSortBlocksIn) == static_cast<uint64_t>(numSortBlocksOut)
+				)
+				{
+					lastSortBlockFinished.set(true);
+				}
+			}
+
+			virtual void putBamParallelDecodingMergeSortWorkPackage(BamAlignmentRewritePosMergeSortPackage<order_type> * package)
+			{
+				mergeSortPackages.returnPackage(package);
+			}
+
+			virtual void putBamParallelDecodingBaseSortWorkPackage(BamAlignmentRewritePosSortBaseSortPackage<order_type> * package)
+			{
+				baseSortPackages.returnPackage(package);
+			}
 
 			virtual void putBamParallelDecodingReinsertAlignmentBuffer(BamParallelDecodingAlignmentBuffer * buffer)
 			{
@@ -1853,14 +2365,27 @@ namespace libmaus
 				std::cerr << "finished rewrite buffer of size " << buffer->fill() << std::endl;
 				STP.getGlobalLock().unlock();
 				#endif
-				
+
 				readsRewritten += buffer->fill();
+
+				typename BamAlignmentRewritePosSortContext<order_type>::shared_ptr_type sortContext(
+					new BamAlignmentRewritePosSortContext<order_type>(
+						buffer,
+						STP.getNumThreads(),
+						STP,
+						mergeSortPackages,
+						mergeSortDispatcherId,
+						*this
+					)
+				);
 				
-				// return buffer
-				buffer->reset();
-				rewriteBlockFreeList.put(buffer);
-				// check if we can process another buffer now
-				checkRewritePending();
+				{
+				libmaus::parallel::ScopePosixSpinLock slock(sortActiveLock);
+				sortActive[buffer] = sortContext;
+				}
+				
+				numSortBlocksIn++;
+				sortContext->enqueBaseSortPackages(baseSortPackages,baseSortDispatcherId);
 			}
 
 			/*
@@ -1895,8 +2420,6 @@ namespace libmaus
 				
 				if ( lastParseBlockValidated.get() && static_cast<uint64_t>(parseBlocksRewritten) == static_cast<uint64_t>(parseBlocksValidated) )
 				{
-					lastParseBlockRewritten.set(true);
-
 					std::vector < BamParallelDecodingAlignmentRewriteBuffer * > reblocks;
 					while ( ! rewriteBlockFreeList.empty() )
 						reblocks.push_back(rewriteBlockFreeList.get());
@@ -1915,6 +2438,8 @@ namespace libmaus
 					std::cerr << "all parse buffers finished" << std::endl;
 					STP.getGlobalLock().unlock();
 					#endif
+
+					lastParseBlockRewritten.set(true);
 				}
 						
 				buffer->reset();
@@ -1939,21 +2464,25 @@ namespace libmaus
 
 			virtual void putBamParallelDecodingParsedBlockStall(BamParallelDecodingAlignmentBuffer * algn)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(parseStallSlotLock);
-				
-				#if 0
 				{
-				std::ostringstream ostr;
-				ostr << "setting stall slot to " << algn;
-				STP.addLogStringWithThreadId(ostr.str());
+					libmaus::parallel::ScopePosixSpinLock slock(parseStallSlotLock);
+					
+					#if 0
+					{
+					std::ostringstream ostr;
+					ostr << "setting stall slot to " << algn;
+					STP.addLogStringWithThreadId(ostr.str());
+					}
+					#endif
+					
+					if ( parseStallSlot )
+						STP.printLog(std::cerr );
+									
+					assert ( parseStallSlot == 0 );
+					parseStallSlot = algn;
 				}
-				#endif
 				
-				if ( parseStallSlot )
-					STP.printLog(std::cerr );
-								
-				assert ( parseStallSlot == 0 );
-				parseStallSlot = algn;
+				checkParsePendingList();
 			}
 
 			// return a read work package to the free list
@@ -2123,7 +2652,6 @@ namespace libmaus
 				STP.enque(package);
 			}
 
-
 			void checkRewritePending()
 			{
 				BamParallelDecodingAlignmentBuffer * inbuffer = 0;
@@ -2169,23 +2697,23 @@ namespace libmaus
 					throw lme;
 				}
 			
-				readsSeen += algn->fill();
+				readsParsed += algn->fill();
 
 				#if 0
-				STP.addLogStringWithThreadId("seen " + libmaus::util::NumberSerialisation::formatNumber(readsSeen,0));	
+				STP.addLogStringWithThreadId("seen " + libmaus::util::NumberSerialisation::formatNumber(readsParsed,0));	
 				#endif
 
 				{
-					libmaus::parallel::ScopePosixSpinLock slock(readsSeenLock);
+					libmaus::parallel::ScopePosixSpinLock slock(readsParsedLock);
 					
-					if ( static_cast<uint64_t>(readsSeen) / (1024*1024) != readsSeenLastPrint/(1024*1024) )
+					if ( static_cast<uint64_t>(readsParsed) / (1024*1024) != readsParsedLastPrint/(1024*1024) )
 					{
 						STP.getGlobalLock().lock();				
-						std::cerr << "seen " << readsSeen << " low " << algn->low << std::endl;
+						std::cerr << "seen " << readsParsed << " low " << algn->low << std::endl;
 						STP.getGlobalLock().unlock();
 					}
 					
-					readsSeenLastPrint = static_cast<uint64_t>(readsSeen);
+					readsParsedLastPrint = static_cast<uint64_t>(readsParsed);
 				}
 				
 				parseBlocksValidated += 1;
@@ -2234,7 +2762,8 @@ namespace libmaus
 				std::istream & ristr, 
 				uint64_t const rstreamid,
 				uint64_t const rparsebuffersize,
-				uint64_t const rrewritebuffersize
+				uint64_t const rrewritebuffersize,
+				uint64_t const rnumrewritebuffers
 			)
 			: 
 				STP(rSTP),
@@ -2248,6 +2777,10 @@ namespace libmaus
 				validateDispatcherId(STP.getNextDispatcherId()),
 				rewriteDispatcher(*this,*this,*this,*this,*this),
 				rewriteDispatcherId(STP.getNextDispatcherId()),
+				baseSortDispatcher(*this),
+				baseSortDispatcherId(STP.getNextDispatcherId()),
+				mergeSortDispatcher(*this),
+				mergeSortDispatcherId(STP.getNextDispatcherId()),
 				numthreads(STP.getNumThreads()),
 				inputinfo(ristr,rstreamid,numthreads),
 				readWorkPackages(),
@@ -2255,23 +2788,28 @@ namespace libmaus
 				decoders(*Pdecoders),
 				decompressedBlockFreeList(numthreads),
 				parseBlockFreeList(numthreads,BamParallelDecodingAlignmentBufferAllocator(rparsebuffersize,2)),
-				rewriteBlockFreeList(numthreads,BamParallelDecodingAlignmentRewriteBufferAllocator(rrewritebuffersize,2)),
+				rewriteBlockFreeList(rnumrewritebuffers,BamParallelDecodingAlignmentRewriteBufferAllocator(rrewritebuffersize,2)),
 				nextDecompressedBlockToBeParsed(0),
 				parseStallSlot(0),
 				lastParseBlockSeen(false),
-				readsSeen(0),
-				readsSeenLastPrint(0),
+				readsParsed(0),
+				readsParsedLastPrint(0),
 				parseBlocksSeen(0),
 				parseBlocksValidated(0),
 				lastParseBlockValidated(false),
 				parseBlocksRewritten(0),
-				lastParseBlockRewritten(false)
+				lastParseBlockRewritten(false),
+				numSortBlocksIn(0),
+				numSortBlocksOut(0),
+				lastSortBlockFinished(false)
 			{
 				STP.registerDispatcher(readDispatcherId,&readDispatcher);
 				STP.registerDispatcher(decompressDispatcherId,&decompressDispatcher);
 				STP.registerDispatcher(parseDispatcherId,&parseDispatcher);
 				STP.registerDispatcher(validateDispatcherId,&validateDispatcher);
 				STP.registerDispatcher(rewriteDispatcherId,&rewriteDispatcher);
+				STP.registerDispatcher(baseSortDispatcherId,&baseSortDispatcher);
+				STP.registerDispatcher(mergeSortDispatcherId,&mergeSortDispatcher);
 			}
 			
 			void serialTestDecode(std::ostream & out)
@@ -2360,7 +2898,7 @@ namespace libmaus
 			static void serialTestDecode1(std::istream & in, std::ostream & out)
 			{
 				libmaus::parallel::SimpleThreadPool STP(1);
-				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */,64*1024*1024 /* rewrite buffer size */);
+				BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */,1024*1024*1024 /* rewrite buffer size */,4);
 				BPDC.serialTestDecode(out);
 			}
 			
@@ -2377,6 +2915,11 @@ namespace libmaus
 			{
 				std::cerr << "decompressPending.size()=" << sigobj->decompressPending.size() << "\n";
 				std::cerr << "parsePending.size()=" << sigobj->parsePending.size() << "\n";
+				std::cerr << "rewritePending.size()=" << sigobj->rewritePending.size() << "\n";
+				std::cerr << "decoders.empty()=" << sigobj->decoders.empty() << "\n";
+				std::cerr << "decompressedBlockFreeList.empty()=" << sigobj->decompressedBlockFreeList.empty() << "\n";
+				std::cerr << "parseBlockFreeList.empty()=" << sigobj->parseBlockFreeList.empty() << "\n";
+				std::cerr << "rewriteBlockFreeList.empty()=" << sigobj->rewriteBlockFreeList.empty() << "\n";
 				sigobj->STP.printStateHistogram(std::cerr);
 			}
 
@@ -2384,23 +2927,25 @@ namespace libmaus
 			{
 				try
 				{
-					libmaus::parallel::SimpleThreadPool STP(12);
-					BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */, 64*1024*1024 /* rewrite buffer size */);
+					// libmaus::parallel::SimpleThreadPool STP(12);
+					libmaus::parallel::SimpleThreadPool STP(24);
+					BamParallelDecodingControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */, 1024*1024*1024 /* rewrite buffer size */,4);
 					
 					sigobj = & BPDC;
 					signal(SIGUSR1,sigusr1);
 					
 					BPDC.enqueReadPackage();
 				
-					while ( (!STP.isInPanicMode()) && (! BPDC.lastParseBlockRewritten.get()) )
+					while ( (!STP.isInPanicMode()) && (! BPDC.lastSortBlockFinished.get()) )
 					{
 						sleep(1);
 					}
 				
 					STP.terminate();
 				
-					std::cerr << "number of reads parsed    " << BPDC.readsSeen << std::endl;
+					std::cerr << "number of reads parsed    " << BPDC.readsParsed << std::endl;
 					std::cerr << "number of reads rewritten " << BPDC.readsRewritten << std::endl;
+					std::cerr << "number of reads sorted " << BPDC.readsSorted << std::endl;
 				}
 				catch(std::exception const & ex)
 				{
@@ -2408,8 +2953,9 @@ namespace libmaus
 				}
 			}
 		};	
-		
-		BamParallelDecodingControl * BamParallelDecodingControl::sigobj = 0;
+
+		template<>		
+		BamParallelDecodingControl<BamAlignmentRewriteBufferPosComparator> * BamParallelDecodingControl<BamAlignmentRewriteBufferPosComparator>::sigobj = 0;
 	}
 }
 #endif
