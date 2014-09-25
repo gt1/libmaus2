@@ -220,8 +220,43 @@ void testMultiSort()
 	// std::cerr << std::endl;
 }
 
+#include <libmaus/parallel/NumCpus.hpp>
+
+void testParallelSortState(uint64_t const rn = (1ull << 14) )
+{
+	uint64_t const numcpus = libmaus::parallel::NumCpus::getNumLogicalProcessors();
+
+	libmaus::autoarray::AutoArray<uint64_t> V(rn,false);
+	libmaus::autoarray::AutoArray<uint64_t> W(rn,false);
+	for ( uint64_t i = 0; i < V.size(); ++i )
+		V[i] = ((i*29)%(31));
+
+	typedef uint64_t * iterator;
+	typedef std::less<uint64_t> order_type;
+	order_type order;
+	libmaus::sorting::ParallelStableSort::ParallelSortControl<iterator, order_type> PSC(
+		V.begin(),V.end(),W.begin(),W.end(),order,numcpus,true /* copy back */
+	);
+	libmaus::sorting::ParallelStableSort::ParallelSortControlState<iterator,order_type> sortstate = PSC.getSortState();
+	
+	while ( ! sortstate.serialStep() )
+	{
+	
+	}
+	
+	for ( uint64_t i = 1; i < V.size(); ++i )
+		assert ( V[i-1] <= V[i] );
+}
+
 int main()
 {
+	testParallelSortState(1u<<14);
+	testParallelSortState(1u<<15);
+	testParallelSortState(1u<<16);
+	testParallelSortState(195911);
+	
+	return 0;
+
 	testMultiMerge();
 	testMultiSort();
 	testBlockSwapDifferent();

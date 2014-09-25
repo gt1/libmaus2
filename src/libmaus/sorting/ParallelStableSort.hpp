@@ -284,6 +284,12 @@ namespace libmaus
 				std::vector<level_type> levels;
 				libmaus::parallel::SynchronousCounter<uint64_t> levelsFinished;
 				
+				void setNextLevelPointers()
+				{
+					for ( uint64_t i = 1; i < levels.size(); ++i )
+						levels[i-1].next = &(levels[i]);				
+				}
+				
 				MergeLevels() {}
 				MergeLevels(ParallelStableSortContextBase<iterator,order_type> & context) 
 				{
@@ -294,8 +300,7 @@ namespace libmaus
 						context.pack <<= 1;
 					}
 				
-					for ( uint64_t i = 1; i < levels.size(); ++i )
-						levels[i-1].next = &(levels[i]);
+					setNextLevelPointers();
 				}
 				
 				void dispatch()
@@ -362,7 +367,6 @@ namespace libmaus
 			template<typename _iterator, typename _order_type>
 			struct ParallelSortControlState
 			{
-
 				typedef _iterator iterator;
 				typedef _order_type order_type;
 				typedef typename MergeLevels<iterator,order_type>::level_type level_type;
@@ -398,13 +402,13 @@ namespace libmaus
 					uint64_t rcopyBackN
 				) : state(sort_state_base_sort), basesortreqs(rbasesortreqs), level(rlevel), needCopyBack(rneedCopyBack), copyBackFrom(rcopyBackFrom), copyBackTo(rcopyBackTo), copyBackN(rcopyBackN) {}
 				
-				void serialStep()
+				bool serialStep()
 				{
 					switch ( state )
 					{
 						case sort_state_base_sort:
 							for ( uint64_t i = 0; i < basesortreqs->baseSortRequests.size(); ++i )
-								basesortreqs->baseSortRequests[i]->dispatch();
+								basesortreqs->baseSortRequests[i].dispatch();
 							
 							if ( level )
 								state = sort_state_plan_merge;
@@ -438,6 +442,8 @@ namespace libmaus
 						
 							break;
 					}
+					
+					return state == sort_state_done;
 				}
 			};
 						
@@ -477,6 +483,18 @@ namespace libmaus
 					needCopyBack(context.copyback && (context.in != context.aa))
 				{
 				
+				}
+
+				ParallelSortControlState<iterator,order_type> getSortState()
+				{
+					return ParallelSortControlState<iterator,order_type>(
+						&baseSortRequests,
+						mergeLevels.levels.size() ? &(mergeLevels.levels[0]) : 0,
+						needCopyBack,
+						context.in,
+						context.out,
+						context.n
+					);
 				}
 				
 				void dispatch()
