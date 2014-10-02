@@ -963,7 +963,8 @@ libmausgraph_include_HEADERS=\
 	libmaus/graph/GraphEdgeBlockBuffer.hpp \
 	libmaus/graph/GraphEdgeHeapComparator.hpp \
 	libmaus/graph/GraphEdgeMerge.hpp \
-	libmaus/graph/StronglyConnectedComponents.hpp
+	libmaus/graph/StronglyConnectedComponents.hpp \
+	libmaus/graph/IdentityTargetProjector.hpp
 
 libmausbtree_includedir=$(includedir)/libmaus/btree
 libmausbtree_include_HEADERS=\
@@ -1249,10 +1250,14 @@ noinst_PROGRAMS = \
 	testgnutls \
 	testlru \
 	testparallelbamdecompression \
-	testbytecnt
+	testbytecnt \
+	teststronglyconnectedcomponents
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
+
+teststronglyconnectedcomponents_SOURCES = test/teststronglyconnectedcomponents.cpp
+teststronglyconnectedcomponents_LDADD = libmaus.la
 
 testbytecnt_SOURCES = test/testbytecnt.cpp
 testbytecnt_LDADD = libmaus.la
