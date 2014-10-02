@@ -962,7 +962,8 @@ libmausgraph_include_HEADERS=\
 	libmaus/graph/GraphEdgeBuffer.hpp \
 	libmaus/graph/GraphEdgeBlockBuffer.hpp \
 	libmaus/graph/GraphEdgeHeapComparator.hpp \
-	libmaus/graph/GraphEdgeMerge.hpp
+	libmaus/graph/GraphEdgeMerge.hpp \
+	libmaus/graph/StronglyConnectedComponents.hpp
 
 libmausbtree_includedir=$(includedir)/libmaus/btree
 libmausbtree_include_HEADERS=\
