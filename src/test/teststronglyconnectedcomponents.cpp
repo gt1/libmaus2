@@ -61,18 +61,52 @@ void testStronglyConnectedComponents()
 	}
 	
 	std::cout << "}\n";
-	
-	std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
-		libmaus::graph::StronglyConnectedComponents::strongConnect<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
-		
-	std::vector< uint64_t > const & componentsizes = components.second;
-		
-	for ( uint64_t i = 1; i < componentsizes.size(); ++i )
+
 	{
-		for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )
-			std::cerr << components.first[j] << ";";
-		std::cerr << std::endl;
+		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
+			libmaus::graph::StronglyConnectedComponents::strongConnectContract<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+			
+		std::vector< uint64_t > const & componentsizes = components.second;
+			
+		for ( uint64_t i = 1; i < componentsizes.size(); ++i )
+		{
+			for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )
+				std::cerr << components.first[j] << ";";
+			std::cerr << std::endl;
+		}
 	}
+
+	#if 0
+	{	
+		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
+			libmaus::graph::StronglyConnectedComponents::strongConnect<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+			
+		std::vector< uint64_t > const & componentsizes = components.second;
+			
+		for ( uint64_t i = 1; i < componentsizes.size(); ++i )
+		{
+			for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )
+				std::cerr << components.first[j] << ";";
+			std::cerr << std::endl;
+		}
+	}
+
+	std::cerr << std::string(80,'*') << std::endl;
+	
+	{
+		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
+			libmaus::graph::StronglyConnectedComponents::strongConnectKosaraju<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+				
+		std::vector< uint64_t > const & componentsizes = components.second;
+			
+		for ( uint64_t i = 1; i < componentsizes.size(); ++i )
+		{
+			for ( uint64_t j = componentsizes[i-1]; j < componentsizes[i]; ++j )
+				std::cerr << components.first[j] << ";";
+			std::cerr << std::endl;
+		}
+	}
+	#endif
 }
 
 int main()

@@ -22,9 +22,12 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <set>
 #include <algorithm>
 #include <cassert>
 #include <libmaus/types/types.hpp>
+
+#include <iostream>
 
 namespace libmaus
 {
@@ -68,7 +71,106 @@ namespace libmaus
 				
 				}
 			};
+
+			template<typename edge_type, typename projector_type>
+			static std::pair< std::vector< uint64_t >, std::vector< uint64_t > > strongConnectKosaraju(
+				std::map< uint64_t,std::vector<edge_type> > const & edges, uint64_t rv, projector_type projector = projector_type()
+			)
+			{
+				std::pair< std::vector< uint64_t >, std::vector< uint64_t > > C;
 				
+				// generate forward and reverse edges
+				std::map<uint64_t, std::vector< uint64_t > > F;
+				std::map<uint64_t, std::vector< uint64_t > > R;
+				for ( typename std::map< uint64_t,std::vector<edge_type> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
+				{
+					uint64_t const s = ita->first;
+					std::vector<edge_type> const & V = ita->second;
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						uint64_t const t = projector(V[i]);
+						F[s].push_back(t);
+						R[t].push_back(s);
+					}
+				}
+				
+				std::set<uint64_t> seen;
+				seen.insert(rv);
+				std::stack<uint64_t> P;
+				
+				enum visit_type { visit_first, visit_second };
+				typedef std::pair<uint64_t,visit_type> stack_element_type;
+				std::stack<stack_element_type> S;
+				S.push(stack_element_type(rv,visit_second));
+				S.push(stack_element_type(rv,visit_first));
+				
+				while ( ! S.empty() )
+				{
+					stack_element_type se = S.top(); S.pop();
+					
+					if ( se.second == visit_first && F.find(se.first) != F.end() )
+					{
+						std::vector< uint64_t > const & V = F.find(se.first)->second;
+							
+						for ( uint64_t i = 0; i < V.size(); ++i )
+							if ( seen.find(V[i]) == seen.end() )
+							{
+								S.push(stack_element_type(V[i],visit_second));
+								S.push(stack_element_type(V[i],visit_first));			
+								seen.insert(V[i]);
+							}
+					}
+					else if ( se.second == visit_second )
+						P.push(se.first);
+				}
+				
+				seen.clear();
+				while ( P.size() )
+				{
+					std::stack<uint64_t> T;
+					T.push(P.top());
+					seen.insert(P.top());
+					uint64_t c = 0;
+					
+					while ( ! T.empty() )
+					{
+						++c;
+						uint64_t const node = T.top(); T.pop();
+						C.first.push_back(node);
+						
+						if ( R.find(node) != R.end() )
+						{
+							std::vector<uint64_t> const & V = R.find(node)->second;
+							
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								if ( seen.find(V[i]) == seen.end() )
+								{
+									T.push(V[i]);
+									seen.insert(V[i]);
+								}
+						}
+					}
+					
+					std::sort(C.first.end()-c,C.first.end());
+					
+					C.second.push_back(c);
+					
+					while( P.size() && (seen.find(P.top()) != seen.end()) )
+						P.pop();
+				}
+				
+				uint64_t acc = 0;
+				for ( uint64_t i = 0; i < C.second.size(); ++i )
+				{
+					uint64_t const t = C.second[i];
+					C.second[i] = acc;
+					acc += t;
+				}
+				C.second.push_back(acc);
+				
+				return C;
+			}
+
 			template<typename edge_type, typename projector_type>
 			static std::pair< std::vector< uint64_t >, std::vector< uint64_t > > strongConnect(std::map< uint64_t,std::vector<edge_type> > const & edges, uint64_t rv, projector_type projector = projector_type())
 			{
@@ -180,7 +282,243 @@ namespace libmaus
 
 				return std::pair< std::vector< uint64_t >, std::vector< uint64_t > >(components,componentsizes);
 			}
+
+			template<typename edge_type, typename projector_type>
+			static std::pair< std::vector< uint64_t >, std::vector< uint64_t > > strongConnectContract(
+				std::map< uint64_t,std::vector<edge_type> > const & inedges, 
+				uint64_t rv, projector_type projector = projector_type()
+			)
+			{
+				std::map< uint64_t,std::vector<uint64_t> > edges;
+
+				for ( typename std::map< uint64_t,std::vector<edge_type> >::const_iterator ita = inedges.begin(); ita != inedges.end(); ++ita )
+				{
+					std::vector<edge_type> const & V = ita->second;
+					
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						edges[ita->first].push_back(projector(V[i]));
+				}
+
+				bool changed = true;
+				std::map<uint64_t,uint64_t> vertmap;
+				
+				while ( changed )
+				{	
+					#if 0
+					std::cerr << "digraph {\n";
+				
+					for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
+					{
+						std::vector<uint64_t> const & V = ita->second;
+						for ( uint64_t i = 0; i < V.size(); ++i )
+							std::cerr << ita->first << " -> " << V[i] << "\n";
+					}
+				
+					std::cerr << "}\n";
+					#endif
+
+					changed = false;
+
+					while ( vertmap.find(rv) != vertmap.end() )
+						rv = vertmap.find(rv)->second;
+
+					std::set<uint64_t> unused;
+					std::stack<uint64_t> PS;
+					PS.push(rv);
+					unused.insert(rv);
+					
+					while ( !PS.empty() )
+					{
+						uint64_t const v = PS.top(); PS.pop();
+						
+						if ( edges.find(v) != edges.end() )
+						{
+							std::vector<uint64_t> const & V = edges.find(v)->second;
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								if ( unused.find(V[i]) == unused.end() )
+								{
+									PS.push(V[i]);
+									unused.insert(V[i]);
+								}
+						}
+					}
+					
+					for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
+						unused.insert(ita->first);
+					
+					while ( (!changed) && unused.size() )
+					{
+						uint64_t root = *(unused.begin());
+						enum visit_type { visit_first, visit_second };
+						typedef std::pair<uint64_t,visit_type> st;
+						std::stack< st > S;
+						S.push(st(root,visit_first));
+						std::set<uint64_t> onstack;
+						bool foundloop = false;
+						uint64_t onstackrec = 0;
+						
+						while ( (!foundloop) && (! S.empty()) )
+						{
+							st const el = S.top(); S.pop();
+							
+							switch ( el.second )
+							{
+								case visit_first:
+									onstack.insert(el.first);
+									S.push(st(el.first,visit_second));
+									
+									if ( unused.find(el.first) != unused.end() )
+										unused.erase(unused.find(el.first));
+
+									if ( edges.find(el.first) != edges.end() )
+									{
+										std::vector<uint64_t> const & V = edges.find(el.first)->second;
+										
+										for ( uint64_t i = 0; i < V.size(); ++i )
+											if ( onstack.find(V[i]) != onstack.end() )
+											{
+												foundloop = true;
+												onstackrec = V[i];
+											}
+											
+										if ( ! foundloop )
+										{
+											for ( uint64_t i = 0; i < V.size(); ++i )
+												S.push(st(V[i],visit_first));						
+										}
+									}
+									
+									break;
+								case visit_second:
+									assert ( onstack.find(el.first) != onstack.end() );
+									onstack.erase(onstack.find(el.first));
+									break;
+							}
+						}
+						
+						if ( foundloop )
+						{
+							// std::cerr << "foundloop size " << S.size() << std::endl;
+						
+							std::set<uint64_t> L;
+							
+							while ( (!S.empty()) && (S.top() != st(onstackrec,visit_second)) )
+							{
+								if ( S.top().second == visit_second )
+									L.insert(S.top().first);
+								S.pop();
+							}
+							
+							assert ( S.size() && S.top() == st(onstackrec,visit_second) );
+							
+							L.insert(onstackrec);
+							
+							if ( L.size() > 1 )
+							{
+								#if 0
+								std::cerr << "found loop of size " << L.size() << ": ";
+								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
+									std::cerr << *ita << ";";
+								std::cerr << std::endl;
+								#endif
+								
+								uint64_t const mini = *(L.begin());
+								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
+								{
+									#if 0
+									if ( *ita != mini )
+										std::cerr << *ita << " -> " << mini << std::endl;
+									#endif
+									
+									if ( *ita != mini )
+										vertmap[*ita] = mini;
+								}
+								
+								std::set<uint64_t> alltargets;
+								for ( std::map< uint64_t,std::vector<uint64_t> >::iterator ita = edges.begin(); ita != edges.end(); ++ita )
+									if ( L.find(ita->first) != L.end() )
+									{
+										std::vector<uint64_t> const & V = ita->second;
+										for ( uint64_t i = 0; i < V.size(); ++i )
+											if ( L.find(V[i]) == L.end() )
+												alltargets.insert(V[i]);
+									}
+									else
+									{
+										std::vector<uint64_t> & V = ita->second;
+										for ( uint64_t i = 0; i < V.size(); ++i )
+											if ( L.find(V[i]) != L.end() )
+												V[i] = mini;
+										
+										std::sort(V.begin(),V.end());							
+										V.resize(
+											std::unique(V.begin(),V.end())-V.begin()
+										);
+									}
+
+								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
+									if ( edges.find(*ita) != edges.end() )
+										edges.erase(edges.find(*ita));
+										
+								for ( std::set<uint64_t>::const_iterator ita = alltargets.begin(); ita != alltargets.end(); ++ita )
+									edges[mini].push_back(*ita);
+								
+								changed = true;
+							}
+						}
+					}
+				}
+				
+				changed = true;
+				while ( changed )
+				{
+					changed = false;
+					
+					for ( std::map<uint64_t,uint64_t>::iterator ita = vertmap.begin(); ita != vertmap.end(); ++ita )
+						if ( vertmap.find(ita->second) != vertmap.end() )
+						{
+							ita->second = vertmap.find(ita->second)->second;
+							changed = true;
+						}
+				}
+
+				#if 0
+				std::cerr << std::string(80,'-') << std::endl;
+				for ( std::map<uint64_t,uint64_t>::const_iterator ita = vertmap.begin(); ita != vertmap.end(); ++ita )
+				{
+					std::cerr << ita->first << " -> " << ita->second <<  ::std::endl;
+				}
+				#endif
+
+				std::map< uint64_t,std::vector<uint64_t> > RM;
+				for ( std::map<uint64_t,uint64_t>::const_iterator ita = vertmap.begin(); ita != vertmap.end(); ++ita )
+					RM[ita->second].push_back(ita->first);
+					
+				std::vector<uint64_t> RV;
+				std::vector<uint64_t> RA;
+				for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = RM.begin(); ita != RM.end(); ++ita )
+				{
+					RV.push_back(ita->first);
+					std::vector<uint64_t> const & V = ita->second;
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						RV.push_back(V[i]);
+					RA.push_back(V.size()+1);
+					std::sort(RV.end()-(RA.back()),RV.end());
+				}
+				
+				uint64_t acc = 0;
+				for ( uint64_t i = 0; i < RA.size(); ++i )
+				{
+					uint64_t const t = RA[i];
+					RA[i] = acc;
+					acc += t;
+				}
+				RA.push_back(acc);
+				
+				return std::pair< std::vector<uint64_t>, std::vector<uint64_t> >(RV,RA);
+			}
 		};
+
 	}
 }
 #endif
