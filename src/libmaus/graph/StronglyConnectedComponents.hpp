@@ -35,6 +35,7 @@ namespace libmaus
 	{
 		struct StronglyConnectedComponents
 		{
+			#if 0
 			struct StrongConnectInfo
 			{
 				uint64_t index;
@@ -282,6 +283,7 @@ namespace libmaus
 
 				return std::pair< std::vector< uint64_t >, std::vector< uint64_t > >(components,componentsizes);
 			}
+			#endif
 
 			template<typename edge_type, typename projector_type>
 			static std::pair< std::vector< uint64_t >, std::vector< uint64_t > > strongConnectContract(
