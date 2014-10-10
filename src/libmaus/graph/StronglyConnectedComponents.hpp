@@ -285,6 +285,8 @@ namespace libmaus
 			}
 			#endif
 
+			enum strongly_connected_component_contract_visit_type { visit_first, visit_second };
+
 			template<typename edge_type, typename projector_type>
 			static std::pair< std::vector< uint64_t >, std::vector< uint64_t > > strongConnectContract(
 				std::map< uint64_t,std::vector<edge_type> > const & inedges, 
@@ -351,8 +353,7 @@ namespace libmaus
 					while ( (!changed) && unused.size() )
 					{
 						uint64_t root = *(unused.begin());
-						enum visit_type { visit_first, visit_second };
-						typedef std::pair<uint64_t,visit_type> st;
+						typedef std::pair<uint64_t,strongly_connected_component_contract_visit_type> st;
 						std::stack< st > S;
 						S.push(st(root,visit_first));
 						std::set<uint64_t> onstack;
