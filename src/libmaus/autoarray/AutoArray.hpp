@@ -61,7 +61,7 @@
 #include <iostream>
 #endif
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 #include <libmaus/parallel/PosixSpinLock.hpp>
 #endif
 
@@ -72,7 +72,7 @@ namespace libmaus
 		extern uint64_t AutoArray_memusage;
 		extern uint64_t AutoArray_peakmemusage;
 		extern uint64_t AutoArray_maxmem;
-		#if defined(LIBMAUS_HAVE_PTHREADS)
+		#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 		extern ::libmaus::parallel::PosixSpinLock AutoArray_lock;
 		#elif defined(_OPENMP)
 		extern ::libmaus::parallel::OMPLock AutoArray_lock;
