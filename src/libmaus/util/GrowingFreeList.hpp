@@ -20,21 +20,24 @@
 #define LIBMAUS_UTIL_GROWINGFREELIST_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/util/FreeList.hpp>
 
 namespace libmaus
 {
 	namespace util
 	{
-		template<typename _element_type>
+		template<typename _element_type, typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type> >
 		struct GrowingFreeList
 		{
 			typedef _element_type element_type;
-			typedef GrowingFreeList<element_type> this_type;
+			typedef _allocator_type allocator_type;
+			typedef GrowingFreeList<element_type,allocator_type> this_type;
 
 			private:
 			libmaus::autoarray::AutoArray<element_type *> alloclist;
 			libmaus::autoarray::AutoArray<element_type *> freelist;
 			uint64_t freelistfill;
+			allocator_type allocator;
 
 			void cleanup()
 			{
@@ -46,8 +49,8 @@ namespace libmaus
 			}
 			
 			public:
-			GrowingFreeList()
-			: alloclist(0), freelist(0), freelistfill(0)
+			GrowingFreeList(allocator_type rallocator = allocator_type())
+			: alloclist(0), freelist(0), freelistfill(0), allocator(rallocator)
 			{
 				
 			}
@@ -76,7 +79,7 @@ namespace libmaus
 					
 					for ( element_type ** p = nalloclist.begin()+alloclist.size();
 						p != nalloclist.end(); ++p )
-						*p = new element_type;
+						*p = allocator();
 					
 					libmaus::autoarray::AutoArray<element_type *> nfreelist(
 						std::max(

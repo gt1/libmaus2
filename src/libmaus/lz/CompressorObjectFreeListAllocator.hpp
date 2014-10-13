@@ -16,27 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_COMPRESSOROBJECT_HPP)
-#define LIBMAUS_LZ_COMPRESSOROBJECT_HPP
+#if ! defined(LIBMAUS_LZ_COMPRESSOROBJECTFREELISTALLOCATOR_HPP)
+#define LIBMAUS_LZ_COMPRESSOROBJECTFREELISTALLOCATOR_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/lz/CompressorObjectFactory.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct CompressorObject
+		struct CompressorObjectFreeListAllocator
 		{
-			typedef CompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			libmaus::lz::CompressorObjectFactory::shared_ptr_type factory;
 			
-			virtual ~CompressorObject() {}
+			CompressorObjectFreeListAllocator(libmaus::lz::CompressorObjectFactory::shared_ptr_type & rfactory)
+			: factory(rfactory) {}
 			
-			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output) = 0;
-
-			virtual std::string getDescription() const = 0;
+			CompressorObject * operator()()
+			{
+				CompressorObject::unique_ptr_type tptr((*factory)());
+				return tptr.release();
+			}
 		};
 	}
 }

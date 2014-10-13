@@ -29,9 +29,16 @@ namespace libmaus
 		{
 			typedef CompressorObjectFactory this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~CompressorObjectFactory() {}
 			virtual CompressorObject::unique_ptr_type operator()() = 0;
+			virtual CompressorObject::shared_ptr_type createShared()
+			{
+				CompressorObject::unique_ptr_type uptr((*this)());
+				CompressorObject::shared_ptr_type sptr(uptr.release());
+				return sptr;
+			}
 			virtual std::string getDescription() const = 0;
 		};
 	}

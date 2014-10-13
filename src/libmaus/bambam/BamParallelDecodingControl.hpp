@@ -42,6 +42,9 @@
 #include <libmaus/util/FreeList.hpp>
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/util/GrowingFreeList.hpp>
+#include <libmaus/lz/CompressorObjectFreeListAllocator.hpp>
+#include <libmaus/lz/SnappyCompressorObjectFreeListAllocator.hpp>
+#include <libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp>
 
 #include <stack>
 #include <csignal>

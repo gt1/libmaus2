@@ -25,18 +25,20 @@ namespace libmaus
 {
 	namespace parallel
 	{
-		template<typename _element_type>
-		struct LockedGrowingFreeList : private libmaus::util::GrowingFreeList<_element_type>
+		template<typename _element_type, typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type> >
+		struct LockedGrowingFreeList : private libmaus::util::GrowingFreeList<_element_type,_allocator_type>
 		{
 			typedef _element_type element_type;
-			typedef libmaus::util::GrowingFreeList<element_type> base_type;
-			typedef LockedGrowingFreeList<element_type> this_type;
+			typedef _allocator_type allocator_type;
+			typedef libmaus::util::GrowingFreeList<element_type,allocator_type> base_type;
+			typedef LockedGrowingFreeList<element_type,allocator_type> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			libmaus::parallel::PosixSpinLock lock;
 
-			LockedGrowingFreeList()
+			LockedGrowingFreeList(allocator_type allocator = allocator_type())
+			: base_type(allocator)
 			{
 			}
 			

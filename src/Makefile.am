@@ -284,7 +284,12 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp \
 	libmaus/lz/PlainOrGzipStream.hpp \
 	libmaus/lz/LineSplittingGzipOutputStreamBuffer.hpp \
-	libmaus/lz/LineSplittingGzipOutputStream.hpp
+	libmaus/lz/LineSplittingGzipOutputStream.hpp \
+	libmaus/lz/CompressorObjectFreeListAllocator.hpp \
+	libmaus/lz/SnappyCompressorObjectFreeListAllocator.hpp \
+	libmaus/lz/SnappyCompressorObjectFactoryWrapper.hpp \
+	libmaus/lz/ZlibCompressorObjectFactoryWrapper.hpp \
+	libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -1631,4 +1636,6 @@ testgnutls_CPPFLAGS = ${AM_CPPFLAGS} @GNUTLSCPPFLAGS@
 testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
 
 testparallelbamdecompression_SOURCES = test/testparallelbamdecompression.cpp
-testparallelbamdecompression_LDADD = libmaus.la
+testparallelbamdecompression_CPPFLAGS = @SNAPPYCPPFLAGS@
+testparallelbamdecompression_LDFLAGS = @SNAPPYLDFLAGS@
+testparallelbamdecompression_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}

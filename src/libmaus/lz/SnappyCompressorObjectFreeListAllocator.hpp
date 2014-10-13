@@ -16,27 +16,24 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_COMPRESSOROBJECT_HPP)
-#define LIBMAUS_LZ_COMPRESSOROBJECT_HPP
+#if ! defined(LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECTFREELISTALLOCATOR_HPP)
+#define LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECTFREELISTALLOCATOR_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/lz/CompressorObjectFreeListAllocator.hpp>
+#include <libmaus/lz/SnappyCompressorObjectFactory.hpp>
+#include <libmaus/lz/SnappyCompressorObjectFactoryWrapper.hpp>
 
 namespace libmaus
 {
 	namespace lz
 	{
-		struct CompressorObject
+		struct SnappyCompressorObjectFreeListAllocator : 
+			public libmaus::lz::SnappyCompressorObjectFactoryWrapper, 
+			public libmaus::lz::CompressorObjectFreeListAllocator
 		{
-			typedef CompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-			virtual ~CompressorObject() {}
-			
-			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output) = 0;
-
-			virtual std::string getDescription() const = 0;
+			SnappyCompressorObjectFreeListAllocator()
+			: libmaus::lz::SnappyCompressorObjectFactoryWrapper(libmaus::lz::SnappyCompressorObjectFactory::shared_ptr_type(new SnappyCompressorObjectFactory)), 
+			  libmaus::lz::CompressorObjectFreeListAllocator(libmaus::lz::SnappyCompressorObjectFactoryWrapper::factory) {}
 		};
 	}
 }
