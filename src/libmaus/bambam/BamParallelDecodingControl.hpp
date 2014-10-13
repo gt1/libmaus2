@@ -1500,7 +1500,7 @@ namespace libmaus
 						BP->parseBlock->final = true;
 						BP->parseBlock->low   = BP->parseInfo->parseacc;
 						BP->parseInfo->parseacc += BP->parseBlock->fill();
-						addParsedPendingInterface.putBamParallelDecodingParsedBlockAddPending(BP->parseBlock);
+						addParsedPendingInterface.putBamParallelDecodingParsedBlockAddPending(BP->parseBlock);						
 					}
 					// otherwise parse block might not be full yet, stall it
 					else
@@ -1599,7 +1599,7 @@ namespace libmaus
 				assert ( BP );
 
 				bool const ok = BP->parseBlock->checkValidPacked();
-				
+								
 				addValidatedPendingInterface.putBamParallelDecodingValidatedBlockAddPending(BP->parseBlock,ok);
 								
 				// return the work package				
@@ -1702,7 +1702,7 @@ namespace libmaus
 				
 				libmaus::bambam::BamAlignment * stallAlgn = 0;
 				bool rewriteBlockFull = false;
-				
+
 				while ( (!rewriteBlockFull) && (stallAlgn=BP->parseBlock->popStallBuffer()) )
 				{
 					if ( BP->rewriteBlock->put(reinterpret_cast<char const *>(stallAlgn->D.begin()),stallAlgn->blocksize) )
@@ -1803,8 +1803,10 @@ namespace libmaus
 							}
 						}					
 					}
-				
 				}
+				
+				// force block pass if this is the final parse block
+				// rewriteBlockFull = rewriteBlockFull || BP->parseBlock->final;
 				
 				// if rewrite block is now full
 				if ( rewriteBlockFull )
@@ -2256,6 +2258,7 @@ namespace libmaus
 			// list of alignment blocks ready for rewriting			
 			libmaus::parallel::LockedQueue<BamParallelDecodingAlignmentBuffer *> rewritePending;
 
+			libmaus::parallel::PosixSpinLock readsRewrittenLock;
 			libmaus::parallel::SynchronousCounter<uint64_t> readsRewritten;
 			
 			// list of rewritten blocks to be sorted
@@ -2264,7 +2267,7 @@ namespace libmaus
 			// blocks currently being sorted
 			std::map < BamParallelDecodingAlignmentRewriteBuffer *, typename BamAlignmentRewritePosSortContext<order_type>::shared_ptr_type > sortActive;
 			libmaus::parallel::PosixSpinLock sortActiveLock;
-			
+
 			libmaus::parallel::SynchronousCounter<uint64_t> numSortBlocksIn;
 			libmaus::parallel::SynchronousCounter<uint64_t> numSortBlocksOut;
 
@@ -2366,7 +2369,10 @@ namespace libmaus
 				STP.getGlobalLock().unlock();
 				#endif
 
-				readsRewritten += buffer->fill();
+				{
+					libmaus::parallel::PosixSpinLock lreadsRewrittenLock(readsRewrittenLock);
+					readsRewritten += buffer->fill();
+				}
 
 				typename BamAlignmentRewritePosSortContext<order_type>::shared_ptr_type sortContext(
 					new BamAlignmentRewritePosSortContext<order_type>(
@@ -2420,26 +2426,44 @@ namespace libmaus
 				
 				if ( lastParseBlockValidated.get() && static_cast<uint64_t>(parseBlocksRewritten) == static_cast<uint64_t>(parseBlocksValidated) )
 				{
+					lastParseBlockRewritten.set(true);
+					
+					// check whether any rewrite blocks are in the free list
 					std::vector < BamParallelDecodingAlignmentRewriteBuffer * > reblocks;
 					while ( ! rewriteBlockFreeList.empty() )
 						reblocks.push_back(rewriteBlockFreeList.get());
+
+					// number of blocks queued for sorting
+					uint64_t queued = 0;
 					
 					for ( uint64_t i = 0; i < reblocks.size(); ++i )
 						if ( reblocks[i]->fill() )
 						{
 							reblocks[i]->reorder();
 							putBamParallelDecodingAlignmentRewriteBufferAddPending(reblocks[i]);
+							queued++;
 						}
 						else
+						{
 							rewriteBlockFreeList.put(reblocks[i]);
+						}
 					
 					#if 0
 					STP.getGlobalLock().lock();
 					std::cerr << "all parse buffers finished" << std::endl;
 					STP.getGlobalLock().unlock();
 					#endif
+					
+					// ensure at least one block is passed so lastParseBlockRewritten==true is observed downstream
+					if ( ! queued )
+					{
+						libmaus::parallel::PosixSpinLock lreadsParsed(readsParsedLock);
 
-					lastParseBlockRewritten.set(true);
+						assert ( reblocks.size() );
+						assert ( ! reblocks[0]->fill() );
+						reblocks[0]->reorder();
+						putBamParallelDecodingAlignmentRewriteBufferAddPending(reblocks[0]);
+					}
 				}
 						
 				buffer->reset();
@@ -2657,7 +2681,6 @@ namespace libmaus
 				BamParallelDecodingAlignmentBuffer * inbuffer = 0;
 				bool const pendingok = rewritePending.tryDequeFront(inbuffer);
 				BamParallelDecodingAlignmentRewriteBuffer * outbuffer = rewriteBlockFreeList.getIf();
-				
 				
 				if ( pendingok && (outbuffer != 0) )
 				{
