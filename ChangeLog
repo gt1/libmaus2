@@ -1,3 +1,12 @@
+libmaus (0.0.168-1) unstable; urgency=low
+
+  * adding simple local alignment class
+  * adding algorithm for computing strongly connected components in directed graphs
+  * adding generic topological sorting algorithm for directed graphs
+  * adding getSequenceIdByName method in FastAIndex class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 13 Oct 2014 09:11:53 +0100
+
 libmaus (0.0.167-1) unstable; urgency=low
 
   * fix line splitting gzipped output stream

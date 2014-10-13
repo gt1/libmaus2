@@ -38,10 +38,36 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 					
 			std::vector<libmaus::fastx::FastAIndexEntry> sequences;
+			std::map<std::string,uint64_t> shortNameToId;
 			
 			FastAIndex() : sequences()
 			{
 			
+			}
+			
+			uint64_t getSequenceIdByName(std::string const & s) const
+			{
+				std::string const shortname = computeShortName(s);
+				
+				if ( shortNameToId.find(shortname) != shortNameToId.end() )
+					return shortNameToId.find(shortname)->second;
+					
+				libmaus::exception::LibMausException lme;
+				lme.getStream() << "libmaus::fastx::FastAIndex::getSequenceIdByName(" << s << "): sequence is not in database\n";
+				lme.finish();
+				throw lme;
+			}
+			
+			static std::string computeShortName(std::string const & s)
+			{
+				uint64_t i = 0;
+				while ( 
+					i < s.size() && 
+					(!isspace(static_cast<unsigned char>(s[i])))
+				)
+					++i;
+					
+				return s.substr(0,i);
 			}
 			
 			static uint64_t parseNumber(std::string const & s)
@@ -74,6 +100,8 @@ namespace libmaus
 						
 						if ( tokens.size() >= 5 )
 						{
+							shortNameToId[computeShortName(tokens[0])] = sequences.size();
+							
 							sequences.push_back(
 								libmaus::fastx::FastAIndexEntry(
 									tokens[0],
@@ -82,7 +110,7 @@ namespace libmaus
 									parseNumber(tokens[3]),
 									parseNumber(tokens[4])
 								)
-							);			
+							);
 						}
 					}
 				}

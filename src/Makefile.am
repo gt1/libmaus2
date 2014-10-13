@@ -124,7 +124,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/trie/SimpleTrie.cpp \
 	libmaus/network/GnuTLSInit.cpp \
 	libmaus/network/GnuTLSSocket.cpp \
-	libmaus/bambam/BamStreamingMarkDuplicatesSupport.cpp
+	libmaus/bambam/BamStreamingMarkDuplicatesSupport.cpp \
+	libmaus/alignment/FactorMatchInfo.cpp \
+	libmaus/alignment/KmerInfo.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -917,7 +919,17 @@ libmausfm_include_HEADERS=\
 	libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
 	libmaus/fm/BidirectionalDnaIndexTemplate.hpp \
 	libmaus/fm/KmerCache.hpp
-	
+
+libmausalignment_includedir=$(includedir)/libmaus/alignment
+libmausalignment_include_HEADERS=\
+	libmaus/alignment/KmerTuple.hpp \
+	libmaus/alignment/FactorMatchInfo.hpp \
+	libmaus/alignment/KmerInfo.hpp \
+	libmaus/alignment/FactorMatchInfoPosComparator.hpp \
+	libmaus/alignment/FMIIntervalComparator.hpp \
+	libmaus/alignment/BamLineInfo.hpp \
+	libmaus/alignment/SimpleLocalAligner.hpp
+
 libmauslcp_includedir=$(includedir)/libmaus/lcp
 libmauslcp_include_HEADERS=\
 	libmaus/lcp/LCP.hpp \
@@ -954,7 +966,11 @@ libmausgraph_include_HEADERS=\
 	libmaus/graph/GraphEdgeBuffer.hpp \
 	libmaus/graph/GraphEdgeBlockBuffer.hpp \
 	libmaus/graph/GraphEdgeHeapComparator.hpp \
-	libmaus/graph/GraphEdgeMerge.hpp
+	libmaus/graph/GraphEdgeMerge.hpp \
+	libmaus/graph/StronglyConnectedComponents.hpp \
+	libmaus/graph/IdentityTargetProjector.hpp \
+	libmaus/graph/ReachableVertices.hpp \
+	libmaus/graph/TopologicalSorting.hpp
 
 libmausbtree_includedir=$(includedir)/libmaus/btree
 libmausbtree_include_HEADERS=\
@@ -1240,10 +1256,18 @@ noinst_PROGRAMS = \
 	testgnutls \
 	testlru \
 	testparallelbamdecompression \
-	testbytecnt
+	testbytecnt \
+	teststronglyconnectedcomponents \
+	testtopologicalsorting
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
+
+teststronglyconnectedcomponents_SOURCES = test/teststronglyconnectedcomponents.cpp
+teststronglyconnectedcomponents_LDADD = libmaus.la
+
+testtopologicalsorting_SOURCES = test/testtopologicalsorting.cpp
+testtopologicalsorting_LDADD = libmaus.la
 
 testbytecnt_SOURCES = test/testbytecnt.cpp
 testbytecnt_LDADD = libmaus.la
