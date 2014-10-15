@@ -31,6 +31,7 @@
 #include <libmaus/util/GetObject.hpp>
 #include <libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp>
 #include <libmaus/aio/PosixFdInputStream.hpp>
+#include <libmaus/bambam/BamHeaderParserStateBase.hpp>
 
 namespace libmaus
 {
@@ -376,7 +377,7 @@ namespace libmaus
 				bool recactive = false;
 				uint64_t blockskip = 0;
 				
-				libmaus::bambam::BamHeader::BamHeaderParserState bhps;
+				libmaus::bambam::BamHeaderParserState bhps;
 				
 				std::cerr << "[D] using incremental BAM header parser on serial decoder." << std::endl;
 				
@@ -384,7 +385,7 @@ namespace libmaus
 				while ( (!haveheader) && (recactive = !(rec.getBlockPlusEOF().second)) )
 				{
 					libmaus::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
-					std::pair<bool,uint64_t> const ps = libmaus::bambam::BamHeader::parseHeader(G,bhps,rec.P.second);
+					std::pair<bool,uint64_t> const ps = bhps.parseHeader(G,rec.P.second);
 					haveheader = ps.first;		
 					blockskip = ps.second; // bytes used for header in this block
 				}
@@ -567,7 +568,7 @@ namespace libmaus
 				bool recactive = false;
 				uint64_t blockskip = 0;
 
-				libmaus::bambam::BamHeader::BamHeaderParserState bhps;
+				libmaus::bambam::BamHeaderParserState bhps;
 				
 				std::cerr << "[D] using incremental BAM header parser on parallel recoder." << std::endl;
 				
@@ -575,7 +576,7 @@ namespace libmaus
 				while ( (!haveheader) && (recactive=rec.getBlock()) )
 				{
 					libmaus::util::GetObject<uint8_t const *> G(rec.deflatebase.pa);
-					std::pair<bool,uint64_t> const ps = libmaus::bambam::BamHeader::parseHeader(G,bhps,rec.P.second);
+					std::pair<bool,uint64_t> const ps = bhps.parseHeader(G,rec.P.second);
 					haveheader = ps.first;		
 					blockskip = ps.second; // bytes used for header in this block
 				}

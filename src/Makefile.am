@@ -289,7 +289,8 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/SnappyCompressorObjectFreeListAllocator.hpp \
 	libmaus/lz/SnappyCompressorObjectFactoryWrapper.hpp \
 	libmaus/lz/ZlibCompressorObjectFactoryWrapper.hpp \
-	libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp
+	libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp \
+	libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
