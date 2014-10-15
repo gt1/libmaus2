@@ -69,7 +69,8 @@ namespace libmaus
 			}
 			
 			static libmaus::bambam::BamCatHeader::unique_ptr_type constructHeader(
-				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & infos, wrapper_pointer_array_pointer_type & Pwrappers
+				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & infos, 
+				wrapper_pointer_array_pointer_type & Pwrappers
 			)
 			{
 				if ( Pwrappers.get() )
@@ -87,6 +88,12 @@ namespace libmaus
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 			}
+
+			static libmaus::bambam::BamCatHeader::unique_ptr_type constructHeader(std::vector<std::string> const & filenames)
+			{
+				libmaus::bambam::BamCatHeader::unique_ptr_type tptr(new libmaus::bambam::BamCatHeader(filenames));
+				return UNIQUE_PTR_MOVE(tptr);				
+			}
 			
 			BamCat(
 				std::vector<std::string> const & rfilenames, 
@@ -97,7 +104,7 @@ namespace libmaus
 			  streaming(rstreaming),
 			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)), 
 			  Pwrappers(constructWrappers(infos,streaming)),
-			  Pheader(constructHeader(infos,Pwrappers)),
+			  Pheader(streaming ? constructHeader(infos,Pwrappers) : constructHeader(rfilenames)),
 			  header(*Pheader),
 			  fileid(-1), 
 			  wrapper(), 
