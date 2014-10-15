@@ -1,3 +1,9 @@
+libmaus (0.0.169-1) unstable; urgency=low
+
+  * update handling of header merging in BamCat class for non streaming mode 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 15 Oct 2014 14:16:04 +0100
+
 libmaus (0.0.168-1) unstable; urgency=low
 
   * adding simple local alignment class
