@@ -663,7 +663,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/SimpleHashMapHashCompute.hpp \
 	libmaus/util/SimpleHashMapInsDel.hpp \
 	libmaus/util/SimpleHashMapNumberCast.hpp \
-	libmaus/util/SimpleHashSetInsDel.hpp
+	libmaus/util/SimpleHashSetInsDel.hpp \
+	libmaus/util/LineBuffer.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
@@ -1254,7 +1255,8 @@ noinst_PROGRAMS = \
 	testparallelbamdecompression \
 	testbytecnt \
 	teststronglyconnectedcomponents \
-	testtopologicalsorting
+	testtopologicalsorting \
+	testlinebuffer
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1628,3 +1630,8 @@ testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
 
 testparallelbamdecompression_SOURCES = test/testparallelbamdecompression.cpp
 testparallelbamdecompression_LDADD = libmaus.la
+
+testlinebuffer_SOURCES = test/testlinebuffer.cpp
+testlinebuffer_LDADD = libmaus.la
+testlinebuffer_CPPFLAGS = ${AM_CPPFLAGS}
+testlinebuffer_LDFLAGS = ${AM_LDFLAGS}
