@@ -63,6 +63,39 @@ namespace libmaus
 			 * @param lowsize size of fast low part
 			 **/
 			Histogram(uint64_t const lowsize = 256);
+			/**
+			 * copy constructor
+			 **/
+			Histogram(Histogram const & o)
+			: all(o.all), low(o.low.size())
+			{
+				std::copy(o.low.begin(),o.low.end(),low.begin());
+			}
+			
+			unique_ptr_type uclone() const
+			{
+				unique_ptr_type tptr(new this_type(*this));
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+			
+			shared_ptr_type sclone() const
+			{
+				shared_ptr_type sptr(new this_type(*this));
+				return sptr;
+			}
+			
+			Histogram & operator=(Histogram const & o)
+			{
+				if ( this != &o )
+				{
+					all = o.all;
+					if ( low.size() != o.low.size() )
+						low = ::libmaus::autoarray::AutoArray<uint64_t>(o.low.size(),false);
+					std::copy(o.low.begin(),o.low.end(),low.begin());
+				}
+				
+				return *this;
+			}
 			
 			/**
 			 * @return get size of low part
@@ -119,13 +152,13 @@ namespace libmaus
 			 *
 			 * @return total
 			 **/
-			uint64_t getTotal();
+			uint64_t getTotal() const;
 			/**
 			 * get number of keys with nonzero values
 			 *
 			 * @return number of keys with nonzero values
 			 **/
-			uint64_t getNumPoints();
+			uint64_t getNumPoints() const;
 
 			/**
 			 * print table with keys printed as type
@@ -134,7 +167,7 @@ namespace libmaus
 			 * @return out
 			 **/
 			template<typename type>
-			std::ostream & printType(std::ostream & out)
+			std::ostream & printType(std::ostream & out) const
 			{
 				std::map<uint64_t,uint64_t> const F = get();
 				
@@ -150,7 +183,7 @@ namespace libmaus
 			 * @param out output stream
 			 * @return out
 			 **/
-			std::ostream & print(std::ostream & out);
+			std::ostream & print(std::ostream & out) const;
 			/**
 			 * print table from low to high keys until cumulative frequency has reached frac times the toal
 			 *
@@ -158,7 +191,7 @@ namespace libmaus
 			 * @param frac fragment of histogram to be printed
 			 * @return out
 			 **/
-			std::ostream & printFrac(std::ostream & out, double const frac = 1);
+			std::ostream & printFrac(std::ostream & out, double const frac = 1) const;
 			
 			/**
 			 * fill given map M with histogram
