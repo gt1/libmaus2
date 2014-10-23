@@ -1,3 +1,9 @@
+libmaus (0.0.170-1) unstable; urgency=low
+
+  * added LineBuffer class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 23 Oct 2014 09:28:26 +0100
+
 libmaus (0.0.169-1) unstable; urgency=low
 
   * update handling of header merging in BamCat class for non streaming mode 
