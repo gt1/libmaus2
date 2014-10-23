@@ -1140,6 +1140,17 @@ namespace libmaus
 			}
 			
 			/**
+			 * get reference id for name
+			 **/
+			int64_t getRefIdForName(char const * c) const
+			{
+				for ( uint64_t i = 0; i < getNumRef(); ++i )
+					if ( strcmp(c,SQtext.begin() + SQoffsets[i]) == 0 )
+						return i;
+				return -1;
+			}
+			
+			/**
 			 * get number of read groups
 			 **/
 			uint64_t getNumReadGroups() const
