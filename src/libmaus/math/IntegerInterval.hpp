@@ -73,9 +73,20 @@ namespace libmaus
 				return intersection(*this,B);
 			}
 			
-			std::vector < IntegerInterval<N> > mergeOverlapping(std::vector< IntegerInterval<N> > IV)
+			struct IntegerIntervalComparator
 			{
-				std::sort(IV.begin(),IV.end());
+				bool operator()(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
+				{
+					if ( A.from != B.from )
+						return A.from < B.from;
+					else
+						return A.to < B.to;
+				}
+			};
+			
+			static std::vector < IntegerInterval<N> > mergeOverlapping(std::vector< IntegerInterval<N> > IV)
+			{
+				std::sort(IV.begin(),IV.end(),IntegerIntervalComparator());
 				std::vector < IntegerInterval<N> > R;
 				
 				uint64_t low = 0;
