@@ -16,8 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_SAMINFO_HPP)
-#define LIBMAUS_BAMBAM_SAMINFO_HPP
+#if ! defined(LIBMAUS_BAMBAM_SAMINFOBASEB_HPP)
+#define LIBMAUS_BAMBAM_SAMINFOBASE_HPP
+
+#include <libmaus/autoarray/AutoArray.hpp>
 
 namespace libmaus
 {
@@ -30,6 +32,83 @@ namespace libmaus
 			static char const rnameOtherValid[256];
 			static char const seqValid[256];
 			static char const qualValid[256];
+			
+			typedef char const * c_ptr_type;
+			typedef c_ptr_type c_ptr_type_pair[2];
+			
+			enum sam_info_base_field_status 
+			{
+				sam_info_base_field_undefined,
+				sam_info_base_field_defined
+			};
+
+			static void parseStringField(
+				c_ptr_type_pair field,
+				libmaus::autoarray::AutoArray<char> & str,
+				sam_info_base_field_status & defined
+			)
+			{
+				size_t const fieldlen = field[1]-field[0];
+				
+				/* undefined by default */
+				defined = sam_info_base_field_undefined;
+				
+				/* extend space if necessary */
+				if ( !((fieldlen+1) < str.size()) )
+					str = libmaus::autoarray::AutoArray<char>(fieldlen+1,false);
+				
+				if ( fieldlen == 1 && field[0][0] == '*' )
+				{				
+					str[0] = '*';
+					str[1] = 0;
+				}
+				else
+				{
+					memcpy(str.begin(),field[0],fieldlen);
+					str[fieldlen] = 0;
+					defined = sam_info_base_field_defined;
+				}				
+			}
+			
+			static int32_t parseNumberField(c_ptr_type_pair field, char const * fieldname)
+			{
+				char const * p = field[0];
+				bool neg = false;
+				uint32_t const fieldlen = field[1]-field[0];
+				
+				if ( fieldlen > 0 && p[0] == '-' )				
+				{
+					neg = true;
+					p += 1;
+				}
+				
+				if ( p == field[1] )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "libmaus::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number for " << fieldname << "\n";
+					lme.finish();
+					throw lme;				
+				}
+
+				int32_t num = 0;
+
+				while ( p != field[1] )
+					if ( isdigit(*p) )
+					{
+						num *= 10;
+						num += (*p-'0');
+						++p;
+					}
+					else
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number\n";
+						lme.finish();
+						throw lme;
+					}
+										
+				return neg ? -num : num;
+			}
 		};
 	}
 }

@@ -389,7 +389,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
 	libmaus/bambam/BamParallelDecodingControl.hpp \
 	libmaus/bambam/BamAlignmentReg2Bin.hpp \
-	libmaus/bambam/SamInfoBase.hpp
+	libmaus/bambam/SamInfoBase.hpp \
+	libmaus/bambam/SamInfo.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\

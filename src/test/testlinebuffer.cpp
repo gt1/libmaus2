@@ -20,6 +20,8 @@
 #include <libmaus/util/LineBuffer.hpp>
 #include <iostream>
 
+#include <libmaus/bambam/SamInfo.hpp>
+
 int main(int argc, char * argv[])
 {
 	try
@@ -53,9 +55,13 @@ int main(int argc, char * argv[])
 		}
 		else
 		{
+			libmaus::bambam::SamInfo SI;
 			libmaus::util::LineBuffer LB(std::cin,1);
 			while ( LB.getline(&a,&e) )
+			{
 				std::cout << std::string(a,e) << "\n";		
+				SI.parseSamLine(a,e);
+			}
 		}
 	}
 	catch(std::exception const & ex)
