@@ -126,7 +126,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/network/GnuTLSSocket.cpp \
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.cpp \
 	libmaus/alignment/FactorMatchInfo.cpp \
-	libmaus/alignment/KmerInfo.cpp
+	libmaus/alignment/KmerInfo.cpp \
+	libmaus/bambam/SamInfoBase.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -387,7 +388,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
 	libmaus/bambam/BamParallelDecodingControl.hpp \
-	libmaus/bambam/BamAlignmentReg2Bin.hpp
+	libmaus/bambam/BamAlignmentReg2Bin.hpp \
+	libmaus/bambam/SamInfoBase.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
