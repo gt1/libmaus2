@@ -1,3 +1,9 @@
+libmaus (0.0.171-1) unstable; urgency=low
+
+  * fix output flushing in streaming duplicate marking 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 24 Oct 2014 07:18:37 +0100
+
 libmaus (0.0.170-1) unstable; urgency=low
 
   * added LineBuffer class 
