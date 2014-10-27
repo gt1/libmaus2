@@ -614,6 +614,10 @@ namespace libmaus
 				{
 					parseCigar(cigar,cigar+cigarlen);
 				}
+				else
+				{
+					cigarlen = 0;
+				}
 
 				/* input validation starts here */
 				if ( qnamedefined == sam_info_base_field_defined )
