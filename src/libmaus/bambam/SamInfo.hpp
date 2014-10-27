@@ -23,6 +23,9 @@
 #include <libmaus/bambam/BamFlagBase.hpp>
 #include <libmaus/bambam/CigarOperation.hpp>
 #include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
+#include <libmaus/bambam/BamHeaderLowMem.hpp>
+#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/math/DecimalNumberParser.hpp>
 
 namespace libmaus
 {
@@ -30,52 +33,286 @@ namespace libmaus
 	{
 		struct SamInfo : public libmaus::bambam::SamInfoBase
 		{
+			typedef SamInfo this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
 			enum
 			{
 				sam_info_mandatory_columns = 11
 			};
 			
-			libmaus::autoarray::AutoArray<char> qname;
+			char const * qname;
 			sam_info_base_field_status qnamedefined;
 			size_t qnamelen;
 			
 			int32_t flag;
 
-			libmaus::autoarray::AutoArray<char> rname;
+			char const * rname;
 			sam_info_base_field_status rnamedefined;
 			size_t rnamelen;
 			
 			int32_t pos;
 			int32_t mapq;
 
-			libmaus::autoarray::AutoArray<char> cigar;
+			char const * cigar;
 			sam_info_base_field_status cigardefined;	
 			size_t cigarlen;
 
-			libmaus::autoarray::AutoArray<char> rnext;
+			char const * rnext;
 			sam_info_base_field_status rnextdefined;
 			size_t rnextlen;
 
 			int32_t pnext;
 			int32_t tlen;
 
-			libmaus::autoarray::AutoArray<char> seq;
+			char const * seq;
 			sam_info_base_field_status seqdefined;
 			size_t seqlen;
 
-			libmaus::autoarray::AutoArray<char> qual;
+			libmaus::autoarray::AutoArray<char> tqual;
+			char const * qual;
 			sam_info_base_field_status qualdefined;
 			size_t quallen;
 			
 			c_ptr_type_pair fields[sam_info_mandatory_columns];
 			
 			std::vector<libmaus::bambam::cigar_operation> cigopvec;
+			uint64_t cigopvecfill;
 
 			BamSeqEncodeTable const seqenc;
+			
+			libmaus::bambam::BamHeader const & header;
 
-			SamInfo()
+			//! trie for sequence names
+			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type SQTrie;
+
+			::libmaus::fastx::EntityBuffer<uint8_t,libmaus::bambam::BamAlignment::D_array_alloc_type> buffer;
+			libmaus::bambam::BamAlignment::unique_ptr_type Palgn;
+			libmaus::bambam::BamAlignment & algn;
+
+			/**
+			 * compute trie for sequence names
+			 *
+			 * @param header SAM header
+			 * @return trie for sequence names
+			 **/
+			static ::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeSQTrie(libmaus::bambam::BamHeader const & header)
+			{
+				::libmaus::trie::Trie<char> trienofailure;
+				std::vector<std::string> dict;
+				for ( uint64_t i = 0; i < header.getNumRef(); ++i )
+					dict.push_back(header.getRefIDName(i));
+				trienofailure.insertContainer(dict);
+				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+					(trienofailure.toLinearHashTrie<uint32_t>());
+
+				return UNIQUE_PTR_MOVE(LHTnofailure);
+			}
+
+			int64_t getRefIdForName(char const * a, char const * e) const
+			{
+				return SQTrie->searchCompleteNoFailure(a,e);
+			}
+			
+			static unsigned int computeNumLengthUnsigned(uint64_t n)
+			{
+				unsigned int c = 0;
+				while ( n )
+				{
+					c += 1;
+					n /= 10;
+				}
+				
+				return c;
+			}
+			
+			static std::vector<unsigned int> computeNumLengthUnsigned()
+			{
+				std::vector<unsigned int> V(9);
+				V[1] = computeNumLengthUnsigned(std::numeric_limits<uint8_t>::max());
+				V[2] = computeNumLengthUnsigned(std::numeric_limits<uint16_t>::max());
+				V[4] = computeNumLengthUnsigned(std::numeric_limits<uint32_t>::max());
+				V[8] = computeNumLengthUnsigned(std::numeric_limits<uint64_t>::max());
+				return V;
+			}
+			
+			std::vector<unsigned int> numLengthUnsigned;
+
+			SamInfo(libmaus::bambam::BamHeader const & rheader) 
+			: header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus::bambam::BamAlignment), algn(*Palgn)
 			{
 			
+			}
+			
+			SamInfo(libmaus::bambam::BamHeader const & rheader, libmaus::bambam::BamAlignment & ralgn)
+			: header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(), algn(ralgn)
+			{
+			
+			}
+
+			void parseCigar(char const * p, char const * const pe)
+			{
+				cigopvecfill = 0;
+
+				while ( p != pe )
+				{
+					if ( ! DT[static_cast<uint8_t>(*p)] )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << "\n";
+						lme.finish();
+						throw lme;
+					}
+
+					uint64_t num = *(p++) - '0';
+					
+					while ( p != pe && DT[static_cast<uint8_t>(*p)] )
+					{
+						num *= 10;
+						num += (*(p++))-'0';
+					}
+					
+					libmaus::bambam::BamFlagBase::bam_cigar_ops op;
+					
+					if ( p == pe )
+					{					
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << "\n";
+						lme.finish();
+						throw lme;
+					}
+
+					switch ( *(p++) )
+					{
+						case 'M':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH;
+							break;
+						case 'I':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS;
+							break;
+						case 'S':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP;
+							break;
+						case '=':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL;
+							break;
+						case 'X':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF;
+							break;
+						case 'D':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL;
+							break;
+						case 'N':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP;
+							break;
+						case 'H':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP;
+							break;
+						case 'P':
+							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD;
+							break;
+						default:
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar operatoor " << p[-1] << "\n";
+							lme.finish();
+							throw lme;
+						}
+					}
+				
+					if ( cigopvecfill >= cigopvec.size() )
+						cigopvec.push_back(libmaus::bambam::cigar_operation(op,num));
+					else	
+						cigopvec[cigopvecfill] = libmaus::bambam::cigar_operation(op,num);
+					
+					cigopvecfill++;
+				}			
+			}
+			
+			template<typename number_type, char dt>
+			void parseNumberArray(char const * pc, char const * p, char const * pp)
+			{
+				std::vector<number_type> V;
+				
+				while ( pp != p )
+				{
+					if ( *pp != ',' )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfo::parseNumberArray: malformed optional field (unexpected non , character) " << std::string(pc,p);
+						lme.finish();
+						throw lme;																							
+					}
+					
+					// skip ,
+					++pp;
+					
+					char const * ppp = pp;
+					while ( ppp != p && *ppp != ',' )
+						++ppp;
+						
+					switch ( dt )
+					{
+						case 'c':
+						{
+							V.push_back(DNP.parseSignedNumber<int8_t>(pp,ppp));
+							break;
+						}
+						case 'C':
+						{
+							V.push_back(DNP.parseUnsignedNumber<uint8_t>(pp,ppp));
+							break;
+						}
+						case 's':
+						{
+							V.push_back(DNP.parseSignedNumber<int16_t>(pp,ppp));
+							break;
+						}
+						case 'S':
+						{
+							V.push_back(DNP.parseUnsignedNumber<uint16_t>(pp,ppp));
+							break;
+						}
+						case 'i':
+						{
+							V.push_back(DNP.parseSignedNumber<int32_t>(pp,ppp));
+							break;
+						}
+						case 'I':
+						{
+							V.push_back(DNP.parseUnsignedNumber<uint32_t>(pp,ppp));
+							break;
+						}
+						case 'f':
+						{
+							std::istringstream istr(std::string(pp,ppp));
+							float f;
+							istr >> f;
+							if ( ! istr )
+							{
+								libmaus::exception::LibMausException lme;
+								lme.getStream() << "libmaus::bambam::SamInfo::parseNumberArray: malformed optional field (unparsable floating point number) " << std::string(pc,p);
+								lme.finish();
+								throw lme;																										
+							}
+							if ( istr.get() != std::istream::traits_type::eof() )
+							{											
+								libmaus::exception::LibMausException lme;
+								lme.getStream() << "libmaus::bambam::SamInfo::parseNumberArray: malformed optional field (additional data after float number) " << std::string(pc,p);
+								lme.finish();
+								throw lme;																										
+							}
+							
+							V.push_back(f);
+						}
+					}
+						
+					pp = ppp;
+				}
+
+				char const tag[3] = { pc[0], pc[1], 0 };
+				libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(buffer,&tag[0],dt,V.begin(),V.size());
 			}
 
 			void parseSamLine(char const * pa, char const * pe)
@@ -109,199 +346,294 @@ namespace libmaus
 				}
 				
 				parseSamLine(&fields[0]);
+				
+				int64_t const refid = (rnamedefined == sam_info_base_field_defined) ? getRefIdForName(rname,rname+rnamelen) : -1;
+				int64_t const nextrefid = (rnextdefined == sam_info_base_field_defined) ? getRefIdForName(rnext,rnext+rnextlen) : -1;
 
-				cigopvec.resize(0);
-				p = cigar.begin();
-					
-				while ( *p )
-				{
-					uint64_t num = 0;
-					
-					if ( ! isdigit(*p) )
-					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << cigar.begin() << "\n";
-						lme.finish();
-						throw lme;
-					}
-					while ( isdigit(*p) )
-					{
-						num *= 10;
-						num += (*p)-'0';
-						++p;
-					}
-					
-					libmaus::bambam::BamFlagBase::bam_cigar_ops op;
-					
-					switch ( *(p++) )
-					{
-						case 'M':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH;
-							break;
-						case 'I':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS;
-							break;
-						case 'S':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP;
-							break;
-						case '=':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL;
-							break;
-						case 'X':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF;
-							break;
-						case 'D':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL;
-							break;
-						case 'N':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP;
-							break;
-						case 'H':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP;
-							break;
-						case 'P':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD;
-							break;
-						default:
-						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar operatoor " << p[-1] << "\n";
-							lme.finish();
-							throw lme;
-						}
-					}
-					
-					cigopvec.push_back(libmaus::bambam::cigar_operation(op,num));
-				}
+				buffer.reset();
 
-				::libmaus::fastx::UCharBuffer buffer;
-			
-				#if 0
-					libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(
-						buffer,seqenc,
-						name.begin(),
-						namelen,
-						
-					);
-				template<
-					typename name_iterator,
-					typename cigar_iterator,
-					typename seq_iterator,
-					typename qual_iterator
-				>
-				static void encodeAlignment(
-					::libmaus::fastx::UCharBuffer & buffer,
-					BamSeqEncodeTable const & seqenc,
-					name_iterator name,
-					uint32_t const namelen,
-					int32_t const refid,
-					int32_t const pos,
-					uint32_t const mapq,
-					uint32_t const flags,
-					cigar_iterator cigar,
-					uint32_t const cigarlen,
-					int32_t const nextrefid,
-					int32_t const nextpos,
-					uint32_t const tlen,
-					seq_iterator seq,
-					uint32_t const seqlen,
-					qual_iterator qual,
-					uint8_t const qualoffset = 33
-				)
-				#endif
-
-				#if 0
-				r = BamBam_CharBuffer_PutAlignmentC(
-					object->aput,
-					object->saminfo->flag,
-					BamBam_BamFileHeader_FindChromosomeIdByName(object->header,object->saminfo->rname),
-					object->saminfo->pos-1,
-					BamBam_BamFileHeader_FindChromosomeIdByName(object->header,object->saminfo->rnext),
-					object->saminfo->pnext-1,
-					object->saminfo->qname,
-					object->saminfo->seq,
-					object->saminfo->qual,
-					object->saminfo->cigar,
-					object->saminfo->mapq,
-					object->saminfo->tlen
+				libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(
+					buffer,
+					seqenc,
+					qname,
+					qnamelen,
+					refid,
+					pos-1,
+					mapq,
+					flag,
+					cigopvec.begin(),
+					cigopvecfill,
+					nextrefid,
+					pnext-1,
+					tlen,
+					seq,
+					seqlen,
+					qual
 				);
 				
-				if ( r < 0 )
-					return 0;
-
-				#if 0
-				fprintf(stderr, "ok: ");
-				fwrite(pa,pe-pa,1,stderr);
-				fprintf(stderr,"\n");			
-				#endif			
-				
-				return object->aput->calignment;
-				#endif
-
 				while ( p != pe )
 				{
 					char const * pc = p;
 					while ( p != pe && *p != '\t' )
 						++p;
 				
+					#if 0
 					std::cerr << "aux field: " << std::string(pc,p) << std::endl;
+					#endif
+					
+					if ( 
+						p-pc >= 5 &&
+						 AT[static_cast<uint8_t>(pc[0])] &&
+						ADT[static_cast<uint8_t>(pc[1])] &&
+						pc[2] == ':' &&
+						pc[4] == ':'
+					)
+					{
+						switch ( pc[3] )
+						{
+							// single character
+							case 'A':
+							{
+								char const * pp = pc+5;
+								
+								if ( p - pp != 1 )
+								{
+									libmaus::exception::LibMausException lme;
+									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (length of character field is not 1) " << std::string(pc,p);
+									lme.finish();
+									throw lme;
+								}
+
+								char const tag[3] = { pc[0], pc[1], 0 };								
+								libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'A',*pp);
+								
+								break;
+							}
+							// integer (signed 32 bit)
+							case 'i':
+							{
+								int32_t const n = DNP.parseSignedNumber<int32_t>(pc + 5,p);								
+								char const tag[3] = { pc[0], pc[1], 0 };
+								libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'i',n);
+							
+								break;
+							}
+							/* float number */
+							case 'f':
+							{
+								std::istringstream istr(std::string(pc+5,p));
+								float f;
+								istr >> f;
+
+								if ( ! istr )
+								{
+									libmaus::exception::LibMausException lme;
+									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (unparsable float number) " << std::string(pc,p);
+									lme.finish();
+									throw lme;																							
+								}
+								
+								if ( istr.get() != std::istream::traits_type::eof() )
+								{								
+									libmaus::exception::LibMausException lme;
+									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (additional data after float number) " << std::string(pc,p);
+									lme.finish();
+									throw lme;																							
+								}
+
+								char const tag[3] = { pc[0], pc[1], 0 };
+								libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'f',f);
+
+								break;
+							}
+							/* string */
+							case 'Z':
+							{
+								for ( char const * pp = pc+5; pp != p; ++pp )
+									if ( ! SZPT[static_cast<uint8_t>(*pp)] )
+									{
+										libmaus::exception::LibMausException lme;
+										lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (string field with invalid character) " << std::string(pc,p);
+										lme.finish();
+										throw lme;															
+									}
+
+								char const tag[3] = { pc[0], pc[1], 0 };
+								libmaus::bambam::BamAlignmentEncoderBase::putAuxString(buffer,&tag[0],pc+5,p);
+								
+								break;
+							}
+							case 'H':
+							{
+								for ( char const * pp = pc+5; pp != p; ++pp )
+									if ( ! (
+										DT[static_cast<uint8_t>(*pp)]
+										||
+										(*pp >= 'A' && *pp <= 'F')
+										) 
+									)
+									{
+										libmaus::exception::LibMausException lme;
+										lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (hex field with invalid character) " << std::string(pc,p);
+										lme.finish();
+										throw lme;															
+									}
+
+								char const tag[3] = { pc[0], pc[1], 0 };
+								libmaus::bambam::BamAlignmentEncoderBase::putAuxHexString(buffer,&tag[0],pc+5,p);
+							
+								break;
+							}
+							case 'B':
+							{
+								char const * pp = pc + 5;
+
+								if ( pp == p )
+								{
+										libmaus::exception::LibMausException lme;
+										lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (array data type missing) " << std::string(pc,p);
+										lme.finish();
+										throw lme;																							
+								}
+								
+								char const dt = *(pp++);
+
+								switch ( dt )
+								{
+									case 'c':
+										parseNumberArray<int8_t,'c'>(pc,p,pp);
+										break;
+									case 'C':
+										parseNumberArray<uint8_t,'C'>(pc,p,pp);
+										break;
+									case 's':
+										parseNumberArray<int16_t,'s'>(pc,p,pp);
+										break;
+									case 'S':
+										parseNumberArray<uint16_t,'S'>(pc,p,pp);
+										break;
+									case 'i':
+										parseNumberArray<int32_t,'i'>(pc,p,pp);
+										break;
+									case 'I':
+										parseNumberArray<uint32_t,'I'>(pc,p,pp);
+										break;
+									case 'f':
+										parseNumberArray<float,'f'>(pc,p,pp);
+										break;
+								}
+								break;
+							}
+							default:
+							{
+								libmaus::exception::LibMausException lme;
+								lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (unknown type) " << std::string(pc,p);
+								lme.finish();
+								throw lme;						
+							}
+						}
+					}
+					else
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field " << std::string(pc,p) << "\n";
+						lme.finish();
+						throw lme;						
+					}
 					
 					/* skip over tab */
 					if ( p != pe )
 						++p;
 					col += 1;
 				}
+
+				algn.blocksize = buffer.swapBuffer(algn.D);				
 			}
 
 			void parseSamLine(c_ptr_type_pair * fields)
 			{
-				parseStringField(fields[0], qname, qnamedefined);
+				parseStringField(fields[0], qnamedefined);
+				qname = fields[0][0];
 				qnamelen = fields[0][1] - fields[0][0];
 
 				flag = parseNumberField(fields[1],"flag");
 				
-				parseStringField(fields[2],rname,rnamedefined);
+				parseStringField(fields[2], rnamedefined);
+				rname = fields[2][0];
 				rnamelen = fields[2][1]-fields[2][0];
+				
 				pos = parseNumberField(fields[3],"pos");
 				mapq = parseNumberField(fields[4],"mapq");
 				
-				parseStringField(fields[5],cigar,cigardefined);
+				parseStringField(fields[5],cigardefined);
+				cigar = fields[5][0];
 				cigarlen = fields[5][1]-fields[5][0];
 
-				parseStringField(fields[6],rnext,rnextdefined);
+				parseStringField(fields[6],rnextdefined);
+				rnext = fields[6][0];
 				rnextlen = fields[6][1]-fields[6][0];
 				
 				pnext = parseNumberField(fields[7],"pnext");
 
 				tlen = parseNumberField(fields[8],"tlen");
 				
-				parseStringField(fields[9],seq,seqdefined);
+				parseStringField(fields[9],seqdefined);
+				seq = fields[9][0];
 				seqlen = fields[9][1] - fields[9][0];
 
-				parseStringField(fields[10],qual,qualdefined);
+				parseStringField(fields[10],qualdefined);
+				qual = fields[10][0];
 				quallen = fields[10][1]-fields[10][0];
 
+				// copy rname to rnext if rnext is =
+				if ( rnamedefined && rnextdefined && rnextlen == 1 && rnext[0] == '=' )
+				{
+					rnext = rname;
+					rnextlen = rnamelen;
+				}
+
+				// fill undefined quality string
+				if ( 
+					seqdefined == sam_info_base_field_defined
+					&&
+					qualdefined == sam_info_base_field_undefined
+				)
+				{
+					if ( tqual.size() < seqlen )
+						tqual = libmaus::autoarray::AutoArray<char>(seqlen,false);
+					memset(tqual.begin(),static_cast<char>(255),seqlen);
+					qual = tqual.begin();
+					quallen = seqlen;
+				}
+
+				// parse cigar string
+				if ( cigardefined )
+				{
+					parseCigar(cigar,cigar+cigarlen);
+				}
+
+				/* input validation starts here */
 				if ( qnamedefined == sam_info_base_field_defined )
 				{
 					int ok = 1;
-					char const * p = qname.begin();
+					char const * p = qname;
+					char const * pe = qname + qnamelen;
 					
-					while ( *p )
+					while ( p != pe )
 					{
-						ok = ok && qnameValid[(int)*p];
+						ok = ok && qnameValid[static_cast<uint8_t>(*p)];
 						++p;
 					}
 					
-					if ( (!ok) || (p==qname.begin()) )
+					if ( (!ok) )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid query name " << qname.begin() << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid query name " << std::string(qname,qname+qnamelen) << "\n";
 						lme.finish();
 						throw lme;
 					}
 				}
-				
-				if ( flag < 0 || flag >= (int32_t)(1u<<16) )
+				if ( flag < 0 || flag >= static_cast<int32_t>(1u<<16) )
 				{
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid flag " << flag << "\n";
@@ -311,9 +643,10 @@ namespace libmaus
 				if ( rnamedefined == sam_info_base_field_defined )
 				{
 					int ok = 1;
-					char const * p = rname.begin();
+					char const * p = rname;
+					char const * const pe = rname + rnamelen;
 
-					if ( !*p )
+					if ( p == pe )
 					{
 						libmaus::exception::LibMausException lme;
 						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty rname field\n";
@@ -321,102 +654,44 @@ namespace libmaus
 						throw lme;
 					}
 						
-					ok = ok && rnameFirstValid[(int)*p];
+					ok = ok && rnameFirstValid[static_cast<uint8_t>(*p)];
 					++p;
 					
-					while ( *p )
+					while ( p != pe )
 					{
-						ok = ok && rnameOtherValid[(int)*p];
+						ok = ok && rnameOtherValid[static_cast<uint8_t>(*p)];
 						++p;
 					}
 					
 					if ( ! ok )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid rname field " << rname.begin() << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid rname field " << std::string(rname,rname+rnamelen) << "\n";
 						lme.finish();
 						throw lme;
 					}
 				}
-
-				if ( pos < 0 || pos >= (int32_t)(1u<<29) )
+				if ( pos < 0 || pos >= static_cast<int32_t>(1u<<29) )
 				{
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid pos field " << pos << "\n";
 					lme.finish();
 					throw lme;
 				}
-				if ( mapq < 0 || mapq >= (int32_t)(1u<<8) )
+				if ( mapq < 0 || mapq >= static_cast<int32_t>(1u<<8) )
 				{
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid mapq field " << mapq << "\n";
 					lme.finish();
 					throw lme;
 				}
-				if ( cigardefined == sam_info_base_field_defined )
-				{
-					char const * p = cigar.begin();
-					size_t exseqlen = 0;
-					
-					while ( *p )
-					{
-						uint64_t num = 0;
-						
-						if ( ! isdigit(*p) )
-						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << cigar.begin() << "\n";
-							lme.finish();
-							throw lme;
-						}
-						while ( isdigit(*p) )
-						{
-							num *= 10;
-							num += (*p)-'0';
-							++p;
-						}
-						
-						switch ( *(p++) )
-						{
-							case 'M':
-							case 'I':
-							case 'S':
-							case '=':
-							case 'X':
-								exseqlen += num;
-								break;
-							case 'D':
-							case 'N':
-							case 'H':
-							case 'P':
-								break;
-							default:
-							{
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar operatoor " << p[-1] << "\n";
-								lme.finish();
-								throw lme;
-							}
-						}
-					}
-					
-					if ( ! (flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ) )
-					{
-						if ( exseqlen != seqlen )
-						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << cigar.begin() << " for sequence " << seq.begin() << "\n";
-							lme.finish();
-							throw lme;
-						}
-					}
-				}
 				if ( rnextdefined == sam_info_base_field_defined )
 				{
 					int ok = 1;
-					char const * p = rnext.begin();
+					char const * p = rnext;
+					char const * const pe = p + rnextlen;
 
-					if ( !*p )
+					if ( p == pe )
 					{
 						libmaus::exception::LibMausException lme;
 						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty rnext field\n";
@@ -424,38 +699,31 @@ namespace libmaus
 						throw lme;						
 					}
 						
-					if ( *p == '=' && !p[1] )
+					ok = ok && rnameFirstValid[static_cast<uint8_t>(*p)];
+					++p;
+				
+					while ( p != pe )
 					{
-					
-					}
-					else
-					{
-						ok = ok && rnameFirstValid[(int)*p];
+						ok = ok && rnameOtherValid[static_cast<uint8_t>(*p)];
 						++p;
-					
-						while ( *p )
-						{
-							ok = ok && rnameOtherValid[(int)*p];
-							++p;
-						}
-					
-						if ( ! ok )
-						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid rnext field " << rnext.begin() << "\n";
-							lme.finish();
-							throw lme;						
-						}
+					}
+				
+					if ( ! ok )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid rnext field " << std::string(rnext,rnext+rnextlen) << " length " << rnextlen << "\n";
+						lme.finish();
+						throw lme;						
 					}
 				}
-				if ( pnext < 0 || pnext >= (int32_t)(1u<<29) )
+				if ( pnext < 0 || pnext >= static_cast<int32_t>(1u<<29) )
 				{
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid pnext field " << pnext << "\n";
 					lme.finish();
 					throw lme;						
 				}
-				if ( tlen < ((-((int32_t)(1u<<29)))+1) || tlen >= (int32_t)(1u<<29) )
+				if ( tlen < ((-(static_cast<int32_t>(1u<<29)))+1) || tlen >= static_cast<int32_t>(1u<<29) )
 				{
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid tlen field " << tlen << "\n";
@@ -465,22 +733,23 @@ namespace libmaus
 				if ( seqdefined == sam_info_base_field_defined )
 				{
 					int ok = 1;
-					char const * p = seq.begin();
+					char const * p = seq;
+					char const * pe = seq + seqlen;
 					
-					while ( *p )
+					while ( p != pe )
 					{
-						ok = ok && seqValid[(int)*p];
+						ok = ok && seqValid[static_cast<uint8_t>(*p)];
 						++p;
 					}
 					
 					if ( !ok )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid sequence string " << seq.begin() << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid sequence string " << std::string(seq,seq+seqlen) << "\n";
 						lme.finish();
 						throw lme;						
 					}
-					if ( p == seq.begin() )
+					if ( p == seq )
 					{
 						libmaus::exception::LibMausException lme;
 						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty sequence string\n";
@@ -491,22 +760,23 @@ namespace libmaus
 				if ( qualdefined == sam_info_base_field_defined )
 				{
 					int ok = 1;
-					char const * p = qual.begin();
+					char const * p = qual;
+					char const * pe = qual + quallen;
 					
-					while ( *p )
+					while ( p != pe )
 					{
-						ok = ok && qualValid[(int)*p];
+						ok = ok && qualValid[static_cast<uint8_t>(*p)];
 						++p;
 					}
 					
 					if ( !ok )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid base quality string " << qual.begin() << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid base quality string " << std::string(qual,qual+quallen) << "\n";
 						lme.finish();
 						throw lme;						
 					}
-					if ( p == qual.begin() )
+					if ( p == qual )
 					{
 						libmaus::exception::LibMausException lme;
 						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty base quality string\n";
@@ -528,40 +798,33 @@ namespace libmaus
 						throw lme;						
 					}	
 				}
-				if ( 
-					seqdefined == sam_info_base_field_defined
-					&&
-					qualdefined == sam_info_base_field_undefined
-				)
-				{
-					if ( qual.size() < seqlen )
-						qual = libmaus::autoarray::AutoArray<char>(seqlen+1,false);
-					qual[seqlen] = 0;
-					memset(qual.begin(),255,seqlen);
-				}
-				if ( rnamedefined && rnextdefined && (rnext.size() >= 2) && rnext[0] == '=' && rnext[1] == 0 )
-				{
-					if ( rnext.size() < rnamelen )
-					{
-						rnext = libmaus::autoarray::AutoArray<char>(rnamelen+1,false);
-					}
 
-					strcpy(rnext.begin(),rname.begin());
+				if ( cigardefined && ! (flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ) )
+				{
+					uint64_t exseqlen = 0;
+					
+					for ( uint64_t i = 0; i < cigopvecfill; ++i )
+						switch ( cigopvec[i].first )
+						{
+							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
+							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
+							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+								exseqlen += cigopvec[i].second;
+								break;
+							default:
+								break;
+						}
+
+					if ( exseqlen != seqlen )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " for sequence " << std::string(seq,seq+seqlen) << "\n";
+						lme.finish();
+						throw lme;
+					}
 				}
-				
-				#if 0
-				fprintf(stdout,"Got name %s\n", qname.begin());
-				fprintf(stdout,"Got flag %d\n", flag);
-				fprintf(stdout,"Got rname %s\n", rname.begin());
-				fprintf(stdout,"Got pos %d\n", pos);
-				fprintf(stdout,"Got mapq %d\n", mapq);
-				fprintf(stdout,"Got cigar %s\n", cigar.begin());
-				fprintf(stdout,"Got rnext %s\n", rnext.begin());
-				fprintf(stdout,"Got pnext %d\n", pnext);
-				fprintf(stdout,"Got tlen %d\n", tlen);
-				fprintf(stdout,"Got seq %s\n", seq.begin());
-				fprintf(stdout,"Got qual %s\n", qual.begin());
-				#endif
 			}
 
 		};

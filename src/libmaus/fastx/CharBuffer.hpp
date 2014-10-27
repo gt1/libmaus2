@@ -44,6 +44,18 @@ namespace libmaus
                         uint64_t length;
 			::libmaus::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
+			
+			uint64_t swapBuffer(::libmaus::autoarray::AutoArray<value_type,atype> & obuffer)
+			{
+				uint64_t const rlength = length;
+
+				abuffer.swap(obuffer);
+				length = 0;
+				buffersize = abuffer.size();
+				buffer = abuffer.begin();
+				
+				return rlength;
+			}
 
                         void bufferPush(value_type c)
                         {

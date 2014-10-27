@@ -20,6 +20,12 @@
 #define LIBMAUS_BAMBAM_SAMINFOBASE_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/util/DigitTable.hpp>
+#include <libmaus/util/AlphaDigitTable.hpp>
+#include <libmaus/util/AlphaTable.hpp>
+#include <libmaus/bambam/SamPrintableTable.hpp>
+#include <libmaus/bambam/SamZPrintableTable.hpp>
+#include <libmaus/math/DecimalNumberParser.hpp>
 
 namespace libmaus
 {
@@ -32,6 +38,12 @@ namespace libmaus
 			static char const rnameOtherValid[256];
 			static char const seqValid[256];
 			static char const qualValid[256];
+			static libmaus::util::DigitTable const DT;
+			static libmaus::util::AlphaDigitTable const ADT;
+			static libmaus::util::AlphaTable const AT;
+			static libmaus::bambam::SamPrintableTable const SPT;
+			static libmaus::bambam::SamZPrintableTable const SZPT;
+			static libmaus::math::DecimalNumberParser const DNP;
 			
 			typedef char const * c_ptr_type;
 			typedef c_ptr_type c_ptr_type_pair[2];
@@ -42,6 +54,18 @@ namespace libmaus
 				sam_info_base_field_defined
 			};
 
+			static void parseStringField(
+				c_ptr_type_pair field,
+				sam_info_base_field_status & defined
+			)
+			{
+				if ( field[1]-field[0] == 1 && field[0][0] == '*' )
+					defined = sam_info_base_field_undefined;
+				else
+					defined = sam_info_base_field_defined;
+			}
+
+			#if 0
 			static void parseStringField(
 				c_ptr_type_pair field,
 				libmaus::autoarray::AutoArray<char> & str,
@@ -69,6 +93,7 @@ namespace libmaus
 					defined = sam_info_base_field_defined;
 				}				
 			}
+			#endif
 			
 			static int32_t parseNumberField(c_ptr_type_pair field, char const * fieldname)
 			{
@@ -93,7 +118,7 @@ namespace libmaus
 				int32_t num = 0;
 
 				while ( p != field[1] )
-					if ( isdigit(*p) )
+					if ( DT[static_cast<uint8_t>(*p)] )
 					{
 						num *= 10;
 						num += (*p-'0');
