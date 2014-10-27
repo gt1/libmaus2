@@ -245,6 +245,13 @@ namespace libmaus
 						}
 					}
 				}
+				else // nl > uposlentable[sizeof(N)]
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out of range for type, number is too long)" << '\n';
+					lme.finish();
+					throw lme;								
+				}
 			}
 			
 			template<typename N> N parseSignedNumber(char const * a, char const * e) const
@@ -370,10 +377,8 @@ namespace libmaus
 						libmaus::exception::LibMausException lme;
 						lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (too long for type)" << '\n';
 						lme.finish();
-						throw lme;		
-					
+						throw lme;
 					}
-
 				}
 				else
 				{
