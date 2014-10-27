@@ -60,7 +60,7 @@ namespace libmaus
 				return ostr.str().size()-1;
 			}
 			
-			template<typename N, typename C = N>
+			template<typename N, typename C>
 			void insertU(std::vector<unsigned int> & V)
 			{
 				while ( ! (sizeof(N) < V.size()) )
@@ -68,7 +68,7 @@ namespace libmaus
 				V [ sizeof(N) ] = getUnsignedNumLength<N,C>();
 			}
 
-			template<typename N, typename C = N>
+			template<typename N, typename C>
 			void insertN(std::vector<unsigned int> & V)
 			{
 				while ( ! (sizeof(N) < V.size()) )
@@ -94,19 +94,19 @@ namespace libmaus
 				M['-'] = 1;
 				
 				insertU<uint8_t,uint64_t> (uposlentable);
-				insertU<uint16_t>(uposlentable);
-				insertU<uint32_t>(uposlentable);
-				insertU<uint64_t>(uposlentable);
+				insertU<uint16_t,uint64_t>(uposlentable);
+				insertU<uint32_t,uint64_t>(uposlentable);
+				insertU<uint64_t,uint64_t>(uposlentable);
 
 				insertU< int8_t,uint64_t> (iposlentable);
-				insertU< int16_t>(iposlentable);
-				insertU< int32_t>(iposlentable);
-				insertU< int64_t>(iposlentable);
+				insertU< int16_t,uint64_t>(iposlentable);
+				insertU< int32_t,uint64_t>(iposlentable);
+				insertU< int64_t,uint64_t>(iposlentable);
 				
 				insertN< int8_t,int64_t> (ineglentable);
-				insertN<int16_t> (ineglentable);
-				insertN<int32_t> (ineglentable);
-				insertN<int64_t> (ineglentable);
+				insertN<int16_t,int64_t> (ineglentable);
+				insertN<int32_t,int64_t> (ineglentable);
+				insertN<int64_t,int64_t> (ineglentable);
 						
 				insertDiv10(sizeof(uint8_t),static_cast<uint64_t>(std::numeric_limits<uint8_t>::max()/10),udiv10);
 				insertDiv10(sizeof(uint16_t),static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()/10),udiv10);
