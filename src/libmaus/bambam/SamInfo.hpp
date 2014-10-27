@@ -41,7 +41,7 @@ namespace libmaus
 			{
 				sam_info_mandatory_columns = 11
 			};
-			
+						
 			char const * qname;
 			sam_info_base_field_status qnamedefined;
 			size_t qnamelen;
@@ -86,6 +86,8 @@ namespace libmaus
 
 			//! trie for sequence names
 			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type SQTrie;
+
+			std::vector<unsigned int> numLengthUnsigned;
 
 			::libmaus::fastx::EntityBuffer<uint8_t,libmaus::bambam::BamAlignment::D_array_alloc_type> buffer;
 			libmaus::bambam::BamAlignment::unique_ptr_type Palgn;
@@ -137,16 +139,17 @@ namespace libmaus
 				return V;
 			}
 			
-			std::vector<unsigned int> numLengthUnsigned;
 
 			SamInfo(libmaus::bambam::BamHeader const & rheader) 
-			: header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus::bambam::BamAlignment), algn(*Palgn)
+			: qname(0), rname(0), cigar(0), rnext(0), seq(0), qual(0),
+			  header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus::bambam::BamAlignment), algn(*Palgn)
 			{
 			
 			}
 			
 			SamInfo(libmaus::bambam::BamHeader const & rheader, libmaus::bambam::BamAlignment & ralgn)
-			: header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(), algn(ralgn)
+			: qname(0), rname(0), cigar(0), rnext(0), seq(0), qual(0),
+			  header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(), algn(ralgn)
 			{
 			
 			}
