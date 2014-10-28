@@ -186,6 +186,23 @@ namespace libmaus
 			}
 
 			/**
+			 * check alignment for syntactical validity, throws exception if invalid
+			 *
+			 * @param header SAM/BAM header
+			 **/
+			void checkAlignment(libmaus::bambam::BamHeader const & header) const
+			{
+				libmaus_bambam_alignment_validity const validity = valid(header);	
+				if ( validity != libmaus_bambam_alignment_validity_ok )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Invalid alignment: " << validity << std::endl;
+					se.finish();
+					throw se;					
+				}			
+			}
+
+			/**
 			 * check alignment validity excluding reference sequence ids
 			 *
 			 * @return alignment validty code
