@@ -3453,11 +3453,13 @@ namespace libmaus
 				// annotation (see SAM spec section 3.2, padded)
 				bool const annot = qcfail && secondary;
 
-				// check if cigar string is consistent with sequence length
+				// check whether cigar string is consistent with sequence length
 				if ( 
 					mapped
 					&&
 					(!annot)
+					&&
+					seqlen
 					&&
 					static_cast<int64_t>(::libmaus::bambam::BamAlignmentDecoderBase::getLseqByCigar(D)) != static_cast<int64_t>(seqlen)
 				)
