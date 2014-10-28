@@ -309,10 +309,11 @@ namespace libmaus
 				typename name_iterator,
 				typename cigar_iterator,
 				typename seq_iterator,
-				typename qual_iterator
+				typename qual_iterator,
+				::libmaus::autoarray::alloc_type alloc_type
 			>
 			static void encodeAlignment(
-				::libmaus::fastx::UCharBuffer & buffer,
+				::libmaus::fastx::EntityBuffer<uint8_t,alloc_type> & buffer,
 				BamSeqEncodeTable const & seqenc,
 				name_iterator name,
 				uint32_t const namelen,
@@ -331,6 +332,8 @@ namespace libmaus
 				uint8_t const qualoffset = 33
 			)
 			{
+				typedef ::libmaus::fastx::EntityBuffer<uint8_t,alloc_type> buffer_type;
+			
 				if ( ! libmaus::bambam::BamAlignmentDecoderBase::nameValid(name,name+namelen) )
 				{
 					libmaus::exception::LibMausException lme;
@@ -339,7 +342,7 @@ namespace libmaus
 					throw lme;
 				}
 			
-				typedef ::libmaus::fastx::UCharBuffer UCharBuffer;
+				// typedef ::libmaus::fastx::UCharBuffer UCharBuffer;
 				
 				buffer.reset();
 				
@@ -357,14 +360,14 @@ namespace libmaus
 				assert ( flags < (1ul << 16) );
 				assert ( cigarlen < (1ul << 16) );
 				
-				putLE<UCharBuffer, int32_t>(buffer,refid); // offset 0
-				putLE<UCharBuffer, int32_t>(buffer,pos);   // offset 4
-				putLE<UCharBuffer,uint32_t>(buffer,((bin & 0xFFFFul) << 16)|((mapq & 0xFF) << 8)|(namelen+1)); // offset 8
-				putLE<UCharBuffer,uint32_t>(buffer,((cflags&0xFFFFu)<<16)|(cigarlen&0xFFFFu)); // offset 12
-				putLE<UCharBuffer, int32_t>(buffer,seqlen); // offset 16
-				putLE<UCharBuffer, int32_t>(buffer,nextrefid); // offset 20
-				putLE<UCharBuffer, int32_t>(buffer,nextpos); // offset 24
-				putLE<UCharBuffer, int32_t>(buffer,tlen); // offset 28
+				putLE<buffer_type, int32_t>(buffer,refid); // offset 0
+				putLE<buffer_type, int32_t>(buffer,pos);   // offset 4
+				putLE<buffer_type,uint32_t>(buffer,((bin & 0xFFFFul) << 16)|((mapq & 0xFF) << 8)|(namelen+1)); // offset 8
+				putLE<buffer_type,uint32_t>(buffer,((cflags&0xFFFFu)<<16)|(cigarlen&0xFFFFu)); // offset 12
+				putLE<buffer_type, int32_t>(buffer,seqlen); // offset 16
+				putLE<buffer_type, int32_t>(buffer,nextrefid); // offset 20
+				putLE<buffer_type, int32_t>(buffer,nextpos); // offset 24
+				putLE<buffer_type, int32_t>(buffer,tlen); // offset 28
 				
 				// name
 				for ( uint32_t i = 0; i < namelen; ++i )
@@ -483,6 +486,66 @@ namespace libmaus
 				uint64_t const len = strlen(c);
 				for ( uint64_t i = 0; i < len; ++i )
 					data.bufferPush(c[i]);
+				data.bufferPush(0);
+			}
+
+			/**
+			 * put auxiliary tag for id tag as string
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param pa character string start iterator
+			 * @param pe character string end iterator
+			 **/
+			template<typename buffer_type, typename iterator_type>
+			static void putAuxString(
+				buffer_type & data,
+				char const * tag, 
+				iterator_type pa,
+				iterator_type pe
+			)
+			{
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
+				
+				data.bufferPush(tag[0]);
+				data.bufferPush(tag[1]);
+				data.bufferPush('Z');
+				
+				while ( pa != pe )
+					data.bufferPush( *(pa++) );
+				data.bufferPush(0);
+			}
+
+			/**
+			 * put auxiliary tag for id tag as string
+			 *
+			 * @param data output buffer
+			 * @param tag aux tag
+			 * @param pa character string start iterator
+			 * @param pe character string end iterator
+			 **/
+			template<typename buffer_type, typename iterator_type>
+			static void putAuxHexString(
+				buffer_type & data,
+				char const * tag, 
+				iterator_type pa,
+				iterator_type pe
+			)
+			{
+				assert ( tag );
+				assert ( tag[0] );
+				assert ( tag[1] );
+				assert ( ! tag[2] );
+				
+				data.bufferPush(tag[0]);
+				data.bufferPush(tag[1]);
+				data.bufferPush('H');
+				
+				while ( pa != pe )
+					data.bufferPush( *(pa++) );
 				data.bufferPush(0);
 			}
 

@@ -536,6 +536,18 @@ namespace libmaus
 				
 				void flush()
 				{
+					flushInMemQueueInternal();
+					
+					if ( OQ.size() )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "BamStreamingMarkDuplicatesSupport::OutputQueue: internal error, output queue is not empty after flush attempt\n";
+						lme.finish();
+						throw lme;
+					}
+					
+					assert ( OQ.size() == 0 );
+									
 					outputListToTmpFiles();
 
 					std::vector<uint64_t> PQ;
@@ -1019,7 +1031,7 @@ namespace libmaus
 				;
 				
 				if ( isleft )
-					std::cerr << "\nopt " 
+					out << "\nopt " 
 						<< HK.getLibrary()+1 << " "
 						<< HK.getRefId()+1 << " "
 						<< HK.getCoord()+1 << " "
@@ -1028,7 +1040,7 @@ namespace libmaus
 						<< opt
 						<< std::endl;
 				else
-					std::cerr << "\nopt " 
+					out << "\nopt " 
 						<< HK.getLibrary()+1 << " "
 						<< HK.getMateRefId()+1 << " "
 						<< HK.getMateCoord()+1 << " "

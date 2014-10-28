@@ -1478,7 +1478,18 @@ namespace libmaus
 			 * @param D alignment block
 			 * @return decoded cigar string from D
 			 **/
-			static std::string  getCigarString(uint8_t const * D)
+			static void getCigarString(std::ostream & ostr, uint8_t const * D)
+			{
+				for ( uint64_t i = 0; i < getNCigar(D); ++i )
+					ostr << getCigarFieldLength(D,i) << getCigarFieldOpAsChar(D,i);
+			}
+			/**
+			 * get decoded cigar string from alignment block D
+			 *
+			 * @param D alignment block
+			 * @return decoded cigar string from D
+			 **/
+			static std::string getCigarString(uint8_t const * D)
 			{
 				std::ostringstream ostr;
 				for ( uint64_t i = 0; i < getNCigar(D); ++i )
@@ -1791,6 +1802,172 @@ namespace libmaus
 				}
 				
 				return ostr.str();
+			}
+
+			/**
+			 * convert auxiliary field at D to a string
+			 *
+			 * @param D start of auxiliart field
+			 * @return string representation of auxiliary field starting at D
+			 **/
+			static void auxValueToString(std::ostream & ostr, uint8_t const * D)
+			{
+				// std::cerr << "\n[D] tag " << D[0] << D[1] << " type " << D[2] << std::endl;
+				
+				switch ( D[2] )
+				{
+					case 'A':
+						ostr.put(D[3]);
+						break;
+					case 'c':
+					{
+						int8_t const v = reinterpret_cast<int8_t const *>(D+3)[0];
+						ostr << static_cast<int64_t>(v);
+						break;
+					}
+					case 'C':
+					{
+						uint8_t const v = reinterpret_cast<uint8_t const *>(D+3)[0];
+						ostr << static_cast<int64_t>(v);
+						break;
+					}
+					case 's':
+					{
+						int16_t const v = static_cast<int16_t>(getLEInteger(D+3,2));
+						ostr << static_cast<int64_t>(v);
+						break;
+					}
+					case 'S':
+					{
+						uint16_t const v = static_cast<uint16_t>(getLEInteger(D+3,2));
+						ostr << static_cast<int64_t>(v);
+						break;
+					}
+					case 'i':
+					{
+						int32_t const v = static_cast<int32_t>(getLEInteger(D+3,4));
+						ostr << static_cast<int64_t>(v);
+						break;
+					}
+					case 'I':
+					{
+						uint32_t const v = static_cast<uint32_t>(getLEInteger(D+3,4));
+						ostr << static_cast<int64_t>(v);
+						break;
+					}
+					case 'f':
+					{
+						uint32_t const u = static_cast<uint32_t>(getLEInteger(D+3,4));
+						union numberpun
+						{
+							float fvalue;
+							uint32_t uvalue;
+						};
+						numberpun np;
+						np.uvalue = u;
+						float const v = np.fvalue;
+						ostr << v;
+						break;
+					}
+					case 'H':
+					{
+						uint8_t const * p = D+3;
+						while ( *p )
+							ostr << *(p++);
+						break;
+					}
+					case 'Z':
+					{
+						uint8_t const * p = D+3;
+						while ( *p )
+							ostr << *(p++);
+						break;
+					}
+					case 'B':
+					{
+						uint8_t const type = D[3];
+						uint32_t const len = getLEInteger(D+4,4);
+						ostr << type;
+						
+						uint8_t const * p = D+8;
+						for ( uint64_t i = 0; i < len; ++i )
+						{
+							ostr << ",";
+							switch ( type )
+							{
+								case 'A':
+								{
+									ostr << *p; 
+									p += 1; 
+									break;
+								}
+								case 'c':
+								{
+									int8_t const v = static_cast<int8_t>(getLEInteger(p,1));
+									p += 1;
+									ostr << static_cast<int64_t>(v);	
+									break;
+								}
+								case 'C':
+								{
+									uint8_t const v = static_cast<uint8_t>(getLEInteger(p,1));
+									p += 1;
+									ostr << static_cast<int64_t>(v);	
+									break;
+								}
+								case 's':
+								{
+									int16_t const v = static_cast<int16_t>(getLEInteger(p,2));
+									p += 2;
+									ostr << static_cast<int64_t>(v);	
+									break;
+								}
+								case 'S':
+								{
+									uint16_t const v = static_cast<uint16_t>(getLEInteger(p,2));
+									p += 2;
+									ostr << static_cast<int64_t>(v);	
+									break;
+								}
+								case 'i':
+								{
+									int32_t const v = static_cast<int32_t>(getLEInteger(p,4));
+									p += 4;
+									ostr << static_cast<int64_t>(v);	
+									break;
+								}
+								case 'I':
+								{
+									uint32_t const v = static_cast<uint32_t>(getLEInteger(p,4));
+									p += 4;
+									ostr << static_cast<int64_t>(v);
+									break;
+								}
+								case 'f':
+								{
+									union numberpun
+									{
+										float fvalue;
+										uint32_t uvalue;
+									};
+									numberpun np;
+									np.uvalue = static_cast<uint32_t>(getLEInteger(p,4));
+									p += 4;
+									ostr << np.fvalue;
+									break;
+								}
+							}
+						}				
+						break;
+					}
+					default:
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Unable to handle type " << D[2] << "(" << static_cast<int>(D[2]) << ")" << " in BamAlignmentDecoderBase::auxValueToString()" << std::endl;
+						se.finish();
+						throw se;				
+					}
+				}				
 			}
 			
 			static uint8_t rcEncoded(uint8_t const i)
@@ -2742,32 +2919,45 @@ namespace libmaus
 			 * @return alignment block formatted as SAM line stored in string object
 			 **/
 			template<typename header_type>
-			static std::string formatAlignment(
-				uint8_t const * E, uint64_t const blocksize, 
+			static void formatAlignment(
+				std::ostream & ostr,
+				uint8_t const * E, 
+				uint64_t const blocksize, 
 				header_type const & header,
 				::libmaus::bambam::BamFormatAuxiliary & auxdata
 			)
 			{
-				std::ostringstream ostr;
-
-				ostr << getReadNameS(E) << "\t";
-				ostr << getFlags(E) << "\t";
-				ostr << header.getRefIDName(getRefID(E)) << "\t";
-				ostr << getPos(E)+1 << "\t";
-				ostr << getMapQ(E) << "\t";
-				ostr << (getNCigar(E) ? getCigarString(E) : std::string("*")) << "\t";
+				uint16_t const flags = getFlags(E);
+				
+				ostr << getReadName(E) << '\t';
+				ostr << flags << '\t';
+				ostr << header.getRefIDName(getRefID(E)) << '\t';
+				ostr << getPos(E)+1 << '\t';
+				ostr << getMapQ(E) << '\t';
+				
+				if ( isUnmap(flags) || (! getNCigar(E)) )
+				{
+					ostr.put('*');
+				}
+				else
+				{
+					getCigarString(ostr,E);
+				}
+				ostr.put('\t');
 				
 				if ( getRefID(E) == getNextRefID(E) && getRefID(E) >= 0 )
-					ostr << "=\t";
+					ostr << '=';
 				else
-					ostr << header.getRefIDName(getNextRefID(E)) << "\t";
+					ostr << header.getRefIDName(getNextRefID(E));
+					
+				ostr.put('\t');
 
-				ostr << getNextPos(E)+1 << "\t";
-				ostr << getTlen(E) << "\t";
+				ostr << getNextPos(E)+1 << '\t';
+				ostr << getTlen(E) << '\t';
 
 				uint64_t const seqlen = decodeRead(E,auxdata.seq);
-				std::string const seqs(auxdata.seq.begin(),auxdata.seq.begin()+seqlen);
-				ostr << seqs << "\t";
+				ostr.write(auxdata.seq.begin(),seqlen);
+				ostr.put('\t');
 
 				if ( seqlen && getQual(E)[0] == 255 )
 				{
@@ -2776,8 +2966,7 @@ namespace libmaus
 				else
 				{
 					uint64_t const quallen = decodeQual(E,auxdata.qual);
-					std::string const squal(auxdata.qual.begin(),auxdata.qual.begin()+quallen);
-					ostr << squal;
+					ostr.write(auxdata.qual.begin(),quallen);
 				}
 				
 				uint8_t const * aux = getAux(E);
@@ -2799,11 +2988,30 @@ namespace libmaus
 						default: ostr.put(aux[2]); break;
 					}
 					ostr.put(':');				
-					// ostr << getAuxLength(aux);
-					ostr << auxValueToString(aux);
+					auxValueToString(ostr,aux);
 					aux = aux + getAuxLength(aux);
 				}
+			}
 
+			/**
+			 * format alignment block E of size blocksize as SAM file line using the header
+			 * and the temporary memory block auxdata
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param bam header
+			 * @param auxdata temporary memory block
+			 * @return alignment block formatted as SAM line stored in string object
+			 **/
+			template<typename header_type>
+			static std::string formatAlignment(
+				uint8_t const * E, uint64_t const blocksize, 
+				header_type const & header,
+				::libmaus::bambam::BamFormatAuxiliary & auxdata
+			)
+			{
+				std::ostringstream ostr;
+				formatAlignment(ostr,E,blocksize,header,auxdata);
 				return ostr.str();
 			}
 
@@ -3245,11 +3453,13 @@ namespace libmaus
 				// annotation (see SAM spec section 3.2, padded)
 				bool const annot = qcfail && secondary;
 
-				// check if cigar string is consistent with sequence length
+				// check whether cigar string is consistent with sequence length
 				if ( 
 					mapped
 					&&
 					(!annot)
+					&&
+					seqlen
 					&&
 					static_cast<int64_t>(::libmaus::bambam::BamAlignmentDecoderBase::getLseqByCigar(D)) != static_cast<int64_t>(seqlen)
 				)

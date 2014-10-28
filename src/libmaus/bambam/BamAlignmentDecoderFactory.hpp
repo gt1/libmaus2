@@ -22,6 +22,7 @@
 #include <libmaus/types/types.hpp>
 #include <libmaus/bambam/BamDecoder.hpp>
 #include <libmaus/bambam/CramRange.hpp>
+#include <libmaus/bambam/SamDecoderWrapper.hpp>
 
 #if defined(LIBMAUS_HAVE_IO_LIB)
 #include <libmaus/bambam/ScramDecoder.hpp>
@@ -49,9 +50,11 @@ namespace libmaus
 			{
 				std::set<std::string> S;
 				S.insert("bam");
+				S.insert("sam");
+				S.insert("maussam");
 
 				#if defined(LIBMAUS_HAVE_IO_LIB)
-				S.insert("sam");
+				S.insert("sbam");
 				S.insert("cram");
 				#endif
 				
@@ -206,6 +209,44 @@ namespace libmaus
 								return UNIQUE_PTR_MOVE(tptr);					
 							}
 						}
+					}
+				}
+				else if ( 
+					inputformat == "maussam" 
+					#if ! defined(LIBMAUS_HAVE_IO_LIB)
+					||
+					inputformat == "sam"
+					#endif
+				)
+				{
+					if ( copystr )
+					{
+						libmaus::exception::LibMausException ex;
+						ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for SAM based input" << std::endl;
+						ex.finish();
+						throw ex;		
+					}
+					if ( range.size() )
+					{
+						libmaus::exception::LibMausException ex;
+						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for the sam input format" << std::endl;
+						ex.finish();
+						throw ex;		
+					}
+					
+					if ( inputisstdin )
+					{
+						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus::bambam::SamDecoderWrapper(stdin,putrank)
+						);
+						return UNIQUE_PTR_MOVE(tptr);						
+					}
+					else
+					{
+						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus::bambam::SamDecoderWrapper(inputfilename,putrank)
+						);
+						return UNIQUE_PTR_MOVE(tptr);					
 					}
 				}
 				#if defined(LIBMAUS_HAVE_IO_LIB)

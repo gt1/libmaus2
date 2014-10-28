@@ -86,7 +86,7 @@ std::vector<uint64_t> libmaus::util::Histogram::getKeyVector()
 	return V;
 }
 
-uint64_t libmaus::util::Histogram::getTotal()
+uint64_t libmaus::util::Histogram::getTotal() const
 {		
 	std::map<uint64_t,uint64_t> const M = get();
 	uint64_t total = 0;
@@ -95,7 +95,7 @@ uint64_t libmaus::util::Histogram::getTotal()
 	return total;
 }
 
-uint64_t libmaus::util::Histogram::getNumPoints()
+uint64_t libmaus::util::Histogram::getNumPoints() const
 {		
 	std::map<uint64_t,uint64_t> const M = get();
 	uint64_t total = 0;
@@ -104,7 +104,7 @@ uint64_t libmaus::util::Histogram::getNumPoints()
 	return total;
 }
 
-std::ostream & libmaus::util::Histogram::print(std::ostream & out)
+std::ostream & libmaus::util::Histogram::print(std::ostream & out) const
 {
 	std::map<uint64_t,uint64_t> const F = get();
 	
@@ -114,7 +114,7 @@ std::ostream & libmaus::util::Histogram::print(std::ostream & out)
 	return out;
 }
 
-std::ostream & libmaus::util::Histogram::printFrac(std::ostream & out, double const frac)
+std::ostream & libmaus::util::Histogram::printFrac(std::ostream & out, double const frac) const
 {
 	std::map<uint64_t,uint64_t> const F = get();
 	

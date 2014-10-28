@@ -293,6 +293,7 @@ namespace libmaus
 				uint64_t rv, projector_type projector = projector_type()
 			)
 			{
+				// compute edge set
 				std::map< uint64_t,std::vector<uint64_t> > edges;
 
 				for ( typename std::map< uint64_t,std::vector<edge_type> >::const_iterator ita = inedges.begin(); ita != inedges.end(); ++ita )
@@ -306,6 +307,7 @@ namespace libmaus
 				bool changed = true;
 				std::map<uint64_t,uint64_t> vertmap;
 				
+				// while we have not determined that graph is loop free
 				while ( changed )
 				{	
 					#if 0
@@ -323,9 +325,11 @@ namespace libmaus
 
 					changed = false;
 
+					// switch to representant of rv
 					while ( vertmap.find(rv) != vertmap.end() )
 						rv = vertmap.find(rv)->second;
 
+					// compute set of vertices to be considered by depth first search
 					std::set<uint64_t> unused;
 					std::stack<uint64_t> PS;
 					PS.push(rv);
@@ -347,11 +351,13 @@ namespace libmaus
 						}
 					}
 					
+					// mark all vertices as unused
 					for ( std::map< uint64_t,std::vector<uint64_t> >::const_iterator ita = edges.begin(); ita != edges.end(); ++ita )
 						unused.insert(ita->first);
 					
 					while ( (!changed) && unused.size() )
 					{
+						// get unused node
 						uint64_t root = *(unused.begin());
 						typedef std::pair<uint64_t,strongly_connected_component_contract_visit_type> st;
 						std::stack< st > S;
@@ -366,24 +372,31 @@ namespace libmaus
 							
 							switch ( el.second )
 							{
+								// first visit
 								case visit_first:
+									// mark as on stack
 									onstack.insert(el.first);
+									// push second visit
 									S.push(st(el.first,visit_second));
 									
+									// erase from unused list
 									if ( unused.find(el.first) != unused.end() )
 										unused.erase(unused.find(el.first));
 
+									// if node has outgoing edges
 									if ( edges.find(el.first) != edges.end() )
 									{
 										std::vector<uint64_t> const & V = edges.find(el.first)->second;
-										
+									
+										// check for loop	
 										for ( uint64_t i = 0; i < V.size(); ++i )
 											if ( onstack.find(V[i]) != onstack.end() )
 											{
 												foundloop = true;
 												onstackrec = V[i];
 											}
-											
+										
+										// if no loop was found then push edge targets
 										if ( ! foundloop )
 										{
 											for ( uint64_t i = 0; i < V.size(); ++i )
@@ -401,10 +414,8 @@ namespace libmaus
 						
 						if ( foundloop )
 						{
-							// std::cerr << "foundloop size " << S.size() << std::endl;
-						
+							// collect vertices on loop
 							std::set<uint64_t> L;
-							
 							while ( (!S.empty()) && (S.top() != st(onstackrec,visit_second)) )
 							{
 								if ( S.top().second == visit_second )
@@ -414,55 +425,49 @@ namespace libmaus
 							
 							assert ( S.size() && S.top() == st(onstackrec,visit_second) );
 							
+							// insert loop start
 							L.insert(onstackrec);
 							
+							// if we found a non trivial loop
 							if ( L.size() > 1 )
 							{
-								#if 0
-								std::cerr << "found loop of size " << L.size() << ": ";
-								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
-									std::cerr << *ita << ";";
-								std::cerr << std::endl;
-								#endif
-								
+								// update vertex map (mark all nodes in L as equivalent to minimum in L)
 								uint64_t const mini = *(L.begin());
 								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
-								{
-									#if 0
-									if ( *ita != mini )
-										std::cerr << *ita << " -> " << mini << std::endl;
-									#endif
-									
 									if ( *ita != mini )
 										vertmap[*ita] = mini;
-								}
 								
+								// collect all targets
 								std::set<uint64_t> alltargets;
 								for ( std::map< uint64_t,std::vector<uint64_t> >::iterator ita = edges.begin(); ita != edges.end(); ++ita )
+									// if source is in component
 									if ( L.find(ita->first) != L.end() )
 									{
+										// collect all targets outside component
 										std::vector<uint64_t> const & V = ita->second;
 										for ( uint64_t i = 0; i < V.size(); ++i )
 											if ( L.find(V[i]) == L.end() )
 												alltargets.insert(V[i]);
 									}
+									// if source is not in component
 									else
 									{
+										// change all edges into component
 										std::vector<uint64_t> & V = ita->second;
 										for ( uint64_t i = 0; i < V.size(); ++i )
 											if ( L.find(V[i]) != L.end() )
 												V[i] = mini;
 										
+										// remove multiple targets
 										std::sort(V.begin(),V.end());							
-										V.resize(
-											std::unique(V.begin(),V.end())-V.begin()
-										);
+										V.resize(std::unique(V.begin(),V.end())-V.begin());
 									}
 
+								// erase empty edge lists
 								for ( std::set<uint64_t>::const_iterator ita = L.begin(); ita != L.end(); ++ita )
 									if ( edges.find(*ita) != edges.end() )
 										edges.erase(edges.find(*ita));
-										
+								
 								for ( std::set<uint64_t>::const_iterator ita = alltargets.begin(); ita != alltargets.end(); ++ita )
 									edges[mini].push_back(*ita);
 								

@@ -48,6 +48,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/util/ConsoleColor.cpp \
 	libmaus/util/Demangle.cpp \
 	libmaus/util/DigitTable.cpp \
+	libmaus/util/AlphaDigitTable.cpp \
+	libmaus/util/AlphaTable.cpp \
 	libmaus/util/DynamicLoading.cpp \
 	libmaus/util/ForkProcess.cpp \
 	libmaus/util/LSFSim.cpp \
@@ -126,8 +128,11 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/network/GnuTLSSocket.cpp \
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.cpp \
 	libmaus/alignment/FactorMatchInfo.cpp \
-	libmaus/alignment/KmerInfo.cpp
-
+	libmaus/alignment/KmerInfo.cpp \
+	libmaus/bambam/SamInfoBase.cpp \
+	libmaus/bambam/SamPrintableTable.cpp \
+	libmaus/bambam/SamZPrintableTable.cpp
+	
 noinst_HEADERS = libmaus/lz/lz4.h
 
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @IGZIPCPPFLAGS@
@@ -396,6 +401,13 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamHeaderParserStateBase.hpp \
 	libmaus/bambam/BamHeaderParserState.hpp \
 	libmaus/bambam/BamAlignmentReg2Bin.hpp
+	libmaus/bambam/BamAlignmentReg2Bin.hpp \
+	libmaus/bambam/SamInfoBase.hpp \
+	libmaus/bambam/SamInfo.hpp \
+	libmaus/bambam/SamPrintableTable.hpp \
+	libmaus/bambam/SamZPrintableTable.hpp \
+	libmaus/bambam/SamDecoder.hpp \
+	libmaus/bambam/SamDecoderWrapper.hpp
 
 libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
 libmausarithmetic_include_HEADERS =\
@@ -557,7 +569,8 @@ libmausmath_include_HEADERS=\
 	libmaus/math/IPower.hpp \
 	libmaus/math/Log.hpp \
 	libmaus/math/ipow.hpp \
-	libmaus/math/IntegerInterval.hpp
+	libmaus/math/IntegerInterval.hpp \
+	libmaus/math/DecimalNumberParser.hpp
 
 libmausrl_includedir=$(includedir)/libmaus/rl
 libmausrl_include_HEADERS=\
@@ -633,6 +646,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/CountPutObject.hpp \
 	libmaus/util/CountPutIterator.hpp \
 	libmaus/util/PosixFileDescriptor.hpp \
+	libmaus/util/AlphaDigitTable.hpp \
+	libmaus/util/AlphaTable.hpp \
 	libmaus/util/DigitTable.hpp \
 	libmaus/util/TempFileRemovalContainer.hpp \
 	libmaus/util/DynamicLoading.hpp \
@@ -671,7 +686,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/SimpleHashMapHashCompute.hpp \
 	libmaus/util/SimpleHashMapInsDel.hpp \
 	libmaus/util/SimpleHashMapNumberCast.hpp \
-	libmaus/util/SimpleHashSetInsDel.hpp
+	libmaus/util/SimpleHashSetInsDel.hpp \
+	libmaus/util/LineBuffer.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
@@ -1264,7 +1280,10 @@ noinst_PROGRAMS = \
 	testparallelbamdecompression \
 	testbytecnt \
 	teststronglyconnectedcomponents \
-	testtopologicalsorting
+	testtopologicalsorting \
+	testlinebuffer \
+	testsamdecoder \
+	testdecimalnumberparser
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1640,3 +1659,19 @@ testparallelbamdecompression_SOURCES = test/testparallelbamdecompression.cpp
 testparallelbamdecompression_CPPFLAGS = @SNAPPYCPPFLAGS@
 testparallelbamdecompression_LDFLAGS = @SNAPPYLDFLAGS@
 testparallelbamdecompression_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+
+testlinebuffer_SOURCES = test/testlinebuffer.cpp
+testlinebuffer_LDADD = libmaus.la
+testlinebuffer_CPPFLAGS = ${AM_CPPFLAGS}
+testlinebuffer_LDFLAGS = ${AM_LDFLAGS}
+
+testsamdecoder_SOURCES = test/testsamdecoder.cpp
+testsamdecoder_LDADD = libmaus.la
+testsamdecoder_CPPFLAGS = ${AM_CPPFLAGS}
+testsamdecoder_LDFLAGS = ${AM_LDFLAGS}
+
+testdecimalnumberparser_SOURCES = test/testdecimalnumberparser.cpp
+testdecimalnumberparser_LDADD = libmaus.la
+testdecimalnumberparser_CPPFLAGS = ${AM_CPPFLAGS}
+testdecimalnumberparser_LDFLAGS = ${AM_LDFLAGS}
+

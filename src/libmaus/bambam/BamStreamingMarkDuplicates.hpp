@@ -258,7 +258,7 @@ namespace libmaus
 			void addAlignment(libmaus::bambam::BamAlignment & algn)
 			{
 				if ( putrank )
-					algn.putRank("ZR",nextrank++);
+					algn.putRank("ZR",nextrank++);					
 			
 				int64_t const thisref = algn.getRefID();
 				int64_t const thispos = algn.getPos();
@@ -410,7 +410,7 @@ namespace libmaus
 					// pass through
 					libmaus::bambam::BamAlignment * palgn = BAFL.get();
 					palgn->swap(algn);
-					OQ.push(palgn);
+					OQ.push(palgn);	
 				}
 				// paired end, both mapped
 				else if ( 
@@ -624,7 +624,7 @@ namespace libmaus
 					}
 				
 					OQ.push(palgn);
-					
+
 					SHfragment.eraseIndex(SHfragmentindex);
 				}
 

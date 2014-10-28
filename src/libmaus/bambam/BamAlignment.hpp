@@ -186,6 +186,23 @@ namespace libmaus
 			}
 
 			/**
+			 * check alignment for syntactical validity, throws exception if invalid
+			 *
+			 * @param header SAM/BAM header
+			 **/
+			void checkAlignment(libmaus::bambam::BamHeader const & header) const
+			{
+				libmaus_bambam_alignment_validity const validity = valid(header);	
+				if ( validity != libmaus_bambam_alignment_validity_ok )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Invalid alignment: " << validity << std::endl;
+					se.finish();
+					throw se;					
+				}			
+			}
+
+			/**
 			 * check alignment validity excluding reference sequence ids
 			 *
 			 * @return alignment validty code
@@ -937,12 +954,32 @@ namespace libmaus
 			/**
 			 * format alignment as SAM file line
 			 *
+			 * @param ostr output stream
 			 * @param bamheader BAM header object
 			 * @param auxiliary formatting auxiliary object
 			 * @return SAM file line as string
 			 **/
+			template<typename header_type>
+			void formatAlignment(
+				std::ostream & ostr,
+				header_type const & bamheader,
+				::libmaus::bambam::BamFormatAuxiliary & auxiliary
+			) const
+			{
+				::libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+					ostr,D.get(),blocksize,bamheader,auxiliary);
+			}
+
+			/**
+			 * format alignment as SAM file line
+			 *
+			 * @param bamheader BAM header object
+			 * @param auxiliary formatting auxiliary object
+			 * @return SAM file line as string
+			 **/
+			template<typename header_type>
 			std::string formatAlignment(
-				::libmaus::bambam::BamHeader const & bamheader,
+				header_type const & bamheader,
 				::libmaus::bambam::BamFormatAuxiliary & auxiliary
 			) const
 			{
@@ -956,7 +993,8 @@ namespace libmaus
 			 * @param bamheader BAM header object
 			 * @return SAM file line as string
 			 **/
-			std::string formatAlignment(::libmaus::bambam::BamHeader const & bamheader) const
+			template<typename header_type>
+			std::string formatAlignment(header_type const & bamheader) const
 			{
 				::libmaus::bambam::BamFormatAuxiliary auxiliary;
 				return formatAlignment(bamheader,auxiliary);
