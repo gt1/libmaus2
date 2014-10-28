@@ -163,7 +163,7 @@ namespace libmaus
 					if ( ! DT[static_cast<uint8_t>(*p)] )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " (number expected)\n";
 						lme.finish();
 						throw lme;
 					}
@@ -181,7 +181,7 @@ namespace libmaus
 					if ( p == pe )
 					{					
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " (string ends on number)\n";
 						lme.finish();
 						throw lme;
 					}
@@ -218,7 +218,7 @@ namespace libmaus
 						default:
 						{
 							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar operatoor " << p[-1] << "\n";
+							lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar operator " << p[-1] << "\n";
 							lme.finish();
 							throw lme;
 						}
@@ -354,7 +354,7 @@ namespace libmaus
 				int64_t const nextrefid = (rnextdefined == sam_info_base_field_defined) ? getRefIdForName(rnext,rnext+rnextlen) : -1;
 
 				buffer.reset();
-
+				
 				libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(
 					buffer,
 					seqenc,
@@ -371,7 +371,8 @@ namespace libmaus
 					tlen,
 					seq,
 					seqlen,
-					qual
+					qual,
+					(seqlen && static_cast<uint8_t>(qual[0])==255) ? 0 : 33
 				);
 				
 				while ( p != pe )
@@ -582,11 +583,11 @@ namespace libmaus
 				
 				parseStringField(fields[9],seqdefined);
 				seq = fields[9][0];
-				seqlen = fields[9][1] - fields[9][0];
+				seqlen = (seqdefined == sam_info_base_field_defined) ? (fields[9][1] - fields[9][0]) : 0;
 
 				parseStringField(fields[10],qualdefined);
 				qual = fields[10][0];
-				quallen = fields[10][1]-fields[10][0];
+				quallen = (qualdefined == sam_info_base_field_defined) ? fields[10][1]-fields[10][0] : 0;
 
 				// copy rname to rnext if rnext is =
 				if ( rnamedefined && rnextdefined && rnextlen == 1 && rnext[0] == '=' )
@@ -616,10 +617,14 @@ namespace libmaus
 				}
 				else
 				{
-					cigarlen = 0;
+					cigopvecfill = 0;
 				}
-
+				
 				/* input validation starts here */
+				
+				#if 0
+				/* the name is validated when we construct the BAM block down stream, so */
+				/* there is no need to check it here */
 				if ( qnamedefined == sam_info_base_field_defined )
 				{
 					int ok = 1;
@@ -640,6 +645,8 @@ namespace libmaus
 						throw lme;
 					}
 				}
+				#endif
+				
 				if ( flag < 0 || flag >= static_cast<int32_t>(1u<<16) )
 				{
 					libmaus::exception::LibMausException lme;
@@ -806,7 +813,17 @@ namespace libmaus
 					}	
 				}
 
-				if ( cigardefined && ! (flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ) )
+				bool qcfail = flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
+				bool secondary = flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
+				// annotation (see SAM spec section 3.2, padded)
+				bool const annot = qcfail && secondary;
+
+				if ( 
+					(cigardefined == sam_info_base_field_defined) && 
+					(seqdefined == sam_info_base_field_defined) && 
+					(!annot) &&
+					(! (flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ))
+				)
 				{
 					uint64_t exseqlen = 0;
 					
@@ -827,7 +844,7 @@ namespace libmaus
 					if ( exseqlen != seqlen )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " for sequence " << std::string(seq,seq+seqlen) << "\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " for sequence " << std::string(seq,seq+seqlen) << " (sum " << exseqlen << " over match,ins,softclip,equal,diff does not match length of query sequence " << seqlen << ")\n";
 						lme.finish();
 						throw lme;
 					}
