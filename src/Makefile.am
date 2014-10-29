@@ -1653,7 +1653,7 @@ testlinebuffer_CPPFLAGS = ${AM_CPPFLAGS}
 testlinebuffer_LDFLAGS = ${AM_LDFLAGS}
 
 testsamdecoder_SOURCES = test/testsamdecoder.cpp
-testsamdecoder_LDADD = libmaus.la
+testsamdecoder_LDADD = libmaus.la ${DLLIB}
 testsamdecoder_CPPFLAGS = ${AM_CPPFLAGS}
 testsamdecoder_LDFLAGS = ${AM_LDFLAGS}
 
