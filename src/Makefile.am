@@ -1272,7 +1272,8 @@ noinst_PROGRAMS = \
 	testtopologicalsorting \
 	testlinebuffer \
 	testsamdecoder \
-	testdecimalnumberparser
+	testdecimalnumberparser \
+	testunsignedinteger
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1661,3 +1662,8 @@ testdecimalnumberparser_SOURCES = test/testdecimalnumberparser.cpp
 testdecimalnumberparser_LDADD = libmaus.la
 testdecimalnumberparser_CPPFLAGS = ${AM_CPPFLAGS}
 testdecimalnumberparser_LDFLAGS = ${AM_LDFLAGS}
+
+testunsignedinteger_SOURCES = test/testunsignedinteger.cpp
+testunsignedinteger_LDADD = libmaus.la
+testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
+testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
