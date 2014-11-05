@@ -290,26 +290,50 @@ namespace libmaus
 				*this = R;
 				return *this;
 			}
+
+			UnsignedInteger<k> & operator|=(UnsignedInteger<k> const & O)
+			{
+				for ( size_t i = 0; i < k; ++i )
+					A[i] |= O.A[i];
+				return *this;
+			}
+
+			UnsignedInteger<k> & operator&=(UnsignedInteger<k> const & O)
+			{
+				for ( size_t i = 0; i < k; ++i )
+					A[i] &= O.A[i];
+				return *this;
+			}
+			
+			UnsignedInteger<k> operator~() const
+			{
+				UnsignedInteger<k> A;
+				for ( size_t i = 0; i < k; ++i )
+					A.A[i] = ~A[i];
+				return A;
+			}
 		};
 		
-		template<size_t i, size_t j, size_t k>
+		template<size_t i, size_t j, size_t k, size_t ko>
 		struct UnsignedInteger_multiply_level2
 		{
 			static void multiply(uint32_t const * const A, uint32_t const * const B, uint32_t * const R)
 			{
-				uint64_t const prod = 
-					static_cast<uint64_t>(A[i]) * static_cast<uint64_t>(B[j]);
-				R [ i + j ] += static_cast<uint32_t>(prod & 0xFFFFFFFFULL);
-					
-				if ( i+j+1 < k )
-					R[i+j+1] += static_cast<uint32_t>((prod >> 32) & 0xFFFFFFFFULL);
+				uint64_t prod = static_cast<uint64_t>(A[i]) * static_cast<uint64_t>(B[j]);
+				size_t t = i+j;
+				
+				do {
+					prod   += R[t];
+					R[t]  = static_cast<uint32_t>(prod & 0xFFFFFFFFULL);
+					prod  >>= 32;
+				} while ( prod && ++t < ko );
 
-				UnsignedInteger_multiply_level2<i,j+1,k>::multiply(A,B,R);
+				UnsignedInteger_multiply_level2<i,j+1,k,ko>::multiply(A,B,R);
 			}		
 		};
 		
-		template<size_t i, size_t k>
-		struct UnsignedInteger_multiply_level2<i,k,k>
+		template<size_t i, size_t k, size_t ko>
+		struct UnsignedInteger_multiply_level2<i,k,k,ko>
 		{
 			static void multiply(uint32_t const * const, uint32_t const * const, uint32_t * const)
 			{
@@ -321,7 +345,7 @@ namespace libmaus
 		{
 			static void multiply(uint32_t const * const A, uint32_t const * const B, uint32_t * const R)
 			{
-				UnsignedInteger_multiply_level2<i,0,k-i>::multiply(A,B,R);
+				UnsignedInteger_multiply_level2<i,0,k-i,k>::multiply(A,B,R);
 				UnsignedInteger_multiply_level1<i+1,k>::multiply(A,B,R);
 			}
 		};
@@ -483,6 +507,30 @@ namespace libmaus
 		
 		}
 
+		template<size_t k> 
+		UnsignedInteger<k> operator<<(UnsignedInteger<k> const & A, size_t s)
+		{
+			UnsignedInteger<k> R = A;
+			R <<= s;
+			return R;
+		}
+
+		template<size_t k> 
+		UnsignedInteger<k> operator|(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
+		{
+			UnsignedInteger<k> R = A;
+			R |= B;
+			return R;		
+		}
+
+		template<size_t k> 
+		UnsignedInteger<k> operator&(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
+		{
+			UnsignedInteger<k> R = A;
+			R &= B;
+			return R;		
+		}
+
 		template<size_t k> std::ostream & operator<<(std::ostream & out, UnsignedInteger<k> const & A)
 		{
 			// hex
@@ -510,6 +558,9 @@ namespace libmaus
 					D.push_back(M.second.A[0]);
 					V = M.first;
 				}
+				
+				if ( ! D.size() )
+					D.push_back(0);
 				
 				while ( D.size() )
 				{
