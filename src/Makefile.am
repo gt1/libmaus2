@@ -400,15 +400,6 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamDecoder.hpp \
 	libmaus/bambam/SamDecoderWrapper.hpp
 
-libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
-libmausarithmetic_include_HEADERS =\
-	libmaus/arithmetic/ArithCoder.hpp \
-	libmaus/arithmetic/ArithEncoder.hpp \
-	libmaus/arithmetic/ArithDecoder.hpp \
-	libmaus/arithmetic/RangeCoder.hpp \
-	libmaus/arithmetic/RangeEncoder.hpp \
-	libmaus/arithmetic/RangeDecoder.hpp
-
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitIO.hpp \
@@ -1161,7 +1152,6 @@ libmausconsensus_include_HEADERS =\
 EXTRA_PROGRAMS = testlsf testlsflist
 noinst_PROGRAMS = \
 	testAIO \
-	testArithmetic \
 	testbitbtree \
 	testBitIO \
 	testbtree \
@@ -1342,9 +1332,6 @@ testTrie_LDADD = libmaus.la
 
 testFork_SOURCES = test/testFork.cpp
 testFork_LDADD = libmaus.la
-
-testArithmetic_SOURCES = test/testArithmetic.cpp
-testArithmetic_LDADD = libmaus.la
 
 testBitIO_SOURCES = test/testBitIO.cpp
 testBitIO_LDADD = libmaus.la
