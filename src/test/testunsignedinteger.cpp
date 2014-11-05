@@ -133,9 +133,9 @@ void testrandmult128()
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 	{
 		uint64_t const lowa  = libmaus::random::Random::rand64();
-		uint64_t const higha = 0; //libmaus::random::Random::rand64();
+		uint64_t const higha = libmaus::random::Random::rand64();
 		uint64_t const lowb  = libmaus::random::Random::rand64();
-		uint64_t const highb = 0; //libmaus::random::Random::rand64();
+		uint64_t const highb = libmaus::random::Random::rand64();
 		
 		libmaus::math::UnsignedInteger<4> A = libmaus::math::UnsignedInteger<4>(lowa) | (libmaus::math::UnsignedInteger<4>(higha) << 64);
 		libmaus::uint128_t vA = static_cast<libmaus::uint128_t>(lowa) | (static_cast<libmaus::uint128_t>(higha)<<64);
@@ -167,9 +167,9 @@ void testrandsub128()
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 	{
 		uint64_t const lowa  = libmaus::random::Random::rand64();
-		uint64_t const higha = 0; //libmaus::random::Random::rand64();
+		uint64_t const higha = libmaus::random::Random::rand64();
 		uint64_t const lowb  = libmaus::random::Random::rand64();
-		uint64_t const highb = 0; //libmaus::random::Random::rand64();
+		uint64_t const highb = libmaus::random::Random::rand64();
 		
 		libmaus::math::UnsignedInteger<4> A = libmaus::math::UnsignedInteger<4>(lowa) | (libmaus::math::UnsignedInteger<4>(higha) << 64);
 		libmaus::uint128_t vA = static_cast<libmaus::uint128_t>(lowa) | (static_cast<libmaus::uint128_t>(higha)<<64);
@@ -207,9 +207,9 @@ void testranddiv128()
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 	{
 		uint64_t const lowa  = libmaus::random::Random::rand64();
-		uint64_t const higha = 0; //libmaus::random::Random::rand64();
+		uint64_t const higha = libmaus::random::Random::rand64();
 		uint64_t const lowb  = libmaus::random::Random::rand64();
-		uint64_t const highb = 0; //libmaus::random::Random::rand64();
+		uint64_t const highb = libmaus::random::Random::rand64();
 		
 		libmaus::math::UnsignedInteger<4> A = libmaus::math::UnsignedInteger<4>(lowa) | (libmaus::math::UnsignedInteger<4>(higha) << 64);
 		libmaus::uint128_t vA = static_cast<libmaus::uint128_t>(lowa) | (static_cast<libmaus::uint128_t>(higha)<<64);
