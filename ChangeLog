@@ -1,3 +1,11 @@
+libmaus (0.0.172-1) unstable; urgency=low
+
+  * added sam file parser
+  * added (template) fixed with unsigned integer class
+  * added support interface for sha message digests via nettle library
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 06 Nov 2014 22:16:43 +0000
+
 libmaus (0.0.171-1) unstable; urgency=low
 
   * fix output flushing in streaming duplicate marking 
