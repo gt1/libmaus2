@@ -86,3 +86,19 @@ libmaus::math::UnsignedInteger<4> libmaus::util::MD5::md5(uint8_t const * in, si
 	md5(in,len,D);
 	return D;
 }
+
+libmaus::util::MD5::MD5() : ctx(0) { ctx = new md5_state_s; }
+libmaus::util::MD5::~MD5() { delete reinterpret_cast<md5_state_s *>(ctx); }
+
+void libmaus::util::MD5::init()
+{
+	md5_init(reinterpret_cast<md5_state_s *>(ctx));
+}
+void libmaus::util::MD5::update(uint8_t const * t, size_t l)
+{
+	md5_append(reinterpret_cast<md5_state_s *>(ctx), reinterpret_cast<md5_byte_t const *>(t), l);
+}
+void libmaus::util::MD5::digest(uint8_t * digest)
+{
+	md5_finish(reinterpret_cast<md5_state_s *>(ctx),digest);
+}

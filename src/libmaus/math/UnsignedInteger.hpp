@@ -63,6 +63,11 @@ namespace libmaus
 			{
 				return A[i];
 			}
+
+			uint32_t & operator[](size_t i)
+			{
+				return A[i];
+			}
 			
 			template<size_t l>
 			UnsignedInteger(UnsignedInteger<l> const & O)

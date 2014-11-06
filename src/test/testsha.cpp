@@ -16,23 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/exception/LibMausException.hpp>
 #include <iostream>
+#include <libmaus/digest/Digests.hpp>
+#include <libmaus/util/Demangle.hpp>
 
-#if defined(LIBMAUS_HAVE_NETTLE)
-#include <nettle/sha1.h>
-#include <nettle/sha2.h>
-#endif
+template<typename crc>
+void printCRC(std::string const & text)
+{
+	crc dig;
+	dig.init();
+	dig.update(reinterpret_cast<uint8_t const *>(text.c_str()),text.size());
+	std::cout << libmaus::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec << std::endl;
+}
 
 int main()
 {
 	try
 	{
+		std::string const text = "Hello world!";
+
+		printCRC<libmaus::digest::CRC32>(text);
+		printCRC<libmaus::util::MD5>(text);
+
 		#if defined(LIBMAUS_HAVE_NETTLE)
-		
-		#else
+		printCRC<libmaus::digest::SHA1>(text);
+		printCRC<libmaus::digest::SHA2_224>(text);
+		printCRC<libmaus::digest::SHA2_256>(text);
+		printCRC<libmaus::digest::SHA2_384>(text);
+		printCRC<libmaus::digest::SHA2_512>(text);
+		#else	
 		libmaus::exception::LibMausException lme;
 		lme.getStream() << "support for nettle library is not present" << std::endl;
 		lme.finish();

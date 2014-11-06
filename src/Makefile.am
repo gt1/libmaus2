@@ -131,7 +131,13 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/alignment/KmerInfo.cpp \
 	libmaus/bambam/SamInfoBase.cpp \
 	libmaus/bambam/SamPrintableTable.cpp \
-	libmaus/bambam/SamZPrintableTable.cpp
+	libmaus/bambam/SamZPrintableTable.cpp \
+	libmaus/digest/SHA1.cpp \
+	libmaus/digest/SHA2_224.cpp \
+	libmaus/digest/SHA2_256.cpp \
+	libmaus/digest/SHA2_384.cpp \
+	libmaus/digest/SHA2_512.cpp \
+	libmaus/digest/CRC32.cpp
 	
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -891,6 +897,17 @@ libmaushashing_include_HEADERS=\
 	libmaus/hashing/CircularHash.hpp \
 	libmaus/hashing/ConstantStringHash.hpp \
 	libmaus/hashing/Crc32.hpp
+
+libmausdigest_includedir=$(includedir)/libmaus/digest
+libmausdigest_include_HEADERS=\
+	libmaus/digest/DigestBase.hpp \
+	libmaus/digest/SHA1.hpp \
+	libmaus/digest/SHA2_224.hpp \
+	libmaus/digest/SHA2_256.hpp \
+	libmaus/digest/SHA2_384.hpp \
+	libmaus/digest/SHA2_512.hpp \
+	libmaus/digest/CRC32.hpp \
+	libmaus/digest/Digests.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
