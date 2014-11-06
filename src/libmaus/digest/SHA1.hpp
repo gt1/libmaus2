@@ -35,6 +35,7 @@ namespace libmaus
 			void init();
 			void update(uint8_t const * t, size_t l);
 			void digest(uint8_t * digest);
+			void copyFrom(SHA1 const & O);
 			static size_t getDigestLength() { return digestlength; }
 		};
 	}

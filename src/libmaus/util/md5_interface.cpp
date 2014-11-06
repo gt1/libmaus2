@@ -102,3 +102,7 @@ void libmaus::util::MD5::digest(uint8_t * digest)
 {
 	md5_finish(reinterpret_cast<md5_state_s *>(ctx),digest);
 }
+void libmaus::util::MD5::copyFrom(MD5 const & O)
+{
+	*(reinterpret_cast<md5_state_s *>(ctx)) = *(reinterpret_cast<md5_state_s *>(O.ctx));
+}

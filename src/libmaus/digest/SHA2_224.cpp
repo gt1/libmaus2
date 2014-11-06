@@ -26,6 +26,10 @@ libmaus::digest::SHA2_224::~SHA2_224() { delete reinterpret_cast<sha224_ctx *>(c
 void libmaus::digest::SHA2_224::init() { sha224_init(reinterpret_cast<sha224_ctx *>(ctx)); }
 void libmaus::digest::SHA2_224::update(uint8_t const * t, size_t l) { sha224_update(reinterpret_cast<sha224_ctx *>(ctx),l,t); }
 void libmaus::digest::SHA2_224::digest(uint8_t * digest) { sha224_digest(reinterpret_cast<sha224_ctx *>(ctx),digestlength,&digest[0]); }
+void libmaus::digest::SHA2_224::copyFrom(libmaus::digest::SHA2_224 const & O)
+{
+	(*reinterpret_cast<sha224_ctx *>(ctx)) = (*reinterpret_cast<sha224_ctx *>(O.ctx));
+}
 #else
 #include <libmaus/exception/LibMausException.hpp>
 

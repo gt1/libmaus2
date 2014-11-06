@@ -32,3 +32,8 @@ void libmaus::digest::CRC32::digest(uint8_t * digest)
 	digest[2] = (ctx >>  8) & 0xFF;
 	digest[3] = (ctx >>  0) & 0xFF;
 }
+
+void libmaus::digest::CRC32::copyFrom(CRC32 const & O)
+{
+	ctx = O.ctx;
+}
