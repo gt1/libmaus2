@@ -558,7 +558,8 @@ libmausmath_include_HEADERS=\
 	libmaus/math/Log.hpp \
 	libmaus/math/ipow.hpp \
 	libmaus/math/IntegerInterval.hpp \
-	libmaus/math/DecimalNumberParser.hpp
+	libmaus/math/DecimalNumberParser.hpp \
+	libmaus/math/UnsignedInteger.hpp
 
 libmausrl_includedir=$(includedir)/libmaus/rl
 libmausrl_include_HEADERS=\
