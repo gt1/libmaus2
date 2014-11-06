@@ -135,9 +135,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	
 noinst_HEADERS = libmaus/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @IGZIPCPPFLAGS@
-libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@
+libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
+libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -1263,7 +1263,9 @@ noinst_PROGRAMS = \
 	testlinebuffer \
 	testsamdecoder \
 	testdecimalnumberparser \
-	testunsignedinteger
+	testunsignedinteger \
+	testmd5 \
+	testsha
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1654,3 +1656,13 @@ testunsignedinteger_SOURCES = test/testunsignedinteger.cpp
 testunsignedinteger_LDADD = libmaus.la
 testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
 testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
+
+testsha_SOURCES = test/testsha.cpp
+testsha_LDADD = libmaus.la @NETTLELIBS@
+testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
+testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
+
+testmd5_SOURCES = test/testmd5.cpp
+testmd5_LDADD = libmaus.la
+testmd5_CPPFLAGS = ${AM_CPPFLAGS}
+testmd5_LDFLAGS = ${AM_LDFLAGS}

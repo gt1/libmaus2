@@ -22,6 +22,7 @@
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/md5.h>
+#include <libmaus/math/UnsignedInteger.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -35,6 +36,9 @@ namespace libmaus
 			static bool md5(std::string const & input, std::string & output);
 			static bool md5(std::vector<std::string> const & V, std::string & output);
 			static bool md5(std::vector<std::string> const & V, uint64_t const k, std::string & output);
+			static void md5(uint8_t const * in, size_t const len, uint8_t digest[16]);
+			static void md5(uint8_t const * in, size_t const len, libmaus::math::UnsignedInteger<4> & digest);
+			static libmaus::math::UnsignedInteger<4> md5(uint8_t const * in, size_t const len);
 		};
 	}
 }

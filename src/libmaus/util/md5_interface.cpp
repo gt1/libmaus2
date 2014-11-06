@@ -52,3 +52,37 @@ bool libmaus::util::MD5::md5(std::vector<std::string> const & V, uint64_t const 
 	ostr << k;
 	return md5(ostr.str(),output);
 }
+
+void libmaus::util::MD5::md5(uint8_t const * in, size_t const len, uint8_t digest[16])
+{
+	md5_state_s state;
+	md5_init(&state);
+	md5_append(&state, reinterpret_cast<md5_byte_t const *>(in), len);
+	md5_finish(&state,digest);
+}
+
+void libmaus::util::MD5::md5(uint8_t const * in, size_t const len, libmaus::math::UnsignedInteger<4> & udigest)
+{
+	md5_state_s state;
+	md5_init(&state);
+	md5_append(&state, reinterpret_cast<md5_byte_t const *>(in), len);
+	md5_byte_t digest[16];
+	md5_finish(&state,digest);
+
+	uint64_t const low = 
+		(static_cast<uint64_t>(digest[0]) << 0)  | (static_cast<uint64_t>(digest[1]) << 8)  | (static_cast<uint64_t>(digest[2]) << 16) | (static_cast<uint64_t>(digest[3]) << 24) |
+		(static_cast<uint64_t>(digest[4]) << 32) | (static_cast<uint64_t>(digest[5]) << 40) | (static_cast<uint64_t>(digest[6]) << 48) | (static_cast<uint64_t>(digest[7]) << 56);
+	uint64_t const high = 
+		(static_cast<uint64_t>(digest[8]) << 0) | (static_cast<uint64_t>(digest[9]) << 8) | (static_cast<uint64_t>(digest[10]) << 16) | (static_cast<uint64_t>(digest[11]) << 24) |
+		(static_cast<uint64_t>(digest[12]) << 32) | (static_cast<uint64_t>(digest[13]) << 40) | (static_cast<uint64_t>(digest[14]) << 48) | (static_cast<uint64_t>(digest[15]) << 56);
+	
+	udigest = libmaus::math::UnsignedInteger<4>(high);
+	udigest <<= 64;
+	udigest |= libmaus::math::UnsignedInteger<4>(low);
+}
+libmaus::math::UnsignedInteger<4> libmaus::util::MD5::md5(uint8_t const * in, size_t const len)
+{
+	libmaus::math::UnsignedInteger<4> D;
+	md5(in,len,D);
+	return D;
+}
