@@ -32,7 +32,7 @@ int main(int argc, char * argv[])
 			std::string const input(A.begin(),A.end());
 			std::string output;
 			libmaus::util::MD5::md5(input,output);
-			std::cout << arginfo.restargs[i] << "\t" << output << std::endl;
+			std::cout << arginfo.restargs[i] << "\t" << output << "\t" << std::hex << libmaus::util::MD5::md5(A.begin(), A.size()) << std::dec << std::endl;
 		}
 	}
 	catch(std::exception const & ex)

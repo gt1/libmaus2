@@ -539,6 +539,7 @@ namespace libmaus
 				std::streamsize const w = out.width();
 				char const f = out.fill();
 
+				// most significant to least significant
 				for ( unsigned int i = 0; i < k; ++i )
 					out << std::setw(0) << std::setfill('0') << std::setw(8) << A.A[k-i-1];
 				
