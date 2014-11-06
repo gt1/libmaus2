@@ -27,6 +27,8 @@ void libmaus::digest::SHA2_256::init() { sha256_init(reinterpret_cast<sha256_ctx
 void libmaus::digest::SHA2_256::update(uint8_t const * t, size_t l) { sha256_update(reinterpret_cast<sha256_ctx *>(ctx),l,t); }
 void libmaus::digest::SHA2_256::digest(uint8_t * digest) { sha256_digest(reinterpret_cast<sha256_ctx *>(ctx),digestlength,&digest[0]); }
 #else
+#include <libmaus/exception/LibMausException.hpp>
+
 libmaus::digest::SHA2_256::SHA2_256() : ctx(0) 
 { 
 	libmaus::exception::LibMausException lme;

@@ -27,6 +27,8 @@ void libmaus::digest::SHA1::init() { sha1_init(reinterpret_cast<sha1_ctx *>(ctx)
 void libmaus::digest::SHA1::update(uint8_t const * t, size_t l) { sha1_update(reinterpret_cast<sha1_ctx *>(ctx),l,t); }
 void libmaus::digest::SHA1::digest(uint8_t * digest) { sha1_digest(reinterpret_cast<sha1_ctx *>(ctx),digestlength,&digest[0]); }
 #else
+#include <libmaus/exception/LibMausException.hpp>
+
 libmaus::digest::SHA1::SHA1() : ctx(0) 
 { 
 	libmaus::exception::LibMausException lme;
