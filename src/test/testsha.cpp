@@ -18,7 +18,9 @@
 */
 #include <iostream>
 #include <libmaus/digest/Digests.hpp>
+#include <libmaus/util/ArgInfo.hpp>
 #include <libmaus/util/Demangle.hpp>
+#include <libmaus/util/GetFileSize.hpp>
 
 template<typename crc>
 void printCRC(std::string const & text)
@@ -29,22 +31,30 @@ void printCRC(std::string const & text)
 	std::cout << libmaus::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec << std::endl;
 }
 
-int main()
+int main(int argc, char * argv[])
 {
 	try
 	{
-		std::string const text = "Hello world!";
+		libmaus::util::ArgInfo const arginfo(argc,argv);
+	
+		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
+		{
+			::libmaus::autoarray::AutoArray<uint8_t> const A = libmaus::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
+			std::string const text(A.begin(),A.end());
 
-		printCRC<libmaus::digest::CRC32>(text);
-		printCRC<libmaus::util::MD5>(text);
+			printCRC<libmaus::digest::CRC32>(text);
+			printCRC<libmaus::util::MD5>(text);
 
-		#if defined(LIBMAUS_HAVE_NETTLE)
-		printCRC<libmaus::digest::SHA1>(text);
-		printCRC<libmaus::digest::SHA2_224>(text);
-		printCRC<libmaus::digest::SHA2_256>(text);
-		printCRC<libmaus::digest::SHA2_384>(text);
-		printCRC<libmaus::digest::SHA2_512>(text);
-		#else	
+			#if defined(LIBMAUS_HAVE_NETTLE)
+			printCRC<libmaus::digest::SHA1>(text);
+			printCRC<libmaus::digest::SHA2_224>(text);
+			printCRC<libmaus::digest::SHA2_256>(text);
+			printCRC<libmaus::digest::SHA2_384>(text);
+			printCRC<libmaus::digest::SHA2_512>(text);
+			#endif
+		}
+
+		#if ! defined(LIBMAUS_HAVE_NETTLE)
 		libmaus::exception::LibMausException lme;
 		lme.getStream() << "support for nettle library is not present" << std::endl;
 		lme.finish();
