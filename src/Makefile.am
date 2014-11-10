@@ -47,9 +47,6 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/util/ConcatRequest.cpp \
 	libmaus/util/ConsoleColor.cpp \
 	libmaus/util/Demangle.cpp \
-	libmaus/util/DigitTable.cpp \
-	libmaus/util/AlphaDigitTable.cpp \
-	libmaus/util/AlphaTable.cpp \
 	libmaus/util/DynamicLoading.cpp \
 	libmaus/util/ForkProcess.cpp \
 	libmaus/util/LSFSim.cpp \
@@ -130,8 +127,6 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/alignment/FactorMatchInfo.cpp \
 	libmaus/alignment/KmerInfo.cpp \
 	libmaus/bambam/SamInfoBase.cpp \
-	libmaus/bambam/SamPrintableTable.cpp \
-	libmaus/bambam/SamZPrintableTable.cpp \
 	libmaus/digest/SHA1.cpp \
 	libmaus/digest/SHA2_224.cpp \
 	libmaus/digest/SHA2_256.cpp \
