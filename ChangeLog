@@ -1,3 +1,9 @@
+libmaus (0.0.173-1) unstable; urgency=low
+
+  * fix library start up lockups due to ordering of static initialisation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 10 Nov 2014 10:24:46 +0000
+
 libmaus (0.0.172-1) unstable; urgency=low
 
   * added sam file parser
