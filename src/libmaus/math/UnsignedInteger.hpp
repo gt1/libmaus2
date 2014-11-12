@@ -104,6 +104,8 @@ namespace libmaus
 				return *this;
 			}
 			
+			bool isNull() const;
+						
 			bool operator==(UnsignedInteger<k> const & O) const
 			{
 				bool eq = true;
@@ -274,6 +276,13 @@ namespace libmaus
 					}
 				}
 				
+				return *this;
+			}
+
+			UnsignedInteger<k> & operator*=(UnsignedInteger<k> const & O)
+			{
+				UnsignedInteger<k> R = *this * O;
+				*this = R;
 				return *this;
 			}
 
@@ -534,6 +543,30 @@ namespace libmaus
 			UnsignedInteger<k> R = A;
 			R &= B;
 			return R;		
+		}
+
+		template<size_t i, size_t k>
+		struct UnsignedIntegerMaskOr
+		{
+			static uint32_t maskor(UnsignedInteger<k> const & A)
+			{
+				return A[k-i] | UnsignedIntegerMaskOr<i+1,k>::maskor(A);
+			}
+		};
+		
+		template<size_t k>
+		struct UnsignedIntegerMaskOr<k,k>
+		{
+			static uint32_t maskor(UnsignedInteger<k> const & A)
+			{
+				return A[0];
+			}			
+		};
+		
+		template<size_t k>
+		bool UnsignedInteger<k>::isNull() const
+		{
+			return UnsignedIntegerMaskOr<1,k>::maskor(*this) == 0;
 		}
 
 		template<size_t k> std::ostream & operator<<(std::ostream & out, UnsignedInteger<k> const & A)
