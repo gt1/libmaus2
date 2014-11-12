@@ -26,6 +26,7 @@
 #include <libmaus/types/types.hpp>
 
 #include <iostream>
+#include <cassert>
 
 namespace libmaus
 {
@@ -67,6 +68,11 @@ namespace libmaus
 			uint32_t & operator[](size_t i)
 			{
 				return A[i];
+			}
+			
+			uint32_t const * getWords() const
+			{
+				return &A[0];
 			}
 			
 			template<size_t l>
@@ -243,35 +249,14 @@ namespace libmaus
 				if ( k )
 				{
 					int64_t dif = static_cast<int64_t>(A[0]) - static_cast<int64_t>(O.A[0]);
-					int64_t carry;
-					
-					if ( dif < 0 )
-					{
-						A[0] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);
-						carry = 1;
-					}
-					else
-					{
-						A[0] = dif;
-						carry = 0;
-					}
-					
+					A[0] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);
+										
 					if ( k > 1 )
 					{
 						for ( size_t i = 1; i < k; ++i )
 						{
-							dif = static_cast<int64_t>(A[i]) - ( static_cast<int64_t>(O.A[i]) + carry );
-							
-							if ( dif < 0 )
-							{
-								A[i] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);
-								carry = 1;
-							}
-							else
-							{
-								A[i] = dif;
-								carry = 0;
-							}
+							dif = static_cast<int64_t>(A[i]) - ( static_cast<int64_t>(O.A[i]) + ((static_cast<uint64_t>(dif) >> 63)&1) );
+							A[i] = static_cast<uint32_t>((dif + 0x100000000ll) & 0xFFFFFFFF);							
 						}
 					}
 				}
