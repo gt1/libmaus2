@@ -1,3 +1,9 @@
+libmaus (0.0.175-1) unstable; urgency=low
+
+  * add getWords method in UnsignedInteger class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 12 Nov 2014 14:31:48 +0000
+
 libmaus (0.0.174-1) unstable; urgency=low
 
   * add operator*= and isNull methods in UnsignedInteger class 
