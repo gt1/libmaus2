@@ -1,3 +1,9 @@
+libmaus (0.0.174-1) unstable; urgency=low
+
+  * add operator*= and isNull methods in UnsignedInteger class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 12 Nov 2014 08:57:02 +0000
+
 libmaus (0.0.173-1) unstable; urgency=low
 
   * fix library start up lockups due to ordering of static initialisation 
