@@ -22,6 +22,8 @@
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/util/md5.h>
+#include <libmaus/math/UnsignedInteger.hpp>
+#include <libmaus/digest/DigestBase.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -30,11 +32,24 @@ namespace libmaus
 {
 	namespace util
 	{
-		struct MD5
+		struct MD5 : public libmaus::digest::DigestBase<16>
 		{
+			void * ctx;
+		
 			static bool md5(std::string const & input, std::string & output);
 			static bool md5(std::vector<std::string> const & V, std::string & output);
 			static bool md5(std::vector<std::string> const & V, uint64_t const k, std::string & output);
+			static void md5(uint8_t const * in, size_t const len, uint8_t digest[digestlength]);
+			static void md5(uint8_t const * in, size_t const len, libmaus::math::UnsignedInteger<digestlength/4> & digest);
+			static libmaus::math::UnsignedInteger<digestlength/4> md5(uint8_t const * in, size_t const len);
+			
+			MD5();
+			~MD5();
+
+			void init();
+			void update(uint8_t const * t, size_t l);
+			void copyFrom(MD5 const & O);
+			void digest(uint8_t * digest);
 		};
 	}
 }

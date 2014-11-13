@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2009-2014 German Tischler
+    Copyright (C) 2011-2014 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,19 +16,28 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/DigitTable.hpp>
+#if ! defined(LIBMAUS_DIGEST_SHA1_HPP)
+#define LIBMAUS_DIGEST_SHA1_HPP
 
-libmaus::util::DigitTable::DigitTable()
+#include <libmaus/digest/DigestBase.hpp>
+	
+namespace libmaus
 {
-	memset(&A[0],0,sizeof(A));
-	A[static_cast<int>('0')] = 1;
-	A[static_cast<int>('1')] = 1;
-	A[static_cast<int>('2')] = 1;
-	A[static_cast<int>('3')] = 1;
-	A[static_cast<int>('4')] = 1;
-	A[static_cast<int>('5')] = 1;
-	A[static_cast<int>('6')] = 1;
-	A[static_cast<int>('7')] = 1;
-	A[static_cast<int>('8')] = 1;
-	A[static_cast<int>('9')] = 1;
+	namespace digest
+	{
+		struct SHA1 : public DigestBase<20>
+		{
+			void * ctx;
+			
+			SHA1();
+			~SHA1();
+			
+			void init();
+			void update(uint8_t const * t, size_t l);
+			void digest(uint8_t * digest);
+			void copyFrom(SHA1 const & O);
+			static size_t getDigestLength() { return digestlength; }
+		};
+	}
 }
+#endif

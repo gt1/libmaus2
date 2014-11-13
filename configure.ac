@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.171,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:171:0
+AC_INIT(libmaus,0.0.176,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:176:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
@@ -2043,6 +2043,62 @@ if test "${with_gnutls}" != "no" ; then
 
 fi
 
+AC_ARG_WITH([nettle],
+	[AS_HELP_STRING([--with-nettle@<:@=PATH@:>@], [path to installed nettle library @<:@default=no@:>@])],
+	[with_nettle=${withval}],
+	[with_nettle=no])
+
+NETTLE=
+NETTLEREQ=
+if test "${with_nettle}" != "no" ; then
+
+	if test ! -z "${with_nettle}" ; then
+		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
+		if test -z "${PKG_CONFIG_PATH}" ; then
+			export PKG_CONFIG_PATH="${with_nettle}/lib/pkgconfig"
+		else
+			export PKG_CONFIG_PATH="${with_nettle}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+		fi
+	fi
+
+	PKG_CHECK_MODULES([nettle],[nettle >= 2.7.1],[nettlepkg=yes],[nettlepkg=no])
+
+	if test ! -z "${with_nettle}" ; then
+		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
+			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
+		fi
+	fi
+
+	NETTLE=
+	if [[ "${nettlepkg}" = "yes" ]] ; then
+		AC_LANG_PUSH([C++])
+		LIBSSAVE="${LIBS}"
+		LIBS="${LIBS} ${nettle_LIBS}"
+		CPPFLAGSSAVE="${CPPFLAGS}"
+		CPPFLAGS="${CPPFLAGS} ${nettle_CFLAGS}"
+		
+		AC_MSG_CHECKING([whether we can compile a nettle program])
+		AC_TRY_LINK([#include <nettle/sha1.h>
+	],[;],[nettle=yes],[nettle=no])
+		AC_MSG_RESULT([${nettle}])
+		LIBS="${LIBSSAVE}"
+		CPPFLAGS="${CPPFLAGSSAVE}"
+		
+		AC_LANG_POP
+
+		if [[ "$nettle" = "no" ]] ; then
+			AC_MSG_ERROR([Failed to compile nettle program.]);
+		else
+			NETTLE="#define LIBMAUS_HAVE_NETTLE"
+			NETTLELDFLAGS=""
+			NETTLELIBS="${nettle_LIBS}"
+			NETTLECPPFLAGS="${nettle_CFLAGS}"
+			NETTLEREQ="nettle"
+		fi
+	else
+		AC_MSG_ERROR([nettle not found in required version])
+	fi
+fi
 
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(libkern/OSAtomic.h, [libkern_osatomic_h=yes], [libkern_osatomic_h=no])
@@ -2229,4 +2285,9 @@ AC_SUBST([GNUTLSCPPFLAGS])
 AC_SUBST([GNUTLSLDFLAGS])
 AC_SUBST([GNUTLS])
 AC_SUBST([GNUTLSREQ])
+AC_SUBST([NETTLELIBS])
+AC_SUBST([NETTLECPPFLAGS])
+AC_SUBST([NETTLELDFLAGS])
+AC_SUBST([NETTLE])
+AC_SUBST([NETTLEREQ])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

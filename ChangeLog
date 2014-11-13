@@ -1,3 +1,36 @@
+libmaus (0.0.176-1) unstable; urgency=low
+
+  * add Null hash digest for performance testing
+  * add SingleFileServer class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 13 Nov 2014 13:59:59 +0000
+
+libmaus (0.0.175-1) unstable; urgency=low
+
+  * add getWords method in UnsignedInteger class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 12 Nov 2014 14:31:48 +0000
+
+libmaus (0.0.174-1) unstable; urgency=low
+
+  * add operator*= and isNull methods in UnsignedInteger class 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 12 Nov 2014 08:57:02 +0000
+
+libmaus (0.0.173-1) unstable; urgency=low
+
+  * fix library start up lockups due to ordering of static initialisation 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 10 Nov 2014 10:24:46 +0000
+
+libmaus (0.0.172-1) unstable; urgency=low
+
+  * added sam file parser
+  * added (template) fixed with unsigned integer class
+  * added support interface for sha message digests via nettle library
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 06 Nov 2014 22:16:43 +0000
+
 libmaus (0.0.171-1) unstable; urgency=low
 
   * fix output flushing in streaming duplicate marking 

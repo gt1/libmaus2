@@ -156,10 +156,3 @@ char const libmaus::bambam::SamInfoBase::qualValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
-
-libmaus::util::DigitTable const libmaus::bambam::SamInfoBase::DT;
-libmaus::util::AlphaDigitTable const libmaus::bambam::SamInfoBase::ADT;
-libmaus::util::AlphaTable const libmaus::bambam::SamInfoBase::AT;
-libmaus::bambam::SamPrintableTable const libmaus::bambam::SamInfoBase::SPT;
-libmaus::bambam::SamZPrintableTable const libmaus::bambam::SamInfoBase::SZPT;
-libmaus::math::DecimalNumberParser const libmaus::bambam::SamInfoBase::DNP;

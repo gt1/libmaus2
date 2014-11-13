@@ -37,6 +37,7 @@
   <ghost@aladdin.com>.  Other authors are noted in the change history
   that follows (in reverse chronological order):
 
+  2014-11-06 altered by German Tischler for libmaus (use uintx_t types)
   2002-04-13 lpd Removed support for non-ANSI compilers; removed
 	references to Ghostscript; clarified derivation from RFC 1321;
 	now handles byte order either statically or dynamically.
@@ -59,9 +60,18 @@
  * run on either big- or little-endian CPUs, but will run slightly less
  * efficiently on either one than if ARCH_IS_BIG_ENDIAN is defined.
  */
+#include <libmaus/LibMausConfig.hpp>
 
-typedef unsigned char md5_byte_t; /* 8-bit byte */
-typedef unsigned int md5_word_t; /* 32-bit word */
+#if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
+#include <cstdint>
+#elif defined(LIBMAUS_HAVE_STDINT_H)
+#include <stdint.h>
+#elif defined(LIBMAUS_HAVE_SYS_TYPES_H)
+#include <sys/types.h>
+#endif
+
+typedef uint8_t md5_byte_t; /* 8-bit byte */
+typedef uint32_t md5_word_t; /* 32-bit word */
 
 /* Define the state of the MD5 Algorithm. */
 typedef struct md5_state_s {

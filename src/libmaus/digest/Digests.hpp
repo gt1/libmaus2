@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2009-2014 German Tischler
+    Copyright (C) 2011-2014 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,12 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/SamPrintableTable.hpp>
+#if ! defined(LIBMAUS_DIGEST_DIGESTS_HPP)
+#define LIBMAUS_DIGEST_DIGESTS_HPP
 
-libmaus::bambam::SamPrintableTable::SamPrintableTable()
-{
-	memset(&A[0],0,sizeof(A));
-	
-	for ( int i = '!'; i <= '~'; ++i )
-		A[i] = 1;
-}
+#include <libmaus/util/md5.hpp>
+#include <libmaus/digest/CRC32.hpp>
+#include <libmaus/digest/Null.hpp>
+#include <libmaus/digest/SHA1.hpp>
+#include <libmaus/digest/SHA2_224.hpp>
+#include <libmaus/digest/SHA2_256.hpp>
+#include <libmaus/digest/SHA2_384.hpp>
+#include <libmaus/digest/SHA2_512.hpp>
+#endif

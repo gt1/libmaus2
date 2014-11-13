@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_TYPES__TYPES_HPP)
-#define LIBMAUS_TYPES__TYPES_HPP
+#if ! defined(LIBMAUS_TYPES_TYPES_HPP)
+#define LIBMAUS_TYPES_TYPES_HPP
 
 #if defined(__GNUC__) && __GNUC__ >= 3
 #define expect_true(x)      __builtin_expect (x, 1)

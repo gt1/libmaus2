@@ -8,7 +8,6 @@ radixsort code in src/libmaus/sorting/SerialRadixSort64.hpp adapted from code by
 divsufsort code in src/libmaus/suffixsort/divsufsort* by Yuta Mori (see file for license)
 SAIS code in src/libmaus/suffixsort/SAIS_Mori.hpp by Yuta Mori (see file for license)
 md5 code in src/libmaus/util/md5.[ch] by L. Peter Deutsch (Aladdin Enterprises) (see file for license)
-64 bit arithmetic/range encoder/decoder in src/libmaus/arithmetic/*.[ch]pp by Sachin Garg (see file for license)
 some code in src/libmaus/bambam/DuplicationMetrics.hpp is imported from the Picard project (MIT license, see file for copyright)
 LZ4 code in src/libmaus/lz/lz4.[ch] by Yann Collect (BSD 2-Clause licence, see files)
 CRC32 code in src/libmaus/hashing/Crc3.{cpp/hpp} by Stephan Brumme (ZLib type license, see files)

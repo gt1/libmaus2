@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: libmaus
 Description: succinct data structures
-Requires: @ZLIBREQ@ @GNUTLSREQ@
+Requires: @ZLIBREQ@ @GNUTLSREQ@ @NETTLEREQ@
 Version: @VERSION@
 Libs: -L${libdir} -lmaus @LIBMAUSPKGLIBS@
 Cflags: @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ @ZLIBCPPFLAGS@ -I${includedir}

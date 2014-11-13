@@ -120,3 +120,85 @@ libmaus::parallel::PosixSpinLock libmaus::network::CurlInit::lock;
 
 uint64_t libmaus::network::OpenSSLInit::initcomplete = 0;
 libmaus::parallel::PosixSpinLock libmaus::network::OpenSSLInit::lock;
+
+#include <libmaus/util/AlphaDigitTable.hpp>
+
+libmaus::util::AlphaDigitTable::AlphaDigitTable()
+{
+	memset(&A[0],0,sizeof(A));
+	
+	A[static_cast<int>('0')] = 1;
+	A[static_cast<int>('1')] = 1;
+	A[static_cast<int>('2')] = 1;
+	A[static_cast<int>('3')] = 1;
+	A[static_cast<int>('4')] = 1;
+	A[static_cast<int>('5')] = 1;
+	A[static_cast<int>('6')] = 1;
+	A[static_cast<int>('7')] = 1;
+	A[static_cast<int>('8')] = 1;
+	A[static_cast<int>('9')] = 1;
+	
+	for ( int i = 'a'; i <= 'z'; ++i )
+		A[i] = 1;
+	for ( int i = 'A'; i <= 'Z'; ++i )
+		A[i] = 1;
+}
+
+#include <libmaus/util/AlphaTable.hpp>
+
+libmaus::util::AlphaTable::AlphaTable()
+{
+	memset(&A[0],0,sizeof(A));
+	
+	for ( int i = 'a'; i <= 'z'; ++i )
+		A[i] = 1;
+	for ( int i = 'A'; i <= 'Z'; ++i )
+		A[i] = 1;
+}
+
+#include <libmaus/util/DigitTable.hpp>
+
+libmaus::util::DigitTable::DigitTable()
+{
+	memset(&A[0],0,sizeof(A));
+	A[static_cast<int>('0')] = 1;
+	A[static_cast<int>('1')] = 1;
+	A[static_cast<int>('2')] = 1;
+	A[static_cast<int>('3')] = 1;
+	A[static_cast<int>('4')] = 1;
+	A[static_cast<int>('5')] = 1;
+	A[static_cast<int>('6')] = 1;
+	A[static_cast<int>('7')] = 1;
+	A[static_cast<int>('8')] = 1;
+	A[static_cast<int>('9')] = 1;
+}
+
+#include <libmaus/bambam/SamPrintableTable.hpp>
+
+libmaus::bambam::SamPrintableTable::SamPrintableTable()
+{
+	memset(&A[0],0,sizeof(A));
+	
+	for ( int i = '!'; i <= '~'; ++i )
+		A[i] = 1;
+}
+
+#include <libmaus/bambam/SamZPrintableTable.hpp>
+
+libmaus::bambam::SamZPrintableTable::SamZPrintableTable()
+{
+	memset(&A[0],0,sizeof(A));
+	A[static_cast<int>(' ')] = 1;
+	
+	for ( int i = '!'; i <= '~'; ++i )
+		A[i] = 1;
+}
+
+#include <libmaus/bambam/SamInfoBase.hpp>
+
+libmaus::util::DigitTable const libmaus::bambam::SamInfoBase::DT;
+libmaus::util::AlphaDigitTable const libmaus::bambam::SamInfoBase::ADT;
+libmaus::util::AlphaTable const libmaus::bambam::SamInfoBase::AT;
+libmaus::bambam::SamPrintableTable const libmaus::bambam::SamInfoBase::SPT;
+libmaus::bambam::SamZPrintableTable const libmaus::bambam::SamInfoBase::SZPT;
+libmaus::math::DecimalNumberParser const libmaus::bambam::SamInfoBase::DNP;

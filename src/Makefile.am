@@ -47,9 +47,6 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/util/ConcatRequest.cpp \
 	libmaus/util/ConsoleColor.cpp \
 	libmaus/util/Demangle.cpp \
-	libmaus/util/DigitTable.cpp \
-	libmaus/util/AlphaDigitTable.cpp \
-	libmaus/util/AlphaTable.cpp \
 	libmaus/util/DynamicLoading.cpp \
 	libmaus/util/ForkProcess.cpp \
 	libmaus/util/LSFSim.cpp \
@@ -130,14 +127,18 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/alignment/FactorMatchInfo.cpp \
 	libmaus/alignment/KmerInfo.cpp \
 	libmaus/bambam/SamInfoBase.cpp \
-	libmaus/bambam/SamPrintableTable.cpp \
-	libmaus/bambam/SamZPrintableTable.cpp
+	libmaus/digest/SHA1.cpp \
+	libmaus/digest/SHA2_224.cpp \
+	libmaus/digest/SHA2_256.cpp \
+	libmaus/digest/SHA2_384.cpp \
+	libmaus/digest/SHA2_512.cpp \
+	libmaus/digest/CRC32.cpp
 	
 noinst_HEADERS = libmaus/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @IGZIPCPPFLAGS@
-libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@
+libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
+libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -409,15 +410,6 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamDecoder.hpp \
 	libmaus/bambam/SamDecoderWrapper.hpp
 
-libmausarithmetic_includedir=$(includedir)/libmaus/arithmetic/
-libmausarithmetic_include_HEADERS =\
-	libmaus/arithmetic/ArithCoder.hpp \
-	libmaus/arithmetic/ArithEncoder.hpp \
-	libmaus/arithmetic/ArithDecoder.hpp \
-	libmaus/arithmetic/RangeCoder.hpp \
-	libmaus/arithmetic/RangeEncoder.hpp \
-	libmaus/arithmetic/RangeDecoder.hpp
-
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitIO.hpp \
@@ -570,7 +562,8 @@ libmausmath_include_HEADERS=\
 	libmaus/math/Log.hpp \
 	libmaus/math/ipow.hpp \
 	libmaus/math/IntegerInterval.hpp \
-	libmaus/math/DecimalNumberParser.hpp
+	libmaus/math/DecimalNumberParser.hpp \
+	libmaus/math/UnsignedInteger.hpp
 
 libmausrl_includedir=$(includedir)/libmaus/rl
 libmausrl_include_HEADERS=\
@@ -912,6 +905,18 @@ libmaushashing_include_HEADERS=\
 	libmaus/hashing/ConstantStringHash.hpp \
 	libmaus/hashing/Crc32.hpp
 
+libmausdigest_includedir=$(includedir)/libmaus/digest
+libmausdigest_include_HEADERS=\
+	libmaus/digest/DigestBase.hpp \
+	libmaus/digest/SHA1.hpp \
+	libmaus/digest/SHA2_224.hpp \
+	libmaus/digest/SHA2_256.hpp \
+	libmaus/digest/SHA2_384.hpp \
+	libmaus/digest/SHA2_512.hpp \
+	libmaus/digest/CRC32.hpp \
+	libmaus/digest/Digests.hpp \
+	libmaus/digest/Null.hpp
+
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
 	libmaus/lf/LF.hpp \
@@ -1093,7 +1098,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/UrlInputStreamBufferWrapper.hpp \
 	libmaus/network/UrlInputStream.hpp \
 	libmaus/network/GnuTLSInit.hpp \
-	libmaus/network/GnuTLSSocket.hpp
+	libmaus/network/GnuTLSSocket.hpp \
+	libmaus/network/SingleFileServer.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1172,7 +1178,6 @@ libmausconsensus_include_HEADERS =\
 EXTRA_PROGRAMS = testlsf testlsflist
 noinst_PROGRAMS = \
 	testAIO \
-	testArithmetic \
 	testbitbtree \
 	testBitIO \
 	testbtree \
@@ -1283,7 +1288,11 @@ noinst_PROGRAMS = \
 	testtopologicalsorting \
 	testlinebuffer \
 	testsamdecoder \
-	testdecimalnumberparser
+	testdecimalnumberparser \
+	testunsignedinteger \
+	testmd5 \
+	testsha \
+	testsinglefileserver
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1352,9 +1361,6 @@ testTrie_LDADD = libmaus.la
 
 testFork_SOURCES = test/testFork.cpp
 testFork_LDADD = libmaus.la
-
-testArithmetic_SOURCES = test/testArithmetic.cpp
-testArithmetic_LDADD = libmaus.la
 
 testBitIO_SOURCES = test/testBitIO.cpp
 testBitIO_LDADD = libmaus.la
@@ -1666,7 +1672,7 @@ testlinebuffer_CPPFLAGS = ${AM_CPPFLAGS}
 testlinebuffer_LDFLAGS = ${AM_LDFLAGS}
 
 testsamdecoder_SOURCES = test/testsamdecoder.cpp
-testsamdecoder_LDADD = libmaus.la
+testsamdecoder_LDADD = libmaus.la ${DLLIB}
 testsamdecoder_CPPFLAGS = ${AM_CPPFLAGS}
 testsamdecoder_LDFLAGS = ${AM_LDFLAGS}
 
@@ -1675,3 +1681,22 @@ testdecimalnumberparser_LDADD = libmaus.la
 testdecimalnumberparser_CPPFLAGS = ${AM_CPPFLAGS}
 testdecimalnumberparser_LDFLAGS = ${AM_LDFLAGS}
 
+testunsignedinteger_SOURCES = test/testunsignedinteger.cpp
+testunsignedinteger_LDADD = libmaus.la
+testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
+testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
+
+testsha_SOURCES = test/testsha.cpp
+testsha_LDADD = libmaus.la @NETTLELIBS@
+testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
+testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
+
+testmd5_SOURCES = test/testmd5.cpp
+testmd5_LDADD = libmaus.la
+testmd5_CPPFLAGS = ${AM_CPPFLAGS}
+testmd5_LDFLAGS = ${AM_LDFLAGS}
+
+testsinglefileserver_SOURCES = test/testsinglefileserver.cpp
+testsinglefileserver_LDADD = libmaus.la
+testsinglefileserver_CPPFLAGS = ${AM_CPPFLAGS}
+testsinglefileserver_LDFLAGS = ${AM_LDFLAGS}
