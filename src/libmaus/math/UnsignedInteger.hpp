@@ -39,6 +39,25 @@ namespace libmaus
 		template<size_t k> std::pair< UnsignedInteger<k>,UnsignedInteger<k> > divmod(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 		template<size_t k> std::ostream & operator<<(std::ostream & out, UnsignedInteger<k> const & A);
 		
+		template<typename T, size_t k>
+		struct ArrayErase
+		{
+			static void erase(T * A)
+			{
+				for ( size_t i = 0; i < k; ++i )
+					A[i] = 0;
+			}
+		};
+		
+		template<typename T>
+		struct ArrayErase<T,0>
+		{
+			static void erase(T *)
+			{
+			
+			}		
+		};
+		
 		template<size_t k>
 		struct UnsignedInteger
 		{
@@ -46,9 +65,8 @@ namespace libmaus
 			uint32_t A[k];
 			
 			void erase()
-			{			
-				for ( size_t i = 0; i < k; ++i )
-					A[i] = 0;
+			{
+				ArrayErase<uint32_t,k>::erase(&A[0]);	
 			}
 			
 			public:

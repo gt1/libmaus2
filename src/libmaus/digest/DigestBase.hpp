@@ -54,6 +54,20 @@ namespace libmaus
 				return U;
 			}
 		};
+
+		template<>
+		struct DigestBase<0>
+		{
+			enum { digestlength = 0 };
+		
+			virtual ~DigestBase() {}
+			virtual void digest(uint8_t * digest) = 0;
+
+			libmaus::math::UnsignedInteger<0> digestui() 
+			{
+				return libmaus::math::UnsignedInteger<0>();
+			}
+		};
 	}
 }
 #endif
