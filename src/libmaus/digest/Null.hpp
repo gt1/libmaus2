@@ -16,15 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_DIGESTS_HPP)
-#define LIBMAUS_DIGEST_DIGESTS_HPP
+#if ! defined(LIBMAUS_DIGEST_NULL_HPP)
+#define LIBMAUS_DIGEST_NULL_HPP
 
-#include <libmaus/util/md5.hpp>
-#include <libmaus/digest/CRC32.hpp>
-#include <libmaus/digest/Null.hpp>
-#include <libmaus/digest/SHA1.hpp>
-#include <libmaus/digest/SHA2_224.hpp>
-#include <libmaus/digest/SHA2_256.hpp>
-#include <libmaus/digest/SHA2_384.hpp>
-#include <libmaus/digest/SHA2_512.hpp>
+#include <libmaus/digest/DigestBase.hpp>
+
+namespace libmaus
+{
+	namespace digest
+	{
+		struct Null : public DigestBase<0>
+		{
+			void init() {}
+			void update(uint8_t const *, size_t) {}
+			void digest(uint8_t * digest) {}
+			void copyFrom(Null const & O) {}
+			static size_t getDigestLength() { return digestlength; }
+		};
+	}
+}
 #endif

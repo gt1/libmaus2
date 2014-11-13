@@ -42,6 +42,7 @@ int main(int argc, char * argv[])
 			::libmaus::autoarray::AutoArray<uint8_t> const A = libmaus::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
 			std::string const text(A.begin(),A.end());
 
+			printCRC<libmaus::digest::Null>(text);
 			printCRC<libmaus::digest::CRC32>(text);
 			printCRC<libmaus::util::MD5>(text);
 

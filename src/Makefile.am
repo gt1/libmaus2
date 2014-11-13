@@ -903,7 +903,8 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/SHA2_384.hpp \
 	libmaus/digest/SHA2_512.hpp \
 	libmaus/digest/CRC32.hpp \
-	libmaus/digest/Digests.hpp
+	libmaus/digest/Digests.hpp \
+	libmaus/digest/Null.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
