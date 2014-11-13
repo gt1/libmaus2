@@ -1087,7 +1087,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/UrlInputStreamBufferWrapper.hpp \
 	libmaus/network/UrlInputStream.hpp \
 	libmaus/network/GnuTLSInit.hpp \
-	libmaus/network/GnuTLSSocket.hpp
+	libmaus/network/GnuTLSSocket.hpp \
+	libmaus/network/SingleFileServer.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1279,7 +1280,8 @@ noinst_PROGRAMS = \
 	testdecimalnumberparser \
 	testunsignedinteger \
 	testmd5 \
-	testsha
+	testsha \
+	testsinglefileserver
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1680,3 +1682,8 @@ testmd5_SOURCES = test/testmd5.cpp
 testmd5_LDADD = libmaus.la
 testmd5_CPPFLAGS = ${AM_CPPFLAGS}
 testmd5_LDFLAGS = ${AM_LDFLAGS}
+
+testsinglefileserver_SOURCES = test/testsinglefileserver.cpp
+testsinglefileserver_LDADD = libmaus.la
+testsinglefileserver_CPPFLAGS = ${AM_CPPFLAGS}
+testsinglefileserver_LDFLAGS = ${AM_LDFLAGS}
