@@ -1,3 +1,9 @@
+libmaus (0.0.177-1) unstable; urgency=low
+
+  * generalise += operator in UnsignedInteger class for different length operands 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 14 Nov 2014 12:30:19 +0000
+
 libmaus (0.0.176-1) unstable; urgency=low
 
   * add Null hash digest for performance testing
