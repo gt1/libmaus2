@@ -57,6 +57,23 @@ namespace libmaus
 			
 			}		
 		};
+
+		template<typename T, size_t k>
+		struct ArrayCopy
+		{
+			static void copy(T * to, T const * from)
+			{
+				for ( size_t i = 0; i < k; ++i )
+					to[i] = from[i];
+			}
+		};
+		template<typename T>
+		struct ArrayCopy<T,0>
+		{
+			static void copy(T *, T const *)
+			{
+			}
+		};
 		
 		template<size_t k>
 		struct UnsignedInteger
@@ -121,10 +138,9 @@ namespace libmaus
 				}
 			}
 			
-			UnsignedInteger & operator=(UnsignedInteger const & O)
+			UnsignedInteger<k> & operator=(UnsignedInteger<k> const & O)
 			{
-				for ( size_t i = 0; i < k; ++i )
-					A[i] = O.A[i];
+				ArrayCopy<uint32_t,k>::copy(&A[0],&O.A[0]);
 				return *this;
 			}
 			
