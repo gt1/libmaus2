@@ -53,6 +53,11 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		/**
+		 * input block for BAM decoding
+		 *
+		 * An object encapsulates a bgzf compressed block
+		 **/
 		struct BamParallelDecodingInputBlock
 		{
 			typedef BamParallelDecodingInputBlock this_type;
@@ -87,15 +92,20 @@ namespace libmaus
 				blockid(0),
 				crc(0)
 			{}
-			
+		
+			/**
+			 * read a bgzf compressed block from stream
+			 **/	
 			template<typename stream_type>
 			void readBlock(stream_type & stream)
 			{
+				// read bgzf header
 				payloadsize = inflateheaderbase.readHeader(stream);
 				
 				// read block
 				stream.read(C.begin(),payloadsize + 8);
 
+				// check that we have obtained the requested number of bytes
 				if ( stream.gcount() != static_cast<int64_t>(payloadsize + 8) )
 				{
 					::libmaus::exception::LibMausException se;
@@ -104,13 +114,15 @@ namespace libmaus
 					throw se;
 				}
 				
+				// compose crc
 				crc = 
 					(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+0])) <<  0) |
 					(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+1])) <<  8) |
 					(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+2])) << 16) |
 					(static_cast<uint32_t>(static_cast<uint8_t>(C[payloadsize+3])) << 24)
 				;
-								
+					
+				// compose size of uncompressed block in bytes			
 				uncompdatasize = 
 					(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+4])) << 0)
 					|
@@ -120,6 +132,7 @@ namespace libmaus
 					|
 					(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+7])) << 24);
 
+				// check that uncompressed size conforms with bgzf specs
 				if ( uncompdatasize > libmaus::lz::BgzfConstants::getBgzfMaxBlockSize() )
 				{
 					::libmaus::exception::LibMausException se;
@@ -128,19 +141,30 @@ namespace libmaus
 					throw se;									
 				}
 				
+				// check whether this is the final block and set the flag accordingly
 				final = (uncompdatasize == 0) && (stream.peek() < 0);
 			}
 		};
 
+		/**
+		 * Input state for parallel BAM decoding.
+		 *
+		 **/
 		struct BamParallelDecodingControlInputInfo
 		{
 			typedef BamParallelDecodingInputBlock input_block_type;
 		
+			// lock for everything below
 			libmaus::parallel::PosixSpinLock readLock;
+			// input stream reference
 			std::istream & istr;
+			// returns true if end of file has been observed
 			bool volatile eof;
+			// id of this input stream
 			uint64_t volatile streamid;
+			// next input block id
 			uint64_t volatile blockid;
+			// list of free input blocks
 			libmaus::parallel::LockedFreeList<input_block_type> inputBlockFreeList;
 
 			BamParallelDecodingControlInputInfo(
@@ -156,12 +180,16 @@ namespace libmaus
 			}
 		};
 		
+		/**
+		 * work package for reading blocks from a stream
+		 **/
 		struct BamParallelDecodingInputBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
 		{
 			typedef BamParallelDecodingInputBlockWorkPackage this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
+			//! information required for reading
 			BamParallelDecodingControlInputInfo * inputinfo;
 
 			BamParallelDecodingInputBlockWorkPackage()
@@ -189,6 +217,7 @@ namespace libmaus
 		struct BamParallelDecodingInputBlockWorkPackageReturnInterface
 		{
 			virtual ~BamParallelDecodingInputBlockWorkPackageReturnInterface() {}
+			// work package is no longer in use
 			virtual void putBamParallelDecodingInputBlockWorkPackage(BamParallelDecodingInputBlockWorkPackage * package) = 0;
 		};
 
@@ -276,6 +305,9 @@ namespace libmaus
 			}		
 		};
 		
+		/**
+		 * class representing a decompressed bam block
+		 **/
 		struct BamParallelDecodingDecompressedBlock
 		{
 			typedef BamParallelDecodingDecompressedBlock this_type;
@@ -1143,7 +1175,6 @@ namespace libmaus
 			}
 		};
 
-		
 		struct BamParallelDecodingParseInfo
 		{
 			typedef BamParallelDecodingParseInfo this_type;
