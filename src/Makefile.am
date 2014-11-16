@@ -7,6 +7,11 @@ lib_LTLIBRARIES = libmaus.la libmauslsf.la
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
 
+CLEANFILES=sha256_sse4.o
+
+sha256_sse4.o: libmaus/digest/sha256_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o libmaus/digest/sha256_sse4.asm
+
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/autoarray/AutoArray.cpp \
 	libmaus/bitio/CompactArray.cpp libmaus/rank/RankTable.cpp \
@@ -138,7 +143,8 @@ noinst_HEADERS = libmaus/lz/lz4.h
 
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DIGESTASMOBJ@
+libmaus_la_DEPENDENCIES = @DIGESTASMOBJ@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp

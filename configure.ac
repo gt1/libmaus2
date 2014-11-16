@@ -2,6 +2,7 @@ AC_INIT(libmaus,0.0.177,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
 LIBRARY_VERSION=0:177:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
+AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 
 AM_INIT_AUTOMAKE([std-options subdir-objects])
@@ -20,6 +21,49 @@ CXXFLAGS_SAVE="${CXXFLAGS}"
 CXXFLAGS=""
 AC_PROG_CXX
 CXXFLAGS="${CXXFLAGS_SAVE}"
+
+AC_MSG_CHECKING([whether host cpu is x86_64])
+HOSTCPUISX86_64=no
+case ${host_cpu} in
+	x86_64)
+		HOSTCPUISX86_64=yes
+		;;
+esac
+AC_MSG_RESULT([${HOSTCPUISX86_64}])
+
+AC_MSG_CHECKING([whether host os is GNU/Linux])
+HOSTOSISGNULINUX=no
+case ${host_os} in
+	linux-gnu)
+		HOSTOSISGNULINUX=yes
+		;;
+esac
+AC_MSG_RESULT([${HOSTOSISGNULINUX}])
+
+AC_MSG_CHECKING([whether we are compiling for x86_64 CPU on GNU/Linux OS ])
+HOSTISX86_64GNULINUX=no
+if test \( ${HOSTCPUISX86_64} = "yes" \) -a \( ${HOSTOSISGNULINUX} = "yes"  \) ; then
+	HOSTISX86_64GNULINUX=yes
+fi
+AC_MSG_RESULT([${HOSTISX86_64GNULINUX}])
+
+YASMEXE=
+DIGESTASMOBJ=
+if test ${HOSTISX86_64GNULINUX} = "yes" ; then
+	AC_ARG_WITH([yasm],
+		[AS_HELP_STRING([--with-yasm@<:@=PATH@:>@], [path to installed yasm program @<:@default=no@:>@])],
+		[with_yasm=${withval}],
+		[with_yasm=no])
+		
+	if test "${with_yasm}" != "no" ; then
+		if test \( -z "${with_yasm}" \) -o \( "${with_yasm}" = "yes" \) ; then
+			with_yasm=`which yasm`
+		fi
+		
+		YASMEXE=${with_yasm}
+		DIGESTASMOBJ="sha256_sse4.o"
+	fi
+fi
 
 AC_CHECK_SIZEOF([unsigned long])
 LIBMAUS_SIZEOF_UNSIGNED_LONG="#define LIBMAUS_SIZEOF_UNSIGNED_LONG $ac_cv_sizeof_unsigned_long"
@@ -2290,4 +2334,6 @@ AC_SUBST([NETTLECPPFLAGS])
 AC_SUBST([NETTLELDFLAGS])
 AC_SUBST([NETTLE])
 AC_SUBST([NETTLEREQ])
+AC_SUBST([YASMEXE])
+AC_SUBST([DIGESTASMOBJ])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
