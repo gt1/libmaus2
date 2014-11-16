@@ -7,10 +7,16 @@ lib_LTLIBRARIES = libmaus.la libmauslsf.la
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
 
-CLEANFILES=sha256_sse4.o
+CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o
 
 sha256_sse4.o: libmaus/digest/sha256_sse4.asm
 	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o libmaus/digest/sha256_sse4.asm
+sha256_avx1.o: libmaus/digest/sha256_avx1.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx1.o libmaus/digest/sha256_avx1.asm
+sha256_avx2_rorx2.o: libmaus/digest/sha256_avx2_rorx2.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx2.o libmaus/digest/sha256_avx2_rorx2.asm
+sha256_avx2_rorx8.o: libmaus/digest/sha256_avx2_rorx8.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx8.o libmaus/digest/sha256_avx2_rorx8.asm
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/autoarray/AutoArray.cpp \

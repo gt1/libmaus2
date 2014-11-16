@@ -61,7 +61,7 @@ if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 		fi
 		
 		YASMEXE=${with_yasm}
-		DIGESTASMOBJ="sha256_sse4.o"
+		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o"
 	fi
 fi
 
