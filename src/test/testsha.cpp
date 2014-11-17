@@ -181,7 +181,7 @@ int main(int argc, char * argv[])
 	{
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		
-		#if defined(LIBMAUS_HAVE_NETTLE)
+		#if defined(LIBMAUS_HAVE_NETTLE) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
 		std::string ast(1024,'a');
 		libmaus::random::Random::setup(42);
 		for ( uint64_t i = 0; i < ast.size(); ++i )
