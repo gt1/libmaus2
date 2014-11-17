@@ -226,10 +226,6 @@ int main(int argc, char * argv[])
 					assert ( s0 == s2 );
 					assert ( s0 == s3 );
 				}
-				else
-				{
-					std::cerr << "Ok " << i << std::endl;
-				}
 			}
 		}
 		#endif
