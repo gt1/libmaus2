@@ -25,7 +25,7 @@ namespace libmaus
 {
 	namespace digest
 	{
-		struct CRC32 : public DigestBase<4>
+		struct CRC32 : public DigestBase<4 /* digest length */, 0 /* block size shift */, 0 /* need padding */, 0 /* number length */, false>
 		{
 			uint32_t const initial;
 			uint32_t ctx;

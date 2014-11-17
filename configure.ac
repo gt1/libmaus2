@@ -49,6 +49,7 @@ AC_MSG_RESULT([${HOSTISX86_64GNULINUX}])
 
 YASMEXE=
 DIGESTASMOBJ=
+LIBMAUS_HAVE_SHA2_ASSEMBLY=
 if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 	AC_ARG_WITH([yasm],
 		[AS_HELP_STRING([--with-yasm@<:@=PATH@:>@], [path to installed yasm program @<:@default=no@:>@])],
@@ -62,6 +63,7 @@ if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 		
 		YASMEXE=${with_yasm}
 		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o"
+		LIBMAUS_HAVE_SHA2_ASSEMBLY="#define LIBMAUS_HAVE_SHA2_ASSEMBLY"
 	fi
 fi
 
@@ -2336,4 +2338,5 @@ AC_SUBST([NETTLE])
 AC_SUBST([NETTLEREQ])
 AC_SUBST([YASMEXE])
 AC_SUBST([DIGESTASMOBJ])
+AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

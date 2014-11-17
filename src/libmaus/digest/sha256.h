@@ -16,16 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_DIGESTS_HPP)
-#define LIBMAUS_DIGEST_DIGESTS_HPP
+#if ! defined(LIBMAUS_DIGEST_SHA256_H)
+#define LIBMAUS_DIGEST_SHA256_H
 
-#include <libmaus/util/md5.hpp>
-#include <libmaus/digest/CRC32.hpp>
-#include <libmaus/digest/Null.hpp>
-#include <libmaus/digest/SHA1.hpp>
-#include <libmaus/digest/SHA2_224.hpp>
-#include <libmaus/digest/SHA2_256.hpp>
-#include <libmaus/digest/SHA2_384.hpp>
-#include <libmaus/digest/SHA2_512.hpp>
-#include <libmaus/digest/SHA2_256_sse4.hpp>
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+// prototypes for assembly functions
+extern void sha256_sse4     (uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+extern void sha256_avx      (uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+extern void sha256_rorx     (uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+extern void sha256_rorx_x8ms(uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+
+#if defined(__cplusplus)
+}
+#endif
+
 #endif

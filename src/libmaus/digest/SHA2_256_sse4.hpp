@@ -16,26 +16,38 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_SHA2_384_HPP)
-#define LIBMAUS_DIGEST_SHA2_384_HPP
+#if ! defined(LIBMAUS_DIGEST_SHA2_256_SSE4_HPP)
+#define LIBMAUS_DIGEST_SHA2_256_SSE4_HPP
 
 #include <libmaus/digest/DigestBase.hpp>
-
+#include <libmaus/util/I386CacheLineSize.hpp>
+#include <libmaus/exception/LibMausException.hpp>
+	
 namespace libmaus
 {
 	namespace digest
 	{
-		struct SHA2_384 : public DigestBase<48,7 /* block size 64 shift */, true /* need padding */, 16 /* number length */, false>
+		struct SHA2_256_sse4 : public DigestBase<32,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, true>
 		{
-			void * ctx;
-
-			SHA2_384();
-			~SHA2_384();
+			typedef DigestBase<32,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, true> base_type;
+			typedef SHA2_256_sse4 this_type;
 			
+			// temp block
+			uint8_t block[2*(1ull<<base_type::blockshift)];
+			// digest (state)
+			uint32_t digestw[base_type::digestlength / sizeof(uint32_t)];
+			// index in current block
+			uint64_t index;
+			// number of completed blocks
+			uint64_t blockcnt;
+			
+			SHA2_256_sse4();
+			~SHA2_256_sse4();
+
 			void init();
 			void update(uint8_t const * t, size_t l);
 			void digest(uint8_t * digest);
-			void copyFrom(SHA2_384 const & O);
+			void copyFrom(SHA2_256_sse4 const & O);
 			static size_t getDigestLength() { return digestlength; }
 		};
 	}

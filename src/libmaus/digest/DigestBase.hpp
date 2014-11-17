@@ -25,13 +25,41 @@ namespace libmaus
 {
 	namespace digest
 	{
-		template<size_t _digestlength>
+		template<size_t _digestlength, size_t _blockshift, bool _needpad, size_t _numlen, bool _prefersinglecall>
 		struct DigestBase
 		{
 			enum { digestlength = _digestlength };
+			enum { blockshift = _blockshift };
+			enum { needpad = _needpad };
+			enum { numlen = _numlen };
+			enum { prefersinglecall = _prefersinglecall };
 		
 			virtual ~DigestBase() {}
 			virtual void digest(uint8_t * digest) = 0;
+			
+			static uint64_t getPaddedMessageLength(uint64_t const n)
+			{
+				if ( ! needpad )
+				{
+					return n;
+				}
+				else
+				{
+					// full blocks
+					uint64_t const fullblocks = (n >> blockshift);
+					// rest bytes in last block
+					uint64_t const rest = n - (fullblocks << blockshift);
+					// size of block
+					uint64_t const blocksize = (1ull << blockshift);
+					// sanity check
+					assert ( rest < blocksize );
+					
+					if ( blocksize-rest  >= (1 + numlen) )
+						return (fullblocks+1)<<blockshift;
+					else
+						return (fullblocks+2)<<blockshift;
+				}
+			}
 
 			libmaus::math::UnsignedInteger<digestlength/4> digestui() 
 			{
@@ -55,13 +83,22 @@ namespace libmaus
 			}
 		};
 
-		template<>
-		struct DigestBase<0>
+		template<size_t _blockshift, bool _needpad, size_t _numlen, bool _prefersinglecall>
+		struct DigestBase<0,_blockshift,_needpad,_numlen,_prefersinglecall>
 		{
 			enum { digestlength = 0 };
+			enum { blockshift = _blockshift };
+			enum { needpad = _needpad };
+			enum { numlen = _numlen };
+			enum { prefersinglecall = _prefersinglecall };
 		
 			virtual ~DigestBase() {}
 			virtual void digest(uint8_t * digest) = 0;
+
+			static uint64_t getPaddedMessageLength(uint64_t const n)
+			{	
+				return n;
+			}
 
 			libmaus::math::UnsignedInteger<0> digestui() 
 			{

@@ -49,6 +49,15 @@ namespace libmaus
 				uint32_t & ecx,
 				uint32_t & edx
 			);
+			/**
+			 * call xgetbv function
+			 *
+			 * @param eax register eax
+			 * @param ebx register ebx
+			 * @param ecx register ecx
+			 * @param edx register edx
+			 **/
+			static uint64_t xgetbv(uint32_t index);
 
 			static unsigned int getCacheLineSizeSingle(unsigned int const val);
 			static unsigned int getCacheLineSize(unsigned int const reg);
@@ -86,6 +95,10 @@ namespace libmaus
 			 * @return true if CPU supports popcnt
 			 **/
 			static bool hasPopCnt();
+			/**
+			 * @return true if CPU supports avx
+			 **/
+			static bool hasAVX();
 		};
 		#endif
 	}
