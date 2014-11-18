@@ -1,3 +1,10 @@
+libmaus (0.0.178-1) unstable; urgency=low
+
+  * fix bug in left shift operator of UnsignedInteger class
+  * import assembly code for SHA256 and SHA512 (see AUTHORS file) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 18 Nov 2014 15:10:09 +0000
+
 libmaus (0.0.177-1) unstable; urgency=low
 
   * generalise += operator in UnsignedInteger class for different length operands 
