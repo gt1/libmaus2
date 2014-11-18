@@ -329,6 +329,48 @@ int main(int argc, char * argv[])
 				}
 			}
 		}
+
+		// test prefixes up to length of ast(1024)
+		for ( uint64_t i = 0; i <= ast.size(); ++i )
+		{
+			std::string const s = ast.substr(0,i);
+			::libmaus::autoarray::AutoArray<uint8_t> A(s.size(),false);
+			std::copy(s.begin(),s.end(),A.begin());
+			
+			std::ostringstream ostr0;
+			printCRC<libmaus::digest::SHA2_512>(A.begin(),A.size(),ostr0);
+			std::string const s0 = secondColumn(ostr0.str());
+
+			if ( libmaus::util::I386CacheLineSize::hasSSE41() )
+			{
+				std::ostringstream ostr2;
+				printCRCASM512NoCopy(A.begin(), A.size(), sha512_sse4, "sha512_sse4_nocopy",ostr2);
+				std::string const s2 = secondColumn(ostr2.str());
+
+				std::ostringstream ostr3;
+				printCRC<libmaus::digest::SHA2_512_sse4>(A.begin(),A.size(),ostr3);
+				std::string const s3 = secondColumn(ostr3.str());
+
+				std::ostringstream ostr4;
+				printCRCSingleByteUpdate<libmaus::digest::SHA2_512_sse4>(A.begin(),A.size(),ostr4);
+				std::string const s4 = secondColumn(ostr4.str());
+
+				bool ok = s0 == s2 && s0 == s3 && s0 == s4;
+				
+				if ( ! ok )
+				{
+					std::cerr << "failed for " << i << std::endl;
+					std::cerr << s0 << std::endl;
+					std::cerr << s2 << std::endl;
+					std::cerr << s3 << std::endl;
+					std::cerr << s4 << std::endl;
+				
+					assert ( s0 == s2 );
+					assert ( s0 == s3 );
+					assert ( s0 == s4 );
+				}
+			}
+		}
 		#endif
 			
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
@@ -358,6 +400,7 @@ int main(int argc, char * argv[])
 				printCRCASMNoCopy(A.begin(), A.size(), sha256_sse4, "sha256_sse4_nocopy",out);
 
 				printCRCASM512NoCopy(A.begin(), A.size(), sha512_sse4, "sha512_sse4_nocopy", out);
+				printCRC<libmaus::digest::SHA2_512_sse4>(A.begin(),A.size(),out);
 			}
 			if ( libmaus::util::I386CacheLineSize::hasAVX() )
 			{

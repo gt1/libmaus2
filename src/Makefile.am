@@ -8,7 +8,7 @@ lib_LIBRARIES = libmausdigests.a
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
 
-libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp
+libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_512_sse4.cpp
 
 libmausdigests_a_DEPENDENCIES = @DIGESTASMOBJ@
 libmausdigests_a_LIBADD = @DIGESTASMOBJ@
@@ -930,7 +930,8 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/Null.hpp \
 	libmaus/digest/SHA2_256_sse4.hpp \
 	libmaus/digest/sha256.h \
-	libmaus/digest/sha512.h
+	libmaus/digest/sha512.h \
+	libmaus/digest/SHA2_512_sse4.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
