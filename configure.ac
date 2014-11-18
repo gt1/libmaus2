@@ -62,7 +62,7 @@ if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 		fi
 		
 		YASMEXE=${with_yasm}
-		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o"
+		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o"
 		LIBMAUS_HAVE_SHA2_ASSEMBLY="#define LIBMAUS_HAVE_SHA2_ASSEMBLY"
 	fi
 fi
