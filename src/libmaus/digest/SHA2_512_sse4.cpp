@@ -21,6 +21,7 @@
 #include <emmintrin.h>
 #include <immintrin.h>
 #include <libmaus/rank/BSwapBase.hpp>
+#include <algorithm>
 
 libmaus::digest::SHA2_512_sse4::SHA2_512_sse4() 
 : block(2*(1ull<<libmaus::digest::SHA2_512_sse4::blockshift),false), 
