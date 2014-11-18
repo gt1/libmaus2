@@ -226,7 +226,8 @@ namespace libmaus
 				// shift by w full words
 				if ( w < k )
 				{
-					for ( size_t i = 0; i < k; ++i )
+					// k-i-1-w >= 0 <=> i <= k-w-1 <=> i < k-w
+					for ( size_t i = 0; i < k-w; ++i )
 						A[k-i-1] = A[k-i-1-w];
 					for ( size_t i = 0; i < w; ++i )
 						A[i] = 0;
