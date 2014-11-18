@@ -39,6 +39,19 @@ void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
 	out << std::endl;
 }
 
+template<typename crc>
+void printCRCSingleByteUpdate(uint8_t const * s, uint64_t const n, std::ostream & out)
+{
+	libmaus::timing::RealTimeClock rtc; rtc.start();
+	crc dig;
+	dig.init();
+	for ( uint64_t i = 0; i < n; ++i )
+		dig.update(s+i,1);
+	out << libmaus::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
+	out << "\t" << rtc.getElapsedSeconds();	
+	out << std::endl;
+}
+
 void putBE64(uint8_t * p, uint64_t v)
 {
 	p[0] = (v>>56)&0xFF;
@@ -210,9 +223,12 @@ int main(int argc, char * argv[])
 				std::ostringstream ostr3;
 				printCRC<libmaus::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr3);
 				std::string const s3 = secondColumn(ostr3.str());
+
+				std::ostringstream ostr4;
+				printCRCSingleByteUpdate<libmaus::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr4);
+				std::string const s4 = secondColumn(ostr4.str());
 				
-				
-				bool ok = s0 == s1 && s0 == s2 && s0 == s3;
+				bool ok = s0 == s1 && s0 == s2 && s0 == s3 && s0 == s4;
 				
 				if ( ! ok )
 				{

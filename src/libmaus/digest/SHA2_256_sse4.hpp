@@ -22,6 +22,7 @@
 #include <libmaus/digest/DigestBase.hpp>
 #include <libmaus/util/I386CacheLineSize.hpp>
 #include <libmaus/exception/LibMausException.hpp>
+#include <libmaus/autoarray/AutoArray.hpp>
 	
 namespace libmaus
 {
@@ -33,9 +34,11 @@ namespace libmaus
 			typedef SHA2_256_sse4 this_type;
 			
 			// temp block
-			uint8_t block[2*(1ull<<base_type::blockshift)];
+			libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_memalign_cacheline> block;
 			// digest (state)
-			uint32_t digestw[base_type::digestlength / sizeof(uint32_t)];
+			libmaus::autoarray::AutoArray<uint32_t,libmaus::autoarray::alloc_type_memalign_cacheline> digestw;
+			// init data
+			libmaus::autoarray::AutoArray<uint32_t,libmaus::autoarray::alloc_type_memalign_cacheline> digestinit;
 			// index in current block
 			uint64_t index;
 			// number of completed blocks

@@ -18,8 +18,15 @@
 */
 #include <libmaus/digest/SHA2_256_sse4.hpp>
 #include <libmaus/digest/sha256.h>
+#include <emmintrin.h>
+#include <immintrin.h>
+#include <libmaus/rank/BSwapBase.hpp>
 
-libmaus::digest::SHA2_256_sse4::SHA2_256_sse4() : index(0), blockcnt(0)
+libmaus::digest::SHA2_256_sse4::SHA2_256_sse4() 
+: block(2*(1ull<<libmaus::digest::SHA2_256_sse4::blockshift),false), 
+  digestw(base_type::digestlength / sizeof(uint32_t),false), 
+  digestinit(base_type::digestlength / sizeof(uint32_t),false),
+  index(0), blockcnt(0)
 {
 	#if ! ( defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY) )
 	libmaus::exception::LibMausException lme;
@@ -35,6 +42,16 @@ libmaus::digest::SHA2_256_sse4::SHA2_256_sse4() : index(0), blockcnt(0)
 		lme.finish();
 		throw lme;
 	}
+
+	// initial state for sha256
+	static uint32_t const digest[8] = 
+	{
+		0x6a09e667ul, 0xbb67ae85ul, 0x3c6ef372ul, 0xa54ff53aul, 
+		0x510e527ful, 0x9b05688cul, 0x1f83d9abul, 0x5be0cd19ul
+	};
+	
+	for ( unsigned int i = 0; i < 8; ++i )
+		digestinit[i] = digest[i];
 }
 libmaus::digest::SHA2_256_sse4::~SHA2_256_sse4()
 {
@@ -45,16 +62,15 @@ void libmaus::digest::SHA2_256_sse4::init()
 {
 	index = 0;
 	blockcnt = 0;
-	
-	// initial state for sha256
-	static uint32_t const digest[8] = 
-	{
-		0x6a09e667ul, 0xbb67ae85ul, 0x3c6ef372ul, 0xa54ff53aul, 
-		0x510e527ful, 0x9b05688cul, 0x1f83d9abul, 0x5be0cd19ul
-	};
-	
-	for ( unsigned int i = 0; i < 8; ++i )
-		digestw[i] = digest[i];
+
+	__m128i * po = reinterpret_cast<__m128i *>(&digestw[0]);
+	__m128i * pi = reinterpret_cast<__m128i *>(&digestinit[0]);
+
+	// copy 128 bit words (SSE2 instructions)
+	__m128i ra = _mm_load_si128(pi++);
+	_mm_store_si128(po++,ra);
+	ra = _mm_load_si128(pi++);
+	_mm_store_si128(po++,ra);	
 }
 void libmaus::digest::SHA2_256_sse4::update(uint8_t const * t, size_t l)
 {
@@ -92,7 +108,6 @@ void libmaus::digest::SHA2_256_sse4::update(uint8_t const * t, size_t l)
 	t += fullblocks << base_type::blockshift;
 	l -= fullblocks << base_type::blockshift;
 		
-	assert ( l < (1ull << base_type::blockshift) );
 	std::copy(t,t+l,&block[index]);
 	index += l;
 }
@@ -114,40 +129,29 @@ void libmaus::digest::SHA2_256_sse4::digest(uint8_t * digest)
 			block[index] = 0;
 			index += 1;
 		}
-		assert ( ! (index&1) );
 		// not multiple of 4?
 		if ( index & 2 )
 		{
 			*(reinterpret_cast<uint16_t *>(&block[index])) = 0;
 			index += 2;
 		}
-		assert ( ! (index&2) );
+		// not multiple of 8?
 		if ( index & 4 )
 		{		
 			*(reinterpret_cast<uint32_t *>(&block[index])) = 0;
 			index += 4;
 		}
-		assert ( ! (index&4) );
 		
-		uint64_t restwords = ((1ull<<base_type::blockshift)-index)/8-1;
 		uint64_t * p = (reinterpret_cast<uint64_t *>(&block[index]));
+		uint64_t * const pe = p + (((1ull<<base_type::blockshift)-index)/8-1);
 		
-		// given that machine is guaranteed to support sse4 this could be done faster than writing 64 bit words...
-		while ( restwords-- )
+		// use 64 bit = 8 byte words
+		while ( p != pe )
 			*(p++) = 0;
-			
-		assert ( (&block[1ull<<base_type::blockshift]) - reinterpret_cast<uint8_t *>(p) == 8 );
 			
 		uint8_t * pp = reinterpret_cast<uint8_t *>(p);
 		
-		*(pp++) = (numbits >> 56)&0xFF;
-		*(pp++) = (numbits >> 48)&0xFF;
-		*(pp++) = (numbits >> 40)&0xFF;
-		*(pp++) = (numbits >> 32)&0xFF;
-		*(pp++) = (numbits >> 24)&0xFF;
-		*(pp++) = (numbits >> 16)&0xFF;
-		*(pp++) = (numbits >>  8)&0xFF;
-		*(pp++) = (numbits >>  0)&0xFF;
+		*p = libmaus::rank::BSwapBase::bswap8(numbits);
 
 		sha256_sse4(&block[0],&digestw[0],1);
 	}
@@ -159,62 +163,76 @@ void libmaus::digest::SHA2_256_sse4::digest(uint8_t * digest)
 			block[index] = 0;
 			index += 1;
 		}
-		assert ( ! (index&1) );
 		// not multiple of 4?
 		if ( index & 2 )
 		{
 			*(reinterpret_cast<uint16_t *>(&block[index])) = 0;
 			index += 2;
 		}
-		assert ( ! (index&2) );
+		// not multiple of 8?
 		if ( index & 4 )
 		{		
 			*(reinterpret_cast<uint32_t *>(&block[index])) = 0;
 			index += 4;
 		}
-		assert ( ! (index&4) );
-		
+		// not multiple of 16?
+		if ( index & 8 )
+		{		
+			*(reinterpret_cast<uint64_t *>(&block[index])) = 0;
+			index += 8;
+		}
+
 		// rest of words in first block + all but one word in second block
-		uint64_t restwords = ((1ull<<base_type::blockshift)-index)/8 + ((1ull<<base_type::blockshift)>>3) - 1;
-		uint64_t * p = (reinterpret_cast<uint64_t *>(&block[index])) ;
+		uint64_t restwords = (((1ull<<(base_type::blockshift+1))-index) >> 3) - 1;
 		
-		// given that machine is guaranteed to support sse4 this could be done faster than writing 64 bit words...
-		while ( restwords-- )
-			*(p++) = 0;
-
-		assert ( (&block[1ull<<(base_type::blockshift+1)]) - reinterpret_cast<uint8_t *>(p) == 8 );
-
-		uint8_t * pp = reinterpret_cast<uint8_t *>(p);
+		// erase using 128 bit words
+		__m128i * p128 = reinterpret_cast<__m128i *>(&block[index]);
+		__m128i * p128e = p128 + (restwords>>1);
+		__m128i z128 = _mm_setzero_si128();
 		
-		*(pp++) = (numbits >> 56)&0xFF;
-		*(pp++) = (numbits >> 48)&0xFF;
-		*(pp++) = (numbits >> 40)&0xFF;
-		*(pp++) = (numbits >> 32)&0xFF;
-		*(pp++) = (numbits >> 24)&0xFF;
-		*(pp++) = (numbits >> 16)&0xFF;
-		*(pp++) = (numbits >>  8)&0xFF;
-		*(pp++) = (numbits >>  0)&0xFF;
+		while ( p128 != p128e )
+			_mm_store_si128(p128++,z128);
+		
+		// erase another 64 bit word
+		uint64_t * p = (reinterpret_cast<uint64_t *>(p128)); *p++ = 0;
+
+		*p = libmaus::rank::BSwapBase::bswap8(numbits);
 
 		sha256_sse4(&block[0],&digestw[0],2);
 	}
 	
-	for ( unsigned int i = 0; i < base_type::digestlength / sizeof(uint32_t); ++i )
-	{
-		uint32_t const v = digestw[i];
-		*(digest++) = (v >>24)&0xFF;
-		*(digest++) = (v >>16)&0xFF;
-		*(digest++) = (v >> 8)&0xFF;
-		*(digest++) = (v >> 0)&0xFF;
-	}
+	uint32_t * digest32 = reinterpret_cast<uint32_t *>(&digest[0]);
+	uint32_t * digest32e = digest32 + (base_type::digestlength / sizeof(uint32_t));
+	uint32_t * digesti = &digestw[0];
+
+	while ( digest32 != digest32e )
+		*(digest32++) = libmaus::rank::BSwapBase::bswap4(*(digesti++));
 }
 void libmaus::digest::SHA2_256_sse4::copyFrom(SHA2_256_sse4 const & O)
 {
-	std::copy(&O.block[0],&O.block[1ull<<base_type::blockshift],&block[0]);
+	// blocksize is 64 = 4 * 16
+	__m128i reg;
+	__m128i const * blockin  = reinterpret_cast<__m128i const *>(&O.block[0]);
+	__m128i       * blockout = reinterpret_cast<__m128i       *>(&  block[0]);
+	
+	reg = _mm_load_si128(blockin++);
+	_mm_store_si128(blockout++,reg);	
+	reg = _mm_load_si128(blockin++);
+	_mm_store_si128(blockout++,reg);	
+	reg = _mm_load_si128(blockin++);
+	_mm_store_si128(blockout++,reg);	
+	reg = _mm_load_si128(blockin++);
+	_mm_store_si128(blockout++,reg);	
+	
+	// digest length is 32 = 2 * 16
+	__m128i const * digestin  = reinterpret_cast<__m128i const *>(&O.digestw[0]);
+	__m128i       * digestout = reinterpret_cast<__m128i       *>(&  digestw[0]);
+
+	reg = _mm_load_si128(digestin++);
+	_mm_store_si128(digestout++,reg);	
+	reg = _mm_load_si128(digestin++);
+	_mm_store_si128(digestout++,reg);	
+
 	blockcnt = O.blockcnt;
 	index = O.index;
-	std::copy(
-		&O.digestw[0],
-		&O.digestw[digestw[base_type::digestlength / sizeof(uint32_t)]],
-		&digestw[0]
-	);
 }
