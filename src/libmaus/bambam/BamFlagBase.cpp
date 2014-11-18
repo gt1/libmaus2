@@ -34,6 +34,7 @@ std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamFlagBase::bam_
 		case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL: out << "LIBMAUS_BAMBAM_FQCFAIL"; break;
 		case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP: out << "LIBMAUS_BAMBAM_FDUP"; break;
 		case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY: out << "LIBMAUS_BAMBAM_FSUPPLEMENTARY"; break;
+		case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32: out << "LIBMAUS_BAMBAM_FCIGAR32"; break;
 	}
 	
 	return out;
