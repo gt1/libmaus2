@@ -19,7 +19,6 @@
 #include <libmaus/digest/SHA2_512_sse4.hpp>
 #include <libmaus/digest/sha512.h>
 #include <emmintrin.h>
-#include <immintrin.h>
 #include <libmaus/rank/BSwapBase.hpp>
 #include <algorithm>
 
