@@ -23,6 +23,7 @@
 #include <libmaus/util/GetFileSize.hpp>
 
 #include <libmaus/digest/sha256.h>
+#include <libmaus/digest/sha512.h>
 #include <libmaus/rank/BSwapBase.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/random/Random.hpp>
@@ -62,6 +63,26 @@ void putBE64(uint8_t * p, uint64_t v)
 	p[5] = (v>>16)&0xFF;
 	p[6] = (v>> 8)&0xFF;
 	p[7] = (v>> 0)&0xFF;
+}
+
+void putBE128(uint8_t * p, uint64_t v)
+{
+	p[0] = 0;
+	p[1] = 0;
+	p[2] = 0;
+	p[3] = 0;
+	p[4] = 0;
+	p[5] = 0;
+	p[6] = 0;
+	p[7] = 0;
+	p[8] = (v>>56)&0xFF;
+	p[9] = (v>>48)&0xFF;
+	p[10] = (v>>40)&0xFF;
+	p[11] = (v>>32)&0xFF;
+	p[12] = (v>>24)&0xFF;
+	p[13] = (v>>16)&0xFF;
+	p[14] = (v>> 8)&0xFF;
+	p[15] = (v>> 0)&0xFF;
 }
 
 typedef void (*sha2_func)(uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
@@ -163,6 +184,70 @@ void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, 
 	out << name << "\t";
 	for ( uint64_t i = 0; i < 8; ++i )
 		out << std::hex << std::setw(8) << std::setfill('0') << (digest[i]) << std::dec;
+	
+	out << "\t" << rtc.getElapsedSeconds();
+	
+	out << std::endl;
+}
+
+typedef void (*sha2_512_func)(uint8_t const * text, uint64_t digest[8], uint64_t const numblocks);
+
+void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const func, char const * name, std::ostream & out)
+{
+	libmaus::timing::RealTimeClock rtc; rtc.start();
+	
+	uint64_t const sha2_blocksize = 128;
+	// full blocks
+	uint64_t const fullblocks = n / sha2_blocksize;
+	// rest bytes
+	uint64_t const rest = n - fullblocks * sha2_blocksize;
+
+	// initial state for sha256
+	uint64_t digest[8] = 
+	{
+		0x6A09E667F3BCC908ULL,0xBB67AE8584CAA73BULL,
+		0x3C6EF372FE94F82BULL,0xA54FF53A5F1D36F1ULL,
+		0x510E527FADE682D1ULL,0x9B05688C2B3E6C1FULL,
+		0x1F83D9ABFB41BD6BULL,0x5BE0CD19137E2179ULL,
+	};
+	
+	// process full blocks
+	func(A, &digest[0], fullblocks);
+	
+	// temporary space (two input blocks)
+	uint8_t temp[2*sha2_blocksize];
+
+	// end of data
+	uint8_t const * pe = A+n;
+	// start of rest data
+	uint8_t const * pa = pe - rest;
+
+	// rest of message fits into next block (padding and length may not though)
+	assert ( pe-pa < sha2_blocksize );
+	// copy rest of data
+	std::copy(pa,pe,&temp[0]);
+	// put padding marker
+	temp[rest] = 0x80;
+	
+	// space in first block
+	uint64_t const firstblockspace = sha2_blocksize - rest;
+	
+	if ( firstblockspace >= 1+2*sizeof(uint64_t) )
+	{
+		std::fill(&temp[rest]+1,&temp[sha2_blocksize-2*sizeof(uint64_t)],0);
+		putBE128(&temp[sha2_blocksize-2*sizeof(uint64_t)],n<<3);
+		func(&temp[0], &digest[0], 1);
+	}
+	else
+	{
+		std::fill(&temp[rest]+1,&temp[(2*sha2_blocksize)-2*sizeof(uint64_t)],0);
+		putBE128(&temp[2*sha2_blocksize-2*sizeof(uint64_t)],n<<3);		
+		func(&temp[0], &digest[0], 2);
+	}
+
+	out << name << "\t";
+	for ( uint64_t i = 0; i < 8; ++i )
+		out << std::hex << std::setw(16) << std::setfill('0') << (digest[i]) << std::dec;
 	
 	out << "\t" << rtc.getElapsedSeconds();
 	
@@ -271,6 +356,8 @@ int main(int argc, char * argv[])
 			
 				printCRCASM(A.begin(),A.size(), sha256_sse4, "sha256_sse4",out);
 				printCRCASMNoCopy(A.begin(), A.size(), sha256_sse4, "sha256_sse4_nocopy",out);
+
+				printCRCASM512NoCopy(A.begin(), A.size(), sha512_sse4, "sha512_sse4_nocopy", out);
 			}
 			if ( libmaus::util::I386CacheLineSize::hasAVX() )
 			{
