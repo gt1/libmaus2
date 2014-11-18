@@ -78,7 +78,7 @@ void libmaus::digest::SHA2_256_sse4::update(uint8_t const * t, size_t l)
 	// something already in the buffer?
 	if ( index )
 	{
-		uint64_t const tocopy = std::min(l,static_cast<size_t>(1ull<<base_type::blockshift)-index);
+		uint64_t const tocopy = std::min(static_cast<uint64_t>(l),static_cast<uint64_t>(static_cast<size_t>(1ull<<base_type::blockshift)-index));
 		std::copy(t,t+tocopy,&block[index]);
 		index += tocopy;
 		t += tocopy;
