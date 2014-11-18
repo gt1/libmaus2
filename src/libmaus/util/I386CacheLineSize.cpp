@@ -125,7 +125,7 @@ void libmaus::util::I386CacheLineSize::cpuid(
 uint64_t libmaus::util::I386CacheLineSize::xgetbv(uint32_t const index)
 {
 	uint32_t eax, edx;
-	asm volatile("xgetbv" : "=a" (eax), "=d" (edx) : "c" (index));
+	asm volatile(".byte 0x0f,0x01,0xd0" : "=a" (eax), "=d" (edx) : "c" (index)); // xgetbv, older versions of the tools don't know the opcode, thus byte sequence
 	return eax + (static_cast<uint64_t>(edx) << 32);
 }
 
