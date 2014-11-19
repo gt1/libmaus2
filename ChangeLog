@@ -1,3 +1,10 @@
+libmaus (0.0.179-1) unstable; urgency=low
+
+  * make compilation of test programs optional
+  * fix compilation issues 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 19 Nov 2014 19:29:49 +0000
+
 libmaus (0.0.178-1) unstable; urgency=low
 
   * fix bug in left shift operator of UnsignedInteger class
