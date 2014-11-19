@@ -1191,8 +1191,7 @@ libmausconsensus_include_HEADERS =\
 	libmaus/consensus/Consensus.hpp \
 	libmaus/consensus/ScoringMatrix.hpp
 
-EXTRA_PROGRAMS = testlsf testlsflist
-noinst_PROGRAMS = \
+EXTRA_PROGRAMS = testlsf testlsflist \
 	testAIO \
 	testbitbtree \
 	testBitIO \
@@ -1309,6 +1308,7 @@ noinst_PROGRAMS = \
 	testmd5 \
 	testsha \
 	testsinglefileserver
+noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
