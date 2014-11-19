@@ -349,6 +349,40 @@ snappy::Compress(input,input_length,&output);
 	fi
 fi
 
+TESTPROGS="testAIO testbitbtree testBitIO testbtree testBWTDyn testBWTHufDyn testDivSufSort"
+TESTPROGS="${TESTPROGS} testDNABitWords testFastRead testFork testHuffman testIsa testkmp"
+TESTPROGS="${TESTPROGS} testlz testOS testRank testToWaveletTreeBits testWaveletExternal"
+TESTPROGS="${TESTPROGS} testTrie testConsensus testbandedlcs testbamwriter testhashlcs"
+TESTPROGS="${TESTPROGS} testkmlocal testarraydecode testsnappy testsnappyconcat testgunzip"
+TESTPROGS="${TESTPROGS} testlogging testregex testhashcollisions testsimplebloomcollisions"
+TESTPROGS="${TESTPROGS} testsimplehash testsimplecountinghash testsyncreorderset"
+TESTPROGS="${TESTPROGS} testcachealignedalloc testblocksynchronous testsyncfastreaderbase"
+TESTPROGS="${TESTPROGS} testlsf testlsfdispatcher testlsfclient testlsfclientfw testlsflist"
+TESTPROGS="${TESTPROGS} testdl testdifenc testbwtmergeinternal testfastarewrite testfastarecode"
+TESTPROGS="${TESTPROGS} testbamtofastq testbamrange testbamdamage testgamma testcompact"
+TESTPROGS="${TESTPROGS} testbytetocompact testscramtosam testpacdecode testutf8split testcirchash"
+TESTPROGS="${TESTPROGS} testrmmtree testcst testbamcmp testbamdif testqreorder testfqbgzf"
+TESTPROGS="${TESTPROGS} testoverlap testcompactfastrandom testbamindex testbamrewrite"
+TESTPROGS="${TESTPROGS} testfastqstream testsort testexternalsort testcollatespeed"
+TESTPROGS="${TESTPROGS} testbamheaderparser testbammergecoordinate testbammergecollate"
+TESTPROGS="${TESTPROGS} testbammergequeryname testbamcat testautoarray2d testhist"
+TESTPROGS="${TESTPROGS} testfastaparse testvalidatebamindex testeditdistance testthreadpool"
+TESTPROGS="${TESTPROGS} testsimplethreadpool testthreadpoolbamdecode testsimplethreadpoolbamdecode"
+TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock testrazdec"
+TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
+TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
+TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
+TESTPROGS="${TESTPROGS} testparallelbamdecompression testbytecnt teststronglyconnectedcomponents"
+TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
+TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
+
+AC_ARG_ENABLE(compile-testprograms,
+        AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
+        [compiletestprograms=${enableval}],[compiletestprograms=yes])
+
+if test "${compiletestprograms}" != "yes" ; then
+	TESTPROGS=
+fi
 
 AC_LANG_PUSH([C++])
 AC_HEADER_STDC
@@ -2339,4 +2373,5 @@ AC_SUBST([NETTLEREQ])
 AC_SUBST([YASMEXE])
 AC_SUBST([DIGESTASMOBJ])
 AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
+AC_SUBST([TESTPROGS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
