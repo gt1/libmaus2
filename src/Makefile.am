@@ -1,5 +1,9 @@
 ACLOCAL_AMFLAGS=-I m4
 
+EXTRA_DIST = \
+	libmaus/digest/sha256_sse4.asm libmaus/digest/sha256_avx1.asm libmaus/digest/sha256_avx2_rorx2.asm libmaus/digest/sha256_avx2_rorx8.asm \
+	libmaus/digest/sha512_avx2_rorx.asm libmaus/digest/sha512_avx.asm libmaus/digest/sha512_sse4.asm
+
 abs_builddir = @abs_builddir@
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la
