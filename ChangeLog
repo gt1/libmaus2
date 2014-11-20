@@ -1,3 +1,9 @@
+libmaus (0.0.181-1) unstable; urgency=low
+
+  * fix out of tree build 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Nov 2014 15:42:24 +0000
+
 libmaus (0.0.180-1) unstable; urgency=low
 
   * fix compilation for non x86 type platforms 
