@@ -38,7 +38,11 @@ libmaus::digest::SHA2_512_sse4::SHA2_512_sse4()
 	throw lme;
 	#endif
 	
+	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
 	if ( !libmaus::util::I386CacheLineSize::hasSSE41() )
+	#else
+	if ( true )
+	#endif
 	{
 		libmaus::exception::LibMausException lme;
 		lme.getStream() << "SHA2_512_sse4(): machine does not support SSE4" << std::endl;
