@@ -46,10 +46,10 @@ libmaus::digest::SHA1::~SHA1()
 void libmaus::digest::SHA1::init() 
 { 
 }
-void libmaus::digest::SHA1::update(uint8_t const * t, size_t l) 
+void libmaus::digest::SHA1::update(uint8_t const *, size_t) 
 {
 }
-void libmaus::digest::SHA1::digest(uint8_t * digest) 
+void libmaus::digest::SHA1::digest(uint8_t *) 
 { 
 }
 #endif

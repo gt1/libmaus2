@@ -46,10 +46,10 @@ libmaus::digest::SHA2_256::~SHA2_256()
 void libmaus::digest::SHA2_256::init() 
 { 
 }
-void libmaus::digest::SHA2_256::update(uint8_t const * t, size_t l) 
+void libmaus::digest::SHA2_256::update(uint8_t const *, size_t) 
 {
 }
-void libmaus::digest::SHA2_256::digest(uint8_t * digest) 
+void libmaus::digest::SHA2_256::digest(uint8_t *) 
 { 
 }
 #endif

@@ -46,10 +46,10 @@ libmaus::digest::SHA2_512::~SHA2_512()
 void libmaus::digest::SHA2_512::init() 
 { 
 }
-void libmaus::digest::SHA2_512::update(uint8_t const * t, size_t l) 
+void libmaus::digest::SHA2_512::update(uint8_t const *, size_t) 
 {
 }
-void libmaus::digest::SHA2_512::digest(uint8_t * digest) 
+void libmaus::digest::SHA2_512::digest(uint8_t *) 
 { 
 }
 #endif
