@@ -5,6 +5,7 @@ EXTRA_DIST = \
 	libmaus/digest/sha512_avx2_rorx.asm libmaus/digest/sha512_avx.asm libmaus/digest/sha512_sse4.asm
 
 abs_builddir = @abs_builddir@
+abs_srcdir = @abs_srcdir@
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la
 lib_LIBRARIES = libmausdigests.a
@@ -19,20 +20,20 @@ libmausdigests_a_LIBADD = @DIGESTASMOBJ@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
-sha256_sse4.o: libmaus/digest/sha256_sse4.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o libmaus/digest/sha256_sse4.asm
-sha256_avx1.o: libmaus/digest/sha256_avx1.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx1.o libmaus/digest/sha256_avx1.asm
-sha256_avx2_rorx2.o: libmaus/digest/sha256_avx2_rorx2.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx2.o libmaus/digest/sha256_avx2_rorx2.asm
-sha256_avx2_rorx8.o: libmaus/digest/sha256_avx2_rorx8.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx8.o libmaus/digest/sha256_avx2_rorx8.asm
-sha512_avx2_rorx.o: libmaus/digest/sha512_avx2_rorx.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx2_rorx.o libmaus/digest/sha512_avx2_rorx.asm
-sha512_avx.o: libmaus/digest/sha512_avx.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx.o libmaus/digest/sha512_avx.asm
-sha512_sse4.o: libmaus/digest/sha512_sse4.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_sse4.o libmaus/digest/sha512_sse4.asm
+sha256_sse4.o: $(abs_srcdir)/libmaus/digest/sha256_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o $(abs_srcdir)/libmaus/digest/sha256_sse4.asm
+sha256_avx1.o: $(abs_srcdir)/libmaus/digest/sha256_avx1.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx1.o $(abs_srcdir)/libmaus/digest/sha256_avx1.asm
+sha256_avx2_rorx2.o: $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx2.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx2.o $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx2.asm
+sha256_avx2_rorx8.o: $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx8.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx8.o $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx8.asm
+sha512_avx2_rorx.o: $(abs_srcdir)/libmaus/digest/sha512_avx2_rorx.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx2_rorx.o $(abs_srcdir)/libmaus/digest/sha512_avx2_rorx.asm
+sha512_avx.o: $(abs_srcdir)/libmaus/digest/sha512_avx.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx.o $(abs_srcdir)/libmaus/digest/sha512_avx.asm
+sha512_sse4.o: $(abs_srcdir)/libmaus/digest/sha512_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_sse4.o $(abs_srcdir)/libmaus/digest/sha512_sse4.asm
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/autoarray/AutoArray.cpp \
