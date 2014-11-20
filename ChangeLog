@@ -1,3 +1,9 @@
+libmaus (0.0.180-1) unstable; urgency=low
+
+  * fix compilation for non x86 type platforms 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Nov 2014 12:43:47 +0000
+
 libmaus (0.0.179-1) unstable; urgency=low
 
   * make compilation of test programs optional
