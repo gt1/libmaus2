@@ -18,9 +18,12 @@
 */
 #include <libmaus/digest/SHA2_256_sse4.hpp>
 #include <libmaus/digest/sha256.h>
-#include <emmintrin.h>
 #include <libmaus/rank/BSwapBase.hpp>
 #include <algorithm>
+
+#if defined(LIBMAUS_HAVE_x86_64)
+#include <emmintrin.h>
+#endif
 
 libmaus::digest::SHA2_256_sse4::SHA2_256_sse4() 
 : block(2*(1ull<<libmaus::digest::SHA2_256_sse4::blockshift),false), 
@@ -28,7 +31,7 @@ libmaus::digest::SHA2_256_sse4::SHA2_256_sse4()
   digestinit(base_type::digestlength / sizeof(uint32_t),false),
   index(0), blockcnt(0)
 {
-	#if ! ( defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY) )
+	#if ! ( defined(LIBMAUS_USE_ASSEMBLY) &&  defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY) )
 	libmaus::exception::LibMausException lme;
 	lme.getStream() << "SHA2_256_sse4(): code has not been compiled into libmaus" << std::endl;
 	lme.finish();
@@ -60,6 +63,7 @@ libmaus::digest::SHA2_256_sse4::~SHA2_256_sse4()
 
 void libmaus::digest::SHA2_256_sse4::init()
 {
+	#if defined(LIBMAUS_HAVE_x86_64)
 	index = 0;
 	blockcnt = 0;
 
@@ -71,9 +75,19 @@ void libmaus::digest::SHA2_256_sse4::init()
 	_mm_store_si128(po++,ra);
 	ra = _mm_load_si128(pi++);
 	_mm_store_si128(po++,ra);	
+	#endif
 }
-void libmaus::digest::SHA2_256_sse4::update(uint8_t const * t, size_t l)
+void libmaus::digest::SHA2_256_sse4::update(
+	#if defined(LIBMAUS_HAVE_x86_64)
+	uint8_t const * t, 
+	size_t l
+	#else
+	uint8_t const *, 
+	size_t	
+	#endif
+)
 {
+	#if defined(LIBMAUS_HAVE_x86_64)
 	// something already in the buffer?
 	if ( index )
 	{
@@ -110,9 +124,17 @@ void libmaus::digest::SHA2_256_sse4::update(uint8_t const * t, size_t l)
 		
 	std::copy(t,t+l,&block[index]);
 	index += l;
+	#endif
 }
-void libmaus::digest::SHA2_256_sse4::digest(uint8_t * digest)
+void libmaus::digest::SHA2_256_sse4::digest(
+	#if defined(LIBMAUS_HAVE_x86_64)
+	uint8_t * digest
+	#else
+	uint8_t *	
+	#endif
+)
 {
+	#if defined(LIBMAUS_HAVE_x86_64)
 	uint64_t const numbytes = (1ull<<base_type::blockshift) * blockcnt + index;
 	uint64_t const numbits = numbytes << 3;
 		
@@ -207,9 +229,17 @@ void libmaus::digest::SHA2_256_sse4::digest(uint8_t * digest)
 
 	while ( digest32 != digest32e )
 		*(digest32++) = libmaus::rank::BSwapBase::bswap4(*(digesti++));
+	#endif
 }
-void libmaus::digest::SHA2_256_sse4::copyFrom(SHA2_256_sse4 const & O)
+void libmaus::digest::SHA2_256_sse4::copyFrom(
+	#if defined(LIBMAUS_HAVE_x86_64)
+	SHA2_256_sse4 const & O
+	#else
+	SHA2_256_sse4 const & 
+	#endif
+)
 {
+	#if defined(LIBMAUS_HAVE_x86_64)
 	// blocksize is 64 = 4 * 16
 	__m128i reg;
 	__m128i const * blockin  = reinterpret_cast<__m128i const *>(&O.block[0]);
@@ -235,4 +265,5 @@ void libmaus::digest::SHA2_256_sse4::copyFrom(SHA2_256_sse4 const & O)
 
 	blockcnt = O.blockcnt;
 	index = O.index;
+	#endif
 }
