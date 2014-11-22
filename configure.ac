@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.181,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:181:0
+AC_INIT(libmaus,0.0.182,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:182:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST

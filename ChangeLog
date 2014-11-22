@@ -1,3 +1,9 @@
+libmaus (0.0.182-1) unstable; urgency=low
+
+  * update debian packaging files 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 22 Nov 2014 11:55:03 +0000
+
 libmaus (0.0.181-1) unstable; urgency=low
 
   * fix out of tree build 
