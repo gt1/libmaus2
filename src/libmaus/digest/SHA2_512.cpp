@@ -19,7 +19,7 @@
 #include <libmaus/digest/SHA2_512.hpp>
 
 #if defined(LIBMAUS_HAVE_NETTLE)
-#include <nettle/sha2.h>
+#include <nettle/sha.h>
 
 libmaus::digest::SHA2_512::SHA2_512() : ctx(0) { ctx = new sha512_ctx; }
 libmaus::digest::SHA2_512::~SHA2_512() { delete reinterpret_cast<sha512_ctx *>(ctx); }

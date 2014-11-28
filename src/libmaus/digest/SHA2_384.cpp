@@ -19,7 +19,7 @@
 #include <libmaus/digest/SHA2_384.hpp>
 
 #if defined(LIBMAUS_HAVE_NETTLE)
-#include <nettle/sha2.h>
+#include <nettle/sha.h>
 
 libmaus::digest::SHA2_384::SHA2_384() : ctx(0) {ctx = new sha384_ctx; }
 libmaus::digest::SHA2_384::~SHA2_384() { delete reinterpret_cast<sha384_ctx *>(ctx); }
