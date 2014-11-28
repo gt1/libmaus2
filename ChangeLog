@@ -1,3 +1,9 @@
+libmaus (0.0.183-1) unstable; urgency=low
+
+  * adapt code for compilation using nettle 2.4 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 28 Nov 2014 12:34:06 +0000
+
 libmaus (0.0.182-1) unstable; urgency=low
 
   * update debian packaging files 
