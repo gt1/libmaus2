@@ -19,7 +19,7 @@
 #include <libmaus/digest/SHA1.hpp>
 
 #if defined(LIBMAUS_HAVE_NETTLE)
-#include <nettle/sha1.h>
+#include <nettle/sha.h>
 
 libmaus::digest::SHA1::SHA1() : ctx(0) { ctx = new sha1_ctx; }
 libmaus::digest::SHA1::~SHA1() { delete reinterpret_cast<sha1_ctx *>(ctx); }
@@ -46,10 +46,10 @@ libmaus::digest::SHA1::~SHA1()
 void libmaus::digest::SHA1::init() 
 { 
 }
-void libmaus::digest::SHA1::update(uint8_t const * t, size_t l) 
+void libmaus::digest::SHA1::update(uint8_t const *, size_t) 
 {
 }
-void libmaus::digest::SHA1::digest(uint8_t * digest) 
+void libmaus::digest::SHA1::digest(uint8_t *) 
 { 
 }
 #endif

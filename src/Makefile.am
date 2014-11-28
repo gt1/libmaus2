@@ -1,11 +1,39 @@
 ACLOCAL_AMFLAGS=-I m4
 
-abs_builddir = @abs_builddir@
+EXTRA_DIST = \
+	libmaus/digest/sha256_sse4.asm libmaus/digest/sha256_avx1.asm libmaus/digest/sha256_avx2_rorx2.asm libmaus/digest/sha256_avx2_rorx8.asm \
+	libmaus/digest/sha512_avx2_rorx.asm libmaus/digest/sha512_avx.asm libmaus/digest/sha512_sse4.asm
 
-lib_LTLIBRARIES = libmaus.la libmauslsf.la 
+abs_builddir = @abs_builddir@
+abs_srcdir = @abs_srcdir@
+
+lib_LTLIBRARIES = libmaus.la libmauslsf.la
+lib_LIBRARIES = libmausdigests.a
 
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
+
+libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_512_sse4.cpp
+
+libmausdigests_a_DEPENDENCIES = @DIGESTASMOBJ@
+libmausdigests_a_LIBADD = @DIGESTASMOBJ@
+
+CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
+
+sha256_sse4.o: $(abs_srcdir)/libmaus/digest/sha256_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o $(abs_srcdir)/libmaus/digest/sha256_sse4.asm
+sha256_avx1.o: $(abs_srcdir)/libmaus/digest/sha256_avx1.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx1.o $(abs_srcdir)/libmaus/digest/sha256_avx1.asm
+sha256_avx2_rorx2.o: $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx2.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx2.o $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx2.asm
+sha256_avx2_rorx8.o: $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx8.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx8.o $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx8.asm
+sha512_avx2_rorx.o: $(abs_srcdir)/libmaus/digest/sha512_avx2_rorx.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx2_rorx.o $(abs_srcdir)/libmaus/digest/sha512_avx2_rorx.asm
+sha512_avx.o: $(abs_srcdir)/libmaus/digest/sha512_avx.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx.o $(abs_srcdir)/libmaus/digest/sha512_avx.asm
+sha512_sse4.o: $(abs_srcdir)/libmaus/digest/sha512_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_sse4.o $(abs_srcdir)/libmaus/digest/sha512_sse4.asm
 
 libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/autoarray/AutoArray.cpp \
@@ -133,12 +161,12 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/SHA2_384.cpp \
 	libmaus/digest/SHA2_512.cpp \
 	libmaus/digest/CRC32.cpp
-	
+
 noinst_HEADERS = libmaus/lz/lz4.h
 
 libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
 libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@
+libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ # @DIGESTASMOBJ@
 
 libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
@@ -915,7 +943,11 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/SHA2_512.hpp \
 	libmaus/digest/CRC32.hpp \
 	libmaus/digest/Digests.hpp \
-	libmaus/digest/Null.hpp
+	libmaus/digest/Null.hpp \
+	libmaus/digest/SHA2_256_sse4.hpp \
+	libmaus/digest/sha256.h \
+	libmaus/digest/sha512.h \
+	libmaus/digest/SHA2_512_sse4.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
@@ -1175,8 +1207,7 @@ libmausconsensus_include_HEADERS =\
 	libmaus/consensus/Consensus.hpp \
 	libmaus/consensus/ScoringMatrix.hpp
 
-EXTRA_PROGRAMS = testlsf testlsflist
-noinst_PROGRAMS = \
+EXTRA_PROGRAMS = testlsf testlsflist \
 	testAIO \
 	testbitbtree \
 	testBitIO \
@@ -1293,6 +1324,7 @@ noinst_PROGRAMS = \
 	testmd5 \
 	testsha \
 	testsinglefileserver
+noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
 testgunzip_LDADD = libmaus.la
@@ -1687,9 +1719,10 @@ testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
 testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
 
 testsha_SOURCES = test/testsha.cpp
-testsha_LDADD = libmaus.la @NETTLELIBS@
+testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
+# testsha_DEPENDENCIES = libmausdigests.a
 
 testmd5_SOURCES = test/testmd5.cpp
 testmd5_LDADD = libmaus.la

@@ -25,7 +25,7 @@ namespace libmaus
 {
 	namespace digest
 	{
-		struct Null : public DigestBase<0>
+		struct Null : public DigestBase<0,0 /* block size shift */, 0 /* need padding */, 0 /* number length */, false>
 		{
 			void init() {}
 			void update(uint8_t const *, size_t) {}

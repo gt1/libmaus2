@@ -19,7 +19,7 @@
 #include <libmaus/digest/SHA2_224.hpp>
 
 #if defined(LIBMAUS_HAVE_NETTLE)
-#include <nettle/sha2.h>
+#include <nettle/sha.h>
 
 libmaus::digest::SHA2_224::SHA2_224() : ctx(0) {ctx = new sha224_ctx;}
 libmaus::digest::SHA2_224::~SHA2_224() { delete reinterpret_cast<sha224_ctx *>(ctx); }
@@ -46,10 +46,10 @@ libmaus::digest::SHA2_224::~SHA2_224()
 void libmaus::digest::SHA2_224::init() 
 { 
 }
-void libmaus::digest::SHA2_224::update(uint8_t const * t, size_t l) 
+void libmaus::digest::SHA2_224::update(uint8_t const *, size_t) 
 {
 }
-void libmaus::digest::SHA2_224::digest(uint8_t * digest) 
+void libmaus::digest::SHA2_224::digest(uint8_t *) 
 { 
 }
 #endif

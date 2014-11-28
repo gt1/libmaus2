@@ -104,8 +104,10 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	int64_t refid = -1;
 	char * ref = 0;
 	cram_range r;
+	#if 0
 	char ID_type[] = "SQ";
 	char ID_key[] = "SN";
+	#endif
 	
 	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
 	

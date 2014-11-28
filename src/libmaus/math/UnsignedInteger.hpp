@@ -57,6 +57,23 @@ namespace libmaus
 			
 			}		
 		};
+
+		template<typename T, size_t k>
+		struct ArrayCopy
+		{
+			static void copy(T * to, T const * from)
+			{
+				for ( size_t i = 0; i < k; ++i )
+					to[i] = from[i];
+			}
+		};
+		template<typename T>
+		struct ArrayCopy<T,0>
+		{
+			static void copy(T *, T const *)
+			{
+			}
+		};
 		
 		template<size_t k>
 		struct UnsignedInteger
@@ -121,10 +138,9 @@ namespace libmaus
 				}
 			}
 			
-			UnsignedInteger & operator=(UnsignedInteger const & O)
+			UnsignedInteger<k> & operator=(UnsignedInteger<k> const & O)
 			{
-				for ( size_t i = 0; i < k; ++i )
-					A[i] = O.A[i];
+				ArrayCopy<uint32_t,k>::copy(&A[0],&O.A[0]);
 				return *this;
 			}
 			
@@ -210,7 +226,8 @@ namespace libmaus
 				// shift by w full words
 				if ( w < k )
 				{
-					for ( size_t i = 0; i < k; ++i )
+					// k-i-1-w >= 0 <=> i <= k-w-1 <=> i < k-w
+					for ( size_t i = 0; i < k-w; ++i )
 						A[k-i-1] = A[k-i-1-w];
 					for ( size_t i = 0; i < w; ++i )
 						A[i] = 0;
@@ -238,29 +255,8 @@ namespace libmaus
 				return *this;
 			}
 			
-			UnsignedInteger<k> & operator+=(UnsignedInteger<k> const & O)
-			{
-				if ( k )
-				{
-					uint64_t sum = static_cast<uint64_t>(A[0]) + static_cast<uint64_t>(O.A[0]);
-					
-					A[0] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
-					
-					if ( k > 1 )
-					{
-						uint64_t carry = (sum >> 32) & 0xFFFFFFFFULL;
-						
-						for ( size_t i = 1; i < k; ++i )
-						{
-							sum = static_cast<uint64_t>(A[i]) + static_cast<uint64_t>(O.A[i]) + carry;
-							A[i] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
-							carry = (sum >> 32) & 0xFFFFFFFFULL;
-						}
-					}
-				}
-				
-				return *this;
-			}
+			template<size_t l>
+			UnsignedInteger<k> & operator+=(UnsignedInteger<l> const & O);
 
 			UnsignedInteger<k> & operator-=(UnsignedInteger<k> const & O)
 			{
@@ -612,6 +608,36 @@ namespace libmaus
 			}
 			
 			return out;
+		}
+		
+		template<size_t k, size_t l>
+		struct TemplateMin
+		{
+			static size_t const m = (k<l)?k:l;
+		};
+
+		template<size_t k>
+		template<size_t l>
+		UnsignedInteger<k> & UnsignedInteger<k>::operator+=(UnsignedInteger<l> const & O)
+		{
+			if ( TemplateMin<k,l>::m )
+			{
+				uint64_t sum = static_cast<uint64_t>(A[0]) + static_cast<uint64_t>(O.A[0]);	
+				A[0] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
+				
+				for ( size_t i = 1; i < TemplateMin<k,l>::m; ++i )
+				{
+					sum = static_cast<uint64_t>(A[i]) + static_cast<uint64_t>(O.A[i]) + ((sum >> 32) & 0xFFFFFFFFULL);
+					A[i] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
+				}
+				for ( size_t i = TemplateMin<k,l>::m; i < k; ++i )
+				{
+					sum = static_cast<uint64_t>(A[i]) + ((sum >> 32) & 0xFFFFFFFFULL);
+					A[i] = static_cast<uint32_t>(sum & 0xFFFFFFFFULL);
+				}
+			}
+			
+			return *this;
 		}
 	}
 }

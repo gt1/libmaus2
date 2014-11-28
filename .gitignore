@@ -36,6 +36,7 @@ src/.deps/
 src/.libs/
 src/Makefile
 src/libmaus/LibMausConfig.hpp
+src/*.a
 stamp-h1
 ubuntu.sh
 src/test[a-zA-Z]*

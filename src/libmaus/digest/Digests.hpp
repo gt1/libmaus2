@@ -27,4 +27,6 @@
 #include <libmaus/digest/SHA2_256.hpp>
 #include <libmaus/digest/SHA2_384.hpp>
 #include <libmaus/digest/SHA2_512.hpp>
+#include <libmaus/digest/SHA2_256_sse4.hpp>
+#include <libmaus/digest/SHA2_512_sse4.hpp>
 #endif

@@ -56,7 +56,7 @@ namespace libmaus
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
                         : filename(rfilename), data(libmaus::autoarray::AutoArray<char>::readFile(filename)), port(rport), 
-                          seso(UNIQUE_PTR_MOVE(server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),8*1024)))
+                          seso((server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),8*1024)))
                         {
                         }
                         

@@ -122,6 +122,13 @@ void libmaus::util::I386CacheLineSize::cpuid(
 	}
 }
 
+uint64_t libmaus::util::I386CacheLineSize::xgetbv(uint32_t const index)
+{
+	uint32_t eax, edx;
+	asm volatile(".byte 0x0f,0x01,0xd0" : "=a" (eax), "=d" (edx) : "c" (index)); // xgetbv, older versions of the tools don't know the opcode, thus byte sequence
+	return eax + (static_cast<uint64_t>(edx) << 32);
+}
+
 unsigned int libmaus::util::I386CacheLineSize::getCacheLineSizeSingle(unsigned int const val)
 {
 	switch ( val )
@@ -387,5 +394,39 @@ bool libmaus::util::I386CacheLineSize::hasPopCnt()
 	cpuid(eax,ebx,ecx,edx);
 
 	return ((ecx>>23)&1) == 1;
+}
+/**
+ * @return true if CPU supports avx
+ **/
+bool libmaus::util::I386CacheLineSize::hasAVX()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	// check for XSAVE/XRSTOR and AVX bits
+	if ( (ecx & 0x018000000ul) != 0x018000000ul )
+		return false;
+
+	// check state saving for xmm and ymm		
+	uint64_t const xbv = xgetbv(0);
+		
+	if ( (xbv & 0x6) != 0x6 )
+		return false;
+
+	return true;
 }
 #endif

@@ -16,28 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_SHA2_384_HPP)
-#define LIBMAUS_DIGEST_SHA2_384_HPP
+#if ! defined(LIBMAUS_DIGEST_SHA256_H)
+#define LIBMAUS_DIGEST_SHA256_H
 
-#include <libmaus/digest/DigestBase.hpp>
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-namespace libmaus
-{
-	namespace digest
-	{
-		struct SHA2_384 : public DigestBase<48,7 /* block size 64 shift */, true /* need padding */, 16 /* number length */, false>
-		{
-			void * ctx;
+// prototypes for assembly functions
+extern void sha256_sse4     (uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+extern void sha256_avx      (uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+extern void sha256_rorx     (uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
+extern void sha256_rorx_x8ms(uint8_t const * text, uint32_t digest[8], uint64_t const numblocks);
 
-			SHA2_384();
-			~SHA2_384();
-			
-			void init();
-			void update(uint8_t const * t, size_t l);
-			void digest(uint8_t * digest);
-			void copyFrom(SHA2_384 const & O);
-			static size_t getDigestLength() { return digestlength; }
-		};
-	}
+#if defined(__cplusplus)
 }
+#endif
+
 #endif

@@ -32,7 +32,7 @@ namespace libmaus
 {
 	namespace util
 	{
-		struct MD5 : public libmaus::digest::DigestBase<16>
+		struct MD5 : public libmaus::digest::DigestBase<16,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
 		{
 			void * ctx;
 		

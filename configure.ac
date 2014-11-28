@@ -1,7 +1,8 @@
-AC_INIT(libmaus,0.0.176,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:176:0
+AC_INIT(libmaus,0.0.183,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:183:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
+AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 
 AM_INIT_AUTOMAKE([std-options subdir-objects])
@@ -20,6 +21,51 @@ CXXFLAGS_SAVE="${CXXFLAGS}"
 CXXFLAGS=""
 AC_PROG_CXX
 CXXFLAGS="${CXXFLAGS_SAVE}"
+
+AC_MSG_CHECKING([whether host cpu is x86_64])
+HOSTCPUISX86_64=no
+case ${host_cpu} in
+	x86_64)
+		HOSTCPUISX86_64=yes
+		;;
+esac
+AC_MSG_RESULT([${HOSTCPUISX86_64}])
+
+AC_MSG_CHECKING([whether host os is GNU/Linux])
+HOSTOSISGNULINUX=no
+case ${host_os} in
+	linux-gnu)
+		HOSTOSISGNULINUX=yes
+		;;
+esac
+AC_MSG_RESULT([${HOSTOSISGNULINUX}])
+
+AC_MSG_CHECKING([whether we are compiling for x86_64 CPU on GNU/Linux OS ])
+HOSTISX86_64GNULINUX=no
+if test \( ${HOSTCPUISX86_64} = "yes" \) -a \( ${HOSTOSISGNULINUX} = "yes"  \) ; then
+	HOSTISX86_64GNULINUX=yes
+fi
+AC_MSG_RESULT([${HOSTISX86_64GNULINUX}])
+
+YASMEXE=
+DIGESTASMOBJ=
+LIBMAUS_HAVE_SHA2_ASSEMBLY=
+if test ${HOSTISX86_64GNULINUX} = "yes" ; then
+	AC_ARG_WITH([yasm],
+		[AS_HELP_STRING([--with-yasm@<:@=PATH@:>@], [path to installed yasm program @<:@default=no@:>@])],
+		[with_yasm=${withval}],
+		[with_yasm=no])
+		
+	if test "${with_yasm}" != "no" ; then
+		if test \( -z "${with_yasm}" \) -o \( "${with_yasm}" = "yes" \) ; then
+			with_yasm=`which yasm`
+		fi
+		
+		YASMEXE=${with_yasm}
+		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o"
+		LIBMAUS_HAVE_SHA2_ASSEMBLY="#define LIBMAUS_HAVE_SHA2_ASSEMBLY"
+	fi
+fi
 
 AC_CHECK_SIZEOF([unsigned long])
 LIBMAUS_SIZEOF_UNSIGNED_LONG="#define LIBMAUS_SIZEOF_UNSIGNED_LONG $ac_cv_sizeof_unsigned_long"
@@ -303,6 +349,40 @@ snappy::Compress(input,input_length,&output);
 	fi
 fi
 
+TESTPROGS="testAIO testbitbtree testBitIO testbtree testBWTDyn testBWTHufDyn testDivSufSort"
+TESTPROGS="${TESTPROGS} testDNABitWords testFastRead testFork testHuffman testIsa testkmp"
+TESTPROGS="${TESTPROGS} testlz testOS testRank testToWaveletTreeBits testWaveletExternal"
+TESTPROGS="${TESTPROGS} testTrie testConsensus testbandedlcs testbamwriter testhashlcs"
+TESTPROGS="${TESTPROGS} testkmlocal testarraydecode testsnappy testsnappyconcat testgunzip"
+TESTPROGS="${TESTPROGS} testlogging testregex testhashcollisions testsimplebloomcollisions"
+TESTPROGS="${TESTPROGS} testsimplehash testsimplecountinghash testsyncreorderset"
+TESTPROGS="${TESTPROGS} testcachealignedalloc testblocksynchronous testsyncfastreaderbase"
+TESTPROGS="${TESTPROGS} testlsf testlsfdispatcher testlsfclient testlsfclientfw testlsflist"
+TESTPROGS="${TESTPROGS} testdl testdifenc testbwtmergeinternal testfastarewrite testfastarecode"
+TESTPROGS="${TESTPROGS} testbamtofastq testbamrange testbamdamage testgamma testcompact"
+TESTPROGS="${TESTPROGS} testbytetocompact testscramtosam testpacdecode testutf8split testcirchash"
+TESTPROGS="${TESTPROGS} testrmmtree testcst testbamcmp testbamdif testqreorder testfqbgzf"
+TESTPROGS="${TESTPROGS} testoverlap testcompactfastrandom testbamindex testbamrewrite"
+TESTPROGS="${TESTPROGS} testfastqstream testsort testexternalsort testcollatespeed"
+TESTPROGS="${TESTPROGS} testbamheaderparser testbammergecoordinate testbammergecollate"
+TESTPROGS="${TESTPROGS} testbammergequeryname testbamcat testautoarray2d testhist"
+TESTPROGS="${TESTPROGS} testfastaparse testvalidatebamindex testeditdistance testthreadpool"
+TESTPROGS="${TESTPROGS} testsimplethreadpool testthreadpoolbamdecode testsimplethreadpoolbamdecode"
+TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock testrazdec"
+TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
+TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
+TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
+TESTPROGS="${TESTPROGS} testparallelbamdecompression testbytecnt teststronglyconnectedcomponents"
+TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
+TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
+
+AC_ARG_ENABLE(compile-testprograms,
+        AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
+        [compiletestprograms=${enableval}],[compiletestprograms=yes])
+
+if test "${compiletestprograms}" != "yes" ; then
+	TESTPROGS=
+fi
 
 AC_LANG_PUSH([C++])
 AC_HEADER_STDC
@@ -2061,7 +2141,7 @@ if test "${with_nettle}" != "no" ; then
 		fi
 	fi
 
-	PKG_CHECK_MODULES([nettle],[nettle >= 2.7.1],[nettlepkg=yes],[nettlepkg=no])
+	PKG_CHECK_MODULES([nettle],[nettle >= 2.4],[nettlepkg=yes],[nettlepkg=no])
 
 	if test ! -z "${with_nettle}" ; then
 		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
@@ -2078,7 +2158,7 @@ if test "${with_nettle}" != "no" ; then
 		CPPFLAGS="${CPPFLAGS} ${nettle_CFLAGS}"
 		
 		AC_MSG_CHECKING([whether we can compile a nettle program])
-		AC_TRY_LINK([#include <nettle/sha1.h>
+		AC_TRY_LINK([#include <nettle/sha.h>
 	],[;],[nettle=yes],[nettle=no])
 		AC_MSG_RESULT([${nettle}])
 		LIBS="${LIBSSAVE}"
@@ -2290,4 +2370,8 @@ AC_SUBST([NETTLECPPFLAGS])
 AC_SUBST([NETTLELDFLAGS])
 AC_SUBST([NETTLE])
 AC_SUBST([NETTLEREQ])
+AC_SUBST([YASMEXE])
+AC_SUBST([DIGESTASMOBJ])
+AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
+AC_SUBST([TESTPROGS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

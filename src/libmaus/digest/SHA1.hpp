@@ -25,7 +25,7 @@ namespace libmaus
 {
 	namespace digest
 	{
-		struct SHA1 : public DigestBase<20>
+		struct SHA1 : public DigestBase<20,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
 		{
 			void * ctx;
 			

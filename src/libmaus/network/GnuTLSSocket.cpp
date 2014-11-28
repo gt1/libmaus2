@@ -175,7 +175,13 @@ void libmaus::network::GnuTLSSocket::write(std::string const & s)
 	write(s.c_str(),s.size());
 }
 
-void libmaus::network::GnuTLSSocket::write(char const * p, size_t n)
+void libmaus::network::GnuTLSSocket::write(
+	#if defined(LIBMAUS_HAVE_GNUTLS)
+	char const * p, size_t n
+	#else
+	char const *, size_t	
+	#endif
+)
 {
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	while ( n )
@@ -207,7 +213,13 @@ void libmaus::network::GnuTLSSocket::write(char const * p, size_t n)
 	#endif
 }
 
-ssize_t libmaus::network::GnuTLSSocket::readPart(char * p, size_t n)
+ssize_t libmaus::network::GnuTLSSocket::readPart(
+	#if defined(LIBMAUS_HAVE_GNUTLS)
+	char * p, size_t n
+	#else
+	char *, size_t
+	#endif
+)
 {
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	ssize_t r;
@@ -251,7 +263,13 @@ ssize_t libmaus::network::GnuTLSSocket::readPart(char * p, size_t n)
 	#endif
 }
 
-ssize_t libmaus::network::GnuTLSSocket::read(char * p, size_t n)
+ssize_t libmaus::network::GnuTLSSocket::read(
+	#if defined(LIBMAUS_HAVE_GNUTLS)
+	char * p, size_t n
+	#else
+	char *, size_t
+	#endif
+)
 {
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	ssize_t r = 0;

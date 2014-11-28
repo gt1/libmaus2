@@ -51,6 +51,7 @@ static std::string getLibraryPath()
 	return std::string(dn);
 }
 
+#if 0
 static std::string getLibraryName()
 {
 	Dl_info libinfo;
@@ -71,6 +72,7 @@ static std::string getLibraryName()
 
 	return std::string(bn);
 }
+#endif
 
 libmaus::util::DynamicLibrary::DynamicLibrary(std::string const & rmodname)
 : modname(rmodname), lib(0)
