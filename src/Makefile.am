@@ -429,14 +429,19 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamParallelDecodingControl.hpp \
 	libmaus/bambam/BamHeaderParserStateBase.hpp \
 	libmaus/bambam/BamHeaderParserState.hpp \
-	libmaus/bambam/BamAlignmentReg2Bin.hpp
 	libmaus/bambam/BamAlignmentReg2Bin.hpp \
 	libmaus/bambam/SamInfoBase.hpp \
 	libmaus/bambam/SamInfo.hpp \
 	libmaus/bambam/SamPrintableTable.hpp \
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp
+	libmaus/bambam/SamDecoderWrapper.hpp \
+	libmaus/bambam/BamParallelDecodingInputBlock.hpp \
+	libmaus/bambam/BamParallelDecodingControlInputInfo.hpp \
+	libmaus/bambam/BamParallelDecodingInputBlockWorkPackage.hpp \
+	libmaus/bambam/BamParallelDecodingInputBlockWorkPackageReturnInterface.hpp \
+	libmaus/bambam/BamParallelDecodingInputBlockAddPendingInterface.hpp \
+	libmaus/bambam/BamParallelDecodingInputBlockWorkPackageDispatcher.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1722,7 +1727,7 @@ testsha_SOURCES = test/testsha.cpp
 testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
-# testsha_DEPENDENCIES = libmausdigests.a
+testsha_DEPENDENCIES = libmausdigests.a
 
 testmd5_SOURCES = test/testmd5.cpp
 testmd5_LDADD = libmaus.la
