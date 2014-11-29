@@ -160,7 +160,10 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/SHA2_256.cpp \
 	libmaus/digest/SHA2_384.cpp \
 	libmaus/digest/SHA2_512.cpp \
-	libmaus/digest/CRC32.cpp
+	libmaus/digest/CRC32.cpp \
+	libmaus/digest/CRC32C_sse42.cpp \
+	libmaus/digest/CRC32C_Core.cpp \
+	libmaus/digest/CRC32C.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -936,7 +939,10 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/SHA2_256_sse4.hpp \
 	libmaus/digest/sha256.h \
 	libmaus/digest/sha512.h \
-	libmaus/digest/SHA2_512_sse4.hpp
+	libmaus/digest/SHA2_512_sse4.hpp \
+	libmaus/digest/CRC32C_sse42.hpp \
+	libmaus/digest/CRC32C_Core.hpp \
+	libmaus/digest/CRC32C.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\

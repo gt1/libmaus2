@@ -409,6 +409,10 @@ AC_CHECK_HEADER(unistd.h, [unistd_h=yes], [unistd_h=no])
 AC_LANG_POP
 
 AC_LANG_PUSH([C++])
+AC_CHECK_HEADER(smmintrin.h, [smmintrin_h=yes], [smmintrin_h=no])
+AC_LANG_POP
+
+AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(features.h, [features_h=yes], [features_h=no])
 AC_LANG_POP
 
@@ -423,6 +427,11 @@ AC_LANG_POP
 HAVEDLFCNH=
 if [[ "${dlfcn_h}" = "yes" ]] ; then 
 	HAVEDLFCNH="#define LIBMAUS_HAVE_DLFCN_H"
+fi
+
+HAVESMMINTRINH=
+if [[ "${smmintrin_h}" = "yes" ]] ; then
+	HAVESMMINTRINH="#define LIBMAUS_HAVE_SMMINTRIN_H"
 fi
 
 DLFUNCS=""
@@ -2374,4 +2383,5 @@ AC_SUBST([YASMEXE])
 AC_SUBST([DIGESTASMOBJ])
 AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
 AC_SUBST([TESTPROGS])
+AC_SUBST([HAVESMMINTRINH])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
