@@ -410,9 +410,6 @@ AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(unistd.h, [unistd_h=yes], [unistd_h=no])
 AC_LANG_POP
 
-AC_LANG_PUSH([C++])
-AC_CHECK_HEADER(smmintrin.h, [smmintrin_h=yes], [smmintrin_h=no])
-AC_LANG_POP
 
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER(features.h, [features_h=yes], [features_h=no])
@@ -589,9 +586,21 @@ AC_MSG_RESULT([${msse4}])
 CXXFLAGS="${CXXFLAGS_SAVE}"
 AC_LANG_POP
 
-if test "${msse4}" ; then
+if test "${msse4}" = "yes" ; then
 	MSSE4="-msse4"
 fi
+
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE=${CXXFLAGS}
+CPPFLAGS_SAVE=${CPPFLAGS}
+if test "${msse4}" = "yes" ; then
+	CXXFLAGS="${CXXFLAGS} -msse4"
+	CPPFLAGS="${CPPFLAGS} -msse4"
+fi
+AC_CHECK_HEADER(smmintrin.h, [smmintrin_h=yes], [smmintrin_h=no])
+CXXFLAGS=${CXXFLAGS_SAVE}
+CPPFLAGS=${CPPFLAGS_SAVE}
+AC_LANG_POP
 
 if test "${nullx}" = "yes" ; then
 	CXXFLAGS_SAVE="${CXXFLAGS}"
