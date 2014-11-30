@@ -428,10 +428,6 @@ if [[ "${dlfcn_h}" = "yes" ]] ; then
 	HAVEDLFCNH="#define LIBMAUS_HAVE_DLFCN_H"
 fi
 
-HAVESMMINTRINH=
-if [[ "${smmintrin_h}" = "yes" ]] ; then
-	HAVESMMINTRINH="#define LIBMAUS_HAVE_SMMINTRIN_H"
-fi
 
 DLFUNCS=""
 have_dynamic_loading=no
@@ -601,6 +597,11 @@ AC_CHECK_HEADER(smmintrin.h, [smmintrin_h=yes], [smmintrin_h=no])
 CXXFLAGS=${CXXFLAGS_SAVE}
 CPPFLAGS=${CPPFLAGS_SAVE}
 AC_LANG_POP
+
+HAVESMMINTRINH=
+if [[ "${smmintrin_h}" = "yes" ]] ; then
+	HAVESMMINTRINH="#define LIBMAUS_HAVE_SMMINTRIN_H"
+fi
 
 if test "${nullx}" = "yes" ; then
 	CXXFLAGS_SAVE="${CXXFLAGS}"
