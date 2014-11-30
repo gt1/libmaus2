@@ -32,38 +32,6 @@
 #include <libmaus/digest/CRC32C_sse42.hpp>
 #include <libmaus/digest/CRC32C.hpp>
 
-#define POLY 0xEDB88320
-
-/* Table for a quadword-at-a-time software crc. */
-static uint32_t crc32c_table[8][256];
-
-/* Construct table for software CRC-32C calculation. */
-static void crc32c_init_sw(void)
-{
-    uint32_t n, crc, k;
-
-    for (n = 0; n < 256; n++) {
-        crc = n;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-        crc32c_table[0][n] = crc;
-    }
-    for (n = 0; n < 256; n++) {
-        crc = crc32c_table[0][n];
-        for (k = 1; k < 8; k++) {
-            crc = crc32c_table[0][crc & 0xff] ^ (crc >> 8);
-            crc32c_table[k][n] = crc;
-        }
-    }
-}
-
-
 template<typename crc>
 void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
 {
@@ -464,24 +432,6 @@ int main(int argc, char * argv[])
 		lme.getStream() << "support for nettle library is not present" << std::endl;
 		lme.finish();
 		throw lme;
-		#endif
-
-		#if 0
-		crc32c_init_sw();
-		// static uint32_t crc32c_table[8][256];
-
-		for ( int k = 0; k < 8; ++k )
-		{
-			std::cout << "static uint32_t const crc32_table_" << k << "[256] = {";
-			for ( int i = 0; i < 256; ++i )
-			{
-				if ( i % 8 == 0 )
-					std::cout << "\n\t";
-				std::cout << "0x" << std::setw(8) << std::hex << std::setfill('0') << crc32c_table[k][i] << std::setw(0) << std::dec << ((i+1<256)?",":"");
-			}
-
-			std::cout << "\n};\n";
-		}
 		#endif
 	}
 	catch(std::exception const & ex)
