@@ -1,22 +1,29 @@
 ACLOCAL_AMFLAGS=-I m4
 
 EXTRA_DIST = \
-	libmaus/digest/sha256_sse4.asm libmaus/digest/sha256_avx1.asm libmaus/digest/sha256_avx2_rorx2.asm libmaus/digest/sha256_avx2_rorx8.asm \
-	libmaus/digest/sha512_avx2_rorx.asm libmaus/digest/sha512_avx.asm libmaus/digest/sha512_sse4.asm
+	libmaus/digest/sha256_sse4.asm \
+	libmaus/digest/sha512_sse4.asm \
+	libmaus/digest/sha256_avx1.asm \
+	libmaus/digest/sha512_avx.asm \
+	libmaus/digest/sha256_avx2_rorx2.asm \
+	libmaus/digest/sha256_avx2_rorx8.asm \
+	libmaus/digest/sha512_avx2_rorx.asm
 
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la
-lib_LIBRARIES = libmausdigests.a
+lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a
 
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
 
 libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_512_sse4.cpp
-
 libmausdigests_a_DEPENDENCIES = @DIGESTASMOBJ@
 libmausdigests_a_LIBADD = @DIGESTASMOBJ@
+
+libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42_update.cpp
+libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
@@ -1714,7 +1721,7 @@ testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
 testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
 
 testsha_SOURCES = test/testsha.cpp
-testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a
+testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a libmausdigests_sse4.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
 # testsha_DEPENDENCIES = libmausdigests.a

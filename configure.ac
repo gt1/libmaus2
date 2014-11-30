@@ -62,7 +62,9 @@ if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 		fi
 		
 		YASMEXE=${with_yasm}
-		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o"
+		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha512_avx.o sha512_sse4.o"
+		# yasm in Ubuntu precise cannot process the files below and we currently do not use them
+		DIGESTASMOBJUNUSED="sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o"
 		LIBMAUS_HAVE_SHA2_ASSEMBLY="#define LIBMAUS_HAVE_SHA2_ASSEMBLY"
 	fi
 fi
@@ -578,13 +580,29 @@ AC_MSG_RESULT([${nullx}])
 CXXFLAGS="${CXXFLAGS_SAVE}"
 AC_LANG_POP
 
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
+CXXFLAGS="-msse4"
+AC_MSG_CHECKING([whether the C++ compiler supports the -msse4 flag])
+AC_TRY_COMPILE([],[],[msse4=yes],[msse4=no])
+AC_MSG_RESULT([${msse4}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+if test "${msse4}" ; then
+	MSSE4="-msse4"
+fi
+
 if test "${nullx}" = "yes" ; then
 	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CPPFLAGS_SAVE="${CPPFLAGS}"
 	CXXFLAGS="-std=gnu++0x"
+	CPPFLAGS="-std=gnu++0x"
 	AC_LANG_PUSH([C++])
 	AC_CHECK_HEADER(cstdint, [cstdint=yes], [cstdint=no])
 	AC_LANG_POP
 	CXXFLAGS="${CXXFLAGS_SAVE}"
+	CPPFLAGS="${CPPFLAGS_SAVE}"
 
 	LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -std=gnu++0x"
 	LIBMAUSPKGCXXFLAGS="${LIBMAUSPKGCXXFLAGS} -std=gnu++0x"
@@ -2384,4 +2402,5 @@ AC_SUBST([DIGESTASMOBJ])
 AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
 AC_SUBST([TESTPROGS])
 AC_SUBST([HAVESMMINTRINH])
-AC_OUTPUT(Makefile src/Makefile libmaus.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
+AC_SUBST([MSSE4])
+AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
