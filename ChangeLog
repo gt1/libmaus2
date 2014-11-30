@@ -1,3 +1,10 @@
+libmaus (0.0.184-1) unstable; urgency=low
+
+  * import CRC32C code
+  * refactoring of libmausdigests library 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 30 Nov 2014 17:37:20 +0000
+
 libmaus (0.0.183-1) unstable; urgency=low
 
   * adapt code for compilation using nettle 2.4 
