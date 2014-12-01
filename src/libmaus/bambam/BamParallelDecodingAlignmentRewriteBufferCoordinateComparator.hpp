@@ -16,25 +16,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP)
-#define LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP
+#if ! defined(LIBMAUS_BAMBAM_BAMPARALLELDECODINGALIGNMENTREWRITEBUFFERCOORDINATECOMPARATOR_HPP)
+#define LIBMAUS_BAMBAM_BAMPARALLELDECODINGALIGNMENTREWRITEBUFFERCOORDINATECOMPARATOR_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus/bambam/BamParallelDecodingAlignmentRewriteBuffer.hpp>
 
 namespace libmaus
 {
-	namespace parallel
+	namespace bambam
 	{		
-		struct SimpleThreadPoolInterfaceEnqueTermInterface
+		struct BamParallelDecodingAlignmentRewriteBufferCoordinateComparator
 		{
-			virtual ~SimpleThreadPoolInterfaceEnqueTermInterface() {}
-			virtual void enque(SimpleThreadWorkPackage * P) = 0;		
-			virtual void terminate() = 0;
-
-			virtual void addLogString(std::string const & s) = 0;
-			virtual void addLogStringWithThreadId(std::string const & s) = 0;
-			virtual libmaus::parallel::PosixSpinLock & getGlobalLock() = 0;
+			BamParallelDecodingAlignmentRewriteBuffer * buffer;
+			
+			BamParallelDecodingAlignmentRewriteBufferCoordinateComparator(BamParallelDecodingAlignmentRewriteBuffer * rbuffer) : buffer(rbuffer) {}
+			
+			bool operator()(BamParallelDecodingAlignmentRewriteBuffer::pointer_type A, BamParallelDecodingAlignmentRewriteBuffer::pointer_type B) const
+			{
+				return buffer->decodeCoordinate(A) < buffer->decodeCoordinate(B);
+			}
 		};
 	}
 }

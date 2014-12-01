@@ -16,25 +16,36 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP)
-#define LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP
+#if ! defined(LIBMAUS_BAMBAM_BAMPARALLELDECODINGALIGNMENTBUFFERALLOCATOR_HPP)
+#define LIBMAUS_BAMBAM_BAMPARALLELDECODINGALIGNMENTBUFFERALLOCATOR_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus/bambam/BamParallelDecodingAlignmentBuffer.hpp>
 
 namespace libmaus
 {
-	namespace parallel
-	{		
-		struct SimpleThreadPoolInterfaceEnqueTermInterface
+	namespace bambam
+	{
+		struct BamParallelDecodingAlignmentBufferAllocator
 		{
-			virtual ~SimpleThreadPoolInterfaceEnqueTermInterface() {}
-			virtual void enque(SimpleThreadWorkPackage * P) = 0;		
-			virtual void terminate() = 0;
-
-			virtual void addLogString(std::string const & s) = 0;
-			virtual void addLogStringWithThreadId(std::string const & s) = 0;
-			virtual libmaus::parallel::PosixSpinLock & getGlobalLock() = 0;
+			uint64_t bufferSize;
+			uint64_t mult;
+			
+			BamParallelDecodingAlignmentBufferAllocator()
+			: bufferSize(0), mult(0)
+			{
+			
+			}
+			
+			BamParallelDecodingAlignmentBufferAllocator(uint64_t const rbufferSize, uint64_t const rmult)
+			: bufferSize(rbufferSize), mult(rmult)
+			{
+			
+			}
+			
+			BamParallelDecodingAlignmentBuffer * operator()() const
+			{
+				return new BamParallelDecodingAlignmentBuffer(bufferSize,mult);
+			}
 		};
 	}
 }

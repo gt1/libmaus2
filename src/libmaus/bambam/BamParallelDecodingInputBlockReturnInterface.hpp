@@ -16,25 +16,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP)
-#define LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP
+#if ! defined(LIBMAUS_BAMBAM_BAMPARALLELDECODINGINPUTBLOCKRETURNINTERFACE_HPP)
+#define LIBMAUS_BAMBAM_BAMPARALLELDECODINGINPUTBLOCKRETURNINTERFACE_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus/bambam/BamParallelDecodingControlInputInfo.hpp>
 
 namespace libmaus
 {
-	namespace parallel
-	{		
-		struct SimpleThreadPoolInterfaceEnqueTermInterface
+	namespace bambam
+	{
+		// return input block after decompression
+		struct BamParallelDecodingInputBlockReturnInterface
 		{
-			virtual ~SimpleThreadPoolInterfaceEnqueTermInterface() {}
-			virtual void enque(SimpleThreadWorkPackage * P) = 0;		
-			virtual void terminate() = 0;
-
-			virtual void addLogString(std::string const & s) = 0;
-			virtual void addLogStringWithThreadId(std::string const & s) = 0;
-			virtual libmaus::parallel::PosixSpinLock & getGlobalLock() = 0;
+			virtual ~BamParallelDecodingInputBlockReturnInterface() {}
+			virtual void putBamParallelDecodingInputBlockReturn(BamParallelDecodingControlInputInfo::input_block_type * block) = 0;
 		};
 	}
 }

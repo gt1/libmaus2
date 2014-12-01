@@ -16,25 +16,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP)
-#define LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP
+#if ! defined(LIBMAUS_BAMBAM_BAMPARALLELDECODINGDECOMPRESSEDPENDINGOBJECT_HPP)
+#define LIBMAUS_BAMBAM_BAMPARALLELDECODINGDECOMPRESSEDPENDINGOBJECT_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus/bambam/BamParallelDecodingDecompressedBlock.hpp>
+#include <map>
 
 namespace libmaus
 {
-	namespace parallel
-	{		
-		struct SimpleThreadPoolInterfaceEnqueTermInterface
+	namespace bambam
+	{
+		struct BamParallelDecodingDecompressedPendingObject : std::pair<uint64_t, libmaus::bambam::BamParallelDecodingDecompressedBlock *>
 		{
-			virtual ~SimpleThreadPoolInterfaceEnqueTermInterface() {}
-			virtual void enque(SimpleThreadWorkPackage * P) = 0;		
-			virtual void terminate() = 0;
-
-			virtual void addLogString(std::string const & s) = 0;
-			virtual void addLogStringWithThreadId(std::string const & s) = 0;
-			virtual libmaus::parallel::PosixSpinLock & getGlobalLock() = 0;
+			typedef std::pair<uint64_t, libmaus::bambam::BamParallelDecodingDecompressedBlock *> base_type;
+		
+			BamParallelDecodingDecompressedPendingObject() : base_type(0,0) {}
+			BamParallelDecodingDecompressedPendingObject(
+				uint64_t const rid,
+				libmaus::bambam::BamParallelDecodingDecompressedBlock * robj
+			) : base_type(rid,robj) {}
 		};
 	}
 }
