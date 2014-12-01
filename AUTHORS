@@ -12,4 +12,6 @@ some code in src/libmaus/bambam/DuplicationMetrics.hpp is imported from the Pica
 LZ4 code in src/libmaus/lz/lz4.[ch] by Yann Collect (BSD 2-Clause licence, see files)
 CRC32 code in src/libmaus/hashing/Crc3.{cpp/hpp} by Stephan Brumme (ZLib type license, see files)
 libmaus/digest/sha(256|512)_*.asm (Intel license, see files)
+Part of CRC32{|C} code in src/libmaus/digest/CRC32{|C}_Core.cpp by Mark Adler (see file for license)
+Part of CRC32{|C} code in src/libmaus/digest/CRC32{|C}_Core.cpp by Cisco Systems, Inc. and Herbert Xu (GPLv2)
 Rest by German Tischler published under GPLv2/GPLv3 (some of it written while at Genome Research Limited/WTSI)

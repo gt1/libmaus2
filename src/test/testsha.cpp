@@ -28,6 +28,10 @@
 #include <libmaus/timing/RealTimeClock.hpp>
 #include <libmaus/random/Random.hpp>
 
+#include <libmaus/digest/CRC32.hpp>
+#include <libmaus/digest/CRC32C_sse42.hpp>
+#include <libmaus/digest/CRC32C.hpp>
+
 template<typename crc>
 void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
 {
@@ -381,6 +385,7 @@ int main(int argc, char * argv[])
 			std::ostream & out = std::cout;
 			printCRC<libmaus::digest::Null>(A.begin(),A.size(),out);
 			printCRC<libmaus::digest::CRC32>(A.begin(),A.size(),out);
+			printCRC<libmaus::digest::CRC32C>(A.begin(),A.size(),out);
 			printCRC<libmaus::util::MD5>(A.begin(),A.size(),out);
 
 			#if defined(LIBMAUS_HAVE_NETTLE)
@@ -389,6 +394,14 @@ int main(int argc, char * argv[])
 			printCRC<libmaus::digest::SHA2_256>(A.begin(),A.size(),out);
 			printCRC<libmaus::digest::SHA2_384>(A.begin(),A.size(),out);
 			printCRC<libmaus::digest::SHA2_512>(A.begin(),A.size(),out);
+			#endif
+
+
+			#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
+			if ( libmaus::util::I386CacheLineSize::hasSSE42() )
+			{
+				printCRC<libmaus::digest::CRC32C_sse42>(A.begin(),A.size(),out);		
+			}
 			#endif
 
 			#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)

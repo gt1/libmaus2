@@ -16,27 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/CRC32.hpp>
+#include <libmaus/digest/CRC32C.hpp>
+#include <libmaus/digest/CRC32C_Core.hpp>
 
-#if defined(LIBMAUS_HAVE_x86_64)
-#include <libmaus/digest/CRC32_Core.hpp>
-#endif
-
-#include <zlib.h>
-
-libmaus::digest::CRC32::CRC32() : initial(crc32(0L, Z_NULL, 0)), ctx(0) {}
-libmaus::digest::CRC32::~CRC32() {}
+libmaus::digest::CRC32C::CRC32C() : ctx(0) {}
+libmaus::digest::CRC32C::~CRC32C() {}
 	
-void libmaus::digest::CRC32::init() { ctx = initial; }
-void libmaus::digest::CRC32::update(uint8_t const * t, size_t l) 
-{ 
-#if defined(LIBMAUS_HAVE_x86_64)
-	ctx = libmaus::digest::CRC32_Core::crc32_core(ctx,t,l);
-#else
-	ctx = crc32(ctx,t,l); 
-#endif
-}
-void libmaus::digest::CRC32::digest(uint8_t * digest) 
+void libmaus::digest::CRC32C::init() { ctx = 0; }
+void libmaus::digest::CRC32C::update(uint8_t const * t, size_t l) { ctx = libmaus::digest::CRC32C_Core::crc32c_core(ctx,t,l); }
+void libmaus::digest::CRC32C::digest(uint8_t * digest) 
 {
 	digest[0] = (ctx >> 24) & 0xFF;
 	digest[1] = (ctx >> 16) & 0xFF;
@@ -44,7 +32,7 @@ void libmaus::digest::CRC32::digest(uint8_t * digest)
 	digest[3] = (ctx >>  0) & 0xFF;
 }
 
-void libmaus::digest::CRC32::copyFrom(CRC32 const & O)
+void libmaus::digest::CRC32C::copyFrom(CRC32C const & O)
 {
 	ctx = O.ctx;
 }
