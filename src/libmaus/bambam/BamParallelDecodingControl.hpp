@@ -19,6 +19,16 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMDECOMPRESSIONCONTROL_HPP)
 #define LIBMAUS_BAMBAM_BAMDECOMPRESSIONCONTROL_HPP
 
+#include <libmaus/bambam/BamParallelDecodingBlockCompressPackageDispatcher.hpp>
+#include <libmaus/bambam/BamParallelDecodingAlignmentBlockCompressPackageReturnInterface.hpp>
+#include <libmaus/bambam/BamParallelDecodingAddPendingCompressBufferWriteInterface.hpp>
+#include <libmaus/bambam/BamParallelDecodingReturnCompressionPendingElementInterface.hpp>
+#include <libmaus/bambam/BamParallelDecodingAlignmentBlockCompressPackage.hpp>
+#include <libmaus/bambam/BamParallelDecodingReturnRewriteBufferInterface.hpp>
+#include <libmaus/bambam/BamParallelDecodingCompressionPendingElement.hpp>
+#include <libmaus/bambam/BamParallelDecodingCompressBufferAllocator.hpp>
+#include <libmaus/bambam/BamParallelDecodingCompressBufferHeapComparator.hpp>
+#include <libmaus/bambam/BamParallelDecodingCompressBuffer.hpp>
 #include <libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortContext.hpp>
 #include <libmaus/bambam/BamParallelDecodingSortFinishedInterface.hpp>
 #include <libmaus/bambam/BamParallelDecodingMergeSortWorkPackageDispatcher.hpp>
@@ -70,29 +80,13 @@
 #include <libmaus/bambam/BamParallelDecodingInputBlock.hpp>
 
 #include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/BamHeaderParserState.hpp>
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
-#include <libmaus/lz/BgzfInflateBase.hpp>
-#include <libmaus/lz/BgzfInflateHeaderBase.hpp>
 #include <libmaus/parallel/LockedCounter.hpp>
-#include <libmaus/parallel/LockedFreeList.hpp>
-#include <libmaus/parallel/LockedGrowingFreeList.hpp>
 #include <libmaus/parallel/LockedHeap.hpp>
 #include <libmaus/parallel/LockedQueue.hpp>
-#include <libmaus/parallel/PosixMutex.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
 #include <libmaus/parallel/SimpleThreadPool.hpp>
 #include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/parallel/SynchronousCounter.hpp>
-#include <libmaus/sorting/ParallelStableSort.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/util/FreeList.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/GrowingFreeList.hpp>
 
 #include <libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp>
 
@@ -102,213 +96,14 @@
 namespace libmaus
 {
 	namespace bambam
-	{
-		struct BamParallelDecodingCompressBuffer
-		{
-			libmaus::autoarray::AutoArray<uint8_t> inputBuffer;
-			libmaus::autoarray::AutoArray<char> outputBuffer;
-			size_t compsize;
-			
-			uint64_t blockid;
-			uint64_t subid;
-			uint64_t totalsubids;
-			
-			BamParallelDecodingCompressBuffer(uint64_t const inputBufferSize)
-			: inputBuffer(inputBufferSize,false), compsize(0), blockid(0), subid(0), totalsubids(0)
-			{
-			
-			}
-			
-			bool operator<(BamParallelDecodingCompressBuffer const & o) const
-			{
-				return subid > o.subid;
-			}
-		};
-		
-		struct BamParallelDecodingCompressBufferHeapComparator
-		{
-			bool operator()(BamParallelDecodingCompressBuffer const * A, BamParallelDecodingCompressBuffer const * B) const
-			{
-				return A->subid > B->subid;
-			}
-		};
-		
-		struct BamParallelDecodingCompressBufferAllocator
-		{
-			uint64_t buffersize;
-		
-			BamParallelDecodingCompressBufferAllocator(uint64_t const rbuffersize)
-			: buffersize(rbuffersize) {}
-			
-			BamParallelDecodingCompressBuffer * operator()()
-			{
-				return new BamParallelDecodingCompressBuffer(buffersize);
-			}
-		};
-
-		struct BamParallelDecodingCompressionPendingElement
-		{
-			BamParallelDecodingAlignmentRewriteBuffer * buffer;
-			uint64_t blockid;
-			uint64_t subid;
-			uint64_t totalsubids;
-			
-			BamParallelDecodingCompressionPendingElement() : buffer(0), blockid(0), subid(0), totalsubids(0) {}
-			BamParallelDecodingCompressionPendingElement(
-				BamParallelDecodingAlignmentRewriteBuffer * rbuffer,
-				uint64_t const rblockid,
-				uint64_t const rsubid,
-				uint64_t const rtotalsubids
-			) : buffer(rbuffer), blockid(rblockid), subid(rsubid), totalsubids(rtotalsubids)
-			{
-			
-			}
-		};
-
-		struct BamParallelDecodingReturnRewriteBufferInterface
-		{
-			virtual ~BamParallelDecodingReturnRewriteBufferInterface() {}
-			virtual void putBamParallelDecodingReturnRewriteBuffer(BamParallelDecodingAlignmentRewriteBuffer * buffer) = 0;
-		};
-
-		struct BamAlignmentBlockCompressPackage : public libmaus::parallel::SimpleThreadWorkPackage
-		{
-			typedef BamAlignmentBlockCompressPackage this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-						
-			BamParallelDecodingCompressBuffer * compbuf;
-			BamParallelDecodingCompressionPendingElement * pend;
-
-			BamAlignmentBlockCompressPackage() : libmaus::parallel::SimpleThreadWorkPackage(), compbuf(0), pend(0) {}
-			
-			BamAlignmentBlockCompressPackage(
-				uint64_t const rpriority, 
-				BamParallelDecodingCompressBuffer * rcompbuf,
-				BamParallelDecodingCompressionPendingElement * rpend,
-				uint64_t const rdispatcherId
-			)
-			: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), compbuf(rcompbuf), pend(rpend)
-			{
-			}
-		
-			char const * getPackageName() const
-			{
-				return "BamAlignmentBlockCompressPackage";
-			}
-		};
-		
-		// return input block work package
-		struct BamParallelDecodingBamAlignmentBlockCompressPackageReturnInterface
-		{
-			virtual ~BamParallelDecodingBamAlignmentBlockCompressPackageReturnInterface() {}
-			virtual void putBamParallelDecodingBamAlignmentBlockCompressPackagePackage(BamAlignmentBlockCompressPackage * package) = 0;
-		};
-		
-		struct BamParallelDecodingAddPendingCompressBufferWriteInterface
-		{
-			virtual ~BamParallelDecodingAddPendingCompressBufferWriteInterface() {}
-			virtual void putBamParallelDecodingAddPendingCompressBufferWrite(BamParallelDecodingCompressBuffer * buffer) = 0;
-		};
-
-		struct BamParallelDecodingReturnCompressionPendingElementInterface
-		{
-			virtual ~BamParallelDecodingReturnCompressionPendingElementInterface() {}
-			virtual void putBamParallelDecodingReturnCompressionPendingElement(BamParallelDecodingCompressionPendingElement * pend) = 0;
-		};
-
-		// dispatcher for block compression
-		struct BamParallelDecodingBlockCompressPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
-		{
-			libmaus::parallel::LockedGrowingFreeList<libmaus::lz::CompressorObject, libmaus::lz::CompressorObjectFreeListAllocator> & compfreelist;
-			BamParallelDecodingAddPendingCompressBufferWriteInterface & addPendingWriteInterface;
-			BamParallelDecodingReturnCompressionPendingElementInterface & returnCompressionPendingElementInterface;
-			BamParallelDecodingBamAlignmentBlockCompressPackageReturnInterface & packageReturnInterface;
-			
-			BamParallelDecodingBlockCompressPackageDispatcher(
-				libmaus::parallel::LockedGrowingFreeList<libmaus::lz::CompressorObject, libmaus::lz::CompressorObjectFreeListAllocator> & rcompfreelist,
-				BamParallelDecodingAddPendingCompressBufferWriteInterface & raddPendingWriteInterface,
-				BamParallelDecodingReturnCompressionPendingElementInterface & rreturnCompressionPendingElementInterface,
-				BamParallelDecodingBamAlignmentBlockCompressPackageReturnInterface & rpackageReturnInterface
-			) : compfreelist(rcompfreelist), 
-			    addPendingWriteInterface(raddPendingWriteInterface), 
-			    returnCompressionPendingElementInterface(rreturnCompressionPendingElementInterface),
-			    packageReturnInterface(rpackageReturnInterface) 
-			{
-			}
-		
-			virtual void dispatch(
-				libmaus::parallel::SimpleThreadWorkPackage * P, 
-				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
-			)
-			{
-				BamAlignmentBlockCompressPackage * BP = dynamic_cast<BamAlignmentBlockCompressPackage *>(P);
-				assert ( BP );
-
-				BamParallelDecodingCompressionPendingElement * pend = BP->pend;
-				BamParallelDecodingCompressBuffer * compbuf = BP->compbuf;
-				
-				compbuf->blockid = pend->blockid;
-				compbuf->subid = pend->subid;
-				compbuf->totalsubids = pend->totalsubids;
-
-				BamParallelDecodingAlignmentRewriteBuffer * rewritebuffer = pend->buffer;
-				uint64_t const low = rewritebuffer->blocksizes[pend->subid];
-				uint64_t const high = rewritebuffer->blocksizes[pend->subid+1];
-				
-				uint8_t * compin = compbuf->inputBuffer.begin();
-
-				for ( uint64_t i = low; i < high; ++i )
-				{
-					std::pair<uint8_t const *,uint64_t> P = rewritebuffer->at(i);
-					assert ( ( (compin + P.second + sizeof(uint32_t)) - compbuf->inputBuffer.begin()) <= compbuf->inputBuffer.size() );
-					
-					// length as little endian
-					*(compin++) = (P.second >> 0) & 0xFF;
-					*(compin++) = (P.second >> 8) & 0xFF;
-					*(compin++) = (P.second >> 16) & 0xFF;
-					*(compin++) = (P.second >> 24) & 0xFF;
-					
-					// copy alignment data block
-					memcpy(compin,P.first,P.second);
-					compin += P.second;
-				}
-				
-				uint64_t const insize = compin - compbuf->inputBuffer.begin();
-				
-				libmaus::lz::CompressorObject * compressor = compfreelist.get();
-
-				try
-				{
-					compbuf->compsize = compressor->compress(
-						reinterpret_cast<char const *>(compbuf->inputBuffer.begin()),
-						insize,
-						compbuf->outputBuffer
-					);
-				}
-				catch(...)
-				{
-					compfreelist.put(compressor);
-					throw;
-				}
-				
-				compfreelist.put(compressor);
-				
-				// return pending object
-				returnCompressionPendingElementInterface.putBamParallelDecodingReturnCompressionPendingElement(pend);
-				
-				// mark block as pending for writing
-				addPendingWriteInterface.putBamParallelDecodingAddPendingCompressBufferWrite(compbuf);
-				
-				// return the work package				
-				packageReturnInterface.putBamParallelDecodingBamAlignmentBlockCompressPackagePackage(BP);				
-			}		
-		};
-
+	{		
 		template<typename _stream_type>
 		struct NamedTempFile
 		{
 			typedef _stream_type stream_type;
+			typedef NamedTempFile<stream_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			std::string const name;
 			uint64_t const id;
@@ -316,6 +111,18 @@ namespace libmaus
 			
 			NamedTempFile(std::string const & rname, uint64_t const rid)
 			: name(rname), id(rid), stream(name) {}
+			
+			static unique_ptr_type uconstruct(std::string const & rname, uint64_t const rid)
+			{
+				unique_ptr_type tptr(new this_type(rname,rid));
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+
+			static shared_ptr_type sconstruct(std::string const & rname, uint64_t const rid)
+			{
+				shared_ptr_type tptr(new this_type(rname,rid));
+				return tptr;
+			}
 			
 			uint64_t getId() const
 			{
@@ -384,7 +191,7 @@ namespace libmaus
 			public BamParallelDecodingBaseMergeSortWorkPackageReturnInterface<_order_type>,
 			public BamParallelDecodingSortFinishedInterface,
 			public BamParallelDecodingReturnRewriteBufferInterface,
-			public BamParallelDecodingBamAlignmentBlockCompressPackageReturnInterface,
+			public BamParallelDecodingAlignmentBlockCompressPackageReturnInterface,
 			public BamParallelDecodingAddPendingCompressBufferWriteInterface,
 			public BamParallelDecodingReturnCompressionPendingElementInterface
 		{
@@ -446,7 +253,7 @@ namespace libmaus
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingRewriteBlockWorkPackage> rewriteWorkPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingAlignmentRewritePosSortBaseSortPackage<order_type> > baseSortPackages;
 			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingAlignmentRewritePosMergeSortPackage<order_type> > mergeSortPackages;
-			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamAlignmentBlockCompressPackage> blockCompressPackages;
+			libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BamParallelDecodingAlignmentBlockCompressPackage> blockCompressPackages;
 
 			// free list for bgzf decompressors
 			libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase>::unique_ptr_type Pdecoders;
@@ -531,7 +338,7 @@ namespace libmaus
 			std::map<uint64_t,uint64_t> writePendingUnfinished;
 			libmaus::parallel::PosixSpinLock writePendindUnfinishedLock;
 						
-			virtual void putBamParallelDecodingBamAlignmentBlockCompressPackagePackage(BamAlignmentBlockCompressPackage * package)
+			virtual void putBamParallelDecodingAlignmentBlockCompressPackagePackage(BamParallelDecodingAlignmentBlockCompressPackage * package)
 			{
 				blockCompressPackages.returnPackage(package);
 			}
@@ -637,9 +444,9 @@ namespace libmaus
 					else
 					{
 						// enque work package
-						BamAlignmentBlockCompressPackage * package = blockCompressPackages.getPackage();
+						BamParallelDecodingAlignmentBlockCompressPackage * package = blockCompressPackages.getPackage();
 
-						*package = BamAlignmentBlockCompressPackage(
+						*package = BamParallelDecodingAlignmentBlockCompressPackage(
 							0, /* priority */
 							compbuf,
 							pend,

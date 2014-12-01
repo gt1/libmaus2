@@ -496,8 +496,18 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/BamParallelDecodingBaseMergeSortWorkPackageReturnInterface.hpp \
 	libmaus/bambam/BamParallelDecodingMergeSortWorkPackageDispatcher.hpp \
 	libmaus/bambam/BamParallelDecodingSortFinishedInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortContext.hpp
-
+	libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortContext.hpp \
+	libmaus/bambam/BamParallelDecodingCompressBuffer.hpp \
+	libmaus/bambam/BamParallelDecodingCompressBufferHeapComparator.hpp \
+	libmaus/bambam/BamParallelDecodingCompressBufferAllocator.hpp \
+	libmaus/bambam/BamParallelDecodingCompressionPendingElement.hpp \
+	libmaus/bambam/BamParallelDecodingReturnRewriteBufferInterface.hpp \
+	libmaus/bambam/BamParallelDecodingAlignmentBlockCompressPackage.hpp \
+	libmaus/bambam/BamParallelDecodingAlignmentBlockCompressPackageReturnInterface.hpp \
+	libmaus/bambam/BamParallelDecodingAddPendingCompressBufferWriteInterface.hpp \
+	libmaus/bambam/BamParallelDecodingReturnCompressionPendingElementInterface.hpp \
+	libmaus/bambam/BamParallelDecodingBlockCompressPackageDispatcher.hpp
+	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitIO.hpp \
