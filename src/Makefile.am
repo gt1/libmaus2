@@ -437,7 +437,6 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/GeneFlatFileEntry.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
 	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
-	libmaus/bambam/BamParallelDecodingControl.hpp \
 	libmaus/bambam/BamHeaderParserStateBase.hpp \
 	libmaus/bambam/BamHeaderParserState.hpp \
 	libmaus/bambam/BamAlignmentReg2Bin.hpp \
@@ -446,67 +445,71 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamPrintableTable.hpp \
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp \
-	libmaus/bambam/BamParallelDecodingInputBlock.hpp \
-	libmaus/bambam/BamParallelDecodingControlInputInfo.hpp \
-	libmaus/bambam/BamParallelDecodingInputBlockWorkPackage.hpp \
-	libmaus/bambam/BamParallelDecodingInputBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingInputBlockAddPendingInterface.hpp \
-	libmaus/bambam/BamParallelDecodingInputBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressedBlock.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressBlockWorkPackage.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingInputBlockReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressedBlockAddPendingInterface.hpp \
-	libmaus/bambam/BamParallelDecodingBgzfInflateZStreamBaseReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingPushBackSpace.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentBuffer.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewriteBuffer.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewriteBufferPosComparator.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewriteBufferCoordinateComparator.hpp \
-	libmaus/bambam/BamParallelDecodingParseInfo.hpp \
-	libmaus/bambam/BamParallelDecodingParseBlockWorkPackage.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressedPendingObject.hpp \
-	libmaus/bambam/BamParallelDecodingParsePackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingParsedBlockStallInterface.hpp \
-	libmaus/bambam/BamParallelDecodingParsedBlockAddPendingInterface.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressedBlockReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewriteBufferAllocator.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentBufferAllocator.hpp \
-	libmaus/bambam/BamParallelDecodingDecompressedPendingObjectHeapComparator.hpp \
-	libmaus/bambam/BamParallelDecodingParseBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingValidateBlockWorkPackage.hpp \
-	libmaus/bambam/BamParallelDecodingValidateBlockAddPendingInterface.hpp \
-	libmaus/bambam/BamParallelDecodingValidatePackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingValidateBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingRewriteBlockWorkPackage.hpp \
-	libmaus/bambam/BamParallelDecodingRewritePackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentBufferReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentBufferReinsertInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewriteBufferAddPendingInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewriteBufferReinsertForFillingInterface.hpp \
-	libmaus/bambam/BamParallelDecodingRewriteBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortContextMergePackageFinished.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortContextBaseBlockSortedInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortBaseSortPackage.hpp \
-	libmaus/bambam/BamParallelDecodingBaseSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingBaseSortWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewritePosMergeSortPackage.hpp \
-	libmaus/bambam/BamParallelDecodingBaseMergeSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingMergeSortWorkPackageDispatcher.hpp \
-	libmaus/bambam/BamParallelDecodingSortFinishedInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentRewritePosSortContext.hpp \
-	libmaus/bambam/BamParallelDecodingCompressBuffer.hpp \
-	libmaus/bambam/BamParallelDecodingCompressBufferHeapComparator.hpp \
-	libmaus/bambam/BamParallelDecodingCompressBufferAllocator.hpp \
-	libmaus/bambam/BamParallelDecodingCompressionPendingElement.hpp \
-	libmaus/bambam/BamParallelDecodingReturnRewriteBufferInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentBlockCompressPackage.hpp \
-	libmaus/bambam/BamParallelDecodingAlignmentBlockCompressPackageReturnInterface.hpp \
-	libmaus/bambam/BamParallelDecodingAddPendingCompressBufferWriteInterface.hpp \
-	libmaus/bambam/BamParallelDecodingReturnCompressionPendingElementInterface.hpp \
-	libmaus/bambam/BamParallelDecodingBlockCompressPackageDispatcher.hpp
+	libmaus/bambam/SamDecoderWrapper.hpp
+
+libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
+libmausbambamparallel_include_HEADERS = \
+	libmaus/bambam/parallel/Control.hpp \
+	libmaus/bambam/parallel/InputBlock.hpp \
+	libmaus/bambam/parallel/ControlInputInfo.hpp \
+	libmaus/bambam/parallel/InputBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/InputBlockAddPendingInterface.hpp \
+	libmaus/bambam/parallel/InputBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/DecompressedBlock.hpp \
+	libmaus/bambam/parallel/DecompressBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/DecompressBlockWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/InputBlockReturnInterface.hpp \
+	libmaus/bambam/parallel/DecompressedBlockAddPendingInterface.hpp \
+	libmaus/bambam/parallel/BgzfInflateZStreamBaseReturnInterface.hpp \
+	libmaus/bambam/parallel/DecompressBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/PushBackSpace.hpp \
+	libmaus/bambam/parallel/AlignmentBuffer.hpp \
+	libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp \
+	libmaus/bambam/parallel/AlignmentRewriteBufferPosComparator.hpp \
+	libmaus/bambam/parallel/AlignmentRewriteBufferCoordinateComparator.hpp \
+	libmaus/bambam/parallel/ParseInfo.hpp \
+	libmaus/bambam/parallel/ParseBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/DecompressedPendingObject.hpp \
+	libmaus/bambam/parallel/ParsePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/ParsedBlockStallInterface.hpp \
+	libmaus/bambam/parallel/ParsedBlockAddPendingInterface.hpp \
+	libmaus/bambam/parallel/DecompressedBlockReturnInterface.hpp \
+	libmaus/bambam/parallel/AlignmentRewriteBufferAllocator.hpp \
+	libmaus/bambam/parallel/AlignmentBufferAllocator.hpp \
+	libmaus/bambam/parallel/DecompressedPendingObjectHeapComparator.hpp \
+	libmaus/bambam/parallel/ParseBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/ValidateBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/ValidateBlockAddPendingInterface.hpp \
+	libmaus/bambam/parallel/ValidatePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/ValidateBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/RewriteBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/RewritePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/AlignmentBufferReturnInterface.hpp \
+	libmaus/bambam/parallel/AlignmentBufferReinsertInterface.hpp \
+	libmaus/bambam/parallel/AlignmentRewriteBufferAddPendingInterface.hpp \
+	libmaus/bambam/parallel/AlignmentRewriteBufferReinsertForFillingInterface.hpp \
+	libmaus/bambam/parallel/RewriteBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/AlignmentRewritePosSortContextMergePackageFinished.hpp \
+	libmaus/bambam/parallel/AlignmentRewritePosSortContextBaseBlockSortedInterface.hpp \
+	libmaus/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp \
+	libmaus/bambam/parallel/BaseSortWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/BaseSortWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp \
+	libmaus/bambam/parallel/BaseMergeSortWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/MergeSortWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/SortFinishedInterface.hpp \
+	libmaus/bambam/parallel/AlignmentRewritePosSortContext.hpp \
+	libmaus/bambam/parallel/CompressBuffer.hpp \
+	libmaus/bambam/parallel/CompressBufferHeapComparator.hpp \
+	libmaus/bambam/parallel/CompressBufferAllocator.hpp \
+	libmaus/bambam/parallel/CompressionPendingElement.hpp \
+	libmaus/bambam/parallel/ReturnRewriteBufferInterface.hpp \
+	libmaus/bambam/parallel/AlignmentBlockCompressPackage.hpp \
+	libmaus/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp \
+	libmaus/bambam/parallel/ReturnCompressionPendingElementInterface.hpp \
+	libmaus/bambam/parallel/BlockCompressPackageDispatcher.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

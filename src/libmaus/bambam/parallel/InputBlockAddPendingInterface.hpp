@@ -16,18 +16,24 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/Control.hpp>
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKADDPENDINGINTERFACE_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKADDPENDINGINTERFACE_HPP
 
-int main()
+#include <libmaus/bambam/parallel/ControlInputInfo.hpp>
+
+namespace libmaus
 {
-	try
+	namespace bambam
 	{
-		// libmaus::bambam::parallel::Control::serialTestDecode1(std::cin,std::cout);
-		libmaus::bambam::parallel::Control<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
+		namespace parallel
+		{
+			// add input block pending decompression
+			struct InputBlockAddPendingInterface
+			{
+				virtual ~InputBlockAddPendingInterface() {}
+				virtual void putInputBlockAddPending(ControlInputInfo::input_block_type * package) = 0;
+			};
+		}
 	}
 }
+#endif

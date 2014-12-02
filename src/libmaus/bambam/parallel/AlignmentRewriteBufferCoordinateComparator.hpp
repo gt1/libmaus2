@@ -16,18 +16,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/Control.hpp>
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERCOORDINATECOMPARATOR_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERCOORDINATECOMPARATOR_HPP
 
-int main()
+#include <libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp>
+
+namespace libmaus
 {
-	try
-	{
-		// libmaus::bambam::parallel::Control::serialTestDecode1(std::cin,std::cout);
-		libmaus::bambam::parallel::Control<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
+	namespace bambam
+	{		
+		namespace parallel
+		{
+			struct AlignmentRewriteBufferCoordinateComparator
+			{
+				AlignmentRewriteBuffer * buffer;
+				
+				AlignmentRewriteBufferCoordinateComparator(AlignmentRewriteBuffer * rbuffer) : buffer(rbuffer) {}
+				
+				bool operator()(AlignmentRewriteBuffer::pointer_type A, AlignmentRewriteBuffer::pointer_type B) const
+				{
+					return buffer->decodeCoordinate(A) < buffer->decodeCoordinate(B);
+				}
+			};
+		}
 	}
 }
+#endif

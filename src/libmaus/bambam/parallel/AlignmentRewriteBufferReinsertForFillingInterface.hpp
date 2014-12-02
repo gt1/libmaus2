@@ -16,18 +16,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/Control.hpp>
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERREINSERTFORFILLINGINTERFACE_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERREINSERTFORFILLINGINTERFACE_HPP
 
-int main()
+#include <libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp>
+		
+namespace libmaus
 {
-	try
+	namespace bambam
 	{
-		// libmaus::bambam::parallel::Control::serialTestDecode1(std::cin,std::cout);
-		libmaus::bambam::parallel::Control<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
+		namespace parallel
+		{
+			
+			// reinsert an alignment rewrite buffer which has more space
+			struct AlignmentRewriteBufferReinsertForFillingInterface
+			{
+				virtual ~AlignmentRewriteBufferReinsertForFillingInterface() {}
+				virtual void putAlignmentRewriteBufferReinsertForFilling(AlignmentRewriteBuffer * buffer) = 0;
+			};
+		}
 	}
 }
+#endif

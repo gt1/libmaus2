@@ -16,18 +16,30 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/Control.hpp>
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_COMPRESSBUFFERALLOCATOR_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_COMPRESSBUFFERALLOCATOR_HPP
 
-int main()
+#include <libmaus/bambam/parallel/CompressBuffer.hpp>
+
+namespace libmaus
 {
-	try
-	{
-		// libmaus::bambam::parallel::Control::serialTestDecode1(std::cin,std::cout);
-		libmaus::bambam::parallel::Control<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
+	namespace bambam
+	{		
+		namespace parallel
+		{
+			struct CompressBufferAllocator
+			{
+				uint64_t buffersize;
+			
+				CompressBufferAllocator(uint64_t const rbuffersize)
+				: buffersize(rbuffersize) {}
+				
+				CompressBuffer * operator()()
+				{
+					return new CompressBuffer(buffersize);
+				}
+			};
+		}
 	}
 }
+#endif
