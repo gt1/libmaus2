@@ -374,7 +374,7 @@ TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock 
 TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
 TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
 TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
-TESTPROGS="${TESTPROGS} testparallelbamdecompression testbytecnt teststronglyconnectedcomponents"
+TESTPROGS="${TESTPROGS} testparallelbamsorting testbytecnt teststronglyconnectedcomponents"
 TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
 TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
 

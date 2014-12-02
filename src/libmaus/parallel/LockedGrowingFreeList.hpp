@@ -25,13 +25,18 @@ namespace libmaus
 {
 	namespace parallel
 	{
-		template<typename _element_type, typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type> >
+		template<
+			typename _element_type, 
+			typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type>,
+			typename _type_info_type = libmaus::util::FreeListDefaultTypeInfo<_element_type> 
+		>
 		struct LockedGrowingFreeList : private libmaus::util::GrowingFreeList<_element_type,_allocator_type>
 		{
 			typedef _element_type element_type;
 			typedef _allocator_type allocator_type;
-			typedef libmaus::util::GrowingFreeList<element_type,allocator_type> base_type;
-			typedef LockedGrowingFreeList<element_type,allocator_type> this_type;
+			typedef _type_info_type type_info_type;
+			typedef libmaus::util::GrowingFreeList<element_type,allocator_type,type_info_type> base_type;
+			typedef LockedGrowingFreeList<element_type,allocator_type,type_info_type> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -52,13 +57,13 @@ namespace libmaus
 				return base_type::empty();
 			}
 			
-			element_type * get()
+			typename type_info_type::pointer_type get()
 			{
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::get();
 			}
 
-			void put(element_type * ptr)
+			void put(typename type_info_type::pointer_type ptr)
 			{
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				base_type::put(ptr);

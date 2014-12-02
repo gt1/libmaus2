@@ -449,7 +449,7 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
-	libmaus/bambam/parallel/Control.hpp \
+	libmaus/bambam/parallel/SortControl.hpp \
 	libmaus/bambam/parallel/InputBlock.hpp \
 	libmaus/bambam/parallel/ControlInputInfo.hpp \
 	libmaus/bambam/parallel/InputBlockWorkPackage.hpp \
@@ -864,7 +864,10 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp \
 	libmaus/aio/IsKnownLocalFileSystem.hpp \
 	libmaus/aio/LineSplittingPosixFdOutputStreamBuffer.hpp \
-	libmaus/aio/LineSplittingPosixFdOutputStream.hpp
+	libmaus/aio/LineSplittingPosixFdOutputStream.hpp \
+	libmaus/aio/NamedTemporaryFile.hpp \
+	libmaus/aio/NamedTemporaryFileTypeInfo.hpp \
+	libmaus/aio/NamedTemporaryFileAllocator.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
@@ -1390,7 +1393,7 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsimpletrie \
 	testgnutls \
 	testlru \
-	testparallelbamdecompression \
+	testparallelbamsorting \
 	testbytecnt \
 	teststronglyconnectedcomponents \
 	testtopologicalsorting \
@@ -1770,10 +1773,10 @@ testgnutls_LDADD = libmaus.la
 testgnutls_CPPFLAGS = ${AM_CPPFLAGS} @GNUTLSCPPFLAGS@
 testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
 
-testparallelbamdecompression_SOURCES = test/testparallelbamdecompression.cpp
-testparallelbamdecompression_CPPFLAGS = @SNAPPYCPPFLAGS@
-testparallelbamdecompression_LDFLAGS = @SNAPPYLDFLAGS@
-testparallelbamdecompression_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testparallelbamsorting_SOURCES = test/testparallelbamsorting.cpp
+testparallelbamsorting_CPPFLAGS = @SNAPPYCPPFLAGS@
+testparallelbamsorting_LDFLAGS = @SNAPPYLDFLAGS@
+testparallelbamsorting_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 
 testlinebuffer_SOURCES = test/testlinebuffer.cpp
 testlinebuffer_LDADD = libmaus.la

@@ -42,16 +42,41 @@ namespace libmaus
 				return new element_type;
 			}
 		};
+		
+		template<typename _element_type>
+		struct FreeListDefaultTypeInfo
+		{
+			typedef _element_type element_type;
+			typedef element_type * pointer_type;			
+			
+			static pointer_type deallocate(pointer_type p)
+			{
+				delete p;
+				p = 0;
+				return p;
+			}
+			
+			static pointer_type getNullPointer()
+			{
+				pointer_type p = 0;
+				return p;
+			}
+		};
 	
-		template<typename _element_type, typename _allocator_type = FreeListDefaultAllocator<_element_type> >
+		template<
+			typename _element_type, 
+			typename _allocator_type = FreeListDefaultAllocator<_element_type>,
+			typename _type_info_type = FreeListDefaultTypeInfo<_element_type> 
+		>
 		struct FreeList
 		{
 			typedef _element_type element_type;
 			typedef _allocator_type allocator_type;
-			typedef FreeList<element_type,allocator_type> this_type;
+			typedef _type_info_type type_info_type;
+			typedef FreeList<element_type,allocator_type,type_info_type> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			libmaus::autoarray::AutoArray< element_type * > freelist;
+			libmaus::autoarray::AutoArray< typename type_info_type::pointer_type > freelist;
 			uint64_t freecnt;
 			allocator_type allocator;
 			
@@ -59,8 +84,7 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < freelist.size(); ++i )
 				{
-					delete freelist[i];
-					freelist[i] = 0;
+					freelist[i] = type_info_type::deallocate(freelist[i]);
 				}	
 			}
 			
@@ -69,7 +93,7 @@ namespace libmaus
 				try
 				{
 					for ( uint64_t i = 0; i < numel; ++i )
-						freelist[i] = 0;
+						freelist[i] = type_info_type::getNullPointer();
 					for ( uint64_t i = 0; i < numel; ++i )
 						freelist[i] = allocator();
 				}
@@ -90,18 +114,18 @@ namespace libmaus
 				return freecnt == 0;
 			}
 			
-			element_type * get()
+			typename type_info_type::pointer_type get()
 			{
-				element_type * p = 0;
+				typename type_info_type::pointer_type p = 0;
 				assert ( ! empty() );
 
 				p = freelist[--freecnt];
-				freelist[freecnt] = 0;
+				freelist[freecnt] = type_info_type::getNullPointer();
 
 				return p;
 			}
 			
-			void put(element_type * ptr)
+			void put(typename type_info_type::pointer_type ptr)
 			{
 				freelist[freecnt++] = ptr;
 			}

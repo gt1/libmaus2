@@ -16,14 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/Control.hpp>
+#include <libmaus/bambam/parallel/SortControl.hpp>
 
 int main()
 {
 	try
 	{
-		// libmaus::bambam::parallel::Control::serialTestDecode1(std::cin,std::cout);
-		libmaus::bambam::parallel::Control<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
+		// libmaus::bambam::parallel::SortControl::serialTestDecode1(std::cin,std::cout);
+		libmaus::bambam::parallel::SortControl<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
 	}
 	catch(std::exception const & ex)
 	{

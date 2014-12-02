@@ -26,25 +26,30 @@ namespace libmaus
 {
 	namespace util
 	{
-		template<typename _element_type, typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type> >
+		template<
+			typename _element_type, 
+			typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type>,
+			typename _type_info_type = libmaus::util::FreeListDefaultTypeInfo<_element_type> 
+		>
 		struct GrowingFreeList
 		{
 			typedef _element_type element_type;
 			typedef _allocator_type allocator_type;
-			typedef GrowingFreeList<element_type,allocator_type> this_type;
+			typedef _type_info_type type_info_type;
+			typedef GrowingFreeList<element_type,allocator_type,type_info_type> this_type;
 
 			private:
-			libmaus::autoarray::AutoArray<element_type *> alloclist;
-			libmaus::autoarray::AutoArray<element_type *> freelist;
+			libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> alloclist;
+			libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> freelist;
 			uint64_t freelistfill;
 			allocator_type allocator;
 
 			void cleanup()
 			{
 				for ( uint64_t i = 0; i < alloclist.size(); ++i )
-					delete alloclist[i];
-				alloclist = libmaus::autoarray::AutoArray<element_type *>(0);	
-				freelist = libmaus::autoarray::AutoArray<element_type *>(0);	
+					alloclist[i] = type_info_type::deallocate(alloclist[i]);
+				alloclist = libmaus::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
+				freelist = libmaus::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
 				freelistfill = 0;
 			}
 			
@@ -60,12 +65,12 @@ namespace libmaus
 				cleanup();
 			}
 			
-			element_type * get()
+			typename type_info_type::pointer_type get()
 			{
 				if ( ! freelistfill )
 				{
 					// allocate more alignment objects
-					libmaus::autoarray::AutoArray<element_type *> nalloclist(
+					libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> nalloclist(
 						std::max(
 							static_cast<uint64_t>(1),
 							static_cast<uint64_t>(2*alloclist.size())
@@ -74,14 +79,14 @@ namespace libmaus
 					);
 
 					std::copy(alloclist.begin(),alloclist.end(),nalloclist.begin());
-					element_type * nullp = 0;
+					typename type_info_type::pointer_type nullp = type_info_type::getNullPointer();
 					std::fill(nalloclist.begin()+alloclist.size(),nalloclist.end(),nullp);
 					
-					for ( element_type ** p = nalloclist.begin()+alloclist.size();
+					for ( typename type_info_type::pointer_type* p = nalloclist.begin()+alloclist.size();
 						p != nalloclist.end(); ++p )
 						*p = allocator();
 					
-					libmaus::autoarray::AutoArray<element_type *> nfreelist(
+					libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> nfreelist(
 						std::max(
 							static_cast<uint64_t>(1),
 							static_cast<uint64_t>(2*freelist.size())
@@ -94,7 +99,7 @@ namespace libmaus
 				
 					freelist = nfreelist;
 					
-					for ( element_type ** p = nalloclist.begin()+alloclist.size();
+					for ( typename type_info_type::pointer_type* p = nalloclist.begin()+alloclist.size();
 						p != nalloclist.end(); ++p )
 						freelist[freelistfill++] = *p;			
 					
@@ -104,7 +109,7 @@ namespace libmaus
 				return freelist[--freelistfill];
 			}
 			
-			void put(element_type * p)
+			void put(typename type_info_type::pointer_type p)
 			{
 				freelist[freelistfill++] = p;
 			}

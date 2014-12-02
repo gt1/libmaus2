@@ -16,81 +16,41 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_CONTROL_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_CONTROL_HPP
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_SORTCONTROL_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_SORTCONTROL_HPP
 
-#include <libmaus/bambam/parallel/BlockCompressPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp>
-#include <libmaus/bambam/parallel/ReturnCompressionPendingElementInterface.hpp>
+#include <libmaus/aio/NamedTemporaryFileAllocator.hpp>
+#include <libmaus/aio/NamedTemporaryFileTypeInfo.hpp>
+#include <libmaus/aio/NamedTemporaryFile.hpp>
+#include <libmaus/aio/PosixFdOutputStream.hpp>
 #include <libmaus/bambam/parallel/AlignmentBlockCompressPackage.hpp>
-#include <libmaus/bambam/parallel/ReturnRewriteBufferInterface.hpp>
-#include <libmaus/bambam/parallel/CompressionPendingElement.hpp>
+#include <libmaus/bambam/parallel/AlignmentBufferAllocator.hpp>
+#include <libmaus/bambam/parallel/AlignmentRewriteBufferAllocator.hpp>
+#include <libmaus/bambam/parallel/AlignmentRewriteBufferPosComparator.hpp>
+#include <libmaus/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp>
+#include <libmaus/bambam/parallel/AlignmentRewritePosSortContext.hpp>
+#include <libmaus/bambam/parallel/BaseSortWorkPackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/BlockCompressPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/CompressBufferAllocator.hpp>
 #include <libmaus/bambam/parallel/CompressBufferHeapComparator.hpp>
-#include <libmaus/bambam/parallel/CompressBuffer.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortContext.hpp>
-#include <libmaus/bambam/parallel/SortFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/MergeSortWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/BaseMergeSortWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp>
-#include <libmaus/bambam/parallel/BaseSortWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/BaseSortWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortContextMergePackageFinished.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortContextBaseBlockSortedInterface.hpp>
-#include <libmaus/bambam/parallel/RewriteBlockWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBufferReinsertForFillingInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBufferAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentBufferReinsertInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentBufferReturnInterface.hpp>
-#include <libmaus/bambam/parallel/RewritePackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/RewriteBlockWorkPackage.hpp>
-#include <libmaus/bambam/parallel/ValidateBlockWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/ValidateBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/ValidatePackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/ValidateBlockWorkPackage.hpp>
-#include <libmaus/bambam/parallel/ParseBlockWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/ParsePackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/ParsedBlockStallInterface.hpp>
-#include <libmaus/bambam/parallel/ParsedBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockReturnInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBufferAllocator.hpp>
-#include <libmaus/bambam/parallel/AlignmentBufferAllocator.hpp>
-#include <libmaus/bambam/parallel/DecompressedPendingObjectHeapComparator.hpp>
-#include <libmaus/bambam/parallel/DecompressedPendingObject.hpp>
-#include <libmaus/bambam/parallel/ParseBlockWorkPackage.hpp>
-#include <libmaus/bambam/parallel/ParseInfo.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBufferPosComparator.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp>
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/PushBackSpace.hpp>
+#include <libmaus/bambam/parallel/CompressionPendingElement.hpp>
 #include <libmaus/bambam/parallel/DecompressBlockWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/BgzfInflateZStreamBaseReturnInterface.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/InputBlockReturnInterface.hpp>
-#include <libmaus/bambam/parallel/DecompressBlockWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/DecompressBlockWorkPackage.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus/bambam/parallel/DecompressedPendingObjectHeapComparator.hpp>
 #include <libmaus/bambam/parallel/InputBlockWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/InputBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/InputBlockWorkPackage.hpp>
-#include <libmaus/bambam/parallel/ControlInputInfo.hpp>
-#include <libmaus/bambam/parallel/InputBlock.hpp>
-
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/parallel/LockedCounter.hpp>
+#include <libmaus/bambam/parallel/MergeSortWorkPackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/SortFinishedInterface.hpp>
+#include <libmaus/bambam/parallel/ParseBlockWorkPackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/ReturnCompressionPendingElementInterface.hpp>
+#include <libmaus/bambam/parallel/ReturnRewriteBufferInterface.hpp>
+#include <libmaus/bambam/parallel/RewriteBlockWorkPackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/ValidateBlockWorkPackageDispatcher.hpp>
+#include <libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp>
 #include <libmaus/parallel/LockedHeap.hpp>
 #include <libmaus/parallel/LockedQueue.hpp>
 #include <libmaus/parallel/SimpleThreadPool.hpp>
 #include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
 #include <libmaus/timing/RealTimeClock.hpp>
 
-#include <libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp>
-
-#include <stack>
 #include <csignal>
 
 namespace libmaus
@@ -99,79 +59,8 @@ namespace libmaus
 	{		
 		namespace parallel
 		{
-			template<typename _stream_type>
-			struct NamedTempFile
-			{
-				typedef _stream_type stream_type;
-				typedef NamedTempFile<stream_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-	
-				std::string const name;
-				uint64_t const id;
-				stream_type stream;
-				
-				NamedTempFile(std::string const & rname, uint64_t const rid)
-				: name(rname), id(rid), stream(name) {}
-				
-				static unique_ptr_type uconstruct(std::string const & rname, uint64_t const rid)
-				{
-					unique_ptr_type tptr(new this_type(rname,rid));
-					return UNIQUE_PTR_MOVE(tptr);
-				}
-	
-				static shared_ptr_type sconstruct(std::string const & rname, uint64_t const rid)
-				{
-					shared_ptr_type tptr(new this_type(rname,rid));
-					return tptr;
-				}
-				
-				uint64_t getId() const
-				{
-					return id;
-				}
-				
-				std::string const & getName() const
-				{
-					return name;
-				}
-				
-				stream_type & getStream()
-				{
-					return stream;
-				}
-			};
-	
-			template<typename _stream_type>
-			struct TemporaryFileAllocator
-			{
-				typedef _stream_type stream_type;
-				
-				std::string prefix;
-				libmaus::parallel::SynchronousCounter<uint64_t> * S;
-				
-				TemporaryFileAllocator() : prefix(), S(0) {}
-				TemporaryFileAllocator(
-					std::string const & rprefix,
-					libmaus::parallel::SynchronousCounter<uint64_t> * const rS
-				) : prefix(rprefix), S(rS)
-				{
-				
-				}
-				
-				NamedTempFile<stream_type> * operator()()
-				{
-					uint64_t const lid = static_cast<uint64_t>((*S)++);
-					std::ostringstream fnostr;
-					fnostr << prefix << "_" << std::setw(6) << std::setfill('0') << lid;
-					std::string const fn = fnostr.str();
-					return new NamedTempFile<stream_type>(fn,lid);
-				}
-			};
-	
-			// BamAlignmentRewriteBufferPosComparator
 			template<typename _order_type>
-			struct Control :
+			struct SortControl :
 				public InputBlockWorkPackageReturnInterface,
 				public InputBlockAddPendingInterface,
 				public DecompressBlockWorkPackageReturnInterface,
@@ -199,7 +88,7 @@ namespace libmaus
 			{
 				typedef _order_type order_type;
 			
-				typedef Control<order_type> this_type;
+				typedef SortControl<order_type> this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 	
@@ -210,10 +99,11 @@ namespace libmaus
 				std::string const tempfileprefix;
 				libmaus::parallel::SynchronousCounter<uint64_t> tempfilesyncid;
 				typedef libmaus::aio::PosixFdOutputStream temp_stream_type;
-				typedef NamedTempFile<temp_stream_type> named_temp_file_type;
+				typedef libmaus::aio::NamedTemporaryFile<temp_stream_type> named_temp_file_type;
 				libmaus::parallel::LockedFreeList<
 					named_temp_file_type, 
-					TemporaryFileAllocator<temp_stream_type> 
+					libmaus::aio::NamedTemporaryFileAllocator<temp_stream_type>,
+					libmaus::aio::NamedTemporaryFileTypeInfo<temp_stream_type>
 				> tmpfilefreelist;
 				std::map<uint64_t,std::string> tempfileidtoname;
 	
@@ -1018,7 +908,7 @@ namespace libmaus
 					STP.enque(package);
 				}
 				
-				Control(
+				SortControl(
 					libmaus::parallel::SimpleThreadPool & rSTP, 
 					std::istream & ristr, 
 					uint64_t const rstreamid,
@@ -1034,7 +924,7 @@ namespace libmaus
 					STP(rSTP),
 					tempfileprefix(rtempfileprefix),
 					tempfilesyncid(0),
-					tmpfilefreelist(STP.getNumThreads(),TemporaryFileAllocator<libmaus::aio::PosixFdOutputStream>(tempfileprefix,&tempfilesyncid)),
+					tmpfilefreelist(STP.getNumThreads(),libmaus::aio::NamedTemporaryFileAllocator<libmaus::aio::PosixFdOutputStream>(tempfileprefix,&tempfilesyncid)),
 					compfreelist(rcompfreelist),
 					readDispatcher(*this,*this),
 					readDispatcherId(STP.getNextDispatcherId()),
@@ -1086,12 +976,13 @@ namespace libmaus
 					STP.registerDispatcher(blockCompressDispatcherId,&blockCompressDispatcher);
 				
 					// get temp file names	
-					std::vector<named_temp_file_type *> tempvec;
+					std::vector<named_temp_file_type::shared_ptr_type> tempvec;
 					while (! tmpfilefreelist.empty() )
 						tempvec.push_back(tmpfilefreelist.get());
 					for ( uint64_t i = 0; i < tempvec.size(); ++i )
 					{
-						tmpfilefreelist.put(tempvec[i]);
+						named_temp_file_type::shared_ptr_type ptr = tempvec[i];
+						tmpfilefreelist.put(ptr);
 						tempfileidtoname[tempvec[i]->getId()] = tempvec[i]->getName();
 					}
 				}
@@ -1182,7 +1073,7 @@ namespace libmaus
 				static void serialTestDecode1(std::istream & in, std::ostream & out)
 				{
 					libmaus::parallel::SimpleThreadPool STP(1);
-					Control BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */,1024*1024*1024 /* rewrite buffer size */,4);
+					SortControl BPDC(STP,in,0/*streamid*/,1024*1024 /* parse buffer size */,1024*1024*1024 /* rewrite buffer size */,4);
 					BPDC.serialTestDecode(out);
 				}
 				
@@ -1193,7 +1084,7 @@ namespace libmaus
 					STP.enque(package);
 				}
 	
-				static Control * sigobj;
+				static SortControl * sigobj;
 	
 				static void sigusr1(int)
 				{
@@ -1221,7 +1112,7 @@ namespace libmaus
 						libmaus::parallel::LockedGrowingFreeList<libmaus::lz::CompressorObject, libmaus::lz::CompressorObjectFreeListAllocator> compfreelist(
 							*compalloc
 						);
-						Control BPDC(
+						SortControl BPDC(
 							STP,in,0/*streamid*/,1024*1024 /* parse buffer size */, 1024*1024*1024 /* rewrite buffer size */,4,compfreelist, 2*numthreads /* num comp blocks */,64*1024, /* comp block size */
 							tempfileprefix
 						);
@@ -1250,7 +1141,7 @@ namespace libmaus
 			};	
 	
 			template<>		
-			Control<AlignmentRewriteBufferPosComparator> * Control<AlignmentRewriteBufferPosComparator>::sigobj = 0;
+			SortControl<AlignmentRewriteBufferPosComparator> * SortControl<AlignmentRewriteBufferPosComparator>::sigobj = 0;
 		}
 	}
 }
