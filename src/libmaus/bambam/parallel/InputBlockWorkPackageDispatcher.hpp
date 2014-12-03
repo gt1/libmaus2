@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/InputBlockAddPendingInterface.hpp>
+#include <libmaus/bambam/parallel/RequeReadInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
 namespace libmaus
@@ -36,11 +37,16 @@ namespace libmaus
 			{
 				InputBlockWorkPackageReturnInterface & returnInterface;
 				InputBlockAddPendingInterface & addPending;
+				RequeReadInterface & requeInterface;
+				// ZZZ add request for requeing here
+				uint64_t const batchsize;
 				
 				InputBlockWorkPackageDispatcher(
 					InputBlockWorkPackageReturnInterface & rreturnInterface,
-					InputBlockAddPendingInterface & raddPending
-				) : returnInterface(rreturnInterface), addPending(raddPending)
+					InputBlockAddPendingInterface & raddPending,
+					RequeReadInterface & rrequeInterface,
+					uint64_t const rbatchsize = 16
+				) : returnInterface(rreturnInterface), addPending(raddPending), requeInterface(rrequeInterface), batchsize(rbatchsize)
 				{
 				
 				}
@@ -55,7 +61,7 @@ namespace libmaus
 					assert ( BP );
 					
 					// vector of blocks to pass on for decompression
-					std::vector<ControlInputInfo::input_block_type *> blockPassVector;
+					std::deque<ControlInputInfo::input_block_type *> blockPassVector;
 					
 					// try to get lock
 					if ( BP->inputinfo->readLock.trylock() )
@@ -64,7 +70,7 @@ namespace libmaus
 						libmaus::parallel::ScopePosixSpinLock llock(BP->inputinfo->readLock,true /* pre locked */);
 	
 						// do not run if eof is already set
-						bool running = !BP->inputinfo->eof;
+						bool running = !BP->inputinfo->getEOF();
 						
 						while ( running )
 						{
@@ -85,7 +91,7 @@ namespace libmaus
 								if ( block->final )
 								{
 									running = false;
-									BP->inputinfo->eof = true;
+									BP->inputinfo->setEOF(true);
 								}
 	
 								blockPassVector.push_back(block);
@@ -94,15 +100,26 @@ namespace libmaus
 							{
 								running = false;
 							}
+							
+							// enque decompress requests, but make sure we do not send all
+							// before leaving the while loop
+							if ( blockPassVector.size() == (batchsize<<1) )
+							{
+								addPending.putInputBlockAddPending(blockPassVector.begin(),blockPassVector.begin()+batchsize);
+								for ( uint64_t i = 0; i < batchsize; ++i )
+									blockPassVector.pop_front();
+							}
 						}
+
+						// enque rest of decompress requests
+						addPending.putInputBlockAddPending(blockPassVector.begin(),blockPassVector.end());
 					}
 	
 					// return the work package
 					returnInterface.putInputBlockWorkPackage(BP);
 	
-					// enque decompress requests
-					for ( uint64_t i = 0; i < blockPassVector.size(); ++i )
-						addPending.putInputBlockAddPending(blockPassVector[i]);
+					// request requeing	
+					requeInterface.requeRead();
 				}		
 			};
 		}

@@ -509,7 +509,12 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp \
 	libmaus/bambam/parallel/ReturnCompressionPendingElementInterface.hpp \
-	libmaus/bambam/parallel/BlockCompressPackageDispatcher.hpp
+	libmaus/bambam/parallel/BlockCompressPackageDispatcher.hpp \
+	libmaus/bambam/parallel/RequeReadInterface.hpp \
+	libmaus/bambam/parallel/DecompressBlocksWorkPackage.hpp \
+	libmaus/bambam/parallel/DecompressBlocksWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/DecompressBlocksWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/BgzfInflateZStreamBaseGetInterface.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1394,6 +1399,7 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testgnutls \
 	testlru \
 	testparallelbamsorting \
+	testparallelbamvalidation \
 	testbytecnt \
 	teststronglyconnectedcomponents \
 	testtopologicalsorting \
@@ -1777,6 +1783,11 @@ testparallelbamsorting_SOURCES = test/testparallelbamsorting.cpp
 testparallelbamsorting_CPPFLAGS = @SNAPPYCPPFLAGS@
 testparallelbamsorting_LDFLAGS = @SNAPPYLDFLAGS@
 testparallelbamsorting_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+
+testparallelbamvalidation_SOURCES = test/testparallelbamvalidation.cpp
+testparallelbamvalidation_CPPFLAGS = @SNAPPYCPPFLAGS@
+testparallelbamvalidation_LDFLAGS = @SNAPPYLDFLAGS@
+testparallelbamvalidation_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 
 testlinebuffer_SOURCES = test/testlinebuffer.cpp
 testlinebuffer_LDADD = libmaus.la

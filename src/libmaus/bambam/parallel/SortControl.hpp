@@ -84,7 +84,8 @@ namespace libmaus
 				public ReturnRewriteBufferInterface,
 				public AlignmentBlockCompressPackageReturnInterface,
 				public AddPendingCompressBufferWriteInterface,
-				public ReturnCompressionPendingElementInterface
+				public ReturnCompressionPendingElementInterface,
+				public RequeReadInterface
 			{
 				typedef _order_type order_type;
 			
@@ -902,10 +903,14 @@ namespace libmaus
 					// put package in the free list
 					inputinfo.inputBlockFreeList.put(block);
 	
+				}
+				
+				virtual void requeRead()
+				{
 					// enque next read
 					InputBlockWorkPackage * package = readWorkPackages.getPackage();
 					*package = InputBlockWorkPackage(0 /* priority */, &inputinfo,readDispatcherId);
-					STP.enque(package);
+					STP.enque(package);				
 				}
 				
 				SortControl(
@@ -926,7 +931,7 @@ namespace libmaus
 					tempfilesyncid(0),
 					tmpfilefreelist(STP.getNumThreads(),libmaus::aio::NamedTemporaryFileAllocator<libmaus::aio::PosixFdOutputStream>(tempfileprefix,&tempfilesyncid)),
 					compfreelist(rcompfreelist),
-					readDispatcher(*this,*this),
+					readDispatcher(*this,*this,*this),
 					readDispatcherId(STP.getNextDispatcherId()),
 					decompressDispatcher(*this,*this,*this,*this),
 					decompressDispatcherId(STP.getNextDispatcherId()),

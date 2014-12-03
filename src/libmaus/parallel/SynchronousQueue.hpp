@@ -59,12 +59,16 @@ namespace libmaus
                         {
                         	return getFillState() == 0;
                         }
-                        
-                        unsigned int getFillState()
+
+			size_t size()
                         {
-                                lock.lock();
-                                unsigned int const fill = Q.size();
-                                lock.unlock();
+                        	return getFillState();
+                        }
+                        
+			size_t getFillState()
+                        {
+                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+                                size_t const fill = Q.size();
                                 return fill;
                         }
                         

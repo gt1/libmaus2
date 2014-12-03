@@ -114,6 +114,16 @@ namespace libmaus
 				return freecnt == 0;
 			}
 			
+			bool full() const
+			{
+				return freecnt == freelist.size();
+			}
+			
+			uint64_t free() const
+			{
+				return freecnt;
+			}
+			
 			typename type_info_type::pointer_type get()
 			{
 				typename type_info_type::pointer_type p = 0;
@@ -128,6 +138,17 @@ namespace libmaus
 			void put(typename type_info_type::pointer_type ptr)
 			{
 				freelist[freecnt++] = ptr;
+			}
+
+			uint64_t putAndCount(typename type_info_type::pointer_type ptr)
+			{
+				freelist[freecnt++] = ptr;
+				return freecnt;
+			}
+			
+			uint64_t capacity() const
+			{
+				return freelist.size();
 			}
 		};
 	}

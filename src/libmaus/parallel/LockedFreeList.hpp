@@ -20,6 +20,7 @@
 #define LIBMAUS_PARALLEL_LOCKEDFREELIST_HPP
 
 #include <libmaus/util/FreeList.hpp>
+#include <vector>
 
 namespace libmaus
 {
@@ -50,10 +51,31 @@ namespace libmaus
 			{
 			}
 			
+			libmaus::parallel::PosixSpinLock & getLock()
+			{
+				return lock;
+			}
+			
 			bool empty()
 			{
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::empty();
+			}
+			
+			bool emptyUnlocked()
+			{
+				return base_type::empty();
+			}
+
+			typename type_info_type::pointer_type getUnlocked()
+			{
+				return base_type::get();
+			}
+
+			bool full()
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				return base_type::full();
 			}
 			
 			typename type_info_type::pointer_type get()
@@ -72,10 +94,34 @@ namespace libmaus
 					return base_type::get();
 			}
 			
+			uint64_t get(std::vector<typename type_info_type::pointer_type> & V, uint64_t max)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				while ( max-- && (!base_type::empty()) )
+					V.push_back(base_type::get());
+				return V.size();
+			}
+			
 			void put(typename type_info_type::pointer_type ptr)
 			{
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				base_type::put(ptr);
+			}
+
+			uint64_t putAndCount(typename type_info_type::pointer_type ptr)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				return base_type::putAndCount(ptr);
+			}
+			
+			uint64_t capacity() const
+			{
+				return base_type::capacity();
+			}
+			
+			uint64_t freeUnlocked() const
+			{
+				return base_type::free();
 			}
 		};
 	}

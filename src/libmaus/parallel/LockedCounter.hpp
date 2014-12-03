@@ -37,6 +37,13 @@ namespace libmaus
 			public:
 			LockedCounter(uint64_t const rv = 0) : v(rv) {}
 			
+			uint64_t increment()
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				v += 1;
+				return v;			
+			}
+			
 			LockedCounter & operator++(int)
 			{
 				libmaus::parallel::ScopePosixSpinLock slock(lock);

@@ -376,7 +376,7 @@ TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmemb
 TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
 TESTPROGS="${TESTPROGS} testparallelbamsorting testbytecnt teststronglyconnectedcomponents"
 TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
-TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
+TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver testparallelbamvalidation"
 
 AC_ARG_ENABLE(compile-testprograms,
         AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),

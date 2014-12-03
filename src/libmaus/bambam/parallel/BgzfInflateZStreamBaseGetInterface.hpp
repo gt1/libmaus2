@@ -16,11 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKADDPENDINGINTERFACE_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKADDPENDINGINTERFACE_HPP
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_BGZFINFLATEZSTREAMBASEGETINTERFACE_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_BGZFINFLATEZSTREAMBASEGETINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/ControlInputInfo.hpp>
-#include <deque>
+#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
 
 namespace libmaus
 {
@@ -28,18 +27,11 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			// add input block pending decompression
-			struct InputBlockAddPendingInterface
+			// return a bgzf decoder object		
+			struct BgzfInflateZStreamBaseGetInterface
 			{
-				virtual ~InputBlockAddPendingInterface() {}
-				virtual void putInputBlockAddPending(ControlInputInfo::input_block_type * package) = 0;
-				virtual void putInputBlockAddPending(
-					std::deque<ControlInputInfo::input_block_type *>::iterator ita,
-					std::deque<ControlInputInfo::input_block_type *>::iterator ite)
-				{
-					for ( std::deque<ControlInputInfo::input_block_type *>::iterator itc = ita; itc != ite; ++itc )
-						putInputBlockAddPending(*itc);
-				}
+				virtual ~BgzfInflateZStreamBaseGetInterface() {}
+				virtual libmaus::lz::BgzfInflateZStreamBase * getBgzfInflateZStreamBase() = 0;
 			};
 		}
 	}

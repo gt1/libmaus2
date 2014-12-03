@@ -31,6 +31,38 @@ namespace libmaus
 			struct AlignmentBuffer
 			{
 				typedef uint64_t pointer_type;
+				
+				void extend(uint64_t const frac = 1)
+				{
+					// number of text bytes inserted
+					ptrdiff_t const textoffset = pA-A.begin();
+					// number of bytes used for pointers
+					ptrdiff_t const numptrbytes = A.end() - reinterpret_cast<uint8_t const *>(pP);
+				
+					// number of bytes in array
+					size_t const numbytes = A.size();
+					// extend by frac
+					size_t const prenewsize = std::max(numbytes + (numbytes+frac-1)/frac,numbytes+1);
+					// make new size multiple of pointer size
+					size_t const newsize = ((prenewsize + sizeof(pointer_type) - 1)/sizeof(pointer_type))*sizeof(pointer_type);
+					
+					assert ( newsize > A.size() );
+					assert ( newsize % sizeof(pointer_type) == 0 );
+					
+					A.resize(newsize);
+					
+					memmove(
+						// new pointer region
+						A.end()-numptrbytes,
+						// old pointer region
+						A.begin() + (numbytes - numptrbytes),
+						// number of bytes to copy
+						numptrbytes
+					);
+					
+					pA = A.begin() + textoffset;
+					pP = reinterpret_cast<pointer_type *>(A.end() - numptrbytes);
+				}
 			
 				// data
 				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> A;
@@ -219,6 +251,12 @@ namespace libmaus
 				{
 					return (reinterpret_cast<pointer_type const *>(A.end()) - pP);
 				}
+
+				// number of entries in unpacked form
+				uint64_t fillUnpacked() const
+				{
+					return fill() / pointerdif;
+				}
 				
 				void reset()
 				{
@@ -373,30 +411,65 @@ namespace libmaus
 					
 					return ok;		
 				}
+
+				bool checkMultipleNamesUnpacked() const
+				{
+					// number of elements in buffer
+					uint64_t const f = fillUnpacked();
+					
+					if ( f <= 1 )
+						return false;
+
+					bool singlename = true;
+					char const * refname = 
+						libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[pointerdif*0] + 4);					
+					
+					for ( uint64_t i = 1; singlename && i < f; ++i )
+					{
+						singlename = singlename &&
+							strcmp(
+								libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[pointerdif*i] + 4)
+								,
+								refname
+							) == 0;
+					}
+					
+					return !singlename;
+				}
 				
 				bool put(char const * p, uint64_t const n)
 				{
-					if ( n + sizeof(uint32_t) + pointerdif * sizeof(pointer_type) <= free() )
+					while ( true )
 					{
-						// store pointer
-						pP -= pointerdif;
-						*pP = pA-A.begin();
-	
-						// store length
-						*(pA++) = (n >>  0) & 0xFF;
-						*(pA++) = (n >>  8) & 0xFF;
-						*(pA++) = (n >> 16) & 0xFF;
-						*(pA++) = (n >> 24) & 0xFF;
-						// copy alignment data
-						// std::copy(p,p+n,reinterpret_cast<char *>(pA));
-						memcpy(pA,p,n);
-						pA += n;
-															
-						return true;
-					}
-					else
-					{
-						return false;
+						if ( n + sizeof(uint32_t) + pointerdif * sizeof(pointer_type) <= free() )
+						{
+							// store pointer
+							pP -= pointerdif;
+							*pP = pA-A.begin();
+		
+							// store length
+							*(pA++) = (n >>  0) & 0xFF;
+							*(pA++) = (n >>  8) & 0xFF;
+							*(pA++) = (n >> 16) & 0xFF;
+							*(pA++) = (n >> 24) & 0xFF;
+							// copy alignment data
+							// std::copy(p,p+n,reinterpret_cast<char *>(pA));
+							memcpy(pA,p,n);
+							pA += n;
+																
+							return true;
+						}
+						else
+						{
+							if ( !checkMultipleNamesUnpacked() )
+							{
+								extend(16);
+							} 
+							else
+							{
+								return false;
+							}
+						}
 					}
 				}
 			};

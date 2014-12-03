@@ -16,11 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKADDPENDINGINTERFACE_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKADDPENDINGINTERFACE_HPP
-
-#include <libmaus/bambam/parallel/ControlInputInfo.hpp>
-#include <deque>
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_REQUEREADINTERFACE_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_REQUEREADINTERFACE_HPP
 
 namespace libmaus
 {
@@ -28,20 +25,13 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			// add input block pending decompression
-			struct InputBlockAddPendingInterface
+			struct RequeReadInterface
 			{
-				virtual ~InputBlockAddPendingInterface() {}
-				virtual void putInputBlockAddPending(ControlInputInfo::input_block_type * package) = 0;
-				virtual void putInputBlockAddPending(
-					std::deque<ControlInputInfo::input_block_type *>::iterator ita,
-					std::deque<ControlInputInfo::input_block_type *>::iterator ite)
-				{
-					for ( std::deque<ControlInputInfo::input_block_type *>::iterator itc = ita; itc != ite; ++itc )
-						putInputBlockAddPending(*itc);
-				}
+				virtual ~RequeReadInterface() {}
+				virtual void requeRead() = 0;
 			};
 		}
 	}
 }
+
 #endif

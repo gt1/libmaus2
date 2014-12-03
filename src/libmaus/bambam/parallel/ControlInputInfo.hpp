@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/parallel/InputBlock.hpp>
 #include <libmaus/parallel/LockedFreeList.hpp>
+#include <libmaus/parallel/LockedBool.hpp>
 
 namespace libmaus
 {
@@ -41,7 +42,7 @@ namespace libmaus
 				// input stream reference
 				std::istream & istr;
 				// returns true if end of file has been observed
-				bool volatile eof;
+				libmaus::parallel::LockedBool eof;
 				// id of this input stream
 				uint64_t volatile streamid;
 				// next input block id
@@ -57,8 +58,12 @@ namespace libmaus
 				
 				bool getEOF()
 				{
-					libmaus::parallel::ScopePosixSpinLock llock(readLock);
-					return eof;
+					return eof.get();
+				}
+				
+				void setEOF(bool v)
+				{
+					eof.set(v);
 				}
 			};
 		}
