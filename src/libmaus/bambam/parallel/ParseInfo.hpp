@@ -120,6 +120,15 @@ namespace libmaus
 						}
 						else
 						{
+							// if this is the last block then this is an unexpected EOF within the header
+							if ( block.final )
+							{
+								libmaus::exception::LibMausException lme;
+								lme.getStream() << "ParseInfo::parseBlock(): Unexpected EOF in BAM header." << std::endl;
+								lme.finish();
+								throw lme;
+							}
+						
 							return true;
 						}
 					}
@@ -130,6 +139,7 @@ namespace libmaus
 						libmaus::bambam::BamAlignment * talgn = BPDPBS.top();
 						
 						if ( ! (algnbuf.put(reinterpret_cast<char const *>(talgn->D.begin()),talgn->blocksize)) )
+							// block needs to be processed again
 							return false;
 							
 						BPDPBS.pop();
@@ -215,6 +225,7 @@ namespace libmaus
 							}
 							case parser_state_read_block:
 							{
+								// copy data to concat buffer
 								uint64_t const tocopy = std::min(
 									static_cast<uint64_t>(blocklen),
 									static_cast<uint64_t>(block.uncompdatasize)
@@ -247,6 +258,21 @@ namespace libmaus
 								break;
 							}
 						}
+					}
+					
+					if ( 
+						block.final && 
+						(
+							(parser_state != parser_state_read_blocklength)
+							||
+							(blocklengthread != 0)
+						)
+					)
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "ParseInfo::parseBlock(): Unexpected EOF in BAM data." << std::endl;
+						lme.finish();
+						throw lme;
 					}
 					
 					return true;

@@ -487,7 +487,7 @@ namespace libmaus
 						lastParseBlockSeen.set(true);
 					
 					uint64_t const f = algn->fill();
-					uint64_t const readsPerPackage = (f + STP.getNumThreads() - 1)/STP.getNumThreads();
+					uint64_t const readsPerPackage = std::max((f + STP.getNumThreads() - 1)/STP.getNumThreads(),static_cast<uint64_t>(1));
 					uint64_t const validationPackages = std::max((f + readsPerPackage - 1)/readsPerPackage, static_cast<uint64_t>(1));
 					
 					{
