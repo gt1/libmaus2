@@ -43,6 +43,9 @@ src/test[a-zA-Z]*
 */.dirstamp
 */*/.dirstamp
 */*/*/.dirstamp
+*/*/*/*/.dirstamp
 */.deps
 */*/.deps
 */*/*/.deps
+*/*/*/*/.deps
+log*
