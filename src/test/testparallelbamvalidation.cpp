@@ -150,6 +150,7 @@ namespace libmaus
 
 				std::map<uint64_t,AlignmentBuffer *> mutable validationActive;
 				std::map<uint64_t,uint64_t> mutable validationFragmentsPerId;
+				std::map<uint64_t,bool> mutable validationOk;
 				libmaus::parallel::PosixSpinLock validationActiveLock;
 				libmaus::parallel::LockedCounter readsValidated;
 				libmaus::parallel::LockedCounter blocksValidated;
@@ -493,6 +494,7 @@ namespace libmaus
 						libmaus::parallel::ScopePosixSpinLock llock(validationActiveLock);
 						validationActive[algn->id] = algn;
 						validationFragmentsPerId[algn->id] = validationPackages;
+						validationOk[algn->id] = true;
 					}
 
 					for ( uint64_t p = 0; p < validationPackages; ++p )
@@ -530,10 +532,22 @@ namespace libmaus
 					
 					{
 						libmaus::parallel::ScopePosixSpinLock llock(validationActiveLock);
+						validationOk[algn->id] = validationOk[algn->id] && ok;
+						
 						if ( -- validationFragmentsPerId[algn->id] == 0 )
 						{
+							bool const gok = validationOk.find(algn->id)->second;
+							if ( ! gok )
+							{
+								libmaus::exception::LibMausException lme;
+								lme.getStream() << "Validation failed." << std::endl;
+								lme.finish();
+								throw lme;
+							}
+						
 							validationFragmentsPerId.erase(validationFragmentsPerId.find(algn->id));
 							validationActive.erase(validationActive.find(algn->id));
+							validationOk.erase(validationOk.find(algn->id));
 							returnbuffer = true;
 						}
 					}
