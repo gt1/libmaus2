@@ -231,8 +231,13 @@ namespace libmaus
 					return V;
 				}
 				
+				static uint64_t alignPointerSize(uint64_t const buffersize)
+				{
+					return ((buffersize + sizeof(pointer_type)-1)/sizeof(pointer_type))*sizeof(pointer_type);
+				}
+				
 				AlignmentBuffer(uint64_t const buffersize, uint64_t const rpointerdif = 1)
-				: A(buffersize,false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
+				: A(alignPointerSize(buffersize),false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
 				  MQfilter(std::vector<std::string>(1,std::string("MQ"))),
 				  MSfilter(std::vector<std::string>(1,std::string("MS"))),
 				  MCfilter(std::vector<std::string>(1,std::string("MC"))),
@@ -273,7 +278,7 @@ namespace libmaus
 				void reorder()
 				{
 					uint64_t const pref = (reinterpret_cast<pointer_type *>(A.end()) - pP) / pointerdif;
-				
+									
 					// compact pointer array if pointerdif>1
 					if ( pointerdif > 1 )
 					{
@@ -433,7 +438,7 @@ namespace libmaus
 								refname
 							) == 0;
 					}
-					
+										
 					return !singlename;
 				}
 				
@@ -461,14 +466,11 @@ namespace libmaus
 						}
 						else
 						{
+							// extend buffer if we do not have multiple read names
 							if ( !checkMultipleNamesUnpacked() )
-							{
 								extend(16);
-							} 
 							else
-							{
 								return false;
-							}
 						}
 					}
 				}

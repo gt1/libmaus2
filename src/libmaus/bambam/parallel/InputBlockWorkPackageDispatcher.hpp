@@ -111,15 +111,18 @@ namespace libmaus
 							}
 						}
 
+						// request requeing. This must be placed before adding the last pending packages
+						// otherwise its effects may not be observed by the time the last package
+						// is returned later on
+						requeInterface.requeRead();
+
 						// enque rest of decompress requests
+						// keep this inside the lock to preserve order of blocks while queuing
 						addPending.putInputBlockAddPending(blockPassVector.begin(),blockPassVector.end());
 					}
 	
 					// return the work package
 					returnInterface.putInputBlockWorkPackage(BP);
-	
-					// request requeing	
-					requeInterface.requeRead();
 				}		
 			};
 		}

@@ -99,7 +99,7 @@ namespace libmaus
 					AlignmentBuffer & algnbuf
 				)
 				{
-					while ( ! headerComplete )
+					if ( ! headerComplete )
 					{
 						libmaus::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(block.P));
 						std::pair<bool,uint64_t> Q = BHPS.parseHeader(G,block.uncompdatasize);
@@ -116,7 +116,11 @@ namespace libmaus
 									BHPS.text.begin()+BHPS.l_text
 								)
 							);
-							Pheader = UNIQUE_PTR_MOVE(Theader);						
+							Pheader = UNIQUE_PTR_MOVE(Theader);							
+						}
+						else
+						{
+							return true;
 						}
 					}
 	

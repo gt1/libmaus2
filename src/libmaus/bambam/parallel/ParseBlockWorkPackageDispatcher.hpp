@@ -63,7 +63,7 @@ namespace libmaus
 				{
 					ParseBlockWorkPackage * BP = dynamic_cast<ParseBlockWorkPackage *>(P);
 					assert ( BP );
-					
+										
 					// tpi.addLogStringWithThreadId("ParseBlockWorkPackageDispatcher::dispatch() block id " + libmaus::util::NumberSerialisation::formatNumber(BP->decompressedblock->blockid,0));
 					
 					// can we parse all information in the decompressed input block?
