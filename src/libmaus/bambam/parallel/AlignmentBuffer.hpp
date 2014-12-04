@@ -32,37 +32,7 @@ namespace libmaus
 			{
 				typedef uint64_t pointer_type;
 				
-				void extend(uint64_t const frac = 1)
-				{
-					// number of text bytes inserted
-					ptrdiff_t const textoffset = pA-A.begin();
-					// number of bytes used for pointers
-					ptrdiff_t const numptrbytes = A.end() - reinterpret_cast<uint8_t const *>(pP);
-				
-					// number of bytes in array
-					size_t const numbytes = A.size();
-					// extend by frac
-					size_t const prenewsize = std::max(numbytes + (numbytes+frac-1)/frac,numbytes+1);
-					// make new size multiple of pointer size
-					size_t const newsize = ((prenewsize + sizeof(pointer_type) - 1)/sizeof(pointer_type))*sizeof(pointer_type);
-					
-					assert ( newsize > A.size() );
-					assert ( newsize % sizeof(pointer_type) == 0 );
-					
-					A.resize(newsize);
-					
-					memmove(
-						// new pointer region
-						A.end()-numptrbytes,
-						// old pointer region
-						A.begin() + (numbytes - numptrbytes),
-						// number of bytes to copy
-						numptrbytes
-					);
-					
-					pA = A.begin() + textoffset;
-					pP = reinterpret_cast<pointer_type *>(A.end() - numptrbytes);
-				}
+				uint64_t id;
 			
 				// data
 				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> A;
@@ -237,7 +207,7 @@ namespace libmaus
 				}
 				
 				AlignmentBuffer(uint64_t const buffersize, uint64_t const rpointerdif = 1)
-				: A(alignPointerSize(buffersize),false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
+				: id(0), A(alignPointerSize(buffersize),false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
 				  MQfilter(std::vector<std::string>(1,std::string("MQ"))),
 				  MSfilter(std::vector<std::string>(1,std::string("MS"))),
 				  MCfilter(std::vector<std::string>(1,std::string("MC"))),
@@ -245,6 +215,38 @@ namespace libmaus
 				  MQMSMCMTfilter(getMQMSMCMTFilterVector())
 				{
 					assert ( pointerdif >= 1 );
+				}
+
+				void extend(uint64_t const frac = 1)
+				{
+					// number of text bytes inserted
+					ptrdiff_t const textoffset = pA-A.begin();
+					// number of bytes used for pointers
+					ptrdiff_t const numptrbytes = A.end() - reinterpret_cast<uint8_t const *>(pP);
+				
+					// number of bytes in array
+					size_t const numbytes = A.size();
+					// extend by frac
+					size_t const prenewsize = std::max(numbytes + (numbytes+frac-1)/frac,numbytes+1);
+					// make new size multiple of pointer size
+					size_t const newsize = ((prenewsize + sizeof(pointer_type) - 1)/sizeof(pointer_type))*sizeof(pointer_type);
+					
+					assert ( newsize > A.size() );
+					assert ( newsize % sizeof(pointer_type) == 0 );
+					
+					A.resize(newsize);
+					
+					memmove(
+						// new pointer region
+						A.end()-numptrbytes,
+						// old pointer region
+						A.begin() + (numbytes - numptrbytes),
+						// number of bytes to copy
+						numptrbytes
+					);
+					
+					pA = A.begin() + textoffset;
+					pP = reinterpret_cast<pointer_type *>(A.end() - numptrbytes);
 				}
 				
 				bool empty() const
@@ -378,23 +380,24 @@ namespace libmaus
 					return s;
 				}
 				
-				bool checkValidPacked() const
+				bool checkValidPacked(uint64_t const low, uint64_t const high) const
 				{
-					uint64_t const f = fill();
 					bool ok = true;
 					
-					for ( uint64_t i = 0; ok && i < f; ++i )
+					for ( uint64_t i = low; ok && i < high; ++i )
 					{
 						libmaus::bambam::libmaus_bambam_alignment_validity val = 
-							libmaus::bambam::BamAlignmentDecoderBase::valid(
-								A.begin() + pP[i] + 4,
-								decodeLength(pP[i])
-						);
+							libmaus::bambam::BamAlignmentDecoderBase::valid(A.begin() + pP[i] + 4, decodeLength(pP[i]));
 					
 						ok = ok && ( val == libmaus::bambam::libmaus_bambam_alignment_validity_ok );
 					}
 					
 					return ok;		
+				}
+
+				bool checkValidPacked() const
+				{
+					return checkValidPacked(0,fill());
 				}
 	
 				bool checkValidUnpacked() const

@@ -171,7 +171,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/CRC32C_sse42.cpp \
 	libmaus/digest/CRC32C_Core.cpp \
 	libmaus/digest/CRC32C.cpp \
-	libmaus/digest/CRC32_Core.cpp
+	libmaus/digest/CRC32_Core.cpp \
+	libmaus/bambam/parallel/ValidationFragment.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -514,7 +515,11 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/DecompressBlocksWorkPackage.hpp \
 	libmaus/bambam/parallel/DecompressBlocksWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/DecompressBlocksWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/BgzfInflateZStreamBaseGetInterface.hpp
+	libmaus/bambam/parallel/BgzfInflateZStreamBaseGetInterface.hpp \
+	libmaus/bambam/parallel/ValidationFragment.hpp \
+	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp \
+	libmaus/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp \
+	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackageDispatcher.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
