@@ -143,6 +143,7 @@ namespace libmaus
 
 				libmaus::parallel::LockedBool lastParseBlockSeen;
 				libmaus::parallel::LockedCounter readsParsed;
+				libmaus::parallel::LockedCounter blocksParsed;
 				uint64_t volatile readsParsedLastPrint;
 				libmaus::parallel::PosixSpinLock readsParsedLastPrintLock;
 				libmaus::parallel::SynchronousCounter<uint64_t> nextParseBufferId;
@@ -151,6 +152,7 @@ namespace libmaus
 				std::map<uint64_t,uint64_t> mutable validationFragmentsPerId;
 				libmaus::parallel::PosixSpinLock validationActiveLock;
 				libmaus::parallel::LockedCounter readsValidated;
+				libmaus::parallel::LockedCounter blocksValidated;
 				libmaus::parallel::LockedBool lastParseBlockValidated;
 
 				static uint64_t getParseBufferSize()
@@ -467,6 +469,7 @@ namespace libmaus
 				void putParsedBlockAddPending(AlignmentBuffer * algn)
 				{
 					readsParsed += algn->fill();
+					blocksParsed += 1;
 
 					{
 						libmaus::parallel::ScopePosixSpinLock sreadsParsedLastPrintLock(readsParsedLastPrintLock);
@@ -528,16 +531,21 @@ namespace libmaus
 					{
 						libmaus::parallel::ScopePosixSpinLock llock(validationActiveLock);
 						if ( -- validationFragmentsPerId[algn->id] == 0 )
+						{
+							validationFragmentsPerId.erase(validationFragmentsPerId.find(algn->id));
+							validationActive.erase(validationActive.find(algn->id));
 							returnbuffer = true;
+						}
 					}
 					
 					if ( returnbuffer )
 					{
+						blocksValidated += 1;
 						parseBlockFreeList.put(algn);
 						checkParsePendingList();			
 					}
 					
-					if ( lastParseBlockSeen.get() && readsValidated == readsParsed )
+					if ( lastParseBlockSeen.get() && blocksValidated == blocksParsed )
 					{
 						lastParseBlockValidated.set(true);
 					}
