@@ -223,7 +223,7 @@ namespace libmaus
 
 				void waitDecodingFinished()
 				{
-					while ( ! decodingFinished.get() )
+					while ( ( ! decodingFinished.get() ) && (!STP.isInPanicMode()) )
 					{
 						sleep(1);
 						// STP.printStateHistogram(std::cerr);
@@ -576,11 +576,20 @@ namespace libmaus
 
 int main()
 {
-	uint64_t const numlogcpus = libmaus::parallel::NumCpus::getNumLogicalProcessors();
-	libmaus::parallel::SimpleThreadPool STP(numlogcpus);
-	libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
-	libmaus::bambam::parallel::ValidationControl VC(STP,in);
-	VC.checkEnqueReadPackage();
-	VC.waitDecodingFinished();
-	STP.terminate();
+	try
+	{
+		uint64_t const numlogcpus = libmaus::parallel::NumCpus::getNumLogicalProcessors();
+		libmaus::parallel::SimpleThreadPool STP(numlogcpus);
+		libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
+		libmaus::bambam::parallel::ValidationControl VC(STP,in);
+		VC.checkEnqueReadPackage();
+		VC.waitDecodingFinished();
+		STP.terminate();
+		STP.join();
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 }
