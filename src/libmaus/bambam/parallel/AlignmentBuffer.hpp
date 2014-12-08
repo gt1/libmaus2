@@ -33,6 +33,7 @@ namespace libmaus
 				typedef uint64_t pointer_type;
 				
 				uint64_t id;
+				uint64_t subid;
 			
 				// data
 				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> A;
@@ -207,7 +208,7 @@ namespace libmaus
 				}
 				
 				AlignmentBuffer(uint64_t const buffersize, uint64_t const rpointerdif = 1)
-				: id(0), A(alignPointerSize(buffersize),false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
+				: id(0), subid(0), A(alignPointerSize(buffersize),false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
 				  MQfilter(std::vector<std::string>(1,std::string("MQ"))),
 				  MSfilter(std::vector<std::string>(1,std::string("MS"))),
 				  MCfilter(std::vector<std::string>(1,std::string("MC"))),
@@ -476,6 +477,28 @@ namespace libmaus
 								return false;
 						}
 					}
+				}
+
+				void putExtend(char const * p, uint64_t const n)
+				{
+					while ( n + sizeof(uint32_t) + pointerdif * sizeof(pointer_type) > free() )
+						extend(16);
+									
+					assert ( n + sizeof(uint32_t) + pointerdif * sizeof(pointer_type) <= free() );
+
+					// store pointer
+					pP -= pointerdif;
+					*pP = pA-A.begin();
+
+					// store length
+					*(pA++) = (n >>  0) & 0xFF;
+					*(pA++) = (n >>  8) & 0xFF;
+					*(pA++) = (n >> 16) & 0xFF;
+					*(pA++) = (n >> 24) & 0xFF;
+					// copy alignment data
+					// std::copy(p,p+n,reinterpret_cast<char *>(pA));
+					memcpy(pA,p,n);
+					pA += n;																
 				}
 			};
 		}
