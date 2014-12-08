@@ -20,6 +20,7 @@
 #define LIBMAUS_DIGEST_DIGESTBASE_HPP
 
 #include <libmaus/math/UnsignedInteger.hpp>
+#include <sstream>
 
 namespace libmaus
 {
@@ -80,6 +81,24 @@ namespace libmaus
 				}
 				
 				return U;
+			}
+			
+			static std::string digestToString(uint8_t const * digest)
+			{
+				std::ostringstream ostr;
+				for ( uint64_t i = 0; i < digestlength; ++i )
+					ostr << std::hex  << std::setfill('0') << std::setw(2) << static_cast<int>(digest[i]) << std::dec << std::setw(0);
+				return ostr.str();
+			}
+
+			static void digestToString(uint8_t const * digest, char * s)
+			{
+				static char const D[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
+				for ( uint64_t i = 0; i < digestlength; ++i )
+				{
+					(*s++) = D[(digest[i] >> 4)];
+					(*s++) = D[(digest[i] & 0xF)];
+				}
 			}
 		};
 

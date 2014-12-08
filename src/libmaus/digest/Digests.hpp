@@ -21,6 +21,7 @@
 
 #include <libmaus/util/md5.hpp>
 #include <libmaus/digest/CRC32.hpp>
+#include <libmaus/digest/CRC32C.hpp>
 #include <libmaus/digest/Null.hpp>
 #include <libmaus/digest/SHA1.hpp>
 #include <libmaus/digest/SHA2_224.hpp>
