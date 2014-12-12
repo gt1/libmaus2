@@ -516,6 +516,7 @@ struct FastaBPSequenceDecoder
 			throw lme;
 		}
 		
+		#if 0
 		uint32_t const crcin = 
 			(static_cast<uint32_t>(crcbytes[0]) << 24) |
 			(static_cast<uint32_t>(crcbytes[1]) << 16) |
@@ -544,6 +545,7 @@ struct FastaBPSequenceDecoder
 			lme.finish();
 			throw lme;				
 		}
+		#endif
 
 		return toread;
 	}

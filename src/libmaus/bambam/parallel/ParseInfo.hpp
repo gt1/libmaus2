@@ -25,6 +25,7 @@
 #include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
 #include <libmaus/bambam/parallel/DecompressedBlock.hpp>
 #include <libmaus/util/GetObject.hpp>
+#include <libmaus/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp>
 
 namespace libmaus
 {
@@ -57,11 +58,22 @@ namespace libmaus
 				uint32_t volatile blocklen;
 				uint64_t volatile parseacc;
 				
+				ParseInfoHeaderCompleteCallback * headerCompleteCallback;
+				
 				ParseInfo()
 				: BPDPBS(), BHPS(), headerComplete(false),
 				  concatBuffer(), concatBufferFill(0), 
 				  parser_state(parser_state_read_blocklength),
-				  blocklengthread(0), blocklen(0), parseacc(0)
+				  blocklengthread(0), blocklen(0), parseacc(0), headerCompleteCallback(0)
+				{
+				
+				}
+
+				ParseInfo(ParseInfoHeaderCompleteCallback * rheaderCompleteCallback)
+				: BPDPBS(), BHPS(), headerComplete(false),
+				  concatBuffer(), concatBufferFill(0), 
+				  parser_state(parser_state_read_blocklength),
+				  blocklengthread(0), blocklen(0), parseacc(0), headerCompleteCallback(rheaderCompleteCallback)
 				{
 				
 				}
@@ -116,7 +128,10 @@ namespace libmaus
 									BHPS.text.begin()+BHPS.l_text
 								)
 							);
-							Pheader = UNIQUE_PTR_MOVE(Theader);							
+							Pheader = UNIQUE_PTR_MOVE(Theader);
+							
+							if ( headerCompleteCallback )
+								headerCompleteCallback->bamHeaderComplete(BHPS);
 						}
 						else
 						{

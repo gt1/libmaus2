@@ -23,6 +23,8 @@
 #include <libmaus/bambam/BamHeaderParserStateBase.hpp>
 #include <libmaus/bambam/Chromosome.hpp>
 #include <libmaus/bambam/DecoderBase.hpp>
+#include <libmaus/util/CountPutObject.hpp>
+#include <libmaus/util/PutObject.hpp>
 
 namespace libmaus
 {
@@ -82,6 +84,59 @@ namespace libmaus
 
 			//! chromosome (reference sequence meta data) vector
 			std::vector< ::libmaus::bambam::Chromosome > chromosomes;
+			
+			uint64_t getSeriliasedLength() const
+			{
+				libmaus::util::CountPutObject CPO;
+				serialise(CPO);
+				return CPO.c;
+			}
+			
+			libmaus::autoarray::AutoArray<char> getSerialised() const
+			{
+				uint64_t const len = getSeriliasedLength();
+				libmaus::autoarray::AutoArray<char> B(len,false);
+				libmaus::util::PutObject<char *> C(B.begin());
+				serialise(C);
+				return B;
+			}
+			
+			template<typename stream_type>
+			void serialise(stream_type & out) const
+			{
+				out.put('B');
+				out.put('A');
+				out.put('M');
+				out.put('\1');
+				
+				out.put((l_text >>  0) & 0xFF);
+				out.put((l_text >>  8) & 0xFF);
+				out.put((l_text >> 16) & 0xFF);
+				out.put((l_text >> 24) & 0xFF);
+				out.write(text.begin(),l_text);
+				
+				out.put((chromosomes.size() >>  0) & 0xFF);
+				out.put((chromosomes.size() >>  8) & 0xFF);
+				out.put((chromosomes.size() >> 16) & 0xFF);
+				out.put((chromosomes.size() >> 24) & 0xFF);
+				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
+				{
+					::libmaus::bambam::Chromosome const & C = chromosomes[i];
+					std::pair<char const *, char const *> name = C.getName();
+					size_t const namesize = name.second-name.first;
+
+					out.put((namesize >>  0) & 0xFF);
+					out.put((namesize >>  8) & 0xFF);
+					out.put((namesize >> 16) & 0xFF);
+					out.put((namesize >> 24) & 0xFF);
+					out.write(name.first,namesize);
+
+					out.put((C.getLength() >>  0) & 0xFF);
+					out.put((C.getLength() >>  8) & 0xFF);
+					out.put((C.getLength() >> 16) & 0xFF);
+					out.put((C.getLength() >> 24) & 0xFF);
+				}
+			}
 			
 			BamHeaderParserState()
 			: state(bam_header_read_magic),

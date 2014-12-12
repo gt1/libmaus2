@@ -30,7 +30,7 @@ namespace libmaus
 			typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type>,
 			typename _type_info_type = libmaus::util::FreeListDefaultTypeInfo<_element_type> 
 		>
-		struct LockedGrowingFreeList : private libmaus::util::GrowingFreeList<_element_type,_allocator_type>
+		struct LockedGrowingFreeList : private libmaus::util::GrowingFreeList<_element_type,_allocator_type,_type_info_type>
 		{
 			typedef _element_type element_type;
 			typedef _allocator_type allocator_type;

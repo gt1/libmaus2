@@ -336,7 +336,11 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/SnappyCompressorObjectFactoryWrapper.hpp \
 	libmaus/lz/ZlibCompressorObjectFactoryWrapper.hpp \
 	libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp \
-	libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp
+	libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp \
+	libmaus/lz/BgzfDeflateOutputBufferBaseTypeInfo.hpp \
+	libmaus/lz/BgzfDeflateOutputBufferBaseAllocator.hpp \
+	libmaus/lz/BgzfDeflateZStreamBaseAllocator.hpp \
+	libmaus/lz/BgzfDeflateZStreamBaseTypeInfo.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -446,7 +450,25 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamPrintableTable.hpp \
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp
+	libmaus/bambam/SamDecoderWrapper.hpp \
+	libmaus/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp \
+	libmaus/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp \
+	libmaus/bambam/AlignmentBufferHeapComparator.hpp \
+	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp \
+	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectHeapComparator.hpp \
+	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp \
+	libmaus/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp \
+	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackage.hpp \
+	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/WritePendingObject.hpp \
+	libmaus/bambam/parallel/WriteBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/WritePendingObjectHeapComparator.hpp \
+	libmaus/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp \
+	libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp \
+	libmaus/bambam/parallel/WriteBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -1414,7 +1436,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testunsignedinteger \
 	testmd5 \
 	testsha \
-	testsinglefileserver
+	testsinglefileserver \
+	testparallelbamrewrite
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1829,3 +1852,8 @@ testsinglefileserver_SOURCES = test/testsinglefileserver.cpp
 testsinglefileserver_LDADD = libmaus.la
 testsinglefileserver_CPPFLAGS = ${AM_CPPFLAGS}
 testsinglefileserver_LDFLAGS = ${AM_LDFLAGS}
+
+testparallelbamrewrite_SOURCES = test/testparallelbamrewrite.cpp
+testparallelbamrewrite_LDADD = libmaus.la
+testparallelbamrewrite_CPPFLAGS = ${AM_CPPFLAGS}
+testparallelbamrewrite_LDFLAGS = ${AM_LDFLAGS}

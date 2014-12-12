@@ -35,6 +35,10 @@ namespace libmaus
 	{
 		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
 		{
+			typedef BgzfDeflateZStreamBase this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			private:
 			z_stream strm;
 			unsigned int deflbound;
@@ -277,6 +281,50 @@ namespace libmaus
 				{
 					return flushBound(in,out,fullflush);
 				}
+			}
+			
+			BgzfDeflateZStreamBaseFlushInfo flush(uint8_t * const pa, uint8_t * const pe, BgzfDeflateOutputBufferBase & out)
+			{
+				if ( pe-pa > getBgzfMaxBlockSize() )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "BgzfDeflateZStreamBase()::flush: block is too big for BGZF" << std::endl;
+					se.finish();
+					throw se;				
+				}
+			
+				try
+				{
+					uint64_t const uncompressedsize = pe-pa;
+					uint64_t const payloadsize = compressBlock(pa,uncompressedsize,out.outbuf.begin());
+					fillHeaderFooter(pa,out.outbuf.begin(),payloadsize,uncompressedsize);
+					return BgzfDeflateZStreamBaseFlushInfo(uncompressedsize,getBgzfHeaderSize()+getBgzfFooterSize()+payloadsize);
+				}
+				catch(...)
+				{
+					uint64_t const toflush = pe-pa;
+					uint64_t const flush0 = (toflush+1)/2;
+					uint64_t const flush1 = toflush-flush0;
+
+					/* compress first half of data */
+					uint64_t const payload0 = compressBlock(pa,flush0,out.outbuf.begin());
+					fillHeaderFooter(pa,out.outbuf.begin(),payload0,flush0);
+					
+					/* compress second half of data */
+					setupHeader(out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
+					uint64_t const payload1 = compressBlock(pa+flush0,flush1,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize());
+					fillHeaderFooter(pa+flush0,out.outbuf.begin()+getBgzfHeaderSize()+payload0+getBgzfFooterSize(),payload1,flush1);
+					
+					assert ( 2*getBgzfHeaderSize()+2*getBgzfFooterSize()+payload0+payload1 <= out.outbuf.size() );
+										
+					return
+						BgzfDeflateZStreamBaseFlushInfo(
+							flush0,
+							getBgzfHeaderSize()+getBgzfFooterSize()+payload0,
+							flush1,
+							getBgzfHeaderSize()+getBgzfFooterSize()+payload1
+						);
+				}				
 			}
 
 			void deflatereinit(int const rlevel = Z_DEFAULT_COMPRESSION)
