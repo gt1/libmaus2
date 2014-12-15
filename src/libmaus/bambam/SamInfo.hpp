@@ -416,10 +416,28 @@ namespace libmaus
 							// integer (signed 32 bit)
 							case 'i':
 							{
-								int32_t const n = DNP.parseSignedNumber<int32_t>(pc + 5,p);								
-								char const tag[3] = { pc[0], pc[1], 0 };
-								libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'i',n);
-							
+								char const * ps = pc+5;
+								
+								if ( ps == p )
+								{
+									libmaus::exception::LibMausException lme;
+									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (length of number is zero)" << std::string(pc,p);
+									lme.finish();
+									throw lme;								
+								}
+								
+								if ( *ps == '-' )
+								{
+									int32_t const n = DNP.parseSignedNumber<int32_t>(ps,p);								
+									char const tag[3] = { pc[0], pc[1], 0 };
+									libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'i',n);
+								}
+								else
+								{
+									uint32_t const n = DNP.parseUnsignedNumber<uint32_t>(ps,p);
+									char const tag[3] = { pc[0], pc[1], 0 };
+									libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'I',n);
+								}
 								break;
 							}
 							/* float number */
