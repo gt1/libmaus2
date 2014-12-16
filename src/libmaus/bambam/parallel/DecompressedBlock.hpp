@@ -22,6 +22,8 @@
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/bambam/parallel/InputBlock.hpp>
 #include <libmaus/lz/BgzfInflateZStreamBase.hpp>
+#include <libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp>
+#include <libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp>
 #include <libmaus/parallel/LockedFreeList.hpp>
 
 namespace libmaus
@@ -95,20 +97,28 @@ namespace libmaus
 				}
 	
 				uint64_t decompressBlock(
-					libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase> & deccont,
+					libmaus::parallel::LockedFreeList<
+						libmaus::lz::BgzfInflateZStreamBase,
+						libmaus::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+						> & deccont,
 					char * in,
 					unsigned int const inlen,
 					unsigned int const outlen
 				)
 				{
-					libmaus::lz::BgzfInflateZStreamBase * decoder = deccont.get();				
-					uint64_t const r = decompressBlock(decoder,in,inlen,outlen);
+					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
+					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen);
 					deccont.put(decoder);
 					return r;
 				}
 				
 				uint64_t decompressBlock(
-					libmaus::parallel::LockedFreeList<libmaus::lz::BgzfInflateZStreamBase> & deccont,
+					libmaus::parallel::LockedFreeList<
+						libmaus::lz::BgzfInflateZStreamBase,
+						libmaus::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+						> & deccont,
 					InputBlock & inblock
 				)
 				{

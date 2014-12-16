@@ -450,25 +450,7 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamPrintableTable.hpp \
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp \
-	libmaus/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp \
-	libmaus/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp \
-	libmaus/bambam/AlignmentBufferHeapComparator.hpp \
-	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp \
-	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectHeapComparator.hpp \
-	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp \
-	libmaus/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp \
-	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackage.hpp \
-	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/WritePendingObject.hpp \
-	libmaus/bambam/parallel/WriteBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/WritePendingObjectHeapComparator.hpp \
-	libmaus/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp \
-	libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp \
-	libmaus/bambam/parallel/WriteBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp
+	libmaus/bambam/SamDecoderWrapper.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -541,7 +523,37 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/ValidationFragment.hpp \
 	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp \
 	libmaus/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp \
-	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackageDispatcher.hpp
+	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp \
+	libmaus/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp \
+	libmaus/bambam/parallel/AlignmentBufferHeapComparator.hpp \
+	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp \
+	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectHeapComparator.hpp \
+	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp \
+	libmaus/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp \
+	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackage.hpp \
+	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/WritePendingObject.hpp \
+	libmaus/bambam/parallel/WriteBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/WritePendingObjectHeapComparator.hpp \
+	libmaus/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp \
+	libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp \
+	libmaus/bambam/parallel/WriteBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp \
+	libmaus/bambam/parallel/AlignmentBufferTypeInfo.hpp \
+	libmaus/bambam/parallel/AlignmentBufferAllocator.hpp \
+	libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp \
+	libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp \
+	libmaus/bambam/parallel/DecompressedBlockAllocator.hpp \
+	libmaus/bambam/parallel/DecompressedBlockTypeInfo.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferFragment.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitchHelper.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitch.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferTypeInfo.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferAllocator.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

@@ -16,11 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP
-
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <map>
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERPOINTERTYPESWITCHHELPER_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERPOINTERTYPESWITCHHELPER_HPP
 
 namespace libmaus
 {
@@ -28,16 +25,9 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct DecompressedPendingObject : std::pair<uint64_t, DecompressedBlock::shared_ptr_type>
-			{
-				typedef std::pair<uint64_t, DecompressedBlock::shared_ptr_type> base_type;
-			
-				DecompressedPendingObject() : base_type(0,0) {}
-				DecompressedPendingObject(
-					uint64_t const rid,
-					DecompressedBlock::shared_ptr_type robj
-				) : base_type(rid,robj) {}
-			};
+			template<typename _A, typename _B, size_t k> struct FragmentAlignmentBufferPointerTypeSwitchHelper {};
+			template<typename _A, typename _B>           struct FragmentAlignmentBufferPointerTypeSwitchHelper<_A,_B,1> { typedef _A type; };
+			template<typename _A, typename _B>           struct FragmentAlignmentBufferPointerTypeSwitchHelper<_A,_B,0> { typedef _B type; };
 		}
 	}
 }

@@ -35,14 +35,14 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				AlignmentBuffer * parseBlock;
+				AlignmentBuffer::shared_ptr_type parseBlock;
 				AlignmentRewriteBuffer * rewriteBlock;
 	
 				RewriteBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(0) {}
 				
 				RewriteBlockWorkPackage(
 					uint64_t const rpriority, 
-					AlignmentBuffer * rparseBlock,
+					AlignmentBuffer::shared_ptr_type rparseBlock,
 					AlignmentRewriteBuffer * rrewriteBlock,
 					uint64_t const rparseDispatcherId
 				)

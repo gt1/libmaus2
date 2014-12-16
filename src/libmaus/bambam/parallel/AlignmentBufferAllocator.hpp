@@ -29,24 +29,17 @@ namespace libmaus
 		{
 			struct AlignmentBufferAllocator
 			{
-				uint64_t bufferSize;
-				uint64_t mult;
+				uint64_t const buffersize;
+				uint64_t const pointerdif;
+
+				AlignmentBufferAllocator(uint64_t const rbuffersize, uint64_t const rpointerdif) 
+				: buffersize(rbuffersize), pointerdif(rpointerdif)
+				{}
 				
-				AlignmentBufferAllocator()
-				: bufferSize(0), mult(0)
+				AlignmentBuffer::shared_ptr_type operator()()
 				{
-				
-				}
-				
-				AlignmentBufferAllocator(uint64_t const rbufferSize, uint64_t const rmult)
-				: bufferSize(rbufferSize), mult(rmult)
-				{
-				
-				}
-				
-				AlignmentBuffer * operator()() const
-				{
-					return new AlignmentBuffer(bufferSize,mult);
+					AlignmentBuffer::shared_ptr_type tptr(new AlignmentBuffer(buffersize,pointerdif));
+					return tptr;
 				}
 			};
 		}

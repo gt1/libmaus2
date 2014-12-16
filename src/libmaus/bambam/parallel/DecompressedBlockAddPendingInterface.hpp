@@ -31,7 +31,7 @@ namespace libmaus
 			struct DecompressedBlockAddPendingInterface
 			{
 				virtual ~DecompressedBlockAddPendingInterface() {}
-				virtual void putDecompressedBlockAddPending(DecompressedBlock * block) = 0;
+				virtual void putDecompressedBlockAddPending(DecompressedBlock::shared_ptr_type block) = 0;
 			};
 		}
 	}

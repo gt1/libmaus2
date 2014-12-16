@@ -31,7 +31,7 @@ namespace libmaus
 			struct DecompressedBlockReturnInterface
 			{
 				virtual ~DecompressedBlockReturnInterface() {}
-				virtual void putDecompressedBlockReturn(DecompressedBlock * block) = 0;
+				virtual void putDecompressedBlockReturn(DecompressedBlock::shared_ptr_type block) = 0;
 			};
 		}
 	}

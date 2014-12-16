@@ -31,7 +31,7 @@ namespace libmaus
 			struct ValidateBlockAddPendingInterface
 			{
 				virtual ~ValidateBlockAddPendingInterface() {}
-				virtual void putValidatedBlockAddPending(AlignmentBuffer * algn, bool const ok) = 0;
+				virtual void putValidatedBlockAddPending(AlignmentBuffer::shared_ptr_type algn, bool const ok) = 0;
 			};
 		}
 	}

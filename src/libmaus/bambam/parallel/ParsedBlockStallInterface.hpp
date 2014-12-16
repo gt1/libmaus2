@@ -31,7 +31,7 @@ namespace libmaus
 			struct ParsedBlockStallInterface
 			{
 				virtual ~ParsedBlockStallInterface() {}
-				virtual void putParsedBlockStall(AlignmentBuffer * algn) = 0;
+				virtual void putParsedBlockStall(AlignmentBuffer::shared_ptr_type algn) = 0;
 			};
 		}
 	}

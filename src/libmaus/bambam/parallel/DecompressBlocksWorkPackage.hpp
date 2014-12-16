@@ -35,15 +35,15 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
-				std::vector<ControlInputInfo::input_block_type *> inputblocks;
-				std::vector<DecompressedBlock *> outputblocks;
+				std::vector<ControlInputInfo::input_block_type::shared_ptr_type> inputblocks;
+				std::vector<DecompressedBlock::shared_ptr_type> outputblocks;
 	
 				DecompressBlocksWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage() {}
 				
 				void setData(
 					uint64_t const rpriority, 
-					std::vector<ControlInputInfo::input_block_type *> & rinputblocks,
-					std::vector<DecompressedBlock *> & routputblocks,
+					std::vector<ControlInputInfo::input_block_type::shared_ptr_type> & rinputblocks,
+					std::vector<DecompressedBlock::shared_ptr_type> & routputblocks,
 					uint64_t const rdecompressDispatcherId
 				)
 				{

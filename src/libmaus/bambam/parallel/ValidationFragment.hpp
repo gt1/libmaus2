@@ -31,10 +31,10 @@ namespace libmaus
 			{
 				uint64_t low;
 				uint64_t high;
-				AlignmentBuffer * buffer;
+				AlignmentBuffer::shared_ptr_type buffer;
 				
 				ValidationFragment() : low(0), high(0), buffer(0) {}
-				ValidationFragment(uint64_t const rlow, uint64_t const rhigh, AlignmentBuffer * const rbuffer) : low(rlow), high(rhigh), buffer(rbuffer) {}
+				ValidationFragment(uint64_t const rlow, uint64_t const rhigh, AlignmentBuffer::shared_ptr_type rbuffer) : low(rlow), high(rhigh), buffer(rbuffer) {}
 				
 				bool dispatch()
 				{

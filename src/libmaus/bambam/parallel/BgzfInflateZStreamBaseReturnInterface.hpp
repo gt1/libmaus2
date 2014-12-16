@@ -31,7 +31,7 @@ namespace libmaus
 			struct BgzfInflateZStreamBaseReturnInterface
 			{
 				virtual ~BgzfInflateZStreamBaseReturnInterface() {}
-				virtual void putBgzfInflateZStreamBaseReturn(libmaus::lz::BgzfInflateZStreamBase * decoder) = 0;
+				virtual void putBgzfInflateZStreamBaseReturn(libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder) = 0;
 			};
 		}
 	}

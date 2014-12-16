@@ -65,12 +65,12 @@ namespace libmaus
 					
 					assert ( BP->inputblocks.size() == BP->outputblocks.size() );
 					
-					libmaus::lz::BgzfInflateZStreamBase * zdecoder = decoderGetInterface.getBgzfInflateZStreamBase();
+					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type zdecoder = decoderGetInterface.getBgzfInflateZStreamBase();
 					
 					for ( uint64_t z = 0; z < BP->inputblocks.size(); ++z )
 					{
 						// decompress the block
-						BP->outputblocks[z]->decompressBlock(zdecoder,BP->inputblocks[z]);
+						BP->outputblocks[z]->decompressBlock(zdecoder.get(),BP->inputblocks[z].get());
 					
 						// compute crc of uncompressed data
 						uint32_t const crc = BP->outputblocks[z]->computeCrc();

@@ -36,8 +36,8 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				DecompressedBlock * decompressedblock;
-				AlignmentBuffer * parseBlock;
+				DecompressedBlock::shared_ptr_type decompressedblock;
+				AlignmentBuffer::shared_ptr_type parseBlock;
 				ParseInfo * parseInfo;
 	
 				ParseBlockWorkPackage()
@@ -51,8 +51,8 @@ namespace libmaus
 				
 				ParseBlockWorkPackage(
 					uint64_t const rpriority, 
-					DecompressedBlock * rdecompressedblock,
-					AlignmentBuffer * rparseBlock,
+					DecompressedBlock::shared_ptr_type rdecompressedblock,
+					AlignmentBuffer::shared_ptr_type rparseBlock,
 					ParseInfo * rparseInfo,
 					uint64_t const rparseDispatcherId
 				)

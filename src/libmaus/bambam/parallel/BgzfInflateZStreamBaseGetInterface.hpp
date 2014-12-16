@@ -31,7 +31,7 @@ namespace libmaus
 			struct BgzfInflateZStreamBaseGetInterface
 			{
 				virtual ~BgzfInflateZStreamBaseGetInterface() {}
-				virtual libmaus::lz::BgzfInflateZStreamBase * getBgzfInflateZStreamBase() = 0;
+				virtual libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type getBgzfInflateZStreamBase() = 0;
 			};
 		}
 	}

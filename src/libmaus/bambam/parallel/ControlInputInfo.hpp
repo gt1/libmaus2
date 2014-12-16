@@ -22,6 +22,8 @@
 #include <libmaus/bambam/parallel/InputBlock.hpp>
 #include <libmaus/parallel/LockedFreeList.hpp>
 #include <libmaus/parallel/LockedBool.hpp>
+#include <libmaus/bambam/parallel/InputBlockAllocator.hpp>
+#include <libmaus/bambam/parallel/InputBlockTypeInfo.hpp>
 
 namespace libmaus
 {
@@ -48,7 +50,11 @@ namespace libmaus
 				// next input block id
 				uint64_t volatile blockid;
 				// list of free input blocks
-				libmaus::parallel::LockedFreeList<input_block_type> inputBlockFreeList;
+				libmaus::parallel::LockedFreeList<
+					input_block_type,
+					InputBlockAllocator,
+					InputBlockTypeInfo
+				> inputBlockFreeList;
 	
 				ControlInputInfo(
 					std::istream & ristr, 

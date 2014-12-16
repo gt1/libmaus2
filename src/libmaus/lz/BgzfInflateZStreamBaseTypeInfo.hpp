@@ -16,29 +16,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP
+#if ! defined(LIBMAUS_LZ_BGZFINFLATEZSTREAMBASETYPEINFO)
+#define LIBMAUS_LZ_BGZFINFLATEZSTREAMBASETYPEINFO
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <map>
+#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
 
 namespace libmaus
 {
-	namespace bambam
+	namespace lz
 	{
-		namespace parallel
+		struct BgzfInflateZStreamBaseTypeInfo
 		{
-			struct DecompressedPendingObject : std::pair<uint64_t, DecompressedBlock::shared_ptr_type>
-			{
-				typedef std::pair<uint64_t, DecompressedBlock::shared_ptr_type> base_type;
+			typedef BgzfInflateZStreamBaseTypeInfo this_type;
 			
-				DecompressedPendingObject() : base_type(0,0) {}
-				DecompressedPendingObject(
-					uint64_t const rid,
-					DecompressedBlock::shared_ptr_type robj
-				) : base_type(rid,robj) {}
-			};
-		}
+			typedef libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type pointer_type;
+			
+			static pointer_type getNullPointer()
+			{
+				pointer_type p;
+				return p;
+			}
+			
+			static pointer_type deallocate(pointer_type p)
+			{
+				return getNullPointer();
+			}
+		};
 	}
 }
 #endif

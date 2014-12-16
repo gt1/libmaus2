@@ -35,9 +35,9 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				ControlInputInfo::input_block_type * inputblock;
-				DecompressedBlock * outputblock;
-				libmaus::lz::BgzfInflateZStreamBase * decoder;
+				ControlInputInfo::input_block_type::shared_ptr_type inputblock;
+				DecompressedBlock::shared_ptr_type outputblock;
+				libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder;
 	
 				DecompressBlockWorkPackage()
 				: 
@@ -50,9 +50,9 @@ namespace libmaus
 				
 				DecompressBlockWorkPackage(
 					uint64_t const rpriority, 
-					ControlInputInfo::input_block_type * rinputblock,
-					DecompressedBlock * routputblock,
-					libmaus::lz::BgzfInflateZStreamBase * rdecoder,
+					ControlInputInfo::input_block_type::shared_ptr_type rinputblock,
+					DecompressedBlock::shared_ptr_type routputblock,
+					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type rdecoder,
 					uint64_t const rdecompressDispatcherId
 				)
 				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), inputblock(rinputblock), outputblock(routputblock), decoder(rdecoder)

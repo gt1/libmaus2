@@ -16,11 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERTYPEINFO_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERTYPEINFO_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <map>
+#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
 namespace libmaus
 {
@@ -28,15 +27,22 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct DecompressedPendingObject : std::pair<uint64_t, DecompressedBlock::shared_ptr_type>
+			struct FragmentAlignmentBufferTypeInfo
 			{
-				typedef std::pair<uint64_t, DecompressedBlock::shared_ptr_type> base_type;
-			
-				DecompressedPendingObject() : base_type(0,0) {}
-				DecompressedPendingObject(
-					uint64_t const rid,
-					DecompressedBlock::shared_ptr_type robj
-				) : base_type(rid,robj) {}
+				typedef FragmentAlignmentBufferTypeInfo this_type;
+				
+				typedef libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type pointer_type;
+				
+				static pointer_type getNullPointer()
+				{
+					pointer_type p;
+					return p;
+				}
+				
+				static pointer_type deallocate(pointer_type p)
+				{
+					return getNullPointer();
+				}
 			};
 		}
 	}

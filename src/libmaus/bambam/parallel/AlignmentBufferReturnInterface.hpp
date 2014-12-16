@@ -31,7 +31,7 @@ namespace libmaus
 			struct AlignmentBufferReturnInterface
 			{
 				virtual ~AlignmentBufferReturnInterface() {}
-				virtual void putReturnAlignmentBuffer(AlignmentBuffer * buffer) = 0;
+				virtual void putReturnAlignmentBuffer(AlignmentBuffer::shared_ptr_type buffer) = 0;
 			};
 		}
 	}

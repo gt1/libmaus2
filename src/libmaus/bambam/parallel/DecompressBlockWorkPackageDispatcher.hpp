@@ -60,7 +60,7 @@ namespace libmaus
 					assert ( BP );
 					
 					// decompress the block
-					BP->outputblock->decompressBlock(BP->decoder,BP->inputblock);
+					BP->outputblock->decompressBlock(BP->decoder.get(),BP->inputblock.get());
 	
 					// compute crc of uncompressed data
 					uint32_t const crc = BP->outputblock->computeCrc();

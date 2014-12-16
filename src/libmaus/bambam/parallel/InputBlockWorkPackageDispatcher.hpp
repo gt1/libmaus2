@@ -61,7 +61,7 @@ namespace libmaus
 					assert ( BP );
 					
 					// vector of blocks to pass on for decompression
-					std::deque<ControlInputInfo::input_block_type *> blockPassVector;
+					std::deque<ControlInputInfo::input_block_type::shared_ptr_type> blockPassVector;
 					
 					// try to get lock
 					if ( BP->inputinfo->readLock.trylock() )
@@ -75,7 +75,7 @@ namespace libmaus
 						while ( running )
 						{
 							// try to get a free buffer
-							ControlInputInfo::input_block_type * block = 
+							ControlInputInfo::input_block_type::shared_ptr_type block = 
 								BP->inputinfo->inputBlockFreeList.getIf();
 							
 							// if we have a buffer then read the next bgzf block

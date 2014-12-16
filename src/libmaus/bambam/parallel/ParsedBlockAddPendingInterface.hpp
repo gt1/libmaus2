@@ -31,7 +31,7 @@ namespace libmaus
 			struct ParsedBlockAddPendingInterface
 			{
 				virtual ~ParsedBlockAddPendingInterface() {}
-				virtual void putParsedBlockAddPending(AlignmentBuffer * algn) = 0;
+				virtual void putParsedBlockAddPending(AlignmentBuffer::shared_ptr_type algn) = 0;
 			};
 		}
 	}

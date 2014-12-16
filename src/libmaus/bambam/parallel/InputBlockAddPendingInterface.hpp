@@ -32,12 +32,12 @@ namespace libmaus
 			struct InputBlockAddPendingInterface
 			{
 				virtual ~InputBlockAddPendingInterface() {}
-				virtual void putInputBlockAddPending(ControlInputInfo::input_block_type * package) = 0;
+				virtual void putInputBlockAddPending(ControlInputInfo::input_block_type::shared_ptr_type package) = 0;
 				virtual void putInputBlockAddPending(
-					std::deque<ControlInputInfo::input_block_type *>::iterator ita,
-					std::deque<ControlInputInfo::input_block_type *>::iterator ite)
+					std::deque<ControlInputInfo::input_block_type::shared_ptr_type>::iterator ita,
+					std::deque<ControlInputInfo::input_block_type::shared_ptr_type>::iterator ite)
 				{
-					for ( std::deque<ControlInputInfo::input_block_type *>::iterator itc = ita; itc != ite; ++itc )
+					for ( std::deque<ControlInputInfo::input_block_type::shared_ptr_type>::iterator itc = ita; itc != ite; ++itc )
 						putInputBlockAddPending(*itc);
 				}
 			};

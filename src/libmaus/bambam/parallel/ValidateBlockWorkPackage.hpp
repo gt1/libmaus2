@@ -34,13 +34,13 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				AlignmentBuffer * parseBlock;
+				AlignmentBuffer::shared_ptr_type parseBlock;
 	
 				ValidateBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(0) {}
 				
 				ValidateBlockWorkPackage(
 					uint64_t const rpriority, 
-					AlignmentBuffer * rparseBlock,
+					AlignmentBuffer::shared_ptr_type rparseBlock,
 					uint64_t const rparseDispatcherId
 				)
 				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock)

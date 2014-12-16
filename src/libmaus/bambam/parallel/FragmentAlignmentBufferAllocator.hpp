@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTBUFFERHEAPCOMPARATOR_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTBUFFERHEAPCOMPARATOR_HPP
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERALLOCATOR_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERALLOCATOR_HPP
 
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
 namespace libmaus
 {
@@ -27,14 +27,19 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct AlignmentBufferHeapComparator
+			struct FragmentAlignmentBufferAllocator
 			{
-				bool operator()(AlignmentBuffer const * A, AlignmentBuffer const * B) const
+				size_t numbuffers;
+				uint64_t pointermult;
+			
+				FragmentAlignmentBufferAllocator() {}
+				FragmentAlignmentBufferAllocator(size_t const rnumbuffers, uint64_t const rpointermult)
+				: numbuffers(rnumbuffers), pointermult(rpointermult) {}
+				
+				FragmentAlignmentBuffer::shared_ptr_type operator()()
 				{
-					if ( A->id != B->id )
-						return A->id > B->id;
-					else
-						return A->subid > B->subid;
+					FragmentAlignmentBuffer::shared_ptr_type tptr(new FragmentAlignmentBuffer(numbuffers,pointermult));
+					return tptr;
 				}
 			};
 		}

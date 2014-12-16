@@ -31,7 +31,7 @@ namespace libmaus
 			struct InputBlockReturnInterface
 			{
 				virtual ~InputBlockReturnInterface() {}
-				virtual void putInputBlockReturn(ControlInputInfo::input_block_type * block) = 0;
+				virtual void putInputBlockReturn(ControlInputInfo::input_block_type::shared_ptr_type block) = 0;
 			};
 		}
 	}
