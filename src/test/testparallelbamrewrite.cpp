@@ -89,6 +89,9 @@
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferAllocator.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferTypeInfo.hpp>
 
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp>
+#include <libmaus/lz/BgzfDeflate.hpp>
+
 namespace libmaus
 {
 	namespace bambam
@@ -232,12 +235,13 @@ namespace libmaus
 				> bgzfDeflateZStreamBaseFreeList;
 
 				libmaus::parallel::PosixSpinLock rewriteLargeBlockLock;
-				std::priority_queue<AlignmentBuffer::shared_ptr_type, std::vector<AlignmentBuffer::shared_ptr_type>, AlignmentBufferHeapComparator > rewriteLargeBlockQueue;
+				std::priority_queue<FragmentAlignmentBuffer::shared_ptr_type, std::vector<FragmentAlignmentBuffer::shared_ptr_type>, 
+					FragmentAlignmentBufferHeapComparator > rewriteLargeBlockQueue;
 				uint64_t volatile rewriteLargeBlockNext;
 				libmaus::parallel::LockedBool lastParseBlockCompressed;
 
 				libmaus::parallel::PosixSpinLock compressionActiveBlocksLock;
-				std::map<uint64_t, AlignmentBuffer::shared_ptr_type> compressionActive;
+				std::map<uint64_t, FragmentAlignmentBuffer::shared_ptr_type> compressionActive;
 				std::map< int64_t, uint64_t> compressionUnfinished;
 				std::priority_queue<SmallLinearBlockCompressionPendingObject,std::vector<SmallLinearBlockCompressionPendingObject>,
 					SmallLinearBlockCompressionPendingObjectHeapComparator> compressionUnqueuedPending;
@@ -248,7 +252,7 @@ namespace libmaus
 				std::pair<int64_t,uint64_t> writeNext;
 				libmaus::parallel::LockedBool lastParseBlockWritten;
 				
-				libmaus::parallel::LockedGrowingFreeList<
+				libmaus::parallel::LockedFreeList<
 					FragmentAlignmentBuffer,
 					FragmentAlignmentBufferAllocator,
 					FragmentAlignmentBufferTypeInfo
@@ -302,7 +306,7 @@ namespace libmaus
 					lastParseBlockCompressed(false),
 					writeNext(-1,0),
 					lastParseBlockWritten(false),
-					fragmentBufferFreeList(FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */))
+					fragmentBufferFreeList(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */))
 				{
 					STP.registerDispatcher(IBWPDid,&IBWPD);
 					STP.registerDispatcher(DBWPDid,&DBWPD);
@@ -698,7 +702,7 @@ namespace libmaus
 	
 					if ( obj.blockid >= 0 && blockfinished )
 					{
-						AlignmentBuffer::shared_ptr_type algn = 0;
+						FragmentAlignmentBuffer::shared_ptr_type algn = 0;
 						{
 						libmaus::parallel::ScopePosixSpinLock lcompressionActiveBlocksLock(compressionActiveBlocksLock);
 						algn = compressionActive.find(obj.blockid)->second;
@@ -715,11 +719,9 @@ namespace libmaus
 						if ( lastParseBlockValidated.get() && blocksValidated == buffersCompressed )
 							lastParseBlockCompressed.set(true);
 
-
-						// return alignment buffer		
-						parseBlockFreeList.put(algn);
-						// check for more parsing
-						checkParsePendingList();
+						// ZZZ return FragmentAlignmentBuffer
+						fragmentBufferFreeList.put(algn);
+						checkValidatedRewritePending();
 					}
 				
 				}
@@ -759,7 +761,13 @@ namespace libmaus
 								buffersWritten++;
 							
 								if ( lastParseBlockCompressed.get() && buffersWritten == buffersCompressed )
+								{
 									lastParseBlockWritten.set(true);
+									
+									// add EOF
+									libmaus::lz::BgzfDeflate<std::ostream> defl(out);
+									defl.addEOFBlock();
+								}
 
 								if ( lastParseBlockWritten.get() )
 									decodingFinished.set(true);		
@@ -855,7 +863,7 @@ namespace libmaus
 					
 					while ( running )
 					{
-						AlignmentBuffer::shared_ptr_type algn = 0;
+						FragmentAlignmentBuffer::shared_ptr_type algn = 0;
 						
 						{
 							libmaus::parallel::ScopePosixSpinLock llock(rewriteLargeBlockLock);
@@ -908,6 +916,98 @@ namespace libmaus
 					checkSmallBlockCompressionPending();
 				}
 				
+				libmaus::parallel::LockedCounter nextValidatedBlockToBeRewritten;
+				libmaus::parallel::PosixSpinLock validatedBlocksToBeRewrittenQueueLock;
+				std::priority_queue<
+					AlignmentBuffer::shared_ptr_type,
+					std::vector<AlignmentBuffer::shared_ptr_type>,
+					AlignmentBufferHeapComparator
+				> validatedBlocksToBeRewrittenQueue;
+				
+				void checkValidatedRewritePending()
+				{
+					bool running = true;
+					
+					while ( running )
+					{
+						AlignmentBuffer::shared_ptr_type algn;
+
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(validatedBlocksToBeRewrittenQueueLock);
+							if ( validatedBlocksToBeRewrittenQueue.size() && 
+								validatedBlocksToBeRewrittenQueue.top()->id ==
+								static_cast<uint64_t>(nextValidatedBlockToBeRewritten) )
+							{
+								algn = validatedBlocksToBeRewrittenQueue.top();
+								validatedBlocksToBeRewrittenQueue.pop();
+							}
+						}
+						
+						if ( algn )
+						{
+							FragmentAlignmentBuffer::shared_ptr_type FAB = fragmentBufferFreeList.getIf();
+							
+							if ( FAB )
+							{
+								nextValidatedBlockToBeRewritten += 1;
+
+								uint64_t const f = algn->fill();
+								FAB->reset();
+								FAB->id = algn->id;
+								FAB->subid = algn->subid;
+								FAB->computeOffsetStartVector(f);
+								
+								for ( uint64_t j = 0; j < FAB->size(); ++j )
+								{
+									uint64_t * O = FAB->getOffsetStart(j);
+									uint64_t const ind = FAB->getOffsetStartIndex(j);
+									size_t const num = FAB->getNumAlignments(j);
+									FragmentAlignmentBufferFragment * subbuf = (*FAB)[j];
+
+									for ( size_t i = ind; i < ind+num; ++i )
+									{
+										std::pair<uint8_t const *,uint64_t> P = algn->at(i);
+										*(O++) = subbuf->push(P.first,P.second);							
+									}
+
+									FAB->rewritePointers(j);
+								}
+
+								for ( size_t i = 0; i < f; ++i )
+								{
+									std::pair<uint8_t const *,uint64_t> P0 = algn->at(i);
+									std::pair<uint8_t const *,uint64_t> P1 = FAB->at(i);
+									assert ( P0.second == P1.second );
+									assert ( memcmp(P0.first,P1.first,P0.second) == 0 );
+								}
+
+
+								{
+									libmaus::parallel::ScopePosixSpinLock llock(rewriteLargeBlockLock);
+									rewriteLargeBlockQueue.push(FAB);
+								}
+							
+								checkLargeBlockCompressionPending();
+
+								// return alignment buffer
+								parseBlockFreeList.put(algn);
+								// check for more parsing
+								checkParsePendingList();
+							}
+							else
+							{
+								libmaus::parallel::ScopePosixSpinLock slock(validatedBlocksToBeRewrittenQueueLock);
+								validatedBlocksToBeRewrittenQueue.push(algn);
+								running = false;
+							}
+						}
+						else
+						{
+							running = false;
+						}
+					}
+				}
+				
 				void validateBlockFragmentFinished(ValidationFragment & V, bool const ok)
 				{
 					readsValidated += (V.high-V.low);
@@ -948,48 +1048,13 @@ namespace libmaus
 					
 					if ( returnbuffer )
 					{
-						uint64_t const f = algn->fill();
-						FragmentAlignmentBuffer::shared_ptr_type outbuffer = fragmentBufferFreeList.get();
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(validatedBlocksToBeRewrittenQueueLock);
+							validatedBlocksToBeRewrittenQueue.push(algn);
+						}
 						
-						outbuffer->reset();
-						outbuffer->computeOffsetStartVector(f);
-						
-						for ( uint64_t j = 0; j < outbuffer->size(); ++j )
-						{
-							uint64_t * O = outbuffer->getOffsetStart(j);
-							uint64_t const ind = outbuffer->getOffsetStartIndex(j);
-							size_t const num = outbuffer->getNumAlignments(j);
-							FragmentAlignmentBufferFragment * subbuf = (*outbuffer)[j];
-
-							for ( size_t i = ind; i < ind+num; ++i )
-							{
-								std::pair<uint8_t const *,uint64_t> P = algn->at(i);
-								*(O++) = subbuf->push(P.first,P.second);							
-							}
-
-							outbuffer->rewritePointers(j);
-						}
-
-						for ( size_t i = 0; i < f; ++i )
-						{
-							std::pair<uint8_t const *,uint64_t> P0 = algn->at(i);
-							std::pair<uint8_t const *,uint64_t> P1 = outbuffer->at(i);
-							assert ( P0.second == P1.second );
-							assert ( memcmp(P0.first,P1.first,P0.second) == 0 );
-						}
-												
-						fragmentBufferFreeList.put(outbuffer);
-					}
-
-					if ( returnbuffer )
-					{
-						{
-						libmaus::parallel::ScopePosixSpinLock llock(rewriteLargeBlockLock);
-						rewriteLargeBlockQueue.push(algn);
-						}
-					
-						checkLargeBlockCompressionPending();
-					}
+						checkValidatedRewritePending();
+					}					
 				}
 			};
 		}

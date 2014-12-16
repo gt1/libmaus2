@@ -553,7 +553,9 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitchHelper.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitch.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferTypeInfo.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferAllocator.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferAllocator.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp \
+	libmaus/bambam//parallel/FragmentAlignmentBufferHeapComparator.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

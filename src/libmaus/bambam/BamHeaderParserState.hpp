@@ -125,11 +125,12 @@ namespace libmaus
 					std::pair<char const *, char const *> name = C.getName();
 					size_t const namesize = name.second-name.first;
 
-					out.put((namesize >>  0) & 0xFF);
-					out.put((namesize >>  8) & 0xFF);
-					out.put((namesize >> 16) & 0xFF);
-					out.put((namesize >> 24) & 0xFF);
+					out.put(((namesize+1) >>  0) & 0xFF);
+					out.put(((namesize+1) >>  8) & 0xFF);
+					out.put(((namesize+1) >> 16) & 0xFF);
+					out.put(((namesize+1) >> 24) & 0xFF);
 					out.write(name.first,namesize);
+					out.put(0);
 
 					out.put((C.getLength() >>  0) & 0xFF);
 					out.put((C.getLength() >>  8) & 0xFF);

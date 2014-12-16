@@ -94,6 +94,29 @@ namespace libmaus
 						(static_cast<uint32_t>(pa[offset+2]) << 16) |
 						(static_cast<uint32_t>(pa[offset+3]) << 24);
 				}
+
+				void getLinearOutputFragments(
+					uint64_t const maxblocksize, std::vector<std::pair<uint8_t *,uint8_t *> > & V
+				)
+				{
+					// total length of character data in bytes
+					uint64_t const totallen = pc - pa;
+					// target number of blocks
+					uint64_t const tnumblocks = (totallen + maxblocksize - 1)/maxblocksize;
+					// block size
+					uint64_t const blocksize = tnumblocks ? ((totallen + tnumblocks - 1)/tnumblocks) : 0;
+					// number of blocks
+					uint64_t const numblocks = 
+						std::max(blocksize ? ((totallen + blocksize - 1)/blocksize) : 0,static_cast<uint64_t>(1));
+					
+					for ( uint64_t o = 0; o < numblocks; ++o )
+					{
+						uint64_t const low  = o*blocksize;
+						uint64_t const high = std::min(low+blocksize,totallen); 
+						V.push_back(std::pair<uint8_t *,uint8_t *>(pa+low,pa+high));
+					}					
+				}
+
 			};
 		}
 	}

@@ -33,6 +33,9 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 				
+				uint64_t id;
+				uint64_t subid;
+				
 				libmaus::autoarray::AutoArray<FragmentAlignmentBufferFragment::unique_ptr_type> A;
 				libmaus::autoarray::AutoArray<uint64_t ,libmaus::autoarray::alloc_type_c> O;
 				libmaus::autoarray::AutoArray<uint8_t *,libmaus::autoarray::alloc_type_c> P;
@@ -53,7 +56,7 @@ namespace libmaus
 				}
 				
 				FragmentAlignmentBuffer(size_t const numbuffers, uint64_t const rpointermult)
-				: A(numbuffers), pointermult(rpointermult), OSVO(A.size()+1)
+				: id(0), subid(0), A(numbuffers), pointermult(rpointermult), OSVO(A.size()+1)
 				{
 					for ( size_t i = 0; i < numbuffers; ++i )
 					{
@@ -148,8 +151,17 @@ namespace libmaus
 								
 				void reset()
 				{
-					for ( size_t i = 0; i < A.size(); ++i )
+					for ( size_t i = 0; i < size(); ++i )
 						A[i]->reset();
+				}
+
+				void getLinearOutputFragments(
+					uint64_t const maxblocksize, std::vector<std::pair<uint8_t *,uint8_t *> > & V
+				)
+				{
+					V.resize(0);
+					for ( size_t i = 0; i < size(); ++i )
+						A[i]->getLinearOutputFragments(maxblocksize,V);
 				}
 			};
 		}
