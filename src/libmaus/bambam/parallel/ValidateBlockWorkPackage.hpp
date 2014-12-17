@@ -36,7 +36,7 @@ namespace libmaus
 			
 				AlignmentBuffer::shared_ptr_type parseBlock;
 	
-				ValidateBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(0) {}
+				ValidateBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock() {}
 				
 				ValidateBlockWorkPackage(
 					uint64_t const rpriority, 

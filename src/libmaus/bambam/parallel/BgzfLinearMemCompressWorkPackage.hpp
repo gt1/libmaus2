@@ -38,7 +38,7 @@ namespace libmaus
 				SmallLinearBlockCompressionPendingObject obj;
 				libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outbuf;
 
-				BgzfLinearMemCompressWorkPackage() : obj(), outbuf(0) {}
+				BgzfLinearMemCompressWorkPackage() : obj(), outbuf() {}
 
 				BgzfLinearMemCompressWorkPackage(
 					uint64_t const rpriority, 

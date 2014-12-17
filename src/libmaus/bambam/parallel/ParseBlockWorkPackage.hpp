@@ -43,8 +43,8 @@ namespace libmaus
 				ParseBlockWorkPackage()
 				: 
 					libmaus::parallel::SimpleThreadWorkPackage(), 
-					decompressedblock(0),
-					parseBlock(0),
+					decompressedblock(),
+					parseBlock(),
 					parseInfo(0)
 				{
 				}

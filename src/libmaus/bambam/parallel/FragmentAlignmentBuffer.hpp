@@ -83,17 +83,11 @@ namespace libmaus
 						P.resize(n*pointermult);
 				}
 				
-				void computeOffsetStartVector(size_t const f)
+				std::vector<size_t> & getOffsetStartVector()
 				{
-					checkPointerSpace(f);
-					
-					uint64_t const algnsperfrag = (f + size()-1)/size();
-
-					for ( uint64_t i = 0; i < size(); ++i )
-						OSVO.at(i) = std::min(i * algnsperfrag,f);						
-					OSVO.at(size()) = f;
+					return OSVO;
 				}
-
+				
 				uint64_t getOffsetStartIndex(uint64_t const index) const
 				{
 					return OSVO.at(index);

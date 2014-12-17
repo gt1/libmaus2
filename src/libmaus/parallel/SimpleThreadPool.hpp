@@ -273,7 +273,6 @@ namespace libmaus
 			uint64_t rdtsc(void)
 			{
 				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64)
-				uint64_t x;
 				uint32_t a, d;
 			      
 				__asm__ volatile("rdtsc" : "=a" (a), "=d" (d));

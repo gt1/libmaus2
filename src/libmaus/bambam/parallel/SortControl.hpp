@@ -673,9 +673,9 @@ namespace libmaus
 					while ( running )
 					{
 						// XXX ZZZ lock for decompressPending
-						ControlInputInfo::input_block_type::shared_ptr_type inputblock = 0;
-						libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = 0;
-						decompressed_block_type::shared_ptr_type outputblock = 0;
+						ControlInputInfo::input_block_type::shared_ptr_type inputblock = ControlInputInfo::input_block_type::shared_ptr_type();
+						libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type();
+						decompressed_block_type::shared_ptr_type outputblock = decompressed_block_type::shared_ptr_type();
 						
 						bool ok = true;
 						ok = ok && decompressPending.tryDequeFront(inputblock);
@@ -717,7 +717,7 @@ namespace libmaus
 					libmaus::parallel::ScopePosixSpinLock alock(parseStallSlotLock);
 					libmaus::parallel::ScopePosixSpinLock plock(parsePendingLock);
 	
-					AlignmentBuffer::shared_ptr_type algnbuffer = 0;
+					AlignmentBuffer::shared_ptr_type algnbuffer = AlignmentBuffer::shared_ptr_type();
 	
 					#if 0
 					{
@@ -733,7 +733,7 @@ namespace libmaus
 						(algnbuffer=parseStallSlot)
 					)
 					{					
-						parseStallSlot = 0;
+						parseStallSlot = AlignmentBuffer::shared_ptr_type();
 											
 						DecompressedPendingObject obj = parsePending.pop();		
 	
@@ -822,7 +822,7 @@ namespace libmaus
 	
 				void checkRewritePending()
 				{
-					AlignmentBuffer::shared_ptr_type inbuffer = 0;
+					AlignmentBuffer::shared_ptr_type inbuffer = AlignmentBuffer::shared_ptr_type();
 					bool const pendingok = rewritePending.tryDequeFront(inbuffer);
 					AlignmentRewriteBuffer * outbuffer = rewriteBlockFreeList.getIf();
 					
@@ -974,7 +974,7 @@ namespace libmaus
 					parseBlockFreeList(numthreads,AlignmentBufferAllocator(rparsebuffersize,2)),
 					rewriteBlockFreeList(rnumrewritebuffers,AlignmentRewriteBufferAllocator(rrewritebuffersize,2)),
 					nextDecompressedBlockToBeParsed(0),
-					parseStallSlot(0),
+					parseStallSlot(),
 					lastParseBlockSeen(false),
 					readsParsed(0),
 					readsParsedLastPrint(0),

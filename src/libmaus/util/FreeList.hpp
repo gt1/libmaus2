@@ -126,7 +126,7 @@ namespace libmaus
 			
 			typename type_info_type::pointer_type get()
 			{
-				typename type_info_type::pointer_type p = 0;
+				typename type_info_type::pointer_type p = typename type_info_type::pointer_type();
 				assert ( ! empty() );
 
 				p = freelist[--freecnt];

@@ -50,7 +50,7 @@ namespace libmaus
 			
 				virtual void dispatch(
 					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					WriteBlockWorkPackage * BP = dynamic_cast<WriteBlockWorkPackage *>(P);

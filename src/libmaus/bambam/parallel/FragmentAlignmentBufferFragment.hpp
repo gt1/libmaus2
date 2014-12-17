@@ -64,10 +64,13 @@ namespace libmaus
 					pe = A.end();
 				}
 				
-				uint64_t push(uint8_t const * T, size_t l)
+				uint64_t getOffset() const
 				{
-					ptrdiff_t const off = pc-pa;
-					
+					return static_cast<uint64_t>(pc-pa);
+				}
+				
+				void pushAlignmentBlock(uint8_t const * T, size_t l)
+				{
 					while ( (pe-pc) < (l+sizeof(uint32_t)) )
 						extend();
 					assert ( pe-pc >= l+sizeof(uint32_t) );
@@ -81,9 +84,26 @@ namespace libmaus
 					std::copy(T,T+l,pc);
 
 					pc += l;
-					f += 1;
+					f += 1;					
+				}
+
+				void push(uint8_t const * T, size_t l)
+				{
+					while ( (pe-pc) < l )
+						extend();
+					assert ( pe-pc >= l );
 					
-					return static_cast<uint64_t>(off);
+					std::copy(T,T+l,pc);
+					pc += l;
+				}
+				
+				void replaceLength(uint64_t const offset, uint32_t const l)
+				{
+					uint8_t * const pp = pa + offset;
+					pp[0] = (l>>0) &0xFF;
+					pp[1] = (l>>8) &0xFF;
+					pp[2] = (l>>16)&0xFF;
+					pp[3] = (l>>24)&0xFF;
 				}
 				
 				uint32_t getLength(uint64_t const offset) const

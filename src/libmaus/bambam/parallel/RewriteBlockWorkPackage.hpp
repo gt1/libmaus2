@@ -38,7 +38,7 @@ namespace libmaus
 				AlignmentBuffer::shared_ptr_type parseBlock;
 				AlignmentRewriteBuffer * rewriteBlock;
 	
-				RewriteBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(0) {}
+				RewriteBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(), rewriteBlock(0) {}
 				
 				RewriteBlockWorkPackage(
 					uint64_t const rpriority, 

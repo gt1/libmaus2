@@ -450,7 +450,10 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamPrintableTable.hpp \
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp
+	libmaus/bambam/SamDecoderWrapper.hpp \
+	libmaus/bambam/BamAlignmentFixedSizeData.hpp \
+	libmaus/bambam/BamAuxSortingBufferEntry.hpp \
+	libmaus/bambam/BamAuxSortingBuffer.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -555,7 +558,10 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferTypeInfo.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferAllocator.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp \
-	libmaus/bambam//parallel/FragmentAlignmentBufferHeapComparator.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageDispatcher.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1451,7 +1457,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testmd5 \
 	testsha \
 	testsinglefileserver \
-	testparallelbamrewrite
+	testparallelbamrewrite \
+	testbammateerase
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1638,6 +1645,9 @@ testbamtofastq_LDFLAGS = @SNAPPYLDFLAGS@ @DLLIB@
 
 testbamrange_SOURCES = test/testbamrange.cpp
 testbamrange_LDADD = libmaus.la
+
+testbammateerase_SOURCES = test/testbammateerase.cpp
+testbammateerase_LDADD = libmaus.la
 
 testbamdamage_SOURCES = test/testbamdamage.cpp
 testbamdamage_LDADD = libmaus.la @SNAPPYLIBS@
@@ -1855,7 +1865,7 @@ testsha_SOURCES = test/testsha.cpp
 testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a libmausdigests_sse4.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
-testsha_DEPENDENCIES = libmausdigests.a
+testsha_DEPENDENCIES = libmaus.la libmausdigests.a
 
 testmd5_SOURCES = test/testmd5.cpp
 testmd5_LDADD = libmaus.la

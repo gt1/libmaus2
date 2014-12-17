@@ -42,9 +42,9 @@ namespace libmaus
 				DecompressBlockWorkPackage()
 				: 
 					libmaus::parallel::SimpleThreadWorkPackage(), 
-					inputblock(0),
-					outputblock(0),
-					decoder(0)
+					inputblock(),
+					outputblock(),
+					decoder()
 				{
 				}
 				

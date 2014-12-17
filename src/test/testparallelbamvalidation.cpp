@@ -195,7 +195,7 @@ namespace libmaus
 					decompressFinished(false),
 					requeReadPending(false),
 					nextDecompressedBlockToBeParsed(0),
-					parseStallSlot(0),
+					parseStallSlot(),
 					parseBlockFreeList(STP.getNumThreads(),AlignmentBufferAllocator(getParseBufferSize(),2 /* pointer multiplier */)),
 					lastParseBlockSeen(false),
 					lastParseBlockValidated(false)
@@ -379,7 +379,7 @@ namespace libmaus
 					STP.getGlobalLock().unlock();
 					#endif
 	
-					AlignmentBuffer::shared_ptr_type algnbuffer = 0;
+					AlignmentBuffer::shared_ptr_type algnbuffer = AlignmentBuffer::shared_ptr_type();
 	
 					#if 0
 					{
@@ -396,7 +396,7 @@ namespace libmaus
 						(algnbuffer=parseStallSlot)
 					)
 					{					
-						parseStallSlot = 0;
+						parseStallSlot = AlignmentBuffer::shared_ptr_type();
 											
 						DecompressedPendingObject obj = parsePending.pop();		
 	

@@ -95,6 +95,45 @@ namespace libmaus
 						return 0;
 					}
 				}
+				
+				char const * getNameAt(uint64_t const i)
+				{
+					return
+						libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[i] + sizeof(uint32_t));
+				}
+				
+				void computeSplitPoints(std::vector<uint64_t> & V)
+				{
+					assert ( V.size() > 0 );
+					uint64_t const numpoints = V.size()-1;
+					
+					uint64_t low = 0;
+					uint64_t f = fill();
+					uint64_t pointsleft = numpoints;
+					uint64_t o = 0;
+					
+					V[o++] = 0;
+					
+					while ( pointsleft )
+					{
+						uint64_t high = low + ((f-low+pointsleft-1)/pointsleft);
+						assert ( high <= f );
+
+						while ( 
+							high < f &&
+							strcmp(getNameAt(f),getNameAt(f+1)) == 0 
+						)
+							++high;
+							
+						V[o++] = high;
+							
+						low = high;
+						pointsleft -= 1;
+					}
+					
+					assert ( o == numpoints+1 );
+					assert ( V[numpoints] == f );
+				}
 							
 				void returnAlignments(std::vector<libmaus::bambam::BamAlignment *> & algns)
 				{
@@ -283,7 +322,10 @@ namespace libmaus
 					// number of bytes in array
 					size_t const numbytes = A.size();
 					// extend by frac
-					size_t const prenewsize = std::max(numbytes + (numbytes+frac-1)/frac,numbytes+1);
+					size_t const prenewsize = std::max(
+						static_cast<size_t>(numbytes + (numbytes+frac-1)/frac),
+						static_cast<size_t>(numbytes+1)
+					);
 					// make new size multiple of pointer size
 					size_t const newsize = ((prenewsize + sizeof(pointer_type) - 1)/sizeof(pointer_type))*sizeof(pointer_type);
 					

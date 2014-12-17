@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
 
+#include <libmaus/bambam/BamAuxSortingBuffer.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/bambam/AlignmentValidity.hpp>
 #include <libmaus/bambam/BamAlignmentReg2Bin.hpp>
@@ -36,98 +37,6 @@ namespace libmaus
 {
 	namespace bambam
 	{
-		//! entry class for sorting BAM aux tag blocks
-		struct BamAuxSortingBufferEntry
-		{
-			//! tag id
-			std::pair<uint8_t,uint8_t> c;
-			//! block offset
-			uint64_t offset;
-			//! block length
-			uint64_t length;
-			
-			/**
-			 * construct for empty/invalid entry
-			 **/
-			BamAuxSortingBufferEntry() : c(0,0), offset(0), length(0) {}
-			/**
-			 * constructor by block parameters
-			 *
-			 * @param ca first character of id
-			 * @param cb second charactoer of id
-			 * @param roffset block offset (in bytes)
-			 * @param rlength block lengt (in bytes)
-			 **/
-			BamAuxSortingBufferEntry(uint8_t const ca, uint8_t const cb, uint64_t const roffset, uint64_t const rlength) : c(ca,cb), offset(roffset), length(rlength) {}
-			
-			/**
-			 * comparator
-			 *
-			 * @param o other entry
-			 * @return true iff *this < o lexicographically
-			 **/
-			bool operator<(BamAuxSortingBufferEntry const & o) const
-			{
-				if ( c != o.c )
-					return c < o.c;
-				else if ( offset < o.offset )
-					return offset < o.offset;
-				else
-					return length < o.length;
-			}
-		};
-		
-		//! aux sorting buffer class
-		struct BamAuxSortingBuffer
-		{
-			//! entry buffer vector
-			libmaus::autoarray::AutoArray<BamAuxSortingBufferEntry> B;
-			//! number of elements in entry buffer vector
-			uint64_t fill;
-			//! buffer for rewriting aux areas
-			libmaus::autoarray::AutoArray<uint8_t> U;
-			
-			//! constructor for empty sorting buffer
-			BamAuxSortingBuffer() : B(), U()
-			{
-			
-			}
-			
-			/**
-			 * add an element to the buffer
-			 *
-			 * @param E entry to be added
-			 **/
-			void push(BamAuxSortingBufferEntry const & E)
-			{
-				if ( fill == B.size() )
-				{
-					uint64_t const newsize = fill ? 2*fill : 1;
-					libmaus::autoarray::AutoArray<BamAuxSortingBufferEntry> N(newsize,false);
-					std::copy(B.begin(),B.end(),N.begin());
-					B = N;
-				}
-				
-				B[fill++] = E;
-			}
-			
-			/**
-			 * empty buffer
-			 **/
-			void reset()
-			{
-				fill = 0;
-			}
-			
-			/**
-			 * sort entry buffer
-			 **/
-			void sort()
-			{
-				::std::sort(B.begin(),B.begin()+fill);
-			}
-		};
-
 		/**
 		 * class containing static base functions for BAM alignment encoding and decoding
 		 **/
@@ -3719,6 +3628,40 @@ namespace libmaus
 				uint64_t const rend = rbeg + getReferenceLength(D);
 				uint64_t const bin = ::libmaus::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
 				return bin;
+			}
+
+			/**
+			 * compute insert size (inspired by Picard code)
+			 *
+			 * @param A first alignment
+			 * @param B second alignment
+			 * @return note that when storing insert size on the secondEnd, the return value must be negated.
+			 */
+			static int64_t computeInsertSize(uint8_t const * Au, uint8_t const * Bu)
+			{
+				uint32_t const Aflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(Au);
+				uint32_t const Bflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(Bu);
+				bool const Aunmapped = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(Aflags);
+				bool const Bunmapped = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(Bflags);
+				
+				// unmapped end?
+				if (Aunmapped || Bunmapped) { return 0; }
+				// different ref seq?
+				if (
+					libmaus::bambam::BamAlignmentDecoderBase::getRefID(Au)
+					!= 
+					libmaus::bambam::BamAlignmentDecoderBase::getRefID(Bu)
+				) { return 0; }
+
+				// compute 5' end positions
+				bool const Areverse = libmaus::bambam::BamAlignmentDecoderBase::isReverse(Aflags);
+				bool const Breverse = libmaus::bambam::BamAlignmentDecoderBase::isReverse(Bflags);
+				int64_t const A5  = Areverse ? libmaus::bambam::BamAlignmentDecoderBase::getAlignmentEnd(Au) : libmaus::bambam::BamAlignmentDecoderBase::getPos(Au);
+				int64_t const B5  = Breverse ? libmaus::bambam::BamAlignmentDecoderBase::getAlignmentEnd(Bu) : libmaus::bambam::BamAlignmentDecoderBase::getPos(Bu);
+				
+				// return insert size for (A,B), use negative value for (B,A)
+				return B5 - A5;
+			
 			}
 		};
 	}

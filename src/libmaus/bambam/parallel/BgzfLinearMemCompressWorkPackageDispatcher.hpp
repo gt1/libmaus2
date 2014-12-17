@@ -60,7 +60,7 @@ namespace libmaus
 			
 				virtual void dispatch(
 					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					BgzfLinearMemCompressWorkPackage * BP = dynamic_cast<BgzfLinearMemCompressWorkPackage *>(P);

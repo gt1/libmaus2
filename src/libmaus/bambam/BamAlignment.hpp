@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENT_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENT_HPP
 
+#include <libmaus/bambam/BamAlignmentFixedSizeData.hpp>
 #include <libmaus/bambam/AlignmentValidity.hpp>
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
@@ -32,39 +33,6 @@ namespace libmaus
 {
 	namespace bambam
 	{
-		#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
-		#pragma pack(push,1)
-		/**
-		 * quick bam alignment base block access structure for little endian machines
-		 **/
-		struct BamAlignmentFixedSizeData
-		{
-			//! reference id
-			int32_t  RefID;
-			//! position on reference id
-		        int32_t  Pos;
-		        //! name length
-		        uint8_t  NL;
-		        //! mapping quality
-		        uint8_t  MQ;
-		        //! bin
-		        uint16_t Bin;
-		        //! number of cigar operations
-		        uint16_t NC;
-		        //! flags
-		        uint16_t Flags;
-		        // length of sequence
-		        int32_t  Lseq;
-		        //! mate/next segment reference id
-		        int32_t  NextRefID;
-		        //! mate/next segment position on reference id
-		        int32_t  NextPos;
-		        //! template length
-		        int32_t  Tlen;
-		};
-		#pragma pack(pop)
-		#endif
-
 		/**
 		 * bam alignment
 		 **/
@@ -1804,7 +1772,7 @@ namespace libmaus
 			}
 
 			/**
-			 * compute insert size (inspired by Picard code)
+			 * compute insert size
 			 *
 			 * @param A first alignment
 			 * @param B second alignment
@@ -1812,17 +1780,7 @@ namespace libmaus
 			 */
 			static int64_t computeInsertSize(BamAlignment const & A, BamAlignment const & B)
 			{
-				// unmapped end?
-				if (A.isUnmap() || B.isUnmap()) { return 0; }
-				// different ref seq?
-				if (A.getRefID() != B.getRefID()) { return 0; }
-
-				// compute 5' end positions
-				int64_t const A5  = A.isReverse() ? A.getAlignmentEnd() : A.getPos();
-				int64_t const B5  = B.isReverse() ? B.getAlignmentEnd() : B.getPos();
-				
-				// return insert size for (A,B), use negative value for (B,A)
-				return B5 - A5;
+				return libmaus::bambam::BamAlignmentDecoderBase::computeInsertSize(A.D.begin(),B.D.begin());
 			}
 			
 			/**
@@ -1834,73 +1792,9 @@ namespace libmaus
 				libmaus::bambam::BamAuxFilterVector const & MQfilter
 				)
 			{
-				static uint32_t const next_rev_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
-				static uint32_t const next_unmap_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
-				
-				// both mapped
-				if (!rec1.isUnmap() && !rec2.isUnmap()) 
-				{
-					rec1.putNextRefId(rec2.getRefID());
-					rec1.putNextPos(rec2.getPos());
-					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
-
-					rec2.putNextRefId(rec1.getRefID());
-					rec2.putNextPos(rec1.getPos());
-					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
-
-					rec1.filterOutAux(MQfilter);
-					rec2.filterOutAux(MQfilter);
-					rec1.putAuxNumber("MQ", 'i', rec2.getMapQ());
-					rec2.putAuxNumber("MQ", 'i', rec1.getMapQ());
-
-					int64_t const insertSize = computeInsertSize(rec1, rec2);
-					rec1.putTlen(insertSize);
-					rec2.putTlen(-insertSize);
-				}
-				// both unmapped
-				else if (rec1.isUnmap() && rec2.isUnmap())
-				{
-					rec1.putRefId(-1);
-					rec1.putPos(-1);
-					rec1.putNextRefId(-1);
-					rec1.putNextPos(-1);
-					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
-					rec1.putTlen(0);
-
-					rec2.putRefId(-1);
-					rec2.putPos(-1);
-					rec2.putNextRefId(-1);
-					rec2.putNextPos(-1);
-					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
-					rec2.putTlen(0);
-					
-					rec1.filterOutAux(MQfilter);
-					rec2.filterOutAux(MQfilter);
-				}
-				// one mapped and other one unmapped
-				else
-				{
-					libmaus::bambam::BamAlignment & mapped   = rec1.isUnmap() ? rec2 : rec1;
-					libmaus::bambam::BamAlignment & unmapped = rec1.isUnmap() ? rec1 : rec2;
-					
-					unmapped.putRefId(mapped.getRefID());
-					unmapped.putPos(mapped.getPos());
-
-					mapped.putNextRefId(unmapped.getRefID());
-					mapped.putNextPos(unmapped.getPos());
-					mapped.putFlags( (unmapped.isReverse() ? (mapped.getFlags() | next_rev_flag) : (mapped.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );					
-					mapped.putTlen(0);
-
-					unmapped.putNextRefId(mapped.getRefID());
-					unmapped.putNextPos(mapped.getPos());
-					unmapped.putFlags( (mapped.isReverse() ? (unmapped.getFlags() | next_rev_flag) : (unmapped.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
-					unmapped.putTlen(0);
-
-					mapped.filterOutAux(MQfilter);
-					unmapped.filterOutAux(MQfilter);
-					
-					unmapped.putAuxNumber("MQ", 'i', mapped.getMapQ());
-				}
+				rec1.filterOutAux(MQfilter);
+				rec2.filterOutAux(MQfilter);
+				fixMateInformationPreFiltered(rec1,rec2);				
 			}
 
 			void putAuxIntegerNumberFast(char const t1, char const t2, int32_t i)
@@ -1924,60 +1818,81 @@ namespace libmaus
 				static uint32_t const next_rev_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
 				static uint32_t const next_unmap_flag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
 				
+				uint8_t * rec1u = rec1.D.get();
+				uint8_t * rec2u = rec2.D.get();
+				uint32_t const rec1flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(rec1u);
+				uint32_t const rec2flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(rec2u);
+				
 				// both mapped
-				if (!rec1.isUnmap() && !rec2.isUnmap()) 
+				if (
+					!libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags)
+					&& 
+					!libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec2flags)
+				) 
 				{
-					rec1.putNextRefId(rec2.getRefID());
-					rec1.putNextPos(rec2.getPos());
-					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+					libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(rec1u,libmaus::bambam::BamAlignmentDecoderBase::getRefID(rec2u));
+					libmaus::bambam::BamAlignmentEncoderBase::putNextPos(rec1u,libmaus::bambam::BamAlignmentDecoderBase::getPos(rec2u));
+					libmaus::bambam::BamAlignmentEncoderBase::putFlags(rec1u,(libmaus::bambam::BamAlignmentDecoderBase::isReverse(rec2flags) ? (rec1flags | next_rev_flag) : (rec1flags & (~next_rev_flag))) & (~next_unmap_flag) );
 
-					rec2.putNextRefId(rec1.getRefID());
-					rec2.putNextPos(rec1.getPos());
-					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
+					libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(rec2u,libmaus::bambam::BamAlignmentDecoderBase::getRefID(rec1u));
+					libmaus::bambam::BamAlignmentEncoderBase::putNextPos(rec2u,libmaus::bambam::BamAlignmentDecoderBase::getPos(rec1u));
+					libmaus::bambam::BamAlignmentEncoderBase::putFlags(rec2u,(libmaus::bambam::BamAlignmentDecoderBase::isReverse(rec1flags) ? (rec2flags | next_rev_flag) : (rec2flags & (~next_rev_flag))) & (~next_unmap_flag) );
+
+					int64_t const insertSize = 
+						libmaus::bambam::BamAlignmentDecoderBase::computeInsertSize(rec1u,rec2u);
+					libmaus::bambam::BamAlignmentEncoderBase::putTlen(rec1u,insertSize);
+					libmaus::bambam::BamAlignmentEncoderBase::putTlen(rec2u,-insertSize);
 
 					rec1.putAuxIntegerNumberFast('M', 'Q', rec2.getMapQ());
-					rec2.putAuxIntegerNumberFast('M', 'Q', rec1.getMapQ());
-					
-					int64_t const insertSize = computeInsertSize(rec1, rec2);
-					rec1.putTlen(insertSize);
-					rec2.putTlen(-insertSize);
+					rec2.putAuxIntegerNumberFast('M', 'Q', rec1.getMapQ());					
 				}
 				// both unmapped
-				else if (rec1.isUnmap() && rec2.isUnmap())
+				else if (
+					libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags)
+					&& 
+					libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec2flags)
+				)
 				{
-					rec1.putRefId(-1);
-					rec1.putPos(-1);
-					rec1.putNextRefId(-1);
-					rec1.putNextPos(-1);
-					rec1.putFlags( (rec2.isReverse() ? (rec1.getFlags() | next_rev_flag) : (rec1.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
-					rec1.putTlen(0);
+					libmaus::bambam::BamAlignmentEncoderBase::putRefId(rec1u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putPos(rec1u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(rec1u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putNextPos(rec1u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putFlags(rec1u,(libmaus::bambam::BamAlignmentDecoderBase::isReverse(rec2flags) ? (rec1flags | next_rev_flag) : (rec1flags & (~next_rev_flag))) | (next_unmap_flag) );
+					libmaus::bambam::BamAlignmentEncoderBase::putTlen(rec1u,0);
 
-					rec2.putRefId(-1);
-					rec2.putPos(-1);
-					rec2.putNextRefId(-1);
-					rec2.putNextPos(-1);
-					rec2.putFlags( (rec1.isReverse() ? (rec2.getFlags() | next_rev_flag) : (rec2.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );
-					rec2.putTlen(0);					
+					libmaus::bambam::BamAlignmentEncoderBase::putRefId(rec2u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putPos(rec2u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(rec2u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putNextPos(rec2u,-1);
+					libmaus::bambam::BamAlignmentEncoderBase::putFlags(rec2u,(libmaus::bambam::BamAlignmentDecoderBase::isReverse(rec1flags) ? (rec2flags | next_rev_flag) : (rec2flags & (~next_rev_flag))) | (next_unmap_flag) );
+					libmaus::bambam::BamAlignmentEncoderBase::putTlen(rec2u,0);
 				}
 				// one mapped and other one unmapped
 				else
 				{
+					uint8_t * mappedu = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags) ? rec2u : rec1u;
+					uint8_t * unmappedu = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags) ? rec1u : rec2u;
+					uint32_t const mappedflags = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags) ? rec2flags : rec1flags;
+					uint32_t const unmappedflags = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags) ? rec1flags : rec2flags;
+					
+					// copy refid and pos from mapped to unmapped
+					libmaus::bambam::BamAlignmentEncoderBase::putRefId(unmappedu,libmaus::bambam::BamAlignmentDecoderBase::getRefID(mappedu));
+					libmaus::bambam::BamAlignmentEncoderBase::putPos(unmappedu,libmaus::bambam::BamAlignmentDecoderBase::getPos(mappedu));
+					// copy refid and pos from mapped to mapped next
+					libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(mappedu,libmaus::bambam::BamAlignmentDecoderBase::getRefID(mappedu));
+					libmaus::bambam::BamAlignmentEncoderBase::putNextPos(mappedu,libmaus::bambam::BamAlignmentDecoderBase::getPos(mappedu));
+
+					libmaus::bambam::BamAlignmentEncoderBase::putFlags(mappedu,(libmaus::bambam::BamAlignmentDecoderBase::isReverse(unmappedflags) ? (mappedflags | next_rev_flag) : (mappedflags & (~next_rev_flag))) | (next_unmap_flag) );
+					libmaus::bambam::BamAlignmentEncoderBase::putTlen(mappedu,0);
+
+					libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(unmappedu,libmaus::bambam::BamAlignmentDecoderBase::getRefID(mappedu));
+					libmaus::bambam::BamAlignmentEncoderBase::putNextPos(unmappedu,libmaus::bambam::BamAlignmentDecoderBase::getPos(mappedu));
+
+					libmaus::bambam::BamAlignmentEncoderBase::putFlags(unmappedu,(libmaus::bambam::BamAlignmentDecoderBase::isReverse(mappedflags) ? (unmappedflags | next_rev_flag) : (unmappedflags & (~next_rev_flag))) & (~next_unmap_flag) );
+					libmaus::bambam::BamAlignmentEncoderBase::putTlen(unmappedu,0);
+
 					libmaus::bambam::BamAlignment & mapped   = rec1.isUnmap() ? rec2 : rec1;
 					libmaus::bambam::BamAlignment & unmapped = rec1.isUnmap() ? rec1 : rec2;
-					
-					unmapped.putRefId(mapped.getRefID());
-					unmapped.putPos(mapped.getPos());
-
-					mapped.putNextRefId(unmapped.getRefID());
-					mapped.putNextPos(unmapped.getPos());
-					mapped.putFlags( (unmapped.isReverse() ? (mapped.getFlags() | next_rev_flag) : (mapped.getFlags() & (~next_rev_flag))) | (next_unmap_flag) );					
-					mapped.putTlen(0);
-
-					unmapped.putNextRefId(mapped.getRefID());
-					unmapped.putNextPos(mapped.getPos());
-					unmapped.putFlags( (mapped.isReverse() ? (unmapped.getFlags() | next_rev_flag) : (unmapped.getFlags() & (~next_rev_flag))) & (~next_unmap_flag) );
-					unmapped.putTlen(0);
-
 					unmapped.putAuxIntegerNumberFast('M', 'Q', mapped.getMapQ());
 				}
 			}
