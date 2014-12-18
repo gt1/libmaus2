@@ -58,24 +58,7 @@ namespace libmaus
 					algn(ralgn), FAB(rFAB), j(rj)
 				{
 				}
-				
-				void dispatch()
-				{
-					uint64_t * O = FAB->getOffsetStart(j);
-					uint64_t const ind = FAB->getOffsetStartIndex(j);
-					size_t const num = FAB->getNumAlignments(j);
-					FragmentAlignmentBufferFragment * subbuf = (*FAB)[j];
-
-					for ( size_t i = ind; i < ind+num; ++i )
-					{
-						std::pair<uint8_t const *,uint64_t> P = algn->at(i);
-						*(O++) = subbuf->getOffset();
-						subbuf->pushAlignmentBlock(P.first,P.second);
-					}
-
-					FAB->rewritePointers(j);
-				}
-				
+								
 				char const * getPackageName() const
 				{
 					return "FragmentAlignmentBufferRewriteWorkPackage";
