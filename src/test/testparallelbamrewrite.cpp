@@ -96,7 +96,6 @@
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
 			
-			
 namespace libmaus
 {
 	namespace bambam
