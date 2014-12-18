@@ -108,7 +108,7 @@ namespace libmaus
 					uint64_t const numpoints = V.size()-1;
 					
 					uint64_t low = 0;
-					uint64_t f = fill();
+					uint64_t const f = fill();
 					uint64_t pointsleft = numpoints;
 					uint64_t o = 0;
 					
@@ -116,12 +116,13 @@ namespace libmaus
 					
 					while ( pointsleft )
 					{
+						// uppper end, not included in interval
 						uint64_t high = low + ((f-low+pointsleft-1)/pointsleft);
 						assert ( high <= f );
 
 						while ( 
-							high < f &&
-							strcmp(getNameAt(f),getNameAt(f+1)) == 0 
+							high && (high < f) &&
+							strcmp(getNameAt(high-1),getNameAt(high)) == 0 
 						)
 							++high;
 							
@@ -207,6 +208,34 @@ namespace libmaus
 					uint8_t const * text = A.begin() + offset + sizeof(uint32_t);
 					uint64_t const len = decodeLength(offset);
 					return std::pair<uint8_t const *,uint64_t>(text,len);
+				}
+
+				std::pair<uint8_t *,uint64_t> at(uint64_t const i)
+				{
+					uint64_t const offset = pP[i];
+					uint8_t * text = A.begin() + offset + sizeof(uint32_t);
+					uint64_t const len = decodeLength(offset);
+					return std::pair<uint8_t *,uint64_t>(text,len);
+				}
+				
+				uint8_t const * textAt(uint64_t const i) const
+				{
+					return A.begin() + pP[i] + sizeof(uint32_t);
+				}
+
+				uint8_t * textAt(uint64_t const i)
+				{
+					return A.begin() + pP[i] + sizeof(uint32_t);
+				}
+				
+				void setLengthAt(uint64_t const i, uint32_t const l)
+				{
+					uint64_t const offset = pP[i];
+					uint8_t * text = A.begin() + offset;
+					text[0] = (l >> 0)&0xFF;
+					text[1] = (l >> 8)&0xFF;
+					text[2] = (l >> 16)&0xFF;
+					text[3] = (l >> 24)&0xFF;
 				}
 				
 				uint64_t lengthAt(uint64_t const i) const
