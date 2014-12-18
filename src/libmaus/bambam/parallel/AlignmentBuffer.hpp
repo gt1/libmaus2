@@ -102,7 +102,7 @@ namespace libmaus
 						libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[i] + sizeof(uint32_t));
 				}
 				
-				void computeSplitPoints(std::vector<uint64_t> & V)
+				void computeSplitPoints(std::vector<size_t> & V)
 				{
 					assert ( V.size() > 0 );
 					uint64_t const numpoints = V.size()-1;
