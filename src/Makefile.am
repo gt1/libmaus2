@@ -1032,7 +1032,11 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastAIndexEntry.hpp \
 	libmaus/fastx/FastAIndex.hpp \
 	libmaus/fastx/FastAInfo.hpp \
-	libmaus/fastx/FastATwoBitTable.hpp
+	libmaus/fastx/FastATwoBitTable.hpp \
+	libmaus/fastx/FastABPConstants.hpp \
+	libmaus/fastx/FastABPGenerator.hpp \
+	libmaus/fastx/FastaBPSequenceDecoder.hpp \
+	libmaus/fastx/FastaBPDecoder.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
