@@ -153,7 +153,7 @@ namespace libmaus
 	
 				virtual void baseBlockSorted()
 				{
-					if ( (++PSC.baseSortRequests.requestsFinished) == PSC.baseSortRequests.baseSortRequests.size() )
+					if ( (PSC.baseSortRequests.requestsFinished.increment()) == PSC.baseSortRequests.baseSortRequests.size() )
 					{
 						if ( PSC.mergeLevels.levels.size() )
 						{
@@ -168,7 +168,7 @@ namespace libmaus
 	
 				virtual void mergePackageFinished()
 				{
-					if ( (++(level->requestsFinished)) == level->mergeRequests.size() )
+					if ( ((level->requestsFinished)).increment() == level->mergeRequests.size() )
 					{
 						level = level->next;
 						

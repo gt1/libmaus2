@@ -22,6 +22,7 @@
 #include <libmaus/types/types.hpp>
 #include <libmaus/sorting/MergeStepBinSearchResult.hpp>
 #include <libmaus/parallel/SynchronousCounter.hpp>
+#include <libmaus/parallel/LockedCounter.hpp>
 #include <algorithm>
 
 #if defined(_OPENMP)
@@ -43,13 +44,21 @@ namespace libmaus
 			template<typename iterator, typename order_type>
 			struct ParallelStableSortContextBase
 			{
+				// input array start
 				iterator aa;
+				// input array end
 				iterator ae;
+				// temp array start
 				iterator ba;
+				// temp array end
 				iterator be;
+				// order
 				order_type const * order;
+				// number of sort threads
 				uint64_t num_threads;
+				// copy back on finish (if data ends up on the temp array)
 				bool copyback;
+				// size of input
 				uint64_t n;
 				// packet size
 				uint64_t pack;
@@ -76,12 +85,24 @@ namespace libmaus
 					uint64_t rnum_threads,
 					bool rcopyback
 				)
-				: aa(raa), ae(rae), ba(rba), be(rbe), order(&rorder), 
-				  num_threads(rnum_threads), copyback(rcopyback),
-				  n(ae-aa), 
-				  pack((n + num_threads - 1)/num_threads), 
-				  numpacks( num_threads ), // ( pack ? ((n + pack - 1)/pack) : 0),
-				  in(aa), out(ba)
+				: 
+					// input
+					aa(raa), ae(rae), 
+					// temp
+					ba(rba), be(rbe), 
+					// comparator
+					order(&rorder), 
+					// number of threads
+					num_threads(rnum_threads), 
+					// copy back requested?
+					copyback(rcopyback),
+					// number of input elements
+					n(ae-aa), 
+					// packet size
+					pack((n + num_threads - 1)/num_threads), 
+					// number of packets
+					numpacks( pack ? ((n+pack-1)/pack) : 0),
+					in(aa), out(ba)
 				{
 					
 				}
@@ -203,7 +224,7 @@ namespace libmaus
 			{
 				ParallelStableSortContextBase<iterator,order_type> context;
 				std::vector<MergeRequest<iterator,order_type> > mergeRequests;
-				libmaus::parallel::SynchronousCounter<uint64_t> requestsFinished;
+				libmaus::parallel::LockedCounter requestsFinished;
 				
 				MergeLevel<iterator,order_type> * next;
 				
@@ -337,7 +358,7 @@ namespace libmaus
 				
 				ParallelStableSortContextBase<iterator,order_type> * context;
 				std::vector<request_type> baseSortRequests;
-				libmaus::parallel::SynchronousCounter<uint64_t> requestsFinished;
+				libmaus::parallel::LockedCounter requestsFinished;
 				
 				BaseSortRequestSet() : requestsFinished(0) {}
 				BaseSortRequestSet(ParallelStableSortContextBase<iterator,order_type> & rcontext)
@@ -400,7 +421,10 @@ namespace libmaus
 					iterator rcopyBackFrom,
 					iterator rcopyBackTo,
 					uint64_t rcopyBackN
-				) : state(sort_state_base_sort), basesortreqs(rbasesortreqs), level(rlevel), needCopyBack(rneedCopyBack), copyBackFrom(rcopyBackFrom), copyBackTo(rcopyBackTo), copyBackN(rcopyBackN) {}
+				) : state(sort_state_base_sort), basesortreqs(rbasesortreqs), level(rlevel), needCopyBack(rneedCopyBack), copyBackFrom(rcopyBackFrom), copyBackTo(rcopyBackTo), copyBackN(rcopyBackN) 
+				{
+				
+				}
 				
 				bool serialStep()
 				{
@@ -482,7 +506,6 @@ namespace libmaus
 					mergeLevels(context),
 					needCopyBack(context.copyback && (context.in != context.aa))
 				{
-				
 				}
 
 				ParallelSortControlState<iterator,order_type> getSortState()

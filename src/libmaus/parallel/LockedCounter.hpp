@@ -30,12 +30,18 @@ namespace libmaus
 			private:
 			libmaus::parallel::PosixSpinLock lock;
 			volatile uint64_t v;
-			
-			LockedCounter & operator=(LockedCounter const & o);
-			LockedCounter(LockedCounter const & o);
-			
+						
 			public:
 			LockedCounter(uint64_t const rv = 0) : v(rv) {}
+			LockedCounter(LockedCounter const & o)
+			{
+				v = o.v;
+			}
+			LockedCounter & operator=(LockedCounter const & o)
+			{
+				v = o.v;
+				return *this;
+			}
 			
 			uint64_t increment()
 			{

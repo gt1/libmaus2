@@ -1292,7 +1292,7 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 
 				baseSortRequests.baseSortRequests[RP.sort_base_id].dispatch();
 
-				uint64_t const finished = ++(baseSortRequests.requestsFinished);
+				uint64_t const finished = (baseSortRequests.requestsFinished).increment();
 
 				if ( finished == baseSortRequests.baseSortRequests.size() )
 				{
@@ -1529,7 +1529,7 @@ struct BamThreadPoolDecodeBamSortPackageDispatcher : public libmaus::parallel::S
 			{
 				sortControl.mergeLevels.levels[RP.sort_merge_id].mergeRequests[RP.sort_submerge_id].dispatch();
 
-				uint64_t const finished = ++(sortControl.mergeLevels.levels[RP.sort_merge_id].requestsFinished);
+				uint64_t const finished = (sortControl.mergeLevels.levels[RP.sort_merge_id].requestsFinished).increment();
 				
 				if ( finished == sortControl.mergeLevels.levels[RP.sort_merge_id].mergeRequests.size() )
 				{
