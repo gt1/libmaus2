@@ -39,7 +39,7 @@ namespace libmaus
 					return p;
 				}
 				
-				static pointer_type deallocate(pointer_type p)
+				static pointer_type deallocate(pointer_type /* p */)
 				{
 					return getNullPointer();
 				}

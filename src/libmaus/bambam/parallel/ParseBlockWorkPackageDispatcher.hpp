@@ -58,7 +58,7 @@ namespace libmaus
 			
 				virtual void dispatch(
 					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					ParseBlockWorkPackage * BP = dynamic_cast<ParseBlockWorkPackage *>(P);

@@ -73,7 +73,7 @@ namespace libmaus
 				{
 					while ( (pe-pc) < (l+sizeof(uint32_t)) )
 						extend();
-					assert ( pe-pc >= l+sizeof(uint32_t) );
+					assert ( static_cast<ssize_t>(pe-pc) >= static_cast<ssize_t>(l+sizeof(uint32_t)) );
 					
 					pc[0] = (l>>0) &0xFF;
 					pc[1] = (l>>8) &0xFF;
@@ -91,7 +91,7 @@ namespace libmaus
 				{
 					while ( (pe-pc) < l )
 						extend();
-					assert ( pe-pc >= l );
+					assert ( static_cast<ssize_t>(pe-pc) >= static_cast<ssize_t>(l) );
 					
 					std::copy(T,T+l,pc);
 					pc += l;

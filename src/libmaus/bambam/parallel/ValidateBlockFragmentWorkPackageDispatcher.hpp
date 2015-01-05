@@ -44,7 +44,7 @@ namespace libmaus
 			
 				virtual void dispatch(
 					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					ValidateBlockFragmentWorkPackage * BP = dynamic_cast<ValidateBlockFragmentWorkPackage *>(P);

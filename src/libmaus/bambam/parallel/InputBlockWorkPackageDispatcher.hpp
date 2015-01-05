@@ -53,7 +53,7 @@ namespace libmaus
 			
 				virtual void dispatch(
 					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					// get type cast work package pointer

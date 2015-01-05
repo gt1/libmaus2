@@ -69,7 +69,7 @@ namespace libmaus
 			
 				virtual void dispatch(
 					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					// get type cast work package pointer
@@ -223,7 +223,7 @@ namespace libmaus
 							*(O++) = offset;
 							subbuf->pushAlignmentBlock(P.first,P.second);
 							
-							if ( i == firsti )
+							if ( static_cast<ssize_t>(i) == firsti )
 							{
 								if ( MQP.first >= 0 )
 								{
@@ -265,7 +265,7 @@ namespace libmaus
 									subbuf->replaceLength(offset,P.second);
 								}
 							}
-							else if ( i == secondi )
+							else if ( static_cast<ssize_t>(i) == secondi )
 							{
 								if ( (MQP.second >= 0) )
 								{
