@@ -55,6 +55,35 @@ namespace libmaus
 						);
 				}
 				
+				std::pair<uint8_t **, uint8_t **> getPointerArray()
+				{
+					uint64_t const numalgn = OSVO.at(size())-OSVO.at(0);
+					return std::pair<uint8_t **, uint8_t **>(P.begin(),P.begin()+numalgn);
+				}
+
+				template<typename order_type>
+				bool checkSort(order_type const & order)
+				{
+					std::pair<uint8_t **, uint8_t **> P = getPointerArray();
+					uint8_t ** pa = P.first;
+					uint8_t ** pb = P.second;
+					uint64_t const f = pb-pa;
+					bool ok = true;
+					for ( uint64_t i = 1; i < f; ++i )
+					{
+						uint8_t * A = pa[i-1];
+						uint8_t * B = pa[i];
+						ok = ok && (!(order(B,A)));
+					}
+					return ok;
+				}
+
+				std::pair<uint8_t **, uint8_t **> getAuxPointerArray()
+				{
+					uint64_t const numalgn = OSVO.at(size())-OSVO.at(0);
+					return std::pair<uint8_t **, uint8_t **>(P.begin()+numalgn,P.begin()+(2*numalgn));
+				}
+				
 				FragmentAlignmentBuffer(size_t const numbuffers, uint64_t const rpointermult)
 				: id(0), subid(0), A(numbuffers), pointermult(rpointermult), OSVO(A.size()+1)
 				{
@@ -102,7 +131,6 @@ namespace libmaus
 				{
 					return (O.end() - OSVO.at(size())) + OSVO.at(index);
 				}
-				
 				
 				void rewritePointers(uint64_t const index)
 				{
