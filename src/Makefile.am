@@ -1144,7 +1144,7 @@ libmaussv_include_HEADERS=\
 	
 libmaushdf5_includedir=$(includedir)/libmaus/hdf5
 libmaushdf5_include_HEADERS=\
-	libmaus/hdf5/HDF5MuteErrorHandler.hpp
+	libmaus/hdf5/HDF5MuteErrorHandler.hpp \
 	libmaus/hdf5/HDF5Handle.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
@@ -1731,7 +1731,7 @@ testsha_SOURCES = test/testsha.cpp
 testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a libmausdigests_sse4.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
-# testsha_DEPENDENCIES = libmausdigests.a
+testsha_DEPENDENCIES = libmaus.la libmausdigests.a libmausdigests_sse4.a
 
 testmd5_SOURCES = test/testmd5.cpp
 testmd5_LDADD = libmaus.la
