@@ -831,7 +831,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/SimpleThreadWorkPackage.hpp \
 	libmaus/parallel/LockedQueue.hpp \
 	libmaus/parallel/NumCpus.hpp \
-	libmaus/parallel/LockedFreeList.hpp
+	libmaus/parallel/LockedFreeList.hpp \
+	libmaus/parallel/LockedCounter.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
@@ -1140,6 +1141,11 @@ libmausnetwork_include_HEADERS=\
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
 	libmaus/sv/sv.hpp 
+	
+libmaushdf5_includedir=$(includedir)/libmaus/hdf5
+libmaushdf5_include_HEADERS=\
+	libmaus/hdf5/HDF5MuteErrorHandler.hpp
+	libmaus/hdf5/HDF5Handle.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
 libmauslcs_include_HEADERS=\
@@ -1327,7 +1333,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testunsignedinteger \
 	testmd5 \
 	testsha \
-	testsinglefileserver
+	testsinglefileserver \
+	testhdf5
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1735,3 +1742,8 @@ testsinglefileserver_SOURCES = test/testsinglefileserver.cpp
 testsinglefileserver_LDADD = libmaus.la
 testsinglefileserver_CPPFLAGS = ${AM_CPPFLAGS}
 testsinglefileserver_LDFLAGS = ${AM_LDFLAGS}
+
+testhdf5_SOURCES  = test/testhdf5.cpp
+testhdf5_LDADD    = libmaus.la @HDF5LIBS@
+testhdf5_CPPFLAGS = @HDF5CPPFLAGS@ @WARNCPPFLAGS@
+testhdf5_LDFLAGS  = ${AM_LDFLAGS} @HDF5LDFLAGS@
