@@ -1279,6 +1279,11 @@ libmausnetwork_include_HEADERS=\
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
 	libmaus/sv/sv.hpp 
+	
+libmaushdf5_includedir=$(includedir)/libmaus/hdf5
+libmaushdf5_include_HEADERS=\
+	libmaus/hdf5/HDF5MuteErrorHandler.hpp \
+	libmaus/hdf5/HDF5Handle.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
 libmauslcs_include_HEADERS=\
@@ -1470,7 +1475,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsinglefileserver \
 	testparallelbamrewrite \
 	testbammateerase \
-	testparallelbamblocksort
+	testparallelbamblocksort \
+	testhdf5
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1877,7 +1883,7 @@ testsha_SOURCES = test/testsha.cpp
 testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a libmausdigests_sse4.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
-testsha_DEPENDENCIES = libmaus.la libmausdigests.a
+testsha_DEPENDENCIES = libmaus.la libmausdigests.a libmausdigests_sse4.a
 
 testmd5_SOURCES = test/testmd5.cpp
 testmd5_LDADD = libmaus.la
@@ -1898,3 +1904,8 @@ testparallelbamblocksort_SOURCES = test/testparallelbamblocksort.cpp
 testparallelbamblocksort_LDADD = libmaus.la
 testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@
 testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS}
+
+testhdf5_SOURCES  = test/testhdf5.cpp
+testhdf5_LDADD    = libmaus.la @HDF5LIBS@
+testhdf5_CPPFLAGS = @HDF5CPPFLAGS@ @WARNCPPFLAGS@
+testhdf5_LDFLAGS  = ${AM_LDFLAGS} @HDF5LDFLAGS@

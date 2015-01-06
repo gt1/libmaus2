@@ -351,42 +351,6 @@ snappy::Compress(input,input_length,&output);
 	fi
 fi
 
-TESTPROGS="testAIO testbitbtree testBitIO testbtree testBWTDyn testBWTHufDyn testDivSufSort"
-TESTPROGS="${TESTPROGS} testDNABitWords testFastRead testFork testHuffman testIsa testkmp"
-TESTPROGS="${TESTPROGS} testlz testOS testRank testToWaveletTreeBits testWaveletExternal"
-TESTPROGS="${TESTPROGS} testTrie testConsensus testbandedlcs testbamwriter testhashlcs"
-TESTPROGS="${TESTPROGS} testkmlocal testarraydecode testsnappy testsnappyconcat testgunzip"
-TESTPROGS="${TESTPROGS} testlogging testregex testhashcollisions testsimplebloomcollisions"
-TESTPROGS="${TESTPROGS} testsimplehash testsimplecountinghash testsyncreorderset"
-TESTPROGS="${TESTPROGS} testcachealignedalloc testblocksynchronous testsyncfastreaderbase"
-TESTPROGS="${TESTPROGS} testlsf testlsfdispatcher testlsfclient testlsfclientfw testlsflist"
-TESTPROGS="${TESTPROGS} testdl testdifenc testbwtmergeinternal testfastarewrite testfastarecode"
-TESTPROGS="${TESTPROGS} testbamtofastq testbamrange testbamdamage testgamma testcompact"
-TESTPROGS="${TESTPROGS} testbytetocompact testscramtosam testpacdecode testutf8split testcirchash"
-TESTPROGS="${TESTPROGS} testrmmtree testcst testbamcmp testbamdif testqreorder testfqbgzf"
-TESTPROGS="${TESTPROGS} testoverlap testcompactfastrandom testbamindex testbamrewrite"
-TESTPROGS="${TESTPROGS} testfastqstream testsort testexternalsort testcollatespeed"
-TESTPROGS="${TESTPROGS} testbamheaderparser testbammergecoordinate testbammergecollate"
-TESTPROGS="${TESTPROGS} testbammergequeryname testbamcat testautoarray2d testhist"
-TESTPROGS="${TESTPROGS} testfastaparse testvalidatebamindex testeditdistance testthreadpool"
-TESTPROGS="${TESTPROGS} testsimplethreadpool testthreadpoolbamdecode testsimplethreadpoolbamdecode"
-TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock testrazdec"
-TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
-TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
-TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
-TESTPROGS="${TESTPROGS} testparallelbamsorting testbytecnt teststronglyconnectedcomponents"
-TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
-TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver testparallelbamvalidation"
-TESTPROGS="${TESTPROGS} testparallelbamrewrite testbammateerase testparallelbamblocksort"
-
-AC_ARG_ENABLE(compile-testprograms,
-        AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
-        [compiletestprograms=${enableval}],[compiletestprograms=yes])
-
-if test "${compiletestprograms}" != "yes" ; then
-	TESTPROGS=
-fi
-
 AC_LANG_PUSH([C++])
 AC_HEADER_STDC
 AC_LANG_POP
@@ -428,7 +392,6 @@ HAVEDLFCNH=
 if [[ "${dlfcn_h}" = "yes" ]] ; then 
 	HAVEDLFCNH="#define LIBMAUS_HAVE_DLFCN_H"
 fi
-
 
 DLFUNCS=""
 have_dynamic_loading=no
@@ -2259,6 +2222,64 @@ if test "$have_unsigned_int128" = "yes" ; then
 	HAVEUNSIGNEDINT128="#define LIBMAUS_HAVE_UNSIGNED_INT128"
 fi
 
+AC_ARG_WITH([hdf5],
+	[AS_HELP_STRING([--with-hdf5@<:@=PATH@:>@], [path to installed HDF5 library @<:@default=no@:>@])],
+	[with_hdf5=${withval}],
+	[with_hdf5=no])
+LIBMAUS_HAVE_HDF5=
+
+if test "${with_hdf5}" != "no" ; then
+	HDF5DIR=
+	if test "${with_hdf5}" != "yes" ; then
+		HDF5DIR=${with_hdf5}
+	fi
+	
+	CPPFLAGS_SAVE=${CPPFLAGS}
+	CXXFLAGS_SAVE=${CXXFLAGS}
+	LIBS_SAVE=${LIBS}
+	LDFLAGS_SAVE=${LDFLAGS}
+	
+	if test ! -z "${HDF5DIR}" ; then
+		CPPFLAGS="-I${HDF5DIR}/include"
+		LDFLAGS="-L${HDF5DIR}/lib"
+	fi
+
+	AC_LANG_PUSH([C++])
+	AC_CHECK_HEADER(hdf5.h, [hdf5_h=yes], [hdf5_h=no])
+	AC_LANG_POP
+	
+	if test "${hdf5_h}" = "yes" ; then
+AC_MSG_CHECKING([for hdf5_hl.h])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <hdf5.h>
+#include <hdf5_hl.h>],[
+	return 0;
+],[hdf5_hl_h=yes],[hdf5_hl_h=no])
+AC_MSG_RESULT([${hdf5_hl_h}])	
+	fi
+	
+	if test "${hdf5_hl_h}" = "yes" ; then	
+AC_MSG_CHECKING([whether we can compile a program using the HDF5 library])
+AC_LANG_PUSH([C++])
+	LIBS="${LIBS} -lhdf5_hl -lhdf5"
+	AC_TRY_LINK([#include <hdf5.h>
+#include <hdf5_hl.h>],[
+	hid_t const file_id = H5Fopen("file.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+	herr_t status = H5Fclose(file_id);
+	return 0;
+],[hdf5=yes],[hdf5=no])
+AC_MSG_RESULT([${hdf5}])
+		if test "${hdf5}" ; then
+			LIBMAUS_HAVE_HDF5="#define LIBMAUS_HAVE_HDF5"
+		fi
+	fi
+
+	CPPFLAGS=${CPPFLAGS_SAVE}
+	CXXFLAGS=${CXXFLAGS_SAVE}
+	LIBS=${LIBS_SAVE}
+	LDFLAGS=${LDFLAGS_SAVE}
+fi
+
 case $host_os in
   *mingw32*)
     LIBMAUSLDFLAGS="${LIBMAUSLDFLAGS} -no-undefined" # -avoid-version
@@ -2286,6 +2307,55 @@ LIBS="${LIBS} ${LIBMAUSLIBS}"
 
 PACKAGE_NAME=${PACKAGE}
 PACKAGE_VERSION=${VERSION}
+
+TESTPROGS="testAIO testbitbtree testBitIO testbtree testBWTDyn testBWTHufDyn testDivSufSort"
+TESTPROGS="${TESTPROGS} testDNABitWords testFastRead testFork testHuffman testIsa testkmp"
+TESTPROGS="${TESTPROGS} testlz testOS testRank testToWaveletTreeBits testWaveletExternal"
+TESTPROGS="${TESTPROGS} testTrie testConsensus testbandedlcs testbamwriter testhashlcs"
+TESTPROGS="${TESTPROGS} testkmlocal testarraydecode testsnappy testsnappyconcat testgunzip"
+TESTPROGS="${TESTPROGS} testlogging testregex testhashcollisions testsimplebloomcollisions"
+TESTPROGS="${TESTPROGS} testsimplehash testsimplecountinghash testsyncreorderset"
+TESTPROGS="${TESTPROGS} testcachealignedalloc testblocksynchronous testsyncfastreaderbase"
+TESTPROGS="${TESTPROGS} testlsf testlsfdispatcher testlsfclient testlsfclientfw testlsflist"
+TESTPROGS="${TESTPROGS} testdl testdifenc testbwtmergeinternal testfastarewrite testfastarecode"
+TESTPROGS="${TESTPROGS} testbamtofastq testbamrange testbamdamage testgamma testcompact"
+TESTPROGS="${TESTPROGS} testbytetocompact testscramtosam testpacdecode testutf8split testcirchash"
+TESTPROGS="${TESTPROGS} testrmmtree testcst testbamcmp testbamdif testqreorder testfqbgzf"
+TESTPROGS="${TESTPROGS} testoverlap testcompactfastrandom testbamindex testbamrewrite"
+TESTPROGS="${TESTPROGS} testfastqstream testsort testexternalsort testcollatespeed"
+TESTPROGS="${TESTPROGS} testbamheaderparser testbammergecoordinate testbammergecollate"
+TESTPROGS="${TESTPROGS} testbammergequeryname testbamcat testautoarray2d testhist"
+TESTPROGS="${TESTPROGS} testfastaparse testvalidatebamindex testeditdistance testthreadpool"
+TESTPROGS="${TESTPROGS} testsimplethreadpool testthreadpoolbamdecode testsimplethreadpoolbamdecode"
+TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock testrazdec"
+TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
+TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
+TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
+TESTPROGS="${TESTPROGS} testparallelbamdecompression testbytecnt teststronglyconnectedcomponents"
+TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
+TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
+TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
+
+HDF5CPPFLAGS=
+HDF5CXXFLAGS=
+HDF5LDFLAGS=
+HDF5LIBS=
+if test ! -z "${LIBMAUS_HAVE_HDF5}" ; then
+	TESTPROGS="${TESTPROGS} testhdf5"
+	if test ! -z "${HDF5DIR}" ; then
+		HDF5CPPFLAGS="-I${HDF5DIR}/include"
+		HDF5LDFLAGS="-L${HDF5DIR}/lib -Wl,-rpath=${HDF5DIR}/lib"
+	fi
+	HDF5LIBS="-lhdf5_hl -lhdf5"
+fi
+
+AC_ARG_ENABLE(compile-testprograms,
+        AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
+        [compiletestprograms=${enableval}],[compiletestprograms=yes])
+
+if test "${compiletestprograms}" != "yes" ; then
+	TESTPROGS=
+fi
 
 AC_SUBST([PACKAGE_NAME])
 AC_SUBST([PACKAGE_VERSION])
@@ -2414,4 +2484,10 @@ AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
 AC_SUBST([TESTPROGS])
 AC_SUBST([HAVESMMINTRINH])
 AC_SUBST([MSSE4])
+AC_SUBST([LIBMAUS_HAVE_HDF5])
+AC_SUBST([HDF5DIR])
+AC_SUBST([HDF5CPPFLAGS])
+AC_SUBST([HDF5CXXFLAGS])
+AC_SUBST([HDF5LDFLAGS])
+AC_SUBST([HDF5LIBS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
