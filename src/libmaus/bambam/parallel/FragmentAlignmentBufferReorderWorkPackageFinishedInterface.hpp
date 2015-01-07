@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2014 German Tischler
-    Copyright (C) 2011-2014 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,29 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERPOSCOMPARATOR_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERPOSCOMPARATOR_HPP
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREORDERWORKPACKAGEFINISHEDINTERFACE_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREORDERWORKPACKAGEFINISHEDINTERFACE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bambam/BamAlignmentPosComparator.hpp>
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageFinishedInterface.hpp>
 
 namespace libmaus
 {
 	namespace bambam
-	{		
+	{
 		namespace parallel
 		{
-			struct FragmentAlignmentBufferPosComparator
+			struct FragmentAlignmentBufferReorderWorkPackageFinishedInterface
 			{
-				FragmentAlignmentBufferPosComparator()
-				{
-				
-				}
-				
-				bool operator()(uint8_t * A, uint8_t * B) const
-				{
-					return libmaus::bambam::BamAlignmentPosComparator::compare(A + sizeof(uint32_t),B + sizeof(uint32_t));
-				}
+				virtual ~FragmentAlignmentBufferReorderWorkPackageFinishedInterface() {}
+				virtual void fragmentAlignmentBufferReorderWorkPackageFinished(FragmentAlignmentBufferReorderWorkPackage *) = 0;
 			};
 		}
 	}

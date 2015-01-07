@@ -116,7 +116,7 @@ namespace libmaus
 					
 					while ( pointsleft )
 					{
-						// uppper end, not included in interval
+						// upper end, not included in interval
 						uint64_t high = low + ((f-low+pointsleft-1)/pointsleft);
 						assert ( high <= f );
 

@@ -17,7 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackage.hpp>
+
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp>
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferSortContext.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageDispatcher.hpp>
@@ -101,14 +105,15 @@
 
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
-			
+
 namespace libmaus
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct RewriteControl :
+			template<typename _order_type>
+			struct BlockSortControl :
 				public InputBlockWorkPackageReturnInterface,
 				public InputBlockAddPendingInterface,
 				public DecompressBlockWorkPackageReturnInterface,
@@ -136,10 +141,13 @@ namespace libmaus
 				public FragmentAlignmentBufferRewriteWorkPackageReturnInterface,
 				public FragmentAlignmentBufferRewriteFragmentCompleteInterface,
 				public FragmentAlignmentBufferSortFinishedInterface,
-				public FragmentAlignmentBufferBaseSortWorkPackageReturnInterface<FragmentAlignmentBufferPosComparator /* order_type */>,
-				public FragmentAlignmentBufferMergeSortWorkPackageReturnInterface<FragmentAlignmentBufferPosComparator /* order_type */>
+				public FragmentAlignmentBufferBaseSortWorkPackageReturnInterface<_order_type /* order_type */>,
+				public FragmentAlignmentBufferMergeSortWorkPackageReturnInterface<_order_type /* order_type */>,
+				public FragmentAlignmentBufferReorderWorkPackageReturnInterface,
+				public FragmentAlignmentBufferReorderWorkPackageFinishedInterface
 			{
-				typedef FragmentAlignmentBufferPosComparator order_type;
+				typedef _order_type order_type;
+				typedef BlockSortControl<order_type> this_type;
 				
 				static unsigned int getInputBlockCountShift()
 				{
@@ -176,6 +184,8 @@ namespace libmaus
 				uint64_t const WBWPDid;
 				FragmentAlignmentBufferRewriteWorkPackageDispatcher FABRWPD;
 				uint64_t const FABRWPDid;
+				FragmentAlignmentBufferReorderWorkPackageDispatcher FABROWPD;
+				uint64_t const FABROWPDid;
 
 				libmaus::bambam::parallel::FragmentAlignmentBufferBaseSortWorkPackageDispatcher<order_type> FABBSWPD;
 				uint64_t const FABBSWPDid;
@@ -194,6 +204,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferRewriteWorkPackage> fragmentAlignmentBufferRewriteWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferBaseSortPackage<order_type> > baseSortPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > mergeSortPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferReorderWorkPackage> reorderPackages;
 				
 				libmaus::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
 				
@@ -283,14 +294,26 @@ namespace libmaus
 					FragmentAlignmentBuffer,
 					FragmentAlignmentBufferAllocator,
 					FragmentAlignmentBufferTypeInfo
-				> fragmentBufferFreeList;
+				> fragmentBufferFreeListPreSort;
+
+				libmaus::parallel::LockedFreeList<
+					FragmentAlignmentBuffer,
+					FragmentAlignmentBufferAllocator,
+					FragmentAlignmentBufferTypeInfo
+				> fragmentBufferFreeListPostSort;
+
+				// post sort info
+				libmaus::parallel::PosixSpinLock postSortRewriteLock;
+				std::priority_queue<FragmentAlignmentBuffer::shared_ptr_type, std::vector<FragmentAlignmentBuffer::shared_ptr_type>, 
+					FragmentAlignmentBufferHeapComparator > postSortPendingQueue;
+				uint64_t volatile postSortNext;
 
 				static uint64_t getParseBufferSize()
 				{
-					return (1ull<<23);
+					return (1ull<<28);
 				}
 
-				RewriteControl(
+				BlockSortControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
 					std::istream & in,
 					int const level,
@@ -316,6 +339,8 @@ namespace libmaus
 					WBWPDid(STP.getNextDispatcherId()),
 					FABRWPD(*this,*this),
 					FABRWPDid(STP.getNextDispatcherId()),
+					FABROWPD(*this,*this),
+					FABROWPDid(STP.getNextDispatcherId()),
 					FABBSWPD(*this),
 					FABBSWPDid(STP.getNextDispatcherId()),
 					FABMSWPD(*this),
@@ -329,7 +354,13 @@ namespace libmaus
 					parseInfo(this),
 					nextDecompressedBlockToBeParsed(0),
 					parseStallSlot(),
-					parseBlockFreeList(STP.getNumThreads(),AlignmentBufferAllocator(getParseBufferSize(),2 /* pointer multiplier */)),
+					parseBlockFreeList(
+						std::min(STP.getNumThreads(),static_cast<uint64_t>(8)),
+						AlignmentBufferAllocator(
+							getParseBufferSize(),
+							1 /* pointer multiplier */
+						)
+					),
 					lastParseBlockSeen(false),
 					readsParsedLastPrint(0),
 					lastParseBlockValidated(false),
@@ -339,7 +370,9 @@ namespace libmaus
 					lastParseBlockCompressed(false),
 					writeNext(-1,0),
 					lastParseBlockWritten(false),
-					fragmentBufferFreeList(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */))
+					fragmentBufferFreeListPreSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */)),
+					fragmentBufferFreeListPostSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 1 /* pointer multiplier */)),
+					postSortNext(0)
 				{
 					STP.registerDispatcher(IBWPDid,&IBWPD);
 					STP.registerDispatcher(DBWPDid,&DBWPD);
@@ -348,8 +381,11 @@ namespace libmaus
 					STP.registerDispatcher(BLMCWPDid,&BLMCWPD);
 					STP.registerDispatcher(WBWPDid,&WBWPD);
 					STP.registerDispatcher(FABRWPDid,&FABRWPD);
+					STP.registerDispatcher(FABROWPDid,&FABROWPD);
 					STP.registerDispatcher(FABBSWPDid,&FABBSWPD);
 					STP.registerDispatcher(FABMSWPDid,&FABMSWPD);
+
+					std::cerr << "level=" << level << std::endl;
 				}
 
 				void enqueReadPackage()
@@ -373,8 +409,16 @@ namespace libmaus
 				
 				void waitDecompressFinished()
 				{
+					struct timespec ts, tsrem;
+					
 					while ( ! decompressFinished.get() )
-						sleep(1);
+					{
+						ts.tv_sec = 0;
+						ts.tv_nsec = 10000000; // 10 milli
+						nanosleep(&ts,&tsrem);
+						
+						// sleep(1);
+					}
 				}
 
 				void waitDecodingFinished()
@@ -452,7 +496,8 @@ namespace libmaus
 				void returnFragmentAlignmentBufferRewriteWorkPackage(FragmentAlignmentBufferRewriteWorkPackage * package) { fragmentAlignmentBufferRewriteWorkPackages.returnPackage(package); }
 				void putBaseSortWorkPackage(FragmentAlignmentBufferBaseSortPackage<order_type> * package) { baseSortPackages.returnPackage(package); }
 				void putMergeSortWorkPackage(FragmentAlignmentBufferMergeSortWorkPackage<order_type> * package) { mergeSortPackages.returnPackage(package); }
-				
+				void returnFragmentAlignmentBufferReorderWorkPackage(FragmentAlignmentBufferReorderWorkPackage * package) { reorderPackages.returnPackage(package); }
+
 				// return input block after decompression
 				void putInputBlockReturn(ControlInputInfo::input_block_type::shared_ptr_type block) 
 				{ 					
@@ -758,13 +803,18 @@ namespace libmaus
 						if ( lastParseBlockValidated.get() && blocksValidated == buffersCompressed )
 							lastParseBlockCompressed.set(true);
 
-						// ZZZ return FragmentAlignmentBuffer
-						fragmentBufferFreeList.put(algn);
+						#if 0
+						// return FragmentAlignmentBuffer
+						fragmentBufferFreeListPreSort.put(algn);
 						checkValidatedRewritePending();
+						#endif
+
+						// return buffer
+						fragmentBufferFreeListPostSort.put(algn);
+						checkPostSortPendingQueue();
 					}
 				
 				}
-				
 				
 				std::priority_queue<WritePendingObject,std::vector<WritePendingObject>,WritePendingObjectHeapComparator> writePendingQueue;
 				libmaus::parallel::PosixSpinLock writePendingQueueLock;
@@ -774,6 +824,7 @@ namespace libmaus
 					bgzfDeflateOutputBufferFreeList.put(obuf);
 					checkSmallBlockCompressionPending();				
 				}
+				
 				virtual void bgzfOutputBlockWritten(int64_t const blockid, uint64_t const /* subid */)
 				{
 					{
@@ -963,10 +1014,137 @@ namespace libmaus
 					AlignmentBufferHeapComparator
 				> validatedBlocksToBeRewrittenQueue;
 				
+				// pre sort info
 				libmaus::parallel::PosixSpinLock rewriteActiveLock;
 				std::map<uint64_t,AlignmentBuffer::shared_ptr_type> rewriteActiveAlignmentBuffers;
 				std::map<uint64_t,FragmentAlignmentBuffer::shared_ptr_type> rewriteActiveFragmentAlignmentBuffers;
 				std::map<uint64_t,uint64_t> rewriteActiveCnt;
+				
+				void fragmentAlignmentBufferReorderWorkPackageFinished(FragmentAlignmentBufferReorderWorkPackage * package)
+				{
+					uint64_t const id = package->copyReq.T->id;
+
+					bool lastfrag = false;
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+						if ( ! --rewriteUnfinished[id] )
+						{
+							lastfrag = true;
+						}
+					}
+					
+					if ( lastfrag )
+					{
+						FragmentAlignmentBuffer::shared_ptr_type FAB;
+						FragmentAlignmentBuffer::shared_ptr_type outFAB;
+
+						{
+							libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+
+							std::map<uint64_t,FragmentAlignmentBuffer::shared_ptr_type>::iterator inIt = rewriteActiveIn.find(id);
+							assert ( inIt != rewriteActiveIn.end() );
+							FAB = inIt->second;
+							rewriteActiveIn.erase(inIt);
+							
+							std::map<uint64_t,FragmentAlignmentBuffer::shared_ptr_type>::iterator outIt = rewriteActiveOut.find(id);
+							assert ( outIt != rewriteActiveOut.end() );
+							outFAB = outIt->second;
+							rewriteActiveOut.erase(outIt);
+							
+							std::map<uint64_t,uint64_t>::iterator itUn = rewriteUnfinished.find(id);
+							assert ( itUn != rewriteUnfinished.end() );
+							assert ( itUn->second == 0 );
+							rewriteUnfinished.erase(itUn);
+						}
+
+						#if 0
+						FAB->compareBuffers(*outFAB);
+						#endif
+
+						// return FragmentAlignmentBuffer after copying is finished
+						fragmentBufferFreeListPreSort.put(FAB);
+						checkValidatedRewritePending();
+
+						// put block in ready for compression queue
+						{
+							libmaus::parallel::ScopePosixSpinLock llock(rewriteLargeBlockLock);
+							rewriteLargeBlockQueue.push(outFAB);
+						}
+								
+						// check ready for compression queue
+						checkLargeBlockCompressionPending();
+					}
+				}
+				
+				std::map<uint64_t,uint64_t> rewriteUnfinished;
+				std::map<uint64_t,FragmentAlignmentBuffer::shared_ptr_type> rewriteActiveIn;
+				std::map<uint64_t,FragmentAlignmentBuffer::shared_ptr_type> rewriteActiveOut;
+
+				void checkPostSortPendingQueue()
+				{
+					bool running = true;
+					
+					while ( running )
+					{
+						FragmentAlignmentBuffer::shared_ptr_type FAB;
+						
+						{
+							libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+							if ( postSortPendingQueue.size() && postSortPendingQueue.top()->id == postSortNext )
+							{
+								FAB = postSortPendingQueue.top();
+								postSortPendingQueue.pop();
+							}
+						}
+						
+						if ( FAB )
+						{
+							FragmentAlignmentBuffer::shared_ptr_type outFAB = fragmentBufferFreeListPostSort.getIf();
+							
+							if ( outFAB )
+							{
+								{
+									libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+									postSortNext += 1;
+								}
+						
+								// get data copy requests		
+								std::vector<libmaus::bambam::parallel::FragmentAlignmentBuffer::FragmentAlignmentBufferCopyRequest> 
+									reqs = FAB->setupCopy(*outFAB);
+									
+								{
+									libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+									rewriteUnfinished[FAB->id] = reqs.size();
+									rewriteActiveIn[FAB->id] = FAB;
+									rewriteActiveOut[FAB->id] = outFAB;
+								}
+								
+								for ( uint64_t i = 0; i < reqs.size(); ++i )
+								{
+									libmaus::bambam::parallel::FragmentAlignmentBufferReorderWorkPackage * pack = reorderPackages.getPackage();
+									*pack = libmaus::bambam::parallel::FragmentAlignmentBufferReorderWorkPackage(reqs[i],0 /* prio */,FABROWPDid);
+									STP.enque(pack);
+								}
+								
+							}
+							// no output buffer available, put buffer back in pending queue
+							else
+							{
+								// put back input buffer
+								{
+									libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+									postSortPendingQueue.push(FAB);
+								}
+								running = false;
+							}
+						}
+						else
+						{
+							running = false;
+						}
+					}
+				}
 
 				void putSortFinished(FragmentAlignmentBuffer::shared_ptr_type FAB)
 				{
@@ -975,7 +1153,9 @@ namespace libmaus
 						sortContextsActive.erase(sortContextsActive.find(FAB->id));
 					}
 					
-					#if 1
+					// std::cerr << "block sorted." << std::endl;
+					
+					#if 0
 					bool const sortok = FAB->checkSort(order_type());
 					// std::cerr << "sort finished for " << FAB->id << " " << sortok << std::endl;
 					
@@ -987,18 +1167,16 @@ namespace libmaus
 						throw lme;
 					}
 					#endif
-				
-					// put block in ready for compression queue
+					
 					{
-						libmaus::parallel::ScopePosixSpinLock llock(rewriteLargeBlockLock);
-						rewriteLargeBlockQueue.push(FAB);
+						libmaus::parallel::ScopePosixSpinLock llock(postSortRewriteLock);
+						postSortPendingQueue.push(FAB);
 					}
-						
-					// check ready for compression queue
-					checkLargeBlockCompressionPending();
+
+					checkPostSortPendingQueue();
 				}
 
-				std::map<uint64_t, FragmentAlignmentBufferSortContext<order_type>::shared_ptr_type > sortContextsActive;
+				std::map<uint64_t, typename FragmentAlignmentBufferSortContext<order_type>::shared_ptr_type > sortContextsActive;
 				libmaus::parallel::PosixSpinLock sortContextsActiveLock;
 
 				void fragmentAlignmentBufferRewriteFragmentComplete(
@@ -1024,7 +1202,7 @@ namespace libmaus
 					// rewrite for block is complete
 					if ( blockFinished )
 					{
-						FragmentAlignmentBufferSortContext<order_type>::shared_ptr_type
+						typename FragmentAlignmentBufferSortContext<order_type>::shared_ptr_type
 							sortcontext(new FragmentAlignmentBufferSortContext<order_type>(
 								FAB,STP.getNumThreads(),STP,mergeSortPackages,
 								FABMSWPDid /* merge dispatcher id */,*this /* finished */
@@ -1063,7 +1241,7 @@ namespace libmaus
 						
 						if ( algn )
 						{
-							FragmentAlignmentBuffer::shared_ptr_type FAB = fragmentBufferFreeList.getIf();
+							FragmentAlignmentBuffer::shared_ptr_type FAB = fragmentBufferFreeListPreSort.getIf();
 							
 							if ( FAB )
 							{
@@ -1166,19 +1344,130 @@ namespace libmaus
 }
 
 #include <libmaus/aio/PosixFdInputStream.hpp>
+#include <libmaus/random/Random.hpp>
+#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus/bambam/BamWriter.hpp>
 
-int main()
+template<typename order_type>
+void mapperm(int argc, char * argv[])
 {
 	try
 	{
-		uint64_t const numlogcpus = libmaus::parallel::NumCpus::getNumLogicalProcessors();
+		libmaus::util::ArgInfo const arginfo(argc,argv);
+		uint64_t const textlen = arginfo.getValue<int>("textlen",120);
+		uint64_t const readlen = arginfo.getValue<int>("readlen",110);
+		uint64_t const numreads = (textlen-readlen)+1;
+		libmaus::autoarray::AutoArray<char> T(textlen,false);
+		libmaus::random::Random::setup(19);
+		for ( uint64_t i = 0; i < textlen; ++i )
+		{
+			switch ( libmaus::random::Random::rand8() % 4 )
+			{
+				case 0: T[i] = 'A'; break;
+				case 1: T[i] = 'C'; break;
+				case 2: T[i] = 'G'; break;
+				case 3: T[i] = 'T'; break;
+			}
+		}
+
+		::libmaus::bambam::BamHeader header;
+		header.addChromosome("text",textlen);
+		
+		std::vector<uint64_t> P;
+		for ( uint64_t i = 0; i < numreads; ++i )
+			P.push_back(i);
+
+		uint64_t const check = std::min(static_cast<uint64_t>(arginfo.getValue<int>("check",8)),P.size());		
+		std::vector<uint64_t> prev(check,numreads);
+
+		uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
 		libmaus::parallel::SimpleThreadPool STP(numlogcpus);
-		libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
-		libmaus::bambam::parallel::RewriteControl VC(STP,in,Z_DEFAULT_COMPRESSION,std::cout);
-		VC.checkEnqueReadPackage();
-		VC.waitDecodingFinished();
+		
+		do
+		{		
+			std::ostringstream out;
+			::libmaus::bambam::BamWriter::unique_ptr_type bamwriter(new ::libmaus::bambam::BamWriter(out,header,0,0));
+			
+			bool print = false;
+			for ( uint64_t i = 0; i < check; ++i )
+				if ( P[i] != prev[i] )
+					print = true;
+
+			if ( print )
+			{
+				for ( uint64_t i = 0; i < check; ++i )
+				{
+					std::cerr << P[i] << ";";
+					prev[i] = P[i];
+				}
+				std::cerr << std::endl;
+			}
+					
+			for ( uint64_t j = 0; j < P.size(); ++j )
+			{
+				uint64_t const i = P[j];
+				
+				std::ostringstream rnstr;
+				rnstr << "r" << "_" << std::setw(6) << std::setfill('0') << i;
+				std::string const rn = rnstr.str();
+				
+				std::string const read(T.begin()+i,T.begin()+i+readlen);
+				// std::cerr << read << std::endl;
+
+				bamwriter->encodeAlignment(rn,0 /* refid */,i,30, 0, 
+					libmaus::util::NumberSerialisation::formatNumber(readlen,0) + "M", 
+					-1,-1, -1, read, std::string(readlen,'H'));
+				bamwriter->commit();
+			}
+			
+			bamwriter.reset();
+
+			std::istringstream in(out.str());
+			std::ostringstream ignout;
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,0 /* comp */,ignout);
+			VC.checkEnqueReadPackage();
+			VC.waitDecodingFinished();
+
+		} while ( std::next_permutation(P.begin(),P.end()) );
+		
+		// std::cout << out.str();
+
 		STP.terminate();
 		STP.join();
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+	}
+}
+
+int main(int argc, char * argv[])
+{
+	try
+	{
+		libmaus::util::ArgInfo const arginfo(argc,argv);
+		int const fmapperm = arginfo.getValue<int>("mapperm",0);
+		typedef libmaus::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
+		// typedef libmaus::bambam::parallel::FragmentAlignmentBufferNameComparator order_type;
+		
+		if ( fmapperm )
+		{
+			mapperm<order_type>(argc,argv);
+		}
+		else
+		{
+			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
+			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
+			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
+			int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,level,std::cout);
+			VC.checkEnqueReadPackage();
+			VC.waitDecodingFinished();
+			STP.terminate();
+			STP.join();
+			
+			std::cerr << "blocksParsed=" << VC.blocksParsed << std::endl;
+		}
 	}
 	catch(std::exception const & ex)
 	{

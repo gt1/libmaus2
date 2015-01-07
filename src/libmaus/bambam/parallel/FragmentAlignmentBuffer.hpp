@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFER_HPP
 
+#include <libmaus/bambam/DecoderBase.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferFragment.hpp>
 	
 namespace libmaus
@@ -76,6 +77,108 @@ namespace libmaus
 						ok = ok && (!(order(B,A)));
 					}
 					return ok;
+				}
+				
+				struct FragmentAlignmentBufferCopyRequest
+				{
+					uint64_t * LO;
+					FragmentAlignmentBufferFragment * frag;
+					uint64_t n;
+					uint8_t ** A;
+					FragmentAlignmentBuffer * T;
+					uint64_t t;
+					
+					FragmentAlignmentBufferCopyRequest()
+					: LO(0), frag(0), n(0), A(0), T(0), t(0)
+					{
+					
+					}
+					
+					FragmentAlignmentBufferCopyRequest(
+						uint64_t * rLO,
+						FragmentAlignmentBufferFragment * rfrag,
+						uint64_t const rn,
+						uint8_t ** rA,
+						FragmentAlignmentBuffer * rT,
+						uint64_t const rt
+					) : LO(rLO), frag(rfrag), n(rn), A(rA), T(rT), t(rt)
+					{
+					
+					}
+					
+					void dispatch()
+					{
+						for ( uint64_t i = 0; i < n; ++i )
+						{							
+							uint32_t const l = libmaus::bambam::DecoderBase::getLEInteger(
+								reinterpret_cast<uint8_t const *>(A[i]),
+								sizeof(uint32_t));
+							uint8_t const * D = A[i] + sizeof(uint32_t);
+							
+							*(LO++) = frag->getOffset();
+							frag->pushAlignmentBlock(D,l);
+						}
+						T->rewritePointers(t);
+					}
+				};
+				
+				void compareBuffers(FragmentAlignmentBuffer & T)
+				{
+					std::pair<uint8_t **, uint8_t **> P = getPointerArray();
+					uint64_t const f = P.second-P.first;
+					for ( uint64_t i = 0; i < f; ++i )
+					{
+						std::pair<uint8_t *, uint32_t> IN = this->at(i);
+						std::pair<uint8_t *, uint32_t> OUT = T.at(i);
+						assert ( IN.second == OUT.second );
+						assert ( memcmp(IN.first,OUT.first,IN.second) == 0 );
+					}				
+				}
+				
+				std::vector<FragmentAlignmentBufferCopyRequest> setupCopy(FragmentAlignmentBuffer & T)
+				{
+					std::pair<uint8_t **, uint8_t **> P = getPointerArray();
+					uint64_t const f = P.second-P.first;
+
+					// set up meta data in target buffer
+					T.reset();
+					T.id = id;
+					T.checkPointerSpace(f);
+					uint64_t const alperbuf = (f+T.size()-1)/T.size();
+					std::vector<size_t> & O = T.getOffsetStartVector();
+					assert ( O.size() == T.size() + 1 );
+					for ( uint64_t t = 0; t < T.size(); ++t )
+					{
+						uint64_t const low = std::min(t * alperbuf,f);
+						O.at(t) = low;
+					}
+					O.at(T.size()) = f;
+
+					// produce copy requests
+					std::vector<FragmentAlignmentBufferCopyRequest> V;
+					for ( uint64_t t = 0; t < T.size(); ++t )
+					{
+						uint64_t * LO = T.getOffsetStart(t);
+						FragmentAlignmentBufferFragment * frag = T[t];
+						uint64_t const low = O.at(t);
+						uint64_t const high = O.at(t+1);
+						uint64_t const n = high-low;
+						uint8_t ** A = P.first + low;
+
+						FragmentAlignmentBufferCopyRequest req(LO,frag,n,A,&T,t);
+						V.push_back(req);
+					}
+
+					return V;				
+				}
+				
+				// copy from this buffer to T
+				void copyBuffer(FragmentAlignmentBuffer & T)
+				{
+					std::vector<FragmentAlignmentBufferCopyRequest> V = setupCopy(T);
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i].dispatch();
+					compareBuffers(T);
 				}
 
 				std::pair<uint8_t **, uint8_t **> getAuxPointerArray()
@@ -150,8 +253,7 @@ namespace libmaus
 						(static_cast<uint32_t>(p[3]) << 24) ;
 					return std::pair<uint8_t *, uint32_t>(p+4,l);
 				}
-				
-				
+								
 				std::pair<uint8_t *, uint32_t> at(uint64_t const i, uint64_t const j)
 				{
 					uint64_t const off = getOffsetStart(i)[j];

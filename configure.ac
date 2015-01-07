@@ -2335,6 +2335,7 @@ TESTPROGS="${TESTPROGS} testbytecnt teststronglyconnectedcomponents"
 TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
 TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
+TESTPROGS="${TESTPROGS} testmapperm"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=

@@ -568,7 +568,12 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/WritePendingObjectHeapComparator.hpp \
 	libmaus/bambam/parallel/WritePendingObject.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageDispatcher.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackage.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageFinishedInterface.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1476,7 +1481,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testparallelbamrewrite \
 	testbammateerase \
 	testparallelbamblocksort \
-	testhdf5
+	testhdf5 \
+	testmapperm
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1909,3 +1915,8 @@ testhdf5_SOURCES  = test/testhdf5.cpp
 testhdf5_LDADD    = libmaus.la @HDF5LIBS@
 testhdf5_CPPFLAGS = @HDF5CPPFLAGS@ @WARNCPPFLAGS@
 testhdf5_LDFLAGS  = ${AM_LDFLAGS} @HDF5LDFLAGS@
+
+testmapperm_SOURCES  = test/testmapperm.cpp
+testmapperm_LDADD    = libmaus.la
+testmapperm_CPPFLAGS = @WARNCPPFLAGS@
+testmapperm_LDFLAGS  = ${AM_LDFLAGS}
