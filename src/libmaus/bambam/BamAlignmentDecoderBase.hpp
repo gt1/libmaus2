@@ -3661,7 +3661,24 @@ namespace libmaus
 				
 				// return insert size for (A,B), use negative value for (B,A)
 				return B5 - A5;
-			
+			}
+
+			static  int32_t     getRefIDChecked(uint8_t const * D)
+			{
+				int32_t const refid = getRefID(D);
+				return (refid<0) ? -1 : refid;
+			}
+
+			static  int32_t     getNextRefIDChecked(uint8_t const * D) 
+			{
+				int32_t const nextrefid = getNextRefID(D);
+				return (nextrefid<0) ? -1 : nextrefid;
+			}
+
+			template<typename header_type>
+			static int64_t getReadGroupId(uint8_t const * E, uint64_t const blocksize, header_type const & bamheader)
+			{
+				return bamheader.getReadGroupId(getReadGroup(E,blocksize));
 			}
 		};
 	}
