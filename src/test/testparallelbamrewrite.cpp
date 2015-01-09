@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp>
@@ -128,7 +129,8 @@ namespace libmaus
 				public WriteBlockWorkPackageReturnInterface,
 				public ParseInfoHeaderCompleteCallback,
 				public FragmentAlignmentBufferRewriteWorkPackageReturnInterface,
-				public FragmentAlignmentBufferRewriteFragmentCompleteInterface
+				public FragmentAlignmentBufferRewriteFragmentCompleteInterface,
+				public FragmentAlignmentBufferRewriteUpdateInterval
 			{
 				static unsigned int getInputBlockCountShift()
 				{
@@ -297,7 +299,7 @@ namespace libmaus
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this),
+					FABRWPD(*this,*this,*this),
 					FABRWPDid(STP.getNextDispatcherId()),
 					controlInputInfo(in,0,getInputBlockCount()),
 					decompressBlockFreeList(getInputBlockCount() * STP.getNumThreads() * 2),
@@ -1096,6 +1098,11 @@ namespace libmaus
 						
 						checkValidatedRewritePending();
 					}					
+				}
+				
+				void fragmentAlignmentBufferRewriteUpdateInterval(int64_t /* maxleftoff */, int64_t /* maxrightoff */)
+				{
+				
 				}
 			};
 		}

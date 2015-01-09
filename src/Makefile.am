@@ -573,7 +573,8 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

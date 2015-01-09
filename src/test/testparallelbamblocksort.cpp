@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
+
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackage.hpp>
 
@@ -144,7 +146,8 @@ namespace libmaus
 				public FragmentAlignmentBufferBaseSortWorkPackageReturnInterface<_order_type /* order_type */>,
 				public FragmentAlignmentBufferMergeSortWorkPackageReturnInterface<_order_type /* order_type */>,
 				public FragmentAlignmentBufferReorderWorkPackageReturnInterface,
-				public FragmentAlignmentBufferReorderWorkPackageFinishedInterface
+				public FragmentAlignmentBufferReorderWorkPackageFinishedInterface,
+				public FragmentAlignmentBufferRewriteUpdateInterval
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
@@ -307,6 +310,10 @@ namespace libmaus
 				std::priority_queue<FragmentAlignmentBuffer::shared_ptr_type, std::vector<FragmentAlignmentBuffer::shared_ptr_type>, 
 					FragmentAlignmentBufferHeapComparator > postSortPendingQueue;
 				uint64_t volatile postSortNext;
+				
+				int64_t volatile maxleftoff;
+				int64_t volatile maxrightoff;
+				libmaus::parallel::PosixSpinLock maxofflock;
 
 				static uint64_t getParseBufferSize()
 				{
@@ -337,7 +344,7 @@ namespace libmaus
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this),
+					FABRWPD(*this,*this,*this),
 					FABRWPDid(STP.getNextDispatcherId()),
 					FABROWPD(*this,*this),
 					FABROWPDid(STP.getNextDispatcherId()),
@@ -372,7 +379,9 @@ namespace libmaus
 					lastParseBlockWritten(false),
 					fragmentBufferFreeListPreSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */)),
 					fragmentBufferFreeListPostSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 1 /* pointer multiplier */)),
-					postSortNext(0)
+					postSortNext(0),
+					maxleftoff(0),
+					maxrightoff(0)
 				{
 					STP.registerDispatcher(IBWPDid,&IBWPD);
 					STP.registerDispatcher(DBWPDid,&DBWPD);
@@ -1338,6 +1347,13 @@ namespace libmaus
 						checkValidatedRewritePending();
 					}					
 				}
+				
+				void fragmentAlignmentBufferRewriteUpdateInterval(int64_t rmaxleftoff, int64_t rmaxrightoff)
+				{
+					libmaus::parallel::ScopePosixSpinLock lmaxofflock(maxofflock);
+					maxleftoff  = std::max(static_cast<int64_t>(maxleftoff),rmaxleftoff);
+					maxrightoff = std::max(static_cast<int64_t>(maxrightoff),rmaxrightoff);
+				}
 			};
 		}
 	}
@@ -1467,6 +1483,8 @@ int main(int argc, char * argv[])
 			STP.join();
 			
 			std::cerr << "blocksParsed=" << VC.blocksParsed << std::endl;
+			std::cerr << "maxleftoff=" << VC.maxleftoff << std::endl;
+			std::cerr << "maxrightoff=" << VC.maxrightoff << std::endl;
 		}
 	}
 	catch(std::exception const & ex)

@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEWORKPACKAGEDISPATCHER_HPP
 
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp>
@@ -39,6 +40,7 @@ namespace libmaus
 			{
 				FragmentAlignmentBufferRewriteWorkPackageReturnInterface & packageReturnInterface;
 				FragmentAlignmentBufferRewriteFragmentCompleteInterface & fragmentCompleteInterface;
+				FragmentAlignmentBufferRewriteUpdateInterval & updateIntervalInterface;
 				libmaus::bambam::BamAuxFilterVector MQfilter;
 				bool const fixmates;
 				libmaus::bambam::BamAuxFilterVector MCMSMTfilter;
@@ -49,10 +51,14 @@ namespace libmaus
 				
 				FragmentAlignmentBufferRewriteWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteWorkPackageReturnInterface & rpackageReturnInterface,
-					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface
+					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
+					FragmentAlignmentBufferRewriteUpdateInterval & rupdateIntervalInterface
 				) 
 				: 
-					packageReturnInterface(rpackageReturnInterface), fragmentCompleteInterface(rfragmentCompleteInterface), fixmates(true),
+					packageReturnInterface(rpackageReturnInterface), 
+					fragmentCompleteInterface(rfragmentCompleteInterface), 
+					updateIntervalInterface(rupdateIntervalInterface),
+					fixmates(true),
 					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str())
 				{
 					MQfilter.set("MQ");
@@ -77,6 +83,8 @@ namespace libmaus
 					assert ( BP );
 					
 					// dispatch
+					int64_t maxleftoff = 0;
+					int64_t maxrightoff = 0;
 					uint64_t * O = BP->FAB->getOffsetStart(BP->j);
 					uint64_t const ind = BP->FAB->getOffsetStartIndex(BP->j);
 					size_t const num = BP->FAB->getNumAlignments(BP->j);
@@ -143,6 +151,30 @@ namespace libmaus
 									}
 								}
 							}
+							
+						if ( firsti != -1 )
+						{						
+							uint8_t const * text = BP->algn->textAt(firsti);
+							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
+							
+							// mapped?
+							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
+							{
+								int64_t const coord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(text);
+								int64_t const pos = libmaus::bambam::BamAlignmentDecoderBase::getPos(text);
+								
+								if ( coord < pos )
+								{
+									int64_t const leftoff = pos-coord;
+									maxleftoff = std::max(maxleftoff,leftoff);
+								}
+								else
+								{
+									int64_t const rightoff = coord-pos;
+									maxrightoff = std::max(maxrightoff,rightoff);
+								}
+							}
+						}
 						
 						if ( fixmates )
 						{
@@ -202,6 +234,7 @@ namespace libmaus
 						for ( size_t i = looplow; i < loophigh; ++i )
 						{
 							std::pair<uint8_t *,uint64_t> P = BP->algn->at(i);
+							uint64_t const rank = BP->algn->low + i;
 
 							if ( fixmates && dupmarksupport )
 							{							
@@ -307,6 +340,28 @@ namespace libmaus
 									subbuf->replaceLength(offset,P.second);
 								}
 							}
+
+							// add rank (line number in input file)
+							uint8_t const T[4+4+8] = {
+								'Z','R',
+								// array
+								'B',
+								// number type (unsigned byte)
+								'C',
+								// length of number in bytes
+								8,0,0,0,
+								static_cast<uint8_t>((rank >> (0*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (1*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (2*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (3*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (4*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (5*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (6*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (7*8)) & 0xFF)
+							};
+							subbuf->push(&T[0],sizeof(T));
+							P.second += sizeof(T);
+							subbuf->replaceLength(offset,P.second);
 						}
 						
 						looplow = loophigh;
@@ -317,8 +372,11 @@ namespace libmaus
 	
 					fragmentCompleteInterface.fragmentAlignmentBufferRewriteFragmentComplete(BP->algn,BP->FAB,BP->j);
 
+					// update interval					
+					updateIntervalInterface.fragmentAlignmentBufferRewriteUpdateInterval(maxleftoff,maxrightoff);
+
 					// return the work package
-					packageReturnInterface.returnFragmentAlignmentBufferRewriteWorkPackage(BP);
+					packageReturnInterface.returnFragmentAlignmentBufferRewriteWorkPackage(BP);					
 				}		
 			};
 		}
