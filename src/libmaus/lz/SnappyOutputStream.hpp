@@ -22,6 +22,7 @@
 #include <libmaus/lz/SnappyCompress.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
 #include <libmaus/util/utf8.hpp>
+#include <utility>
 
 namespace libmaus
 {
@@ -31,29 +32,30 @@ namespace libmaus
 		struct SnappyOutputStream
 		{
 			typedef _stream_type stream_type;
+			typedef SnappyOutputStream<stream_type> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			::std::ostream & out;
 			::libmaus::autoarray::AutoArray<char> B;
 			char * const pa;
 			char *       pc;
 			char * const pe;
-			bool const bigbuf;
 			
-			bool putbigbuf;
+			uint64_t compressedbyteswritten;
 			
-			SnappyOutputStream(stream_type & rout, uint64_t const bufsize = 64*1024, bool delaybigbuf = false)
-			: out(rout), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), bigbuf(bufsize > ((1ull<<31)-1)),
-			  putbigbuf(false)
+			SnappyOutputStream(stream_type & rout, uint64_t const bufsize = 64*1024)
+			: out(rout), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), compressedbyteswritten(0)
 			{
-				if ( ! delaybigbuf )
-				{
-					out.put(bigbuf);
-					putbigbuf = true;				
-				}
 			}
 			~SnappyOutputStream()
 			{
 				flush();
+			}
+			
+			std::pair<uint64_t,uint64_t> getOffset() const
+			{
+				return std::pair<uint64_t,uint64_t>(compressedbyteswritten,pc-pa);
 			}
 			
 			operator bool()
@@ -65,25 +67,18 @@ namespace libmaus
 			{
 				if ( pc != pa )
 				{
-					if ( ! putbigbuf )
-					{
-						out.put(bigbuf);
-						putbigbuf = true;
-					}
 					// compress data
 					std::string const cdata = SnappyCompress::compress(std::string(pa,pc));
 					
 					// store size of uncompressed buffer
-					if ( bigbuf )
-						::libmaus::util::NumberSerialisation::serialiseNumber(out,pc-pa);
-					else
-						::libmaus::util::UTF8::encodeUTF8(pc-pa,out);
+					compressedbyteswritten += ::libmaus::util::NumberSerialisation::serialiseNumber(out,pc-pa);
 
 					// store size of compressed buffer
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,cdata.size());
+					compressedbyteswritten += ::libmaus::util::NumberSerialisation::serialiseNumber(out,cdata.size());
 					
 					// write compressed data
 					out.write(cdata.c_str(),cdata.size());
+					compressedbyteswritten += cdata.size();
 					
 					if ( ! out )
 					{

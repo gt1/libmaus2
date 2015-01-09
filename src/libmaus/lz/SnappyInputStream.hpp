@@ -42,7 +42,6 @@ namespace libmaus
 			char const * pa;
 			char const * pc;
 			char const * pe;
-			bool const bigbuf;
 			uint64_t gcnt;
 			
 			bool eofthrow;
@@ -82,7 +81,7 @@ namespace libmaus
 				uint64_t rendpos = std::numeric_limits<uint64_t>::max()
 			)
 			: in(rin), readpos(rreadpos), setpos(rsetpos), endpos(rendpos),
-			  B(), pa(0), pc(0), pe(0), bigbuf(checkedGet()), gcnt(0), eofthrow(false)
+			  B(), pa(0), pc(0), pe(0), gcnt(0), eofthrow(false)
 			{
 			}
 			
@@ -196,16 +195,10 @@ namespace libmaus
 						<< std::endl;
 					#endif
 				
-					uint64_t blocksize = sizeof(uint64_t) + ( bigbuf ? sizeof(uint64_t) : 0 );
+					uint64_t blocksize = sizeof(uint64_t) + sizeof(uint64_t);
 					
 					// size of uncompressed buffer
-					uint64_t const n = 
-						bigbuf ?
-							::libmaus::util::NumberSerialisation::deserialiseNumber(in)
-							:
-							::libmaus::util::UTF8::decodeUTF8(in,blocksize)
-						;
-
+					uint64_t const n        = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
 					// size of compressed data
 					uint64_t const datasize = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
 					// add to block size

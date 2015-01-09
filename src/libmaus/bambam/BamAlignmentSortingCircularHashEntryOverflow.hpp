@@ -137,7 +137,7 @@ namespace libmaus
 
 				uint64_t const prepos = COS.tellp();
 					
-				::libmaus::lz::SnappyOutputStream<libmaus::aio::CheckedOutputStream> snapOut(COS,64*1024,true /* delay writing until there is data */);
+				::libmaus::lz::SnappyOutputStream<libmaus::aio::CheckedOutputStream> snapOut(COS,64*1024);
 
 				uint64_t occnt = 0;
 				uint64_t outp = 0;
