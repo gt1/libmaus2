@@ -198,7 +198,7 @@ namespace libmaus
 				
 				void advance(uint64_t const c = 1)
 				{
-					assert ( c <= (reinterpret_cast<pointer_type const *>(A.end())-pP) );
+					assert ( static_cast<ptrdiff_t>(c) <= (reinterpret_cast<pointer_type const *>(A.end())-pP) );
 					pP += c;
 				}
 				
@@ -291,7 +291,7 @@ namespace libmaus
 					}
 					
 					assert ( V.size() );
-					assert ( (V[V.size()-1].second - V[0].first) == totallen );
+					assert ( (V[V.size()-1].second - V[0].first) == static_cast<ptrdiff_t>(totallen) );
 				}
 	
 				uint32_t decodeLength(uint64_t const off) const

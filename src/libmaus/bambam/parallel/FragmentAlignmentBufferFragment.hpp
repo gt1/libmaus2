@@ -71,7 +71,7 @@ namespace libmaus
 				
 				void pushAlignmentBlock(uint8_t const * T, size_t l)
 				{
-					while ( (pe-pc) < (l+sizeof(uint32_t)) )
+					while ( (pe-pc) < static_cast<ptrdiff_t>(l+sizeof(uint32_t)) )
 						extend();
 					assert ( static_cast<ssize_t>(pe-pc) >= static_cast<ssize_t>(l+sizeof(uint32_t)) );
 					
@@ -89,7 +89,7 @@ namespace libmaus
 
 				void push(uint8_t const * T, size_t l)
 				{
-					while ( (pe-pc) < l )
+					while ( (pe-pc) < static_cast<ptrdiff_t>(l) )
 						extend();
 					assert ( static_cast<ssize_t>(pe-pc) >= static_cast<ssize_t>(l) );
 					
