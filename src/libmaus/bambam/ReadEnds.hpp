@@ -444,7 +444,71 @@ namespace libmaus
 					parseReadNameTile(readname,readnamee,RE);			
 			}
 
+			/**
+			 * fill common parts between fragment and pair ReadEndsBase objects
+			 *
+			 * @param pD alignment block
+			 * @param pblocksize alignment block length
+			 * @param RE ReadEndsBase object to be filled
+			 **/
+			static void fillCommon(
+				uint8_t const * pD, 
+				uint64_t const pblocksize,
+				::libmaus::bambam::ReadEndsBase & RE
+			)
+			{
+				RE.read1Sequence = libmaus::bambam::BamAlignmentDecoderBase::getRefIDChecked(pD) + 1;
+				RE.read1Coordinate = signedEncode(libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(pD) + 1);
+				RE.read1IndexInFile = libmaus::bambam::BamAlignmentDecoderBase::getRank(pD,pblocksize);
+
+				uint8_t const * const readname = reinterpret_cast<uint8_t const *>(libmaus::bambam::BamAlignmentDecoderBase::getReadName(pD));
+				uint8_t const * const readnamee = readname + (libmaus::bambam::BamAlignmentDecoderBase::getLReadName(pD)-1);
+
+				// parse tile, x, y
+				if ( parseReadNameValid(readname,readnamee) )
+					parseReadNameTile(readname,readnamee,RE);			
+			}
+
 			public:
+			/**
+			 * fill fragment type ReadEndsBase object
+			 *
+			 * @param p alignment
+			 * @param header BAM header
+			 * @param RE ReadEndsBase object to be filled
+			 * @param tagId tag id for object
+			 **/
+			static void fillFrag(
+				uint8_t const * pD, 
+				uint64_t const pblocksize,
+				::libmaus::bambam::BamHeader const & header,
+				::libmaus::bambam::ReadEndsBase & RE,
+				uint64_t const rtagid = 0
+			)
+			{
+				fillCommon(pD,pblocksize,RE);
+				
+				uint32_t const pflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(pD);
+				
+				RE.orientation =
+					(pflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE)
+					?
+					::libmaus::bambam::ReadEndsBase::R : ::libmaus::bambam::ReadEndsBase::F;
+
+				RE.score = libmaus::bambam::BamAlignmentDecoderBase::getScore(pD);
+				
+				if ( 
+					(pflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED) &&
+					(!(pflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP))
+				)
+					RE.read2Sequence = libmaus::bambam::BamAlignmentDecoderBase::getNextRefIDChecked(pD) + 1;
+					
+				int64_t const rg = libmaus::bambam::BamAlignmentDecoderBase::getReadGroupId(pD,pblocksize,header);
+				RE.readGroup = rg + 1;
+				RE.libraryId = header.getLibraryId(rg);
+				RE.tagId = rtagid;
+			}
+
 			/**
 			 * fill fragment type ReadEndsBase object
 			 *
@@ -473,6 +537,64 @@ namespace libmaus
 				RE.readGroup = rg + 1;
 				RE.libraryId = header.getLibraryId(rg);
 				RE.tagId = rtagid;
+			}
+
+			/**
+			 * fill pair type ReadEndsBase object
+			 *
+			 * @param pD first alignment block
+			 * @param qD second alignment block
+			 * @param header BAM header
+			 * @param RE ReadEndsBase object to be filled
+			 **/
+			static void fillFragPair(
+				uint8_t const * pD, 
+				uint64_t const pblocksize,
+				uint8_t const * qD, 
+				uint64_t const qblocksize,
+				::libmaus::bambam::BamHeader const & header,
+				::libmaus::bambam::ReadEndsBase & RE,
+				uint64_t const rtagId = 0
+			)
+			{
+				fillCommon(pD,pblocksize,RE);
+
+				RE.read2Sequence = libmaus::bambam::BamAlignmentDecoderBase::getRefIDChecked(qD) + 1;
+				RE.read2Coordinate = signedEncode(libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(qD) + 1);
+				RE.read2IndexInFile = libmaus::bambam::BamAlignmentDecoderBase::getRank(qD,qblocksize);
+				
+				uint32_t const pflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(pD);
+				uint32_t const qflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(qD);
+				
+				bool const preverse = pflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
+				bool const qreverse = qflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
+				
+				if ( ! preverse )
+					if ( ! qreverse )
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::FF;
+					else
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::FR;
+				else
+					if ( ! qreverse )
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::RF;
+					else
+						RE.orientation = ::libmaus::bambam::ReadEndsBase::RR;
+				
+				
+				RE.score = libmaus::bambam::BamAlignmentDecoderBase::getScore(pD) + libmaus::bambam::BamAlignmentDecoderBase::getScore(qD);
+				
+				if ( 
+					(pflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED) 
+					&&
+					(!(pflags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP))
+				)
+					RE.read2Sequence = libmaus::bambam::BamAlignmentDecoderBase::getNextRefIDChecked(pD) + 1;
+				
+				int64_t const rg = libmaus::bambam::BamAlignmentDecoderBase::getReadGroupId(pD,pblocksize,header);
+								
+				RE.readGroup = rg + 1;
+				RE.libraryId = header.getLibraryId(rg);
+				RE.tagId = rtagId;				
 			}
 
 			/**
@@ -696,6 +818,32 @@ namespace libmaus
 			}
 
 			/**
+			 * constructor for fragment type ReadEnds object
+			 *
+			 * @param pD alignment block
+			 * @param pblocksize alignment block length
+			 * @param header BAM header
+			 * @param copyAlignment copy alignment to object
+			 **/
+			ReadEnds(
+				uint8_t const * pD,
+				uint64_t const pblocksize,
+				::libmaus::bambam::BamHeader const & header,
+				bool const copyAlignment = false,
+				uint64_t const rtagId = 0
+			)
+			{
+				reset();
+				fillFrag(pD,pblocksize,header,*this,rtagId);
+				if ( copyAlignment )
+				{
+					BamAlignment::shared_ptr_type salgn(new libmaus::bambam::BamAlignment);
+					salgn->copyFrom(pD,pblocksize);
+					this->p = salgn;
+				}
+			}
+
+			/**
 			 * constructor for pair type ReadEnds object
 			 *
 			 * @param p first alignment
@@ -717,6 +865,39 @@ namespace libmaus
 				{
 					 this->p = p.sclone();
 					 this->q = q.sclone();
+				}
+			}	
+
+			/**
+			 * constructor for pair type ReadEnds object
+			 *
+			 * @param pD first alignment block
+			 * @param pblocksize first alignment block size
+			 * @param qD second alignment block
+			 * @param qblocksize second alignment block size
+			 * @param header BAM header
+			 * @param copyAlignment copy alignment to object
+			 **/
+			ReadEnds(
+				uint8_t const * pD, 
+				uint64_t const pblocksize,
+				uint8_t const * qD, 
+				uint64_t const qblocksize,
+				::libmaus::bambam::BamHeader const & header,
+				bool const copyAlignment = false,
+				uint64_t const rtagId = 0
+			)
+			{
+				reset();
+				fillFragPair(pD,pblocksize,qD,qblocksize,header,*this,rtagId);
+				if ( copyAlignment )
+				{
+					BamAlignment::shared_ptr_type palgn(new libmaus::bambam::BamAlignment);
+					palgn->copyFrom(pD,pblocksize);
+					BamAlignment::shared_ptr_type qalgn(new libmaus::bambam::BamAlignment);
+					qalgn->copyFrom(qD,qblocksize);
+					this->p = palgn;
+					this->q = qalgn;
 				}
 			}	
 		};
