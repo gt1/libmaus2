@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,28 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_READENDS_COMPARATOR_HPP)
-#define LIBMAUS_BAMBAM_READENDS_COMPARATOR_HPP
+#if ! defined(LIBMAUS_BAMBAM_READENDSCONTAINER_HPP)
+#define LIBMAUS_BAMBAM_READENDSCONTAINER_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/bambam/CompactReadEndsBase.hpp>
 #include <libmaus/bambam/CompactReadEndsComparator.hpp>
 #include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus/bambam/ReadEndsContainerBase.hpp>
 #include <libmaus/bambam/SortedFragDecoder.hpp>
 #include <libmaus/util/DigitTable.hpp>
 #include <libmaus/util/CountGetObject.hpp>
 #include <libmaus/sorting/SerialRadixSort64.hpp>
 #include <libmaus/lz/SnappyOutputStream.hpp>
 
+#include <libmaus/bambam/ReadEndsBlockDecoderBase.hpp>
+#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollection.hpp>
+#include <libmaus/bambam/ReadEndsStreamDecoderBase.hpp>
+#include <libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp>
+#include <libmaus/bambam/ReadEndsStreamDecoder.hpp>		
+
 namespace libmaus
 {
 	namespace bambam
-	{
+	{		
 		/**
 		 * container class for ReadEnds objects
 		 **/
-		struct ReadEndsContainer : public ::libmaus::bambam::CompactReadEndsBase 
+		struct ReadEndsContainer : public ::libmaus::bambam::CompactReadEndsBase, public ::libmaus::bambam::ReadEndsContainerBase
 		{
 			//! this type
 			typedef ReadEndsContainer this_type;
@@ -45,11 +52,7 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-			static unsigned int const indexShift = 9;
-			static uint64_t const indexStep = (1ull << indexShift);
-			static uint64_t const indexMask = indexStep-1;
-		
+					
 			private:
 			//! digit table
 			static ::libmaus::util::DigitTable const D;
@@ -78,6 +81,9 @@ namespace libmaus
 			
 			//! temporary output file stream for index
 			::libmaus::aio::CheckedOutputStream::unique_ptr_type tempfileindexout;
+			//! index block start vector
+			std::vector<uint64_t> indexblockstart;
+			uint64_t indexpos;
 			
 			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
@@ -91,6 +97,8 @@ namespace libmaus
 			
 			//! minimum length of stored objcts in bytes (for determining how many runs of radix sort are possible)
 			uint64_t minlen;
+			
+			bool decodingPrepared;
 
 			/**
 			 * @return temporary file output stream
@@ -268,7 +276,6 @@ namespace libmaus
 				}
 			};
 
-
 			public:
 			/**
 			 * constructor
@@ -282,8 +289,10 @@ namespace libmaus
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
 			  tempfilename(rtempfilename), 
 			  tempfilenameindex(),
+			  indexpos(0),
 			  copyAlignments(rcopyAlignments),
-			  minlen(std::numeric_limits<uint64_t>::max())
+			  minlen(std::numeric_limits<uint64_t>::max()),
+			  decodingPrepared(false)
 			{
 			
 			}
@@ -306,8 +315,10 @@ namespace libmaus
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
 			  tempfilename(rtempfilename), 
 			  tempfilenameindex(rtempfilenameindex),
+			  indexpos(0),
 			  copyAlignments(rcopyAlignments),
-			  minlen(std::numeric_limits<uint64_t>::max())
+			  minlen(std::numeric_limits<uint64_t>::max()),
+			  decodingPrepared(false)
 			{
 			
 			}
@@ -326,24 +337,29 @@ namespace libmaus
 			 **/
 			void prepareDecoding()
 			{
-				flush();
-				
-				if ( pSOS )
+				if ( ! decodingPrepared )
 				{
-					assert ( pSOS->getOffset().second == 0 );
-					pSOS.reset();
+					flush();
+					
+					if ( pSOS )
+					{
+						assert ( pSOS->getOffset().second == 0 );
+						pSOS.reset();
+					}
+
+					getTempFile().flush();
+					tempfileout.reset();
+					
+					if ( getIndexTempFile() )
+					{
+						getIndexTempFile()->flush();
+						tempfileindexout.reset();
+					}
+
+					releaseArray();
+					
+					decodingPrepared = true;
 				}
-
-                                getTempFile().flush();
-                                tempfileout.reset();
-                                
-                                if ( tempfileindexout )
-                                {
-                                	tempfileindexout->flush();
-                                	tempfileindexout.reset();
-                                }
-
-				releaseArray();			
 			}
 
 			/**
@@ -360,7 +376,23 @@ namespace libmaus
 				);
 				return UNIQUE_PTR_MOVE(ptr);
 			}
-			
+
+			/**
+			 * get decoder for unmerged stream
+			 *
+			 * @return decoder for unmerged stream
+			 **/
+			::libmaus::bambam::ReadEndsStreamDecoder::unique_ptr_type getUnmergedDecoder()
+			{
+				prepareDecoding();
+				
+				::libmaus::bambam::ReadEndsStreamDecoder::unique_ptr_type tptr(
+					new ::libmaus::bambam::ReadEndsStreamDecoder(tempfilename)
+				);
+				
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+
 			/**
 			 * flush buffer
 			 **/
@@ -451,6 +483,8 @@ namespace libmaus
 					#endif
 					
 					::libmaus::aio::CheckedOutputStream * indexfile = getIndexTempFile();
+					if ( indexfile )
+						indexblockstart.push_back(indexpos);
 					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > & SOS = getCompressedTempFile();
 					uint64_t const prepos = SOS.getOffset().first;
 					assert ( SOS.getOffset().second == 0 );
@@ -463,6 +497,10 @@ namespace libmaus
 						
 						if ( ((xptr - iptr) & indexMask) == 0 && indexfile )
 						{
+							std::pair<uint64_t,uint64_t> offset = SOS.getOffset();
+							indexpos += libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,offset.first);
+							indexpos += libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,offset.second);
+							
 							#if 0
 							// decode
 							::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
@@ -511,6 +549,23 @@ namespace libmaus
 				}
 				
 				minlen = std::numeric_limits<uint64_t>::max();
+			}
+			
+			ReadEndsBlockDecoderBaseCollection::unique_ptr_type getBaseDecoderCollection()
+			{
+				prepareDecoding();
+				
+				ReadEndsBlockDecoderBaseCollection::unique_ptr_type tptr(
+					new ReadEndsBlockDecoderBaseCollection(
+						tempfilename,
+						tempfilenameindex,
+						tmpoffsetintervals,
+						tmpoutcnts,
+						indexblockstart
+					)
+				);
+				
+				return UNIQUE_PTR_MOVE(tptr);
 			}
 			
 			/**

@@ -22,6 +22,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#if ! defined(LIBMAUS_SORTING_SERIALRADIXSORT64_HPP)
+#define LIBMAUS_SORTING_SERIALRADIXSORT64_HPP
 
 #include <libmaus/types/types.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
@@ -167,4 +169,4 @@ namespace libmaus
 		};
 	}
 }
-
+#endif

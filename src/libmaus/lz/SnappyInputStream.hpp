@@ -169,6 +169,33 @@ namespace libmaus
 				
 				return r;
 			}
+
+			uint64_t ignore(uint64_t n)
+			{
+				uint64_t r = 0;
+			
+				while ( n )
+				{
+					if ( pc == pe )
+					{
+						fillBuffer();
+						
+						if ( pc == pe )
+							break;
+					}
+					
+					uint64_t const av = pe-pc;
+					uint64_t const tocopy = std::min(av,n);
+					
+					pc += tocopy;
+					n -= tocopy;
+					r += tocopy;
+				}
+				
+				gcnt = r;
+				
+				return r;
+			}
 			
 			uint64_t gcount() const
 			{

@@ -453,7 +453,13 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamDecoderWrapper.hpp \
 	libmaus/bambam/BamAlignmentFixedSizeData.hpp \
 	libmaus/bambam/BamAuxSortingBufferEntry.hpp \
-	libmaus/bambam/BamAuxSortingBuffer.hpp
+	libmaus/bambam/BamAuxSortingBuffer.hpp \
+	libmaus/bambam/ReadEndsContainerBase.hpp \
+	libmaus/bambam/ReadEndsBlockDecoderBase.hpp \
+	libmaus/bambam/ReadEndsBlockDecoderBaseCollection.hpp \
+	libmaus/bambam/ReadEndsStreamDecoderBase.hpp \
+	libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp \
+	libmaus/bambam/ReadEndsStreamDecoder.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
