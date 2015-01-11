@@ -254,6 +254,46 @@ namespace libmaus
 								
 				return *this;
 			}
+
+			/**
+			 * right shift by s bits (divide by 2^s)
+			 **/
+			UnsignedInteger<k> & operator>>=(size_t s)
+			{
+				// shift by this many full words
+				size_t const w = (s >> 5);
+
+				// shift by w full words
+				if ( w < k )
+				{
+					// k-i-1-w >= 0 <=> i <= k-w-1 <=> i < k-w
+					for ( size_t i = 0; i< k-w; ++i )
+						A[i] = A[i+w];
+					for ( size_t i = k-w; i < k; ++i )
+						A[i] = 0;
+				}
+				// shift is too large, erase words
+				else
+				{
+					erase();
+				}
+				
+				// bit shift
+				size_t const q = s & 31;
+
+				if ( q )
+				{
+					for ( size_t i = 0; i < k-1; ++i )
+					{
+						A[i] >>= q;
+						A[i] |= A[i+1] << (32-q);
+					}
+					
+					A[k-1] >>= q;
+				}
+								
+				return *this;
+			}
 			
 			template<size_t l>
 			UnsignedInteger<k> & operator+=(UnsignedInteger<l> const & O);
