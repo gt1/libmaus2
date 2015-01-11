@@ -93,6 +93,15 @@ namespace libmaus
 			{
 				return Adecoders[i].get();
 			}
+			
+			ReadEnds max()
+			{
+				ReadEnds RE;
+				for ( uint64_t i = 0; i < size(); ++i )
+					if ( getBlock(i) && getBlock(i)->size() )
+						RE = std::max(RE,getBlock(i)->get(getBlock(i)->size()-1));
+				return RE;
+			}
 		};
 	}
 }
