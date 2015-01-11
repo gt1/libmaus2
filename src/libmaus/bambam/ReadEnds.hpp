@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDS_HPP)
 #define LIBMAUS_BAMBAM_READENDS_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus/math/UnsignedInteger.hpp>
 #include <libmaus/util/utf8.hpp>
 #include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/util/DigitTable.hpp>
 #include <map>
 #include <cstring>
@@ -214,6 +214,50 @@ namespace libmaus
 			void reset()
 			{
 				memset(this,0,sizeof(*this));	
+			}
+			
+			typedef libmaus::math::UnsignedInteger<7> hash_value_type;
+
+			bool compareHashAttributes(ReadEndsBase const & O) const
+			{
+				return
+					libraryId == O.libraryId
+					&&
+					tagId == O.tagId
+					&&
+					read1Sequence == O.read1Sequence
+					&&
+					read1Coordinate == O.read1Coordinate
+					&&
+					orientation == O.orientation
+					&&
+					read2Sequence == O.read2Sequence
+					&&
+					read2Coordinate == O.read2Coordinate;
+			}
+			
+			hash_value_type encodeHash() const
+			{
+				hash_value_type H;
+				H <<= 16; H |= hash_value_type(libraryId);
+				H <<= 64; H |= hash_value_type(tagId);
+				H <<= 32; H |= hash_value_type(read1Sequence);
+				H <<= 32; H |= hash_value_type(read1Coordinate);
+				H <<=  8; H |= hash_value_type(orientation);
+				H <<= 32; H |= hash_value_type(read2Sequence);
+				H <<= 32; H |= hash_value_type(read2Coordinate);
+				return H;
+			}
+			
+			void decodeHash(hash_value_type H)
+			{
+				read2Coordinate = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				read2Sequence   = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				orientation     = static_cast<read_end_orientation>(H[0] & 0xFF); H >>= 8;
+				read1Coordinate = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				read1Sequence   = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				tagId           = (static_cast<uint64_t>(H[1]) << 32) | (static_cast<uint64_t>(H[0]) <<  0); H >>= 64;
+				libraryId       = (H[0] & 0xFFFF); H >>= 8;
 			}
 			
 			/**
