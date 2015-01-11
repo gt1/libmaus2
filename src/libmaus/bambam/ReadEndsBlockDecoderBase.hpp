@@ -30,6 +30,7 @@
 #include <libmaus/util/CountGetObject.hpp>
 #include <libmaus/sorting/SerialRadixSort64.hpp>
 #include <libmaus/lz/SnappyOutputStream.hpp>
+#include <libmaus/util/iterator.hpp>
 
 namespace libmaus
 {
@@ -40,7 +41,9 @@ namespace libmaus
 			typedef ReadEndsBlockDecoderBase this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			
+
+			typedef libmaus::util::ConstIterator<this_type,ReadEnds> const_iterator;
+
 			std::istream & data;
 			std::istream & index;
 			
@@ -64,6 +67,16 @@ namespace libmaus
 			    numblocks((numentries + indexStep-1)/indexStep),
 			    blockloaded(0), blockloadedvalid(false)
 			{
+			}
+			
+			const_iterator begin()
+			{
+				return const_iterator(this,0);
+			}
+
+			const_iterator end()
+			{
+				return const_iterator(this,numentries);
 			}
 			
 			void loadBlock(uint64_t const i)
@@ -100,6 +113,11 @@ namespace libmaus
 			
 			ReadEnds const & operator[](uint64_t const i)
 			{
+				return get(i);
+			}
+			
+			ReadEnds const & get(uint64_t const i)
+			{
 				assert ( i < numentries );
 				uint64_t const blockid = i >> indexShift;
 				if ( (blockloaded != blockid) || (!blockloadedvalid) )
@@ -107,7 +125,7 @@ namespace libmaus
 				uint64_t const blocklow = blockid << indexShift;
 				return B[i-blocklow];
 			}
-			
+						
 			uint64_t size() const
 			{
 				return numentries;
