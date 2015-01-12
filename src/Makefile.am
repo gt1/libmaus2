@@ -459,7 +459,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ReadEndsBlockDecoderBaseCollection.hpp \
 	libmaus/bambam/ReadEndsStreamDecoderBase.hpp \
 	libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp \
-	libmaus/bambam/ReadEndsStreamDecoder.hpp
+	libmaus/bambam/ReadEndsStreamDecoder.hpp \
+	libmaus/bambam/ReadEndsBasePointerComparator.hpp \
+	libmaus/bambam/ReadEndsBase.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
