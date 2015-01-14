@@ -38,6 +38,8 @@ namespace libmaus
 		template<size_t k> UnsignedInteger<k> operator%(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 		template<size_t k> std::pair< UnsignedInteger<k>,UnsignedInteger<k> > divmod(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 		template<size_t k> std::ostream & operator<<(std::ostream & out, UnsignedInteger<k> const & A);
+		template<size_t k> UnsignedInteger<k> operator<<(UnsignedInteger<k> const & A, unsigned int const s);
+		template<size_t k> UnsignedInteger<k> operator>>(UnsignedInteger<k> const & A, unsigned int const s);
 		
 		template<typename T, size_t k>
 		struct ArrayErase
@@ -436,6 +438,20 @@ namespace libmaus
 			return R;
 		}
 
+		template<size_t k>
+		UnsignedInteger<k> operator>>(UnsignedInteger<k> const & A, unsigned int const s)
+		{
+			UnsignedInteger<k> R = A;
+			R >>= s;
+			return R;
+		}
+
+		template<size_t k>
+		UnsignedInteger<k> operator-(UnsignedInteger<k> const & A, uint64_t const i)
+		{
+			return A - UnsignedInteger<k>(i);
+		}
+
 		/**
 		 * division
 		 **/
@@ -561,7 +577,7 @@ namespace libmaus
 		}
 
 		template<size_t k> 
-		UnsignedInteger<k> operator<<(UnsignedInteger<k> const & A, size_t s)
+		UnsignedInteger<k> operator<<(UnsignedInteger<k> const & A, unsigned int const s)
 		{
 			UnsignedInteger<k> R = A;
 			R <<= s;
