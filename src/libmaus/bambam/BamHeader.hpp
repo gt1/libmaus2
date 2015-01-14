@@ -501,8 +501,7 @@ namespace libmaus
 			{
 				return getSortOrderStatic(text,defaultSortorder);
 			}
-			
-			
+
 			/**
 			 * rewrite BAM header text
 			 *
@@ -1194,6 +1193,41 @@ namespace libmaus
 				init(in);
 			}
 			
+			void replaceReadGroupNames(std::map<std::string,std::string> const & M)
+			{
+				std::istringstream istr(text);
+				std::ostringstream ostr;
+				
+				while ( istr )
+				{
+					std::string line;
+					std::getline(istr,line);
+					
+					if ( line.size() >= 3 && line[0] == '@' && line[1] == 'R' && line[2] == 'G' )
+					{
+						HeaderLine HL(line);
+						assert ( HL.type == "RG" );
+						
+						if ( HL.hasKey("ID") )
+						{
+							std::string const oldID = HL.getValue("ID");
+							std::map<std::string,std::string>::const_iterator it = M.find(oldID);
+							if ( it != M.end() )
+							{
+								HL.M["ID"] = it->second;
+								HL.constructLine();
+								line = HL.line;
+							}
+						}
+					}
+					
+					if ( line.size() )
+						ostr << line << '\n';
+				}
+				
+				*this = BamHeader(ostr.str());
+			}
+			
 			/**
 			 * constructor from header text
 			 *
@@ -1211,7 +1245,6 @@ namespace libmaus
 				EncoderBase::putLE<std::ostringstream,uint32_t>(ostr,text.size());
 				ostr << text;
 				
-
 				std::vector<HeaderLine> hlv = HeaderLine::extractLines(text);
 				uint32_t nref = 0;
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
