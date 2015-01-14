@@ -19,67 +19,66 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/bambam/CompactReadEndsBase.hpp>
 #include <libmaus/bambam/CompactReadEndsComparator.hpp>
 #include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus/bambam/ReadEndsBaseLongHashAttributeComparator.hpp>
+#include <libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp>
 #include <libmaus/bambam/ReadEndsContainerBase.hpp>
-#include <libmaus/bambam/SortedFragDecoder.hpp>
-#include <libmaus/util/DigitTable.hpp>
-#include <libmaus/util/CountGetObject.hpp>
-#include <libmaus/sorting/SerialRadixSort64.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
 #include <libmaus/util/iterator.hpp>
+#include <libmaus/lru/SparseLRU.hpp>
 
 namespace libmaus
 {
 	namespace bambam
-	{
+	{	
+		template<bool _proxy>
 		struct ReadEndsBlockDecoderBase : public ::libmaus::bambam::ReadEndsContainerBase
 		{
-			typedef ReadEndsBlockDecoderBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			static bool const proxy = _proxy;
+			
+			typedef ReadEndsBlockDecoderBase<proxy> this_type;
+			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef libmaus::util::ConstIterator<this_type,ReadEnds> const_iterator;
 
 			std::istream & data;
 			std::istream & index;
 			
-			std::pair<uint64_t,uint64_t> const dataoffset;
 			uint64_t const indexoffset;
 			uint64_t const numentries;
 			uint64_t const numblocks;
 			
-			uint64_t blockloaded;
-			bool blockloadedvalid;
-			
-			libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds> B;
+			mutable uint64_t blockloaded;
+			mutable bool blockloadedvalid;
+			mutable libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds> B;
+			mutable libmaus::lru::SparseLRU proxyLRU;
+			mutable std::map<uint64_t,ReadEnds> proxyMap;
 			
 			ReadEndsBlockDecoderBase(
 				std::istream & rdata,
 				std::istream & rindex,
-				std::pair<uint64_t,uint64_t> const & rdataoffset,
 				uint64_t const rindexoffset,
 				uint64_t const rnumentries
-			) : data(rdata), index(rindex), dataoffset(rdataoffset), indexoffset(rindexoffset), numentries(rnumentries),
+			) : data(rdata), index(rindex), indexoffset(rindexoffset), numentries(rnumentries),
 			    numblocks((numentries + indexStep-1)/indexStep),
-			    blockloaded(0), blockloadedvalid(false)
+			    blockloaded(0), blockloadedvalid(false),
+			    proxyLRU(proxy ? 1024 : 0)
 			{
 			}
 			
-			const_iterator begin()
+			const_iterator begin() const
 			{
 				return const_iterator(this,0);
 			}
 
-			const_iterator end()
+			const_iterator end() const
 			{
 				return const_iterator(this,numentries);
 			}
 			
-			void loadBlock(uint64_t const i)
+			void loadBlock(uint64_t const i) const
 			{
 				uint64_t const blocklow  = i << indexShift;
 				uint64_t const blockhigh = std::min(blocklow + indexStep, numentries);
@@ -111,24 +110,58 @@ namespace libmaus
 				blockloadedvalid = true;
 			}
 			
-			ReadEnds const & operator[](uint64_t const i)
+			ReadEnds const & operator[](uint64_t const i) const
 			{
 				return get(i);
 			}
 			
-			ReadEnds const & get(uint64_t const i)
+			ReadEnds const & get(uint64_t const i) const
 			{
 				assert ( i < numentries );
+				
+				if ( proxy )
+				{
+					std::map<uint64_t,ReadEnds>::const_iterator ita = proxyMap.find(i);
+					if ( ita != proxyMap.end() )
+					{
+						proxyLRU.update(i);
+						return ita->second;
+					}
+				}
+				
 				uint64_t const blockid = i >> indexShift;
 				if ( (blockloaded != blockid) || (!blockloadedvalid) )
 					loadBlock(blockid);
 				uint64_t const blocklow = blockid << indexShift;
-				return B[i-blocklow];
+				
+				ReadEnds const & el = B[i-blocklow];
+				
+				if ( proxy )
+				{
+					int64_t kickid = proxyLRU.get(i);
+					
+					if ( kickid >= 0 )
+						proxyMap.erase(proxyMap.find(kickid));
+						
+					proxyMap[i] = el;
+				}
+				
+				return el;
 			}
 						
 			uint64_t size() const
 			{
 				return numentries;
+			}
+			
+			uint64_t countSmallerThanShort(ReadEndsBase const & A) const
+			{
+				return std::lower_bound(begin(),end(),A,ReadEndsBaseShortHashAttributeComparator())-begin();
+			}
+
+			uint64_t countSmallerThanLong(ReadEndsBase const & A) const
+			{
+				return std::lower_bound(begin(),end(),A,ReadEndsBaseLongHashAttributeComparator())-begin();
 			}
 		};
 	}

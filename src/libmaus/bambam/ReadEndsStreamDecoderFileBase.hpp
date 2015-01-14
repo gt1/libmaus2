@@ -35,14 +35,20 @@ namespace libmaus
 			
 			std::string const filename;
 			libmaus::aio::CheckedInputStream::unique_ptr_type pCIS;
-			std::istream & in;
+			std::istream * in;
 			
 			ReadEndsStreamDecoderFileBase(std::string const & rfilename)
-			: filename(rfilename), pCIS(new libmaus::aio::CheckedInputStream(filename)), in(*pCIS)
+			: filename(rfilename), pCIS(new libmaus::aio::CheckedInputStream(filename)), in(pCIS.get())
 			{}
 			
 			ReadEndsStreamDecoderFileBase(std::istream & rin)
-			: filename(), pCIS(), in(rin)
+			: filename(), pCIS(), in(&rin)
+			{
+			
+			}
+
+			ReadEndsStreamDecoderFileBase()
+			: filename(), pCIS(), in()
 			{
 			
 			}

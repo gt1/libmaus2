@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_READENDSBASEHASHATTRIBUTECOMPARATOR_HPP)
-#define LIBMAUS_BAMBAM_READENDSBASEHASHATTRIBUTECOMPARATOR_HPP
+#if ! defined(LIBMAUS_BAMBAM_READENDSBASESHORTHASHATTRIBUTECOMPARATOR_HPP)
+#define LIBMAUS_BAMBAM_READENDSBASESHORTHASHATTRIBUTECOMPARATOR_HPP
 
 #include <libmaus/bambam/ReadEnds.hpp>
 
@@ -25,11 +25,11 @@ namespace libmaus
 {
 	namespace bambam
 	{		
-		struct ReadEndsBaseHashAttributeComparator
+		struct ReadEndsBaseShortHashAttributeComparator
 		{
 			bool operator()(ReadEndsBase const & A, ReadEndsBase const & B) const
 			{
-				return A.compareHashAttributesSmaller(B);
+				return A.compareShortHashAttributesSmaller(B);
 			}			
 		};
 	}

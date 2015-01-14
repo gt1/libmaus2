@@ -551,17 +551,32 @@ namespace libmaus
 				minlen = std::numeric_limits<uint64_t>::max();
 			}
 			
-			ReadEndsBlockDecoderBaseCollection::unique_ptr_type getBaseDecoderCollection()
+			ReadEndsBlockDecoderBaseCollectionInfoBase getMergeInfo()
+			{
+				prepareDecoding();
+				return ReadEndsBlockDecoderBaseCollectionInfoBase(tempfilename,tempfilenameindex,tmpoutcnts,indexblockstart);
+			}
+			
+			ReadEndsBlockDecoderBaseCollection<true>::unique_ptr_type getBaseDecoderCollectionWithProxy()
 			{
 				prepareDecoding();
 				
-				ReadEndsBlockDecoderBaseCollection::unique_ptr_type tptr(
-					new ReadEndsBlockDecoderBaseCollection(
-						tempfilename,
-						tempfilenameindex,
-						tmpoffsetintervals,
-						tmpoutcnts,
-						indexblockstart
+				ReadEndsBlockDecoderBaseCollection<true>::unique_ptr_type tptr(
+					new ReadEndsBlockDecoderBaseCollection<true>(
+						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())
+					)
+				);
+				
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+
+			ReadEndsBlockDecoderBaseCollection<false>::unique_ptr_type getBaseDecoderCollectionWithoutProxy()
+			{
+				prepareDecoding();
+				
+				ReadEndsBlockDecoderBaseCollection<false>::unique_ptr_type tptr(
+					new ReadEndsBlockDecoderBaseCollection<false>(
+						std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase>(1,getMergeInfo())					
 					)
 				);
 				

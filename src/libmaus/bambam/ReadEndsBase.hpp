@@ -218,10 +218,11 @@ namespace libmaus
 			{
 				memset(this,0,sizeof(*this));	
 			}
-			
-			typedef libmaus::math::UnsignedInteger<7> hash_value_type;
 
-			bool compareHashAttributes(ReadEndsBase const & O) const
+			static unsigned int const hash_value_words = 7;			
+			typedef libmaus::math::UnsignedInteger<hash_value_words> hash_value_type;
+
+			bool compareLongHashAttributes(ReadEndsBase const & O) const
 			{
 				return
 					libraryId == O.libraryId
@@ -239,7 +240,7 @@ namespace libmaus
 					read2Coordinate == O.read2Coordinate;
 			}
 
-			bool compareHashAttributesSmaller(ReadEndsBase const & O) const
+			bool compareLongHashAttributesSmaller(ReadEndsBase const & O) const
 			{
 				if ( libraryId != O.libraryId )
 					return libraryId < O.libraryId;
@@ -257,7 +258,7 @@ namespace libmaus
 					return read2Coordinate < O.read2Coordinate;
 			}
 			
-			hash_value_type encodeHash() const
+			hash_value_type encodeLongHash() const
 			{
 				hash_value_type H;
 				H <<= 16; H |= hash_value_type(libraryId);
@@ -270,10 +271,58 @@ namespace libmaus
 				return H;
 			}
 			
-			void decodeHash(hash_value_type H)
+			void decodeLongHash(hash_value_type H)
 			{
 				read2Coordinate = (H[0] & 0xFFFFFFFFUL); H >>= 32;
 				read2Sequence   = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				orientation     = static_cast<read_end_orientation>(H[0] & 0xFF); H >>= 8;
+				read1Coordinate = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				read1Sequence   = (H[0] & 0xFFFFFFFFUL); H >>= 32;
+				tagId           = (static_cast<uint64_t>(H[1]) << 32) | (static_cast<uint64_t>(H[0]) <<  0); H >>= 64;
+				libraryId       = (H[0] & 0xFFFF); H >>= 8;
+			}
+
+			bool compareShortHashAttributes(ReadEndsBase const & O) const
+			{
+				return
+					libraryId == O.libraryId
+					&&
+					tagId == O.tagId
+					&&
+					read1Sequence == O.read1Sequence
+					&&
+					read1Coordinate == O.read1Coordinate
+					&&
+					orientation == O.orientation;
+			}
+
+			bool compareShortHashAttributesSmaller(ReadEndsBase const & O) const
+			{
+				if ( libraryId != O.libraryId )
+					return libraryId < O.libraryId;
+				else if ( tagId != O.tagId )
+					return tagId < O.tagId;
+				else if ( read1Sequence != O.read1Sequence )
+					return read1Sequence < O.read1Sequence;
+				else if ( read1Coordinate != O.read1Coordinate )
+					return read1Coordinate < O.read1Coordinate;
+				else
+					return orientation < O.orientation;
+			}
+			
+			hash_value_type encodeShortHash() const
+			{
+				hash_value_type H;
+				H <<= 16; H |= hash_value_type(libraryId);
+				H <<= 64; H |= hash_value_type(tagId);
+				H <<= 32; H |= hash_value_type(read1Sequence);
+				H <<= 32; H |= hash_value_type(read1Coordinate);
+				H <<=  8; H |= hash_value_type(orientation);
+				return H;
+			}
+			
+			void decodeShortHash(hash_value_type H)
+			{
 				orientation     = static_cast<read_end_orientation>(H[0] & 0xFF); H >>= 8;
 				read1Coordinate = (H[0] & 0xFFFFFFFFUL); H >>= 32;
 				read1Sequence   = (H[0] & 0xFFFFFFFFUL); H >>= 32;

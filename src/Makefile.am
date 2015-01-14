@@ -461,7 +461,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp \
 	libmaus/bambam/ReadEndsStreamDecoder.hpp \
 	libmaus/bambam/ReadEndsBasePointerComparator.hpp \
-	libmaus/bambam/ReadEndsBase.hpp
+	libmaus/bambam/ReadEndsBase.hpp \
+	libmaus/bambam/ReadEndsBaseLongHashAttributeComparator.hpp \
+	libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -854,7 +856,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/SimpleHashMapInsDel.hpp \
 	libmaus/util/SimpleHashMapNumberCast.hpp \
 	libmaus/util/SimpleHashSetInsDel.hpp \
-	libmaus/util/LineBuffer.hpp
+	libmaus/util/LineBuffer.hpp \
+	libmaus/util/UnsignedIntegerIndexIterator.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

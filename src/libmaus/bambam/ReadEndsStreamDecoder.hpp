@@ -35,11 +35,17 @@ namespace libmaus
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			ReadEndsStreamDecoder(std::string const & rfilename)
-			: ReadEndsStreamDecoderFileBase(rfilename), ReadEndsStreamDecoderBase(ReadEndsStreamDecoderFileBase::in)
+			: ReadEndsStreamDecoderFileBase(rfilename), ReadEndsStreamDecoderBase(*ReadEndsStreamDecoderFileBase::in)
 			{}
 			
 			ReadEndsStreamDecoder(std::istream & rin)
-			: ReadEndsStreamDecoderFileBase(rin), ReadEndsStreamDecoderBase(ReadEndsStreamDecoderFileBase::in)
+			: ReadEndsStreamDecoderFileBase(rin), ReadEndsStreamDecoderBase(*ReadEndsStreamDecoderFileBase::in)
+			{
+			
+			}
+
+			ReadEndsStreamDecoder(std::vector<std::istream *> const & rin)
+			: ReadEndsStreamDecoderFileBase(), ReadEndsStreamDecoderBase(rin)
 			{
 			
 			}

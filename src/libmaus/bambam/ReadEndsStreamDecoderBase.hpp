@@ -34,22 +34,52 @@ namespace libmaus
 			//! shared pointer type
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			std::istream & in;
-			libmaus::lz::SnappyInputStream SIS;
+			std::vector< std::istream * > Vin;
+			std::vector< std::istream * >::iterator Vinnext;
+			libmaus::lz::SnappyInputStream::unique_ptr_type pSIS;
 			
-			ReadEndsStreamDecoderBase(std::istream & rin) : in(rin), SIS(in) {}
-
-			bool get(libmaus::bambam::ReadEnds & RE)
+			bool setupNextStream()
 			{
-				if ( SIS.peek() >= 0 )
+				if ( Vinnext != Vin.end() )
 				{
-					RE.reset();
-					RE.get(SIS);
-					return true;
+					libmaus::lz::SnappyInputStream::unique_ptr_type tSIS(new libmaus::lz::SnappyInputStream(**(Vinnext++)));
+					pSIS = UNIQUE_PTR_MOVE(tSIS);
+					return true;					
 				}
 				else
 				{
 					return false;
+				}
+			}
+			
+			ReadEndsStreamDecoderBase(std::istream & rin) 
+			: Vin(1,&rin), Vinnext(Vin.begin())
+			{
+				setupNextStream();
+			}
+
+			ReadEndsStreamDecoderBase(std::vector<std::istream *> const & rVin) 
+			: Vin(rVin), Vinnext(Vin.begin())
+			{
+				setupNextStream();
+			}
+
+			bool get(libmaus::bambam::ReadEnds & RE)
+			{
+				while ( true )
+				{
+					if ( expect_false(pSIS->peek() < 0) )
+					{
+						bool const ok = setupNextStream();
+						if ( !ok )
+							return false;				
+					}
+					else
+					{
+						RE.reset();
+						RE.get(*pSIS);
+						return true;		
+					}
 				}
 			}
 		};
