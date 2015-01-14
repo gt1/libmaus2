@@ -1,3 +1,12 @@
+libmaus (0.0.186-1) unstable; urgency=low
+
+  * adding CRC32C digest
+  * extending number range to [-2^31,2^32-1] when converting SAM to BAM
+  * adding a minimal/incomplete HDF5 decoding wrapper interface for the hdf5 libs
+  * adding a method for replacing read group ids in BAM headers
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 14 Jan 2015 12:28:10 +0000
+
 libmaus (0.0.185-1) unstable; urgency=low
 
   * update debian packaging files 
