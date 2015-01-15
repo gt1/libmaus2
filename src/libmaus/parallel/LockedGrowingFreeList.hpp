@@ -68,6 +68,18 @@ namespace libmaus
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				base_type::put(ptr);
 			}
+
+			void put(std::vector < typename type_info_type::pointer_type > V)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				base_type::put(V);				
+			}
+
+			std::vector < typename type_info_type::pointer_type > getAll()
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				return base_type::getAll();			
+			}
 		};
 	}
 }

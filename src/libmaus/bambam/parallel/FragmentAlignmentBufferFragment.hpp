@@ -69,6 +69,16 @@ namespace libmaus
 					return static_cast<uint64_t>(pc-pa);
 				}
 				
+				uint8_t * getPointer(uint64_t const offset)
+				{
+					return pa + offset;
+				}
+
+				uint8_t const * getPointer(uint64_t const offset) const
+				{
+					return pa + offset;
+				}
+				
 				void pushAlignmentBlock(uint8_t const * T, size_t l)
 				{
 					while ( (pe-pc) < static_cast<ptrdiff_t>(l+sizeof(uint32_t)) )

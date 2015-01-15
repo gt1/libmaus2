@@ -589,9 +589,29 @@ namespace libmaus
 			 * @param p alignment
 			 * @param header BAM header
 			 **/
-			void putFrag(::libmaus::bambam::BamAlignment const & p, ::libmaus::bambam::BamHeader const & header, uint64_t const tagid = 0)
+			template<typename header_type>
+			void putFrag(::libmaus::bambam::BamAlignment const & p, header_type const & header, uint64_t const tagid = 0)
 			{
 				::libmaus::bambam::ReadEnds RE(p,header, /* RE, */ copyAlignments,tagid);
+				// fillFrag(p,header,RE);
+				put(RE);
+			}
+
+			/**
+			 * construct fragment ReadEnds object from p and put it in the buffer
+			 *
+			 * @param p alignment
+			 * @param header BAM header
+			 **/
+			template<typename header_type>
+			void putFrag(
+				uint8_t const * p, 
+				uint64_t const pblocksize,
+				header_type const & header, 
+				uint64_t const tagid = 0
+			)
+			{
+				::libmaus::bambam::ReadEnds RE(p,pblocksize,header, /* RE, */ copyAlignments,tagid);
 				// fillFrag(p,header,RE);
 				put(RE);
 			}
@@ -603,14 +623,37 @@ namespace libmaus
 			 * @param q alignment
 			 * @param header BAM header
 			 **/
+			template<typename header_type>
 			void putPair(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				uint64_t tagid = 0
 			)
 			{
 				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments,tagid);
+				// fillFragPair(p,q,header,RE);
+				put(RE);
+			}
+
+			/**
+			 * construct pair ReadEnds object from p and q and put it in the buffer
+			 *
+			 * @param p alignment
+			 * @param q alignment
+			 * @param header BAM header
+			 **/
+			template<typename header_type>
+			void putPair(
+				uint8_t const * p,
+				uint64_t const pblocksize,
+				uint8_t const * q,
+				uint64_t const qblocksize,
+				header_type const & header,
+				uint64_t tagid = 0
+			)
+			{
+				::libmaus::bambam::ReadEnds RE(p,pblocksize,q,qblocksize,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
 				put(RE);
 			}

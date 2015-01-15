@@ -16,13 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEWORKPACKAGEDISPATCHER_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEWORKPACKAGEDISPATCHER_HPP
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEREADENDSWORKPACKAGEDISPATCHER_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEREADENDSWORKPACKAGEDISPATCHER_HPP
 
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp>
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp>
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackage.hpp>
+#include <libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/BamAuxFilterVector.hpp>
 
@@ -32,15 +33,16 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-
 			/**
 			 * block rewrite dispatcher
 			 **/
-			struct FragmentAlignmentBufferRewriteWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
 			{
-				FragmentAlignmentBufferRewriteWorkPackageReturnInterface & packageReturnInterface;
+				FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & packageReturnInterface;
 				FragmentAlignmentBufferRewriteFragmentCompleteInterface & fragmentCompleteInterface;
 				FragmentAlignmentBufferRewriteUpdateInterval & updateIntervalInterface;
+				ReadEndsContainerFreeListInterface & readEndsContainerFreeListInterface;
+				
 				libmaus::bambam::BamAuxFilterVector MQfilter;
 				bool const fixmates;
 				libmaus::bambam::BamAuxFilterVector MCMSMTfilter;
@@ -49,15 +51,17 @@ namespace libmaus
 				std::string const tagtag;
 				char const * ctagtag;
 				
-				FragmentAlignmentBufferRewriteWorkPackageDispatcher(
-					FragmentAlignmentBufferRewriteWorkPackageReturnInterface & rpackageReturnInterface,
+				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
+					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
 					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
-					FragmentAlignmentBufferRewriteUpdateInterval & rupdateIntervalInterface
+					FragmentAlignmentBufferRewriteUpdateInterval & rupdateIntervalInterface,
+					ReadEndsContainerFreeListInterface & rreadEndsContainerFreeListInterface
 				) 
 				: 
 					packageReturnInterface(rpackageReturnInterface), 
 					fragmentCompleteInterface(rfragmentCompleteInterface), 
 					updateIntervalInterface(rupdateIntervalInterface),
+					readEndsContainerFreeListInterface(rreadEndsContainerFreeListInterface),
 					fixmates(true),
 					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str())
 				{
@@ -79,8 +83,11 @@ namespace libmaus
 				)
 				{
 					// get type cast work package pointer
-					FragmentAlignmentBufferRewriteWorkPackage * BP = dynamic_cast<FragmentAlignmentBufferRewriteWorkPackage *>(P);
+					FragmentAlignmentBufferRewriteReadEndsWorkPackage * BP = dynamic_cast<FragmentAlignmentBufferRewriteReadEndsWorkPackage *>(P);
 					assert ( BP );
+					
+					libmaus::bambam::ReadEndsContainer::shared_ptr_type pairContainer = readEndsContainerFreeListInterface.getPairContainer();
+					libmaus::bambam::ReadEndsContainer::shared_ptr_type fragContainer = readEndsContainerFreeListInterface.getFragContainer();
 					
 					// dispatch
 					int64_t maxleftoff = 0;
@@ -413,21 +420,31 @@ namespace libmaus
 						if ( pfirst && psecond )
 						{
 							// std::cerr << libmaus::bambam::BamAlignmentDecoderBase::getReadName(pfirst + sizeof(uint32_t)) << std::endl;
+							pairContainer->putPair(
+								pfirst + sizeof(uint32_t),
+								libmaus::bambam::DecoderBase::getLEInteger(pfirst,sizeof(uint32_t)),
+								psecond + sizeof(uint32_t),
+								libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
+								*(BP->header)
+							);
 						}
 						
 						looplow = loophigh;
 					}
 
+					readEndsContainerFreeListInterface.returnPairContainer(pairContainer);
+					readEndsContainerFreeListInterface.returnFragContainer(fragContainer);
+
 					BP->FAB->rewritePointers(BP->j);
 					// end of dispatch
-	
+
 					fragmentCompleteInterface.fragmentAlignmentBufferRewriteFragmentComplete(BP->algn,BP->FAB,BP->j);
 
 					// update interval					
 					updateIntervalInterface.fragmentAlignmentBufferRewriteUpdateInterval(maxleftoff,maxrightoff);
 
 					// return the work package
-					packageReturnInterface.returnFragmentAlignmentBufferRewriteWorkPackage(BP);					
+					packageReturnInterface.returnFragmentAlignmentBufferRewriteReadEndsWorkPackage(BP);					
 				}		
 			};
 		}

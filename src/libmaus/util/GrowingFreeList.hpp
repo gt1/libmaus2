@@ -65,6 +65,20 @@ namespace libmaus
 				cleanup();
 			}
 			
+			std::vector < typename type_info_type::pointer_type > getAll()
+			{
+				std::vector < typename type_info_type::pointer_type > V;
+				while ( freelistfill )
+					V.push_back(freelist[--freelistfill]);
+				return V;
+			}
+			
+			void put(std::vector < typename type_info_type::pointer_type > V)
+			{
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					put(V[i]);
+			}
+			
 			typename type_info_type::pointer_type get()
 			{
 				if ( ! freelistfill )

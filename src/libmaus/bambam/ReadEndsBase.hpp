@@ -592,10 +592,11 @@ namespace libmaus
 			 * @param RE ReadEndsBase object to be filled
 			 * @param tagId tag id for object
 			 **/
+			template<typename header_type>
 			static void fillFrag(
 				uint8_t const * pD, 
 				uint64_t const pblocksize,
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				::libmaus::bambam::ReadEndsBase & RE,
 				uint64_t const rtagid = 0
 			)
@@ -631,9 +632,10 @@ namespace libmaus
 			 * @param RE ReadEndsBase object to be filled
 			 * @param tagId tag id for object
 			 **/
+			template<typename header_type>
 			static void fillFrag(
 				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				::libmaus::bambam::ReadEndsBase & RE,
 				uint64_t const rtagid = 0
 			)
@@ -661,12 +663,13 @@ namespace libmaus
 			 * @param header BAM header
 			 * @param RE ReadEndsBase object to be filled
 			 **/
+			template<typename header_type>
 			static void fillFragPair(
 				uint8_t const * pD, 
 				uint64_t const pblocksize,
 				uint8_t const * qD, 
 				uint64_t const qblocksize,
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				::libmaus::bambam::ReadEndsBase & RE,
 				uint64_t const rtagId = 0
 			)
@@ -719,10 +722,11 @@ namespace libmaus
 			 * @param header BAM header
 			 * @param RE ReadEndsBase object to be filled
 			 **/
+			template<typename header_type>
 			static void fillFragPair(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				::libmaus::bambam::ReadEndsBase & RE,
 				uint64_t const rtagId = 0
 			)

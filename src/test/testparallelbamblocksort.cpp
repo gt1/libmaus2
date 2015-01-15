@@ -108,6 +108,11 @@
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
 
+#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher.hpp>
+
+#include <libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp>
+#include <libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp>
+
 namespace libmaus
 {
 	namespace bambam
@@ -140,14 +145,15 @@ namespace libmaus
 				public BgzfOutputBlockWrittenInterface,
 				public WriteBlockWorkPackageReturnInterface,
 				public ParseInfoHeaderCompleteCallback,
-				public FragmentAlignmentBufferRewriteWorkPackageReturnInterface,
+				public FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface,
 				public FragmentAlignmentBufferRewriteFragmentCompleteInterface,
 				public FragmentAlignmentBufferSortFinishedInterface,
 				public FragmentAlignmentBufferBaseSortWorkPackageReturnInterface<_order_type /* order_type */>,
 				public FragmentAlignmentBufferMergeSortWorkPackageReturnInterface<_order_type /* order_type */>,
 				public FragmentAlignmentBufferReorderWorkPackageReturnInterface,
 				public FragmentAlignmentBufferReorderWorkPackageFinishedInterface,
-				public FragmentAlignmentBufferRewriteUpdateInterval
+				public FragmentAlignmentBufferRewriteUpdateInterval,
+				public ReadEndsContainerFreeListInterface
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
@@ -185,7 +191,7 @@ namespace libmaus
 				uint64_t const BLMCWPDid;
 				WriteBlockWorkPackageDispatcher WBWPD;
 				uint64_t const WBWPDid;
-				FragmentAlignmentBufferRewriteWorkPackageDispatcher FABRWPD;
+				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher FABRWPD;
 				uint64_t const FABRWPDid;
 				FragmentAlignmentBufferReorderWorkPackageDispatcher FABROWPD;
 				uint64_t const FABROWPDid;
@@ -204,7 +210,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<ValidateBlockFragmentWorkPackage> validateBlockFragmentWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BgzfLinearMemCompressWorkPackage> bgzfWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<WriteBlockWorkPackage> writeWorkPackages;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferRewriteWorkPackage> fragmentAlignmentBufferRewriteWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferRewriteReadEndsWorkPackage> fragmentAlignmentBufferRewriteWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferBaseSortPackage<order_type> > baseSortPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > mergeSortPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferReorderWorkPackage> reorderPackages;
@@ -314,17 +320,61 @@ namespace libmaus
 				int64_t volatile maxleftoff;
 				int64_t volatile maxrightoff;
 				libmaus::parallel::PosixSpinLock maxofflock;
+				
+				libmaus::bambam::parallel::ReadEndsContainerAllocator const readEndsContainerAllocator;
+				libmaus::parallel::LockedGrowingFreeList<
+					libmaus::bambam::ReadEndsContainer,
+					libmaus::bambam::parallel::ReadEndsContainerAllocator,
+					libmaus::bambam::parallel::ReadEndsContainerTypeInfo>
+					readEndsFragContainerFreeList;
+				libmaus::parallel::LockedGrowingFreeList<
+					libmaus::bambam::ReadEndsContainer,
+					libmaus::bambam::parallel::ReadEndsContainerAllocator,
+					libmaus::bambam::parallel::ReadEndsContainerTypeInfo>
+					readEndsPairContainerFreeList;
 
 				static uint64_t getParseBufferSize()
 				{
 					return (1ull<<28);
 				}
+				
+				static uint64_t getReadEndsContainerSize()
+				{
+					return 16*1024*1024;
+				}
+				
+				void flushFragReadEndsLists()
+				{
+					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsFragContainerFreeList.getAll();
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i]->flush();
+					readEndsFragContainerFreeList.put(V);
+				}
 
+				void flushPairReadEndsLists()
+				{
+					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsPairContainerFreeList.getAll();
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						V[i]->flush();
+						std::cerr << "flushed P" << i << std::endl;
+					}
+					readEndsPairContainerFreeList.put(V);
+				}
+				
+				void flushReadEndsLists()
+				{
+					std::cerr << "flushing" << std::endl;
+					flushFragReadEndsLists();
+					flushPairReadEndsLists();
+				}
+				
 				BlockSortControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
 					std::istream & in,
 					int const level,
-					std::ostream & rout
+					std::ostream & rout,
+					std::string const & tempfileprefix
 				)
 				: 
 					out(rout),
@@ -344,7 +394,7 @@ namespace libmaus
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this,*this),
+					FABRWPD(*this,*this,*this,*this),
 					FABRWPDid(STP.getNextDispatcherId()),
 					FABROWPD(*this,*this),
 					FABROWPDid(STP.getNextDispatcherId()),
@@ -381,7 +431,10 @@ namespace libmaus
 					fragmentBufferFreeListPostSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 1 /* pointer multiplier */)),
 					postSortNext(0),
 					maxleftoff(0),
-					maxrightoff(0)
+					maxrightoff(0),
+					readEndsContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends"),
+					readEndsFragContainerFreeList(readEndsContainerAllocator),
+					readEndsPairContainerFreeList(readEndsContainerAllocator)
 				{
 					STP.registerDispatcher(IBWPDid,&IBWPD);
 					STP.registerDispatcher(DBWPDid,&DBWPD);
@@ -393,8 +446,6 @@ namespace libmaus
 					STP.registerDispatcher(FABROWPDid,&FABROWPD);
 					STP.registerDispatcher(FABBSWPDid,&FABBSWPD);
 					STP.registerDispatcher(FABMSWPDid,&FABMSWPD);
-
-					std::cerr << "level=" << level << std::endl;
 				}
 
 				void enqueReadPackage()
@@ -502,7 +553,7 @@ namespace libmaus
 				void putReturnValidateBlockFragmentPackage(ValidateBlockFragmentWorkPackage * package) { validateBlockFragmentWorkPackages.returnPackage(package); }
 				void returnBgzfLinearMemCompressWorkPackage(BgzfLinearMemCompressWorkPackage * package) { bgzfWorkPackages.returnPackage(package); }
 				void returnWriteBlockWorkPackage(WriteBlockWorkPackage * package) { writeWorkPackages.returnPackage(package); }
-				void returnFragmentAlignmentBufferRewriteWorkPackage(FragmentAlignmentBufferRewriteWorkPackage * package) { fragmentAlignmentBufferRewriteWorkPackages.returnPackage(package); }
+				void returnFragmentAlignmentBufferRewriteReadEndsWorkPackage(FragmentAlignmentBufferRewriteReadEndsWorkPackage * package) { fragmentAlignmentBufferRewriteWorkPackages.returnPackage(package); }
 				void putBaseSortWorkPackage(FragmentAlignmentBufferBaseSortPackage<order_type> * package) { baseSortPackages.returnPackage(package); }
 				void putMergeSortWorkPackage(FragmentAlignmentBufferMergeSortWorkPackage<order_type> * package) { mergeSortPackages.returnPackage(package); }
 				void returnFragmentAlignmentBufferReorderWorkPackage(FragmentAlignmentBufferReorderWorkPackage * package) { reorderPackages.returnPackage(package); }
@@ -1272,13 +1323,14 @@ namespace libmaus
 								
 								for ( uint64_t j = 0; j < FAB->size(); ++j )
 								{
-									FragmentAlignmentBufferRewriteWorkPackage * pack = fragmentAlignmentBufferRewriteWorkPackages.getPackage();
+									FragmentAlignmentBufferRewriteReadEndsWorkPackage * pack = fragmentAlignmentBufferRewriteWorkPackages.getPackage();
 									
-									*pack = FragmentAlignmentBufferRewriteWorkPackage(
+									*pack = FragmentAlignmentBufferRewriteReadEndsWorkPackage(
 										0 /* prio */,
 										algn,
 										FAB,
 										j,
+										parseInfo.Pheader.get(),
 										FABRWPDid
 									);
 									
@@ -1354,6 +1406,26 @@ namespace libmaus
 					maxleftoff  = std::max(static_cast<int64_t>(maxleftoff),rmaxleftoff);
 					maxrightoff = std::max(static_cast<int64_t>(maxrightoff),rmaxrightoff);
 				}
+
+				libmaus::bambam::ReadEndsContainer::shared_ptr_type getFragContainer()
+				{
+					return readEndsFragContainerFreeList.get();
+				}
+				
+				void returnFragContainer(libmaus::bambam::ReadEndsContainer::shared_ptr_type ptr)
+				{
+					readEndsFragContainerFreeList.put(ptr);
+				}
+
+				libmaus::bambam::ReadEndsContainer::shared_ptr_type getPairContainer()
+				{
+					return readEndsPairContainerFreeList.get();
+				}
+				
+				void returnPairContainer(libmaus::bambam::ReadEndsContainer::shared_ptr_type ptr)
+				{
+					readEndsPairContainerFreeList.put(ptr);
+				}
 			};
 		}
 	}
@@ -1373,6 +1445,7 @@ void mapperm(int argc, char * argv[])
 		uint64_t const textlen = arginfo.getValue<int>("textlen",120);
 		uint64_t const readlen = arginfo.getValue<int>("readlen",110);
 		uint64_t const numreads = (textlen-readlen)+1;
+		std::string const tempfileprefix = arginfo.getDefaultTmpFileName();
 		libmaus::autoarray::AutoArray<char> T(textlen,false);
 		libmaus::random::Random::setup(19);
 		for ( uint64_t i = 0; i < textlen; ++i )
@@ -1440,7 +1513,7 @@ void mapperm(int argc, char * argv[])
 
 			std::istringstream in(out.str());
 			std::ostringstream ignout;
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,0 /* comp */,ignout);
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,0 /* comp */,ignout,tempfileprefix);
 			VC.checkEnqueReadPackage();
 			VC.waitDecodingFinished();
 
@@ -1476,9 +1549,12 @@ int main(int argc, char * argv[])
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
 			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
 			int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,level,std::cout);
+			std::string const tempfileprefix = arginfo.getDefaultTmpFileName();
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,level,std::cout,tempfileprefix);
 			VC.checkEnqueReadPackage();
 			VC.waitDecodingFinished();
+			VC.flushReadEndsLists();
+			system("ls -lrt 1>&2");
 			STP.terminate();
 			STP.join();
 			

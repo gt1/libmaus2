@@ -584,7 +584,13 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageFinishedInterface.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackage.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp \
+	libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
+	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1919,9 +1925,9 @@ testparallelbamrewrite_CPPFLAGS = ${AM_CPPFLAGS}
 testparallelbamrewrite_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamblocksort_SOURCES = test/testparallelbamblocksort.cpp
-testparallelbamblocksort_LDADD = libmaus.la
-testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@
-testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS}
+testparallelbamblocksort_LDADD = libmaus.la @SNAPPYLIBS@
+testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
+testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS} @SNAPPYLDFLAGS@
 
 testhdf5_SOURCES  = test/testhdf5.cpp
 testhdf5_LDADD    = libmaus.la @HDF5LIBS@

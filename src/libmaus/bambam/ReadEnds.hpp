@@ -118,9 +118,10 @@ namespace libmaus
 			 * @param header BAM header
 			 * @param copyAlignment copy alignment to object
 			 **/
+			template<typename header_type>
 			ReadEnds(
 				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
 			)
@@ -139,10 +140,11 @@ namespace libmaus
 			 * @param header BAM header
 			 * @param copyAlignment copy alignment to object
 			 **/
+			template<typename header_type>
 			ReadEnds(
 				uint8_t const * pD,
 				uint64_t const pblocksize,
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
 			)
@@ -165,10 +167,11 @@ namespace libmaus
 			 * @param header BAM header
 			 * @param copyAlignment copy alignment to object
 			 **/
+			template<typename header_type>
 			ReadEnds(
 				::libmaus::bambam::BamAlignment const & p, 
 				::libmaus::bambam::BamAlignment const & q, 
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
 			)
@@ -192,12 +195,13 @@ namespace libmaus
 			 * @param header BAM header
 			 * @param copyAlignment copy alignment to object
 			 **/
+			template<typename header_type>
 			ReadEnds(
 				uint8_t const * pD, 
 				uint64_t const pblocksize,
 				uint8_t const * qD, 
 				uint64_t const qblocksize,
-				::libmaus::bambam::BamHeader const & header,
+				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
 			)
