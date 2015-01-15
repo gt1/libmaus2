@@ -20,6 +20,7 @@
 #define LIBMAUS_UTIL_ISTREAMWRAPPER_HPP
 
 #include <istream>
+#include <libmaus/exception/LibMausException.hpp>
 
 namespace libmaus
 {
@@ -50,6 +51,15 @@ namespace libmaus
 			ssize_t read(char * p, size_t c)
 			{
 				in.read(p,c);
+				
+				if ( ! in )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "libmaus::aio::IStreamWrapper: failed to read data block of size " << c << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				
 				return in.gcount();
 			}
 		};

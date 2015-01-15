@@ -590,7 +590,9 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
-	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp
+	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp \
+	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
+	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
