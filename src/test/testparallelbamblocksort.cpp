@@ -119,6 +119,153 @@ namespace libmaus
 	{
 		namespace parallel
 		{
+			struct FragReadEndsContainerFlushWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			{
+				typedef FragReadEndsContainerFlushWorkPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+				libmaus::bambam::ReadEndsContainer::shared_ptr_type REC;
+		
+				FragReadEndsContainerFlushWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), REC()
+				{
+				
+				}		
+				FragReadEndsContainerFlushWorkPackage(
+					libmaus::bambam::ReadEndsContainer::shared_ptr_type RREC,
+					uint64_t const rpriority, 
+					uint64_t const rdispatcherid, 
+					uint64_t const rpackageid = 0
+				)
+				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REC(RREC)
+				{
+				
+				}
+				~FragReadEndsContainerFlushWorkPackage() {}
+				
+				char const * getPackageName() const
+				{
+					return "FragReadEndsContainerFlushWorkPackage";
+				}
+			};
+
+			struct PairReadEndsContainerFlushWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			{
+				typedef PairReadEndsContainerFlushWorkPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+				libmaus::bambam::ReadEndsContainer::shared_ptr_type REC;
+		
+				PairReadEndsContainerFlushWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), REC()
+				{
+				
+				}		
+				PairReadEndsContainerFlushWorkPackage(
+					libmaus::bambam::ReadEndsContainer::shared_ptr_type RREC,
+					uint64_t const rpriority, 
+					uint64_t const rdispatcherid, 
+					uint64_t const rpackageid = 0
+				)
+				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REC(RREC)
+				{
+				
+				}
+				~PairReadEndsContainerFlushWorkPackage() {}
+				
+				char const * getPackageName() const
+				{
+					return "PairReadEndsContainerFlushWorkPackage";
+				}
+			};
+
+			struct FragReadEndsContainerFlushWorkPackageReturnInterface
+			{
+				virtual ~FragReadEndsContainerFlushWorkPackageReturnInterface() {}
+				virtual void fragReadEndsContainerFlushWorkPackageReturn(FragReadEndsContainerFlushWorkPackage *) = 0;
+			};
+
+			struct FragReadEndsContainerFlushFinishedInterface
+			{
+				virtual ~FragReadEndsContainerFlushFinishedInterface() {}
+				virtual void fragReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC) = 0;
+			};
+
+			struct FragReadEndsContainerFlushWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef FragReadEndsContainerFlushWorkPackageDispatcher this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				FragReadEndsContainerFlushWorkPackageReturnInterface & packageReturnInterface;
+				FragReadEndsContainerFlushFinishedInterface & flushFinishedInterface;
+						
+				FragReadEndsContainerFlushWorkPackageDispatcher(
+					FragReadEndsContainerFlushWorkPackageReturnInterface & rpackageReturnInterface,
+					FragReadEndsContainerFlushFinishedInterface & rflushFinishedInterface	
+				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
+				    packageReturnInterface(rpackageReturnInterface), flushFinishedInterface(rflushFinishedInterface)
+				{
+				
+				}
+				virtual ~FragReadEndsContainerFlushWorkPackageDispatcher() {}
+				virtual void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					FragReadEndsContainerFlushWorkPackage * BP = dynamic_cast<FragReadEndsContainerFlushWorkPackage *>(P);
+					assert ( BP );
+					
+					BP->REC->flush();
+					BP->REC->prepareDecoding();
+					
+					flushFinishedInterface.fragReadEndsContainerFlushFinished(BP->REC);
+					packageReturnInterface.fragReadEndsContainerFlushWorkPackageReturn(BP);
+				}
+			};
+
+			struct PairReadEndsContainerFlushWorkPackageReturnInterface
+			{
+				virtual ~PairReadEndsContainerFlushWorkPackageReturnInterface() {}
+				virtual void pairReadEndsContainerFlushWorkPackageReturn(PairReadEndsContainerFlushWorkPackage *) = 0;
+			};
+
+			struct PairReadEndsContainerFlushFinishedInterface
+			{
+				virtual ~PairReadEndsContainerFlushFinishedInterface() {}
+				virtual void pairReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC) = 0;
+			};
+
+			struct PairReadEndsContainerFlushWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef PairReadEndsContainerFlushWorkPackageDispatcher this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				PairReadEndsContainerFlushWorkPackageReturnInterface & packageReturnInterface;
+				PairReadEndsContainerFlushFinishedInterface & flushFinishedInterface;
+						
+				PairReadEndsContainerFlushWorkPackageDispatcher(
+					PairReadEndsContainerFlushWorkPackageReturnInterface & rpackageReturnInterface,
+					PairReadEndsContainerFlushFinishedInterface & rflushFinishedInterface	
+				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
+				    packageReturnInterface(rpackageReturnInterface), flushFinishedInterface(rflushFinishedInterface)
+				{
+				
+				}
+				virtual ~PairReadEndsContainerFlushWorkPackageDispatcher() {}
+				virtual void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					PairReadEndsContainerFlushWorkPackage * BP = dynamic_cast<PairReadEndsContainerFlushWorkPackage *>(P);
+					assert ( BP );
+					
+					BP->REC->flush();
+					BP->REC->prepareDecoding();
+					
+					flushFinishedInterface.pairReadEndsContainerFlushFinished(BP->REC);
+					packageReturnInterface.pairReadEndsContainerFlushWorkPackageReturn(BP);
+				}
+			};
+
+
 			template<typename _order_type>
 			struct BlockSortControl :
 				public InputBlockWorkPackageReturnInterface,
@@ -153,7 +300,11 @@ namespace libmaus
 				public FragmentAlignmentBufferReorderWorkPackageReturnInterface,
 				public FragmentAlignmentBufferReorderWorkPackageFinishedInterface,
 				public FragmentAlignmentBufferRewriteUpdateInterval,
-				public ReadEndsContainerFreeListInterface
+				public ReadEndsContainerFreeListInterface,
+				public FragReadEndsContainerFlushFinishedInterface,
+				public PairReadEndsContainerFlushFinishedInterface,
+				public FragReadEndsContainerFlushWorkPackageReturnInterface,
+				public PairReadEndsContainerFlushWorkPackageReturnInterface
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
@@ -169,6 +320,7 @@ namespace libmaus
 				}
 				
 				std::ostream & out;
+				std::string const tempfileprefix;
 							
 				libmaus::parallel::LockedBool decodingFinished;
 				
@@ -195,11 +347,14 @@ namespace libmaus
 				uint64_t const FABRWPDid;
 				FragmentAlignmentBufferReorderWorkPackageDispatcher FABROWPD;
 				uint64_t const FABROWPDid;
-
 				libmaus::bambam::parallel::FragmentAlignmentBufferBaseSortWorkPackageDispatcher<order_type> FABBSWPD;
 				uint64_t const FABBSWPDid;
 				FragmentAlignmentBufferMergeSortWorkPackageDispatcher<order_type> FABMSWPD;
 				uint64_t const FABMSWPDid;
+				FragReadEndsContainerFlushWorkPackageDispatcher FRECFWPD;
+				uint64_t const FRECFWPDid;
+				PairReadEndsContainerFlushWorkPackageDispatcher PRECFWPD;
+				uint64_t const PRECFWPDid;
 
 				ControlInputInfo controlInputInfo;
 
@@ -214,7 +369,9 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferBaseSortPackage<order_type> > baseSortPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > mergeSortPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferReorderWorkPackage> reorderPackages;
-				
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragReadEndsContainerFlushWorkPackage> fragReadContainerFlushPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<PairReadEndsContainerFlushWorkPackage> pairReadContainerFlushPackages;
+
 				libmaus::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
 				
 				libmaus::parallel::PosixSpinLock decompressLock;
@@ -321,7 +478,8 @@ namespace libmaus
 				int64_t volatile maxrightoff;
 				libmaus::parallel::PosixSpinLock maxofflock;
 				
-				libmaus::bambam::parallel::ReadEndsContainerAllocator const readEndsContainerAllocator;
+				libmaus::bambam::parallel::ReadEndsContainerAllocator const readEndsFragContainerAllocator;
+				libmaus::bambam::parallel::ReadEndsContainerAllocator const readEndsPairContainerAllocator;
 				libmaus::parallel::LockedGrowingFreeList<
 					libmaus::bambam::ReadEndsContainer,
 					libmaus::bambam::parallel::ReadEndsContainerAllocator,
@@ -333,6 +491,9 @@ namespace libmaus
 					libmaus::bambam::parallel::ReadEndsContainerTypeInfo>
 					readEndsPairContainerFreeList;
 
+				libmaus::parallel::LockedCounter unflushedFragReadEndsContainers;
+				libmaus::parallel::LockedCounter unflushedPairReadEndsContainers;
+
 				static uint64_t getParseBufferSize()
 				{
 					return (1ull<<28);
@@ -342,31 +503,144 @@ namespace libmaus
 				{
 					return 16*1024*1024;
 				}
-				
-				void flushFragReadEndsLists()
+
+				virtual void fragReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC)
 				{
-					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsFragContainerFreeList.getAll();
-					for ( uint64_t i = 0; i < V.size(); ++i )
-						V[i]->flush();
-					readEndsFragContainerFreeList.put(V);
+					readEndsFragContainerFreeList.put(REC);
+					unflushedFragReadEndsContainers -= 1;
+				}
+				
+				virtual void pairReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC)
+				{
+
+					readEndsPairContainerFreeList.put(REC);
+					unflushedPairReadEndsContainers -= 1;
 				}
 
-				void flushPairReadEndsLists()
+				void enqueFlushFragReadEndsLists()
 				{
-					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsPairContainerFreeList.getAll();
+					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsFragContainerFreeList.getAll();
+					unflushedFragReadEndsContainers += V.size();
+					
 					for ( uint64_t i = 0; i < V.size(); ++i )
 					{
-						V[i]->flush();
-						std::cerr << "flushed P" << i << std::endl;
+						FragReadEndsContainerFlushWorkPackage * pack = fragReadContainerFlushPackages.getPackage();
+						*pack = FragReadEndsContainerFlushWorkPackage(V[i],0,FRECFWPDid);
+						STP.enque(pack);
 					}
+				}
+
+				void enqueFlushPairReadEndsLists()
+				{
+					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsPairContainerFreeList.getAll();
+					unflushedPairReadEndsContainers += V.size();
+					
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						PairReadEndsContainerFlushWorkPackage * pack = pairReadContainerFlushPackages.getPackage();
+						*pack = PairReadEndsContainerFlushWorkPackage(V[i],0,PRECFWPDid);
+						STP.enque(pack);
+					}
+				}
+				
+				std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > getFragMergeInfo()
+				{	
+					std::vector<libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase> MI;			
+					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsFragContainerFreeList.getAll();
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						MI.push_back(V[i]->getMergeInfo());
+					readEndsFragContainerFreeList.put(V);
+					return MI;
+				}
+
+				std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > getPairMergeInfo()
+				{	
+					std::vector<libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase> MI;			
+					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsPairContainerFreeList.getAll();
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						MI.push_back(V[i]->getMergeInfo());
 					readEndsPairContainerFreeList.put(V);
+					return MI;
 				}
 				
 				void flushReadEndsLists()
 				{
-					std::cerr << "flushing" << std::endl;
-					flushFragReadEndsLists();
-					flushPairReadEndsLists();
+					enqueFlushFragReadEndsLists();
+					enqueFlushPairReadEndsLists();
+					
+					while ( 
+						static_cast<uint64_t>(unflushedFragReadEndsContainers)
+						||
+						static_cast<uint64_t>(unflushedPairReadEndsContainers)
+					)
+					{
+						sleep(1);
+					}
+					
+					{
+						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > MI = getFragMergeInfo();
+						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
+							new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(MI));
+						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = pREBDBC->getShortMergeIntervals(STP.getNumThreads());
+						pREBDBC.reset();
+						
+						for ( uint64_t i = 0; i < SMI.size(); ++i )
+						{
+							std::ostringstream fnstr;
+							fnstr << tempfileprefix << "_frag_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
+							std::string const fn = fnstr.str();
+							std::string const indexfn = fn + ".index";
+							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(MI);
+							libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
+							libmaus::aio::CheckedOutputStream dataout(fn);
+							libmaus::aio::CheckedOutputStream indexout(indexfn);
+							REBDBC.merge(SMI[i],dataout,indexout);
+						}
+					}
+
+					{
+						std::cerr << "Getting pair merge info...";
+						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > MI = getPairMergeInfo();
+						std::cerr << "done." << std::endl;
+						
+						std::cerr << "Constructing collection...";
+						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
+							new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(MI));
+						std::cerr << "done." << std::endl;
+						
+						std::cerr << "Getting long merge intervals...";
+						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI;
+						try
+						{
+							SMI = pREBDBC->getLongMergeIntervals(STP.getNumThreads());
+						}
+						catch(std::exception const & ex)
+						{
+							std::cerr << "failed: " << ex.what() << std::endl;
+							exit(1);
+						}
+						std::cerr << "done." << std::endl;
+						
+						pREBDBC.reset();
+						
+						for ( uint64_t i = 0; i < SMI.size(); ++i )
+						{
+							std::ostringstream fnstr;
+							fnstr << tempfileprefix << "_pair_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
+							std::string const fn = fnstr.str();
+							std::string const indexfn = fn + ".index";
+							std::cerr << "Construcing unproxiyed collection for " << i << "...";
+							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(MI);
+							std::cerr << "done." << std::endl;
+							
+							libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
+							libmaus::aio::CheckedOutputStream dataout(fn);
+							libmaus::aio::CheckedOutputStream indexout(indexfn);
+							REBDBC.merge(SMI[i],dataout,indexout);
+						}
+					}
 				}
 				
 				BlockSortControl(
@@ -374,10 +648,11 @@ namespace libmaus
 					std::istream & in,
 					int const level,
 					std::ostream & rout,
-					std::string const & tempfileprefix
+					std::string const & rtempfileprefix
 				)
 				: 
 					out(rout),
+					tempfileprefix(rtempfileprefix),
 					decodingFinished(false),
 					STP(rSTP), 
 					zstreambases(STP.getNumThreads()),
@@ -402,6 +677,10 @@ namespace libmaus
 					FABBSWPDid(STP.getNextDispatcherId()),
 					FABMSWPD(*this),
 					FABMSWPDid(STP.getNextDispatcherId()),
+					FRECFWPD(*this,*this),
+					FRECFWPDid(STP.getNextDispatcherId()),
+					PRECFWPD(*this,*this),
+					PRECFWPDid(STP.getNextDispatcherId()),
 					controlInputInfo(in,0,getInputBlockCount()),
 					decompressBlockFreeList(getInputBlockCount() * STP.getNumThreads() * 2),
 					bgzfin(0),
@@ -432,9 +711,12 @@ namespace libmaus
 					postSortNext(0),
 					maxleftoff(0),
 					maxrightoff(0),
-					readEndsContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends"),
-					readEndsFragContainerFreeList(readEndsContainerAllocator),
-					readEndsPairContainerFreeList(readEndsContainerAllocator)
+					readEndsFragContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends_frag_"),
+					readEndsPairContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends_pair_"),
+					readEndsFragContainerFreeList(readEndsFragContainerAllocator),
+					readEndsPairContainerFreeList(readEndsPairContainerAllocator),
+					unflushedFragReadEndsContainers(0),
+					unflushedPairReadEndsContainers(0)
 				{
 					STP.registerDispatcher(IBWPDid,&IBWPD);
 					STP.registerDispatcher(DBWPDid,&DBWPD);
@@ -446,6 +728,8 @@ namespace libmaus
 					STP.registerDispatcher(FABROWPDid,&FABROWPD);
 					STP.registerDispatcher(FABBSWPDid,&FABBSWPD);
 					STP.registerDispatcher(FABMSWPDid,&FABMSWPD);
+					STP.registerDispatcher(FRECFWPDid,&FRECFWPD);
+					STP.registerDispatcher(PRECFWPDid,&PRECFWPD);
 				}
 
 				void enqueReadPackage()
@@ -557,6 +841,8 @@ namespace libmaus
 				void putBaseSortWorkPackage(FragmentAlignmentBufferBaseSortPackage<order_type> * package) { baseSortPackages.returnPackage(package); }
 				void putMergeSortWorkPackage(FragmentAlignmentBufferMergeSortWorkPackage<order_type> * package) { mergeSortPackages.returnPackage(package); }
 				void returnFragmentAlignmentBufferReorderWorkPackage(FragmentAlignmentBufferReorderWorkPackage * package) { reorderPackages.returnPackage(package); }
+				void fragReadEndsContainerFlushWorkPackageReturn(FragReadEndsContainerFlushWorkPackage * package) { fragReadContainerFlushPackages.returnPackage(package); }
+				void pairReadEndsContainerFlushWorkPackageReturn(PairReadEndsContainerFlushWorkPackage * package) { pairReadContainerFlushPackages.returnPackage(package); }
 
 				// return input block after decompression
 				void putInputBlockReturn(ControlInputInfo::input_block_type::shared_ptr_type block) 
