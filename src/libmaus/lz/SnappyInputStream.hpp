@@ -244,7 +244,17 @@ namespace libmaus
 					::libmaus::aio::IStreamWrapper wrapper(in);
 					::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> insource(wrapper,datasize);
 
-					SnappyCompress::uncompress(insource,B.begin(),n);
+					try
+					{
+						SnappyCompress::uncompress(insource,B.begin(),n);
+					}
+					catch(std::exception const & ex)
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "Failed to decompress snappy compressed data, comp=" << datasize << ", uncomp=" << n << ":\n" << ex.what() << "\n";
+						lme.finish();
+						throw lme;
+					}
 
 					readpos += blocksize;
 				}
