@@ -24,6 +24,7 @@
 #include <libmaus/bambam/CompactReadEndsBase.hpp>
 #include <libmaus/bambam/CompactReadEndsComparator.hpp>
 #include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp>
 #include <libmaus/bambam/ReadEndsContainerBase.hpp>
 #include <libmaus/bambam/SortedFragDecoder.hpp>
 #include <libmaus/util/DigitTable.hpp>
@@ -39,76 +40,6 @@ namespace libmaus
 {
 	namespace bambam
 	{
-		struct ReadEndsBlockDecoderBaseCollectionInfoBase
-		{
-			typedef ReadEndsBlockDecoderBaseCollectionInfoBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;			
-
-			std::string datafilename;
-			std::string indexfilename;
-										
-			std::vector < uint64_t > blockelcnt;
-			std::vector < uint64_t > indexoffset;
-			
-			ReadEndsBlockDecoderBaseCollectionInfoBase()
-			: datafilename(), indexfilename(), blockelcnt(), indexoffset()
-			{
-			
-			}
-
-			ReadEndsBlockDecoderBaseCollectionInfoBase(
-				std::string const & rdatafilename,
-				std::string const & rindexfilename,
-				std::vector < uint64_t > const & rblockelcnt,
-				std::vector < uint64_t > const & rindexoffset
-			
-			)
-			: datafilename(rdatafilename), indexfilename(rindexfilename), blockelcnt(rblockelcnt), indexoffset(rindexoffset)
-			{
-			
-			}
-			
-			ReadEndsBlockDecoderBaseCollectionInfoBase(
-				ReadEndsBlockDecoderBaseCollectionInfoBase const & O
-			) : datafilename(O.datafilename), indexfilename(O.indexfilename), blockelcnt(O.blockelcnt), indexoffset(O.indexoffset)
-			{
-			
-			}
-		};
-
-		struct ReadEndsBlockDecoderBaseCollectionInfo : public ReadEndsBlockDecoderBaseCollectionInfoBase
-		{
-			typedef ReadEndsBlockDecoderBaseCollectionInfo this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;			
-		
-			libmaus::aio::CheckedInputStream::shared_ptr_type datastr;
-			libmaus::aio::CheckedInputStream::shared_ptr_type indexstr;
-			
-			ReadEndsBlockDecoderBaseCollectionInfo() : ReadEndsBlockDecoderBaseCollectionInfoBase(), datastr(), indexstr()
-			{}
-			
-			ReadEndsBlockDecoderBaseCollectionInfo(
-				std::string const & rdatafilename,
-				std::string const & rindexfilename,
-				std::vector < uint64_t > const & rblockelcnt,
-				std::vector < uint64_t > const & rindexoffset
-			) : 
-			    ReadEndsBlockDecoderBaseCollectionInfoBase(rdatafilename,rindexfilename,rblockelcnt,rindexoffset),
-			    datastr(new libmaus::aio::CheckedInputStream(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
-			    indexstr(new libmaus::aio::CheckedInputStream(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
-			{}
-			
-			ReadEndsBlockDecoderBaseCollectionInfo(ReadEndsBlockDecoderBaseCollectionInfoBase const & O)
-			: 
-			    ReadEndsBlockDecoderBaseCollectionInfoBase(O), 
-			    datastr(new libmaus::aio::CheckedInputStream(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
-			    indexstr(new libmaus::aio::CheckedInputStream(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
-			{
-			}
-		};
-	
 		template<bool _proxy>
 		struct ReadEndsBlockDecoderBaseCollection
 		{
@@ -167,20 +98,23 @@ namespace libmaus
 			    countShortAccessor(this),
 			    countLongAccessor(this)
 			{
-				for ( uint64_t k = 0, j = 0; k < info.size(); ++k )
+				uint64_t j = 0;
+				for ( uint64_t k = 0; k < info.size(); ++k )
 				{
-					for ( uint64_t i = 0; i < info[k].indexoffset.size(); ++i, ++j )
+					ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = info[k];
+					
+					for ( uint64_t i = 0; i < subinfo.indexoffset.size(); ++i )
 					{
 						typename libmaus::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type tptr(
 							new libmaus::bambam::ReadEndsBlockDecoderBase<proxy>(
-								*(info[k].datastr),
-								*(info[k].indexstr),
-								info[k].indexoffset.at(i),
-								info[k].blockelcnt.at(i)
+								*(subinfo.datastr),
+								*(subinfo.indexstr),
+								subinfo.indexoffset.at(i),
+								subinfo.blockelcnt.at(i)
 							)
 						);
 						
-						Adecoders[j] = UNIQUE_PTR_MOVE(tptr);
+						Adecoders.at(j++) = UNIQUE_PTR_MOVE(tptr);
 					}
 				}				
 			}
