@@ -51,13 +51,59 @@ namespace libmaus
 			
 			}
 			
+			void printAttributesInOrder(std::ostream & ostr, char const ** args)
+			{
+				std::set<std::string> primary;
+				
+				for ( ; *args; ++args )
+				{
+					if ( M.find(*args) != M.end() )
+					{
+						std::map<std::string,std::string>::const_iterator ita = M.find(*args);
+						ostr << '\t' << ita->first << ":" << ita->second;				
+					}
+					primary.insert(*args);
+				}
+
+				for ( std::map<std::string,std::string>::const_iterator ita = M.begin();
+					ita != M.end(); ++ita )
+					if ( primary.find(ita->first) == primary.end() )
+					{
+						ostr << '\t' << ita->first << ":" << ita->second;				
+					}
+			}
+			
 			void constructLine()
 			{
 				std::ostringstream ostr;
 				ostr << '@' << type;
-				for ( std::map<std::string,std::string>::const_iterator ita = M.begin();
-					ita != M.end(); ++ita )
-					ostr << '\t' << ita->first << ":" << ita->second;
+				
+				if ( type == "HD" )
+				{
+					char const * args[] = { "VN", "SO", 0 };
+					printAttributesInOrder(ostr,&args[0]);
+				}
+				else if ( type == "SQ" )
+				{
+					char const * args[] = { "SN", "LN", "AS", "M5", "SP", "UR", 0 };
+					printAttributesInOrder(ostr,&args[0]);		
+				}
+				else if ( type == "RG" )
+				{
+					char const * args[] = { "ID", "CN", "DS", "DT", "FO", "KS", "LB", "PG", "PI", "PL", "PU", "SM", 0 };
+					printAttributesInOrder(ostr,&args[0]);		
+				}
+				else if ( type == "PG" )
+				{
+					char const * args[] = { "ID", "PN", "CL", "PP", "DS", "VN", 0 };
+					printAttributesInOrder(ostr,&args[0]);		
+				}
+				else
+				{
+					for ( std::map<std::string,std::string>::const_iterator ita = M.begin();
+						ita != M.end(); ++ita )
+						ostr << '\t' << ita->first << ":" << ita->second;
+				}
 				line = ostr.str();
 			}
 			
