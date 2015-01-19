@@ -265,6 +265,180 @@ namespace libmaus
 				}
 			};
 
+			struct ReadEndsMergeRequest
+			{
+				libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI;
+				std::string fn;
+				std::string indexfn;
+				std::vector< std::pair<uint64_t,uint64_t> > SMI;
+				
+				ReadEndsMergeRequest()
+				: MI(0), fn(), indexfn(), SMI(0)
+				{
+				}
+				
+				ReadEndsMergeRequest(
+					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type rMI,
+					std::string const & rfn,
+					std::string const & rindexfn,
+					std::vector< std::pair<uint64_t,uint64_t> > const & rSMI
+				)
+				: MI(rMI), fn(rfn), indexfn(rindexfn), SMI(rSMI) 
+				{
+				}
+				
+				void dispatch()
+				{
+					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(*MI);
+					libmaus::aio::CheckedOutputStream dataout(fn);
+					libmaus::aio::CheckedOutputStream indexout(indexfn);
+					REBDBC.merge(SMI,dataout,indexout);
+				}
+			};
+
+			struct FragReadEndsMergeWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			{
+				typedef FragReadEndsMergeWorkPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+				ReadEndsMergeRequest REQ;
+		
+				FragReadEndsMergeWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), REQ()
+				{
+				
+				}		
+				FragReadEndsMergeWorkPackage(
+					ReadEndsMergeRequest const & rREQ,
+					uint64_t const rpriority, 
+					uint64_t const rdispatcherid, 
+					uint64_t const rpackageid = 0
+				)
+				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REQ(rREQ)
+				{
+				
+				}
+				~FragReadEndsMergeWorkPackage() {}
+				
+				char const * getPackageName() const
+				{
+					return "FragReadEndsMergeWorkPackage";
+				}
+			};
+			
+			struct FragReadEndsMergeWorkPackageReturnInterface
+			{
+				virtual ~FragReadEndsMergeWorkPackageReturnInterface() {}
+				virtual void fragReadEndsMergeWorkPackageReturn(FragReadEndsMergeWorkPackage *) = 0;
+			};
+			
+			struct FragReadEndsMergeWorkPackageFinishedInterface
+			{
+				virtual ~FragReadEndsMergeWorkPackageFinishedInterface() {}
+				virtual void fragReadEndsMergeWorkPackageFinished(FragReadEndsMergeWorkPackage *) = 0;
+			};
+
+			struct FragReadEndsMergeWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef FragReadEndsMergeWorkPackageDispatcher this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				FragReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
+				FragReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
+						
+				FragReadEndsMergeWorkPackageDispatcher(
+					FragReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
+					FragReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface
+				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
+				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface)
+				{
+				
+				}
+				virtual ~FragReadEndsMergeWorkPackageDispatcher() {}
+				virtual void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					FragReadEndsMergeWorkPackage * BP = dynamic_cast<FragReadEndsMergeWorkPackage *>(P);
+					assert ( BP );
+					
+					BP->REQ.dispatch();
+					
+					mergeFinishedInterface.fragReadEndsMergeWorkPackageFinished(BP);
+					packageReturnInterface.fragReadEndsMergeWorkPackageReturn(BP);
+				}
+			};
+
+			struct PairReadEndsMergeWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			{
+				typedef PairReadEndsMergeWorkPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+				ReadEndsMergeRequest REQ;
+		
+				PairReadEndsMergeWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), REQ()
+				{
+				
+				}		
+				PairReadEndsMergeWorkPackage(
+					ReadEndsMergeRequest const & rREQ,
+					uint64_t const rpriority, 
+					uint64_t const rdispatcherid, 
+					uint64_t const rpackageid = 0
+				)
+				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REQ(rREQ)
+				{
+				
+				}
+				~PairReadEndsMergeWorkPackage() {}
+				
+				char const * getPackageName() const
+				{
+					return "PairReadEndsMergeWorkPackage";
+				}
+			};
+
+			struct PairReadEndsMergeWorkPackageReturnInterface
+			{
+				virtual ~PairReadEndsMergeWorkPackageReturnInterface() {}
+				virtual void pairReadEndsMergeWorkPackageReturn(PairReadEndsMergeWorkPackage *) = 0;
+			};
+
+			struct PairReadEndsMergeWorkPackageFinishedInterface
+			{
+				virtual ~PairReadEndsMergeWorkPackageFinishedInterface() {}
+				virtual void pairReadEndsMergeWorkPackageFinished(PairReadEndsMergeWorkPackage *) = 0;
+			};
+
+			struct PairReadEndsMergeWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef PairReadEndsMergeWorkPackageDispatcher this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				PairReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
+				PairReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
+						
+				PairReadEndsMergeWorkPackageDispatcher(
+					PairReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
+					PairReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface
+				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
+				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface)
+				{
+				
+				}
+				virtual ~PairReadEndsMergeWorkPackageDispatcher() {}
+				virtual void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					PairReadEndsMergeWorkPackage * BP = dynamic_cast<PairReadEndsMergeWorkPackage *>(P);
+					assert ( BP );
+					
+					BP->REQ.dispatch();
+					
+					mergeFinishedInterface.pairReadEndsMergeWorkPackageFinished(BP);
+					packageReturnInterface.pairReadEndsMergeWorkPackageReturn(BP);
+				}
+			};
 
 			template<typename _order_type>
 			struct BlockSortControl :
@@ -304,7 +478,11 @@ namespace libmaus
 				public FragReadEndsContainerFlushFinishedInterface,
 				public PairReadEndsContainerFlushFinishedInterface,
 				public FragReadEndsContainerFlushWorkPackageReturnInterface,
-				public PairReadEndsContainerFlushWorkPackageReturnInterface
+				public PairReadEndsContainerFlushWorkPackageReturnInterface,
+				public FragReadEndsMergeWorkPackageReturnInterface,
+				public PairReadEndsMergeWorkPackageReturnInterface,
+				public FragReadEndsMergeWorkPackageFinishedInterface,
+				public PairReadEndsMergeWorkPackageFinishedInterface
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
@@ -355,6 +533,10 @@ namespace libmaus
 				uint64_t const FRECFWPDid;
 				PairReadEndsContainerFlushWorkPackageDispatcher PRECFWPD;
 				uint64_t const PRECFWPDid;
+				FragReadEndsMergeWorkPackageDispatcher FREMWPD;
+				uint64_t const FREMWPDid;
+				PairReadEndsMergeWorkPackageDispatcher PREMWPD;
+				uint64_t const PREMWPDid;
 
 				ControlInputInfo controlInputInfo;
 
@@ -371,6 +553,8 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferReorderWorkPackage> reorderPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragReadEndsContainerFlushWorkPackage> fragReadContainerFlushPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<PairReadEndsContainerFlushWorkPackage> pairReadContainerFlushPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragReadEndsMergeWorkPackage> fragReadEndsMergeWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<PairReadEndsMergeWorkPackage> pairReadEndsMergeWorkPackages;
 
 				libmaus::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
 				
@@ -493,6 +677,9 @@ namespace libmaus
 
 				libmaus::parallel::LockedCounter unflushedFragReadEndsContainers;
 				libmaus::parallel::LockedCounter unflushedPairReadEndsContainers;
+				
+				libmaus::parallel::LockedCounter unmergeFragReadEndsRegions;
+				libmaus::parallel::LockedCounter unmergePairReadEndsRegions;
 
 				static uint64_t getParseBufferSize()
 				{
@@ -543,24 +730,118 @@ namespace libmaus
 					}
 				}
 				
-				std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > getFragMergeInfo()
+				libmaus::util::shared_ptr<
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > 
+				>::type
+					getFragMergeInfo()
 				{	
-					std::vector<libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase> MI;			
+					libmaus::util::shared_ptr<
+						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > 
+					>::type MI(new std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase >);
+
 					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsFragContainerFreeList.getAll();
 					for ( uint64_t i = 0; i < V.size(); ++i )
-						MI.push_back(V[i]->getMergeInfo());
+						MI->push_back(V[i]->getMergeInfo());
 					readEndsFragContainerFreeList.put(V);
 					return MI;
 				}
 
-				std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > getPairMergeInfo()
+				libmaus::util::shared_ptr<
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > 
+				>::type
+					getPairMergeInfo()
 				{	
-					std::vector<libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase> MI;			
+					libmaus::util::shared_ptr<
+						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > 
+					>::type MI(new std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase >);
+
 					std::vector <libmaus::bambam::ReadEndsContainer::shared_ptr_type> V = readEndsPairContainerFreeList.getAll();
 					for ( uint64_t i = 0; i < V.size(); ++i )
-						MI.push_back(V[i]->getMergeInfo());
+						MI->push_back(V[i]->getMergeInfo());
 					readEndsPairContainerFreeList.put(V);
 					return MI;
+				}
+
+				void fragReadEndsMergeWorkPackageFinished(FragReadEndsMergeWorkPackage *)
+				{
+					unmergeFragReadEndsRegions--;
+				}
+				
+				void pairReadEndsMergeWorkPackageFinished(PairReadEndsMergeWorkPackage *)
+				{
+					unmergePairReadEndsRegions--;
+				}
+				
+				void enqueMergeFragReadEndsLists()
+				{	
+					std::cerr << "Setting up for frags...";			
+					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI =
+						getFragMergeInfo();
+					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
+						new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(*MI,true));
+					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = pREBDBC->getShortMergeIntervals(STP.getNumThreads());
+					pREBDBC.reset();
+					std::cerr << "done." << std::endl;
+					
+					unmergeFragReadEndsRegions += SMI.size();
+					
+					for ( uint64_t i = 0; i < SMI.size(); ++i )
+					{
+						std::ostringstream fnstr;
+						fnstr << tempfileprefix << "_frag_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
+						std::string const fn = fnstr.str();
+						std::string const indexfn = fn + ".index";
+						libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+						libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
+
+						ReadEndsMergeRequest req(MI,fn,indexfn,SMI[i]);
+						FragReadEndsMergeWorkPackage * package = fragReadEndsMergeWorkPackages.getPackage();
+						*package = FragReadEndsMergeWorkPackage(req,0/*prio*/,FREMWPDid);
+						STP.enque(package);
+					}
+				}
+
+				void enqueMergePairReadEndsLists()
+				{				
+					std::cerr << "Setting up for pairs...";			
+					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI =
+						getPairMergeInfo();
+					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
+						new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(*MI,true));
+					std::cerr << "done." << std::endl;
+					
+					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI;
+					std::cerr << "Calling getLongMergeIntervals 2...";
+					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI2 = 
+						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(*MI,STP.getNumThreads());
+					std::cerr << "done." << std::endl;
+
+					std::cerr << "Calling getLongMergeIntervals ...";
+					SMI = pREBDBC->getLongMergeIntervals(STP.getNumThreads());
+					std::cerr << "done." << std::endl;
+					
+					assert ( SMI == SMI2 );
+
+					std::cerr << "Resetting up for pairs...";
+					pREBDBC.reset();
+					std::cerr << "done." << std::endl;
+					
+					unmergePairReadEndsRegions += SMI.size();
+					
+					for ( uint64_t i = 0; i < SMI.size(); ++i )
+					{
+						std::ostringstream fnstr;
+						fnstr << tempfileprefix << "_pair_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
+						std::string const fn = fnstr.str();
+						std::string const indexfn = fn + ".index";
+						libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+						libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
+
+						ReadEndsMergeRequest req(MI,fn,indexfn,SMI[i]);
+						PairReadEndsMergeWorkPackage * package = pairReadEndsMergeWorkPackages.getPackage();
+						*package = PairReadEndsMergeWorkPackage(req,0/*prio*/,PREMWPDid);
+						STP.enque(package);
+					}
 				}
 				
 				void flushReadEndsLists()
@@ -569,78 +850,37 @@ namespace libmaus
 					enqueFlushPairReadEndsLists();
 					
 					while ( 
-						static_cast<uint64_t>(unflushedFragReadEndsContainers)
-						||
-						static_cast<uint64_t>(unflushedPairReadEndsContainers)
+						(
+							static_cast<uint64_t>(unflushedFragReadEndsContainers)
+							||
+							static_cast<uint64_t>(unflushedPairReadEndsContainers)
+						)
+						&& (!STP.isInPanicMode())
 					)
 					{
 						sleep(1);
 					}
 					
+					if ( STP.isInPanicMode() )
+						return;
+					
+					enqueMergeFragReadEndsLists();
+					enqueMergePairReadEndsLists();
+
+					while ( 
+						(
+							static_cast<uint64_t>(unmergeFragReadEndsRegions)
+							||
+							static_cast<uint64_t>(unmergePairReadEndsRegions)
+						)
+						&& (!STP.isInPanicMode())
+					)
 					{
-						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > MI = getFragMergeInfo();
-						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
-							new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(MI));
-						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = pREBDBC->getShortMergeIntervals(STP.getNumThreads());
-						pREBDBC.reset();
-						
-						for ( uint64_t i = 0; i < SMI.size(); ++i )
-						{
-							std::ostringstream fnstr;
-							fnstr << tempfileprefix << "_frag_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
-							std::string const fn = fnstr.str();
-							std::string const indexfn = fn + ".index";
-							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(MI);
-							libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-							libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-							libmaus::aio::CheckedOutputStream dataout(fn);
-							libmaus::aio::CheckedOutputStream indexout(indexfn);
-							REBDBC.merge(SMI[i],dataout,indexout);
-						}
+						sleep(1);
 					}
 
-					{
-						std::cerr << "Getting pair merge info...";
-						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > MI = getPairMergeInfo();
-						std::cerr << "done." << std::endl;
-						
-						std::cerr << "Constructing collection...";
-						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
-							new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(MI));
-						std::cerr << "done." << std::endl;
-						
-						std::cerr << "Getting long merge intervals...";
-						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI;
-						try
-						{
-							SMI = pREBDBC->getLongMergeIntervals(STP.getNumThreads());
-						}
-						catch(std::exception const & ex)
-						{
-							std::cerr << "failed: " << ex.what() << std::endl;
-							exit(1);
-						}
-						std::cerr << "done." << std::endl;
-						
-						pREBDBC.reset();
-						
-						for ( uint64_t i = 0; i < SMI.size(); ++i )
-						{
-							std::ostringstream fnstr;
-							fnstr << tempfileprefix << "_pair_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
-							std::string const fn = fnstr.str();
-							std::string const indexfn = fn + ".index";
-							std::cerr << "Construcing unproxiyed collection for " << i << "...";
-							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(MI);
-							std::cerr << "done." << std::endl;
-							
-							libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-							libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-							libmaus::aio::CheckedOutputStream dataout(fn);
-							libmaus::aio::CheckedOutputStream indexout(indexfn);
-							REBDBC.merge(SMI[i],dataout,indexout);
-						}
-					}
+					if ( STP.isInPanicMode() )
+						return;
 				}
 				
 				BlockSortControl(
@@ -681,6 +921,10 @@ namespace libmaus
 					FRECFWPDid(STP.getNextDispatcherId()),
 					PRECFWPD(*this,*this),
 					PRECFWPDid(STP.getNextDispatcherId()),
+					FREMWPD(*this,*this),
+					FREMWPDid(STP.getNextDispatcherId()),
+					PREMWPD(*this,*this),
+					PREMWPDid(STP.getNextDispatcherId()),
 					controlInputInfo(in,0,getInputBlockCount()),
 					decompressBlockFreeList(getInputBlockCount() * STP.getNumThreads() * 2),
 					bgzfin(0),
@@ -716,7 +960,9 @@ namespace libmaus
 					readEndsFragContainerFreeList(readEndsFragContainerAllocator),
 					readEndsPairContainerFreeList(readEndsPairContainerAllocator),
 					unflushedFragReadEndsContainers(0),
-					unflushedPairReadEndsContainers(0)
+					unflushedPairReadEndsContainers(0),
+					unmergeFragReadEndsRegions(0),
+					unmergePairReadEndsRegions(0)
 				{
 					STP.registerDispatcher(IBWPDid,&IBWPD);
 					STP.registerDispatcher(DBWPDid,&DBWPD);
@@ -730,6 +976,8 @@ namespace libmaus
 					STP.registerDispatcher(FABMSWPDid,&FABMSWPD);
 					STP.registerDispatcher(FRECFWPDid,&FRECFWPD);
 					STP.registerDispatcher(PRECFWPDid,&PRECFWPD);
+					STP.registerDispatcher(FREMWPDid,&FREMWPD);
+					STP.registerDispatcher(PREMWPDid,&PREMWPD);
 				}
 
 				void enqueReadPackage()
@@ -843,6 +1091,8 @@ namespace libmaus
 				void returnFragmentAlignmentBufferReorderWorkPackage(FragmentAlignmentBufferReorderWorkPackage * package) { reorderPackages.returnPackage(package); }
 				void fragReadEndsContainerFlushWorkPackageReturn(FragReadEndsContainerFlushWorkPackage * package) { fragReadContainerFlushPackages.returnPackage(package); }
 				void pairReadEndsContainerFlushWorkPackageReturn(PairReadEndsContainerFlushWorkPackage * package) { pairReadContainerFlushPackages.returnPackage(package); }
+				void fragReadEndsMergeWorkPackageReturn(FragReadEndsMergeWorkPackage * package) { fragReadEndsMergeWorkPackages.returnPackage(package); }
+				void pairReadEndsMergeWorkPackageReturn(PairReadEndsMergeWorkPackage * package) { pairReadEndsMergeWorkPackages.returnPackage(package); }
 
 				// return input block after decompression
 				void putInputBlockReturn(ControlInputInfo::input_block_type::shared_ptr_type block) 
@@ -1840,7 +2090,7 @@ int main(int argc, char * argv[])
 			VC.checkEnqueReadPackage();
 			VC.waitDecodingFinished();
 			VC.flushReadEndsLists();
-			system("ls -lrt 1>&2");
+			// system("ls -lrt 1>&2");
 			STP.terminate();
 			STP.join();
 			

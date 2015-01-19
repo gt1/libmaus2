@@ -210,6 +210,12 @@ libmaus_include_HEADERS=libmaus/LibMausConfig.hpp
 libmausautoarray_includedir=$(includedir)/libmaus/autoarray/
 libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp libmaus/autoarray/AutoArray2d.hpp
 
+libmausindex_includedir=$(includedir)/libmaus/index/
+libmausindex_include_HEADERS = libmaus/index/ExternalMemoryIndexGenerator.hpp \
+	libmaus/index/ExternalMemoryIndexRecord.hpp \
+	libmaus/index/ExternalMemoryIndexDecoder.hpp \
+	libmaus/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp
+
 libmausgamma_includedir=$(includedir)/libmaus/gamma/
 libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp \
 	libmaus/gamma/GammaGapEncoder.hpp libmaus/gamma/GammaGapDecoder.hpp \
@@ -1502,7 +1508,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testbammateerase \
 	testparallelbamblocksort \
 	testhdf5 \
-	testmapperm
+	testmapperm \
+	testexternalmemoryindex
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1940,3 +1947,8 @@ testmapperm_SOURCES  = test/testmapperm.cpp
 testmapperm_LDADD    = libmaus.la
 testmapperm_CPPFLAGS = @WARNCPPFLAGS@
 testmapperm_LDFLAGS  = ${AM_LDFLAGS}
+
+testexternalmemoryindex_SOURCES  = test/testexternalmemoryindex.cpp
+testexternalmemoryindex_LDADD    = libmaus.la @SNAPPYLIBS@
+testexternalmemoryindex_CPPFLAGS = @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
+testexternalmemoryindex_LDFLAGS  = ${AM_LDFLAGS} @SNAPPYLDFLAGS@
