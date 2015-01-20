@@ -37,6 +37,8 @@
 #include <libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp>
 #include <libmaus/bambam/ReadEndsStreamDecoder.hpp>		
 
+#include <libmaus/index/ExternalMemoryIndexGenerator.hpp>
+
 namespace libmaus
 {
 	namespace bambam
@@ -79,11 +81,25 @@ namespace libmaus
 			//! compressed output stream
 			::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream >::unique_ptr_type pSOS;
 			
+			//! index generator type
+			typedef libmaus::index::ExternalMemoryIndexGenerator<
+				libmaus::bambam::ReadEndsBase,
+				ReadEndsContainerBase::indexShift,
+				ReadEndsContainerBase::indexShift
+				> index_generator_type;
+			//! index generator pointer type
+			typedef index_generator_type::unique_ptr_type index_generator_pointer_type;
+			//! index generator
+			index_generator_pointer_type Pindexer;
+			uint64_t indexerpos;
+			
+			#if 0
 			//! temporary output file stream for index
 			::libmaus::aio::CheckedOutputStream::unique_ptr_type tempfileindexout;
 			//! index block start vector
-			std::vector<uint64_t> indexblockstart;
 			uint64_t indexpos;
+			#endif
+			std::vector<uint64_t> indexblockstart;
 			
 			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
@@ -116,16 +132,16 @@ namespace libmaus
 			/**
 			 * @return temporary file output stream for index
 			 **/
-			::libmaus::aio::CheckedOutputStream * getIndexTempFile()
+			index_generator_type * getIndexer()
 			{
 				if ( tempfilenameindex.size() )
 				{
-					if ( ! tempfileindexout.get() )
+					if ( ! Pindexer )
 					{
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus::aio::CheckedOutputStream(tempfilenameindex));
-						tempfileindexout = UNIQUE_PTR_MOVE(rtmpfile);
+						index_generator_pointer_type Tindexer(new index_generator_type(tempfilenameindex));
+						Pindexer = UNIQUE_PTR_MOVE(Tindexer);
 					}
-					return tempfileindexout.get();
+					return Pindexer.get();
 				}
 				else
 				{
@@ -289,7 +305,7 @@ namespace libmaus
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
 			  tempfilename(rtempfilename), 
 			  tempfilenameindex(),
-			  indexpos(0),
+			  indexerpos(0),
 			  copyAlignments(rcopyAlignments),
 			  minlen(std::numeric_limits<uint64_t>::max()),
 			  decodingPrepared(false)
@@ -315,7 +331,7 @@ namespace libmaus
 			  iptr(A.end()), dptr(reinterpret_cast<uint8_t *>(A.begin())),
 			  tempfilename(rtempfilename), 
 			  tempfilenameindex(rtempfilenameindex),
-			  indexpos(0),
+			  indexerpos(0),
 			  copyAlignments(rcopyAlignments),
 			  minlen(std::numeric_limits<uint64_t>::max()),
 			  decodingPrepared(false)
@@ -350,11 +366,8 @@ namespace libmaus
 					getTempFile().flush();
 					tempfileout.reset();
 					
-					if ( getIndexTempFile() )
-					{
-						getIndexTempFile()->flush();
-						tempfileindexout.reset();
-					}
+					if ( getIndexer() )
+						Pindexer.reset();
 
 					releaseArray();
 					
@@ -482,9 +495,10 @@ namespace libmaus
 					// std::cerr << "done." << std::endl;
 					#endif
 					
-					::libmaus::aio::CheckedOutputStream * indexfile = getIndexTempFile();
-					if ( indexfile )
-						indexblockstart.push_back(indexpos);
+					index_generator_type * indexer = getIndexer();
+					if ( indexer )
+						indexblockstart.push_back(indexer->setup());
+						
 					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > & SOS = getCompressedTempFile();
 					uint64_t const prepos = SOS.getOffset().first;
 					assert ( SOS.getOffset().second == 0 );
@@ -495,24 +509,15 @@ namespace libmaus
 						index_type const ioff = *xptr;
 						uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
 						
-						if ( ((xptr - iptr) & indexMask) == 0 && indexfile )
+						if ( indexer && ((xptr - iptr) & index_generator_type::base_index_mask) == 0 )
 						{
 							std::pair<uint64_t,uint64_t> offset = SOS.getOffset();
-							indexpos += libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,offset.first);
-							indexpos += libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,offset.second);
-							
-							#if 0
 							// decode
 							::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
 							::libmaus::bambam::ReadEnds RE;
 							RE.get(G);
-
-							libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,RE.getLibraryId(),2);
-							libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,RE.getTagId(),8);
-							libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,RE.getOrientation(),1);
-							libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,RE.getRead1Sequence(),4);
-							libmaus::util::NumberSerialisation::serialiseNumber(*indexfile,ReadEndsBase::signedEncode(RE.getRead1Coordinate()),4);
-							#endif
+							// put object
+							indexer->put(RE,offset);
 						}
 					
 						#if 1
@@ -533,6 +538,9 @@ namespace libmaus
 					SOS.flush();
 					uint64_t const postpos = SOS.getOffset().first;
 					assert ( SOS.getOffset().second == 0 );
+
+					if ( indexer )
+						indexer->flush();
 					
 					// file positions
 					tmpoffsetintervals.push_back(upair(prepos,postpos));

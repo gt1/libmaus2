@@ -25,8 +25,10 @@
 #include <libmaus/bambam/ReadEndsBaseLongHashAttributeComparator.hpp>
 #include <libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp>
 #include <libmaus/bambam/ReadEndsContainerBase.hpp>
+#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp>
 #include <libmaus/util/iterator.hpp>
 #include <libmaus/lru/SparseLRU.hpp>
+#include <libmaus/index/ExternalMemoryIndexDecoder.hpp>
 
 namespace libmaus
 {
@@ -43,6 +45,9 @@ namespace libmaus
 
 			typedef libmaus::util::ConstIterator<this_type,ReadEnds> const_iterator;
 
+			private:
+			ReadEndsBlockDecoderBaseCollectionInfoDataStreamProvider & dataprovider;
+			ReadEndsBlockDecoderBaseCollectionInfoIndexStreamProvider & indexprovider;
 			std::istream & data;
 			std::istream & index;
 			
@@ -50,34 +55,29 @@ namespace libmaus
 			uint64_t const numentries;
 			uint64_t const numblocks;
 			
+			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>::unique_ptr_type Pindex;
+			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift> & Rindex;
+			
 			mutable uint64_t blockloaded;
 			mutable bool blockloadedvalid;
 			mutable libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds> B;
-			mutable libmaus::lru::SparseLRU proxyLRU;
-			mutable std::map<uint64_t,ReadEnds> proxyMap;
+
+			mutable libmaus::lru::SparseLRU primaryProxyLRU;
+			mutable std::map<uint64_t,ReadEnds> primaryProxyMap;
+
+			mutable libmaus::lru::SparseLRU secondaryProxyLRU;
+			mutable std::map<uint64_t,ReadEnds> secondaryProxyMap;
 			
-			ReadEndsBlockDecoderBase(
-				std::istream & rdata,
-				std::istream & rindex,
-				uint64_t const rindexoffset,
-				uint64_t const rnumentries
-			) : data(rdata), index(rindex), indexoffset(rindexoffset), numentries(rnumentries),
-			    numblocks((numentries + indexStep-1)/indexStep),
-			    blockloaded(0), blockloadedvalid(false),
-			    proxyLRU(proxy ? 1024 : 0)
+			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>::unique_ptr_type openIndex()
 			{
-			}
-			
-			const_iterator begin() const
-			{
-				return const_iterator(this,0);
+				index.clear();
+				index.seekg(indexoffset,std::ios::beg);
+				libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>::unique_ptr_type Tindex(
+					new libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>(index)
+				);
+				return UNIQUE_PTR_MOVE(Tindex);
 			}
 
-			const_iterator end() const
-			{
-				return const_iterator(this,numentries);
-			}
-			
 			void loadBlock(uint64_t const i) const
 			{
 				uint64_t const blocklow  = i << indexShift;
@@ -85,17 +85,13 @@ namespace libmaus
 				uint64_t const blocksize = blockhigh-blocklow;
 				
 				assert ( i < numblocks );
-				index.clear();
-				index.seekg(indexoffset + i * 2 * sizeof(uint64_t), std::ios::beg);
-				
-				uint64_t const blockoffset = libmaus::util::NumberSerialisation::deserialiseNumber(index);
-				uint64_t const byteskip = libmaus::util::NumberSerialisation::deserialiseNumber(index);
-				
+				std::pair<uint64_t,uint64_t> const IP = Rindex[i];
+
 				data.clear();
-				data.seekg(blockoffset);
+				data.seekg(IP.first);
 				
 				libmaus::lz::SnappyInputStream SIS(data);
-				SIS.ignore(byteskip);
+				SIS.ignore(IP.second);
 				
 				if ( blocksize > B.size() )
 				{
@@ -104,11 +100,51 @@ namespace libmaus
 				}
 				
 				for ( uint64_t j = 0; j < blocksize; ++j )
-					B[j].get(SIS);
+					B[j].get(SIS);					
+
+				if ( proxy )
+				{
+					for ( uint64_t j = 0; j < blocksize; ++j )
+					{
+						uint64_t const absj = blocklow+j;
+						
+						if ( secondaryProxyMap.find(absj) == secondaryProxyMap.end() )
+						{
+							int64_t kickid = secondaryProxyLRU.get(absj);
+
+							if ( kickid >= 0 )
+								secondaryProxyMap.erase(secondaryProxyMap.find(kickid));
+
+							secondaryProxyMap[absj] = B[j];
+						}
+					}
+				}
 					
 				blockloaded = i;
 				blockloadedvalid = true;
 			}
+
+			public:
+			ReadEndsBlockDecoderBase(
+				ReadEndsBlockDecoderBaseCollectionInfoDataStreamProvider & rdataprovider,
+				ReadEndsBlockDecoderBaseCollectionInfoIndexStreamProvider & rindexprovider,
+				std::istream & rdata,
+				std::istream & rindex,
+				uint64_t const rindexoffset,
+				uint64_t const rnumentries
+			) : 
+			    dataprovider(rdataprovider),
+			    indexprovider(rindexprovider),
+			    data(rdata), index(rindex), indexoffset(rindexoffset), numentries(rnumentries),
+			    numblocks((numentries + indexStep-1)/indexStep),
+			    Pindex(openIndex()),
+			    Rindex(*Pindex),
+			    blockloaded(0), blockloadedvalid(false),
+			    primaryProxyLRU(proxy ? 1024 : 0),
+			    secondaryProxyLRU(proxy ? 2*ReadEndsContainerBase::indexStep : 0)
+			{
+			}
+			
 			
 			ReadEnds const & operator[](uint64_t const i) const
 			{
@@ -121,11 +157,27 @@ namespace libmaus
 				
 				if ( proxy )
 				{
-					std::map<uint64_t,ReadEnds>::const_iterator ita = proxyMap.find(i);
-					if ( ita != proxyMap.end() )
+					std::map<uint64_t,ReadEnds>::const_iterator pita = primaryProxyMap.find(i);
+					if ( pita != primaryProxyMap.end() )
 					{
-						proxyLRU.update(i);
-						return ita->second;
+						primaryProxyLRU.update(i);
+						return pita->second;
+					}
+					
+					std::map<uint64_t,ReadEnds>::const_iterator sita = secondaryProxyMap.find(i);
+					if ( sita != secondaryProxyMap.end() )
+					{
+						secondaryProxyLRU.update(i);
+				
+						// copy element to primary proxy		
+						int64_t kickid = primaryProxyLRU.get(i);
+					
+						if ( kickid >= 0 )
+							primaryProxyMap.erase(primaryProxyMap.find(kickid));
+						
+						primaryProxyMap[i] = sita->second;
+						
+						return sita->second;
 					}
 				}
 				
@@ -138,15 +190,25 @@ namespace libmaus
 				
 				if ( proxy )
 				{
-					int64_t kickid = proxyLRU.get(i);
+					int64_t kickid = primaryProxyLRU.get(i);
 					
 					if ( kickid >= 0 )
-						proxyMap.erase(proxyMap.find(kickid));
+						primaryProxyMap.erase(primaryProxyMap.find(kickid));
 						
-					proxyMap[i] = el;
+					primaryProxyMap[i] = el;
 				}
 				
 				return el;
+			}
+
+			const_iterator begin() const
+			{
+				return const_iterator(this,0);
+			}
+
+			const_iterator end() const
+			{
+				return const_iterator(this,numentries);
 			}
 						
 			uint64_t size() const

@@ -36,6 +36,8 @@
 #include <libmaus/util/UnsignedIntegerIndexIterator.hpp>
 #include <libmaus/bambam/ReadEndsHeapPairComparator.hpp>
 
+#include <libmaus/timing/RealTimeClock.hpp>
+
 namespace libmaus
 {
 	namespace bambam
@@ -72,7 +74,7 @@ namespace libmaus
 				}
 			};
 			
-			std::vector<ReadEndsBlockDecoderBaseCollectionInfo> const info;
+			std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info;
 			uint64_t const numblocks;
 			
 			libmaus::autoarray::AutoArray< typename ::libmaus::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type> Adecoders;
@@ -81,18 +83,32 @@ namespace libmaus
 			ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor const countLongAccessor;
 			
 			static std::vector<ReadEndsBlockDecoderBaseCollectionInfo> constructInfo(
-				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo
+				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo, bool const parallelSetup
 			)
 			{
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info(rinfo.size());
-				for ( uint64_t i = 0; i < rinfo.size(); ++i )
-					info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);
+			
+				if ( parallelSetup )
+				{
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( uint64_t i = 0; i < rinfo.size(); ++i )
+						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);					
+				}
+				else
+				{
+					for ( uint64_t i = 0; i < rinfo.size(); ++i )
+						info[i] = ReadEndsBlockDecoderBaseCollectionInfo(rinfo[i]);				
+				}
+
 				return info;
 			}
 			
 			ReadEndsBlockDecoderBaseCollection(
-				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo
-			) : info(constructInfo(rinfo)),
+				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
+				bool const parallelSetup = false
+			) : info(constructInfo(rinfo,parallelSetup)),
 			    numblocks(computeNumBlocks()),
 			    Adecoders(numblocks,false),
 			    countShortAccessor(this),
@@ -101,12 +117,14 @@ namespace libmaus
 				uint64_t j = 0;
 				for ( uint64_t k = 0; k < info.size(); ++k )
 				{
-					ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = info[k];
+					ReadEndsBlockDecoderBaseCollectionInfo & subinfo = info[k];
 					
 					for ( uint64_t i = 0; i < subinfo.indexoffset.size(); ++i )
 					{
 						typename libmaus::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type tptr(
 							new libmaus::bambam::ReadEndsBlockDecoderBase<proxy>(
+								subinfo,
+								subinfo,
 								*(subinfo.datastr),
 								*(subinfo.indexstr),
 								subinfo.indexoffset.at(i),
@@ -116,7 +134,7 @@ namespace libmaus
 						
 						Adecoders.at(j++) = UNIQUE_PTR_MOVE(tptr);
 					}
-				}				
+				}
 			}
 
 			uint64_t computeNumBlocks() const
@@ -225,7 +243,7 @@ namespace libmaus
 				return outer_long_iterator(&countLongAccessor,hashUpperBoundLong());
 			}
 
-			std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getShortMergeIntervals(uint64_t const numthreads)
+			std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getShortMergeIntervals(uint64_t const numthreads, bool const check = false)
 			{
 				std::vector < std::vector< std::pair<uint64_t,uint64_t> > > R(numthreads,std::vector< std::pair<uint64_t,uint64_t> >(size()));
 				uint64_t const totalentries = totalEntries();
@@ -249,35 +267,38 @@ namespace libmaus
 				if ( numthreads )
 					for ( uint64_t j = 0; j < size(); ++j )
 						R[numthreads-1][j].second = getBlock(j)->size();
-						
-				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
+				
+				if ( check )
 				{
-					::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
-					::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
-					
-					for ( uint64_t j = 0; j < size(); ++j )
+					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					{
-						std::pair<uint64_t,uint64_t> ind = R[i][j];
+						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
+						::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
 						
-						for ( uint64_t k = ind.first; k < ind.second; ++k )
+						for ( uint64_t j = 0; j < size(); ++j )
 						{
-							assert ( getBlock(j)->get(k).encodeShortHash() >= splitlow );
-							assert ( getBlock(j)->get(k).encodeShortHash() < splithigh );
+							std::pair<uint64_t,uint64_t> ind = R[i][j];
+							
+							for ( uint64_t k = ind.first; k < ind.second; ++k )
+							{
+								assert ( getBlock(j)->get(k).encodeShortHash() >= splitlow );
+								assert ( getBlock(j)->get(k).encodeShortHash() < splithigh );
+							}
 						}
 					}
-				}
-				
-				if ( numthreads )
-				{					
-					::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
+					
+					if ( numthreads )
+					{					
+						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
-					for ( uint64_t j = 0; j < size(); ++j )
-					{
-						std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
-						
-						for ( uint64_t k = ind.first; k < ind.second; ++k )
+						for ( uint64_t j = 0; j < size(); ++j )
 						{
-							assert ( getBlock(j)->get(k).encodeShortHash() >= splitlow );
+							std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
+							
+							for ( uint64_t k = ind.first; k < ind.second; ++k )
+							{
+								assert ( getBlock(j)->get(k).encodeShortHash() >= splitlow );
+							}
 						}
 					}
 				}
@@ -285,7 +306,104 @@ namespace libmaus
 				return R;
 			}
 
-			std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getLongMergeIntervals(uint64_t const numthreads)
+			static uint64_t getTotalEntries(std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & info)
+			{
+				uint64_t s = 0;
+				for ( uint64_t k = 0; k < info.size(); ++k )
+				{
+					ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = info[k];
+					
+					for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
+						s += subinfo.blockelcnt.at(i);
+				}
+				
+				return s;
+			}						
+
+			static std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getLongMergeIntervals(
+				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
+				uint64_t const numthreads, 
+				bool const check = false
+			)
+			{
+				std::vector < std::vector< std::pair<uint64_t,uint64_t> > > R(numthreads,std::vector< std::pair<uint64_t,uint64_t> >(0));
+				uint64_t const totalentries = getTotalEntries(rinfo);
+				uint64_t const targetfrac = totalentries/numthreads;
+				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( uint64_t i = 0; i < numthreads; ++i )
+				{
+					this_type col(rinfo);
+					splitPoints[i] = std::lower_bound(col.outerLongBegin(),col.outerLongEnd(),i * targetfrac).i;
+					::libmaus::bambam::ReadEnds RA;
+					RA.decodeLongHash(splitPoints[i]);
+					
+					for ( uint64_t j = 0; j < col.size(); ++j )
+						R[i].push_back(std::pair<uint64_t,uint64_t>(col.getBlock(j)->countSmallerThanLong(RA),0));
+				}
+
+				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
+					for ( uint64_t j = 0; j < R[i].size(); ++j )
+						R[i][j].second = R[i+1][j].first;
+				
+				if ( numthreads )
+				{
+					uint64_t j = 0;
+					for ( uint64_t k = 0; k < rinfo.size(); ++k )
+					{
+						ReadEndsBlockDecoderBaseCollectionInfo const & subinfo = rinfo[k];
+					
+						for ( uint64_t i = 0; i < subinfo.blockelcnt.size(); ++i )
+							R[numthreads-1][j++].second = subinfo.blockelcnt[i];
+					}
+				}
+						
+				if ( check )
+				{					
+					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
+					{
+						this_type col(rinfo);
+
+						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
+						::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
+						
+						for ( uint64_t j = 0; j < col.size(); ++j )
+						{
+							std::pair<uint64_t,uint64_t> ind = R[i][j];
+							
+							for ( uint64_t k = ind.first; k < ind.second; ++k )
+							{
+								assert ( col.getBlock(j)->get(k).encodeLongHash() >= splitlow );
+								assert ( col.getBlock(j)->get(k).encodeLongHash() < splithigh );
+							}
+						}
+					}
+					
+					if ( numthreads )
+					{					
+						this_type col(rinfo);
+						
+						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
+
+						for ( uint64_t j = 0; j < col.size(); ++j )
+						{
+							std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
+							
+							for ( uint64_t k = ind.first; k < ind.second; ++k )
+							{
+								assert ( col.getBlock(j)->get(k).encodeLongHash() >= splitlow );
+							}
+						}
+					}
+				}
+								
+				return R;
+			}
+
+			std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getLongMergeIntervals(uint64_t const numthreads, bool const check = false)
 			{
 				std::vector < std::vector< std::pair<uint64_t,uint64_t> > > R(numthreads,std::vector< std::pair<uint64_t,uint64_t> >(size()));
 				uint64_t const totalentries = totalEntries();
@@ -310,34 +428,37 @@ namespace libmaus
 					for ( uint64_t j = 0; j < size(); ++j )
 						R[numthreads-1][j].second = getBlock(j)->size();
 						
-				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
+				if ( check )
 				{
-					::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
-					::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
-					
-					for ( uint64_t j = 0; j < size(); ++j )
+					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					{
-						std::pair<uint64_t,uint64_t> ind = R[i][j];
+						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
+						::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
 						
-						for ( uint64_t k = ind.first; k < ind.second; ++k )
+						for ( uint64_t j = 0; j < size(); ++j )
 						{
-							assert ( getBlock(j)->get(k).encodeLongHash() >= splitlow );
-							assert ( getBlock(j)->get(k).encodeLongHash() < splithigh );
+							std::pair<uint64_t,uint64_t> ind = R[i][j];
+							
+							for ( uint64_t k = ind.first; k < ind.second; ++k )
+							{
+								assert ( getBlock(j)->get(k).encodeLongHash() >= splitlow );
+								assert ( getBlock(j)->get(k).encodeLongHash() < splithigh );
+							}
 						}
 					}
-				}
-				
-				if ( numthreads )
-				{					
-					::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
+					
+					if ( numthreads )
+					{					
+						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
-					for ( uint64_t j = 0; j < size(); ++j )
-					{
-						std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
-						
-						for ( uint64_t k = ind.first; k < ind.second; ++k )
+						for ( uint64_t j = 0; j < size(); ++j )
 						{
-							assert ( getBlock(j)->get(k).encodeLongHash() >= splitlow );
+							std::pair<uint64_t,uint64_t> ind = R[numthreads-1][j];
+							
+							for ( uint64_t k = ind.first; k < ind.second; ++k )
+							{
+								assert ( getBlock(j)->get(k).encodeLongHash() >= splitlow );
+							}
 						}
 					}
 				}
