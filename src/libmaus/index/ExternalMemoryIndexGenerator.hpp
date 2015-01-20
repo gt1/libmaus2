@@ -25,6 +25,7 @@
 #include <libmaus/util/NumberSerialisation.hpp>
 #include <libmaus/aio/PosixFdInputStream.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/index/ExternalMemoryIndexRecord.hpp>
 #include <iomanip>
 
 namespace libmaus
@@ -52,14 +53,22 @@ namespace libmaus
 			uint64_t ic;
 			bool flushed;
 			
+			typedef ExternalMemoryIndexRecord<data_type> record_type;
+			libmaus::autoarray::AutoArray<record_type> writeCache;
+			record_type * const wa;
+			record_type * wc;
+			record_type * const we;
+			
 			ExternalMemoryIndexGenerator(std::string const & filename)
-			: Pstream(new libmaus::aio::CheckedInputOutputStream(filename)), stream(*Pstream), ic(0), flushed(false)
+			: Pstream(new libmaus::aio::CheckedInputOutputStream(filename)), stream(*Pstream), ic(0), flushed(false), writeCache(1024),
+			  wa(writeCache.begin()), wc(wa), we(writeCache.end())
 			{
 			
 			}
 
 			ExternalMemoryIndexGenerator(std::iostream & rstream)
-			: Pstream(), stream(rstream), ic(0), flushed(false)
+			: Pstream(), stream(rstream), ic(0), flushed(false), writeCache(1024),
+			  wa(writeCache.begin()), wc(wa), we(writeCache.end())
 			{
 			
 			}
@@ -119,18 +128,44 @@ namespace libmaus
 							
 							if ( (j & inner_index_mask) == 0 )
 							{
-								stream.seekp(ppos,std::ios::beg);
-								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,pfirst);
-								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,psecond);
-								ppos += D.serialise(stream);
-								stream.seekg(gpos,std::ios::beg);
+								*(wc++) = record_type(std::pair<uint64_t,uint64_t>(pfirst,psecond),D);
+								
+								if ( wc == we )
+								{
+									stream.seekp(ppos,std::ios::beg);
+									
+									for ( record_type * ww = wa; ww < wc; ++ww )
+									{
+										ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
+										ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
+										ppos += ww->D.serialise(stream);			
+									}
+									
+									stream.seekg(gpos,std::ios::beg);
+									wc = wa;
+								}							
 							}
 						}
+						
+						if ( wc != wa )
+						{
+							stream.seekp(ppos,std::ios::beg);
+							
+							for ( record_type * ww = wa; ww < wc; ++ww )
+							{
+								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
+								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
+								ppos += ww->D.serialise(stream);			
+							}
+							
+							stream.seekg(gpos,std::ios::beg);
+							wc = wa;
+						}							
 						
 						incnt = outcnt;
 						level += 1;
 					}
-					
+
 					// go to end of records for last level
 					uint64_t const llpos = stream.tellg();
 					uint64_t ppos = llpos + levelcnts.back() * record_size;
