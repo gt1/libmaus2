@@ -65,6 +65,44 @@ namespace libmaus
 			//! orientation enum
 			enum read_end_orientation { F=0, R=1, FF=2, FR=3, RF=4, RR=5 };
 			
+			template<typename stream_type>
+			uint64_t serialise(stream_type & stream) const
+			{
+				uint64_t l = 0;
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,libraryId,2);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,tagId,8);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,read1Sequence,4);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,read1Coordinate,4);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,orientation,1);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,read2Sequence,4);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,read2Coordinate,4);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,read1IndexInFile,8);
+				l += libmaus::util::NumberSerialisation::serialiseNumber(stream,read2IndexInFile,8);
+				return l;
+			}
+			
+			template<typename stream_type>
+			void deserialise(stream_type & stream)
+			{
+				libraryId = libmaus::util::NumberSerialisation::deserialiseNumber(stream,2);
+				tagId = libmaus::util::NumberSerialisation::deserialiseNumber(stream,8);
+				read1Sequence = libmaus::util::NumberSerialisation::deserialiseNumber(stream,4);
+				read1Coordinate = libmaus::util::NumberSerialisation::deserialiseNumber(stream,4);
+				orientation = static_cast<read_end_orientation>(libmaus::util::NumberSerialisation::deserialiseNumber(stream,1));
+				read2Sequence = libmaus::util::NumberSerialisation::deserialiseNumber(stream,4);
+				read2Coordinate = libmaus::util::NumberSerialisation::deserialiseNumber(stream,4);
+				read1IndexInFile = libmaus::util::NumberSerialisation::deserialiseNumber(stream,8);
+				read2IndexInFile = libmaus::util::NumberSerialisation::deserialiseNumber(stream,8);
+			}
+			
+			static uint64_t getSerialisedObjectSize()
+			{
+				ReadEndsBase REB;
+				libmaus::util::CountPutObject CPO;
+				REB.serialise(CPO);
+				return CPO.c;
+			}
+			
 			private:
 			//! library id
 			uint16_t libraryId;
