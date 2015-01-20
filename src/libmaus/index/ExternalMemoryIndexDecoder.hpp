@@ -123,6 +123,20 @@ namespace libmaus
 				setup(rcache_thres);
 			}
 
+			// get offset for element i at base layer of index			
+			std::pair<uint64_t,uint64_t> operator[](uint64_t const i)
+			{
+				PFIS.clear();
+				PFIS.seekg(levelstarts[0] + i * record_size);
+
+				uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				data_type Q;
+				Q.deserialise(PFIS);
+
+				return std::pair<uint64_t,uint64_t>(pfirst,psecond);				
+			}
+
 			ExternalMemoryIndexDecoderFindLargestSmallerResult findLargestSmaller(data_type const & E, comparator comp = comparator())
 			{
 				// check for empty array or minimum too large
