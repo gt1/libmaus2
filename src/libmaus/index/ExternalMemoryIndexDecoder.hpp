@@ -27,18 +27,19 @@ namespace libmaus
 {
 	namespace index
 	{
-		template<typename _data_type, unsigned int _level_log, typename _comparator = std::less<_data_type> >
+		template<typename _data_type, unsigned int _base_level_log, unsigned int _inner_level_log, typename _comparator = std::less<_data_type> >
 		struct ExternalMemoryIndexDecoder
 		{
 			typedef _data_type data_type;
-			static unsigned int const level_log = _level_log;
+			static unsigned int const base_level_log = _base_level_log;
+			static unsigned int const inner_level_log = _inner_level_log;
 			typedef _comparator comparator;
-			typedef ExternalMemoryIndexDecoder<data_type,level_log,comparator> this_type;
+			typedef ExternalMemoryIndexDecoder<data_type,base_level_log,inner_level_log,comparator> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-
-			static uint64_t const index_step = 1ull << level_log;
-			static uint64_t const index_mask = (index_step-1);
+			
+			static uint64_t const base_index_step = 1ull << base_level_log;
+			static uint64_t const inner_index_step = 1ull << inner_level_log;
 		
 			libmaus::aio::PosixFdInputStream::unique_ptr_type PPFIS;
 			std::istream & PFIS;
@@ -74,7 +75,12 @@ namespace libmaus
 					#endif
 				}
 				if ( numlevels )
-					assert ( levelcnts.back() <= index_step );
+				{
+					if ( levelcnts.size() == 1 )
+						assert ( levelcnts.back() <= base_index_step );
+					else
+						assert ( levelcnts.back() <= inner_index_step );
+				}
 
 				cache = cache_type(numlevels);
 				for ( uint64_t i = 0; i < numlevels; ++i )
@@ -116,7 +122,7 @@ namespace libmaus
 			{
 				setup(rcache_thres);
 			}
-		
+
 			ExternalMemoryIndexDecoderFindLargestSmallerResult findLargestSmaller(data_type const & E, comparator comp = comparator())
 			{
 				// check for empty array or minimum too large
@@ -128,6 +134,8 @@ namespace libmaus
 				
 				for ( int level = static_cast<int>(levelstarts.size())-1; level >= 0; --level )
 				{
+					uint64_t const index_step = (1ull << inner_level_log);
+					
 					// if level is cached then use binary search
 					if ( cache[level] )
 					{

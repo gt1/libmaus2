@@ -63,9 +63,10 @@ int main()
 {
 	try
 	{
-		static unsigned int const index_log = 6;
-		// libmaus::index::ExternalMemoryIndexGenerator<libmaus::bambam::ReadEndsBase,index_log> index("tmpprefix");
-		typedef libmaus::index::ExternalMemoryIndexGenerator<SerialisableUint64,index_log> index_type;
+		static unsigned int const base_index_log = 10;
+		static unsigned int const inner_index_log = 3;
+		// libmaus::index::ExternalMemoryIndexGenerator<libmaus::bambam::ReadEndsBase,base_index_log,inner_index_log> index("tmpprefix");
+		typedef libmaus::index::ExternalMemoryIndexGenerator<SerialisableUint64,base_index_log,inner_index_log> index_type;
 		std::stringstream indexiostr;
 		index_type::unique_ptr_type index(new index_type(indexiostr));
 		uint64_t ipos = 0;
@@ -76,8 +77,8 @@ int main()
 			uint64_t const indexpos = index->setup();
 
 			std::stringstream dataiostr;
-			libmaus::lz::SnappyOutputStream<std::stringstream> sos(dataiostr,2*1024);
-			uint64_t const n = 2*1024*1024;
+			libmaus::lz::SnappyOutputStream<std::stringstream> sos(dataiostr,8*1024);
+			uint64_t const n = 128*1024*1024;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
 				// SerialisableUint64 U((i*3)/4);
@@ -96,9 +97,11 @@ int main()
 
 			indexiostr.clear();
 			indexiostr.seekg(indexpos);
-			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,index_log> indexdec(indexiostr);
+			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec(indexiostr);
+			// #define CACHE_DEBUG
 			#if defined(CACHE_DEBUG)
-			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,index_log> indexdec0(indexiostr,0);
+			indexiostr.seekg(indexpos);
+			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec0(indexiostr,0);
 			#endif
 			
 			uint64_t maxc = 0;

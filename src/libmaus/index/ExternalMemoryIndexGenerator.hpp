@@ -31,17 +31,21 @@ namespace libmaus
 {
 	namespace index
 	{
-		template<typename _data_type, unsigned int _base_level_log>
+		template<typename _data_type, unsigned int _base_level_log, unsigned int _inner_level_log>
 		struct ExternalMemoryIndexGenerator
 		{
 			typedef _data_type data_type;
 			static unsigned int const base_level_log = _base_level_log;
-			typedef ExternalMemoryIndexGenerator<data_type,base_level_log> this_type;
+			static unsigned int const inner_level_log = _inner_level_log;
+			typedef ExternalMemoryIndexGenerator<data_type,base_level_log,inner_level_log> this_type;
 			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static uint64_t const base_index_step = 1ull << base_level_log;
 			static uint64_t const base_index_mask = (base_index_step-1);
+
+			static uint64_t const inner_index_step = 1ull << inner_level_log;
+			static uint64_t const inner_index_mask = (inner_index_step-1);
 		
 			libmaus::aio::CheckedInputOutputStream::unique_ptr_type Pstream;
 			std::iostream & stream;
@@ -93,9 +97,9 @@ namespace libmaus
 					levelstarts.push_back(l0pos);
 					levelcnts.push_back(incnt);
 
-					while ( incnt > base_index_step )
+					while ( incnt > inner_index_step )
 					{
-						uint64_t const outcnt = (incnt + base_index_step-1)/base_index_step;
+						uint64_t const outcnt = (incnt + inner_index_step-1)/inner_index_step;
 						uint64_t gpos = levelstarts[level];
 						uint64_t ppos = gpos + incnt * record_size;
 						
@@ -113,7 +117,7 @@ namespace libmaus
 							
 							gpos += 2*sizeof(uint64_t) + object_size;
 							
-							if ( (j & base_index_mask) == 0 )
+							if ( (j & inner_index_mask) == 0 )
 							{
 								stream.seekp(ppos,std::ios::beg);
 								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,pfirst);
