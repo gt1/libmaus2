@@ -60,14 +60,18 @@ namespace libmaus
 			
 			void setup(uint64_t const cache_thres = 2048)
 			{
-				PFIS.seekg(-8,std::ios::end);
+				uint64_t const endofindex = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);				
+				PFIS.seekg(endofindex,std::ios::beg);
+				PFIS.seekg(-8,std::ios::cur);
 				uint64_t const numlevels = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				PFIS.seekg(- static_cast<int64_t>(8 + numlevels * 2 * sizeof(uint64_t)), std::ios::end);
+				PFIS.seekg(- static_cast<int64_t>(sizeof(uint64_t) + numlevels * 2 * sizeof(uint64_t)), std::ios::cur);
 				for ( uint64_t i = 0; i < numlevels; ++i )
 				{
 					levelstarts.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(PFIS));
 					levelcnts.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(PFIS));
-					// std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " levelstarts[" << i << "]=" << levelstarts[i] << std::endl;
+					#if 0
+					std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " levelstarts[" << i << "]=" << levelstarts[i] << std::endl;
+					#endif
 				}
 				if ( numlevels )
 					assert ( levelcnts.back() <= index_step );
