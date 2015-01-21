@@ -50,8 +50,8 @@ namespace libmaus
 			#if defined(LIBMAUS_HAVE_IRODS)
 			rodsEnv irodsEnvironment;
 			rcComm_t * comm;
-			#endif
 			sighandler_t prevpipesighandler;
+			#endif
 
 			static IRodsFileBase::unique_ptr_type openFile(IRodsSystem::shared_ptr_type commProvider, std::string const & filename);
 			static IRodsFileBase::unique_ptr_type openFile(std::string const & filename)

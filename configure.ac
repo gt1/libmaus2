@@ -2418,6 +2418,7 @@ if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
 		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
 	fi
 	IRODSLIBS="-lRodsAPIs -lgssapi_krb5 -pthread -ldl"
+	LIBMAUSIRODSPC="libmausirods.pc"
 fi
 
 AC_ARG_ENABLE(compile-testprograms,
@@ -2567,4 +2568,6 @@ AC_SUBST([IRODSCPPFLAGS])
 AC_SUBST([IRODSCXXFLAGS])
 AC_SUBST([IRODSLDFLAGS])
 AC_SUBST([IRODSLIBS])
-AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
+AC_SUBST([IRODSDIR])
+AC_SUBST([LIBMAUSIRODSPC])
+AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

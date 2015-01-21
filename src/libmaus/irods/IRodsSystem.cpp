@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus/irods/IRodsSystem.hpp>
+#include <csignal>
 
 libmaus::irods::IRodsSystem::shared_ptr_type libmaus::irods::IRodsSystem::defaultIrodsSystem;
 libmaus::parallel::PosixMutex libmaus::irods::IRodsSystem::defaultIrodsSystemLock;
@@ -33,11 +34,18 @@ libmaus::irods::IRodsSystem::shared_ptr_type libmaus::irods::IRodsSystem::getDef
 	return defaultIrodsSystem;
 }
 
-libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::openFile(IRodsSystem::shared_ptr_type irodsSystem, std::string const & filename)
-{
-	IRodsFileBase::unique_ptr_type tptr(new IRodsFileBase);
-
+libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::openFile(
 	#if defined(LIBMAUS_HAVE_IRODS)
+	IRodsSystem::shared_ptr_type irodsSystem, 
+	std::string const & filename
+	#else
+	IRodsSystem::shared_ptr_type, 
+	std::string const & filename
+	#endif
+)
+{
+	#if defined(LIBMAUS_HAVE_IRODS)
+	IRodsFileBase::unique_ptr_type tptr(new IRodsFileBase);
 	IRodsFileBase & file = *tptr;
 
 	dataObjInp_t pathParseHandle;
@@ -82,12 +90,22 @@ libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::open
 	file.fd           = descriptor;
 	file.commProvider = irodsSystem;
 	file.fdvalid      = true;
-	#endif
 
 	return UNIQUE_PTR_MOVE(tptr);
+	#else
+	libmaus::exception::LibMausException lme;
+	lme.getStream() << "IRodsSystem::openFile: failed to open file " << filename << ": irods support not present" << std::endl;
+	lme.finish();
+	throw lme;		
+	#endif
 }	
 
-libmaus::irods::IRodsSystem::IRodsSystem() : comm(0), prevpipesighandler(SIG_DFL)
+libmaus::irods::IRodsSystem::IRodsSystem() 
+  #if defined(LIBMAUS_HAVE_IRODS)
+: 
+  comm(0), 
+  prevpipesighandler(SIG_DFL)
+  #endif
 {
 	#if defined(LIBMAUS_HAVE_IRODS)
 	int status = -1;
