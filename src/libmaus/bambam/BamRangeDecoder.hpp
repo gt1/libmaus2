@@ -23,6 +23,7 @@
 #include <libmaus/bambam/BamIndex.hpp>
 #include <libmaus/bambam/BamRangeParser.hpp>
 #include <libmaus/util/OutputFileNameTools.hpp>
+#include <libmaus/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus
 {
@@ -49,16 +50,19 @@ namespace libmaus
 			{
 				std::string bainame;
 				
-				if ( libmaus::util::GetFileSize::fileExists(bamname+".bai") )
+				// try to add .bai
+				if ( libmaus::aio::InputStreamFactoryContainer::tryOpen(bamname+".bai") )
 				{
 					return bamname+".bai";
 				}
-				else if ( libmaus::util::GetFileSize::fileExists(
+				// try to clip off .bam and then add .bai
+				else if ( libmaus::aio::InputStreamFactoryContainer::tryOpen(
 					libmaus::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai") 
 				)
 				{
 					return libmaus::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai";
 				}
+				// give up
 				else
 				{
 					libmaus::exception::LibMausException se;
@@ -76,7 +80,8 @@ namespace libmaus
 			 **/
 			static libmaus::bambam::BamHeader::unique_ptr_type loadHeader(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::construct(filename));
+				std::istream & CIS = *Pistr;
 				libmaus::lz::BgzfInflateStream BIS(CIS);
 				libmaus::bambam::BamHeader::unique_ptr_type Pheader(new libmaus::bambam::BamHeader(BIS));
 				return UNIQUE_PTR_MOVE(Pheader);
@@ -90,15 +95,11 @@ namespace libmaus
 			 **/
 			static libmaus::bambam::BamIndex::unique_ptr_type loadIndex(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::construct(filename));
+				std::istream & CIS = *Pistr;
 				libmaus::bambam::BamIndex::unique_ptr_type Pindex(new libmaus::bambam::BamIndex(CIS));
 				return UNIQUE_PTR_MOVE(Pindex);
 			}
-			
-			//! name of bam file
-			std::string const filename;
-			//! name of bai file
-			std::string const indexname;
 			
 			//! pointer to bam header
 			libmaus::bambam::BamHeader::unique_ptr_type const Pheader;
@@ -205,17 +206,16 @@ namespace libmaus
 			/**
 			 * constructor
 			 *
-			 * @param rfilename name of BAM file
+			 * @param filename name of BAM file
 			 * @param rranges range descriptor string
 			 * @param rputrank put ranks on alignments
 			 **/
-			BamRangeDecoder(std::string const & rfilename, std::string const & rranges, bool const rputrank = false)
+			BamRangeDecoder(std::string const & filename, std::string const & rranges, bool const rputrank = false)
 			:
 			  libmaus::bambam::BamAlignmentDecoder(rputrank), 
-			  filename(rfilename), indexname(deriveBamIndexName(filename)),
 			  Pheader(loadHeader(filename)),
 			  header(*Pheader),
-			  Pindex(loadIndex(indexname)),
+			  Pindex(loadIndex(deriveBamIndexName(filename))),
 			  index(*Pindex),
 			  ranges(libmaus::bambam::BamRangeParser::parse(rranges,header)),
 			  rangeidx(0),

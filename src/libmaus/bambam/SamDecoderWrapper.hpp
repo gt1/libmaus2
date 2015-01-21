@@ -52,6 +52,16 @@ namespace libmaus
 			SamDecoderWrapper(std::istream & istr, bool const rputrank = false) : samdec(istr,rputrank)
 			{
 			}
+
+			/**
+			 * constructor
+			 *
+			 * @param istr inputstream
+			 * @param rputrank put rank (line number) on alignments
+			 **/
+			SamDecoderWrapper(libmaus::aio::InputStream::unique_ptr_type & istr, bool const rputrank = false) : samdec(istr,rputrank)
+			{
+			}
 			
 			libmaus::bambam::BamAlignmentDecoder & getDecoder()
 			{
