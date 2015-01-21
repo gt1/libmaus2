@@ -1162,7 +1162,8 @@ libmausirods_include_HEADERS=\
 	libmaus/irods/IRodsSystem.hpp \
 	libmaus/irods/IRodsCommProvider.hpp \
 	libmaus/irods/IRodsInputStreamBuffer.hpp \
-	libmaus/irods/IRodsInputStream.hpp
+	libmaus/irods/IRodsInputStream.hpp \
+	libmaus/irods/IRodsInputStreamFactory.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
 libmauslcs_include_HEADERS=\
