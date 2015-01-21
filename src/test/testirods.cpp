@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/aio/InputStream.hpp>
 #include <libmaus/index/IRodsInputStream.hpp>
 #include <libmaus/util/ArgInfo.hpp>
 
@@ -28,7 +29,9 @@ int main(int argc, char * argv[])
 		libmaus::autoarray::AutoArray<char> B(1024*1024,false);
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			libmaus::irods::IRodsInputStream in(arginfo.restargs[i]);
+			libmaus::irods::IRodsInputStream::unique_ptr_type Pin(new libmaus::irods::IRodsInputStream(arginfo.restargs[i]));
+			libmaus::util::unique_ptr<std::istream>::type Tin(Pin.release());
+			libmaus::aio::InputStream in(Tin);
 			
 			in.seekg(0,std::ios::end);
 			uint64_t const len = in.tellg();
