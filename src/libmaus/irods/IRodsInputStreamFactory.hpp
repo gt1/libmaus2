@@ -21,6 +21,7 @@
 
 #include <libmaus/aio/InputStreamFactory.hpp>
 #include <libmaus/irods/IRodsInputStream.hpp>
+#include <libmaus/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus
 {
@@ -39,6 +40,14 @@ namespace libmaus
 				libmaus::util::unique_ptr<std::istream>::type iptr(tptr.release());
 				libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
 				return UNIQUE_PTR_MOVE(istr);
+			}
+
+			static void registerHandler()
+			{
+				libmaus::aio::InputStreamFactoryContainer::addHandler(
+					"irods",
+					libmaus::aio::InputStreamFactory::shared_ptr_type(new libmaus::irods::IRodsInputStreamFactory)
+				);
 			}
 		};
 	}

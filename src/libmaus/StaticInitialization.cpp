@@ -202,3 +202,8 @@ libmaus::util::AlphaTable const libmaus::bambam::SamInfoBase::AT;
 libmaus::bambam::SamPrintableTable const libmaus::bambam::SamInfoBase::SPT;
 libmaus::bambam::SamZPrintableTable const libmaus::bambam::SamInfoBase::SZPT;
 libmaus::math::DecimalNumberParser const libmaus::bambam::SamInfoBase::DNP;
+
+#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+
+std::map<std::string,libmaus::aio::InputStreamFactory::shared_ptr_type> libmaus::aio::InputStreamFactoryContainer::factories =
+	libmaus::aio::InputStreamFactoryContainer::setupFactories();

@@ -800,7 +800,8 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/InputStreamWrapper.hpp \
 	libmaus/aio/InputStream.hpp \
 	libmaus/aio/InputStreamFactory.hpp \
-	libmaus/aio/PosixFdInputStreamFactory.hpp
+	libmaus/aio/PosixFdInputStreamFactory.hpp \
+	libmaus/aio/InputStreamFactoryContainer.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
