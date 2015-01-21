@@ -24,6 +24,7 @@
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp>
+#include <libmaus/aio/InputStream.hpp>
 
 namespace libmaus
 {
@@ -47,6 +48,7 @@ namespace libmaus
 			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
+			libmaus::aio::InputStream::unique_ptr_type AISTR;
 			//! compressed input stream
 			libmaus::aio::CheckedInputStream::unique_ptr_type PISTR;
 			//! decmopressor pointer
@@ -76,8 +78,7 @@ namespace libmaus
 			
 				return true;
 			}
-
-						
+		
 			public:
 			/**
 			 * constructor by file name
@@ -88,7 +89,7 @@ namespace libmaus
 			BamDecoderTemplate(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(new libmaus::aio::CheckedInputStream(filename)),
+			  AISTR(), PISTR(new libmaus::aio::CheckedInputStream(filename)),
 			  PGZ(new bgzf_type(*PISTR)), GZ(PGZ.get()),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
@@ -103,7 +104,21 @@ namespace libmaus
 			BamDecoderTemplate(std::istream & in, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), PGZ(new bgzf_type(in)), GZ(PGZ.get()),
+			  AISTR(), PISTR(), PGZ(new bgzf_type(in)), GZ(PGZ.get()),
+			  Pbamheader(new BamHeader(*GZ)),
+			  bamheader(*Pbamheader)
+			{}
+
+			/**
+			 * constructor by compressed input stream
+			 *
+			 * @param in input stream delivering BAM
+			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
+			 **/
+			BamDecoderTemplate(libmaus::aio::InputStream::unique_ptr_type & rAISTR, bool const rputrank = false)
+			: 
+			  libmaus::bambam::BamAlignmentDecoder(rputrank),
+			  AISTR(UNIQUE_PTR_MOVE(rAISTR)), PISTR(), PGZ(new bgzf_type(*AISTR)), GZ(PGZ.get()),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
 			{}
@@ -117,7 +132,7 @@ namespace libmaus
 			BamDecoderTemplate(bgzf_type & rGZ, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), PGZ(), GZ(&rGZ),
+			  AISTR(), PISTR(), PGZ(), GZ(&rGZ),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
 			{}
@@ -132,7 +147,7 @@ namespace libmaus
 			BamDecoderTemplate(bgzf_type & rGZ, libmaus::bambam::BamHeader const & rheader, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), PGZ(), GZ(&rGZ),
+			  AISTR(), PISTR(), PGZ(), GZ(&rGZ),
 			  Pbamheader(),
 			  bamheader(rheader)
 			{}
@@ -146,7 +161,7 @@ namespace libmaus
 			BamDecoderTemplate(libmaus::bambam::BamHeader const & rheader)
 			:
 			  libmaus::bambam::BamAlignmentDecoder(false),
-			  PISTR(), PGZ(), GZ(0), Pbamheader(), bamheader(rheader)
+			  AISTR(), PISTR(), PGZ(), GZ(0), Pbamheader(), bamheader(rheader)
 			{
 			
 			}
