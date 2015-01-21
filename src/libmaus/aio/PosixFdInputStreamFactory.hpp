@@ -35,10 +35,20 @@ namespace libmaus
 			virtual ~PosixFdInputStreamFactory() {}
 			virtual libmaus::aio::InputStream::unique_ptr_type construct(std::string const & filename)
 			{
-				PosixFdInputStream::unique_ptr_type tptr(new PosixFdInputStream(filename));
-				libmaus::util::unique_ptr<std::istream>::type iptr(tptr.release());
-				libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
-				return UNIQUE_PTR_MOVE(istr);
+				if ( filename == "-" )
+				{				
+					PosixFdInputStream::unique_ptr_type tptr(new PosixFdInputStream(STDIN_FILENO));
+					libmaus::util::unique_ptr<std::istream>::type iptr(tptr.release());
+					libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
+					return UNIQUE_PTR_MOVE(istr);
+				}
+				else
+				{
+					PosixFdInputStream::unique_ptr_type tptr(new PosixFdInputStream(filename));
+					libmaus::util::unique_ptr<std::istream>::type iptr(tptr.release());
+					libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
+					return UNIQUE_PTR_MOVE(istr);
+				}
 			}
 		};
 	}
