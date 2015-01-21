@@ -17,28 +17,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus/irods/IRodsInputStreamFactory.hpp>
-#include <libmaus/aio/InputStream.hpp>
-#include <libmaus/aio/InputStreamFactory.hpp>
-#include <libmaus/irods/IRodsInputStream.hpp>
 #include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/network/UrlInputStreamFactory.hpp>
-#include <libmaus/aio/PosixFdInputStreamFactory.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
 		libmaus::util::ArgInfo const arginfo(argc,argv);
+	
+		libmaus::irods::IRodsInputStreamFactory::registerHandler();
 		
 		libmaus::autoarray::AutoArray<char> B(1024*1024,false);
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			// libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::irods::IRodsInputStreamFactory().construct(arginfo.restargs[i]));
-			libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::PosixFdInputStreamFactory().construct(arginfo.restargs[i]));
-			// libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::network::UrlInputStreamFactory().construct(arginfo.restargs[i]));
+			libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::construct(arginfo.restargs[i]));
 			std::istream & in = *Pin;
 			
-			#if 1
+			#if 0
 			in.seekg(0,std::ios::end);
 			uint64_t const len = in.tellg();
 			in.seekg(0,std::ios::beg);
