@@ -2282,6 +2282,63 @@ AC_MSG_RESULT([${hdf5}])
 	LDFLAGS=${LDFLAGS_SAVE}
 fi
 
+AC_ARG_WITH([irods],
+	[AS_HELP_STRING([--with-irods@<:@=PATH@:>@], [path to installed IRODS @<:@default=no@:>@])],
+	[with_irods=${withval}],
+	[with_irods=no])
+LIBMAUS_HAVE_IRODS=
+
+if test "${with_irods}" != "no" ; then
+	IRODSDIR=
+	if test "${with_irods}" != "yes" ; then
+		IRODSDIR=${with_irods}
+	fi
+	
+	CPPFLAGS_SAVE=${CPPFLAGS}
+	CXXFLAGS_SAVE=${CXXFLAGS}
+	LIBS_SAVE=${LIBS}
+	LDFLAGS_SAVE=${LDFLAGS}
+	
+	if test ! -z "${IRODSDIR}" ; then
+		CPPFLAGS="${CPPFLAGS} -I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		LDFLAGS="${LDFLAGS} -L${IRODSDIR}/lib/core/obj"
+		LIBS="${LIBS} -lRodsAPIs -pthread -ldl -lgssapi_krb5"
+	fi
+
+	AC_LANG_PUSH([C++])
+	AC_CHECK_HEADER(rodsClient.h, [rodsclient_h=yes], [rodsclient_h=no])
+	AC_LANG_POP
+	
+	if test "${rodsclient_h}" = "yes" ; then
+AC_MSG_CHECKING([for rodsClient.h])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <rodsClient.h>
+],[
+	return 0;
+],[rodsclient_h=yes],[rodsclient_h=no])
+AC_MSG_RESULT([${rodsclient_h}])	
+	fi
+	
+	if test "${rodsclient_h}" = "yes" ; then	
+AC_MSG_CHECKING([whether we can compile a program using the IRODS library])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <rodsClient.h>],[
+	rodsEnv myRodsEnv;
+	int const status = getRodsEnv (&myRodsEnv);
+	return 0;
+],[irods=yes],[irods=no])
+AC_MSG_RESULT([${irods}])
+		if test "${irods}" = "yes" ; then
+			LIBMAUS_HAVE_IRODS="#define LIBMAUS_HAVE_IRODS"
+		fi
+	fi
+
+	CPPFLAGS=${CPPFLAGS_SAVE}
+	CXXFLAGS=${CXXFLAGS_SAVE}
+	LIBS=${LIBS_SAVE}
+	LDFLAGS=${LDFLAGS_SAVE}
+fi
+
 case $host_os in
   *mingw32*)
     LIBMAUSLDFLAGS="${LIBMAUSLDFLAGS} -no-undefined" # -avoid-version
@@ -2348,6 +2405,19 @@ if test ! -z "${LIBMAUS_HAVE_HDF5}" ; then
 		HDF5LDFLAGS="-L${HDF5DIR}/lib -Wl,-rpath=${HDF5DIR}/lib"
 	fi
 	HDF5LIBS="-lhdf5_hl -lhdf5"
+fi
+
+IRODSCPPFLAGS=
+IRODSCXXFLAGS=
+IRODSLDFLAGS=
+IRODSLIBS=
+if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
+	TESTPROGS="${TESTPROGS} testirods"
+	if test ! -z "${IRODSDIR}" ; then
+		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
+	fi
+	IRODSLIBS="-lRodsAPIs -lgssapi_krb5 -pthread -ldl"
 fi
 
 AC_ARG_ENABLE(compile-testprograms,
@@ -2491,4 +2561,10 @@ AC_SUBST([HDF5CPPFLAGS])
 AC_SUBST([HDF5CXXFLAGS])
 AC_SUBST([HDF5LDFLAGS])
 AC_SUBST([HDF5LIBS])
+AC_SUBST([IRODSDIR])
+AC_SUBST([LIBMAUS_HAVE_IRODS])
+AC_SUBST([IRODSCPPFLAGS])
+AC_SUBST([IRODSCXXFLAGS])
+AC_SUBST([IRODSLDFLAGS])
+AC_SUBST([IRODSLIBS])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

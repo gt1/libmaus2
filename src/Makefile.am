@@ -13,7 +13,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la
-lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a
+lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a libmaus_irods.a
 
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
@@ -24,6 +24,9 @@ libmausdigests_a_LIBADD = @DIGESTASMOBJ@
 
 libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42_update.cpp
 libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
+
+libmaus_irods_a_SOURCES = libmaus/irods/IRodsSystem.cpp libmaus/irods/IRodsFileBase.cpp
+libmaus_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
@@ -1146,6 +1149,14 @@ libmaushdf5_includedir=$(includedir)/libmaus/hdf5
 libmaushdf5_include_HEADERS=\
 	libmaus/hdf5/HDF5MuteErrorHandler.hpp \
 	libmaus/hdf5/HDF5Handle.hpp
+	
+libmausirods_includedir=$(includedir)/libmaus/irods
+libmausirods_include_HEADERS=\
+	libmaus/irods/IRodsFileBase.hpp \
+	libmaus/irods/IRodsSystem.hpp \
+	libmaus/irods/IRodsCommProvider.hpp \
+	libmaus/irods/IRodsInputStreamBuffer.hpp \
+	libmaus/index/IRodsInputStream.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
 libmauslcs_include_HEADERS=\
@@ -1334,7 +1345,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testmd5 \
 	testsha \
 	testsinglefileserver \
-	testhdf5
+	testhdf5 \
+	testirods
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1747,3 +1759,9 @@ testhdf5_SOURCES  = test/testhdf5.cpp
 testhdf5_LDADD    = libmaus.la @HDF5LIBS@
 testhdf5_CPPFLAGS = @HDF5CPPFLAGS@ @WARNCPPFLAGS@
 testhdf5_LDFLAGS  = ${AM_LDFLAGS} @HDF5LDFLAGS@
+
+testirods_SOURCES  = test/testirods.cpp
+testirods_LDADD    = libmaus_irods.a libmaus.la @IRODSLIBS@ 
+testirods_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
+testirods_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
+testirods_DEPENDENCIES = libmaus_irods.a libmaus.la
