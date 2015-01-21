@@ -16,9 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/irods/IRodsInputStreamFactory.hpp>
 #include <libmaus/aio/InputStream.hpp>
-#include <libmaus/index/IRodsInputStream.hpp>
+#include <libmaus/aio/InputStreamFactory.hpp>
+#include <libmaus/irods/IRodsInputStream.hpp>
 #include <libmaus/util/ArgInfo.hpp>
+#include <libmaus/network/UrlInputStreamFactory.hpp>
+#include <libmaus/aio/PosixFdInputStreamFactory.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -29,13 +33,18 @@ int main(int argc, char * argv[])
 		libmaus::autoarray::AutoArray<char> B(1024*1024,false);
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			libmaus::irods::IRodsInputStream::unique_ptr_type Pin(new libmaus::irods::IRodsInputStream(arginfo.restargs[i]));
-			libmaus::util::unique_ptr<std::istream>::type Tin(Pin.release());
-			libmaus::aio::InputStream in(Tin);
+			// libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::irods::IRodsInputStreamFactory().construct(arginfo.restargs[i]));
+			libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::PosixFdInputStreamFactory().construct(arginfo.restargs[i]));
+			// libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::network::UrlInputStreamFactory().construct(arginfo.restargs[i]));
+			std::istream & in = *Pin;
 			
+			#if 1
 			in.seekg(0,std::ios::end);
 			uint64_t const len = in.tellg();
 			in.seekg(0,std::ios::beg);
+			#else
+			uint64_t const len = 0;
+			#endif
 			
 			uint64_t t = 0;
 			while ( in )
@@ -44,10 +53,16 @@ int main(int argc, char * argv[])
 				t += in.gcount();
 				std::cout.write(B.begin(),in.gcount());
 				
-				std::cerr << "\r" << std::string(80,' ') << "\r" << (static_cast<double>(t) / len) << std::flush;
+				if ( len != 0 )
+					std::cerr << "\r" << std::string(80,' ') << "\r" << (static_cast<double>(t) / len) << std::flush;
+				else
+					std::cerr << "\r" << std::string(80,' ') << "\r" << t << std::flush;
 			}
 			
-			std::cerr << "\r" << std::string(80,' ') << "\r" << (static_cast<double>(t) / len) << std::endl;			
+			if ( len != 0 )
+				std::cerr << "\r" << std::string(80,' ') << "\r" << (static_cast<double>(t) / len) << std::endl;
+			else
+				std::cerr << "\r" << std::string(80,' ') << "\r" << t << std::endl;
 		}		
 	}
 	catch(std::exception const & ex)

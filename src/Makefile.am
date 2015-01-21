@@ -798,7 +798,9 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/LineSplittingPosixFdOutputStreamBuffer.hpp \
 	libmaus/aio/LineSplittingPosixFdOutputStream.hpp \
 	libmaus/aio/InputStreamWrapper.hpp \
-	libmaus/aio/InputStream.hpp
+	libmaus/aio/InputStream.hpp \
+	libmaus/aio/InputStreamFactory.hpp \
+	libmaus/aio/PosixFdInputStreamFactory.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
@@ -1141,7 +1143,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/UrlInputStream.hpp \
 	libmaus/network/GnuTLSInit.hpp \
 	libmaus/network/GnuTLSSocket.hpp \
-	libmaus/network/SingleFileServer.hpp
+	libmaus/network/SingleFileServer.hpp \
+	libmaus/network/UrlInputStreamFactory.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1158,7 +1161,7 @@ libmausirods_include_HEADERS=\
 	libmaus/irods/IRodsSystem.hpp \
 	libmaus/irods/IRodsCommProvider.hpp \
 	libmaus/irods/IRodsInputStreamBuffer.hpp \
-	libmaus/index/IRodsInputStream.hpp
+	libmaus/irods/IRodsInputStream.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
 libmauslcs_include_HEADERS=\
