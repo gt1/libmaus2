@@ -1,3 +1,10 @@
+libmaus (0.0.188-1) unstable; urgency=low
+
+  * use input stream factories in BAM decoder construction factories
+  * add iRODS input stream interface
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 22 Jan 2015 08:51:27 +0000
+
 libmaus (0.0.187-1) unstable; urgency=low
 
   * use fixed order of attributes when rewriting BAM header lines 
