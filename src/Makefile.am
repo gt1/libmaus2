@@ -441,7 +441,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamPrintableTable.hpp \
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp
+	libmaus/bambam/SamDecoderWrapper.hpp \
+	libmaus/bambam/ScramInputContainer.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1556,7 +1557,10 @@ testbytetocompact_SOURCES = test/testbytetocompact.cpp
 testbytetocompact_LDADD = libmaus.la
 
 testscramtosam_SOURCES = test/testscramtosam.cpp
-testscramtosam_LDADD = libmaus.la @DLLIB@
+testscramtosam_LDADD    = libmaus_irods.a libmaus.la @IRODSLIBS@ @DLLIB@
+testscramtosam_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
+testscramtosam_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
+testscramtosam_DEPENDENCIES = libmaus_irods.a libmaus.la
 
 testpacdecode_SOURCES = test/testpacdecode.cpp
 testpacdecode_LDADD = libmaus.la
