@@ -2935,7 +2935,7 @@ namespace libmaus
 				ostr << getPos(E)+1 << '\t';
 				ostr << getMapQ(E) << '\t';
 				
-				if ( isUnmap(flags) || (! getNCigar(E)) )
+				if ( (! getNCigar(E)) )
 				{
 					ostr.put('*');
 				}
