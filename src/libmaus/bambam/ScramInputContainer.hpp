@@ -52,7 +52,7 @@ namespace libmaus
 			
 				try
 				{
-					Mcontrol[sptr.get()] = NULL;
+					Mcontrol[sptr.get()] = libmaus::util::shared_ptr<scram_cram_io_input_t>::type();
 				}
 				catch(...)
 				{
@@ -76,7 +76,7 @@ namespace libmaus
 				
 				try
 				{
-					Mstream[sptr.get()] = NULL;
+					Mstream[sptr.get()] = libmaus::aio::InputStream::shared_ptr_type();
 				}
 				catch(...)
 				{
