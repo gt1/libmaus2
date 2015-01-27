@@ -23,6 +23,7 @@
 #if defined(LIBMAUS_HAVE_IO_LIB)
 #include <libmaus/bambam/ScramEncoder.hpp>
 #endif
+#include <libmaus/bambam/SamEncoder.hpp>
 
 namespace libmaus
 {
@@ -206,6 +207,30 @@ namespace libmaus
 							return UNIQUE_PTR_MOVE(tptr);
 						}
 					}
+				}
+				else if ( 
+					outputformat == "maussam"					
+					#if !defined(LIBMAUS_HAVE_IO_LIB)
+					||
+					outputformat == "sam"
+					#endif
+				)
+				{
+					if ( outputisstdout )
+					{
+						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(
+							new libmaus::bambam::SamEncoder(std::cout,bamheader)
+						);
+						return UNIQUE_PTR_MOVE(tptr);
+					}
+					else
+					{
+						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(
+							new libmaus::bambam::SamEncoder(outputfilename,bamheader)
+						);
+						return UNIQUE_PTR_MOVE(tptr);
+					}
+				
 				}
 				#if defined(LIBMAUS_HAVE_IO_LIB)
 				else if ( outputformat == "sam" )

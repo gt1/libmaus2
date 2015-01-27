@@ -442,7 +442,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/SamZPrintableTable.hpp \
 	libmaus/bambam/SamDecoder.hpp \
 	libmaus/bambam/SamDecoderWrapper.hpp \
-	libmaus/bambam/ScramInputContainer.hpp
+	libmaus/bambam/ScramInputContainer.hpp \
+	libmaus/bambam/SamEncoder.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
