@@ -110,6 +110,11 @@ struct Fast5ToFastQWorkPackage : public libmaus::parallel::SimpleThreadWorkPacka
 	std::ostream * out;
 	libmaus::parallel::PosixMutex * outmutex;
 	std::string idsuffix;
+	std::map<std::string, libmaus::util::Histogram::shared_ptr_type > * rlHhistograms;
+	libmaus::parallel::PosixSpinLock * rlHhistogramsLock;
+	volatile uint64_t * minexpstarttime;
+	volatile uint64_t * maxexpstarttime;
+	libmaus::parallel::PosixSpinLock * expstarttimelock;
 
 	Fast5ToFastQWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage()
 	{}
@@ -119,9 +124,18 @@ struct Fast5ToFastQWorkPackage : public libmaus::parallel::SimpleThreadWorkPacka
 		std::ostream * rout,
 		libmaus::parallel::PosixMutex * routmutex,
 		std::string const & ridsuffix,
+		std::map<std::string, libmaus::util::Histogram::shared_ptr_type > * rrlHhistograms,
+		libmaus::parallel::PosixSpinLock * rrlHhistogramsLock,
+		volatile uint64_t * rminexpstarttime,
+		volatile uint64_t * rmaxexpstarttime,
+		libmaus::parallel::PosixSpinLock * rexpstarttimelock,
 		uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0
 	)
-	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), id(rid), filename(rfilename), out(rout), outmutex(routmutex), idsuffix(ridsuffix)
+	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), id(rid), filename(rfilename), out(rout), outmutex(routmutex), idsuffix(ridsuffix),
+	  rlHhistograms(rrlHhistograms), rlHhistogramsLock(rrlHhistogramsLock),
+	  minexpstarttime(rminexpstarttime),
+	  maxexpstarttime(rmaxexpstarttime),
+	  expstarttimelock(rexpstarttimelock)
 	{}                                                                                                                                                                                                
 
 	char const * getPackageName() const
@@ -166,14 +180,12 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 			libmaus::autoarray::AutoArray<char> B = libmaus::autoarray::AutoArray<char>::readFile(F->filename);
 			// open HDF5
 			libmaus::hdf5::HDF5Handle::shared_ptr_type fhandle = libmaus::hdf5::HDF5Handle::createMemoryHandle(B.begin(),B.size());
-			bool running = true;
+			bool printed = false;
 			
 			// check for known FastQ paths
-			for ( char const ** fqp = &fastq_paths[0]; running && *fqp; ++fqp )
+			for ( char const ** fqp = &fastq_paths[0]; *fqp; ++fqp )
 				if ( fhandle->hasPath(*fqp) )
 				{
-					running = false;
-
 					// get FastQ string
 					std::string const fq = fhandle->getPath(*fqp)->datasetDecodeString();
 
@@ -183,6 +195,24 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 					std::string const expstarttime = fhandle->getPath("/UniqueGlobalKey/tracking_id")->decodeAttributeString("exp_start_time");
 					std::string const eventsstarttime = fhandle->getPath("/Analyses/Basecall_2D_000/BaseCalled_template/Events")->decodeAttributeString("start_time");
 					
+					double dexpstarttime;
+					std::istringstream sexpstarttime(expstarttime);
+					sexpstarttime >> dexpstarttime;
+
+					double deventsstarttime;
+					std::istringstream seventsstarttime(eventsstarttime);
+					seventsstarttime >> deventsstarttime;
+					
+					uint64_t uexpstarttime;
+					std::istringstream suexpstarttime(expstarttime);
+					suexpstarttime >> uexpstarttime;
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock lock(*(F->expstarttimelock));
+						*(F->minexpstarttime) = std::min(static_cast<uint64_t>(*(F->minexpstarttime)),uexpstarttime);
+						*(F->maxexpstarttime) = std::max(static_cast<uint64_t>(*(F->maxexpstarttime)),uexpstarttime);
+					}
+										
 					// set up FastQ parser
 					std::istringstream istr(fq);
 					libmaus::fastx::StreamFastQReaderWrapper reader(istr);
@@ -191,6 +221,19 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 					// read entries and modify name
 					while ( reader.getNextPatternUnlocked(pattern) )
 					{
+						{
+							libmaus::parallel::ScopePosixSpinLock lock(*(F->rlHhistogramsLock));
+							std::map<std::string, libmaus::util::Histogram::shared_ptr_type> & M = 
+								*(F->rlHhistograms);
+							if ( M.find(*fqp) == M.end() )
+								M[*fqp] = libmaus::util::Histogram::shared_ptr_type(
+									new libmaus::util::Histogram
+								);
+							
+							libmaus::util::Histogram & H = *(M.find(*fqp)->second);
+							H(pattern.spattern.size());
+						}
+						
 						if ( F->idsuffix.size() )
 						{
 							pattern.sid += "_";
@@ -217,12 +260,15 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 						std::string const outblock = blockout.str();
 
 						// lock output stream and write data
+						if ( ! printed )
 						{
 							libmaus::parallel::ScopePosixMutex smutex(*(F->outmutex));
 							F->out->write(
 								outblock.c_str(),
 								outblock.size()
 							);
+							
+							printed = true;
 						}
 					}					
 				}
@@ -256,6 +302,14 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 	Fast5ToFastQWorkPackageDispatcher fast5tofastqdispatcher;
 	// dispatcher id
 	uint64_t const fast5tofastqdispatcherid;
+	// read length histograms
+	std::map<std::string, libmaus::util::Histogram::shared_ptr_type > rlHhistograms;
+	libmaus::parallel::PosixSpinLock rlHhistogramsLock;
+
+	volatile uint64_t minexpstarttime;
+	volatile uint64_t maxexpstarttime;
+	libmaus::parallel::PosixSpinLock expstarttimelock;
+
 
 	// work package finished callback
 	void fast5ToFastQWorkPackageFinished()
@@ -288,7 +342,8 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 		std::string const & ridsuffix,
 		uint64_t const rnumthreads
 		) 
-	: out(rout), c_in(0), c_out(0), idsuffix(ridsuffix), STP(rnumthreads), fast5tofastqdispatcher(*this,*this), fast5tofastqdispatcherid(0)
+	: out(rout), c_in(0), c_out(0), idsuffix(ridsuffix), STP(rnumthreads), fast5tofastqdispatcher(*this,*this), fast5tofastqdispatcherid(0),
+	  minexpstarttime(std::numeric_limits<uint64_t>::max()), maxexpstarttime(0)
 	{
 		STP.registerDispatcher(fast5tofastqdispatcherid,&fast5tofastqdispatcher);
 	}
@@ -307,8 +362,32 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 		if ( endsOn(fn,".fast5" ) )
 		{
 			Fast5ToFastQWorkPackage * package = packageFreeList.getPackage();
-			*package = Fast5ToFastQWorkPackage(c_in.increment()-1,fn,&out,&outmutex,idsuffix,0 /* prio */,fast5tofastqdispatcherid);
+			*package = Fast5ToFastQWorkPackage(c_in.increment()-1,fn,&out,&outmutex,idsuffix,
+				&rlHhistograms,&rlHhistogramsLock,
+				&minexpstarttime, &maxexpstarttime, &expstarttimelock,
+				0 /* prio */,fast5tofastqdispatcherid
+			);
 			STP.enque(package);
+		}
+	}
+
+	void printHistograms()
+	{
+		for (
+			std::map<std::string, libmaus::util::Histogram::shared_ptr_type >::iterator ita = rlHhistograms.begin();
+			ita != rlHhistograms.end();
+			++ita )
+		{
+			std::string const & name = ita->first;
+			libmaus::util::Histogram & hist = *(ita->second);
+			std::map<uint64_t,uint64_t> M = hist.get();
+			uint64_t s = 0;
+			
+			for ( std::map<uint64_t,uint64_t>::const_iterator Mita = M.begin(); Mita != M.end(); ++Mita )
+			{
+				s += Mita->second;
+				std::cerr << "[H]\t" << name << "\t" << Mita->first << "\t" << Mita->second << "\t" << s << std::endl;
+			}
 		}
 	}
 };
@@ -339,7 +418,11 @@ int main(int argc, char * argv[])
 		while ( ! PFC.finished() )
 			sleep(1);
 			
-		PFC.terminate();		
+		PFC.terminate();
+		
+		PFC.printHistograms();
+		std::cerr << "minexpstarttime=" << PFC.minexpstarttime << std::endl;
+		std::cerr << "maxexpstarttime=" << PFC.maxexpstarttime << std::endl;
 	}
 	catch(std::exception const & ex)
 	{
