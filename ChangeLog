@@ -1,3 +1,10 @@
+libmaus (0.0.189-1) unstable; urgency=low
+
+  * add CRAM input via callback interface for io_lib
+  * add SAM encoder
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 28 Jan 2015 09:14:23 +0000
+
 libmaus (0.0.188-1) unstable; urgency=low
 
   * use input stream factories in BAM decoder construction factories
