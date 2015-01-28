@@ -632,16 +632,16 @@ int main(int argc, char * argv[])
 			PFC.filenamelcp.size() >= strlen("_ch") &&
 			PFC.filenamelcp.substr(PFC.filenamelcp.size()-strlen("_ch")) == "_ch" )
 			PFC.filenamelcp = PFC.filenamelcp.substr(0,PFC.filenamelcp.size()-strlen("_ch"));
+
+		std::string const histprefix = arginfo.getUnparsedValue("histprefix",PFC.filenamelcp);
 		
-		PFC.printHistograms(PFC.filenamelcp);
+		PFC.printHistograms(histprefix);
 		std::cerr << "[V]\tminexpstarttime=" << PFC.minexpstarttime << "\tmaxexpstarttime=" << PFC.maxexpstarttime << std::endl;
 		
 		if ( PFC.minexpstarttime == PFC.maxexpstarttime )
-			PFC.printThroughputGraph(PFC.filenamelcp);
+			PFC.printThroughputGraph(histprefix);
 		else
-			std::cerr << "[E] inconsistent experiment start time, not producing data generation rate over time graph." << std::endl;
-			
-		// std::cerr << "lcp: " << PFC.filenamelcp << std::endl;
+			std::cerr << "[E] inconsistent experiment start time, not producing data generation rate over time graph." << std::endl;			
 	}
 	catch(std::exception const & ex)
 	{
