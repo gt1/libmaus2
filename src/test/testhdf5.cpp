@@ -24,6 +24,7 @@
 #include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
 #include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus/aio/PosixFdOutputStream.hpp>
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -110,6 +111,16 @@ struct Fast5ToFastQWorkPackage : public libmaus::parallel::SimpleThreadWorkPacka
 	std::ostream * out;
 	libmaus::parallel::PosixMutex * outmutex;
 	std::string idsuffix;
+	std::map<std::string, libmaus::util::Histogram::shared_ptr_type > * rlHhistograms;
+	libmaus::parallel::PosixSpinLock * rlHhistogramsLock;
+	volatile uint64_t * minexpstarttime;
+	volatile uint64_t * maxexpstarttime;
+	libmaus::parallel::PosixSpinLock * expstarttimelock;
+	std::map< std::string, std::vector < std::pair<double,uint64_t> > > * throughputvector;
+	libmaus::parallel::PosixSpinLock * throughputvectorlock;
+	std::string * filenamelcp;
+	volatile bool * filenamelcpvalid;
+	libmaus::parallel::PosixSpinLock * filenamelcplock;
 
 	Fast5ToFastQWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage()
 	{}
@@ -119,9 +130,28 @@ struct Fast5ToFastQWorkPackage : public libmaus::parallel::SimpleThreadWorkPacka
 		std::ostream * rout,
 		libmaus::parallel::PosixMutex * routmutex,
 		std::string const & ridsuffix,
+		std::map<std::string, libmaus::util::Histogram::shared_ptr_type > * rrlHhistograms,
+		libmaus::parallel::PosixSpinLock * rrlHhistogramsLock,
+		volatile uint64_t * rminexpstarttime,
+		volatile uint64_t * rmaxexpstarttime,
+		libmaus::parallel::PosixSpinLock * rexpstarttimelock,
+		std::map< std::string, std::vector < std::pair<double,uint64_t> > > * rthroughputvector,
+		libmaus::parallel::PosixSpinLock * rthroughputvectorlock,
+		std::string * rfilenamelcp,
+		volatile bool * rfilenamelcpvalid,
+		libmaus::parallel::PosixSpinLock * rfilenamelcplock,
 		uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0
 	)
-	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), id(rid), filename(rfilename), out(rout), outmutex(routmutex), idsuffix(ridsuffix)
+	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), id(rid), filename(rfilename), out(rout), outmutex(routmutex), idsuffix(ridsuffix),
+	  rlHhistograms(rrlHhistograms), rlHhistogramsLock(rrlHhistogramsLock),
+	  minexpstarttime(rminexpstarttime),
+	  maxexpstarttime(rmaxexpstarttime),
+	  expstarttimelock(rexpstarttimelock),
+	  throughputvector(rthroughputvector),
+	  throughputvectorlock(rthroughputvectorlock),
+	  filenamelcp(rfilenamelcp),
+	  filenamelcpvalid(rfilenamelcpvalid),
+	  filenamelcplock(rfilenamelcplock)
 	{}                                                                                                                                                                                                
 
 	char const * getPackageName() const
@@ -166,14 +196,36 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 			libmaus::autoarray::AutoArray<char> B = libmaus::autoarray::AutoArray<char>::readFile(F->filename);
 			// open HDF5
 			libmaus::hdf5::HDF5Handle::shared_ptr_type fhandle = libmaus::hdf5::HDF5Handle::createMemoryHandle(B.begin(),B.size());
-			bool running = true;
+			bool printed = false;
+
+			{
+				std::string filename = F->filename;
+				if ( filename.find_last_of('/') != std::string::npos )
+				{
+					filename = filename.substr(filename.find_last_of('/')+1);
+				}
+				
+				libmaus::parallel::ScopePosixSpinLock lock(*(F->filenamelcplock));
+				if ( ! *(F->filenamelcpvalid) )
+				{
+					*(F->filenamelcp) = filename;
+					*(F->filenamelcpvalid) = true;
+				}
+				else
+				{
+					uint64_t i = 0;
+					while ( i < filename.size() && i < F->filenamelcp->size() && filename[i] == F->filenamelcp->at(i) )
+						++i;
+					
+					*(F->filenamelcp) = F->filenamelcp->substr(0,i);
+				}
+			}
+
 			
 			// check for known FastQ paths
-			for ( char const ** fqp = &fastq_paths[0]; running && *fqp; ++fqp )
+			for ( char const ** fqp = &fastq_paths[0]; *fqp; ++fqp )
 				if ( fhandle->hasPath(*fqp) )
 				{
-					running = false;
-
 					// get FastQ string
 					std::string const fq = fhandle->getPath(*fqp)->datasetDecodeString();
 
@@ -183,6 +235,24 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 					std::string const expstarttime = fhandle->getPath("/UniqueGlobalKey/tracking_id")->decodeAttributeString("exp_start_time");
 					std::string const eventsstarttime = fhandle->getPath("/Analyses/Basecall_2D_000/BaseCalled_template/Events")->decodeAttributeString("start_time");
 					
+					double dexpstarttime;
+					std::istringstream sexpstarttime(expstarttime);
+					sexpstarttime >> dexpstarttime;
+
+					double deventsstarttime;
+					std::istringstream seventsstarttime(eventsstarttime);
+					seventsstarttime >> deventsstarttime;
+					
+					uint64_t uexpstarttime;
+					std::istringstream suexpstarttime(expstarttime);
+					suexpstarttime >> uexpstarttime;
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock lock(*(F->expstarttimelock));
+						*(F->minexpstarttime) = std::min(static_cast<uint64_t>(*(F->minexpstarttime)),uexpstarttime);
+						*(F->maxexpstarttime) = std::max(static_cast<uint64_t>(*(F->maxexpstarttime)),uexpstarttime);
+					}
+										
 					// set up FastQ parser
 					std::istringstream istr(fq);
 					libmaus::fastx::StreamFastQReaderWrapper reader(istr);
@@ -191,6 +261,26 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 					// read entries and modify name
 					while ( reader.getNextPatternUnlocked(pattern) )
 					{
+						{
+							libmaus::parallel::ScopePosixSpinLock lock(*(F->rlHhistogramsLock));
+							std::map<std::string, libmaus::util::Histogram::shared_ptr_type> & M = 
+								*(F->rlHhistograms);
+							if ( M.find(*fqp) == M.end() )
+								M[*fqp] = libmaus::util::Histogram::shared_ptr_type(
+									new libmaus::util::Histogram
+								);
+							
+							libmaus::util::Histogram & H = *(M.find(*fqp)->second);
+							H(pattern.spattern.size());
+						}
+						
+						{
+							libmaus::parallel::ScopePosixSpinLock lock(*(F->throughputvectorlock));
+							(*(F->throughputvector))[*fqp].push_back(
+								std::pair<double,uint64_t>(dexpstarttime+deventsstarttime,pattern.spattern.size())
+							);
+						}
+						
 						if ( F->idsuffix.size() )
 						{
 							pattern.sid += "_";
@@ -217,12 +307,22 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 						std::string const outblock = blockout.str();
 
 						// lock output stream and write data
+						if ( ! printed )
 						{
 							libmaus::parallel::ScopePosixMutex smutex(*(F->outmutex));
 							F->out->write(
 								outblock.c_str(),
 								outblock.size()
 							);
+
+							{
+								libmaus::parallel::ScopePosixSpinLock lock(*(F->throughputvectorlock));
+								(*(F->throughputvector))["/Analyses/Basecall_2D_000/BaseCalled_template_or_2D/Fastq"].push_back(
+									std::pair<double,uint64_t>(dexpstarttime+deventsstarttime,pattern.spattern.size())
+								);
+							}
+							
+							printed = true;
 						}
 					}					
 				}
@@ -256,6 +356,21 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 	Fast5ToFastQWorkPackageDispatcher fast5tofastqdispatcher;
 	// dispatcher id
 	uint64_t const fast5tofastqdispatcherid;
+	// read length histograms
+	std::map<std::string, libmaus::util::Histogram::shared_ptr_type > rlHhistograms;
+	libmaus::parallel::PosixSpinLock rlHhistogramsLock;
+
+
+	std::map < std::string, std::vector < std::pair<double,uint64_t> > > throughputvector;
+	libmaus::parallel::PosixSpinLock throughputvectorlock;
+
+	volatile uint64_t minexpstarttime;
+	volatile uint64_t maxexpstarttime;
+	libmaus::parallel::PosixSpinLock expstarttimelock;
+
+	std::string  filenamelcp;
+	volatile bool filenamelcpvalid;
+	libmaus::parallel::PosixSpinLock filenamelcplock;
 
 	// work package finished callback
 	void fast5ToFastQWorkPackageFinished()
@@ -288,7 +403,8 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 		std::string const & ridsuffix,
 		uint64_t const rnumthreads
 		) 
-	: out(rout), c_in(0), c_out(0), idsuffix(ridsuffix), STP(rnumthreads), fast5tofastqdispatcher(*this,*this), fast5tofastqdispatcherid(0)
+	: out(rout), c_in(0), c_out(0), idsuffix(ridsuffix), STP(rnumthreads), fast5tofastqdispatcher(*this,*this), fast5tofastqdispatcherid(0),
+	  minexpstarttime(std::numeric_limits<uint64_t>::max()), maxexpstarttime(0), filenamelcpvalid(false)
 	{
 		STP.registerDispatcher(fast5tofastqdispatcherid,&fast5tofastqdispatcher);
 	}
@@ -307,8 +423,179 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 		if ( endsOn(fn,".fast5" ) )
 		{
 			Fast5ToFastQWorkPackage * package = packageFreeList.getPackage();
-			*package = Fast5ToFastQWorkPackage(c_in.increment()-1,fn,&out,&outmutex,idsuffix,0 /* prio */,fast5tofastqdispatcherid);
+			*package = Fast5ToFastQWorkPackage(c_in.increment()-1,fn,&out,&outmutex,idsuffix,
+				&rlHhistograms,&rlHhistogramsLock,
+				&minexpstarttime, &maxexpstarttime, &expstarttimelock,
+				&throughputvector,&throughputvectorlock,
+				&filenamelcp,&filenamelcpvalid,&filenamelcplock,
+				0 /* prio */,fast5tofastqdispatcherid
+			);
 			STP.enque(package);
+		}
+	}
+
+	void printHistograms(std::string const & fileprefix, size_t const gran = 250)
+	{
+		for (
+			std::map<std::string, libmaus::util::Histogram::shared_ptr_type >::iterator ita = rlHhistograms.begin();
+			ita != rlHhistograms.end();
+			++ita )
+		{
+			std::string const & name = ita->first;
+			std::string type = ita->first;
+			
+			if (
+				type.size() >= strlen("/Fastq") &&
+				type.substr(type.size()-strlen("/Fastq")) == "/Fastq" 
+			)
+				type = type.substr(0,type.size()-strlen("/Fastq"));
+			if ( 
+				type.size() >= strlen("/Analyses/Basecall_2D_000/BaseCalled_")
+				&&
+				type.substr(0,strlen("/Analyses/Basecall_2D_000/BaseCalled_")) == "/Analyses/Basecall_2D_000/BaseCalled_"
+			)
+				type = type.substr(strlen("/Analyses/Basecall_2D_000/BaseCalled_"));
+				
+			std::string const fn = fileprefix + "_" + type + "_rl.dat";
+			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			std::string const gplfn = fileprefix + "_" + type + "_rl.gplot";
+			libmaus::aio::PosixFdOutputStream gplPFOS(gplfn);
+
+			gplPFOS << "set terminal postscript eps\n";
+			gplPFOS << "set boxwidth 1 relative\n";
+			gplPFOS << "set xlabel \"read length in bases\"\n";
+			gplPFOS << "set ylabel \"count\"\n";
+			gplPFOS << "set title \"read length histogram " << fileprefix << " " << type << "\"\n";
+			gplPFOS << "set style fill transparent solid 1 noborder\n";
+			gplPFOS << "plot \""<< fn << "\" with boxes notitle\n";
+			gplPFOS.flush();
+
+			libmaus::util::Histogram & hist = *(ita->second);
+			std::map<uint64_t,uint64_t> M = hist.get();
+			uint64_t s = 0;
+			
+			std::map<uint64_t,uint64_t> accumap;
+			
+			for ( std::map<uint64_t,uint64_t>::const_iterator Mita = M.begin(); Mita != M.end(); ++Mita )
+			{
+				s += Mita->second;
+				std::cerr << "[H]\t" << name << "\t" << Mita->first << "\t" << Mita->second << "\t" << s << std::endl;
+				
+				accumap [ ((Mita->first + (gran/2)) / gran ) *gran ] += Mita->second;
+			}
+			
+			for ( std::map<uint64_t,uint64_t>::const_iterator Mita = accumap.begin(); Mita != accumap.end(); ++Mita )
+			{
+				std::cerr << "[H]\t" << name << "_accu" << "\t" << Mita->first << "\t" << Mita->second << std::endl;
+				PFOS << Mita->first << "\t" << Mita->second << "\n";
+			}
+			
+			PFOS.flush();
+			gplPFOS.flush();
+			
+			std::ostringstream comostr;
+			std::string const epsfn = fileprefix + "_" + type + "_rl.eps";
+			comostr << "gnuplot < " << gplfn << " > " << epsfn;
+			
+			int const r = system(comostr.str().c_str());
+			if ( r != 0 )
+			{
+				std::cerr << "[E] gnuplot failed" << std::endl;
+			}
+			
+			std::ostringstream comepsostr;
+			std::string const pdffn = fileprefix + "_" + type + "_rl.pdf";
+			comepsostr << "epstopdf " << epsfn;
+			int const re = system(comepsostr.str().c_str());
+			if ( re != 0 )
+			{
+				std::cerr << "[E] epstopdf failed" << std::endl;			
+			}
+
+			remove(fn.c_str());
+			remove(gplfn.c_str());
+			remove(epsfn.c_str());
+		}
+	}
+	
+	void printThroughputGraph(std::string const fileprefix)
+	{
+		for ( std::map < std::string, std::vector < std::pair<double,uint64_t> > >::iterator ita = throughputvector.begin();
+			ita != throughputvector.end(); ++ita )
+		{
+			std::string type = ita->first;
+			
+			if (
+				type.size() >= strlen("/Fastq") &&
+				type.substr(type.size()-strlen("/Fastq")) == "/Fastq" 
+			)
+				type = type.substr(0,type.size()-strlen("/Fastq"));
+			if ( 
+				type.size() >= strlen("/Analyses/Basecall_2D_000/BaseCalled_")
+				&&
+				type.substr(0,strlen("/Analyses/Basecall_2D_000/BaseCalled_")) == "/Analyses/Basecall_2D_000/BaseCalled_"
+			)
+				type = type.substr(strlen("/Analyses/Basecall_2D_000/BaseCalled_"));
+				
+			std::string const fn = fileprefix + "_" + type + ".dat";
+			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			
+			std::string const gplotfn = fileprefix + "_" + type + ".gnuplot";
+			libmaus::aio::PosixFdOutputStream gplotPFOS(gplotfn);
+
+			gplotPFOS << "set terminal postscript eps\n";
+			gplotPFOS << "set xlabel \"Experiment run-time in hours\"\n";
+			gplotPFOS << "set ylabel \"Experiment yield in million bases\"\n";			
+			gplotPFOS << "set title \"yield plot " << fileprefix << " " << type << "\"\n";
+			gplotPFOS << "set key bottom right\n";
+			// gplotPFOS << "plot \"" << fn << "\" with lines title \""<< type << "\"\n";
+			gplotPFOS << "plot \"" << fn << "\" with lines notitle\n";
+			gplotPFOS.flush();
+						
+			std::vector < std::pair<double,uint64_t> > & V = ita->second;
+			
+			std::sort(V.begin(),V.end());
+			uint64_t low = 0;
+			uint64_t sum = 0;
+			while ( low != V.size() )
+			{
+				uint64_t high = low;
+				while ( high != V.size() && V[high].first == V[low].first )
+					++high;
+					
+				for ( uint64_t i = low; i < high; ++i )
+					sum += V[i].second;
+					
+				std::cerr << "[T " << type << "]\t" << (V[low].first - minexpstarttime)/(60*60) << "\t" << sum/(1000.0*1000.0) << std::endl;
+				PFOS << (V[low].first - minexpstarttime)/(60*60) << "\t" << sum/(1000.0*1000.0) << '\n';
+
+				low = high;
+			}
+			
+			PFOS.flush();
+			
+			std::ostringstream comostr;
+			std::string const epsfn = (fileprefix + "_" + type + ".eps");
+			comostr << "gnuplot < " << gplotfn << " > " << epsfn;
+			std::string const com = comostr.str();
+			int const r = system(com.c_str());
+			
+			if ( r != 0 ) {
+				std::cerr << "[E] failed to run gnuplot" << std::endl;
+			}
+
+			std::ostringstream comepsostr;
+			std::string const pdffn = fileprefix + "_" + type + ".pdf";
+			comepsostr << "epstopdf " << epsfn;
+			int const re = system(comepsostr.str().c_str());
+			if ( re != 0 )
+			{
+				std::cerr << "[E] epstopdf failed" << std::endl;			
+			}
+			
+			remove(fn.c_str());
+			remove(gplotfn.c_str());
+			remove(epsfn.c_str());
 		}
 	}
 };
@@ -339,7 +626,22 @@ int main(int argc, char * argv[])
 		while ( ! PFC.finished() )
 			sleep(1);
 			
-		PFC.terminate();		
+		PFC.terminate();
+		
+		if ( 
+			PFC.filenamelcp.size() >= strlen("_ch") &&
+			PFC.filenamelcp.substr(PFC.filenamelcp.size()-strlen("_ch")) == "_ch" )
+			PFC.filenamelcp = PFC.filenamelcp.substr(0,PFC.filenamelcp.size()-strlen("_ch"));
+
+		std::string const histprefix = arginfo.getUnparsedValue("histprefix",PFC.filenamelcp);
+		
+		PFC.printHistograms(histprefix);
+		std::cerr << "[V]\tminexpstarttime=" << PFC.minexpstarttime << "\tmaxexpstarttime=" << PFC.maxexpstarttime << std::endl;
+		
+		if ( PFC.minexpstarttime == PFC.maxexpstarttime )
+			PFC.printThroughputGraph(histprefix);
+		else
+			std::cerr << "[E] inconsistent experiment start time, not producing data generation rate over time graph." << std::endl;			
 	}
 	catch(std::exception const & ex)
 	{

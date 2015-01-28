@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_SAMINFOBASEB_HPP)
+#if ! defined(LIBMAUS_BAMBAM_SAMINFOBASE_HPP)
 #define LIBMAUS_BAMBAM_SAMINFOBASE_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>

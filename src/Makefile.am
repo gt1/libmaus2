@@ -13,7 +13,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la
-lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a
+lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a libmaus_irods.a
 
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
@@ -24,6 +24,9 @@ libmausdigests_a_LIBADD = @DIGESTASMOBJ@
 
 libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42_update.cpp
 libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
+
+libmaus_irods_a_SOURCES = libmaus/irods/IRodsSystem.cpp libmaus/irods/IRodsFileBase.cpp
+libmaus_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
@@ -469,7 +472,11 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ReadEndsBasePointerComparator.hpp \
 	libmaus/bambam/ReadEndsBase.hpp \
 	libmaus/bambam/ReadEndsBaseLongHashAttributeComparator.hpp \
-	libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp
+	libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp \
+	libmaus/bambam/ScramInputContainer.hpp \
+	libmaus/bambam/SamEncoder.hpp \
+	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
+	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -597,9 +604,7 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp
-	
+
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitIO.hpp \
@@ -958,6 +963,11 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/NamedTemporaryFile.hpp \
 	libmaus/aio/NamedTemporaryFileTypeInfo.hpp \
 	libmaus/aio/NamedTemporaryFileAllocator.hpp
+	libmaus/aio/InputStreamWrapper.hpp \
+	libmaus/aio/InputStream.hpp \
+	libmaus/aio/InputStreamFactory.hpp \
+	libmaus/aio/PosixFdInputStreamFactory.hpp \
+	libmaus/aio/InputStreamFactoryContainer.hpp
 
 libmausparallel_includedir=$(includedir)/libmaus/parallel
 libmausparallel_include_HEADERS=\
@@ -1305,7 +1315,8 @@ libmausnetwork_include_HEADERS=\
 	libmaus/network/UrlInputStream.hpp \
 	libmaus/network/GnuTLSInit.hpp \
 	libmaus/network/GnuTLSSocket.hpp \
-	libmaus/network/SingleFileServer.hpp
+	libmaus/network/SingleFileServer.hpp \
+	libmaus/network/UrlInputStreamFactory.hpp
 
 libmaussv_includedir=$(includedir)/libmaus/sv
 libmaussv_include_HEADERS=\
@@ -1315,6 +1326,15 @@ libmaushdf5_includedir=$(includedir)/libmaus/hdf5
 libmaushdf5_include_HEADERS=\
 	libmaus/hdf5/HDF5MuteErrorHandler.hpp \
 	libmaus/hdf5/HDF5Handle.hpp
+	
+libmausirods_includedir=$(includedir)/libmaus/irods
+libmausirods_include_HEADERS=\
+	libmaus/irods/IRodsFileBase.hpp \
+	libmaus/irods/IRodsSystem.hpp \
+	libmaus/irods/IRodsCommProvider.hpp \
+	libmaus/irods/IRodsInputStreamBuffer.hpp \
+	libmaus/irods/IRodsInputStream.hpp \
+	libmaus/irods/IRodsInputStreamFactory.hpp
 
 libmauslcs_includedir=$(includedir)/libmaus/lcs
 libmauslcs_include_HEADERS=\
@@ -1509,7 +1529,10 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testparallelbamblocksort \
 	testhdf5 \
 	testmapperm \
-	testexternalmemoryindex
+	testexternalmemoryindex \
+	testhdf5 \
+	testirods
+
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
@@ -1715,7 +1738,10 @@ testbytetocompact_SOURCES = test/testbytetocompact.cpp
 testbytetocompact_LDADD = libmaus.la
 
 testscramtosam_SOURCES = test/testscramtosam.cpp
-testscramtosam_LDADD = libmaus.la @DLLIB@
+testscramtosam_LDADD    = libmaus_irods.a libmaus.la @IRODSLIBS@ @DLLIB@
+testscramtosam_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
+testscramtosam_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
+testscramtosam_DEPENDENCIES = libmaus_irods.a libmaus.la
 
 testpacdecode_SOURCES = test/testpacdecode.cpp
 testpacdecode_LDADD = libmaus.la
@@ -1952,3 +1978,10 @@ testexternalmemoryindex_SOURCES  = test/testexternalmemoryindex.cpp
 testexternalmemoryindex_LDADD    = libmaus.la @SNAPPYLIBS@
 testexternalmemoryindex_CPPFLAGS = @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testexternalmemoryindex_LDFLAGS  = ${AM_LDFLAGS} @SNAPPYLDFLAGS@
+
+testirods_SOURCES  = test/testirods.cpp
+testirods_LDADD    = libmaus_irods.a libmaus.la @IRODSLIBS@ 
+testirods_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
+testirods_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
+testirods_DEPENDENCIES = libmaus_irods.a libmaus.la
+

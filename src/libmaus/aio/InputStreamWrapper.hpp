@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2014 German Tischler
-    Copyright (C) 2011-2014 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,27 +16,38 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_URLINPUTSTREAM_HPP)
-#define LIBMAUS_NETWORK_URLINPUTSTREAM_HPP
+#if ! defined(LIBMAUS_AIO_INPUTSTREAMWRAPPER_HPP)
+#define LIBMAUS_AIO_INPUTSTREAMWRAPPER_HPP
 
-#include <libmaus/network/UrlInputStreamBufferWrapper.hpp>
+#include <istream>
+#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
 
 namespace libmaus
 {
-	namespace network
+	namespace aio
 	{
-		struct UrlInputStream : public UrlInputStreamBufferWrapper, public std::istream
+		struct InputStreamWrapper
 		{
-			typedef UrlInputStream this_type;
+			typedef InputStreamWrapper this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-		
-			public:
-			UrlInputStream(std::string const & url, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 0)
-			: UrlInputStreamBufferWrapper(url,bufsize,pushbacksize), std::istream(getStreamBuf())
+			
+			typedef std::istream stream_type;
+			typedef libmaus::util::unique_ptr<stream_type>::type stream_ptr_type;
+			
+			stream_ptr_type Pstream;
+			stream_type & stream;
+			
+			InputStreamWrapper(stream_ptr_type & Tstream) : Pstream(UNIQUE_PTR_MOVE(Tstream)), stream(*Pstream) {}
+			InputStreamWrapper(stream_type & rstream) : Pstream(), stream(rstream) {}
+			virtual ~InputStreamWrapper() {}
+			
+			stream_type & getStream()
 			{
+				return stream;
 			}
-		};	
+		};
 	}
 }
 #endif

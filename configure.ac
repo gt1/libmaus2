@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.187,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:187:0
+AC_INIT(libmaus,0.0.190,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:190:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1818,6 +1818,7 @@ IOLIBCPPFLAGS=
 IOLIBLDFLAGS=
 IOLIBLIBS=
 IOLIBDEFINE=
+IOLIBCALLBACKDEFINE=
 AC_ARG_WITH([io_lib],
             [AS_HELP_STRING([--with-io_lib@<:@=PATH@:>@], [support for io_lib library @<:@default=no@:>@])],
             [with_io_lib=${withval}],
@@ -1841,6 +1842,7 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 	AC_LANG_PUSH([C])
 	AC_CHECK_HEADER(io_lib/scram.h, [io_lib_scram_h=yes], [io_lib_scram_h=no])
 	AC_CHECK_FUNC(scram_open,scram_open=yes,scram_open=no)
+	AC_CHECK_FUNC(scram_open_cram_via_callbacks,scram_open_cram_via_callbacks=yes,scram_open_cram_via_callbacks=no)
 	AC_CHECK_FUNC(scram_close,scram_close=yes,scram_close=no)
 	AC_CHECK_FUNC(scram_get_header,scram_get_header=yes,scram_get_header=no)
 	AC_CHECK_FUNC(scram_get_seq,scram_get_seq=yes,scram_get_seq=no)
@@ -1904,6 +1906,58 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
                 )
         AC_MSG_RESULT($have_io_lib)
         AC_LANG_POP
+
+	if [[ "${have_io_lib}" != "yes" ]] ; then
+		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])	
+	fi
+
+        AC_LANG_PUSH([C])
+        AC_MSG_CHECKING([whether we can compile a program using scram_open_cram_via_callbacks in io_lib])
+                        AC_LINK_IFELSE([AC_LANG_SOURCE([#include <io_lib/scram.h>
+                    #include <stdlib.h>
+
+                    int main() 
+                    {
+			char const * filename = "filename";
+                        cram_io_allocate_read_input_t   callback_allocate_function = NULL;
+                        cram_io_deallocate_read_input_t callback_deallocate_function = NULL;
+                        size_t const bufsize = 32768;
+                                    
+			scram_fd * cfd = scram_open_cram_via_callbacks(filename,callback_allocate_function,callback_deallocate_function,bufsize);
+			SAM_hdr * header = 0;
+			bam_seq_t * s = 0;
+
+			if ( ! cfd )
+				return -1;
+
+			if ( ! (header = scram_get_header(cfd)) )
+			{
+				scram_close(cfd);
+				return -1;
+			}
+
+			while (scram_get_seq(cfd, &s) >= 0) 
+			{
+			}
+
+			if ( ! scram_eof(cfd) )
+			{
+				scram_close(cfd);
+				return -1;
+			}
+
+			scram_close(cfd);
+			return 0;
+                    }])],
+                        have_io_lib_with_callbacks=yes,
+                        have_io_lib_with_callbacks=no
+                )
+        AC_MSG_RESULT($have_io_lib_with_callbacks)
+        AC_LANG_POP
+
+	if test "${have_io_lib_with_callbacks}" = "yes" ; then
+		IOLIBCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS"
+	fi
 
 	CPPFLAGS="${CPPFLAGSSAVE}"
 	LDFLAGS="${LDFLAGSSAVE}"
@@ -2280,6 +2334,63 @@ AC_MSG_RESULT([${hdf5}])
 	LDFLAGS=${LDFLAGS_SAVE}
 fi
 
+AC_ARG_WITH([irods],
+	[AS_HELP_STRING([--with-irods@<:@=PATH@:>@], [path to installed IRODS @<:@default=no@:>@])],
+	[with_irods=${withval}],
+	[with_irods=no])
+LIBMAUS_HAVE_IRODS=
+
+if test "${with_irods}" != "no" ; then
+	IRODSDIR=
+	if test "${with_irods}" != "yes" ; then
+		IRODSDIR=${with_irods}
+	fi
+	
+	CPPFLAGS_SAVE=${CPPFLAGS}
+	CXXFLAGS_SAVE=${CXXFLAGS}
+	LIBS_SAVE=${LIBS}
+	LDFLAGS_SAVE=${LDFLAGS}
+	
+	if test ! -z "${IRODSDIR}" ; then
+		CPPFLAGS="${CPPFLAGS} -I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		LDFLAGS="${LDFLAGS} -L${IRODSDIR}/lib/core/obj"
+		LIBS="${LIBS} -lRodsAPIs -pthread -ldl -lgssapi_krb5"
+	fi
+
+	AC_LANG_PUSH([C++])
+	AC_CHECK_HEADER(rodsClient.h, [rodsclient_h=yes], [rodsclient_h=no])
+	AC_LANG_POP
+	
+	if test "${rodsclient_h}" = "yes" ; then
+AC_MSG_CHECKING([for rodsClient.h])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <rodsClient.h>
+],[
+	return 0;
+],[rodsclient_h=yes],[rodsclient_h=no])
+AC_MSG_RESULT([${rodsclient_h}])	
+	fi
+	
+	if test "${rodsclient_h}" = "yes" ; then	
+AC_MSG_CHECKING([whether we can compile a program using the IRODS library])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <rodsClient.h>],[
+	rodsEnv myRodsEnv;
+	int const status = getRodsEnv (&myRodsEnv);
+	return 0;
+],[irods=yes],[irods=no])
+AC_MSG_RESULT([${irods}])
+		if test "${irods}" = "yes" ; then
+			LIBMAUS_HAVE_IRODS="#define LIBMAUS_HAVE_IRODS"
+		fi
+	fi
+
+	CPPFLAGS=${CPPFLAGS_SAVE}
+	CXXFLAGS=${CXXFLAGS_SAVE}
+	LIBS=${LIBS_SAVE}
+	LDFLAGS=${LDFLAGS_SAVE}
+fi
+
 case $host_os in
   *mingw32*)
     LIBMAUSLDFLAGS="${LIBMAUSLDFLAGS} -no-undefined" # -avoid-version
@@ -2350,6 +2461,20 @@ if test ! -z "${LIBMAUS_HAVE_HDF5}" ; then
 	HDF5LIBS="-lhdf5_hl -lhdf5"
 fi
 
+IRODSCPPFLAGS=
+IRODSCXXFLAGS=
+IRODSLDFLAGS=
+IRODSLIBS=
+if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
+	TESTPROGS="${TESTPROGS} testirods"
+	if test ! -z "${IRODSDIR}" ; then
+		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
+	fi
+	IRODSLIBS="-lRodsAPIs -lgssapi_krb5 -pthread -ldl"
+	LIBMAUSIRODSPC="libmausirods.pc"
+fi
+
 AC_ARG_ENABLE(compile-testprograms,
         AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
         [compiletestprograms=${enableval}],[compiletestprograms=yes])
@@ -2357,6 +2482,21 @@ AC_ARG_ENABLE(compile-testprograms,
 if test "${compiletestprograms}" != "yes" ; then
 	TESTPROGS=
 fi
+
+AC_SYS_LARGEFILE
+LIBMAUS_FILEOFFSET_BITS=
+if test \( ! -z "${ac_cv_sys_file_offset_bits}" \) -a \( "${ac_cv_sys_file_offset_bits}" != "no" \) ; then
+	LIBMAUS_FILEOFFSET_BITS="#define _FILE_OFFSET_BITS ${ac_cv_sys_file_offset_bits}"
+fi
+AC_FUNC_FSEEKO
+LIBMAUS_LARGEFILE_SOURCE=
+if test ! -z "${ac_cv_sys_largefile_source}" ; then
+	if test "${ac_cv_sys_largefile_source}" = 1 ; then
+		LIBMAUS_LARGEFILE_SOURCE="#define _LARGEFILE_SOURCE 1"
+	fi
+fi
+
+ac_cv_sys_largefile_source=1
 
 AC_SUBST([PACKAGE_NAME])
 AC_SUBST([PACKAGE_VERSION])
@@ -2491,4 +2631,15 @@ AC_SUBST([HDF5CPPFLAGS])
 AC_SUBST([HDF5CXXFLAGS])
 AC_SUBST([HDF5LDFLAGS])
 AC_SUBST([HDF5LIBS])
-AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
+AC_SUBST([IRODSDIR])
+AC_SUBST([LIBMAUS_HAVE_IRODS])
+AC_SUBST([IRODSCPPFLAGS])
+AC_SUBST([IRODSCXXFLAGS])
+AC_SUBST([IRODSLDFLAGS])
+AC_SUBST([IRODSLIBS])
+AC_SUBST([IRODSDIR])
+AC_SUBST([LIBMAUSIRODSPC])
+AC_SUBST([IOLIBCALLBACKDEFINE])
+AC_SUBST([LIBMAUS_FILEOFFSET_BITS])
+AC_SUBST([LIBMAUS_LARGEFILE_SOURCE])
+AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

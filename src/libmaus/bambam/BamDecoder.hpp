@@ -19,11 +19,12 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMDECODER_HPP)
 #define LIBMAUS_BAMBAM_BAMDECODER_HPP
 
-#include <libmaus/aio/CheckedInputStream.hpp>
 #include <libmaus/bambam/BamAlignmentDecoder.hpp>
 #include <libmaus/lz/BgzfInflateStream.hpp>
 #include <libmaus/lz/BgzfInflateParallelStream.hpp>
 #include <libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp>
+#include <libmaus/aio/InputStream.hpp>
+#include <libmaus/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus
 {
@@ -47,8 +48,7 @@ namespace libmaus
 			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			//! compressed input stream
-			libmaus::aio::CheckedInputStream::unique_ptr_type PISTR;
+			libmaus::aio::InputStream::unique_ptr_type AISTR;
 			//! decmopressor pointer
 			bgzf_ptr_type PGZ;
 			//! decompressor
@@ -76,8 +76,7 @@ namespace libmaus
 			
 				return true;
 			}
-
-						
+		
 			public:
 			/**
 			 * constructor by file name
@@ -88,8 +87,8 @@ namespace libmaus
 			BamDecoderTemplate(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(new libmaus::aio::CheckedInputStream(filename)),
-			  PGZ(new bgzf_type(*PISTR)), GZ(PGZ.get()),
+			  AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  PGZ(new bgzf_type(*AISTR)), GZ(PGZ.get()),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
 			{}
@@ -103,7 +102,21 @@ namespace libmaus
 			BamDecoderTemplate(std::istream & in, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), PGZ(new bgzf_type(in)), GZ(PGZ.get()),
+			  AISTR(new libmaus::aio::InputStream(in)), PGZ(new bgzf_type(*AISTR)), GZ(PGZ.get()),
+			  Pbamheader(new BamHeader(*GZ)),
+			  bamheader(*Pbamheader)
+			{}
+
+			/**
+			 * constructor by compressed input stream
+			 *
+			 * @param in input stream delivering BAM
+			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
+			 **/
+			BamDecoderTemplate(libmaus::aio::InputStream::unique_ptr_type & rAISTR, bool const rputrank = false)
+			: 
+			  libmaus::bambam::BamAlignmentDecoder(rputrank),
+			  AISTR(UNIQUE_PTR_MOVE(rAISTR)), PGZ(new bgzf_type(*AISTR)), GZ(PGZ.get()),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
 			{}
@@ -117,7 +130,7 @@ namespace libmaus
 			BamDecoderTemplate(bgzf_type & rGZ, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), PGZ(), GZ(&rGZ),
+			  AISTR(), PGZ(), GZ(&rGZ),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
 			{}
@@ -132,7 +145,7 @@ namespace libmaus
 			BamDecoderTemplate(bgzf_type & rGZ, libmaus::bambam::BamHeader const & rheader, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PISTR(), PGZ(), GZ(&rGZ),
+			  AISTR(), PGZ(), GZ(&rGZ),
 			  Pbamheader(),
 			  bamheader(rheader)
 			{}
@@ -146,7 +159,7 @@ namespace libmaus
 			BamDecoderTemplate(libmaus::bambam::BamHeader const & rheader)
 			:
 			  libmaus::bambam::BamAlignmentDecoder(false),
-			  PISTR(), PGZ(), GZ(0), Pbamheader(), bamheader(rheader)
+			  AISTR(), PGZ(), GZ(0), Pbamheader(), bamheader(rheader)
 			{
 			
 			}
@@ -206,8 +219,8 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			protected:
-			//! compressed input stream pointer
-			libmaus::aio::CheckedInputStream::unique_ptr_type Pistr;
+			//!
+			libmaus::aio::InputStream::unique_ptr_type AISTR;
 			//! compressed input stream
 			std::istream & istr;
 			//! decompressor
@@ -223,10 +236,11 @@ namespace libmaus
 			 * @param rputrank add rank aux field to each alignment at time of reading
 			 **/
 			BamDecoderWrapper(std::string const & filename, bool const rputrank = false)
-			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
-			  istr(*Pistr),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  istr(*AISTR),
 			  bgzf(new libmaus::lz::BgzfInflateStream(istr)),
 			  bamdec(*bgzf,rputrank) {}
+
 			/**
 			 * constructor from file name and virtual offsets
 			 *
@@ -241,10 +255,19 @@ namespace libmaus
 				libmaus::lz::BgzfVirtualOffset const & startoffset,
 				libmaus::lz::BgzfVirtualOffset const & endoffset,
 				bool const rputrank = false)
-			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
-			  istr(*Pistr),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  istr(*AISTR),
 			  bgzf(new libmaus::lz::BgzfInflateStream(istr,startoffset,endoffset)),
 			  bamdec(*bgzf,header,rputrank) {}
+
+			/**
+			 * constructor from input stream
+			 *
+			 * @param ristr input stream
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamDecoderWrapper(libmaus::aio::InputStream::unique_ptr_type & rAISTR, bool const rputrank = false)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)), istr(*AISTR), bgzf(new libmaus::lz::BgzfInflateStream(istr)), bamdec(*bgzf,rputrank) {}
 			/**
 			 * constructor from input stream
 			 *
@@ -252,7 +275,8 @@ namespace libmaus
 			 * @param rputrank add rank aux field to each alignment at time of reading
 			 **/
 			BamDecoderWrapper(std::istream & ristr, bool const rputrank = false)
-			: Pistr(), istr(ristr), bgzf(new libmaus::lz::BgzfInflateStream(istr)), bamdec(*bgzf,rputrank) {}
+			: AISTR(new libmaus::aio::InputStream(ristr)), istr(*AISTR), bgzf(new libmaus::lz::BgzfInflateStream(istr)), bamdec(*bgzf,rputrank) {}
+
 			/**
 			 * constructor from input stream, header and interval (input stream needs to be seekable)
 			 *
@@ -266,7 +290,22 @@ namespace libmaus
 				libmaus::lz::BgzfVirtualOffset const & endoffset,
 				bool const rputrank = false
 			)
-			: Pistr(), istr(ristr), bgzf(new libmaus::lz::BgzfInflateStream(istr,startoffset,endoffset)), bamdec(*bgzf,header,rputrank) {}
+			: AISTR(new libmaus::aio::InputStream(ristr)), istr(*AISTR), bgzf(new libmaus::lz::BgzfInflateStream(istr,startoffset,endoffset)), bamdec(*bgzf,header,rputrank) {}
+			/**
+			 * constructor from input stream, header and interval (input stream needs to be seekable)
+			 *
+			 * @param ristr input stream
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamDecoderWrapper(
+				libmaus::aio::InputStream::unique_ptr_type & rAISTR, 
+				libmaus::bambam::BamHeader const & header,
+				libmaus::lz::BgzfVirtualOffset const & startoffset,
+				libmaus::lz::BgzfVirtualOffset const & endoffset,
+				bool const rputrank = false
+			)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)), istr(*AISTR), bgzf(new libmaus::lz::BgzfInflateStream(istr,startoffset,endoffset)), bamdec(*bgzf,header,rputrank) {}
+
 			/**
 			 * constructor from input stream and output stream;
 			 * the original input stream will be copied to the output stream
@@ -277,7 +316,18 @@ namespace libmaus
 			 * @param rputrank add rank aux field to each alignment at time of reading
 			 **/
 			BamDecoderWrapper(std::istream & ristr, std::ostream & copyout, bool const rputrank = false)
-			: Pistr(), istr(ristr), bgzf(new libmaus::lz::BgzfInflateStream(istr,copyout)), bamdec(*bgzf,rputrank) {}
+			: AISTR(new libmaus::aio::InputStream(ristr)), istr(*AISTR), bgzf(new libmaus::lz::BgzfInflateStream(istr,copyout)), bamdec(*bgzf,rputrank) {}
+			/**
+			 * constructor from input stream and output stream;
+			 * the original input stream will be copied to the output stream
+			 * while processing the BAM file
+			 *
+			 * @param ristr input stream
+			 * @param copyout output stream
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamDecoderWrapper(libmaus::aio::InputStream::unique_ptr_type & rAISTR, std::ostream & copyout, bool const rputrank = false)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)), istr(*AISTR), bgzf(new libmaus::lz::BgzfInflateStream(istr,copyout)), bamdec(*bgzf,rputrank) {}
 			
 			/**
 			 * @return wrapped decoder
@@ -294,8 +344,8 @@ namespace libmaus
 		struct BamParallelDecoderWrapper : public BamAlignmentDecoderWrapper
 		{
 			protected:
-			//! input stream pointer
-			libmaus::aio::CheckedInputStream::unique_ptr_type Pistr;
+			//!
+			libmaus::aio::InputStream::unique_ptr_type AISTR;
 			//! input stream reference
 			std::istream & istr;
 			//! decompressor object
@@ -316,11 +366,30 @@ namespace libmaus
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
-			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
-			  istr(*Pistr),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  istr(*AISTR),
 			  bgzf(istr,numthreads,4*numthreads),
 			  bamdec(bgzf,rputrank) 
 			{}
+
+			/**
+			 * constructor from stream
+			 *
+			 * @param filename input file name
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelDecoderWrapper(
+				libmaus::aio::InputStream::unique_ptr_type & rAISTR,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)),
+			  istr(*AISTR),
+			  bgzf(istr,numthreads,4*numthreads),
+			  bamdec(bgzf,rputrank) 
+			{}
+			
 			/**
 			 * constructor from input file name and output stream;
 			 * the original input stream will be copied to the output stream
@@ -337,11 +406,34 @@ namespace libmaus
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
-			: Pistr(new libmaus::aio::CheckedInputStream(filename)), 
-			  istr(*Pistr),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  istr(*AISTR),
 			  bgzf(istr,copyostr,numthreads,4*numthreads),
 			  bamdec(bgzf,rputrank) 
 			{}
+
+			/**
+			 * constructor from input file name and output stream;
+			 * the original input stream will be copied to the output stream
+			 * while processing the BAM file
+			 *
+			 * @param filename input file name
+			 * @param copyostr output stream
+			 * @param numthreads number of decoding threads
+			 * @param rputrank add rank aux field to each alignment at time of reading
+			 **/
+			BamParallelDecoderWrapper(
+				libmaus::aio::InputStream::unique_ptr_type & rAISTR,
+				std::ostream & copyostr,
+				uint64_t const numthreads,
+				bool const rputrank = false
+			)
+			: AISTR(UNIQUE_PTR_MOVE(rAISTR)),
+			  istr(*AISTR),
+			  bgzf(istr,copyostr,numthreads,4*numthreads),
+			  bamdec(bgzf,rputrank) 
+			{}
+			
 			/**
 			 * constructor by input stream
 			 *
@@ -354,7 +446,8 @@ namespace libmaus
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
-			: Pistr(), istr(in), bgzf(istr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
+			: AISTR(new libmaus::aio::InputStream(in)), istr(*AISTR), bgzf(istr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
+			
 			/**
 			 * constructor from input stream and output stream;
 			 * the original input stream will be copied to the output stream
@@ -371,7 +464,7 @@ namespace libmaus
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
-			: Pistr(), istr(in), bgzf(istr,copyostr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
+			: AISTR(new libmaus::aio::InputStream(in)), istr(*AISTR), bgzf(istr,copyostr,numthreads,4*numthreads), bamdec(bgzf,rputrank) {}
 
 			/**
 			 * @return wrapped decoder
@@ -395,8 +488,8 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			protected:
-			//! compressed input stream pointer
-			libmaus::aio::CheckedInputStream::unique_ptr_type Pistr;
+			//!
+			libmaus::aio::InputStream::unique_ptr_type AISTR;
 			//! decompressor
 			libmaus::lz::BgzfInflateStream::unique_ptr_type bgzf;
 			//! BAM file decoder
@@ -411,7 +504,7 @@ namespace libmaus
 			 * @param header BAM header object
 			 **/
 			BamDecoderResetableWrapper(std::string const & filename, libmaus::bambam::BamHeader const & header)
-			: Pistr(new libmaus::aio::CheckedInputStream(filename)), bgzf(), bamdec(header)
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)), bgzf(), bamdec(header)
 			{
 			
 			}
@@ -421,15 +514,15 @@ namespace libmaus
 				libmaus::lz::BgzfVirtualOffset const & endoffset
 			)
 			{
-				Pistr->clear();
+				AISTR->clear();
 				
 				libmaus::lz::BgzfInflateStream::unique_ptr_type tbgzf(
                                                 new libmaus::lz::BgzfInflateStream(
-                                                        *Pistr,startoffset,endoffset
+                                                        *AISTR,startoffset,endoffset
                                                 )
                                         );
 				bgzf = UNIQUE_PTR_MOVE(tbgzf);
-				
+
 				bamdec.setStream(bgzf.get());
 			}
 

@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,22 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stddef.h>
+#include <stdio.h>
+
+typedef size_t (*scram_cram_io_C_FILE_fread_t)(void *ptr, size_t size, size_t nmemb, void *stream);
+typedef int    (*scram_cram_io_C_FILE_fseek_t)(void * fd, off_t offset, int whence);
+typedef off_t   (*scram_cram_io_C_FILE_ftell_t)(void * fd);
+
+typedef struct {
+    void                         *user_data;
+    scram_cram_io_C_FILE_fread_t  fread_callback;
+    scram_cram_io_C_FILE_fseek_t  fseek_callback;
+    scram_cram_io_C_FILE_ftell_t  ftell_callback;
+} scram_cram_io_input_t;
+
+typedef scram_cram_io_input_t * (*scram_cram_io_allocate_read_input_t)  (char const * filename);
+typedef scram_cram_io_input_t * (*scram_cram_io_deallocate_read_input_t)(scram_cram_io_input_t * obj);
 
 typedef struct _libmaus_bambam_ScramDecoder
 {
@@ -82,7 +98,31 @@ typedef struct _libmaus_bambam_ScramEncoder
 } libmaus_bambam_ScramEncoder;
 
 typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename);
-typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Range_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * ref, int64_t const start, int64_t const end);
+typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Type)(
+	char const * filename,
+	scram_cram_io_allocate_read_input_t   callback_allocate_function,
+	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
+	size_t const bufsize,
+	char const * rreferencefilename
+);
+typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Range_Type)(
+	char const * rfilename, 
+	char const * rmode, 
+	char const * rreferencefilename, 
+	char const * ref, int64_t 
+	const start, 
+	int64_t const end
+);
+typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Range_Type)(
+	char const * rfilename, 
+	scram_cram_io_allocate_read_input_t   callback_allocate_function,
+	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
+	size_t const bufsize,
+	char const * rreferencefilename, 
+	char const * ref, int64_t 
+	const start, 
+	int64_t const end
+);
 typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_Delete_Type)(libmaus_bambam_ScramDecoder * object);
 typedef int (* libmaus_bambam_ScramDecoder_Decode_Type)(libmaus_bambam_ScramDecoder * object);
 
@@ -107,14 +147,54 @@ typedef int (* libmaus_bambam_ScramEncoder_Encode_Type)(libmaus_bambam_ScramEnco
  **/
 libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfilename, char const * rmode, char const * rreferencefilename);
 /**
+ * allocate CRAM decoder via callbacks
+ *
+ * @param rfilename input file name, - for stdin
+ * @param callback_allocate_function file allocation callback
+ * @param callback_deallocate_function file deallocation callback
+ * @param bufsize buffer size for input
+ * @param rreferencefilename reference filename, null pointer for none
+ * @return scram decoder object or null if creation failed
+ **/
+libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callback(
+	char const * filename,
+	scram_cram_io_allocate_read_input_t   callback_allocate_function,
+	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
+	size_t const bufsize,
+	char const * rreferencefilename
+);
+/**
  * allocate scram decoder
  *
  * @param rfilename input file name, - for stdin
  * @param rmode input mode; r, rb or rc for SAM, BAM or CRAM
  * @param rreferencefilename reference filename, null pointer for none
+ * @param ref reference sequence id
+ * @param start range lower end
+ * @param end range upper end
  * @return scram decoder object or null if creation failed
  **/
 libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * ref, int64_t const start, int64_t const end);
+/**
+ * allocate CRAM decoder via callbacks
+ *
+ * @param rfilename input file name, - for stdin
+ * @param callback_allocate_function file allocation callback
+ * @param callback_deallocate_function file deallocation callback
+ * @param bufsize buffer size for input
+ * @param rreferencefilename reference filename, null pointer for none
+ * @return scram decoder object or null if creation failed
+ **/
+libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Range(
+	char const * filename,
+	scram_cram_io_allocate_read_input_t   callback_allocate_function,
+	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
+	size_t const bufsize,
+	char const * rreferencefilename,
+	char const * ref, 
+	int64_t const start,
+	int64_t const end
+);
 /**
  * deallocate scram decoder
  *

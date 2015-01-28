@@ -23,6 +23,7 @@
 #include <libmaus/bambam/SamInfo.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
 #include <libmaus/bambam/BamAlignmentDecoder.hpp>
+#include <libmaus/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus
 {
@@ -41,8 +42,7 @@ namespace libmaus
 			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			//! input file
-			libmaus::aio::CheckedInputStream::unique_ptr_type PCIS;
+			libmaus::aio::InputStream::unique_ptr_type AISTR;
 			//! input stream
 			std::istream & in;
 			//! line buffer
@@ -115,8 +115,8 @@ namespace libmaus
 			SamDecoder(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PCIS(new libmaus::aio::CheckedInputStream(filename)),
-			  in(*PCIS),
+			  AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  in(*AISTR),
 			  lb(in,64*1024),
 			  Pbamheader(readSamHeader(lb)),
 			  bamheader(*Pbamheader),
@@ -124,7 +124,7 @@ namespace libmaus
 			{}
 			
 			/**
-			 * constructor by compressed input stream
+			 * constructor by input stream
 			 *
 			 * @param in input stream delivering BAM
 			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
@@ -132,8 +132,25 @@ namespace libmaus
 			SamDecoder(std::istream & rin, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  PCIS(),
-			  in(rin),
+			  AISTR(new libmaus::aio::InputStream(rin)),
+			  in(*AISTR),
+			  lb(in,64*1024),
+			  Pbamheader(readSamHeader(lb)),
+			  bamheader(*Pbamheader),
+			  samline(bamheader, alignment)
+			{}
+
+			/**
+			 * constructor by input stream
+			 *
+			 * @param in input stream delivering BAM
+			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
+			 **/
+			SamDecoder(libmaus::aio::InputStream::unique_ptr_type & rin, bool const rputrank = false)
+			: 
+			  libmaus::bambam::BamAlignmentDecoder(rputrank),
+			  AISTR(UNIQUE_PTR_MOVE(rin)),
+			  in(*AISTR),
 			  lb(in,64*1024),
 			  Pbamheader(readSamHeader(lb)),
 			  bamheader(*Pbamheader),
