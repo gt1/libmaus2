@@ -106,6 +106,7 @@ namespace libmaus
 					levelstarts.push_back(l0pos);
 					levelcnts.push_back(incnt);
 
+					// perform subsampling until we have constructed a single root node
 					while ( incnt > inner_index_step )
 					{
 						uint64_t const outcnt = (incnt + inner_index_step-1)/inner_index_step;
