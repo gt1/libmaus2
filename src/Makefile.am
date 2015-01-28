@@ -603,7 +603,7 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
-	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp \
+	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -962,7 +962,7 @@ libmausaio_include_HEADERS=\
 	libmaus/aio/LineSplittingPosixFdOutputStream.hpp \
 	libmaus/aio/NamedTemporaryFile.hpp \
 	libmaus/aio/NamedTemporaryFileTypeInfo.hpp \
-	libmaus/aio/NamedTemporaryFileAllocator.hpp
+	libmaus/aio/NamedTemporaryFileAllocator.hpp \
 	libmaus/aio/InputStreamWrapper.hpp \
 	libmaus/aio/InputStream.hpp \
 	libmaus/aio/InputStreamFactory.hpp \
