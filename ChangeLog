@@ -1,3 +1,9 @@
+libmaus (0.0.190-1) unstable; urgency=low
+
+  * enable generation of MD and NM fields when decoding CRAM via io_lib 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 28 Jan 2015 14:41:27 +0000
+
 libmaus (0.0.189-1) unstable; urgency=low
 
   * add CRAM input via callback interface for io_lib
