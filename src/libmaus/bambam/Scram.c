@@ -73,6 +73,9 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
+	
+	if ( object->mode && object->mode[0] == 'r' && object->mode[1] == 'c' )
+		scram_set_option(sdecoder, CRAM_OPT_DECODE_MD, 1);
 
 	if ( !(sdecoder->is_bam) && object->referencefilename ) 
 	{
@@ -148,6 +151,8 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
 
+	scram_set_option(sdecoder, CRAM_OPT_DECODE_MD, 1);
+
 	if ( !(sdecoder->is_bam) && object->referencefilename ) 
 	{
 		cram_load_reference(sdecoder->c, object->referencefilename);
@@ -219,6 +224,9 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
+
+	if ( object->mode && object->mode[0] == 'r' && object->mode[1] == 'c' )
+		scram_set_option(sdecoder, CRAM_OPT_DECODE_MD, 1);
 
 	if ( !(sdecoder->is_bam) && object->referencefilename ) 
 	{
@@ -343,6 +351,8 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
+
+	scram_set_option(sdecoder, CRAM_OPT_DECODE_MD, 1);
 
 	if ( !(sdecoder->is_bam) && object->referencefilename ) 
 	{
