@@ -1,3 +1,9 @@
+libmaus (0.0.191-1) unstable; urgency=low
+
+  * add decompress option for cram input callback setup 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 29 Jan 2015 22:57:38 +0000
+
 libmaus (0.0.190-1) unstable; urgency=low
 
   * enable generation of MD and NM fields when decoding CRAM via io_lib 
