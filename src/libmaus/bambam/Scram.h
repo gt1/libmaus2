@@ -41,7 +41,7 @@ typedef struct {
     scram_cram_io_C_FILE_ftell_t  ftell_callback;
 } scram_cram_io_input_t;
 
-typedef scram_cram_io_input_t * (*scram_cram_io_allocate_read_input_t)  (char const * filename);
+typedef scram_cram_io_input_t * (*scram_cram_io_allocate_read_input_t)  (char const * filename, int const decompress);
 typedef scram_cram_io_input_t * (*scram_cram_io_deallocate_read_input_t)(scram_cram_io_input_t * obj);
 
 typedef struct _libmaus_bambam_ScramDecoder

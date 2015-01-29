@@ -22,6 +22,7 @@
 #include <libmaus/aio/InputStream.hpp>
 #include <libmaus/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus/bambam/Scram.h>
+#include <libmaus/lz/BufferedGzipStream.hpp>
 
 namespace libmaus
 {
@@ -31,13 +32,15 @@ namespace libmaus
 		{
 			static std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type > Mcontrol;	
 			static std::map<void *, libmaus::aio::InputStream::shared_ptr_type> Mstream;
+			static std::map<void *, libmaus::aio::InputStream::shared_ptr_type> Mcompstream;
 			static libmaus::parallel::PosixMutex Mlock;
 
-			static scram_cram_io_input_t * allocate(char const * filename)
+			static scram_cram_io_input_t * allocate(char const * filename, int const decompress)
 			{
 				libmaus::parallel::ScopePosixMutex Llock(Mlock);
 				libmaus::util::shared_ptr<scram_cram_io_input_t>::type sptr;
 				libmaus::aio::InputStream::shared_ptr_type sstr;
+				libmaus::aio::InputStream::shared_ptr_type gstr;
 				
 				try
 				{
@@ -86,8 +89,36 @@ namespace libmaus
 				
 				Mstream[sptr.get()] = sstr;
 				
+				if ( decompress )
+				{
+					try
+					{
+						libmaus::util::unique_ptr<std::istream>::type tptr(new libmaus::lz::BufferedGzipStream(*sstr));
+						libmaus::aio::InputStream::shared_ptr_type ttptr(new libmaus::aio::InputStream(tptr));
+						gstr = ttptr;
+					}
+					catch(...)
+					{
+						Mcontrol.erase(Mcontrol.find(sptr.get()));
+						Mstream.erase(Mstream.find(sptr.get()));
+						return NULL;
+					}
+					
+					try
+					{
+						Mcompstream[sptr.get()] = libmaus::aio::InputStream::shared_ptr_type();
+						Mcompstream[sptr.get()] = gstr;
+					}
+					catch(...)
+					{
+						Mcontrol.erase(Mcontrol.find(sptr.get()));
+						Mstream.erase(Mstream.find(sptr.get()));
+						return NULL;						
+					}
+				}
+				
 				memset(sptr.get(),0,sizeof(scram_cram_io_input_t));
-				sptr->user_data = sstr.get();
+				sptr->user_data = decompress ? gstr.get() : sstr.get();
 				sptr->fread_callback = call_fread;
 				sptr->fseek_callback = call_fseek;
 				sptr->ftell_callback = call_ftell;
@@ -100,6 +131,8 @@ namespace libmaus
 				libmaus::parallel::ScopePosixMutex Llock(Mlock);
 				if ( obj )
 				{
+					if ( Mcompstream.find(obj) != Mcompstream.end() )
+						Mcompstream.erase(Mcompstream.find(obj));
 					if ( Mstream.find(obj) != Mstream.end() )
 						Mstream.erase(Mstream.find(obj));
 					if ( Mcontrol.find(obj) != Mcontrol.end() )
