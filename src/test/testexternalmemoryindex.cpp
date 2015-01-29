@@ -64,7 +64,7 @@ int main()
 	try
 	{
 		static unsigned int const base_index_log = 10;
-		static unsigned int const inner_index_log = 3;
+		static unsigned int const inner_index_log = 2;
 		// libmaus::index::ExternalMemoryIndexGenerator<libmaus::bambam::ReadEndsBase,base_index_log,inner_index_log> index("tmpprefix");
 		typedef libmaus::index::ExternalMemoryIndexGenerator<SerialisableUint64,base_index_log,inner_index_log> index_type;
 		std::stringstream indexiostr;
@@ -97,21 +97,55 @@ int main()
 
 			indexiostr.clear();
 			indexiostr.seekg(indexpos);
-			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec(indexiostr);
+			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec(indexiostr,(1ull << 20));
 			// #define CACHE_DEBUG
 			#if defined(CACHE_DEBUG)
 			indexiostr.seekg(indexpos);
 			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec0(indexiostr,0);
 			#endif
 			
-			uint64_t maxc = 0;
+			uint64_t maxc;
+
+			#if 0			
+			maxc = 0;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
-				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult P = indexdec.findLargestSmaller(i);
+				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i);
 				#if defined(CACHE_DEBUG)
-				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult P0 = indexdec0.findLargestSmaller(i);
+				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P0 = indexdec0.findLargestSmaller(i);
 				assert ( P == P0 );
 				#endif
+				
+				dataiostr.clear();
+				dataiostr.seekg(P.P.first);
+				libmaus::lz::SnappyInputStream sis(dataiostr);
+				sis.ignore(P.P.second);
+				
+				uint64_t c = 0;			
+				while ( sis.peek() >= 0 )
+				{
+					SerialisableUint64 U;
+					U.deserialise(sis);
+					// std::cerr << U.i << std::endl;
+					
+					if ( U.i >= i )
+						break;
+						
+					++c;
+				}
+				
+				maxc = std::max(c,maxc);
+
+				if ( (i & ((1ull<<16)-1)) == 0 )
+					std::cerr << "i=" << i << " c=" << c << " P=" << P.P.first << "," << P.P.second << " blockid=" << P.blockid << std::endl;
+			}
+			std::cerr << "maxc=" << maxc << std::endl;
+			#endif
+
+			maxc = 0;
+			for ( uint64_t i = 0; i < n; ++i )
+			{
+				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i,true /* cache only */);
 				
 				dataiostr.clear();
 				dataiostr.seekg(P.P.first);

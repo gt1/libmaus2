@@ -83,17 +83,29 @@ namespace libmaus
 				}
 
 				cache = cache_type(numlevels);
-				for ( uint64_t i = 0; i < numlevels; ++i )
-					 if ( levelcnts[i] <= cache_thres )
-					 {
-					 	cache_level_ptr_type Pcachelevel(new cache_level_type(levelcnts[i]));
-					 	cache_level_type & cachelevel = *Pcachelevel;
-					 	PFIS.clear();
-					 	PFIS.seekg(levelstarts[i], std::ios::beg);
-					 	for ( uint64_t j = 0; j < levelcnts[i]; ++j )
-					 		cachelevel[j].deserialise(PFIS);
-					 	cache[i] = Pcachelevel;	
-					 }
+				uint64_t cachesum = 0;
+				for ( uint64_t ii = 0; ii < numlevels; ++ii )
+				{
+					uint64_t const i = numlevels-ii-1;
+					
+					if ( (cachesum + levelcnts[i])*record_size <= cache_thres )
+					{
+						cache_level_ptr_type Pcachelevel(new cache_level_type(levelcnts[i]));
+						cache_level_type & cachelevel = *Pcachelevel;
+						PFIS.clear();
+						PFIS.seekg(levelstarts[i], std::ios::beg);
+						for ( uint64_t j = 0; j < levelcnts[i]; ++j )
+							cachelevel[j].deserialise(PFIS);
+						cache[i] = Pcachelevel;	
+						cachesum += levelcnts[i];
+					}
+				
+					#if 0
+					std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " cachesum=" << cachesum 
+						<< " total=" << cachesum * record_size
+						<< std::endl;
+					#endif
+				}
 			
 				// get minimum element (if any)		 
 				if ( levelcnts.size() && levelcnts[0] )
@@ -136,15 +148,25 @@ namespace libmaus
 
 				return std::pair<uint64_t,uint64_t>(pfirst,psecond);				
 			}
-
-			ExternalMemoryIndexDecoderFindLargestSmallerResult findLargestSmaller(data_type const & E, comparator comp = comparator())
+			
+			uint64_t size() const
+			{
+				return levelcnts.size() ? levelcnts.at(0) : 0;
+			}
+			
+			ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type> findLargestSmaller(
+				data_type const & E, 
+				bool const cacheOnly = false,
+				comparator comp = comparator()
+			)
 			{
 				// check for empty array or minimum too large
 				if ( (! minelvalid) || (!comp(minel,E)) )
-					return ExternalMemoryIndexDecoderFindLargestSmallerResult();
+					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>();
 			
 				uint64_t blockid = 0;
 				std::pair<uint64_t,uint64_t> P;
+				data_type PE;
 				
 				for ( int level = static_cast<int>(levelstarts.size())-1; level >= 0; --level )
 				{
@@ -174,7 +196,12 @@ namespace libmaus
 						assert ( it_end-it_start == 1 );
 						
 						blockid = (it_start-ita);
-						P = it_start->P;						
+						P = it_start->P;
+						PE = it_start->D;
+					}
+					else if ( cacheOnly )
+					{
+						blockid *= index_step;
 					}
 					// otherwise scan block in file
 					else
@@ -191,19 +218,22 @@ namespace libmaus
 							data_type Q;
 							Q.deserialise(PFIS);
 							
-							if ( comp(Q,E) )
+							if ( comp(Q,E) ) // Q<E -> still ok
 							{
 								blockid = j;
 								P.first = pfirst;
 								P.second = psecond;
+								PE = Q;
 							}
-							else
+							else // Q >= E -> Q no longer smaller than E -> break
+							{
 								break;
+							}
 						}
 					}
 				}
 				
-				return ExternalMemoryIndexDecoderFindLargestSmallerResult(P,blockid);
+				return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>(P,blockid,PE);
 			}
 		};
 	}
