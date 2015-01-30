@@ -272,8 +272,11 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	free(ref);
 	
 	/* get whether ref id is valid */
-	if ( refid < 0 || refid >= sdecoder->c->header->nref )
+	if ( refid < 0 || refid >= sdecoder->c->header->nref ) 
+	{
+		fprintf(stderr,"[E] ScramDecoder: reference sequence %s does not exist\n", rref);
 		return libmaus_bambam_ScramDecoder_Delete(object);
+	}
 
 	// fprintf(stderr,"***%s %u\n",sdecoder->c->header->ref[refid].name,sdecoder->c->header->ref[refid].len);
 
@@ -377,8 +380,19 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 		return libmaus_bambam_ScramDecoder_Delete(object);
 
 	/* load cram index, returns -1 on failure */
+	#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS)
+	if ( 
+		cram_index_load_via_callbacks(
+			sdecoder->c,
+			object->filename,
+			(cram_io_allocate_read_input_t)callback_allocate_function,
+			(cram_io_deallocate_read_input_t)callback_deallocate_function
+		) < 0 )
+		return libmaus_bambam_ScramDecoder_Delete(object);
+	#else
 	if ( cram_index_load(sdecoder->c, object->filename) < 0 )
 		return libmaus_bambam_ScramDecoder_Delete(object);
+	#endif
 
 	/* check if we have a sequence name */
 	if ( ! rref )
@@ -399,7 +413,10 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	
 	/* get whether ref id is valid */
 	if ( refid < 0 || refid >= sdecoder->c->header->nref )
+	{
+		fprintf(stderr,"[E] ScramDecoder: reference sequence %s does not exist\n", rref);
 		return libmaus_bambam_ScramDecoder_Delete(object);
+	}
 
 	// fprintf(stderr,"***%s %u\n",sdecoder->c->header->ref[refid].name,sdecoder->c->header->ref[refid].len);
 

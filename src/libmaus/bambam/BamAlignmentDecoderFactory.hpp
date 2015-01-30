@@ -168,7 +168,7 @@ namespace libmaus
 								else
 								{
 									libmaus::aio::InputStream::unique_ptr_type iptr(
-										libmaus::aio::InputStreamFactoryContainer::construct(inputfilename)
+										libmaus::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 									);
 									libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 										new BamDecoderWrapper(iptr,putrank)
@@ -218,7 +218,7 @@ namespace libmaus
 							else
 							{
 								libmaus::aio::InputStream::unique_ptr_type iptr(
-									libmaus::aio::InputStreamFactoryContainer::construct(inputfilename)
+									libmaus::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 								);
 								libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamParallelDecoderWrapper(iptr,inputthreads,putrank)
@@ -262,7 +262,7 @@ namespace libmaus
 					else
 					{
 						libmaus::aio::InputStream::unique_ptr_type iptr(
-							libmaus::aio::InputStreamFactoryContainer::construct(inputfilename)
+							libmaus::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 						);
 						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 							new libmaus::bambam::SamDecoderWrapper(iptr,putrank)

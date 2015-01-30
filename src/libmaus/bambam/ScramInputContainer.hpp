@@ -42,6 +42,7 @@ namespace libmaus
 				libmaus::aio::InputStream::shared_ptr_type sstr;
 				libmaus::aio::InputStream::shared_ptr_type gstr;
 				
+				/* allocate data structure */
 				try
 				{
 					libmaus::util::shared_ptr<scram_cram_io_input_t>::type tptr(new scram_cram_io_input_t);
@@ -53,27 +54,37 @@ namespace libmaus
 					return NULL;
 				}
 			
+				/* store pointer to data structure in Mcontrol */
 				try
 				{
 					Mcontrol[sptr.get()] = libmaus::util::shared_ptr<scram_cram_io_input_t>::type();
 				}
-				catch(...)
-				{
-					return NULL;
-				}
-				
-				Mcontrol[sptr.get()] = sptr;
-				
-				try
-				{
-					libmaus::aio::InputStream::unique_ptr_type tstr(libmaus::aio::InputStreamFactoryContainer::construct(filename));
-					libmaus::aio::InputStream::shared_ptr_type tsstr(tstr.release());
-					sstr = tsstr;
-				}
 				catch(std::exception const & ex)
 				{
 					std::cerr << ex.what() << std::endl;
-					Mcontrol.erase(Mcontrol.find(sptr.get()));
+					return NULL;
+				}
+				
+				{
+					std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type >::iterator it = Mcontrol.find(sptr.get());					
+					assert (it != Mcontrol.end());
+					it->second = sptr;
+				}
+				
+				/* open file via factory */
+				try
+				{
+					libmaus::aio::InputStream::shared_ptr_type tstr(libmaus::aio::InputStreamFactoryContainer::constructShared(filename));
+					sstr = tstr;
+				}
+				catch(std::exception const & ex)
+				{
+					std::cerr << "Failed to open " << filename << ":\n" << ex.what() << std::endl;
+					
+					std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type >::iterator it = Mcontrol.find(sptr.get());
+					assert ( it != Mcontrol.end() );
+					Mcontrol.erase(it);
+					
 					return NULL;
 				}
 				
@@ -83,37 +94,61 @@ namespace libmaus
 				}
 				catch(...)
 				{
-					Mcontrol.erase(Mcontrol.find(sptr.get()));
+					std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type >::iterator it = Mcontrol.find(sptr.get());
+					assert ( it != Mcontrol.end() );
+					Mcontrol.erase(it);
+					
 					return NULL;
 				}
-				
-				Mstream[sptr.get()] = sstr;
+
+				{
+					std::map<void *, libmaus::aio::InputStream::shared_ptr_type>::iterator it = Mstream.find(sptr.get());
+					assert ( it != Mstream.end() );
+					it->second = sstr;
+				}
 				
 				if ( decompress )
 				{
 					try
 					{
-						libmaus::util::unique_ptr<std::istream>::type tptr(new libmaus::lz::BufferedGzipStream(*sstr));
+						libmaus::util::shared_ptr<std::istream>::type tptr(new libmaus::lz::BufferedGzipStream(*sstr));
 						libmaus::aio::InputStream::shared_ptr_type ttptr(new libmaus::aio::InputStream(tptr));
 						gstr = ttptr;
 					}
 					catch(...)
 					{
-						Mcontrol.erase(Mcontrol.find(sptr.get()));
-						Mstream.erase(Mstream.find(sptr.get()));
+						std::map<void *, libmaus::aio::InputStream::shared_ptr_type>::iterator its = Mstream.find(sptr.get());
+						assert ( its != Mstream.end() );
+						Mstream.erase(its);
+						
+						std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type >::iterator itc = Mcontrol.find(sptr.get());
+						assert ( itc != Mcontrol.end() );
+						Mcontrol.erase(itc);
+
 						return NULL;
 					}
 					
 					try
 					{
 						Mcompstream[sptr.get()] = libmaus::aio::InputStream::shared_ptr_type();
-						Mcompstream[sptr.get()] = gstr;
 					}
 					catch(...)
 					{
-						Mcontrol.erase(Mcontrol.find(sptr.get()));
-						Mstream.erase(Mstream.find(sptr.get()));
+						std::map<void *, libmaus::aio::InputStream::shared_ptr_type>::iterator its = Mstream.find(sptr.get());
+						assert ( its != Mstream.end() );
+						Mstream.erase(its);
+						
+						std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type >::iterator itc = Mcontrol.find(sptr.get());
+						assert ( itc != Mcontrol.end() );
+						Mcontrol.erase(itc);
+
 						return NULL;						
+					}
+
+					{
+						std::map<void *, libmaus::aio::InputStream::shared_ptr_type>::iterator its = Mcompstream.find(sptr.get());
+						assert ( its != Mcompstream.end() );
+						its->second = gstr;						
 					}
 				}
 				
@@ -129,14 +164,24 @@ namespace libmaus
 			static scram_cram_io_input_t * deallocate(scram_cram_io_input_t * obj)
 			{
 				libmaus::parallel::ScopePosixMutex Llock(Mlock);
+				
 				if ( obj )
 				{
-					if ( Mcompstream.find(obj) != Mcompstream.end() )
-						Mcompstream.erase(Mcompstream.find(obj));
-					if ( Mstream.find(obj) != Mstream.end() )
-						Mstream.erase(Mstream.find(obj));
-					if ( Mcontrol.find(obj) != Mcontrol.end() )
-						Mcontrol.erase(Mcontrol.find(obj));
+					{
+						std::map<void *, libmaus::aio::InputStream::shared_ptr_type>::iterator its = Mcompstream.find(obj);
+						if ( its != Mcompstream.end() )
+							Mcompstream.erase(its);						
+					}
+					{
+						std::map<void *, libmaus::aio::InputStream::shared_ptr_type>::iterator its = Mstream.find(obj);
+						if ( its != Mstream.end() )
+							Mstream.erase(its);						
+					}
+					{
+						std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type >::iterator itc = Mcontrol.find(obj);
+						assert ( itc != Mcontrol.end() );
+						Mcontrol.erase(itc);					
+					}
 				}
 				return NULL;
 			}

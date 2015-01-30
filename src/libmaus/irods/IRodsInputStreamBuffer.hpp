@@ -79,6 +79,9 @@ namespace libmaus
 			{
 				init(false);
 			}
+			virtual ~IRodsInputStreamBuffer() 
+			{
+			}
 
 			private:
 			// gptr as unsigned pointer

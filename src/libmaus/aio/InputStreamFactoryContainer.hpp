@@ -110,7 +110,7 @@ namespace libmaus
 			}
 			
 			public:
-			static libmaus::aio::InputStream::unique_ptr_type construct(std::string const & url)
+			static libmaus::aio::InputStream::unique_ptr_type constructUnique(std::string const & url)
 			{
 				libmaus::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
 				
@@ -125,19 +125,50 @@ namespace libmaus
 					
 					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
 					{
-						libmaus::aio::InputStream::unique_ptr_type tptr(factory->construct(url));
+						libmaus::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
 					{
-						libmaus::aio::InputStream::unique_ptr_type tptr(factory->construct(url.substr(protocol.size()+1)));
+						libmaus::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url.substr(protocol.size()+1)));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 				}
 				else
 				{
-					libmaus::aio::InputStream::unique_ptr_type tptr(factory->construct(url));
+					libmaus::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url));
 					return UNIQUE_PTR_MOVE(tptr);				
+				}
+			}
+
+			static libmaus::aio::InputStream::shared_ptr_type constructShared(std::string const & url)
+			{
+				libmaus::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
+				
+				if ( haveFactoryForProtocol(url) )
+				{
+					uint64_t col = url.size();	
+					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
+						if ( url[i] == ':' )
+							col = i;
+					
+					std::string const protocol = url.substr(0,col);
+					
+					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
+					{
+						libmaus::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url));
+						return tptr;
+					}
+					else
+					{
+						libmaus::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url.substr(protocol.size()+1)));
+						return tptr;
+					}
+				}
+				else
+				{
+					libmaus::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url));
+					return tptr;
 				}
 			}
 			
@@ -145,7 +176,7 @@ namespace libmaus
 			{
 				try
 				{
-					libmaus::aio::InputStream::unique_ptr_type tptr(construct(url));
+					libmaus::aio::InputStream::shared_ptr_type tptr(constructShared(url));
 					return true;
 				}
 				catch(...)
