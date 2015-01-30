@@ -1,3 +1,10 @@
+libmaus (0.0.192-1) unstable; urgency=low
+
+  * extend API by allowing to pass options via ArgInfo object when constructing BamMergeCoordinate and BamMergeQueryName
+  * add functionality for reading CRAM indexes via callbacks
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 30 Jan 2015 15:54:12 +0000
+
 libmaus (0.0.191-1) unstable; urgency=low
 
   * add decompress option for cram input callback setup 
