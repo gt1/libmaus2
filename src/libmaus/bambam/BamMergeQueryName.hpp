@@ -47,6 +47,8 @@ namespace libmaus
 			
 			BamMergeQueryNameWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(filenames,putrank) {}
+			BamMergeQueryNameWrapper(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
+			: object(arginfo,filenames,putrank) {}
 		};
 	}
 }

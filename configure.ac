@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.190,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:190:0
+AC_INIT(libmaus,0.0.193,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=0:193:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1819,6 +1819,7 @@ IOLIBLDFLAGS=
 IOLIBLIBS=
 IOLIBDEFINE=
 IOLIBCALLBACKDEFINE=
+IOLIBINDEXCALLBACKDEFINE=
 AC_ARG_WITH([io_lib],
             [AS_HELP_STRING([--with-io_lib@<:@=PATH@:>@], [support for io_lib library @<:@default=no@:>@])],
             [with_io_lib=${withval}],
@@ -1847,6 +1848,8 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 	AC_CHECK_FUNC(scram_get_header,scram_get_header=yes,scram_get_header=no)
 	AC_CHECK_FUNC(scram_get_seq,scram_get_seq=yes,scram_get_seq=no)
 	AC_CHECK_FUNC(scram_set_option,scram_set_option=yes,scram_set_option=no)
+	AC_CHECK_FUNC(scram_open_cram_via_callbacks,scram_open_cram_via_callbacks=yes,scram_open_cram_via_callbacks=no)
+	AC_CHECK_FUNC(cram_index_load_via_callbacks,cram_index_load_via_callbacks=yes,cram_index_load_via_callbacks=no)
 	AC_LANG_POP
 
 	if [[ "${io_lib_scram_h}" != "yes" ]] ; then
@@ -1911,52 +1914,113 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 		AC_MSG_ERROR([--with-io_lib is set to ${with_io_lib}, but io_lib library (libstaden-read) is not available])	
 	fi
 
-        AC_LANG_PUSH([C])
-        AC_MSG_CHECKING([whether we can compile a program using scram_open_cram_via_callbacks in io_lib])
-                        AC_LINK_IFELSE([AC_LANG_SOURCE([#include <io_lib/scram.h>
-                    #include <stdlib.h>
+	if test "${scram_open_cram_via_callbacks}" = "yes" ; then
+		AC_LANG_PUSH([C])
+		AC_MSG_CHECKING([whether we can compile a program using scram_open_cram_via_callbacks in io_lib])
+				AC_LINK_IFELSE([AC_LANG_SOURCE([#include <io_lib/scram.h>
+			    #include <stdlib.h>
 
-                    int main() 
-                    {
-			char const * filename = "filename";
-                        cram_io_allocate_read_input_t   callback_allocate_function = NULL;
-                        cram_io_deallocate_read_input_t callback_deallocate_function = NULL;
-                        size_t const bufsize = 32768;
-                                    
-			scram_fd * cfd = scram_open_cram_via_callbacks(filename,callback_allocate_function,callback_deallocate_function,bufsize);
-			SAM_hdr * header = 0;
-			bam_seq_t * s = 0;
+			    int main() 
+			    {
+				char const * filename = "filename";
+				cram_io_allocate_read_input_t   callback_allocate_function = NULL;
+				cram_io_deallocate_read_input_t callback_deallocate_function = NULL;
+				size_t const bufsize = 32768;
+					    
+				scram_fd * cfd = scram_open_cram_via_callbacks(filename,callback_allocate_function,callback_deallocate_function,bufsize);
+				SAM_hdr * header = 0;
+				bam_seq_t * s = 0;
 
-			if ( ! cfd )
-				return -1;
+				if ( ! cfd )
+					return -1;
 
-			if ( ! (header = scram_get_header(cfd)) )
-			{
+				if ( ! (header = scram_get_header(cfd)) )
+				{
+					scram_close(cfd);
+					return -1;
+				}
+
+				while (scram_get_seq(cfd, &s) >= 0) 
+				{
+				}
+
+				if ( ! scram_eof(cfd) )
+				{
+					scram_close(cfd);
+					return -1;
+				}
+
 				scram_close(cfd);
-				return -1;
-			}
+				return 0;
+			    }])],
+				have_io_lib_with_callbacks=yes,
+				have_io_lib_with_callbacks=no
+			)
+		AC_MSG_RESULT($have_io_lib_with_callbacks)
+		AC_LANG_POP
 
-			while (scram_get_seq(cfd, &s) >= 0) 
-			{
-			}
+		if test "${have_io_lib_with_callbacks}" = "yes" ; then
+			IOLIBCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS"
+		fi
+	fi
+	
+	if test "${cram_index_load_via_callbacks}" = "yes" ; then
+		AC_LANG_PUSH([C])
+		AC_MSG_CHECKING([whether we can compile a program using cram_index_load_via_callbacks in io_lib])
+				AC_LINK_IFELSE([AC_LANG_SOURCE([#include <io_lib/scram.h>
+			    #include <stdlib.h>
 
-			if ( ! scram_eof(cfd) )
-			{
+			    int main() 
+			    {
+				char const * filename = "filename";
+				cram_io_allocate_read_input_t   callback_allocate_function = NULL;
+				cram_io_deallocate_read_input_t callback_deallocate_function = NULL;
+				size_t const bufsize = 32768;
+				int indexr = -1;
+					    
+				scram_fd * cfd = scram_open_cram_via_callbacks(filename,callback_allocate_function,callback_deallocate_function,bufsize);
+				SAM_hdr * header = 0;
+				bam_seq_t * s = 0;
+
+				if ( ! cfd )
+					return -1;
+
+				if ( ! (header = scram_get_header(cfd)) )
+				{
+					scram_close(cfd);
+					return -1;
+				}
+				
+				indexr = cram_index_load_via_callbacks(cfd->c,filename,callback_allocate_function,callback_deallocate_function);
+				
+				if ( indexr < 0 )
+				{
+					scram_close(cfd);
+					return -1;				
+				}
+
+				while (scram_get_seq(cfd, &s) >= 0) 
+				{
+				}
+
+				if ( ! scram_eof(cfd) )
+				{
+					scram_close(cfd);
+					return -1;
+				}
+
 				scram_close(cfd);
-				return -1;
-			}
+				return 0;
+			    }])],
+				have_io_lib_with_index_callbacks=yes,
+				have_io_lib_with_index_callbacks=no
+			)
+		AC_MSG_RESULT($have_io_lib_with_index_callbacks)
+		AC_LANG_POP
 
-			scram_close(cfd);
-			return 0;
-                    }])],
-                        have_io_lib_with_callbacks=yes,
-                        have_io_lib_with_callbacks=no
-                )
-        AC_MSG_RESULT($have_io_lib_with_callbacks)
-        AC_LANG_POP
-
-	if test "${have_io_lib_with_callbacks}" = "yes" ; then
-		IOLIBCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS"
+		if test "${have_io_lib_with_index_callbacks}" = "yes" ; then
+			IOLIBINDEXCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS"
+		fi
 	fi
 
 	CPPFLAGS="${CPPFLAGSSAVE}"
@@ -2642,4 +2706,5 @@ AC_SUBST([LIBMAUSIRODSPC])
 AC_SUBST([IOLIBCALLBACKDEFINE])
 AC_SUBST([LIBMAUS_FILEOFFSET_BITS])
 AC_SUBST([LIBMAUS_LARGEFILE_SOURCE])
+AC_SUBST([IOLIBINDEXCALLBACKDEFINE])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

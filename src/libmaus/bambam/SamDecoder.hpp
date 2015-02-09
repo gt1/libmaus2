@@ -115,7 +115,7 @@ namespace libmaus
 			SamDecoder(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  in(*AISTR),
 			  lb(in,64*1024),
 			  Pbamheader(readSamHeader(lb)),

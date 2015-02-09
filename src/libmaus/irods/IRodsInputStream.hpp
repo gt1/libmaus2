@@ -33,6 +33,8 @@ namespace libmaus
 		
 			IRodsInputStream(std::string const & irodsPath, int64_t const bufsize = 64*1024, uint64_t const pushbacksize = 0) 
 			: IRodsInputStreamBuffer(irodsPath,bufsize,pushbacksize), std::istream(this) {}
+			
+			virtual ~IRodsInputStream() {}
 		};
 	}
 }

@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
 		libmaus::autoarray::AutoArray<char> B(1024*1024,false);
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::construct(arginfo.restargs[i]));
+			libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(arginfo.restargs[i]));
 			std::istream & in = *Pin;
 			
 			#if 0

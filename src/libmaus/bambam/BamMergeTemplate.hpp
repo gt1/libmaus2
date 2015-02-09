@@ -130,6 +130,22 @@ namespace libmaus
 			}
 			
 			public:
+			BamMergeTemplate(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & rfilenames, bool const putrank = false) 
+			: BamAlignmentDecoder(putrank), 
+			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)),
+			  Pwrappers(constructWrappers(infos)),
+			  wrappers(*Pwrappers),
+			  Pdecoders(constructDecoderArray(wrappers)),
+			  decoders(*Pdecoders),
+			  Palgns(constructAlgnsArray(decoders)),
+			  algns(*Palgns),
+			  header(decoders),
+			  comp(algns.begin()), 
+			  Q(comp)
+			{
+				init();
+			}
+
 			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false) 
 			: BamAlignmentDecoder(putrank), 
 			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)),

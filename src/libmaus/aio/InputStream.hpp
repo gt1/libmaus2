@@ -31,7 +31,7 @@ namespace libmaus
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			InputStream(InputStreamWrapper::stream_ptr_type & Tstream) : InputStreamWrapper(Tstream), std::istream(InputStreamWrapper::getStream().rdbuf()) {}
+			InputStream(InputStreamWrapper::shared_stream_ptr_type & Tstream) : InputStreamWrapper(Tstream), std::istream(InputStreamWrapper::getStream().rdbuf()) {}
 			InputStream(InputStreamWrapper::stream_type & rstream)   : InputStreamWrapper(rstream), std::istream(InputStreamWrapper::getStream().rdbuf()) {}
 			virtual ~InputStream() {}
 		};

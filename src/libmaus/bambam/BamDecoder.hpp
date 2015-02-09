@@ -87,7 +87,7 @@ namespace libmaus
 			BamDecoderTemplate(std::string const & filename, bool const rputrank = false)
 			: 
 			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			  AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  PGZ(new bgzf_type(*AISTR)), GZ(PGZ.get()),
 			  Pbamheader(new BamHeader(*GZ)),
 			  bamheader(*Pbamheader)
@@ -236,7 +236,7 @@ namespace libmaus
 			 * @param rputrank add rank aux field to each alignment at time of reading
 			 **/
 			BamDecoderWrapper(std::string const & filename, bool const rputrank = false)
-			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  istr(*AISTR),
 			  bgzf(new libmaus::lz::BgzfInflateStream(istr)),
 			  bamdec(*bgzf,rputrank) {}
@@ -255,7 +255,7 @@ namespace libmaus
 				libmaus::lz::BgzfVirtualOffset const & startoffset,
 				libmaus::lz::BgzfVirtualOffset const & endoffset,
 				bool const rputrank = false)
-			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  istr(*AISTR),
 			  bgzf(new libmaus::lz::BgzfInflateStream(istr,startoffset,endoffset)),
 			  bamdec(*bgzf,header,rputrank) {}
@@ -366,7 +366,7 @@ namespace libmaus
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
-			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  istr(*AISTR),
 			  bgzf(istr,numthreads,4*numthreads),
 			  bamdec(bgzf,rputrank) 
@@ -406,7 +406,7 @@ namespace libmaus
 				uint64_t const numthreads,
 				bool const rputrank = false
 			)
-			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)),
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  istr(*AISTR),
 			  bgzf(istr,copyostr,numthreads,4*numthreads),
 			  bamdec(bgzf,rputrank) 
@@ -504,7 +504,7 @@ namespace libmaus
 			 * @param header BAM header object
 			 **/
 			BamDecoderResetableWrapper(std::string const & filename, libmaus::bambam::BamHeader const & header)
-			: AISTR(libmaus::aio::InputStreamFactoryContainer::construct(filename)), bgzf(), bamdec(header)
+			: AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)), bgzf(), bamdec(header)
 			{
 			
 			}

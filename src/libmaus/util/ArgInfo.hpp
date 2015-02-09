@@ -66,6 +66,26 @@ namespace libmaus
 			//! rest of arguments behind key=value pairs
 			std::vector < std::string > restargs;
 			
+			void removeKey(std::string const & key)
+			{
+				if ( argmap.find(key) != argmap.end() )
+					argmap.erase(argmap.find(key));
+				while ( argmultimap.find(key) != argmultimap.end() )
+					argmultimap.erase(argmultimap.find(key));
+			}
+			
+			void insertKey(std::string const & key, std::string const & value)
+			{
+				argmap[key] = value;
+				argmultimap.insert(std::pair<std::string,std::string>(key,value));
+			}
+			
+			void replaceKey(std::string const & key, std::string const & value)
+			{
+				removeKey(key);
+				insertKey(key,value);
+			}
+			
 			bool operator==(ArgInfo const & o) const
 			{
 				return

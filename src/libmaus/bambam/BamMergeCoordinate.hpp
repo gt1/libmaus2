@@ -59,6 +59,8 @@ namespace libmaus
 		{
 			BamMergeCoordinate object;
 			
+			BamMergeCoordinateWrapper(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
+			: object(arginfo,filenames,putrank) {}
 			BamMergeCoordinateWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(filenames,putrank) {}
 		};

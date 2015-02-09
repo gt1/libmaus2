@@ -89,12 +89,36 @@ namespace libmaus
 				}
 			}
 
+			static libmaus::bambam::BamCatHeader::unique_ptr_type constructHeader(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames)
+			{
+				libmaus::bambam::BamCatHeader::unique_ptr_type tptr(new libmaus::bambam::BamCatHeader(arginfo,filenames));
+				return UNIQUE_PTR_MOVE(tptr);				
+			}
+
 			static libmaus::bambam::BamCatHeader::unique_ptr_type constructHeader(std::vector<std::string> const & filenames)
 			{
 				libmaus::bambam::BamCatHeader::unique_ptr_type tptr(new libmaus::bambam::BamCatHeader(filenames));
 				return UNIQUE_PTR_MOVE(tptr);				
 			}
 			
+			BamCat(
+				libmaus::util::ArgInfo const & arginfo,
+				std::vector<std::string> const & rfilenames, 
+				bool const putrank = false,
+				bool const rstreaming = false
+			) 
+			: BamAlignmentDecoder(putrank), 
+			  streaming(rstreaming),
+			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)), 
+			  Pwrappers(constructWrappers(infos,streaming)),
+			  Pheader(streaming ? constructHeader(infos,Pwrappers) : constructHeader(arginfo,rfilenames)),
+			  header(*Pheader),
+			  fileid(-1), 
+			  wrapper(), 
+			  decoder(0)
+			{
+			}
+
 			BamCat(
 				std::vector<std::string> const & rfilenames, 
 				bool const putrank = false,

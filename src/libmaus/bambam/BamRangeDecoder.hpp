@@ -80,7 +80,7 @@ namespace libmaus
 			 **/
 			static libmaus::bambam::BamHeader::unique_ptr_type loadHeader(std::string const & filename)
 			{
-				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::construct(filename));
+				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename));
 				std::istream & CIS = *Pistr;
 				libmaus::lz::BgzfInflateStream BIS(CIS);
 				libmaus::bambam::BamHeader::unique_ptr_type Pheader(new libmaus::bambam::BamHeader(BIS));
@@ -95,7 +95,7 @@ namespace libmaus
 			 **/
 			static libmaus::bambam::BamIndex::unique_ptr_type loadIndex(std::string const & filename)
 			{
-				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::construct(filename));
+				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename));
 				std::istream & CIS = *Pistr;
 				libmaus::bambam::BamIndex::unique_ptr_type Pindex(new libmaus::bambam::BamIndex(CIS));
 				return UNIQUE_PTR_MOVE(Pindex);

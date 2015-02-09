@@ -33,21 +33,34 @@ namespace libmaus
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~PosixFdInputStreamFactory() {}
-			virtual libmaus::aio::InputStream::unique_ptr_type construct(std::string const & filename)
+			virtual libmaus::aio::InputStream::unique_ptr_type constructUnique(std::string const & filename)
 			{
 				if ( filename == "-" )
 				{				
-					PosixFdInputStream::unique_ptr_type tptr(new PosixFdInputStream(STDIN_FILENO));
-					libmaus::util::unique_ptr<std::istream>::type iptr(tptr.release());
+					libmaus::util::shared_ptr<std::istream>::type iptr(new PosixFdInputStream(STDIN_FILENO));
 					libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
 					return UNIQUE_PTR_MOVE(istr);
 				}
 				else
 				{
-					PosixFdInputStream::unique_ptr_type tptr(new PosixFdInputStream(filename));
-					libmaus::util::unique_ptr<std::istream>::type iptr(tptr.release());
+					libmaus::util::shared_ptr<std::istream>::type iptr(new PosixFdInputStream(filename));
 					libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
 					return UNIQUE_PTR_MOVE(istr);
+				}
+			}
+			virtual libmaus::aio::InputStream::shared_ptr_type constructShared(std::string const & filename)
+			{
+				if ( filename == "-" )
+				{				
+					libmaus::util::shared_ptr<std::istream>::type iptr(new PosixFdInputStream(STDIN_FILENO));
+					libmaus::aio::InputStream::shared_ptr_type istr(new libmaus::aio::InputStream(iptr));
+					return istr;
+				}
+				else
+				{
+					libmaus::util::shared_ptr<std::istream>::type iptr(new PosixFdInputStream(filename));
+					libmaus::aio::InputStream::shared_ptr_type istr(new libmaus::aio::InputStream(iptr));
+					return istr;
 				}
 			}
 		};
