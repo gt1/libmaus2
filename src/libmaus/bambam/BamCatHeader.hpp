@@ -180,6 +180,29 @@ namespace libmaus
 				init();
 			}
 
+			BamCatHeader(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames)
+			: orderedCoordinates(true), orderedNames(true)
+			{
+				// allocate header clone array
+				inputbamheaders = libmaus::autoarray::AutoArray<libmaus::bambam::BamHeader::unique_ptr_type>(filenames.size());
+				libmaus::util::ArgInfo arginfoCopy = arginfo;
+
+				// open files one at a time and extract headers
+				for ( uint64_t i = 0; i < filenames.size(); ++i )
+				{
+					arginfoCopy.replaceKey("I",filenames[i]);
+					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdec(
+						libmaus::bambam::BamAlignmentDecoderFactory::construct(arginfoCopy)
+					);
+					libmaus::bambam::BamAlignmentDecoder & dec = Pdec->getDecoder();
+					libmaus::bambam::BamHeader::unique_ptr_type tinputbamheader(dec.getHeader().uclone());
+					inputbamheaders[i] = UNIQUE_PTR_MOVE(tinputbamheader);					
+				}
+				
+				// merge headers
+				init();
+			}
+
 			BamCatHeader(std::vector<std::string> const & filenames)
 			: orderedCoordinates(true), orderedNames(true)
 			{
