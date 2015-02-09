@@ -176,6 +176,31 @@ namespace libmaus
 				}
 				return *this;
 			}
+
+			static libmaus::bambam::BamAlignmentDecoderInfo constructInfo(
+				libmaus::util::ArgInfo const & arginfo,
+				std::string const & filename,
+				bool const putrank = false, 
+				std::ostream * copystr = 0
+			)
+			{
+				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
+				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
+				std::string const reference = arginfo.getUnparsedValue("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
+				std::string const prange = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
+				std::string const pranges = arginfo.getUnparsedValue("ranges",std::string(""));
+				std::string const range = pranges.size() ? pranges : prange;
+			
+				return libmaus::bambam::BamAlignmentDecoderInfo(
+					filename,
+					inputformat,
+					inputthreads,
+					reference,
+					putrank,
+					copystr,
+					range
+				);
+			}
 		};
 		
 		std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamAlignmentDecoderInfo const & o);

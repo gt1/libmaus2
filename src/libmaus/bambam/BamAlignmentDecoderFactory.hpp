@@ -95,7 +95,26 @@ namespace libmaus
 				
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
+			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+				libmaus::bambam::BamAlignmentDecoderInfo const & BADI, bool const putrank, std::istream & stdin
+			)
+			{
+				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+					libmaus::bambam::BamAlignmentDecoderFactory::construct(
+						stdin,
+						BADI.inputfilename,
+						BADI.inputformat,
+						BADI.inputthreads,
+						BADI.reference,
+						putrank,
+						BADI.copystr,
+						BADI.range)
+				);
+
+				return UNIQUE_PTR_MOVE(tptr);
+			}
+
 			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::istream & stdin = std::cin,
 				std::string const & inputfilename = BamAlignmentDecoderInfo::getDefaultInputFileName(),

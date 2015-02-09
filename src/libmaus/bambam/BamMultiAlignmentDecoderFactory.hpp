@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace libmaus
 				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(BADI,putrank));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
-			
+
 			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & BADI,
 				bool const putrank = false,
@@ -68,17 +68,8 @@ namespace libmaus
 				else
 				{
 					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-						libmaus::bambam::BamAlignmentDecoderFactory::construct(
-							stdin,
-							BADI[0].inputfilename,
-							BADI[0].inputformat,
-							BADI[0].inputthreads,
-							BADI[0].reference,
-							putrank,
-							BADI[0].copystr,
-							BADI[0].range)
+						libmaus::bambam::BamAlignmentDecoderFactory::construct(BADI[0],putrank,stdin)
 					);
-
 					return UNIQUE_PTR_MOVE(tptr);
 				}			
 			}
@@ -87,43 +78,17 @@ namespace libmaus
 				libmaus::util::ArgInfo const & arginfo,
 				bool const putrank = false, 
 				std::ostream * copystr = 0,
-				std::istream & stdin = std::cin)
+				std::istream & stdin = std::cin
+			)
 			{
 				std::vector<std::string> const I = arginfo.getPairValues("I");
-				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
-				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
-				std::string const reference = arginfo.getUnparsedValue("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
-				std::string const prange = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
-				std::string const pranges = arginfo.getUnparsedValue("ranges",std::string(""));
-				std::string const range = pranges.size() ? pranges : prange;
 
 				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> V;
 				for ( uint64_t i = 0; i < I.size(); ++i )
-					V.push_back(
-						libmaus::bambam::BamAlignmentDecoderInfo(
-							I[i],
-							inputformat,
-							inputthreads,
-							reference,
-							false,
-							copystr,
-							range
-						)
-					);
-					
+					V.push_back(libmaus::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,I[i],false /* put rank */,copystr));
 				if ( ! I.size() )
-					V.push_back(
-						libmaus::bambam::BamAlignmentDecoderInfo(
-							std::string("-"),
-							inputformat,
-							inputthreads,
-							reference,
-							false,
-							copystr,
-							range
-						)
-					);
-					
+					V.push_back(libmaus::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,"-",false,copystr));
+
 				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,stdin));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
