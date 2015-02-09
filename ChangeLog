@@ -1,3 +1,9 @@
+libmaus (0.0.193-1) unstable; urgency=low
+
+  * add BamCatHeader constructor method with ArgInfo object 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 09 Feb 2015 09:30:08 +0000
+
 libmaus (0.0.192-1) unstable; urgency=low
 
   * extend API by allowing to pass options via ArgInfo object when constructing BamMergeCoordinate and BamMergeQueryName
