@@ -518,7 +518,7 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 		}
 	}
 	
-	void printThroughputGraph(std::string const fileprefix)
+	void printThroughputGraph(std::string const fileprefix, bool removeFiles = true)
 	{
 		for ( std::map < std::string, std::vector < std::pair<double,uint64_t> > >::iterator ita = throughputvector.begin();
 			ita != throughputvector.end(); ++ita )
@@ -593,9 +593,12 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 				std::cerr << "[E] epstopdf failed" << std::endl;			
 			}
 			
-			remove(fn.c_str());
-			remove(gplotfn.c_str());
-			remove(epsfn.c_str());
+			if ( removeFiles )
+			{
+				remove(fn.c_str());
+				remove(gplotfn.c_str());
+				remove(epsfn.c_str());
+			}
 		}
 	}
 };
@@ -607,6 +610,7 @@ int main(int argc, char * argv[])
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const idsuffix = arginfo.getUnparsedValue("idsuffix","");
+		bool const removefiles = arginfo.getValue<unsigned int>("removefiles",true);
 	
 		std::ostream * Pout = &std::cout;
 		libmaus::lz::GzipOutputStream::unique_ptr_type Pgz;
@@ -638,10 +642,10 @@ int main(int argc, char * argv[])
 		PFC.printHistograms(histprefix);
 		std::cerr << "[V]\tminexpstarttime=" << PFC.minexpstarttime << "\tmaxexpstarttime=" << PFC.maxexpstarttime << std::endl;
 		
-		if ( PFC.minexpstarttime == PFC.maxexpstarttime )
-			PFC.printThroughputGraph(histprefix);
-		else
-			std::cerr << "[E] inconsistent experiment start time, not producing data generation rate over time graph." << std::endl;			
+		if ( PFC.minexpstarttime != PFC.maxexpstarttime )
+			std::cerr << "[E] inconsistent experiment start time" << std::endl;			
+
+		PFC.printThroughputGraph(histprefix,removefiles);
 	}
 	catch(std::exception const & ex)
 	{
