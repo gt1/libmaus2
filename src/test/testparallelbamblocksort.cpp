@@ -291,7 +291,7 @@ namespace libmaus
 				{
 					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(*MI);
 					libmaus::aio::CheckedOutputStream dataout(fn);
-					libmaus::aio::CheckedOutputStream indexout(indexfn);
+					libmaus::aio::CheckedInputOutputStream indexout(indexfn);
 					REBDBC.merge(SMI,dataout,indexout);
 				}
 			};
@@ -774,15 +774,11 @@ namespace libmaus
 				
 				void enqueMergeFragReadEndsLists()
 				{	
-					std::cerr << "Setting up for frags...";			
 					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI =
 						getFragMergeInfo();
-					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
-						new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(*MI,true));
-					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = pREBDBC->getShortMergeIntervals(STP.getNumThreads());
-					pREBDBC.reset();
-					std::cerr << "done." << std::endl;
-					
+					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
+						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(*MI,STP.getNumThreads(),false /* check */);
+
 					unmergeFragReadEndsRegions += SMI.size();
 					
 					for ( uint64_t i = 0; i < SMI.size(); ++i )
@@ -803,28 +799,10 @@ namespace libmaus
 
 				void enqueMergePairReadEndsLists()
 				{				
-					std::cerr << "Setting up for pairs...";			
 					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI =
 						getPairMergeInfo();
-					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>::unique_ptr_type pREBDBC(
-						new libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true /* proxy */>(*MI,true));
-					std::cerr << "done." << std::endl;
-					
-					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI;
-					std::cerr << "Calling getLongMergeIntervals 2...";
-					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI2 = 
-						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(*MI,STP.getNumThreads());
-					std::cerr << "done." << std::endl;
-
-					std::cerr << "Calling getLongMergeIntervals ...";
-					SMI = pREBDBC->getLongMergeIntervals(STP.getNumThreads());
-					std::cerr << "done." << std::endl;
-					
-					assert ( SMI == SMI2 );
-
-					std::cerr << "Resetting up for pairs...";
-					pREBDBC.reset();
-					std::cerr << "done." << std::endl;
+					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
+						libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(*MI,STP.getNumThreads(),false /* check */);
 					
 					unmergePairReadEndsRegions += SMI.size();
 					
@@ -846,9 +824,12 @@ namespace libmaus
 				
 				void flushReadEndsLists()
 				{
+					// enque ReadEndsContainer flush requests
+					std::cerr << "[V] flushing read ends lists...";
 					enqueFlushFragReadEndsLists();
 					enqueFlushPairReadEndsLists();
 					
+					// wait for flush requests to finish
 					while ( 
 						(
 							static_cast<uint64_t>(unflushedFragReadEndsContainers)
@@ -859,14 +840,18 @@ namespace libmaus
 					)
 					{
 						sleep(1);
-					}
+					}					
+					std::cerr << "done." << std::endl;
 					
 					if ( STP.isInPanicMode() )
 						return;
 					
+					// enque ReadEnds lists merge requests
+					std::cerr << "[V] merging read ends lists...";
 					enqueMergeFragReadEndsLists();
 					enqueMergePairReadEndsLists();
 
+					// wait for merge requests to finish
 					while ( 
 						(
 							static_cast<uint64_t>(unmergeFragReadEndsRegions)
@@ -878,6 +863,7 @@ namespace libmaus
 					{
 						sleep(1);
 					}
+					std::cerr << "done." << std::endl;
 
 					if ( STP.isInPanicMode() )
 						return;
