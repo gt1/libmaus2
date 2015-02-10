@@ -222,20 +222,48 @@ namespace libmaus
 	}
 }
 
-/**
- * format orientation for output stream
- *
- * @param out output stream
- * @param reo read ends orientation
- * @return out
- **/
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo);
-/**
- * format read ends object for output stream
- *
- * @param out output stream
- * @param RE read ends object
- * @return out
- **/
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+namespace libmaus 
+{
+	namespace bambam 
+	{
+		/**
+		 * format orientation for output stream
+		 *
+		 * @param out output stream
+		 * @param reo read ends orientation
+		 * @return out
+		 **/
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo);
+	}
+}
+
+namespace libmaus 
+{
+	namespace bambam 
+	{
+		/**
+		 * format read ends object for output stream
+		 *
+		 * @param out output stream
+		 * @param RE read ends object
+		 * @return out
+		 **/
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEndsBase const & RE);
+	}
+}
+
+namespace libmaus 
+{
+	namespace bambam 
+	{
+		/**
+		 * format read ends object for output stream
+		 *
+		 * @param out output stream
+		 * @param RE read ends object
+		 * @return out
+		 **/
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+	}
+}
 #endif

@@ -20,7 +20,7 @@
 
 ::libmaus::util::DigitTable const ::libmaus::bambam::ReadEndsBase::D;
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo)
+std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo)
 {
 	switch ( reo )
 	{
@@ -35,9 +35,9 @@ std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_en
 	return out;
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE)
+std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEndsBase const & RE)
 {
-	out << "ReadEnds("
+	out << "ReadEndsBase("
 		<< "libId=" << RE.libraryId << ","
 		<< "r1Seq=" << RE.read1Sequence << ","
 		<< "r1Cor=" << RE.read1Coordinate << "(" << RE.getRead1Coordinate() << ")" << ","
@@ -52,6 +52,13 @@ std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & 
 		<< "x=" << RE.x << ","
 		<< "y=" << RE.y 
 		<< ")";
+		
+	return out;
+}
+
+std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE)
+{
+	out << "ReadEnds(" << static_cast<libmaus::bambam::ReadEndsBase const &>(RE) << ")";
 		
 	if ( RE.p )
 		out << "[" << RE.p->getName() << "]";

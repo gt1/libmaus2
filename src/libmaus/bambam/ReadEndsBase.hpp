@@ -37,11 +37,25 @@ namespace libmaus
 {
 	namespace bambam
 	{
+		struct ReadEndsBase;
+	}
+}
+
+namespace libmaus
+{
+	namespace bambam
+	{
 		struct ReadEnds;
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+namespace libmaus
+{
+	namespace bambam
+	{
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEndsBase const & RE);
+	}
+}
 
 namespace libmaus
 {
@@ -58,7 +72,7 @@ namespace libmaus
 			static ::libmaus::util::DigitTable const D;
 			
 			//! friend output iterator
-			friend std::ostream & ::operator<<(std::ostream & out, ::libmaus::bambam::ReadEnds const & RE);
+			friend std::ostream & ::libmaus::bambam::operator<<(std::ostream & out, ::libmaus::bambam::ReadEndsBase const & RE);
 			//! friend comparator
 			friend struct OpticalComparator;
 			
