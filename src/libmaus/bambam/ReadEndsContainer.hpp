@@ -84,8 +84,8 @@ namespace libmaus
 			//! index generator type
 			typedef libmaus::index::ExternalMemoryIndexGenerator<
 				libmaus::bambam::ReadEndsBase,
-				ReadEndsContainerBase::indexShift,
-				ReadEndsContainerBase::indexShift
+				ReadEndsContainerBase::baseIndexShift,
+				ReadEndsContainerBase::innerIndexShift
 				> index_generator_type;
 			//! index generator pointer type
 			typedef index_generator_type::unique_ptr_type index_generator_pointer_type;
@@ -505,20 +505,24 @@ namespace libmaus
 							
 					// write entries
 					for ( index_type * xptr = iptr; xptr != A.end(); ++xptr )
-					{
-						index_type const ioff = *xptr;
-						uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
-						
+					{						
 						if ( indexer && ((xptr - iptr) & index_generator_type::base_index_mask) == 0 )
 						{
-							std::pair<uint64_t,uint64_t> offset = SOS.getOffset();
+							index_type const ioff = *xptr;
+							uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
+							
 							// decode
+							/* uint32_t const len = */ decodeLength(eptr);
 							::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
+							
 							::libmaus::bambam::ReadEnds RE;
 							RE.get(G);
 							// put object
-							indexer->put(RE,offset);
+							indexer->put(RE,SOS.getOffset());							
 						}
+
+						index_type const ioff = *xptr;
+						uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
 					
 						#if 1
 						uint32_t const len = decodeLength(eptr);
@@ -641,7 +645,7 @@ namespace libmaus
 			{
 				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
-				put(RE);
+				put(RE);				
 			}
 
 			/**
@@ -663,7 +667,7 @@ namespace libmaus
 			{
 				::libmaus::bambam::ReadEnds RE(p,pblocksize,q,qblocksize,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
-				put(RE);
+				put(RE);				
 			}
 
 			/**
