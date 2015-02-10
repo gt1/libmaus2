@@ -429,6 +429,24 @@ namespace libmaus
 							);
 						}
 						
+						if ( pfirst )
+						{
+							fragContainer->putFrag(
+								pfirst + sizeof(uint32_t),
+								libmaus::bambam::DecoderBase::getLEInteger(pfirst,sizeof(uint32_t)),
+								*(BP->header)
+							);
+						}
+
+						if ( psecond )
+						{
+							fragContainer->putFrag(
+								psecond + sizeof(uint32_t),
+								libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
+								*(BP->header)
+							);
+						}
+						
 						looplow = loophigh;
 					}
 
