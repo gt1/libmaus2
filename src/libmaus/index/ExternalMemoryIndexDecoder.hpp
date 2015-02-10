@@ -58,7 +58,14 @@ namespace libmaus
 			
 			data_type minel;
 			bool minelvalid;
+			data_type maxel;
+			bool maxelvalid;
 			
+			/**
+			 * set up decoder
+			 *
+			 * @param cache_thres combined size of caches in bytes
+			 **/
 			void setup(uint64_t const cache_thres = 2048)
 			{
 				uint64_t const endofindex = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);				
@@ -116,10 +123,18 @@ namespace libmaus
 				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
 					minel.deserialise(PFIS);	
 					minelvalid = true;
+
+					PFIS.clear();
+					PFIS.seekg(levelstarts[0] + (levelcnts[0]-1) * record_size, std::ios::beg);
+				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+					maxel.deserialise(PFIS);					
+					maxelvalid = true;
 				}
 				else
 				{
 					minelvalid = false;
+					maxelvalid = false;
 				}
 			}
 
@@ -135,7 +150,12 @@ namespace libmaus
 				setup(rcache_thres);
 			}
 
-			// get offset for element i at base layer of index			
+			/**
+			 * get offset for element i at base layer of index			
+			 *
+			 * @param i base block index
+			 * @return offset in data file (start of compressed block and offset inside compressed block)
+			 **/
 			std::pair<uint64_t,uint64_t> operator[](uint64_t const i)
 			{
 				PFIS.clear();
@@ -149,24 +169,63 @@ namespace libmaus
 				return std::pair<uint64_t,uint64_t>(pfirst,psecond);				
 			}
 			
+			/**
+			 * return number of base blocks in index
+			 **/
 			uint64_t size() const
 			{
 				return levelcnts.size() ? levelcnts.at(0) : 0;
 			}
 			
+			std::ostream & printLevel(std::ostream & out, int const l)
+			{
+				PFIS.seekg(levelstarts[l], std::ios::beg);
+				for ( uint64_t i = 0; i < levelcnts[l]; ++i )
+				{
+					uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+					uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+					data_type Q;
+					Q.deserialise(PFIS);
+				
+					out << "E(" <<l <<"," << i <<")=([" << pfirst << "," << psecond << "," << Q << ")\n";
+				}
+				
+				return out;
+
+			}
+
+			std::ostream & print(std::ostream & out)
+			{
+				for ( int i = static_cast<int>(levelstarts.size())-1; i >= 0; --i )
+					printLevel(out,i);
+				return out;
+			}
+			
+			/**
+			 * find largest element smaller than E in index
+			 **/
 			ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type> findLargestSmaller(
 				data_type const & E, 
 				bool const cacheOnly = false,
 				comparator comp = comparator()
 			)
 			{
+				#if 0
+				std::cerr << "checking for " << E << std::endl;
+				std::cerr << "minimum element valid " << minelvalid << std::endl;
+				std::cerr << "minimum element " << minel << std::endl;
+				#endif
+			
 				// check for empty array or minimum too large
 				if ( (! minelvalid) || (!comp(minel,E)) )
 					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>();
 			
+				// block id
 				uint64_t blockid = 0;
-				std::pair<uint64_t,uint64_t> P;
+				// element
 				data_type PE;
+				// offset of PE in compressed data file
+				std::pair<uint64_t,uint64_t> P;
 				
 				for ( int level = static_cast<int>(levelstarts.size())-1; level >= 0; --level )
 				{
@@ -199,6 +258,7 @@ namespace libmaus
 						P = it_start->P;
 						PE = it_start->D;
 					}
+					// use only cache
 					else if ( cacheOnly )
 					{
 						blockid *= index_step;
@@ -232,6 +292,10 @@ namespace libmaus
 						}
 					}
 				}
+				
+				#if 0
+				std::cerr << "blockid=" << blockid << std::endl;
+				#endif
 				
 				return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>(P,blockid,PE);
 			}
