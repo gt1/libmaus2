@@ -55,9 +55,9 @@ namespace libmaus
 			uint64_t const numentries;
 			uint64_t const numblocks;
 			
-			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>::unique_ptr_type Pindex;
-			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift> & Rindex;
-			
+			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Pindex;
+			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift> & Rindex;
+
 			mutable uint64_t blockloaded;
 			mutable bool blockloadedvalid;
 			mutable libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds> B;
@@ -68,20 +68,20 @@ namespace libmaus
 			mutable libmaus::lru::SparseLRU secondaryProxyLRU;
 			mutable std::map<uint64_t,ReadEnds> secondaryProxyMap;
 			
-			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>::unique_ptr_type openIndex()
+			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type openIndex()
 			{
 				index.clear();
 				index.seekg(indexoffset,std::ios::beg);
-				libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>::unique_ptr_type Tindex(
-					new libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,indexShift,indexShift>(index)
+				libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Tindex(
+					new libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>(index)
 				);
 				return UNIQUE_PTR_MOVE(Tindex);
 			}
 
 			void loadBlock(uint64_t const i) const
 			{
-				uint64_t const blocklow  = i << indexShift;
-				uint64_t const blockhigh = std::min(blocklow + indexStep, numentries);
+				uint64_t const blocklow  = i << baseIndexShift;
+				uint64_t const blockhigh = std::min(blocklow + baseIndexStep, numentries);
 				uint64_t const blocksize = blockhigh-blocklow;
 				
 				assert ( i < numblocks );
@@ -136,12 +136,12 @@ namespace libmaus
 			    dataprovider(rdataprovider),
 			    indexprovider(rindexprovider),
 			    data(rdata), index(rindex), indexoffset(rindexoffset), numentries(rnumentries),
-			    numblocks((numentries + indexStep-1)/indexStep),
+			    numblocks((numentries + baseIndexStep-1)/baseIndexStep),
 			    Pindex(openIndex()),
 			    Rindex(*Pindex),
 			    blockloaded(0), blockloadedvalid(false),
 			    primaryProxyLRU(proxy ? 1024 : 0),
-			    secondaryProxyLRU(proxy ? 2*ReadEndsContainerBase::indexStep : 0)
+			    secondaryProxyLRU(proxy ? 2*ReadEndsContainerBase::baseIndexStep : 0)
 			{
 			}
 			
@@ -181,10 +181,10 @@ namespace libmaus
 					}
 				}
 				
-				uint64_t const blockid = i >> indexShift;
+				uint64_t const blockid = i >> baseIndexShift;
 				if ( (blockloaded != blockid) || (!blockloadedvalid) )
 					loadBlock(blockid);
-				uint64_t const blocklow = blockid << indexShift;
+				uint64_t const blocklow = blockid << baseIndexShift;
 				
 				ReadEnds const & el = B[i-blocklow];
 				
