@@ -175,7 +175,7 @@ void libmaus::digest::SHA2_256_sse4::digest(
 		while ( p != pe )
 			*(p++) = 0;
 			
-		uint8_t * pp = reinterpret_cast<uint8_t *>(p);
+		// uint8_t * pp = reinterpret_cast<uint8_t *>(p);
 		
 		*p = libmaus::rank::BSwapBase::bswap8(numbits);
 
