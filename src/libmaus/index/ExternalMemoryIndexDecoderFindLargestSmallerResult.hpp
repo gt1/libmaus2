@@ -21,6 +21,7 @@
 
 #include <utility>
 #include <libmaus/types/types.hpp>
+#include <ostream>
 
 namespace libmaus
 {
@@ -47,6 +48,19 @@ namespace libmaus
 				return P == O.P && blockid == O.blockid;
 			}
 		};
+		
+		template<typename data_type>
+		std::ostream & operator<<(std::ostream & out, ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type> const & O)
+		{
+			out << "ExternalMemoryIndexDecoderFindLargestSmallerResult("
+				<< "[" << O.P.first << "," << O.P.second << "]"
+				<< ","
+				<< O.blockid
+				<< ","
+				<< O.D
+				<< ")";
+			return out;
+		}
 	}
 }
 #endif
