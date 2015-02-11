@@ -51,6 +51,11 @@ namespace libmaus
 				std::string const tagtag;
 				char const * ctagtag;
 				
+				libmaus::parallel::SynchronousCounter<uint64_t> s_fragcnt;
+				libmaus::parallel::SynchronousCounter<uint64_t> s_paircnt;
+				libmaus::parallel::SynchronousCounter<uint64_t> s_mapped;
+				libmaus::parallel::SynchronousCounter<uint64_t> s_unmapped;
+				
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
 					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
@@ -63,7 +68,8 @@ namespace libmaus
 					updateIntervalInterface(rupdateIntervalInterface),
 					readEndsContainerFreeListInterface(rreadEndsContainerFreeListInterface),
 					fixmates(true),
-					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str())
+					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str()),
+					s_fragcnt(0), s_paircnt(0), s_mapped(0), s_unmapped(0)
 				{
 					MQfilter.set("MQ");
 					
@@ -102,6 +108,7 @@ namespace libmaus
 					libmaus::autoarray::AutoArray<uint8_t> ATA1;
 					libmaus::autoarray::AutoArray<uint8_t> ATA2;
 					// 2(Tag) + 1(Z) + String + nul = String + 4
+					
 
 					while ( looplow < loopend )
 					{
@@ -160,7 +167,8 @@ namespace libmaus
 									}
 								}
 							}
-							
+						
+						// update maxleftoff and maxrightoff for first mate	
 						if ( firsti != -1 )
 						{						
 							uint8_t const * text = BP->algn->textAt(firsti);
@@ -185,6 +193,7 @@ namespace libmaus
 							}
 						}
 						
+						// update maxleftoff and maxrightoff for second mate	
 						if ( secondi != -1 )
 						{						
 							uint8_t const * text = BP->algn->textAt(secondi);
@@ -209,6 +218,7 @@ namespace libmaus
 							}
 						}
 						
+						// run fixmates
 						if ( fixmates )
 						{
 							if ( firsti >= 0 && secondi >= 0 )
@@ -219,7 +229,7 @@ namespace libmaus
 								);
 							}
 						}
-						
+
 						if ( dupmarksupport )
 						{
 							if ( firsti >= 0 && secondi >= 0 )
@@ -377,7 +387,7 @@ namespace libmaus
 									subbuf->replaceLength(offset,P.second);
 								}
 							}
-
+							
 							// add rank (line number in input file)
 							uint8_t const T[4+4+8] = {
 								'Z','R',
@@ -387,20 +397,44 @@ namespace libmaus
 								'C',
 								// length of number in bytes
 								8,0,0,0,
-								static_cast<uint8_t>((rank >> (0*8)) & 0xFF),
-								static_cast<uint8_t>((rank >> (1*8)) & 0xFF),
-								static_cast<uint8_t>((rank >> (2*8)) & 0xFF),
-								static_cast<uint8_t>((rank >> (3*8)) & 0xFF),
-								static_cast<uint8_t>((rank >> (4*8)) & 0xFF),
-								static_cast<uint8_t>((rank >> (5*8)) & 0xFF),
+								// number (BE)
+								static_cast<uint8_t>((rank >> (7*8)) & 0xFF),
 								static_cast<uint8_t>((rank >> (6*8)) & 0xFF),
-								static_cast<uint8_t>((rank >> (7*8)) & 0xFF)
+								static_cast<uint8_t>((rank >> (5*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (4*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (3*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (2*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (1*8)) & 0xFF),
+								static_cast<uint8_t>((rank >> (0*8)) & 0xFF)
 							};
 							subbuf->push(&T[0],sizeof(T));
 							P.second += sizeof(T);
 							subbuf->replaceLength(offset,P.second);
+							
+							uint8_t const * optr = subbuf->getPointer(offset);
+							uint32_t const flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(optr + sizeof(uint32_t));
+							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
+							{
+								s_fragcnt++;
+
+								fragContainer->putFrag(
+									optr + sizeof(uint32_t),
+									libmaus::bambam::DecoderBase::getLEInteger(optr,sizeof(uint32_t)),
+									*(BP->header)
+								);
+							}
 						}
-						
+
+						for ( uint64_t i = looplow; i < loophigh; ++i )
+						{
+							uint8_t const * text = BP->algn->textAt(i);
+							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
+							if ( flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
+								s_unmapped++;
+							else
+								s_mapped++;
+						}
+
 						uint8_t const * pfirst  = (firsto  >= 0) ? subbuf->getPointer(firsto) : 0;
 						uint8_t const * psecond = (secondo >= 0) ? subbuf->getPointer(secondo) : 0;
 						
@@ -427,24 +461,8 @@ namespace libmaus
 								libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
 								*(BP->header)
 							);
-						}
-						
-						if ( pfirst )
-						{
-							fragContainer->putFrag(
-								pfirst + sizeof(uint32_t),
-								libmaus::bambam::DecoderBase::getLEInteger(pfirst,sizeof(uint32_t)),
-								*(BP->header)
-							);
-						}
-
-						if ( psecond )
-						{
-							fragContainer->putFrag(
-								psecond + sizeof(uint32_t),
-								libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
-								*(BP->header)
-							);
+							
+							s_paircnt++;
 						}
 						
 						looplow = loophigh;
