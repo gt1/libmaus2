@@ -19,6 +19,8 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPMARKBASE_HPP)
 #define LIBMAUS_BAMBAM_DUPMARKBASE_HPP
 
+#include <libmaus/bambam/BamHeaderUpdate.hpp>
+#include <libmaus/bambam/BamMergeCoordinate.hpp>
 #include <libmaus/bambam/OpticalComparator.hpp>
 #include <libmaus/bambam/ReadEnds.hpp>
 #include <libmaus/bambam/DupSetCallback.hpp>
@@ -32,6 +34,7 @@
 #include <libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp>
 #include <libmaus/aio/PosixFdInputStream.hpp>
 #include <libmaus/bambam/BamHeaderParserStateBase.hpp>
+#include <libmaus/bambam/BamAlignmentSnappyInput.hpp>
 
 namespace libmaus
 {
@@ -91,7 +94,12 @@ namespace libmaus
 
 					for ( iterator lfrags_c = lfrags_a; lfrags_c != lfrags_e; ++lfrags_c )
 						if ( lfrags_c != lfrags_m )
+						{
+							#if defined(MARKDUPLICATEPAIRSDEBUG)
+							std::cerr << "[V] marking " << projector::deref(*lfrags_c) << std::endl;
+							#endif
 							DSC(projector::deref(*lfrags_c));
+						}
 				
 					// check for optical duplicates
 					std::sort ( lfrags_a, lfrags_e, ::libmaus::bambam::OpticalComparator() );
@@ -191,6 +199,10 @@ namespace libmaus
 				return markDuplicatePairs<iterator,MarkDuplicateProjectorPointerDereference>(lfrags_a,lfrags_e,DSC,optminpixeldif);
 			}
 
+			static uint64_t markDuplicatePairs(std::vector< ::libmaus::bambam::ReadEnds > & lfrags, ::libmaus::bambam::DupSetCallback & DSC)
+			{
+				return markDuplicatePairsVector(lfrags,DSC);
+			}
 
 			template<typename iterator, typename projector>
 			static uint64_t markDuplicateFrags(iterator const lfrags_a, iterator const lfrags_e, ::libmaus::bambam::DupSetCallback & DSC)
@@ -292,7 +304,7 @@ namespace libmaus
 				return markDuplicateFrags<iterator,MarkDuplicateProjectorPointerDereference>(lfrags_a,lfrags_e,DSC);
 			}
 
-			static bool isDupPair(::libmaus::bambam::ReadEnds const & A, ::libmaus::bambam::ReadEnds const & B)
+			static bool isDupPair(::libmaus::bambam::ReadEndsBase const & A, ::libmaus::bambam::ReadEndsBase const & B)
 			{
 				bool const notdup = 
 					A.getLibraryId()       != B.getLibraryId()       ||
@@ -307,7 +319,7 @@ namespace libmaus
 				return ! notdup;
 			}
 
-			static bool isDupFrag(::libmaus::bambam::ReadEnds const & A, ::libmaus::bambam::ReadEnds const & B)
+			static bool isDupFrag(::libmaus::bambam::ReadEndsBase const & A, ::libmaus::bambam::ReadEndsBase const & B)
 			{
 				bool const notdup = 
 					A.getLibraryId()       != B.getLibraryId()       ||
