@@ -36,7 +36,13 @@ namespace libmaus
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+namespace libmaus
+{
+	namespace bambam
+	{
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+	}
+}
 
 namespace libmaus
 {
@@ -55,7 +61,7 @@ namespace libmaus
 			static ::libmaus::util::DigitTable const D;
 			
 			//! friend output iterator
-			friend std::ostream & ::operator<<(std::ostream & out, ::libmaus::bambam::ReadEnds const & RE);
+			friend std::ostream & ::libmaus::bambam::operator<<(std::ostream & out, ::libmaus::bambam::ReadEnds const & RE);
 			//! friend comparator
 			friend struct OpticalComparator;
 			
@@ -738,7 +744,13 @@ namespace libmaus
  * @param reo read ends orientation
  * @return out
  **/
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo);
+namespace libmaus
+{
+	namespace bambam
+	{
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo);
+	}
+}
 /**
  * format read ends object for output stream
  *
@@ -746,5 +758,11 @@ std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_en
  * @param RE read ends object
  * @return out
  **/
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+namespace libmaus
+{
+	namespace bambam
+	{
+		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+	}
+}
 #endif

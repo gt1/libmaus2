@@ -20,7 +20,7 @@
 
 ::libmaus::util::DigitTable const ::libmaus::bambam::ReadEndsBase::D;
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo)
+std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo)
 {
 	switch ( reo )
 	{
@@ -35,7 +35,7 @@ std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_en
 	return out;
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE)
+std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE)
 {
 	out << "ReadEnds("
 		<< "libId=" << RE.libraryId << ","
