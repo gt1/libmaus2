@@ -77,9 +77,9 @@ namespace libmaus
 				if ( lfrags_e-lfrags_a > 1 )
 				{
 					#if defined(MARKDUPLICATEPAIRSDEBUG)
-					std::cerr << "[V] --- checking for duplicate pairs ---" << std::endl;
+					std::cerr << "[V] [D] --- checking for duplicate pairs ---" << std::endl;
 					for ( iterator lfrags_c = lfrags_a; lfrags_c != lfrags_e; ++lfrags_c )
-						std::cerr << "[V] " << projector::deref(*lfrags_c) << std::endl;
+						std::cerr << "[V] [D] considering " << projector::deref(*lfrags_c) << std::endl;
 					#endif
 				
 					uint64_t maxscore = projector::deref(*lfrags_a).getScore();
@@ -96,7 +96,7 @@ namespace libmaus
 						if ( lfrags_c != lfrags_m )
 						{
 							#if defined(MARKDUPLICATEPAIRSDEBUG)
-							std::cerr << "[V] marking " << projector::deref(*lfrags_c) << std::endl;
+							std::cerr << "[V] [D] marking " << projector::deref(*lfrags_c) << std::endl;
 							#endif
 							DSC(projector::deref(*lfrags_c));
 						}
