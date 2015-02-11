@@ -1,3 +1,9 @@
+libmaus (0.0.194-1) unstable; urgency=low
+
+  * disable stack trace translation in ConstantStringHash when we cannot find a perfect hash 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 10 Feb 2015 16:12:30 +0000
+
 libmaus (0.0.193-1) unstable; urgency=low
 
   * add BamCatHeader constructor method with ArgInfo object 

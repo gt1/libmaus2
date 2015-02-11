@@ -103,18 +103,49 @@ namespace libmaus
 					libmaus::autoarray::AutoArray<uint64_t> C(n);
 
 					for ( iterator it = ita; it != ite; ++it )
+					{
+						assert ( (it->hash() & m) < n );
 						C [ it->hash() & m ] ++;
+					}
 						
 					ok = true;
 					for ( uint64_t i = 0; i < n; ++i )
 						ok = ok && C[i] <= 1;
 				}
 				
+				/*
+				 * if we did not find an n <= maxn such that the hash is perfect
+				 * then check whether the keys are unique and print warning if
+				 * they are not
+				 */
+				if ( ! ok )
+				{
+					std::set<uint64_t> S;
+					
+					for ( iterator it = ita; it != ite; ++it )
+					{
+						uint64_t const h = it->hash();
+						
+						if ( S.find(h) == S.end() )
+						{
+							S.insert(h);
+						}
+						else
+						{
+							std::cerr << "[E] ConstantStringHash hash value " << h << " is not unique." << std::endl;
+						}
+					}
+				}
+				
+				/*
+				 * throw exception if we cannot construct the hash. Do not translate
+				 * the stack trace, as this may not be a critical error
+				 */
 				if ( ! ok )
 				{
 					libmaus::exception::LibMausException se;
 					se.getStream() << "Cannot create perfect hash of size <= " << maxn << " for " << ite-ita << " elements" << std::endl;
-					se.finish();
+					se.finish(false /* do not translate stack trace */);
 					throw se;
 				}
 				
