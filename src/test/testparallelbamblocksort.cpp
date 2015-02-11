@@ -17,6 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define MARKDUPLICATEPAIRSDEBUG
+
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
 
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp>
@@ -112,6 +114,11 @@
 
 #include <libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp>
 #include <libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp>
+
+#include <libmaus/bambam/ReadEndsBlockIndexSet.hpp>
+#include <libmaus/bambam/DupMarkBase.hpp>
+#include <libmaus/bambam/DupSetCallbackVector.hpp>
+#include <libmaus/bambam/DuplicationMetrics.hpp>
 
 namespace libmaus
 {
@@ -845,6 +852,64 @@ namespace libmaus
 					
 					if ( STP.isInPanicMode() )
 						return;
+
+					uint64_t const ureadsParsed = static_cast<uint64_t>(readsParsed);
+					std::map<uint64_t,libmaus::bambam::DuplicationMetrics> dmap;
+					libmaus::bambam::DupSetCallbackVector dvec(ureadsParsed,dmap);
+					
+					{
+						std::cerr << "running frag merge...";
+						
+						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type Sfragmergeinfo =
+							getFragMergeInfo();
+						
+						ReadEndsBlockIndexSet fragindexset(*Sfragmergeinfo);
+						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
+							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(*Sfragmergeinfo,STP.getNumThreads(),false /* check */);
+						std::pair<uint64_t,uint64_t> gsp(0,0);
+						std::set<uint64_t> S;
+						for ( uint64_t i = 0; i < SMI.size(); ++i )
+						{
+							std::pair<uint64_t,uint64_t> const sp =
+								fragindexset.merge(
+									SMI[i],
+									libmaus::bambam::DupMarkBase::isDupFrag,
+									libmaus::bambam::DupMarkBase::markDuplicateFrags,dvec,S);
+							gsp.first += sp.first;
+							gsp.second += sp.second;
+						}
+						std::cerr << "done, frags=" << gsp.first << " dupfrags=" << gsp.second << " set size " << S.size() << std::endl;
+					}
+
+					{
+						std::cerr << "running pair merge...";
+						
+						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type 
+							Spairmergeinfo = getPairMergeInfo();
+						
+						ReadEndsBlockIndexSet pairindexset(*Spairmergeinfo);
+						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
+							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(
+								*Spairmergeinfo,STP.getNumThreads(),
+								false /* check */
+							);
+						std::pair<uint64_t,uint64_t> gsp(0,0);
+						std::set< std::pair<uint64_t,uint64_t> > S;
+						for ( uint64_t i = 0; i < SMI.size(); ++i )
+						{
+							std::pair<uint64_t,uint64_t> const sp =
+								pairindexset.merge(
+									SMI[i],
+									libmaus::bambam::DupMarkBase::isDupPair,
+									libmaus::bambam::DupMarkBase::markDuplicatePairs,
+									dvec,
+									S);
+							gsp.first += sp.first;
+							gsp.second += sp.second;
+						}
+						std::cerr << "done, pairs=" << gsp.first << " duppairs=" << gsp.second << " set size " << S.size() << std::endl;
+					}
+					std::cerr << "num dups " << dvec.getNumDups() << std::endl;
 					
 					// enque ReadEnds lists merge requests
 					std::cerr << "[V] merging read ends lists...";
