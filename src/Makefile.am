@@ -476,7 +476,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ScramInputContainer.hpp \
 	libmaus/bambam/SamEncoder.hpp \
 	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp
+	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp \
+	libmaus/bambam/ReadEndsBlockIndexSet.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
