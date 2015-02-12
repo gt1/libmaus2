@@ -606,7 +606,23 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
 	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp \
-	libmaus/bambam/parallel/AddDuplicationMetricsInterface.hpp
+	libmaus/bambam/parallel/AddDuplicationMetricsInterface.hpp \
+	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackage.hpp \
+	libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackage.hpp \
+	libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FragReadEndsContainerFlushFinishedInterface.hpp \
+	libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/PairReadEndsContainerFlushFinishedInterface.hpp \
+	libmaus/bambam/parallel/ReadEndsMergeRequest.hpp \
+	libmaus/bambam/parallel/FragReadEndsMergeWorkPackage.hpp \
+	libmaus/bambam/parallel/FragReadEndsMergeWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FragReadEndsMergeWorkPackageFinishedInterface.hpp \
+	libmaus/bambam/parallel/FragReadEndsMergeWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/PairReadEndsMergeWorkPackage.hpp \
+	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp \
+	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

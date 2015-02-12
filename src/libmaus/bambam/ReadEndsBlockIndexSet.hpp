@@ -19,6 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSBLOCKINDEXSET_HPP)
 #define LIBMAUS_BAMBAM_READENDSBLOCKINDEXSET_HPP
 
+#include <libmaus/bambam/DupMarkBase.hpp>
+#include <libmaus/bambam/DupSetCallbackSharedVector.hpp>
+#include <libmaus/bambam/ReadEndsHeapPairComparator.hpp>
+#include <libmaus/lz/SnappyInputStream.hpp>
 #include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp>
 #include <libmaus/index/ExternalMemoryIndexDecoder.hpp>
 #include <libmaus/bambam/ReadEndsContainerBase.hpp>
