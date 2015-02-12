@@ -55,7 +55,6 @@ namespace libmaus
 			//! number of optical duplicates
 			uint64_t opticalduplicates;
 			
-			
 			/**
 			 * constructor
 			 **/
@@ -299,6 +298,70 @@ namespace libmaus
 				unpairedreadduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 				readpairduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
 				opticalduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+			}
+
+			/**
+			 * add stats from object O to this object
+			 *
+			 * @param O other object to be added
+			 * @return reference to this object
+			 **/
+			DuplicationMetrics & operator+=(DuplicationMetrics const & O)
+			{
+				unmapped += O.unmapped;
+				unpaired += O.unpaired;
+				readpairsexamined += O.readpairsexamined;
+				unpairedreadduplicates += O.unpairedreadduplicates;
+				readpairduplicates += O.readpairduplicates;
+				opticalduplicates += O.opticalduplicates;
+				return *this;
+			}
+			
+			static std::map<uint64_t,libmaus::bambam::DuplicationMetrics> add(
+				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> const & MA,
+				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> const & MB
+			)
+			{
+				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> MO;
+				std::map<uint64_t,libmaus::bambam::DuplicationMetrics>::const_iterator a_ita = MA.begin(), a_ite = MA.end();
+				std::map<uint64_t,libmaus::bambam::DuplicationMetrics>::const_iterator b_ita = MB.begin(), b_ite = MB.end();
+				
+				while ( a_ita != a_ite && b_ita != b_ite )
+				{
+					if ( a_ita->first < b_ita->first )
+					{
+						MO[a_ita->first] = a_ita->second;
+						a_ita++;
+					}
+					else if ( b_ita->first < a_ita->first )
+					{
+						MO[b_ita->first] = b_ita->second;
+						b_ita++;
+					}
+					else
+					{
+						assert ( a_ita->first == b_ita->first );
+						libmaus::bambam::DuplicationMetrics M = a_ita->second;
+						M += b_ita->second;
+						MO[a_ita->first] = M;
+						a_ita++;
+						b_ita++;
+					}
+				}
+				
+				while ( a_ita != a_ite )
+				{
+					MO[a_ita->first] = a_ita->second;
+					a_ita++;					
+				}
+
+				while ( b_ita != b_ite )
+				{
+					MO[b_ita->first] = b_ita->second;
+					b_ita++;					
+				}
+				
+				return MO;
 			}
 		};
 	}
