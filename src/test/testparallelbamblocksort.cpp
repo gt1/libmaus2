@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2014 German Tischler
-    Copyright (C) 2011-2014 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define MARKDUPLICATEPAIRSDEBUG
+// #define MARKDUPLICATEPAIRSDEBUG
 
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
 
@@ -119,6 +119,9 @@
 #include <libmaus/bambam/DupMarkBase.hpp>
 #include <libmaus/bambam/DupSetCallbackVector.hpp>
 #include <libmaus/bambam/DuplicationMetrics.hpp>
+#include <libmaus/bambam/DupSetCallbackSharedVector.hpp>
+
+#include <libmaus/bambam/parallel/AddDuplicationMetricsInterface.hpp>
 
 namespace libmaus
 {
@@ -274,32 +277,22 @@ namespace libmaus
 
 			struct ReadEndsMergeRequest
 			{
+				libmaus::bitio::BitVector * dupbitvec;
 				libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI;
-				std::string fn;
-				std::string indexfn;
 				std::vector< std::pair<uint64_t,uint64_t> > SMI;
 				
 				ReadEndsMergeRequest()
-				: MI(0), fn(), indexfn(), SMI(0)
+				: dupbitvec(0), MI(0), SMI(0)
 				{
 				}
 				
 				ReadEndsMergeRequest(
+					libmaus::bitio::BitVector * rdupbitvec,
 					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type rMI,
-					std::string const & rfn,
-					std::string const & rindexfn,
 					std::vector< std::pair<uint64_t,uint64_t> > const & rSMI
 				)
-				: MI(rMI), fn(rfn), indexfn(rindexfn), SMI(rSMI) 
+				: dupbitvec(rdupbitvec), MI(rMI), SMI(rSMI) 
 				{
-				}
-				
-				void dispatch()
-				{
-					libmaus::bambam::ReadEndsBlockDecoderBaseCollection<false /* proxy */> REBDBC(*MI);
-					libmaus::aio::CheckedOutputStream dataout(fn);
-					libmaus::aio::CheckedInputOutputStream indexout(indexfn);
-					REBDBC.merge(SMI,dataout,indexout);
 				}
 			};
 
@@ -353,12 +346,15 @@ namespace libmaus
 				
 				FragReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
 				FragReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
+				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
 						
 				FragReadEndsMergeWorkPackageDispatcher(
 					FragReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
-					FragReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface
+					FragReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface,
+					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
 				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
-				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface)
+				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface),
+				    addDuplicationMetricsInterface(raddDuplicationMetricsInterface)
 				{
 				
 				}
@@ -367,8 +363,17 @@ namespace libmaus
 				{
 					FragReadEndsMergeWorkPackage * BP = dynamic_cast<FragReadEndsMergeWorkPackage *>(P);
 					assert ( BP );
-					
-					BP->REQ.dispatch();
+
+					ReadEndsBlockIndexSet fragindexset(*(BP->REQ.MI));
+					libmaus::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
+							
+					fragindexset.merge(
+						BP->REQ.SMI,
+						libmaus::bambam::DupMarkBase::isDupFrag,
+						libmaus::bambam::DupMarkBase::markDuplicateFrags,dvec
+					);
+									
+					addDuplicationMetricsInterface.addDuplicationMetrics(dvec.metrics);
 					
 					mergeFinishedInterface.fragReadEndsMergeWorkPackageFinished(BP);
 					packageReturnInterface.fragReadEndsMergeWorkPackageReturn(BP);
@@ -425,12 +430,15 @@ namespace libmaus
 				
 				PairReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
 				PairReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
+				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
 						
 				PairReadEndsMergeWorkPackageDispatcher(
 					PairReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
-					PairReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface
+					PairReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface,
+					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
 				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
-				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface)
+				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface),
+				    addDuplicationMetricsInterface(raddDuplicationMetricsInterface)
 				{
 				
 				}
@@ -439,9 +447,18 @@ namespace libmaus
 				{
 					PairReadEndsMergeWorkPackage * BP = dynamic_cast<PairReadEndsMergeWorkPackage *>(P);
 					assert ( BP );
-					
-					BP->REQ.dispatch();
-					
+
+					ReadEndsBlockIndexSet pairindexset(*(BP->REQ.MI));
+					libmaus::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
+							
+					pairindexset.merge(
+						BP->REQ.SMI,
+						libmaus::bambam::DupMarkBase::isDupPair,
+						libmaus::bambam::DupMarkBase::markDuplicatePairs,
+						dvec);
+
+					addDuplicationMetricsInterface.addDuplicationMetrics(dvec.metrics);
+										
 					mergeFinishedInterface.pairReadEndsMergeWorkPackageFinished(BP);
 					packageReturnInterface.pairReadEndsMergeWorkPackageReturn(BP);
 				}
@@ -489,7 +506,8 @@ namespace libmaus
 				public FragReadEndsMergeWorkPackageReturnInterface,
 				public PairReadEndsMergeWorkPackageReturnInterface,
 				public FragReadEndsMergeWorkPackageFinishedInterface,
-				public PairReadEndsMergeWorkPackageFinishedInterface
+				public PairReadEndsMergeWorkPackageFinishedInterface,
+				public AddDuplicationMetricsInterface
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
@@ -790,14 +808,7 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < SMI.size(); ++i )
 					{
-						std::ostringstream fnstr;
-						fnstr << tempfileprefix << "_frag_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
-						std::string const fn = fnstr.str();
-						std::string const indexfn = fn + ".index";
-						libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-						libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-
-						ReadEndsMergeRequest req(MI,fn,indexfn,SMI[i]);
+						ReadEndsMergeRequest req(Pdupbitvec.get(),MI,SMI[i]);
 						FragReadEndsMergeWorkPackage * package = fragReadEndsMergeWorkPackages.getPackage();
 						*package = FragReadEndsMergeWorkPackage(req,0/*prio*/,FREMWPDid);
 						STP.enque(package);
@@ -815,22 +826,30 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < SMI.size(); ++i )
 					{
-						std::ostringstream fnstr;
-						fnstr << tempfileprefix << "_pair_merge_" << std::setw(6) << std::setfill('0') << i << std::setw(0);
-						std::string const fn = fnstr.str();
-						std::string const indexfn = fn + ".index";
-						libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-						libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-
-						ReadEndsMergeRequest req(MI,fn,indexfn,SMI[i]);
+						ReadEndsMergeRequest req(Pdupbitvec.get(),MI,SMI[i]);
 						PairReadEndsMergeWorkPackage * package = pairReadEndsMergeWorkPackages.getPackage();
 						*package = PairReadEndsMergeWorkPackage(req,0/*prio*/,PREMWPDid);
 						STP.enque(package);
 					}
 				}
 				
+				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> metrics;
+				libmaus::parallel::PosixSpinLock metricslock;
+				libmaus::bitio::BitVector::unique_ptr_type Pdupbitvec;
+				
+				void addDuplicationMetrics(std::map<uint64_t,libmaus::bambam::DuplicationMetrics> const & O)
+				{
+					libmaus::parallel::ScopePosixSpinLock smetricslock(metricslock);
+					metrics = libmaus::bambam::DuplicationMetrics::add(metrics,O);
+				}
+				
 				void flushReadEndsLists()
 				{
+					// set up duplicate data structure
+					uint64_t const ureadsParsed = static_cast<uint64_t>(readsParsed);
+					libmaus::bitio::BitVector::unique_ptr_type Tdupbitvec(new libmaus::bitio::BitVector(ureadsParsed));
+					Pdupbitvec = UNIQUE_PTR_MOVE(Tdupbitvec);
+
 					// enque ReadEndsContainer flush requests
 					std::cerr << "[V] flushing read ends lists...";
 					enqueFlushFragReadEndsLists();
@@ -853,66 +872,56 @@ namespace libmaus
 					if ( STP.isInPanicMode() )
 						return;
 
-					uint64_t const ureadsParsed = static_cast<uint64_t>(readsParsed);
-					std::map<uint64_t,libmaus::bambam::DuplicationMetrics> dmap;
-					libmaus::bambam::DupSetCallbackVector dvec(ureadsParsed,dmap);
-					
+					#if 0
+					libmaus::bitio::BitVector * dupbitvec = Pdupbitvec.get();
 					{
-						std::cerr << "running frag merge...";
-						
 						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type Sfragmergeinfo =
 							getFragMergeInfo();
-						
-						ReadEndsBlockIndexSet fragindexset(*Sfragmergeinfo);
 						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
 							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(*Sfragmergeinfo,STP.getNumThreads(),false /* check */);
-						std::pair<uint64_t,uint64_t> gsp(0,0);
-						std::set<uint64_t> S;
+						
 						for ( uint64_t i = 0; i < SMI.size(); ++i )
 						{
-							std::pair<uint64_t,uint64_t> const sp =
-								fragindexset.merge(
-									SMI[i],
-									libmaus::bambam::DupMarkBase::isDupFrag,
-									libmaus::bambam::DupMarkBase::markDuplicateFrags,dvec,S);
-							gsp.first += sp.first;
-							gsp.second += sp.second;
+							ReadEndsBlockIndexSet fragindexset(*Sfragmergeinfo);
+							libmaus::bambam::DupSetCallbackSharedVector dvec(*dupbitvec);
+							
+							fragindexset.merge(
+								SMI[i],
+								libmaus::bambam::DupMarkBase::isDupFrag,
+								libmaus::bambam::DupMarkBase::markDuplicateFrags,dvec);
+									
+							addDuplicationMetrics(dvec.metrics);
 						}
-						std::cerr << "done, frags=" << gsp.first << " dupfrags=" << gsp.second << " set size " << S.size() << std::endl;
 					}
 
 					{
-						std::cerr << "running pair merge...";
-						
 						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type 
 							Spairmergeinfo = getPairMergeInfo();
-						
-						ReadEndsBlockIndexSet pairindexset(*Spairmergeinfo);
 						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
 							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(
 								*Spairmergeinfo,STP.getNumThreads(),
 								false /* check */
 							);
-						std::pair<uint64_t,uint64_t> gsp(0,0);
-						std::set< std::pair<uint64_t,uint64_t> > S;
+						
 						for ( uint64_t i = 0; i < SMI.size(); ++i )
 						{
-							std::pair<uint64_t,uint64_t> const sp =
-								pairindexset.merge(
-									SMI[i],
-									libmaus::bambam::DupMarkBase::isDupPair,
-									libmaus::bambam::DupMarkBase::markDuplicatePairs,
-									dvec,
-									S);
-							gsp.first += sp.first;
-							gsp.second += sp.second;
+							ReadEndsBlockIndexSet pairindexset(*Spairmergeinfo);
+							libmaus::bambam::DupSetCallbackSharedVector dvec(*dupbitvec);
+							
+							pairindexset.merge(
+								SMI[i],
+								libmaus::bambam::DupMarkBase::isDupPair,
+								libmaus::bambam::DupMarkBase::markDuplicatePairs,
+								dvec);
+
+							addDuplicationMetrics(dvec.metrics);
 						}
-						std::cerr << "done, pairs=" << gsp.first << " duppairs=" << gsp.second << " set size " << S.size() << std::endl;
 					}
-					std::cerr << "num dups " << dvec.getNumDups() << std::endl;
+					#endif
 					
 					// enque ReadEnds lists merge requests
-					std::cerr << "[V] merging read ends lists...";
+					std::cerr << "[V] merging read ends lists/computing duplicates...";
+					libmaus::timing::RealTimeClock mergertc; mergertc.start();
 					enqueMergeFragReadEndsLists();
 					enqueMergePairReadEndsLists();
 
@@ -928,10 +937,27 @@ namespace libmaus
 					{
 						sleep(1);
 					}
-					std::cerr << "done." << std::endl;
+					std::cerr << "done, time " << mergertc.formatTime(mergertc.getElapsedSeconds()) << std::endl;
 
 					if ( STP.isInPanicMode() )
 						return;
+
+					libmaus::bambam::DupSetCallbackSharedVector dvec(*Pdupbitvec);
+					std::cerr << "[V] num dups " << dvec.getNumDups() << std::endl;
+
+					// print computed metrics
+					std::ostream & metricsstr = std::cerr;
+					::libmaus::bambam::DuplicationMetrics::printFormatHeader("testparallelbamblocksort",metricsstr);
+					for ( std::map<uint64_t,::libmaus::bambam::DuplicationMetrics>::const_iterator ita = metrics.begin(); ita != metrics.end();
+						++ita )
+						ita->second.format(metricsstr, parseInfo.Pheader->getLibraryName(ita->first));
+
+					if ( metrics.size() == 1 )
+					{
+						metricsstr << std::endl;
+						metricsstr << "## HISTOGRAM\nBIN\tVALUE" << std::endl;
+						metrics.begin()->second.printHistogram(metricsstr);
+					}
 				}
 				
 				BlockSortControl(
@@ -960,7 +986,7 @@ namespace libmaus
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this,*this,*this),
+					FABRWPD(*this,*this,*this,*this,*this),
 					FABRWPDid(STP.getNextDispatcherId()),
 					FABROWPD(*this,*this),
 					FABROWPDid(STP.getNextDispatcherId()),
@@ -972,9 +998,9 @@ namespace libmaus
 					FRECFWPDid(STP.getNextDispatcherId()),
 					PRECFWPD(*this,*this),
 					PRECFWPDid(STP.getNextDispatcherId()),
-					FREMWPD(*this,*this),
+					FREMWPD(*this,*this,*this),
 					FREMWPDid(STP.getNextDispatcherId()),
-					PREMWPD(*this,*this),
+					PREMWPD(*this,*this,*this),
 					PREMWPDid(STP.getNextDispatcherId()),
 					controlInputInfo(in,0,getInputBlockCount()),
 					decompressBlockFreeList(getInputBlockCount() * STP.getNumThreads() * 2),
