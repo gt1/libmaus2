@@ -26,6 +26,8 @@
 #include <libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/BamAuxFilterVector.hpp>
+#include <libmaus/bambam/DuplicationMetrics.hpp>
+#include <libmaus/bambam/parallel/AddDuplicationMetricsInterface.hpp>
 
 namespace libmaus
 {
@@ -42,6 +44,7 @@ namespace libmaus
 				FragmentAlignmentBufferRewriteFragmentCompleteInterface & fragmentCompleteInterface;
 				FragmentAlignmentBufferRewriteUpdateInterval & updateIntervalInterface;
 				ReadEndsContainerFreeListInterface & readEndsContainerFreeListInterface;
+				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
 				
 				libmaus::bambam::BamAuxFilterVector MQfilter;
 				bool const fixmates;
@@ -60,13 +63,15 @@ namespace libmaus
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
 					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
 					FragmentAlignmentBufferRewriteUpdateInterval & rupdateIntervalInterface,
-					ReadEndsContainerFreeListInterface & rreadEndsContainerFreeListInterface
+					ReadEndsContainerFreeListInterface & rreadEndsContainerFreeListInterface,
+					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
 				) 
 				: 
 					packageReturnInterface(rpackageReturnInterface), 
 					fragmentCompleteInterface(rfragmentCompleteInterface), 
 					updateIntervalInterface(rupdateIntervalInterface),
 					readEndsContainerFreeListInterface(rreadEndsContainerFreeListInterface),
+					addDuplicationMetricsInterface(raddDuplicationMetricsInterface),
 					fixmates(true),
 					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str()),
 					s_fragcnt(0), s_paircnt(0), s_mapped(0), s_unmapped(0)
@@ -104,12 +109,13 @@ namespace libmaus
 					FragmentAlignmentBufferFragment * subbuf = (*(BP->FAB))[BP->j];
 					size_t looplow  = ind;
 					size_t const loopend = ind+num;
+					std::map<uint64_t,libmaus::bambam::DuplicationMetrics> metrics;
+					
 					
 					libmaus::autoarray::AutoArray<uint8_t> ATA1;
 					libmaus::autoarray::AutoArray<uint8_t> ATA2;
 					// 2(Tag) + 1(Z) + String + nul = String + 4
 					
-
 					while ( looplow < loopend )
 					{
 						std::pair<uint8_t *,uint64_t> Pref = BP->algn->at(looplow);
@@ -126,6 +132,38 @@ namespace libmaus
 						)
 						{
 							++loophigh;
+						}
+						
+						int64_t libid = -1;
+						{
+							std::pair<uint8_t *,uint64_t> P = BP->algn->at(looplow);						
+							char const * RG = libmaus::bambam::BamAlignmentDecoderBase::getReadGroup(P.first,P.second);
+							libid = BP->header->getLibraryId(RG);
+						}
+
+						for ( uint64_t i = looplow; i < loophigh; ++i )
+						{
+							uint8_t const * text = BP->algn->textAt(i);
+							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
+
+							if ( 
+								(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY) == 0 &&
+								(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY) == 0
+							)
+							{
+								if ( flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
+								{
+									metrics[libid].unmapped++;
+								}
+								else if ( 
+									(!(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED))
+									||
+									(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP)
+								)
+								{
+									metrics[libid].unpaired++;
+								}
+							}
 						}
 
 						std::pair<int16_t,int16_t> MQP(-1,-1);
@@ -453,6 +491,30 @@ namespace libmaus
 						
 						if ( pfirst && psecond )
 						{
+							metrics[libid].readpairsexamined++;
+						
+							int64_t const pfirstrefid = libmaus::bambam::BamAlignmentDecoderBase::getRefID(pfirst + sizeof(uint32_t));
+							int64_t const psecondrefid = libmaus::bambam::BamAlignmentDecoderBase::getRefID(psecond + sizeof(uint32_t));
+							int64_t const pfirstcoord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(pfirst + sizeof(uint32_t));
+							int64_t const psecondcoord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(psecond + sizeof(uint32_t));
+							
+							if ( 
+								(psecondrefid > pfirstrefid)
+								||
+								(
+									(psecondrefid == pfirstrefid)
+									&& 
+									(psecondcoord >= pfirstcoord)
+								)
+							)
+							{
+							
+							}
+							else
+							{
+								std::swap(pfirst,psecond);
+							}
+						
 							// std::cerr << libmaus::bambam::BamAlignmentDecoderBase::getReadName(pfirst + sizeof(uint32_t)) << std::endl;
 							pairContainer->putPair(
 								pfirst + sizeof(uint32_t),
@@ -467,6 +529,8 @@ namespace libmaus
 						
 						looplow = loophigh;
 					}
+
+					addDuplicationMetricsInterface.addDuplicationMetrics(metrics);
 
 					readEndsContainerFreeListInterface.returnPairContainer(pairContainer);
 					readEndsContainerFreeListInterface.returnFragContainer(fragContainer);
