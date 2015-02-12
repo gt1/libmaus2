@@ -30,6 +30,7 @@ namespace libmaus
 		{
 			struct WritePendingObject
 			{
+				uint64_t streamid;
 				std::ostream * out;
 				int64_t blockid;
 				int64_t subid;
@@ -38,12 +39,13 @@ namespace libmaus
 				
 				WritePendingObject() {}
 				WritePendingObject(
+					uint64_t const rstreamid,
 					std::ostream * rout,
 					int64_t const rblockid,
 					int64_t const rsubid,
 					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type & robuf,
 					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & rflushinfo
-				) : out(rout), blockid(rblockid), subid(rsubid), obuf(robuf), flushinfo(rflushinfo)
+				) : streamid(rstreamid), out(rout), blockid(rblockid), subid(rsubid), obuf(robuf), flushinfo(rflushinfo)
 				{
 				
 				}

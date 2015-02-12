@@ -287,6 +287,14 @@ namespace libmaus
 					for ( size_t i = 0; i < size(); ++i )
 						A[i]->getLinearOutputFragments(maxblocksize,V);
 				}
+				
+				uint64_t getFill() const
+				{
+					uint64_t c = 0;
+					for ( size_t i = 0; i < size(); ++i )
+						c += A[i]->f;
+					return c;
+				}
 			};
 		}
 	}

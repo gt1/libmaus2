@@ -1451,7 +1451,7 @@ namespace libmaus
 					checkSmallBlockCompressionPending();				
 				}
 				
-				virtual void bgzfOutputBlockWritten(int64_t const blockid, uint64_t const /* subid */)
+				virtual void bgzfOutputBlockWritten(uint64_t const /* streamid */, int64_t const blockid, uint64_t const /* subid */, uint64_t const /* n */)
 				{
 					{
 						libmaus::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
@@ -1525,7 +1525,7 @@ namespace libmaus
 				{
 					{
 						libmaus::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
-						writePendingQueue.push(WritePendingObject(&out,blockid,subid,obuf,flushinfo));
+						writePendingQueue.push(WritePendingObject(0 /* stream id */,&out,blockid,subid,obuf,flushinfo));
 					}
 					
 					checkWritePendingQueue();
@@ -1683,6 +1683,8 @@ namespace libmaus
 							assert ( itUn->second == 0 );
 							rewriteUnfinished.erase(itUn);
 						}
+						
+						std::cerr << "Buffer " << outFAB->id << "\t" << outFAB->getFill() << std::endl;
 
 						#if 0
 						FAB->compareBuffers(*outFAB);

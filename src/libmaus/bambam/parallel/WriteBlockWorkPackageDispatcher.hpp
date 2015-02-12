@@ -60,20 +60,23 @@ namespace libmaus
 					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf = BP->obj.obuf;
 					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = BP->obj.flushinfo;
 					char const * outp = reinterpret_cast<char const *>(obuf->outbuf.begin());
+					uint64_t n = 0;
 
 					assert ( flushinfo.blocks == 1 || flushinfo.blocks == 2 );
 					
 					if ( flushinfo.blocks == 1 )
 					{
 						/* write data to stream, one block */
-						out.write(outp, flushinfo.block_a_c);
+						n = flushinfo.block_a_c;
 					}
 					else
 					{
 						assert ( flushinfo.blocks == 2 );
 						/* write data to stream, two blocks */
-						out.write(outp, flushinfo.block_a_c + flushinfo.block_b_c);
+						n = flushinfo.block_a_c + flushinfo.block_b_c;
 					}
+
+					out.write(outp, n);
 
 					if ( ! out )
 					{
@@ -83,7 +86,7 @@ namespace libmaus
 					// return output buffer	
 					bufferReturnInterface.returnBgzfOutputBufferInterface(obuf);
 					// 
-					bgzfOutputBlockWrittenInterface.bgzfOutputBlockWritten(BP->obj.blockid,BP->obj.subid);
+					bgzfOutputBlockWrittenInterface.bgzfOutputBlockWritten(BP->obj.streamid,BP->obj.blockid,BP->obj.subid,n);
 					// return work package
 					packageReturnInterface.returnWriteBlockWorkPackage(BP);
 				}		

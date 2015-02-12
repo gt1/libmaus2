@@ -751,7 +751,7 @@ namespace libmaus
 					bgzfDeflateOutputBufferFreeList.put(obuf);
 					checkSmallBlockCompressionPending();				
 				}
-				virtual void bgzfOutputBlockWritten(int64_t const blockid, uint64_t const subid)
+				virtual void bgzfOutputBlockWritten(uint64_t const /* streamid */, int64_t const blockid, uint64_t const subid, uint64_t const /* n */)
 				{
 					{
 						libmaus::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
@@ -825,7 +825,7 @@ namespace libmaus
 				{
 					{
 						libmaus::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
-						writePendingQueue.push(WritePendingObject(&out,blockid,subid,obuf,flushinfo));
+						writePendingQueue.push(WritePendingObject(0 /* streamid */,&out,blockid,subid,obuf,flushinfo));
 					}
 					
 					checkWritePendingQueue();

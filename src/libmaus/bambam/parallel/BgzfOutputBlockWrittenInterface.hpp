@@ -30,7 +30,7 @@ namespace libmaus
 			struct BgzfOutputBlockWrittenInterface
 			{
 				virtual ~BgzfOutputBlockWrittenInterface() {}
-				virtual void bgzfOutputBlockWritten(int64_t const blockid, uint64_t const subid) = 0;
+				virtual void bgzfOutputBlockWritten(uint64_t const streamid, int64_t const blockid, uint64_t const subid, uint64_t const numbytes) = 0;
 			};
 		}
 	}
