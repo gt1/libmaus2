@@ -105,8 +105,7 @@ namespace libmaus
 				std::vector< std::pair<uint64_t,uint64_t> > V,
 				bool (*isDup)(::libmaus::bambam::ReadEndsBase const &, ::libmaus::bambam::ReadEndsBase const &),
 				uint64_t (*markDuplicate)(std::vector< ::libmaus::bambam::ReadEnds > const & lfrags, ::libmaus::bambam::DupSetCallback & DSC),
-				::libmaus::bambam::DupSetCallback & DSC,
-				std::set<uint64_t> & S
+				::libmaus::bambam::DupSetCallback & DSC
 			)
 			{
 				uint64_t exp = 0;
@@ -175,7 +174,6 @@ namespace libmaus
 					Q.pop();
 					
 					rcnt += 1;
-					S.insert(P.second.getRead1IndexInFile());
 					
 					if ( prevvalid )
 					{
@@ -213,8 +211,7 @@ namespace libmaus
 				std::vector< std::pair<uint64_t,uint64_t> > V,
 				bool (*isDup)(::libmaus::bambam::ReadEndsBase const &, ::libmaus::bambam::ReadEndsBase const &),
 				uint64_t (*markDuplicate)(std::vector< ::libmaus::bambam::ReadEnds > & lfrags, ::libmaus::bambam::DupSetCallback & DSC),
-				::libmaus::bambam::DupSetCallback & DSC,
-				std::set< std::pair<uint64_t,uint64_t> > & S
+				::libmaus::bambam::DupSetCallback & DSC
 			)
 			{
 				uint64_t exp = 0;
@@ -274,7 +271,6 @@ namespace libmaus
 				
 				uint64_t dupcnt = 0;
 				uint64_t rcnt = 0;
-				uint64_t cdup = 0;
 				bool prevvalid = false;
 				::libmaus::bambam::ReadEnds prev;
 				
@@ -291,25 +287,19 @@ namespace libmaus
 					prev = P.second;
 					
 					rcnt += 1;
-					
-					S.insert(
-						std::pair<uint64_t,uint64_t>(
-							P.second.getRead1IndexInFile(),
-							P.second.getRead2IndexInFile()
-						)
-					);
-					
+										
 					if ( RV.size() && ! isDup(RV.back(),P.second) )
 					{
+						#if 0
 						if ( RV.size() > 1 )
 						{
 							std::cerr << std::string(80,'-') << std::endl;
 							for ( uint64_t i = 0; i < RV.size(); ++i )
 								std::cerr << RV[i] << std::endl;
-							cdup += RV.size()-1;
-
-							dupcnt += markDuplicate(RV,DSC);
 						}
+						#endif
+
+						dupcnt += markDuplicate(RV,DSC);
 					
 						RV.resize(0);
 					}
@@ -325,21 +315,18 @@ namespace libmaus
 					}
 				}
 
+				#if 0
 				if ( RV.size() > 1 )
 				{
 					std::cerr << std::string(80,'-') << std::endl;
 					for ( uint64_t i = 0; i < RV.size(); ++i )
 						std::cerr << RV[i] << std::endl;
-					cdup += RV.size()-1;
-
-					dupcnt += markDuplicate(RV,DSC);
 				}
-
+				#endif
+				dupcnt += markDuplicate(RV,DSC);
 				
 				assert ( exp == rcnt );
-				
-				std::cerr << "cdup=" << cdup << std::endl;
-				
+								
 				return std::pair<uint64_t,uint64_t>(rcnt,dupcnt);
 			}
 		};
