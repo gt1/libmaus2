@@ -872,53 +872,6 @@ namespace libmaus
 					if ( STP.isInPanicMode() )
 						return;
 
-					#if 0
-					libmaus::bitio::BitVector * dupbitvec = Pdupbitvec.get();
-					{
-						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type Sfragmergeinfo =
-							getFragMergeInfo();
-						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
-							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(*Sfragmergeinfo,STP.getNumThreads(),false /* check */);
-						
-						for ( uint64_t i = 0; i < SMI.size(); ++i )
-						{
-							ReadEndsBlockIndexSet fragindexset(*Sfragmergeinfo);
-							libmaus::bambam::DupSetCallbackSharedVector dvec(*dupbitvec);
-							
-							fragindexset.merge(
-								SMI[i],
-								libmaus::bambam::DupMarkBase::isDupFrag,
-								libmaus::bambam::DupMarkBase::markDuplicateFrags,dvec);
-									
-							addDuplicationMetrics(dvec.metrics);
-						}
-					}
-
-					{
-						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type 
-							Spairmergeinfo = getPairMergeInfo();
-						std::vector < std::vector< std::pair<uint64_t,uint64_t> > > SMI = 
-							libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getLongMergeIntervals(
-								*Spairmergeinfo,STP.getNumThreads(),
-								false /* check */
-							);
-						
-						for ( uint64_t i = 0; i < SMI.size(); ++i )
-						{
-							ReadEndsBlockIndexSet pairindexset(*Spairmergeinfo);
-							libmaus::bambam::DupSetCallbackSharedVector dvec(*dupbitvec);
-							
-							pairindexset.merge(
-								SMI[i],
-								libmaus::bambam::DupMarkBase::isDupPair,
-								libmaus::bambam::DupMarkBase::markDuplicatePairs,
-								dvec);
-
-							addDuplicationMetrics(dvec.metrics);
-						}
-					}
-					#endif
-					
 					// enque ReadEnds lists merge requests
 					std::cerr << "[V] merging read ends lists/computing duplicates...";
 					libmaus::timing::RealTimeClock mergertc; mergertc.start();
