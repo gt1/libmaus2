@@ -21,6 +21,7 @@
 
 #include <libmaus/hashing/hash.hpp>
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <set>
 
 namespace libmaus
 {
