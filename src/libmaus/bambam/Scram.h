@@ -22,6 +22,13 @@
 
 #include <libmaus/LibMausConfig.hpp>
 
+#if defined(LIBMAUS_HAVE_SYS_TYPES_H)
+#include <sys/types.h>
+#endif
+#if defined(LIBMAUS_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
