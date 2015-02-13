@@ -247,6 +247,11 @@ namespace libmaus
 				std::pair<uint64_t,uint64_t> const I = lineInterval(line);
 				return std::basic_string< typename ::std::iterator_traits<iterator>::value_type >(ita+I.first,ita+I.second);
 			}
+			
+			uint64_t textLength() const
+			{
+				return size() ? lineInterval(size()-1).second : 0;
+			}
 		};
 	}
 }
