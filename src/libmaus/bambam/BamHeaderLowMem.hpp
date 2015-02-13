@@ -839,6 +839,7 @@ namespace libmaus
 				libmaus::util::LineAccessor::unique_ptr_type TLA(new libmaus::util::LineAccessor(text,text+l_text));
 				PLA = UNIQUE_PTR_MOVE(TLA);
 			}
+			
 
 			template<typename iterator>
 			void constructFromTextInternal(iterator ita, iterator ite)
@@ -1091,6 +1092,11 @@ namespace libmaus
 			}
 
 			public:
+			std::pair<char const *, char const *> getText() const
+			{
+				return std::pair<char const *, char const *>(text,text+PLA->textLength());
+			}
+
 			static unique_ptr_type constructFromBAM(std::istream & in)
 			{
 				unique_ptr_type ptr(new this_type);
@@ -1424,7 +1430,7 @@ namespace libmaus
 
 		};
 		
-		std::ostream & operator<<(::std::ostream & out, ::libmaus::bambam::BamHeaderLowMem const & BHLM)
+		inline std::ostream & operator<<(::std::ostream & out, ::libmaus::bambam::BamHeaderLowMem const & BHLM)
 		{
 			if ( BHLM.HDid != -1 )
 				out << BHLM.PLA->getLine(BHLM.text,BHLM.HDid) << "\n";
