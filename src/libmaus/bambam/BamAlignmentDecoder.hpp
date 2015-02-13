@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/BamAlignment.hpp>
 #include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus/bambam/BamHeaderLowMem.hpp>
 
 namespace libmaus
 {
@@ -228,7 +229,64 @@ namespace libmaus
 			static bool readAlignmentGz(
 				stream_type & GZ,
 				::libmaus::bambam::BamAlignment & alignment,
-				::libmaus::bambam::BamHeader const * bamheader = 0,
+				libmaus::bambam::BamHeader const * bamheader = 0,
+				bool const validate = true
+			)
+			{
+				/* read alignment block size */
+				int64_t const bs0 = GZ.get();
+				int64_t const bs1 = GZ.get();
+				int64_t const bs2 = GZ.get();
+				int64_t const bs3 = GZ.get();
+				if ( bs3 < 0 )
+					// reached end of file
+					return false;
+				
+				/* assemble block size as LE integer */
+				alignment.blocksize = (bs0 << 0) | (bs1 << 8) | (bs2 << 16) | (bs3 << 24) ;
+
+				/* read alignment block */
+				if ( alignment.blocksize > alignment.D.size() )
+					alignment.D = ::libmaus::bambam::BamAlignment::D_array_type(alignment.blocksize,false);
+				GZ.read(reinterpret_cast<char *>(alignment.D.begin()),alignment.blocksize);
+
+				if ( static_cast<int64_t>(GZ.gcount()) != static_cast<int64_t>(alignment.blocksize) )
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Invalid alignment (EOF in alignment block of length " << alignment.blocksize  << ")" << std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				if ( validate )
+				{
+					libmaus_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
+					if ( validity != ::libmaus::bambam::libmaus_bambam_alignment_validity_ok )
+					{
+						::libmaus::exception::LibMausException se;
+						se.getStream() << "Invalid alignment: " << validity << std::endl;
+						se.finish();
+						throw se;					
+					}
+				}
+				
+				return true;
+			}
+
+			/**
+			 * read alignment from an input stream which yields uncompressed BAM data
+			 *
+			 * @param GZ input stream yielding uncompressed BAM entries
+			 * @param alignment block data object
+			 * @param bamheader BAM file header for validating reference sequence ids
+			 * @param validate if true, then validation will be run on alignment
+			 * @return true if alignment could be read, false if no more alignments were available
+			 **/
+			template<typename stream_type>
+			static bool readAlignmentGzLo(
+				stream_type & GZ,
+				::libmaus::bambam::BamAlignment & alignment,
+				libmaus::bambam::BamHeaderLowMem const * bamheader = 0,
 				bool const validate = true
 			)
 			{
