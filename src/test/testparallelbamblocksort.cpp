@@ -506,6 +506,11 @@ namespace libmaus
 				libmaus::parallel::PosixSpinLock metricslock;
 				libmaus::bitio::BitVector::unique_ptr_type Pdupbitvec;
 				
+				libmaus::bitio::BitVector const & getDupBitVector()
+				{
+					return *Pdupbitvec;
+				}
+				
 				void addDuplicationMetrics(std::map<uint64_t,libmaus::bambam::DuplicationMetrics> const & O)
 				{
 					libmaus::parallel::ScopePosixSpinLock smetricslock(metricslock);
@@ -1120,9 +1125,38 @@ namespace libmaus
 					checkSmallBlockCompressionPending();				
 				}
 				
-				virtual void bgzfOutputBlockWritten(uint64_t const /* streamid */, int64_t const blockid, uint64_t const /* subid */, uint64_t const /* n */)
+				std::vector<uint64_t> streamBytesWritten;
+				libmaus::parallel::PosixSpinLock streamBytesWrittenLock;
+				std::vector<uint64_t> blockStarts;
+				libmaus::parallel::PosixSpinLock blockStartsLock;
+				
+				virtual void bgzfOutputBlockWritten(uint64_t const streamid, int64_t const blockid, uint64_t const subid, uint64_t const n)
 				{
 					{
+						// make sure stream is known
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(streamBytesWrittenLock);
+							while ( ! (streamid < streamBytesWritten.size()) )
+								streamBytesWritten.push_back(0);
+						}
+						
+						if ( subid == 0 && blockid >= 0 )
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(streamBytesWrittenLock);
+							uint64_t const offset = streamBytesWritten[streamid];
+							
+							libmaus::parallel::ScopePosixSpinLock sblock(blockStartsLock);
+							while ( ! (static_cast<uint64_t>(blockid) < blockStarts.size()) )
+								blockStarts.push_back(0);
+							blockStarts[blockid] = offset;							
+						}
+						
+						// update number of bytes written
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(streamBytesWrittenLock);
+							streamBytesWritten[streamid] += n;						
+						}
+					
 						libmaus::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
 						libmaus::parallel::ScopePosixSpinLock lwriteNextLock(writeNextLock);
 						libmaus::parallel::ScopePosixSpinLock lwritePendingCountLock(writePendingCountLock);
@@ -1315,6 +1349,11 @@ namespace libmaus
 				std::map<uint64_t,FragmentAlignmentBuffer::shared_ptr_type> rewriteActiveFragmentAlignmentBuffers;
 				std::map<uint64_t,uint64_t> rewriteActiveCnt;
 				
+				// alignments per output block
+				std::vector<uint64_t> blockAlgnCnt;
+				// lock for blockAlgnCnt
+				libmaus::parallel::PosixSpinLock blockAlgnCntLock;
+				
 				void fragmentAlignmentBufferReorderWorkPackageFinished(FragmentAlignmentBufferReorderWorkPackage * package)
 				{
 					uint64_t const id = package->copyReq.T->id;
@@ -1353,7 +1392,13 @@ namespace libmaus
 							rewriteUnfinished.erase(itUn);
 						}
 						
-						std::cerr << "Buffer " << outFAB->id << "\t" << outFAB->getFill() << std::endl;
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(blockAlgnCntLock);
+							while ( ! (outFAB->id < blockAlgnCnt.size()) )
+								blockAlgnCnt.push_back(0);
+							assert ( outFAB->id < blockAlgnCnt.size() );
+							blockAlgnCnt[outFAB->id] = outFAB->getFill();
+						}
 
 						#if 0
 						FAB->compareBuffers(*outFAB);
@@ -1767,6 +1812,13 @@ void mapperm(int argc, char * argv[])
 	}
 }
 
+#include <libmaus/aio/PosixFdOutputStream.hpp>
+#include <libmaus/bambam/BamAlignmentHeapComparator.hpp>
+#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
+#include <libmaus/bambam/BamAlignmentPosComparator.hpp>
+#include <libmaus/bambam/BamBlockWriterBaseFactory.hpp>
+#include <config.h>
+
 int main(int argc, char * argv[])
 {
 	try
@@ -1785,12 +1837,16 @@ int main(int argc, char * argv[])
 			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
 			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
-			int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
-			std::string const tempfileprefix = arginfo.getDefaultTmpFileName();
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,level,std::cout,tempfileprefix);
+			std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
+			std::string const alfn = tmpfilebase + ".algn";
+			libmaus::aio::PosixFdOutputStream::unique_ptr_type out(new libmaus::aio::PosixFdOutputStream(alfn));
+			int const templevel = arginfo.getValue<int>("level",1);
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,templevel,*out,tmpfilebase);
 			VC.checkEnqueReadPackage();
 			VC.waitDecodingFinished();
 			VC.flushReadEndsLists();
+			out->flush();
+			out.reset();
 			// system("ls -lrt 1>&2");
 			STP.terminate();
 			STP.join();
@@ -1798,6 +1854,68 @@ int main(int argc, char * argv[])
 			std::cerr << "blocksParsed=" << VC.blocksParsed << std::endl;
 			std::cerr << "maxleftoff=" << VC.maxleftoff << std::endl;
 			std::cerr << "maxrightoff=" << VC.maxrightoff << std::endl;
+			
+			libmaus::aio::PosixFdInputStream PFIS(alfn);
+			libmaus::bambam::BamHeaderLowMem const & loheader = *(VC.parseInfo.Pheader);
+			std::pair<char const *, char const *> const headertext = loheader.getText();
+			libmaus::bambam::BamHeader const header(std::string(headertext.first,headertext.second));
+			::libmaus::bambam::BamHeader::unique_ptr_type uphead(libmaus::bambam::BamHeaderUpdate::updateHeader(arginfo,header,"testparallelbamblocksort",PACKAGE_VERSION));
+			uphead->changeSortOrder("coordinate");
+			libmaus::bitio::BitVector const & dupbit = VC.getDupBitVector();
+			                                                                                                                                                                                
+			libmaus::bambam::BamFormatAuxiliary formaux;
+			
+			libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Ain(VC.blockAlgnCnt.size());
+			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateStream::unique_ptr_type> Bin(VC.blockAlgnCnt.size());
+			::libmaus::autoarray::AutoArray< ::libmaus::bambam::BamAlignment > algns(VC.blockAlgnCnt.size());
+			libmaus::bambam::BamAlignmentPosComparator const BAPC(0);
+			::libmaus::bambam::BamAlignmentHeapComparator<libmaus::bambam::BamAlignmentPosComparator> heapcmp(BAPC,algns.begin());
+			std::vector<uint64_t> cnt = VC.blockAlgnCnt;
+			::std::priority_queue< uint64_t, std::vector<uint64_t>, ::libmaus::bambam::BamAlignmentHeapComparator<libmaus::bambam::BamAlignmentPosComparator> > Q(heapcmp);
+			
+			for ( uint64_t i = 0; i < VC.blockAlgnCnt.size(); ++i )
+			{
+				libmaus::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus::aio::PosixFdInputStream(alfn));
+				Ain[i] = UNIQUE_PTR_MOVE(tptr);
+				Ain[i]->clear();
+				Ain[i]->seekg(VC.blockStarts[i]);
+				libmaus::lz::BgzfInflateStream::unique_ptr_type bptr(new libmaus::lz::BgzfInflateStream(*Ain[i]));
+				Bin[i] = UNIQUE_PTR_MOVE(bptr);
+				
+				if ( cnt[i]-- )
+				{
+					::libmaus::bambam::BamDecoder::readAlignmentGz(*Bin[i],algns[i],0 /* no header for validation */,false /* no validation */);
+					Q.push(i);				
+				}
+			}
+			
+			uint32_t const dupflag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+			uint32_t const dupmask = ~dupflag;
+
+			// std::cout.write(headertext.first,headertext.second-headertext.first);
+			libmaus::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus::bambam::BamBlockWriterBaseFactory::construct(*uphead,arginfo));
+			while ( Q.size() )
+			{
+				uint64_t const t = Q.top(); Q.pop();
+				
+				algns[t].putFlags(algns[t].getFlags() & dupmask);
+
+				int64_t const rank = algns[t].getRank();
+				if ( rank >= 0 && dupbit.get(rank) )
+					algns[t].putFlags(algns[t].getFlags() | dupflag);				
+
+				//algns[t].formatAlignment(std::cout,header,formaux);
+				// std::cout.put('\n');
+				Pwriter->writeAlignment(algns[t]);
+				// writer.writeAlgn(algns[t]);
+						
+				if ( cnt[t]-- )
+				{
+					::libmaus::bambam::BamDecoder::readAlignmentGz(*Bin[t],algns[t],0 /* bamheader */, false /* do not validate */);
+					Q.push(t);
+				}
+			}
+			Pwriter.reset();
 		}
 	}
 	catch(std::exception const & ex)
