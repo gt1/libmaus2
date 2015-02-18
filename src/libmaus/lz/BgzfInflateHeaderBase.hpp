@@ -35,6 +35,36 @@ namespace libmaus
 			: header(getBgzfHeaderSize(),false)
 			{
 			}
+			
+			template<typename iterator>
+			static bool hasSufficientData(iterator ita, iterator ite)
+			{
+				if ( ite-ita < static_cast<ptrdiff_t>(getBgzfHeaderSize()) )
+					return false;
+
+				uint64_t const cblocksize = (
+					(static_cast<uint32_t>(static_cast<uint8_t>(ita[16]))     ) | 
+					(static_cast<uint32_t>(static_cast<uint8_t>(ita[17])) << 8)
+				) + 1;
+				
+				return ite-ita >= static_cast<ptrdiff_t>(cblocksize);
+			}
+			
+			
+			template<typename iterator>
+			static int64_t getBlockSize(iterator ita, iterator ite)
+			{
+				if ( ! hasSufficientData(ita,ite) )
+					return -1;
+					
+				
+				uint64_t const cblocksize = (
+					(static_cast<uint32_t>(static_cast<uint8_t>(ita[16]))     ) | 
+					(static_cast<uint32_t>(static_cast<uint8_t>(ita[17])) << 8)
+				) + 1;
+				
+				return cblocksize;
+			}
 
 			template<typename stream_type>
 			uint64_t readHeader(stream_type & stream)
@@ -65,8 +95,8 @@ namespace libmaus
 				}
 			
 				uint64_t const cblocksize = (static_cast<uint32_t>(header[16]) | (static_cast<uint32_t>(header[17]) << 8)) + 1;
-				
-				if ( cblocksize < 18 + 8 )
+
+				if ( cblocksize < getBgzfHeaderSize() + getBgzfFooterSize() )
 				{
 					::libmaus::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
@@ -75,7 +105,7 @@ namespace libmaus
 				}
 				
 				// size of compressed data
-				uint64_t const payloadsize = cblocksize - (18 + 8);
+				uint64_t const payloadsize = cblocksize - (getBgzfHeaderSize() + getBgzfFooterSize());
 
 				return payloadsize;
 			}
