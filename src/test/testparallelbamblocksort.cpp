@@ -1819,10 +1819,749 @@ void mapperm(int argc, char * argv[])
 #include <libmaus/bambam/BamBlockWriterBaseFactory.hpp>
 #include <config.h>
 
+#include <libmaus/bambam/parallel/GenericInputBlock.hpp>
+
+struct GenericInputBase
+{
+	typedef GenericInputBase this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+	
+	// meta data type for block reading
+	typedef libmaus::bambam::parallel::GenericInputBlockSubBlockInfo meta_type;
+	// block type
+	typedef libmaus::bambam::parallel::GenericInputBlock<meta_type> block_type;
+	// pointer to block type
+	typedef block_type::unique_ptr_type block_ptr_type;
+	// shared pointer to block type
+	typedef block_type::shared_ptr_type shared_block_ptr_type;
+	
+	// free list type
+	typedef libmaus::parallel::LockedFreeList<
+		block_type,
+		libmaus::bambam::parallel::GenericInputBlockAllocator<meta_type>,
+		libmaus::bambam::parallel::GenericInputBlockTypeInfo<meta_type>
+	> generic_input_block_free_list_type;
+	// pointer to free list type
+	typedef generic_input_block_free_list_type::unique_ptr_type generic_input_block_free_list_pointer_type;
+
+	// stall array type
+	typedef libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> stall_array_type;
+};
+
+struct GenericInputHeapComparator
+{
+	bool operator()(GenericInputBase::shared_block_ptr_type const & A, GenericInputBase::shared_block_ptr_type const & B) const
+	{
+		assert ( A->meta.streamid == B->meta.streamid );
+		return A->meta.blockid > B->meta.blockid;
+	}
+};
+
+struct GenericInputControlSubBlockPending
+{
+	typedef GenericInputControlSubBlockPending this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+	
+	GenericInputBase::block_type::shared_ptr_type block;
+	uint64_t subblockid;
+
+	libmaus::bambam::parallel::MemInputBlock::shared_ptr_type mib;
+	libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db;
+	
+	GenericInputControlSubBlockPending(
+		GenericInputBase::block_type::shared_ptr_type rblock = GenericInputBase::block_type::shared_ptr_type(), 
+		uint64_t rsubblockid = 0)
+	: block(rblock), subblockid(rsubblockid), mib(), db() {}
+};
+
+struct GenericInputControlSubBlockPendingHeapComparator
+{
+	bool operator()(GenericInputControlSubBlockPending const & A, GenericInputControlSubBlockPending const & B)
+	{
+		if ( A.block->meta.blockid != B.block->meta.blockid )
+			return A.block->meta.blockid > B.block->meta.blockid;
+		else
+			return A.subblockid > B.subblockid;
+	}
+};
+
+#include <libmaus/bambam/parallel/MemInputBlock.hpp>
+
+struct GenericInputSingleData
+{
+	typedef GenericInputSingleData this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+	public:
+	// stream, protected by inlock
+	std::istream & in;
+	// read lock
+	libmaus::parallel::PosixSpinLock inlock;
+	
+	private:
+	// stream id, constant, no lock needed
+	uint64_t const streamid;
+	// block id, protected by inlock
+	uint64_t volatile blockid;
+	
+	public:
+	// block size, constant, no lock needed
+	uint64_t const blocksize;
+	// block free list (has its own locking)
+	GenericInputBase::generic_input_block_free_list_type blockFreeList;
+
+	// finite amount of data to be read? constant, no lock needed
+	bool const finite;
+	// amount of data left if finite == true, protected by inlock
+	uint64_t dataleft;
+
+	private:
+	// eof, protected by eoflock
+	bool volatile eof;
+	// lock for eof
+	libmaus::parallel::PosixSpinLock eoflock;
+
+	public:
+	// stall array, protected by inlock
+	GenericInputBase::stall_array_type stallArray;
+	// number of bytes in stall array, protected by inlock
+	uint64_t volatile stallArraySize;
+
+	// lock
+	libmaus::parallel::PosixSpinLock lock;
+	
+	// next block to be processed, protected by lock
+	uint64_t volatile nextblockid;
+	// pending queue, protected by lock
+	std::priority_queue<
+		GenericInputBase::shared_block_ptr_type,
+		std::vector<GenericInputBase::shared_block_ptr_type>,
+		GenericInputHeapComparator > pending;
+		
+	// decompression pending queue, protected by lock
+	std::priority_queue<
+		GenericInputControlSubBlockPending,
+		std::vector<GenericInputControlSubBlockPending>,
+		GenericInputControlSubBlockPendingHeapComparator
+	> decompressionpending;
+	// next block to be decompressed, protected by lock
+	std::pair<uint64_t,uint64_t> decompressionpendingnext;
+	// total number of sub-blocks to be decompressed for each block
+	std::vector<uint64_t> decompressiontotal;
+
+	// free list for compressed data meta blocks
+	libmaus::parallel::LockedFreeList<
+		libmaus::bambam::parallel::MemInputBlock,
+		libmaus::bambam::parallel::MemInputBlockAllocator,
+		libmaus::bambam::parallel::MemInputBlockTypeInfo
+	> meminputblockfreelist;
+	
+	// free list for uncompressed bgzf blocks
+	libmaus::parallel::LockedFreeList<
+		libmaus::bambam::parallel::DecompressedBlock,
+		libmaus::bambam::parallel::DecompressedBlockAllocator,
+		libmaus::bambam::parallel::DecompressedBlockTypeInfo
+	> decompressedblockfreelist;
+	
+	uint64_t volatile decompressedBlockIdAcc;
+	uint64_t volatile decompressedBlocksAcc;
+
+	GenericInputSingleData(
+		std::istream & rin, 
+		uint64_t const rstreamid,
+		bool const rfinite,
+		uint64_t const rdataleft,
+		uint64_t const rblocksize, 
+		unsigned int const numblocks
+	)
+	: in(rin), streamid(rstreamid), blockid(0), blocksize(rblocksize), 
+	  blockFreeList(numblocks,libmaus::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
+	  finite(rfinite),
+	  dataleft(rdataleft),
+	  eof(false),
+	  stallArray(0),
+	  stallArraySize(0),
+	  nextblockid(0),
+	  meminputblockfreelist(64),
+	  decompressedblockfreelist(64),
+	  decompressedBlockIdAcc(0),
+	  decompressedBlocksAcc(0)
+	{
+	
+	}
+
+	bool getEOF()
+	{
+		libmaus::parallel::ScopePosixSpinLock slock(eoflock);
+		return eof;
+	}
+	
+	void setEOF(bool const reof)
+	{
+		libmaus::parallel::ScopePosixSpinLock slock(eoflock);
+		eof = reof;
+	}
+
+	uint64_t getStreamId() const
+	{
+		return streamid;
+	}
+	
+	uint64_t getBlockId() const
+	{
+		return blockid;
+	}
+	
+	void incrementBlockId()
+	{
+		blockid++;
+	}
+};
+
+struct GenericInputControlReadWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+{
+	typedef GenericInputControlReadWorkPackage this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+	GenericInputSingleData * data;
+
+	GenericInputControlReadWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0) {}
+	GenericInputControlReadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputSingleData * rdata)
+	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
+	{
+	
+	}
+
+	char const * getPackageName() const
+	{
+		return "GenericInputControlReadWorkPackage";
+	}
+};
+
+struct GenericInputControlReadWorkPackageReturnInterface
+{
+	virtual ~GenericInputControlReadWorkPackageReturnInterface() {}
+	virtual void genericInputControlReadWorkPackageReturn(GenericInputControlReadWorkPackage * package) = 0;
+};
+
+struct GenericInputControlReadAddPendingInterface
+{
+	virtual ~GenericInputControlReadAddPendingInterface() {}
+	virtual void genericInputControlReadAddPending(GenericInputBase::block_type::shared_ptr_type block) = 0;
+};
+
+struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+{
+	typedef GenericInputControlReadWorkPackageDispatcher this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+	
+	GenericInputControlReadWorkPackageReturnInterface & packageReturnInterface;
+	GenericInputControlReadAddPendingInterface & addPendingInterface;
+
+	GenericInputControlReadWorkPackageDispatcher(
+		GenericInputControlReadWorkPackageReturnInterface & rpackageReturnInterface,
+		GenericInputControlReadAddPendingInterface & raddPendingInterface
+	)
+	: packageReturnInterface(rpackageReturnInterface), addPendingInterface(raddPendingInterface)
+	{
+	
+	}
+
+	void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+	{
+		assert ( dynamic_cast<GenericInputControlReadWorkPackage *>(P) != 0 );
+		GenericInputControlReadWorkPackage * BP = dynamic_cast<GenericInputControlReadWorkPackage *>(P);
+		
+		GenericInputSingleData & data = *(BP->data);
+		std::vector<GenericInputBase::block_type::shared_ptr_type> fullBlocks;
+		
+		if ( data.inlock.trylock() )
+		{
+			libmaus::parallel::ScopePosixSpinLock slock(data.inlock,true /* pre locked */);
+			
+			GenericInputBase::block_type::shared_ptr_type sblock;
+
+			while ( (!data.getEOF()) && (sblock=data.blockFreeList.getIf()) )
+			{
+				// reset buffer
+				sblock->reset();
+				// set stream id
+				sblock->meta.streamid = data.getStreamId();
+				// set block id
+				sblock->meta.blockid = data.getBlockId();
+				// insert stalled data
+				sblock->insert(data.stallArray.begin(),data.stallArray.begin()+data.stallArraySize);
+
+				// extend if there is no space
+				if ( sblock->pe == sblock->A.end() )
+					sblock->extend();
+				
+				// there should be free space now
+				assert ( sblock->pe != sblock->A.end() );
+
+				// fill buffer
+				libmaus::bambam::parallel::GenericInputBlockFillResult const P = sblock->fill(
+					data.in,
+					data.finite,
+					data.dataleft);
+
+				if ( data.in.bad() )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "Stream error while filling buffer." << std::endl;
+					lme.finish();
+					throw lme;
+				}
+
+				if ( data.finite )
+				{
+					assert ( P.gcount <= data.dataleft );
+					data.dataleft -= P.gcount;
+				}
+
+				data.setEOF(P.eof);
+				sblock->meta.eof = P.eof;
+				
+				// parse bgzf block headers to determine how many full blocks we have				
+				int64_t bs = -1;
+				libmaus::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
+				uint64_t f = 0;
+				while ( (bs=libmaus::lz::BgzfInflateHeaderBase::getBlockSize(sblock->pc,sblock->pe)) >= 0 )
+				{
+					meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pc+bs));
+					sblock->pc += bs;
+					f += 1;
+				}
+
+				// empty file? inject eof block
+				if ( data.getEOF() && (sblock->pc == sblock->pe) && (!f) )
+				{
+					std::ostringstream ostr;
+					libmaus::lz::BgzfDeflate<std::ostream> bgzfout(ostr);
+					bgzfout.addEOFBlock();
+					std::string const s = ostr.str();
+					sblock->insert(s.begin(),s.end());
+					
+					meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pe));
+					f += 1;
+				}
+
+				// extract rest of data for next block
+				data.stallArraySize = sblock->extractRest(data.stallArray);
+
+				if ( f )
+				{
+					fullBlocks.push_back(sblock);
+					data.incrementBlockId();
+				}
+				else
+				{
+					// buffer is too small for a single block
+					if ( ! data.getEOF() )
+					{
+						sblock->extend();
+						data.blockFreeList.put(sblock);
+					}
+					else if ( sblock->pc != sblock->pe )
+					{
+						assert ( data.getEOF() );
+						// throw exception, block is incomplete at EOF
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "Unexpected EOF." << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+			}
+		}
+
+		packageReturnInterface.genericInputControlReadWorkPackageReturn(BP);
+
+		for ( uint64_t i = 0; i < fullBlocks.size(); ++i )
+		{
+			addPendingInterface.genericInputControlReadAddPending(fullBlocks[i]);
+		}		
+	}
+};
+
+struct GenericInputBgzfDecompressionWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+{
+	typedef GenericInputBgzfDecompressionWorkPackage this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+	GenericInputControlSubBlockPending data;
+
+	GenericInputBgzfDecompressionWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0) {}
+	GenericInputBgzfDecompressionWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputControlSubBlockPending rdata)
+	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
+	{
+	
+	}
+
+	char const * getPackageName() const
+	{
+		return "GenericInputBgzfDecompressionWorkPackage";
+	}
+};
+
+struct GenericInputBgzfDecompressionWorkPackageReturnInterface
+{
+	virtual ~GenericInputBgzfDecompressionWorkPackageReturnInterface() {}
+	virtual void genericInputBgzfDecompressionWorkPackageReturn(GenericInputBgzfDecompressionWorkPackage * package) = 0;
+};
+
+struct GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface
+{
+	virtual ~GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface() {}
+	virtual void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr) = 0;
+};
+
+struct GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface
+{
+	virtual ~GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface() {}
+	virtual void genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(uint64_t streamid, libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type ptr) = 0;
+};
+
+struct GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface
+{
+	virtual ~GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface() {}
+	virtual void genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(
+		GenericInputBase::block_type::shared_ptr_type ptr, uint64_t subblockid
+	) = 0;
+};
+
+struct GenericInputBgzfDecompressionWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+{
+	typedef GenericInputControlReadWorkPackageDispatcher this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+	
+	GenericInputBgzfDecompressionWorkPackageReturnInterface & packageReturnInterface;
+	GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface & genericInputBgzfDecompressionWorkPackageMemInputBlockReturn;
+	GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface & genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn;
+	GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface & genericInputBgzfDecompressionWorkSubBlockDecompressionFinished;
+
+	libmaus::parallel::LockedFreeList<
+		libmaus::lz::BgzfInflateZStreamBase,
+		libmaus::lz::BgzfInflateZStreamBaseAllocator,
+		libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+	> & deccont;
+
+
+	GenericInputBgzfDecompressionWorkPackageDispatcher(
+		GenericInputBgzfDecompressionWorkPackageReturnInterface & rpackageReturnInterface,
+		GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface & rgenericInputBgzfDecompressionWorkPackageMemInputBlockReturn,
+		GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface & rgenericInputBgzfDecompressionWorkPackageDecompressedBlockReturn,
+		GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface & rgenericInputBgzfDecompressionWorkSubBlockDecompressionFinished,
+		libmaus::parallel::LockedFreeList<
+			libmaus::lz::BgzfInflateZStreamBase,
+			libmaus::lz::BgzfInflateZStreamBaseAllocator,
+			libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+		> & rdeccont
+	)
+	: packageReturnInterface(rpackageReturnInterface),
+	  genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(rgenericInputBgzfDecompressionWorkPackageMemInputBlockReturn),
+	  genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(rgenericInputBgzfDecompressionWorkPackageDecompressedBlockReturn),
+	  genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(rgenericInputBgzfDecompressionWorkSubBlockDecompressionFinished),
+	  deccont(rdeccont)
+	{
+	
+	}
+
+	void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+	{
+		assert ( dynamic_cast<GenericInputBgzfDecompressionWorkPackage *>(P) != 0 );
+		GenericInputBgzfDecompressionWorkPackage * BP = dynamic_cast<GenericInputBgzfDecompressionWorkPackage *>(P);
+
+		GenericInputControlSubBlockPending & data = BP->data;
+		
+		GenericInputBase::block_type::shared_ptr_type block = data.block;
+		uint64_t const subblockid = data.subblockid;
+
+		// parse header data
+		data.mib->readBlock(block->meta.blocks[subblockid].first,block->meta.eof);
+		// decompress block
+		data.db->decompressBlock(deccont,*(data.mib));
+		// set block id
+		data.db->blockid = data.mib->blockid;
+		// set stream id
+		data.db->streamid = data.mib->streamid;
+		// compute crc32
+		uint32_t const crc = data.db->computeCrc();
+				
+		if ( crc != data.mib->crc )
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "CRC mismatch." << std::endl;
+			lme.finish();
+			throw lme;
+		}
+
+		// return decompressed block		
+		genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn.genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(block->meta.streamid,data.db);		
+		// return compressed block meta info
+		genericInputBgzfDecompressionWorkPackageMemInputBlockReturn.genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(block->meta.streamid,data.mib);
+		// return input block
+		genericInputBgzfDecompressionWorkSubBlockDecompressionFinished.genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(block,subblockid);	
+		// return work package
+		packageReturnInterface.genericInputBgzfDecompressionWorkPackageReturn(BP);
+	}
+};
+
+struct GenericInputControl : 
+	public GenericInputControlReadWorkPackageReturnInterface,
+	public GenericInputControlReadAddPendingInterface,
+	public GenericInputBgzfDecompressionWorkPackageReturnInterface,
+	public GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface,
+	public GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface,
+	public GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface
+{
+	typedef GenericInputControl this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+	libmaus::parallel::SimpleThreadPool & STP;
+	
+	libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> data;
+
+	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<GenericInputControlReadWorkPackage> readWorkPackages;
+	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<GenericInputBgzfDecompressionWorkPackage> decompressWorkPackages;
+
+	libmaus::parallel::LockedFreeList<
+		libmaus::lz::BgzfInflateZStreamBase,
+		libmaus::lz::BgzfInflateZStreamBaseAllocator,
+		libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+	> deccont;
+
+	uint64_t const GICRPDid;
+	GenericInputControlReadWorkPackageDispatcher GICRPD;
+	
+	uint64_t const GIBDWPDid;
+	GenericInputBgzfDecompressionWorkPackageDispatcher GIBDWPD;
+
+	GenericInputControl(
+		libmaus::parallel::SimpleThreadPool & rSTP,
+		std::vector<std::istream *> const & in, uint64_t const blocksize, uint64_t const numblocks
+	)
+	: STP(rSTP), data(in.size()), deccont(STP.getNumThreads()), GICRPDid(STP.getNextDispatcherId()), GICRPD(*this,*this),
+	  GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont)
+	{
+		for ( std::vector<std::istream *>::size_type i = 0; i < in.size(); ++i )
+		{
+			GenericInputSingleData::unique_ptr_type tptr(
+				new GenericInputSingleData(*in[i],i,false /* finite */,0/* data left*/,blocksize,numblocks)
+			);
+			data[i] = UNIQUE_PTR_MOVE(tptr);
+		}
+		STP.registerDispatcher(GICRPDid,&GICRPD);
+		STP.registerDispatcher(GIBDWPDid,&GIBDWPD);
+	}
+	
+	void addPending()
+	{
+		for ( uint64_t streamid = 0; streamid < data.size(); ++streamid )
+		{
+			GenericInputControlReadWorkPackage * package = readWorkPackages.getPackage();
+			*package = GenericInputControlReadWorkPackage(0 /* prio */, GICRPDid, data[streamid].get());
+			STP.enque(package);		
+		}
+	}
+	
+	void genericInputControlReadWorkPackageReturn(GenericInputControlReadWorkPackage * package)
+	{
+		readWorkPackages.returnPackage(package);
+	}
+
+	void genericInputBgzfDecompressionWorkPackageReturn(GenericInputBgzfDecompressionWorkPackage * package)
+	{
+		decompressWorkPackages.returnPackage(package);
+	}
+
+	virtual void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr)
+	{
+		data[streamid]->meminputblockfreelist.put(ptr);
+		checkDecompressionBlockPending(streamid);
+	}
+
+	// bgzf block decompressed
+	virtual void genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(uint64_t streamid, libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type ptr)
+	{
+		{
+			libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
+			data[streamid]->decompressedBlocksAcc += 1;
+			
+			std::cerr << ptr->streamid << ":" << ptr->blockid << std::endl;
+			
+			if ( data[streamid]->getEOF() && data[streamid]->decompressedBlockIdAcc == data[streamid]->decompressedBlocksAcc )
+			{
+				std::cerr << "stream " << streamid << " fully decompressed " << data[streamid]->decompressedBlockIdAcc << std::endl;			
+			}
+		}
+
+		data[streamid]->decompressedblockfreelist.put(ptr);
+		checkDecompressionBlockPending(streamid);
+	}
+
+	virtual void genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(
+		GenericInputBase::block_type::shared_ptr_type block, uint64_t /* subblockid */
+	)
+	{
+		uint64_t const streamid = block->meta.streamid;
+
+		// check whether this block is completely decompressed now		
+		if ( block->meta.returnBlock() )
+		{
+			data[streamid]->blockFreeList.put(block);
+
+			bool const eof = data[streamid]->getEOF();
+		
+			// not yet eof? try to read on	
+			if ( ! eof )
+			{
+				GenericInputControlReadWorkPackage * package = readWorkPackages.getPackage();
+				*package = GenericInputControlReadWorkPackage(0 /* prio */, GICRPDid, data[streamid].get());
+				STP.enque(package);
+			}
+		}	
+	}
+
+	void checkDecompressionBlockPending(uint64_t const streamid)
+	{
+		libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
+
+		libmaus::bambam::parallel::MemInputBlock::shared_ptr_type mib;
+		libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db;
+		
+		while (
+			data[streamid]->decompressionpending.size() &&
+			data[streamid]->decompressionpending.top().block->meta.blockid == data[streamid]->decompressionpendingnext.first &&
+			data[streamid]->decompressionpending.top().subblockid == data[streamid]->decompressionpendingnext.second &&
+			(mib = data[streamid]->meminputblockfreelist.getIf()) &&
+			(db = data[streamid]->decompressedblockfreelist.getIf())
+		)
+		{
+		
+			uint64_t const blockid = data[streamid]->decompressionpending.top().block->meta.blockid;
+			
+			GenericInputControlSubBlockPending pend = data[streamid]->decompressionpending.top();
+			data[streamid]->decompressionpending.pop();
+			pend.mib = mib;
+			pend.mib->streamid = streamid;
+			pend.mib->blockid = data[streamid]->decompressedBlockIdAcc++;
+			pend.db = db;
+			db = libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type();
+			mib = libmaus::bambam::parallel::MemInputBlock::shared_ptr_type();
+
+			// data[streamid]->decompressedBlockIdAcc += 1;
+
+			GenericInputBgzfDecompressionWorkPackage * package = decompressWorkPackages.getPackage();
+			*package = GenericInputBgzfDecompressionWorkPackage(0/*prio*/,GIBDWPDid,pend);
+			STP.enque(package);
+			
+				
+			data[streamid]->decompressionpendingnext.second += 1;					
+			if ( data[streamid]->decompressionpendingnext.second == data[streamid]->decompressiontotal[blockid] )
+			{
+				data[streamid]->decompressionpendingnext.first += 1;
+				data[streamid]->decompressionpendingnext.second = 0;
+			}
+		}
+
+		if ( db )
+			data[streamid]->decompressedblockfreelist.put(db);
+		if ( mib )
+			data[streamid]->meminputblockfreelist.put(mib);
+	}
+	
+	void checkInputBlockPending(uint64_t const streamid)
+	{
+		std::vector<GenericInputBase::block_type::shared_ptr_type> readylist;
+		
+		{
+			libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
+				
+			while (
+				data[streamid]->pending.size() &&
+				(
+					data[streamid]->pending.top()->meta.blockid == 
+					data[streamid]->nextblockid
+				)
+			)
+			{
+				GenericInputBase::block_type::shared_ptr_type block = data[streamid]->pending.top();
+				data[streamid]->pending.pop();
+				readylist.push_back(block);	
+				data[streamid]->decompressiontotal.push_back(block->meta.blocks.size());
+				data[streamid]->nextblockid += 1;		
+			}
+		}
+		
+		// enque decompression requests in queue
+		for ( std::vector<GenericInputBase::block_type::shared_ptr_type>::size_type i = 0; i < readylist.size(); ++i )
+		{
+			// get block
+			GenericInputBase::block_type::shared_ptr_type block = readylist[i];
+
+			// mark sub blocks as pending
+			for ( uint64_t j = 0; j < block->meta.blocks.size(); ++j )
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
+				data[streamid]->decompressionpending.push(GenericInputControlSubBlockPending(block,j));
+			}
+		}
+		
+		checkDecompressionBlockPending(streamid);
+	}
+
+	void genericInputControlReadAddPending(GenericInputBase::block_type::shared_ptr_type block)
+	{
+		uint64_t const streamid = block->meta.streamid;
+		
+		{
+			libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
+			data[streamid]->pending.push(block);
+		}
+		
+		checkInputBlockPending(streamid);
+	}
+};
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		{
+			libmaus::util::ArgInfo const arginfo(argc,argv);
+			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
+			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
+			
+			std::vector<libmaus::aio::PosixFdInputStream::shared_ptr_type> Pin;
+			std::vector<std::istream *> in;
+			for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
+			{
+				std::string const fn = arginfo.restargs[i];
+				libmaus::aio::PosixFdInputStream::shared_ptr_type PFIS(new libmaus::aio::PosixFdInputStream(fn));
+				Pin.push_back(PFIS);
+				in.push_back(PFIS.get());
+			}
+			
+			uint64_t const blocksize = 1024*1024;
+			
+			GenericInputControl GIC(STP,in,blocksize,4);
+			GIC.addPending();
+
+			STP.terminate();
+			STP.join();
+		}
+		
+		return 0;
+	
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		int const fmapperm = arginfo.getValue<int>("mapperm",0);
 		typedef libmaus::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
@@ -1873,6 +2612,7 @@ int main(int argc, char * argv[])
 			std::vector<uint64_t> cnt = VC.blockAlgnCnt;
 			::std::priority_queue< uint64_t, std::vector<uint64_t>, ::libmaus::bambam::BamAlignmentHeapComparator<libmaus::bambam::BamAlignmentPosComparator> > Q(heapcmp);
 			
+			// open files and set up heap
 			for ( uint64_t i = 0; i < VC.blockAlgnCnt.size(); ++i )
 			{
 				libmaus::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus::aio::PosixFdInputStream(alfn));
@@ -1892,23 +2632,25 @@ int main(int argc, char * argv[])
 			uint32_t const dupflag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
 			uint32_t const dupmask = ~dupflag;
 
-			// std::cout.write(headertext.first,headertext.second-headertext.first);
+			// set up alignment writer
 			libmaus::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus::bambam::BamBlockWriterBaseFactory::construct(*uphead,arginfo));
 			while ( Q.size() )
 			{
 				uint64_t const t = Q.top(); Q.pop();
-				
+
+				// mask out dup flag				
 				algns[t].putFlags(algns[t].getFlags() & dupmask);
 
+				// get rank
 				int64_t const rank = algns[t].getRank();
+				// mark as duplicate if in bit vector
 				if ( rank >= 0 && dupbit.get(rank) )
 					algns[t].putFlags(algns[t].getFlags() | dupflag);				
 
-				//algns[t].formatAlignment(std::cout,header,formaux);
-				// std::cout.put('\n');
+				// write alignment
 				Pwriter->writeAlignment(algns[t]);
-				// writer.writeAlgn(algns[t]);
-						
+				
+				// see if there is a next alignment for this block
 				if ( cnt[t]-- )
 				{
 					::libmaus::bambam::BamDecoder::readAlignmentGz(*Bin[t],algns[t],0 /* bamheader */, false /* do not validate */);

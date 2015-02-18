@@ -29,6 +29,10 @@ namespace libmaus
 	{
 		struct BgzfInflateHeaderBase : public BgzfConstants
 		{
+			typedef BgzfInflateHeaderBase this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> header;
 		
 			BgzfInflateHeaderBase()

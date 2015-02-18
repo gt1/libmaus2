@@ -622,7 +622,8 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/PairReadEndsMergeWorkPackage.hpp \
 	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp
+	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/MemInputBlock.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

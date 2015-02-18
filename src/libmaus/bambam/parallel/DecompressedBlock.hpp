@@ -21,6 +21,7 @@
 
 #include <libmaus/autoarray/AutoArray.hpp>
 #include <libmaus/bambam/parallel/InputBlock.hpp>
+#include <libmaus/bambam/parallel/MemInputBlock.hpp>
 #include <libmaus/lz/BgzfInflateZStreamBase.hpp>
 #include <libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp>
 #include <libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp>
@@ -65,7 +66,7 @@ namespace libmaus
 				{}
 				
 				/**
-				 * return true iff stored crc matches computed crc
+				 * computes and returns the crc32 of the block
 				 **/
 				uint32_t computeCrc() const
 				{
@@ -78,22 +79,50 @@ namespace libmaus
 					libmaus::lz::BgzfInflateZStreamBase * decoder,
 					char * in,
 					unsigned int const inlen,
-					unsigned int const outlen
+					unsigned int const outlen,
+					unsigned int const outoff = 0
 				)
 				{
-					decoder->zdecompress(reinterpret_cast<uint8_t *>(in),inlen,D.begin(),outlen);
+					assert ( outoff + outlen <= D.size() );
+					decoder->zdecompress(reinterpret_cast<uint8_t *>(in),inlen,D.begin()+outoff,outlen);
+					return outlen;
+				}
+
+				uint64_t decompressBlock(
+					libmaus::lz::BgzfInflateZStreamBase * decoder,
+					uint8_t * in,
+					unsigned int const inlen,
+					unsigned int const outlen,
+					unsigned int const outoff = 0
+				)
+				{
+					assert ( outoff + outlen <= D.size() );
+					decoder->zdecompress(in,inlen,D.begin()+outoff,outlen);
 					return outlen;
 				}
 	
 				uint64_t decompressBlock(
 					libmaus::lz::BgzfInflateZStreamBase * decoder,
-					InputBlock * inblock
+					InputBlock * inblock,
+					unsigned int const outoff = 0
 				)
 				{
 					uncompdatasize = inblock->uncompdatasize;
 					final = inblock->final;
 					P = D.begin();
-					return decompressBlock(decoder,inblock->C.begin(),inblock->payloadsize,uncompdatasize);
+					return decompressBlock(decoder,inblock->C.begin(),inblock->payloadsize,uncompdatasize,outoff);
+				}
+
+				uint64_t decompressBlock(
+					libmaus::lz::BgzfInflateZStreamBase * decoder,
+					MemInputBlock * inblock,
+					unsigned int const outoff = 0
+				)
+				{
+					uncompdatasize = inblock->uncompdatasize;
+					final = inblock->final;
+					P = D.begin();
+					return decompressBlock(decoder,inblock->C,inblock->payloadsize,uncompdatasize,outoff);
 				}
 	
 				uint64_t decompressBlock(
@@ -104,11 +133,30 @@ namespace libmaus
 						> & deccont,
 					char * in,
 					unsigned int const inlen,
-					unsigned int const outlen
+					unsigned int const outlen,
+					unsigned int const outoff = 0
 				)
 				{
 					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
-					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen);
+					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen,outoff);
+					deccont.put(decoder);
+					return r;
+				}
+
+				uint64_t decompressBlock(
+					libmaus::parallel::LockedFreeList<
+						libmaus::lz::BgzfInflateZStreamBase,
+						libmaus::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+						> & deccont,
+					uint8_t * in,
+					unsigned int const inlen,
+					unsigned int const outlen,
+					unsigned int const outoff = 0
+				)
+				{
+					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
+					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen,outoff);
 					deccont.put(decoder);
 					return r;
 				}
@@ -126,6 +174,21 @@ namespace libmaus
 					final = inblock.final;
 					P = D.begin();
 					return decompressBlock(deccont,inblock.C.begin(),inblock.payloadsize,uncompdatasize);
+				}
+
+				uint64_t decompressBlock(
+					libmaus::parallel::LockedFreeList<
+						libmaus::lz::BgzfInflateZStreamBase,
+						libmaus::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+						> & deccont,
+					MemInputBlock & inblock
+				)
+				{
+					uncompdatasize = inblock.uncompdatasize;
+					final = inblock.final;
+					P = D.begin();
+					return decompressBlock(deccont,inblock.C,inblock.payloadsize,uncompdatasize);
 				}
 			};
 		}
