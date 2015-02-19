@@ -55,16 +55,7 @@ namespace libmaus
 				
 				bool returnBlock()
 				{
-					if ( returnedBlocks.increment() == blocks.size() )
-					{
-						if ( blockid % 1024 == 0 )
-							std::cerr << "finished " << streamid << ":" << blockid << std::endl;
-						return true;
-					}
-					else
-					{
-						return false;
-					}
+					return returnedBlocks.increment() == blocks.size();
 				}
 
 				void reset()
