@@ -43,7 +43,7 @@ namespace libmaus
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 	
 				//! decompressed data
-				libmaus::autoarray::AutoArray<char> D;
+				libmaus::autoarray::AutoArray<char,libmaus::autoarray::alloc_type_c> D;
 				//! size of uncompressed data
 				uint64_t uncompdatasize;
 				//! next byte pointer
@@ -55,6 +55,49 @@ namespace libmaus
 				//! block id
 				uint64_t blockid;
 				
+				//! parse pointers
+				libmaus::autoarray::AutoArray<size_t,libmaus::autoarray::alloc_type_c> PP;
+				//! number of parse pointers
+				size_t nPP;
+				
+				char const * appendData(uint8_t const * d, size_t const c)
+				{
+					ptrdiff_t const o = P - D.begin();
+					
+					if ( uncompdatasize + c > D.size() )
+						D.resize(uncompdatasize + c);
+					
+					P = D.begin() + o;
+					
+					std::copy(d,d+c,D.begin()+uncompdatasize);
+					
+					return D.begin() + uncompdatasize;
+				}
+				
+				void pushParsePointer(char const * c)
+				{
+					size_t const o = c-D.begin();
+					if ( nPP == PP.size() )
+						PP.resize(PP.size()+1);
+					assert ( nPP < PP.size() );
+					PP[nPP++] = o;
+				}
+				
+				char * getParsePointer(size_t i)
+				{
+					return D.begin() + PP[i];
+				}
+				
+				void resetParseArray()
+				{
+					nPP = 0;
+				}
+				
+				size_t getNumParsePointers() const
+				{
+					return nPP;
+				}
+				
 				DecompressedBlock() 
 				: 
 					D(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
@@ -62,7 +105,9 @@ namespace libmaus
 					P(0),
 					final(false),
 					streamid(0),
-					blockid(0)
+					blockid(0),
+					PP(0),
+					nPP(0)
 				{}
 				
 				/**
