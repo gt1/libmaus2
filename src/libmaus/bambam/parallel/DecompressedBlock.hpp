@@ -59,6 +59,8 @@ namespace libmaus
 				libmaus::autoarray::AutoArray<size_t,libmaus::autoarray::alloc_type_c> PP;
 				//! number of parse pointers
 				size_t nPP;
+				//! current parse pointer
+				size_t cPP;
 				
 				char const * appendData(uint8_t const * d, size_t const c)
 				{
@@ -88,14 +90,25 @@ namespace libmaus
 					return D.begin() + PP[i];
 				}
 				
+				char * getPrevParsePointer()
+				{
+					return D.begin() + PP[cPP-1];
+				}
+				
 				void resetParseArray()
 				{
 					nPP = 0;
+					cPP = 0;
 				}
 				
 				size_t getNumParsePointers() const
 				{
 					return nPP;
+				}
+				
+				char const * getNextParsePointer()
+				{
+					return D.begin() + PP[cPP++];
 				}
 				
 				DecompressedBlock() 
