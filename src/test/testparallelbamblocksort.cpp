@@ -2146,6 +2146,12 @@ struct GenericInputSingleData
 		DecompressedBlockHeapComparator> parsepending;
 		
 	GenericInputSingleDataBamParseInfo parseInfo;
+	
+	std::deque<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type> processQueue;
+	libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type processActive;
+	bool volatile processMissing;
+	bool volatile processFirst;
+	libmaus::parallel::PosixSpinLock processLock;
 
 	GenericInputSingleData(
 		std::istream & rin, 
@@ -2169,7 +2175,12 @@ struct GenericInputSingleData
 	  decompressedBlocksAcc(0),
 	  parsependingnext(0),
 	  parsepending(),
-	  parseInfo()
+	  parseInfo(),
+	  processQueue(),
+	  processActive(),
+	  processMissing(true),
+	  processFirst(true),
+	  processLock()
 	{
 	
 	}
@@ -2597,6 +2608,294 @@ struct GenericInputBamParseWorkPackageDispatcher : public libmaus::parallel::Sim
 	}
 };
 
+struct GenericInputControlMergeHeapEntry
+{
+	libmaus::bambam::parallel::DecompressedBlock * block;
+	uint64_t coord;
+	
+	inline void setup()
+	{
+		uint8_t const * algn4 = reinterpret_cast<uint8_t const *>(block->getNextParsePointer()) + sizeof(uint32_t);
+		coord = 
+			(static_cast<uint64_t>(static_cast<uint32_t>(libmaus::bambam::BamAlignmentDecoderBase::getRefID(algn4))) << 32)
+			|
+			static_cast<uint64_t>(static_cast<int64_t>(libmaus::bambam::BamAlignmentDecoderBase::getPos(algn4)) - std::numeric_limits<int32_t>::min());
+			;	
+	}
+	
+	GenericInputControlMergeHeapEntry()
+	{
+	
+	}
+	GenericInputControlMergeHeapEntry(libmaus::bambam::parallel::DecompressedBlock * rblock)
+	: block(rblock)
+	{
+		setup();
+	}
+	
+	bool isLast() const
+	{
+		return block->cPP == block->nPP;
+	}
+	
+	bool operator<(GenericInputControlMergeHeapEntry const & A) const
+	{
+		if ( coord != A.coord )
+			return coord < A.coord;
+		else
+			return block->streamid < A.block->streamid;
+	}
+};
+
+
+template<typename _element_type, typename _comparator_type = std::less<_element_type> >
+struct FiniteSizeHeap
+{
+	typedef _element_type element_type;
+	typedef _comparator_type comparator_type;
+	typedef FiniteSizeHeap<element_type,comparator_type> this_type;
+	typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;	
+	
+	libmaus::autoarray::AutoArray<element_type> H;
+	size_t f;
+	comparator_type comp;
+	
+	FiniteSizeHeap(uint64_t const size, comparator_type rcomp = comparator_type())
+	: H(size,false), f(0), comp(rcomp)
+	{
+	
+	}
+	
+	bool empty() const
+	{
+		return (!f);
+	}
+	
+	bool full() const
+	{
+		return f == H.size();
+	}
+	
+	void push(element_type const & entry)
+	{
+		size_t i = f++;
+		H[i] = entry;
+		
+		// while not root
+		while ( i )
+		{
+			// parent index
+			size_t p = (i-1)>>1;
+			
+			// order wrong?
+			if ( comp(H[i],H[p]) )
+			{
+				std::swap(H[i],H[p]);
+				i = p;
+			}
+			// order correct, break loop
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	void pop(element_type & E)
+	{
+		E = H[0];
+		// put last element at root
+		H[0] = H[--f];
+		
+		size_t i = 0;
+		size_t r;
+	
+		// while both children exist	
+		while ( (r=((i<<1)+2)) < f )
+		{
+			size_t const m = comp(H[r-1],H[r]) ? r-1 : r;
+			
+			// order correct?
+			if ( comp(H[i],H[m]) )
+				return;
+			
+			std::swap(H[i],H[m]);
+			i = m;
+		}
+		
+		// does left child exist?
+		size_t l;
+		if ( ((l = ((i<<1)+1)) < f) && (!(comp(H[i],H[l]))) )
+			std::swap(H[i],H[l]);
+	}
+	
+	element_type pop()
+	{
+		element_type E;
+		pop(E);
+		return E;
+	}
+};
+
+struct GenericInputMergeDecompressedBlockReturnInterface
+{
+	virtual ~GenericInputMergeDecompressedBlockReturnInterface() {}
+	virtual void genericInputMergeDecompressedBlockReturn(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block) = 0;
+};
+
+struct GenericInputMergeWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+{
+	typedef GenericInputMergeWorkPackage this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+
+	libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * data;
+	FiniteSizeHeap<GenericInputControlMergeHeapEntry> * mergeheap;
+
+	GenericInputMergeWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0), mergeheap(0) {}
+	GenericInputMergeWorkPackage(
+		uint64_t const rpriority, 
+		uint64_t const rdispatcherid, 
+		libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * rdata,
+		FiniteSizeHeap<GenericInputControlMergeHeapEntry> * rmergeheap
+	)
+	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata), mergeheap(rmergeheap)
+	{
+	
+	}
+
+	char const * getPackageName() const
+	{
+		return "GenericInputMergeWorkPackage";
+	}
+};	
+
+
+struct GenericInputMergeWorkPackageReturnInterface
+{
+	virtual ~GenericInputMergeWorkPackageReturnInterface() {}
+	virtual void genericInputMergeWorkPackageReturn(GenericInputMergeWorkPackage * package) = 0;
+};
+
+
+struct GenericInputMergeWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+{
+	typedef GenericInputMergeWorkPackageDispatcher this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+	
+	GenericInputMergeWorkPackageReturnInterface & packageReturnInterface;
+	GenericInputMergeDecompressedBlockReturnInterface & decompressPackageReturnInterface;
+
+	GenericInputMergeWorkPackageDispatcher(
+		GenericInputMergeWorkPackageReturnInterface & rpackageReturnInterface,
+		GenericInputMergeDecompressedBlockReturnInterface & rdecompressPackageReturnInterface
+	)
+	: packageReturnInterface(rpackageReturnInterface),
+	  decompressPackageReturnInterface(rdecompressPackageReturnInterface)
+	{
+	
+	}
+
+	void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+	{
+		assert ( dynamic_cast<GenericInputMergeWorkPackage *>(P) != 0 );
+		GenericInputMergeWorkPackage * BP = dynamic_cast<GenericInputMergeWorkPackage *>(P);
+		
+		libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> & data = *(BP->data);
+		FiniteSizeHeap<GenericInputControlMergeHeapEntry> & mergeheap = *(BP->mergeheap);
+
+		GenericInputControlMergeHeapEntry E;
+		bool running = !mergeheap.empty();
+		
+		while ( running )
+		{
+			mergeheap.pop(E);
+
+			#if 0
+			libmaus::bambam::parallel::DecompressedBlock * eblock = E.block;
+			uint8_t const * ublock = reinterpret_cast<uint8_t const *>(eblock->getPrevParsePointer());
+			uint8_t const * ublock4 = ublock + sizeof(uint32_t);
+			char const * name = libmaus::bambam::BamAlignmentDecoderBase::getReadName(ublock4);
+			std::cerr << name 
+				<< "\t" << libmaus::bambam::BamAlignmentDecoderBase::getRefID(ublock4) 
+				<< "\t" << libmaus::bambam::BamAlignmentDecoderBase::getPos(ublock4) 
+				<< std::endl;
+			#endif
+			
+			// last alignment in block
+			if ( E.isLast() )
+			{
+				// get stream id
+				uint64_t const streamid = E.block->streamid;
+				// get block
+				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block = data[streamid]->processActive;
+				// return block
+				decompressPackageReturnInterface.genericInputMergeDecompressedBlockReturn(block);
+
+				{	
+					// get lock	
+					libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
+					// erase block pointer
+					data[streamid]->processActive = libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type();
+
+					// if queue is not empty
+					if ( data[streamid]->processQueue.size() )
+					{
+						// get next block
+						libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type nextblock = data[streamid]->processQueue.front();
+						// remove it from the queue
+						data[streamid]->processQueue.pop_front();
+						
+						// this should be either non-empty or the last block
+						assert ( nextblock->getNumParsePointers() || nextblock->final );
+
+						// last block, return it			
+						if ( nextblock->final )
+						{
+							// return block
+							decompressPackageReturnInterface.genericInputMergeDecompressedBlockReturn(nextblock);
+							// stop running if this was the last stream ending
+							running = !(mergeheap.empty());
+						}
+						// non-empty block, get next alignment
+						else
+						{
+							// set active block
+							data[streamid]->processActive = nextblock;
+							// this should be non-empty
+							assert ( data[streamid]->processActive->getNumParsePointers() );
+							// construct heap entry
+							GenericInputControlMergeHeapEntry GICMHE(data[streamid]->processActive.get());
+							// push it
+							mergeheap.push(GICMHE);
+						}
+					}
+					// nothing in queue, mark channel as missing and leave loop
+					else
+					{
+						// missing
+						data[streamid]->processMissing = true;
+						// quit loop
+						running = false;
+					}
+				}				
+			}
+			// not last element in block
+			else
+			{
+				// construct heap entry
+				GenericInputControlMergeHeapEntry GICMHE(data[E.block->streamid]->processActive.get());
+				// push it
+				mergeheap.push(GICMHE);			
+			}
+		}
+		
+		packageReturnInterface.genericInputMergeWorkPackageReturn(BP);
+	}
+};
+
 struct GenericInputControl : 
 	public GenericInputControlReadWorkPackageReturnInterface,
 	public GenericInputControlReadAddPendingInterface,
@@ -2605,7 +2904,9 @@ struct GenericInputControl :
 	public GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface,
 	public GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface,
 	public GenericInputBamParseWorkPackageReturnInterface,
-	public GenericInputBamParseWorkPackageBlockParsedInterface
+	public GenericInputBamParseWorkPackageBlockParsedInterface,
+	public GenericInputMergeWorkPackageReturnInterface,
+	public GenericInputMergeDecompressedBlockReturnInterface
 {
 	typedef GenericInputControl this_type;
 	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -2618,6 +2919,7 @@ struct GenericInputControl :
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<GenericInputControlReadWorkPackage> readWorkPackages;
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<GenericInputBgzfDecompressionWorkPackage> decompressWorkPackages;
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<GenericInputBamParseWorkPackage> parseWorkPackages;
+	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<GenericInputMergeWorkPackage> mergeWorkPackages;
 
 	libmaus::parallel::LockedFreeList<
 		libmaus::lz::BgzfInflateZStreamBase,
@@ -2633,6 +2935,18 @@ struct GenericInputControl :
 	
 	uint64_t const GIBPWPDid;
 	GenericInputBamParseWorkPackageDispatcher GIBPWPD;
+	
+	uint64_t const GIMWPDid;
+	GenericInputMergeWorkPackageDispatcher GIMWPD;
+	
+	uint64_t volatile activedecompressionstreams;
+	libmaus::parallel::PosixSpinLock activedecompressionstreamslock;
+	
+	uint64_t volatile streamParseUnstarted;
+	libmaus::parallel::PosixSpinLock streamParseUnstartedLock;
+
+	FiniteSizeHeap<GenericInputControlMergeHeapEntry> mergeheap;
+	libmaus::parallel::PosixSpinLock mergeheaplock;
 
 	GenericInputControl(
 		libmaus::parallel::SimpleThreadPool & rSTP,
@@ -2640,7 +2954,11 @@ struct GenericInputControl :
 	)
 	: STP(rSTP), data(in.size()), deccont(STP.getNumThreads()), GICRPDid(STP.getNextDispatcherId()), GICRPD(*this,*this),
 	  GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont),
-	  GIBPWPDid(STP.getNextDispatcherId()), GIBPWPD(*this,*this)
+	  GIBPWPDid(STP.getNextDispatcherId()), GIBPWPD(*this,*this),
+	  GIMWPDid(STP.getNextDispatcherId()), GIMWPD(*this,*this),
+	  activedecompressionstreams(in.size()), activedecompressionstreamslock(),
+	  streamParseUnstarted(in.size()), streamParseUnstartedLock(),
+	  mergeheap(in.size()), mergeheaplock()
 	{
 		for ( std::vector<std::istream *>::size_type i = 0; i < in.size(); ++i )
 		{
@@ -2652,6 +2970,26 @@ struct GenericInputControl :
 		STP.registerDispatcher(GICRPDid,&GICRPD);
 		STP.registerDispatcher(GIBDWPDid,&GIBDWPD);
 		STP.registerDispatcher(GIBPWPDid,&GIBPWPD);
+		STP.registerDispatcher(GIMWPDid,&GIMWPD);
+	}
+	
+	uint64_t getActiveDecompressionStreams()
+	{
+		libmaus::parallel::ScopePosixSpinLock slock(activedecompressionstreamslock);
+		return activedecompressionstreams;
+	}
+	
+	bool decompressionFinished()
+	{
+		return getActiveDecompressionStreams() == 0;
+	}
+	
+	void waitDecompressionFinished()
+	{
+		while ( 
+			! decompressionFinished() && ! STP.isInPanicMode()
+		)
+			sleep(1);
 	}
 	
 	void addPending()
@@ -2679,27 +3017,132 @@ struct GenericInputControl :
 		parseWorkPackages.returnPackage(package);	
 	}
 
-	virtual void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr)
+	void genericInputMergeWorkPackageReturn(GenericInputMergeWorkPackage * package)
+	{
+		mergeWorkPackages.returnPackage(package);
+	}
+
+	void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr)
 	{
 		data[streamid]->meminputblockfreelist.put(ptr);
 		checkDecompressionBlockPending(streamid);
 	}
 
+	void genericInputMergeDecompressedBlockReturn(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block)
+	{
+		// get stream id
+		uint64_t const streamid = block->streamid;
+		// return block
+		data[streamid]->decompressedblockfreelist.put(block);
+		// check whether we can decompress more
+		checkDecompressionBlockPending(streamid);	
+	}
+
 	void genericInputBamParseWorkPackageBlockParsed(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block)
 	{
+		// stream id
 		uint64_t const streamid = block->streamid;
+		// is this the final block for this stream?
+		bool const final = block->final;
 		
+		// enque parsed block for processing/merging if it is not empty or the last block of the stream
+		{
+			libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
+			// last block or block containing alignments
+			if ( block->final || block->getNumParsePointers() )
+			{
+				data[streamid]->processQueue.push_back(block);
+			}
+			// empty block and not last, return it
+			else
+			{
+				// return block
+				data[streamid]->decompressedblockfreelist.put(block);
+				// check whether we can decompress more
+				checkDecompressionBlockPending(streamid);
+			}
+		}
+
+		// ready for next block
 		{
 			libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
 			data[streamid]->parsependingnext += 1;
 		}
 
-		// ready for next block
+		// check for next parse block
 		checkParsePending(streamid);
+		
+		{
+			// lock merge data structures
+			libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
 
-		// 
-		data[streamid]->decompressedblockfreelist.put(block);
-		checkDecompressionBlockPending(streamid);	
+			// is this stream missing for merging? do we have a block?
+			if ( data[streamid]->processMissing && data[streamid]->processQueue.size() )
+			{
+				// block is supposed to be unset
+				assert ( ! data[streamid]->processActive.get() );
+				// get next block from queue
+				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type qblock = data[streamid]->processQueue.front();
+				// deque
+				data[streamid]->processQueue.pop_front();
+
+				// no longer missing
+				data[streamid]->processMissing = 0;
+			
+				// block with entries
+				if ( qblock->getNumParsePointers() )
+				{
+					// set active block
+					data[streamid]->processActive = qblock;
+
+					// insert alignment in heap
+					GenericInputControlMergeHeapEntry GICMHE(data[streamid]->processActive.get());
+					libmaus::parallel::ScopePosixSpinLock slock(mergeheaplock);
+					mergeheap.push(GICMHE);
+				}
+				// empty block
+				else
+				{
+					// return block
+					data[streamid]->decompressedblockfreelist.put(qblock);
+					// check whether we can decompress more
+					checkDecompressionBlockPending(streamid);					
+				}
+
+				// is this the first package?
+				if ( data[streamid]->processFirst )
+				{
+					// no longer first
+					data[streamid]->processFirst = false;	
+
+					// update number of initialised streams
+					libmaus::parallel::ScopePosixSpinLock lstreamParseUnstartedLock(streamParseUnstartedLock);
+					streamParseUnstarted -= 1;
+
+					if ( ! streamParseUnstarted )
+					{
+						// (re)start merging
+						GenericInputMergeWorkPackage * package = mergeWorkPackages.getPackage();
+						*package = GenericInputMergeWorkPackage(0/*prio*/,GIMWPDid,&data,&mergeheap);
+						STP.enque(package);
+					}
+				}
+				// not first package, merging has already started
+				else
+				{
+					// (re)start merging
+					GenericInputMergeWorkPackage * package = mergeWorkPackages.getPackage();
+					*package = GenericInputMergeWorkPackage(0/*prio*/,GIMWPDid,&data,&mergeheap);
+					STP.enque(package);	
+				}					
+			}
+		}
+		
+		{
+			libmaus::parallel::ScopePosixSpinLock slock(activedecompressionstreamslock);
+			if ( final )
+				activedecompressionstreams -= 1;
+		}
 	}
 	
 	void checkParsePending(uint64_t const streamid)
@@ -2896,6 +3339,9 @@ int main(int argc, char * argv[])
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);			
 			GenericInputControl GIC(STP,in,blocksize,4);
 			GIC.addPending();
+			
+			GIC.waitDecompressionFinished();
+			std::cerr << "fini." << std::endl;
 
 			STP.terminate();
 			STP.join();
