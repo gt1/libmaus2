@@ -16,6 +16,80 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLSTRAMINFO_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLSTRAMINFO_HPP
+
+#include <string>
+#include <libmaus/types/types.hpp>
+#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{
+			struct GenericInputControlStreamInfo
+			{
+				typedef GenericInputControlStreamInfo this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				std::string path;
+				bool finite;
+				uint64_t start;
+				uint64_t end;
+				bool hasheader;
+				
+				GenericInputControlStreamInfo() : path(), finite(true), start(0), end(0), hasheader(false) {}
+				GenericInputControlStreamInfo(
+					std::string const & rpath,
+					bool const rfinite,
+					uint64_t const rstart,
+					uint64_t const rend,
+					bool const rhasheader
+				) : path(rpath), finite(rfinite), start(rstart), end(rend), hasheader(rhasheader) {}
+				
+				libmaus::aio::InputStream::unique_ptr_type openStream() const
+				{
+					libmaus::aio::InputStream::unique_ptr_type tptr(libmaus::aio::InputStreamFactoryContainer::constructUnique(path));
+					
+					if ( start != 0 )
+					{
+						tptr->clear();
+						tptr->seekg(start,std::ios::beg);
+					}
+					
+					return UNIQUE_PTR_MOVE(tptr);
+				}
+			};
+		}
+	}
+}
+#endif
+
+/*
+    libmaus
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include <libmaus/aio/PosixFdOutputStream.hpp>
 
 #include <libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/FragReadEndsMergeWorkPackageDispatcher.hpp>
@@ -190,9 +264,41 @@ namespace libmaus
 				{
 					return 1ull << getInputBlockCountShift();
 				}
+
+				std::string const tempfileprefix;
+				
+				std::string getBlockFileName()
+				{
+					std::string const fn = tempfileprefix + ".algn";
+					libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+					return fn;
+				}
+
+				std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> getBlockInfo()
+				{
+					std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> V;
+					
+					for ( uint64_t i = 0; i < blockStarts.size(); ++i )
+					{
+						V.push_back(
+							libmaus::bambam::parallel::GenericInputControlStreamInfo
+							(blockfilename,
+								true /* finite */,
+								blockStarts[i],
+								blockEnds[i],
+								false /* has header */
+							)
+						);
+					}
+					
+					return V;
+				}
+				
+				std::string const blockfilename;
+				
+				libmaus::aio::PosixFdOutputStream::unique_ptr_type PFOS;
 				
 				std::ostream & out;
-				std::string const tempfileprefix;
 							
 				libmaus::parallel::LockedBool decodingFinished;
 				
@@ -587,16 +693,24 @@ namespace libmaus
 					}
 				}
 				
+				std::string flushBlockFile()
+				{
+					out.flush();
+					PFOS.reset();
+					return blockfilename;
+				}
+				
 				BlockSortControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
 					std::istream & in,
 					int const level,
-					std::ostream & rout,
 					std::string const & rtempfileprefix
 				)
 				: 
-					out(rout),
 					tempfileprefix(rtempfileprefix),
+					blockfilename(getBlockFileName()),
+					PFOS(new libmaus::aio::PosixFdOutputStream(blockfilename)),
+					out(*PFOS),
 					decodingFinished(false),
 					STP(rSTP), 
 					zstreambases(STP.getNumThreads()),
@@ -1128,6 +1242,7 @@ namespace libmaus
 				std::vector<uint64_t> streamBytesWritten;
 				libmaus::parallel::PosixSpinLock streamBytesWrittenLock;
 				std::vector<uint64_t> blockStarts;
+				std::vector<uint64_t> blockEnds;
 				libmaus::parallel::PosixSpinLock blockStartsLock;
 				
 				virtual void bgzfOutputBlockWritten(uint64_t const streamid, int64_t const blockid, uint64_t const subid, uint64_t const n)
@@ -1148,7 +1263,14 @@ namespace libmaus
 							libmaus::parallel::ScopePosixSpinLock sblock(blockStartsLock);
 							while ( ! (static_cast<uint64_t>(blockid) < blockStarts.size()) )
 								blockStarts.push_back(0);
-							blockStarts[blockid] = offset;							
+							blockStarts[blockid] = offset;
+						}
+						if ( blockid >= 0 )
+						{
+							libmaus::parallel::ScopePosixSpinLock sblock(blockStartsLock);
+							while ( ! (static_cast<uint64_t>(blockid) < blockEnds.size()) )
+								blockEnds.push_back(0);
+							blockEnds[blockid] = streamBytesWritten[streamid] + n;
 						}
 						
 						// update number of bytes written
@@ -1795,7 +1917,7 @@ void mapperm(int argc, char * argv[])
 
 			std::istringstream in(out.str());
 			std::ostringstream ignout;
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,0 /* comp */,ignout,tempfileprefix);
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,0 /* comp */,tempfileprefix);
 			VC.checkEnqueReadPackage();
 			VC.waitDecodingFinished();
 
@@ -2059,6 +2181,7 @@ struct GenericInputSingleDataBamParseInfo
 	}
 };
 
+
 struct GenericInputSingleData
 {
 	typedef GenericInputSingleData this_type;
@@ -2066,6 +2189,12 @@ struct GenericInputSingleData
 	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 	public:
+	// info
+	libmaus::bambam::parallel::GenericInputControlStreamInfo const streaminfo;
+	
+	// input stream pointer
+	libmaus::aio::InputStream::unique_ptr_type Pin;
+	
 	// stream, protected by inlock
 	std::istream & in;
 	// read lock
@@ -2154,18 +2283,20 @@ struct GenericInputSingleData
 	libmaus::parallel::PosixSpinLock processLock;
 
 	GenericInputSingleData(
-		std::istream & rin, 
+		libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
 		uint64_t const rstreamid,
-		bool const rfinite,
-		uint64_t const rdataleft,
 		uint64_t const rblocksize, 
 		unsigned int const numblocks,
 		unsigned int const complistsize
 	)
-	: in(rin), streamid(rstreamid), blockid(0), blocksize(rblocksize), 
+	:
+	  streaminfo(rstreaminfo),
+	  Pin(streaminfo.openStream()),
+	  in(*Pin), 
+	  streamid(rstreamid), blockid(0), blocksize(rblocksize), 
 	  blockFreeList(numblocks,libmaus::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
-	  finite(rfinite),
-	  dataleft(rdataleft),
+	  finite(streaminfo.finite),
+	  dataleft(finite ? (streaminfo.end-streaminfo.start) : 0),
 	  eof(false),
 	  stallArray(0),
 	  stallArraySize(0),
@@ -2176,7 +2307,7 @@ struct GenericInputSingleData
 	  decompressedBlocksAcc(0),
 	  parsependingnext(0),
 	  parsepending(),
-	  parseInfo(),
+	  parseInfo(!streaminfo.hasheader),
 	  processQueue(),
 	  processActive(),
 	  processMissing(true),
@@ -2997,6 +3128,7 @@ struct GenericInputMergeWorkRequest
 	
 };
 
+
 struct GenericInputControl : 
 	public GenericInputControlReadWorkPackageReturnInterface,
 	public GenericInputControlReadAddPendingInterface,
@@ -3078,7 +3210,7 @@ struct GenericInputControl :
 
 	GenericInputControl(
 		libmaus::parallel::SimpleThreadPool & rSTP,
-		std::vector<std::istream *> const & in, 
+		std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const & in, 
 		uint64_t const blocksize, // read block size
 		uint64_t const numblocks, // number of read blocks per channel
 		uint64_t const ralgnbuffersize, // merge alignment buffer size
@@ -3100,7 +3232,7 @@ struct GenericInputControl :
 		for ( std::vector<std::istream *>::size_type i = 0; i < in.size(); ++i )
 		{
 			GenericInputSingleData::unique_ptr_type tptr(
-				new GenericInputSingleData(*in[i],i,false /* finite */,0/* data left*/,blocksize,numblocks,complistsize)
+				new GenericInputSingleData(in[i],i,blocksize,numblocks,complistsize)
 			);
 			data[i] = UNIQUE_PTR_MOVE(tptr);
 		}
@@ -3563,22 +3695,26 @@ int main(int argc, char * argv[])
 {
 	try
 	{
+		#if 0
 		{
 			libmaus::util::ArgInfo const arginfo(argc,argv);
 			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
 			
-			std::vector<libmaus::aio::PosixFdInputStream::shared_ptr_type> Pin;
-			std::vector<std::istream *> in;
+			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> in;
 			for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 			{
 				std::string const fn = arginfo.restargs[i];
-				libmaus::aio::PosixFdInputStream::shared_ptr_type PFIS(new libmaus::aio::PosixFdInputStream(fn));
-				Pin.push_back(PFIS);
-				in.push_back(PFIS.get());
+				in.push_back(
+					GenericInputControlStreamInfo(fn,false /* finite */,
+						0, /* start */
+						0, /* end */
+						true /* has header */
+					)
+				);
 			}
 			
 			uint64_t const inputblocksize = 1024*1024;
-			uint64_t const inputblocksperfile = 16;
+			uint64_t const inputblocksperfile = 64;
 			uint64_t const mergebuffersize = 1024*1024;
 			uint64_t const mergebuffers = 16;
 			uint64_t const complistsize = 256;
@@ -3595,6 +3731,7 @@ int main(int argc, char * argv[])
 		}
 		
 		return 0;
+		#endif
 	
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		int const fmapperm = arginfo.getValue<int>("mapperm",0);
@@ -3611,24 +3748,37 @@ int main(int argc, char * argv[])
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
 			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
 			std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
-			std::string const alfn = tmpfilebase + ".algn";
-			libmaus::aio::PosixFdOutputStream::unique_ptr_type out(new libmaus::aio::PosixFdOutputStream(alfn));
 			int const templevel = arginfo.getValue<int>("level",1);
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,templevel,*out,tmpfilebase);
+			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,templevel,tmpfilebase);
 			VC.checkEnqueReadPackage();
 			VC.waitDecodingFinished();
 			VC.flushReadEndsLists();
-			out->flush();
-			out.reset();
+			VC.flushBlockFile();
+
+			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC.getBlockInfo();
+			
+			uint64_t const inputblocksize = 1024*1024;
+			uint64_t const inputblocksperfile = 64;
+			uint64_t const mergebuffersize = 1024*1024;
+			uint64_t const mergebuffers = 16;
+			uint64_t const complistsize = 256;
+
+			GenericInputControl GIC(
+				STP,BI,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
+			GIC.addPending();			
+			GIC.waitMergingFinished();
+			std::cerr << "fini." << std::endl;
+
 			// system("ls -lrt 1>&2");
 			STP.terminate();
 			STP.join();
-			
+
+			#if 0			
 			std::cerr << "blocksParsed=" << VC.blocksParsed << std::endl;
 			std::cerr << "maxleftoff=" << VC.maxleftoff << std::endl;
 			std::cerr << "maxrightoff=" << VC.maxrightoff << std::endl;
 			
-			libmaus::aio::PosixFdInputStream PFIS(alfn);
+				libmaus::aio::PosixFdInputStream PFIS(alfn);
 			libmaus::bambam::BamHeaderLowMem const & loheader = *(VC.parseInfo.Pheader);
 			std::pair<char const *, char const *> const headertext = loheader.getText();
 			libmaus::bambam::BamHeader const header(std::string(headertext.first,headertext.second));
@@ -3637,6 +3787,13 @@ int main(int argc, char * argv[])
 			libmaus::bitio::BitVector const & dupbit = VC.getDupBitVector();
 			                                                                                                                                                                                
 			libmaus::bambam::BamFormatAuxiliary formaux;
+
+			libmaus::bambam::parallel::GenericInputControlStreamInfo(blockfilename,
+				true /* finite */,
+				blockStarts[i],
+				blockEnds[i],
+				false /* has header */
+			)
 			
 			libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Ain(VC.blockAlgnCnt.size());
 			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateStream::unique_ptr_type> Bin(VC.blockAlgnCnt.size());
@@ -3668,6 +3825,8 @@ int main(int argc, char * argv[])
 
 			// set up alignment writer
 			libmaus::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus::bambam::BamBlockWriterBaseFactory::construct(*uphead,arginfo));
+			libmaus::bambam::BamAuxFilterVector filter;
+			filter.set('Z','R');
 			while ( Q.size() )
 			{
 				uint64_t const t = Q.top(); Q.pop();
@@ -3679,7 +3838,9 @@ int main(int argc, char * argv[])
 				int64_t const rank = algns[t].getRank();
 				// mark as duplicate if in bit vector
 				if ( rank >= 0 && dupbit.get(rank) )
-					algns[t].putFlags(algns[t].getFlags() | dupflag);				
+					algns[t].putFlags(algns[t].getFlags() | dupflag);
+					
+				algns[t].filterOutAux(filter);
 
 				// write alignment
 				Pwriter->writeAlignment(algns[t]);
@@ -3692,6 +3853,12 @@ int main(int argc, char * argv[])
 				}
 			}
 			Pwriter.reset();
+			
+			for ( uint64_t i = 0; i < VC.blockAlgnCnt.size(); ++i )
+			{
+				std::cerr << "[B] " << Ain[i]->tellg() << "\t" << VC.blockEnds[i] << std::endl;
+			}
+			#endif
 		}
 	}
 	catch(std::exception const & ex)
