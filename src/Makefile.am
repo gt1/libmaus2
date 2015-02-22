@@ -1980,7 +1980,7 @@ testparallelbamrewrite_CPPFLAGS = ${AM_CPPFLAGS}
 testparallelbamrewrite_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamblocksort_SOURCES = test/testparallelbamblocksort.cpp
-testparallelbamblocksort_LDADD = libmaus.la @SNAPPYLIBS@
+testparallelbamblocksort_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
 testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS} @SNAPPYLDFLAGS@
 
