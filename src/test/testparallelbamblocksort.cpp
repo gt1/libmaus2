@@ -65,8 +65,22 @@ namespace libmaus
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 			};
+			
+			std::ostream & operator<<(std::ostream & out, GenericInputControlStreamInfo const & G);
 		}
 	}
+}
+
+inline std::ostream & libmaus::bambam::parallel::operator<<(std::ostream & out, libmaus::bambam::parallel::GenericInputControlStreamInfo const & G)
+{
+	out << "GenericInputControlStreamInfo(";
+	out << "path=" << G.path << "," ;
+	out << "finite=" << G.finite << ",";
+	out << "start=" << G.start << ",";
+	out << "end=" << G.end << ",";
+	out << "hasheader=" << G.hasheader;
+	out << ")";
+	return out;
 }
 #endif
 
@@ -289,6 +303,8 @@ namespace libmaus
 								false /* has header */
 							)
 						);
+						
+						std::cerr << V.back() << std::endl;
 					}
 					
 					return V;
@@ -2410,7 +2426,11 @@ struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::
 			
 			GenericInputBase::block_type::shared_ptr_type sblock;
 
-			while ( (!data.getEOF()) && (sblock=data.blockFreeList.getIf()) )
+			while ( 
+				((!data.finite) || data.dataleft) 
+				&&
+				(!data.getEOF()) && (sblock=data.blockFreeList.getIf()) 
+			)
 			{
 				// reset buffer
 				sblock->reset();
@@ -2429,7 +2449,7 @@ struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::
 				assert ( sblock->pe != sblock->A.end() );
 
 				// fill buffer
-				libmaus::bambam::parallel::GenericInputBlockFillResult const P = sblock->fill(
+				libmaus::bambam::parallel::GenericInputBlockFillResult P = sblock->fill(
 					data.in,
 					data.finite,
 					data.dataleft);
@@ -2446,6 +2466,11 @@ struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::
 				{
 					assert ( P.gcount <= data.dataleft );
 					data.dataleft -= P.gcount;
+					
+					if ( data.dataleft == 0 )
+					{
+						P.eof = true;
+					}
 				}
 
 				data.setEOF(P.eof);
@@ -2476,7 +2501,7 @@ struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::
 					f += 1;
 				}
 				#endif
-				
+								
 				// empty file?
 				if ( data.getEOF() && (sblock->pc == sblock->pe) && (!f) )
 				{
@@ -2512,7 +2537,7 @@ struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::
 						throw lme;
 					}
 				}
-			}
+			}			
 		}
 
 		packageReturnInterface.genericInputControlReadWorkPackageReturn(BP);
@@ -3023,77 +3048,99 @@ struct GenericInputMergeWorkPackageDispatcher : public libmaus::parallel::Simple
 				// last alignment in block
 				if ( E.isLast() )
 				{
-					// get stream id
-					uint64_t const streamid = E.block->streamid;
-					// get block
-					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block = data[streamid]->processActive;
-					// return block
-					decompressPackageReturnInterface.genericInputMergeDecompressedBlockReturn(block);
-
+					// last block?
+					if ( eblock->final )
 					{
-						// get lock	
-						libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
-						// erase block pointer
-						data[streamid]->processActive = libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type();
-
-						// if queue is not empty
-						if ( data[streamid]->processQueue.size() )
+						if ( mergeheap.empty() )
 						{
-							// get next block
-							libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type nextblock = data[streamid]->processQueue.front();
-							// remove it from the queue
-							data[streamid]->processQueue.pop_front();
-							
-							// this should be either non-empty or the last block
-							assert ( nextblock->getNumParsePointers() || nextblock->final );
-
-							// last block, return it			
-							if ( !(nextblock->getNumParsePointers())  )
-							{
-								assert ( nextblock->final );
-								
-								// return block
-								decompressPackageReturnInterface.genericInputMergeDecompressedBlockReturn(nextblock);
-								// stop running if this was the last stream ending
-								running = !(mergeheap.empty());
-								
-								if ( ! running )
-								{
-									// final buffer
-									BP->algn->final = true;
-									// mark buffer as finished
-									mergeFinishedInterface.genericInputControlMergeBlockFinished(BP->algn);
-									// reset buffer
-									BP->algn = libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type();
-								}
-							}
-							// non-empty block, get next alignment
-							else
-							{
-								// set active block
-								data[streamid]->processActive = nextblock;
-								// this should be non-empty
-								assert ( data[streamid]->processActive->getNumParsePointers() );
-								// construct heap entry
-								GenericInputControlMergeHeapEntry GICMHE(data[streamid]->processActive.get());
-								// push it
-								mergeheap.push(GICMHE);
-							}
-						}
-						// nothing in queue, mark channel as missing and leave loop
-						else
-						{
-							// buffer has space, stall it
-							setMergeStallSlotInterface.genericInputControlSetMergeStallSlot(BP->algn);
+							// final buffer
+							BP->algn->final = true;
+							// mark buffer as finished
+							mergeFinishedInterface.genericInputControlMergeBlockFinished(BP->algn);
 							// reset buffer
 							BP->algn = libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type();
-						
-							// missing
-							data[streamid]->processMissing = true;
-							// quit loop
+							// leave merge loop
 							running = false;
 						}
-					}				
+						else
+						{
+							// intentionally left empty
+						}
+					}
+					else
+					{
+						// get stream id
+						uint64_t const streamid = E.block->streamid;
+						// get block
+						libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block = data[streamid]->processActive;
+						// return block
+						decompressPackageReturnInterface.genericInputMergeDecompressedBlockReturn(block);
+
+						{
+							// get lock	
+							libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
+							// erase block pointer
+							data[streamid]->processActive = libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type();
+
+							// if queue is not empty
+							if ( data[streamid]->processQueue.size() )
+							{
+								// get next block
+								libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type nextblock = data[streamid]->processQueue.front();
+								// remove it from the queue
+								data[streamid]->processQueue.pop_front();
+								
+								// this should be either non-empty or the last block
+								assert ( nextblock->getNumParsePointers() || nextblock->final );
+
+								// last block, return it			
+								if ( !(nextblock->getNumParsePointers())  )
+								{
+									assert ( nextblock->final );
+									
+									// return block
+									decompressPackageReturnInterface.genericInputMergeDecompressedBlockReturn(nextblock);
+									// stop running if this was the last stream ending
+									running = !(mergeheap.empty());
+									
+									if ( ! running )
+									{
+										// final buffer
+										BP->algn->final = true;
+										// mark buffer as finished
+										mergeFinishedInterface.genericInputControlMergeBlockFinished(BP->algn);
+										// reset buffer
+										BP->algn = libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type();
+									}
+								}
+								// non-empty block, get next alignment
+								else
+								{
+									// set active block
+									data[streamid]->processActive = nextblock;
+									// this should be non-empty
+									assert ( data[streamid]->processActive->getNumParsePointers() );
+									// construct heap entry
+									GenericInputControlMergeHeapEntry GICMHE(data[streamid]->processActive.get());
+									// push it
+									mergeheap.push(GICMHE);
+								}
+							}
+							// nothing in queue, mark channel as missing and leave loop
+							else
+							{
+								// buffer has space, stall it
+								setMergeStallSlotInterface.genericInputControlSetMergeStallSlot(BP->algn);
+								// reset buffer
+								BP->algn = libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type();
+							
+								// missing
+								data[streamid]->processMissing = true;
+								// quit loop
+								running = false;
+							}
+						}
+					}
 				}
 				// not last element in block
 				else
@@ -3118,7 +3165,7 @@ struct GenericInputMergeWorkPackageDispatcher : public libmaus::parallel::Simple
 				running = false;
 			}
 		}
-		
+				
 		packageReturnInterface.genericInputMergeWorkPackageReturn(BP);
 	}
 };
@@ -3405,11 +3452,6 @@ struct GenericInputControl :
 
 	void genericInputBamParseWorkPackageBlockParsed(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block)
 	{
-		if ( block->final )
-		{
-			std::cerr << "__ final __" << std::endl;
-		}
-	
 		// stream id
 		uint64_t const streamid = block->streamid;
 		// is this the final block for this stream?
@@ -3447,7 +3489,7 @@ struct GenericInputControl :
 			libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
 			
 			if ( final )
-				std::cerr << "(H1)" << std::endl;
+				std::cerr << "final block for stream " << streamid << std::endl;
 
 			// is this stream missing for merging? do we have a block?
 			if ( data[streamid]->processMissing && data[streamid]->processQueue.size() )
