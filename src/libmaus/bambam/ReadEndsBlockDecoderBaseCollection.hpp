@@ -736,7 +736,7 @@ namespace libmaus
 				uint64_t const memory = 256ull*1024ull*1024ull;
 				uint64_t const numblocks = computeNumBlocks(rinfo);
 				uint64_t const minmem = 16*1024;
-				uint64_t const cacheperdec = std::max(minmem,(memory + numblocks-1)/numblocks);
+				uint64_t const cacheperdec = std::max(minmem,numblocks ? ((memory + numblocks-1)/numblocks) : 0);
 				
 				// offset array
 				std::vector<uint64_t> O(rinfo.size(),0);
