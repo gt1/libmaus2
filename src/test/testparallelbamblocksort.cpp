@@ -268,6 +268,7 @@ namespace libmaus
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
+				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				
 				static unsigned int getInputBlockCountShift()
 				{
@@ -303,8 +304,6 @@ namespace libmaus
 								false /* has header */
 							)
 						);
-						
-						std::cerr << V.back() << std::endl;
 					}
 					
 					return V;
@@ -446,6 +445,7 @@ namespace libmaus
 
 				libmaus::parallel::PosixSpinLock compressionActiveBlocksLock;
 				std::map<uint64_t, FragmentAlignmentBuffer::shared_ptr_type> compressionActive;
+				// number of unfinished compression sub blocks per block (signed key because header is in block -1)
 				std::map< int64_t, uint64_t> compressionUnfinished;
 				std::priority_queue<SmallLinearBlockCompressionPendingObject,std::vector<SmallLinearBlockCompressionPendingObject>,
 					SmallLinearBlockCompressionPendingObjectHeapComparator> compressionUnqueuedPending;
@@ -454,6 +454,18 @@ namespace libmaus
 				std::map<int64_t,uint64_t> writePendingCount;
 				libmaus::parallel::PosixSpinLock writeNextLock;				
 				std::pair<int64_t,uint64_t> writeNext;
+				
+				std::priority_queue<WritePendingObject,std::vector<WritePendingObject>,WritePendingObjectHeapComparator> writePendingQueue;
+				libmaus::parallel::PosixSpinLock writePendingQueueLock;
+				
+				// bytes written per output stream
+				std::vector<uint64_t> streamBytesWritten;
+				// lock for streamBytesWritten
+				libmaus::parallel::PosixSpinLock streamBytesWrittenLock;
+				std::vector<uint64_t> blockStarts;
+				std::vector<uint64_t> blockEnds;
+				libmaus::parallel::PosixSpinLock blockStartsLock;
+				
 				libmaus::parallel::LockedBool lastParseBlockWritten;
 				
 				libmaus::parallel::LockedFreeList<
@@ -884,7 +896,7 @@ namespace libmaus
 						uint8_t * phigh = reinterpret_cast<uint8_t *>(bamHeader.begin()) + ihigh;
 						
 						libmaus::parallel::ScopePosixSpinLock lcompressionActiveBlocksLock(compressionActiveBlocksLock);
-						compressionUnqueuedPending.push(SmallLinearBlockCompressionPendingObject(-1,i,plow,phigh));
+						compressionUnqueuedPending.push(SmallLinearBlockCompressionPendingObject(-1 /* block id -1 for header, ahead of data */,i,plow,phigh));
 					}
 				}
 
@@ -1246,20 +1258,13 @@ namespace libmaus
 				
 				}
 				
-				std::priority_queue<WritePendingObject,std::vector<WritePendingObject>,WritePendingObjectHeapComparator> writePendingQueue;
-				libmaus::parallel::PosixSpinLock writePendingQueueLock;
 
 				virtual void returnBgzfOutputBufferInterface(libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type & obuf)
 				{
 					bgzfDeflateOutputBufferFreeList.put(obuf);
 					checkSmallBlockCompressionPending();				
 				}
-				
-				std::vector<uint64_t> streamBytesWritten;
-				libmaus::parallel::PosixSpinLock streamBytesWrittenLock;
-				std::vector<uint64_t> blockStarts;
-				std::vector<uint64_t> blockEnds;
-				libmaus::parallel::PosixSpinLock blockStartsLock;
+
 				
 				virtual void bgzfOutputBlockWritten(uint64_t const streamid, int64_t const blockid, uint64_t const subid, uint64_t const n)
 				{
@@ -3487,9 +3492,11 @@ struct GenericInputControl :
 		{
 			// lock merge data structures
 			libmaus::parallel::ScopePosixSpinLock qlock(data[streamid]->processLock);
-			
+
+			#if 0			
 			if ( final )
 				std::cerr << "final block for stream " << streamid << std::endl;
+			#endif
 
 			// is this stream missing for merging? do we have a block?
 			if ( data[streamid]->processMissing && data[streamid]->processQueue.size() )
@@ -3578,10 +3585,12 @@ struct GenericInputControl :
 			}
 		}
 		
+		#if 0
 		if ( block && block->final )
 		{
 			std::cerr << "[V] all blocks decompressed for stream " << streamid << std::endl;
 		}
+		#endif
 
 		if ( block )
 		{
@@ -3756,10 +3765,10 @@ int main(int argc, char * argv[])
 			}
 			
 			uint64_t const inputblocksize = 1024*1024;
-			uint64_t const inputblocksperfile = 64;
+			uint64_t const inputblocksperfile = 8;
 			uint64_t const mergebuffersize = 1024*1024;
 			uint64_t const mergebuffers = 16;
-			uint64_t const complistsize = 256;
+			uint64_t const complistsize = 64;
 
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);			
 			GenericInputControl GIC(STP,in,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
@@ -3791,19 +3800,23 @@ int main(int argc, char * argv[])
 			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
 			std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
 			int const templevel = arginfo.getValue<int>("level",1);
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(STP,in,templevel,tmpfilebase);
-			VC.checkEnqueReadPackage();
-			VC.waitDecodingFinished();
-			VC.flushReadEndsLists();
-			VC.flushBlockFile();
+			libmaus::bambam::parallel::BlockSortControl<order_type>::unique_ptr_type VC(
+				new libmaus::bambam::parallel::BlockSortControl<order_type>(STP,in,templevel,tmpfilebase)
+			);
+			VC->checkEnqueReadPackage();
+			VC->waitDecodingFinished();
+			VC->flushReadEndsLists();
+			VC->flushBlockFile();
 
-			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC.getBlockInfo();
+			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
+			
+			VC.reset();
 			
 			uint64_t const inputblocksize = 1024*1024;
-			uint64_t const inputblocksperfile = 64;
+			uint64_t const inputblocksperfile = 8;
 			uint64_t const mergebuffersize = 1024*1024;
 			uint64_t const mergebuffers = 16;
-			uint64_t const complistsize = 256;
+			uint64_t const complistsize = 32;
 
 			GenericInputControl GIC(
 				STP,BI,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
