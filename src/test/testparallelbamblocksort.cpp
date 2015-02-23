@@ -103,6 +103,8 @@ inline std::ostream & libmaus::bambam::parallel::operator<<(std::ostream & out, 
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <libmaus/aio/NamedTemporaryFileAllocator.hpp>
+#include <libmaus/aio/NamedTemporaryFileTypeInfo.hpp>
 #include <libmaus/aio/PosixFdOutputStream.hpp>
 
 #include <libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp>
@@ -282,22 +284,27 @@ namespace libmaus
 
 				std::string const tempfileprefix;
 				
+				#if 0
 				std::string getBlockFileName()
 				{
 					std::string const fn = tempfileprefix + ".algn";
 					libmaus::util::TempFileRemovalContainer::addTempFile(fn);
 					return fn;
 				}
+				#endif
 
 				std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> getBlockInfo()
 				{
+					flushTempFiles();
+					
 					std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> V;
 					
 					for ( uint64_t i = 0; i < blockStarts.size(); ++i )
 					{
 						V.push_back(
 							libmaus::bambam::parallel::GenericInputControlStreamInfo
-							(blockfilename,
+							(
+								tempFileVector[blockStreamIds[i]]->name,
 								true /* finite */,
 								blockStarts[i],
 								blockEnds[i],
@@ -306,14 +313,15 @@ namespace libmaus
 						);
 					}
 					
+					tempFileVector.resize(0);
+					tempFileFreeList.reset();
+					
 					return V;
 				}
 				
-				std::string const blockfilename;
-				
-				libmaus::aio::PosixFdOutputStream::unique_ptr_type PFOS;
-				
-				std::ostream & out;
+				// std::string const blockfilename;
+				// libmaus::aio::PosixFdOutputStream::unique_ptr_type PFOS;
+				//std::ostream & outref;
 							
 				libmaus::parallel::LockedBool decodingFinished;
 				
@@ -450,6 +458,81 @@ namespace libmaus
 				std::priority_queue<SmallLinearBlockCompressionPendingObject,std::vector<SmallLinearBlockCompressionPendingObject>,
 					SmallLinearBlockCompressionPendingObjectHeapComparator> compressionUnqueuedPending;
 
+				libmaus::parallel::SynchronousCounter<uint64_t> tempFileCounter;
+				typedef libmaus::aio::PosixFdOutputStream temp_file_stream_type;
+				typedef libmaus::aio::NamedTemporaryFile<temp_file_stream_type> temp_file_type;
+				typedef libmaus::aio::NamedTemporaryFileAllocator<temp_file_stream_type> temp_file_allocator_type;
+				typedef libmaus::parallel::LockedGrowingFreeList<
+					libmaus::aio::NamedTemporaryFile<libmaus::aio::PosixFdOutputStream>,
+					libmaus::aio::NamedTemporaryFileAllocator<libmaus::aio::PosixFdOutputStream>,
+					libmaus::aio::NamedTemporaryFileTypeInfo<libmaus::aio::PosixFdOutputStream>
+				> temp_file_free_list_type;
+				
+				temp_file_allocator_type tempFileAllocator;
+				temp_file_free_list_type::unique_ptr_type tempFileFreeList;
+				std::vector<temp_file_type::shared_ptr_type> tempFileVector;
+				std::vector<uint64_t> tempFileUseCount;
+				std::priority_queue<
+					std::pair<uint64_t,uint64_t>,
+					std::vector< std::pair<uint64_t,uint64_t> >,
+					std::greater< std::pair<uint64_t,uint64_t> > >
+					tempFileHeap;
+				libmaus::parallel::PosixSpinLock tempFileLock;
+				
+				void flushTempFiles()
+				{
+					for ( uint64_t i = 0; i < tempFileVector.size(); ++i )
+						tempFileVector[i]->stream.flush();
+				}
+				
+				void addTempFile()
+				{
+					libmaus::aio::NamedTemporaryFile<libmaus::aio::PosixFdOutputStream>::shared_ptr_type ptr = tempFileFreeList->get();
+					uint64_t const id = ptr->id;
+					libmaus::util::TempFileRemovalContainer::addTempFile(ptr->name);
+					
+					while ( ! (id < tempFileVector.size()) )
+						tempFileVector.push_back(temp_file_type::shared_ptr_type());
+					while ( ! (id < tempFileUseCount.size()) )
+						tempFileUseCount.push_back(0);
+						
+					tempFileVector.at(id) = ptr;
+					tempFileUseCount.at(id) = 0;
+					
+					tempFileHeap.push(std::pair<uint64_t,uint64_t>(tempFileUseCount[id],id));					
+				}
+
+				libmaus::aio::NamedTemporaryFile<libmaus::aio::PosixFdOutputStream>::shared_ptr_type getTempFile()
+				{
+					libmaus::parallel::ScopePosixSpinLock slock(tempFileLock);
+					
+					if ( !tempFileHeap.size() )
+						addTempFile();
+						
+					assert ( tempFileHeap.size() );
+
+					std::pair<uint64_t,uint64_t> P = tempFileHeap.top();
+					tempFileHeap.pop();
+					uint64_t const id = P.second;
+					tempFileUseCount[id] += 1;
+					
+					libmaus::aio::NamedTemporaryFile<libmaus::aio::PosixFdOutputStream>::shared_ptr_type ptr = tempFileVector.at(id);
+					
+					return ptr;
+				}
+				
+				void putTempFile(uint64_t const id)
+				{
+					libmaus::parallel::ScopePosixSpinLock slock(tempFileLock);
+					tempFileHeap.push(std::pair<uint64_t,uint64_t>(tempFileUseCount[id],id));
+				}
+				
+				void setupTempFiles(uint64_t const numtempfiles)
+				{
+					for ( uint64_t i = 0; i < numtempfiles; ++i )
+						addTempFile();
+				}
+
 				libmaus::parallel::PosixSpinLock writePendingCountLock;
 				std::map<int64_t,uint64_t> writePendingCount;
 				libmaus::parallel::PosixSpinLock writeNextLock;				
@@ -462,6 +545,7 @@ namespace libmaus
 				std::vector<uint64_t> streamBytesWritten;
 				// lock for streamBytesWritten
 				libmaus::parallel::PosixSpinLock streamBytesWrittenLock;
+				std::map< int64_t, uint64_t> blockStreamIds;
 				std::vector<uint64_t> blockStarts;
 				std::vector<uint64_t> blockEnds;
 				libmaus::parallel::PosixSpinLock blockStartsLock;
@@ -521,13 +605,14 @@ namespace libmaus
 
 				virtual void fragReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC)
 				{
+					assert ( REC.get() );
 					readEndsFragContainerFreeList.put(REC);
 					unflushedFragReadEndsContainers -= 1;
 				}
 				
 				virtual void pairReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC)
 				{
-
+					assert ( REC.get() );
 					readEndsPairContainerFreeList.put(REC);
 					unflushedPairReadEndsContainers -= 1;
 				}
@@ -721,13 +806,6 @@ namespace libmaus
 					}
 				}
 				
-				std::string flushBlockFile()
-				{
-					out.flush();
-					PFOS.reset();
-					return blockfilename;
-				}
-				
 				BlockSortControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
 					std::istream & in,
@@ -736,9 +814,6 @@ namespace libmaus
 				)
 				: 
 					tempfileprefix(rtempfileprefix),
-					blockfilename(getBlockFileName()),
-					PFOS(new libmaus::aio::PosixFdOutputStream(blockfilename)),
-					out(*PFOS),
 					decodingFinished(false),
 					STP(rSTP), 
 					zstreambases(STP.getNumThreads()),
@@ -794,6 +869,9 @@ namespace libmaus
 					bgzfDeflateZStreamBaseFreeList(libmaus::lz::BgzfDeflateZStreamBaseAllocator(level)),
 					rewriteLargeBlockNext(0),
 					lastParseBlockCompressed(false),
+					tempFileCounter(0),
+					tempFileAllocator(tempfileprefix + "_algn_frag",&tempFileCounter),
+					tempFileFreeList(new temp_file_free_list_type(tempFileAllocator)),
 					writeNext(-1,0),
 					lastParseBlockWritten(false),
 					fragmentBufferFreeListPreSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */)),
@@ -824,6 +902,8 @@ namespace libmaus
 					STP.registerDispatcher(PRECFWPDid,&PRECFWPD);
 					STP.registerDispatcher(FREMWPDid,&FREMWPD);
 					STP.registerDispatcher(PREMWPDid,&PREMWPD);
+					
+					setupTempFiles(STP.getNumThreads());
 				}
 
 				void enqueReadPackage()
@@ -1258,14 +1338,12 @@ namespace libmaus
 				
 				}
 				
-
 				virtual void returnBgzfOutputBufferInterface(libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type & obuf)
 				{
 					bgzfDeflateOutputBufferFreeList.put(obuf);
 					checkSmallBlockCompressionPending();				
 				}
 
-				
 				virtual void bgzfOutputBlockWritten(uint64_t const streamid, int64_t const blockid, uint64_t const subid, uint64_t const n)
 				{
 					{
@@ -1282,9 +1360,10 @@ namespace libmaus
 							uint64_t const offset = streamBytesWritten[streamid];
 							
 							libmaus::parallel::ScopePosixSpinLock sblock(blockStartsLock);
+
 							while ( ! (static_cast<uint64_t>(blockid) < blockStarts.size()) )
 								blockStarts.push_back(0);
-							blockStarts[blockid] = offset;
+							blockStarts[blockid] = offset;							
 						}
 						if ( blockid >= 0 )
 						{
@@ -1310,6 +1389,19 @@ namespace libmaus
 						
 						if ( ! -- writePendingCount[blockid] )
 						{
+							{
+								// std::cerr << "putting back stream " << streamid << " for block " << blockid << std::endl;
+								{
+									libmaus::parallel::ScopePosixSpinLock sblock(blockStartsLock);
+									assert ( blockStreamIds.find(blockid) != blockStreamIds.end() );
+									assert ( blockStreamIds.find(blockid)->second == streamid );
+								
+								}
+								
+								// return temporary file
+								putTempFile(streamid);
+							}
+						
 							writeNext.first++;
 							writeNext.second = 0;
 							writePendingCount.erase(writePendingCount.find(blockid));
@@ -1326,9 +1418,11 @@ namespace libmaus
 								{
 									lastParseBlockWritten.set(true);
 									
+									#if 0
 									// add EOF
-									libmaus::lz::BgzfDeflate<std::ostream> defl(out);
+									libmaus::lz::BgzfDeflate<std::ostream> defl(outref);
 									defl.addEOFBlock();
+									#endif
 								}
 
 								if ( lastParseBlockWritten.get() )
@@ -1371,7 +1465,33 @@ namespace libmaus
 				{
 					{
 						libmaus::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
-						writePendingQueue.push(WritePendingObject(0 /* stream id */,&out,blockid,subid,obuf,flushinfo));
+						
+						libmaus::aio::NamedTemporaryFile<libmaus::aio::PosixFdOutputStream>::shared_ptr_type tmpptr;
+						
+						{
+							libmaus::parallel::ScopePosixSpinLock sblock(blockStartsLock);
+							if ( blockStreamIds.find(blockid) == blockStreamIds.end() )
+							{
+								tmpptr = getTempFile();
+								blockStreamIds[blockid] = tmpptr->id;
+							}
+							else
+							{
+								libmaus::parallel::ScopePosixSpinLock slock(tempFileLock);
+								tmpptr = tempFileVector[blockStreamIds.find(blockid)->second];
+							}
+						}
+						
+						#if 0
+						if ( subid == 0 )
+						{
+							std::cerr << "got stream id " << tmpptr->id << " for block " << blockid << std::endl;
+						}
+						#endif
+
+						writePendingQueue.push(
+							WritePendingObject(tmpptr->id /* stream id */,&(tmpptr->stream),blockid,subid,obuf,flushinfo)
+						);
 					}
 					
 					checkWritePendingQueue();
@@ -3795,6 +3915,9 @@ int main(int argc, char * argv[])
 		}
 		else
 		{
+			libmaus::timing::RealTimeClock rtc;
+			
+			rtc.start();
 			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
 			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
@@ -3806,12 +3929,15 @@ int main(int argc, char * argv[])
 			VC->checkEnqueReadPackage();
 			VC->waitDecodingFinished();
 			VC->flushReadEndsLists();
-			VC->flushBlockFile();
+			// VC->flushBlockFile();
 
 			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
 			
 			VC.reset();
 			
+			std::cerr << "blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+			
+			rtc.start();
 			uint64_t const inputblocksize = 1024*1024;
 			uint64_t const inputblocksperfile = 8;
 			uint64_t const mergebuffersize = 1024*1024;
@@ -3823,6 +3949,8 @@ int main(int argc, char * argv[])
 			GIC.addPending();			
 			GIC.waitMergingFinished();
 			std::cerr << "fini." << std::endl;
+
+			std::cerr << "blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 
 			// system("ls -lrt 1>&2");
 			STP.terminate();
