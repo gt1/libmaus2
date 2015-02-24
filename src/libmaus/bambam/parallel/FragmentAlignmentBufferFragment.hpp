@@ -96,6 +96,11 @@ namespace libmaus
 					pc += l;
 					f += 1;					
 				}
+				
+				void pullBack(size_t l)
+				{
+					pc -= l;
+				}
 
 				void push(uint8_t const * T, size_t l)
 				{
