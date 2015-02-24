@@ -44,6 +44,8 @@ namespace libmaus
 
 				std::vector<size_t> OSVO;
 				
+				bool final;
+				
 				static size_t multSize()
 				{
 					return
@@ -188,7 +190,7 @@ namespace libmaus
 				}
 				
 				FragmentAlignmentBuffer(size_t const numbuffers, uint64_t const rpointermult)
-				: id(0), subid(0), A(numbuffers), pointermult(rpointermult), OSVO(A.size()+1)
+				: id(0), subid(0), A(numbuffers), pointermult(rpointermult), OSVO(A.size()+1), final(false)
 				{
 					for ( size_t i = 0; i < numbuffers; ++i )
 					{
@@ -277,6 +279,10 @@ namespace libmaus
 				{
 					for ( size_t i = 0; i < size(); ++i )
 						A[i]->reset();
+
+					final = false;
+					id = 0;
+					subid = 0;
 				}
 
 				void getLinearOutputFragments(
