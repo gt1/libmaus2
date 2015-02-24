@@ -24,6 +24,8 @@
 #include <utility>
 #include <vector>
 #include <libmaus/parallel/LockedCounter.hpp>
+#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/parallel/LockedFreeList.hpp>
 
 namespace libmaus
 {

@@ -175,7 +175,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/CRC32C_Core.cpp \
 	libmaus/digest/CRC32C.cpp \
 	libmaus/digest/CRC32_Core.cpp \
-	libmaus/bambam/parallel/ValidationFragment.cpp
+	libmaus/bambam/parallel/ValidationFragment.cpp \
+	libmaus/bambam/parallel/GenericInputControlStreamInfo.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -623,7 +624,39 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp \
 	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/MemInputBlock.hpp
+	libmaus/bambam/parallel/MemInputBlock.hpp \
+	libmaus/bambam/parallel/GenericInputBamParseObject.hpp \
+	libmaus/bambam/parallel/GenericInputBamParseWorkPackageBlockParsedInterface.hpp \
+	libmaus/bambam/parallel/GenericInputBamParseWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputBamParseWorkPackage.hpp \
+	libmaus/bambam/parallel/GenericInputBamParseWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputBase.hpp \
+	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackage.hpp \
+	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface.hpp \
+	libmaus/bambam/parallel/GenericInputBlock.hpp \
+	libmaus/bambam/parallel/GenericInputControlMergeBlockFinishedInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlMergeHeapEntry.hpp \
+	libmaus/bambam/parallel/GenericInputControlMergeRequeue.hpp \
+	libmaus/bambam/parallel/GenericInputControlReadAddPendingInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlReadWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputControlReadWorkPackage.hpp \
+	libmaus/bambam/parallel/GenericInputControlReadWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlSetMergeStallSlotInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlStreamInfo.hpp \
+	libmaus/bambam/parallel/GenericInputControlSubBlockPendingHeapComparator.hpp \
+	libmaus/bambam/parallel/GenericInputControlSubBlockPending.hpp \
+	libmaus/bambam/parallel/GenericInputHeapComparator.hpp \
+	libmaus/bambam/parallel/GenericInputMergeDecompressedBlockReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputMergeWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputMergeWorkPackage.hpp \
+	libmaus/bambam/parallel/GenericInputMergeWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputMergeWorkRequest.hpp \
+	libmaus/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp \
+	libmaus/bambam/parallel/GenericInputSingleData.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -896,7 +929,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/SimpleHashMapNumberCast.hpp \
 	libmaus/util/SimpleHashSetInsDel.hpp \
 	libmaus/util/LineBuffer.hpp \
-	libmaus/util/UnsignedIntegerIndexIterator.hpp
+	libmaus/util/UnsignedIntegerIndexIterator.hpp \
+	libmaus/util/FiniteSizeHeap.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\
