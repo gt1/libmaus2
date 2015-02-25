@@ -668,8 +668,12 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp \
 	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp
-
+	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockWritePackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp
+	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitIO.hpp \

@@ -64,6 +64,10 @@
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp>
+#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp>
+#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp>
+#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp>
 
 #include <libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageDispatcher.hpp>
@@ -1222,7 +1226,7 @@ namespace libmaus
 						if ( ((readsParsed >> 20) != (readsParsedLastPrint >> 20)) || algn->final )
 						{
 							libmaus::parallel::ScopePosixSpinLock SPSL(STP.getGlobalLock());
-							std::cerr << readsParsed << std::endl;
+							std::cerr << "[V] " << readsParsed << std::endl;
 							readsParsedLastPrint = readsParsed;
 						}				
 					}
@@ -2054,137 +2058,9 @@ void mapperm(int argc, char * argv[])
 	}
 }
 
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGE_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGE_HPP
 
-namespace libmaus
-{
-	namespace bambam
-	{
-		namespace parallel
-		{
-			struct GenericInputControlBlockWritePackage : public libmaus::parallel::SimpleThreadWorkPackage
-			{
-				typedef GenericInputControlBlockWritePackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-				libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP;
-				std::ostream * out;
 
-				GenericInputControlBlockWritePackage() : libmaus::parallel::SimpleThreadWorkPackage(), GICCP(), out(0) {}
-				GenericInputControlBlockWritePackage(uint64_t const rpriority, uint64_t const rdispatcherid, libmaus::bambam::parallel::GenericInputControlCompressionPending rGICCP, std::ostream * rout)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), out(rout)
-				{
-				}
-				char const * getPackageName() const
-				{
-					return "GenericInputControlBlockWritePackage";
-				}                                                                                                                                                                                                                                                                                                  
-			};
-		}
-	}
-}
-#endif
 
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGERETURNINTERFACE_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGERETURNINTERFACE_HPP
-
-namespace libmaus
-{
-	namespace bambam
-	{
-		namespace parallel
-		{
-			struct GenericInputControlBlockWritePackageReturnInterface
-			{
-				virtual ~GenericInputControlBlockWritePackageReturnInterface() {}
-				virtual void genericInputControlBlockWritePackageReturn(GenericInputControlBlockWritePackage * package) = 0;
-			};
-		}
-	}
-}
-#endif
-
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEBLOCKWRITTENINTERFACE_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEBLOCKWRITTENINTERFACE_HPP
-
-namespace libmaus
-{
-	namespace bambam
-	{
-		namespace parallel
-		{
-			struct GenericInputControlBlockWritePackageBlockWrittenInterface
-			{
-				virtual ~GenericInputControlBlockWritePackageBlockWrittenInterface() {}
-				virtual void genericInputControlBlockWritePackageBlockWritten(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP) = 0;
-			};
-		}
-	}
-}
-#endif
-
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEDISPATCHER_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEDISPATCHER_HPP
-
-namespace libmaus
-{
-	namespace bambam
-	{
-		namespace parallel
-		{
-			struct GenericInputControlBlockWritePackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
-			{
-				typedef GenericInputControlBlockWritePackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-
-				GenericInputControlBlockWritePackageReturnInterface & packageReturnInterface;
-				GenericInputControlBlockWritePackageBlockWrittenInterface & blockWrittenInterface;
-				
-				GenericInputControlBlockWritePackageDispatcher(				
-					GenericInputControlBlockWritePackageReturnInterface & rpackageReturnInterface,
-					GenericInputControlBlockWritePackageBlockWrittenInterface & rblockWrittenInterface
-				) : packageReturnInterface(rpackageReturnInterface), blockWrittenInterface(rblockWrittenInterface) {}
-				
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
-				{
-					assert ( dynamic_cast<GenericInputControlBlockWritePackage *>(P) != 0 );
-					GenericInputControlBlockWritePackage * BP = dynamic_cast<GenericInputControlBlockWritePackage *>(P);
-					
-					libmaus::bambam::parallel::GenericInputControlCompressionPending & G = BP->GICCP;
-
-					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock = G.outblock;
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo = G.flushinfo;
-
-					char const * outp = reinterpret_cast<char const *>(outblock->outbuf.begin());
-					uint64_t n = 0;
-
-					assert ( flushinfo.blocks == 1 || flushinfo.blocks == 2 );
-						
-					if ( flushinfo.blocks == 1 )
-					{
-						/* write data to stream, one block */
-						n = flushinfo.block_a_c;
-					}
-					else
-					{
-						assert ( flushinfo.blocks == 2 );
-						/* write data to stream, two blocks */
-						n = flushinfo.block_a_c + flushinfo.block_b_c;
-					}
-
-					BP->out->write(outp, n);                                
-				
-					blockWrittenInterface.genericInputControlBlockWritePackageBlockWritten(BP->GICCP);
-					packageReturnInterface.genericInputControlBlockWritePackageReturn(BP);
-				}
-			};
-		}
-	}
-}
-#endif
 
 struct GenericInputControl : 
 	public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
@@ -3279,7 +3155,7 @@ int main(int argc, char * argv[])
 			
 			VC.reset();
 			
-			std::cerr << "blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+			std::cerr << "[V] blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 			
 			rtc.start();
 			uint64_t const inputblocksize = 1024*1024;
@@ -3293,7 +3169,7 @@ int main(int argc, char * argv[])
 				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
 			GIC.addPending();			
 			GIC.waitWritingFinished();
-			std::cerr << "blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+			std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 
 			STP.terminate();
 			STP.join();
