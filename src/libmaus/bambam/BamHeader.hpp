@@ -621,7 +621,6 @@ namespace libmaus
 				
 				encodeChromosomeVector(ostr,chromosomes);
 			}
-			
 
 			static void parseHeader(std::istream & in)
 			{
