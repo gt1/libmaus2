@@ -98,6 +98,12 @@ namespace libmaus
 				{
 					return BPDPBS.empty();
 				}
+				
+				libmaus::bambam::BamHeader::unique_ptr_type getHeader()
+				{
+					libmaus::bambam::BamHeader::unique_ptr_type ptr(new libmaus::bambam::BamHeader(BHPS));
+					return UNIQUE_PTR_MOVE(ptr);
+				}
 	
 				/**
 				 * parsed decompressed bam block into algnbuf
