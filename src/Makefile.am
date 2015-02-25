@@ -656,7 +656,19 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/GenericInputMergeWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/GenericInputMergeWorkRequest.hpp \
 	libmaus/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp \
-	libmaus/bambam/parallel/GenericInputSingleData.hpp
+	libmaus/bambam/parallel/GenericInputSingleData.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockCompressionFinishedInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackage.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp \
+	libmaus/bambam/parallel/GenericInputControlCompressionPendingHeapComparator.hpp \
+	libmaus/bambam/parallel/GenericInputControlGetCompressorInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlPutCompressorInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp \
+	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp \
+	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
