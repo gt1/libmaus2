@@ -440,7 +440,8 @@ namespace libmaus
 				void flushTempFiles()
 				{
 					for ( uint64_t i = 0; i < tempFileVector.size(); ++i )
-						tempFileVector[i]->stream.flush();
+						if ( tempFileVector[i] )
+							tempFileVector[i]->stream.flush();
 				}
 				
 				void addTempFile()
