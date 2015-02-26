@@ -185,10 +185,16 @@ namespace libmaus
 		{
 			template<typename _order_type>
 			struct BlockSortControl :
-				public InputBlockWorkPackageReturnInterface,
-				public InputBlockAddPendingInterface,
-				public DecompressBlockWorkPackageReturnInterface,
-				public InputBlockReturnInterface,
+				public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
+				public libmaus::bambam::parallel::GenericInputControlReadAddPendingInterface,
+				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackageReturnInterface,
+				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface,
+				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface,
+				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface,
+				// public InputBlockWorkPackageReturnInterface,
+				// public InputBlockAddPendingInterface,
+				// public DecompressBlockWorkPackageReturnInterface,
+				// public InputBlockReturnInterface,
 				public DecompressedBlockAddPendingInterface,
 				public BgzfInflateZStreamBaseReturnInterface,
 				public RequeReadInterface,
@@ -231,7 +237,16 @@ namespace libmaus
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				
+
+				libmaus::bambam::parallel::GenericInputControlStreamInfo const streaminfo;
+				libmaus::bambam::parallel::GenericInputSingleDataReadBase inputreadbase;
+
+				libmaus::parallel::LockedFreeList<
+					libmaus::lz::BgzfInflateZStreamBase,
+					libmaus::lz::BgzfInflateZStreamBaseAllocator,
+					libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+				> deccont;
+
 				static unsigned int getInputBlockCountShift()
 				{
 					return 8;
@@ -242,17 +257,178 @@ namespace libmaus
 					return 1ull << getInputBlockCountShift();
 				}
 
+				void genericInputControlReadWorkPackageReturn(libmaus::bambam::parallel::GenericInputControlReadWorkPackage * package)
+				{
+					genericInputReadWorkPackages.returnPackage(package);
+				}
+
+				void genericInputBgzfDecompressionWorkPackageReturn(libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage * package)
+				{
+					genericInputDecompressWorkPackages.returnPackage(package);
+				}
+
+				void checkDecompressionBlockPending(uint64_t const streamid)
+				{
+					assert ( streamid == 0 );
+					libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
+
+					libmaus::bambam::parallel::MemInputBlock::shared_ptr_type mib;
+					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db;
+					
+					while (
+						inputreadbase.decompressionpending.size() &&
+						inputreadbase.decompressionpending.top().block->meta.blockid == inputreadbase.decompressionpendingnext.first &&
+						inputreadbase.decompressionpending.top().subblockid == inputreadbase.decompressionpendingnext.second &&
+						(mib = inputreadbase.meminputblockfreelist.getIf()) &&
+						(db = inputreadbase.decompressedblockfreelist.getIf())
+					)
+					{
+						// input block id
+						uint64_t const blockid = inputreadbase.decompressionpending.top().block->meta.blockid;
+						
+						libmaus::bambam::parallel::GenericInputControlSubBlockPending pend = inputreadbase.decompressionpending.top();
+						inputreadbase.decompressionpending.pop();
+						// meta compressed block
+						pend.mib = mib;
+						// copy stream id
+						pend.mib->streamid = streamid;
+						// assign block id
+						pend.mib->blockid = inputreadbase.decompressedBlockIdAcc++;
+						// decompressed block
+						pend.db = db;
+						db = libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type();
+						mib = libmaus::bambam::parallel::MemInputBlock::shared_ptr_type();
+
+						libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage * package = genericInputDecompressWorkPackages.getPackage();
+						*package = libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage(0/*prio*/,GIBDWPDid,pend);
+						STP.enque(package);
+
+						inputreadbase.decompressionpendingnext.second += 1;					
+						if ( inputreadbase.decompressionpendingnext.second == inputreadbase.decompressiontotal[blockid] )
+						{
+							inputreadbase.decompressionpendingnext.first += 1;
+							inputreadbase.decompressionpendingnext.second = 0;
+						}
+					}
+
+					if ( db )
+						inputreadbase.decompressedblockfreelist.put(db);
+					if ( mib )
+						inputreadbase.meminputblockfreelist.put(mib);
+				}
+
+				void checkInputBlockPending(uint64_t const streamid)
+				{
+					assert ( streamid == 0 );
+					std::vector<libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type> readylist;
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
+
+						while (
+							inputreadbase.pending.size() &&
+							(
+								inputreadbase.pending.top()->meta.blockid == 
+								inputreadbase.nextblockid
+							)
+						)
+						{
+							libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block = inputreadbase.pending.top();
+							inputreadbase.pending.pop();
+							readylist.push_back(block);	
+							inputreadbase.decompressiontotal.push_back(block->meta.blocks.size());
+							inputreadbase.nextblockid += 1;		
+						}
+					}
+					
+					// enque decompression requests in queue
+					for ( std::vector<libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type>::size_type i = 0; i < readylist.size(); ++i )
+					{
+						// get block
+						libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block = readylist[i];
+
+						// mark sub blocks as pending
+						for ( uint64_t j = 0; j < block->meta.blocks.size(); ++j )
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
+							inputreadbase.decompressionpending.push(libmaus::bambam::parallel::GenericInputControlSubBlockPending(block,j));
+						}
+					}
+					
+					checkDecompressionBlockPending(streamid);
+				}
+
+				void genericInputControlReadAddPending(libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block)
+				{
+					uint64_t const streamid = block->meta.streamid;
+					assert ( streamid == 0 );
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
+						inputreadbase.pending.push(block);
+					}
+					
+					checkInputBlockPending(streamid);
+				}
+
+
+				void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr)
+				{
+					assert ( streamid == 0 );
+					inputreadbase.meminputblockfreelist.put(ptr);
+					checkDecompressionBlockPending(streamid);
+				}
+
+				// bgzf block decompressed
+				virtual void genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn(uint64_t streamid, libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type ptr)
+				{
+					assert ( streamid == 0 );
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
+						inputreadbase.decompressedBlocksAcc += 1;
+					}
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock slock(parsePendingLock);
+						parsePending.push(DecompressedPendingObject(ptr->blockid,ptr));
+
+						#if 1
+						if ( ptr->final )
+							std::cerr << "stream fully decompressed" << std::endl;			
+						#endif
+					}
+					
+					checkParsePendingList();
+				}
+
+				virtual void genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(
+					libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block, uint64_t /* subblockid */
+				)
+				{
+					uint64_t const streamid = block->meta.streamid;
+					assert ( streamid == 0 );
+
+					// check whether this block is completely decompressed now		
+					if ( block->meta.returnBlock() )
+					{
+						inputreadbase.blockFreeList.put(block);
+
+						bool const eof = inputreadbase.getEOF();
+					
+						// not yet eof? try to read on	
+						if ( ! eof )
+						{
+							libmaus::bambam::parallel::GenericInputControlReadWorkPackage * package = genericInputReadWorkPackages.getPackage();
+							*package = libmaus::bambam::parallel::GenericInputControlReadWorkPackage(
+								0 /* prio */, GICRPDid, &inputreadbase);
+							STP.enque(package);
+						}
+					}
+				}
+
 				std::string const tempfileprefix;
 				
-				#if 0
-				std::string getBlockFileName()
-				{
-					std::string const fn = tempfileprefix + ".algn";
-					libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-					return fn;
-				}
-				#endif
-
 				std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> getBlockInfo()
 				{
 					flushTempFiles();
@@ -292,10 +468,16 @@ namespace libmaus
 					libmaus::lz::BgzfInflateZStreamBaseTypeInfo
 				> zstreambases;
 
-				InputBlockWorkPackageDispatcher IBWPD;
-                                uint64_t const IBWPDid;
-                                DecompressBlocksWorkPackageDispatcher DBWPD;
-                                uint64_t const  DBWPDid;
+				uint64_t const GICRPDid;
+				libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher GICRPD;
+	
+				uint64_t const GIBDWPDid;
+				libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackageDispatcher GIBDWPD;
+
+				// InputBlockWorkPackageDispatcher IBWPD;
+                                // uint64_t const IBWPDid;
+                                // DecompressBlocksWorkPackageDispatcher DBWPD;
+                                // uint64_t const  DBWPDid;
 				ParseBlockWorkPackageDispatcher PBWPD;
 				uint64_t const PBWPDid;
 				ValidateBlockFragmentWorkPackageDispatcher VBFWPD;
@@ -323,6 +505,8 @@ namespace libmaus
 
 				ControlInputInfo controlInputInfo;
 
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReadWorkPackage> genericInputReadWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage> genericInputDecompressWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<InputBlockWorkPackage> readWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<DecompressBlockWorkPackage> decompressBlockWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<DecompressBlocksWorkPackage> decompressBlocksWorkPackages;
@@ -339,14 +523,17 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragReadEndsMergeWorkPackage> fragReadEndsMergeWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<PairReadEndsMergeWorkPackage> pairReadEndsMergeWorkPackages;
 
+
 				libmaus::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
 				
 				libmaus::parallel::PosixSpinLock decompressLock;
+				#if 0
 				libmaus::parallel::LockedFreeList<
 					DecompressedBlock,
 					DecompressedBlockAllocator,
 					DecompressedBlockTypeInfo
 				> decompressBlockFreeList;
+				#endif
 				
 				libmaus::parallel::LockedCounter bgzfin;
 				libmaus::parallel::LockedCounter bgzfde;
@@ -779,14 +966,19 @@ namespace libmaus
 					std::string const & rtempfileprefix
 				)
 				: 
+					streaminfo("-",false/*finite*/,0/*start*/,0/*end*/,true/*hasheader*/),
+					inputreadbase(streaminfo,0/*stream id*/,1024*1024/*blocksize*/,8/*numblocks*/,64/*complistsize*/),
+					deccont(rSTP.getNumThreads()),
 					tempfileprefix(rtempfileprefix),
 					decodingFinished(false),
 					STP(rSTP), 
 					zstreambases(STP.getNumThreads()),
-					IBWPD(*this,*this,*this),
-					IBWPDid(STP.getNextDispatcherId()),
-					DBWPD(*this,*this,*this,*this,*this),
-					DBWPDid(STP.getNextDispatcherId()),
+					GICRPDid(STP.getNextDispatcherId()), GICRPD(*this,*this),
+					GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont),
+					//IBWPD(*this,*this,*this),
+					//IBWPDid(STP.getNextDispatcherId()),
+					//DBWPD(*this,*this,*this,*this,*this),
+					//DBWPDid(STP.getNextDispatcherId()),
 					PBWPD(*this,*this,*this,*this,*this),
 					PBWPDid(STP.getNextDispatcherId()),
 					VBFWPD(*this,*this),
@@ -813,7 +1005,9 @@ namespace libmaus
 					PREMWPD(*this,*this,*this),
 					PREMWPDid(STP.getNextDispatcherId()),
 					controlInputInfo(in,0,getInputBlockCount()),
+					#if 0
 					decompressBlockFreeList(getInputBlockCount() * STP.getNumThreads() * 2),
+					#endif
 					bgzfin(0),
 					bgzfde(0),
 					decompressFinished(false),
@@ -854,8 +1048,10 @@ namespace libmaus
 					unmergeFragReadEndsRegions(0),
 					unmergePairReadEndsRegions(0)
 				{
-					STP.registerDispatcher(IBWPDid,&IBWPD);
-					STP.registerDispatcher(DBWPDid,&DBWPD);
+					//STP.registerDispatcher(IBWPDid,&IBWPD);
+					//STP.registerDispatcher(DBWPDid,&DBWPD);
+					STP.registerDispatcher(GICRPDid,&GICRPD);
+					STP.registerDispatcher(GIBDWPDid,&GIBDWPD);
 					STP.registerDispatcher(PBWPDid,&PBWPD);
 					STP.registerDispatcher(VBFWPDid,&VBFWPD);
 					STP.registerDispatcher(BLMCWPDid,&BLMCWPD);
@@ -874,8 +1070,14 @@ namespace libmaus
 
 				void enqueReadPackage()
 				{
+					#if 0
 					InputBlockWorkPackage * package = readWorkPackages.getPackage();
 					*package = InputBlockWorkPackage(10 /* priority */, &controlInputInfo,IBWPDid);
+					STP.enque(package);
+					#endif
+
+					libmaus::bambam::parallel::GenericInputControlReadWorkPackage * package = genericInputReadWorkPackages.getPackage();
+					*package = libmaus::bambam::parallel::GenericInputControlReadWorkPackage(0 /* prio */, GICRPDid, &inputreadbase);
 					STP.enque(package);
 				}
 
@@ -1026,6 +1228,7 @@ namespace libmaus
 					return 4;
 				}
 
+				#if 0
 				void checkEnqueDecompress()
 				{
 					std::vector<ControlInputInfo::input_block_type::shared_ptr_type> ginblocks;
@@ -1079,7 +1282,9 @@ namespace libmaus
 						}
 					}
 				}
+				#endif
 
+				#if 0
 				void putInputBlockAddPending(
 					std::deque<ControlInputInfo::input_block_type::shared_ptr_type>::iterator ita,
 					std::deque<ControlInputInfo::input_block_type::shared_ptr_type>::iterator ite)
@@ -1095,13 +1300,16 @@ namespace libmaus
 
 					checkEnqueDecompress();
 				}
+				#endif
 
+				#if 0
 				void putInputBlockAddPending(ControlInputInfo::input_block_type::shared_ptr_type package) 
 				{
 					bgzfin.increment();
 					decompressPendingQueue.push_back(package);
 					checkEnqueDecompress();
 				}
+				#endif
 
 				void checkParsePendingList()
 				{
@@ -1190,8 +1398,10 @@ namespace libmaus
 
 				void putDecompressedBlockReturn(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block)
 				{
-					decompressBlockFreeList.put(block);
-					checkEnqueDecompress();				
+					// XYZ
+					inputreadbase.decompressedblockfreelist.put(block);
+					// checkEnqueDecompress();				
+					checkDecompressionBlockPending(0 /*stream id */);
 
 					{
 					libmaus::parallel::ScopePosixSpinLock slock(nextDecompressedBlockToBeParsedLock);
@@ -2102,6 +2312,12 @@ struct GenericInputControl :
 	
 	libmaus::autoarray::AutoArray<libmaus::bambam::parallel::GenericInputSingleData::unique_ptr_type> data;
 
+	libmaus::parallel::LockedFreeList<
+		libmaus::lz::BgzfInflateZStreamBase,
+		libmaus::lz::BgzfInflateZStreamBaseAllocator,
+		libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+	> deccont;
+
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReadWorkPackage> readWorkPackages;
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage> decompressWorkPackages;
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputBamParseWorkPackage> parseWorkPackages;
@@ -2110,11 +2326,6 @@ struct GenericInputControl :
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockCompressionWorkPackage> compressWorkPackages;
 	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockWritePackage> writeWorkPackages;
 
-	libmaus::parallel::LockedFreeList<
-		libmaus::lz::BgzfInflateZStreamBase,
-		libmaus::lz::BgzfInflateZStreamBaseAllocator,
-		libmaus::lz::BgzfInflateZStreamBaseTypeInfo
-	> deccont;
 
 	uint64_t const GICRPDid;
 	libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher GICRPD;
@@ -2271,7 +2482,8 @@ struct GenericInputControl :
 	  out(rout),
 	  sheader(rsheader),
 	  BV(rBV),
-	  data(in.size()), deccont(STP.getNumThreads()), GICRPDid(STP.getNextDispatcherId()), GICRPD(*this,*this),
+	  data(in.size()), deccont(STP.getNumThreads()), 
+	  GICRPDid(STP.getNextDispatcherId()), GICRPD(*this,*this),
 	  GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont),
 	  GIBPWPDid(STP.getNextDispatcherId()), GIBPWPD(*this,*this),
 	  GIMWPDid(STP.getNextDispatcherId()), GIMWPD(*this,*this,*this,*this,*this),
