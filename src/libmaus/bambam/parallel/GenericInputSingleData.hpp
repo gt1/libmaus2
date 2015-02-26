@@ -122,6 +122,34 @@ namespace libmaus
 				uint64_t volatile decompressedBlocksAcc;
 
 				GenericInputSingleDataReadBase(
+					std::istream & rin,
+					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
+					uint64_t const rstreamid,
+					uint64_t const rblocksize, 
+					unsigned int const numblocks,
+					unsigned int const complistsize
+				)
+				:
+				  streaminfo(rstreaminfo),
+				  Pin(),
+				  in(rin), 
+				  streamid(rstreamid), blockid(0), blocksize(rblocksize), 
+				  blockFreeList(numblocks,libmaus::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
+				  finite(streaminfo.finite),
+				  dataleft(finite ? (streaminfo.end-streaminfo.start) : 0),
+				  eof(false),
+				  stallArray(0),
+				  stallArraySize(0),
+				  nextblockid(0),
+				  meminputblockfreelist(complistsize),
+				  decompressedblockfreelist(complistsize),
+				  decompressedBlockIdAcc(0),
+				  decompressedBlocksAcc(0)
+				{
+				
+				}
+
+				GenericInputSingleDataReadBase(
 					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
 					uint64_t const rstreamid,
 					uint64_t const rblocksize, 
