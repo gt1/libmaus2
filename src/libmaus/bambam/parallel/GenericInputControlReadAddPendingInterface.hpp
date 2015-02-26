@@ -30,7 +30,7 @@ namespace libmaus
 			struct GenericInputControlReadAddPendingInterface
 			{
 				virtual ~GenericInputControlReadAddPendingInterface() {}
-				virtual void genericInputControlReadAddPending(GenericInputBase::block_type::shared_ptr_type block) = 0;
+				virtual void genericInputControlReadAddPending(GenericInputBase::generic_input_shared_block_ptr_type block) = 0;
 			};
 		}
 	}

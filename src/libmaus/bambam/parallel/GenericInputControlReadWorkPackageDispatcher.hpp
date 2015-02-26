@@ -53,13 +53,13 @@ namespace libmaus
 					GenericInputControlReadWorkPackage * BP = dynamic_cast<GenericInputControlReadWorkPackage *>(P);
 					
 					GenericInputSingleData & data = *(BP->data);
-					std::vector<GenericInputBase::block_type::shared_ptr_type> fullBlocks;
+					std::vector<GenericInputBase::generic_input_shared_block_ptr_type> fullBlocks;
 					
 					if ( data.inlock.trylock() )
 					{
 						libmaus::parallel::ScopePosixSpinLock slock(data.inlock,true /* pre locked */);
 						
-						GenericInputBase::block_type::shared_ptr_type sblock;
+						GenericInputBase::generic_input_shared_block_ptr_type sblock;
 			
 						while ( 
 							((!data.finite) || data.dataleft) 

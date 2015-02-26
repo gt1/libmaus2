@@ -78,7 +78,7 @@ namespace libmaus
 			
 				public:
 				// stall array, protected by inlock
-				GenericInputBase::stall_array_type stallArray;
+				GenericInputBase::generic_input_stall_array_type stallArray;
 				// number of bytes in stall array, protected by inlock
 				uint64_t volatile stallArraySize;
 			
@@ -89,8 +89,8 @@ namespace libmaus
 				uint64_t volatile nextblockid;
 				// pending queue, protected by lock
 				std::priority_queue<
-					GenericInputBase::shared_block_ptr_type,
-					std::vector<GenericInputBase::shared_block_ptr_type>,
+					GenericInputBase::generic_input_shared_block_ptr_type,
+					std::vector<GenericInputBase::generic_input_shared_block_ptr_type>,
 					GenericInputHeapComparator > pending;
 					
 				// decompression pending queue, protected by lock

@@ -78,7 +78,7 @@ namespace libmaus
 			
 					GenericInputControlSubBlockPending & data = BP->data;
 					
-					GenericInputBase::block_type::shared_ptr_type block = data.block;
+					GenericInputBase::generic_input_shared_block_ptr_type block = data.block;
 					uint64_t const subblockid = data.subblockid;
 			
 					// parse header data

@@ -38,15 +38,15 @@ namespace libmaus
 				// meta data type for block reading
 				typedef libmaus::bambam::parallel::GenericInputBlockSubBlockInfo meta_type;
 				// block type
-				typedef libmaus::bambam::parallel::GenericInputBlock<meta_type> block_type;
+				typedef libmaus::bambam::parallel::GenericInputBlock<meta_type> generic_input_block_type;
 				// pointer to block type
-				typedef block_type::unique_ptr_type block_ptr_type;
+				typedef generic_input_block_type::unique_ptr_type generic_input_block_ptr_type;
 				// shared pointer to block type
-				typedef block_type::shared_ptr_type shared_block_ptr_type;
+				typedef generic_input_block_type::shared_ptr_type generic_input_shared_block_ptr_type;
 				
 				// free list type
 				typedef libmaus::parallel::LockedFreeList<
-					block_type,
+					generic_input_block_type,
 					libmaus::bambam::parallel::GenericInputBlockAllocator<meta_type>,
 					libmaus::bambam::parallel::GenericInputBlockTypeInfo<meta_type>
 				> generic_input_block_free_list_type;
@@ -54,7 +54,7 @@ namespace libmaus
 				typedef generic_input_block_free_list_type::unique_ptr_type generic_input_block_free_list_pointer_type;
 			
 				// stall array type
-				typedef libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> stall_array_type;
+				typedef libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> generic_input_stall_array_type;
 			};
 		}
 	}

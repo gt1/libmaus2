@@ -2952,7 +2952,7 @@ struct GenericInputControl :
 	}
 
 	virtual void genericInputBgzfDecompressionWorkSubBlockDecompressionFinished(
-		libmaus::bambam::parallel::GenericInputBase::block_type::shared_ptr_type block, uint64_t /* subblockid */
+		libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block, uint64_t /* subblockid */
 	)
 	{
 		uint64_t const streamid = block->meta.streamid;
@@ -3025,7 +3025,7 @@ struct GenericInputControl :
 	
 	void checkInputBlockPending(uint64_t const streamid)
 	{
-		std::vector<libmaus::bambam::parallel::GenericInputBase::block_type::shared_ptr_type> readylist;
+		std::vector<libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type> readylist;
 		
 		{
 			libmaus::parallel::ScopePosixSpinLock slock(data[streamid]->lock);
@@ -3038,7 +3038,7 @@ struct GenericInputControl :
 				)
 			)
 			{
-				libmaus::bambam::parallel::GenericInputBase::block_type::shared_ptr_type block = data[streamid]->pending.top();
+				libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block = data[streamid]->pending.top();
 				data[streamid]->pending.pop();
 				readylist.push_back(block);	
 				data[streamid]->decompressiontotal.push_back(block->meta.blocks.size());
@@ -3047,10 +3047,10 @@ struct GenericInputControl :
 		}
 		
 		// enque decompression requests in queue
-		for ( std::vector<libmaus::bambam::parallel::GenericInputBase::block_type::shared_ptr_type>::size_type i = 0; i < readylist.size(); ++i )
+		for ( std::vector<libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type>::size_type i = 0; i < readylist.size(); ++i )
 		{
 			// get block
-			libmaus::bambam::parallel::GenericInputBase::block_type::shared_ptr_type block = readylist[i];
+			libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block = readylist[i];
 
 			// mark sub blocks as pending
 			for ( uint64_t j = 0; j < block->meta.blocks.size(); ++j )
@@ -3063,7 +3063,7 @@ struct GenericInputControl :
 		checkDecompressionBlockPending(streamid);
 	}
 
-	void genericInputControlReadAddPending(libmaus::bambam::parallel::GenericInputBase::block_type::shared_ptr_type block)
+	void genericInputControlReadAddPending(libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block)
 	{
 		uint64_t const streamid = block->meta.streamid;
 		

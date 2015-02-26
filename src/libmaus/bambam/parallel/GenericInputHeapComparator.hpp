@@ -29,7 +29,7 @@ namespace libmaus
 		{
 			struct GenericInputHeapComparator
 			{
-				bool operator()(GenericInputBase::shared_block_ptr_type const & A, GenericInputBase::shared_block_ptr_type const & B) const
+				bool operator()(GenericInputBase::generic_input_shared_block_ptr_type const & A, GenericInputBase::generic_input_shared_block_ptr_type const & B) const
 				{
 					assert ( A->meta.streamid == B->meta.streamid );
 					return A->meta.blockid > B->meta.blockid;
