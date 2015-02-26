@@ -34,10 +34,10 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				GenericInputSingleData * data;
+				GenericInputSingleDataReadBase * data;
 			
 				GenericInputControlReadWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0) {}
-				GenericInputControlReadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputSingleData * rdata)
+				GenericInputControlReadWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputSingleDataReadBase * rdata)
 				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
 				

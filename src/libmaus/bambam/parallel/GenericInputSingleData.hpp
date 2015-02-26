@@ -35,9 +35,9 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct GenericInputSingleData
+			struct GenericInputSingleDataReadBase
 			{
-				typedef GenericInputSingleData this_type;
+				typedef GenericInputSingleDataReadBase this_type;
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
@@ -103,7 +103,7 @@ namespace libmaus
 				std::pair<uint64_t,uint64_t> decompressionpendingnext;
 				// total number of sub-blocks to be decompressed for each block
 				std::vector<uint64_t> decompressiontotal;
-			
+
 				// free list for compressed data meta blocks
 				libmaus::parallel::LockedFreeList<
 					libmaus::bambam::parallel::MemInputBlock,
@@ -117,25 +117,11 @@ namespace libmaus
 					libmaus::bambam::parallel::DecompressedBlockAllocator,
 					libmaus::bambam::parallel::DecompressedBlockTypeInfo
 				> decompressedblockfreelist;
-				
+
 				uint64_t volatile decompressedBlockIdAcc;
 				uint64_t volatile decompressedBlocksAcc;
-				
-				uint64_t volatile parsependingnext;
-				std::priority_queue<
-					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type,
-					std::vector<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type>,
-					DecompressedBlockHeapComparator> parsepending;
-					
-				GenericInputSingleDataBamParseInfo parseInfo;
-				
-				std::deque<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type> processQueue;
-				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type processActive;
-				bool volatile processMissing;
-				bool volatile processFirst;
-				libmaus::parallel::PosixSpinLock processLock;
-			
-				GenericInputSingleData(
+
+				GenericInputSingleDataReadBase(
 					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
 					uint64_t const rstreamid,
 					uint64_t const rblocksize, 
@@ -157,19 +143,11 @@ namespace libmaus
 				  meminputblockfreelist(complistsize),
 				  decompressedblockfreelist(complistsize),
 				  decompressedBlockIdAcc(0),
-				  decompressedBlocksAcc(0),
-				  parsependingnext(0),
-				  parsepending(),
-				  parseInfo(!streaminfo.hasheader),
-				  processQueue(),
-				  processActive(),
-				  processMissing(true),
-				  processFirst(true),
-				  processLock()
+				  decompressedBlocksAcc(0)
 				{
 				
 				}
-			
+
 				bool getEOF()
 				{
 					libmaus::parallel::ScopePosixSpinLock slock(eoflock);
@@ -195,6 +173,48 @@ namespace libmaus
 				void incrementBlockId()
 				{
 					blockid++;
+				}
+			};
+		
+			struct GenericInputSingleData : public GenericInputSingleDataReadBase
+			{
+				typedef GenericInputSingleData this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+				
+				uint64_t volatile parsependingnext;
+				std::priority_queue<
+					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type,
+					std::vector<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type>,
+					DecompressedBlockHeapComparator> parsepending;
+					
+				GenericInputSingleDataBamParseInfo parseInfo;
+				
+				std::deque<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type> processQueue;
+				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type processActive;
+				bool volatile processMissing;
+				bool volatile processFirst;
+				libmaus::parallel::PosixSpinLock processLock;
+			
+				GenericInputSingleData(
+					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
+					uint64_t const rstreamid,
+					uint64_t const rblocksize, 
+					unsigned int const numblocks,
+					unsigned int const complistsize
+				)
+				: GenericInputSingleDataReadBase(rstreaminfo,rstreamid,rblocksize,numblocks,complistsize),
+				  parsependingnext(0),
+				  parsepending(),
+				  parseInfo(!streaminfo.hasheader),
+				  processQueue(),
+				  processActive(),
+				  processMissing(true),
+				  processFirst(true),
+				  processLock()
+				{
+				
 				}
 			};
 		}

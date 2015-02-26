@@ -52,7 +52,7 @@ namespace libmaus
 					assert ( dynamic_cast<GenericInputControlReadWorkPackage *>(P) != 0 );
 					GenericInputControlReadWorkPackage * BP = dynamic_cast<GenericInputControlReadWorkPackage *>(P);
 					
-					GenericInputSingleData & data = *(BP->data);
+					GenericInputSingleDataReadBase & data = *(BP->data);
 					std::vector<GenericInputBase::generic_input_shared_block_ptr_type> fullBlocks;
 					
 					if ( data.inlock.trylock() )
