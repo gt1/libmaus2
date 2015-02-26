@@ -672,7 +672,11 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/GenericInputControlBlockWritePackageDispatcher.hpp \
 	libmaus/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp \
 	libmaus/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp
+	libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp \
+	libmaus/bambam/parallel/GenericInputBlockSubBlockInfo.hpp \
+	libmaus/bambam/parallel/GenericInputBlockFillResult.hpp \
+	libmaus/bambam/parallel/GenericInputBlockTypeInfo.hpp \
+	libmaus/bambam/parallel/GenericInputBlockAllocator.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

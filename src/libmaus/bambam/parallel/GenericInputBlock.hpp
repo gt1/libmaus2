@@ -19,6 +19,8 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCK_HPP
 
+#include <libmaus/bambam/parallel/GenericInputBlockFillResult.hpp>
+#include <libmaus/bambam/parallel/GenericInputBlockSubBlockInfo.hpp>
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 #include <utility>
@@ -33,55 +35,6 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct GenericInputBlockSubBlockInfo
-			{
-				typedef GenericInputBlockSubBlockInfo this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-				
-				std::vector< std::pair<uint8_t *,uint8_t *> > blocks;
-				libmaus::parallel::LockedCounter returnedBlocks;
-				uint64_t streamid;
-				uint64_t blockid;
-				bool eof;
-				
-				GenericInputBlockSubBlockInfo() : returnedBlocks(0), streamid(0), blockid(0), eof(false)
-				{
-				
-				}
-
-				void addBlock(std::pair<uint8_t *,uint8_t *> const & P)
-				{
-					blocks.push_back(P);
-				}
-				
-				bool returnBlock()
-				{
-					return returnedBlocks.increment() == blocks.size();
-				}
-
-				void reset()
-				{
-					blocks.resize(0);
-					returnedBlocks -= static_cast<uint64_t>(returnedBlocks);
-				}
-			};
-
-			struct GenericInputBlockFillResult
-			{
-				typedef GenericInputBlockFillResult this_type;
-				
-				bool empty;
-				bool eof;
-				uint64_t gcount;
-				
-				GenericInputBlockFillResult(bool const rempty = true, bool const reof = true, uint64_t const rgcount = 0)
-				: empty(rempty), eof(reof), gcount(rgcount)
-				{
-
-				}
-			};
-					
 			template<typename _meta_info_type>
 			struct GenericInputBlock
 			{
@@ -208,47 +161,6 @@ namespace libmaus
 						(stream.gcount() == 0) || (stream.peek() == std::ios::traits_type::eof())/* eof */, 
 						stream.gcount()
 					);
-				}
-			};
-
-			template<typename _meta_info_type>
-			struct GenericInputBlockAllocator
-			{
-				typedef _meta_info_type meta_info_type;
-				typedef GenericInputBlockAllocator<meta_info_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-				uint64_t blocksize;
-				
-				GenericInputBlockAllocator(uint64_t rblocksize = 0) : blocksize(rblocksize) {}
-				
-				typename GenericInputBlock<meta_info_type>::shared_ptr_type operator()()
-				{
-					typename GenericInputBlock<meta_info_type>::shared_ptr_type ptr(
-						new GenericInputBlock<meta_info_type>(blocksize)
-					);
-					return ptr;
-				}
-			};
-
-			template<typename _meta_data_type>
-			struct GenericInputBlockTypeInfo
-			{
-				typedef _meta_data_type meta_data_type;
-				typedef GenericInputBlock<meta_data_type> element_type;
-				typedef typename element_type::shared_ptr_type pointer_type;			
-				
-				static pointer_type deallocate(pointer_type /*p*/)
-				{
-					pointer_type ptr = getNullPointer();
-					return ptr;
-				}
-				
-				static pointer_type getNullPointer()
-				{
-					pointer_type ptr;
-					return ptr;
 				}
 			};
 		}

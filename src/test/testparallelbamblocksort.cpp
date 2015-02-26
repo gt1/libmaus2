@@ -68,6 +68,8 @@
 #include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp>
+#include <libmaus/bambam/parallel/GenericInputBlockTypeInfo.hpp>
+#include <libmaus/bambam/parallel/GenericInputBlockAllocator.hpp>
 
 #include <libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageDispatcher.hpp>

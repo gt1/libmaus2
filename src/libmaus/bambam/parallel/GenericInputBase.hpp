@@ -20,6 +20,8 @@
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBASE_HPP
 
 #include <libmaus/bambam/parallel/GenericInputBlock.hpp>
+#include <libmaus/bambam/parallel/GenericInputBlockAllocator.hpp>
+#include <libmaus/bambam/parallel/GenericInputBlockTypeInfo.hpp>
 
 namespace libmaus
 {
