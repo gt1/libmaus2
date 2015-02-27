@@ -116,8 +116,8 @@ namespace libmaus
 			struct MemInputBlockAllocator
 			{
 				typedef MemInputBlockAllocator this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				MemInputBlockAllocator() {}
 				
@@ -133,7 +133,7 @@ namespace libmaus
 			struct MemInputBlockTypeInfo
 			{
 				typedef MemInputBlock element_type;
-				typedef typename element_type::shared_ptr_type pointer_type;			
+				typedef element_type::shared_ptr_type pointer_type;			
 				
 				static pointer_type deallocate(pointer_type /*p*/)
 				{

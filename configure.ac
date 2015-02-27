@@ -5,7 +5,7 @@ AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
 AC_PROG_LIBTOOL
 
-AM_INIT_AUTOMAKE([std-options subdir-objects])
+AM_INIT_AUTOMAKE([std-options subdir-objects tar-pax])
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 

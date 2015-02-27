@@ -350,7 +350,9 @@ libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmau
 	libmaus/lz/BgzfDeflateOutputBufferBaseTypeInfo.hpp \
 	libmaus/lz/BgzfDeflateOutputBufferBaseAllocator.hpp \
 	libmaus/lz/BgzfDeflateZStreamBaseAllocator.hpp \
-	libmaus/lz/BgzfDeflateZStreamBaseTypeInfo.hpp
+	libmaus/lz/BgzfDeflateZStreamBaseTypeInfo.hpp \
+	libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp \
+	libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp
 
 libmausbambam_includedir=$(includedir)/libmaus/bambam/
 libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
@@ -676,7 +678,14 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/GenericInputBlockSubBlockInfo.hpp \
 	libmaus/bambam/parallel/GenericInputBlockFillResult.hpp \
 	libmaus/bambam/parallel/GenericInputBlockTypeInfo.hpp \
-	libmaus/bambam/parallel/GenericInputBlockAllocator.hpp
+	libmaus/bambam/parallel/GenericInputBlockAllocator.hpp \
+	libmaus/bambam/parallel/DecompressedBlockHeapComparator.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackage.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1081,7 +1090,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/NumCpus.hpp \
 	libmaus/parallel/LockedFreeList.hpp \
 	libmaus/parallel/LockedHeap.hpp \
-	libmaus/parallel/LockedCounter.hpp
+	libmaus/parallel/LockedCounter.hpp \
+	libmaus/parallel/LockedGrowingFreeList.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\

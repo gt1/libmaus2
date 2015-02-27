@@ -36,7 +36,7 @@ namespace libmaus
 			
 				GenericInputControlSubBlockPending data;
 			
-				GenericInputBgzfDecompressionWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0) {}
+				GenericInputBgzfDecompressionWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data() {}
 				GenericInputBgzfDecompressionWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputControlSubBlockPending rdata)
 				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{

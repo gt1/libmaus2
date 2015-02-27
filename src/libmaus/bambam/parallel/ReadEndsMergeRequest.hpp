@@ -37,7 +37,7 @@ namespace libmaus
 				std::vector< std::pair<uint64_t,uint64_t> > SMI;
 				
 				ReadEndsMergeRequest()
-				: dupbitvec(0), MI(0), SMI(0)
+				: dupbitvec(0), MI(), SMI()
 				{
 				}
 				
