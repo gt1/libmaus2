@@ -47,8 +47,7 @@ namespace libmaus
 			
 			libmaus::parallel::SynchronousCounter<uint64_t> nextDispatcherId;
 			
-			uint64_t nextpackageid;
-			libmaus::parallel::PosixSpinLock nextpackageidlock;
+			libmaus::parallel::SynchronousCounter<uint64_t> nextpackageid;
 			bool volatile panicflag;
 			libmaus::parallel::PosixSpinLock panicflaglock;
 			libmaus::exception::LibMausException::unique_ptr_type lme;
@@ -205,7 +204,6 @@ namespace libmaus
 						
 			void enque(SimpleThreadWorkPackage * P)
 			{
-				libmaus::parallel::ScopePosixSpinLock lock(nextpackageidlock);
 				P->packageid = nextpackageid++;
 				Q.enque(P);
 			}
