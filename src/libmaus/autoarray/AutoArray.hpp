@@ -69,9 +69,9 @@ namespace libmaus
 {
 	namespace autoarray
 	{
-		extern uint64_t AutoArray_memusage;
-		extern uint64_t AutoArray_peakmemusage;
-		extern uint64_t AutoArray_maxmem;
+		extern uint64_t volatile AutoArray_memusage;
+		extern uint64_t volatile AutoArray_peakmemusage;
+		extern uint64_t volatile AutoArray_maxmem;
 		#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 		extern ::libmaus::parallel::PosixSpinLock AutoArray_lock;
 		#elif defined(_OPENMP)
@@ -244,13 +244,33 @@ namespace libmaus
 			 **/
 			static void increaseTotalAllocation(uint64_t n)
 			{
-				#if defined(_OPENMP)
+				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				
+				uint64_t const newmemusage = __sync_add_and_fetch(&AutoArray_memusage, n * sizeof(N));
+				
+				if ( newmemusage > AutoArray_maxmem )
+				{
+					__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
+
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes.";
+					se.finish();
+					throw se;
+				
+				}
+				
+				uint64_t peak;
+				while ( newmemusage > (peak=AutoArray_peakmemusage) )
+					__sync_val_compare_and_swap(&AutoArray_peakmemusage,peak,newmemusage);
+				#else
+			
+				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.lock();
 				#endif
 				
 				if ( AutoArray_memusage + n * sizeof(N) > AutoArray_maxmem )
 				{
-					#if defined(_OPENMP)
+					#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 					AutoArray_lock.unlock();
 					#endif	
 					
@@ -263,9 +283,11 @@ namespace libmaus
 				AutoArray_memusage += n * sizeof(N);
 				AutoArray_peakmemusage = std::max(AutoArray_peakmemusage, AutoArray_memusage);
 				
-				#if defined(_OPENMP)
+				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.unlock();
 				#endif
+				
+				#endif // LIBMAUS_HAVE_SYNC_OPS
 			}
 			/**
 			 * decrease total AutoArray allocation counter by n elements of type N
@@ -273,14 +295,22 @@ namespace libmaus
 			 **/
 			static void decreaseTotalAllocation(uint64_t n)
 			{
-				#if defined(_OPENMP)
+				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+
+				__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
+				
+				#else
+				
+				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.lock();
 				#endif
 				
 				AutoArray_memusage -= n * sizeof(N);
 				
-				#if defined(_OPENMP)
+				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.unlock();
+				#endif
+				
 				#endif
 			}
 

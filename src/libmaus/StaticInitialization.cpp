@@ -59,9 +59,9 @@ static uint64_t getMaxMem()
       }      
 }
 
-uint64_t libmaus::autoarray::AutoArray_memusage = 0;
-uint64_t libmaus::autoarray::AutoArray_peakmemusage = 0;
-uint64_t libmaus::autoarray::AutoArray_maxmem = getMaxMem();
+uint64_t volatile libmaus::autoarray::AutoArray_memusage = 0;
+uint64_t volatile libmaus::autoarray::AutoArray_peakmemusage = 0;
+uint64_t volatile libmaus::autoarray::AutoArray_maxmem = getMaxMem();
 
 #include <libmaus/rank/CodeBase.hpp>
 
