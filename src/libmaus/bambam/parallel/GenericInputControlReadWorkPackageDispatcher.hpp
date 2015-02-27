@@ -37,12 +37,21 @@ namespace libmaus
 				
 				GenericInputControlReadWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputControlReadAddPendingInterface & addPendingInterface;
+				
+				enum parser_type_enum 
+				{
+					parse_bam = 0,
+					parse_sam = 1
+				};
+				
+				parser_type_enum const parser_type;
 			
 				GenericInputControlReadWorkPackageDispatcher(
 					GenericInputControlReadWorkPackageReturnInterface & rpackageReturnInterface,
-					GenericInputControlReadAddPendingInterface & raddPendingInterface
+					GenericInputControlReadAddPendingInterface & raddPendingInterface,
+					parser_type_enum const rparser_type = parse_bam
 				)
-				: packageReturnInterface(rpackageReturnInterface), addPendingInterface(raddPendingInterface)
+				: packageReturnInterface(rpackageReturnInterface), addPendingInterface(raddPendingInterface), parser_type(rparser_type)
 				{
 				
 				}
@@ -112,14 +121,58 @@ namespace libmaus
 							sblock->meta.eof = P.eof;
 							
 							// parse bgzf block headers to determine how many full blocks we have				
-							int64_t bs = -1;
 							libmaus::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
 							uint64_t f = 0;
-							while ( (bs=libmaus::lz::BgzfInflateHeaderBase::getBlockSize(sblock->pc,sblock->pe)) >= 0 )
+
+							switch ( parser_type )
 							{
-								meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pc+bs));
-								sblock->pc += bs;
-								f += 1;
+								case parse_bam:
+								{
+									int64_t bs = -1;
+									while ( (bs=libmaus::lz::BgzfInflateHeaderBase::getBlockSize(sblock->pc,sblock->pe)) >= 0 )
+									{
+										meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pc+bs));
+										sblock->pc += bs;
+										f += 1;
+									}
+									break;
+								}
+								case parse_sam:
+								{	
+									uint8_t * const pc = sblock->pc;
+									uint8_t * pe = sblock->pe;
+									bool foundnl = false;
+									
+									while ( pe != pc )
+									{
+										uint8_t const c = *(--pe);
+										
+										if ( c == '\n' )
+										{
+											foundnl = true;
+											break;
+										}
+									}
+									
+									if ( foundnl )
+									{
+										assert ( *pe == '\n' );
+										pe += 1;
+										ptrdiff_t const bs = pe-pc;
+										meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pc+bs));
+										sblock->pc += bs;
+										f += 1;
+									}
+									
+									break;
+								}
+								default:
+								{
+									libmaus::exception::LibMausException lme;
+									lme.getStream() << "GenericInputControlReadWorkPackageDispatcher: unknown parsing type" << std::endl;
+									lme.finish();
+									throw lme;
+								}
 							}
 			
 							#if 0

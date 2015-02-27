@@ -42,7 +42,6 @@ namespace libmaus
 			{
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & packageReturnInterface;
 				FragmentAlignmentBufferRewriteFragmentCompleteInterface & fragmentCompleteInterface;
-				FragmentAlignmentBufferRewriteUpdateInterval & updateIntervalInterface;
 				ReadEndsContainerFreeListInterface & readEndsContainerFreeListInterface;
 				AddDuplicationMetricsInterface & addDuplicationMetricsInterface;
 				
@@ -62,14 +61,12 @@ namespace libmaus
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
 					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
-					FragmentAlignmentBufferRewriteUpdateInterval & rupdateIntervalInterface,
 					ReadEndsContainerFreeListInterface & rreadEndsContainerFreeListInterface,
 					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
 				) 
 				: 
 					packageReturnInterface(rpackageReturnInterface), 
 					fragmentCompleteInterface(rfragmentCompleteInterface), 
-					updateIntervalInterface(rupdateIntervalInterface),
 					readEndsContainerFreeListInterface(rreadEndsContainerFreeListInterface),
 					addDuplicationMetricsInterface(raddDuplicationMetricsInterface),
 					fixmates(true),
@@ -101,17 +98,14 @@ namespace libmaus
 					libmaus::bambam::ReadEndsContainer::shared_ptr_type fragContainer = readEndsContainerFreeListInterface.getFragContainer();
 					
 					// dispatch
-					int64_t maxleftoff = 0;
-					int64_t maxrightoff = 0;
 					uint64_t * O = BP->FAB->getOffsetStart(BP->j);
 					uint64_t const ind = BP->FAB->getOffsetStartIndex(BP->j);
 					size_t const num = BP->FAB->getNumAlignments(BP->j);
 					FragmentAlignmentBufferFragment * subbuf = (*(BP->FAB))[BP->j];
 					size_t looplow  = ind;
 					size_t const loopend = ind+num;
+					
 					std::map<uint64_t,libmaus::bambam::DuplicationMetrics> metrics;
-					
-					
 					libmaus::autoarray::AutoArray<uint8_t> ATA1;
 					libmaus::autoarray::AutoArray<uint8_t> ATA2;
 					// 2(Tag) + 1(Z) + String + nul = String + 4
@@ -205,56 +199,6 @@ namespace libmaus
 									}
 								}
 							}
-						
-						// update maxleftoff and maxrightoff for first mate	
-						if ( firsti != -1 )
-						{						
-							uint8_t const * text = BP->algn->textAt(firsti);
-							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
-							
-							// mapped?
-							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
-							{
-								int64_t const coord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(text);
-								int64_t const pos = libmaus::bambam::BamAlignmentDecoderBase::getPos(text);
-								
-								if ( coord < pos )
-								{
-									int64_t const leftoff = pos-coord;
-									maxleftoff = std::max(maxleftoff,leftoff);
-								}
-								else
-								{
-									int64_t const rightoff = coord-pos;
-									maxrightoff = std::max(maxrightoff,rightoff);
-								}
-							}
-						}
-						
-						// update maxleftoff and maxrightoff for second mate	
-						if ( secondi != -1 )
-						{						
-							uint8_t const * text = BP->algn->textAt(secondi);
-							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
-
-							// mapped?
-							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
-							{
-								int64_t const coord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(text);
-								int64_t const pos = libmaus::bambam::BamAlignmentDecoderBase::getPos(text);
-								
-								if ( coord < pos )
-								{
-									int64_t const leftoff = pos-coord;
-									maxleftoff = std::max(maxleftoff,leftoff);
-								}
-								else
-								{
-									int64_t const rightoff = coord-pos;
-									maxrightoff = std::max(maxrightoff,rightoff);
-								}
-							}
-						}
 						
 						// run fixmates
 						if ( fixmates )
@@ -539,9 +483,6 @@ namespace libmaus
 					// end of dispatch
 
 					fragmentCompleteInterface.fragmentAlignmentBufferRewriteFragmentComplete(BP->algn,BP->FAB,BP->j);
-
-					// update interval					
-					updateIntervalInterface.fragmentAlignmentBufferRewriteUpdateInterval(maxleftoff,maxrightoff);
 
 					// return the work package
 					packageReturnInterface.returnFragmentAlignmentBufferRewriteReadEndsWorkPackage(BP);					

@@ -89,7 +89,6 @@
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferSortFinishedInterface.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackage.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
 #include <libmaus/bambam/parallel/FragReadEndsMergeWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackageDispatcher.hpp>
 #include <libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackageDispatcher.hpp>
@@ -201,7 +200,6 @@ namespace libmaus
 				public FragmentAlignmentBufferMergeSortWorkPackageReturnInterface<_order_type /* order_type */>,
 				public FragmentAlignmentBufferReorderWorkPackageReturnInterface,
 				public FragmentAlignmentBufferReorderWorkPackageFinishedInterface,
-				public FragmentAlignmentBufferRewriteUpdateInterval,
 				public ReadEndsContainerFreeListInterface,
 				public FragReadEndsContainerFlushFinishedInterface,
 				public PairReadEndsContainerFlushFinishedInterface,
@@ -342,6 +340,7 @@ namespace libmaus
 					uint64_t const streamid = block->meta.streamid;
 					assert ( streamid == 0 );
 					
+					// check whether input is BAM or SAM
 					{
 						libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
 						inputreadbase.pending.push(block);
@@ -349,7 +348,6 @@ namespace libmaus
 					
 					checkInputBlockPending(streamid);
 				}
-
 
 				void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr)
 				{
@@ -664,11 +662,7 @@ namespace libmaus
 				std::priority_queue<FragmentAlignmentBuffer::shared_ptr_type, std::vector<FragmentAlignmentBuffer::shared_ptr_type>, 
 					FragmentAlignmentBufferHeapComparator > postSortPendingQueue;
 				uint64_t volatile postSortNext;
-				
-				int64_t volatile maxleftoff;
-				int64_t volatile maxrightoff;
-				libmaus::parallel::PosixSpinLock maxofflock;
-				
+								
 				libmaus::bambam::parallel::ReadEndsContainerAllocator const readEndsFragContainerAllocator;
 				libmaus::bambam::parallel::ReadEndsContainerAllocator const readEndsPairContainerAllocator;
 				libmaus::parallel::LockedGrowingFreeList<
@@ -929,7 +923,7 @@ namespace libmaus
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this,*this,*this,*this),
+					FABRWPD(*this,*this,*this,*this),
 					FABRWPDid(STP.getNextDispatcherId()),
 					FABROWPD(*this,*this),
 					FABROWPDid(STP.getNextDispatcherId()),
@@ -970,8 +964,6 @@ namespace libmaus
 					fragmentBufferFreeListPreSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */)),
 					fragmentBufferFreeListPostSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 1 /* pointer multiplier */)),
 					postSortNext(0),
-					maxleftoff(0),
-					maxrightoff(0),
 					readEndsFragContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends_frag_"),
 					readEndsPairContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends_pair_"),
 					readEndsFragContainerFreeList(readEndsFragContainerAllocator),
@@ -1906,13 +1898,6 @@ namespace libmaus
 					}					
 				}
 				
-				void fragmentAlignmentBufferRewriteUpdateInterval(int64_t rmaxleftoff, int64_t rmaxrightoff)
-				{
-					libmaus::parallel::ScopePosixSpinLock lmaxofflock(maxofflock);
-					maxleftoff  = std::max(static_cast<int64_t>(maxleftoff),rmaxleftoff);
-					maxrightoff = std::max(static_cast<int64_t>(maxrightoff),rmaxrightoff);
-				}
-
 				libmaus::bambam::ReadEndsContainer::shared_ptr_type getFragContainer()
 				{
 					return readEndsFragContainerFreeList.get();
@@ -2043,10 +2028,6 @@ void mapperm(int argc, char * argv[])
 		std::cerr << ex.what() << std::endl;
 	}
 }
-
-
-
-
 
 struct GenericInputControl : 
 	public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
