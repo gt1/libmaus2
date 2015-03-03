@@ -328,7 +328,7 @@ namespace libmaus
 						inputreadbase.meminputblockfreelist.put(mib);
 				}
 				
-
+				
 				void checkInputBlockPending(uint64_t const streamid)
 				{
 					assert ( streamid == 0 );
@@ -498,7 +498,7 @@ namespace libmaus
 								while ( P.first != P.second )
 								{
 									ptrdiff_t const r = (P.second-P.first)-1;
-									ptrdiff_t const maxblock = 64*1024;
+									ptrdiff_t const maxblock = getSamMaxParseBlockSize();
 									ptrdiff_t const est = std::min(r,maxblock);
 									uint8_t * pp = P.first + est;
 									while ( *pp != '\n' )
@@ -1155,6 +1155,11 @@ namespace libmaus
 						metrics.begin()->second.printHistogram(metricsstr);
 					}
 				}
+
+				static uint64_t getSamMaxParseBlockSize()
+				{
+					return 256*1024;
+				}
 				
 				BlockSortControl(
 					block_sort_control_input_enum const rinputType,
@@ -1166,7 +1171,7 @@ namespace libmaus
 				: 
 					inputType(rinputType),
 					streaminfo("-",false/*finite*/,0/*start*/,0/*end*/,true/*hasheader*/),
-					inputreadbase(in,streaminfo,0/*stream id*/,1024*1024/*blocksize*/,8/*numblocks*/,64/*complistsize*/),
+					inputreadbase(in,streaminfo,0/*stream id*/,8*1024*1024/*blocksize*/,8/*numblocks*/,256/*complistsize*/),
 					deccont(rSTP.getNumThreads()),
 					tempfileprefix(rtempfileprefix),
 					decodingFinished(false),
@@ -3370,7 +3375,7 @@ int main(int argc, char * argv[])
 			
 			rtc.start();
 			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
-			libmaus::aio::PosixFdInputStream in(STDIN_FILENO);
+			libmaus::aio::PosixFdInputStream in(STDIN_FILENO,256*1024);
 			std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
 			int const templevel = arginfo.getValue<int>("level",1);
 
@@ -3396,7 +3401,8 @@ int main(int argc, char * argv[])
 			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
 			libmaus::bambam::parallel::BlockSortControl<order_type>::unique_ptr_type VC(
 				new libmaus::bambam::parallel::BlockSortControl<order_type>(
-					inform,STP,in,templevel,tmpfilebase)
+					inform,STP,in,templevel,tmpfilebase
+				)
 			);
 			VC->enqueReadPackage();
 			VC->waitDecodingFinished();
