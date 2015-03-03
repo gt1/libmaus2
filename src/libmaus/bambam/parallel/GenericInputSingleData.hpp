@@ -28,6 +28,7 @@
 #include <libmaus/bambam/parallel/DecompressedBlockHeapComparator.hpp>
 #include <queue>
 #include <libmaus/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp>
+#include <libmaus/bambam/parallel/SamParsePendingHeapComparator.hpp>
 
 namespace libmaus
 {
@@ -120,7 +121,14 @@ namespace libmaus
 
 				uint64_t volatile decompressedBlockIdAcc;
 				uint64_t volatile decompressedBlocksAcc;
+				
+				bool volatile samHeaderComplete;
+				libmaus::autoarray::AutoArray<char,libmaus::autoarray::alloc_type_c> samHeader;
 
+				std::deque<SamParsePending> samParsePendingQueue;
+				libmaus::parallel::PosixSpinLock samParsePendingQueueLock;
+				uint64_t volatile samParsePendingQueueNextAbsId;
+												
 				GenericInputSingleDataReadBase(
 					std::istream & rin,
 					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
@@ -144,7 +152,10 @@ namespace libmaus
 				  meminputblockfreelist(complistsize),
 				  decompressedblockfreelist(complistsize),
 				  decompressedBlockIdAcc(0),
-				  decompressedBlocksAcc(0)
+				  decompressedBlocksAcc(0),
+				  samHeaderComplete(false),
+				  samHeader(0,false),
+				  samParsePendingQueueNextAbsId(0)
 				{
 				
 				}
@@ -174,6 +185,13 @@ namespace libmaus
 				  decompressedBlocksAcc(0)
 				{
 				
+				}
+
+				void samHeaderAdd(char const * c, size_t n)
+				{
+					size_t const o = samHeader.size();
+					samHeader.resize(o+n);
+					std::copy(c,c+n,samHeader.begin()+o);
 				}
 
 				bool getEOF()

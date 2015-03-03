@@ -75,6 +75,25 @@ namespace libmaus
 					
 					return D.begin() + uncompdatasize;
 				}
+
+				void pushData(uint8_t const * d, size_t const c)
+				{			
+					size_t const nsize = uncompdatasize + c + sizeof(uint32_t);
+						
+					if ( nsize > D.size() )
+					{
+						ptrdiff_t const o = P - D.begin();
+						D.resize(nsize);
+						P = D.begin() + o;
+					}
+					
+					D[uncompdatasize++] = (c >> 0) & 0xFF;
+					D[uncompdatasize++] = (c >> 8) & 0xFF;
+					D[uncompdatasize++] = (c >> 16) & 0xFF;
+					D[uncompdatasize++] = (c >> 24) & 0xFF;
+					std::copy(d,d+c,D.begin()+uncompdatasize);
+					uncompdatasize += c;
+				}
 				
 				void pushParsePointer(char const * c)
 				{

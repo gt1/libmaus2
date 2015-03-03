@@ -82,8 +82,6 @@ namespace libmaus
 
 			BamSeqEncodeTable const seqenc;
 			
-			libmaus::bambam::BamHeader const & header;
-
 			//! trie for sequence names
 			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type SQTrie;
 
@@ -99,7 +97,8 @@ namespace libmaus
 			 * @param header SAM header
 			 * @return trie for sequence names
 			 **/
-			static ::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeSQTrie(libmaus::bambam::BamHeader const & header)
+			template<typename header_type>
+			static ::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeSQTrie(header_type const & header)
 			{
 				::libmaus::trie::Trie<char> trienofailure;
 				std::vector<std::string> dict;
@@ -139,17 +138,18 @@ namespace libmaus
 				return V;
 			}
 			
-
-			SamInfo(libmaus::bambam::BamHeader const & rheader) 
+			template<typename header_type>
+			SamInfo(header_type const & rheader) 
 			: qname(0), rname(0), cigar(0), rnext(0), seq(0), qual(0),
-			  header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus::bambam::BamAlignment), algn(*Palgn)
+			  SQTrie(computeSQTrie(rheader)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus::bambam::BamAlignment), algn(*Palgn)
 			{
 			
 			}
 			
-			SamInfo(libmaus::bambam::BamHeader const & rheader, libmaus::bambam::BamAlignment & ralgn)
+			template<typename header_type>
+			SamInfo(header_type const & rheader, libmaus::bambam::BamAlignment & ralgn)
 			: qname(0), rname(0), cigar(0), rnext(0), seq(0), qual(0),
-			  header(rheader), SQTrie(computeSQTrie(header)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(), algn(ralgn)
+			  SQTrie(computeSQTrie(rheader)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(), algn(ralgn)
 			{
 			
 			}

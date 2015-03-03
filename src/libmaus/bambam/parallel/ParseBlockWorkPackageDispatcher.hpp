@@ -74,6 +74,7 @@ namespace libmaus
 						// if this is the last input block
 						if ( BP->decompressedblock->final )
 						{
+							std::cerr << "final block parsed." << std::endl;
 							// post process block (reorder pointers to original input order)
 							BP->parseBlock->reorder();
 							BP->parseBlock->final = true;

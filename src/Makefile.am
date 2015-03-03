@@ -481,7 +481,9 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
 	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp \
 	libmaus/bambam/ReadEndsBlockIndexSet.hpp \
-	libmaus/bambam/DupSetCallbackSharedVector.hpp
+	libmaus/bambam/DupSetCallbackSharedVector.hpp \
+	libmaus/bambam/SamInfoAllocator.hpp \
+	libmaus/bambam/SamInfoTypeInfo.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -685,7 +687,9 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp \
+	libmaus/bambam/parallel/SamParsePending.hpp \
+	libmaus/bambam/parallel/SamParsePendingHeapComparator.hpp
 	
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

@@ -58,6 +58,24 @@ namespace libmaus
 				uint32_t volatile blocklen;
 				uint64_t volatile parseacc;
 				
+				void setHeaderFromText(char const * c, size_t const s)
+				{
+					libmaus::bambam::BamHeaderLowMem::unique_ptr_type Theader(libmaus::bambam::BamHeaderLowMem::constructFromText(c,c+s));
+					Pheader = UNIQUE_PTR_MOVE(Theader);
+					headerComplete = true;
+					
+					// produce BAM header
+					std::string const text(c,c+s);
+					libmaus::bambam::BamHeader header(text);
+					std::ostringstream ostr;
+					header.serialise(ostr);
+					
+					// fill header parser state
+					std::istringstream istr(ostr.str());
+					std::pair<bool,uint64_t> const P = BHPS.parseHeader(istr);
+					assert ( P.first );
+				}
+				
 				ParseInfoHeaderCompleteCallback * headerCompleteCallback;
 				
 				ParseInfo()
@@ -291,7 +309,21 @@ namespace libmaus
 					)
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "ParseInfo::parseBlock(): Unexpected EOF in BAM data." << std::endl;
+						lme.getStream() << "ParseInfo::parseBlock(): Unexpected EOF in BAM data, parser_state=";
+
+						switch ( parser_state )
+						{
+							case parser_state_read_blocklength:
+								lme.getStream() << "parser_state_read_blocklength";
+								break;
+							case parser_state_read_block:
+								lme.getStream() << "parser_state_read_block";
+								break;
+						}
+						
+						lme.getStream() << " blocklengthread=" << blocklengthread 
+							<< " headerComplete=" << headerComplete
+							<< '\n';
 						lme.finish();
 						throw lme;
 					}

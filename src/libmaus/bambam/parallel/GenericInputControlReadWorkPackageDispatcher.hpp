@@ -53,7 +53,6 @@ namespace libmaus
 				)
 				: packageReturnInterface(rpackageReturnInterface), addPendingInterface(raddPendingInterface), parser_type(rparser_type)
 				{
-				
 				}
 			
 				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
