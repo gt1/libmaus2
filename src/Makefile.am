@@ -689,8 +689,17 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp \
 	libmaus/bambam/parallel/SamParsePending.hpp \
-	libmaus/bambam/parallel/SamParsePendingHeapComparator.hpp
-	
+	libmaus/bambam/parallel/SamParsePendingHeapComparator.hpp \
+	libmaus/bambam/parallel/SamParseWorkPackage.hpp \
+	libmaus/bambam/parallel/BlockSortControlBase.hpp \
+	libmaus/bambam/parallel/SamParsePutSamInfoInterface.hpp \
+	libmaus/bambam/parallel/SamParseGetSamInfoInterface.hpp \
+	libmaus/bambam/parallel/SamParseFragmentParsedInterface.hpp \
+	libmaus/bambam/parallel/SamParseDecompressedBlockFinishedInterface.hpp \
+	libmaus/bambam/parallel/SamParseWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/SamParseWorkPackage.hpp \
+	libmaus/bambam/parallel/SamParseWorkPackageDispatcher.hpp
+
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
 	libmaus/bitio/BitIO.hpp \
