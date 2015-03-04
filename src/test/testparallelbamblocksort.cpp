@@ -496,6 +496,7 @@ namespace libmaus
 					std::string const & rtempfileprefix
 				)
 				: 
+					procrtc(true),
 					inputType(rinputType),
 					streaminfo("-",false/*finite*/,0/*start*/,0/*end*/,true/*hasheader*/),
 					inputreadbase(in,streaminfo,0/*stream id*/,8*1024*1024/*blocksize*/,8/*numblocks*/,256/*complistsize*/),
@@ -565,8 +566,6 @@ namespace libmaus
 					unmergeFragReadEndsRegions(0),
 					unmergePairReadEndsRegions(0)
 				{
-					procrtc.start();
-					
 					STP.registerDispatcher(GICRPDid,&GICRPD);
 					STP.registerDispatcher(GIBDWPDid,&GIBDWPD);
 					STP.registerDispatcher(PBWPDid,&PBWPD);

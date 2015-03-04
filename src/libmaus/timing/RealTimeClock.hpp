@@ -119,10 +119,12 @@ namespace libmaus
 			mutable struct timezone tz;
       
 			public:
-			RealTimeClock() : started(), tz()
+			RealTimeClock(bool rstart = false) : started(), tz()
 			{
 				tz.tz_minuteswest = 0;
 				tz.tz_dsttime = 0;
+				if ( rstart )
+					start();
 			}
 			~RealTimeClock() throw() {}
       
@@ -184,9 +186,11 @@ namespace libmaus
 			} 
       
 			public:
-			RealTimeClock() 
+			RealTimeClock(bool const rstart = false)
 			{
 				QueryPerformanceFrequency(&freq);
+				if ( rstart )
+					start();
 			}
 			~RealTimeClock() throw() {}
       
