@@ -33,6 +33,13 @@ namespace libmaus
 			{
 				libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> algnFreeList;
 				std::stack<libmaus::bambam::BamAlignment *> putbackStack;
+				
+				size_t byteSize()
+				{
+					return
+						algnFreeList.byteSize() +
+						putbackStack.size() * sizeof(libmaus::bambam::BamAlignment *);
+				}
 	
 				PushBackSpace()
 				: algnFreeList(), putbackStack()

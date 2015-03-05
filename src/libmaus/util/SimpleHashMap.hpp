@@ -63,6 +63,21 @@ namespace libmaus
 			::libmaus::parallel::OMPLock elock;
 			
 			public:
+			size_t byteSize() const
+			{
+				return
+					sizeof(slog) +
+					sizeof(hashsize) +
+					sizeof(hashmask) +
+					sizeof(fill) +
+					H.byteSize() +
+					#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
+					sizeof(hlock) +
+					sizeof(clock) +
+					#endif
+					sizeof(elock);
+			}
+			
 			unique_ptr_type uclone() const
 			{
 				unique_ptr_type O(new this_type(slog));

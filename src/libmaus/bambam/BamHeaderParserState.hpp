@@ -44,6 +44,26 @@ namespace libmaus
 				bam_header_read_done,
 				bam_header_read_failed
 			};
+			
+			size_t byteSize() const
+			{
+				return
+					sizeof(state) +
+					sizeof(b_magic_read) +
+					sizeof(b_l_text_read) +
+					sizeof(l_text) +
+					text.byteSize() +
+					sizeof(b_text_read) +
+					sizeof(b_n_ref) +
+					sizeof(n_ref) +
+					sizeof(b_ref) +
+					sizeof(b_l_name_read) +
+					sizeof(l_name) +
+					sizeof(b_name_read) +
+					name.byteSize() +
+					sizeof(b_l_ref_read) +
+					sizeof(l_ref); // add chromosomes
+			}
 
 			// state
 			bam_header_parse_state state;

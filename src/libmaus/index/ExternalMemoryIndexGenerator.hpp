@@ -59,6 +59,18 @@ namespace libmaus
 			record_type * wc;
 			record_type * const we;
 			
+			size_t byteSize() const
+			{
+				return
+					sizeof(Pstream) +
+					sizeof(ic) +
+					sizeof(flushed) +
+					writeCache.byteSize() +
+					sizeof(wa) +
+					sizeof(wc) +
+					sizeof(we);
+			}
+			
 			ExternalMemoryIndexGenerator(std::string const & filename)
 			: Pstream(new libmaus::aio::CheckedInputOutputStream(filename)), stream(*Pstream), ic(0), flushed(false), writeCache(1024),
 			  wa(writeCache.begin()), wc(wa), we(writeCache.end())

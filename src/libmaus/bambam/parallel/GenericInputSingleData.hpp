@@ -41,6 +41,37 @@ namespace libmaus
 				typedef GenericInputSingleDataReadBase this_type;
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				size_t byteSize()
+				{
+					return
+						streaminfo.byteSize() +
+						sizeof(Pin) +
+						sizeof(inlock) +
+						sizeof(streamid) +
+						sizeof(blockid) +
+						sizeof(blocksize) +
+						blockFreeList.byteSize() +
+						sizeof(finite) +
+						sizeof(dataleft) +
+						sizeof(eof) +
+						sizeof(eoflock) +
+						stallArray.byteSize() +
+						sizeof(stallArraySize) +
+						sizeof(lock) +
+						sizeof(nextblockid) +
+						sizeof(decompressionpendingnext) +
+						decompressiontotal.size() * sizeof(uint64_t) +
+						meminputblockfreelist.byteSize() +
+						decompressedblockfreelist.byteSize() +
+						sizeof(decompressedBlockIdAcc) +
+						sizeof(decompressedBlocksAcc) +
+						sizeof(samHeaderComplete) +
+						samHeader.byteSize() +
+						samParsePendingQueue.size() * sizeof(SamParsePending) +
+						sizeof(samParsePendingQueueLock) +
+						sizeof(samParsePendingQueueNextAbsId);
+				}
 			
 				public:
 				// info

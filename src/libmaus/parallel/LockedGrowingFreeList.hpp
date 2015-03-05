@@ -80,6 +80,27 @@ namespace libmaus
 				libmaus::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::getAll();			
 			}
+			
+			size_t byteSize()
+			{
+				return base_type::byteSize();
+			}
+
+			size_t getAllSize()
+			{
+				return base_type::getAllSize();
+			}
+			
+			size_t capacity()
+			{				
+				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				return base_type::capacity();			
+			}
+			
+			size_t freeUnlocked()
+			{
+				return base_type::free();
+			}
 		};
 	}
 }

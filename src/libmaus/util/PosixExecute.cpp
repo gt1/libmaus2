@@ -255,7 +255,20 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 		bool done = false;
 		int status;
 		
-		::libmaus::autoarray::AutoArray<char> B(8*8192,false);
+		char * B = 0;
+		size_t const Bsize = 8*8192;
+		try
+		{
+			B = new char[Bsize];
+		}
+		catch(...)
+		{
+			close(stdoutpipe[0]);
+			close(stderrpipe[0]);
+			
+			std::cerr << "Failed to allocate memory." << std::endl;
+			return EXIT_FAILURE;
+		}
 		
 		std::vector<char> outv;
 		std::vector<char> errv;
@@ -277,7 +290,7 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 				
 				if ( FD_ISSET(stdoutpipe[0],&fileset) )
 				{
-					ssize_t red = read ( stdoutpipe[0], B.get(), B.size() );
+					ssize_t red = read ( stdoutpipe[0], B, Bsize );
 					// std::cerr << "Got " << red << " from stdout." << std::endl;
 					if ( red > 0 )
 						for ( ssize_t i = 0; i < red; ++i )
@@ -285,7 +298,7 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 				}
 				if ( FD_ISSET(stderrpipe[0],&fileset) )
 				{
-					ssize_t red = read ( stderrpipe[0], B.get(), B.size() );
+					ssize_t red = read ( stderrpipe[0], B, Bsize );
 					// std::cerr << "Got " << red << " from stderr." << std::endl;
 					if ( red > 0 )
 						for ( ssize_t i = 0; i < red; ++i )
@@ -319,13 +332,13 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 		
 		ssize_t red = -1;
 
-		while ( (red = read ( stdoutpipe[0], B.get(), B.size() ) > 0 ) )
+		while ( (red = read ( stdoutpipe[0], B, Bsize ) > 0 ) )
 		{
 			// std::cerr << "Got " << red << " from stdout in final." << std::endl;
 			for ( ssize_t i = 0; i < red; ++i )
 				outv.push_back(B[i]);
 		}
-		while ( (red = read ( stderrpipe[0], B.get(), B.size() ) > 0 ) )
+		while ( (red = read ( stderrpipe[0], B, Bsize ) > 0 ) )
 		{
 			// std::cerr << "Got " << red << " from stderr in final." << std::endl;
 			for ( ssize_t i = 0; i < red; ++i )
@@ -334,6 +347,8 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 
 		close(stdoutpipe[0]);
 		close(stderrpipe[0]);
+		
+		delete [] B;
 		
 		out = std::string(outv.begin(),outv.end());
 		err = std::string(errv.begin(),errv.end());

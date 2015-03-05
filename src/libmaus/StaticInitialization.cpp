@@ -63,6 +63,12 @@ uint64_t volatile libmaus::autoarray::AutoArray_memusage = 0;
 uint64_t volatile libmaus::autoarray::AutoArray_peakmemusage = 0;
 uint64_t volatile libmaus::autoarray::AutoArray_maxmem = getMaxMem();
 
+#if defined(AUTOARRAY_TRACE)
+std::vector< libmaus::autoarray::AutoArrayBackTrace<AUTOARRAY_TRACE> > libmaus::autoarray::tracevector;
+libmaus::parallel::PosixSpinLock libmaus::autoarray::backtracelock;
+libmaus::parallel::PosixSpinLock libmaus::autoarray::tracelock;
+#endif
+
 #include <libmaus/rank/CodeBase.hpp>
 
 typedef ::libmaus::rank::ChooseCache choose_cache_type;
@@ -214,3 +220,4 @@ std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type > libmau
 std::map<void *, libmaus::aio::InputStream::shared_ptr_type> libmaus::bambam::ScramInputContainer::Mstream;
 std::map<void *, libmaus::aio::InputStream::shared_ptr_type> libmaus::bambam::ScramInputContainer::Mcompstream;
 libmaus::parallel::PosixMutex libmaus::bambam::ScramInputContainer::Mlock;
+

@@ -180,6 +180,7 @@
 #include <libmaus/random/Random.hpp>
 
 #include <libmaus/util/ArgInfo.hpp>
+#include <libmaus/util/UnitNum.hpp>
 					
 namespace libmaus
 {
@@ -197,7 +198,6 @@ namespace libmaus
 				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface,
 				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface,
 				public DecompressedBlockAddPendingInterface,
-				public DecompressBlocksWorkPackageReturnInterface,
 				public DecompressedBlockReturnInterface,
 				public ParsedBlockAddPendingInterface,
 				public ParsedBlockStallInterface,
@@ -297,9 +297,6 @@ namespace libmaus
 
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReadWorkPackage> genericInputReadWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage> genericInputDecompressWorkPackages;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<InputBlockWorkPackage> readWorkPackages;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<DecompressBlockWorkPackage> decompressBlockWorkPackages;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<DecompressBlocksWorkPackage> decompressBlocksWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<ParseBlockWorkPackage> parseBlockWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<ValidateBlockFragmentWorkPackage> validateBlockFragmentWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BgzfLinearMemCompressWorkPackage> bgzfWorkPackages;
@@ -313,9 +310,26 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragReadEndsMergeWorkPackage> fragReadEndsMergeWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<PairReadEndsMergeWorkPackage> pairReadEndsMergeWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<SamParseWorkPackage> samParseWorkPackages;
-
-				// blocks pending to be decompressed
-				libmaus::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
+				
+				std::ostream & printPackageFreeListSizes(std::ostream & out)
+				{
+					out << "[C] genericInputReadWorkPackages: " << genericInputReadWorkPackages.size() << "\n";
+					out << "[C] genericInputDecompressWorkPackages: " << genericInputDecompressWorkPackages.size() << "\n";
+					out << "[C] parseBlockWorkPackages: " << parseBlockWorkPackages.size() << "\n";
+					out << "[C] validateBlockFragmentWorkPackages: " << validateBlockFragmentWorkPackages.size() << "\n";
+					out << "[C] bgzfWorkPackages: " << bgzfWorkPackages.size() << "\n";
+					out << "[C] writeWorkPackages: " << writeWorkPackages.size() << "\n";
+					out << "[C] fragmentAlignmentBufferRewriteWorkPackages: " << fragmentAlignmentBufferRewriteWorkPackages.size() << "\n";
+					out << "[C] baseSortPackages: " << baseSortPackages.size() << "\n";
+					out << "[C] mergeSortPackages: " << mergeSortPackages.size() << "\n";
+					out << "[C] reorderPackages: " << reorderPackages.size() << "\n";
+					out << "[C] fragReadContainerFlushPackages: " << fragReadContainerFlushPackages.size() << "\n";
+					out << "[C] pairReadContainerFlushPackages: " << pairReadContainerFlushPackages.size() << "\n";
+					out << "[C] fragReadEndsMergeWorkPackages: " << fragReadEndsMergeWorkPackages.size() << "\n";
+					out << "[C] pairReadEndsMergeWorkPackages: " << pairReadEndsMergeWorkPackages.size() << "\n";
+					out << "[C] samParseWorkPackages: " << samParseWorkPackages.size() << "\n";
+					return out;
+				}
 				
 				libmaus::parallel::SynchronousCounter<uint64_t> inputBlockReturnCount;
 				
@@ -335,7 +349,9 @@ namespace libmaus
 				libmaus::parallel::PosixSpinLock parseStallSlotLock;
 
 				// free list for alignment buffers
-				libmaus::parallel::LockedFreeList<AlignmentBuffer,AlignmentBufferAllocator,AlignmentBufferTypeInfo> parseBlockFreeList;
+				typedef libmaus::parallel::LockedFreeList<AlignmentBuffer,AlignmentBufferAllocator,AlignmentBufferTypeInfo> parse_block_free_list_type;
+				typedef parse_block_free_list_type::unique_ptr_type parse_block_free_list_pointer_type;
+				parse_block_free_list_pointer_type parseBlockFreeList;
 
 				libmaus::parallel::LockedBool lastParseBlockSeen;
 				libmaus::parallel::LockedCounter readsParsed;
@@ -367,7 +383,7 @@ namespace libmaus
 					libmaus::lz::BgzfDeflateZStreamBaseAllocator,
 					libmaus::lz::BgzfDeflateZStreamBaseTypeInfo
 				> bgzfDeflateZStreamBaseFreeList;
-
+				
 				libmaus::parallel::PosixSpinLock rewriteLargeBlockLock;
 				std::priority_queue<FragmentAlignmentBuffer::shared_ptr_type, std::vector<FragmentAlignmentBuffer::shared_ptr_type>, 
 					FragmentAlignmentBufferHeapComparator > rewriteLargeBlockQueue;
@@ -390,7 +406,7 @@ namespace libmaus
 					libmaus::aio::NamedTemporaryFileAllocator<libmaus::aio::PosixFdOutputStream>,
 					libmaus::aio::NamedTemporaryFileTypeInfo<libmaus::aio::PosixFdOutputStream>
 				> temp_file_free_list_type;
-				
+
 				temp_file_allocator_type tempFileAllocator;
 				temp_file_free_list_type::unique_ptr_type tempFileFreeList;
 				std::vector<temp_file_type::shared_ptr_type> tempFileVector;
@@ -421,17 +437,17 @@ namespace libmaus
 				
 				libmaus::parallel::LockedBool lastParseBlockWritten;
 				
-				libmaus::parallel::LockedFreeList<
-					FragmentAlignmentBuffer,
-					FragmentAlignmentBufferAllocator,
-					FragmentAlignmentBufferTypeInfo
-				> fragmentBufferFreeListPreSort;
-
-				libmaus::parallel::LockedFreeList<
-					FragmentAlignmentBuffer,
-					FragmentAlignmentBufferAllocator,
-					FragmentAlignmentBufferTypeInfo
-				> fragmentBufferFreeListPostSort;
+				typedef libmaus::parallel::LockedFreeList<FragmentAlignmentBuffer,FragmentAlignmentBufferAllocator,FragmentAlignmentBufferTypeInfo>
+					fragment_buffer_free_list_presort_type;
+				typedef fragment_buffer_free_list_presort_type::unique_ptr_type fragment_buffer_free_list_presort_pointer_type;
+				
+				fragment_buffer_free_list_presort_pointer_type fragmentBufferFreeListPreSort;
+				
+				typedef libmaus::parallel::LockedFreeList<FragmentAlignmentBuffer,FragmentAlignmentBufferAllocator,FragmentAlignmentBufferTypeInfo>
+					fragment_buffer_free_list_postsort_type;
+				typedef fragment_buffer_free_list_postsort_type::unique_ptr_type fragment_buffer_free_list_postsort_pointer_type;
+				
+				fragment_buffer_free_list_postsort_pointer_type fragmentBufferFreeListPostSort;
 
 				// post sort info
 				libmaus::parallel::PosixSpinLock postSortRewriteLock;
@@ -487,6 +503,40 @@ namespace libmaus
 
 				std::map<uint64_t, typename FragmentAlignmentBufferSortContext<order_type>::shared_ptr_type > sortContextsActive;
 				libmaus::parallel::PosixSpinLock sortContextsActiveLock;
+				
+				void freeBuffers()
+				{
+					fragmentBufferFreeListPreSort.reset();
+					fragmentBufferFreeListPostSort.reset();
+					parseBlockFreeList.reset();
+				}
+
+				std::ostream & printSizes(std::ostream & out)
+				{
+					out << "[M] fragmentBufferFreeListPreSort: "  << libmaus::util::UnitNum::unitNum(fragmentBufferFreeListPreSort->byteSize())
+						<< " capacity=" << fragmentBufferFreeListPreSort->capacity() << " free=" << fragmentBufferFreeListPreSort->freeUnlocked()
+						<< std::endl;
+					out << "[M] fragmentBufferFreeListPostSort: " << libmaus::util::UnitNum::unitNum(fragmentBufferFreeListPostSort->byteSize())
+						<< " capacity=" << fragmentBufferFreeListPostSort->capacity() << " free=" << fragmentBufferFreeListPostSort->freeUnlocked()
+						<< std::endl;
+					out << "[M] parseBlockFreeList: " << libmaus::util::UnitNum::unitNum(parseBlockFreeList->byteSize()) 
+						<< " capacity=" << parseBlockFreeList->capacity() << " free=" << parseBlockFreeList->freeUnlocked()
+						<< std::endl;
+					out << "[M] bgzfDeflateOutputBufferFreeList: " << libmaus::util::UnitNum::unitNum(bgzfDeflateOutputBufferFreeList.byteSize()) 
+						<< " capacity=" << bgzfDeflateOutputBufferFreeList.capacity() << " free=" << bgzfDeflateOutputBufferFreeList.freeUnlocked()
+						<< std::endl;
+					out << "[M] readEndsFragContainerFreeList: " << libmaus::util::UnitNum::unitNum(readEndsFragContainerFreeList.byteSize()) 
+						<< " capacity=" << readEndsFragContainerFreeList.capacity() << " free=" << readEndsFragContainerFreeList.freeUnlocked()
+						<< std::endl;
+					out << "[M] readEndsPairContainerFreeList: " << libmaus::util::UnitNum::unitNum(readEndsPairContainerFreeList.byteSize()) 
+						<< " capacity=" << readEndsPairContainerFreeList.capacity() << " free=" << readEndsPairContainerFreeList.freeUnlocked()
+						<< std::endl;
+					out << "[M] inputreadbase: " << libmaus::util::UnitNum::unitNum(inputreadbase.byteSize()) << std::endl;
+					out << "[M] bgzfDeflateZStreamBaseFreeList.getAllSize(): " << bgzfDeflateZStreamBaseFreeList.getAllSize() << std::endl;
+					out << "[M] tempFileFreeList->getAllSize()=" << tempFileFreeList->getAllSize() << std::endl;
+					out << "[M] parseInfo: " << libmaus::util::UnitNum::unitNum(parseInfo.byteSize()) << "\n";
+					return out;
+				}
 
 				BlockSortControl(
 					block_sort_control_input_enum const rinputType,
@@ -536,10 +586,9 @@ namespace libmaus
 					nextDecompressedBlockToBeParsed(0),
 					parseStallSlot(),
 					parseBlockFreeList(
-						std::min(STP.getNumThreads(),static_cast<uint64_t>(8)),
-						AlignmentBufferAllocator(
-							getParseBufferSize(),
-							1 /* pointer multiplier */
+						new parse_block_free_list_type(
+							std::min(STP.getNumThreads(),static_cast<uint64_t>(8)),
+							AlignmentBufferAllocator(getParseBufferSize(),1 /* pointer multiplier */)
 						)
 					),
 					lastParseBlockSeen(false),
@@ -554,8 +603,10 @@ namespace libmaus
 					tempFileFreeList(new temp_file_free_list_type(tempFileAllocator)),
 					writeNext(-1, 0),
 					lastParseBlockWritten(false),
-					fragmentBufferFreeListPreSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 2 /* pointer multiplier */)),
-					fragmentBufferFreeListPostSort(STP.getNumThreads(),FragmentAlignmentBufferAllocator(STP.getNumThreads(), 1 /* pointer multiplier */)),
+					// pre sorting buffer
+					fragmentBufferFreeListPreSort(new fragment_buffer_free_list_presort_type(std::min(STP.getNumThreads(),static_cast<uint64_t>(8)),FragmentAlignmentBufferAllocator(STP.getNumThreads() /* fragments */, 2 /* pointer multiplier */))),
+					// post sorting (rewrite/reorder) buffer
+					fragmentBufferFreeListPostSort(new fragment_buffer_free_list_postsort_type(std::min(STP.getNumThreads(),static_cast<uint64_t>(8)),FragmentAlignmentBufferAllocator(STP.getNumThreads() /* fragments */, 1 /* pointer multiplier */))),
 					postSortNext(0),
 					readEndsFragContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends_frag_"),
 					readEndsPairContainerAllocator(getReadEndsContainerSize(),tempfileprefix+"_readends_pair_"),
@@ -901,7 +952,7 @@ namespace libmaus
 						libmaus::parallel::ScopePosixSpinLock slock(parsePendingLock);
 						parsePending.push(DecompressedPendingObject(ptr->blockid,ptr));
 
-						#if 1
+						#if 0
 						if ( ptr->final )
 							std::cerr << "stream fully decoded" << std::endl;			
 						#endif
@@ -952,7 +1003,7 @@ namespace libmaus
 						libmaus::parallel::ScopePosixSpinLock slock(parsePendingLock);
 						parsePending.push(DecompressedPendingObject(ptr->blockid,ptr));
 
-						#if 1
+						#if 0
 						if ( ptr->final )
 							std::cerr << "stream fully decompressed" << std::endl;			
 						#endif
@@ -1364,9 +1415,6 @@ namespace libmaus
 				}
 
 				// work package return routines				
-				void putInputBlockWorkPackage(InputBlockWorkPackage * package) { readWorkPackages.returnPackage(package); }
-				void putDecompressBlockWorkPackage(DecompressBlockWorkPackage * package) { decompressBlockWorkPackages.returnPackage(package); }				
-				void putDecompressBlocksWorkPackage(DecompressBlocksWorkPackage * package) { decompressBlocksWorkPackages.returnPackage(package); }
 				void putReturnParsePackage(ParseBlockWorkPackage * package) { parseBlockWorkPackages.returnPackage(package); }
 				void putReturnValidateBlockFragmentPackage(ValidateBlockFragmentWorkPackage * package) { validateBlockFragmentWorkPackages.returnPackage(package); }
 				void returnBgzfLinearMemCompressWorkPackage(BgzfLinearMemCompressWorkPackage * package) { bgzfWorkPackages.returnPackage(package); }
@@ -1435,7 +1483,7 @@ namespace libmaus
 					else if ( 
 						parsePending.size() && 
 						(parsePending.top().first == nextDecompressedBlockToBeParsed) &&
-						(algnbuffer = parseBlockFreeList.getIf())
+						(algnbuffer = parseBlockFreeList->getIf())
 					)
 					{
 						algnbuffer->reset();
@@ -1517,7 +1565,7 @@ namespace libmaus
 						if ( ((readsParsed >> 20) != (readsParsedLastPrint >> 20)) || algn->final )
 						{
 							libmaus::parallel::ScopePosixSpinLock SPSL(STP.getGlobalLock());
-							std::cerr << "[V] " << readsParsed << "\t" << procrtc.formatTime(procrtc.getElapsedSeconds()) << "\t" << libmaus::util::MemUsage() << (algn->final?"\tfinal":"") << std::endl;
+							std::cerr << "[V] " << readsParsed << "\t" << procrtc.formatTime(procrtc.getElapsedSeconds()) << "\t" << libmaus::util::MemUsage() <<"\t" << libmaus::autoarray::AutoArrayMemUsage() << (algn->final?"\tfinal":"") << std::endl;
 							readsParsedLastPrint = readsParsed;
 						}				
 					}
@@ -1593,7 +1641,7 @@ namespace libmaus
 						#endif
 
 						// return buffer
-						fragmentBufferFreeListPostSort.put(algn);
+						fragmentBufferFreeListPostSort->put(algn);
 						checkPostSortPendingQueue();
 					}
 				
@@ -1910,7 +1958,7 @@ namespace libmaus
 						#endif
 
 						// return FragmentAlignmentBuffer after copying is finished
-						fragmentBufferFreeListPreSort.put(FAB);
+						fragmentBufferFreeListPreSort->put(FAB);
 						checkValidatedRewritePending();
 
 						// put block in ready for compression queue
@@ -1943,7 +1991,7 @@ namespace libmaus
 						
 						if ( FAB )
 						{
-							FragmentAlignmentBuffer::shared_ptr_type outFAB = fragmentBufferFreeListPostSort.getIf();
+							FragmentAlignmentBuffer::shared_ptr_type outFAB = fragmentBufferFreeListPostSort->getIf();
 							
 							if ( outFAB )
 							{
@@ -2054,7 +2102,7 @@ namespace libmaus
 						sortcontext->enqueBaseSortPackages(baseSortPackages,FABBSWPDid /* base sort dispatcher */ );
 
 						// return alignment buffer
-						parseBlockFreeList.put(algn);
+						parseBlockFreeList->put(algn);
 						// check for more parsing
 						checkParsePendingList();
 					}
@@ -2081,7 +2129,7 @@ namespace libmaus
 						
 						if ( algn )
 						{
-							FragmentAlignmentBuffer::shared_ptr_type FAB = fragmentBufferFreeListPreSort.getIf();
+							FragmentAlignmentBuffer::shared_ptr_type FAB = fragmentBufferFreeListPreSort->getIf();
 							
 							if ( FAB )
 							{
@@ -3409,6 +3457,12 @@ int main(int argc, char * argv[])
 			);
 			VC->enqueReadPackage();
 			VC->waitDecodingFinished();
+			VC->printSizes(std::cerr);
+			VC->printPackageFreeListSizes(std::cerr);
+			#if defined(AUTOARRAY_TRACE)
+			libmaus::autoarray::autoArrayPrintTraces(std::cerr);
+			#endif
+			VC->freeBuffers();
 			VC->flushReadEndsLists();
 			// VC->flushBlockFile();
 
@@ -3423,8 +3477,12 @@ int main(int argc, char * argv[])
 			libmaus::autoarray::AutoArray<char> sheader(hostrstr.size(),false);
 			std::copy(hostrstr.begin(),hostrstr.end(),sheader.begin());
 			
+			std::cerr << "before " << libmaus::util::MemUsage() << std::endl;
+			
 			VC.reset();
 			
+			std::cerr << "after " << libmaus::util::MemUsage() << std::endl;
+						
 			std::cerr << "[V] blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 			
 			rtc.start();
@@ -3443,7 +3501,7 @@ int main(int argc, char * argv[])
 
 			STP.terminate();
 			STP.join();
-
+			
 			#if 0			
 			std::cerr << "blocksParsed=" << VC.blocksParsed << std::endl;
 			std::cerr << "maxleftoff=" << VC.maxleftoff << std::endl;
@@ -3532,7 +3590,7 @@ int main(int argc, char * argv[])
 			#endif
 		}
 		
-		std::cerr << "[V] run time " << progrtc.formatTime(progrtc.getElapsedSeconds()) << " (" << progrtc.getElapsedSeconds() << " s)" << std::endl;
+		std::cerr << "[V] run time " << progrtc.formatTime(progrtc.getElapsedSeconds()) << " (" << progrtc.getElapsedSeconds() << " s)" << "\t" << libmaus::util::MemUsage() << std::endl;
 	}
 	catch(std::exception const & ex)
 	{

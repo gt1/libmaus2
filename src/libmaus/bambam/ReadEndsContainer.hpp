@@ -711,6 +711,27 @@ namespace libmaus
 				
 				dptr = P.p;		
 			}
+
+			size_t byteSize() const
+			{
+				return
+					A.byteSize() +
+					sizeof(iptr) +
+					sizeof(dptr) +
+					tempfilename.size() +
+					tempfilenameindex.size() + 
+					sizeof(pSOS) +
+					(pSOS ? pSOS->byteSize() : 0) +
+					sizeof(Pindexer) +
+					(Pindexer ? Pindexer->byteSize() : 0) +
+					sizeof(indexerpos) +
+					(indexblockstart.size() * sizeof(uint64_t)) +
+					tmpoffsetintervals.size() * sizeof(upair) +
+					tmpoutcnts.size() * sizeof(uint64_t) +
+					sizeof(copyAlignments) +
+					sizeof(minlen) +
+					sizeof(decodingPrepared);
+			}
 		};
 	}
 }

@@ -62,6 +62,20 @@ namespace libmaus
 				//! current parse pointer
 				size_t cPP;
 				
+				size_t byteSize() const
+				{
+					return
+						D.byteSize() +
+						sizeof(uncompdatasize) +
+						sizeof(P) +
+						sizeof(final) +
+						sizeof(streamid) +
+						sizeof(blockid) +
+						PP.byteSize() +
+						sizeof(nPP) +
+						sizeof(cPP);
+				}
+				
 				char const * appendData(uint8_t const * d, size_t const c)
 				{
 					ptrdiff_t const o = P - D.begin();

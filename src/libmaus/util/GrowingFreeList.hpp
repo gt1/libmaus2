@@ -59,10 +59,25 @@ namespace libmaus
 			{
 				
 			}
+			
+			size_t capacity()
+			{
+				return alloclist.size();
+			}
+			
+			size_t free()
+			{
+				return freelistfill;
+			}
 				
 			~GrowingFreeList()
 			{
 				cleanup();
+			}
+			
+			size_t getAllSize() const
+			{
+				return freelistfill;
 			}
 			
 			std::vector < typename type_info_type::pointer_type > getAll()
@@ -127,6 +142,24 @@ namespace libmaus
 			{
 				freelist[freelistfill++] = p;
 			}
+
+			size_t byteSize()
+			{
+				typedef typename type_info_type::pointer_type pointer_type;
+				std::vector<pointer_type> V = getAll();
+				size_t s = 0;
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					s += V[i]->byteSize();
+				put(V);
+				
+				s += alloclist.byteSize();
+				s += freelist.byteSize();
+				s += sizeof(freelistfill);
+				s += sizeof(allocator);
+				
+				return s;
+			}
+
 		};
 	}
 }

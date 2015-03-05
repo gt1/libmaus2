@@ -48,6 +48,16 @@ namespace libmaus
 				uint8_t * pc;
 				uint8_t * pe;
 				meta_info_type meta;
+				
+				size_t byteSize() const
+				{
+					return
+						A.byteSize() +
+						sizeof(pa) +
+						sizeof(pc) +
+						sizeof(pe) +
+						meta.byteSize();
+				}
 												
 				GenericInputBlock(
 					uint64_t const rsize

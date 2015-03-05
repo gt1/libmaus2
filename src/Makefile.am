@@ -972,7 +972,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/SimpleHashSetInsDel.hpp \
 	libmaus/util/LineBuffer.hpp \
 	libmaus/util/UnsignedIntegerIndexIterator.hpp \
-	libmaus/util/FiniteSizeHeap.hpp
+	libmaus/util/FiniteSizeHeap.hpp \
+	libmaus/util/UnitNum.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

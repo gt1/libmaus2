@@ -33,6 +33,11 @@ namespace libmaus
 			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			libmaus::bitio::BitVector B;
+			
+			size_t byteSize() const
+			{
+				return B.byteSize();
+			}
 
 			static libmaus::bambam::BamAuxFilterVector::unique_ptr_type parseAuxFilterList(libmaus::util::ArgInfo const & arginfo)
 			{

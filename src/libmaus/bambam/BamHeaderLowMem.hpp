@@ -50,6 +50,7 @@ namespace libmaus
 			
 			typedef uint32_t offset_type;
 			
+			
 			libmaus::autoarray::AutoArray<char> Atext;
 			char * text;
 			libmaus::util::LineAccessor::unique_ptr_type PLA;
@@ -1428,7 +1429,30 @@ namespace libmaus
 				encodeFilteredChromosomeVector(ostr,IBV);
 			}
 
-		};
+			size_t byteSize()
+			{
+				return
+					Atext.byteSize() +
+					sizeof(text) +
+					sizeof(PLA) +
+					(PLA ? PLA->byteSize() : 0) +
+					SQtext.byteSize() +
+					LNvec.byteSize() +
+					SQoffsets.byteSize() +
+					sizeof(Psqbitvec) +
+					(Psqbitvec ? Psqbitvec->byteSize() : 0) +
+					sizeof(HDid) +
+					PGidtext.byteSize() +
+					PGidsort.byteSize() +
+					RGidtext.byteSize() +
+					RGidsort.byteSize() +
+					sizeof(noparidstring) +
+					rglines.size() * sizeof(uint32_t) + sizeof(rglines) +
+					libs.size() * sizeof(std::string) + sizeof(libs) +
+					rgtolib.size() * sizeof(uint32_t) + sizeof(rgtolib) +
+					RGTrie->byteSize() +
+					RGCSH->byteSize();
+			}		};
 		
 		inline std::ostream & operator<<(::std::ostream & out, ::libmaus::bambam::BamHeaderLowMem const & BHLM)
 		{

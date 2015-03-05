@@ -40,6 +40,12 @@ namespace libmaus
 			
 			SimpleThreadPoolWorkPackageFreeList() : freelistFill(0) {}
 			
+			size_t size()
+			{
+				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				return packages.size();				
+			}
+			
 			package_type * getPackage()
 			{
 				libmaus::parallel::ScopePosixSpinLock llock(lock);

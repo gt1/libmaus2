@@ -73,7 +73,7 @@ bool  libmaus::autoarray::AutoArrayMemUsage::operator!=(libmaus::autoarray::Auto
 	return ! ((*this)==o);
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu)
+std::ostream & libmaus::autoarray::operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu)
 {
 	#if defined(_OPENMP)
 	libmaus::autoarray::AutoArray_lock.lock();
@@ -87,3 +87,176 @@ std::ostream & operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUs
 	#endif			
 	return out;
 }
+
+#if defined(AUTOARRAY_TRACE)
+#include <libmaus/util/PosixExecute.hpp>
+#include <libmaus/util/UnitNum.hpp>
+
+#include <set>
+
+void libmaus::autoarray::autoArrayPrintTraces(std::ostream & out)
+{
+	libmaus::parallel::ScopePosixSpinLock slock(tracelock);
+	std::sort(tracevector.begin(),tracevector.end());
+	std::reverse(tracevector.begin(),tracevector.end());
+	
+	std::vector< std::vector<std::string> > traces;
+
+	for ( uint64_t i = 0; i < tracevector.size(); ++i )
+	{
+		char ** strings = backtrace_symbols((void **)(&(tracevector[i].P[0])),tracevector[i].tracelength);
+
+		std::vector<std::string> V;
+		for ( size_t j = 0; j < tracevector[i].tracelength; ++j )
+			V.push_back(std::string(strings[j]));
+			
+		traces.push_back(V);
+
+		free(strings);
+	}
+	
+	std::map<std::string,std::set<std::string> > exes;
+	for ( uint64_t i = 0; i < traces.size(); ++i )
+		for ( uint64_t j = 0; j < traces[i].size(); ++j )
+		{
+			std::string exe = traces[i][j];
+		
+			if ( exe.find('(') != std::string::npos )
+			{
+				exe = exe.substr(0,exe.find('('));
+
+				std::string adr = traces[i][j];
+			
+				if ( adr.find("[0x") != std::string::npos )
+				{
+					adr = adr.substr(adr.find("[0x")+1);
+				
+					if ( adr.size() && adr[adr.size()-1] == ']' )
+					{
+						adr = adr.substr(0,adr.size()-1);
+						exes[exe].insert(adr);
+					}
+				}
+			}
+		}
+	
+	std::map< std::string, std::map<std::string,std::string> > linenumbers;	
+	for ( std::map<std::string,std::set<std::string> >::const_iterator ita = exes.begin(); ita != exes.end(); ++ita )
+	{
+		std::string const exe = ita->first;
+		std::set<std::string> const & adrs = ita->second;
+
+		std::ostringstream comlinestr;
+		comlinestr << "/usr/bin/addr2line" << " -e " << exe;
+		
+		for ( std::set<std::string>::const_iterator sita = adrs.begin(); sita != adrs.end(); ++sita )
+			comlinestr << " " << *sita;
+		std::string const comline = comlinestr.str();
+						
+		std::string addrout,addrerr;
+		::libmaus::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
+		
+		std::vector<std::string> outputlines;
+		std::istringstream addristr(addrout);
+		while ( addristr )
+		{
+			std::string line;
+			std::getline(addristr,line);
+			if ( line.size() )
+				outputlines.push_back(line);
+		}
+		
+		if ( outputlines.size() == adrs.size() )
+		{
+			uint64_t j = 0;
+			for ( std::set<std::string>::const_iterator sita = adrs.begin(); sita != adrs.end(); ++sita )
+				linenumbers[exe][*sita /* adr */] = outputlines[j++];
+		}
+	}
+	
+	for ( uint64_t i = 0; i < tracevector.size(); ++i )
+	{
+		out << std::string(80,'-') << std::endl;
+		char ** strings = backtrace_symbols((void **)(&(tracevector[i].P[0])),tracevector[i].tracelength);
+ 
+		for ( size_t j = 0; j < tracevector[i].tracelength; ++j )
+		{
+			std::string exe = strings[j];
+			
+			if ( exe.find('(') != std::string::npos )
+				exe = exe.substr(0,exe.find('('));
+			
+			std::string adr = strings[j];
+			
+			if ( adr.find("[0x") != std::string::npos )
+			{
+				adr = adr.substr(adr.find("[0x")+1);
+				
+				if ( adr.size() && adr[adr.size()-1] == ']' )
+					adr = adr.substr(0,adr.size()-1);
+			}
+			else
+			{
+				adr = std::string();
+			}
+			
+			std::string mang = strings[j];
+			if ( mang.find("(") != std::string::npos )
+			{
+				mang = mang.substr(mang.find("(")+1);
+				if ( mang.find(")") != std::string::npos )
+				{
+					mang = mang.substr(0,mang.find(")"));
+					
+					if ( mang.find("+0x") != std::string::npos )
+					{
+						mang = mang.substr(0,mang.find("+0x"));
+					}
+					else
+					{
+						mang = std::string();
+					}
+					
+					mang = libmaus::util::Demangle::demangleName(mang);
+				}
+				else
+				{
+					mang = std::string();
+				}
+			}
+			else
+			{
+				mang = std::string();
+			}
+
+			std::string addrout;
+			addrout =
+				(linenumbers.find(exe) != linenumbers.end() &&
+				linenumbers.find(exe)->second.find(adr) != linenumbers.find(exe)->second.end())
+				?
+				linenumbers.find(exe)->second.find(adr)->second : std::string();
+			
+			if ( mang.size() )
+			{
+				out << mang << "\t" << addrout << std::endl;
+			}
+			else
+			{		
+				out << strings[j] << "\t" << addrout;
+				if ( mang.size() )
+					out << "\t" << mang;
+				out << std::endl;
+			}
+		}
+
+		out << "type=" << tracevector[i].type << std::endl;
+		out << "remcnt=" << libmaus::util::UnitNum::unitNum(tracevector[i].allocbytes - tracevector[i].freebytes) << std::endl;
+		out << "alloccnt=" << tracevector[i].alloccnt << std::endl;
+		out << "allocbytes=" << tracevector[i].allocbytes << std::endl;
+		out << "freecnt=" << tracevector[i].freecnt << std::endl;
+		out << "freebytes=" << tracevector[i].freebytes << std::endl;
+
+		free(strings);         			
+	}			
+}
+#endif

@@ -252,6 +252,20 @@ namespace libmaus
 			{
 				return size() ? lineInterval(size()-1).second : 0;
 			}
+
+			size_t byteSize() const
+			{
+				return
+					sizeof(endsonnewline) +
+					sizeof(nlns) +
+					sizeof(numlines) +
+					sizeof(numsuperblocks) + 
+					S.byteSize() +
+					M.byteSize() +
+					B.byteSize() +
+					R->byteSize();
+			}
+
 		};
 	}
 }

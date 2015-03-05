@@ -64,6 +64,16 @@ namespace libmaus
 					
 					return UNIQUE_PTR_MOVE(tptr);
 				}
+				
+				size_t byteSize() const
+				{
+					return
+						path.size() +
+						sizeof(finite) +
+						sizeof(start) +
+						sizeof(end) +
+						sizeof(hasheader);
+				}
 			};
 			
 			std::ostream & operator<<(std::ostream & out, GenericInputControlStreamInfo const & G);

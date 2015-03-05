@@ -39,6 +39,11 @@
 #include <libmaus/util/I386CacheLineSize.hpp>
 #include <libmaus/aio/CheckedInputStream.hpp>
 
+// #define AUTOARRAY_TRACE 7
+#if defined(AUTOARRAY_TRACE)
+#include <execinfo.h>
+#endif
+
 #if defined(LIBMAUS_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -78,7 +83,32 @@ namespace libmaus
 		extern ::libmaus::parallel::OMPLock AutoArray_lock;
 		#endif
 
-		enum alloc_type { alloc_type_cxx, alloc_type_c, alloc_type_memalign_cacheline };
+		enum alloc_type { alloc_type_cxx = 0, alloc_type_c = 1, alloc_type_memalign_cacheline = 2 };
+		
+		#if defined(AUTOARRAY_TRACE)
+		template<unsigned int n>
+		struct AutoArrayBackTrace
+		{
+			void * volatile P[n];
+			unsigned int tracelength;
+			uint64_t volatile alloccnt;
+			uint64_t volatile freecnt;			
+			uint64_t volatile allocbytes;
+			uint64_t volatile freebytes;
+			std::string type;
+			
+			AutoArrayBackTrace() : tracelength(0), alloccnt(0), freecnt(0), allocbytes(0), freebytes(0)
+			{
+				for ( unsigned int i = 0; i < n; ++i )
+					P[i] = NULL;
+			}
+			
+			bool operator<(AutoArrayBackTrace<n> const & O) const
+			{
+				return allocbytes-freebytes < O.allocbytes-O.freebytes;
+			}
+		};
+		#endif
 
 		/**
 		 * class for storing AutoArray memory snapshot
@@ -209,6 +239,14 @@ namespace libmaus
 		};
 		#endif
 
+		#if defined(AUTOARRAY_TRACE)
+		extern std::vector< AutoArrayBackTrace<AUTOARRAY_TRACE> > tracevector;
+		extern libmaus::parallel::PosixSpinLock backtracelock;
+		extern libmaus::parallel::PosixSpinLock tracelock;
+		
+		extern void autoArrayPrintTraces(std::ostream & out);
+		#endif
+
 		/**
 		 * array with automatic deallocation
 		 */
@@ -237,15 +275,120 @@ namespace libmaus
 			mutable N * array;
 			//! number of elements in this array
 			mutable uint64_t n;
+
+			#if defined(AUTOARRAY_TRACE)
+			void * trace[AUTOARRAY_TRACE];
+			unsigned int tracelength;
+
+			void fillTrace()
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(backtracelock);
+				void * ltrace[AUTOARRAY_TRACE+2];
+
+				tracelength = backtrace(&ltrace[0],AUTOARRAY_TRACE+2);
+				
+				if ( tracelength < 2 )
+				{
+					tracelength = 0;
+					for ( unsigned int i = tracelength; i < AUTOARRAY_TRACE; ++i )
+						trace[i] = NULL;
+				}
+				else
+				{
+					for ( unsigned int i = 2; i < AUTOARRAY_TRACE+2; ++i )
+						trace[i-2] = ltrace[i];
+					tracelength -= 2;
+
+					for ( unsigned int i = tracelength; i < AUTOARRAY_TRACE; ++i )
+						trace[i] = NULL;
+				}
+			}
+			
+			uint64_t findTrace()
+			{
+				uint64_t i = 0;
+				
+				for ( ; i < tracevector.size() ; ++i )
+				{
+					bool eq = true;
+					AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
+					
+					for ( unsigned int j = 0; j < AUTOARRAY_TRACE; ++j )
+						if ( A.P[j] != trace[j] )
+						{
+							eq = false;
+							break;
+						}
+						
+					if ( eq )
+						break;
+				}
+
+				return i;			
+			}
+
+			void traceIn(size_t const bytes)
+			{
+				fillTrace();
+				
+				libmaus::parallel::ScopePosixSpinLock slock(tracelock);
+				uint64_t const i = findTrace();
+				
+				if ( i == tracevector.size() )
+				{
+					AutoArrayBackTrace<AUTOARRAY_TRACE> A;
+					
+					for ( unsigned int j = 0; j < AUTOARRAY_TRACE; ++j )
+						A.P[j] = trace[j];
+					A.tracelength = tracelength;
+					
+					if ( bytes )
+						A.alloccnt = 1;
+					else
+						A.alloccnt = 0;
+
+					A.allocbytes = bytes;
+					A.type = getValueTypeName();
+					
+					tracevector.push_back(A);
+				}
+				else
+				{
+					AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
+					
+					if ( bytes )
+						A.alloccnt += 1;
+					A.allocbytes += bytes;				
+				}
+			}
+
+			void traceOut(size_t const bytes)
+			{
+				libmaus::parallel::ScopePosixSpinLock slock(tracelock);
+				uint64_t const i = findTrace();
+				
+				assert ( i < tracevector.size() );
+				
+				AutoArrayBackTrace<AUTOARRAY_TRACE> & A = tracevector[i];
+
+				if ( bytes )
+					A.freecnt += 1;
+					
+				A.freebytes += bytes;				
+			}
+			#endif
 			
 			/**
 			 * increase total AutoArray allocation counter by n elements of type N
 			 * @param n number of elements allocated
 			 **/
-			static void increaseTotalAllocation(uint64_t n)
+			void increaseTotalAllocation(uint64_t n)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(AUTOARRAY_TRACE)
+				traceIn(n * sizeof(N));
+				#endif
 				
+				#if defined(LIBMAUS_HAVE_SYNC_OPS)
 				uint64_t const newmemusage = __sync_add_and_fetch(&AutoArray_memusage, n * sizeof(N));
 				
 				if ( newmemusage > AutoArray_maxmem )
@@ -293,7 +436,7 @@ namespace libmaus
 			 * decrease total AutoArray allocation counter by n elements of type N
 			 * @param n number of elements deallocated
 			 **/
-			static void decreaseTotalAllocation(uint64_t n)
+			void decreaseTotalAllocation(uint64_t n)
 			{
 				#if defined(LIBMAUS_HAVE_SYNC_OPS)
 
@@ -311,6 +454,10 @@ namespace libmaus
 				AutoArray_lock.unlock();
 				#endif
 				
+				#endif
+
+				#if defined(AUTOARRAY_TRACE)
+				traceOut(n * sizeof(N));
 				#endif
 			}
 
@@ -1017,8 +1164,13 @@ namespace libmaus
 			/**
 			 * constructor for empty array
 			 **/
-			AutoArray() : array(0), n(0) 
+			AutoArray() : array(0), n(0)
+			#if defined(AUTOARRAY_TRACE)
+			, tracelength(0)
+			#endif
 			{
+				increaseTotalAllocation(0); 
+				
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(), " << this << std::endl;
 				#endif
@@ -1028,6 +1180,9 @@ namespace libmaus
 			 * @param o
 			 **/
 			AutoArray(AutoArray<N,atype> const & o) : array(0), n(0)
+			#if defined(AUTOARRAY_TRACE)
+			, tracelength(0)
+			#endif
 			{
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(AutoArray &), " << this << std::endl;
@@ -1038,12 +1193,20 @@ namespace libmaus
 				o.array = 0;
 				o.n = 0;
 
+				#if defined(AUTOARRAY_TRACE)
+				for ( unsigned int i = 0; i < AUTOARRAY_TRACE; ++i )
+					trace[i] = o.trace[i];
+				tracelength = o.tracelength;
+				#endif
 			}
 			#if 1
 			/**
 			 * copy constructor
 			 **/
 			AutoArray(uint64_t rn, N const * D) : array(0), n(rn) 
+			#if defined(AUTOARRAY_TRACE)
+			, tracelength(0)
+			#endif
 			{
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(uint64_t, value_type const *), " << this << std::endl;
@@ -1063,6 +1226,9 @@ namespace libmaus
 			 * @param erase if true, elements will be assigned default value of type (i.e. 0 for numbers)
 			 **/
 			AutoArray(uint64_t rn, bool erase = true) : array(0), n(rn) 
+			#if defined(AUTOARRAY_TRACE)
+			, tracelength(0)
+			#endif
 			{
 				#if defined(AUTOARRAY_DEBUG)
 				std::cerr << getTypeName() << "(uint64_t, bool), " << this << std::endl;
@@ -1232,10 +1398,17 @@ namespace libmaus
 				if ( this != &o )
 				{
 					release();
+					
 					this->array = o.array;
 					this->n = o.n;
 					o.array = 0;
 					o.n = 0;
+
+					#if defined(AUTOARRAY_TRACE)
+					for ( unsigned int i = 0; i < AUTOARRAY_TRACE; ++i )
+						trace[i] = o.trace[i];
+					tracelength = o.tracelength;
+					#endif
 				}
 				return *this;
 			}
@@ -1434,8 +1607,9 @@ namespace libmaus
 			
 			return true;
 		}
+
+		std::ostream & operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu);
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu);
 #endif

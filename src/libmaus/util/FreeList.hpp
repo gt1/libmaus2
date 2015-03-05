@@ -135,6 +135,20 @@ namespace libmaus
 				return p;
 			}
 			
+			std::vector<typename type_info_type::pointer_type> getAll()
+			{
+				std::vector<typename type_info_type::pointer_type> V;
+				while ( !empty() )
+					V.push_back(get());
+				return V;
+			}
+			
+			void put(std::vector<typename type_info_type::pointer_type> V)
+			{
+				for ( typename std::vector<typename type_info_type::pointer_type>::size_type i = 0; i < V.size(); ++i )
+					put(V[i]);
+			}
+			
 			void put(typename type_info_type::pointer_type ptr)
 			{
 				freelist[freecnt++] = ptr;
@@ -149,6 +163,22 @@ namespace libmaus
 			uint64_t capacity() const
 			{
 				return freelist.size();
+			}
+
+			size_t byteSize()
+			{
+				typedef typename type_info_type::pointer_type pointer_type;
+				std::vector<pointer_type> V = getAll();
+				size_t s = 0;
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					s += V[i]->byteSize();
+				put(V);
+				
+				s += freelist.byteSize();
+				s += sizeof(freecnt);
+				s += sizeof(allocator);
+				
+				return s;
 			}
 		};
 	}

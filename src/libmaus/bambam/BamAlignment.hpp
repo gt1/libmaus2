@@ -55,6 +55,12 @@ namespace libmaus
 			//! number of bytes valid in D
 			uint64_t blocksize;
 			
+			size_t byteSize() const
+			{
+				return
+					D.byteSize() + sizeof(uint64_t);
+			}
+			
 			/**
 			 * swap this alignment block with another object
 			 *

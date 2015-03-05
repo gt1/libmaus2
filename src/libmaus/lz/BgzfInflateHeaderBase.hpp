@@ -113,6 +113,11 @@ namespace libmaus
 
 				return payloadsize;
 			}
+			
+			size_t byteSize() const
+			{
+				return header.byteSize();
+			}
 		};
 	}
 }

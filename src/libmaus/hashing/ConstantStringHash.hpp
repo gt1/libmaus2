@@ -32,6 +32,7 @@ namespace libmaus
 			typedef ConstantStringHash this_type;
 			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 		
 			private:
 			unsigned int k;
@@ -158,6 +159,11 @@ namespace libmaus
 
 				for ( iterator it = ita; it != ite; ++it )
 					assert ( H [ it->hash() & m ] == it-ita );
+			}
+
+			size_t byteSize() const
+			{
+				return sizeof(k) + sizeof(n) +sizeof(m) + H.byteSize();
 			}
 		};
 	}

@@ -46,6 +46,23 @@ namespace libmaus
 				
 				bool final;
 				
+				size_t byteSize()
+				{
+					uint64_t s =
+						3*sizeof(uint64_t) +
+						1*sizeof(bool) +
+						A.byteSize() +
+						O.byteSize() +
+						P.byteSize() +
+						OSVO.size() * sizeof(size_t);
+						
+					for ( size_t i = 0; i < A.size(); ++i )
+						if ( A[i] )
+							s += A[i]->byteSize();
+
+					return s;
+				}
+				
 				static size_t multSize()
 				{
 					return

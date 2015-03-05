@@ -58,6 +58,21 @@ namespace libmaus
 				uint32_t volatile blocklen;
 				uint64_t volatile parseacc;
 				
+				size_t byteSize()
+				{
+					return
+						BPDPBS.byteSize() +
+						BHPS.byteSize() +
+						sizeof(headerComplete) +
+						sizeof(Pheader) +
+						(Pheader ? Pheader->byteSize() : 0) +
+						concatBuffer.byteSize() + sizeof(concatBufferFill) +
+						sizeof(parser_state) +
+						sizeof(blocklengthread) +
+						sizeof(blocklen) +
+						sizeof(parseacc);
+				}
+				
 				void setHeaderFromText(char const * c, size_t const s)
 				{
 					libmaus::bambam::BamHeaderLowMem::unique_ptr_type Theader(libmaus::bambam::BamHeaderLowMem::constructFromText(c,c+s));

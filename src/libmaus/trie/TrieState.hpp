@@ -186,6 +186,12 @@ namespace libmaus
 			std::vector < LinearTrieStateBase<char_type> > V;
 			typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type H;
 			
+			size_t byteSize()
+			{
+				return V.size() * sizeof(LinearTrieStateBase<char_type>) + 
+					sizeof(H) + (H?H->byteSize() : 0);
+			}
+			
 			unique_ptr_type uclone() const
 			{
 				unique_ptr_type O(new this_type);

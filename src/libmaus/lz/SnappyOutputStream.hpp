@@ -44,6 +44,16 @@ namespace libmaus
 			
 			uint64_t compressedbyteswritten;
 			
+			size_t byteSize() const
+			{
+				return
+					sizeof(out) +
+					B.byteSize() +
+					sizeof(pa) +
+					sizeof(pc) +
+					sizeof(pe);
+			}
+			
 			SnappyOutputStream(stream_type & rout, uint64_t const bufsize = 64*1024)
 			: out(rout), B(bufsize), pa(B.begin()), pc(pa), pe(B.end()), compressedbyteswritten(0)
 			{

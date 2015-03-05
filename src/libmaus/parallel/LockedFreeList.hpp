@@ -123,6 +123,11 @@ namespace libmaus
 			{
 				return base_type::free();
 			}
+			
+			size_t byteSize()
+			{
+				return base_type::byteSize();
+			}
 		};
 	}
 }

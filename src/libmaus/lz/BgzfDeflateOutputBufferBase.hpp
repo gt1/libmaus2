@@ -37,7 +37,12 @@ namespace libmaus
 			BgzfDeflateOutputBufferBase(int const level) : outbuf(getOutBufSizeTwo(level),false) 
 			{
 				setupHeader(outbuf.begin());			
-			} 
+			}
+			
+			size_t byteSize()
+			{
+				return outbuf.byteSize();
+			}
 		};
 	}
 }

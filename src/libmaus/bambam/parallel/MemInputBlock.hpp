@@ -56,6 +56,19 @@ namespace libmaus
 				//! crc32
 				uint32_t volatile crc;
 				
+				size_t byteSize()
+				{
+					return
+						inflateheaderbase.byteSize() +
+						sizeof(payloadsize) +
+						sizeof(C) +
+						sizeof(uncompdatasize) +
+						sizeof(final) +
+						sizeof(streamid) +
+						sizeof(blockid) +
+						sizeof(crc);
+				}
+				
 				MemInputBlock() 
 				: 
 					inflateheaderbase(),

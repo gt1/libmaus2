@@ -47,18 +47,30 @@ namespace libmaus
 					f = 0;
 				}
 				
+				size_t byteSize() const
+				{
+					return
+						A.byteSize() +
+						3 * sizeof(uint8_t *) +
+						sizeof(size_t);
+				}
+				
 				void extend()
 				{
 					ptrdiff_t const off = pc-pa;
 					size_t const sizeadd = std::max(static_cast<size_t>(1),static_cast<size_t>(A.size() / 16));
 					size_t const newsize = A.size() + sizeadd;
 					
+					#if 1
 					libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> B(newsize,false);
 					
 					std::copy(pa,pc,B.begin());
 
 					A = B;
-					
+					#else
+					A.resize(newsize);
+					#endif
+										
 					pa = A.begin();
 					pc = pa + off;
 					pe = A.end();

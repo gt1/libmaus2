@@ -41,6 +41,16 @@ namespace libmaus
 				uint64_t blockid;
 				bool eof;
 				
+				size_t byteSize() const
+				{
+					return
+						blocks.size() * sizeof(std::pair<uint8_t *,uint8_t *>) +
+						sizeof(returnedBlocks) +
+						sizeof(streamid) +
+						sizeof(blockid) +
+						sizeof(eof);
+				}
+				
 				GenericInputBlockSubBlockInfo() : returnedBlocks(0), streamid(0), blockid(0), eof(false)
 				{
 				

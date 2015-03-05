@@ -72,6 +72,25 @@ namespace libmaus
 				
 				std::deque<libmaus::bambam::BamAlignment *> stallBuffer;
 				
+				size_t byteSize()
+				{
+					return 
+						2*sizeof(uint64_t) +
+						A.byteSize() +
+						sizeof(uint8_t *) +
+						sizeof(pointer_type *) +
+						sizeof(uint64_t) +
+						sizeof(bool) + 
+						sizeof(uint64_t) +
+						freelist.byteSize() +
+						MQfilter.byteSize() +
+						MSfilter.byteSize() +
+						MCfilter.byteSize() +
+						MTfilter.byteSize() +
+						MQMSMCMTfilter.byteSize() +
+						stallBuffer.size() * sizeof(libmaus::bambam::BamAlignment *);
+				}
+				
 				void pushFrontStallBuffer(libmaus::bambam::BamAlignment * algn)
 				{
 					stallBuffer.push_front(algn);
