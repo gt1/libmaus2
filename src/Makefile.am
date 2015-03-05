@@ -697,7 +697,6 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/SamParseFragmentParsedInterface.hpp \
 	libmaus/bambam/parallel/SamParseDecompressedBlockFinishedInterface.hpp \
 	libmaus/bambam/parallel/SamParseWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/SamParseWorkPackage.hpp \
 	libmaus/bambam/parallel/SamParseWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/BlockSortControl.hpp \
 	libmaus/bambam/parallel/BlockMergeControl.hpp
