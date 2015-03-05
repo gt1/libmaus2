@@ -2252,101 +2252,6 @@ namespace libmaus
 	}
 }
 
-template<typename order_type>
-void mapperm(int argc, char * argv[])
-{
-	try
-	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
-		uint64_t const textlen = arginfo.getValue<int>("textlen",120);
-		uint64_t const readlen = arginfo.getValue<int>("readlen",110);
-		uint64_t const numreads = (textlen-readlen)+1;
-		std::string const tempfileprefix = arginfo.getDefaultTmpFileName();
-		libmaus::autoarray::AutoArray<char> T(textlen,false);
-		libmaus::random::Random::setup(19);
-		for ( uint64_t i = 0; i < textlen; ++i )
-		{
-			switch ( libmaus::random::Random::rand8() % 4 )
-			{
-				case 0: T[i] = 'A'; break;
-				case 1: T[i] = 'C'; break;
-				case 2: T[i] = 'G'; break;
-				case 3: T[i] = 'T'; break;
-			}
-		}
-
-		::libmaus::bambam::BamHeader header;
-		header.addChromosome("text",textlen);
-		
-		std::vector<uint64_t> P;
-		for ( uint64_t i = 0; i < numreads; ++i )
-			P.push_back(i);
-
-		uint64_t const check = std::min(static_cast<uint64_t>(arginfo.getValue<int>("check",8)),P.size());		
-		std::vector<uint64_t> prev(check,numreads);
-
-		uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
-		libmaus::parallel::SimpleThreadPool STP(numlogcpus);
-		
-		do
-		{		
-			std::ostringstream out;
-			::libmaus::bambam::BamWriter::unique_ptr_type bamwriter(new ::libmaus::bambam::BamWriter(out,header,0,0));
-			
-			bool print = false;
-			for ( uint64_t i = 0; i < check; ++i )
-				if ( P[i] != prev[i] )
-					print = true;
-
-			if ( print )
-			{
-				for ( uint64_t i = 0; i < check; ++i )
-				{
-					std::cerr << P[i] << ";";
-					prev[i] = P[i];
-				}
-				std::cerr << std::endl;
-			}
-					
-			for ( uint64_t j = 0; j < P.size(); ++j )
-			{
-				uint64_t const i = P[j];
-				
-				std::ostringstream rnstr;
-				rnstr << "r" << "_" << std::setw(6) << std::setfill('0') << i;
-				std::string const rn = rnstr.str();
-				
-				std::string const read(T.begin()+i,T.begin()+i+readlen);
-				// std::cerr << read << std::endl;
-
-				bamwriter->encodeAlignment(rn,0 /* refid */,i,30, 0, 
-					libmaus::util::NumberSerialisation::formatNumber(readlen,0) + "M", 
-					-1,-1, -1, read, std::string(readlen,'H'));
-				bamwriter->commit();
-			}
-			
-			bamwriter.reset();
-
-			std::istringstream in(out.str());
-			std::ostringstream ignout;
-			libmaus::bambam::parallel::BlockSortControl<order_type> VC(
-				libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam,STP,in,0 /* comp */,tempfileprefix);
-			VC.enqueReadPackage();
-			VC.waitDecodingFinished();
-
-		} while ( std::next_permutation(P.begin(),P.end()) );
-		
-		// std::cout << out.str();
-
-		STP.terminate();
-		STP.join();
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-	}
-}
-
 namespace libmaus
 {
 	namespace bambam
@@ -3372,223 +3277,84 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		#if 0
-		{
-			libmaus::util::ArgInfo const arginfo(argc,argv);
-			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
-			
-			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> in;
-			for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
-			{
-				std::string const fn = arginfo.restargs[i];
-				in.push_back(
-					GenericInputControlStreamInfo(fn,false /* finite */,
-						0, /* start */
-						0, /* end */
-						true /* has header */
-					)
-				);
-			}
-			
-			uint64_t const inputblocksize = 1024*1024;
-			uint64_t const inputblocksperfile = 8;
-			uint64_t const mergebuffersize = 1024*1024;
-			uint64_t const mergebuffers = 16;
-			uint64_t const complistsize = 64;
-
-			libmaus::parallel::SimpleThreadPool STP(numlogcpus);			
-			GenericInputControl GIC(STP,in,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
-			GIC.addPending();
-			
-			GIC.waitCompressionFinished();
-			std::cerr << "fini." << std::endl;
-
-			STP.terminate();
-			STP.join();
-		}
-		
-		return 0;
-		#endif
-	
 		libmaus::timing::RealTimeClock progrtc; progrtc.start();
 		libmaus::util::ArgInfo const arginfo(argc,argv);
-		int const fmapperm = arginfo.getValue<int>("mapperm",0);
 		typedef libmaus::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
 		// typedef libmaus::bambam::parallel::FragmentAlignmentBufferNameComparator order_type;
 		
-		if ( fmapperm )
+		libmaus::timing::RealTimeClock rtc;
+		
+		rtc.start();
+		uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
+		libmaus::aio::PosixFdInputStream in(STDIN_FILENO,256*1024);
+		std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
+		int const templevel = arginfo.getValue<int>("level",1);
+
+		std::string const sinputformat = arginfo.getUnparsedValue("inputformat","bam");
+		libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_enum inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
+		
+		if ( sinputformat == "bam" )
 		{
-			mapperm<order_type>(argc,argv);
+			inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
+		}
+		else if ( sinputformat == "sam" )
+		{
+			inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_sam;			
 		}
 		else
 		{
-			libmaus::timing::RealTimeClock rtc;
-			
-			rtc.start();
-			uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
-			libmaus::aio::PosixFdInputStream in(STDIN_FILENO,256*1024);
-			std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
-			int const templevel = arginfo.getValue<int>("level",1);
-
-			std::string const sinputformat = arginfo.getUnparsedValue("inputformat","bam");
-			libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_enum inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
-			
-			if ( sinputformat == "bam" )
-			{
-				inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
-			}
-			else if ( sinputformat == "sam" )
-			{
-				inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_sam;			
-			}
-			else
-			{
-				libmaus::exception::LibMausException lme;
-				lme.getStream() << "Unknown input format " << sinputformat << std::endl;
-				lme.finish();
-				throw lme;				
-			}
-						
-			libmaus::parallel::SimpleThreadPool STP(numlogcpus);
-			libmaus::bambam::parallel::BlockSortControl<order_type>::unique_ptr_type VC(
-				new libmaus::bambam::parallel::BlockSortControl<order_type>(
-					inform,STP,in,templevel,tmpfilebase
-				)
-			);
-			VC->enqueReadPackage();
-			VC->waitDecodingFinished();
-			VC->printSizes(std::cerr);
-			VC->printPackageFreeListSizes(std::cerr);
-			#if defined(AUTOARRAY_TRACE)
-			libmaus::autoarray::autoArrayPrintTraces(std::cerr);
-			#endif
-			VC->freeBuffers();
-			VC->flushReadEndsLists();
-			// VC->flushBlockFile();
-
-			std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
-			libmaus::bitio::BitVector::unique_ptr_type Pdupvec(VC->releaseDupBitVector());
-			libmaus::bambam::BamHeader::unique_ptr_type Pheader(VC->getHeader());
-			::libmaus::bambam::BamHeader::unique_ptr_type uphead(libmaus::bambam::BamHeaderUpdate::updateHeader(arginfo,*Pheader,"testparallelbamblocksort",PACKAGE_VERSION));
-			uphead->changeSortOrder("coordinate");
-			std::ostringstream hostr;
-			uphead->serialise(hostr);
-			std::string const hostrstr = hostr.str();
-			libmaus::autoarray::AutoArray<char> sheader(hostrstr.size(),false);
-			std::copy(hostrstr.begin(),hostrstr.end(),sheader.begin());
-			
-			std::cerr << "before " << libmaus::util::MemUsage() << std::endl;
-			
-			VC.reset();
-			
-			std::cerr << "after " << libmaus::util::MemUsage() << std::endl;
-						
-			std::cerr << "[V] blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
-			
-			rtc.start();
-			uint64_t const inputblocksize = 1024*1024;
-			uint64_t const inputblocksperfile = 8;
-			uint64_t const mergebuffersize = 256*1024*1024;
-			uint64_t const mergebuffers = 4;
-			uint64_t const complistsize = 32;
-			int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
-
-			libmaus::bambam::parallel::GenericInputControl GIC(
-				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
-			GIC.addPending();			
-			GIC.waitWritingFinished();
-			std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
-
-			STP.terminate();
-			STP.join();
-			
-			#if 0			
-			std::cerr << "blocksParsed=" << VC.blocksParsed << std::endl;
-			std::cerr << "maxleftoff=" << VC.maxleftoff << std::endl;
-			std::cerr << "maxrightoff=" << VC.maxrightoff << std::endl;
-			
-				libmaus::aio::PosixFdInputStream PFIS(alfn);
-			libmaus::bambam::BamHeaderLowMem const & loheader = *(VC.parseInfo.Pheader);
-			std::pair<char const *, char const *> const headertext = loheader.getText();
-			libmaus::bambam::BamHeader const header(std::string(headertext.first,headertext.second));
-			::libmaus::bambam::BamHeader::unique_ptr_type uphead(libmaus::bambam::BamHeaderUpdate::updateHeader(arginfo,header,"testparallelbamblocksort",PACKAGE_VERSION));
-			uphead->changeSortOrder("coordinate");
-			libmaus::bitio::BitVector const & dupbit = VC.getDupBitVector();
-			                                                                                                                                                                                
-			libmaus::bambam::BamFormatAuxiliary formaux;
-
-			libmaus::bambam::parallel::GenericInputControlStreamInfo(blockfilename,
-				true /* finite */,
-				blockStarts[i],
-				blockEnds[i],
-				false /* has header */
-			)
-			
-			libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Ain(VC.blockAlgnCnt.size());
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateStream::unique_ptr_type> Bin(VC.blockAlgnCnt.size());
-			::libmaus::autoarray::AutoArray< ::libmaus::bambam::BamAlignment > algns(VC.blockAlgnCnt.size());
-			libmaus::bambam::BamAlignmentPosComparator const BAPC(0);
-			::libmaus::bambam::BamAlignmentHeapComparator<libmaus::bambam::BamAlignmentPosComparator> heapcmp(BAPC,algns.begin());
-			std::vector<uint64_t> cnt = VC.blockAlgnCnt;
-			::std::priority_queue< uint64_t, std::vector<uint64_t>, ::libmaus::bambam::BamAlignmentHeapComparator<libmaus::bambam::BamAlignmentPosComparator> > Q(heapcmp);
-			
-			// open files and set up heap
-			for ( uint64_t i = 0; i < VC.blockAlgnCnt.size(); ++i )
-			{
-				libmaus::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus::aio::PosixFdInputStream(alfn));
-				Ain[i] = UNIQUE_PTR_MOVE(tptr);
-				Ain[i]->clear();
-				Ain[i]->seekg(VC.blockStarts[i]);
-				libmaus::lz::BgzfInflateStream::unique_ptr_type bptr(new libmaus::lz::BgzfInflateStream(*Ain[i]));
-				Bin[i] = UNIQUE_PTR_MOVE(bptr);
-				
-				if ( cnt[i]-- )
-				{
-					::libmaus::bambam::BamDecoder::readAlignmentGz(*Bin[i],algns[i],0 /* no header for validation */,false /* no validation */);
-					Q.push(i);				
-				}
-			}
-			
-			uint32_t const dupflag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
-			uint32_t const dupmask = ~dupflag;
-
-			// set up alignment writer
-			libmaus::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus::bambam::BamBlockWriterBaseFactory::construct(*uphead,arginfo));
-			libmaus::bambam::BamAuxFilterVector filter;
-			filter.set('Z','R');
-			while ( Q.size() )
-			{
-				uint64_t const t = Q.top(); Q.pop();
-
-				// mask out dup flag				
-				algns[t].putFlags(algns[t].getFlags() & dupmask);
-
-				// get rank
-				int64_t const rank = algns[t].getRank();
-				// mark as duplicate if in bit vector
-				if ( rank >= 0 && dupbit.get(rank) )
-					algns[t].putFlags(algns[t].getFlags() | dupflag);
-					
-				algns[t].filterOutAux(filter);
-
-				// write alignment
-				Pwriter->writeAlignment(algns[t]);
-				
-				// see if there is a next alignment for this block
-				if ( cnt[t]-- )
-				{
-					::libmaus::bambam::BamDecoder::readAlignmentGz(*Bin[t],algns[t],0 /* bamheader */, false /* do not validate */);
-					Q.push(t);
-				}
-			}
-			Pwriter.reset();
-			
-			for ( uint64_t i = 0; i < VC.blockAlgnCnt.size(); ++i )
-			{
-				std::cerr << "[B] " << Ain[i]->tellg() << "\t" << VC.blockEnds[i] << std::endl;
-			}
-			#endif
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "Unknown input format " << sinputformat << std::endl;
+			lme.finish();
+			throw lme;				
 		}
+					
+		libmaus::parallel::SimpleThreadPool STP(numlogcpus);
+		libmaus::bambam::parallel::BlockSortControl<order_type>::unique_ptr_type VC(
+			new libmaus::bambam::parallel::BlockSortControl<order_type>(
+				inform,STP,in,templevel,tmpfilebase
+			)
+		);
+		VC->enqueReadPackage();
+		VC->waitDecodingFinished();
+		VC->printSizes(std::cerr);
+		VC->printPackageFreeListSizes(std::cerr);
+		#if defined(AUTOARRAY_TRACE)
+		libmaus::autoarray::autoArrayPrintTraces(std::cerr);
+		#endif
+		VC->freeBuffers();
+		VC->flushReadEndsLists();
+
+		std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
+		libmaus::bitio::BitVector::unique_ptr_type Pdupvec(VC->releaseDupBitVector());
+		libmaus::bambam::BamHeader::unique_ptr_type Pheader(VC->getHeader());
+		::libmaus::bambam::BamHeader::unique_ptr_type uphead(libmaus::bambam::BamHeaderUpdate::updateHeader(arginfo,*Pheader,"testparallelbamblocksort",PACKAGE_VERSION));
+		uphead->changeSortOrder("coordinate");
+		std::ostringstream hostr;
+		uphead->serialise(hostr);
+		std::string const hostrstr = hostr.str();
+		libmaus::autoarray::AutoArray<char> sheader(hostrstr.size(),false);
+		std::copy(hostrstr.begin(),hostrstr.end(),sheader.begin());		
+		VC.reset();
+					
+		std::cerr << "[V] blocks generated in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+		
+		rtc.start();
+		uint64_t const inputblocksize = 1024*1024;
+		uint64_t const inputblocksperfile = 8;
+		uint64_t const mergebuffersize = 256*1024*1024;
+		uint64_t const mergebuffers = 4;
+		uint64_t const complistsize = 32;
+		int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
+
+		libmaus::bambam::parallel::GenericInputControl GIC(
+			STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
+		GIC.addPending();			
+		GIC.waitWritingFinished();
+		std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+
+		STP.terminate();
+		STP.join();
 		
 		std::cerr << "[V] run time " << progrtc.formatTime(progrtc.getElapsedSeconds()) << " (" << progrtc.getElapsedSeconds() << " s)" << "\t" << libmaus::util::MemUsage() << std::endl;
 	}
