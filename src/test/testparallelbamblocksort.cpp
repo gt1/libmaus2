@@ -73,7 +73,7 @@ int main(int argc, char * argv[])
 		libmaus::autoarray::autoArrayPrintTraces(std::cerr);
 		#endif
 		VC->freeBuffers();
-		VC->flushReadEndsLists(std::cerr /* metrics stream */);
+		VC->flushReadEndsLists(std::cerr /* metrics stream */,"testparallelbamblocksort");
 
 		std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
 		libmaus::bitio::BitVector::unique_ptr_type Pdupvec(VC->releaseDupBitVector());

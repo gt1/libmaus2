@@ -1147,7 +1147,7 @@ namespace libmaus
 					metrics = libmaus::bambam::DuplicationMetrics::add(metrics,O);
 				}
 				
-				void flushReadEndsLists(std::ostream & metricsstr)
+				void flushReadEndsLists(std::ostream & metricsstr, std::string const progname)
 				{
 					// set up duplicate data structure
 					uint64_t const ureadsParsed = static_cast<uint64_t>(readsParsed);
@@ -1203,7 +1203,7 @@ namespace libmaus
 					std::cerr << "[V] num dups " << dvec.getNumDups() << std::endl;
 
 					// print computed metrics
-					::libmaus::bambam::DuplicationMetrics::printFormatHeader("testparallelbamblocksort",metricsstr);
+					::libmaus::bambam::DuplicationMetrics::printFormatHeader(progname,metricsstr);
 					for ( std::map<uint64_t,::libmaus::bambam::DuplicationMetrics>::const_iterator ita = metrics.begin(); ita != metrics.end();
 						++ita )
 						ita->second.format(metricsstr, parseInfo.Pheader->getLibraryName(ita->first));
