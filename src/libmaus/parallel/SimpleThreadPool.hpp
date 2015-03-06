@@ -84,6 +84,15 @@ namespace libmaus
 				return threads.size();
 			}
 
+			std::string getPanicMessage()
+			{
+                        	libmaus::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
+                        	if ( lme )
+                        		return lme->what();
+				else
+					return std::string();
+			}
+
                         void panic(libmaus::exception::LibMausException const & ex)
                         {
                         	libmaus::parallel::ScopePosixSpinLock lpanicflaglock(panicflaglock);
