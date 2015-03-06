@@ -135,7 +135,7 @@ namespace libmaus
 					libmaus::lz::BgzfInflateZStreamBaseTypeInfo
 				> deccont;
 
-				libmaus::parallel::LockedFreeList<
+				libmaus::parallel::LockedGrowingFreeList<
 					libmaus::bambam::SamInfo,
 					libmaus::bambam::SamInfoAllocator,
 					libmaus::bambam::SamInfoTypeInfo>::unique_ptr_type samInfoFreeList;
@@ -696,18 +696,15 @@ namespace libmaus
 									);
 
 
-									libmaus::parallel::LockedFreeList<
+									libmaus::parallel::LockedGrowingFreeList<
 										libmaus::bambam::SamInfo,
 										libmaus::bambam::SamInfoAllocator,
 										libmaus::bambam::SamInfoTypeInfo>::unique_ptr_type tsamInfoFreeList(
-										new libmaus::parallel::LockedFreeList<
+										new libmaus::parallel::LockedGrowingFreeList<
 										libmaus::bambam::SamInfo,
 										libmaus::bambam::SamInfoAllocator,
 										libmaus::bambam::SamInfoTypeInfo>
-										(
-											STP.getNumThreads(),
-											libmaus::bambam::SamInfoAllocator(parseInfo.Pheader.get())	
-										)
+										(libmaus::bambam::SamInfoAllocator(parseInfo.Pheader.get()))
 									);
 									samInfoFreeList = UNIQUE_PTR_MOVE(tsamInfoFreeList);
 									
@@ -730,8 +727,6 @@ namespace libmaus
 								}
 							}
 						}
-
-						std::vector<libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type> readyList;
 
 						{
 							libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
@@ -784,7 +779,6 @@ namespace libmaus
 											(SamParsePending(block,i,inputreadbase.samParsePendingQueueNextAbsId++));
 								}
 																
-								readyList.push_back(block);
 								inputreadbase.nextblockid += 1;
 							}
 						}
@@ -1236,6 +1230,9 @@ namespace libmaus
 						sleep(1);
 						// STP.printStateHistogram(std::cerr);
 					}
+					
+					if ( STP.isInPanicMode() )
+						STP.join();
 				}
 				
 				libmaus::autoarray::AutoArray<char> getSerialisedBamHeader()
