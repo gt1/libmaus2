@@ -608,10 +608,13 @@ namespace libmaus
 				quallen = (qualdefined == sam_info_base_field_defined) ? fields[10][1]-fields[10][0] : 0;
 
 				// copy rname to rnext if rnext is =
-				if ( rnamedefined && rnextdefined && rnextlen == 1 && rnext[0] == '=' )
+				if ( /* rnamedefined && */ rnextdefined && rnextlen == 1 && rnext[0] == '=' )
 				{
 					rnext = rname;
 					rnextlen = rnamelen;
+					
+					if ( rnextlen == 1 && rnext[0] == '*' )
+						rnextdefined = sam_info_base_field_undefined;
 				}
 
 				// fill undefined quality string
@@ -862,7 +865,10 @@ namespace libmaus
 					if ( exseqlen != seqlen )
 					{
 						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " for sequence " << std::string(seq,seq+seqlen) << " (sum " << exseqlen << " over match,ins,softclip,equal,diff does not match length of query sequence " << seqlen << ")\n";
+						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " 
+							<< std::string(cigar,cigar+cigarlen) << " for sequence " << std::string(seq,seq+seqlen) 
+							<< " (sum " << exseqlen << " over match,ins,softclip,equal,diff does not match length of query sequence " << seqlen 
+							<< " flags=" << libmaus::bambam::BamAlignmentDecoderBase::flagsToString(flag) << ")\n";
 						lme.finish();
 						throw lme;
 					}
