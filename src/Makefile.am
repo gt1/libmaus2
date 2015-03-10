@@ -1630,7 +1630,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testmapperm \
 	testexternalmemoryindex \
 	testhdf5 \
-	testirods
+	testirods \
+	testfastqtobam
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2084,3 +2085,7 @@ testirods_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 testirods_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
 testirods_DEPENDENCIES = libmaus_irods.a libmaus.la
 
+testfastqtobam_SOURCES  = test/testfastqtobam.cpp
+testfastqtobam_LDADD    = libmaus.la
+testfastqtobam_CPPFLAGS = @WARNCPPFLAGS@
+testfastqtobam_LDFLAGS  = ${AM_LDFLAGS}
