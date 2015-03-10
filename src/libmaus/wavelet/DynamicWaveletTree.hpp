@@ -58,6 +58,11 @@ namespace libmaus
 			{
 				
 			}
+			
+			uint64_t size() const
+			{
+				return n;
+			}
 
 			void insert(uint64_t const key, uint64_t p)
 			{
