@@ -56,10 +56,17 @@ namespace libmaus
 			PosixFdInputStreamBuffer(PosixFdInputStreamBuffer const &);
 			PosixFdInputStreamBuffer & operator=(PosixFdInputStreamBuffer &);
 			
+			inline void setgchecked(char * a, char * b, char * c)
+			{
+				assert ( a <= b );
+				assert ( b <= c );
+				setg(a,b,c);
+			}
+			
 			void init(bool const repos)
 			{
 				// set empty buffer
-				setg(buffer.end(), buffer.end(), buffer.end());
+				setgchecked(buffer.end(), buffer.end(), buffer.end());
 				// seek
 				if ( repos )
 					stream.lseek(symsread);
@@ -131,7 +138,7 @@ namespace libmaus
 					underflow();
 					
 					// skip bytes in block to get to final position
-					setg(
+					setgchecked(
 						eback(),
 						gptr() + (static_cast<int64_t>(sp)-static_cast<int64_t>(tsymsread)), 
 						egptr()
@@ -165,7 +172,7 @@ namespace libmaus
 					// move right but within buffer
 					else if ( (abstarget - cur) > 0 && (abstarget - cur) <= (egptr()-gptr()) )
 					{
-						setg(
+						setgchecked(
 							eback(),
 							gptr()+(abstarget-cur),
 							egptr()
@@ -175,7 +182,7 @@ namespace libmaus
 					// move left within buffer
 					else if ( (abstarget - cur) < 0 && (cur-abstarget) <= (gptr()-eback()) )
 					{
-						setg(
+						setgchecked(
 							eback(),
 							gptr()-(cur-abstarget),
 							egptr()
@@ -220,7 +227,7 @@ namespace libmaus
 					);
 				
 				// set buffer pointers
-				setg(
+				setgchecked(
 					buffer.begin()+putbackspace-putbackcopy,
 					buffer.begin()+putbackspace,
 					buffer.begin()+putbackspace+uncompressedsize);
