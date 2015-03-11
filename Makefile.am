@@ -3,7 +3,7 @@ SUBDIRS = src
 ACLOCAL_AMFLAGS=-I m4
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libmaus.pc libmauslsf.pc libmausdigests.pc @LIBMAUSIRODSPC@
+pkgconfig_DATA = libmaus.pc libmauslsf.pc libmausdigests.pc libmausseqchksumsfactory.pc @LIBMAUSIRODSPC@
 
 doc_DATA = ChangeLog
 

@@ -2539,6 +2539,62 @@ if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
 	LIBMAUSIRODSPC="libmausirods.pc"
 fi
 
+AC_ARG_WITH([gmp],
+            [AS_HELP_STRING([--with-gmp@<:@=PATH@:>@], [path to installed gmp library @<:@default=no@:>@])],
+            [with_gmp=${withval}],
+            [with_gmp=no])
+
+LIBMAUS_HAVE_GMP=
+gmp_CFLAGS=
+gmp_LIBS=
+if test "${with_gmp}" != "no" ; then
+	AC_MSG_CHECKING([whether we can compile a program using the gmp library])
+	LDFLAGS_SAVE=${LDFLAGS}
+	CPPFLAGS_SAVE=${CPPFLAGS}
+	LIBS_SAVE=${LIBS}
+	
+	if test \( ! -z "${with_gmp}" \) -a \( "${with_gmp}" != "yes" \) ; then
+		LDFLAGS="-L${with_gmp}/lib"
+		CPPFLAGS="-I${with_gmp}/include"
+	fi
+
+	LIBS="-lgmp ${LIBS}"
+
+	AC_LANG_PUSH([C++])
+	AC_LINK_IFELSE([AC_LANG_SOURCE([
+#include <gmp.h>
+
+int main(int argc, char * argv[[]]) {
+	return 0;
+}])],
+			have_gmp=yes,
+			have_gmp=no
+		)
+	AC_LANG_POP
+	AC_MSG_RESULT($have_gmp)
+
+	LDFLAGS=${LDFLAGS_SAVE}
+	CPPFLAGS=${CPPFLAGS_SAVE}
+	LIBS=${LIBS_SAVE}
+
+	if test "${have_gmp}" = "yes" ; then
+		if test "${with_gmp}" != "yes" ; then
+			GMPLDFLAGS="-L${with_gmp}/lib"
+			GMPCPPFLAGS="-I${with_gmp}/include"
+		else
+			GMPLDFLAGS=
+			GMPCPPFLAGS=
+		fi
+		LIBMAUS_HAVE_GMP="#define LIBMAUS_HAVE_GMP"
+		GMPLIBS="-lgmp"
+	else
+		GMPLDFLAGS=
+		GMPCPPFLAGS=
+		GMPLIBS=
+	fi
+fi
+
+
 AC_ARG_ENABLE(compile-testprograms,
         AS_HELP_STRING([--enable-compile-testprograms],[enable compilation of uninstalled test programs (default yes)]),
         [compiletestprograms=${enableval}],[compiletestprograms=yes])
@@ -2707,4 +2763,9 @@ AC_SUBST([IOLIBCALLBACKDEFINE])
 AC_SUBST([LIBMAUS_FILEOFFSET_BITS])
 AC_SUBST([LIBMAUS_LARGEFILE_SOURCE])
 AC_SUBST([IOLIBINDEXCALLBACKDEFINE])
-AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
+AC_SUBST([LIBMAUS_HAVE_GMP])
+AC_SUBST([GMPLIBS])
+AC_SUBST([GMPLDFLAGS])
+AC_SUBST([GMPCPPFLAGS])
+AC_SUBST([GMPLIBS])
+AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc libmausseqchksumsfactory.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

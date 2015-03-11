@@ -13,7 +13,7 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
 lib_LTLIBRARIES = libmaus.la libmauslsf.la
-lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a libmaus_irods.a
+lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a libmaus_irods.a libmausseqchksumsfactory.a
 
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
@@ -27,6 +27,9 @@ libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
 
 libmaus_irods_a_SOURCES = libmaus/irods/IRodsSystem.cpp libmaus/irods/IRodsFileBase.cpp
 libmaus_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
+
+libmausseqchksumsfactory_a_SOURCES = libmaus/bambam/ChecksumsFactory.cpp
+libmausseqchksumsfactory_a_CPPFLAGS = @GMPCPPFLAGS@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
@@ -485,7 +488,13 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/DupSetCallbackSharedVector.hpp \
 	libmaus/bambam/SamInfoAllocator.hpp \
 	libmaus/bambam/SamInfoTypeInfo.hpp \
-	libmaus/bambam/RgInfo.hpp
+	libmaus/bambam/RgInfo.hpp \
+	libmaus/bambam/SeqChksumPrimeNumbers.hpp \
+	libmaus/bambam/SeqChksumUpdateContext.hpp \
+	libmaus/bambam/ChecksumsInterface.hpp \
+	libmaus/bambam/ChecksumsFactory.hpp \
+	libmaus/bambam/ChecksumsInterfaceAllocator.hpp \
+	libmaus/bambam/ChecksumsInterfaceTypeInfo.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \

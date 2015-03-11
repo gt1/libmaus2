@@ -250,7 +250,7 @@ namespace libmaus
 		/**
 		 * array with automatic deallocation
 		 */
-		template<typename N, alloc_type atype = alloc_type_cxx>
+		template<typename N, alloc_type atype = alloc_type_cxx, typename erase_type = ArrayErase<N> >
 		struct AutoArray
 		{
 			public:
@@ -1238,7 +1238,7 @@ namespace libmaus
 				allocateArray(n);
 			
 				if ( erase )
-					ArrayErase<N>::erase(array,n);
+					erase_type::erase(array,n);
 					#if 0
 					for ( uint64_t i = 0; i < n; ++i )
 						array[i] = N();
