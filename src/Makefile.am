@@ -176,7 +176,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/CRC32C.cpp \
 	libmaus/digest/CRC32_Core.cpp \
 	libmaus/bambam/parallel/ValidationFragment.cpp \
-	libmaus/bambam/parallel/GenericInputControlStreamInfo.cpp
+	libmaus/bambam/parallel/GenericInputControlStreamInfo.cpp \
+	libmaus/fastx/NameInfoBase.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -700,7 +701,22 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/SamParseWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/BlockSortControl.hpp \
 	libmaus/bambam/parallel/BlockMergeControl.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlocksWritePackage.hpp
+	libmaus/bambam/parallel/GenericInputControlBlocksWritePackage.hpp \
+	libmaus/bambam/parallel/FastQInputDescBase.hpp \
+	libmaus/bambam/parallel/FastqToBamControlInputBlockHeapComparator.hpp \
+	libmaus/bambam/parallel/FastqToBamControlSubReadPending.hpp \
+	libmaus/bambam/parallel/FastqToBamControlSubReadPendingHeapComparator.hpp \
+	libmaus/bambam/parallel/DecompressedBlockReorderHeapComparator.hpp \
+	libmaus/bambam/parallel/FastQInputDesc.hpp \
+	libmaus/bambam/parallel/FastqInputPackage.hpp \
+	libmaus/bambam/parallel/FastqInputPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FastqInputPackageAddPendingInterface.hpp \
+	libmaus/bambam/parallel/FastqInputPackageDispatcher.hpp \
+	libmaus/bambam/parallel/FastqParsePackage.hpp \
+	libmaus/bambam/parallel/FastqParsePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FastqParsePackageFinishedInterface.hpp \
+	libmaus/bambam/parallel/FastqParsePackageDispatcher.hpp \
+	libmaus/bambam/parallel/FastqToBamControl.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -1184,7 +1200,9 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastABPConstants.hpp \
 	libmaus/fastx/FastABPGenerator.hpp \
 	libmaus/fastx/FastaBPSequenceDecoder.hpp \
-	libmaus/fastx/FastaBPDecoder.hpp
+	libmaus/fastx/FastaBPDecoder.hpp \
+	libmaus/fastx/NameInfoBase.hpp \
+	libmaus/fastx/NameInfo.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\
