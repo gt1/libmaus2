@@ -484,7 +484,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ReadEndsBlockIndexSet.hpp \
 	libmaus/bambam/DupSetCallbackSharedVector.hpp \
 	libmaus/bambam/SamInfoAllocator.hpp \
-	libmaus/bambam/SamInfoTypeInfo.hpp
+	libmaus/bambam/SamInfoTypeInfo.hpp \
+	libmaus/bambam/RgInfo.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
