@@ -717,7 +717,9 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FastqParsePackageReturnInterface.hpp \
 	libmaus/bambam/parallel/FastqParsePackageFinishedInterface.hpp \
 	libmaus/bambam/parallel/FastqParsePackageDispatcher.hpp \
-	libmaus/bambam/parallel/FastqToBamControl.hpp
+	libmaus/bambam/parallel/FastqToBamControl.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageDispatcher.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageReturnInterface.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
