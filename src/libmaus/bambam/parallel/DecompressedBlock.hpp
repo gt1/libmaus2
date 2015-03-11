@@ -108,6 +108,21 @@ namespace libmaus
 					std::copy(d,d+c,D.begin()+uncompdatasize);
 					uncompdatasize += c;
 				}
+
+				void pushDataNoSize(uint8_t const * d, size_t const c)
+				{			
+					size_t const nsize = uncompdatasize + c;
+						
+					if ( nsize > D.size() )
+					{
+						ptrdiff_t const o = P - D.begin();
+						D.resize(nsize);
+						P = D.begin() + o;
+					}
+					
+					std::copy(d,d+c,D.begin()+uncompdatasize);
+					uncompdatasize += c;
+				}
 				
 				void pushParsePointer(char const * c)
 				{
