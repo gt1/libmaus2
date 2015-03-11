@@ -699,7 +699,8 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/SamParseWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/SamParseWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/BlockSortControl.hpp \
-	libmaus/bambam/parallel/BlockMergeControl.hpp
+	libmaus/bambam/parallel/BlockMergeControl.hpp \
+	libmaus/bambam/parallel/GenericInputControlBlocksWritePackage.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
