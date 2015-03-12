@@ -22,6 +22,8 @@
 #include <libmaus/bambam/parallel/ValidateBlockFragmentPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp>
 #include <libmaus/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
 
 namespace libmaus
 {
@@ -34,11 +36,16 @@ namespace libmaus
 			{
 				ValidateBlockFragmentPackageReturnInterface   & packageReturnInterface;
 				ValidateBlockFragmentAddPendingInterface & addValidatedPendingInterface;
+				ChecksumsInterfaceGetInterface & getChecksumsInterface;
+				ChecksumsInterfacePutInterface & putChecksumsInterface;
 	
 				ValidateBlockFragmentWorkPackageDispatcher(
 					ValidateBlockFragmentPackageReturnInterface & rpackageReturnInterface,
-					ValidateBlockFragmentAddPendingInterface    & raddValidatedPendingInterface
-				) : packageReturnInterface(rpackageReturnInterface), addValidatedPendingInterface(raddValidatedPendingInterface)
+					ValidateBlockFragmentAddPendingInterface    & raddValidatedPendingInterface,
+					ChecksumsInterfaceGetInterface & rgetChecksumsInterface,
+					ChecksumsInterfacePutInterface & rputChecksumsInterface
+				) : packageReturnInterface(rpackageReturnInterface), addValidatedPendingInterface(raddValidatedPendingInterface),
+				    getChecksumsInterface(rgetChecksumsInterface), putChecksumsInterface(rputChecksumsInterface)
 				{
 				}
 			
@@ -51,6 +58,16 @@ namespace libmaus
 					assert ( BP );
 	
 					bool const ok = BP->dispatch();
+					
+					if ( ok )
+					{
+						ChecksumsInterface::shared_ptr_type Schksums = getChecksumsInterface.getSeqChecksumsObject();
+						if ( Schksums )
+						{
+							BP->updateChecksums(*Schksums);
+							putChecksumsInterface.returnSeqChecksumsObject(Schksums);
+						}
+					}
 									
 					addValidatedPendingInterface.validateBlockFragmentFinished(BP->fragment,ok);
 									
