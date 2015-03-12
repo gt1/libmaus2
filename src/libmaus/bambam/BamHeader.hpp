@@ -401,6 +401,28 @@ namespace libmaus
 				
 				return ostr.str();
 			}
+
+			/**
+			 * filter out checksum lines
+			 *
+			 * @param header text header
+			 * @return filtered header
+			 **/
+			static std::string filterOutChecksum(std::string const & header)
+			{
+				std::istringstream istr(header);
+				std::ostringstream ostr;
+				
+				while ( istr )
+				{
+					std::string line;
+					::std::getline(istr,line);
+					if ( istr && line.size() && (!startsWith(line,"@CO\tTY:checksum")) )
+						ostr << line << std::endl;
+				}
+				
+				return ostr.str();
+			}
 			
 			/**
 			 * get version from header; if no HD line is present or it contains no version number, then
