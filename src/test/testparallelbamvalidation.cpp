@@ -63,6 +63,9 @@
 #include <libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp>
 #include <libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp>
 
+#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
+
 namespace libmaus
 {
 	namespace bambam
@@ -84,7 +87,9 @@ namespace libmaus
 				public ParsedBlockStallInterface,
 				public ParsePackageReturnInterface,
 				public ValidateBlockFragmentPackageReturnInterface,
-				public ValidateBlockFragmentAddPendingInterface
+				public ValidateBlockFragmentAddPendingInterface,
+				public ChecksumsInterfaceGetInterface,
+				public ChecksumsInterfacePutInterface
 			{
 				static unsigned int getInputBlockCountShift()
 				{
@@ -171,6 +176,16 @@ namespace libmaus
 				{
 					return 8*1024*1024;
 				}
+				
+				ChecksumsInterface::shared_ptr_type getSeqChecksumsObject()
+				{
+					return ChecksumsInterface::shared_ptr_type();
+				}
+				
+				void returnSeqChecksumsObject(ChecksumsInterface::shared_ptr_type)
+				{
+				}
+				
 
 				ValidationControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
@@ -186,7 +201,7 @@ namespace libmaus
 					DBWPDid(STP.getNextDispatcherId()),
 					PBWPD(*this,*this,*this,*this,*this),
 					PBWPDid(STP.getNextDispatcherId()),
-					VBFWPD(*this,*this),
+					VBFWPD(*this,*this,*this,*this),
 					VBFWPDid(STP.getNextDispatcherId()),
 					controlInputInfo(in,0,getInputBlockCount()),
 					decompressBlockFreeList(getInputBlockCount() * STP.getNumThreads() * 2),

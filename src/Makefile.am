@@ -728,7 +728,9 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FastqParsePackageDispatcher.hpp \
 	libmaus/bambam/parallel/FastqToBamControl.hpp \
 	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageReturnInterface.hpp
+	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp \
+	libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
@@ -2091,9 +2093,9 @@ testparallelbamrewrite_CPPFLAGS = ${AM_CPPFLAGS}
 testparallelbamrewrite_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamblocksort_SOURCES = test/testparallelbamblocksort.cpp
-testparallelbamblocksort_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testparallelbamblocksort_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB} libmausseqchksumsfactory.a libmausdigests.a libmausdigests_sse4.a @GMPLIBS@
 testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
-testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS} @SNAPPYLDFLAGS@
+testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS} @SNAPPYLDFLAGS@ @GMPLDFLAGS@
 
 testhdf5_SOURCES  = test/testhdf5.cpp
 testhdf5_LDADD    = libmaus.la @HDF5LIBS@

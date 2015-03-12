@@ -39,6 +39,7 @@ int main(int argc, char * argv[])
 		libmaus::aio::PosixFdInputStream in(STDIN_FILENO,256*1024);
 		std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
 		int const templevel = arginfo.getValue<int>("level",1);
+		std::string const hash = arginfo.getValue<std::string>("hash","crc32prod");
 
 		std::string const sinputformat = arginfo.getUnparsedValue("inputformat","bam");
 		libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_enum inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
@@ -62,11 +63,13 @@ int main(int argc, char * argv[])
 		libmaus::parallel::SimpleThreadPool STP(numlogcpus);
 		libmaus::bambam::parallel::BlockSortControl<order_type>::unique_ptr_type VC(
 			new libmaus::bambam::parallel::BlockSortControl<order_type>(
-				inform,STP,in,templevel,tmpfilebase
+				inform,STP,in,templevel,tmpfilebase,hash
 			)
 		);
 		VC->enqueReadPackage();
 		VC->waitDecodingFinished();
+		// VC->printChecksums(std::cerr);
+		VC->printChecksumsForBamHeader(std::cerr);
 		VC->printSizes(std::cerr);
 		VC->printPackageFreeListSizes(std::cerr);
 		#if defined(AUTOARRAY_TRACE)
@@ -98,7 +101,7 @@ int main(int argc, char * argv[])
 		int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
 
 		libmaus::bambam::parallel::BlockMergeControl BMC(
-			STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */);
+			STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash);
 		BMC.addPending();			
 		BMC.waitWritingFinished();
 		std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;

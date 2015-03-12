@@ -96,6 +96,9 @@
 
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp>
 #include <libmaus/lz/BgzfDeflate.hpp>
+
+#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
 			
 namespace libmaus
 {
@@ -130,7 +133,9 @@ namespace libmaus
 				public ParseInfoHeaderCompleteCallback,
 				public FragmentAlignmentBufferRewriteWorkPackageReturnInterface,
 				public FragmentAlignmentBufferRewriteFragmentCompleteInterface,
-				public FragmentAlignmentBufferRewriteUpdateInterval
+				public FragmentAlignmentBufferRewriteUpdateInterval,
+				public ChecksumsInterfaceGetInterface,
+				public ChecksumsInterfacePutInterface				
 			{
 				static unsigned int getInputBlockCountShift()
 				{
@@ -178,7 +183,6 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<BgzfLinearMemCompressWorkPackage> bgzfWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<WriteBlockWorkPackage> writeWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferRewriteWorkPackage> fragmentAlignmentBufferRewriteWorkPackages;
-
 				
 				libmaus::parallel::LockedQueue<ControlInputInfo::input_block_type::shared_ptr_type> decompressPendingQueue;
 				
@@ -275,6 +279,15 @@ namespace libmaus
 					return (1ull<<23);
 				}
 
+				ChecksumsInterface::shared_ptr_type getSeqChecksumsObject()
+				{
+					return ChecksumsInterface::shared_ptr_type();
+				}
+				
+				void returnSeqChecksumsObject(ChecksumsInterface::shared_ptr_type)
+				{
+				}
+
 				RewriteControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
 					std::istream & in,
@@ -292,7 +305,7 @@ namespace libmaus
 					DBWPDid(STP.getNextDispatcherId()),
 					PBWPD(*this,*this,*this,*this,*this),
 					PBWPDid(STP.getNextDispatcherId()),
-					VBFWPD(*this,*this),
+					VBFWPD(*this,*this,*this,*this),
 					VBFWPDid(STP.getNextDispatcherId()),
 					//
 					BLMCWPD(*this,*this,*this,*this,*this),
