@@ -27,17 +27,18 @@ namespace libmaus
 	{
 		struct ChecksumsInterfaceAllocator
 		{
+			std::string hash;
 			libmaus::bambam::BamHeaderLowMem * header;
 			
-			ChecksumsInterfaceAllocator(libmaus::bambam::BamHeaderLowMem * rheader = 0)
-			: header(rheader)
+			ChecksumsInterfaceAllocator(std::string rhash = std::string(), libmaus::bambam::BamHeaderLowMem * rheader = 0)
+			: hash(rhash), header(rheader)
 			{
 			
 			}
 		
 			libmaus::bambam::ChecksumsInterface::shared_ptr_type operator()()
 			{
-				libmaus::bambam::ChecksumsInterface::shared_ptr_type sptr(ChecksumsFactory::constructShared(*header));
+				libmaus::bambam::ChecksumsInterface::shared_ptr_type sptr(ChecksumsFactory::constructShared(hash,*header));
 				return sptr;
 			}
 		};
