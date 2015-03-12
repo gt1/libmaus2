@@ -23,6 +23,8 @@
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp>
 #include <libmaus/parallel/NumCpus.hpp>
 
+#include <libmaus/digest/Digests.hpp>
+
 int main(int argc, char * argv[])
 {
 	try
@@ -40,6 +42,7 @@ int main(int argc, char * argv[])
 		std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
 		int const templevel = arginfo.getValue<int>("level",1);
 		std::string const hash = arginfo.getValue<std::string>("hash","crc32prod");
+		std::string const filehash = arginfo.getValue<std::string>("filehash","md5");
 
 		std::string const sinputformat = arginfo.getUnparsedValue("inputformat","bam");
 		libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_enum inform = libmaus::bambam::parallel::BlockSortControlBase::block_sort_control_input_bam;
@@ -100,15 +103,30 @@ int main(int argc, char * argv[])
 		uint64_t const complistsize = 32;
 		int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
 
-		libmaus::bambam::parallel::BlockMergeControl BMC(
-			STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash);
-		BMC.addPending();			
-		BMC.waitWritingFinished();
+		if ( filehash == "sha512" )
+		{
+			libmaus::bambam::parallel::BlockMergeControl<libmaus::digest::SHA2_512> BMC(
+				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash);
+			BMC.addPending();			
+			BMC.waitWritingFinished();		
+	
+			std::cerr << "[D]\t" << filehash << "\t" << BMC.getFileDigest() << std::endl;
+		}
+		else // if ( filehash == "md5" )
+		{
+			libmaus::bambam::parallel::BlockMergeControl<libmaus::util::MD5> BMC(
+				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash);
+			BMC.addPending();			
+			BMC.waitWritingFinished();
+
+			std::cerr << "[D]\t" << "md5" << "\t" << BMC.getFileDigest() << std::endl;
+		}
+
 		std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 
 		STP.terminate();
 		STP.join();
-		
+
 		std::cerr << "[V] run time " << progrtc.formatTime(progrtc.getElapsedSeconds()) << " (" << progrtc.getElapsedSeconds() << " s)" << "\t" << libmaus::util::MemUsage() << std::endl;
 	}
 	catch(std::exception const & ex)

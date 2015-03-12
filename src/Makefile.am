@@ -730,7 +730,11 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageDispatcher.hpp \
 	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageReturnInterface.hpp \
 	libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp \
-	libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp
+	libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp \
+	libmaus/bambam/parallel/FileChecksumBlockWorkPackage.hpp \
+	libmaus/bambam/parallel/FileChecksumBlockWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/FileChecksumBlockFinishedInterface.hpp \
+	libmaus/bambam/parallel/FileChecksumBlockWorkPackageDispatcher.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

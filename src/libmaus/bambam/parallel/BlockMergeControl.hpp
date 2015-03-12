@@ -41,13 +41,17 @@
 #include <libmaus/parallel/SimpleThreadPool.hpp>
 #include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
 #include <libmaus/parallel/LockedGrowingFreeList.hpp>
-
+#include <libmaus/bambam/parallel/FileChecksumBlockWorkPackageDispatcher.hpp>
+			
 namespace libmaus
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
+			template<
+				typename _file_checksum_type
+			>
 			struct BlockMergeControl : 
 				public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
 				public libmaus::bambam::parallel::GenericInputControlReadAddPendingInterface,
@@ -71,11 +75,14 @@ namespace libmaus
 				public libmaus::bambam::parallel::GenericInputControlBlockWritePackageReturnInterface,
 				public libmaus::bambam::parallel::GenericInputControlBlockWritePackageBlockWrittenInterface,
 				public ChecksumsInterfaceGetInterface,
-				public ChecksumsInterfacePutInterface
+				public ChecksumsInterfacePutInterface,
+				public FileChecksumBlockFinishedInterface,
+				public FileChecksumBlockWorkPackageReturnInterface<_file_checksum_type>
 			{
-				typedef BlockMergeControl this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef _file_checksum_type file_checksum_type;
+				typedef BlockMergeControl<file_checksum_type> this_type;
+				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				libmaus::parallel::SimpleThreadPool & STP;
 				
@@ -100,6 +107,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReorderWorkPackage> rewriteWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockCompressionWorkPackage> compressWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockWritePackage> writeWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::FileChecksumBlockWorkPackage<file_checksum_type> > checksumWorkPackages;
 
 				uint64_t const GICRPDid;
 				libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher GICRPD;
@@ -121,6 +129,9 @@ namespace libmaus
 				
 				uint64_t const GICBWPDid;
 				libmaus::bambam::parallel::GenericInputControlBlockWritePackageDispatcher GICBWPD;
+
+				uint64_t const FCBWPDid;
+				libmaus::bambam::parallel::FileChecksumBlockWorkPackageDispatcher<file_checksum_type> FCBWPD;
 				
 				uint64_t volatile activedecompressionstreams;
 				libmaus::parallel::PosixSpinLock activedecompressionstreamslock;
@@ -223,6 +234,19 @@ namespace libmaus
 				
 				libmaus::bambam::BamHeaderLowMem::unique_ptr_type checksumheader;
 
+				std::map<uint64_t,uint64_t> outputBlocksUnfinishedTasks;
+				libmaus::parallel::PosixSpinLock outputBlocksUnfinishedTasksLock;
+
+				std::priority_queue<
+					libmaus::bambam::parallel::GenericInputControlCompressionPending,
+					std::vector<libmaus::bambam::parallel::GenericInputControlCompressionPending>,
+					libmaus::bambam::parallel::GenericInputControlCompressionPendingHeapComparator
+					> fileChksumQueue;
+				uint64_t volatile fileChksumQueueNext;
+				libmaus::parallel::PosixSpinLock fileChksumQueueLock;
+				
+				file_checksum_type filechecksum;
+
 				void enqueHeader()
 				{
 					libmaus::parallel::ScopePosixSpinLock rlock(compressionPendingLock);
@@ -279,6 +303,8 @@ namespace libmaus
 				  GICRWPDid(STP.getNextDispatcherId()), GICRWPD(*this,*this,*this,*this,BV),
 				  GICBCWPDid(STP.getNextDispatcherId()), GICBCWPD(*this,*this,*this,*this),
 				  GICBWPDid(STP.getNextDispatcherId()), GICBWPD(*this,*this),
+				  FCBWPDid(STP.getNextDispatcherId()), FCBWPD(*this,*this),
+
 				  activedecompressionstreams(in.size()), activedecompressionstreamslock(),
 				  streamParseUnstarted(in.size()), streamParseUnstartedLock(),
 				  mergeheap(in.size()), mergeheaplock(),
@@ -295,7 +321,8 @@ namespace libmaus
 				  compressorFreeList(libmaus::lz::BgzfDeflateZStreamBaseAllocator(level)),
 				  compressedBlockWriteQueueNext(0),
 				  lastBlockWritten(false), lastBlockWrittenLock(),
-				  hash(rhash)
+				  hash(rhash),
+				  fileChksumQueueNext(0)
 				{
 					for ( std::vector<std::istream *>::size_type i = 0; i < in.size(); ++i )
 					{
@@ -311,6 +338,7 @@ namespace libmaus
 					STP.registerDispatcher(GICRWPDid,&GICRWPD);
 					STP.registerDispatcher(GICBCWPDid,&GICBCWPD);
 					STP.registerDispatcher(GICBWPDid,&GICBWPD);
+					STP.registerDispatcher(FCBWPDid,&FCBWPD);
 
 					std::string headertext(sheader.begin(),sheader.end());
 					std::istringstream headerin(headertext);
@@ -329,6 +357,16 @@ namespace libmaus
 
 					// put BAM header in compression queue
 					enqueHeader();
+					
+					filechecksum.init();
+				}
+				
+				std::string getFileDigest()
+				{
+					unsigned int const length = filechecksum.digestlength;
+					libmaus::autoarray::AutoArray<uint8_t> D(length,false);
+					filechecksum.digest(D.begin());
+					return filechecksum.digestToString(D.begin());
 				}
 
 				ChecksumsInterface::shared_ptr_type getCombinedChecksums()
@@ -429,6 +467,11 @@ namespace libmaus
 					}
 				}
 				
+				void fileChecksumBlockWorkPackageReturn(FileChecksumBlockWorkPackage<file_checksum_type> * package)
+				{
+					checksumWorkPackages.returnPackage(package);
+				}
+				
 				void genericInputControlReadWorkPackageReturn(libmaus::bambam::parallel::GenericInputControlReadWorkPackage * package)
 				{
 					readWorkPackages.returnPackage(package);
@@ -513,8 +556,8 @@ namespace libmaus
 						STP.enque(package);
 					}
 				}
-
-				void genericInputControlBlockWritePackageBlockWritten(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP)
+				
+				void returnCompressedBlock(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP)
 				{
 					// return output block
 					compressBufferFreeList.put(GICCP.outblock);
@@ -526,16 +569,95 @@ namespace libmaus
 					}
 					
 					checkBlockOutputQueue();
-					
+				
 					if ( GICCP.final )
 					{
-						// add EOF block
-						libmaus::lz::BgzfDeflate<std::ostream> defl(out);
-						defl.addEOFBlock();
-						
 						// std::cerr << "last block written." << std::endl;
 						libmaus::parallel::ScopePosixSpinLock slock(lastBlockWrittenLock);
 						lastBlockWritten = true;
+					}				
+				}
+
+				void fileChecksumBlockFinished(libmaus::bambam::parallel::GenericInputControlCompressionPending obj)
+				{
+					// ready for checksumming next block
+					{
+						libmaus::parallel::ScopePosixSpinLock llock(fileChksumQueueLock);
+						fileChksumQueueNext += 1;
+					}
+					
+					bool finished = false;
+					
+					// reduce number of references to this block by one
+					{
+						libmaus::parallel::ScopePosixSpinLock llock(outputBlocksUnfinishedTasksLock);
+						assert ( outputBlocksUnfinishedTasks.find(obj.absid) != outputBlocksUnfinishedTasks.end() );
+						assert ( outputBlocksUnfinishedTasks.find(obj.absid)->second > 0 );						
+						
+						if ( -- outputBlocksUnfinishedTasks[obj.absid] == 0 )
+							finished = true;
+					}
+					
+					// check whether block is finished now	
+					if ( finished )
+						returnCompressedBlock(obj);				
+				}
+				
+				void checkFileChksumQueue()
+				{
+					std::vector<libmaus::bambam::parallel::GenericInputControlCompressionPending> readyList;
+					
+					{
+						libmaus::parallel::ScopePosixSpinLock slock(fileChksumQueueLock);
+						while 
+						(
+							fileChksumQueue.size() 
+							&&
+							fileChksumQueue.top().absid == fileChksumQueueNext
+						)
+						{
+							libmaus::bambam::parallel::GenericInputControlCompressionPending obj = fileChksumQueue.top();
+							fileChksumQueue.pop();
+							
+							readyList.push_back(obj);
+						}
+					}
+					
+					// blocks finished
+					for ( uint64_t i = 0; i < readyList.size(); ++i )
+					{
+						FileChecksumBlockWorkPackage<file_checksum_type> * package = checksumWorkPackages.getPackage();
+						*package = FileChecksumBlockWorkPackage<file_checksum_type>(
+							0 /* prio */, 
+							FCBWPDid,
+							readyList[i],
+							&filechecksum
+						);
+						STP.enque(package);
+					}
+				}
+
+				void genericInputControlBlockWritePackageBlockWritten(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP)
+				{
+					{
+						libmaus::parallel::ScopePosixSpinLock llock(outputBlocksUnfinishedTasksLock);
+						outputBlocksUnfinishedTasks[GICCP.absid] = 0;
+					}
+					
+					if ( 1 )
+					{
+						{
+							libmaus::parallel::ScopePosixSpinLock llock(outputBlocksUnfinishedTasksLock);
+							libmaus::parallel::ScopePosixSpinLock slock(fileChksumQueueLock);
+							outputBlocksUnfinishedTasks[GICCP.absid] += 1;
+							fileChksumQueue.push(GICCP);
+						}
+					
+						checkFileChksumQueue();
+					}
+					else
+					{
+						returnCompressedBlock(GICCP);
 					}
 				}
 
@@ -616,35 +738,59 @@ namespace libmaus
 						block->getLinearOutputFragments(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),V);
 						
 						// std::cerr << "finished rewrite for block " << block->id << "\t" << block->getFill() << "\t" << V.size() << std::endl;
+						
+						bool const isfinal = block->final;
 
 						{
-						libmaus::parallel::ScopePosixSpinLock rlock(compressionPendingLock);
-						for ( uint64_t i = 0; i < V.size(); ++i )
-						{
-							compressionPending.push_back(
-								libmaus::bambam::parallel::GenericInputControlCompressionPending(
-									block->id,
-									i,
-									compressionPendingAbsIdNext++,
-									((i+1==V.size())&&block->final),
-									V[i]
-								)
-							);
-						}
-						}
-						
-						{
-						libmaus::parallel::ScopePosixSpinLock rlock(compressionUnfinishedLock);
-						compressionUnfinished[block->id] = V.size();
-						}
-						
-						{
-						libmaus::parallel::ScopePosixSpinLock rlock(compressionActiveLock);
-						compressionActive[block->id] = block;
+							libmaus::parallel::ScopePosixSpinLock rlock(compressionUnfinishedLock);
+							compressionUnfinished[block->id] = V.size();
 						}
 
-						if ( block->final )
+						{
+							libmaus::parallel::ScopePosixSpinLock rlock(compressionActiveLock);
+							compressionActive[block->id] = block;
+						}
+
+						{
+							libmaus::parallel::ScopePosixSpinLock rlock(compressionPendingLock);
+							for ( uint64_t i = 0; i < V.size(); ++i )
+							{
+								compressionPending.push_back(
+									libmaus::bambam::parallel::GenericInputControlCompressionPending(
+										block->id,
+										i,
+										compressionPendingAbsIdNext++,
+										false, // final
+										V[i]
+									)
+								);
+							}
+						}
+						
+						if ( isfinal )
+						{
+							// counter for last block
+							{
+								libmaus::parallel::ScopePosixSpinLock rlock(compressionUnfinishedLock);
+								compressionUnfinished[block->id+1] = 1;
+							}
+
+							// enque empty last block
+							{
+								libmaus::parallel::ScopePosixSpinLock rlock(compressionPendingLock);
+								compressionPending.push_back(
+									libmaus::bambam::parallel::GenericInputControlCompressionPending(
+										block->id+1,
+										0,
+										compressionPendingAbsIdNext++,
+										true, /* final */
+										std::pair<uint8_t *,uint8_t *>(NULL,NULL)
+									)
+								);
+							}
+
 							final = true;
+						}
 						
 						rewriteReorderNext += 1;
 

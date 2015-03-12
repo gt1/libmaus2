@@ -64,8 +64,26 @@ namespace libmaus
 					libmaus::lz::BgzfDeflateOutputBufferBase & outblock = *(GICCP.outblock);
 					std::pair<uint8_t *,uint8_t *> R = GICCP.P;
 
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const info = compressor->flush(R.first,R.second,outblock);
-					GICCP.flushinfo = info;
+					if ( R.first == R.second )
+					{
+						static uint8_t const emptybgzfblock[] = {
+							0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43, 
+							0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+						};
+						
+						std::copy(
+							&emptybgzfblock[0],
+							&emptybgzfblock[0] + sizeof(emptybgzfblock)/sizeof(emptybgzfblock[0]),
+							outblock.outbuf.begin()
+						);
+						
+						GICCP.flushinfo = libmaus::lz::BgzfDeflateZStreamBaseFlushInfo(0,sizeof(emptybgzfblock)/sizeof(emptybgzfblock[0]));
+					}
+					else
+					{
+						libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const info = compressor->flush(R.first,R.second,outblock);
+						GICCP.flushinfo = info;
+					}
 										
 					putCompressorInterface.genericInputControlPutCompressor(compressor);
 					blockCompressedInterface.genericInputControlBlockCompressionFinished(BP->GICCP);
