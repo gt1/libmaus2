@@ -58,6 +58,11 @@ namespace libmaus
 				{
 					return fragment.dispatch();
 				}
+				
+				void updateChecksums(libmaus::bambam::ChecksumsInterface & chksums)
+				{
+					fragment.updateChecksums(chksums);
+				}
 			};
 		}
 	}
