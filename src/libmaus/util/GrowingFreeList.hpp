@@ -43,7 +43,7 @@ namespace libmaus
 			libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> freelist;
 			uint64_t freelistfill;
 			allocator_type allocator;
-
+			
 			void cleanup()
 			{
 				for ( uint64_t i = 0; i < alloclist.size(); ++i )
@@ -160,6 +160,10 @@ namespace libmaus
 				return s;
 			}
 
+			allocator_type & getAllocator()
+			{
+				return allocator;
+			}
 		};
 	}
 }

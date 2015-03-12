@@ -101,6 +101,11 @@ namespace libmaus
 			{
 				return base_type::free();
 			}
+
+			allocator_type & getAllocator()
+			{
+				return base_type::getAllocator();
+			}
 		};
 	}
 }
