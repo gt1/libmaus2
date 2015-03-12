@@ -1,4 +1,3 @@
-
 /*
     libmaus
     Copyright (C) 2009-2015 German Tischler
@@ -64,6 +63,11 @@
 #include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
 #include <libmaus/util/UnitNum.hpp>
 
+#include <libmaus/bambam/ChecksumsInterfaceAllocator.hpp>
+#include <libmaus/bambam/ChecksumsInterfaceTypeInfo.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
+			
 namespace libmaus
 {
 	namespace bambam
@@ -116,7 +120,9 @@ namespace libmaus
 				public SamParseDecompressedBlockFinishedInterface,
 				public SamParseFragmentParsedInterface,
 				public SamParseGetSamInfoInterface,
-				public SamParsePutSamInfoInterface
+				public SamParsePutSamInfoInterface,
+				public ChecksumsInterfaceGetInterface,
+				public ChecksumsInterfacePutInterface
 			{
 				typedef _order_type order_type;
 				typedef BlockSortControl<order_type> this_type;
@@ -385,6 +391,18 @@ namespace libmaus
 
 				std::map<uint64_t, typename FragmentAlignmentBufferSortContext<order_type>::shared_ptr_type > sortContextsActive;
 				libmaus::parallel::PosixSpinLock sortContextsActiveLock;
+
+				typedef libmaus::parallel::LockedGrowingFreeList<
+					libmaus::bambam::ChecksumsInterface,
+					libmaus::bambam::ChecksumsInterfaceAllocator,
+					libmaus::bambam::ChecksumsInterfaceTypeInfo
+				> checksums_free_list_type;
+				typedef checksums_free_list_type::unique_ptr_type checksums_free_list_pointer_type;
+				checksums_free_list_pointer_type checksums_free_list;
+				
+				ChecksumsInterface::shared_ptr_type combinedchecksums;
+				
+				std::string const hash;
 				
 				void freeBuffers()
 				{
@@ -425,7 +443,8 @@ namespace libmaus
 					libmaus::parallel::SimpleThreadPool & rSTP,
 					std::istream & in,
 					int const level,
-					std::string const & rtempfileprefix
+					std::string const & rtempfileprefix,
+					std::string const & rhash
 				)
 				: 
 					procrtc(true),
@@ -440,7 +459,7 @@ namespace libmaus
 					GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont),
 					PBWPD(*this,*this,*this,*this,*this),
 					PBWPDid(STP.getNextDispatcherId()),
-					VBFWPD(*this,*this),
+					VBFWPD(*this,*this,*this,*this),
 					VBFWPDid(STP.getNextDispatcherId()),
 					BLMCWPD(*this,*this,*this,*this,*this),
 					BLMCWPDid(STP.getNextDispatcherId()),
@@ -497,7 +516,8 @@ namespace libmaus
 					unflushedFragReadEndsContainers(0),
 					unflushedPairReadEndsContainers(0),
 					unmergeFragReadEndsRegions(0),
-					unmergePairReadEndsRegions(0)
+					unmergePairReadEndsRegions(0),
+					hash(rhash)
 				{
 					STP.registerDispatcher(GICRPDid,&GICRPD);
 					STP.registerDispatcher(GIBDWPDid,&GIBDWPD);
@@ -1247,8 +1267,63 @@ namespace libmaus
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 				
+				ChecksumsInterface::shared_ptr_type getSeqChecksumsObject()
+				{
+					ChecksumsInterface::shared_ptr_type tptr(checksums_free_list->get());
+					return tptr;
+				}
+				
+				void returnSeqChecksumsObject(ChecksumsInterface::shared_ptr_type obj)
+				{
+					checksums_free_list->put(obj);
+				}
+				
+				ChecksumsInterface::shared_ptr_type getCombinedChecksums()
+				{
+					if ( ! combinedchecksums )
+					{
+						if ( checksums_free_list )
+						{
+							std::vector < ChecksumsInterface::shared_ptr_type > V = checksums_free_list->getAll();
+							ChecksumsInterface::shared_ptr_type sum = checksums_free_list->getAllocator()();
+
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								sum->update(*V[i]);
+							
+							combinedchecksums = sum;
+							checksums_free_list->put(V);
+						}
+					}
+					
+					return combinedchecksums;
+				}
+				
+				void printChecksums(std::ostream & out)
+				{
+					ChecksumsInterface::shared_ptr_type sum = getCombinedChecksums();
+					if ( sum )
+						sum->printChecksums(out);						
+				}
+				
+				void printChecksumsForBamHeader(std::ostream & out)
+				{
+					ChecksumsInterface::shared_ptr_type sum = getCombinedChecksums();
+					if ( sum )
+						sum->printChecksumsForBamHeader(out);						
+				}
+				
 				void bamHeaderComplete(libmaus::bambam::BamHeaderParserState const & BHPS)
 				{
+					if ( hash.size() )
+					{
+						checksums_free_list_pointer_type tfreelist(
+							new checksums_free_list_type(
+								libmaus::bambam::ChecksumsInterfaceAllocator(hash,parseInfo.Pheader.get())
+							)
+						);
+						checksums_free_list = UNIQUE_PTR_MOVE(tfreelist);
+					}
+					
 					bamHeader = BHPS.getSerialised();
 					uint64_t const maxblocksize = libmaus::lz::BgzfConstants::getBgzfMaxBlockSize();
 					uint64_t const headersize = bamHeader.size();
