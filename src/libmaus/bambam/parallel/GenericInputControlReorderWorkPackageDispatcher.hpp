@@ -23,6 +23,8 @@
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp>
 #include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
 
 namespace libmaus
 {
@@ -38,15 +40,22 @@ namespace libmaus
 				
 				GenericInputControlReorderWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputControlReorderWorkPackageFinishedInterface & finishedInterface;
+				ChecksumsInterfaceGetInterface & checksumGetInterface; 
+				ChecksumsInterfacePutInterface & checksumPutInterface;
 				libmaus::bambam::BamAuxFilterVector filter;
 				libmaus::bitio::BitVector & BV;
 			
 				GenericInputControlReorderWorkPackageDispatcher(
 					GenericInputControlReorderWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlReorderWorkPackageFinishedInterface & rfinishedInterface,
+					ChecksumsInterfaceGetInterface & rchecksumGetInterface, 
+					ChecksumsInterfacePutInterface & rchecksumPutInterface,
 					libmaus::bitio::BitVector & rBV
 				)
-				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface), BV(rBV)
+				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface), 
+				  checksumGetInterface(rchecksumGetInterface),
+				  checksumPutInterface(rchecksumPutInterface),
+				  BV(rBV)
 				{
 					filter.set('Z','R');		
 				}
@@ -63,6 +72,7 @@ namespace libmaus
 					libmaus::bambam::parallel::FragmentAlignmentBufferFragment & frag = *((*out)[index]);
 					uint32_t const dupflag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
 					uint32_t const dupmask = ~dupflag;
+					ChecksumsInterface::shared_ptr_type Schecksums = checksumGetInterface.getSeqChecksumsObject();
 					
 					for ( uint64_t i = I.first; i < I.second; ++i )
 					{
@@ -96,7 +106,13 @@ namespace libmaus
 						assert ( P.second >= fl );
 						
 						frag.pullBack(P.second-fl);
+						
+						if ( Schecksums )
+							Schecksums->update(frag.getPointer(o)+sizeof(uint32_t),fl);
 					}
+					
+					if ( Schecksums )
+						checksumPutInterface.returnSeqChecksumsObject(Schecksums);
 					
 					finishedInterface.genericInputControlReorderWorkPackageFinished(BP->in,BP->out);
 					packageReturnInterface.genericInputControlReorderWorkPackageReturn(BP);
