@@ -40,6 +40,11 @@ namespace libmaus
 				{
 					return buffer->checkValidPacked(low,high);
 				}
+				
+				void updateChecksums(libmaus::bambam::ChecksumsInterface & chksums)
+				{
+					buffer->updateChecksumsPacked(low,high,chksums);
+				}
 			};
 			
 			std::ostream & operator<<(std::ostream & out, ValidationFragment const & V);
