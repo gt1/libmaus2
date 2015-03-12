@@ -37,6 +37,7 @@ namespace libmaus
 			virtual void update(ChecksumsInterface const & IO) = 0;
 			virtual void printVerbose(std::ostream & log, uint64_t const c,libmaus::bambam::BamAlignment const & algn, double const etime) = 0;
 			virtual void printChecksums(std::ostream & out) = 0;
+			virtual void printChecksumsForBamHeader(std::ostream & out) = 0;
 		};
 	}
 }
