@@ -69,7 +69,9 @@ namespace libmaus
 				public libmaus::bambam::parallel::GenericInputControlGetCompressorInterface,
 				public libmaus::bambam::parallel::GenericInputControlPutCompressorInterface,
 				public libmaus::bambam::parallel::GenericInputControlBlockWritePackageReturnInterface,
-				public libmaus::bambam::parallel::GenericInputControlBlockWritePackageBlockWrittenInterface
+				public libmaus::bambam::parallel::GenericInputControlBlockWritePackageBlockWrittenInterface,
+				public ChecksumsInterfaceGetInterface,
+				public ChecksumsInterfacePutInterface
 			{
 				typedef BlockMergeControl this_type;
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -207,6 +209,20 @@ namespace libmaus
 				bool volatile lastBlockWritten;
 				libmaus::parallel::PosixSpinLock lastBlockWrittenLock;
 
+				typedef libmaus::parallel::LockedGrowingFreeList<
+					libmaus::bambam::ChecksumsInterface,
+					libmaus::bambam::ChecksumsInterfaceAllocator,
+					libmaus::bambam::ChecksumsInterfaceTypeInfo
+				> checksums_free_list_type;
+				typedef checksums_free_list_type::unique_ptr_type checksums_free_list_pointer_type;
+				checksums_free_list_pointer_type checksums_free_list;
+				
+				ChecksumsInterface::shared_ptr_type combinedchecksums;
+				
+				std::string const hash;
+				
+				libmaus::bambam::BamHeaderLowMem::unique_ptr_type checksumheader;
+
 				void enqueHeader()
 				{
 					libmaus::parallel::ScopePosixSpinLock rlock(compressionPendingLock);
@@ -248,7 +264,8 @@ namespace libmaus
 					uint64_t const numblocks, // number of read blocks per channel
 					uint64_t const ralgnbuffersize, // merge alignment buffer size
 					uint64_t const rnumalgnbuffers, // number of merge alignment buffers
-					uint64_t const complistsize
+					uint64_t const complistsize,
+					std::string const & rhash
 				)
 				: STP(rSTP), 
 				  out(rout),
@@ -259,7 +276,7 @@ namespace libmaus
 				  GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont),
 				  GIBPWPDid(STP.getNextDispatcherId()), GIBPWPD(*this,*this),
 				  GIMWPDid(STP.getNextDispatcherId()), GIMWPD(*this,*this,*this,*this,*this),
-				  GICRWPDid(STP.getNextDispatcherId()), GICRWPD(*this,*this,BV),
+				  GICRWPDid(STP.getNextDispatcherId()), GICRWPD(*this,*this,*this,*this,BV),
 				  GICBCWPDid(STP.getNextDispatcherId()), GICBCWPD(*this,*this,*this,*this),
 				  GICBWPDid(STP.getNextDispatcherId()), GICBWPD(*this,*this),
 				  activedecompressionstreams(in.size()), activedecompressionstreamslock(),
@@ -277,7 +294,8 @@ namespace libmaus
 				  compressBufferFreeList(256,libmaus::lz::BgzfDeflateOutputBufferBaseAllocator(level)),
 				  compressorFreeList(libmaus::lz::BgzfDeflateZStreamBaseAllocator(level)),
 				  compressedBlockWriteQueueNext(0),
-				  lastBlockWritten(false), lastBlockWrittenLock()
+				  lastBlockWritten(false), lastBlockWrittenLock(),
+				  hash(rhash)
 				{
 					for ( std::vector<std::istream *>::size_type i = 0; i < in.size(); ++i )
 					{
@@ -294,11 +312,70 @@ namespace libmaus
 					STP.registerDispatcher(GICBCWPDid,&GICBCWPD);
 					STP.registerDispatcher(GICBWPDid,&GICBWPD);
 
+					std::string headertext(sheader.begin(),sheader.end());
+					std::istringstream headerin(headertext);
+					libmaus::bambam::BamHeaderLowMem::unique_ptr_type theader(libmaus::bambam::BamHeaderLowMem::constructFromBAM(headerin));
+					checksumheader = UNIQUE_PTR_MOVE(theader);
+
+					if ( hash.size() )
+					{
+						checksums_free_list_pointer_type tfreelist(
+							new checksums_free_list_type(
+								libmaus::bambam::ChecksumsInterfaceAllocator(hash,checksumheader.get())
+							)
+						);
+						checksums_free_list = UNIQUE_PTR_MOVE(tfreelist);
+					}
 
 					// put BAM header in compression queue
 					enqueHeader();
 				}
+
+				ChecksumsInterface::shared_ptr_type getCombinedChecksums()
+				{
+					if ( ! combinedchecksums )
+					{
+						if ( checksums_free_list )
+						{
+							std::vector < ChecksumsInterface::shared_ptr_type > V = checksums_free_list->getAll();
+							ChecksumsInterface::shared_ptr_type sum = checksums_free_list->getAllocator()();
+
+							for ( uint64_t i = 0; i < V.size(); ++i )
+								sum->update(*V[i]);
+							
+							combinedchecksums = sum;
+							checksums_free_list->put(V);
+						}
+					}
+					
+					return combinedchecksums;
+				}
 				
+				void printChecksums(std::ostream & out)
+				{
+					ChecksumsInterface::shared_ptr_type sum = getCombinedChecksums();
+					if ( sum )
+						sum->printChecksums(out);						
+				}
+				
+				void printChecksumsForBamHeader(std::ostream & out)
+				{
+					ChecksumsInterface::shared_ptr_type sum = getCombinedChecksums();
+					if ( sum )
+						sum->printChecksumsForBamHeader(out);						
+				}
+
+				ChecksumsInterface::shared_ptr_type getSeqChecksumsObject()
+				{
+					ChecksumsInterface::shared_ptr_type tptr(checksums_free_list->get());
+					return tptr;
+				}
+				
+				void returnSeqChecksumsObject(ChecksumsInterface::shared_ptr_type obj)
+				{
+					checksums_free_list->put(obj);
+				}
+
 				uint64_t getActiveDecompressionStreams()
 				{
 					libmaus::parallel::ScopePosixSpinLock slock(activedecompressionstreamslock);
