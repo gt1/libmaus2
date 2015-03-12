@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/parallel/PushBackSpace.hpp>
 #include <libmaus/util/GrowingFreeList.hpp>
+#include <libmaus/bambam/ChecksumsInterface.hpp>
 
 namespace libmaus
 {
@@ -539,6 +540,15 @@ namespace libmaus
 					}
 					
 					return ok;		
+				}
+
+				void updateChecksumsPacked(
+					uint64_t const low, uint64_t const high,
+					libmaus::bambam::ChecksumsInterface & chksums
+				) const
+				{
+					for ( uint64_t i = low; i < high; ++i )
+						chksums.update(A.begin() + pP[i] + 4, decodeLength(pP[i]));
 				}
 
 				bool checkValidPacked() const
