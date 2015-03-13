@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 		for ( uint64_t i = 0; i < numreads; ++i )
 			P.push_back(i);
 
-		uint64_t const check = std::min(static_cast<uint64_t>(arginfo.getValue<int>("check",8)),P.size());		
+		uint64_t const check = std::min(static_cast<uint64_t>(arginfo.getValue<int>("check",8)),static_cast<uint64_t>(P.size()));		
 		std::vector<uint64_t> prev(check,numreads);
 
 		do

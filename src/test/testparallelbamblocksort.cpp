@@ -27,9 +27,13 @@
 
 #if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
 #include <libmaus/digest/DigestFactory_SHA2_ASM.hpp>
-#include <libmaus/digest/DigestFactory_CRC32C_SSE42.hpp>
-#include <libmaus/digest/DigestFactoryContainer.hpp>
 #endif
+
+#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
+#include <libmaus/digest/DigestFactory_CRC32C_SSE42.hpp>
+#endif
+
+#include <libmaus/digest/DigestFactoryContainer.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -38,7 +42,7 @@ int main(int argc, char * argv[])
 		#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
 		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_SHA2_ASM());
 		#endif
-		#if defined(LIBMAUS_HAVE_SMMINTRIN_H)
+		#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
 		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_CRC32C_SSE42());
 		#endif
 		
