@@ -52,9 +52,6 @@ namespace libmaus
 	{
 		namespace parallel
 		{						
-			template<
-				typename _file_checksum_type
-			>
 			struct BlockMergeControl : 
 				public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
 				public libmaus::bambam::parallel::GenericInputControlReadAddPendingInterface,
@@ -80,12 +77,11 @@ namespace libmaus
 				public ChecksumsInterfaceGetInterface,
 				public ChecksumsInterfacePutInterface,
 				public FileChecksumBlockFinishedInterface,
-				public FileChecksumBlockWorkPackageReturnInterface<_file_checksum_type>,
+				public FileChecksumBlockWorkPackageReturnInterface,
 				public BamBlockIndexingWorkPackageReturnInterface,
 				public BamBlockIndexingBlockFinishedInterface
 			{
-				typedef _file_checksum_type file_checksum_type;
-				typedef BlockMergeControl<file_checksum_type> this_type;
+				typedef BlockMergeControl this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
@@ -112,7 +108,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReorderWorkPackage> rewriteWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockCompressionWorkPackage> compressWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockWritePackage> writeWorkPackages;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::FileChecksumBlockWorkPackage<file_checksum_type> > checksumWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::FileChecksumBlockWorkPackage > checksumWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::BamBlockIndexingWorkPackage > indexingWorkPackages;
 
 				uint64_t const GICRPDid;
@@ -137,7 +133,7 @@ namespace libmaus
 				libmaus::bambam::parallel::GenericInputControlBlockWritePackageDispatcher GICBWPD;
 
 				uint64_t const FCBWPDid;
-				libmaus::bambam::parallel::FileChecksumBlockWorkPackageDispatcher<file_checksum_type> FCBWPD;
+				libmaus::bambam::parallel::FileChecksumBlockWorkPackageDispatcher FCBWPD;
 				
 				uint64_t const BBIWPDid;
 				BamBlockIndexingWorkPackageDispatcher BBIWPD;
@@ -253,13 +249,12 @@ namespace libmaus
 					> fileChksumQueue;
 				uint64_t volatile fileChksumQueueNext;
 				libmaus::parallel::PosixSpinLock fileChksumQueueLock;
-				
-				file_checksum_type filechecksum;
-				
+								
 				std::string const tempfileprefix;
 				
 				libmaus::bambam::BamIndexGenerator bamindexgenerator;
 				
+				libmaus::digest::DigestInterface * filechecksum;
 
 				void enqueHeader()
 				{
@@ -304,7 +299,8 @@ namespace libmaus
 					uint64_t const rnumalgnbuffers, // number of merge alignment buffers
 					uint64_t const complistsize,
 					std::string const & rhash,
-					std::string const & rtempfileprefix
+					std::string const & rtempfileprefix,
+					libmaus::digest::DigestInterface * rfilechecksum
 				)
 				: STP(rSTP), 
 				  out(rout),
@@ -339,7 +335,8 @@ namespace libmaus
 				  hash(rhash),
 				  fileChksumQueueNext(0),
 				  tempfileprefix(rtempfileprefix),
-				  bamindexgenerator(tempfileprefix+"_index",0 /* verbose */,false /* validate */,false /* debug */)
+				  bamindexgenerator(tempfileprefix+"_index",0 /* verbose */,false /* validate */,false /* debug */),
+				  filechecksum(rfilechecksum)
 				{
 					for ( std::vector<std::istream *>::size_type i = 0; i < in.size(); ++i )
 					{
@@ -376,15 +373,12 @@ namespace libmaus
 					// put BAM header in compression queue
 					enqueHeader();
 					
-					filechecksum.init();
+					filechecksum->vinit();
 				}
 				
 				std::string getFileDigest()
 				{
-					unsigned int const length = filechecksum.digestlength;
-					libmaus::autoarray::AutoArray<uint8_t> D(length,false);
-					filechecksum.digest(D.begin());
-					return filechecksum.digestToString(D.begin());
+					return filechecksum->vdigestAsString();
 				}
 
 				ChecksumsInterface::shared_ptr_type getCombinedChecksums()
@@ -485,7 +479,7 @@ namespace libmaus
 					}
 				}
 				
-				void fileChecksumBlockWorkPackageReturn(FileChecksumBlockWorkPackage<file_checksum_type> * package)
+				void fileChecksumBlockWorkPackageReturn(FileChecksumBlockWorkPackage * package)
 				{
 					checksumWorkPackages.returnPackage(package);
 				}
@@ -591,8 +585,8 @@ namespace libmaus
 						}
 
 						{
-							FileChecksumBlockWorkPackage<file_checksum_type> * package = checksumWorkPackages.getPackage();
-							*package = FileChecksumBlockWorkPackage<file_checksum_type>(0 /* prio */, FCBWPDid, GICCP, &filechecksum);
+							FileChecksumBlockWorkPackage * package = checksumWorkPackages.getPackage();
+							*package = FileChecksumBlockWorkPackage(0 /* prio */, FCBWPDid, GICCP, filechecksum);
 							STP.enque(package);
 						}
 					}

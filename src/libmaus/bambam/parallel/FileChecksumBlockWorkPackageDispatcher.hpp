@@ -29,19 +29,17 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			template<typename _file_checksum_type>
 			struct FileChecksumBlockWorkPackageDispatcher : libmaus::parallel::SimpleThreadWorkPackageDispatcher
 			{
-				typedef _file_checksum_type file_checksum_type;
-				typedef FileChecksumBlockWorkPackageDispatcher<file_checksum_type> this_type;
+				typedef FileChecksumBlockWorkPackageDispatcher this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
-				FileChecksumBlockWorkPackageReturnInterface<file_checksum_type> & packageReturnInterface;
+				FileChecksumBlockWorkPackageReturnInterface & packageReturnInterface;
 				FileChecksumBlockFinishedInterface & packageFinishedInterface;
 	
 				FileChecksumBlockWorkPackageDispatcher(
-					FileChecksumBlockWorkPackageReturnInterface<file_checksum_type> & rpackageReturnInterface,
+					FileChecksumBlockWorkPackageReturnInterface & rpackageReturnInterface,
 					FileChecksumBlockFinishedInterface & rpackageFinishedInterface
 				) : packageReturnInterface(rpackageReturnInterface), packageFinishedInterface(rpackageFinishedInterface)
 				{
@@ -49,16 +47,16 @@ namespace libmaus
 				}
 				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
-					FileChecksumBlockWorkPackage<file_checksum_type> * BP = dynamic_cast< FileChecksumBlockWorkPackage<file_checksum_type> * >(P);
+					FileChecksumBlockWorkPackage * BP = dynamic_cast< FileChecksumBlockWorkPackage * >(P);
 					
 					libmaus::bambam::parallel::GenericInputControlCompressionPending & GICCP = BP->GICCP;
 					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type & outblock = GICCP.outblock;
 					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = GICCP.flushinfo;
 					
 					if ( flushinfo.blocks == 1 )
-						BP->checksum->update(outblock->outbuf.begin(),flushinfo.block_a_c);
+						BP->checksum->vupdate(outblock->outbuf.begin(),flushinfo.block_a_c);
 					else if ( flushinfo.blocks == 2 )
-						BP->checksum->update(outblock->outbuf.begin(),flushinfo.block_a_c + flushinfo.block_b_c);
+						BP->checksum->vupdate(outblock->outbuf.begin(),flushinfo.block_a_c + flushinfo.block_b_c);
 					
 					packageFinishedInterface.fileChecksumBlockFinished(BP->GICCP);
 					packageReturnInterface.fileChecksumBlockWorkPackageReturn(BP);

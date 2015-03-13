@@ -27,13 +27,10 @@ namespace libmaus
 	{
 		namespace parallel
 		{			
-			template<typename _file_checksum_type>
 			struct FileChecksumBlockWorkPackageReturnInterface
 			{
-				typedef _file_checksum_type file_checksum_type;
-			
 				virtual ~FileChecksumBlockWorkPackageReturnInterface() {}
-				virtual void fileChecksumBlockWorkPackageReturn(FileChecksumBlockWorkPackage<file_checksum_type> * package) = 0;
+				virtual void fileChecksumBlockWorkPackageReturn(FileChecksumBlockWorkPackage * package) = 0;
 			};
 		}
 	}

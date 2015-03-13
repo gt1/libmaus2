@@ -21,6 +21,7 @@
 
 #include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp>
+#include <libmaus/digest/DigestInterface.hpp>
 
 namespace libmaus
 {
@@ -28,23 +29,21 @@ namespace libmaus
 	{
 		namespace parallel
 		{			
-			template<typename _file_checksum_type>
 			struct FileChecksumBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
 			{
-				typedef _file_checksum_type file_checksum_type;
-				typedef FileChecksumBlockWorkPackage<file_checksum_type> this_type;
+				typedef FileChecksumBlockWorkPackage this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP;
-				file_checksum_type * checksum;
+				libmaus::digest::DigestInterface * checksum;
 
 				FileChecksumBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), GICCP(), checksum(0) {}
 				FileChecksumBlockWorkPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
 					libmaus::bambam::parallel::GenericInputControlCompressionPending rGICCP,
-					file_checksum_type * rchecksum
+					libmaus::digest::DigestInterface * rchecksum
 				)
 				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), checksum(rchecksum)
 				{

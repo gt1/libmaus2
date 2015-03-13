@@ -25,10 +25,23 @@
 
 #include <libmaus/digest/Digests.hpp>
 
+#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+#include <libmaus/digest/DigestFactory_SHA2_ASM.hpp>
+#include <libmaus/digest/DigestFactory_CRC32C_SSE42.hpp>
+#include <libmaus/digest/DigestFactoryContainer.hpp>
+#endif
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_SHA2_ASM());
+		#endif
+		#if defined(LIBMAUS_HAVE_SMMINTRIN_H)
+		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_CRC32C_SSE42());
+		#endif
+		
 		libmaus::timing::RealTimeClock progrtc; progrtc.start();
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		typedef libmaus::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
@@ -103,24 +116,14 @@ int main(int argc, char * argv[])
 		uint64_t const complistsize = 32;
 		int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
 
-		if ( filehash == "sha512" )
-		{
-			libmaus::bambam::parallel::BlockMergeControl<libmaus::digest::SHA2_512> BMC(
-				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase);
-			BMC.addPending();			
-			BMC.waitWritingFinished();		
-	
-			std::cerr << "[D]\t" << filehash << "\t" << BMC.getFileDigest() << std::endl;
-		}
-		else // if ( filehash == "md5" )
-		{
-			libmaus::bambam::parallel::BlockMergeControl<libmaus::util::MD5> BMC(
-				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase);
-			BMC.addPending();			
-			BMC.waitWritingFinished();
+		libmaus::digest::DigestInterface::unique_ptr_type Pdigest(libmaus::digest::DigestFactoryContainer::construct(filehash));
 
-			std::cerr << "[D]\t" << "md5" << "\t" << BMC.getFileDigest() << std::endl;
-		}
+		libmaus::bambam::parallel::BlockMergeControl BMC(
+			STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get());
+		BMC.addPending();			
+		BMC.waitWritingFinished();		
+	
+		std::cerr << "[D]\t" << filehash << "\t" << BMC.getFileDigest() << std::endl;
 
 		std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
 
