@@ -39,8 +39,8 @@ libmaus::digest::DigestInterface::unique_ptr_type libmaus::digest::DigestFactory
 		libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::CRC32C_sse42);
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	#endif
 	else
+	#endif
 	{
 		libmaus::exception::LibMausException lme;
 		lme.getStream() << "DigestFactory_CRC32C_SSE42: unsupported hash " << name << std::endl;

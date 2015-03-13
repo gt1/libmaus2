@@ -49,8 +49,8 @@ libmaus::digest::DigestInterface::unique_ptr_type libmaus::digest::DigestFactory
 			return UNIQUE_PTR_MOVE(tptr);
 		}
 	}
-	#endif
 	else
+	#endif
 	{
 		libmaus::exception::LibMausException lme;
 		lme.getStream() << "DigestFactory: unsupported hash " << name << std::endl;
