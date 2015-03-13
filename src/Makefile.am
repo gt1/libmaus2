@@ -1270,7 +1270,8 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/CRC32C_sse42.hpp \
 	libmaus/digest/CRC32C_Core.hpp \
 	libmaus/digest/CRC32C.hpp \
-	libmaus/digest/CRC32_Core.hpp
+	libmaus/digest/CRC32_Core.hpp \
+	libmaus/digest/DigestInterface.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\

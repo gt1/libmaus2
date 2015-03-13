@@ -19,15 +19,16 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTBASE_HPP)
 #define LIBMAUS_DIGEST_DIGESTBASE_HPP
 
+#include <libmaus/digest/DigestInterface.hpp>
 #include <libmaus/math/UnsignedInteger.hpp>
 #include <sstream>
 
 namespace libmaus
 {
 	namespace digest
-	{
+	{		
 		template<size_t _digestlength, size_t _blockshift, bool _needpad, size_t _numlen, bool _prefersinglecall>
-		struct DigestBase
+		struct DigestBase : public DigestInterface
 		{
 			enum { digestlength = _digestlength };
 			enum { blockshift = _blockshift };
@@ -40,6 +41,8 @@ namespace libmaus
 
 			virtual void vinit() = 0;
 			virtual void vupdate(uint8_t const *, size_t) = 0;
+
+			size_t vdigestlength() { return digestlength; }
 
 			static uint64_t getPaddedMessageLength(uint64_t const n)
 			{
@@ -106,7 +109,7 @@ namespace libmaus
 		};
 
 		template<size_t _blockshift, bool _needpad, size_t _numlen, bool _prefersinglecall>
-		struct DigestBase<0,_blockshift,_needpad,_numlen,_prefersinglecall>
+		struct DigestBase<0,_blockshift,_needpad,_numlen,_prefersinglecall> : public DigestInterface
 		{
 			enum { digestlength = 0 };
 			enum { blockshift = _blockshift };
@@ -129,6 +132,7 @@ namespace libmaus
 
 			virtual void vinit() = 0;
 			virtual void vupdate(uint8_t const *, size_t) = 0;
+			size_t vdigestlength() { return digestlength; }
 		};
 	}
 }
