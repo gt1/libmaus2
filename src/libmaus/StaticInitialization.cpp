@@ -221,3 +221,7 @@ std::map<void *, libmaus::aio::InputStream::shared_ptr_type> libmaus::bambam::Sc
 std::map<void *, libmaus::aio::InputStream::shared_ptr_type> libmaus::bambam::ScramInputContainer::Mcompstream;
 libmaus::parallel::PosixMutex libmaus::bambam::ScramInputContainer::Mlock;
 
+#include <libmaus/digest/DigestFactoryContainer.hpp>
+
+std::map< std::string, libmaus::digest::DigestFactoryInterface::shared_ptr_type > libmaus::digest::DigestFactoryContainer::factories = 
+	libmaus::digest::DigestFactoryContainer::setupFactories();

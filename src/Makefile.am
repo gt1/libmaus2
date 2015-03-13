@@ -18,11 +18,11 @@ lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a libmaus_irods.a libmausse
 libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
 libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
 
-libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_512_sse4.cpp
+libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_512_sse4.cpp libmaus/digest/DigestFactory_SHA2_ASM.cpp
 libmausdigests_a_DEPENDENCIES = @DIGESTASMOBJ@
 libmausdigests_a_LIBADD = @DIGESTASMOBJ@
 
-libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42.cpp
+libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42.cpp libmaus/digest/DigestFactory_CRC32C_SSE42.cpp
 libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
 
 libmaus_irods_a_SOURCES = libmaus/irods/IRodsSystem.cpp libmaus/irods/IRodsFileBase.cpp
@@ -1271,7 +1271,11 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/CRC32C_Core.hpp \
 	libmaus/digest/CRC32C.hpp \
 	libmaus/digest/CRC32_Core.hpp \
-	libmaus/digest/DigestInterface.hpp
+	libmaus/digest/DigestInterface.hpp \
+	libmaus/digest/DigestFactory.hpp \
+	libmaus/digest/DigestFactoryContainer.hpp \
+	libmaus/digest/DigestFactory_SHA2_ASM.hpp \
+	libmaus/digest/DigestFactory_CRC32C_SSE42.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\

@@ -22,6 +22,9 @@
 #include <libmaus/util/unique_ptr.hpp>
 #include <libmaus/util/shared_ptr.hpp>
 #include <libmaus/types/types.hpp>
+#include <sstream>
+#include <iomanip>
+#include <libmaus/autoarray/AutoArray.hpp>
 
 namespace libmaus
 {
@@ -38,6 +41,23 @@ namespace libmaus
 			virtual void vinit() = 0;
 			virtual void vupdate(uint8_t const *, size_t) = 0;			
 			virtual size_t vdigestlength() = 0;
+
+			virtual std::string vdigestAsString()
+			{
+				size_t const digestlength = vdigestlength();
+				libmaus::autoarray::AutoArray<uint8_t> D(digestlength,false);
+				digest(D.begin());
+				return vdigestToString(D.begin());
+			}
+
+			virtual std::string vdigestToString(uint8_t const * D)
+                        {
+                        	size_t const digestlength = vdigestlength();
+                        	std::ostringstream ostr;
+				for ( uint64_t i = 0; i < digestlength; ++i )
+					ostr << std::hex  << std::setfill('0') << std::setw(2) << static_cast<int>(D[i]) << std::dec << std::setw(0);
+				return ostr.str();
+			}                                                                                                                                                                                 
 		};
 	}
 }

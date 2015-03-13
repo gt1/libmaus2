@@ -16,6 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus/digest/DigestFactory.hpp>
 #include <iostream>
 #include <libmaus/digest/Digests.hpp>
 #include <libmaus/util/ArgInfo.hpp>
@@ -31,6 +32,7 @@
 #include <libmaus/digest/CRC32.hpp>
 #include <libmaus/digest/CRC32C_sse42.hpp>
 #include <libmaus/digest/CRC32C.hpp>
+
 
 template<typename crc>
 void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
@@ -276,12 +278,42 @@ std::string secondColumn(std::string const & s)
 	return s.substr(start,i-start);
 }
 
+#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+#include <libmaus/digest/DigestFactory_SHA2_ASM.hpp>
+#include <libmaus/digest/DigestFactory_CRC32C_SSE42.hpp>
+#include <libmaus/digest/DigestFactoryContainer.hpp>
+#endif
 
 int main(int argc, char * argv[])
 {
 	try
 	{
+		#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_SHA2_ASM());
+		#endif
+		#if defined(LIBMAUS_HAVE_SMMINTRIN_H)
+		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_CRC32C_SSE42());
+		#endif
+
 		libmaus::util::ArgInfo const arginfo(argc,argv);
+		
+		{
+			std::cerr << "digests " << libmaus::digest::DigestFactoryContainer::getSupportedDigestsList() << std::endl;
+		
+			std::string const hash = arginfo.restargs.at(0);
+			std::string const fn = arginfo.restargs.at(1);
+		
+			::libmaus::autoarray::AutoArray<uint8_t> A = libmaus::util::GetFileSize::readFile<uint8_t>(fn);
+			
+			libmaus::digest::DigestInterface::unique_ptr_type Pdigest(libmaus::digest::DigestFactoryContainer::construct(hash));
+			
+			Pdigest->vinit();
+			Pdigest->vupdate(A.begin(),A.size());
+			std::cout << Pdigest->vdigestAsString() << "\n";
+		}
+		
+		return 0;
+	
 		
 		#if defined(LIBMAUS_HAVE_NETTLE) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
 		std::string ast(1024,'a');
