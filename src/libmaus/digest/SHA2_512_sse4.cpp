@@ -301,3 +301,6 @@ void libmaus::digest::SHA2_512_sse4::copyFrom(
 	index = O.index;
 	#endif
 }
+
+void libmaus::digest::SHA2_512_sse4::vinit() { init(); }
+void libmaus::digest::SHA2_512_sse4::vupdate(uint8_t const * u, size_t l) { update(u,l); }

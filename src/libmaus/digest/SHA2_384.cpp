@@ -53,3 +53,6 @@ void libmaus::digest::SHA2_384::digest(uint8_t *)
 { 
 }
 #endif
+
+void libmaus::digest::SHA2_384::vinit() { init(); }
+void libmaus::digest::SHA2_384::vupdate(uint8_t const * u, size_t l) { update(u,l); }

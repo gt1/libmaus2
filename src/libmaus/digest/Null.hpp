@@ -32,6 +32,9 @@ namespace libmaus
 			void digest(uint8_t *) {}
 			void copyFrom(Null const &) {}
 			static size_t getDigestLength() { return digestlength; }
+
+			void vinit() { init(); }
+			void vupdate(uint8_t const * u, size_t l) { update(u,l); }
 		};
 	}
 }

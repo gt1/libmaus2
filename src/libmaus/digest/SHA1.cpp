@@ -53,3 +53,6 @@ void libmaus::digest::SHA1::digest(uint8_t *)
 { 
 }
 #endif
+
+void libmaus::digest::SHA1::vinit() { init(); }
+void libmaus::digest::SHA1::vupdate(uint8_t const * u, size_t l) { update(u,l); }

@@ -48,3 +48,6 @@ void libmaus::digest::CRC32::copyFrom(CRC32 const & O)
 {
 	ctx = O.ctx;
 }
+
+void libmaus::digest::CRC32::vinit() { init(); }
+void libmaus::digest::CRC32::vupdate(uint8_t const * u, size_t l) { update(u,l); }

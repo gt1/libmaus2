@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
 		if ( filehash == "sha512" )
 		{
 			libmaus::bambam::parallel::BlockMergeControl<libmaus::digest::SHA2_512> BMC(
-				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash);
+				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase);
 			BMC.addPending();			
 			BMC.waitWritingFinished();		
 	
@@ -115,7 +115,7 @@ int main(int argc, char * argv[])
 		else // if ( filehash == "md5" )
 		{
 			libmaus::bambam::parallel::BlockMergeControl<libmaus::util::MD5> BMC(
-				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash);
+				STP,std::cout,sheader,BI,*Pdupvec,level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase);
 			BMC.addPending();			
 			BMC.waitWritingFinished();
 

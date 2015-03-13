@@ -34,12 +34,19 @@ namespace libmaus
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 				
+				// block number (-1 for header)
 				 int64_t blockid;
+				// sub id inside block
 				uint64_t subid;
+				// sequence number in set of all bgzf blocks
 				uint64_t absid;
+				// true if this is the last (EOF) block
 				bool final;
+				// uncompressed data range
 				std::pair<uint8_t *,uint8_t *> P;
+				// compressed data block
 				libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock;
+				// flush info from BGZF compressor
 				libmaus::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo;
 			
 				GenericInputControlCompressionPending() {}	

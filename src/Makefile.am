@@ -22,7 +22,7 @@ libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_
 libmausdigests_a_DEPENDENCIES = @DIGESTASMOBJ@
 libmausdigests_a_LIBADD = @DIGESTASMOBJ@
 
-libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42_update.cpp
+libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42.cpp
 libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
 
 libmaus_irods_a_SOURCES = libmaus/irods/IRodsSystem.cpp libmaus/irods/IRodsFileBase.cpp
@@ -174,7 +174,6 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/SHA2_384.cpp \
 	libmaus/digest/SHA2_512.cpp \
 	libmaus/digest/CRC32.cpp \
-	libmaus/digest/CRC32C_sse42.cpp \
 	libmaus/digest/CRC32C_Core.cpp \
 	libmaus/digest/CRC32C.cpp \
 	libmaus/digest/CRC32_Core.cpp \
@@ -734,7 +733,11 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/FileChecksumBlockWorkPackage.hpp \
 	libmaus/bambam/parallel/FileChecksumBlockWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/FileChecksumBlockFinishedInterface.hpp \
-	libmaus/bambam/parallel/FileChecksumBlockWorkPackageDispatcher.hpp
+	libmaus/bambam/parallel/FileChecksumBlockWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/BamBlockIndexingWorkPackage.hpp \
+	libmaus/bambam/parallel/BamBlockIndexingWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/BamBlockIndexingBlockFinishedInterface.hpp \
+	libmaus/bambam/parallel/BamBlockIndexingWorkPackageDispatcher.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\

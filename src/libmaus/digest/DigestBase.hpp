@@ -37,7 +37,10 @@ namespace libmaus
 		
 			virtual ~DigestBase() {}
 			virtual void digest(uint8_t * digest) = 0;
-			
+
+			virtual void vinit() = 0;
+			virtual void vupdate(uint8_t const *, size_t) = 0;
+
 			static uint64_t getPaddedMessageLength(uint64_t const n)
 			{
 				if ( ! needpad )
@@ -123,6 +126,9 @@ namespace libmaus
 			{
 				return libmaus::math::UnsignedInteger<0>();
 			}
+
+			virtual void vinit() = 0;
+			virtual void vupdate(uint8_t const *, size_t) = 0;
 		};
 	}
 }

@@ -50,6 +50,9 @@ namespace libmaus
 			void update(uint8_t const * t, size_t l);
 			void copyFrom(MD5 const & O);
 			void digest(uint8_t * digest);
+
+			void vinit() { init(); }
+			void vupdate(uint8_t const * u, size_t l) { update(u,l); }
 		};
 	}
 }
