@@ -1275,7 +1275,8 @@ libmausdigest_include_HEADERS=\
 	libmaus/digest/DigestFactory.hpp \
 	libmaus/digest/DigestFactoryContainer.hpp \
 	libmaus/digest/DigestFactory_SHA2_ASM.hpp \
-	libmaus/digest/DigestFactory_CRC32C_SSE42.hpp
+	libmaus/digest/DigestFactory_CRC32C_SSE42.hpp \
+	libmaus/digest/DigestFactoryInterface.hpp
 
 libmauslf_includedir=$(includedir)/libmaus/lf
 libmauslf_include_HEADERS=\
