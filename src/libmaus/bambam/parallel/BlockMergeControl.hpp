@@ -546,14 +546,29 @@ namespace libmaus
 				void checkBlockOutputQueue()
 				{
 					libmaus::parallel::ScopePosixSpinLock slock(compressedBlockWriteQueueLock);
+					
 					if ( compressedBlockWriteQueue.size() && compressedBlockWriteQueue.top().absid == compressedBlockWriteQueueNext )
 					{
 						libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP = compressedBlockWriteQueue.top();
 						compressedBlockWriteQueue.pop();
-						
+
+						{
+						libmaus::parallel::ScopePosixSpinLock llock(outputBlocksUnfinishedTasksLock);
+						// we enque two work packages below, return block when all of them have been processed
+						outputBlocksUnfinishedTasks[GICCP.absid] = 2;
+						}
+
+						{						
 						libmaus::bambam::parallel::GenericInputControlBlockWritePackage * package = writeWorkPackages.getPackage();
 						*package = libmaus::bambam::parallel::GenericInputControlBlockWritePackage(0/*prio*/, GICBWPDid, GICCP, &out);
 						STP.enque(package);
+						}
+
+						{
+						FileChecksumBlockWorkPackage<file_checksum_type> * package = checksumWorkPackages.getPackage();
+						*package = FileChecksumBlockWorkPackage<file_checksum_type>(0 /* prio */, FCBWPDid, GICCP, &filechecksum);
+						STP.enque(package);
+						}
 					}
 				}
 				
@@ -580,12 +595,6 @@ namespace libmaus
 
 				void fileChecksumBlockFinished(libmaus::bambam::parallel::GenericInputControlCompressionPending obj)
 				{
-					// ready for checksumming next block
-					{
-						libmaus::parallel::ScopePosixSpinLock llock(fileChksumQueueLock);
-						fileChksumQueueNext += 1;
-					}
-					
 					bool finished = false;
 					
 					// reduce number of references to this block by one
@@ -602,63 +611,24 @@ namespace libmaus
 					if ( finished )
 						returnCompressedBlock(obj);				
 				}
-				
-				void checkFileChksumQueue()
-				{
-					std::vector<libmaus::bambam::parallel::GenericInputControlCompressionPending> readyList;
-					
-					{
-						libmaus::parallel::ScopePosixSpinLock slock(fileChksumQueueLock);
-						while 
-						(
-							fileChksumQueue.size() 
-							&&
-							fileChksumQueue.top().absid == fileChksumQueueNext
-						)
-						{
-							libmaus::bambam::parallel::GenericInputControlCompressionPending obj = fileChksumQueue.top();
-							fileChksumQueue.pop();
-							
-							readyList.push_back(obj);
-						}
-					}
-					
-					// blocks finished
-					for ( uint64_t i = 0; i < readyList.size(); ++i )
-					{
-						FileChecksumBlockWorkPackage<file_checksum_type> * package = checksumWorkPackages.getPackage();
-						*package = FileChecksumBlockWorkPackage<file_checksum_type>(
-							0 /* prio */, 
-							FCBWPDid,
-							readyList[i],
-							&filechecksum
-						);
-						STP.enque(package);
-					}
-				}
 
 				void genericInputControlBlockWritePackageBlockWritten(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP)
 				{
+					bool finished = false;
+					
+					// reduce number of references to this block by one
 					{
 						libmaus::parallel::ScopePosixSpinLock llock(outputBlocksUnfinishedTasksLock);
-						outputBlocksUnfinishedTasks[GICCP.absid] = 0;
+						assert ( outputBlocksUnfinishedTasks.find(GICCP.absid) != outputBlocksUnfinishedTasks.end() );
+						assert ( outputBlocksUnfinishedTasks.find(GICCP.absid)->second > 0 );						
+						
+						if ( -- outputBlocksUnfinishedTasks[GICCP.absid] == 0 )
+							finished = true;
 					}
 					
-					if ( 1 )
-					{
-						{
-							libmaus::parallel::ScopePosixSpinLock llock(outputBlocksUnfinishedTasksLock);
-							libmaus::parallel::ScopePosixSpinLock slock(fileChksumQueueLock);
-							outputBlocksUnfinishedTasks[GICCP.absid] += 1;
-							fileChksumQueue.push(GICCP);
-						}
-					
-						checkFileChksumQueue();
-					}
-					else
-					{
+					// check whether block is finished now	
+					if ( finished )
 						returnCompressedBlock(GICCP);
-					}
 				}
 
 				void genericInputControlBlockCompressionFinished(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP)
