@@ -1082,6 +1082,38 @@ namespace libmaus
 					readEndsFragContainerFreeList.put(V);
 					return MI;
 				}
+				
+				void saveFragMergeInfo(std::ostream & out)
+				{
+					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type
+						sMI(getFragMergeInfo());
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > & MI = *sMI;
+					
+					libmaus::util::NumberSerialisation::serialiseNumber(out,MI.size());
+					for ( uint64_t i = 0; i < MI.size(); ++i )
+						MI[i].moveAndSerialise(out);
+				}
+				
+				void saveFragMergeInfo(std::string const & fn)
+				{
+					libmaus::aio::PosixFdOutputStream PFIS(fn);
+					saveFragMergeInfo(PFIS);
+				}
+				
+				static std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > loadMergeInfo(std::istream & in)
+				{
+					uint64_t const n = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > V;
+					for ( uint64_t i = 0; i < n; ++i )
+						V.push_back( ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase(in) );
+					return V;
+				}
+				
+				static std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > loadMergeInfo(std::string const & fn)
+				{
+					libmaus::aio::PosixFdInputStream PFIS(fn);
+					return loadMergeInfo(PFIS);
+				}
 
 				libmaus::util::shared_ptr<
 					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > 
@@ -1097,6 +1129,23 @@ namespace libmaus
 						MI->push_back(V[i]->getMergeInfo());
 					readEndsPairContainerFreeList.put(V);
 					return MI;
+				}
+
+				void savePairMergeInfo(std::ostream & out)
+				{
+					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type
+						sMI(getPairMergeInfo());
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > & MI = *sMI;
+					
+					libmaus::util::NumberSerialisation::serialiseNumber(out,MI.size());
+					for ( uint64_t i = 0; i < MI.size(); ++i )
+						MI[i].moveAndSerialise(out);
+				}
+
+				void savePairMergeInfo(std::string const & fn)
+				{
+					libmaus::aio::PosixFdOutputStream PFIS(fn);
+					savePairMergeInfo(PFIS);
 				}
 
 				void fragReadEndsMergeWorkPackageFinished(FragReadEndsMergeWorkPackage *)
@@ -1161,13 +1210,274 @@ namespace libmaus
 					metrics = libmaus::bambam::DuplicationMetrics::add(metrics,O);
 				}
 				
-				void flushReadEndsLists(std::ostream & metricsstr, std::string const progname)
+				static void verifyReadEndsFragments(
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & fraginfo,
+					libmaus::parallel::PosixSpinLock & globallock,
+					size_t const cachesize = 16*1024*1024
+				)
 				{
-					// set up duplicate data structure
-					uint64_t const ureadsParsed = static_cast<uint64_t>(readsParsed);
-					libmaus::bitio::BitVector::unique_ptr_type Tdupbitvec(new libmaus::bitio::BitVector(ureadsParsed));
-					Pdupbitvec = UNIQUE_PTR_MOVE(Tdupbitvec);
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( uint64_t z = 0; z < fraginfo.size(); ++z )
+					{
+						try
+						{
+							::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase const frag = fraginfo[z];
+							
+							for ( uint64_t i = 0; i < frag.indexoffset.size(); ++i )
+							{
+								globallock.lock();
+								std::cerr << "(" << z << "," << i << ")";
+								globallock.unlock();
+							
+								std::string const & datafilename = frag.datafilename;
+								std::string const & indexfilename = frag.indexfilename;
+								uint64_t const indexoffset = frag.indexoffset[i];
+								uint64_t const blockelcnt = frag.blockelcnt[i];
+								
+								libmaus::aio::PosixFdInputStream indexPFIS(indexfilename);
+								indexPFIS.seekg(indexoffset,std::ios::beg);
+								libmaus::index::ExternalMemoryIndexDecoder<
+									libmaus::bambam::ReadEndsBase,
+									libmaus::bambam::ReadEndsContainerBase::baseIndexShift,
+									libmaus::bambam::ReadEndsContainerBase::innerIndexShift		
+								> index(indexPFIS,cachesize);
 
+								{
+									std::pair<uint64_t,uint64_t> const pos = index[0];
+									libmaus::aio::PosixFdInputStream dataPFIS(datafilename);
+									dataPFIS.seekg(pos.first);
+									libmaus::lz::SnappyInputStream dataSnappy(dataPFIS);
+									dataSnappy.ignore(pos.second);
+									
+									libmaus::bambam::ReadEnds prev;
+									bool prevvalid = false;
+									libmaus::bambam::ReadEnds RE;
+									for ( uint64_t j = 0; j < blockelcnt; ++j )
+									{
+										RE.get(dataSnappy);
+										
+										bool const ok = ( (! prevvalid) || (prev < RE) );
+										
+										if ( ! ok )
+										{
+											std::cerr << "prev=" << prev << std::endl;
+											std::cerr << "RE=" << RE << std::endl;
+										}
+										
+										assert ( ok );
+										
+										prev = RE;
+										prevvalid = true;
+									}
+								}
+								
+								{
+									uint64_t const baseblocksize = 1ull << libmaus::bambam::ReadEndsContainerBase::baseIndexShift;
+									uint64_t const numbaseblocks = (blockelcnt + baseblocksize-1)/baseblocksize;
+									
+									for ( uint64_t b = 0; b < numbaseblocks; ++b )
+									{
+										std::pair<uint64_t,uint64_t> const pos = index[b];
+										libmaus::aio::PosixFdInputStream dataPFIS(datafilename);
+										dataPFIS.seekg(pos.first);
+										libmaus::lz::SnappyInputStream dataSnappy(dataPFIS);
+										dataSnappy.ignore(pos.second);
+
+										uint64_t const blocklow = b * baseblocksize;
+										uint64_t const blockhigh = std::min(blocklow + baseblocksize, blockelcnt);
+										uint64_t const blockread = blockhigh-blocklow;
+										
+										libmaus::bambam::ReadEnds prev;
+										bool prevvalid = false;
+										libmaus::bambam::ReadEnds RE;
+										for ( uint64_t j = 0; j < blockread; ++j )
+										{
+											RE.get(dataSnappy);
+											
+											if ( ! j )
+											{
+												libmaus::bambam::ReadEndsBase const first = index.getBaseLevelBlockStart(b);
+												assert ( first == RE );
+												
+												uint64_t bb = b;
+												unsigned int level = 0;
+												while ( 
+													(bb & ((1ull << libmaus::bambam::ReadEndsContainerBase::innerIndexShift)-1)) == 0
+													&&
+													(++level < index.levelstarts.size())
+												)
+												{
+													bb >>= libmaus::bambam::ReadEndsContainerBase::innerIndexShift;
+													libmaus::bambam::ReadEndsBase const lfirst = index.getLevelBlockStart(level,bb);
+													assert ( lfirst == RE );
+													// std::cerr << "[b=" << b << ",level=" << level << "]";
+												}
+											}
+										
+											bool const ok = ( (! prevvalid) || (prev < RE) );
+											
+											if ( ! ok )
+											{
+												std::cerr << "prev=" << prev << std::endl;
+												std::cerr << "RE=" << RE << std::endl;
+											}
+										
+											assert ( ok );
+										
+											prev = RE;
+											prevvalid = true;
+										}								
+									}
+								}
+							}
+						}
+						catch(std::exception const & ex)
+						{
+							globallock.lock();
+							std::cerr << ex.what() << std::endl;
+							globallock.unlock();
+						}
+					}				
+				}
+
+				static void verifyReadEndsPairs(
+					std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & pairinfo,
+					libmaus::parallel::PosixSpinLock & globallock,
+					size_t const cachesize = 16*1024*1024
+				)
+				{
+					#if defined(_OPENMP)
+					#pragma omp parallel for
+					#endif
+					for ( uint64_t z = 0; z < pairinfo.size(); ++z )
+					{
+						try
+						{
+							::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase const pair = pairinfo[z];
+							
+							for ( uint64_t i = 0; i < pair.indexoffset.size(); ++i )
+							{
+								globallock.lock();
+								std::cerr << "(" << z << "," << i << ")";
+								globallock.unlock();
+							
+								std::string const & datafilename = pair.datafilename;
+								std::string const & indexfilename = pair.indexfilename;
+								uint64_t const indexoffset = pair.indexoffset[i];
+								uint64_t const blockelcnt = pair.blockelcnt[i];
+								
+								libmaus::aio::PosixFdInputStream indexPFIS(indexfilename);
+								indexPFIS.seekg(indexoffset,std::ios::beg);
+								libmaus::index::ExternalMemoryIndexDecoder<
+									libmaus::bambam::ReadEndsBase,
+									libmaus::bambam::ReadEndsContainerBase::baseIndexShift,
+									libmaus::bambam::ReadEndsContainerBase::innerIndexShift		
+								> index(indexPFIS,cachesize);
+								
+								{
+									std::pair<uint64_t,uint64_t> const pos = index[0];
+									libmaus::aio::PosixFdInputStream dataPFIS(datafilename);
+									dataPFIS.seekg(pos.first);
+									libmaus::lz::SnappyInputStream dataSnappy(dataPFIS);
+									dataSnappy.ignore(pos.second);
+									
+									libmaus::bambam::ReadEnds prev;
+									bool prevvalid = false;
+									libmaus::bambam::ReadEnds RE;
+									for ( uint64_t j = 0; j < blockelcnt; ++j )
+									{
+										RE.get(dataSnappy);
+
+										bool const ok = ( (! prevvalid) || (prev < RE) );
+										
+										if ( ! ok )
+										{
+											std::cerr << "prev=" << prev << std::endl;
+											std::cerr << "RE=" << RE << std::endl;
+										}
+										
+										assert ( ok );
+
+										
+										prev = RE;
+										prevvalid = true;
+									}
+								}
+
+								{
+									uint64_t const baseblocksize = 1ull << libmaus::bambam::ReadEndsContainerBase::baseIndexShift;
+									uint64_t const numbaseblocks = (blockelcnt + baseblocksize-1)/baseblocksize;
+									
+									for ( uint64_t b = 0; b < numbaseblocks; ++b )
+									{
+										std::pair<uint64_t,uint64_t> const pos = index[b];
+										libmaus::aio::PosixFdInputStream dataPFIS(datafilename);
+										dataPFIS.seekg(pos.first);
+										libmaus::lz::SnappyInputStream dataSnappy(dataPFIS);
+										dataSnappy.ignore(pos.second);
+
+										uint64_t const blocklow = b * baseblocksize;
+										uint64_t const blockhigh = std::min(blocklow + baseblocksize, blockelcnt);
+										uint64_t const blockread = blockhigh-blocklow;
+										
+										libmaus::bambam::ReadEnds prev;
+										bool prevvalid = false;
+										libmaus::bambam::ReadEnds RE;
+										for ( uint64_t j = 0; j < blockread; ++j )
+										{
+											RE.get(dataSnappy);
+
+											if ( ! j )
+											{
+												libmaus::bambam::ReadEndsBase const first = index.getBaseLevelBlockStart(b);
+												assert ( first == RE );
+
+												uint64_t bb = b;
+												unsigned int level = 0;
+												while ( 
+													(bb & ((1ull << libmaus::bambam::ReadEndsContainerBase::innerIndexShift)-1)) == 0
+													&&
+													(++level < index.levelstarts.size())
+												)
+												{
+													bb >>= libmaus::bambam::ReadEndsContainerBase::innerIndexShift;
+													libmaus::bambam::ReadEndsBase const lfirst = index.getLevelBlockStart(level,bb);
+													assert ( lfirst == RE );
+													// std::cerr << "[b=" << b << ",level=" << level << "]";
+												}
+											}
+										
+											bool const ok = ( (! prevvalid) || (prev < RE) );
+											
+											if ( ! ok )
+											{
+												std::cerr << "prev=" << prev << std::endl;
+												std::cerr << "RE=" << RE << std::endl;
+											}
+										
+											assert ( ok );
+										
+											prev = RE;
+											prevvalid = true;
+										}								
+									}
+								}
+							}
+						}
+						catch(std::exception const & ex)
+						{
+							globallock.lock();
+							std::cerr << ex.what() << std::endl;
+							globallock.unlock();
+						}
+					}
+				
+				}
+				
+				void flushReadEndsLists()
+				{
 					// enque ReadEndsContainer flush requests
 					std::cerr << "[V] flushing read ends lists...";
 					enqueFlushFragReadEndsLists();
@@ -1188,8 +1498,45 @@ namespace libmaus
 					std::cerr << "done." << std::endl;
 					
 					if ( STP.isInPanicMode() )
+					{
+						STP.join();
 						return;
+					}
 
+					#if 0
+					{
+						std::cerr << "Verifying frags...";
+					
+						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type
+							sfraginfo = getFragMergeInfo();
+						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & fraginfo = *sfraginfo;
+
+						verifyReadEndsFragments(fraginfo);
+						
+						std::cerr << "done." << std::endl;
+					}
+
+					{
+						std::cerr << "Verifying pairs...";
+					
+						libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type
+							spairinfo = getPairMergeInfo();
+						std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > const & pairinfo = *spairinfo;
+
+						verifyReadEndsPairs(pairinfo);
+						
+						std::cerr << "done." << std::endl;
+					}
+					#endif
+				}
+
+				void mergeReadEndsLists(std::ostream & metricsstr, std::string const progname)
+				{
+					// set up duplicate data structure
+					uint64_t const ureadsParsed = static_cast<uint64_t>(readsParsed);
+					libmaus::bitio::BitVector::unique_ptr_type Tdupbitvec(new libmaus::bitio::BitVector(ureadsParsed));
+					Pdupbitvec = UNIQUE_PTR_MOVE(Tdupbitvec);
+					
 					// enque ReadEnds lists merge requests
 					std::cerr << "[V] merging read ends lists/computing duplicates...";
 					libmaus::timing::RealTimeClock mergertc; mergertc.start();
@@ -1211,7 +1558,10 @@ namespace libmaus
 					std::cerr << "done, time " << mergertc.formatTime(mergertc.getElapsedSeconds()) << std::endl;
 
 					if ( STP.isInPanicMode() )
+					{
+						STP.join();
 						return;
+					}
 
 					libmaus::bambam::DupSetCallbackSharedVector dvec(*Pdupbitvec);
 					std::cerr << "[V] num dups " << dvec.getNumDups() << std::endl;
