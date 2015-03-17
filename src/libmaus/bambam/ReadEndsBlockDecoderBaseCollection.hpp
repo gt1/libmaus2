@@ -380,9 +380,7 @@ namespace libmaus
 					uint64_t c = 0;
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
 						c += Pdecoders[i]->findLargestSmaller(R,true /* cache only */).blockid;
-						
-					// std::cerr << "access " << H << " c=" << c << std::endl;
-					
+
 					return c;
 				}
 			};
@@ -400,6 +398,14 @@ namespace libmaus
 				return short_index_iterator(&raccessor,raccessor.max().encodeShortHash()+libmaus::bambam::ReadEndsBase::hash_value_type(1));
 			}
 
+			struct UVal
+			{
+				uint64_t volatile v;
+					
+				UVal() : v(0) {}
+				UVal(uint64_t const rv) : v(rv) {}
+			};
+
 			static std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getShortMergeIntervals(
 				std::vector<ReadEndsBlockDecoderBaseCollectionInfoBase> const & rinfo,
 				uint64_t const numthreads, 
@@ -412,7 +418,7 @@ namespace libmaus
 				uint64_t const memory = 256ull*1024ull*1024ull;
 				uint64_t const numblocks = computeNumBlocks(rinfo);
 				uint64_t const minmem = 16*1024;
-				uint64_t const cacheperdec = std::max(minmem,(memory + numblocks-1)/numblocks);
+				uint64_t const cacheperdec = std::max(minmem,numblocks ? ((memory + numblocks-1)/numblocks) : 0);
 				
 				// offset array
 				std::vector<uint64_t> O(rinfo.size(),0);
@@ -449,6 +455,7 @@ namespace libmaus
 				#pragma omp parallel for
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
+				{
 					for ( uint64_t j = 0; j < rinfo[i].indexoffset.size(); ++j )
 					{
 						Pindexstreams[i]->clear();
@@ -456,6 +463,7 @@ namespace libmaus
 						short_index_decoder_pointer_type tptr(new short_index_decoder_type(*Pindexstreams[i],cacheperdec));
 						Pdecoders[O[i]+j] = UNIQUE_PTR_MOVE(tptr);
 					}
+				}
 				#if defined(READENDSBLOCKTIMING)
 				std::cerr << "index setup: " << decodersetuprtc.getElapsedSeconds() << std::endl;
 				#endif
@@ -470,6 +478,7 @@ namespace libmaus
 				#if defined(READENDSBLOCKTIMING)
 				decodersetuprtc.start();
 				#endif
+				// cache only accessor
 				ExternalMemoryIndexDecoderShortCountAccessor accessor(Pdecoders);
 				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
 				libmaus::bambam::ReadEndsBaseShortHashAttributeComparator comp;
@@ -494,7 +503,13 @@ namespace libmaus
 					std::cerr << std::endl;
 					#endif
 				}
-					
+				
+				for ( uint64_t i = 1; i < splitPoints.size(); ++i )
+					assert ( splitPoints[i-1] <= splitPoints[i] );
+								
+				libmaus::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
+				std::fill(RR.begin(),RR.end(),UVal(std::numeric_limits<uint64_t>::max()));
+
 				// compute split points
 				std::vector< 
 					std::vector< std::pair<uint64_t,uint64_t> >
@@ -502,36 +517,93 @@ namespace libmaus
 				#if defined(_OPENMP)
 				#pragma omp parallel for				
 				#endif
+				// file on disk
 				for ( uint64_t f = 0; f < rinfo.size(); ++f )
+					// block of file on disk
 					for ( uint64_t k = 0; k < rinfo[f].indexoffset.size(); ++k )
+					{
+						// part of block of file on disk
 						for ( uint64_t i = 0; i < numthreads; ++i )
-						{
+						{						
 							libmaus::bambam::ReadEnds H;
 							H.decodeShortHash(splitPoints[i]);
-							
+														
 							libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus::bambam::ReadEndsBase> const
 								FLS = Pdecoders[O[f] + k]->findLargestSmaller(H,false /* cache only */);
-
+								
 							uint64_t o = FLS.blockid << libmaus::bambam::ReadEndsContainerBase::baseIndexShift;
 							Pdatastreams[f]->clear();
 							Pdatastreams[f]->seekg(FLS.P.first);
 							libmaus::lz::SnappyInputStream SIS(*(Pdatastreams[f]));
 							SIS.ignore(FLS.P.second);
 							libmaus::bambam::ReadEnds T;
+							uint64_t const blockelcnt = rinfo[f].blockelcnt[k];
 							
-							while ( SIS.peek() >= 0 )
+							bool first = true;
+							libmaus::bambam::ReadEndsBase prev;
+
+							while ( o < blockelcnt )
 							{
+								assert ( SIS.peek() >= 0 );
 								// std::cerr << ".";
 								T.get(SIS);
+									
+								if ( first )
+								{
+									assert ( T == FLS.D );
+									first = false;
+								}
+								else
+								{
+									assert( prev < T );
+								}
+								
 								// std::cerr << "H=" << H << " T=" << T << std::endl;
 								// break if T is not smaller than H
 								if ( ! comp(T,H) )
 									break;
 								else
 									++o;
+									
+								prev = T;
 							}
-							R.at(i).at(O[f] + k).first = o;
+							// R.at(i).at(O[f] + k).first = o;
+
+							assert ( RR [ i * numblocks + O[f] + k ].v == std::numeric_limits<uint64_t>::max() );
+							RR [ i * numblocks + O[f] + k ].v = o;							
 						}
+					}
+
+				for ( uint64_t i = 0; i < numthreads; ++i )
+					for ( uint64_t j = 0; j < numblocks ; ++j )
+						R.at(i).at(j).first = RR[i*numblocks+j].v;
+
+				#if 0				
+				{	
+					bool gok = true;
+					for ( uint64_t j = 0; j < numblocks ; ++j )
+						for ( uint64_t i = 1; i < numthreads; ++i )
+						{
+							bool const ok = R[i-1][j].first <= R[i][j].first;
+							if ( ! ok )
+								gok = false;
+						}
+					if ( ! gok )
+					{
+						for ( uint64_t j = 0; j < numblocks ; ++j )
+						{
+							std::cerr << "block " << j << std::endl;
+							for ( uint64_t i = 0; i < numthreads; ++i )
+							{
+								bool const lok = 
+									(i == 0) || (R[i-1][j] <= R[i][j]);
+								std::cerr << "\tthread " << i << " " << R[i][j].first << " " << (lok?"":"broken") << std::endl;
+							}
+						}
+						assert ( gok );
+					}
+				}
+				#endif
 				
 				// set upper bounds
 				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
@@ -646,6 +718,57 @@ namespace libmaus
 					}
 					std::cerr << "done." << std::endl;
 				}
+				
+				#if 0
+				bool gok = true;
+				// counter over merge packages (threads)
+				for ( uint64_t i = 0; i < R.size(); ++i )
+					// counter over blocks
+					for ( uint64_t j = 0; j < R[i].size(); ++j )
+					{
+						std::pair<uint64_t,uint64_t> P = R[i][j];
+						bool const ok = P.first <= P.second;
+						if ( ! ok )
+						{
+							std::cerr << std::string(80,'*') << std::endl;
+							std::cerr << "late R[" << i << "][" << j << "]=(" << P.first << "," << P.second << ")" << std::endl;
+
+							if ( i > 0 )
+								std::cerr << "R[" << i-1 << "][" << j << "]=(" << R[i-1][j].first << "," << R[i-1][j].second << ")" << std::endl;
+							if ( i+1 < R.size() )
+								std::cerr << "R[" << i+1 << "][" << j << "]=(" << R[i+1][j].first << "," << R[i+1][j].second << ")" << std::endl;
+
+							std::cerr << "late R.size()=" << R.size() << " R[" << i << "].size()=" << R[i].size() << std::endl;
+							gok = false;
+						}
+					}
+					
+				assert ( gok );
+				#endif
+					
+				#if 0
+				if ( ! gok )
+				{
+					std::cerr << std::string(80,'+') << std::endl;
+
+					if ( ! gok )
+					{
+						for ( uint64_t j = 0; j < numblocks ; ++j )
+						{
+							std::cerr << "block " << j << std::endl;
+							for ( uint64_t i = 0; i < numthreads; ++i )
+							{
+								bool const lok = 
+									(i == 0) || (R[i-1][j] <= R[i][j]);
+								std::cerr << "\tthread " << i << " " << R[i][j].first << " " << (lok?"":"broken") << std::endl;
+							}
+						}
+						assert ( gok );
+					}
+				}
+					
+				assert ( gok );
+				#endif
 								
 				return R;
 			}
@@ -818,7 +941,13 @@ namespace libmaus
 					std::cerr << std::endl;
 					#endif
 				}
-					
+
+				for ( uint64_t i = 1; i < splitPoints.size(); ++i )
+					assert ( splitPoints[i-1] <= splitPoints[i] );
+
+				libmaus::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
+				std::fill(RR.begin(),RR.end(),UVal(std::numeric_limits<uint64_t>::max()));
+
 				// compute split points
 				std::vector< 
 					std::vector< std::pair<uint64_t,uint64_t> >
@@ -842,20 +971,52 @@ namespace libmaus
 							libmaus::lz::SnappyInputStream SIS(*(Pdatastreams[f]));
 							SIS.ignore(FLS.P.second);
 							libmaus::bambam::ReadEnds T;
+							uint64_t const blockelcnt = rinfo[f].blockelcnt[k];
 							
-							while ( SIS.peek() >= 0 )
+							while ( o < blockelcnt )
 							{
-								// std::cerr << ".";
+								assert ( SIS.peek() >= 0 );
 								T.get(SIS);
-								// std::cerr << "H=" << H << " T=" << T << std::endl;
 								// break if T is not smaller than H
 								if ( ! comp(T,H) )
 									break;
 								else
 									++o;
 							}
-							R.at(i).at(O[f] + k).first = o;
+							assert ( RR [ i * numblocks + O[f] + k ].v == std::numeric_limits<uint64_t>::max() );
+							RR [ i * numblocks + O[f] + k ].v = o;
 						}
+
+				for ( uint64_t i = 0; i < numthreads; ++i )
+					for ( uint64_t j = 0; j < numblocks ; ++j )
+						R.at(i).at(j).first = RR[i*numblocks+j].v;
+
+				#if 0
+				{	
+					bool gok = true;
+					for ( uint64_t j = 0; j < numblocks ; ++j )
+						for ( uint64_t i = 1; i < numthreads; ++i )
+						{
+							bool const ok = R[i-1][j].first <= R[i][j].first;
+							if ( ! ok )
+								gok = false;
+						}
+					if ( ! gok )
+					{
+						for ( uint64_t j = 0; j < numblocks ; ++j )
+						{
+							std::cerr << "block " << j << std::endl;
+							for ( uint64_t i = 0; i < numthreads; ++i )
+							{
+								bool const lok = 
+									(i == 0) || (R[i-1][j] <= R[i][j]);
+								std::cerr << "\tthread " << i << " " << R[i][j].first << " " << (lok?"":"broken") << std::endl;
+							}
+						}
+						assert ( gok );
+					}
+				}
+				#endif
 				
 				// set upper bounds
 				for ( uint64_t i = 0; (i+1) < numthreads; ++i )
@@ -970,6 +1131,20 @@ namespace libmaus
 					}
 					std::cerr << "done." << std::endl;
 				}
+
+				#if 0
+				for ( uint64_t i = 0; i < R.size(); ++i )
+					for ( uint64_t j = 0; j < R[i].size(); ++j )
+					{
+						std::pair<uint64_t,uint64_t> P = R[i][j];
+						bool const ok = P.first <= P.second;
+						if ( ! ok )
+						{
+							std::cerr << "R[" << i << "][" << j << "]=(" << P.first << "," << P.second << ")" << std::endl;
+							assert ( ok );
+						}
+					}
+				#endif
 								
 				return R;
 			}
