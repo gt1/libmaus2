@@ -114,7 +114,10 @@ namespace libmaus
 			{
 				uint64_t exp = 0;
 				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					assert ( V[i].second >= V[i].first );
 					exp += V[i].second-V[i].first;
+				}
 			
 				libmaus::autoarray::AutoArray<libmaus::aio::InputStream::unique_ptr_type> datastreams(info.size());
 				libmaus::autoarray::AutoArray<libmaus::lz::SnappyInputStream::unique_ptr_type> zdatastreams(size());
@@ -132,23 +135,29 @@ namespace libmaus
 					for ( uint64_t j = 0; j < info[i].indexoffset.size(); ++j )
 					{
 						uint64_t const blockid    = O[i] + j;
-						uint64_t const subblockid = V[blockid].first / getBaseBlockSize();
-						std::pair<uint64_t,uint64_t> const zoffset = getOffset(blockid,subblockid);
+						uint64_t const vlow  = V[blockid].first;
+						uint64_t const vhigh = V[blockid].second;
+						uint64_t const subblockid = vlow / getBaseBlockSize();
 						
-						libmaus::lz::SnappyInputStream::unique_ptr_type zptr(
-							new libmaus::lz::SnappyInputStream(
-								*(datastreams[i]),
-								zoffset.first,
-								true /* set pos */
-							)
-						);
-						zptr->ignore(zoffset.second);
-						
-						uint64_t const rskip = V[blockid].first - subblockid * getBaseBlockSize();
-						for ( uint64_t k = 0; k < rskip; ++k )
-							R.get(*zptr);
+						if ( vlow < vhigh )
+						{
+							std::pair<uint64_t,uint64_t> const zoffset = getOffset(blockid,subblockid);
 							
-						zdatastreams[blockid] = UNIQUE_PTR_MOVE(zptr);
+							libmaus::lz::SnappyInputStream::unique_ptr_type zptr(
+								new libmaus::lz::SnappyInputStream(
+									*(datastreams[i]),
+									zoffset.first,
+									true /* set pos */
+								)
+							);
+							zptr->ignore(zoffset.second);
+							
+							uint64_t const rskip = vlow - subblockid * getBaseBlockSize();
+							for ( uint64_t k = 0; k < rskip; ++k )
+								R.get(*zptr);
+								
+							zdatastreams[blockid] = UNIQUE_PTR_MOVE(zptr);
+						}
 					}
 				}			
 
@@ -220,7 +229,10 @@ namespace libmaus
 			{
 				uint64_t exp = 0;
 				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					assert ( V[i].second >= V[i].first );
 					exp += V[i].second-V[i].first;
+				}
 			
 				libmaus::autoarray::AutoArray<libmaus::aio::InputStream::unique_ptr_type> datastreams(info.size());
 				libmaus::autoarray::AutoArray<libmaus::lz::SnappyInputStream::unique_ptr_type> zdatastreams(size());
@@ -238,23 +250,29 @@ namespace libmaus
 					for ( uint64_t j = 0; j < info[i].indexoffset.size(); ++j )
 					{
 						uint64_t const blockid    = O[i] + j;
-						uint64_t const subblockid = V[blockid].first / getBaseBlockSize();
-						std::pair<uint64_t,uint64_t> const zoffset = getOffset(blockid,subblockid);
+						uint64_t const vlow = V[blockid].first;
+						uint64_t const vhigh = V[blockid].second;
 						
-						libmaus::lz::SnappyInputStream::unique_ptr_type zptr(
-							new libmaus::lz::SnappyInputStream(
-								*(datastreams[i]),
-								zoffset.first,
-								true /* set pos */
-							)
-						);
-						zptr->ignore(zoffset.second);
-						
-						uint64_t const rskip = V[blockid].first - subblockid * getBaseBlockSize();
-						for ( uint64_t k = 0; k < rskip; ++k )
-							R.get(*zptr);
+						if ( vlow < vhigh )
+						{
+							uint64_t const subblockid = vlow / getBaseBlockSize();
+							std::pair<uint64_t,uint64_t> const zoffset = getOffset(blockid,subblockid);
 							
-						zdatastreams[blockid] = UNIQUE_PTR_MOVE(zptr);
+							libmaus::lz::SnappyInputStream::unique_ptr_type zptr(
+								new libmaus::lz::SnappyInputStream(
+									*(datastreams[i]),
+									zoffset.first,
+									true /* set pos */
+								)
+							);
+							zptr->ignore(zoffset.second);
+							
+							uint64_t const rskip = vlow - subblockid * getBaseBlockSize();
+							for ( uint64_t k = 0; k < rskip; ++k )
+								R.get(*zptr);
+								
+							zdatastreams[blockid] = UNIQUE_PTR_MOVE(zptr);
+						}
 					}
 				}			
 
