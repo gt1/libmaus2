@@ -154,223 +154,660 @@ int libmaus::util::PosixExecute::setNonBlockFlag (int desc, bool on)
 	return fcntl (desc, F_SETFL, oldflags);
 }
 
-int libmaus::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
+template<typename _type>
+struct LocalAutoArray
 {
-	int stdoutpipe[2];
-	int stderrpipe[2];
+	typedef _type type;
 	
-	if ( pipe(&stdoutpipe[0]) != 0 )
+	size_t const n;
+	type * const A;
+	
+	LocalAutoArray(size_t const rn)
+	: n(rn), A(new type[n])
 	{
-		if ( donotthrow )
-		{
-			std::cerr << "pipe() failed: " << strerror(errno) << std::endl;
-			return EXIT_FAILURE;
-		}
-		else
-		{
-			::libmaus::exception::LibMausException se;
-			se.getStream() << "pipe() failed: " << strerror(errno);
-			se.finish();
-			throw se;
-		}
 	}
-	if ( pipe(&stderrpipe[0]) != 0 )
+	~LocalAutoArray()
 	{
-		close(stdoutpipe[0]);
-		close(stderrpipe[0]);
-
-		if ( donotthrow )
-		{
-			std::cerr << "pipe() failed: " << strerror(errno) << std::endl;
-			return EXIT_FAILURE;
-		}
-		else
-		{
-			::libmaus::exception::LibMausException se;
-			se.getStream() << "pipe() failed: " << strerror(errno);
-			se.finish();
-			throw se;
-		}
-	}
-
-	pid_t const pid = fork();
-	
-	if ( pid == -1 )
-	{
-		int const error = errno;
-	
-		close(stdoutpipe[0]);
-		close(stdoutpipe[0]);
-		close(stdoutpipe[1]);
-		close(stdoutpipe[1]);
-		
-		if ( donotthrow )
-		{
-			std::cerr << "Failed to fork(): " << strerror(error) << std::endl;
-			return EXIT_FAILURE;
-		}
-		else
-		{
-			::libmaus::exception::LibMausException se;
-			se.getStream() << "Failed to fork(): " << strerror(error);
-			se.finish();
-			throw se;
-		}
+		delete [] A;
 	}
 	
-	/* child */
-	if ( pid == 0 )
+	type * get()
 	{
-		close(stdoutpipe[0]);
-		close(stderrpipe[0]);
-		
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
-		int const nullfd = open("/dev/null",O_RDONLY);
-		dup2(nullfd,STDIN_FILENO);
-		dup2(stdoutpipe[1],STDOUT_FILENO);
-		dup2(stderrpipe[1],STDERR_FILENO);
-		int const ret = system ( command.c_str() );
-	
-		#if 0	
-		std::ostringstream ostr;
-		ostr << "After return code " << ret << std::endl;
-		std::string ostrstr = ostr.str();
-		write ( STDERR_FILENO, ostrstr.c_str(), ostrstr.size() );
-		#endif
-		
-		close(stdoutpipe[1]);
-		close(stderrpipe[1]);
-		
-		_exit(WEXITSTATUS(ret));
+		return A;
 	}
-	else
+
+	type const * get() const
 	{
-		close(stdoutpipe[1]);
-		close(stderrpipe[1]);
-		
-		setNonBlockFlag ( stdoutpipe[0], true );
-		setNonBlockFlag ( stderrpipe[0], true );
-		
-		bool done = false;
-		int status;
-		
-		char * B = 0;
-		size_t const Bsize = 8*8192;
-		try
-		{
-			B = new char[Bsize];
-		}
-		catch(...)
-		{
-			close(stdoutpipe[0]);
-			close(stderrpipe[0]);
-			
-			std::cerr << "Failed to allocate memory." << std::endl;
-			return EXIT_FAILURE;
-		}
-		
-		std::vector<char> outv;
-		std::vector<char> errv;
-		
-		while ( ! done )
-		{
-			fd_set fileset;
-			FD_ZERO(&fileset);
-			FD_SET(stdoutpipe[0],&fileset);
-			FD_SET(stderrpipe[0],&fileset);
-			int nfds = std::max(stdoutpipe[0],stderrpipe[0])+1;
-			
-			struct timeval timeout = { 0,0 };
-			int selret = select(nfds, &fileset, 0, 0, &timeout);
+		return A;
+	}
 
-			if ( selret > 0 )
-			{
-				// std::cerr << "Select returned " << selret << std::endl;
-				
-				if ( FD_ISSET(stdoutpipe[0],&fileset) )
-				{
-					ssize_t red = read ( stdoutpipe[0], B, Bsize );
-					// std::cerr << "Got " << red << " from stdout." << std::endl;
-					if ( red > 0 )
-						for ( ssize_t i = 0; i < red; ++i )
-							outv.push_back(B[i]);
-				}
-				if ( FD_ISSET(stderrpipe[0],&fileset) )
-				{
-					ssize_t red = read ( stderrpipe[0], B, Bsize );
-					// std::cerr << "Got " << red << " from stderr." << std::endl;
-					if ( red > 0 )
-						for ( ssize_t i = 0; i < red; ++i )
-							errv.push_back(B[i]);
-				}
-			}
-			
-			status = 0;
-			pid_t const wpid = waitpid(pid, &status, WNOHANG);
-			
-			if ( wpid == pid )
-			{
-				done = true;
-			}
-			else if ( wpid < 0 )
-			{
-				done = true;
-			}
-			else
-			{
-				if ( ! selret )
-				{
-					struct timespec waittime = { 0, 100000000 };
-					nanosleep(&waittime,0);
-				}
-			}
-		}
+	type * begin()
+	{
+		return get();
+	}
 
-		setNonBlockFlag ( stdoutpipe[0], false );
-		setNonBlockFlag ( stderrpipe[0], false );
-		
-		ssize_t red = -1;
+	type const * begin() const
+	{
+		return get();
+	}
+	
+	size_t size() const
+	{
+		return n;
+	}
+	
+	type * end()
+	{
+		return begin()+size();
+	}
 
-		while ( (red = read ( stdoutpipe[0], B, Bsize ) > 0 ) )
-		{
-			// std::cerr << "Got " << red << " from stdout in final." << std::endl;
-			for ( ssize_t i = 0; i < red; ++i )
-				outv.push_back(B[i]);
-		}
-		while ( (red = read ( stderrpipe[0], B, Bsize ) > 0 ) )
-		{
-			// std::cerr << "Got " << red << " from stderr in final." << std::endl;
-			for ( ssize_t i = 0; i < red; ++i )
-				errv.push_back(B[i]);
-		}
+	type const * end() const
+	{
+		return begin()+size();
+	}
+	
+	type & operator[](size_t const i)
+	{
+		return A[i];
+	}
+	
+	type const & operator[](size_t const i) const
+	{
+		return A[i];
+	}
+};
 
-		close(stdoutpipe[0]);
-		close(stderrpipe[0]);
+#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus/util/shared_ptr.hpp>
+
+struct Pipe
+{
+	typedef Pipe this_type;
+	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus::util::unique_ptr<this_type>::type shared_ptr_type;
+
+	int fd[2];
+	
+	Pipe(bool const donotthrow)
+	{
+		fd[0] = -1;
+		fd[1] = -1;
 		
-		delete [] B;
-		
-		out = std::string(outv.begin(),outv.end());
-		err = std::string(errv.begin(),errv.end());
-		
-		if ( ! WIFEXITED(status) )
+		if ( pipe(&fd[0]) != 0 )
 		{
 			if ( donotthrow )
 			{
-				std::cerr << "Calling process " << command << " failed." << std::endl;
+				std::cerr << "pipe() failed: " << strerror(errno) << std::endl;
+				fd[0] = -1;
+				fd[1] = -1;
+			}
+			else
+			{
+				::libmaus::exception::LibMausException se;
+				se.getStream() << "pipe() failed: " << strerror(errno);
+				se.finish();
+				throw se;
+			}
+		}
+	}
+	~Pipe()
+	{
+		closeReadEnd();
+		closeWriteEnd();
+	}
+	
+	static int open(unique_ptr_type & P, bool const donotthrow)
+	{
+		try
+		{
+			unique_ptr_type T(new Pipe(donotthrow));
+		
+			if ( T->fd[0] < 0 )
+				return -1;
+			else
+			{
+				P = UNIQUE_PTR_MOVE(T);
+				return 0;
+			}
+		}
+		catch(...)
+		{
+			if ( donotthrow )
+				return -1;
+			else
+				throw;
+		}
+	}
+	
+	void closeReadEnd()
+	{
+		if ( fd[0] >= 0 )
+		{
+			::close(fd[0]);
+			fd[0] = -1;
+		}
+	}
+
+	void closeWriteEnd()
+	{
+		if ( fd[1] >= 0 )
+		{
+			::close(fd[1]);
+			fd[1] = -1;
+		}
+	}
+};
+
+int libmaus::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
+{
+	char stderrfn[] = "/tmp/libmaus::util::PosixExecute::execute_XXXXXX";
+	char stdoutfn[] = "/tmp/libmaus::util::PosixExecute::execute_XXXXXX";
+	bool stderrfnvalid = false;
+	bool stdoutfnvalid = false;
+	int stderrfd = -1;
+	int stdoutfd = -1;
+	int nullfd = -1;
+	int returncode = EXIT_SUCCESS;
+	pid_t child = -1;
+	int error = 0;
+	char * tempmemerr = NULL;
+	char * tempmemout = NULL;
+	struct stat staterr;
+	struct stat statout;
+	size_t errread = 0;
+	size_t outread = 0;
+	
+	if ( (stderrfd = mkstemp(&stderrfn[0])) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	else
+	{
+		stderrfnvalid = true;
+	}
+		
+	if ( (stdoutfd = mkstemp(&stdoutfn[0])) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	else
+	{
+		stdoutfnvalid = true;
+	}
+
+	
+	if ( (nullfd = open("/dev/null",O_RDONLY)) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;	
+	}
+	
+	
+	child = fork();
+	
+	if ( child < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;	
+	}
+	
+	if ( child == 0 )
+	{
+		try
+		{
+			if ( dup2(nullfd,STDIN_FILENO) < 0 )
+				_exit(EXIT_FAILURE);
+			if ( dup2(stdoutfd,STDOUT_FILENO) < 0 )
+				_exit(EXIT_FAILURE);
+			if ( dup2(stderrfd,STDERR_FILENO) < 0 )
+				_exit(EXIT_FAILURE);
+			
+			::close(nullfd);
+			::close(stdoutfd);
+			::close(stderrfd);
+		
+			int const r = system(command.c_str());
+		
+			_exit(WEXITSTATUS(r));
+		}
+		catch(...)
+		{
+			_exit(EXIT_FAILURE);
+		}
+	}
+
+	while ( true )
+	{
+		int status = 0;
+		
+		pid_t const r = waitpid(child, &status, 0);
+		
+		if ( r < 0 )
+		{
+			int const lerror = errno;
+			
+			if ( lerror == EAGAIN || lerror == EINTR )
+			{
+			
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+				goto cleanup;			
+			}
+		}
+		if ( r == child )
+		{
+			if ( WIFEXITED(status) )
+			{
+				returncode = WEXITSTATUS(status);
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+			}
+			
+			break;
+		}
+	}
+	
+	if ( lseek(stderrfd,0,SEEK_SET) != 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+
+	if ( lseek(stdoutfd,0,SEEK_SET) != 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	
+	
+	if ( fstat(stderrfd,&staterr) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;	
+	}
+	if ( fstat(stdoutfd,&statout) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;	
+	}
+	
+	if ( (tempmemerr = (char *)malloc(staterr.st_size)) == NULL )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;		
+	}
+	if ( (tempmemout = (char *)malloc(statout.st_size)) == NULL )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;		
+	}
+	
+	while ( (ssize_t)errread < (ssize_t)staterr.st_size )
+	{
+		size_t toread = staterr.st_size - errread;
+		ssize_t const r = ::read(stderrfd,tempmemerr+errread,toread);
+		
+		if ( r < 0 )
+		{
+			if ( errno == EAGAIN || errno == EINTR )
+			{
+			
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+				goto cleanup;			
+			}
+		}
+		else if ( r == 0 )
+		{
+			returncode = EXIT_FAILURE;
+			error = errno;
+			goto cleanup;	
+		}
+		else
+		{
+			errread += r;
+		}
+	}
+	while ( (ssize_t)outread < (ssize_t)statout.st_size )
+	{
+		size_t toread = statout.st_size - outread;
+		ssize_t const r = ::read(stdoutfd,tempmemout+outread,toread);
+		
+		if ( r < 0 )
+		{
+			if ( errno == EAGAIN || errno == EINTR )
+			{
+			
+			}
+			else
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+				goto cleanup;			
+			}
+		}
+		else if ( r == 0 )
+		{
+			returncode = EXIT_FAILURE;
+			error = errno;
+			goto cleanup;	
+		}
+		else
+		{
+			outread += r;
+		}
+	}
+	
+	try
+	{
+		out = std::string(statout.st_size,' ');
+		err = std::string(staterr.st_size,' ');
+		
+		for ( ssize_t i = 0; i < statout.st_size; ++i )
+			out[i] = tempmemout[i];
+		for ( ssize_t i = 0; i < staterr.st_size; ++i )
+			err[i] = tempmemerr[i];
+	}
+	catch(...)
+	{
+		returncode = EXIT_FAILURE;
+		error = ENOMEM;
+		goto cleanup;			
+	}
+			
+	cleanup:
+	if ( stderrfd >= 0 )
+	{
+		::close(stderrfd);
+		stderrfd = -1;
+	}
+	if ( stdoutfd >= 0 )
+	{
+		::close(stdoutfd);
+		stdoutfd = -1;
+	}
+	if ( nullfd >= 0 )
+	{
+		::close(nullfd);
+		nullfd = -1;
+	}
+	if ( stderrfnvalid )
+		remove(&stderrfn[0]);
+	if ( stdoutfnvalid )
+		remove(&stdoutfn[0]);
+		
+	if ( tempmemerr )
+	{
+		free(tempmemerr);
+		tempmemerr = NULL;
+	}
+	if ( tempmemout )
+	{
+		free(tempmemout);
+		tempmemout = NULL;
+	}
+	
+	if ( returncode != EXIT_SUCCESS )
+	{	
+		if ( donotthrow )
+		{
+			try
+			{
+				std::cerr << "libmaus::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;		
+			}
+			catch(...)
+			{
+			}
+		}
+		else
+		{
+			libmaus::exception::LibMausException lme;
+			lme.getStream() << "libmaus::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
+			lme.finish();
+			throw lme;
+		}
+	}
+		
+	return returncode;
+}
+
+#if 0
+int libmaus::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
+{
+	try
+	{
+		Pipe::unique_ptr_type Pstdoutpipe;
+		if ( Pipe::open(Pstdoutpipe,donotthrow) < 0 )
+			return EXIT_FAILURE;
+		Pipe::unique_ptr_type Pstderrpipe;
+		if ( Pipe::open(Pstderrpipe,donotthrow) < 0 )
+			return EXIT_FAILURE;
+
+		// fork off process
+		pid_t const pid = fork();
+		
+		// fork failure?
+		if ( pid == -1 )
+		{
+			int const error = errno;
+		
+			if ( donotthrow )
+			{
+				std::cerr << "Failed to fork(): " << strerror(error) << std::endl;
 				return EXIT_FAILURE;
 			}
 			else
 			{
 				::libmaus::exception::LibMausException se;
-				se.getStream() << "Calling process " << command << " failed.";
+				se.getStream() << "Failed to fork(): " << strerror(error) << std::endl;
 				se.finish();
 				throw se;
 			}
 		}
+		
+		/* child */
+		if ( pid == 0 )
+		{
+			try
+			{
+				// close read ends
+				Pstdoutpipe->closeReadEnd();
+				Pstderrpipe->closeReadEnd();
+
+				// open dev null
+				int nullfd = open("/dev/null",O_RDONLY);
+				
+				if ( nullfd < 0 )
+					return EXIT_FAILURE;
+				
+				dup2(nullfd,STDIN_FILENO);
+				dup2(Pstdoutpipe->fd[1],STDOUT_FILENO);
+				dup2(Pstderrpipe->fd[1],STDERR_FILENO);
+				
+				Pstdoutpipe->closeWriteEnd();
+				Pstderrpipe->closeWriteEnd();
+				::close(nullfd);
+				nullfd = -1;
+
+				// call system
+				int const ret = system ( command.c_str() );
+			
+				#if 0
+				std::ostringstream ostr;
+				ostr << "After return code " << ret << std::endl;
+				std::string ostrstr = ostr.str();
+				write ( STDERR_FILENO, ostrstr.c_str(), ostrstr.size() );
+				#endif
+				
+				_exit(WEXITSTATUS(ret));
+			}
+			catch(std::exception const & ex)
+			{
+				try
+				{
+					std::cerr << ex.what() << std::endl;
+				}
+				catch(...)
+				{
+					
+				}
+				
+				_exit(EXIT_FAILURE);
+			}
+			catch(...)
+			{
+				try
+				{
+					std::cerr << "Unknown exception in PosixExecute child process." << std::endl;
+				}
+				catch(...)
+				{
+					
+				}
+				
+				_exit(EXIT_FAILURE);
+			}
+		}
 		else
 		{
-			return WEXITSTATUS(status);
+			Pstdoutpipe->closeWriteEnd();
+			Pstderrpipe->closeWriteEnd();
+			
+			setNonBlockFlag ( Pstdoutpipe->fd[0], true );
+			setNonBlockFlag ( Pstderrpipe->fd[0], true );
+			
+			bool done = false;
+			int status;
+			
+			LocalAutoArray<char> LB(8*8192);
+			
+			std::vector<char> outv;
+			std::vector<char> errv;
+			
+			while ( ! done )
+			{
+				fd_set fileset;
+				FD_ZERO(&fileset);
+				FD_SET(Pstdoutpipe->fd[0],&fileset);
+				FD_SET(Pstderrpipe->fd[0],&fileset);
+				int nfds = std::max(Pstdoutpipe->fd[0],Pstderrpipe->fd[0])+1;
+				
+				struct timeval timeout = { 0,0 };
+				int selret = select(nfds, &fileset, 0, 0, &timeout);
+
+				if ( selret > 0 )
+				{
+					// std::cerr << "Select returned " << selret << std::endl;
+					
+					if ( FD_ISSET(Pstdoutpipe->fd[0],&fileset) )
+					{
+						ssize_t red = read ( Pstdoutpipe->fd[0], LB.begin(), LB.size() );
+						// std::cerr << "Got " << red << " from stdout." << std::endl;
+						if ( red > 0 )
+							for ( ssize_t i = 0; i < red; ++i )
+								outv.push_back(LB[i]);
+					}
+					if ( FD_ISSET(Pstderrpipe->fd[0],&fileset) )
+					{
+						ssize_t red = read ( Pstderrpipe->fd[0], LB.begin(), LB.size() );
+						// std::cerr << "Got " << red << " from stderr." << std::endl;
+						if ( red > 0 )
+							for ( ssize_t i = 0; i < red; ++i )
+								errv.push_back(LB[i]);
+					}
+				}
+				
+				status = 0;
+				pid_t const wpid = waitpid(pid, &status, WNOHANG);
+				
+				if ( wpid == pid )
+				{
+					done = true;
+				}
+				else if ( wpid < 0 )
+				{
+					done = true;
+				}
+				else
+				{
+					if ( ! selret )
+					{
+						struct timespec waittime = { 0, 100000000 };
+						nanosleep(&waittime,0);
+					}
+				}
+			}
+
+			setNonBlockFlag ( Pstdoutpipe->fd[0], false );
+			setNonBlockFlag ( Pstderrpipe->fd[0], false );
+			
+			ssize_t red = -1;
+
+			// read rest from pipes
+			while ( (red = read ( Pstdoutpipe->fd[0], LB.begin(), LB.size() ) > 0 ) )
+			{
+				// std::cerr << "Got " << red << " from stdout in final." << std::endl;
+				for ( ssize_t i = 0; i < red; ++i )
+					outv.push_back(LB[i]);
+			}
+			while ( (red = read ( Pstderrpipe->fd[0], LB.begin(), LB.size() ) > 0 ) )
+			{
+				// std::cerr << "Got " << red << " from stderr in final." << std::endl;
+				for ( ssize_t i = 0; i < red; ++i )
+					errv.push_back(LB[i]);
+			}
+
+			// copy data
+			out = std::string(outv.begin(),outv.end());
+			err = std::string(errv.begin(),errv.end());
+			
+			if ( ! WIFEXITED(status) )
+			{
+				if ( donotthrow )
+				{
+					std::cerr << "Calling process " << command << " failed." << std::endl;
+					return EXIT_FAILURE;
+				}
+				else
+				{
+					::libmaus::exception::LibMausException se;
+					se.getStream() << "Calling process " << command << " failed.";
+					se.finish();
+					throw se;
+				}
+			}
+			else
+			{
+				return WEXITSTATUS(status);
+			}
 		}
 	}
+	catch(...)
+	{
+		if ( donotthrow )
+			return EXIT_FAILURE;
+		else
+			throw;
+	}
 }
+#endif
