@@ -58,8 +58,10 @@ namespace libmaus
 			
 			data_type minel;
 			bool minelvalid;
+			std::pair<uint64_t,uint64_t> minelpos;
 			data_type maxel;
 			bool maxelvalid;
+			std::pair<uint64_t,uint64_t> maxelpos;
 			
 			/**
 			 * set up decoder
@@ -83,14 +85,17 @@ namespace libmaus
 				}
 				if ( numlevels )
 				{
+					#if 0
 					if ( levelcnts.size() == 1 )
 						assert ( levelcnts.back() <= base_index_step );
 					else
+					#endif
 						assert ( levelcnts.back() <= inner_index_step );
 				}
 
 				cache = cache_type(numlevels);
 				uint64_t cachesum = 0;
+				unsigned int numcache = 0;
 				for ( uint64_t ii = 0; ii < numlevels; ++ii )
 				{
 					uint64_t const i = numlevels-ii-1;
@@ -105,6 +110,7 @@ namespace libmaus
 							cachelevel[j].deserialise(PFIS);
 						cache[i] = Pcachelevel;	
 						cachesum += levelcnts[i];
+						numcache += 1;
 					}
 				
 					#if 0
@@ -113,21 +119,43 @@ namespace libmaus
 						<< std::endl;
 					#endif
 				}
+				
+				// std::cerr << "checking cache...";
+				for ( uint64_t ii = 0; ii < numlevels; ++ii )
+				{
+					uint64_t const i = numlevels-ii-1;
+					
+					if ( cache[i] )
+					{						
+						for ( uint64_t j = 0; j < levelcnts[i]; ++j )
+						{
+							uint64_t jj = j;
+
+							for ( int64_t l = i; l >= 0 && cache[l]; --l, jj <<= inner_level_log )
+							{
+								record_type const & ref = (*(cache[i]))[j];
+								record_type const & check = (*(cache[l]))[jj];
+								assert( ref.equal(check) );
+							}
+						}
+					}
+				}
+				// std::cerr << "done." << std::endl;
 			
 				// get minimum element (if any)		 
 				if ( levelcnts.size() && levelcnts[0] )
 				{
 				 	PFIS.clear();
 				 	PFIS.seekg(levelstarts[0], std::ios::beg);
-				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	minelpos.first  = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	minelpos.second = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
 					minel.deserialise(PFIS);	
 					minelvalid = true;
 
 					PFIS.clear();
 					PFIS.seekg(levelstarts[0] + (levelcnts[0]-1) * record_size, std::ios::beg);
-				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				 	libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	maxelpos.first  = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	maxelpos.second = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
 					maxel.deserialise(PFIS);					
 					maxelvalid = true;
 				}
@@ -158,6 +186,8 @@ namespace libmaus
 			 **/
 			std::pair<uint64_t,uint64_t> operator[](uint64_t const i)
 			{
+				assert ( i < levelcnts[0] );
+			
 				PFIS.clear();
 				PFIS.seekg(levelstarts[0] + i * record_size);
 
@@ -166,7 +196,62 @@ namespace libmaus
 				data_type Q;
 				Q.deserialise(PFIS);
 
-				return std::pair<uint64_t,uint64_t>(pfirst,psecond);				
+				std::pair<uint64_t,uint64_t> const P(pfirst,psecond);
+				
+				if ( cache[0] )
+				{
+					assert ( (*(cache[0]))[i].P == P );
+					assert ( (*(cache[0]))[i].D == Q );
+				}
+				
+				return P;
+			}
+			
+			data_type getBaseLevelBlockStart(uint64_t const i)
+			{
+				assert ( i < levelcnts[0] );
+				
+				PFIS.clear();
+				PFIS.seekg(levelstarts[0] + i * record_size);
+
+				uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				data_type Q;
+				Q.deserialise(PFIS);
+
+				std::pair<uint64_t,uint64_t> const P(pfirst,psecond);
+
+				if ( cache[0] )
+				{
+					assert ( (*(cache[0]))[i].P == P );
+					assert ( (*(cache[0]))[i].D == Q );
+				}
+			
+				return Q;
+			}
+
+			data_type getLevelBlockStart(unsigned int const level, uint64_t const i)
+			{
+				assert ( i < levelcnts[level] );
+				
+				PFIS.clear();
+				PFIS.seekg(levelstarts[level] + i * record_size);
+
+				uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				data_type Q;
+				Q.deserialise(PFIS);
+
+				std::pair<uint64_t,uint64_t> const P(pfirst,psecond);
+
+				if ( cache[level] )
+				{
+					assert ( (*(cache[level]))[i].P == P );
+					assert ( (*(cache[level]))[i].D == Q );
+				}
+				
+			
+				return Q;
 			}
 			
 			/**
@@ -210,15 +295,20 @@ namespace libmaus
 				comparator comp = comparator()
 			)
 			{
+				bool const debug = true;
+				
 				#if 0
 				std::cerr << "checking for " << E << std::endl;
 				std::cerr << "minimum element valid " << minelvalid << std::endl;
 				std::cerr << "minimum element " << minel << std::endl;
 				#endif
+				
+				if ( ! minelvalid )
+					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>();
 			
 				// check for empty array or minimum too large
-				if ( (! minelvalid) || (!comp(minel,E)) )
-					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>();
+				if ( !comp(minel,E) )
+					return ExternalMemoryIndexDecoderFindLargestSmallerResult<data_type>(minelpos,0,minel);
 			
 				// block id
 				uint64_t blockid = 0;
@@ -240,7 +330,7 @@ namespace libmaus
 						typename cache_level_type::const_iterator ita = cachelevel.begin();
 						typename cache_level_type::const_iterator it_start = ita + scanstart;
 						typename cache_level_type::const_iterator it_end   = ita + std::min(scanstart+index_step,levelcnts[level]);
-
+						
 						// binary search
 						while ( it_end-it_start > 1 )
 						{
@@ -251,11 +341,28 @@ namespace libmaus
 							else
 								it_end = it_mid;
 						}
-						
+
 						assert ( it_end-it_start == 1 );
-						
+
+						if ( debug )
+						{
+							typename cache_level_type::const_iterator itz = ita + scanstart;
+							
+							while ( 
+								itz   < it_end &&
+								itz+1 < it_end &&
+								comp((itz+1)->D,E)
+							)
+							{
+								++itz;
+							}
+							
+							assert ( itz == it_start );
+								
+						}
+					
 						blockid = (it_start-ita);
-						P = it_start->P;
+						P  = it_start->P;
 						PE = it_start->D;
 					}
 					// use only cache
