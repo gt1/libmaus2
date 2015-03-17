@@ -67,7 +67,14 @@ translate
                         ostr << trace[i] << "\n";
                         */
                         
-                        ostr << A.first << "[" << A.second << ":" << addrout << "]\n";
+                        if ( B.second.find_last_of('+') != std::string::npos )
+                        {
+                        	std::string const mangled = B.second.substr(0,B.second.find_last_of('+'));
+                        	std::string const offset = B.second.substr(B.second.find_last_of('+')+1);
+                        	B.second = libmaus::util::Demangle::demangleName(mangled) + "+" + offset;
+                        }
+                        
+                        ostr << B.first << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
                 }
         }
         else
@@ -150,8 +157,8 @@ std::pair < std::string, std::string > libmaus::util::StackTrace::components(std
 		line.substr(i+1, addrend-(i+1) ));
 }
 
-std::string libmaus::util::StackTrace::getStackTrace()
+std::string libmaus::util::StackTrace::getStackTrace(bool translate)
 {
 	StackTrace st;
-	return st.toString();
+	return st.toString(translate);
 }

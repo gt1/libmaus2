@@ -51,8 +51,8 @@ namespace libmaus
 			
 			static std::string getExecPath();
 			static std::pair < std::string, std::string > components(std::string line, char const start, char const end);
-			std::string toString(bool const translate = true) const;
-			static std::string getStackTrace();
+			std::string toString(bool const translate) const;
+			static std::string getStackTrace(bool const translate);
 		};
 	}
 }
