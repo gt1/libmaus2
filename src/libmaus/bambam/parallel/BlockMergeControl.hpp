@@ -82,8 +82,8 @@ namespace libmaus
 				public BamBlockIndexingBlockFinishedInterface
 			{
 				typedef BlockMergeControl this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				libmaus::parallel::SimpleThreadPool & STP;
 				
@@ -812,13 +812,14 @@ namespace libmaus
 							// enque empty last block
 							{
 								libmaus::parallel::ScopePosixSpinLock rlock(compressionPendingLock);
+								uint8_t * np = NULL;
 								compressionPending.push_back(
 									libmaus::bambam::parallel::GenericInputControlCompressionPending(
 										block->id+1,
 										0,
 										compressionPendingAbsIdNext++,
 										true, /* final */
-										std::pair<uint8_t *,uint8_t *>(NULL,NULL)
+										std::pair<uint8_t *,uint8_t *>(np,np)
 									)
 								);
 							}
