@@ -41,7 +41,7 @@ namespace libmaus
 				return 64*1024;
 			}
 			
-			::libmaus::aio::PosixFdInput stream;
+			::libmaus::aio::PosixFdInput & stream;
 			int64_t const optblocksize;
 			
 			int64_t const filesize;
@@ -58,8 +58,17 @@ namespace libmaus
 			
 			inline void setgchecked(char * a, char * b, char * c)
 			{
-				assert ( a <= b );
-				assert ( b <= c );
+				bool const ok = (a <= b) && (b <= c);
+				
+				if ( ! ok )
+				{
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "PosixFdInputStreamBuffer: invalid parameters for setg detected, a=" 
+						<< (void *)a << " b=" << (void *)b << " c=" << (void *)c << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				
 				setg(a,b,c);
 			}
 			

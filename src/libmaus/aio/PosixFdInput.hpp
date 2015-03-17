@@ -50,6 +50,7 @@ namespace libmaus
 			std::string filename;
 			int fd;
 			ssize_t gcnt;
+			bool const closeOnDeconstruct;
 			
 			public:
 			static int getDefaultFlags()
@@ -61,12 +62,18 @@ namespace libmaus
 				#endif
 			}
 			
-			PosixFdInput(int const rfd) : filename(), fd(rfd), gcnt(0)
+			~PosixFdInput()
+			{
+				if ( closeOnDeconstruct && fd >= 0 )
+					close();	
+			}
+			
+			PosixFdInput(int const rfd) : filename(), fd(rfd), gcnt(0), closeOnDeconstruct(false)
 			{
 			}
 			
 			PosixFdInput(std::string const & rfilename, int const rflags = getDefaultFlags())
-			: filename(rfilename), fd(-1), gcnt(0)
+			: filename(rfilename), fd(-1), gcnt(0), closeOnDeconstruct(true)
 			{
 				while ( fd == -1 )
 				{
@@ -89,7 +96,7 @@ namespace libmaus
 							}
 						}
 					}
-				}
+				}				
 			}
 			
 			ssize_t read(char * const buffer, uint64_t const n)
@@ -170,27 +177,30 @@ namespace libmaus
 				{
 					r = ::close(fd);
 					
-					if ( r < 0 )
+					if ( r == 0 )
 					{
-						switch ( errno )
+						fd = -1;
+					}
+					else
+					{
+						assert ( r == -1 );
+						
+						int const error = errno;
+											
+						switch ( error )
 						{
 							case EINTR:
 								break;
 							default:
 							{
-								int const error = errno;
 								libmaus::exception::LibMausException se;
-								se.getStream() << "PosixFdInput::close(" << filename << "): " << strerror(error) << std::endl;
+								se.getStream() << "PosixFdInput::close(" << filename << "," << fd << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
 							}
 						}
 					}
-					else
-					{
-						fd = -1;
-					}
-				}
+				}				
 			}
 
 			uint64_t size()
