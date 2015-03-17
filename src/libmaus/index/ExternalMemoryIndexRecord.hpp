@@ -64,6 +64,11 @@ namespace libmaus
 			{
 				return D < O.D;
 			}
+			
+			bool equal(ExternalMemoryIndexRecord const & O) const
+			{
+				return (P == O.P) && (D == O.D);
+			}
 		};
 	}
 }
