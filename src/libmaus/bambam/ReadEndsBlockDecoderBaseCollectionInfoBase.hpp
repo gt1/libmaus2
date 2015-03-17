@@ -40,6 +40,43 @@ namespace libmaus
 			std::vector < uint64_t > blockelcnt;
 			std::vector < uint64_t > indexoffset;
 			
+			void move()
+			{
+				std::string const mdatafilename =  datafilename + ".moved";
+				std::string const mindexfilename =  indexfilename + ".moved";
+				rename(datafilename.c_str(),mdatafilename.c_str());
+				rename(indexfilename.c_str(),mindexfilename.c_str());
+				datafilename = mdatafilename;
+				indexfilename = mindexfilename;
+			}
+			
+			void serialise(std::ostream & out) const
+			{
+				libmaus::util::StringSerialisation::serialiseString(out,datafilename);
+				libmaus::util::StringSerialisation::serialiseString(out,indexfilename);
+				libmaus::util::NumberSerialisation::serialiseNumberVector(out,blockelcnt);
+				libmaus::util::NumberSerialisation::serialiseNumberVector(out,indexoffset);
+			}
+			
+			void moveAndSerialise(std::ostream & out)
+			{
+				move();
+				serialise(out);
+			}
+			
+			void deserialise(std::istream & in)
+			{
+				datafilename = libmaus::util::StringSerialisation::deserialiseString(in);
+				indexfilename = libmaus::util::StringSerialisation::deserialiseString(in);
+				blockelcnt = libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				indexoffset = libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+			}
+			
+			ReadEndsBlockDecoderBaseCollectionInfoBase(std::istream & in)
+			{
+				deserialise(in);
+			}
+			
 			ReadEndsBlockDecoderBaseCollectionInfoBase()
 			: datafilename(), indexfilename(), blockelcnt(), indexoffset()
 			{
