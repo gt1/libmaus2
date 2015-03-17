@@ -51,6 +51,11 @@ struct SerialisableUint64
 	{
 		return i < U.i;
 	}
+	
+	bool operator==(SerialisableUint64 const & U) const
+	{
+		return i == U.i;
+	}
 };
 
 std::ostream & operator<<(std::ostream & out, SerialisableUint64 const & U)
