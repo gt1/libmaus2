@@ -39,6 +39,37 @@ int main(int argc, char * argv[])
 {
 	try
 	{
+		libmaus::util::ArgInfo const arginfo(argc,argv);
+		typedef libmaus::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
+		uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
+		
+		#if 0
+		if ( 
+			libmaus::util::GetFileSize::fileExists("fragmergeinfo.ser")
+			&&
+			libmaus::util::GetFileSize::fileExists("pairmergeinfo.ser")
+		)
+		{
+			libmaus::parallel::PosixSpinLock lock;
+
+			std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > FMI = libmaus::bambam::parallel::BlockSortControl<order_type>::loadMergeInfo("fragmergeinfo.ser");
+			
+			// libmaus::bambam::parallel::BlockSortControl<order_type>::verifyReadEndsFragments(FMI,lock);
+
+			std::vector < std::vector< std::pair<uint64_t,uint64_t> > > FSMI =
+				libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(FMI,numlogcpus,false /* check */);
+
+			std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > PMI = libmaus::bambam::parallel::BlockSortControl<order_type>::loadMergeInfo("pairmergeinfo.ser");
+
+			// libmaus::bambam::parallel::BlockSortControl<order_type>::verifyReadEndsPairs(PMI,lock);
+
+			std::vector < std::vector< std::pair<uint64_t,uint64_t> > > PSMI =
+				libmaus::bambam::ReadEndsBlockDecoderBaseCollection<true>::getShortMergeIntervals(PMI,numlogcpus,false /* check */);
+
+			return 0;
+		}
+		#endif
+	
 		#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
 		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_SHA2_ASM());
 		#endif
@@ -47,14 +78,11 @@ int main(int argc, char * argv[])
 		#endif
 		
 		libmaus::timing::RealTimeClock progrtc; progrtc.start();
-		libmaus::util::ArgInfo const arginfo(argc,argv);
-		typedef libmaus::bambam::parallel::FragmentAlignmentBufferPosComparator order_type;
 		// typedef libmaus::bambam::parallel::FragmentAlignmentBufferNameComparator order_type;
 		
 		libmaus::timing::RealTimeClock rtc;
 		
 		rtc.start();
-		uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
 		libmaus::aio::PosixFdInputStream in(STDIN_FILENO,256*1024);
 		std::string const tmpfilebase = arginfo.getUnparsedValue("tmpfile",arginfo.getDefaultTmpFileName());
 		int const templevel = arginfo.getValue<int>("level",1);
@@ -96,7 +124,13 @@ int main(int argc, char * argv[])
 		libmaus::autoarray::autoArrayPrintTraces(std::cerr);
 		#endif
 		VC->freeBuffers();
-		VC->flushReadEndsLists(std::cerr /* metrics stream */,"testparallelbamblocksort");
+		VC->flushReadEndsLists();
+		#if 0
+		VC->saveFragMergeInfo("fragmergeinfo.ser");
+		VC->savePairMergeInfo("pairmergeinfo.ser");
+		exit ( 0 );
+		#endif
+		VC->mergeReadEndsLists(std::cerr /* metrics stream */,"testparallelbamblocksort");
 
 		std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const BI = VC->getBlockInfo();
 		libmaus::bitio::BitVector::unique_ptr_type Pdupvec(VC->releaseDupBitVector());
