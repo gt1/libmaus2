@@ -84,18 +84,21 @@ namespace libmaus
 					db->streamid = streamid;
 					db->blockid = absid;
 					
-					assert ( Q.second[-1] == '\n' );
-					while ( Q.first != Q.second )
+					if ( Q.first != Q.second )
 					{
-						uint8_t * p = Q.first;
-						while ( *p != '\n' )
-							++p;
-						assert ( *p == '\n' );
+						assert ( Q.second[-1] == '\n' );
+						while ( Q.first != Q.second )
+						{
+							uint8_t * p = Q.first;
+							while ( *p != '\n' )
+								++p;
+							assert ( *p == '\n' );
 						
-						saminfo->parseSamLine(reinterpret_cast<char const *>(Q.first),reinterpret_cast<char const *>(p));
-						db->pushData(algn.D.begin(),algn.blocksize);
+							saminfo->parseSamLine(reinterpret_cast<char const *>(Q.first),reinterpret_cast<char const *>(p));
+							db->pushData(algn.D.begin(),algn.blocksize);
 						
-						Q.first = ++p;
+							Q.first = ++p;
+						}
 					}
 					
 					putSamInfoInterface.samParsePutSamInfo(saminfo);

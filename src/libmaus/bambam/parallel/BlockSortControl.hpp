@@ -661,7 +661,7 @@ namespace libmaus
 					else if ( inputType == block_sort_control_input_sam )
 					{
 						std::vector<libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type> returnList;
-
+						
 						{
 							libmaus::parallel::ScopePosixSpinLock slock(inputreadbase.lock);
 
@@ -684,29 +684,32 @@ namespace libmaus
 								
 								std::pair<uint8_t *,uint8_t *> & P = block->meta.blocks[0];
 								
-								assert ( P.second != P.first );								
-								assert ( *(P.second-1) == '\n' );
-								
-								uint8_t * Pfirst = P.first;
-								while ( Pfirst != P.second )
+								if ( P.second != P.first )
 								{
-									if ( *Pfirst != '@' )
-										break;
+									assert ( P.second != P.first );								
+									assert ( *(P.second-1) == '\n' );
+								
+									uint8_t * Pfirst = P.first;
+									while ( Pfirst != P.second )
+									{
+										if ( *Pfirst != '@' )
+											break;
 									
-									while ( *Pfirst != '\n' )
+										while ( *Pfirst != '\n' )
+											++Pfirst;
+										assert ( *Pfirst == '\n' );
+									
 										++Pfirst;
-									assert ( *Pfirst == '\n' );
-									
-									++Pfirst;
+									}
+
+									// add data
+									if ( Pfirst - P.first )
+										inputreadbase.samHeaderAdd(reinterpret_cast<char const *>(P.first),Pfirst-P.first);
+								
+									// skip header data
+									P.first = Pfirst;
 								}
-								
-								// add data
-								if ( Pfirst - P.first )
-									inputreadbase.samHeaderAdd(reinterpret_cast<char const *>(P.first),Pfirst-P.first);
-								
-								// skip header data
-								P.first = Pfirst;
-								
+
 								// header complete?
 								if ( P.first != P.second || block->meta.eof )
 								{
@@ -736,8 +739,16 @@ namespace libmaus
 								// if block has been fully processed then return it
 								if ( P.first == P.second )
 								{
-									returnList.push_back(block);
-									inputreadbase.nextblockid += 1;	
+									// is this a file with a header but no reads?
+									if ( inputreadbase.samHeaderComplete )
+									{
+										inputreadbase.pending.push(block);
+									}
+									else
+									{
+										returnList.push_back(block);
+										inputreadbase.nextblockid += 1;	
+									}
 								}
 								// block is not fully processed, header parsing is complete
 								else
@@ -769,27 +780,31 @@ namespace libmaus
 								assert ( block->meta.blocks.size() == 1 );
 								
 								std::pair<uint8_t *,uint8_t *> P = block->meta.blocks[0];
-								block->meta.blocks.pop_back();
 								
-								assert ( P.second != P.first );								
-								assert ( *(P.second-1) == '\n' );
-								
-								// std::cerr << "---\n" << std::string(P.first,P.second);
-								
-								while ( P.first != P.second )
+								if ( P.second != P.first )
 								{
-									ptrdiff_t const r = (P.second-P.first)-1;
-									ptrdiff_t const maxblock = getSamMaxParseBlockSize();
-									ptrdiff_t const est = std::min(r,maxblock);
-									uint8_t * pp = P.first + est;
-									while ( *pp != '\n' )
-										++pp;
-									assert ( *pp == '\n' );
-									pp++;
-
-									block->meta.blocks.push_back(std::pair<uint8_t *,uint8_t *>(P.first,pp));
+									block->meta.blocks.pop_back();
 									
-									P.first = pp;
+									assert ( P.second != P.first );								
+									assert ( *(P.second-1) == '\n' );
+								
+									// std::cerr << "---\n" << std::string(P.first,P.second);
+								
+									while ( P.first != P.second )
+									{
+										ptrdiff_t const r = (P.second-P.first)-1;
+										ptrdiff_t const maxblock = getSamMaxParseBlockSize();
+										ptrdiff_t const est = std::min(r,maxblock);
+										uint8_t * pp = P.first + est;
+										while ( *pp != '\n' )
+											++pp;
+										assert ( *pp == '\n' );
+										pp++;
+
+										block->meta.blocks.push_back(std::pair<uint8_t *,uint8_t *>(P.first,pp));
+									
+										P.first = pp;
+									}
 								}
 								
 								{

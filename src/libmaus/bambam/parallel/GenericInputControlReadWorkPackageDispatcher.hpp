@@ -162,7 +162,7 @@ namespace libmaus
 										sblock->pc += bs;
 										f += 1;
 									}
-									
+																		
 									break;
 								}
 								default:
@@ -192,10 +192,23 @@ namespace libmaus
 							// empty file?
 							if ( data.getEOF() && (sblock->pc == sblock->pe) && (!f) )
 							{
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "Invalid empty BGZF stream." << std::endl;
-								lme.finish();
-								throw lme;
+								switch ( parser_type )
+								{
+									case parse_bam:
+									{
+										libmaus::exception::LibMausException lme;
+										lme.getStream() << "libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher: Invalid empty stream is invalid bgzf/BAM" << std::endl;
+										lme.finish();
+										throw lme;
+									}
+									case parse_sam:
+									{
+										// absolutely empty sam file
+										meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pe));
+										f += 1;
+										break;					
+									}
+								}
 							}
 			
 							// extract rest of data for next block
@@ -219,7 +232,7 @@ namespace libmaus
 									assert ( data.getEOF() );
 									// throw exception, block is incomplete at EOF
 									libmaus::exception::LibMausException lme;
-									lme.getStream() << "Unexpected EOF." << std::endl;
+									lme.getStream() << "libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher: Unexpected EOF." << std::endl;
 									lme.finish();
 									throw lme;
 								}
