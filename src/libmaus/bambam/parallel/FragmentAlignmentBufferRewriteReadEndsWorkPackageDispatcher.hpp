@@ -53,10 +53,12 @@ namespace libmaus
 				std::string const tagtag;
 				char const * ctagtag;
 				
+				#if 0
 				libmaus::parallel::SynchronousCounter<uint64_t> s_fragcnt;
 				libmaus::parallel::SynchronousCounter<uint64_t> s_paircnt;
 				libmaus::parallel::SynchronousCounter<uint64_t> s_mapped;
 				libmaus::parallel::SynchronousCounter<uint64_t> s_unmapped;
+				#endif
 				
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
@@ -70,8 +72,11 @@ namespace libmaus
 					readEndsContainerFreeListInterface(rreadEndsContainerFreeListInterface),
 					addDuplicationMetricsInterface(raddDuplicationMetricsInterface),
 					fixmates(true),
-					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str()),
+					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str())
+					#if 0
+					,
 					s_fragcnt(0), s_paircnt(0), s_mapped(0), s_unmapped(0)
+					#endif
 				{
 					MQfilter.set("MQ");
 					
@@ -128,6 +133,7 @@ namespace libmaus
 							++loophigh;
 						}
 						
+						// compute library id
 						int64_t libid = -1;
 						{
 							std::pair<uint8_t *,uint64_t> P = BP->algn->at(looplow);						
@@ -135,6 +141,7 @@ namespace libmaus
 							libid = BP->header->getLibraryId(RG);
 						}
 
+						// compute dup metrics
 						for ( uint64_t i = looplow; i < loophigh; ++i )
 						{
 							uint8_t const * text = BP->algn->textAt(i);
@@ -170,6 +177,7 @@ namespace libmaus
 						size_t ATA1len = 0;
 						size_t ATA2len = 0;
 
+						// look for first and second primary alignment
 						if ( fixmates || dupmarksupport )
 							for ( size_t i = looplow; i < loophigh; ++i )
 							{
@@ -395,9 +403,23 @@ namespace libmaus
 							
 							uint8_t const * optr = subbuf->getPointer(offset);
 							uint32_t const flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(optr + sizeof(uint32_t));
-							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
+							// bool const unmap = (flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP);
+							bool const relfrag = 
+								!(
+									flags & 
+										(
+											libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP
+											|
+											libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY
+											|
+											libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY
+										)
+								);
+							if ( relfrag )
 							{
+								#if 0
 								s_fragcnt++;
+								#endif
 
 								fragContainer->putFrag(
 									optr + sizeof(uint32_t),
@@ -407,6 +429,7 @@ namespace libmaus
 							}
 						}
 
+						#if 0
 						for ( uint64_t i = looplow; i < loophigh; ++i )
 						{
 							uint8_t const * text = BP->algn->textAt(i);
@@ -416,6 +439,7 @@ namespace libmaus
 							else
 								s_mapped++;
 						}
+						#endif
 
 						uint8_t const * pfirst  = (firsto  >= 0) ? subbuf->getPointer(firsto) : 0;
 						uint8_t const * psecond = (secondo >= 0) ? subbuf->getPointer(secondo) : 0;
@@ -467,8 +491,10 @@ namespace libmaus
 								libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
 								*(BP->header)
 							);
-							
+						
+							#if 0	
 							s_paircnt++;
+							#endif
 						}
 						
 						looplow = loophigh;
