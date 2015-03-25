@@ -434,7 +434,7 @@ namespace libmaus
 				decodersetuprtc.start();
 				#endif
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
@@ -452,7 +452,7 @@ namespace libmaus
 				decodersetuprtc.start();
 				#endif
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
@@ -483,7 +483,7 @@ namespace libmaus
 				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
 				libmaus::bambam::ReadEndsBaseShortHashAttributeComparator comp;
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < numthreads; ++i )
 				{
@@ -515,7 +515,7 @@ namespace libmaus
 					std::vector< std::pair<uint64_t,uint64_t> >
 				> R(numthreads,std::vector<std::pair<uint64_t,uint64_t> >(numblocks));
 				#if defined(_OPENMP)
-				#pragma omp parallel for				
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				// file on disk
 				for ( uint64_t f = 0; f < rinfo.size(); ++f )
@@ -875,7 +875,7 @@ namespace libmaus
 				decodersetuprtc.start();
 				#endif
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
@@ -893,7 +893,7 @@ namespace libmaus
 				decodersetuprtc.start();
 				#endif
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 					for ( uint64_t j = 0; j < rinfo[i].indexoffset.size(); ++j )
@@ -921,7 +921,7 @@ namespace libmaus
 				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
 				libmaus::bambam::ReadEndsBaseLongHashAttributeComparator comp;
 				#if defined(_OPENMP)
-				#pragma omp parallel for
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t i = 0; i < numthreads; ++i )
 				{
@@ -953,7 +953,7 @@ namespace libmaus
 					std::vector< std::pair<uint64_t,uint64_t> >
 				> R(numthreads,std::vector<std::pair<uint64_t,uint64_t> >(numblocks));
 				#if defined(_OPENMP)
-				#pragma omp parallel for				
+				#pragma omp parallel for num_threads(numthreads)
 				#endif
 				for ( uint64_t f = 0; f < rinfo.size(); ++f )
 					for ( uint64_t k = 0; k < rinfo[f].indexoffset.size(); ++k )
