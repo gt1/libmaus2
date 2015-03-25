@@ -1,3 +1,9 @@
+libmaus (0.0.196-1) unstable; urgency=low
+
+  * set dup flag instead of just adding it 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 25 Mar 2015 14:20:57 +0000
+
 libmaus (0.0.195-1) unstable; urgency=low
 
   * add include statements for off_t on Debian Etch 
