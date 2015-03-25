@@ -43,14 +43,14 @@ namespace libmaus
 				ChecksumsInterfaceGetInterface & checksumGetInterface; 
 				ChecksumsInterfacePutInterface & checksumPutInterface;
 				libmaus::bambam::BamAuxFilterVector filter;
-				libmaus::bitio::BitVector & BV;
+				libmaus::bitio::BitVector * BV;
 			
 				GenericInputControlReorderWorkPackageDispatcher(
 					GenericInputControlReorderWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlReorderWorkPackageFinishedInterface & rfinishedInterface,
 					ChecksumsInterfaceGetInterface & rchecksumGetInterface, 
 					ChecksumsInterfacePutInterface & rchecksumPutInterface,
-					libmaus::bitio::BitVector & rBV
+					libmaus::bitio::BitVector * rBV
 				)
 				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface), 
 				  checksumGetInterface(rchecksumGetInterface),
@@ -60,7 +60,8 @@ namespace libmaus
 					filter.set('Z','R');		
 				}
 			
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				template<bool havedupvec>
+				void dispatchTemplate(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlReorderWorkPackage *>(P) != 0 );
 					GenericInputControlReorderWorkPackage * BP = dynamic_cast<GenericInputControlReorderWorkPackage *>(P);
@@ -93,10 +94,13 @@ namespace libmaus
 						libmaus::bambam::BamAlignmentEncoderBase::putFlags(p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) & dupmask);
 
 						// mark as duplicate if in bit vector
-						if ( rank >= 0 && BV.get(rank) )
-							libmaus::bambam::BamAlignmentEncoderBase::putFlags(
-								p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) | dupflag
-							);
+						if ( havedupvec )
+						{
+							if ( rank >= 0 && BV->get(rank) )
+								libmaus::bambam::BamAlignmentEncoderBase::putFlags(
+									p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) | dupflag
+								);
+						}
 
 						// filter out ZR tag
 						uint32_t const fl = libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(p+sizeof(uint32_t),P.second,filter);
@@ -116,6 +120,14 @@ namespace libmaus
 					
 					finishedInterface.genericInputControlReorderWorkPackageFinished(BP->in,BP->out);
 					packageReturnInterface.genericInputControlReorderWorkPackageReturn(BP);
+				}
+
+				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
+				{
+					if ( BV )
+						dispatchTemplate<true>(P,tpi);
+					else
+						dispatchTemplate<false>(P,tpi);
 				}
 			};
 		}

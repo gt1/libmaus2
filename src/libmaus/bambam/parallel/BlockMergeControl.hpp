@@ -91,7 +91,7 @@ namespace libmaus
 				
 				libmaus::autoarray::AutoArray<char> & sheader;
 
-				libmaus::bitio::BitVector & BV;
+				libmaus::bitio::BitVector * BV;
 				
 				libmaus::autoarray::AutoArray<libmaus::bambam::parallel::GenericInputSingleData::unique_ptr_type> data;
 
@@ -291,7 +291,7 @@ namespace libmaus
 					std::ostream & rout,
 					libmaus::autoarray::AutoArray<char> & rsheader,
 					std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo> const & in, 
-					libmaus::bitio::BitVector & rBV,
+					libmaus::bitio::BitVector * rBV,
 					int const level,
 					uint64_t const blocksize, // read block size
 					uint64_t const numblocks, // number of read blocks per channel
