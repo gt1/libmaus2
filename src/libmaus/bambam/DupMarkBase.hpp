@@ -467,7 +467,13 @@ namespace libmaus
 							case state_marking:
 								assert ( pa != pc );
 								if ( DSC.isMarked(alcnt) )
-									*pa |= 4;
+								{
+									*pa |=    4;
+								}
+								else
+								{
+									*pa &= 0xfb; // ~4
+								}
 								state = state_post_skip;
 								// intended fall through to post_skip case
 							/* skip data after part we modify */
@@ -748,11 +754,15 @@ namespace libmaus
 				// rewrite file and mark duplicates
 				::libmaus::bambam::BamWriter::unique_ptr_type writer(new ::libmaus::bambam::BamWriter(outputstr,*uphead,level,Pcbs));
 				libmaus::bambam::BamAlignment & alignment = decoder.getAlignment();
+				uint32_t const dup = ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+				uint32_t const notdup = ~dup;
 				for ( uint64_t r = 0; decoder.readAlignment(); ++r )
 				{
 					if ( DSC.isMarked(r) )
-						alignment.putFlags(alignment.getFlags() | ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
-					
+						alignment.putFlags(alignment.getFlags() | dup);
+					else
+						alignment.putFlags(alignment.getFlags() & notdup);
+											
 					alignment.serialise(writer->getStream());
 					
 					if ( verbose && ((r+1) & bmask) == 0 )
@@ -797,13 +807,18 @@ namespace libmaus
 
 				// rewrite file and mark duplicates
 				libmaus::bambam::BamAlignment & alignment = decoder.getAlignment();
+				uint32_t const dup = ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+				uint32_t const notdup = ~dup;
 				for ( uint64_t r = 0; decoder.readAlignment(); ++r )
 				{
 					if ( ! DSC.isMarked(r) )
+					{
+						alignment.putFlags(alignment.getFlags() & notdup);
 						alignment.serialise(writer.getStream());
+					}
 					else if ( dupwriter )
 					{
-						alignment.putFlags(alignment.getFlags() | libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
+						alignment.putFlags(alignment.getFlags() | dup);
 						alignment.serialise(dupwriter->getStream());
 					}
 					
