@@ -142,6 +142,11 @@ namespace libmaus
 						(static_cast<uint32_t>(pa[offset+3]) << 24);
 				}
 
+				void getLinearOutputFragments(std::vector<std::pair<uint8_t *,uint8_t *> > & V)
+				{
+					V.push_back(std::pair<uint8_t *,uint8_t *>(pa,pc));
+				}
+
 				void getLinearOutputFragments(
 					uint64_t const maxblocksize, std::vector<std::pair<uint8_t *,uint8_t *> > & V
 				)

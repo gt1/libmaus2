@@ -310,6 +310,13 @@ namespace libmaus
 					for ( size_t i = 0; i < size(); ++i )
 						A[i]->getLinearOutputFragments(maxblocksize,V);
 				}
+
+				void getLinearOutputFragments(std::vector<std::pair<uint8_t *,uint8_t *> > & V)
+				{
+					V.resize(0);
+					for ( size_t i = 0; i < size(); ++i )
+						A[i]->getLinearOutputFragments(V);
+				}
 				
 				uint64_t getFill() const
 				{
