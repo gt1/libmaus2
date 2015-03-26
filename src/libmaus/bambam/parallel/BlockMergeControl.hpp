@@ -765,9 +765,11 @@ namespace libmaus
 				
 					while ( rewriteReorderQueue.size() && rewriteReorderQueue.top()->id == rewriteReorderNext )
 					{
+						// block to be compressed
 						libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type block = rewriteReorderQueue.top();
 						rewriteReorderQueue.pop();
 
+						// get linear fragments
 						std::vector<std::pair<uint8_t *,uint8_t *> > V;
 						block->getLinearOutputFragments(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),V);
 						
