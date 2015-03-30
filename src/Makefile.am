@@ -1677,7 +1677,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testexternalmemoryindex \
 	testhdf5 \
 	testirods \
-	testfastqtobam
+	testfastqtobam \
+	testsamrecoding
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2135,3 +2136,8 @@ testfastqtobam_SOURCES  = test/testfastqtobam.cpp
 testfastqtobam_LDADD    = libmaus.la
 testfastqtobam_CPPFLAGS = @WARNCPPFLAGS@
 testfastqtobam_LDFLAGS  = ${AM_LDFLAGS}
+
+testsamrecoding_SOURCES  = test/testsamrecoding.cpp
+testsamrecoding_LDADD    = libmaus.la
+testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
+testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}

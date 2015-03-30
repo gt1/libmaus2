@@ -115,14 +115,13 @@ namespace libmaus
 			 * @param refid reference id
 			 * @return name for reference id or "*" if invalid ref id
 			 **/
-			std::string getRefIDName(int64_t const refid) const
+			char const * getRefIDName(int64_t const refid) const
 			{
 				if ( refid < 0 || refid >= static_cast<int64_t>(chromosomes.size()) )
 					return "*";
 				else
 				{
-					std::pair<char const *,char const *> const P = chromosomes[refid].getName();
-					return std::string(P.first,P.second);
+					return chromosomes[refid].getNameCString();
 				}
 			}
 			

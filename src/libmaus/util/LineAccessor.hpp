@@ -250,7 +250,7 @@ namespace libmaus
 			
 			uint64_t textLength() const
 			{
-				return size() ? lineInterval(size()-1).second : 0;
+				return size() ? ( lineInterval(size()-1).second + (endsonnewline?1:0) ) : 0;
 			}
 
 			size_t byteSize() const

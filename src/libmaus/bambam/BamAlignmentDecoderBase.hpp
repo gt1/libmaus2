@@ -849,8 +849,12 @@ namespace libmaus
 				if ( expect_false(flags & LIBMAUS_BAMBAM_FCIGAR32) )
 				{
 					if ( flags & LIBMAUS_BAMBAM_FUNMAP )
-						// return 0 for unmapped read (cigar data and positions are invalid)
-						return 0;
+					{
+						if ( getPos(D) < 0 )
+							return 4680; // reg2bin(-1,0)
+						else
+							return BamAlignmentReg2Bin::reg2bin(getPos(D),0);
+					}
 					else
 						// compute bin from alignment data
 						return computeBin(D);
@@ -1726,42 +1730,72 @@ namespace libmaus
 				switch ( D[2] )
 				{
 					case 'A':
+					{
 						ostr.put(D[3]);
 						break;
+					}
 					case 'c':
 					{
 						int8_t const v = reinterpret_cast<int8_t const *>(D+3)[0];
-						ostr << static_cast<int64_t>(v);
+						
+						if ( v < 0 )
+						{
+							ostr.put('-');
+							printNumber16(ostr,static_cast<uint16_t>(-static_cast<int16_t>(v)));
+						}
+						else
+						{
+							printNumber16(ostr,v);
+						}
 						break;
 					}
 					case 'C':
 					{
 						uint8_t const v = reinterpret_cast<uint8_t const *>(D+3)[0];
-						ostr << static_cast<int64_t>(v);
+						printNumber16(ostr,v);
 						break;
 					}
 					case 's':
 					{
 						int16_t const v = static_cast<int16_t>(getLEInteger(D+3,2));
-						ostr << static_cast<int64_t>(v);
+						
+						if ( v < 0 )
+						{
+							ostr.put('-');
+							printNumber16(ostr,static_cast<uint16_t>(-static_cast<int32_t>(v)));
+						}
+						else
+						{
+							printNumber16(ostr,v);
+						}						
 						break;
 					}
 					case 'S':
 					{
 						uint16_t const v = static_cast<uint16_t>(getLEInteger(D+3,2));
-						ostr << static_cast<int64_t>(v);
+						printNumber16(ostr,v);
 						break;
 					}
 					case 'i':
 					{
 						int32_t const v = static_cast<int32_t>(getLEInteger(D+3,4));
-						ostr << static_cast<int64_t>(v);
+						
+						if ( v < 0 )
+						{
+							ostr.put('-');
+							printNumber32(ostr,static_cast<uint32_t>(-static_cast<int64_t>(v)));
+						}
+						else
+						{
+							printNumber32(ostr,v);
+						}
+						
 						break;
 					}
 					case 'I':
 					{
 						uint32_t const v = static_cast<uint32_t>(getLEInteger(D+3,4));
-						ostr << static_cast<int64_t>(v);
+						printNumber32(ostr,v);
 						break;
 					}
 					case 'f':
@@ -1775,38 +1809,52 @@ namespace libmaus
 						numberpun np;
 						np.uvalue = u;
 						float const v = np.fvalue;
-						ostr << v;
+						char fbuf[256];
+						int const r = snprintf(&fbuf[0],sizeof(fbuf),"%f",v);
+						
+						if ( r < 0 || r >= static_cast<int>(sizeof(fbuf)) )
+						{
+							std::ostringstream fostr;
+							fostr << v;
+							std::string const s = fostr.str();
+							ostr.write(s.c_str(),s.size());
+						}
+						else
+						{
+							ostr.write(&fbuf[0],r);
+						}
+						
 						break;
 					}
 					case 'H':
 					{
 						uint8_t const * p = D+3;
 						while ( *p )
-							ostr << *(p++);
+							ostr.put(*(p++));
 						break;
 					}
 					case 'Z':
 					{
 						uint8_t const * p = D+3;
 						while ( *p )
-							ostr << *(p++);
+							ostr.put(*(p++));
 						break;
 					}
 					case 'B':
 					{
 						uint8_t const type = D[3];
 						uint32_t const len = getLEInteger(D+4,4);
-						ostr << type;
+						ostr.put(type);
 						
 						uint8_t const * p = D+8;
 						for ( uint64_t i = 0; i < len; ++i )
 						{
-							ostr << ",";
+							ostr.put(',');
 							switch ( type )
 							{
 								case 'A':
 								{
-									ostr << *p; 
+									ostr.put(*p); 
 									p += 1; 
 									break;
 								}
@@ -1814,42 +1862,71 @@ namespace libmaus
 								{
 									int8_t const v = static_cast<int8_t>(getLEInteger(p,1));
 									p += 1;
-									ostr << static_cast<int64_t>(v);	
+									
+									if ( v < 0 )
+									{
+										ostr.put('-');
+										printNumber16(ostr,-static_cast<int16_t>(v));
+									}
+									else
+									{
+										printNumber16(ostr,v);
+									}
+									
 									break;
 								}
 								case 'C':
 								{
 									uint8_t const v = static_cast<uint8_t>(getLEInteger(p,1));
 									p += 1;
-									ostr << static_cast<int64_t>(v);	
+									printNumber16(ostr,v);
 									break;
 								}
 								case 's':
 								{
 									int16_t const v = static_cast<int16_t>(getLEInteger(p,2));
 									p += 2;
-									ostr << static_cast<int64_t>(v);	
+									if ( v < 0 )
+									{
+										ostr.put('-');
+										printNumber16(ostr,static_cast<uint16_t>(-static_cast<int32_t>(v)));
+									}
+									else
+									{
+										printNumber16(ostr,v);
+									}
+
 									break;
 								}
 								case 'S':
 								{
 									uint16_t const v = static_cast<uint16_t>(getLEInteger(p,2));
 									p += 2;
-									ostr << static_cast<int64_t>(v);	
+									printNumber16(ostr,v);
 									break;
 								}
 								case 'i':
 								{
 									int32_t const v = static_cast<int32_t>(getLEInteger(p,4));
 									p += 4;
-									ostr << static_cast<int64_t>(v);	
+									
+									if ( v < 0 )
+									{
+										ostr.put('-');
+										printNumber32(ostr,static_cast<uint32_t>(-static_cast<int64_t>(v)));
+									}
+									else
+									{
+										printNumber32(ostr,v);
+									}
+									
 									break;
 								}
 								case 'I':
 								{
 									uint32_t const v = static_cast<uint32_t>(getLEInteger(p,4));
 									p += 4;
-									ostr << static_cast<int64_t>(v);
+									printNumber32(ostr,v);
 									break;
 								}
 								case 'f':
@@ -1862,7 +1939,25 @@ namespace libmaus
 									numberpun np;
 									np.uvalue = static_cast<uint32_t>(getLEInteger(p,4));
 									p += 4;
-									ostr << np.fvalue;
+
+
+									float const v = np.fvalue;
+									char fbuf[256];
+									int const r = snprintf(&fbuf[0],sizeof(fbuf),"%f",v);
+									
+									if ( r < 0 || r >= static_cast<int>(sizeof(fbuf)) )
+									{
+										std::ostringstream fostr;
+										fostr << v;
+										std::string const s = fostr.str();
+										ostr.write(s.c_str(),s.size());
+									}
+									else
+									{
+										ostr.write(&fbuf[0],r);
+									}
+
+
 									break;
 								}
 							}
@@ -2414,6 +2509,150 @@ namespace libmaus
 			}
 
 			/**
+			 * get auxiliary area in alignment block E of size blocksize for given tag as array of numbers
+			 *
+			 * @param E alignment block
+			 * @param blocksize size of alignment block
+			 * @param tag two byte aux tag identifier
+			 * @return numbers
+			 **/
+			template<typename N>
+			static std::vector<N> getAuxAsNumberArray(uint8_t const * E, uint64_t const blocksize, char const * const tag)
+			{
+				uint8_t const * p = getAux(E,blocksize,tag);
+				
+				if ( ! p )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() 
+						<< "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag 
+						<< " for read " 
+						<< getReadName(E)
+						<< std::endl;
+					se.finish();
+					throw se;
+				}
+
+				if ( p[2] != 'B' )
+				{
+					libmaus::exception::LibMausException se;
+					se.getStream() 
+						<< "BamAlignmentDecoderBase::getAuxAsNumber called for non array field " << tag 
+						<< " for read " 
+						<< getReadName(E)
+						<< std::endl;
+					se.finish();
+					throw se;
+				}
+				
+				uint32_t const l = 
+					(static_cast<uint32_t>(p[4]) << 0) |
+					(static_cast<uint32_t>(p[5]) << 8) |
+					(static_cast<uint32_t>(p[6]) << 16) |
+					(static_cast<uint32_t>(p[7]) << 24);
+					
+				std::vector<N> V(l);
+					
+				switch ( p[3] )
+				{
+					case 'c': 
+					{
+						uint8_t const * q = p + 8;
+						
+						for ( uint64_t i = 0; i < l; ++i, q += 1 )
+							V.push_back(static_cast<int8_t>(*q));
+					}
+					case 'C': 
+					{
+						uint8_t const * q = p + 8;
+						
+						for ( uint64_t i = 0; i < l; ++i, q += 1 )
+							V.push_back(static_cast<uint8_t>(*q));
+					}					
+					case 's':
+					{
+						uint8_t const * q = p + 8;
+						
+						for ( uint64_t i = 0; i < l; ++i, q += 2 )
+							V.push_back(
+								static_cast<int16_t>(
+									(static_cast<uint16_t>(q[0]) << 0) |
+									(static_cast<uint16_t>(q[1]) << 8)
+								)
+							);
+					}
+					case 'S':
+					{
+						uint8_t const * q = p + 8;
+						
+						for ( uint64_t i = 0; i < l; ++i, q += 2 )
+							V.push_back(
+								static_cast<uint16_t>(
+									(static_cast<uint16_t>(q[0]) << 0) |
+									(static_cast<uint16_t>(q[1]) << 8)
+								)
+							);
+					}					
+					case 'i': 
+					{
+						uint8_t const * q = p + 8;
+						
+						for ( uint64_t i = 0; i < l; ++i, q += 4 )
+							V.push_back(
+								static_cast<int32_t>(
+									(static_cast<uint32_t>(q[0]) << 0) |
+									(static_cast<uint32_t>(q[1]) << 8) |
+									(static_cast<uint32_t>(q[2]) << 16) |
+									(static_cast<uint32_t>(q[3]) << 24)
+								)
+							);
+					}
+					case 'I': 
+					{
+						uint8_t const * q = p + 8;
+
+						for ( uint64_t i = 0; i < l; ++i, q += 4 )
+							V.push_back(
+								static_cast<uint32_t>(
+									(static_cast<uint32_t>(q[0]) << 0) |
+									(static_cast<uint32_t>(q[1]) << 8) |
+									(static_cast<uint32_t>(q[2]) << 16) |
+									(static_cast<uint32_t>(q[3]) << 24)
+								)
+							);
+					}
+					case 'f': 
+					{
+
+						uint8_t const * q = p + 8;
+
+						for ( uint64_t i = 0; i < l; ++i, q += 4 )
+						{
+							uint32_t const v =
+								static_cast<uint32_t>(
+									(static_cast<uint32_t>(q[0])<< 0) |
+									(static_cast<uint32_t>(q[1])<< 8) |
+									(static_cast<uint32_t>(q[2])<<16) |
+									(static_cast<uint32_t>(q[3])<<24)
+								);
+							numberpun np;
+							np.uvalue = v;
+							V.push_back ( np.fvalue );
+						}
+					}
+					default:
+					{
+						libmaus::exception::LibMausException se;
+						se.getStream() << "getAuxAsNumberArray: Unknown type of number " << p[3] << std::endl;
+						se.finish();
+						throw se;
+					}
+				}
+				
+				return V;
+			}
+
+			/**
 			 * get auxiliary area in alignment block E of size blocksize for given tag as number
 			 *
 			 * @param E alignment block
@@ -2817,6 +3056,38 @@ namespace libmaus
 					return std::string();
 			}
 			
+			template<typename stream_type>
+			static void printNumber16(stream_type & stream, uint16_t v)
+			{
+				char pp[5];
+				char * pqe = &pp[5];
+				char * pq = pqe;
+				
+				do
+				{
+					*(--pq) = (v % 10)+'0';
+					v /= 10;
+				} while ( v );
+				
+				stream.write(pq,pqe-pq);
+			}
+			
+			template<typename stream_type>
+			static void printNumber32(stream_type & stream, uint32_t v)
+			{
+				char pp[10];
+				char * pqe = &pp[10];
+				char * pq = pqe;
+				
+				do
+				{
+					*(--pq) = (v % 10)+'0';
+					v /= 10;
+				} while ( v );
+				
+				stream.write(pq,pqe-pq);
+			}
+			
 			/**
 			 * format alignment block E of size blocksize as SAM file line using the header
 			 * and the temporary memory block auxdata
@@ -2837,12 +3108,26 @@ namespace libmaus
 			)
 			{
 				uint16_t const flags = getFlags(E);
+
+				// put read name
+				char const * rn = getReadName(E);
+				size_t const lrn = getLReadName(E)-1;				
+				ostr.write(rn,lrn);
+				ostr.put('\t');
+
+				printNumber16(ostr,flags);
+				ostr.put('\t');
 				
-				ostr << getReadName(E) << '\t';
-				ostr << flags << '\t';
-				ostr << header.getRefIDName(getRefID(E)) << '\t';
-				ostr << getPos(E)+1 << '\t';
-				ostr << getMapQ(E) << '\t';
+				char const * refidname = header.getRefIDName(getRefID(E));
+				size_t const refidnamelen = strlen(refidname);
+				ostr.write(refidname,refidnamelen);
+				ostr.put('\t');
+
+				printNumber32(ostr,getPos(E)+1);
+				ostr.put('\t');
+
+				printNumber16(ostr,getMapQ(E));
+				ostr.put('\t');
 				
 				if ( (! getNCigar(E)) )
 				{
@@ -2855,14 +3140,21 @@ namespace libmaus
 				ostr.put('\t');
 				
 				if ( getRefID(E) == getNextRefID(E) && getRefID(E) >= 0 )
-					ostr << '=';
+					ostr.put('=');
 				else
-					ostr << header.getRefIDName(getNextRefID(E));
+				{
+					char const * nextrefid = header.getRefIDName(getNextRefID(E));
+					size_t const nextrefidlen = strlen(nextrefid);
+					ostr.write(nextrefid,nextrefidlen);
+				}
 					
 				ostr.put('\t');
 
-				ostr << getNextPos(E)+1 << '\t';
-				ostr << getTlen(E) << '\t';
+				printNumber32(ostr,getNextPos(E)+1);
+				ostr.put('\t');
+
+				printNumber32(ostr,getTlen(E));
+				ostr.put('\t');
 
 				uint64_t const seqlen = decodeRead(E,auxdata.seq);
 				ostr.write(auxdata.seq.begin(),seqlen);
@@ -2870,7 +3162,7 @@ namespace libmaus
 
 				if ( seqlen && getQual(E)[0] == 255 )
 				{
-					ostr << '*';
+					ostr.put('*');
 				}
 				else
 				{

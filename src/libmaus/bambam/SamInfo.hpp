@@ -343,7 +343,7 @@ namespace libmaus
 				if ( col != sam_info_mandatory_columns )
 				{
 					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: defect SAM line " << std::string(pa,pe);
+					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: defect SAM line (less than " << sam_info_mandatory_columns << " columns): " << std::string(pa,pe);
 					lme.finish();
 					throw lme;					
 				}
@@ -784,6 +784,7 @@ namespace libmaus
 						lme.finish();
 						throw lme;						
 					}
+					#if 0
 					if ( p == seq )
 					{
 						libmaus::exception::LibMausException lme;
@@ -791,6 +792,7 @@ namespace libmaus
 						lme.finish();
 						throw lme;						
 					}
+					#endif
 				}
 				if ( qualdefined == sam_info_base_field_defined )
 				{
@@ -811,6 +813,7 @@ namespace libmaus
 						lme.finish();
 						throw lme;						
 					}
+					#if 0
 					if ( p == qual )
 					{
 						libmaus::exception::LibMausException lme;
@@ -818,6 +821,7 @@ namespace libmaus
 						lme.finish();
 						throw lme;						
 					}
+					#endif
 				}
 				if ( 
 					qualdefined == sam_info_base_field_defined 

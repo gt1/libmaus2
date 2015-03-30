@@ -367,7 +367,11 @@ namespace libmaus
 					?
 					(cigarlen >> 16)
 					:
-					(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) ? 0 : reg2bin(pos,endpos(pos,cigar,cigarlen));
+					(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) ? 
+						((pos < 0) ? 4680 : reg2bin(pos,0)) 
+						: 
+						reg2bin(pos,endpos(pos,cigar,cigarlen)
+					);
 				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32) : flags;
 				
 				assert ( namelen+1 < (1ul << 8) );

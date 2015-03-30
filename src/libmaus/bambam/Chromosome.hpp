@@ -158,6 +158,11 @@ namespace libmaus
 			{
 				return name;
 			}
+
+			char const * getNameCString() const
+			{
+				return name.c_str();
+			}
 			
 			uint64_t getLength() const
 			{
