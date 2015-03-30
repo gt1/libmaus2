@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/BlockSortControl.hpp>
 #include <libmaus/bambam/parallel/BlockMergeControl.hpp>
+#include <libmaus/bambam/parallel/BlockSortControl.hpp>
 
 #include <config.h>
 #include <libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp>
@@ -155,9 +155,14 @@ int main(int argc, char * argv[])
 		int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
 
 		libmaus::digest::DigestInterface::unique_ptr_type Pdigest(libmaus::digest::DigestFactoryContainer::construct(filehash));
+		
+		libmaus::bambam::parallel::BlockMergeControl::block_merge_output_format_t oformat = libmaus::bambam::parallel::BlockMergeControl::output_format_bam;
+		
+		if ( arginfo.getUnparsedValue("outputformat","bam") == "sam" )
+			oformat = libmaus::bambam::parallel::BlockMergeControl::output_format_sam;
 
 		libmaus::bambam::parallel::BlockMergeControl BMC(
-			STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get());
+			STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get(),oformat);
 		BMC.addPending();			
 		BMC.waitWritingFinished();		
 	

@@ -737,7 +737,19 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/BamBlockIndexingWorkPackage.hpp \
 	libmaus/bambam/parallel/BamBlockIndexingWorkPackageReturnInterface.hpp \
 	libmaus/bambam/parallel/BamBlockIndexingBlockFinishedInterface.hpp \
-	libmaus/bambam/parallel/BamBlockIndexingWorkPackageDispatcher.hpp
+	libmaus/bambam/parallel/BamBlockIndexingWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/CramInterface.h \
+	libmaus/bambam/parallel/CramOutputBlock.hpp \
+	libmaus/bambam/parallel/CramOutputBlockSizeComparator.hpp \
+	libmaus/bambam/parallel/SamEncoderObject.hpp \
+	libmaus/bambam/parallel/CramOutputBlockWritePackage.hpp \
+	libmaus/bambam/parallel/CramOutputBlockWritePackageReturnInterface.hpp \
+	libmaus/bambam/parallel/CramOutputBlockWritePackageFinishedInterface.hpp \
+	libmaus/bambam/parallel/CramOutputBlockWritePackageDispatcher.hpp \
+	libmaus/bambam/parallel/CramPassPointerObject.hpp \
+	libmaus/bambam/parallel/CramPassPointerObjectComparator.hpp \
+	libmaus/bambam/parallel/CramPassPointerObjectTypeInfo.hpp \
+	libmaus/bambam/parallel/CramPassPointerObjectAllocator.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
