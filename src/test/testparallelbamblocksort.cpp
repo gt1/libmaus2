@@ -160,15 +160,26 @@ int main(int argc, char * argv[])
 		
 		if ( arginfo.getUnparsedValue("outputformat","bam") == "sam" )
 			oformat = libmaus::bambam::parallel::BlockMergeControl::output_format_sam;
+		else if ( arginfo.getUnparsedValue("outputformat","bam") == "cram" )
+			oformat = libmaus::bambam::parallel::BlockMergeControl::output_format_cram;
 
-		libmaus::bambam::parallel::BlockMergeControl BMC(
-			STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get(),oformat);
-		BMC.addPending();			
-		BMC.waitWritingFinished();		
+		try
+		{
+			libmaus::bambam::parallel::BlockMergeControl BMC(
+				STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get(),oformat);
+			BMC.addPending();			
+			BMC.waitWritingFinished();		
 	
-		std::cerr << "[D]\t" << filehash << "\t" << BMC.getFileDigest() << std::endl;
+			std::cerr << "[D]\t" << filehash << "\t" << BMC.getFileDigest() << std::endl;
 
-		std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+			std::cerr << "[V] blocks merged in time " << rtc.formatTime(rtc.getElapsedSeconds()) << std::endl;
+		}
+		catch(...)
+		{
+			STP.terminate();
+			STP.join();
+			throw;
+		}
 
 		STP.terminate();
 		STP.join();

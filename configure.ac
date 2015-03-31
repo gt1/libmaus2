@@ -1876,6 +1876,8 @@ IOLIBLIBS=
 IOLIBDEFINE=
 IOLIBCALLBACKDEFINE=
 IOLIBINDEXCALLBACKDEFINE=
+IOLIBHAVENEWCRAMINTERFACE=no
+IOLIBNEWINTERFACEDEFINE=
 AC_ARG_WITH([io_lib],
             [AS_HELP_STRING([--with-io_lib@<:@=PATH@:>@], [support for io_lib library @<:@default=no@:>@])],
             [with_io_lib=${withval}],
@@ -1906,6 +1908,11 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 	AC_CHECK_FUNC(scram_set_option,scram_set_option=yes,scram_set_option=no)
 	AC_CHECK_FUNC(scram_open_cram_via_callbacks,scram_open_cram_via_callbacks=yes,scram_open_cram_via_callbacks=no)
 	AC_CHECK_FUNC(cram_index_load_via_callbacks,cram_index_load_via_callbacks=yes,cram_index_load_via_callbacks=no)
+	dnl 
+	AC_CHECK_FUNC(cram_allocate_encoder,cram_allocate_encoder=yes,cram_allocate_encoder=no)
+	AC_CHECK_FUNC(cram_deallocate_encoder,cram_deallocate_encoder=yes,cram_deallocate_encoder=no)
+	AC_CHECK_FUNC(cram_enque_compression_block,cram_enque_compression_block=yes,cram_enque_compression_block=no)
+	AC_CHECK_FUNC(cram_process_work_package,cram_process_work_package=yes,cram_process_work_package=no)
 	AC_LANG_POP
 
 	if [[ "${io_lib_scram_h}" != "yes" ]] ; then
@@ -2077,6 +2084,12 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 		if test "${have_io_lib_with_index_callbacks}" = "yes" ; then
 			IOLIBINDEXCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS"
 		fi
+	fi
+
+
+	if test \( "${cram_allocate_encoder}" = "yes" \) -a \( "${cram_deallocate_encoder}" = "yes" \) -a \( "${cram_enque_compression_block}" = "yes" \) -a \( "${cram_process_work_package}" = "yes" \) ; then
+		IOLIBHAVENEWCRAMINTERFACE=yes
+		IOLIBNEWINTERFACEDEFINE="#define LIBMAUS_HAVE_IO_NEW_CRAM_INTERFACE"
 	fi
 
 	CPPFLAGS="${CPPFLAGSSAVE}"
@@ -2824,4 +2837,5 @@ AC_SUBST([GMPLIBS])
 AC_SUBST([GMPLDFLAGS])
 AC_SUBST([GMPCPPFLAGS])
 AC_SUBST([GMPLIBS])
+AC_SUBST([IOLIBNEWINTERFACEDEFINE])
 AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc libmausseqchksumsfactory.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)

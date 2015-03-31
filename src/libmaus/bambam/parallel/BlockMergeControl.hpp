@@ -55,6 +55,7 @@
 #include <libmaus/bambam/parallel/CramPassPointerObjectAllocator.hpp>
 #include <libmaus/bambam/parallel/CramPassPointerObjectTypeInfo.hpp>
 #include <libmaus/bambam/parallel/CramPassPointerObjectComparator.hpp>
+#include <libmaus/bambam/parallel/ScramCramEncoding.hpp>
 
 namespace libmaus
 {
@@ -275,7 +276,16 @@ namespace libmaus
 				
 				}
 			};
+		}
+	}
+}
 		
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{
 			struct BlockMergeControl : 
 				public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
 				public libmaus::bambam::parallel::GenericInputControlReadAddPendingInterface,
@@ -313,6 +323,17 @@ namespace libmaus
 				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				libmaus::parallel::SimpleThreadPool & STP;
+
+				enum block_merge_output_format_t
+				{
+					output_format_bam = 0,
+					output_format_sam = 1,
+					output_format_cram = 2
+				};
+				
+				block_merge_output_format_t const block_merge_output_format;
+				
+				libmaus::bambam::parallel::ScramCramEncoding::unique_ptr_type PcramEncoder;
 				
 				std::ostream & out;
 				
@@ -491,13 +512,6 @@ namespace libmaus
 				
 				libmaus::digest::DigestInterface * filechecksum;
 				
-				enum block_merge_output_format_t
-				{
-					output_format_bam = 0,
-					output_format_sam = 1
-				};
-				
-				block_merge_output_format_t const block_merge_output_format;
 				
 				CramEncodingSupportData samsupport;
 				CramEncodingSupportData cramsupport;
@@ -516,6 +530,24 @@ namespace libmaus
 							std::string const text(ptext.first,ptext.second);
 							samsupport.context = sam_allocate_encoder(this,ptext.first,ptext.second-ptext.first,sam_data_write_function);
 							if ( ! samsupport.context )
+							{
+								libmaus::exception::LibMausException lme;
+								lme.getStream() << "Failed to allocate sam encoder" << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							break;
+						}
+						case output_format_cram:
+						{
+							char const * headera = sheader.begin();
+							char const * headere = sheader.end();
+							std::istringstream istr(std::string(headera,headere));
+							libmaus::bambam::BamHeaderLowMem::unique_ptr_type uheader(libmaus::bambam::BamHeaderLowMem::constructFromBAM(istr));
+							std::pair<char const *, char const *> ptext = uheader->getText();
+							std::string const text(ptext.first,ptext.second);
+							cramsupport.context = cram_allocate_encoder(this,ptext.first,ptext.second-ptext.first,sam_data_write_function);
+							if ( ! cramsupport.context )
 							{
 								libmaus::exception::LibMausException lme;
 								lme.getStream() << "Failed to allocate sam encoder" << std::endl;
@@ -563,6 +595,51 @@ namespace libmaus
 						}
 					}
 				}
+				
+				static libmaus::bambam::parallel::ScramCramEncoding::unique_ptr_type allocateCramEncoder(block_merge_output_format_t const block_merge_output_format)
+				{
+					if ( block_merge_output_format == output_format_cram )
+					{
+						libmaus::bambam::parallel::ScramCramEncoding::unique_ptr_type TcramEncoder(new libmaus::bambam::parallel::ScramCramEncoding);
+						return UNIQUE_PTR_MOVE(TcramEncoder);
+					}
+					else
+					{
+						libmaus::bambam::parallel::ScramCramEncoding::unique_ptr_type TcramEncoder;
+						return UNIQUE_PTR_MOVE(TcramEncoder);
+					}
+				}
+
+				void * cram_allocate_encoder(void *userdata, char const *header, size_t const headerlength, cram_data_write_function_t writefunc)
+				{
+					return PcramEncoder->cram_allocate_encoder(userdata,header,headerlength,writefunc);
+				}
+				
+				void cram_deallocate_encoder(void * context)
+				{
+					PcramEncoder->cram_deallocate_encoder(context);
+				}
+
+				int cram_enque_compression_block(
+					void *userdata,
+					void *context,
+					size_t const inblockid,
+					char const **block,
+					size_t const *blocksize,
+					size_t const numblocks,
+					int const final,
+					cram_enque_compression_work_package_function_t workenqueuefunction,
+					cram_data_write_function_t writefunction,
+					cram_compression_work_package_finished_t workfinishedfunction
+				)
+				{				
+					return PcramEncoder->cram_enque_compression_block(userdata,context,inblockid,block,blocksize,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
+				}
+				
+				int cram_process_work_package(void *workpackage)
+				{
+					return PcramEncoder->cram_process_work_package(workpackage);					
+				}
 
 				BlockMergeControl(
 					libmaus::parallel::SimpleThreadPool & rSTP,
@@ -582,6 +659,8 @@ namespace libmaus
 					block_merge_output_format_t const rblock_merge_output_format
 				)
 				: STP(rSTP), 
+				  block_merge_output_format(rblock_merge_output_format),
+				  PcramEncoder(allocateCramEncoder(block_merge_output_format)),
 				  out(rout),
 				  sheader(rsheader),
 				  BV(rBV),
@@ -618,7 +697,6 @@ namespace libmaus
 				  tempfileprefix(rtempfileprefix),
 				  bamindexgenerator(tempfileprefix+"_index",0 /* verbose */,false /* validate */,false /* debug */),
 				  filechecksum(rfilechecksum),
-				  block_merge_output_format(rblock_merge_output_format),
 				  samsupport(STP.getNumThreads()),
 				  cramsupport(STP.getNumThreads())
 				{
