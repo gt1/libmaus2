@@ -31,14 +31,16 @@ namespace libmaus
 	{
 		namespace parallel
 		{
+			template<typename _heap_element_type>
 			struct GenericInputMergeWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
 			{
-				typedef GenericInputMergeWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef _heap_element_type heap_element_type;
+				typedef GenericInputMergeWorkPackage<heap_element_type> this_type;
+				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * data;
-				libmaus::util::FiniteSizeHeap<GenericInputControlMergeHeapEntry> * mergeheap;
+				libmaus::util::FiniteSizeHeap<heap_element_type> * mergeheap;
 				libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type algn;
 			
 				GenericInputMergeWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0), mergeheap(0) {}
@@ -46,7 +48,7 @@ namespace libmaus
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
 					libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * rdata,
-					libmaus::util::FiniteSizeHeap<GenericInputControlMergeHeapEntry> * rmergeheap,
+					libmaus::util::FiniteSizeHeap<heap_element_type> * rmergeheap,
 					libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type ralgn
 				)
 				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata), mergeheap(rmergeheap), algn(ralgn)

@@ -1,7 +1,7 @@
 /*
     libmaus
-    Copyright (C) 2009-2015 German Tischler
-    Copyright (C) 2011-2015 Genome Research Limited
+    Copyright (C) 2009-2014 German Tischler
+    Copyright (C) 2011-2014 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,25 +15,30 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/			
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTMERGEWORKPACKAGERETURNINTERFACE_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTMERGEWORKPACKAGERETURNINTERFACE_HPP
+*/
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERQUERYNAMECOMPARATOR_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERQUERYNAMECOMPARATOR_HPP
 
-#include <libmaus/bambam/parallel/GenericInputMergeWorkPackage.hpp>
+#include <libmaus/types/types.hpp>
+#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
 
 namespace libmaus
 {
 	namespace bambam
-	{
+	{		
 		namespace parallel
 		{
-			template<typename _heap_element_type>
-			struct GenericInputMergeWorkPackageReturnInterface
+			struct FragmentAlignmentBufferQueryNameComparator
 			{
-				typedef _heap_element_type heap_element_type;
+				FragmentAlignmentBufferQueryNameComparator()
+				{
 				
-				virtual ~GenericInputMergeWorkPackageReturnInterface() {}
-				virtual void genericInputMergeWorkPackageReturn(GenericInputMergeWorkPackage<heap_element_type> * package) = 0;
+				}
+				
+				bool operator()(uint8_t * A, uint8_t * B) const
+				{
+					return libmaus::bambam::BamAlignmentNameComparator::compare(A + sizeof(uint32_t),B + sizeof(uint32_t));
+				}
 			};
 		}
 	}

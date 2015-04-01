@@ -40,6 +40,10 @@ namespace libmaus
 	{
 		struct BamIndexGenerator
 		{
+			typedef BamIndexGenerator this_type;
+			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			private:
 			template<typename stream_type>
 			static std::pair<int64_t,uint64_t> countDistinctBins(stream_type & stream)

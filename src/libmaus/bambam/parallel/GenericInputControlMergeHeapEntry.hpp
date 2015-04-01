@@ -28,7 +28,7 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct GenericInputControlMergeHeapEntry
+			struct GenericInputControlMergeHeapEntryCoordinate
 			{
 				libmaus::bambam::parallel::DecompressedBlock * block;
 				uint64_t coord;
@@ -43,11 +43,11 @@ namespace libmaus
 						;	
 				}
 				
-				GenericInputControlMergeHeapEntry()
+				GenericInputControlMergeHeapEntryCoordinate()
 				{
 				
 				}
-				GenericInputControlMergeHeapEntry(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				GenericInputControlMergeHeapEntryCoordinate(libmaus::bambam::parallel::DecompressedBlock * rblock)
 				: block(rblock)
 				{
 					setup();
@@ -58,12 +58,52 @@ namespace libmaus
 					return block->cPP == block->nPP;
 				}
 				
-				bool operator<(GenericInputControlMergeHeapEntry const & A) const
+				bool operator<(GenericInputControlMergeHeapEntryCoordinate const & A) const
 				{
 					if ( coord != A.coord )
 						return coord < A.coord;
 					else
 						return block->streamid < A.block->streamid;
+				}
+			};
+
+			struct GenericInputControlMergeHeapEntryQueryName
+			{
+				libmaus::bambam::parallel::DecompressedBlock * block;
+				char const * name;
+				int read1;
+
+				inline void setup()
+				{
+					uint8_t const * algn4 = reinterpret_cast<uint8_t const *>(block->getNextParsePointer()) + sizeof(uint32_t);
+
+					name = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(algn4);
+					read1 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(algn4) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				}
+
+				GenericInputControlMergeHeapEntryQueryName()
+				{
+				
+				}
+				GenericInputControlMergeHeapEntryQueryName(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				: block(rblock)
+				{
+					setup();
+				}
+				
+				bool isLast() const
+				{
+					return block->cPP == block->nPP;
+				}
+				
+				bool operator<(GenericInputControlMergeHeapEntryQueryName const & A) const
+				{
+					int const r = libmaus::bambam::StrCmpNum::strcmpnum(name,A.name);
+				
+					if ( r != 0 )
+						return r < 0;
+					else
+						return read1 > A.read1;
 				}
 			};
 		}

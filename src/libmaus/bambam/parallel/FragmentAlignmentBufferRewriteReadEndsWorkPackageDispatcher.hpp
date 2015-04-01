@@ -38,8 +38,11 @@ namespace libmaus
 			/**
 			 * block rewrite dispatcher
 			 **/
+			template<bool _create_dup_mark_info>
 			struct FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
 			{
+				static bool const create_dup_mark_info = _create_dup_mark_info;
+			
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & packageReturnInterface;
 				FragmentAlignmentBufferRewriteFragmentCompleteInterface & fragmentCompleteInterface;
 				ReadEndsContainerFreeListInterface & readEndsContainerFreeListInterface;
@@ -53,30 +56,22 @@ namespace libmaus
 				std::string const tagtag;
 				char const * ctagtag;
 				
-				#if 0
-				libmaus::parallel::SynchronousCounter<uint64_t> s_fragcnt;
-				libmaus::parallel::SynchronousCounter<uint64_t> s_paircnt;
-				libmaus::parallel::SynchronousCounter<uint64_t> s_mapped;
-				libmaus::parallel::SynchronousCounter<uint64_t> s_unmapped;
-				#endif
-				
 				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher(
 					FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface & rpackageReturnInterface,
 					FragmentAlignmentBufferRewriteFragmentCompleteInterface & rfragmentCompleteInterface,
 					ReadEndsContainerFreeListInterface & rreadEndsContainerFreeListInterface,
-					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
+					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface,
+					bool const rfixmates,
+					bool const rdupmarksupport
 				) 
 				: 
 					packageReturnInterface(rpackageReturnInterface), 
 					fragmentCompleteInterface(rfragmentCompleteInterface), 
 					readEndsContainerFreeListInterface(rreadEndsContainerFreeListInterface),
 					addDuplicationMetricsInterface(raddDuplicationMetricsInterface),
-					fixmates(true),
-					dupmarksupport(true), tagtag("TA"), ctagtag(tagtag.c_str())
-					#if 0
-					,
-					s_fragcnt(0), s_paircnt(0), s_mapped(0), s_unmapped(0)
-					#endif
+					fixmates(rfixmates),
+					dupmarksupport(rdupmarksupport), 
+					tagtag("TA"), ctagtag(tagtag.c_str())
 				{
 					MQfilter.set("MQ");
 					
@@ -99,8 +94,14 @@ namespace libmaus
 					FragmentAlignmentBufferRewriteReadEndsWorkPackage * BP = dynamic_cast<FragmentAlignmentBufferRewriteReadEndsWorkPackage *>(P);
 					assert ( BP );
 					
-					libmaus::bambam::ReadEndsContainer::shared_ptr_type pairContainer = readEndsContainerFreeListInterface.getPairContainer();
-					libmaus::bambam::ReadEndsContainer::shared_ptr_type fragContainer = readEndsContainerFreeListInterface.getFragContainer();
+					libmaus::bambam::ReadEndsContainer::shared_ptr_type pairContainer;
+					libmaus::bambam::ReadEndsContainer::shared_ptr_type fragContainer;
+
+					if ( create_dup_mark_info )
+					{
+						pairContainer = readEndsContainerFreeListInterface.getPairContainer();
+						fragContainer = readEndsContainerFreeListInterface.getFragContainer();
+					}
 					
 					// dispatch
 					uint64_t * O = BP->FAB->getOffsetStart(BP->j);
@@ -403,7 +404,7 @@ namespace libmaus
 							
 							uint8_t const * optr = subbuf->getPointer(offset);
 							uint32_t const flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(optr + sizeof(uint32_t));
-							// bool const unmap = (flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP);
+							// is fragment relevant for duplicate marking?
 							bool const relfrag = 
 								!(
 									flags & 
@@ -421,25 +422,14 @@ namespace libmaus
 								s_fragcnt++;
 								#endif
 
-								fragContainer->putFrag(
-									optr + sizeof(uint32_t),
-									libmaus::bambam::DecoderBase::getLEInteger(optr,sizeof(uint32_t)),
-									*(BP->header)
-								);
+								if ( create_dup_mark_info )
+									fragContainer->putFrag(
+										optr + sizeof(uint32_t),
+										libmaus::bambam::DecoderBase::getLEInteger(optr,sizeof(uint32_t)),
+										*(BP->header)
+									);
 							}
 						}
-
-						#if 0
-						for ( uint64_t i = looplow; i < loophigh; ++i )
-						{
-							uint8_t const * text = BP->algn->textAt(i);
-							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
-							if ( flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
-								s_unmapped++;
-							else
-								s_mapped++;
-						}
-						#endif
 
 						uint8_t const * pfirst  = (firsto  >= 0) ? subbuf->getPointer(firsto) : 0;
 						uint8_t const * psecond = (secondo >= 0) ? subbuf->getPointer(secondo) : 0;
@@ -484,13 +474,16 @@ namespace libmaus
 							}
 						
 							// std::cerr << libmaus::bambam::BamAlignmentDecoderBase::getReadName(pfirst + sizeof(uint32_t)) << std::endl;
-							pairContainer->putPair(
-								pfirst + sizeof(uint32_t),
-								libmaus::bambam::DecoderBase::getLEInteger(pfirst,sizeof(uint32_t)),
-								psecond + sizeof(uint32_t),
-								libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
-								*(BP->header)
-							);
+							if ( create_dup_mark_info )
+							{
+								pairContainer->putPair(
+									pfirst + sizeof(uint32_t),
+									libmaus::bambam::DecoderBase::getLEInteger(pfirst,sizeof(uint32_t)),
+									psecond + sizeof(uint32_t),
+									libmaus::bambam::DecoderBase::getLEInteger(psecond,sizeof(uint32_t)),
+									*(BP->header)
+								);
+							}
 						
 							#if 0	
 							s_paircnt++;
@@ -502,8 +495,11 @@ namespace libmaus
 
 					addDuplicationMetricsInterface.addDuplicationMetrics(metrics);
 
-					readEndsContainerFreeListInterface.returnPairContainer(pairContainer);
-					readEndsContainerFreeListInterface.returnFragContainer(fragContainer);
+					if ( create_dup_mark_info )
+					{
+						readEndsContainerFreeListInterface.returnPairContainer(pairContainer);
+						readEndsContainerFreeListInterface.returnFragContainer(fragContainer);
+					}
 
 					BP->FAB->rewritePointers(BP->j);
 					// end of dispatch

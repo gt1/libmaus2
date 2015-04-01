@@ -74,7 +74,7 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			template<typename _order_type>
+			template<typename _order_type, bool _create_dup_mark_info>
 			struct BlockSortControl :
 				public BlockSortControlBase,
 				public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
@@ -125,7 +125,8 @@ namespace libmaus
 				public ChecksumsInterfacePutInterface
 			{
 				typedef _order_type order_type;
-				typedef BlockSortControl<order_type> this_type;
+				static bool const create_dup_mark_info = _create_dup_mark_info;
+				typedef BlockSortControl<order_type,create_dup_mark_info> this_type;
 				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
 				
 				libmaus::timing::RealTimeClock procrtc;
@@ -164,7 +165,7 @@ namespace libmaus
 				uint64_t const BLMCWPDid;
 				WriteBlockWorkPackageDispatcher WBWPD;
 				uint64_t const WBWPDid;
-				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher FABRWPD;
+				FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher<create_dup_mark_info /* create dup mark info */> FABRWPD;
 				uint64_t const FABRWPDid;
 				FragmentAlignmentBufferReorderWorkPackageDispatcher FABROWPD;
 				uint64_t const FABROWPDid;
@@ -459,7 +460,9 @@ namespace libmaus
 					std::istream & in,
 					int const level,
 					std::string const & rtempfileprefix,
-					std::string const & rhash
+					std::string const & rhash,
+					bool const rfixmates = true,
+					bool const rdupmarksupport = true
 				)
 				: 
 					procrtc(true),
@@ -480,7 +483,7 @@ namespace libmaus
 					BLMCWPDid(STP.getNextDispatcherId()),
 					WBWPD(*this,*this,*this),
 					WBWPDid(STP.getNextDispatcherId()),
-					FABRWPD(*this,*this,*this,*this),
+					FABRWPD(*this,*this,*this,*this,rfixmates /* fix mates */,rdupmarksupport /* dup mark support */),
 					FABRWPDid(STP.getNextDispatcherId()),
 					FABROWPD(*this,*this),
 					FABROWPDid(STP.getNextDispatcherId()),

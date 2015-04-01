@@ -32,13 +32,15 @@ namespace libmaus
 	{
 		namespace parallel
 		{
+			template<typename _heap_element_type>
 			struct GenericInputMergeWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
 			{
-				typedef GenericInputMergeWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef _heap_element_type heap_element_type;
+				typedef GenericInputMergeWorkPackageDispatcher<heap_element_type> this_type;
+				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 				
-				GenericInputMergeWorkPackageReturnInterface & packageReturnInterface;
+				GenericInputMergeWorkPackageReturnInterface<heap_element_type> & packageReturnInterface;
 				GenericInputMergeDecompressedBlockReturnInterface & decompressPackageReturnInterface;
 				GenericInputControlSetMergeStallSlotInterface & setMergeStallSlotInterface;
 				GenericInputControlMergeBlockFinishedInterface & mergeFinishedInterface;
@@ -47,7 +49,7 @@ namespace libmaus
 				libmaus::parallel::LockedCounter LC;
 			
 				GenericInputMergeWorkPackageDispatcher(
-					GenericInputMergeWorkPackageReturnInterface & rpackageReturnInterface,
+					GenericInputMergeWorkPackageReturnInterface<heap_element_type> & rpackageReturnInterface,
 					GenericInputMergeDecompressedBlockReturnInterface & rdecompressPackageReturnInterface,
 					GenericInputControlSetMergeStallSlotInterface & rsetMergeStallSlotInterface,
 					GenericInputControlMergeBlockFinishedInterface & rmergeFinishedInterface,
@@ -65,14 +67,14 @@ namespace libmaus
 			
 				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
-					assert ( dynamic_cast<GenericInputMergeWorkPackage *>(P) != 0 );
-					GenericInputMergeWorkPackage * BP = dynamic_cast<GenericInputMergeWorkPackage *>(P);
+					assert ( dynamic_cast<GenericInputMergeWorkPackage<heap_element_type> *>(P) != 0 );
+					GenericInputMergeWorkPackage<heap_element_type> * BP = dynamic_cast<GenericInputMergeWorkPackage<heap_element_type> *>(P);
 					
 					libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> & data = *(BP->data);
-					libmaus::util::FiniteSizeHeap<GenericInputControlMergeHeapEntry> & mergeheap = *(BP->mergeheap);
+					libmaus::util::FiniteSizeHeap<heap_element_type> & mergeheap = *(BP->mergeheap);
 					libmaus::bambam::parallel::AlignmentBuffer & algn = *(BP->algn);
 			
-					GenericInputControlMergeHeapEntry E;
+					heap_element_type E;
 					// loop running
 					bool running = !mergeheap.empty();		
 			
@@ -198,7 +200,7 @@ namespace libmaus
 												// this should be non-empty
 												assert ( data[streamid]->processActive->getNumParsePointers() );
 												// construct heap entry
-												GenericInputControlMergeHeapEntry GICMHE(data[streamid]->processActive.get());
+												heap_element_type GICMHE(data[streamid]->processActive.get());
 												// push it
 												mergeheap.push(GICMHE);
 											}
@@ -223,7 +225,7 @@ namespace libmaus
 							else
 							{
 								// construct heap entry
-								GenericInputControlMergeHeapEntry GICMHE(data[E.block->streamid]->processActive.get());
+								heap_element_type GICMHE(data[E.block->streamid]->processActive.get());
 								// push it
 								mergeheap.push(GICMHE);			
 							}

@@ -47,21 +47,23 @@ namespace libmaus
 				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					BamBlockIndexingWorkPackage * BP = dynamic_cast<BamBlockIndexingWorkPackage *>(P);
-					
-					libmaus::bambam::parallel::GenericInputControlCompressionPending & GICCP = BP->GICCP;
-					libmaus::bambam::BamIndexGenerator & indexer = *(BP->bamindexgenerator);
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = GICCP.flushinfo;
-					// libmaus::lz::BgzfDeflateOutputBufferBase const & outblock = *(GICCP.outblock);
-					std::pair<uint8_t *,uint8_t *> const & input = GICCP.P; 
-					
-					if ( flushinfo.blocks == 1 )
-					{
-						indexer.addBlock(input.first,flushinfo.block_a_c,flushinfo.block_a_u);
-					}
-					else if ( flushinfo.blocks == 2 )
-					{
-						indexer.addBlock(input.first,                      flushinfo.block_a_c,flushinfo.block_a_u);
-						indexer.addBlock(input.first + flushinfo.block_a_u,flushinfo.block_b_c,flushinfo.block_b_u);
+
+					if ( BP->bamindexgenerator )
+					{					
+						libmaus::bambam::parallel::GenericInputControlCompressionPending & GICCP = BP->GICCP;
+						libmaus::bambam::BamIndexGenerator & indexer = *(BP->bamindexgenerator);
+						libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = GICCP.flushinfo;
+						std::pair<uint8_t *,uint8_t *> const & input = GICCP.P; 
+						
+						if ( flushinfo.blocks == 1 )
+						{
+							indexer.addBlock(input.first,flushinfo.block_a_c,flushinfo.block_a_u);
+						}
+						else if ( flushinfo.blocks == 2 )
+						{
+							indexer.addBlock(input.first,                      flushinfo.block_a_c,flushinfo.block_a_u);
+							indexer.addBlock(input.first + flushinfo.block_a_u,flushinfo.block_b_c,flushinfo.block_b_u);
+						}
 					}
 					
 					finishedInterface.bamBlockIndexingBlockFinished(BP->GICCP);

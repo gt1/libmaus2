@@ -401,7 +401,28 @@ namespace libmaus
 	{
 		namespace parallel
 		{
+			struct BlockMergeControlTypeBase
+			{
+				enum block_merge_output_format_t
+				{
+					output_format_bam = 0,
+					output_format_sam = 1,
+					output_format_cram = 2
+				};
+			};
+		}
+	}
+}
+		
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{
+			template<typename _heap_element_type>
 			struct BlockMergeControl : 
+				public BlockMergeControlTypeBase,
 				public libmaus::bambam::parallel::GenericInputControlReadWorkPackageReturnInterface,
 				public libmaus::bambam::parallel::GenericInputControlReadAddPendingInterface,
 				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackageReturnInterface,
@@ -410,7 +431,7 @@ namespace libmaus
 				public libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface,
 				public libmaus::bambam::parallel::GenericInputBamParseWorkPackageReturnInterface,
 				public libmaus::bambam::parallel::GenericInputBamParseWorkPackageBlockParsedInterface,
-				public libmaus::bambam::parallel::GenericInputMergeWorkPackageReturnInterface,
+				public libmaus::bambam::parallel::GenericInputMergeWorkPackageReturnInterface<_heap_element_type>,
 				public libmaus::bambam::parallel::GenericInputMergeDecompressedBlockReturnInterface,
 				public libmaus::bambam::parallel::GenericInputControlSetMergeStallSlotInterface,
 				public libmaus::bambam::parallel::GenericInputControlMergeBlockFinishedInterface,
@@ -434,18 +455,13 @@ namespace libmaus
 				public CramOutputBlockWritePackageFinishedInterface,
 				public CramEncodingWorkPackageReturnInterface
 			{
-				typedef BlockMergeControl this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				// GenericInputControlMergeHeapEntryCoordinate
+				typedef _heap_element_type heap_element_type;
+				typedef BlockMergeControl<heap_element_type> this_type;
+				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				libmaus::parallel::SimpleThreadPool & STP;
-
-				enum block_merge_output_format_t
-				{
-					output_format_bam = 0,
-					output_format_sam = 1,
-					output_format_cram = 2
-				};
 				
 				block_merge_output_format_t const block_merge_output_format;
 				
@@ -468,7 +484,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReadWorkPackage> readWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputBgzfDecompressionWorkPackage> decompressWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputBamParseWorkPackage> parseWorkPackages;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputMergeWorkPackage> mergeWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputMergeWorkPackage<heap_element_type> > mergeWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlReorderWorkPackage> rewriteWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockCompressionWorkPackage> compressWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<libmaus::bambam::parallel::GenericInputControlBlockWritePackage> writeWorkPackages;
@@ -488,7 +504,7 @@ namespace libmaus
 				libmaus::bambam::parallel::GenericInputBamParseWorkPackageDispatcher GIBPWPD;
 				
 				uint64_t const GIMWPDid;
-				libmaus::bambam::parallel::GenericInputMergeWorkPackageDispatcher GIMWPD;
+				libmaus::bambam::parallel::GenericInputMergeWorkPackageDispatcher<heap_element_type> GIMWPD;
 				
 				uint64_t const GICRWPDid;
 				libmaus::bambam::parallel::GenericInputControlReorderWorkPackageDispatcher GICRWPD;
@@ -520,7 +536,7 @@ namespace libmaus
 				uint64_t volatile streamParseUnstarted;
 				libmaus::parallel::PosixSpinLock streamParseUnstartedLock;
 
-				libmaus::util::FiniteSizeHeap<libmaus::bambam::parallel::GenericInputControlMergeHeapEntry> mergeheap;
+				libmaus::util::FiniteSizeHeap<heap_element_type> mergeheap;
 				libmaus::parallel::PosixSpinLock mergeheaplock;
 				
 				uint64_t const alignbuffersize;
@@ -628,13 +644,14 @@ namespace libmaus
 								
 				std::string const tempfileprefix;
 				
-				libmaus::bambam::BamIndexGenerator bamindexgenerator;
+				libmaus::bambam::BamIndexGenerator::unique_ptr_type Pbamindexgenerator;
 				
 				libmaus::digest::DigestInterface * filechecksum;
-				
-				
+
 				CramEncodingSupportData samsupport;
 				CramEncodingSupportData cramsupport;
+				
+				bool const bamindex;
 				
 				void enqueHeader()
 				{
@@ -776,7 +793,8 @@ namespace libmaus
 					std::string const & rhash,
 					std::string const & rtempfileprefix,
 					libmaus::digest::DigestInterface * rfilechecksum,
-					block_merge_output_format_t const rblock_merge_output_format
+					block_merge_output_format_t const rblock_merge_output_format,
+					bool const rbamindex
 				)
 				: STP(rSTP), 
 				  block_merge_output_format(rblock_merge_output_format),
@@ -816,10 +834,13 @@ namespace libmaus
 				  hash(rhash),
 				  fileChksumQueueNext(0),
 				  tempfileprefix(rtempfileprefix),
-				  bamindexgenerator(tempfileprefix+"_index",0 /* verbose */,false /* validate */,false /* debug */),
+				  Pbamindexgenerator(
+				  	rbamindex ? new libmaus::bambam::BamIndexGenerator(tempfileprefix+"_index",0 /* verbose */,false /* validate */,false /* debug */) : 0
+				  ),
 				  filechecksum(rfilechecksum),
 				  samsupport(STP.getNumThreads()),
-				  cramsupport(STP.getNumThreads())
+				  cramsupport(STP.getNumThreads()),
+				  bamindex(rbamindex)
 				{
 					for ( std::vector<libmaus::bambam::parallel::GenericInputControlStreamInfo>::size_type i = 0; i < in.size(); ++i )
 					{
@@ -985,7 +1006,7 @@ namespace libmaus
 					parseWorkPackages.returnPackage(package);	
 				}
 
-				void genericInputMergeWorkPackageReturn(libmaus::bambam::parallel::GenericInputMergeWorkPackage * package)
+				void genericInputMergeWorkPackageReturn(libmaus::bambam::parallel::GenericInputMergeWorkPackage<heap_element_type> * package)
 				{
 					mergeWorkPackages.returnPackage(package);
 				}
@@ -1075,7 +1096,7 @@ namespace libmaus
 
 						{
 							BamBlockIndexingWorkPackage * package = indexingWorkPackages.getPackage();
-							*package = BamBlockIndexingWorkPackage(0,BBIWPDid,GICCP,&bamindexgenerator);
+							*package = BamBlockIndexingWorkPackage(0,BBIWPDid,GICCP,Pbamindexgenerator.get());
 							STP.enque(package);
 						}
 
@@ -1915,8 +1936,8 @@ namespace libmaus
 							
 								mergeworkrequests.pop_front();
 							
-								libmaus::bambam::parallel::GenericInputMergeWorkPackage * package = mergeWorkPackages.getPackage();
-								*package = libmaus::bambam::parallel::GenericInputMergeWorkPackage(0/*prio*/,GIMWPDid,&data,&mergeheap,buffer);
+								libmaus::bambam::parallel::GenericInputMergeWorkPackage<heap_element_type> * package = mergeWorkPackages.getPackage();
+								*package = libmaus::bambam::parallel::GenericInputMergeWorkPackage<heap_element_type>(0/*prio*/,GIMWPDid,&data,&mergeheap,buffer);
 								STP.enque(package);
 							}
 						}
@@ -1996,7 +2017,7 @@ namespace libmaus
 								data[streamid]->processActive = qblock;
 
 								// insert alignment in heap
-								libmaus::bambam::parallel::GenericInputControlMergeHeapEntry GICMHE(data[streamid]->processActive.get());
+								heap_element_type GICMHE(data[streamid]->processActive.get());
 								libmaus::parallel::ScopePosixSpinLock slock(mergeheaplock);
 								mergeheap.push(GICMHE);
 							}
@@ -2222,14 +2243,17 @@ namespace libmaus
 				template<typename output_stream_type>
 				void writeBamIndex(output_stream_type & out)
 				{
-					bamindexgenerator.flush(out);
+					Pbamindexgenerator->flush(out);
 				}
 				
 				void writeBamIndex(std::string const & filename)
 				{
-					libmaus::aio::PosixFdOutputStream PFOS(filename);
-					writeBamIndex(PFOS);
-					PFOS.flush();
+					if ( Pbamindexgenerator )
+					{
+						libmaus::aio::PosixFdOutputStream PFOS(filename);
+						writeBamIndex(PFOS);
+						PFOS.flush();
+					}
 				}
 			};
 		}
