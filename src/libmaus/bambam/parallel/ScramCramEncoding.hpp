@@ -74,12 +74,15 @@ namespace libmaus
 					libmaus::util::DynamicLibraryFunction<dealloc_func_t>::unique_ptr_type Tdealloc_func(
 						new libmaus::util::DynamicLibraryFunction<dealloc_func_t>(scramlib,"scram_cram_deallocate_encoder")
 					);
+					Pdealloc_func = UNIQUE_PTR_MOVE(Tdealloc_func);
 					libmaus::util::DynamicLibraryFunction<enque_func_t>::unique_ptr_type Tenque_func(
 						new libmaus::util::DynamicLibraryFunction<enque_func_t>(scramlib,"scram_cram_enque_compression_block")
 					);
+					Penque_func = UNIQUE_PTR_MOVE(Tenque_func);
 					libmaus::util::DynamicLibraryFunction<dispatch_func_t>::unique_ptr_type Tdispatch_func(
 						new libmaus::util::DynamicLibraryFunction<dispatch_func_t>(scramlib,"scram_cram_process_work_package")
 					);
+					Pdispatch_func = UNIQUE_PTR_MOVE(Tdispatch_func);
 					#endif
 				}
 
