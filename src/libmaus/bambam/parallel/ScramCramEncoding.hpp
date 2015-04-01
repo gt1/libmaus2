@@ -68,17 +68,17 @@ namespace libmaus
 					
 					#if defined(LIBMAUS_HAVE_DL_FUNCS)
 					libmaus::util::DynamicLibraryFunction<alloc_func_t>::unique_ptr_type Talloc_func(
-						new libmaus::util::DynamicLibraryFunction<alloc_func_t>(scramlib,"cram_allocate_encoder")
+						new libmaus::util::DynamicLibraryFunction<alloc_func_t>(scramlib,"scram_cram_allocate_encoder")
 					);
 					Palloc_func = UNIQUE_PTR_MOVE(Talloc_func);
 					libmaus::util::DynamicLibraryFunction<dealloc_func_t>::unique_ptr_type Tdealloc_func(
-						new libmaus::util::DynamicLibraryFunction<dealloc_func_t>(scramlib,"cram_deallocate_encoder")
+						new libmaus::util::DynamicLibraryFunction<dealloc_func_t>(scramlib,"scram_cram_deallocate_encoder")
 					);
 					libmaus::util::DynamicLibraryFunction<enque_func_t>::unique_ptr_type Tenque_func(
-						new libmaus::util::DynamicLibraryFunction<enque_func_t>(scramlib,"cram_enque_compression_block")
+						new libmaus::util::DynamicLibraryFunction<enque_func_t>(scramlib,"scram_cram_enque_compression_block")
 					);
 					libmaus::util::DynamicLibraryFunction<dispatch_func_t>::unique_ptr_type Tdispatch_func(
-						new libmaus::util::DynamicLibraryFunction<dispatch_func_t>(scramlib,"cram_process_work_package")
+						new libmaus::util::DynamicLibraryFunction<dispatch_func_t>(scramlib,"scram_cram_process_work_package")
 					);
 					#endif
 				}

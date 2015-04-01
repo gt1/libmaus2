@@ -16,6 +16,76 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMENCODINGWORKPACKAGE_HPP)
+#define LIBMAUS_BAMBAM_PARALLEL_CRAMENCODINGWORKPACKAGE_HPP
+
+#include <libmaus/bambam/parallel/ScramCramEncoding.hpp>
+#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{
+			
+			struct CramEncodingWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			{
+				typedef CramEncodingWorkPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				void * package;
+				ScramCramEncoding * iolibInterface;
+			
+				CramEncodingWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), package(0), iolibInterface(0) {}
+				CramEncodingWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, void * rpackage, ScramCramEncoding * riolibInterface)
+				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage), iolibInterface(riolibInterface)
+				{
+				
+				}
+				virtual ~CramEncodingWorkPackage() {}
+				
+				virtual char const * getPackageName() const
+				{
+					return "CramEncodingWorkPackage";
+				}
+				
+				void dispatch()
+				{
+					int r;
+					if ( (r=iolibInterface->cram_process_work_package(package)) )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "CramEncodingWorkPackage::dispatch: cram_process_work_package returned error code " << r << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+			};
+		}
+	}
+}
+#endif
+
+/*
+    libmaus
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_BLOCKMERGECONTROL_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_BLOCKMERGECONTROL_HPP
 
@@ -168,6 +238,22 @@ namespace libmaus
 	}
 }
 
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{			
+			struct CramEncodingWorkPackageReturnInterface
+			{
+				virtual ~CramEncodingWorkPackageReturnInterface() {}
+				virtual void cramEncodingWorkPackageReturn(CramEncodingWorkPackage * package) = 0;
+			};
+		}
+	}
+}
+
 namespace libmaus
 {
 	namespace bambam
@@ -208,6 +294,35 @@ namespace libmaus
 					SamEncodingWorkPackageWrapper * BP = dynamic_cast<SamEncodingWorkPackageWrapper *>(P);
 					BP->dispatch();
 					packageReturnInterface.samEncodingWorkPackageWrapperReturn(BP);
+				}
+			};
+		}
+	}
+}
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{
+			struct CramEncodingWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef CramEncodingWorkPackageDispatcher this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				CramEncodingWorkPackageReturnInterface & packageReturnInterface;
+						
+				CramEncodingWorkPackageDispatcher(
+					CramEncodingWorkPackageReturnInterface & rpackageReturnInterface
+				) : packageReturnInterface(rpackageReturnInterface) {}
+				~CramEncodingWorkPackageDispatcher() {}
+				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					CramEncodingWorkPackage * BP = dynamic_cast<CramEncodingWorkPackage *>(P);
+					BP->dispatch();
+					packageReturnInterface.cramEncodingWorkPackageReturn(BP);
 				}
 			};
 		}
@@ -316,7 +431,8 @@ namespace libmaus
 				public BamBlockIndexingBlockFinishedInterface,
 				public SamEncodingWorkPackageWrapperReturnInterface,
 				public CramOutputBlockWritePackageReturnInterface,
-				public CramOutputBlockWritePackageFinishedInterface
+				public CramOutputBlockWritePackageFinishedInterface,
+				public CramEncodingWorkPackageReturnInterface
 			{
 				typedef BlockMergeControl this_type;
 				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
@@ -360,6 +476,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::BamBlockIndexingWorkPackage > indexingWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::SamEncodingWorkPackageWrapper > samEncodingWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::CramOutputBlockWritePackage > cramWriteWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::CramEncodingWorkPackage > cramEncodingWorkPackages;
 
 				uint64_t const GICRPDid;
 				libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher GICRPD;
@@ -393,7 +510,10 @@ namespace libmaus
 
 				uint64_t const COBWPDid;
 				CramOutputBlockWritePackageDispatcher COBWPD;
-				
+
+				uint64_t const CEWPDid;
+				CramEncodingWorkPackageDispatcher CEWPD;
+
 				uint64_t volatile activedecompressionstreams;
 				libmaus::parallel::PosixSpinLock activedecompressionstreamslock;
 				
@@ -676,6 +796,7 @@ namespace libmaus
 				  BBIWPDid(STP.getNextDispatcherId()), BBIWPD(*this,*this),
 				  SEWPDid(STP.getNextDispatcherId()), SEWPD(*this),
 				  COBWPDid(STP.getNextDispatcherId()), COBWPD(*this,*this),
+				  CEWPDid(STP.getNextDispatcherId()), CEWPD(*this),
 				  activedecompressionstreams(in.size()), activedecompressionstreamslock(),
 				  streamParseUnstarted(in.size()), streamParseUnstartedLock(),
 				  mergeheap(in.size()), mergeheaplock(),
@@ -718,6 +839,7 @@ namespace libmaus
 					STP.registerDispatcher(BBIWPDid,&BBIWPD);
 					STP.registerDispatcher(SEWPDid,&SEWPD);
 					STP.registerDispatcher(COBWPDid,&COBWPD);
+					STP.registerDispatcher(CEWPDid,&CEWPD);
 
 					std::string headertext(sheader.begin(),sheader.end());
 					std::istringstream headerin(headertext);
@@ -890,10 +1012,16 @@ namespace libmaus
 					samEncodingWorkPackages.returnPackage(package);
 				}
 
+				void cramEncodingWorkPackageReturn(CramEncodingWorkPackage * package)
+				{
+					cramEncodingWorkPackages.returnPackage(package);
+				}
+
 				void cramOutputBlockWritePackageReturn(CramOutputBlockWritePackage * package)
 				{
 					cramWriteWorkPackages.returnPackage(package);
 				}
+
 				libmaus::lz::BgzfDeflateZStreamBase::shared_ptr_type genericInputControlGetCompressor()
 				{
 					libmaus::lz::BgzfDeflateZStreamBase::shared_ptr_type comp = compressorFreeList.get();
@@ -1137,6 +1265,13 @@ namespace libmaus
 					STP.enque(package);
 				}
 
+				void cram_enque_compression_work_package_function(void *workpackage)
+				{				
+					CramEncodingWorkPackage * package = cramEncodingWorkPackages.getPackage();
+					*package = CramEncodingWorkPackage(0/*prio*/,CEWPDid,workpackage,PcramEncoder.get());
+					STP.enque(package);
+				}
+
 				void sam_compression_work_package_finished_function(
 					size_t const inblockid, 
 					int const /* final */
@@ -1210,6 +1345,8 @@ namespace libmaus
 						
 						if ( block_merge_output_format==output_format_sam )
 							sam_deallocate_encoder(samsupport.context);
+						else if ( block_merge_output_format==output_format_cram )
+							cram_deallocate_encoder(cramsupport.context);
 					}
 				}
 				
@@ -1345,6 +1482,12 @@ namespace libmaus
 					this_type * t = reinterpret_cast<this_type *>(userdata);
 					t->sam_enque_compression_work_package_function(workpackage);
 				}
+
+				static void cram_enque_compression_work_package_function(void *userdata, void *workpackage)
+				{
+					this_type * t = reinterpret_cast<this_type *>(userdata);
+					t->cram_enque_compression_work_package_function(workpackage);
+				}
 				
 				static void sam_compression_work_package_finished_function(void * userdata, size_t const inblockid, int const final)
 				{
@@ -1441,6 +1584,59 @@ namespace libmaus
 								{
 									libmaus::exception::LibMausException lme;
 									lme.getStream() << "Failed to enque SAM encoding package for block " << passPointerObject->block->id << "\n";
+									lme.finish();
+									throw lme;
+								}
+			
+								if ( block->final )
+									final = true;
+
+								rewriteReorderNext += 1;
+							}
+
+							break;
+					        }                                                                                                                                                                        
+						case output_format_cram:
+					        {
+							CramEncodingSupportData & supportdata = cramsupport;
+							
+							while ( 
+								rewriteReorderQueue.size() && rewriteReorderQueue.top()->id == rewriteReorderNext && 
+								supportdata.getCramEncodingToken()
+							)
+							{
+								// get block
+								libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type block = rewriteReorderQueue.top();
+								rewriteReorderQueue.pop();
+
+								// get pass pointer object
+								libmaus::bambam::parallel::CramPassPointerObject::shared_ptr_type passPointerObject =
+									supportdata.passPointerFreeList.get();
+								passPointerObject->set(block);
+
+								// mark it as active
+								{
+									libmaus::parallel::ScopePosixSpinLock slock(supportdata.passPointerActiveLock);
+									supportdata.passPointerActive[block->id] = passPointerObject;
+								}
+
+								int const r = cram_enque_compression_block(
+									this,
+									supportdata.context,
+									passPointerObject->block->id,
+									passPointerObject->D->begin(),
+									passPointerObject->S->begin(),
+									passPointerObject->numblocks,
+									passPointerObject->block->final,
+									cram_enque_compression_work_package_function,
+									sam_data_write_function,
+									sam_compression_work_package_finished_function                                                                                                        					
+								);
+
+								if ( r < 0 )
+								{
+									libmaus::exception::LibMausException lme;
+									lme.getStream() << "Failed to enque CRAM encoding package for block " << passPointerObject->block->id << "\n";
 									lme.finish();
 									throw lme;
 								}

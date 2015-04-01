@@ -25,12 +25,12 @@
 extern "C" {
 #endif
 
-enum cram_data_write_block_type
+typedef enum _cram_data_write_block_type
 {
 	cram_data_write_block_type_internal,
 	cram_data_write_block_type_block_final,
 	cram_data_write_block_type_file_final
-};
+} cram_data_write_block_type;
 
 // Enqueue a package of work to compress a CRAM slice.
 typedef void

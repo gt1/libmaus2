@@ -729,3 +729,37 @@ int libmaus_bambam_ScramEncoder_Encode(libmaus_bambam_ScramEncoder * encoder, ui
 	return scram_put_seq( (scram_fd *)(encoder->encoder), (bam_seq_t *)(encoder->buffer) );	
 }
 #endif /* defined(LIBMAUS_HAVE_IO_LIB)*/
+
+#if defined(LIBMAUS_HAVE_IO_LIB) && defined(LIBMAUS_HAVE_IO_NEW_CRAM_INTERFACE)
+#include <libmaus/bambam/parallel/CramInterface.h>
+
+void *scram_cram_allocate_encoder(void *userdata, char const *sam_header, size_t const sam_headerlength, cram_data_write_function_t write_func)
+{
+	return cram_allocate_encoder(userdata,sam_header,sam_headerlength,write_func);
+}
+
+void scram_cram_deallocate_encoder(void *context)
+{
+	cram_deallocate_encoder(context);
+}
+
+int scram_cram_enque_compression_block(
+	void *userdata,
+	void *context,
+	size_t const inblockid,
+	char const **block,
+	size_t const *blocksize,
+	size_t const numblocks,
+	int const final,
+	cram_enque_compression_work_package_function_t workenqueuefunction,
+	cram_data_write_function_t writefunction,
+	cram_compression_work_package_finished_t workfinishedfunction)
+{
+	return cram_enque_compression_block(userdata,context,inblockid,block,blocksize,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
+}
+
+int scram_cram_process_work_package(void *workpackage)
+{
+	return cram_process_work_package(workpackage);
+}
+#endif

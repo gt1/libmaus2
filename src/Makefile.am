@@ -750,7 +750,8 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/CramPassPointerObjectComparator.hpp \
 	libmaus/bambam/parallel/CramPassPointerObjectTypeInfo.hpp \
 	libmaus/bambam/parallel/CramPassPointerObjectAllocator.hpp \
-	libmaus/bambam/parallel/ScramCramEncoding.hpp
+	libmaus/bambam/parallel/ScramCramEncoding.hpp \
+	libmaus/bambam/parallel/CramOutputBlockIdComparator.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
