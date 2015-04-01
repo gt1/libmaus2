@@ -89,7 +89,12 @@ namespace libmaus
 					}
 				}
 				
-				return 0;	
+				if ( a == ae && b == be )
+					return 0;
+				else if ( a == ae )
+					return -1;
+				else
+					return 1;				
 			}
 
 			/**
@@ -166,7 +171,12 @@ namespace libmaus
 					}
 				}
 				
-				return 0;	
+				if ( (!*a) && (!*b) )
+					return 0;
+				else if ( !*a )
+					return -1;
+				else	
+					return 1;
 			}
 			
 			/**
