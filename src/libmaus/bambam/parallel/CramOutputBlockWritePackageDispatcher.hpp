@@ -49,8 +49,8 @@ namespace libmaus
 					CramOutputBlockWritePackage * BP = dynamic_cast<CramOutputBlockWritePackage *>(P);
 
 					CramOutputBlock::shared_ptr_type block = BP->block;
-					char const * data = block->A->begin();
 					size_t const n = block->fill;
+					char const * data = n ? block->A->begin() : NULL;
 					std::ostream * out = BP->out;
 					
 					out->write(data,n);
