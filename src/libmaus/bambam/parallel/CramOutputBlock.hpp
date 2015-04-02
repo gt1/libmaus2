@@ -79,7 +79,8 @@ namespace libmaus
 				)
 				{
 					ensure(n);
-					std::copy(p,p+n,A->begin());
+					if ( n )
+						std::copy(p,p+n,A->begin());
 					blockid = rblockid;
 					subblockid = rsubblockid;
 					fill = n;
