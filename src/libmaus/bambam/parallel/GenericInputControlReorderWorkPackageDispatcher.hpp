@@ -88,14 +88,14 @@ namespace libmaus
 						// output data pointer						
 						uint8_t * p = frag.getPointer(o);
 						
-						// get rank
-						int64_t const rank = libmaus::bambam::BamAlignmentDecoderBase::getRank(p+sizeof(uint32_t),P.second);
-
-						libmaus::bambam::BamAlignmentEncoderBase::putFlags(p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) & dupmask);
-
 						// mark as duplicate if in bit vector
 						if ( havedupvec )
 						{
+							// get rank
+							int64_t const rank = libmaus::bambam::BamAlignmentDecoderBase::getRank(p+sizeof(uint32_t),P.second);
+
+							libmaus::bambam::BamAlignmentEncoderBase::putFlags(p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) & dupmask);
+							
 							if ( rank >= 0 && BV->get(rank) )
 								libmaus::bambam::BamAlignmentEncoderBase::putFlags(
 									p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) | dupflag

@@ -140,6 +140,7 @@ namespace libmaus
 				size_t  inblockid;
 				char const **block;
 				size_t const *blocksize;
+				size_t const *blockelements;
 				size_t numblocks;
 				int final;
 				cram_data_write_function_t writefunction;
@@ -763,6 +764,7 @@ namespace libmaus
 					size_t const inblockid,
 					char const **block,
 					size_t const *blocksize,
+					size_t const *blockelements,
 					size_t const numblocks,
 					int const final,
 					cram_enque_compression_work_package_function_t workenqueuefunction,
@@ -770,7 +772,7 @@ namespace libmaus
 					cram_compression_work_package_finished_t workfinishedfunction
 				)
 				{				
-					return PcramEncoder->cram_enque_compression_block(userdata,context,inblockid,block,blocksize,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
+					return PcramEncoder->cram_enque_compression_block(userdata,context,inblockid,block,blocksize,blockelements,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
 				}
 				
 				int cram_process_work_package(void *workpackage)
@@ -1529,6 +1531,7 @@ namespace libmaus
 					size_t const inblockid,
 					char const **block,
 					size_t const *blocksize,
+					size_t const *blockelements,
 					size_t const numblocks,
 					int const final,
 					cram_enque_compression_work_package_function_t workenqueuefunction,
@@ -1546,6 +1549,7 @@ namespace libmaus
 					package->inblockid = inblockid;
 					package->block = block;
 					package->blocksize = blocksize;
+					package->blockelements = blockelements;
 					package->numblocks = numblocks;
 					package->final = final;
 					package->writefunction = writefunction;
@@ -1594,6 +1598,7 @@ namespace libmaus
 									passPointerObject->block->id,
 									passPointerObject->D->begin(),
 									passPointerObject->S->begin(),
+									passPointerObject->L->begin(),
 									passPointerObject->numblocks,
 									passPointerObject->block->final,
 									sam_enque_compression_work_package_function,
@@ -1647,6 +1652,7 @@ namespace libmaus
 									passPointerObject->block->id,
 									passPointerObject->D->begin(),
 									passPointerObject->S->begin(),
+									passPointerObject->L->begin(),
 									passPointerObject->numblocks,
 									passPointerObject->block->final,
 									cram_enque_compression_work_package_function,

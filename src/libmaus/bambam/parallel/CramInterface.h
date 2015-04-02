@@ -99,6 +99,7 @@ extern int cram_enque_compression_block(
 	size_t const inblockid,
 	char const **block,
 	size_t const *blocksize,
+	size_t const *blockelements,
 	size_t const numblocks,
 	int const final,
 	cram_enque_compression_work_package_function_t workenqueuefunction,

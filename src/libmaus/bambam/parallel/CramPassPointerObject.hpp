@@ -37,6 +37,7 @@ namespace libmaus
 				libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type block;
 				libmaus::autoarray::AutoArray<char const *>::shared_ptr_type D;
 				libmaus::autoarray::AutoArray<size_t>::shared_ptr_type S;
+				libmaus::autoarray::AutoArray<size_t>::shared_ptr_type L;
 				size_t numblocks;
 				
 				CramPassPointerObject() {}
@@ -47,6 +48,8 @@ namespace libmaus
 					
 					std::vector<std::pair<uint8_t *,uint8_t *> > V;
 					block->getLinearOutputFragments(V);
+					std::vector<size_t> const fillVector = block->getFillVector();
+					assert ( fillVector.size() == V.size() );
 
 					if ( V.size() > (D?D->size():0) )
 					{
@@ -58,10 +61,16 @@ namespace libmaus
 						libmaus::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus::autoarray::AutoArray<size_t>(V.size(),false));
 						S = T;
 					}
+					if ( V.size() > (L?L->size():0) )
+					{						
+						libmaus::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus::autoarray::AutoArray<size_t>(V.size(),false));
+						L = T;
+					}
 					for ( uint64_t i = 0; i < V.size(); ++i )
 					{
 						D->at(i) = reinterpret_cast<char const *>(V[i].first);
 						S->at(i) = V[i].second-V[i].first;
+						L->at(i) = fillVector.at(i);
 					}
 					numblocks = V.size();
 				}

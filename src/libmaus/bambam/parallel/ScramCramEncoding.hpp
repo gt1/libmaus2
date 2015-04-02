@@ -41,7 +41,7 @@ namespace libmaus
 				libmaus::util::DynamicLibraryFunction<alloc_func_t>::unique_ptr_type Palloc_func;
 				typedef void (*dealloc_func_t)(void *);
 				libmaus::util::DynamicLibraryFunction<dealloc_func_t>::unique_ptr_type Pdealloc_func;				
-				typedef int (*enque_func_t)(void *,void *,size_t const,char const **,size_t const *,size_t const,int const,cram_enque_compression_work_package_function_t,cram_data_write_function_t, cram_compression_work_package_finished_t);
+				typedef int (*enque_func_t)(void *,void *,size_t const,char const **,size_t const *,size_t const *,size_t const,int const,cram_enque_compression_work_package_function_t,cram_data_write_function_t, cram_compression_work_package_finished_t);
 				libmaus::util::DynamicLibraryFunction<enque_func_t>::unique_ptr_type Penque_func;
 				typedef int (*dispatch_func_t)(void *);
 				libmaus::util::DynamicLibraryFunction<dispatch_func_t>::unique_ptr_type Pdispatch_func;
@@ -115,6 +115,7 @@ namespace libmaus
 					size_t const inblockid,
 					char const **block,
 					size_t const *blocksize,
+					size_t const *blockelements,
 					size_t const numblocks,
 					int const final,
 					cram_enque_compression_work_package_function_t workenqueuefunction,
@@ -123,7 +124,7 @@ namespace libmaus
 				)
 				{				
 					#if defined(LIBMAUS_HAVE_DL_FUNCS)
-					return Penque_func->func(userdata,context,inblockid,block,blocksize,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
+					return Penque_func->func(userdata,context,inblockid,block,blocksize,blockelements,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
 					#else					
 					libmaus::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding::cram_enque_compression_block: no support for new CRAM encoding interface" << std::endl;

@@ -749,13 +749,14 @@ int scram_cram_enque_compression_block(
 	size_t const inblockid,
 	char const **block,
 	size_t const *blocksize,
+	size_t const *blockelements,
 	size_t const numblocks,
 	int const final,
 	cram_enque_compression_work_package_function_t workenqueuefunction,
 	cram_data_write_function_t writefunction,
 	cram_compression_work_package_finished_t workfinishedfunction)
 {
-	return cram_enque_compression_block(userdata,context,inblockid,block,blocksize,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
+	return cram_enque_compression_block(userdata,context,inblockid,block,blocksize,blockelements,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
 }
 
 int scram_cram_process_work_package(void *workpackage)
