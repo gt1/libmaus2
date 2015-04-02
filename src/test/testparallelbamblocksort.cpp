@@ -159,8 +159,8 @@ int parallelbamblocksort(libmaus::util::ArgInfo const & arginfo,
 	rtc.start();
 	uint64_t const inputblocksize = 1024*1024;
 	uint64_t const inputblocksperfile = 8;
-	uint64_t const mergebuffersize = 256*1024*1024;
-	uint64_t const mergebuffers = 4;
+	uint64_t const mergebuffersize = arginfo.getValueUnsignedNumeric("mergebuffersize", 256*1024*1024);
+	uint64_t const mergebuffers = arginfo.getValueUnsignedNumeric("mergebuffers", 4);
 	uint64_t const complistsize = 32;
 	int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
 
