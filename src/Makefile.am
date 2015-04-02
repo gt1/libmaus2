@@ -2153,6 +2153,6 @@ testfastqtobam_CPPFLAGS = @WARNCPPFLAGS@
 testfastqtobam_LDFLAGS  = ${AM_LDFLAGS}
 
 testsamrecoding_SOURCES  = test/testsamrecoding.cpp
-testsamrecoding_LDADD    = libmaus.la
+testsamrecoding_LDADD    = libmaus.la ${DLLIB}
 testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}
