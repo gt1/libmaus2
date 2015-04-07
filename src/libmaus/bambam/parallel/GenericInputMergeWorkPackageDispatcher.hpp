@@ -74,7 +74,6 @@ namespace libmaus
 					libmaus::util::FiniteSizeHeap<heap_element_type> & mergeheap = *(BP->mergeheap);
 					libmaus::bambam::parallel::AlignmentBuffer & algn = *(BP->algn);
 			
-					heap_element_type E;
 					// loop running
 					bool running = !mergeheap.empty();		
 			
@@ -90,9 +89,9 @@ namespace libmaus
 							
 					while ( running )
 					{
-						mergeheap.pop(E);
+						heap_element_type const & HE = mergeheap.top();
 			
-						libmaus::bambam::parallel::DecompressedBlock * eblock = E.block;
+						libmaus::bambam::parallel::DecompressedBlock * eblock = HE.block;
 						uint8_t const * ublock = reinterpret_cast<uint8_t const *>(eblock->getPrevParsePointer());
 						uint8_t const * ublock4 = ublock+sizeof(uint32_t);
 						uint32_t const len = libmaus::bambam::DecoderBase::getLEInteger(ublock,sizeof(uint32_t));
@@ -123,9 +122,12 @@ namespace libmaus
 							LC += 1;
 			
 						if ( ok )
-						{			
+						{	
+							bool const islast = HE.isLast();
+							mergeheap.popvoid();
+							
 							// last alignment in block
-							if ( E.isLast() )
+							if ( islast )
 							{
 								// last block?
 								if ( eblock->final )
@@ -149,7 +151,7 @@ namespace libmaus
 								else
 								{
 									// get stream id
-									uint64_t const streamid = E.block->streamid;
+									uint64_t const streamid = eblock->streamid;
 									// get block
 									libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block = data[streamid]->processActive;
 									// return block
@@ -199,10 +201,8 @@ namespace libmaus
 												data[streamid]->processActive = nextblock;
 												// this should be non-empty
 												assert ( data[streamid]->processActive->getNumParsePointers() );
-												// construct heap entry
-												heap_element_type GICMHE(data[streamid]->processActive.get());
-												// push it
-												mergeheap.push(GICMHE);
+												// push
+												mergeheap.pushset(data[streamid]->processActive.get());
 											}
 										}
 										// nothing in queue, mark channel as missing and leave loop
@@ -224,16 +224,12 @@ namespace libmaus
 							// not last element in block
 							else
 							{
-								// construct heap entry
-								heap_element_type GICMHE(data[E.block->streamid]->processActive.get());
 								// push it
-								mergeheap.push(GICMHE);			
+								mergeheap.pushset(data[eblock->streamid]->processActive.get());
 							}
 						}
 						else
 						{
-							// put E back on heap
-							mergeheap.push(E);
 							// buffer is full
 							mergeFinishedInterface.genericInputControlMergeBlockFinished(BP->algn);
 							// reque merging

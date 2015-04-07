@@ -493,7 +493,8 @@ libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Ch
 	libmaus/bambam/ChecksumsInterface.hpp \
 	libmaus/bambam/ChecksumsFactory.hpp \
 	libmaus/bambam/ChecksumsInterfaceAllocator.hpp \
-	libmaus/bambam/ChecksumsInterfaceTypeInfo.hpp
+	libmaus/bambam/ChecksumsInterfaceTypeInfo.hpp \
+	libmaus/bambam/StrCmpNumRecode.hpp
 
 libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
 libmausbambamparallel_include_HEADERS = \
@@ -1027,7 +1028,8 @@ libmausutil_include_HEADERS=\
 	libmaus/util/LineBuffer.hpp \
 	libmaus/util/UnsignedIntegerIndexIterator.hpp \
 	libmaus/util/FiniteSizeHeap.hpp \
-	libmaus/util/UnitNum.hpp
+	libmaus/util/UnitNum.hpp \
+	libmaus/util/NotDigitOrTermTable.hpp
 
 libmausuint_includedir=$(includedir)/libmaus/uint
 libmausuint_include_HEADERS=\

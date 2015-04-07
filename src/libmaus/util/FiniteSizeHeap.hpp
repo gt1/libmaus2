@@ -58,6 +58,32 @@ namespace libmaus
 				return f == H.size();
 			}
 			
+			template<typename init_type>
+			void pushset(init_type const & I)
+			{
+				size_t i = f++;
+				H[i].set(I);
+				
+				// while not root
+				while ( i )
+				{
+					// parent index
+					size_t p = (i-1)>>1;
+					
+					// order wrong?
+					if ( comp(H[i],H[p]) )
+					{
+						std::swap(H[i],H[p]);
+						i = p;
+					}
+					// order correct, break loop
+					else
+					{
+						break;
+					}
+				}
+			}
+			
 			void push(element_type const & entry)
 			{
 				size_t i = f++;
@@ -83,9 +109,13 @@ namespace libmaus
 				}
 			}
 			
-			void pop(element_type & E)
+			element_type const & top()
 			{
-				E = H[0];
+				return H[0];
+			}
+			
+			void popvoid()
+			{
 				// put last element at root
 				H[0] = H[--f];
 				
@@ -109,6 +139,12 @@ namespace libmaus
 				size_t l;
 				if ( ((l = ((i<<1)+1)) < f) && (!(comp(H[i],H[l]))) )
 					std::swap(H[i],H[l]);
+			}
+			
+			void pop(element_type & E)
+			{
+				E = H[0];
+				popvoid();
 			}
 			
 			element_type pop()

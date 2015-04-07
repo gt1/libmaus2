@@ -21,6 +21,7 @@
 
 #include <libmaus/bambam/parallel/DecompressedBlock.hpp>
 #include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus/bambam/StrCmpNumRecode.hpp>
 
 namespace libmaus
 {
@@ -47,9 +48,18 @@ namespace libmaus
 				{
 				
 				}
+
+				#if 0
 				GenericInputControlMergeHeapEntryCoordinate(libmaus::bambam::parallel::DecompressedBlock * rblock)
 				: block(rblock)
 				{
+					setup();
+				}
+				#endif
+				
+				void set(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				{
+					block = rblock;
 					setup();
 				}
 				
@@ -73,21 +83,34 @@ namespace libmaus
 				char const * name;
 				int read1;
 
+				libmaus::autoarray::AutoArray<uint64_t> recoded;
+				size_t recodedlength;
+
 				inline void setup()
 				{
 					uint8_t const * algn4 = reinterpret_cast<uint8_t const *>(block->getNextParsePointer()) + sizeof(uint32_t);
 
 					name = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(algn4);
 					read1 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(algn4) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+					recodedlength = libmaus::bambam::StrCmpNumRecode::recode(name,recoded);
 				}
 
 				GenericInputControlMergeHeapEntryQueryName()
 				{
 				
 				}
+				
+				#if 0
 				GenericInputControlMergeHeapEntryQueryName(libmaus::bambam::parallel::DecompressedBlock * rblock)
 				: block(rblock)
 				{
+					setup();
+				}
+				#endif
+
+				void set(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				{
+					block = rblock;
 					setup();
 				}
 				
@@ -96,14 +119,54 @@ namespace libmaus
 					return block->cPP == block->nPP;
 				}
 				
-				bool operator<(GenericInputControlMergeHeapEntryQueryName const & A) const
+				bool oprec(GenericInputControlMergeHeapEntryQueryName const & A) const
+				{
+					uint64_t const * pa = recoded.begin();
+					uint64_t const * pb = A.recoded.begin();
+					
+					while ( *pa == *pb )
+					{
+						// same name?
+						if ( ! *pa )
+						{
+							return read1 > A.read1;
+						}
+						else
+						{
+							++pa, ++pb;
+						}
+					}
+					
+					return *pa < *pb;
+				}
+				
+				bool opcomp(GenericInputControlMergeHeapEntryQueryName const & A) const
 				{
 					int const r = libmaus::bambam::StrCmpNum::strcmpnum(name,A.name);
 				
 					if ( r != 0 )
 						return r < 0;
 					else
-						return read1 > A.read1;
+						return read1 > A.read1;				
+				}
+				
+				bool operator<(GenericInputControlMergeHeapEntryQueryName const & A) const
+				{
+					return oprec(A);
+				
+					#if 0
+					bool const resref = opcomp(A);
+					bool const resnew = oprec(A);
+					
+					if ( resref != resnew )
+					{
+						std::cerr << "failed comparison for " << name << " " << A.name << std::endl;
+					}
+					
+					assert ( resref == resnew );
+					
+					return resref;
+					#endif
 				}
 			};
 		}

@@ -2178,9 +2178,9 @@ namespace libmaus
 								data[streamid]->processActive = qblock;
 
 								// insert alignment in heap
-								heap_element_type GICMHE(data[streamid]->processActive.get());
+								// heap_element_type GICMHE();
 								libmaus::parallel::ScopePosixSpinLock slock(mergeheaplock);
-								mergeheap.push(GICMHE);
+								mergeheap.pushset(data[streamid]->processActive.get());
 							}
 							// empty block
 							else
