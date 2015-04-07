@@ -332,9 +332,9 @@ namespace libmaus
 
 					CramOutputBlock::shared_ptr_type block = BP->block;
 					libmaus::digest::DigestInterface * filechecksum = BP->filechecksum;
-					
-					if ( block->size() )
-						filechecksum->vupdate(reinterpret_cast<uint8_t const *>(block->A->begin()),block->size());
+
+					if ( block->fill )
+						filechecksum->vupdate(reinterpret_cast<uint8_t const *>(block->A->begin()),block->fill);
 
 					checksumComputedInterface.cramOutputBlockChecksumComputed(BP->block);
 					packageReturnInterface.cramOutputBlockChecksumPackageReturn(BP);
@@ -462,7 +462,7 @@ namespace libmaus
 				std::set<CramOutputBlock::shared_ptr_type,CramOutputBlockIdComparator> outputBlockPendingList;
 				libmaus::parallel::PosixSpinLock outputBlockPendingListLock;
 
-				std::map< std::pair<int64_t,uint64_t> , uint64_t> outputBlockUnfinished;
+				uint64_t volatile outputBlockUnfinished;
 				libmaus::parallel::PosixSpinLock outputBlockUnfinishedLock;
 
 				std::pair<int64_t volatile,uint64_t volatile> outputWriteNext;
@@ -1499,26 +1499,9 @@ namespace libmaus
 
 					{
 						libmaus::parallel::ScopePosixSpinLock slock(supportdata.outputBlockUnfinishedLock);
+						assert ( supportdata.outputBlockUnfinished );
 						
-						std::map < std::pair<int64_t,uint64_t>, uint64_t > :: iterator it =
-							supportdata.outputBlockUnfinished.find(
-								std::pair<int64_t,uint64_t>(
-									block->blockid,
-									block->subblockid
-								)				
-							);
-						
-						assert ( it != supportdata.outputBlockUnfinished.end() );
-						
-						if ( ! (--(it->second)) )
-						{
-							supportdata.outputBlockUnfinished.erase(it);
-							blockfinished = true;
-						}
-						else
-						{
-						
-						}
+						blockfinished = (--(supportdata.outputBlockUnfinished) == 0);
 					}
 
 					if ( blockfinished )
@@ -1564,12 +1547,7 @@ namespace libmaus
 					{
 						{
 							libmaus::parallel::ScopePosixSpinLock slock(supportdata.outputBlockUnfinishedLock);
-							supportdata.outputBlockUnfinished[
-								std::pair<int64_t,uint64_t>(
-									block->blockid,
-									block->subblockid
-								)
-							] = 2;
+							supportdata.outputBlockUnfinished = 2;
 						}
 					
 						CramOutputBlockWritePackage * package = cramWriteWorkPackages.getPackage();
