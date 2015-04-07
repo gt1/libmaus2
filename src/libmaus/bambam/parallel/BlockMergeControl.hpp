@@ -783,7 +783,7 @@ namespace libmaus
 							if ( ! samsupport.context )
 							{
 								libmaus::exception::LibMausException lme;
-								lme.getStream() << "Failed to allocate sam encoder" << std::endl;
+								lme.getStream() << "[E] Failed to allocate sam encoder" << std::endl;
 								lme.finish();
 								throw lme;
 							}
@@ -801,7 +801,7 @@ namespace libmaus
 							if ( ! cramsupport.context )
 							{
 								libmaus::exception::LibMausException lme;
-								lme.getStream() << "Failed to allocate sam encoder" << std::endl;
+								lme.getStream() << "[E] Failed to allocate cram encoder" << std::endl;
 								lme.finish();
 								throw lme;
 							}
