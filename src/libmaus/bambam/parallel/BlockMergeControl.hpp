@@ -239,6 +239,110 @@ namespace libmaus
 	}
 }
 
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{			
+			struct CramOutputBlockChecksumPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			{
+				typedef CramOutputBlockChecksumPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				CramOutputBlock::shared_ptr_type block;
+				libmaus::digest::DigestInterface * filechecksum;
+			
+				CramOutputBlockChecksumPackage() : libmaus::parallel::SimpleThreadWorkPackage(), block(), filechecksum(0) {}
+				CramOutputBlockChecksumPackage(
+					uint64_t const rpriority, 
+					uint64_t const rdispatcherid, 
+					CramOutputBlock::shared_ptr_type rblock,
+					libmaus::digest::DigestInterface * rfilechecksum
+				)
+				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), block(rblock), filechecksum(rfilechecksum)
+				{
+				
+				}
+				virtual ~CramOutputBlockChecksumPackage() {}
+				
+				virtual char const * getPackageName() const
+				{
+					return "CramOutputBlockChecksumPackage";
+				}
+			};
+		}
+	}
+}
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{			
+			struct CramOutputBlockChecksumPackageReturnInterface
+			{
+				virtual ~CramOutputBlockChecksumPackageReturnInterface() {}
+				virtual void cramOutputBlockChecksumPackageReturn(CramOutputBlockChecksumPackage * package) = 0;
+			};
+		}
+	}
+}
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{			
+			struct CramOutputBlockChecksumComputedInterface
+			{
+				virtual ~CramOutputBlockChecksumComputedInterface() {}
+				virtual void cramOutputBlockChecksumComputed(CramOutputBlock::shared_ptr_type block) = 0;
+			};
+		}
+	}
+}
+
+namespace libmaus
+{
+	namespace bambam
+	{
+		namespace parallel
+		{
+			struct CramOutputBlockChecksumPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			{
+				typedef CramOutputBlockChecksumPackage this_type;
+				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				
+				CramOutputBlockChecksumPackageReturnInterface & packageReturnInterface;
+				CramOutputBlockChecksumComputedInterface & checksumComputedInterface;
+						
+				CramOutputBlockChecksumPackageDispatcher(
+					CramOutputBlockChecksumPackageReturnInterface & rpackageReturnInterface,
+					CramOutputBlockChecksumComputedInterface & rchecksumComputedInterface
+				) : packageReturnInterface(rpackageReturnInterface), checksumComputedInterface(rchecksumComputedInterface) {}
+				~CramOutputBlockChecksumPackageDispatcher() {}
+				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				{
+					CramOutputBlockChecksumPackage * BP = dynamic_cast<CramOutputBlockChecksumPackage *>(P);
+
+					CramOutputBlock::shared_ptr_type block = BP->block;
+					libmaus::digest::DigestInterface * filechecksum = BP->filechecksum;
+					
+					if ( block->size() )
+						filechecksum->vupdate(reinterpret_cast<uint8_t const *>(block->A->begin()),block->size());
+
+					checksumComputedInterface.cramOutputBlockChecksumComputed(BP->block);
+					packageReturnInterface.cramOutputBlockChecksumPackageReturn(BP);
+				}
+			};
+		}
+	}
+}
 
 namespace libmaus
 {
@@ -358,6 +462,9 @@ namespace libmaus
 				std::set<CramOutputBlock::shared_ptr_type,CramOutputBlockIdComparator> outputBlockPendingList;
 				libmaus::parallel::PosixSpinLock outputBlockPendingListLock;
 
+				std::map< std::pair<int64_t,uint64_t> , uint64_t> outputBlockUnfinished;
+				libmaus::parallel::PosixSpinLock outputBlockUnfinishedLock;
+
 				std::pair<int64_t volatile,uint64_t volatile> outputWriteNext;
 				libmaus::parallel::PosixSpinLock outputWriteNextLock;
 												
@@ -454,7 +561,9 @@ namespace libmaus
 				public SamEncodingWorkPackageWrapperReturnInterface,
 				public CramOutputBlockWritePackageReturnInterface,
 				public CramOutputBlockWritePackageFinishedInterface,
-				public CramEncodingWorkPackageReturnInterface
+				public CramEncodingWorkPackageReturnInterface,
+				public CramOutputBlockChecksumPackageReturnInterface,
+				public CramOutputBlockChecksumComputedInterface
 			{
 				// GenericInputControlMergeHeapEntryCoordinate
 				typedef _heap_element_type heap_element_type;
@@ -494,6 +603,7 @@ namespace libmaus
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::SamEncodingWorkPackageWrapper > samEncodingWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::CramOutputBlockWritePackage > cramWriteWorkPackages;
 				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::CramEncodingWorkPackage > cramEncodingWorkPackages;
+				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList< libmaus::bambam::parallel::CramOutputBlockChecksumPackage > cramChecksumWorkPackages;
 
 				uint64_t const GICRPDid;
 				libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher GICRPD;
@@ -530,6 +640,9 @@ namespace libmaus
 
 				uint64_t const CEWPDid;
 				CramEncodingWorkPackageDispatcher CEWPD;
+
+				uint64_t const COBCPDid;
+				CramOutputBlockChecksumPackageDispatcher COBCPD;
 
 				uint64_t volatile activedecompressionstreams;
 				libmaus::parallel::PosixSpinLock activedecompressionstreamslock;
@@ -817,6 +930,7 @@ namespace libmaus
 				  SEWPDid(STP.getNextDispatcherId()), SEWPD(*this),
 				  COBWPDid(STP.getNextDispatcherId()), COBWPD(*this,*this),
 				  CEWPDid(STP.getNextDispatcherId()), CEWPD(*this),
+				  COBCPDid(STP.getNextDispatcherId()), COBCPD(*this,*this),
 				  activedecompressionstreams(in.size()), activedecompressionstreamslock(),
 				  streamParseUnstarted(in.size()), streamParseUnstartedLock(),
 				  mergeheap(in.size()), mergeheaplock(),
@@ -863,6 +977,7 @@ namespace libmaus
 					STP.registerDispatcher(SEWPDid,&SEWPD);
 					STP.registerDispatcher(COBWPDid,&COBWPD);
 					STP.registerDispatcher(CEWPDid,&CEWPD);
+					STP.registerDispatcher(COBCPDid,&COBCPD);
 
 					std::string headertext(sheader.begin(),sheader.end());
 					std::istringstream headerin(headertext);
@@ -1043,6 +1158,11 @@ namespace libmaus
 				void cramOutputBlockWritePackageReturn(CramOutputBlockWritePackage * package)
 				{
 					cramWriteWorkPackages.returnPackage(package);
+				}
+
+				void cramOutputBlockChecksumPackageReturn(CramOutputBlockChecksumPackage * package)
+				{
+					cramChecksumWorkPackages.returnPackage(package);
 				}
 
 				libmaus::lz::BgzfDeflateZStreamBase::shared_ptr_type genericInputControlGetCompressor()
@@ -1320,9 +1440,8 @@ namespace libmaus
 					checkRewritePendingQueue();
 				}
 
-
-				void cramOutputBlockWritePackageFinished(CramOutputBlock::shared_ptr_type block)
-				{
+				void cramOutputBlockWriteFinished(CramOutputBlock::shared_ptr_type block)
+				{				
 					CramEncodingSupportData & supportdata = (block_merge_output_format==output_format_sam) ? samsupport : cramsupport;
 
 					bool const blockfinal = 
@@ -1373,6 +1492,50 @@ namespace libmaus
 					}
 				}
 				
+				void cramOutputBlockDecrementUsedCounter(CramOutputBlock::shared_ptr_type block)
+				{
+					CramEncodingSupportData & supportdata = (block_merge_output_format==output_format_sam) ? samsupport : cramsupport;
+					bool blockfinished = false;
+
+					{
+						libmaus::parallel::ScopePosixSpinLock slock(supportdata.outputBlockUnfinishedLock);
+						
+						std::map < std::pair<int64_t,uint64_t>, uint64_t > :: iterator it =
+							supportdata.outputBlockUnfinished.find(
+								std::pair<int64_t,uint64_t>(
+									block->blockid,
+									block->subblockid
+								)				
+							);
+						
+						assert ( it != supportdata.outputBlockUnfinished.end() );
+						
+						if ( ! (--(it->second)) )
+						{
+							supportdata.outputBlockUnfinished.erase(it);
+							blockfinished = true;
+						}
+						else
+						{
+						
+						}
+					}
+
+					if ( blockfinished )
+						cramOutputBlockWriteFinished(block);					
+				
+				}
+				
+				void cramOutputBlockChecksumComputed(CramOutputBlock::shared_ptr_type block)
+				{
+					cramOutputBlockDecrementUsedCounter(block);
+				}
+
+				void cramOutputBlockWritePackageFinished(CramOutputBlock::shared_ptr_type block)
+				{
+					cramOutputBlockDecrementUsedCounter(block);
+				}
+				
 				void samCheckWritePendingQueue()
 				{
 					CramEncodingSupportData & supportdata = (block_merge_output_format==output_format_sam) ? samsupport : cramsupport;
@@ -1399,9 +1562,23 @@ namespace libmaus
 
 					if ( block )
 					{
+						{
+							libmaus::parallel::ScopePosixSpinLock slock(supportdata.outputBlockUnfinishedLock);
+							supportdata.outputBlockUnfinished[
+								std::pair<int64_t,uint64_t>(
+									block->blockid,
+									block->subblockid
+								)
+							] = 2;
+						}
+					
 						CramOutputBlockWritePackage * package = cramWriteWorkPackages.getPackage();
 						*package = CramOutputBlockWritePackage(0/*prio*/, COBWPDid, block, &out);
 						STP.enque(package);
+
+						CramOutputBlockChecksumPackage * cpackage = cramChecksumWorkPackages.getPackage();
+						*cpackage = CramOutputBlockChecksumPackage(0/*prio*/, COBCPDid, block, filechecksum);
+						STP.enque(cpackage);
 					}
 				}
 
