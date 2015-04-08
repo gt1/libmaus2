@@ -753,7 +753,20 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/CramPassPointerObjectAllocator.hpp \
 	libmaus/bambam/parallel/ScramCramEncoding.hpp \
 	libmaus/bambam/parallel/CramOutputBlockIdComparator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferQueryNameComparator.hpp
+	libmaus/bambam/parallel/FragmentAlignmentBufferQueryNameComparator.hpp \
+	libmaus/bambam/parallel/CramEncodingWorkPackage.hpp \
+	libmaus/bambam/parallel/SamEncodingWorkPackage.hpp \
+	libmaus/bambam/parallel/SamEncodingWorkPackageWrapper.hpp \
+	libmaus/bambam/parallel/CramOutputBlockChecksumPackage.hpp \
+	libmaus/bambam/parallel/CramOutputBlockChecksumPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/CramOutputBlockChecksumComputedInterface.hpp \
+	libmaus/bambam/parallel/CramOutputBlockChecksumPackageDispatcher.hpp \
+	libmaus/bambam/parallel/CramEncodingWorkPackageReturnInterface.hpp \
+	libmaus/bambam/parallel/SamEncodingWorkPackageWrapperReturnInterface.hpp \
+	libmaus/bambam/parallel/SamEncodingWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/BlockMergeControlTypeBase.hpp \
+	libmaus/bambam/parallel/CramEncodingSupportData.hpp \
+	libmaus/bambam/parallel/CramEncodingWorkPackageDispatcher.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
