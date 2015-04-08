@@ -458,7 +458,8 @@ namespace libmaus
 					std::string const & rtempfileprefix,
 					libmaus::digest::DigestInterface * rfilechecksum,
 					block_merge_output_format_t const rblock_merge_output_format,
-					bool const rbamindex
+					bool const rbamindex,
+					bool const rcomputerefidintervals
 				)
 				: STP(rSTP), 
 				  block_merge_output_format(rblock_merge_output_format),
@@ -471,7 +472,7 @@ namespace libmaus
 				  GIBDWPDid(STP.getNextDispatcherId()), GIBDWPD(*this,*this,*this,*this,deccont),
 				  GIBPWPDid(STP.getNextDispatcherId()), GIBPWPD(*this,*this),
 				  GIMWPDid(STP.getNextDispatcherId()), GIMWPD(*this,*this,*this,*this,*this),
-				  GICRWPDid(STP.getNextDispatcherId()), GICRWPD(*this,*this,*this,*this,BV),
+				  GICRWPDid(STP.getNextDispatcherId()), GICRWPD(*this,*this,*this,*this,BV,rcomputerefidintervals),
 				  GICBCWPDid(STP.getNextDispatcherId()), GICBCWPD(*this,*this,*this,*this),
 				  GICBWPDid(STP.getNextDispatcherId()), GICBWPD(*this,*this),
 				  FCBWPDid(STP.getNextDispatcherId()), FCBWPD(*this,*this),

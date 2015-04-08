@@ -172,12 +172,14 @@ int parallelbamblocksort(libmaus::util::ArgInfo const & arginfo,
 		oformat = libmaus::bambam::parallel::BlockMergeControlTypeBase::output_format_sam;
 	else if ( arginfo.getUnparsedValue("outputformat","bam") == "cram" )
 		oformat = libmaus::bambam::parallel::BlockMergeControlTypeBase::output_format_cram;
+		
+	bool const computerefidintervals = (oformat == libmaus::bambam::parallel::BlockMergeControlTypeBase::output_format_cram) && (sortorder == "coordinate");
 
 	try
 	{
 		// typedef libmaus::bambam::parallel::GenericInputControlMergeHeapEntryCoordinate heap_element_type;
 		libmaus::bambam::parallel::BlockMergeControl<heap_element_type> BMC(
-			STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get(),oformat,bamindex);
+			STP,std::cout,sheader,BI,Pdupvec.get(),level,inputblocksize,inputblocksperfile /* blocks per channel */,mergebuffersize /* merge buffer size */,mergebuffers /* number of merge buffers */, complistsize /* number of bgzf preload blocks */,hash,tmpfilebase,Pdigest.get(),oformat,bamindex,computerefidintervals);
 		BMC.addPending();			
 		BMC.waitWritingFinished();		
 

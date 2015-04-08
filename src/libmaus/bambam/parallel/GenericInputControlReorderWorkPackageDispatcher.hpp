@@ -32,6 +32,23 @@ namespace libmaus
 	{
 		namespace parallel
 		{
+			struct RefIdInterval
+			{
+				int32_t refid;
+				uint64_t i_low;
+				uint64_t b_low;
+				
+				RefIdInterval()
+				{
+				
+				}
+				RefIdInterval(
+					int32_t const rrefid,
+					uint64_t const ri_low,
+					uint64_t const rb_low
+				) : refid(rrefid), i_low(ri_low), b_low(rb_low) {}
+			};
+		
 			struct GenericInputControlReorderWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputControlReorderWorkPackage this_type;
@@ -44,28 +61,31 @@ namespace libmaus
 				ChecksumsInterfacePutInterface & checksumPutInterface;
 				libmaus::bambam::BamAuxFilterVector filter;
 				libmaus::bitio::BitVector * BV;
+				bool const gcomputerefidintervals;
 			
 				GenericInputControlReorderWorkPackageDispatcher(
 					GenericInputControlReorderWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlReorderWorkPackageFinishedInterface & rfinishedInterface,
 					ChecksumsInterfaceGetInterface & rchecksumGetInterface, 
 					ChecksumsInterfacePutInterface & rchecksumPutInterface,
-					libmaus::bitio::BitVector * rBV
+					libmaus::bitio::BitVector * rBV,
+					bool rcomputerefidintervals
 				)
 				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface), 
 				  checksumGetInterface(rchecksumGetInterface),
 				  checksumPutInterface(rchecksumPutInterface),
-				  BV(rBV)
+				  BV(rBV),
+				  gcomputerefidintervals(rcomputerefidintervals)
 				{
 					filter.set('Z','R');		
 				}
 			
-				template<bool havedupvec>
-				void dispatchTemplate(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				template<bool havedupvec, bool computerefidintervals>
+				void dispatchTemplate2(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlReorderWorkPackage *>(P) != 0 );
 					GenericInputControlReorderWorkPackage * BP = dynamic_cast<GenericInputControlReorderWorkPackage *>(P);
-					
+										
 					libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type & in = BP->in;
 					libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type & out = BP->out;
 					std::pair<uint64_t,uint64_t> const I = BP->I;
@@ -75,13 +95,28 @@ namespace libmaus
 					uint32_t const dupmask = ~dupflag;
 					ChecksumsInterface::shared_ptr_type Schecksums = checksumGetInterface.getSeqChecksumsObject();
 					
+					int32_t prevrefid = std::numeric_limits<int32_t>::min();
+					std::vector<RefIdInterval> refidintervals;
+					
 					for ( uint64_t i = I.first; i < I.second; ++i )
 					{
 						// get alignment block data
 						std::pair<uint8_t const *,uint64_t> P = in->at(i);
-						
+
 						// get next offset in buffer
-						uint64_t const o = frag.getOffset();						
+						uint64_t const o = frag.getOffset();
+						
+						if ( computerefidintervals )
+						{
+							int32_t const refid = libmaus::bambam::BamAlignmentDecoderBase::getRefID(P.first);
+							
+							if ( refid != prevrefid )
+							{
+								refidintervals.push_back(RefIdInterval(refid,i-I.first,o));
+								prevrefid = refid;	
+							}
+						}
+						
 						// put alignment
 						frag.pushAlignmentBlock(P.first,P.second);
 
@@ -122,12 +157,21 @@ namespace libmaus
 					packageReturnInterface.genericInputControlReorderWorkPackageReturn(BP);
 				}
 
+				template<bool havedupvec>
+				void dispatchTemplate1(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
+				{
+					if ( gcomputerefidintervals )
+						dispatchTemplate2<havedupvec,true>(P,tpi);
+					else
+						dispatchTemplate2<havedupvec,false>(P,tpi);
+				}
+
 				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
 				{
 					if ( BV )
-						dispatchTemplate<true>(P,tpi);
+						dispatchTemplate1<true>(P,tpi);
 					else
-						dispatchTemplate<false>(P,tpi);
+						dispatchTemplate1<false>(P,tpi);
 				}
 			};
 		}
