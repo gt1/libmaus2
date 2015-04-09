@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 			{
 				assert ( auxA[i] == auxB[i] );
 
-				char const tag[] = { auxA[i].first, auxA[i].second, 0 };
+				char const tag[] = { static_cast<char>(auxA[i].first), static_cast<char>(auxA[i].second), 0 };
 				
 				uint8_t const * fieldA = libmaus::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin(),algn.blocksize,&tag[0]);
 				uint8_t const * fieldB = libmaus::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin(),samalgn.blocksize,&tag[0]);
