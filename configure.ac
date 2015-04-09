@@ -1728,63 +1728,63 @@ if test "${syncops}" = "yes" ; then
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_fetch_and_add])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_fetch_and_add(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_add_and_fetch])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_add_and_fetch(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_add_and_fetch(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_fetch_and_and])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_and(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_fetch_and_and(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_fetch_and_or])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_or(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_fetch_and_or(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_fetch_and_sub])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_fetch_and_sub(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_fetch_and_sub(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_bool_compare_and_swap])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_bool_compare_and_swap(&v,0,0)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_bool_compare_and_swap(&v,0,0)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_lock_test_and_set])
-				AC_TRY_COMPILE([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_lock_release])
-				AC_TRY_COMPILE([],[unsigned int v = 0; __sync_lock_release(&v)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_release(&v)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
 			if test "${syncops}" = "yes" ; then
 				AC_LANG_PUSH([C++])
 				AC_MSG_CHECKING([whether the C++ compiler supports __sync_val_compare_and_swap])
-				AC_TRY_COMPILE([],[unsigned long long v = 0; __sync_val_compare_and_swap(&v,0,0)],[syncops=yes],[syncops=no])
+				AC_TRY_LINK([],[unsigned long long v = 0; __sync_val_compare_and_swap(&v,0,0)],[syncops=yes],[syncops=no])
 				AC_MSG_RESULT([${syncops}])
 				AC_LANG_POP
 			fi
@@ -1835,7 +1835,7 @@ if test "${synclock}" = "yes" ; then
 		*)
 			AC_LANG_PUSH([C++])
 			AC_MSG_CHECKING([whether the C++ compiler supports synchronous lock operations])
-			AC_TRY_COMPILE([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
+			AC_TRY_LINK([],[unsigned int v = 0; __sync_lock_test_and_set(&v,1)],[synclock=yes],[synclock=no])
 			AC_MSG_RESULT([${synclock}])
 			AC_LANG_POP
 
