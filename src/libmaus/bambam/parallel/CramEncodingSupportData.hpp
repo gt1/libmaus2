@@ -88,9 +88,10 @@ namespace libmaus
 				: 
 				  cramtokens(numtokens),
 				  context(0),
-				  outputWriteNext(-1,0)
+				  outputWriteNext()
 				{
-				
+					outputWriteNext.first = -1;
+					outputWriteNext.second = 0;
 				}
 			};
 		}
