@@ -19,6 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP
 
+#include <libmaus/bambam/parallel/RefIdInterval.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp>
 #include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp>
@@ -32,23 +33,6 @@ namespace libmaus
 	{
 		namespace parallel
 		{
-			struct RefIdInterval
-			{
-				int32_t refid;
-				uint64_t i_low;
-				uint64_t b_low;
-				
-				RefIdInterval()
-				{
-				
-				}
-				RefIdInterval(
-					int32_t const rrefid,
-					uint64_t const ri_low,
-					uint64_t const rb_low
-				) : refid(rrefid), i_low(ri_low), b_low(rb_low) {}
-			};
-		
 			struct GenericInputControlReorderWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputControlReorderWorkPackage this_type;
@@ -148,6 +132,20 @@ namespace libmaus
 						
 						if ( Schecksums )
 							Schecksums->update(frag.getPointer(o)+sizeof(uint32_t),fl);
+					}
+					
+					if ( refidintervals.size() )
+					{
+						refidintervals.back().i_high = (I.second - I.first);
+						refidintervals.back().b_high = frag.getOffset();
+						
+						for ( std::vector<RefIdInterval>::size_type i = 0; (i+1) < refidintervals.size(); ++i )
+						{
+							refidintervals[i].i_high = refidintervals[i+1].i_low;
+							refidintervals[i].b_high = refidintervals[i+1].b_low;
+						}
+						
+						frag.refidintervals = refidintervals;
 					}
 					
 					if ( Schecksums )

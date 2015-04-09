@@ -20,6 +20,7 @@
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERFRAGMENT_HPP
 
 #include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus/bambam/parallel/RefIdInterval.hpp>
 
 namespace libmaus
 {
@@ -38,6 +39,7 @@ namespace libmaus
 				uint8_t * pc;
 				uint8_t * pe;
 				size_t f;
+				std::vector<RefIdInterval> refidintervals;
 				
 				FragmentAlignmentBufferFragment() : pa(0), pc(0), pe(0), f(0) {}
 
@@ -45,6 +47,7 @@ namespace libmaus
 				{
 					pc = pa;
 					f = 0;
+					refidintervals.resize(0);
 				}
 				
 				size_t byteSize() const
@@ -142,11 +145,6 @@ namespace libmaus
 						(static_cast<uint32_t>(pa[offset+3]) << 24);
 				}
 
-				void getLinearOutputFragments(std::vector<std::pair<uint8_t *,uint8_t *> > & V)
-				{
-					V.push_back(std::pair<uint8_t *,uint8_t *>(pa,pc));
-				}
-
 				void getLinearOutputFragments(
 					uint64_t const maxblocksize, std::vector<std::pair<uint8_t *,uint8_t *> > & V
 				)
@@ -169,6 +167,31 @@ namespace libmaus
 					}					
 				}
 
+				void getLinearOutputFragments(std::vector<std::pair<uint8_t *,uint8_t *> > & V)
+				{
+					if ( refidintervals.size() )
+					{
+						for ( std::vector<RefIdInterval>::size_type i = 0; i < refidintervals.size(); ++i )
+							V.push_back(std::pair<uint8_t *,uint8_t *>(pa + refidintervals[i].b_low,pa + refidintervals[i].b_high));
+					}
+					else
+					{
+						V.push_back(std::pair<uint8_t *,uint8_t *>(pa,pc));
+					}
+				}
+				
+				void getFillVector(std::vector<size_t> & V) const
+				{
+					if ( refidintervals.size() )
+					{
+						for ( std::vector<RefIdInterval>::size_type i = 0; i < refidintervals.size(); ++i )
+							V.push_back(refidintervals[i].i_high - refidintervals[i].i_low);					
+					}
+					else
+					{
+						V.push_back(f);
+					}
+				}
 			};
 		}
 	}

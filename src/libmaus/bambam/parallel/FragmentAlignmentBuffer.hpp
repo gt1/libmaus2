@@ -328,9 +328,9 @@ namespace libmaus
 				
 				std::vector<size_t> getFillVector() const
 				{
-					std::vector<size_t> L(size());
+					std::vector<size_t> L;
 					for ( size_t i = 0; i < size(); ++i )
-						L[i] = A[i]->f;
+						A[i]->getFillVector(L);
 					return L;
 				}
 			};

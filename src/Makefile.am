@@ -179,7 +179,8 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/digest/CRC32_Core.cpp \
 	libmaus/bambam/parallel/ValidationFragment.cpp \
 	libmaus/bambam/parallel/GenericInputControlStreamInfo.cpp \
-	libmaus/fastx/NameInfoBase.cpp
+	libmaus/fastx/NameInfoBase.cpp \
+	libmaus/bambam/parallel/RefIdInterval.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -766,7 +767,8 @@ libmausbambamparallel_include_HEADERS = \
 	libmaus/bambam/parallel/SamEncodingWorkPackageDispatcher.hpp \
 	libmaus/bambam/parallel/BlockMergeControlTypeBase.hpp \
 	libmaus/bambam/parallel/CramEncodingSupportData.hpp \
-	libmaus/bambam/parallel/CramEncodingWorkPackageDispatcher.hpp
+	libmaus/bambam/parallel/CramEncodingWorkPackageDispatcher.hpp \
+	libmaus/bambam/parallel/RefIdInterval.hpp
 
 libmausbitio_includedir=$(includedir)/libmaus/bitio
 libmausbitio_include_HEADERS=\
