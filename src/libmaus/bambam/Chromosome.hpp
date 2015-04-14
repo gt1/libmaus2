@@ -73,7 +73,18 @@ namespace libmaus
 					while ( khigh != high && restkv[khigh] != ':' )
 						++khigh;
 					
-					assert ( (khigh-klow==2) && restkv[khigh] == ':' );
+					bool const ok = (khigh-klow==2) && restkv[khigh] == ':';
+					if ( ! ok )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::Chromosome::getSortedKeyValuePairs(): malformed key/value part " 
+							<< restkv 
+							<< " low=" << low << " high=" << high << " interval=" << std::string(restkv.begin()+low,restkv.begin()+high)
+							<< " klow=" << klow << " khigh=" << khigh << " kinterval=" << std::string(restkv.begin()+klow,restkv.begin()+khigh)
+							<< std::endl;
+						lme.finish();
+						throw lme;
+					}
 									
 					uint64_t vlow = khigh + 1;
 					uint64_t vhigh = high;
@@ -85,6 +96,12 @@ namespace libmaus
 						)
 					);
 					
+					assert ( high == restkv.size() || restkv[high] == '\t' );
+					
+					// consume '\t'
+					if ( high != restkv.size() )
+						high += 1;
+					
 					low = high;
 				}
 							
@@ -93,6 +110,12 @@ namespace libmaus
 				
 				return V;
 			}
+			
+			std::string getRestKVString() const
+			{
+				return restkv;
+			}
+			
 			// rest string containing rest of tab separated key:value pairs
 			void setRestKVString(std::string const & rrestkv)
 			{

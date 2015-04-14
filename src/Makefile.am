@@ -180,7 +180,9 @@ libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
 	libmaus/bambam/parallel/ValidationFragment.cpp \
 	libmaus/bambam/parallel/GenericInputControlStreamInfo.cpp \
 	libmaus/fastx/NameInfoBase.cpp \
-	libmaus/bambam/parallel/RefIdInterval.cpp
+	libmaus/bambam/parallel/RefIdInterval.cpp \
+	libmaus/fastx/RefPathToken.cpp \
+	libmaus/fastx/RefPathTokenVector.cpp
 
 noinst_HEADERS = libmaus/lz/lz4.h
 
@@ -1255,7 +1257,10 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/FastaBPSequenceDecoder.hpp \
 	libmaus/fastx/FastaBPDecoder.hpp \
 	libmaus/fastx/NameInfoBase.hpp \
-	libmaus/fastx/NameInfo.hpp
+	libmaus/fastx/NameInfo.hpp \
+	libmaus/fastx/RefPathToken.hpp \
+	libmaus/fastx/RefPathTokenVector.hpp \
+	libmaus/fastx/RefPathTokenVectorSequence.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\

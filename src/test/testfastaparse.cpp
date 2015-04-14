@@ -31,6 +31,13 @@
 
 int main()
 {
+	#if 0
+	{
+	::libmaus::fastx::FastAStreamSet F(std::cin);
+	std::map<std::string,std::string> const M = F.computeMD5();
+	}
+	#endif
+
 	::libmaus::fastx::FastAMatchTable FAMT;
 	std::cerr << FAMT;
 

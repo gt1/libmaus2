@@ -33,6 +33,9 @@
 #include <libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp>
 #include <libmaus/hashing/ConstantStringHash.hpp>
 #include <libmaus/bambam/ReadGroup.hpp>
+#include <libmaus/fastx/FastAStreamSet.hpp>
+#include <libmaus/util/OutputFileNameTools.hpp>
+#include <libmaus/lz/BufferedGzipStream.hpp>
 
 namespace libmaus
 {
@@ -69,6 +72,169 @@ namespace libmaus
 			uint64_t numlibs;
 			
 			public:
+			/**
+			 * check the SQ lines for missing M5 fields and insert the fields if possible by scanning
+			 * a reference FastA file. The reference FastA file is decompressed on the fly if its file name
+			 * ends on .gz . References can be loaded from local files, ftp or http.
+			 *
+			 * @param reference name of reference file to be used for lines without both M5 and UR fields
+			 **/
+			void checkSequenceChecksums(std::string reference = std::string())
+			{
+				if ( reference.size() && libmaus::util::GetFileSize::fileExists(reference) && reference[0] != '/' )
+				{
+					libmaus::autoarray::AutoArray<char> cwdspace(std::max(static_cast<uint64_t>(2*PATH_MAX),static_cast<uint64_t>(1)));
+					char * p = NULL;
+					while ( (! (p=getcwd(cwdspace.begin(),cwdspace.size()))) && errno == ERANGE )
+						cwdspace.resize(2*cwdspace.size());
+					if ( ! p )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::BamHeader: failed to get current directory." << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+					reference = std::string(cwdspace.begin()) + "/" + reference;
+				}
+			
+				bool haveallm5 = true;
+				std::set < std::string > nom5ur;
+				
+				for ( size_t z = 0; z < chromosomes.size(); ++z )
+				{
+					::libmaus::bambam::Chromosome & chr = chromosomes[z];
+					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
+					
+					std::string m5, ur;
+					bool havem5 = false, haveur = false;
+					
+					for ( size_t i = 0; i < KV.size(); ++i )
+						if ( KV[i].first == "M5" )
+						{
+							havem5 = true;
+							m5 = KV[i].second;
+						}
+						else if ( KV[i].first == "UR" )
+						{
+							haveur = true;
+							ur = KV[i].second;
+						}
+						
+					haveallm5 = haveallm5 && havem5;
+					
+					if ( ! havem5 && ! haveur )
+					{
+						if ( reference.size() )
+						{
+							if ( chr.getRestKVString().size() )
+								chr.setRestKVString( chr.getRestKVString() + "\tUR:file:///" + reference );
+							else
+								chr.setRestKVString( std::string("UR:file:///") + reference );
+						}
+						else
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "libmaus::bambam::BamHeader: sequence " << chr.getNameCString() << " has neither M5 nor UR field" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+					}
+					
+					if ( ! havem5 )
+					{
+						nom5ur.insert(ur);
+					}
+				}
+				
+				std::map < std::string, std::map<std::string,std::string> > M;
+				
+				for ( std::set < std::string >::const_iterator ita = nom5ur.begin(); ita != nom5ur.end(); ++ita )
+				{
+					libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(*ita));
+					std::istream * pin = Pin.get();
+					libmaus::lz::BufferedGzipStream::unique_ptr_type Pdecomp;
+
+					if ( libmaus::util::OutputFileNameTools::endsOn(*ita,".gz") )
+					{
+						libmaus::lz::BufferedGzipStream::unique_ptr_type Tdecomp(new libmaus::lz::BufferedGzipStream(*pin));
+						Pdecomp = UNIQUE_PTR_MOVE(Tdecomp);
+						pin = Pdecomp.get();
+					}
+					
+					libmaus::fastx::FastAStreamSet FASS(*pin);
+					// id -> digest
+					std::map<std::string,std::string> submap = FASS.computeMD5(true /* write */,false /* verify cache */);
+					M [ *ita ] = submap;
+				}
+
+				for ( size_t z = 0; z < chromosomes.size(); ++z )
+				{
+					::libmaus::bambam::Chromosome & chr = chromosomes[z];
+					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
+					
+					std::string m5, ur;
+					bool havem5 = false, haveur = false;
+					
+					for ( size_t i = 0; i < KV.size(); ++i )
+						if ( KV[i].first == "M5" )
+						{
+							havem5 = true;
+							m5 = KV[i].second;
+						}
+						else if ( KV[i].first == "UR" )
+						{
+							haveur = true;
+							ur = KV[i].second;
+						}
+					
+					if ( ! havem5 )
+					{
+						assert ( haveur );
+						
+						if ( M.find(ur) == M.end() )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "libmaus::bambam::BamHeader: failed to get data for URL " << ur << std::endl;
+							lme.finish();
+							throw lme;			
+						}
+						
+						std::map<std::string,std::string> const & submap = M.find(ur)->second;
+						
+						if ( submap.find(chr.getNameString()) == submap.end() )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "libmaus::bambam::BamHeader: sequence " << chr.getNameString() << " not found in file " << ur << std::endl;
+							lme.finish();
+							throw lme;							
+						}
+						
+						std::string const sdigest = submap.find(chr.getNameString())->second;
+						
+						chr.setRestKVString(chr.getRestKVString() + "\tM5:" + sdigest);
+					}
+				}
+
+				std::istringstream istr(text);
+				std::ostringstream ostr;
+				
+				while ( istr )
+				{
+					std::string line;
+					::std::getline(istr,line);
+					if ( istr && line.size() )
+					{
+						if ( !(startsWith(line,"@SQ")) )
+							ostr << line << std::endl;
+					}
+				}
+				
+				for ( size_t i = 0; i < chromosomes.size(); ++i )
+					ostr << chromosomes[i].createLine() << std::endl;
+				
+				text = ostr.str();
+			}
+			
 			/**
 			 * clone this object and return clone in a unique pointer
 			 *
