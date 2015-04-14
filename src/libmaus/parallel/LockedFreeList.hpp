@@ -20,6 +20,7 @@
 #define LIBMAUS_PARALLEL_LOCKEDFREELIST_HPP
 
 #include <libmaus/util/FreeList.hpp>
+#include <libmaus/parallel/PosixSpinLock.hpp>
 #include <vector>
 
 namespace libmaus
