@@ -163,13 +163,16 @@ namespace libmaus
 					// read
 					stream.read(reinterpret_cast<char *>(pe),readsize);
 					
+					// number of bytes read
+					std::streamsize const gcnt = stream.gcount();
+					
 					// update pointer
-					pe += stream.gcount();
+					pe += gcnt;
 					
 					return GenericInputBlockFillResult(
 						pe == pa /* empty */, 
-						(stream.gcount() == 0) || (stream.peek() == std::ios::traits_type::eof())/* eof */, 
-						stream.gcount()
+						(gcnt == 0) || (stream.peek() == std::ios::traits_type::eof())/* eof */, 
+						gcnt
 					);
 				}
 			};
