@@ -126,10 +126,13 @@ namespace libmaus
 					{
 						if ( reference.size() )
 						{
+							ur = "file://" + reference;
+							haveur = true;
+							
 							if ( chr.getRestKVString().size() )
-								chr.setRestKVString( chr.getRestKVString() + "\tUR:file:///" + reference );
+								chr.setRestKVString( chr.getRestKVString() + "\tUR:" + ur );
 							else
-								chr.setRestKVString( std::string("UR:file:///") + reference );
+								chr.setRestKVString( std::string("UR:") + ur );
 						}
 						else
 						{
