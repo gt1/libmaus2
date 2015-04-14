@@ -8,4 +8,4 @@ Description: non pic irods interface in libmaus
 Requires: 
 Version: @VERSION@
 Libs: -L${libdir} -lmaus_irods -L@IRODSDIR@/lib/core/obj -lRodsAPIs -lgssapi_krb5 -pthread -ldl
-Cflags: -I@IRODSDIR@/lib/api/include -I@IRODSDIR@/lib/core/include -I@IRODSDIR@/lib/md5/include -I@IRODSDIR@/server/core/include -I@IRODSDIR@/server/icat/include -I@IRODSDIR@/server/drivers/include -I@IRODSDIR@/server/re/include @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ -I${includedir}
+Cflags: -I@IRODSDIR@/lib/api/include -I@IRODSDIR@/lib/core/include -I@IRODSDIR@/lib/sha1/include -I@IRODSDIR@/lib/md5/include -I@IRODSDIR@/server/core/include -I@IRODSDIR@/server/icat/include -I@IRODSDIR@/server/drivers/include -I@IRODSDIR@/server/re/include @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ -I${includedir}

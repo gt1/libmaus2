@@ -2418,7 +2418,7 @@ if test "${with_irods}" != "no" ; then
 	LDFLAGS_SAVE=${LDFLAGS}
 	
 	if test ! -z "${IRODSDIR}" ; then
-		CPPFLAGS="${CPPFLAGS} -I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		CPPFLAGS="${CPPFLAGS} -I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
 		LDFLAGS="${LDFLAGS} -L${IRODSDIR}/lib/core/obj"
 		LIBS="${LIBS} -lRodsAPIs -pthread -ldl -lgssapi_krb5"
 	fi
@@ -2532,7 +2532,7 @@ IRODSLIBS=
 if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
 	TESTPROGS="${TESTPROGS} testirods"
 	if test ! -z "${IRODSDIR}" ; then
-		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
+		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
 		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
 	fi
 	IRODSLIBS="-lRodsAPIs -lgssapi_krb5 -pthread -ldl"
