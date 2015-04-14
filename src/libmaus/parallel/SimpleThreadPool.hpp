@@ -264,7 +264,7 @@ namespace libmaus
 					if ( threads[i]->isCurrent() )
 						return i;
 						
-				libmaus::exception::LibmausException lme;
+				libmaus::exception::LibMausException lme;
 				lme.getStream() << "SimpleThreadPool::getThreadId(): unable to find thread\n";
 				lme.finish();
 				throw lme;
