@@ -34,6 +34,7 @@ namespace libmaus
 			GzipSingleStream singlestream;
 			uint64_t gcnt;
 			uint64_t gpos;
+			bool garbage;
 			
 			bool openNextStream()
 			{
@@ -45,9 +46,15 @@ namespace libmaus
 					return false;
 				}
 				
-				singlestream.startNewBlock();
-					
-				return true;
+				if ( singlestream.startNewBlock() )
+				{
+					return true;
+				}
+				else
+				{
+					garbage = true;
+					return false;
+				}
 			}
 			
 			GzipStream(std::istream & rin)
@@ -55,7 +62,8 @@ namespace libmaus
 			  in(rin,::libmaus::lz::Inflate::input_buffer_size,::libmaus::lz::Inflate::input_buffer_size),
 			  singlestream(in),
 			  gcnt(0),
-			  gpos(0)
+			  gpos(0),
+			  garbage(false)
 			{
 				
 			}
@@ -81,7 +89,7 @@ namespace libmaus
 					}
 					else
 					{
-						if ( ! openNextStream() )
+						if ( garbage || ( ! openNextStream() ) )
 						{
 							// std::cerr << "no next stream." << std::endl;
 							n = 0;

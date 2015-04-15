@@ -40,11 +40,20 @@ namespace libmaus
 			{
 			}
 			
-			void startNewBlock()
+			bool startNewBlock()
 			{
-				::libmaus::lz::GzipHeaderSimple::ignoreHeader(in);
-				infl.zreset();
-				finished = false;
+				try
+				{
+					::libmaus::lz::GzipHeaderSimple::ignoreHeader(in);
+					infl.zreset();
+					finished = false;
+					return true;
+				}
+				catch(std::exception const & ex)
+				{
+					finished = true;
+					return false;
+				}
 			}
 			
 			uint64_t read(char * buffer, uint64_t n)

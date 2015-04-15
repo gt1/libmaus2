@@ -18,6 +18,7 @@
 */
 #include <libmaus/util/ArgInfo.hpp>
 #include <libmaus/network/FtpSocket.hpp>
+#include <libmaus/lz/BufferedGzipStream.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -25,15 +26,25 @@ int main(int argc, char * argv[])
 	{
 		libmaus::util::ArgInfo const arginfo(argc,argv);
 		std::string const url = arginfo.getRestArg<std::string>(0);
+		int const gz = arginfo.getValue<int>("gz",0);
 		libmaus::network::FtpSocket ftpsock(url,0,true);
 		std::istream & ftpstream = ftpsock.getStream();
+		std::istream * in = &ftpstream;
+		
+		libmaus::lz::BufferedGzipStream::unique_ptr_type gzptr;
+		if ( gz )
+		{
+			libmaus::lz::BufferedGzipStream::unique_ptr_type tptr(new libmaus::lz::BufferedGzipStream(ftpstream));
+			gzptr = UNIQUE_PTR_MOVE(tptr);
+			in = gzptr.get();
+		}
 		
 		libmaus::autoarray::AutoArray<char> A(1024*1024,false);
 		uint64_t r = 0;
-		while ( ftpstream )
+		while ( *in )
 		{
-			ftpstream.read(A.begin(),A.size());
-			uint64_t const gcnt = ftpstream.gcount();
+			in->read(A.begin(),A.size());
+			uint64_t const gcnt = in->gcount();
 			std::cout.write(A.begin(),gcnt);
 			r += gcnt;
 			
