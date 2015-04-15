@@ -1260,7 +1260,8 @@ libmausfastx_include_HEADERS=\
 	libmaus/fastx/NameInfo.hpp \
 	libmaus/fastx/RefPathToken.hpp \
 	libmaus/fastx/RefPathTokenVector.hpp \
-	libmaus/fastx/RefPathTokenVectorSequence.hpp
+	libmaus/fastx/RefPathTokenVectorSequence.hpp \
+	libmaus/fastx/RefPathLookup.hpp
 
 libmaustiming_includedir=$(includedir)/libmaus/timing
 libmaustiming_include_HEADERS=\

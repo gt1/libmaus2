@@ -65,7 +65,7 @@ namespace libmaus
 				
 				return true;
 			}
-						
+			
 			std::map<std::string,std::string> computeMD5(bool writedata = true, bool verify = true)
 			{
 				std::pair<std::string,FastAStream::shared_ptr_type> P;
@@ -122,7 +122,7 @@ namespace libmaus
 					
 					md5.digest(&digest[0]);
 					std::string const sdigest = md5.digestToString(&digest[0]);
-					
+
 					#if 0
 					std::cerr << id << "\t" << sdigest << "\t" << refcacheexp.expand(sdigest);
 					std::vector<std::string> E = refpathexp.expand(sdigest);

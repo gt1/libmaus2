@@ -36,6 +36,7 @@
 #include <libmaus/fastx/FastAStreamSet.hpp>
 #include <libmaus/util/OutputFileNameTools.hpp>
 #include <libmaus/lz/BufferedGzipStream.hpp>
+#include <libmaus/fastx/RefPathLookup.hpp>
 
 namespace libmaus
 {
@@ -72,6 +73,88 @@ namespace libmaus
 			uint64_t numlibs;
 			
 			public:
+			bool checkSequenceChecksumsCached(bool const dothrow)
+			{
+				libmaus::fastx::RefPathLookup RPL;
+			
+				for ( size_t z = 0; z < chromosomes.size(); ++z )
+				{
+					::libmaus::bambam::Chromosome & chr = chromosomes[z];
+					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
+					
+					std::string m5;
+					bool havem5 = false;
+					
+					for ( size_t i = 0; i < KV.size(); ++i )
+						if ( KV[i].first == "M5" )
+						{
+							havem5 = true;
+							m5 = KV[i].second;
+						}
+
+					if ( ! havem5 )
+					{
+						libmaus::exception::LibMausException lme;
+						lme.getStream() << "libmaus::bambam::BamHeader: no M5 field for sequence " << chr.getNameCString() << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+					
+					if ( ! RPL.sequenceCached(m5) )
+					{
+						if ( dothrow )
+						{
+							libmaus::exception::LibMausException lme;
+							lme.getStream() << "libmaus::bambam::BamHeader: no cached sequence found for " << chr.getNameCString() << std::endl;
+							lme.finish();
+							throw lme;					
+						}
+						else
+						{
+							return false;
+						}
+					}
+				}
+				
+				return true;
+			}
+
+			std::vector<std::string> getSequenceURSet(bool fillRefCache) const
+			{
+				std::set<std::string> S;
+			
+				for ( size_t z = 0; z < chromosomes.size(); ++z )
+				{
+					std::vector< std::pair<std::string,std::string> > KV = chromosomes[z].getSortedKeyValuePairs();
+					
+					for ( size_t i = 0; i < KV.size(); ++i )
+						if ( KV[i].first == "UR" )
+							S.insert(KV[i].second);
+				}
+				
+				if ( fillRefCache )
+				{
+					for ( std::set < std::string >::const_iterator ita = S.begin(); ita != S.end(); ++ita )
+					{
+						libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(*ita));
+						std::istream * pin = Pin.get();
+						libmaus::lz::BufferedGzipStream::unique_ptr_type Pdecomp;
+
+						if ( libmaus::util::OutputFileNameTools::endsOn(*ita,".gz") )
+						{
+							libmaus::lz::BufferedGzipStream::unique_ptr_type Tdecomp(new libmaus::lz::BufferedGzipStream(*pin));
+							Pdecomp = UNIQUE_PTR_MOVE(Tdecomp);
+							pin = Pdecomp.get();
+						}
+						
+						libmaus::fastx::FastAStreamSet FASS(*pin);
+						FASS.computeMD5(true /* write */,false /* verify cache */);
+					}				
+				}
+				
+				return std::vector<std::string>(S.begin(),S.end());
+			}
+			
 			/**
 			 * check the SQ lines for missing M5 fields and insert the fields if possible by scanning
 			 * a reference FastA file. The reference FastA file is decompressed on the fly if its file name
