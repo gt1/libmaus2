@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if !defined(LIBMAUS_UTIL_DYNAMICLOADING_HPP)
-#define LIBMAUS_UTIL_DYNAMICLOADING_HPP
+#if !defined(LIBMAUS2_UTIL_DYNAMICLOADING_HPP)
+#define LIBMAUS2_UTIL_DYNAMICLOADING_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
-#if defined(LIBMAUS_HAVE_DLFCN_H)
+#if defined(LIBMAUS2_HAVE_DLFCN_H)
 #include <dlfcn.h>
 #endif
 #include <string>
@@ -32,7 +32,7 @@ namespace libmaus2
 {
 	namespace util
 	{
-		#if defined(LIBMAUS_HAVE_DL_FUNCS)
+		#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 		/**
 		 * class encapsulating a dynamic library
 		 **/
@@ -151,7 +151,7 @@ namespace libmaus2
 			 * @param argstr string for constructing second and third argument of function
 			 * @return return code of the function
 			 **/
-			#if defined(LIBMAUS_HAVE_DL_FUNCS)
+			#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr);
 			#else
 			static int callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr);

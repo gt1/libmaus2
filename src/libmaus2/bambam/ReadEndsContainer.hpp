@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_READENDSCONTAINER_HPP)
-#define LIBMAUS_BAMBAM_READENDSCONTAINER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_READENDSCONTAINER_HPP)
+#define LIBMAUS2_BAMBAM_READENDSCONTAINER_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/bambam/BamAlignment.hpp>
@@ -174,7 +174,7 @@ namespace libmaus2
 				uint64_t const textdata = dptr-reinterpret_cast<uint8_t const *>(A.begin());
 				uint64_t const ptrdata = (A.end() - iptr)*sizeof(index_type);
 				
-				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+				#if defined(READENDSRADIXSORT) && defined(LIBMAUS2_HAVE_x86_64)
 				return A.size() * sizeof(index_type) - (2*ptrdata + textdata);
 				#else
 				uint64_t const exfreespace = A.size() * sizeof(index_type) - (ptrdata + textdata);
@@ -419,7 +419,7 @@ namespace libmaus2
 					::libmaus2::bambam::CompactReadEndsComparator const comp(reinterpret_cast<uint8_t const *>(A.begin()));
 					::libmaus2::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
 					
-					#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+					#if defined(READENDSRADIXSORT) && defined(LIBMAUS2_HAVE_x86_64)
 					unsigned int const maxradruns = 1;
 					unsigned int const posradruns = minlen >> 3;
 					unsigned int const radruns = std::min(maxradruns,posradruns);
@@ -683,7 +683,7 @@ namespace libmaus2
 				uint64_t const entryspace = getEntryLength(R);
 				uint64_t const numlen = getNumberLength(entryspace);
 				uint64_t const idexlen = sizeof(index_type);
-				#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
+				#if defined(READENDSRADIXSORT) && defined(LIBMAUS2_HAVE_x86_64)
 				uint64_t const reqspace = entryspace+numlen+2*idexlen;
 				#else
 				uint64_t const reqspace = entryspace+numlen+idexlen;

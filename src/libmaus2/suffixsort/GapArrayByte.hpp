@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_SUFFIXSORT_GAPARRAYBYTE_HPP)
-#define LIBMAUS_SUFFIXSORT_GAPARRAYBYTE_HPP
+#if ! defined(LIBMAUS2_SUFFIXSORT_GAPARRAYBYTE_HPP)
+#define LIBMAUS2_SUFFIXSORT_GAPARRAYBYTE_HPP
 
 #include <libmaus2/suffixsort/GapArrayByteDecoderBuffer.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
@@ -175,7 +175,7 @@ namespace libmaus2
 			 **/
 			bool operator()(uint64_t const r)
 			{
-				#if defined(_OPENMP) && defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return __sync_add_and_fetch(G.begin()+r,1) == 0;
 				#else
 				return (++G[r]) == 0;

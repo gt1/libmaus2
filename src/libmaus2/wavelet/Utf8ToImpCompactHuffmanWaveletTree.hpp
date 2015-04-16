@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_HPP)
-#define LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_HPP
+#if ! defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_HPP)
+#define LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/huffman/huffman.hpp>
@@ -1723,7 +1723,7 @@ namespace libmaus2
 					uint64_t const numparts = pretermparts + termparts + posttermparts;
 					
 					::libmaus2::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
-					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+					#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << symsperpart.byteSize() << " bytes for symsperpart." << std::endl;
 					#endif
 					uint64_t jj = 0;
@@ -1758,7 +1758,7 @@ namespace libmaus2
 					}
 				
 					uint64_t const numnodes = H.inner();
-					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+					#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Num nodes " << numnodes << " numparts " << numparts << std::endl;
 					#endif
 					#if 0
@@ -1772,7 +1772,7 @@ namespace libmaus2
 					#endif
 					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
 					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
-					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+					#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Bytes for numnodes*numparts*sizeof(uint64_t)=" << numnodes*numparts*sizeof(uint64_t) << std::endl;
 					#endif
 
@@ -1813,7 +1813,7 @@ namespace libmaus2
 						/* read text */
 						::libmaus2::autoarray::AutoArray<uint8_t> A(partsize,false);
 						
-						#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+						#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 						#if defined(_OPENMP)
 						unsigned int const tid = omp_get_thread_num();
 						#else
@@ -1821,7 +1821,7 @@ namespace libmaus2
 						#endif
 						#endif
 
-						#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+						#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 						cerrlock.lock();
 						std::cerr << "{" << tid << "}" << " Allocated " << A.byteSize() << " bytes for A array." << std::endl;
 						cerrlock.unlock();
@@ -1851,7 +1851,7 @@ namespace libmaus2
 						if ( radixsort )
 						{
 							Z = ::libmaus2::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
-							#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+							#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 							cerrlock.lock();
 							std::cerr << "{" << tid << "} Allocated " << Z.byteSize() << " bytes for Z array." << std::endl;
 							cerrlock.unlock();
@@ -2117,7 +2117,7 @@ namespace libmaus2
 						vnodewordcnt.prefixSums(i);
 					
 					::libmaus2::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
-					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+					#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << vnodebits.byteSize() << " bytes for vnodebits array." << std::endl;
 					#endif
 					uint64_t tnumbits = 0;
@@ -2163,7 +2163,7 @@ namespace libmaus2
 					}
 					
 					::libmaus2::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
-					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
+					#if defined(LIBMAUS2_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << nodebytesizes.byteSize() << " bytes per nodebytesizes array." << std::endl;
 					#endif
 					

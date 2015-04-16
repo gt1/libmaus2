@@ -22,7 +22,7 @@ std::set<std::string> libmaus2::digest::DigestFactory_SHA2_ASM::getSupportedDige
 {
 	std::set<std::string> S;
 
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 	if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 	{
 		S.insert("sha256");
@@ -35,7 +35,7 @@ std::set<std::string> libmaus2::digest::DigestFactory_SHA2_ASM::getSupportedDige
 						
 libmaus2::digest::DigestInterface::unique_ptr_type libmaus2::digest::DigestFactory_SHA2_ASM::constructStatic(std::string const & name)
 {
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 	if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 	{
 		if ( name == "sha256" )

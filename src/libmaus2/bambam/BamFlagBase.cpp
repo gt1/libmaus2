@@ -22,19 +22,19 @@ std::ostream & operator<<(std::ostream & out, libmaus2::bambam::BamFlagBase::bam
 {
 	switch ( f )
 	{
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED: out << "LIBMAUS_BAMBAM_FPAIRED"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR: out << "LIBMAUS_BAMBAM_FPROPER_PAIR"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP: out << "LIBMAUS_BAMBAM_FUNMAP"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP: out << "LIBMAUS_BAMBAM_FMUNMAP"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE: out << "LIBMAUS_BAMBAM_FREVERSE"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE: out << "LIBMAUS_BAMBAM_FMREVERSE"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1: out << "LIBMAUS_BAMBAM_FREAD1"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2: out << "LIBMAUS_BAMBAM_FREAD2"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY: out << "LIBMAUS_BAMBAM_FSECONDARY"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL: out << "LIBMAUS_BAMBAM_FQCFAIL"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP: out << "LIBMAUS_BAMBAM_FDUP"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY: out << "LIBMAUS_BAMBAM_FSUPPLEMENTARY"; break;
-		case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32: out << "LIBMAUS_BAMBAM_FCIGAR32"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED: out << "LIBMAUS2_BAMBAM_FPAIRED"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPROPER_PAIR: out << "LIBMAUS2_BAMBAM_FPROPER_PAIR"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP: out << "LIBMAUS2_BAMBAM_FUNMAP"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP: out << "LIBMAUS2_BAMBAM_FMUNMAP"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE: out << "LIBMAUS2_BAMBAM_FREVERSE"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE: out << "LIBMAUS2_BAMBAM_FMREVERSE"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1: out << "LIBMAUS2_BAMBAM_FREAD1"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2: out << "LIBMAUS2_BAMBAM_FREAD2"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY: out << "LIBMAUS2_BAMBAM_FSECONDARY"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL: out << "LIBMAUS2_BAMBAM_FQCFAIL"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP: out << "LIBMAUS2_BAMBAM_FDUP"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY: out << "LIBMAUS2_BAMBAM_FSUPPLEMENTARY"; break;
+		case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32: out << "LIBMAUS2_BAMBAM_FCIGAR32"; break;
 	}
 	
 	return out;

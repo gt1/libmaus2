@@ -18,7 +18,7 @@
 */
 #include <libmaus2/digest/SHA2_224.hpp>
 
-#if defined(LIBMAUS_HAVE_NETTLE)
+#if defined(LIBMAUS2_HAVE_NETTLE)
 #include <nettle/sha.h>
 
 libmaus2::digest::SHA2_224::SHA2_224() : ctx(0) {ctx = new sha224_ctx;}

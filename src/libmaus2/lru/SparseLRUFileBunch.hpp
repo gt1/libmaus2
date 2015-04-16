@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LRU_SPARSELRUFILEBUNCH_HPP)
-#define LIBMAUS_LRU_SPARSELRUFILEBUNCH_HPP
+#if ! defined(LIBMAUS2_LRU_SPARSELRUFILEBUNCH_HPP)
+#define LIBMAUS2_LRU_SPARSELRUFILEBUNCH_HPP
 
 #include <libmaus2/aio/CheckedInputOutputStream.hpp>
 #include <libmaus2/lru/SparseLRU.hpp>

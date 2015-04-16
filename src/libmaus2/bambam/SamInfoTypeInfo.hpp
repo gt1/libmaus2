@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_SAMINFOTYPEINFO)
-#define LIBMAUS_BAMBAM_SAMINFOTYPEINFO
+#if ! defined(LIBMAUS2_BAMBAM_SAMINFOTYPEINFO)
+#define LIBMAUS2_BAMBAM_SAMINFOTYPEINFO
 
 #include <libmaus2/bambam/SamInfo.hpp>
 

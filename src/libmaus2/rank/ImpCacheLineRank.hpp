@@ -46,8 +46,8 @@ namespace libmaus2
 			uint64_t const numblocks;
 			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_memalign_cacheline> A;
 
-			#define LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS
-			#if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			#define LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS
+			#if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			ImpCacheLineRank * left;
 			ImpCacheLineRank * right;
 			ImpCacheLineRank * parent;
@@ -57,7 +57,7 @@ namespace libmaus2
 			{
 				return 
 					4*sizeof(uint64_t)+
-					#if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+					#if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 					3*sizeof(ImpCacheLineRank *)+
 					#endif
 					A.byteSize();
@@ -93,7 +93,7 @@ namespace libmaus2
 			: n(rn), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ),
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A (datawords+indexwords,false)
-			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
 			{}
@@ -102,7 +102,7 @@ namespace libmaus2
 			: n(in->readSingle<uint64_t>()), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A(in->readMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_memalign_cacheline>())
-			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
 			{
@@ -113,7 +113,7 @@ namespace libmaus2
 			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A(in)
-			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
 			{
@@ -124,7 +124,7 @@ namespace libmaus2
 			: n(deserialiseNumber(in)), datawords( (n+63)/64 ), indexwords( 2 * ((datawords+5)/6) ), 
 			  numblocks( (n+bitsperblock-1)/bitsperblock ),
 			  A(in,s)
-			  #if defined(LIBMAUS_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
+			  #if defined(LIBMAUS2_RANK_IMPCACHELINERANK_STORENODEPOINTERS)
 			  , left(0), right(0), parent(0)
 			  #endif
 			{

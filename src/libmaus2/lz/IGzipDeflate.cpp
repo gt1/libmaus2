@@ -21,7 +21,7 @@
 
 // int const libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL = 11;
 
-#if defined(LIBMAUS_HAVE_IGZIP)
+#if defined(LIBMAUS2_HAVE_IGZIP)
 extern "C" {
 	#include <igzip_lib.h>
 }

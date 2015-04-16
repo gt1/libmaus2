@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_RANK_BSWAPBASE_HPP)
-#define LIBMAUS_RANK_BSWAPBASE_HPP
+#if ! defined(LIBMAUS2_RANK_BSWAPBASE_HPP)
+#define LIBMAUS2_RANK_BSWAPBASE_HPP
 
 #include <libmaus2/types/types.hpp>
 
@@ -36,7 +36,7 @@ namespace libmaus2
 			 **/
 			static inline uint16_t bswap2(uint16_t val)
 			{
-				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386) 
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) 
 				__asm__("xchg %%al,%%ah" : "+a"(val));
 				return val;
 				#else
@@ -50,7 +50,7 @@ namespace libmaus2
 			 **/
 			static inline uint32_t bswap4(uint32_t val)
 			{
-				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 				__asm__("bswap %0" : "+r"(val));
 				return val;
 				#else
@@ -69,7 +69,7 @@ namespace libmaus2
 			 **/
 			static inline uint64_t bswap8(uint64_t val)
 			{
-				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64)
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64)
 				__asm__("bswap %0" : "+r"(val));
 				return val;
 				#else

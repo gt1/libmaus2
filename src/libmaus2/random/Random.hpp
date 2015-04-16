@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_RANDOM_RANDOM_HPP)
-#define LIBMAUS_RANDOM_RANDOM_HPP
+#if ! defined(LIBMAUS2_RANDOM_RANDOM_HPP)
+#define LIBMAUS2_RANDOM_RANDOM_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <cstdlib>

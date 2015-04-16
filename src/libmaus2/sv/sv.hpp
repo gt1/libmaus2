@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_SV_SV_HPP)
-#define LIBMAUS_SV_SV_HPP
+#if ! defined(LIBMAUS2_SV_SV_HPP)
+#define LIBMAUS2_SV_SV_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 

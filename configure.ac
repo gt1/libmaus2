@@ -49,7 +49,7 @@ AC_MSG_RESULT([${HOSTISX86_64GNULINUX}])
 
 YASMEXE=
 DIGESTASMOBJ=
-LIBMAUS_HAVE_SHA2_ASSEMBLY=
+LIBMAUS2_HAVE_SHA2_ASSEMBLY=
 if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 	AC_ARG_WITH([yasm],
 		[AS_HELP_STRING([--with-yasm@<:@=PATH@:>@], [path to installed yasm program @<:@default=no@:>@])],
@@ -65,19 +65,19 @@ if test ${HOSTISX86_64GNULINUX} = "yes" ; then
 		DIGESTASMOBJ="sha256_sse4.o sha256_avx1.o sha512_avx.o sha512_sse4.o"
 		# yasm in Ubuntu precise cannot process the files below and we currently do not use them
 		DIGESTASMOBJUNUSED="sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o"
-		LIBMAUS_HAVE_SHA2_ASSEMBLY="#define LIBMAUS_HAVE_SHA2_ASSEMBLY"
+		LIBMAUS2_HAVE_SHA2_ASSEMBLY="#define LIBMAUS2_HAVE_SHA2_ASSEMBLY"
 	fi
 fi
 
 AC_CHECK_SIZEOF([unsigned long])
-LIBMAUS_SIZEOF_UNSIGNED_LONG="#define LIBMAUS_SIZEOF_UNSIGNED_LONG $ac_cv_sizeof_unsigned_long"
+LIBMAUS2_SIZEOF_UNSIGNED_LONG="#define LIBMAUS2_SIZEOF_UNSIGNED_LONG $ac_cv_sizeof_unsigned_long"
 
 LIBMAUSCPPFLAGS="${CPPFLAGS}"
 LIBMAUSLDFLAGS="${LDFLAGS}"
 
 PKG_PROG_PKG_CONFIG
 
-LIBMAUS_HAVE_IGZIP=
+LIBMAUS2_HAVE_IGZIP=
 AC_ARG_WITH([igzip],
 	[AS_HELP_STRING([--with-igzip@<:@=PATH@:>@], [path to installed igzip library @<:@default=no@:>@])],
 	[with_igzip=${withval}],
@@ -124,7 +124,7 @@ if test "${with_igzip}" != "no" ; then
 	LIBS="${LIBS_SAVE}"
 	
 	if test ${igzip} = "yes" ; then
-		LIBMAUS_HAVE_IGZIP="#define LIBMAUS_HAVE_IGZIP"
+		LIBMAUS2_HAVE_IGZIP="#define LIBMAUS2_HAVE_IGZIP"
 		LIBMAUSPKGLIBS="${LIBMAUSPKGLIBS} ${IGZIPLDFLAGS} ${IGZIPLIBS}"
 		LIBMAUSPKGCPPFLAGS="${LIBMAUSPKGCPPFLAGS} ${IGZIPCPPFLAGS}"
 	else
@@ -208,7 +208,7 @@ if test "${with_kmlocal}" != "no" ; then
 		if [[ "$kmlocal" = "no" ]] ; then
 			AC_MSG_ERROR([Failed to compile kmlocal program.]);
 		else
-			KMLOCAL="#define LIBMAUS_HAVE_KMLOCAL"
+			KMLOCAL="#define LIBMAUS2_HAVE_KMLOCAL"
 			KMLOCALLIBS="${kmlocal_LIBS}"
 			KMLOCALCPPFLAGS="${kmlocal_CFLAGS}"
 		fi
@@ -295,7 +295,7 @@ LIBS="${LIBSSAVE}"
 AC_LANG_POP
 
 if [[ "${boost_regex} = yes" ]] ; then
-	LIBMAUSHAVEBOOSTREGEX="#define LIBMAUS_HAVE_BOOST_REGEX"
+	LIBMAUSHAVEBOOSTREGEX="#define LIBMAUS2_HAVE_BOOST_REGEX"
 else
 	LIBMAUSHAVEBOOSTREGEX
 fi
@@ -345,7 +345,7 @@ snappy::Compress(input,input_length,&output);
 	LIBS="${LIBSSAVE}"
 
 	if [[ "${snappy}" = "yes" ]] ; then
-		LIBMAUSHAVESNAPPY="#define LIBMAUS_HAVE_SNAPPY"
+		LIBMAUSHAVESNAPPY="#define LIBMAUS2_HAVE_SNAPPY"
 		LIBMAUSPKGLIBS="${LIBMAUSPKGLIBS} ${SNAPPYLDFLAGS} ${SNAPPYLIBS}"
 		LIBMAUSPKGCPPFLAGS="${LIBMAUSPKGCPPFLAGS} ${SNAPPYCPPFLAGS}"
 	fi
@@ -390,7 +390,7 @@ AC_LANG_POP
 
 HAVEDLFCNH=
 if [[ "${dlfcn_h}" = "yes" ]] ; then 
-	HAVEDLFCNH="#define LIBMAUS_HAVE_DLFCN_H"
+	HAVEDLFCNH="#define LIBMAUS2_HAVE_DLFCN_H"
 fi
 
 DLFUNCS=""
@@ -462,29 +462,29 @@ if [[ "${dlfcn_h}" = "yes" ]] ; then
 		fi
 		AC_MSG_RESULT([$dlneedlibdl])
 
-		DLFUNCS="#define LIBMAUS_HAVE_DL_FUNCS"
+		DLFUNCS="#define LIBMAUS2_HAVE_DL_FUNCS"
 		have_dynamic_loading=yes
 	fi
 	
 	# if [[ "${backtrace}" = "yes" ]] ; then
-	#	HAVEBACKTRACE="#define LIBMAUS_HAVE_BACKTRACE"
+	#	HAVEBACKTRACE="#define LIBMAUS2_HAVE_BACKTRACE"
 	# fi
 fi
 
 
 HAVEUNISTDH=
 if [[ "${unistd_h}" = "yes" ]] ; then 
-	HAVEUNISTDH="#define LIBMAUS_HAVE_UNISTD_H"
+	HAVEUNISTDH="#define LIBMAUS2_HAVE_UNISTD_H"
 fi
 
 HAVEFEATURESH=
 if [[ "${features_h}" = "yes" ]] ; then
-        HAVEHAVEFEATURESH="#define LIBMAUS_HAVE_FEATURES_H"
+        HAVEHAVEFEATURESH="#define LIBMAUS2_HAVE_FEATURES_H"
 fi
 
 HAVESTDINTH=
 if [[ "${stdint_h}" = "yes" ]] ; then 
-	HAVESTDINTH="#define LIBMAUS_HAVE_STDINT_H"
+	HAVESTDINTH="#define LIBMAUS2_HAVE_STDINT_H"
 fi
 
 HAVEAIO=
@@ -494,7 +494,7 @@ if [[ \( "${aio_h}" = "yes" \) -a \( "${useaio}" = "yes" \) ]] ; then
 	AC_LANG_POP
 	
 	if [[ "${aiolib}" = "yes" ]] ; then
-		HAVEAIO="#define LIBMAUS_HAVE_AIO"
+		HAVEAIO="#define LIBMAUS2_HAVE_AIO"
 		LIBMAUSLIBS="${LIBMAUSLIBS} -lrt"
 	fi
 fi
@@ -505,17 +505,17 @@ if [[ "${execinfo_h}" = "yes" ]] ; then
 	AC_LANG_POP
 	
 	if [[ "${backtrace}" = "yes" ]] ; then
-		HAVEBACKTRACE="#define LIBMAUS_HAVE_BACKTRACE"
+		HAVEBACKTRACE="#define LIBMAUS2_HAVE_BACKTRACE"
 	fi
 fi
 
 if [[ "${windows_h}" = "yes" ]] ; then 
-	HAVEWINDOWSH="#define LIBMAUS_HAVE_WINDOWS_H"
+	HAVEWINDOWSH="#define LIBMAUS2_HAVE_WINDOWS_H"
 fi
 
 HAVEEXECINFO=
 if [[ "${execinfo_h}" = "yes" ]] ; then 
-	LIBMAUS_HAVE_EXECINFO_H="#define LIBMAUS_HAVE_EXECINFO_H"
+	LIBMAUS2_HAVE_EXECINFO_H="#define LIBMAUS2_HAVE_EXECINFO_H"
 fi
 
 AC_LANG_PUSH([C++])
@@ -523,7 +523,7 @@ AC_CHECK_FUNC(setrlimit,setrlimit=yes,setrlimit=no)
 AC_LANG_POP
 
 if [[ "${setrlimit}" = "yes" ]] ; then 
-	HAVESETRLIMIT="#define LIBMAUS_HAVE_SETRLIMIT"
+	HAVESETRLIMIT="#define LIBMAUS2_HAVE_SETRLIMIT"
 fi
 
 LIBMAUSLIBS="${LIBMAUSLIBS} ${ZLIBLIBS}"
@@ -564,7 +564,7 @@ AC_LANG_POP
 
 HAVESMMINTRINH=
 if [[ "${smmintrin_h}" = "yes" ]] ; then
-	HAVESMMINTRINH="#define LIBMAUS_HAVE_SMMINTRIN_H"
+	HAVESMMINTRINH="#define LIBMAUS2_HAVE_SMMINTRIN_H"
 fi
 
 if test "${nullx}" = "yes" ; then
@@ -784,9 +784,9 @@ fi
 UNIQUEPTR=
 
 if test "${have_std_unique_ptr}" = "yes" ; then
-	UNIQUEPTR="#define LIBMAUS_USE_STD_UNIQUE_PTR"
+	UNIQUEPTR="#define LIBMAUS2_USE_STD_UNIQUE_PTR"
 elif test "${have_boost_unique_ptr}" = "yes" ; then
-	UNIQUEPTR="#define LIBMAUS_USE_BOOST_UNIQUE_PTR"
+	UNIQUEPTR="#define LIBMAUS2_USE_BOOST_UNIQUE_PTR"
 else
 	AC_MSG_ERROR([Required unique_ptr class not found (not in standard and not in boost)])
 fi
@@ -818,9 +818,9 @@ else
 fi
 
 if test "${have_std_shared_ptr}" = "yes" ; then
-	SHAREDPTR="#define LIBMAUS_USE_STD_SHARED_PTR"
+	SHAREDPTR="#define LIBMAUS2_USE_STD_SHARED_PTR"
 elif test "${have_boost_shared_ptr}" = "yes" ; then
-	SHAREDPTR="#define LIBMAUS_USE_BOOST_SHARED_PTR"
+	SHAREDPTR="#define LIBMAUS2_USE_BOOST_SHARED_PTR"
 else
 	AC_MSG_ERROR([Required shared_ptr class not found (not in standard and not in boost)])
 fi
@@ -927,17 +927,17 @@ fi
 
 
 if test "${have_std_unordered_set}" = "yes" ; then
-	UNORDEREDSET="#define LIBMAUS_USE_STD_UNORDERED_SET"
+	UNORDEREDSET="#define LIBMAUS2_USE_STD_UNORDERED_SET"
 elif test "${have_boost_unordered_set}" = "yes" ; then
-	UNORDEREDSET="#define LIBMAUS_USE_BOOST_UNORDERED_SET"
+	UNORDEREDSET="#define LIBMAUS2_USE_BOOST_UNORDERED_SET"
 else
 	AC_MSG_ERROR([Required unordered_set class not found (not in standard and not in boost)])
 fi
 
 if test "${have_std_unordered_map}" = "yes" ; then
-	UNORDEREDMAP="#define LIBMAUS_USE_STD_UNORDERED_MAP"
+	UNORDEREDMAP="#define LIBMAUS2_USE_STD_UNORDERED_MAP"
 elif test "${have_boost_unordered_map}" = "yes" ; then
-	UNORDEREDMAP="#define LIBMAUS_USE_BOOST_UNORDERED_MAP"
+	UNORDEREDMAP="#define LIBMAUS2_USE_BOOST_UNORDERED_MAP"
 else
 	AC_MSG_ERROR([Required unordered_map class not found (not in standard and not in boost)])
 fi
@@ -1002,9 +1002,9 @@ LIBS="${LIBS_SAVE}"
 AC_LANG_POP
 
 if test "${have_std_move}" = "yes" ; then
-	MOVEFUNC="#define LIBMAUS_USE_STD_MOVE"
+	MOVEFUNC="#define LIBMAUS2_USE_STD_MOVE"
 elif test "${have_boost_move}" = "yes" ; then
-	MOVEFUNC="#define LIBMAUS_USE_BOOST_MOVE"
+	MOVEFUNC="#define LIBMAUS2_USE_BOOST_MOVE"
 else
 	AC_MSG_ERROR([Required move function for unique_ptr not found (not in standard and not in boost)])
 fi
@@ -1292,7 +1292,7 @@ if [[ "${with_seqan}" != "no" ]] ; then
 	fi
 
 	if [[ "${have_seqan}" = "yes" ]] ; then 
-		SEQAN="#define LIBMAUS_HAVE_SEQAN"
+		SEQAN="#define LIBMAUS2_HAVE_SEQAN"
 	else
 		SEQAN=
 	fi
@@ -1300,33 +1300,33 @@ fi
 
 AC_C_BIGENDIAN
 if test "x$ac_cv_c_bigendian" = "xyes"; then
-	ENDIANESS="#define LIBMAUS_BYTE_ORDER_BIG_ENDIAN"
+	ENDIANESS="#define LIBMAUS2_BYTE_ORDER_BIG_ENDIAN"
 else
-	ENDIANESS="#define LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN"
+	ENDIANESS="#define LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN"
 fi
 
 if [[ "${sys_types}" = "yes" ]] ; then 
-	SYS_TYPES_H="#define LIBMAUS_HAVE_SYS_TYPES_H"
+	SYS_TYPES_H="#define LIBMAUS2_HAVE_SYS_TYPES_H"
 else
 	SYS_TYPES_H=
 fi
 if [[ "${sys_vfs_h}" = "yes" ]] ; then 
-	HAVESYSVFSH="#define LIBMAUS_HAVE_SYS_VFS_H"
+	HAVESYSVFSH="#define LIBMAUS2_HAVE_SYS_VFS_H"
 else
 	HAVESYSVFSH=
 fi
 if [[ "${cstdint}" = "yes" ]] ; then 
-	CSTDINT="#define LIBMAUS_HAVE_CSTDINT"
+	CSTDINT="#define LIBMAUS2_HAVE_CSTDINT"
 else
 	CSTDINT=
 fi
 if [[ "${windows_h}" = "yes" ]] ; then 
-	WINDOWSH="#define LIBMAUS_HAVE_WINDOWS_H"
+	WINDOWSH="#define LIBMAUS2_HAVE_WINDOWS_H"
 else
 	WINDOWSH=
 fi
 if [[ "${sys_time_h}" = "yes" ]] ; then 
-	SYSTIMEH="#define LIBMAUS_HAVE_SYS_TIME_H"
+	SYSTIMEH="#define LIBMAUS2_HAVE_SYS_TIME_H"
 else
 	SYSTIMEH=
 fi
@@ -1355,7 +1355,7 @@ AC_MSG_CHECKING([whether we can compile a program using posix regex])
 AC_MSG_RESULT([$have_posix_regex])
 
 	if test "${have_posix_regex}" = "yes" ; then
-		REGEXH="#define LIBMAUS_HAVE_REGEX_H"
+		REGEXH="#define LIBMAUS2_HAVE_REGEX_H"
 	else
 		REGEXH=""
 	fi
@@ -1378,12 +1378,12 @@ if [[ "${sys_vfs_h}" = "yes" ]] ; then
 AC_MSG_RESULT([$have_statfs])
 
 	if test "${have_statfs}" = "yes" ; then
-		LIBMAUS_HAVE_STATFS="#define LIBMAUS_HAVE_STATFS"
+		LIBMAUS2_HAVE_STATFS="#define LIBMAUS2_HAVE_STATFS"
 	else
-		LIBMAUS_HAVE_STATFS=""
+		LIBMAUS2_HAVE_STATFS=""
 	fi
 else
-	LIBMAUS_HAVE_STATFS=
+	LIBMAUS2_HAVE_STATFS=
 fi
 
 HAVESSE4=
@@ -1399,11 +1399,11 @@ if test "${sse4}" = "yes" ; then
 fi
 
 if test "${ssse3}" = "yes" ; then
-	HAVESSSE3="#define LIBMAUS_HAVE_SSSE3"
+	HAVESSSE3="#define LIBMAUS2_HAVE_SSSE3"
 fi
 
 if test "${assembly}" = "yes" ; then
-	USEASSEMBLY="#define LIBMAUS_USE_ASSEMBLY"
+	USEASSEMBLY="#define LIBMAUS2_USE_ASSEMBLY"
 fi
 
 AC_LANG_PUSH([C++])
@@ -1436,7 +1436,7 @@ if test "${pthread}" = "yes" ; then
 	AC_LANG_POP
 
 	if test "${pthreadspinlocks}" = "yes" ; then
-		POSIXSPINLOCKS="#define LIBMAUS_HAVE_POSIX_SPINLOCKS"
+		POSIXSPINLOCKS="#define LIBMAUS2_HAVE_POSIX_SPINLOCKS"
 	fi
 fi
 
@@ -1486,58 +1486,58 @@ fi
 
 HAVESEMWAIT=
 if [[ "${ac_cv_func_sem_wait}" = "yes" ]] ; then
-	HAVESEMWAIT="#define LIBMAUS_HAVE_SEM_WAIT"
+	HAVESEMWAIT="#define LIBMAUS2_HAVE_SEM_WAIT"
 else
 	pthread="no"
 fi
 
 HAVESEMINIT=
 if [[ "${ac_cv_func_sem_init}" = "yes" ]] ; then
-	HAVESEMINIT="#define LIBMAUS_HAVE_SEM_INIT"
+	HAVESEMINIT="#define LIBMAUS2_HAVE_SEM_INIT"
 else
 	pthread="no"
 fi
 
 HAVESEMDESTROY=
 if [[ "${ac_cv_func_sem_destroy}" = "yes" ]] ; then
-	HAVESEMDESTROY="#define LIBMAUS_HAVE_SEM_DESTROY"
+	HAVESEMDESTROY="#define LIBMAUS2_HAVE_SEM_DESTROY"
 else
 	pthread="no"
 fi
 
 HAVESEMTIMEDWWAIT=
 if [[ "${ac_cv_func_sem_timedwait}" = "yes" ]] ; then
-	HAVESEMPOST="#define LIBMAUS_HAVE_SEM_TIMEDWAIT"
+	HAVESEMPOST="#define LIBMAUS2_HAVE_SEM_TIMEDWAIT"
 fi
 
 HAVEPTHREADSETNAME_NP=
 if [[ "${ac_cv_pthread_setname_np_func}" = "yes" ]] ; then
-	HAVEPTHREADSETNAME_NP="#define LIBMAUS_HAVE_HAVEPTHREADSETNAME_NP"
+	HAVEPTHREADSETNAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADSETNAME_NP"
 fi
 
 HAVEPTHREADSET_NAME_NP=
 if [[ "${ac_cv_pthread_set_name_np_func}" = "yes" ]] ; then
-	HAVEPTHREADSET_NAME_NP="#define LIBMAUS_HAVE_HAVEPTHREADSET_NAME_NP"
+	HAVEPTHREADSET_NAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADSET_NAME_NP"
 fi
 
 HAVEPTHREADGETNAME_NP=
 if [[ "${ac_cv_pthread_getname_np_func}" = "yes" ]] ; then
-	HAVEPTHREADGETNAME_NP="#define LIBMAUS_HAVE_HAVEPTHREADGETNAME_NP"
+	HAVEPTHREADGETNAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADGETNAME_NP"
 fi
 
 HAVEPTHREADGET_NAME_NP=
 if [[ "${ac_cv_pthread_get_name_np_func}" = "yes" ]] ; then
-	HAVEPTHREADGET_NAME_NP="#define LIBMAUS_HAVE_HAVEPTHREADGET_NAME_NP"
+	HAVEPTHREADGET_NAME_NP="#define LIBMAUS2_HAVE_HAVEPTHREADGET_NAME_NP"
 fi
 
 HAVEPRCTL=
 if [[ "${ac_cv_func_prctl}" = "yes" ]] ; then
-	HAVEPRCTL="#define LIBMAUS_HAVE_PRCTL"
+	HAVEPRCTL="#define LIBMAUS2_HAVE_PRCTL"
 fi
 
 HAVEPTHREADSETAFFINITYNP=
 if [[ "${ac_cv_func_pthread_setaffinity_np}" = "yes" ]] ; then
-	HAVEPTHREADSETAFFINITYNP="#define LIBMAUS_HAVE_PTHREAD_SETAFFINITY_NP"
+	HAVEPTHREADSETAFFINITYNP="#define LIBMAUS2_HAVE_PTHREAD_SETAFFINITY_NP"
 fi
 
 
@@ -1546,7 +1546,7 @@ if test "${pthread}" = "yes" ; then
 	LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -pthread"
 	LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -pthread"
 	LIBMAUSCPPFLAGS="${LIBMAUSCPPFLAGS}"
-	HAVEPTHREADS="#define LIBMAUS_HAVE_PTHREADS"
+	HAVEPTHREADS="#define LIBMAUS2_HAVE_PTHREADS"
 
 	if [[ "${have_openmp}" = "yes" ]] ; then
 		LIBMAUSPKGCPPFLAGS="${LIBMAUSPKGCPPFLAGS} -fopenmp"
@@ -1680,11 +1680,11 @@ fi
 
 case $target_cpu in
 	i386|i486|i586|i686)
-		HAVEI386="#define LIBMAUS_HAVE_i386"
+		HAVEI386="#define LIBMAUS2_HAVE_i386"
 		;;
 	x86_64|amd64)
-		HAVEI386="#define LIBMAUS_HAVE_i386"
-		HAVEX8664="#define LIBMAUS_HAVE_x86_64"
+		HAVEI386="#define LIBMAUS2_HAVE_i386"
+		HAVEX8664="#define LIBMAUS2_HAVE_x86_64"
 		;;
 esac
 
@@ -1703,7 +1703,7 @@ if test "${syncops}" = "yes" ; then
 			AC_LANG_POP
 
 			if test "${syncops}" = "yes" ; then
-				HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+				HAVESYNCOPS="#define LIBMAUS2_HAVE_SYNC_OPS"
 			fi
 
 			if test "${syncops}" = "no" ; then
@@ -1720,7 +1720,7 @@ if test "${syncops}" = "yes" ; then
 					LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -march=i586"
 					LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -march=i586"
 					LIBMAUSARCHCFLAGS="${LIBMAUSARCHCFLAGS} -march=i586"
-					HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+					HAVESYNCOPS="#define LIBMAUS2_HAVE_SYNC_OPS"
 				fi
 			fi
 			;;
@@ -1790,7 +1790,7 @@ if test "${syncops}" = "yes" ; then
 			fi
 
 			if test "${syncops}" = "yes" ; then
-				HAVESYNCOPS="#define LIBMAUS_HAVE_SYNC_OPS"
+				HAVESYNCOPS="#define LIBMAUS2_HAVE_SYNC_OPS"
 			fi
 			;;
 	esac
@@ -1801,7 +1801,7 @@ AC_ARG_ENABLE(synclock,
         [synclock=${enableval}],[synclock=yes])
 
 if test "${synclock}" = "yes" ; then
-	LIBMAUS_HAVE_SYNC_LOCK=""
+	LIBMAUS2_HAVE_SYNC_LOCK=""
 	case "${target_cpu}" in
 		i386|i486|i586|i686)
 			AC_LANG_PUSH([C++])
@@ -1811,7 +1811,7 @@ if test "${synclock}" = "yes" ; then
 			AC_LANG_POP
 
 			if test "${synclock}" = "yes" ; then
-				HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+				HAVESYNCLOCK="#define LIBMAUS2_HAVE_SYNC_LOCK"
 			fi
 
 			if test "${synclock}" = "no" ; then
@@ -1828,7 +1828,7 @@ if test "${synclock}" = "yes" ; then
 					LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -march=i586"
 					LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -march=i586"
 					LIBMAUSARCHCFLAGS="${LIBMAUSARCHCFLAGS} -march=i586"
-					HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+					HAVESYNCLOCK="#define LIBMAUS2_HAVE_SYNC_LOCK"
 				fi
 			fi
 			;;
@@ -1840,7 +1840,7 @@ if test "${synclock}" = "yes" ; then
 			AC_LANG_POP
 
 			if test "${synclock}" = "yes" ; then
-				HAVESYNCLOCK="#define LIBMAUS_HAVE_SYNC_LOCK"
+				HAVESYNCLOCK="#define LIBMAUS2_HAVE_SYNC_LOCK"
 			fi
 			;;
 		*)
@@ -1862,12 +1862,12 @@ AC_LANG_POP
 
 HAVEPOSIXMEMALIGN=""
 if test "${posixmemalign}" = "yes" ; then
-	HAVEPOSIXMEMALIGN="#define LIBMAUS_HAVE_POSIX_MEMALIGN"
+	HAVEPOSIXMEMALIGN="#define LIBMAUS2_HAVE_POSIX_MEMALIGN"
 fi
 
 HAVEGETPAGESIZE=""
 if test "${getpagesize}" = "yes" ; then
-	HAVEGETPAGESIZE="#define LIBMAUS_HAVE_GETPAGESIZE"
+	HAVEGETPAGESIZE="#define LIBMAUS2_HAVE_GETPAGESIZE"
 fi
 
 IOLIBCPPFLAGS=
@@ -2023,7 +2023,7 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 		AC_LANG_POP
 
 		if test "${have_io_lib_with_callbacks}" = "yes" ; then
-			IOLIBCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS"
+			IOLIBCALLBACKDEFINE="#define LIBMAUS2_HAVE_IO_LIB_INPUT_CALLBACKS"
 		fi
 	fi
 	
@@ -2082,21 +2082,21 @@ if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixm
 		AC_LANG_POP
 
 		if test "${have_io_lib_with_index_callbacks}" = "yes" ; then
-			IOLIBINDEXCALLBACKDEFINE="#define LIBMAUS_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS"
+			IOLIBINDEXCALLBACKDEFINE="#define LIBMAUS2_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS"
 		fi
 	fi
 
 
 	if test \( "${cram_allocate_encoder}" = "yes" \) -a \( "${cram_deallocate_encoder}" = "yes" \) -a \( "${cram_enque_compression_block}" = "yes" \) -a \( "${cram_process_work_package}" = "yes" \) ; then
 		IOLIBHAVENEWCRAMINTERFACE=yes
-		IOLIBNEWINTERFACEDEFINE="#define LIBMAUS_HAVE_IO_NEW_CRAM_INTERFACE"
+		IOLIBNEWINTERFACEDEFINE="#define LIBMAUS2_HAVE_IO_NEW_CRAM_INTERFACE"
 	fi
 
 	CPPFLAGS="${CPPFLAGSSAVE}"
 	LDFLAGS="${LDFLAGSSAVE}"
 	LIBS="${LIBSSAVE}"
 
-	IOLIBDEFINE="#define LIBMAUS_HAVE_IO_LIB"
+	IOLIBDEFINE="#define LIBMAUS2_HAVE_IO_LIB"
 fi
 
 AC_MSG_CHECKING([whether MSG_CMSG_CLOEXEC is defined])	
@@ -2112,7 +2112,7 @@ AC_MSG_RESULT([${flag_MSG_CMSG_CLOEXEC}])
 AC_LANG_POP
 
 if [[ "${flag_MSG_CMSG_CLOEXEC}" = "yes" ]] ; then
-	HAVEMSGCMSGCLOEXEC="#define LIBMAUS_HAVE_MSG_CMSG_CLOEXEC"	
+	HAVEMSGCMSGCLOEXEC="#define LIBMAUS2_HAVE_MSG_CMSG_CLOEXEC"	
 fi
 
 AC_LANG_PUSH([C++])
@@ -2190,7 +2190,7 @@ if test "${with_libcurl}" != "no" ; then
 		if [[ "$libcurl" = "no" ]] ; then
 			AC_MSG_ERROR([Failed to compile libcurl program.]);
 		else
-			LIBCURL="#define LIBMAUS_HAVE_LIBCURL"
+			LIBCURL="#define LIBMAUS2_HAVE_LIBCURL"
 			LIBCURLLIBS="${libcurl_LIBS}"
 			LIBCURLCPPFLAGS="${libcurl_CFLAGS}"
 		fi
@@ -2245,7 +2245,7 @@ ERR_load_BIO_strings();
 		if [[ "$openssl" = "no" ]] ; then
 			AC_MSG_ERROR([Failed to compile openssl program.]);
 		else
-			OPENSSL="#define LIBMAUS_HAVE_OPENSSL"
+			OPENSSL="#define LIBMAUS2_HAVE_OPENSSL"
 			OPENSSLLIBS="${openssl_LIBS}"
 			OPENSSLCPPFLAGS="${openssl_CFLAGS}"
 		fi
@@ -2299,7 +2299,7 @@ if test "${with_gnutls}" != "no" ; then
 		if [[ "$gnutls" = "no" ]] ; then
 			AC_MSG_ERROR([Failed to compile gnutls program.]);
 		else
-			GNUTLS="#define LIBMAUS_HAVE_GNUTLS"
+			GNUTLS="#define LIBMAUS2_HAVE_GNUTLS"
 			GNUTLSLDFLAGS=""
 			GNUTLSLIBS="${gnutls_LIBS}"
 			GNUTLSCPPFLAGS="${gnutls_CFLAGS}"
@@ -2357,7 +2357,7 @@ if test "${with_nettle}" != "no" ; then
 		if [[ "$nettle" = "no" ]] ; then
 			AC_MSG_ERROR([Failed to compile nettle program.]);
 		else
-			NETTLE="#define LIBMAUS_HAVE_NETTLE"
+			NETTLE="#define LIBMAUS2_HAVE_NETTLE"
 			NETTLELDFLAGS=""
 			NETTLELIBS="${nettle_LIBS}"
 			NETTLECPPFLAGS="${nettle_CFLAGS}"
@@ -2391,7 +2391,7 @@ if test "${libkern_osatomic_h}" = "yes" ; then
 		AC_LANG_POP
 
 		if test "$have_darwin_spinlocks" = "yes" ; then
-			HAVEDARWINSPINLOCKS="#define LIBMAUS_HAVE_DARWIN_SPINLOCKS"
+			HAVEDARWINSPINLOCKS="#define LIBMAUS2_HAVE_DARWIN_SPINLOCKS"
 		fi
 fi
 
@@ -2406,14 +2406,14 @@ AC_MSG_RESULT([${have_unsigned_int128}])
 AC_LANG_POP
 
 if test "$have_unsigned_int128" = "yes" ; then
-	HAVEUNSIGNEDINT128="#define LIBMAUS_HAVE_UNSIGNED_INT128"
+	HAVEUNSIGNEDINT128="#define LIBMAUS2_HAVE_UNSIGNED_INT128"
 fi
 
 AC_ARG_WITH([hdf5],
 	[AS_HELP_STRING([--with-hdf5@<:@=PATH@:>@], [path to installed HDF5 library @<:@default=no@:>@])],
 	[with_hdf5=${withval}],
 	[with_hdf5=no])
-LIBMAUS_HAVE_HDF5=
+LIBMAUS2_HAVE_HDF5=
 
 if test "${with_hdf5}" != "no" ; then
 	HDF5DIR=
@@ -2457,7 +2457,7 @@ AC_LANG_PUSH([C++])
 ],[hdf5=yes],[hdf5=no])
 AC_MSG_RESULT([${hdf5}])
 		if test "${hdf5}" ; then
-			LIBMAUS_HAVE_HDF5="#define LIBMAUS_HAVE_HDF5"
+			LIBMAUS2_HAVE_HDF5="#define LIBMAUS2_HAVE_HDF5"
 		fi
 	fi
 
@@ -2471,7 +2471,7 @@ AC_ARG_WITH([irods],
 	[AS_HELP_STRING([--with-irods@<:@=PATH@:>@], [path to installed IRODS @<:@default=no@:>@])],
 	[with_irods=${withval}],
 	[with_irods=no])
-LIBMAUS_HAVE_IRODS=
+LIBMAUS2_HAVE_IRODS=
 
 if test "${with_irods}" != "no" ; then
 	IRODSDIR=
@@ -2514,7 +2514,7 @@ AC_LANG_PUSH([C++])
 ],[irods=yes],[irods=no])
 AC_MSG_RESULT([${irods}])
 		if test "${irods}" = "yes" ; then
-			LIBMAUS_HAVE_IRODS="#define LIBMAUS_HAVE_IRODS"
+			LIBMAUS2_HAVE_IRODS="#define LIBMAUS2_HAVE_IRODS"
 		fi
 	fi
 
@@ -2585,7 +2585,7 @@ HDF5CPPFLAGS=
 HDF5CXXFLAGS=
 HDF5LDFLAGS=
 HDF5LIBS=
-if test ! -z "${LIBMAUS_HAVE_HDF5}" ; then
+if test ! -z "${LIBMAUS2_HAVE_HDF5}" ; then
 	TESTPROGS="${TESTPROGS} testhdf5"
 	if test ! -z "${HDF5DIR}" ; then
 		HDF5CPPFLAGS="-I${HDF5DIR}/include"
@@ -2598,7 +2598,7 @@ IRODSCPPFLAGS=
 IRODSCXXFLAGS=
 IRODSLDFLAGS=
 IRODSLIBS=
-if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
+if test ! -z "${LIBMAUS2_HAVE_IRODS}" ; then
 	TESTPROGS="${TESTPROGS} testirods"
 	if test ! -z "${IRODSDIR}" ; then
 		IRODSCPPFLAGS="-I${IRODSDIR}/lib/api/include -I ${IRODSDIR}/lib/core/include -I ${IRODSDIR}/lib/sha1/include -I ${IRODSDIR}/lib/md5/include -I ${IRODSDIR}/server/core/include -I ${IRODSDIR}/server/icat/include -I ${IRODSDIR}/server/drivers/include -I ${IRODSDIR}/server/re/include"
@@ -2613,7 +2613,7 @@ AC_ARG_WITH([gmp],
             [with_gmp=${withval}],
             [with_gmp=no])
 
-LIBMAUS_HAVE_GMP=
+LIBMAUS2_HAVE_GMP=
 gmp_CFLAGS=
 gmp_LIBS=
 if test "${with_gmp}" != "no" ; then
@@ -2654,7 +2654,7 @@ int main(int argc, char * argv[[]]) {
 			GMPLDFLAGS=
 			GMPCPPFLAGS=
 		fi
-		LIBMAUS_HAVE_GMP="#define LIBMAUS_HAVE_GMP"
+		LIBMAUS2_HAVE_GMP="#define LIBMAUS2_HAVE_GMP"
 		GMPLIBS="-lgmp"
 	else
 		GMPLDFLAGS=
@@ -2673,15 +2673,15 @@ if test "${compiletestprograms}" != "yes" ; then
 fi
 
 AC_SYS_LARGEFILE
-LIBMAUS_FILEOFFSET_BITS=
+LIBMAUS2_FILEOFFSET_BITS=
 if test \( ! -z "${ac_cv_sys_file_offset_bits}" \) -a \( "${ac_cv_sys_file_offset_bits}" != "no" \) ; then
-	LIBMAUS_FILEOFFSET_BITS="#define _FILE_OFFSET_BITS ${ac_cv_sys_file_offset_bits}"
+	LIBMAUS2_FILEOFFSET_BITS="#define _FILE_OFFSET_BITS ${ac_cv_sys_file_offset_bits}"
 fi
 AC_FUNC_FSEEKO
-LIBMAUS_LARGEFILE_SOURCE=
+LIBMAUS2_LARGEFILE_SOURCE=
 if test ! -z "${ac_cv_sys_largefile_source}" ; then
 	if test "${ac_cv_sys_largefile_source}" = 1 ; then
-		LIBMAUS_LARGEFILE_SOURCE="#define _LARGEFILE_SOURCE 1"
+		LIBMAUS2_LARGEFILE_SOURCE="#define _LARGEFILE_SOURCE 1"
 	fi
 fi
 
@@ -2731,7 +2731,7 @@ AC_SUBST([LIBMAUSPKGCPPFLAGS])
 AC_SUBST([LIBMAUSPKGCXXFLAGS])
 AC_SUBST([LIBMAUSPKGLIBS])
 AC_SUBST([LIBRARY_VERSION])
-AC_SUBST([LIBMAUS_HAVE_EXECINFO_H])
+AC_SUBST([LIBMAUS2_HAVE_EXECINFO_H])
 AC_SUBST([HAVEBACKTRACE])
 AC_SUBST([HAVEWINDOWSH])
 AC_SUBST([HAVESETRLIMIT])
@@ -2772,7 +2772,7 @@ AC_SUBST([HAVEPTHREADSET_NAME_NP])
 AC_SUBST([HAVEPTHREADGETNAME_NP])
 AC_SUBST([HAVEPTHREADGET_NAME_NP])
 AC_SUBST([HAVEPRCTL])
-AC_SUBST([LIBMAUS_SIZEOF_UNSIGNED_LONG])
+AC_SUBST([LIBMAUS2_SIZEOF_UNSIGNED_LONG])
 AC_SUBST([IOLIBDEFINE])
 AC_SUBST([IOLIBCPPFLAGS])
 AC_SUBST([IOLIBLDFLAGS])
@@ -2790,11 +2790,11 @@ AC_SUBST([POSIXSPINLOCKS])
 AC_SUBST([HAVESYNCLOCK])
 AC_SUBST([HAVEDARWINSPINLOCKS])
 AC_SUBST([HAVESYSVFSH])
-AC_SUBST([LIBMAUS_HAVE_STATFS])
+AC_SUBST([LIBMAUS2_HAVE_STATFS])
 AC_SUBST([HAVEUNSIGNEDINT128])
 AC_SUBST([HAVEHAVEFEATURESH])
 AC_SUBST([HAVEPTHREADSETAFFINITYNP])
-AC_SUBST([LIBMAUS_HAVE_IGZIP])
+AC_SUBST([LIBMAUS2_HAVE_IGZIP])
 AC_SUBST([IGZIPCPPFLAGS])
 AC_SUBST([IGZIPLDFLAGS])
 AC_SUBST([IGZIPLIBS])
@@ -2810,18 +2810,18 @@ AC_SUBST([NETTLE])
 AC_SUBST([NETTLEREQ])
 AC_SUBST([YASMEXE])
 AC_SUBST([DIGESTASMOBJ])
-AC_SUBST([LIBMAUS_HAVE_SHA2_ASSEMBLY])
+AC_SUBST([LIBMAUS2_HAVE_SHA2_ASSEMBLY])
 AC_SUBST([TESTPROGS])
 AC_SUBST([HAVESMMINTRINH])
 AC_SUBST([MSSE4])
-AC_SUBST([LIBMAUS_HAVE_HDF5])
+AC_SUBST([LIBMAUS2_HAVE_HDF5])
 AC_SUBST([HDF5DIR])
 AC_SUBST([HDF5CPPFLAGS])
 AC_SUBST([HDF5CXXFLAGS])
 AC_SUBST([HDF5LDFLAGS])
 AC_SUBST([HDF5LIBS])
 AC_SUBST([IRODSDIR])
-AC_SUBST([LIBMAUS_HAVE_IRODS])
+AC_SUBST([LIBMAUS2_HAVE_IRODS])
 AC_SUBST([IRODSCPPFLAGS])
 AC_SUBST([IRODSCXXFLAGS])
 AC_SUBST([IRODSLDFLAGS])
@@ -2829,10 +2829,10 @@ AC_SUBST([IRODSLIBS])
 AC_SUBST([IRODSDIR])
 AC_SUBST([LIBMAUSIRODSPC])
 AC_SUBST([IOLIBCALLBACKDEFINE])
-AC_SUBST([LIBMAUS_FILEOFFSET_BITS])
-AC_SUBST([LIBMAUS_LARGEFILE_SOURCE])
+AC_SUBST([LIBMAUS2_FILEOFFSET_BITS])
+AC_SUBST([LIBMAUS2_LARGEFILE_SOURCE])
 AC_SUBST([IOLIBINDEXCALLBACKDEFINE])
-AC_SUBST([LIBMAUS_HAVE_GMP])
+AC_SUBST([LIBMAUS2_HAVE_GMP])
 AC_SUBST([GMPLIBS])
 AC_SUBST([GMPLDFLAGS])
 AC_SUBST([GMPCPPFLAGS])

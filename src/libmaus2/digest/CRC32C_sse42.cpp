@@ -19,20 +19,20 @@
 #include <libmaus2/digest/CRC32C_sse42.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
 
-#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
+#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 #include <libmaus2/util/I386CacheLineSize.hpp>
 #endif
 
 libmaus2::digest::CRC32C_sse42::CRC32C_sse42() : ctx(0) 
 {
-	#if ! ( defined(LIBMAUS_USE_ASSEMBLY) &&  defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SMMINTRIN_H) )
+	#if ! ( defined(LIBMAUS2_USE_ASSEMBLY) &&  defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SMMINTRIN_H) )
 	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "CRC32C_sse42(): code has not been compiled into libmaus" << std::endl;
 	lme.finish();
 	throw lme;
 	#endif
 
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
+	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 	if ( !libmaus2::util::I386CacheLineSize::hasSSE42() )
 	{
 		libmaus2::exception::LibMausException lme;
@@ -63,13 +63,13 @@ void libmaus2::digest::CRC32C_sse42::vinit() { init(); }
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_SMMINTRIN_H)
+#if defined(LIBMAUS2_HAVE_SMMINTRIN_H)
 #include <smmintrin.h>
 #endif
 
 void libmaus2::digest::CRC32C_sse42::update(uint8_t const * t, size_t l) 
 {
-	#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
+	#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 	ctx = ~ctx;
 		
 	size_t const offset = reinterpret_cast<size_t>(t);

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_PARALLEL_POSIXPROCESS_HPP)
-#define LIBMAUS_PARALLEL_POSIXPROCESS_HPP
+#if ! defined(LIBMAUS2_PARALLEL_POSIXPROCESS_HPP)
+#define LIBMAUS2_PARALLEL_POSIXPROCESS_HPP
 
 #include <unistd.h>
 #include <sys/types.h>

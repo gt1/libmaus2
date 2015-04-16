@@ -29,7 +29,7 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 
-#if defined(LIBMAUS_HAVE_AIO)
+#if defined(LIBMAUS2_HAVE_AIO)
 #include <aio.h>
 
 #include <sys/types.h>

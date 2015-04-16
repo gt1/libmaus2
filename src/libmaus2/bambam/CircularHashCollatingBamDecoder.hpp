@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP)
-#define LIBMAUS_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP)
+#define LIBMAUS2_BAMBAM_CIRCULARHASHCOLLATINGBAMDECODER_HPP
 
 #include <libmaus2/bambam/BamAlignmentFilter.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
@@ -949,7 +949,7 @@ namespace libmaus2
 			}
 		};
 
-		#if defined(LIBMAUS_HAVE_DL_FUNCS)
+		#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 		/**
 		 * circular hash based BAM collation class based on io_lib input (for SAM, BAM and CRAM)
 		 **/

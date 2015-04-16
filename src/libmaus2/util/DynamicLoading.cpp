@@ -18,7 +18,7 @@
 */
 #include <libmaus2/util/DynamicLoading.hpp>
 
-#if defined(LIBMAUS_HAVE_DL_FUNCS)
+#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 extern "C" {
 	void libmaus2_dlopen_dummy() 
 	{
@@ -109,7 +109,7 @@ libmaus2::util::DynamicLibrary::~DynamicLibrary()
 }
 #endif
 	
-#if defined(LIBMAUS_HAVE_DL_FUNCS)
+#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 int libmaus2::util::DynamicLoading::callFunction(std::string const & modname, std::string const & funcname, int const arg, std::string const & argstr)
 {
 	typedef int (*func_t)(int, char const *, size_t);

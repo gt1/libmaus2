@@ -148,7 +148,7 @@ void maskBamDuplicateFlag(std::istream & in, std::ostream & out, bool const verb
 				/* read length of next alignment block */
 				case state_reading_blocklen:
 					/* if this is a little endian machine allowing unaligned access */
-					#if defined(LIBMAUS_HAVE_i386)
+					#if defined(LIBMAUS2_HAVE_i386)
 					if ( (!blocklenred) && ((pc-pa) >= static_cast<ptrdiff_t>(sizeof(uint32_t))) )
 					{
 						blocklen = *(reinterpret_cast<uint32_t const *>(pa));

@@ -5,7 +5,7 @@
 
 static std::vector<double> * kmeansWrapper(std::vector<double>::const_iterator vita, uint64_t const rn, uint64_t const k, uint64_t const runs, bool const debug = false)
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_quantisation_kmeansWrapperByTypeC_type> DLF("libmaus2_kmlocal_mod.so","libmaus2_quantisation_kmeansWrapperByTypeC");
 	return reinterpret_cast< std::vector<double> *>(DLF.func(::libmaus2::quantisation::type_double,&vita,rn,k,runs,debug));
 	#else
@@ -17,7 +17,7 @@ static std::vector<double> * kmeansWrapper(std::vector<double>::const_iterator v
 }
 static std::vector<double> * kmeansWrapper(std::vector<unsigned int>::const_iterator vita, uint64_t const rn, uint64_t const k, uint64_t const runs, bool const debug = false)
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_quantisation_kmeansWrapperByTypeC_type> DLF("libmaus2_kmlocal_mod.so","libmaus2_quantisation_kmeansWrapperByTypeC");
 	return reinterpret_cast< std::vector<double> *>(DLF.func(::libmaus2::quantisation::type_unsigned_int,&vita,rn,k,runs,debug));
 	#else
@@ -29,7 +29,7 @@ static std::vector<double> * kmeansWrapper(std::vector<unsigned int>::const_iter
 }
 static std::vector<double> * kmeansWrapper(std::vector<uint64_t>::const_iterator vita, uint64_t const rn, uint64_t const k, uint64_t const runs, bool const debug = false)
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_quantisation_kmeansWrapperByTypeC_type> DLF("libmaus2_kmlocal_mod.so","libmaus2_quantisation_kmeansWrapperByTypeC");
 	return reinterpret_cast< std::vector<double> *>(DLF.func(::libmaus2::quantisation::type_uint64_t,&vita,rn,k,runs,debug));
 	#else

@@ -63,7 +63,7 @@ void testOutputLow64()
 	std::cerr << "done." << std::endl;
 }
 
-#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 template<size_t k>
 void compare(libmaus2::math::UnsignedInteger<k> A, libmaus2::uint128_t vA)
 {
@@ -246,7 +246,7 @@ int main(int argc, char * argv[])
 {
 	libmaus2::random::Random::setup();
 
-	#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+	#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 	testranddiv128();
 	testrandsub128();
 	testrandmult128();

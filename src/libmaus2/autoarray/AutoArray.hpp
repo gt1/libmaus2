@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_AUTOARRAY_AUTOARRAY_HPP)
-#define LIBMAUS_AUTOARRAY_AUTOARRAY_HPP
+#if ! defined(LIBMAUS2_AUTOARRAY_AUTOARRAY_HPP)
+#define LIBMAUS2_AUTOARRAY_AUTOARRAY_HPP
 
 #include <cstdlib>
 #include <algorithm>
@@ -44,7 +44,7 @@
 #include <execinfo.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_UNISTD_H)
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
 
@@ -56,7 +56,7 @@
 #include <sys/sysctl.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_WINDOWS_H)
+#if defined(LIBMAUS2_HAVE_WINDOWS_H)
 #include <windows.h>
 #endif
 
@@ -66,7 +66,7 @@
 #include <iostream>
 #endif
 
-#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+#if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 #endif
 
@@ -77,7 +77,7 @@ namespace libmaus2
 		extern uint64_t volatile AutoArray_memusage;
 		extern uint64_t volatile AutoArray_peakmemusage;
 		extern uint64_t volatile AutoArray_maxmem;
-		#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+		#if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 		extern ::libmaus2::parallel::PosixSpinLock AutoArray_lock;
 		#elif defined(_OPENMP)
 		extern ::libmaus2::parallel::OMPLock AutoArray_lock;
@@ -208,7 +208,7 @@ namespace libmaus2
 			static void erase(N * array, uint64_t const n);
 		};
 		
-		#if defined(LIBMAUS_USE_STD_UNIQUE_PTR)
+		#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
 		/**
 		 * class for erasing an array of std::unique_ptr objects
 		 **/
@@ -223,7 +223,7 @@ namespace libmaus2
 			static void erase(std::unique_ptr<N> * array, uint64_t const n);
 		};
 		#endif
-		#if defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
+		#if defined(LIBMAUS2_USE_BOOST_UNIQUE_PTR)
 		/**
 		 * class for erasing an array of boost::interprocess::unique_ptr<N,::libmaus2::deleter::Deleter<N> > objects
 		 **/
@@ -388,7 +388,7 @@ namespace libmaus2
 				traceIn(n * sizeof(N));
 				#endif
 				
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				uint64_t const newmemusage = __sync_add_and_fetch(&AutoArray_memusage, n * sizeof(N));
 				
 				if ( newmemusage > AutoArray_maxmem )
@@ -407,13 +407,13 @@ namespace libmaus2
 					__sync_val_compare_and_swap(&AutoArray_peakmemusage,peak,newmemusage);
 				#else
 			
-				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.lock();
 				#endif
 				
 				if ( AutoArray_memusage + n * sizeof(N) > AutoArray_maxmem )
 				{
-					#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+					#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 					AutoArray_lock.unlock();
 					#endif	
 					
@@ -426,11 +426,11 @@ namespace libmaus2
 				AutoArray_memusage += n * sizeof(N);
 				AutoArray_peakmemusage = std::max(AutoArray_peakmemusage, AutoArray_memusage);
 				
-				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.unlock();
 				#endif
 				
-				#endif // LIBMAUS_HAVE_SYNC_OPS
+				#endif // LIBMAUS2_HAVE_SYNC_OPS
 			}
 			/**
 			 * decrease total AutoArray allocation counter by n elements of type N
@@ -438,19 +438,19 @@ namespace libmaus2
 			 **/
 			void decreaseTotalAllocation(uint64_t n)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 
 				__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
 				
 				#else
 				
-				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.lock();
 				#endif
 				
 				AutoArray_memusage -= n * sizeof(N);
 				
-				#if defined(_OPENMP) || defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+				#if defined(_OPENMP) || defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 				AutoArray_lock.unlock();
 				#endif
 				
@@ -486,7 +486,7 @@ namespace libmaus2
 							array = reinterpret_cast<N *>(_aligned_malloc( n * sizeof(N), cachelinesize ));
 							if ( ! array )
 								throw std::bad_alloc();
-							#elif defined(LIBMAUS_HAVE_POSIX_MEMALIGN)
+							#elif defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
 							int r = posix_memalign(reinterpret_cast<void**>(&array),cachelinesize,n * sizeof(N) );
 							if ( r )
 							{
@@ -867,7 +867,7 @@ namespace libmaus2
 				if ( sclinesize )
 					return sclinesize;
 				
-				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)				
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)				
 				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();				
 				#else
 				return 64ull;
@@ -906,7 +906,7 @@ namespace libmaus2
 				#endif
 				return cachelinesize;
 			}
-			#elif defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
+			#elif defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 			static uint64_t getCacheLineSize() 
 			{
 				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();
@@ -938,7 +938,7 @@ namespace libmaus2
 						free(array);
 						break;
 					case alloc_type_memalign_cacheline:
-						#if defined(_WIN32) || defined(LIBMAUS_HAVE_POSIX_MEMALIGN)
+						#if defined(_WIN32) || defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
 						free(array);
 						#else
 						AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(array);
@@ -1527,7 +1527,7 @@ namespace libmaus2
 				array[i] = N();
 		}
 		
-		#if defined(LIBMAUS_USE_STD_UNIQUE_PTR)
+		#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
 		template<typename N>
 		void ArrayErase< std::unique_ptr<N> >::erase(std::unique_ptr<N> * array, uint64_t const n)
 		{
@@ -1535,7 +1535,7 @@ namespace libmaus2
 				array[i] = UNIQUE_PTR_MOVE(std::unique_ptr<N>());
 		}			
 		#endif
-		#if defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
+		#if defined(LIBMAUS2_USE_BOOST_UNIQUE_PTR)
 		template<typename N>
 		void ArrayErase< typename ::boost::interprocess::unique_ptr<N,::libmaus2::deleter::Deleter<N> > >::erase(typename ::libmaus2::util::unique_ptr<N>::type * array, uint64_t const n)
 		{

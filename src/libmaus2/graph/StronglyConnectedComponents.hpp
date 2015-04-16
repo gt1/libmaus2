@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_GRAPH_STRONGLYCONNECTEDCOMPONENTS_HPP)
-#define LIBMAUS_GRAPH_STRONGLYCONNECTEDCOMPONENTS_HPP
+#if ! defined(LIBMAUS2_GRAPH_STRONGLYCONNECTEDCOMPONENTS_HPP)
+#define LIBMAUS2_GRAPH_STRONGLYCONNECTEDCOMPONENTS_HPP
 
 #include <vector>
 #include <map>

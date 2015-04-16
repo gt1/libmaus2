@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_UNORDERED_MAP_HPP)
-#define LIBMAUS_UTIL_UNORDERED_MAP_HPP
+#if ! defined(LIBMAUS2_UTIL_UNORDERED_MAP_HPP)
+#define LIBMAUS2_UTIL_UNORDERED_MAP_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_USE_STD_UNORDERED_MAP)
+#if defined(LIBMAUS2_USE_STD_UNORDERED_MAP)
 #include <unordered_map>
-#elif defined(LIBMAUS_USE_BOOST_UNORDERED_MAP)
+#elif defined(LIBMAUS2_USE_BOOST_UNORDERED_MAP)
 #include <boost/unordered_map.hpp>
 #include <boost/functional/hash.hpp>
 #endif
@@ -36,9 +36,9 @@ namespace libmaus2
 		template<typename T>
 		struct unordered_map_hash
 		{
-			#if defined(LIBMAUS_USE_STD_UNORDERED_MAP)
+			#if defined(LIBMAUS2_USE_STD_UNORDERED_MAP)
 			typedef std::hash<T> hash_type;
-			#elif defined(LIBMAUS_USE_BOOST_UNORDERED_MAP)
+			#elif defined(LIBMAUS2_USE_BOOST_UNORDERED_MAP)
 			typedef ::boost::hash<T> hash_type;
 			#else
 			#error "Required unordered_map not found."
@@ -48,9 +48,9 @@ namespace libmaus2
 		template<typename T1, typename T2, typename H = typename unordered_map_hash<T1>::hash_type >
 		struct unordered_map
 		{
-			#if defined(LIBMAUS_USE_STD_UNORDERED_MAP)
+			#if defined(LIBMAUS2_USE_STD_UNORDERED_MAP)
 			typedef typename ::std::unordered_map<T1,T2,H> type;			
-			#elif defined(LIBMAUS_USE_BOOST_UNORDERED_MAP)
+			#elif defined(LIBMAUS2_USE_BOOST_UNORDERED_MAP)
 			typedef typename ::boost::unordered_map<T1,T2,H> type;
 			#else
 			#error "Required unordered_map not found."

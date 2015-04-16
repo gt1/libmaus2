@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_IRODS_IRODSINPUTSTREAM_HPP)
-#define LIBMAUS_IRODS_IRODSINPUTSTREAM_HPP
+#if ! defined(LIBMAUS2_IRODS_IRODSINPUTSTREAM_HPP)
+#define LIBMAUS2_IRODS_IRODSINPUTSTREAM_HPP
 
 #include <libmaus2/irods/IRodsInputStreamBuffer.hpp>
 

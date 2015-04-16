@@ -19,18 +19,18 @@
 #include <libmaus2/consensus/Consensus.hpp>
 #include <libmaus2/math/binom.hpp>
 
-#if defined(LIBMAUS_HAVE_DL_FUNCS)
+#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 #include <libmaus2/util/DynamicLoading.hpp>
 #endif
 
-#if defined(LIBMAUS_HAVE_SEQAN)
+#if defined(LIBMAUS2_HAVE_SEQAN)
 
 std::string libmaus2::consensus::ConsensusComputationBase::computeConsensus(
 	void const * obj,
 	std::vector< ::libmaus2::fastx::FastQElement > const & V, int const verbose, std::ostream * ostr
 )
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_computeConsensusX_wrapperC_type> DLF(
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC");
 	
@@ -58,7 +58,7 @@ std::string libmaus2::consensus::ConsensusComputationBase::computeConsensus(
 	void const * obj,
 	std::vector<std::string> const & V, int const verbose, std::ostream * ostr)
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_computeConsensusX_wrapperC_type> DLF(
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapperC");
 
@@ -84,7 +84,7 @@ std::string libmaus2::consensus::ConsensusComputationBase::computeConsensus(
 
 void libmaus2::consensus::ConsensusComputationBase::construct(void ** P)
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_construct_wrapperC_type> DLF(
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_construct_wrapperC");
 
@@ -109,7 +109,7 @@ void libmaus2::consensus::ConsensusComputationBase::construct(void ** P)
 
 void libmaus2::consensus::ConsensusComputationBase::destruct(void * P)
 {
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	::libmaus2::util::DynamicLibraryFunction<libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC_type> DLF(
 		"libmaus2_consensus_mod.so","libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC");
 

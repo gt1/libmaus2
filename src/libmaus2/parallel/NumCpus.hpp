@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_NUMCPUS)
-#define LIBMAUS_PARALLEL_NUMCPUS
+#if ! defined(LIBMAUS2_PARALLEL_NUMCPUS)
+#define LIBMAUS2_PARALLEL_NUMCPUS
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/types/types.hpp>

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_AIO_PACDECODERBUFFER_HPP)
-#define LIBMAUS_AIO_PACDECODERBUFFER_HPP
+#if ! defined(LIBMAUS2_AIO_PACDECODERBUFFER_HPP)
+#define LIBMAUS2_AIO_PACDECODERBUFFER_HPP
 
 #include <istream>
 #include <fstream>

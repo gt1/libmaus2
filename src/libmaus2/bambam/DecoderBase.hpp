@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_DECODERBASE_HPP)
-#define LIBMAUS_BAMBAM_DECODERBASE_HPP
+#if ! defined(LIBMAUS2_BAMBAM_DECODERBASE_HPP)
+#define LIBMAUS2_BAMBAM_DECODERBASE_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
@@ -90,7 +90,7 @@ namespace libmaus2
 			 **/
 			static uint64_t getLEInteger(uint8_t const * D, unsigned int const l)
 			{
-				#if defined(LIBMAUS_HAVE_i386)
+				#if defined(LIBMAUS2_HAVE_i386)
 				switch ( l )
 				{
 					case 1: return *D;

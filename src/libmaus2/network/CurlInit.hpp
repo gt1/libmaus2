@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_CURLINIT_HPP)
-#define LIBMAUS_NETWORK_CURLINIT_HPP
+#if ! defined(LIBMAUS2_NETWORK_CURLINIT_HPP)
+#define LIBMAUS2_NETWORK_CURLINIT_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 
-#if defined(LIBMAUS_HAVE_LIBCURL)
+#if defined(LIBMAUS2_HAVE_LIBCURL)
 #include <curl/curl.h>
 #endif
 
@@ -54,7 +54,7 @@ namespace libmaus2
 			
 			static bool init(std::ostream & errstr)
 			{
-				#if defined(LIBMAUS_HAVE_LIBCURL)
+				#if defined(LIBMAUS2_HAVE_LIBCURL)
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( ! initcomplete )
 				{
@@ -83,7 +83,7 @@ namespace libmaus2
 			
 			static void shutdown()
 			{
-				#if defined(LIBMAUS_HAVE_LIBCURL)
+				#if defined(LIBMAUS2_HAVE_LIBCURL)
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( initcomplete && (! --initcomplete) )
 					curl_global_cleanup();

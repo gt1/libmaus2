@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_HDF5_HDF5HANDLE_HPP)
-#define LIBMAUS_HDF5_HDF5HANDLE_HPP
+#if ! defined(LIBMAUS2_HDF5_HDF5HANDLE_HPP)
+#define LIBMAUS2_HDF5_HDF5HANDLE_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_HDF5)
+#if defined(LIBMAUS2_HAVE_HDF5)
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <libmaus2/hdf5/HDF5MuteErrorHandler.hpp>

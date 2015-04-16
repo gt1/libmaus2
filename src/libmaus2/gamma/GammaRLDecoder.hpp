@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_GAMMA_GAMMARLDECODER_HPP)
-#define LIBMAUS_GAMMA_GAMMARLDECODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMARLDECODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMARLDECODER_HPP
 
 #include <libmaus2/bitio/BitIOInput.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>

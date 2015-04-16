@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_BAMBAM_CIGARSTRINGPARSER_HPP)
-#define LIBMAUS_BAMBAM_CIGARSTRINGPARSER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_CIGARSTRINGPARSER_HPP)
+#define LIBMAUS2_BAMBAM_CIGARSTRINGPARSER_HPP
 
 #include <libmaus2/bambam/CigarOperation.hpp>
 #include <vector>

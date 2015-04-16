@@ -16,12 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_FASTX_FQWEIGHTQUANTISER_HPP)
-#define LIBMAUS_FASTX_FQWEIGHTQUANTISER_HPP
+#if ! defined(LIBMAUS2_FASTX_FQWEIGHTQUANTISER_HPP)
+#define LIBMAUS2_FASTX_FQWEIGHTQUANTISER_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_KMLOCAL)
+#if defined(LIBMAUS2_HAVE_KMLOCAL)
 #include <libmaus2/quantisation/ClusterComputation.hpp>
 #include <libmaus2/fastx/FastQReader.hpp>
 #include <libmaus2/fastx/Phred.hpp>

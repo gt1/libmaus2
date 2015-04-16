@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_LCS_OVERLAPORIENTATION_HPP)
-#define LIBMAUS_LCS_OVERLAPORIENTATION_HPP
+#if ! defined(LIBMAUS2_LCS_OVERLAPORIENTATION_HPP)
+#define LIBMAUS2_LCS_OVERLAPORIENTATION_HPP
 
 #include <libmaus2/exception/LibMausException.hpp>
 

@@ -33,7 +33,7 @@
 #include <libmaus2/parallel/OMPLock.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
 
-#if defined(LIBMAUS_HAVE_AIO)
+#if defined(LIBMAUS2_HAVE_AIO)
 #include <aio.h>
 #include <unistd.h>
 #include <fcntl.h>

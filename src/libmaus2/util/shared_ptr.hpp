@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_SHARED_PTR_HPP)
-#define LIBMAUS_UTIL_SHARED_PTR_HPP
+#if ! defined(LIBMAUS2_UTIL_SHARED_PTR_HPP)
+#define LIBMAUS2_UTIL_SHARED_PTR_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_USE_STD_SHARED_PTR)
+#if defined(LIBMAUS2_USE_STD_SHARED_PTR)
 #include <memory>
-#elif defined(LIBMAUS_USE_BOOST_SHARED_PTR)
+#elif defined(LIBMAUS2_USE_BOOST_SHARED_PTR)
 #include <boost/shared_ptr.hpp>
 #endif
 
@@ -35,9 +35,9 @@ namespace libmaus2
 		template<typename T>
 		struct shared_ptr
 		{
-			#if defined(LIBMAUS_USE_STD_SHARED_PTR)
+			#if defined(LIBMAUS2_USE_STD_SHARED_PTR)
 			typedef typename ::std::shared_ptr<T> type;			
-			#elif defined(LIBMAUS_USE_BOOST_SHARED_PTR)
+			#elif defined(LIBMAUS2_USE_BOOST_SHARED_PTR)
 			typedef typename ::boost::shared_ptr<T> type;
 			#else
 			#error "Required shared_ptr not found."

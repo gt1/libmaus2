@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_UTIL_GETOBJECT_HPP)
-#define LIBMAUS_UTIL_GETOBJECT_HPP
+#if ! defined(LIBMAUS2_UTIL_GETOBJECT_HPP)
+#define LIBMAUS2_UTIL_GETOBJECT_HPP
 
 #include <iterator>
 #include <libmaus2/util/unique_ptr.hpp>

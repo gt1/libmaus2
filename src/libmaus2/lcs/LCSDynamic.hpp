@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_LCS_LCSDYNAMIC_HPP)
-#define LIBMAUS_LCS_LCSDYNAMIC_HPP
+#if ! defined(LIBMAUS2_LCS_LCSDYNAMIC_HPP)
+#define LIBMAUS2_LCS_LCSDYNAMIC_HPP
 
 #include <string>
 #include <libmaus2/types/types.hpp>

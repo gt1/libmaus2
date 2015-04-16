@@ -20,7 +20,7 @@
 #include <libmaus2/LibMausConfig.hpp>
 #include <cstdlib>
 
-#if !defined(LIBMAUS_HAVE_LIBCURL)
+#if !defined(LIBMAUS2_HAVE_LIBCURL)
 #include <iostream>
 
 int main()

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQPARSEPACKAGEDISPATCHER_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_FASTQPARSEPACKAGEDISPATCHER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_PARALLEL_FASTQPARSEPACKAGEDISPATCHER_HPP)
+#define LIBMAUS2_BAMBAM_PARALLEL_FASTQPARSEPACKAGEDISPATCHER_HPP
 
 #include <libmaus2/bambam/parallel/FastqParsePackageFinishedInterface.hpp>
 #include <libmaus2/bambam/parallel/FastqParsePackageReturnInterface.hpp>
@@ -127,15 +127,15 @@ namespace libmaus2
 							name,namelen,ST,libmaus2::fastx::NameInfoBase::fastq_name_scheme_generic
 						);
 						
-						uint32_t flags = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
+						uint32_t flags = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP;
 						if ( NI.ispair )
 						{
-							flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
-							flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+							flags |= libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED;
+							flags |= libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP;
 							if ( NI.isfirst )
-								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
 							else
-								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
+								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2;
 						}
 						
 						std::pair<uint8_t const *,uint8_t const *> NP = NI.getName();

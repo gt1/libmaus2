@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_COLLATINGBAMDECODER_HPP)
-#define LIBMAUS_BAMBAM_COLLATINGBAMDECODER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_COLLATINGBAMDECODER_HPP)
+#define LIBMAUS2_BAMBAM_COLLATINGBAMDECODER_HPP
 				
 #include <libmaus2/bambam/MergeQueueElement.hpp>
 #include <libmaus2/bambam/BamAlignmentComparator.hpp>
@@ -27,7 +27,7 @@
 #include <libmaus2/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <queue>
 
-#define LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY
+#define LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY
 
 namespace libmaus2
 {
@@ -184,7 +184,7 @@ namespace libmaus2
 
 					uint64_t const prepos = tmpfile.tellp();
 					
-					#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
+					#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > SOS(tmpfile);
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
 						writeoutlist[i]->serialise(SOS);
@@ -199,7 +199,7 @@ namespace libmaus2
 					writeoutcnt.push_back(writeoutlist.size());
 					readbackcnt.push_back(0);
 					
-					#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY) && defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY_DEBUG)
+					#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY) && defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY_DEBUG)
 					tmpfile.flush();
 					
 					::libmaus2::lz::SnappyOffsetFileInputStream SOFIS(tempfilename,prepos);
@@ -371,7 +371,7 @@ namespace libmaus2
 				while ( (state == merging) && (! outputlist.size()) )
 				{
 					if ( 
-						#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
+						#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 						(! temparrayin)
 						#else
 						(! tempfilein) 
@@ -382,7 +382,7 @@ namespace libmaus2
 					{
 						// std::cerr << "Setting up merging." << std::endl;
 					
-						#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
+						#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 						// construct interval vector
 						std::vector<uint64_t> writeoutints;
 						for ( uint64_t i = 0; i < writeoutindex.size(); ++i )
@@ -404,7 +404,7 @@ namespace libmaus2
 						for ( uint64_t i = 0; i < readbackindex.size(); ++i )
 							if ( readbackcnt[i] != writeoutcnt[i] )
 							{
-								#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
+								#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 								alignment_ptr_type ptr = alignment_type::load((*temparrayin)[i]);
 								mergequeue.push(MergeQueueElement(ptr,i));
 								readbackcnt[i]++;
@@ -432,7 +432,7 @@ namespace libmaus2
 						
 						if ( readbackcnt[i] != writeoutcnt[i] )
 						{
-							#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
+							#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 							alignment_ptr_type ptr = alignment_type::load((*temparrayin)[i]);
 							mergequeue.push(MergeQueueElement(ptr,i));
 							readbackcnt[i]++;							
@@ -450,7 +450,7 @@ namespace libmaus2
 					}
 					else
 					{
-						#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
+						#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
 						if ( temparrayin )
 						{
 							temparrayin.reset();

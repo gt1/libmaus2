@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_DIGESTFACTORYINTERFACE_HPP)
-#define LIBMAUS_DIGEST_DIGESTFACTORYINTERFACE_HPP
+#if ! defined(LIBMAUS2_DIGEST_DIGESTFACTORYINTERFACE_HPP)
+#define LIBMAUS2_DIGEST_DIGESTFACTORYINTERFACE_HPP
 
 #include <libmaus2/digest/Digests.hpp>
 #include <set>

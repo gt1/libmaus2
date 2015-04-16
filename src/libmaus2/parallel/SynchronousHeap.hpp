@@ -23,7 +23,7 @@
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <libmaus2/parallel/PosixMutex.hpp>
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <libmaus2/parallel/PosixSemaphore.hpp>

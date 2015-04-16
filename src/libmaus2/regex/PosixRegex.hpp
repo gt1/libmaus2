@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_REGEX_POSIX_REGEX_HPP)
-#define LIBMAUS_REGEX_POSIX_REGEX_HPP
+#if ! defined(LIBMAUS2_REGEX_POSIX_REGEX_HPP)
+#define LIBMAUS2_REGEX_POSIX_REGEX_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_REGEX_H)
+#if defined(LIBMAUS2_HAVE_REGEX_H)
 
 #include <sys/types.h>
 #include <regex.h>

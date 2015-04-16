@@ -16,14 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_GNUTLSSOCKET_HPP)
-#define LIBMAUS_NETWORK_GNUTLSSOCKET_HPP
+#if ! defined(LIBMAUS2_NETWORK_GNUTLSSOCKET_HPP)
+#define LIBMAUS2_NETWORK_GNUTLSSOCKET_HPP
 
 #include <libmaus2/network/GnuTLSInit.hpp>
 #include <libmaus2/network/Socket.hpp>
 #include <libmaus2/network/SocketInputOutputInterface.hpp>
 
-#if defined(LIBMAUS_HAVE_GNUTLS)
+#if defined(LIBMAUS2_HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #endif
@@ -39,14 +39,14 @@ namespace libmaus2
 		
 			std::string const hostname;
 
-			#if defined(LIBMAUS_HAVE_GNUTLS)
+			#if defined(LIBMAUS2_HAVE_GNUTLS)
 			gnutls_certificate_credentials_t xcred;	
 			gnutls_session_t session;
 			#endif
 
 			libmaus2::network::ClientSocket::unique_ptr_type PCS;
 			
-			#if defined(LIBMAUS_HAVE_GNUTLS)
+			#if defined(LIBMAUS2_HAVE_GNUTLS)
 			static int verify_certificate_callback(gnutls_session_t session);
 			#endif
 

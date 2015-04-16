@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_SHA256_H)
-#define LIBMAUS_DIGEST_SHA256_H
+#if ! defined(LIBMAUS2_DIGEST_SHA256_H)
+#define LIBMAUS2_DIGEST_SHA256_H
 
 #if defined(__cplusplus)
 extern "C" {

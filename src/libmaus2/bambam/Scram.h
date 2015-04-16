@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_BAMBAM_SCRAM_H)
-#define LIBMAUS_BAMBAM_SCRAM_H
+#if ! defined(LIBMAUS2_BAMBAM_SCRAM_H)
+#define LIBMAUS2_BAMBAM_SCRAM_H
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_SYS_TYPES_H)
+#if defined(LIBMAUS2_HAVE_SYS_TYPES_H)
 #include <sys/types.h>
 #endif
-#if defined(LIBMAUS_HAVE_UNISTD_H)
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
 

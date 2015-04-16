@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_PARALLEL_LOCK_HPP)
-#define LIBMAUS_PARALLEL_LOCK_HPP
+#if ! defined(LIBMAUS2_PARALLEL_LOCK_HPP)
+#define LIBMAUS2_PARALLEL_LOCK_HPP
 
 #if defined(_OPENMP)
 #include <omp.h>

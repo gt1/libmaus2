@@ -18,7 +18,7 @@
 */
 #include <libmaus2/network/GnuTLSInit.hpp>
 
-#if defined(LIBMAUS_HAVE_GNUTLS)
+#if defined(LIBMAUS2_HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #endif
@@ -33,7 +33,7 @@ libmaus2::network::GnuTLSInit::GnuTLSInit()
 	libmaus2::parallel::ScopePosixSpinLock slock(lock);
 	if ( ! initcomplete++ )
 	{
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		if (gnutls_check_version("2.12.14") == NULL) 
 		{
 			libmaus2::exception::LibMausException lme;
@@ -51,7 +51,7 @@ libmaus2::network::GnuTLSInit::~GnuTLSInit()
 	libmaus2::parallel::ScopePosixSpinLock slock(lock);
 	if ( ! --initcomplete )
 	{
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		gnutls_global_deinit();
 		#endif
 	}

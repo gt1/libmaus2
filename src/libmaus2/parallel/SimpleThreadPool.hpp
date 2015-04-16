@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOL_HPP)
-#define LIBMAUS_PARALLEL_SIMPLETHREADPOOL_HPP
+#if ! defined(LIBMAUS2_PARALLEL_SIMPLETHREADPOOL_HPP)
+#define LIBMAUS2_PARALLEL_SIMPLETHREADPOOL_HPP
 
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <libmaus2/parallel/PosixSemaphore.hpp>
@@ -279,7 +279,7 @@ namespace libmaus2
 			
 			uint64_t rdtsc(void)
 			{
-				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64)
+				#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64)
 				uint32_t a, d;
 			      
 				__asm__ volatile("rdtsc" : "=a" (a), "=d" (d));

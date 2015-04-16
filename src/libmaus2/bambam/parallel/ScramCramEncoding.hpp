@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_SCRAMCRAMENCODING_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_SCRAMCRAMENCODING_HPP
+#if ! defined(LIBMAUS2_BAMBAM_PARALLEL_SCRAMCRAMENCODING_HPP)
+#define LIBMAUS2_BAMBAM_PARALLEL_SCRAMCRAMENCODING_HPP
 
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/util/DynamicLoading.hpp>
@@ -35,7 +35,7 @@ namespace libmaus2
 				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				#if defined(LIBMAUS_HAVE_DL_FUNCS)
+				#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 				libmaus2::util::DynamicLibrary scramlib;	
 				typedef void * (*alloc_func_t)(void *, char const *, size_t const, cram_data_write_function_t);
 				libmaus2::util::DynamicLibraryFunction<alloc_func_t>::unique_ptr_type Palloc_func;
@@ -48,25 +48,25 @@ namespace libmaus2
 				#endif
 				
 				ScramCramEncoding()
-				#if defined(LIBMAUS_HAVE_DL_FUNCS)
+				#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 				: scramlib("libmaus2_scram_mod.so"), Palloc_func()
 				#endif
 				{
-					#if ! defined(LIBMAUS_HAVE_DL_FUNCS)
+					#if ! defined(LIBMAUS2_HAVE_DL_FUNCS)
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding: no support for dl functions" << std::endl;
 					lme.finish();
 					throw lme;
 					#endif
 					
-					#if ! defined(LIBMAUS_HAVE_IO_NEW_CRAM_INTERFACE)
+					#if ! defined(LIBMAUS2_HAVE_IO_NEW_CRAM_INTERFACE)
 					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ScramCramEncoding: no support for new CRAM encoding interface" << std::endl;
 					lme.finish();
 					throw lme;					
 					#endif
 					
-					#if defined(LIBMAUS_HAVE_DL_FUNCS)
+					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					libmaus2::util::DynamicLibraryFunction<alloc_func_t>::unique_ptr_type Talloc_func(
 						new libmaus2::util::DynamicLibraryFunction<alloc_func_t>(scramlib,"scram_cram_allocate_encoder")
 					);
@@ -88,7 +88,7 @@ namespace libmaus2
 
 				void * cram_allocate_encoder(void *userdata, char const *header, size_t const headerlength, cram_data_write_function_t writefunc)
 				{
-					#if defined(LIBMAUS_HAVE_DL_FUNCS)
+					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					return Palloc_func->func(userdata,header,headerlength,writefunc);
 					#else					
 					libmaus2::exception::LibMausException lme;
@@ -99,7 +99,7 @@ namespace libmaus2
 				}
 				void cram_deallocate_encoder(void * context)
 				{
-					#if defined(LIBMAUS_HAVE_DL_FUNCS)
+					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					Pdealloc_func->func(context);
 					#else					
 					libmaus2::exception::LibMausException lme;
@@ -123,7 +123,7 @@ namespace libmaus2
 					cram_compression_work_package_finished_t workfinishedfunction
 				)
 				{				
-					#if defined(LIBMAUS_HAVE_DL_FUNCS)
+					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					return Penque_func->func(userdata,context,inblockid,block,blocksize,blockelements,numblocks,final,workenqueuefunction,writefunction,workfinishedfunction);
 					#else					
 					libmaus2::exception::LibMausException lme;
@@ -135,7 +135,7 @@ namespace libmaus2
 				
 				int cram_process_work_package(void *workpackage)
 				{					
-					#if defined(LIBMAUS_HAVE_DL_FUNCS)
+					#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 					return Pdispatch_func->func(workpackage);
 					#else					
 					libmaus2::exception::LibMausException lme;

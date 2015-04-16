@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_TYPES_TYPES_HPP)
-#define LIBMAUS_TYPES_TYPES_HPP
+#if ! defined(LIBMAUS2_TYPES_TYPES_HPP)
+#define LIBMAUS2_TYPES_TYPES_HPP
 
 #if defined(__GNUC__) && __GNUC__ >= 3
 #define expect_true(x)      __builtin_expect (x, 1)
@@ -31,11 +31,11 @@
 #include <libmaus2/LibMausConfig.hpp>
 #include <cstdlib>
 
-#if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
+#if defined(LIBMAUS2_HAVE_CSTDINT) || defined(_MSC_VER)
 #include <cstdint>
-#elif defined(LIBMAUS_HAVE_STDINT_H)
+#elif defined(LIBMAUS2_HAVE_STDINT_H)
 #include <stdint.h>
-#elif defined(LIBMAUS_HAVE_SYS_TYPES_H)
+#elif defined(LIBMAUS2_HAVE_SYS_TYPES_H)
 #include <sys/types.h>
 #endif
 
@@ -43,7 +43,7 @@
 #include <stdint.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 namespace libmaus2
 {
 	typedef unsigned __int128 uint128_t;

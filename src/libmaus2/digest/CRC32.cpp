@@ -18,7 +18,7 @@
 */
 #include <libmaus2/digest/CRC32.hpp>
 
-#if defined(LIBMAUS_HAVE_x86_64)
+#if defined(LIBMAUS2_HAVE_x86_64)
 #include <libmaus2/digest/CRC32_Core.hpp>
 #endif
 
@@ -30,7 +30,7 @@ libmaus2::digest::CRC32::~CRC32() {}
 void libmaus2::digest::CRC32::init() { ctx = initial; }
 void libmaus2::digest::CRC32::update(uint8_t const * t, size_t l) 
 { 
-#if defined(LIBMAUS_HAVE_x86_64)
+#if defined(LIBMAUS2_HAVE_x86_64)
 	ctx = libmaus2::digest::CRC32_Core::crc32_core(ctx,t,l);
 #else
 	ctx = crc32(ctx,t,l); 

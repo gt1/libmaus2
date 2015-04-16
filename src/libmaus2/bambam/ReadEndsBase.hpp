@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_READENDSBASE_HPP)
-#define LIBMAUS_BAMBAM_READENDSBASE_HPP
+#if ! defined(LIBMAUS2_BAMBAM_READENDSBASE_HPP)
+#define LIBMAUS2_BAMBAM_READENDSBASE_HPP
 
 #include <libmaus2/bambam/BamAlignment.hpp>
 #include <libmaus2/math/UnsignedInteger.hpp>
@@ -658,15 +658,15 @@ namespace libmaus2
 				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
 				
 				RE.orientation =
-					(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE)
+					(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE)
 					?
 					::libmaus2::bambam::ReadEndsBase::R : ::libmaus2::bambam::ReadEndsBase::F;
 
 				RE.score = libmaus2::bambam::BamAlignmentDecoderBase::getScore(pD);
 				
 				if ( 
-					(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED) &&
-					(!(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP))
+					(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED) &&
+					(!(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP))
 				)
 					RE.read2Sequence = libmaus2::bambam::BamAlignmentDecoderBase::getNextRefIDChecked(pD) + 1;
 					
@@ -735,8 +735,8 @@ namespace libmaus2
 				uint32_t const pflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pD);
 				uint32_t const qflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(qD);
 				
-				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
-				bool const qreverse = qflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
+				bool const preverse = pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
+				bool const qreverse = qflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
 				
 				if ( ! preverse )
 					if ( ! qreverse )
@@ -753,9 +753,9 @@ namespace libmaus2
 				RE.score = libmaus2::bambam::BamAlignmentDecoderBase::getScore(pD) + libmaus2::bambam::BamAlignmentDecoderBase::getScore(qD);
 				
 				if ( 
-					(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED) 
+					(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED) 
 					&&
-					(!(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP))
+					(!(pflags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP))
 				)
 					RE.read2Sequence = libmaus2::bambam::BamAlignmentDecoderBase::getNextRefIDChecked(pD) + 1;
 				

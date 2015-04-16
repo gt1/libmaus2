@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_LCP_LCP_HPP)
-#define LIBMAUS_LCP_LCP_HPP
+#if ! defined(LIBMAUS2_LCP_LCP_HPP)
+#define LIBMAUS2_LCP_LCP_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 
@@ -887,7 +887,7 @@ namespace libmaus2
 
 					PQ1->reset();
 
-					#if defined(_OPENMP) && defined(LIBMAUS_HAVE_SYNC_OPS)
+					#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 					uint64_t const numthreads = omp_get_max_threads();
 					#else
 					uint64_t const numthreads = 1;
@@ -896,7 +896,7 @@ namespace libmaus2
 					uint64_t const numcontexts = numthreads;
 					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
-					#if defined(_OPENMP) && defined(LIBMAUS_HAVE_SYNC_OPS)
+					#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 					#pragma omp parallel for
 					#endif
 					for ( int64_t c = 0; c < static_cast<int64_t>(deqcontexts.size()); ++c )
@@ -908,7 +908,7 @@ namespace libmaus2
 						{
 							std::pair<uint64_t,uint64_t> const qe = PQ0->deque(deqcontext);
 							uint64_t const locals = LF->W->multiRankLCPSet(qe.first,qe.second,LF->D.get(),WLCP.get(),unset,cur_l,encbuf.get());
-							#if defined(_OPENMP) && defined(LIBMAUS_HAVE_SYNC_OPS)
+							#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 							__sync_fetch_and_add(&s,locals);
 							#else
 							s += locals;
@@ -953,7 +953,7 @@ namespace libmaus2
 						{
 							std::pair<uint64_t,uint64_t> const qe = Q0.front(); Q0.pop_front();
 							uint64_t const locals = LF->W->multiRankLCPSetLarge(qe.first,qe.second,LF->D.get(),*res,cur_l,&Q1);
-							#if defined(_OPENMP) && defined(LIBMAUS_HAVE_SYNC_OPS)
+							#if defined(_OPENMP) && defined(LIBMAUS2_HAVE_SYNC_OPS)
 							__sync_fetch_and_add(&s,locals);
 							#else
 							s += locals;

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_SCRAMDECODER_HPP)
-#define LIBMAUS_BAMBAM_SCRAMDECODER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_SCRAMDECODER_HPP)
+#define LIBMAUS2_BAMBAM_SCRAMDECODER_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <iostream>
@@ -32,7 +32,7 @@ namespace libmaus2
 {
 	namespace bambam
 	{
-		#if defined(LIBMAUS_HAVE_DL_FUNCS)
+		#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 		/**
 		 * scram decoder class; alignment decoder based on io_lib
 		 **/

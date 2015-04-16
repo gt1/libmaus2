@@ -49,9 +49,9 @@ int main(int argc, char * argv[])
 				if ( rand() & 1 == 1 )
 					algn.putTlen(0);			
 				if ( rand() & 1 == 1 )
-					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP)) );
+					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP)) );
 				if ( rand() & 1 == 1 )
-					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE)) );
+					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE)) );
 				if ( rand() & 1 == 1 )
 					algn.filterOutAux(MQfilter);
 				algn.serialise(wrstream);			
@@ -61,8 +61,8 @@ int main(int argc, char * argv[])
 				algn.putNextRefId(-1);
 				algn.putNextPos(-1);
 				algn.putTlen(0);			
-				algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP)) );
-				algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE)) );
+				algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP)) );
+				algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE)) );
 				algn.filterOutAux(MQfilter);
 				algn.serialise(wrstream);
 			}

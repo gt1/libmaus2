@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_UTIL_POSIXINPUTFILE_HPP)
-#define LIBMAUS_UTIL_POSIXINPUTFILE_HPP
+#if ! defined(LIBMAUS2_UTIL_POSIXINPUTFILE_HPP)
+#define LIBMAUS2_UTIL_POSIXINPUTFILE_HPP
 
 #include <libmaus2/util/PosixFileDescriptor.hpp>
 #include <string>

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_HEADERLINE_HPP)
-#define LIBMAUS_BAMBAM_HEADERLINE_HPP
+#if ! defined(LIBMAUS2_BAMBAM_HEADERLINE_HPP)
+#define LIBMAUS2_BAMBAM_HEADERLINE_HPP
 
 #include <libmaus2/util/stringFunctions.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
@@ -318,7 +318,7 @@ namespace libmaus2
 
 						if ( !token.size() || token.size() < 3 || token[2] != ':' )
 						{
-							#if defined(LIBMAUS_BAMBAM_SAMHEADER_STRICT)
+							#if defined(LIBMAUS2_BAMBAM_SAMHEADER_STRICT)
 							if ( type != "CO" )
 							{
 								::libmaus2::exception::LibMausException se;

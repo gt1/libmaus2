@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_FASTX_FASTQBGZFWRITER_HPP)
-#define LIBMAUS_FASTX_FASTQBGZFWRITER_HPP
+#if ! defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_HPP)
+#define LIBMAUS2_FASTX_FASTQBGZFWRITER_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/aio/CheckedOutputStream.hpp>
@@ -42,12 +42,12 @@ namespace libmaus2
 			std::string const indexfilename;
 			uint64_t const patperblock;
 			std::string const fifilename;
-			#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+			#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			std::string const bgzfidxfilename;
 			std::string const bgzfidxcntfilename;
 			#endif
 
-			#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+			#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr;
 			libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidxcntoutstr;
 			#endif
@@ -57,7 +57,7 @@ namespace libmaus2
 			uint64_t patlow;
 			uint64_t blockcnt;
 
-			#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+			#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			libmaus2::lz::BgzfDeflateParallel::unique_ptr_type bgzfenc;
 			#else
 			libmaus2::lz::BgzfDeflate<std::ostream>::unique_ptr_type bgzfenc;
@@ -126,7 +126,7 @@ namespace libmaus2
 			{
 				if ( pathigh != patlow )
 				{
-					#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+					#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 					uint64_t const bcnt = bgzfenc->writeSyncedCount(C.begin(),pc-C.begin());
 					libmaus2::util::UTF8::encodeUTF8(bcnt,*bgzfidxcntoutstr);
 					libmaus2::fastx::FastInterval const FI(patlow,pathigh,0,0,lnumsyms,minlen,maxlen);
@@ -206,7 +206,7 @@ namespace libmaus2
 				int level = Z_DEFAULT_COMPRESSION
 			) : indexfilename(rindexfilename), patperblock(rpatperblock),
 			    fifilename(setupTempFile(indexfilename + ".tmp.fi")), 
-			    #if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+			    #if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			    bgzfidxfilename(setupTempFile(indexfilename + ".tmp.bgzfidx")),
 			    bgzfidxcntfilename(setupTempFile(indexfilename + ".tmp.bgzfidx.cnt")),
 			    bgzfidoutstr(new libmaus2::aio::CheckedOutputStream(bgzfidxfilename)),
@@ -214,7 +214,7 @@ namespace libmaus2
 			    #endif
 			    fioutstr(new libmaus2::aio::CheckedOutputStream(fifilename)),
 			    C(0,false), patlow(0), blockcnt(0),
-			    #if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+			    #if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			    bgzfenc(new libmaus2::lz::BgzfDeflateParallel(out,32,128,level,bgzfidoutstr.get())),
 			    #else
 			    bgzfenc(new libmaus2::lz::BgzfDeflate<std::ostream>(out,level)),
@@ -316,7 +316,7 @@ namespace libmaus2
 					::libmaus2::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
 					libmaus2::aio::CheckedInputStream fiCIS(fifilename);
 					
-					#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
+					#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 					bgzfidoutstr->flush();
 					bgzfidoutstr.reset();
 					bgzfidxcntoutstr->flush();

@@ -292,7 +292,7 @@ static uint32_t const crc32c_table_7[256]={
 	0xe54c35a1,0xac704886,0x7734cfef,0x3e08b2c8,0xc451b7cc,0x8d6dcaeb,0x56294d82,0x1f1530a5
 };
 
-#if defined(LIBMAUS_HAVE_x86_64)
+#if defined(LIBMAUS2_HAVE_x86_64)
 /**
  The function below is originally by Mark Adler and was modified for libmaus2 by
  German Tischler.

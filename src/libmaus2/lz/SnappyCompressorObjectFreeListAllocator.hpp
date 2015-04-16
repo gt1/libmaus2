@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECTFREELISTALLOCATOR_HPP)
-#define LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECTFREELISTALLOCATOR_HPP
+#if ! defined(LIBMAUS2_LZ_SNAPPYCOMPRESSOROBJECTFREELISTALLOCATOR_HPP)
+#define LIBMAUS2_LZ_SNAPPYCOMPRESSOROBJECTFREELISTALLOCATOR_HPP
 
 #include <libmaus2/lz/CompressorObjectFreeListAllocator.hpp>
 #include <libmaus2/lz/SnappyCompressorObjectFactory.hpp>

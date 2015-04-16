@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_FASTX_FASTASTREAMSET_HPP)
-#define LIBMAUS_FASTX_FASTASTREAMSET_HPP
+#if ! defined(LIBMAUS2_FASTX_FASTASTREAMSET_HPP)
+#define LIBMAUS2_FASTX_FASTASTREAMSET_HPP
 
 #include <libmaus2/fastx/FastAStream.hpp>
 #include <libmaus2/fastx/SpaceTable.hpp>

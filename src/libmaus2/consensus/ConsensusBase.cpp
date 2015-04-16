@@ -19,7 +19,7 @@
 #include <libmaus2/consensus/Consensus.hpp>
 #include <libmaus2/math/binom.hpp>
 
-#if defined(LIBMAUS_HAVE_SEQAN)
+#if defined(LIBMAUS2_HAVE_SEQAN)
 #include <libmaus2/consensus/ScoringMatrix.hpp>
 #include <seqan/align.h>
 #include <seqan/graph_msa.h>

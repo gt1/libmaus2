@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP)
-#define LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMAGAPDECODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMAGAPDECODER_HPP
 
 #include <libmaus2/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus2/huffman/KvInitResult.hpp>

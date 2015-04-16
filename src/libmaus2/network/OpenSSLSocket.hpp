@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_OPENSSLSOCKET_HPP)
-#define LIBMAUS_NETWORK_OPENSSLSOCKET_HPP
+#if ! defined(LIBMAUS2_NETWORK_OPENSSLSOCKET_HPP)
+#define LIBMAUS2_NETWORK_OPENSSLSOCKET_HPP
 
 #include <libmaus2/network/OpenSSLInit.hpp>
 #include <libmaus2/network/SocketInputOutputInterface.hpp>
@@ -33,7 +33,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			#if defined(LIBMAUS_HAVE_OPENSSL)
+			#if defined(LIBMAUS2_HAVE_OPENSSL)
 			SSL_CTX * ctx;
 			BIO * bio;
 			SSL * ssl;
@@ -41,7 +41,7 @@ namespace libmaus2
 			
 			void cleanup()
 			{
-				#if defined(LIBMAUS_HAVE_OPENSSL)
+				#if defined(LIBMAUS2_HAVE_OPENSSL)
 				if ( bio )
 				{
 					BIO_free_all(bio);
@@ -57,35 +57,35 @@ namespace libmaus2
 			
 			OpenSSLSocket(
 				std::string const & 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					hostname
 					#endif
 				, 
 				unsigned int 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					port
 					#endif
 				,
 				char const * 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					certfile
 					#endif
 				,
 				char const * 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					certdir
 					#endif
 				,
 				bool const
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					checkcertificate
 					#endif
 			)
-			#if defined(LIBMAUS_HAVE_OPENSSL)	 
+			#if defined(LIBMAUS2_HAVE_OPENSSL)	 
 			: ctx(0), bio(0), ssl(0)
 			#endif
 			{
-				#if defined(LIBMAUS_HAVE_OPENSSL)	 
+				#if defined(LIBMAUS2_HAVE_OPENSSL)	 
 				ctx = SSL_CTX_new(SSLv23_client_method());
 
 				if ( ! ctx )
@@ -233,17 +233,17 @@ namespace libmaus2
 			
 			void write(
 				char const * 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					p
 					#endif
 				,
 				size_t 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					n
 					#endif
 			)
 			{
-				#if defined(LIBMAUS_HAVE_OPENSSL)
+				#if defined(LIBMAUS2_HAVE_OPENSSL)
 				while ( n )
 				{
 					long w = -1;
@@ -277,17 +277,17 @@ namespace libmaus2
 			
 			ssize_t readPart(
 				char * 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					p
 					#endif
 				, 
 				size_t 
-					#if defined(LIBMAUS_HAVE_OPENSSL)
+					#if defined(LIBMAUS2_HAVE_OPENSSL)
 					n
 					#endif
 			)
 			{
-				#if defined(LIBMAUS_HAVE_OPENSSL)
+				#if defined(LIBMAUS2_HAVE_OPENSSL)
 				long r = BIO_read(bio,p,n);
 
 				if ( r < 0 )

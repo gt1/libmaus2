@@ -66,7 +66,7 @@ namespace libmaus2
 		};
 
 
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(HAVE_SSE4) && defined(LIBMAUS_HAVE_x86_64)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(HAVE_SSE4) && defined(LIBMAUS2_HAVE_x86_64)
 		inline unsigned int sse4popcnt(uint32_t data)
 		{
 			asm volatile("popcnt %0,%0" : "+r" (data));
@@ -97,7 +97,7 @@ namespace libmaus2
 				return sse4popcnt(v);
 			}
 		};
-		#elif defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_SSSE3) && defined(LIBMAUS_HAVE_x86_64)
+		#elif defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_SSSE3) && defined(LIBMAUS2_HAVE_x86_64)
 		inline unsigned int ssse3popcnt(uint64_t const data)
 		{
 			// lookup table

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BITIO_BITVECTOROUTPUT_HPP)
-#define LIBMAUS_BITIO_BITVECTOROUTPUT_HPP
+#if ! defined(LIBMAUS2_BITIO_BITVECTOROUTPUT_HPP)
+#define LIBMAUS2_BITIO_BITVECTOROUTPUT_HPP
 
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 

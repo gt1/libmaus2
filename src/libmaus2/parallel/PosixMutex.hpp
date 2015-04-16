@@ -25,7 +25,7 @@
 #include <libmaus2/util/shared_ptr.hpp>
 #include <cerrno>
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <pthread.h>
 
 namespace libmaus2

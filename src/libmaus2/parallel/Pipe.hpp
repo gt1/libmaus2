@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_PARALLEL_PIPE_HPP)
-#define LIBMAUS_PARALLEL_PIPE_HPP
+#if ! defined(LIBMAUS2_PARALLEL_PIPE_HPP)
+#define LIBMAUS2_PARALLEL_PIPE_HPP
 
 #include <libmaus2/exception/LibMausException.hpp>
 #include <unistd.h>

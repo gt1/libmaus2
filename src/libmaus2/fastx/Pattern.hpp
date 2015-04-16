@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_FASTX_PATTERN_HPP)
-#define LIBMAUS_FASTX_PATTERN_HPP
+#if ! defined(LIBMAUS2_FASTX_PATTERN_HPP)
+#define LIBMAUS2_FASTX_PATTERN_HPP
 
 #include <string>
 #include <sstream>

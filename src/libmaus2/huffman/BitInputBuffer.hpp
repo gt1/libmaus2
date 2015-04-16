@@ -174,7 +174,7 @@ namespace libmaus2
 				
 				in->read ( reinterpret_cast<char *>(B.begin() + wordoffset) , bytelen );
 				
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				for ( uint64_t i =  wordoffset; i < B.size(); ++i )
 					switch ( sizeof(buffer_data_type) )
 					{

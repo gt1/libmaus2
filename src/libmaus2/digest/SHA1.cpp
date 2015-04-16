@@ -18,7 +18,7 @@
 */
 #include <libmaus2/digest/SHA1.hpp>
 
-#if defined(LIBMAUS_HAVE_NETTLE)
+#if defined(LIBMAUS2_HAVE_NETTLE)
 #include <nettle/sha.h>
 
 libmaus2::digest::SHA1::SHA1() : ctx(0) { ctx = new sha1_ctx; }

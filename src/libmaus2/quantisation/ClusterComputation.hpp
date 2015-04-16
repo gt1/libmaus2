@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_QUANTISATION_CLUSTERCOMPUTATION_HPP)
-#define LIBMAUS_QUANTISATION_CLUSTERCOMPUTATION_HPP
+#if ! defined(LIBMAUS2_QUANTISATION_CLUSTERCOMPUTATION_HPP)
+#define LIBMAUS2_QUANTISATION_CLUSTERCOMPUTATION_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/quantisation/Quantiser.hpp>

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_THREADPOOLTHREAD_HPP)
-#define LIBMAUS_PARALLEL_THREADPOOLTHREAD_HPP
+#if ! defined(LIBMAUS2_PARALLEL_THREADPOOLTHREAD_HPP)
+#define LIBMAUS2_PARALLEL_THREADPOOLTHREAD_HPP
 
 #include <libmaus2/parallel/PosixThread.hpp>
 #include <libmaus2/parallel/ThreadPoolInterface.hpp>

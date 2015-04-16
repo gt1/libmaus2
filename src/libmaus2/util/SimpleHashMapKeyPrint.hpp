@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_UTIL_SIMPLEHASHMAPKEYPRINT_HPP)
-#define LIBMAUS_UTIL_SIMPLEHASHMAPKEYPRINT_HPP
+#if ! defined(LIBMAUS2_UTIL_SIMPLEHASHMAPKEYPRINT_HPP)
+#define LIBMAUS2_UTIL_SIMPLEHASHMAPKEYPRINT_HPP
 
 #include <iostream>
 #include <libmaus2/types/types.hpp>
@@ -46,7 +46,7 @@ namespace libmaus2
 			}
 		};
 		
-		#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 		template<>
 		struct SimpleHashMapKeyPrint<libmaus2::uint128_t>
 		{

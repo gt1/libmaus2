@@ -16,12 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_LOCKEDBOOL_HPP)
-#define LIBMAUS_PARALLEL_LOCKEDBOOL_HPP
+#if ! defined(LIBMAUS2_PARALLEL_LOCKEDBOOL_HPP)
+#define LIBMAUS2_PARALLEL_LOCKEDBOOL_HPP
 
 #include <libmaus2/parallel/OMPLock.hpp>
 
-#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+#if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 #endif
 
@@ -31,7 +31,7 @@ namespace libmaus2
 	{
 		struct LockedBool
 		{
-			#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+			#if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 			libmaus2::parallel::PosixSpinLock lock;
 			#else
 			libmaus2::parallel::OMPLock lock;

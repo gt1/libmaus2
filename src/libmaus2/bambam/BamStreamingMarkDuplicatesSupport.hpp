@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMSTREAMINGMARKDUPLICATESSUPPORT_HPP)
-#define LIBMAUS_BAMBAM_BAMSTREAMINGMARKDUPLICATESSUPPORT_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMSTREAMINGMARKDUPLICATESSUPPORT_HPP)
+#define LIBMAUS2_BAMBAM_BAMSTREAMINGMARKDUPLICATESSUPPORT_HPP
 
 #include <libmaus2/bambam/BamAlignment.hpp>
 #include <libmaus2/bambam/BamAlignmentDecoder.hpp>
@@ -32,9 +32,9 @@
 #include <stdint.h>
 
 #if defined(INT32_MIN)
-#define LIBMAUS_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN INT32_MIN
+#define LIBMAUS2_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN INT32_MIN
 #else
-#define LIBMAUS_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN (-2147483647-1)
+#define LIBMAUS2_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN (-2147483647-1)
 #endif
 
 namespace libmaus2
@@ -45,7 +45,7 @@ namespace libmaus2
 		{
 			struct SignCoding
 			{
-				static int64_t const signshift = LIBMAUS_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN;
+				static int64_t const signshift = LIBMAUS2_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN;
 
 				static uint32_t signEncode(int32_t const coord)
 				{

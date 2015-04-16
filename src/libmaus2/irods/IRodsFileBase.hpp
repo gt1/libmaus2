@@ -18,13 +18,13 @@
 */
 
 /* this code is inspired by the samtools_irods project */
-#if ! defined(LIBMAUS_IRODS_IRODSFILEBASE_HPP)
-#define LIBMAUS_IRODS_IRODSFILEBASE_HPP
+#if ! defined(LIBMAUS2_IRODS_IRODSFILEBASE_HPP)
+#define LIBMAUS2_IRODS_IRODSFILEBASE_HPP
 
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/irods/IRodsCommProvider.hpp>
 
-#if defined(LIBMAUS_HAVE_IRODS)
+#if defined(LIBMAUS2_HAVE_IRODS)
 #include <rodsClient.h>
 #endif
 

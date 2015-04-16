@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_AUTOARRAY_AUTOARRAY2D_HPP)
-#define LIBMAUS_AUTOARRAY_AUTOARRAY2D_HPP
+#if ! defined(LIBMAUS2_AUTOARRAY_AUTOARRAY2D_HPP)
+#define LIBMAUS2_AUTOARRAY_AUTOARRAY2D_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 

@@ -20,8 +20,8 @@
 /*
  * Creation of this code used the samtools_irods source as a reference
  */ 
-#if ! defined(LIBMAUS_IRODS_IRODSSYSTEM_HPP)
-#define LIBMAUS_IRODS_IRODSSYSTEM_HPP
+#if ! defined(LIBMAUS2_IRODS_IRODSSYSTEM_HPP)
+#define LIBMAUS2_IRODS_IRODSSYSTEM_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/irods/IRodsFileBase.hpp>
@@ -47,7 +47,7 @@ namespace libmaus2
 				return tptr;
 			}
 
-			#if defined(LIBMAUS_HAVE_IRODS)
+			#if defined(LIBMAUS2_HAVE_IRODS)
 			rodsEnv irodsEnvironment;
 			rcComm_t * comm;
 			sighandler_t prevpipesighandler;
@@ -63,7 +63,7 @@ namespace libmaus2
 			IRodsSystem();
 			~IRodsSystem();
 
-			#if defined(LIBMAUS_HAVE_IRODS)
+			#if defined(LIBMAUS2_HAVE_IRODS)
 			virtual rcComm_t * getComm()
 			{
 				return comm;

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_BGZFINFLATEZSTREAMBASETYPEINFO)
-#define LIBMAUS_LZ_BGZFINFLATEZSTREAMBASETYPEINFO
+#if ! defined(LIBMAUS2_LZ_BGZFINFLATEZSTREAMBASETYPEINFO)
+#define LIBMAUS2_LZ_BGZFINFLATEZSTREAMBASETYPEINFO
 
 #include <libmaus2/lz/BgzfInflateZStreamBase.hpp>
 

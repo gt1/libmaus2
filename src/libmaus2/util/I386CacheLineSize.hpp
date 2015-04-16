@@ -28,7 +28,7 @@ namespace libmaus2
 {
 	namespace util
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 		/**
 		 * class for i386 cache line size detection
 		 **/

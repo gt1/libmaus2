@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined(LIBMAUS_LCS_LOCALEDITDISTANCE_HPP)
-#define LIBMAUS_LCS_LOCALEDITDISTANCE_HPP
+#if !defined(LIBMAUS2_LCS_LOCALEDITDISTANCE_HPP)
+#define LIBMAUS2_LCS_LOCALEDITDISTANCE_HPP
 
 #include <libmaus2/lcs/EditDistancePriorityType.hpp>
 #include <libmaus2/lcs/AlignmentPrint.hpp>

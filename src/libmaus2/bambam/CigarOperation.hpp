@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_BAMBAM_CIGAROPERATION_HPP)
-#define LIBMAUS_BAMBAM_CIGAROPERATION_HPP
+#if ! defined(LIBMAUS2_BAMBAM_CIGAROPERATION_HPP)
+#define LIBMAUS2_BAMBAM_CIGAROPERATION_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <map>

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_UTF8DECODERWRAPPER_HPP)
-#define LIBMAUS_UTIL_UTF8DECODERWRAPPER_HPP
+#if ! defined(LIBMAUS2_UTIL_UTF8DECODERWRAPPER_HPP)
+#define LIBMAUS2_UTIL_UTF8DECODERWRAPPER_HPP
 
 #include <libmaus2/util/Utf8DecoderBuffer.hpp>
 

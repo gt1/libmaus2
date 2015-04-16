@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_UTF8DECODERBUFFER_HPP)
-#define LIBMAUS_UTIL_UTF8DECODERBUFFER_HPP
+#if ! defined(LIBMAUS2_UTIL_UTF8DECODERBUFFER_HPP)
+#define LIBMAUS2_UTIL_UTF8DECODERBUFFER_HPP
 
 #include <istream>
 #include <fstream>

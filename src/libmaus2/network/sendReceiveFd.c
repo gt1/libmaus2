@@ -66,7 +66,7 @@ int libmaus2_network_receiveFd_C(int const socket)
 	struct msghdr hdr;
 	struct cmsghdr *chdr;
 	char ancillary[CMSG_SPACE(sizeof(int))];
-	#if defined(LIBMAUS_HAVE_MSG_CMSG_CLOEXEC)
+	#if defined(LIBMAUS2_HAVE_MSG_CMSG_CLOEXEC)
 	int const recflags = MSG_CMSG_CLOEXEC;
 	#else
 	int const recflags = 0;

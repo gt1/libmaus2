@@ -88,12 +88,12 @@ translate
 }
 
 void libmaus2::util::StackTrace::simpleStackTrace(std::ostream &
-#if defined(LIBMAUS_HAVE_BACKTRACE)
+#if defined(LIBMAUS2_HAVE_BACKTRACE)
 ostr
 #endif
 )
 {
-	#if defined(LIBMAUS_HAVE_BACKTRACE)
+	#if defined(LIBMAUS2_HAVE_BACKTRACE)
 	unsigned int const depth = 20;
 	void *array[depth];
 	size_t const size = backtrace(array,depth);
@@ -108,7 +108,7 @@ ostr
 
 libmaus2::util::StackTrace::StackTrace() : trace()
 {
-	#if defined(LIBMAUS_HAVE_BACKTRACE)
+	#if defined(LIBMAUS2_HAVE_BACKTRACE)
 	unsigned int const depth = 20;
 	void *array[depth];
 	size_t const size = backtrace(array,depth);

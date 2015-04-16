@@ -16,15 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERFACTORY_HPP)
-#define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERFACTORY_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTDECODERFACTORY_HPP)
+#define LIBMAUS2_BAMBAM_BAMALIGNMENTDECODERFACTORY_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
 #include <libmaus2/bambam/CramRange.hpp>
 #include <libmaus2/bambam/SamDecoderWrapper.hpp>
 
-#if defined(LIBMAUS_HAVE_IO_LIB)
+#if defined(LIBMAUS2_HAVE_IO_LIB)
 #include <libmaus2/bambam/ScramDecoder.hpp>
 #include <libmaus2/bambam/ScramInputContainer.hpp>
 #endif
@@ -57,7 +57,7 @@ namespace libmaus2
 				S.insert("sam");
 				S.insert("maussam");
 
-				#if defined(LIBMAUS_HAVE_IO_LIB)
+				#if defined(LIBMAUS2_HAVE_IO_LIB)
 				S.insert("sbam");
 				S.insert("cram");
 				#endif
@@ -121,7 +121,7 @@ namespace libmaus2
 				std::string const & inputformat = BamAlignmentDecoderInfo::getDefaultInputFormat(),
 				uint64_t const inputthreads = BamAlignmentDecoderInfo::getDefaultThreads(),
 				std::string const & 
-					#if defined(LIBMAUS_HAVE_IO_LIB)
+					#if defined(LIBMAUS2_HAVE_IO_LIB)
 					reference
 					#endif
 					= BamAlignmentDecoderInfo::getDefaultReference(),
@@ -249,7 +249,7 @@ namespace libmaus2
 				}
 				else if ( 
 					inputformat == "maussam" 
-					#if ! defined(LIBMAUS_HAVE_IO_LIB)
+					#if ! defined(LIBMAUS2_HAVE_IO_LIB)
 					||
 					inputformat == "sam"
 					#endif
@@ -289,7 +289,7 @@ namespace libmaus2
 						return UNIQUE_PTR_MOVE(tptr);					
 					}
 				}
-				#if defined(LIBMAUS_HAVE_IO_LIB)
+				#if defined(LIBMAUS2_HAVE_IO_LIB)
 				else if ( inputformat == "sam" )
 				{
 					if ( copystr )
@@ -380,7 +380,7 @@ namespace libmaus2
 
 					if ( inputisstdin )
 					{
-						#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
+						#if defined(LIBMAUS2_HAVE_IO_LIB_INPUT_CALLBACKS)
 						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 							new libmaus2::bambam::ScramDecoderWrapper(
 								std::string("-"),
@@ -402,7 +402,7 @@ namespace libmaus2
 					{
 						if ( cramrange.rangeref.size() )
 						{
-							#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
+							#if defined(LIBMAUS2_HAVE_IO_LIB_INPUT_CALLBACKS)
 							libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 								new libmaus2::bambam::ScramDecoderWrapper(
 									inputfilename,
@@ -424,7 +424,7 @@ namespace libmaus2
 						}
 						else
 						{
-							#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
+							#if defined(LIBMAUS2_HAVE_IO_LIB_INPUT_CALLBACKS)
 							libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 								new libmaus2::bambam::ScramDecoderWrapper(
 									inputfilename,

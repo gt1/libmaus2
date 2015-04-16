@@ -36,7 +36,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#if defined(LIBMAUS_HAVE_UNISTD_H)
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
 

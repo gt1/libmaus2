@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_GAMMA_GAMMAENCODER_HPP)
-#define LIBMAUS_GAMMA_GAMMAENCODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMAENCODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMAENCODER_HPP
 
 #include <libmaus2/bitio/Clz.hpp>
 #include <libmaus2/util/unique_ptr.hpp>

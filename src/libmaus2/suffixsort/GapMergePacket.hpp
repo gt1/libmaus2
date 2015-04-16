@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#if ! defined(LIBMAUS_SUFFIXSORT_GAPMERGEPACKET_HPP)
-#define LIBMAUS_SUFFIXSORT_GAPMERGEPACKET_HPP
+#if ! defined(LIBMAUS2_SUFFIXSORT_GAPMERGEPACKET_HPP)
+#define LIBMAUS2_SUFFIXSORT_GAPMERGEPACKET_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <ostream>

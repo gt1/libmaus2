@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMINDEXREF_HPP)
-#define LIBMAUS_BAMBAM_BAMINDEXREF_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMINDEXREF_HPP)
+#define LIBMAUS2_BAMBAM_BAMINDEXREF_HPP
 
 #include <libmaus2/bambam/BamIndexBin.hpp>
 #include <libmaus2/bambam/BamIndexLinear.hpp>

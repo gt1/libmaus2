@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLMERGEHEAPENTRY_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLMERGEHEAPENTRY_HPP
+#if ! defined(LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTCONTROLMERGEHEAPENTRY_HPP)
+#define LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTCONTROLMERGEHEAPENTRY_HPP
 
 #include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 #include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
@@ -91,7 +91,7 @@ namespace libmaus2
 					uint8_t const * algn4 = reinterpret_cast<uint8_t const *>(block->getNextParsePointer()) + sizeof(uint32_t);
 
 					name = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(algn4);
-					read1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(algn4) & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+					read1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(algn4) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
 					recodedlength = libmaus2::bambam::StrCmpNumRecode::recode(name,recoded);
 				}
 

@@ -82,8 +82,8 @@ void printTable(char const * name, char const * T, size_t l, FILE * out)
 int main()
 {
 	initSamCharTables();
-	fprintf(stdout,"#if ! defined(LIBMAUS_BAMBAM_SAMINFO_HPP)\n");
-	fprintf(stdout,"#define LIBMAUS_BAMBAM_SAMINFO_HPP\n\n");
+	fprintf(stdout,"#if ! defined(LIBMAUS2_BAMBAM_SAMINFO_HPP)\n");
+	fprintf(stdout,"#define LIBMAUS2_BAMBAM_SAMINFO_HPP\n\n");
 	char const * s = 
 		"namespace libmaus2\n"
 		"{\n"

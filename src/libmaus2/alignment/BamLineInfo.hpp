@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_ALIGNMENT_BAMLINEINFO_HPP)
-#define LIBMAUS_ALIGNMENT_BAMLINEINFO_HPP
+#if ! defined(LIBMAUS2_ALIGNMENT_BAMLINEINFO_HPP)
+#define LIBMAUS2_ALIGNMENT_BAMLINEINFO_HPP
 
 #include <libmaus2/bambam/BamWriter.hpp>
 
@@ -44,7 +44,7 @@ namespace libmaus2
 			
 			uint64_t getFrontSoftClipping() const
 			{
-				if ( cigops.size() && cigops.front().first == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+				if ( cigops.size() && cigops.front().first == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
 					return cigops.front().second;	
 				else
 					return 0;
@@ -52,7 +52,7 @@ namespace libmaus2
 
 			uint64_t getBackSoftClipping() const
 			{
-				if ( cigops.size() && cigops.back().first == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+				if ( cigops.size() && cigops.back().first == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
 					return cigops.back().second;	
 				else
 					return 0;
@@ -66,11 +66,11 @@ namespace libmaus2
 				{
 					switch ( cigops[i].first )
 					{
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
 							e += cigops[i].second;
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
 							n += cigops[i].second;
 							break;
 						default:

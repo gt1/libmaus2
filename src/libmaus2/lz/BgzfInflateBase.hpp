@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_BGZFINFLATEBASE_HPP)
-#define LIBMAUS_LZ_BGZFINFLATEBASE_HPP
+#if ! defined(LIBMAUS2_LZ_BGZFINFLATEBASE_HPP)
+#define LIBMAUS2_LZ_BGZFINFLATEBASE_HPP
 
 #include <zlib.h>
 #include <libmaus2/autoarray/AutoArray.hpp>
@@ -65,7 +65,7 @@ namespace libmaus2
 					throw se;
 				}
 				
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN) && defined(LIBMAUS_HAVE_i386)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN) && defined(LIBMAUS2_HAVE_i386)
 				uint32_t const uncompdatasize = *(reinterpret_cast<uint32_t const *>(block.begin()+payloadsize+4));
 				#else
 				uint32_t const uncompdatasize = 

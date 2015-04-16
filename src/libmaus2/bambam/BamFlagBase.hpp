@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMFLAGBASE)
-#define LIBMAUS_BAMBAM_BAMFLAGBASE
+#if ! defined(LIBMAUS2_BAMBAM_BAMFLAGBASE)
+#define LIBMAUS2_BAMBAM_BAMFLAGBASE
 
 #include <ostream>
 #include <deque>
@@ -36,33 +36,33 @@ namespace libmaus2
 			//! alignment flags
 			enum bam_flags
 			{
-				LIBMAUS_BAMBAM_FPAIRED = (1u << 0),
-				LIBMAUS_BAMBAM_FPROPER_PAIR = (1u << 1),
-				LIBMAUS_BAMBAM_FUNMAP = (1u << 2),
-				LIBMAUS_BAMBAM_FMUNMAP = (1u << 3),
-				LIBMAUS_BAMBAM_FREVERSE = (1u << 4),
-				LIBMAUS_BAMBAM_FMREVERSE = (1u << 5),
-				LIBMAUS_BAMBAM_FREAD1 = (1u << 6),
-				LIBMAUS_BAMBAM_FREAD2 = (1u << 7),
-				LIBMAUS_BAMBAM_FSECONDARY = (1u << 8),
-				LIBMAUS_BAMBAM_FQCFAIL = (1u << 9),
-				LIBMAUS_BAMBAM_FDUP = (1u << 10),
-				LIBMAUS_BAMBAM_FSUPPLEMENTARY = (1u << 11),
-				LIBMAUS_BAMBAM_FCIGAR32 = (1u << 15)
+				LIBMAUS2_BAMBAM_FPAIRED = (1u << 0),
+				LIBMAUS2_BAMBAM_FPROPER_PAIR = (1u << 1),
+				LIBMAUS2_BAMBAM_FUNMAP = (1u << 2),
+				LIBMAUS2_BAMBAM_FMUNMAP = (1u << 3),
+				LIBMAUS2_BAMBAM_FREVERSE = (1u << 4),
+				LIBMAUS2_BAMBAM_FMREVERSE = (1u << 5),
+				LIBMAUS2_BAMBAM_FREAD1 = (1u << 6),
+				LIBMAUS2_BAMBAM_FREAD2 = (1u << 7),
+				LIBMAUS2_BAMBAM_FSECONDARY = (1u << 8),
+				LIBMAUS2_BAMBAM_FQCFAIL = (1u << 9),
+				LIBMAUS2_BAMBAM_FDUP = (1u << 10),
+				LIBMAUS2_BAMBAM_FSUPPLEMENTARY = (1u << 11),
+				LIBMAUS2_BAMBAM_FCIGAR32 = (1u << 15)
 			};
 			
 			//! cigar operator codes
 			enum bam_cigar_ops
 			{
-				LIBMAUS_BAMBAM_CMATCH = 0,
-				LIBMAUS_BAMBAM_CINS = 1,
-				LIBMAUS_BAMBAM_CDEL = 2,
-				LIBMAUS_BAMBAM_CREF_SKIP = 3,
-				LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-				LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-				LIBMAUS_BAMBAM_CPAD = 6,
-				LIBMAUS_BAMBAM_CEQUAL = 7,
-				LIBMAUS_BAMBAM_CDIFF = 8
+				LIBMAUS2_BAMBAM_CMATCH = 0,
+				LIBMAUS2_BAMBAM_CINS = 1,
+				LIBMAUS2_BAMBAM_CDEL = 2,
+				LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+				LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+				LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+				LIBMAUS2_BAMBAM_CPAD = 6,
+				LIBMAUS2_BAMBAM_CEQUAL = 7,
+				LIBMAUS2_BAMBAM_CDIFF = 8
 			};			
 
 			/**
@@ -74,29 +74,29 @@ namespace libmaus2
 			static uint64_t stringToFlag(std::string const & s)
 			{
 				if ( s == "PAIRED" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED;
 				else if ( s == "PROPER_PAIR" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPROPER_PAIR;
 				else if ( s == "UNMAP" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP;
 				else if ( s == "MUNMAP" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP;
 				else if ( s == "REVERSE" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE;
 				else if ( s == "MREVERSE" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE;
 				else if ( s == "READ1" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
 				else if ( s == "READ2" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2;
 				else if ( s == "SECONDARY" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY;
 				else if ( s == "QCFAIL" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL;
 				else if ( s == "DUP" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
 				else if ( s == "SUPPLEMENTARY" )
-					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY;
 				else
 				{
 					::libmaus2::exception::LibMausException se;

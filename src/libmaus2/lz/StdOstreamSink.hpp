@@ -16,12 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_STDOSTREAMSINK)
-#define LIBMAUS_LZ_STDOSTREAMSINK
+#if ! defined(LIBMAUS2_LZ_STDOSTREAMSINK)
+#define LIBMAUS2_LZ_STDOSTREAMSINK
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_SNAPPY)
+#if defined(LIBMAUS2_HAVE_SNAPPY)
 #include <snappy-sinksource.h>
 
 namespace libmaus2

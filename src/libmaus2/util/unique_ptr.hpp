@@ -17,21 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_UNIQUE_PTR_HPP)
-#define LIBMAUS_UTIL_UNIQUE_PTR_HPP
+#if ! defined(LIBMAUS2_UTIL_UNIQUE_PTR_HPP)
+#define LIBMAUS2_UTIL_UNIQUE_PTR_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_USE_STD_UNIQUE_PTR)
+#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
 #include <memory>
-#elif defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
+#elif defined(LIBMAUS2_USE_BOOST_UNIQUE_PTR)
 #include <libmaus2/deleter/Deleter.hpp>
 #include <boost/interprocess/smart_ptr/unique_ptr.hpp>
 #endif
 
-#if defined(LIBMAUS_USE_STD_MOVE)
+#if defined(LIBMAUS2_USE_STD_MOVE)
 #define UNIQUE_PTR_MOVE(obj) ::std::move(obj)
-#elif defined(LIBMAUS_USE_BOOST_MOVE)
+#elif defined(LIBMAUS2_USE_BOOST_MOVE)
 #include <boost/move/move.hpp>
 #define UNIQUE_PTR_MOVE(obj) ::boost::move(obj)
 #else
@@ -45,9 +45,9 @@ namespace libmaus2
 		template<typename T>
 		struct unique_ptr
 		{
-			#if defined(LIBMAUS_USE_STD_UNIQUE_PTR)
+			#if defined(LIBMAUS2_USE_STD_UNIQUE_PTR)
 			typedef typename ::std::unique_ptr<T> type;			
-			#elif defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
+			#elif defined(LIBMAUS2_USE_BOOST_UNIQUE_PTR)
 			typedef typename ::boost::interprocess::unique_ptr<T,::libmaus2::deleter::Deleter<T> > type;
 			#else
 			#error "Required unique_ptr not found."

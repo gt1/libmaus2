@@ -48,7 +48,7 @@ namespace libmaus2
 			uint64_t const bitoffset = offset&0x7u;
 			A[wordoffset] = (A[wordoffset] & maskone[bitoffset]) | insone[(bitoffset<<1)|v];
 		}
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		/**
 		 * put one bit synchronous
 		 * @param A bit vector
@@ -157,7 +157,7 @@ namespace libmaus2
 			uint64_t const bitoffset = offset&0xfu;
 			A[wordoffset] = (A[wordoffset] & maskone[bitoffset]) | insone[(bitoffset<<1)|v];
 		}
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		/**
 		 * put one bit
 		 * @param A bit vector
@@ -298,7 +298,7 @@ namespace libmaus2
 			uint64_t const bitoffset = offset&0x1fu;
 			A[wordoffset] = (A[wordoffset] & maskone[bitoffset]) | insone[(bitoffset<<1)|v];
 		}
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		/**
 		 * put one bit
 		 * @param A bit vector
@@ -490,7 +490,7 @@ namespace libmaus2
 			
 			A[wordoffset] = (A[wordoffset] & maskone[bitoffset]) | insone[(bitoffset<<1)|v];
 		}
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		/**
 		 * put one bit
 		 * @param A bit vector
@@ -772,7 +772,7 @@ namespace libmaus2
 				case 1: default: return putBit1(A,offset,bit);
 			}
 		}
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		/**
 		 * put one bit 
 		 * @param A bit vector

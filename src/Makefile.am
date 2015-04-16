@@ -56,7 +56,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/StackTrace.cpp libmaus2/lcs/OverlapComputation.cpp \
 	libmaus2/lcs/HashContainer.cpp \
 	libmaus2/lcs/HashContainer2.cpp \
-	libmaus2/digest/md5.cpp libmaus2/util/I386CacheLineSize.cpp \
+	libmaus2/digest/md5.cpp \
+	libmaus2/util/I386CacheLineSize.cpp \
 	libmaus2/math/primes16.cpp \
 	libmaus2/util/OutputFileNameTools.cpp \
 	libmaus2/select/ESelectBase.cpp \
@@ -971,8 +972,6 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/MoveStack.hpp \
 	libmaus2/util/LongestIncreasingSubsequence.hpp \
 	libmaus2/util/utf8.hpp \
-	libmaus2/digest/md5.hpp \
-	libmaus2/digest/md5.h \
 	libmaus2/util/MemLimit.hpp \
 	libmaus2/util/Histogram.hpp \
 	libmaus2/util/IncreasingList.hpp \
@@ -1315,7 +1314,9 @@ libmaus2digest_include_HEADERS=\
 	libmaus2/digest/DigestFactoryContainer.hpp \
 	libmaus2/digest/DigestFactory_SHA2_ASM.hpp \
 	libmaus2/digest/DigestFactory_CRC32C_SSE42.hpp \
-	libmaus2/digest/DigestFactoryInterface.hpp
+	libmaus2/digest/DigestFactoryInterface.hpp \
+	libmaus2/digest/md5.hpp \
+	libmaus2/digest/md5.h
 
 libmaus2lf_includedir=$(includedir)/libmaus2/lf
 libmaus2lf_include_HEADERS=\

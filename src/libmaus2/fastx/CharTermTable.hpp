@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_FASTX_CHARTERMTABLE_HPP)
-#define LIBMAUS_FASTX_CHARTERMTABLE_HPP
+#if ! defined(LIBMAUS2_FASTX_CHARTERMTABLE_HPP)
+#define LIBMAUS2_FASTX_CHARTERMTABLE_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 

@@ -19,7 +19,7 @@
 
 #include <libmaus2/util/I386CacheLineSize.hpp>
 
-#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
+#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 void libmaus2::util::I386CacheLineSize::cpuid(
 	uint32_t & eax,
 	uint32_t & ebx,
@@ -27,7 +27,7 @@ void libmaus2::util::I386CacheLineSize::cpuid(
 	uint32_t & edx
 )
 {
-	#if defined(LIBMAUS_HAVE_x86_64)
+	#if defined(LIBMAUS2_HAVE_x86_64)
 	typedef uint64_t regsave_type;
 	#else
 	typedef uint32_t regsave_type;
@@ -44,7 +44,7 @@ void libmaus2::util::I386CacheLineSize::cpuid(
 		regsave[2] = ecx;
 		regsave[3] = edx;
 		
-		#if defined(LIBMAUS_HAVE_x86_64)
+		#if defined(LIBMAUS2_HAVE_x86_64)
 		asm volatile(
 			"mov %%rax,(4*8)(%0)\n"
 			"mov %%rbx,(5*8)(%0)\n"

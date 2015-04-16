@@ -18,19 +18,19 @@
 */
 
 
-#if ! defined(LIBMAUS_TIMING_REALTIMECLOCK_HPP)
-#define LIBMAUS_TIMING_REALTIMECLOCK_HPP
+#if ! defined(LIBMAUS2_TIMING_REALTIMECLOCK_HPP)
+#define LIBMAUS2_TIMING_REALTIMECLOCK_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/types/types.hpp>
 #include <sstream>
 #include <iomanip>
 
-#if defined(LIBMAUS_HAVE_WINDOWS_H)
+#if defined(LIBMAUS2_HAVE_WINDOWS_H)
 #include <windows.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_SYS_TIME_H)
+#if defined(LIBMAUS2_HAVE_SYS_TIME_H)
 #include <sys/time.h>
 #endif
 

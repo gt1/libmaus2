@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_GAMMA_GAMMARLENCODER_HPP)
-#define LIBMAUS_GAMMA_GAMMARLENCODER_HPP
+#if ! defined(LIBMAUS2_GAMMA_GAMMARLENCODER_HPP)
+#define LIBMAUS2_GAMMA_GAMMARLENCODER_HPP
 
 #include <libmaus2/aio/CheckedOutputStream.hpp>
 #include <libmaus2/gamma/GammaEncoder.hpp>

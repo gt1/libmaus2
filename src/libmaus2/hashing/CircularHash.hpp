@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_HASHING_CIRCULARHASH_HPP)
-#define LIBMAUS_HASHING_CIRCULARHASH_HPP
+#if ! defined(LIBMAUS2_HASHING_CIRCULARHASH_HPP)
+#define LIBMAUS2_HASHING_CIRCULARHASH_HPP
 
 #include <libmaus2/bitbtree/bitbtree.hpp>
 #include <libmaus2/bambam/BamAlignmentExpungeCallback.hpp>

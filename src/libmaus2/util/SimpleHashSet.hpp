@@ -59,7 +59,7 @@ namespace libmaus2
 			// hash array
 			::libmaus2::autoarray::AutoArray<key_type> H;
 
-			#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
+			#if ! defined(LIBMAUS2_HAVE_SYNC_OPS)
 			::libmaus2::parallel::OMPLock hlock;
 			::libmaus2::parallel::OMPLock clock;
 			#endif
@@ -184,7 +184,7 @@ namespace libmaus2
 					// position is not currently in use, try to get it
 					else
 					{
-						#if defined(LIBMAUS_HAVE_SYNC_OPS)
+						#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 						bool const ok = __sync_bool_compare_and_swap ( &(H[p]), base_type::unused(), v);
 						#else
 						hlock.lock();
@@ -202,7 +202,7 @@ namespace libmaus2
 							// if this inserted the value, then increment fill
 							if ( ok )
 							{
-								#if defined(LIBMAUS_HAVE_SYNC_OPS)
+								#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 								__sync_fetch_and_add(&fill,1);
 								#else
 								clock.lock();

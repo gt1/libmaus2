@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_WAVELET_IMPEXTERNALWAVELETGENERATORCOMPACTHUFFMAN_HPP)
-#define LIBMAUS_WAVELET_IMPEXTERNALWAVELETGENERATORCOMPACTHUFFMAN_HPP
+#if ! defined(LIBMAUS2_WAVELET_IMPEXTERNALWAVELETGENERATORCOMPACTHUFFMAN_HPP)
+#define LIBMAUS2_WAVELET_IMPEXTERNALWAVELETGENERATORCOMPACTHUFFMAN_HPP
 
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <libmaus2/bitio/BufferIterator.hpp>

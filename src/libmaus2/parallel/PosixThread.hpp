@@ -27,7 +27,7 @@
 #include <pthread_np.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_PRCTL)
+#if defined(LIBMAUS2_HAVE_PRCTL)
 #include <sys/prctl.h>      
 #endif
 
@@ -82,7 +82,7 @@ namespace libmaus2
 			typedef cpuset_t cpu_set_t;
 			#endif
 			
-			#if defined(LIBMAUS_HAVE_PTHREAD_SETAFFINITY_NP)
+			#if defined(LIBMAUS2_HAVE_PTHREAD_SETAFFINITY_NP)
 			void setaffinity(std::vector<uint64_t> const & procs)
 			{
 				cpu_set_t cpuset;
@@ -205,7 +205,7 @@ namespace libmaus2
 			}
 			#endif
 
-			#if defined(LIBMAUS_HAVE_PTHREAD_SETAFFINITY_NP)
+			#if defined(LIBMAUS2_HAVE_PTHREAD_SETAFFINITY_NP)
 			void start(uint64_t const proc)
 			{
 				start ( std::vector<uint64_t>(1,proc) );
@@ -330,12 +330,12 @@ namespace libmaus2
 			
 			void setName(
 				std::string const & 
-				#if defined(LIBMAUS_HAVE_PRCTL)
+				#if defined(LIBMAUS2_HAVE_PRCTL)
 					name
 				#endif
 			)
 			{
-				#if defined(LIBMAUS_HAVE_PRCTL) && defined(PR_SET_NAME)
+				#if defined(LIBMAUS2_HAVE_PRCTL) && defined(PR_SET_NAME)
 				prctl(PR_SET_NAME,name.c_str(),0,0,0);
 				#endif
 			}

@@ -20,7 +20,7 @@
 #include <libmaus2/quantisation/KMLocalInterface.hpp>
 #include <libmaus2/quantisation/KmeansDataType.hpp>
 
-#if defined(LIBMAUS_HAVE_KMLOCAL)
+#if defined(LIBMAUS2_HAVE_KMLOCAL)
 #include "KMlocal.h"
 #include <vector>
 #include <iostream>

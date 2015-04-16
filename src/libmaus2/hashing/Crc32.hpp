@@ -17,8 +17,8 @@
  *
  * The changes for libmaus2 are Copyright (c) 2014 German Tischler, the license remains the same.
  */
-#if ! defined(LIBMAUS_HASHING_CRC32_HPP)
-#define LIBMAUS_HASHING_CRC32_HPP
+#if ! defined(LIBMAUS2_HASHING_CRC32_HPP)
+#define LIBMAUS2_HASHING_CRC32_HPP
  
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/rank/BSwapBase.hpp>
@@ -42,7 +42,7 @@ namespace libmaus2
 			  // process eight bytes at once (Slicing-by-8)
 			  while (length >= 8)
 			  {
-#if defined(LIBMAUS_BYTE_ORDER_BIG_ENDIAN)
+#if defined(LIBMAUS2_BYTE_ORDER_BIG_ENDIAN)
 			    uint32_t one = *current++ ^ libmaus2::rank::BSwapBase::bswap4(crc);
 			    uint32_t two = *current++;
 			    crc  = Crc32Lookup[0][ two      & 0xFF] ^

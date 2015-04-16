@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_HTTPHEADER_HPP)
-#define LIBMAUS_NETWORK_HTTPHEADER_HPP
+#if ! defined(LIBMAUS2_NETWORK_HTTPHEADER_HPP)
+#define LIBMAUS2_NETWORK_HTTPHEADER_HPP
 
 #include <libmaus2/network/HttpAbsoluteUrl.hpp>
 #include <libmaus2/network/Socket.hpp>
@@ -236,7 +236,7 @@ namespace libmaus2
 							
 						if ( proxyurl.ssl )
 						{
-							#if defined(LIBMAUS_HAVE_GNUTLS)
+							#if defined(LIBMAUS2_HAVE_GNUTLS)
 							libmaus2::network::GnuTLSSocket::unique_ptr_type tGTLSIOS(new libmaus2::network::GnuTLSSocket(proxyurl.host,proxyurl.port,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs",true));
 							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
 							SIOS = GTLSIOS.get();
@@ -264,7 +264,7 @@ namespace libmaus2
 					{
 						if ( ssl )
 						{
-							#if defined(LIBMAUS_HAVE_GNUTLS)
+							#if defined(LIBMAUS2_HAVE_GNUTLS)
 							libmaus2::network::GnuTLSSocket::unique_ptr_type tGTLSIOS(new libmaus2::network::GnuTLSSocket(host,port,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs",true));
 							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
 							

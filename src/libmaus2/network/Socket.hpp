@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_SOCKET_HPP)
-#define LIBMAUS_SOCKET_HPP
+#if ! defined(LIBMAUS2_SOCKET_HPP)
+#define LIBMAUS2_SOCKET_HPP
 
 #include <unistd.h>
 #include <sys/types.h>

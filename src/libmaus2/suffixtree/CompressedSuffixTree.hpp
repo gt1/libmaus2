@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP)
-#define LIBMAUS_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP
+#if ! defined(LIBMAUS2_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP)
+#define LIBMAUS2_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP
 
 #include <libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp>
 #include <libmaus2/fm/SampledSA.hpp>

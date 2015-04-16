@@ -18,7 +18,7 @@
 */
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_KMLOCAL)
+#if defined(LIBMAUS2_HAVE_KMLOCAL)
 #include <libmaus2/fastx/CompactFastQMultiBlockReader.hpp>
 #include <libmaus2/fastx/CompactFastQBlockGenerator.hpp>
 #include <libmaus2/fastx/CompactFastQContainerDictionaryCreator.hpp>
@@ -72,7 +72,7 @@ int main(int argc, char * argv[])
 {
 	::libmaus2::util::ArgInfo arginfo(argc,argv);
 	
-	#if defined(LIBMAUS_HAVE_KMLOCAL)
+	#if defined(LIBMAUS2_HAVE_KMLOCAL)
 	return kmlocalmain(arginfo);
 	#else
 	std::cerr << "kmlocal is not available." << std::endl;

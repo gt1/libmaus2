@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTORSTREAM_HPP)
-#define LIBMAUS_RANK_RUNLENGTHBITVECTORSTREAM_HPP
+#if ! defined(LIBMAUS2_RANK_RUNLENGTHBITVECTORSTREAM_HPP)
+#define LIBMAUS2_RANK_RUNLENGTHBITVECTORSTREAM_HPP
 
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/rank/RunLengthBitVectorBase.hpp>

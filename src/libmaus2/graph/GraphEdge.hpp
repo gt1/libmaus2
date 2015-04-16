@@ -20,8 +20,8 @@
 #include <libmaus2/graph/FilteredGraphTypes.hpp>
 #include <libmaus2/lcs/OverlapOrientation.hpp>
 
-#if ! defined(LIBMAUS_GRAPH_GRAPHEDGE_HPP)
-#define LIBMAUS_GRAPH_GRAPHEDGE_HPP
+#if ! defined(LIBMAUS2_GRAPH_GRAPHEDGE_HPP)
+#define LIBMAUS2_GRAPH_GRAPHEDGE_HPP
 
 namespace libmaus2
 {

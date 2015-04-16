@@ -23,7 +23,7 @@ std::set<std::string> libmaus2::digest::DigestFactory_CRC32C_SSE42::getSupported
 {
 	std::set<std::string> S;
 
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
+	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 	if ( libmaus2::util::I386CacheLineSize::hasSSE42() )
 		S.insert("crc32c");
 	#endif
@@ -33,7 +33,7 @@ std::set<std::string> libmaus2::digest::DigestFactory_CRC32C_SSE42::getSupported
 						
 libmaus2::digest::DigestInterface::unique_ptr_type libmaus2::digest::DigestFactory_CRC32C_SSE42::constructStatic(std::string const & name)
 {
-	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+	#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 	if ( name == "crc32c" && libmaus2::util::I386CacheLineSize::hasSSE42() )
 	{
 		libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::CRC32C_sse42);

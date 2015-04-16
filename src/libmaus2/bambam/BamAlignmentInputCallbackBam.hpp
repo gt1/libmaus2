@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKBAM_HPP)
-#define LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKBAM_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTINPUTCALLBACKBAM_HPP)
+#define LIBMAUS2_BAMBAM_BAMALIGNMENTINPUTCALLBACKBAM_HPP
 
 #include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>
 #include <libmaus2/bambam/BamWriter.hpp>

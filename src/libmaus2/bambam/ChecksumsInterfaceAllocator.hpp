@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_CHECKSUMSINTERFACEALLOCATOR_HPP)
-#define LIBMAUS_BAMBAM_CHECKSUMSINTERFACEALLOCATOR_HPP
+#if ! defined(LIBMAUS2_BAMBAM_CHECKSUMSINTERFACEALLOCATOR_HPP)
+#define LIBMAUS2_BAMBAM_CHECKSUMSINTERFACEALLOCATOR_HPP
 
 #include <libmaus2/bambam/ChecksumsFactory.hpp>
 

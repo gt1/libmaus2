@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_MATH_DOUBLECODE_HPP)
-#define LIBMAUS_MATH_DOUBLECODE_HPP
+#if ! defined(LIBMAUS2_MATH_DOUBLECODE_HPP)
+#define LIBMAUS2_MATH_DOUBLECODE_HPP
 
 #include <cmath>
 #include <cassert>

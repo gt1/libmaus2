@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMINDEXGENERATOR_HPP)
-#define LIBMAUS_BAMBAM_BAMINDEXGENERATOR_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMINDEXGENERATOR_HPP)
+#define LIBMAUS2_BAMBAM_BAMINDEXGENERATOR_HPP
 
 #include <libmaus2/aio/Buffer.hpp>
 #include <libmaus2/aio/CheckedInputStream.hpp>
@@ -456,7 +456,7 @@ namespace libmaus2
 							/* read length of next alignment block */
 							case state_reading_blocklen:
 								/* if this is a little endian machine allowing unaligned access */
-								#if defined(LIBMAUS_HAVE_i386)
+								#if defined(LIBMAUS2_HAVE_i386)
 								if ( (!blocklenred) && ((pc-pa) >= static_cast<ptrdiff_t>(sizeof(uint32_t))) )
 								{
 									blocklen = *(reinterpret_cast<uint32_t const *>(pa));

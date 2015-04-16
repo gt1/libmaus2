@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */			
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP)
+#define LIBMAUS2_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP
 
 #include <libmaus2/bambam/parallel/RefIdInterval.hpp>
 #include <libmaus2/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp>
@@ -75,7 +75,7 @@ namespace libmaus2
 					std::pair<uint64_t,uint64_t> const I = BP->I;
 					uint64_t const index = BP->index;
 					libmaus2::bambam::parallel::FragmentAlignmentBufferFragment & frag = *((*out)[index]);
-					uint32_t const dupflag = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+					uint32_t const dupflag = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
 					uint32_t const dupmask = ~dupflag;
 					ChecksumsInterface::shared_ptr_type Schecksums = checksumGetInterface.getSeqChecksumsObject();
 					

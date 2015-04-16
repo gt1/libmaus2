@@ -31,7 +31,7 @@ void testInplaceReverseComplement()
 	::libmaus2::bambam::BamWriter bamwriter(ostr,header);
 
 	bamwriter.encodeAlignment("name",0,1000,30,
-		::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP, "", 0, 1500, -1, "ACGTATGCA", "HGHGHGHGH"
+		::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP, "", 0, 1500, -1, "ACGTATGCA", "HGHGHGHGH"
 	);
 	bamwriter.commit();
 	}
@@ -105,11 +105,11 @@ int main()
 			rnstr << "r" << "_" << std::setw(6) << std::setfill('0') << i;
 			std::string const rn = rnstr.str();
 			
-			bamwriter->encodeAlignment(rn,0,1000+i*100,30, ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED | ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1, "9M", 0,1500, -1, "ACGTATGCA", "HGHGHGHGH");
+			bamwriter->encodeAlignment(rn,0,1000+i*100,30, ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED | ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1, "9M", 0,1500, -1, "ACGTATGCA", "HGHGHGHGH");
 			bamwriter->putAuxString("XX","HelloWorld");
 			bamwriter->commit();
 			
-			bamwriter->encodeAlignment(rn,0,1000+i*100+50, 20,::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED | ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2,"4=1X4=",0,1000,-1,"TTTTATTTT","HHHHAHHHH");
+			bamwriter->encodeAlignment(rn,0,1000+i*100+50, 20,::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED | ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2,"4=1X4=",0,1000,-1,"TTTTATTTT","HHHHAHHHH");
 			bamwriter->putAuxNumber("XY",'i',42);
 			bamwriter->putAuxNumber("XZ",'f',3.141592);
 			bamwriter->commit();				

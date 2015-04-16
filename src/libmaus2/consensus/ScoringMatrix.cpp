@@ -18,7 +18,7 @@
 */
 #include <libmaus2/consensus/ScoringMatrix.hpp>
 
-#if defined(LIBMAUS_HAVE_SEQAN)
+#if defined(LIBMAUS2_HAVE_SEQAN)
 
 // Print a scoring scheme matrix to stdout.
 void libmaus2::consensus::ScoringMatrix::showMatrix(std::ostream & out) const

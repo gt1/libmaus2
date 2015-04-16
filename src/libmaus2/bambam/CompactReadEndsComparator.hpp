@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_COMPACTREADENDSCOMPARATOR_HPP)
-#define LIBMAUS_BAMBAM_COMPACTREADENDSCOMPARATOR_HPP
+#if ! defined(LIBMAUS2_BAMBAM_COMPACTREADENDSCOMPARATOR_HPP)
+#define LIBMAUS2_BAMBAM_COMPACTREADENDSCOMPARATOR_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/bambam/CompactReadEndsBase.hpp>
@@ -53,17 +53,17 @@ namespace libmaus2
 			 **/
 			static void prepare(
 				uint8_t * 
-					#if defined(LIBMAUS_HAVE_x86_64)
+					#if defined(LIBMAUS2_HAVE_x86_64)
 					pa
 					#endif
 					, 
 				uint64_t const 
-					#if defined(LIBMAUS_HAVE_x86_64)
+					#if defined(LIBMAUS2_HAVE_x86_64)
 					n
 					#endif
 			)
 			{
-				#if defined(LIBMAUS_HAVE_x86_64)
+				#if defined(LIBMAUS2_HAVE_x86_64)
 				libmaus2::timing::RealTimeClock rtc; rtc.start();
 				for ( uint64_t i = 0; i < n; ++i )
 				{
@@ -100,7 +100,7 @@ namespace libmaus2
 				uint8_t const * const pae = pa + lena;
 				uint8_t const * const pbe = pb + lenb;
 				
-				#if defined(LIBMAUS_HAVE_x86_64)
+				#if defined(LIBMAUS2_HAVE_x86_64)
 				unsigned int const awords = lena >> 3;
 				unsigned int const bwords = lenb >> 3;
 				unsigned int const ewords = std::min(awords,bwords);

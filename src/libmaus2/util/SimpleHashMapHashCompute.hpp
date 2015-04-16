@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if !defined(LIBMAUS_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP)
-#define LIBMAUS_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP
+#if !defined(LIBMAUS2_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP)
+#define LIBMAUS2_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/hashing/hash.hpp>
@@ -37,7 +37,7 @@ namespace libmaus2
 			}
 		};
 
-		#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+		#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 		template<>
 		struct SimpleHashMapHashCompute<libmaus2::uint128_t>
 		{

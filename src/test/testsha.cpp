@@ -278,11 +278,11 @@ std::string secondColumn(std::string const & s)
 	return s.substr(start,i-start);
 }
 
-#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+#if defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 #include <libmaus2/digest/DigestFactory_SHA2_ASM.hpp>
 #endif
 
-#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
+#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
 #include <libmaus2/digest/DigestFactory_CRC32C_SSE42.hpp>
 #endif
 
@@ -292,10 +292,10 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		libmaus2::digest::DigestFactoryContainer::addFactories(libmaus2::digest::DigestFactory_SHA2_ASM());
 		#endif
-		#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
+		#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
 		libmaus2::digest::DigestFactoryContainer::addFactories(libmaus2::digest::DigestFactory_CRC32C_SSE42());
 		#endif
 
@@ -319,7 +319,7 @@ int main(int argc, char * argv[])
 		return 0;
 	
 		
-		#if defined(LIBMAUS_HAVE_NETTLE) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_HAVE_NETTLE) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		std::string ast(1024,'a');
 		libmaus2::random::Random::setup(42);
 		for ( uint64_t i = 0; i < ast.size(); ++i )
@@ -424,7 +424,7 @@ int main(int argc, char * argv[])
 			printCRC<libmaus2::digest::CRC32C>(A.begin(),A.size(),out);
 			printCRC<libmaus2::util::MD5>(A.begin(),A.size(),out);
 
-			#if defined(LIBMAUS_HAVE_NETTLE)
+			#if defined(LIBMAUS2_HAVE_NETTLE)
 			printCRC<libmaus2::digest::SHA1>(A.begin(),A.size(),out);
 			printCRC<libmaus2::digest::SHA2_224>(A.begin(),A.size(),out);
 			printCRC<libmaus2::digest::SHA2_256>(A.begin(),A.size(),out);
@@ -433,14 +433,14 @@ int main(int argc, char * argv[])
 			#endif
 
 
-			#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
+			#if defined(LIBMAUS2_HAVE_SMMINTRIN_H) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_x86_64) && defined(LIBMAUS2_HAVE_i386)
 			if ( libmaus2::util::I386CacheLineSize::hasSSE42() )
 			{
 				printCRC<libmaus2::digest::CRC32C_sse42>(A.begin(),A.size(),out);		
 			}
 			#endif
 
-			#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+			#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 			if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 			{
 				printCRC<libmaus2::digest::SHA2_256_sse4>(A.begin(),A.size(),out);
@@ -463,7 +463,7 @@ int main(int argc, char * argv[])
 			#endif
 		}
 
-		#if ! defined(LIBMAUS_HAVE_NETTLE)
+		#if ! defined(LIBMAUS2_HAVE_NETTLE)
 		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "support for nettle library is not present" << std::endl;
 		lme.finish();

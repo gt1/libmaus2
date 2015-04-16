@@ -58,8 +58,8 @@ struct SequenceComparison
 	{
 		ala_1.reverseComplementInplace();
 
-		uint16_t const fmask = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE);
-		uint16_t const rmask = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE);
+		uint16_t const fmask = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE);
+		uint16_t const rmask = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE);
 
 		ala_1.putFlags ( ala_1.getFlags() ^ fmask );
 		ala_2.putFlags ( ala_2.getFlags() ^ rmask );
@@ -149,35 +149,35 @@ struct SequenceComparison
 			
 			for ( ; 
 				i < numop && 
-				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH &&
-				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL &&
-				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF 
+				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH &&
+				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL &&
+				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF 
 				; ++i
 			)
 			{
 				switch ( cigop[i].first )
 				{
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
 						assert(0);
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
 						// refpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
 						// refpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
 						// readpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
 						break;
 				}
 			}
@@ -188,28 +188,28 @@ struct SequenceComparison
 			{
 				switch ( cigop[i].first )
 				{
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
 						for ( int64_t j = 0; j < cigop[i].second; ++j )
 							M[readpos++] = refpos++;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
 						refpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
 						refpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP:
 						// readpos += cigop[i].second;
 						break;
-					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
 						break;
 				}
 			
@@ -333,9 +333,9 @@ int main(int argc, char * argv[])
 			if ( seqcomp(ala_1,alb_2) && seqcomp(ala_2,alb_1) && (!seqcomp(ala_1,ala_2)) )
 			{
 				uint16_t const rmask = 
-					static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) 
+					static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) 
 					| 
-					static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2);
+					static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2);
 
 				alb_1.putFlags ( (alb_1.getFlags() ^ rmask) );
 				alb_2.putFlags ( (alb_2.getFlags() ^ rmask) );

@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_LZ_BGZFINFLATEPARALLELSTREAM_HPP)
-#define LIBMAUS_LZ_BGZFINFLATEPARALLELSTREAM_HPP
+#if ! defined(LIBMAUS2_LZ_BGZFINFLATEPARALLELSTREAM_HPP)
+#define LIBMAUS2_LZ_BGZFINFLATEPARALLELSTREAM_HPP
 
 #include <libmaus2/lz/StreamWrapper.hpp>
 #include <libmaus2/lz/BgzfStreamWrapper.hpp>

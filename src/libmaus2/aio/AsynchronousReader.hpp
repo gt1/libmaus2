@@ -25,7 +25,7 @@
 #include <libmaus2/exception/LibMausException.hpp>
 #include <iostream>
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS2_HAVE_PTHREADS)
 namespace libmaus2
 {
 	namespace aio

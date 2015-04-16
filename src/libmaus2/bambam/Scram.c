@@ -19,7 +19,7 @@
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_IO_LIB)
+#if defined(LIBMAUS2_HAVE_IO_LIB)
 #include <libmaus2/bambam/Scram.h>
 #include <io_lib/scram.h>
 #include <io_lib/sam_header.h>
@@ -70,7 +70,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New(char const * rfi
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
-	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
+	#if defined(LIBMAUS2_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
 	
@@ -98,7 +98,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New(char const * rfi
 	return object;
 }
 
-#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
+#if defined(LIBMAUS2_HAVE_IO_LIB_INPUT_CALLBACKS)
 libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback(
 	char const * rfilename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
@@ -147,7 +147,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callb
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
-	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
+	#if defined(LIBMAUS2_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
 
@@ -221,7 +221,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Range(char const
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
-	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
+	#if defined(LIBMAUS2_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
 
@@ -296,7 +296,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Range(char const
 	return object;
 }
 
-#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
+#if defined(LIBMAUS2_HAVE_IO_LIB_INPUT_CALLBACKS)
 libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback_Range(
 	char const * rfilename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
@@ -351,7 +351,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callb
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
-	#if defined(LIBMAUS_SCRAM_VERBOSE_DECODING)
+	#if defined(LIBMAUS2_SCRAM_VERBOSE_DECODING)
 	scram_set_option(sdecoder, CRAM_OPT_VERBOSITY, 1);
 	#endif
 
@@ -380,7 +380,7 @@ libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callb
 		return libmaus2_bambam_ScramDecoder_Delete(object);
 
 	/* load cram index, returns -1 on failure */
-	#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS)
+	#if defined(LIBMAUS2_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS)
 	if ( 
 		cram_index_load_via_callbacks(
 			sdecoder->c,
@@ -728,9 +728,9 @@ int libmaus2_bambam_ScramEncoder_Encode(libmaus2_bambam_ScramEncoder * encoder, 
 
 	return scram_put_seq( (scram_fd *)(encoder->encoder), (bam_seq_t *)(encoder->buffer) );	
 }
-#endif /* defined(LIBMAUS_HAVE_IO_LIB)*/
+#endif /* defined(LIBMAUS2_HAVE_IO_LIB)*/
 
-#if defined(LIBMAUS_HAVE_IO_LIB) && defined(LIBMAUS_HAVE_IO_NEW_CRAM_INTERFACE)
+#if defined(LIBMAUS2_HAVE_IO_LIB) && defined(LIBMAUS2_HAVE_IO_NEW_CRAM_INTERFACE)
 #include <libmaus2/bambam/parallel/CramInterface.h>
 
 void *scram_cram_allocate_encoder(void *userdata, char const *sam_header, size_t const sam_headerlength, cram_data_write_function_t write_func)

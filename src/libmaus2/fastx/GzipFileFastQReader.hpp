@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_FASTX_GZIPFILEFASTQREADER_HPP)
-#define LIBMAUS_FASTX_GZIPFILEFASTQREADER_HPP
+#if ! defined(LIBMAUS2_FASTX_GZIPFILEFASTQREADER_HPP)
+#define LIBMAUS2_FASTX_GZIPFILEFASTQREADER_HPP
 
 #include <libmaus2/fastx/GzipStreamFastQReader.hpp>
 #include <libmaus2/aio/CheckedInputStreamAtOffset.hpp>

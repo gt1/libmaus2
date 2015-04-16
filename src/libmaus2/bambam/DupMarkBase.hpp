@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_DUPMARKBASE_HPP)
-#define LIBMAUS_BAMBAM_DUPMARKBASE_HPP
+#if ! defined(LIBMAUS2_BAMBAM_DUPMARKBASE_HPP)
+#define LIBMAUS2_BAMBAM_DUPMARKBASE_HPP
 
 #include <libmaus2/bambam/BamHeaderUpdate.hpp>
 #include <libmaus2/bambam/BamMergeCoordinate.hpp>
@@ -436,7 +436,7 @@ namespace libmaus2
 							/* read length of next alignment block */
 							case state_reading_blocklen:
 								/* if this is a little endian machine allowing unaligned access */
-								#if defined(LIBMAUS_HAVE_i386)
+								#if defined(LIBMAUS2_HAVE_i386)
 								if ( (!blocklenred) && ((pc-pa) >= static_cast<ptrdiff_t>(sizeof(uint32_t))) )
 								{
 									blocklen = *(reinterpret_cast<uint32_t const *>(pa));
@@ -633,7 +633,7 @@ namespace libmaus2
 							/* read length of next alignment block */
 							case state_reading_blocklen:
 								/* if this is a little endian machine allowing unaligned access */
-								#if defined(LIBMAUS_HAVE_i386)
+								#if defined(LIBMAUS2_HAVE_i386)
 								if ( (!blocklenred) && ((pc-pa) >= static_cast<ptrdiff_t>(sizeof(uint32_t))) )
 								{
 									blocklen = *(reinterpret_cast<uint32_t const *>(pa));
@@ -762,7 +762,7 @@ namespace libmaus2
 				// rewrite file and mark duplicates
 				::libmaus2::bambam::BamWriter::unique_ptr_type writer(new ::libmaus2::bambam::BamWriter(outputstr,*uphead,level,Pcbs));
 				libmaus2::bambam::BamAlignment & alignment = decoder.getAlignment();
-				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
 				uint32_t const notdup = ~dup;
 				for ( uint64_t r = 0; decoder.readAlignment(); ++r )
 				{
@@ -815,7 +815,7 @@ namespace libmaus2
 
 				// rewrite file and mark duplicates
 				libmaus2::bambam::BamAlignment & alignment = decoder.getAlignment();
-				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+				uint32_t const dup = ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP;
 				uint32_t const notdup = ~dup;
 				for ( uint64_t r = 0; decoder.readAlignment(); ++r )
 				{

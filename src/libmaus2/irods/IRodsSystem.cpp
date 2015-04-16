@@ -35,7 +35,7 @@ libmaus2::irods::IRodsSystem::shared_ptr_type libmaus2::irods::IRodsSystem::getD
 }
 
 libmaus2::irods::IRodsFileBase::unique_ptr_type libmaus2::irods::IRodsSystem::openFile(
-	#if defined(LIBMAUS_HAVE_IRODS)
+	#if defined(LIBMAUS2_HAVE_IRODS)
 	IRodsSystem::shared_ptr_type irodsSystem, 
 	std::string const & filename
 	#else
@@ -44,7 +44,7 @@ libmaus2::irods::IRodsFileBase::unique_ptr_type libmaus2::irods::IRodsSystem::op
 	#endif
 )
 {
-	#if defined(LIBMAUS_HAVE_IRODS)
+	#if defined(LIBMAUS2_HAVE_IRODS)
 	IRodsFileBase::unique_ptr_type tptr(new IRodsFileBase);
 	IRodsFileBase & file = *tptr;
 
@@ -101,13 +101,13 @@ libmaus2::irods::IRodsFileBase::unique_ptr_type libmaus2::irods::IRodsSystem::op
 }	
 
 libmaus2::irods::IRodsSystem::IRodsSystem() 
-  #if defined(LIBMAUS_HAVE_IRODS)
+  #if defined(LIBMAUS2_HAVE_IRODS)
 : 
   comm(0), 
   prevpipesighandler(SIG_DFL)
   #endif
 {
-	#if defined(LIBMAUS_HAVE_IRODS)
+	#if defined(LIBMAUS2_HAVE_IRODS)
 	int status = -1;
 	
 	// read environment
@@ -166,7 +166,7 @@ libmaus2::irods::IRodsSystem::IRodsSystem()
 
 libmaus2::irods::IRodsSystem::~IRodsSystem()
 {
-	#if defined(LIBMAUS_HAVE_IRODS)
+	#if defined(LIBMAUS2_HAVE_IRODS)
 	if ( prevpipesighandler != SIG_DFL )
 		signal(SIGPIPE, prevpipesighandler);
 	

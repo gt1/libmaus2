@@ -125,7 +125,7 @@ namespace libmaus2
 		};
 
 		typedef SignedCompactArrayTemplate<CompactArray> SignedCompactArray;
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		typedef SignedCompactArrayTemplate<SynchronousCompactArray> SynchronousSignedCompactArray;
 		#endif
 	}

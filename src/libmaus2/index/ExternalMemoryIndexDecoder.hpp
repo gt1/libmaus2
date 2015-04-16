@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_INDEX_EXTERNALMEMORYINDEXDECODER_HPP)
-#define LIBMAUS_INDEX_EXTERNALMEMORYINDEXDECODER_HPP
+#if ! defined(LIBMAUS2_INDEX_EXTERNALMEMORYINDEXDECODER_HPP)
+#define LIBMAUS2_INDEX_EXTERNALMEMORYINDEXDECODER_HPP
 
 #include <libmaus2/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp>
 #include <libmaus2/aio/PosixFdInputStream.hpp>

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_ARRAY832)
-#define LIBMAUS_UTIL_ARRAY832
+#if ! defined(LIBMAUS2_UTIL_ARRAY832)
+#define LIBMAUS2_UTIL_ARRAY832
 
 #include <libmaus2/rank/ERank222B.hpp>
 #include <libmaus2/bitio/getBit.hpp>

@@ -25,7 +25,7 @@
 #include <sstream>
 #include <iostream>
 
-#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+#if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
 libmaus2::parallel::PosixSpinLock libmaus2::autoarray::AutoArray_lock;
 #elif defined(_OPENMP)
 libmaus2::parallel::OMPLock libmaus2::autoarray::AutoArray_lock;

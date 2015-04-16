@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMBLOCKWRITERBASEFACTORY_HPP)
-#define LIBMAUS_BAMBAM_BAMBLOCKWRITERBASEFACTORY_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMBLOCKWRITERBASEFACTORY_HPP)
+#define LIBMAUS2_BAMBAM_BAMBLOCKWRITERBASEFACTORY_HPP
 
 #include <libmaus2/bambam/BamWriter.hpp>
-#if defined(LIBMAUS_HAVE_IO_LIB)
+#if defined(LIBMAUS2_HAVE_IO_LIB)
 #include <libmaus2/bambam/ScramEncoder.hpp>
 #endif
 #include <libmaus2/bambam/SamEncoder.hpp>
@@ -50,7 +50,7 @@ namespace libmaus2
 						return "best";
 					case Z_NO_COMPRESSION:
 						return "uncompressed";				
-					#if defined(LIBMAUS_HAVE_IGZIP)
+					#if defined(LIBMAUS2_HAVE_IGZIP)
 					case libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL:
 						return "igzip";
 					#endif
@@ -88,7 +88,7 @@ namespace libmaus2
 				S.insert(Z_BEST_SPEED);
 				S.insert(Z_BEST_COMPRESSION);
 				S.insert(Z_NO_COMPRESSION);
-				#if defined(LIBMAUS_HAVE_IGZIP)
+				#if defined(LIBMAUS2_HAVE_IGZIP)
 				S.insert(libmaus2::lz::IGzipDeflate::getCompressionLevel());
 				#endif
 				return S;
@@ -102,7 +102,7 @@ namespace libmaus2
 					case Z_BEST_SPEED:
 					case Z_BEST_COMPRESSION:
 					case Z_DEFAULT_COMPRESSION:
-					#if defined(LIBMAUS_HAVE_IGZIP)
+					#if defined(LIBMAUS2_HAVE_IGZIP)
 					case libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL:
 					#endif
 						break;
@@ -115,7 +115,7 @@ namespace libmaus2
 							<< " level=" << Z_BEST_SPEED << " (fast) or"
 							<< " level=" << Z_BEST_COMPRESSION << " (best) or"
 							<< " level=" << Z_NO_COMPRESSION << " (no compression)"
-							#if defined(LIBMAUS_HAVE_IGZIP)
+							#if defined(LIBMAUS2_HAVE_IGZIP)
 							<< " or level=" << libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL << " (igzip)"
 							#endif
 							<< std::endl;
@@ -133,7 +133,7 @@ namespace libmaus2
 				std::set<std::string> S;
 				S.insert("bam");
 
-				#if defined(LIBMAUS_HAVE_IO_LIB)
+				#if defined(LIBMAUS2_HAVE_IO_LIB)
 				S.insert("sam");
 				S.insert("cram");
 				#endif
@@ -210,7 +210,7 @@ namespace libmaus2
 				}
 				else if ( 
 					outputformat == "maussam"					
-					#if !defined(LIBMAUS_HAVE_IO_LIB)
+					#if !defined(LIBMAUS2_HAVE_IO_LIB)
 					||
 					outputformat == "sam"
 					#endif
@@ -232,7 +232,7 @@ namespace libmaus2
 					}
 				
 				}
-				#if defined(LIBMAUS_HAVE_IO_LIB)
+				#if defined(LIBMAUS2_HAVE_IO_LIB)
 				else if ( outputformat == "sam" )
 				{
 

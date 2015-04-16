@@ -62,11 +62,11 @@
  */
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
+#if defined(LIBMAUS2_HAVE_CSTDINT) || defined(_MSC_VER)
 #include <cstdint>
-#elif defined(LIBMAUS_HAVE_STDINT_H)
+#elif defined(LIBMAUS2_HAVE_STDINT_H)
 #include <stdint.h>
-#elif defined(LIBMAUS_HAVE_SYS_TYPES_H)
+#elif defined(LIBMAUS2_HAVE_SYS_TYPES_H)
 #include <sys/types.h>
 #endif
 

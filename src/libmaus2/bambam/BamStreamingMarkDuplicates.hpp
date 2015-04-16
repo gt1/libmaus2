@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMSTREAMINGMARKDUPLICATES_HPP)
-#define LIBMAUS_BAMBAM_BAMSTREAMINGMARKDUPLICATES_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMSTREAMINGMARKDUPLICATES_HPP)
+#define LIBMAUS2_BAMBAM_BAMSTREAMINGMARKDUPLICATES_HPP
 
 #include <libmaus2/bambam/BamBlockWriterBase.hpp>
 #include <libmaus2/bambam/BamStreamingMarkDuplicatesSupport.hpp>
@@ -473,7 +473,7 @@ namespace libmaus2
 						if ( (tscore+tscoreadd) > oscore )
 						{
 							// mark previous alignment as duplicate
-							oalgn->putFlags(oalgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
+							oalgn->putFlags(oalgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP);
 
 							// get alignment from free list
 							libmaus2::bambam::BamAlignment * palgn = BAFL.get();
@@ -488,7 +488,7 @@ namespace libmaus2
 						// other score is greater, mark this alignment as duplicate
 						else
 						{
-							algn.putFlags(algn.getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
+							algn.putFlags(algn.getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP);
 							
 							libmaus2::bambam::BamAlignment * palgn = BAFL.get();
 							palgn->swap(algn);
@@ -535,7 +535,7 @@ namespace libmaus2
 						if ( tscore > oscore )
 						{
 							// mark previous alignment as duplicate
-							oalgn->putFlags(oalgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
+							oalgn->putFlags(oalgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP);
 
 							// put oalgn value in output queue
 							libmaus2::bambam::BamAlignment * palgn = BAFL.get();
@@ -548,7 +548,7 @@ namespace libmaus2
 						// other score is greater, mark this alignment as duplicate
 						else
 						{
-							algn.putFlags(algn.getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);
+							algn.putFlags(algn.getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP);
 
 							libmaus2::bambam::BamAlignment * palgn = BAFL.get();
 							palgn->swap(algn);
@@ -620,7 +620,7 @@ namespace libmaus2
 						// update metrics
 						met.unpairedreadduplicates += 1;
 						
-						palgn->putFlags(palgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);				
+						palgn->putFlags(palgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP);				
 					}
 				
 					OQ.push(palgn);
@@ -689,7 +689,7 @@ namespace libmaus2
 						// update metrics
 						metrics[HK.getLibrary()].unpairedreadduplicates += 1;
 						
-						palgn->putFlags(palgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP);				
+						palgn->putFlags(palgn->getFlags() | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FDUP);				
 					}
 				
 					OQ.push(palgn);

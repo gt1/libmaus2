@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_SORTING_SORTING_HPP)
-#define LIBMAUS_SORTING_SORTING_HPP
+#if ! defined(LIBMAUS2_SORTING_SORTING_HPP)
+#define LIBMAUS2_SORTING_SORTING_HPP
 
 #include <iostream>
 #include <algorithm>

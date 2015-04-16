@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGEDISPATCHER_HPP)
-#define LIBMAUS_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGEDISPATCHER_HPP
+#if ! defined(LIBMAUS2_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGEDISPATCHER_HPP)
+#define LIBMAUS2_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGEDISPATCHER_HPP
 
 #include <libmaus2/bambam/parallel/RewritePackageReturnInterface.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBufferReturnInterface.hpp>
@@ -100,25 +100,25 @@ namespace libmaus2
 								uint16_t const flags = algns[i]->getFlags();
 								
 								if ( 
-									(! (flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED))
+									(! (flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED))
 									||
-									(flags & (libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY|libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY) )
+									(flags & (libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY|libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY) )
 								)
 								{
 									continue;
 								}
 								else if ( 
-									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
+									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1)
 									&&
-									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2))
+									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2))
 								)
 								{
 									i1 = i;
 								}
 								else if ( 
-									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
+									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2)
 									&&
-									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1))
+									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1))
 								)
 								{
 									i2 = i;

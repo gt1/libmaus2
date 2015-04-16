@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP)
-#define LIBMAUS_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP
+#if ! defined(LIBMAUS2_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP)
+#define LIBMAUS2_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP
 
 #include <libmaus2/rank/ImpCacheLineRank.hpp>
 #include <libmaus2/rank/RunLengthBitVector.hpp>

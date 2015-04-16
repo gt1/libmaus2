@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_OPENSSLINIT_HPP)
-#define LIBMAUS_NETWORK_OPENSSLINIT_HPP
+#if ! defined(LIBMAUS2_NETWORK_OPENSSLINIT_HPP)
+#define LIBMAUS2_NETWORK_OPENSSLINIT_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/parallel/PosixSpinLock.hpp>
 
-#if defined(LIBMAUS_HAVE_OPENSSL)
+#if defined(LIBMAUS2_HAVE_OPENSSL)
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -55,12 +55,12 @@ namespace libmaus2
 			}
 			
 			static bool init(std::ostream & 
-				#if !defined(LIBMAUS_HAVE_OPENSSL)
+				#if !defined(LIBMAUS2_HAVE_OPENSSL)
 				errstr
 				#endif
 			)
 			{
-				#if defined(LIBMAUS_HAVE_OPENSSL)
+				#if defined(LIBMAUS2_HAVE_OPENSSL)
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( ! initcomplete )
 				{
@@ -82,7 +82,7 @@ namespace libmaus2
 			
 			static void shutdown()
 			{
-				#if defined(LIBMAUS_HAVE_OPENSSL)
+				#if defined(LIBMAUS2_HAVE_OPENSSL)
 				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( initcomplete && (! --initcomplete) )
 				{

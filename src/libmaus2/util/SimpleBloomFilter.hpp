@@ -46,7 +46,7 @@ namespace libmaus2
 
 			void lockBlock(uint64_t const i)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				uint64_t const wordoff = i >> 6;
 				uint64_t const bitoff = i - (wordoff<<6);
 				uint64_t const mask = (1ull << bitoff);
@@ -70,7 +70,7 @@ namespace libmaus2
 			
 			void unlockBlock(uint64_t const i)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				uint64_t const wordoff = i >> 6;
 				uint64_t const bitoff = i - (wordoff<<6);
 				uint64_t const mask = (1ull << bitoff);

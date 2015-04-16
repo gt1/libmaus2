@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_UTIL_COUNTPUTOBJECT)
-#define LIBMAUS_UTIL_COUNTPUTOBJECT
+#if ! defined(LIBMAUS2_UTIL_COUNTPUTOBJECT)
+#define LIBMAUS2_UTIL_COUNTPUTOBJECT
 
 #include <libmaus2/types/types.hpp>
 

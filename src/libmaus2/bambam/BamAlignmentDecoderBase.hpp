@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
-#define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
+#define LIBMAUS2_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
 
 #include <libmaus2/bambam/BamAuxSortingBuffer.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
@@ -49,62 +49,62 @@ namespace libmaus2
 			 * @param flags flag word
 			 * @return true iff flags have the paired flag set
 			 **/
-			static bool isPaired(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPAIRED; }
+			static bool isPaired(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FPAIRED; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the proper pair flag set
 			 **/
-			static bool isProper(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FPROPER_PAIR; }
+			static bool isProper(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FPROPER_PAIR; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the unmapped flag set
 			 **/
-			static bool isUnmap(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FUNMAP; }
+			static bool isUnmap(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FUNMAP; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the mate unmapped flag set
 			 **/
-			static bool isMateUnmap(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FMUNMAP; }
+			static bool isMateUnmap(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FMUNMAP; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the reverse flag set
 			 **/
-			static bool isReverse(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREVERSE; }
+			static bool isReverse(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FREVERSE; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the mate reverse flag set
 			 **/
-			static bool isMateReverse(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FMREVERSE; }
+			static bool isMateReverse(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FMREVERSE; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the read 1 flag set
 			 **/
-			static bool isRead1(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREAD1; }
+			static bool isRead1(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FREAD1; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the read 2 flag set
 			 **/
-			static bool isRead2(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FREAD2; }
+			static bool isRead2(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FREAD2; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the secondary alignment flag set
 			 **/
-			static bool isSecondary(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FSECONDARY; }
+			static bool isSecondary(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FSECONDARY; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the quality control failed flag set
 			 **/
-			static bool isQCFail(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FQCFAIL; }
+			static bool isQCFail(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FQCFAIL; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the duplicate flag set
 			 **/
-			static bool isDup(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FDUP; }
+			static bool isDup(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FDUP; }
 			/**
 			 * @param flags flag word
 			 * @return true iff flags have the supplementary flag set
 			 **/
-			static bool isSupplementary(uint32_t const flags) { return flags & LIBMAUS_BAMBAM_FSUPPLEMENTARY; }
+			static bool isSupplementary(uint32_t const flags) { return flags & LIBMAUS2_BAMBAM_FSUPPLEMENTARY; }
 			
 			/**
 			 * convert single bit flag to a string representation
@@ -116,19 +116,19 @@ namespace libmaus2
 			{
 				switch ( flag )
 				{
-					case LIBMAUS_BAMBAM_FPAIRED: return "LIBMAUS_BAMBAM_FPAIRED";
-					case LIBMAUS_BAMBAM_FPROPER_PAIR: return "LIBMAUS_BAMBAM_FPROPER_PAIR";
-					case LIBMAUS_BAMBAM_FUNMAP: return "LIBMAUS_BAMBAM_FUNMAP";
-					case LIBMAUS_BAMBAM_FMUNMAP: return "LIBMAUS_BAMBAM_FMUNMAP";
-					case LIBMAUS_BAMBAM_FREVERSE: return "LIBMAUS_BAMBAM_FREVERSE";
-					case LIBMAUS_BAMBAM_FMREVERSE: return "LIBMAUS_BAMBAM_FMREVERSE";
-					case LIBMAUS_BAMBAM_FREAD1: return "LIBMAUS_BAMBAM_FREAD1";
-					case LIBMAUS_BAMBAM_FREAD2: return "LIBMAUS_BAMBAM_FREAD2";
-					case LIBMAUS_BAMBAM_FSECONDARY: return "LIBMAUS_BAMBAM_FSECONDARY";
-					case LIBMAUS_BAMBAM_FQCFAIL: return "LIBMAUS_BAMBAM_FQCFAIL";
-					case LIBMAUS_BAMBAM_FDUP: return "LIBMAUS_BAMBAM_FDUP";
-					case LIBMAUS_BAMBAM_FSUPPLEMENTARY: return "LIBMAUS_BAMBAM_FSUPPLEMENTARY";
-					default: return "LIBMAUS_BAMBAM_F?";
+					case LIBMAUS2_BAMBAM_FPAIRED: return "LIBMAUS2_BAMBAM_FPAIRED";
+					case LIBMAUS2_BAMBAM_FPROPER_PAIR: return "LIBMAUS2_BAMBAM_FPROPER_PAIR";
+					case LIBMAUS2_BAMBAM_FUNMAP: return "LIBMAUS2_BAMBAM_FUNMAP";
+					case LIBMAUS2_BAMBAM_FMUNMAP: return "LIBMAUS2_BAMBAM_FMUNMAP";
+					case LIBMAUS2_BAMBAM_FREVERSE: return "LIBMAUS2_BAMBAM_FREVERSE";
+					case LIBMAUS2_BAMBAM_FMREVERSE: return "LIBMAUS2_BAMBAM_FMREVERSE";
+					case LIBMAUS2_BAMBAM_FREAD1: return "LIBMAUS2_BAMBAM_FREAD1";
+					case LIBMAUS2_BAMBAM_FREAD2: return "LIBMAUS2_BAMBAM_FREAD2";
+					case LIBMAUS2_BAMBAM_FSECONDARY: return "LIBMAUS2_BAMBAM_FSECONDARY";
+					case LIBMAUS2_BAMBAM_FQCFAIL: return "LIBMAUS2_BAMBAM_FQCFAIL";
+					case LIBMAUS2_BAMBAM_FDUP: return "LIBMAUS2_BAMBAM_FDUP";
+					case LIBMAUS2_BAMBAM_FSUPPLEMENTARY: return "LIBMAUS2_BAMBAM_FSUPPLEMENTARY";
+					default: return "LIBMAUS2_BAMBAM_F?";
 				}
 			}
 			
@@ -267,7 +267,7 @@ namespace libmaus2
 				uint64_t const lseq = getLseq(D);
 				
 				return
-					1 + namelen + ((flags & LIBMAUS_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
+					1 + namelen + ((flags & LIBMAUS2_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
 					lseq + 1 + // seq line
 					1 + 1 + // plus line
 					lseq + 1 // quality line
@@ -287,7 +287,7 @@ namespace libmaus2
 				uint64_t const lseq = getLseq(D);
 				
 				return
-					1 + namelen + ((flags & LIBMAUS_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
+					1 + namelen + ((flags & LIBMAUS2_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
 					lseq + 1 // seq line
 					;
 			}
@@ -311,8 +311,8 @@ namespace libmaus2
 				
 				return
 					1 + namelen +
-					((flags & LIBMAUS_BAMBAM_FPAIRED) ? (2 + lra + lrb) : (1+lra)) + 
-					((flags & LIBMAUS_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
+					((flags & LIBMAUS2_BAMBAM_FPAIRED) ? (2 + lra + lrb) : (1+lra)) + 
+					((flags & LIBMAUS2_BAMBAM_FPAIRED) ? 2 : 0) + 1 + // name line
 					lseq + 1 + // seq line
 					1 + 1 + // plus line
 					lseq + 1 // quality line
@@ -416,9 +416,9 @@ namespace libmaus2
 				while ( rn != rne )
 					*(it++) = *(rn++);
 				
-				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				if ( (flags & LIBMAUS2_BAMBAM_FPAIRED) )
 				{
-					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					if ( (flags & LIBMAUS2_BAMBAM_FREAD1) )
 					{
 						*(it++) = '/';
 						*(it++) = '1';
@@ -432,7 +432,7 @@ namespace libmaus2
 				
 				*(it++) = '\n';
 				
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 					it = decodeReadRCIt(D,it,lseq);
 				else
 					it = decodeRead(D,it,lseq);
@@ -442,7 +442,7 @@ namespace libmaus2
 				*(it++) = '+';
 				*(it++) = '\n';
 
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 				{
 					uint8_t const * const quale = getQual(D);
 					uint8_t const * qualc = quale + lseq;
@@ -506,9 +506,9 @@ namespace libmaus2
 				while ( rn != rne )
 					*(it++) = *(rn++);
 				
-				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				if ( (flags & LIBMAUS2_BAMBAM_FPAIRED) )
 				{
-					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					if ( (flags & LIBMAUS2_BAMBAM_FREAD1) )
 					{
 						*(it++) = '/';
 						*(it++) = '1';
@@ -522,7 +522,7 @@ namespace libmaus2
 				
 				*(it++) = '\n';
 				
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 					it = decodeReadRCIt(D,it,lseq);
 				else
 					it = decodeRead(D,it,lseq);
@@ -532,7 +532,7 @@ namespace libmaus2
 				*(it++) = '+';
 				*(it++) = '\n';
 
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 				{
 					char const * const quale = altqual;
 					char const * qualc = quale + lseq;
@@ -573,9 +573,9 @@ namespace libmaus2
 				while ( rn != rne )
 					*(it++) = *(rn++);
 				
-				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				if ( (flags & LIBMAUS2_BAMBAM_FPAIRED) )
 				{
-					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					if ( (flags & LIBMAUS2_BAMBAM_FREAD1) )
 					{
 						*(it++) = '/';
 						*(it++) = '1';
@@ -589,7 +589,7 @@ namespace libmaus2
 				
 				*(it++) = '\n';
 				
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 					it = decodeReadRCIt(D,it,lseq);
 				else
 					it = decodeRead(D,it,lseq);
@@ -620,7 +620,7 @@ namespace libmaus2
 				it = putNumberDecimal(it,ranka);
 				*(it++) = '_';
 				
-				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				if ( (flags & LIBMAUS2_BAMBAM_FPAIRED) )
 				{
 					it = putNumberDecimal(it,rankb);
 					*(it++) = '_';
@@ -630,9 +630,9 @@ namespace libmaus2
 					*(it++) = *(rn++);
 				
 				
-				if ( (flags & LIBMAUS_BAMBAM_FPAIRED) )
+				if ( (flags & LIBMAUS2_BAMBAM_FPAIRED) )
 				{
-					if ( (flags & LIBMAUS_BAMBAM_FREAD1) )
+					if ( (flags & LIBMAUS2_BAMBAM_FREAD1) )
 					{
 						*(it++) = '/';
 						*(it++) = '1';
@@ -646,7 +646,7 @@ namespace libmaus2
 				
 				*(it++) = '\n';
 				
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 					it = decodeReadRCIt(D,it,lseq);
 				else
 					it = decodeRead(D,it,lseq);
@@ -656,7 +656,7 @@ namespace libmaus2
 				*(it++) = '+';
 				*(it++) = '\n';
 
-				if ( flags & LIBMAUS_BAMBAM_FREVERSE )
+				if ( flags & LIBMAUS2_BAMBAM_FREVERSE )
 				{
 					uint8_t const * const quale = getQual(D);
 					uint8_t const * qualc = quale + lseq;
@@ -846,9 +846,9 @@ namespace libmaus2
 				// bin flag stores part of cigar string length
 				uint16_t const flags = getFlags(D);
 				
-				if ( expect_false(flags & LIBMAUS_BAMBAM_FCIGAR32) )
+				if ( expect_false(flags & LIBMAUS2_BAMBAM_FCIGAR32) )
 				{
-					if ( flags & LIBMAUS_BAMBAM_FUNMAP )
+					if ( flags & LIBMAUS2_BAMBAM_FUNMAP )
 					{
 						if ( getPos(D) < 0 )
 							return 4680; // reg2bin(-1,0)
@@ -948,22 +948,22 @@ namespace libmaus2
 					switch ( op )
 					{
 						// insertion
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
 							icnt += static_cast<int64_t>(len);
 							break;
 						// padding (silent insertion, base not in this read, so ignore)
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD:
 							break;
 						// deletion from reference
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
 						// reference/intron skip (deletion)
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP:
 							icnt -= static_cast<int64_t>(len);
 							break;
 						// match/mismatch
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
 							running = false;
 							break;
 					}
@@ -1199,12 +1199,12 @@ namespace libmaus2
 					uint8_t const op = v & ((1ull<<(4))-1);
 					
 					if ( 
-						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP 
 						||
-						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP 
 					)
 					{
-						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
 							frontclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					}
 					else
@@ -1258,12 +1258,12 @@ namespace libmaus2
 					uint8_t const op = v & ((1ull<<(4))-1);
 					
 					if ( 
-						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP
 						|| 
-						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP 
 					)
 					{
-						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP )
 							backclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					}
 					else
@@ -1374,7 +1374,7 @@ namespace libmaus2
 				if ( 
 					expect_false
 					(
-					getFlags(D) & LIBMAUS_BAMBAM_FCIGAR32
+					getFlags(D) & LIBMAUS2_BAMBAM_FCIGAR32
 					) 
 				)
 				{
@@ -3278,80 +3278,80 @@ namespace libmaus2
 			{
 				static const bool calmd_preterm[] =
 				{
-					true, // LIBMAUS_BAMBAM_CMATCH = 0,
-					false, // LIBMAUS_BAMBAM_CINS = 1,
-					false, // LIBMAUS_BAMBAM_CDEL = 2,
-					false, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					false, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					false, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					false, // LIBMAUS_BAMBAM_CPAD = 6,
-					true, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					true // LIBMAUS_BAMBAM_CDIFF = 8
+					true, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					false, // LIBMAUS2_BAMBAM_CINS = 1,
+					false, // LIBMAUS2_BAMBAM_CDEL = 2,
+					false, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					false, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					false, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					false, // LIBMAUS2_BAMBAM_CPAD = 6,
+					true, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					true // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 
 				static const uint8_t calmd_insmult[] =
 				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					1, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
+					0, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS2_BAMBAM_CINS = 1,
+					0, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					0, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 
 				static const uint8_t calmd_delmult[] =
 				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS_BAMBAM_CINS = 1,
-					1, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
+					0, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS2_BAMBAM_CINS = 1,
+					1, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					0, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 
 				static const uint8_t calmd_readadvance[] =
 				{
-					1, // LIBMAUS_BAMBAM_CMATCH = 0,
-					1, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					1, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					1 // LIBMAUS_BAMBAM_CDIFF = 8
+					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS2_BAMBAM_CINS = 1,
+					0, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					1, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 
 				static const uint8_t calmd_refadvance[] =
 				{
-					1, // LIBMAUS_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS_BAMBAM_CINS = 1,
-					1, // LIBMAUS_BAMBAM_CDEL = 2,
-					1, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					1, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					1 // LIBMAUS_BAMBAM_CDIFF = 8
+					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					0, // LIBMAUS2_BAMBAM_CINS = 1,
+					1, // LIBMAUS2_BAMBAM_CDEL = 2,
+					1, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					1, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					1 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 			
 				static const uint8_t calmd_softclipinsmult[] =
 				{
-					0, // LIBMAUS_BAMBAM_CMATCH = 0,
-					1, // LIBMAUS_BAMBAM_CINS = 1,
-					0, // LIBMAUS_BAMBAM_CDEL = 2,
-					0, // LIBMAUS_BAMBAM_CREF_SKIP = 3,
-					1, // LIBMAUS_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS_BAMBAM_CPAD = 6,
-					0, // LIBMAUS_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS_BAMBAM_CDIFF = 8
+					0, // LIBMAUS2_BAMBAM_CMATCH = 0,
+					1, // LIBMAUS2_BAMBAM_CINS = 1,
+					0, // LIBMAUS2_BAMBAM_CDEL = 2,
+					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
+					1, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
+					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
+					0, // LIBMAUS2_BAMBAM_CPAD = 6,
+					0, // LIBMAUS2_BAMBAM_CEQUAL = 7,
+					0 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 				
 				context.diff = false;
@@ -3474,7 +3474,7 @@ namespace libmaus2
 								l = h;
 							}		
 						}
-						else if ( cigo == ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL )
+						else if ( cigo == ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL )
 						{
 							mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,a);
 							a = 0;
@@ -3642,7 +3642,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < ncig; ++i )
 				{
 					uint64_t const cigop = ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarFieldOp(D,i);
-					if ( cigop > ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF )
+					if ( cigop > ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF )
 						return libmaus2_bambam_alignment_validity_unknown_cigar_op;
 				}
 				

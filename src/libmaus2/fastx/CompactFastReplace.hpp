@@ -18,8 +18,8 @@
 */
 
 
-#if ! defined(LIBMAUS_FASTX_COMPACTFASTREPLACE_HPP)
-#define LIBMAUS_FASTX_COMPACTFASTREPLACE_HPP
+#if ! defined(LIBMAUS2_FASTX_COMPACTFASTREPLACE_HPP)
+#define LIBMAUS2_FASTX_COMPACTFASTREPLACE_HPP
 
 #include <libmaus2/util/GetObject.hpp>
 #include <libmaus2/util/PutObject.hpp>

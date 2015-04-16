@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTENCODERBASE_HPP)
-#define LIBMAUS_BAMBAM_BAMALIGNMENTENCODERBASE_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTENCODERBASE_HPP)
+#define LIBMAUS2_BAMBAM_BAMALIGNMENTENCODERBASE_HPP
 	
 #include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus2/bambam/BamAlignmentReg2Bin.hpp>
@@ -84,7 +84,7 @@ namespace libmaus2
 			template<typename value_type>
 			static void putLESingle(uint8_t * D, uint64_t const offset, value_type const v)
 			{
-				#if defined(LIBMAUS_HAVE_i386)
+				#if defined(LIBMAUS2_HAVE_i386)
 				switch ( sizeof(value_type) )
 				{
 					case 1: *(reinterpret_cast< uint8_t *>(D+offset)) = v; break;
@@ -167,19 +167,19 @@ namespace libmaus2
 				// get flags
 				uint16_t flags = static_cast<uint16_t>(D[14]) | (static_cast<uint16_t>(D[15])<<8);
 				// flag for value requiring more than 16 bits
-				uint16_t const flag32 = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32);
+				uint16_t const flag32 = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32);
 
 				// does value fit in the lower 16 bits?
 				if ( expect_true(v <= 0xFFFFul) )
 				{
-					// erase LIBMAUS_BAMBAM_FCIGAR32 flag
+					// erase LIBMAUS2_BAMBAM_FCIGAR32 flag
 					flags &= ~flag32;
 					// store flags
 					putFlags(D,flags);					
 				}
 				else
 				{
-					// set LIBMAUS_BAMBAM_FCIGAR32 flag
+					// set LIBMAUS2_BAMBAM_FCIGAR32 flag
 					flags |= flag32;
 					// store flags
 					putFlags(D,flags);
@@ -199,7 +199,7 @@ namespace libmaus2
 				uint16_t const flags = static_cast<uint16_t>(D[14]) | (static_cast<uint16_t>(D[15])<<8);
 
 				// put bin value if bin field is not used for storing top 16 bits of cigar length value
-				if ( expect_true( !(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32) ) )
+				if ( expect_true( !(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) ) )
 					putLESingle<uint16_t>(D,10,v);					
 			}
 			
@@ -367,12 +367,12 @@ namespace libmaus2
 					?
 					(cigarlen >> 16)
 					:
-					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) ? 
+					(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP) ? 
 						((pos < 0) ? 4680 : reg2bin(pos,0)) 
 						: 
 						reg2bin(pos,endpos(pos,cigar,cigarlen)
 					);
-				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FCIGAR32) : flags;
+				uint32_t const cflags = (cigarlen > 0xFFFFul) ? (flags | libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FCIGAR32) : flags;
 				
 				assert ( namelen+1 < (1ul << 8) );
 				assert ( mapq < (1ul << 8) );
@@ -920,8 +920,8 @@ namespace libmaus2
 			 */
 			static std::pair<int16_t,int16_t> fixMateInformation(uint8_t * rec1u, uint8_t * rec2u)
 			{
-				static uint32_t const next_rev_flag = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
-				static uint32_t const next_unmap_flag = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+				static uint32_t const next_rev_flag = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE;
+				static uint32_t const next_unmap_flag = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP;
 				uint32_t const rec1flags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(rec1u);
 				uint32_t const rec2flags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(rec2u);
 				bool const rec1unmap = libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(rec1flags);

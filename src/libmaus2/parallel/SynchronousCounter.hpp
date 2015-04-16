@@ -34,7 +34,7 @@ namespace libmaus2
 			typedef _value_type value_type;
 			typedef SynchronousCounter<value_type> this_type;
 		
-			#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
+			#if ! defined(LIBMAUS2_HAVE_SYNC_OPS)
 			mutable ::libmaus2::parallel::OMPLock lock;
 			#endif
 			volatile value_type cnt;
@@ -50,7 +50,7 @@ namespace libmaus2
 			
 			value_type operator++()
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return __sync_add_and_fetch(&cnt,1);
 				#else
 				value_type lcnt;
@@ -64,7 +64,7 @@ namespace libmaus2
 			
 			value_type operator+=(value_type const v)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return __sync_add_and_fetch(&cnt,v);
 				#else
 				value_type lcnt;
@@ -79,7 +79,7 @@ namespace libmaus2
 
 			value_type operator++(int)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return __sync_fetch_and_add(&cnt,1);
 				#else
 				value_type lcnt;
@@ -92,7 +92,7 @@ namespace libmaus2
 			
 			value_type get() const
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return cnt;
 				#else
 				value_type lcnt;

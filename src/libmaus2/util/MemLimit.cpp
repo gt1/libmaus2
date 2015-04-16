@@ -20,7 +20,7 @@
 #include <libmaus2/util/MemLimit.hpp>
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_SETRLIMIT)
+#if defined(LIBMAUS2_HAVE_SETRLIMIT)
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
@@ -39,7 +39,7 @@ void libmaus2::util::MemLimit::setLimits(uint64_t const maxmem)
 
 void libmaus2::util::MemLimit::setAddressSpaceLimit(uint64_t const maxmem)
 {
-	#if defined(LIBMAUS_HAVE_SETRLIMIT)
+	#if defined(LIBMAUS2_HAVE_SETRLIMIT)
 	rlimit const lim = { 
 		static_cast<rlim_t>(maxmem), 
 		static_cast<rlim_t>(maxmem) };
@@ -55,7 +55,7 @@ void libmaus2::util::MemLimit::setAddressSpaceLimit(uint64_t const maxmem)
 
 void libmaus2::util::MemLimit::setDataLimit(uint64_t const maxmem)
 {
-	#if defined(LIBMAUS_HAVE_SETRLIMIT)
+	#if defined(LIBMAUS2_HAVE_SETRLIMIT)
 	rlimit const lim = { 
 		static_cast<rlim_t>(maxmem), 
 		static_cast<rlim_t>(maxmem) };
@@ -71,7 +71,7 @@ void libmaus2::util::MemLimit::setDataLimit(uint64_t const maxmem)
 
 void libmaus2::util::MemLimit::setResidentSetSizeLimit(uint64_t const maxmem)
 {
-	#if defined(LIBMAUS_HAVE_SETRLIMIT)
+	#if defined(LIBMAUS2_HAVE_SETRLIMIT)
 	rlimit const lim = { 
 		static_cast<rlim_t>(maxmem), 
 		static_cast<rlim_t>(maxmem) };

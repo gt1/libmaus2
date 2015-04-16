@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_NETWORK_LOGRECEIVER_HPP)
-#define LIBMAUS_NETWORK_LOGRECEIVER_HPP
+#if ! defined(LIBMAUS2_NETWORK_LOGRECEIVER_HPP)
+#define LIBMAUS2_NETWORK_LOGRECEIVER_HPP
 
 #include <libmaus2/network/FileDescriptorPasser.hpp>
 #include <libmaus2/network/LogReceiverTestProcess.hpp>

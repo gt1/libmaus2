@@ -16,12 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_SCORINGMATRIX_HPP)
-#define LIBMAUS_SCORINGMATRIX_HPP
+#if ! defined(LIBMAUS2_SCORINGMATRIX_HPP)
+#define LIBMAUS2_SCORINGMATRIX_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_SEQAN)
+#if defined(LIBMAUS2_HAVE_SEQAN)
 #include <iostream>
 #include <vector>
 #include <cassert>

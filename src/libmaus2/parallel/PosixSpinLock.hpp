@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_PARALLEL_POSIXSPINLOCK_HPP)
-#define LIBMAUS_PARALLEL_POSIXSPINLOCK_HPP
+#if ! defined(LIBMAUS2_PARALLEL_POSIXSPINLOCK_HPP)
+#define LIBMAUS2_PARALLEL_POSIXSPINLOCK_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
@@ -26,11 +26,11 @@
 #include <libmaus2/util/shared_ptr.hpp>
 #include <cerrno>
 
-#if defined(LIBMAUS_HAVE_DARWIN_SPINLOCKS)
+#if defined(LIBMAUS2_HAVE_DARWIN_SPINLOCKS)
 #include <libkern/OSAtomic.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <pthread.h>
 
 namespace libmaus2
@@ -38,7 +38,7 @@ namespace libmaus2
 	namespace parallel
 	{
 		// direct support posix spin locks
-		#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
+		#if defined(LIBMAUS2_HAVE_POSIX_SPINLOCKS)
                 struct PosixSpinLock
                 {
                 	typedef PosixSpinLock this_type;
@@ -119,7 +119,7 @@ namespace libmaus2
                         }
                 };
                 // no posix spin locks but Darwin type OS spin locks
-                #elif defined(LIBMAUS_HAVE_DARWIN_SPINLOCKS)
+                #elif defined(LIBMAUS2_HAVE_DARWIN_SPINLOCKS)
                 struct PosixSpinLock
                 {
                 	typedef PosixSpinLock this_type;
@@ -165,7 +165,7 @@ namespace libmaus2
                         }
                 };                
                 // no posix or Darwin api for spin locks but sync lock support
-                #elif defined(LIBMAUS_HAVE_SYNC_LOCK)
+                #elif defined(LIBMAUS2_HAVE_SYNC_LOCK)
                 struct PosixSpinLock
                 {
                 	typedef PosixSpinLock this_type;

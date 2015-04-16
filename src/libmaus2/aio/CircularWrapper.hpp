@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_AIO_CIRCULARWRAPPER_HPP)
-#define LIBMAUS_AIO_CIRCULARWRAPPER_HPP
+#if ! defined(LIBMAUS2_AIO_CIRCULARWRAPPER_HPP)
+#define LIBMAUS2_AIO_CIRCULARWRAPPER_HPP
 
 #include <libmaus2/aio/CircularBuffer.hpp>
 #include <libmaus2/aio/CheckedInputStream.hpp>

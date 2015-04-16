@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_SAMINFO_HPP)
-#define LIBMAUS_BAMBAM_SAMINFO_HPP
+#if ! defined(LIBMAUS2_BAMBAM_SAMINFO_HPP)
+#define LIBMAUS2_BAMBAM_SAMINFO_HPP
 
 #include <libmaus2/bambam/SamInfoBase.hpp>
 #include <libmaus2/bambam/BamFlagBase.hpp>
@@ -189,31 +189,31 @@ namespace libmaus2
 					switch ( *(p++) )
 					{
 						case 'M':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH;
 							break;
 						case 'I':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS;
 							break;
 						case 'S':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP;
 							break;
 						case '=':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL;
 							break;
 						case 'X':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF;
 							break;
 						case 'D':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL;
 							break;
 						case 'N':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CREF_SKIP;
 							break;
 						case 'H':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP;
 							break;
 						case 'P':
-							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CPAD;
 							break;
 						default:
 						{
@@ -838,8 +838,8 @@ namespace libmaus2
 					}	
 				}
 
-				bool qcfail = flag & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
-				bool secondary = flag & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
+				bool qcfail = flag & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL;
+				bool secondary = flag & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY;
 				// annotation (see SAM spec section 3.2, padded)
 				bool const annot = qcfail && secondary;
 
@@ -847,7 +847,7 @@ namespace libmaus2
 					(cigardefined == sam_info_base_field_defined) && 
 					(seqdefined == sam_info_base_field_defined) && 
 					(!annot) &&
-					(! (flag & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ))
+					(! (flag & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP ))
 				)
 				{
 					uint64_t exseqlen = 0;
@@ -855,11 +855,11 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < cigopvecfill; ++i )
 						switch ( cigopvec[i].first )
 						{
-							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
-							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
-							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CMATCH:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
 								exseqlen += cigopvec[i].second;
 								break;
 							default:

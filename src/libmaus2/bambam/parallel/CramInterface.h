@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_IO_LIB_CALLBACK_PROTOTYPES_H)
-#define LIBMAUS_BAMBAM_IO_LIB_CALLBACK_PROTOTYPES_H
+#if ! defined(LIBMAUS2_BAMBAM_IO_LIB_CALLBACK_PROTOTYPES_H)
+#define LIBMAUS2_BAMBAM_IO_LIB_CALLBACK_PROTOTYPES_H
 
 #include <stdlib.h>
 

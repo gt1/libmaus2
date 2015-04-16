@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_LCS_ALIGNMENTTRACECONTAINER_HPP)
-#define LIBMAUS_LCS_ALIGNMENTTRACECONTAINER_HPP
+#if ! defined(LIBMAUS2_LCS_ALIGNMENTTRACECONTAINER_HPP)
+#define LIBMAUS2_LCS_ALIGNMENTTRACECONTAINER_HPP
 
 #include <libmaus2/lcs/PenaltyConstants.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>

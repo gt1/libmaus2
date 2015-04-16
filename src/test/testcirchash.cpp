@@ -215,7 +215,7 @@ void bamtofastqCollating(libmaus2::util::ArgInfo const & arginfo)
 			);
 		bamtofastqCollating(arginfo,CHCBD);
 	}
-	#if defined(LIBMAUS_HAVE_DL_FUNCS)
+	#if defined(LIBMAUS2_HAVE_DL_FUNCS)
 	else if ( inputformat == "sam" )
 	{
 		libmaus2::bambam::ScramCircularHashCollatingBamDecoder CHCBD(

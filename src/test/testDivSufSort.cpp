@@ -231,7 +231,7 @@ int main(int argc, char * argv[])
 	// xxx
 	data.release();
 	
-	#if defined(LIBMAUS_HAVE_SYNC_OPS)
+	#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 	typedef ::libmaus2::bitio::SynchronousSignedCompactArray signed_compact_array_type;
 	signed_compact_array_type CSA(n, ::libmaus2::math::bitsPerNum(n) + 1 );
 	typedef signed_compact_array_type::const_iterator compact_index_const_it;

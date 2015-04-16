@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP)
-#define LIBMAUS_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP)
+#define LIBMAUS2_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP
 
 #include <libmaus2/bambam/BamAlignment.hpp>
 #include <libmaus2/bambam/StrCmpNum.hpp>
@@ -74,10 +74,10 @@ namespace libmaus2
 					uint32_t const flagsa = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da);
 					uint32_t const flagsb = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db);
 					
-					int const r1a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
-					int const r1b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
-					int const r2a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
-					int const r2b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
+					int const r1a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) != 0;
+					int const r1b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1) != 0;
+					int const r2a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2) != 0;
+					int const r2b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2) != 0;
 					
 					int const r1 = ((1-r1a) << 1) | (1-r2a);
 					int const r2 = ((1-r1b) << 1) | (1-r2b);
@@ -123,8 +123,8 @@ namespace libmaus2
 					return r;
 
 				// read 1 before read 2
-				int const r1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
-				int const r2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				int const r1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
+				int const r2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1;
 				
 				if ( r1 == r2 )
 					return 0;

@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(LIBMAUS_UTIL_TOUPPERTABLE_HPP)
-#define LIBMAUS_UTIL_TOUPPERTABLE_HPP
+#if ! defined(LIBMAUS2_UTIL_TOUPPERTABLE_HPP)
+#define LIBMAUS2_UTIL_TOUPPERTABLE_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <cctype>

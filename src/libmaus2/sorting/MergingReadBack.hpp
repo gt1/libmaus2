@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if !defined(LIBMAUS_SORTING_MERGINGREADBACK_HPP)
-#define LIBMAUS_SORTING_MERGINGREADBACK_HPP
+#if !defined(LIBMAUS2_SORTING_MERGINGREADBACK_HPP)
+#define LIBMAUS2_SORTING_MERGINGREADBACK_HPP
 
 #include <libmaus2/aio/BufferedOutput.hpp>
 #include <queue>

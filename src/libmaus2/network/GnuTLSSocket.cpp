@@ -19,12 +19,12 @@
 
 #include <libmaus2/network/GnuTLSSocket.hpp>
 
-#if defined(LIBMAUS_HAVE_GNUTLS)
+#if defined(LIBMAUS2_HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #endif
 
-#if defined(LIBMAUS_HAVE_GNUTLS)
+#if defined(LIBMAUS2_HAVE_GNUTLS)
 /* check certificate */
 int libmaus2::network::GnuTLSSocket::verify_certificate_callback(gnutls_session_t session)
 {
@@ -69,35 +69,35 @@ int libmaus2::network::GnuTLSSocket::verify_certificate_callback(gnutls_session_
 
 libmaus2::network::GnuTLSSocket::GnuTLSSocket(
 	std::string const & 
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		rhostname
 		#endif
 	,
 	unsigned int 
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		port
 		#endif
 	,
 	char const * 
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		certfile
 		#endif
 	,
 	char const * 
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		// certdir
 		#endif
 	,
 	bool const 
-		#if defined(LIBMAUS_HAVE_GNUTLS)
+		#if defined(LIBMAUS2_HAVE_GNUTLS)
 		checkcertificate
 		#endif
 ) : libmaus2::network::GnuTLSInit()
-#if defined(LIBMAUS_HAVE_GNUTLS)
+#if defined(LIBMAUS2_HAVE_GNUTLS)
 , hostname(rhostname)
 #endif
 {
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	libmaus2::network::ClientSocket::unique_ptr_type TCS(new libmaus2::network::ClientSocket(port,hostname.c_str()));
 	PCS = UNIQUE_PTR_MOVE(TCS);
 
@@ -163,7 +163,7 @@ libmaus2::network::GnuTLSSocket::GnuTLSSocket(
 
 libmaus2::network::GnuTLSSocket::~GnuTLSSocket()
 {
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	gnutls_bye(session, GNUTLS_SHUT_RDWR);
 	gnutls_deinit(session);
 	gnutls_certificate_free_credentials(xcred);
@@ -176,14 +176,14 @@ void libmaus2::network::GnuTLSSocket::write(std::string const & s)
 }
 
 void libmaus2::network::GnuTLSSocket::write(
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	char const * p, size_t n
 	#else
 	char const *, size_t	
 	#endif
 )
 {
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	while ( n )
 	{
 		ssize_t const r = gnutls_record_send(session, p, n);
@@ -214,14 +214,14 @@ void libmaus2::network::GnuTLSSocket::write(
 }
 
 ssize_t libmaus2::network::GnuTLSSocket::readPart(
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	char * p, size_t n
 	#else
 	char *, size_t
 	#endif
 )
 {
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	ssize_t r;
 	unsigned int loops = 0;
 	unsigned int const maxloops = 10;
@@ -264,14 +264,14 @@ ssize_t libmaus2::network::GnuTLSSocket::readPart(
 }
 
 ssize_t libmaus2::network::GnuTLSSocket::read(
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	char * p, size_t n
 	#else
 	char *, size_t
 	#endif
 )
 {
-	#if defined(LIBMAUS_HAVE_GNUTLS)
+	#if defined(LIBMAUS2_HAVE_GNUTLS)
 	ssize_t r = 0;
 	
 	while ( n )

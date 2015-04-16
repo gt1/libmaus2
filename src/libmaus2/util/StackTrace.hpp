@@ -22,7 +22,7 @@
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_EXECINFO_H)
+#if defined(LIBMAUS2_HAVE_EXECINFO_H)
 #include <execinfo.h>
 #endif
 

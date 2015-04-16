@@ -16,12 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_FM_KMERTUPLE_HPP)
-#define LIBMAUS_FM_KMERTUPLE_HPP
+#if ! defined(LIBMAUS2_FM_KMERTUPLE_HPP)
+#define LIBMAUS2_FM_KMERTUPLE_HPP
 
 #include <libmaus2/types/types.hpp>
 
-#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 namespace libmaus2
 {
 	namespace alignment

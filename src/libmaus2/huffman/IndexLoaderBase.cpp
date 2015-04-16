@@ -33,7 +33,7 @@ uint64_t libmaus2::huffman::IndexLoaderBase::getIndexPos(std::string const & fil
 	uint64_t v;
 	indexistr.read( reinterpret_cast<char *>(&v) , 8 );
 	
-	#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+	#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 	#if defined(_WIN32)
 	uint64_t const indexpos = _byteswap_uint64(v);
 	#elif defined(__FreeBSD__)

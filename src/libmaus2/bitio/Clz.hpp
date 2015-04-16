@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BITIO_CLZ_HPP)
-#define LIBMAUS_BITIO_CLZ_HPP
+#if ! defined(LIBMAUS2_BITIO_CLZ_HPP)
+#define LIBMAUS2_BITIO_CLZ_HPP
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/types/types.hpp>
@@ -33,9 +33,9 @@ namespace libmaus2
 			 **/
 			static inline unsigned int clz(uint64_t code)
 			{
-				#if defined(__GNUC__) && (LIBMAUS_SIZEOF_UNSIGNED_LONG == 8)
+				#if defined(__GNUC__) && (LIBMAUS2_SIZEOF_UNSIGNED_LONG == 8)
 				return __builtin_clzl(code);
-				#elif defined(__GNUC__) && (LIBMAUS_SIZEOF_UNSIGNED_LONG == 4)
+				#elif defined(__GNUC__) && (LIBMAUS2_SIZEOF_UNSIGNED_LONG == 4)
 				if ( code >> 32 )
 					return __builtin_clzl(code >> 32);
 				else

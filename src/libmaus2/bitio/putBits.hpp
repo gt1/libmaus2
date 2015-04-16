@@ -160,7 +160,7 @@ namespace libmaus2
 			}
 		}
 
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		template<typename value_type>
 		void putBitsSync(value_type * const A, uint64_t offset, unsigned int numbits, uint64_t v)
 		{
@@ -385,7 +385,7 @@ namespace libmaus2
 			}
 		}		
 
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		template<>
 		inline void putBitsSync(uint64_t * const A, uint64_t offset, unsigned int numbits, uint64_t v)
 		{

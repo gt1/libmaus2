@@ -686,7 +686,7 @@ namespace libmaus2
 				unsigned int const bitSkip = (offset & bmsk);
 				unsigned int const bitsinfirstword = bitsInFirstWord[bitSkip];
 				
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				if ( synchronous )
 				{				
 					__sync_fetch_and_and ( DD, firstKeepMask[bitSkip] );
@@ -706,7 +706,7 @@ namespace libmaus2
 					v &= firstValueKeepMask[bitSkip];
 					DD++;
 				
-					#if defined(LIBMAUS_HAVE_SYNC_OPS)
+					#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 					if ( synchronous )
 					{
 						__sync_fetch_and_and (DD,lastMask[bitSkip]);
@@ -725,7 +725,7 @@ namespace libmaus2
 		};
 		
 		typedef CompactArrayTemplate<false> CompactArray;
-		#if defined(LIBMAUS_HAVE_SYNC_OPS)
+		#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 		typedef CompactArrayTemplate<true> SynchronousCompactArray;
 		#endif
 	}

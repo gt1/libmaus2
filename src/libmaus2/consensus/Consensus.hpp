@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_CONSENSUS_HPP)
-#define LIBMAUS_CONSENSUS_HPP
+#if ! defined(LIBMAUS2_CONSENSUS_HPP)
+#define LIBMAUS2_CONSENSUS_HPP
 
 #include <libmaus2/fastx/FastQElement.hpp>
 #include <libmaus2/util/Object.hpp>

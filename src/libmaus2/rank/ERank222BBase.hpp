@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_RANK_ERANK222BBASE)
-#define LIBMAUS_RANK_ERANK222BBASE
+#if ! defined(LIBMAUS2_RANK_ERANK222BBASE)
+#define LIBMAUS2_RANK_ERANK222BBASE
 
 #include <libmaus2/types/types.hpp>
 

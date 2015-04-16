@@ -22,7 +22,7 @@
 
 #include <libmaus2/parallel/SynchronousReorderSet.hpp>
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS2_HAVE_PTHREADS)
 namespace libmaus2
 {
         namespace parallel

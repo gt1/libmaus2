@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_ALIGNMENT_SIMPLELOCALALIGNER_HPP)
-#define LIBMAUS_ALIGNMENT_SIMPLELOCALALIGNER_HPP
+#if ! defined(LIBMAUS2_ALIGNMENT_SIMPLELOCALALIGNER_HPP)
+#define LIBMAUS2_ALIGNMENT_SIMPLELOCALALIGNER_HPP
 
 #include <libmaus2/alignment/BamLineInfo.hpp>
 #include <libmaus2/alignment/FMIIntervalComparator.hpp>
@@ -29,7 +29,7 @@
 #include <libmaus2/fm/SampledISA.hpp>
 #include <libmaus2/lcs/MetaLocalEditDistance.hpp>
 
-#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
+#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
 namespace libmaus2
 {
 	namespace alignment
@@ -543,27 +543,27 @@ namespace libmaus2
 						std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops> cigopvec;
 
 						for ( uint64_t i = 0; i < scfront; ++i )
-							cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP);
+							cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP);
 						for ( uint64_t i = 0; i < trace.size(); ++i )
 							switch ( trace[i] )
 							{
 								case libmaus2::lcs::LocalBaseConstants::STEP_MATCH:
-									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL);
+									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL);
 									break;
 								case libmaus2::lcs::LocalBaseConstants::STEP_MISMATCH:
-									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF);
+									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF);
 									break;
 								case libmaus2::lcs::LocalBaseConstants::STEP_INS:
-									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS);
+									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS);
 									break;
 								case libmaus2::lcs::LocalBaseConstants::STEP_DEL:
-									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL);
+									cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL);
 									break;
 								default:
 									break;							
 							}
 						for ( uint64_t i = 0; i < scback; ++i )
-							cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP);
+							cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP);
 				
 						std::vector<libmaus2::bambam::cigar_operation> cigops;
 						uint64_t ciglow = 0;
@@ -597,7 +597,7 @@ namespace libmaus2
 
 						BLIs.push_back(libmaus2::alignment::BamLineInfo(
 							score,sid,seq/2,seqpos,255 /* mapq */,
-							rc ? libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE : 0 /* flags */,
+							rc ? libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE : 0 /* flags */,
 							cigops,-1,-1,rc ? static_cast<int32_t>(-m) : m,
 							bamseq,bamqual,33
 						));

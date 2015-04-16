@@ -21,7 +21,7 @@
 #include <libmaus2/bambam/SeqChksumUpdateContext.hpp>
 #include <libmaus2/bambam/SeqChksumPrimeNumbers.hpp>
 
-#if defined(LIBMAUS_HAVE_GMP)
+#if defined(LIBMAUS2_HAVE_GMP)
 #include <gmp.h>
 #endif
 
@@ -122,7 +122,7 @@ struct PrimeProduct
 	private:
 	uint64_t count;
 
-	#if defined(LIBMAUS_HAVE_GMP)
+	#if defined(LIBMAUS2_HAVE_GMP)
 	mpz_t gmpprime;
 	mpz_t gmpfoldprime;	
 	mpz_t gmpb_seq;
@@ -153,7 +153,7 @@ struct PrimeProduct
 		product = product % prime;
 	}
 
-	#if defined(LIBMAUS_HAVE_GMP)
+	#if defined(LIBMAUS2_HAVE_GMP)
 	template<size_t k>
 	void updateProduct(mpz_t & gmpproduct, libmaus2::math::UnsignedInteger<k> const & rcrc)
 	{
@@ -166,7 +166,7 @@ struct PrimeProduct
 	}
 	#endif
 	
-	#if defined(LIBMAUS_HAVE_GMP)
+	#if defined(LIBMAUS2_HAVE_GMP)
 	static libmaus2::math::UnsignedInteger<productWidth> convertNumber(mpz_t const & gmpnum)
 	{
 		size_t const numbitsperel = 8 * sizeof(uint32_t);
@@ -184,11 +184,11 @@ struct PrimeProduct
 	public:
 	PrimeProduct()
 	: count(0)
-		#if !defined(LIBMAUS_HAVE_GMP)
+		#if !defined(LIBMAUS2_HAVE_GMP)
 		, b_seq(1), name_b_seq(1), b_seq_qual(1), b_seq_tags(1) 
 		#endif
 	{
-		#if defined(LIBMAUS_HAVE_GMP)
+		#if defined(LIBMAUS2_HAVE_GMP)
 		mpz_init(gmpprime);
 		mpz_import(gmpprime,productWidth,-1 /* least sign first */,sizeof(uint32_t),0 /* native endianess */,0 /* don't skip bits */, prime.getWords());		
 		mpz_init(gmpfoldprime);
@@ -204,7 +204,7 @@ struct PrimeProduct
 	}
 	~PrimeProduct()
 	{
-		#if defined(LIBMAUS_HAVE_GMP)
+		#if defined(LIBMAUS2_HAVE_GMP)
 		mpz_clear(gmpprime);
 		mpz_clear(gmpfoldprime);
 		mpz_clear(gmpb_seq);
@@ -219,7 +219,7 @@ struct PrimeProduct
 	void push(context_type const & context)
 	{
 		count += 1;		
-		#if defined(LIBMAUS_HAVE_GMP)
+		#if defined(LIBMAUS2_HAVE_GMP)
 		updateProduct(gmpb_seq,context.flags_seq_digest);
 		updateProduct(gmpname_b_seq,context.name_flags_seq_digest);
 		updateProduct(gmpb_seq_qual,context.flags_seq_qual_digest);
@@ -235,7 +235,7 @@ struct PrimeProduct
 	void push (this_type const & subsetproducts)
 	{
 		count += subsetproducts.count;
-		#if defined(LIBMAUS_HAVE_GMP)
+		#if defined(LIBMAUS2_HAVE_GMP)
 		updateProduct(gmpb_seq,convertNumber(subsetproducts.gmpb_seq));
 		updateProduct(gmpname_b_seq,convertNumber(subsetproducts.gmpname_b_seq));
 		updateProduct(gmpb_seq_qual,convertNumber(subsetproducts.gmpb_seq_qual));
@@ -251,7 +251,7 @@ struct PrimeProduct
 	bool operator== (this_type const & other) const
 	{
 		return count==other.count 
-			#if defined(LIBMAUS_HAVE_GMP)
+			#if defined(LIBMAUS2_HAVE_GMP)
 			&& (mpz_cmp(gmpb_seq,other.gmpb_seq) == 0)
 			&& (mpz_cmp(gmpname_b_seq,other.gmpname_b_seq) == 0)
 			&& (mpz_cmp(gmpb_seq_qual,other.gmpb_seq_qual) == 0)
@@ -269,7 +269,7 @@ struct PrimeProduct
 	{
 		std::ostringstream ostr;
 		ostr << std::hex 
-			#if defined(LIBMAUS_HAVE_GMP)
+			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpb_seq))
 			#else
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(b_seq)
@@ -282,7 +282,7 @@ struct PrimeProduct
 	{
 		std::ostringstream ostr;
 		ostr << std::hex 
-			#if defined(LIBMAUS_HAVE_GMP)
+			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpname_b_seq))
 			#else
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(name_b_seq)
@@ -295,7 +295,7 @@ struct PrimeProduct
 	{
 		std::ostringstream ostr;
 		ostr << std::hex 
-			#if defined(LIBMAUS_HAVE_GMP)
+			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpb_seq_qual))
 			#else
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(b_seq_qual)
@@ -308,7 +308,7 @@ struct PrimeProduct
 	{
 		std::ostringstream ostr;
 		ostr << std::hex 
-			#if defined(LIBMAUS_HAVE_GMP)
+			#if defined(LIBMAUS2_HAVE_GMP)
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(convertNumber(gmpb_seq_tags))
 			#else
 			<< libmaus2::math::UnsignedInteger<primeWidth/32>(b_seq_tags)
@@ -1007,20 +1007,20 @@ struct OrderIndependentSeqDataChecksums {
 		( ! (
 			aflags &
 			(
-				::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY |
-				::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY
+				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY |
+				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY
 			)
 		) )
 		{
 			static uint16_t const maskflags =
-				::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED |
-				::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1 | 
-				::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
+				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FPAIRED |
+				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD1 | 
+				::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREAD2;
 				
 			uint8_t const flags = (aflags & maskflags) & 0xFF;
 			
-			bool const isqcfail  = (aflags & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL);
-			bool const isreverse = (aflags & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE);
+			bool const isqcfail  = (aflags & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL);
+			bool const isreverse = (aflags & ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FREVERSE);
 			char const * readname = libmaus2::bambam::BamAlignmentDecoderBase::getReadName(D);
 			uint32_t const lreadname = libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(D);
 				
@@ -1337,7 +1337,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	V.push_back("crc32prod");
 	V.push_back("crc32");
 	V.push_back("md5");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1");
 	V.push_back("sha224");
 	V.push_back("sha256");
@@ -1347,7 +1347,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	V.push_back("crc32prime32");
 	V.push_back("crc32prime64");
 	V.push_back("md5prime64");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime64");
 	V.push_back("sha224prime64");
 	V.push_back("sha256prime64");
@@ -1356,7 +1356,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("crc32prime96");
 	V.push_back("md5prime96");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime96");
 	V.push_back("sha224prime96");
 	V.push_back("sha256prime96");
@@ -1365,7 +1365,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("crc32prime128");
 	V.push_back("md5prime128");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime128");
 	V.push_back("sha224prime128");
 	V.push_back("sha256prime128");
@@ -1374,7 +1374,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("crc32prime160");
 	V.push_back("md5prime160");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime160");
 	V.push_back("sha224prime160");
 	V.push_back("sha256prime160");
@@ -1383,7 +1383,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("crc32prime192");
 	V.push_back("md5prime192");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime192");
 	V.push_back("sha224prime192");
 	V.push_back("sha256prime192");
@@ -1392,7 +1392,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("crc32prime224");
 	V.push_back("md5prime224");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime224");
 	V.push_back("sha224prime224");
 	V.push_back("sha256prime224");
@@ -1401,7 +1401,7 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("crc32prime256");
 	V.push_back("md5prime256");
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha1prime256");
 	V.push_back("sha224prime256");
 	V.push_back("sha256prime256");
@@ -1410,12 +1410,12 @@ std::vector<std::string> libmaus2::bambam::ChecksumsFactory::getSupportedHashVar
 	#endif
 	V.push_back("null");
 
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	V.push_back("sha512primesums");
 	V.push_back("sha512primesums512");
 	#endif
 
-	#if (!defined(LIBMAUS_HAVE_NETTLE)) && (defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY))
+	#if (!defined(LIBMAUS2_HAVE_NETTLE)) && (defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY))
 	V.push_back("sha256");
 	V.push_back("sha512");
 	V.push_back("sha256prime64");
@@ -1473,7 +1473,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<MD5SeqChksumsSimpleSums,header_type>(hash,header));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	else if ( hash == "sha1" )
 	{
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<SHA1SeqChksumsSimpleSums,header_type>(hash,header));
@@ -1486,7 +1486,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1507,7 +1507,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1597,7 +1597,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<MD5PrimeProduct256,header_type>(hash,header));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	else if ( hash == "sha1prime64" )
 	{
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<SHA1PrimeProduct64,header_type>(hash,header));
@@ -1610,7 +1610,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime64" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			//std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1631,7 +1631,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime64" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			//std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1657,7 +1657,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime96" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			//std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1678,7 +1678,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime96" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1704,7 +1704,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime128" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1725,7 +1725,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime128" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1751,7 +1751,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime160" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1772,7 +1772,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime160" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1798,7 +1798,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime192" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1819,7 +1819,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime192" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1845,7 +1845,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime224" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1866,7 +1866,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime224" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1892,7 +1892,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha256prime256" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_256" << std::endl;
@@ -1913,7 +1913,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512prime256" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1933,10 +1933,10 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<NullChecksums,header_type>(hash,header));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	#if defined(LIBMAUS_HAVE_NETTLE)
+	#if defined(LIBMAUS2_HAVE_NETTLE)
 	else if ( hash == "sha512primesums" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1952,7 +1952,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 	}
 	else if ( hash == "sha512primesums512" )
 	{
-		#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+		#if defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)	&& defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 		if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 		{
 			// std::cerr << "[V] running sse4 SHA2_512" << std::endl;
@@ -1967,7 +1967,7 @@ libmaus2::bambam::ChecksumsInterface::unique_ptr_type constructTemplate(std::str
 		}
 	}
 	#endif
-	#if (! defined(NETTLE)) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
+	#if (! defined(NETTLE)) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386) && defined(LIBMAUS2_HAVE_SHA2_ASSEMBLY)
 	else if ( hash == "sha256" && libmaus2::util::I386CacheLineSize::hasSSE41() )
 	{
 		libmaus2::bambam::ChecksumsInterface::unique_ptr_type tptr(new Checksums<SHA2_256_sse4_SeqChksumsSimpleSums,header_type>(hash,header));

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LZ_BGZFDEFLATEZSTREAMBASE_HPP)
-#define LIBMAUS_LZ_BGZFDEFLATEZSTREAMBASE_HPP
+#if ! defined(LIBMAUS2_LZ_BGZFDEFLATEZSTREAMBASE_HPP)
+#define LIBMAUS2_LZ_BGZFDEFLATEZSTREAMBASE_HPP
 
 #include <libmaus2/lz/BgzfDeflateHeaderFunctions.hpp>
 #include <libmaus2/lz/BgzfDeflateInputBufferBase.hpp>
@@ -25,7 +25,7 @@
 #include <libmaus2/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
 #include <libmaus2/lz/IGzipDeflate.hpp>
 
-#if defined(LIBMAUS_HAVE_IGZIP)
+#if defined(LIBMAUS2_HAVE_IGZIP)
 #include <libmaus2/util/I386CacheLineSize.hpp>
 #endif
 
@@ -66,7 +66,7 @@ namespace libmaus2
 
 					deflbound = bound;
 				}
-				#if defined(LIBMAUS_HAVE_IGZIP)
+				#if defined(LIBMAUS2_HAVE_IGZIP)
 				else if ( level == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
 				{
 					// half a block should fit
@@ -123,7 +123,7 @@ namespace libmaus2
 					
 					return getBgzfMaxPayLoad() - strm.avail_out;
 				}
-				#if defined(LIBMAUS_HAVE_IGZIP)
+				#if defined(LIBMAUS2_HAVE_IGZIP)
 				else if ( level == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
 				{
 					int64_t const compsize = libmaus2::lz::IGzipDeflate::deflate(
@@ -238,7 +238,7 @@ namespace libmaus2
 
 			BgzfDeflateZStreamBase(int const rlevel = Z_DEFAULT_COMPRESSION)
 			{
-				#if defined(LIBMAUS_HAVE_IGZIP)
+				#if defined(LIBMAUS2_HAVE_IGZIP)
 				if ( rlevel == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
 				{
 					if ( ! libmaus2::util::I386CacheLineSize::hasSSE42() )

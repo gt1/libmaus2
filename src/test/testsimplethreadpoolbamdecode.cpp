@@ -904,7 +904,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus2::parallel:
 	template<unsigned int len>
 	static uint64_t decodeLittleEndianInteger(uint8_t const * pa)
 	{
-		#if defined(LIBMAUS_HAVE_i386)
+		#if defined(LIBMAUS2_HAVE_i386)
 		if ( len == 4 )
 		{
 			return *reinterpret_cast<uint32_t const *>(pa);

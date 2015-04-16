@@ -22,11 +22,11 @@
 #include <libmaus2/lz/IstreamSource.hpp>
 #include <libmaus2/lz/StdOstreamSink.hpp>
 #include <libmaus2/aio/IStreamWrapper.hpp>
-#if ! defined(LIBMAUS_HAVE_SNAPPY)
+#if ! defined(LIBMAUS2_HAVE_SNAPPY)
 #include <libmaus2/util/GetFileSize.hpp>
 #endif
 
-#if defined(LIBMAUS_HAVE_SNAPPY)
+#if defined(LIBMAUS2_HAVE_SNAPPY)
 uint64_t libmaus2::lz::SnappyCompress::compress(::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in, std::ostream & out)
 {
 	::libmaus2::lz::StdOstreamSink<std::ostream> sostr(out);

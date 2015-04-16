@@ -22,7 +22,7 @@
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS_HAVE_PTHREADS)
+#if defined(LIBMAUS2_HAVE_PTHREADS)
 
 #include <ctime>
 #include <cerrno>
@@ -304,7 +304,7 @@ namespace libmaus2
                         
                         bool timedWait()
                         {
-                        	#if defined(LIBMAUS_HAVE_SEM_TIMEDWAIT)
+                        	#if defined(LIBMAUS2_HAVE_SEM_TIMEDWAIT)
                         	// time structures
                                 struct timeval tv;
                                 struct timezone tz;

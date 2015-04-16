@@ -102,7 +102,7 @@ namespace libmaus2
 			}
 			void setSync(uint64_t const i, bool b)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				::libmaus2::bitio::putBitSync(A.get(),i,b);				
 				#else
 				::libmaus2::exception::LibMausException se;
@@ -113,7 +113,7 @@ namespace libmaus2
 			}
 			bool setSync(uint64_t const i)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return ::libmaus2::bitio::setBitSync(A.get(),i);
 				#else
 				::libmaus2::exception::LibMausException se;
@@ -124,7 +124,7 @@ namespace libmaus2
 			}
 			bool eraseSync(uint64_t const i)
 			{
-				#if defined(LIBMAUS_HAVE_SYNC_OPS)
+				#if defined(LIBMAUS2_HAVE_SYNC_OPS)
 				return ::libmaus2::bitio::eraseBitSync(A.get(),i);
 				#else
 				::libmaus2::exception::LibMausException se;

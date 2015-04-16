@@ -22,7 +22,7 @@
 #include <libmaus2/fastx/FastAReader.hpp>
 #include <libmaus2/fastx/SocketFastAReader.hpp>
 
-#if defined(LIBMAUS_HAVE_SEQAN)
+#if defined(LIBMAUS2_HAVE_SEQAN)
 void computeConsensus()
 {
 	::libmaus2::consensus::ConsensusComputation::unique_ptr_type CC(new ::libmaus2::consensus::ConsensusComputation);
@@ -59,7 +59,7 @@ void computeConsensus()
 
 int main()
 {
-	#if defined(LIBMAUS_HAVE_SEQAN)
+	#if defined(LIBMAUS2_HAVE_SEQAN)
 	computeConsensus();
 	#else
 	std::cerr << "libmaus2 is compiled without SeqAN support. Consensus computation is thus not present." << std::endl;

@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_LF_LFBASE_HPP)
-#define LIBMAUS_LF_LFBASE_HPP
+#if ! defined(LIBMAUS2_LF_LFBASE_HPP)
+#define LIBMAUS2_LF_LFBASE_HPP
 
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/bitio/CompactArray.hpp>

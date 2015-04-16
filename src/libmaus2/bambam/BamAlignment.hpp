@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENT_HPP)
-#define LIBMAUS_BAMBAM_BAMALIGNMENT_HPP
+#if ! defined(LIBMAUS2_BAMBAM_BAMALIGNMENT_HPP)
+#define LIBMAUS2_BAMBAM_BAMALIGNMENT_HPP
 
 #include <libmaus2/bambam/BamAlignmentFixedSizeData.hpp>
 #include <libmaus2/bambam/AlignmentValidity.hpp>
@@ -1009,7 +1009,7 @@ namespace libmaus2
 			 **/
 			int32_t getRefID() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->RefID;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(D.get());				
@@ -1034,7 +1034,7 @@ namespace libmaus2
 			 **/
 			int32_t getPos() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Pos;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(D.get());
@@ -1059,7 +1059,7 @@ namespace libmaus2
 			 **/
 			int32_t getNextRefID() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NextRefID;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNextRefID(D.get());
@@ -1083,7 +1083,7 @@ namespace libmaus2
 			 **/
 			int32_t getNextPos() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NextPos;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNextPos(D.get());
@@ -1115,7 +1115,7 @@ namespace libmaus2
 			 **/
 			uint32_t getBin() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Bin;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getBin(D.get());
@@ -1127,7 +1127,7 @@ namespace libmaus2
 			 **/
 			uint32_t getMapQ() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->MQ;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getMapQ(D.get());
@@ -1139,7 +1139,7 @@ namespace libmaus2
 			 **/
 			uint32_t getLReadName() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NL;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(D.get());
@@ -1151,7 +1151,7 @@ namespace libmaus2
 			 **/
 			uint32_t getFlags() const
 			{			
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Flags;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(D.get());
@@ -1163,7 +1163,7 @@ namespace libmaus2
 			 **/
 			uint32_t getNCigar() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NC;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNCigar(D.get());			
@@ -1234,7 +1234,7 @@ namespace libmaus2
 			 **/
 			int32_t getTlen() const
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Tlen;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getTlen(D.get());
@@ -1243,7 +1243,7 @@ namespace libmaus2
 			
 			static int32_t getLseq(uint8_t const * D)
 			{
-				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
+				#if defined(LIBMAUS2_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D)->Lseq;
 				#else
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getLseq(D);
@@ -1767,9 +1767,9 @@ namespace libmaus2
 				{
 					uint64_t const cigop = getCigarFieldOp(i);
 					if ( 
-						cigop == ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
+						cigop == ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CSOFT_CLIP 
 						||
-						cigop == ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+						cigop == ::libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CHARD_CLIP 
 					)
 						return true;
 				}

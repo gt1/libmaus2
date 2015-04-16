@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_IRODS_IRODSCOMMPROVIDER_HPP)
-#define LIBMAUS_IRODS_IRODSCOMMPROVIDER_HPP
+#if ! defined(LIBMAUS2_IRODS_IRODSCOMMPROVIDER_HPP)
+#define LIBMAUS2_IRODS_IRODSCOMMPROVIDER_HPP
 
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 
-#if defined(LIBMAUS_HAVE_IRODS)
+#if defined(LIBMAUS2_HAVE_IRODS)
 #include <rodsClient.h>
 #endif
 
@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			virtual ~IRodsCommProvider() {}
-			#if defined(LIBMAUS_HAVE_IRODS)
+			#if defined(LIBMAUS2_HAVE_IRODS)
 			virtual rcComm_t * getComm() = 0;
 			#endif
 		};

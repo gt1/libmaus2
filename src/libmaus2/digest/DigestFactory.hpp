@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS_DIGEST_DIGESTFACTORY_HPP)
-#define LIBMAUS_DIGEST_DIGESTFACTORY_HPP
+#if ! defined(LIBMAUS2_DIGEST_DIGESTFACTORY_HPP)
+#define LIBMAUS2_DIGEST_DIGESTFACTORY_HPP
 
 #include <libmaus2/digest/DigestFactoryInterface.hpp>
 
@@ -34,7 +34,7 @@ namespace libmaus2
 				S.insert("crc32c");
 				S.insert("md5");
 				S.insert("null");
-				#if defined(LIBMAUS_HAVE_NETTLE)
+				#if defined(LIBMAUS2_HAVE_NETTLE)
 				S.insert("sha1");
 				S.insert("sha224");
 				S.insert("sha256");
@@ -71,7 +71,7 @@ namespace libmaus2
 					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::Null);
 					return UNIQUE_PTR_MOVE(tptr);		
 				}
-				#if defined(LIBMAUS_HAVE_NETTLE)
+				#if defined(LIBMAUS2_HAVE_NETTLE)
 				else if ( name == "sha1" )
 				{
 					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA1);
