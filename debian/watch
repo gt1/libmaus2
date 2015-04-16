@@ -1,0 +1,3 @@
+version=3
+opts=filenamemangle=s/.+\/v?(\d\S*)\.tar\.gz/libmaus2-$1\.tar\.gz/,uversionmangle=s/-release-\d+// \
+	https://github.com/gt1/libmaus2/tags .*/(\d+\.\d+\.\d+)-release-\d+\.tar\.gz

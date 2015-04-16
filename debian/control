@@ -1,0 +1,42 @@
+Source: libmaus2
+Maintainer: German Tischler <gt1@sanger.ac.uk>
+Section: libs
+Priority: optional
+Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 9), dh-autoreconf, dh-exec, autoconf (>= 2.61), automake (>= 1.10), libtool (>= 2.2.6), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2), libstaden-read-dev (>= 1.13.0), libgnutls-dev (>= 2.12.14), yasm (>= 1.1.0), nettle-dev (>= 2.4)
+Vcs-Git: https://github.com/gt1/libmaus2.git -b debian
+Vcs-browser: https://github.com/gt1/libmaus2/tree/debian
+Homepage: https://github.com/gt1/libmaus2
+
+Package: libmaus2
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: libmaus2 is a collection of data structures and algorithms
+ libmaus2 contains a collection of data structures and algorithms, many of
+ which have applications in bio-informatics. In particular this includes
+ .
+  - I/O classes (single byte and UTF-8)
+  - bitio classes (input, output and various forms of bit level manipulation)
+  - text indexing classes (suffix and LCP array, fulltext and minute (FM), ...)
+  - BAM sequence alignment files input/output (simple and collating)
+ .
+ and many lower level support classes.
+
+Package: libmaus2-dev
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmaus2 (= ${binary:Version}), pkg-config (>= 0.22), zlib1g-dev (>= 1.2.3), libsnappy-dev (>= 1.0.3), seqan-dev (>= 1.2), libgnutls-dev (>= 2.12.14)
+Description: Development files for libmaus2 (headers, libraries and pkg-config files)
+ libmaus2 contains a collection of data structures and algorithms, many of
+ which have applications in bio-informatics. In particular this includes
+ .
+  - I/O classes (single byte and UTF-8)
+  - bitio classes (input, output and various forms of bit level manipulation)
+  - text indexing classes (suffix and LCP array, fulltext and minute (FM), ...)
+  - BAM sequence alignment files input/output (simple and collating)
+ .
+ and many lower level support classes. This package contains the header
+ files and libraries required for developing applications based on libmaus2.
+
