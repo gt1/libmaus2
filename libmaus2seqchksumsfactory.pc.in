@@ -7,5 +7,5 @@ Name: libmaus2seqchksumsfactory
 Description: non pic digest routines in libmaus2
 Requires: @ZLIBREQ@ @NETTLEREQ@ libmaus2digests
 Version: @VERSION@
-Libs: -L${libdir} -lmausseqchksumsfactory @GMPLDFLAGS@ @GMPLIBS@
+Libs: -L${libdir} -lmaus2seqchksumsfactory @GMPLDFLAGS@ @GMPLIBS@
 Cflags: @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ @ZLIBCPPFLAGS@ @GMPCPPFLAGS@ -I${includedir}

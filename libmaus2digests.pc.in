@@ -7,5 +7,5 @@ Name: libmaus2digests
 Description: non pic digest routines in libmaus2
 Requires: @ZLIBREQ@ @NETTLEREQ@
 Version: @VERSION@
-Libs: -L${libdir} -lmausdigests -lmausdigests_sse4
+Libs: -L${libdir} -lmaus2digests -lmaus2digests_sse4
 Cflags: @LIBMAUSCPPFLAGS@ @LIBMAUSPKGCPPFLAGS@ @LIBMAUSPKGCXXFLAGS@ @LIBMAUSARCHCFLAGS@ @ZLIBCPPFLAGS@ -I${includedir}
