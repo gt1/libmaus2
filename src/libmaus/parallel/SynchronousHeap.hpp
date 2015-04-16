@@ -27,6 +27,7 @@
 #include <libmaus/parallel/PosixMutex.hpp>
 #include <libmaus/parallel/PosixSpinLock.hpp>
 #include <libmaus/parallel/PosixSemaphore.hpp>
+#include <libmaus/parallel/PosixConditionSemaphore.hpp>
 #include <deque>
 #include <queue>
 
@@ -39,7 +40,11 @@ namespace libmaus
                 {
                         std::priority_queue < value_type, std::vector<value_type>, compare > Q;
                         PosixSpinLock lock;
-                        PosixSemaphore semaphore;
+                        #if defined(__APPLE__)
+                        PosixConditionSemaphore semaphore;
+                        #else
+                        PosixSemaphore semaphore;                        
+                        #endif
                         
                         SynchronousHeap()
                         {

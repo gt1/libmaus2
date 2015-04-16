@@ -1178,7 +1178,8 @@ libmausparallel_include_HEADERS=\
 	libmaus/parallel/LockedFreeList.hpp \
 	libmaus/parallel/LockedHeap.hpp \
 	libmaus/parallel/LockedCounter.hpp \
-	libmaus/parallel/LockedGrowingFreeList.hpp
+	libmaus/parallel/LockedGrowingFreeList.hpp \
+	libmaus/parallel/PosixConditionSemaphore.hpp
 
 libmausfastx_includedir=$(includedir)/libmaus/fastx
 libmausfastx_include_HEADERS=\
