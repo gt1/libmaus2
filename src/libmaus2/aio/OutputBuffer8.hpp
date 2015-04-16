@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,13 +21,13 @@
 #if ! defined(LIBMAUS_AIO_OUTPUTBUFFER8_HPP)
 #define LIBMAUS_AIO_OUTPUTBUFFER8_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -39,11 +39,11 @@ namespace libmaus
                 	//! this type
                         typedef OutputBuffer8 this_type;
                         //! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 
 			private:
 			//! buffer
-                        ::libmaus::autoarray::AutoArray<uint64_t> B;
+                        ::libmaus2::autoarray::AutoArray<uint64_t> B;
                         //! buffer start pointer
                         uint64_t * const pa;
                         //! buffer current pointer
@@ -51,7 +51,7 @@ namespace libmaus
                         //! buffer end pointer
                         uint64_t * const pe;
                         //! async writer
-                        ::libmaus::aio::AsynchronousWriter W;
+                        ::libmaus2::aio::AsynchronousWriter W;
 
                         public:
                         /**
@@ -60,10 +60,10 @@ namespace libmaus
                          * @param A array
                          * @param outputfilename output file name
                          **/
-			static void writeArray(::libmaus::autoarray::AutoArray<uint64_t> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<uint64_t> const & A, 
 				std::string const & outputfilename)
 			{
-				::libmaus::aio::OutputBuffer8 out(outputfilename,64*1024);
+				::libmaus2::aio::OutputBuffer8 out(outputfilename,64*1024);
 				
 				for ( uint64_t i = 0; i < A.getN(); ++i )
 					out.put(A[i]);

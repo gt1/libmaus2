@@ -1,19 +1,19 @@
-#include <libmaus/lz/BufferedGzipStream.hpp>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus2/lz/BufferedGzipStream.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
 
 int main()
 {
 	try
 	{
-		::libmaus::bambam::BamDecoder bamdec(std::cin);
-		// ::libmaus::lz::BufferedGzipStream bgs(std::cin);
-		::libmaus::autoarray::AutoArray<char> C(32*1024*1024,false);
+		::libmaus2::bambam::BamDecoder bamdec(std::cin);
+		// ::libmaus2::lz::BufferedGzipStream bgs(std::cin);
+		::libmaus2::autoarray::AutoArray<char> C(32*1024*1024,false);
 		// double const errfreq = 1e-6;
 		// srand(time(0));
-		::libmaus::random::Random::setup();
-		::libmaus::bambam::BamWriter writer(std::cout,bamdec.getHeader());
+		::libmaus2::random::Random::setup();
+		::libmaus2::bambam::BamWriter writer(std::cout,bamdec.getHeader());
 
 		uint64_t red = 0;			
 		uint64_t total = 0;
@@ -24,10 +24,10 @@ int main()
 			while ( off < red )
 			{
 				uint64_t const skip =
-					std::min(red-off, ::libmaus::random::Random::rand64() % (64*1024) );
-				 // ::libmaus::random::Random::rand64() % (red-off+1);
+					std::min(red-off, ::libmaus2::random::Random::rand64() % (64*1024) );
+				 // ::libmaus2::random::Random::rand64() % (red-off+1);
 					
-				C [ off + skip ] = ::libmaus::random::Random::rand8();
+				C [ off + skip ] = ::libmaus2::random::Random::rand8();
 				off += skip;
 				
 				// std::cerr << "changed offset " << total + off << std::endl;

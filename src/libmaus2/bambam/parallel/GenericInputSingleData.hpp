@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTSINGLEDATA_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTSINGLEDATA_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlStreamInfo.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
-#include <libmaus/bambam/parallel/GenericInputHeapComparator.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlSubBlockPendingHeapComparator.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockAllocator.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockTypeInfo.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockHeapComparator.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlStreamInfo.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/bambam/parallel/GenericInputHeapComparator.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlSubBlockPendingHeapComparator.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlockAllocator.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlockTypeInfo.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlockHeapComparator.hpp>
 #include <queue>
-#include <libmaus/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp>
-#include <libmaus/bambam/parallel/SamParsePendingHeapComparator.hpp>
+#include <libmaus2/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp>
+#include <libmaus2/bambam/parallel/SamParsePendingHeapComparator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -39,8 +39,8 @@ namespace libmaus
 			struct GenericInputSingleDataReadBase
 			{
 				typedef GenericInputSingleDataReadBase this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				size_t byteSize()
 				{
@@ -75,15 +75,15 @@ namespace libmaus
 			
 				public:
 				// info
-				libmaus::bambam::parallel::GenericInputControlStreamInfo const streaminfo;
+				libmaus2::bambam::parallel::GenericInputControlStreamInfo const streaminfo;
 				
 				// input stream pointer
-				libmaus::aio::InputStream::unique_ptr_type Pin;
+				libmaus2::aio::InputStream::unique_ptr_type Pin;
 				
 				// stream, protected by inlock
 				std::istream & in;
 				// read lock
-				libmaus::parallel::PosixSpinLock inlock;
+				libmaus2::parallel::PosixSpinLock inlock;
 				
 				private:
 				// stream id, constant, no lock needed
@@ -106,7 +106,7 @@ namespace libmaus
 				// eof, protected by eoflock
 				bool volatile eof;
 				// lock for eof
-				libmaus::parallel::PosixSpinLock eoflock;
+				libmaus2::parallel::PosixSpinLock eoflock;
 			
 				public:
 				// stall array, protected by inlock
@@ -115,7 +115,7 @@ namespace libmaus
 				uint64_t volatile stallArraySize;
 			
 				// lock
-				libmaus::parallel::PosixSpinLock lock;
+				libmaus2::parallel::PosixSpinLock lock;
 				
 				// next block to be processed, protected by lock
 				uint64_t volatile nextblockid;
@@ -137,32 +137,32 @@ namespace libmaus
 				std::vector<uint64_t> decompressiontotal;
 
 				// free list for compressed data meta blocks
-				libmaus::parallel::LockedFreeList<
-					libmaus::bambam::parallel::MemInputBlock,
-					libmaus::bambam::parallel::MemInputBlockAllocator,
-					libmaus::bambam::parallel::MemInputBlockTypeInfo
+				libmaus2::parallel::LockedFreeList<
+					libmaus2::bambam::parallel::MemInputBlock,
+					libmaus2::bambam::parallel::MemInputBlockAllocator,
+					libmaus2::bambam::parallel::MemInputBlockTypeInfo
 				> meminputblockfreelist;
 				
 				// free list for uncompressed bgzf blocks
-				libmaus::parallel::LockedFreeList<
-					libmaus::bambam::parallel::DecompressedBlock,
-					libmaus::bambam::parallel::DecompressedBlockAllocator,
-					libmaus::bambam::parallel::DecompressedBlockTypeInfo
+				libmaus2::parallel::LockedFreeList<
+					libmaus2::bambam::parallel::DecompressedBlock,
+					libmaus2::bambam::parallel::DecompressedBlockAllocator,
+					libmaus2::bambam::parallel::DecompressedBlockTypeInfo
 				> decompressedblockfreelist;
 
 				uint64_t volatile decompressedBlockIdAcc;
 				uint64_t volatile decompressedBlocksAcc;
 				
 				bool volatile samHeaderComplete;
-				libmaus::autoarray::AutoArray<char,libmaus::autoarray::alloc_type_c> samHeader;
+				libmaus2::autoarray::AutoArray<char,libmaus2::autoarray::alloc_type_c> samHeader;
 
 				std::deque<SamParsePending> samParsePendingQueue;
-				libmaus::parallel::PosixSpinLock samParsePendingQueueLock;
+				libmaus2::parallel::PosixSpinLock samParsePendingQueueLock;
 				uint64_t volatile samParsePendingQueueNextAbsId;
 												
 				GenericInputSingleDataReadBase(
 					std::istream & rin,
-					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
+					libmaus2::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
 					uint64_t const rstreamid,
 					uint64_t const rblocksize, 
 					unsigned int const numblocks,
@@ -173,7 +173,7 @@ namespace libmaus
 				  Pin(),
 				  in(rin), 
 				  streamid(rstreamid), blockid(0), blocksize(rblocksize), 
-				  blockFreeList(numblocks,libmaus::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
+				  blockFreeList(numblocks,libmaus2::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
 				  finite(streaminfo.finite),
 				  dataleft(finite ? (streaminfo.end-streaminfo.start) : 0),
 				  eof(false),
@@ -192,7 +192,7 @@ namespace libmaus
 				}
 
 				GenericInputSingleDataReadBase(
-					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
+					libmaus2::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
 					uint64_t const rstreamid,
 					uint64_t const rblocksize, 
 					unsigned int const numblocks,
@@ -203,7 +203,7 @@ namespace libmaus
 				  Pin(streaminfo.openStream()),
 				  in(*Pin), 
 				  streamid(rstreamid), blockid(0), blocksize(rblocksize), 
-				  blockFreeList(numblocks,libmaus::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
+				  blockFreeList(numblocks,libmaus2::bambam::parallel::GenericInputBlockAllocator<GenericInputBase::meta_type>(blocksize)),
 				  finite(streaminfo.finite),
 				  dataleft(finite ? (streaminfo.end-streaminfo.start) : 0),
 				  eof(false),
@@ -227,13 +227,13 @@ namespace libmaus
 
 				bool getEOF()
 				{
-					libmaus::parallel::ScopePosixSpinLock slock(eoflock);
+					libmaus2::parallel::ScopePosixSpinLock slock(eoflock);
 					return eof;
 				}
 				
 				void setEOF(bool const reof)
 				{
-					libmaus::parallel::ScopePosixSpinLock slock(eoflock);
+					libmaus2::parallel::ScopePosixSpinLock slock(eoflock);
 					eof = reof;
 				}
 			
@@ -256,26 +256,26 @@ namespace libmaus
 			struct GenericInputSingleData : public GenericInputSingleDataReadBase
 			{
 				typedef GenericInputSingleData this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				
 				uint64_t volatile parsependingnext;
 				std::priority_queue<
-					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type,
-					std::vector<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type>,
+					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type,
+					std::vector<libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type>,
 					DecompressedBlockHeapComparator> parsepending;
 					
 				GenericInputSingleDataBamParseInfo parseInfo;
 				
-				std::deque<libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type> processQueue;
-				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type processActive;
+				std::deque<libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type> processQueue;
+				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type processActive;
 				bool volatile processMissing;
 				bool volatile processFirst;
-				libmaus::parallel::PosixSpinLock processLock;
+				libmaus2::parallel::PosixSpinLock processLock;
 			
 				GenericInputSingleData(
-					libmaus::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
+					libmaus2::bambam::parallel::GenericInputControlStreamInfo const & rstreaminfo,
 					uint64_t const rstreamid,
 					uint64_t const rblocksize, 
 					unsigned int const numblocks,

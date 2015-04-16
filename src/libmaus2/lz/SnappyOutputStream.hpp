@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYOUTPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SNAPPYOUTPUTSTREAM_HPP
 
-#include <libmaus/lz/SnappyCompress.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/lz/SnappyCompress.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
 #include <utility>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -33,11 +33,11 @@ namespace libmaus
 		{
 			typedef _stream_type stream_type;
 			typedef SnappyOutputStream<stream_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			::std::ostream & out;
-			::libmaus::autoarray::AutoArray<char> B;
+			::libmaus2::autoarray::AutoArray<char> B;
 			char * const pa;
 			char *       pc;
 			char * const pe;
@@ -81,10 +81,10 @@ namespace libmaus
 					std::string const cdata = SnappyCompress::compress(std::string(pa,pc));
 					
 					// store size of uncompressed buffer
-					compressedbyteswritten += ::libmaus::util::NumberSerialisation::serialiseNumber(out,pc-pa);
+					compressedbyteswritten += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,pc-pa);
 
 					// store size of compressed buffer
-					compressedbyteswritten += ::libmaus::util::NumberSerialisation::serialiseNumber(out,cdata.size());
+					compressedbyteswritten += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,cdata.size());
 					
 					// write compressed data
 					out.write(cdata.c_str(),cdata.size());
@@ -92,7 +92,7 @@ namespace libmaus
 					
 					if ( ! out )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to flush SnappyOutputStream." << std::endl;
 						se.finish();
 						throw se;

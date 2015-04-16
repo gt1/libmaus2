@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_LZ_SIMPLECOMPRESSEDCONCATINPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDCONCATINPUTSTREAM_HPP
 
-#include <libmaus/lz/SimpleCompressedConcatInputStreamFragment.hpp>
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/lz/SimpleCompressedConcatInputStreamFragment.hpp>
+#include <libmaus2/lz/DecompressorObjectFactory.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -35,14 +35,14 @@ namespace libmaus
 		{
 			typedef _stream_type stream_type;
 			typedef SimpleCompressedConcatInputStream<stream_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
-			std::vector< ::libmaus::lz::SimpleCompressedConcatInputStreamFragment<stream_type> > fragments;
-			::libmaus::lz::DecompressorObject::unique_ptr_type decompressor;
+			std::vector< ::libmaus2::lz::SimpleCompressedConcatInputStreamFragment<stream_type> > fragments;
+			::libmaus2::lz::DecompressorObject::unique_ptr_type decompressor;
 			
-			libmaus::autoarray::AutoArray<char> C;
-			libmaus::autoarray::AutoArray<char> B;
+			libmaus2::autoarray::AutoArray<char> C;
+			libmaus2::autoarray::AutoArray<char> B;
 			char * pa;
 			char * pc;
 			char * pe;
@@ -63,33 +63,33 @@ namespace libmaus
 					
 				if ( ! (*(fragments[curstream].stream)) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "SimpleCompressedConcatInputStream: failed to seek on init" << std::endl;
 					se.finish();
 					throw se;
 				}
 
 				// byte count accumulator			
-				libmaus::util::CountPutObject CPO;
+				libmaus2::util::CountPutObject CPO;
 				// read number of uncompressed bytes
-				uint64_t const uncomp = libmaus::util::UTF8::decodeUTF8(*(fragments[curstream].stream));
-				::libmaus::util::UTF8::encodeUTF8(uncomp,CPO);
+				uint64_t const uncomp = libmaus2::util::UTF8::decodeUTF8(*(fragments[curstream].stream));
+				::libmaus2::util::UTF8::encodeUTF8(uncomp,CPO);
 				// read number of compressed bytes
-				uint64_t const comp = ::libmaus::util::NumberSerialisation::deserialiseNumber(*(fragments[curstream].stream));
-				::libmaus::util::NumberSerialisation::serialiseNumber(CPO,comp);
+				uint64_t const comp = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*(fragments[curstream].stream));
+				::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,comp);
 				
 				// resize buffers if necessary
 				if ( comp > C.size() )
-					C = libmaus::autoarray::AutoArray<char>(comp,false);
+					C = libmaus2::autoarray::AutoArray<char>(comp,false);
 				if ( uncomp > B.size() )
-					B = libmaus::autoarray::AutoArray<char>(uncomp,false);
+					B = libmaus2::autoarray::AutoArray<char>(uncomp,false);
 					
 				fragments[curstream].stream->read(C.begin(),comp);
 				CPO.write(C.begin(),comp);
 				
 				if ( ! (*(fragments[curstream].stream)) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "SimpleCompressedConcatInputStream: failed to read data" << std::endl;
 					se.finish();
 					throw se;
@@ -99,7 +99,7 @@ namespace libmaus
 
 				if ( ! ok )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "SimpleCompressedConcatInputStream: failed to decompress data" << std::endl;
 					se.finish();
 					throw se;
@@ -139,7 +139,7 @@ namespace libmaus
 			public:
 			SimpleCompressedConcatInputStream(
 				std::vector< SimpleCompressedConcatInputStreamFragment<stream_type> > const & rfragments,
-				::libmaus::lz::DecompressorObjectFactory & decompfact
+				::libmaus2::lz::DecompressorObjectFactory & decompfact
 			)
 			: fragments(SimpleCompressedConcatInputStreamFragment<stream_type>::filter(rfragments)),
 			  decompressor(decompfact()),

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/suffixsort/CircularBwt.hpp>
-#include <libmaus/lf/LF.hpp>
+#include <libmaus2/suffixsort/CircularBwt.hpp>
+#include <libmaus2/lf/LF.hpp>
 
 void mergeTwoTest(std::string const s)
 {
@@ -40,9 +40,9 @@ void mergeTwoTest(std::string const s)
 	
 	uint64_t zrank = 0;
 	int64_t const term = '#';
-	std::pair< std::string,std::vector<bool> > const frontblock = ::libmaus::suffixsort::CircularBwt::circularBwt(s,0,m,term,&zrank);
+	std::pair< std::string,std::vector<bool> > const frontblock = ::libmaus2::suffixsort::CircularBwt::circularBwt(s,0,m,term,&zrank);
 	std::string const & frontbwt = frontblock.first;
-	std::pair< std::string,std::vector<bool> > const backblock = ::libmaus::suffixsort::CircularBwt::circularBwt(s,m,s.size()-m,term);
+	std::pair< std::string,std::vector<bool> > const backblock = ::libmaus2::suffixsort::CircularBwt::circularBwt(s,m,s.size()-m,term);
 	std::string const backstr = s.substr(m);
 	std::string const & backbwt = backblock.first;
 	
@@ -62,15 +62,15 @@ void mergeTwoTest(std::string const s)
 	std::sort(frontsuffixes.begin(),frontsuffixes.end());
 	std::sort(backsuffixes.begin(),backsuffixes.end());
 
-	std::pair< std::string,std::vector<bool> > const fullpair = ::libmaus::suffixsort::CircularBwt::circularBwt(s,0,s.size(),s[s.size()-1]);
+	std::pair< std::string,std::vector<bool> > const fullpair = ::libmaus2::suffixsort::CircularBwt::circularBwt(s,0,s.size(),s[s.size()-1]);
 
-	typedef ::libmaus::lf::LF lf_type;
+	typedef ::libmaus2::lf::LF lf_type;
 	typedef lf_type::wt_type wt_type;
 	typedef lf_type::wt_ptr_type wt_ptr_type;
 	
 	wt_ptr_type WT(new wt_type(frontbwt.c_str(),frontbwt.size()));
 	lf_type LF(WT);
-	::libmaus::autoarray::AutoArray<uint64_t> GAP(frontbwt.size()+1);
+	::libmaus2::autoarray::AutoArray<uint64_t> GAP(frontbwt.size()+1);
 	
 	// recompute D array, the pseudo bwt is missing one symbol
 	for ( uint64_t i = 0; i < LF.D.size(); ++i )

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,17 +21,17 @@
 
 #include <iostream>
 
-#include <libmaus/fastx/acgtnMap.hpp>
-#include <libmaus/fm/BidirectionalIndexInterval.hpp>
-#include <libmaus/fm/BidirectionalIndexIntervalSymbol.hpp>
-#include <libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp>
-#include <libmaus/fm/SampledSA.hpp>
-#include <libmaus/lf/LF.hpp>
-#include <libmaus/lf/ImpCompactHuffmanWaveletLF.hpp>
-#include <libmaus/util/OutputFileNameTools.hpp>
-#include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/fm/BidirectionalIndexInterval.hpp>
+#include <libmaus2/fm/BidirectionalIndexIntervalSymbol.hpp>
+#include <libmaus2/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/fm/SampledSA.hpp>
+#include <libmaus2/lf/LF.hpp>
+#include <libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
+#include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fm
 	{
@@ -44,9 +44,9 @@ namespace libmaus
 			typedef typename lf_type::wt_type rank_dictionary_type;
 			typedef typename rank_dictionary_type::unique_ptr_type rank_dictionary_ptr_type;
 			
-			typedef ::libmaus::fm::DictionaryInfo<rank_dictionary_type> rank_dictionary_info_type;
+			typedef ::libmaus2::fm::DictionaryInfo<rank_dictionary_type> rank_dictionary_info_type;
 			
-			typedef libmaus::fm::SimpleSampledSA<lf_type> sa_type;
+			typedef libmaus2::fm::SimpleSampledSA<lf_type> sa_type;
 			typedef typename sa_type::unique_ptr_type sa_ptr_type;
 			
 			std::string const dictname;
@@ -54,11 +54,11 @@ namespace libmaus
 			std::string const saname;
 			lf_ptr_type LF;
 			sa_ptr_type SA;
-			::libmaus::autoarray::AutoArray<int64_t> const symbols;
+			::libmaus2::autoarray::AutoArray<int64_t> const symbols;
 			
-			static ::libmaus::autoarray::AutoArray<int64_t> computeSymbolVector()
+			static ::libmaus2::autoarray::AutoArray<int64_t> computeSymbolVector()
 			{
-				::libmaus::autoarray::AutoArray<int64_t> S(6);
+				::libmaus2::autoarray::AutoArray<int64_t> S(6);
 				for ( uint64_t i = 0; i < S.size(); ++i )
 					S[i] = i;
 				return S;
@@ -66,7 +66,7 @@ namespace libmaus
 			
 			BidirectionalDnaIndexTemplate(std::string const & rdictname)
 			: dictname(rdictname), 
-			  basename(libmaus::util::OutputFileNameTools::clipOff(dictname,rank_dictionary_info_type::getDictionaryFileSuffix())),
+			  basename(libmaus2::util::OutputFileNameTools::clipOff(dictname,rank_dictionary_info_type::getDictionaryFileSuffix())),
 			  saname(basename+rank_dictionary_info_type::getSampledSuffixArraySuffix()),
 			  LF(lf_type::load(dictname)),
 			  SA(sa_type::load(LF.get(),saname)),
@@ -77,15 +77,15 @@ namespace libmaus
 					LF->recomputeD(5);
 			}	
 
-			libmaus::fm::BidirectionalIndexInterval epsilon() const
+			libmaus2::fm::BidirectionalIndexInterval epsilon() const
 			{
-				return libmaus::fm::BidirectionalIndexInterval(0,0,LF->n);
+				return libmaus2::fm::BidirectionalIndexInterval(0,0,LF->n);
 			}
 			
 			template<typename iterator>
-			libmaus::fm::BidirectionalIndexInterval biSearchBackward(iterator A, uint64_t const m) const
+			libmaus2::fm::BidirectionalIndexInterval biSearchBackward(iterator A, uint64_t const m) const
 			{
-				libmaus::fm::BidirectionalIndexInterval BI = epsilon();
+				libmaus2::fm::BidirectionalIndexInterval BI = epsilon();
 				
 				for ( uint64_t i = 0; i < m; ++i )
 					BI = backwardExtend(BI,A[m-i-1]);
@@ -94,9 +94,9 @@ namespace libmaus
 			}
 
 			template<typename iterator>
-			libmaus::fm::BidirectionalIndexInterval biSearchForward(iterator A, uint64_t const m) const
+			libmaus2::fm::BidirectionalIndexInterval biSearchForward(iterator A, uint64_t const m) const
 			{
-				libmaus::fm::BidirectionalIndexInterval BI = epsilon();
+				libmaus2::fm::BidirectionalIndexInterval BI = epsilon();
 				
 				for ( uint64_t i = 0; i < m; ++i )
 					BI = forwardExtend(BI,A[i]);
@@ -106,7 +106,7 @@ namespace libmaus
 
 			typedef std::pair<uint64_t,uint64_t> extend_elem_type;
 
-			uint64_t backwardExtendMulti(libmaus::fm::BidirectionalIndexInterval const & BI, libmaus::fm::BidirectionalIndexIntervalSymbol * const P) const
+			uint64_t backwardExtendMulti(libmaus2::fm::BidirectionalIndexInterval const & BI, libmaus2::fm::BidirectionalIndexIntervalSymbol * const P) const
 			{
 				#if defined(_MSC_VER) || defined(__MINGW32__)
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>(_alloca( symbols.size() * sizeof(extend_elem_type) ));
@@ -117,13 +117,13 @@ namespace libmaus
 				memset(E,0,symbols.size() * sizeof(extend_elem_type));
 				LF->W->stepDivArray(BI.spf, BI.spf+BI.siz, E);
 
-				libmaus::fm::BidirectionalIndexIntervalSymbol * PP = P;
+				libmaus2::fm::BidirectionalIndexIntervalSymbol * PP = P;
 				for ( unsigned int s = 1; s < symbols.size(); ++s )
 					if ( E[s].second )
 						switch ( s )
 						{
 							case 1: // straight A, rc T
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */, 
 									BI.spr + 
 										E[0].second /* zero < T */ + 
@@ -133,7 +133,7 @@ namespace libmaus
 									E[1].second /* number of 1=A symbols */));
 								break;
 							case 2: // straight C, rc G
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */, 
 									BI.spr + 
 										E[0].second /* zero < G */ + 
@@ -142,7 +142,7 @@ namespace libmaus
 									E[2].second /* number of 2=C symbols */));
 								break;
 							case 3: // straight G, rc C
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */, 
 									BI.spr + 
 										E[0].second /* zero < C */ + 
@@ -150,7 +150,7 @@ namespace libmaus
 									E[3].second /* number of 3=G symbols */));
 								break;
 							case 4: // straight T, rc A
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */, 
 									BI.spr + 
 										E[0].second /* zero < A */,
@@ -158,7 +158,7 @@ namespace libmaus
 								break;
 							case 5:
 							default:
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[5] + E[5].first /* bw for sym 5=N, rc(N)=N=5 */,
 									BI.spr + E[0].second + E[1].second + E[2].second + E[3].second + E[4].second,
 									E[5].second));
@@ -168,7 +168,7 @@ namespace libmaus
 				return PP-P;
 			}
 
-			uint64_t backwardExtendMultiZero(libmaus::fm::BidirectionalIndexInterval const & BI, libmaus::fm::BidirectionalIndexIntervalSymbol * const P) const
+			uint64_t backwardExtendMultiZero(libmaus2::fm::BidirectionalIndexInterval const & BI, libmaus2::fm::BidirectionalIndexIntervalSymbol * const P) const
 			{
 				#if defined(_MSC_VER) || defined(__MINGW32__)
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>(_alloca( symbols.size() * sizeof(extend_elem_type) ));
@@ -179,20 +179,20 @@ namespace libmaus
 				memset(E,0,symbols.size() * sizeof(extend_elem_type));
 				LF->W->stepDivArray(BI.spf, BI.spf+BI.siz, E);
 
-				libmaus::fm::BidirectionalIndexIntervalSymbol * PP = P;
+				libmaus2::fm::BidirectionalIndexIntervalSymbol * PP = P;
 				for ( unsigned int s = 0; s < symbols.size(); ++s )
 					if ( E[s].second )
 						switch ( s )
 						{
 							case 0: // term
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[0] + E[0].first /* bw for sym 0 */, 
 									BI.spr /* nothing smaller than 0 */, 
 									E[0].second /* number of 0 symbols */ 
 								));
 								break;
 							case 1: // straight A, rc T
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */, 
 									BI.spr + 
 										E[0].second /* zero < T */ + 
@@ -202,7 +202,7 @@ namespace libmaus
 									E[1].second /* number of 1=A symbols */));
 								break;
 							case 2: // straight C, rc G
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */, 
 									BI.spr + 
 										E[0].second /* zero < G */ + 
@@ -211,7 +211,7 @@ namespace libmaus
 									E[2].second /* number of 2=C symbols */));
 								break;
 							case 3: // straight G, rc C
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */, 
 									BI.spr + 
 										E[0].second /* zero < C */ + 
@@ -219,7 +219,7 @@ namespace libmaus
 									E[3].second /* number of 3=G symbols */));
 								break;
 							case 4: // straight T, rc A
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */, 
 									BI.spr + 
 										E[0].second /* zero < A */,
@@ -227,7 +227,7 @@ namespace libmaus
 								break;
 							case 5:
 							default:
-								*(PP++) = libmaus::fm::BidirectionalIndexIntervalSymbol(s,libmaus::fm::BidirectionalIndexInterval(
+								*(PP++) = libmaus2::fm::BidirectionalIndexIntervalSymbol(s,libmaus2::fm::BidirectionalIndexInterval(
 									LF->D[5] + E[5].first /* bw for sym 5=N, rc(N)=N=5 */,
 									BI.spr + E[0].second + E[1].second + E[2].second + E[3].second + E[4].second,
 									E[5].second));
@@ -237,7 +237,7 @@ namespace libmaus
 				return PP-P;
 			}	
 
-			libmaus::fm::BidirectionalIndexInterval backwardExtend(libmaus::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
+			libmaus2::fm::BidirectionalIndexInterval backwardExtend(libmaus2::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
 			{		
 				#if defined(_MSC_VER) || defined(__MINGW32__)
 				extend_elem_type * E = reinterpret_cast<extend_elem_type *>(_alloca( symbols.size() * sizeof(extend_elem_type) ));
@@ -252,13 +252,13 @@ namespace libmaus
 				switch ( sym )
 				{
 					case 0: // term
-						return libmaus::fm::BidirectionalIndexInterval(
+						return libmaus2::fm::BidirectionalIndexInterval(
 							LF->D[0] + E[0].first /* bw for sym 0 */, 
 							BI.spr /* nothing smaller than 0 */, 
 							E[0].second /* number of 0 symbols */ 
 						);
 					case 1: // straight A, rc T
-						return libmaus::fm::BidirectionalIndexInterval(
+						return libmaus2::fm::BidirectionalIndexInterval(
 							LF->D[1] + E[1].first /* bw for sym 1=A, rc(A)=T=4 */, 
 							BI.spr + 
 								E[0].second /* zero < T */ + 
@@ -267,7 +267,7 @@ namespace libmaus
 								E[4].second /* 4=T, rc(T)=A < T */ ,
 							E[1].second /* number of 1=A symbols */);
 					case 2: // straight C, rc G
-						return libmaus::fm::BidirectionalIndexInterval(
+						return libmaus2::fm::BidirectionalIndexInterval(
 							LF->D[2] + E[2].first /* bw for sym 1=C, rc(C)=G=3 */, 
 							BI.spr + 
 								E[0].second /* zero < G */ + 
@@ -275,21 +275,21 @@ namespace libmaus
 								E[4].second /* 4=T, rc(T)=A < G */ ,
 							E[2].second /* number of 2=C symbols */);
 					case 3: // straight G, rc C
-						return libmaus::fm::BidirectionalIndexInterval(
+						return libmaus2::fm::BidirectionalIndexInterval(
 							LF->D[3] + E[3].first /* bw for sym 3=G, rc(G)=C=2 */, 
 							BI.spr + 
 								E[0].second /* zero < C */ + 
 								E[4].second /* 4=T, rc(T)=A < C */ ,
 							E[3].second /* number of 3=G symbols */);
 					case 4: // straight T, rc A
-						return libmaus::fm::BidirectionalIndexInterval(
+						return libmaus2::fm::BidirectionalIndexInterval(
 							LF->D[4] + E[4].first /* bw for sym 4=T, rc(T)=A=1 */, 
 							BI.spr + 
 								E[0].second /* zero < A */,
 							E[4].second /* number of 4=T symbols */);
 					case 5:
 					default:
-						return libmaus::fm::BidirectionalIndexInterval(
+						return libmaus2::fm::BidirectionalIndexInterval(
 							LF->D[5] + E[5].first /* bw for sym 5=N, rc(N)=N=5 */,
 							BI.spr + E[0].second + E[1].second + E[2].second + E[3].second + E[4].second,
 							E[5].second);
@@ -308,7 +308,7 @@ namespace libmaus
 				}
 			}
 
-			uint64_t forwardExtendMulti(libmaus::fm::BidirectionalIndexInterval const & BI, libmaus::fm::BidirectionalIndexIntervalSymbol * const P) const
+			uint64_t forwardExtendMulti(libmaus2::fm::BidirectionalIndexInterval const & BI, libmaus2::fm::BidirectionalIndexIntervalSymbol * const P) const
 			{
 				uint64_t const num = backwardExtendMulti(BI.swap(),P);
 				for ( uint64_t i = 0; i < num; ++i )
@@ -316,7 +316,7 @@ namespace libmaus
 				return num;
 			}
 
-			uint64_t forwardExtendMultiZero(libmaus::fm::BidirectionalIndexInterval const & BI, libmaus::fm::BidirectionalIndexIntervalSymbol * const P) const
+			uint64_t forwardExtendMultiZero(libmaus2::fm::BidirectionalIndexInterval const & BI, libmaus2::fm::BidirectionalIndexIntervalSymbol * const P) const
 			{
 				uint64_t const num = backwardExtendMultiZero(BI.swap(),P);
 				for ( uint64_t i = 0; i < num; ++i )
@@ -325,7 +325,7 @@ namespace libmaus
 			}
 			
 			template<typename iterator>
-			uint64_t getRightExtensions(libmaus::fm::BidirectionalIndexInterval const & BI, iterator P) const
+			uint64_t getRightExtensions(libmaus2::fm::BidirectionalIndexInterval const & BI, iterator P) const
 			{
 				if ( BI.siz )
 				{
@@ -346,7 +346,7 @@ namespace libmaus
 			}
 
 			template<typename iterator>
-			uint64_t getLeftExtensions(libmaus::fm::BidirectionalIndexInterval const & BI, iterator P) const
+			uint64_t getLeftExtensions(libmaus2::fm::BidirectionalIndexInterval const & BI, iterator P) const
 			{
 				if ( BI.siz )
 				{
@@ -358,7 +358,7 @@ namespace libmaus
 					return 0;
 			}
 			
-			uint64_t countLeftExtensions(libmaus::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
+			uint64_t countLeftExtensions(libmaus2::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
 			{
 				if ( BI.siz )
 				{
@@ -370,7 +370,7 @@ namespace libmaus
 				}
 			}
 
-			uint64_t countRightExtensions(libmaus::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
+			uint64_t countRightExtensions(libmaus2::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
 			{
 				if ( BI.siz )
 				{
@@ -383,7 +383,7 @@ namespace libmaus
 			}
 
 			// forward extend query interval by one symbol
-			libmaus::fm::BidirectionalIndexInterval forwardExtend(libmaus::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
+			libmaus2::fm::BidirectionalIndexInterval forwardExtend(libmaus2::fm::BidirectionalIndexInterval const & BI, int64_t const sym) const
 			{
 				return backwardExtend(BI.swap(),rc(sym)).swap();
 			}
@@ -412,7 +412,7 @@ namespace libmaus
 				while ( len-- )
 				{
 					r = LF->phi(r);
-					*(ita++) = libmaus::fastx::remapChar((*LF)[r]-1);
+					*(ita++) = libmaus2::fastx::remapChar((*LF)[r]-1);
 				}
 				
 				return s;
@@ -430,7 +430,7 @@ namespace libmaus
 					char const u = (*LF)[r];
 					
 					if ( u )
-						V.push_back(libmaus::fastx::remapChar(u-1));
+						V.push_back(libmaus2::fastx::remapChar(u-1));
 					else
 						break;
 				}
@@ -458,12 +458,12 @@ namespace libmaus
 			 */
 			uint64_t hammingSearchRec(
 				std::string const & s, // query string
-				libmaus::fm::BidirectionalIndexInterval const & BI, // current interval
+				libmaus2::fm::BidirectionalIndexInterval const & BI, // current interval
 				uint64_t const backoffset, // offset from back of query
 				uint64_t const curdif, // current number of mismatches
 				uint64_t const maxdif, // maximum number of mismatches
-				libmaus::fm::BidirectionalIndexIntervalSymbol * E, // space for query intervals
-				std::vector<libmaus::fm::BidirectionalIndexInterval> & VBI, // result vector
+				libmaus2::fm::BidirectionalIndexIntervalSymbol * E, // space for query intervals
+				std::vector<libmaus2::fm::BidirectionalIndexInterval> & VBI, // result vector
 				uint64_t & totalmatches, // current total number of matches
 				uint64_t const maxtotalmatches // maximum number of matches
 			) const
@@ -542,12 +542,12 @@ namespace libmaus
 			 */
 			uint64_t hammingSearchRec(
 				std::string const & s, // query string
-				libmaus::fm::BidirectionalIndexInterval const & BI, // current interval
+				libmaus2::fm::BidirectionalIndexInterval const & BI, // current interval
 				uint64_t const backoffset, // offset from back of query
 				uint64_t const curdif, // current number of mismatches
 				uint64_t const maxdif, // maximum number of mismatches
-				libmaus::fm::BidirectionalIndexIntervalSymbol * E, // space for query intervals
-				std::vector< std::pair<uint64_t, libmaus::fm::BidirectionalIndexInterval > > & VBI, // result vector
+				libmaus2::fm::BidirectionalIndexIntervalSymbol * E, // space for query intervals
+				std::vector< std::pair<uint64_t, libmaus2::fm::BidirectionalIndexInterval > > & VBI, // result vector
 				uint64_t & totalmatches, // current total number of matches
 				uint64_t const maxtotalmatches // maximum number of matches
 			) const
@@ -579,7 +579,7 @@ namespace libmaus
 					}
 					#endif
 					
-					VBI.push_back(std::pair<uint64_t, libmaus::fm::BidirectionalIndexInterval>(curdif,BI));
+					VBI.push_back(std::pair<uint64_t, libmaus2::fm::BidirectionalIndexInterval>(curdif,BI));
 					
 					totalmatches += BI.siz;
 					
@@ -620,13 +620,13 @@ namespace libmaus
 			static void mapStringInPlace(std::string & s)
 			{
 				for ( uint64_t i = 0; i < s.size(); ++i )
-					s[i] = libmaus::fastx::mapChar(s[i])+1;
+					s[i] = libmaus2::fastx::mapChar(s[i])+1;
 			}
 			
 			static void remapStringInPlace(std::string & s)
 			{
 				for ( uint64_t i = 0; i < s.size(); ++i )
-					s[i] = libmaus::fastx::remapChar(s[i]-1);
+					s[i] = libmaus2::fastx::remapChar(s[i]-1);
 			}
 			
 			static std::string mapString(std::string const & s)
@@ -646,17 +646,17 @@ namespace libmaus
 			/*
 			 * search a pattern with up to maxdif mismatches
 			 */
-			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches, std::vector<libmaus::fm::BidirectionalIndexInterval> & VBI)
+			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches, std::vector<libmaus2::fm::BidirectionalIndexInterval> & VBI)
 			{
 				// compute reverse complement
-				std::string rquery = libmaus::fastx::reverseComplementUnmapped(query);
+				std::string rquery = libmaus2::fastx::reverseComplementUnmapped(query);
 				
 				// map clear text to codes used in index
 				mapStringInPlace(query);
 				mapStringInPlace(rquery);
 
 				// stack
-				libmaus::autoarray::AutoArray<libmaus::fm::BidirectionalIndexIntervalSymbol> E(query.size()*symbols.size(),false);
+				libmaus2::autoarray::AutoArray<libmaus2::fm::BidirectionalIndexIntervalSymbol> E(query.size()*symbols.size(),false);
 
 				// total matches
 				uint64_t totalmatches = 0;
@@ -692,7 +692,7 @@ namespace libmaus
 			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches)
 			{
 				// vector of result intervals
-				std::vector<libmaus::fm::BidirectionalIndexInterval> VBI;
+				std::vector<libmaus2::fm::BidirectionalIndexInterval> VBI;
 				//
 				return hammingSearchRecUnmapped(query,maxdif,maxtotalmatches,VBI);
 			}
@@ -700,17 +700,17 @@ namespace libmaus
 			/*
 			 * search a pattern with up to maxdif mismatches
 			 */
-			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches, std::vector< std::pair<uint64_t, libmaus::fm::BidirectionalIndexInterval> > & VBI)
+			uint64_t hammingSearchRecUnmapped(std::string query, uint64_t const maxdif, uint64_t const maxtotalmatches, std::vector< std::pair<uint64_t, libmaus2::fm::BidirectionalIndexInterval> > & VBI)
 			{
 				// compute reverse complement
-				std::string rquery = libmaus::fastx::reverseComplementUnmapped(query);
+				std::string rquery = libmaus2::fastx::reverseComplementUnmapped(query);
 				
 				// map clear text to codes used in index
 				mapStringInPlace(query);
 				mapStringInPlace(rquery);
 
 				// stack
-				libmaus::autoarray::AutoArray<libmaus::fm::BidirectionalIndexIntervalSymbol> E(query.size()*symbols.size(),false);
+				libmaus2::autoarray::AutoArray<libmaus2::fm::BidirectionalIndexIntervalSymbol> E(query.size()*symbols.size(),false);
 
 				// total matches
 				uint64_t totalmatches = 0;
@@ -741,8 +741,8 @@ namespace libmaus
 			}
 		};
 
-		typedef BidirectionalDnaIndexTemplate<libmaus::lf::ImpCompactHuffmanWaveletLF>   BidirectionalDnaIndexImpCompactHuffmanWaveletTree;
-		typedef BidirectionalDnaIndexTemplate<libmaus::lf::ImpCompactRLHuffmanWaveletLF> BidirectionalDnaIndexImpCompactRLHuffmanWaveletTree;
+		typedef BidirectionalDnaIndexTemplate<libmaus2::lf::ImpCompactHuffmanWaveletLF>   BidirectionalDnaIndexImpCompactHuffmanWaveletTree;
+		typedef BidirectionalDnaIndexTemplate<libmaus2::lf::ImpCompactRLHuffmanWaveletLF> BidirectionalDnaIndexImpCompactRLHuffmanWaveletTree;
 	}
 }
 #endif

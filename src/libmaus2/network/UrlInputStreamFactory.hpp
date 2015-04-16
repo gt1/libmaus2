@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_NETWORK_URLINPUTSTREAMFACTORY_HPP)
 #define LIBMAUS_NETWORK_URLINPUTSTREAMFACTORY_HPP
 
-#include <libmaus/aio/InputStreamFactory.hpp>
-#include <libmaus/network/UrlInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactory.hpp>
+#include <libmaus2/network/UrlInputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct UrlInputStreamFactory : public libmaus::aio::InputStreamFactory
+		struct UrlInputStreamFactory : public libmaus2::aio::InputStreamFactory
 		{
 			typedef UrlInputStreamFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~UrlInputStreamFactory() {}
-			virtual libmaus::aio::InputStream::unique_ptr_type constructUnique(std::string const & filename)
+			virtual libmaus2::aio::InputStream::unique_ptr_type constructUnique(std::string const & filename)
 			{
-				libmaus::util::shared_ptr<std::istream>::type iptr(new UrlInputStream(filename));
-				libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
+				libmaus2::util::shared_ptr<std::istream>::type iptr(new UrlInputStream(filename));
+				libmaus2::aio::InputStream::unique_ptr_type istr(new libmaus2::aio::InputStream(iptr));
 				return UNIQUE_PTR_MOVE(istr);
 			}
-			virtual libmaus::aio::InputStream::shared_ptr_type constructShared(std::string const & filename)
+			virtual libmaus2::aio::InputStream::shared_ptr_type constructShared(std::string const & filename)
 			{
-				libmaus::util::shared_ptr<std::istream>::type iptr(new UrlInputStream(filename));
-				libmaus::aio::InputStream::shared_ptr_type istr(new libmaus::aio::InputStream(iptr));
+				libmaus2::util::shared_ptr<std::istream>::type iptr(new UrlInputStream(filename));
+				libmaus2::aio::InputStream::shared_ptr_type istr(new libmaus2::aio::InputStream(iptr));
 				return istr;
 			}
 		};

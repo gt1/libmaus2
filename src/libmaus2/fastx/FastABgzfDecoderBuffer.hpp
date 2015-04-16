@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,29 +21,29 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/fastx/FastABgzfIndexEntry.hpp>
-#include <libmaus/lz/BgzfInflate.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/fastx/FastABgzfIndexEntry.hpp>
+#include <libmaus2/lz/BgzfInflate.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastABgzfDecoderBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus::aio::CheckedInputStream::unique_ptr_type Pfilestream;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type Pfilestream;
 			::std::istream & stream;
 
-			::libmaus::fastx::FastABgzfIndexEntry const indexentry;
+			::libmaus2::fastx::FastABgzfIndexEntry const indexentry;
 			uint64_t const blocksize;
 			
-			::libmaus::lz::BgzfInflate< ::std::istream >::unique_ptr_type Pinf;
+			::libmaus2::lz::BgzfInflate< ::std::istream >::unique_ptr_type Pinf;
 
 			uint64_t const putbackspace;
 			
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			uint64_t symsread;
 
@@ -58,8 +58,8 @@ namespace libmaus
 				stream.clear();
 				stream.seekg(indexentry.blocks[symsread/blocksize]);
 				
-				::libmaus::lz::BgzfInflate< ::std::istream >::unique_ptr_type Tinf(
-					new ::libmaus::lz::BgzfInflate< ::std::istream >(stream)
+				::libmaus2::lz::BgzfInflate< ::std::istream >::unique_ptr_type Tinf(
+					new ::libmaus2::lz::BgzfInflate< ::std::istream >(stream)
 				);
 				Pinf = UNIQUE_PTR_MOVE(Tinf);
 			}
@@ -67,24 +67,24 @@ namespace libmaus
 			public:
 			FastABgzfDecoderBuffer(
 				std::string const & filename,
-				::libmaus::fastx::FastABgzfIndexEntry const & rindexentry,
+				::libmaus2::fastx::FastABgzfIndexEntry const & rindexentry,
 				uint64_t const rblocksize,
 				uint64_t const rputbackspace = 0
 			)
 			: 
-			  Pfilestream(new ::libmaus::aio::CheckedInputStream(filename)),
+			  Pfilestream(new ::libmaus2::aio::CheckedInputStream(filename)),
 			  stream(*Pfilestream),
 			  indexentry(rindexentry),
 			  blocksize(rblocksize),
 			  putbackspace(rputbackspace),
-			  buffer(putbackspace + libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false),
+			  buffer(putbackspace + libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false),
 			  symsread(0)
 			{
 				init();
 			}
 			FastABgzfDecoderBuffer(
 				::std::istream & rstream,
-				::libmaus::fastx::FastABgzfIndexEntry const & rindexentry,
+				::libmaus2::fastx::FastABgzfIndexEntry const & rindexentry,
 				uint64_t const rblocksize,
 				uint64_t const rputbackspace = 0
 			)
@@ -94,7 +94,7 @@ namespace libmaus
 			  indexentry(rindexentry),
 			  blocksize(rblocksize),
 			  putbackspace(rputbackspace),
-			  buffer(putbackspace + libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false),
+			  buffer(putbackspace + libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false),
 			  symsread(0)
 			{
 				init();

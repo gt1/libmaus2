@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEZSTREAMBASE_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEZSTREAMBASE_HPP
 
-#include <libmaus/lz/BgzfDeflateHeaderFunctions.hpp>
-#include <libmaus/lz/BgzfDeflateInputBufferBase.hpp>
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
-#include <libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
-#include <libmaus/lz/IGzipDeflate.hpp>
+#include <libmaus2/lz/BgzfDeflateHeaderFunctions.hpp>
+#include <libmaus2/lz/BgzfDeflateInputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
+#include <libmaus2/lz/IGzipDeflate.hpp>
 
 #if defined(LIBMAUS_HAVE_IGZIP)
-#include <libmaus/util/I386CacheLineSize.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfDeflateZStreamBase : public BgzfDeflateHeaderFunctions
 		{
 			typedef BgzfDeflateZStreamBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			z_stream strm;
@@ -67,7 +67,7 @@ namespace libmaus
 					deflbound = bound;
 				}
 				#if defined(LIBMAUS_HAVE_IGZIP)
-				else if ( level == libmaus::lz::IGzipDeflate::getCompressionLevel() )
+				else if ( level == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
 				{
 					// half a block should fit
 					deflbound = (getBgzfMaxBlockSize()-(getBgzfHeaderSize()+getBgzfFooterSize()))/2;
@@ -75,7 +75,7 @@ namespace libmaus
 				#endif
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase::deflateinit(): unknown/unsupported compression level " << level << std::endl;
 					se.finish();
 					throw se;							
@@ -87,7 +87,7 @@ namespace libmaus
 			{
 				if ( deflateReset(&strm) != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "deflateReset failed." << std::endl;
 					se.finish();
 					throw se;		
@@ -115,7 +115,7 @@ namespace libmaus
 					// call deflate
 					if ( deflate(&strm,Z_FINISH) != Z_STREAM_END )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "deflate() failed." << std::endl;
 						se.finish(false /* do not translate stack trace */);
 						throw se;
@@ -124,15 +124,15 @@ namespace libmaus
 					return getBgzfMaxPayLoad() - strm.avail_out;
 				}
 				#if defined(LIBMAUS_HAVE_IGZIP)
-				else if ( level == libmaus::lz::IGzipDeflate::getCompressionLevel() )
+				else if ( level == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
 				{
-					int64_t const compsize = libmaus::lz::IGzipDeflate::deflate(
+					int64_t const compsize = libmaus2::lz::IGzipDeflate::deflate(
 						pa,len,outbuf+getBgzfHeaderSize(),getBgzfMaxPayLoad()
 					);
 					
 					if ( compsize < 0 )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "deflate() failed." << std::endl;
 						se.finish(false /* do not translate stack trace */);
 						throw se;					
@@ -143,7 +143,7 @@ namespace libmaus
 				#endif
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase::compressBlock(): unknown/unsupported compression level " << level << std::endl;
 					se.finish();
 					throw se;
@@ -239,11 +239,11 @@ namespace libmaus
 			BgzfDeflateZStreamBase(int const rlevel = Z_DEFAULT_COMPRESSION)
 			{
 				#if defined(LIBMAUS_HAVE_IGZIP)
-				if ( rlevel == libmaus::lz::IGzipDeflate::getCompressionLevel() )
+				if ( rlevel == libmaus2::lz::IGzipDeflate::getCompressionLevel() )
 				{
-					if ( ! libmaus::util::I386CacheLineSize::hasSSE42() )
+					if ( ! libmaus2::util::I386CacheLineSize::hasSSE42() )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "BgzfDeflateZStreamBase(): igzip requested, but machine does not support SSE4.2" << std::endl;
 						se.finish();
 						throw se;
@@ -287,7 +287,7 @@ namespace libmaus
 			{
 				if ( pe-pa > getBgzfMaxBlockSize() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase()::flush: block is too big for BGZF" << std::endl;
 					se.finish();
 					throw se;				

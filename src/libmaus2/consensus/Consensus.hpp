@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,55 +19,55 @@
 #if ! defined(LIBMAUS_CONSENSUS_HPP)
 #define LIBMAUS_CONSENSUS_HPP
 
-#include <libmaus/fastx/FastQElement.hpp>
-#include <libmaus/util/Object.hpp>
+#include <libmaus2/fastx/FastQElement.hpp>
+#include <libmaus2/util/Object.hpp>
 
 #include <iostream>
 #include <vector>
 #include <cassert>
 
-typedef int (*libmaus_consensus_ConsensusComputationBase_computeConsensusX_wrapperC_type)(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-typedef int (*libmaus_consensus_ConsensusComputationBase_construct_wrapperC_type)(void ** P);
-typedef int (*libmaus_consensus_ConsensusComputationBase_destruct_wrapperC_type)(void * P);
+typedef int (*libmaus2_consensus_ConsensusComputationBase_computeConsensusX_wrapperC_type)(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+typedef int (*libmaus2_consensus_ConsensusComputationBase_construct_wrapperC_type)(void ** P);
+typedef int (*libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC_type)(void * P);
 
-extern int libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-extern int libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-extern int libmaus_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
-extern int libmaus_consensus_ConsensusComputationBase_destruct_wrapper(void * P);
+extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+extern int libmaus2_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
+extern int libmaus2_consensus_ConsensusComputationBase_destruct_wrapper(void * P);
 
 extern "C" {
-	extern int libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-	extern int libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-	extern int libmaus_consensus_ConsensusComputationBase_construct_wrapperC(void ** P);
-	extern int libmaus_consensus_ConsensusComputationBase_destruct_wrapperC(void * P);
+	extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+	extern int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+	extern int libmaus2_consensus_ConsensusComputationBase_construct_wrapperC(void ** P);
+	extern int libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC(void * P);
 }
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace consensus
 	{
-		struct ConsensusComputationBase : public ::libmaus::util::Object<ConsensusComputationBase>
+		struct ConsensusComputationBase : public ::libmaus2::util::Object<ConsensusComputationBase>
 		{
 			typedef ConsensusComputationBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
-			::libmaus::util::ObjectBase::unique_ptr_type const mscoring;
+			::libmaus2::util::ObjectBase::unique_ptr_type const mscoring;
 			void computeConsensusA(void * R, void const * V, int const verbose, void * ostr) const;
 			void computeConsensusQ(void * R, void const * V, int const verbose, void * ostr) const;
 			static void computeConsensusA(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 			static void computeConsensusQ(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
 
-			friend int ::libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-			friend int ::libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
-			friend int ::libmaus_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
+			friend int ::libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+			friend int ::libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr);
+			friend int ::libmaus2_consensus_ConsensusComputationBase_construct_wrapper(void ** P);
 
 			ConsensusComputationBase();
 						
 			public:
 			static std::string computeConsensus(void const * obj, std::vector<std::string> const & V, int const verbose = false, std::ostream * ostr = 0);
-			static std::string computeConsensus(void const * obj, std::vector< ::libmaus::fastx::FastQElement > const & V, int const verbose = false, std::ostream * ostr = 0);
+			static std::string computeConsensus(void const * obj, std::vector< ::libmaus2::fastx::FastQElement > const & V, int const verbose = false, std::ostream * ostr = 0);
 			static void construct(void ** P);
 			static void destruct(void * P);
 		};
@@ -75,10 +75,10 @@ namespace libmaus
 		struct ConsensusComputation
 		{
 			typedef ConsensusComputation this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			// ::libmaus::util::ObjectBase::unique_ptr_type obj;
+			// ::libmaus2::util::ObjectBase::unique_ptr_type obj;
 			void * obj;
 			
 			ConsensusComputation() : obj(0)
@@ -96,7 +96,7 @@ namespace libmaus
 			{
 				if ( ! V.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Consensus of empty string set is undefined." << std::endl;
 					se.finish();
 					throw se;
@@ -104,11 +104,11 @@ namespace libmaus
 			
 				return ConsensusComputationBase::computeConsensus(obj,V,verbose,ostr);
 			}
-			std::string computeConsensus(std::vector< ::libmaus::fastx::FastQElement > const & V, int const verbose = false, std::ostream * ostr = 0)
+			std::string computeConsensus(std::vector< ::libmaus2::fastx::FastQElement > const & V, int const verbose = false, std::ostream * ostr = 0)
 			{
 				if ( ! V.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Consensus of empty string set is undefined." << std::endl;
 					se.finish();
 					throw se;

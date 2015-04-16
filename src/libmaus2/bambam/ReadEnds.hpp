@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDS_HPP)
 #define LIBMAUS_BAMBAM_READENDS_HPP
 
-#include <libmaus/bambam/ReadEndsBase.hpp>
+#include <libmaus2/bambam/ReadEndsBase.hpp>
 #include <map>
 #include <cstring>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -120,7 +120,7 @@ namespace libmaus
 			 **/
 			template<typename header_type>
 			ReadEnds(
-				::libmaus::bambam::BamAlignment const & p, 
+				::libmaus2::bambam::BamAlignment const & p, 
 				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
@@ -153,7 +153,7 @@ namespace libmaus
 				fillFrag(pD,pblocksize,header,*this,rtagId);
 				if ( copyAlignment )
 				{
-					BamAlignment::shared_ptr_type salgn(new libmaus::bambam::BamAlignment);
+					BamAlignment::shared_ptr_type salgn(new libmaus2::bambam::BamAlignment);
 					salgn->copyFrom(pD,pblocksize);
 					this->p = salgn;
 				}
@@ -169,8 +169,8 @@ namespace libmaus
 			 **/
 			template<typename header_type>
 			ReadEnds(
-				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::BamAlignment const & q, 
+				::libmaus2::bambam::BamAlignment const & p, 
+				::libmaus2::bambam::BamAlignment const & q, 
 				header_type const & header,
 				bool const copyAlignment = false,
 				uint64_t const rtagId = 0
@@ -210,9 +210,9 @@ namespace libmaus
 				fillFragPair(pD,pblocksize,qD,qblocksize,header,*this,rtagId);
 				if ( copyAlignment )
 				{
-					BamAlignment::shared_ptr_type palgn(new libmaus::bambam::BamAlignment);
+					BamAlignment::shared_ptr_type palgn(new libmaus2::bambam::BamAlignment);
 					palgn->copyFrom(pD,pblocksize);
-					BamAlignment::shared_ptr_type qalgn(new libmaus::bambam::BamAlignment);
+					BamAlignment::shared_ptr_type qalgn(new libmaus2::bambam::BamAlignment);
 					qalgn->copyFrom(qD,qblocksize);
 					this->p = palgn;
 					this->q = qalgn;
@@ -222,7 +222,7 @@ namespace libmaus
 	}
 }
 
-namespace libmaus 
+namespace libmaus2 
 {
 	namespace bambam 
 	{
@@ -233,11 +233,11 @@ namespace libmaus
 		 * @param reo read ends orientation
 		 * @return out
 		 **/
-		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo);
+		std::ostream & operator<<(std::ostream & out, libmaus2::bambam::ReadEnds::read_end_orientation reo);
 	}
 }
 
-namespace libmaus 
+namespace libmaus2 
 {
 	namespace bambam 
 	{
@@ -248,7 +248,7 @@ namespace libmaus
 		 * @param RE read ends object
 		 * @return out
 		 **/
-		std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE);
+		std::ostream & operator<<(std::ostream & out, libmaus2::bambam::ReadEnds const & RE);
 	}
 }
 #endif

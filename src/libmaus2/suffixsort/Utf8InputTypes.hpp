@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_UTF8INPUTTYPES_HPP)
 #define LIBMAUS_SUFFIXSORT_UTF8INPUTTYPES_HPP
 
-#include <libmaus/suffixsort/BwtMergeEnumBase.hpp>
-#include <libmaus/aio/CircularWrapper.hpp>
-#include <libmaus/suffixsort/CircularSuffixComparator.hpp>
-#include <libmaus/util/Utf8String.hpp>
+#include <libmaus2/suffixsort/BwtMergeEnumBase.hpp>
+#include <libmaus2/aio/CircularWrapper.hpp>
+#include <libmaus2/suffixsort/CircularSuffixComparator.hpp>
+#include <libmaus2/util/Utf8String.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
-		struct Utf8InputTypes : public libmaus::suffixsort::BwtMergeEnumBase
+		struct Utf8InputTypes : public libmaus2::suffixsort::BwtMergeEnumBase
 		{
 			typedef ::std::wistream base_input_stream;
-			typedef ::libmaus::util::Utf8DecoderWrapper linear_wrapper;
-			typedef ::libmaus::aio::Utf8CircularWrapperWrapper circular_wrapper;
-			typedef ::libmaus::aio::Utf8CircularReverseWrapperWrapper circular_reverse_wrapper;
-			typedef ::libmaus::suffixsort::Utf8CircularSuffixComparator circular_suffix_comparator;
-			typedef ::libmaus::util::Utf8String string_type;
-			typedef ::libmaus::aio::CircularWrapper octet_circular_wrapper;
+			typedef ::libmaus2::util::Utf8DecoderWrapper linear_wrapper;
+			typedef ::libmaus2::aio::Utf8CircularWrapperWrapper circular_wrapper;
+			typedef ::libmaus2::aio::Utf8CircularReverseWrapperWrapper circular_reverse_wrapper;
+			typedef ::libmaus2::suffixsort::Utf8CircularSuffixComparator circular_suffix_comparator;
+			typedef ::libmaus2::util::Utf8String string_type;
+			typedef ::libmaus2::aio::CircularWrapper octet_circular_wrapper;
 			
 			static bwt_merge_sort_input_type getType()
 			{
@@ -58,8 +58,8 @@ namespace libmaus
 				for ( std::map<int64_t,uint64_t>::const_iterator ita = freqs.begin();
 					ita != freqs.end(); ++ita )
 				{
-					libmaus::util::CountPutObject C;
-					libmaus::util::UTF8::encodeUTF8(ita->first,C);
+					libmaus2::util::CountPutObject C;
+					libmaus2::util::UTF8::encodeUTF8(ita->first,C);
 					sourcelen += 8 * C.c * ita->second;
 				}
 				
@@ -77,8 +77,8 @@ namespace libmaus
 				for ( std::map<int64_t,uint64_t>::const_iterator ita = freqs.begin();
 					ita != freqs.end(); ++ita )
 				{
-					libmaus::util::CountPutObject C;
-					libmaus::util::UTF8::encodeUTF8(ita->first,C);
+					libmaus2::util::CountPutObject C;
+					libmaus2::util::UTF8::encodeUTF8(ita->first,C);
 					sourcelen += C.c * ita->second;
 				}
 				

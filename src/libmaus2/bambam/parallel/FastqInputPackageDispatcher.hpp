@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQINPUTPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FASTQINPUTPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/FastqInputPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/FastqInputPackageAddPendingInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/FastqInputPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/FastqInputPackageAddPendingInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{	
-			struct FastqInputPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct FastqInputPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef FastqInputPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				FastqInputPackageReturnInterface & packageReturnInterface;
 				FastqInputPackageAddPendingInterface & addPendingInterface;
@@ -47,8 +47,8 @@ namespace libmaus
 				}
 			
 				void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					assert ( dynamic_cast<FastqInputPackage *>(P) != 0 );
@@ -59,10 +59,10 @@ namespace libmaus
 					typedef FastQInputDescBase::input_block_type input_block_type;
 					typedef FastQInputDescBase::free_list_type free_list_type;
 					
-					libmaus::parallel::PosixSpinLock & inlock = data.inlock;
+					libmaus2::parallel::PosixSpinLock & inlock = data.inlock;
 					free_list_type & blockFreeList = data.blockFreeList;
 					uint64_t const streamid = data.getStreamId();
-					libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> & stallArray = data.stallArray;
+					libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> & stallArray = data.stallArray;
 					uint64_t volatile & stallArraySize = data.stallArraySize;
 					std::istream & in = data.in;
 
@@ -70,7 +70,7 @@ namespace libmaus
 					
 					if ( inlock.trylock() )
 					{
-						libmaus::parallel::ScopePosixSpinLock slock(inlock,true /* pre locked */);
+						libmaus2::parallel::ScopePosixSpinLock slock(inlock,true /* pre locked */);
 						
 						input_block_type::shared_ptr_type sblock;
 			
@@ -95,12 +95,12 @@ namespace libmaus
 							assert ( sblock->pe != sblock->A.end() );
 			
 							// fill buffer
-							libmaus::bambam::parallel::GenericInputBlockFillResult P = sblock->fill(
+							libmaus2::bambam::parallel::GenericInputBlockFillResult P = sblock->fill(
 								in, false /* finite */,0 /* dataleft */);
 			
 							if ( in.bad() )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "Stream error while filling buffer." << std::endl;
 								lme.finish();
 								throw lme;
@@ -110,7 +110,7 @@ namespace libmaus
 							sblock->meta.eof = P.eof;
 							
 							// parse bgzf block headers to determine how many full blocks we have				
-							libmaus::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
+							libmaus2::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
 							uint64_t f = 0;
 
 							bool foundnewline = false;
@@ -211,7 +211,7 @@ namespace libmaus
 								{
 									assert ( data.getEOF() );
 									// throw exception, block is incomplete at EOF
-									libmaus::exception::LibMausException lme;
+									libmaus2::exception::LibMausException lme;
 									lme.getStream() << "Unexpected EOF." << std::endl;
 									lme.finish();
 									throw lme;

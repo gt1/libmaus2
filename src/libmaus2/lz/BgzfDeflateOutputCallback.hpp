@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEOUTPUTCALLBACK_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEOUTPUTCALLBACK_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfDeflateOutputCallback
 		{
 			typedef BgzfDeflateOutputCallback this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			virtual ~BgzfDeflateOutputCallback() {}
 			virtual void operator()(

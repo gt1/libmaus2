@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSMERGEWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSMERGEWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/ReadEndsMergeRequest.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/ReadEndsMergeRequest.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct PairReadEndsMergeWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct PairReadEndsMergeWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef PairReadEndsMergeWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				ReadEndsMergeRequest REQ;
 		
-				PairReadEndsMergeWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), REQ()
+				PairReadEndsMergeWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), REQ()
 				{
 				
 				}		
@@ -46,7 +46,7 @@ namespace libmaus
 					uint64_t const rdispatcherid, 
 					uint64_t const rpackageid = 0
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REQ(rREQ)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REQ(rREQ)
 				{
 				
 				}

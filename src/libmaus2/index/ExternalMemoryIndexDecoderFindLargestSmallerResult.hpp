@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #define LIBMAUS_INDEX_EXTERNALMEMORYINDEXDECODERFINDLARGESTSMALLERRESULT_HPP
 
 #include <utility>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace index
 	{

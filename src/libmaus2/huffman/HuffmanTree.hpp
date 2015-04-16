@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_HUFFMAN_HUFFMANTREE_HPP)
 #define LIBMAUS_HUFFMAN_HUFFMANTREE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/math/numbits.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/math/numbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
 		struct HuffmanTree
 		{
 			typedef HuffmanTree this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			struct HuffmanLeafNode
@@ -153,7 +153,7 @@ namespace libmaus
 			// sort leafs by depth and adjust pointers accordingly
 			void sortSymbols()
 			{
-				libmaus::autoarray::AutoArray<uint32_t> P(2*leafs(),false);
+				libmaus2::autoarray::AutoArray<uint32_t> P(2*leafs(),false);
 				for ( uint64_t i = 0; i < leafs(); ++i )
 					P[i] = i;
 
@@ -371,7 +371,7 @@ namespace libmaus
 			}
 
 			// huffman tree
-			libmaus::autoarray::AutoArray<HuffmanNode> N;
+			libmaus2::autoarray::AutoArray<HuffmanNode> N;
 			bool setcode;
 			uint64_t treeroot;
 
@@ -401,27 +401,27 @@ namespace libmaus
 			}
 			
 			HuffmanTree(std::istream & in) 
-			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false), treeroot(0)
+			: N(libmaus2::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false), treeroot(0)
 			{
 				for ( uint64_t i = 0; i < leafs(); ++i )
 				{
-					N[i].node.L.sym = libmaus::util::NumberSerialisation::deserialiseSignedNumber(in);
-					N[i].node.L.cnt = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					N[i].node.L.sym = libmaus2::util::NumberSerialisation::deserialiseSignedNumber(in);
+					N[i].node.L.cnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				}
 				for ( uint64_t i = 0; i < inner(); ++i )
 				{	
-					uint64_t const lr = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					uint64_t const lr = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					N[leafs()+i].node.I.left  = (lr >> 32) & 0xFFFFFFFFULL;
 					N[leafs()+i].node.I.right = (lr >>  0) & 0xFFFFFFFFULL;
-					N[leafs()+i].node.I.cnt   = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					N[leafs()+i].node.I.cnt   = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				}
 			
-				setcode  = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				treeroot = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				setcode  = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				treeroot = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			
 				if ( ! in )
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "HuffmanTree: failed to deserialise tree." << std::endl;
 					ex.finish();
 					throw ex;
@@ -429,26 +429,26 @@ namespace libmaus
 			}
 
 			HuffmanTree(std::istream & in, uint64_t & s) 
-			: N(libmaus::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false), treeroot(0)
+			: N(libmaus2::util::NumberSerialisation::deserialiseNumber(in),false), setcode(false), treeroot(0)
                                       {
 				for ( uint64_t i = 0; i < leafs(); ++i )
 				{
-					N[i].node.L.sym = libmaus::util::NumberSerialisation::deserialiseSignedNumberCount(in,s);
-					N[i].node.L.cnt = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+					N[i].node.L.sym = libmaus2::util::NumberSerialisation::deserialiseSignedNumberCount(in,s);
+					N[i].node.L.cnt = libmaus2::util::NumberSerialisation::deserialiseNumberCount(in,s);
 				}
 				for ( uint64_t i = 0; i < inner(); ++i )
 				{	
-					uint64_t const lr = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+					uint64_t const lr = libmaus2::util::NumberSerialisation::deserialiseNumberCount(in,s);
 					N[leafs()+i].node.I.left  = (lr >> 32) & 0xFFFFFFFFULL;
 					N[leafs()+i].node.I.right = (lr >>  0) & 0xFFFFFFFFULL;
-					N[leafs()+i].node.I.cnt   = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+					N[leafs()+i].node.I.cnt   = libmaus2::util::NumberSerialisation::deserialiseNumberCount(in,s);
 				}
-				setcode  = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
-				treeroot = libmaus::util::NumberSerialisation::deserialiseNumberCount(in,s);
+				setcode  = libmaus2::util::NumberSerialisation::deserialiseNumberCount(in,s);
+				treeroot = libmaus2::util::NumberSerialisation::deserialiseNumberCount(in,s);
 			
 				if ( ! in )
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "HuffmanTree: failed to deserialise tree." << std::endl;
 					ex.finish();
 					throw ex;
@@ -460,22 +460,22 @@ namespace libmaus
 			{
 				uint64_t o = 0;
 				
-				o += libmaus::util::NumberSerialisation::serialiseNumber(out,N.size());
+				o += libmaus2::util::NumberSerialisation::serialiseNumber(out,N.size());
 				for ( uint64_t i = 0; i < leafs(); ++i )
 				{
-					o += libmaus::util::NumberSerialisation::serialiseSignedNumber(out,N[i].node.L.sym);
-					o += libmaus::util::NumberSerialisation::serialiseNumber(out,N[i].node.L.cnt);
+					o += libmaus2::util::NumberSerialisation::serialiseSignedNumber(out,N[i].node.L.sym);
+					o += libmaus2::util::NumberSerialisation::serialiseNumber(out,N[i].node.L.cnt);
 				}
 				for ( uint64_t i = 0; i < inner(); ++i )
 				{
-					o += libmaus::util::NumberSerialisation::serialiseNumber(out,
+					o += libmaus2::util::NumberSerialisation::serialiseNumber(out,
 						(static_cast<uint64_t>(N[leafs()+i].node.I.left)<<32) |
 						(static_cast<uint64_t>(N[leafs()+i].node.I.right)<<0)
 					);
-					o += libmaus::util::NumberSerialisation::serialiseNumber(out,N[leafs()+i].node.I.cnt);
+					o += libmaus2::util::NumberSerialisation::serialiseNumber(out,N[leafs()+i].node.I.cnt);
 				}
-				o += libmaus::util::NumberSerialisation::serialiseNumber(out,setcode);
-				o += libmaus::util::NumberSerialisation::serialiseNumber(out,treeroot);
+				o += libmaus2::util::NumberSerialisation::serialiseNumber(out,setcode);
+				o += libmaus2::util::NumberSerialisation::serialiseNumber(out,treeroot);
 				
 				return o;
 			}
@@ -536,12 +536,12 @@ namespace libmaus
 					
 					// clip off top bit if top is equal for all symbols
 					while ( 
-						libmaus::math::numbits(N[P.first].node.L.cnt)
+						libmaus2::math::numbits(N[P.first].node.L.cnt)
 						==
-						libmaus::math::numbits(N[P.second-1].node.L.cnt)
+						libmaus2::math::numbits(N[P.second-1].node.L.cnt)
 					)
 					{
-						unsigned int const bits = libmaus::math::numbits(N[P.first].node.L.cnt);
+						unsigned int const bits = libmaus2::math::numbits(N[P.first].node.L.cnt);
 						assert ( bits );
 						uint64_t const mask = ~(1ull << (bits-1));
 							
@@ -549,7 +549,7 @@ namespace libmaus
 							N[i].node.L.cnt &= mask;
 					}
 					
-					uint64_t const shift = libmaus::math::numbits(N[P.second-1].node.L.cnt)-1;
+					uint64_t const shift = libmaus2::math::numbits(N[P.second-1].node.L.cnt)-1;
 					uint64_t cnt[2] = {0,0};
 					for ( uint64_t i = P.first; i < P.second; ++i )
 					{
@@ -609,7 +609,7 @@ namespace libmaus
 
 				if ( maxdepth > 58 )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "HuffmanTree: cannot store code in tree for maximal depth " << maxdepth << " exceeding 58" << std::endl;
 					se.finish();
 					throw se;
@@ -733,7 +733,7 @@ namespace libmaus
 				{
 					if ( maxdepth > 58 )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "HuffmanTree: cannot store code in tree for maximal depth " << maxdepth << " exceeding 58" << std::endl;
 						se.finish();
 						throw se;
@@ -776,7 +776,7 @@ namespace libmaus
 					uint64_t const i = o.inner();
 					uint64_t p = 0;
 				
-					N = libmaus::autoarray::AutoArray<HuffmanNode>(o.N.size(),false);
+					N = libmaus2::autoarray::AutoArray<HuffmanNode>(o.N.size(),false);
 					for ( uint64_t j = 0; j < l; ++j, ++p ) N[p].node.L = o.N[p].node.L;
 					for ( uint64_t j = 0; j < i; ++j, ++p ) N[p].node.I = o.N[p].node.I;
 					
@@ -908,9 +908,9 @@ namespace libmaus
 				return N[cur].node.L.sym;
 			}
 			
-			libmaus::autoarray::AutoArray<int64_t> symbolArray() const
+			libmaus2::autoarray::AutoArray<int64_t> symbolArray() const
 			{
-				libmaus::autoarray::AutoArray<int64_t> A(leafs(),false);
+				libmaus2::autoarray::AutoArray<int64_t> A(leafs(),false);
 				for ( uint64_t i = 0; i < leafs(); ++i )
 					A[i] = N[i].node.L.sym;
 				std::sort(A.begin(),A.end());
@@ -921,7 +921,7 @@ namespace libmaus
 			{
 				if ( ! setcode )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "HuffmanTree::maxDepth: cannot compute depth for object constructed with setcode option unset" << std::endl;
 					se.finish();
 					throw se;					
@@ -946,11 +946,11 @@ namespace libmaus
 			struct EncodeTable
 			{
 				typedef EncodeTable this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				libmaus::autoarray::AutoArray<uint64_t>	C;
-				libmaus::bitio::BitVector::unique_ptr_type B;
+				libmaus2::autoarray::AutoArray<uint64_t>	C;
+				libmaus2::bitio::BitVector::unique_ptr_type B;
 				int64_t minsym;
 				int64_t maxsym;
 				
@@ -958,7 +958,7 @@ namespace libmaus
 				{
 					if ( ! H.setcode )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "HuffmanTree::EncodeTable: cannot construct table for object constructed with setcode option unset" << std::endl;
 						se.finish();
 						throw se;					
@@ -973,11 +973,11 @@ namespace libmaus
 						maxsym = std::max(maxsym,H.N[i].node.L.sym);
 					}
 					
-					libmaus::bitio::BitVector::unique_ptr_type tB(new libmaus::bitio::BitVector(maxsym-minsym+1));
+					libmaus2::bitio::BitVector::unique_ptr_type tB(new libmaus2::bitio::BitVector(maxsym-minsym+1));
 					B = UNIQUE_PTR_MOVE(tB);
 					
 					// set up table
-					C = libmaus::autoarray::AutoArray<uint64_t>((maxsym-minsym+1),false);
+					C = libmaus2::autoarray::AutoArray<uint64_t>((maxsym-minsym+1),false);
 					
 					// copy codes
 					for ( uint64_t i = 0; i < H.leafs(); ++i )

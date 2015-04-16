@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Histogram.hpp>
+#include <libmaus2/util/Histogram.hpp>
 
 int main()
 {
-	libmaus::util::Histogram hist;
+	libmaus2::util::Histogram hist;
 	uint64_t i = 0;
 	
 	while ( std::cin )

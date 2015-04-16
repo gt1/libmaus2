@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/Phred.hpp>
+#include <libmaus2/fastx/Phred.hpp>
 
-double const libmaus::fastx::Phred::phred_error[256] = {
+double const libmaus2::fastx::Phred::phred_error[256] = {
  1,0.794328,0.630957,0.501187,0.398107,0.316228,0.251189,0.199526,0.158489,
  0.125893,0.1,0.0794328,0.0630957,0.0501187,0.0398107,0.0316228,0.0251189,
  0.0199526,0.0158489,0.0125893,0.01,0.00794328,0.00630957,0.00501187,0.00398107,

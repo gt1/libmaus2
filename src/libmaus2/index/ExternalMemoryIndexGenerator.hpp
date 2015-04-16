@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_INDEX_EXTERNALMEMORYINDEXGENERATOR_HPP)
 #define LIBMAUS_INDEX_EXTERNALMEMORYINDEXGENERATOR_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/aio/CheckedInputOutputStream.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/index/ExternalMemoryIndexRecord.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/aio/CheckedInputOutputStream.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/index/ExternalMemoryIndexRecord.hpp>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace index
 	{
@@ -39,8 +39,8 @@ namespace libmaus
 			static unsigned int const base_level_log = _base_level_log;
 			static unsigned int const inner_level_log = _inner_level_log;
 			typedef ExternalMemoryIndexGenerator<data_type,base_level_log,inner_level_log> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static uint64_t const base_index_step = 1ull << base_level_log;
 			static uint64_t const base_index_mask = (base_index_step-1);
@@ -48,13 +48,13 @@ namespace libmaus
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
 			static uint64_t const inner_index_mask = (inner_index_step-1);
 		
-			libmaus::aio::CheckedInputOutputStream::unique_ptr_type Pstream;
+			libmaus2::aio::CheckedInputOutputStream::unique_ptr_type Pstream;
 			std::iostream & stream;
 			uint64_t ic;
 			bool flushed;
 			
 			typedef ExternalMemoryIndexRecord<data_type> record_type;
-			libmaus::autoarray::AutoArray<record_type> writeCache;
+			libmaus2::autoarray::AutoArray<record_type> writeCache;
 			record_type * const wa;
 			record_type * wc;
 			record_type * const we;
@@ -72,7 +72,7 @@ namespace libmaus
 			}
 			
 			ExternalMemoryIndexGenerator(std::string const & filename)
-			: Pstream(new libmaus::aio::CheckedInputOutputStream(filename)), stream(*Pstream), ic(0), flushed(false), writeCache(1024),
+			: Pstream(new libmaus2::aio::CheckedInputOutputStream(filename)), stream(*Pstream), ic(0), flushed(false), writeCache(1024),
 			  wa(writeCache.begin()), wc(wa), we(writeCache.end())
 			{
 			
@@ -93,7 +93,7 @@ namespace libmaus
 				ic = 0;
 				
 				// make room for pointer
-				libmaus::util::NumberSerialisation::serialiseNumber(stream,0);
+				libmaus2::util::NumberSerialisation::serialiseNumber(stream,0);
 				
 				return curpos;
 			}
@@ -133,8 +133,8 @@ namespace libmaus
 						data_type D;
 						for ( uint64_t j = 0; j < incnt; ++j )
 						{
-							uint64_t pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
-							uint64_t psecond = libmaus::util::NumberSerialisation::deserialiseNumber(stream);							
+							uint64_t pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+							uint64_t psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);							
 							D.deserialise(stream);
 							
 							gpos += 2*sizeof(uint64_t) + object_size;
@@ -149,8 +149,8 @@ namespace libmaus
 									
 									for ( record_type * ww = wa; ww < wc; ++ww )
 									{
-										ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
-										ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
+										ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
+										ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
 										ppos += ww->D.serialise(stream);			
 									}
 									
@@ -166,8 +166,8 @@ namespace libmaus
 							
 							for ( record_type * ww = wa; ww < wc; ++ww )
 							{
-								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
-								ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
+								ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.first);
+								ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,ww->P.second);
 								ppos += ww->D.serialise(stream);			
 							}
 							
@@ -188,22 +188,22 @@ namespace libmaus
 					// store meta information
 					for ( uint64_t i = 0; i < levelcnts.size(); ++i )
 					{
-						ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,levelstarts[i]);
-						ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,levelcnts[i]);
+						ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,levelstarts[i]);
+						ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,levelcnts[i]);
 						#if 0
 						std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " levelstarts[" << i << "]=" << levelstarts[i] << std::endl;
 						#endif
 					}
 
 					// number of levels
-					ppos += libmaus::util::NumberSerialisation::serialiseNumber(stream,levelcnts.size());
+					ppos += libmaus2::util::NumberSerialisation::serialiseNumber(stream,levelcnts.size());
 				
 					// end of index pointer	
 					uint64_t const backppos = stream.tellp();
 					// go to beginning of level 0 records minus 8
 					stream.seekp(l0pos-8,std::ios::beg);
 					// store back of index pointer
-					libmaus::util::NumberSerialisation::serialiseNumber(stream,backppos);
+					libmaus2::util::NumberSerialisation::serialiseNumber(stream,backppos);
 					// go back to end of index
 					stream.seekp(backppos);
 					
@@ -215,7 +215,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "ExternalMemoryIndexGenerator::flush(): generator is already flushed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -224,8 +224,8 @@ namespace libmaus
 			
 			void put(data_type const & E, std::pair<uint64_t,uint64_t> const & P)
 			{
-				libmaus::util::NumberSerialisation::serialiseNumber(stream,P.first);
-				libmaus::util::NumberSerialisation::serialiseNumber(stream,P.second);
+				libmaus2::util::NumberSerialisation::serialiseNumber(stream,P.first);
+				libmaus2::util::NumberSerialisation::serialiseNumber(stream,P.second);
 				E.serialise(stream);				
 				ic += 1;
 			}

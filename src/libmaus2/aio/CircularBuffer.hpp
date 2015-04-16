@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,13 +22,13 @@
 
 #include <istream>
 #include <fstream>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/Utf8DecoderWrapper.hpp>
-#include <libmaus/util/UnsignedCharVariant.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/Utf8DecoderWrapper.hpp>
+#include <libmaus2/util/UnsignedCharVariant.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -43,14 +43,14 @@ namespace libmaus
 			typedef _stream_type stream_type;
 			typedef typename stream_type::char_type char_type;
 			typedef ::std::basic_streambuf<char_type> base_type;
-			typedef typename ::libmaus::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
+			typedef typename ::libmaus2::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
 			
 			typename stream_type::unique_ptr_type Pstream;
 			::std::basic_istream<char_type> & stream;
 			
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
-			::libmaus::autoarray::AutoArray<char_type> buffer;
+			::libmaus2::autoarray::AutoArray<char_type> buffer;
 			uint64_t streamreadpos;
 			uint64_t const infilesize;
 
@@ -78,7 +78,7 @@ namespace libmaus
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), 
 			  streamreadpos(0),
-			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
+			  infilesize(::libmaus2::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
@@ -104,7 +104,7 @@ namespace libmaus
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), 
 			  streamreadpos(0),
-			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
+			  infilesize(::libmaus2::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
@@ -171,9 +171,9 @@ namespace libmaus
 		};
 
 		//! byte oriented circular buffer
-		typedef CircularBufferTemplate< ::libmaus::aio::CheckedInputStream  > CircularBuffer;
+		typedef CircularBufferTemplate< ::libmaus2::aio::CheckedInputStream  > CircularBuffer;
 		//! utf-8 coded circular buffer
-		typedef CircularBufferTemplate< ::libmaus::util::Utf8DecoderWrapper > Utf8CircularBuffer;
+		typedef CircularBufferTemplate< ::libmaus2::util::Utf8DecoderWrapper > Utf8CircularBuffer;
 
 		/**
 		 * streambuf specialisation for reverse circular input, 
@@ -190,7 +190,7 @@ namespace libmaus
 			//! type of base class
 			typedef ::std::basic_streambuf<char_type> base_type;
 			//! unsigned character type
-			typedef typename ::libmaus::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
+			typedef typename ::libmaus2::util::UnsignedCharVariant<char_type>::type unsigned_char_type;
 
 			//! stream pointer type
 			typename stream_type::unique_ptr_type Pstream;
@@ -202,7 +202,7 @@ namespace libmaus
 			//! size of push back space
 			uint64_t const pushbackspace;
 			//! input buffer
-			::libmaus::autoarray::AutoArray<char_type> buffer;
+			::libmaus2::autoarray::AutoArray<char_type> buffer;
 			//! position in stream
 			uint64_t streamreadpos;
 			//! size of input file
@@ -233,7 +233,7 @@ namespace libmaus
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
-			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
+			  infilesize(::libmaus2::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
@@ -253,7 +253,7 @@ namespace libmaus
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
 			  buffer(buffersize+pushbackspace,false), streamreadpos(0),
-			  infilesize(::libmaus::util::GetFileSize::getFileSize(stream))
+			  infilesize(::libmaus2::util::GetFileSize::getFileSize(stream))
 			{
 				stream.seekg(offset);
 				base_type::setg(buffer.end(), buffer.end(), buffer.end());	
@@ -327,8 +327,8 @@ namespace libmaus
 			}
 		};
 
-		typedef CircularReverseBufferTemplate< ::libmaus::aio::CheckedInputStream  > CircularReverseBuffer;
-		typedef CircularReverseBufferTemplate< ::libmaus::util::Utf8DecoderWrapper > Utf8CircularReverseBuffer;
+		typedef CircularReverseBufferTemplate< ::libmaus2::aio::CheckedInputStream  > CircularReverseBuffer;
+		typedef CircularReverseBufferTemplate< ::libmaus2::util::Utf8DecoderWrapper > Utf8CircularReverseBuffer;
 	}
 }
 #endif

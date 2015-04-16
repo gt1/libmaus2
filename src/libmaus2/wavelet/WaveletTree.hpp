@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(WAVELETTREE_HPP)
 #define WAVELETTREE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/serialize/Serialize.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/BitsPerNum.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/serialize/Serialize.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/BitsPerNum.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include "malloc.h"
@@ -41,7 +41,7 @@
 
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -78,7 +78,7 @@ namespace libmaus
 						mini = ::std::min(v,mini);
 					}
 					
-					uint64_t const bits = ::libmaus::util::BitsPerNum::bitsPerNum(maxi);
+					uint64_t const bits = ::libmaus2::util::BitsPerNum::bitsPerNum(maxi);
 					
 					// ::std::cerr << "mini=" << mini << " maxi=" << maxi << " bits=" << bits << ::std::endl;
 					
@@ -117,9 +117,9 @@ namespace libmaus
 					}
 					
 					if ( ::std::numeric_limits<symbol_type>::is_signed && mini < symbol_type() )
-						throw ::std::runtime_error("::libmaus::wavelet::WaveletTree: cannot handle negative values.");
+						throw ::std::runtime_error("::libmaus2::wavelet::WaveletTree: cannot handle negative values.");
 					
-					uint64_t const bits = ::libmaus::util::BitsPerNum::bitsPerNum(maxi);
+					uint64_t const bits = ::libmaus2::util::BitsPerNum::bitsPerNum(maxi);
 					
 					// ::std::cerr << "mini=" << mini << " maxi=" << maxi << " bits=" << bits << ::std::endl;
 					
@@ -143,7 +143,7 @@ namespace libmaus
 			typedef _symbol_type symbol_type;
 			
 			typedef WaveletTree<rank_type,symbol_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			typedef typename rank_type::writer_type writer_type;
@@ -161,7 +161,7 @@ namespace libmaus
 			/**
 			 * wavelet tree bit layers (n log S) bits
 			 **/
-			::libmaus::autoarray::AutoArray< data_type > AW;
+			::libmaus2::autoarray::AutoArray< data_type > AW;
 			data_type const * const W;
 			/**
 			 * rank dictionary on W
@@ -171,7 +171,7 @@ namespace libmaus
 
 			bool operator()(uint64_t const l, uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(W, l*n+i);
+				return ::libmaus2::bitio::getBit(W, l*n+i);
 			}
 
 			/**
@@ -225,7 +225,7 @@ namespace libmaus
 			template<typename it>
 			static uint64_t getNumBits(it a, uint64_t const n)
 			{
-				return ::libmaus::wavelet::GetNumBits<
+				return ::libmaus2::wavelet::GetNumBits<
 					symbol_type,
 					::std::numeric_limits<symbol_type>::is_signed > ::getNumBits(a,n);
 			
@@ -270,13 +270,13 @@ namespace libmaus
 			 * @return bits
 			 **/
 			template<typename it>
-			static ::libmaus::autoarray::AutoArray< data_type > produceBits(it a, uint64_t const n, uint64_t const b) 
+			static ::libmaus2::autoarray::AutoArray< data_type > produceBits(it a, uint64_t const n, uint64_t const b) 
 			{
-				::libmaus::autoarray::AutoArray< data_type > W( divup( align64(n*b), 8*sizeof(data_type) ), false );
+				::libmaus2::autoarray::AutoArray< data_type > W( divup( align64(n*b), 8*sizeof(data_type) ), false );
 
 				// ::std::cerr << "n=" << n << " b=" << b << " t=" << t << " w=" << w << ::std::endl;
 				
-				::libmaus::autoarray::AutoArray<symbol_type> AA0(n,false), AA1(n,false);
+				::libmaus2::autoarray::AutoArray<symbol_type> AA0(n,false), AA1(n,false);
 				symbol_type * A0 = AA0.get(), * A1 = AA1.get();
 				
 				for ( uint64_t i = 0; i < n; ++i )
@@ -354,7 +354,7 @@ namespace libmaus
 				for ( uint64_t ib = 0; ib < b; ++ib )
 				{
 					for ( uint64_t i = 0; i < n; ++i )
-						::std::cerr << ::libmaus::bitio::getBit(W.get(),ib*n+i);
+						::std::cerr << ::libmaus2::bitio::getBit(W.get(),ib*n+i);
 					::std::cerr << ::std::endl;
 				}
 				#endif
@@ -492,7 +492,7 @@ namespace libmaus
 
 			bool getNodeBit(Node const & node, uint64_t i) const
 			{
-				return ::libmaus::bitio::getBit( W, node.level*n + node.left + i );
+				return ::libmaus2::bitio::getBit( W, node.level*n + node.left + i );
 			}
 
 			/**
@@ -653,7 +653,7 @@ namespace libmaus
 			template<typename it>
 			WaveletTree(it a, uint64_t const rn) : n(rn), b(getNumBits(a,n)), AW( produceBits(a, n, b) ), W(AW.get()), R(W,align64(n*b)) {}
 
-			WaveletTree(::libmaus::autoarray::AutoArray<uint64_t> & rW, 
+			WaveletTree(::libmaus2::autoarray::AutoArray<uint64_t> & rW, 
 				    uint64_t const rn,
 				    uint64_t const rb) 
 			: n(rn), b(rb), AW( rW ), W( AW.get() ), R(W,align64(n*b)) {}
@@ -666,27 +666,27 @@ namespace libmaus
 			static uint64_t readUnsignedInt(::std::istream & in)
 			{
 				uint64_t i;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 
 			static uint64_t readUnsignedInt(::std::istream & in, uint64_t & s)
 			{
 				uint64_t i;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 			
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray(::std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray(::std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray(::std::istream & in, uint64_t & s)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray(::std::istream & in, uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				s += A.deserialize(in);
 				return A;
 			}
@@ -700,8 +700,8 @@ namespace libmaus
 			uint64_t serialize(::std::ostream & out)
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,b);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,b);
 				s += AW.serialize(out);
 				return s;
 			}
@@ -723,9 +723,9 @@ namespace libmaus
 				return n;
 			}
 
-			::libmaus::autoarray::AutoArray<int64_t> getSymbolArray() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbolArray() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> A(1ull << getB());
+				::libmaus2::autoarray::AutoArray<int64_t> A(1ull << getB());
 				for ( uint64_t i = 0; i < A.size(); ++i )
 					A[i] = i;
 				return A;
@@ -1281,7 +1281,7 @@ namespace libmaus
 
 				for ( uint64_t ib = 0; ib < b; ++ib, m>>=1, offset += n )
 				{
-					symbol_type const bit = ::libmaus::bitio::getBit(W, offset+left+i);
+					symbol_type const bit = ::libmaus2::bitio::getBit(W, offset+left+i);
 					sym <<= 1;
 					sym |= bit;
 					
@@ -1459,7 +1459,7 @@ namespace libmaus
 				return V;		
 			}
 
-			::libmaus::autoarray::AutoArray< ::std::pair < symbol_type, uint64_t > > rangeCountMaxArray(uint64_t const l, uint64_t const r, uint64_t const s) const
+			::libmaus2::autoarray::AutoArray< ::std::pair < symbol_type, uint64_t > > rangeCountMaxArray(uint64_t const l, uint64_t const r, uint64_t const s) const
 			{
 				::std::vector< ::std::pair < symbol_type, uint64_t > > V;
 				
@@ -1491,13 +1491,13 @@ namespace libmaus
 					}
 				}
 				
-				::libmaus::autoarray::AutoArray < ::std::pair < symbol_type, uint64_t > > A(V.size());
+				::libmaus2::autoarray::AutoArray < ::std::pair < symbol_type, uint64_t > > A(V.size());
 				::std::copy ( V.begin(), V.end(),  A.get() );
 				
 				return A;		
 			}
 
-			::libmaus::autoarray::AutoArray< ::std::pair < symbol_type, uint64_t > > rangeCount(uint64_t const l, uint64_t const r) const
+			::libmaus2::autoarray::AutoArray< ::std::pair < symbol_type, uint64_t > > rangeCount(uint64_t const l, uint64_t const r) const
 			{
 				uint64_t const stackdepth = b+1;
 				uint64_t const stacksize = stackdepth * sizeof(RangeCountStackElement);
@@ -1557,7 +1557,7 @@ namespace libmaus
 					}
 				}
 				
-				::libmaus::autoarray::AutoArray< ::std::pair < symbol_type, uint64_t > > A(cnt,false);
+				::libmaus2::autoarray::AutoArray< ::std::pair < symbol_type, uint64_t > > A(cnt,false);
 
 				*(SP++) = RangeCountStackElement(root(l,r));
 				cnt = 0;
@@ -1799,7 +1799,7 @@ namespace libmaus
 			typedef _rank_type rank_type;
 			typedef _symbol_type symbol_type;
 			typedef QuickWaveletTree<rank_type,symbol_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			typedef typename rank_type::writer_type writer_type;
@@ -1899,7 +1899,7 @@ namespace libmaus
 			/**
 			 * wavelet tree bit layers (n log S) bits
 			 **/
-			::libmaus::autoarray::AutoArray< data_type > const AW;
+			::libmaus2::autoarray::AutoArray< data_type > const AW;
 			data_type const * const W;
 
 			/**
@@ -1909,25 +1909,25 @@ namespace libmaus
 			/**
 			 * offsets dictionary
 			 **/
-			::libmaus::autoarray::AutoArray< data_type > const O0;
-			::libmaus::autoarray::AutoArray< data_type > const O1;
-			::libmaus::autoarray::AutoArray< NodeInfo > const NI;
+			::libmaus2::autoarray::AutoArray< data_type > const O0;
+			::libmaus2::autoarray::AutoArray< data_type > const O1;
+			::libmaus2::autoarray::AutoArray< NodeInfo > const NI;
 
 			#if 0
 			bool operator[](uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(W.get(),i);
+				return ::libmaus2::bitio::getBit(W.get(),i);
 			}
 			#endif
 			
 			bool operator()(uint64_t const l, uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(AW.get(), l*n+i);
+				return ::libmaus2::bitio::getBit(AW.get(), l*n+i);
 			}
 			
 			bool accessNodeBit(NodeInfo const & nodeinfo, uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(AW.get(), nodeinfo.getAbsLeft() + i);
+				return ::libmaus2::bitio::getBit(AW.get(), nodeinfo.getAbsLeft() + i);
 			}
 
 			/**
@@ -1981,7 +1981,7 @@ namespace libmaus
 			template<typename it>
 			static uint64_t getNumBits(it a, uint64_t const n)
 			{
-				return ::libmaus::wavelet::GetNumBits<
+				return ::libmaus2::wavelet::GetNumBits<
 					symbol_type,
 					::std::numeric_limits<symbol_type>::is_signed > ::getNumBits(a,n);
 			}
@@ -1997,13 +1997,13 @@ namespace libmaus
 			 * @return bits
 			 **/
 			template<typename it>
-			static ::libmaus::autoarray::AutoArray< data_type > produceBits(it a, uint64_t const n, uint64_t const b) 
+			static ::libmaus2::autoarray::AutoArray< data_type > produceBits(it a, uint64_t const n, uint64_t const b) 
 			{
-				::libmaus::autoarray::AutoArray< data_type > W( divup( align64(n*b), 8*sizeof(data_type) ), false );		
+				::libmaus2::autoarray::AutoArray< data_type > W( divup( align64(n*b), 8*sizeof(data_type) ), false );		
 
 				// ::std::cerr << "n=" << n << " b=" << b << " t=" << t << " w=" << w << ::std::endl;
 				
-				::libmaus::autoarray::AutoArray<symbol_type> AA0(n,false), AA1(n,false);
+				::libmaus2::autoarray::AutoArray<symbol_type> AA0(n,false), AA1(n,false);
 				symbol_type * A0 = AA0.get(), * A1 = AA1.get();
 				
 				for ( uint64_t i = 0; i < n; ++i )
@@ -2363,12 +2363,12 @@ namespace libmaus
 				}
 			}
 
-			::libmaus::autoarray::AutoArray<uint64_t> produceO0()
+			::libmaus2::autoarray::AutoArray<uint64_t> produceO0()
 			{
 				if ( n )
 				{
 					uint64_t numnodes1 = static_cast<uint64_t>(1) << b;
-					::libmaus::autoarray::AutoArray<uint64_t> AO0( numnodes1, false );
+					::libmaus2::autoarray::AutoArray<uint64_t> AO0( numnodes1, false );
 
 					fillO0(AO0.get(),0,n,0,0);
 					
@@ -2379,15 +2379,15 @@ namespace libmaus
 				}
 				else
 				{
-					return ::libmaus::autoarray::AutoArray<uint64_t>(0);
+					return ::libmaus2::autoarray::AutoArray<uint64_t>(0);
 				}
 			}
-			::libmaus::autoarray::AutoArray<uint64_t> produceO1()
+			::libmaus2::autoarray::AutoArray<uint64_t> produceO1()
 			{
 				if ( n )
 				{
 					uint64_t numnodes1 = static_cast<uint64_t>(1) << b;
-					::libmaus::autoarray::AutoArray<uint64_t> AO1( numnodes1, false );
+					::libmaus2::autoarray::AutoArray<uint64_t> AO1( numnodes1, false );
 
 					fillO1(AO1.get(),0,n,0,0);
 					
@@ -2398,16 +2398,16 @@ namespace libmaus
 				}
 				else
 				{
-					return ::libmaus::autoarray::AutoArray<uint64_t>(0);
+					return ::libmaus2::autoarray::AutoArray<uint64_t>(0);
 				}
 			}
 			
-			::libmaus::autoarray::AutoArray<NodeInfo> produceNI()
+			::libmaus2::autoarray::AutoArray<NodeInfo> produceNI()
 			{
 				if ( n )
 				{
 					uint64_t numnodes = (static_cast<uint64_t>(1ull) << (b+1))-1;
-					::libmaus::autoarray::AutoArray<NodeInfo> ANI( numnodes, true );
+					::libmaus2::autoarray::AutoArray<NodeInfo> ANI( numnodes, true );
 
 					fillNodeInfo(ANI.get(),0,n,0,0);
 
@@ -2415,7 +2415,7 @@ namespace libmaus
 				}
 				else
 				{
-					return ::libmaus::autoarray::AutoArray<NodeInfo>(0);
+					return ::libmaus2::autoarray::AutoArray<NodeInfo>(0);
 				}
 			}
 			
@@ -2436,7 +2436,7 @@ namespace libmaus
 				#endif
 			}
 
-			QuickWaveletTree(::libmaus::autoarray::AutoArray<uint64_t> & rW, 
+			QuickWaveletTree(::libmaus2::autoarray::AutoArray<uint64_t> & rW, 
 				    uint64_t const rn,
 				    uint64_t const rb) 
 			: n(rn), b(rb), AW( rW ), W( AW.get() ), R(W,align64(n*b)), 
@@ -2461,27 +2461,27 @@ namespace libmaus
 			static uint64_t readUnsignedInt(::std::istream & in)
 			{
 				uint64_t i;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 
 			static uint64_t readUnsignedInt(::std::istream & in, uint64_t & s)
 			{
 				uint64_t i;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 			
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray(::std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray(::std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray(::std::istream & in, uint64_t & s)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray(::std::istream & in, uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				s += A.deserialize(in);
 				return A;
 			}
@@ -2514,8 +2514,8 @@ namespace libmaus
 			uint64_t serialize(::std::ostream & out)
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,b);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,b);
 				s += AW.serialize(out);
 				return s;
 			}
@@ -2533,9 +2533,9 @@ namespace libmaus
 				return n;
 			}
 
-			::libmaus::autoarray::AutoArray<int64_t> getSymbolArray() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbolArray() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> A(1ull << getB());
+				::libmaus2::autoarray::AutoArray<int64_t> A(1ull << getB());
 				for ( uint64_t i = 0; i < A.size(); ++i )
 					A[i] = i;
 				return A;
@@ -2607,7 +2607,7 @@ namespace libmaus
 			{
 				if ( i >= n )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "QuickWaveletTree<>::inverseSelect() called for i=" << i << " >= n=" << n;
 					se.finish();
 					throw se;
@@ -2620,7 +2620,7 @@ namespace libmaus
 				{
 					NodeInfo const & I = NI[q];
 					uint64_t const abspos = I.getAbsLeft() + i;
-					bool const bit = ::libmaus::bitio::getBit(AW.get(), abspos);
+					bool const bit = ::libmaus2::bitio::getBit(AW.get(), abspos);
 
 					if ( bit )
 					{
@@ -3134,7 +3134,7 @@ namespace libmaus
 				{
 					NodeInfo const & I = NI[q];
 					uint64_t const abspos = I.getAbsLeft() + i;
-					bool const bit = ::libmaus::bitio::getBit(AW.get(), abspos);
+					bool const bit = ::libmaus2::bitio::getBit(AW.get(), abspos);
 
 					if ( bit )
 					{

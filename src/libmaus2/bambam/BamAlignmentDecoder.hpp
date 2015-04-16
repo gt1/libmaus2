@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODER_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODER_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamHeaderLowMem.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -34,18 +34,18 @@ namespace libmaus
 		{
 			public:
 			typedef BamAlignmentDecoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			protected:
 			//! true if there is an alignment in the put back buffer, i.e. next call to readAlignment will not load a new alignment
 			bool putbackbuffer;
 			//! auxiliary memory space for decoding
-			::libmaus::bambam::BamFormatAuxiliary auxiliary;
+			::libmaus2::bambam::BamFormatAuxiliary auxiliary;
 			//! id of next pattern
 			uint64_t patid;
 			//! alignment
-			::libmaus::bambam::BamAlignment alignment;
+			::libmaus2::bambam::BamAlignment alignment;
 			//! rank of next alignment
 			uint64_t rank;
 			//! true if we put a rank aux field in each decoded alignment
@@ -55,7 +55,7 @@ namespace libmaus
 
 			public:
 			//! pattern type
-			typedef ::libmaus::fastx::FASTQEntry pattern_type;
+			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
 		
 			/**
 			 * constructor
@@ -80,7 +80,7 @@ namespace libmaus
 			 *
 			 * @return current alignment
 			 **/
-			virtual libmaus::bambam::BamAlignment const & getAlignment() const
+			virtual libmaus2::bambam::BamAlignment const & getAlignment() const
 			{
 				return alignment;
 			}
@@ -90,7 +90,7 @@ namespace libmaus
 			 *
 			 * @return current alignment
 			 **/
-			virtual libmaus::bambam::BamAlignment & getAlignment()
+			virtual libmaus2::bambam::BamAlignment & getAlignment()
 			{
 				return alignment;
 			}
@@ -100,7 +100,7 @@ namespace libmaus
 			 *
 			 * @return BAM header object
 			 **/
-			virtual libmaus::bambam::BamHeader const & getHeader() const = 0;
+			virtual libmaus2::bambam::BamHeader const & getHeader() const = 0;
 
 			/**
 			 * put alignment back into stream; only one alignment can be put back in this way
@@ -134,9 +134,9 @@ namespace libmaus
 			 *
 			 * @return clone of current alignment as unique pointer
 			 **/
-			libmaus::bambam::BamAlignment::unique_ptr_type ualignment() const
+			libmaus2::bambam::BamAlignment::unique_ptr_type ualignment() const
 			{
-				libmaus::bambam::BamAlignment::unique_ptr_type ptr(getAlignment().uclone());
+				libmaus2::bambam::BamAlignment::unique_ptr_type ptr(getAlignment().uclone());
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
@@ -145,7 +145,7 @@ namespace libmaus
 			 *
 			 * @return clone of current alignment as shared pointer
 			 **/
-			libmaus::bambam::BamAlignment::shared_ptr_type salignment() const
+			libmaus2::bambam::BamAlignment::shared_ptr_type salignment() const
 			{
 				return getAlignment().sclone();
 			}
@@ -228,8 +228,8 @@ namespace libmaus
 			template<typename stream_type>
 			static bool readAlignmentGz(
 				stream_type & GZ,
-				::libmaus::bambam::BamAlignment & alignment,
-				libmaus::bambam::BamHeader const * bamheader = 0,
+				::libmaus2::bambam::BamAlignment & alignment,
+				libmaus2::bambam::BamHeader const * bamheader = 0,
 				bool const validate = true
 			)
 			{
@@ -247,12 +247,12 @@ namespace libmaus
 
 				/* read alignment block */
 				if ( alignment.blocksize > alignment.D.size() )
-					alignment.D = ::libmaus::bambam::BamAlignment::D_array_type(alignment.blocksize,false);
+					alignment.D = ::libmaus2::bambam::BamAlignment::D_array_type(alignment.blocksize,false);
 				GZ.read(reinterpret_cast<char *>(alignment.D.begin()),alignment.blocksize);
 
 				if ( static_cast<int64_t>(GZ.gcount()) != static_cast<int64_t>(alignment.blocksize) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid alignment (EOF in alignment block of length " << alignment.blocksize  << ")" << std::endl;
 					se.finish();
 					throw se;
@@ -260,10 +260,10 @@ namespace libmaus
 				
 				if ( validate )
 				{
-					libmaus_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
-					if ( validity != ::libmaus::bambam::libmaus_bambam_alignment_validity_ok )
+					libmaus2_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
+					if ( validity != ::libmaus2::bambam::libmaus2_bambam_alignment_validity_ok )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Invalid alignment: " << validity << std::endl;
 						se.finish();
 						throw se;					
@@ -285,8 +285,8 @@ namespace libmaus
 			template<typename stream_type>
 			static bool readAlignmentGzLo(
 				stream_type & GZ,
-				::libmaus::bambam::BamAlignment & alignment,
-				libmaus::bambam::BamHeaderLowMem const * bamheader = 0,
+				::libmaus2::bambam::BamAlignment & alignment,
+				libmaus2::bambam::BamHeaderLowMem const * bamheader = 0,
 				bool const validate = true
 			)
 			{
@@ -304,12 +304,12 @@ namespace libmaus
 
 				/* read alignment block */
 				if ( alignment.blocksize > alignment.D.size() )
-					alignment.D = ::libmaus::bambam::BamAlignment::D_array_type(alignment.blocksize,false);
+					alignment.D = ::libmaus2::bambam::BamAlignment::D_array_type(alignment.blocksize,false);
 				GZ.read(reinterpret_cast<char *>(alignment.D.begin()),alignment.blocksize);
 
 				if ( static_cast<int64_t>(GZ.gcount()) != static_cast<int64_t>(alignment.blocksize) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid alignment (EOF in alignment block of length " << alignment.blocksize  << ")" << std::endl;
 					se.finish();
 					throw se;
@@ -317,10 +317,10 @@ namespace libmaus
 				
 				if ( validate )
 				{
-					libmaus_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
-					if ( validity != ::libmaus::bambam::libmaus_bambam_alignment_validity_ok )
+					libmaus2_bambam_alignment_validity const validity = bamheader ? alignment.valid(*bamheader) : alignment.valid();
+					if ( validity != ::libmaus2::bambam::libmaus2_bambam_alignment_validity_ok )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Invalid alignment: " << validity << std::endl;
 						se.finish();
 						throw se;					
@@ -334,8 +334,8 @@ namespace libmaus
 		struct BamAlignmentDecoderWrapper
 		{
 			typedef BamAlignmentDecoderWrapper this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~BamAlignmentDecoderWrapper() {}
 			virtual BamAlignmentDecoder & getDecoder() = 0;

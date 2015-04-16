@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(ERANKBASE_HPP)
 #define ERANKBASE_HPP
 
-#include <libmaus/rank/BSwapBase.hpp>
-#include <libmaus/rank/RankTable.hpp>
-#include <libmaus/rank/EncodeCache.hpp>
-#include <libmaus/rank/DecodeCache.hpp>
-#include <libmaus/rank/popcnt.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/BSwapBase.hpp>
+#include <libmaus2/rank/RankTable.hpp>
+#include <libmaus2/rank/EncodeCache.hpp>
+#include <libmaus2/rank/DecodeCache.hpp>
+#include <libmaus2/rank/popcnt.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
 #define ERANK2DIVUP(a,b) ((a+(b-1))/b)
 
@@ -32,7 +32,7 @@
  * \mainpage
  * This package contains some rank dictionaries.
  **/
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -42,7 +42,7 @@ namespace libmaus
 		struct ERankBase : public BSwapBase
 		{
 			typedef ERankBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			#if defined(RANKTABLES)

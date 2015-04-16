@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(POPCNT_HPP)
 #define POPCNT_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <string>
 #include <sstream>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{

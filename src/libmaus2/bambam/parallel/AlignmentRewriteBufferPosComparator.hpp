@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERPOSCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFERPOSCOMPARATOR_HPP
 
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewriteBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
@@ -44,14 +44,14 @@ namespace libmaus
 					uint8_t const * pa = text + A + (sizeof(uint32_t) + sizeof(uint64_t));
 					uint8_t const * pb = text + B + (sizeof(uint32_t) + sizeof(uint64_t));
 	
-					int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(pa);
-					int32_t const refb = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(pb);
+					int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pa);
+					int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(pb);
 				
 					if ( refa != refb )
 						return  static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb);
 	
-					int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(pa);
-					int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(pb);
+					int32_t const posa = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(pa);
+					int32_t const posb = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(pb);
 					
 					return posa < posb;
 				}

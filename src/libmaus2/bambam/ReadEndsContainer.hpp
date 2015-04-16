@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,52 +19,52 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSCONTAINER_HPP)
 #define LIBMAUS_BAMBAM_READENDSCONTAINER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/CompactReadEndsBase.hpp>
-#include <libmaus/bambam/CompactReadEndsComparator.hpp>
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/bambam/ReadEndsContainerBase.hpp>
-#include <libmaus/bambam/SortedFragDecoder.hpp>
-#include <libmaus/util/DigitTable.hpp>
-#include <libmaus/util/CountGetObject.hpp>
-#include <libmaus/sorting/SerialRadixSort64.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/CompactReadEndsBase.hpp>
+#include <libmaus2/bambam/CompactReadEndsComparator.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEndsContainerBase.hpp>
+#include <libmaus2/bambam/SortedFragDecoder.hpp>
+#include <libmaus2/util/DigitTable.hpp>
+#include <libmaus2/util/CountGetObject.hpp>
+#include <libmaus2/sorting/SerialRadixSort64.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
 
-#include <libmaus/bambam/ReadEndsBlockDecoderBase.hpp>
-#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollection.hpp>
-#include <libmaus/bambam/ReadEndsStreamDecoderBase.hpp>
-#include <libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp>
-#include <libmaus/bambam/ReadEndsStreamDecoder.hpp>		
+#include <libmaus2/bambam/ReadEndsBlockDecoderBase.hpp>
+#include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollection.hpp>
+#include <libmaus2/bambam/ReadEndsStreamDecoderBase.hpp>
+#include <libmaus2/bambam/ReadEndsStreamDecoderFileBase.hpp>
+#include <libmaus2/bambam/ReadEndsStreamDecoder.hpp>		
 
-#include <libmaus/index/ExternalMemoryIndexGenerator.hpp>
+#include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
 		/**
 		 * container class for ReadEnds objects
 		 **/
-		struct ReadEndsContainer : public ::libmaus::bambam::CompactReadEndsBase, public ::libmaus::bambam::ReadEndsContainerBase
+		struct ReadEndsContainer : public ::libmaus2::bambam::CompactReadEndsBase, public ::libmaus2::bambam::ReadEndsContainerBase
 		{
 			//! this type
 			typedef ReadEndsContainer this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 					
 			private:
 			//! digit table
-			static ::libmaus::util::DigitTable const D;
+			static ::libmaus2::util::DigitTable const D;
 
 			//! in table index type
 			typedef uint32_t index_type;
 			//! index size
 			enum { index_type_size = sizeof(index_type) };
 			//! buffer array
-			::libmaus::autoarray::AutoArray<index_type> A;
+			::libmaus2::autoarray::AutoArray<index_type> A;
 			
 			//! index insertion pointer (from back of A)
 			index_type * iptr;
@@ -77,13 +77,13 @@ namespace libmaus
 			std::string const tempfilenameindex;
 			
 			//! temporary output file stream
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type tempfileout;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type tempfileout;
 			//! compressed output stream
-			::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream >::unique_ptr_type pSOS;
+			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream >::unique_ptr_type pSOS;
 			
 			//! index generator type
-			typedef libmaus::index::ExternalMemoryIndexGenerator<
-				libmaus::bambam::ReadEndsBase,
+			typedef libmaus2::index::ExternalMemoryIndexGenerator<
+				libmaus2::bambam::ReadEndsBase,
 				ReadEndsContainerBase::baseIndexShift,
 				ReadEndsContainerBase::innerIndexShift
 				> index_generator_type;
@@ -95,7 +95,7 @@ namespace libmaus
 			
 			#if 0
 			//! temporary output file stream for index
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type tempfileindexout;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type tempfileindexout;
 			//! index block start vector
 			uint64_t indexpos;
 			#endif
@@ -119,11 +119,11 @@ namespace libmaus
 			/**
 			 * @return temporary file output stream
 			 **/
-			::libmaus::aio::CheckedOutputStream & getTempFile()
+			::libmaus2::aio::CheckedOutputStream & getTempFile()
 			{
 				if ( ! tempfileout.get() )
 				{
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus::aio::CheckedOutputStream(tempfilename));
+					::libmaus2::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus2::aio::CheckedOutputStream(tempfilename));
 					tempfileout = UNIQUE_PTR_MOVE(rtmpfile);
 				}
 				return *tempfileout;
@@ -152,12 +152,12 @@ namespace libmaus
 			/**
 			 * @return compressed temporary file output stream
 			 **/
-			::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > & getCompressedTempFile()
+			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > & getCompressedTempFile()
 			{
 				if ( ! pSOS )
 				{
-					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream >::unique_ptr_type tSOS(
-						new ::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream >(getTempFile())
+					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream >::unique_ptr_type tSOS(
+						new ::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream >(getTempFile())
 					);
 					pSOS = UNIQUE_PTR_MOVE(tSOS);
 				}
@@ -189,12 +189,12 @@ namespace libmaus
 			 * @param ioff offset in buffer
 			 * @param RE reference to object to be filled
 			 **/
-			void decodeEntry(uint64_t const ioff, ::libmaus::bambam::ReadEnds & RE) const
+			void decodeEntry(uint64_t const ioff, ::libmaus2::bambam::ReadEnds & RE) const
 			{
 				uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
 				/* uint32_t const len = */ decodeLength(eptr);
 						
-				::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
+				::libmaus2::util::CountGetObject<uint8_t const *> G(eptr);
 				RE.reset();
 				RE.get(G);	
 			}
@@ -205,12 +205,12 @@ namespace libmaus
 			 * @param ioff offset in buffer
 			 * @param compact read ends object at offset ioff in buffer
 			 **/
-			::libmaus::autoarray::AutoArray<uint8_t> decodeEntryArray(uint64_t const ioff) const
+			::libmaus2::autoarray::AutoArray<uint8_t> decodeEntryArray(uint64_t const ioff) const
 			{
 				uint8_t const * eptr = reinterpret_cast<uint8_t const *>(A.begin()) + ioff;
 				uint32_t const len = decodeLength(eptr);
 				
-				::libmaus::autoarray::AutoArray<uint8_t> A(len,false);
+				::libmaus2::autoarray::AutoArray<uint8_t> A(len,false);
 				std::copy(eptr,eptr+len,A.begin());
 						
 				return A;
@@ -222,9 +222,9 @@ namespace libmaus
 			 * @param ioff offset in buffer
 			 * @return decoded ReadEnds object
 			 **/
-			::libmaus::bambam::ReadEnds decodeEntry(uint64_t const ioff) const
+			::libmaus2::bambam::ReadEnds decodeEntry(uint64_t const ioff) const
 			{
-				::libmaus::bambam::ReadEnds RE;
+				::libmaus2::bambam::ReadEnds RE;
 				decodeEntry(ioff,RE);
 				return RE;
 			}
@@ -380,12 +380,12 @@ namespace libmaus
 			 *
 			 * @return decoder for reading back sorted stored objects
 			 **/
-			::libmaus::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
+			::libmaus2::bambam::SortedFragDecoder::unique_ptr_type getDecoder()
 			{
 				prepareDecoding();
 				
-				::libmaus::bambam::SortedFragDecoder::unique_ptr_type ptr(
-					::libmaus::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
+				::libmaus2::bambam::SortedFragDecoder::unique_ptr_type ptr(
+					::libmaus2::bambam::SortedFragDecoder::construct(tempfilename,tmpoffsetintervals,tmpoutcnts)
 				);
 				return UNIQUE_PTR_MOVE(ptr);
 			}
@@ -395,12 +395,12 @@ namespace libmaus
 			 *
 			 * @return decoder for unmerged stream
 			 **/
-			::libmaus::bambam::ReadEndsStreamDecoder::unique_ptr_type getUnmergedDecoder()
+			::libmaus2::bambam::ReadEndsStreamDecoder::unique_ptr_type getUnmergedDecoder()
 			{
 				prepareDecoding();
 				
-				::libmaus::bambam::ReadEndsStreamDecoder::unique_ptr_type tptr(
-					new ::libmaus::bambam::ReadEndsStreamDecoder(tempfilename)
+				::libmaus2::bambam::ReadEndsStreamDecoder::unique_ptr_type tptr(
+					new ::libmaus2::bambam::ReadEndsStreamDecoder(tempfilename)
 				);
 				
 				return UNIQUE_PTR_MOVE(tptr);
@@ -416,8 +416,8 @@ namespace libmaus
 					// std::cerr << "[V] minlen=" << minlen << std::endl;
 				
 					// sort entries in buffer
-					::libmaus::bambam::CompactReadEndsComparator const comp(reinterpret_cast<uint8_t const *>(A.begin()));
-					::libmaus::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
+					::libmaus2::bambam::CompactReadEndsComparator const comp(reinterpret_cast<uint8_t const *>(A.begin()));
+					::libmaus2::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
 					
 					#if defined(READENDSRADIXSORT) && defined(LIBMAUS_HAVE_x86_64)
 					unsigned int const maxradruns = 1;
@@ -434,11 +434,11 @@ namespace libmaus
 							uint64_t const offset = (radruns-r)<<3;
 							RadixProjectorTypeOffset RP(reinterpret_cast<uint8_t const *>(A.begin()),offset);
 							std::cerr << "offset " << offset << std::endl;
-							libmaus::sorting::SerialRadixSort64<index_type,RadixProjectorTypeOffset>::radixSort(iptr,iptr-radixn,radixn,RP);
+							libmaus2::sorting::SerialRadixSort64<index_type,RadixProjectorTypeOffset>::radixSort(iptr,iptr-radixn,radixn,RP);
 						}
 					
 						RadixProjectorType RP(reinterpret_cast<uint8_t const *>(A.begin()));
-						libmaus::sorting::SerialRadixSort64<index_type,RadixProjectorType>::radixSort(
+						libmaus2::sorting::SerialRadixSort64<index_type,RadixProjectorType>::radixSort(
 							iptr,iptr-radixn,radixn,RP
 						);
 						
@@ -464,14 +464,14 @@ namespace libmaus
 					{
 						std::sort(iptr,A.end(),comp);
 					}
-					::libmaus::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
+					::libmaus2::bambam::CompactReadEndsComparator::prepare(reinterpret_cast<uint8_t *>(A.begin()),A.end()-iptr);
 					
 					#if 0
 					// std::cerr << "Checking sorting...";
 					for ( index_type * xptr = iptr; xptr+1 < A.end(); ++xptr )
 					{
-						::libmaus::bambam::ReadEnds const REa = decodeEntry(xptr[0]);
-						::libmaus::bambam::ReadEnds const REb = decodeEntry(xptr[1]);
+						::libmaus2::bambam::ReadEnds const REa = decodeEntry(xptr[0]);
+						::libmaus2::bambam::ReadEnds const REb = decodeEntry(xptr[1]);
 						bool const ok = REa < REb;
 
 						if ( ! ok )
@@ -480,8 +480,8 @@ namespace libmaus
 								REa << "\n" <<
 								REb << std::endl;
 
-							::libmaus::autoarray::AutoArray<uint8_t> A = decodeEntryArray(xptr[0]);
-							::libmaus::autoarray::AutoArray<uint8_t> B = decodeEntryArray(xptr[1]);
+							::libmaus2::autoarray::AutoArray<uint8_t> A = decodeEntryArray(xptr[0]);
+							::libmaus2::autoarray::AutoArray<uint8_t> B = decodeEntryArray(xptr[1]);
 							
 							for ( uint64_t i = 0; i < std::min(A.size(),B.size()); ++i )
 								std::cerr << std::hex << static_cast<int>(A[i]) << std::dec << ";";
@@ -499,7 +499,7 @@ namespace libmaus
 					if ( indexer )
 						indexblockstart.push_back(indexer->setup());
 						
-					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > & SOS = getCompressedTempFile();
+					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > & SOS = getCompressedTempFile();
 					uint64_t const prepos = SOS.getOffset().first;
 					assert ( SOS.getOffset().second == 0 );
 							
@@ -513,9 +513,9 @@ namespace libmaus
 							
 							// decode
 							/* uint32_t const len = */ decodeLength(eptr);
-							::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
+							::libmaus2::util::CountGetObject<uint8_t const *> G(eptr);
 							
-							::libmaus::bambam::ReadEnds RE;
+							::libmaus2::bambam::ReadEnds RE;
 							RE.get(G);
 							// put object
 							indexer->put(RE,SOS.getOffset());							
@@ -530,8 +530,8 @@ namespace libmaus
 						#else
 						/* uint32_t const len = */ decodeLength(eptr);
 						
-						::libmaus::util::CountGetObject<uint8_t const *> G(eptr);
-						::libmaus::bambam::ReadEnds RE;
+						::libmaus2::util::CountGetObject<uint8_t const *> G(eptr);
+						::libmaus2::bambam::ReadEnds RE;
 						RE.get(G);
 						RE.put(SOS);
 						
@@ -602,9 +602,9 @@ namespace libmaus
 			 * @param header BAM header
 			 **/
 			template<typename header_type>
-			void putFrag(::libmaus::bambam::BamAlignment const & p, header_type const & header, uint64_t const tagid = 0)
+			void putFrag(::libmaus2::bambam::BamAlignment const & p, header_type const & header, uint64_t const tagid = 0)
 			{
-				::libmaus::bambam::ReadEnds RE(p,header, /* RE, */ copyAlignments,tagid);
+				::libmaus2::bambam::ReadEnds RE(p,header, /* RE, */ copyAlignments,tagid);
 				// fillFrag(p,header,RE);
 				put(RE);
 			}
@@ -623,7 +623,7 @@ namespace libmaus
 				uint64_t const tagid = 0
 			)
 			{
-				::libmaus::bambam::ReadEnds RE(p,pblocksize,header, /* RE, */ copyAlignments,tagid);
+				::libmaus2::bambam::ReadEnds RE(p,pblocksize,header, /* RE, */ copyAlignments,tagid);
 				// fillFrag(p,header,RE);
 				put(RE);
 			}
@@ -637,13 +637,13 @@ namespace libmaus
 			 **/
 			template<typename header_type>
 			void putPair(
-				::libmaus::bambam::BamAlignment const & p, 
-				::libmaus::bambam::BamAlignment const & q, 
+				::libmaus2::bambam::BamAlignment const & p, 
+				::libmaus2::bambam::BamAlignment const & q, 
 				header_type const & header,
 				uint64_t tagid = 0
 			)
 			{
-				::libmaus::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments,tagid);
+				::libmaus2::bambam::ReadEnds RE(p,q,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
 				put(RE);				
 			}
@@ -665,7 +665,7 @@ namespace libmaus
 				uint64_t tagid = 0
 			)
 			{
-				::libmaus::bambam::ReadEnds RE(p,pblocksize,q,qblocksize,header, /* RE, */ copyAlignments,tagid);
+				::libmaus2::bambam::ReadEnds RE(p,pblocksize,q,qblocksize,header, /* RE, */ copyAlignments,tagid);
 				// fillFragPair(p,q,header,RE);
 				put(RE);				
 			}
@@ -675,7 +675,7 @@ namespace libmaus
 			 *
 			 * @param R object to be put in buffer
 			 **/
-			void put(::libmaus::bambam::ReadEnds const & R)
+			void put(::libmaus2::bambam::ReadEnds const & R)
 			{
 				// assert ( R.recode() == R );
 			
@@ -701,9 +701,9 @@ namespace libmaus
 				*(--iptr) = dptr - reinterpret_cast<uint8_t *>(A.begin());
 				
 				// put entry
-				::libmaus::util::PutObject<uint8_t *> P(dptr);
+				::libmaus2::util::PutObject<uint8_t *> P(dptr);
 				// put length
-				::libmaus::util::UTF8::encodeUTF8(entryspace,P);
+				::libmaus2::util::UTF8::encodeUTF8(entryspace,P);
 				assert ( (P.p - dptr) == static_cast<ptrdiff_t>(numlen) );
 				// put entry data
 				R.put(P);

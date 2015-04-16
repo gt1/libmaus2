@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMINFOALLOCATOR_HPP)
 #define LIBMAUS_BAMBAM_SAMINFOALLOCATOR_HPP
 
-#include <libmaus/bambam/SamInfo.hpp>
+#include <libmaus2/bambam/SamInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct SamInfoAllocator
 		{
-			libmaus::bambam::BamHeaderLowMem * header;
+			libmaus2::bambam::BamHeaderLowMem * header;
 			
-			SamInfoAllocator(libmaus::bambam::BamHeaderLowMem * rheader = 0)
+			SamInfoAllocator(libmaus2::bambam::BamHeaderLowMem * rheader = 0)
 			: header(rheader)
 			{
 			

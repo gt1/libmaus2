@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_FASTX_NAMEINFO_HPP)
 #define LIBMAUS_FASTX_NAMEINFO_HPP
 
-#include <libmaus/fastx/NameInfoBase.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
+#include <libmaus2/fastx/NameInfoBase.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 				
 			NameInfo() : name(0), namelength(0), ispair(false), isfirst(false), gl(0), gr(0), namescheme(NameInfoBase::fastq_name_scheme_generic) {}
 			NameInfo(uint8_t const * rname, size_t rnamelength,
-				libmaus::fastx::SpaceTable const & ST,
+				libmaus2::fastx::SpaceTable const & ST,
 				NameInfoBase::fastq_name_scheme_type const rnamescheme
 			)
 			: name(rname), namelength(rnamelength), ispair(false), isfirst(true), gl(0), gr(namelength), namescheme(rnamescheme)
@@ -115,7 +115,7 @@ namespace libmaus
 					
 						if ( l0c != 6 || l1c != 3 )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "malformed read name " << name << " (wrong number of colon separated fields) for name scheme " << namescheme << std::endl;
 							se.finish();
 							throw se;
@@ -144,7 +144,7 @@ namespace libmaus
 							
 							if ( (! fragidlen) || (fragid<1) || (fragid>2) || name[p] != ':' )
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "malformed read name " << name << " (malformed fragment id) for name scheme" << namescheme << std::endl;
 								se.finish();
 								throw se;	
@@ -157,7 +157,7 @@ namespace libmaus
 					}
 					case NameInfoBase::fastq_name_scheme_pairedfiles:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "pairedfiles name scheme is not supported in NameInfo" << std::endl;
 						se.finish();
 						throw se;	
@@ -182,7 +182,7 @@ namespace libmaus
 						break;
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "NameInfo::getName(): invalid name scheme" << std::endl;
 						se.finish();
 						throw se;			

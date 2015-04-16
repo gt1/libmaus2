@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(LIBMAUS_UTIL_FORKPROCESS_HPP)
 #define LIBMAUS_UTIL_FORKPROCESS_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <string>
 #include <vector>
 #include <csignal>
 #include <limits>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 			//! this type
 			typedef ForkProcess this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! process id
 			pid_t id;

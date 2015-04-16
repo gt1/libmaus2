@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -24,24 +24,24 @@
 #include <map>
 #include <vector>
 #include <sstream>
-#include <libmaus/util/stringFunctions.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/Demangle.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/Demangle.hpp>
 #include <climits>
 #include <cerrno>
 #include <stdexcept>
 #include <libgen.h>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/network/GetHostName.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/network/GetHostName.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
 #if defined(_WIN32)
 #include <direct.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -53,7 +53,7 @@ namespace libmaus
 			//! this type
 			typedef ArgInfo this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! complete command line
 			std::string commandline;
@@ -108,26 +108,26 @@ namespace libmaus
 			 **/
 			void serialise(std::ostream & out) const
 			{
-				libmaus::util::StringSerialisation::serialiseString(out,commandline);
-				libmaus::util::StringSerialisation::serialiseString(out,progname);
+				libmaus2::util::StringSerialisation::serialiseString(out,commandline);
+				libmaus2::util::StringSerialisation::serialiseString(out,progname);
 
-				libmaus::util::NumberSerialisation::serialiseNumber(out,argmap.size());
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,argmap.size());
 				for ( std::map < std::string, std::string >::const_iterator ita = argmap.begin();
 					ita != argmap.end(); ++ita )
 				{
-					libmaus::util::StringSerialisation::serialiseString(out,ita->first);
-					libmaus::util::StringSerialisation::serialiseString(out,ita->second);
+					libmaus2::util::StringSerialisation::serialiseString(out,ita->first);
+					libmaus2::util::StringSerialisation::serialiseString(out,ita->second);
 				}
 
-				libmaus::util::NumberSerialisation::serialiseNumber(out,argmultimap.size());
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,argmultimap.size());
 				for ( std::multimap < std::string, std::string >::const_iterator ita = argmultimap.begin();
 					ita != argmultimap.end(); ++ita )
 				{
-					libmaus::util::StringSerialisation::serialiseString(out,ita->first);
-					libmaus::util::StringSerialisation::serialiseString(out,ita->second);
+					libmaus2::util::StringSerialisation::serialiseString(out,ita->first);
+					libmaus2::util::StringSerialisation::serialiseString(out,ita->second);
 				}
 				
-				libmaus::util::StringSerialisation::serialiseStringVector(out,restargs);
+				libmaus2::util::StringSerialisation::serialiseStringVector(out,restargs);
 			}
 			
 			/**
@@ -137,25 +137,25 @@ namespace libmaus
 			 **/
 			void deserialise(std::istream & in)
 			{
-				commandline = libmaus::util::StringSerialisation::deserialiseString(in);
-				progname = libmaus::util::StringSerialisation::deserialiseString(in);
+				commandline = libmaus2::util::StringSerialisation::deserialiseString(in);
+				progname = libmaus2::util::StringSerialisation::deserialiseString(in);
 				
-				uint64_t const mapsize = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const mapsize = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				for ( uint64_t i = 0; i < mapsize; ++i )
 				{
-					std::string const key = libmaus::util::StringSerialisation::deserialiseString(in);
-					std::string const val = libmaus::util::StringSerialisation::deserialiseString(in);
+					std::string const key = libmaus2::util::StringSerialisation::deserialiseString(in);
+					std::string const val = libmaus2::util::StringSerialisation::deserialiseString(in);
 					argmap[key] = val;
 				}
-				uint64_t const multimapsize = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const multimapsize = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				for ( uint64_t i = 0; i < multimapsize; ++i )
 				{
-					std::string const key = libmaus::util::StringSerialisation::deserialiseString(in);
-					std::string const val = libmaus::util::StringSerialisation::deserialiseString(in);
+					std::string const key = libmaus2::util::StringSerialisation::deserialiseString(in);
+					std::string const val = libmaus2::util::StringSerialisation::deserialiseString(in);
 					argmap.insert(std::pair<std::string,std::string>(key,val));
 				}
 
-				restargs = libmaus::util::StringSerialisation::deserialiseStringVector(in);
+				restargs = libmaus2::util::StringSerialisation::deserialiseStringVector(in);
 			}
 			
 			/**
@@ -291,10 +291,10 @@ namespace libmaus
 				
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unable to parse argument " <<
 						arg << " as type " <<
-						::libmaus::util::Demangle::demangle(v) << std::endl;
+						::libmaus2::util::Demangle::demangle(v) << std::endl;
 					se.finish();
 					throw se;
 				}
@@ -366,7 +366,7 @@ namespace libmaus
 					
 					if ( ! l )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Value " << sval << " for key " << key << " is not a representation of an unsigned numerical value." << std::endl;
 						se.finish();
 						throw se;
@@ -376,7 +376,7 @@ namespace libmaus
 						return parseArg<type>(sval);
 					if ( sval.size() - l > 1 )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Value " << sval << " for key " << key << " has unknown suffix " << sval.substr(sval.size()-l) << std::endl;
 						se.finish();
 						throw se;					
@@ -400,7 +400,7 @@ namespace libmaus
 						case 'E': mult = 1000ull*1000ull*1000ull*1000ull*1000ull*1000ull; break;
 						default:
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "Value " << sval << " for key " << key << " has unknown suffix " << sval.substr(sval.size()-l) << std::endl;
 							se.finish();
 							throw se;							
@@ -434,7 +434,7 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Argument index out of range in getRestArg()";
 					se.finish();
 					throw se;
@@ -455,7 +455,7 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Argument index out of range in getUnparsedRestArg()";
 					se.finish();
 					throw se;

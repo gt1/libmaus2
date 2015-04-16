@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(LIBMAUS_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP)
 #define LIBMAUS_WAVELET_IMPCOMPACTHUFFMANHUFFMANWAVELETTREE_HPP
 
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/rank/RunLengthBitVector.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/huffman/HuffmanTree.hpp>
-#include <libmaus/math/numbits.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/rank/RunLengthBitVector.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/huffman/HuffmanTree.hpp>
+#include <libmaus2/math/numbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -35,26 +35,26 @@ namespace libmaus
 		{
 			typedef _rank_type rank_type;
 			typedef ImpCompactHuffmanWaveletTreeTemplate<rank_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef typename rank_type::unique_ptr_type rank_ptr_type;
-			typedef ::libmaus::autoarray::AutoArray<rank_ptr_type> rank_array_type;
+			typedef ::libmaus2::autoarray::AutoArray<rank_ptr_type> rank_array_type;
 			
 			uint64_t const n;
-			libmaus::huffman::HuffmanTree::unique_ptr_type H;
-			libmaus::huffman::HuffmanTree::EncodeTable::unique_ptr_type E;
+			libmaus2::huffman::HuffmanTree::unique_ptr_type H;
+			libmaus2::huffman::HuffmanTree::EncodeTable::unique_ptr_type E;
 			rank_array_type dicts;
 			uint64_t maxdepth;
 			std::vector<uint64_t> nodepos;
 			
 			ImpCompactHuffmanWaveletTreeTemplate(
 				uint64_t const rn,
-				libmaus::huffman::HuffmanTree const & rH,
+				libmaus2::huffman::HuffmanTree const & rH,
 				rank_array_type & rdicts
 			) 
 				: n(rn),
 				  H(rH.uclone()),
-				  E(new libmaus::huffman::HuffmanTree::EncodeTable(*H)),
+				  E(new libmaus2::huffman::HuffmanTree::EncodeTable(*H)),
 				  dicts(rdicts),
 				  maxdepth(H->maxDepth()),
 				  nodepos(dicts.size())
@@ -70,7 +70,7 @@ namespace libmaus
 				}
 			}
 
-			libmaus::autoarray::AutoArray<int64_t> symbolArray() const
+			libmaus2::autoarray::AutoArray<int64_t> symbolArray() const
 			{
 				return H->symbolArray();
 			}
@@ -98,9 +98,9 @@ namespace libmaus
 				return E->hasSymbol(sym);
 			}
 			
-			::libmaus::autoarray::AutoArray<int64_t> getSymbolArray() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbolArray() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> A(H->leafs());
+				::libmaus2::autoarray::AutoArray<int64_t> A(H->leafs());
 				for ( uint64_t i = 0; i < H->leafs(); ++i )
 					A[i] = H->getSymbol(i);
 				return A;
@@ -108,7 +108,7 @@ namespace libmaus
 			
 			uint64_t getB() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> syms = getSymbolArray();
+				::libmaus2::autoarray::AutoArray<int64_t> syms = getSymbolArray();
 				std::sort(syms.begin(),syms.end());
 				if ( ! syms.size() )
 				{
@@ -116,29 +116,29 @@ namespace libmaus
 				}
 				else if ( syms[0] < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpCompactHuffmanWaveletTreeTemplate::getB() called on tree containing negative symbols in alphabet." << std::endl;
 					se.finish();
 					throw se;
 				}
 				else
 				{
-					return ::libmaus::math::numbits(static_cast<uint64_t>(syms[syms.size()-1]));
+					return ::libmaus2::math::numbits(static_cast<uint64_t>(syms[syms.size()-1]));
 				}
 			}
 			
 			uint64_t serialise(std::ostream & out) const
 			{
 				uint64_t p = 0;
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,n);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 				// p += sroot->serialize(out);
 				p += H->serialise(out);
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,dicts.size());
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,dicts.size());
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 					p += dicts[i]->serialise(out);
 				uint64_t const indexpos = p;
-				p += ::libmaus::util::NumberSerialisation::serialiseNumberVector(out,nodepos);
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,indexpos);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,nodepos);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,indexpos);
 				out.flush();
 
 				return p;
@@ -151,13 +151,13 @@ namespace libmaus
 			
 			static std::vector<uint64_t> loadIndex(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
+				::libmaus2::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
 				assert ( istr.is_open() );
 				istr.seekg(-8,std::ios::end);
-				uint64_t const indexpos = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+				uint64_t const indexpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				istr.clear();
 				istr.seekg(indexpos,std::ios::beg);
-				return ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(istr);
+				return ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(istr);
 			}
 			
 			void init()
@@ -171,12 +171,12 @@ namespace libmaus
 			ImpCompactHuffmanWaveletTreeTemplate(stream_type & in)
 			:
 				// number of symbols
-				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				// huffman tree
-				H(new libmaus::huffman::HuffmanTree(in)),
-				E(new libmaus::huffman::HuffmanTree::EncodeTable(*H)),
+				H(new libmaus2::huffman::HuffmanTree(in)),
+				E(new libmaus2::huffman::HuffmanTree::EncodeTable(*H)),
 				// number of contexts = number of bit vectors
-				dicts( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				dicts( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				//
 				maxdepth(0)
 			{
@@ -189,8 +189,8 @@ namespace libmaus
 					// dicts [ i ] -> checkSanity();
 				}
 					
-				nodepos = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in); // index position
+				nodepos = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in); // index position
 				
 				init();
 			}
@@ -199,12 +199,12 @@ namespace libmaus
 			ImpCompactHuffmanWaveletTreeTemplate(stream_type & in, uint64_t & s)
 			:
 				// number of symbols
-				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				// root of huffman tree
-				H(new libmaus::huffman::HuffmanTree(in,s)),
-				E(new libmaus::huffman::HuffmanTree::EncodeTable(*H)),
+				H(new libmaus2::huffman::HuffmanTree(in,s)),
+				E(new libmaus2::huffman::HuffmanTree::EncodeTable(*H)),
 				// number of contexts = number of bit vectors
-				dicts( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				dicts( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				//
 				maxdepth(0)
 			{
@@ -216,8 +216,8 @@ namespace libmaus
 					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
 				}
 					
-				nodepos = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in); // index position
+				nodepos = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in); // index position
 				
 				s += (1+nodepos.size()+1)*sizeof(uint64_t);
 				
@@ -228,11 +228,11 @@ namespace libmaus
 			ImpCompactHuffmanWaveletTreeTemplate(
 				std::string const & filename,
 				uint64_t const rn,
-				libmaus::huffman::HuffmanTree const & rH,
+				libmaus2::huffman::HuffmanTree const & rH,
 				uint64_t const numnodes,
 				std::vector<uint64_t> const & rnodepos
 			)
-			: n(rn), H(new libmaus::huffman::HuffmanTree(rH)), E(new libmaus::huffman::HuffmanTree::EncodeTable(*H)), dicts(numnodes), 
+			: n(rn), H(new libmaus2::huffman::HuffmanTree(rH)), E(new libmaus2::huffman::HuffmanTree::EncodeTable(*H)), dicts(numnodes), 
 			  maxdepth(0), nodepos(rnodepos)
 			{
 				#if defined(_OPENMP)
@@ -240,7 +240,7 @@ namespace libmaus
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(dicts.size()); ++i )
 				{
-					::libmaus::aio::CheckedInputStream istr(filename);
+					::libmaus2::aio::CheckedInputStream istr(filename);
 					istr.seekg(nodepos[i],std::ios::beg);
 					rank_ptr_type tdictsi(new rank_type(istr));
 					dicts[i] = UNIQUE_PTR_MOVE(tdictsi);
@@ -252,19 +252,19 @@ namespace libmaus
 			public:
 			static unique_ptr_type load(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream in(filename.c_str());
+				::libmaus2::aio::CheckedInputStream in(filename.c_str());
 				
 				if ( ! in.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpCompactHuffmanWaveletTreeTemplate::load(): failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}
 				
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				::libmaus::huffman::HuffmanTree H(in);
-				uint64_t const numnodes = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				::libmaus2::huffman::HuffmanTree H(in);
+				uint64_t const numnodes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				in.close();
 				
 				std::vector<uint64_t> const nodepos = loadIndex(filename);
@@ -536,7 +536,7 @@ namespace libmaus
 					uint32_t const rnode
 				) : l(rl), r(rr), v(rv), node(rnode) {}
 				
-				EnumerateRangeSymbolsStackElement left(libmaus::huffman::HuffmanTree const & H, rank_array_type const & dicts) const
+				EnumerateRangeSymbolsStackElement left(libmaus2::huffman::HuffmanTree const & H, rank_array_type const & dicts) const
 				{
 					assert ( ! H.isLeaf(node) );
 					
@@ -548,7 +548,7 @@ namespace libmaus
 							H.leftChild(node)
 						);
 				}
-				EnumerateRangeSymbolsStackElement right(libmaus::huffman::HuffmanTree const & H, rank_array_type const & dicts) const
+				EnumerateRangeSymbolsStackElement right(libmaus2::huffman::HuffmanTree const & H, rank_array_type const & dicts) const
 				{
 					assert ( ! H.isLeaf(node) );
 					
@@ -1168,8 +1168,8 @@ namespace libmaus
 			}
 		};
 		
-		typedef ImpCompactHuffmanWaveletTreeTemplate< ::libmaus::rank::ImpCacheLineRank > ImpCompactHuffmanWaveletTree;
-		typedef ImpCompactHuffmanWaveletTreeTemplate< ::libmaus::rank::RunLengthBitVector > ImpCompactRLHuffmanWaveletTree;
+		typedef ImpCompactHuffmanWaveletTreeTemplate< ::libmaus2::rank::ImpCacheLineRank > ImpCompactHuffmanWaveletTree;
+		typedef ImpCompactHuffmanWaveletTreeTemplate< ::libmaus2::rank::RunLengthBitVector > ImpCompactRLHuffmanWaveletTree;
 	}
 }
 #endif

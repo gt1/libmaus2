@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPMERGE_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPMERGE_HPP
 
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/gamma/SparseGammaGapConcatDecoder.hpp>
-#include <libmaus/gamma/SparseGammaGapBlockEncoder.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/parallel/PosixSemaphore.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapConcatDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapBlockEncoder.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
@@ -38,8 +38,8 @@ namespace libmaus
 			struct SparseGammaGapMergeInfo
 			{
 				typedef SparseGammaGapMergeInfo this_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 				private:
 				uint64_t tparts;
@@ -57,21 +57,21 @@ namespace libmaus
 
 				bool initialised;
 
-				libmaus::parallel::OMPLock::shared_ptr_type lock;
-				libmaus::parallel::OMPLock::shared_ptr_type initlock;
+				libmaus2::parallel::OMPLock::shared_ptr_type lock;
+				libmaus2::parallel::OMPLock::shared_ptr_type initlock;
 				
-				libmaus::parallel::OMPLock * semlock;
-				std::vector < libmaus::parallel::PosixSemaphore * > * mergepacksem;
+				libmaus2::parallel::OMPLock * semlock;
+				std::vector < libmaus2::parallel::PosixSemaphore * > * mergepacksem;
 				
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type indexa;
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type indexb;
+				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type indexa;
+				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type indexb;
 
 				public:
 				SparseGammaGapMergeInfo() 
 				: tparts(0), fnpref(), registertempfiles(false), next(0), 
 				  finished(0), level(0), initialised(false), 
-				  lock(new libmaus::parallel::OMPLock),
-				  initlock(new libmaus::parallel::OMPLock),
+				  lock(new libmaus2::parallel::OMPLock),
+				  initlock(new libmaus2::parallel::OMPLock),
 				  semlock(0),
 				  mergepacksem(0)
 				{}
@@ -83,8 +83,8 @@ namespace libmaus
 					std::vector<uint64_t> rsp	
 				) : tparts(rfno.size()), fnpref(), registertempfiles(false), 
 				    fna(rfna), fnb(rfnb), fno(rfno), sp(rsp), next(0), finished(0), level(0), initialised(true),
-				    lock(new libmaus::parallel::OMPLock),
-				    initlock(new libmaus::parallel::OMPLock),
+				    lock(new libmaus2::parallel::OMPLock),
+				    initlock(new libmaus2::parallel::OMPLock),
 				    semlock(0),
 				    mergepacksem(0)
 				{}
@@ -101,8 +101,8 @@ namespace libmaus
 				)
 				: tparts(rtparts), fnpref(rfnpref), registertempfiles(rregisterTempFiles), 
 				  fna(rfna), fnb(rfnb), fno(), sp(), next(0), finished(0), level(0), initialised(false),
-				  lock(new libmaus::parallel::OMPLock),
-				  initlock(new libmaus::parallel::OMPLock),
+				  lock(new libmaus2::parallel::OMPLock),
+				  initlock(new libmaus2::parallel::OMPLock),
 				  semlock(0),
 				  mergepacksem(0)
 				{
@@ -110,8 +110,8 @@ namespace libmaus
 				}
 				
 				void setSemaphoreInfo(
-					libmaus::parallel::OMPLock * rsemlock,
-					std::vector < libmaus::parallel::PosixSemaphore * > * rmergepacksem
+					libmaus2::parallel::OMPLock * rsemlock,
+					std::vector < libmaus2::parallel::PosixSemaphore * > * rmergepacksem
 				)
 				{
 					semlock = rsemlock;
@@ -120,19 +120,19 @@ namespace libmaus
 				
 				void initialise()
 				{
-					libmaus::parallel::ScopeLock slock(*initlock);
+					libmaus2::parallel::ScopeLock slock(*initlock);
 
 					if ( ! indexa )
 					{
-						libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type tindexa(
-							new libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fna)
+						libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type tindexa(
+							new libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder(fna)
 						);
 						indexa = tindexa;
 					}
 					if ( ! indexb )
 					{
-						libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type tindexb(
-							new libmaus::gamma::SparseGammaGapFileIndexMultiDecoder(fnb)
+						libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::shared_ptr_type tindexb(
+							new libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder(fnb)
 						);
 						indexb = tindexb;
 					}
@@ -140,7 +140,7 @@ namespace libmaus
 					{
 					
 						uint64_t maxv = 0;
-						sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(*indexa,*indexb,tparts,maxv);
+						sp = libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(*indexa,*indexb,tparts,maxv);
 						uint64_t const parts = sp.size();
 						sp.push_back(maxv+1);
 						
@@ -151,13 +151,13 @@ namespace libmaus
 							fnostr << fnpref << "_" << std::setw(6) << std::setfill('0') << p << std::setw(0);
 							outputfilenames[p] = fnostr.str();				
 							if ( registertempfiles )
-								libmaus::util::TempFileRemovalContainer::addTempFile(outputfilenames[p]);
+								libmaus2::util::TempFileRemovalContainer::addTempFile(outputfilenames[p]);
 						}
 						fno = outputfilenames;
 						
 						if ( semlock && mergepacksem )
 						{
-							libmaus::parallel::ScopeLock slock(*semlock);
+							libmaus2::parallel::ScopeLock slock(*semlock);
 							for ( uint64_t i = 0; i < fno.size(); ++i )
 								for ( uint64_t j = 0; j < mergepacksem->size(); ++j )
 									(*mergepacksem)[j]->post();
@@ -174,9 +174,9 @@ namespace libmaus
 					
 					std::string const & fn = fno.at(p);
 					std::string const indexfn = fn + ".idx";
-					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-					libmaus::aio::CheckedOutputStream COS(fn);
-					libmaus::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
+					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
+					libmaus2::aio::CheckedOutputStream COS(fn);
+					libmaus2::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
 					merge(
 						/* fna,fnb, */
 						*indexa,*indexb,
@@ -192,7 +192,7 @@ namespace libmaus
 					uint64_t id = fno.size();
 					
 					{
-						libmaus::parallel::ScopeLock slock(*lock);
+						libmaus2::parallel::ScopeLock slock(*lock);
 						if ( next == fno.size() )
 							id = fno.size();
 						else
@@ -212,7 +212,7 @@ namespace libmaus
 					id = fno.size();
 
 					{
-						libmaus::parallel::ScopeLock slock(*lock);
+						libmaus2::parallel::ScopeLock slock(*lock);
 						if ( next == fno.size() )
 							id = fno.size();
 						else
@@ -232,7 +232,7 @@ namespace libmaus
 				
 				bool incrementFinished()
 				{
-					libmaus::parallel::ScopeLock slock(*lock);
+					libmaus2::parallel::ScopeLock slock(*lock);
 					bool const done = ((++finished) >= fno.size());
 					return done;
 				}
@@ -244,13 +244,13 @@ namespace libmaus
 				
 				bool isHandoutFinished()
 				{
-					libmaus::parallel::ScopeLock slock(*lock);
+					libmaus2::parallel::ScopeLock slock(*lock);
 					return initialised && (next == fno.size());	
 				}
 				
 				bool isFinished()
 				{
-					libmaus::parallel::ScopeLock slock(*lock);
+					libmaus2::parallel::ScopeLock slock(*lock);
 					return initialised && (finished == fno.size());	
 				}
 				
@@ -296,7 +296,7 @@ namespace libmaus
 			)
 			{
 				uint64_t maxv = 0;
-				std::vector<uint64_t> sp = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(fna,fnb,tparts,maxv);
+				std::vector<uint64_t> sp = libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(fna,fnb,tparts,maxv);
 				uint64_t const parts = sp.size();
 				sp.push_back(maxv+1);
 				
@@ -307,7 +307,7 @@ namespace libmaus
 					fnostr << fnpref << "_" << std::setw(6) << std::setfill('0') << p << std::setw(0);
 					outputfilenames[p] = fnostr.str();				
 					if ( registerTempFiles )
-						libmaus::util::TempFileRemovalContainer::addTempFile(outputfilenames[p]);
+						libmaus2::util::TempFileRemovalContainer::addTempFile(outputfilenames[p]);
 				}
 				
 				SparseGammaGapMergeInfo SGGMI(fna,fnb,outputfilenames,sp);
@@ -335,13 +335,13 @@ namespace libmaus
 			)
 			{
 				std::string const indexfilename = outputfilename + ".idx";
-				libmaus::util::TempFileRemovalContainer::addTempFile(indexfilename);
+				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfilename);
 				
-				libmaus::aio::CheckedOutputStream COS(outputfilename);
-				libmaus::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
+				libmaus2::aio::CheckedOutputStream COS(outputfilename);
+				libmaus2::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
 				
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder indexa(fna);
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder indexb(fnb);
+				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder indexa(fna);
+				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder indexb(fnb);
 				
 				merge(indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
 				
@@ -349,8 +349,8 @@ namespace libmaus
 			}
 		
 			static void merge(
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & indexa,
-				libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & indexb,
+				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & indexa,
+				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & indexb,
 				uint64_t const klow,  // inclusive
 				uint64_t const khigh, // exclusive
 				std::ostream & stream_out,
@@ -363,20 +363,20 @@ namespace libmaus
 				bool const bproc = indexb.hasKeyInRange(klow,khigh);
 
 				// first key in stream a (or 0 if none)
-				uint64_t const firstkey_a = aproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(indexa,klow) : std::numeric_limits<uint64_t>::max();
+				uint64_t const firstkey_a = aproc ? libmaus2::gamma::SparseGammaGapConcatDecoder::getNextKey(indexa,klow) : std::numeric_limits<uint64_t>::max();
 				// first key in stream b (or 0 if none)
-				uint64_t const firstkey_b = bproc ? libmaus::gamma::SparseGammaGapConcatDecoder::getNextKey(indexb,klow) : std::numeric_limits<uint64_t>::max();
+				uint64_t const firstkey_b = bproc ? libmaus2::gamma::SparseGammaGapConcatDecoder::getNextKey(indexb,klow) : std::numeric_limits<uint64_t>::max();
 				
 				// previous non zero key (or -1 if none)
-				int64_t const prevkey_a = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexa,klow);
-				int64_t const prevkey_b = libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexb,klow);
+				int64_t const prevkey_a = libmaus2::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexa,klow);
+				int64_t const prevkey_b = libmaus2::gamma::SparseGammaGapConcatDecoder::getPrevKey(indexb,klow);
 				int64_t const prevkey_ab = std::max(prevkey_a,prevkey_b);
 				
 				// set up encoder
-				libmaus::gamma::SparseGammaGapBlockEncoder oenc(stream_out,index_str,prevkey_ab);
+				libmaus2::gamma::SparseGammaGapBlockEncoder oenc(stream_out,index_str,prevkey_ab);
 				// set up decoders
-				libmaus::gamma::SparseGammaGapConcatDecoder adec(indexa,firstkey_a);
-				libmaus::gamma::SparseGammaGapConcatDecoder bdec(indexb,firstkey_b);
+				libmaus2::gamma::SparseGammaGapConcatDecoder adec(indexa,firstkey_a);
+				libmaus2::gamma::SparseGammaGapConcatDecoder bdec(indexb,firstkey_b);
 
 				// current key,value pairs for stream a and b
 				std::pair<uint64_t,uint64_t> aval(firstkey_a,adec.p.second);
@@ -432,13 +432,13 @@ namespace libmaus
 				std::ostream & stream_out
 			)
 			{
-				libmaus::aio::SynchronousGenericInput<uint64_t> SGIa(stream_in_a,64*1024);
-				libmaus::aio::SynchronousGenericInput<uint64_t> SGIb(stream_in_b,64*1024);
-				libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(stream_out,64*1024);
+				libmaus2::aio::SynchronousGenericInput<uint64_t> SGIa(stream_in_a,64*1024);
+				libmaus2::aio::SynchronousGenericInput<uint64_t> SGIb(stream_in_b,64*1024);
+				libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(stream_out,64*1024);
 				
-				libmaus::gamma::GammaDecoder< libmaus::aio::SynchronousGenericInput<uint64_t> > adec(SGIa);
-				libmaus::gamma::GammaDecoder< libmaus::aio::SynchronousGenericInput<uint64_t> > bdec(SGIb);
-				libmaus::gamma::GammaEncoder< libmaus::aio::SynchronousGenericOutput<uint64_t> > oenc(SGO);
+				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > adec(SGIa);
+				libmaus2::gamma::GammaDecoder< libmaus2::aio::SynchronousGenericInput<uint64_t> > bdec(SGIb);
+				libmaus2::gamma::GammaEncoder< libmaus2::aio::SynchronousGenericOutput<uint64_t> > oenc(SGO);
 				
 				std::pair<uint64_t,uint64_t> aval;
 				std::pair<uint64_t,uint64_t> bval;

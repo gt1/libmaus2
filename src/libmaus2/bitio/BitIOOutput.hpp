@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -24,9 +24,9 @@
 #include <vector>
 #include <cassert>
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio 
 	{
@@ -238,11 +238,11 @@ namespace libmaus
 				std::back_insert_iterator< std::vector<uint8_t> > backins(*this);
 				std::copy(a,b,backins);
 			}
-			::libmaus::autoarray::AutoArray<uint8_t> toArray(unsigned int k=1)
+			::libmaus2::autoarray::AutoArray<uint8_t> toArray(unsigned int k=1)
 			{
 				flushK(k);
 				unsigned int const bytes = container<uint8_t, std::allocator<uint8_t> >::size();
-				::libmaus::autoarray::AutoArray<uint8_t> A( bytes ,false);
+				::libmaus2::autoarray::AutoArray<uint8_t> A( bytes ,false);
 				for ( unsigned int i = 0; i < bytes; ++i ) A[i] = (*this)[i];
 				return A;
 			}

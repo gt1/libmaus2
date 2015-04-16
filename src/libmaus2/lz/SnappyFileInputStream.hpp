@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYFILEINPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SNAPPYFILEINPUTSTREAM_HPP
 
-#include <libmaus/lz/SnappyInputStream.hpp>
+#include <libmaus2/lz/SnappyInputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyFileInputStream
 		{
-			libmaus::aio::CheckedInputStream istr;
+			libmaus2::aio::CheckedInputStream istr;
 			SnappyInputStream instream;
 			
 			SnappyFileInputStream(std::string const & filename)

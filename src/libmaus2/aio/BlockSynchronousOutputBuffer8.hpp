@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,17 +21,17 @@
 #if ! defined(LIBMAUS_AIO_BLOCKSYNCHRONOUSOUTPUTBUFFER8_HPP)
 #define LIBMAUS_AIO_BLOCKSYNCHRONOUSOUTPUTBUFFER8_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/SynchronousOutputBuffer8.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/SynchronousOutputBuffer8.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 #include <fstream>
 #include <vector>
 #include <map>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -46,10 +46,10 @@ namespace libmaus
 			//! this type
 			typedef BlockBufferTemplate<data_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:	
-			::libmaus::autoarray::AutoArray<data_type> B;
+			::libmaus2::autoarray::AutoArray<data_type> B;
 			data_type * const pa;
 			data_type * pc;
 			data_type * const pe;
@@ -143,7 +143,7 @@ namespace libmaus
 			//! output stream type
 			typedef std::ofstream ostr_type;
 			//! output stream pointer type
-			typedef ::libmaus::util::unique_ptr<ostr_type>::type ostr_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<ostr_type>::type ostr_ptr_type;
 
 			private:
 			std::string const filename;
@@ -152,8 +152,8 @@ namespace libmaus
 			uint64_t const h;
 			uint64_t const s;
 
-			::libmaus::autoarray::AutoArray < BlockBuffer::unique_ptr_type > B;			
-			::libmaus::aio::SynchronousOutputBuffer8::unique_ptr_type idx;
+			::libmaus2::autoarray::AutoArray < BlockBuffer::unique_ptr_type > B;			
+			::libmaus2::aio::SynchronousOutputBuffer8::unique_ptr_type idx;
 
 			/**
 			 * write out buffer for value hash
@@ -186,7 +186,7 @@ namespace libmaus
 				uint64_t const rs /* size of single buffer */
 			)
 			: filename(rfilename), ostr( new ostr_type ( filename.c_str(),std::ios::binary ) ), 
-			  idxfilename(filename+".idx"), h(rh), s(rs), B(h), idx(new ::libmaus::aio::SynchronousOutputBuffer8(idxfilename,1024))
+			  idxfilename(filename+".idx"), h(rh), s(rs), B(h), idx(new ::libmaus2::aio::SynchronousOutputBuffer8(idxfilename,1024))
 			{
 				for ( uint64_t i = 0; i < h; ++i )
 				{
@@ -234,8 +234,8 @@ namespace libmaus
 			 **/
 			std::map<uint64_t,std::vector<uint64_t> > extract()
 			{
-			        ::libmaus::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
-			        ::libmaus::aio::SynchronousGenericInput<uint64_t> filein ( filename, 1024 );
+			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
+			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> filein ( filename, 1024 );
 
                                 bool ok = true;
                                 uint64_t hv;
@@ -281,13 +281,13 @@ namespace libmaus
                                 }
 
                                 #if 0
-			        uint64_t const fsize = ::libmaus::util::GetFileSize::getFileSize(filename);
+			        uint64_t const fsize = ::libmaus2::util::GetFileSize::getFileSize(filename);
 			        uint64_t lastval = 0;
 			        uint64_t const fracscale = 5000;
 			        #endif
 			        uint64_t proc = 0;
                                 std::ifstream istr(filename.c_str(), std::ios::binary);
-			        ::libmaus::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
+			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
 			        
 			        bool ok = true;
 			        
@@ -356,7 +356,7 @@ namespace libmaus
 			 **/
 			void presort(uint64_t const maxsortmem)
 			{
-			        ::libmaus::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
+			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
 			        
 			        assert ( maxsortmem >= (h+1)*sizeof(uint64_t) );
 			        
@@ -372,15 +372,15 @@ namespace libmaus
                                         ;
 
 				// sortblocks blocks in internal memory
-			        ::libmaus::autoarray::AutoArray < uint64_t > D( sortblocks * s, false );
+			        ::libmaus2::autoarray::AutoArray < uint64_t > D( sortblocks * s, false );
 			        // offsets into D for blocks
-                                ::libmaus::autoarray::AutoArray < uint64_t > H(h+1,false);
-			        ::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > BD( sortblocks, false );
+                                ::libmaus2::autoarray::AutoArray < uint64_t > H(h+1,false);
+			        ::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > BD( sortblocks, false );
 			        
 			        std::fstream file(filename.c_str(), std::ios::in | std::ios::out | std::ios::binary );
 			        
-        			::libmaus::aio::SynchronousOutputBuffer8::unique_ptr_type idxcomp(
-        			        new ::libmaus::aio::SynchronousOutputBuffer8(filename + ".idxcmp",1024));
+        			::libmaus2::aio::SynchronousOutputBuffer8::unique_ptr_type idxcomp(
+        			        new ::libmaus2::aio::SynchronousOutputBuffer8(filename + ".idxcmp",1024));
 			        
 			        bool ok = true;
 			        

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(ERANK222BAPPEND_HPP)
 #define ERANK222BAPPEND_HPP
 
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/rank/ERank222BBase.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/rank/ERank222BBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <cassert>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -46,7 +46,7 @@ namespace libmaus
 		{
 			public:
 			typedef ERank222BAppend this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			uint64_t * const UUUUUUUU;
@@ -60,8 +60,8 @@ namespace libmaus
 			uint64_t nc;
 			uint64_t nr;
 			
-			::libmaus::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
-			::libmaus::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
+			::libmaus2::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
+			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
 
 			/**
 			 * return superblock containing i th 1 bit,
@@ -172,7 +172,7 @@ namespace libmaus
 						
 			bool operator[](uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(UUUUUUUU,i);
+				return ::libmaus2::bitio::getBit(UUUUUUUU,i);
 			}
 			
 			/**

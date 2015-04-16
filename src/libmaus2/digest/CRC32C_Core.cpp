@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/CRC32C_Core.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/digest/CRC32C_Core.hpp>
+#include <libmaus2/types/types.hpp>
 
 static uint32_t const crc32c_table_0[256]={
 	0x00000000,0xf26b8303,0xe13b70f7,0x1350f3f4,0xc79a971f,0x35f1141c,0x26a1e7e8,0xd4ca64eb,
@@ -294,7 +294,7 @@ static uint32_t const crc32c_table_7[256]={
 
 #if defined(LIBMAUS_HAVE_x86_64)
 /**
- The function below is originally by Mark Adler and was modified for libmaus by
+ The function below is originally by Mark Adler and was modified for libmaus2 by
  German Tischler.
  
  Copyright (C) 2013 Mark Adler
@@ -320,7 +320,7 @@ static uint32_t const crc32c_table_7[256]={
  madler@alumni.caltech.edu
  **/
 
-uint32_t libmaus::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const * data, size_t len)
+uint32_t libmaus2::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const * data, size_t len)
 {
 	uint64_t crc = crci ^ 0xffffffff;
 	
@@ -357,7 +357,7 @@ uint32_t libmaus::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const 
 #else
 /**
  * The code for the function below for computing CRC32C checksums was imported from the Linux 
- * kernel. Some minor modifications were applied for libmaus by German Tischler.
+ * kernel. Some minor modifications were applied for libmaus2 by German Tischler.
  *
  * Copyright (c) 2004 Cisco Systems, Inc.
  * Copyright (c) 2008 Herbert Xu <herbert@gondor.apana.org.au>
@@ -369,7 +369,7 @@ uint32_t libmaus::digest::CRC32C_Core::crc32c_core(uint32_t crci, uint8_t const 
  * any later version.
  **/
 
-uint32_t libmaus::digest::CRC32C_Core::crc32c_core(uint32_t crc, uint8_t const * data, size_t length)
+uint32_t libmaus2::digest::CRC32C_Core::crc32c_core(uint32_t crc, uint8_t const * data, size_t length)
 {
 	crc = ~crc;
 	while (length--)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,27 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/bambam/BamMultiAlignmentDecoderFactory.hpp>
-#include <libmaus/bambam/SamInfo.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamMultiAlignmentDecoderFactory.hpp>
+#include <libmaus2/bambam/SamInfo.hpp>
 
 int main(int argc, char *argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
-		libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdecoder(libmaus::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo));
-		libmaus::bambam::BamAlignmentDecoder & decoder = Pdecoder->getDecoder();
-		libmaus::bambam::BamAlignment const & algn = decoder.getAlignment();
-		libmaus::bambam::BamHeader const & header = decoder.getHeader();
-		::libmaus::bambam::BamFormatAuxiliary aux;
-		libmaus::bambam::SamInfo saminfo(header);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdecoder(libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo));
+		libmaus2::bambam::BamAlignmentDecoder & decoder = Pdecoder->getDecoder();
+		libmaus2::bambam::BamAlignment const & algn = decoder.getAlignment();
+		libmaus2::bambam::BamHeader const & header = decoder.getHeader();
+		::libmaus2::bambam::BamFormatAuxiliary aux;
+		libmaus2::bambam::SamInfo saminfo(header);
 		std::ostringstream ostr;
 		std::ostringstream checkostr;
 		std::string const empty;
-		libmaus::bambam::BamAlignment & samalgn = saminfo.algn;
-		::libmaus::autoarray::AutoArray<char> A, B;
-		libmaus::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > auxA, auxB;
+		libmaus2::bambam::BamAlignment & samalgn = saminfo.algn;
+		::libmaus2::autoarray::AutoArray<char> A, B;
+		libmaus2::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > auxA, auxB;
 		uint64_t c = 0;		
 		
 		while ( decoder.readAlignment() )
@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 			std::string const s = ostr.str();
 			saminfo.parseSamLine(s.c_str(),s.c_str()+s.size()-1);
 			
-			ptrdiff_t const baseblocklength = libmaus::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin()) - algn.D.begin();
-			ptrdiff_t const sbaseblocklength = libmaus::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin()) - samalgn.D.begin();
+			ptrdiff_t const baseblocklength = libmaus2::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin()) - algn.D.begin();
+			ptrdiff_t const sbaseblocklength = libmaus2::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin()) - samalgn.D.begin();
 
 			assert ( algn.getLReadName() == samalgn.getLReadName() );
 			assert ( strcmp(algn.getName(),samalgn.getName()) == 0 );
@@ -85,8 +85,8 @@ int main(int argc, char *argv[])
 
 				char const tag[] = { static_cast<char>(auxA[i].first), static_cast<char>(auxA[i].second), 0 };
 				
-				uint8_t const * fieldA = libmaus::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin(),algn.blocksize,&tag[0]);
-				uint8_t const * fieldB = libmaus::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin(),samalgn.blocksize,&tag[0]);
+				uint8_t const * fieldA = libmaus2::bambam::BamAlignmentDecoderBase::getAux(algn.D.begin(),algn.blocksize,&tag[0]);
+				uint8_t const * fieldB = libmaus2::bambam::BamAlignmentDecoderBase::getAux(samalgn.D.begin(),samalgn.blocksize,&tag[0]);
 				
 				assert ( fieldA );
 				assert ( fieldB );
@@ -101,33 +101,33 @@ int main(int argc, char *argv[])
 					case 'i': 
 					case 'I': 
 						assert (
-							libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int64_t>(algn.D.begin(),algn.blocksize,&tag[0])
+							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int64_t>(algn.D.begin(),algn.blocksize,&tag[0])
 							==						
-							libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int64_t>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
+							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int64_t>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
 						);
 						break;
 					case 'f':
 						assert (
-							libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<double>(algn.D.begin(),algn.blocksize,&tag[0])
+							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<double>(algn.D.begin(),algn.blocksize,&tag[0])
 							==						
-							libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<double>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
+							libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<double>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
 						);
 						break;
 					case 'B':
 						if ( fieldA[3] == 'f' )
 						{
 							assert (
-								libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<double>(algn.D.begin(),algn.blocksize,&tag[0])
+								libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<double>(algn.D.begin(),algn.blocksize,&tag[0])
 								==
-								libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<double>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
+								libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<double>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
 							);
 						}
 						else
 						{						
 							assert (
-								libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<int64_t>(algn.D.begin(),algn.blocksize,&tag[0])
+								libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<int64_t>(algn.D.begin(),algn.blocksize,&tag[0])
 								==
-								libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<int64_t>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
+								libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumberArray<int64_t>(samalgn.D.begin(),samalgn.blocksize,&tag[0])
 							);
 						}
 						break;

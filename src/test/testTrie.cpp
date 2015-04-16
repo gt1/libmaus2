@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/trie/TrieState.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/trie/TrieState.hpp>
+#include <libmaus2/types/types.hpp>
 #include <string>
 #include <iostream>
 
@@ -40,7 +40,7 @@ struct PrintCallback
 
 int main()
 {
-	::libmaus::trie::Trie<char> trie;
+	::libmaus2::trie::Trie<char> trie;
 	std::vector < std::string > dict;
 	dict.push_back("aa");
 	dict.push_back("abaaa");
@@ -48,10 +48,10 @@ int main()
 	trie.insertContainer(dict);
 	trie.fillFailureFunction();
 	
-	::libmaus::trie::LinearTrie<char> linear = trie.toLinear();
+	::libmaus2::trie::LinearTrie<char> linear = trie.toLinear();
 	std::cout << linear;
 
-	::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHT(trie.toLinearHashTrie<uint32_t>());
+	::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHT(trie.toLinearHashTrie<uint32_t>());
 	std::cout << *LHT;
 
 	std::string const text = "ccaabab_abaaa";
@@ -59,10 +59,10 @@ int main()
 	PrintCallback PCB(dict);	
 	LHT->search(text,PCB);
 	
-	::libmaus::trie::Trie<char> trienofailure;
+	::libmaus2::trie::Trie<char> trienofailure;
 	// std::vector<std::string> dict2;
 	trienofailure.insertContainer(dict);
-	::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure(trienofailure.toLinearHashTrie<uint32_t>());
+	::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure(trienofailure.toLinearHashTrie<uint32_t>());
 	std::cout << LHTnofailure->searchCompleteNoFailure(dict[0]) << std::endl;
 	std::cout << LHTnofailure->searchCompleteNoFailure(dict[1]) << std::endl;
 	std::cout << LHTnofailure->searchCompleteNoFailure(dict[2]) << std::endl;

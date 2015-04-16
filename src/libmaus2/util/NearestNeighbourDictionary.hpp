@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2007-2012 Simon Gog  All Right Reserved.
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -20,10 +20,10 @@
 #if ! defined(NEARESTNEIGHBOURDICTIONARY_HPP)
 #define NEARESTNEIGHBOURDICTIONARY_HPP
 
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -33,13 +33,13 @@ namespace libmaus
 		struct NearestNeighbourDictionary
 		{
 			typedef NearestNeighbourDictionary this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			static uint64_t const nndblocksize = 32;
 			
-			::libmaus::bitio::CompactArray::unique_ptr_type m_abs_samples;
-			::libmaus::bitio::CompactArray::unique_ptr_type m_differences;
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type m_contains_abs_sample;
+			::libmaus2::bitio::CompactArray::unique_ptr_type m_abs_samples;
+			::libmaus2::bitio::CompactArray::unique_ptr_type m_differences;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type m_contains_abs_sample;
 			uint64_t m_ones;
 			uint64_t m_size;
 			
@@ -49,7 +49,7 @@ namespace libmaus
 			/*
 			 * constructor. the code in of the constructor is imported from Simon Gog's SDSL library
 			 */
-			NearestNeighbourDictionary(::libmaus::bitio::BitVector const & v);
+			NearestNeighbourDictionary(::libmaus2::bitio::BitVector const & v);
 
 			bool operator[](uint64_t const idx) const
 			{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(CHARBUFFER_HPP)
 #define CHARBUFFER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/fastx/acgtnMap.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
 #include <algorithm>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-		template<typename _value_type, ::libmaus::autoarray::alloc_type _atype>
+		template<typename _value_type, ::libmaus2::autoarray::alloc_type _atype>
                 struct EntityBuffer
                 {
                 	typedef _value_type value_type;
-                	static const ::libmaus::autoarray::alloc_type atype = _atype;
+                	static const ::libmaus2::autoarray::alloc_type atype = _atype;
                 	typedef EntityBuffer<value_type,_atype> this_type;
                 	
                 	private:
@@ -42,10 +42,10 @@ namespace libmaus
                 	public:
                         uint64_t buffersize;
                         uint64_t length;
-			::libmaus::autoarray::AutoArray<value_type,atype> abuffer;
+			::libmaus2::autoarray::AutoArray<value_type,atype> abuffer;
 			value_type * buffer;
 			
-			uint64_t swapBuffer(::libmaus::autoarray::AutoArray<value_type,atype> & obuffer)
+			uint64_t swapBuffer(::libmaus2::autoarray::AutoArray<value_type,atype> & obuffer)
 			{
 				uint64_t const rlength = length;
 
@@ -72,7 +72,7 @@ namespace libmaus
                         void expandBuffer()
                         {
                                 uint64_t newbuffersize = std::max(2*buffersize,static_cast<uint64_t>(1u));
-                                ::libmaus::autoarray::AutoArray<value_type,atype> newabuffer(newbuffersize);
+                                ::libmaus2::autoarray::AutoArray<value_type,atype> newabuffer(newbuffersize);
                         
                                 std::copy ( abuffer.get(), abuffer.get()+buffersize, newabuffer.get() );
                                 
@@ -84,7 +84,7 @@ namespace libmaus
                         }
                         
                         EntityBuffer(
-                        	::libmaus::autoarray::AutoArray<value_type,atype> & rbuffer,
+                        	::libmaus2::autoarray::AutoArray<value_type,atype> & rbuffer,
                         	uint64_t const blocksize)
 			: buffersize(rbuffer.size()), length(blocksize), abuffer(rbuffer), buffer(abuffer.get())
 			{
@@ -120,13 +120,13 @@ namespace libmaus
 			{
 				std::reverse(buffer,buffer+length);
 				for ( uint64_t i = 0; i < length; ++i )
-					buffer[i] = ::libmaus::fastx::invertUnmapped(buffer[i]);
+					buffer[i] = ::libmaus2::fastx::invertUnmapped(buffer[i]);
 			}
                 };
                 
-                typedef EntityBuffer<char,::libmaus::autoarray::alloc_type_cxx> CharBuffer;
-                typedef EntityBuffer<uint8_t,::libmaus::autoarray::alloc_type_cxx> UCharBuffer;
-                typedef EntityBuffer<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> UCharBufferC;
+                typedef EntityBuffer<char,::libmaus2::autoarray::alloc_type_cxx> CharBuffer;
+                typedef EntityBuffer<uint8_t,::libmaus2::autoarray::alloc_type_cxx> UCharBuffer;
+                typedef EntityBuffer<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> UCharBufferC;
 	}
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_NETWORK_HTTPSOCKETINPUTSTREAMBUFFER_HPP)
 #define LIBMAUS_NETWORK_HTTPSOCKETINPUTSTREAMBUFFER_HPP
 
-#include <libmaus/network/HttpHeaderWrapper.hpp>
-#include <libmaus/network/HttpBodyWrapper.hpp>
-#include <libmaus/network/SocketInputStreamBuffer.hpp>
+#include <libmaus2/network/HttpHeaderWrapper.hpp>
+#include <libmaus2/network/HttpBodyWrapper.hpp>
+#include <libmaus2/network/SocketInputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct HttpSocketInputStreamBuffer : public HttpHeaderWrapper, public HttpBodyWrapper, public SocketInputStreamBuffer
 		{
 			typedef HttpSocketInputStreamBuffer this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			HttpSocketInputStreamBuffer(
 				std::string const & url,
@@ -39,9 +39,9 @@ namespace libmaus
 				uint64_t const pushbacksize = 0
 			) 
 			:
-				libmaus::network::HttpHeaderWrapper("GET",std::string(),url),
-				libmaus::network::HttpBodyWrapper(getHttpHeader().getStream(),getHttpHeader().isChunked(),getHttpHeader().getContentLength()),
-				libmaus::network::SocketInputStreamBuffer(getHttpBody(),bufsize,pushbacksize)
+				libmaus2::network::HttpHeaderWrapper("GET",std::string(),url),
+				libmaus2::network::HttpBodyWrapper(getHttpHeader().getStream(),getHttpHeader().isChunked(),getHttpHeader().getContentLength()),
+				libmaus2::network::SocketInputStreamBuffer(getHttpBody(),bufsize,pushbacksize)
 			{
 			
 			}

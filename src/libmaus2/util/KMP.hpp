@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_UTIL_KMP_HPP)
 #define LIBMAUS_UTIL_KMP_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/UnsignedCharVariant.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/UnsignedCharVariant.hpp>
 #include <map>
 
 /*
  * this file contains some Knuth, Morris, Pratt type algorithms as outlined
  * in Crochemore et al.: Algorithms on Strings
  */
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -93,7 +93,7 @@ namespace libmaus
 						
 					// std::cerr << "k=" << k << std::endl;
 					
-					// std::cerr << ::libmaus::util::StackTrace().toString() << std::endl;
+					// std::cerr << ::libmaus2::util::StackTrace().toString() << std::endl;
 					
 					assert ( stream && (! stream.eof()) );
 					
@@ -128,9 +128,9 @@ namespace libmaus
 		
 			// computes the best prefix table for the pattern x of length m
 			template<typename const_iterator>
-			static inline ::libmaus::autoarray::AutoArray<int64_t> BEST_PREFIX(const_iterator x, uint64_t const m)
+			static inline ::libmaus2::autoarray::AutoArray<int64_t> BEST_PREFIX(const_iterator x, uint64_t const m)
 			{
-				::libmaus::autoarray::AutoArray<int64_t> best_prefix(m+1,false);
+				::libmaus2::autoarray::AutoArray<int64_t> best_prefix(m+1,false);
 				best_prefix[0] = -1;
 				int64_t i = 0;
 				
@@ -318,7 +318,7 @@ namespace libmaus
 				bool first = true
 			)
 			{
-				::libmaus::autoarray::AutoArray<int64_t> pi = BEST_PREFIX(x,m);
+				::libmaus2::autoarray::AutoArray<int64_t> pi = BEST_PREFIX(x,m);
 				return PREFIX_SEARCH_INTERNAL(x,m,pi,y,n,first);
 			}
 		};

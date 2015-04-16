@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,7 +20,7 @@
 #if ! defined(LIBMAUS_UTIL_UNORDERED_MAP_HPP)
 #define LIBMAUS_UTIL_UNORDERED_MAP_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_USE_STD_UNORDERED_MAP)
 #include <unordered_map>
@@ -29,7 +29,7 @@
 #include <boost/functional/hash.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

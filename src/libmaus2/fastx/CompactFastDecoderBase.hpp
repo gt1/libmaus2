@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,23 +20,23 @@
 #if ! defined(COMPACTFASTDECODERBASE_HPP)
 #define COMPACTFASTDECODERBASE_HPP
 
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
-#include <libmaus/fastx/CompactFastTerminator.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
+#include <libmaus2/fastx/CompactFastTerminator.hpp>
 
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/PutObject.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/fastx/CompactFastEncoder.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/util/PutObject.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/fastx/CompactFastEncoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{			
-		struct CompactFastDecoderBase : public ::libmaus::util::UTF8, public CompactFastTerminator
+		struct CompactFastDecoderBase : public ::libmaus2::util::UTF8, public CompactFastTerminator
 		{
-			::libmaus::parallel::SynchronousCounter<uint64_t> nextid;
+			::libmaus2::parallel::SynchronousCounter<uint64_t> nextid;
 			
 			CompactFastDecoderBase() : nextid(0) {}
 			
@@ -128,7 +128,7 @@ namespace libmaus
 			
 
 			template<typename in_type>
-			static uint64_t decodeSimple(in_type & istr, libmaus::autoarray::AutoArray<uint8_t> & D)
+			static uint64_t decodeSimple(in_type & istr, libmaus2::autoarray::AutoArray<uint8_t> & D)
 			{
 				try
 				{
@@ -147,7 +147,7 @@ namespace libmaus
 						
 						// resize pattern
 						if ( patlen > D.size() )
-							D = libmaus::autoarray::AutoArray<uint8_t>(patlen,false);
+							D = libmaus2::autoarray::AutoArray<uint8_t>(patlen,false);
 						
 						// pattern has indeterminate bases
 						if ( flags & 1 )
@@ -161,7 +161,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -176,7 +176,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -200,7 +200,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -218,7 +218,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -233,7 +233,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -247,7 +247,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -270,7 +270,7 @@ namespace libmaus
 			template<typename pattern_type, typename in_type>
 			static bool decode(
 				pattern_type & pattern, in_type & istr,
-				::libmaus::parallel::SynchronousCounter<uint64_t> & nextid
+				::libmaus2::parallel::SynchronousCounter<uint64_t> & nextid
 			)
 			{
 				try
@@ -311,7 +311,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -326,7 +326,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -350,7 +350,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -368,7 +368,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -383,7 +383,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;
@@ -397,7 +397,7 @@ namespace libmaus
 								int v = istr.get();
 								if ( v < 0 )
 								{
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "EOF in getNextPatternUnlocked()";
 									se.finish();
 									throw se;

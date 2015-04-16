@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bambam/BamRange.hpp>
+#include <libmaus2/bambam/BamRange.hpp>
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::BamRange const & R)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::BamRange const & R)
 {
 	return R.toStream(out);
 }

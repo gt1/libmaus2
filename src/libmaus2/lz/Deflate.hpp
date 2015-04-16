@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(DEFLATE_HPP)
 #define DEFLATE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/lz/GzipHeader.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
 #include <zlib.h>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -37,13 +37,13 @@ namespace libmaus
 		{
 			static uint64_t const maxbufsize = 256*1024;
 			
-			typedef ::libmaus::util::unique_ptr<std::ofstream>::type out_file_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<std::ofstream>::type out_file_ptr_type;
 			
 			z_stream strm;
 			out_file_ptr_type out_ptr;
 			std::ostream & out;
-			::libmaus::autoarray::AutoArray<Bytef> Bin;
-			::libmaus::autoarray::AutoArray<Bytef> Bout;
+			::libmaus2::autoarray::AutoArray<Bytef> Bin;
+			::libmaus2::autoarray::AutoArray<Bytef> Bout;
 
 			void initNoHeader(int const level)
 			{
@@ -55,13 +55,13 @@ namespace libmaus
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "deflateInit failed.";
 					se.finish();
 					throw se;
 				}
-				Bin = ::libmaus::autoarray::AutoArray<Bytef>(maxbufsize,false);	
-				Bout = ::libmaus::autoarray::AutoArray<Bytef>(maxbufsize,false);	
+				Bin = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
+				Bout = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
 			}
 
 			void init(int const level)
@@ -73,13 +73,13 @@ namespace libmaus
 				int ret = deflateInit(&strm,level);
 				if ( ret != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "deflateInit failed.";
 					se.finish();
 					throw se;
 				}
-				Bin = ::libmaus::autoarray::AutoArray<Bytef>(maxbufsize,false);	
-				Bout = ::libmaus::autoarray::AutoArray<Bytef>(maxbufsize,false);	
+				Bin = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
+				Bout = ::libmaus2::autoarray::AutoArray<Bytef>(maxbufsize,false);	
 			}
 			
 			Deflate(
@@ -147,7 +147,7 @@ namespace libmaus
 					}
 				} while ( len );
 				
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "Unable to compress data into space " << maxlen << std::endl;
 				se.finish();
 				throw se;
@@ -189,7 +189,7 @@ namespace libmaus
 			static void compressStreamBGZF(std::istream & in, std::ostream & out,
 				int const level = Z_DEFAULT_COMPRESSION)
 			{
-				::libmaus::autoarray::AutoArray<char> B(64*1024,false);
+				::libmaus2::autoarray::AutoArray<char> B(64*1024,false);
 				uint64_t used = 0;
 				
 				while ( in )
@@ -229,7 +229,7 @@ namespace libmaus
 						int ret = deflate(&strm,Z_NO_FLUSH);
 						if ( ret == Z_STREAM_ERROR )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "deflate failed.";
 							se.finish();
 							throw se;
@@ -260,7 +260,7 @@ namespace libmaus
 					ret = deflate(&strm,Z_FINISH );
 					if ( ret == Z_STREAM_ERROR )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "deflate failed.";
 						se.finish();
 						throw se;
@@ -287,16 +287,16 @@ namespace libmaus
 		struct BGZFWriter
 		{
 			typedef BGZFWriter this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef std::ofstream ostream_type;
-			typedef ::libmaus::util::unique_ptr<ostream_type>::type ostream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<ostream_type>::type ostream_ptr_type;
 			
 			ostream_ptr_type Postr;
 			std::ostream & ostr;
 			int const level;
 			
-			::libmaus::autoarray::AutoArray<char> B;
+			::libmaus2::autoarray::AutoArray<char> B;
 			char * const pa;
 			char * pc;
 			char * const pe;
@@ -370,7 +370,7 @@ namespace libmaus
 		struct BGZFOutputStreamBuffer : public BGZFWriterWrapper, public ::std::streambuf
 		{
 			uint64_t const buffersize;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 		
 			BGZFOutputStreamBuffer(std::ostream & out, uint64_t const rbuffersize, int const level = Z_DEFAULT_COMPRESSION)
 			: BGZFWriterWrapper(out,level), buffersize(rbuffersize), buffer(buffersize,false) 
@@ -417,8 +417,8 @@ namespace libmaus
 		struct BGZFOutputStream : public BGZFOutputStreamBuffer, public std::ostream
 		{	
 			typedef BGZFOutputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			BGZFOutputStream(std::ostream & out, uint64_t const rbuffersize = 64*1024, int const level = Z_DEFAULT_COMPRESSION)
 			: BGZFOutputStreamBuffer(out,rbuffersize,level), std::ostream(this)
@@ -432,17 +432,17 @@ namespace libmaus
 		struct BlockDeflate
 		{
 			typedef BlockDeflate this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef std::ofstream ostream_type;
-			typedef ::libmaus::util::unique_ptr<ostream_type>::type ostream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<ostream_type>::type ostream_ptr_type;
 			
 			ostream_ptr_type Postr;
 			ostream_type & ostr;
 			
 			std::vector< std::pair<uint64_t, uint64_t> > index;
 			
-			::libmaus::autoarray::AutoArray<uint8_t> B;
+			::libmaus2::autoarray::AutoArray<uint8_t> B;
 			uint8_t * const pa;
 			uint8_t * pc;
 			uint8_t * const pe;
@@ -480,7 +480,7 @@ namespace libmaus
 				if ( pc != pa )
 				{
 					index.push_back ( std::pair<uint64_t,uint64_t>(ostr.tellp(),pc-pa) );
-					::libmaus::util::NumberSerialisation::serialiseNumber(ostr,pc-pa);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,pc-pa);
 					Deflate D(ostr,level);
 					D.write( reinterpret_cast<char const *>(pa), pc-pa );
 					D.flush();
@@ -492,13 +492,13 @@ namespace libmaus
 			{
 				dataFlush();
 				uint64_t const indexpos = ostr.tellp();
-				::libmaus::util::NumberSerialisation::serialiseNumber(ostr,index.size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,index.size());
 				for ( uint64_t i = 0; i < index.size(); ++i )
 				{
-					::libmaus::util::NumberSerialisation::serialiseNumber(ostr,index[i].first);
-					::libmaus::util::NumberSerialisation::serialiseNumber(ostr,index[i].second);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,index[i].first);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,index[i].second);
 				}
-				::libmaus::util::NumberSerialisation::serialiseNumber(ostr,indexpos);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,indexpos);
 				ostr.flush();
 			}
 		};

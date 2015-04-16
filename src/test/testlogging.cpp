@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,26 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/network/LogReceiver.hpp>
+#include <libmaus2/network/LogReceiver.hpp>
 
 int main(/* int argc, char * argv[] */)
 {
 	{
-		::libmaus::network::LogReceiver::unique_ptr_type LR(new ::libmaus::network::LogReceiver("logpre",4444,1024));
+		::libmaus2::network::LogReceiver::unique_ptr_type LR(new ::libmaus2::network::LogReceiver("logpre",4444,1024));
 
-		::libmaus::network::StringRecDispatchCallback srdc;
+		::libmaus2::network::StringRecDispatchCallback srdc;
 		
-		::libmaus::network::LogReceiverTestProcess::unique_ptr_type TP0 (LR->constructLogReceiverTestProcess(0 /* id */,&srdc));
-		::libmaus::network::LogReceiverTestProcess::unique_ptr_type TP1 (LR->constructLogReceiverTestProcess(1 /* id */,&srdc));
-		::libmaus::network::LogReceiverTestProcess::unique_ptr_type TP2 (LR->constructLogReceiverTestProcess(2 /* id */,&srdc));
+		::libmaus2::network::LogReceiverTestProcess::unique_ptr_type TP0 (LR->constructLogReceiverTestProcess(0 /* id */,&srdc));
+		::libmaus2::network::LogReceiverTestProcess::unique_ptr_type TP1 (LR->constructLogReceiverTestProcess(1 /* id */,&srdc));
+		::libmaus2::network::LogReceiverTestProcess::unique_ptr_type TP2 (LR->constructLogReceiverTestProcess(2 /* id */,&srdc));
 		
-		std::map<uint64_t, ::libmaus::network::SocketBase::shared_ptr_type > controlsocks;
+		std::map<uint64_t, ::libmaus2::network::SocketBase::shared_ptr_type > controlsocks;
 		
 		sleep(2);
 
 		while ( LR->controlDescriptorPending() )
 		{
-			::libmaus::network::LogReceiver::ControlDescriptor P = LR->getControlDescriptor();
+			::libmaus2::network::LogReceiver::ControlDescriptor P = LR->getControlDescriptor();
 			controlsocks [ P.id ] = P.controlsock;
 			std::cerr << "Got control socket for " << P.id << std::endl;
 			

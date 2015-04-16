@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(LIBMAUS_AIO_METAOUTPUTBUFFER8_HPP)
 #define LIBMAUS_AIO_METAOUTPUTBUFFER8_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -36,12 +36,12 @@ namespace libmaus
                 struct MetaOutputBuffer8
                 {
                 	private:
-                        ::libmaus::autoarray::AutoArray<uint64_t> B;
+                        ::libmaus2::autoarray::AutoArray<uint64_t> B;
                         uint64_t * const pa;
                         uint64_t * pc;
                         uint64_t * const pe;
 
-                        ::libmaus::aio::AsynchronousWriter & W;
+                        ::libmaus2::aio::AsynchronousWriter & W;
 			uint64_t const metaid;
 
 			public:
@@ -53,7 +53,7 @@ namespace libmaus
 			 * @param rmetaid meta information for each written block
 			 **/
                         MetaOutputBuffer8(
-				::libmaus::aio::AsynchronousWriter & rW, 
+				::libmaus2::aio::AsynchronousWriter & rW, 
 				uint64_t const bufsize,
 				uint64_t const rmetaid)
                         : B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), W(rW), metaid(rmetaid)

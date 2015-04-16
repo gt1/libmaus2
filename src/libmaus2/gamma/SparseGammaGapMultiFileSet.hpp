@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,31 +19,31 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPMULTIFILESET_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPMULTIFILESET_HPP
 
-#include <libmaus/gamma/SparseGammaGapDecoder.hpp>
-#include <libmaus/gamma/SparseGammaGapMultiFile.hpp>
-#include <libmaus/gamma/SparseGammaGapMerge.hpp>
-#include <libmaus/gamma/GammaGapEncoder.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/gamma/SparseGammaGapDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapMultiFile.hpp>
+#include <libmaus2/gamma/SparseGammaGapMerge.hpp>
+#include <libmaus2/gamma/GammaGapEncoder.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
 		struct SparseGammaGapMultiFileSet
 		{
-			libmaus::util::TempFileNameGenerator & tmpgen;
-			std::priority_queue<libmaus::gamma::SparseGammaGapMultiFile> Q;
-			libmaus::parallel::OMPLock lock;
+			libmaus2::util::TempFileNameGenerator & tmpgen;
+			std::priority_queue<libmaus2::gamma::SparseGammaGapMultiFile> Q;
+			libmaus2::parallel::OMPLock lock;
 			uint64_t addcnt;
 			uint64_t parts;
 		
 			SparseGammaGapMultiFileSet(
-				libmaus::util::TempFileNameGenerator & rtmpgen,
+				libmaus2::util::TempFileNameGenerator & rtmpgen,
 				uint64_t rparts
 			) : tmpgen(rtmpgen), addcnt(0), parts(rparts) {}
 
@@ -98,7 +98,7 @@ namespace libmaus
 				assert ( ! Q.empty() );
 				SparseGammaGapMultiFile const Sb = Q.top(); Q.pop();
 				
-				std::vector<std::string> const fno = libmaus::gamma::SparseGammaGapMerge::merge(Sa.fn,Sb.fn,nfn,parts,true);
+				std::vector<std::string> const fno = libmaus2::gamma::SparseGammaGapMerge::merge(Sa.fn,Sb.fn,nfn,parts,true);
 				SparseGammaGapMultiFile N(fno,Sa.level+1);
 				Q.push(N);
 				
@@ -116,11 +116,11 @@ namespace libmaus
 			void addFile(std::vector<std::string> const & fn)
 			{
 				for ( uint64_t i = 0; i < fn.size(); ++i )
-					libmaus::util::TempFileRemovalContainer::addTempFile(fn[i]);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(fn[i]);
 				
 				SparseGammaGapMultiFile S(fn,0);
 				
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				addcnt += 1;
 				Q.push(S);
 				
@@ -135,7 +135,7 @@ namespace libmaus
 			
 			std::vector<std::string> merge(std::string const & outputfilenameprefix)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 
 				while ( canMerge() )
 					doMerge(tmpgen.getFileName());
@@ -161,17 +161,17 @@ namespace libmaus
 
 			void mergeToDense(std::string const & outputfilename, uint64_t const n)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 
 				while ( canMerge() )
 					doMerge(tmpgen.getFileName());
 					
 				if ( !Q.empty() )
 				{
-					libmaus::gamma::SparseGammaGapConcatDecoder SGGD(Q.top().fn);
-					libmaus::gamma::SparseGammaGapConcatDecoder::iterator it = SGGD.begin();
+					libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(Q.top().fn);
+					libmaus2::gamma::SparseGammaGapConcatDecoder::iterator it = SGGD.begin();
 					
-					libmaus::gamma::GammaGapEncoder GGE(outputfilename);
+					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
 					GGE.encode(it,n);
 				
 					for ( uint64_t i = 0; i < Q.top().fn.size(); ++i )

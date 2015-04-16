@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_NETWORK_FTPSOCKETWRAPPER_HPP)
 #define LIBMAUS_NETWORK_FTPSOCKETWRAPPER_HPP
 
-#include <libmaus/network/FtpSocket.hpp>
+#include <libmaus2/network/FtpSocket.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct FtpSocketWrapper
 		{
 			private:
-			libmaus::network::FtpSocket object;
+			libmaus2::network::FtpSocket object;
 			
 			public:
 			FtpSocketWrapper(
@@ -37,7 +37,7 @@ namespace libmaus
 				bool const rverbose = false
 			) : object(url,restartpoint,rverbose) {}
 			
-			libmaus::network::FtpSocket & getFtpSocket()
+			libmaus2::network::FtpSocket & getFtpSocket()
 			{
 				return object;
 			}

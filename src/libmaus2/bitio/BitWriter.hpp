@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(BITWRITER_HPP)
 #define BITWRITER_HPP
 
-#include <libmaus/math/numbits.hpp>
-#include <libmaus/math/lowbits.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/math/numbits.hpp>
+#include <libmaus2/math/lowbits.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <vector>
 #include <iterator>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -47,7 +47,7 @@ namespace libmaus
 			
 			// ptr
 			typedef BitWriterTemplate<data_type,data_iterator,basemask> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			data_iterator U;
@@ -78,9 +78,9 @@ namespace libmaus
 			void writeElias2(N n)
 			{
 				// number of bits to store n
-				unsigned int log_1 = ::libmaus::math::numbits(n);
+				unsigned int log_1 = ::libmaus2::math::numbits(n);
 				// number of bits to store log_1
-				unsigned int log_2 = ::libmaus::math::numbits(log_1);
+				unsigned int log_2 = ::libmaus2::math::numbits(log_1);
 				
 				// write log_2 in unary form
 				writeUnary(log_2);
@@ -102,7 +102,7 @@ namespace libmaus
 			{
 				if ( b )
 				{
-					// N m = ::libmaus::math::lowbits(b-1);
+					// N m = ::libmaus2::math::lowbits(b-1);
 					N m = (1ull << (b-1));
 						
 					// write number, msb to lsb

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMENCODINGSUPPORTDATA_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMENCODINGSUPPORTDATA_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/LockedGrowingFreeList.hpp>
-#include <libmaus/bambam/parallel/CramPassPointerObject.hpp>
-#include <libmaus/bambam/parallel/CramPassPointerObjectAllocator.hpp>
-#include <libmaus/bambam/parallel/CramPassPointerObjectTypeInfo.hpp>
-#include <libmaus/bambam/parallel/CramOutputBlock.hpp>
-#include <libmaus/bambam/parallel/CramOutputBlockIdComparator.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/LockedGrowingFreeList.hpp>
+#include <libmaus2/bambam/parallel/CramPassPointerObject.hpp>
+#include <libmaus2/bambam/parallel/CramPassPointerObjectAllocator.hpp>
+#include <libmaus2/bambam/parallel/CramPassPointerObjectTypeInfo.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlock.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlockIdComparator.hpp>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -37,30 +37,30 @@ namespace libmaus
 			struct CramEncodingSupportData
 			{
 				uint64_t volatile cramtokens;
-				libmaus::parallel::PosixSpinLock cramtokenslock;
+				libmaus2::parallel::PosixSpinLock cramtokenslock;
 
-				libmaus::parallel::LockedGrowingFreeList<
-					libmaus::bambam::parallel::CramPassPointerObject,
-					libmaus::bambam::parallel::CramPassPointerObjectAllocator,
-					libmaus::bambam::parallel::CramPassPointerObjectTypeInfo>
+				libmaus2::parallel::LockedGrowingFreeList<
+					libmaus2::bambam::parallel::CramPassPointerObject,
+					libmaus2::bambam::parallel::CramPassPointerObjectAllocator,
+					libmaus2::bambam::parallel::CramPassPointerObjectTypeInfo>
 					passPointerFreeList;
 
 				std::map<uint64_t,CramPassPointerObject::shared_ptr_type> passPointerActive;
-				libmaus::parallel::PosixSpinLock passPointerActiveLock;
+				libmaus2::parallel::PosixSpinLock passPointerActiveLock;
 				
 				void * context;
 
 				std::multimap<size_t,CramOutputBlock::shared_ptr_type> outputBlockFreeList;
-				libmaus::parallel::PosixSpinLock outputBlockFreeListLock;
+				libmaus2::parallel::PosixSpinLock outputBlockFreeListLock;
 				
 				std::set<CramOutputBlock::shared_ptr_type,CramOutputBlockIdComparator> outputBlockPendingList;
-				libmaus::parallel::PosixSpinLock outputBlockPendingListLock;
+				libmaus2::parallel::PosixSpinLock outputBlockPendingListLock;
 
 				uint64_t volatile outputBlockUnfinished;
-				libmaus::parallel::PosixSpinLock outputBlockUnfinishedLock;
+				libmaus2::parallel::PosixSpinLock outputBlockUnfinishedLock;
 
 				std::pair<int64_t volatile,uint64_t volatile> outputWriteNext;
-				libmaus::parallel::PosixSpinLock outputWriteNextLock;
+				libmaus2::parallel::PosixSpinLock outputWriteNextLock;
 												
 				bool getCramEncodingToken()
 				{

@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,8 +23,8 @@
 extern "C" {
 #endif
 
-extern int libmaus_network_sendFd_C(int const socket, int const fd);
-extern int libmaus_network_receiveFd_C(int const socket);
+extern int libmaus2_network_sendFd_C(int const socket, int const fd);
+extern int libmaus2_network_receiveFd_C(int const socket);
 
 #if defined(__cplusplus)
 }

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -29,9 +29,9 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -59,14 +59,14 @@ namespace libmaus
 			{
 				if ( pid != static_cast<pid_t>(-1) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixProcess::start() called for process which is already running." << std::endl;
 					se.finish();
 					throw se;		
 				}
 				if ( (pid=fork()) == static_cast<pid_t>(-1) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "fork() failed: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;

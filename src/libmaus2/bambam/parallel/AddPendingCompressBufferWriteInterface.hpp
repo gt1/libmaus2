@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ADDPENDINGCOMPRESSBUFFERWRITEINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ADDPENDINGCOMPRESSBUFFERWRITEINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/CompressBuffer.hpp>
+#include <libmaus2/bambam/parallel/CompressBuffer.hpp>
 		
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		

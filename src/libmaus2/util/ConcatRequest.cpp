@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ConcatRequest.hpp>
+#include <libmaus2/util/ConcatRequest.hpp>
 
-libmaus::util::ConcatRequest::ConcatRequest(
+libmaus2::util::ConcatRequest::ConcatRequest(
 	std::vector<std::string> const & rinfilenames,
 	std::string const & routfilename)
 : infilenames(rinfilenames), outfilename(routfilename)
@@ -27,21 +27,21 @@ libmaus::util::ConcatRequest::ConcatRequest(
 
 }
 
-libmaus::util::ConcatRequest::ConcatRequest(std::istream & in)
+libmaus2::util::ConcatRequest::ConcatRequest(std::istream & in)
 : 
-infilenames ( ::libmaus::util::StringSerialisation::deserialiseStringVector(in) ),
-outfilename ( ::libmaus::util::StringSerialisation::deserialiseString(in) )
+infilenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) ),
+outfilename ( ::libmaus2::util::StringSerialisation::deserialiseString(in) )
 {
 	
 }
 
-void libmaus::util::ConcatRequest::serialise(std::ostream & out) const
+void libmaus2::util::ConcatRequest::serialise(std::ostream & out) const
 {
-	::libmaus::util::StringSerialisation::serialiseStringVector(out,infilenames);
-	::libmaus::util::StringSerialisation::serialiseString(out,outfilename);
+	::libmaus2::util::StringSerialisation::serialiseStringVector(out,infilenames);
+	::libmaus2::util::StringSerialisation::serialiseString(out,outfilename);
 }
 
-void libmaus::util::ConcatRequest::serialise(std::string const & filename) const
+void libmaus2::util::ConcatRequest::serialise(std::string const & filename) const
 {
 	std::ofstream ostr(filename.c_str(), std::ios::binary);
 	serialise(ostr);
@@ -50,7 +50,7 @@ void libmaus::util::ConcatRequest::serialise(std::string const & filename) const
 	ostr.close();
 }
 
-void libmaus::util::ConcatRequest::serialise(
+void libmaus2::util::ConcatRequest::serialise(
 	std::vector<std::string> const & infilenames,
 	std::string const & outfilename,
 	std::string const & requestfilename)
@@ -59,7 +59,7 @@ void libmaus::util::ConcatRequest::serialise(
 	CR.serialise(requestfilename);
 }
 
-void libmaus::util::ConcatRequest::serialise(
+void libmaus2::util::ConcatRequest::serialise(
 	std::string const & infilename,
 	std::string const & outfilename,
 	std::string const & requestfilename)
@@ -68,25 +68,25 @@ void libmaus::util::ConcatRequest::serialise(
 	CR.serialise(requestfilename);
 }
 
-void libmaus::util::ConcatRequest::execute(bool const removeFiles) const
+void libmaus2::util::ConcatRequest::execute(bool const removeFiles) const
 {
-	::libmaus::util::Concat::concat(infilenames,outfilename,removeFiles);
+	::libmaus2::util::Concat::concat(infilenames,outfilename,removeFiles);
 }
 
-libmaus::util::ConcatRequest::unique_ptr_type libmaus::util::ConcatRequest::load(std::string const & requestfilename)
+libmaus2::util::ConcatRequest::unique_ptr_type libmaus2::util::ConcatRequest::load(std::string const & requestfilename)
 {
 	std::ifstream istr(requestfilename.c_str(),std::ios::binary);
 	if ( ! istr.is_open() )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to open file " << requestfilename << std::endl;
 		se.finish();
 		throw se;
 	}
-	::libmaus::util::ConcatRequest::unique_ptr_type req ( new ::libmaus::util::ConcatRequest(istr) );
+	::libmaus2::util::ConcatRequest::unique_ptr_type req ( new ::libmaus2::util::ConcatRequest(istr) );
 	if ( !istr )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to deserialise from file " << requestfilename << std::endl;
 		se.finish();
 		throw se;

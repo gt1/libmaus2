@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREADWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREADWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlReadWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlReadAddPendingInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlReadWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlReadAddPendingInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlReadWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct GenericInputControlReadWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputControlReadWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				GenericInputControlReadWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputControlReadAddPendingInterface & addPendingInterface;
@@ -55,7 +55,7 @@ namespace libmaus
 				{
 				}
 			
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlReadWorkPackage *>(P) != 0 );
 					GenericInputControlReadWorkPackage * BP = dynamic_cast<GenericInputControlReadWorkPackage *>(P);
@@ -65,7 +65,7 @@ namespace libmaus
 					
 					if ( data.inlock.trylock() )
 					{
-						libmaus::parallel::ScopePosixSpinLock slock(data.inlock,true /* pre locked */);
+						libmaus2::parallel::ScopePosixSpinLock slock(data.inlock,true /* pre locked */);
 						
 						GenericInputBase::generic_input_shared_block_ptr_type sblock;
 			
@@ -92,14 +92,14 @@ namespace libmaus
 							assert ( sblock->pe != sblock->A.end() );
 			
 							// fill buffer
-							libmaus::bambam::parallel::GenericInputBlockFillResult P = sblock->fill(
+							libmaus2::bambam::parallel::GenericInputBlockFillResult P = sblock->fill(
 								data.in,
 								data.finite,
 								data.dataleft);
 			
 							if ( data.in.bad() )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "Stream error while filling buffer." << std::endl;
 								lme.finish();
 								throw lme;
@@ -120,7 +120,7 @@ namespace libmaus
 							sblock->meta.eof = P.eof;
 							
 							// parse bgzf block headers to determine how many full blocks we have				
-							libmaus::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
+							libmaus2::bambam::parallel::GenericInputBlockSubBlockInfo & meta = sblock->meta;
 							uint64_t f = 0;
 
 							switch ( parser_type )
@@ -128,7 +128,7 @@ namespace libmaus
 								case parse_bam:
 								{
 									int64_t bs = -1;
-									while ( (bs=libmaus::lz::BgzfInflateHeaderBase::getBlockSize(sblock->pc,sblock->pe)) >= 0 )
+									while ( (bs=libmaus2::lz::BgzfInflateHeaderBase::getBlockSize(sblock->pc,sblock->pe)) >= 0 )
 									{
 										meta.addBlock(std::pair<uint8_t *,uint8_t *>(sblock->pc,sblock->pc+bs));
 										sblock->pc += bs;
@@ -167,7 +167,7 @@ namespace libmaus
 								}
 								default:
 								{
-									libmaus::exception::LibMausException lme;
+									libmaus2::exception::LibMausException lme;
 									lme.getStream() << "GenericInputControlReadWorkPackageDispatcher: unknown parsing type" << std::endl;
 									lme.finish();
 									throw lme;
@@ -179,7 +179,7 @@ namespace libmaus
 							if ( data.getEOF() && (sblock->pc == sblock->pe) && (!f) )
 							{
 								std::ostringstream ostr;
-								libmaus::lz::BgzfDeflate<std::ostream> bgzfout(ostr);
+								libmaus2::lz::BgzfDeflate<std::ostream> bgzfout(ostr);
 								bgzfout.addEOFBlock();
 								std::string const s = ostr.str();
 								sblock->insert(s.begin(),s.end());
@@ -196,8 +196,8 @@ namespace libmaus
 								{
 									case parse_bam:
 									{
-										libmaus::exception::LibMausException lme;
-										lme.getStream() << "libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher: Invalid empty stream is invalid bgzf/BAM" << std::endl;
+										libmaus2::exception::LibMausException lme;
+										lme.getStream() << "libmaus2::bambam::parallel::GenericInputControlReadWorkPackageDispatcher: Invalid empty stream is invalid bgzf/BAM" << std::endl;
 										lme.finish();
 										throw lme;
 									}
@@ -231,8 +231,8 @@ namespace libmaus
 								{
 									assert ( data.getEOF() );
 									// throw exception, block is incomplete at EOF
-									libmaus::exception::LibMausException lme;
-									lme.getStream() << "libmaus::bambam::parallel::GenericInputControlReadWorkPackageDispatcher: Unexpected EOF." << std::endl;
+									libmaus2::exception::LibMausException lme;
+									lme.getStream() << "libmaus2::bambam::parallel::GenericInputControlReadWorkPackageDispatcher: Unexpected EOF." << std::endl;
 									lme.finish();
 									throw lme;
 								}

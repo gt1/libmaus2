@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_FASTX_FASTASTREAM_HPP)
 #define LIBMAUS_FASTX_FASTASTREAM_HPP
 
-#include <libmaus/fastx/FastAStreamWrapper.hpp>
+#include <libmaus2/fastx/FastAStreamWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastAStream : public FastAStreamWrapper, public ::std::istream
 		{
 			typedef FastAStream this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			FastAStream(::libmaus::fastx::FastALineParser & parser, uint64_t const buffersize, uint64_t const pushbackspace)
+			FastAStream(::libmaus2::fastx::FastALineParser & parser, uint64_t const buffersize, uint64_t const pushbackspace)
 			: FastAStreamWrapper(parser,buffersize,pushbackspace), ::std::istream(this)
 			{
 				

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,9 +23,9 @@
 
 #include <string>
 #include <fstream>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -46,12 +46,12 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				return n;
 			}
 

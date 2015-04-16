@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_GAPMERGEPACKET_HPP)
 #define LIBMAUS_SUFFIXSORT_GAPMERGEPACKET_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{	

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_NETWORK_GNUTLSSOCKET_HPP)
 #define LIBMAUS_NETWORK_GNUTLSSOCKET_HPP
 
-#include <libmaus/network/GnuTLSInit.hpp>
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/network/SocketInputOutputInterface.hpp>
+#include <libmaus2/network/GnuTLSInit.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/network/SocketInputOutputInterface.hpp>
 
 #if defined(LIBMAUS_HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct GnuTLSSocket : private libmaus::network::GnuTLSInit, public SocketInputOutputInterface
+		struct GnuTLSSocket : private libmaus2::network::GnuTLSInit, public SocketInputOutputInterface
 		{
 			typedef GnuTLSSocket this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			std::string const hostname;
 
@@ -44,7 +44,7 @@ namespace libmaus
 			gnutls_session_t session;
 			#endif
 
-			libmaus::network::ClientSocket::unique_ptr_type PCS;
+			libmaus2::network::ClientSocket::unique_ptr_type PCS;
 			
 			#if defined(LIBMAUS_HAVE_GNUTLS)
 			static int verify_certificate_callback(gnutls_session_t session);

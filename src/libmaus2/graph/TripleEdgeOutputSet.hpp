@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,10 +21,10 @@
 #define TRIPLEEDGEOUTPUTSET_HPP
 
 #include <string>
-#include <libmaus/graph/TripleEdgeBufferSet.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/graph/TripleEdgeBufferSet.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -34,9 +34,9 @@ namespace libmaus
 		struct TripleEdgeOutputSet
 		{
 			typedef TripleEdgeOutputSet this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			::libmaus::util::TempFileNameGenerator & tmpgen;
+			::libmaus2::util::TempFileNameGenerator & tmpgen;
 			// std::string const filenameprefix;
 			uint64_t const numreads;
 			TripleEdgeBufferSet & tbs;
@@ -44,9 +44,9 @@ namespace libmaus
 			static uint64_t const bufsize = 1024*1024;
 
 			typedef TripleEdgeOutput output_type;
-			typedef ::libmaus::util::unique_ptr<output_type>::type output_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<output_type>::type output_ptr_type;
 
-			::libmaus::autoarray::AutoArray < output_ptr_type > outputs;
+			::libmaus2::autoarray::AutoArray < output_ptr_type > outputs;
 
 			static uint64_t byteSize(uint64_t numparts)
 			{
@@ -59,9 +59,9 @@ namespace libmaus
 			}
 
 			TripleEdgeOutputSet(
-				::libmaus::util::TempFileNameGenerator & rtmpgen, 
+				::libmaus2::util::TempFileNameGenerator & rtmpgen, 
 				uint64_t const rnumreads, 
-				::libmaus::graph::TripleEdgeBufferSet & rtbs)
+				::libmaus2::graph::TripleEdgeBufferSet & rtbs)
 			: tmpgen(rtmpgen), numreads(rnumreads), tbs(rtbs), outputs(tbs.numparts) 
 			{
 				for ( uint64_t i = 0; i < tbs.numparts; ++i )
@@ -99,9 +99,9 @@ namespace libmaus
 				return hash(a,tbs.numparts,numreads);
 			}
 			
-			static ::libmaus::autoarray::AutoArray<uint64_t> getHashStarts(uint64_t const numparts, uint64_t const numreads)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> getHashStarts(uint64_t const numparts, uint64_t const numreads)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> HS(numparts+1,false);
+				::libmaus2::autoarray::AutoArray<uint64_t> HS(numparts+1,false);
 				HS[numparts] = numreads;
 				
 				for ( int64_t i = static_cast<int64_t>(numreads)-1; i >= 0; --i )
@@ -110,7 +110,7 @@ namespace libmaus
 				return HS;
 			}
 
-			void write ( ::libmaus::graph::TripleEdge const & triple )
+			void write ( ::libmaus2::graph::TripleEdge const & triple )
 			{
 				// uint64_t const h = (i*i*tbs.numparts)/(numreads*numreads);
 				uint64_t const h = hash(triple.a);

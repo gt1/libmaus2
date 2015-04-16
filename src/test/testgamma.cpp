@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,16 +21,16 @@
 #include <vector>
 #include <sstream>
 #include <cstdlib>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
 
-#include <libmaus/gamma/SparseGammaGapEncoder.hpp>
-#include <libmaus/gamma/SparseGammaGapDecoder.hpp>
-#include <libmaus/gamma/SparseGammaGapMerge.hpp>
-#include <libmaus/gamma/SparseGammaGapFile.hpp>
-#include <libmaus/gamma/SparseGammaGapFileSet.hpp>
-#include <libmaus/gamma/SparseGammaGapFileLevelSet.hpp>
+#include <libmaus2/gamma/SparseGammaGapEncoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapMerge.hpp>
+#include <libmaus2/gamma/SparseGammaGapFile.hpp>
+#include <libmaus2/gamma/SparseGammaGapFileSet.hpp>
+#include <libmaus2/gamma/SparseGammaGapFileLevelSet.hpp>
 
 template<typename T>
 struct VectorPut : public std::vector<T>
@@ -81,11 +81,11 @@ void testRandom(unsigned int const n)
 	for ( uint64_t i = 0; i <n; ++i )
 		V[i] = rand();
 
-	::libmaus::timing::RealTimeClock rtc; 
+	::libmaus2::timing::RealTimeClock rtc; 
 	
 	rtc.start();
 	CountPut CP;
-	::libmaus::gamma::GammaEncoder< CountPut > GCP(CP);	
+	::libmaus2::gamma::GammaEncoder< CountPut > GCP(CP);	
 	for ( uint64_t i = 0; i < n; ++i )
 		GCP.encode(V[i]);
 	GCP.flush();
@@ -97,7 +97,7 @@ void testRandom(unsigned int const n)
 	
 	VectorPut<uint64_t> VP;
 	rtc.start();
-	::libmaus::gamma::GammaEncoder< VectorPut<uint64_t> > GE(VP);	
+	::libmaus2::gamma::GammaEncoder< VectorPut<uint64_t> > GE(VP);	
 	for ( uint64_t i = 0; i < n; ++i )
 		GE.encode(V[i]);
 	GE.flush();
@@ -108,7 +108,7 @@ void testRandom(unsigned int const n)
 
 	rtc.start();
 	VectorGet<uint64_t> VG(VP.begin());
-	::libmaus::gamma::GammaDecoder < VectorGet<uint64_t> > GD(VG);
+	::libmaus2::gamma::GammaDecoder < VectorGet<uint64_t> > GD(VG);
 	bool ok = true;
 	for ( uint64_t i = 0; ok && i < n; ++i )
 	{
@@ -138,13 +138,13 @@ void testLow()
 {
 	unsigned int const n = 127;
 	VectorPut<uint64_t> VP;
-	::libmaus::gamma::GammaEncoder< VectorPut<uint64_t> > GE(VP);	
+	::libmaus2::gamma::GammaEncoder< VectorPut<uint64_t> > GE(VP);	
 	for ( uint64_t i = 0; i < n; ++i )
 		GE.encode(i);
 	GE.flush();
 	
 	VectorGet<uint64_t> VG(VP.begin());
-	::libmaus::gamma::GammaDecoder < VectorGet<uint64_t> > GD(VG);
+	::libmaus2::gamma::GammaDecoder < VectorGet<uint64_t> > GD(VG);
 	bool ok = true;
 	for ( uint64_t i = 0; ok && i < n; ++i )
 		ok = ok && ( GD.decode() == i );
@@ -159,10 +159,10 @@ void testLow()
 	}
 }
 
-#include <libmaus/gamma/GammaGapEncoder.hpp>
-#include <libmaus/huffman/IndexDecoderDataArray.hpp>
-#include <libmaus/gamma/GammaGapDecoder.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/gamma/GammaGapEncoder.hpp>
+#include <libmaus2/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus2/gamma/GammaGapDecoder.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
 void testgammagap()
 {
@@ -179,19 +179,19 @@ void testgammagap()
 	std::string const fn2("tmpfile2");
 	std::string const fnm("tmpfile.merged");
 
-	::libmaus::util::TempFileRemovalContainer::setup();
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn2);
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fnm);
+	::libmaus2::util::TempFileRemovalContainer::setup();
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn2);
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fnm);
 
-	::libmaus::gamma::GammaGapEncoder GGE(fn);
+	::libmaus2::gamma::GammaGapEncoder GGE(fn);
 	GGE.encode(V.begin(),V.end());
-	::libmaus::gamma::GammaGapEncoder GGE2(fn2);
+	::libmaus2::gamma::GammaGapEncoder GGE2(fn2);
 	GGE2.encode(V2.begin(),V2.end());
 	
-	::libmaus::huffman::IndexDecoderData IDD(fn);
+	::libmaus2::huffman::IndexDecoderData IDD(fn);
 	
-	::libmaus::gamma::GammaGapDecoder GGD(std::vector<std::string>(1,fn));
+	::libmaus2::gamma::GammaGapDecoder GGD(std::vector<std::string>(1,fn));
 	
 	bool ok = true;
 	for ( uint64_t i = 0; i < n; ++i )
@@ -204,11 +204,11 @@ void testgammagap()
 	std::vector < std::vector<std::string> > merin;
 	merin.push_back(std::vector<std::string>(1,fn));
 	merin.push_back(std::vector<std::string>(1,fn2));
-	::libmaus::gamma::GammaGapEncoder::merge(merin,fnm);
+	::libmaus2::gamma::GammaGapEncoder::merge(merin,fnm);
 }
 
-#include <libmaus/gamma/GammaRLEncoder.hpp>
-#include <libmaus/gamma/GammaRLDecoder.hpp>
+#include <libmaus2/gamma/GammaRLEncoder.hpp>
+#include <libmaus2/gamma/GammaRLDecoder.hpp>
 
 void testgammarl()
 {
@@ -235,46 +235,46 @@ void testgammarl()
 	std::string const fn("tmpfile");
 	std::string const fn2("tmpfile2");
 	std::string const fn3("tmpfile3");
-	::libmaus::util::TempFileRemovalContainer::setup();
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn2);
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn3);
+	::libmaus2::util::TempFileRemovalContainer::setup();
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn2);
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn3);
 
-	::libmaus::gamma::GammaRLEncoder GE(fn,albits,V.size(),256*1024);	
+	::libmaus2::gamma::GammaRLEncoder GE(fn,albits,V.size(),256*1024);	
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		GE.encode(V[i]);
 	GE.flush();
 
-	::libmaus::gamma::GammaRLEncoder GE2(fn2,albits,V2.size(),256*1024);
+	::libmaus2::gamma::GammaRLEncoder GE2(fn2,albits,V2.size(),256*1024);
 	for ( uint64_t i = 0; i < V2.size(); ++i )
 		GE2.encode(V2[i]);
 	GE2.flush();
 
 	#if 0
-	::libmaus::huffman::IndexDecoderData IDD(fn);
+	::libmaus2::huffman::IndexDecoderData IDD(fn);
 	for ( uint64_t i = 0; i < IDD.numentries+1; ++i )
 		std::cerr << IDD.readEntry(i) << std::endl;	
 	#endif
 
-	::libmaus::gamma::GammaRLDecoder GD(std::vector<std::string>(1,fn));
+	::libmaus2::gamma::GammaRLDecoder GD(std::vector<std::string>(1,fn));
 	assert ( GD.getN() == n );
 
 	for ( uint64_t i = 0; i < n; ++i )
 		assert ( GD.decode() == static_cast<int64_t>(V[i]) );
 	
 	uint64_t const off = n / 2 + 1031;
-	::libmaus::gamma::GammaRLDecoder GD2(std::vector<std::string>(1,fn),off);
+	::libmaus2::gamma::GammaRLDecoder GD2(std::vector<std::string>(1,fn),off);
 	for ( uint64_t i = off; i < n; ++i )
 		assert ( GD2.decode() == static_cast<int64_t>(V[i]) );
 		
 	std::vector<std::string> fnv;
 	fnv.push_back(fn);
 	fnv.push_back(fn2);
-	::libmaus::gamma::GammaRLEncoder::concatenate(fnv,fn3);
+	::libmaus2::gamma::GammaRLEncoder::concatenate(fnv,fn3);
 	
 	for ( uint64_t off = 0; off < Vcat.size(); off += 18521 )
 	{
-		::libmaus::gamma::GammaRLDecoder GD3(std::vector<std::string>(1,fn3),off);	
+		::libmaus2::gamma::GammaRLDecoder GD3(std::vector<std::string>(1,fn3),off);	
 		assert ( GD3.getN() == Vcat.size() );
 		
 		for ( uint64_t i = 0; i < std::min(static_cast<uint64_t>(1024ull),Vcat.size()-off); ++i )
@@ -289,9 +289,9 @@ void testgammarl()
 void testgammasparse()
 {
 	std::ostringstream o0;
-	libmaus::gamma::SparseGammaGapEncoder SE0(o0);
+	libmaus2::gamma::SparseGammaGapEncoder SE0(o0);
 	std::ostringstream o1;
-	libmaus::gamma::SparseGammaGapEncoder SE1(o1);
+	libmaus2::gamma::SparseGammaGapEncoder SE1(o1);
 	
 	SE0.encode(4, 7);
 	SE0.encode(6, 3);
@@ -307,9 +307,9 @@ void testgammasparse()
 	std::cerr << "o1.size()=" << o1.str().size() << std::endl;
 	
 	std::istringstream i0(o0.str());
-	libmaus::gamma::SparseGammaGapDecoder SD0(i0);
+	libmaus2::gamma::SparseGammaGapDecoder SD0(i0);
 	std::istringstream i1(o1.str());
-	libmaus::gamma::SparseGammaGapDecoder SD1(i1);
+	libmaus2::gamma::SparseGammaGapDecoder SD1(i1);
 	
 	for ( uint64_t i = 0; i < 10; ++i )
 		std::cerr << SD0.decode() << ";";
@@ -322,10 +322,10 @@ void testgammasparse()
 	std::istringstream mi1(o1.str());
 	std::ostringstream mo;
 	
-	libmaus::gamma::SparseGammaGapMerge::merge(mi0,mi1,mo);
+	libmaus2::gamma::SparseGammaGapMerge::merge(mi0,mi1,mo);
 	
 	std::istringstream mi(mo.str());
-	libmaus::gamma::SparseGammaGapDecoder SDM(mi);
+	libmaus2::gamma::SparseGammaGapDecoder SDM(mi);
 
 	for ( uint64_t i = 0; i < 10; ++i )
 		std::cerr << SDM.decode() << ";";
@@ -335,15 +335,15 @@ void testgammasparse()
 
 void testsparsegammalevelmerge()
 {
-	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
-	libmaus::gamma::SparseGammaGapFileLevelSet SGGF(tmpgen);
+	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus2::gamma::SparseGammaGapFileLevelSet SGGF(tmpgen);
 	std::map<uint64_t,uint64_t> refM;
 	
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::gamma::SparseGammaGapEncoder SGE(COS);
+		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::gamma::SparseGammaGapEncoder SGE(COS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -356,8 +356,8 @@ void testsparsegammalevelmerge()
 	std::string const ffn = tmpgen.getFileName();
 	SGGF.merge(ffn);
 	
-	libmaus::aio::CheckedInputStream CIS(ffn);
-	libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
+	libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
 		uint64_t dv = SGGD.decode();
@@ -381,8 +381,8 @@ void testsparsegammalevelmerge()
 }
 
 
-#include <libmaus/gamma/SparseGammaGapBlockEncoder.hpp>
-#include <libmaus/gamma/SparseGammaGapConcatDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapBlockEncoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapConcatDecoder.hpp>
 
 void testSparseGammaConcat()
 {
@@ -391,7 +391,7 @@ void testSparseGammaConcat()
 		{
 			// set up array with random numbers
 			uint64_t const Amod = (An+1)/2 + (rand() % An);
-			libmaus::autoarray::AutoArray<uint64_t> A(An,false);
+			libmaus2::autoarray::AutoArray<uint64_t> A(An,false);
 			for ( uint64_t i = 0; i < A.size(); ++i )
 				A[i] = rand() % Amod;
 
@@ -399,7 +399,7 @@ void testSparseGammaConcat()
 			std::string const fnpref = "tmp_g";
 			
 			// encode array
-			std::vector<std::string> concfn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(
+			std::vector<std::string> concfn = libmaus2::gamma::SparseGammaGapBlockEncoder::encodeArray(
 				&A[0], &A[An], fnpref, 7 /* parts */, 5 /* block size */);
 				
 			// store data in map for reference
@@ -408,7 +408,7 @@ void testSparseGammaConcat()
 				M[A[i]]++;
 
 			uint64_t maxv = 0;		
-			std::vector<uint64_t> const splitkeys = libmaus::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(
+			std::vector<uint64_t> const splitkeys = libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder::getSplitKeys(
 				concfn,concfn,/* Amod, */8,maxv);
 			
 			#if 0
@@ -423,8 +423,8 @@ void testSparseGammaConcat()
 			#endif
 		
 			// test reading back starting from beginning
-			libmaus::gamma::SparseGammaGapFileIndexMultiDecoder concindex(concfn);	
-			libmaus::gamma::SparseGammaGapConcatDecoder SGGCD(concfn);
+			libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder concindex(concfn);	
+			libmaus2::gamma::SparseGammaGapConcatDecoder SGGCD(concfn);
 			int64_t prevkey = -1;
 			for ( uint64_t i = 0; i < Amod; ++i )
 			{
@@ -432,12 +432,12 @@ void testSparseGammaConcat()
 				// std::cerr << i << "\t" << v << "\t" << M[i] << std::endl;
 				assert ( v == M[i] );
 				
-				bool const prevok = ( prevkey == libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concindex,i) );
+				bool const prevok = ( prevkey == libmaus2::gamma::SparseGammaGapConcatDecoder::getPrevKey(concindex,i) );
 				
 				#if 0
 				if ( ! prevok )
 				{
-					std::cerr << "expected " << prevkey << " got " << libmaus::gamma::SparseGammaGapConcatDecoder::getPrevKey(concindex,i) << std::endl;
+					std::cerr << "expected " << prevkey << " got " << libmaus2::gamma::SparseGammaGapConcatDecoder::getPrevKey(concindex,i) << std::endl;
 				}
 				#endif
 				
@@ -451,7 +451,7 @@ void testSparseGammaConcat()
 			for ( uint64_t j = 0; j < Amod; ++j )
 			{
 				// std::cerr << "*** j=" << j << " ***" << std::endl;
-				libmaus::gamma::SparseGammaGapConcatDecoder SGGCD(concfn,j);
+				libmaus2::gamma::SparseGammaGapConcatDecoder SGGCD(concfn,j);
 			
 				for ( uint64_t i = j; i < Amod; ++i )
 				{
@@ -474,7 +474,7 @@ void testSparseGammaIndexing()
 {
 	std::stringstream datastr;
 	std::stringstream indexstr;
-	libmaus::gamma::SparseGammaGapBlockEncoder SGGBE(datastr,indexstr,-1 /* prevkey */,2);
+	libmaus2::gamma::SparseGammaGapBlockEncoder SGGBE(datastr,indexstr,-1 /* prevkey */,2);
 	SGGBE.encode(2,3);
 	SGGBE.encode(7,2);
 	SGGBE.encode(11,1);
@@ -483,7 +483,7 @@ void testSparseGammaIndexing()
 	SGGBE.term();
 	
 	std::istringstream istr(datastr.str());
-	libmaus::gamma::SparseGammaGapFileIndexDecoder SGGFID(istr);
+	libmaus2::gamma::SparseGammaGapFileIndexDecoder SGGFID(istr);
 	
 	std::cerr << SGGFID;
 	
@@ -507,11 +507,11 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 	std::string const fnout = "tmp_o";
 			
 	// encode array
-	std::vector<std::string> concafn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(&A[0], &A[An], fnprefa, 7 /* parts */, 2 /* block size */);
-	std::vector<std::string> concbfn = libmaus::gamma::SparseGammaGapBlockEncoder::encodeArray(&B[0], &B[Bn], fnprefb, 7 /* parts */, 2 /* block size */);
+	std::vector<std::string> concafn = libmaus2::gamma::SparseGammaGapBlockEncoder::encodeArray(&A[0], &A[An], fnprefa, 7 /* parts */, 2 /* block size */);
+	std::vector<std::string> concbfn = libmaus2::gamma::SparseGammaGapBlockEncoder::encodeArray(&B[0], &B[Bn], fnprefb, 7 /* parts */, 2 /* block size */);
 	
-	// libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,0,std::numeric_limits<uint64_t>::max(),fnout);
-	std::vector<std::string> const concofn = libmaus::gamma::SparseGammaGapMerge::merge(concafn,concbfn,fnout,10);
+	// libmaus2::gamma::SparseGammaGapMerge::merge(concafn,concbfn,0,std::numeric_limits<uint64_t>::max(),fnout);
+	std::vector<std::string> const concofn = libmaus2::gamma::SparseGammaGapMerge::merge(concafn,concbfn,fnout,10);
 
 	#if 0
 	for ( uint64_t i = 0; i < concafn.size(); ++i )
@@ -527,7 +527,7 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 	for ( uint64_t i = 0; i < Bn; ++i ) M[B[i]]++;
 	uint64_t const maxv = M.size() ? M.rbegin()->first : 0;
 	
-	libmaus::gamma::SparseGammaGapConcatDecoder dec(concofn);
+	libmaus2::gamma::SparseGammaGapConcatDecoder dec(concofn);
 	
 	for ( uint64_t i = 0; i <= maxv; ++i )
 	{
@@ -549,17 +549,17 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 		remove(concofn[i].c_str());
 }
 
-libmaus::autoarray::AutoArray<uint64_t> randomArray(uint64_t const n, uint64_t const klow, uint64_t const khigh)
+libmaus2::autoarray::AutoArray<uint64_t> randomArray(uint64_t const n, uint64_t const klow, uint64_t const khigh)
 {
 	if ( ! n )
-		return libmaus::autoarray::AutoArray<uint64_t>(0);
+		return libmaus2::autoarray::AutoArray<uint64_t>(0);
 	
 	assert ( khigh-klow );
 	
-	libmaus::autoarray::AutoArray<uint64_t> A(n,false);
+	libmaus2::autoarray::AutoArray<uint64_t> A(n,false);
 	
 	for ( uint64_t i = 0; i < n; ++i )
-		A[i] = klow + ( libmaus::random::Random::rand64() % (khigh-klow) );
+		A[i] = klow + ( libmaus2::random::Random::rand64() % (khigh-klow) );
 	
 	return A;
 }
@@ -573,8 +573,8 @@ void testSparseGammaGapMergingRandom(
 	uint64_t const krh
 )
 {
-	libmaus::autoarray::AutoArray<uint64_t> Al = randomArray(nl,kll,klh);
-	libmaus::autoarray::AutoArray<uint64_t> Ar = randomArray(nr,krl,krh);
+	libmaus2::autoarray::AutoArray<uint64_t> Al = randomArray(nl,kll,klh);
+	libmaus2::autoarray::AutoArray<uint64_t> Ar = randomArray(nr,krl,krh);
 	testSparseGammaGapMergingSmall(Al.begin(),Al.size(),Ar.begin(),Ar.size());
 }
 
@@ -584,10 +584,10 @@ void testSparseGammaGapMergingRandom()
 	uint64_t const loops = 32;
 	for ( uint64_t i = 0; i < loops; ++i )
 	{
-		uint64_t const k0 = libmaus::random::Random::rand64() % 1024;
-		uint64_t const k1 = k0 + (libmaus::random::Random::rand64() % 1024+1);
-		uint64_t const nl = libmaus::random::Random::rand64() % 1024;
-		uint64_t const nr = libmaus::random::Random::rand64() % 1024;
+		uint64_t const k0 = libmaus2::random::Random::rand64() % 1024;
+		uint64_t const k1 = k0 + (libmaus2::random::Random::rand64() % 1024+1);
+		uint64_t const nl = libmaus2::random::Random::rand64() % 1024;
+		uint64_t const nr = libmaus2::random::Random::rand64() % 1024;
 		
 		testSparseGammaGapMergingRandom(nl,k0,k1,nr,k0,k1);
 		testSparseGammaGapMergingRandom(nr,k0,k1,nr,k0,k1);
@@ -599,13 +599,13 @@ void testSparseGammaGapMergingRandom()
 	// test part overlapping
 	for ( uint64_t i = 0; i < loops; ++i )
 	{
-		uint64_t const k0 = libmaus::random::Random::rand64() % 1024;
-		uint64_t const k1 = k0 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const k0 = libmaus2::random::Random::rand64() % 1024;
+		uint64_t const k1 = k0 + (libmaus2::random::Random::rand64() % 1024+1);
 		uint64_t const ksl = k1-(k1-k0)/2;
-		uint64_t const k2 = k1 + (libmaus::random::Random::rand64() % 1024+1);
+		uint64_t const k2 = k1 + (libmaus2::random::Random::rand64() % 1024+1);
 		uint64_t const ksr = k2-(k2-k1)/2;
-		uint64_t const nl = libmaus::random::Random::rand64() % 1024;
-		uint64_t const nr = libmaus::random::Random::rand64() % 1024;
+		uint64_t const nl = libmaus2::random::Random::rand64() % 1024;
+		uint64_t const nr = libmaus2::random::Random::rand64() % 1024;
 		
 		testSparseGammaGapMergingRandom(nl,k0,ksl,nr,ksr,k2);
 		testSparseGammaGapMergingRandom(nr,ksr,k2,nl,k0,ksl);
@@ -617,11 +617,11 @@ void testSparseGammaGapMergingRandom()
 	// test non overlapping
 	for ( uint64_t i = 0; i < loops; ++i )
 	{
-		uint64_t const k0 = libmaus::random::Random::rand64() % 1024;
-		uint64_t const k1 = k0 + (libmaus::random::Random::rand64() % 1024+1);
-		uint64_t const k2 = k1 + (libmaus::random::Random::rand64() % 1024+1);
-		uint64_t const nl = libmaus::random::Random::rand64() % 1024;
-		uint64_t const nr = libmaus::random::Random::rand64() % 1024;
+		uint64_t const k0 = libmaus2::random::Random::rand64() % 1024;
+		uint64_t const k1 = k0 + (libmaus2::random::Random::rand64() % 1024+1);
+		uint64_t const k2 = k1 + (libmaus2::random::Random::rand64() % 1024+1);
+		uint64_t const nl = libmaus2::random::Random::rand64() % 1024;
+		uint64_t const nr = libmaus2::random::Random::rand64() % 1024;
 		
 		testSparseGammaGapMergingRandom(nl,k0,k1,nr,k1,k2);
 		testSparseGammaGapMergingRandom(nr,k1,k2,nl,k0,k1);
@@ -652,27 +652,27 @@ void testSparseGammaGapMergingSmall()
 	for ( uint64_t a = 0; A[a]; ++a )
 		for ( uint64_t b = 0; B[b]; ++b )
 		{
-			libmaus::autoarray::AutoArray<uint64_t> At(An[a],false);
-			libmaus::autoarray::AutoArray<uint64_t> Bt(Bn[b],false);
+			libmaus2::autoarray::AutoArray<uint64_t> At(An[a],false);
+			libmaus2::autoarray::AutoArray<uint64_t> Bt(Bn[b],false);
 			std::copy(A[a],A[a]+An[a],At.begin());
 			std::copy(B[b],B[b]+Bn[b],Bt.begin());			
 			testSparseGammaGapMergingSmall(At.begin(),An[a],Bt.begin(),Bn[b]);
 		}
 }
 
-#include <libmaus/gamma/SparseGammaGapMultiFileSet.hpp>
+#include <libmaus2/gamma/SparseGammaGapMultiFileSet.hpp>
 
 void testsparsegammamerge()
 {
-	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
-	libmaus::gamma::SparseGammaGapFileSet SGGF(tmpgen);
+	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus2::gamma::SparseGammaGapFileSet SGGF(tmpgen);
 	std::map<uint64_t,uint64_t> refM;
 	
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::gamma::SparseGammaGapEncoder SGE(COS);
+		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::gamma::SparseGammaGapEncoder SGE(COS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -685,8 +685,8 @@ void testsparsegammamerge()
 	std::string const ffn = tmpgen.getFileName();
 	SGGF.merge(ffn);
 	
-	libmaus::aio::CheckedInputStream CIS(ffn);
-	libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
+	libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
 		uint64_t dv = SGGD.decode();
@@ -712,17 +712,17 @@ void testsparsegammamerge()
 
 void testsparsegammamultimerge()
 {
-	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
-	libmaus::gamma::SparseGammaGapMultiFileSet SGGF(tmpgen,4);
+	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus2::gamma::SparseGammaGapMultiFileSet SGGF(tmpgen,4);
 	std::map<uint64_t,uint64_t> refM;
 	
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::aio::CheckedInputOutputStream indexCIOS(indexfn);
-		libmaus::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
+		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
+		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
 		remove(indexfn.c_str());
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
@@ -736,8 +736,8 @@ void testsparsegammamultimerge()
 	std::string const ffn = tmpgen.getFileName();
 	std::vector<std::string> const fno = SGGF.merge(ffn);
 	
-	// libmaus::aio::CheckedInputStream CIS(ffn);
-	libmaus::gamma::SparseGammaGapConcatDecoder SGGD(fno);
+	// libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
 		uint64_t dv = SGGD.decode();
@@ -761,21 +761,21 @@ void testsparsegammamultimerge()
 		remove(fno[i].c_str());
 }
 
-#include <libmaus/gamma/SparseGammaGapMultiFileLevelSet.hpp>
+#include <libmaus2/gamma/SparseGammaGapMultiFileLevelSet.hpp>
 
 void testsparsegammamultifilesetmerge()
 {
-	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
-	libmaus::gamma::SparseGammaGapMultiFileLevelSet SGGF(tmpgen,4);
+	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus2::gamma::SparseGammaGapMultiFileLevelSet SGGF(tmpgen,4);
 	std::map<uint64_t,uint64_t> refM;
 	
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::aio::CheckedInputOutputStream indexCIOS(indexfn);
-		libmaus::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
+		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
+		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
 		remove(indexfn.c_str());
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
@@ -789,8 +789,8 @@ void testsparsegammamultifilesetmerge()
 	std::string const ffn = tmpgen.getFileName();
 	std::vector<std::string> const fno = SGGF.merge(ffn);
 	
-	// libmaus::aio::CheckedInputStream CIS(ffn);
-	libmaus::gamma::SparseGammaGapConcatDecoder SGGD(fno);
+	// libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
 		uint64_t dv = SGGD.decode();
@@ -816,17 +816,17 @@ void testsparsegammamultifilesetmerge()
 
 void testsparsegammamultifilesetmergedense()
 {
-	libmaus::util::TempFileNameGenerator tmpgen("tmp",3);
-	libmaus::gamma::SparseGammaGapMultiFileLevelSet SGGF(tmpgen,4);
+	libmaus2::util::TempFileNameGenerator tmpgen("tmp",3);
+	libmaus2::gamma::SparseGammaGapMultiFileLevelSet SGGF(tmpgen,4);
 	std::map<uint64_t,uint64_t> refM;
 	
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::aio::CheckedInputOutputStream indexCIOS(indexfn);
-		libmaus::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
+		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
+		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
 		remove(indexfn.c_str());
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
@@ -842,8 +842,8 @@ void testsparsegammamultifilesetmergedense()
 	std::string const ffn = tmpgen.getFileName();
 	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1);
 	
-	// libmaus::aio::CheckedInputStream CIS(ffn);
-	libmaus::gamma::GammaGapDecoder SGGD(fno);
+	// libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::gamma::GammaGapDecoder SGGD(fno);
 	for ( uint64_t i = 0; i < maxval+1; ++i )
 	{
 		uint64_t dv = SGGD.decode();

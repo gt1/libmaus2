@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,18 +17,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/stringFunctions.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
 #include <limits>
 #include <cstdlib>
 #include <sstream>
 #include <iostream>
 
 #if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
-libmaus::parallel::PosixSpinLock libmaus::autoarray::AutoArray_lock;
+libmaus2::parallel::PosixSpinLock libmaus2::autoarray::AutoArray_lock;
 #elif defined(_OPENMP)
-libmaus::parallel::OMPLock libmaus::autoarray::AutoArray_lock;
+libmaus2::parallel::OMPLock libmaus2::autoarray::AutoArray_lock;
 #endif
 
 static uint64_t getMaxMem()
@@ -59,77 +59,77 @@ static uint64_t getMaxMem()
       }      
 }
 
-uint64_t volatile libmaus::autoarray::AutoArray_memusage = 0;
-uint64_t volatile libmaus::autoarray::AutoArray_peakmemusage = 0;
-uint64_t volatile libmaus::autoarray::AutoArray_maxmem = getMaxMem();
+uint64_t volatile libmaus2::autoarray::AutoArray_memusage = 0;
+uint64_t volatile libmaus2::autoarray::AutoArray_peakmemusage = 0;
+uint64_t volatile libmaus2::autoarray::AutoArray_maxmem = getMaxMem();
 
 #if defined(AUTOARRAY_TRACE)
-std::vector< libmaus::autoarray::AutoArrayBackTrace<AUTOARRAY_TRACE> > libmaus::autoarray::tracevector;
-libmaus::parallel::PosixSpinLock libmaus::autoarray::backtracelock;
-libmaus::parallel::PosixSpinLock libmaus::autoarray::tracelock;
+std::vector< libmaus2::autoarray::AutoArrayBackTrace<AUTOARRAY_TRACE> > libmaus2::autoarray::tracevector;
+libmaus2::parallel::PosixSpinLock libmaus2::autoarray::backtracelock;
+libmaus2::parallel::PosixSpinLock libmaus2::autoarray::tracelock;
 #endif
 
-#include <libmaus/rank/CodeBase.hpp>
+#include <libmaus2/rank/CodeBase.hpp>
 
-typedef ::libmaus::rank::ChooseCache choose_cache_type;
-choose_cache_type libmaus::rank::CodeBase::CC64(64);
+typedef ::libmaus2::rank::ChooseCache choose_cache_type;
+choose_cache_type libmaus2::rank::CodeBase::CC64(64);
 
-#include <libmaus/rank/ERankBase.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
 
-typedef ::libmaus::rank::EncodeCache<16,uint16_t> encode_cache_type;
-encode_cache_type libmaus::rank::ERankBase::EC16;
+typedef ::libmaus2::rank::EncodeCache<16,uint16_t> encode_cache_type;
+encode_cache_type libmaus2::rank::ERankBase::EC16;
 
-typedef ::libmaus::rank::DecodeCache<16,uint16_t> decode_cache_type;
-decode_cache_type libmaus::rank::ERankBase::DC16; 
+typedef ::libmaus2::rank::DecodeCache<16,uint16_t> decode_cache_type;
+decode_cache_type libmaus2::rank::ERankBase::DC16; 
 
-#include <libmaus/rank/RankTable.hpp>
+#include <libmaus2/rank/RankTable.hpp>
 
 #if defined(RANKTABLES)
-typedef ::libmaus::rank::RankTable rank_table_type;
-typedef ::libmaus::rank::SimpleRankTable simple_rank_table_type;
-const rank_table_type libmaus::rank::ERankBase::R;
-const simple_rank_table_type libmaus::rank::ERankBase::S;
+typedef ::libmaus2::rank::RankTable rank_table_type;
+typedef ::libmaus2::rank::SimpleRankTable simple_rank_table_type;
+const rank_table_type libmaus2::rank::ERankBase::R;
+const simple_rank_table_type libmaus2::rank::ERankBase::S;
 #endif  
 
-#include <libmaus/lcs/HashContainer.hpp>
+#include <libmaus2/lcs/HashContainer.hpp>
 
-::libmaus::autoarray::AutoArray<uint8_t> const ::libmaus::lcs::HashContainer::S = HashContainer::createSymMap();
-::libmaus::autoarray::AutoArray<unsigned int> const ::libmaus::lcs::HashContainer::E = HashContainer::createErrorMap();
+::libmaus2::autoarray::AutoArray<uint8_t> const ::libmaus2::lcs::HashContainer::S = HashContainer::createSymMap();
+::libmaus2::autoarray::AutoArray<unsigned int> const ::libmaus2::lcs::HashContainer::E = HashContainer::createErrorMap();
 
-#include <libmaus/lcs/HashContainer2.hpp>
+#include <libmaus2/lcs/HashContainer2.hpp>
 
-::libmaus::autoarray::AutoArray<uint8_t> const ::libmaus::lcs::HashContainer2::S = HashContainer2::createSymMap();
-::libmaus::autoarray::AutoArray<unsigned int> const ::libmaus::lcs::HashContainer2::E = HashContainer2::createErrorMap();
+::libmaus2::autoarray::AutoArray<uint8_t> const ::libmaus2::lcs::HashContainer2::S = HashContainer2::createSymMap();
+::libmaus2::autoarray::AutoArray<unsigned int> const ::libmaus2::lcs::HashContainer2::E = HashContainer2::createErrorMap();
 
-#include <libmaus/util/SaturatingCounter.hpp>
+#include <libmaus2/util/SaturatingCounter.hpp>
 
-unsigned int const ::libmaus::util::SaturatingCounter::shift[4] = { 6,4,2,0 };
-unsigned char const ::libmaus::util::SaturatingCounter::mask[4] = { 
+unsigned int const ::libmaus2::util::SaturatingCounter::shift[4] = { 6,4,2,0 };
+unsigned char const ::libmaus2::util::SaturatingCounter::mask[4] = { 
 		static_cast<uint8_t>(~(3 << 6)),
 		static_cast<uint8_t>(~(3 << 4)),
 		static_cast<uint8_t>(~(3 << 2)),
 		static_cast<uint8_t>(~(3 << 0))
 };
 
-#include <libmaus/lz/RAZFConstants.hpp>
+#include <libmaus2/lz/RAZFConstants.hpp>
 
-unsigned int const libmaus::lz::RAZFConstants::razf_window_bits = 15;
-uint64_t const libmaus::lz::RAZFConstants::razf_block_size = 1ull << razf_window_bits;
-uint64_t const libmaus::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_block_size;
+unsigned int const libmaus2::lz::RAZFConstants::razf_window_bits = 15;
+uint64_t const libmaus2::lz::RAZFConstants::razf_block_size = 1ull << razf_window_bits;
+uint64_t const libmaus2::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_block_size;
 
-#include <libmaus/network/CurlInit.hpp>
+#include <libmaus2/network/CurlInit.hpp>
 
-uint64_t libmaus::network::CurlInit::initcomplete = 0;
-libmaus::parallel::PosixSpinLock libmaus::network::CurlInit::lock;
+uint64_t libmaus2::network::CurlInit::initcomplete = 0;
+libmaus2::parallel::PosixSpinLock libmaus2::network::CurlInit::lock;
 
-#include <libmaus/network/OpenSSLInit.hpp>
+#include <libmaus2/network/OpenSSLInit.hpp>
 
-uint64_t libmaus::network::OpenSSLInit::initcomplete = 0;
-libmaus::parallel::PosixSpinLock libmaus::network::OpenSSLInit::lock;
+uint64_t libmaus2::network::OpenSSLInit::initcomplete = 0;
+libmaus2::parallel::PosixSpinLock libmaus2::network::OpenSSLInit::lock;
 
-#include <libmaus/util/AlphaDigitTable.hpp>
+#include <libmaus2/util/AlphaDigitTable.hpp>
 
-libmaus::util::AlphaDigitTable::AlphaDigitTable()
+libmaus2::util::AlphaDigitTable::AlphaDigitTable()
 {
 	memset(&A[0],0,sizeof(A));
 	
@@ -150,9 +150,9 @@ libmaus::util::AlphaDigitTable::AlphaDigitTable()
 		A[i] = 1;
 }
 
-#include <libmaus/util/AlphaTable.hpp>
+#include <libmaus2/util/AlphaTable.hpp>
 
-libmaus::util::AlphaTable::AlphaTable()
+libmaus2::util::AlphaTable::AlphaTable()
 {
 	memset(&A[0],0,sizeof(A));
 	
@@ -162,9 +162,9 @@ libmaus::util::AlphaTable::AlphaTable()
 		A[i] = 1;
 }
 
-#include <libmaus/util/DigitTable.hpp>
+#include <libmaus2/util/DigitTable.hpp>
 
-libmaus::util::DigitTable::DigitTable()
+libmaus2::util::DigitTable::DigitTable()
 {
 	memset(&A[0],0,sizeof(A));
 	A[static_cast<int>('0')] = 1;
@@ -179,9 +179,9 @@ libmaus::util::DigitTable::DigitTable()
 	A[static_cast<int>('9')] = 1;
 }
 
-#include <libmaus/bambam/SamPrintableTable.hpp>
+#include <libmaus2/bambam/SamPrintableTable.hpp>
 
-libmaus::bambam::SamPrintableTable::SamPrintableTable()
+libmaus2::bambam::SamPrintableTable::SamPrintableTable()
 {
 	memset(&A[0],0,sizeof(A));
 	
@@ -189,9 +189,9 @@ libmaus::bambam::SamPrintableTable::SamPrintableTable()
 		A[i] = 1;
 }
 
-#include <libmaus/bambam/SamZPrintableTable.hpp>
+#include <libmaus2/bambam/SamZPrintableTable.hpp>
 
-libmaus::bambam::SamZPrintableTable::SamZPrintableTable()
+libmaus2::bambam::SamZPrintableTable::SamZPrintableTable()
 {
 	memset(&A[0],0,sizeof(A));
 	A[static_cast<int>(' ')] = 1;
@@ -200,34 +200,34 @@ libmaus::bambam::SamZPrintableTable::SamZPrintableTable()
 		A[i] = 1;
 }
 
-#include <libmaus/bambam/SamInfoBase.hpp>
+#include <libmaus2/bambam/SamInfoBase.hpp>
 
-libmaus::util::DigitTable const libmaus::bambam::SamInfoBase::DT;
-libmaus::util::AlphaDigitTable const libmaus::bambam::SamInfoBase::ADT;
-libmaus::util::AlphaTable const libmaus::bambam::SamInfoBase::AT;
-libmaus::bambam::SamPrintableTable const libmaus::bambam::SamInfoBase::SPT;
-libmaus::bambam::SamZPrintableTable const libmaus::bambam::SamInfoBase::SZPT;
-libmaus::math::DecimalNumberParser const libmaus::bambam::SamInfoBase::DNP;
+libmaus2::util::DigitTable const libmaus2::bambam::SamInfoBase::DT;
+libmaus2::util::AlphaDigitTable const libmaus2::bambam::SamInfoBase::ADT;
+libmaus2::util::AlphaTable const libmaus2::bambam::SamInfoBase::AT;
+libmaus2::bambam::SamPrintableTable const libmaus2::bambam::SamInfoBase::SPT;
+libmaus2::bambam::SamZPrintableTable const libmaus2::bambam::SamInfoBase::SZPT;
+libmaus2::math::DecimalNumberParser const libmaus2::bambam::SamInfoBase::DNP;
 
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-std::map<std::string,libmaus::aio::InputStreamFactory::shared_ptr_type> libmaus::aio::InputStreamFactoryContainer::factories =
-	libmaus::aio::InputStreamFactoryContainer::setupFactories();
+std::map<std::string,libmaus2::aio::InputStreamFactory::shared_ptr_type> libmaus2::aio::InputStreamFactoryContainer::factories =
+	libmaus2::aio::InputStreamFactoryContainer::setupFactories();
 
-#include <libmaus/bambam/ScramInputContainer.hpp>
+#include <libmaus2/bambam/ScramInputContainer.hpp>
 
-std::map<void *, libmaus::util::shared_ptr<scram_cram_io_input_t>::type > libmaus::bambam::ScramInputContainer::Mcontrol;	
-std::map<void *, libmaus::aio::InputStream::shared_ptr_type> libmaus::bambam::ScramInputContainer::Mstream;
-std::map<void *, libmaus::aio::InputStream::shared_ptr_type> libmaus::bambam::ScramInputContainer::Mcompstream;
-libmaus::parallel::PosixMutex libmaus::bambam::ScramInputContainer::Mlock;
+std::map<void *, libmaus2::util::shared_ptr<scram_cram_io_input_t>::type > libmaus2::bambam::ScramInputContainer::Mcontrol;	
+std::map<void *, libmaus2::aio::InputStream::shared_ptr_type> libmaus2::bambam::ScramInputContainer::Mstream;
+std::map<void *, libmaus2::aio::InputStream::shared_ptr_type> libmaus2::bambam::ScramInputContainer::Mcompstream;
+libmaus2::parallel::PosixMutex libmaus2::bambam::ScramInputContainer::Mlock;
 
-#include <libmaus/digest/DigestFactoryContainer.hpp>
+#include <libmaus2/digest/DigestFactoryContainer.hpp>
 
-std::map< std::string, libmaus::digest::DigestFactoryInterface::shared_ptr_type > libmaus::digest::DigestFactoryContainer::factories = 
-	libmaus::digest::DigestFactoryContainer::setupFactories();
+std::map< std::string, libmaus2::digest::DigestFactoryInterface::shared_ptr_type > libmaus2::digest::DigestFactoryContainer::factories = 
+	libmaus2::digest::DigestFactoryContainer::setupFactories();
 
-#include <libmaus/util/NotDigitOrTermTable.hpp>
-char const libmaus::util::NotDigitOrTermTable::table[256] = {
+#include <libmaus2/util/NotDigitOrTermTable.hpp>
+char const libmaus2::util::NotDigitOrTermTable::table[256] = {
 0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

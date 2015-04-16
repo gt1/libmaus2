@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTBLOCK_HPP)
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTBLOCK_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/DecompressorObjectFactory.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SimpleCompressedInputBlock
 		{
 			typedef SimpleCompressedInputBlock this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			libmaus::lz::DecompressorObject::unique_ptr_type Pdecompressor;
-			libmaus::lz::DecompressorObject & decompressor;
+			libmaus2::lz::DecompressorObject::unique_ptr_type Pdecompressor;
+			libmaus2::lz::DecompressorObject & decompressor;
 			
-			libmaus::autoarray::AutoArray<uint8_t> I;
-			libmaus::autoarray::AutoArray<uint8_t> O;
+			libmaus2::autoarray::AutoArray<uint8_t> I;
+			libmaus2::autoarray::AutoArray<uint8_t> O;
 			uint64_t metasize;
 			uint64_t compsize;
 			uint64_t uncompsize;
 			bool eof;
 			
-			SimpleCompressedInputBlock(libmaus::lz::DecompressorObjectFactory & factory)
+			SimpleCompressedInputBlock(libmaus2::lz::DecompressorObjectFactory & factory)
 			: Pdecompressor(factory()), decompressor(*Pdecompressor), I(), O(), compsize(0), uncompsize(0), eof(false)
 			{
 			
@@ -60,17 +60,17 @@ namespace libmaus
 					return true;
 				}
 
-				libmaus::util::CountPutObject CPO;
-				uncompsize = libmaus::util::UTF8::decodeUTF8(stream);
-				::libmaus::util::UTF8::encodeUTF8(uncompsize,CPO);
+				libmaus2::util::CountPutObject CPO;
+				uncompsize = libmaus2::util::UTF8::decodeUTF8(stream);
+				::libmaus2::util::UTF8::encodeUTF8(uncompsize,CPO);
 				
-				compsize = ::libmaus::util::NumberSerialisation::deserialiseNumber(stream);
-				::libmaus::util::NumberSerialisation::serialiseNumber(CPO,compsize);
+				compsize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,compsize);
 				
 				metasize = CPO.c;
 				
 				if ( compsize > I.size() )
-					I = libmaus::autoarray::AutoArray<uint8_t>(compsize,false);
+					I = libmaus2::autoarray::AutoArray<uint8_t>(compsize,false);
 				
 				stream.read(reinterpret_cast<char *>(I.begin()),compsize);
 					
@@ -83,7 +83,7 @@ namespace libmaus
 			bool uncompressBlock()
 			{
 				if ( uncompsize > O.size() )
-					O = libmaus::autoarray::AutoArray<uint8_t>(uncompsize,false);			
+					O = libmaus2::autoarray::AutoArray<uint8_t>(uncompsize,false);			
 
 				bool const ok = decompressor.rawuncompress(
 					reinterpret_cast<char const *>(I.begin()),compsize,

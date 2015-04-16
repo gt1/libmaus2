@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,37 +19,37 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGE_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlReorderWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct GenericInputControlReorderWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef GenericInputControlReorderWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 						
-				libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type in;
-				libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type out;
+				libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type in;
+				libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type out;
 				std::pair<uint64_t,uint64_t> I;
 				uint64_t index;
 						
-				GenericInputControlReorderWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), in(), out(), I(), index(0) {}
+				GenericInputControlReorderWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), in(), out(), I(), index(0) {}
 				GenericInputControlReorderWorkPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
-					libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type rin,
-					libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type rout,
+					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type rin,
+					libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type rout,
 					std::pair<uint64_t,uint64_t> const rI,
 					uint64_t const rindex
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), in(rin), out(rout), I(rI), index(rindex)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), in(rin), out(rout), I(rI), index(rindex)
 				{
 							
 				}

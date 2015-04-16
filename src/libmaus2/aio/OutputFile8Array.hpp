@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,12 +21,12 @@
 #if ! defined(OUTPUTFILE8ARRAY_HPP)
 #define OUTPUTFILE8ARRAY_HPP
 
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/aio/OutputBuffer8.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/aio/OutputBuffer8.hpp>
 #include <vector>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -36,22 +36,22 @@ namespace libmaus
 		struct OutputFile8Array
 		{
 			//! buffer type
-			typedef libmaus::aio::OutputBuffer8 buffer_type;
+			typedef libmaus2::aio::OutputBuffer8 buffer_type;
 			//! buffer pointer type
-			typedef ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<buffer_type>::type buffer_ptr_type;
 			//! this type
 			typedef OutputFile8Array this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! hash intervals
-			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & HI;
+			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & HI;
 			//! output buffers
-			::libmaus::autoarray::AutoArray<buffer_ptr_type> buffers;
+			::libmaus2::autoarray::AutoArray<buffer_ptr_type> buffers;
 			//! output file names
 			std::vector < std::string > filenames;
 			//! interval tree for hash intervals
-			::libmaus::util::IntervalTree IT;
+			::libmaus2::util::IntervalTree IT;
 
 			public:
 			/**
@@ -60,7 +60,7 @@ namespace libmaus
 			 * @param rHI hash intervals
 			 * @param fileprefix prefix for output files
 			 **/
-			OutputFile8Array(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & rHI, std::string const & fileprefix)
+			OutputFile8Array(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & rHI, std::string const & fileprefix)
 			: HI(rHI), buffers(HI.size()), IT(HI,0,HI.size())
 			{
 				for ( uint64_t i = 0; i < HI.size(); ++i )

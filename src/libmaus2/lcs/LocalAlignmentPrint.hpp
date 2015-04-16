@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_LCS_LOCALALIGNMENTPRINT_HPP)
 #define LIBMAUS_LCS_LOCALALIGNMENTPRINT_HPP
 
-#include <libmaus/lcs/LocalBaseConstants.hpp>
-#include <libmaus/lcs/LocalEditDistanceResult.hpp>
+#include <libmaus2/lcs/LocalBaseConstants.hpp>
+#include <libmaus2/lcs/LocalEditDistanceResult.hpp>
 #include <iostream>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -230,7 +230,7 @@ namespace libmaus
 				uint64_t const rlinewidth,
 				alignment_iterator const rta,
 				alignment_iterator const rte,
-				libmaus::lcs::LocalEditDistanceResult const & LED
+				libmaus2::lcs::LocalEditDistanceResult const & LED
 			)
 			{
 				return printAlignmentLines(out,ita+LED.a_clip_left,aend-LED.a_clip_right,itb+LED.b_clip_left,bend-LED.b_clip_right,rlinewidth,rta,rte);
@@ -248,7 +248,7 @@ namespace libmaus
 				uint64_t const rlinewidth,
 				alignment_iterator const rta,
 				alignment_iterator const rte,
-				libmaus::lcs::LocalEditDistanceResult const & LED
+				libmaus2::lcs::LocalEditDistanceResult const & LED
 			)
 			{
 				return printAlignmentLines(out,a.begin()+LED.a_clip_left,a.end()-LED.a_clip_right,b.begin()+LED.b_clip_left,b.end()-LED.b_clip_right,rlinewidth,rta,rte);

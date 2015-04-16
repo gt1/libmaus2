@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/NameInfoBase.hpp>
+#include <libmaus2/fastx/NameInfoBase.hpp>
 
-std::ostream & libmaus::fastx::operator<<(std::ostream & out, NameInfoBase::fastq_name_scheme_type const namescheme)
+std::ostream & libmaus2::fastx::operator<<(std::ostream & out, NameInfoBase::fastq_name_scheme_type const namescheme)
 {
 	switch ( namescheme )
 	{

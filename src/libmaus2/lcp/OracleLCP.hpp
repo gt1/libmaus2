@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2008 Simon Puglisi
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -31,12 +31,12 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/rmq/FischerSystematicSuccinctRMQ.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/rmq/FischerSystematicSuccinctRMQ.hpp>
 #include <stdexcept>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
    namespace lcp
    {
@@ -85,16 +85,16 @@ namespace libmaus
          uint32_t _m;
          
          /* size <= 256 for _logv <= 8 */
-         ::libmaus::autoarray::AutoArray<int32_t> _rev_cover;
+         ::libmaus2::autoarray::AutoArray<int32_t> _rev_cover;
          /* _delta <= 256 for _logv <= 8 */ 
-         ::libmaus::autoarray::AutoArray<uint32_t> _delta;
+         ::libmaus2::autoarray::AutoArray<uint32_t> _delta;
          /* _n/256 * 20 for _logv=8 equals 0.3125 bytes per symbol */
-         ::libmaus::autoarray::AutoArray<uint32_t> _ess;
+         ::libmaus2::autoarray::AutoArray<uint32_t> _ess;
          /* _n/256 * 20 for _logv=8 equals 0.3125 bytes per symbol */
-         ::libmaus::autoarray::AutoArray<uint32_t> _rev_ess;
+         ::libmaus2::autoarray::AutoArray<uint32_t> _rev_ess;
 
          /* _n/256 * 20 for _logv=8 equals 0.3125 bytes per symbol */
-         ::libmaus::autoarray::AutoArray< ell_type > _ell;
+         ::libmaus2::autoarray::AutoArray< ell_type > _ell;
          /* _n/32 * 2 + o(n) = .0625 bytes per symbol */
          rmq_ptr_type _rmq;
 
@@ -111,7 +111,7 @@ namespace libmaus
          {
             if(_logv > max_precomputed_cover)
             {
-               ::libmaus::exception::LibMausException se;
+               ::libmaus2::exception::LibMausException se;
                se.getStream() << "Specified DC ("<< _logv << ") greater than max ("<<max_precomputed_cover<<")";
                se.finish();
                throw se;
@@ -156,8 +156,8 @@ namespace libmaus
             }
 
             //compute arrays _ess, _rev_ess
-            _ess = ::libmaus::autoarray::AutoArray<uint32_t>(_m);
-            _rev_ess = ::libmaus::autoarray::AutoArray<uint32_t>(_m);
+            _ess = ::libmaus2::autoarray::AutoArray<uint32_t>(_m);
+            _rev_ess = ::libmaus2::autoarray::AutoArray<uint32_t>(_m);
             j = 0;
             for(uint32_t i = 0; i < _n; i++)
             {
@@ -174,11 +174,11 @@ namespace libmaus
             //fprintf(stderr,"j = %d\n",j);
 
             //compute _ell using _ess, _rev_ess, _rev_cover
-            _ell = ::libmaus::autoarray::AutoArray<ell_type>(_m,true);
+            _ell = ::libmaus2::autoarray::AutoArray<ell_type>(_m,true);
             _ell[0] = 0;
             int32_t len = 0;
             uint32_t computed = 0;
-            ::libmaus::autoarray::AutoArray<int> lengths(_cover_size);
+            ::libmaus2::autoarray::AutoArray<int> lengths(_cover_size);
 
             for(uint32_t i = 0; i < _cover_size; i++){
                lengths[i] = 0;

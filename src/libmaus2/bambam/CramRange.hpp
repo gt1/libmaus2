@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #define LIBMAUS_BAMBAM_CRAMRANGE_HPP
 
 #include <string>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -103,7 +103,7 @@ namespace libmaus
 							}
 							else
 							{
-								libmaus::exception::LibMausException ex;
+								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (part after colon contains no minus and is not a number)" << std::endl;
 								ex.finish();
 								throw ex;
@@ -119,7 +119,7 @@ namespace libmaus
 						for ( uint64_t i = 0; i < sstart.size(); ++i )
 							if ( ! isdigit(static_cast<uint8_t>(sstart[i])) )
 							{
-								libmaus::exception::LibMausException ex;
+								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (start point is not a number)" << std::endl;
 								ex.finish();
 								throw ex;		
@@ -133,7 +133,7 @@ namespace libmaus
 						for ( uint64_t i = 0; i < send.size(); ++i )
 							if ( ! isdigit(static_cast<uint8_t>(send[i])) )
 							{
-								libmaus::exception::LibMausException ex;
+								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "CramRange(): cannot parse CRAM input range " << range << " (end point is not a number)" << std::endl;
 								ex.finish();
 								throw ex;		

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTPRINTER_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTPRINTER_HPP
 
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,9 +32,9 @@ namespace libmaus
 		struct BamAlignmentPrinter
 		{
 			//! BAM header for reference names
-			libmaus::bambam::BamHeader const & header;
+			libmaus2::bambam::BamHeader const & header;
 			//! temp mem block for formatting
-			::libmaus::bambam::BamFormatAuxiliary aux;
+			::libmaus2::bambam::BamFormatAuxiliary aux;
 			//! output stream
 			std::ostream & out;
 			
@@ -44,7 +44,7 @@ namespace libmaus
 			 * @param rheader BAM header
 			 * @param rout output stream
 			 **/
-			BamAlignmentPrinter(libmaus::bambam::BamHeader const & rheader, std::ostream & rout)
+			BamAlignmentPrinter(libmaus2::bambam::BamHeader const & rheader, std::ostream & rout)
 			: header(rheader), out(rout) {}
 
 			/**
@@ -55,7 +55,7 @@ namespace libmaus
 			 **/
 			void put(uint8_t const * D, uint64_t const n) 
 			{
-				out << libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(D,n,header,aux) << "\n";
+				out << libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(D,n,header,aux) << "\n";
 			}
 		};
 	}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_UTIL_ISTREAMWRAPPER_HPP
 
 #include <istream>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -54,8 +54,8 @@ namespace libmaus
 				
 				if ( ! in )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::aio::IStreamWrapper: failed to read data block of size " << c << std::endl;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::aio::IStreamWrapper: failed to read data block of size " << c << std::endl;
 					lme.finish();
 					throw lme;
 				}

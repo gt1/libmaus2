@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,27 +21,27 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus/network/Socket.hpp>
+#include <libmaus2/network/Socket.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct SocketInputStreamBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus::network::SocketInputInterface & stream;
+			::libmaus2::network::SocketInputInterface & stream;
 
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
 			
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			SocketInputStreamBuffer(SocketInputStreamBuffer const &);
 			SocketInputStreamBuffer & operator=(SocketInputStreamBuffer &);
 						
 			public:
-			SocketInputStreamBuffer(::libmaus::network::SocketInputInterface & rstream, uint64_t const rblocksize, uint64_t const rputbackspace = 0)
+			SocketInputStreamBuffer(::libmaus2::network::SocketInputInterface & rstream, uint64_t const rblocksize, uint64_t const rputbackspace = 0)
 			: 
 			  stream(rstream),
 			  blocksize(rblocksize),

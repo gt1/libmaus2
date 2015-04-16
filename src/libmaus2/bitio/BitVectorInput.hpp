@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_BITIO_BITVECTORINPUT_HPP)
 #define LIBMAUS_BITIO_BITVECTORINPUT_HPP
 
-#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
 		struct BitVectorInput
 		{
-			libmaus::aio::CheckedInputStream::unique_ptr_type istr;
-			libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
+			libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
+			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			
 			std::vector<std::string> filenames;
 			uint64_t nextfile;
@@ -39,9 +39,9 @@ namespace libmaus
 			
 			static uint64_t getLength(std::string const & fn)
 			{
-				libmaus::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::CheckedInputStream CIS(fn);
 				CIS.seekg(-8,std::ios::end);
-				libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,1);
+				libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,1);
 				uint64_t n = 0;
 				bool const ok = SGI.getNext(n);
 				assert ( ok );
@@ -91,15 +91,15 @@ namespace libmaus
 				{
 					std::string const fn = filenames[nextfile++];
 
-					libmaus::aio::CheckedInputStream::unique_ptr_type tistr(
-						new libmaus::aio::CheckedInputStream(fn)
+					libmaus2::aio::CheckedInputStream::unique_ptr_type tistr(
+						new libmaus2::aio::CheckedInputStream(fn)
 					);
 					istr = UNIQUE_PTR_MOVE(tistr);
 							
 					istr->seekg(-8,std::ios::end);
 							
-					libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type nSGI(
-						new libmaus::aio::SynchronousGenericInput<uint64_t>(*istr,1)
+					libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type nSGI(
+						new libmaus2::aio::SynchronousGenericInput<uint64_t>(*istr,1)
 					);
 					
 					bool const ok = nSGI->getNext(bitsleft);
@@ -114,8 +114,8 @@ namespace libmaus
 					bitsleft -= 64*wordskip;
 					O.second -= 64*wordskip;
 
-					libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
-						new libmaus::aio::SynchronousGenericInput<uint64_t>(*istr,8*1024)
+					libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+						new libmaus2::aio::SynchronousGenericInput<uint64_t>(*istr,8*1024)
 					);
 					SGI = UNIQUE_PTR_MOVE(tSGI);
 					
@@ -141,15 +141,15 @@ namespace libmaus
 
 							std::string const fn = filenames[nextfile++];
 							
-							libmaus::aio::CheckedInputStream::unique_ptr_type tistr(
-								new libmaus::aio::CheckedInputStream(fn)
+							libmaus2::aio::CheckedInputStream::unique_ptr_type tistr(
+								new libmaus2::aio::CheckedInputStream(fn)
 							);
 							istr = UNIQUE_PTR_MOVE(tistr);
 							
 							istr->seekg(-8,std::ios::end);
 							
-							libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type nSGI(
-								new libmaus::aio::SynchronousGenericInput<uint64_t>(*istr,1)
+							libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type nSGI(
+								new libmaus2::aio::SynchronousGenericInput<uint64_t>(*istr,1)
 							);
 							
 							int64_t const numbits = nSGI->get();
@@ -159,14 +159,14 @@ namespace libmaus
 							istr->clear();
 							istr->seekg(0,std::ios::beg);
 
-							libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
-								new libmaus::aio::SynchronousGenericInput<uint64_t>(*istr,8*1024)
+							libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+								new libmaus2::aio::SynchronousGenericInput<uint64_t>(*istr,8*1024)
 							);
 							SGI = UNIQUE_PTR_MOVE(tSGI);
 						}
 						else
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "BitVectorInput::readBit(): EOF" << std::endl;
 							se.finish();
 							throw se;

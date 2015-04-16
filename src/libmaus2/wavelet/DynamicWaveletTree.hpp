@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,14 +22,14 @@
 
 #include <sstream>
 #include <limits>
-#include <libmaus/bitbtree/bitbtree.hpp>
+#include <libmaus2/bitbtree/bitbtree.hpp>
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <windows.h>
 #include <malloc.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -39,9 +39,9 @@ namespace libmaus
 			static unsigned int const k = _k;
 			static unsigned int const w = _w;
 			typedef DynamicWaveletTree<k,w> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type R;
+			typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type R;
 			uint64_t const b;
 			uint64_t n;
 			
@@ -54,7 +54,7 @@ namespace libmaus
 			}
 			
 			DynamicWaveletTree(uint64_t const rb)
-			: R(new ::libmaus::bitbtree::BitBTree<k,w>() ), b(rb), n(0)
+			: R(new ::libmaus2::bitbtree::BitBTree<k,w>() ), b(rb), n(0)
 			{
 				
 			}

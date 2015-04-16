@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_LRU_SPARSELRU_HPP)
 #define LIBMAUS_LRU_SPARSELRU_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unordered_map.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unordered_map.hpp>
 
 #include <map>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lru
 	{
@@ -34,14 +34,14 @@ namespace libmaus
 			uint64_t curtime;
 			uint64_t maxactive;
 			
-			libmaus::util::unordered_map<uint64_t,uint64_t>::type objectToTime;
+			libmaus2::util::unordered_map<uint64_t,uint64_t>::type objectToTime;
 			std::map<uint64_t,uint64_t> timeToObject;
 			
 			SparseLRU(uint64_t const rmaxactive) : curtime(0), maxactive(rmaxactive) {}
 			
 			void update(uint64_t const objectid)
 			{
-				libmaus::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
+				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
 				assert ( it != objectToTime.end() );
 				
 				uint64_t const otime = it->second;
@@ -60,7 +60,7 @@ namespace libmaus
 			
 			void erase(uint64_t const objectid)
 			{
-				libmaus::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
+				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
 				assert ( it != objectToTime.end() );
 				uint64_t otime = it->second;
 				
@@ -74,7 +74,7 @@ namespace libmaus
 			
 			int64_t get(uint64_t const objectid)
 			{
-				libmaus::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
+				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator it = objectToTime.find(objectid);
 				
 				// object is present, update access time
 				if ( it != objectToTime.end() )
@@ -95,7 +95,7 @@ namespace libmaus
 				// object is not present and we need to remove an element
 				std::map<uint64_t,uint64_t>::iterator otimeit = timeToObject.begin();
 				uint64_t const oobject = otimeit->second;
-				libmaus::util::unordered_map<uint64_t,uint64_t>::type::iterator oobjectit = objectToTime.find(oobject);
+				libmaus2::util::unordered_map<uint64_t,uint64_t>::type::iterator oobjectit = objectToTime.find(oobject);
 				
 				timeToObject.erase(otimeit);
 				objectToTime.erase(oobjectit);

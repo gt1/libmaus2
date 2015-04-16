@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_NETWORK_FTPSOCKET_HPP)
 #define LIBMAUS_NETWORK_FTPSOCKET_HPP
 
-#include <libmaus/network/FtpUrl.hpp>
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/network/SocketInputStream.hpp>
-#include <libmaus/util/stringFunctions.hpp>
+#include <libmaus2/network/FtpUrl.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/network/SocketInputStream.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct FtpSocket : public SocketInputInterface
 		{
-			typedef ::libmaus::network::ServerSocket server_socket_type;
+			typedef ::libmaus2::network::ServerSocket server_socket_type;
 			typedef server_socket_type::unique_ptr_type server_socket_ptr_type;
 			
-			libmaus::network::FtpUrl ftpurl;
-			libmaus::network::ClientSocket CS;
+			libmaus2::network::FtpUrl ftpurl;
+			libmaus2::network::ClientSocket CS;
 			std::string statusline;
-			libmaus::network::SocketBase::unique_ptr_type recsock;
+			libmaus2::network::SocketBase::unique_ptr_type recsock;
 			bool verbose;
-			libmaus::network::SocketInputStream::unique_ptr_type Pstream;
+			libmaus2::network::SocketInputStream::unique_ptr_type Pstream;
 			int64_t size;
 
 			uint64_t readServerMessage()
@@ -94,7 +94,7 @@ namespace libmaus
 				
 				if ( stat >= 400 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << statusline << std::endl;
 					lme.finish();
 					throw lme;
@@ -208,7 +208,7 @@ namespace libmaus
 							conline = conline.substr(0,conline.find_last_of(')'));
 							
 							std::deque<std::string> stokens =
-								libmaus::util::stringFunctions::tokenize<std::string>(conline,std::string(","));
+								libmaus2::util::stringFunctions::tokenize<std::string>(conline,std::string(","));
 								
 							if ( stokens.size() >= 5 )
 							{
@@ -235,14 +235,14 @@ namespace libmaus
 
 					if ( passiveport < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "cannot parse " << statusline << std::endl;
 						lme.finish();
 						throw lme;
 					}
 					
-					libmaus::network::SocketBase::unique_ptr_type tCS(
-						new libmaus::network::ClientSocket(passiveport,passivehost.c_str())
+					libmaus2::network::SocketBase::unique_ptr_type tCS(
+						new libmaus2::network::ClientSocket(passiveport,passivehost.c_str())
 					);
 					recsock = UNIQUE_PTR_MOVE(tCS);
 
@@ -252,7 +252,7 @@ namespace libmaus
 				{
 					// allocate server port
 					unsigned short serverport = 1024;
-					std::string const & hostname = libmaus::network::GetHostName::getHostName();
+					std::string const & hostname = libmaus2::network::GetHostName::getHostName();
 					server_socket_ptr_type tseso(
 						server_socket_type::allocateServerSocket(serverport,128,hostname.c_str(),32*1024));
 					seso = UNIQUE_PTR_MOVE(tseso);
@@ -306,12 +306,12 @@ namespace libmaus
 				if ( ! havepasv )
 				{
 					// wait for connection from ftp server
-					libmaus::network::SocketBase::unique_ptr_type trecsock = seso->accept();
+					libmaus2::network::SocketBase::unique_ptr_type trecsock = seso->accept();
 					recsock = UNIQUE_PTR_MOVE(trecsock);		
 				}
 
-				libmaus::network::SocketInputStream::unique_ptr_type Tstream(
-					new libmaus::network::SocketInputStream(*this,64*1024)
+				libmaus2::network::SocketInputStream::unique_ptr_type Tstream(
+					new libmaus2::network::SocketInputStream(*this,64*1024)
 				);
 				Pstream = UNIQUE_PTR_MOVE(Tstream);
 			}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,22 +17,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/wavelet/ExternalWaveletGenerator.hpp>
-#include <libmaus/wavelet/ImpWaveletTree.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGenerator.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGeneratorHuffmanParallel.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGeneratorHuffman.hpp>
-#include <libmaus/wavelet/ImpHuffmanWaveletTree.hpp>
-#include <libmaus/lf/LFZero.hpp>
+#include <libmaus2/wavelet/ExternalWaveletGenerator.hpp>
+#include <libmaus2/wavelet/ImpWaveletTree.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGenerator.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGeneratorHuffmanParallel.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGeneratorHuffman.hpp>
+#include <libmaus2/wavelet/ImpHuffmanWaveletTree.hpp>
+#include <libmaus2/lf/LFZero.hpp>
 
-#include <libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp>
-#include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp>
+#include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
 
 void testImpExternalWaveletGenerator()
 {
-	::libmaus::util::TempFileNameGenerator tmpgen("tmpdir",1);
+	::libmaus2::util::TempFileNameGenerator tmpgen("tmpdir",1);
 	uint64_t const b = 3;
-	::libmaus::wavelet::ImpExternalWaveletGenerator IEWG(b,tmpgen);
+	::libmaus2::wavelet::ImpExternalWaveletGenerator IEWG(b,tmpgen);
 	
 	#if 0
 	IEWG.putSymbol(0);
@@ -59,7 +59,7 @@ void testImpExternalWaveletGenerator()
 	IEWG.createFinalStream(ostr);
 	std::istringstream istr(ostr.str());
 	
-	::libmaus::wavelet::ImpWaveletTree IWT(istr);
+	::libmaus2::wavelet::ImpWaveletTree IWT(istr);
 	
 	std::cerr << "Testing...";
 	std::vector<uint64_t> R(1ull << b,0);
@@ -88,7 +88,7 @@ void testImpExternalWaveletGenerator()
 	#endif
 }
 
-#include <libmaus/huffman/huffman.hpp>
+#include <libmaus2/huffman/huffman.hpp>
 
 void testHuffmanWavelet()
 {
@@ -106,16 +106,16 @@ void testHuffmanWavelet()
 		
 	std::cerr << "Checking text of size " << text.size() << std::endl;
 	
-	::libmaus::util::shared_ptr< ::libmaus::huffman::HuffmanTreeNode >::type sroot = ::libmaus::huffman::HuffmanBase::createTree(text.begin(),text.end());
+	::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type sroot = ::libmaus2::huffman::HuffmanBase::createTree(text.begin(),text.end());
 	
-	::libmaus::util::TempFileNameGenerator tmpgen("tmphuf",3);
+	::libmaus2::util::TempFileNameGenerator tmpgen("tmphuf",3);
 	uint64_t const numfrags = 128;
 
 	#define PAR
 	#if defined(PAR)	
-	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffmanParallel exgen(sroot.get(), tmpgen, numfrags);
+	::libmaus2::wavelet::ImpExternalWaveletGeneratorHuffmanParallel exgen(sroot.get(), tmpgen, numfrags);
 	#else
-	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffman exgen(sroot.get(), tmpgen);
+	::libmaus2::wavelet::ImpExternalWaveletGeneratorHuffman exgen(sroot.get(), tmpgen);
 	#endif
 	
 	#if defined(PAR) && defined(_OPENMP)
@@ -139,10 +139,10 @@ void testHuffmanWavelet()
 	exgen.createFinalStream("hufwuf");
 
 	std::ifstream istr("hufwuf",std::ios::binary);
-	::libmaus::wavelet::ImpHuffmanWaveletTree IHWT(istr);
-	::libmaus::autoarray::AutoArray<int64_t> symar = sroot->symbolArray();
+	::libmaus2::wavelet::ImpHuffmanWaveletTree IHWT(istr);
+	::libmaus2::autoarray::AutoArray<int64_t> symar = sroot->symbolArray();
 	
-	::libmaus::huffman::EncodeTable<1> E(IHWT.sroot.get());
+	::libmaus2::huffman::EncodeTable<1> E(IHWT.sroot.get());
 	E.print();
 	
 	#if 0
@@ -229,18 +229,18 @@ void testHuffmanWaveletSer()
 {
 	// std::string text = "Hello world.";
 	std::string text = "fischers fritze fischt frische fische";
-	::libmaus::util::shared_ptr< ::libmaus::huffman::HuffmanTreeNode >::type sroot = ::libmaus::huffman::HuffmanBase::createTree(text.begin(),text.end());
+	::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type sroot = ::libmaus2::huffman::HuffmanBase::createTree(text.begin(),text.end());
 	
-	::libmaus::util::TempFileNameGenerator tmpgen("tmphuf",3);
-	// ::libmaus::wavelet::ImpExternalWaveletGeneratorHuffman exgen(sroot.get(), tmpgen);
-	::libmaus::wavelet::ImpExternalWaveletGeneratorHuffmanParallel exgen(sroot.get(), tmpgen, 1);
+	::libmaus2::util::TempFileNameGenerator tmpgen("tmphuf",3);
+	// ::libmaus2::wavelet::ImpExternalWaveletGeneratorHuffman exgen(sroot.get(), tmpgen);
+	::libmaus2::wavelet::ImpExternalWaveletGeneratorHuffmanParallel exgen(sroot.get(), tmpgen, 1);
 	for ( uint64_t i = 0; i < text.size(); ++i )
 		exgen[0].putSymbol(text[i]);
 		// exgen.putSymbol(text[i]);
 	exgen.createFinalStream("hufwuf");
 
 	std::ifstream istr("hufwuf",std::ios::binary);
-	::libmaus::wavelet::ImpHuffmanWaveletTree IHWT(istr);
+	::libmaus2::wavelet::ImpHuffmanWaveletTree IHWT(istr);
 	
 	for ( uint64_t i = 0; i < IHWT.size(); ++i )
 		std::cerr << static_cast<char>(IHWT[i]);
@@ -261,8 +261,8 @@ void testHuffmanWaveletSer()
 	std::cerr << std::endl;
 }
 
-#include <libmaus/util/MemTempFileContainer.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp>
+#include <libmaus2/util/MemTempFileContainer.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp>
 
 void testCompactHuffman()
 {
@@ -271,14 +271,14 @@ void testCompactHuffman()
 	F[1] = 1;
 	F[2] = 1;
 	F[3] = 1;
-	libmaus::huffman::HuffmanTree H(F.begin(),F.size(),false,true);
+	libmaus2::huffman::HuffmanTree H(F.begin(),F.size(),false,true);
 	
 	// std::cerr << H;
 	
-	libmaus::util::MemTempFileContainer MTFC;
-	libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
-	// libmaus::util::TempFileNameGenerator tmpgen("tmpdir",2);
-	// libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,8);
+	libmaus2::util::MemTempFileContainer MTFC;
+	libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
+	// libmaus2::util::TempFileNameGenerator tmpgen("tmpdir",2);
+	// libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,8);
 	
 	// std::cerr << "left construction." << std::endl;
 
@@ -292,7 +292,7 @@ void testCompactHuffman()
 	std::ostringstream ostr;
 	IEWGHN.createFinalStream(ostr);
 	std::istringstream istr(ostr.str());
-	libmaus::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
+	libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
 	
 	// std::cerr << IHWTN.size() << std::endl;
 	assert ( IHWTN.size() == n );
@@ -319,7 +319,7 @@ void testCompactHuffman()
 			assert ( IHWTN.enumerateSymbolsInRange(i,j) == IHWTN.enumerateSymbolsInRangeSlow(i,j) );
 		}
 
-	// ImpExternalWaveletGeneratorCompactHuffman(libmaus::huffman::HuffmanTree const & rH, ::libmaus::util::TempFileContainer & rtmpcnt)
+	// ImpExternalWaveletGeneratorCompactHuffman(libmaus2::huffman::HuffmanTree const & rH, ::libmaus2::util::TempFileContainer & rtmpcnt)
 
 }
 
@@ -331,22 +331,22 @@ void testCompactHuffmanPar()
 	uint64_t const n = 64*1024*1024;
 	for ( uint64_t i = 0; i < n; ++i )
 	{
-		A.push_back(libmaus::random::Random::rand8() & 0xFF);
+		A.push_back(libmaus2::random::Random::rand8() & 0xFF);
 		F[A.back()]++;
 	}
-	libmaus::huffman::HuffmanTree H(F.begin(),F.size(),false,true);
+	libmaus2::huffman::HuffmanTree H(F.begin(),F.size(),false,true);
 	
 	std::cerr << H;
 	
-	libmaus::util::MemTempFileContainer MTFC;
-	// libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
-	libmaus::util::TempFileNameGenerator tmpgen("tmpdir",2);
+	libmaus2::util::MemTempFileContainer MTFC;
+	// libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffman IEWGHN(H,MTFC);
+	libmaus2::util::TempFileNameGenerator tmpgen("tmpdir",2);
 	#if defined(_OPENMP)
 	uint64_t const numthreads = omp_get_max_threads();
 	#else
 	uint64_t const numthreads = 1;
 	#endif
-	libmaus::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,numthreads);
+	libmaus2::wavelet::ImpExternalWaveletGeneratorCompactHuffmanParallel IEWGHN(H,tmpgen,numthreads);
 	
 	// std::cerr << "left construction." << std::endl;
 
@@ -375,14 +375,14 @@ void testCompactHuffmanPar()
 	
 	std::string tmpfilename = "tmp.hwt";
 	// std::ostringstream ostr;
-	libmaus::aio::CheckedOutputStream COS(tmpfilename);
+	libmaus2::aio::CheckedOutputStream COS(tmpfilename);
 	IEWGHN.createFinalStream(COS);
 	COS.close();
 	// std::istringstream istr(ostr.str());
-	// libmaus::wavelet::ImpCompactHuffmanWaveletTree IHWTN(tmpfilename);
-	libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename));
-	libmaus::wavelet::ImpCompactHuffmanWaveletTree const & IHWTN = *pIHWTN;
-	// libmaus::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
+	// libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(tmpfilename);
+	libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename));
+	libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & IHWTN = *pIHWTN;
+	// libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
 	remove(tmpfilename.c_str());
 	
 	// std::cerr << IHWTN.size() << std::endl;
@@ -418,7 +418,7 @@ void testCompactHuffmanPar()
 			}
 	}
 
-	// ImpExternalWaveletGeneratorCompactHuffman(libmaus::huffman::HuffmanTree const & rH, ::libmaus::util::TempFileContainer & rtmpcnt)
+	// ImpExternalWaveletGeneratorCompactHuffman(libmaus2::huffman::HuffmanTree const & rH, ::libmaus2::util::TempFileContainer & rtmpcnt)
 
 }
 
@@ -429,9 +429,9 @@ int main()
 	return 0;
 	
 	#if 0
-	::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IMP(new ::libmaus::wavelet::ImpHuffmanWaveletTree(std::cin));
-	::libmaus::autoarray::AutoArray<uint32_t>::unique_ptr_type Z(new ::libmaus::autoarray::AutoArray<uint32_t>(64));
-	::libmaus::lf::LFZeroImp L(IMP,Z,0);
+	::libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IMP(new ::libmaus2::wavelet::ImpHuffmanWaveletTree(std::cin));
+	::libmaus2::autoarray::AutoArray<uint32_t>::unique_ptr_type Z(new ::libmaus2::autoarray::AutoArray<uint32_t>(64));
+	::libmaus2::lf::LFZeroImp L(IMP,Z,0);
 	#endif
 	
 	#if 0
@@ -451,8 +451,8 @@ int main()
 	srand(time(0));
 
 	uint64_t const b = 5;
-	::libmaus::util::TempFileNameGenerator tmpgen(std::string("tmp"),3);
-	::libmaus::wavelet::ExternalWaveletGenerator ex(b,tmpgen);
+	::libmaus2::util::TempFileNameGenerator tmpgen(std::string("tmp"),3);
+	::libmaus2::wavelet::ExternalWaveletGenerator ex(b,tmpgen);
 
 	std::vector < uint64_t > V;	
 	for ( uint64_t i = 0; i < 381842; ++i )
@@ -467,7 +467,7 @@ int main()
 	uint64_t const n = ex.createFinalStream(outfilename);
 	
 	::std::ifstream istr(outfilename.c_str(), std::ios::binary);
-	::libmaus::wavelet::WaveletTree < ::libmaus::rank::ERank222B, uint64_t > WT(istr);
+	::libmaus2::wavelet::WaveletTree < ::libmaus2::rank::ERank222B, uint64_t > WT(istr);
 	
 	std::cerr << "Checking...";
 	for ( uint64_t i = 0; i < n; ++i )

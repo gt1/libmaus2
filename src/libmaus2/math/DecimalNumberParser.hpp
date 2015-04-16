@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_MATH_NUMBERPARSER_HPP)
 #define LIBMAUS_MATH_NUMBERPARSER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/DigitTable.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/DigitTable.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace math
 	{
 		struct DecimalNumberParser
 		{
-			libmaus::util::DigitTable DT;
-			libmaus::autoarray::AutoArray<uint8_t> PM;
-			libmaus::autoarray::AutoArray<uint8_t> M;
+			libmaus2::util::DigitTable DT;
+			libmaus2::autoarray::AutoArray<uint8_t> PM;
+			libmaus2::autoarray::AutoArray<uint8_t> M;
 			
 			std::vector<unsigned int> uposlentable;
 			std::vector<unsigned int> iposlentable;
@@ -145,7 +145,7 @@ namespace libmaus
 				
 				if ( a == e )
 				{		
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (unexpected EOS)" << '\n';
 					lme.finish();
 					throw lme;
@@ -176,7 +176,7 @@ namespace libmaus
 					
 					if ( ! ok )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (invalid characters)" << '\n';
 						lme.finish();
 						throw lme;
@@ -204,7 +204,7 @@ namespace libmaus
 					
 					if ( ! ok )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (invalid characters)" << '\n';
 						lme.finish();
 						throw lme;			
@@ -230,7 +230,7 @@ namespace libmaus
 							}
 							else
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out of range for type, mod)" << '\n';
 								lme.finish();
 								throw lme;					
@@ -238,7 +238,7 @@ namespace libmaus
 						}
 						else
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out of range for type, div)" << '\n';
 							lme.finish();
 							throw lme;				
@@ -247,7 +247,7 @@ namespace libmaus
 				}
 				else // nl > uposlentable[sizeof(N)]
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out of range for type, number is too long)" << '\n';
 					lme.finish();
 					throw lme;								
@@ -267,7 +267,7 @@ namespace libmaus
 				}
 				if ( expect_false(a == e) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (unexpected EOS)" << '\n';
 					lme.finish();
 					throw lme;
@@ -300,7 +300,7 @@ namespace libmaus
 						
 						if ( ! ok )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (invalid characters)" << '\n';
 							lme.finish();
 							throw lme;
@@ -327,7 +327,7 @@ namespace libmaus
 						
 						if ( ! ok )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (invalid characters)" << '\n';
 							lme.finish();
 							throw lme;				
@@ -339,7 +339,7 @@ namespace libmaus
 						{
 							if ( expect_false(v < indiv10[sizeof(N)]) )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out range for type, prefix " << static_cast<int64_t>(v) << " min " << indiv10[sizeof(N)] << ")" << '\n';
 								lme.finish();
 								throw lme;		
@@ -350,7 +350,7 @@ namespace libmaus
 								
 								if ( *a - '0' > inmod10[sizeof(N)] )
 								{
-									libmaus::exception::LibMausException lme;
+									libmaus2::exception::LibMausException lme;
 									lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out range for type)" << '\n';
 									lme.finish();
 									throw lme;			
@@ -374,7 +374,7 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (too long for type)" << '\n';
 						lme.finish();
 						throw lme;
@@ -404,7 +404,7 @@ namespace libmaus
 						
 						if ( ! ok )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (invalid characters)" << '\n';
 							lme.finish();
 							throw lme;
@@ -431,7 +431,7 @@ namespace libmaus
 						
 						if ( ! ok )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (invalid characters)" << '\n';
 							lme.finish();
 							throw lme;				
@@ -443,7 +443,7 @@ namespace libmaus
 						{
 							if ( expect_false(v > idiv10[sizeof(N)]) )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out range for type, div)" << '\n';
 								lme.finish();
 								throw lme;		
@@ -454,7 +454,7 @@ namespace libmaus
 								
 								if ( *a - '0' > imod10[sizeof(N)] )
 								{
-									libmaus::exception::LibMausException lme;
+									libmaus2::exception::LibMausException lme;
 									lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (number out range for type, mod)" << '\n';
 									lme.finish();
 									throw lme;			
@@ -478,7 +478,7 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "DecimalNumberParser: cannot parse " << std::string(aa,e) << " (too long for type)" << '\n';
 						lme.finish();
 						throw lme;		

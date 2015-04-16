@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_LCS_LOCALALIGNMENTTRACECONTAINER_HPP)
 #define LIBMAUS_LCS_LOCALALIGNMENTTRACECONTAINER_HPP
 
-#include <libmaus/lcs/LocalPenaltyConstants.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/lcs/LocalPenaltyConstants.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -37,7 +37,7 @@ namespace libmaus
 			virtual ~LocalAlignmentTraceContainer() {}
 		
 			// trace
-			::libmaus::autoarray::AutoArray<step_type> trace;
+			::libmaus2::autoarray::AutoArray<step_type> trace;
 			//
 			step_type * te;
 			step_type * ta;
@@ -50,7 +50,7 @@ namespace libmaus
 			
 			void resize(uint64_t const tracelen)
 			{
-				trace = ::libmaus::autoarray::AutoArray<step_type>(tracelen,false);
+				trace = ::libmaus2::autoarray::AutoArray<step_type>(tracelen,false);
 				te = trace.end();
 				ta = te;
 			}

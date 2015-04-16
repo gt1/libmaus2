@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_LZ_RAZFINDEX_HPP)
 #define LIBMAUS_LZ_RAZFINDEX_HPP
 
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/lz/GzipHeader.hpp>
-#include <libmaus/lz/RAZFConstants.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/lz/RAZFConstants.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct RAZFIndex : public ::libmaus::lz::RAZFConstants
+		struct RAZFIndex : public ::libmaus2::lz::RAZFConstants
 		{
 			uint64_t uncompressed;
 			uint64_t compressed;
@@ -46,7 +46,7 @@ namespace libmaus
 
 				try
 				{
-					libmaus::lz::GzipHeader firstHeader(in);
+					libmaus2::lz::GzipHeader firstHeader(in);
 					
 					if ( 
 						firstHeader.extradata.size() != 7
@@ -84,7 +84,7 @@ namespace libmaus
 			
 			static bool hasRazfHeader(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::CheckedInputStream CIS(filename);
 				return hasRazfHeader(CIS);
 			}
 			
@@ -92,7 +92,7 @@ namespace libmaus
 			{
 				if ( ! hasRazfHeader(in,headerlength,blocksize) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "RAZFIndex::init(): file does not have a valid razf header" << std::endl;
 					lme.finish();
 					throw lme;				
@@ -103,22 +103,22 @@ namespace libmaus
 				
 				uint64_t const indexpos = in.tellg();
 				
-				uncompressed = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				compressed = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uncompressed = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				compressed = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				
 				in.clear();
 				in.seekg(compressed,std::ios::beg);
 				
-				uint64_t const indexsize = libmaus::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
+				uint64_t const indexsize = libmaus2::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
 				
 				uint64_t const v32 = indexsize / razf_bin_size + 1;
 				
 				binoffsets.resize(v32);
 				for ( uint64_t i = 0; i < v32; ++i )
-					binoffsets[i] = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					binoffsets[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				celloffsets.resize(indexsize);
 				for ( uint64_t i = 0; i < indexsize; ++i )
-					celloffsets[i] = libmaus::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
+					celloffsets[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in,sizeof(uint32_t));
 
 				assert ( static_cast<int64_t>(in.tellg()) == static_cast<int64_t>(indexpos) );
 	
@@ -141,7 +141,7 @@ namespace libmaus
 			RAZFIndex(std::string const & fn)
 			: uncompressed(0), compressed(0), headerlength(0)
 			{
-				libmaus::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::CheckedInputStream CIS(fn);
 				init(CIS);
 			}	
 			

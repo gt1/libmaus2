@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(TERMINATABLESYNCHRONOUSHEAP_HPP)
 #define TERMINATABLESYNCHRONOUSHEAP_HPP
 
-#include <libmaus/parallel/SynchronousHeap.hpp>
+#include <libmaus2/parallel/SynchronousHeap.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
-namespace libmaus
+namespace libmaus2
 {
         namespace parallel
         {

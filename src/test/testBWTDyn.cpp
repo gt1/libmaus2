@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/wavelet/DynamicWaveletTree.hpp>
-#include <libmaus/cumfreq/SlowCumFreq.hpp>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/eta/LinearETA.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
+#include <libmaus2/wavelet/DynamicWaveletTree.hpp>
+#include <libmaus2/cumfreq/SlowCumFreq.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/eta/LinearETA.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
 
 #include <fstream>
 #include <vector>
@@ -39,7 +39,7 @@ uint64_t getFileLength(std::string const & textfilename)
 	return n;
 }
 
-::libmaus::autoarray::AutoArray<uint64_t> getSymbolFrequencies(std::string const & textfilename)
+::libmaus2::autoarray::AutoArray<uint64_t> getSymbolFrequencies(std::string const & textfilename)
 {
 	uint64_t const n = getFileLength(textfilename);
 
@@ -48,12 +48,12 @@ uint64_t getFileLength(std::string const & textfilename)
 	if ( ! istr.is_open() )
 		throw std::runtime_error("Failed to open file.");
 
-	::libmaus::autoarray::AutoArray<uint64_t> F(256);
+	::libmaus2::autoarray::AutoArray<uint64_t> F(256);
 	for ( unsigned int i = 0; i < 256; ++i )
 		F[i] = 0;
 
 	uint64_t const s = 1024*1024;
-	::libmaus::autoarray::AutoArray<uint8_t> buf(s,false);
+	::libmaus2::autoarray::AutoArray<uint8_t> buf(s,false);
 
 	for ( uint64_t j = 0; j < (n + (s-1))/s; ++j )
 	{
@@ -72,19 +72,19 @@ uint64_t getFileLength(std::string const & textfilename)
 	return F;
 }
 
-void reorderHuffmanTreeZero(::libmaus::huffman::HuffmanTreeNode * hnode)
+void reorderHuffmanTreeZero(::libmaus2::huffman::HuffmanTreeNode * hnode)
 {
 
-	std::map < ::libmaus::huffman::HuffmanTreeNode *, ::libmaus::huffman::HuffmanTreeInnerNode * > hparentmap;
+	std::map < ::libmaus2::huffman::HuffmanTreeNode *, ::libmaus2::huffman::HuffmanTreeInnerNode * > hparentmap;
 	hnode->fillParentMap(hparentmap);
-	std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf * > hleafmap;
+	std::map < int64_t, ::libmaus2::huffman::HuffmanTreeLeaf * > hleafmap;
 	hnode->fillLeafMap(hleafmap);
 
-	::libmaus::huffman::HuffmanTreeNode * hcur = hleafmap.find(-1)->second;
+	::libmaus2::huffman::HuffmanTreeNode * hcur = hleafmap.find(-1)->second;
 	
 	while ( hparentmap.find(hcur) != hparentmap.end() )
 	{
-		::libmaus::huffman::HuffmanTreeInnerNode * hparent = hparentmap.find(hcur)->second;
+		::libmaus2::huffman::HuffmanTreeInnerNode * hparent = hparentmap.find(hcur)->second;
 		
 		if ( hcur == hparent->right )
 			std::swap(hparent->left, hparent->right);
@@ -93,12 +93,12 @@ void reorderHuffmanTreeZero(::libmaus::huffman::HuffmanTreeNode * hnode)
 	}
 }
 
-void applyRankMap(::libmaus::huffman::HuffmanTreeNode * hnode, std::map<int64_t,uint64_t> const & rankmap)
+void applyRankMap(::libmaus2::huffman::HuffmanTreeNode * hnode, std::map<int64_t,uint64_t> const & rankmap)
 {
-	std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf * > hleafmap;
+	std::map < int64_t, ::libmaus2::huffman::HuffmanTreeLeaf * > hleafmap;
 	hnode->fillLeafMap(hleafmap);
 
-	for ( std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf * >::iterator ita = hleafmap.begin(); ita != hleafmap.end(); ++ita )
+	for ( std::map < int64_t, ::libmaus2::huffman::HuffmanTreeLeaf * >::iterator ita = hleafmap.begin(); ita != hleafmap.end(); ++ita )
 	{
 		int const srcsym = ita->first;
 		uint64_t const dstsym = rankmap.find(srcsym)->second;
@@ -107,9 +107,9 @@ void applyRankMap(::libmaus::huffman::HuffmanTreeNode * hnode, std::map<int64_t,
 	}
 }
 
-void printCodeLength( ::libmaus::huffman::HuffmanTreeNode const * const hnode, uint64_t const * const F)
+void printCodeLength( ::libmaus2::huffman::HuffmanTreeNode const * const hnode, uint64_t const * const F)
 {
-	::libmaus::huffman::EncodeTable<4> enctable(hnode);
+	::libmaus2::huffman::EncodeTable<4> enctable(hnode);
 	
 	uint64_t l = 0;
 	uint64_t n = 0;
@@ -132,7 +132,7 @@ void computeBWT(std::string const & textfilename, std::ostream & output)
 	if ( ! n )
 		return;
 
-	::libmaus::autoarray::AutoArray<uint64_t> F = getSymbolFrequencies(textfilename);
+	::libmaus2::autoarray::AutoArray<uint64_t> F = getSymbolFrequencies(textfilename);
 		
 	std::map<int64_t,uint64_t> freq;
 	for ( unsigned int i = 0; i < 256; ++i )
@@ -148,18 +148,18 @@ void computeBWT(std::string const & textfilename, std::ostream & output)
 		}
 	std::cerr << "Entropy of text is " << ent/n << std::endl;
 
-	::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type ahnode = ::libmaus::huffman::HuffmanBase::createTree( freq );
+	::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type ahnode = ::libmaus2::huffman::HuffmanBase::createTree( freq );
 	
 	printCodeLength(ahnode.get(), F.get());
 	
 	reorderHuffmanTreeZero(ahnode.get());
 
-	std::map<int64_t,uint64_t> rankmap = ::libmaus::huffman::EncodeTable<4>(ahnode.get()).symsOrderedByCodeMap();
+	std::map<int64_t,uint64_t> rankmap = ::libmaus2::huffman::EncodeTable<4>(ahnode.get()).symsOrderedByCodeMap();
 	
 	applyRankMap(ahnode.get(), rankmap);
 	
-	::libmaus::autoarray::AutoArray<uint64_t> M(256);
-	::libmaus::autoarray::AutoArray<uint64_t> R(257);
+	::libmaus2::autoarray::AutoArray<uint64_t> M(256);
+	::libmaus2::autoarray::AutoArray<uint64_t> R(257);
 	uint64_t const a = rankmap.size();
 	for ( std::map<int64_t,uint64_t>::const_iterator ita = rankmap.begin(); ita != rankmap.end(); ++ita )
 	{
@@ -171,13 +171,13 @@ void computeBWT(std::string const & textfilename, std::ostream & output)
 		}
 	}
 
-	unsigned int const bpn = ::libmaus::math::bitsPerNum(a-1);
+	unsigned int const bpn = ::libmaus2::math::bitsPerNum(a-1);
 
-	::libmaus::wavelet::DynamicWaveletTree<k,w> B(bpn);
-	::libmaus::cumfreq::SlowCumFreq scf(a);
+	::libmaus2::wavelet::DynamicWaveletTree<k,w> B(bpn);
+	::libmaus2::cumfreq::SlowCumFreq scf(a);
 	
 	uint64_t const s = 1024*1024;
-	::libmaus::autoarray::AutoArray<uint8_t> buf(s,false);
+	::libmaus2::autoarray::AutoArray<uint8_t> buf(s,false);
 	uint64_t const numblocks = (n + (s-1))/s;
 
 	std::ifstream istr(textfilename.c_str(),std::ios::binary);
@@ -219,7 +219,7 @@ void computeBWT(std::string const & textfilename, std::ostream & output)
 	B.insert ( 0, p );
 	scf.inc(0);
 
-	::libmaus::autoarray::AutoArray<uint8_t> obuf(n,false);	
+	::libmaus2::autoarray::AutoArray<uint8_t> obuf(n,false);	
 
 	// follow LF to skip terminator
 	p = scf[ B[p] ] + (p ? B.rank(B[p],p-1) : 0);

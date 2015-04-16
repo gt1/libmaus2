@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMENCODINGWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMENCODINGWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/ScramCramEncoding.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/ScramCramEncoding.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			
-			struct CramEncodingWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct CramEncodingWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef CramEncodingWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				void * package;
 				ScramCramEncoding * iolibInterface;
 			
-				CramEncodingWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), package(0), iolibInterface(0) {}
+				CramEncodingWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), package(0), iolibInterface(0) {}
 				CramEncodingWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, void * rpackage, ScramCramEncoding * riolibInterface)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage), iolibInterface(riolibInterface)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage), iolibInterface(riolibInterface)
 				{
 				
 				}
@@ -56,7 +56,7 @@ namespace libmaus
 					int r;
 					if ( (r=iolibInterface->cram_process_work_package(package)) )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "CramEncodingWorkPackage::dispatch: cram_process_work_package returned error code " << r << std::endl;
 						lme.finish();
 						throw lme;

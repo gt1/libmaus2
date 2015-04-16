@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -18,8 +18,8 @@
 */
 
 
-#include <libmaus/util/PosixInputFile.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/util/PosixInputFile.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -27,13 +27,13 @@
 #include <cerrno>
 #include <cstring>
                      
-libmaus::util::PosixInputFile::PosixInputFile(std::string const & filename)
+libmaus2::util::PosixInputFile::PosixInputFile(std::string const & filename)
 {
 	PosixFileDescriptor::fd = open(filename.c_str(),O_RDONLY);
 	
 	if ( PosixFileDescriptor::fd < 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "PosixFileDescriptor: failed to open file " << filename << ": " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;

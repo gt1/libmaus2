@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -26,12 +26,12 @@
 #include <string>
 #include <vector>
 #include <deque>
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

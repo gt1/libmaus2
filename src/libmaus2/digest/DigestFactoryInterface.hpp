@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTFACTORYINTERFACE_HPP)
 #define LIBMAUS_DIGEST_DIGESTFACTORYINTERFACE_HPP
 
-#include <libmaus/digest/Digests.hpp>
+#include <libmaus2/digest/Digests.hpp>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{
 		struct DigestFactoryInterface
 		{
 			typedef DigestFactoryInterface this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			virtual ~DigestFactoryInterface() {}
 
 			virtual std::set<std::string> getSupportedDigests() const = 0;
-			virtual libmaus::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const = 0;
+			virtual libmaus2::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const = 0;
 
 			virtual DigestFactoryInterface::shared_ptr_type sclone() const = 0;
 		};

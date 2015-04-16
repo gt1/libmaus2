@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERBASE_HPP
 
-#include <libmaus/bambam/BamAuxSortingBuffer.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/AlignmentValidity.hpp>
-#include <libmaus/bambam/BamAlignmentReg2Bin.hpp>
-#include <libmaus/bambam/BamAuxFilterVector.hpp>
-#include <libmaus/bambam/BamFlagBase.hpp>
-#include <libmaus/bambam/BamFormatAuxiliary.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/DecoderBase.hpp>
-#include <libmaus/bambam/MdStringComputationContext.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/bambam/CigarOperation.hpp>
-#include <libmaus/math/IPower.hpp>
+#include <libmaus2/bambam/BamAuxSortingBuffer.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/AlignmentValidity.hpp>
+#include <libmaus2/bambam/BamAlignmentReg2Bin.hpp>
+#include <libmaus2/bambam/BamAuxFilterVector.hpp>
+#include <libmaus2/bambam/BamFlagBase.hpp>
+#include <libmaus2/bambam/BamFormatAuxiliary.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/DecoderBase.hpp>
+#include <libmaus2/bambam/MdStringComputationContext.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/bambam/CigarOperation.hpp>
+#include <libmaus2/math/IPower.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		/**
 		 * class containing static base functions for BAM alignment encoding and decoding
 		 **/
-		struct BamAlignmentDecoderBase : public ::libmaus::bambam::DecoderBase, public ::libmaus::bambam::BamFlagBase
+		struct BamAlignmentDecoderBase : public ::libmaus2::bambam::DecoderBase, public ::libmaus2::bambam::BamFlagBase
 		{
 			//! valid query name symbols table
 			static uint8_t const qnameValidTable[256];
@@ -167,7 +167,7 @@ namespace libmaus
 			 **/
 			static uint32_t hash32(uint8_t const * D)
 			{
-				return ::libmaus::hashing::EvaHash::hash(
+				return ::libmaus2::hashing::EvaHash::hash(
 					reinterpret_cast<uint8_t const *>(getReadName(D)),
 					getLReadName(D)-1
 				);
@@ -182,12 +182,12 @@ namespace libmaus
 			 **/
 			static uint64_t putFastQ(
 				uint8_t const * D,
-				libmaus::autoarray::AutoArray<uint8_t> & T
+				libmaus2::autoarray::AutoArray<uint8_t> & T
 			)
 			{
 				uint64_t const len = getFastQLength(D);
 				if ( T.size() < len ) 
-					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+					T = libmaus2::autoarray::AutoArray<uint8_t>(len);
 				putFastQ(D,T.begin());
 				return len;
 			}
@@ -202,12 +202,12 @@ namespace libmaus
 			static uint64_t putFastQTryOQ(
 				uint8_t const * D,
 				uint64_t const blocksize,
-				libmaus::autoarray::AutoArray<uint8_t> & T
+				libmaus2::autoarray::AutoArray<uint8_t> & T
 			)
 			{
 				uint64_t const len = getFastQLength(D);
 				if ( T.size() < len ) 
-					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+					T = libmaus2::autoarray::AutoArray<uint8_t>(len);
 				putFastQTryOQ(D,blocksize,T.begin());
 				return len;
 			}
@@ -221,12 +221,12 @@ namespace libmaus
 			 **/
 			static uint64_t putFastA(
 				uint8_t const * D,
-				libmaus::autoarray::AutoArray<uint8_t> & T
+				libmaus2::autoarray::AutoArray<uint8_t> & T
 			)
 			{
 				uint64_t const len = getFastALength(D);
 				if ( T.size() < len ) 
-					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+					T = libmaus2::autoarray::AutoArray<uint8_t>(len);
 				putFastA(D,T.begin());
 				return len;
 			}
@@ -244,12 +244,12 @@ namespace libmaus
 				uint8_t const * D,
 				uint64_t const ranka,
 				uint64_t const rankb,
-				libmaus::autoarray::AutoArray<uint8_t> & T
+				libmaus2::autoarray::AutoArray<uint8_t> & T
 			)
 			{
 				uint64_t const len = getFastQLengthRanks(D,ranka,rankb);
 				if ( T.size() < len ) 
-					T = libmaus::autoarray::AutoArray<uint8_t>(len);
+					T = libmaus2::autoarray::AutoArray<uint8_t>(len);
 				putFastQRanks(D,ranka,rankb,T.begin());
 				return len;
 			}
@@ -335,16 +335,16 @@ namespace libmaus
 				{
 					unsigned int p = 0;
 					
-					if ( rank >= libmaus::math::IPower<10,16>::n )
-						rank /= libmaus::math::IPower<10,16>::n, p += 16;
-					if ( rank >= libmaus::math::IPower<10, 8>::n )
-						rank /= libmaus::math::IPower<10, 8>::n, p += 8;
-					if ( rank >= libmaus::math::IPower<10, 4>::n )
-						rank /= libmaus::math::IPower<10, 4>::n, p += 4;
-					if ( rank >= libmaus::math::IPower<10, 2>::n )
-						rank /= libmaus::math::IPower<10, 2>::n, p += 2;
-					if ( rank >= libmaus::math::IPower<10, 1>::n )
-						rank /= libmaus::math::IPower<10, 1>::n, p += 1;
+					if ( rank >= libmaus2::math::IPower<10,16>::n )
+						rank /= libmaus2::math::IPower<10,16>::n, p += 16;
+					if ( rank >= libmaus2::math::IPower<10, 8>::n )
+						rank /= libmaus2::math::IPower<10, 8>::n, p += 8;
+					if ( rank >= libmaus2::math::IPower<10, 4>::n )
+						rank /= libmaus2::math::IPower<10, 4>::n, p += 4;
+					if ( rank >= libmaus2::math::IPower<10, 2>::n )
+						rank /= libmaus2::math::IPower<10, 2>::n, p += 2;
+					if ( rank >= libmaus2::math::IPower<10, 1>::n )
+						rank /= libmaus2::math::IPower<10, 1>::n, p += 1;
 					if ( rank )
 						rank /= 10, p += 1;
 					
@@ -948,22 +948,22 @@ namespace libmaus
 					switch ( op )
 					{
 						// insertion
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
 							icnt += static_cast<int64_t>(len);
 							break;
 						// padding (silent insertion, base not in this read, so ignore)
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
 							break;
 						// deletion from reference
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
 						// reference/intron skip (deletion)
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
 							icnt -= static_cast<int64_t>(len);
 							break;
 						// match/mismatch
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
 							running = false;
 							break;
 					}
@@ -980,12 +980,12 @@ namespace libmaus
 			 * @return number of cigar operations
 			 **/
 			static uint32_t getCigarOperations(uint8_t const * D,
-				libmaus::autoarray::AutoArray<cigar_operation> & cigop)
+				libmaus2::autoarray::AutoArray<cigar_operation> & cigop)
 			{
 				uint32_t const numops = getNCigar(D);
 				
 				if ( numops > cigop.size() )
-					cigop = libmaus::autoarray::AutoArray<cigar_operation>(numops,false);
+					cigop = libmaus2::autoarray::AutoArray<cigar_operation>(numops,false);
 					
 				uint8_t const * p = getCigar(D);
 				
@@ -1199,12 +1199,12 @@ namespace libmaus
 					uint8_t const op = v & ((1ull<<(4))-1);
 					
 					if ( 
-						op == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
 						||
-						op == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
 					)
 					{
-						if ( op == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
 							frontclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					}
 					else
@@ -1258,12 +1258,12 @@ namespace libmaus
 					uint8_t const op = v & ((1ull<<(4))-1);
 					
 					if ( 
-						op == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP
 						|| 
-						op == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+						op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
 					)
 					{
-						if ( op == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+						if ( op == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
 							backclip += static_cast<int64_t>((v >> 4) & ((1ull<<(32-4))-1));
 					}
 					else
@@ -1541,7 +1541,7 @@ namespace libmaus
 					}
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Unable to handle type " << D[2] << "(" << static_cast<int>(D[2]) << ")" << " in BamAlignmentDecoderBase::getAuxLength()" << std::endl;
 						se.finish();
 						throw se;
@@ -1707,7 +1707,7 @@ namespace libmaus
 					}
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Unable to handle type " << D[2] << "(" << static_cast<int>(D[2]) << ")" << " in BamAlignmentDecoderBase::auxValueToString()" << std::endl;
 						se.finish();
 						throw se;				
@@ -1966,7 +1966,7 @@ namespace libmaus
 					}
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Unable to handle type " << D[2] << "(" << static_cast<int>(D[2]) << ")" << " in BamAlignmentDecoderBase::auxValueToString()" << std::endl;
 						se.finish();
 						throw se;				
@@ -2179,11 +2179,11 @@ namespace libmaus
 			 * @param A output array
 			 * @return length of decoded query sequence
 			 **/
-			static uint64_t decodeRead(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
+			static uint64_t decodeRead(uint8_t const * D, ::libmaus2::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
 				if ( seqlen > A.size() )
-					A = ::libmaus::autoarray::AutoArray<char>(seqlen);
+					A = ::libmaus2::autoarray::AutoArray<char>(seqlen);
 				char * S = A.begin();
 				
 				decodeRead(D,S,seqlen);
@@ -2198,7 +2198,7 @@ namespace libmaus
 			 * @param A output array
 			 * @return string object containing the decode query sequence
 			 **/
-			static std::string decodeReadS(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
+			static std::string decodeReadS(uint8_t const * D, ::libmaus2::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = decodeRead(D,A);
 				return std::string(A.begin(),A.begin()+seqlen);
@@ -2211,11 +2211,11 @@ namespace libmaus
 			 * @param A output array
 			 * @return string object containing the reverse complement of the decoded query sequence
 			 **/
-			static uint64_t decodeReadRC(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
+			static uint64_t decodeReadRC(uint8_t const * D, ::libmaus2::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
 				if ( seqlen > A.size() )
-					A = ::libmaus::autoarray::AutoArray<char>(seqlen);
+					A = ::libmaus2::autoarray::AutoArray<char>(seqlen);
 				uint8_t const * cseq = getSeq(D);
 				char * S = A.begin()+seqlen;
 				for ( uint64_t i = 0; i < (seqlen>>1); ++i )
@@ -2239,11 +2239,11 @@ namespace libmaus
 			 * @param A output array
 			 * @return length of quality string
 			 **/
-			static uint64_t decodeQual(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
+			static uint64_t decodeQual(uint8_t const * D, ::libmaus2::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
 				if ( seqlen > A.size() )
-					A = ::libmaus::autoarray::AutoArray<char>(seqlen);
+					A = ::libmaus2::autoarray::AutoArray<char>(seqlen);
 				uint8_t const * qual = getQual(D);
 				char * S = A.begin();
 				for ( uint64_t i = 0; i < seqlen; ++i )
@@ -2338,11 +2338,11 @@ namespace libmaus
 			 * @param A output array
 			 * @return length of decoded quality string
 			 **/
-			static uint64_t decodeQualRC(uint8_t const * D, ::libmaus::autoarray::AutoArray<char> & A)
+			static uint64_t decodeQualRC(uint8_t const * D, ::libmaus2::autoarray::AutoArray<char> & A)
 			{
 				uint64_t const seqlen = getLseq(D);
 				if ( seqlen > A.size() )
-					A = ::libmaus::autoarray::AutoArray<char>(seqlen);
+					A = ::libmaus2::autoarray::AutoArray<char>(seqlen);
 				uint8_t const * qual = getQual(D);
 				char * S = A.begin() + seqlen;
 				for ( uint64_t i = 0; i < seqlen; ++i )
@@ -2393,7 +2393,7 @@ namespace libmaus
 			 **/
 			static uint64_t enumerateAuxTags(
 				uint8_t const * E, uint64_t const blocksize,
-				libmaus::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > & A
+				libmaus2::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > & A
 			)
 			{
 				uint8_t const * aux = getAux(E);
@@ -2438,7 +2438,7 @@ namespace libmaus
 				
 				if ( ! p )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() 
 						<< "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag 
 						<< " for read " 
@@ -2500,7 +2500,7 @@ namespace libmaus
 					}
 					default:
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "Unknown type of number " << p[2] << std::endl;
 						se.finish();
 						throw se;
@@ -2523,7 +2523,7 @@ namespace libmaus
 				
 				if ( ! p )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() 
 						<< "BamAlignmentDecoderBase::getAuxAsNumber called non present tag " << tag 
 						<< " for read " 
@@ -2535,7 +2535,7 @@ namespace libmaus
 
 				if ( p[2] != 'B' )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() 
 						<< "BamAlignmentDecoderBase::getAuxAsNumber called for non array field " << tag 
 						<< " for read " 
@@ -2642,7 +2642,7 @@ namespace libmaus
 					}
 					default:
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "getAuxAsNumberArray: Unknown type of number " << p[3] << std::endl;
 						se.finish();
 						throw se;
@@ -2785,7 +2785,7 @@ namespace libmaus
 				
 				// check buffer size
 				if ( auxtotal > sortbuffer.U.size() )
-					sortbuffer.U = libmaus::autoarray::AutoArray<uint8_t>(auxtotal,false);
+					sortbuffer.U = libmaus2::autoarray::AutoArray<uint8_t>(auxtotal,false);
 				
 				// reorder aux blocks
 				uint8_t * outp = sortbuffer.U.begin();
@@ -2997,21 +2997,21 @@ namespace libmaus
 				
 				if ( data[2] != 'B' )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Rank aux tag ZR has wrong data type " << data[2] << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( data[3] != 'C' )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Rank aux tag ZR has wrong data type " << data[3] << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( data[4] != 8 || data[5] != 0 || data[6] != 0 || data[7] != 0 )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Rank aux tag ZR has wrong array size" << std::endl;
 					se.finish();
 					throw se;
@@ -3104,7 +3104,7 @@ namespace libmaus
 				uint8_t const * E, 
 				uint64_t const blocksize, 
 				header_type const & header,
-				::libmaus::bambam::BamFormatAuxiliary & auxdata
+				::libmaus2::bambam::BamFormatAuxiliary & auxdata
 			)
 			{
 				uint16_t const flags = getFlags(E);
@@ -3208,7 +3208,7 @@ namespace libmaus
 			static std::string formatAlignment(
 				uint8_t const * E, uint64_t const blocksize, 
 				header_type const & header,
-				::libmaus::bambam::BamFormatAuxiliary & auxdata
+				::libmaus2::bambam::BamFormatAuxiliary & auxdata
 			)
 			{
 				std::ostringstream ostr;
@@ -3225,7 +3225,7 @@ namespace libmaus
 			 **/
 			static std::string formatFastq(
 				uint8_t const * E, 
-				::libmaus::bambam::BamFormatAuxiliary & auxdata
+				::libmaus2::bambam::BamFormatAuxiliary & auxdata
 			)
 			{
 				std::ostringstream ostr;
@@ -3271,7 +3271,7 @@ namespace libmaus
 			static void calculateMd(
 				uint8_t const * B,
 				uint64_t const blocksize,
-				::libmaus::bambam::MdStringComputationContext & context,
+				::libmaus2::bambam::MdStringComputationContext & context,
 				it_a itref,
 				bool const warnchanges = true
 			)
@@ -3356,19 +3356,19 @@ namespace libmaus
 				
 				context.diff = false;
 
-				if ( ! libmaus::bambam::BamAlignmentDecoderBase::isUnmap(
-					libmaus::bambam::BamAlignmentDecoderBase::getFlags(B)
+				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(
+					libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B)
 					) 
 				)
 				{
 					// length of read in bases
-					uint64_t const readlength = libmaus::bambam::BamAlignmentDecoderBase::getLseq(B);
+					uint64_t const readlength = libmaus2::bambam::BamAlignmentDecoderBase::getLseq(B);
 					// encoded sequence
-					uint8_t const * seq = libmaus::bambam::BamAlignmentDecoderBase::getSeq(B);
+					uint8_t const * seq = libmaus2::bambam::BamAlignmentDecoderBase::getSeq(B);
 					
 					// number of cigar operations
-					libmaus::autoarray::AutoArray<libmaus::bambam::cigar_operation> & cigop = context.cigop;
-					uint32_t const numcigop = libmaus::bambam::BamAlignmentDecoderBase::getCigarOperations(B,cigop);
+					libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> & cigop = context.cigop;
+					uint32_t const numcigop = libmaus2::bambam::BamAlignmentDecoderBase::getCigarOperations(B,cigop);
 
 					// length of unrolled cigar operatios
 					uint64_t cigsum = 0;
@@ -3417,7 +3417,7 @@ namespace libmaus
 								if ( startoff & 1 )
 								{
 									uint8_t const c = *(lseq++);
-									uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(c & 0xF);
+									uint8_t const c1 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(c & 0xF);
 									
 									if (  context.T0[c1] != context.T1[itref[h]] )
 										goto cmpdone;
@@ -3428,14 +3428,14 @@ namespace libmaus
 								while ( cigp - h > 1 )
 								{
 									uint8_t const c = *(lseq++);
-									uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
+									uint8_t const c0 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
 									
 									if ( context.T0[c0] != context.T1[itref[h]] )
 										goto cmpdone;
 
 									++h;
 
-									uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>0)&0xF);
+									uint8_t const c1 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>0)&0xF);
 
 									if ( context.T0[c1] != context.T1[itref[h]] )
 										goto cmpdone;
@@ -3446,7 +3446,7 @@ namespace libmaus
 								if ( cigp - h )
 								{
 									uint8_t const c = *(lseq++);
-									uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
+									uint8_t const c0 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c>>4)&0xF);
 
 									if (
 										context.T0[c0]
@@ -3460,7 +3460,7 @@ namespace libmaus
 								
 								if ( h != cigp )
 								{
-									mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,h-l+a);
+									mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,h-l+a);
 									*(mdp++) = itref[h];
 									h += 1;
 									a = 0;
@@ -3474,9 +3474,9 @@ namespace libmaus
 								l = h;
 							}		
 						}
-						else if ( cigo == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL )
+						else if ( cigo == ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL )
 						{
-							mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,a);
+							mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,a);
 							a = 0;
 							*(mdp++) =  '^';
 							for ( uint64_t i = 0; i < cigp; ++i )
@@ -3489,14 +3489,14 @@ namespace libmaus
 						itref   += calmd_refadvance[cigo] * cigp;
 						numins  += calmd_insmult[cigo] * cigp;
 					}
-					mdp = ::libmaus::bambam::MdStringComputationContext::putNumber(mdp,a);
+					mdp = ::libmaus2::bambam::MdStringComputationContext::putNumber(mdp,a);
 					*(mdp++) = 0;
 
 					context.nm = numins+numdel+nummis;
 					
-					char const * const prevmd = libmaus::bambam::BamAlignmentDecoderBase::getAuxString(B,blocksize,"MD");
+					char const * const prevmd = libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(B,blocksize,"MD");
 					int32_t prevnm = -1;
-					bool const haveprevnm = libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int32_t>(B,blocksize,"NM",prevnm);
+					bool const haveprevnm = libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<int32_t>(B,blocksize,"NM",prevnm);
 					
 					context.mddiff = (!prevmd) || strcmp(context.md.get(),prevmd);
 					context.nmdiff = (!haveprevnm) || (prevnm != static_cast<int32_t>(context.nm));
@@ -3505,13 +3505,13 @@ namespace libmaus
 					if ( warnchanges )
 					{
 						if ( context.mddiff && prevmd )
-							std::cerr << "[D] " << libmaus::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus::bambam::BamAlignmentDecoderBase::getFlags(B) << " update MD from " << prevmd << " to " << context.md.get() << "\n";
+							std::cerr << "[D] " << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B) << " update MD from " << prevmd << " to " << context.md.get() << "\n";
 						if ( haveprevnm && (prevnm != static_cast<int32_t>(context.nm)) )
-							std::cerr << "[D] " << libmaus::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus::bambam::BamAlignmentDecoderBase::getFlags(B) << " update NM from " << prevnm << " to " << context.nm << "\n";
+							std::cerr << "[D] " << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B) << " update NM from " << prevnm << " to " << context.nm << "\n";
 					}
 					
 					assert ( readpos == readlength );
-					assert ( itref == itreforg + libmaus::bambam::BamAlignmentDecoderBase::getReferenceLength(B) );
+					assert ( itref == itreforg + libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(B) );
 					
 					context.eraseold = prevmd || haveprevnm;
 				}
@@ -3588,14 +3588,14 @@ namespace libmaus
 			 * @param blocksize length of alignment block in bytes
 			 * @return alignment validty code
 			 **/
-			static libmaus_bambam_alignment_validity valid(uint8_t const * D, uint64_t const blocksize)
+			static libmaus2_bambam_alignment_validity valid(uint8_t const * D, uint64_t const blocksize)
 			{
 				// fixed length fields are 32 bytes
 				if ( blocksize < 32 )
-					return libmaus_bambam_alignment_validity_block_too_small;
+					return libmaus2_bambam_alignment_validity_block_too_small;
 
 				uint8_t const * blocke = D + blocksize;					
-				uint8_t const * readname = reinterpret_cast<uint8_t const *>(::libmaus::bambam::BamAlignmentDecoderBase::getReadName(D));
+				uint8_t const * readname = reinterpret_cast<uint8_t const *>(::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(D));
 				uint8_t const * const readnamea = readname;
 				
 				// look for end of readname
@@ -3604,7 +3604,7 @@ namespace libmaus
 								
 				// read name extends beyond block
 				if ( readname == blocke )
-					return libmaus_bambam_alignment_validity_queryname_extends_over_block;
+					return libmaus2_bambam_alignment_validity_queryname_extends_over_block;
 
 				// readname should be pointing to a null byte now
 				if ( readname != blocke )
@@ -3612,45 +3612,45 @@ namespace libmaus
 
 				// check whether actual length of read name is consistent with
 				// numerical value given in block
-				uint64_t const lreadname = ::libmaus::bambam::BamAlignmentDecoderBase::getLReadName(D);
+				uint64_t const lreadname = ::libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(D);
 				if ( (readname-readnamea)+1 != static_cast<ptrdiff_t>(lreadname) )
-					return libmaus_bambam_alignment_validity_queryname_length_inconsistent;
+					return libmaus2_bambam_alignment_validity_queryname_length_inconsistent;
 				if ( !(readname-readnamea) )
-					return libmaus_bambam_alignment_validity_queryname_empty;
+					return libmaus2_bambam_alignment_validity_queryname_empty;
 				for ( uint64_t i = 0; i < lreadname-1; ++i )
 					if ( ! qnameValidTable[readnamea[i]] )
-						return libmaus_bambam_alignment_validity_queryname_contains_illegal_symbols;
+						return libmaus2_bambam_alignment_validity_queryname_contains_illegal_symbols;
 
 				// check if cigar string ends before block end
-				uint8_t const * cigar = ::libmaus::bambam::BamAlignmentDecoderBase::getCigar(D);
-				uint64_t const ncig = ::libmaus::bambam::BamAlignmentDecoderBase::getNCigar(D);
+				uint8_t const * cigar = ::libmaus2::bambam::BamAlignmentDecoderBase::getCigar(D);
+				uint64_t const ncig = ::libmaus2::bambam::BamAlignmentDecoderBase::getNCigar(D);
 				if ( cigar + ncig*sizeof(uint32_t) > blocke )
-					return libmaus_bambam_alignment_validity_cigar_extends_over_block;
+					return libmaus2_bambam_alignment_validity_cigar_extends_over_block;
 
 				// check if sequence ends before block end
-				uint8_t const * seq = ::libmaus::bambam::BamAlignmentDecoderBase::getSeq(D);
-				uint64_t const seqlen = ::libmaus::bambam::BamAlignmentDecoderBase::getLseq(D);
+				uint8_t const * seq = ::libmaus2::bambam::BamAlignmentDecoderBase::getSeq(D);
+				uint64_t const seqlen = ::libmaus2::bambam::BamAlignmentDecoderBase::getLseq(D);
 				if ( seq + ((seqlen+1)/2) > blocke )
-					return libmaus_bambam_alignment_validity_sequence_extends_over_block;
+					return libmaus2_bambam_alignment_validity_sequence_extends_over_block;
 				
 				// check if quality string ends before block end
-				uint8_t const * const qual = ::libmaus::bambam::BamAlignmentDecoderBase::getQual(D);
+				uint8_t const * const qual = ::libmaus2::bambam::BamAlignmentDecoderBase::getQual(D);
 				if ( qual + seqlen > blocke )
-					return libmaus_bambam_alignment_validity_quality_extends_over_block;
+					return libmaus2_bambam_alignment_validity_quality_extends_over_block;
 				
 				// check whether all cigar operators are known	
 				for ( uint64_t i = 0; i < ncig; ++i )
 				{
-					uint64_t const cigop = ::libmaus::bambam::BamAlignmentDecoderBase::getCigarFieldOp(D,i);
-					if ( cigop > ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF )
-						return libmaus_bambam_alignment_validity_unknown_cigar_op;
+					uint64_t const cigop = ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarFieldOp(D,i);
+					if ( cigop > ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF )
+						return libmaus2_bambam_alignment_validity_unknown_cigar_op;
 				}
 				
-				uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(D);
-				bool const unmapped = ::libmaus::bambam::BamAlignmentDecoderBase::isUnmap(flags);
+				uint32_t const flags = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(D);
+				bool const unmapped = ::libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(flags);
 				bool const mapped = !unmapped;
-				bool const qcfail = ::libmaus::bambam::BamAlignmentDecoderBase::isQCFail(flags);
-				bool const secondary = ::libmaus::bambam::BamAlignmentDecoderBase::isSecondary(flags);
+				bool const qcfail = ::libmaus2::bambam::BamAlignmentDecoderBase::isQCFail(flags);
+				bool const secondary = ::libmaus2::bambam::BamAlignmentDecoderBase::isSecondary(flags);
 				// annotation (see SAM spec section 3.2, padded)
 				bool const annot = qcfail && secondary;
 
@@ -3662,23 +3662,23 @@ namespace libmaus
 					&&
 					seqlen
 					&&
-					static_cast<int64_t>(::libmaus::bambam::BamAlignmentDecoderBase::getLseqByCigar(D)) != static_cast<int64_t>(seqlen)
+					static_cast<int64_t>(::libmaus2::bambam::BamAlignmentDecoderBase::getLseqByCigar(D)) != static_cast<int64_t>(seqlen)
 				)
-					return libmaus_bambam_alignment_validity_cigar_is_inconsistent_with_sequence_length;
+					return libmaus2_bambam_alignment_validity_cigar_is_inconsistent_with_sequence_length;
 					
-				int32_t const pos = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(D);
+				int32_t const pos = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(D);
 				if ( pos < -1 )
 				{
-					return libmaus_bambam_alignment_validity_invalid_mapping_position;
+					return libmaus2_bambam_alignment_validity_invalid_mapping_position;
 				}
-				int32_t const nextpos = ::libmaus::bambam::BamAlignmentDecoderBase::getNextPos(D);
+				int32_t const nextpos = ::libmaus2::bambam::BamAlignmentDecoderBase::getNextPos(D);
 				if ( nextpos < -1 )
 				{
-					return libmaus_bambam_alignment_validity_invalid_next_mapping_position;
+					return libmaus2_bambam_alignment_validity_invalid_next_mapping_position;
 				}
-				int32_t const tlen = ::libmaus::bambam::BamAlignmentDecoderBase::getTlen(D);
+				int32_t const tlen = ::libmaus2::bambam::BamAlignmentDecoderBase::getTlen(D);
 				if ( tlen < ((-(1ll<<31))+1) )
-					return libmaus_bambam_alignment_validity_invalid_tlen;
+					return libmaus2_bambam_alignment_validity_invalid_tlen;
 					
 				uint8_t const * const quale = qual + seqlen;
 				for ( uint8_t const * qualc = qual; qualc != quale; ++qualc )
@@ -3688,78 +3688,78 @@ namespace libmaus
 						{
 							if ( qualc - qual )
 							{
-								return libmaus_bambam_alignment_validity_invalid_quality_value;
+								return libmaus2_bambam_alignment_validity_invalid_quality_value;
 							}
 							
 							while ( qualc != quale )
 								if ( *(qualc++) != 255 )
-									return libmaus_bambam_alignment_validity_invalid_quality_value;
+									return libmaus2_bambam_alignment_validity_invalid_quality_value;
 							
 							// go back by one to leave loop above
 							--qualc;
 						}
 						else
-							return libmaus_bambam_alignment_validity_invalid_quality_value;
+							return libmaus2_bambam_alignment_validity_invalid_quality_value;
 					}
 
-				uint8_t const * aux = ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D);
+				uint8_t const * aux = ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D);
 
 				while ( aux != D+blocksize )
 				{
 					if ( ((D+blocksize)-aux) < 3 )
-						return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+						return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 						
 					switch ( aux[2] )
 					{
 						case 'A':
 							if ( ((D+blocksize)-aux) < 3+1 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							if ( aux[3] < '!' || aux[3] > '~' )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							break;
 						case 'c':
 						case 'C':
 							if ( ((D+blocksize)-aux) < 3+1 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							break;
 						case 's':
 						case 'S':
 							if ( ((D+blocksize)-aux) < 3+2 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							break;
 						case 'i':
 						case 'I':
 						case 'f':
 							if ( ((D+blocksize)-aux) < 3+4 )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							break;
 						case 'B':
 						{
 							if ( ((D+blocksize)-aux) < 3 + 1 /* data type */ + 4 /* length of array */ )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							/* length of array */
-							uint64_t const alen = static_cast<int32_t>(::libmaus::bambam::BamAlignmentDecoderBase::getLEInteger(aux+4,4));
+							uint64_t const alen = static_cast<int32_t>(::libmaus2::bambam::BamAlignmentDecoderBase::getLEInteger(aux+4,4));
 							/* valid element data types */
 							switch ( aux[3] )
 							{
 								case 'c':
 								case 'C':
 									if ( ((D+blocksize)-aux) < static_cast<ptrdiff_t>(3+1+4+1*alen) )
-										return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+										return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 									break;
 								case 's':
 								case 'S':
 									if ( ((D+blocksize)-aux) < static_cast<ptrdiff_t>(3+1+4 + 2*alen) )
-										return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+										return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 									break;
 								case 'i':
 								case 'I':
 								case 'f':
 									if ( ((D+blocksize)-aux) < static_cast<ptrdiff_t>(3+1+4 + 4*alen) )
-										return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+										return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 									break;
 								default:
-									return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+									return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							}
 							break;
 						}
@@ -3773,7 +3773,7 @@ namespace libmaus
 							
 							// if terminator byte 0 is not inside block
 							if ( p == pe )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 
 							break;
 						}
@@ -3788,20 +3788,20 @@ namespace libmaus
 							
 							// if terminator byte 0 is not inside block
 							if ( p == pe )
-								return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+								return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 
 							break;
 						}
 						default:
-							return libmaus_bambam_alignment_validity_invalid_auxiliary_data;
+							return libmaus2_bambam_alignment_validity_invalid_auxiliary_data;
 							break;
 					}
 
-					aux = aux + ::libmaus::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
+					aux = aux + ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
 				}
 
 
-				return libmaus_bambam_alignment_validity_ok;
+				return libmaus2_bambam_alignment_validity_ok;
 			}
 
 			/**
@@ -3817,9 +3817,9 @@ namespace libmaus
 				};
 				
 				// length of read in bases
-				uint64_t const readlength = libmaus::bambam::BamAlignmentDecoderBase::getLseq(D);
+				uint64_t const readlength = libmaus2::bambam::BamAlignmentDecoderBase::getLseq(D);
 				// encoded sequence
-				uint8_t const * seq = libmaus::bambam::BamAlignmentDecoderBase::getSeq(D);
+				uint8_t const * seq = libmaus2::bambam::BamAlignmentDecoderBase::getSeq(D);
 				
 				uint64_t const fullwords = readlength >> 4; // 2 bases per byte -> 16 bases per 64 bit word
 				uint64_t const restbases = readlength - (fullwords<<4); // number of rest bases
@@ -3840,7 +3840,7 @@ namespace libmaus
 						prod &= calmd_eqcheck[(u>>0) & 0xF];
 					}
 					
-					seqbits += libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);
+					seqbits += libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);
 				}
 				if ( restbases )
 				{
@@ -3864,7 +3864,7 @@ namespace libmaus
 						prod &= calmd_eqcheck[(u>>4) & 0xF];
 					}
 					
-					seqbits += libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);			
+					seqbits += libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(v);			
 				}
 				
 				if ( prod )
@@ -3876,8 +3876,8 @@ namespace libmaus
 					for ( uint64_t i = 0; i < (readlength>>1); ++i )
 					{
 						uint8_t const c = *(rseq++);
-						uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
-						uint8_t const c1 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 0) & 0xFF);
+						uint8_t const c0 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
+						uint8_t const c1 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 0) & 0xFF);
 						
 						switch ( c0 )
 						{
@@ -3897,7 +3897,7 @@ namespace libmaus
 					if ( readlength & 1 )
 					{
 						uint8_t const c = *(rseq++);
-						uint8_t const c0 = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
+						uint8_t const c0 = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked((c >> 4) & 0xFF);
 						switch ( c0 )
 						{
 							case 'A': case 'C': case 'G': case 'T':
@@ -3918,7 +3918,7 @@ namespace libmaus
 			{
 				uint64_t const rbeg = getPos(D);
 				uint64_t const rend = rbeg + getReferenceLength(D);
-				uint64_t const bin = ::libmaus::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
+				uint64_t const bin = ::libmaus2::bambam::BamAlignmentReg2Bin::reg2bin(rbeg,rend);
 				return bin;
 			}
 
@@ -3931,25 +3931,25 @@ namespace libmaus
 			 */
 			static int64_t computeInsertSize(uint8_t const * Au, uint8_t const * Bu)
 			{
-				uint32_t const Aflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(Au);
-				uint32_t const Bflags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(Bu);
-				bool const Aunmapped = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(Aflags);
-				bool const Bunmapped = libmaus::bambam::BamAlignmentDecoderBase::isUnmap(Bflags);
+				uint32_t const Aflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Au);
+				uint32_t const Bflags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Bu);
+				bool const Aunmapped = libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(Aflags);
+				bool const Bunmapped = libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(Bflags);
 				
 				// unmapped end?
 				if (Aunmapped || Bunmapped) { return 0; }
 				// different ref seq?
 				if (
-					libmaus::bambam::BamAlignmentDecoderBase::getRefID(Au)
+					libmaus2::bambam::BamAlignmentDecoderBase::getRefID(Au)
 					!= 
-					libmaus::bambam::BamAlignmentDecoderBase::getRefID(Bu)
+					libmaus2::bambam::BamAlignmentDecoderBase::getRefID(Bu)
 				) { return 0; }
 
 				// compute 5' end positions
-				bool const Areverse = libmaus::bambam::BamAlignmentDecoderBase::isReverse(Aflags);
-				bool const Breverse = libmaus::bambam::BamAlignmentDecoderBase::isReverse(Bflags);
-				int64_t const A5  = Areverse ? libmaus::bambam::BamAlignmentDecoderBase::getAlignmentEnd(Au) : libmaus::bambam::BamAlignmentDecoderBase::getPos(Au);
-				int64_t const B5  = Breverse ? libmaus::bambam::BamAlignmentDecoderBase::getAlignmentEnd(Bu) : libmaus::bambam::BamAlignmentDecoderBase::getPos(Bu);
+				bool const Areverse = libmaus2::bambam::BamAlignmentDecoderBase::isReverse(Aflags);
+				bool const Breverse = libmaus2::bambam::BamAlignmentDecoderBase::isReverse(Bflags);
+				int64_t const A5  = Areverse ? libmaus2::bambam::BamAlignmentDecoderBase::getAlignmentEnd(Au) : libmaus2::bambam::BamAlignmentDecoderBase::getPos(Au);
+				int64_t const B5  = Breverse ? libmaus2::bambam::BamAlignmentDecoderBase::getAlignmentEnd(Bu) : libmaus2::bambam::BamAlignmentDecoderBase::getPos(Bu);
 				
 				// return insert size for (A,B), use negative value for (B,A)
 				return B5 - A5;

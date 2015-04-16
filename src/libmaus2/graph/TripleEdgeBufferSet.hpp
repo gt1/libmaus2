@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(TRIPLEEDGEBUFFERSET_HPP)
 #define TRIPLEEDGEBUFFERSET_HPP
 
-#include <libmaus/graph/TripleEdgeBuffer.hpp>
+#include <libmaus2/graph/TripleEdgeBuffer.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -31,12 +31,12 @@ namespace libmaus
 		{
 			uint64_t const numparts;
 
-			typedef ::libmaus::graph::TripleEdgeBuffer buffer_type;
-			typedef ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			typedef ::libmaus2::graph::TripleEdgeBuffer buffer_type;
+			typedef ::libmaus2::util::unique_ptr<buffer_type>::type buffer_ptr_type;
 
-			::libmaus::autoarray::AutoArray< buffer_ptr_type > buffers;
+			::libmaus2::autoarray::AutoArray< buffer_ptr_type > buffers;
 
-			TripleEdgeBufferSet ( ::libmaus::util::TempFileNameGenerator & tmpgen, uint64_t const rnumparts)
+			TripleEdgeBufferSet ( ::libmaus2::util::TempFileNameGenerator & tmpgen, uint64_t const rnumparts)
 			: numparts(rnumparts), buffers(numparts)
 			{
 				for ( uint64_t i = 0; i < numparts; ++i )

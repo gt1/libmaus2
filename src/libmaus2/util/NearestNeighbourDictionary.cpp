@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2007-2012 Simon Gog  All Right Reserved.
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -18,9 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <libmaus/util/NearestNeighbourDictionary.hpp>
+#include <libmaus2/util/NearestNeighbourDictionary.hpp>
 
-uint64_t libmaus::util::NearestNeighbourDictionary::byteSize() const
+uint64_t libmaus2::util::NearestNeighbourDictionary::byteSize() const
 {
 	return
 		m_abs_samples->byteSize() +
@@ -29,7 +29,7 @@ uint64_t libmaus::util::NearestNeighbourDictionary::byteSize() const
 		2*sizeof(uint64_t);
 }
 
-uint64_t libmaus::util::NearestNeighbourDictionary::size() const
+uint64_t libmaus2::util::NearestNeighbourDictionary::size() const
 {
 	return m_size;
 }
@@ -37,7 +37,7 @@ uint64_t libmaus::util::NearestNeighbourDictionary::size() const
 /*
  * constructor. the code in of the constructor is imported from Simon Gog's SDSL library
  */
-libmaus::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus::bitio::BitVector const & v)
+libmaus2::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus2::bitio::BitVector const & v)
 {
 	assert ( nndblocksize );
 	
@@ -58,13 +58,13 @@ libmaus::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus:
 	m_ones = ones;
 	m_size = v.size();
 	// initialize absolute samples m_abs_samples[0]=0
-	::libmaus::bitio::CompactArray::unique_ptr_type tm_abs_samples(new ::libmaus::bitio::CompactArray( m_ones/nndblocksize + 1, ::libmaus::math::numbits(v.size()-1) ));
+	::libmaus2::bitio::CompactArray::unique_ptr_type tm_abs_samples(new ::libmaus2::bitio::CompactArray( m_ones/nndblocksize + 1, ::libmaus2::math::numbits(v.size()-1) ));
 	m_abs_samples = UNIQUE_PTR_MOVE(tm_abs_samples);
 	// initialize different values
-	::libmaus::bitio::CompactArray::unique_ptr_type tm_differences(new ::libmaus::bitio::CompactArray( m_ones - m_ones/nndblocksize, ::libmaus::math::numbits(max_distance_between_two_ones) ));
+	::libmaus2::bitio::CompactArray::unique_ptr_type tm_differences(new ::libmaus2::bitio::CompactArray( m_ones - m_ones/nndblocksize, ::libmaus2::math::numbits(max_distance_between_two_ones) ));
 	m_differences = UNIQUE_PTR_MOVE(tm_differences);
 	// initialize m_contains_abs_sample
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type tm_contains_abs_sample(new ::libmaus::bitio::IndexedBitVector( (v.size()+nndblocksize-1)/nndblocksize ));
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type tm_contains_abs_sample(new ::libmaus2::bitio::IndexedBitVector( (v.size()+nndblocksize-1)/nndblocksize ));
 	m_contains_abs_sample = UNIQUE_PTR_MOVE(tm_contains_abs_sample);
 
 	ones = 0;
@@ -95,7 +95,7 @@ libmaus::util::NearestNeighbourDictionary::NearestNeighbourDictionary(::libmaus:
 /**
  * rank excluding index idx
  **/	
-uint64_t libmaus::util::NearestNeighbourDictionary::rankm1(uint64_t idx) const
+uint64_t libmaus2::util::NearestNeighbourDictionary::rankm1(uint64_t idx) const
 {
 	assert(idx <= m_size);
 	
@@ -122,7 +122,7 @@ uint64_t libmaus::util::NearestNeighbourDictionary::rankm1(uint64_t idx) const
 }
 
 /* ranks start at 1 */
-uint64_t libmaus::util::NearestNeighbourDictionary::selectp(uint64_t i) const
+uint64_t libmaus2::util::NearestNeighbourDictionary::selectp(uint64_t i) const
 {
 	assert(i > 0 and i <= m_ones);
 	uint64_t j = i/nndblocksize;

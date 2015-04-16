@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BITIO_ARRAYDECODE_HPP)
 #define LIBMAUS_BITIO_ARRAYDECODE_HPP
 
-#include <libmaus/bitio/BitIOInput.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/PutObject.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/util/PutObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -332,7 +332,7 @@ namespace libmaus
 					case 8: decodeArray8(in,out,n); break;
 					default: 
 					{
-						::libmaus::bitio::StreamBitInputStreamTemplate<stream_type> SBIS(in);
+						::libmaus2::bitio::StreamBitInputStreamTemplate<stream_type> SBIS(in);
 						for ( uint64_t i = 0; i < n; ++i )
 							out.put ( SBIS.read(k) );
 					}
@@ -341,8 +341,8 @@ namespace libmaus
 
 			static void decodeArray(uint8_t const * in, uint8_t * out, uint64_t n, unsigned int const k)
 			{
-				::libmaus::util::GetObject<uint8_t const *> G(in);
-				::libmaus::util::PutObject<uint8_t *> P(out);
+				::libmaus2::util::GetObject<uint8_t const *> G(in);
+				::libmaus2::util::PutObject<uint8_t *> P(out);
 				decodeArray(G,P,n,k);
 			}
 		};

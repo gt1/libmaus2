@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bambam/BamRangeDecoder.hpp>
+#include <libmaus2/bambam/BamRangeDecoder.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);		
-		libmaus::bambam::BamHeader::parseHeader(std::cin);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);		
+		libmaus2::bambam::BamHeader::parseHeader(std::cin);
 	}
 	catch(std::exception const & ex)
 	{

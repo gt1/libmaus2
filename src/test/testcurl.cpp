@@ -1,6 +1,6 @@
 
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 #include <cstdlib>
 
 #if !defined(LIBMAUS_HAVE_LIBCURL)
@@ -29,13 +29,13 @@ int main()
 	return EXIT_FAILURE;
 }
 #else
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/fastx/StreamFastAReader.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/fastx/StreamFastAReader.hpp>
 
 void countFastA()
 {
-	libmaus::fastx::StreamFastAReaderWrapper S(std::cin);
-	libmaus::fastx::StreamFastAReaderWrapper::pattern_type pat;
+	libmaus2::fastx::StreamFastAReaderWrapper S(std::cin);
+	libmaus2::fastx::StreamFastAReaderWrapper::pattern_type pat;
 	uint64_t const bs = 64*1024;
 	uint64_t ncnt = 0;
 	uint64_t rcnt = 0;
@@ -76,15 +76,15 @@ void countFastA()
 	std::cerr << "rcnt=" << rcnt << std::endl;
 }
 
-#include <libmaus/network/CurlInit.hpp>
-#include <libmaus/network/Socket.hpp>
+#include <libmaus2/network/CurlInit.hpp>
+#include <libmaus2/network/Socket.hpp>
 
 int main()
 {
 	try
 	{	
 		std::string const host = "ngs.sanger.ac.uk";
-		libmaus::network::ClientSocket CS(80,host.c_str());
+		libmaus2::network::ClientSocket CS(80,host.c_str());
 		std::ostringstream reqastr;
 		reqastr << "HEAD /production/ensembl/regulation/hg19/trackDb.txt HTTP/1.1\n";
 		// reqastr << "HEAD / HTTP/1.1\n";
@@ -140,13 +140,13 @@ int main()
 		std::cerr << headstr.str();
 	
 		#if 0
-		libmaus::network::CurlInit cinit;
+		libmaus2::network::CurlInit cinit;
 
 		CURL * handle = curl_easy_init( );
 	
 		if ( ! handle )
 		{
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "curl_easy_init failed" << std::endl;
 			lme.finish();
 			throw lme;
@@ -165,7 +165,7 @@ int main()
 		{
 			curl_easy_cleanup(handle);
 			
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "curl_easy_perform failed: " << curl_easy_strerror(perfres) << std::endl;
 			lme.finish();
 			throw lme;			
@@ -178,7 +178,7 @@ int main()
 		{
 			curl_easy_cleanup(handle);
 			
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "curl_easy_getinfo failed: " << curl_easy_strerror(getinfook) << std::endl;
 			lme.finish();
 			throw lme;			
@@ -193,7 +193,7 @@ int main()
 		{
 			curl_easy_cleanup(handle);
 			
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "curl_easy_getinfo failed: " << curl_easy_strerror(getinfook) << std::endl;
 			lme.finish();
 			throw lme;			
@@ -208,7 +208,7 @@ int main()
 		{
 			curl_easy_cleanup(handle);
 			
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "curl_easy_getinfo failed: " << curl_easy_strerror(getinfook) << std::endl;
 			lme.finish();
 			throw lme;			

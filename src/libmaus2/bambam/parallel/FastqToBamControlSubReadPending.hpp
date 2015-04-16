@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQTOBAMCONTROLSUBREADPENDING_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FASTQTOBAMCONTROLSUBREADPENDING_HPP
 
-#include <libmaus/bambam/parallel/FastQInputDescBase.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/parallel/FastQInputDescBase.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,8 +31,8 @@ namespace libmaus
 			struct FastqToBamControlSubReadPending
 			{
 				typedef FastqToBamControlSubReadPending this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				FastQInputDescBase::input_block_type::shared_ptr_type block;
 				uint64_t volatile subid;

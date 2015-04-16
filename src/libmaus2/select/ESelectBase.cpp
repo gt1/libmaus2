@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/select/ESelectBase.hpp>
+#include <libmaus2/select/ESelectBase.hpp>
 
 /**
  * return offset of i+1th 1 bit in v
  **/
 template<bool sym>
-uint64_t libmaus::select::ESelectBase<sym>::select1Slow(uint16_t v, unsigned int i)
+uint64_t libmaus2::select::ESelectBase<sym>::select1Slow(uint16_t v, unsigned int i)
 {
 	uint64_t mask = 1ull << 15;
 	uint64_t j = 0;
@@ -36,9 +36,9 @@ uint64_t libmaus::select::ESelectBase<sym>::select1Slow(uint16_t v, unsigned int
 }
 
 template<bool sym>
-libmaus::autoarray::AutoArray<uint8_t> libmaus::select::ESelectBase<sym>::computeRussians()
+libmaus2::autoarray::AutoArray<uint8_t> libmaus2::select::ESelectBase<sym>::computeRussians()
 {
-	::libmaus::autoarray::AutoArray<uint8_t> R( (1ull<<16) * (16) );
+	::libmaus2::autoarray::AutoArray<uint8_t> R( (1ull<<16) * (16) );
 	
 	for ( uint32_t v = 0; v < (1u<<16); ++v )
 		for ( unsigned int i = 0; i < 16; ++i )
@@ -48,5 +48,5 @@ libmaus::autoarray::AutoArray<uint8_t> libmaus::select::ESelectBase<sym>::comput
 }
 
 
-template struct ::libmaus::select::ESelectBase<false>;
-template struct ::libmaus::select::ESelectBase<true>;
+template struct ::libmaus2::select::ESelectBase<false>;
+template struct ::libmaus2::select::ESelectBase<true>;

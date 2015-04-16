@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLSUBBLOCKPENDING_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLSUBBLOCKPENDING_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBase.hpp>
-#include <libmaus/bambam/parallel/MemInputBlock.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBase.hpp>
+#include <libmaus2/bambam/parallel/MemInputBlock.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,14 +32,14 @@ namespace libmaus
 			struct GenericInputControlSubBlockPending
 			{
 				typedef GenericInputControlSubBlockPending this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				GenericInputBase::generic_input_shared_block_ptr_type block;
 				uint64_t subblockid;
 			
-				libmaus::bambam::parallel::MemInputBlock::shared_ptr_type mib;
-				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db;
+				libmaus2::bambam::parallel::MemInputBlock::shared_ptr_type mib;
+				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type db;
 				
 				GenericInputControlSubBlockPending(
 					GenericInputBase::generic_input_shared_block_ptr_type rblock = GenericInputBase::generic_input_shared_block_ptr_type(), 

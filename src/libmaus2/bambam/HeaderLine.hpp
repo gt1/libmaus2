@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_BAMBAM_HEADERLINE_HPP)
 #define LIBMAUS_BAMBAM_HEADERLINE_HPP
 
-#include <libmaus/util/stringFunctions.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
 #include <set>
 #include <stack>
 #include <map>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -128,7 +128,7 @@ namespace libmaus
 			{
 				if ( ! hasKey(key) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bambam::HeaderLine::getValue called for non existant key: " << key << " for line of type " << type << std::endl;
 					se.finish();
 					throw se;				
@@ -246,7 +246,7 @@ namespace libmaus
 				{
 					if ( ! lines[i].hasKey("ID") )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "PG line without ID field: " << lines[i].line << std::endl;
 						se.finish();
 						throw se;
@@ -260,7 +260,7 @@ namespace libmaus
 				for ( uint64_t i = 1; i < idvec.size(); ++i )
 					if ( idvec[i] == idvec[i-1] )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "PG ID " << idvec[i] << " is not unique." << std::endl;
 						se.finish();
 						throw se;					
@@ -279,7 +279,7 @@ namespace libmaus
 						
 						if ( interval.first == interval.second )
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PG line " << lines[i].line << " references unknown PG ID via PP key." << std::endl;
 							se.finish();
 							throw se;					
@@ -296,7 +296,7 @@ namespace libmaus
 			 **/
 			HeaderLine(std::string const & rline) : line(rline)
 			{
-				std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize(line,std::string("\t"));
+				std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(line,std::string("\t"));
 				
 				if ( tokens.size() )
 				{
@@ -304,7 +304,7 @@ namespace libmaus
 					
 					if ( (! first.size()) || first[0] != '@' || first.size() != 3 )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Malformed SAM header line: " << line << std::endl;
 						se.finish();
 						throw se;
@@ -321,7 +321,7 @@ namespace libmaus
 							#if defined(LIBMAUS_BAMBAM_SAMHEADER_STRICT)
 							if ( type != "CO" )
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "Malformed SAM header line: " << line << std::endl;
 								se.finish();
 								throw se;

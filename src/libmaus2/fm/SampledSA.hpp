@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(SAMPLEDSA_HPP)
 #define SAMPLEDSA_HPP
 
-#include <libmaus/lf/LF.hpp>
-#include <libmaus/bitio/putBits.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/lf/LF.hpp>
+#include <libmaus2/bitio/putBits.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fm
 	{
@@ -32,54 +32,54 @@ namespace libmaus
 		struct SampledSA
 		{
 			typedef SampledSA<lf_type> sampled_sa_type;
-			typedef typename ::libmaus::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
 
 			lf_type const * lf;
 			
 			uint64_t padn;
 			uint64_t sasamplingrate;
-			::libmaus::autoarray::AutoArray<uint64_t> RSA;
-			::libmaus::rank::ERank222B::unique_ptr_type ARSA;
-			::libmaus::autoarray::AutoArray<uint64_t> SSA;
+			::libmaus2::autoarray::AutoArray<uint64_t> RSA;
+			::libmaus2::rank::ERank222B::unique_ptr_type ARSA;
+			::libmaus2::autoarray::AutoArray<uint64_t> SSA;
 
 			static uint64_t readUnsignedInt(std::istream & in)
 			{
 				uint64_t i;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 
 			static uint64_t readUnsignedInt(std::istream & in, uint64_t & s)
 			{
 				uint64_t i;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 				
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray64(std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray64(std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray64(std::istream & in, uint64_t & s)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray64(std::istream & in, uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				s += A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint32_t> readArray32(std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint32_t> readArray32(std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<uint32_t> A;
+				::libmaus2::autoarray::AutoArray<uint32_t> A;
 				A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint32_t> readArray32(std::istream & in, uint64_t & s)
+			static ::libmaus2::autoarray::AutoArray<uint32_t> readArray32(std::istream & in, uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint32_t> A;
+				::libmaus2::autoarray::AutoArray<uint32_t> A;
 				s += A.deserialize(in);
 				return A;
 			}
@@ -87,7 +87,7 @@ namespace libmaus
 			uint64_t serialize(std::ostream & out)
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,sasamplingrate);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,sasamplingrate);
 				s += RSA.serialize(out);
 				s += SSA.serialize(out);
 				return s;
@@ -99,7 +99,7 @@ namespace libmaus
 				uint64_t s = 0;
 				sasamplingrate = readUnsignedInt(in,s);
 				RSA = readArray64(in,s);
-				::libmaus::rank::ERank222B::unique_ptr_type tARSA( new ::libmaus::rank::ERank222B(RSA.get(), padn) );
+				::libmaus2::rank::ERank222B::unique_ptr_type tARSA( new ::libmaus2::rank::ERank222B(RSA.get(), padn) );
 				ARSA = UNIQUE_PTR_MOVE(tARSA);
 				SSA = readArray64(in,s);
 				// std::cerr << "SA: " << s << " bytes = " << s*8 << " bits = " << (s+(1024*1024-1))/(1024*1024) << " mb" << " samplingrate = " << sasamplingrate << std::endl;
@@ -146,16 +146,16 @@ namespace libmaus
 					r = (*lf)(r); // LF mapping
 
 					if ( i % sasamplingrate == 0 )
-						::libmaus::bitio::putBits ( RSA.get(), r, 1, 1);
+						::libmaus2::bitio::putBits ( RSA.get(), r, 1, 1);
 					else
-						::libmaus::bitio::putBits ( RSA.get(), r, 1, 0);			
+						::libmaus2::bitio::putBits ( RSA.get(), r, 1, 0);			
 				}
 				if ( verbose )
 					std::cerr << ")";
 
 				assert ( r == rr );
 
-				::libmaus::rank::ERank222B::unique_ptr_type tARSA( new ::libmaus::rank::ERank222B(RSA.get(), padn) );
+				::libmaus2::rank::ERank222B::unique_ptr_type tARSA( new ::libmaus2::rank::ERank222B(RSA.get(), padn) );
 				ARSA = UNIQUE_PTR_MOVE(tARSA);
 
 				if ( verbose )
@@ -195,7 +195,7 @@ namespace libmaus
 				uint64_t o = 0;
 				uint64_t tr = r;
 
-				while ( ! ::libmaus::bitio::getBit( RSA.get(), tr) )
+				while ( ! ::libmaus2::bitio::getBit( RSA.get(), tr) )
 					o++, tr = (*lf)(tr); // LF mapping
 				
 				uint64_t i = ( SSA [ ARSA->rank1(tr) - 1 ] + o ) % lf->getN();
@@ -209,14 +209,14 @@ namespace libmaus
 		{
 			typedef SimpleSampledSA<lf_type> sampled_sa_type;
 			typedef sampled_sa_type this_type;
-			typedef typename ::libmaus::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr < sampled_sa_type > :: type unique_ptr_type;
 
 			lf_type const * lf;
 			
 			uint64_t sasamplingrate;
 			uint64_t sasamplingmask;
 			unsigned int sasamplingshift;
-			::libmaus::autoarray::AutoArray<uint64_t> SSA;
+			::libmaus2::autoarray::AutoArray<uint64_t> SSA;
 			
 			uint64_t byteSize() const
 			{
@@ -244,41 +244,41 @@ namespace libmaus
 			static uint64_t readUnsignedInt(std::istream & in)
 			{
 				uint64_t i;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 
 			static uint64_t readUnsignedInt(std::istream & in, uint64_t & s)
 			{
 				uint64_t i;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&i);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&i);
 				return i;
 			}
 				
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray64(std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray64(std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint64_t> readArray64(std::istream & in, uint64_t & s)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> readArray64(std::istream & in, uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> A;
+				::libmaus2::autoarray::AutoArray<uint64_t> A;
 				s += A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint32_t> readArray32(std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint32_t> readArray32(std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<uint32_t> A;
+				::libmaus2::autoarray::AutoArray<uint32_t> A;
 				A.deserialize(in);
 				return A;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint32_t> readArray32(std::istream & in, uint64_t & s)
+			static ::libmaus2::autoarray::AutoArray<uint32_t> readArray32(std::istream & in, uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint32_t> A;
+				::libmaus2::autoarray::AutoArray<uint32_t> A;
 				s += A.deserialize(in);
 				return A;
 			}
@@ -286,7 +286,7 @@ namespace libmaus
 			uint64_t serialize(std::ostream & out)
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,sasamplingrate);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,sasamplingrate);
 				s += SSA.serialize(out);
 				return s;
 			}
@@ -302,7 +302,7 @@ namespace libmaus
 			
 			static unique_ptr_type load(lf_type const * lf, std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::CheckedInputStream CIS(filename);
 				unique_ptr_type ptr(new this_type(lf,CIS));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
@@ -312,7 +312,7 @@ namespace libmaus
 
 			SimpleSampledSA(lf_type const * rlf,
 				uint64_t const rsasamplingrate,
-				::libmaus::autoarray::AutoArray<uint64_t> & rSSA)
+				::libmaus2::autoarray::AutoArray<uint64_t> & rSSA)
 			: lf(rlf), SSA(rSSA) 
 			{
 				setSamplingRate(rsasamplingrate);

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSMERGEWORKPACKAGERETURNINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSMERGEWORKPACKAGERETURNINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/PairReadEndsMergeWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/PairReadEndsMergeWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{

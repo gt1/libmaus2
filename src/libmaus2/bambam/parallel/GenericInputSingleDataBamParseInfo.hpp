@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTSINGLEDATABAMPARSEINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTSINGLEDATABAMPARSEINFO_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
-#include <libmaus/bambam/BamHeaderParserState.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/util/GetObject.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamHeaderLowMem.hpp>
+#include <libmaus2/bambam/BamHeaderParserState.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/util/GetObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -33,12 +33,12 @@ namespace libmaus
 		{
 			struct GenericInputSingleDataBamParseInfo
 			{
-				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> parsestallarray;
+				libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> parsestallarray;
 				size_t parsestallarrayused;
 			
-				libmaus::bambam::BamHeaderParserState BHPS;
+				libmaus2::bambam::BamHeaderParserState BHPS;
 				bool headercomplete;
-				libmaus::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
+				libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
 			
 				GenericInputSingleDataBamParseInfo(bool const rheadercomplete = false)
 				: parsestallarray(), parsestallarrayused(0), BHPS(), headercomplete(rheadercomplete), Pheader()
@@ -47,8 +47,8 @@ namespace libmaus
 			
 				void setupHeader()
 				{
-					libmaus::bambam::BamHeaderLowMem::unique_ptr_type tptr(
-						libmaus::bambam::BamHeaderLowMem::constructFromText(BHPS.text.begin(),BHPS.text.begin()+BHPS.l_text)
+					libmaus2::bambam::BamHeaderLowMem::unique_ptr_type tptr(
+						libmaus2::bambam::BamHeaderLowMem::constructFromText(BHPS.text.begin(),BHPS.text.begin()+BHPS.l_text)
 					);
 					Pheader = UNIQUE_PTR_MOVE(tptr);
 				}
@@ -70,7 +70,7 @@ namespace libmaus
 					parsestallarray[parsestallarrayused++] = p;
 				}
 			
-				void parseBlock(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block)
+				void parseBlock(libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type block)
 				{
 					uint8_t const * Da = reinterpret_cast<uint8_t const *>(block->D.begin());
 					uint8_t const * Dc = Da;
@@ -78,7 +78,7 @@ namespace libmaus
 					
 					if ( ! this->headercomplete )
 					{
-						libmaus::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(Da));
+						libmaus2::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(Da));
 						std::pair<bool,uint64_t> const P = this->BHPS.parseHeader(G,De-Da);
 			
 						this->headercomplete = P.first;
@@ -102,7 +102,7 @@ namespace libmaus
 						if ( this->parsestallarrayused >= sizeof(uint32_t) )
 						{
 							// length of record
-							uint32_t const n = libmaus::bambam::DecoderBase::getLEInteger(this->parsestallarray.begin(),4);
+							uint32_t const n = libmaus2::bambam::DecoderBase::getLEInteger(this->parsestallarray.begin(),4);
 							// length we already have copied
 							uint32_t const alcop = this->parsestallarrayused - sizeof(uint32_t);
 							// rest in block
@@ -143,7 +143,7 @@ namespace libmaus
 					uint32_t n = 0;
 					while ( 
 						De-Dc >= static_cast<ptrdiff_t>(sizeof(uint32_t)) &&
-						De-Dc >= static_cast<ptrdiff_t>(sizeof(uint32_t) + (n=libmaus::bambam::DecoderBase::getLEInteger(Dc,4)))
+						De-Dc >= static_cast<ptrdiff_t>(sizeof(uint32_t) + (n=libmaus2::bambam::DecoderBase::getLEInteger(Dc,4)))
 					)
 					{
 						#if 0
@@ -165,19 +165,19 @@ namespace libmaus
 					// file truncated?
 					if ( block->final && this->parsestallarrayused )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "Stream is truncated (end of file inside a BAM record)" << std::endl;
 						lme.finish();
 						throw lme;
 					}
 					
 					#if 0
-					::libmaus::bambam::BamFormatAuxiliary aux;
+					::libmaus2::bambam::BamFormatAuxiliary aux;
 					for ( size_t i = 0; i < block->getNumParsePointers(); ++i )
 					{
 						uint8_t const * p = reinterpret_cast<uint8_t const *>(block->D.begin() + block->PP[i]);
-						uint32_t const n = libmaus::bambam::DecoderBase::getLEInteger(p,sizeof(uint32_t));
-						libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+						uint32_t const n = libmaus2::bambam::DecoderBase::getLEInteger(p,sizeof(uint32_t));
+						libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(
 							std::cout, p + sizeof(uint32_t), n, *(data[streamid]->Pheader),aux
 						);
 						std::cout.put('\n');

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,35 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/SHA2_512_sse4.hpp>
-#include <libmaus/digest/sha512.h>
-#include <libmaus/rank/BSwapBase.hpp>
+#include <libmaus2/digest/SHA2_512_sse4.hpp>
+#include <libmaus2/digest/sha512.h>
+#include <libmaus2/rank/BSwapBase.hpp>
 #include <algorithm>
 
 #if defined(LIBMAUS_HAVE_x86_64)
 #include <emmintrin.h>
 #endif
 
-libmaus::digest::SHA2_512_sse4::SHA2_512_sse4() 
-: block(2*(1ull<<libmaus::digest::SHA2_512_sse4::blockshift),false), 
+libmaus2::digest::SHA2_512_sse4::SHA2_512_sse4() 
+: block(2*(1ull<<libmaus2::digest::SHA2_512_sse4::blockshift),false), 
   digestw(base_type::digestlength / sizeof(uint64_t),false), 
   digestinit(base_type::digestlength / sizeof(uint64_t),false),
   index(0), blockcnt(0)
 {
 	#if ! ( defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SHA2_ASSEMBLY) )
-	libmaus::exception::LibMausException lme;
+	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "SHA2_512_sse4(): code has not been compiled into libmaus" << std::endl;
 	lme.finish();
 	throw lme;
 	#endif
 	
 	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
-	if ( !libmaus::util::I386CacheLineSize::hasSSE41() )
+	if ( !libmaus2::util::I386CacheLineSize::hasSSE41() )
 	#else
 	if ( true )
 	#endif
 	{
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "SHA2_512_sse4(): machine does not support SSE4" << std::endl;
 		lme.finish();
 		throw lme;
@@ -62,12 +62,12 @@ libmaus::digest::SHA2_512_sse4::SHA2_512_sse4()
 	for ( unsigned int i = 0; i < 8; ++i )
 		digestinit[i] = digest[i];
 }
-libmaus::digest::SHA2_512_sse4::~SHA2_512_sse4()
+libmaus2::digest::SHA2_512_sse4::~SHA2_512_sse4()
 {
 
 }
 
-void libmaus::digest::SHA2_512_sse4::init()
+void libmaus2::digest::SHA2_512_sse4::init()
 {
 	#if defined(LIBMAUS_HAVE_x86_64)
 	index = 0;
@@ -87,7 +87,7 @@ void libmaus::digest::SHA2_512_sse4::init()
 	_mm_store_si128(po++,ra);
 	#endif	
 }
-void libmaus::digest::SHA2_512_sse4::update(
+void libmaus2::digest::SHA2_512_sse4::update(
 	#if defined(LIBMAUS_HAVE_x86_64)
 	uint8_t const * t, 
 	size_t l
@@ -136,7 +136,7 @@ void libmaus::digest::SHA2_512_sse4::update(
 	index += l;
 	#endif
 }
-void libmaus::digest::SHA2_512_sse4::digest(
+void libmaus2::digest::SHA2_512_sse4::digest(
 	#if defined(LIBMAUS_HAVE_x86_64)
 	uint8_t * digest
 	#else
@@ -196,7 +196,7 @@ void libmaus::digest::SHA2_512_sse4::digest(
 		
 		// fix this, implement for larger numbers
 		*(p++) = 0;
-		* p = libmaus::rank::BSwapBase::bswap8(numbits);
+		* p = libmaus2::rank::BSwapBase::bswap8(numbits);
 
 		sha512_sse4(&block[0],&digestw[0],1);
 	}
@@ -240,7 +240,7 @@ void libmaus::digest::SHA2_512_sse4::digest(
 		
 		// erase another 64 bit word, fixme: handle true 128 bit numbers
 		uint64_t * p = (reinterpret_cast<uint64_t *>(p128)); *p++ = 0;
-		*p = libmaus::rank::BSwapBase::bswap8(numbits);
+		*p = libmaus2::rank::BSwapBase::bswap8(numbits);
 
 		sha512_sse4(&block[0],&digestw[0],2);
 	}
@@ -250,10 +250,10 @@ void libmaus::digest::SHA2_512_sse4::digest(
 	uint64_t * digesti = &digestw[0];
 
 	while ( digest64 != digest64e )
-		*(digest64++) = libmaus::rank::BSwapBase::bswap8(*(digesti++));
+		*(digest64++) = libmaus2::rank::BSwapBase::bswap8(*(digesti++));
 	#endif
 }
-void libmaus::digest::SHA2_512_sse4::copyFrom(
+void libmaus2::digest::SHA2_512_sse4::copyFrom(
 	#if defined(LIBMAUS_HAVE_x86_64)
 	SHA2_512_sse4 const & O
 	#else
@@ -302,5 +302,5 @@ void libmaus::digest::SHA2_512_sse4::copyFrom(
 	#endif
 }
 
-void libmaus::digest::SHA2_512_sse4::vinit() { init(); }
-void libmaus::digest::SHA2_512_sse4::vupdate(uint8_t const * u, size_t l) { update(u,l); }
+void libmaus2::digest::SHA2_512_sse4::vinit() { init(); }
+void libmaus2::digest::SHA2_512_sse4::vupdate(uint8_t const * u, size_t l) { update(u,l); }

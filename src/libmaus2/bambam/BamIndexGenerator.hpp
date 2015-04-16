@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMINDEXGENERATOR_HPP)
 #define LIBMAUS_BAMBAM_BAMINDEXGENERATOR_HPP
 
-#include <libmaus/aio/Buffer.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/aio/SingleFileFragmentMerge.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/bambam/EncoderBase.hpp>
-#include <libmaus/bambam/BamIndexLinearChunk.hpp>
-#include <libmaus/bambam/BamIndexBinChunk.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/BamIndexMetaInfo.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/Buffer.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/SingleFileFragmentMerge.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/bambam/EncoderBase.hpp>
+#include <libmaus2/bambam/BamIndexLinearChunk.hpp>
+#include <libmaus2/bambam/BamIndexBinChunk.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamIndexMetaInfo.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamIndexGenerator
 		{
 			typedef BamIndexGenerator this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			template<typename stream_type>
@@ -51,11 +51,11 @@ namespace libmaus
 				int64_t prevbin = -1;
 				int64_t refid = -1;
 				uint64_t bins = 0;
-				::libmaus::bambam::BamIndexBinChunk BC;
+				::libmaus2::bambam::BamIndexBinChunk BC;
 				
 				while ( stream.peek() != stream_type::traits_type::eof() )
 				{
-					stream.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus::bambam::BamIndexBinChunk));
+					stream.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus2::bambam::BamIndexBinChunk));
 					
 					if ( refid < 0 )
 						refid = BC.refid;
@@ -63,7 +63,7 @@ namespace libmaus
 					if ( refid != static_cast<int64_t>(BC.refid) )
 					{
 						stream.clear();
-						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexBinChunk)),std::ios::cur);
+						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexBinChunk)),std::ios::cur);
 						break;
 					}
 					
@@ -83,11 +83,11 @@ namespace libmaus
 				int64_t refid = -1;
 				uint64_t chunks = 0;
 
-				::libmaus::bambam::BamIndexBinChunk BC;
+				::libmaus2::bambam::BamIndexBinChunk BC;
 				
 				while ( stream.peek() != stream_type::traits_type::eof() )
 				{
-					stream.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus::bambam::BamIndexBinChunk));
+					stream.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus2::bambam::BamIndexBinChunk));
 
 					if ( refid < 0 )
 						refid = BC.refid;
@@ -101,7 +101,7 @@ namespace libmaus
 					)
 					{
 						stream.clear();
-						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexBinChunk)),std::ios::cur);
+						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexBinChunk)),std::ios::cur);
 						stream.clear();
 						break;
 					}
@@ -118,11 +118,11 @@ namespace libmaus
 				int64_t refid = -1;
 				uint64_t cnt = 0;
 				
-				::libmaus::bambam::BamIndexLinearChunk LC;
+				::libmaus2::bambam::BamIndexLinearChunk LC;
 				
 				while ( stream.peek() != stream_type::traits_type::eof() )
 				{
-					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 					
 					if ( refid == -1 )
 						refid = LC.refid;
@@ -131,7 +131,7 @@ namespace libmaus
 					if ( static_cast<int64_t>(LC.refid) != refid )
 					{
 						stream.clear();
-						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
 						break;
 					}
 					
@@ -147,11 +147,11 @@ namespace libmaus
 				int64_t refid = -1;
 				uint64_t maxpos = 0;
 				
-				::libmaus::bambam::BamIndexLinearChunk LC;
+				::libmaus2::bambam::BamIndexLinearChunk LC;
 				
 				while ( stream.peek() != stream_type::traits_type::eof() )
 				{
-					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 					
 					if ( refid == -1 )
 						refid = LC.refid;
@@ -160,7 +160,7 @@ namespace libmaus
 					if ( static_cast<int64_t>(LC.refid) != refid )
 					{
 						stream.clear();
-						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
 						break;
 					}
 					
@@ -176,11 +176,11 @@ namespace libmaus
 				int64_t refid = -1;
 				int64_t maxpos = 0;
 				
-				::libmaus::bambam::BamIndexLinearChunk LC;
+				::libmaus2::bambam::BamIndexLinearChunk LC;
 				
 				while ( stream.peek() != stream_type::traits_type::eof() )
 				{
-					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+					stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 					
 					if ( refid == -1 )
 						refid = LC.refid;
@@ -189,7 +189,7 @@ namespace libmaus
 					if ( static_cast<int64_t>(LC.refid) != refid )
 					{
 						stream.clear();
-						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+						stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
 						break;
 					}
 					
@@ -202,14 +202,14 @@ namespace libmaus
 			template<typename stream_type>
 			static bool peekLinearChunk(stream_type & stream, uint64_t const refid)
 			{
-				::libmaus::bambam::BamIndexLinearChunk LC;
+				::libmaus2::bambam::BamIndexLinearChunk LC;
 
 				if ( stream.peek() == stream_type::traits_type::eof() )
 					return false;
 				
-				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 				stream.clear();
-				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
 				
 				return LC.refid == refid;
 			}
@@ -217,14 +217,14 @@ namespace libmaus
 			template<typename stream_type>
 			static bool peekLinearChunk(stream_type & stream, uint64_t const refid, int64_t const chunkid)
 			{
-				::libmaus::bambam::BamIndexLinearChunk LC;
+				::libmaus2::bambam::BamIndexLinearChunk LC;
 
 				if ( stream.peek() == stream_type::traits_type::eof() )
 					return false;
 				
-				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 				stream.clear();
-				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
 				
 				return LC.refid == refid && LC.chunkid == chunkid;
 			}
@@ -232,14 +232,14 @@ namespace libmaus
 			template<typename stream_type>
 			static bool peekLinearChunk(stream_type & stream, uint64_t const refid, uint64_t const pos, unsigned int const posshift)
 			{
-				::libmaus::bambam::BamIndexLinearChunk LC;
+				::libmaus2::bambam::BamIndexLinearChunk LC;
 
 				if ( stream.peek() == stream_type::traits_type::eof() )
 					return false;
 				
-				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+				stream.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 				stream.clear();
-				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexLinearChunk)),std::ios::cur);
+				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexLinearChunk)),std::ios::cur);
 				
 				return (LC.refid == refid) && ((LC.pos >> posshift)==(pos>>posshift));
 			}
@@ -247,33 +247,33 @@ namespace libmaus
 			template<typename stream_type>
 			static int64_t peekBin(stream_type & stream)
 			{
-				::libmaus::bambam::BamIndexBinChunk BC;
+				::libmaus2::bambam::BamIndexBinChunk BC;
 				
 				if ( stream.peek() == stream_type::traits_type::eof() )
 					return -1;
 					
 				stream.read(
 					reinterpret_cast<char *>(&BC),
-					sizeof(::libmaus::bambam::BamIndexBinChunk)
+					sizeof(::libmaus2::bambam::BamIndexBinChunk)
 				);
 				
-				assert ( stream.gcount() == sizeof(::libmaus::bambam::BamIndexBinChunk) );
+				assert ( stream.gcount() == sizeof(::libmaus2::bambam::BamIndexBinChunk) );
 				
 				stream.clear();
-				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus::bambam::BamIndexBinChunk)),std::ios::cur);
+				stream.seekg(-static_cast<int64_t>(sizeof(::libmaus2::bambam::BamIndexBinChunk)),std::ios::cur);
 				
 				return BC.refid;
 			}
 
 			static bool checkConsisteny(std::string const & binfn, std::string const & linfn, uint64_t const numrefseq)
 			{
-				::libmaus::aio::CheckedInputStream binCIS(binfn);
-				::libmaus::aio::CheckedInputStream linCIS(linfn);
+				::libmaus2::aio::CheckedInputStream binCIS(binfn);
+				::libmaus2::aio::CheckedInputStream linCIS(linfn);
 				
 				while ( 
-					binCIS.peek() != ::libmaus::aio::CheckedInputStream::traits_type::eof()
+					binCIS.peek() != ::libmaus2::aio::CheckedInputStream::traits_type::eof()
 					&&
-					linCIS.peek() != ::libmaus::aio::CheckedInputStream::traits_type::eof()
+					linCIS.peek() != ::libmaus2::aio::CheckedInputStream::traits_type::eof()
 				)
 				{
 					std::pair<int64_t,uint64_t> const L = countLinearChunks(linCIS);
@@ -304,14 +304,14 @@ namespace libmaus
 			/* parser state types */
 			enum parsestate { state_reading_blocklen,  state_post_skip };
 			
-			::libmaus::bambam::BamHeader header;
+			::libmaus2::bambam::BamHeader header;
 			
 			bool haveheader;
 			
 			uint64_t cacct; // accumulated compressed bytes we have read from file
 			std::pair<uint64_t,uint64_t> rinfo;
 
-			::libmaus::bambam::BamHeaderParserState bamheaderparsestate;
+			::libmaus2::bambam::BamHeaderParserState bamheaderparsestate;
 
 			parsestate state;
 
@@ -325,7 +325,7 @@ namespace libmaus
 			uint64_t binalcmpstart;
 			uint64_t binalstart;
 
-			::libmaus::bambam::BamAlignment algn;
+			::libmaus2::bambam::BamAlignment algn;
 			uint8_t * copyptr;
 			
 			int64_t prevrefid;
@@ -342,13 +342,13 @@ namespace libmaus
 			std::string const binchunktmpfilename;
 			std::string const linchunktmpfilename;
 			std::string const metatmpfilename;
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type chunkCOS;
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type linCOS;
-			::libmaus::aio::SynchronousGenericOutput< ::libmaus::bambam::BamIndexMetaInfo >::unique_ptr_type metaOut;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type chunkCOS;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type linCOS;
+			::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type metaOut;
 
-			::libmaus::aio::Buffer< ::libmaus::bambam::BamIndexBinChunk> BCB;
+			::libmaus2::aio::Buffer< ::libmaus2::bambam::BamIndexBinChunk> BCB;
 			std::vector< std::pair<uint64_t,uint64_t> > binchunkfrags;
-			::libmaus::aio::Buffer< ::libmaus::bambam::BamIndexLinearChunk> BLC;
+			::libmaus2::aio::Buffer< ::libmaus2::bambam::BamIndexLinearChunk> BLC;
 			std::vector< std::pair<uint64_t,uint64_t> > linearchunkfrags;
 			
 			unsigned int const verbose;
@@ -376,14 +376,14 @@ namespace libmaus
 			  verbose(rverbose), validate(rvalidate), debug(rdebug),
 			  blocksetup(false)
 			{
-				::libmaus::util::TempFileRemovalContainer::addTempFile(binchunktmpfilename);
-				::libmaus::util::TempFileRemovalContainer::addTempFile(linchunktmpfilename);
-				::libmaus::util::TempFileRemovalContainer::addTempFile(metatmpfilename);
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(binchunktmpfilename);
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(linchunktmpfilename);
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(metatmpfilename);
 
-				::libmaus::aio::CheckedOutputStream::unique_ptr_type tchunkCOS(new ::libmaus::aio::CheckedOutputStream(binchunktmpfilename));
-				::libmaus::aio::CheckedOutputStream::unique_ptr_type tlinCOS(new ::libmaus::aio::CheckedOutputStream(linchunktmpfilename));
-				::libmaus::aio::SynchronousGenericOutput< ::libmaus::bambam::BamIndexMetaInfo >::unique_ptr_type tmetaOut(
-					new ::libmaus::aio::SynchronousGenericOutput< ::libmaus::bambam::BamIndexMetaInfo >(metatmpfilename,128)
+				::libmaus2::aio::CheckedOutputStream::unique_ptr_type tchunkCOS(new ::libmaus2::aio::CheckedOutputStream(binchunktmpfilename));
+				::libmaus2::aio::CheckedOutputStream::unique_ptr_type tlinCOS(new ::libmaus2::aio::CheckedOutputStream(linchunktmpfilename));
+				::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type tmetaOut(
+					new ::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >(metatmpfilename,128)
 				);
 				
 				chunkCOS = UNIQUE_PTR_MOVE(tchunkCOS);
@@ -404,7 +404,7 @@ namespace libmaus
 
 				if ( (! haveheader) && (pa != pc) )
 				{			
-					::libmaus::util::GetObject<uint8_t const *> G(Bbegin);
+					::libmaus2::util::GetObject<uint8_t const *> G(Bbegin);
 					std::pair<bool,uint64_t> const P = bamheaderparsestate.parseHeader(G,uncompsize);
 
 					// header complete?
@@ -466,7 +466,7 @@ namespace libmaus
 									state = state_post_skip;
 									
 									if ( algn.D.size() < blocklen )
-										algn.D = ::libmaus::bambam::BamAlignment::D_array_type(blocklen,false);
+										algn.D = ::libmaus2::bambam::BamAlignment::D_array_type(blocklen,false);
 									algn.blocksize = blocklen;
 									copyptr = algn.D.begin();
 								}
@@ -481,7 +481,7 @@ namespace libmaus
 										state = state_post_skip;
 
 										if ( algn.D.size() < blocklen )
-											algn.D = ::libmaus::bambam::BamAlignment::D_array_type(blocklen,false);
+											algn.D = ::libmaus2::bambam::BamAlignment::D_array_type(blocklen,false);
 										algn.blocksize = blocklen;
 										copyptr = algn.D.begin();
 									}
@@ -515,7 +515,7 @@ namespace libmaus
 											if ( verbose )
 												std::cerr << "[V] " << header.getRefIDName(prevrefid) << " " << mappedcnt << " " << unmappedcnt << std::endl;
 											
-											metaOut->put ( ::libmaus::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
+											metaOut->put ( ::libmaus2::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
 										}
 									
 										mappedcnt = 0;
@@ -544,7 +544,7 @@ namespace libmaus
 									// throw exception if alignment stream is not sorted by coordinate
 									if ( ! orderok )
 									{
-										::libmaus::exception::LibMausException se;
+										::libmaus2::exception::LibMausException se;
 										se.getStream() << "File is not sorted by coordinate." << std::endl;
 										se.finish();
 										throw se;
@@ -574,7 +574,7 @@ namespace libmaus
 											for ( int64_t lini = linstart; lini <= linend; ++lini )
 												if ( lini > prevlinchunkid )
 												{
-													::libmaus::bambam::BamIndexLinearChunk LC(
+													::libmaus2::bambam::BamIndexLinearChunk LC(
 														thisrefid,thispos,alcmpstart,alstart,lini
 													);
 													
@@ -618,7 +618,7 @@ namespace libmaus
 													<< std::endl;
 											}
 
-											::libmaus::bambam::BamIndexBinChunk BC(prevrefid,prevbin,binalcmpstart,binalstart,binalcmpend,binalend);
+											::libmaus2::bambam::BamIndexBinChunk BC(prevrefid,prevbin,binalcmpstart,binalstart,binalcmpend,binalend);
 											
 											if ( debug )
 											{
@@ -701,7 +701,7 @@ namespace libmaus
 							<< std::endl;
 					}
 
-					::libmaus::bambam::BamIndexBinChunk BC(prevrefid,prevbin,binalcmpstart,binalstart,binalcmpend,binalend);
+					::libmaus2::bambam::BamIndexBinChunk BC(prevrefid,prevbin,binalcmpstart,binalstart,binalcmpend,binalend);
 
 					if ( BCB.put(BC) )
 						binchunkfrags.push_back(BCB.flush(*chunkCOS));
@@ -717,7 +717,7 @@ namespace libmaus
 					if ( verbose )
 						std::cerr << "[V] " << header.getRefIDName(prevrefid) << " " << mappedcnt << " " << unmappedcnt << std::endl;
 
-					metaOut->put ( ::libmaus::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
+					metaOut->put ( ::libmaus2::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
 				}
 
 				chunkCOS->flush();
@@ -734,30 +734,30 @@ namespace libmaus
 				if ( verbose )
 					std::cerr << "[V] " << alcnt << std::endl;
 					
-				::libmaus::aio::SingleFileFragmentMerge< ::libmaus::bambam::BamIndexBinChunk>::merge(binchunktmpfilename,binchunkfrags);
-				::libmaus::aio::SingleFileFragmentMerge< ::libmaus::bambam::BamIndexLinearChunk>::merge(linchunktmpfilename,linearchunkfrags);
+				::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexBinChunk>::merge(binchunktmpfilename,binchunkfrags);
+				::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexLinearChunk>::merge(linchunktmpfilename,linearchunkfrags);
 
 				/* check consistency */
 				bool const consistent = checkConsisteny(binchunktmpfilename,linchunktmpfilename,header.getNumRef());
 				
 				if ( ! consistent )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bin index and linear index are inconsistent." << std::endl;
 					se.finish();
 					throw se;
 				}
 
 				/* write index */
-				::libmaus::aio::CheckedInputStream binCIS(binchunktmpfilename);
-				::libmaus::aio::CheckedInputStream linCIS(linchunktmpfilename);
-				::libmaus::aio::SynchronousGenericInput< ::libmaus::bambam::BamIndexMetaInfo > metaIn(metatmpfilename,128);
+				::libmaus2::aio::CheckedInputStream binCIS(binchunktmpfilename);
+				::libmaus2::aio::CheckedInputStream linCIS(linchunktmpfilename);
+				::libmaus2::aio::SynchronousGenericInput< ::libmaus2::bambam::BamIndexMetaInfo > metaIn(metatmpfilename,128);
 					
 				out.put('B');
 				out.put('A');
 				out.put('I');
 				out.put('\1');
-				::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,header.getNumRef());
+				::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,header.getNumRef());
 				
 				for ( uint64_t i = 0; i < header.getNumRef(); ++i )
 				{
@@ -766,7 +766,7 @@ namespace libmaus
 				
 					if ( peekBin(binCIS) == static_cast<int64_t>(i) )
 					{
-						::libmaus::bambam::BamIndexMetaInfo meta;
+						::libmaus2::bambam::BamIndexMetaInfo meta;
 
 						if ( metaIn.peekNext(meta) && meta.refid == static_cast<int64_t>(i) )
 							metaIn.getNext(meta);
@@ -785,7 +785,7 @@ namespace libmaus
 							std::cerr << "Distinct bins " << P.second << std::endl;
 						
 						// number of distinct bins
-						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,P.second + (havemeta?1:0));
+						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,P.second + (havemeta?1:0));
 						
 						// iterate over bins
 						for ( uint64_t b = 0; b < P.second; ++b )
@@ -802,19 +802,19 @@ namespace libmaus
 									<< std::endl;
 
 							// bin
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,Q.first);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,Q.first);	
 							// number of chunks
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,Q.second);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,Q.second);	
 				
 							// iterate over chunks
 							for ( uint64_t c = 0; c < Q.second; ++c )
 							{
-								::libmaus::bambam::BamIndexBinChunk BC;
-								binCIS.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus::bambam::BamIndexBinChunk));
+								::libmaus2::bambam::BamIndexBinChunk BC;
+								binCIS.read(reinterpret_cast<char *>(&BC),sizeof(::libmaus2::bambam::BamIndexBinChunk));
 								
 								// chunk data
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpstart<<16)|(BC.alstart));
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpend<<16)|(BC.alend));	
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpstart<<16)|(BC.alstart));
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,(BC.alcmpend<<16)|(BC.alend));	
 								
 								if ( debug )
 								{
@@ -826,17 +826,17 @@ namespace libmaus
 						if ( havemeta )
 						{
 							// bin id
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,37450 /* meta bin id */);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,37450 /* meta bin id */);	
 							// number of chunks
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,2);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,2);	
 							// start of ref id
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.start);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.start);	
 							// end of ref id
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.end);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.end);	
 							// number of mapped reads
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.mapped);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.mapped);	
 							// number of unmapped reads
-							::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);	
+							::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);	
 						}
 
 						uint64_t const lprepos = linCIS.tellg();
@@ -848,7 +848,7 @@ namespace libmaus
 						uint64_t const numchunks = Q.second+1; // maximum chunk id + 1
 
 						// number of linear chunks bins
-						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
+						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,numchunks);
 						// previous offset value
 						uint64_t prevoff = 0;
 						
@@ -856,17 +856,17 @@ namespace libmaus
 						{
 							if ( peekLinearChunk(linCIS,P.first,c /*c*posperchunk,14*/) )
 							{
-								::libmaus::bambam::BamIndexLinearChunk LC;
-								linCIS.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus::bambam::BamIndexLinearChunk));
+								::libmaus2::bambam::BamIndexLinearChunk LC;
+								linCIS.read(reinterpret_cast<char *>(&LC),sizeof(::libmaus2::bambam::BamIndexLinearChunk));
 								prevoff = LC.getOffset();
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);	
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);	
 
 								if ( debug )
 									std::cerr << "LC[" << c << "]=" << LC << " -> " << prevoff << std::endl;
 							}
 							else
 							{
-								::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
+								::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,prevoff);
 								if ( debug )
 									std::cerr << "LC[" << c << "]=" << "null -> " << prevoff << std::endl;
 							}
@@ -875,18 +875,18 @@ namespace libmaus
 					else
 					{
 						// number of distinct bins
-						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
+						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
 						// number of linear index chunks
-						::libmaus::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
+						::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint32_t>(out,0);
 					}
 				}
 
-				::libmaus::bambam::BamIndexMetaInfo meta;
+				::libmaus2::bambam::BamIndexMetaInfo meta;
 
 				if ( metaIn.peekNext(meta) && (meta.refid == -1) )
 				{
 					metaIn.getNext(meta);
-					::libmaus::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);	
+					::libmaus2::bambam::EncoderBase::putLE<std::ostream,uint64_t>(out,meta.unmapped);	
 				}
 
 				out.flush();	
@@ -894,7 +894,7 @@ namespace libmaus
 
 			void flush(std::string const & filename)
 			{
-				::libmaus::aio::CheckedOutputStream COS(filename);
+				::libmaus2::aio::CheckedOutputStream COS(filename);
 				flush(COS);
 			}
 		};

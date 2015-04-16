@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(HUFENCODESTRING_HPP)
 #define HUFENCODESTRING_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -33,11 +33,11 @@ namespace libmaus
 		{
 			// build encoding table
 			unsigned int const lookupwords = 2;
-			::libmaus::huffman::EncodeTable<lookupwords> enctable ( root );
+			::libmaus2::huffman::EncodeTable<lookupwords> enctable ( root );
 
 			uint64_t const codelength = enctable.getCodeLength(a,e);
 			uint64_t const arraylength = (codelength + 63)/64+1;
-			::libmaus::autoarray::AutoArray<uint64_t> acode(arraylength);
+			::libmaus2::autoarray::AutoArray<uint64_t> acode(arraylength);
 
 			bitio::FastWriteBitWriter8 fwbw8(acode.get());
 			

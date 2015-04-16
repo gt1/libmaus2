@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEDEFLATEPARALLELWRAPPER_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEDEFLATEPARALLELWRAPPER_HPP
 
-#include <libmaus/lz/BgzfInflateDeflateParallel.hpp>
+#include <libmaus2/lz/BgzfInflateDeflateParallel.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_READENDSCONTAINERFREELISTINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_READENDSCONTAINERFREELISTINTERFACE_HPP
 
-#include <libmaus/bambam/ReadEndsContainer.hpp>
+#include <libmaus2/bambam/ReadEndsContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,10 +30,10 @@ namespace libmaus
 			struct ReadEndsContainerFreeListInterface
 			{
 				virtual ~ReadEndsContainerFreeListInterface() {}
-				virtual libmaus::bambam::ReadEndsContainer::shared_ptr_type getFragContainer() = 0;
-				virtual void returnFragContainer(libmaus::bambam::ReadEndsContainer::shared_ptr_type ptr) = 0;
-				virtual libmaus::bambam::ReadEndsContainer::shared_ptr_type getPairContainer() = 0;
-				virtual void returnPairContainer(libmaus::bambam::ReadEndsContainer::shared_ptr_type ptr) = 0;
+				virtual libmaus2::bambam::ReadEndsContainer::shared_ptr_type getFragContainer() = 0;
+				virtual void returnFragContainer(libmaus2::bambam::ReadEndsContainer::shared_ptr_type ptr) = 0;
+				virtual libmaus2::bambam::ReadEndsContainer::shared_ptr_type getPairContainer() = 0;
+				virtual void returnPairContainer(libmaus2::bambam::ReadEndsContainer::shared_ptr_type ptr) = 0;
 			};
 		}
 	}

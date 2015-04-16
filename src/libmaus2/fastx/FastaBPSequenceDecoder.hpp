@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_FASTX_FASTABPSEQUENCEDECODER_HPP)
 #define LIBMAUS_FASTX_FASTABPSEQUENCEDECODER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/fastx/acgtnMap.hpp>
-#include <libmaus/fastx/FastABPConstants.hpp>
-#include <libmaus/hashing/Crc32.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/fastx/FastABPConstants.hpp>
+#include <libmaus2/hashing/Crc32.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastaBPSequenceDecoder
 		{
 			typedef FastaBPSequenceDecoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			std::istream & in;
 			uint64_t const bs;
-			libmaus::autoarray::AutoArray<char> Bin;
+			libmaus2::autoarray::AutoArray<char> Bin;
 			bool eof;
 			
 			FastaBPSequenceDecoder(std::istream & rin, uint64_t const rbs)
@@ -56,7 +56,7 @@ namespace libmaus
 				int const flags = in.get();
 				if ( flags < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block flags" << std::endl;
 					lme.finish();
 					throw lme;			
@@ -64,26 +64,26 @@ namespace libmaus
 				bytesread += 1;
 						
 				// check whether this is the last block
-				eof = ( flags & ::libmaus::fastx::FastABPConstants::base_block_last );
+				eof = ( flags & ::libmaus2::fastx::FastABPConstants::base_block_last );
 				// determine number of bytes to be produced from this block
-				uint64_t const toread = eof ? libmaus::util::UTF8::decodeUTF8(in,bytesread) : bs;
+				uint64_t const toread = eof ? libmaus2::util::UTF8::decodeUTF8(in,bytesread) : bs;
 				
 				if ( m < toread )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): buffer is too small for block data" << std::endl;
 					lme.finish();
 					throw lme;					
 				}
 
-				switch ( flags & ::libmaus::fastx::FastABPConstants::base_block_mask )
+				switch ( flags & ::libmaus2::fastx::FastABPConstants::base_block_mask )
 				{
-					case ::libmaus::fastx::FastABPConstants::base_block_4:
+					case ::libmaus2::fastx::FastABPConstants::base_block_4:
 					{
 						in.read(Bin.begin(),(toread+3)/4);
 						if ( in.gcount() != static_cast<int64_t>((toread+3)/4) )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
 							lme.finish();
 							throw lme;					
@@ -95,10 +95,10 @@ namespace libmaus
 						{
 							uint8_t const u = static_cast<uint8_t>(Bin[j]);
 							
-							p[k++] = libmaus::fastx::remapChar((u >> 6) & 3);
-							p[k++] = libmaus::fastx::remapChar((u >> 4) & 3);
-							p[k++] = libmaus::fastx::remapChar((u >> 2) & 3);
-							p[k++] = libmaus::fastx::remapChar((u >> 0) & 3);
+							p[k++] = libmaus2::fastx::remapChar((u >> 6) & 3);
+							p[k++] = libmaus2::fastx::remapChar((u >> 4) & 3);
+							p[k++] = libmaus2::fastx::remapChar((u >> 2) & 3);
+							p[k++] = libmaus2::fastx::remapChar((u >> 0) & 3);
 						}
 						
 						if ( (toread) % 4 )
@@ -106,16 +106,16 @@ namespace libmaus
 							uint8_t const u = static_cast<uint8_t>(Bin[toread/4]);
 
 							for ( uint64_t j = 0; j < ((toread)%4); ++j )								
-								p[k++] = libmaus::fastx::remapChar((u >> (6-2*j)) & 3);								
+								p[k++] = libmaus2::fastx::remapChar((u >> (6-2*j)) & 3);								
 						}								
 						break;
 					}
-					case ::libmaus::fastx::FastABPConstants::base_block_5:
+					case ::libmaus2::fastx::FastABPConstants::base_block_5:
 					{
 						in.read(Bin.begin(),(toread+2)/3);
 						if ( in.gcount() != static_cast<int64_t>((toread+2)/3) )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
 							lme.finish();
 							throw lme;				
@@ -127,9 +127,9 @@ namespace libmaus
 						{
 							uint8_t const u = Bin[j];
 							
-							p[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-							p[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
-							p[k++] = libmaus::fastx::remapChar((u/(1*1))%5);
+							p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
+							p[k++] = libmaus2::fastx::remapChar((u/(5*1))%5);
+							p[k++] = libmaus2::fastx::remapChar((u/(1*1))%5);
 						}
 						if ( toread % 3 )
 						{
@@ -138,11 +138,11 @@ namespace libmaus
 							switch ( toread % 3 )
 							{
 								case 1:
-									p[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
+									p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
 									break;
 								case 2:
-									p[k++] = libmaus::fastx::remapChar((u/(5*5))%5);
-									p[k++] = libmaus::fastx::remapChar((u/(5*1))%5);
+									p[k++] = libmaus2::fastx::remapChar((u/(5*5))%5);
+									p[k++] = libmaus2::fastx::remapChar((u/(5*1))%5);
 									break;
 							}
 						}
@@ -150,12 +150,12 @@ namespace libmaus
 						assert ( k == toread );
 						break;
 					}
-					case ::libmaus::fastx::FastABPConstants::base_block_16:
+					case ::libmaus2::fastx::FastABPConstants::base_block_16:
 					{
 						in.read(Bin.begin(),(toread+1)/2);
 						if ( in.gcount() != static_cast<int64_t>((toread+1)/2) )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "FastaBPSequenceDecoder::read(): input failure" << std::endl;
 							lme.finish();
 							throw lme;				
@@ -167,13 +167,13 @@ namespace libmaus
 						{
 							uint8_t const u = Bin[j];
 
-							p[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4 );
-							p[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u & 0xF);
+							p[k++] = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4 );
+							p[k++] = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u & 0xF);
 						}
 						if ( toread&1 )
 						{
 							uint8_t const u = Bin[toread/2];
-							p[k++] = libmaus::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
+							p[k++] = libmaus2::bambam::BamAlignmentDecoderBase::decodeSymbolUnchecked(u >> 4);
 						}
 						
 						assert ( k == toread );
@@ -181,7 +181,7 @@ namespace libmaus
 					}
 					default:
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block type" << std::endl;
 						lme.finish();
 						throw lme;
@@ -197,7 +197,7 @@ namespace libmaus
 					in.ignore(toskip);
 					if ( in.gcount() != static_cast<int64_t>(toskip) )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while aligning file to 8 byte boundary" << std::endl;
 						lme.finish();
 						throw lme;
@@ -209,7 +209,7 @@ namespace libmaus
 				in.read(reinterpret_cast<char *>(&crcbytes[0]),sizeof(crcbytes));
 				if ( in.gcount() != static_cast<int64_t>(sizeof(crcbytes)) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): EOF/error while reading block crc" << std::endl;
 					lme.finish();
 					throw lme;
@@ -226,19 +226,19 @@ namespace libmaus
 					(static_cast<uint32_t>(crcbytes[6]) <<  8) |
 					(static_cast<uint32_t>(crcbytes[7]) <<  0);
 
-				uint32_t const crcincomp = libmaus::hashing::Crc32::crc32_8bytes(p,toread,0 /*prev*/);
-				uint32_t const crcoutcomp = libmaus::hashing::Crc32::crc32_8bytes(Bin.begin(),inputcount,0 /*prev*/);
+				uint32_t const crcincomp = libmaus2::hashing::Crc32::crc32_8bytes(p,toread,0 /*prev*/);
+				uint32_t const crcoutcomp = libmaus2::hashing::Crc32::crc32_8bytes(Bin.begin(),inputcount,0 /*prev*/);
 				
 				if ( crcin != crcincomp )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on uncompressed data" << std::endl;
 					lme.finish();
 					throw lme;		
 				}
 				if ( crcout != crcoutcomp )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastaBPSequenceDecoder::read(): crc error on compressed data" << std::endl;
 					lme.finish();
 					throw lme;				

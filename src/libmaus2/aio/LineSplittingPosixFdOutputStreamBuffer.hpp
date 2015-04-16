@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,14 +22,14 @@
 #include <ostream>
 #include <sstream>
 #include <iomanip>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/PosixFdInput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/PosixFdInput.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 
 			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
 			{
-				int64_t const fsopt = libmaus::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
+				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
 				
 				if ( fsopt <= 0 )
 					return getDefaultBlockSize();
@@ -61,7 +61,7 @@ namespace libmaus
 			int fd;
 			int64_t const optblocksize;
 			uint64_t const buffersize;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 			
 			bool reopenpending;
 			
@@ -82,7 +82,7 @@ namespace libmaus
 							return;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "LineSplittingPosixFdOutputStreamBuffer::doSync(): fsync() failed: " << strerror(error) << std::endl;
 							se.finish();
 							throw se;
@@ -104,7 +104,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "LineSplittingPosixFdOutputStreamBuffer::doClose(): close() failed: " << strerror(error) << std::endl;
 							se.finish();
 							throw se;
@@ -137,7 +137,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "LineSplittingPosixFdOutputStreamBuffer::doOpen(): open("<<filename<<") failed: " << strerror(error) << std::endl;
 							se.finish();
 							throw se;
@@ -168,7 +168,7 @@ namespace libmaus
 								break;
 							default:
 							{
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "LineSplittingPosixFdOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
 								se.finish();
 								throw se;

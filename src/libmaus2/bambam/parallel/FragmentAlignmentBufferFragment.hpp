@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERFRAGMENT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERFRAGMENT_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/parallel/RefIdInterval.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/parallel/RefIdInterval.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,10 +31,10 @@ namespace libmaus
 			struct FragmentAlignmentBufferFragment
 			{
 				typedef FragmentAlignmentBufferFragment this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> A;
+				libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> A;
 				uint8_t * pa;
 				uint8_t * pc;
 				uint8_t * pe;
@@ -65,7 +65,7 @@ namespace libmaus
 					size_t const newsize = A.size() + sizeadd;
 					
 					#if 1
-					libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> B(newsize,false);
+					libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> B(newsize,false);
 					
 					std::copy(pa,pc,B.begin());
 

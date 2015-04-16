@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_BGZFLINEARMEMCOMPRESSWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_BGZFLINEARMEMCOMPRESSWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp>
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{			
-			struct BgzfLinearMemCompressWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct BgzfLinearMemCompressWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef BgzfLinearMemCompressWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				SmallLinearBlockCompressionPendingObject obj;
-				libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outbuf;
+				libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outbuf;
 
 				BgzfLinearMemCompressWorkPackage() : obj(), outbuf() {}
 
 				BgzfLinearMemCompressWorkPackage(
 					uint64_t const rpriority, 
 					SmallLinearBlockCompressionPendingObject robj,
-					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type routbuf,
+					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type routbuf,
 					uint64_t const rlinearMemCompressDispatcherId
-				) : libmaus::parallel::SimpleThreadWorkPackage(rpriority,rlinearMemCompressDispatcherId), obj(robj), outbuf(routbuf)
+				) : libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rlinearMemCompressDispatcherId), obj(robj), outbuf(routbuf)
 				{
 				
 				}

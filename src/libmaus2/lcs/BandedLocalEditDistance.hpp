@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_LCS_BANDEDLOCALEDITDISTANCE_HPP)
 #define LIBMAUS_LCS_BANDEDLOCALEDITDISTANCE_HPP
 
-#include <libmaus/lcs/EditDistancePriorityType.hpp>
-#include <libmaus/lcs/LocalEditDistanceTraceContainer.hpp>
-#include <libmaus/lcs/LocalEditDistanceResult.hpp>
+#include <libmaus2/lcs/EditDistancePriorityType.hpp>
+#include <libmaus2/lcs/LocalEditDistanceTraceContainer.hpp>
+#include <libmaus2/lcs/LocalEditDistanceResult.hpp>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{		
 		template<
-			libmaus::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus::lcs::del_ins_diag
+			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
 		struct BandedLocalEditDistance : public LocalEditDistanceTraceContainer
 		{
-			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
+			static ::libmaus2::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
 			typedef BandedLocalEditDistance<edit_distance_priority> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef LocalEditDistanceResult result_type;
 
 			private:			
@@ -47,7 +47,7 @@ namespace libmaus
 			uint64_t k21;
 
 			typedef std::pair < similarity_type, step_type > element_type;
-			libmaus::autoarray::AutoArray<element_type> M;
+			libmaus2::autoarray::AutoArray<element_type> M;
 
 			element_type operator()(
 				uint64_t const i, uint64_t const j
@@ -99,7 +99,7 @@ namespace libmaus
 			{
 				if ( ! validParameters(rn,rm,rk) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BandedLocalEditDistance::BandedLocalEditDistance(): parameters n=" << rn << " m=" << rm << " k=" << rk << " are invalid." << std::endl;
 					se.finish();
 					throw se;
@@ -113,7 +113,7 @@ namespace libmaus
 				k21 = (k<<1)+1;
 				
 				if ( M.size() < m1 * k21 )
-					M = libmaus::autoarray::AutoArray<element_type>(m1 * k21,false);
+					M = libmaus2::autoarray::AutoArray<element_type>(m1 * k21,false);
 				if ( LocalEditDistanceTraceContainer::capacity() < rn+rm+1 )
 					LocalEditDistanceTraceContainer::resize(rn+rm+1);					
 			}

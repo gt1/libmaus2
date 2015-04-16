@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_PARALLEL_THREADPOOLINTERFACEENQUETERMINTERFACE_HPP)
 #define LIBMAUS_PARALLEL_THREADPOOLINTERFACEENQUETERMINTERFACE_HPP
 
-#include <libmaus/parallel/ThreadWorkPackage.hpp>
+#include <libmaus2/parallel/ThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		

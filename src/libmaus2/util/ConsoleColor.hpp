@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,13 +22,13 @@
 
 #include <cstdio>
 #include <string>
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(HAVE_ISATTY)
 #include <unistd.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEBLOCK_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEBLOCK_HPP
 
-#include <libmaus/lz/BgzfInflateBase.hpp>
-#include <libmaus/lz/BgzfInflateInfo.hpp>
+#include <libmaus2/lz/BgzfInflateBase.hpp>
+#include <libmaus2/lz/BgzfInflateInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateBlock : public BgzfInflateBase
 		{
 			typedef BgzfInflateBlock this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			enum bgzfinflateblockstate
 			{
@@ -38,9 +38,9 @@ namespace libmaus
 				bgzfinflateblockstate_decompressed_block
 			};
 		
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> data;
-			::libmaus::lz::BgzfInflateInfo blockinfo;
-			libmaus::exception::LibMausException::unique_ptr_type ex;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> data;
+			::libmaus2::lz::BgzfInflateInfo blockinfo;
+			libmaus2::exception::LibMausException::unique_ptr_type ex;
 			bgzfinflateblockstate state;
 
 			uint64_t objectid;
@@ -57,7 +57,7 @@ namespace libmaus
 				return ex.get() != 0;
 			}
 			
-			libmaus::exception::LibMausException const & getException() const
+			libmaus2::exception::LibMausException const & getException() const
 			{
 				assert ( failed() );
 				return *ex;
@@ -81,7 +81,7 @@ namespace libmaus
 				{
 					std::pair<uint64_t,uint64_t> preblockinfo = BgzfInflateBase::readBlock(stream);
 					
-					blockinfo = ::libmaus::lz::BgzfInflateInfo(
+					blockinfo = ::libmaus2::lz::BgzfInflateInfo(
 						preblockinfo.first,
 						preblockinfo.second,
 						preblockinfo.second ? false : (stream.peek() == stream_type::traits_type::eof())
@@ -89,15 +89,15 @@ namespace libmaus
 										
 					return blockinfo.uncompressed;
 				}
-				catch(libmaus::exception::LibMausException const & lex)
+				catch(libmaus2::exception::LibMausException const & lex)
 				{
-					libmaus::exception::LibMausException::unique_ptr_type tex(lex.uclone());
+					libmaus2::exception::LibMausException::unique_ptr_type tex(lex.uclone());
 					ex = UNIQUE_PTR_MOVE(tex);
 					return false;
 				}
 				catch(std::exception const & lex)
 				{
-					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					libmaus2::exception::LibMausException::unique_ptr_type tex(new libmaus2::exception::LibMausException);
 					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << lex.what();
 					ex->finish(false);
@@ -105,7 +105,7 @@ namespace libmaus
 				}
 				catch(...)
 				{
-					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					libmaus2::exception::LibMausException::unique_ptr_type tex(new libmaus2::exception::LibMausException);
 					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << "BgzfInflateBlock::readBlock(): unknown exception caught";
 					ex->finish(false);
@@ -136,15 +136,15 @@ namespace libmaus
 					);
 					return blockinfo.uncompressed;
 				}
-				catch(libmaus::exception::LibMausException const & lex)
+				catch(libmaus2::exception::LibMausException const & lex)
 				{
-					libmaus::exception::LibMausException::unique_ptr_type tex(lex.uclone());
+					libmaus2::exception::LibMausException::unique_ptr_type tex(lex.uclone());
 					ex = UNIQUE_PTR_MOVE(tex);
 					return 0;
 				}
 				catch(std::exception const & lex)
 				{
-					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					libmaus2::exception::LibMausException::unique_ptr_type tex(new libmaus2::exception::LibMausException);
 					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << lex.what();
 					ex->finish(false);
@@ -152,7 +152,7 @@ namespace libmaus
 				}
 				catch(...)
 				{
-					libmaus::exception::LibMausException::unique_ptr_type tex(new libmaus::exception::LibMausException);
+					libmaus2::exception::LibMausException::unique_ptr_type tex(new libmaus2::exception::LibMausException);
 					ex = UNIQUE_PTR_MOVE(tex);
 					ex->getStream() << "BgzfInflateBlock::decompressBlock(): unknown exception caught";
 					ex->finish(false);
@@ -173,7 +173,7 @@ namespace libmaus
 				
 				if ( n < getBgzfMaxBlockSize() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << getBgzfMaxBlockSize();
 					se.finish(false);
 					throw se;				
@@ -186,7 +186,7 @@ namespace libmaus
 					
 				std::copy ( data.begin(), data.begin() + ndata, reinterpret_cast<uint8_t *>(ldata) );
 				
-				blockinfo = ::libmaus::lz::BgzfInflateInfo(0,0,true);
+				blockinfo = ::libmaus2::lz::BgzfInflateInfo(0,0,true);
 				
 				return ndata;
 			}

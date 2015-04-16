@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_UTIL_BORDERARRAY_HPP)
 #define LIBMAUS_UTIL_BORDERARRAY_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 		{
 			private:
 			uint64_t const n;
-			libmaus::autoarray::AutoArray<value_type> S;
+			libmaus2::autoarray::AutoArray<value_type> S;
 			
 			/**
 			 * construct border array (see CHL: Algorithms on strings)
@@ -103,7 +103,7 @@ namespace libmaus
 			 **/
 			static bool check(std::string const & s)
 			{
-				libmaus::util::BorderArray<value_type> SBA(s.begin(),s.size());
+				libmaus2::util::BorderArray<value_type> SBA(s.begin(),s.size());
 				return SBA.checkString(s);
 			}
 

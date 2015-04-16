@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMSEQENCODETABLE_HPP)
 #define LIBMAUS_BAMBAM_BAMSEQENCODETABLE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 		struct BamSeqEncodeTable
 		{
 			//! mapping table
-			::libmaus::autoarray::AutoArray<uint8_t> A;
+			::libmaus2::autoarray::AutoArray<uint8_t> A;
 		
 			/**
 			 * constructor

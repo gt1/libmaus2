@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPBLOCKENCODER_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPBLOCKENCODER_HPP
 
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/aio/CheckedInputOutputStream.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/CheckedInputOutputStream.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
@@ -37,23 +37,23 @@ namespace libmaus
 		{
 			typedef SparseGammaGapBlockEncoder this_type;
 			
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			typedef libmaus::aio::SynchronousGenericOutput<uint64_t> stream_type;
+			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> stream_type;
 			
 			// w output stream
-			libmaus::aio::CheckedOutputStream::unique_ptr_type SGOCOS;
+			libmaus2::aio::CheckedOutputStream::unique_ptr_type SGOCOS;
 			// rw index stream
-			libmaus::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
+			libmaus2::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
 			
 			std::ostream & SGOout;
 			std::iostream & indexout;
 			
-			libmaus::aio::SynchronousGenericOutput<uint64_t> SGO;
+			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			
 			int64_t prevkey;
-			libmaus::gamma::GammaEncoder<stream_type> genc;
+			libmaus2::gamma::GammaEncoder<stream_type> genc;
 			
 			uint64_t const blocksize;
 			uint64_t blockleft;
@@ -83,8 +83,8 @@ namespace libmaus
 				std::string const & indexfilename,
 				uint64_t const rblocksize = 64*1024
 			)
-			: SGOCOS(new libmaus::aio::CheckedOutputStream(filename)), 
-			  indexUP(new libmaus::aio::CheckedInputOutputStream(indexfilename)),
+			: SGOCOS(new libmaus2::aio::CheckedOutputStream(filename)), 
+			  indexUP(new libmaus2::aio::CheckedInputOutputStream(indexfilename)),
 			  SGOout(*SGOCOS), 
 			  indexout(*indexUP),
 			  SGO(SGOout,8*1024),
@@ -104,8 +104,8 @@ namespace libmaus
 					uint64_t const ikey = key;
 					uint64_t const ibitoff = genc.getOffset();
 					
-					libmaus::util::NumberSerialisation::serialiseNumber(indexout,ikey);
-					libmaus::util::NumberSerialisation::serialiseNumber(indexout,ibitoff);
+					libmaus2::util::NumberSerialisation::serialiseNumber(indexout,ikey);
+					libmaus2::util::NumberSerialisation::serialiseNumber(indexout,ibitoff);
 					indexentries++;
 					
 					// std::cerr << "ikey=" << ikey << " ibitoff=" << ibitoff << std::endl;
@@ -135,9 +135,9 @@ namespace libmaus
 				// uint64_t const indexpos = SGO.getWrittenBytes();
 				indexout.clear();
 				indexout.seekg(0,std::ios::beg);
-				libmaus::util::GetFileSize::copy(indexout,SGOout,2*sizeof(uint64_t)*indexentries);
-				libmaus::util::NumberSerialisation::serialiseNumber(SGOout,indexentries ? prevkey : 0); // highest key in file
-				libmaus::util::NumberSerialisation::serialiseNumber(SGOout,indexentries);
+				libmaus2::util::GetFileSize::copy(indexout,SGOout,2*sizeof(uint64_t)*indexentries);
+				libmaus2::util::NumberSerialisation::serialiseNumber(SGOout,indexentries ? prevkey : 0); // highest key in file
+				libmaus2::util::NumberSerialisation::serialiseNumber(SGOout,indexentries);
 				
 				SGOout.flush();
 			}
@@ -200,10 +200,10 @@ namespace libmaus
 					std::string const fn = fnostr.str();
 					partfn[p] = fn;
 					std::string const indexfn = fn+".idx";
-					libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);				
+					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);				
 					
-					libmaus::aio::CheckedOutputStream COS(fn);
-					libmaus::aio::CheckedInputOutputStream indexstr(indexfn);
+					libmaus2::aio::CheckedOutputStream COS(fn);
+					libmaus2::aio::CheckedInputOutputStream indexstr(indexfn);
 
 					this_type enc(
 						COS,indexstr,
@@ -237,10 +237,10 @@ namespace libmaus
 			template<typename it>
 			static void encodeArray(it const ita, it const ite, std::string const & fn)
 			{
-				libmaus::aio::CheckedOutputStream COS(fn);
+				libmaus2::aio::CheckedOutputStream COS(fn);
 				std::string const indexfn = fn+".idx";
-				libmaus::util::TempFileRemovalContainer::addTempFile(indexfn);
-				libmaus::aio::CheckedInputOutputStream indexCOS(indexfn);
+				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
+				libmaus2::aio::CheckedInputOutputStream indexCOS(indexfn);
 				encodeArray(ita,ite,COS,indexCOS);
 				remove(indexfn.c_str());
 			}

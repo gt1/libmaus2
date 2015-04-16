@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(GZIPSINGELSTREAM_HPP)
 #define GZIPSINGELSTREAM_HPP
 
-#include <libmaus/lz/GzipHeader.hpp>
-#include <libmaus/lz/Inflate.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/lz/Inflate.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct GzipSingleStream
 		{
 			typedef GzipSingleStream this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			std::istream & in;
-			::libmaus::lz::Inflate infl;
+			::libmaus2::lz::Inflate infl;
 			bool finished;
 			
 			GzipSingleStream(std::istream & rin) 
@@ -44,7 +44,7 @@ namespace libmaus
 			{
 				try
 				{
-					::libmaus::lz::GzipHeaderSimple::ignoreHeader(in);
+					::libmaus2::lz::GzipHeaderSimple::ignoreHeader(in);
 					infl.zreset();
 					finished = false;
 					return true;

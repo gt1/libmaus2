@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_UTIL_GETOBJECT_HPP
 
 #include <iterator>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -37,7 +37,7 @@ namespace libmaus
 			//! this type
 			typedef GetObject<iterator> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! value type
 			typedef typename ::std::iterator_traits<iterator>::value_type value_type;
 			//! iterator

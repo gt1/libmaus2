@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlBlockWritePackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct GenericInputControlBlockWritePackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef GenericInputControlBlockWritePackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP;
+				libmaus2::bambam::parallel::GenericInputControlCompressionPending GICCP;
 				std::ostream * out;
 
-				GenericInputControlBlockWritePackage() : libmaus::parallel::SimpleThreadWorkPackage(), GICCP(), out(0) {}
-				GenericInputControlBlockWritePackage(uint64_t const rpriority, uint64_t const rdispatcherid, libmaus::bambam::parallel::GenericInputControlCompressionPending rGICCP, std::ostream * rout)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), out(rout)
+				GenericInputControlBlockWritePackage() : libmaus2::parallel::SimpleThreadWorkPackage(), GICCP(), out(0) {}
+				GenericInputControlBlockWritePackage(uint64_t const rpriority, uint64_t const rdispatcherid, libmaus2::bambam::parallel::GenericInputControlCompressionPending rGICCP, std::ostream * rout)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), out(rout)
 				{
 				}
 				char const * getPackageName() const

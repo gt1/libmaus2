@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Demangle.hpp>
+#include <libmaus2/util/Demangle.hpp>
 
 #if defined(__GNUC__)
 #include <cxxabi.h>
 #include <cstring>
 #endif
 
-std::string libmaus::util::Demangle::demangleName(std::string const name)
+std::string libmaus2::util::Demangle::demangleName(std::string const name)
 {
 	#if defined(__GNUC__)
 	int status = 0;

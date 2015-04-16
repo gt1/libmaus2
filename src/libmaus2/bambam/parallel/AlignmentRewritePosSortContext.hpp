@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEPOSSORTCONTEXT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEPOSSORTCONTEXT_HPP
 
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortContextBaseBlockSortedInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortContextMergePackageFinished.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp>
-#include <libmaus/bambam/parallel/SortFinishedInterface.hpp>
-#include <libmaus/sorting/ParallelStableSort.hpp>
-#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewritePosSortContextBaseBlockSortedInterface.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewritePosSortContextMergePackageFinished.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewriteBuffer.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp>
+#include <libmaus2/bambam/parallel/SortFinishedInterface.hpp>
+#include <libmaus2/sorting/ParallelStableSort.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -42,18 +42,18 @@ namespace libmaus
 			{
 				typedef _order_type order_type;
 				typedef AlignmentRewritePosSortContext<order_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				typedef AlignmentRewriteBuffer::pointer_type * iterator;
 			
 				AlignmentRewriteBuffer * const buffer;
 				order_type comparator;
-				libmaus::sorting::ParallelStableSort::ParallelSortControl<iterator,order_type> PSC;
-				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & STPI;
+				libmaus2::sorting::ParallelStableSort::ParallelSortControl<iterator,order_type> PSC;
+				libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & STPI;
 	
-				typename libmaus::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * volatile level;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<AlignmentRewritePosMergeSortPackage<order_type> > & mergeSortPackages;
+				typename libmaus2::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * volatile level;
+				libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<AlignmentRewritePosMergeSortPackage<order_type> > & mergeSortPackages;
 				uint64_t const mergeSortDispatcherId;
 				
 				SortFinishedInterface & sortFinishedInterface;
@@ -68,8 +68,8 @@ namespace libmaus
 				AlignmentRewritePosSortContext(
 					AlignmentRewriteBuffer * rbuffer,
 					uint64_t const numthreads,
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & rSTPI,
-					libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<AlignmentRewritePosMergeSortPackage<order_type> > & rmergeSortPackages,
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & rSTPI,
+					libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<AlignmentRewritePosMergeSortPackage<order_type> > & rmergeSortPackages,
 					uint64_t const rmergeSortDispatcherId,
 					SortFinishedInterface & rsortFinishedInterface
 				)
@@ -92,7 +92,7 @@ namespace libmaus
 				}
 				
 				void enqueBaseSortPackages(
-					libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<AlignmentRewritePosSortBaseSortPackage<order_type> > & baseSortPackages,
+					libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<AlignmentRewritePosSortBaseSortPackage<order_type> > & baseSortPackages,
 					uint64_t const baseSortDispatcher
 				)
 				{

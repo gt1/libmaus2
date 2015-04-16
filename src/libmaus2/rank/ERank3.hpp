@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(ERANK3_HPP)
 #define ERANK3_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
 
 #include <cassert>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -39,10 +39,10 @@ namespace libmaus
 		struct ERank3 : public ERankBase
 		{
 			public:
-			typedef ::libmaus::bitio::BitWriter2 writer_type;
+			typedef ::libmaus2::bitio::BitWriter2 writer_type;
 
 			typedef ERank3 this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			static unsigned int const sbbitwidth = 16;
@@ -59,11 +59,11 @@ namespace libmaus
 			uint16_t const * const U;
 			
 			uint64_t const nums;
-			::libmaus::autoarray::AutoArray<uint64_t> S;
+			::libmaus2::autoarray::AutoArray<uint64_t> S;
 			uint64_t const numl;
-			::libmaus::autoarray::AutoArray<uint16_t> L;
+			::libmaus2::autoarray::AutoArray<uint16_t> L;
 			uint64_t const numm;
-			::libmaus::autoarray::AutoArray<uint8_t> M;
+			::libmaus2::autoarray::AutoArray<uint8_t> M;
 
 			public:
 			uint64_t byteSize() const

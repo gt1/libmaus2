@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTSNAPPYINPUT_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTSNAPPYINPUT_HPP
 
-#include <libmaus/lz/SnappyFileInputStream.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/lz/SnappyFileInputStream.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamAlignmentSnappyInput
 		{
-			::libmaus::lz::SnappyFileInputStream GZ;
-			::libmaus::bambam::BamAlignment alignment;
+			::libmaus2::lz::SnappyFileInputStream GZ;
+			::libmaus2::bambam::BamAlignment alignment;
 			
 			BamAlignmentSnappyInput(std::string const & filename)
 			: GZ(filename)
@@ -37,12 +37,12 @@ namespace libmaus
 			
 			}
 			
-			::libmaus::bambam::BamAlignment & getAlignment()
+			::libmaus2::bambam::BamAlignment & getAlignment()
 			{
 				return alignment;
 			}
 
-			::libmaus::bambam::BamAlignment const & getAlignment() const
+			::libmaus2::bambam::BamAlignment const & getAlignment() const
 			{
 				return alignment;
 			}
@@ -63,7 +63,7 @@ namespace libmaus
 
 				/* read alignment block */
 				if ( alignment.blocksize > alignment.D.size() )
-					alignment.D = ::libmaus::bambam::BamAlignment::D_array_type(alignment.blocksize);
+					alignment.D = ::libmaus2::bambam::BamAlignment::D_array_type(alignment.blocksize);
 				GZ.read(reinterpret_cast<char *>(alignment.D.begin()),alignment.blocksize);
 				// assert ( static_cast<int64_t>(GZ.gcount()) == static_cast<int64_t>(alignment.blocksize) );
 			

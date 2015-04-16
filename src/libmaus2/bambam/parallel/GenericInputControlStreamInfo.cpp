@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/GenericInputControlStreamInfo.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlStreamInfo.hpp>
 
-std::ostream & libmaus::bambam::parallel::operator<<(std::ostream & out, libmaus::bambam::parallel::GenericInputControlStreamInfo const & G)
+std::ostream & libmaus2::bambam::parallel::operator<<(std::ostream & out, libmaus2::bambam::parallel::GenericInputControlStreamInfo const & G)
 {
 	out << "GenericInputControlStreamInfo(";
 	out << "path=" << G.path << "," ;

@@ -37,7 +37,7 @@
   <ghost@aladdin.com>.  Other authors are noted in the change history
   that follows (in reverse chronological order):
 
-  2014-11-06 altered by German Tischler for libmaus (use uintx_t types)
+  2014-11-06 altered by German Tischler for libmaus2 (use uintx_t types)
   2002-04-13 lpd Removed support for non-ANSI compilers; removed
 	references to Ghostscript; clarified derivation from RFC 1321;
 	now handles byte order either statically or dynamically.
@@ -60,7 +60,7 @@
  * run on either big- or little-endian CPUs, but will run slightly less
  * efficiently on either one than if ARCH_IS_BIG_ENDIAN is defined.
  */
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
 #include <cstdint>

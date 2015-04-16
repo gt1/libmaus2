@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/aio/BlockSynchronousOutputBuffer8.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/BlockSynchronousOutputBuffer8.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
 #include <vector>
 #include <map>
@@ -30,7 +30,7 @@ int testBlockSynchronous()
 	{
 		uint64_t const h = 512;
 		uint64_t const s = 1024;
-		::libmaus::aio::BlockSynchronousOutputBuffer8 B("tmp", h, s);
+		::libmaus2::aio::BlockSynchronousOutputBuffer8 B("tmp", h, s);
 
 		#if defined(BSOB_DEBUG)
 		std::map < uint64_t, std::vector<uint64_t> > M;
@@ -70,7 +70,7 @@ int testBlockSynchronous()
 		for ( uint64_t i = 0; i < filenames.size(); ++i )
 		{
 			#if defined(BSOB_DEBUG)
-			::libmaus::aio::GenericInput<uint64_t> GI( filenames[i], 16*1024 );
+			::libmaus2::aio::GenericInput<uint64_t> GI( filenames[i], 16*1024 );
 			std::vector <uint64_t> V;
 			
 			uint64_t v;

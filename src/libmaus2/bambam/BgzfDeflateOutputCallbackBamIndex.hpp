@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEOUTPUTCALLBACKBAMINDEX_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEOUTPUTCALLBACKBAMINDEX_HPP
 
-#include <libmaus/util/md5.h>
-#include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
-#include <libmaus/bambam/BamIndexGenerator.hpp>
+#include <libmaus2/digest/md5.h>
+#include <libmaus2/lz/BgzfDeflateOutputCallback.hpp>
+#include <libmaus2/bambam/BamIndexGenerator.hpp>
 #include <sstream>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct BgzfDeflateOutputCallbackBamIndex : public ::libmaus::lz::BgzfDeflateOutputCallback
+		struct BgzfDeflateOutputCallbackBamIndex : public ::libmaus2::lz::BgzfDeflateOutputCallback
 		{
 			typedef BgzfDeflateOutputCallbackBamIndex this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			::libmaus::bambam::BamIndexGenerator generator;
+			::libmaus2::bambam::BamIndexGenerator generator;
 		
 			BgzfDeflateOutputCallbackBamIndex(
 				std::string const & tmpfileprefix,
@@ -64,7 +64,7 @@ namespace libmaus
 			
 			void flush(std::string const & filename)
 			{
-				libmaus::aio::CheckedOutputStream COS(filename);
+				libmaus2::aio::CheckedOutputStream COS(filename);
 				flush(COS);
 			}
 		};

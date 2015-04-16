@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(SIMPLECOUNTINGHASH_HPP)
 #define SIMPLECOUNTINGHASH_HPP
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/math/primes16.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/math/primes16.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -46,7 +46,7 @@ namespace libmaus
 		{
 			static uint64_t hash(uint64_t const v)
 			{
-				return libmaus::hashing::EvaHash::hash642(&v,1);
+				return libmaus2::hashing::EvaHash::hash642(&v,1);
 			}
 		};
 	
@@ -64,12 +64,12 @@ namespace libmaus
 			typedef _hash_type hash_type;
 
 			typedef SimpleCountingHash<key_type,count_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			protected:
 			#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
-			::libmaus::parallel::OMPLock hlock;
-			::libmaus::parallel::OMPLock clock;
+			::libmaus2::parallel::OMPLock hlock;
+			::libmaus2::parallel::OMPLock clock;
 			#endif
 
 			unsigned int slog;
@@ -78,9 +78,9 @@ namespace libmaus
 			uint64_t fill;
 			
 			// value array
-			::libmaus::autoarray::AutoArray<key_type> H;
+			::libmaus2::autoarray::AutoArray<key_type> H;
 			// count array
-			::libmaus::autoarray::AutoArray<count_type> C;
+			::libmaus2::autoarray::AutoArray<count_type> C;
 			
 			public:			
 			key_type const * begin() const { return H.begin(); }
@@ -253,7 +253,7 @@ namespace libmaus
 			{
 				if ( v == base_type::unused() )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "SimpleCountingHash::insert(): cannot insert key " << v << std::endl;
 					lme.finish();
 					throw lme;				
@@ -325,7 +325,7 @@ namespace libmaus
 					*/
 				} while ( p != p0 );
 				
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleCountingHash::insert(): unable to insert, table is full." << std::endl;
 				se.finish();
 				throw se;
@@ -394,10 +394,10 @@ namespace libmaus
 			
 			typedef SimpleCountingHash<key_type,count_type> base_type;
 			typedef ExtendingSimpleCountingHash<key_type,count_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typename ::libmaus::util::SimpleCountingHash<key_type,count_type>::unique_ptr_type tmpMap;
+			typename ::libmaus2::util::SimpleCountingHash<key_type,count_type>::unique_ptr_type tmpMap;
 		
 			ExtendingSimpleCountingHash(unsigned int const rslog) : base_type(rslog) {}
 
@@ -424,7 +424,7 @@ namespace libmaus
 					#pragma omp barrier
 					
 					// fill empty hash map
-					::libmaus::parallel::OMPLock cntlock;
+					::libmaus2::parallel::OMPLock cntlock;
 					int64_t cnt = 0;
 					
 					while ( cnt < omp_get_num_threads() )

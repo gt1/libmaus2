@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,22 +20,22 @@
 #if ! defined(TRIPLEEDGEINPUT_HPP)
 #define TRIPLEEDGEINPUT_HPP
 
-#include <libmaus/graph/TripleEdge.hpp>
+#include <libmaus2/graph/TripleEdge.hpp>
 #include <fstream>
 #include <cassert>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct TripleEdgeInput
 		{
-			typedef ::libmaus::graph::TripleEdgeInput this_type;
-			typedef ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
+			typedef ::libmaus2::graph::TripleEdgeInput this_type;
+			typedef ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
 
 			uint64_t const bufsize;
-			::libmaus::autoarray::AutoArray< TripleEdge > B;
+			::libmaus2::autoarray::AutoArray< TripleEdge > B;
 			std::ifstream istr;
 
 			uint64_t curbufleft;

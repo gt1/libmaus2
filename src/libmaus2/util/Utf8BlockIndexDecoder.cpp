@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,21 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/Utf8BlockIndexDecoder.hpp>
+#include <libmaus2/util/Utf8BlockIndexDecoder.hpp>
 
-libmaus::util::Utf8BlockIndexDecoder::Utf8BlockIndexDecoder(std::string const & filename)
+libmaus2::util::Utf8BlockIndexDecoder::Utf8BlockIndexDecoder(std::string const & filename)
 : CIS(filename)
 {
-	blocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-	lastblocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-	maxblockbytes = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-	numblocks = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+	blocksize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+	lastblocksize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+	maxblockbytes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+	numblocks = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 }
 
-uint64_t libmaus::util::Utf8BlockIndexDecoder::operator[](uint64_t const i)
+uint64_t libmaus2::util::Utf8BlockIndexDecoder::operator[](uint64_t const i)
 {
 	CIS.clear();
 	CIS.seekg((4+i)*sizeof(uint64_t));
 	
-	return ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+	return ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 }

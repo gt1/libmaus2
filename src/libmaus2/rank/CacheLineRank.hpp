@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(CACHELINERANK_HPP)
 #define CACHELINERANK_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/bitio/getBit.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/bitio/getBit.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
 		template<unsigned int blocksize = 8>
-		struct CacheLineRankTemplate : ::libmaus::rank::ERankBase
+		struct CacheLineRankTemplate : ::libmaus2::rank::ERankBase
 		{
 			typedef CacheLineRankTemplate<blocksize> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			uint64_t const n;
 			uint64_t const datawords;
 			uint64_t const indexwords;
-			::libmaus::autoarray::AutoArray<uint64_t, ::libmaus::autoarray::alloc_type_memalign_cacheline> A;
+			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_memalign_cacheline> A;
 			
 			struct WriteContext
 			{
@@ -118,7 +118,7 @@ namespace libmaus
 				uint64_t const inblockword = (inblock >> 6);
 				uint64_t const inword = inblock - (inblockword<<6);
 				uint64_t const * wordptr = A.get() + ((datablock * blocksize) + inblockword + 1);
-				return ::libmaus::bitio::getBit(wordptr,inword);
+				return ::libmaus2::bitio::getBit(wordptr,inword);
 			}
 			
 			uint64_t rank1(uint64_t i) const

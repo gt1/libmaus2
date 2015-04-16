@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,17 +21,17 @@
 #if ! defined(BITVECTOR_HPP)
 #define BITVECTOR_HPP
 
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/rank/ERank3C.hpp>
-#include <libmaus/util/iterator.hpp>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/rank/ERank3C.hpp>
+#include <libmaus2/util/iterator.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -40,24 +40,24 @@ namespace libmaus
 		{
 			typedef _data_type data_type;
 			typedef BitVectorTemplate<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;		
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;		
 			
 			static unsigned int const bitsperword = 8*sizeof(data_type);
-			static unsigned int const bitsperwordshift = ::libmaus::math::MetaLog2<bitsperword>::log;
+			static unsigned int const bitsperwordshift = ::libmaus2::math::MetaLog2<bitsperword>::log;
 			
 			uint64_t const n;
-			::libmaus::autoarray::AutoArray<_data_type> A;
+			::libmaus2::autoarray::AutoArray<_data_type> A;
 			
-			typedef ::libmaus::util::AssignmentProxy<this_type,bool> BitVectorProxy;
+			typedef ::libmaus2::util::AssignmentProxy<this_type,bool> BitVectorProxy;
 
 			uint64_t byteSize() const
 			{
 				return sizeof(uint64_t) + A.byteSize();
 			}
 			
-			static ::libmaus::autoarray::AutoArray<data_type> deserialiseArray(std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<data_type> deserialiseArray(std::istream & in)
 			{
-				::libmaus::autoarray::AutoArray<data_type> A(in);
+				::libmaus2::autoarray::AutoArray<data_type> A(in);
 				return A;
 			}
 			
@@ -70,12 +70,12 @@ namespace libmaus
 			
 			void serialise(std::ostream & out) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,n);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 				A.serialize(out);
 			}
 
 			BitVectorTemplate(std::istream & in) 
-			: n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)), A(in)
+			: n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)), A(in)
 			{
 			
 			}
@@ -90,7 +90,7 @@ namespace libmaus
 
 			bool get(uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(A.get(),i);
+				return ::libmaus2::bitio::getBit(A.get(),i);
 			}
 			bool operator[](uint64_t const i) const
 			{
@@ -98,14 +98,14 @@ namespace libmaus
 			}
 			void set(uint64_t const i, bool b)
 			{
-				::libmaus::bitio::putBit(A.get(),i,b);
+				::libmaus2::bitio::putBit(A.get(),i,b);
 			}
 			void setSync(uint64_t const i, bool b)
 			{
 				#if defined(LIBMAUS_HAVE_SYNC_OPS)
-				::libmaus::bitio::putBitSync(A.get(),i,b);				
+				::libmaus2::bitio::putBitSync(A.get(),i,b);				
 				#else
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "BitVector::setSync() called, but compiled binary does not support sync ops." << std::endl;
 				se.finish();
 				throw se;
@@ -114,9 +114,9 @@ namespace libmaus
 			bool setSync(uint64_t const i)
 			{
 				#if defined(LIBMAUS_HAVE_SYNC_OPS)
-				return ::libmaus::bitio::setBitSync(A.get(),i);
+				return ::libmaus2::bitio::setBitSync(A.get(),i);
 				#else
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "BitVector::setSync() called, but compiled binary does not support sync ops." << std::endl;
 				se.finish();
 				throw se;
@@ -125,9 +125,9 @@ namespace libmaus
 			bool eraseSync(uint64_t const i)
 			{
 				#if defined(LIBMAUS_HAVE_SYNC_OPS)
-				return ::libmaus::bitio::eraseBitSync(A.get(),i);
+				return ::libmaus2::bitio::eraseBitSync(A.get(),i);
 				#else
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "BitVector::setSync() called, but compiled binary does not support sync ops." << std::endl;
 				se.finish();
 				throw se;
@@ -241,7 +241,7 @@ namespace libmaus
 				srand(time(0));
 				for ( uint64_t i = 0; i < 1ull<<18; ++i )
 				{
-					uint64_t const v = ::libmaus::random::Random::rand64();
+					uint64_t const v = ::libmaus2::random::Random::rand64();
 					assert ( lsbSlow(v) == lsb(v) );
 				}
 				for ( uint64_t i = 1; i < 1ull << 34; ++i )
@@ -265,9 +265,9 @@ namespace libmaus
 		struct IndexedBitVector : public BitVector
 		{
 			typedef IndexedBitVector this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typedef ::libmaus::rank::ERank222B rank_type;
+			typedef ::libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 			
 			rank_ptr_type index;
@@ -327,9 +327,9 @@ namespace libmaus
 		struct IndexedBitVectorCompressed : public BitVector2
 		{
 			typedef IndexedBitVectorCompressed this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typedef ::libmaus::rank::ERank3C rank_type;
+			typedef ::libmaus2::rank::ERank3C rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 
 			rank_ptr_type index;

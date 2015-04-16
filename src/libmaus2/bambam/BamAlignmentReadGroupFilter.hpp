@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTREADGROUPFILTER_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTREADGROUPFILTER_HPP
 
-#include <libmaus/bambam/BamAlignmentFilter.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamAlignmentFilter.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamAlignmentReadGroupFilter : public BamAlignmentFilter
 		{
-			libmaus::bambam::BamHeader const & header;
-			libmaus::bitio::BitVector::unique_ptr_type pBV;
+			libmaus2::bambam::BamHeader const & header;
+			libmaus2::bitio::BitVector::unique_ptr_type pBV;
 			
 			BamAlignmentReadGroupFilter(
-				libmaus::bambam::BamHeader const & rheader,
+				libmaus2::bambam::BamHeader const & rheader,
 				std::vector<std::string> const & rgnames
 			) : header(rheader)
 			{
 				std::set<std::string> const rgset(rgnames.begin(),rgnames.end());
 				
 				// set up and erase vector
-				libmaus::bitio::BitVector::unique_ptr_type tBV(new libmaus::bitio::BitVector(header.getNumReadGroups()));
+				libmaus2::bitio::BitVector::unique_ptr_type tBV(new libmaus2::bitio::BitVector(header.getNumReadGroups()));
 				pBV = UNIQUE_PTR_MOVE(tBV);
 				for ( uint64_t i = 0; i < header.getNumReadGroups(); ++i )
 					pBV->set(i,0);
@@ -49,7 +49,7 @@ namespace libmaus
 						pBV->set(i,1);
 			}
 			virtual ~BamAlignmentReadGroupFilter() {}
-			virtual bool operator()(libmaus::bambam::BamAlignment const & algn) const
+			virtual bool operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const rg = header.getReadGroupId(algn.getReadGroup());
 				return rg >= 0 && pBV->get(rg);

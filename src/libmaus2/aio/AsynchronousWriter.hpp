@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -28,10 +28,10 @@
 #include <stdexcept>
 #include <cassert>
 #include <fstream>
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
 #if defined(LIBMAUS_HAVE_AIO)
 #include <aio.h>
@@ -42,7 +42,7 @@
 #include <sys/uio.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -55,11 +55,11 @@ namespace libmaus
 			int const fd;
 			bool const releasefd;
 			unsigned int const numbuffers;
-			::libmaus::autoarray::AutoArray < ::libmaus::autoarray::AutoArray<char> > buffers;
-			::libmaus::autoarray::AutoArray < aiocb > contexts;
+			::libmaus2::autoarray::AutoArray < ::libmaus2::autoarray::AutoArray<char> > buffers;
+			::libmaus2::autoarray::AutoArray < aiocb > contexts;
 			uint64_t low;
 			uint64_t high;
-			::libmaus::parallel::OMPLock lock;
+			::libmaus2::parallel::OMPLock lock;
 
 			public:
 			/**
@@ -88,7 +88,7 @@ namespace libmaus
 			{
 				if ( fd < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to open file " << filename << ": " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
@@ -130,7 +130,7 @@ namespace libmaus
 				
 				uint64_t const len = se-sa;
 
-				buffers[high % numbuffers] = ::libmaus::autoarray::AutoArray<char>(len);
+				buffers[high % numbuffers] = ::libmaus2::autoarray::AutoArray<char>(len);
 				std::copy ( sa, se, buffers[high%numbuffers].get() );
 				memset ( &contexts[high%numbuffers], 0, sizeof(aiocb) );
 				contexts[high%numbuffers].aio_fildes = fd;
@@ -169,7 +169,7 @@ namespace libmaus
 	}
 }
 #else
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -180,7 +180,7 @@ namespace libmaus
 		{
 			private:
 			std::ofstream ostr;
-			::libmaus::parallel::OMPLock lock;
+			::libmaus2::parallel::OMPLock lock;
 			
 			public:
 			/**
@@ -212,7 +212,7 @@ namespace libmaus
 			void write(iterator sa, iterator se)
 			{
 				lock.lock();
-				::libmaus::autoarray::AutoArray<char> buf(se-sa);
+				::libmaus2::autoarray::AutoArray<char> buf(se-sa);
 				std::copy(sa,se,buf.get());
 				ostr.write(buf.get(),se-sa);
 				lock.unlock();

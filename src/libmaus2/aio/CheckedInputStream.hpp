@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_AIO_CHECKEDINPUTSTREAM_HPP)
 #define LIBMAUS_AIO_CHECKEDINPUTSTREAM_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 #include <fstream>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -41,9 +41,9 @@ namespace libmaus
 			//! this type
 			typedef CheckedInputStream this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			std::string const filename;
@@ -74,7 +74,7 @@ namespace libmaus
 			{
 				if ( ! is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CheckedInputStream::CheckedInputStream(): Cannot open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -111,7 +111,7 @@ namespace libmaus
 				
 				if ( (n != 0) && (! gcount()) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to read from file " << filename << std::endl;
 					se.finish();
 					throw se;				
@@ -154,7 +154,7 @@ namespace libmaus
 				
 				if ( ! *this )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to position " << pos << " in file " << filename << std::endl;
 					se.finish();
 					throw se;								
@@ -176,7 +176,7 @@ namespace libmaus
 				
 				if ( ! *this )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to offset " << off << " in file " << filename << std::endl;
 					se.finish();
 					throw se;								

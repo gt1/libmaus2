@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ConsoleColor.hpp>
+#include <libmaus2/util/ConsoleColor.hpp>
 				
-bool libmaus::util::ConsoleColor::istty()
+bool libmaus2::util::ConsoleColor::istty()
 {
 	bool tty = false;
 
@@ -30,7 +30,7 @@ bool libmaus::util::ConsoleColor::istty()
 	return tty;	
 }
 	
-std::string libmaus::util::ConsoleColor::color(libmaus::util::ConsoleColor::Color c)
+std::string libmaus2::util::ConsoleColor::color(libmaus2::util::ConsoleColor::Color c)
 {
 	bool const tty = istty();
 
@@ -106,17 +106,17 @@ std::string libmaus::util::ConsoleColor::color(libmaus::util::ConsoleColor::Colo
 	return s;
 }
 
-std::string libmaus::util::ConsoleColor::black() { return color(c_black); }
-std::string libmaus::util::ConsoleColor::red() { return color(c_red);  }
-std::string libmaus::util::ConsoleColor::green() { return color(c_green); }
-std::string libmaus::util::ConsoleColor::yellow() { return color(c_yellow);  }
-std::string libmaus::util::ConsoleColor::blue() { return color(c_blue);  }
-std::string libmaus::util::ConsoleColor::magenta() {  return color(c_magenta); }
-std::string libmaus::util::ConsoleColor::cyan() { return color(c_cyan); }
-std::string libmaus::util::ConsoleColor::lightgray() { return color(c_lightgray); }
-std::string libmaus::util::ConsoleColor::defaultcolor() { return color(c_defaultcolor); }
+std::string libmaus2::util::ConsoleColor::black() { return color(c_black); }
+std::string libmaus2::util::ConsoleColor::red() { return color(c_red);  }
+std::string libmaus2::util::ConsoleColor::green() { return color(c_green); }
+std::string libmaus2::util::ConsoleColor::yellow() { return color(c_yellow);  }
+std::string libmaus2::util::ConsoleColor::blue() { return color(c_blue);  }
+std::string libmaus2::util::ConsoleColor::magenta() {  return color(c_magenta); }
+std::string libmaus2::util::ConsoleColor::cyan() { return color(c_cyan); }
+std::string libmaus2::util::ConsoleColor::lightgray() { return color(c_lightgray); }
+std::string libmaus2::util::ConsoleColor::defaultcolor() { return color(c_defaultcolor); }
 
-std::string libmaus::util::ConsoleColor::start() {
+std::string libmaus2::util::ConsoleColor::start() {
 	bool const tty = istty();
 
 	std::string s;
@@ -132,7 +132,7 @@ std::string libmaus::util::ConsoleColor::start() {
 	
 	return s;
 }
-std::string libmaus::util::ConsoleColor::stop() {
+std::string libmaus2::util::ConsoleColor::stop() {
 	bool const tty = istty();
 
 	std::string s;

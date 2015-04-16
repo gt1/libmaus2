@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_AIO_LINESPLITTINGPOSIXFDOUTPUTSTREAM_HPP)
 #define LIBMAUS_AIO_LINESPLITTINGPOSIXFDOUTPUTSTREAM_HPP
 
-#include <libmaus/aio/LineSplittingPosixFdOutputStreamBuffer.hpp>
+#include <libmaus2/aio/LineSplittingPosixFdOutputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		struct LineSplittingPosixFdOutputStream : public LineSplittingPosixFdOutputStreamBuffer, public std::ostream
 		{	
 			typedef LineSplittingPosixFdOutputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			LineSplittingPosixFdOutputStream(std::string const & rfilename, uint64_t const rlinemod, uint64_t const rbuffersize = 64*1024)
 			: LineSplittingPosixFdOutputStreamBuffer(rfilename,rlinemod,rbuffersize), std::ostream(this)

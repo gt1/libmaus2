@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMAUXSORTINGBUFFER_HPP)
 #define LIBMAUS_BAMBAM_BAMAUXSORTINGBUFFER_HPP
 
-#include <libmaus/bambam/BamAuxSortingBufferEntry.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamAuxSortingBufferEntry.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <algorithm>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,11 +31,11 @@ namespace libmaus
 		struct BamAuxSortingBuffer
 		{
 			//! entry buffer vector
-			libmaus::autoarray::AutoArray<BamAuxSortingBufferEntry> B;
+			libmaus2::autoarray::AutoArray<BamAuxSortingBufferEntry> B;
 			//! number of elements in entry buffer vector
 			uint64_t fill;
 			//! buffer for rewriting aux areas
-			libmaus::autoarray::AutoArray<uint8_t> U;
+			libmaus2::autoarray::AutoArray<uint8_t> U;
 			
 			//! constructor for empty sorting buffer
 			BamAuxSortingBuffer() : B(), U()
@@ -53,7 +53,7 @@ namespace libmaus
 				if ( fill == B.size() )
 				{
 					uint64_t const newsize = fill ? 2*fill : 1;
-					libmaus::autoarray::AutoArray<BamAuxSortingBufferEntry> N(newsize,false);
+					libmaus2::autoarray::AutoArray<BamAuxSortingBufferEntry> N(newsize,false);
 					std::copy(B.begin(),B.end(),N.begin());
 					B = N;
 				}

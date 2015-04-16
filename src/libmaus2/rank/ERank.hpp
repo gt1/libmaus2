@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(ERANK_HPP)
 #define ERANK_HPP
 
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -38,10 +38,10 @@ namespace libmaus
 		struct ERank : public ERankBase
 		{
 			public:
-			typedef ::libmaus::bitio::BitWriter writer_type;
+			typedef ::libmaus2::bitio::BitWriter writer_type;
 
 			typedef ERank this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			typedef uint32_t wordtype;
@@ -49,7 +49,7 @@ namespace libmaus
 			static unsigned int const bs = (sizeof(wordtype) << 3);
 		
 			uint8_t const * const U;
-			::libmaus::autoarray::AutoArray<wordtype> S; // n bits
+			::libmaus2::autoarray::AutoArray<wordtype> S; // n bits
 			unsigned int const n;
 
 			/**
@@ -86,7 +86,7 @@ namespace libmaus
 			: U(rU), S( (rn + bs - 1) / bs, false ), n(rn)
 			{
 				if ( n % 16 )
-					throw ::std::runtime_error("::libmaus::rank::ERank: n is not multiple of 16.");
+					throw ::std::runtime_error("::libmaus2::rank::ERank: n is not multiple of 16.");
 			
 				unsigned int c = 0;
 				for ( unsigned int i = 0; i < n; ++i )
@@ -94,7 +94,7 @@ namespace libmaus
 					if ( (i % bs) == 0 )
 						S[ i / bs ] = c;
 						
-					if ( ::libmaus::bitio::getBit1(U,i) )
+					if ( ::libmaus2::bitio::getBit1(U,i) )
 						c++;
 				}
 			}

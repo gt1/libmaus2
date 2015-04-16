@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEREADENDSWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEREADENDSWORKPACKAGE_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct FragmentAlignmentBufferRewriteReadEndsWorkPackage  : public libmaus::parallel::SimpleThreadWorkPackage
+			struct FragmentAlignmentBufferRewriteReadEndsWorkPackage  : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef FragmentAlignmentBufferRewriteReadEndsWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				AlignmentBuffer::shared_ptr_type algn;
 				FragmentAlignmentBuffer::shared_ptr_type FAB;
 				uint64_t j;
-				libmaus::bambam::BamHeaderLowMem const * header;
+				libmaus2::bambam::BamHeaderLowMem const * header;
 			
 				FragmentAlignmentBufferRewriteReadEndsWorkPackage()
 				:
-					libmaus::parallel::SimpleThreadWorkPackage(),
+					libmaus2::parallel::SimpleThreadWorkPackage(),
 					algn(), FAB(), j(0), header(0)
 				{
 				}
@@ -52,11 +52,11 @@ namespace libmaus
 					AlignmentBuffer::shared_ptr_type ralgn,
 					FragmentAlignmentBuffer::shared_ptr_type rFAB,
 					uint64_t rj,
-					libmaus::bambam::BamHeaderLowMem const * rheader,
+					libmaus2::bambam::BamHeaderLowMem const * rheader,
 					uint64_t const rreadDispatcherId
 				)
 				: 
-					libmaus::parallel::SimpleThreadWorkPackage(rpriority,rreadDispatcherId), 
+					libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rreadDispatcherId), 
 					algn(ralgn), FAB(rFAB), j(rj), header(rheader)
 				{
 				}

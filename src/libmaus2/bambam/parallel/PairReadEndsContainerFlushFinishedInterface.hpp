@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSCONTAINERFLUSHFINISHEDINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSCONTAINERFLUSHFINISHEDINTERFACE_HPP
 
-#include <libmaus/bambam/ReadEndsContainer.hpp>
+#include <libmaus2/bambam/ReadEndsContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct PairReadEndsContainerFlushFinishedInterface
 			{
 				virtual ~PairReadEndsContainerFlushFinishedInterface() {}
-				virtual void pairReadEndsContainerFlushFinished(libmaus::bambam::ReadEndsContainer::shared_ptr_type REC) = 0;
+				virtual void pairReadEndsContainerFlushFinished(libmaus2::bambam::ReadEndsContainer::shared_ptr_type REC) = 0;
 			};
 		}
 	}

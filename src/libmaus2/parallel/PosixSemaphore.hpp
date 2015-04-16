@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,7 +20,7 @@
 #if ! defined(POSIXSEMAPHORE_HPP)
 #define POSIXSEMAPHORE_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
 
@@ -30,13 +30,13 @@
 #include <sys/time.h>
 #include <cstring>
 #include <stdexcept>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/types.h>
 #include <unistd.h>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -70,7 +70,7 @@ namespace libmaus
 					
 				if ( psemaphore == SEM_FAILED )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to open semaphore " << semname << ": " << strerror(errno) << " primary " << primary << std::endl;
 					se.finish();
 					throw se;
@@ -95,7 +95,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixSemaphore::post(): " << strerror(lerrno) << std::endl;
 							se.finish();
 							throw se;
@@ -116,7 +116,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixSemaphore::wait(): " << strerror(lerrno) << std::endl;
 							se.finish();
 							throw se;
@@ -141,7 +141,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixSemaphore::trywait(): " << strerror(lerrno) << std::endl;
 							se.finish();
 							throw se;
@@ -160,7 +160,7 @@ namespace libmaus
                         	
                         	if ( r != 0 )
                         	{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to sem_getvalue: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
@@ -179,8 +179,8 @@ namespace libmaus
                 struct PosixSemaphore
                 {
                 	typedef PosixSemaphore this_type;
-                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
                 
 			#if defined(__APPLE__)
 			std::string semname;
@@ -207,7 +207,7 @@ namespace libmaus
 				psemaphore = sem_open(semname.c_str(), O_CREAT | O_EXCL, 0777, 0);
 				if ( psemaphore == SEM_FAILED )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "sem_open failed: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
@@ -215,7 +215,7 @@ namespace libmaus
 				#else
 				if ( sem_init ( & semaphore, 0, 0 ) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "sem_init failed: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
@@ -245,7 +245,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixSemaphore::post(): " << strerror(lerrno) << std::endl;
 							se.finish();
 							throw se;
@@ -266,7 +266,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixSemaphore::wait(): " << strerror(lerrno) << std::endl;
 							se.finish();
 							throw se;
@@ -291,7 +291,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixSemaphore::trywait(): " << strerror(lerrno) << std::endl;
 							se.finish();
 							throw se;

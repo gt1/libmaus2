@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_NETWORK_GNUTLSINIT_HPP)
 #define LIBMAUS_NETWORK_GNUTLSINIT_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/types/types.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct GnuTLSInit
 		{
-			static libmaus::parallel::PosixSpinLock lock;
+			static libmaus2::parallel::PosixSpinLock lock;
 			static uint64_t initcomplete;
 			
 			GnuTLSInit();

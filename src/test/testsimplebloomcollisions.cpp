@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,17 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/SimpleBloomFilter.hpp>
+#include <libmaus2/util/SimpleBloomFilter.hpp>
 
 void testSimpleBloomCollisions()
 {
 	uint64_t const n = 500ull*1000ull*1000ull;
-	::libmaus::util::SimpleBloomFilter::unique_ptr_type SBF(::libmaus::util::SimpleBloomFilter::construct(n,0.1)); //(16,28 /* log */);
+	::libmaus2::util::SimpleBloomFilter::unique_ptr_type SBF(::libmaus2::util::SimpleBloomFilter::construct(n,0.1)); //(16,28 /* log */);
 
 	uint64_t col = 0;	
 	for ( uint64_t i = 0; i < 16*1024; ++i )
 	{
-		uint64_t const v = ::libmaus::random::Random::rand64() & 0xFFFFul;
+		uint64_t const v = ::libmaus2::random::Random::rand64() & 0xFFFFul;
 		if ( SBF->insert(v) )
 		{
 			col++;

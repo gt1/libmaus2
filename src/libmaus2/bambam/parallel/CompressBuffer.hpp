@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_COMPRESSBUFFER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_COMPRESSBUFFER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -29,8 +29,8 @@ namespace libmaus
 		{
 			struct CompressBuffer
 			{
-				libmaus::autoarray::AutoArray<uint8_t> inputBuffer;
-				libmaus::autoarray::AutoArray<char> outputBuffer;
+				libmaus2::autoarray::AutoArray<uint8_t> inputBuffer;
+				libmaus2::autoarray::AutoArray<char> outputBuffer;
 				size_t compsize;
 				
 				uint64_t blockid;

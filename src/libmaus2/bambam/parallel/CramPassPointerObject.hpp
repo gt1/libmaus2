@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMPASSPOINTEROBJECT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMPASSPOINTEROBJECT_HPP
 
-#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,18 +31,18 @@ namespace libmaus
 			struct CramPassPointerObject
 			{
 				typedef CramPassPointerObject this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type block;
-				libmaus::autoarray::AutoArray<char const *>::shared_ptr_type D;
-				libmaus::autoarray::AutoArray<size_t>::shared_ptr_type S;
-				libmaus::autoarray::AutoArray<size_t>::shared_ptr_type L;
+				libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type block;
+				libmaus2::autoarray::AutoArray<char const *>::shared_ptr_type D;
+				libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type S;
+				libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type L;
 				size_t numblocks;
 				
 				CramPassPointerObject() {}
 								
-				void set(libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type rblock)
+				void set(libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type rblock)
 				{
 					block = rblock;
 					
@@ -53,17 +53,17 @@ namespace libmaus
 
 					if ( V.size() > (D?D->size():0) )
 					{
-						libmaus::autoarray::AutoArray<char const *>::shared_ptr_type T(new libmaus::autoarray::AutoArray<char const *>(V.size(),false));
+						libmaus2::autoarray::AutoArray<char const *>::shared_ptr_type T(new libmaus2::autoarray::AutoArray<char const *>(V.size(),false));
 						D = T;
 					}
 					if ( V.size() > (S?S->size():0) )
 					{						
-						libmaus::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus::autoarray::AutoArray<size_t>(V.size(),false));
+						libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus2::autoarray::AutoArray<size_t>(V.size(),false));
 						S = T;
 					}
 					if ( V.size() > (L?L->size():0) )
 					{						
-						libmaus::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus::autoarray::AutoArray<size_t>(V.size(),false));
+						libmaus2::autoarray::AutoArray<size_t>::shared_ptr_type T(new libmaus2::autoarray::AutoArray<size_t>(V.size(),false));
 						L = T;
 					}
 					for ( uint64_t i = 0; i < V.size(); ++i )

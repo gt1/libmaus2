@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,41 +19,41 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_GAPARRAYBYTE_HPP)
 #define LIBMAUS_SUFFIXSORT_GAPARRAYBYTE_HPP
 
-#include <libmaus/suffixsort/GapArrayByteDecoderBuffer.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/gamma/GammaGapEncoder.hpp>
-#include <libmaus/huffman/GapEncoder.hpp>
-#include <libmaus/sorting/MergingReadBack.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/suffixsort/GapArrayByteDecoderBuffer.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/gamma/GammaGapEncoder.hpp>
+#include <libmaus2/huffman/GapEncoder.hpp>
+#include <libmaus2/sorting/MergingReadBack.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		struct GapArrayByte
 		{
 			typedef GapArrayByte this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			libmaus::autoarray::AutoArray<uint8_t> G;
-			libmaus::autoarray::AutoArray<uint64_t> O;
+			libmaus2::autoarray::AutoArray<uint8_t> G;
+			libmaus2::autoarray::AutoArray<uint64_t> O;
 			std::vector<uint64_t *> Oa;
 			std::vector<uint64_t *> Oc;
 			std::vector<uint64_t *> Oe;
 			
 			std::string tmpfilename;
-			libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOS;
-			libmaus::parallel::OMPLock tmpfilelock;
+			libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS;
+			libmaus2::parallel::OMPLock tmpfilelock;
 			std::vector<uint64_t> blocksizes;
 
 			void writeBlock(uint64_t * const pa, uint64_t * const pc)
 			{
 				std::sort(pa,pc);
-				libmaus::parallel::ScopeLock llock(tmpfilelock);
+				libmaus2::parallel::ScopeLock llock(tmpfilelock);
 				tmpCOS->write(reinterpret_cast<char const *>(pa),(pc-pa)*sizeof(uint64_t));
 				blocksizes.push_back(pc-pa);
 			}
@@ -88,9 +88,9 @@ namespace libmaus
 				
 				assert ( p == O.end() );
 
-				libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilename);
-				libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOS(
-					new libmaus::aio::CheckedOutputStream(tmpfilename)
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilename);
+				libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOS(
+					new libmaus2::aio::CheckedOutputStream(tmpfilename)
 				);
 				
 				tmpCOS = UNIQUE_PTR_MOVE(ttmpCOS);
@@ -120,11 +120,11 @@ namespace libmaus
 				tmpCOS.reset();
 				
 				std::string const tmpfilesorted = tmpfilename + ".sorted";
-				libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilesorted);
-				libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
-					new libmaus::aio::SynchronousGenericOutput<uint64_t>(tmpfilesorted,1024));
+				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilesorted);
+				libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
+					new libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilesorted,1024));
 				
-				libmaus::sorting::MergingReadBack<uint64_t> MRB(tmpfilename,blocksizes);
+				libmaus2::sorting::MergingReadBack<uint64_t> MRB(tmpfilename,blocksizes);
 				uint64_t prev;
 				uint64_t prevcnt = 0;
 				uint64_t overflowcnt = 0;
@@ -192,10 +192,10 @@ namespace libmaus
 					flush(t);
 			}
 
-			libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type getDecoder(uint64_t const offset = 0)
+			libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type getDecoder(uint64_t const offset = 0)
 			{
-				libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type tdec(
-					new libmaus::suffixsort::GapArrayByteDecoder(
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type tdec(
+					new libmaus2::suffixsort::GapArrayByteDecoder(
 						G.begin(),G.size(),tmpfilename,offset
 					)
 				);
@@ -205,55 +205,55 @@ namespace libmaus
 			
 			void saveHufGapArray(std::string const & gapfile)
 			{
-				::libmaus::timing::RealTimeClock rtc;
+				::libmaus2::timing::RealTimeClock rtc;
 			
 				std::cerr << "[V] saving gap file...";
 				rtc.start();
 
-				libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type pdecoder;
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pdecbuf;
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pdecoder;
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pdecbuf;
 				
-				libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type t0decoder = (getDecoder());
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type t0decoder = (getDecoder());
 				pdecoder = UNIQUE_PTR_MOVE(t0decoder);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t0decbuf(
-					new libmaus::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t0decbuf(
+					new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
 				pdecbuf = UNIQUE_PTR_MOVE(t0decbuf);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = pdecbuf->begin();
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = pdecbuf->begin();
 					
-				::libmaus::util::Histogram gaphist;
+				::libmaus2::util::Histogram gaphist;
 				for ( uint64_t i = 0; i < G.size(); ++i )
 					gaphist ( *(it0++) );
 
-				libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type t1decoder = (getDecoder());
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type t1decoder = (getDecoder());
 				pdecoder = UNIQUE_PTR_MOVE(t1decoder);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t1decbuf(
-					new libmaus::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t1decbuf(
+					new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
 				pdecbuf = UNIQUE_PTR_MOVE(t1decbuf);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it1 = pdecbuf->begin();
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator it1 = pdecbuf->begin();
 
-				::libmaus::huffman::GapEncoder GE(gapfile,gaphist,G.size());
+				::libmaus2::huffman::GapEncoder GE(gapfile,gaphist,G.size());
 				GE.encode(it1,G.size());
 				GE.flush();
 			}
 			
 			void saveGammaGapArray(std::string const & gapfile)
 			{
-				::libmaus::timing::RealTimeClock rtc;
+				::libmaus2::timing::RealTimeClock rtc;
 			
 				std::cerr << "[V] saving gap file...";
 				rtc.start();
 
-				libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type pdecoder;
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pdecbuf;
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pdecoder;
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type pdecbuf;
 				
-				libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type t0decoder = (getDecoder());
+				libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type t0decoder = (getDecoder());
 				pdecoder = UNIQUE_PTR_MOVE(t0decoder);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t0decbuf(
-					new libmaus::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::unique_ptr_type t0decbuf(
+					new libmaus2::suffixsort::GapArrayByteDecoderBuffer(*pdecoder,8192));
 				pdecbuf = UNIQUE_PTR_MOVE(t0decbuf);
-				libmaus::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = pdecbuf->begin();
+				libmaus2::suffixsort::GapArrayByteDecoderBuffer::iterator it0 = pdecbuf->begin();
 
-				::libmaus::gamma::GammaGapEncoder GE(gapfile);
+				::libmaus2::gamma::GammaGapEncoder GE(gapfile);
 				GE.encode(it0,G.size());
 				std::cerr << "done in time " << rtc.getElapsedSeconds() << std::endl;
 			}

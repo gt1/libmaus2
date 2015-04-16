@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGECOMPARATOR_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGECOMPARATOR_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{

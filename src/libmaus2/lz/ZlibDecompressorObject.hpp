@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_LZ_ZLIBDECOMPRESSOROBJECT_HPP)
 #define LIBMAUS_LZ_ZLIBDECOMPRESSOROBJECT_HPP
 
-#include <libmaus/lz/DecompressorObject.hpp>
-#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
+#include <libmaus2/lz/DecompressorObject.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct ZlibDecompressorObject : public DecompressorObject
 		{
 			typedef ZlibDecompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			::libmaus::lz::BgzfInflateZStreamBase inflatebase;
+			::libmaus2::lz::BgzfInflateZStreamBase inflatebase;
 			
 			ZlibDecompressorObject()
 			: inflatebase()

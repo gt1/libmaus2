@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTCOMPARATOR_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -39,8 +39,8 @@ namespace libmaus
 			 * @return A < B via simple read name comparison
 			 **/
 			bool operator()(
-				::libmaus::bambam::BamAlignment::shared_ptr_type const & A,
-				::libmaus::bambam::BamAlignment::shared_ptr_type const & B) const
+				::libmaus2::bambam::BamAlignment::shared_ptr_type const & A,
+				::libmaus2::bambam::BamAlignment::shared_ptr_type const & B) const
 			{
 				int r = strcmp(A->getName(),B->getName());
 				

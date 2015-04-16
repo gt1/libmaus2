@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(COMPACTFASTENCODER_HPP)
 #define COMPACTFASTENCODER_HPP
 
-#include <libmaus/aio/BufferedOutput.hpp>
-#include <libmaus/fastx/CompactFastTerminator.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/aio/BufferedOutput.hpp>
+#include <libmaus2/fastx/CompactFastTerminator.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/util/utf8.hpp>
 #include <iostream>
-#include <libmaus/util/PutObject.hpp>
+#include <libmaus2/util/PutObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-		struct CompactFastEncoder : public ::libmaus::util::UTF8
+		struct CompactFastEncoder : public ::libmaus2::util::UTF8
 		{
 			template<typename out_type>
 			static void encodeEndMarker(out_type & B)
 			{
 				// write end marker
-				::libmaus::util::UTF8::encodeUTF8(::libmaus::fastx::CompactFastTerminator::getTerminator(), B);
+				::libmaus2::util::UTF8::encodeUTF8(::libmaus2::fastx::CompactFastTerminator::getTerminator(), B);
 			}
 			
 			template<typename out_type>
@@ -48,8 +48,8 @@ namespace libmaus
 				out_type & B
 			)
 			{
-				::libmaus::util::UTF8::encodeUTF8(patlen, B);					
-				::libmaus::util::UTF8::encodeUTF8(flags, B);
+				::libmaus2::util::UTF8::encodeUTF8(patlen, B);					
+				::libmaus2::util::UTF8::encodeUTF8(flags, B);
 				
 				// indeterminate bases?
 				if ( flags & 1 )
@@ -113,10 +113,10 @@ namespace libmaus
 			}
 			
 			template<typename out_type>
-			static void putIndex(std::vector< ::libmaus::fastx::FastInterval > const & index, out_type & B)
+			static void putIndex(std::vector< ::libmaus2::fastx::FastInterval > const & index, out_type & B)
 			{
 				std::ostringstream indexostr;
-				::libmaus::fastx::FastInterval::serialiseVector(indexostr,index);
+				::libmaus2::fastx::FastInterval::serialiseVector(indexostr,index);
 				std::string const indexs = indexostr.str();
 				uint8_t const * indexu = reinterpret_cast<uint8_t const *>(indexs.c_str());
 				for ( uint64_t i = 0; i < indexs.size(); ++i )
@@ -126,10 +126,10 @@ namespace libmaus
 			}
 
 			template<typename out_type>
-			static void putEndMarkerAndIndex(std::vector< ::libmaus::fastx::FastInterval > const & index, out_type & B)
+			static void putEndMarkerAndIndex(std::vector< ::libmaus2::fastx::FastInterval > const & index, out_type & B)
 			{
 				// write end marker
-				::libmaus::fastx::CompactFastEncoder::encodeEndMarker(B);
+				::libmaus2::fastx::CompactFastEncoder::encodeEndMarker(B);
 				// write index
 				putIndex(index,B);				
 			}
@@ -139,9 +139,9 @@ namespace libmaus
 			{
 				typedef typename reader_type::pattern_type pattern_type;
 				
-				::libmaus::aio::BufferedOutput<uint8_t> B(out,64*1024);
+				::libmaus2::aio::BufferedOutput<uint8_t> B(out,64*1024);
 
-				std::vector < ::libmaus::fastx::FastInterval > index;
+				std::vector < ::libmaus2::fastx::FastInterval > index;
 
 				uint64_t prevpos = 0;
 				uint64_t numsyms = 0;
@@ -158,7 +158,7 @@ namespace libmaus
 					{
 						uint64_t const pos = B.getWrittenBytes();
 						
-						::libmaus::fastx::FastInterval FI(prevnumreads,numreads,prevpos,pos,numsyms,minlen,maxlen);
+						::libmaus2::fastx::FastInterval FI(prevnumreads,numreads,prevpos,pos,numsyms,minlen,maxlen);
 						index.push_back(FI);
 						
 						prevpos = pos;
@@ -168,7 +168,7 @@ namespace libmaus
 						maxlen = 0;
 					}
 
-					uint64_t const patlen = ::libmaus::fastx::CompactFastEncoder::encodePattern(pattern, B);
+					uint64_t const patlen = ::libmaus2::fastx::CompactFastEncoder::encodePattern(pattern, B);
 					
 					if ( (pattern.getPatID() & (1024*1024-1)) == 0 )
 						std::cerr << "(" << (pattern.getPatID()/(1024*1024)) << "m)";
@@ -181,7 +181,7 @@ namespace libmaus
 				std::cerr << "done." << std::endl;
 
 				uint64_t const pos = B.getWrittenBytes();
-				::libmaus::fastx::FastInterval FI(prevnumreads,numreads,prevpos,pos,numsyms,minlen,maxlen);
+				::libmaus2::fastx::FastInterval FI(prevnumreads,numreads,prevpos,pos,numsyms,minlen,maxlen);
 				index.push_back(FI);
 				
 				putEndMarkerAndIndex(index,B);
@@ -198,7 +198,7 @@ namespace libmaus
 				else
 					reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(inputfilenames)));
 
-				::libmaus::fastx::CompactFastEncoder::encodeFile(reader.get(),out,mod);
+				::libmaus2::fastx::CompactFastEncoder::encodeFile(reader.get(),out,mod);
 			}
 
 			template<typename reader_type>
@@ -212,7 +212,7 @@ namespace libmaus
 				else
 					reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(inputfilenames,c,d)));
 
-				::libmaus::fastx::CompactFastEncoder::encodeFile(reader.get(),out,mod);
+				::libmaus2::fastx::CompactFastEncoder::encodeFile(reader.get(),out,mod);
 			}
 			
 		};

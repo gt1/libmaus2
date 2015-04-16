@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_STRCMPNUMRECODE_HPP)
 #define LIBMAUS_BAMBAM_STRCMPNUMRECODE_HPP
 
-#include <libmaus/bambam/StrCmpNum.hpp>
-#include <libmaus/util/NotDigitOrTermTable.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/StrCmpNum.hpp>
+#include <libmaus2/util/NotDigitOrTermTable.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{						
 		struct StrCmpNumRecode
 		{
-			static size_t recode(char const * ca, libmaus::autoarray::AutoArray<uint64_t> & A)
+			static size_t recode(char const * ca, libmaus2::autoarray::AutoArray<uint64_t> & A)
 			{
 				unsigned char const * a = reinterpret_cast<unsigned char const *>(ca);
 				size_t j = 0;
@@ -45,7 +45,7 @@ namespace libmaus
 						 */
 						v = 0;
 						int i = 7;
-						for ( ; libmaus::util::NotDigitOrTermTable::table[*a] && (i >= 0); --i, ++a )
+						for ( ; libmaus2::util::NotDigitOrTermTable::table[*a] && (i >= 0); --i, ++a )
 							v |= (static_cast<uint64_t>(*a) << (i<<3));
 						/*
 						 * append next symbol or the terminator
@@ -83,7 +83,7 @@ namespace libmaus
 						/*
 						 * store up to seven symbols
 						 */
-						for ( ; libmaus::util::NotDigitOrTermTable::table[*a] && (i >= 0); --i, ++a )
+						for ( ; libmaus2::util::NotDigitOrTermTable::table[*a] && (i >= 0); --i, ++a )
 							v |= (static_cast<uint64_t>(*a) << (i<<3));
 						/*
 						 * append next symbol

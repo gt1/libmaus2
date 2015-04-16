@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,29 +16,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lsf/DispatchedLsfProcess.hpp>
-#include <libmaus/lsf/LSFTaskQueue.hpp>
-#include <libmaus/network/LogReceiver.hpp>
-#include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus2/lsf/DispatchedLsfProcess.hpp>
+#include <libmaus2/lsf/LSFTaskQueue.hpp>
+#include <libmaus2/network/LogReceiver.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lsf
 	{
-		struct SimpleDispatchedLsfProcessSet : public ::libmaus::parallel::PosixThread
+		struct SimpleDispatchedLsfProcessSet : public ::libmaus2::parallel::PosixThread
 		{
 			typedef SimpleDispatchedLsfProcessSet this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			typedef ::libmaus::lsf::DispatchedLsfProcess::shared_ptr_type proc_ptr;
+			typedef ::libmaus2::lsf::DispatchedLsfProcess::shared_ptr_type proc_ptr;
 			typedef std::map < uint64_t, proc_ptr > map_type;
 			typedef map_type::const_iterator const_iterator;
 			typedef map_type::iterator iterator;
 
-			::libmaus::parallel::PosixMutex quitlock;
-			::libmaus::parallel::PosixMutex qlock;
+			::libmaus2::parallel::PosixMutex quitlock;
+			::libmaus2::parallel::PosixMutex qlock;
 			std::map < uint64_t, proc_ptr > unknown;
 			std::map < uint64_t, proc_ptr > pending;
 			std::map < uint64_t, proc_ptr > running;
@@ -50,7 +50,7 @@ namespace libmaus
 			std::set < uint64_t > used;
 			std::set < uint64_t > unused;
 
-			::libmaus::network::LogReceiver LR;
+			::libmaus2::network::LogReceiver LR;
 			uint64_t nextid;
 			bool const verbose;
 
@@ -74,12 +74,12 @@ namespace libmaus
 					while ( ! quitlock.trylock() )
 					{
 						{
-							::libmaus::parallel::ScopePosixMutex PSL(qlock);							
+							::libmaus2::parallel::ScopePosixMutex PSL(qlock);							
 							std::map<int64_t,int64_t> IS;
 							
 							try
 							{
-								IS = ::libmaus::lsf::LSFProcess::getIntStates();
+								IS = ::libmaus2::lsf::LSFProcess::getIntStates();
 							}
 							catch(std::exception const & ex)
 							{
@@ -98,12 +98,12 @@ namespace libmaus
 							std::vector<uint64_t> moveV;
 							for ( const_iterator ita = unknown.begin(); ita != unknown.end(); ++ita )
 							{
-								::libmaus::lsf::LSFStateBase::state const state = ita->second->getState(IS);
+								::libmaus2::lsf::LSFStateBase::state const state = ita->second->getState(IS);
 								
 								// keep unknown processes, move rest	
 								switch ( state )
 								{
-									case ::libmaus::lsf::LSFStateBase::state_unknown:
+									case ::libmaus2::lsf::LSFStateBase::state_unknown:
 										break;
 									default:
 										moveV.push_back(ita->first);
@@ -123,15 +123,15 @@ namespace libmaus
 							/* move pending processes to the running queue */
 							for ( const_iterator ita = pending.begin(); ita != pending.end(); ++ita )
 							{
-								::libmaus::lsf::LSFStateBase::state const state = ita->second->getState(IS);
+								::libmaus2::lsf::LSFStateBase::state const state = ita->second->getState(IS);
 								
 								// std::cerr << "Pending process " << ita->first << " state " << state << std::endl;
 							
 								// keep pending processes, move rest	
 								switch ( state )
 								{
-									case ::libmaus::lsf::LSFStateBase::state_pending:
-									case ::libmaus::lsf::LSFStateBase::state_psusp:
+									case ::libmaus2::lsf::LSFStateBase::state_pending:
+									case ::libmaus2::lsf::LSFStateBase::state_psusp:
 										break;
 									default:
 										moveV.push_back(ita->first);
@@ -151,14 +151,14 @@ namespace libmaus
 							/* move running processes to the finished queue */
 							for ( const_iterator ita = running.begin(); ita != running.end(); ++ita )
 							{
-								::libmaus::lsf::LSFStateBase::state const state = ita->second->getState(IS);
+								::libmaus2::lsf::LSFStateBase::state const state = ita->second->getState(IS);
 							
 								// keep running processes, move rest	
 								switch ( state )
 								{
-									case ::libmaus::lsf::LSFStateBase::state_ssusp:
-									case ::libmaus::lsf::LSFStateBase::state_ususp:
-									case ::libmaus::lsf::LSFStateBase::state_run:
+									case ::libmaus2::lsf::LSFStateBase::state_ssusp:
+									case ::libmaus2::lsf::LSFStateBase::state_ususp:
+									case ::libmaus2::lsf::LSFStateBase::state_run:
 										break;
 									default:
 										// std::cerr << "proc " << ita->first << " has state " << state << std::endl;
@@ -185,7 +185,7 @@ namespace libmaus
 								
 								try
 								{
-									::libmaus::network::LogReceiver::ControlDescriptor cd = LR.getControlDescriptor();
+									::libmaus2::network::LogReceiver::ControlDescriptor cd = LR.getControlDescriptor();
 									all[cd.id]->controlsocket = cd.controlsock;
 									all[cd.id]->hostname      = cd.hostname;
 									active[cd.id]             = all.find(cd.id)->second;
@@ -222,8 +222,8 @@ namespace libmaus
 			}
 
 			uint64_t startProcessUnlocked(
-				::libmaus::parallel::PosixMutex * tlock,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::parallel::PosixMutex * tlock,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -242,7 +242,7 @@ namespace libmaus
 				if ( tlock )
 					tlock->unlock();
 
-				proc_ptr ptr(new ::libmaus::lsf::DispatchedLsfProcess(
+				proc_ptr ptr(new ::libmaus2::lsf::DispatchedLsfProcess(
 					arginfo,
 					LR.sid,
 					LR.hostname,
@@ -271,7 +271,7 @@ namespace libmaus
 			}
 
 			uint64_t startProcess(
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -288,7 +288,7 @@ namespace libmaus
 			void startProcesses(
 				std::vector<uint64_t> & ids,
 				uint64_t const n,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -299,7 +299,7 @@ namespace libmaus
 				bool const valgrind = false
 			)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 				for ( uint64_t i = 0; i < n; ++i )
 					ids.push_back(startProcessUnlocked(0,arginfo,dispatcherexe,payloadexe,numthreads,mem,hosts,cwd,tmpspace,valgrind));
 			}
@@ -307,7 +307,7 @@ namespace libmaus
 			void startProcessesSingleLock(
 				std::vector<uint64_t> & ids,
 				uint64_t const n,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -324,7 +324,7 @@ namespace libmaus
 
 			std::vector<uint64_t> startProcesses(
 				uint64_t const n,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -342,7 +342,7 @@ namespace libmaus
 
 			std::vector<uint64_t> startProcessesSingleLock(
 				uint64_t const n,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -360,7 +360,7 @@ namespace libmaus
 
 			bool isRunning(uint64_t const id)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 				bool const run = running.find(id) != running.end();
 				
@@ -368,7 +368,7 @@ namespace libmaus
 			}
 			bool isFinished(uint64_t const id)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 				bool const run = finished.find(id) != finished.end();
 				
@@ -376,7 +376,7 @@ namespace libmaus
 			}
 			bool isActive(uint64_t const id)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 				bool const run = active.find(id) != active.end();
 				
@@ -385,7 +385,7 @@ namespace libmaus
 			
 			uint64_t numFinished()
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 				uint64_t const numfin = finished.size();		
 				
@@ -393,7 +393,7 @@ namespace libmaus
 			}
 			uint64_t numActive()
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 				uint64_t const numact = active.size();		
 				
@@ -402,7 +402,7 @@ namespace libmaus
 			
 			proc_ptr process(uint64_t const id)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 				
 				proc_ptr proc = all.find(id)->second;
 				
@@ -411,7 +411,7 @@ namespace libmaus
 
 			void deactivate(uint64_t const id)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 				if ( active.find(id) != active.end() )
 					active.erase(active.find(id));
@@ -426,7 +426,7 @@ namespace libmaus
 				while ( true )
 				{
 					{
-						::libmaus::parallel::ScopePosixMutex PSL(qlock);
+						::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 						if ( active.size() )
 							break;
@@ -439,11 +439,11 @@ namespace libmaus
 			}
 			
 			void waitK(
-				::libmaus::parallel::PosixMutex * lquitlock,
+				::libmaus2::parallel::PosixMutex * lquitlock,
 				std::vector<uint64_t> & ids,
 				uint64_t const k,
 				uint64_t const /* n */,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -460,7 +460,7 @@ namespace libmaus
 					int restart = 0;
 					
 					{
-						::libmaus::parallel::ScopePosixMutex PSL(qlock);
+						::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 
 						if ( active.size() >= k )
 						{
@@ -490,7 +490,7 @@ namespace libmaus
 			std::vector<uint64_t> startProcessesAndWait(
 				uint64_t const k,
 				uint64_t const n,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & dispatcherexe,
 				std::string const & payloadexe,
 				uint64_t const numthreads,
@@ -512,7 +512,7 @@ namespace libmaus
 			
 			bool haveUnused()
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 				bool const r = unused.size() > 0;
 				return r;
 			}
@@ -521,13 +521,13 @@ namespace libmaus
 			{
 				if ( ! haveUnused() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "SimpleDispatchedLsfProcessSet::getUnused() called, but there are no unused processes." << std::endl;
 					se.finish();
 					throw se;
 				}
 				
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 				uint64_t const id = *(unused.begin());
 				unused.erase(unused.find(id));
 				used.insert(id);
@@ -537,7 +537,7 @@ namespace libmaus
 			
 			void returnUsed(uint64_t const id)
 			{
-				::libmaus::parallel::ScopePosixMutex PSL(qlock);
+				::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 				used.erase(used.find(id));
 				unused.insert(id);
 			}
@@ -547,11 +547,11 @@ namespace libmaus
 				while ( true )
 				{				
 					{
-						::libmaus::parallel::ScopePosixMutex PSL(qlock);
+						::libmaus2::parallel::ScopePosixMutex PSL(qlock);
 	
 						if ( ! active.size() )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "selectActive() called, but there are no active processes." << std::endl;
 							se.finish();
 							throw se;
@@ -569,7 +569,7 @@ namespace libmaus
 						}
 
 						int pfd = -1;
-						int const r = ::libmaus::network::SocketBase::multiPoll(fds,pfd);
+						int const r = ::libmaus2::network::SocketBase::multiPoll(fds,pfd);
 						
 						if ( r < 0 )
 						{
@@ -581,7 +581,7 @@ namespace libmaus
 								default:
 								{
 									int const error = errno;
-									::libmaus::exception::LibMausException se;
+									::libmaus2::exception::LibMausException se;
 									se.getStream() << "poll() failed in selectActive():" << strerror(error) << std::endl;
 									se.finish();
 									throw se;							
@@ -609,16 +609,16 @@ namespace libmaus
 				}
 			}
 			
-			struct AsynchronousStarter : public ::libmaus::parallel::PosixThread
+			struct AsynchronousStarter : public ::libmaus2::parallel::PosixThread
 			{
 				typedef AsynchronousStarter this_type;
-				typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				SimpleDispatchedLsfProcessSet * obj;
 
 				uint64_t const n;
-				::libmaus::util::ArgInfo const & arginfo;
+				::libmaus2::util::ArgInfo const & arginfo;
 				std::string const & dispatcherexe;
 				std::string const & payloadexe;
 				uint64_t const numthreads;
@@ -628,12 +628,12 @@ namespace libmaus
 				uint64_t const tmpspace;
 				bool const valgrind;
 				
-				::libmaus::parallel::PosixMutex quitlock;
+				::libmaus2::parallel::PosixMutex quitlock;
 			
 				AsynchronousStarter(
 					SimpleDispatchedLsfProcessSet * robj,
 					uint64_t const rn,
-					::libmaus::util::ArgInfo const & rarginfo,
+					::libmaus2::util::ArgInfo const & rarginfo,
 					std::string const & rdispatcherexe,
 					std::string const & rpayloadexe,
 					uint64_t const rnumthreads,
@@ -681,7 +681,7 @@ namespace libmaus
 			
 			void processQueue(
 				LsfTaskQueue & LTQ,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				uint64_t const numprocs,
 				std::string const & lsfdispatcher,
 				std::string const & lsfclient,
@@ -733,7 +733,7 @@ namespace libmaus
 					try
 					{
 						activeid = selectActive();
-						::libmaus::lsf::SimpleDispatchedLsfProcessSet::proc_ptr proc = process(activeid);
+						::libmaus2::lsf::SimpleDispatchedLsfProcessSet::proc_ptr proc = process(activeid);
 						assert ( proc );
 						assert ( proc->controlsocket );
 						

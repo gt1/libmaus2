@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(INCREASINGLIST_HPP)
 #define INCREASINGLIST_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/putBit.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/putBit.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace util
         {
@@ -43,18 +43,18 @@ namespace libmaus
                 {
                         public:
                         typedef IncreasingList this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 
                         private:
                         uint64_t const n;
                         uint64_t const b;
                         uint64_t const m;
                         // lower bits
-                        ::libmaus::bitio::CompactArray C;
+                        ::libmaus2::bitio::CompactArray C;
                         // upper bitstream
-                        ::libmaus::autoarray::AutoArray < uint64_t > Bup;
+                        ::libmaus2::autoarray::AutoArray < uint64_t > Bup;
                         // select dictionary for upper bitstream
-                        ::libmaus::rank::ERank222B::unique_ptr_type R;
+                        ::libmaus2::rank::ERank222B::unique_ptr_type R;
                         
                         public:
 
@@ -71,7 +71,7 @@ namespace libmaus
                         void put(uint64_t const i, uint64_t const v)
                         {
                                 C.set(i,v & m);
-                                ::libmaus::bitio::putBit(Bup.get(), i + (v >> b), true );
+                                ::libmaus2::bitio::putBit(Bup.get(), i + (v >> b), true );
                         }
 
                         uint64_t byteSize() const;

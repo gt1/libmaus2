@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_MEMINPUTBLOCK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_MEMINPUTBLOCK_HPP
 
-#include <libmaus/lz/BgzfInflateHeaderBase.hpp>
-#include <libmaus/util/CountGetObject.hpp>
+#include <libmaus2/lz/BgzfInflateHeaderBase.hpp>
+#include <libmaus2/util/CountGetObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -36,11 +36,11 @@ namespace libmaus
 			struct MemInputBlock
 			{
 				typedef MemInputBlock this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				//! input data
-				libmaus::lz::BgzfInflateHeaderBase inflateheaderbase;
+				libmaus2::lz::BgzfInflateHeaderBase inflateheaderbase;
 				//! size of block payload
 				uint64_t volatile payloadsize;
 				//! compressed data
@@ -86,7 +86,7 @@ namespace libmaus
 				 **/	
 				void readBlock(uint8_t * data, bool const rfinal)
 				{
-					libmaus::util::CountGetObject<uint8_t *> stream(data);
+					libmaus2::util::CountGetObject<uint8_t *> stream(data);
 					
 					// read bgzf header
 					payloadsize = inflateheaderbase.readHeader(stream);
@@ -113,9 +113,9 @@ namespace libmaus
 						(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+7])) << 24);
 	
 					// check that uncompressed size conforms with bgzf specs
-					if ( uncompdatasize > libmaus::lz::BgzfConstants::getBgzfMaxBlockSize() )
+					if ( uncompdatasize > libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize() )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "MemInputBlock::readBlock(): uncompressed size is too large";
 						se.finish(false);
 						throw se;									
@@ -129,8 +129,8 @@ namespace libmaus
 			struct MemInputBlockAllocator
 			{
 				typedef MemInputBlockAllocator this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				MemInputBlockAllocator() {}
 				

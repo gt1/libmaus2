@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,9 +22,9 @@
 #define BITIO_HPP
 
 #include <cstdlib>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 }
 
 #include <iostream>
-#include <libmaus/bitio/BitIOInput.hpp>
-#include <libmaus/bitio/BitIOOutput.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
+#include <libmaus2/bitio/BitIOOutput.hpp>
 
 #endif

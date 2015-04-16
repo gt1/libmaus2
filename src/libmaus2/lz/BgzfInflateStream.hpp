@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,39 +20,39 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATESTREAM_HPP)
 #define LIBMAUS_LZ_BGZFINFLATESTREAM_HPP
 
-#include <libmaus/lz/BgzfInflateWrapper.hpp>
-#include <libmaus/lz/StreamWrapper.hpp>
-#include <libmaus/lz/BgzfStreamWrapper.hpp>
-#include <libmaus/lz/BgzfVirtualOffset.hpp>
+#include <libmaus2/lz/BgzfInflateWrapper.hpp>
+#include <libmaus2/lz/StreamWrapper.hpp>
+#include <libmaus2/lz/BgzfStreamWrapper.hpp>
+#include <libmaus2/lz/BgzfVirtualOffset.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateStream : 
-			public ::libmaus::lz::BgzfInflateWrapper, 
-			public ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >
+			public ::libmaus2::lz::BgzfInflateWrapper, 
+			public ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflate<std::istream> >
 		{
 			typedef BgzfInflateStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			BgzfInflateStream(std::istream & in)
-			: ::libmaus::lz::BgzfInflateWrapper(in), 
-			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			: ::libmaus2::lz::BgzfInflateWrapper(in), 
+			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflate<std::istream> >(::libmaus2::lz::BgzfInflateWrapper::bgzf,64*1024,0)
 			{
 				exceptions(std::ios::badbit);
 			}
 
 			BgzfInflateStream(std::istream & in, std::ostream & out)
-			: ::libmaus::lz::BgzfInflateWrapper(in,out), 
-			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			: ::libmaus2::lz::BgzfInflateWrapper(in,out), 
+			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflate<std::istream> >(::libmaus2::lz::BgzfInflateWrapper::bgzf,64*1024,0)
 			{
 				exceptions(std::ios::badbit);
 			}
 			
-			BgzfInflateStream(std::istream & in, libmaus::lz::BgzfVirtualOffset const & start, libmaus::lz::BgzfVirtualOffset const & end)
-			: ::libmaus::lz::BgzfInflateWrapper(in,start,end), 
-			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflate<std::istream> >(::libmaus::lz::BgzfInflateWrapper::bgzf,64*1024,0)
+			BgzfInflateStream(std::istream & in, libmaus2::lz::BgzfVirtualOffset const & start, libmaus2::lz::BgzfVirtualOffset const & end)
+			: ::libmaus2::lz::BgzfInflateWrapper(in,start,end), 
+			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflate<std::istream> >(::libmaus2::lz::BgzfInflateWrapper::bgzf,64*1024,0)
 			{
 				exceptions(std::ios::badbit);
 			}

@@ -1,11 +1,11 @@
-#include <libmaus/huffman/KvInitResult.hpp>
+#include <libmaus2/huffman/KvInitResult.hpp>
 
-::libmaus::huffman::KvInitResult::KvInitResult()
+::libmaus2::huffman::KvInitResult::KvInitResult()
 : koffset(0), voffset(0), kvoffset(0), kvtarget(0)
 {
 }
 
-std::ostream & operator<<(std::ostream & out, ::libmaus::huffman::KvInitResult const & KIR)
+std::ostream & operator<<(std::ostream & out, ::libmaus2::huffman::KvInitResult const & KIR)
 {
 	out << "KvInitResult("
 		<< "koffset=" << KIR.koffset

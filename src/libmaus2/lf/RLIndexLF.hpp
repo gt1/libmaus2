@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LF_RLINDEXLF_HPP)
 #define LIBMAUS_LF_RLINDEXLF_HPP
 
-#include <libmaus/rl/RLIndex.hpp>
+#include <libmaus2/rl/RLIndex.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
@@ -30,8 +30,8 @@ namespace libmaus
 		{
 			typedef _rlindex_type rlindex_type;
 			typedef RLIndexLFTemplate<rlindex_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef rlindex_type wt_type;
 			typedef typename wt_type::unique_ptr_type wt_ptr_type;
@@ -39,32 +39,32 @@ namespace libmaus
 			wt_ptr_type const W;
 			uint64_t const n;
 			uint64_t const n0;
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 			
 			uint64_t getN() const
 			{
 				return n;
 			}
 			
-			::libmaus::autoarray::AutoArray<int64_t> getSymbols() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbols() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
+				::libmaus2::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
 				std::sort(symbols.begin(),symbols.end());
 				return symbols;
 			}
 			
 			uint64_t getSymbolThres() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> const syms = getSymbols();
+				::libmaus2::autoarray::AutoArray<int64_t> const syms = getSymbols();
 				if ( syms.size() )
 					return syms[syms.size()-1]+1;
 				else
 					return 0;
 			}
 
-			::libmaus::autoarray::AutoArray<uint64_t> computeD() const
+			::libmaus2::autoarray::AutoArray<uint64_t> computeD() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
+				::libmaus2::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
 				int64_t maxsym = symbols.size() ? symbols[0] : -1;
 				int64_t minsym = maxsym;
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
@@ -79,7 +79,7 @@ namespace libmaus
 				
 				assert ( minsym >= 0 );
 				
-				::libmaus::autoarray::AutoArray<uint64_t> D(maxsym+1);
+				::libmaus2::autoarray::AutoArray<uint64_t> D(maxsym+1);
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
 				{
 					int64_t const sym = symbols[i];
@@ -98,7 +98,7 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLIndexLFTemplate::load() failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -108,7 +108,7 @@ namespace libmaus
 				
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLIndexLFTemplate::load() failed to read file " << filename << std::endl;
 					se.finish();
 					throw se;					
@@ -202,8 +202,8 @@ namespace libmaus
 			}
 		};
 
-		typedef RLIndexLFTemplate< ::libmaus::rl::RLIndex > RLIndexLF;
-		typedef RLIndexLFTemplate< ::libmaus::rl::RLSimpleIndex > RLSimpleIndexLF;
+		typedef RLIndexLFTemplate< ::libmaus2::rl::RLIndex > RLIndexLF;
+		typedef RLIndexLFTemplate< ::libmaus2::rl::RLSimpleIndex > RLSimpleIndexLF;
 	}
 }
 #endif

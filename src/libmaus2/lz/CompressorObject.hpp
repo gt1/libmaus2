@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_LZ_COMPRESSOROBJECT_HPP)
 #define LIBMAUS_LZ_COMPRESSOROBJECT_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct CompressorObject
 		{
 			typedef CompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~CompressorObject() {}
 			
-			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output) = 0;
+			virtual size_t compress(char const * input, size_t inputLength, libmaus2::autoarray::AutoArray<char> & output) = 0;
 
 			virtual std::string getDescription() const = 0;
 		};

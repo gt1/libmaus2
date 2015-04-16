@@ -1,6 +1,6 @@
 
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -18,26 +18,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/BorderArray.hpp>
-#include <libmaus/util/SuccinctBorderArray.hpp>
-#include <libmaus/util/KMP.hpp>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/util/BorderArray.hpp>
+#include <libmaus2/util/SuccinctBorderArray.hpp>
+#include <libmaus2/util/KMP.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 void testLazyFailureFunctionRandom(std::string const & pattern)
 {
-	::libmaus::autoarray::AutoArray<int64_t> BP = ::libmaus::util::KMP::BEST_PREFIX(pattern.begin(),pattern.size());
-	::libmaus::random::Random::setup();
+	::libmaus2::autoarray::AutoArray<int64_t> BP = ::libmaus2::util::KMP::BEST_PREFIX(pattern.begin(),pattern.size());
+	::libmaus2::random::Random::setup();
 	
 	for ( uint64_t i = 0; i < 16*1024*1024; ++i )
 	{
 		std::istringstream pistr(pattern);
-		::libmaus::util::KMP::BestPrefix<std::istream> DBP(pistr,pattern.size());
+		::libmaus2::util::KMP::BestPrefix<std::istream> DBP(pistr,pattern.size());
 		
 		std::vector<uint64_t> probes;
 		for ( uint64_t j = 0; j < 2*pattern.size(); ++j )
-			probes.push_back( ::libmaus::random::Random::rand64() % (BP.size()) );
+			probes.push_back( ::libmaus2::random::Random::rand64() % (BP.size()) );
 	
 		#if 0
 		for ( uint64_t i = 0; i < probes.size(); ++i )
@@ -63,7 +63,7 @@ void testSimpleDynamic()
 	std::string const needle = "needlene";
 	std::string const haystack = "find the need in the haystack";
 	
-	std::pair<uint64_t, uint64_t> P = ::libmaus::util::KMP::PREFIX_SEARCH(
+	std::pair<uint64_t, uint64_t> P = ::libmaus2::util::KMP::PREFIX_SEARCH(
 		needle.begin(),needle.size(),
 		haystack.begin(),haystack.size());
 		
@@ -71,8 +71,8 @@ void testSimpleDynamic()
 		haystack.substr(P.first,P.second) << std::endl;
 
 	std::istringstream needlestr(needle);
-	::libmaus::util::KMP::BestPrefix<std::istream> BP(needlestr,needle.size());
-	::libmaus::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
+	::libmaus2::util::KMP::BestPrefix<std::istream> BP(needlestr,needle.size());
+	::libmaus2::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
 	
 	for ( uint64_t i = 0; i < needle.size(); ++i )
 		std::cerr << xadapter[i];
@@ -82,7 +82,7 @@ void testSimpleDynamic()
 	std::istringstream thestackstr(thestack);
 
 	std::pair<uint64_t, uint64_t> Q = 
-		::libmaus::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(xadapter,needle.size(),BP,thestackstr,thestack.size(),
+		::libmaus2::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(xadapter,needle.size(),BP,thestackstr,thestack.size(),
 			thestack.size()-needle.size());
 			
 	std::cerr << "Q result: " <<
@@ -113,11 +113,11 @@ void findSplitCommon(
 	istrm.seekg(middle);
 	
 	// dynamically growing best prefix table
-	::libmaus::util::KMP::BestPrefix<std::istream> BP(istrm,m);
+	::libmaus2::util::KMP::BestPrefix<std::istream> BP(istrm,m);
 	// adapter for accessing pattern in BP
-	::libmaus::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
+	::libmaus2::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
 	// call KMP adaption
-	std::pair<uint64_t, uint64_t> Q = ::libmaus::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(xadapter,m,BP,istrn,n,n-m);
+	std::pair<uint64_t, uint64_t> Q = ::libmaus2::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(xadapter,m,BP,istrn,n,n-m);
 	
 	uint64_t const showlen = std::min(Q.second,static_cast<uint64_t>(20));	
 	std::cerr << "low=" << low << " Q.second=" << Q.second << " Q.first=" << Q.first << " middle=" << middle << " m=" << m << " pref=" << 
@@ -127,18 +127,18 @@ void findSplitCommon(
 
 void testSuccinctBorderArray()
 {
-	bool const fibok = libmaus::util::SuccinctBorderArray::checkFibonacci(20);
+	bool const fibok = libmaus2::util::SuccinctBorderArray::checkFibonacci(20);
 	assert ( fibok );
 	std::string const s = "abaababaaba";
-	libmaus::util::SuccinctBorderArray::check(s);
+	libmaus2::util::SuccinctBorderArray::check(s);
 }
 
 void testBorderArray()
 {
-	bool const fibok = libmaus::util::BorderArray<uint32_t>::checkFibonacci(20);
+	bool const fibok = libmaus2::util::BorderArray<uint32_t>::checkFibonacci(20);
 	assert ( fibok );
 	std::string const s = "abaababaaba";
-	libmaus::util::BorderArray<uint32_t>::check(s);
+	libmaus2::util::BorderArray<uint32_t>::check(s);
 }
 
 int main(int argc, char * argv[])
@@ -148,11 +148,11 @@ int main(int argc, char * argv[])
 		testBorderArray();
 		testSuccinctBorderArray();
 			
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		
 		// std::string const fn = "1";
-		uint64_t const n = ::libmaus::util::GetFileSize::getFileSize(fn);
+		uint64_t const n = ::libmaus2::util::GetFileSize::getFileSize(fn);
 		uint64_t const tpacks = 128;
 		uint64_t const packsize = (n+tpacks-1)/tpacks;
 		uint64_t const packs = (n + packsize-1)/packsize;
@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
 	
 	#if 0
 	std::string const fn = "X";
-	uint64_t const n = ::libmaus::util::GetFileSize::getFileSize(fn);
+	uint64_t const n = ::libmaus2::util::GetFileSize::getFileSize(fn);
 	
 	uint64_t const p = n/2;
 	uint64_t const m = n-p;
@@ -183,11 +183,11 @@ int main(int argc, char * argv[])
 	std::ifstream istrn(fn.c_str(),std::ios::binary);
 	std::ifstream istrm(fn.c_str(),std::ios::binary);
 	istrm.seekg(p);
-	::libmaus::util::KMP::BestPrefix<std::istream> BP(istrm,m);
-	::libmaus::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
+	::libmaus2::util::KMP::BestPrefix<std::istream> BP(istrm,m);
+	::libmaus2::util::KMP::BestPrefix<std::istream>::BestPrefixXAdapter xadapter = BP.getXAdapter();
 
 	std::pair<uint64_t, uint64_t> Q = 
-		::libmaus::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(
+		::libmaus2::util::KMP::PREFIX_SEARCH_INTERNAL_RESTRICTED(
 			xadapter,m,BP,
 			istrn,n,
 			n-m
@@ -225,14 +225,14 @@ int main(int argc, char * argv[])
 	if ( Q.second+1 <= m )
 	{
 		istrm.clear(); istrm.seekg(p);
-		::libmaus::autoarray::AutoArray<char> cs(Q.second+1);
+		::libmaus2::autoarray::AutoArray<char> cs(Q.second+1);
 		istrm.read(cs.begin(),cs.size());
 		std::string s(cs.begin(),cs.begin()+cs.size());
 		if ( Q.second <= printmax )
 		std::cerr << "extending common prefix by next character in pattern: " << s << std::endl;
 		
 		istrn.clear(); istrn.seekg(0);
-		::libmaus::autoarray::AutoArray<char> cc(n);
+		::libmaus2::autoarray::AutoArray<char> cc(n);
 		istrn.read(cc.begin(),n);
 		std::string t(cc.begin(),cc.begin()+cc.size());
 		

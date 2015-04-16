@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_LF_LFBASE_HPP)
 #define LIBMAUS_LF_LFBASE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
@@ -34,7 +34,7 @@ namespace libmaus
 			typedef _wt_type wt_type;
 			typedef typename wt_type::unique_ptr_type wt_ptr_type;
 			wt_ptr_type W;
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 
 			uint64_t serialize(std::ostream & out)
 			{
@@ -43,9 +43,9 @@ namespace libmaus
 				return s;
 			}
 				
-			static ::libmaus::autoarray::AutoArray<uint64_t> computeD(wt_type const * W)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> computeD(wt_type const * W)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> D( (1ull << W->getB()) + 1 , true );
+				::libmaus2::autoarray::AutoArray<uint64_t> D( (1ull << W->getB()) + 1 , true );
 				
 				for ( uint64_t i = 0; i < (1ull << W->getB()); ++i )
 					D[i] = W->rank(i, W->getN()-1);
@@ -122,7 +122,7 @@ namespace libmaus
 			LFBase( bitio::CompactArray::unique_ptr_type & ABWT )
 			{
 				// compute wavelet tree bits
-				::libmaus::autoarray::AutoArray<uint64_t> AW = ::libmaus::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
+				::libmaus2::autoarray::AutoArray<uint64_t> AW = ::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
 				wt_ptr_type tW( new wt_type( AW, ABWT->n, ABWT->getB()) );
 				W = UNIQUE_PTR_MOVE(tW);
 				
@@ -130,10 +130,10 @@ namespace libmaus
 				
 				ABWT.reset(0);
 			}
-			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type /* ahnode */ )
+			LFBase( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type /* ahnode */ )
 			{
 				// compute wavelet tree bits
-				::libmaus::autoarray::AutoArray<uint64_t> AW = ::libmaus::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
+				::libmaus2::autoarray::AutoArray<uint64_t> AW = ::libmaus2::wavelet::toWaveletTreeBitsParallel ( ABWT.get() );
 				wt_ptr_type tW( new wt_type ( AW, ABWT->n, ABWT->getB()) );
 				W = UNIQUE_PTR_MOVE(tW);
 				

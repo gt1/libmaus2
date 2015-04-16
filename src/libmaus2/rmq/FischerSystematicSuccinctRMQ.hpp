@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2010 Johannes Fischer
     Copyright (C) 2010-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -30,10 +30,10 @@
 #include <climits>
 #include <iostream>
 #include <stdexcept>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rmq
 	{
@@ -83,7 +83,7 @@ namespace libmaus
 		{
 			public:
 			typedef FischerSystematicSuccinctRMQ<array_iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			typedef typename std::iterator_traits<array_iterator>::value_type DT;
@@ -119,22 +119,22 @@ namespace libmaus
 			DTidx const nmb;
 
 			// type of blocks
-			::libmaus::autoarray::AutoArray<DTsucc2> type;
+			::libmaus2::autoarray::AutoArray<DTsucc2> type;
 
 			// precomputed in-block queries
-			::libmaus::autoarray::AutoArray<DTsucc> APrec;
-			::libmaus::autoarray::AutoArray<DTsucc *> Prec;
+			::libmaus2::autoarray::AutoArray<DTsucc> APrec;
+			::libmaus2::autoarray::AutoArray<DTsucc *> Prec;
 			
 			// table M for the out-of-block queries (contains indices of block-minima)
-			::libmaus::autoarray::AutoArray<DTsucc> AM;
-			::libmaus::autoarray::AutoArray<DTsucc *> M;
+			::libmaus2::autoarray::AutoArray<DTsucc> AM;
+			::libmaus2::autoarray::AutoArray<DTsucc *> M;
 
 			// depth of table M':
 			DTidx const Mprime_depth;
 
 			// table M' for superblock-queries (contains indices of block-minima)
-			::libmaus::autoarray::AutoArray<DTidx> AMprime;
-			::libmaus::autoarray::AutoArray<DTidx*> Mprime;
+			::libmaus2::autoarray::AutoArray<DTidx> AMprime;
+			::libmaus2::autoarray::AutoArray<DTidx*> Mprime;
 			
 			inline static DTidx checkNb(DTidx nb, DTidx n)
 			{
@@ -146,7 +146,7 @@ namespace libmaus
 				// less space consuming.
 				if (nb<sprimeprime/(2*sprime)) 
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Array of size " << n << " too small in FischerSystematicSuccinctRMQ.";
 					se.finish();
 					throw se;
@@ -157,9 +157,9 @@ namespace libmaus
 				}
 			}
 			
-			inline static ::libmaus::autoarray::AutoArray<DTsucc *> allocatePrec(::libmaus::autoarray::AutoArray<DTsucc> & APrec)
+			inline static ::libmaus2::autoarray::AutoArray<DTsucc *> allocatePrec(::libmaus2::autoarray::AutoArray<DTsucc> & APrec)
 			{
-				::libmaus::autoarray::AutoArray<DTsucc *> Prec(Catalan[s][s]);
+				::libmaus2::autoarray::AutoArray<DTsucc *> Prec(Catalan[s][s]);
 
 				for (DTidx i = 0; i < Catalan[s][s]; i++) {
 					Prec[i] = APrec.get() + i*s;
@@ -169,9 +169,9 @@ namespace libmaus
 				return Prec;
 			}
 
-			inline static ::libmaus::autoarray::AutoArray<DTsucc *> allocateM(::libmaus::autoarray::AutoArray<DTsucc> & AM, DTidx nb)
+			inline static ::libmaus2::autoarray::AutoArray<DTsucc *> allocateM(::libmaus2::autoarray::AutoArray<DTsucc> & AM, DTidx nb)
 			{
-				::libmaus::autoarray::AutoArray<DTsucc *> M(M_depth);
+				::libmaus2::autoarray::AutoArray<DTsucc *> M(M_depth);
 
 				for (DTidx i = 0; i < M_depth; i++) {
 					M[i] = AM.get() + i*nb;
@@ -180,9 +180,9 @@ namespace libmaus
 				return M;
 			}
 
-			inline static ::libmaus::autoarray::AutoArray<DTidx *> allocateMprime(::libmaus::autoarray::AutoArray<DTidx> & AMprime, DTidx Mprime_depth, DTidx nsb)
+			inline static ::libmaus2::autoarray::AutoArray<DTidx *> allocateMprime(::libmaus2::autoarray::AutoArray<DTidx> & AMprime, DTidx Mprime_depth, DTidx nsb)
 			{
-				::libmaus::autoarray::AutoArray<DTidx *> Mprime(Mprime_depth);
+				::libmaus2::autoarray::AutoArray<DTidx *> Mprime(Mprime_depth);
 
 				for (DTidx i = 0; i < Mprime_depth; i++) {
 					Mprime[i] = AMprime.get() + i*nsb;

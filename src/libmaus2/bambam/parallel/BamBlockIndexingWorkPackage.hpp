@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_BAMBLOCKINDEXINGWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_BAMBLOCKINDEXINGWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp>
-#include <libmaus/bambam/BamIndexGenerator.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp>
+#include <libmaus2/bambam/BamIndexGenerator.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 			
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct BamBlockIndexingWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct BamBlockIndexingWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef BamBlockIndexingWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-				libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP;
-				libmaus::bambam::BamIndexGenerator * bamindexgenerator;
+				libmaus2::bambam::parallel::GenericInputControlCompressionPending GICCP;
+				libmaus2::bambam::BamIndexGenerator * bamindexgenerator;
 				
-				BamBlockIndexingWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage() {}               
+				BamBlockIndexingWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage() {}               
 				BamBlockIndexingWorkPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
-					libmaus::bambam::parallel::GenericInputControlCompressionPending rGICCP,
-					libmaus::bambam::BamIndexGenerator * rbamindexgenerator
+					libmaus2::bambam::parallel::GenericInputControlCompressionPending rGICCP,
+					libmaus2::bambam::BamIndexGenerator * rbamindexgenerator
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), bamindexgenerator(rbamindexgenerator)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), bamindexgenerator(rbamindexgenerator)
 				{
 				}
 

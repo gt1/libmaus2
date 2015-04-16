@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_AIO_INPUTSTREAM_HPP)
 #define LIBMAUS_AIO_INPUTSTREAM_HPP
 
-#include <libmaus/aio/InputStreamWrapper.hpp>
+#include <libmaus2/aio/InputStreamWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		struct InputStream : public InputStreamWrapper, std::istream
 		{
 			typedef InputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			InputStream(InputStreamWrapper::shared_stream_ptr_type & Tstream) : InputStreamWrapper(Tstream), std::istream(InputStreamWrapper::getStream().rdbuf()) {}
 			InputStream(InputStreamWrapper::stream_type & rstream)   : InputStreamWrapper(rstream), std::istream(InputStreamWrapper::getStream().rdbuf()) {}

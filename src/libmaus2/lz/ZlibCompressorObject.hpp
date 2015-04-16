@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_LZ_ZLIBCOMPRESSOROBJECT_HPP)
 #define LIBMAUS_LZ_ZLIBCOMPRESSOROBJECT_HPP
 
-#include <libmaus/lz/CompressorObject.hpp>
-#include <libmaus/lz/BgzfDeflateBase.hpp>
+#include <libmaus2/lz/CompressorObject.hpp>
+#include <libmaus2/lz/BgzfDeflateBase.hpp>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct ZlibCompressorObject : public CompressorObject
 		{
 			typedef ZlibCompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			int const level;
 			z_stream strm;
@@ -49,7 +49,7 @@ namespace libmaus
 				BgzfDeflateHeaderFunctions::deflatedestroyz(&strm);
 			}
 
-			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output)
+			virtual size_t compress(char const * input, size_t inputLength, libmaus2::autoarray::AutoArray<char> & output)
 			{
 				deflateReset(&strm);
 		
@@ -60,7 +60,7 @@ namespace libmaus
 				}
 
 				if ( outputBound > output.size() )
-					output = libmaus::autoarray::AutoArray<char>(outputBound,false);
+					output = libmaus2::autoarray::AutoArray<char>(outputBound,false);
 										
 				// maximum number of output bytes
 				strm.avail_out = output.size();
@@ -79,7 +79,7 @@ namespace libmaus
 				// call deflate
 				if ( retcode != Z_STREAM_END )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "deflate() failed: " << retcode << ", " << zError(retcode) << std::endl;
 					se.finish(false /* do not translate stack trace */);
 					throw se;

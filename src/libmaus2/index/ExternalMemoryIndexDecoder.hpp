@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_INDEX_EXTERNALMEMORYINDEXDECODER_HPP)
 #define LIBMAUS_INDEX_EXTERNALMEMORYINDEXDECODER_HPP
 
-#include <libmaus/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp>
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/index/ExternalMemoryIndexRecord.hpp>
+#include <libmaus2/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/index/ExternalMemoryIndexRecord.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace index
 	{
@@ -35,13 +35,13 @@ namespace libmaus
 			static unsigned int const inner_level_log = _inner_level_log;
 			typedef _comparator comparator;
 			typedef ExternalMemoryIndexDecoder<data_type,base_level_log,inner_level_log,comparator> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			static uint64_t const base_index_step = 1ull << base_level_log;
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
 		
-			libmaus::aio::PosixFdInputStream::unique_ptr_type PPFIS;
+			libmaus2::aio::PosixFdInputStream::unique_ptr_type PPFIS;
 			std::istream & PFIS;
 
 			std::vector<uint64_t> levelstarts;
@@ -51,9 +51,9 @@ namespace libmaus
 			uint64_t const record_size;
 
 			typedef ExternalMemoryIndexRecord<data_type> record_type;
-			typedef libmaus::autoarray::AutoArray<record_type> cache_level_type;
+			typedef libmaus2::autoarray::AutoArray<record_type> cache_level_type;
 			typedef typename cache_level_type::shared_ptr_type cache_level_ptr_type;
-			typedef libmaus::autoarray::AutoArray< cache_level_ptr_type > cache_type;
+			typedef libmaus2::autoarray::AutoArray< cache_level_ptr_type > cache_type;
 			cache_type cache;
 			
 			data_type minel;
@@ -70,15 +70,15 @@ namespace libmaus
 			 **/
 			void setup(uint64_t const cache_thres = 2048)
 			{
-				uint64_t const endofindex = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);				
+				uint64_t const endofindex = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);				
 				PFIS.seekg(endofindex,std::ios::beg);
 				PFIS.seekg(-8,std::ios::cur);
-				uint64_t const numlevels = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const numlevels = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				PFIS.seekg(- static_cast<int64_t>(sizeof(uint64_t) + numlevels * 2 * sizeof(uint64_t)), std::ios::cur);
 				for ( uint64_t i = 0; i < numlevels; ++i )
 				{
-					levelstarts.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(PFIS));
-					levelcnts.push_back(libmaus::util::NumberSerialisation::deserialiseNumber(PFIS));
+					levelstarts.push_back(libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS));
+					levelcnts.push_back(libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS));
 					#if 0
 					std::cerr << "levelcnts[" << i << "]=" << levelcnts[i] << " levelstarts[" << i << "]=" << levelstarts[i] << std::endl;
 					#endif
@@ -147,15 +147,15 @@ namespace libmaus
 				{
 				 	PFIS.clear();
 				 	PFIS.seekg(levelstarts[0], std::ios::beg);
-				 	minelpos.first  = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				 	minelpos.second = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	minelpos.first  = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	minelpos.second = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 					minel.deserialise(PFIS);	
 					minelvalid = true;
 
 					PFIS.clear();
 					PFIS.seekg(levelstarts[0] + (levelcnts[0]-1) * record_size, std::ios::beg);
-				 	maxelpos.first  = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				 	maxelpos.second = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	maxelpos.first  = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+				 	maxelpos.second = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 					maxel.deserialise(PFIS);					
 					maxelvalid = true;
 				}
@@ -167,7 +167,7 @@ namespace libmaus
 			}
 
 			ExternalMemoryIndexDecoder(std::string const & filename, uint64_t const rcache_thres = 2048) 
-			: PPFIS(new libmaus::aio::PosixFdInputStream(filename)), PFIS(*PPFIS), object_size(data_type::getSerialisedObjectSize()), record_size(2*sizeof(uint64_t)+object_size)
+			: PPFIS(new libmaus2::aio::PosixFdInputStream(filename)), PFIS(*PPFIS), object_size(data_type::getSerialisedObjectSize()), record_size(2*sizeof(uint64_t)+object_size)
 			{
 				setup(rcache_thres);
 			}
@@ -191,8 +191,8 @@ namespace libmaus
 				PFIS.clear();
 				PFIS.seekg(levelstarts[0] + i * record_size);
 
-				uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				data_type Q;
 				Q.deserialise(PFIS);
 
@@ -214,8 +214,8 @@ namespace libmaus
 				PFIS.clear();
 				PFIS.seekg(levelstarts[0] + i * record_size);
 
-				uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				data_type Q;
 				Q.deserialise(PFIS);
 
@@ -237,8 +237,8 @@ namespace libmaus
 				PFIS.clear();
 				PFIS.seekg(levelstarts[level] + i * record_size);
 
-				uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-				uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+				uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 				data_type Q;
 				Q.deserialise(PFIS);
 
@@ -267,8 +267,8 @@ namespace libmaus
 				PFIS.seekg(levelstarts[l], std::ios::beg);
 				for ( uint64_t i = 0; i < levelcnts[l]; ++i )
 				{
-					uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-					uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+					uint64_t const pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+					uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 					data_type Q;
 					Q.deserialise(PFIS);
 				
@@ -380,8 +380,8 @@ namespace libmaus
 						
 						for ( uint64_t j = scanstart; j < levelcnts[level]; ++j )
 						{
-							uint64_t const pfirst = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
-							uint64_t const psecond = libmaus::util::NumberSerialisation::deserialiseNumber(PFIS);
+							uint64_t const pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
+							uint64_t const psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(PFIS);
 							data_type Q;
 							Q.deserialise(PFIS);
 							

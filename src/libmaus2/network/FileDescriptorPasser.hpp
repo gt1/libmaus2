@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,32 +19,32 @@
 #if ! defined(LIBMAUS_NETWORK_FILEDESCRIPTORPASSER_HPP)
 #define LIBMAUS_NETWORK_FILEDESCRIPTORPASSER_HPP
 
-#include <libmaus/parallel/PosixProcess.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/network/SocketPair.hpp>
-#include <libmaus/network/Socket.hpp>
+#include <libmaus2/parallel/PosixProcess.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/network/SocketPair.hpp>
+#include <libmaus2/network/Socket.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct FileDescriptorPasser : public ::libmaus::parallel::PosixProcess
+		struct FileDescriptorPasser : public ::libmaus2::parallel::PosixProcess
 		{
 			typedef FileDescriptorPasser this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			::libmaus::network::SocketPair * SP;
+			::libmaus2::network::SocketPair * SP;
 			uint64_t cid;
-			::libmaus::network::SocketBase * passfd;
+			::libmaus2::network::SocketBase * passfd;
 			std::string hostname;
 			std::string semname;
 			
 			FileDescriptorPasser(
-				::libmaus::network::SocketPair * rSP,
+				::libmaus2::network::SocketPair * rSP,
 				uint64_t const rcid,
-				::libmaus::network::SocketBase * rpassfd,
+				::libmaus2::network::SocketBase * rpassfd,
 				std::string const & rhostname,
 				std::string const & rsemname
 			) : SP(rSP), cid(rcid), passfd(rpassfd), hostname(rhostname), semname(rsemname)
@@ -58,12 +58,12 @@ namespace libmaus
 				try
 				{
 					// std::cerr << "Semaphore " << semname << std::endl;
-					::libmaus::parallel::NamedPosixSemaphore NPS(semname,false);
+					::libmaus2::parallel::NamedPosixSemaphore NPS(semname,false);
 					NPS.wait();
 					// std::cerr << "Got it for id " << cid << std::endl;
 				
 					// send process id
-					::libmaus::network::SocketBase socket(SP->parentGet());
+					::libmaus2::network::SocketBase socket(SP->parentGet());
 					socket.writeSingle<uint64_t>(cid);
 					socket.writeString(hostname);
 					socket.releaseFD();

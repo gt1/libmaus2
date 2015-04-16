@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_VALIDATIONFRAGMENT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_VALIDATIONFRAGMENT_HPP
 
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -41,7 +41,7 @@ namespace libmaus
 					return buffer->checkValidPacked(low,high);
 				}
 				
-				void updateChecksums(libmaus::bambam::ChecksumsInterface & chksums)
+				void updateChecksums(libmaus2::bambam::ChecksumsInterface & chksums)
 				{
 					buffer->updateChecksumsPacked(low,high,chksums);
 				}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLGETCOMPRESSORINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLGETCOMPRESSORINTERFACE_HPP
 
-#include <libmaus/lz/BgzfDeflateZStreamBase.hpp>
+#include <libmaus2/lz/BgzfDeflateZStreamBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct GenericInputControlGetCompressorInterface
 			{
 				virtual ~GenericInputControlGetCompressorInterface() {}
-				virtual libmaus::lz::BgzfDeflateZStreamBase::shared_ptr_type genericInputControlGetCompressor() = 0;
+				virtual libmaus2::lz::BgzfDeflateZStreamBase::shared_ptr_type genericInputControlGetCompressor() = 0;
 			};
 		}
 	}

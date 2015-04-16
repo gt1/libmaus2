@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/network/HttpAbsoluteUrl.hpp>
+#include <libmaus2/network/HttpAbsoluteUrl.hpp>
 
-std::ostream & libmaus::network::operator<<(std::ostream & out, libmaus::network::HttpAbsoluteUrl const & url)
+std::ostream & libmaus2::network::operator<<(std::ostream & out, libmaus2::network::HttpAbsoluteUrl const & url)
 {
 	std::string const protocol = url.ssl ? "https" : "http";
 	

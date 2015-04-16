@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,22 +20,22 @@
 #if ! defined(SUBSAMPLINGFASTREADER_HPP)
 #define SUBSAMPLINGFASTREADER_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/fastx/CompactFastDecoder.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/fastx/CompactFastDecoder.hpp>
+#include <libmaus2/random/Random.hpp>
 
 #include <ctime>
 #include <cstdlib>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		template<typename _reader_type, bool _keep_pairs>
-		struct SubSamplingFastReader : public ::libmaus::random::Random
+		struct SubSamplingFastReader : public ::libmaus2::random::Random
 		{
 			typedef _reader_type reader_type;
 			typedef typename reader_type::unique_ptr_type reader_ptr_type;
@@ -43,7 +43,7 @@ namespace libmaus
 			static bool const keep_pairs = _keep_pairs;
 			
 			typedef SubSamplingFastReader<reader_type,keep_pairs> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef typename reader_type::pattern_type pattern_type;
 			
@@ -60,21 +60,21 @@ namespace libmaus
 			{
 				if ( d > maxd )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Give denominator " << d << " greater than allowed maximum " << maxd << " in SubSamplingFastReader<>::checkParameters()" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( ! d )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Give denominator " << d << " is " << maxd << " in SubSamplingFastReader<>::checkParameters()" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( c > d )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Give counter " << c << " is larger than denomintator " << d << " in SubSamplingFastReader<>::checkParameters()" << std::endl;
 					se.finish();
 					throw se;
@@ -89,11 +89,11 @@ namespace libmaus
 			{
 				checkParameters();			
 			}
-			SubSamplingFastReader(std::string const & filename, ::libmaus::fastx::FastInterval const & FI, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(std::vector<std::string>(1,filename),FI)), c(rc), d(rd), pairflag(false)
+			SubSamplingFastReader(std::string const & filename, ::libmaus2::fastx::FastInterval const & FI, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(std::vector<std::string>(1,filename),FI)), c(rc), d(rd), pairflag(false)
 			{
 				checkParameters();			
 			}
-			SubSamplingFastReader(std::vector<std::string> const & filenames, ::libmaus::fastx::FastInterval const & FI, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(filenames,FI)), c(rc), d(rd), pairflag(false)
+			SubSamplingFastReader(std::vector<std::string> const & filenames, ::libmaus2::fastx::FastInterval const & FI, uint64_t const rc, uint64_t const rd) : Preader(new reader_type(filenames,FI)), c(rc), d(rd), pairflag(false)
 			{
 				checkParameters();			
 			}
@@ -145,12 +145,12 @@ namespace libmaus
                         }
 		};
 		
-		typedef SubSamplingFastReader< ::libmaus::fastx::FastAReader, false > SubSamplingSingleFastAReader;
-		typedef SubSamplingFastReader< ::libmaus::fastx::FastAReader, true > SubSamplingPairedFastAReader;
-		typedef SubSamplingFastReader< ::libmaus::fastx::FastQReader, false > SubSamplingSingleFastQReader;
-		typedef SubSamplingFastReader< ::libmaus::fastx::FastQReader, true > SubSamplingPairedFastQReader;
-		typedef SubSamplingFastReader< ::libmaus::fastx::CompactFastConcatDecoder, false > SubSamplingSingleCompactFastReader;
-		typedef SubSamplingFastReader< ::libmaus::fastx::CompactFastConcatDecoder, true > SubSamplingPairedCompactFastReader;
+		typedef SubSamplingFastReader< ::libmaus2::fastx::FastAReader, false > SubSamplingSingleFastAReader;
+		typedef SubSamplingFastReader< ::libmaus2::fastx::FastAReader, true > SubSamplingPairedFastAReader;
+		typedef SubSamplingFastReader< ::libmaus2::fastx::FastQReader, false > SubSamplingSingleFastQReader;
+		typedef SubSamplingFastReader< ::libmaus2::fastx::FastQReader, true > SubSamplingPairedFastQReader;
+		typedef SubSamplingFastReader< ::libmaus2::fastx::CompactFastConcatDecoder, false > SubSamplingSingleCompactFastReader;
+		typedef SubSamplingFastReader< ::libmaus2::fastx::CompactFastConcatDecoder, true > SubSamplingPairedCompactFastReader;
 	}
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,18 +17,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/network/GetHostName.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/network/GetHostName.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		int const controlfd = arginfo.getValue<int>("controlfd",-1);
 		// uint64_t const mem = arginfo.getValue<int>("mem",0);
-		::libmaus::network::SocketBase controlsock(controlfd);
+		::libmaus2::network::SocketBase controlsock(controlfd);
 		bool running = true;
 		
 		while ( running )

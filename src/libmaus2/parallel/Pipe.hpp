@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_PARALLEL_PIPE_HPP)
 #define LIBMAUS_PARALLEL_PIPE_HPP
 
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 #include <unistd.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -41,7 +41,7 @@ namespace libmaus
 				fd[1] = -1;
 				if ( pipe(&fd[0]) < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "pipe() failed: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFER_HPP
 
-#include <libmaus/bambam/DecoderBase.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferFragment.hpp>
+#include <libmaus2/bambam/DecoderBase.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferFragment.hpp>
 	
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,15 +31,15 @@ namespace libmaus
 			struct FragmentAlignmentBuffer
 			{
 				typedef FragmentAlignmentBuffer this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				uint64_t id;
 				uint64_t subid;
 				
-				libmaus::autoarray::AutoArray<FragmentAlignmentBufferFragment::unique_ptr_type> A;
-				libmaus::autoarray::AutoArray<uint64_t ,libmaus::autoarray::alloc_type_c> O;
-				libmaus::autoarray::AutoArray<uint8_t *,libmaus::autoarray::alloc_type_c> P;
+				libmaus2::autoarray::AutoArray<FragmentAlignmentBufferFragment::unique_ptr_type> A;
+				libmaus2::autoarray::AutoArray<uint64_t ,libmaus2::autoarray::alloc_type_c> O;
+				libmaus2::autoarray::AutoArray<uint8_t *,libmaus2::autoarray::alloc_type_c> P;
 				uint64_t const pointermult;
 
 				std::vector<size_t> OSVO;
@@ -66,8 +66,8 @@ namespace libmaus
 				static size_t multSize()
 				{
 					return
-						libmaus::math::lcm(
-							libmaus::math::lcm(
+						libmaus2::math::lcm(
+							libmaus2::math::lcm(
 								sizeof(uint64_t),
 								sizeof(size_t)
 							),
@@ -129,7 +129,7 @@ namespace libmaus
 					{
 						for ( uint64_t i = 0; i < n; ++i )
 						{							
-							uint32_t const l = libmaus::bambam::DecoderBase::getLEInteger(
+							uint32_t const l = libmaus2::bambam::DecoderBase::getLEInteger(
 								reinterpret_cast<uint8_t const *>(A[i]),
 								sizeof(uint32_t));
 							uint8_t const * D = A[i] + sizeof(uint32_t);

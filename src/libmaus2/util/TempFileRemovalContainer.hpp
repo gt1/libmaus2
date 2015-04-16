@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -25,11 +25,11 @@
 #include <string>
 #include <cstdlib>
 #include <map>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 #include <semaphore.h>
 #include <unistd.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -51,7 +51,7 @@ namespace libmaus
 			typedef ::sighandler_t sighandler_t;
 			#endif
 			
-			static ::libmaus::parallel::OMPLock lock;
+			static ::libmaus2::parallel::OMPLock lock;
 			
 			static sighandler_t siginthandler;
 			static sighandler_t sigtermhandler;
@@ -254,7 +254,7 @@ namespace libmaus
 			typedef ::sighandler_t sighandler_t;
 			#endif
 			
-			static ::libmaus::parallel::OMPLock lock;
+			static ::libmaus2::parallel::OMPLock lock;
 			static std::vector < std::string > tmpfilenames;
 			static std::vector < std::string > tmpsemaphores;
 			static std::vector < std::string > tmpdirectories;

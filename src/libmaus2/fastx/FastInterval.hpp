@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(FASTINTERVAL_HPP)
 #define FASTINTERVAL_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/IntervalTree.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
 #include <vector>
 #include <limits>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -178,23 +178,23 @@ namespace libmaus
 
 			static void serialise(std::ostream & out, FastInterval const & F)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.low);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.high);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.fileoffset);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.fileoffsethigh);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.numsyms);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.minlen);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,F.maxlen);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.low);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.high);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.fileoffset);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.fileoffsethigh);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.numsyms);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.minlen);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,F.maxlen);
 			}
 			static FastInterval deserialise(std::istream & in)
 			{
-				uint64_t const low = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const high = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const fileoffset = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const fileoffsethigh = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const numsyms = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const minlen = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const maxlen = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const low = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const high = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const fileoffset = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const fileoffsethigh = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const numsyms = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const minlen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const maxlen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				return FastInterval(low,high,fileoffset,fileoffsethigh,numsyms,minlen,maxlen);
 			}
 			
@@ -206,7 +206,7 @@ namespace libmaus
 			
 			static void serialiseVector(std::ostream & out, std::vector < FastInterval > const & V)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,V.size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					serialise(out,V[i]);
 			}
@@ -219,7 +219,7 @@ namespace libmaus
 			static std::vector < FastInterval > deserialiseVector(std::istream & in)
 			{
 				std::vector < FastInterval > V;
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				for ( uint64_t i = 0; i < n; ++i )
 					V.push_back ( deserialise(in) );
 				return V;
@@ -230,12 +230,12 @@ namespace libmaus
 				return deserialiseVector(istr);
 			}
 
-			static ::libmaus::util::IntervalTree::unique_ptr_type toIntervalTree(std::vector < FastInterval > const & V)
+			static ::libmaus2::util::IntervalTree::unique_ptr_type toIntervalTree(std::vector < FastInterval > const & V)
 			{
-				libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
+				libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					H[i] = std::pair<uint64_t,uint64_t>(V[i].low,V[i].high);
-				::libmaus::util::IntervalTree::unique_ptr_type PIT(new ::libmaus::util::IntervalTree(H,0,H.size()));
+				::libmaus2::util::IntervalTree::unique_ptr_type PIT(new ::libmaus2::util::IntervalTree(H,0,H.size()));
 				return UNIQUE_PTR_MOVE(PIT);
 			}
 		};

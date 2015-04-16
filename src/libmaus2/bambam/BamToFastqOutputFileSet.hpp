@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,13 +21,13 @@
 
 #include <map>
 #include <string>
-#include <libmaus/aio/LineSplittingPosixFdOutputStream.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/lz/LineSplittingGzipOutputStream.hpp>
-#include <libmaus/lz/GzipOutputStream.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/aio/LineSplittingPosixFdOutputStream.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/lz/LineSplittingGzipOutputStream.hpp>
+#include <libmaus2/lz/GzipOutputStream.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -39,19 +39,19 @@ namespace libmaus
 			//! split files after this many lines (0 for never)
 			uint64_t const split;
 		
-			typedef std::map < std::string, libmaus::aio::PosixFdOutputStream::shared_ptr_type > files_map_type;
+			typedef std::map < std::string, libmaus2::aio::PosixFdOutputStream::shared_ptr_type > files_map_type;
 			//! map of all files
 			files_map_type files;
 			
-			typedef std::map < std::string, libmaus::lz::GzipOutputStream::shared_ptr_type> gz_files_map_type;
+			typedef std::map < std::string, libmaus2::lz::GzipOutputStream::shared_ptr_type> gz_files_map_type;
 			//! map of gzip compressed files
 			gz_files_map_type gzfiles;
 			
-			typedef std::map < std::string, libmaus::aio::LineSplittingPosixFdOutputStream::shared_ptr_type > split_files_map_type;
+			typedef std::map < std::string, libmaus2::aio::LineSplittingPosixFdOutputStream::shared_ptr_type > split_files_map_type;
 			//! map of all split files
 			split_files_map_type splitfiles;
 
-			typedef std::map < std::string, libmaus::lz::LineSplittingGzipOutputStream::shared_ptr_type > split_gz_files_map_type;
+			typedef std::map < std::string, libmaus2::lz::LineSplittingGzipOutputStream::shared_ptr_type > split_gz_files_map_type;
 			//! map of all split gzip files
 			split_gz_files_map_type splitgzfiles;
 
@@ -85,7 +85,7 @@ namespace libmaus
 			/**
 			 * open output files
 			 **/
-			static files_map_type openFiles(libmaus::util::ArgInfo const & arginfo)
+			static files_map_type openFiles(libmaus2::util::ArgInfo const & arginfo)
 			{
 				files_map_type files;
 				std::vector<std::string> const fileargs = getFileArgs();
@@ -96,7 +96,7 @@ namespace libmaus
 					std::string const fn = arginfo.getValue<std::string>(filearg,"-");
 					
 					if ( fn != "-" && files.find(fn) == files.end() )
-						files [ fn ] = libmaus::aio::PosixFdOutputStream::shared_ptr_type(new libmaus::aio::PosixFdOutputStream(fn));
+						files [ fn ] = libmaus2::aio::PosixFdOutputStream::shared_ptr_type(new libmaus2::aio::PosixFdOutputStream(fn));
 				}
 
 				return files;	
@@ -107,7 +107,7 @@ namespace libmaus
 			 **/
 			static gz_files_map_type openGzFiles(
 				files_map_type & files,
-				libmaus::util::ArgInfo const & arginfo,
+				libmaus2::util::ArgInfo const & arginfo,
 				uint64_t const split
 			)
 			{
@@ -126,10 +126,10 @@ namespace libmaus
 					if ( ! split )
 						for ( files_map_type::const_iterator ita = files.begin();
 							ita != files.end(); ++ita )
-							gzfiles[ita->first] = libmaus::lz::GzipOutputStream::shared_ptr_type(new libmaus::lz::GzipOutputStream(*(ita->second),getGzipBufferSize(),level));
+							gzfiles[ita->first] = libmaus2::lz::GzipOutputStream::shared_ptr_type(new libmaus2::lz::GzipOutputStream(*(ita->second),getGzipBufferSize(),level));
 						
 					if ( stdoutactive )
-						gzfiles["-"] = libmaus::lz::GzipOutputStream::shared_ptr_type(new libmaus::lz::GzipOutputStream(std::cout,getGzipBufferSize(),level));
+						gzfiles["-"] = libmaus2::lz::GzipOutputStream::shared_ptr_type(new libmaus2::lz::GzipOutputStream(std::cout,getGzipBufferSize(),level));
 				}
 				
 				return gzfiles;
@@ -138,7 +138,7 @@ namespace libmaus
 			/**
 			 * open split files
 			 **/
-			static split_files_map_type openSplitFiles(libmaus::util::ArgInfo const & arginfo, uint64_t const split)
+			static split_files_map_type openSplitFiles(libmaus2::util::ArgInfo const & arginfo, uint64_t const split)
 			{
 				assert ( split != 0 );
 			
@@ -154,8 +154,8 @@ namespace libmaus
 						std::string const fn = arginfo.getValue<std::string>(filearg,"-");
 						
 						if ( fn != "-" && splitfiles.find(fn) == splitfiles.end() )
-							splitfiles [ fn ] = libmaus::aio::LineSplittingPosixFdOutputStream::shared_ptr_type(
-								new libmaus::aio::LineSplittingPosixFdOutputStream(fn,mult*split));
+							splitfiles [ fn ] = libmaus2::aio::LineSplittingPosixFdOutputStream::shared_ptr_type(
+								new libmaus2::aio::LineSplittingPosixFdOutputStream(fn,mult*split));
 					}
 
 				return splitfiles;	
@@ -164,7 +164,7 @@ namespace libmaus
 			/**
 			 * open split gz files
 			 **/
-			static split_gz_files_map_type openSplitGzFiles(libmaus::util::ArgInfo const & arginfo, uint64_t const split)
+			static split_gz_files_map_type openSplitGzFiles(libmaus2::util::ArgInfo const & arginfo, uint64_t const split)
 			{
 				assert ( split != 0 );
 			
@@ -183,8 +183,8 @@ namespace libmaus
 						std::string const fn = arginfo.getValue<std::string>(filearg,"-");
 						
 						if ( fn != "-" && splitgzfiles.find(fn) == splitgzfiles.end() )
-							splitgzfiles [ fn ] = libmaus::lz::LineSplittingGzipOutputStream::shared_ptr_type(
-								new libmaus::lz::LineSplittingGzipOutputStream(fn,mult*split,64*1024,level));
+							splitgzfiles [ fn ] = libmaus2::lz::LineSplittingGzipOutputStream::shared_ptr_type(
+								new libmaus2::lz::LineSplittingGzipOutputStream(fn,mult*split,64*1024,level));
 					}
 				}
 
@@ -201,7 +201,7 @@ namespace libmaus
 			 * @return output stream 
 			 **/
 			static std::ostream & getFile(
-				libmaus::util::ArgInfo const & arginfo, 
+				libmaus2::util::ArgInfo const & arginfo, 
 				std::string const opt, 
 				files_map_type & files,
 				gz_files_map_type & gzfiles,
@@ -258,7 +258,7 @@ namespace libmaus
 			 *
 			 * @param arginfo arguments object
 			 **/
-			BamToFastqOutputFileSet(libmaus::util::ArgInfo const & arginfo)
+			BamToFastqOutputFileSet(libmaus2::util::ArgInfo const & arginfo)
 			: split(arginfo.getValueUnsignedNumeric("split",0)),
 			  files(split ? files_map_type() : openFiles(arginfo)), 
 			  gzfiles(openGzFiles(files,arginfo,split)),

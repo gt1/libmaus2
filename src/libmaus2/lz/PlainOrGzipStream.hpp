@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(PLAINORGZIPSTREAM_HPP)
 #define PLAINORGZIPSTREAM_HPP
 
-#include <libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp>
+#include <libmaus2/lz/PlainOrGzipStreamBufferWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct PlainOrGzipStream : PlainOrGzipStreamBufferWrapper, std::istream
 		{
 			typedef PlainOrGzipStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			PlainOrGzipStream(int const rfd, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
 			: PlainOrGzipStreamBufferWrapper(rfd,bufsize,pushbacksize), std::istream(PlainOrGzipStreamBufferWrapper::getStreamBuffer())

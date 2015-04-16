@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
 
-unsigned int ::libmaus::bitio::CompactArrayBase::globalBitsInFirstWord[4160];
-unsigned int ::libmaus::bitio::CompactArrayBase::globalFirstShift[4160];
-uint64_t libmaus::bitio::CompactArrayBase::globalFirstKeepMask[4160];
-uint64_t libmaus::bitio::CompactArrayBase::globalFirstValueKeepMask[4160];
-unsigned int ::libmaus::bitio::CompactArrayBase::globalLastShift[4160];
-uint64_t libmaus::bitio::CompactArrayBase::globalLastMask[4160];
-uint64_t libmaus::bitio::CompactArrayBase::globalGetFirstMask[4160];
-uint64_t libmaus::bitio::CompactArrayBase::globalvmask[65];
-bool ::libmaus::bitio::CompactArrayBase::globalinit = false;
+unsigned int ::libmaus2::bitio::CompactArrayBase::globalBitsInFirstWord[4160];
+unsigned int ::libmaus2::bitio::CompactArrayBase::globalFirstShift[4160];
+uint64_t libmaus2::bitio::CompactArrayBase::globalFirstKeepMask[4160];
+uint64_t libmaus2::bitio::CompactArrayBase::globalFirstValueKeepMask[4160];
+unsigned int ::libmaus2::bitio::CompactArrayBase::globalLastShift[4160];
+uint64_t libmaus2::bitio::CompactArrayBase::globalLastMask[4160];
+uint64_t libmaus2::bitio::CompactArrayBase::globalGetFirstMask[4160];
+uint64_t libmaus2::bitio::CompactArrayBase::globalvmask[65];
+bool ::libmaus2::bitio::CompactArrayBase::globalinit = false;

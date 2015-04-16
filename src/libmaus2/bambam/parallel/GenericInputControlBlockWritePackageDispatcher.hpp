@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlBlockWritePackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlBlockWritePackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct GenericInputControlBlockWritePackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputControlBlockWritePackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				GenericInputControlBlockWritePackageReturnInterface & packageReturnInterface;
 				GenericInputControlBlockWritePackageBlockWrittenInterface & blockWrittenInterface;
@@ -44,15 +44,15 @@ namespace libmaus
 					GenericInputControlBlockWritePackageBlockWrittenInterface & rblockWrittenInterface
 				) : packageReturnInterface(rpackageReturnInterface), blockWrittenInterface(rblockWrittenInterface) {}
 				
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlBlockWritePackage *>(P) != 0 );
 					GenericInputControlBlockWritePackage * BP = dynamic_cast<GenericInputControlBlockWritePackage *>(P);
 					
-					libmaus::bambam::parallel::GenericInputControlCompressionPending & G = BP->GICCP;
+					libmaus2::bambam::parallel::GenericInputControlCompressionPending & G = BP->GICCP;
 
-					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock = G.outblock;
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo = G.flushinfo;
+					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock = G.outblock;
+					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo = G.flushinfo;
 
 					char const * outp = reinterpret_cast<char const *>(outblock->outbuf.begin());
 					uint64_t n = 0;

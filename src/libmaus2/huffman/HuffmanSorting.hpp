@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,14 +21,14 @@
 #define HUFFMANSORTING_HPP
 
 #include <iostream>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/ReverseTable.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/huffman/huffman.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/ReverseTable.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/huffman/huffman.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -78,7 +78,7 @@ namespace libmaus
 				uint64_t decoded_symbols = 0;
 				uint64_t read_offset = offset;
 				unsigned int tableid = 0;
-				libmaus::uint::UInt<words> comp(static_cast<uint64_t>(bit));
+				libmaus2::uint::UInt<words> comp(static_cast<uint64_t>(bit));
 				
 				while ( decoded_symbols < length )
 				{
@@ -88,7 +88,7 @@ namespace libmaus
 					
 					for ( unsigned int i = 0; i < entry.symbols.size(); ++i )
 					{
-						::std::pair < libmaus::uint::UInt < words >, unsigned int > const & code = enctable[entry.symbols[i]];
+						::std::pair < libmaus2::uint::UInt < words >, unsigned int > const & code = enctable[entry.symbols[i]];
 						
 						if (
 							(code.first >> (code.second-1)) == comp
@@ -133,7 +133,7 @@ namespace libmaus
 					
 					for ( unsigned int i = 0; i < entry.symbols.size(); ++i )
 					{
-						::std::pair < libmaus::uint::UInt < words >, unsigned int > const & code = enctable[entry.symbols[i]];
+						::std::pair < libmaus2::uint::UInt < words >, unsigned int > const & code = enctable[entry.symbols[i]];
 						
 						decoded_bits += code.second;
 						decoded_symbols += 1;
@@ -433,7 +433,7 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::uint::UInt<lookupwords> comp = entry.compressed;
+						libmaus2::uint::UInt<lookupwords> comp = entry.compressed;
 						comp >>= (entry.bitswritten - entry.thresholds[n-decsyms-1]);
 						
 						comp.serialize(
@@ -606,9 +606,9 @@ namespace libmaus
 						// otherwise decode symbol
 						else
 						{
-							::std::pair < libmaus::uint::UInt < lookupwords >, unsigned int > const & code = enctable[entry.symbols[j]];
+							::std::pair < libmaus2::uint::UInt < lookupwords >, unsigned int > const & code = enctable[entry.symbols[j]];
 						
-							if ( (code.first >> (code.second-1)) == libmaus::uint::UInt<lookupwords>(1ull) )
+							if ( (code.first >> (code.second-1)) == libmaus2::uint::UInt<lookupwords>(1ull) )
 							{
 								msb++;
 								msb_decoded_bits += enctable[ entry.symbols[j] ].second;
@@ -732,11 +732,11 @@ namespace libmaus
 					
 							for ( uint64_t j = 0; j < entry.symbols.size() && localdecodedsymbols != decodable_data.first; ++j )
 							{
-								::std::pair < libmaus::uint::UInt < lookupwords >, unsigned int > const & code = 
+								::std::pair < libmaus2::uint::UInt < lookupwords >, unsigned int > const & code = 
 									enctable[entry.symbols[j]];
 						
 								// msb
-								if ( (code.first >> (code.second-1)) == libmaus::uint::UInt<lookupwords>(1ull) )
+								if ( (code.first >> (code.second-1)) == libmaus2::uint::UInt<lookupwords>(1ull) )
 								{
 									code.first.serialize(acode,mfreeoffset,code.second);
 									mfreeoffset += code.second;
@@ -894,7 +894,7 @@ namespace libmaus
 					for ( uint64_t i = symoffset; i < s.size(); ++i )
 					{
 						char const sym = s[i];
-						bool const msb = (enctable [ sym ].first >> (enctable [ sym ].second-1))!=libmaus::uint::UInt<lookupwords>(0);
+						bool const msb = (enctable [ sym ].first >> (enctable [ sym ].second-1))!=libmaus2::uint::UInt<lookupwords>(0);
 						SBPV.push_back ( SymBitPair ( msb, sym ) );
 					}
 					::std::stable_sort ( SBPV.begin(), SBPV.end() );
@@ -922,7 +922,7 @@ namespace libmaus
 				uint64_t const n = s.size();
 
 				// build tree
-				::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type root = huffman::HuffmanBase::createTree ( s.begin(), s.end() );
+				::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type root = huffman::HuffmanBase::createTree ( s.begin(), s.end() );
 				
 				if ( root->isLeaf() )
 					return;
@@ -935,7 +935,7 @@ namespace libmaus
 				// encode
 				uint64_t const codelength = enctable.getCodeLength(s.begin(),s.end());
 				uint64_t const arraylength = (codelength + 63)/64+1;
-				::libmaus::autoarray::AutoArray<uint64_t> acode(arraylength);
+				::libmaus2::autoarray::AutoArray<uint64_t> acode(arraylength);
 				bitio::FastWriteBitWriter8 fwbw8(acode.get());
 
 				for ( uint64_t i = 0; i < n; ++i )
@@ -960,7 +960,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					char const sym = s[i];
-					bool const msb = (enctable [ sym ].first >> (enctable [ sym ].second-1))!=libmaus::uint::UInt<lookupwords>(0);
+					bool const msb = (enctable [ sym ].first >> (enctable [ sym ].second-1))!=libmaus2::uint::UInt<lookupwords>(0);
 					SBPV.push_back ( SymBitPair ( msb, sym ) );
 				}
 				::std::stable_sort ( SBPV.begin(), SBPV.end() );
@@ -983,7 +983,7 @@ namespace libmaus
 				uint64_t const n = s.size();
 
 				// build tree
-				::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type root = huffman::HuffmanBase::createTree ( s.begin(), s.end() );
+				::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type root = huffman::HuffmanBase::createTree ( s.begin(), s.end() );
 				
 				if ( root->isLeaf() )
 					return;
@@ -1001,7 +1001,7 @@ namespace libmaus
 					// encode
 					uint64_t const codelength = enctable.getCodeLength(s.begin(),s.end());
 					uint64_t const arraylength = (codelength + 63)/64+1;
-					::libmaus::autoarray::AutoArray<uint64_t> acode(arraylength);
+					::libmaus2::autoarray::AutoArray<uint64_t> acode(arraylength);
 
 					uint64_t bitoffset = 0;
 					for ( uint64_t i = 0; i < z; ++i )
@@ -1018,7 +1018,7 @@ namespace libmaus
 				}
 				#endif
 
-				::libmaus::autoarray::AutoArray < uint64_t > acode = hufEncodeString(s.begin(),s.end(),root.get());
+				::libmaus2::autoarray::AutoArray < uint64_t > acode = hufEncodeString(s.begin(),s.end(),root.get());
 
 				huffmanSortRecursive(acode.get(), 0 /*offset*/, n, root.get());
 				hufRegressionTest(s,root.get(),acode.get());
@@ -1029,7 +1029,7 @@ namespace libmaus
 				uint64_t const n = s.size();
 
 				// build tree
-				::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type root = huffman::HuffmanBase::createTree ( s.begin(), s.end() );
+				::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type root = huffman::HuffmanBase::createTree ( s.begin(), s.end() );
 				
 				if ( root->isLeaf() )
 				{
@@ -1044,7 +1044,7 @@ namespace libmaus
 				// encode
 				uint64_t const codelength = enctable.getCodeLength(s.begin(),s.end());
 				uint64_t const arraylength = (codelength + 63)/64+1;
-				::libmaus::autoarray::AutoArray<uint64_t> acode(arraylength);
+				::libmaus2::autoarray::AutoArray<uint64_t> acode(arraylength);
 				bitio::FastWriteBitWriter8 fwbw8(acode.get());
 
 				for ( uint64_t i = 0; i < n; ++i )
@@ -1095,7 +1095,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						char const sym = s[i];
-						bool const msb = (enctable [ sym ].first >> (enctable [ sym ].second-1))!=libmaus::uint::UInt<lookupwords>(0);
+						bool const msb = (enctable [ sym ].first >> (enctable [ sym ].second-1))!=libmaus2::uint::UInt<lookupwords>(0);
 						SBPV.push_back ( SymBitPair ( msb, sym ) );
 					}
 					::std::stable_sort ( SBPV.begin(), SBPV.end() );

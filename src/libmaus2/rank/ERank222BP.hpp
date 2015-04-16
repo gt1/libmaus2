@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(ERANK222BP_HPP)
 #define ERANK222BP_HPP
 
-#include <libmaus/bitio/BitWriter.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <cassert>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -43,10 +43,10 @@ namespace libmaus
 		struct ERank222BP : public ERankBase
 		{
 			public:
-			typedef ::libmaus::bitio::BitWriter8 writer_type;
+			typedef ::libmaus2::bitio::BitWriter8 writer_type;
 
 			typedef ERank222BP this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			// super block size 2^16 bits
@@ -64,8 +64,8 @@ namespace libmaus
 			unsigned int const numsuper;
 			unsigned int const nummini;
 			
-			::libmaus::autoarray::AutoArray<unsigned int> S; // n / 2^16 * 32 bits = n / 2^11 = n/2048 bits
-			::libmaus::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
+			::libmaus2::autoarray::AutoArray<unsigned int> S; // n / 2^16 * 32 bits = n / 2^11 = n/2048 bits
+			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
 
 			static inline unsigned int divUp(unsigned int a, unsigned int b)
 			{
@@ -134,7 +134,7 @@ namespace libmaus
 			  S( divUp(n,sbsize) , false ), M( divUp(n,mbsize), false)
 			{
 				if ( n & mbmask )
-					throw ::std::runtime_error("::libmaus::rank::ERank222BP: n is not multiple of miniblock size 64.");
+					throw ::std::runtime_error("::libmaus2::rank::ERank222BP: n is not multiple of miniblock size 64.");
 			
 				unsigned int c = 0;
 

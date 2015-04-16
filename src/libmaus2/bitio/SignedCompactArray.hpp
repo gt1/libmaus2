@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(SIGNEDCOMPACTARRAY_HPP)
 #define SIGNEDCOMPACTARRAY_HPP
 
-#include <libmaus/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -32,13 +32,13 @@ namespace libmaus
 		{
 			typedef _base_type base_type;
 			typedef SignedCompactArrayTemplate<base_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef int64_t value_type;
 
-			typedef typename ::libmaus::util::AssignmentProxy<this_type,value_type> proxy_type;
-			typedef typename ::libmaus::util::AssignmentProxyIterator<this_type,value_type> iterator;
-			typedef typename ::libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+			typedef typename ::libmaus2::util::AssignmentProxy<this_type,value_type> proxy_type;
+			typedef typename ::libmaus2::util::AssignmentProxyIterator<this_type,value_type> iterator;
+			typedef typename ::libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
 			
 			const_iterator begin() const
 			{
@@ -62,7 +62,7 @@ namespace libmaus
 			static int64_t deserializeSignedNumber(std::istream & in, uint64_t & t)
 			{
 				int64_t n;
-				t += ::libmaus::serialize::Serialize<int64_t>::deserialize(in, &n);
+				t += ::libmaus2::serialize::Serialize<int64_t>::deserialize(in, &n);
 				return n;
 			}
 			static int64_t deserializeSignedNumber(std::istream & in)
@@ -75,7 +75,7 @@ namespace libmaus
 			{
 				uint64_t t = 0;
 				t += base_type::serialize(out);
-				t += ::libmaus::serialize::Serialize<int64_t>::serialize(out, nshift);
+				t += ::libmaus2::serialize::Serialize<int64_t>::serialize(out, nshift);
 				return t;
 			}
 

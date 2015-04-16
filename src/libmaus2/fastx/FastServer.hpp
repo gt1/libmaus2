@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,30 +20,30 @@
 #if ! defined(FASTSERVER_HPP)
 #define FASTSERVER_HPP
 
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/aio/FileFragment.hpp>
-#include <libmaus/aio/ReorderConcatGenericInput.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/aio/FileFragment.hpp>
+#include <libmaus2/aio/ReorderConcatGenericInput.hpp>
 #include <iostream>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <csignal>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace fastx
         {
                 struct FastServer
                 {
                         typedef FastServer this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                        typedef ::libmaus::network::ServerSocket server_socket_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::network::ServerSocket server_socket_type;
                         typedef server_socket_type::unique_ptr_type server_socket_ptr_type;
 
                         std::vector<std::string> filenames;
-                        std::vector< ::libmaus::aio::FileFragment > fragments;
-                        std::vector< ::libmaus::fastx::FastInterval > intervals;
+                        std::vector< ::libmaus2::aio::FileFragment > fragments;
+                        std::vector< ::libmaus2::fastx::FastInterval > intervals;
                         pid_t pid;
                         unsigned short port;
                         server_socket_ptr_type seso;
@@ -62,17 +62,17 @@ namespace libmaus
                         	// std::cerr << "sigchld for id " << pid << std::endl;
                         }
                         
-                        static std::vector < ::libmaus::aio::FileFragment > getFragments(std::vector < std::string > const & filenames)
+                        static std::vector < ::libmaus2::aio::FileFragment > getFragments(std::vector < std::string > const & filenames)
                         {
-                                std::vector < ::libmaus::aio::FileFragment > fragments;
+                                std::vector < ::libmaus2::aio::FileFragment > fragments;
                                 for ( uint64_t i = 0; i < filenames.size(); ++i )
-                                        fragments.push_back(::libmaus::aio::FileFragment(filenames[i],0,::libmaus::util::GetFileSize::getFileSize(filenames[i])));
+                                        fragments.push_back(::libmaus2::aio::FileFragment(filenames[i],0,::libmaus2::util::GetFileSize::getFileSize(filenames[i])));
                                 return fragments;
                         }
                         
                         FastServer(
                                 std::vector<std::string> const & rfilenames,
-                                std::vector< ::libmaus::fastx::FastInterval > const & rintervals,
+                                std::vector< ::libmaus2::fastx::FastInterval > const & rintervals,
                                 std::string const & shostname,
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
@@ -83,8 +83,8 @@ namespace libmaus
                         }
 
                         FastServer(
-                                std::vector< ::libmaus::aio::FileFragment > const & rfragments,
-                                std::vector< ::libmaus::fastx::FastInterval > const & rintervals,
+                                std::vector< ::libmaus2::aio::FileFragment > const & rfragments,
+                                std::vector< ::libmaus2::fastx::FastInterval > const & rintervals,
                                 std::string const & shostname,
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
@@ -112,7 +112,7 @@ namespace libmaus
                                 
                                 if ( pid < 0 )
                                 {
-                                        ::libmaus::exception::LibMausException ex;
+                                        ::libmaus2::exception::LibMausException ex;
                                         ex.getStream() << "failed to fork: " << strerror(errno);
                                         ex.finish();
                                         throw ex;
@@ -127,7 +127,7 @@ namespace libmaus
                                         {
                                                 try
                                                 {
-	                                                ::libmaus::network::SocketBase::unique_ptr_type recsock = seso->accept();
+	                                                ::libmaus2::network::SocketBase::unique_ptr_type recsock = seso->accept();
 	                                                
                                                         pid_t childpid = fork();
                                                         
@@ -135,7 +135,7 @@ namespace libmaus
                                                         {
                                                                 try
                                                                 {
-                                                                        libmaus::fastx::FastInterval FI;
+                                                                        libmaus2::fastx::FastInterval FI;
                                                                         
                                                                         if ( (!intervalserver) )
                                                                         {
@@ -152,7 +152,7 @@ namespace libmaus
 									}
 									else
 									{
-										FI = libmaus::fastx::FastInterval::deserialise(recsock->readString());
+										FI = libmaus2::fastx::FastInterval::deserialise(recsock->readString());
 									}
                                                                                 
 									uint64_t const flow = FI.fileoffset;
@@ -160,12 +160,12 @@ namespace libmaus
 									uint64_t const flen = fhigh-flow;
 									uint64_t todo = flen;
 
-									::libmaus::aio::ReorderConcatGenericInput<char> SFRB(
+									::libmaus2::aio::ReorderConcatGenericInput<char> SFRB(
 										fragments,16*1024,fhigh-flow,flow
 									);
 
 									uint64_t const blocksize = 16*1024;
-									::libmaus::autoarray::AutoArray<char> B(blocksize,false);
+									::libmaus2::autoarray::AutoArray<char> B(blocksize,false);
 
 									while ( todo )
 									{

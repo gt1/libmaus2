@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_BWTMERGETEMPFILENAMESETVECTOR_HPP)
 #define LIBMAUS_SUFFIXSORT_BWTMERGETEMPFILENAMESETVECTOR_HPP
 
-#include <libmaus/suffixsort/BwtMergeTempFileNameSet.hpp>
+#include <libmaus2/suffixsort/BwtMergeTempFileNameSet.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		struct BwtMergeTempFileNameSetVector
 		{
 			private:
-			std::vector < ::libmaus::suffixsort::BwtMergeTempFileNameSet > V;
+			std::vector < ::libmaus2::suffixsort::BwtMergeTempFileNameSet > V;
 			
 			public:
 			BwtMergeTempFileNameSetVector(std::string const & tmpfilenamebase, uint64_t const num, uint64_t const numbwt, uint64_t const numgt)
 			: V(num)
 			{
 				for ( uint64_t i = 0; i < num; ++i )
-					V[i] = ::libmaus::suffixsort::BwtMergeTempFileNameSet(tmpfilenamebase,i,numbwt,numgt);
+					V[i] = ::libmaus2::suffixsort::BwtMergeTempFileNameSet(tmpfilenamebase,i,numbwt,numgt);
 			}
 			
-			::libmaus::suffixsort::BwtMergeTempFileNameSet const & operator[](size_t i) const
+			::libmaus2::suffixsort::BwtMergeTempFileNameSet const & operator[](size_t i) const
 			{
 				return V[i];
 			}

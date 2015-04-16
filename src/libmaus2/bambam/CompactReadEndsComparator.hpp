@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_COMPACTREADENDSCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_COMPACTREADENDSCOMPARATOR_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bambam/CompactReadEndsBase.hpp>
-#include <libmaus/rank/ERankBase.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/bambam/CompactReadEndsBase.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		/**
 		 * comparator class for ReadEnds objects in compact representation
 		 **/
-		struct CompactReadEndsComparator : public ::libmaus::bambam::CompactReadEndsBase
+		struct CompactReadEndsComparator : public ::libmaus2::bambam::CompactReadEndsBase
 		{
 			//! data block pointer
 			uint8_t const * D;
@@ -64,7 +64,7 @@ namespace libmaus
 			)
 			{
 				#if defined(LIBMAUS_HAVE_x86_64)
-				libmaus::timing::RealTimeClock rtc; rtc.start();
+				libmaus2::timing::RealTimeClock rtc; rtc.start();
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					uint32_t const lena = decodeLength(pa);
@@ -74,7 +74,7 @@ namespace libmaus
 					uint64_t * wa = reinterpret_cast<uint64_t *>(pa);
 					uint64_t * we = wa + awords;
 					for ( ; wa != we; ++wa )
-						*wa = libmaus::rank::BSwapBase::bswap8(*wa);
+						*wa = libmaus2::rank::BSwapBase::bswap8(*wa);
 						
 					pa = reinterpret_cast<uint8_t *>(wa);
 					pa += resta;

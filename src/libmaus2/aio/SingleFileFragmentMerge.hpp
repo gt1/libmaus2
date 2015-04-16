@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(LIBMAUS_AIO_SINGLEFILEFRAGMENTMERGE_HPP)
 #define LIBMAUS_AIO_SINGLEFILEFRAGMENTMERGE_HPP
 
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <queue>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -58,7 +58,7 @@ namespace libmaus
 
 
 			std::string const & fn;
-			libmaus::aio::CheckedInputStream CIS;
+			libmaus2::aio::CheckedInputStream CIS;
 			std::vector< std::pair<uint64_t,uint64_t> > frags;
 			
 			std::priority_queue<
@@ -111,8 +111,8 @@ namespace libmaus
 			)
 			{
 				this_type BCM(infn,frags);
-				libmaus::util::TempFileRemovalContainer::addTempFile(infn + ".tmp");
-				libmaus::aio::CheckedOutputStream COS(infn + ".tmp");
+				libmaus2::util::TempFileRemovalContainer::addTempFile(infn + ".tmp");
+				libmaus2::aio::CheckedOutputStream COS(infn + ".tmp");
 				element_type BC;
 				while ( BCM.getNext(BC) )
 					COS.write(reinterpret_cast<char const *>(&BC),sizeof(element_type));

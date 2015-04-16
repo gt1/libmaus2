@@ -1,6 +1,6 @@
 
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,8 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/graph/TopologicalSorting.hpp>
-#include <libmaus/graph/IdentityTargetProjector.hpp>
+#include <libmaus2/graph/TopologicalSorting.hpp>
+#include <libmaus2/graph/IdentityTargetProjector.hpp>
 
 #include <iostream>
 
@@ -35,7 +35,7 @@ void testTopologicalSorting(std::map< uint64_t,std::vector<uint64_t> > const & e
 	
 	std::cout << "}\n";
 
-	std::pair<bool,std::map<uint64_t,uint64_t> > TS = libmaus::graph::TopologicalSorting::topologicalSorting<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+	std::pair<bool,std::map<uint64_t,uint64_t> > TS = libmaus2::graph::TopologicalSorting::topologicalSorting<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
 	
 	if ( TS.first )
 	{

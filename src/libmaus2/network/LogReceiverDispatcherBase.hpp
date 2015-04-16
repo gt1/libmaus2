@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_NETWORK_LOGRECEIVERDISPATCHERBASE_HPP)
 #define LIBMAUS_NETWORK_LOGRECEIVERDISPATCHERBASE_HPP
 
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/util/LogPipeMultiplexGeneric.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/MemLimit.hpp>
-#include <libmaus/util/WriteableString.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/util/LogPipeMultiplexGeneric.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/MemLimit.hpp>
+#include <libmaus2/util/WriteableString.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct DispatchCallback
 		{
-			virtual int operator()(::libmaus::util::ArgInfo const &, int const) = 0;
+			virtual int operator()(::libmaus2::util::ArgInfo const &, int const) = 0;
 			virtual ~DispatchCallback() {}
 		};
 			
 		struct StringRecDispatchCallback : public DispatchCallback
 		{
-			int operator()(::libmaus::util::ArgInfo const &, int const fd)
+			int operator()(::libmaus2::util::ArgInfo const &, int const fd)
 			{
-				::libmaus::network::SocketBase controlsock(fd);
+				::libmaus2::network::SocketBase controlsock(fd);
 				std::string remmes = controlsock.readString();					
 				std::cout << remmes << std::endl;
 				return 0;
@@ -48,13 +48,13 @@ namespace libmaus
 		
 		struct LsfDispatchCallback : public DispatchCallback
 		{
-			int operator()(::libmaus::util::ArgInfo const & arginfo, int const fd)
+			int operator()(::libmaus2::util::ArgInfo const & arginfo, int const fd)
 			{
 				uint64_t const mem = arginfo.getValue<uint64_t>("mem",2000);
 				bool const valgrind = arginfo.getValue<uint64_t>("valgrind",0);
 				std::string cmd = arginfo.getValue<std::string>("cmd","/bin/nonexistent");
 				
-				::libmaus::util::MemLimit::setLimits(mem*1000*1000);
+				::libmaus2::util::MemLimit::setLimits(mem*1000*1000);
 				int const ulimitr = system("ulimit -a 1>&2");
 				
 				if ( ulimitr != 0 )
@@ -84,10 +84,10 @@ namespace libmaus
                                 memostr << "mem=" << mem;
                                 args.push_back(memostr.str());
 				
-				typedef ::libmaus::util::WriteableString string_type;
+				typedef ::libmaus2::util::WriteableString string_type;
 				typedef string_type::unique_ptr_type string_ptr_type;
-				::libmaus::autoarray::AutoArray< string_ptr_type > wargv(args.size());
-				::libmaus::autoarray::AutoArray< char * > aargv(args.size()+1);
+				::libmaus2::autoarray::AutoArray< string_ptr_type > wargv(args.size());
+				::libmaus2::autoarray::AutoArray< char * > aargv(args.size()+1);
 					
 				for ( uint64_t i = 0; i < args.size(); ++i )
 				{
@@ -114,7 +114,7 @@ namespace libmaus
 			{
 				try
 				{
-					::libmaus::util::ArgInfo const arginfo(argc,argv);
+					::libmaus2::util::ArgInfo const arginfo(argc,argv);
 					return dispatch(arginfo,dc);
 				}
 				catch(std::exception const & ex)
@@ -125,7 +125,7 @@ namespace libmaus
 			}
 		
 			static int dispatch(
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				DispatchCallback * dc
 			)
 			{
@@ -146,7 +146,7 @@ namespace libmaus
 			}
 		
 			static int dispatch(
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::string const & sid,
 				std::string const & loghostname,
 				unsigned short const port,
@@ -156,11 +156,11 @@ namespace libmaus
 			{
 				try
 				{
-					::libmaus::util::LogPipeMultiplexGeneric LPMG(loghostname,port,sid,id);
+					::libmaus2::util::LogPipeMultiplexGeneric LPMG(loghostname,port,sid,id);
 					
 					// connect
-					::libmaus::network::ClientSocket::unique_ptr_type controlsock(
-								new ::libmaus::network::ClientSocket(
+					::libmaus2::network::ClientSocket::unique_ptr_type controlsock(
+								new ::libmaus2::network::ClientSocket(
 									port,loghostname.c_str()
 								)
 						);
@@ -172,7 +172,7 @@ namespace libmaus
 					// connection type
 					controlsock->writeString("control");
 					// send host name
-					controlsock->writeString(::libmaus::network::GetHostName::getHostName());
+					controlsock->writeString(::libmaus2::network::GetHostName::getHostName());
 
 					if ( dc )
 					{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEBASE_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEBASE_HPP
 
-#include <libmaus/lz/BgzfDeflateZStreamBase.hpp>
+#include <libmaus2/lz/BgzfDeflateZStreamBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 			public BgzfDeflateInputBufferBase
 		{
 			typedef BgzfDeflateBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			/* flush mode: 
 			   - true: completely empty buffer when it runs full, write more than

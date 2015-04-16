@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASECOLLECTION_HPP)
 #define LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASECOLLECTION_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/CompactReadEndsBase.hpp>
-#include <libmaus/bambam/CompactReadEndsComparator.hpp>
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/bambam/ReadEndsBlockDecoderBase.hpp>
-#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp>
-#include <libmaus/bambam/ReadEndsContainerBase.hpp>
-#include <libmaus/bambam/ReadEndsHeapPairComparator.hpp>
-#include <libmaus/bambam/SortedFragDecoder.hpp>
-#include <libmaus/index/ExternalMemoryIndexGenerator.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
-#include <libmaus/sorting/SerialRadixSort64.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/util/DigitTable.hpp>
-#include <libmaus/util/CountGetObject.hpp>
-#include <libmaus/util/UnsignedIntegerIndexIterator.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/CompactReadEndsBase.hpp>
+#include <libmaus2/bambam/CompactReadEndsComparator.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEndsBlockDecoderBase.hpp>
+#include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp>
+#include <libmaus2/bambam/ReadEndsContainerBase.hpp>
+#include <libmaus2/bambam/ReadEndsHeapPairComparator.hpp>
+#include <libmaus2/bambam/SortedFragDecoder.hpp>
+#include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
+#include <libmaus2/sorting/SerialRadixSort64.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/util/DigitTable.hpp>
+#include <libmaus2/util/CountGetObject.hpp>
+#include <libmaus2/util/UnsignedIntegerIndexIterator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -46,8 +46,8 @@ namespace libmaus
 		{
 			static bool const proxy = _proxy;
 			typedef ReadEndsBlockDecoderBaseCollection<proxy> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			struct ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor
 			{
@@ -55,7 +55,7 @@ namespace libmaus
 				
 				ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor(ReadEndsBlockDecoderBaseCollection<proxy> * robject = 0) : object(robject) {}
 				
-				uint64_t get(libmaus::bambam::ReadEndsBase::hash_value_type const & H) const
+				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
 					return object->countSmallerThanShort(H);
 				}
@@ -67,7 +67,7 @@ namespace libmaus
 				
 				ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor(ReadEndsBlockDecoderBaseCollection<proxy> * robject = 0) : object(robject) {}
 				
-				uint64_t get(libmaus::bambam::ReadEndsBase::hash_value_type const & H) const
+				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
 					return object->countSmallerThanLong(H);
 				}
@@ -76,7 +76,7 @@ namespace libmaus
 			std::vector<ReadEndsBlockDecoderBaseCollectionInfo> info;
 			uint64_t const numblocks;
 			
-			libmaus::autoarray::AutoArray< typename ::libmaus::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type> Adecoders;
+			libmaus2::autoarray::AutoArray< typename ::libmaus2::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type> Adecoders;
 			
 			ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor const countShortAccessor;
 			ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor const countLongAccessor;
@@ -120,8 +120,8 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < subinfo.indexoffset.size(); ++i )
 					{
-						typename libmaus::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type tptr(
-							new libmaus::bambam::ReadEndsBlockDecoderBase<proxy>(
+						typename libmaus2::bambam::ReadEndsBlockDecoderBase<proxy>::unique_ptr_type tptr(
+							new libmaus2::bambam::ReadEndsBlockDecoderBase<proxy>(
 								subinfo,
 								subinfo,
 								*(subinfo.datastr),
@@ -149,7 +149,7 @@ namespace libmaus
 				return numblocks;
 			}
 			
-			::libmaus::bambam::ReadEndsBlockDecoderBase<proxy> const * getBlock(uint64_t const i) const
+			::libmaus2::bambam::ReadEndsBlockDecoderBase<proxy> const * getBlock(uint64_t const i) const
 			{
 				return Adecoders[i].get();
 			}
@@ -187,38 +187,38 @@ namespace libmaus
 				return sum;
 			}
 			
-			uint64_t countSmallerThanShort(libmaus::bambam::ReadEndsBase::hash_value_type const & H) const
+			uint64_t countSmallerThanShort(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 			{
 				ReadEndsBase B;
 				B.decodeShortHash(H);
 				return countSmallerThanShort(B);
 			}
 
-			uint64_t countSmallerThanLong(libmaus::bambam::ReadEndsBase::hash_value_type const & H) const
+			uint64_t countSmallerThanLong(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 			{
 				ReadEndsBase B;
 				B.decodeLongHash(H);
 				return countSmallerThanLong(B);
 			}
 			
-			static libmaus::bambam::ReadEndsBase::hash_value_type hashLowerBound()
+			static libmaus2::bambam::ReadEndsBase::hash_value_type hashLowerBound()
 			{
-				return libmaus::bambam::ReadEndsBase::hash_value_type(0);
+				return libmaus2::bambam::ReadEndsBase::hash_value_type(0);
 			}
 			
-			libmaus::bambam::ReadEndsBase::hash_value_type hashUpperBoundShort() const
+			libmaus2::bambam::ReadEndsBase::hash_value_type hashUpperBoundShort() const
 			{
-				return max().encodeShortHash() + libmaus::bambam::ReadEndsBase::hash_value_type(1);
+				return max().encodeShortHash() + libmaus2::bambam::ReadEndsBase::hash_value_type(1);
 			}
 
-			libmaus::bambam::ReadEndsBase::hash_value_type hashUpperBoundLong() const
+			libmaus2::bambam::ReadEndsBase::hash_value_type hashUpperBoundLong() const
 			{
-				return max().encodeLongHash() + libmaus::bambam::ReadEndsBase::hash_value_type(1);
+				return max().encodeLongHash() + libmaus2::bambam::ReadEndsBase::hash_value_type(1);
 			}
 
-			typedef libmaus::util::UnsignedIntegerIndexIterator<ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor,uint64_t,libmaus::bambam::ReadEndsBase::hash_value_words>
+			typedef libmaus2::util::UnsignedIntegerIndexIterator<ReadEndsBlockDecoderBaseCollectionCountSmallerShortAccessor,uint64_t,libmaus2::bambam::ReadEndsBase::hash_value_words>
 				outer_short_iterator;
-			typedef libmaus::util::UnsignedIntegerIndexIterator<ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor,uint64_t,libmaus::bambam::ReadEndsBase::hash_value_words>
+			typedef libmaus2::util::UnsignedIntegerIndexIterator<ReadEndsBlockDecoderBaseCollectionCountSmallerLongAccessor,uint64_t,libmaus2::bambam::ReadEndsBase::hash_value_words>
 				outer_long_iterator;
 				
 			outer_short_iterator outerShortBegin() const
@@ -246,12 +246,12 @@ namespace libmaus
 				std::vector < std::vector< std::pair<uint64_t,uint64_t> > > R(numthreads,std::vector< std::pair<uint64_t,uint64_t> >(size()));
 				uint64_t const totalentries = totalEntries();
 				uint64_t const targetfrac = totalentries/numthreads;
-				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
+				std::vector< ::libmaus2::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
 
 				for ( uint64_t i = 0; i < numthreads; ++i )
 				{
 					splitPoints[i] = std::lower_bound(outerShortBegin(),outerShortEnd(),i * targetfrac).i;
-					::libmaus::bambam::ReadEnds RA;
+					::libmaus2::bambam::ReadEnds RA;
 					RA.decodeShortHash(splitPoints[i]);
 					
 					for ( uint64_t j = 0; j < size(); ++j )
@@ -270,8 +270,8 @@ namespace libmaus
 				{
 					for ( uint64_t i = 0; (i+1) < numthreads; ++i )
 					{
-						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
-						::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
 						
 						for ( uint64_t j = 0; j < size(); ++j )
 						{
@@ -287,7 +287,7 @@ namespace libmaus
 					
 					if ( numthreads )
 					{					
-						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
 						for ( uint64_t j = 0; j < size(); ++j )
 						{
@@ -326,15 +326,15 @@ namespace libmaus
 				return s;
 			}
 
-			typedef libmaus::index::ExternalMemoryIndexDecoder<
-				libmaus::bambam::ReadEndsBase,
-				libmaus::bambam::ReadEndsContainerBase::baseIndexShift,
-				libmaus::bambam::ReadEndsContainerBase::innerIndexShift,
-				libmaus::bambam::ReadEndsBaseShortHashAttributeComparator
+			typedef libmaus2::index::ExternalMemoryIndexDecoder<
+				libmaus2::bambam::ReadEndsBase,
+				libmaus2::bambam::ReadEndsContainerBase::baseIndexShift,
+				libmaus2::bambam::ReadEndsContainerBase::innerIndexShift,
+				libmaus2::bambam::ReadEndsBaseShortHashAttributeComparator
 			> short_index_decoder_type;
 			typedef short_index_decoder_type::unique_ptr_type short_index_decoder_pointer_type;
 
-			static uint64_t getTotalShortBlocks(libmaus::autoarray::AutoArray<short_index_decoder_pointer_type> const & A)
+			static uint64_t getTotalShortBlocks(libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> const & A)
 			{
 				uint64_t s = 0;
 				for ( uint64_t i = 0; i < A.size(); ++i )
@@ -345,21 +345,21 @@ namespace libmaus
 			struct ExternalMemoryIndexDecoderShortCountAccessor
 			{
 				typedef ExternalMemoryIndexDecoderShortCountAccessor this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
-				libmaus::autoarray::AutoArray<short_index_decoder_pointer_type> & Pdecoders;
+				libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> & Pdecoders;
 				
 				ExternalMemoryIndexDecoderShortCountAccessor(
-					libmaus::autoarray::AutoArray<short_index_decoder_pointer_type> & Rdecoders
+					libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> & Rdecoders
 				) : Pdecoders(Rdecoders) {}
 				
 				/**
 				 * get maximum block start element
 				 **/
-				libmaus::bambam::ReadEndsBase max()
+				libmaus2::bambam::ReadEndsBase max()
 				{
-					libmaus::bambam::ReadEndsBase R;
+					libmaus2::bambam::ReadEndsBase R;
 					R.reset();
 					
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
@@ -372,9 +372,9 @@ namespace libmaus
 					return R;
 				}
 				
-				uint64_t get(libmaus::bambam::ReadEndsBase::hash_value_type const & H) const
+				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
-					libmaus::bambam::ReadEndsBase R;
+					libmaus2::bambam::ReadEndsBase R;
 					R.decodeShortHash(H);
 					
 					uint64_t c = 0;
@@ -385,7 +385,7 @@ namespace libmaus
 				}
 			};
 
-			typedef libmaus::util::UnsignedIntegerIndexIterator<ExternalMemoryIndexDecoderShortCountAccessor,uint64_t,libmaus::bambam::ReadEndsBase::hash_value_words>
+			typedef libmaus2::util::UnsignedIntegerIndexIterator<ExternalMemoryIndexDecoderShortCountAccessor,uint64_t,libmaus2::bambam::ReadEndsBase::hash_value_words>
 				short_index_iterator;
 
 			static short_index_iterator indexShortBegin(ExternalMemoryIndexDecoderShortCountAccessor & raccessor)
@@ -395,7 +395,7 @@ namespace libmaus
 
 			static short_index_iterator indexShortEnd  (ExternalMemoryIndexDecoderShortCountAccessor & raccessor)
 			{
-				return short_index_iterator(&raccessor,raccessor.max().encodeShortHash()+libmaus::bambam::ReadEndsBase::hash_value_type(1));
+				return short_index_iterator(&raccessor,raccessor.max().encodeShortHash()+libmaus2::bambam::ReadEndsBase::hash_value_type(1));
 			}
 
 			struct UVal
@@ -413,7 +413,7 @@ namespace libmaus
 			)
 			{
 				#if defined(READENDSBLOCKTIMING)
-				libmaus::timing::RealTimeClock decodersetuprtc; 
+				libmaus2::timing::RealTimeClock decodersetuprtc; 
 				#endif
 				uint64_t const memory = 256ull*1024ull*1024ull;
 				uint64_t const numblocks = computeNumBlocks(rinfo);
@@ -425,9 +425,9 @@ namespace libmaus
 				for ( uint64_t i = 1; i < rinfo.size(); ++i )
 					O[i] = O[i-1] + rinfo[i-1].indexoffset.size();
 				
-				libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Pindexstreams(rinfo.size());
-				libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Pdatastreams(rinfo.size());
-				libmaus::autoarray::AutoArray<short_index_decoder_pointer_type> Pdecoders(numblocks);
+				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pindexstreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pdatastreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> Pdecoders(numblocks);
 				
 				// open index and data streams	
 				#if defined(READENDSBLOCKTIMING)
@@ -438,9 +438,9 @@ namespace libmaus
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
-					libmaus::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus::aio::PosixFdInputStream(rinfo[i].indexfilename));
+					libmaus2::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].indexfilename));
 					Pindexstreams[i] = UNIQUE_PTR_MOVE(tptr);
-					libmaus::aio::PosixFdInputStream::unique_ptr_type iptr(new libmaus::aio::PosixFdInputStream(rinfo[i].datafilename));
+					libmaus2::aio::PosixFdInputStream::unique_ptr_type iptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].datafilename));
 					Pdatastreams[i] = UNIQUE_PTR_MOVE(iptr);
 				}
 				#if defined(READENDSBLOCKTIMING)
@@ -480,8 +480,8 @@ namespace libmaus
 				#endif
 				// cache only accessor
 				ExternalMemoryIndexDecoderShortCountAccessor accessor(Pdecoders);
-				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
-				libmaus::bambam::ReadEndsBaseShortHashAttributeComparator comp;
+				std::vector< ::libmaus2::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
+				libmaus2::bambam::ReadEndsBaseShortHashAttributeComparator comp;
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads)
 				#endif
@@ -493,7 +493,7 @@ namespace libmaus
 					splitPoints[i] = itc.i;
 
 					#if 0
-					libmaus::bambam::ReadEnds H;
+					libmaus2::bambam::ReadEnds H;
 					H.decodeShortHash(splitPoints[i]);
 					std::cerr 
 						<< "split point " 
@@ -507,7 +507,7 @@ namespace libmaus
 				for ( uint64_t i = 1; i < splitPoints.size(); ++i )
 					assert ( splitPoints[i-1] <= splitPoints[i] );
 								
-				libmaus::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
+				libmaus2::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
 				std::fill(RR.begin(),RR.end(),UVal(std::numeric_limits<uint64_t>::max()));
 
 				// compute split points
@@ -525,22 +525,22 @@ namespace libmaus
 						// part of block of file on disk
 						for ( uint64_t i = 0; i < numthreads; ++i )
 						{						
-							libmaus::bambam::ReadEnds H;
+							libmaus2::bambam::ReadEnds H;
 							H.decodeShortHash(splitPoints[i]);
 														
-							libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus::bambam::ReadEndsBase> const
+							libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus2::bambam::ReadEndsBase> const
 								FLS = Pdecoders[O[f] + k]->findLargestSmaller(H,false /* cache only */);
 								
-							uint64_t o = FLS.blockid << libmaus::bambam::ReadEndsContainerBase::baseIndexShift;
+							uint64_t o = FLS.blockid << libmaus2::bambam::ReadEndsContainerBase::baseIndexShift;
 							Pdatastreams[f]->clear();
 							Pdatastreams[f]->seekg(FLS.P.first);
-							libmaus::lz::SnappyInputStream SIS(*(Pdatastreams[f]));
+							libmaus2::lz::SnappyInputStream SIS(*(Pdatastreams[f]));
 							SIS.ignore(FLS.P.second);
-							libmaus::bambam::ReadEnds T;
+							libmaus2::bambam::ReadEnds T;
 							uint64_t const blockelcnt = rinfo[f].blockelcnt[k];
 							
 							bool first = true;
-							libmaus::bambam::ReadEndsBase prev;
+							libmaus2::bambam::ReadEndsBase prev;
 
 							while ( o < blockelcnt )
 							{
@@ -641,7 +641,7 @@ namespace libmaus
 					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > VR(numthreads,std::vector< std::pair<uint64_t,uint64_t> >(0));
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
-						::libmaus::bambam::ReadEnds RA;
+						::libmaus2::bambam::ReadEnds RA;
 						RA.decodeShortHash(splitPoints[i]);
 						
 						for ( uint64_t j = 0; j < col.size(); ++j )
@@ -685,8 +685,8 @@ namespace libmaus
 					{
 						this_type col(rinfo);
 
-						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
-						::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
 						
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
@@ -704,7 +704,7 @@ namespace libmaus
 					{					
 						this_type col(rinfo);
 						
-						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
@@ -773,15 +773,15 @@ namespace libmaus
 				return R;
 			}
 
-			typedef libmaus::index::ExternalMemoryIndexDecoder<
-				libmaus::bambam::ReadEndsBase,
-				libmaus::bambam::ReadEndsContainerBase::baseIndexShift,
-				libmaus::bambam::ReadEndsContainerBase::innerIndexShift,
-				libmaus::bambam::ReadEndsBaseLongHashAttributeComparator
+			typedef libmaus2::index::ExternalMemoryIndexDecoder<
+				libmaus2::bambam::ReadEndsBase,
+				libmaus2::bambam::ReadEndsContainerBase::baseIndexShift,
+				libmaus2::bambam::ReadEndsContainerBase::innerIndexShift,
+				libmaus2::bambam::ReadEndsBaseLongHashAttributeComparator
 			> long_index_decoder_type;
 			typedef long_index_decoder_type::unique_ptr_type long_index_decoder_pointer_type;
 			
-			static uint64_t getTotalLongBlocks(libmaus::autoarray::AutoArray<long_index_decoder_pointer_type> const & A)
+			static uint64_t getTotalLongBlocks(libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> const & A)
 			{
 				uint64_t s = 0;
 				for ( uint64_t i = 0; i < A.size(); ++i )
@@ -792,21 +792,21 @@ namespace libmaus
 			struct ExternalMemoryIndexDecoderLongCountAccessor
 			{
 				typedef ExternalMemoryIndexDecoderLongCountAccessor this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
-				libmaus::autoarray::AutoArray<long_index_decoder_pointer_type> & Pdecoders;
+				libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> & Pdecoders;
 				
 				ExternalMemoryIndexDecoderLongCountAccessor(
-					libmaus::autoarray::AutoArray<long_index_decoder_pointer_type> & Rdecoders
+					libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> & Rdecoders
 				) : Pdecoders(Rdecoders) {}
 				
 				/**
 				 * get maximum block start element
 				 **/
-				libmaus::bambam::ReadEndsBase max()
+				libmaus2::bambam::ReadEndsBase max()
 				{
-					libmaus::bambam::ReadEndsBase R;
+					libmaus2::bambam::ReadEndsBase R;
 					R.reset();
 					
 					for ( uint64_t i = 0; i < Pdecoders.size(); ++i )
@@ -819,9 +819,9 @@ namespace libmaus
 					return R;
 				}
 				
-				uint64_t get(libmaus::bambam::ReadEndsBase::hash_value_type const & H) const
+				uint64_t get(libmaus2::bambam::ReadEndsBase::hash_value_type const & H) const
 				{
-					libmaus::bambam::ReadEndsBase R;
+					libmaus2::bambam::ReadEndsBase R;
 					R.decodeLongHash(H);
 					
 					uint64_t c = 0;
@@ -834,7 +834,7 @@ namespace libmaus
 				}
 			};
 
-			typedef libmaus::util::UnsignedIntegerIndexIterator<ExternalMemoryIndexDecoderLongCountAccessor,uint64_t,libmaus::bambam::ReadEndsBase::hash_value_words>
+			typedef libmaus2::util::UnsignedIntegerIndexIterator<ExternalMemoryIndexDecoderLongCountAccessor,uint64_t,libmaus2::bambam::ReadEndsBase::hash_value_words>
 				long_index_iterator;
 
 			static long_index_iterator indexLongBegin(ExternalMemoryIndexDecoderLongCountAccessor & raccessor)
@@ -844,7 +844,7 @@ namespace libmaus
 
 			static long_index_iterator indexLongEnd  (ExternalMemoryIndexDecoderLongCountAccessor & raccessor)
 			{
-				return long_index_iterator(&raccessor,raccessor.max().encodeLongHash()+libmaus::bambam::ReadEndsBase::hash_value_type(1));
+				return long_index_iterator(&raccessor,raccessor.max().encodeLongHash()+libmaus2::bambam::ReadEndsBase::hash_value_type(1));
 			}
 			
 			static std::vector < std::vector< std::pair<uint64_t,uint64_t> > > getLongMergeIntervals(
@@ -854,7 +854,7 @@ namespace libmaus
 			)
 			{
 				#if defined(READENDSBLOCKTIMING)
-				libmaus::timing::RealTimeClock decodersetuprtc; 
+				libmaus2::timing::RealTimeClock decodersetuprtc; 
 				#endif
 				uint64_t const memory = 256ull*1024ull*1024ull;
 				uint64_t const numblocks = computeNumBlocks(rinfo);
@@ -866,9 +866,9 @@ namespace libmaus
 				for ( uint64_t i = 1; i < rinfo.size(); ++i )
 					O[i] = O[i-1] + rinfo[i-1].indexoffset.size();
 				
-				libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Pindexstreams(rinfo.size());
-				libmaus::autoarray::AutoArray<libmaus::aio::PosixFdInputStream::unique_ptr_type> Pdatastreams(rinfo.size());
-				libmaus::autoarray::AutoArray<long_index_decoder_pointer_type> Pdecoders(numblocks);
+				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pindexstreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pdatastreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> Pdecoders(numblocks);
 				
 				// open index and data streams	
 				#if defined(READENDSBLOCKTIMING)
@@ -879,9 +879,9 @@ namespace libmaus
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
-					libmaus::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus::aio::PosixFdInputStream(rinfo[i].indexfilename));
+					libmaus2::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].indexfilename));
 					Pindexstreams[i] = UNIQUE_PTR_MOVE(tptr);
-					libmaus::aio::PosixFdInputStream::unique_ptr_type iptr(new libmaus::aio::PosixFdInputStream(rinfo[i].datafilename));
+					libmaus2::aio::PosixFdInputStream::unique_ptr_type iptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].datafilename));
 					Pdatastreams[i] = UNIQUE_PTR_MOVE(iptr);
 				}
 				#if defined(READENDSBLOCKTIMING)
@@ -918,8 +918,8 @@ namespace libmaus
 				decodersetuprtc.start();
 				#endif
 				ExternalMemoryIndexDecoderLongCountAccessor accessor(Pdecoders);
-				std::vector< ::libmaus::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
-				libmaus::bambam::ReadEndsBaseLongHashAttributeComparator comp;
+				std::vector< ::libmaus2::bambam::ReadEnds::hash_value_type > splitPoints(numthreads);
+				libmaus2::bambam::ReadEndsBaseLongHashAttributeComparator comp;
 				#if defined(_OPENMP)
 				#pragma omp parallel for num_threads(numthreads)
 				#endif
@@ -931,7 +931,7 @@ namespace libmaus
 					splitPoints[i] = itc.i;
 
 					#if 0
-					libmaus::bambam::ReadEnds H;
+					libmaus2::bambam::ReadEnds H;
 					H.decodeLongHash(splitPoints[i]);
 					std::cerr 
 						<< "split point " 
@@ -945,7 +945,7 @@ namespace libmaus
 				for ( uint64_t i = 1; i < splitPoints.size(); ++i )
 					assert ( splitPoints[i-1] <= splitPoints[i] );
 
-				libmaus::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
+				libmaus2::autoarray::AutoArray< UVal > RR(numthreads * numblocks);
 				std::fill(RR.begin(),RR.end(),UVal(std::numeric_limits<uint64_t>::max()));
 
 				// compute split points
@@ -959,18 +959,18 @@ namespace libmaus
 					for ( uint64_t k = 0; k < rinfo[f].indexoffset.size(); ++k )
 						for ( uint64_t i = 0; i < numthreads; ++i )
 						{
-							libmaus::bambam::ReadEnds H;
+							libmaus2::bambam::ReadEnds H;
 							H.decodeLongHash(splitPoints[i]);
 							
-							libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus::bambam::ReadEndsBase> const
+							libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<libmaus2::bambam::ReadEndsBase> const
 								FLS = Pdecoders[O[f] + k]->findLargestSmaller(H,false /* cache only */);
 
-							uint64_t o = FLS.blockid << libmaus::bambam::ReadEndsContainerBase::baseIndexShift;
+							uint64_t o = FLS.blockid << libmaus2::bambam::ReadEndsContainerBase::baseIndexShift;
 							Pdatastreams[f]->clear();
 							Pdatastreams[f]->seekg(FLS.P.first);
-							libmaus::lz::SnappyInputStream SIS(*(Pdatastreams[f]));
+							libmaus2::lz::SnappyInputStream SIS(*(Pdatastreams[f]));
 							SIS.ignore(FLS.P.second);
-							libmaus::bambam::ReadEnds T;
+							libmaus2::bambam::ReadEnds T;
 							uint64_t const blockelcnt = rinfo[f].blockelcnt[k];
 							
 							while ( o < blockelcnt )
@@ -1054,7 +1054,7 @@ namespace libmaus
 					std::vector < std::vector< std::pair<uint64_t,uint64_t> > > VR(numthreads,std::vector< std::pair<uint64_t,uint64_t> >(0));
 					for ( uint64_t i = 0; i < numthreads; ++i )
 					{
-						::libmaus::bambam::ReadEnds RA;
+						::libmaus2::bambam::ReadEnds RA;
 						RA.decodeLongHash(splitPoints[i]);
 						
 						for ( uint64_t j = 0; j < col.size(); ++j )
@@ -1098,8 +1098,8 @@ namespace libmaus
 					{
 						this_type col(rinfo);
 
-						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
-						::libmaus::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[i];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splithigh = splitPoints[i+1];
 						
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
@@ -1117,7 +1117,7 @@ namespace libmaus
 					{					
 						this_type col(rinfo);
 						
-						::libmaus::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
+						::libmaus2::bambam::ReadEnds::hash_value_type const splitlow = splitPoints[numthreads-1];
 
 						for ( uint64_t j = 0; j < col.size(); ++j )
 						{
@@ -1154,18 +1154,18 @@ namespace libmaus
 				std::ostream & out, std::iostream & indexout
 			) const
 			{
-				libmaus::index::ExternalMemoryIndexGenerator<
-					libmaus::bambam::ReadEndsBase,
-					libmaus::bambam::ReadEndsContainerBase::baseIndexShift,
-					libmaus::bambam::ReadEndsContainerBase::innerIndexShift
+				libmaus2::index::ExternalMemoryIndexGenerator<
+					libmaus2::bambam::ReadEndsBase,
+					libmaus2::bambam::ReadEndsContainerBase::baseIndexShift,
+					libmaus2::bambam::ReadEndsContainerBase::innerIndexShift
 				> generator(indexout);
 				
 				/* uint64_t indexpos = */ generator.setup();		
 			
 				//! pair of list index and ReadEnds object
-				typedef std::pair<uint64_t,::libmaus::bambam::ReadEnds> qtype;
+				typedef std::pair<uint64_t,::libmaus2::bambam::ReadEnds> qtype;
 				//! merge heap
-				std::priority_queue<qtype,std::vector<qtype>,::libmaus::bambam::ReadEndsHeapPairComparator> Q;
+				std::priority_queue<qtype,std::vector<qtype>,::libmaus2::bambam::ReadEndsHeapPairComparator> Q;
 				
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					if ( V[i].first < V[i].second )
@@ -1177,7 +1177,7 @@ namespace libmaus
 						);
 				
 				uint64_t ind = 0;
-				libmaus::lz::SnappyOutputStream<std::ostream> SOS(out);
+				libmaus2::lz::SnappyOutputStream<std::ostream> SOS(out);
 				while ( Q.size() )
 				{
 					qtype const P = Q.top();

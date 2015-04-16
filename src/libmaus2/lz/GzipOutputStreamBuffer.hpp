@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,10 +21,10 @@
 
 #include <zlib.h>
 #include <ostream>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/GzipHeader.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -33,8 +33,8 @@ namespace libmaus
 			private:
 			std::ostream & out;
 			uint64_t const buffersize;
-			::libmaus::autoarray::AutoArray<char> inbuffer;
-			::libmaus::autoarray::AutoArray<char> outbuffer;
+			::libmaus2::autoarray::AutoArray<char> inbuffer;
+			::libmaus2::autoarray::AutoArray<char> outbuffer;
 			z_stream strm;
 			uint32_t crc;
 			uint32_t isize;
@@ -52,7 +52,7 @@ namespace libmaus
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipOutputStreamBuffer::inti(): deflateInit2 failed";
 					se.finish();
 					throw se;
@@ -79,7 +79,7 @@ namespace libmaus
 						int ret = deflate(&strm,Z_NO_FLUSH);
 						if ( ret == Z_STREAM_ERROR )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "deflate failed (Z_STREAM_ERROR).";
 							se.finish();
 							throw se;
@@ -94,7 +94,7 @@ namespace libmaus
 				}
 				else if ( n )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipOutputStreamBuffer: data was written on terminated stream.";
 					se.finish();
 					throw se;					
@@ -116,7 +116,7 @@ namespace libmaus
 						ret = deflate(&strm,Z_FULL_FLUSH);
 						if ( ret == Z_STREAM_ERROR )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "GzipOutputStreamBuffer::deflate() failed.";
 							se.finish();
 							throw se;
@@ -148,7 +148,7 @@ namespace libmaus
 						ret = deflate(&strm,Z_FINISH );
 						if ( ret == Z_STREAM_ERROR )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "GzipOutputStreamBuffer::deflate() failed.";
 							se.finish();
 							throw se;
@@ -199,7 +199,7 @@ namespace libmaus
 			: out(rout), buffersize(rbuffersize), inbuffer(buffersize,false), outbuffer(buffersize,false),
 			  crc(crc32(0,0,0)), isize(0), compressedwritten(0), terminated(false)
 			{
-				compressedwritten += libmaus::lz::GzipHeaderConstantsBase::writeSimpleHeader(out);
+				compressedwritten += libmaus2::lz::GzipHeaderConstantsBase::writeSimpleHeader(out);
 				init(level);
 				setp(inbuffer.begin(),inbuffer.end()-1);
 			}

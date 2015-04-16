@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,34 +20,34 @@
 #if ! defined(PROCESSSET_HPP)
 #define PROCESSSET_HPP
 
-#include <libmaus/lsf/LSFProcess.hpp>
-#include <libmaus/util/MoveStack.hpp>
-#include <libmaus/network/LogSocket.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/parallel/PosixThread.hpp>
+#include <libmaus2/lsf/LSFProcess.hpp>
+#include <libmaus2/util/MoveStack.hpp>
+#include <libmaus2/network/LogSocket.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace lsf
         {
                 struct ProcessSet
                 {
-                        typedef ::libmaus::lsf::LSFProcess process_type;
+                        typedef ::libmaus2::lsf::LSFProcess process_type;
                         typedef process_type::unique_ptr_type process_ptr_type;
-                        typedef ::libmaus::util::MoveStack<process_type> process_container_type;
-                        typedef ::libmaus::network::SocketBase socket_type;
+                        typedef ::libmaus2::util::MoveStack<process_type> process_container_type;
+                        typedef ::libmaus2::network::SocketBase socket_type;
                         typedef socket_type::unique_ptr_type socket_ptr_type;
-                        typedef ::libmaus::util::MoveStack<socket_type> socket_container_type;
+                        typedef ::libmaus2::util::MoveStack<socket_type> socket_container_type;
                         
                         process_container_type P;
                         socket_container_type S;
                         std::vector < std::string > hosts;
                         std::set < std::string > shosts;
-                        ::libmaus::network::LogSocket logsocket;
-                        ::libmaus::util::ArgInfo const & arginfo;
+                        ::libmaus2::network::LogSocket logsocket;
+                        ::libmaus2::util::ArgInfo const & arginfo;
 
-                        ProcessSet(std::string logfilenameprefix, ::libmaus::util::ArgInfo const & rarginfo)
+                        ProcessSet(std::string logfilenameprefix, ::libmaus2::util::ArgInfo const & rarginfo)
                         : logsocket(logfilenameprefix), arginfo(rarginfo)
                         {
                         }
@@ -82,7 +82,7 @@ namespace libmaus
                                 
                                 std::set<std::string> lhosts;
                                 
-                                ::libmaus::util::MoveStack<process_type> killlist;
+                                ::libmaus2::util::MoveStack<process_type> killlist;
                                 
                                 uint64_t j = 0;
                                 for ( uint64_t i = 0; i < size(); ++i )
@@ -285,28 +285,28 @@ namespace libmaus
                                 }
                         }
                         
-                        struct AsynchronousWaiter : public ::libmaus::parallel::PosixThread
+                        struct AsynchronousWaiter : public ::libmaus2::parallel::PosixThread
                         {
                         	typedef AsynchronousWaiter this_type;
-                        	typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                        	typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         
                         	ProcessSet * owner;
-                                ::libmaus::autoarray::AutoArray< ::libmaus::network::LogSocket::server_socket_ptr_type >::unique_ptr_type logsocks;
-                                ::libmaus::autoarray::AutoArray< process_ptr_type >::unique_ptr_type procs;
+                                ::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type >::unique_ptr_type logsocks;
+                                ::libmaus2::autoarray::AutoArray< process_ptr_type >::unique_ptr_type procs;
                                 uint64_t const numinst;
                                 uint64_t const shostlimit;
                                 std::string const progdirname;
                                 std::string const scommand;
                                 std::vector<bool> active;
 
-                                ::libmaus::parallel::PosixMutex idsmutex;
+                                ::libmaus2::parallel::PosixMutex idsmutex;
                                 std::vector <uint64_t> ids;
                                 bool running;
                         	
                         	AsynchronousWaiter(
                         		ProcessSet * rowner,
-                        		::libmaus::autoarray::AutoArray< ::libmaus::network::LogSocket::server_socket_ptr_type >::unique_ptr_type & rlogsocks,
-	                                ::libmaus::autoarray::AutoArray< process_ptr_type >::unique_ptr_type & rprocs,
+                        		::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type >::unique_ptr_type & rlogsocks,
+	                                ::libmaus2::autoarray::AutoArray< process_ptr_type >::unique_ptr_type & rprocs,
 	                                uint64_t const rnuminst,
 	                                uint64_t const rshostlimit,
 	                                std::string const rprogdirname,
@@ -323,7 +323,7 @@ namespace libmaus
         	                {
         	                	std::vector<bool> activeCopy;
 					{
-	        	                	::libmaus::parallel::ScopePosixMutex mutex(idsmutex);
+	        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         		                	activeCopy = active;
 					}
         	                	return owner->select(id,activeCopy,timeout);
@@ -333,7 +333,7 @@ namespace libmaus
 	                        {
         	                	std::vector<bool> activeCopy;
 					{
-	        	                	::libmaus::parallel::ScopePosixMutex mutex(idsmutex);
+	        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         		                	activeCopy = active;
 					}
         	                	return owner->selectRandom(id,activeCopy,seed,timeout);	                        	
@@ -341,26 +341,26 @@ namespace libmaus
         	                
         	                void add(uint64_t p, uint64_t id)
         	                {
-        	                	::libmaus::parallel::ScopePosixMutex mutex(idsmutex);
+        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         	                	active[p] = true;
 					ids.push_back(id);
         	                }
 
         	                void deactivate(uint64_t p)
         	                {
-        	                	::libmaus::parallel::ScopePosixMutex mutex(idsmutex);
+        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         	                	active[p] = false;
         	                }
         	                
         	                void stop()
         	                {
-        	                	::libmaus::parallel::ScopePosixMutex mutex(idsmutex);
+        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
         	                	running = false;
         	                }
         	                
         	                bool getRunning()
         	                {
-        	                	::libmaus::parallel::ScopePosixMutex mutex(idsmutex);
+        	                	::libmaus2::parallel::ScopePosixMutex mutex(idsmutex);
 					return running;        	                
         	                }
                         	
@@ -384,7 +384,7 @@ namespace libmaus
 								lastprinted = p;
 							}
 
-							::libmaus::network::LogSocket::server_socket_ptr_type & logsock = (*logsocks)[p];
+							::libmaus2::network::LogSocket::server_socket_ptr_type & logsock = (*logsocks)[p];
 							socket_ptr_type sock;
 							
 							while ( getRunning() && (! sock.get()) )
@@ -425,7 +425,7 @@ namespace libmaus
 							}
 							else
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "Failed to get host name for LSF process " << (*procs)[p]->id << std::endl;
 								se.finish();
 								throw se;
@@ -478,16 +478,16 @@ namespace libmaus
 			{
                                 std::string const dispatchername = "computeLSFGenericDispatcher";
                                 std::string const absprogname = arginfo.getAbsProgName();
-                                std::string const progdirname = ::libmaus::util::ArgInfo::getDirName(absprogname);
+                                std::string const progdirname = ::libmaus2::util::ArgInfo::getDirName(absprogname);
                                 std::string const dispatcherpath = progdirname + "/" + dispatchername;
                                 
                                 P.reserve(numinst);
                                 S.reserve(numinst);
 
-                                ::libmaus::autoarray::AutoArray< ::libmaus::network::LogSocket::server_socket_ptr_type >::unique_ptr_type
-                                	logsocks(new ::libmaus::autoarray::AutoArray< ::libmaus::network::LogSocket::server_socket_ptr_type >(numinst));
-                                ::libmaus::autoarray::AutoArray< process_ptr_type >::unique_ptr_type procs(
-                                	new ::libmaus::autoarray::AutoArray< process_ptr_type >(numinst)
+                                ::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type >::unique_ptr_type
+                                	logsocks(new ::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type >(numinst));
+                                ::libmaus2::autoarray::AutoArray< process_ptr_type >::unique_ptr_type procs(
+                                	new ::libmaus2::autoarray::AutoArray< process_ptr_type >(numinst)
 				);
 
                                 /* submit processes */
@@ -504,7 +504,7 @@ namespace libmaus
                                                 << " sid=" << logsocket.sid
                                                 << " logport=" << (*logsocks)[p]->getPort()
                                                 << " valgrind=" << valgrind
-                                                << " serverhostname=" << ::libmaus::network::GetHostName::getHostName()
+                                                << " serverhostname=" << ::libmaus2::network::GetHostName::getHostName()
                                                 << " mem=" << maxmem;
 
                                         std::cerr << "Creating process...";
@@ -555,11 +555,11 @@ namespace libmaus
                         {
                                 std::string const dispatchername = "computeLSFGenericDispatcher";
                                 std::string const absprogname = arginfo.getAbsProgName();
-                                std::string const progdirname = ::libmaus::util::ArgInfo::getDirName(absprogname);
+                                std::string const progdirname = ::libmaus2::util::ArgInfo::getDirName(absprogname);
                                 std::string const dispatcherpath = progdirname + "/" + dispatchername;
 
-                                ::libmaus::autoarray::AutoArray< ::libmaus::network::LogSocket::server_socket_ptr_type > logsocks(numinst);
-                                ::libmaus::autoarray::AutoArray< process_ptr_type > procs(numinst);
+                                ::libmaus2::autoarray::AutoArray< ::libmaus2::network::LogSocket::server_socket_ptr_type > logsocks(numinst);
+                                ::libmaus2::autoarray::AutoArray< process_ptr_type > procs(numinst);
 
                                 /* submit processes */
                                 for ( uint64_t p = 0; p < numinst; ++p )
@@ -575,7 +575,7 @@ namespace libmaus
                                                 << " sid=" << logsocket.sid
                                                 << " logport=" << logsocks[p]->getPort()
                                                 << " valgrind=" << valgrind
-                                                << " serverhostname=" << ::libmaus::network::GetHostName::getHostName()
+                                                << " serverhostname=" << ::libmaus2::network::GetHostName::getHostName()
                                                 << " mem=" << maxmem;
 
                                         std::cerr << "Creating process...";
@@ -625,7 +625,7 @@ namespace libmaus
                                         }
                                         else
                                         {
-                                        	::libmaus::exception::LibMausException se;
+                                        	::libmaus2::exception::LibMausException se;
                                         	se.getStream() << "Failed to get host name for LSF process " << procs[p]->id << std::endl;
                                         	se.finish();
                                         	throw se;

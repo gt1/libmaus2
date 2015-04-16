@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(EDGELISTLOCALFLUSH_HPP)
 #define EDGELISTLOCALFLUSH_HPP
 
-#include <libmaus/graph/EdgeList.hpp>
+#include <libmaus2/graph/EdgeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct EdgeListLocalFlush
 		{
-			typedef ::libmaus::graph::TripleEdge edge_type;
+			typedef ::libmaus2::graph::TripleEdge edge_type;
 			
 			EdgeList & EL;
 			

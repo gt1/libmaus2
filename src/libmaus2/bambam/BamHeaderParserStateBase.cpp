@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,37 +16,37 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::BamHeaderParserStateBase::bam_header_parse_state const & state)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::BamHeaderParserStateBase::bam_header_parse_state const & state)
 {
 	switch(state)
 	{
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_magic:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_magic:
 			out << "bam_header_read_magic";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_l_text:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_l_text:
 			out << "bam_header_read_l_text";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_text:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_text:
 			out << "bam_header_read_text";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_n_ref:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_n_ref:
 			out << "bam_header_read_n_ref";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_reaf_ref_l_name:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_reaf_ref_l_name:
 			out << "bam_header_reaf_ref_l_name";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_ref_name:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_ref_name:
 			out << "bam_header_read_ref_name";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_ref_l_ref:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_ref_l_ref:
 			out << "bam_header_read_ref_l_ref";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_done:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_done:
 			out << "bam_header_read_done";
 			break;
-		case libmaus::bambam::BamHeaderParserStateBase::bam_header_read_failed:
+		case libmaus2::bambam::BamHeaderParserStateBase::bam_header_read_failed:
 			out << "bam_header_read_failed";
 			break;
 		default:

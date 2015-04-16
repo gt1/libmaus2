@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMRANGE_HPP)
 #define LIBMAUS_BAMBAM_BAMRANGE_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/BamIndex.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamIndex.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -38,12 +38,12 @@ namespace libmaus
 			};
 
 			typedef BamRange this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			virtual ~BamRange() {}
 			//! return position of alignment relative to interval
-			virtual interval_rel_pos operator()(libmaus::bambam::BamAlignment const &) const = 0;
+			virtual interval_rel_pos operator()(libmaus2::bambam::BamAlignment const &) const = 0;
 			//! return range as string
 			virtual std::ostream & toStream(std::ostream & ostr) const = 0;
 			//! get reference id
@@ -51,7 +51,7 @@ namespace libmaus
 			//! get position range
 			virtual std::pair<uint64_t,uint64_t> getRange() const = 0;
 			//! get chunks
-			virtual std::vector< std::pair<uint64_t,uint64_t> > getChunks(libmaus::bambam::BamIndex const & index) const
+			virtual std::vector< std::pair<uint64_t,uint64_t> > getChunks(libmaus2::bambam::BamIndex const & index) const
 			{
 				return index.reg2chunks(getRefID(),getRange().first,getRange().second);
 			}
@@ -69,13 +69,13 @@ namespace libmaus
 			
 			}
 			
-			BamRangeChromosome(std::string const & rname, libmaus::bambam::BamHeader const & header)
+			BamRangeChromosome(std::string const & rname, libmaus2::bambam::BamHeader const & header)
 			: name(rname), id(header.getIdForRefName(name)), beg(0), end(header.getRefIDLength(id))
 			{
 			
 			}
 			
-			interval_rel_pos operator()(libmaus::bambam::BamAlignment const & algn) const
+			interval_rel_pos operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const alrefid = algn.getRefID();
 
@@ -118,13 +118,13 @@ namespace libmaus
 			
 			}
 			
-			BamRangeHalfOpen(std::string const & rname, uint64_t const rstart, libmaus::bambam::BamHeader const & header)
+			BamRangeHalfOpen(std::string const & rname, uint64_t const rstart, libmaus2::bambam::BamHeader const & header)
 			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(header.getRefIDLength(id))
 			{
 			
 			}
 			
-			interval_rel_pos operator()(libmaus::bambam::BamAlignment const & algn) const
+			interval_rel_pos operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const alrefid = algn.getRefID();
 
@@ -175,13 +175,13 @@ namespace libmaus
 			
 			}
 			
-			BamRangeInterval(std::string const & rname, uint64_t const rstart, uint64_t const rend, libmaus::bambam::BamHeader const & header)
+			BamRangeInterval(std::string const & rname, uint64_t const rstart, uint64_t const rend, libmaus2::bambam::BamHeader const & header)
 			: name(rname), id(header.getIdForRefName(name)), start(rstart), end(rend)
 			{
 			
 			}
 			
-			interval_rel_pos operator()(libmaus::bambam::BamAlignment const & algn) const
+			interval_rel_pos operator()(libmaus2::bambam::BamAlignment const & algn) const
 			{
 				int64_t const alrefid = algn.getRefID();
 

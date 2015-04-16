@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,15 +21,15 @@
 #if ! defined(LIBMAUS_AIO_GENERICOUTPUT_HPP)
 #define LIBMAUS_AIO_GENERICOUTPUT_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -42,11 +42,11 @@ namespace libmaus
                 	//! this type
                         typedef GenericOutput this_type;
                         //! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 
 			private:
 			//! buffer
-                        ::libmaus::autoarray::AutoArray<data_type> B;
+                        ::libmaus2::autoarray::AutoArray<data_type> B;
                         //! start of buffer pointer
                         data_type * const pa;
                         //! buffer current pointer
@@ -54,7 +54,7 @@ namespace libmaus
                         //! buffer end pointer
                         data_type * const pe;
                         //! asynchronous byte stream writer
-                        ::libmaus::aio::AsynchronousWriter W;
+                        ::libmaus2::aio::AsynchronousWriter W;
 
                         public:
                         /**
@@ -63,10 +63,10 @@ namespace libmaus
                          * @param A array to be written
                          * @param outputfilename name of output file
                          **/
-			static void writeArray(::libmaus::autoarray::AutoArray<data_type> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<data_type> const & A, 
 				std::string const & outputfilename)
 			{
-				::libmaus::aio::GenericOutput<data_type> out(outputfilename,64*1024);
+				::libmaus2::aio::GenericOutput<data_type> out(outputfilename,64*1024);
 				
 				for ( uint64_t i = 0; i < A.getN(); ++i )
 					out.put(A[i]);

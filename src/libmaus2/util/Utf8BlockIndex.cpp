@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,43 +16,43 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/Utf8BlockIndex.hpp>
+#include <libmaus2/util/Utf8BlockIndex.hpp>
 
-libmaus::util::Utf8BlockIndex::Utf8BlockIndex()
+libmaus2::util::Utf8BlockIndex::Utf8BlockIndex()
 {
 
 }
 
-std::string libmaus::util::Utf8BlockIndex::serialise() const
+std::string libmaus2::util::Utf8BlockIndex::serialise() const
 {
 	::std::ostringstream ostr;
 	serialise(ostr);
 	return ostr.str();
 }
 
-libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::constructFromSerialised(std::string const & fn)
+libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::constructFromSerialised(std::string const & fn)
 {
-	::libmaus::aio::CheckedInputStream CIS(fn);
+	::libmaus2::aio::CheckedInputStream CIS(fn);
 
 	unique_ptr_type UP(new Utf8BlockIndex);
 
-	UP->blocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-	UP->lastblocksize = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-	UP->maxblockbytes = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-	uint64_t const numblocks = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+	UP->blocksize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+	UP->lastblocksize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+	UP->maxblockbytes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+	uint64_t const numblocks = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 	
-	UP->blockstarts = ::libmaus::autoarray::AutoArray<uint64_t>(numblocks+1,false);
+	UP->blockstarts = ::libmaus2::autoarray::AutoArray<uint64_t>(numblocks+1,false);
 	
 	for ( uint64_t i = 0; i < UP->blockstarts.size(); ++i )
-		UP->blockstarts[i] = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+		UP->blockstarts[i] = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 	
 	
 	return UNIQUE_PTR_MOVE(UP);
 }
 
-libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::constructFromUtf8File(std::string const & fn, uint64_t const rblocksize)
+libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::constructFromUtf8File(std::string const & fn, uint64_t const rblocksize)
 {
-	uint64_t const fs = ::libmaus::util::GetFileSize::getFileSize(fn);
+	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(fn);
 	
 
 	#if defined(_OPENMP)
@@ -64,8 +64,8 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 	uint64_t const bblocksize = (fs + numparts-1)/numparts;
 	uint64_t const numbblocks = (fs + bblocksize-1)/bblocksize;
 
-	uint64_t const blocksize = ::libmaus::math::nextTwoPow(rblocksize);
-	unsigned int const blockshift = ::libmaus::math::numbits(blocksize)-1;
+	uint64_t const blocksize = ::libmaus2::math::nextTwoPow(rblocksize);
+	unsigned int const blockshift = ::libmaus2::math::numbits(blocksize)-1;
 	assert ( (1ull << blockshift) == blocksize );
 	uint64_t const blockmask = blocksize-1;
 
@@ -78,7 +78,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 	}
 
 	
-	::libmaus::aio::CheckedInputStream::unique_ptr_type CIS(new ::libmaus::aio::CheckedInputStream(fn));
+	::libmaus2::aio::CheckedInputStream::unique_ptr_type CIS(new ::libmaus2::aio::CheckedInputStream(fn));
 	std::vector<uint64_t> preblockstarts;
 	
 	for ( uint64_t b = 0; b < numbblocks; ++b )
@@ -104,12 +104,12 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 	// CIS.reset();
 	
 	preblockstarts.push_back(fs);
-	::libmaus::autoarray::AutoArray<uint64_t> bblocksyms(numbblocks+1,false);
-	::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedInputStream::unique_ptr_type > thrstreams(numthreads,false);
+	::libmaus2::autoarray::AutoArray<uint64_t> bblocksyms(numbblocks+1,false);
+	::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedInputStream::unique_ptr_type > thrstreams(numthreads,false);
 	for ( uint64_t t = 0; t < numthreads; ++t )
 	{
-		::libmaus::aio::CheckedInputStream::unique_ptr_type thrstreamst
-                        (new ::libmaus::aio::CheckedInputStream(fn));
+		::libmaus2::aio::CheckedInputStream::unique_ptr_type thrstreamst
+                        (new ::libmaus2::aio::CheckedInputStream(fn));
 		thrstreams[t] = UNIQUE_PTR_MOVE(thrstreamst);
 	}
 	
@@ -124,7 +124,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 		uint64_t const threadid = 0;
 		#endif
 		
-		::libmaus::aio::CheckedInputStream * CIS = thrstreams[threadid].get();
+		::libmaus2::aio::CheckedInputStream * CIS = thrstreams[threadid].get();
 		CIS->clear();
 		CIS->seekg(preblockstarts[b]);
 		
@@ -134,7 +134,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 		
 		while ( codelen != bblocksize )
 		{
-			::libmaus::util::UTF8::decodeUTF8(*CIS, codelen);
+			::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
 			syms++;
 		}
 		
@@ -148,7 +148,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 	uint64_t const numsyms = bblocksyms[bblocksyms.size()-1];
 	uint64_t const numblocks = (numsyms + blocksize-1)/blocksize;
 	
-	::libmaus::autoarray::AutoArray<uint64_t> blockstarts(numblocks+1,false);
+	::libmaus2::autoarray::AutoArray<uint64_t> blockstarts(numblocks+1,false);
 	
 	#if defined(_OPENMP)
 	#pragma omp parallel for
@@ -161,7 +161,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 		uint64_t const threadid = 0;
 		#endif
 		
-		::libmaus::aio::CheckedInputStream * CIS = thrstreams[threadid].get();
+		::libmaus2::aio::CheckedInputStream * CIS = thrstreams[threadid].get();
 		CIS->clear();
 		CIS->seekg(preblockstarts[b]);
 		
@@ -174,7 +174,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 			if ( (syms & blockmask) == 0 )
 				blockstarts[syms>>blockshift] = preblockstarts[b]+codelen;
 		
-			::libmaus::util::UTF8::decodeUTF8(*CIS, codelen);
+			::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
 			syms++;
 		}			
 	}
@@ -198,7 +198,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 			assert ( blockstarts[symcnt/blocksize] == codelen );
 		}
 	
-		::libmaus::util::UTF8::decodeUTF8(*CIS, codelen);		
+		::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);		
 		symcnt += 1;
 	}
 	#endif
@@ -214,7 +214,7 @@ libmaus::util::Utf8BlockIndex::unique_ptr_type libmaus::util::Utf8BlockIndex::co
 	CIS->seekg(codelen);
 	while ( codelen != fs )
 	{
-		::libmaus::util::UTF8::decodeUTF8(*CIS, codelen);
+		::libmaus2::util::UTF8::decodeUTF8(*CIS, codelen);
 		++(UP->lastblocksize);	
 	}
 	

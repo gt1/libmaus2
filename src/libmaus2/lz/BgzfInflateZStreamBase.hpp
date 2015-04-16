@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #define LIBMAUS_LZ_BGZFINFLATEZSTREAMBASE_HPP
 
 #include <zlib.h>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/BgzfConstants.hpp>
-#include <libmaus/lz/BgzfInflateHeaderBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfConstants.hpp>
+#include <libmaus2/lz/BgzfInflateHeaderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateZStreamBase
 		{
 			typedef BgzfInflateZStreamBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			z_stream inflatestrm;
 		
@@ -50,7 +50,7 @@ namespace libmaus
 							
 				if (ret != Z_OK)
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::init() failed in inflateInit2";
 					se.finish();
 					throw se;
@@ -71,7 +71,7 @@ namespace libmaus
 			{
 				if ( inflateReset(&inflatestrm) != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): inflateReset failed";
 					se.finish();
 					throw se;									
@@ -100,7 +100,7 @@ namespace libmaus
 				
 				if ( !ok )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): inflate failed";
 					se.finish();
 					throw se;												

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTOR_HPP)
 #define LIBMAUS_RANK_RUNLENGTHBITVECTOR_HPP
 
-#include <libmaus/rank/RunLengthBitVectorBase.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/HistogramSet.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/rank/RunLengthBitVectorBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/util/HistogramSet.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
 		struct RunLengthBitVector
 		{
 			typedef RunLengthBitVector this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			// size of a single block in encoded bits
 			uint64_t const blocksize;
@@ -47,15 +47,15 @@ namespace libmaus
 			// rank accumulator bits
 			uint64_t const rankaccbits;
 			
-			libmaus::autoarray::AutoArray<uint64_t> const data;
-			libmaus::autoarray::AutoArray<uint64_t> const index;
+			libmaus2::autoarray::AutoArray<uint64_t> const data;
+			libmaus2::autoarray::AutoArray<uint64_t> const index;
 			
 			RunLengthBitVector(std::istream & in)
 			: 
-			  blocksize(libmaus::util::NumberSerialisation::deserialiseNumber(in)), 
-			  n(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-			  indexpos(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-			  rankaccbits(libmaus::rank::RunLengthBitVectorBase::getRankAccBits(n)),
+			  blocksize(libmaus2::util::NumberSerialisation::deserialiseNumber(in)), 
+			  n(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+			  indexpos(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+			  rankaccbits(libmaus2::rank::RunLengthBitVectorBase::getRankAccBits(n)),
 			  data(in),
 			  index(in)
 			{
@@ -84,7 +84,7 @@ namespace libmaus
 			double getAvgBlockBitLength() const
 			{
 				uint64_t const nb = getNumBlocks();
-				libmaus::parallel::SynchronousCounter<uint64_t> cnt;
+				libmaus2::parallel::SynchronousCounter<uint64_t> cnt;
 
 				#if defined(_OPENMP)
 				#pragma omp parallel for
@@ -105,8 +105,8 @@ namespace libmaus
 				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
 				
-				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
-				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				::libmaus2::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::util::GetObject<uint64_t const *> > GD(GO);
 				if ( bitoff )
 				{
 					GD.decodeWord(bitoff);
@@ -125,13 +125,13 @@ namespace libmaus
 					uint64_t const rl = GD.decode()+1;
 					assert ( rl <= bl );
 					bl -= rl;
-					bitlen += libmaus::gamma::GammaEncoderBase::getCodeLen(rl);
+					bitlen += libmaus2::gamma::GammaEncoderBase::getCodeLen(rl);
 				}
 				
 				return bitlen;
 			}
 
-			void getBlockRunLengthHistogram(uint64_t const b, libmaus::util::Histogram & hist) const
+			void getBlockRunLengthHistogram(uint64_t const b, libmaus2::util::Histogram & hist) const
 			{
 				assert ( b < getNumBlocks() );
 				uint64_t bl = std::min(n-b*blocksize,blocksize);
@@ -140,8 +140,8 @@ namespace libmaus
 				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
 				
-				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
-				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				::libmaus2::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::util::GetObject<uint64_t const *> > GD(GO);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 
@@ -159,7 +159,7 @@ namespace libmaus
 				}
 			}
 
-			libmaus::util::Histogram::unique_ptr_type getRunLengthHistogram() const
+			libmaus2::util::Histogram::unique_ptr_type getRunLengthHistogram() const
 			{
 				uint64_t const nb = getNumBlocks();
 				#if defined(_OPENMP)
@@ -168,7 +168,7 @@ namespace libmaus
 				uint64_t const numthreads = 1;
 				#endif
 				
-				libmaus::util::HistogramSet HS(numthreads,256);
+				libmaus2::util::HistogramSet HS(numthreads,256);
 
 				#if defined(_OPENMP)
 				#pragma omp parallel for
@@ -180,7 +180,7 @@ namespace libmaus
 					getBlockRunLengthHistogram(b,HS[0]);					
 					#endif
 					
-				libmaus::util::Histogram::unique_ptr_type tptr(HS.merge());
+				libmaus2::util::Histogram::unique_ptr_type tptr(HS.merge());
 				
 				return UNIQUE_PTR_MOVE(tptr);
 			}
@@ -196,8 +196,8 @@ namespace libmaus
 				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
 				
-				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
-				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				::libmaus2::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::util::GetObject<uint64_t const *> > GD(GO);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 					
@@ -227,8 +227,8 @@ namespace libmaus
 				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
 				
-				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
-				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				::libmaus2::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::util::GetObject<uint64_t const *> > GD(GO);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 				
@@ -264,8 +264,8 @@ namespace libmaus
 				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
 				
-				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
-				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				::libmaus2::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::util::GetObject<uint64_t const *> > GD(GO);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 					
@@ -391,8 +391,8 @@ namespace libmaus
 				uint64_t const wordoff = (blockptr / (8*sizeof(uint64_t)));
 				uint64_t const bitoff = blockptr % (8*sizeof(uint64_t));
 				
-				::libmaus::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
-				::libmaus::gamma::GammaDecoder < ::libmaus::util::GetObject<uint64_t const *> > GD(GO);
+				::libmaus2::util::GetObject<uint64_t const *> GO(data.begin() + wordoff);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::util::GetObject<uint64_t const *> > GD(GO);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 				

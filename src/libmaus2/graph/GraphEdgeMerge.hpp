@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_GRAPH_GRAPHEDGEMERGE_HPP)
 #define LIBMAUS_GRAPH_GRAPHEDGEMERGE_HPP
 
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/graph/GraphEdgeHeapComparator.hpp>
-#include <libmaus/graph/GraphEdgeBuffer.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/graph/GraphEdgeHeapComparator.hpp>
+#include <libmaus2/graph/GraphEdgeBuffer.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct GraphEdgeMerge
 		{
-			typedef libmaus::aio::SynchronousGenericInput<GraphEdge> input_type;
+			typedef libmaus2::aio::SynchronousGenericInput<GraphEdge> input_type;
 			typedef input_type::unique_ptr_type input_ptr_type;
 			
 			std::vector < uint64_t > blocksizes;
-			libmaus::autoarray::AutoArray<input_ptr_type> inputstreams;
+			libmaus2::autoarray::AutoArray<input_ptr_type> inputstreams;
 			std::priority_queue < 
 				std::pair<uint64_t,GraphEdge>,
 				std::vector< std::pair<uint64_t,GraphEdge> >,
@@ -46,7 +46,7 @@ namespace libmaus
 				std::string const & edgefilename
 			) : blocksizes(BS)
 			{
-				inputstreams = libmaus::autoarray::AutoArray<input_ptr_type>(blocksizes.size());
+				inputstreams = libmaus2::autoarray::AutoArray<input_ptr_type>(blocksizes.size());
 				uint64_t acc = 0;
 				
 				for ( uint64_t i = 0; i < blocksizes.size(); ++i )

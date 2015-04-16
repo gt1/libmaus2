@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,18 +17,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
-		libmaus::timing::RealTimeClock rtc;
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::timing::RealTimeClock rtc;
 		uint64_t const runs = 10;
-		std::pair <libmaus::bambam::BamAlignment const *, libmaus::bambam::BamAlignment const *> P;
+		std::pair <libmaus2::bambam::BamAlignment const *, libmaus2::bambam::BamAlignment const *> P;
 		
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 			for ( uint64_t j = 0; j < runs; ++j )		
 			{
 				rtc.start();
-				libmaus::bambam::BamDecoder bamdec(fn);
+				libmaus2::bambam::BamDecoder bamdec(fn);
 				uint64_t cnt = 0;
 				while ( bamdec.readAlignment() )
 					++cnt;
@@ -53,8 +53,8 @@ int main(int argc, char * argv[])
 			for ( uint64_t j = 0; j < runs; ++j )		
 			{
 				rtc.start();
-				libmaus::aio::CheckedInputStream CIS(fn);
-				libmaus::bambam::BamCircularHashCollatingBamDecoder bamdec(CIS,"tmpfile");
+				libmaus2::aio::CheckedInputStream CIS(fn);
+				libmaus2::bambam::BamCircularHashCollatingBamDecoder bamdec(CIS,"tmpfile");
 				uint64_t cnt = 0;
 				while ( bamdec.tryPair(P) )
 				{

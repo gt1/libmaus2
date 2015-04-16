@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -24,11 +24,11 @@
 #include <istream>
 #include <stdexcept>
 #include <iomanip>
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/math/DoubleCode.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/math/DoubleCode.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -50,8 +50,8 @@ namespace libmaus
 				
 				if ( ! out )
 				{
-				        ::libmaus::exception::LibMausException se;
-					se.getStream() << "failure in ::libmaus::util::NumberSerialisation::serialiseNumber()";
+				        ::libmaus2::exception::LibMausException se;
+					se.getStream() << "failure in ::libmaus2::util::NumberSerialisation::serialiseNumber()";
 					se.finish();
 					throw se;
                                 }
@@ -73,8 +73,8 @@ namespace libmaus
 				
 				if ( ! out )
 				{
-				        ::libmaus::exception::LibMausException se;
-					se.getStream() << "failure in ::libmaus::util::NumberSerialisation::serialiseNumber()";
+				        ::libmaus2::exception::LibMausException se;
+					se.getStream() << "failure in ::libmaus2::util::NumberSerialisation::serialiseNumber()";
 					se.finish();
 					throw se;
                                 }
@@ -103,8 +103,8 @@ namespace libmaus
 			                int const c = in.get();
 			                if ( c < 0 )
 			                {
-                                                ::libmaus::exception::LibMausException se;
-                                                se.getStream() << "EOF/failure in ::libmaus::util::NumberSerialisation::deserialiseNumber()";
+                                                ::libmaus2::exception::LibMausException se;
+                                                se.getStream() << "EOF/failure in ::libmaus2::util::NumberSerialisation::deserialiseNumber()";
                                                 se.finish();
                                                 throw se;			                
 			                }
@@ -130,8 +130,8 @@ namespace libmaus
 
 				if (  c0 < 0 || c1 < 0 || c2 < 0 || c3 < 0 || c4 < 0 || c5 < 0 || c6 < 0 || c7 < 0 )
 				{
-				        ::libmaus::exception::LibMausException se;
-					se.getStream() << "EOF/failure in ::libmaus::util::NumberSerialisation::deserialiseNumber()";
+				        ::libmaus2::exception::LibMausException se;
+					se.getStream() << "EOF/failure in ::libmaus2::util::NumberSerialisation::deserialiseNumber()";
 					se.finish();
 					throw se;
                                 }
@@ -179,13 +179,13 @@ namespace libmaus
                         template<typename stream_type>		
 			static uint64_t serialiseDouble(stream_type & out, double const d)
 			{
-				serialiseNumber(out,::libmaus::math::DoubleCode::encodeDouble(d));
+				serialiseNumber(out,::libmaus2::math::DoubleCode::encodeDouble(d));
 				return 8;
 			}
 			template<typename stream_type>
 			static double deserialiseDouble(stream_type & in)
 			{
-				return ::libmaus::math::DoubleCode::decodeDouble(deserialiseNumber(in));
+				return ::libmaus2::math::DoubleCode::decodeDouble(deserialiseNumber(in));
 			}
 		        static uint64_t serialiseDoubleVector(std::ostream & out, std::vector<double> const & V)
 		        {
@@ -367,9 +367,9 @@ namespace libmaus
 			static int64_t recodeSignedNumber(int64_t const n)
 			{
 				std::ostringstream ostr;
-				::libmaus::util::NumberSerialisation::serialiseSignedNumber(ostr,n);
+				::libmaus2::util::NumberSerialisation::serialiseSignedNumber(ostr,n);
 				std::istringstream istr(ostr.str());
-				return ::libmaus::util::NumberSerialisation::deserialiseSignedNumber(istr);
+				return ::libmaus2::util::NumberSerialisation::deserialiseSignedNumber(istr);
 			}
 			
 			virtual ~NumberSerialisation() {}

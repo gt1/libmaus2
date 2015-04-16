@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERSORTCONTEXT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERSORTCONTEXT_HPP
 
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferSortContextBaseBlockSortedInterface.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferSortContextMergePackageFinished.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortPackage.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferSortFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
-#include <libmaus/sorting/ParallelStableSort.hpp>
-#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferSortContextBaseBlockSortedInterface.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferSortContextMergePackageFinished.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferBaseSortPackage.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferSortFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp>
+#include <libmaus2/sorting/ParallelStableSort.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -42,18 +42,18 @@ namespace libmaus
 			{
 				typedef _order_type order_type;
 				typedef FragmentAlignmentBufferSortContext<order_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				typedef uint8_t ** iterator;
 			
 				FragmentAlignmentBuffer::shared_ptr_type buffer;
 				order_type comparator;
-				libmaus::sorting::ParallelStableSort::ParallelSortControl<iterator,order_type> PSC;
-				libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & STPI;
+				libmaus2::sorting::ParallelStableSort::ParallelSortControl<iterator,order_type> PSC;
+				libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & STPI;
 	
-				typename libmaus::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * volatile level;
-				libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > & mergeSortPackages;
+				typename libmaus2::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * volatile level;
+				libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > & mergeSortPackages;
 				uint64_t const mergeSortDispatcherId;
 				
 				FragmentAlignmentBufferSortFinishedInterface & sortFinishedInterface;
@@ -68,8 +68,8 @@ namespace libmaus
 				FragmentAlignmentBufferSortContext(
 					FragmentAlignmentBuffer::shared_ptr_type rbuffer,
 					uint64_t const numthreads,
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & rSTPI,
-					libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > & rmergeSortPackages,
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & rSTPI,
+					libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferMergeSortWorkPackage<order_type> > & rmergeSortPackages,
 					uint64_t const rmergeSortDispatcherId,
 					FragmentAlignmentBufferSortFinishedInterface & rsortFinishedInterface
 				)
@@ -95,7 +95,7 @@ namespace libmaus
 				}
 				
 				void enqueBaseSortPackages(
-					libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferBaseSortPackage<order_type> > & baseSortPackages,
+					libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<FragmentAlignmentBufferBaseSortPackage<order_type> > & baseSortPackages,
 					uint64_t const baseSortDispatcher
 				)
 				{
@@ -151,7 +151,7 @@ namespace libmaus
 					
 					assert ( level );
 
-					typename libmaus::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * looplevel = level;
+					typename libmaus2::sorting::ParallelStableSort::MergeLevels<iterator,order_type>::level_type * looplevel = level;
 					uint64_t const numreq = looplevel->mergeRequests.size();
 
 					for ( uint64_t i = 0; i < numreq; ++i )

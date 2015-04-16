@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,29 +17,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/graph/FilteredGraphTypes.hpp>
-#include <libmaus/lcs/OverlapOrientation.hpp>
+#include <libmaus2/graph/FilteredGraphTypes.hpp>
+#include <libmaus2/lcs/OverlapOrientation.hpp>
 
 #if ! defined(LIBMAUS_GRAPH_GRAPHEDGE_HPP)
 #define LIBMAUS_GRAPH_GRAPHEDGE_HPP
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct GraphEdge
 		{
-			::libmaus::graph::FilteredGraphTypes::filtered_graph_target_type s;
-			::libmaus::graph::FilteredGraphTypes::filtered_graph_target_type t;
-			::libmaus::graph::FilteredGraphTypes::filtered_graph_weight_type w;
-			::libmaus::graph::FilteredGraphTypes::filtered_graph_orientation_type o;
+			::libmaus2::graph::FilteredGraphTypes::filtered_graph_target_type s;
+			::libmaus2::graph::FilteredGraphTypes::filtered_graph_target_type t;
+			::libmaus2::graph::FilteredGraphTypes::filtered_graph_weight_type w;
+			::libmaus2::graph::FilteredGraphTypes::filtered_graph_orientation_type o;
 			
 			GraphEdge() : s(0), t(0), w(0), o(0) {}
 			GraphEdge(
-				::libmaus::graph::FilteredGraphTypes::filtered_graph_target_type const rs,
-				::libmaus::graph::FilteredGraphTypes::filtered_graph_target_type const rt,
-				::libmaus::graph::FilteredGraphTypes::filtered_graph_weight_type const rw,
-				::libmaus::graph::FilteredGraphTypes::filtered_graph_orientation_type const ro
+				::libmaus2::graph::FilteredGraphTypes::filtered_graph_target_type const rs,
+				::libmaus2::graph::FilteredGraphTypes::filtered_graph_target_type const rt,
+				::libmaus2::graph::FilteredGraphTypes::filtered_graph_weight_type const rw,
+				::libmaus2::graph::FilteredGraphTypes::filtered_graph_orientation_type const ro
 			)
 			: s(rs), t(rt), w(rw), o(ro)
 			{
@@ -73,17 +73,17 @@ namespace libmaus
 				return !(*this == o);
 			}
 			
-			static bool isCover(::libmaus::graph::FilteredGraphTypes::filtered_graph_orientation_type o)
+			static bool isCover(::libmaus2::graph::FilteredGraphTypes::filtered_graph_orientation_type o)
 			{
 				switch ( o )
 				{
-					case libmaus::lcs::OverlapOrientation::overlap_a_covers_b:
-					case libmaus::lcs::OverlapOrientation::overlap_ar_covers_b:
-					case libmaus::lcs::OverlapOrientation::overlap_b_covers_a:
-					case libmaus::lcs::OverlapOrientation::overlap_b_covers_ar:
-					case libmaus::lcs::OverlapOrientation::overlap_cover_complete:
-					case libmaus::lcs::OverlapOrientation::overlap_a_complete_b:
-					case libmaus::lcs::OverlapOrientation::overlap_ar_complete_b:
+					case libmaus2::lcs::OverlapOrientation::overlap_a_covers_b:
+					case libmaus2::lcs::OverlapOrientation::overlap_ar_covers_b:
+					case libmaus2::lcs::OverlapOrientation::overlap_b_covers_a:
+					case libmaus2::lcs::OverlapOrientation::overlap_b_covers_ar:
+					case libmaus2::lcs::OverlapOrientation::overlap_cover_complete:
+					case libmaus2::lcs::OverlapOrientation::overlap_a_complete_b:
+					case libmaus2::lcs::OverlapOrientation::overlap_ar_complete_b:
 						return true;
 					default:
 						return false;
@@ -107,7 +107,7 @@ namespace libmaus
 					GraphEdge(
 						t,s,
 						revoverhang,
-						libmaus::lcs::OverlapOrientation::getInverse(libmaus::lcs::OverlapOrientation::overlap_orientation(o))
+						libmaus2::lcs::OverlapOrientation::getInverse(libmaus2::lcs::OverlapOrientation::overlap_orientation(o))
 					);
 			}
 			GraphEdge inverse(uint64_t const slen, uint64_t const tlen) const
@@ -119,7 +119,7 @@ namespace libmaus
 					GraphEdge(
 						t,s,
 						revoverhang,
-						libmaus::lcs::OverlapOrientation::getInverse(libmaus::lcs::OverlapOrientation::overlap_orientation(o))
+						libmaus2::lcs::OverlapOrientation::getInverse(libmaus2::lcs::OverlapOrientation::overlap_orientation(o))
 					);
 			}
 		};
@@ -128,12 +128,12 @@ namespace libmaus
 		{
 			GraphEdgeTransitiveDecoverOrder() {}
 		
-			bool operator()(libmaus::graph::GraphEdge const & A, libmaus::graph::GraphEdge const & B) const
+			bool operator()(libmaus2::graph::GraphEdge const & A, libmaus2::graph::GraphEdge const & B) const
 			{
 				int const da = 
-					libmaus::lcs::OverlapOrientation::isDovetail(static_cast<libmaus::lcs::OverlapOrientation::overlap_orientation>(A.o)) ? 1 : 0;
+					libmaus2::lcs::OverlapOrientation::isDovetail(static_cast<libmaus2::lcs::OverlapOrientation::overlap_orientation>(A.o)) ? 1 : 0;
 				int const db = 
-					libmaus::lcs::OverlapOrientation::isDovetail(static_cast<libmaus::lcs::OverlapOrientation::overlap_orientation>(B.o)) ? 1 : 0;
+					libmaus2::lcs::OverlapOrientation::isDovetail(static_cast<libmaus2::lcs::OverlapOrientation::overlap_orientation>(B.o)) ? 1 : 0;
 				
 				if ( da ^ db )
 				{

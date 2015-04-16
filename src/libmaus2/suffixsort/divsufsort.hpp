@@ -39,10 +39,10 @@
 # include <omp.h>
 #endif
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -1935,8 +1935,8 @@ namespace libmaus
 			  else if(n == 1) { SA[0] = 0; return 0; }
 			  else if(n == 2) { m = (T[0] < T[1]); SA[m ^ 1] = 0, SA[m] = 1; return 0; }
 
-			  ::libmaus::autoarray::AutoArray < saidx_t > Abucket_A(BUCKET_A_SIZE,false);
-			  ::libmaus::autoarray::AutoArray < saidx_t > Abucket_B(BUCKET_B_SIZE,false);
+			  ::libmaus2::autoarray::AutoArray < saidx_t > Abucket_A(BUCKET_A_SIZE,false);
+			  ::libmaus2::autoarray::AutoArray < saidx_t > Abucket_B(BUCKET_B_SIZE,false);
 			  saidx_t * bucket_A = Abucket_A.get();
 			  saidx_t * bucket_B = Abucket_B.get();;
 
@@ -1954,7 +1954,7 @@ namespace libmaus
 			static
 			saidx_t
 			divbwt(symbol_const_iterator T, symbol_iterator U, saidx_t * const A, saidx_t n) {
-			  ::libmaus::autoarray::AutoArray < saidx_t > BB;
+			  ::libmaus2::autoarray::AutoArray < saidx_t > BB;
 			  saidx_t *B;
 			  saidx_t m, pidx, i;
 
@@ -1966,12 +1966,12 @@ namespace libmaus
 				B = A;
 			  else
 			  {
-				BB = ::libmaus::autoarray::AutoArray < saidx_t >(n+1);
+				BB = ::libmaus2::autoarray::AutoArray < saidx_t >(n+1);
 				B = BB.get();
 			  }
 
-			  ::libmaus::autoarray::AutoArray < saidx_t > Abucket_A(BUCKET_A_SIZE);
-			  ::libmaus::autoarray::AutoArray < saidx_t > Abucket_B(BUCKET_B_SIZE);
+			  ::libmaus2::autoarray::AutoArray < saidx_t > Abucket_A(BUCKET_A_SIZE);
+			  ::libmaus2::autoarray::AutoArray < saidx_t > Abucket_B(BUCKET_B_SIZE);
 			  saidx_t * bucket_A = Abucket_A.get();
 			  saidx_t * bucket_B = Abucket_B.get();;
 
@@ -2101,7 +2101,7 @@ namespace libmaus
 			  saidx_t C[ALPHABET_SIZE];
 			  sauchar_t D[ALPHABET_SIZE];
 			  saidx_t *B;
-			  ::libmaus::autoarray::AutoArray<saidx_t> BB;
+			  ::libmaus2::autoarray::AutoArray<saidx_t> BB;
 			  saidx_t i, p;
 			  saint_t c, d;
 
@@ -2116,7 +2116,7 @@ namespace libmaus
 				B = A;
 			  else
 			  {
-				BB = ::libmaus::autoarray::AutoArray<saidx_t>(n);
+				BB = ::libmaus2::autoarray::AutoArray<saidx_t>(n);
 				B = BB.get();
 			  }
 

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,29 +19,29 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPSETCALLBACKSTREAM_HPP)
 #define LIBMAUS_BAMBAM_DUPSETCALLBACKSTREAM_HPP
 
-#include <libmaus/bambam/DupSetCallback.hpp>
-#include <libmaus/bambam/DuplicationMetrics.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/bambam/DupSetCallback.hpp>
+#include <libmaus2/bambam/DuplicationMetrics.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct DupSetCallbackStream : public ::libmaus::bambam::DupSetCallback
+		struct DupSetCallbackStream : public ::libmaus2::bambam::DupSetCallback
 		{
 			std::string const filename;
-			libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
-			std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> & metrics;
+			libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
+			std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> & metrics;
 			uint64_t numdup;
-			::libmaus::bitio::BitVector::unique_ptr_type B;
+			::libmaus2::bitio::BitVector::unique_ptr_type B;
 
 			DupSetCallbackStream(
 				std::string const & rfilename,
-				std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> & rmetrics
-			) : filename(rfilename), SGO(new libmaus::aio::SynchronousGenericOutput<uint64_t>(filename,8*1024)), metrics(rmetrics), numdup(0) /* unpairedreadduplicates(), readpairduplicates(), metrics(rmetrics) */ {}
+				std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> & rmetrics
+			) : filename(rfilename), SGO(new libmaus2::aio::SynchronousGenericOutput<uint64_t>(filename,8*1024)), metrics(rmetrics), numdup(0) /* unpairedreadduplicates(), readpairduplicates(), metrics(rmetrics) */ {}
 			
-			void operator()(::libmaus::bambam::ReadEnds const & A)
+			void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				SGO->put(A.getRead1IndexInFile());
 				numdup++;
@@ -77,12 +77,12 @@ namespace libmaus
 				SGO->flush();
 				SGO.reset();
 				
-				::libmaus::bitio::BitVector::unique_ptr_type tB(new ::libmaus::bitio::BitVector(n));
+				::libmaus2::bitio::BitVector::unique_ptr_type tB(new ::libmaus2::bitio::BitVector(n));
 				B = UNIQUE_PTR_MOVE(tB);
 				for ( uint64_t i = 0; i < n; ++i )
 					B->set(i,false);
 					
-				libmaus::aio::SynchronousGenericInput<uint64_t> SGI(filename,8*1024);
+				libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(filename,8*1024);
 				uint64_t v;
 				numdup = 0;
 				while ( SGI.getNext(v) )

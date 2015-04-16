@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,8 +19,8 @@
 #if ! defined(LIBMAUS_NETWORK_SOCKETPAIR_HPP)
 #define LIBMAUS_NETWORK_SOCKETPAIR_HPP
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/network/sendReceiveFd.h>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/network/sendReceiveFd.h>
 
 #include <cerrno>
 #include <cstring>
@@ -29,15 +29,15 @@
 #include <sys/socket.h>
 #include <cassert>
               
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct SocketPair
 		{
 			typedef SocketPair this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			int fd[2];
 			
@@ -48,7 +48,7 @@ namespace libmaus
 				// if ( socketpair(AF_LOCAL,SOCK_STREAM,PF_LOCAL,&fd[0]) < 0 )
 				if ( socketpair(AF_LOCAL,SOCK_STREAM,0,&fd[0]) < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "socketpair() failed: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
@@ -109,13 +109,13 @@ namespace libmaus
 			// send file descriptor parent -> child
 			void sendFd(int const rfd)
 			{
-				libmaus_network_sendFd_C(parentGet(),rfd);
+				libmaus2_network_sendFd_C(parentGet(),rfd);
 			}
 			
 			// receive file descriptor from parent
 			int receiveFd()
 			{
-				return libmaus_network_receiveFd_C(childGet());
+				return libmaus2_network_receiveFd_C(childGet());
 			}
 			
 			bool pending()

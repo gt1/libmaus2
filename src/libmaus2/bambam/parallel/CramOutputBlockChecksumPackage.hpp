@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKCHECKSUMPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKCHECKSUMPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/CramOutputBlock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/digest/DigestInterface.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlock.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/digest/DigestInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{			
-			struct CramOutputBlockChecksumPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct CramOutputBlockChecksumPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef CramOutputBlockChecksumPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				CramOutputBlock::shared_ptr_type block;
-				libmaus::digest::DigestInterface * filechecksum;
+				libmaus2::digest::DigestInterface * filechecksum;
 			
-				CramOutputBlockChecksumPackage() : libmaus::parallel::SimpleThreadWorkPackage(), block(), filechecksum(0) {}
+				CramOutputBlockChecksumPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), block(), filechecksum(0) {}
 				CramOutputBlockChecksumPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
 					CramOutputBlock::shared_ptr_type rblock,
-					libmaus::digest::DigestInterface * rfilechecksum
+					libmaus2::digest::DigestInterface * rfilechecksum
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), block(rblock), filechecksum(rfilechecksum)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), block(rblock), filechecksum(rfilechecksum)
 				{
 				
 				}

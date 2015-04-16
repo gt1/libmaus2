@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(HISTOGRAM_HPP)
 #define HISTOGRAM_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 
 #include <map>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -39,15 +39,15 @@ namespace libmaus
 			//! this type
 			typedef Histogram this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			//! complete histogram
 			std::map<uint64_t,uint64_t> all;
 			//! low part
-			::libmaus::autoarray::AutoArray<uint64_t> low;
+			::libmaus2::autoarray::AutoArray<uint64_t> low;
 			
 			public:
 			/**
@@ -90,7 +90,7 @@ namespace libmaus
 				{
 					all = o.all;
 					if ( low.size() != o.low.size() )
-						low = ::libmaus::autoarray::AutoArray<uint64_t>(o.low.size(),false);
+						low = ::libmaus2::autoarray::AutoArray<uint64_t>(o.low.size(),false);
 					std::copy(o.low.begin(),o.low.end(),low.begin());
 				}
 				
@@ -231,7 +231,7 @@ namespace libmaus
 			 *
 			 * @param other histogram to be merged into this one
 			 **/
-			void merge(::libmaus::util::Histogram const & other);
+			void merge(::libmaus2::util::Histogram const & other);
 		};
 	}
 }

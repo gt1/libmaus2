@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTFACTORY_HPP)
 #define LIBMAUS_DIGEST_DIGESTFACTORY_HPP
 
-#include <libmaus/digest/DigestFactoryInterface.hpp>
+#include <libmaus2/digest/DigestFactoryInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{
@@ -49,67 +49,67 @@ namespace libmaus
 				return getSupportedDigestsStatic();
 			}
 			
-			static libmaus::digest::DigestInterface::unique_ptr_type constructStatic(std::string const & name)
+			static libmaus2::digest::DigestInterface::unique_ptr_type constructStatic(std::string const & name)
 			{
 				if ( name == "crc32" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::CRC32);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::CRC32);
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 				else if ( name == "crc32c" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::CRC32C);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::CRC32C);
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 				else if ( name == "md5" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::util::MD5);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::util::MD5);
 					return UNIQUE_PTR_MOVE(tptr);		
 				}
 				else if ( name == "null" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::Null);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::Null);
 					return UNIQUE_PTR_MOVE(tptr);		
 				}
 				#if defined(LIBMAUS_HAVE_NETTLE)
 				else if ( name == "sha1" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::SHA1);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA1);
 					return UNIQUE_PTR_MOVE(tptr);				
 				}
 				else if ( name == "sha224" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::SHA2_224);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA2_224);
 					return UNIQUE_PTR_MOVE(tptr);				
 				}
 				else if ( name == "sha256" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::SHA2_256);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA2_256);
 					return UNIQUE_PTR_MOVE(tptr);				
 				}
 				else if ( name == "sha384" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::SHA2_384);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA2_384);
 					return UNIQUE_PTR_MOVE(tptr);				
 				}
 				else if ( name == "sha512" )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type tptr(new libmaus::digest::SHA2_512);
+					libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA2_512);
 					return UNIQUE_PTR_MOVE(tptr);				
 				}
 				#endif
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "DigestFactory: unsupported hash " << name << std::endl;
 					lme.finish();
 					throw lme;
 				}
 			}
 
-			libmaus::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const
+			libmaus2::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const
 			{
-				libmaus::digest::DigestInterface::unique_ptr_type tptr(constructStatic(name));
+				libmaus2::digest::DigestInterface::unique_ptr_type tptr(constructStatic(name));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 

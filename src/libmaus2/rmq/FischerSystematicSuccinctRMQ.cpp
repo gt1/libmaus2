@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2010 Johannes Fischer
     Copyright (C) 2010-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -18,9 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <libmaus/rmq/FischerSystematicSuccinctRMQ.hpp>
+#include <libmaus2/rmq/FischerSystematicSuccinctRMQ.hpp>
 
-const libmaus::rmq::FischerSystematicSuccinctRMQBase::DTidx libmaus::rmq::FischerSystematicSuccinctRMQBase::Catalan[17][17] = {
+const libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTidx libmaus2::rmq::FischerSystematicSuccinctRMQBase::Catalan[17][17] = {
 	{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
 	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
 	{0,0,2,5,9,14,20,27,35,44,54,65,77,90,104,119,135},
@@ -40,7 +40,7 @@ const libmaus::rmq::FischerSystematicSuccinctRMQBase::DTidx libmaus::rmq::Fische
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35357670}
 };
 
-const char libmaus::rmq::FischerSystematicSuccinctRMQBase::LSBTable256[256] = 
+const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LSBTable256[256] = 
 	{
 		0,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
 		4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
@@ -60,7 +60,7 @@ const char libmaus::rmq::FischerSystematicSuccinctRMQBase::LSBTable256[256] =
 		4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0
 	};
 
-const char libmaus::rmq::FischerSystematicSuccinctRMQBase::LogTable256[256] = 
+const char libmaus2::rmq::FischerSystematicSuccinctRMQBase::LogTable256[256] = 
 	{
 		0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,
 		4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
@@ -80,15 +80,15 @@ const char libmaus::rmq::FischerSystematicSuccinctRMQBase::LogTable256[256] =
 		7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
 	};
 
-const libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc 
-	libmaus::rmq::FischerSystematicSuccinctRMQBase::HighestBitsSet[8] = {
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~0), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~1), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~3), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~7), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~15), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~31), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~63), 
-		static_cast<libmaus::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~127)
+const libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc 
+	libmaus2::rmq::FischerSystematicSuccinctRMQBase::HighestBitsSet[8] = {
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~0), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~1), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~3), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~7), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~15), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~31), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~63), 
+		static_cast<libmaus2::rmq::FischerSystematicSuccinctRMQBase::DTsucc>(~127)
 	};
 

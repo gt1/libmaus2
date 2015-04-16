@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,13 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-#include <libmaus/util/DynamicLoading.hpp>
+#include <libmaus2/util/DynamicLoading.hpp>
 
 int main(/* int argc, char ** argv */)
 {
 	try
 	{
-		int r = ::libmaus::util::DynamicLoading::callFunction("testmod.so","dlfunc",42,"Hello world");
+		int r = ::libmaus2::util::DynamicLoading::callFunction("testmod.so","dlfunc",42,"Hello world");
 		std::cerr << "r=" << r << std::endl;
 		return 0;
 	}

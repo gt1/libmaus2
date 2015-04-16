@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_CHROMOSOMEVECTORMERGE_HPP)
 #define LIBMAUS_BAMBAM_CHROMOSOMEVECTORMERGE_HPP
 
-#include <libmaus/bambam/Chromosome.hpp>
+#include <libmaus2/bambam/Chromosome.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct ChromosomeVectorMerge
 		{
 			typedef ChromosomeVectorMerge this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			struct ChromosomeIndexComparator : public libmaus::bambam::StrCmpNum
+			struct ChromosomeIndexComparator : public libmaus2::bambam::StrCmpNum
 			{
 				std::vector < std::vector<Chromosome> const * > const & V;
 				bool const compareNonSNLN;
@@ -57,8 +57,8 @@ namespace libmaus
 						return CA.getLength() < CB.getLength();
 					else if ( compareNonSNLN )
 					{
-						// bool const res = libmaus::util::StringMapCompare::compare(CA.M,CB.M);
-						bool const res = libmaus::util::StringMapCompare::compareSortedStringPairVectors(
+						// bool const res = libmaus2::util::StringMapCompare::compare(CA.M,CB.M);
+						bool const res = libmaus2::util::StringMapCompare::compareSortedStringPairVectors(
 							CA.getSortedKeyValuePairs(),
 							CB.getSortedKeyValuePairs());
 						#if 0

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_LZ_ZLIBCOMPRESSOROBJECTFREELISTALLOCATOR_HPP)
 #define LIBMAUS_LZ_ZLIBCOMPRESSOROBJECTFREELISTALLOCATOR_HPP
 
-#include <libmaus/lz/CompressorObjectFreeListAllocator.hpp>
-#include <libmaus/lz/ZlibCompressorObjectFactory.hpp>
-#include <libmaus/lz/ZlibCompressorObjectFactoryWrapper.hpp>
+#include <libmaus2/lz/CompressorObjectFreeListAllocator.hpp>
+#include <libmaus2/lz/ZlibCompressorObjectFactory.hpp>
+#include <libmaus2/lz/ZlibCompressorObjectFactoryWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct ZlibCompressorObjectFreeListAllocator : 
-			public libmaus::lz::ZlibCompressorObjectFactoryWrapper, 
-			public libmaus::lz::CompressorObjectFreeListAllocator
+			public libmaus2::lz::ZlibCompressorObjectFactoryWrapper, 
+			public libmaus2::lz::CompressorObjectFreeListAllocator
 		{
 			ZlibCompressorObjectFreeListAllocator(int const level = Z_DEFAULT_COMPRESSION)
-			: libmaus::lz::ZlibCompressorObjectFactoryWrapper(libmaus::lz::ZlibCompressorObjectFactory::shared_ptr_type(new ZlibCompressorObjectFactory(level))), 
-			  libmaus::lz::CompressorObjectFreeListAllocator(libmaus::lz::ZlibCompressorObjectFactoryWrapper::factory) {}
+			: libmaus2::lz::ZlibCompressorObjectFactoryWrapper(libmaus2::lz::ZlibCompressorObjectFactory::shared_ptr_type(new ZlibCompressorObjectFactory(level))), 
+			  libmaus2::lz::CompressorObjectFreeListAllocator(libmaus2::lz::ZlibCompressorObjectFactoryWrapper::factory) {}
 		};
 	}
 }

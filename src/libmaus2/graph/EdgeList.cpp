@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/graph/EdgeList.hpp>
+#include <libmaus2/graph/EdgeList.hpp>
 
-unsigned int const libmaus::graph::EdgeListBase::maxweight = ::libmaus::math::MetaLowBits<8*sizeof(edge_weight_type)>::lowbits;
-libmaus::graph::EdgeListBase::edge_target_type const libmaus::graph::EdgeListBase::edge_list_term 
-	= std::numeric_limits<libmaus::graph::EdgeListBase::edge_target_type>::max(); // 0xFFFFFFFFUL;
+unsigned int const libmaus2::graph::EdgeListBase::maxweight = ::libmaus2::math::MetaLowBits<8*sizeof(edge_weight_type)>::lowbits;
+libmaus2::graph::EdgeListBase::edge_target_type const libmaus2::graph::EdgeListBase::edge_list_term 
+	= std::numeric_limits<libmaus2::graph::EdgeListBase::edge_target_type>::max(); // 0xFFFFFFFFUL;

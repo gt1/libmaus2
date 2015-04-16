@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_READENDSCONTAINERTYPEINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_READENDSCONTAINERTYPEINFO_HPP
 
-#include <libmaus/bambam/ReadEndsContainer.hpp>
+#include <libmaus2/bambam/ReadEndsContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 			{
 				typedef ReadEndsContainerTypeInfo this_type;
 				
-				typedef libmaus::bambam::ReadEndsContainer::shared_ptr_type pointer_type;
+				typedef libmaus2::bambam::ReadEndsContainer::shared_ptr_type pointer_type;
 				
 				static pointer_type getNullPointer()
 				{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMENCODER_HPP)
 #define LIBMAUS_BAMBAM_SAMENCODER_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct SamEncoder : public BamBlockWriterBase
 		{
 			typedef SamEncoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus::aio::PosixFdOutputStream::unique_ptr_type PFOS;
+			libmaus2::aio::PosixFdOutputStream::unique_ptr_type PFOS;
 			std::ostream & ostr;
-			libmaus::bambam::BamHeader const & header;
-			::libmaus::bambam::BamFormatAuxiliary auxdata;
+			libmaus2::bambam::BamHeader const & header;
+			::libmaus2::bambam::BamFormatAuxiliary auxdata;
 
-			SamEncoder(std::string const & filename, libmaus::bambam::BamHeader const & rheader)
-			: PFOS(new libmaus::aio::PosixFdOutputStream(filename)), ostr(*PFOS), header(rheader), auxdata()
+			SamEncoder(std::string const & filename, libmaus2::bambam::BamHeader const & rheader)
+			: PFOS(new libmaus2::aio::PosixFdOutputStream(filename)), ostr(*PFOS), header(rheader), auxdata()
 			{
 				ostr << header.text;
 			}
 
-			SamEncoder(std::ostream & rostr, libmaus::bambam::BamHeader const & rheader)
+			SamEncoder(std::ostream & rostr, libmaus2::bambam::BamHeader const & rheader)
 			: PFOS(), ostr(rostr), header(rheader), auxdata()
 			{
 				ostr << header.text;			
@@ -58,14 +58,14 @@ namespace libmaus
 			 **/
 			virtual void writeBamBlock(uint8_t const * E, uint64_t const blocksize)
 			{
-				libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(ostr,E,blocksize,header,auxdata);
+				libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(ostr,E,blocksize,header,auxdata);
 				ostr.put('\n');			
 			}
 			
 			/**
 			 * write alignment
 			 **/
-			virtual void writeAlignment(libmaus::bambam::BamAlignment const & A)
+			virtual void writeAlignment(libmaus2::bambam::BamAlignment const & A)
 			{
 				writeBamBlock(A.D.begin(),A.blocksize);
 			}

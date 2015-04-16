@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEOUTPUTBUFFERBASE_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEOUTPUTBUFFERBASE_HPP
 
-#include <libmaus/lz/BgzfDeflateHeaderFunctions.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfDeflateHeaderFunctions.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfDeflateOutputBufferBase : public BgzfDeflateHeaderFunctions
 		{
 			typedef BgzfDeflateOutputBufferBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			::libmaus::autoarray::AutoArray<uint8_t> outbuf;
+			::libmaus2::autoarray::AutoArray<uint8_t> outbuf;
 
 			BgzfDeflateOutputBufferBase(int const level) : outbuf(getOutBufSizeTwo(level),false) 
 			{

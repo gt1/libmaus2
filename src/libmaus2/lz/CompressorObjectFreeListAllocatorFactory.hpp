@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_LZ_COMPRESSOROBJECTFREELISTALLOCATORFACTORY_HPP)
 #define LIBMAUS_LZ_COMPRESSOROBJECTFREELISTALLOCATORFACTORY_HPP
 
-#include <libmaus/lz/SnappyCompressorObjectFreeListAllocator.hpp>
-#include <libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp>
+#include <libmaus2/lz/SnappyCompressorObjectFreeListAllocator.hpp>
+#include <libmaus2/lz/ZlibCompressorObjectFreeListAllocator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct CompressorObjectFreeListAllocatorFactory
 		{
 			typedef CompressorObjectFreeListAllocatorFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static bool startsWith(std::string const & s, std::string const & prefix)
 			{
@@ -39,14 +39,14 @@ namespace libmaus
 					s.substr(0,prefix.size()) == prefix;
 			}
 		
-			static libmaus::lz::CompressorObjectFreeListAllocator::unique_ptr_type construct(std::string const & desc)
+			static libmaus2::lz::CompressorObjectFreeListAllocator::unique_ptr_type construct(std::string const & desc)
 			{
 				static char const * zlibprefix = "zlib:";
 			
 				if ( desc == "snappy" )
 				{
-					libmaus::lz::SnappyCompressorObjectFreeListAllocator::unique_ptr_type tptr(
-						new libmaus::lz::SnappyCompressorObjectFreeListAllocator
+					libmaus2::lz::SnappyCompressorObjectFreeListAllocator::unique_ptr_type tptr(
+						new libmaus2::lz::SnappyCompressorObjectFreeListAllocator
 					);
 					return UNIQUE_PTR_MOVE(tptr);
 				}
@@ -59,8 +59,8 @@ namespace libmaus
 					
 					if ( ! istr )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::lz::CompressorObjectFreeListAllocatorFactory: Cannot parse zlib compression level " << slevel << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::lz::CompressorObjectFreeListAllocatorFactory: Cannot parse zlib compression level " << slevel << "\n";
 						lme.finish();
 						throw lme;
 					}
@@ -72,16 +72,16 @@ namespace libmaus
 						case Z_BEST_SPEED:
 						case Z_BEST_COMPRESSION:
 						{
-							libmaus::lz::ZlibCompressorObjectFreeListAllocator::unique_ptr_type tptr(
-								new libmaus::lz::ZlibCompressorObjectFreeListAllocator(ilevel)
+							libmaus2::lz::ZlibCompressorObjectFreeListAllocator::unique_ptr_type tptr(
+								new libmaus2::lz::ZlibCompressorObjectFreeListAllocator(ilevel)
 							);
 							return UNIQUE_PTR_MOVE(tptr);
 						}
 						break;
 						default:
 						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::lz::CompressorObjectFreeListAllocatorFactory: unknown zlib compression level " << ilevel << "; please choose from {" <<
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::lz::CompressorObjectFreeListAllocatorFactory: unknown zlib compression level " << ilevel << "; please choose from {" <<
 								Z_DEFAULT_COMPRESSION << "," <<
 								Z_NO_COMPRESSION << "," <<
 								Z_BEST_SPEED << "," <<
@@ -94,8 +94,8 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::lz::CompressorObjectFreeListAllocatorFactory: cannot parse compression setting " << desc << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::lz::CompressorObjectFreeListAllocatorFactory: cannot parse compression setting " << desc << "\n";
 					lme.finish();
 					throw lme;
 				}

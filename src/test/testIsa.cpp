@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,24 +19,24 @@
 
 #include <iostream>
 #include <string>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/suffixsort/divsufsort.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/suffixsort/divsufsort.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 template<typename SUF_TYPE>
-::libmaus::autoarray::AutoArray< typename SUF_TYPE::value_type > computeISA(SUF_TYPE & SUF, uint64_t const n)
+::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > computeISA(SUF_TYPE & SUF, uint64_t const n)
 {
 	// compute shifted inverse of suffix array extended by one
-	::libmaus::autoarray::AutoArray< typename SUF_TYPE::value_type > ISA(n,false); 
+	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISA(n,false); 
 	for ( size_t i = 0; i < n; ++i ) ISA[SUF[i]] = i;
 	return ISA;
 }
 
 template<typename SUF_TYPE>
-::libmaus::autoarray::AutoArray< typename SUF_TYPE::value_type > computeISU(SUF_TYPE & SUF, uint64_t const n)
+::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > computeISU(SUF_TYPE & SUF, uint64_t const n)
 {
 	// compute shifted inverse of suffix array extended by one
-	::libmaus::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU(n+1,false); 
+	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU(n+1,false); 
 	for ( size_t i = 0; i < n; ++i ) ISU[SUF[i]] = i+1; ISU[n] = 0;
 	return ISU;
 }
@@ -45,7 +45,7 @@ template<typename SUF_TYPE>
 template<typename SUF_TYPE>
 std::wstring sufToString(SUF_TYPE & SUF, size_t const n)
 {
-	::libmaus::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU = computeISU(SUF,n);
+	::libmaus2::autoarray::AutoArray< typename SUF_TYPE::value_type > ISU = computeISU(SUF,n);
 	wchar_t c = 'a';
 	std::wstring s(n,0);
 	s[SUF[0]] = c;
@@ -65,15 +65,15 @@ int main(int argc, char * argv[])
 	if ( argc < 2 )
 		return EXIT_FAILURE;
 
-	::libmaus::autoarray::AutoArray<uint8_t> data = ::libmaus::util::GetFileSize::readFile(argv[1]);
+	::libmaus2::autoarray::AutoArray<uint8_t> data = ::libmaus2::util::GetFileSize::readFile(argv[1]);
 	std::basic_string<wchar_t> const s(data.begin(),data.end());
 	uint64_t const n = s.size();
 
 	unsigned int const bitwidth = 64;
-	typedef ::libmaus::suffixsort::DivSufSort<bitwidth,wchar_t *,wchar_t const *,int64_t *,int64_t const *,4096> sort_type;
+	typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,wchar_t *,wchar_t const *,int64_t *,int64_t const *,4096> sort_type;
 	typedef sort_type::saidx_t saidx_t;
 
-	::libmaus::autoarray::AutoArray<saidx_t> SAdiv0(n,false);	
+	::libmaus2::autoarray::AutoArray<saidx_t> SAdiv0(n,false);	
 
 	std::cerr << "Running divsufsort...";
 	sort_type::divsufsort ( reinterpret_cast<wchar_t const *>(s.c_str()) , SAdiv0.get() , n );
@@ -91,13 +91,13 @@ int main(int argc, char * argv[])
 	
 	// return 0;
 	
-	::libmaus::autoarray::AutoArray < int64_t > ISA = computeISA(SAdiv0,n);
+	::libmaus2::autoarray::AutoArray < int64_t > ISA = computeISA(SAdiv0,n);
 
 	std::wstring x = sufToString(ISA,n);
 	
 	// std::wcerr << x << std::endl;
 
-	::libmaus::autoarray::AutoArray<saidx_t> ISAdiv0(n,false);
+	::libmaus2::autoarray::AutoArray<saidx_t> ISAdiv0(n,false);
 	sort_type::divsufsort ( reinterpret_cast<wchar_t const *>(x.c_str()) , ISAdiv0.get() , n );
 	
 	for ( uint64_t i = 0; i < n; ++i )

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if !defined(LIBMAUS_PARALLEL_LOCKEDHEAP_HPP)
 #define LIBMAUS_PARALLEL_LOCKEDHEAP_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{	
@@ -32,10 +32,10 @@ namespace libmaus
 			typedef _value_type value_type;
 			typedef _comparator_type comparator_type;
 			typedef LockedHeap<value_type,comparator_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus::parallel::PosixSpinLock lock;
+			libmaus2::parallel::PosixSpinLock lock;
 			std::priority_queue<value_type,std::vector<value_type>,comparator_type> Q;
 			
 			LockedHeap()
@@ -46,25 +46,25 @@ namespace libmaus
 			
 			uint64_t size()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.size();
 			}
 			
 			bool empty()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.size() == 0;	
 			}
 			
 			void push(value_type const v)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				Q.push(v);
 			}
 
 			value_type pop()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				value_type p = Q.top();
 				Q.pop();
 				return p;
@@ -72,13 +72,13 @@ namespace libmaus
 
 			value_type top()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.top();
 			}
 
 			bool tryPop(value_type & v)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( Q.size() )
 				{
 					v = Q.top();

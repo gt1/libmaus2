@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(TRIPLEEDGECOMPAT_HPP)
 #define TRIPLEEDGECOMPAT_HPP
 
-#include <libmaus/aio/ReorderConcatGenericInput.hpp>
-#include <libmaus/aio/GenericOutput.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/graph/TripleEdge.hpp>
-#include <libmaus/util/Histogram.hpp>
+#include <libmaus2/aio/ReorderConcatGenericInput.hpp>
+#include <libmaus2/aio/GenericOutput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/graph/TripleEdge.hpp>
+#include <libmaus2/util/Histogram.hpp>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -36,8 +36,8 @@ namespace libmaus
 			static uint64_t getNumTotalEdges(std::string const numlistconcatrequestname)
 			{
 				uint64_t const bufsize = 64*1024;
-				::libmaus::aio::ReorderConcatGenericInput<uint32_t>::unique_ptr_type 
-					numedgefile = ::libmaus::aio::ReorderConcatGenericInput<uint32_t>::openConcatFile(numlistconcatrequestname, bufsize);
+				::libmaus2::aio::ReorderConcatGenericInput<uint32_t>::unique_ptr_type 
+					numedgefile = ::libmaus2::aio::ReorderConcatGenericInput<uint32_t>::openConcatFile(numlistconcatrequestname, bufsize);
 				
 				uint32_t numedges;
 				uint64_t numtotaledges = 0;
@@ -51,7 +51,7 @@ namespace libmaus
 				typename numlistfiletype,
 				typename edgetargetfiletype,
 				typename edgeweightfiletype>
-			static ::libmaus::autoarray::AutoArray < ::libmaus::graph::TripleEdge > decompat(
+			static ::libmaus2::autoarray::AutoArray < ::libmaus2::graph::TripleEdge > decompat(
 				numlistfiletype & numedgefile,
 				edgetargetfiletype & edgetargetfile,
 				edgeweightfiletype & edgeweightfile,
@@ -59,8 +59,8 @@ namespace libmaus
 				uint64_t srcbase
 				)
 			{
-				::libmaus::autoarray::AutoArray < ::libmaus::graph::TripleEdge > edges(numtotaledges,false);
-				::libmaus::graph::TripleEdge * edgesp = edges.begin();
+				::libmaus2::autoarray::AutoArray < ::libmaus2::graph::TripleEdge > edges(numtotaledges,false);
+				::libmaus2::graph::TripleEdge * edgesp = edges.begin();
 
 				uint32_t numedges;
 				while ( numedgefile->getNext(numedges) )
@@ -74,7 +74,7 @@ namespace libmaus
 						assert ( tok );
 						assert ( wok );
 					
-						*(edgesp++) = ::libmaus::graph::TripleEdge(srcbase,edgetarget,edgeweight);
+						*(edgesp++) = ::libmaus2::graph::TripleEdge(srcbase,edgetarget,edgeweight);
 					}
 					
 					srcbase++;
@@ -119,7 +119,7 @@ namespace libmaus
 				
 				}
 			
-				bool getNext ( ::libmaus::graph::TripleEdge & e )
+				bool getNext ( ::libmaus2::graph::TripleEdge & e )
 				{
 					while ( ! numedges )
 					{
@@ -151,9 +151,9 @@ namespace libmaus
 			
 			struct TripleEdgeFileDecompacterFiles
 			{
-				typedef ::libmaus::aio::ReorderConcatGenericInput<uint32_t> numedgefiletype;
-				typedef ::libmaus::aio::ReorderConcatGenericInput<uint32_t> edgetargetfiletype;
-				typedef ::libmaus::aio::ReorderConcatGenericInput<uint8_t> edgeweightfiletype;
+				typedef ::libmaus2::aio::ReorderConcatGenericInput<uint32_t> numedgefiletype;
+				typedef ::libmaus2::aio::ReorderConcatGenericInput<uint32_t> edgetargetfiletype;
+				typedef ::libmaus2::aio::ReorderConcatGenericInput<uint8_t> edgeweightfiletype;
 				
 				numedgefiletype::unique_ptr_type numedgefile;
 				edgetargetfiletype::unique_ptr_type edgetargetfile;
@@ -174,9 +174,9 @@ namespace libmaus
 			struct TripleEdgeFileDecompacter :
 				public TripleEdgeFileDecompacterFiles, 
 				public TripleEdgeDecompacterBase<
-					::libmaus::aio::ReorderConcatGenericInput<uint32_t>,
-					::libmaus::aio::ReorderConcatGenericInput<uint32_t>,
-					::libmaus::aio::ReorderConcatGenericInput<uint8_t>
+					::libmaus2::aio::ReorderConcatGenericInput<uint32_t>,
+					::libmaus2::aio::ReorderConcatGenericInput<uint32_t>,
+					::libmaus2::aio::ReorderConcatGenericInput<uint8_t>
 				>
 			{
 				TripleEdgeFileDecompacter(
@@ -187,9 +187,9 @@ namespace libmaus
 				)
 				: TripleEdgeFileDecompacterFiles(numlistconcatrequestname,edgetargetsconcatequestname,edgeweightsconcatrequestname),
 				  TripleEdgeDecompacterBase<
-					::libmaus::aio::ReorderConcatGenericInput<uint32_t>,
-					::libmaus::aio::ReorderConcatGenericInput<uint32_t>,
-					::libmaus::aio::ReorderConcatGenericInput<uint8_t>
+					::libmaus2::aio::ReorderConcatGenericInput<uint32_t>,
+					::libmaus2::aio::ReorderConcatGenericInput<uint32_t>,
+					::libmaus2::aio::ReorderConcatGenericInput<uint8_t>
 				  >( 
 				  	*(TripleEdgeFileDecompacterFiles::numedgefile),
 				  	*(TripleEdgeFileDecompacterFiles::edgetargetfile),
@@ -201,7 +201,7 @@ namespace libmaus
 				}
 			};
 
-			static ::libmaus::autoarray::AutoArray < ::libmaus::graph::TripleEdge > decompat(
+			static ::libmaus2::autoarray::AutoArray < ::libmaus2::graph::TripleEdge > decompat(
 				std::string const numlistconcatrequestname,
 				std::string const edgetargetsconcatequestname,
 				std::string const edgeweightsconcatrequestname,
@@ -210,16 +210,16 @@ namespace libmaus
 			{
 				uint64_t const numtotaledges = getNumTotalEdges(numlistconcatrequestname);
 				uint64_t const bufsize = 64*1024;
-				::libmaus::aio::ReorderConcatGenericInput<uint32_t>::unique_ptr_type 
-					numedgefile = ::libmaus::aio::ReorderConcatGenericInput<uint32_t>::openConcatFile(numlistconcatrequestname, bufsize);
-				::libmaus::aio::ReorderConcatGenericInput<uint32_t>::unique_ptr_type 
-					edgetargetfile = ::libmaus::aio::ReorderConcatGenericInput<uint32_t>::openConcatFile(edgetargetsconcatequestname, bufsize);
-				::libmaus::aio::ReorderConcatGenericInput<uint8_t>::unique_ptr_type 
-					edgeweightfile = ::libmaus::aio::ReorderConcatGenericInput<uint8_t>::openConcatFile(edgeweightsconcatrequestname, bufsize);
+				::libmaus2::aio::ReorderConcatGenericInput<uint32_t>::unique_ptr_type 
+					numedgefile = ::libmaus2::aio::ReorderConcatGenericInput<uint32_t>::openConcatFile(numlistconcatrequestname, bufsize);
+				::libmaus2::aio::ReorderConcatGenericInput<uint32_t>::unique_ptr_type 
+					edgetargetfile = ::libmaus2::aio::ReorderConcatGenericInput<uint32_t>::openConcatFile(edgetargetsconcatequestname, bufsize);
+				::libmaus2::aio::ReorderConcatGenericInput<uint8_t>::unique_ptr_type 
+					edgeweightfile = ::libmaus2::aio::ReorderConcatGenericInput<uint8_t>::openConcatFile(edgeweightsconcatrequestname, bufsize);
 				return decompat(numedgefile,edgetargetfile,edgeweightfile,numtotaledges,srcbase);
 			}
 
-			static ::libmaus::autoarray::AutoArray < ::libmaus::graph::TripleEdge > decompatDecompacter(
+			static ::libmaus2::autoarray::AutoArray < ::libmaus2::graph::TripleEdge > decompatDecompacter(
 				std::string const numlistconcatrequestname,
 				std::string const edgetargetsconcatequestname,
 				std::string const edgeweightsconcatrequestname,
@@ -228,14 +228,14 @@ namespace libmaus
 			{
 				uint64_t const numtotaledges = getNumTotalEdges(numlistconcatrequestname);
 				TripleEdgeFileDecompacter decompacter(numlistconcatrequestname,edgetargetsconcatequestname,edgeweightsconcatrequestname,srcbase);
-				::libmaus::autoarray::AutoArray< ::libmaus::graph::TripleEdge > edges(numtotaledges,false);
+				::libmaus2::autoarray::AutoArray< ::libmaus2::graph::TripleEdge > edges(numtotaledges,false);
 				for ( uint64_t i = 0; i < numtotaledges; ++i )
 				{
 					bool const ok = decompacter.getNext(edges[i]);
 					assert ( ok );
 				}
 				
-				::libmaus::graph::TripleEdge edge;
+				::libmaus2::graph::TripleEdge edge;
 				assert ( ! decompacter.getNext(edge) );
 				
 				return edges;
@@ -302,7 +302,7 @@ namespace libmaus
 					>
 			{
 				typedef SingleStreamDecompacter<stream_type> this_type;
-				typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 				typedef SingleStreamDecompacterStreams<stream_type> streambasetype;
 				typedef TripleEdgeDecompacterBase<		
@@ -325,7 +325,7 @@ namespace libmaus
 			};
 
 			template<typename stream_type>
-			static ::libmaus::autoarray::AutoArray < ::libmaus::graph::TripleEdge > decompatDecompacterSingle(
+			static ::libmaus2::autoarray::AutoArray < ::libmaus2::graph::TripleEdge > decompatDecompacterSingle(
 				stream_type & stream,
 				uint64_t const numtotaledges,
 				uint64_t const srcbase
@@ -333,7 +333,7 @@ namespace libmaus
 			{
 				SingleStreamDecompacter<stream_type> SSD(stream,srcbase);
 
-				::libmaus::autoarray::AutoArray< ::libmaus::graph::TripleEdge > edges(numtotaledges,false);
+				::libmaus2::autoarray::AutoArray< ::libmaus2::graph::TripleEdge > edges(numtotaledges,false);
 				for ( uint64_t i = 0; i < numtotaledges; ++i )
 				{
 					bool const ok = SSD.getNext(edges[i]);
@@ -449,7 +449,7 @@ namespace libmaus
 			}
 			
 			template<typename type>
-			struct HistOutputType : public ::libmaus::util::Histogram
+			struct HistOutputType : public ::libmaus2::util::Histogram
 			{
 				HistOutputType()
 				: Histogram()
@@ -457,7 +457,7 @@ namespace libmaus
 				
 				void put(type const & n)
 				{
-					::libmaus::util::Histogram::operator()(n);
+					::libmaus2::util::Histogram::operator()(n);
 				}
 				void flush()
 				{
@@ -525,20 +525,20 @@ namespace libmaus
 				}
 			};
 			template<typename type>
-			struct SynchronousHistOutputType : public ::libmaus::util::Histogram, public ::libmaus::aio::SynchronousGenericOutput<type>
+			struct SynchronousHistOutputType : public ::libmaus2::util::Histogram, public ::libmaus2::aio::SynchronousGenericOutput<type>
 			{
 				SynchronousHistOutputType(std::string const & filename, uint64_t const bufsize = 64*1024)
-				: Histogram(), ::libmaus::aio::SynchronousGenericOutput<type>(filename,bufsize)
+				: Histogram(), ::libmaus2::aio::SynchronousGenericOutput<type>(filename,bufsize)
 				{}
 				
 				void put(type const & n)
 				{
-					::libmaus::aio::SynchronousGenericOutput<type>::put(n);
-					::libmaus::util::Histogram::operator()(n);
+					::libmaus2::aio::SynchronousGenericOutput<type>::put(n);
+					::libmaus2::util::Histogram::operator()(n);
 				}
 				void flush()
 				{
-					::libmaus::aio::SynchronousGenericOutput<type>::flush();
+					::libmaus2::aio::SynchronousGenericOutput<type>::flush();
 				}
 			};
 		};

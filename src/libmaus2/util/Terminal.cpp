@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Terminal.hpp>
+#include <libmaus2/util/Terminal.hpp>
 
-uint64_t libmaus::util::Terminal::getColumns()
+uint64_t libmaus2::util::Terminal::getColumns()
 {
 	int fd = -1;
 	uint64_t cols = 80;
@@ -38,7 +38,7 @@ uint64_t libmaus::util::Terminal::getColumns()
 			
 			if ( stat < 0 )
 			{
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "ioctl failed: " << strerror(errno) << std::endl;		
 				se.finish();
 				throw se;
@@ -50,7 +50,7 @@ uint64_t libmaus::util::Terminal::getColumns()
 		}
 		else
 		{
-			::libmaus::exception::LibMausException se;
+			::libmaus2::exception::LibMausException se;
 			se.getStream() << "open failed: " << strerror(errno) << std::endl;		
 			se.finish();
 			throw se;

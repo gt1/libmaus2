@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ForkProcessLSFSim.hpp>
+#include <libmaus2/util/ForkProcessLSFSim.hpp>
 #include <iostream>
 
 int main()
 {
-	::libmaus::util::ForkProcessLSFSim sim(
+	::libmaus2::util::ForkProcessLSFSim sim(
 		std::string("/bin/cat"),
 		std::string("localjob"),
 		std::string("localproject"),

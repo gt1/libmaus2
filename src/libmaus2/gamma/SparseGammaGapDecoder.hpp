@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPDECODER_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPDECODER_HPP
 
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
@@ -32,13 +32,13 @@ namespace libmaus
 		{
 			typedef SparseGammaGapDecoder this_type;
 			
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			typedef libmaus::aio::SynchronousGenericInput<uint64_t> stream_type;
+			typedef libmaus2::aio::SynchronousGenericInput<uint64_t> stream_type;
 			
-			libmaus::aio::SynchronousGenericInput<uint64_t> SGI;
-			libmaus::gamma::GammaDecoder<stream_type> gdec;
+			libmaus2::aio::SynchronousGenericInput<uint64_t> SGI;
+			libmaus2::gamma::GammaDecoder<stream_type> gdec;
 			std::pair<uint64_t,uint64_t> p;
 			
 			struct iterator

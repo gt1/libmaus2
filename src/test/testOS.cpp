@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,16 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/SaturatingCounter.hpp>
-#include <libmaus/select/ESelect222B.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/SignedCompactArray.hpp>
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/suffixsort/SAISUtils.hpp>
-#include <libmaus/suffixsort/SuccinctFactorList.hpp>
-#include <libmaus/suffixsort/OSInduce.hpp>
-#include <libmaus/suffixsort/SAIS_Mori.hpp>
-#include <libmaus/select/ESelect222B.hpp>
+#include <libmaus2/util/SaturatingCounter.hpp>
+#include <libmaus2/select/ESelect222B.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/SignedCompactArray.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/suffixsort/SAISUtils.hpp>
+#include <libmaus2/suffixsort/SuccinctFactorList.hpp>
+#include <libmaus2/suffixsort/OSInduce.hpp>
+#include <libmaus2/suffixsort/SAIS_Mori.hpp>
+#include <libmaus2/select/ESelect222B.hpp>
 #include <cassert>
 
 template<typename text_type, typename sa_type>
@@ -58,7 +58,7 @@ struct ImplicitBWT
 };
 
 template<typename input_array_type>
-::libmaus::bitio::CompactArray::unique_ptr_type bwtOSHash(
+::libmaus2::bitio::CompactArray::unique_ptr_type bwtOSHash(
 	input_array_type const & C, 
 	bool const verbose, 
 	unsigned int const level = 1
@@ -67,7 +67,7 @@ template<typename input_array_type>
 	uint64_t const n = C.size();
 	uint64_t const sentinel = (1ull<<C.getB());
 	uint64_t const smallthres = 
-		::libmaus::suffixsort::SuccinctFactorListContext< ::libmaus::bitio::CompactArray::const_iterator >::computeSmallThresPreLog(n,C.getB());
+		::libmaus2::suffixsort::SuccinctFactorListContext< ::libmaus2::bitio::CompactArray::const_iterator >::computeSmallThresPreLog(n,C.getB());
 		
 	if ( verbose )
 		std::cerr << "\n\n\n(+++bwtOSHash: n=" << n << ",b=" << C.getB() << ")";
@@ -76,19 +76,19 @@ template<typename input_array_type>
 	typedef typename input_array_type::const_iterator compact_const_it;
 	compact_const_it it = C.begin();
 
-	::libmaus::timing::RealTimeClock rtc;
+	::libmaus2::timing::RealTimeClock rtc;
 	if ( verbose )
 	{
 		std::cerr << "(computing s* positions...";
 		rtc.start();
 	}
 
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype = ::libmaus::suffixsort::computeSast(C.begin(),C.size());
-	::libmaus::bitio::IndexedBitVector & stype = *pstype;
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type pstype = ::libmaus2::suffixsort::computeSast(C.begin(),C.size());
+	::libmaus2::bitio::IndexedBitVector & stype = *pstype;
 	
 	if ( verbose )
 	{
-		::libmaus::util::Histogram sdifhist;
+		::libmaus2::util::Histogram sdifhist;
 		uint64_t lastspos = 0;
 		for ( uint64_t i = stype.next1(1); i < n; i = stype.next1(i+1) )
 		{
@@ -103,9 +103,9 @@ template<typename input_array_type>
 	if ( verbose )
 		std::cerr << "time=" << rtc.getElapsedSeconds() << ")" << std::endl;
 
-	::libmaus::suffixsort::SuccinctFactorList< typename input_array_type::const_iterator > sastsais(it,n,C.getB(),sentinel);
+	::libmaus2::suffixsort::SuccinctFactorList< typename input_array_type::const_iterator > sastsais(it,n,C.getB(),sentinel);
 
-	::libmaus::timing::RealTimeClock lirtc;
+	::libmaus2::timing::RealTimeClock lirtc;
 	uint64_t saisz0rank = 0;
 
 
@@ -114,42 +114,42 @@ template<typename input_array_type>
 		#if defined(COMPUTE_HASH_NOLOOKUP)
 		if ( verbose )
 			std::cerr << "Computing reduced string...";
-		::libmaus::timing::RealTimeClock redrtc; redrtc.start();
+		::libmaus2::timing::RealTimeClock redrtc; redrtc.start();
 		typedef uint32_t hash_type;
-		::libmaus::suffixsort::HashReducedString<hash_type>::unique_ptr_type HRS = ::libmaus::suffixsort::computeReducedStringHash< 
+		::libmaus2::suffixsort::HashReducedString<hash_type>::unique_ptr_type HRS = ::libmaus2::suffixsort::computeReducedStringHash< 
 			input_array_type,hash_type>(C,stype,smallthres,verbose);
-		::libmaus::bitio::CompactArray::unique_ptr_type & hreduced = HRS->hreduced;
+		::libmaus2::bitio::CompactArray::unique_ptr_type & hreduced = HRS->hreduced;
 		if ( verbose )
 		{
 			std::cerr << "done, time " << redrtc.getElapsedSeconds() << " length=" << hreduced->size() << " bps=" << hreduced->getB() << std::endl;
 			std::cerr << "Size of decode table " << HRS->namedict->byteSize() << std::endl;
 			std::cerr << "Size of reduced string " << HRS->hreduced->byteSize() << std::endl;
 		}
-		typedef ::libmaus::bitio::CompactArray sub_array_type;
-		::libmaus::bitio::CompactArray::const_iterator hreducedit(hreduced.get());
+		typedef ::libmaus2::bitio::CompactArray sub_array_type;
+		::libmaus2::bitio::CompactArray::const_iterator hreducedit(hreduced.get());
 		uint64_t const subsize = hreduced->size();
 		#else
 		typedef uint32_t hash_type;
-		typename ::libmaus::suffixsort::HashLookupTable<hash_type>::unique_ptr_type HRS =
-			::libmaus::suffixsort::computeReducedStringHashLookupTable<input_array_type,hash_type>(C,stype,smallthres,verbose);
-		typename ::libmaus::suffixsort::HashLookupTable<hash_type>::const_iterator hreducedit = HRS->begin();
+		typename ::libmaus2::suffixsort::HashLookupTable<hash_type>::unique_ptr_type HRS =
+			::libmaus2::suffixsort::computeReducedStringHashLookupTable<input_array_type,hash_type>(C,stype,smallthres,verbose);
+		typename ::libmaus2::suffixsort::HashLookupTable<hash_type>::const_iterator hreducedit = HRS->begin();
 		uint64_t const subsize = HRS->size();
-		typedef ::libmaus::suffixsort::HashLookupTable<hash_type> sub_array_type;
+		typedef ::libmaus2::suffixsort::HashLookupTable<hash_type> sub_array_type;
 		#endif
 
 		if ( verbose )
 			std::cerr << "Computing SA of hash reduced string...";
 			
-		::libmaus::timing::RealTimeClock hrrtc; hrrtc.start();
+		::libmaus2::timing::RealTimeClock hrrtc; hrrtc.start();
 
 
 		// #define BWT_OS_SAIS_COMPACT
 
-		typedef ::libmaus::autoarray::AutoArray<int32_t,::libmaus::autoarray::alloc_type_c> sa_array_type;
+		typedef ::libmaus2::autoarray::AutoArray<int32_t,::libmaus2::autoarray::alloc_type_c> sa_array_type;
 		sa_array_type SAhreduced(subsize, false);
 
-		::libmaus::suffixsort::saisxx<
-			typename ::libmaus::suffixsort::HashLookupTable<hash_type>::const_iterator,
+		::libmaus2::suffixsort::saisxx<
+			typename ::libmaus2::suffixsort::HashLookupTable<hash_type>::const_iterator,
 			int32_t *,
 			int32_t
 			>(hreducedit, SAhreduced.begin(), static_cast<int32_t>(subsize), HRS->K + 1 ) ;
@@ -226,11 +226,11 @@ template<typename input_array_type>
 	{
 		if ( verbose )
 			std::cerr << "Computing reduced string...";
-		::libmaus::timing::RealTimeClock redrtc; redrtc.start();
+		::libmaus2::timing::RealTimeClock redrtc; redrtc.start();
 		typedef uint32_t hash_type;
-		::libmaus::suffixsort::HashReducedString<hash_type>::unique_ptr_type HRS = ::libmaus::suffixsort::computeReducedStringHash< 
+		::libmaus2::suffixsort::HashReducedString<hash_type>::unique_ptr_type HRS = ::libmaus2::suffixsort::computeReducedStringHash< 
 			input_array_type,hash_type>(C,stype,smallthres,verbose);
-		::libmaus::bitio::CompactArray::unique_ptr_type & hreduced = HRS->hreduced;
+		::libmaus2::bitio::CompactArray::unique_ptr_type & hreduced = HRS->hreduced;
 		if ( verbose )
 		{
 			std::cerr << "done, time " << redrtc.getElapsedSeconds() << " length=" << hreduced->size() << " bps=" << hreduced->getB() << std::endl;
@@ -240,7 +240,7 @@ template<typename input_array_type>
 
 
 		// recursion
-		::libmaus::bitio::CompactArray::unique_ptr_type subbwt = bwtOSHash(*hreduced, verbose, level+1);
+		::libmaus2::bitio::CompactArray::unique_ptr_type subbwt = bwtOSHash(*hreduced, verbose, level+1);
 
 		for ( int64_t i = static_cast<int64_t>(subbwt->size())-1; i >= 0; --i )
 		{
@@ -285,20 +285,20 @@ template<typename input_array_type>
 	if ( verbose )
 		std::cerr << "Rank of position 0 among S* suffixes is " << saisz0rank << std::endl;
 
-	uint64_t const prepeak = ::libmaus::autoarray::AutoArray_peakmemusage;
+	uint64_t const prepeak = ::libmaus2::autoarray::AutoArray_peakmemusage;
 	
 	if ( verbose )
 	{
 		std::cerr << "Inducing BWT from sorted S* type suffixes...";
 		lirtc.start();
 	}
-	::libmaus::bitio::CompactArray::unique_ptr_type sastsaisbwt = 
-		::libmaus::suffixsort::induce< ::libmaus::suffixsort::mode_induce >(
+	::libmaus2::bitio::CompactArray::unique_ptr_type sastsaisbwt = 
+		::libmaus2::suffixsort::induce< ::libmaus2::suffixsort::mode_induce >(
 			it,n,C.getB(),sentinel,sastsais,saisz0rank,!stype[0],verbose);
 	if ( verbose )
 		std::cerr << "done, time " << lirtc.getElapsedSeconds() << std::endl;
 
-	uint64_t const postpeak = ::libmaus::autoarray::AutoArray_peakmemusage;
+	uint64_t const postpeak = ::libmaus2::autoarray::AutoArray_peakmemusage;
 	
 	if ( verbose )
 	{
@@ -310,35 +310,35 @@ template<typename input_array_type>
 	return UNIQUE_PTR_MOVE(sastsaisbwt);
 }
 
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/suffixsort/SAISUtils.hpp>
-#include <libmaus/suffixsort/SuccinctFactorList.hpp>
-#include <libmaus/suffixsort/OSInduce.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/suffixsort/SAISUtils.hpp>
+#include <libmaus2/suffixsort/SuccinctFactorList.hpp>
+#include <libmaus2/suffixsort/OSInduce.hpp>
 
-::libmaus::bitio::CompactArray::unique_ptr_type bwtOS(::libmaus::bitio::CompactArray const & C, bool const verbose)
+::libmaus2::bitio::CompactArray::unique_ptr_type bwtOS(::libmaus2::bitio::CompactArray const & C, bool const verbose)
 {
 	uint64_t const n = C.size();
 	uint64_t const b = C.getB();
 	uint64_t const sentinel = (1ull<<b);
 
-	typedef ::libmaus::bitio::CompactArray::const_iterator compact_const_it;
+	typedef ::libmaus2::bitio::CompactArray::const_iterator compact_const_it;
 	compact_const_it it = C.begin();
 
 	if ( verbose )
 		std::cerr << "computing s* positions...";
 
-	::libmaus::autoarray::AutoArray < uint64_t > Shist, Lhist;
+	::libmaus2::autoarray::AutoArray < uint64_t > Shist, Lhist;
 	uint64_t maxk = 0;
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype = ::libmaus::suffixsort::computeSast(C.begin(),n,Shist,Lhist,maxk);
-	::libmaus::bitio::IndexedBitVector & stype = *pstype;
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type pstype = ::libmaus2::suffixsort::computeSast(C.begin(),n,Shist,Lhist,maxk);
+	::libmaus2::bitio::IndexedBitVector & stype = *pstype;
 	
 	if ( verbose )
 		std::cerr << "done." << std::endl;
 
 	if ( verbose )
 		std::cerr << "creating list of unsorted s* substrings...";
-	::libmaus::suffixsort::SuccinctFactorList< ::libmaus::bitio::CompactArray::const_iterator > sastpre(it,n,b,sentinel);
+	::libmaus2::suffixsort::SuccinctFactorList< ::libmaus2::bitio::CompactArray::const_iterator > sastpre(it,n,b,sentinel);
 	uint64_t pleft = 0;
 	for ( uint64_t i = 1; i < n; ++i )
 		if ( stype[i] )
@@ -352,15 +352,15 @@ template<typename input_array_type>
 		std::cerr << "done, byte size " << sastpre.byteSize() 
 			<< " storage: explicit=" << eihist.first << " implicit=" << eihist.second
 			<< std::endl;
-		::libmaus::util::Histogram::unique_ptr_type sizehist = sastpre.sizeHistogram();
+		::libmaus2::util::Histogram::unique_ptr_type sizehist = sastpre.sizeHistogram();
 		sizehist->print(std::cerr);
 	}
 
 	if ( verbose )
 		std::cerr << "Running induce on unsorted s*type substrings...";
-	::libmaus::timing::RealTimeClock unrtc; unrtc.start();
-	::libmaus::bitio::CompactArray::unique_ptr_type reduced =
-		::libmaus::suffixsort::induce< ::libmaus::suffixsort::mode_sort >(it,n,b,sentinel,sastpre,0,!stype[0],verbose);
+	::libmaus2::timing::RealTimeClock unrtc; unrtc.start();
+	::libmaus2::bitio::CompactArray::unique_ptr_type reduced =
+		::libmaus2::suffixsort::induce< ::libmaus2::suffixsort::mode_sort >(it,n,b,sentinel,sastpre,0,!stype[0],verbose);
 	if ( verbose )
 		std::cerr << "done, time " << unrtc.getElapsedSeconds() << " length " << reduced->size() 
 			<< " bits per symbol " << reduced->getB() << std::endl;
@@ -368,10 +368,10 @@ template<typename input_array_type>
 	if ( verbose )
 		std::cerr << "Computing SA of reduced string...";
 		
-	::libmaus::timing::RealTimeClock rrtc; rrtc.start();
-	::libmaus::bitio::CompactArray::const_iterator reducedit(reduced.get());
+	::libmaus2::timing::RealTimeClock rrtc; rrtc.start();
+	::libmaus2::bitio::CompactArray::const_iterator reducedit(reduced.get());
 
-	typedef ::libmaus::autoarray::AutoArray<int32_t,::libmaus::autoarray::alloc_type_c> sa_array_type;
+	typedef ::libmaus2::autoarray::AutoArray<int32_t,::libmaus2::autoarray::alloc_type_c> sa_array_type;
 	typedef sa_array_type::unique_ptr_type sa_array_ptr_type;
 	uint64_t const subsize = reduced->size();
 	sa_array_ptr_type SAreduced(new sa_array_type(subsize, false));
@@ -379,13 +379,13 @@ template<typename input_array_type>
 	for ( uint64_t i = 0; i < reduced->size(); ++i )
 		subk = std::max(subk,reduced->get(i));
 
-	::libmaus::suffixsort::saisxx<
-		::libmaus::bitio::CompactArray::const_iterator,
+	::libmaus2::suffixsort::saisxx<
+		::libmaus2::bitio::CompactArray::const_iterator,
 		int32_t *,
 		int32_t
 		>(reducedit, SAreduced->begin(), static_cast<int32_t>(subsize), subk+1 ) ;
 
-	// ::libmaus::suffixsort::SAIS::sa_array_ptr_type SAreduced = ::libmaus::suffixsort::SAIS::SA_IS_Compact(reducedit,reduced->size(),verbose);
+	// ::libmaus2::suffixsort::SAIS::sa_array_ptr_type SAreduced = ::libmaus2::suffixsort::SAIS::SA_IS_Compact(reducedit,reduced->size(),verbose);
 
 
 
@@ -396,7 +396,7 @@ template<typename input_array_type>
 		std::cerr << "Constructing list of sorted S* type suffixes from SAIS sorting...";
 
 	rrtc.start();
-	::libmaus::suffixsort::SuccinctFactorList< ::libmaus::bitio::CompactArray::const_iterator > sastsais(it,n,b,sentinel);
+	::libmaus2::suffixsort::SuccinctFactorList< ::libmaus2::bitio::CompactArray::const_iterator > sastsais(it,n,b,sentinel);
 	uint64_t r0shift = stype[0] ? 0 : 1;
 	for ( uint64_t i = 0; i < SAreduced->size(); ++i )
 	{
@@ -424,7 +424,7 @@ template<typename input_array_type>
 	if ( verbose )
 		std::cerr << "Inducing BWT from sorted S* type suffixes...";
 	rrtc.start();
-	::libmaus::bitio::CompactArray::unique_ptr_type sastsaisbwt = ::libmaus::suffixsort::induce< ::libmaus::suffixsort::mode_induce >(
+	::libmaus2::bitio::CompactArray::unique_ptr_type sastsaisbwt = ::libmaus2::suffixsort::induce< ::libmaus2::suffixsort::mode_induce >(
 		it,n,b,sentinel,sastsais,saisz0rank,!stype[0],verbose);
 	if ( verbose )
 		std::cerr << "done, time " << rrtc.getElapsedSeconds() << std::endl;
@@ -433,32 +433,32 @@ template<typename input_array_type>
 }
 
 
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/suffixsort/OSInduce.hpp>
-#include <libmaus/suffixsort/SAISUtils.hpp>
-#include <libmaus/suffixsort/SuccinctFactorList.hpp>
-#include <libmaus/suffixsort/divsufsort.hpp>
-#include <libmaus/suffixsort/SkewSuffixSort.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
-#include <libmaus/util/IncreasingList.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/suffixsort/SAIS_Mori.hpp>
-#include <libmaus/select/ESelect222B.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/suffixsort/OSInduce.hpp>
+#include <libmaus2/suffixsort/SAISUtils.hpp>
+#include <libmaus2/suffixsort/SuccinctFactorList.hpp>
+#include <libmaus2/suffixsort/divsufsort.hpp>
+#include <libmaus2/suffixsort/SkewSuffixSort.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/util/IncreasingList.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/suffixsort/SAIS_Mori.hpp>
+#include <libmaus2/select/ESelect222B.hpp>
 
 #include <iostream>
 #include <algorithm>
 #include <numeric>
 
-#include <libmaus/lcp/LCP.hpp>
-#include <libmaus/lcp/OracleLCP.hpp>
+#include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/lcp/OracleLCP.hpp>
 
 #if 1
 #define TESTSINGLE
@@ -469,28 +469,28 @@ template<typename input_array_type>
 #endif
 
 
-::libmaus::bitio::CompactArray::unique_ptr_type bwtDivSufSortCompact(::libmaus::bitio::CompactArray const & C, bool const verbose = false)
+::libmaus2::bitio::CompactArray::unique_ptr_type bwtDivSufSortCompact(::libmaus2::bitio::CompactArray const & C, bool const verbose = false)
 {
-	typedef ::libmaus::bitio::CompactArray::const_iterator text_const_iterator;
-	typedef ::libmaus::bitio::CompactArray::iterator text_iterator;
-	typedef ::libmaus::bitio::SignedCompactArray::const_iterator sa_const_iterator;
-	typedef ::libmaus::bitio::SignedCompactArray::iterator sa_iterator;
+	typedef ::libmaus2::bitio::CompactArray::const_iterator text_const_iterator;
+	typedef ::libmaus2::bitio::CompactArray::iterator text_iterator;
+	typedef ::libmaus2::bitio::SignedCompactArray::const_iterator sa_const_iterator;
+	typedef ::libmaus2::bitio::SignedCompactArray::iterator sa_iterator;
 	
 	uint64_t const bitwidth = 64;
-	typedef ::libmaus::suffixsort::DivSufSort<bitwidth,text_iterator,text_const_iterator,sa_iterator,sa_const_iterator> sort_type;
+	typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,text_iterator,text_const_iterator,sa_iterator,sa_const_iterator> sort_type;
 
 	uint64_t const n = C.size();
 	uint64_t const b = C.getB();
-	::libmaus::bitio::SignedCompactArray SA(n, ::libmaus::math::bitsPerNum(n) + 1 );
+	::libmaus2::bitio::SignedCompactArray SA(n, ::libmaus2::math::bitsPerNum(n) + 1 );
 
 	if ( verbose )
 		std::cerr << "Running divsufsort...";
-	::libmaus::timing::RealTimeClock drtc; drtc.start();
+	::libmaus2::timing::RealTimeClock drtc; drtc.start();
 	sort_type::divsufsort ( C.begin(), SA.begin(), n );
 	if ( verbose )
 		std::cerr << "done, time " << drtc.getElapsedSeconds() << std::endl;
 	
-	::libmaus::bitio::CompactArray::unique_ptr_type BWT(new ::libmaus::bitio::CompactArray(n,b));
+	::libmaus2::bitio::CompactArray::unique_ptr_type BWT(new ::libmaus2::bitio::CompactArray(n,b));
 	
 	for ( uint64_t i = 0; i < n; ++i )
 		if ( SA.get(i) )
@@ -501,30 +501,30 @@ template<typename input_array_type>
 	return UNIQUE_PTR_MOVE(BWT);
 }
 
-::libmaus::bitio::CompactArray::unique_ptr_type bwtDivSufSort(::libmaus::bitio::CompactArray const & C, bool const verbose = false)
+::libmaus2::bitio::CompactArray::unique_ptr_type bwtDivSufSort(::libmaus2::bitio::CompactArray const & C, bool const verbose = false)
 {
 	if ( C.n < (1ull << 31) )
 	{
-		typedef ::libmaus::bitio::CompactArray::const_iterator text_const_iterator;
-		typedef ::libmaus::bitio::CompactArray::iterator text_iterator;
+		typedef ::libmaus2::bitio::CompactArray::const_iterator text_const_iterator;
+		typedef ::libmaus2::bitio::CompactArray::iterator text_iterator;
 		typedef int32_t const * sa_const_iterator;
 		typedef int32_t * sa_iterator;
 		
 		uint64_t const bitwidth = 64;
-		typedef ::libmaus::suffixsort::DivSufSort<bitwidth,text_iterator,text_const_iterator,sa_iterator,sa_const_iterator> sort_type;
+		typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,text_iterator,text_const_iterator,sa_iterator,sa_const_iterator> sort_type;
 
 		uint64_t const n = C.size();
 		uint64_t const b = C.getB();
-		::libmaus::autoarray::AutoArray< int32_t > SA(n,false);
+		::libmaus2::autoarray::AutoArray< int32_t > SA(n,false);
 
 		if ( verbose )
 			std::cerr << "Running divsufsort...";
-		::libmaus::timing::RealTimeClock drtc; drtc.start();
+		::libmaus2::timing::RealTimeClock drtc; drtc.start();
 		sort_type::divsufsort ( text_const_iterator(&C), SA.get(), n );
 		if ( verbose )
 			std::cerr << "done, time " << drtc.getElapsedSeconds() << std::endl;
 		
-		::libmaus::bitio::CompactArray::unique_ptr_type BWT(new ::libmaus::bitio::CompactArray(n,b));
+		::libmaus2::bitio::CompactArray::unique_ptr_type BWT(new ::libmaus2::bitio::CompactArray(n,b));
 		
 		for ( uint64_t i = 0; i < n; ++i )
 			if ( SA.get(i) )
@@ -536,26 +536,26 @@ template<typename input_array_type>
 	}
 	else
 	{
-		typedef ::libmaus::bitio::CompactArray::const_iterator text_const_iterator;
-		typedef ::libmaus::bitio::CompactArray::iterator text_iterator;
+		typedef ::libmaus2::bitio::CompactArray::const_iterator text_const_iterator;
+		typedef ::libmaus2::bitio::CompactArray::iterator text_iterator;
 		typedef int64_t const * sa_const_iterator;
 		typedef int64_t * sa_iterator;
 		
 		uint64_t const bitwidth = 64;
-		typedef ::libmaus::suffixsort::DivSufSort<bitwidth,text_iterator,text_const_iterator,sa_iterator,sa_const_iterator> sort_type;
+		typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,text_iterator,text_const_iterator,sa_iterator,sa_const_iterator> sort_type;
 
 		uint64_t const n = C.size();
 		uint64_t const b = C.getB();
-		::libmaus::autoarray::AutoArray< int64_t > SA(n,false);
+		::libmaus2::autoarray::AutoArray< int64_t > SA(n,false);
 
 		if ( verbose )
 			std::cerr << "Running divsufsort...";
-		::libmaus::timing::RealTimeClock drtc; drtc.start();
+		::libmaus2::timing::RealTimeClock drtc; drtc.start();
 		sort_type::divsufsort ( text_const_iterator(&C), SA.get(), n );
 		if ( verbose )
 			std::cerr << "done, time " << drtc.getElapsedSeconds() << std::endl;
 		
-		::libmaus::bitio::CompactArray::unique_ptr_type BWT(new ::libmaus::bitio::CompactArray(n,b));
+		::libmaus2::bitio::CompactArray::unique_ptr_type BWT(new ::libmaus2::bitio::CompactArray(n,b));
 		
 		for ( uint64_t i = 0; i < n; ++i )
 			if ( SA.get(i) )
@@ -568,49 +568,49 @@ template<typename input_array_type>
 	}
 }
 
-::libmaus::bitio::CompactArray::unique_ptr_type stringToCompact(std::string const & s, uint64_t const pad = 0)
+::libmaus2::bitio::CompactArray::unique_ptr_type stringToCompact(std::string const & s, uint64_t const pad = 0)
 {
 	unsigned char maxi = std::numeric_limits<unsigned char>::min();
 	for ( uint64_t i = 0; i < s.size(); ++i )
 		maxi = std::max(maxi,reinterpret_cast<unsigned char const *>(s.c_str())[i]);
-	unsigned int b = ::libmaus::math::bitsPerNum(maxi);
-	::libmaus::bitio::CompactArray::unique_ptr_type ptr(new ::libmaus::bitio::CompactArray(s.begin(),s.end(),b,pad));
+	unsigned int b = ::libmaus2::math::bitsPerNum(maxi);
+	::libmaus2::bitio::CompactArray::unique_ptr_type ptr(new ::libmaus2::bitio::CompactArray(s.begin(),s.end(),b,pad));
 	return UNIQUE_PTR_MOVE(ptr);
 }
 
 #if 0
-::libmaus::bitio::CompactArray::unique_ptr_type stringToCompactMapped(std::string const & s)
+::libmaus2::bitio::CompactArray::unique_ptr_type stringToCompactMapped(std::string const & s)
 {
 	if ( ! s.size() )
-		return ::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(0,0));
+		return ::libmaus2::bitio::CompactArray::unique_ptr_type(new ::libmaus2::bitio::CompactArray(0,0));
 
-	::libmaus::util::Histogram charHistogram;
+	::libmaus2::util::Histogram charHistogram;
 	unsigned char const * u = reinterpret_cast<unsigned char const *>(s.c_str());
 	for ( uint64_t i = 0; i < s.size(); ++i )
 		charHistogram(u[i]);
 	std::vector<uint64_t> keys = charHistogram.getKeyVector();
-	::libmaus::autoarray::AutoArray<unsigned char> U(256);
+	::libmaus2::autoarray::AutoArray<unsigned char> U(256);
 	for ( uint64_t i = 0; i < keys.size(); ++i )
 	{
 		assert ( keys[i] < U.size() );
 		U[keys[i]] = i;
 	}
 	unsigned char maxi = keys.size()-1;
-	unsigned int b = ::libmaus::math::bitsPerNum(maxi);
-	return ::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(s.begin(),s.end(),b));
+	unsigned int b = ::libmaus2::math::bitsPerNum(maxi);
+	return ::libmaus2::bitio::CompactArray::unique_ptr_type(new ::libmaus2::bitio::CompactArray(s.begin(),s.end(),b));
 }
 #endif
 
-bool testInducedBWT(::libmaus::bitio::CompactArray const & C, bool const verbose = false)
+bool testInducedBWT(::libmaus2::bitio::CompactArray const & C, bool const verbose = false)
 {
 	uint64_t const n = C.size();
 
-	::libmaus::timing::RealTimeClock rtc; rtc.start();
-	::libmaus::bitio::CompactArray::unique_ptr_type bwtos = bwtOS(C, verbose);
+	::libmaus2::timing::RealTimeClock rtc; rtc.start();
+	::libmaus2::bitio::CompactArray::unique_ptr_type bwtos = bwtOS(C, verbose);
 	double const OStime = rtc.getElapsedSeconds();
 	
 	rtc.start();
-	::libmaus::bitio::CompactArray::unique_ptr_type bwtdiv = bwtDivSufSort(C, verbose);
+	::libmaus2::bitio::CompactArray::unique_ptr_type bwtdiv = bwtDivSufSort(C, verbose);
 	double const divtime = rtc.getElapsedSeconds();
 	
 	bool ok = true;
@@ -627,22 +627,22 @@ bool testInducedBWT(::libmaus::bitio::CompactArray const & C, bool const verbose
 	return ok;
 }
 
-bool testInducedBWTHash(::libmaus::bitio::CompactArray const & C, bool const verbose = false)
+bool testInducedBWTHash(::libmaus2::bitio::CompactArray const & C, bool const verbose = false)
 {
-	::libmaus::autoarray::AutoArray_peakmemusage = ::libmaus::autoarray::AutoArray_memusage;
+	::libmaus2::autoarray::AutoArray_peakmemusage = ::libmaus2::autoarray::AutoArray_memusage;
 	
 	uint64_t const n = C.size();
 
-	::libmaus::timing::RealTimeClock rtc; rtc.start();
-	//::libmaus::bitio::CompactArray::unique_ptr_type bwtos = bwtOS(C, verbose);
-	::libmaus::bitio::CompactArray::unique_ptr_type bwtos = bwtOSHash(C, verbose);
+	::libmaus2::timing::RealTimeClock rtc; rtc.start();
+	//::libmaus2::bitio::CompactArray::unique_ptr_type bwtos = bwtOS(C, verbose);
+	::libmaus2::bitio::CompactArray::unique_ptr_type bwtos = bwtOSHash(C, verbose);
 	double const OStime = rtc.getElapsedSeconds();
 	
 	if ( verbose )
-		std::cerr << "peak mem : " << (static_cast<double>(::libmaus::autoarray::AutoArray_peakmemusage)) / C.n << std::endl;
+		std::cerr << "peak mem : " << (static_cast<double>(::libmaus2::autoarray::AutoArray_peakmemusage)) / C.n << std::endl;
 	
 	rtc.start();
-	::libmaus::bitio::CompactArray::unique_ptr_type bwtdiv = bwtDivSufSort(C, verbose);
+	::libmaus2::bitio::CompactArray::unique_ptr_type bwtdiv = bwtDivSufSort(C, verbose);
 	double const divtime = rtc.getElapsedSeconds();
 	
 	bool ok = true;
@@ -665,7 +665,7 @@ bool testInducedBWT(std::string const & s, bool const verbose = false)
 	
 	if ( verbose )
 		std::cerr << "Converting string of length " << n << " to compact array...";
-	::libmaus::bitio::CompactArray::unique_ptr_type C = stringToCompact(s,1 /* pad */);
+	::libmaus2::bitio::CompactArray::unique_ptr_type C = stringToCompact(s,1 /* pad */);
 	if ( verbose )
 		std::cerr << "done, bits per symbol " << C->getB() << std::endl;
 
@@ -678,7 +678,7 @@ bool testInducedBWTHash(std::string const & s, bool const verbose = false)
 	
 	if ( verbose )
 		std::cerr << "Converting string of length " << n << " to compact array...";
-	::libmaus::bitio::CompactArray::unique_ptr_type C = stringToCompact(s,1 /* pad */);
+	::libmaus2::bitio::CompactArray::unique_ptr_type C = stringToCompact(s,1 /* pad */);
 	if ( verbose )
 		std::cerr << "done, bits per symbol " << C->getB() << std::endl;
 
@@ -688,10 +688,10 @@ bool testInducedBWTHash(std::string const & s, bool const verbose = false)
 void testIndFile(std::string const fn, uint64_t const maxsize = std::numeric_limits<uint64_t>::max(), uint64_t const roffset = 0)
 {
 	{
-	uint64_t const offset = std::min(roffset,::libmaus::util::GetFileSize::getFileSize(fn));
-	uint64_t const n = std::min(::libmaus::util::GetFileSize::getFileSize(fn)-offset,maxsize);
+	uint64_t const offset = std::min(roffset,::libmaus2::util::GetFileSize::getFileSize(fn));
+	uint64_t const n = std::min(::libmaus2::util::GetFileSize::getFileSize(fn)-offset,maxsize);
 	std::cerr << "Running for file " << fn << " size " << n << " offset " << offset << std::endl;
-	::libmaus::autoarray::AutoArray<char> A(n+1);
+	::libmaus2::autoarray::AutoArray<char> A(n+1);
 	std::ifstream istr(fn.c_str(),std::ios::binary);
 	assert ( istr.is_open() );
 	istr.seekg(offset,std::ios::beg);
@@ -709,13 +709,13 @@ void testIndFile(std::string const fn, uint64_t const maxsize = std::numeric_lim
 	}
 }
 
-#include <libmaus/fastx/FastAReader.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
 
 uint64_t getFAFileLength(std::string const fn)
 {
 	uint64_t n = 0;
-	::libmaus::fastx::FastAReader::unique_ptr_type FastAR(new ::libmaus::fastx::FastAReader(fn));
-	::libmaus::fastx::FastAReader::pattern_type pattern;
+	::libmaus2::fastx::FastAReader::unique_ptr_type FastAR(new ::libmaus2::fastx::FastAReader(fn));
+	::libmaus2::fastx::FastAReader::pattern_type pattern;
 	bool first = true;
 	while ( FastAR->getNextPatternUnlocked(pattern) )
 	{
@@ -730,8 +730,8 @@ uint64_t getFAFileLength(std::string const fn)
 uint64_t getFQFileLength(std::string const fn)
 {
 	uint64_t n = 0;
-	::libmaus::fastx::FastQReader::unique_ptr_type FastAR(new ::libmaus::fastx::FastQReader(fn));
-	::libmaus::fastx::FastQReader::pattern_type pattern;
+	::libmaus2::fastx::FastQReader::unique_ptr_type FastAR(new ::libmaus2::fastx::FastQReader(fn));
+	::libmaus2::fastx::FastQReader::pattern_type pattern;
 	bool first = true;
 	while ( FastAR->getNextPatternUnlocked(pattern) )
 	{
@@ -743,10 +743,10 @@ uint64_t getFQFileLength(std::string const fn)
 	return n;
 }
 
-void readFAFile(std::string const fn, ::libmaus::bitio::CompactArray & C)
+void readFAFile(std::string const fn, ::libmaus2::bitio::CompactArray & C)
 {
-	::libmaus::fastx::FastAReader::unique_ptr_type FastAR(new ::libmaus::fastx::FastAReader(fn));
-	::libmaus::fastx::FastAReader::pattern_type pattern;
+	::libmaus2::fastx::FastAReader::unique_ptr_type FastAR(new ::libmaus2::fastx::FastAReader(fn));
+	::libmaus2::fastx::FastAReader::pattern_type pattern;
 
 	uint64_t j = 0;
 	bool first = true;
@@ -755,15 +755,15 @@ void readFAFile(std::string const fn, ::libmaus::bitio::CompactArray & C)
 		if ( ! first )
 			C.set(j++,5); // splitter
 		for ( uint64_t i = 0; i < pattern.getPatternLength(); ++i,++j )
-			C.set ( j , 1+::libmaus::fastx::mapChar(pattern.pattern[i]) );
+			C.set ( j , 1+::libmaus2::fastx::mapChar(pattern.pattern[i]) );
 		first = false;
 	}
 }
 
-void readFQFile(std::string const fn, ::libmaus::bitio::CompactArray & C)
+void readFQFile(std::string const fn, ::libmaus2::bitio::CompactArray & C)
 {
-	::libmaus::fastx::FastQReader::unique_ptr_type FastAR(new ::libmaus::fastx::FastQReader(fn));
-	::libmaus::fastx::FastQReader::pattern_type pattern;
+	::libmaus2::fastx::FastQReader::unique_ptr_type FastAR(new ::libmaus2::fastx::FastQReader(fn));
+	::libmaus2::fastx::FastQReader::pattern_type pattern;
 
 	uint64_t j = 0;
 	bool first = true;
@@ -772,7 +772,7 @@ void readFQFile(std::string const fn, ::libmaus::bitio::CompactArray & C)
 		if ( ! first )
 			C.set(j++,5); // splitter
 		for ( uint64_t i = 0; i < pattern.getPatternLength(); ++i,++j )
-			C.set ( j , 1+::libmaus::fastx::mapChar(pattern.pattern[i]) );
+			C.set ( j , 1+::libmaus2::fastx::mapChar(pattern.pattern[i]) );
 		first = false;
 	}
 }
@@ -783,7 +783,7 @@ bool testIndFileFA(std::string const fn, bool const verbose = true)
 		std::cerr << "Getting length of file " << fn << "...";
 	uint64_t const n = getFAFileLength(fn);
 	std::cerr << "done, length is " << n << std::endl;
-	::libmaus::bitio::CompactArray C(n+1,3,1); 
+	::libmaus2::bitio::CompactArray C(n+1,3,1); 
 	std::cerr << "Reading file " << fn << " into CompactArray...";
 	readFAFile(fn,C);
 	C.set(n,0);
@@ -804,7 +804,7 @@ bool testIndFileFQ(std::string const fn, bool const verbose = true)
 		std::cerr << "Getting length of file " << fn << "...";
 	uint64_t const n = getFQFileLength(fn);
 	std::cerr << "done, length is " << n << std::endl;
-	::libmaus::bitio::CompactArray C(n+1,3,1); 
+	::libmaus2::bitio::CompactArray C(n+1,3,1); 
 	std::cerr << "Reading file " << fn << " into CompactArray...";
 	readFQFile(fn,C);
 	C.set(n,0);
@@ -881,7 +881,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		::libmaus::util::ArgInfo arginfo(argc,argv);
+		::libmaus2::util::ArgInfo arginfo(argc,argv);
 		srand(time(0));	
 		testIncudedBWTSingle("fischersfritzfischtfrischefische$");
 		testIncudedBWTSingle("jmmississiippii$");

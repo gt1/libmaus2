@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,14 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/SortControl.hpp>
+#include <libmaus2/bambam/parallel/SortControl.hpp>
 
 int main()
 {
 	try
 	{
-		// libmaus::bambam::parallel::SortControl::serialTestDecode1(std::cin,std::cout);
-		libmaus::bambam::parallel::SortControl<libmaus::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
+		// libmaus2::bambam::parallel::SortControl::serialTestDecode1(std::cin,std::cout);
+		libmaus2::bambam::parallel::SortControl<libmaus2::bambam::parallel::AlignmentRewriteBufferPosComparator>::serialParallelDecode1(std::cin);
 	}
 	catch(std::exception const & ex)
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,30 +16,30 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/bambam/BamMergeQueryName.hpp>
-#include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamMergeQueryName.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
 
 #include "config.h"
 
-::libmaus::bambam::BamHeader::unique_ptr_type updateHeader(
-	::libmaus::util::ArgInfo const & arginfo,
-	::libmaus::bambam::BamHeader const & header
+::libmaus2::bambam::BamHeader::unique_ptr_type updateHeader(
+	::libmaus2::util::ArgInfo const & arginfo,
+	::libmaus2::bambam::BamHeader const & header
 )
 {
 	std::string const headertext(header.text);
 
 	// add PG line to header
-	std::string const upheadtext = ::libmaus::bambam::ProgramHeaderLineSet::addProgramLine(
+	std::string const upheadtext = ::libmaus2::bambam::ProgramHeaderLineSet::addProgramLine(
 		headertext,
 		"testbammergequeryname", // ID
 		"testbammergequeryname", // PN
 		arginfo.commandline, // CL
-		::libmaus::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
+		::libmaus2::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
 		std::string(PACKAGE_VERSION) // VN			
 	);
 	// construct new header
-	::libmaus::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus::bambam::BamHeader(upheadtext));
+	::libmaus2::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus2::bambam::BamHeader(upheadtext));
 	
 	return UNIQUE_PTR_MOVE(uphead);
 }
@@ -48,15 +48,15 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		std::vector<std::string> const & inputfilenames = arginfo.restargs;
-		libmaus::bambam::BamMergeQueryName bamdec(inputfilenames /* ,true */);
-		libmaus::bambam::BamAlignment const & algn = bamdec.getAlignment();
-		libmaus::bambam::BamHeader const & header = bamdec.getHeader();
-		::libmaus::bambam::BamHeader::unique_ptr_type uphead(updateHeader(arginfo,header));
-		libmaus::bambam::BamWriter writer(std::cout,*uphead);
-		libmaus::bambam::BamWriter::stream_type & bamoutstr = writer.getStream();
+		libmaus2::bambam::BamMergeQueryName bamdec(inputfilenames /* ,true */);
+		libmaus2::bambam::BamAlignment const & algn = bamdec.getAlignment();
+		libmaus2::bambam::BamHeader const & header = bamdec.getHeader();
+		::libmaus2::bambam::BamHeader::unique_ptr_type uphead(updateHeader(arginfo,header));
+		libmaus2::bambam::BamWriter writer(std::cout,*uphead);
+		libmaus2::bambam::BamWriter::stream_type & bamoutstr = writer.getStream();
 		while ( bamdec.readAlignment() )
 			algn.serialise(bamoutstr);
 	}

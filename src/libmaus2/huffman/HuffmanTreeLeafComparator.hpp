@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(HUFFMANTREELEAFCOMPARATOR_HPP)
 #define HUFFMANTREELEAFCOMPARATOR_HPP
 
-#include <libmaus/huffman/HuffmanTreeLeaf.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{

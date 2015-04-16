@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/LogPipeMultiplex.hpp>
+#include <libmaus2/util/LogPipeMultiplex.hpp>
 
-libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
+libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 	std::string const & serverhostname,
 	unsigned short port,
 	std::string const & sid
@@ -27,8 +27,8 @@ libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
 : pid(-1)
 {
 	// connect
-	::libmaus::network::ClientSocket::unique_ptr_type tsock(
-                        new ::libmaus::network::ClientSocket(
+	::libmaus2::network::ClientSocket::unique_ptr_type tsock(
+                        new ::libmaus2::network::ClientSocket(
                                 port,serverhostname.c_str()
                         )
                 );
@@ -42,42 +42,42 @@ libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
 		
 	if ( pipe(&stdoutpipe[0]) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "pipe() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;
 	}
 	if ( pipe(&stderrpipe[0]) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "pipe() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;
 	}
 	if ( close(STDOUT_FILENO) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;		
 	}
 	if ( close(STDERR_FILENO) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;		
 	}
 	if ( dup2(stdoutpipe[1],STDOUT_FILENO) == -1 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;				
 	}
 	if ( dup2(stderrpipe[1],STDERR_FILENO) == -1 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;				
@@ -87,7 +87,7 @@ libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
 	
 	if ( pid < 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "fork() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;		
@@ -135,7 +135,7 @@ libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
 						{
 							if ( stdoutpipe[0] != -1 && FD_ISSET(stdoutpipe[0],&fds) )
 							{
-								::libmaus::autoarray::AutoArray<char> B(1024,false);
+								::libmaus2::autoarray::AutoArray<char> B(1024,false);
 								ssize_t red = read(stdoutpipe[0],B.get(),B.size());
 								if ( red <= 0 )
 								{
@@ -158,7 +158,7 @@ libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
 							}
 							if ( stderrpipe[0] != -1 && FD_ISSET(stderrpipe[0],&fds) )
 							{
-								::libmaus::autoarray::AutoArray<char> B(1024,false);
+								::libmaus2::autoarray::AutoArray<char> B(1024,false);
 								ssize_t red = read(stderrpipe[0],B.get(),B.size());
 								if ( red <= 0 )
 								{
@@ -202,7 +202,7 @@ libmaus::util::LogPipeMultiplex::LogPipeMultiplex(
 	}
 }
 
-void libmaus::util::LogPipeMultiplex::join()
+void libmaus2::util::LogPipeMultiplex::join()
 {
 	close(stdoutpipe[1]);
 	close(stderrpipe[1]);
@@ -212,7 +212,7 @@ void libmaus::util::LogPipeMultiplex::join()
 	waitpid(pid,&status,0);
 }
 
-libmaus::util::LogPipeMultiplex::~LogPipeMultiplex()
+libmaus2::util::LogPipeMultiplex::~LogPipeMultiplex()
 {
 	join();
 }

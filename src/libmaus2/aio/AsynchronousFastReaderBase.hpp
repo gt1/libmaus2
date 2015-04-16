@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(ASYNCHRONOUSFASTREADERBASE_HPP)
 #define ASYNCHRONOUSFASTREADERBASE_HPP
 
-#include <libmaus/aio/AsynchronousBufferReader.hpp>
+#include <libmaus2/aio/AsynchronousBufferReader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -32,7 +32,7 @@ namespace libmaus
 		{
 			private:
 			std::vector<std::string> const filenames;
-			::libmaus::aio::AsynchronousBufferReaderList reader;
+			::libmaus2::aio::AsynchronousBufferReaderList reader;
 			std::pair < char const *, ssize_t > data;
 			uint8_t const * text;
 			uint64_t textlength;
@@ -52,8 +52,8 @@ namespace libmaus
 				int const v = getNextCharacter();
 				if ( v < 0 )
 				{
-					::libmaus::exception::LibMausException ex;
-					ex.getStream() << "Failed to read number in ::libmaus::aio::AsynchronousFastReaderBase::readNumber1().";
+					::libmaus2::exception::LibMausException ex;
+					ex.getStream() << "Failed to read number in ::libmaus2::aio::AsynchronousFastReaderBase::readNumber1().";
 					ex.finish();
 					throw ex;
 				}

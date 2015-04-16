@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewriteBuffer.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct RewriteBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct RewriteBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef RewriteBlockWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				AlignmentBuffer::shared_ptr_type parseBlock;
 				AlignmentRewriteBuffer * rewriteBlock;
 	
-				RewriteBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock(), rewriteBlock(0) {}
+				RewriteBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), parseBlock(), rewriteBlock(0) {}
 				
 				RewriteBlockWorkPackage(
 					uint64_t const rpriority, 
@@ -46,7 +46,7 @@ namespace libmaus
 					AlignmentRewriteBuffer * rrewriteBlock,
 					uint64_t const rparseDispatcherId
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock), rewriteBlock(rrewriteBlock)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock), rewriteBlock(rrewriteBlock)
 				{
 				}
 			

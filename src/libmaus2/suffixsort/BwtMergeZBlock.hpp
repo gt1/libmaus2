@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #define LIBMAUS_SUFFIXSORT_BWTMERGEZBLOCK_HPP
 
 #include <sstream>
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -45,8 +45,8 @@ namespace libmaus
 			
 			BwtMergeZBlock(std::istream & stream)
 			:
-				zabspos(::libmaus::util::NumberSerialisation::deserialiseNumber(stream)),
-				zrank(::libmaus::util::NumberSerialisation::deserialiseNumber(stream))
+				zabspos(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
+				zrank(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
 			{
 			
 			}
@@ -63,8 +63,8 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,zabspos);
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,zrank);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,zabspos);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,zrank);
 			}
 			
 			std::string serialise() const

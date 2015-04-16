@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,26 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lz/RAZFDecoder.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/lz/RAZFDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		std::string const fnu = arginfo.getRestArg<std::string>(1);
 	
 		#if 0
-		libmaus::lz::RAZFIndex index(fn);		
+		libmaus2::lz::RAZFIndex index(fn);		
 		std::cerr << index;
 		#endif
 		
-		libmaus::lz::RAZFDecoder dec(fn);
+		libmaus2::lz::RAZFDecoder dec(fn);
 		
-		libmaus::autoarray::AutoArray<char> A = libmaus::autoarray::AutoArray<char>::readFile(fnu);
+		libmaus2::autoarray::AutoArray<char> A = libmaus2::autoarray::AutoArray<char>::readFile(fnu);
 
 		for ( uint64_t i = 0; i <= A.size(); i += 1024 )
 		{

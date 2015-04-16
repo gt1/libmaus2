@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(METAOUTPUTFILE8ARRAY_HPP)
 #define METAOUTPUTFILE8ARRAY_HPP
 
-#include <libmaus/aio/OutputBuffer8.hpp>
-#include <libmaus/aio/GenericInput.hpp>
-#include <libmaus/util/IntervalTree.hpp>
+#include <libmaus2/aio/OutputBuffer8.hpp>
+#include <libmaus2/aio/GenericInput.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
 #include <vector>
 #include <set>
 #include <deque>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -36,13 +36,13 @@ namespace libmaus
 		struct MetaOutputFile8Array
 		{
 			//! buffer type
-			typedef libmaus::aio::MetaOutputBuffer8 buffer_type;
+			typedef libmaus2::aio::MetaOutputBuffer8 buffer_type;
 			//! buffer pointer type
-			typedef ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<buffer_type>::type buffer_ptr_type;
 			//! this type
 			typedef MetaOutputFile8Array this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! hash intervals
 			std::vector< std::pair<uint64_t,uint64_t> > HI;
@@ -50,17 +50,17 @@ namespace libmaus
 			std::string const fileprefix;
 
 			//! output buffers
-			::libmaus::autoarray::AutoArray<buffer_ptr_type> buffers;
+			::libmaus2::autoarray::AutoArray<buffer_ptr_type> buffers;
 			//! output filenames for splitting
 			std::vector < std::string > filenames;
 
 			//! concatenated file name
 			std::string const concfilename;
 			//! writer for concatenated file
-			::libmaus::aio::AsynchronousWriter W;
+			::libmaus2::aio::AsynchronousWriter W;
 
 			//! interval tree for hash intervals
-			::libmaus::util::IntervalTree IT;
+			::libmaus2::util::IntervalTree IT;
 
 			private:
 			/**
@@ -191,7 +191,7 @@ namespace libmaus
 			 * @param cerrlock lock for debug/verbosity output
 			 * @param threadnum thread id for debug/verbosity output
 			 **/
-			void flush(::libmaus::parallel::OMPLock & cerrlock, uint64_t const threadnum)
+			void flush(::libmaus2::parallel::OMPLock & cerrlock, uint64_t const threadnum)
 			{
 				if ( fileExists(concfilename) )
 				{
@@ -239,10 +239,10 @@ namespace libmaus
 							for ( uint64_t i = 0; i < primelen; ++i )
 								out . push_back ( getNextTempName(tmpid) );
 
-							typedef ::libmaus::aio::OutputBuffer8 split_buffer_type;
-							typedef ::libmaus::util::unique_ptr<split_buffer_type>::type split_buffer_ptr_type;
+							typedef ::libmaus2::aio::OutputBuffer8 split_buffer_type;
+							typedef ::libmaus2::util::unique_ptr<split_buffer_type>::type split_buffer_ptr_type;
 
-							::libmaus::autoarray::AutoArray < split_buffer_ptr_type > AW(primelen);
+							::libmaus2::autoarray::AutoArray < split_buffer_ptr_type > AW(primelen);
 
 							for ( uint64_t i = 0; i < primelen; ++i )
 								AW[i] = split_buffer_ptr_type ( new split_buffer_type (out[i],4*1024) );

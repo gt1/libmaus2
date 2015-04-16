@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,31 +20,31 @@
 #if ! defined(IMPEXTERNALWAVELETGENERATOR_HPP)
 #define IMPEXTERNALWAVELETGENERATOR_HPP
 
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
 		struct ImpExternalWaveletGenerator
 		{
 			typedef ImpExternalWaveletGenerator this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::rank::ImpCacheLineRank rank_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			typedef rank_type::WriteContextExternal context_type;
 			typedef context_type::unique_ptr_type context_ptr_type;
-			typedef ::libmaus::autoarray::AutoArray<context_ptr_type> context_vector_type;
+			typedef ::libmaus2::autoarray::AutoArray<context_ptr_type> context_vector_type;
 		
 			private:
 			static uint64_t const bufsize = 64*1024;
 		
 			uint64_t const b;
-			::libmaus::util::TempFileNameGenerator & tmpgen;
+			::libmaus2::util::TempFileNameGenerator & tmpgen;
 			
 			std::vector < std::vector<std::string> > outputfilenames;
-			::libmaus::autoarray::AutoArray<context_vector_type> contexts;
+			::libmaus2::autoarray::AutoArray<context_vector_type> contexts;
 			
 			uint64_t symbols;
 
@@ -59,7 +59,7 @@ namespace libmaus
 			}
 			
 			public:
-			ImpExternalWaveletGenerator(uint64_t const rb, ::libmaus::util::TempFileNameGenerator & rtmpgen)
+			ImpExternalWaveletGenerator(uint64_t const rb, ::libmaus2::util::TempFileNameGenerator & rtmpgen)
 			: b(rb), tmpgen(rtmpgen), outputfilenames(b), contexts(b), symbols(0)
 			{
 				for ( uint64_t ib = 0; ib < b; ++ib )
@@ -97,8 +97,8 @@ namespace libmaus
 			{			
 				flush();
 
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,symbols); // n
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,b); // b
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,symbols); // n
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,b); // b
 				
 				for ( uint64_t i = 0; i < contexts.size(); ++i )
 					for ( uint64_t j = 0; j < contexts[i].size(); ++j )
@@ -109,12 +109,12 @@ namespace libmaus
 						
 						contexts[i][j].reset();
 						// bits written
-						::libmaus::serialize::Serialize<uint64_t>::serialize(out,64*datawordswritten);
+						::libmaus2::serialize::Serialize<uint64_t>::serialize(out,64*datawordswritten);
 						// auto array header
-						::libmaus::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
+						::libmaus2::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
 						std::string const filename = outputfilenames[i][j];
 						std::ifstream istr(filename.c_str(),std::ios::binary);
-						::libmaus::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
+						::libmaus2::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
 						
 						remove(filename.c_str());
 					}

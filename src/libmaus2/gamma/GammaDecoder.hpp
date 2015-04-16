@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_GAMMA_GAMMADECODER_HPP)
 #define LIBMAUS_GAMMA_GAMMADECODER_HPP
 
-#include <libmaus/bitio/Clz.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/bitio/Clz.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
 		template<typename _stream_type>
-		struct GammaDecoder : public libmaus::bitio::Clz
+		struct GammaDecoder : public libmaus2::bitio::Clz
 		{
 			typedef _stream_type stream_type;
 			typedef GammaDecoder<stream_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
 			uint64_t v;

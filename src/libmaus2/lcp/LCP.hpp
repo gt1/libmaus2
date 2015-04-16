@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(LIBMAUS_LCP_LCP_HPP)
 #define LIBMAUS_LCP_LCP_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/fm/SampledSA.hpp>
-#include <libmaus/fm/SampledISA.hpp>
-#include <libmaus/lf/LF.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/bitio/CompactQueue.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/TempFileContainer.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/fm/SampledSA.hpp>
+#include <libmaus2/fm/SampledISA.hpp>
+#include <libmaus2/lf/LF.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/bitio/CompactQueue.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/TempFileContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcp
 	{
@@ -48,7 +48,7 @@ namespace libmaus
 			typedef _sampled_sa_type sampled_sa_type;
 			typedef _sampled_isa_type sampled_isa_type;
 			typedef SuccinctLCP<lf_type,sampled_sa_type,sampled_isa_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			static unsigned int bitsPerNum(uint64_t l)
 			{
@@ -76,7 +76,7 @@ namespace libmaus
 			template<typename key_iterator, typename elem_type>
 			static void computeLCP(key_iterator y, size_t const n, elem_type const * const p, elem_type * LCP)
 			{
-				::libmaus::autoarray::AutoArray<elem_type> AR(n,false); elem_type * R = AR.get();
+				::libmaus2::autoarray::AutoArray<elem_type> AR(n,false); elem_type * R = AR.get();
 				
 				for ( elem_type i = 0; i < n; ++i ) R[p[i]] = i;
 
@@ -104,7 +104,7 @@ namespace libmaus
 				}        
 			}
 
-			static void writePlcpDif(::libmaus::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
+			static void writePlcpDif(::libmaus2::bitio::FastWriteBitWriterBuffer64Sync & FWBW, uint64_t plcpdif)
 			{
 				static uint64_t const maxwritebits = 64;
 				
@@ -128,7 +128,7 @@ namespace libmaus
 				isa_type & SISA,
 				lcp_type & LCP,
 				std::ostream & out,
-				libmaus::util::TempFileContainer & tmpcont,
+				libmaus2::util::TempFileContainer & tmpcont,
 				bool const verbose = false
 			)
 			{
@@ -136,9 +136,9 @@ namespace libmaus
 				
 				if ( ! n )
 				{
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,0);
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,0);
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,0);
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(out,0);
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(out,0);
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(out,0);
 					out.flush();
 				}
 				else
@@ -152,7 +152,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < numthreads; ++i )
 						tmpcont.openOutputTempFile(i);
 					
-					::libmaus::autoarray::AutoArray<uint64_t> bitsperthread(numthreads);
+					::libmaus2::autoarray::AutoArray<uint64_t> bitsperthread(numthreads);
 				
 					uint64_t const numisa = SISA.SISA.size();
 					uint64_t const numisaloop = numisa ? (numisa-1) : 0;
@@ -163,13 +163,13 @@ namespace libmaus
 					uint64_t const pdif0 = LCP[rp0] + 1; // store first difference as absolute
 
 					uint64_t const numbits = 2*n + LCP[LF(rp0)];
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,numbits);
-					::libmaus::serialize::Serialize<uint64_t>::serialize(out,(numbits+63)/64);
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(out,numbits);
+					::libmaus2::serialize::Serialize<uint64_t>::serialize(out,(numbits+63)/64);
 					
-					::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
-					::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
-					::libmaus::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
+					::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(out,8*1024);
+					::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type SGOit(SGO);
+					::libmaus2::bitio::FastWriteBitWriterBuffer64Sync FWBW(SGOit);
 
 					uint64_t const isasamplingrate = SISA.isasamplingrate;
 										
@@ -189,13 +189,13 @@ namespace libmaus
 						uint64_t const isapackrange = isapackhigh-isapacklow;
 						uint64_t const loopstart = isapacklow+1;
 						uint64_t const loopend = loopstart + isapackrange;
-						::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
+						::libmaus2::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
 						uint64_t lbitswritten = 0;
 
 						std::ostream & ltmpfile = tmpcont.getOutputTempFile(t);
-						::libmaus::aio::SynchronousGenericOutput<uint64_t> lSGO(ltmpfile,8*1024);
-						::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type lSGOit(lSGO);
-						::libmaus::bitio::FastWriteBitWriterBuffer64Sync lFWBW(lSGOit);
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t> lSGO(ltmpfile,8*1024);
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type lSGOit(lSGO);
+						::libmaus2::bitio::FastWriteBitWriterBuffer64Sync lFWBW(lSGOit);
 						
 						// std::cerr << "[" << loopstart << "," << loopend << ")" << " size " << numisa << std::endl;
 						
@@ -241,7 +241,7 @@ namespace libmaus
 					for ( uint64_t t = 0; t < numthreads; ++t )
 					{
 						std::istream & tmpin = tmpcont.openInputTempFile(t);
-						libmaus::aio::SynchronousGenericInput<uint64_t> SGin(tmpin,8*1024,(bitsperthread[t]+63)/64);
+						libmaus2::aio::SynchronousGenericInput<uint64_t> SGin(tmpin,8*1024,(bitsperthread[t]+63)/64);
 						uint64_t const completeWords = bitsperthread[t]/(8*sizeof(uint64_t));
 						uint64_t const restbits = bitsperthread[t] - (8*sizeof(uint64_t)*completeWords);
 						uint64_t v = 0;
@@ -276,7 +276,7 @@ namespace libmaus
 					uint64_t const firstprocessed = n ? 1 : 0;
 					uint64_t const processed = firstprocessed + loopprocessed;				
 					uint64_t const rest = LF.getN() - processed;
-					::libmaus::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
+					::libmaus2::autoarray::AutoArray<uint64_t> plcpbuf(isasamplingrate+1,false);
 					
 					if ( verbose )
 						std::cerr << "rest=" << rest << std::endl;
@@ -309,7 +309,7 @@ namespace libmaus
 			}
 
 
-			static ::libmaus::autoarray::AutoArray<uint64_t> computeLCP(
+			static ::libmaus2::autoarray::AutoArray<uint64_t> computeLCP(
 				lf_type const & lf,
 				sampled_sa_type const & SA, 
 				sampled_isa_type const & ISA,
@@ -319,7 +319,7 @@ namespace libmaus
 				double const bef = clock();
 				uint64_t const mask = (1ull << 20)-1;
 
-				::libmaus::autoarray::AutoArray<uint64_t> AS( (2*n+63)/64);
+				::libmaus2::autoarray::AutoArray<uint64_t> AS( (2*n+63)/64);
 				uint64_t * const S = AS.get();
 				for ( uint64_t i = 0; i < (2*n+63)/64; ++i )
 					S[i] = 0;
@@ -356,7 +356,7 @@ namespace libmaus
 					}
 					
 					uint64_t const I = l0+1-l1;
-					::libmaus::bitio::putBit(S,lcpbits+I,1);
+					::libmaus2::bitio::putBit(S,lcpbits+I,1);
 					lcpbits += (I+1);
 
 					r0 = lf.phi(r0);
@@ -378,7 +378,7 @@ namespace libmaus
 			}
 
 			template<typename text_type>
-			static ::libmaus::autoarray::AutoArray<uint64_t> computeLCPText(
+			static ::libmaus2::autoarray::AutoArray<uint64_t> computeLCPText(
 				lf_type const & lf,
 				sampled_sa_type const & SA, 
 				sampled_isa_type const & ISA,
@@ -387,9 +387,9 @@ namespace libmaus
 				bool const verbose = false
 			)
 			{
-				::libmaus::timing::RealTimeClock rtc; rtc.start();
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 
-				::libmaus::autoarray::AutoArray<uint64_t> AS( (2*n+63)/64);
+				::libmaus2::autoarray::AutoArray<uint64_t> AS( (2*n+63)/64);
 				uint64_t * const S = AS.get();
 				for ( uint64_t i = 0; i < (2*n+63)/64; ++i )
 					S[i] = 0;
@@ -404,7 +404,7 @@ namespace libmaus
 				uint64_t const numsubblocks = (superblocksize + (subblocksize-1)) / subblocksize;
 		#endif
 
-				::libmaus::autoarray::AutoArray<uint64_t> R0(superblocksize,false);
+				::libmaus2::autoarray::AutoArray<uint64_t> R0(superblocksize,false);
 
 				uint64_t const numsuperblocks = (n + (superblocksize-1))/superblocksize;
 				
@@ -460,7 +460,7 @@ namespace libmaus
 						}
 						
 						uint64_t const I = l0+1-l1;
-						::libmaus::bitio::putBit(S,lcpbits+I,1);
+						::libmaus2::bitio::putBit(S,lcpbits+I,1);
 						lcpbits += (I+1);
 
 						l1 = l0;			
@@ -478,11 +478,11 @@ namespace libmaus
 				return AS;
 			}
 
-			typedef ::libmaus::rank::ERank222B select_type;
+			typedef ::libmaus2::rank::ERank222B select_type;
 			
 			uint64_t n;
 			sampled_sa_type const * SA;
-			::libmaus::autoarray::AutoArray<uint64_t> ALCP;
+			::libmaus2::autoarray::AutoArray<uint64_t> ALCP;
 			uint64_t const * LCP;
 			uint64_t streambits;
 			select_type::unique_ptr_type eselect;
@@ -504,8 +504,8 @@ namespace libmaus
 			uint64_t serialize(std::ostream & out)
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,streambits);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,streambits);
 				s += ALCP.serialize(out);
 				return s;
 			}
@@ -513,8 +513,8 @@ namespace libmaus
 			uint64_t deserialize(std::istream & in, bool const verbose = false)
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&streambits);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&streambits);
 				s += ALCP.deserialize(in);
 				LCP = ALCP.get();
 				select_type::unique_ptr_type teselect( new select_type( LCP, ((streambits+63)/64)*64 ) );
@@ -550,7 +550,7 @@ namespace libmaus
 
 			static unique_ptr_type load(sampled_sa_type const & rsa, std::string const & fn)
 			{
-				libmaus::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::CheckedInputStream CIS(fn);
 				unique_ptr_type ptr(new this_type(CIS,rsa));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
@@ -564,10 +564,10 @@ namespace libmaus
 
 		// compute plcp	array
 		template<typename key_type, typename elem_type>
-		::libmaus::autoarray::AutoArray<elem_type> plcp(key_type const * t, size_t const n, elem_type const * const SA)
+		::libmaus2::autoarray::AutoArray<elem_type> plcp(key_type const * t, size_t const n, elem_type const * const SA)
 		{
 			// compute Phi
-			::libmaus::autoarray::AutoArray<elem_type> APhi(n,false); elem_type * Phi = APhi.get();
+			::libmaus2::autoarray::AutoArray<elem_type> APhi(n,false); elem_type * Phi = APhi.get();
 			if ( n )
 				Phi[SA[0]] = n;
 			for ( size_t i = 1; i < n; ++i )
@@ -575,7 +575,7 @@ namespace libmaus
 			  
 			unsigned int l = 0;
 			  
-			::libmaus::autoarray::AutoArray<elem_type> APLCP(n,false); elem_type * PLCP = APLCP.get();
+			::libmaus2::autoarray::AutoArray<elem_type> APLCP(n,false); elem_type * PLCP = APLCP.get();
 			key_type const * const tn = t+n;
 			for ( size_t i = 0; i < n; ++i )
 			{
@@ -599,14 +599,14 @@ namespace libmaus
 
 		// compute lcp array using plcp array
 		template<typename key_type, typename elem_type>
-		::libmaus::autoarray::AutoArray<elem_type> computeLcp(
+		::libmaus2::autoarray::AutoArray<elem_type> computeLcp(
 			key_type const * t, 
 			size_t const n, 
 			elem_type const * const SA
 		)
 		{
-			::libmaus::autoarray::AutoArray<elem_type> APLCP = plcp(t,n,SA); elem_type const * const PLCP = APLCP.get();
-			::libmaus::autoarray::AutoArray<elem_type> ALCP(n,false); elem_type * LCP = ALCP.get();
+			::libmaus2::autoarray::AutoArray<elem_type> APLCP = plcp(t,n,SA); elem_type const * const PLCP = APLCP.get();
+			::libmaus2::autoarray::AutoArray<elem_type> ALCP(n,false); elem_type * LCP = ALCP.get();
 			  
 			for ( size_t i = 0; i < n; ++i )
 				LCP[i] = PLCP[SA[i]];
@@ -617,7 +617,7 @@ namespace libmaus
 		template<typename key_string, typename sa_elem_type, typename lcp_elem_type>
 		void computeLCPKasai(key_string const & y, uint64_t const n, sa_elem_type const * const sa, lcp_elem_type * lcp)
 		{
-			::libmaus::autoarray::AutoArray<sa_elem_type> isa(n);
+			::libmaus2::autoarray::AutoArray<sa_elem_type> isa(n);
 
 			for ( uint64_t i = 0; i < n; ++i ) isa[sa[i]] = i;
 		
@@ -682,15 +682,15 @@ namespace libmaus
 			struct LCPResult
 			{
 				typedef LCPResult this_type;
-				typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 				typedef uint8_t small_elem_type;
-				::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type WLCP;
-				::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type U;
-				::libmaus::rank::ERank222B::unique_ptr_type Urank;
-				::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type LLCP;
+				::libmaus2::autoarray::AutoArray<uint8_t>::unique_ptr_type WLCP;
+				::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type U;
+				::libmaus2::rank::ERank222B::unique_ptr_type Urank;
+				::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type LLCP;
 				
-				typedef libmaus::util::ConstIterator<LCPResult,uint64_t> const_iterator;
+				typedef libmaus2::util::ConstIterator<LCPResult,uint64_t> const_iterator;
 				
 				const_iterator begin() const
 				{
@@ -704,7 +704,7 @@ namespace libmaus
 				
 				void serialise(std::ostream & out) const
 				{
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,U.get()!=0);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(out,U.get()!=0);
 					WLCP->serialize(out);
 					if ( U.get() )
 					{
@@ -715,13 +715,13 @@ namespace libmaus
 				
 				static unique_ptr_type load(std::string const & filename)
 				{
-					libmaus::aio::CheckedInputStream istr(filename);
+					libmaus2::aio::CheckedInputStream istr(filename);
 					
 					unique_ptr_type P ( new this_type(istr) );
 					
 					if ( ! istr )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to load file " << filename << " in LCPResult::load()" << std::endl;
 						se.finish();
 						throw se;					
@@ -732,24 +732,24 @@ namespace libmaus
 				
 				LCPResult(std::istream & in)
 				{
-					bool const haveU = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-					::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type tWLCP(new ::libmaus::autoarray::AutoArray<uint8_t>(in));
+					bool const haveU = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					::libmaus2::autoarray::AutoArray<uint8_t>::unique_ptr_type tWLCP(new ::libmaus2::autoarray::AutoArray<uint8_t>(in));
 					WLCP = UNIQUE_PTR_MOVE(tWLCP);
 					if ( haveU )
 					{
-						::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tU(new ::libmaus::autoarray::AutoArray<uint64_t>(in));
+						::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type tU(new ::libmaus2::autoarray::AutoArray<uint64_t>(in));
 						U = UNIQUE_PTR_MOVE(tU);
-						::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tLLCP(new ::libmaus::autoarray::AutoArray<uint64_t>(in));
+						::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type tLLCP(new ::libmaus2::autoarray::AutoArray<uint64_t>(in));
 						LLCP = UNIQUE_PTR_MOVE(tLLCP);
 						uint64_t const n = WLCP->size()-1;
 						uint64_t const n64 = (n+63)/64;
-						::libmaus::rank::ERank222B::unique_ptr_type tUrank(new ::libmaus::rank::ERank222B(U->get(),n64*64));
+						::libmaus2::rank::ERank222B::unique_ptr_type tUrank(new ::libmaus2::rank::ERank222B(U->get(),n64*64));
 						Urank = UNIQUE_PTR_MOVE(tUrank);
 					}
 				}
 				
 				LCPResult(uint64_t const n)
-				: WLCP(::libmaus::autoarray::AutoArray<uint8_t>::unique_ptr_type(new ::libmaus::autoarray::AutoArray<uint8_t>(n+1)))
+				: WLCP(::libmaus2::autoarray::AutoArray<uint8_t>::unique_ptr_type(new ::libmaus2::autoarray::AutoArray<uint8_t>(n+1)))
 				{
 				
 				}
@@ -762,7 +762,7 @@ namespace libmaus
 						return true;
 					else
 					{
-						assert ( ::libmaus::bitio::getBit(U->get(),i) );
+						assert ( ::libmaus2::bitio::getBit(U->get(),i) );
 						return (*LLCP) [ Urank->rank1(i)-1 ] == std::numeric_limits<uint64_t>::max();
 					}
 				}
@@ -771,7 +771,7 @@ namespace libmaus
 				{
 					assert ( (*WLCP)[i] == std::numeric_limits<small_elem_type>::max() ) ;
 					assert ( U->get() );
-					assert ( ::libmaus::bitio::getBit(U->get(),i) );
+					assert ( ::libmaus2::bitio::getBit(U->get(),i) );
 					(*LLCP) [ Urank->rank1(i)-1 ] = v;
 				}
 				
@@ -779,7 +779,7 @@ namespace libmaus
 				{
 					if ( ! U )
 						return (*WLCP)[i];
-					else if ( ! ::libmaus::bitio::getBit(U->get(),i) )
+					else if ( ! ::libmaus2::bitio::getBit(U->get(),i) )
 						return (*WLCP)[i];
 					else
 						return (*LLCP) [ Urank->rank1(i)-1 ];
@@ -794,16 +794,16 @@ namespace libmaus
 				{
 					// set up large value bit vector
 					uint64_t const n64 = (n+63)/64;
-					::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tU(new ::libmaus::autoarray::AutoArray<uint64_t>(n64));
+					::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type tU(new ::libmaus2::autoarray::AutoArray<uint64_t>(n64));
 					this->U = UNIQUE_PTR_MOVE(tU);
 					for ( uint64_t i = 0; i < n; ++i )
 						if ( (*WLCP)[i] == unset )
-							::libmaus::bitio::putBit(this->U->get(),i,1);
+							::libmaus2::bitio::putBit(this->U->get(),i,1);
 					// set up rank dictionary for large value bit vector
-					::libmaus::rank::ERank222B::unique_ptr_type tUrank(new ::libmaus::rank::ERank222B(this->U->get(),n64*64));
+					::libmaus2::rank::ERank222B::unique_ptr_type tUrank(new ::libmaus2::rank::ERank222B(this->U->get(),n64*64));
 					this->Urank = UNIQUE_PTR_MOVE(tUrank);
 					// set up array for large values
-					::libmaus::autoarray::AutoArray<uint64_t>::unique_ptr_type tLLCP(new ::libmaus::autoarray::AutoArray<uint64_t>(this->Urank->rank1(n-1)));
+					::libmaus2::autoarray::AutoArray<uint64_t>::unique_ptr_type tLLCP(new ::libmaus2::autoarray::AutoArray<uint64_t>(this->Urank->rank1(n-1)));
 					this->LLCP = UNIQUE_PTR_MOVE(tLLCP);
 					// mark all large values as unset
 					for ( uint64_t i = 0; i < this->LLCP->size(); ++i )
@@ -818,7 +818,7 @@ namespace libmaus
 				LCPResult::small_elem_type const unset = std::numeric_limits< LCPResult::small_elem_type>::max();
 				LCPResult::unique_ptr_type res(new LCPResult(n));
 
-				::libmaus::autoarray::AutoArray< LCPResult::small_elem_type> & WLCP = *(res->WLCP);
+				::libmaus2::autoarray::AutoArray< LCPResult::small_elem_type> & WLCP = *(res->WLCP);
 
 				std::stack < TraversalNode > st;
 				st.push( TraversalNode(0,n) );
@@ -833,7 +833,7 @@ namespace libmaus
 					W.multiRankCallBack(tn.sp,tn.ep,LF->D.get(),PMC);
 				}
 
-				::libmaus::autoarray::AutoArray<uint64_t> symfreq( LF->getSymbolThres() );
+				::libmaus2::autoarray::AutoArray<uint64_t> symfreq( LF->getSymbolThres() );
 				
 				std::cerr << "[V] symbol threshold is " << symfreq.size() << std::endl;
 				
@@ -843,10 +843,10 @@ namespace libmaus
 
 				std::fill ( WLCP.get(), WLCP.get()+WLCP.getN(),unset);
 							
-				::libmaus::suffixsort::CompactQueue Q0(n);
-				::libmaus::suffixsort::CompactQueue Q1(n);
-				::libmaus::suffixsort::CompactQueue * PQ0 = &Q0;
-				::libmaus::suffixsort::CompactQueue * PQ1 = &Q1;
+				::libmaus2::suffixsort::CompactQueue Q0(n);
+				::libmaus2::suffixsort::CompactQueue Q1(n);
+				::libmaus2::suffixsort::CompactQueue * PQ0 = &Q0;
+				::libmaus2::suffixsort::CompactQueue * PQ1 = &Q1;
 
 				uint64_t s = 0;
 				uint64_t cc = 0;
@@ -878,7 +878,7 @@ namespace libmaus
 				}                
 				WLCP[n] = 0;
 
-				::libmaus::timing::RealTimeClock lcprtc; lcprtc.start();
+				::libmaus2::timing::RealTimeClock lcprtc; lcprtc.start();
 				std::cerr << "Computing LCP...";
 				uint64_t cur_l = 1;
 				while ( PQ0->fill && cur_l < unset )
@@ -894,15 +894,15 @@ namespace libmaus
 					#endif
 					
 					uint64_t const numcontexts = numthreads;
-					::libmaus::autoarray::AutoArray < ::libmaus::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
+					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
 					#if defined(_OPENMP) && defined(LIBMAUS_HAVE_SYNC_OPS)
 					#pragma omp parallel for
 					#endif
 					for ( int64_t c = 0; c < static_cast<int64_t>(deqcontexts.size()); ++c )
 					{
-						::libmaus::suffixsort::CompactQueue::DequeContext * deqcontext = deqcontexts[c].get();
-						::libmaus::suffixsort::CompactQueue::EnqueBuffer::unique_ptr_type encbuf = PQ1->createEnqueBuffer();
+						::libmaus2::suffixsort::CompactQueue::DequeContext * deqcontext = deqcontexts[c].get();
+						::libmaus2::suffixsort::CompactQueue::EnqueBuffer::unique_ptr_type encbuf = PQ1->createEnqueBuffer();
 
 						while ( !deqcontext->done() )
 						{
@@ -930,7 +930,7 @@ namespace libmaus
 					
 					// extract compact queues into non compact ones
 					std::deque< std::pair<uint64_t,uint64_t> > Q0, Q1;
-					::libmaus::suffixsort::CompactQueue::DequeContext::unique_ptr_type dcontext = PQ0->getGlobalDequeContext();
+					::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type dcontext = PQ0->getGlobalDequeContext();
 					while ( dcontext->fill )
 						Q0.push_back( PQ0->deque(dcontext.get()) );
 

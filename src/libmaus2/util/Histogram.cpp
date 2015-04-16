@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,17 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Histogram.hpp>
+#include <libmaus2/util/Histogram.hpp>
 
-libmaus::util::Histogram::Histogram(std::map<uint64_t,uint64_t> const & rall, uint64_t const lowsize) : all(rall), low(lowsize) {}
-libmaus::util::Histogram::Histogram(uint64_t const lowsize) : low(lowsize) {}
+libmaus2::util::Histogram::Histogram(std::map<uint64_t,uint64_t> const & rall, uint64_t const lowsize) : all(rall), low(lowsize) {}
+libmaus2::util::Histogram::Histogram(uint64_t const lowsize) : low(lowsize) {}
 
-uint64_t libmaus::util::Histogram::getLowSize() const
+uint64_t libmaus2::util::Histogram::getLowSize() const
 {
 	return low.size();
 }
 
-uint64_t libmaus::util::Histogram::median() const
+uint64_t libmaus2::util::Histogram::median() const
 {
 	std::map<uint64_t,uint64_t> M = get();
 	uint64_t sum = 0;
@@ -49,7 +49,7 @@ uint64_t libmaus::util::Histogram::median() const
 	return M.rbegin()->first;
 }
 
-double libmaus::util::Histogram::avg() const
+double libmaus2::util::Histogram::avg() const
 {
 	std::map<uint64_t,uint64_t> M = get();
 	uint64_t sum = 0;
@@ -66,7 +66,7 @@ double libmaus::util::Histogram::avg() const
 		return 0.0;
 }
 
-std::map<uint64_t,uint64_t> libmaus::util::Histogram::get() const
+std::map<uint64_t,uint64_t> libmaus2::util::Histogram::get() const
 {
 	std::map<uint64_t,uint64_t> R = all;
 	
@@ -77,7 +77,7 @@ std::map<uint64_t,uint64_t> libmaus::util::Histogram::get() const
 	return R;
 }
 
-std::vector<uint64_t> libmaus::util::Histogram::getKeyVector()
+std::vector<uint64_t> libmaus2::util::Histogram::getKeyVector()
 {
 	std::map<uint64_t,uint64_t> const M = get();
 	std::vector<uint64_t> V;
@@ -86,7 +86,7 @@ std::vector<uint64_t> libmaus::util::Histogram::getKeyVector()
 	return V;
 }
 
-uint64_t libmaus::util::Histogram::getTotal() const
+uint64_t libmaus2::util::Histogram::getTotal() const
 {		
 	std::map<uint64_t,uint64_t> const M = get();
 	uint64_t total = 0;
@@ -95,7 +95,7 @@ uint64_t libmaus::util::Histogram::getTotal() const
 	return total;
 }
 
-uint64_t libmaus::util::Histogram::getNumPoints() const
+uint64_t libmaus2::util::Histogram::getNumPoints() const
 {		
 	std::map<uint64_t,uint64_t> const M = get();
 	uint64_t total = 0;
@@ -104,7 +104,7 @@ uint64_t libmaus::util::Histogram::getNumPoints() const
 	return total;
 }
 
-std::ostream & libmaus::util::Histogram::print(std::ostream & out) const
+std::ostream & libmaus2::util::Histogram::print(std::ostream & out) const
 {
 	std::map<uint64_t,uint64_t> const F = get();
 	
@@ -114,7 +114,7 @@ std::ostream & libmaus::util::Histogram::print(std::ostream & out) const
 	return out;
 }
 
-std::ostream & libmaus::util::Histogram::printFrac(std::ostream & out, double const frac) const
+std::ostream & libmaus2::util::Histogram::printFrac(std::ostream & out, double const frac) const
 {
 	std::map<uint64_t,uint64_t> const F = get();
 	
@@ -133,7 +133,7 @@ std::ostream & libmaus::util::Histogram::printFrac(std::ostream & out, double co
 	return out;
 }
 
-std::vector < std::pair<uint64_t,uint64_t > > libmaus::util::Histogram::getFreqSymVector()
+std::vector < std::pair<uint64_t,uint64_t > > libmaus2::util::Histogram::getFreqSymVector()
 {
 	std::map < uint64_t, uint64_t > const kmerhistM = get();
 	// copy to vector and sort
@@ -148,7 +148,7 @@ std::vector < std::pair<uint64_t,uint64_t > > libmaus::util::Histogram::getFreqS
 	return freqsyms;
 }
 
-void libmaus::util::Histogram::merge(::libmaus::util::Histogram const & other)
+void libmaus2::util::Histogram::merge(::libmaus2::util::Histogram const & other)
 {
 	assert ( this->low.size() == other.low.size() );
 	for ( uint64_t i = 0; i < low.size(); ++i )

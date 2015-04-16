@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_DIGEST_NULL_HPP)
 #define LIBMAUS_DIGEST_NULL_HPP
 
-#include <libmaus/digest/DigestBase.hpp>
+#include <libmaus2/digest/DigestBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{

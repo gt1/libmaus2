@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,9 +21,9 @@
 
 #include <map>
 #include <vector>
-#include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
+#include <libmaus2/lz/SimpleCompressedStreamInterval.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -52,7 +52,7 @@ namespace libmaus
 			}
 			
 			SimpleCompressedConcatInputStreamFragment(
-				libmaus::lz::SimpleCompressedStreamInterval const & rmeta,
+				libmaus2::lz::SimpleCompressedStreamInterval const & rmeta,
 				stream_type * rstream				
 			) : low(rmeta.start), high(rmeta.end), stream(rstream)
 			{

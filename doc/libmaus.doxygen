@@ -25,7 +25,7 @@ DOXYFILE_ENCODING      = UTF-8
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = libmaus
+PROJECT_NAME           = libmaus2
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 
@@ -534,9 +534,9 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = libmaus/autoarray libmaus/aio libmaus/bambam
+INPUT                  = libmaus2/autoarray libmaus2/aio libmaus2/bambam
 
-# libmaus/aio libmaus/arithmetic libmaus/autoarray libmaus/bambam libmaus/bitbtree libmaus/bitio libmaus/bp libmaus/btree libmaus/clustering libmaus/consensus libmaus/cumfreq libmaus/deleter libmaus/eta libmaus/exception libmaus/fastx libmaus/fm libmaus/graph libmaus/hashing libmaus/huffman libmaus/lcp libmaus/lcs libmaus/lf libmaus/lru libmaus/lsf libmaus/lz libmaus/math libmaus/network libmaus/parallel libmaus/quantisation libmaus/random libmaus/rank libmaus/regex libmaus/rl libmaus/rmq libmaus/select libmaus/serialize libmaus/sorting libmaus/suffixsort libmaus/sv libmaus/timing libmaus/trie libmaus/types libmaus/uint libmaus/util libmaus/wavelet libmaus/suffixtree libmaus/gamma
+# libmaus2/aio libmaus2/arithmetic libmaus2/autoarray libmaus2/bambam libmaus2/bitbtree libmaus2/bitio libmaus2/bp libmaus2/btree libmaus2/clustering libmaus2/consensus libmaus2/cumfreq libmaus2/deleter libmaus2/eta libmaus2/exception libmaus2/fastx libmaus2/fm libmaus2/graph libmaus2/hashing libmaus2/huffman libmaus2/lcp libmaus2/lcs libmaus2/lf libmaus2/lru libmaus2/lsf libmaus2/lz libmaus2/math libmaus2/network libmaus2/parallel libmaus2/quantisation libmaus2/random libmaus2/rank libmaus2/regex libmaus2/rl libmaus2/rmq libmaus2/select libmaus2/serialize libmaus2/sorting libmaus2/suffixsort libmaus2/sv libmaus2/timing libmaus2/trie libmaus2/types libmaus2/uint libmaus2/util libmaus2/wavelet libmaus2/suffixtree libmaus2/gamma
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 

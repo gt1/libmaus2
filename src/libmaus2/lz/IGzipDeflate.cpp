@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,17 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/lz/IGzipDeflate.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/lz/IGzipDeflate.hpp>
 
-// int const libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL = 11;
+// int const libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL = 11;
 
 #if defined(LIBMAUS_HAVE_IGZIP)
 extern "C" {
 	#include <igzip_lib.h>
 }
 
-int64_t libmaus::lz::IGzipDeflate::deflate(uint8_t * const in, uint64_t const insize, uint8_t * const out, uint64_t const outsize)
+int64_t libmaus2::lz::IGzipDeflate::deflate(uint8_t * const in, uint64_t const insize, uint8_t * const out, uint64_t const outsize)
 {
 	LZ_Stream2 stream;
 	init_stream(&stream);
@@ -46,7 +46,7 @@ int64_t libmaus::lz::IGzipDeflate::deflate(uint8_t * const in, uint64_t const in
 }
 #else
 // stub which always returns the failure code
-int64_t libmaus::lz::IGzipDeflate::deflate(uint8_t * const, uint64_t const, uint8_t * const, uint64_t const)
+int64_t libmaus2::lz::IGzipDeflate::deflate(uint8_t * const, uint64_t const, uint8_t * const, uint64_t const)
 {
 	return -1;
 }

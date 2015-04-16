@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_LZ_BGZFRECODE_HPP)
 #define LIBMAUS_LZ_BGZFRECODE_HPP
 
-#include <libmaus/lz/BgzfDeflateBase.hpp>
-#include <libmaus/lz/BgzfInflateBase.hpp>
+#include <libmaus2/lz/BgzfDeflateBase.hpp>
+#include <libmaus2/lz/BgzfInflateBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfRecode
 		{
-			libmaus::lz::BgzfInflateBase inflatebase;
-			libmaus::lz::BgzfDeflateBase deflatebase;
+			libmaus2::lz::BgzfInflateBase inflatebase;
+			libmaus2::lz::BgzfDeflateBase deflatebase;
 			
 			std::istream & in;
 			std::ostream & out;
 			
 			std::pair<uint64_t,uint64_t> P;
 
-			std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
+			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 			
 			BgzfRecode(std::istream & rin, std::ostream & rout, int const level = Z_DEFAULT_COMPRESSION)
 			: inflatebase(), deflatebase(level,true,BgzfConstants::getBgzfMaxBlockSize()), in(rin), out(rout)
@@ -62,7 +62,7 @@ namespace libmaus
 				return !(getBlockPlusEOF().second);
 			}
 
-			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
+			void registerBlockOutputCallback(::libmaus2::lz::BgzfDeflateOutputCallback * cb)
 			{
 				blockoutputcallbacks.push_back(cb);
 			}
@@ -78,7 +78,7 @@ namespace libmaus
 
 				if ( ! out )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
 					throw se;				

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Concat.hpp>
+#include <libmaus2/util/Concat.hpp>
 
-uint64_t libmaus::util::Concat::concat(std::istream & in, std::ostream & out)
+uint64_t libmaus2::util::Concat::concat(std::istream & in, std::ostream & out)
 {
-	::libmaus::autoarray::AutoArray < char > buf(16*1024,false);
+	::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
 	uint64_t c = 0;
 	
 	while ( in )
@@ -34,11 +34,11 @@ uint64_t libmaus::util::Concat::concat(std::istream & in, std::ostream & out)
 	return c;
 }
 
-uint64_t libmaus::util::Concat::concat(std::string const & filename, std::ostream & out)
+uint64_t libmaus2::util::Concat::concat(std::string const & filename, std::ostream & out)
 {
-	uint64_t n = ::libmaus::util::GetFileSize::getFileSize(filename);
-	::libmaus::autoarray::AutoArray < char > buf(16*1024,false);
-	libmaus::aio::CheckedInputStream in(filename);
+	uint64_t n = ::libmaus2::util::GetFileSize::getFileSize(filename);
+	::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
+	libmaus2::aio::CheckedInputStream in(filename);
 	uint64_t c = 0;
 	
 	while ( n )
@@ -56,7 +56,7 @@ uint64_t libmaus::util::Concat::concat(std::string const & filename, std::ostrea
 	return c;
 }
 
-uint64_t libmaus::util::Concat::concat(std::vector < std::string > const & files, std::ostream & out, bool const rem)
+uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & files, std::ostream & out, bool const rem)
 {
 	uint64_t c = 0;
 	
@@ -70,15 +70,15 @@ uint64_t libmaus::util::Concat::concat(std::vector < std::string > const & files
 	return c;
 }
 
-uint64_t libmaus::util::Concat::concatParallel(
+uint64_t libmaus2::util::Concat::concatParallel(
 	std::vector < std::string > const & files, 
 	std::string const & outputfilename, 
 	bool const rem
 )
 {
-	::libmaus::autoarray::AutoArray<uint64_t> P(files.size()+1);
+	::libmaus2::autoarray::AutoArray<uint64_t> P(files.size()+1);
 	for ( uint64_t i = 0; i < files.size(); ++i )
-		P[i] = ::libmaus::util::GetFileSize::getFileSize(files[i]);
+		P[i] = ::libmaus2::util::GetFileSize::getFileSize(files[i]);
 	P.prefixSums();
 
 	std::ofstream ostr(outputfilename.c_str(),std::ios::binary);
@@ -102,7 +102,7 @@ uint64_t libmaus::util::Concat::concatParallel(
 	return P[files.size()];
 }
 
-uint64_t libmaus::util::Concat::concatParallel(
+uint64_t libmaus2::util::Concat::concatParallel(
 	std::vector < std::vector < std::string > > const & files, 
 	std::string const & outputfilename, 
 	bool const rem
@@ -117,16 +117,16 @@ uint64_t libmaus::util::Concat::concatParallel(
 	return concatParallel(sfiles,outputfilename,rem);
 }
 
-uint64_t libmaus::util::Concat::concat(std::vector < std::string > const & files, std::string const & outputfile, bool const rem)
+uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & files, std::string const & outputfile, bool const rem)
 {
-	libmaus::aio::CheckedOutputStream out(outputfile.c_str(),std::ios::binary);
+	libmaus2::aio::CheckedOutputStream out(outputfile.c_str(),std::ios::binary);
 	uint64_t const c = concat(files,out,rem);
 	out.flush();
 	out.close();
 	return c;
 }			
 
-uint64_t libmaus::util::Concat::concat(
+uint64_t libmaus2::util::Concat::concat(
 	std::vector < std::vector < std::string > > const & files, 
 	std::string const & outputfilename, 
 	bool const rem

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,16 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/math/DecimalNumberParser.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/math/DecimalNumberParser.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
 		{		
-			libmaus::math::DecimalNumberParser NP;
+			libmaus2::math::DecimalNumberParser NP;
 
 			srand(time(0));
 			
@@ -34,14 +34,14 @@ int main(int argc, char * argv[])
 			std::vector<uint64_t> NV;
 			for ( uint64_t i = 0; i < 1u << 24; ++i )
 			{
-				uint64_t j = libmaus::random::Random::rand64();
+				uint64_t j = libmaus2::random::Random::rand64();
 				std::ostringstream ostr;
 				ostr << j;
 				SV.push_back(ostr.str());
 				NV.push_back(j);
 			}
 			
-			libmaus::timing::RealTimeClock rtc;
+			libmaus2::timing::RealTimeClock rtc;
 			rtc.start();
 			for ( uint64_t i = 0; i < NV.size(); ++i )
 			{

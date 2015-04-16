@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,27 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lz/Lz4Compress.hpp>
-#include <libmaus/lz/Lz4Base.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/lz/lz4.h>
+#include <libmaus2/lz/Lz4Compress.hpp>
+#include <libmaus2/lz/Lz4Base.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/lz/lz4.h>
 
-libmaus::lz::Lz4Compress::Lz4Compress(std::ostream & rout, uint64_t const rinputblocksize, std::ostream * rindexstream)
-: inputblocksize(rinputblocksize), outputblocksize(libmaus::lz::Lz4Base::getCompressBound(inputblocksize)), outputblock(outputblocksize,false), out(rout), outputbyteswritten(0), payloadbyteswritten(0), indexstream(rindexstream)
+libmaus2::lz::Lz4Compress::Lz4Compress(std::ostream & rout, uint64_t const rinputblocksize, std::ostream * rindexstream)
+: inputblocksize(rinputblocksize), outputblocksize(libmaus2::lz::Lz4Base::getCompressBound(inputblocksize)), outputblock(outputblocksize,false), out(rout), outputbyteswritten(0), payloadbyteswritten(0), indexstream(rindexstream)
 {
 
 }
 
-libmaus::lz::Lz4Compress::~Lz4Compress() {}
+libmaus2::lz::Lz4Compress::~Lz4Compress() {}
 
-void libmaus::lz::Lz4Compress::writeUncompressed(char const * input, int const inputsize)
+void libmaus2::lz::Lz4Compress::writeUncompressed(char const * input, int const inputsize)
 {
 	out.write(input,inputsize);
 
 	if ( ! out )
 	{
-		libmaus::exception::LibMausException se;
-		se.getStream() << "libmaus::lz::Lz4Compress::write(): failed to write to output stream"  << std::endl;
+		libmaus2::exception::LibMausException se;
+		se.getStream() << "libmaus2::lz::Lz4Compress::write(): failed to write to output stream"  << std::endl;
 		se.finish();
 		throw se;
 	}
@@ -44,24 +44,24 @@ void libmaus::lz::Lz4Compress::writeUncompressed(char const * input, int const i
 	outputbyteswritten += inputsize;
 }
 
-void libmaus::lz::Lz4Compress::write(char const * input, int const inputsize)
+void libmaus2::lz::Lz4Compress::write(char const * input, int const inputsize)
 {
 	if ( indexstream )
 	{
 		if ( (payloadbyteswritten % inputblocksize) != 0 )
 		{
-			libmaus::exception::LibMausException se;
-			se.getStream() << "libmaus::lz::Lz4Compress::write(): block index out of sync"  << std::endl;
+			libmaus2::exception::LibMausException se;
+			se.getStream() << "libmaus2::lz::Lz4Compress::write(): block index out of sync"  << std::endl;
 			se.finish();
 			throw se;		
 		}
 	
-		libmaus::util::NumberSerialisation::serialiseNumber(*indexstream,outputbyteswritten);
+		libmaus2::util::NumberSerialisation::serialiseNumber(*indexstream,outputbyteswritten);
 
 		if ( ! (*indexstream) )
 		{
-			libmaus::exception::LibMausException se;
-			se.getStream() << "libmaus::lz::Lz4Compress::write(): failed to write to index stream"  << std::endl;
+			libmaus2::exception::LibMausException se;
+			se.getStream() << "libmaus2::lz::Lz4Compress::write(): failed to write to index stream"  << std::endl;
 			se.finish();
 			throw se;
 		}
@@ -70,8 +70,8 @@ void libmaus::lz::Lz4Compress::write(char const * input, int const inputsize)
 	int const compressedSize = LZ4_compress(input,outputblock.begin(),inputsize);
 
 	std::ostringstream ostr;
-	libmaus::util::UTF8::encodeUTF8(compressedSize,ostr);
-	libmaus::util::UTF8::encodeUTF8(inputsize,ostr);
+	libmaus2::util::UTF8::encodeUTF8(compressedSize,ostr);
+	libmaus2::util::UTF8::encodeUTF8(inputsize,ostr);
 
 	writeUncompressed(ostr.str().c_str(),ostr.str().size());
 	writeUncompressed(outputblock.begin(),compressedSize);	
@@ -79,14 +79,14 @@ void libmaus::lz::Lz4Compress::write(char const * input, int const inputsize)
 	payloadbyteswritten += inputsize;
 }
 
-void libmaus::lz::Lz4Compress::flush()
+void libmaus2::lz::Lz4Compress::flush()
 {
 	out.flush();
 
 	if ( ! out )
 	{
-		libmaus::exception::LibMausException se;
-		se.getStream() << "libmaus::lz::Lz4Compress::flush(): failed to write to output stream"  << std::endl;
+		libmaus2::exception::LibMausException se;
+		se.getStream() << "libmaus2::lz::Lz4Compress::flush(): failed to write to output stream"  << std::endl;
 		se.finish();
 		throw se;
 	}
@@ -97,15 +97,15 @@ void libmaus::lz::Lz4Compress::flush()
 
 		if ( ! (*indexstream) )
 		{
-			libmaus::exception::LibMausException se;
-			se.getStream() << "libmaus::lz::Lz4Compress::write(): failed to write to index stream"  << std::endl;
+			libmaus2::exception::LibMausException se;
+			se.getStream() << "libmaus2::lz::Lz4Compress::write(): failed to write to index stream"  << std::endl;
 			se.finish();
 			throw se;
 		}
 	}
 }
 
-uint64_t libmaus::lz::Lz4Compress::align(uint64_t const mod)
+uint64_t libmaus2::lz::Lz4Compress::align(uint64_t const mod)
 {
 	char zbuf[] = { 0,0,0,0, 0,0,0,0 };
 	
@@ -118,7 +118,7 @@ uint64_t libmaus::lz::Lz4Compress::align(uint64_t const mod)
 	return outputbyteswritten;
 }
 
-uint64_t libmaus::lz::Lz4Compress::getPayloadBytesWritten() const
+uint64_t libmaus2::lz::Lz4Compress::getPayloadBytesWritten() const
 {
 	return payloadbyteswritten;
 }

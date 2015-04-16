@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
 		struct SimpleThreadWorkPackageDispatcher
 		{
 			typedef SimpleThreadWorkPackageDispatcher this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 					
 			virtual ~SimpleThreadWorkPackageDispatcher() {}
 			virtual void dispatch(SimpleThreadWorkPackage * P, SimpleThreadPoolInterfaceEnqueTermInterface & tpi) = 0;

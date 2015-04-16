@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -25,9 +25,9 @@
 #include <omp.h>
 #endif
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
@@ -52,7 +52,7 @@ namespace libmaus
 				return ((K(v)>>(2*histbits)) & histmask);
 			}
 
-			static void radixSort(::libmaus::autoarray::AutoArray<data_type> & AA, u_int64_t n, key_projector const & K, int const inumthreads = -1)
+			static void radixSort(::libmaus2::autoarray::AutoArray<data_type> & AA, u_int64_t n, key_projector const & K, int const inumthreads = -1)
 			{
 				data_type * const A = AA.get();
 		#if defined(_OPENMP)
@@ -65,7 +65,7 @@ namespace libmaus
 		#else
 				unsigned int const numthreads = 1;
 		#endif
-				::libmaus::autoarray::AutoArray < u_int64_t > Ahist0(3 * numthreads * histsize,false);
+				::libmaus2::autoarray::AutoArray < u_int64_t > Ahist0(3 * numthreads * histsize,false);
 
 				u_int64_t * const ghist0 = Ahist0.get();
 				u_int64_t * const ghist1 = ghist0 + numthreads * histsize;
@@ -147,7 +147,7 @@ namespace libmaus
 					}
 				}
 
-				::libmaus::autoarray::AutoArray<data_type> T(n,false);
+				::libmaus2::autoarray::AutoArray<data_type> T(n,false);
 
 		#if defined(_OPENMP)
 		#pragma omp parallel
@@ -253,7 +253,7 @@ namespace libmaus
 			}
 
 			static void radixSort(
-				::libmaus::autoarray::AutoArray<data_type> & AA, 
+				::libmaus2::autoarray::AutoArray<data_type> & AA, 
 				u_int64_t n, 
 				key_projector const & K, 
 				int inumthreads = -1)
@@ -269,7 +269,7 @@ namespace libmaus
 		#else
 				unsigned int const numthreads = 1;
 		#endif
-				::libmaus::autoarray::AutoArray < u_int64_t > Ahist0(6 * numthreads * histsize,false);
+				::libmaus2::autoarray::AutoArray < u_int64_t > Ahist0(6 * numthreads * histsize,false);
 
 				u_int64_t * const ghist0 = Ahist0.get();
 				u_int64_t * const ghist1 = ghist0 + numthreads * histsize;
@@ -378,7 +378,7 @@ namespace libmaus
 					}
 				}
 
-				::libmaus::autoarray::AutoArray<data_type> T(n,false);
+				::libmaus2::autoarray::AutoArray<data_type> T(n,false);
 
 		#if defined(_OPENMP)
 		#pragma omp parallel

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #define LIBMAUS_INDEX_EXTERNALMEMORYINDEXRECORD_HPP
 
 #include <utility>
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace index
 	{		
@@ -34,8 +34,8 @@ namespace libmaus
 		{
 			typedef _data_type data_type;
 			typedef ExternalMemoryIndexRecord<data_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::pair<uint64_t,uint64_t> P;
 			data_type D;
@@ -55,8 +55,8 @@ namespace libmaus
 			template<typename stream_type>
 			void deserialise(stream_type & stream)
 			{
-				P.first = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
-				P.second = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+				P.first = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+				P.second = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				D.deserialise(stream);
 			}
 			

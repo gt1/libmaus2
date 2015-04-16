@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -25,21 +25,21 @@
 #include <stack>
 #include <algorithm>
 
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeLeaf.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
-#include <libmaus/huffman/HuffmanTreeLeafComparator.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeafComparator.hpp>
 
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
 		struct HuffmanBase
 		{
 			template<typename iterator>
-			static ::libmaus::util::shared_ptr<HuffmanTreeNode>::type createTree( iterator a, iterator e )
+			static ::libmaus2::util::shared_ptr<HuffmanTreeNode>::type createTree( iterator a, iterator e )
 			{
 				::std::map<int64_t,uint64_t> probs;
 				

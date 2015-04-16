@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_UTIL_NUMBERMAPSERIALISATION_HPP
 
 #include <map>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -31,12 +31,12 @@ namespace libmaus
 			template<typename stream_type, typename key_type, typename value_type>
 			static void serialiseMap(stream_type & stream, std::map<key_type,value_type> const & M)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,M.size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,M.size());
 				
 				for ( typename std::map<key_type,value_type>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 				{
-					::libmaus::util::NumberSerialisation::serialiseNumber(stream,ita->first);
-					::libmaus::util::NumberSerialisation::serialiseNumber(stream,ita->second);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,ita->first);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,ita->second);
 				}
 			}
 			
@@ -52,13 +52,13 @@ namespace libmaus
 			template<typename stream_type, typename key_type, typename value_type>
 			static std::map<key_type,value_type> deserialiseMap(stream_type & stream)
 			{
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				std::map<key_type,value_type> M;
 				
 				for ( uint64_t i = 0; i < n; ++i )
 				{
-					uint64_t const k = ::libmaus::util::NumberSerialisation::deserialiseNumber(stream);
-					uint64_t const v = ::libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+					uint64_t const k = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+					uint64_t const v = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 					M[k] = v;
 				}
 				

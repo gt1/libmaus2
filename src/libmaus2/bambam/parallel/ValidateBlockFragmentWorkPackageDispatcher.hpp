@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/ValidateBlockFragmentPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp>
-#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
-#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
+#include <libmaus2/bambam/parallel/ValidateBlockFragmentPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp>
+#include <libmaus2/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus2/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			// dispatcher for block validation
-			struct ValidateBlockFragmentWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct ValidateBlockFragmentWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				ValidateBlockFragmentPackageReturnInterface   & packageReturnInterface;
 				ValidateBlockFragmentAddPendingInterface & addValidatedPendingInterface;
@@ -50,8 +50,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					ValidateBlockFragmentWorkPackage * BP = dynamic_cast<ValidateBlockFragmentWorkPackage *>(P);

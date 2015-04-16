@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_NETWORK_HTTPBODYWRAPPER_HPP)
 #define LIBMAUS_NETWORK_HTTPBODYWRAPPER_HPP
 
-#include <libmaus/network/HttpBody.hpp>
+#include <libmaus2/network/HttpBody.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct HttpBodyWrapper
 		{
 			private:
-			libmaus::network::HttpBody object;
+			libmaus2::network::HttpBody object;
 			
 			public:
 			HttpBodyWrapper(std::istream & rin, bool const rischunked, int64_t const rlength)
@@ -37,7 +37,7 @@ namespace libmaus
 			
 			}
 			
-			libmaus::network::HttpBody & getHttpBody()
+			libmaus2::network::HttpBody & getHttpBody()
 			{
 				return object;
 			}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,40 +20,40 @@
 #if ! defined(LIBMAUS_FASTX_STREAMFASTREADERBASE_HPP)
 #define LIBMAUS_FASTX_STREAMFASTREADERBASE_HPP
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/fastx/CharBuffer.hpp>
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/fastx/CharBuffer.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/types/types.hpp>
 
 #include <string>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct StreamFastReaderBase
 		{
 			typedef StreamFastReaderBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			std::istream & stream;
-			::libmaus::autoarray::AutoArray<uint8_t> B;
+			::libmaus2::autoarray::AutoArray<uint8_t> B;
 			uint8_t * const pa;
 			uint8_t * pc;
 			uint8_t * pe;
 			uint64_t c;
 			
-			::libmaus::fastx::CharBuffer cb;
+			::libmaus2::fastx::CharBuffer cb;
 			
 			uint64_t readNumber1()
 			{
 				int const v = getNextCharacter();
 				if ( v < 0 )
 				{
-					::libmaus::exception::LibMausException ex;
-					ex.getStream() << "Failed to read number in ::libmaus::aio::SocketFastReaderBase::readNumber1().";
+					::libmaus2::exception::LibMausException ex;
+					ex.getStream() << "Failed to read number in ::libmaus2::aio::SocketFastReaderBase::readNumber1().";
 					ex.finish();
 					throw ex;
 				}

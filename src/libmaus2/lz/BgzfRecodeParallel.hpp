@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_LZ_BGZFRECODEPARALLEL_HPP)
 #define LIBMAUS_LZ_BGZFRECODEPARALLEL_HPP
 
-#include <libmaus/lz/BgzfInflateDeflateParallel.hpp>
-#include <libmaus/lz/BgzfParallelRecodeDeflateBase.hpp>
+#include <libmaus2/lz/BgzfInflateDeflateParallel.hpp>
+#include <libmaus2/lz/BgzfParallelRecodeDeflateBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct BgzfRecodeParallel : public ::libmaus::lz::BgzfConstants
+		struct BgzfRecodeParallel : public ::libmaus2::lz::BgzfConstants
 		{
-			libmaus::lz::BgzfInflateDeflateParallel BIDP; // (std::cin,std::cout,Z_DEFAULT_COMPRESSION,32,128);
-			libmaus::lz::BgzfParallelRecodeDeflateBase deflatebase;
+			libmaus2::lz::BgzfInflateDeflateParallel BIDP; // (std::cin,std::cout,Z_DEFAULT_COMPRESSION,32,128);
+			libmaus2::lz::BgzfParallelRecodeDeflateBase deflatebase;
 			std::pair<uint64_t,uint64_t> P;
 
 			BgzfRecodeParallel(
@@ -47,7 +47,7 @@ namespace libmaus
 				BIDP.flush();
 			}
 
-			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
+			void registerBlockOutputCallback(::libmaus2::lz::BgzfDeflateOutputCallback * cb)
 			{
 				BIDP.registerBlockOutputCallback(cb);
 			}

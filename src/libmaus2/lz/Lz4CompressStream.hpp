@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if !defined(LIBMAUS_LZ_LZ4COMPRESSSTREAM_HPP)
 #define LIBMAUS_LZ_LZ4COMPRESSSTREAM_HPP
 
-#include <libmaus/lz/Lz4CompressStreamBuffer.hpp>
+#include <libmaus2/lz/Lz4CompressStreamBuffer.hpp>
 #include <ostream>
 #include <sstream>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct Lz4CompressStream : public Lz4CompressStreamBuffer, public std::ostream
 		{	
 			typedef Lz4CompressStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			libmaus::util::unique_ptr<std::ostringstream>::type memoryindexstream;
+			libmaus2::util::unique_ptr<std::ostringstream>::type memoryindexstream;
 
 			std::ostream * indexstream;
 		
@@ -48,7 +48,7 @@ namespace libmaus
 			
 				std::ostringstream ostr;
 				// write buffer size
-				libmaus::util::UTF8::encodeUTF8(buffersize,ostr);
+				libmaus2::util::UTF8::encodeUTF8(buffersize,ostr);
 
 				Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(ostr.str().c_str(),ostr.str().size());				
 			}
@@ -66,8 +66,8 @@ namespace libmaus
 					
 					// write number of payload bytes and number of entries in block pointer index
 					std::ostringstream numoffsetsostr;
-					libmaus::util::NumberSerialisation::serialiseNumber(numoffsetsostr,Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.getPayloadBytesWritten());
-					libmaus::util::NumberSerialisation::serialiseNumber(numoffsetsostr,numoffsets);
+					libmaus2::util::NumberSerialisation::serialiseNumber(numoffsetsostr,Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.getPayloadBytesWritten());
+					libmaus2::util::NumberSerialisation::serialiseNumber(numoffsetsostr,numoffsets);
 					Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(numoffsetsostr.str().c_str(),numoffsetsostr.str().size());
 					
 					// write block pointers
@@ -75,7 +75,7 @@ namespace libmaus
 					
 					// write pointer to start of index
 					std::ostringstream blockindexptrstr;
-					libmaus::util::NumberSerialisation::serialiseNumber(blockindexptrstr,indexoffset);
+					libmaus2::util::NumberSerialisation::serialiseNumber(blockindexptrstr,indexoffset);
 					Lz4CompressStreamBuffer::Lz4CompressWrapper::wrapped.writeUncompressed(blockindexptrstr.str().c_str(),blockindexptrstr.str().size());
 				}
 			}

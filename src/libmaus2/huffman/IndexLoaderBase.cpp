@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,16 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/huffman/IndexLoaderBase.hpp>
-#include <libmaus/util/ReverseByteOrder.hpp>
+#include <libmaus2/huffman/IndexLoaderBase.hpp>
+#include <libmaus2/util/ReverseByteOrder.hpp>
 
 /* 
  * read position of index, which is stored in the last 8 bytes of the file 
  * byte order of the number is big endian
  */
-uint64_t libmaus::huffman::IndexLoaderBase::getIndexPos(std::string const & filename)
+uint64_t libmaus2::huffman::IndexLoaderBase::getIndexPos(std::string const & filename)
 {
-	::libmaus::aio::CheckedInputStream indexistr(filename);
+	::libmaus2::aio::CheckedInputStream indexistr(filename);
 
 	// read position of index (last 8 bytes of file)
 	// and convert byte order if necessary
@@ -41,13 +41,13 @@ uint64_t libmaus::huffman::IndexLoaderBase::getIndexPos(std::string const & file
 	#elif defined(__linux__)
 	uint64_t const indexpos = bswap_64(v);
 	#else
-	uint64_t const indexpos = ::libmaus::util::ReverseByteOrder::reverseByteOrder<uint64_t>(v);
+	uint64_t const indexpos = ::libmaus2::util::ReverseByteOrder::reverseByteOrder<uint64_t>(v);
 	#endif
 	#else
 	uint64_t const indexpos = v;
 
 	#endif
-	// std::cerr << "Index at position " << indexpos << " file length " << ::libmaus::util::GetFileSize::getFileSize(filename) << std::endl;
+	// std::cerr << "Index at position " << indexpos << " file length " << ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 
 	return indexpos;
 }

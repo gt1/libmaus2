@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(FASTQREADERSPLIT_HPP)
 #define FASTQREADERSPLIT_HPP
 
-#include <libmaus/fastx/FastQReader.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-                struct FastQReaderSplit : public ::libmaus::fastx::FastQReader
+                struct FastQReaderSplit : public ::libmaus2::fastx::FastQReader
                 {
                         typedef FastQReaderSplit reader_type;
                         typedef FASTQEntry pattern_type;
                         typedef PatternBlock<pattern_type> block_type;
                         
                         typedef reader_type this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
                         #if defined(FASTXASYNC)
-                        typedef ::libmaus::aio::AsynchronousStreamReaderData<reader_type> stream_data_type;
-                        typedef ::libmaus::aio::AsynchronousStreamReader< ::libmaus::aio::AsynchronousStreamReaderData<reader_type> > stream_reader_type;
+                        typedef ::libmaus2::aio::AsynchronousStreamReaderData<reader_type> stream_data_type;
+                        typedef ::libmaus2::aio::AsynchronousStreamReader< ::libmaus2::aio::AsynchronousStreamReaderData<reader_type> > stream_reader_type;
                         #endif
 
                         pattern_type patbuf[2];
@@ -110,7 +110,7 @@ namespace libmaus
 
 					do
 					{
-						uint64_t const o = ::libmaus::aio::SynchronousFastReaderBase::getC() - 1;
+						uint64_t const o = ::libmaus2::aio::SynchronousFastReaderBase::getC() - 1;
 						uint64_t const scount = count;
 						uint64_t symcount = 0;
 						uint64_t minlen = std::numeric_limits<uint64_t>::max();
@@ -133,9 +133,9 @@ namespace libmaus
 
                                                 uint64_t const endo = 
                                                         foundnextmarker ? 
-                                                                (::libmaus::aio::SynchronousFastReaderBase::getC() - 1) 
+                                                                (::libmaus2::aio::SynchronousFastReaderBase::getC() - 1) 
                                                                 : 
-                                                                (::libmaus::aio::SynchronousFastReaderBase::getC());
+                                                                (::libmaus2::aio::SynchronousFastReaderBase::getC());
 						V.push_back(FastInterval(scount,count,o,endo,symcount,minlen,maxlen));
 					}
                         	        while ( foundnextmarker );	
@@ -168,10 +168,10 @@ namespace libmaus
                         {
 				std::string const indexfilename = getIndexFileName(filename,steps);
 				
-				if ( ::libmaus::util::GetFileSize::fileExists ( indexfilename ) )
+				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
 				        std::ifstream istr(indexfilename.c_str(), std::ios::binary);
-				        std::vector < FastInterval > intervals = ::libmaus::fastx::FastInterval::deserialiseVector(istr);
+				        std::vector < FastInterval > intervals = ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
 				        return intervals;
 				}
 				else

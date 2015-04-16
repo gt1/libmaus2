@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_ALIGNMENT_FMIINTERVALCOMPARATOR_HPP)
 #define LIBMAUS_ALIGNMENT_FMIINTERVALCOMPARATOR_HPP
 
-#include <libmaus/alignment/FactorMatchInfoPosComparator.hpp>
+#include <libmaus2/alignment/FactorMatchInfoPosComparator.hpp>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace alignment
 	{
 		struct FMIIntervalComparator
 		{
-			std::vector < libmaus::fm::FactorMatchInfo > const & FMI;
+			std::vector < libmaus2::fm::FactorMatchInfo > const & FMI;
 			
-			FMIIntervalComparator(std::vector < libmaus::fm::FactorMatchInfo > const & rFMI)
+			FMIIntervalComparator(std::vector < libmaus2::fm::FactorMatchInfo > const & rFMI)
 			: FMI(rFMI)
 			{
 			

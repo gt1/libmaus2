@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_CHECKSUMSINTERFACEALLOCATOR_HPP)
 #define LIBMAUS_BAMBAM_CHECKSUMSINTERFACEALLOCATOR_HPP
 
-#include <libmaus/bambam/ChecksumsFactory.hpp>
+#include <libmaus2/bambam/ChecksumsFactory.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct ChecksumsInterfaceAllocator
 		{
 			std::string hash;
-			libmaus::bambam::BamHeaderLowMem * header;
+			libmaus2::bambam::BamHeaderLowMem * header;
 			
-			ChecksumsInterfaceAllocator(std::string rhash = std::string(), libmaus::bambam::BamHeaderLowMem * rheader = 0)
+			ChecksumsInterfaceAllocator(std::string rhash = std::string(), libmaus2::bambam::BamHeaderLowMem * rheader = 0)
 			: hash(rhash), header(rheader)
 			{
 			
 			}
 		
-			libmaus::bambam::ChecksumsInterface::shared_ptr_type operator()()
+			libmaus2::bambam::ChecksumsInterface::shared_ptr_type operator()()
 			{
-				libmaus::bambam::ChecksumsInterface::shared_ptr_type sptr(ChecksumsFactory::constructShared(hash,*header));
+				libmaus2::bambam::ChecksumsInterface::shared_ptr_type sptr(ChecksumsFactory::constructShared(hash,*header));
 				return sptr;
 			}
 		};

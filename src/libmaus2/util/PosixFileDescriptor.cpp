@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/PosixFileDescriptor.hpp>
+#include <libmaus2/util/PosixFileDescriptor.hpp>
 			
-libmaus::util::PosixFileDescriptor::PosixFileDescriptor() : fd(-1) {}
-libmaus::util::PosixFileDescriptor::PosixFileDescriptor(int rfd) : fd(rfd) {}
+libmaus2::util::PosixFileDescriptor::PosixFileDescriptor() : fd(-1) {}
+libmaus2::util::PosixFileDescriptor::PosixFileDescriptor(int rfd) : fd(rfd) {}
 
-libmaus::util::PosixFileDescriptor::~PosixFileDescriptor()
+libmaus2::util::PosixFileDescriptor::~PosixFileDescriptor()
 {
 	if ( fd != -1 )
 	{
@@ -31,12 +31,12 @@ libmaus::util::PosixFileDescriptor::~PosixFileDescriptor()
 	}
 }
 
-ssize_t libmaus::util::PosixFileDescriptor::read(void * buf, size_t cnt)
+ssize_t libmaus2::util::PosixFileDescriptor::read(void * buf, size_t cnt)
 {
 	return ::read(fd,buf,cnt);
 }
 
-ssize_t libmaus::util::PosixFileDescriptor::write(void const * buf, size_t cnt)
+ssize_t libmaus2::util::PosixFileDescriptor::write(void const * buf, size_t cnt)
 {
 	return ::write(fd,buf,cnt);
 }

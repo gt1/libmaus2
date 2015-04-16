@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,44 +17,44 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/rank/ERankBase.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
 
-#include <libmaus/lf/MultiRankCacheLF.hpp>
-#include <libmaus/bp/BalancedParentheses.hpp>
-#include <libmaus/util/IncreasingStack.hpp>
-#include <libmaus/rank/CacheLineRank.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/lf/MultiRankCacheLF.hpp>
+#include <libmaus2/bp/BalancedParentheses.hpp>
+#include <libmaus2/util/IncreasingStack.hpp>
+#include <libmaus2/rank/CacheLineRank.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
 
-#include <libmaus/util/Demangle.hpp>
-#include <libmaus/bitio/OutputBuffer.hpp>
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/bitio/OutputBuffer.hpp>
+#include <libmaus2/bitio/readElias.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
-#include <libmaus/wavelet/WaveletTree.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
 
-#include <libmaus/rank/ERank3.hpp>
-#include <libmaus/rank/ERank3C.hpp>
+#include <libmaus2/rank/ERank3.hpp>
+#include <libmaus2/rank/ERank3C.hpp>
 
-#include <libmaus/rank/DecodeCache.hpp>
-#include <libmaus/rank/EncodeCache.hpp>
-#include <libmaus/rank/ChooseCache.hpp>
+#include <libmaus2/rank/DecodeCache.hpp>
+#include <libmaus2/rank/EncodeCache.hpp>
+#include <libmaus2/rank/ChooseCache.hpp>
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/rank/Proc01.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/rank/ERank22B.hpp>
-#include <libmaus/rank/ERank222.hpp>
-#include <libmaus/rank/ERank22.hpp>
-#include <libmaus/rank/ERank2.hpp>
-#include <libmaus/rank/ERank.hpp>
-#include <libmaus/rank/ERank222BP.hpp>
-#include <libmaus/rank/ERank222BAppend.hpp>
-#include <libmaus/rank/ERank222BAppendDynamic.hpp>
-#include <libmaus/rank/FastRank.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/rank/Proc01.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/rank/ERank22B.hpp>
+#include <libmaus2/rank/ERank222.hpp>
+#include <libmaus2/rank/ERank22.hpp>
+#include <libmaus2/rank/ERank2.hpp>
+#include <libmaus2/rank/ERank.hpp>
+#include <libmaus2/rank/ERank222BP.hpp>
+#include <libmaus2/rank/ERank222BAppend.hpp>
+#include <libmaus2/rank/ERank222BAppendDynamic.hpp>
+#include <libmaus2/rank/FastRank.hpp>
 
-#include <libmaus/rank/log2table.hpp>
+#include <libmaus2/rank/log2table.hpp>
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 #include <iostream>
 #include <typeinfo>
@@ -65,7 +65,7 @@
 #include <algorithm>
 #include <numeric>
 
-#include <libmaus/select/ESelect222B.hpp>
+#include <libmaus2/select/ESelect222B.hpp>
 
 // using bitio::getBit1;
 unsigned int shiftRand()
@@ -138,11 +138,11 @@ bool checkE2(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr 
-		<< "checking rank class " << ::libmaus::util::Demangle::demangle<eclass>() << " "
-		<< "writer type " << ::libmaus::util::Demangle::demangle<writer_type>() << " "
-		<< "data type " << ::libmaus::util::Demangle::demangle<typename writer_type::data_type>() << std::endl;
+		<< "checking rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
+		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
+		<< "data type " << ::libmaus2::util::Demangle::demangle<typename writer_type::data_type>() << std::endl;
 
-	::libmaus::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
+	::libmaus2::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
 	
 	clock_t t_rank = 0;
 	clock_t t_select = 0;
@@ -165,7 +165,7 @@ bool checkE2(unsigned int const rvecsize)
 		uint64_t c = 0;
 		for ( uint64_t j = 0; j < vecsize; ++j )
 		{
-			if ( ::libmaus::bitio::getBit(AA.get(),j) )
+			if ( ::libmaus2::bitio::getBit(AA.get(),j) )
 				c++;
 			assert ( E2.rank1(j) == c );
 			ok = ok && ( E2.rank1(j) == c );
@@ -178,7 +178,7 @@ bool checkE2(unsigned int const rvecsize)
 		unsigned int z = 0;
 		for ( unsigned int j = 0; j < vecsize; ++j )
 		{
-			if ( ::libmaus::bitio::getBit(AA.get(),j) )
+			if ( ::libmaus2::bitio::getBit(AA.get(),j) )
 			{
 				ok = ok && ( E2.select1(c) == j );
 				c++;
@@ -194,7 +194,7 @@ bool checkE2(unsigned int const rvecsize)
 		t_select += (aft-bef);
 	}
 	
-	std::string const classname = ::libmaus::util::Demangle::demangle<eclass>();
+	std::string const classname = ::libmaus2::util::Demangle::demangle<eclass>();
 
 	if ( ok )
 	{
@@ -214,19 +214,19 @@ bool checkE2(unsigned int const rvecsize)
 
 bool checkE2Append(unsigned int const rvecsize)
 {
-	typedef ::libmaus::rank::ERank222B eclass;
-	typedef ::libmaus::rank::ERank222BAppend eappclass;
+	typedef ::libmaus2::rank::ERank222B eclass;
+	typedef ::libmaus2::rank::ERank222BAppend eappclass;
 	typedef eclass::writer_type writer_type;
 	typedef writer_type::data_type data_type;
 
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr 
-		<< "rank class " << ::libmaus::util::Demangle::demangle<eappclass>() << " "
-		<< "writer type " << ::libmaus::util::Demangle::demangle<writer_type>() << " "
-		<< "data type " << ::libmaus::util::Demangle::demangle<data_type>() << std::endl;
+		<< "rank class " << ::libmaus2::util::Demangle::demangle<eappclass>() << " "
+		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
+		<< "data type " << ::libmaus2::util::Demangle::demangle<data_type>() << std::endl;
 
-	::libmaus::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
+	::libmaus2::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
 		
 	unsigned int const loops = 100;
 	
@@ -244,17 +244,17 @@ bool checkE2Append(unsigned int const rvecsize)
 		eclass E2(AA.get(),vecsize);
 		
 		#if 0
-		::libmaus::autoarray::AutoArray< data_type > AAA( AA.size(), false );
+		::libmaus2::autoarray::AutoArray< data_type > AAA( AA.size(), false );
 		eappclass E2APP(AAA.get(),vecsize);
 		#else
-		libmaus::rank::ERank222BAppendDynamic E2APP;
+		libmaus2::rank::ERank222BAppendDynamic E2APP;
 		#endif
 		
-		std::cerr << ::libmaus::util::Demangle::demangle< libmaus::rank::ERank222BAppendDynamic >() << " loop " << (i+1) << std::endl;
+		std::cerr << ::libmaus2::util::Demangle::demangle< libmaus2::rank::ERank222BAppendDynamic >() << " loop " << (i+1) << std::endl;
 		
 		for ( uint64_t j = 0; j < vecsize; ++j )
 		{
-			bool const bit = libmaus::bitio::getBit(AA.get(),j);
+			bool const bit = libmaus2::bitio::getBit(AA.get(),j);
 			E2APP.appendBit(bit);
 			
 			if ( j % 1921 == 0 )
@@ -269,7 +269,7 @@ bool checkE2Append(unsigned int const rvecsize)
 				#pragma omp parallel for
 				#endif
 				for ( int k = 0; k <= static_cast<int>(j); ++k )
-					if ( libmaus::bitio::getBit(AA.get(),k) )
+					if ( libmaus2::bitio::getBit(AA.get(),k) )
 						assert ( E2APP.select1(E2APP.rank1(k)-1) == static_cast<unsigned int>(k) );
 					else
 						assert ( E2APP.select0(E2APP.rank0(k)-1) == static_cast<unsigned int>(k) );
@@ -289,11 +289,11 @@ bool checkE2Sel1(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr 
-		<< "rank class " << ::libmaus::util::Demangle::demangle<eclass>() << " "
-		<< "writer type " << ::libmaus::util::Demangle::demangle<writer_type>() << " "
-		<< "data type " << ::libmaus::util::Demangle::demangle<data_type>() << std::endl;
+		<< "rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
+		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
+		<< "data type " << ::libmaus2::util::Demangle::demangle<data_type>() << std::endl;
 
-	::libmaus::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
+	::libmaus2::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
 	
 	clock_t t_select = 0;
 	
@@ -312,7 +312,7 @@ bool checkE2Sel1(unsigned int const rvecsize)
 		clock_t bef = clock();
 		uint64_t c = 0;
 		for ( unsigned int j = 0; j < vecsize; ++j )
-			if ( ::libmaus::bitio::getBit(AA.get(),j) )
+			if ( ::libmaus2::bitio::getBit(AA.get(),j) )
 				ok = ok && ( E2.select1(c++) == j );
 
 		allselops += c;
@@ -320,7 +320,7 @@ bool checkE2Sel1(unsigned int const rvecsize)
 		t_select += (aft-bef);
 	}
 
-	std::string const classname = ::libmaus::util::Demangle::demangle<eclass>();
+	std::string const classname = ::libmaus2::util::Demangle::demangle<eclass>();
 
 	if ( ok )
 	{
@@ -344,11 +344,11 @@ bool checkE2Sel0(unsigned int const rvecsize)
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
 	std::cerr 
-		<< "rank class " << ::libmaus::util::Demangle::demangle<eclass>() << " "
-		<< "writer type " << ::libmaus::util::Demangle::demangle<writer_type>() << " "
-		<< "data type " << ::libmaus::util::Demangle::demangle<data_type>() << std::endl;
+		<< "rank class " << ::libmaus2::util::Demangle::demangle<eclass>() << " "
+		<< "writer type " << ::libmaus2::util::Demangle::demangle<writer_type>() << " "
+		<< "data type " << ::libmaus2::util::Demangle::demangle<data_type>() << std::endl;
 
-	::libmaus::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
+	::libmaus2::autoarray::AutoArray< data_type > AA( vecsize/ ( 8 * sizeof(data_type) ) , false );
 	
 	clock_t t_select = 0;
 	
@@ -367,7 +367,7 @@ bool checkE2Sel0(unsigned int const rvecsize)
 		clock_t bef = clock();
 		uint64_t c = 0;
 		for ( unsigned int j = 0; j < vecsize; ++j )
-			if ( !::libmaus::bitio::getBit(AA.get(),j) )
+			if ( !::libmaus2::bitio::getBit(AA.get(),j) )
 				ok = ok && ( E2.select1(c++) == j );
 
 		allselops += c;
@@ -375,7 +375,7 @@ bool checkE2Sel0(unsigned int const rvecsize)
 		t_select += (aft-bef);
 	}
 	
-	std::string const classname = ::libmaus::util::Demangle::demangle<eclass>();
+	std::string const classname = ::libmaus2::util::Demangle::demangle<eclass>();
 
 	if ( ok )
 	{
@@ -395,8 +395,8 @@ bool checkEP28(unsigned int const rvecsize)
 {
 	unsigned int const vecsize = ((rvecsize + 63) / 64) * 64;
 
-	::libmaus::autoarray::AutoArray<uint64_t> AA ( vecsize/64 + 1, false ); AA[vecsize/64] = 0;
-	::libmaus::autoarray::AutoArray<uint64_t> AAA( vecsize/64    , false );
+	::libmaus2::autoarray::AutoArray<uint64_t> AA ( vecsize/64 + 1, false ); AA[vecsize/64] = 0;
+	::libmaus2::autoarray::AutoArray<uint64_t> AAA( vecsize/64    , false );
 
 	clock_t t_rank = 0;
 	clock_t t_select = 0;
@@ -408,12 +408,12 @@ bool checkEP28(unsigned int const rvecsize)
 	
 	for ( unsigned int i = 0; i < loops; ++i )
 	{
-		::libmaus::bitio::BitWriter8 B(AA.get());
+		::libmaus2::bitio::BitWriter8 B(AA.get());
 		randomBitVect(B,vecsize);
 
-		::libmaus::bitio::BitWriter8 BAAA(AAA.get());
+		::libmaus2::bitio::BitWriter8 BAAA(AAA.get());
 		for ( unsigned int j = 0; j < vecsize; ++j )
-			if ( ::libmaus::bitio::getBit8( AA.get(), j ) == 0 && ::libmaus::bitio::getBit8( AA.get(), j+1) == 1 )
+			if ( ::libmaus2::bitio::getBit8( AA.get(), j ) == 0 && ::libmaus2::bitio::getBit8( AA.get(), j+1) == 1 )
 				BAAA.writeBit(1);
 			else
 				BAAA.writeBit(0);
@@ -424,7 +424,7 @@ bool checkEP28(unsigned int const rvecsize)
 		unsigned int c = 0;
 		for ( unsigned int j = 0; j < vecsize; ++j )
 		{
-			if ( ::libmaus::bitio::getBit8(AAA.get(),j) )
+			if ( ::libmaus2::bitio::getBit8(AAA.get(),j) )
 				c++;
 			ok = ok && ( E2.rank1(j) == c );
 		}
@@ -436,7 +436,7 @@ bool checkEP28(unsigned int const rvecsize)
 		unsigned int z = 0;
 		for ( unsigned int j = 0; j < vecsize; ++j )
 		{
-			if ( ::libmaus::bitio::getBit8(AAA.get(),j) )
+			if ( ::libmaus2::bitio::getBit8(AAA.get(),j) )
 			{
 				ok = ok && ( E2.select1(c) == j );
 				c++;
@@ -454,7 +454,7 @@ bool checkEP28(unsigned int const rvecsize)
 		t_select += (aft-bef);
 	}
 	
-	std::string const classname = ::libmaus::util::Demangle::demangle<eclass>();
+	std::string const classname = ::libmaus2::util::Demangle::demangle<eclass>();
 
 	if ( ok )
 	{
@@ -494,8 +494,8 @@ void checkCaches()
 			<< std::endl;
 	}
 	*/
-	::libmaus::rank::EncodeCache<16,uint16_t> EC16;
-	::libmaus::rank::DecodeCache<16,uint16_t> DC16;
+	::libmaus2::rank::EncodeCache<16,uint16_t> EC16;
+	::libmaus2::rank::DecodeCache<16,uint16_t> DC16;
 
 	for ( unsigned int i = 0; i < (1u<<16); ++i )
 	{
@@ -512,9 +512,9 @@ void checkCaches()
 		double ent0 = i * -log0;
 		double ent1 = (bb-i) * -log1;
 		std::cerr << i << "\t" 
-			<< ::libmaus::rank::entropy_estimate_down(i,bb) 
+			<< ::libmaus2::rank::entropy_estimate_down(i,bb) 
 			<< "\t"
-			<< ::libmaus::rank::entropy_estimate_up(i,bb)
+			<< ::libmaus2::rank::entropy_estimate_up(i,bb)
 			<< "\t"
 			<< static_cast<int>(EC16.bits_n[i])
 			<< "\t" << ent0
@@ -530,22 +530,22 @@ bool checkRank()
 	
 	bool ok = true;
 
-	ok = ok && checkE2< ::libmaus::rank::ERank3C>(vecsize);
-	ok = ok && checkE2< ::libmaus::rank::ERank222B>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank3C>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank222B>(vecsize);
 
-	ok = ok && checkE2Sel0< libmaus::select::ESelect222B<0> >(vecsize);
-	ok = ok && checkE2Sel1< libmaus::select::ESelect222B<1> >(vecsize);
+	ok = ok && checkE2Sel0< libmaus2::select::ESelect222B<0> >(vecsize);
+	ok = ok && checkE2Sel1< libmaus2::select::ESelect222B<1> >(vecsize);
 
-	ok = ok && checkE2< ::libmaus::rank::ERank>(vecsize);
-	ok = ok && checkE2< ::libmaus::rank::ERank2>(vecsize);
-	ok = ok && checkE2< ::libmaus::rank::ERank22>(vecsize);
-	ok = ok && checkE2< ::libmaus::rank::ERank222>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank2>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank22>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank222>(vecsize);
 
-	ok = ok && checkE2< ::libmaus::rank::ERank22B>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank22B>(vecsize);
 
-	ok = ok && checkE2< ::libmaus::rank::ERank3>(vecsize);
+	ok = ok && checkE2< ::libmaus2::rank::ERank3>(vecsize);
 
-	ok = ok && checkEP28< ::libmaus::rank::ERank222BP <  ::libmaus::rank::Proc01<uint64_t> > >(vecsize);
+	ok = ok && checkEP28< ::libmaus2::rank::ERank222BP <  ::libmaus2::rank::Proc01<uint64_t> > >(vecsize);
 	
 	if ( ok )
 		std::cerr << "All tests ok." << std::endl;
@@ -566,13 +566,13 @@ unsigned int smallestLargerEqual(unsigned int const * const A, unsigned int left
 
 bool checkRNVPermutations(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		#if 0
 		std::cerr << "checking ";
@@ -620,13 +620,13 @@ unsigned int largestSmallerEqual(unsigned int const * const A, unsigned int left
 
 bool checkRPVPermutations(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		#if 0
 		std::cerr << "checking ";
@@ -659,13 +659,13 @@ bool checkRPVPermutations(unsigned int n)
 
 bool checkRPVPermutationsQuick(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		#if 0
 		std::cerr << "checking ";
@@ -698,13 +698,13 @@ bool checkRPVPermutationsQuick(unsigned int n)
 
 bool checkRNVPermutationsQuick(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		W.print(std::cerr,0,n);
 		W.print(std::cerr,0,n,0);
 		
@@ -739,13 +739,13 @@ bool checkRNVPermutationsQuick(unsigned int n)
 
 bool checkAccessPermutationsQuick(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		#if 0
 		std::cerr << "checking ";
@@ -764,13 +764,13 @@ bool checkAccessPermutationsQuick(unsigned int n)
 
 bool checkRmqPermutations(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		#if 0
 		std::cerr << "checking ";
@@ -812,13 +812,13 @@ bool checkRmqPermutations(unsigned int n)
 
 bool checkRmqPermutationsQuick(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 		
 	// iterate over all permutations of length n
 	do
 	{
-		::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		#if 0
 		std::cerr << "checking ";
@@ -862,7 +862,7 @@ void waveletTreePrint()
 {
 	unsigned int A[] = { 0, 6, 3, 2, 5, 1, 4, 7 };
 	unsigned int const n = sizeof(A)/sizeof(A[0]);
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 	
 	std::cerr << "---" << std::endl;
 	W.print(std::cerr);
@@ -882,9 +882,9 @@ void randomSequence(iter A, uint64_t const n)
 }
 
 template<typename type>
-::libmaus::autoarray::AutoArray<type> randomSequence(uint64_t const n)
+::libmaus2::autoarray::AutoArray<type> randomSequence(uint64_t const n)
 {
-	::libmaus::autoarray::AutoArray<type> A(n,false);
+	::libmaus2::autoarray::AutoArray<type> A(n,false);
 	randomSequence(A.get(),n);
 	return A;
 }
@@ -895,9 +895,9 @@ void waveletTreeRankSelectRandom(uint64_t const n)
 {
 	typedef uint32_t symtype;
 	
-	::libmaus::autoarray::AutoArray<symtype> A = randomSequence<symtype>(n);
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, symtype > W(A.get(),n);
-	::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, symtype > Q(A.get(),n);
+	::libmaus2::autoarray::AutoArray<symtype> A = randomSequence<symtype>(n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, symtype > W(A.get(),n);
+	::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, symtype > Q(A.get(),n);
 	
 	std::map< uint32_t, unsigned int> M;
 	
@@ -916,8 +916,8 @@ void waveletTreeRankSelect()
 {
 	unsigned int A[] = { 9, 9, 9, 1, 0, 3, 2, 4, 7, 6, 8, 5, 11 };
 	unsigned int const n = sizeof(A)/sizeof(A[0]);
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
-	::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, unsigned int > Q(A,n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
+	::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, unsigned int > Q(A,n);
 	
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << A[i] << ";";
@@ -991,7 +991,7 @@ void waveletTreeCheckRMQ()
 {
 	unsigned int A[] = { 9, 9, 9, 1, 0, 3, 2, 4, 7, 6, 8, 5, 11 };
 	unsigned int const n = sizeof(A)/sizeof(A[0]);
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 	
 	for ( unsigned int i = 0; i < n; ++i )
 		std::cerr << A[i] << "(" << W[i] << ")" << ";";
@@ -1043,13 +1043,13 @@ void elias()
 {
 	std::vector< uint8_t > V;
 	std::back_insert_iterator< std::vector<uint8_t> > backit ( V ) ;
-	::libmaus::bitio::BitWriterVector8 BWV8( backit );
+	::libmaus2::bitio::BitWriterVector8 BWV8( backit );
 	
 	BWV8.writeElias2(243);
 	BWV8.flush();
 	
 	uint64_t qq = 0;
-	std::cerr << "elias2: " << ::libmaus::bitio::readElias2( V.begin(), qq ) << std::endl;
+	std::cerr << "elias2: " << ::libmaus2::bitio::readElias2( V.begin(), qq ) << std::endl;
 }
 
 unsigned int numbits(unsigned int n)
@@ -1067,8 +1067,8 @@ unsigned int numbits(unsigned int n)
 void checkStreams8(unsigned int const n)
 {
 	std::ostringstream faststr, slowerstr;
-	::libmaus::bitio::FastWriteBitWriterStream8 fast(faststr);
-	::libmaus::bitio::BitWriterStream8 slower(slowerstr);
+	::libmaus2::bitio::FastWriteBitWriterStream8 fast(faststr);
+	::libmaus2::bitio::BitWriterStream8 slower(slowerstr);
 		
 	std::vector<unsigned int> V;
 	std::vector<unsigned int> B;
@@ -1107,14 +1107,14 @@ void checkStreams64(unsigned int const n)
 	std::back_insert_iterator< std::vector<uint64_t> > fastbackit ( faststr ) ;
 	std::back_insert_iterator< std::vector<uint64_t> > slowerbackit ( slowerstr ) ;
 	
-	std::ostringstream sostr; ::libmaus::bitio::OutputBuffer< uint64_t > output(10*1024, sostr); ::libmaus::bitio::OutputBufferIterator<uint64_t> outit(output);
+	std::ostringstream sostr; ::libmaus2::bitio::OutputBuffer< uint64_t > output(10*1024, sostr); ::libmaus2::bitio::OutputBufferIterator<uint64_t> outit(output);
 	
-	::libmaus::bitio::FastWriteBitWriterVector64 fast(fastbackit);
-	::libmaus::bitio::BitWriterVector64 slower(slowerbackit);
-	::libmaus::bitio::FastWriteBitWriterBuffer64 fastbuf(outit);
+	::libmaus2::bitio::FastWriteBitWriterVector64 fast(fastbackit);
+	::libmaus2::bitio::BitWriterVector64 slower(slowerbackit);
+	::libmaus2::bitio::FastWriteBitWriterBuffer64 fastbuf(outit);
 
-	std::cerr << "checking " << ::libmaus::util::Demangle::demangle(fast) << " and " <<
-		::libmaus::util::Demangle::demangle(slower) << std::endl;
+	std::cerr << "checking " << ::libmaus2::util::Demangle::demangle(fast) << " and " <<
+		::libmaus2::util::Demangle::demangle(slower) << std::endl;
 		
 	std::vector<uint64_t> V;
 	std::vector<unsigned int> B;
@@ -1152,13 +1152,13 @@ void checkStreams64(unsigned int const n)
 	
 	unsigned int totalbits = std::accumulate(B.begin(),B.end(),0);
 	unsigned int totalwords = (totalbits + 63)/64;
-	::libmaus::autoarray::AutoArray<uint64_t> inbuf(totalwords,false);
+	::libmaus2::autoarray::AutoArray<uint64_t> inbuf(totalwords,false);
 	memcpy(inbuf.get(),sostr.str().c_str(),totalwords*8);
 	
 	uint64_t p = 0;
 	for ( unsigned int i = 0; i < n; ++i )
 	{
-		assert ( ::libmaus::bitio::readBinary(inbuf.get(),p,B[i]) == V[i] );
+		assert ( ::libmaus2::bitio::readBinary(inbuf.get(),p,B[i]) == V[i] );
 	}
 }
 
@@ -1166,8 +1166,8 @@ void waveletTreeSmallerLargerRandom(uint64_t const n)
 {
 	typedef uint16_t symtype;
 
-	::libmaus::autoarray::AutoArray<symtype> A = randomSequence<symtype>(n);
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, symtype > W(A.get(),n);
+	::libmaus2::autoarray::AutoArray<symtype> A = randomSequence<symtype>(n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, symtype > W(A.get(),n);
 	
 	#if 0
 	std::cerr << "sequence: ";
@@ -1212,11 +1212,11 @@ void waveletTreeSmallerLargerRandom(uint64_t const n)
 
 bool checkSortedSymbols(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = (rand() % 4);
 		
 	// iterate over all permutations of length n
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 	
 	std::vector<unsigned int> S(AA.get(), AA.get()+n);
 	std::sort(S.begin(),S.end());
@@ -1242,13 +1242,13 @@ bool checkSortedSymbols(unsigned int n)
 
 bool checkRangeCountPermutations(unsigned int n)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = i;
 	
 	// iterate over all permutations of length n
 	while ( std::next_permutation(A,A+n) )
 	{
-		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		for ( unsigned int i = 0; i < n; ++i )
 			for ( unsigned int j = i; j < n; ++j )
@@ -1257,7 +1257,7 @@ bool checkRangeCountPermutations(unsigned int n)
 				for ( unsigned k = i; k < j; ++k )
 					M [ A[k] ]++;
 
-				::libmaus::autoarray::AutoArray< std::pair < unsigned int, uint64_t > > N = W.rangeCount(i,j);
+				::libmaus2::autoarray::AutoArray< std::pair < unsigned int, uint64_t > > N = W.rangeCount(i,j);
 				std::map<unsigned int, unsigned int> M2;
 				for ( unsigned int k = 0; k < N.getN(); ++k )
 					M2 [ N[k].first ] = N[k].second;
@@ -1291,12 +1291,12 @@ bool checkRangeCountPermutations(unsigned int n)
 
 bool checkRangeCountRand(unsigned int const n, unsigned int const it)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 	for ( unsigned int i = 0; i < n; ++i ) A[i] = rand() % 256;
 	
 	for ( unsigned int z = 0; z < it; ++z )
 	{
-		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(A,n);
+		::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(A,n);
 		
 		for ( unsigned int i = 0; i < n; ++i )
 			for ( unsigned int j = i; j < n; ++j )
@@ -1305,7 +1305,7 @@ bool checkRangeCountRand(unsigned int const n, unsigned int const it)
 				for ( unsigned k = i; k < j; ++k )
 					M [ A[k] ]++;
 
-				::libmaus::autoarray::AutoArray< std::pair < unsigned int, uint64_t > > N = W.rangeCount(i,j);
+				::libmaus2::autoarray::AutoArray< std::pair < unsigned int, uint64_t > > N = W.rangeCount(i,j);
 				std::map<unsigned int, unsigned int> M2;
 				for ( unsigned int k = 0; k < N.getN(); ++k )
 					M2 [ N[k].first ] = N[k].second;
@@ -1345,7 +1345,7 @@ void checkRandomRnvGeneric()
 		std::vector < unsigned int > VV(n);
 		for ( unsigned int i = 0; i < n; ++i )
 			VV[i] = rand() % 64;
-		::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, uint64_t > W(VV.begin(),n);
+		::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t > W(VV.begin(),n);
 		
 		for ( unsigned int i = 0; i < n; ++i )
 			for ( unsigned int j = i; j < n; ++j )
@@ -1371,13 +1371,13 @@ void checkRandomRnvGeneric()
 
 void testEnumerateSymbols(unsigned int const n, unsigned int const cnt)
 {
-	::libmaus::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
+	::libmaus2::autoarray::AutoArray<unsigned int> AA(n,false); unsigned int * const A = AA.get();
 		
 	// iterate over all permutations of length n
 	for ( uint64_t zzz = 0; zzz < cnt; ++zzz )
 	{
 		for ( unsigned int i = 0; i < n; ++i ) A[i] = rand() % 16;
-		typedef ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > tree_type;
+		typedef ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > tree_type;
 		tree_type W(A,n);
 		typedef tree_type::symbol_type symbol_type;
 
@@ -1391,8 +1391,8 @@ void testEnumerateSymbols(unsigned int const n, unsigned int const cnt)
 	}	
 }
 
-#include <libmaus/random/Random.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
 void testCacheLineRank()
 {
@@ -1401,8 +1401,8 @@ void testCacheLineRank()
 	
 	for ( uint64_t z = 0; z < 1; ++z )
 	{
-		//typedef ::libmaus::rank::CacheLineRank8 clr_type;
-		typedef ::libmaus::rank::ImpCacheLineRank clr_type;
+		//typedef ::libmaus2::rank::CacheLineRank8 clr_type;
+		typedef ::libmaus2::rank::ImpCacheLineRank clr_type;
 		// clr_type CLR(1024ull*1024ull*1024ull);
 		//uint64_t const gb = 4ull;
 		//uint64_t const mb = gb*1024ull;
@@ -1412,7 +1412,7 @@ void testCacheLineRank()
 		clr_type CLR(bits);
 		
 		std::cerr << "Filling vector...";
-		::libmaus::timing::RealTimeClock frtc;
+		::libmaus2::timing::RealTimeClock frtc;
 		frtc.start();
 		clr_type::WriteContext wcontext = CLR.getWriteContext();
 		for ( uint64_t i = 0; i < CLR.n/16; ++i )
@@ -1426,14 +1426,14 @@ void testCacheLineRank()
 		}
 		wcontext.flush();
 		std::cerr << "done, time " << (CLR.n / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
-		::libmaus::rank::ImpCacheLineRankSelectAdapter IA(CLR);
+		::libmaus2::rank::ImpCacheLineRankSelectAdapter IA(CLR);
 
 		std::cerr << "Copying vector...";
 		frtc.start();
-		::libmaus::autoarray::AutoArray<uint64_t> D( (CLR.n+63)/64, false );
+		::libmaus2::autoarray::AutoArray<uint64_t> D( (CLR.n+63)/64, false );
 		for ( uint64_t i = 0; i < CLR.n; ++i )
 		{
-			::libmaus::bitio::putBit(D.get(),i,CLR[i]);
+			::libmaus2::bitio::putBit(D.get(),i,CLR[i]);
 
 			if ( ( i & (16*1024*1024-1) ) == 0 )
 				std::cerr << "(" << static_cast<double>(i+1)/CLR.n << ")";
@@ -1444,7 +1444,7 @@ void testCacheLineRank()
 		frtc.start();
 		for ( uint64_t i = 0; i < CLR.n; ++i )
 		{
-			assert ( CLR[i]  ==  ::libmaus::bitio::getBit(D.get(),i) );
+			assert ( CLR[i]  ==  ::libmaus2::bitio::getBit(D.get(),i) );
 
 			if ( ( i & (16*1024*1024-1) ) == 0 )
 				std::cerr << "(" << static_cast<double>(i+1)/CLR.n << ")";
@@ -1453,13 +1453,13 @@ void testCacheLineRank()
 		
 		std::cerr << "Checking external...";
 		std::ostringstream eostr;
-		::libmaus::rank::ImpCacheLineRank::WriteContextExternal::unique_ptr_type wce =
-			::libmaus::rank::ImpCacheLineRank::WriteContextExternal::construct(eostr,CLR.n);
+		::libmaus2::rank::ImpCacheLineRank::WriteContextExternal::unique_ptr_type wce =
+			::libmaus2::rank::ImpCacheLineRank::WriteContextExternal::construct(eostr,CLR.n);
 		for ( uint64_t i = 0; i < CLR.n; ++i )
 			wce->writeBit(CLR[i]);
 		wce->flush();
 		std::istringstream eistr(eostr.str());
-		::libmaus::rank::ImpCacheLineRank EICLR(eistr);
+		::libmaus2::rank::ImpCacheLineRank EICLR(eistr);
 		assert ( EICLR.n == CLR.n );
 		for ( uint64_t i = 0; i < CLR.n; ++i )
 		{
@@ -1509,21 +1509,21 @@ void testCacheLineRank()
 
 		std::cerr << "Setting up erank...";
 		frtc.start();
-		::libmaus::rank::ERank222B erank(D.get(), D.size()*64);
+		::libmaus2::rank::ERank222B erank(D.get(), D.size()*64);
 		std::cerr << "done, time " << (CLR.n / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
 		
 		std::cerr << "Setting up random probe vector...";
 		frtc.start();
 		uint64_t const rankprobes = 16*1024*1024;
-		::libmaus::autoarray::AutoArray<uint64_t> P(rankprobes,false);
+		::libmaus2::autoarray::AutoArray<uint64_t> P(rankprobes,false);
 		for ( uint64_t i = 0; i < rankprobes; ++i )
-			P [ i ] = ::libmaus::random::Random::rand64() % CLR.n;
+			P [ i ] = ::libmaus2::random::Random::rand64() % CLR.n;
 		std::cerr << "done, time " << (rankprobes / frtc.getElapsedSeconds())/(1024ull*1024ull) << "M/s" << std::endl;
 
 		unsigned int const loops = 50;			
 
 		std::cerr << "Running probes on CLR...";
-		::libmaus::timing::RealTimeClock rtc; 
+		::libmaus2::timing::RealTimeClock rtc; 
 		rtc.start();
 		uint64_t v = 0;
 		for ( unsigned int l = 0; l < loops; ++l )
@@ -1562,7 +1562,7 @@ void testRnvGenericQuick()
 {
 	unsigned int const V[] = { 1,1,1,4,4,3,3,5,3,7,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
 	unsigned int const n = sizeof(V)/sizeof(V[0]);
-	::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, uint64_t > W(V,n);
+	::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, uint64_t > W(V,n);
 
 	for ( unsigned int i = 0; i < n; ++i )
 		for ( unsigned int j = i; j < n; ++j )
@@ -1587,7 +1587,7 @@ void testRangeCountMax()
 {
 	unsigned int const V[] = { 1,1,1,3,3,3,7,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
 	unsigned int const n = sizeof(V)/sizeof(V[0]);
-	::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, unsigned int > W(V,n);
+	::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, unsigned int > W(V,n);
 	std::vector < std::pair<unsigned int,uint64_t> > U = W.rangeCountMax(0,n,2);
 	
 	for ( unsigned int i = 0; i < U.size(); ++i )
@@ -1628,17 +1628,17 @@ void testEnumSymbols()
 	std::cerr << "done." << std::endl;
 }
 
-#include <libmaus/lf/LF.hpp>
+#include <libmaus2/lf/LF.hpp>
 
 void testMultiRankCacheLF()
 {
 	srand(time(0));
 	// std::string const s = "fischersfritzefischtfrischefische";
-	::libmaus::autoarray::AutoArray<uint8_t> s(64*1024+11,false);
+	::libmaus2::autoarray::AutoArray<uint8_t> s(64*1024+11,false);
 	for ( uint64_t i = 0; i < s.size(); ++i )
 		s[i] = rand() & 7;
 	
-	::libmaus::lf::MultiRankCacheLF MRCL(s.begin(),s.size());
+	::libmaus2::lf::MultiRankCacheLF MRCL(s.begin(),s.size());
 	
 	std::map<uint64_t,uint64_t> R;
 	for ( uint64_t i = 0; i < s.size(); ++i )
@@ -1652,7 +1652,7 @@ void testMultiRankCacheLF()
 	}
 }
 
-#include <libmaus/rmq/CartesianTree.hpp>
+#include <libmaus2/rmq/CartesianTree.hpp>
 
 template<typename value_type>
 std::ostream & printBitVector(std::ostream & out, value_type const v)
@@ -1670,7 +1670,7 @@ std::ostream & printBitVector(std::ostream & out, value_type const v)
 void checkBPS()
 {
 	#if 0
-	// ::libmaus::bitio::BitVector::testLSB();
+	// ::libmaus2::bitio::BitVector::testLSB();
 	uint8_t const v = 16*1+8+4;
 	printBitVector(std::cerr,v);
 	BalancedParenthesesBase BP;
@@ -1689,27 +1689,27 @@ void checkBPS()
 	#endif
 
 	// set up random cartesian tree of size 1M		
-	::libmaus::autoarray::AutoArray<uint64_t> A(1024*1024);
+	::libmaus2::autoarray::AutoArray<uint64_t> A(1024*1024);
 	srand(time(0));
 	for ( uint64_t i = 0; i < A.size(); ++i )
-		A[i] = ::libmaus::random::Random::rand64();
+		A[i] = ::libmaus2::random::Random::rand64();
 	uint64_t const an = A.size();
-	::libmaus::rmq::CartesianTree<uint64_t> CT(A.begin(),an);
+	::libmaus2::rmq::CartesianTree<uint64_t> CT(A.begin(),an);
 	
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type PUUB = CT.bpsVector();
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type PUUB = CT.bpsVector();
 	BalancedParentheses BP(PUUB);
 }
 
-#include <libmaus/rank/RunLengthBitVectorStream.hpp>
-#include <libmaus/rank/RunLengthBitVector.hpp>
-#include <libmaus/rank/RunLengthBitVectorGenerator.hpp>
+#include <libmaus2/rank/RunLengthBitVectorStream.hpp>
+#include <libmaus2/rank/RunLengthBitVector.hpp>
+#include <libmaus2/rank/RunLengthBitVectorGenerator.hpp>
 
 void testrl(std::vector<bool> const & B)
 {
 	
 	std::stringstream ostr;
 	std::stringstream indexstr;
-	libmaus::rank::RunLengthBitVectorGenerator RLBVG(ostr,indexstr,B.size(),256);
+	libmaus2::rank::RunLengthBitVectorGenerator RLBVG(ostr,indexstr,B.size(),256);
 	
 	for ( uint64_t i = 0; i < B.size(); ++i )
 		RLBVG.putbit(B[i]);
@@ -1722,7 +1722,7 @@ void testrl(std::vector<bool> const & B)
 	{
 		ostr.clear();
 		ostr.seekg(0,std::ios::beg);
-		libmaus::rank::RunLengthBitVectorStream RLBV(ostr);
+		libmaus2::rank::RunLengthBitVectorStream RLBV(ostr);
 		
 		if ( RLBV.n != B.size() )
 		{
@@ -1747,7 +1747,7 @@ void testrl(std::vector<bool> const & B)
 	{
 		ostr.clear();
 		ostr.seekg(0,std::ios::beg);
-		libmaus::rank::RunLengthBitVector RLBVint(ostr);
+		libmaus2::rank::RunLengthBitVector RLBVint(ostr);
 
 		uint64_t r1 = 0;
 		for ( uint64_t i = 0; i < B.size(); ++i )
@@ -1808,7 +1808,7 @@ int main()
 		uint64_t const n = sizeof(s)/sizeof(s[0]);
 		
 		{
-			libmaus::rank::FastRank<uint8_t,uint32_t> R(&s[0],n);
+			libmaus2::rank::FastRank<uint8_t,uint32_t> R(&s[0],n);
 			std::map<char,uint64_t> M;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
@@ -1827,7 +1827,7 @@ int main()
 			}
 		}
 		{
-			libmaus::rank::FastRank<uint8_t,uint32_t> R(&s[0],n,2);
+			libmaus2::rank::FastRank<uint8_t,uint32_t> R(&s[0],n,2);
 			std::map<char,uint64_t> M;
 			for ( uint64_t i = 0; i < n; ++i )
 			{

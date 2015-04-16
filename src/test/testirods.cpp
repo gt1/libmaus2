@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,21 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/irods/IRodsInputStreamFactory.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/irods/IRodsInputStreamFactory.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 	
-		libmaus::irods::IRodsInputStreamFactory::registerHandler();
+		libmaus2::irods::IRodsInputStreamFactory::registerHandler();
 		
-		libmaus::autoarray::AutoArray<char> B(1024*1024,false);
+		libmaus2::autoarray::AutoArray<char> B(1024*1024,false);
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(arginfo.restargs[i]));
+			libmaus2::aio::InputStream::unique_ptr_type Pin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(arginfo.restargs[i]));
 			std::istream & in = *Pin;
 			
 			#if 0

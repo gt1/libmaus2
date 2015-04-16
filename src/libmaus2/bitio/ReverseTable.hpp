@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,16 +21,16 @@
 #define REVERSETABLE_HPP
 
 #include <cassert>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
 		struct ReverseTable
 		{
 			unsigned int const b;
-			::libmaus::autoarray::AutoArray < ::libmaus::autoarray::AutoArray<uint64_t> > A;
+			::libmaus2::autoarray::AutoArray < ::libmaus2::autoarray::AutoArray<uint64_t> > A;
 			
 			uint64_t operator()(unsigned int const ib, uint64_t m) const
 			{
@@ -42,7 +42,7 @@ namespace libmaus
 			{
 				for ( unsigned int ib = 0; ib <= b; ++ib )
 				{
-					A[ib] = ::libmaus::autoarray::AutoArray<uint64_t>(1ull << ib);
+					A[ib] = ::libmaus2::autoarray::AutoArray<uint64_t>(1ull << ib);
 					
 					for ( uint64_t i = 0; i < (1ull<<ib); ++i )
 					{

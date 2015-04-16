@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,63 +19,63 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMMULTIALIGNMENTDECODERFACTORY_HPP)
 #define LIBMAUS_BAMBAM_BAMMULTIALIGNMENTDECODERFACTORY_HPP
 
-#include <libmaus/bambam/BamAlignmentDecoderFactory.hpp>
-#include <libmaus/bambam/BamMergeCoordinate.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderFactory.hpp>
+#include <libmaus2/bambam/BamMergeCoordinate.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamMultiAlignmentDecoderFactory
 		{
 			typedef BamAlignmentDecoderFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const BADI;
+			std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const BADI;
 			bool const putrank;
 			
-			BamMultiAlignmentDecoderFactory(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & rBADI, bool const rputrank = false) : BADI(rBADI), putrank(rputrank) {}
+			BamMultiAlignmentDecoderFactory(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rBADI, bool const rputrank = false) : BADI(rBADI), putrank(rputrank) {}
 			virtual ~BamMultiAlignmentDecoderFactory() {}
 
 			static std::set<std::string> getValidInputFormatsSet()
 			{
-				return libmaus::bambam::BamAlignmentDecoderFactory::getValidInputFormatsSet();
+				return libmaus2::bambam::BamAlignmentDecoderFactory::getValidInputFormatsSet();
 			}
 			
 			static std::string getValidInputFormats()
 			{
-				return libmaus::bambam::BamAlignmentDecoderFactory::getValidInputFormats();
+				return libmaus2::bambam::BamAlignmentDecoderFactory::getValidInputFormats();
 			}
 			
-			libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type operator()() const
+			libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type operator()() const
 			{
-				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(BADI,putrank));
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(BADI,putrank));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
-				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & BADI,
+			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & BADI,
 				bool const putrank = false,
 				std::istream & stdin = std::cin
 			)
 			{
 				if ( ! BADI.size() || BADI.size() > 1 )
 				{
-					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(new libmaus::bambam::BamMergeCoordinate(BADI,putrank));
+					libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(new libmaus2::bambam::BamMergeCoordinate(BADI,putrank));
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 				else
 				{
-					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-						libmaus::bambam::BamAlignmentDecoderFactory::construct(BADI[0],putrank,stdin)
+					libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+						libmaus2::bambam::BamAlignmentDecoderFactory::construct(BADI[0],putrank,stdin)
 					);
 					return UNIQUE_PTR_MOVE(tptr);
 				}			
 			}
 			
-			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
-				libmaus::util::ArgInfo const & arginfo,
+			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+				libmaus2::util::ArgInfo const & arginfo,
 				bool const putrank = false, 
 				std::ostream * copystr = 0,
 				std::istream & stdin = std::cin
@@ -83,13 +83,13 @@ namespace libmaus
 			{
 				std::vector<std::string> const I = arginfo.getPairValues("I");
 
-				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> V;
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> V;
 				for ( uint64_t i = 0; i < I.size(); ++i )
-					V.push_back(libmaus::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,I[i],false /* put rank */,copystr));
+					V.push_back(libmaus2::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,I[i],false /* put rank */,copystr));
 				if ( ! I.size() )
-					V.push_back(libmaus::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,"-",false,copystr));
+					V.push_back(libmaus2::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,"-",false,copystr));
 
-				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,stdin));
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,stdin));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};

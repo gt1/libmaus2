@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,22 +20,22 @@
 #if ! defined(EXTERNALWAVELETGENERATOR_HPP)
 #define EXTERNALWAVELETGENERATOR_HPP
 
-#include <libmaus/bitio/BitVectorConcat.hpp>
-#include <libmaus/bitio/BufferIterator.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
-#include <libmaus/huffman/EncodeTable.hpp>
+#include <libmaus2/bitio/BitVectorConcat.hpp>
+#include <libmaus2/bitio/BufferIterator.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/EncodeTable.hpp>
 
-#include <libmaus/util/unordered_map.hpp>
+#include <libmaus2/util/unordered_map.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -43,26 +43,26 @@ namespace libmaus
 		 * external memory wavelet tree bit sequence
 		 * generator for small alphabets
 		 **/
-		struct ExternalWaveletGenerator : public ::libmaus::bitio::BitVectorConcat
+		struct ExternalWaveletGenerator : public ::libmaus2::bitio::BitVectorConcat
 		{
 			typedef ExternalWaveletGenerator this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 		
 			uint64_t const b;
-			::libmaus::util::TempFileNameGenerator & tmpgen;
+			::libmaus2::util::TempFileNameGenerator & tmpgen;
 			
 			
-			typedef ::libmaus::bitio::BufferIterator<uint64_t> output_file_type;
-			typedef ::libmaus::util::unique_ptr<output_file_type>::type output_file_ptr_type;
-			typedef ::libmaus::autoarray::AutoArray<output_file_ptr_type> output_file_ptr_array_type;
+			typedef ::libmaus2::bitio::BufferIterator<uint64_t> output_file_type;
+			typedef ::libmaus2::util::unique_ptr<output_file_type>::type output_file_ptr_type;
+			typedef ::libmaus2::autoarray::AutoArray<output_file_ptr_type> output_file_ptr_array_type;
 			typedef output_file_ptr_array_type::unique_ptr_type output_file_ptr_array_ptr_type;
 						
-			::libmaus::autoarray::AutoArray< output_file_ptr_array_ptr_type > outputfiles;
+			::libmaus2::autoarray::AutoArray< output_file_ptr_array_ptr_type > outputfiles;
 			std::vector < std::pair<std::string,uint64_t> > filenames;
 			uint64_t symbols;
-			::libmaus::autoarray::AutoArray< uint64_t > freq;
+			::libmaus2::autoarray::AutoArray< uint64_t > freq;
 			
 			void flush()
 			{
@@ -90,7 +90,7 @@ namespace libmaus
 			}
 			
 			public:
-			ExternalWaveletGenerator(uint64_t const rb, ::libmaus::util::TempFileNameGenerator & rtmpgen)
+			ExternalWaveletGenerator(uint64_t const rb, ::libmaus2::util::TempFileNameGenerator & rtmpgen)
 			: b(rb), tmpgen(rtmpgen), outputfiles(b), filenames(), symbols(0), freq(1ull<<b)
 			{
 				for ( uint64_t i = 0; i < b; ++i )
@@ -122,9 +122,9 @@ namespace libmaus
 				flush();
 							
 				// number of symbols				
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,symbols);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,symbols);
 				// number of bits per symbol
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,b);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,b);
 				
 				out.flush();
 				concatenateBitVectors(filenames,out);
@@ -161,7 +161,7 @@ namespace libmaus
 				symbols += 1;
 			}
 			
-			::libmaus::autoarray::AutoArray<uint64_t> getFreq() const
+			::libmaus2::autoarray::AutoArray<uint64_t> getFreq() const
 			{
 				return freq.clone();
 			}

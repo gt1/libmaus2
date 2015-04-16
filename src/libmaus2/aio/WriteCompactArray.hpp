@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(WRITECOMPACTARRAY_HPP)
 #define WRITECOMPACTARRAY_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -39,23 +39,23 @@ namespace libmaus
 			 * @param n number of elements in sequence
 			 **/
 			template<typename N>
-			static void writeArray(::libmaus::autoarray::AutoArray<N,::libmaus::autoarray::alloc_type_c> const & T, std::string const & filename, uint64_t const n)
+			static void writeArray(::libmaus2::autoarray::AutoArray<N,::libmaus2::autoarray::alloc_type_c> const & T, std::string const & filename, uint64_t const n)
 			{
 				std::ofstream ostr(filename.c_str(),std::ios::binary);
 				if ( ! ostr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Cannot open file " << filename << " for writing." << std::endl;
 					se.finish();
 					throw se;
 				}
-				::libmaus::util::NumberSerialisation::serialiseNumber(ostr,n);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,n);
 				ostr.write ( reinterpret_cast<char const *>(T.begin()), T.size()*sizeof(N) );
 				ostr.flush();
 				ostr.close();
 				if ( ! ostr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Cannot write file " << filename << "." << std::endl;
 					se.finish();
 					throw se;
@@ -68,7 +68,7 @@ namespace libmaus
 			 *
 			 * @param T array
 			 **/
-			static void compactArray(::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_c> & T)
+			static void compactArray(::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_c> & T)
 			{
 				uint8_t * outptr = T.begin();
 				for ( uint64_t i = 0; i < T.size()/2; ++i )
@@ -84,7 +84,7 @@ namespace libmaus
 			 * @param T byte array
 			 * @param filename output file name
 			 **/
-			static void writeCompactArray(::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_c> & T, std::string const & filename)
+			static void writeCompactArray(::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_c> & T, std::string const & filename)
 			{
 				uint64_t const n = T.size();
 				compactArray(T);

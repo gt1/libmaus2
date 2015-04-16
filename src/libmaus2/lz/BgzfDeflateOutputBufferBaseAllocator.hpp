@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEOUTPUTBUFFERBASEALLOCATOR_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEOUTPUTBUFFERBASEALLOCATOR_HPP
 
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -31,10 +31,10 @@ namespace libmaus
 			
 			BgzfDeflateOutputBufferBaseAllocator(int const rlevel) : level(rlevel) {}
 			
-			libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type operator()()
+			libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type operator()()
 			{
-				libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type tptr(
-					new libmaus::lz::BgzfDeflateOutputBufferBase(level)
+				libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type tptr(
+					new libmaus2::lz::BgzfDeflateOutputBufferBase(level)
 				);
 				return tptr;
 			}

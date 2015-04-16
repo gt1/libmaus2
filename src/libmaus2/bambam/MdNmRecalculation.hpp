@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,35 +19,35 @@
 #if ! defined(LIBMAUS_BAMBAM_MDNMRECALCULATION_HPP)
 #define LIBMAUS_BAMBAM_MDNMRECALCULATION_HPP
 
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/fastx/FastAIndex.hpp>
-#include <libmaus/fastx/FastABgzfIndex.hpp>
-#include <libmaus/fastx/StreamFastAReader.hpp>
-#include <libmaus/lz/RAZFDecoder.hpp>
-#include <libmaus/util/OutputFileNameTools.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/fastx/FastAIndex.hpp>
+#include <libmaus2/fastx/FastABgzfIndex.hpp>
+#include <libmaus2/fastx/StreamFastAReader.hpp>
+#include <libmaus2/lz/RAZFDecoder.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
 
-namespace libmaus 
+namespace libmaus2 
 {
 	namespace bambam
 	{
 		struct MdNmRecalculation
 		{
 			typedef MdNmRecalculation this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			bool const isgz;
 			bool const israzf;
 			bool const isbgzf;
 			bool const isplain;
 			std::string fastaindexfilename;
-			libmaus::fastx::FastAIndex::unique_ptr_type Pfaindex;
+			libmaus2::fastx::FastAIndex::unique_ptr_type Pfaindex;
 			bool const havebgzfindex;
-			::libmaus::fastx::FastABgzfIndex::unique_ptr_type Pbgzfindex;
-			::libmaus::aio::PosixFdInputStream refin;
-			::libmaus::lz::RAZFDecoder::unique_ptr_type razfdec;
-			libmaus::fastx::StreamFastAReaderWrapper::pattern_type currefpat;
+			::libmaus2::fastx::FastABgzfIndex::unique_ptr_type Pbgzfindex;
+			::libmaus2::aio::PosixFdInputStream refin;
+			::libmaus2::lz::RAZFDecoder::unique_ptr_type razfdec;
+			libmaus2::fastx::StreamFastAReaderWrapper::pattern_type currefpat;
 
 			bool validate;
 			
@@ -58,11 +58,11 @@ namespace libmaus
 			uint64_t numrecalc;
 			uint64_t numkept;
 
-			::libmaus::bambam::MdStringComputationContext context;
+			::libmaus2::bambam::MdStringComputationContext context;
 
-			libmaus::autoarray::AutoArray<uint8_t> vmap;
-			libmaus::autoarray::AutoArray<uint64_t> nar;
-			libmaus::rank::ERank222B::unique_ptr_type Prank;
+			libmaus2::autoarray::AutoArray<uint8_t> vmap;
+			libmaus2::autoarray::AutoArray<uint64_t> nar;
+			libmaus2::rank::ERank222B::unique_ptr_type Prank;
 			
 			bool recompindetonly;
 			bool warnchange;
@@ -74,13 +74,13 @@ namespace libmaus
 				in.clear();
 				in.seekg(0,std::ios::beg);
 				
-				return b0 == libmaus::lz::GzipHeaderConstantsBase::ID1 &&
-				       b1 == libmaus::lz::GzipHeaderConstantsBase::ID2;
+				return b0 == libmaus2::lz::GzipHeaderConstantsBase::ID1 &&
+				       b1 == libmaus2::lz::GzipHeaderConstantsBase::ID2;
 			}
 			
 			static bool isGzip(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::CheckedInputStream CIS(filename);
 				return isGzip(CIS);
 			}
 			
@@ -89,16 +89,16 @@ namespace libmaus
 				std::string indexname;
 				
 				// try appending fai
-				if ( libmaus::util::GetFileSize::fileExists(indexname=(reference + ".fai") ) )
+				if ( libmaus2::util::GetFileSize::fileExists(indexname=(reference + ".fai") ) )
 				{
 				
 				}
 				// try removing .fa and appending fai
 				else if ( 
-					libmaus::util::OutputFileNameTools::endsOn(reference,".fa")
+					libmaus2::util::OutputFileNameTools::endsOn(reference,".fa")
 					&&
-					libmaus::util::GetFileSize::fileExists(
-						indexname=(libmaus::util::OutputFileNameTools::clipOff(
+					libmaus2::util::GetFileSize::fileExists(
+						indexname=(libmaus2::util::OutputFileNameTools::clipOff(
 							reference,".fa"
 						) + ".fai")
 					) 
@@ -107,10 +107,10 @@ namespace libmaus
 				}
 				// try removing .fasta and appending fai
 				else if ( 
-					libmaus::util::OutputFileNameTools::endsOn(reference,".fasta")
+					libmaus2::util::OutputFileNameTools::endsOn(reference,".fasta")
 					&&
-					libmaus::util::GetFileSize::fileExists(
-						indexname=(libmaus::util::OutputFileNameTools::clipOff(
+					libmaus2::util::GetFileSize::fileExists(
+						indexname=(libmaus2::util::OutputFileNameTools::clipOff(
 							reference,".fasta"
 						) + ".fai")
 					) 
@@ -124,17 +124,17 @@ namespace libmaus
 			MdNmRecalculation(std::string const & reference, bool const rvalidate, bool const rrecompindetonly, bool const rwarnchange, uint64_t const rioblocksize)
 			: 
 			  isgz(isGzip(reference)),
-			  israzf(isgz && libmaus::lz::RAZFIndex::hasRazfHeader(reference)),
+			  israzf(isgz && libmaus2::lz::RAZFIndex::hasRazfHeader(reference)),
 			  isbgzf(isgz && (!israzf)),
 			  isplain(!isgz),
 			  fastaindexfilename((israzf || isplain) ? fastaIndexName(reference) : std::string() ),
 			  Pfaindex(
-				fastaindexfilename.size() ? libmaus::fastx::FastAIndex::load(fastaindexfilename) : ::libmaus::fastx::FastAIndex::unique_ptr_type()
+				fastaindexfilename.size() ? libmaus2::fastx::FastAIndex::load(fastaindexfilename) : ::libmaus2::fastx::FastAIndex::unique_ptr_type()
 			  ),
-			  havebgzfindex(isbgzf && libmaus::util::GetFileSize::fileExists(reference+".idx")),
-			  Pbgzfindex(havebgzfindex ? ::libmaus::fastx::FastABgzfIndex::load(reference+".idx") : ::libmaus::fastx::FastABgzfIndex::unique_ptr_type() ),
+			  havebgzfindex(isbgzf && libmaus2::util::GetFileSize::fileExists(reference+".idx")),
+			  Pbgzfindex(havebgzfindex ? ::libmaus2::fastx::FastABgzfIndex::load(reference+".idx") : ::libmaus2::fastx::FastABgzfIndex::unique_ptr_type() ),
 			  refin(reference,rioblocksize), 
-			  razfdec(israzf ? (new ::libmaus::lz::RAZFDecoder(refin)) : 0 ),
+			  razfdec(israzf ? (new ::libmaus2::lz::RAZFDecoder(refin)) : 0 ),
 			  validate(rvalidate), 
 			  loadrefid(-1), 
 			  prevcheckrefid(-1), 
@@ -145,7 +145,7 @@ namespace libmaus
 			{
 				if ( (israzf || isplain) && (!Pfaindex.get()) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "MdNmRecalculation(): reference is plain or RAZF but there is no fai file" << std::endl;
 					lme.finish();
 					throw lme;
@@ -153,7 +153,7 @@ namespace libmaus
 				
 				if ( isbgzf && (!Pbgzfindex.get()) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "MdNmRecalculation(): reference is bgzf but there is no idx file" << std::endl;
 					lme.finish();
 					throw lme;			
@@ -168,12 +168,12 @@ namespace libmaus
 			{
 				if ( validate )
 				{
-					libmaus::bambam::libmaus_bambam_alignment_validity const validity =
-						libmaus::bambam::BamAlignmentDecoderBase::valid(D,blocksize);
+					libmaus2::bambam::libmaus2_bambam_alignment_validity const validity =
+						libmaus2::bambam::BamAlignmentDecoderBase::valid(D,blocksize);
 
-					if ( validity != libmaus::bambam::libmaus_bambam_alignment_validity_ok )
+					if ( validity != libmaus2::bambam::libmaus2_bambam_alignment_validity_ok )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "Invalid alignment " << validity << std::endl;
 						se.finish();
 						throw se;
@@ -184,8 +184,8 @@ namespace libmaus
 			void checkOrder(uint8_t const * D)
 			{
 				// information for this new alignment
-				int64_t const thisrefid = libmaus::bambam::BamAlignmentDecoderBase::getRefID(D);
-				int64_t const thispos = libmaus::bambam::BamAlignmentDecoderBase::getPos(D);
+				int64_t const thisrefid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(D);
+				int64_t const thispos = libmaus2::bambam::BamAlignmentDecoderBase::getPos(D);
 
 				// map negative to maximum positive for checking order
 				int64_t const thischeckrefid = (thisrefid >= 0) ? thisrefid : std::numeric_limits<int64_t>::max();
@@ -200,7 +200,7 @@ namespace libmaus
 				// throw exception if alignment stream is not sorted by coordinate
 				if ( ! orderok )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "File is not sorted by coordinate." << std::endl;
 					se.finish();
 					throw se;
@@ -216,11 +216,11 @@ namespace libmaus
 				{
 					if ( isbgzf )
 					{
-						::libmaus::fastx::FastABgzfIndexEntry const & ent = (*Pbgzfindex)[id];
+						::libmaus2::fastx::FastABgzfIndexEntry const & ent = (*Pbgzfindex)[id];
 						currefpat.sid = ent.name;
 						currefpat.spattern.resize(ent.patlen);
-						::libmaus::fastx::FastABgzfDecoder::unique_ptr_type fastr(Pbgzfindex->getStream(refin,id));
-						::libmaus::autoarray::AutoArray<char> B(64*1024,false);
+						::libmaus2::fastx::FastABgzfDecoder::unique_ptr_type fastr(Pbgzfindex->getStream(refin,id));
+						::libmaus2::autoarray::AutoArray<char> B(64*1024,false);
 						uint64_t p = 0;
 						uint64_t todo = ent.patlen;
 						
@@ -246,7 +246,7 @@ namespace libmaus
 							static_cast<std::istream *>(razfdec.get())
 							: 
 							static_cast<std::istream *>((&refin));
-						libmaus::autoarray::AutoArray<char> newrefdata = Pfaindex->readSequence(*in,id);
+						libmaus2::autoarray::AutoArray<char> newrefdata = Pfaindex->readSequence(*in,id);
 
 						currefpat.sid = Pfaindex->sequences[id].name;
 						currefpat.spattern = std::string(newrefdata.begin(),newrefdata.end());
@@ -260,7 +260,7 @@ namespace libmaus
 								
 							if ( ! ok )
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "[D] Failed to load reference sequence id " << id << std::endl;
 								se.finish();
 								throw se;		
@@ -277,7 +277,7 @@ namespace libmaus
 						uint64_t const seqlen = seq.size();
 						
 						if ( nar.size() < (seqlen+1+63)/64 )
-							nar = libmaus::autoarray::AutoArray<uint64_t>((seqlen+1+63)/64,false);
+							nar = libmaus2::autoarray::AutoArray<uint64_t>((seqlen+1+63)/64,false);
 							
 						uint8_t const * p = reinterpret_cast<uint8_t const *>(seq.c_str());
 						for ( uint64_t i = 0; i < (seqlen/64); ++i )
@@ -311,14 +311,14 @@ namespace libmaus
 						{
 							if ( *p == 'N' )
 							{
-								assert ( libmaus::bitio::getBit(nar.begin(),i) );
+								assert ( libmaus2::bitio::getBit(nar.begin(),i) );
 								++nn;
 							}
-							assert ( libmaus::bitio::getBit(nar.begin(),i) == vmap[*(p++)] );
+							assert ( libmaus2::bitio::getBit(nar.begin(),i) == vmap[*(p++)] );
 						}
 						#endif
 						
-						libmaus::rank::ERank222B::unique_ptr_type Trank(new libmaus::rank::ERank222B(nar.begin(),64*((seqlen+1+63)/64)));
+						libmaus2::rank::ERank222B::unique_ptr_type Trank(new libmaus2::rank::ERank222B(nar.begin(),64*((seqlen+1+63)/64)));
 						Prank = UNIQUE_PTR_MOVE(Trank);
 					}
 				}
@@ -333,11 +333,11 @@ namespace libmaus
 				
 				bool recalc = false;
 				
-				if ( ! libmaus::bambam::BamAlignmentDecoderBase::isUnmap(libmaus::bambam::BamAlignmentDecoderBase::getFlags(D)) )
+				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(D)) )
 				{
-					int64_t const refid = libmaus::bambam::BamAlignmentDecoderBase::getRefID(D);
-					int64_t const pos = libmaus::bambam::BamAlignmentDecoderBase::getPos(D);
-					int64_t const refend = pos + libmaus::bambam::BamAlignmentDecoderBase::getReferenceLength(D);
+					int64_t const refid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(D);
+					int64_t const pos = libmaus2::bambam::BamAlignmentDecoderBase::getPos(D);
+					int64_t const refend = pos + libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(D);
 					std::string const & ref = loadReference(refid);
 					
 					if ( 
@@ -347,7 +347,7 @@ namespace libmaus
 							(
 								(Prank->rankm1(refend)-Prank->rankm1(pos)) 
 								|| 
-								libmaus::bambam::BamAlignmentDecoderBase::hasNonACGT(D)
+								libmaus2::bambam::BamAlignmentDecoderBase::hasNonACGT(D)
 							)
 						)
 						||
@@ -355,7 +355,7 @@ namespace libmaus
 					)
 					{
 						numrecalc += 1;
-						libmaus::bambam::BamAlignmentDecoderBase::calculateMd(D,blocksize,context,ref.begin() + pos,warnchange);
+						libmaus2::bambam::BamAlignmentDecoderBase::calculateMd(D,blocksize,context,ref.begin() + pos,warnchange);
 						if ( context.diff )
 							recalc = true;
 					}
@@ -368,7 +368,7 @@ namespace libmaus
 				return recalc;
 			}
 			
-			bool calmdnm(libmaus::bambam::BamAlignment const & algn)
+			bool calmdnm(libmaus2::bambam::BamAlignment const & algn)
 			{
 				return calmdnm(algn.D.begin(),algn.blocksize);
 			}

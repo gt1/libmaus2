@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_UTIL_IMPCOMPACTNUMBERARRAY_HPP)
 #define LIBMAUS_UTIL_IMPCOMPACTNUMBERARRAY_HPP
 
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/math/Log.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/util/MemTempFileContainer.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGeneratorHuffman.hpp>
-#include <libmaus/wavelet/ImpHuffmanWaveletTree.hpp>
-#include <libmaus/util/iterator.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/math/Log.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/util/MemTempFileContainer.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGeneratorHuffman.hpp>
+#include <libmaus2/wavelet/ImpHuffmanWaveletTree.hpp>
+#include <libmaus2/util/iterator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -38,12 +38,12 @@ namespace libmaus
 		struct ImpCompactNumberArray
 		{
 			typedef ImpCompactNumberArray this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT;
-			libmaus::autoarray::AutoArray< ::libmaus::bitio::CompactArray::unique_ptr_type > C;	
+			libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type IHWT;
+			libmaus2::autoarray::AutoArray< ::libmaus2::bitio::CompactArray::unique_ptr_type > C;	
 			
-			typedef libmaus::util::ConstIterator<this_type,uint64_t> const_iterator;
+			typedef libmaus2::util::ConstIterator<this_type,uint64_t> const_iterator;
 			
 			friend struct ImpCompactNumberArrayGenerator;
 			typedef ImpCompactNumberArrayGenerator generator_type;
@@ -84,16 +84,16 @@ namespace libmaus
 			template<typename stream_type>
 			void deserialise(stream_type & in)
 			{
-				libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type tIHWT(new libmaus::wavelet::ImpHuffmanWaveletTree(in));
+				libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type tIHWT(new libmaus2::wavelet::ImpHuffmanWaveletTree(in));
 				IHWT = UNIQUE_PTR_MOVE(tIHWT);
-				C = libmaus::autoarray::AutoArray< ::libmaus::bitio::CompactArray::unique_ptr_type >(IHWT->enctable.maxsym+1);
+				C = libmaus2::autoarray::AutoArray< ::libmaus2::bitio::CompactArray::unique_ptr_type >(IHWT->enctable.maxsym+1);
 
 				if ( IHWT->getN() )
 					for ( int s = IHWT->enctable.minsym; s <= IHWT->enctable.maxsym; ++s )
 						if ( s > 1 && IHWT->rank(s,IHWT->getN()-1) )
 						{
-							::libmaus::bitio::CompactArray::unique_ptr_type tCs(
-                                                                        new ::libmaus::bitio::CompactArray(in));
+							::libmaus2::bitio::CompactArray::unique_ptr_type tCs(
+                                                                        new ::libmaus2::bitio::CompactArray(in));
 							C[s] = UNIQUE_PTR_MOVE(tCs);
 						}
 			}
@@ -108,7 +108,7 @@ namespace libmaus
 			
 			static unique_ptr_type loadFile(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::CheckedInputStream CIS(filename);
 				unique_ptr_type ptr(load(CIS));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
@@ -146,30 +146,30 @@ namespace libmaus
 		struct ImpCompactNumberArrayGenerator
 		{
 			typedef ImpCompactNumberArrayGenerator this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			std::map<int64_t,uint64_t> const probs;
-			libmaus::huffman::HuffmanTreeNode::shared_ptr_type HN;
-			libmaus::huffman::EncodeTable<1> E;
-			libmaus::util::MemTempFileContainer MTFC;
-			libmaus::wavelet::ImpExternalWaveletGeneratorHuffman IEWGH;
+			libmaus2::huffman::HuffmanTreeNode::shared_ptr_type HN;
+			libmaus2::huffman::EncodeTable<1> E;
+			libmaus2::util::MemTempFileContainer MTFC;
+			libmaus2::wavelet::ImpExternalWaveletGeneratorHuffman IEWGH;
 			ImpCompactNumberArray::unique_ptr_type ICNA;
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 
 			public:
-			ImpCompactNumberArrayGenerator(libmaus::util::Histogram & hist)
-			: probs(hist.getByType<int64_t>()), HN(libmaus::huffman::HuffmanBase::createTree(probs)), 
+			ImpCompactNumberArrayGenerator(libmaus2::util::Histogram & hist)
+			: probs(hist.getByType<int64_t>()), HN(libmaus2::huffman::HuffmanBase::createTree(probs)), 
 			  E(HN.get()), IEWGH(HN.get(), MTFC), ICNA(new ImpCompactNumberArray), D(E.maxsym+1)
 			{
-				ICNA->C = libmaus::autoarray::AutoArray< ::libmaus::bitio::CompactArray::unique_ptr_type >(E.maxsym+1);
+				ICNA->C = libmaus2::autoarray::AutoArray< ::libmaus2::bitio::CompactArray::unique_ptr_type >(E.maxsym+1);
 
 				for ( int i = E.minsym; i <= E.maxsym; ++i )
 					if ( i > 1 && E.checkSymbol(i) )
 					{
 						uint64_t const numsyms = probs.find(i)->second;
-						::libmaus::bitio::CompactArray::unique_ptr_type ICNACi(
-                                                                new ::libmaus::bitio::CompactArray(numsyms,i-1)
+						::libmaus2::bitio::CompactArray::unique_ptr_type ICNACi(
+                                                                new ::libmaus2::bitio::CompactArray(numsyms,i-1)
                                                         );
 						ICNA->C[i] = UNIQUE_PTR_MOVE(ICNACi);
 					}
@@ -177,12 +177,12 @@ namespace libmaus
 			
 			void add(uint64_t const v)
 			{
-				unsigned int const b = libmaus::math::bitsPerNum(v);
+				unsigned int const b = libmaus2::math::bitsPerNum(v);
 
 				IEWGH.putSymbol(b);
 				if ( b > 1 )
 				{
-					uint64_t const m = v & libmaus::math::lowbits(b-1);
+					uint64_t const m = v & libmaus2::math::lowbits(b-1);
 					ICNA->C[b]->set(D[b]++,m);
 				}	
 			}
@@ -193,8 +193,8 @@ namespace libmaus
 				IEWGH.createFinalStream(hwtostr);
 				
 				std::istringstream hwtistr(hwtostr.str());
-				libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type tICNAIHWT(
-                                                new libmaus::wavelet::ImpHuffmanWaveletTree(hwtistr)
+				libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type tICNAIHWT(
+                                                new libmaus2::wavelet::ImpHuffmanWaveletTree(hwtistr)
                                         );
 				ICNA->IHWT = UNIQUE_PTR_MOVE(tICNAIHWT);
 				
@@ -214,9 +214,9 @@ namespace libmaus
 			template<typename iterator_in>
 			static ImpCompactNumberArray::unique_ptr_type constructFromArray(iterator_in it_in, uint64_t const n)
 			{
-				libmaus::util::Histogram hist;
+				libmaus2::util::Histogram hist;
 				for ( iterator_in it_a = it_in; it_a != it_in+n; ++it_a )
-					hist ( libmaus::math::bitsPerNum(*it_a) );
+					hist ( libmaus2::math::bitsPerNum(*it_a) );
 
 				ImpCompactNumberArrayGenerator gen(hist);
 

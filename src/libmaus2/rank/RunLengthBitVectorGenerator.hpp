@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATOR_HPP)
 #define LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATOR_HPP
 
-#include <libmaus/rank/RunLengthBitVectorGeneratorGammaBase.hpp>
-#include <libmaus/rank/RunLengthBitVectorGeneratorBase.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/rank/RunLengthBitVectorBase.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp>
+#include <libmaus2/rank/RunLengthBitVectorGeneratorBase.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/rank/RunLengthBitVectorBase.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -38,8 +38,8 @@ namespace libmaus
 				public RunLengthBitVectorGeneratorBase
 		{
 			typedef RunLengthBitVectorGenerator this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			// current bit symbol for putbit method
 			bool single_cursym;
@@ -117,16 +117,16 @@ namespace libmaus
 				assert ( static_cast<int64_t>(indexstr.tellg()) == static_cast<int64_t>(0) );
 				
 				// write number of blocks
-				libmaus::serialize::Serialize<uint64_t>::serialize(ostr,blocks);
+				libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,blocks);
 				
 				// index pointers
 				for ( uint64_t i = 0; i < blocks; ++i )
 				{
 					uint64_t v;
-					libmaus::serialize::Serialize<uint64_t>::deserialize(indexstr,&v);
+					libmaus2::serialize::Serialize<uint64_t>::deserialize(indexstr,&v);
 					assert ( v >= (getNumPreDataWords()*8*sizeof(uint64_t)) );
 					v -= (getNumPreDataWords()*8*sizeof(uint64_t));
-					libmaus::serialize::Serialize<uint64_t>::serialize(ostr,v);
+					libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,v);
 				}
 				
 				// seek to start of file
@@ -142,15 +142,15 @@ namespace libmaus
 				// check
 				assert ( static_cast<int64_t>(ostr.tellp()) == static_cast<int64_t>(0) );
 				// write block size
-				libmaus::util::NumberSerialisation::serialiseNumber(ostr,blocksize);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,blocksize);
 				// write size of bit vector in bits
-				libmaus::util::NumberSerialisation::serialiseNumber(ostr,size()-rlpad);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,size()-rlpad);
 				// write position of index
-				libmaus::util::NumberSerialisation::serialiseNumber(ostr,indexpos);
+				libmaus2::util::NumberSerialisation::serialiseNumber(ostr,indexpos);
 				assert ( indexpos % sizeof(uint64_t) == 0 );
 				assert ( indexpos >= 4*sizeof(uint64_t) );
 				// length of data in words
-				libmaus::serialize::Serialize<uint64_t>::serialize(ostr,indexpos/sizeof(uint64_t)-4);
+				libmaus2::serialize::Serialize<uint64_t>::serialize(ostr,indexpos/sizeof(uint64_t)-4);
 				// flush output stream
 				ostr.flush();
 				

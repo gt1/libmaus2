@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_UTIL_FREELIST_HPP)
 #define LIBMAUS_UTIL_FREELIST_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -74,9 +74,9 @@ namespace libmaus
 			typedef _allocator_type allocator_type;
 			typedef _type_info_type type_info_type;
 			typedef FreeList<element_type,allocator_type,type_info_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			libmaus::autoarray::AutoArray< typename type_info_type::pointer_type > freelist;
+			libmaus2::autoarray::AutoArray< typename type_info_type::pointer_type > freelist;
 			uint64_t freecnt;
 			allocator_type allocator;
 			

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERINFO_HPP
 
 #include <string>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <ostream>
 #include <vector>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -39,15 +39,15 @@ namespace libmaus
 			std::ostream * copystr;
 			std::string range;
 
-			static std::vector<libmaus::bambam::BamAlignmentDecoderInfo> filenameToInfo(
-				libmaus::util::ArgInfo const & arginfo, 
+			static std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> filenameToInfo(
+				libmaus2::util::ArgInfo const & arginfo, 
 				std::vector<std::string> const & filenames,
 				std::string const & putrank = std::string("0")
 			)
 			{
-				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> V;
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> V;
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					V.push_back(libmaus::bambam::BamAlignmentDecoderInfo(
+					V.push_back(libmaus2::bambam::BamAlignmentDecoderInfo(
 						arginfo,
 						filenames[i],
 						std::string(), /* format */
@@ -60,13 +60,13 @@ namespace libmaus
 				return V;
 			}
 
-			static std::vector<libmaus::bambam::BamAlignmentDecoderInfo> filenameToInfo(
+			static std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> filenameToInfo(
 				std::vector<std::string> const & filenames
 			)
 			{
-				std::vector<libmaus::bambam::BamAlignmentDecoderInfo> V;
+				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> V;
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					V.push_back(libmaus::bambam::BamAlignmentDecoderInfo(filenames[i]));
+					V.push_back(libmaus2::bambam::BamAlignmentDecoderInfo(filenames[i]));
 				return V;
 			}
 
@@ -112,7 +112,7 @@ namespace libmaus
 				istr >> u;
 				if ( ! istr )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "BamAlignmentDecoderInfo::parseNumber: cannot parse " << number << " as number" << "\n";
 					lme.finish();
 					throw lme;
@@ -135,7 +135,7 @@ namespace libmaus
 			: inputfilename(rinputfilename), inputformat(rinputformat), inputthreads(rinputthreads),
 			  reference(rreference), putrank(rputrank), copystr(rcopystr), range(rrange) {}
 			BamAlignmentDecoderInfo(
-				libmaus::util::ArgInfo const & arginfo,
+				libmaus2::util::ArgInfo const & arginfo,
 				std::string rinputfilename = std::string(),
 				std::string rinputformat   = std::string(),
 				std::string rinputthreads  = std::string(),
@@ -177,21 +177,21 @@ namespace libmaus
 				return *this;
 			}
 
-			static libmaus::bambam::BamAlignmentDecoderInfo constructInfo(
-				libmaus::util::ArgInfo const & arginfo,
+			static libmaus2::bambam::BamAlignmentDecoderInfo constructInfo(
+				libmaus2::util::ArgInfo const & arginfo,
 				std::string const & filename,
 				bool const putrank = false, 
 				std::ostream * copystr = 0
 			)
 			{
-				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
-				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
-				std::string const reference = arginfo.getUnparsedValue("reference",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultReference());
-				std::string const prange = arginfo.getUnparsedValue("range",libmaus::bambam::BamAlignmentDecoderInfo::getDefaultRange());
+				std::string const inputformat = arginfo.getValue<std::string>("inputformat",libmaus2::bambam::BamAlignmentDecoderInfo::getDefaultInputFormat());
+				uint64_t const inputthreads = arginfo.getValue<uint64_t>("inputthreads",libmaus2::bambam::BamAlignmentDecoderInfo::getDefaultThreads());
+				std::string const reference = arginfo.getUnparsedValue("reference",libmaus2::bambam::BamAlignmentDecoderInfo::getDefaultReference());
+				std::string const prange = arginfo.getUnparsedValue("range",libmaus2::bambam::BamAlignmentDecoderInfo::getDefaultRange());
 				std::string const pranges = arginfo.getUnparsedValue("ranges",std::string(""));
 				std::string const range = pranges.size() ? pranges : prange;
 			
-				return libmaus::bambam::BamAlignmentDecoderInfo(
+				return libmaus2::bambam::BamAlignmentDecoderInfo(
 					filename,
 					inputformat,
 					inputthreads,
@@ -203,7 +203,7 @@ namespace libmaus
 			}
 		};
 		
-		std::ostream & operator<<(std::ostream & out, libmaus::bambam::BamAlignmentDecoderInfo const & o);
+		std::ostream & operator<<(std::ostream & out, libmaus2::bambam::BamAlignmentDecoderInfo const & o);
 	}
 }
 #endif

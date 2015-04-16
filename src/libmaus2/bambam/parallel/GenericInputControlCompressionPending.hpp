@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLCOMPRESSIONPENDING_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLCOMPRESSIONPENDING_HPP
 
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
-#include <libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,8 +31,8 @@ namespace libmaus
 			struct GenericInputControlCompressionPending
 			{
 				typedef GenericInputControlCompressionPending this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				// block number (-1 for header)
 				 int64_t blockid;
@@ -45,9 +45,9 @@ namespace libmaus
 				// uncompressed data range
 				std::pair<uint8_t *,uint8_t *> P;
 				// compressed data block
-				libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock;
+				libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outblock;
 				// flush info from BGZF compressor
-				libmaus::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo;
+				libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo flushinfo;
 			
 				GenericInputControlCompressionPending() {}	
 				GenericInputControlCompressionPending(

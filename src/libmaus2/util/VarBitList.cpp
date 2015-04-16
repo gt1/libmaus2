@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,13 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/VarBitList.hpp>
+#include <libmaus2/util/VarBitList.hpp>
 
-libmaus::util::VarBitList::VarBitList()
+libmaus2::util::VarBitList::VarBitList()
 {
 }
 
-uint64_t libmaus::util::VarBitList::select1(uint64_t rank) const
+uint64_t libmaus2::util::VarBitList::select1(uint64_t rank) const
 {
 	std::list<bool>::const_iterator I = B.begin();
 
@@ -51,7 +51,7 @@ uint64_t libmaus::util::VarBitList::select1(uint64_t rank) const
 	
 	return pos;
 }
-uint64_t libmaus::util::VarBitList::select0(uint64_t rank) const
+uint64_t libmaus2::util::VarBitList::select0(uint64_t rank) const
 {
 	std::list<bool>::const_iterator I = B.begin();
 
@@ -81,7 +81,7 @@ uint64_t libmaus::util::VarBitList::select0(uint64_t rank) const
 }
 
 
-uint64_t libmaus::util::VarBitList::rank1(uint64_t pos)
+uint64_t libmaus2::util::VarBitList::rank1(uint64_t pos)
 {
 	std::list<bool>::iterator I = B.begin();
 	
@@ -96,7 +96,7 @@ uint64_t libmaus::util::VarBitList::rank1(uint64_t pos)
 	return pc;
 }
 
-void libmaus::util::VarBitList::insertBit(uint64_t pos, bool b)
+void libmaus2::util::VarBitList::insertBit(uint64_t pos, bool b)
 {
 	assert ( pos <= B.size() );
 
@@ -107,7 +107,7 @@ void libmaus::util::VarBitList::insertBit(uint64_t pos, bool b)
 		
 	B.insert(I,b);
 }
-void libmaus::util::VarBitList::deleteBit(uint64_t pos)
+void libmaus2::util::VarBitList::deleteBit(uint64_t pos)
 {
 	assert ( pos < B.size() );
 
@@ -118,7 +118,7 @@ void libmaus::util::VarBitList::deleteBit(uint64_t pos)
 
 	B.erase(I);	
 }
-void libmaus::util::VarBitList::setBit(uint64_t pos, bool b)
+void libmaus2::util::VarBitList::setBit(uint64_t pos, bool b)
 {
 	assert ( pos < B.size() );
 
@@ -130,7 +130,7 @@ void libmaus::util::VarBitList::setBit(uint64_t pos, bool b)
 	*I = b;	
 }
 
-std::ostream & libmaus::util::operator<<(std::ostream & out, libmaus::util::VarBitList const & B)
+std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::VarBitList const & B)
 {
 	for ( std::list< bool >::const_iterator I = B.B.begin(); I != B.B.end(); ++I )
 		out << ((*I)?"1":"0");

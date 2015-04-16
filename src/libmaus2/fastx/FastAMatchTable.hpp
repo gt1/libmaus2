@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -22,9 +22,9 @@
 #include <map>
 #include <vector>
 #include <ostream>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{

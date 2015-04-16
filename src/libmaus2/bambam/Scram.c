@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,29 +17,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_IO_LIB)
-#include <libmaus/bambam/Scram.h>
+#include <libmaus2/bambam/Scram.h>
 #include <io_lib/scram.h>
 #include <io_lib/sam_header.h>
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
 
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfilename, char const * rmode, char const * rreferencefilename)
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New(char const * rfilename, char const * rmode, char const * rreferencefilename)
 {
-	libmaus_bambam_ScramDecoder * object = 0;
+	libmaus2_bambam_ScramDecoder * object = 0;
 	size_t filenamelen = 0;
 	size_t modelen = 0;
 	size_t referencefilenamelen = 0;
 	SAM_hdr * samheader = 0;
 	scram_fd * sdecoder = 0;
 	
-	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
+	object = (libmaus2_bambam_ScramDecoder *)malloc(sizeof(libmaus2_bambam_ScramDecoder));
 	
 	if ( ! object )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	memset(object,0,sizeof(*object));
 	
@@ -47,9 +47,9 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 	filenamelen = strlen(rfilename);
 	
 	if ( ! (object->filename = (char *)malloc(filenamelen+1)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	if ( ! (object->mode = (char *)malloc(modelen+1)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy(object->filename,rfilename,filenamelen);
 	object->filename[filenamelen] = 0;
@@ -60,13 +60,13 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 	{
 		referencefilenamelen = strlen(rreferencefilename);
 		if ( ! (object->referencefilename = (char *)malloc(referencefilenamelen+1)) )
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 		memcpy(object->referencefilename,rreferencefilename,referencefilenamelen);
 		object->referencefilename[referencefilenamelen] = 0;
 	}
 	
 	if ( !(object->decoder = scram_open(object->filename,object->mode)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
@@ -81,16 +81,16 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 	{
 		cram_load_reference(sdecoder->c, object->referencefilename);
 		if ( !sdecoder->c->refs ) 
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 	}
 
 	samheader = scram_get_header(sdecoder);
 	
 	if ( ! samheader )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	if ( ! (object->header = (char *)malloc(samheader->text->length)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy ( object->header,samheader->text->str,samheader->text->length );
 	object->headerlen = samheader->text->length;
@@ -99,7 +99,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
 }
 
 #if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callback(
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback(
 	char const * rfilename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
@@ -107,23 +107,23 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	char const * rreferencefilename
 )
 {
-	libmaus_bambam_ScramDecoder * object = 0;
+	libmaus2_bambam_ScramDecoder * object = 0;
 	size_t filenamelen = 0;
 	size_t referencefilenamelen = 0;
 	SAM_hdr * samheader = 0;
 	scram_fd * sdecoder = 0;
 	
-	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
+	object = (libmaus2_bambam_ScramDecoder *)malloc(sizeof(libmaus2_bambam_ScramDecoder));
 	
 	if ( ! object )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	memset(object,0,sizeof(*object));
 	
 	filenamelen = strlen(rfilename);
 	
 	if ( ! (object->filename = (char *)malloc(filenamelen+1)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy(object->filename,rfilename,filenamelen);
 	object->filename[filenamelen] = 0;
@@ -132,7 +132,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	{
 		referencefilenamelen = strlen(rreferencefilename);
 		if ( ! (object->referencefilename = (char *)malloc(referencefilenamelen+1)) )
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 		memcpy(object->referencefilename,rreferencefilename,referencefilenamelen);
 		object->referencefilename[referencefilenamelen] = 0;
 	}
@@ -143,7 +143,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 		(cram_io_deallocate_read_input_t)callback_deallocate_function,
 		bufsize)) 
 	)
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
@@ -157,16 +157,16 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	{
 		cram_load_reference(sdecoder->c, object->referencefilename);
 		if ( !sdecoder->c->refs ) 
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 	}
 
 	samheader = scram_get_header(sdecoder);
 	
 	if ( ! samheader )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	if ( ! (object->header = (char *)malloc(samheader->text->length)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy ( object->header,samheader->text->str,samheader->text->length );
 	object->headerlen = samheader->text->length;
@@ -175,9 +175,9 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 }
 #endif
 
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * rref, int64_t const start, int64_t const end)
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * rref, int64_t const start, int64_t const end)
 {
-	libmaus_bambam_ScramDecoder * object = 0;
+	libmaus2_bambam_ScramDecoder * object = 0;
 	size_t filenamelen = 0;
 	size_t modelen = 0;
 	size_t referencefilenamelen = 0;
@@ -187,10 +187,10 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	char * ref = 0;
 	cram_range r;
 
-	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
+	object = (libmaus2_bambam_ScramDecoder *)malloc(sizeof(libmaus2_bambam_ScramDecoder));
 	
 	if ( ! object )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	memset(object,0,sizeof(*object));
 	
@@ -198,9 +198,9 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	filenamelen = strlen(rfilename);
 	
 	if ( ! (object->filename = (char *)malloc(filenamelen+1)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	if ( ! (object->mode = (char *)malloc(modelen+1)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy(object->filename,rfilename,filenamelen);
 	object->filename[filenamelen] = 0;
@@ -211,13 +211,13 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	{
 		referencefilenamelen = strlen(rreferencefilename);
 		if ( ! (object->referencefilename = (char *)malloc(referencefilenamelen+1)) )
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 		memcpy(object->referencefilename,rreferencefilename,referencefilenamelen);
 		object->referencefilename[referencefilenamelen] = 0;
 	}
 	
 	if ( !(object->decoder = scram_open(object->filename,object->mode)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
@@ -232,38 +232,38 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	{
 		cram_load_reference(sdecoder->c, object->referencefilename);
 		if ( !sdecoder->c->refs ) 
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 	}
 
 	samheader = scram_get_header(sdecoder);
 	
 	if ( ! samheader )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	if ( ! (object->header = (char *)malloc(samheader->text->length)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy ( object->header,samheader->text->str,samheader->text->length );
 	object->headerlen = samheader->text->length;
 
 	/* range decoding is not supported for non cram formats */
 	if ( sdecoder->is_bam )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 
 	/* load cram index, returns -1 on failure */
 	if ( cram_index_load(sdecoder->c, object->filename) < 0 )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 
 	/* check if we have a sequence name */
 	if ( ! rref )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	/* duplicate reference id string */
 	ref = strdup(rref);
 
 	/* check */
 	if ( ! ref )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	/* get numerical id of ref seq */
 	refid = sam_hdr_name2ref(sdecoder->c->header, ref);
@@ -275,7 +275,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 	if ( refid < 0 || refid >= sdecoder->c->header->nref ) 
 	{
 		fprintf(stderr,"[E] ScramDecoder: reference sequence %s does not exist\n", rref);
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	}
 
 	// fprintf(stderr,"***%s %u\n",sdecoder->c->header->ref[refid].name,sdecoder->c->header->ref[refid].len);
@@ -291,13 +291,13 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
 
 	/* set range */
 	if (scram_set_option(sdecoder, CRAM_OPT_RANGE, &r))
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 				
 	return object;
 }
 
 #if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Range(
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback_Range(
 	char const * rfilename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
@@ -308,7 +308,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	int64_t const end
 )
 {
-	libmaus_bambam_ScramDecoder * object = 0;
+	libmaus2_bambam_ScramDecoder * object = 0;
 	size_t filenamelen = 0;
 	size_t referencefilenamelen = 0;
 	SAM_hdr * samheader = 0;
@@ -317,17 +317,17 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	char * ref = 0;
 	cram_range r;
 
-	object = (libmaus_bambam_ScramDecoder *)malloc(sizeof(libmaus_bambam_ScramDecoder));
+	object = (libmaus2_bambam_ScramDecoder *)malloc(sizeof(libmaus2_bambam_ScramDecoder));
 	
 	if ( ! object )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	memset(object,0,sizeof(*object));
 	
 	filenamelen = strlen(rfilename);
 	
 	if ( ! (object->filename = (char *)malloc(filenamelen+1)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy(object->filename,rfilename,filenamelen);
 	object->filename[filenamelen] = 0;
@@ -336,7 +336,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	{
 		referencefilenamelen = strlen(rreferencefilename);
 		if ( ! (object->referencefilename = (char *)malloc(referencefilenamelen+1)) )
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 		memcpy(object->referencefilename,rreferencefilename,referencefilenamelen);
 		object->referencefilename[referencefilenamelen] = 0;
 	}
@@ -347,7 +347,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 		(cram_io_deallocate_read_input_t)callback_deallocate_function,
 		bufsize)) 
 	)
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	sdecoder = (scram_fd *)(object->decoder);
 
@@ -361,23 +361,23 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	{
 		cram_load_reference(sdecoder->c, object->referencefilename);
 		if ( !sdecoder->c->refs ) 
-			return libmaus_bambam_ScramDecoder_Delete(object);
+			return libmaus2_bambam_ScramDecoder_Delete(object);
 	}
 
 	samheader = scram_get_header(sdecoder);
 	
 	if ( ! samheader )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 		
 	if ( ! (object->header = (char *)malloc(samheader->text->length)) )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	memcpy ( object->header,samheader->text->str,samheader->text->length );
 	object->headerlen = samheader->text->length;
 
 	/* range decoding is not supported for non cram formats */
 	if ( sdecoder->is_bam )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 
 	/* load cram index, returns -1 on failure */
 	#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_INDEX_CALLBACKS)
@@ -388,22 +388,22 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 			(cram_io_allocate_read_input_t)callback_allocate_function,
 			(cram_io_deallocate_read_input_t)callback_deallocate_function
 		) < 0 )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	#else
 	if ( cram_index_load(sdecoder->c, object->filename) < 0 )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	#endif
 
 	/* check if we have a sequence name */
 	if ( ! rref )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	/* duplicate reference id string */
 	ref = strdup(rref);
 
 	/* check */
 	if ( ! ref )
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	
 	/* get numerical id of ref seq */
 	refid = sam_hdr_name2ref(sdecoder->c->header, ref);
@@ -415,7 +415,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 	if ( refid < 0 || refid >= sdecoder->c->header->nref )
 	{
 		fprintf(stderr,"[E] ScramDecoder: reference sequence %s does not exist\n", rref);
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 	}
 
 	// fprintf(stderr,"***%s %u\n",sdecoder->c->header->ref[refid].name,sdecoder->c->header->ref[refid].len);
@@ -431,14 +431,14 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
 
 	/* set range */
 	if (scram_set_option(sdecoder, CRAM_OPT_RANGE, &r))
-		return libmaus_bambam_ScramDecoder_Delete(object);
+		return libmaus2_bambam_ScramDecoder_Delete(object);
 				
 	return object;
 }
 
 #endif
 
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_Delete(libmaus_bambam_ScramDecoder * object)
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_Delete(libmaus2_bambam_ScramDecoder * object)
 {
 	if ( object )
 	{
@@ -475,7 +475,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_Delete(libmaus_bambam_
 	return 0;
 }
 
-int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object)
+int libmaus2_bambam_ScramDecoder_Decode(libmaus2_bambam_ScramDecoder * object)
 {
 	scram_fd * sdecoder = 0;
 	bam_seq_t * seq = 0;
@@ -509,22 +509,22 @@ int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object)
  * @param headertext plain text header
  * @return scram header object
  **/
-libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_New(char const * headertext)
+libmaus2_bambam_ScramHeader * libmaus2_bambam_ScramHeader_New(char const * headertext)
 {
-	libmaus_bambam_ScramHeader * header = 0;
+	libmaus2_bambam_ScramHeader * header = 0;
 	size_t const headerlen = headertext ? strlen(headertext) : 0;
 	
-	header = (libmaus_bambam_ScramHeader *)malloc(sizeof(libmaus_bambam_ScramHeader));
+	header = (libmaus2_bambam_ScramHeader *)malloc(sizeof(libmaus2_bambam_ScramHeader));
 	
 	if ( ! header )
-		return libmaus_bambam_ScramHeader_Delete(header);
+		return libmaus2_bambam_ScramHeader_Delete(header);
 		
-	memset(header,0,sizeof(libmaus_bambam_ScramHeader));
+	memset(header,0,sizeof(libmaus2_bambam_ScramHeader));
 	
 	header->text = (char*)malloc(headerlen+1);
 	
 	if ( ! header->text )
-		return libmaus_bambam_ScramHeader_Delete(header);
+		return libmaus2_bambam_ScramHeader_Delete(header);
 		
 	memset(header->text,0,headerlen+1);
 	memcpy(header->text,headertext,headerlen);
@@ -532,7 +532,7 @@ libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_New(char const * headert
 	header->header = sam_hdr_parse(header->text,headerlen);
 
 	if ( ! header->header )
-		return libmaus_bambam_ScramHeader_Delete(header);
+		return libmaus2_bambam_ScramHeader_Delete(header);
 		
 	return header;		
 }
@@ -543,7 +543,7 @@ libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_New(char const * headert
  * @param header object
  * @return null
  **/
-libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_Delete(libmaus_bambam_ScramHeader * header)
+libmaus2_bambam_ScramHeader * libmaus2_bambam_ScramHeader_Delete(libmaus2_bambam_ScramHeader * header)
 {
 	if ( header && header->header )
 	{
@@ -571,26 +571,26 @@ libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_Delete(libmaus_bambam_Sc
  * @param rmode file mode
  * @param rreferencefilename name of reference for cram output
  **/
-libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
+libmaus2_bambam_ScramEncoder * libmaus2_bambam_ScramEncoder_New(
 	char const * headertext,
 	char const * rfilename, char const * rmode, char const * rreferencefilename,
 	int const rverbose
 )
 {
-	libmaus_bambam_ScramEncoder * encoder = 0;
+	libmaus2_bambam_ScramEncoder * encoder = 0;
 	scram_fd * sencoder = 0;
 	
-	encoder = (libmaus_bambam_ScramEncoder *)malloc(sizeof(libmaus_bambam_ScramEncoder));
+	encoder = (libmaus2_bambam_ScramEncoder *)malloc(sizeof(libmaus2_bambam_ScramEncoder));
 	
 	if ( !encoder )
-		return libmaus_bambam_ScramEncoder_Delete(encoder);
+		return libmaus2_bambam_ScramEncoder_Delete(encoder);
 		
-	memset(encoder,0,sizeof(libmaus_bambam_ScramEncoder));
+	memset(encoder,0,sizeof(libmaus2_bambam_ScramEncoder));
 		
 	encoder->filename = (char *)malloc(strlen(rfilename)+1);
 	
 	if ( ! encoder->filename )
-		return libmaus_bambam_ScramEncoder_Delete(encoder);
+		return libmaus2_bambam_ScramEncoder_Delete(encoder);
 	
 	memset(encoder->filename,0,strlen(rfilename)+1);
 	memcpy(encoder->filename,rfilename,strlen(rfilename));
@@ -598,7 +598,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
 	encoder->mode = (char *)malloc(strlen(rmode)+1);
 
 	if ( ! encoder->mode )
-		return libmaus_bambam_ScramEncoder_Delete(encoder);
+		return libmaus2_bambam_ScramEncoder_Delete(encoder);
 	
 	memset(encoder->mode,0,strlen(rmode)+1);
 	memcpy(encoder->mode,rmode,strlen(rmode));
@@ -608,21 +608,21 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
 		encoder->referencefilename = (char *)malloc(strlen(rreferencefilename)+1);
 	
 		if ( ! encoder->referencefilename )
-			return libmaus_bambam_ScramEncoder_Delete(encoder);
+			return libmaus2_bambam_ScramEncoder_Delete(encoder);
 	
 		memset(encoder->referencefilename,0,strlen(rreferencefilename)+1);
 		memcpy(encoder->referencefilename,rreferencefilename,strlen(rreferencefilename));
 	}
 	
-	encoder->header = libmaus_bambam_ScramHeader_New(headertext);
+	encoder->header = libmaus2_bambam_ScramHeader_New(headertext);
 	
 	if ( ! encoder->header )
-		return libmaus_bambam_ScramEncoder_Delete(encoder);
+		return libmaus2_bambam_ScramEncoder_Delete(encoder);
 
 	encoder->encoder = scram_open(encoder->filename,encoder->mode);
 
 	if ( ! encoder->encoder )
-		return libmaus_bambam_ScramEncoder_Delete(encoder);
+		return libmaus2_bambam_ScramEncoder_Delete(encoder);
 
 	sencoder = (scram_fd *)(encoder->encoder);
 
@@ -635,7 +635,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
 		scram_set_option(sencoder, CRAM_OPT_REFERENCE, 0);
 
 	if ( scram_write_header(sencoder) )
-		return libmaus_bambam_ScramEncoder_Delete(encoder);
+		return libmaus2_bambam_ScramEncoder_Delete(encoder);
 		
 	return encoder;
 }
@@ -646,7 +646,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
  * @param object encoder object
  * @return null
  **/
-libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_Delete(libmaus_bambam_ScramEncoder * object)
+libmaus2_bambam_ScramEncoder * libmaus2_bambam_ScramEncoder_Delete(libmaus2_bambam_ScramEncoder * object)
 {
 	if ( object && object->filename )
 	{
@@ -665,7 +665,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_Delete(libmaus_bambam_
 	}
 	if ( object && object->header )
 	{
-		libmaus_bambam_ScramHeader_Delete(object->header);
+		libmaus2_bambam_ScramHeader_Delete(object->header);
 		object->header = 0;
 	}
 	if ( object && object->encoder )
@@ -697,7 +697,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_Delete(libmaus_bambam_
  * @param len length of BAM block in bytes
  * @return -1 on failure
  **/
-int libmaus_bambam_ScramEncoder_Encode(libmaus_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len)
+int libmaus2_bambam_ScramEncoder_Encode(libmaus2_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len)
 {
 	uint64_t const metasize = 2*sizeof(uint32_t);
 	uint64_t const pad = 1;
@@ -731,7 +731,7 @@ int libmaus_bambam_ScramEncoder_Encode(libmaus_bambam_ScramEncoder * encoder, ui
 #endif /* defined(LIBMAUS_HAVE_IO_LIB)*/
 
 #if defined(LIBMAUS_HAVE_IO_LIB) && defined(LIBMAUS_HAVE_IO_NEW_CRAM_INTERFACE)
-#include <libmaus/bambam/parallel/CramInterface.h>
+#include <libmaus2/bambam/parallel/CramInterface.h>
 
 void *scram_cram_allocate_encoder(void *userdata, char const *sam_header, size_t const sam_headerlength, cram_data_write_function_t write_func)
 {

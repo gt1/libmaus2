@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #define LIBMAUS_LZ_BGZFINFLATEBASE_HPP
 
 #include <zlib.h>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/BgzfConstants.hpp>
-#include <libmaus/lz/BgzfInflateInfo.hpp>
-#include <libmaus/lz/BgzfInflateHeaderBase.hpp>
-#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfConstants.hpp>
+#include <libmaus2/lz/BgzfInflateInfo.hpp>
+#include <libmaus2/lz/BgzfInflateHeaderBase.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateBase : public BgzfInflateHeaderBase, BgzfInflateZStreamBase
 		{
 			typedef BgzfInflateBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			// space for compressed input data
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> block;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> block;
 
 			BgzfInflateBase()
 			: BgzfInflateHeaderBase(), block(getBgzfMaxBlockSize(),false)
@@ -59,7 +59,7 @@ namespace libmaus
 
 				if ( stream.gcount() != static_cast<int64_t>(payloadsize + 8) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflateBase::readData(): unexpected eof" << std::endl;
 					se.finish(false);
 					throw se;
@@ -80,7 +80,7 @@ namespace libmaus
 					
 				if ( uncompdatasize > getBgzfMaxBlockSize() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflateBase::readData(): uncompressed size is too large";
 					se.finish(false);
 					throw se;									
@@ -108,7 +108,7 @@ namespace libmaus
 				/* check consistency */				
 				if ( (! payloadsize) && (uncompdatasize>0) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflateBase::readBlock: broken BGZF file (block payloadsize is zero but uncompressed data length is not)" << std::endl;
 					se.finish();
 					throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_LZ_BGZFSTREAMWRAPPER_HPP
 
 #include <streambuf>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 			stream_type & stream;
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t streamreadpos;
 
 			BgzfStreamWrapperBuffer(BgzfStreamWrapperBuffer const &);

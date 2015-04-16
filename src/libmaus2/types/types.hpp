@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -28,7 +28,7 @@
 #define expect_false(x) x
 #endif
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 #include <cstdlib>
 
 #if defined(LIBMAUS_HAVE_CSTDINT) || defined(_MSC_VER)
@@ -44,7 +44,7 @@
 #endif
 
 #if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
-namespace libmaus
+namespace libmaus2
 {
 	typedef unsigned __int128 uint128_t;
 }

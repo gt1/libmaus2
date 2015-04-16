@@ -25,9 +25,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <libmaus/suffixsort/divsufsort.hpp>
+#include <libmaus2/suffixsort/divsufsort.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{

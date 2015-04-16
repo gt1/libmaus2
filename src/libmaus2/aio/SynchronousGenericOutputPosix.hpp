@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_AIO_SYNCHRONOUSGENERICOUTPUTPOSIX_HPP)
 #define LIBMAUS_AIO_SYNCHRONOUSGENERICOUTPUTPOSIX_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/aio/PutOutputIterator.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/aio/PutOutputIterator.hpp>
 #include <string>
 #include <fstream>
 
@@ -32,7 +32,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
                     
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -47,7 +47,7 @@ namespace libmaus
 			//! this type
 			typedef SynchronousGenericOutputPosix<data_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! iterator type
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
                 
@@ -60,7 +60,7 @@ namespace libmaus
 			bool const metasync;
                 
 			//! output buffer
-                        ::libmaus::autoarray::AutoArray<data_type> B;
+                        ::libmaus2::autoarray::AutoArray<data_type> B;
                         //! output buffer begin pointer
                         data_type * const pa;
                         //! output buffer current pointer
@@ -100,7 +100,7 @@ namespace libmaus
 	                                			break;
 							default:
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
 									<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
 								se.finish();
@@ -123,7 +123,7 @@ namespace libmaus
                                 
                                 if ( written != cc-ca )
                                 {
-                                        ::libmaus::exception::LibMausException se;
+                                        ::libmaus2::exception::LibMausException se;
                                         se.getStream() << "Failed to write in SynchronousGenericOutputPosix::writeBuffer(): " << strerror(errno)
                                         	<< " fd=" << fd << " filename=" << filename << " dirname=" << dirname << std::endl;
                                         se.finish();
@@ -172,7 +172,7 @@ namespace libmaus
                         				break;
 						default:
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "Failed to stat() file " << filename << " in SynchronousGenericOutputPosix::getFileSize(): " << strerror(errno) << std::endl;
 							se.finish();
 							throw se;
@@ -189,7 +189,7 @@ namespace libmaus
                          * @param A array to be written
                          * @param outputfilename name of output file
                          **/
-			static void writeArray(::libmaus::autoarray::AutoArray<data_type> const & A, 
+			static void writeArray(::libmaus2::autoarray::AutoArray<data_type> const & A, 
 				std::string const & outputfilename)
 			{
 				this_type out(outputfilename,64*1024);
@@ -208,7 +208,7 @@ namespace libmaus
 			 **/
 			static uint64_t appendOffset(std::string const & filename)
 			{
-			        if ( ::libmaus::util::GetFileSize::fileExists(filename) )
+			        if ( ::libmaus2::util::GetFileSize::fileExists(filename) )
                                         return getFileSize(filename);
                                 else
 			                return 0;
@@ -222,7 +222,7 @@ namespace libmaus
 			 **/
 			static uint64_t appendTruncate(std::string const & filename)
 			{
-			        if ( ::libmaus::util::GetFileSize::fileExists(filename) )
+			        if ( ::libmaus2::util::GetFileSize::fileExists(filename) )
 			                return false;
                                 else
                                         return true;
@@ -258,7 +258,7 @@ namespace libmaus
                                 uint64_t const offset,
                                 bool const rmetasync = true
                         )
-                        : filename(rfilename), dirname(::libmaus::util::ArgInfo::getDirName(filename)), metasync(rmetasync),
+                        : filename(rfilename), dirname(::libmaus2::util::ArgInfo::getDirName(filename)), metasync(rmetasync),
                           B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN()), 
                           fd ( -1 ),
                           totalwrittenbytes(0), totalwrittenwords(0)
@@ -274,7 +274,7 @@ namespace libmaus
                                 		}
                                 		default:
                                 		{
-		                                        ::libmaus::exception::LibMausException se;
+		                                        ::libmaus2::exception::LibMausException se;
         		                                se.getStream() << "Failed to open file "<< filename <<" in SynchronousGenericOutputPosix: " <<
                 		                                strerror(errno);
                         		                se.finish();
@@ -285,7 +285,7 @@ namespace libmaus
                                 if ( lseek ( fd, offset, SEEK_SET) == static_cast<off_t>(-1) )
                                 {
                                         close(fd);
-                                        ::libmaus::exception::LibMausException se;
+                                        ::libmaus2::exception::LibMausException se;
                                         se.getStream() << "Failed to seek " << filename << " in SynchronousGenericOutputPosix: " <<
                                                 strerror(errno);
                                         se.finish();
@@ -294,7 +294,7 @@ namespace libmaus
                                 
                                 #if 0
                                 std::cerr << "File " << filename << " opened for output in "
-                                        << ::libmaus::util::Demangle::demangle<this_type>() << std::endl;
+                                        << ::libmaus2::util::Demangle::demangle<this_type>() << std::endl;
                                 #endif
                         }
                         
@@ -317,7 +317,7 @@ namespace libmaus
                                 		}
                                 		default:
                                 		{
-		                                        ::libmaus::exception::LibMausException se;
+		                                        ::libmaus2::exception::LibMausException se;
         		                                se.getStream() << "Failed to close in ~SynchronousGenericOutputPosix:: " << strerror(errno);
                 		                        se.finish();
                         		                throw se;                                                                                                      
@@ -351,7 +351,7 @@ namespace libmaus
 							}
 							default:
 							{
-		                                                ::libmaus::exception::LibMausException se;
+		                                                ::libmaus2::exception::LibMausException se;
         		                                        se.getStream() << "Failed to open directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                                se.finish();
                         		                        throw se;                                                                                                              
@@ -375,7 +375,7 @@ namespace libmaus
                                         		}
                                         		default:
                                         		{
-		                                                ::libmaus::exception::LibMausException se;
+		                                                ::libmaus2::exception::LibMausException se;
         		                                        se.getStream() << "Failed to close directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                                se.finish();
                         		                        throw se;                                                              
@@ -398,7 +398,7 @@ namespace libmaus
                                         		}
                                         		default:
                                         		{
-		                                                ::libmaus::exception::LibMausException se;
+		                                                ::libmaus2::exception::LibMausException se;
         		                                        se.getStream() << "Failed to close directory " << dirname << " in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                                se.finish();
                         		                        throw se;                                                              
@@ -428,7 +428,7 @@ namespace libmaus
 						}
                                 		default:
                                 		{
-		                                        ::libmaus::exception::LibMausException se;
+		                                        ::libmaus2::exception::LibMausException se;
         		                                se.getStream() << "Failed to fsync in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                 		                        se.finish();
                         		                throw se;                                                              
@@ -444,7 +444,7 @@ namespace libmaus
                                         
                                         if ( cursize == static_cast<off_t>(-1) )
                                         {
-                                                ::libmaus::exception::LibMausException se;
+                                                ::libmaus2::exception::LibMausException se;
                                                 se.getStream() << "Failed to lseek in SynchronousGenericOutputPosix::flush(): " << strerror(errno);
                                                 se.finish();
                                                 throw se;                                                              
@@ -483,7 +483,7 @@ namespace libmaus
 
 					if ( okcnt < desokcnt )
 					{
-                                                ::libmaus::exception::LibMausException se;
+                                                ::libmaus2::exception::LibMausException se;
                                                 se.getStream() << "Failed to flush file " << filename 
                                                 	<< " in SynchronousGenericOutputPosix::flush()" 
                                                 	<< " file size reported is "

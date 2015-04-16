@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMRANGEPARSER_HPP)
 #define LIBMAUS_BAMBAM_BAMRANGEPARSER_HPP
 
-#include <libmaus/bambam/BamRange.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
+#include <libmaus2/bambam/BamRange.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
 #include <vector>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamRangeParser
 		{
-			static std::vector < std::string > splitSpace(std::string const & s, libmaus::fastx::SpaceTable const & ST)
+			static std::vector < std::string > splitSpace(std::string const & s, libmaus2::fastx::SpaceTable const & ST)
 			{
 				std::vector < std::string > tokens;
 				uint64_t i = 0;
@@ -54,14 +54,14 @@ namespace libmaus
 
 			static std::vector < std::string > splitSpace(std::string const & s)
 			{
-				libmaus::fastx::SpaceTable const ST;
+				libmaus2::fastx::SpaceTable const ST;
 				return splitSpace(s,ST);
 			}
 			
-			static libmaus::autoarray::AutoArray<libmaus::bambam::BamRange::unique_ptr_type> parse(std::string const & ranges, libmaus::bambam::BamHeader const & header)
+			static libmaus2::autoarray::AutoArray<libmaus2::bambam::BamRange::unique_ptr_type> parse(std::string const & ranges, libmaus2::bambam::BamHeader const & header)
 			{
 				std::vector < std::string > const outertokens = splitSpace(ranges);
-				libmaus::autoarray::AutoArray<libmaus::bambam::BamRange::unique_ptr_type> A(outertokens.size());
+				libmaus2::autoarray::AutoArray<libmaus2::bambam::BamRange::unique_ptr_type> A(outertokens.size());
 
 				for ( uint64_t i = 0; i < outertokens.size(); ++i )
 				{
@@ -75,7 +75,7 @@ namespace libmaus
 							
 					if ( sempos == outertoken.size() )
 					{
-						libmaus::bambam::BamRange::unique_ptr_type tAi(new libmaus::bambam::BamRangeChromosome(outertoken,header));
+						libmaus2::bambam::BamRange::unique_ptr_type tAi(new libmaus2::bambam::BamRangeChromosome(outertoken,header));
 						A[i] = UNIQUE_PTR_MOVE(tAi);
 					}
 					else
@@ -106,13 +106,13 @@ namespace libmaus
 								}
 								else
 								{
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << "Found invalid range character in " << rest << std::endl;
 									se.finish();
 									throw se;
 								}
 								
-							libmaus::bambam::BamRange::unique_ptr_type tAi(new libmaus::bambam::BamRangeHalfOpen(refname,num-1,header));
+							libmaus2::bambam::BamRange::unique_ptr_type tAi(new libmaus2::bambam::BamRangeHalfOpen(refname,num-1,header));
 							A[i] = UNIQUE_PTR_MOVE(tAi);
 						}
 						else
@@ -133,7 +133,7 @@ namespace libmaus
 								}
 								else
 								{
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << "Found invalid range character in " << sstart << std::endl;
 									se.finish();
 									throw se;
@@ -151,13 +151,13 @@ namespace libmaus
 								}
 								else
 								{
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << "Found invalid range character in " << send << std::endl;
 									se.finish();
 									throw se;
 								}
 								
-							libmaus::bambam::BamRange::unique_ptr_type tAi(new libmaus::bambam::BamRangeInterval(refname,start-1,end,header));
+							libmaus2::bambam::BamRange::unique_ptr_type tAi(new libmaus2::bambam::BamRangeInterval(refname,start-1,end,header));
 							A[i] = UNIQUE_PTR_MOVE(tAi);						
 						}
 					}

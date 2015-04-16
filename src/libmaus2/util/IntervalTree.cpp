@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/IntervalTree.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
 			
-bool libmaus::util::IntervalTree::isLeaf() const
+bool libmaus2::util::IntervalTree::isLeaf() const
 {
 	return !leftchild;
 }
 
-libmaus::util::IntervalTree::IntervalTree(
-	::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
+libmaus2::util::IntervalTree::IntervalTree(
+	::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
 	uint64_t const ileft,
 	uint64_t const iright,
 	bool const check
@@ -37,7 +37,7 @@ libmaus::util::IntervalTree::IntervalTree(
 		{
 			if ( H[i-1].second != H[i].first )
 			{
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "IntervalTree::IntervalTree() defect sequence containing intervals "
 					<< "[" << H[i-1].first << "," << H[i-1].second << ")"
 					<< " and "
@@ -50,7 +50,7 @@ libmaus::util::IntervalTree::IntervalTree(
 		{
 			if ( ! ( H[i].first < H[i].second ) )
 			{
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "IntervalTree::Interval: defect interval " << i << "=[" << H[i].first << "," << H[i].second << ")" << std::endl;
 				se.finish();
 				throw se;
@@ -60,7 +60,7 @@ libmaus::util::IntervalTree::IntervalTree(
 
 	if ( ileft == iright )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "IntervalTree::IntervalTree(): ileft=" << ileft << "==iright=" << iright << std::endl;
 		se.finish();
 		throw se;
@@ -84,9 +84,9 @@ libmaus::util::IntervalTree::IntervalTree(
 	}
 }
 
-libmaus::util::IntervalTree::~IntervalTree() {}
+libmaus2::util::IntervalTree::~IntervalTree() {}
 
-uint64_t libmaus::util::IntervalTree::findTrace(std::vector < IntervalTree const * > & trace, uint64_t const v) const
+uint64_t libmaus2::util::IntervalTree::findTrace(std::vector < IntervalTree const * > & trace, uint64_t const v) const
 {
 	trace.push_back(this);
 
@@ -103,7 +103,7 @@ uint64_t libmaus::util::IntervalTree::findTrace(std::vector < IntervalTree const
 	}	
 }
 
-libmaus::util::IntervalTree const * libmaus::util::IntervalTree::lca(uint64_t const v, uint64_t const w) const
+libmaus2::util::IntervalTree const * libmaus2::util::IntervalTree::lca(uint64_t const v, uint64_t const w) const
 {
 	std::vector < IntervalTree const * > tracev, tracew;
 	findTrace(tracev,v);
@@ -121,7 +121,7 @@ libmaus::util::IntervalTree const * libmaus::util::IntervalTree::lca(uint64_t co
 	return lca;
 }
 
-uint64_t libmaus::util::IntervalTree::find(uint64_t const v) const
+uint64_t libmaus2::util::IntervalTree::find(uint64_t const v) const
 {
 	if ( leftchild.get() )
 	{
@@ -136,7 +136,7 @@ uint64_t libmaus::util::IntervalTree::find(uint64_t const v) const
 	}
 }
 
-uint64_t libmaus::util::IntervalTree::getNumLeafs() const
+uint64_t libmaus2::util::IntervalTree::getNumLeafs() const
 {
 	if ( leftchild.get() )
 		return leftchild->getNumLeafs() + rightchild->getNumLeafs();
@@ -144,7 +144,7 @@ uint64_t libmaus::util::IntervalTree::getNumLeafs() const
 		return 1;
 }
 
-std::ostream & libmaus::util::IntervalTree::flatten(std::ostream & ostr, uint64_t depth) const
+std::ostream & libmaus2::util::IntervalTree::flatten(std::ostream & ostr, uint64_t depth) const
 {
 	ostr << std::string(depth,' ');
 	
@@ -162,7 +162,7 @@ std::ostream & libmaus::util::IntervalTree::flatten(std::ostream & ostr, uint64_
 	return ostr;
 }
 
-std::ostream & libmaus::util::operator<<(std::ostream & out, libmaus::util::IntervalTree const & I)
+std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::IntervalTree const & I)
 {
 	return I.flatten(out);
 }

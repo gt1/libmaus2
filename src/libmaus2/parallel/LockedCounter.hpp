@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_PARALLEL_LOCKEDCOUNTER_HPP)
 #define LIBMAUS_PARALLEL_LOCKEDCOUNTER_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
 		struct LockedCounter
 		{
 			private:
-			libmaus::parallel::PosixSpinLock lock;
+			libmaus2::parallel::PosixSpinLock lock;
 			volatile uint64_t v;
 						
 			public:
@@ -45,38 +45,38 @@ namespace libmaus
 			
 			uint64_t increment()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				v += 1;
 				return v;			
 			}
 			
 			LockedCounter & operator++(int)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				v += 1;
 				return *this;
 			}
 			LockedCounter & operator--(int)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				v -= 1;
 				return *this;
 			}
 			LockedCounter & operator+=(uint64_t const o)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				v += o;
 				return *this;
 			}
 			LockedCounter & operator-=(uint64_t const o)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				v -= o;
 				return *this;
 			}
 			operator uint64_t()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				uint64_t const lv = v;
 				return lv;
 			}

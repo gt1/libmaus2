@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTORSTREAM_HPP)
 #define LIBMAUS_RANK_RUNLENGTHBITVECTORSTREAM_HPP
 
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/rank/RunLengthBitVectorBase.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/serialize/Serialize.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/rank/RunLengthBitVectorBase.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/serialize/Serialize.hpp>
 
 #include <istream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -46,7 +46,7 @@ namespace libmaus
 			{
 				in.clear();
 				in.seekg( static_cast<int64_t>(pos * sizeof(uint64_t)), std::ios::cur);
-				uint64_t const v = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const v = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				in.seekg(-static_cast<int64_t>(  1 * sizeof(uint64_t)), std::ios::cur);
 				in.seekg(-static_cast<int64_t>(pos * sizeof(uint64_t)), std::ios::cur);
 				return v;
@@ -61,7 +61,7 @@ namespace libmaus
 				in.clear();
 				in.seekg(indexpos,std::ios::cur);
 				uint64_t blocks;
-				libmaus::serialize::Serialize<uint64_t>::deserialize(in,&blocks);
+				libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&blocks);
 				in.clear();
 				in.seekg(-static_cast<int64_t>(sizeof(uint64_t)),std::ios::cur);
 				in.seekg(-static_cast<int64_t>(indexpos),std::ios::cur);
@@ -75,7 +75,7 @@ namespace libmaus
 			  indexpos(readIndexPos(in)),
 			  blocks(readBlocks(in,indexpos)), 
 			  pointerarrayoffset(indexpos + 1*sizeof(uint64_t)), baseoffset(rbaseoffset),
-			  rankaccbits(libmaus::rank::RunLengthBitVectorBase::getRankAccBits())
+			  rankaccbits(libmaus2::rank::RunLengthBitVectorBase::getRankAccBits())
 			{
 				#if 0
 				std::cerr << "indexpos=" << indexpos << std::endl;	
@@ -90,7 +90,7 @@ namespace libmaus
 				in.clear();
 				in.seekg(baseoffset + pointerarrayoffset + b * sizeof(uint64_t), std::ios::beg);
 				uint64_t blockptr;
-				libmaus::serialize::Serialize<uint64_t>::deserialize(in,&blockptr);
+				libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&blockptr);
 				return blockptr + 4*8*sizeof(uint64_t);
 			}
 			
@@ -114,8 +114,8 @@ namespace libmaus
 				in.clear();
 				in.seekg(baseoffset + byteoff);
 				
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
-				::libmaus::gamma::GammaDecoder < ::libmaus::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
+				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 					
@@ -148,8 +148,8 @@ namespace libmaus
 				in.clear();
 				in.seekg(baseoffset + byteoff);
 				
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
-				::libmaus::gamma::GammaDecoder < ::libmaus::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
+				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 					
@@ -188,8 +188,8 @@ namespace libmaus
 				in.clear();
 				in.seekg(baseoffset + byteoff);
 				
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
-				::libmaus::gamma::GammaDecoder < ::libmaus::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
+				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(in,8,std::numeric_limits<uint64_t>::max(),false /* checkmod */);
+				::libmaus2::gamma::GammaDecoder < ::libmaus2::aio::SynchronousGenericInput<uint64_t> > GD(SGI);
 				if ( bitoff )
 					GD.decodeWord(bitoff);
 					

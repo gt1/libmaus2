@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYCOMPRESS_HPP)
 #define LIBMAUS_LZ_SNAPPYCOMPRESS_HPP
 
-#include <libmaus/lz/IstreamSource.hpp>
-#include <libmaus/aio/IStreamWrapper.hpp>
+#include <libmaus2/lz/IstreamSource.hpp>
+#include <libmaus2/aio/IStreamWrapper.hpp>
 #include <istream>
 #include <ostream>
 #include <string>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -34,11 +34,11 @@ namespace libmaus
 		{
 			static uint64_t compress(std::istream & in, uint64_t const n, std::ostream & out);
 			static uint64_t compress(char const * in, uint64_t const n, std::ostream & out);
-			static uint64_t compress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, std::ostream & out);
+			static uint64_t compress(::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in, std::ostream & out);
 
 			static void uncompress(char const * in, uint64_t const insize, std::string & out);
 			static void uncompress(std::istream & in, uint64_t const insize, char * out);
-			static void uncompress(::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> & in, char * out, int64_t const length = -1);
+			static void uncompress(::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> & in, char * out, int64_t const length = -1);
 
 			static std::string compress(std::istream & in, uint64_t const n)
 			{

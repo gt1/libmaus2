@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,21 +21,21 @@
 
 #include <string>
 #include <cassert>
-#include <libmaus/fastx/FASTQEntry.hpp>
-#include <libmaus/fastx/Phred.hpp>
-#include <libmaus/util/unique_ptr.hpp>  
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/fastx/FASTQEntry.hpp>
+#include <libmaus2/fastx/Phred.hpp>
+#include <libmaus2/util/unique_ptr.hpp>  
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastQElement
 		{
 			typedef FastQElement this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			std::string name;
 			std::string query;
@@ -68,14 +68,14 @@ namespace libmaus
 			{
 				if ( ! (i < quality.size() ) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Index " << i << " >= " << quality.size() << " in FastQElement::getBaseQuality()" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( ! (quality[i] >= static_cast<std::string::value_type>(offset) ) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Quality " << static_cast<int>(quality[i]) << " at index " << i 
 						<< " is smaller than offset " << offset << " in FastQElement::getBaseQuality()" << std::endl;
 					se.finish();

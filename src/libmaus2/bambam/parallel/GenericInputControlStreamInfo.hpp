@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLSTRAMINFO_HPP
 
 #include <string>
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -34,8 +34,8 @@ namespace libmaus
 			struct GenericInputControlStreamInfo
 			{
 				typedef GenericInputControlStreamInfo this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				std::string path;
 				bool finite;
@@ -52,9 +52,9 @@ namespace libmaus
 					bool const rhasheader
 				) : path(rpath), finite(rfinite), start(rstart), end(rend), hasheader(rhasheader) {}
 				
-				libmaus::aio::InputStream::unique_ptr_type openStream() const
+				libmaus2::aio::InputStream::unique_ptr_type openStream() const
 				{
-					libmaus::aio::InputStream::unique_ptr_type tptr(libmaus::aio::InputStreamFactoryContainer::constructUnique(path));
+					libmaus2::aio::InputStream::unique_ptr_type tptr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(path));
 					
 					if ( start != 0 )
 					{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(LIBMAUS_HDF5_HDF5MUTEERRORHANDLER_HPP)
 #define LIBMAUS_HDF5_HDF5MUTEERRORHANDLER_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_HDF5)
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace hdf5
 	{

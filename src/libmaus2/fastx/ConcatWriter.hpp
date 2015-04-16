@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(CONCATWRITER_HPP)
 #define CONCATWRITER_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/fastx/isFastQ.hpp>
-#include <libmaus/fastx/FastAReaderSplit.hpp>
-#include <libmaus/fastx/FastQReaderSplit.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/fastx/isFastQ.hpp>
+#include <libmaus2/fastx/FastAReaderSplit.hpp>
+#include <libmaus2/fastx/FastQReaderSplit.hpp>
 #include <ostream>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -50,18 +50,18 @@ namespace libmaus
 				~ReadFileInfo() {}
 				
 				ReadFileInfo(std::istream & in)
-				: numreads(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				  numsyms(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				  maxlen(::libmaus::util::NumberSerialisation::deserialiseNumber(in))
+				: numreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				  numsyms(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				  maxlen(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 				{
 				
 				}
 				
 				void serialize(std::ostream & out) const
 				{
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,numreads);
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,numsyms);
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,maxlen);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(out,numreads);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(out,numsyms);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(out,maxlen);
 				}
 			};
 
@@ -88,46 +88,46 @@ namespace libmaus
 
 			void serialize(std::ostream & out) const
 			{
-				::libmaus::util::StringSerialisation::serialiseStringVector(out,filenames);
+				::libmaus2::util::StringSerialisation::serialiseStringVector(out,filenames);
 				rfi.serialize(out);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numreads);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numreadsyms);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,maxlen);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,expo);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,totalreads);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,totalsyms);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numsymbits);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numsymwords);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numpadbits);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numpadwords);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numtotalwords);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,totalarraymem);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,maxtotalmem);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,longexpo);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,bytearraysize);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numreads);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numreadsyms);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,maxlen);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,expo);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,totalreads);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,totalsyms);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numsymbits);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numsymwords);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numpadbits);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numpadwords);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numtotalwords);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,totalarraymem);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,maxtotalmem);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,longexpo);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,bytearraysize);
 			}
 
 			ConcatWriter(
 				std::istream & in
 			)
 			:
-				filenames ( ::libmaus::util::StringSerialisation::deserialiseStringVector(in) ),
+				filenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) ),
 				rfi(in),
-				numreads(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numreadsyms(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				maxlen(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				expo(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				totalreads(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				totalsyms(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numsymbits(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numsymwords(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numpadbits(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numpadwords(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numtotalwords(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				totalarraymem(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				maxtotalmem(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				longexpo(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				bytearraysize(::libmaus::util::NumberSerialisation::deserialiseNumber(in))
+				numreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numreadsyms(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				maxlen(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				expo(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				totalreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				totalsyms(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numsymbits(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numsymwords(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numpadbits(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numpadwords(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numtotalwords(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				totalarraymem(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				maxtotalmem(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				longexpo(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				bytearraysize(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 			{}
 				
 			uint64_t getByteSymbolCount() const
@@ -179,7 +179,7 @@ namespace libmaus
 		#if defined(COMPACTCONCAT)
 				if ( totalarraymem > maxtotalmem )
 				{
-					::libmaus::exception::LibMausException ex;
+					::libmaus2::exception::LibMausException ex;
 					ex.getStream() << "file requires " << totalarraymem << " bytes but we only have " << maxtotalmem;
 					ex.finish();
 					throw ex;
@@ -187,7 +187,7 @@ namespace libmaus
 		#else
 				if ( bytearraysize > maxtotalmem )
 				{
-					::libmaus::exception::LibMausException ex;
+					::libmaus2::exception::LibMausException ex;
 					ex.getStream() << "file requires " << bytearraysize << " bytes but we only have " << maxtotalmem;
 					ex.finish();
 					throw ex;
@@ -249,17 +249,17 @@ namespace libmaus
 
 			template<typename reader_type> void doConcatCompact(
 				std::vector<std::string> const & filenames, 
-				::libmaus::bitio::FastWriteBitWriter8 & W,
-				::libmaus::autoarray::AutoArray<uint64_t> & B)
+				::libmaus2::bitio::FastWriteBitWriter8 & W,
+				::libmaus2::autoarray::AutoArray<uint64_t> & B)
 			{
 				uint64_t const bvwords = (totalsyms + 63) / 64;
-				B = ::libmaus::autoarray::AutoArray<uint64_t>(bvwords);
+				B = ::libmaus2::autoarray::AutoArray<uint64_t>(bvwords);
 
 				reader_type reader(filenames);
 				typedef typename reader_type::pattern_type pattern_type;
 				pattern_type pattern;
 				uint64_t totalsyms = 0;
-				::libmaus::autoarray::AutoArray<uint8_t> termbuf(expo);
+				::libmaus2::autoarray::AutoArray<uint8_t> termbuf(expo);
 				uint64_t idcnt = numreads;
 				
 				W.write ( 1, 3 );
@@ -270,7 +270,7 @@ namespace libmaus
 					if ( (pattern.getPatID() & (1024*1024-1)) == 0 )
 						std::cerr << pattern.getPatID() << std::endl;
 
-					::libmaus::bitio::putBit(B.get(), totalsyms, 1);
+					::libmaus2::bitio::putBit(B.get(), totalsyms, 1);
 			
 					pattern.computeMapped();
 					uint64_t const l = pattern.getPatternLength();
@@ -311,7 +311,7 @@ namespace libmaus
 				typedef typename reader_type::pattern_type pattern_type;
 				pattern_type pattern;
 				uint64_t totalsyms = 0;
-				::libmaus::autoarray::AutoArray<uint8_t> termbuf(longexpo);
+				::libmaus2::autoarray::AutoArray<uint8_t> termbuf(longexpo);
 				uint64_t idcnt = numreads;
 
 				while ( reader.getNextPatternUnlocked(pattern) )
@@ -354,20 +354,20 @@ namespace libmaus
 
 			void writeSwitchCompact(
 				std::vector<std::string> const & filenames, 
-				::libmaus::bitio::FastWriteBitWriter8 & W,
-				::libmaus::autoarray::AutoArray<uint64_t> & B)
+				::libmaus2::bitio::FastWriteBitWriter8 & W,
+				::libmaus2::autoarray::AutoArray<uint64_t> & B)
 			{
 				if ( filenames.size() )
 				{
 					std::string const firstfilename = filenames.front();
 			
-					if ( ::libmaus::fastx::IsFastQ::isFastQ(firstfilename) )
+					if ( ::libmaus2::fastx::IsFastQ::isFastQ(firstfilename) )
 					{
-						doConcatCompact<libmaus::fastx::FastQReaderSplit>(filenames,W,B);
+						doConcatCompact<libmaus2::fastx::FastQReaderSplit>(filenames,W,B);
 					}
 					else
 					{
-						doConcatCompact<libmaus::fastx::FastAReaderSplit>(filenames,W,B);
+						doConcatCompact<libmaus2::fastx::FastAReaderSplit>(filenames,W,B);
 					}
 				}
 			}
@@ -380,22 +380,22 @@ namespace libmaus
 				{
 					std::string const firstfilename = filenames.front();
 			
-					if ( ::libmaus::fastx::IsFastQ::isFastQ(firstfilename) )
+					if ( ::libmaus2::fastx::IsFastQ::isFastQ(firstfilename) )
 					{
-						doConcatByte<libmaus::fastx::FastQReaderSplit>(filenames,T);
+						doConcatByte<libmaus2::fastx::FastQReaderSplit>(filenames,T);
 					}
 					else
 					{
-						doConcatByte<libmaus::fastx::FastAReaderSplit>(filenames,T);
+						doConcatByte<libmaus2::fastx::FastAReaderSplit>(filenames,T);
 					}
 				}
 			}
 
 
-			::libmaus::autoarray::AutoArray<uint64_t> processCompact(::libmaus::autoarray::AutoArray<uint64_t> & B)
+			::libmaus2::autoarray::AutoArray<uint64_t> processCompact(::libmaus2::autoarray::AutoArray<uint64_t> & B)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> T(numtotalwords);
-				::libmaus::bitio::FastWriteBitWriter8 FWBW(T.get());
+				::libmaus2::autoarray::AutoArray<uint64_t> T(numtotalwords);
+				::libmaus2::bitio::FastWriteBitWriter8 FWBW(T.get());
 
 				writeSwitchCompact(filenames,FWBW,B);
 				FWBW.flush();
@@ -406,9 +406,9 @@ namespace libmaus
 				return T;
 			}
 
-			::libmaus::autoarray::AutoArray<uint8_t> processByte()
+			::libmaus2::autoarray::AutoArray<uint8_t> processByte()
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> T(bytearraysize);
+				::libmaus2::autoarray::AutoArray<uint8_t> T(bytearraysize);
 				writeSwitchByte(filenames,T.get());	
 				return T;
 			}
@@ -419,13 +419,13 @@ namespace libmaus
 				{
 					std::string const firstfilename = filenames.front();
 			
-					if ( ::libmaus::fastx::IsFastQ::isFastQ(firstfilename) )
+					if ( ::libmaus2::fastx::IsFastQ::isFastQ(firstfilename) )
 					{
-						return countPatterns<libmaus::fastx::FastQReaderSplit>(filenames);
+						return countPatterns<libmaus2::fastx::FastQReaderSplit>(filenames);
 					}
 					else
 					{
-						return countPatterns<libmaus::fastx::FastAReaderSplit>(filenames);
+						return countPatterns<libmaus2::fastx::FastAReaderSplit>(filenames);
 					}
 				}
 				else

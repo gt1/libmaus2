@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/TempFileNameGeneratorState.hpp>
+#include <libmaus2/util/TempFileNameGeneratorState.hpp>
 
 #include <cassert>
 #include <sstream>
@@ -31,7 +31,7 @@
 #include <unistd.h>
 #endif
 
-bool libmaus::util::TempFileNameGeneratorState::operator==(libmaus::util::TempFileNameGeneratorState const & o) const
+bool libmaus2::util::TempFileNameGeneratorState::operator==(libmaus2::util::TempFileNameGeneratorState const & o) const
 {
 	return
 		depth == o.depth 
@@ -41,19 +41,19 @@ bool libmaus::util::TempFileNameGeneratorState::operator==(libmaus::util::TempFi
 		nextfile == o.nextfile;
 }
 
-bool libmaus::util::TempFileNameGeneratorState::operator!=(libmaus::util::TempFileNameGeneratorState const & o) const
+bool libmaus2::util::TempFileNameGeneratorState::operator!=(libmaus2::util::TempFileNameGeneratorState const & o) const
 {
 	return !((*this) == o);
 }
 
-libmaus::util::TempFileNameGeneratorState::TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix)
+libmaus2::util::TempFileNameGeneratorState::TempFileNameGeneratorState(unsigned int const rdepth, std::string const & rprefix)
 : depth(rdepth), nextfile(-1), prefix(rprefix)
 {
 	assert ( depth );
 	setup();
 }
 
-void libmaus::util::TempFileNameGeneratorState::setup()
+void libmaus2::util::TempFileNameGeneratorState::setup()
 {
 	nextdir = std::vector<int>(depth);
 	std::fill ( nextdir.begin(), nextdir.end(), 0 );
@@ -61,7 +61,7 @@ void libmaus::util::TempFileNameGeneratorState::setup()
 }
 
 
-void libmaus::util::TempFileNameGeneratorState::next()
+void libmaus2::util::TempFileNameGeneratorState::next()
 {
 	if ( (++nextfile) % filemod == 0 )
 	{
@@ -84,14 +84,14 @@ void libmaus::util::TempFileNameGeneratorState::next()
 	}
 }
 
-std::string libmaus::util::TempFileNameGeneratorState::numToString(uint64_t const num, unsigned int dig)
+std::string libmaus2::util::TempFileNameGeneratorState::numToString(uint64_t const num, unsigned int dig)
 {
 	std::ostringstream ostr;
 	ostr << std::setw(dig) << std::setfill('0') << num;
 	return ostr.str();
 }
 
-std::string libmaus::util::TempFileNameGeneratorState::getFileName()
+std::string libmaus2::util::TempFileNameGeneratorState::getFileName()
 {
 	next();
 
@@ -125,7 +125,7 @@ std::string libmaus::util::TempFileNameGeneratorState::getFileName()
 	return fn;
 }
 
-void libmaus::util::TempFileNameGeneratorState::removeDirs()
+void libmaus2::util::TempFileNameGeneratorState::removeDirs()
 {
 	next();
 

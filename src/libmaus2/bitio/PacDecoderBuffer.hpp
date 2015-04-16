@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,22 +23,22 @@
 #include <istream>
 #include <fstream>
 #include <ios>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/bitio/Ctz.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/ArrayDecode.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/bitio/Ctz.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/ArrayDecode.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
 		struct PacDecoderBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus::aio::CheckedInputStream stream;
+			::libmaus2::aio::CheckedInputStream stream;
 			
 			// log of word size we are using
 			static unsigned int const loglog = 3;
@@ -50,8 +50,8 @@ namespace libmaus
 			uint64_t const alignmult;
 
 			uint64_t const buffersize;
-			::libmaus::autoarray::AutoArray<uint8_t> C;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<uint8_t> C;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 			
 			uint64_t symsread;
 
@@ -60,7 +60,7 @@ namespace libmaus
 			PacDecoderBuffer(PacDecoderBuffer const &);
 			PacDecoderBuffer & operator=(PacDecoderBuffer&);
 			
-			static uint64_t getNumberOfSymbols(::libmaus::aio::CheckedInputStream & stream)
+			static uint64_t getNumberOfSymbols(::libmaus2::aio::CheckedInputStream & stream)
 			{
 				stream.seekg(-1,std::ios::end);
 				uint64_t const databytes = stream.tellg();
@@ -87,7 +87,7 @@ namespace libmaus
 			  b(2),
 			  n(getNumberOfSymbols(stream)),
 			  // smallest multiple aligning to bitsperentity bits
-			  alignmult(1ull << (loglog-::libmaus::bitio::Ctz::ctz(b))),
+			  alignmult(1ull << (loglog-::libmaus2::bitio::Ctz::ctz(b))),
 			  // make buffersize multiple of alignmult
 			  buffersize(((rbuffersize + alignmult-1)/alignmult)*alignmult),
 			  C((buffersize*b+7)/8),
@@ -193,14 +193,14 @@ namespace libmaus
 				stream.read ( reinterpret_cast<char *>(C.begin()) , bytestoread );
 				if ( stream.gcount() != static_cast<int64_t>(bytestoread) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PacDecoderBuffer::underflow() failed to read " << bytestoread << " bytes." << std::endl;
 					se.finish();
 					throw se;
 				}
 			
 				// decode array
-				::libmaus::bitio::ArrayDecode::decodeArray(
+				::libmaus2::bitio::ArrayDecode::decodeArray(
 					C.begin(), reinterpret_cast<uint8_t *>(buffer.begin()), symstoread, 2
 				);
 				
@@ -224,8 +224,8 @@ namespace libmaus
 			static bool const addterm = _addterm;
 			
 			typedef PacDecoderWrapperTemplate<_addterm> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			PacDecoderWrapperTemplate(std::string const & filename, uint64_t const buffersize = 64*1024)
 			: PacDecoderBuffer(filename,buffersize,addterm), ::std::istream(this)

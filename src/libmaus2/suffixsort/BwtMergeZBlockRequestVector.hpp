@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_BWTMERGEZBLOCKREQUESTVECTOR_HPP)
 #define LIBMAUS_SUFFIXSORT_BWTMERGEZBLOCKREQUESTVECTOR_HPP
 
-#include <libmaus/suffixsort/BwtMergeZBlockRequest.hpp>
+#include <libmaus2/suffixsort/BwtMergeZBlockRequest.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		struct BwtMergeZBlockRequestVector
 		{
 			private:
-			libmaus::autoarray::AutoArray< ::libmaus::suffixsort::BwtMergeZBlockRequest > requests;
+			libmaus2::autoarray::AutoArray< ::libmaus2::suffixsort::BwtMergeZBlockRequest > requests;
 			
 			public:
 			BwtMergeZBlockRequestVector()
@@ -40,10 +40,10 @@ namespace libmaus
 			
 			BwtMergeZBlockRequestVector(std::istream & in)
 			{
-				uint64_t const siz = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const siz = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				resize(siz);
 				for ( uint64_t i = 0; i < siz; ++i )
-					(*this)[i] = ::libmaus::suffixsort::BwtMergeZBlockRequest(in);
+					(*this)[i] = ::libmaus2::suffixsort::BwtMergeZBlockRequest(in);
 			}
 			
 			BwtMergeZBlockRequestVector & operator=(BwtMergeZBlockRequestVector const & o)
@@ -58,7 +58,7 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,size());
 				for ( uint64_t i = 0; i < size(); ++i )
 					(*this)[i].serialise(stream);
 			}
@@ -80,11 +80,11 @@ namespace libmaus
 				return requests.size();
 			}
 			
-			::libmaus::suffixsort::BwtMergeZBlockRequest & operator[](uint64_t const i)
+			::libmaus2::suffixsort::BwtMergeZBlockRequest & operator[](uint64_t const i)
 			{
 				return requests.at(i);
 			}
-			::libmaus::suffixsort::BwtMergeZBlockRequest const & operator[](uint64_t const i) const
+			::libmaus2::suffixsort::BwtMergeZBlockRequest const & operator[](uint64_t const i) const
 			{
 				return requests.at(i);
 			}

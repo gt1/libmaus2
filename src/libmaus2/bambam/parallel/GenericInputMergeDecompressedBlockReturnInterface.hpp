@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTMERGEDECOMPRESSEDBLOCKRETURNINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTMERGEDECOMPRESSEDBLOCKRETURNINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct GenericInputMergeDecompressedBlockReturnInterface
 			{
 				virtual ~GenericInputMergeDecompressedBlockReturnInterface() {}
-				virtual void genericInputMergeDecompressedBlockReturn(libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block) = 0;
+				virtual void genericInputMergeDecompressedBlockReturn(libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type block) = 0;
 			};
 		}
 	}

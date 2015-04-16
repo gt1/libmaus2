@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(COMPACTDECODER_HPP)
 #define COMPACTDECODER_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/GetLength.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/GetLength.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -33,23 +33,23 @@ namespace libmaus
 		 * by the CompactEncoder4 class from a sequence of files
 		 **/
 		template < typename filename_container_type = std::vector<std::string> >
-		struct CompactDecoder4 : public ::libmaus::aio::GetLength
+		struct CompactDecoder4 : public ::libmaus2::aio::GetLength
 		{
 			//! this type
 			typedef CompactDecoder4<filename_container_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			//! input stream type
 			typedef std::ifstream ifstream_type;
 			//! input stream unique pointer type
-			typedef ::libmaus::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
 			
 			//! buffer for undecoded input data
-			::libmaus::autoarray::AutoArray<uint8_t> decodeBuffer;
+			::libmaus2::autoarray::AutoArray<uint8_t> decodeBuffer;
 			//! buffer for decoded input data
-			::libmaus::autoarray::AutoArray<uint8_t> buffer;
+			::libmaus2::autoarray::AutoArray<uint8_t> buffer;
 			//! current pointer in decoded data
 			uint8_t * pc;
 			//! end pointer for decoded data
@@ -93,7 +93,7 @@ namespace libmaus
 				
 				istr = ifstream_ptr_type(new ifstream_type(fita->c_str(),std::ios::binary));
 				fita++;
-				fileunread = ::libmaus::util::NumberSerialisation::deserialiseNumber(*istr);
+				fileunread = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*istr);
 				assert ( istr->is_open() );
 				
 				if ( skip/2 )
@@ -131,7 +131,7 @@ namespace libmaus
 					
 					if ( istr->gcount() != static_cast<int64_t>(toreadbytes) )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "CompactDecoder4::fillBuffer failed to fill buffer." << std::endl;
 						se.finish();
 						throw se;
@@ -221,10 +221,10 @@ namespace libmaus
 			 * @param offset start reading after offset symbols
 			 * @return data in file
 			 **/
-			static ::libmaus::autoarray::AutoArray<uint8_t> readFile(std::string const & filename, uint64_t const offset = 0)
+			static ::libmaus2::autoarray::AutoArray<uint8_t> readFile(std::string const & filename, uint64_t const offset = 0)
 			{
 				CompactDecoder4 CD(filename,offset);
-				::libmaus::autoarray::AutoArray<uint8_t> D(CD.n);
+				::libmaus2::autoarray::AutoArray<uint8_t> D(CD.n);
 				for ( uint64_t i = 0; i < D.size(); ++i )
 					D[i] = CD.get();
 				return D;

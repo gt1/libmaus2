@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/index/ExternalMemoryIndexDecoder.hpp>
-#include <libmaus/index/ExternalMemoryIndexGenerator.hpp>
-#include <libmaus/bambam/ReadEndsBase.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
-#include <libmaus/lz/SnappyInputStream.hpp>
+#include <libmaus2/index/ExternalMemoryIndexDecoder.hpp>
+#include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
+#include <libmaus2/bambam/ReadEndsBase.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
+#include <libmaus2/lz/SnappyInputStream.hpp>
 #include <sstream>
 
 struct SerialisableUint64
@@ -33,13 +33,13 @@ struct SerialisableUint64
 	template<typename stream_type>
 	uint64_t serialise(stream_type & stream) const
 	{
-		return libmaus::util::NumberSerialisation::serialiseNumber(stream,i);
+		return libmaus2::util::NumberSerialisation::serialiseNumber(stream,i);
 	}
 
 	template<typename stream_type>
 	void deserialise(stream_type & stream)
 	{
-		i = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+		i = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 	}
 	
 	static uint64_t getSerialisedObjectSize()
@@ -70,8 +70,8 @@ int main()
 	{
 		static unsigned int const base_index_log = 10;
 		static unsigned int const inner_index_log = 2;
-		// libmaus::index::ExternalMemoryIndexGenerator<libmaus::bambam::ReadEndsBase,base_index_log,inner_index_log> index("tmpprefix");
-		typedef libmaus::index::ExternalMemoryIndexGenerator<SerialisableUint64,base_index_log,inner_index_log> index_type;
+		// libmaus2::index::ExternalMemoryIndexGenerator<libmaus2::bambam::ReadEndsBase,base_index_log,inner_index_log> index("tmpprefix");
+		typedef libmaus2::index::ExternalMemoryIndexGenerator<SerialisableUint64,base_index_log,inner_index_log> index_type;
 		std::stringstream indexiostr;
 		index_type::unique_ptr_type index(new index_type(indexiostr));
 		uint64_t ipos = 0;
@@ -82,7 +82,7 @@ int main()
 			uint64_t const indexpos = index->setup();
 
 			std::stringstream dataiostr;
-			libmaus::lz::SnappyOutputStream<std::stringstream> sos(dataiostr,8*1024);
+			libmaus2::lz::SnappyOutputStream<std::stringstream> sos(dataiostr,8*1024);
 			uint64_t const n = 128*1024*1024;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
@@ -102,11 +102,11 @@ int main()
 
 			indexiostr.clear();
 			indexiostr.seekg(indexpos);
-			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec(indexiostr,(1ull << 20));
+			libmaus2::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec(indexiostr,(1ull << 20));
 			// #define CACHE_DEBUG
 			#if defined(CACHE_DEBUG)
 			indexiostr.seekg(indexpos);
-			libmaus::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec0(indexiostr,0);
+			libmaus2::index::ExternalMemoryIndexDecoder<SerialisableUint64,base_index_log,inner_index_log> indexdec0(indexiostr,0);
 			#endif
 			
 			uint64_t maxc;
@@ -115,15 +115,15 @@ int main()
 			maxc = 0;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
-				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i);
+				libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i);
 				#if defined(CACHE_DEBUG)
-				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P0 = indexdec0.findLargestSmaller(i);
+				libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P0 = indexdec0.findLargestSmaller(i);
 				assert ( P == P0 );
 				#endif
 				
 				dataiostr.clear();
 				dataiostr.seekg(P.P.first);
-				libmaus::lz::SnappyInputStream sis(dataiostr);
+				libmaus2::lz::SnappyInputStream sis(dataiostr);
 				sis.ignore(P.P.second);
 				
 				uint64_t c = 0;			
@@ -150,11 +150,11 @@ int main()
 			maxc = 0;
 			for ( uint64_t i = 0; i < n; ++i )
 			{
-				libmaus::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i,true /* cache only */);
+				libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<SerialisableUint64> P = indexdec.findLargestSmaller(i,true /* cache only */);
 				
 				dataiostr.clear();
 				dataiostr.seekg(P.P.first);
-				libmaus::lz::SnappyInputStream sis(dataiostr);
+				libmaus2::lz::SnappyInputStream sis(dataiostr);
 				sis.ignore(P.P.second);
 				
 				uint64_t c = 0;			

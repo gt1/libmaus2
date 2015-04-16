@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTINPUTPOSITIONUPDATECALLBACK_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTINPUTPOSITIONUPDATECALLBACK_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -29,7 +29,7 @@ namespace libmaus
 		{
 			virtual ~BamAlignmentInputPositionUpdateCallback() {}
 
-			virtual void updatePosition(::libmaus::bambam::BamAlignment const & A) = 0;
+			virtual void updatePosition(::libmaus2::bambam::BamAlignment const & A) = 0;
 		};
 	}
 }

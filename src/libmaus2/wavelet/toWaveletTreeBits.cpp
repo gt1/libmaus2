@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -18,19 +18,19 @@
 */
 
 #include <deque>
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/CompactSparseArray.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/bitio/getBit.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/CompactSparseArray.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/bitio/getBit.hpp>
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -47,10 +47,10 @@ namespace libmaus
 			}
 		};
 
-		::libmaus::autoarray::AutoArray<uint64_t> toWaveletTreeBits(::libmaus::bitio::CompactArray * C, bool const verbose)
+		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBits(::libmaus2::bitio::CompactArray * C, bool const verbose)
 		{
 			uint64_t const pn = ((C->n + 63) / 64)*64;
-			::libmaus::autoarray::AutoArray<uint64_t> B( pn/64 , false );
+			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
 			
 			typedef std::pair<uint64_t, uint64_t> qtype;
 			std::deque < qtype > Q;
@@ -68,7 +68,7 @@ namespace libmaus
 				if ( verbose )
 					std::cerr << "(l=" << ib << ")";
 
-				::libmaus::bitio::CompactSparseArray S(C->D,C->n, C->getB() - sb , sb , C->getB());
+				::libmaus2::bitio::CompactSparseArray S(C->D,C->n, C->getB() - sb , sb , C->getB());
 
 				while ( Q.size() )
 				{
@@ -83,14 +83,14 @@ namespace libmaus
 						uint64_t v = (C->get(i)&mask)>>ib;
 						ones += v;
 						// std::cerr << v;
-						::libmaus::bitio::putBits(B.get(), i, 1, v);
+						::libmaus2::bitio::putBits(B.get(), i, 1, v);
 					}
 
 					uint64_t zeros = (r-l)-ones;
 					
 					#if 1
-					::libmaus::bitio::CompactArray CZ(zeros, C->getB() - sb);
-					::libmaus::bitio::CompactArray CO(ones, C->getB() - sb);
+					::libmaus2::bitio::CompactArray CZ(zeros, C->getB() - sb);
+					::libmaus2::bitio::CompactArray CO(ones, C->getB() - sb);
 
 					uint64_t zc = 0, oc = 0;
 					for ( uint64_t i = l; i < r; ++i )
@@ -113,8 +113,8 @@ namespace libmaus
 						S.set(ac++, CO.get(oc) );
 
 					#else
-					::libmaus::bitio::CompactSparseArrayIterator itA(&S); itA += l;
-					::libmaus::bitio::CompactSparseArrayIterator itB(&S); itB += r;
+					::libmaus2::bitio::CompactSparseArrayIterator itA(&S); itA += l;
+					::libmaus2::bitio::CompactSparseArrayIterator itB(&S); itB += r;
 					if ( verbose )
 						std::cerr << "stable sorting...";
 					// std::stable_sort ( itA, itB, BitLevelComparator(ib) );
@@ -130,9 +130,9 @@ namespace libmaus
 				}
 				// std::cerr << std::endl;
 
-				::libmaus::bitio::CompactSparseArray W(C->D,C->n, 1, sb , C->getB());
+				::libmaus2::bitio::CompactSparseArray W(C->D,C->n, 1, sb , C->getB());
 				for ( uint64_t i = 0; i < C->n; ++i )
-					W.set ( i , ::libmaus::bitio::getBits(B.get(), i, 1) );
+					W.set ( i , ::libmaus2::bitio::getBits(B.get(), i, 1) );
 
 				Q = Q2;
 			}
@@ -149,8 +149,8 @@ namespace libmaus
 			uint64_t const bb = (C->n * C->getB());
 			uint64_t const bb64 = ((bb+63)/64)*64;
 			
-			typedef ::libmaus::rank::ERank222B::writer_type writer_type;
-			::libmaus::autoarray::AutoArray< uint64_t > A(bb64/64,false);
+			typedef ::libmaus2::rank::ERank222B::writer_type writer_type;
+			::libmaus2::autoarray::AutoArray< uint64_t > A(bb64/64,false);
 			std::fill(A.get(), A.get()+(bb64/64), 0);
 			writer_type AW(A.get());
 			
@@ -159,7 +159,7 @@ namespace libmaus
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
 			{
 				uint64_t const sb = (C->getB()-ib-1);
-				::libmaus::bitio::CompactSparseArray W(C->D,C->n, 1, sb , C->getB());
+				::libmaus2::bitio::CompactSparseArray W(C->D,C->n, 1, sb , C->getB());
 				for ( uint64_t i = 0; i < C->n; ++i )
 				{
 					AW.writeBit(W.get(i));
@@ -211,11 +211,11 @@ namespace libmaus
 			}
 		};
 
-		::libmaus::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus::bitio::CompactArray * C)
+		::libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C)
 		{
 			uint64_t const pn = ((C->n + 63) / 64)*64;
-			::libmaus::autoarray::AutoArray<uint64_t> B( pn/64 , false );
-			::libmaus::parallel::OMPLock block;
+			::libmaus2::autoarray::AutoArray<uint64_t> B( pn/64 , false );
+			::libmaus2::parallel::OMPLock block;
 			
 			typedef std::pair<uint64_t, uint64_t> qtype;
 			std::deque < qtype > Q;
@@ -230,7 +230,7 @@ namespace libmaus
 				uint64_t const mask = (1ull << ib);
 				std::cerr << "(l=" << ib << ")";
 
-				::libmaus::bitio::CompactSparseArray S(C->D,C->n, C->getB() - sb , sb , C->getB());
+				::libmaus2::bitio::CompactSparseArray S(C->D,C->n, C->getB() - sb , sb , C->getB());
 
 				while ( Q.size() )
 				{
@@ -240,8 +240,8 @@ namespace libmaus
 					// std::cerr << "[" << l << "," << r << "]" << std::endl;
 					
 					uint64_t const numpackets = getMaxThreads() * 2;
-					::libmaus::autoarray::AutoArray < uint64_t > aones(numpackets+1);
-					::libmaus::autoarray::AutoArray < uint64_t > azeroes(numpackets+1);
+					::libmaus2::autoarray::AutoArray < uint64_t > aones(numpackets+1);
+					::libmaus2::autoarray::AutoArray < uint64_t > azeroes(numpackets+1);
 					uint64_t const intervalsize = r-l;
 					uint64_t const packetsize = ( intervalsize + numpackets - 1 ) / numpackets;
 
@@ -268,7 +268,7 @@ namespace libmaus
 						{
 							uint64_t const v = (C->get(low)&mask)>>ib;
 							ones += v;
-							::libmaus::bitio::putBit(B.get(), low, v);
+							::libmaus2::bitio::putBit(B.get(), low, v);
 						}
 						block.unlock();
 							
@@ -307,7 +307,7 @@ namespace libmaus
 						{
 							uint64_t const v = (C->get(low)&mask)>>ib;
 							ones += v;
-							::libmaus::bitio::putBit(B.get(), low, v);
+							::libmaus2::bitio::putBit(B.get(), low, v);
 						}
 						block.unlock();
 						
@@ -346,18 +346,18 @@ namespace libmaus
 					uint64_t const ones = aones[numpackets];
 					uint64_t const zeros = (r-l)-ones;
 					
-					::libmaus::autoarray::AutoArray < ::libmaus::bitio::CompactArray::unique_ptr_type > ACZ(numpackets);
-					::libmaus::autoarray::AutoArray < ::libmaus::bitio::CompactArray::unique_ptr_type > ACO(numpackets);
+					::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > ACZ(numpackets);
+					::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > ACO(numpackets);
 
 					std::cerr << "(a";					
 					for ( uint64_t h = 0; h < numpackets; ++h )
 					{
-						::libmaus::bitio::CompactArray::unique_ptr_type tACZ(
-							new ::libmaus::bitio::CompactArray( azeroes [ h+1 ] - azeroes[ h ], C->getB() - sb )
+						::libmaus2::bitio::CompactArray::unique_ptr_type tACZ(
+							new ::libmaus2::bitio::CompactArray( azeroes [ h+1 ] - azeroes[ h ], C->getB() - sb )
 						);
 						ACZ[h] = UNIQUE_PTR_MOVE(tACZ);
-						::libmaus::bitio::CompactArray::unique_ptr_type tACO(
-							new ::libmaus::bitio::CompactArray( aones [ h+1 ] - aones[ h ], C->getB() - sb )
+						::libmaus2::bitio::CompactArray::unique_ptr_type tACO(
+							new ::libmaus2::bitio::CompactArray( aones [ h+1 ] - aones[ h ], C->getB() - sb )
 						);
 						ACO[h] = UNIQUE_PTR_MOVE(tACO);
 					}
@@ -374,8 +374,8 @@ namespace libmaus
 						uint64_t zp = 0;
 						uint64_t op = 0;
 
-						::libmaus::bitio::CompactArray & CO = *ACO[h];
-						::libmaus::bitio::CompactArray & CZ = *ACZ[h];
+						::libmaus2::bitio::CompactArray & CO = *ACO[h];
+						::libmaus2::bitio::CompactArray & CZ = *ACZ[h];
 
 						for ( uint64_t i = low; i != high; ++i )
 						{
@@ -460,7 +460,7 @@ namespace libmaus
 						{
 							CopyBackPacket const CBP = zpackets[q][j];
 							uint64_t ac = CBP.low;
-							::libmaus::bitio::CompactArray & CZ = *ACZ[CBP.h];
+							::libmaus2::bitio::CompactArray & CZ = *ACZ[CBP.h];
 
 							for ( uint64_t zc = 0 ; zc != CBP.high-CBP.low; ++zc )
 								S.set ( ac++ , CZ.get(zc) );
@@ -474,7 +474,7 @@ namespace libmaus
 						{
 							CopyBackPacket const CBP = opackets[q][j];
 							uint64_t ac = CBP.low;
-							::libmaus::bitio::CompactArray & CO = *ACO[CBP.h];
+							::libmaus2::bitio::CompactArray & CO = *ACO[CBP.h];
 
 							for ( uint64_t oc = 0 ; oc != CBP.high-CBP.low; ++oc )
 								S.set ( ac++ , CO.get(oc) );
@@ -529,7 +529,7 @@ namespace libmaus
 						CopyBackPacket const CBP = packets[q][h];
 					
 						for ( uint64_t i = CBP.low; i < CBP.high; ++i )
-							::libmaus::bitio::putBit ( C->D , i*C->getB() + sb , ::libmaus::bitio::getBit(B.get(), i) );
+							::libmaus2::bitio::putBit ( C->D , i*C->getB() + sb , ::libmaus2::bitio::getBit(B.get(), i) );
 					}
 
 				Q = Q2;
@@ -541,8 +541,8 @@ namespace libmaus
 			uint64_t const bb = (C->n * C->getB());
 			uint64_t const bb64 = ((bb+63)/64)*64;
 			
-			typedef ::libmaus::rank::ERank222B::writer_type writer_type;
-			::libmaus::autoarray::AutoArray< uint64_t > A(bb64/64,false);
+			typedef ::libmaus2::rank::ERank222B::writer_type writer_type;
+			::libmaus2::autoarray::AutoArray< uint64_t > A(bb64/64,false);
 			std::fill(A.get(), A.get()+(bb64/64), 0);
 			writer_type AW(A.get());
 			
@@ -550,7 +550,7 @@ namespace libmaus
 			for ( int ib = (C->getB())-1; ib>=0; --ib )
 			{
 				uint64_t const sb = (C->getB()-ib-1);
-				::libmaus::bitio::CompactSparseArray W(C->D,C->n, 1, sb , C->getB());
+				::libmaus2::bitio::CompactSparseArray W(C->D,C->n, 1, sb , C->getB());
 				for ( uint64_t i = 0; i < C->n; ++i )
 				{
 					AW.writeBit(W.get(i));

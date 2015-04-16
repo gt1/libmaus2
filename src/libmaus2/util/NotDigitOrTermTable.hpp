@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -21,7 +21,7 @@
 
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

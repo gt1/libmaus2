@@ -23,9 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <libmaus/bambam/DuplicationMetrics.hpp>
+#include <libmaus2/bambam/DuplicationMetrics.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::DuplicationMetrics const & M)
+std::ostream & operator<<(std::ostream & out, libmaus2::bambam::DuplicationMetrics const & M)
 {
 	out << "unmapped\t" << M.unmapped << std::endl;
 	out << "unpaired\t" << M.unpaired << std::endl;

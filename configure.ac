@@ -1,5 +1,5 @@
-AC_INIT(libmaus,0.0.196,[gt1@sanger.ac.uk],[libmaus],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=0:196:0
+AC_INIT(libmaus2,2.0.0,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:0:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -639,12 +639,12 @@ AC_ARG_ENABLE(ssse3,
 AC_ARG_ENABLE(asm,
         AS_HELP_STRING([--enable-asm],[use inline assembly code (default yes)]),
         [assembly=${enableval}],[assembly=yes])
-AC_ARG_ENABLE(shared-libmaus,
-        AS_HELP_STRING([--enable-shared-libmaus],[enable compiling shared libmaus.so and libmauslsf.so]),
-        [sharedlibmaus=${enableval}],[sharedlibmaus=yes])
+AC_ARG_ENABLE(shared-libmaus2,
+        AS_HELP_STRING([--enable-shared-libmaus2],[enable compiling shared libmaus2.so and libmaus2lsf.so]),
+        [sharedlibmaus2=${enableval}],[sharedlibmaus2=yes])
 
 LIBMAUSSTATIC=
-if test "${sharedlibmaus}" = "no" ; then
+if test "${sharedlibmaus2}" = "no" ; then
 	LIBMAUSSTATIC="-static"
 fi
 
@@ -1883,7 +1883,7 @@ AC_ARG_WITH([io_lib],
             [with_io_lib=${withval}],
             [with_io_lib=no])
 
-if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixmemalign}" = "yes" -a "${with_io_lib}" != "no" -a "${sharedlibmaus}" != "no" ]] ; then
+if [[ "${have_dynamic_loading}" = "yes" -a "${getpagesize}" = "yes" -a "${posixmemalign}" = "yes" -a "${with_io_lib}" != "no" -a "${sharedlibmaus2}" != "no" ]] ; then
 	if [[ \( ! -z "${with_io_lib}" \) -a \( "${with_io_lib}" != "yes" \) ]] ; then
 		IOLIBCPPFLAGS="-I${with_io_lib}/include"
 		IOLIBLDFLAGS="-L${with_io_lib}/lib"
@@ -2605,7 +2605,7 @@ if test ! -z "${LIBMAUS_HAVE_IRODS}" ; then
 		IRODSLDFLAGS="-L${IRODSDIR}/lib/core/obj"
 	fi
 	IRODSLIBS="-lRodsAPIs -lgssapi_krb5 -pthread -ldl"
-	LIBMAUSIRODSPC="libmausirods.pc"
+	LIBMAUSIRODSPC="libmaus2irods.pc"
 fi
 
 AC_ARG_WITH([gmp],
@@ -2838,4 +2838,4 @@ AC_SUBST([GMPLDFLAGS])
 AC_SUBST([GMPCPPFLAGS])
 AC_SUBST([GMPLIBS])
 AC_SUBST([IOLIBNEWINTERFACEDEFINE])
-AC_OUTPUT(Makefile src/Makefile libmaus.pc libmausdigests.pc libmauslsf.pc libmausirods.pc libmausseqchksumsfactory.pc ubuntu.sh src/libmaus/LibMausConfig.hpp)
+AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)

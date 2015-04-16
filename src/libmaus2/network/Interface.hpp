@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,10 +22,10 @@
 
 #include <string>
 #include <vector>
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -45,10 +45,10 @@ namespace libmaus
 			
 			std::ostream & serialise(std::ostream & out) const
 			{
-				::libmaus::util::StringSerialisation::serialiseString(out,name);
-				::libmaus::util::NumberSerialisation::serialiseNumberVector(out,addr);
-				::libmaus::util::NumberSerialisation::serialiseNumberVector(out,baddr);
-				::libmaus::util::NumberSerialisation::serialiseNumberVector(out,naddr);
+				::libmaus2::util::StringSerialisation::serialiseString(out,name);
+				::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,addr);
+				::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,baddr);
+				::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,naddr);
 				return out;
 			}
 			
@@ -60,10 +60,10 @@ namespace libmaus
 			}
 
 			Interface(std::istream & in)
-			: name(::libmaus::util::StringSerialisation::deserialiseString(in)),
-			  addr(::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in)),
-			  baddr(::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in)),
-			  naddr(::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in))
+			: name(::libmaus2::util::StringSerialisation::deserialiseString(in)),
+			  addr(::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in)),
+			  baddr(::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in)),
+			  naddr(::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in))
 			{
 			
 			}
@@ -71,10 +71,10 @@ namespace libmaus
 			Interface(std::string const & s)
 			{
 				std::istringstream in(s);
-				name = ::libmaus::util::StringSerialisation::deserialiseString(in);
-				addr = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
-				baddr = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
-				naddr = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
+				name = ::libmaus2::util::StringSerialisation::deserialiseString(in);
+				addr = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
+				baddr = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
+				naddr = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint8_t>(in);
 			}
 			
 			uint8_t getLowA() const { return addr[0]&naddr[0]; }

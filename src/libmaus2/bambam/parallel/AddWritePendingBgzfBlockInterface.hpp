@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ADDWRITEPENDINGBGZFBLOCKINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ADDWRITEPENDINGBGZFBLOCKINTERFACE_HPP
 
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
-#include <libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateZStreamBaseFlushInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -34,8 +34,8 @@ namespace libmaus
 				virtual void addWritePendingBgzfBlock(
 					int64_t const blockid,
 					int64_t const subid,
-					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf,
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & info
+					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf,
+					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const & info
 				) = 0;
 			};
 		}

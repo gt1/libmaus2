@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,11 +23,11 @@
 
 #include <set>
 #include <fstream>
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/IntervalTree.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace aio
         {
@@ -39,9 +39,9 @@ namespace libmaus
 			//! this type
 		        typedef FileFragment this_type;
 		        //! unique pointer type
-		        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		        //! pointer to a vector of this type
-		        typedef ::libmaus::util::unique_ptr< std::vector<this_type> > vector_ptr_type;
+		        typedef ::libmaus2::util::unique_ptr< std::vector<this_type> > vector_ptr_type;
 		
 		        //! name of file
 			std::string filename;
@@ -56,9 +56,9 @@ namespace libmaus
 			 * @param V fragment vector
 			 * @return interval vector
 			 **/
-			static libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > toIntervalVector(std::vector<FileFragment> const & V)
+			static libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > toIntervalVector(std::vector<FileFragment> const & V)
 			{
-				libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
+				libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H(V.size());
 				
 				if ( V.size() )
 				{
@@ -77,16 +77,16 @@ namespace libmaus
 			 * @param V fragment vector
 			 * @return interval tree
 			 **/
-			static libmaus::util::IntervalTree::unique_ptr_type toIntervalTree(std::vector<FileFragment> const & V)
+			static libmaus2::util::IntervalTree::unique_ptr_type toIntervalTree(std::vector<FileFragment> const & V)
 			{
 				if ( ! V.size() )
 				{
-					libmaus::util::IntervalTree::unique_ptr_type ptr;
+					libmaus2::util::IntervalTree::unique_ptr_type ptr;
 					return UNIQUE_PTR_MOVE(ptr);
 				}
 				
-				libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H = toIntervalVector(V);
-				libmaus::util::IntervalTree::unique_ptr_type PIT(new libmaus::util::IntervalTree(H,0,H.size()));
+				libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H = toIntervalVector(V);
+				libmaus2::util::IntervalTree::unique_ptr_type PIT(new libmaus2::util::IntervalTree(H,0,H.size()));
 				
 				return UNIQUE_PTR_MOVE(PIT);
 			}
@@ -149,7 +149,7 @@ namespace libmaus
 			 **/
 			static std::vector<FileFragment> loadVector(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::CheckedInputStream CIS(filename);
 			        std::vector<FileFragment> V = deserialiseVector(CIS);
 			        return V;
 			}
@@ -161,9 +161,9 @@ namespace libmaus
 			 **/
 			void serialise(std::ostream & out) const
 			{
-				::libmaus::util::StringSerialisation::serialiseString(out,filename);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,offset);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,len);
+				::libmaus2::util::StringSerialisation::serialiseString(out,filename);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,offset);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,len);
 			}
 			
 			/**
@@ -174,7 +174,7 @@ namespace libmaus
 			 **/
 			static void serialiseVector(std::ostream & out, std::vector<FileFragment> const & V)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,V.size());			
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());			
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				        V[i].serialise(out);
 			}
@@ -200,7 +200,7 @@ namespace libmaus
 			 **/
 			static std::vector<FileFragment> deserialiseVector(std::istream & in)
 			{
-			        uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+			        uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			        std::vector<FileFragment> V;
 			        
 			        for ( uint64_t i = 0; i < n; ++i )
@@ -230,9 +230,9 @@ namespace libmaus
 			 **/
 			FileFragment(std::istream & in)
 			:
-			        filename(::libmaus::util::StringSerialisation::deserialiseString(in)),
-			        offset(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-			        len(::libmaus::util::NumberSerialisation::deserialiseNumber(in))
+			        filename(::libmaus2::util::StringSerialisation::deserialiseString(in)),
+			        offset(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+			        len(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))
 			{}
 		};        
         }

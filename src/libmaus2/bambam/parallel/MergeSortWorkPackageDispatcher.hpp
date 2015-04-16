@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_MERGESORTWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_MERGESORTWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp>
-#include <libmaus/bambam/parallel/BaseMergeSortWorkPackageReturnInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp>
+#include <libmaus2/bambam/parallel/BaseMergeSortWorkPackageReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 		{
 			// dispatcher for block merging
 			template<typename _order_type>
-			struct MergeSortWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct MergeSortWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef _order_type order_type;
 			
@@ -44,8 +44,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					AlignmentRewritePosMergeSortPackage<order_type> * BP = dynamic_cast<AlignmentRewritePosMergeSortPackage<order_type> *>(P);

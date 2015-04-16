@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/network/GnuTLSSocket.hpp>
+#include <libmaus2/network/GnuTLSSocket.hpp>
 
 int main()
 {
@@ -25,7 +25,7 @@ int main()
 		// GnuTLSSocket sock("agressoweb.internal.sanger.ac.uk",443,0,0,true);		
 		// GnuTLSSocket sock("mail.google.com",443,0,0,true);		
 		//GnuTLSSocket sock("webmail.sanger.ac.uk",443,0,0,true);		
-		libmaus::network::GnuTLSSocket sock("www.sanger.ac.uk",443,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs/",true);		
+		libmaus2::network::GnuTLSSocket sock("www.sanger.ac.uk",443,"/etc/ssl/certs/ca-certificates.crt","/etc/ssl/certs/",true);		
 
 		char buf[1024];		
 		ssize_t r = -1;

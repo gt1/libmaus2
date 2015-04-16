@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/bitio/ArrayDecode.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/ArrayDecode.hpp>
 
 void testArrayDecode()
 {
@@ -28,15 +28,15 @@ void testArrayDecode()
 		// std::cerr << "b=" << b << std::endl;
 		for ( uint64_t n = 0; n <= 256; ++n )
 		{
-			::libmaus::autoarray::AutoArray<uint8_t> A( (n*b + 7)/8, false );
-			::libmaus::bitio::FastWriteBitWriter FWB(A.get());
+			::libmaus2::autoarray::AutoArray<uint8_t> A( (n*b + 7)/8, false );
+			::libmaus2::bitio::FastWriteBitWriter FWB(A.get());
 		
 			for ( uint64_t i = 0; i < n; ++i )
 				FWB.write ( i % (1ull<<b) , b );
 			FWB.flush();
 		
-			::libmaus::autoarray::AutoArray<uint8_t> O(n,false);
-			::libmaus::bitio::ArrayDecode::decodeArray(A.begin(),O.begin(),n,b);
+			::libmaus2::autoarray::AutoArray<uint8_t> O(n,false);
+			::libmaus2::bitio::ArrayDecode::decodeArray(A.begin(),O.begin(),n,b);
 		
 			// std::cerr << "n=" << n << std::endl;
 			for ( uint64_t i = 0; i < n; ++i )

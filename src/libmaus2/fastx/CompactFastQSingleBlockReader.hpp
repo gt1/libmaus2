@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQSINGLEBLOCKREADER_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQSINGLEBLOCKREADER_HPP
 
-#include <libmaus/fastx/CompactFastQHeader.hpp>
-#include <libmaus/fastx/CompactFastQContext.hpp>
-#include <libmaus/fastx/CompactFastQDecoderBase.hpp>
+#include <libmaus2/fastx/CompactFastQHeader.hpp>
+#include <libmaus2/fastx/CompactFastQContext.hpp>
+#include <libmaus2/fastx/CompactFastQDecoderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		template<typename _stream_type>
-		struct CompactFastQSingleBlockReader : public ::libmaus::fastx::CompactFastQHeader, public ::libmaus::fastx::CompactFastQContext, public ::libmaus::fastx::CompactFastQDecoderBase
+		struct CompactFastQSingleBlockReader : public ::libmaus2::fastx::CompactFastQHeader, public ::libmaus2::fastx::CompactFastQContext, public ::libmaus2::fastx::CompactFastQDecoderBase
 		{
 			typedef _stream_type stream_type;
 			typedef CompactFastQSingleBlockReader<stream_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			stream_type & stream;
 			uint64_t const todecode;
@@ -41,7 +41,7 @@ namespace libmaus
 			
 			static uint64_t getEmptyBlockSize()
 			{
-				return ::libmaus::fastx::CompactFastQHeader::getEmptyBlockHeaderSize();
+				return ::libmaus2::fastx::CompactFastQHeader::getEmptyBlockHeaderSize();
 			}
 			
 			CompactFastQSingleBlockReader(
@@ -50,8 +50,8 @@ namespace libmaus
 				uint64_t const maxdecode = std::numeric_limits<uint64_t>::max()
 			)
 			: 
-			  ::libmaus::fastx::CompactFastQHeader(rstream),
-			  ::libmaus::fastx::CompactFastQContext(rnextid),
+			  ::libmaus2::fastx::CompactFastQHeader(rstream),
+			  ::libmaus2::fastx::CompactFastQContext(rnextid),
 			  stream(rstream), 
 			  todecode(std::min(numreads,maxdecode)),
 			  numdecoded(0)

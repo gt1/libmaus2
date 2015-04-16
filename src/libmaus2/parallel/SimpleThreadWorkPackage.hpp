@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGE_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADWORKPACKAGE_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
 		struct SimpleThreadWorkPackage
 		{
 			typedef SimpleThreadWorkPackage this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			uint64_t priority;
 			uint64_t dispatcherid;

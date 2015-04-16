@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,32 +19,32 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/RefIdInterval.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
-#include <libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
+#include <libmaus2/bambam/parallel/RefIdInterval.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlReorderWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/ChecksumsInterfaceGetInterface.hpp>
+#include <libmaus2/bambam/parallel/ChecksumsInterfacePutInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlReorderWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct GenericInputControlReorderWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputControlReorderWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				GenericInputControlReorderWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputControlReorderWorkPackageFinishedInterface & finishedInterface;
 				ChecksumsInterfaceGetInterface & checksumGetInterface; 
 				ChecksumsInterfacePutInterface & checksumPutInterface;
-				libmaus::bambam::BamAuxFilterVector filter;
-				libmaus::bitio::BitVector * BV;
+				libmaus2::bambam::BamAuxFilterVector filter;
+				libmaus2::bitio::BitVector * BV;
 				bool const gcomputerefidintervals;
 			
 				GenericInputControlReorderWorkPackageDispatcher(
@@ -52,7 +52,7 @@ namespace libmaus
 					GenericInputControlReorderWorkPackageFinishedInterface & rfinishedInterface,
 					ChecksumsInterfaceGetInterface & rchecksumGetInterface, 
 					ChecksumsInterfacePutInterface & rchecksumPutInterface,
-					libmaus::bitio::BitVector * rBV,
+					libmaus2::bitio::BitVector * rBV,
 					bool rcomputerefidintervals
 				)
 				: packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface), 
@@ -65,17 +65,17 @@ namespace libmaus
 				}
 			
 				template<bool havedupvec, bool computerefidintervals>
-				void dispatchTemplate2(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatchTemplate2(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlReorderWorkPackage *>(P) != 0 );
 					GenericInputControlReorderWorkPackage * BP = dynamic_cast<GenericInputControlReorderWorkPackage *>(P);
 										
-					libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type & in = BP->in;
-					libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type & out = BP->out;
+					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type & in = BP->in;
+					libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type & out = BP->out;
 					std::pair<uint64_t,uint64_t> const I = BP->I;
 					uint64_t const index = BP->index;
-					libmaus::bambam::parallel::FragmentAlignmentBufferFragment & frag = *((*out)[index]);
-					uint32_t const dupflag = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+					libmaus2::bambam::parallel::FragmentAlignmentBufferFragment & frag = *((*out)[index]);
+					uint32_t const dupflag = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
 					uint32_t const dupmask = ~dupflag;
 					ChecksumsInterface::shared_ptr_type Schecksums = checksumGetInterface.getSeqChecksumsObject();
 					
@@ -92,7 +92,7 @@ namespace libmaus
 						
 						if ( computerefidintervals )
 						{
-							int32_t const refid = libmaus::bambam::BamAlignmentDecoderBase::getRefID(P.first);
+							int32_t const refid = libmaus2::bambam::BamAlignmentDecoderBase::getRefID(P.first);
 							
 							if ( refid != prevrefid )
 							{
@@ -111,18 +111,18 @@ namespace libmaus
 						if ( havedupvec )
 						{
 							// get rank
-							int64_t const rank = libmaus::bambam::BamAlignmentDecoderBase::getRank(p+sizeof(uint32_t),P.second);
+							int64_t const rank = libmaus2::bambam::BamAlignmentDecoderBase::getRank(p+sizeof(uint32_t),P.second);
 
-							libmaus::bambam::BamAlignmentEncoderBase::putFlags(p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) & dupmask);
+							libmaus2::bambam::BamAlignmentEncoderBase::putFlags(p+sizeof(uint32_t),libmaus2::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) & dupmask);
 							
 							if ( rank >= 0 && BV->get(rank) )
-								libmaus::bambam::BamAlignmentEncoderBase::putFlags(
-									p+sizeof(uint32_t),libmaus::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) | dupflag
+								libmaus2::bambam::BamAlignmentEncoderBase::putFlags(
+									p+sizeof(uint32_t),libmaus2::bambam::BamAlignmentDecoderBase::getFlags(p+sizeof(uint32_t)) | dupflag
 								);
 						}
 
 						// filter out ZR tag
-						uint32_t const fl = libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(p+sizeof(uint32_t),P.second,filter);
+						uint32_t const fl = libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(p+sizeof(uint32_t),P.second,filter);
 						// replace length
 						frag.replaceLength(o,fl);
 						
@@ -156,7 +156,7 @@ namespace libmaus
 				}
 
 				template<bool havedupvec>
-				void dispatchTemplate1(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
+				void dispatchTemplate1(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
 				{
 					if ( gcomputerefidintervals )
 						dispatchTemplate2<havedupvec,true>(P,tpi);
@@ -164,7 +164,7 @@ namespace libmaus
 						dispatchTemplate2<havedupvec,false>(P,tpi);
 				}
 
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi)
 				{
 					if ( BV )
 						dispatchTemplate1<true>(P,tpi);

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,28 +16,28 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const fna = arginfo.getRestArg<std::string>(0);
 		std::string const fnb = arginfo.getRestArg<std::string>(1);
 		
-		libmaus::bambam::BamDecoder bama(fna);
-		libmaus::bambam::BamDecoder bamb(fnb);
+		libmaus2::bambam::BamDecoder bama(fna);
+		libmaus2::bambam::BamDecoder bamb(fnb);
 		
-		libmaus::bambam::BamAlignment const & ala = bama.getAlignment();
-		libmaus::bambam::BamAlignment const & alb = bamb.getAlignment();
+		libmaus2::bambam::BamAlignment const & ala = bama.getAlignment();
+		libmaus2::bambam::BamAlignment const & alb = bamb.getAlignment();
 		
-		libmaus::bambam::BamHeader const & heada = bama.getHeader();
-		libmaus::bambam::BamHeader const & headb = bamb.getHeader();
+		libmaus2::bambam::BamHeader const & heada = bama.getHeader();
+		libmaus2::bambam::BamHeader const & headb = bamb.getHeader();
 		
-		::libmaus::bambam::BamFormatAuxiliary aux;
+		::libmaus2::bambam::BamFormatAuxiliary aux;
 		uint64_t alcnt = 0;
 		bool eq = true;
 		uint64_t const mod = 16*1024*1024;
@@ -46,7 +46,7 @@ int main(int argc, char * argv[])
 		{
 			if ( ! bamb.readAlignment() )
 			{
-				libmaus::exception::LibMausException se;
+				libmaus2::exception::LibMausException se;
 				se.getStream() << "EOF on " << fnb << std::endl;
 				se.finish();
 				throw se;
@@ -77,7 +77,7 @@ int main(int argc, char * argv[])
 
 		if ( bama.readAlignment() )
 		{
-			libmaus::exception::LibMausException se;
+			libmaus2::exception::LibMausException se;
 			se.getStream() << "EOF on " << fna << std::endl;
 			se.finish();
 			throw se;

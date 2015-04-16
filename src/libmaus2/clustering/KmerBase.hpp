@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_CLUSTERING_KMERBASE_HPP)
 #define LIBMAUS_CLUSTERING_KMERBASE_HPP
 
-#include <libmaus/clustering/HashCreationBase.hpp>
-#include <libmaus/fastx/SingleWordDNABitBuffer.hpp>
+#include <libmaus2/clustering/HashCreationBase.hpp>
+#include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace clustering
 	{
 		struct KmerBase
 		{
 			typedef KmerBase this_type;
-			typedef ::libmaus::clustering::HashCreationBase hash_creation;
-			typedef ::libmaus::fastx::SingleWordDNABitBuffer single_word_buffer_type;
+			typedef ::libmaus2::clustering::HashCreationBase hash_creation;
+			typedef ::libmaus2::fastx::SingleWordDNABitBuffer single_word_buffer_type;
 			
-			::libmaus::autoarray::AutoArray<unsigned int> const E;
-			::libmaus::autoarray::AutoArray<uint8_t> const S;
-			::libmaus::autoarray::AutoArray<uint8_t> const R;
+			::libmaus2::autoarray::AutoArray<unsigned int> const E;
+			::libmaus2::autoarray::AutoArray<uint8_t> const S;
+			::libmaus2::autoarray::AutoArray<uint8_t> const R;
 
 			KmerBase()
 			: E(hash_creation::createErrorMap()), S(hash_creation::createSymMap()), R(hash_creation::createRevSymMap())

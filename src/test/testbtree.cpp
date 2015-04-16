@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <ctime>
 
-#include <libmaus/btree/btree.hpp>
+#include <libmaus2/btree/btree.hpp>
 
 #include <set>
 
@@ -32,7 +32,7 @@ void testRandom()
 	for ( unsigned int i = 0; i < 50; ++i )
 	{
 		std::set < key_type, comp_type > S;
-		libmaus::btree::BTree< key_type, 32, comp_type> tree;
+		libmaus2::btree::BTree< key_type, 32, comp_type> tree;
 		
 		for ( unsigned int j = 0; j < 10000; ++j )
 		{

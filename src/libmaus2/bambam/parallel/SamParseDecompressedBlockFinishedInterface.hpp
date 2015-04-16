@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMPARSEDECOMPRESSEDBLOCKFINISHEDINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMPARSEDECOMPRESSEDBLOCKFINISHEDINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct SamParseDecompressedBlockFinishedInterface
 			{
 				virtual ~SamParseDecompressedBlockFinishedInterface() {}
-				virtual void samParseDecompressedBlockFinished(uint64_t const streamid, libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db) = 0;
+				virtual void samParseDecompressedBlockFinished(uint64_t const streamid, libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type db) = 0;
 			};
 		}
 	}

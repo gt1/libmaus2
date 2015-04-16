@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_LCS_EDITDISTANCETRACECONTAINER_HPP)
 #define LIBMAUS_LCS_EDITDISTANCETRACECONTAINER_HPP
 
-#include <libmaus/lcs/AlignmentTraceContainer.hpp>
-#include <libmaus/lcs/AlignmentPrint.hpp>
+#include <libmaus2/lcs/AlignmentTraceContainer.hpp>
+#include <libmaus2/lcs/AlignmentPrint.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{		

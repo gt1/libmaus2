@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #define LIBMAUS_AIO_POSIXFDOUTPUTSTREAMBUFFER_HPP
 
 #include <ostream>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/PosixFdInput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/PosixFdInput.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -41,7 +41,7 @@ namespace libmaus
 
 			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
 			{
-				int64_t const fsopt = libmaus::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
+				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
 				
 				if ( fsopt <= 0 )
 					return getDefaultBlockSize();
@@ -53,7 +53,7 @@ namespace libmaus
 			bool closefd;
 			int64_t const optblocksize;
 			uint64_t const buffersize;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			void doClose()
 			{
@@ -68,7 +68,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixOutputStreamBuffer::doClose(): close() failed: " << strerror(error) << std::endl;
 							se.finish();
 							throw se;
@@ -92,7 +92,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixOutputStreamBuffer::doOpen(): open("<<filename<<") failed: " << strerror(error) << std::endl;
 							se.finish();
 							throw se;
@@ -120,7 +120,7 @@ namespace libmaus
 							return;
 						default:
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "PosixOutputStreamBuffer::doSync(): fsync() failed: " << strerror(error) << std::endl;
 							se.finish();
 							throw se;
@@ -151,7 +151,7 @@ namespace libmaus
 								break;
 							default:
 							{
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
 								se.finish();
 								throw se;

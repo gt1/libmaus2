@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_AUTOARRAY_AUTOARRAY2D_HPP)
 #define LIBMAUS_AUTOARRAY_AUTOARRAY2D_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace autoarray
 	{
@@ -31,12 +31,12 @@ namespace libmaus
 			typedef _N N;
 			static alloc_type const atype = _atype;
 			typedef AutoArray2d<N,atype> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			uint64_t n; // rows
 			uint64_t m; // columns
-			::libmaus::autoarray::AutoArray<N,atype> A;
+			::libmaus2::autoarray::AutoArray<N,atype> A;
 			
 			/**
 			 * compute prefix sums for row i
@@ -94,7 +94,7 @@ namespace libmaus
 					return A.at(i*m+j);
 				else
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "index pair (" << i << "," << j << ") is out of range for AutoArray2d of size (" << n << "," << m << ")" << std::endl;
 					ex.finish();
 					throw ex;
@@ -107,7 +107,7 @@ namespace libmaus
 					return A.at(i*m+j); 
 				else
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "index pair (" << i << "," << j << ") is out of range for AutoArray2d of size (" << n << "," << m << ")" << std::endl;
 					ex.finish();
 					throw ex;

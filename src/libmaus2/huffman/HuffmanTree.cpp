@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,21 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/huffman/HuffmanTree.hpp>
+#include <libmaus2/huffman/HuffmanTree.hpp>
 
-::std::ostream & libmaus::huffman::operator<<(::std::ostream & out, libmaus::huffman::HuffmanTree const & H)
+::std::ostream & libmaus2::huffman::operator<<(::std::ostream & out, libmaus2::huffman::HuffmanTree const & H)
 {
 	H.printRec(out,H.root());
 	return out;
 }
 
-::std::ostream & libmaus::huffman::operator<<(::std::ostream & out, libmaus::huffman::HuffmanTree::EncodeTable const & E)
+::std::ostream & libmaus2::huffman::operator<<(::std::ostream & out, libmaus2::huffman::HuffmanTree::EncodeTable const & E)
 {
 	for ( int64_t i = E.minsym; i <= E.maxsym; ++i )
 		if ( E.hasSymbol(i) )
 		{
 			out << i << "\t" << E.getCode(i) << "\t" << E.getCodeLength(i) << "\t";
-			libmaus::huffman::HuffmanTree::printCode(out,E.getCode(i),E.getCodeLength(i));
+			libmaus2::huffman::HuffmanTree::printCode(out,E.getCode(i),E.getCodeLength(i));
 			out << "\t";
 			for ( unsigned int j = 0; j < E.getCodeLength(i); ++j )
 				out << (E.getBitFromTop(i,j)!=0);

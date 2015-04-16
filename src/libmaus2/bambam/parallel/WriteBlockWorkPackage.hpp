@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_WRITEBLOCKWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_WRITEBLOCKWORKPACKAGE_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/WritePendingObject.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/WritePendingObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct WriteBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct WriteBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef WriteBlockWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				WritePendingObject obj;			
 	
-				WriteBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), obj()
+				WriteBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), obj()
 				{
 				}
 				
@@ -44,7 +44,7 @@ namespace libmaus
 					uint64_t const rpriority,
 					WritePendingObject const & robj,
 					uint64_t const rdecompressDispatcherId
-				) : libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), obj(robj)
+				) : libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), obj(robj)
 				{
 				}
 			

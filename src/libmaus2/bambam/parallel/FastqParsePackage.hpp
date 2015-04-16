@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQPARSEPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FASTQPARSEPACKAGE_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/FastqToBamControlSubReadPending.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/FastqToBamControlSubReadPending.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct FastqParsePackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct FastqParsePackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef FastqParsePackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				FastqToBamControlSubReadPending data;
 			
-				FastqParsePackage() : libmaus::parallel::SimpleThreadWorkPackage(), data()
+				FastqParsePackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data()
 				{				
 				}		
 				FastqParsePackage(uint64_t const rpriority, uint64_t const rdispatcherid, FastqToBamControlSubReadPending & rdata)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
 				
 				}

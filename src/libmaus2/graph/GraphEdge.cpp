@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/graph/GraphEdge.hpp>
+#include <libmaus2/graph/GraphEdge.hpp>
 
-std::ostream & libmaus::graph::operator<<(std::ostream & out, libmaus::graph::GraphEdge const & GE)
+std::ostream & libmaus2::graph::operator<<(std::ostream & out, libmaus2::graph::GraphEdge const & GE)
 {
-	out << "GraphEdge(" << GE.s << "," << GE.t << "," << GE.w << "," << libmaus::lcs::OverlapOrientation::overlap_orientation(GE.o) << ")";
+	out << "GraphEdge(" << GE.s << "," << GE.t << "," << GE.w << "," << libmaus2::lcs::OverlapOrientation::overlap_orientation(GE.o) << ")";
 	return out;
 }

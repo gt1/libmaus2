@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCK_HPP
 
-#include <libmaus/bambam/parallel/CramInterface.h>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/parallel/CramInterface.h>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,12 +31,12 @@ namespace libmaus
 			struct CramOutputBlock
 			{
 				typedef CramOutputBlock this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				ssize_t blockid;
 				size_t subblockid;
-				libmaus::autoarray::AutoArray<char>::shared_ptr_type A;
+				libmaus2::autoarray::AutoArray<char>::shared_ptr_type A;
 				size_t fill;
 				cram_data_write_block_type blocktype;
 				
@@ -58,12 +58,12 @@ namespace libmaus
 				{
 					if ( ! A )
 					{
-						libmaus::autoarray::AutoArray<char>::shared_ptr_type T(new libmaus::autoarray::AutoArray<char>(s,false));
+						libmaus2::autoarray::AutoArray<char>::shared_ptr_type T(new libmaus2::autoarray::AutoArray<char>(s,false));
 						A = T;
 					}
 					else
 					{
-						*A = libmaus::autoarray::AutoArray<char>(s,false);
+						*A = libmaus2::autoarray::AutoArray<char>(s,false);
 					}
 				}
 				

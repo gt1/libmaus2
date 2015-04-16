@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(U64BUFFER_HPP)
 #define U64BUFFER_HPP
 
-#include <libmaus/graph/TripleEdgeOutput.hpp>
-#include <libmaus/graph/TripleEdgeOutputMerge.hpp>
-#include <libmaus/graph/TripleEdgeInput.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/graph/TripleEdgeOutput.hpp>
+#include <libmaus2/graph/TripleEdgeOutputMerge.hpp>
+#include <libmaus2/graph/TripleEdgeInput.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <sstream>
 #include <deque>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct U64Buffer
 		{
 			typedef U64Buffer this_type;
-			typedef ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
 
 			std::string const kmerfilename;
 			unsigned int fileidx;
@@ -43,8 +43,8 @@ namespace libmaus
 			uint64_t const buffersperfile;
 			uint64_t curfilebuffers;
 
-			typedef ::libmaus::graph::TripleEdgeOutput output_type;
-			typedef ::libmaus::util::unique_ptr < output_type > :: type ouput_ptr_type;
+			typedef ::libmaus2::graph::TripleEdgeOutput output_type;
+			typedef ::libmaus2::util::unique_ptr < output_type > :: type ouput_ptr_type;
 			output_ptr_type W;
 
 			std::string getFileName(uint64_t const idx) const
@@ -70,7 +70,7 @@ namespace libmaus
 			U64Buffer(std::string const & rkmerfilename, uint64_t const rbuffersize, uint64_t const maxmem)
 			: kmerfilename(rkmerfilename), fileidx(0), 
 				buffersize(rbuffersize),
-				bufferbytes(buffersize*sizeof(::libmaus::graph::TripleEdge)),
+				bufferbytes(buffersize*sizeof(::libmaus2::graph::TripleEdge)),
 				buffersperfile( (maxmem+(bufferbytes-1))/bufferbytes )
 			{
 				openNextFile();
@@ -89,7 +89,7 @@ namespace libmaus
 				flush();
 				W.reset();
 			}
-			void write(::libmaus::graph::TripleEdge const & T)
+			void write(::libmaus2::graph::TripleEdge const & T)
 			{
 				if ( W->write ( T ) )
 				{
@@ -110,11 +110,11 @@ namespace libmaus
 			void sortFile(uint64_t const idx) const
 			{
 				uint64_t const len = getFileLength(idx);
-				assert ( len % sizeof(::libmaus::graph::TripleEdge) == 0 );
-				uint64_t const numtriples = len / sizeof(::libmaus::graph::TripleEdge);
+				assert ( len % sizeof(::libmaus2::graph::TripleEdge) == 0 );
+				uint64_t const numtriples = len / sizeof(::libmaus2::graph::TripleEdge);
 				std::string const filename = getFileName(idx);
 				std::ifstream istr(filename.c_str(), std::ios::binary);
-				::libmaus::autoarray::AutoArray< ::libmaus::graph::TripleEdge> T(numtriples);
+				::libmaus2::autoarray::AutoArray< ::libmaus2::graph::TripleEdge> T(numtriples);
 				istr.read ( reinterpret_cast<char *>(T.get()), len);
 				assert ( istr );
 				assert ( istr.gcount() == static_cast<int64_t>(len) );
@@ -170,12 +170,12 @@ namespace libmaus
 				std::string const & outputfilename
 				)
 			{
-				::libmaus::graph::TripleEdgeInput inputa(filenamea,32*1024);
-				::libmaus::graph::TripleEdgeInput inputb(filenameb,32*1024);
-				::libmaus::graph::TripleEdgeOutputMerge output(outputfilename, 32*1024);
+				::libmaus2::graph::TripleEdgeInput inputa(filenamea,32*1024);
+				::libmaus2::graph::TripleEdgeInput inputb(filenameb,32*1024);
+				::libmaus2::graph::TripleEdgeOutputMerge output(outputfilename, 32*1024);
 
-				::libmaus::graph::TripleEdge triplea;
-				::libmaus::graph::TripleEdge tripleb;
+				::libmaus2::graph::TripleEdge triplea;
+				::libmaus2::graph::TripleEdge tripleb;
 				bool oka = inputa.getNextTriple(triplea);
 				bool okb = inputb.getNextTriple(tripleb);
 

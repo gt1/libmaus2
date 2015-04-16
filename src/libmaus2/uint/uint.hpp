@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -28,11 +28,11 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <libmaus/rank/popcnt.hpp>
-#include <libmaus/bitio/BitIOOutput.hpp>
-#include <libmaus/bitio/putBits.hpp>
+#include <libmaus2/rank/popcnt.hpp>
+#include <libmaus2/bitio/BitIOOutput.hpp>
+#include <libmaus2/bitio/putBits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace uint
 	{
@@ -45,7 +45,7 @@ namespace libmaus
 
 			static unsigned int popcnt(uint64_t const u)
 			{
-				return ::libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(u);
+				return ::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(u);
 			}
 			
 			void keepLowBits(uint64_t pos)

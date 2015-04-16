@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/GeneFlatFile.hpp>
+#include <libmaus2/bambam/GeneFlatFile.hpp>
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::GeneFlatFile const & GFL)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::GeneFlatFile const & GFL)
 {
-	libmaus::bambam::GeneFlatFileEntry entry;
+	libmaus2::bambam::GeneFlatFileEntry entry;
 	for ( uint64_t i = 0; i < GFL.size(); ++i )
 	{
 		GFL.get(i,entry);

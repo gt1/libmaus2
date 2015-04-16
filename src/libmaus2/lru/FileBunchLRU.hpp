@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_LRU_FILEBUNCHLRU_HPP)
 #define LIBMAUS_LRU_FILEBUNCHLRU_HPP
 
-#include <libmaus/lru/LRU.hpp>
+#include <libmaus2/lru/LRU.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lru
 	{
 		struct FileBunchLRU : public LRU
 		{
 			typedef FileBunchLRU this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			uint64_t const lrusize;
 			std::vector < std::string > filenames;
 			
 			// file id -> lru id
-			::libmaus::autoarray::AutoArray < uint64_t > mapping;
+			::libmaus2::autoarray::AutoArray < uint64_t > mapping;
 			// lru id -> file id
-			::libmaus::autoarray::AutoArray < uint64_t > rmapping;
+			::libmaus2::autoarray::AutoArray < uint64_t > rmapping;
 			
 			// file pointers
-			typedef ::libmaus::util::unique_ptr< std::ofstream  >::type file_ptr_type;
-			::libmaus::autoarray::AutoArray < file_ptr_type > files;
+			typedef ::libmaus2::util::unique_ptr< std::ofstream  >::type file_ptr_type;
+			::libmaus2::autoarray::AutoArray < file_ptr_type > files;
 
 			FileBunchLRU ( std::vector < std::string > const & rfilenames, uint64_t rlrusize = 1024)
 			: LRU(rlrusize), lrusize(rlrusize), filenames ( rfilenames ), mapping(filenames.size()), rmapping(lrusize), files(lrusize)

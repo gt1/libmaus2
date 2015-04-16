@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_LZ_RAZFDECODERBUFFER_HPP)
 #define LIBMAUS_LZ_RAZFDECODERBUFFER_HPP
 
-#include <libmaus/lz/RAZFIndex.hpp>
+#include <libmaus2/lz/RAZFIndex.hpp>
 #include <streambuf>
 #include <istream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct RAZFDecoderBuffer : public ::std::streambuf, public ::libmaus::lz::RAZFConstants
+		struct RAZFDecoderBuffer : public ::std::streambuf, public ::libmaus2::lz::RAZFConstants
 		{
 			private:
-			::libmaus::aio::CheckedInputStream::unique_ptr_type Pfilestream;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type Pfilestream;
 			std::istream & stream;
 			
-			libmaus::lz::RAZFIndex const index;
+			libmaus2::lz::RAZFIndex const index;
 
 			z_stream zstream;
 
-			::libmaus::autoarray::AutoArray<char> inbuffer;	
-			::libmaus::autoarray::AutoArray<char> outbuffer;
+			::libmaus2::autoarray::AutoArray<char> inbuffer;	
+			::libmaus2::autoarray::AutoArray<char> outbuffer;
 			
 			uint64_t symsread;
 
@@ -59,7 +59,7 @@ namespace libmaus
 				
 				if ( ok != Z_OK )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "RAZFDecoderBuffer::init(): inflateInit2() failed" << std::endl;
 					se.finish();
 					throw se;
@@ -79,7 +79,7 @@ namespace libmaus
 
 				if ( inflateReset(&zstream) != Z_OK )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "RAZFDecoderBuffer::setup(): inflateReset() failed" << std::endl;
 					se.finish();
 					throw se;		
@@ -88,7 +88,7 @@ namespace libmaus
 
 			public:
 			RAZFDecoderBuffer(std::string const & filename)
-			: Pfilestream(new ::libmaus::aio::CheckedInputStream(filename)),
+			: Pfilestream(new ::libmaus2::aio::CheckedInputStream(filename)),
 			  stream(*Pfilestream),
 			  index(stream),
 			  inbuffer(razf_block_size,false),
@@ -222,7 +222,7 @@ namespace libmaus
 						
 						if ( ! stream.gcount() )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "RAZFDecoderBuffer::underflow() input failure" << std::endl;
 							se.finish();
 							throw se;
@@ -240,7 +240,7 @@ namespace libmaus
 						case Z_DATA_ERROR:
 						case Z_MEM_ERROR:
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "RAZFDecoderBuffer::underflow() inflate failure" << std::endl;
 							se.finish();
 							throw se;

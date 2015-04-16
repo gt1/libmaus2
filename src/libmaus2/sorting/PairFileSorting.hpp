@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -28,14 +28,14 @@
 #include <parallel/algorithm>
 #endif
 
-#include <libmaus/aio/FileFragment.hpp>
-#include <libmaus/aio/ReorderConcatGenericInput.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/FileFragment.hpp>
+#include <libmaus2/aio/ReorderConcatGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
@@ -139,7 +139,7 @@ namespace libmaus
 			{
 				if ( numblocks )
 				{
-					::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
+					::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > in(numblocks);
 
 					std::priority_queue < 
 						triple_type, 
@@ -152,8 +152,8 @@ namespace libmaus
 						uint64_t const rwords = (i+1==numblocks) ?  
 									(lastblock?(2*lastblock):(2*elnum)) : (2*elnum);
 						
-						::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tini(
-							new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
+						::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tini(
+							new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(
 								tmpfilename,16*1024,2*i*elnum,
 								rwords
 							) 
@@ -249,13 +249,13 @@ namespace libmaus
 				bool const deleteinput = false
 			)
 			{
-				::std::vector < ::libmaus::aio::FileFragment > frags;
+				::std::vector < ::libmaus2::aio::FileFragment > frags;
 				uint64_t tlen = 0;
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					// length in elements of size uint64_t
-					uint64_t const len = ::libmaus::util::GetFileSize::getFileSize(filenames[i])/sizeof(uint64_t);
-					::libmaus::aio::FileFragment const frag(filenames[i],0,len);
+					uint64_t const len = ::libmaus2::util::GetFileSize::getFileSize(filenames[i])/sizeof(uint64_t);
+					::libmaus2::aio::FileFragment const frag(filenames[i],0,len);
 					frags.push_back(frag);
 					tlen += len;
 				}
@@ -268,13 +268,13 @@ namespace libmaus
 				uint64_t const fullblocks = tlen2/elnum;
 				uint64_t const lastblock = tlen2 - fullblocks*elnum;
 
-				if ( ! libmaus::util::GetFileSize::fileExists(tmpfilename) )
+				if ( ! libmaus2::util::GetFileSize::fileExists(tmpfilename) )
 				{
 					assert ( bufsize );
-					::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(elnum,false);
-					::libmaus::aio::ReorderConcatGenericInput<uint64_t> SGI(frags,16*1024);
-					::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
-						new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
+					::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > A(elnum,false);
+					::libmaus2::aio::ReorderConcatGenericInput<uint64_t> SGI(frags,16*1024);
+					::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO(
+						new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(tmpfilename,16*1024)
 					);
 					
 					uint64_t dfullblocks = 0;
@@ -358,7 +358,7 @@ namespace libmaus
 				bool const deleteinput = false
 			)
 			{
-				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
+				typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outfilename,16*1024);
 				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel,deleteinput);
 			}
@@ -375,7 +375,7 @@ namespace libmaus
 				bool const deleteinput = false
 			)
 			{
-				typedef ::libmaus::aio::SynchronousGenericOutput<uint64_t> out_type;
+				typedef ::libmaus2::aio::SynchronousGenericOutput<uint64_t> out_type;
 				out_type SGOfinal(outstream,16*1024);
 				sortPairFileTemplate<out_type>(filenames,tmpfilename,second,keepfirst,keepsecond,SGOfinal,bufsize,parallel,deleteinput);
 			}

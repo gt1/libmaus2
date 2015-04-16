@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_UTIL_UTF8BLOCKINDEXDECODER_HPP)
 #define LIBMAUS_UTIL_UTF8BLOCKINDEXDECODER_HPP
 
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 			uint64_t maxblockbytes;
 			uint64_t numblocks;
 			
-			::libmaus::aio::CheckedInputStream CIS;
+			::libmaus2::aio::CheckedInputStream CIS;
 			
 			Utf8BlockIndexDecoder(std::string const & filename);
 			

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,29 +20,29 @@
 #if ! defined(LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP)
 #define LIBMAUS_GAMMA_GAMMAGAPDECODER_HPP
 
-#include <libmaus/huffman/IndexDecoderDataArray.hpp>
-#include <libmaus/huffman/KvInitResult.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus2/huffman/KvInitResult.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{		
 		struct GammaGapDecoder
 		{
 			typedef GammaGapDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			::libmaus::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
-			::libmaus::huffman::IndexDecoderDataArray const & idda;
+			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
+			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 			
-			::libmaus::aio::CheckedInputStream::unique_ptr_type istr;
-			::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
-			::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
+			::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
 
-			::libmaus::autoarray::AutoArray<uint64_t, ::libmaus::autoarray::alloc_type_c > decodebuf;
+			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_c > decodebuf;
 			uint64_t * pa;
 			uint64_t * pc;
 			uint64_t * pe;
@@ -55,8 +55,8 @@ namespace libmaus
 				if ( fileptr < idda.data.size() && blockptr < idda.data[fileptr].numentries )
 				{
 					/* open file */
-					::libmaus::aio::CheckedInputStream::unique_ptr_type tistr(
-                                                        new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
+					::libmaus2::aio::CheckedInputStream::unique_ptr_type tistr(
+                                                        new ::libmaus2::aio::CheckedInputStream(idda.data[fileptr].filename)
                                                 );
 					istr = UNIQUE_PTR_MOVE(tistr);
 
@@ -67,14 +67,14 @@ namespace libmaus
 					
 					if ( static_cast<int64_t>(istr->tellg()) != static_cast<int64_t>(pos) )
 					{
-						::libmaus::exception::LibMausException ex;
+						::libmaus2::exception::LibMausException ex;
 						ex.getStream() << "Failed to seek to position " << pos << " in file " << idda.data[fileptr].filename << std::endl;
 						ex.finish();
 						throw ex;
 					}
 					
-					::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
-                                                        new ::libmaus::aio::SynchronousGenericInput<uint64_t>(
+					::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+                                                        new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(
                                                                 *istr,64*1024,
                                                                 ::std::numeric_limits<uint64_t>::max(),
                                                                 false /* do not check for multiples of entity size */
@@ -82,8 +82,8 @@ namespace libmaus
                                                 );
 					SGI = UNIQUE_PTR_MOVE(tSGI);
 					
-					::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
-                                                        new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
+					::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
+                                                        new ::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >(*SGI)
                                                 );
 
 					GD = UNIQUE_PTR_MOVE(tGD);
@@ -181,7 +181,7 @@ namespace libmaus
 					}
 					else
 					{
-						::libmaus::huffman::FileBlockOffset const FBO = idda.findKBlock(offset);
+						::libmaus2::huffman::FileBlockOffset const FBO = idda.findKBlock(offset);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 						offset = FBO.offset;
@@ -206,9 +206,9 @@ namespace libmaus
 				}
 			}
 			
-			void initKV(uint64_t kvtarget, ::libmaus::huffman::KvInitResult & result)
+			void initKV(uint64_t kvtarget, ::libmaus2::huffman::KvInitResult & result)
 			{
-				result = ::libmaus::huffman::KvInitResult();
+				result = ::libmaus2::huffman::KvInitResult();
 			
 				// if stream is not empty
 				if ( 
@@ -236,7 +236,7 @@ namespace libmaus
 					else
 					{
 						// search for block
-						::libmaus::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
+						::libmaus2::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 					
@@ -296,9 +296,9 @@ namespace libmaus
 			}
 			
 			GammaGapDecoder(
-				::libmaus::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t kvtarget,
-				::libmaus::huffman::KvInitResult & result 
+				::libmaus2::huffman::KvInitResult & result 
 			)
 			:
 			  Pidda(),
@@ -314,10 +314,10 @@ namespace libmaus
 			GammaGapDecoder(
 				std::vector<std::string> const & rfilenames,
 				uint64_t kvtarget,
-				::libmaus::huffman::KvInitResult & result 
+				::libmaus2::huffman::KvInitResult & result 
 			)
 			:
-			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 
@@ -333,7 +333,7 @@ namespace libmaus
 				uint64_t * psymoffset = 0
 			)
 			:
-			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 
@@ -344,7 +344,7 @@ namespace libmaus
 			}
 
 			GammaGapDecoder(
-				::libmaus::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t offset = 0, 
 				uint64_t * psymoffset = 0
 			)
@@ -362,7 +362,7 @@ namespace libmaus
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(filename,64);
+				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(filename,64);
 				return SGI.get();
 			}
 			

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,21 +20,21 @@
 #if ! defined(EDGELISTLOCALLOCKEDFLUSH_HPP)
 #define EDGELISTLOCALLOCKEDFLUSH_HPP
 
-#include <libmaus/graph/EdgeList.hpp>
+#include <libmaus2/graph/EdgeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct EdgeListLocalLockedFlush
 		{
 			typedef EdgeListLocalLockedFlush this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typedef ::libmaus::graph::TripleEdge edge_type;
+			typedef ::libmaus2::graph::TripleEdge edge_type;
 			
 			EdgeList & EL;
-			::libmaus::parallel::OMPLock lock;
+			::libmaus2::parallel::OMPLock lock;
 			
 			EdgeListLocalLockedFlush(EdgeList & rEL)
 			: EL(rEL)

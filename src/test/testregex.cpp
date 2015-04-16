@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/regex/PosixRegex.hpp>
+#include <libmaus2/regex/PosixRegex.hpp>
 #include <iostream>
 
 void testRegex()
 {
-	::libmaus::regex::PosixRegex PR("ab");
+	::libmaus2::regex::PosixRegex PR("ab");
 	std::vector<uint64_t> POS = PR.findAllMatches("abababab");
 	for ( uint64_t i = 0; i < POS.size(); ++i )
 		std::cerr << "[" << i << "]=" << POS[i] << " len " << strlen("eeeeeeee") << std::endl;

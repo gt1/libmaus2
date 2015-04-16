@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_PARALLEL_LOCKEDGROWINGFREELIST_HPP)
 #define LIBMAUS_PARALLEL_LOCKEDGROWINGFREELIST_HPP
 
-#include <libmaus/util/GrowingFreeList.hpp>
+#include <libmaus2/util/GrowingFreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
 		template<
 			typename _element_type, 
-			typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = libmaus::util::FreeListDefaultTypeInfo<_element_type> 
+			typename _allocator_type = libmaus2::util::FreeListDefaultAllocator<_element_type>,
+			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type> 
 		>
-		struct LockedGrowingFreeList : private libmaus::util::GrowingFreeList<_element_type,_allocator_type,_type_info_type>
+		struct LockedGrowingFreeList : private libmaus2::util::GrowingFreeList<_element_type,_allocator_type,_type_info_type>
 		{
 			typedef _element_type element_type;
 			typedef _allocator_type allocator_type;
 			typedef _type_info_type type_info_type;
-			typedef libmaus::util::GrowingFreeList<element_type,allocator_type,type_info_type> base_type;
+			typedef libmaus2::util::GrowingFreeList<element_type,allocator_type,type_info_type> base_type;
 			typedef LockedGrowingFreeList<element_type,allocator_type,type_info_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus::parallel::PosixSpinLock lock;
+			libmaus2::parallel::PosixSpinLock lock;
 
 			LockedGrowingFreeList(allocator_type allocator = allocator_type())
 			: base_type(allocator)
@@ -53,31 +53,31 @@ namespace libmaus
 			
 			bool empty() const
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::empty();
 			}
 			
 			typename type_info_type::pointer_type get()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::get();
 			}
 
 			void put(typename type_info_type::pointer_type ptr)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				base_type::put(ptr);
 			}
 
 			void put(std::vector < typename type_info_type::pointer_type > V)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				base_type::put(V);				
 			}
 
 			std::vector < typename type_info_type::pointer_type > getAll()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::getAll();			
 			}
 			
@@ -93,7 +93,7 @@ namespace libmaus
 			
 			size_t capacity()
 			{				
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::capacity();			
 			}
 			

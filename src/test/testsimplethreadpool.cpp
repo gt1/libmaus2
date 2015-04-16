@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/parallel/SimpleThreadPool.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
-#include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
+#include <libmaus2/parallel/SimpleThreadPool.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -29,10 +29,10 @@ namespace libmaus
 		struct DummyThreadWorkPackage : public SimpleThreadWorkPackage
 		{
 			typedef DummyThreadWorkPackage this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			libmaus::parallel::PosixMutex * mutex;
+			libmaus2::parallel::PosixMutex * mutex;
 			
 			DummyThreadWorkPackageMeta * meta;
 		
@@ -40,7 +40,7 @@ namespace libmaus
 			DummyThreadWorkPackage(
 				uint64_t const rpriority, 
 				uint64_t const rdispatcherid, 
-				libmaus::parallel::PosixMutex * rmutex,
+				libmaus2::parallel::PosixMutex * rmutex,
 				DummyThreadWorkPackageMeta * rmeta,
 				uint64_t const rpackageid = 0
 			)
@@ -57,10 +57,10 @@ namespace libmaus
 		
 		struct DummyThreadWorkPackageMeta
 		{
-			libmaus::parallel::PosixMutex lock;
+			libmaus2::parallel::PosixMutex lock;
 
 			SimpleThreadPoolWorkPackageFreeList<DummyThreadWorkPackage> freelist;
-			libmaus::parallel::SynchronousCounter<uint64_t> finished;
+			libmaus2::parallel::SynchronousCounter<uint64_t> finished;
 			
 			DummyThreadWorkPackageMeta() : finished(0)
 			{
@@ -86,7 +86,7 @@ namespace libmaus
 				try
 				{
 					{
-					libmaus::parallel::ScopePosixMutex mutex(*(DP->mutex));
+					libmaus2::parallel::ScopePosixMutex mutex(*(DP->mutex));
 					std::cerr << DP << std::endl;
 					}
 
@@ -94,8 +94,8 @@ namespace libmaus
 					{
 						if ( spawn*DP->packageid+i < numpacks )
 						{
-							libmaus::parallel::DummyThreadWorkPackage * pack0 = meta->freelist.getPackage();
-							*pack0 = libmaus::parallel::DummyThreadWorkPackage(
+							libmaus2::parallel::DummyThreadWorkPackage * pack0 = meta->freelist.getPackage();
+							*pack0 = libmaus2::parallel::DummyThreadWorkPackage(
 								DP->priority,
 								DP->dispatcherid,
 								DP->mutex,
@@ -133,7 +133,7 @@ namespace libmaus
 				static const uint64_t spawn = 3;
 
 				{
-				libmaus::parallel::ScopePosixMutex mutex(*(DP->mutex));
+				libmaus2::parallel::ScopePosixMutex mutex(*(DP->mutex));
 				std::cerr << DP << std::endl;
 				}
 
@@ -146,8 +146,8 @@ namespace libmaus
 				{
 					if ( spawn*DP->packageid+i < numpacks )
 					{
-						libmaus::parallel::DummyThreadWorkPackage * pack0 = meta->freelist.getPackage();
-						*pack0 = libmaus::parallel::DummyThreadWorkPackage(
+						libmaus2::parallel::DummyThreadWorkPackage * pack0 = meta->freelist.getPackage();
+						*pack0 = libmaus2::parallel::DummyThreadWorkPackage(
 							DP->priority,
 							DP->dispatcherid,
 							DP->mutex,
@@ -168,18 +168,18 @@ namespace libmaus
 
 void testDummyPackages()
 {
-	libmaus::parallel::SimpleThreadPool TP(8);
+	libmaus2::parallel::SimpleThreadPool TP(8);
 
 	uint64_t const dispid = 0;
 
-	libmaus::parallel::DummyThreadWorkPackageDispatcher dummydisp;
+	libmaus2::parallel::DummyThreadWorkPackageDispatcher dummydisp;
 	TP.registerDispatcher(dispid,&dummydisp);
 	
-	libmaus::parallel::DummyThreadWorkPackageMeta meta;
-	libmaus::parallel::PosixMutex printmutex;
+	libmaus2::parallel::DummyThreadWorkPackageMeta meta;
+	libmaus2::parallel::PosixMutex printmutex;
 	
-	libmaus::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
-	*pack = libmaus::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
+	libmaus2::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
+	*pack = libmaus2::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
 
 	TP.enque(pack);
 	
@@ -190,18 +190,18 @@ void testDummyRandomExceptionPackages()
 {
 	try
 	{
-		libmaus::parallel::SimpleThreadPool TP(8);
+		libmaus2::parallel::SimpleThreadPool TP(8);
 
 		uint64_t const dispid = 0;
 
-		libmaus::parallel::DummyThreadWorkPackageRandomExceptionDispatcher dummydisp;
+		libmaus2::parallel::DummyThreadWorkPackageRandomExceptionDispatcher dummydisp;
 		TP.registerDispatcher(dispid,&dummydisp);
 		
-		libmaus::parallel::DummyThreadWorkPackageMeta meta;
-		libmaus::parallel::PosixMutex printmutex;
+		libmaus2::parallel::DummyThreadWorkPackageMeta meta;
+		libmaus2::parallel::PosixMutex printmutex;
 		
-		libmaus::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
-		*pack = libmaus::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
+		libmaus2::parallel::DummyThreadWorkPackage * pack = meta.freelist.getPackage(); //(0,dispid,&printmutex,&meta);
+		*pack = libmaus2::parallel::DummyThreadWorkPackage(0 /* priority */, dispid, &printmutex, &meta);
 
 		TP.enque(pack);
 		

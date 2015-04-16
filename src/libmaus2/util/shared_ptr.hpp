@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,7 +20,7 @@
 #if ! defined(LIBMAUS_UTIL_SHARED_PTR_HPP)
 #define LIBMAUS_UTIL_SHARED_PTR_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_USE_STD_SHARED_PTR)
 #include <memory>
@@ -28,7 +28,7 @@
 #include <boost/shared_ptr.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

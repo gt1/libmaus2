@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lcs/EditDistanceResult.hpp>
+#include <libmaus2/lcs/EditDistanceResult.hpp>
 
-std::ostream & libmaus::lcs::operator<<(std::ostream & out, ::libmaus::lcs::EditDistanceResult const & o)
+std::ostream & libmaus2::lcs::operator<<(std::ostream & out, ::libmaus2::lcs::EditDistanceResult const & o)
 {
-	out << "libmaus::lcs::EditDistanceResult("
+	out << "libmaus2::lcs::EditDistanceResult("
 		<<  "+=" << o.nummat
 		<< ",-=" << o.nummis
 		<< ",I=" << o.numins

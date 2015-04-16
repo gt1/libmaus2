@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDPENDINGOBJECT_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{

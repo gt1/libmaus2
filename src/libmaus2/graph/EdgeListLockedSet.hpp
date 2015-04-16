@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(EDGELISTLOCKEDSET_HPP)
 #define EDGELISTLOCKEDSET_HPP
 
-#include <libmaus/graph/EdgeListLocked.hpp>
+#include <libmaus2/graph/EdgeListLocked.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct EdgeListLockedSet
 		{
 			typedef EdgeListLockedSet this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			uint64_t const lowsrc;
 			uint64_t const highsrc;
@@ -39,7 +39,7 @@ namespace libmaus
 		
 			typedef EdgeListLocked list_type;
 			typedef list_type::unique_ptr_type list_ptr_type;
-			::libmaus::autoarray::AutoArray<list_ptr_type> edgelists;
+			::libmaus2::autoarray::AutoArray<list_ptr_type> edgelists;
 
 			EdgeListLockedSet(
 				uint64_t const rlowsrc,

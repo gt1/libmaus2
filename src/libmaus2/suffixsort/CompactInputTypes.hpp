@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_COMPACTINPUTTYPES_HPP)
 #define LIBMAUS_SUFFIXSORT_COMPACTINPUTTYPES_HPP
 
-#include <libmaus/suffixsort/BwtMergeEnumBase.hpp>
-#include <libmaus/bitio/CompactDecoderBuffer.hpp>
-#include <libmaus/aio/CircularWrapper.hpp>
-#include <libmaus/suffixsort/CircularSuffixComparator.hpp>
-#include <libmaus/util/OctetString.hpp>
+#include <libmaus2/suffixsort/BwtMergeEnumBase.hpp>
+#include <libmaus2/bitio/CompactDecoderBuffer.hpp>
+#include <libmaus2/aio/CircularWrapper.hpp>
+#include <libmaus2/suffixsort/CircularSuffixComparator.hpp>
+#include <libmaus2/util/OctetString.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
-		struct CompactInputTypes : public libmaus::suffixsort::BwtMergeEnumBase
+		struct CompactInputTypes : public libmaus2::suffixsort::BwtMergeEnumBase
 		{
 			typedef ::std::istream base_input_stream;
-			typedef ::libmaus::bitio::CompactDecoderWrapper linear_wrapper;
-			typedef ::libmaus::aio::CompactCircularWrapper circular_wrapper;
-			typedef ::libmaus::aio::CompactCircularReverseWrapper circular_reverse_wrapper;
-			typedef ::libmaus::suffixsort::CompactCircularSuffixComparator circular_suffix_comparator;
-			typedef ::libmaus::util::OctetString string_type;
-			typedef ::libmaus::aio::CircularWrapper octet_circular_wrapper;
+			typedef ::libmaus2::bitio::CompactDecoderWrapper linear_wrapper;
+			typedef ::libmaus2::aio::CompactCircularWrapper circular_wrapper;
+			typedef ::libmaus2::aio::CompactCircularReverseWrapper circular_reverse_wrapper;
+			typedef ::libmaus2::suffixsort::CompactCircularSuffixComparator circular_suffix_comparator;
+			typedef ::libmaus2::util::OctetString string_type;
+			typedef ::libmaus2::aio::CircularWrapper octet_circular_wrapper;
 			
 			static bwt_merge_sort_input_type getType()
 			{

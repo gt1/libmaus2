@@ -26,14 +26,14 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPLICATIONMETRICS_HPP)
 #define LIBMAUS_BAMBAM_DUPLICATIONMETRICS_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 #include <ostream>
 #include <cmath>
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -110,7 +110,7 @@ namespace libmaus
 
 					if (c >= n || f(m*c, c, n) < 0) 
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "[E] Invalid values for pairs and unique pairs: " << n << ", " << c << std::endl;
 						se.finish();
 						throw se;
@@ -125,7 +125,7 @@ namespace libmaus
 					}
 					if ( po == polimit )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "[E] Detected (most likely) non terminating while loop" << std::endl;
 						se.finish();
 						throw se;					
@@ -277,12 +277,12 @@ namespace libmaus
 			 **/
 			void serialise(std::ostream & out) const
 			{
-				libmaus::util::NumberSerialisation::serialiseNumber(out,unmapped);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,unpaired);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,readpairsexamined);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,unpairedreadduplicates);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,readpairduplicates);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,opticalduplicates);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,unmapped);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,unpaired);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,readpairsexamined);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,unpairedreadduplicates);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,readpairduplicates);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,opticalduplicates);
 			}
 			
 			/**
@@ -292,12 +292,12 @@ namespace libmaus
 			 **/
 			void deserialise(std::istream & in)
 			{
-				unmapped = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				unpaired = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				readpairsexamined = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				unpairedreadduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				readpairduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				opticalduplicates = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				unmapped = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				unpaired = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				readpairsexamined = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				unpairedreadduplicates = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				readpairduplicates = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				opticalduplicates = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 
 			/**
@@ -317,14 +317,14 @@ namespace libmaus
 				return *this;
 			}
 			
-			static std::map<uint64_t,libmaus::bambam::DuplicationMetrics> add(
-				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> const & MA,
-				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> const & MB
+			static std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> add(
+				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> const & MA,
+				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> const & MB
 			)
 			{
-				std::map<uint64_t,libmaus::bambam::DuplicationMetrics> MO;
-				std::map<uint64_t,libmaus::bambam::DuplicationMetrics>::const_iterator a_ita = MA.begin(), a_ite = MA.end();
-				std::map<uint64_t,libmaus::bambam::DuplicationMetrics>::const_iterator b_ita = MB.begin(), b_ite = MB.end();
+				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics> MO;
+				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics>::const_iterator a_ita = MA.begin(), a_ite = MA.end();
+				std::map<uint64_t,libmaus2::bambam::DuplicationMetrics>::const_iterator b_ita = MB.begin(), b_ite = MB.end();
 				
 				while ( a_ita != a_ite && b_ita != b_ite )
 				{
@@ -341,7 +341,7 @@ namespace libmaus
 					else
 					{
 						assert ( a_ita->first == b_ita->first );
-						libmaus::bambam::DuplicationMetrics M = a_ita->second;
+						libmaus2::bambam::DuplicationMetrics M = a_ita->second;
 						M += b_ita->second;
 						MO[a_ita->first] = M;
 						a_ita++;
@@ -374,5 +374,5 @@ namespace libmaus
  * @param M duplication metrics object
  * @return output stream
  **/
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::DuplicationMetrics const & M);
+std::ostream & operator<<(std::ostream & out, libmaus2::bambam::DuplicationMetrics const & M);
 #endif

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,7 +20,7 @@
 #if ! defined(STACKTRACE_HPP)
 #define STACKTRACE_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_EXECINFO_H)
 #include <execinfo.h>
@@ -32,11 +32,11 @@
 #include <vector>
 #include <sstream>
 #include <stdexcept>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <limits.h>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

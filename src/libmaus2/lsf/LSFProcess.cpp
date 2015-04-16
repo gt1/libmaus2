@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lsf/LSFProcess.hpp>
+#include <libmaus2/lsf/LSFProcess.hpp>
 
 #if defined(HAVE_LSF)
 #include <lsf/lsbatch.h>
@@ -26,20 +26,20 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/WriteableString.hpp>
-#include <libmaus/util/PosixExecute.hpp>
-#include <libmaus/util/stringFunctions.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/WriteableString.hpp>
+#include <libmaus2/util/PosixExecute.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
 
-uint64_t libmaus::lsf::LSF::Mscale = 1000;
+uint64_t libmaus2::lsf::LSF::Mscale = 1000;
 
-::libmaus::parallel::OMPLock libmaus::lsf::LSF::lsflock;
+::libmaus2::parallel::OMPLock libmaus2::lsf::LSF::lsflock;
 
-void libmaus::lsf::LSF::init(std::string const & sappname)
+void libmaus2::lsf::LSF::init(std::string const & sappname)
 {
-	::libmaus::parallel::ScopeLock lock(lsflock);
+	::libmaus2::parallel::ScopeLock lock(lsflock);
 	
-	::libmaus::autoarray::AutoArray<char> appname(sappname.size()+1);
+	::libmaus2::autoarray::AutoArray<char> appname(sappname.size()+1);
 	::std::copy(sappname.begin(),sappname.end(),appname.get());
                       
         if (lsb_init(appname.get()) < 0) 
@@ -47,25 +47,25 @@ void libmaus::lsf::LSF::init(std::string const & sappname)
 		char buf[] = "lsb_init()";
 		lsb_perror(buf);
                                       
-		::libmaus::exception::LibMausException se;
-		se.getStream() << "lsb_init() in libmaus::lsf::LSF::init" << std::endl;
+		::libmaus2::exception::LibMausException se;
+		se.getStream() << "lsb_init() in libmaus2::lsf::LSF::init" << std::endl;
 		se.finish();
 		throw se;
 	}
 }
 
-std::string libmaus::lsf::LSF::getClusterName()
+std::string libmaus2::lsf::LSF::getClusterName()
 {
-	::libmaus::parallel::ScopeLock lock(lsflock);
+	::libmaus2::parallel::ScopeLock lock(lsflock);
 	
 	char const *clustername = ls_getclustername();
 
         if (clustername == NULL) {
-                char buf[] = "ls_getclustername in libmaus::lsf::LSF::getClusterName";
+                char buf[] = "ls_getclustername in libmaus2::lsf::LSF::getClusterName";
                 ls_perror(buf);
 
-		::libmaus::exception::LibMausException se;
-		se.getStream() << "ls_getclustername() in libmaus::lsf::LSF::getClusterName" << std::endl;
+		::libmaus2::exception::LibMausException se;
+		se.getStream() << "ls_getclustername() in libmaus2::lsf::LSF::getClusterName" << std::endl;
 		se.finish();
 		throw se;
         }
@@ -73,7 +73,7 @@ std::string libmaus::lsf::LSF::getClusterName()
         return std::string(clustername);
 }
 
-int64_t libmaus::lsf::LSFProcess::submitJob(
+int64_t libmaus2::lsf::LSFProcess::submitJob(
         std::string const & scommand,
         std::string const & sjobname,
         std::string const & sproject,
@@ -90,7 +90,7 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
         )
 {
 	// no lock, submitting happens in a different process
-	// ::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	// ::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 
         std::ostringstream bsubstr;
         bsubstr 
@@ -102,7 +102,7 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
                 << " " << "-o \"" << soutfilename << "\""
                 << " " << "-e \"" << serrfilename << "\""
                 << " " << "-i \"" << sinfilename << "\""
-                << " " << "-M \"" << maxmem*libmaus::lsf::LSF::Mscale << "\""
+                << " " << "-M \"" << maxmem*libmaus2::lsf::LSF::Mscale << "\""
                 << " " << "-R'" << "select[(mem>="<<maxmem<<" && type==X86_64";
 	if ( model != 0 )
 		bsubstr << " && model==" << model;
@@ -147,11 +147,11 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
         #if 1
         std::cerr << "[[" << bsub << "]]" << std::endl;
         #endif
-        int const ret = ::libmaus::util::PosixExecute::execute(bsub,out,err);
+        int const ret = ::libmaus2::util::PosixExecute::execute(bsub,out,err);
         
         if ( ret == 0 )
         {
-                std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize(out,std::string(" "));
+                std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(out,std::string(" "));
                 if ( tokens.size() >= 2 && tokens[1].size() && tokens[1][0] == '<' && tokens[1][tokens[1].size()-1] == '>' )
                 {
                         std::string stringid = tokens[1].substr(1,tokens[1].size()-2);
@@ -164,13 +164,13 @@ int64_t libmaus::lsf::LSFProcess::submitJob(
                 }
         }
         
-        ::libmaus::exception::LibMausException se;
+        ::libmaus2::exception::LibMausException se;
         se.getStream() << "Failed to create LSF process.";
         se.finish();
         throw se;        
 }
 
-libmaus::lsf::LSFProcess::LSFProcess(
+libmaus2::lsf::LSFProcess::LSFProcess(
         std::string const & scommand,
         std::string const & sjobname,
         std::string const & sproject,
@@ -189,9 +189,9 @@ libmaus::lsf::LSFProcess::LSFProcess(
 {
 }
         		
-bool libmaus::lsf::LSFProcess::isFinished() const
+bool libmaus2::lsf::LSFProcess::isFinished() const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
         bool finished = false;
         
@@ -221,9 +221,9 @@ bool libmaus::lsf::LSFProcess::isFinished() const
         return finished;
 }
 
-bool libmaus::lsf::LSFProcess::isKnown() const
+bool libmaus2::lsf::LSFProcess::isKnown() const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
@@ -235,9 +235,9 @@ bool libmaus::lsf::LSFProcess::isKnown() const
 		return true;	
 }
 
-bool libmaus::lsf::LSFProcess::isUnfinished() const
+bool libmaus2::lsf::LSFProcess::isUnfinished() const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
@@ -279,9 +279,9 @@ bool libmaus::lsf::LSFProcess::isUnfinished() const
 	}
 }
 
-bool libmaus::lsf::LSFProcess::isRunning() const
+bool libmaus2::lsf::LSFProcess::isRunning() const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
         int numrec = lsb_openjobinfo(id,0,0,0,0,ALL_JOB);
 
@@ -310,9 +310,9 @@ bool libmaus::lsf::LSFProcess::isRunning() const
         return running;
 }
 
-bool libmaus::lsf::LSFProcess::finishedOk() const
+bool libmaus2::lsf::LSFProcess::finishedOk() const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 
         bool ok = false;
         
@@ -342,17 +342,17 @@ bool libmaus::lsf::LSFProcess::finishedOk() const
         return ok;
 }
 
-void libmaus::lsf::LSFProcess::wait(int sleepinterval) const
+void libmaus2::lsf::LSFProcess::wait(int sleepinterval) const
 {
         while ( isRunning() )
                 if ( sleepinterval )
                         sleep(sleepinterval);
 }		
 
-std::string libmaus::lsf::LSFProcess::getSingleHost() const
+std::string libmaus2::lsf::LSFProcess::getSingleHost() const
 {
         std::vector < std::string > hostnames;
-        while ( ! libmaus::lsf::LSFProcess::getHost(hostnames) )
+        while ( ! libmaus2::lsf::LSFProcess::getHost(hostnames) )
                 sleep(1);
 
         if ( hostnames.size() == 1 )
@@ -361,16 +361,16 @@ std::string libmaus::lsf::LSFProcess::getSingleHost() const
         }
         else
         {
-                ::libmaus::exception::LibMausException se;
+                ::libmaus2::exception::LibMausException se;
                 se.getStream() << "Failed to get LSF host name.";
                 se.finish();
                 throw se;
         }
 }
 
-bool libmaus::lsf::LSFProcess::getHost(std::vector < std::string > & hostnames) const
+bool libmaus2::lsf::LSFProcess::getHost(std::vector < std::string > & hostnames) const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
         bool hostok = false;
         
@@ -403,46 +403,46 @@ bool libmaus::lsf::LSFProcess::getHost(std::vector < std::string > & hostnames) 
         
 }
 
-void libmaus::lsf::LSFProcess::kill(int const sig) const
+void libmaus2::lsf::LSFProcess::kill(int const sig) const
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
         std::ostringstream ostr;
         ostr << "bkill -s " << sig << " " << id;
         
         std::string out, err;
-        ::libmaus::util::PosixExecute::execute(ostr.str(),out,err);
+        ::libmaus2::util::PosixExecute::execute(ostr.str(),out,err);
 
         // system(ostr.str().c_str());
 }
 
-static libmaus::lsf::LSFProcess::state statusToState(int64_t const status)
+static libmaus2::lsf::LSFProcess::state statusToState(int64_t const status)
 {
 	if ( status & JOB_STAT_PEND )
-		return libmaus::lsf::LSFProcess::state_pending;
+		return libmaus2::lsf::LSFProcess::state_pending;
 	else if ( status & JOB_STAT_PSUSP )
-		return libmaus::lsf::LSFProcess::state_psusp;
+		return libmaus2::lsf::LSFProcess::state_psusp;
 	else if ( status & JOB_STAT_SSUSP )
-		return libmaus::lsf::LSFProcess::state_ssusp;
+		return libmaus2::lsf::LSFProcess::state_ssusp;
 	else if ( status & JOB_STAT_USUSP )
-		return libmaus::lsf::LSFProcess::state_ususp;
+		return libmaus2::lsf::LSFProcess::state_ususp;
 	else if ( status & JOB_STAT_RUN )
-		return libmaus::lsf::LSFProcess::state_run;
+		return libmaus2::lsf::LSFProcess::state_run;
 	else if ( status & JOB_STAT_EXIT )
-		return libmaus::lsf::LSFProcess::state_exit;
+		return libmaus2::lsf::LSFProcess::state_exit;
 	else if ( status & JOB_STAT_DONE )
-		return libmaus::lsf::LSFProcess::state_done;
+		return libmaus2::lsf::LSFProcess::state_done;
 	else if ( status & JOB_STAT_PDONE )
-		return libmaus::lsf::LSFProcess::state_pdone;
+		return libmaus2::lsf::LSFProcess::state_pdone;
 	else if ( status & JOB_STAT_PERR )
-		return libmaus::lsf::LSFProcess::state_perr;
+		return libmaus2::lsf::LSFProcess::state_perr;
 	else if ( status & JOB_STAT_WAIT )
-		return libmaus::lsf::LSFProcess::state_wait;
+		return libmaus2::lsf::LSFProcess::state_wait;
 	else
-		return libmaus::lsf::LSFProcess::state_unknown;
+		return libmaus2::lsf::LSFProcess::state_unknown;
 }
 
-libmaus::lsf::LSFProcess::state libmaus::lsf::LSFProcess::getState(std::map<int64_t,int64_t> const & M) const
+libmaus2::lsf::LSFProcess::state libmaus2::lsf::LSFProcess::getState(std::map<int64_t,int64_t> const & M) const
 {
 	state const s = statusToState(getIntState(M));
 	
@@ -451,12 +451,12 @@ libmaus::lsf::LSFProcess::state libmaus::lsf::LSFProcess::getState(std::map<int6
 	return s;
 }
 
-libmaus::lsf::LSFProcess::state libmaus::lsf::LSFProcess::getState() const
+libmaus2::lsf::LSFProcess::state libmaus2::lsf::LSFProcess::getState() const
 {
 	return statusToState(getIntState());
 }
 
-int64_t libmaus::lsf::LSFProcess::getIntState() const
+int64_t libmaus2::lsf::LSFProcess::getIntState() const
 {
 	int lsfr = lsb_openjobinfo(id,0/*jobname*/,0/*user*/,0/*queue*/,0/*host*/,ALL_JOB);
 	
@@ -491,7 +491,7 @@ std::string getUserName()
 	uid_t uid = geteuid();
 	long const maxpwlen = sysconf(_SC_GETPW_R_SIZE_MAX);
 	// std::cerr << "maxpwlen " << maxpwlen << std::endl;
-	::libmaus::autoarray::AutoArray<char> Abuf(maxpwlen);
+	::libmaus2::autoarray::AutoArray<char> Abuf(maxpwlen);
 	struct passwd pwd, * ppwd;
 	int const fail = getpwuid_r(uid,&pwd,Abuf.get(),maxpwlen,&ppwd);
 	
@@ -501,24 +501,24 @@ std::string getUserName()
 	}
 	else
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to get username: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;
 	}
 }
 
-std::map < int64_t, int64_t> libmaus::lsf::LSFProcess::getIntStates()
+std::map < int64_t, int64_t> libmaus2::lsf::LSFProcess::getIntStates()
 {
-	::libmaus::parallel::ScopeLock lock(::libmaus::lsf::LSF::lsflock);
+	::libmaus2::parallel::ScopeLock lock(::libmaus2::lsf::LSF::lsflock);
 	
 	std::string const username = getUserName();
-	::libmaus::util::WriteableString W(username);
+	::libmaus2::util::WriteableString W(username);
 	int lsfr = lsb_openjobinfo(0,0/*jobname*/,W.A.begin()/*user*/,0/*queue*/,0/*host*/,ALL_JOB);
 	
 	if ( lsfr < 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "lsb_openjobinfo failed." << std::endl;
 		se.finish();
 		throw se;		
@@ -534,7 +534,7 @@ std::map < int64_t, int64_t> libmaus::lsf::LSFProcess::getIntStates()
 		{
 			lsb_closejobinfo();
 			
-			::libmaus::exception::LibMausException se;
+			::libmaus2::exception::LibMausException se;
 			se.getStream() << "lsb_readjobinfo failed." << std::endl;
 			se.finish();
 			throw se;

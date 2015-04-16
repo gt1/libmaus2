@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCK_HPP
 
-#include <libmaus/lz/BgzfInflateHeaderBase.hpp>
+#include <libmaus2/lz/BgzfInflateHeaderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -35,15 +35,15 @@ namespace libmaus
 			struct InputBlock
 			{
 				typedef InputBlock this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				//! input data
-				libmaus::lz::BgzfInflateHeaderBase inflateheaderbase;
+				libmaus2::lz::BgzfInflateHeaderBase inflateheaderbase;
 				//! size of block payload
 				uint64_t volatile payloadsize;
 				//! compressed data
-				libmaus::autoarray::AutoArray<char> C;
+				libmaus2::autoarray::AutoArray<char> C;
 				//! size of decompressed data
 				uint64_t volatile uncompdatasize;
 				//! true if this is the last block in the stream
@@ -59,7 +59,7 @@ namespace libmaus
 				: 
 					inflateheaderbase(),
 					payloadsize(0),
-					C(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
+					C(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
 					uncompdatasize(0),
 					final(false) ,
 					streamid(0),
@@ -82,7 +82,7 @@ namespace libmaus
 					// check that we have obtained the requested number of bytes
 					if ( stream.gcount() != static_cast<int64_t>(payloadsize + 8) )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "InputBlock::readBlock(): unexpected eof" << std::endl;
 						se.finish(false);
 						throw se;
@@ -107,9 +107,9 @@ namespace libmaus
 						(static_cast<uint64_t>(static_cast<uint8_t>(C[payloadsize+7])) << 24);
 	
 					// check that uncompressed size conforms with bgzf specs
-					if ( uncompdatasize > libmaus::lz::BgzfConstants::getBgzfMaxBlockSize() )
+					if ( uncompdatasize > libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize() )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "InputBlock::readBlock(): uncompressed size is too large";
 						se.finish(false);
 						throw se;									

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPSETCALLBACKSHAREDVECTOR_HPP)
 #define LIBMAUS_BAMBAM_DUPSETCALLBACKSHAREDVECTOR_HPP
 
-#include <libmaus/bambam/DupSetCallback.hpp>
-#include <libmaus/bambam/DuplicationMetrics.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/bambam/DupSetCallback.hpp>
+#include <libmaus2/bambam/DuplicationMetrics.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct DupSetCallbackSharedVector : public ::libmaus::bambam::DupSetCallback
+		struct DupSetCallbackSharedVector : public ::libmaus2::bambam::DupSetCallback
 		{
 			typedef DupSetCallbackSharedVector this_type;
 		
-			typedef std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> map_type;
-			typedef libmaus::util::unique_ptr<map_type>::type map_ptr_type;
+			typedef std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> map_type;
+			typedef libmaus2::util::unique_ptr<map_type>::type map_ptr_type;
 			
-			::libmaus::bitio::BitVector & B;
+			::libmaus2::bitio::BitVector & B;
 			map_type metrics;
 
-			DupSetCallbackSharedVector(::libmaus::bitio::BitVector & rB) : B(rB), metrics() {}
+			DupSetCallbackSharedVector(::libmaus2::bitio::BitVector & rB) : B(rB), metrics() {}
 			
-			void operator()(::libmaus::bambam::ReadEnds const & A)
+			void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				B.setSync(A.getRead1IndexInFile(),true);
 				

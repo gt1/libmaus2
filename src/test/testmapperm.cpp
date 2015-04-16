@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,23 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/random/Random.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		uint64_t const textlen = arginfo.getValue<int>("textlen",120);
 		uint64_t const readlen = arginfo.getValue<int>("readlen",110);
 		uint64_t const numreads = (textlen-readlen)+1;
-		libmaus::autoarray::AutoArray<char> T(textlen,false);
-		libmaus::random::Random::setup(19);
+		libmaus2::autoarray::AutoArray<char> T(textlen,false);
+		libmaus2::random::Random::setup(19);
 		for ( uint64_t i = 0; i < textlen; ++i )
 		{
-			switch ( libmaus::random::Random::rand8() % 4 )
+			switch ( libmaus2::random::Random::rand8() % 4 )
 			{
 				case 0: T[i] = 'A'; break;
 				case 1: T[i] = 'C'; break;
@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
 			}
 		}
 
-		::libmaus::bambam::BamHeader header;
+		::libmaus2::bambam::BamHeader header;
 		header.addChromosome("text",textlen);
 		
 		std::vector<uint64_t> P;
@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
 		do
 		{		
 			std::ostringstream out;
-			::libmaus::bambam::BamWriter::unique_ptr_type bamwriter(new ::libmaus::bambam::BamWriter(out,header,0,0));
+			::libmaus2::bambam::BamWriter::unique_ptr_type bamwriter(new ::libmaus2::bambam::BamWriter(out,header,0,0));
 			
 			bool print = false;
 			for ( uint64_t i = 0; i < check; ++i )
@@ -83,7 +83,7 @@ int main(int argc, char * argv[])
 				// std::cerr << read << std::endl;
 
 				bamwriter->encodeAlignment(rn,0 /* refid */,i,30, 0, 
-					libmaus::util::NumberSerialisation::formatNumber(readlen,0) + "M", 
+					libmaus2::util::NumberSerialisation::formatNumber(readlen,0) + "M", 
 					-1,-1, -1, read, std::string(readlen,'H'));
 				bamwriter->commit();
 			}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,6 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/trie/SimpleTrie.hpp>
+#include <libmaus2/trie/SimpleTrie.hpp>
 
-double const libmaus::trie::SimpleTrie::critload = 0.8;
+double const libmaus2::trie::SimpleTrie::critload = 0.8;

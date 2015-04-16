@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASECOLLECTIONINFO_HPP)
 #define LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASECOLLECTIONINFO_HPP
 
-#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct ReadEndsBlockDecoderBaseCollectionInfoLockedStream
 		{
 			typedef ReadEndsBlockDecoderBaseCollectionInfoLockedStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:			
-			libmaus::parallel::ScopePosixMutex mutex;
+			libmaus2::parallel::ScopePosixMutex mutex;
 			std::istream & istr;
 			
-			ReadEndsBlockDecoderBaseCollectionInfoLockedStream(libmaus::parallel::PosixMutex & rmutex, std::istream & ristr) : mutex(rmutex), istr(ristr)
+			ReadEndsBlockDecoderBaseCollectionInfoLockedStream(libmaus2::parallel::PosixMutex & rmutex, std::istream & ristr) : mutex(rmutex), istr(ristr)
 			{}
 			
 			public:
-			static unique_ptr_type construct(libmaus::parallel::PosixMutex & rmutex, std::istream & ristr)
+			static unique_ptr_type construct(libmaus2::parallel::PosixMutex & rmutex, std::istream & ristr)
 			{
 				unique_ptr_type tptr(new this_type(rmutex,ristr));
 				return UNIQUE_PTR_MOVE(tptr);
@@ -73,18 +73,18 @@ namespace libmaus
 			public ReadEndsBlockDecoderBaseCollectionInfoIndexStreamProvider
 		{
 			typedef ReadEndsBlockDecoderBaseCollectionInfo this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;			
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;			
 			
-			typedef libmaus::aio::PosixFdInputStream input_stream_type;
-			// typedef libmaus::aio::CheckedInputStream input_stream_type;
+			typedef libmaus2::aio::PosixFdInputStream input_stream_type;
+			// typedef libmaus2::aio::CheckedInputStream input_stream_type;
 			
 			// private:		
 			input_stream_type::shared_ptr_type datastr;
 			input_stream_type::shared_ptr_type indexstr;
 			
-			libmaus::parallel::PosixMutex datamutex;
-			libmaus::parallel::PosixMutex indexmutex;
+			libmaus2::parallel::PosixMutex datamutex;
+			libmaus2::parallel::PosixMutex indexmutex;
 			
 			public:
 			ReadEndsBlockDecoderBaseCollectionInfo() : ReadEndsBlockDecoderBaseCollectionInfoBase(), datastr(), indexstr()

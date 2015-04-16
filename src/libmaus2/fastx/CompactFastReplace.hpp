@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,21 +21,21 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTREPLACE_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTREPLACE_HPP
 
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/PutObject.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/fastx/CompactFastEncoder.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/util/PutObject.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/fastx/CompactFastEncoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{			
 
-		struct CompactFastReplace : public ::libmaus::util::UTF8, public CompactFastTerminator
+		struct CompactFastReplace : public ::libmaus2::util::UTF8, public CompactFastTerminator
 		{
 			static void replacePattern(uint8_t * text, std::string const & pattern)
 			{
-				::libmaus::util::GetObject<uint8_t *> G(text);
+				::libmaus2::util::GetObject<uint8_t *> G(text);
 
 				// decode pattern length
 				uint32_t const patlen = decodeUTF8(G);
@@ -48,29 +48,29 @@ namespace libmaus
 				
 				if ( patlen == getTerminator() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactFastDecoderBase::replacePattern() cannot replace terminator." << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( patlen != pattern.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactFastDecoderBase::replacePattern() cannot change length of stored pattern." << std::endl;
 					se.finish();
 					throw se;					
 				}
 				if ( patternHasIndeterminate && !storedHasIndeterminate )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactFastDecoderBase::replacePattern() cannot replace determinate bases by indeterminate ones." << std::endl;
 					se.finish();
 					throw se;
 				}
 				
 				// replace pattern
-				::libmaus::util::PutObject<uint8_t *> P(text);
-				::libmaus::fastx::CompactFastEncoder::encode(pattern.c_str(),patlen,flags,P);
+				::libmaus2::util::PutObject<uint8_t *> P(text);
+				::libmaus2::fastx::CompactFastEncoder::encode(pattern.c_str(),patlen,flags,P);
 			}
 		};
 	}

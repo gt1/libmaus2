@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_RGINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_RGINFO_HPP
 
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -41,7 +41,7 @@ namespace libmaus
 			std::string SM;
 			
 			RgInfo() {}
-			RgInfo(libmaus::util::ArgInfo const & arginfo)
+			RgInfo(libmaus2::util::ArgInfo const & arginfo)
 			:
 				ID(arginfo.getUnparsedValue("RGID","")),
 				CN(arginfo.getUnparsedValue("RGCN","")),

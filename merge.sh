@@ -9,7 +9,7 @@ git merge experimental
 git push
 git checkout experimental
 
-pushd ../libmaus-debian
+pushd ../libmaus2-debian
 git checkout master
 git pull
 git checkout experimental

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2015 German Tischler
     Copyright (C) 2015 Genome Research Limited
 

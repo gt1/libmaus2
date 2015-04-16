@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,40 +19,40 @@
 #if ! defined(LIBMAUS_IRODS_IRODSINPUTSTREAMFACTORY_HPP)
 #define LIBMAUS_IRODS_IRODSINPUTSTREAMFACTORY_HPP
 
-#include <libmaus/aio/InputStreamFactory.hpp>
-#include <libmaus/irods/IRodsInputStream.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/InputStreamFactory.hpp>
+#include <libmaus2/irods/IRodsInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace irods
 	{
-		struct IRodsInputStreamFactory : public libmaus::aio::InputStreamFactory
+		struct IRodsInputStreamFactory : public libmaus2::aio::InputStreamFactory
 		{
 			typedef IRodsInputStreamFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~IRodsInputStreamFactory() {}
 			
-			virtual libmaus::aio::InputStream::unique_ptr_type constructUnique(std::string const & filename)
+			virtual libmaus2::aio::InputStream::unique_ptr_type constructUnique(std::string const & filename)
 			{
-				libmaus::util::shared_ptr<std::istream>::type iptr(new IRodsInputStream(filename));
-				libmaus::aio::InputStream::unique_ptr_type istr(new libmaus::aio::InputStream(iptr));
+				libmaus2::util::shared_ptr<std::istream>::type iptr(new IRodsInputStream(filename));
+				libmaus2::aio::InputStream::unique_ptr_type istr(new libmaus2::aio::InputStream(iptr));
 				return UNIQUE_PTR_MOVE(istr);
 			}
-			virtual libmaus::aio::InputStream::shared_ptr_type constructShared(std::string const & filename)
+			virtual libmaus2::aio::InputStream::shared_ptr_type constructShared(std::string const & filename)
 			{
-				libmaus::util::shared_ptr<std::istream>::type sptr(new IRodsInputStream(filename));
-				libmaus::aio::InputStream::shared_ptr_type istr(new libmaus::aio::InputStream(sptr));
+				libmaus2::util::shared_ptr<std::istream>::type sptr(new IRodsInputStream(filename));
+				libmaus2::aio::InputStream::shared_ptr_type istr(new libmaus2::aio::InputStream(sptr));
 				return istr;
 			}
 
 			static void registerHandler()
 			{
-				libmaus::aio::InputStreamFactoryContainer::addHandler(
+				libmaus2::aio::InputStreamFactoryContainer::addHandler(
 					"irods",
-					libmaus::aio::InputStreamFactory::shared_ptr_type(new libmaus::irods::IRodsInputStreamFactory)
+					libmaus2::aio::InputStreamFactory::shared_ptr_type(new libmaus2::irods::IRodsInputStreamFactory)
 				);
 			}
 		};

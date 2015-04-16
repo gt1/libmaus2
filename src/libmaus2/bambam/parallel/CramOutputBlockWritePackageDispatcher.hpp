@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKWRITEPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKWRITEPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/CramOutputBlockWritePackageFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/CramOutputBlockWritePackageReturnInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlockWritePackageFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlockWritePackageReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 
-			struct CramOutputBlockWritePackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct CramOutputBlockWritePackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef CramOutputBlockWritePackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				CramOutputBlockWritePackageReturnInterface & packageReturnInterface;
 				CramOutputBlockWritePackageFinishedInterface & finishedInterface;
@@ -44,7 +44,7 @@ namespace libmaus
 					CramOutputBlockWritePackageFinishedInterface & rfinishedInterface
 				) : packageReturnInterface(rpackageReturnInterface), finishedInterface(rfinishedInterface) {}
 				~CramOutputBlockWritePackageDispatcher() {}
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					CramOutputBlockWritePackage * BP = dynamic_cast<CramOutputBlockWritePackage *>(P);
 
@@ -56,7 +56,7 @@ namespace libmaus
 					out->write(data,n);
 					if ( ! out )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "CramOutputBlockWritePackageDispatcher::dispatch: failed to write " << n << " bytes of data." << std::endl;
 						lme.finish();
 						throw lme;

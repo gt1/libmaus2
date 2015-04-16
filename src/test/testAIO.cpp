@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,13 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/aio/AsynchronousBufferReader.hpp>
-#include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/aio/LineSplittingPosixFdOutputStream.hpp>
-#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/AsynchronousBufferReader.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
+#include <libmaus2/aio/LineSplittingPosixFdOutputStream.hpp>
+#include <libmaus2/aio/LinuxStreamingPosixFdOutputStream.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
 #include <vector>
 #include <map>
@@ -31,8 +31,8 @@
 
 void testPosixFdInput()
 {
-	::libmaus::autoarray::AutoArray<unsigned char> A = libmaus::util::GetFileSize::readFile("configure");
-	libmaus::aio::PosixFdInputStream PFIS("configure",64*1024);
+	::libmaus2::autoarray::AutoArray<unsigned char> A = libmaus2::util::GetFileSize::readFile("configure");
+	libmaus2::aio::PosixFdInputStream PFIS("configure",64*1024);
 	
 	PFIS.clear();
 	PFIS.seekg(0,std::ios::end);
@@ -67,7 +67,7 @@ void testPosixFdInput()
 int main(int argc, char * argv[])
 {
 	{
-		libmaus::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
+		libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
 		for ( uint64_t i = 0; i < 17; ++i )
 		{
 			LSOUT << "line_" << i << "\n";
@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
 	}
 
 	{
-		libmaus::aio::LineSplittingPosixFdOutputStream LSOUT("nosplit",4,32);
+		libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("nosplit",4,32);
 	}
 		
 	{
@@ -84,28 +84,28 @@ int main(int argc, char * argv[])
 		std::string const text2 = "new text";
 		
 		{
-			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			libmaus2::aio::PosixFdOutputStream PFOS(fn);
 			PFOS << text1;
 			PFOS.flush();
 		}
 		
 		{
-			libmaus::aio::CheckedInputStream CIS(fn);
-			libmaus::autoarray::AutoArray<char> C(text1.size());
+			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::autoarray::AutoArray<char> C(text1.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
 			assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
 		}
 
 		{
-			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			libmaus2::aio::PosixFdOutputStream PFOS(fn);
 			PFOS << text2;
 			PFOS.flush();
 		}
 		
 		{
-			libmaus::aio::CheckedInputStream CIS(fn);
-			libmaus::autoarray::AutoArray<char> C(text2.size());
+			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::autoarray::AutoArray<char> C(text2.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
 			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
@@ -120,28 +120,28 @@ int main(int argc, char * argv[])
 		std::string const text2 = "new text";
 		
 		{
-			libmaus::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
+			libmaus2::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
 			PFOS << text1;
 			PFOS.flush();
 		}
 		
 		{
-			libmaus::aio::CheckedInputStream CIS(fn);
-			libmaus::autoarray::AutoArray<char> C(text1.size());
+			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::autoarray::AutoArray<char> C(text1.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
 			assert ( strncmp ( text1.c_str(), C.begin(), C.size() ) == 0 );
 		}
 
 		{
-			libmaus::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
+			libmaus2::aio::LinuxStreamingPosixFdOutputStream PFOS(fn);
 			PFOS << text2;
 			PFOS.flush();
 		}
 		
 		{
-			libmaus::aio::CheckedInputStream CIS(fn);
-			libmaus::autoarray::AutoArray<char> C(text2.size());
+			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::autoarray::AutoArray<char> C(text2.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
 			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
@@ -153,11 +153,11 @@ int main(int argc, char * argv[])
 	// test putback buffer in PosixFdInputStream
 	{
 		std::string const fn = "configure";
-		uint64_t const fs = libmaus::util::GetFileSize::getFileSize(fn);
-		libmaus::autoarray::AutoArray<char> A(fs,false);
+		uint64_t const fs = libmaus2::util::GetFileSize::getFileSize(fn);
+		libmaus2::autoarray::AutoArray<char> A(fs,false);
 		
 		{
-			libmaus::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::CheckedInputStream CIS(fn);
 			CIS.read(A.begin(),fs);
 		}
 		
@@ -165,7 +165,7 @@ int main(int argc, char * argv[])
 		
 		if ( fs >= putbacksize )
 		{
-			libmaus::aio::PosixFdInputStream PFIS(fn,64*1024,putbacksize);
+			libmaus2::aio::PosixFdInputStream PFIS(fn,64*1024,putbacksize);
 			
 			for ( uint64_t z = 0; z < (fs-putbacksize+1); ++z )
 			{
@@ -194,16 +194,16 @@ int main(int argc, char * argv[])
 	
 	try
 	{
-		::libmaus::timing::RealTimeClock rtc;
+		::libmaus2::timing::RealTimeClock rtc;
 		rtc.start();
 
 		std::list<std::string> filenames;
 		for ( int i = 1; i+1 < argc; ++i )
 			filenames.push_back(argv[i]);
 
-		// ::libmaus::aio::AsynchronousBufferReader ABR(argv[1],16,1ull << 18);	
-		::libmaus::aio::AsynchronousBufferReaderList ABR(filenames.begin(),filenames.end(),16,1ull << 18);	
-		::libmaus::aio::AsynchronousWriter AW(argv[argc-1]);	
+		// ::libmaus2::aio::AsynchronousBufferReader ABR(argv[1],16,1ull << 18);	
+		::libmaus2::aio::AsynchronousBufferReaderList ABR(filenames.begin(),filenames.end(),16,1ull << 18);	
+		::libmaus2::aio::AsynchronousWriter AW(argv[argc-1]);	
 		uint64_t copied = 0;
 		uint64_t copymeg = 0;
 

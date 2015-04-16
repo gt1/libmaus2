@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,9 +21,9 @@
 #if ! defined(LIBMAUS_SV_SV_HPP)
 #define LIBMAUS_SV_SV_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sv
 	{
@@ -35,12 +35,12 @@ namespace libmaus
 			 * NEXT[r] : smallest rank s such that s>r and SUF[s]<SUF[r]
 			 **/
 			template<typename iterator>
-			static ::libmaus::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > nsv(iterator SUF, uint64_t const n)
+			static ::libmaus2::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > nsv(iterator SUF, uint64_t const n)
 			{
 				typedef typename std::iterator_traits<iterator>::value_type value_type;
 			  
 				// allocate result array
-				::libmaus::autoarray::AutoArray<value_type> next(n,false);
+				::libmaus2::autoarray::AutoArray<value_type> next(n,false);
 
 				// do not crash for n==0
 				if ( n )
@@ -72,12 +72,12 @@ namespace libmaus
 			 * PREV[r] : largest rank s such that s<r and SUF[s]<SUF[r]
 			 **/
 			template<typename iterator>
-			static ::libmaus::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > psv(iterator SUF, uint64_t const n)
+			static ::libmaus2::autoarray::AutoArray< typename std::iterator_traits<iterator>::value_type > psv(iterator SUF, uint64_t const n)
 			{
 				typedef typename std::iterator_traits<iterator>::value_type value_type;
 
 				// allocate result array
-				::libmaus::autoarray::AutoArray<value_type> prev(n,false);
+				::libmaus2::autoarray::AutoArray<value_type> prev(n,false);
 
 				// do not crash for n==0
 				if ( n )

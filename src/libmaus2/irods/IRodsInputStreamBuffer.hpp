@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -21,9 +21,9 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus/irods/IRodsSystem.hpp>
+#include <libmaus2/irods/IRodsSystem.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace irods
 	{
@@ -31,8 +31,8 @@ namespace libmaus
 		{
 			public:
 			typedef IRodsInputStreamBuffer this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			static int64_t getDefaultBlockSize()
@@ -40,14 +40,14 @@ namespace libmaus
 				return 64*1024;
 			}
 			
-			libmaus::irods::IRodsFileBase::unique_ptr_type stream;
+			libmaus2::irods::IRodsFileBase::unique_ptr_type stream;
 			
 			int64_t const filesize;
 
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
 			
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			uint64_t symsread;
 

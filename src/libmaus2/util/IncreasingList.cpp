@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,26 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/IncreasingList.hpp>
+#include <libmaus2/util/IncreasingList.hpp>
 
-uint64_t libmaus::util::IncreasingList::byteSize() const
+uint64_t libmaus2::util::IncreasingList::byteSize() const
 {
 	return 6*sizeof(uint64_t) + Bup.byteSize() + C.byteSize();
 }
 			
-void libmaus::util::IncreasingList::setup()
+void libmaus2::util::IncreasingList::setup()
 {
-	::libmaus::rank::ERank222B::unique_ptr_type tR(new ::libmaus::rank::ERank222B(Bup.get(),Bup.size()*64));
+	::libmaus2::rank::ERank222B::unique_ptr_type tR(new ::libmaus2::rank::ERank222B(Bup.get(),Bup.size()*64));
 	R = UNIQUE_PTR_MOVE(tR);
 }
 
-libmaus::util::IncreasingList::IncreasingList(uint64_t const rn, uint64_t const rb)
-: n(rn), b(rb), m(::libmaus::math::lowbits(b)), C(n,b), 
+libmaus2::util::IncreasingList::IncreasingList(uint64_t const rn, uint64_t const rb)
+: n(rn), b(rb), m(::libmaus2::math::lowbits(b)), C(n,b), 
   Bup( (((n*m) >> b) + n + 63) / 64 )
 {
 }
 
-void libmaus::util::IncreasingList::test(std::vector<uint64_t> const & W)
+void libmaus2::util::IncreasingList::test(std::vector<uint64_t> const & W)
 {
 	if ( W.size() )
 	{
@@ -58,10 +58,10 @@ void libmaus::util::IncreasingList::test(std::vector<uint64_t> const & W)
 	}
 }
 
-void libmaus::util::IncreasingList::testRandom(uint64_t const n, uint64_t const k)
+void libmaus2::util::IncreasingList::testRandom(uint64_t const n, uint64_t const k)
 {
 	std::vector < uint64_t > V(n);
 	for ( uint64_t i = 0; i < n; ++i )
-		V[i] = ::libmaus::random::Random::rand64() % k;
+		V[i] = ::libmaus2::random::Random::rand64() % k;
 	test(V);
 }

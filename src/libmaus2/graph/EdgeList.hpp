@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(EDGELIST_HPP)
 #define EDGELIST_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/graph/TripleEdge.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/math/MetaLog.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/graph/TripleEdge.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/math/MetaLog.hpp>
 #include <limits>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -46,13 +46,13 @@ namespace libmaus
 		struct EdgeListTemplate : public EdgeListBase
 		{
 			typedef EdgeListTemplate<bininsert> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			uint64_t edgelow;
 			uint64_t edgehigh;
 			uint64_t maxedges;
-			::libmaus::autoarray::AutoArray<edge_target_type> edges;
-			::libmaus::autoarray::AutoArray<edge_weight_type> weights;
+			::libmaus2::autoarray::AutoArray<edge_target_type> edges;
+			::libmaus2::autoarray::AutoArray<edge_weight_type> weights;
 			
 			static uint64_t memPerEdge()
 			{
@@ -102,7 +102,7 @@ namespace libmaus
 			
 			std::map<unsigned int,uint64_t> getNumEdgeDist() const
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> D256(256);
+				::libmaus2::autoarray::AutoArray<uint64_t> D256(256);
 				std::map < unsigned int, uint64_t > D;
 				
 				for ( uint64_t i = edgelow; i < edgehigh; ++i )
@@ -127,12 +127,12 @@ namespace libmaus
 			{
 				std::ostringstream out;
 				
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,M.size());
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,M.size());
 				
 				for ( typename std::map<a,b>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
 				{
-					::libmaus::serialize::Serialize<a>::serialize(out,ita->first);
-					::libmaus::serialize::Serialize<b>::serialize(out,ita->second);
+					::libmaus2::serialize::Serialize<a>::serialize(out,ita->first);
+					::libmaus2::serialize::Serialize<b>::serialize(out,ita->second);
 				}
 				
 				return out.str();
@@ -155,7 +155,7 @@ namespace libmaus
 			static std::map<a,b> deserialiseMap(std::istream & in)
 			{
 				uint64_t m;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&m);
+				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&m);
 				std::map<a,b> M;
 				
 				for ( uint64_t i = 0; i < m; ++i )
@@ -163,8 +163,8 @@ namespace libmaus
 					a A;
 					b B;
 
-					::libmaus::serialize::Serialize<a>::deserialize(in,&A);
-					::libmaus::serialize::Serialize<b>::deserialize(in,&B);
+					::libmaus2::serialize::Serialize<a>::deserialize(in,&A);
+					::libmaus2::serialize::Serialize<b>::deserialize(in,&B);
 					
 					M[A] = B;
 				}
@@ -214,15 +214,15 @@ namespace libmaus
 
 			uint64_t writeNumEdgeFile(std::string const & filename) const
 			{
-				::libmaus::aio::SynchronousGenericOutput<edge_count_type> out(filename,8*1024);
+				::libmaus2::aio::SynchronousGenericOutput<edge_count_type> out(filename,8*1024);
 				return writeNumEdgeStream(out);				
 			}
 			
 			uint64_t writeNumEdgeSocket(
-				::libmaus::network::SocketBase * const socket
+				::libmaus2::network::SocketBase * const socket
 			)
 			{
-				::libmaus::network::SocketOutputBuffer<edge_count_type> SOB(socket,64*1024);
+				::libmaus2::network::SocketOutputBuffer<edge_count_type> SOB(socket,64*1024);
 				uint64_t const numedges = writeNumEdgeStream(SOB);
 				socket->writeMessage<uint64_t>(1,0,0);
 				return numedges;
@@ -230,13 +230,13 @@ namespace libmaus
 			
 			template<typename type>
 			static void receiveSocket(				
-				::libmaus::network::SocketBase * const socket,
+				::libmaus2::network::SocketBase * const socket,
 				std::string const & filename,
 				bool const /* append */
 				)
 			{
-				::libmaus::aio::SynchronousGenericOutput<type> out(filename,8*1024);
-				::libmaus::network::SocketInputBuffer<type> SIB(socket,::std::numeric_limits<uint64_t>::max(),1);
+				::libmaus2::aio::SynchronousGenericOutput<type> out(filename,8*1024);
+				::libmaus2::network::SocketInputBuffer<type> SIB(socket,::std::numeric_limits<uint64_t>::max(),1);
 				type v;
 				while ( SIB.get(v) )
 					out.put(v);
@@ -261,15 +261,15 @@ namespace libmaus
 			
 			void writeEdgeTargets(std::string const & filename) const
 			{
-				::libmaus::aio::SynchronousGenericOutput<edge_target_type> out(filename,8*1024);
+				::libmaus2::aio::SynchronousGenericOutput<edge_target_type> out(filename,8*1024);
 				writeEdgeTargetsStream(out);	
 			}
 
 			void writeEdgeTargetsSocket(
-				::libmaus::network::SocketBase * const socket
+				::libmaus2::network::SocketBase * const socket
 			)
 			{
-				::libmaus::network::SocketOutputBuffer<edge_target_type> SOB(socket,64*1024);
+				::libmaus2::network::SocketOutputBuffer<edge_target_type> SOB(socket,64*1024);
 				writeEdgeTargetsStream(SOB);
 				socket->writeMessage<uint64_t>(1,0,0);
 			}
@@ -296,15 +296,15 @@ namespace libmaus
 
 			void writeEdgeWeights(std::string const & filename) const
 			{
-				::libmaus::aio::SynchronousGenericOutput<edge_weight_type> out(filename,8*1024);
+				::libmaus2::aio::SynchronousGenericOutput<edge_weight_type> out(filename,8*1024);
 				writeEdgeWeightStream(out);
 			}
 
 			void writeEdgeWeightsSocket(
-				::libmaus::network::SocketBase * const socket
+				::libmaus2::network::SocketBase * const socket
 			)
 			{
-				::libmaus::network::SocketOutputBuffer<edge_weight_type> SOB(socket,64*1024);
+				::libmaus2::network::SocketOutputBuffer<edge_weight_type> SOB(socket,64*1024);
 				writeEdgeWeightStream(SOB);
 				socket->writeMessage<uint64_t>(1,0,0);
 			}
@@ -401,12 +401,12 @@ namespace libmaus
 				*/
 			}
 
-			void operator()(::libmaus::graph::TripleEdge const & T)
+			void operator()(::libmaus2::graph::TripleEdge const & T)
 			{
 				(*this)(T.a,T.b,T.c);
 			}
 			
-			void operator()(::libmaus::graph::TripleEdge const * T, uint64_t const n)
+			void operator()(::libmaus2::graph::TripleEdge const * T, uint64_t const n)
 			{
 				for ( uint64_t i = 0; i < n; ++i )
 					(*this)(T[i]);

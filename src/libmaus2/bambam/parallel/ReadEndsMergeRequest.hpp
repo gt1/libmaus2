@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -21,10 +21,10 @@
 
 #include <vector>
 #include <utility>
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 		{
 			struct ReadEndsMergeRequest
 			{
-				libmaus::bitio::BitVector * dupbitvec;
-				libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI;
+				libmaus2::bitio::BitVector * dupbitvec;
+				libmaus2::util::shared_ptr< std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type MI;
 				std::vector< std::pair<uint64_t,uint64_t> > SMI;
 				
 				ReadEndsMergeRequest()
@@ -42,8 +42,8 @@ namespace libmaus
 				}
 				
 				ReadEndsMergeRequest(
-					libmaus::bitio::BitVector * rdupbitvec,
-					libmaus::util::shared_ptr< std::vector< ::libmaus::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type rMI,
+					libmaus2::bitio::BitVector * rdupbitvec,
+					libmaus2::util::shared_ptr< std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > >::type rMI,
 					std::vector< std::pair<uint64_t,uint64_t> > const & rSMI
 				)
 				: dupbitvec(rdupbitvec), MI(rMI), SMI(rSMI) 

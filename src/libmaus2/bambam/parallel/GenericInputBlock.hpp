@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCK_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBlockFillResult.hpp>
-#include <libmaus/bambam/parallel/GenericInputBlockSubBlockInfo.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlockFillResult.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlockSubBlockInfo.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 #include <utility>
 #include <vector>
-#include <libmaus/parallel/LockedCounter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/parallel/LockedFreeList.hpp>
+#include <libmaus2/parallel/LockedCounter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/LockedFreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -40,10 +40,10 @@ namespace libmaus
 			{
 				typedef _meta_info_type meta_info_type;
 				typedef GenericInputBlock<meta_info_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
-				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> A;
+				libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> A;
 				uint8_t * pa;
 				uint8_t * pc;
 				uint8_t * pe;
@@ -121,7 +121,7 @@ namespace libmaus
 					pe += req;
 				}
 				
-				uint64_t extractRest(libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> & R)
+				uint64_t extractRest(libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> & R)
 				{
 					// number of bytes in use
 					uint64_t const bused = pe - pc;

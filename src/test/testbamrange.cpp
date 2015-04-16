@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,21 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bambam/BamRangeDecoder.hpp>
+#include <libmaus2/bambam/BamRangeDecoder.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const bamname = arginfo.getRestArg<std::string>(0);
 		std::string const range = arginfo.restargs.at(1); // "3:100000-200000";
 		
-		libmaus::bambam::BamRangeDecoder bamdec(bamname,range);
+		libmaus2::bambam::BamRangeDecoder bamdec(bamname,range);
 		while ( bamdec.readAlignment() )
 		{
-			libmaus::bambam::BamAlignment const & algn = bamdec.getAlignment();		
+			libmaus2::bambam::BamAlignment const & algn = bamdec.getAlignment();		
 			std::cout << algn.formatAlignment(bamdec.getHeader()) << std::endl;
 		}	
 	}

@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2007-2012 Simon Gog All Right Reserved.
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -20,19 +20,19 @@
 #if ! defined(BALANCEDPARENTHESESBASE_HPP)
 #define BALANCEDPARENTHESESBASE_HPP
 
-#include <libmaus/util/NearestNeighbourDictionary.hpp>
-#include <libmaus/util/IncreasingStack.hpp>
+#include <libmaus2/util/NearestNeighbourDictionary.hpp>
+#include <libmaus2/util/IncreasingStack.hpp>
 
 struct BalancedParenthesesBase
 {
 	typedef uint8_t lookup_type;
 	static unsigned int const lookup_bits = 8*sizeof(lookup_type);
 
-	::libmaus::autoarray::AutoArray<uint8_t> openLookup;
-	::libmaus::autoarray::AutoArray<uint8_t> closeLookup;
-	::libmaus::autoarray::AutoArray<int8_t> leftMatchLookup;
-	::libmaus::autoarray::AutoArray<int8_t> rightMatchLookup;
-	::libmaus::autoarray::AutoArray<int8_t> excessLookup;
+	::libmaus2::autoarray::AutoArray<uint8_t> openLookup;
+	::libmaus2::autoarray::AutoArray<uint8_t> closeLookup;
+	::libmaus2::autoarray::AutoArray<int8_t> leftMatchLookup;
+	::libmaus2::autoarray::AutoArray<int8_t> rightMatchLookup;
+	::libmaus2::autoarray::AutoArray<int8_t> excessLookup;
 	
 	BalancedParenthesesBase()
 	: 
@@ -52,9 +52,9 @@ struct BalancedParenthesesBase
 				rightMatchLookup [ i * lookup_bits + j ] = singleMatchExcessRight(static_cast<lookup_type>(i),-static_cast<int8_t>(j+1));
 			}
 			excessLookup[i] = 
-				static_cast<int64_t>(::libmaus::rank::PopCnt8<sizeof(long)>::popcnt8( (i ) & ::libmaus::math::lowbits(lookup_bits) ))
+				static_cast<int64_t>(::libmaus2::rank::PopCnt8<sizeof(long)>::popcnt8( (i ) & ::libmaus2::math::lowbits(lookup_bits) ))
 				-
-				static_cast<int64_t>(::libmaus::rank::PopCnt8<sizeof(long)>::popcnt8( (~i) & ::libmaus::math::lowbits(lookup_bits) ))
+				static_cast<int64_t>(::libmaus2::rank::PopCnt8<sizeof(long)>::popcnt8( (~i) & ::libmaus2::math::lowbits(lookup_bits) ))
 				;
 		}
 	}
@@ -81,7 +81,7 @@ struct BalancedParenthesesBase
 	uint64_t lookupFindClose(iterator I, uint64_t i) const
 	{
 		// closing?
-		if ( ! ::libmaus::bitio::getBit(I,i) )
+		if ( ! ::libmaus2::bitio::getBit(I,i) )
 			return i;
 
 		// which lookup block is i in ?
@@ -89,7 +89,7 @@ struct BalancedParenthesesBase
 		// bit position in lookup block
 		uint64_t const lookupoffset = i - lookupblock*lookup_bits;
 		// lookup word
-		lookup_type const lookupword = ::libmaus::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
+		lookup_type const lookupword = ::libmaus2::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
 		// is closing parenthesis in this block?
 		uint8_t const lookupres = wordClose( lookupword, lookupoffset  );
 		
@@ -101,23 +101,23 @@ struct BalancedParenthesesBase
 
 		// lookup parenthesis is not in this block, extract rest of lookup word
 		unsigned int const lookuprestbits = lookup_bits-lookupoffset;
-		lookup_type const lookuprest = lookupword & ::libmaus::math::lowbits(lookuprestbits);
+		lookup_type const lookuprest = lookupword & ::libmaus2::math::lowbits(lookuprestbits);
 		// compute number of opening parentheses in rest of word
-		unsigned int const opening = ::libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(lookuprest);
+		unsigned int const opening = ::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(lookuprest);
 		// compute number of closing parentheses in rest of word
 		unsigned int const closing = lookuprestbits-opening;		
 		// current excess
 		uint64_t excess = opening-closing;
 		
 		// get next word
-		lookup_type nextlookupword = ::libmaus::bitio::getBits(I,i,lookup_bits);
+		lookup_type nextlookupword = ::libmaus2::bitio::getBits(I,i,lookup_bits);
 		
 		// while excess is too large for lookup or closing parenthesis is not in lookup word
 		while ( excess > lookup_bits || static_cast<uint64_t>(wordLeftMatch(nextlookupword,excess-1)) == lookup_bits )
 		{
 			excess += excessLookup[nextlookupword];
 			i += lookup_bits;
-			nextlookupword = ::libmaus::bitio::getBits(I,i,lookup_bits);
+			nextlookupword = ::libmaus2::bitio::getBits(I,i,lookup_bits);
 		}
 
 		return i + wordLeftMatch(nextlookupword,excess-1);
@@ -127,7 +127,7 @@ struct BalancedParenthesesBase
 	uint64_t lookupFindCloseOrFar(iterator I, uint64_t i, uint64_t const blocksize) const
 	{
 		// closing?
-		if ( ! ::libmaus::bitio::getBit(I,i) )
+		if ( ! ::libmaus2::bitio::getBit(I,i) )
 			return i;
 
 		// which lookup block is i in ?
@@ -135,7 +135,7 @@ struct BalancedParenthesesBase
 		// bit position in lookup block
 		uint64_t const lookupoffset = i - lookupblock*lookup_bits;
 		// lookup word
-		lookup_type const lookupword = ::libmaus::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
+		lookup_type const lookupword = ::libmaus2::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
 		// is closing parenthesis in this block?
 		uint8_t const lookupres = wordClose( lookupword, lookupoffset  );
 		
@@ -150,16 +150,16 @@ struct BalancedParenthesesBase
 		
 		// lookup parenthesis is not in this block, extract rest of lookup word
 		unsigned int const lookuprestbits = lookup_bits-lookupoffset;
-		lookup_type const lookuprest = lookupword & ::libmaus::math::lowbits(lookuprestbits);
+		lookup_type const lookuprest = lookupword & ::libmaus2::math::lowbits(lookuprestbits);
 		// compute number of opening parentheses in rest of word
-		unsigned int const opening = ::libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(lookuprest);
+		unsigned int const opening = ::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(lookuprest);
 		// compute number of closing parentheses in rest of word
 		unsigned int const closing = lookuprestbits-opening;
 		// current excess
 		uint64_t excess = opening-closing;
 		
 		// get next word
-		lookup_type nextlookupword = ::libmaus::bitio::getBits(I,i,lookup_bits);
+		lookup_type nextlookupword = ::libmaus2::bitio::getBits(I,i,lookup_bits);
 		
 		// while excess is too large for lookup or closing parenthesis is not in lookup word
 		while ( excess > lookup_bits || static_cast<uint64_t>(wordLeftMatch(nextlookupword,excess-1)) == lookup_bits )
@@ -170,7 +170,7 @@ struct BalancedParenthesesBase
 			if ( i%blocksize == 0 )
 				return ::std::numeric_limits<uint64_t>::max();
 
-			nextlookupword = ::libmaus::bitio::getBits(I,i,lookup_bits);
+			nextlookupword = ::libmaus2::bitio::getBits(I,i,lookup_bits);
 		}
 
 		return i + wordLeftMatch(nextlookupword,excess-1);
@@ -180,13 +180,13 @@ struct BalancedParenthesesBase
 	uint64_t lookupFindOpen(iterator I, uint64_t i) const
 	{
 		// is par at position i opening?
-		if ( ::libmaus::bitio::getBit(I,i) )
+		if ( ::libmaus2::bitio::getBit(I,i) )
 			return i;
 
 		// check word
 		uint64_t const lookupblock = (i / lookup_bits);
 		uint64_t const lookupoffset = i - lookupblock*lookup_bits;
-		lookup_type const lookupword = ::libmaus::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
+		lookup_type const lookupword = ::libmaus2::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
 		int8_t const lookupres = wordOpen( lookupword, lookupoffset  );
 
 		if ( lookupres != static_cast<int64_t>(lookupoffset) )
@@ -195,9 +195,9 @@ struct BalancedParenthesesBase
 		// compute excess on part of word
 		unsigned int const usebits = lookupoffset+1;
 		unsigned int const restbits = lookup_bits-usebits;
-		uint64_t const lookupmask = ::libmaus::math::lowbits(usebits);
+		uint64_t const lookupmask = ::libmaus2::math::lowbits(usebits);
 		lookup_type const rightalignedlookupword = (lookupword >> restbits) & lookupmask;
-		int64_t const opening = static_cast<int64_t>(::libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(rightalignedlookupword));
+		int64_t const opening = static_cast<int64_t>(::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(rightalignedlookupword));
 		int64_t const closing = (usebits - opening);
 		assert (closing > opening) ;
 		
@@ -205,12 +205,12 @@ struct BalancedParenthesesBase
 		int64_t excess = opening - closing;
 		i = lookupblock*lookup_bits;
 		
-		lookup_type nextlookupword = ::libmaus::bitio::getBits(I,i-lookup_bits,lookup_bits);
+		lookup_type nextlookupword = ::libmaus2::bitio::getBits(I,i-lookup_bits,lookup_bits);
 		while ( (((-excess) > static_cast<int64_t>(lookup_bits))) || (wordRightMatch(nextlookupword,(-excess)-1) < 0) )
 		{
 			excess += excessLookup[nextlookupword];
 			i -= lookup_bits;
-			nextlookupword = ::libmaus::bitio::getBits(I,i-lookup_bits,lookup_bits);
+			nextlookupword = ::libmaus2::bitio::getBits(I,i-lookup_bits,lookup_bits);
 		}
 		
 		// reached word, return result
@@ -221,13 +221,13 @@ struct BalancedParenthesesBase
 	uint64_t lookupFindOpenOrFar(iterator I, uint64_t i, uint64_t const blocksize) const
 	{
 		// is par at position i opening?
-		if ( ::libmaus::bitio::getBit(I,i) )
+		if ( ::libmaus2::bitio::getBit(I,i) )
 			return i;
 
 		// check word
 		uint64_t const lookupblock = (i / lookup_bits);
 		uint64_t const lookupoffset = i - lookupblock*lookup_bits;
-		lookup_type const lookupword = ::libmaus::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
+		lookup_type const lookupword = ::libmaus2::bitio::getBits(I,lookupblock*lookup_bits,lookup_bits);
 		int8_t const lookupres = wordOpen( lookupword, lookupoffset  );
 
 		if ( lookupres != static_cast<int64_t>(lookupoffset) )
@@ -236,9 +236,9 @@ struct BalancedParenthesesBase
 		// compute excess on part of word
 		unsigned int const usebits = lookupoffset+1;
 		unsigned int const restbits = lookup_bits-usebits;
-		uint64_t const lookupmask = ::libmaus::math::lowbits(usebits);
+		uint64_t const lookupmask = ::libmaus2::math::lowbits(usebits);
 		lookup_type const rightalignedlookupword = (lookupword >> restbits) & lookupmask;
-		int64_t const opening = static_cast<int64_t>(::libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(rightalignedlookupword));
+		int64_t const opening = static_cast<int64_t>(::libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(rightalignedlookupword));
 		int64_t const closing = (usebits - opening);
 		assert (closing > opening) ;
 		
@@ -249,7 +249,7 @@ struct BalancedParenthesesBase
 		if ( i%blocksize== 0)
 			return std::numeric_limits<uint64_t>::max();
 		
-		lookup_type nextlookupword = ::libmaus::bitio::getBits(I,i-lookup_bits,lookup_bits);
+		lookup_type nextlookupword = ::libmaus2::bitio::getBits(I,i-lookup_bits,lookup_bits);
 		while ( (((-excess) > static_cast<int64_t>(lookup_bits))) || (wordRightMatch(nextlookupword,(-excess)-1) < 0) )
 		{
 			excess += excessLookup[nextlookupword];
@@ -258,7 +258,7 @@ struct BalancedParenthesesBase
 			if ( i%blocksize== 0)
 				return std::numeric_limits<uint64_t>::max();
 
-			nextlookupword = ::libmaus::bitio::getBits(I,i-lookup_bits,lookup_bits);
+			nextlookupword = ::libmaus2::bitio::getBits(I,i-lookup_bits,lookup_bits);
 		}
 		
 		// reached word, return result
@@ -269,13 +269,13 @@ struct BalancedParenthesesBase
 	static uint64_t naiveFindClose(iterator I, uint64_t i)
 	{
 		// closing?
-		if ( ! ::libmaus::bitio::getBit(I,i) )
+		if ( ! ::libmaus2::bitio::getBit(I,i) )
 			return i;
 
 		uint64_t excess = 1;
 		while ( excess )
 		{
-			bool const bit = ::libmaus::bitio::getBit(I,++i);
+			bool const bit = ::libmaus2::bitio::getBit(I,++i);
 			
 			if ( bit )
 				excess++;
@@ -289,13 +289,13 @@ struct BalancedParenthesesBase
 	template<typename iterator>
 	static uint64_t naiveFindOpen(iterator I, uint64_t i)
 	{
-		if ( ::libmaus::bitio::getBit(I,i) )
+		if ( ::libmaus2::bitio::getBit(I,i) )
 			return i;
 		
 		int64_t excess = -1;
 		while ( excess )
 		{
-			bool const bit = ::libmaus::bitio::getBit(I,--i);
+			bool const bit = ::libmaus2::bitio::getBit(I,--i);
 			
 			if ( bit )
 				excess++;
@@ -460,10 +460,10 @@ struct BalancedParenthesesBase
 	 *       \f$ \Order{2n + n} \f$ bits: \f$n\f$ bits for input, \f$n\f$ bits for output, and \f$n\f$ bits for a succinct stack.
 	 *  \pre The parentheses sequence represented by bp has to be balanced.
 	 */
-	static ::libmaus::bitio::IndexedBitVector::unique_ptr_type calculatePioneerBitVector(::libmaus::bitio::BitVector const & bp, uint64_t const block_size)
+	static ::libmaus2::bitio::IndexedBitVector::unique_ptr_type calculatePioneerBitVector(::libmaus2::bitio::BitVector const & bp, uint64_t const block_size)
 	{
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type Ppioneer_bitmap(new ::libmaus::bitio::IndexedBitVector(bp.size()));
-		::libmaus::bitio::IndexedBitVector & pioneer_bitmap = *Ppioneer_bitmap;
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type Ppioneer_bitmap(new ::libmaus2::bitio::IndexedBitVector(bp.size()));
+		::libmaus2::bitio::IndexedBitVector & pioneer_bitmap = *Ppioneer_bitmap;
 
 		IncreasingStack opening_parenthesis(bp.size());
 
@@ -529,21 +529,21 @@ struct BalancedParenthesesBase
 		return UNIQUE_PTR_MOVE(Ppioneer_bitmap);
 	}
 
-	static libmaus::util::NearestNeighbourDictionary::unique_ptr_type calculatePioneerBitVectorNND(::libmaus::bitio::BitVector const & bp, uint64_t const block_size)
+	static libmaus2::util::NearestNeighbourDictionary::unique_ptr_type calculatePioneerBitVectorNND(::libmaus2::bitio::BitVector const & bp, uint64_t const block_size)
 	{
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type pion = calculatePioneerBitVector(bp,block_size);
-		libmaus::util::NearestNeighbourDictionary::unique_ptr_type ptr(new libmaus::util::NearestNeighbourDictionary(*pion));	
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type pion = calculatePioneerBitVector(bp,block_size);
+		libmaus2::util::NearestNeighbourDictionary::unique_ptr_type ptr(new libmaus2::util::NearestNeighbourDictionary(*pion));	
 		return UNIQUE_PTR_MOVE(ptr);
 	}
 	
 	template<typename piovectype>
-	static ::libmaus::bitio::IndexedBitVector::unique_ptr_type extractPioneerFamily(
-		::libmaus::bitio::BitVector const & bp,
+	static ::libmaus2::bitio::IndexedBitVector::unique_ptr_type extractPioneerFamily(
+		::libmaus2::bitio::BitVector const & bp,
 		piovectype const & pioneers
 		)
 	{
 		uint64_t const numpioneers = pioneers.size() ? pioneers.rank1(pioneers.size()-1) : 0;
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type Ppfamily ( new ::libmaus::bitio::IndexedBitVector(numpioneers) );
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type Ppfamily ( new ::libmaus2::bitio::IndexedBitVector(numpioneers) );
 		
 		uint64_t prank = 0;
 		for ( uint64_t i = 0; i < pioneers.size(); ++i )

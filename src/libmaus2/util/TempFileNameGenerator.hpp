@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(TEMPFILENAMEGENERATOR_HPP)
 #define TEMPFILENAMEGENERATOR_HPP
 
-#include <libmaus/math/Log.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/TempFileNameGeneratorState.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/math/Log.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/TempFileNameGeneratorState.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <vector>
 #include <string>
 #include <cassert>
@@ -40,16 +40,16 @@
 #include <unistd.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{	
 		struct TempFileNameGenerator
 		{
 			typedef TempFileNameGenerator this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			::libmaus::parallel::OMPLock lock;
+			::libmaus2::parallel::OMPLock lock;
 			
 			TempFileNameGeneratorState state;
 			TempFileNameGeneratorState const startstate;

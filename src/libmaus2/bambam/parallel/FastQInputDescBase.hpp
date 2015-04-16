@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQINPUTDESCBASE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FASTQINPUTDESCBASE_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBlockSubBlockInfo.hpp>
-#include <libmaus/bambam/parallel/GenericInputBlock.hpp>
-#include <libmaus/bambam/parallel/GenericInputBlockAllocator.hpp>
-#include <libmaus/bambam/parallel/GenericInputBlockTypeInfo.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlockSubBlockInfo.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlock.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlockAllocator.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlockTypeInfo.hpp>
 
-#include <libmaus/parallel/LockedFreeList.hpp>
+#include <libmaus2/parallel/LockedFreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -35,13 +35,13 @@ namespace libmaus
 			struct FastQInputDescBase
 			{
 				// meta data type for block reading
-				typedef libmaus::bambam::parallel::GenericInputBlockSubBlockInfo meta_type;
+				typedef libmaus2::bambam::parallel::GenericInputBlockSubBlockInfo meta_type;
 				// block type
-				typedef libmaus::bambam::parallel::GenericInputBlock<meta_type> input_block_type;
-				typedef libmaus::parallel::LockedFreeList<
+				typedef libmaus2::bambam::parallel::GenericInputBlock<meta_type> input_block_type;
+				typedef libmaus2::parallel::LockedFreeList<
 					input_block_type,
-					libmaus::bambam::parallel::GenericInputBlockAllocator<meta_type>,
-					libmaus::bambam::parallel::GenericInputBlockTypeInfo<meta_type>
+					libmaus2::bambam::parallel::GenericInputBlockAllocator<meta_type>,
+					libmaus2::bambam::parallel::GenericInputBlockTypeInfo<meta_type>
 				> free_list_type;
 			};
 		}

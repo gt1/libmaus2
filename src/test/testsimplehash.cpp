@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,16 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/SimpleHashMap.hpp>
-#include <libmaus/util/SimpleHashSet.hpp>
-#include <libmaus/util/SimpleHashMapInsDel.hpp>
-#include <libmaus/util/SimpleHashSetInsDel.hpp>
+#include <libmaus2/util/SimpleHashMap.hpp>
+#include <libmaus2/util/SimpleHashSet.hpp>
+#include <libmaus2/util/SimpleHashMapInsDel.hpp>
+#include <libmaus2/util/SimpleHashSetInsDel.hpp>
 
 void testSimpleHash()
 {
 	try
 	{
-		libmaus::util::SimpleHashMapInsDel<uint64_t,uint64_t> SHMID(0);
+		libmaus2::util::SimpleHashMapInsDel<uint64_t,uint64_t> SHMID(0);
 		
 		for ( uint64_t z = 0; z < 128; ++z )
 		{
@@ -49,11 +49,11 @@ void testSimpleHash()
 			assert ( SHMID.size() == 0 );
 		}
 			
-		::libmaus::util::ExtendingSimpleHashSet<uint64_t> HH(8);
+		::libmaus2::util::ExtendingSimpleHashSet<uint64_t> HH(8);
 		HH.insert(5);
 		assert ( HH.contains(5) );
 	
-		::libmaus::util::SimpleHashMap<uint64_t,uint64_t> H(16);
+		::libmaus2::util::SimpleHashMap<uint64_t,uint64_t> H(16);
 	
 		H.insert(3,10);
 		H.insert(5,25);

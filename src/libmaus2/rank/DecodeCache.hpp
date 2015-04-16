@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(DECODECACHE_HPP)
 #define DECODECACHE_HPP
 
-#include <libmaus/rank/CodeBase.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/CodeBase.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -34,11 +34,11 @@ namespace libmaus
 		struct DecodeCache : public CodeBase
 		{
 			typedef DecodeCache<n,type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
-			::libmaus::autoarray::AutoArray<type> cache_n;
-			::libmaus::autoarray::AutoArray<unsigned int> offset_n;
+			::libmaus2::autoarray::AutoArray<type> cache_n;
+			::libmaus2::autoarray::AutoArray<unsigned int> offset_n;
 			
 			void setOffsets()
 			{

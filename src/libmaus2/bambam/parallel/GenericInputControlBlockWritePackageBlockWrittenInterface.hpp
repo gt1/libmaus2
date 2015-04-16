@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEBLOCKWRITTENINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKWRITEPACKAGEBLOCKWRITTENINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct GenericInputControlBlockWritePackageBlockWrittenInterface
 			{
 				virtual ~GenericInputControlBlockWritePackageBlockWrittenInterface() {}
-				virtual void genericInputControlBlockWritePackageBlockWritten(libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP) = 0;
+				virtual void genericInputControlBlockWritePackageBlockWritten(libmaus2::bambam::parallel::GenericInputControlCompressionPending GICCP) = 0;
 			};
 		}
 	}

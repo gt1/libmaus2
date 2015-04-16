@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCKALLOCATOR_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCKALLOCATOR_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBlock.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 			{
 				typedef _meta_info_type meta_info_type;
 				typedef GenericInputBlockAllocator<meta_info_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				uint64_t blocksize;
 				

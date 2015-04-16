@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-#include <libmaus/bitio/CompactDecoderBuffer.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/bitio/CompactArrayWriter.hpp>
+#include <libmaus2/bitio/CompactDecoderBuffer.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/bitio/CompactArrayWriter.hpp>
 
 void testctz()
 {
 	for ( uint64_t i = 1, j = 0; i; i <<=1, ++j )
-		assert ( ::libmaus::bitio::Ctz::ctz(i) == j );
+		assert ( ::libmaus2::bitio::Ctz::ctz(i) == j );
 }
 
 void testcompact()
@@ -35,13 +35,13 @@ void testcompact()
 	std::string const fnm("tmpfile.merged");
 	#endif
 
-	::libmaus::util::TempFileRemovalContainer::setup();
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+	::libmaus2::util::TempFileRemovalContainer::setup();
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 	
 	uint64_t n = 1024*1024;
 	unsigned int const b = 3;
-	::libmaus::bitio::CompactArray CA(n,b);
-	::libmaus::bitio::CompactArrayWriter CAW(fn,n,b);
+	::libmaus2::bitio::CompactArray CA(n,b);
+	::libmaus2::bitio::CompactArrayWriter CAW(fn,n,b);
 	srand(time(0));
 	for ( uint64_t i = 0; i < n; ++i )
 	{
@@ -50,18 +50,18 @@ void testcompact()
 	}
 	CAW.flush();
 	#if 0
-	::libmaus::aio::CheckedOutputStream COS(fn);
+	::libmaus2::aio::CheckedOutputStream COS(fn);
 	CA.serialize(COS);
 	COS.flush();
 	COS.close();
 	#endif
 	
-	::libmaus::aio::CheckedInputStream CIS(fn);
-	std::cerr << "compact file size is " << ::libmaus::util::GetFileSize::getFileSize(CIS) << std::endl;
+	::libmaus2::aio::CheckedInputStream CIS(fn);
+	std::cerr << "compact file size is " << ::libmaus2::util::GetFileSize::getFileSize(CIS) << std::endl;
 	assert ( static_cast< ::std::streampos > (CIS.tellg()) == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );
 	
-	::libmaus::bitio::CompactDecoderWrapper W(fn,4096);
+	::libmaus2::bitio::CompactDecoderWrapper W(fn,4096);
 	
 	W.seekg(0,std::ios::end);
 	int64_t const fs = W.tellg();

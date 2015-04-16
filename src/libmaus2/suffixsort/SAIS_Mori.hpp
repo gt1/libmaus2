@@ -32,7 +32,7 @@
 #define _SAIS_HXX 1
 #ifdef __cplusplus
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 #include <cassert>
 #include <iterator>
@@ -47,7 +47,7 @@
 #pragma warning(disable : 4365)
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
   namespace suffixsort
   {
@@ -57,7 +57,7 @@ namespace libmaus
       typedef typename std::iterator_traits<string_type>::value_type value_type;
     };
     template<>
-    struct TextValueType< ::libmaus::bitio::CompactArray >
+    struct TextValueType< ::libmaus2::bitio::CompactArray >
     {
       typedef uint64_t value_type;
     };
@@ -393,7 +393,7 @@ namespace libmaus
           assert((j + 1) < n);
           ++B[T[j + 1]];
           if(flags & 16) {
-            ::libmaus::autoarray::AutoArray<index_type> AD(2*k,false);
+            ::libmaus2::autoarray::AutoArray<index_type> AD(2*k,false);
             index_type *D = AD.get();
             for(i = 0, j = 0; i < k; ++i) {
               j += C[i];
@@ -466,8 +466,8 @@ namespace libmaus
       index_type i, j, m, name, pidx, newfs;
       unsigned flags = 0;
       char_type c0, c1;
-      ::libmaus::autoarray::AutoArray<index_type> ACp;
-      ::libmaus::autoarray::AutoArray<index_type> ABp;
+      ::libmaus2::autoarray::AutoArray<index_type> ACp;
+      ::libmaus2::autoarray::AutoArray<index_type> ABp;
       
       // Cp used for character counts
 
@@ -477,7 +477,7 @@ namespace libmaus
       Cp = 0, Bp = 0;
       if(k <= 256) 
       {
-        ACp = ::libmaus::autoarray::AutoArray<index_type>(k,false);
+        ACp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
         Cp = ACp.get();
         if(k <= fs) 
         {
@@ -486,7 +486,7 @@ namespace libmaus
         } 
         else 
         {
-          ABp = ::libmaus::autoarray::AutoArray<index_type>(k,false);
+          ABp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
           Bp = ABp.get();
           flags = 3;
         }
@@ -501,7 +501,7 @@ namespace libmaus
         } 
         else if(k <= 1024) 
         {
-          ABp = ::libmaus::autoarray::AutoArray<index_type>(k,false);
+          ABp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
           Bp = ABp.get();
           flags = 2;
         } 
@@ -513,7 +513,7 @@ namespace libmaus
       } 
       else 
       {
-        ACp = ::libmaus::autoarray::AutoArray<index_type>(k,false);
+        ACp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
         Cp = ACp.get();
         Bp = Cp;
         flags = 4 | 8;
@@ -566,12 +566,12 @@ namespace libmaus
         }
         for(i = 0; i < m; ++i) { SA[i] = RA[SA[i]]; }
         if(flags & 4) {
-          ACp = ::libmaus::autoarray::AutoArray<index_type>(k,false);
+          ACp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
           Cp = ACp.get();
           Bp = Cp;
         }
         if(flags & 2) {
-          ABp = ::libmaus::autoarray::AutoArray<index_type>(k,false);
+          ABp = ::libmaus2::autoarray::AutoArray<index_type>(k,false);
           Bp = ABp.get();
         }
       }

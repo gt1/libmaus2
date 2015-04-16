@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(HUFFMANTREELEAF_HPP)
 #define HUFFMANTREELEAF_HPP
 
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace huffman
         {

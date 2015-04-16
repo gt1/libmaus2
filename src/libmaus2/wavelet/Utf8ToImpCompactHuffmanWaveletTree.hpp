@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_HPP)
 #define LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/util/Utf8String.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/gamma/GammaRLDecoder.hpp>
-#include <libmaus/huffman/RLDecoder.hpp>
-#include <libmaus/parallel/OMPNumThreadsScope.hpp>
-#include <libmaus/util/PutObjectReverse.hpp>
-#include <libmaus/autoarray/AutoArray2d.hpp>
-#include <libmaus/huffman/HuffmanTree.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/Utf8String.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/gamma/GammaRLDecoder.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
+#include <libmaus2/parallel/OMPNumThreadsScope.hpp>
+#include <libmaus2/util/PutObjectReverse.hpp>
+#include <libmaus2/autoarray/AutoArray2d.hpp>
+#include <libmaus2/huffman/HuffmanTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -60,25 +60,25 @@ namespace libmaus
 			
 			static uint64_t getDefaultMaxThreads()
 			{
-				return ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads();
+				return ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads();
 			}
 			
 			template<bool radixsort>
 			static void constructWaveletTree(
 				std::string const & fn, std::string const & outputfilename,
-				libmaus::huffman::HuffmanTree const * H = 0,
+				libmaus2::huffman::HuffmanTree const * H = 0,
 				uint64_t const numthreads = getDefaultMaxThreads()
 			)
 			{
-				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
-				::libmaus::util::TempFileRemovalContainer::setup();
+				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				::libmaus2::util::TempFileRemovalContainer::setup();
 
-				libmaus::huffman::HuffmanTree::unique_ptr_type pH;
+				libmaus2::huffman::HuffmanTree::unique_ptr_type pH;
 				if ( ! H )
 				{
-					::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > const ahist = 
-						::libmaus::util::Utf8String::getHistogramAsArray(fn);
-					libmaus::huffman::HuffmanTree::unique_ptr_type tH(new ::libmaus::huffman::HuffmanTree(ahist.begin(),ahist.size(),false,true,true));
+					::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > const ahist = 
+						::libmaus2::util::Utf8String::getHistogramAsArray(fn);
+					libmaus2::huffman::HuffmanTree::unique_ptr_type tH(new ::libmaus2::huffman::HuffmanTree(ahist.begin(),ahist.size(),false,true,true));
 					pH = UNIQUE_PTR_MOVE(tH);
 					H = pH.get();
 				}
@@ -87,33 +87,33 @@ namespace libmaus
 				
 				if ( H->root()-H->leafs() != 0 )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTree(): inner nodes in tree need to be ordered by DFS" << std::endl;
 					se.finish();
 					throw se;
 				}
 				
-				::libmaus::huffman::HuffmanTree::EncodeTable ET(*H);
+				::libmaus2::huffman::HuffmanTree::EncodeTable ET(*H);
 
 				// #define HWTDEBUG
 				
-				::libmaus::timing::RealTimeClock rtc; rtc.start();	
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! H->isLeaf(H->root()) )
 				{
-					uint64_t const infs = ::libmaus::util::GetFileSize::getFileSize(fn);
+					uint64_t const infs = ::libmaus2::util::GetFileSize::getFileSize(fn);
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(256*1024), (infs+numthreads-1)/numthreads);
 					uint64_t const tnumparts = (infs + tpartsize - 1) / tpartsize;
 
-					::libmaus::autoarray::AutoArray<uint64_t> const partstarts = ::libmaus::util::Utf8String::computePartStarts(fn,tnumparts);
+					::libmaus2::autoarray::AutoArray<uint64_t> const partstarts = ::libmaus2::util::Utf8String::computePartStarts(fn,tnumparts);
 					uint64_t const numparts = partstarts.size()-1;
 					
-					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
+					::libmaus2::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 					{
-						::libmaus::aio::CheckedInputStream CIS(fn);
+						::libmaus2::aio::CheckedInputStream CIS(fn);
 						CIS.setBufferSize(16*1024);
 						CIS.seekg(partstarts[i]);
 						
@@ -133,25 +133,25 @@ namespace libmaus
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
 						tmpfilenames.push_back(
-							tmpfilenamebase + "_" + ::libmaus::util::NumberSerialisation::formatNumber(i,6)
+							tmpfilenamebase + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6)
 						);
-						::libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = H->inner();
 					#if 0
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
-						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
-						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
+						vnodebitcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes);
+						vnodewordcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
 					#endif
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -159,8 +159,8 @@ namespace libmaus
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
 						#if 0
-						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
-						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
 						#endif
 						uint64_t * const nodebitcnt = vnodebitcnt[partid];
 						uint64_t * const nodewordcnt = vnodewordcnt[partid];
@@ -169,9 +169,9 @@ namespace libmaus
 						uint64_t const partsize = partstarts[partid+1]-partstarts[partid];
 
 						/* read text */
-						::libmaus::autoarray::AutoArray<uint8_t> A(partsize,false);
-						::libmaus::aio::CheckedInputStream::unique_ptr_type textCIS(new 
-							::libmaus::aio::CheckedInputStream(fn)
+						::libmaus2::autoarray::AutoArray<uint8_t> A(partsize,false);
+						::libmaus2::aio::CheckedInputStream::unique_ptr_type textCIS(new 
+							::libmaus2::aio::CheckedInputStream(fn)
 						);
 						textCIS->seekg(partstarts[partid]);
 						textCIS->read(reinterpret_cast<char *>(A.begin()),partsize);
@@ -181,16 +181,16 @@ namespace libmaus
 						uint64_t const pbright = partsize;
 						uint64_t const lnumsyms = symsperpart[partid+1]-symsperpart[partid];
 						
-						::libmaus::autoarray::AutoArray<uint8_t> Z;
+						::libmaus2::autoarray::AutoArray<uint8_t> Z;
 						if ( radixsort )
-							Z = ::libmaus::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
+							Z = ::libmaus2::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
 
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,H->root()));
 					
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus::aio::CheckedOutputStream(tmpfilenames[partid]));
-						::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
-							new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
+							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
 						while ( ! S.empty() )
 						{
@@ -206,7 +206,7 @@ namespace libmaus
 							nodewordcnt[lnodeid] = (srange + 63)/64;
 							lnodeid++;
 						
-							::libmaus::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 							
 							uint64_t const prewords = tmpSGO->getWrittenWords();
 							uint64_t numsyms0 = 0;
@@ -218,13 +218,13 @@ namespace libmaus
 							
 							if ( radixsort )
 							{
-								::libmaus::util::PutObject<uint8_t *> P0(Z.begin());
-								::libmaus::util::PutObjectReverse<uint8_t *> P1(Z.end());
+								::libmaus2::util::PutObject<uint8_t *> P0(Z.begin());
+								::libmaus2::util::PutObjectReverse<uint8_t *> P1(Z.end());
 
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -260,7 +260,7 @@ namespace libmaus
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -332,11 +332,11 @@ namespace libmaus
 										uint64_t r_numsyms0 = 0;
 										uint64_t r_numsyms1 = 0;
 										
-										::libmaus::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
+										::libmaus2::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
 										for ( uint64_t i = 0; i < (lsortrighta-lsortbase); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -355,7 +355,7 @@ namespace libmaus
 										for ( uint64_t i = 0; i < (lsortrightb-lsortrighta); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -392,7 +392,7 @@ namespace libmaus
 								S.push(ImpWaveletStackElement(T.bleft,T.bleft+codelen0,T.sleft,T.sleft+numsyms0,level+1,H->leftChild(node)));
 
 							#if defined(HWTDEBUG)
-							::libmaus::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
 							uint64_t d_codelen0 = 0;
 							uint64_t d_codelen1 = 0;
 							uint64_t d_numsyms0 = 0;
@@ -400,7 +400,7 @@ namespace libmaus
 							for ( uint64_t i = 0; i < srange; ++i )
 							{
 								uint64_t codelen = 0;
-								wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(DG,codelen);
+								wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(DG,codelen);
 								bool const wbit = ET.getBitFromTop(sym,level);
 							
 								if ( wbit )
@@ -443,7 +443,7 @@ namespace libmaus
 						// vnodewordcnt[i].prefixSums();
 						vnodewordcnt.prefixSums(i);
 					
-					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					uint64_t tnumbits = 0;
 					for ( uint64_t nodeid = 0; nodeid < numnodes; ++nodeid )
 					{
@@ -475,18 +475,18 @@ namespace libmaus
 					assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
-						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
-						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
-                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
+                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSnp);
 					}
 					
-					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -495,17 +495,17 @@ namespace libmaus
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
 						
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							::libmaus2::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus2::aio::CheckedInputStream(tmpfilenames[i]));
 							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
 							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
@@ -513,7 +513,7 @@ namespace libmaus
 						{
 							uint64_t const totalnodebits = vnodebits[npi];
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
+							::libmaus2::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
 							
 							for ( uint64_t p = 0; p < numparts; ++p )
 							{
@@ -553,12 +553,12 @@ namespace libmaus
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus::aio::CheckedOutputStream(outputfilename));
-					::libmaus::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
+					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
 					
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += H->serialise(finalout);
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					
 					uint64_t const dictbasepos = outfilepos;
 					for ( uint64_t i = 0; i < numnodes; ++i )
@@ -566,20 +566,20 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < nptempfilenames.size(); ++i )
 					{
-						::libmaus::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
-						uint64_t const tmpfilesize = ::libmaus::util::GetFileSize::getFileSize(tmpCIS);
-						::libmaus::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
+						::libmaus2::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
+						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
+						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
 						remove ( nptempfilenames[i].c_str() );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					for ( uint64_t i = 0; i < numnodes; ++i )
-						outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
+						outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
 					
 					finalout.flush();
 					Pfinalout.reset();
@@ -588,15 +588,15 @@ namespace libmaus
 					/**
 					 * load tree and write out text
 					 **/
-					::libmaus::wavelet::ImpHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
-						::libmaus::wavelet::ImpHuffmanWaveletTree::load(outputfilename)
+					::libmaus2::wavelet::ImpHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
+						::libmaus2::wavelet::ImpHuffmanWaveletTree::load(outputfilename)
 					);
-					::libmaus::wavelet::ImpHuffmanWaveletTree const & IHWT = *PIHWT;
+					::libmaus2::wavelet::ImpHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
-						::libmaus::util::UTF8::encodeUTF8(IHWT[i],debCOS);
+						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
 					debCOS.close();
 					#endif
@@ -606,22 +606,22 @@ namespace libmaus
 
 			template<bool radixsort>
 			static void constructWaveletTree(
-				::libmaus::autoarray::AutoArray<uint8_t> & A, std::string const & outputfilename,
+				::libmaus2::autoarray::AutoArray<uint8_t> & A, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
-				::libmaus::huffman::HuffmanTree const * H = 0,
-				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
+				::libmaus2::huffman::HuffmanTree const * H = 0,
+				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
-				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
-				::libmaus::util::TempFileRemovalContainer::setup();
+				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				::libmaus2::util::TempFileRemovalContainer::setup();
 
-				::libmaus::huffman::HuffmanTree::unique_ptr_type pH;
+				::libmaus2::huffman::HuffmanTree::unique_ptr_type pH;
 				if ( ! H )
 				{
-					::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > const ahist = 
-						::libmaus::util::Utf8String::getHistogramAsArray(A);
-					::libmaus::huffman::HuffmanTree::unique_ptr_type tH(
-						new ::libmaus::huffman::HuffmanTree(ahist.begin(),ahist.size(),false,true,true)
+					::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > const ahist = 
+						::libmaus2::util::Utf8String::getHistogramAsArray(A);
+					::libmaus2::huffman::HuffmanTree::unique_ptr_type tH(
+						new ::libmaus2::huffman::HuffmanTree(ahist.begin(),ahist.size(),false,true,true)
 					);
 					pH = UNIQUE_PTR_MOVE(tH);
 					H = pH.get();
@@ -631,33 +631,33 @@ namespace libmaus
 				
 				if ( H->root()-H->leafs() != 0 )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTree(): inner nodes in tree need to be ordered by DFS" << std::endl;
 					se.finish();
 					throw se;
 				}
 
-				::libmaus::huffman::HuffmanTree::EncodeTable ET(*H);
+				::libmaus2::huffman::HuffmanTree::EncodeTable ET(*H);
 
 				// #define HWTDEBUG
 				
-				::libmaus::timing::RealTimeClock rtc; rtc.start();	
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! H->isLeaf(H->root()) )
 				{
 					uint64_t const infs = A.size();
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(256*1024), (infs+numthreads-1)/numthreads);
 					uint64_t const tnumparts = (infs + tpartsize - 1) / tpartsize;
 
-					::libmaus::autoarray::AutoArray<uint64_t> const partstarts = ::libmaus::util::Utf8String::computePartStarts(A,tnumparts);
+					::libmaus2::autoarray::AutoArray<uint64_t> const partstarts = ::libmaus2::util::Utf8String::computePartStarts(A,tnumparts);
 					uint64_t const numparts = partstarts.size()-1;
 					
-					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
+					::libmaus2::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 					{
-						::libmaus::util::GetObject<uint8_t const *> CIS(A.begin() + partstarts[i]);
+						::libmaus2::util::GetObject<uint8_t const *> CIS(A.begin() + partstarts[i]);
 						
 						uint64_t lsyms = 0;
 						uint64_t partlen = partstarts[i+1]-partstarts[i];
@@ -674,25 +674,25 @@ namespace libmaus
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
 						tmpfilenames.push_back(
-							tmpfilenamebase + "_" + ::libmaus::util::NumberSerialisation::formatNumber(i,6)
+							tmpfilenamebase + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6)
 						);
-						::libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = H->inner();
 					#if 0
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
-						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
-						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
+						vnodebitcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes);
+						vnodewordcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
 					#endif
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -700,8 +700,8 @@ namespace libmaus
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
 						#if 0
-						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
-						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
 						#endif
 						uint64_t * const nodebitcnt = vnodebitcnt[partid];
 						uint64_t * const nodewordcnt = vnodewordcnt[partid];
@@ -713,16 +713,16 @@ namespace libmaus
 						uint64_t const pbright = pbleft + partsize;
 						uint64_t const lnumsyms = symsperpart[partid+1]-symsperpart[partid];
 						
-						::libmaus::autoarray::AutoArray<uint8_t> Z;
+						::libmaus2::autoarray::AutoArray<uint8_t> Z;
 						if ( radixsort )
-							Z = ::libmaus::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
+							Z = ::libmaus2::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
 
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,H->root()));
 					
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus::aio::CheckedOutputStream(tmpfilenames[partid]));
-						::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
-							new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
+							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
 						while ( ! S.empty() )
 						{
@@ -738,7 +738,7 @@ namespace libmaus
 							nodewordcnt[lnodeid] = (srange + 63)/64;
 							lnodeid++;
 						
-							::libmaus::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 							
 							uint64_t const prewords = tmpSGO->getWrittenWords();
 							uint64_t numsyms0 = 0;
@@ -750,13 +750,13 @@ namespace libmaus
 							
 							if ( radixsort )
 							{
-								::libmaus::util::PutObject<uint8_t *> P0(Z.begin());
-								::libmaus::util::PutObjectReverse<uint8_t *> P1(Z.end());
+								::libmaus2::util::PutObject<uint8_t *> P0(Z.begin());
+								::libmaus2::util::PutObjectReverse<uint8_t *> P1(Z.end());
 
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -792,7 +792,7 @@ namespace libmaus
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -864,11 +864,11 @@ namespace libmaus
 										uint64_t r_numsyms0 = 0;
 										uint64_t r_numsyms1 = 0;
 										
-										::libmaus::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
+										::libmaus2::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
 										for ( uint64_t i = 0; i < (lsortrighta-lsortbase); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -887,7 +887,7 @@ namespace libmaus
 										for ( uint64_t i = 0; i < (lsortrightb-lsortrighta); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -922,7 +922,7 @@ namespace libmaus
 								S.push(ImpWaveletStackElement(T.bleft,T.bleft+codelen0,T.sleft,T.sleft+numsyms0,level+1,H->leftChild(node)));
 
 							#if defined(HWTDEBUG)
-							::libmaus::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
 							uint64_t d_codelen0 = 0;
 							uint64_t d_codelen1 = 0;
 							uint64_t d_numsyms0 = 0;
@@ -930,7 +930,7 @@ namespace libmaus
 							for ( uint64_t i = 0; i < srange; ++i )
 							{
 								uint64_t codelen = 0;
-								wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(DG,codelen);
+								wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(DG,codelen);
 								bool const wbit = ET.getBitFromTop(sym,level);
 							
 								if ( wbit )
@@ -975,7 +975,7 @@ namespace libmaus
 						//vnodewordcnt[i].prefixSums();
 						vnodewordcnt.prefixSums(i);
 					
-					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					uint64_t tnumbits = 0;
 					for ( uint64_t nodeid = 0; nodeid < numnodes; ++nodeid )
 					{
@@ -1007,18 +1007,18 @@ namespace libmaus
 					// assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
-						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
-						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOSi(
-                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOSi(
+                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSi);
 					}
 					
-					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -1027,17 +1027,17 @@ namespace libmaus
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
 						
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							::libmaus2::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus2::aio::CheckedInputStream(tmpfilenames[i]));
 							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
 							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
@@ -1045,7 +1045,7 @@ namespace libmaus
 						{
 							uint64_t const totalnodebits = vnodebits[npi];
 
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
+							::libmaus2::rank::ImpCacheLineRank::WriteContextExternal context(npout,totalnodebits+1);
 							
 							for ( uint64_t p = 0; p < numparts; ++p )
 							{
@@ -1085,12 +1085,12 @@ namespace libmaus
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus::aio::CheckedOutputStream(outputfilename));
-					::libmaus::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
+					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
 					
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += H->serialise(finalout);
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					
 					uint64_t const dictbasepos = outfilepos;
 					for ( uint64_t i = 0; i < numnodes; ++i )
@@ -1098,20 +1098,20 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < nptempfilenames.size(); ++i )
 					{
-						::libmaus::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
-						uint64_t const tmpfilesize = ::libmaus::util::GetFileSize::getFileSize(tmpCIS);
-						::libmaus::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
+						::libmaus2::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
+						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
+						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
 						remove ( nptempfilenames[i].c_str() );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					for ( uint64_t i = 0; i < numnodes; ++i )
-						outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
+						outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
 					
 					finalout.flush();
 					Pfinalout.reset();
@@ -1120,15 +1120,15 @@ namespace libmaus
 					/**
 					 * load tree and write out text
 					 **/
-					::libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
-						::libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(outputfilename)
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
+						::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(outputfilename)
 					);
-					::libmaus::wavelet::ImpCompactHuffmanWaveletTree const & IHWT = *PIHWT;
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus::aio::CheckedOutputStream debCOS(outputfilename + ".debug");
+					::libmaus2::aio::CheckedOutputStream debCOS(outputfilename + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
-						::libmaus::util::UTF8::encodeUTF8(IHWT[i],debCOS);
+						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
 					debCOS.close();
 					#endif
@@ -1139,34 +1139,34 @@ namespace libmaus
 			static void constructWaveletTreeFromRl(
 				std::string const & fn, std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
-				libmaus::huffman::HuffmanTree const & H,
+				libmaus2::huffman::HuffmanTree const & H,
 				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				if ( H.root()-H.leafs() != 0 )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTreeFromRl(): inner nodes in tree need to be ordered by DFS" << std::endl;
 					se.finish();
 					throw se;
 				}
 
-				// ::libmaus::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
-				::libmaus::util::TempFileRemovalContainer::setup();
+				// ::libmaus2::parallel::OMPNumThreadsScope numthreadsscope(numthreads);
+				::libmaus2::util::TempFileRemovalContainer::setup();
 
-				::libmaus::huffman::HuffmanTree::EncodeTable ET(H);
+				::libmaus2::huffman::HuffmanTree::EncodeTable ET(H);
 
 				// #define HWTDEBUG
 				
-				::libmaus::timing::RealTimeClock rtc; rtc.start();	
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();	
 				if ( ! H.isLeaf(H.root()) )
 				{
 					uint64_t const infs = rl_decoder::getLength(fn);
 					uint64_t const tpartsize = std::min(static_cast<uint64_t>(tpartsizemax), (infs+numthreads-1)/numthreads);
 					uint64_t const numparts = (infs + tpartsize - 1) / tpartsize;
 					
-					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
+					::libmaus2::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
 						uint64_t const slow  = std::min(i * tpartsize,infs);
@@ -1180,25 +1180,25 @@ namespace libmaus
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
 						tmpfilenames.push_back(
-							tmpfilenamebase + "_" + ::libmaus::util::NumberSerialisation::formatNumber(i,6)
+							tmpfilenamebase + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6)
 						);
-						::libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = H.inner();
 					#if 0
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
-						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
-						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
+						vnodebitcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes);
+						vnodewordcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
 					#endif
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
@@ -1206,8 +1206,8 @@ namespace libmaus
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
 						#if 0
-						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
-						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
 						#endif
 						uint64_t * const nodebitcnt = vnodebitcnt[partid];
 						uint64_t * const nodewordcnt = vnodewordcnt[partid];
@@ -1218,14 +1218,14 @@ namespace libmaus
 						typename rl_decoder::unique_ptr_type rldec(new rl_decoder(
 							std::vector<std::string>(1,fn),
 							symsperpart[partid]));
-						::libmaus::util::CountPutObject CPO;
+						::libmaus2::util::CountPutObject CPO;
 						for ( uint64_t i = 0; i < numsyms; ++i )
-							::libmaus::util::UTF8::encodeUTF8(rldec->decode(),CPO);
+							::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),CPO);
 
 						uint64_t const partsize = CPO.c;
 
 						/* read text */
-						::libmaus::autoarray::AutoArray<uint8_t> A(partsize,false);
+						::libmaus2::autoarray::AutoArray<uint8_t> A(partsize,false);
 
 						typename rl_decoder::unique_ptr_type trldec(
 							new rl_decoder(
@@ -1234,24 +1234,24 @@ namespace libmaus
 								)
 							);
 						rldec = UNIQUE_PTR_MOVE(trldec);
-						::libmaus::util::PutObject<uint8_t *> PO(A.begin());
+						::libmaus2::util::PutObject<uint8_t *> PO(A.begin());
 						for ( uint64_t i = 0; i < numsyms; ++i )
-							::libmaus::util::UTF8::encodeUTF8(rldec->decode(),PO);
+							::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),PO);
 						
 						uint64_t const pbleft = 0;
 						uint64_t const pbright = partsize;
 						uint64_t const lnumsyms = numsyms;
 						
-						::libmaus::autoarray::AutoArray<uint8_t> Z;
+						::libmaus2::autoarray::AutoArray<uint8_t> Z;
 						if ( radixsort )
-							Z = ::libmaus::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
+							Z = ::libmaus2::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
 
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,H.root()));
 					
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus::aio::CheckedOutputStream(tmpfilenames[partid]));
-						::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
-							new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
+							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
 						while ( ! S.empty() )
 						{
@@ -1267,7 +1267,7 @@ namespace libmaus
 							nodewordcnt[lnodeid] = (srange + 63)/64;
 							lnodeid++;
 						
-							::libmaus::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 							
 							uint64_t const prewords = tmpSGO->getWrittenWords();
 							uint64_t numsyms0 = 0;
@@ -1279,13 +1279,13 @@ namespace libmaus
 							
 							if ( radixsort )
 							{
-								::libmaus::util::PutObject<uint8_t *> P0(Z.begin());
-								::libmaus::util::PutObjectReverse<uint8_t *> P1(Z.end());
+								::libmaus2::util::PutObject<uint8_t *> P0(Z.begin());
+								::libmaus2::util::PutObjectReverse<uint8_t *> P1(Z.end());
 
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -1321,7 +1321,7 @@ namespace libmaus
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -1393,11 +1393,11 @@ namespace libmaus
 										uint64_t r_numsyms0 = 0;
 										uint64_t r_numsyms1 = 0;
 										
-										::libmaus::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
+										::libmaus2::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
 										for ( uint64_t i = 0; i < (lsortrighta-lsortbase); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -1416,7 +1416,7 @@ namespace libmaus
 										for ( uint64_t i = 0; i < (lsortrightb-lsortrighta); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -1453,7 +1453,7 @@ namespace libmaus
 								S.push(ImpWaveletStackElement(T.bleft,T.bleft+codelen0,T.sleft,T.sleft+numsyms0,level+1,H.leftChild(node)));
 
 							#if defined(HWTDEBUG)
-							::libmaus::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
 							uint64_t d_codelen0 = 0;
 							uint64_t d_codelen1 = 0;
 							uint64_t d_numsyms0 = 0;
@@ -1461,7 +1461,7 @@ namespace libmaus
 							for ( uint64_t i = 0; i < srange; ++i )
 							{
 								uint64_t codelen = 0;
-								wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(DG,codelen);
+								wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(DG,codelen);
 								bool const wbit = ET.getBitFromTop(sym,level);
 							
 								if ( wbit )
@@ -1504,7 +1504,7 @@ namespace libmaus
 						//vnodewordcnt[i].prefixSums();
 						vnodewordcnt.prefixSums(i);
 					
-					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					uint64_t tnumbits = 0;
 					for ( uint64_t nodeid = 0; nodeid < numnodes; ++nodeid )
 					{
@@ -1536,18 +1536,18 @@ namespace libmaus
 					assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
-						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
-						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
-                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
+                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSnp);
 					}
 					
-					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads)
@@ -1556,22 +1556,22 @@ namespace libmaus
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
 						
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							::libmaus2::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus2::aio::CheckedInputStream(tmpfilenames[i]));
 							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
 							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
 						{
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,0,false);
+							::libmaus2::rank::ImpCacheLineRank::WriteContextExternal context(npout,0,false);
 
 							for ( uint64_t npi = nplow; npi < nphigh; ++npi )
 							{
@@ -1618,12 +1618,12 @@ namespace libmaus
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus::aio::CheckedOutputStream(outputfilename));
-					::libmaus::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
+					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
 					
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += H.serialise(finalout);
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					
 					uint64_t const dictbasepos = outfilepos;
 					for ( uint64_t i = 0; i < numnodes; ++i )
@@ -1631,20 +1631,20 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < nptempfilenames.size(); ++i )
 					{
-						::libmaus::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
-						uint64_t const tmpfilesize = ::libmaus::util::GetFileSize::getFileSize(tmpCIS);
-						::libmaus::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
+						::libmaus2::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
+						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
+						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
 						remove ( nptempfilenames[i].c_str() );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					for ( uint64_t i = 0; i < numnodes; ++i )
-						outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
+						outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
 					
 					finalout.flush();
 					Pfinalout.reset();
@@ -1653,15 +1653,15 @@ namespace libmaus
 					/**
 					 * load tree and write out text
 					 **/
-					::libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
-						::libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(outputfilename)
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
+						::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(outputfilename)
 					);
-					::libmaus::wavelet::ImpCompactHuffmanWaveletTree const & IHWT = *PIHWT;
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
-						::libmaus::util::UTF8::encodeUTF8(IHWT[i],debCOS);
+						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
 					debCOS.close();
 					#endif
@@ -1673,30 +1673,30 @@ namespace libmaus
 				std::vector<std::string> const & fn, 
 				std::string const & outputfilename,
 				std::string const & tmpfilenamebase,
-				::libmaus::huffman::HuffmanTree const & H,
+				::libmaus2::huffman::HuffmanTree const & H,
 				uint64_t const termrank,
 				uint64_t const bwtterm,
 				uint64_t const tpartsizemax = 1024ull*1024ull,
-				uint64_t const numthreads = ::libmaus::parallel::OMPNumThreadsScope::getMaxThreads()
+				uint64_t const numthreads = ::libmaus2::parallel::OMPNumThreadsScope::getMaxThreads()
 			)
 			{
 				// check tree order
 				if ( H.root()-H.leafs() != 0 )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Utf8ToCompactImpHuffmanWaveletTree::constructWaveletTreeFromRlWithTerm(): inner nodes in tree need to be ordered by DFS" << std::endl;
 					se.finish();
 					throw se;
 				}
 
-				libmaus::parallel::OMPLock cerrlock;
-				::libmaus::util::TempFileRemovalContainer::setup();
+				libmaus2::parallel::OMPLock cerrlock;
+				::libmaus2::util::TempFileRemovalContainer::setup();
 				// set up huffman encode table
-				::libmaus::huffman::HuffmanTree::EncodeTable ET(H);
+				::libmaus2::huffman::HuffmanTree::EncodeTable ET(H);
 
 				// #define HWTDEBUG
 				
-				::libmaus::timing::RealTimeClock rtc; rtc.start();
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 				// check whether we have more than one alphabet symbol
 				if ( ! H.isLeaf(H.root()) )
 				{
@@ -1722,7 +1722,7 @@ namespace libmaus
 					
 					uint64_t const numparts = pretermparts + termparts + posttermparts;
 					
-					::libmaus::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
+					::libmaus2::autoarray::AutoArray<uint64_t> symsperpart(numparts+1);
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << symsperpart.byteSize() << " bytes for symsperpart." << std::endl;
 					#endif
@@ -1750,11 +1750,11 @@ namespace libmaus
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
 						tmpfilenames.push_back(
-							tmpfilenamebase + "_" + ::libmaus::util::NumberSerialisation::formatNumber(i,6)
+							tmpfilenamebase + "_" + ::libmaus2::util::NumberSerialisation::formatNumber(i,6)
 						);
-						::libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = H.inner();
@@ -1762,29 +1762,29 @@ namespace libmaus
 					std::cerr << "Num nodes " << numnodes << " numparts " << numparts << std::endl;
 					#endif
 					#if 0
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
-					::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodebitcnt(numparts);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<uint64_t> > vnodewordcnt(numparts+1);
 					for ( uint64_t i = 0; i < numparts; ++i )
 					{
-						vnodebitcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes);
-						vnodewordcnt[i] = ::libmaus::autoarray::AutoArray<uint64_t>(numnodes+1);
+						vnodebitcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes);
+						vnodewordcnt[i] = ::libmaus2::autoarray::AutoArray<uint64_t>(numnodes+1);
 					}
 					#endif
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
-					::libmaus::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodebitcnt(numparts,numnodes);
+					::libmaus2::autoarray::AutoArray2d<uint64_t> vnodewordcnt(numparts+1,numnodes+1);
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Bytes for numnodes*numparts*sizeof(uint64_t)=" << numnodes*numparts*sizeof(uint64_t) << std::endl;
 					#endif
 
-					libmaus::timing::RealTimeClock rtc;
+					libmaus2::timing::RealTimeClock rtc;
 					#if defined(_OPENMP)
 					#pragma omp parallel for num_threads(numthreads) schedule(dynamic,1)
 					#endif
 					for ( int64_t partid = 0; partid < static_cast<int64_t>(numparts); ++partid )
 					{
 						#if 0
-						::libmaus::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
-						::libmaus::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodebitcnt = vnodebitcnt[partid];
+						::libmaus2::autoarray::AutoArray<uint64_t> & nodewordcnt = vnodewordcnt[partid];
 						#endif
 						uint64_t * const nodebitcnt = vnodebitcnt[partid];
 						uint64_t * const nodewordcnt = vnodewordcnt[partid];
@@ -1792,11 +1792,11 @@ namespace libmaus
 						
 						uint64_t const numsyms = symsperpart[partid+1]-symsperpart[partid];
 						
-						::libmaus::util::CountPutObject CPO;
+						::libmaus2::util::CountPutObject CPO;
 						if ( partid == static_cast<int64_t>(pretermparts) )
 						{
 							assert ( numsyms == 1 );
-							::libmaus::util::UTF8::encodeUTF8(bwtterm,CPO);	
+							::libmaus2::util::UTF8::encodeUTF8(bwtterm,CPO);	
 						}
 						else
 						{
@@ -1804,14 +1804,14 @@ namespace libmaus
 								fn,
 								symsperpart[partid]));
 							for ( uint64_t i = 0; i < numsyms; ++i )
-								::libmaus::util::UTF8::encodeUTF8(rldec->decode(),CPO);
+								::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),CPO);
 						}
 
 						// size of part in bytes (not symbols)
 						uint64_t const partsize = CPO.c;
 
 						/* read text */
-						::libmaus::autoarray::AutoArray<uint8_t> A(partsize,false);
+						::libmaus2::autoarray::AutoArray<uint8_t> A(partsize,false);
 						
 						#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 						#if defined(_OPENMP)
@@ -1827,11 +1827,11 @@ namespace libmaus
 						cerrlock.unlock();
 						#endif
 						
-						::libmaus::util::PutObject<uint8_t *> PO(A.begin());
+						::libmaus2::util::PutObject<uint8_t *> PO(A.begin());
 
 						if ( partid == static_cast<int64_t>(pretermparts) )
 						{
-							::libmaus::util::UTF8::encodeUTF8(bwtterm,PO);						
+							::libmaus2::util::UTF8::encodeUTF8(bwtterm,PO);						
 						}
 						else
 						{
@@ -1840,17 +1840,17 @@ namespace libmaus
 								symsperpart[partid]));
 
 							for ( uint64_t i = 0; i < numsyms; ++i )
-								::libmaus::util::UTF8::encodeUTF8(rldec->decode(),PO);
+								::libmaus2::util::UTF8::encodeUTF8(rldec->decode(),PO);
 						}
 							
 						uint64_t const pbleft = 0;
 						uint64_t const pbright = partsize;
 						uint64_t const lnumsyms = numsyms;
 						
-						::libmaus::autoarray::AutoArray<uint8_t> Z;
+						::libmaus2::autoarray::AutoArray<uint8_t> Z;
 						if ( radixsort )
 						{
-							Z = ::libmaus::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
+							Z = ::libmaus2::autoarray::AutoArray<uint8_t>(pbright-pbleft,false);
 							#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 							cerrlock.lock();
 							std::cerr << "{" << tid << "} Allocated " << Z.byteSize() << " bytes for Z array." << std::endl;
@@ -1861,9 +1861,9 @@ namespace libmaus
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,H.root()));
 					
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus::aio::CheckedOutputStream(tmpfilenames[partid]));
-						::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
-							new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
+							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
 						while ( ! S.empty() )
 						{
@@ -1879,7 +1879,7 @@ namespace libmaus
 							nodewordcnt[lnodeid] = (srange + 63)/64;
 							lnodeid++;
 						
-							::libmaus::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> G(A.begin()+T.bleft);
 							
 							uint64_t const prewords = tmpSGO->getWrittenWords();
 							uint64_t numsyms0 = 0;
@@ -1891,13 +1891,13 @@ namespace libmaus
 							
 							if ( radixsort )
 							{
-								::libmaus::util::PutObject<uint8_t *> P0(Z.begin());
-								::libmaus::util::PutObjectReverse<uint8_t *> P1(Z.end());
+								::libmaus2::util::PutObject<uint8_t *> P0(Z.begin());
+								::libmaus2::util::PutObjectReverse<uint8_t *> P1(Z.end());
 
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -1933,7 +1933,7 @@ namespace libmaus
 								for ( uint64_t i = 0; i < srange; ++i )
 								{
 									uint64_t codelen = 0;
-									wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(G,codelen);
+									wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(G,codelen);
 									bool const wbit = ET.getBitFromTop(sym,level);
 								
 									if ( wbit )
@@ -2005,11 +2005,11 @@ namespace libmaus
 										uint64_t r_numsyms0 = 0;
 										uint64_t r_numsyms1 = 0;
 										
-										::libmaus::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
+										::libmaus2::util::GetObject<uint8_t const *> LG(A.begin()+bleft);
 										for ( uint64_t i = 0; i < (lsortrighta-lsortbase); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -2028,7 +2028,7 @@ namespace libmaus
 										for ( uint64_t i = 0; i < (lsortrightb-lsortrighta); ++i )
 										{
 											uint64_t codelen = 0;
-											wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(LG,codelen);
+											wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(LG,codelen);
 											bool const wbit = ET.getBitFromTop(sym,level);
 										
 											if ( wbit )
@@ -2065,7 +2065,7 @@ namespace libmaus
 								S.push(ImpWaveletStackElement(T.bleft,T.bleft+codelen0,T.sleft,T.sleft+numsyms0,level+1,H.leftChild(node)));
 
 							#if defined(HWTDEBUG)
-							::libmaus::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
+							::libmaus2::util::GetObject<uint8_t const *> DG(A.begin()+T.bleft);
 							uint64_t d_codelen0 = 0;
 							uint64_t d_codelen1 = 0;
 							uint64_t d_numsyms0 = 0;
@@ -2073,7 +2073,7 @@ namespace libmaus
 							for ( uint64_t i = 0; i < srange; ++i )
 							{
 								uint64_t codelen = 0;
-								wchar_t const sym = ::libmaus::util::UTF8::decodeUTF8(DG,codelen);
+								wchar_t const sym = ::libmaus2::util::UTF8::decodeUTF8(DG,codelen);
 								bool const wbit = ET.getBitFromTop(sym,level);
 							
 								if ( wbit )
@@ -2116,7 +2116,7 @@ namespace libmaus
 						//vnodewordcnt[i].prefixSums();
 						vnodewordcnt.prefixSums(i);
 					
-					::libmaus::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> vnodebits(numnodes);
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << vnodebits.byteSize() << " bytes for vnodebits array." << std::endl;
 					#endif
@@ -2151,18 +2151,18 @@ namespace libmaus
 					assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus::autoarray::AutoArray< ::libmaus::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
-						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus::util::NumberSerialisation::formatNumber(np,6));
-						::libmaus::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus::aio::CheckedOutputStream::unique_ptr_type tmpCOSnp(
-                                                                new ::libmaus::aio::CheckedOutputStream(nptempfilenames[np])
+						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
+						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
+						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOSnp(
+                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(tmpCOSnp);
 					}
 					
-					::libmaus::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
+					::libmaus2::autoarray::AutoArray<uint64_t> nodebytesizes(numnodes);
 					#if defined(LIBMAUS_WAVELET_UTF8TOIMPCOMPACTHUFFMANWAVELETTREE_DEBUG)
 					std::cerr << "Allocated " << nodebytesizes.byteSize() << " bytes per nodebytesizes array." << std::endl;
 					#endif
@@ -2174,22 +2174,22 @@ namespace libmaus
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
 						
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
-						::libmaus::autoarray::AutoArray < ::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							::libmaus::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus::aio::CheckedInputStream(tmpfilenames[i]));
+							::libmaus2::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus2::aio::CheckedInputStream(tmpfilenames[i]));
 							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
-							::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
+							::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
 							tmpSGI[i] = UNIQUE_PTR_MOVE(ttmpSGIi);
 						}
 
 						{
-							::libmaus::rank::ImpCacheLineRank::WriteContextExternal context(npout,0,false);
+							::libmaus2::rank::ImpCacheLineRank::WriteContextExternal context(npout,0,false);
 							for ( uint64_t npi = nplow; npi < nphigh; ++npi )
 							{
 								uint64_t const totalnodebits = vnodebits[npi];
@@ -2236,12 +2236,12 @@ namespace libmaus
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus::aio::CheckedOutputStream(outputfilename));
-					::libmaus::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
+					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
 					
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += H.serialise(finalout);
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					
 					uint64_t const dictbasepos = outfilepos;
 					for ( uint64_t i = 0; i < numnodes; ++i )
@@ -2249,20 +2249,20 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; i < nptempfilenames.size(); ++i )
 					{
-						::libmaus::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
-						uint64_t const tmpfilesize = ::libmaus::util::GetFileSize::getFileSize(tmpCIS);
-						::libmaus::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
+						::libmaus2::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
+						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
+						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
 						remove ( nptempfilenames[i].c_str() );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,numnodes);
 					for ( uint64_t i = 0; i < numnodes; ++i )
-						outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
+						outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,nodebytesizes[i]);
 
-					outfilepos += ::libmaus::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
+					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,indexpos);
 					
 					finalout.flush();
 					Pfinalout.reset();
@@ -2271,15 +2271,15 @@ namespace libmaus
 					/**
 					 * load tree and write out text
 					 **/
-					::libmaus::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
-						::libmaus::wavelet::ImpCompactHuffmanWaveletTree::load(outputfilename)
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type PIHWT = UNIQUE_PTR_MOVE(
+						::libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(outputfilename)
 					);
-					::libmaus::wavelet::ImpCompactHuffmanWaveletTree const & IHWT = *PIHWT;
+					::libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
-						::libmaus::util::UTF8::encodeUTF8(IHWT[i],debCOS);
+						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
 					debCOS.close();
 					#endif

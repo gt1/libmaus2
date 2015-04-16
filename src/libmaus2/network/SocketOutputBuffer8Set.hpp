@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,35 +20,35 @@
 #if ! defined(SOCKETOUTPUTBUFFER8SET_HPP)
 #define SOCKETOUTPUTBUFFER8SET_HPP
 
-#include <libmaus/network/SocketOutputBuffer8.hpp>
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/util/GenericIntervalTree.hpp>
+#include <libmaus2/network/SocketOutputBuffer8.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/util/GenericIntervalTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct SocketOutputBuffer8Set
 		{
 			typedef SocketOutputBuffer8Set this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typedef ::libmaus::network::SocketOutputBuffer8 buffer_type;
+			typedef ::libmaus2::network::SocketOutputBuffer8 buffer_type;
 			typedef buffer_type::unique_ptr_type buffer_ptr_type;
 
-			typedef ::libmaus::network::ClientSocket client_socket_type;
+			typedef ::libmaus2::network::ClientSocket client_socket_type;
 			typedef client_socket_type::unique_ptr_type client_socket_ptr_type;
 
-			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & HI;
-			::libmaus::autoarray::AutoArray < buffer_ptr_type > buffers;
-			::libmaus::util::GenericIntervalTree::unique_ptr_type IT;
+			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & HI;
+			::libmaus2::autoarray::AutoArray < buffer_ptr_type > buffers;
+			::libmaus2::util::GenericIntervalTree::unique_ptr_type IT;
 			
 			SocketOutputBuffer8Set(
-				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI,
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI,
 				int const tag, uint64_t const bufsize,
-				::libmaus::autoarray::AutoArray<client_socket_ptr_type> & hashsocks
+				::libmaus2::autoarray::AutoArray<client_socket_ptr_type> & hashsocks
 			)
-			: HI(rHI), buffers(HI.size()), IT(new ::libmaus::util::GenericIntervalTree(HI /* ,0,HI.size() */))
+			: HI(rHI), buffers(HI.size()), IT(new ::libmaus2::util::GenericIntervalTree(HI /* ,0,HI.size() */))
 			{
 				for ( uint64_t i = 0; i < HI.size(); ++i )
 					buffers[i] = UNIQUE_PTR_MOVE(buffer_ptr_type(new buffer_type(hashsocks[i].get(),tag,bufsize)));

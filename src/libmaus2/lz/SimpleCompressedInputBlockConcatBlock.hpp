@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTBLOCKCONCATBLOCK_HPP)
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTBLOCKCONCATBLOCK_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/lz/SimpleCompressedStreamNamedInterval.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/DecompressorObjectFactory.hpp>
+#include <libmaus2/lz/SimpleCompressedStreamNamedInterval.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SimpleCompressedInputBlockConcatBlock
 		{
 			typedef SimpleCompressedInputBlockConcatBlock this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			libmaus::autoarray::AutoArray<uint8_t> I;
-			libmaus::autoarray::AutoArray<uint8_t> O;
+			libmaus2::autoarray::AutoArray<uint8_t> I;
+			libmaus2::autoarray::AutoArray<uint8_t> O;
 			uint64_t metasize;
 			uint64_t compsize;
 			uint64_t uncompsize;
 			bool eof;
-			libmaus::lz::SimpleCompressedStreamNamedInterval const * currentInterval;
+			libmaus2::lz::SimpleCompressedStreamNamedInterval const * currentInterval;
 			uint64_t blockstreampos;
 
-			libmaus::lz::DecompressorObject::unique_ptr_type Pdecompressor;
-			libmaus::lz::DecompressorObject & decompressor;
+			libmaus2::lz::DecompressorObject::unique_ptr_type Pdecompressor;
+			libmaus2::lz::DecompressorObject & decompressor;
 
-			SimpleCompressedInputBlockConcatBlock(libmaus::lz::DecompressorObjectFactory & factory)
+			SimpleCompressedInputBlockConcatBlock(libmaus2::lz::DecompressorObjectFactory & factory)
 			: metasize(0), compsize(0), uncompsize(0), eof(true), currentInterval(0), blockstreampos(0),
 			  Pdecompressor(factory()), decompressor(*Pdecompressor)
 			{
@@ -55,7 +55,7 @@ namespace libmaus
 			bool uncompressBlock()
 			{
 				if ( uncompsize > O.size() )
-					O = libmaus::autoarray::AutoArray<uint8_t>(uncompsize,false);			
+					O = libmaus2::autoarray::AutoArray<uint8_t>(uncompsize,false);			
 
 				bool ok = true;
 

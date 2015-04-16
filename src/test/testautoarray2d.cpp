@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/autoarray/AutoArray2d.hpp>
+#include <libmaus2/autoarray/AutoArray2d.hpp>
 #include <iostream>
 
 int main()
@@ -26,10 +26,10 @@ int main()
 	{
 		uint64_t const n = 5;
 		uint64_t const m = 7;
-		libmaus::autoarray::AutoArray2d<uint64_t> A(n,m);
-		libmaus::autoarray::AutoArray< libmaus::autoarray::AutoArray<uint64_t> > B(n);
+		libmaus2::autoarray::AutoArray2d<uint64_t> A(n,m);
+		libmaus2::autoarray::AutoArray< libmaus2::autoarray::AutoArray<uint64_t> > B(n);
 		for ( uint64_t i = 0; i < n; ++i )
-			B[i] = libmaus::autoarray::AutoArray<uint64_t>(m);
+			B[i] = libmaus2::autoarray::AutoArray<uint64_t>(m);
 		bool ok = true;
 
 		for ( uint64_t k = 0; ok && k < 10; ++k )

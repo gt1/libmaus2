@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,17 +20,17 @@
 #if ! defined(EDGEBUFFERLOCALLOCKED_HPP)
 #define EDGEBUFFERLOCALLOCKED_HPP
 
-#include <libmaus/graph/EdgeBuffer.hpp>
-#include <libmaus/graph/EdgeListLocalLockedFlush.hpp>
+#include <libmaus2/graph/EdgeBuffer.hpp>
+#include <libmaus2/graph/EdgeListLocalLockedFlush.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct EdgeBufferLocalLocked
 		{
 			typedef EdgeBufferLocalLocked this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			EdgeListLocalLockedFlush & EBLF;
 			EdgeBuffer < EdgeListLocalLockedFlush > EB;
@@ -44,7 +44,7 @@ namespace libmaus
 			
 			}
 			
-			void put(::libmaus::graph::TripleEdge const & T)
+			void put(::libmaus2::graph::TripleEdge const & T)
 			{
 				EB.put(T);
 			}

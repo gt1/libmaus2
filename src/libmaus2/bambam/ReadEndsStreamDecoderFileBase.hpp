@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSSTREAMDECODERFILEBASE_HPP)
 #define LIBMAUS_BAMBAM_READENDSSTREAMDECODERFILEBASE_HPP
 
-#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -29,16 +29,16 @@ namespace libmaus
 		{
 			typedef ReadEndsStreamDecoderFileBase this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::string const filename;
-			libmaus::aio::CheckedInputStream::unique_ptr_type pCIS;
+			libmaus2::aio::CheckedInputStream::unique_ptr_type pCIS;
 			std::istream * in;
 			
 			ReadEndsStreamDecoderFileBase(std::string const & rfilename)
-			: filename(rfilename), pCIS(new libmaus::aio::CheckedInputStream(filename)), in(pCIS.get())
+			: filename(rfilename), pCIS(new libmaus2::aio::CheckedInputStream(filename)), in(pCIS.get())
 			{}
 			
 			ReadEndsStreamDecoderFileBase(std::istream & rin)

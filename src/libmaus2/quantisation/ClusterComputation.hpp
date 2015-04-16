@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_QUANTISATION_CLUSTERCOMPUTATION_HPP)
 #define LIBMAUS_QUANTISATION_CLUSTERCOMPUTATION_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/quantisation/Quantiser.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/quantisation/Quantiser.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace quantisation
 	{
 		struct ClusterComputation
 		{
 			template<typename iterator>
-			static ::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiserTemplate(
+			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiserTemplate(
 				iterator ita, uint64_t const n, uint64_t const k, uint64_t const runs = 100);				
-			static ::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiser(
+			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
 				std::vector<double> const & V, uint64_t const k, uint64_t const runs = 100);
-			static ::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiser(
+			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
 				std::vector<unsigned int> const & V, uint64_t const k, uint64_t const runs = 100);
-			static ::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiser(
+			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
 				std::vector<uint64_t> const & V, uint64_t const k, uint64_t const runs = 100);
 		};
 	}

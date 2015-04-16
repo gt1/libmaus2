@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/HistogramSet.hpp>
+#include <libmaus2/util/HistogramSet.hpp>
 			
-libmaus::util::HistogramSet::HistogramSet(uint64_t const numhist, uint64_t const lowsize)
+libmaus2::util::HistogramSet::HistogramSet(uint64_t const numhist, uint64_t const lowsize)
 : H(numhist)
 {
 	for ( uint64_t i = 0; i < numhist; ++i )
@@ -29,7 +29,7 @@ libmaus::util::HistogramSet::HistogramSet(uint64_t const numhist, uint64_t const
 	}
 }
 
-void libmaus::util::HistogramSet::print(std::ostream & out) const
+void libmaus2::util::HistogramSet::print(std::ostream & out) const
 {
 	for ( uint64_t i = 0; i < H.size(); ++i )
 	{
@@ -38,7 +38,7 @@ void libmaus::util::HistogramSet::print(std::ostream & out) const
 	}
 }
 
-libmaus::util::Histogram::unique_ptr_type libmaus::util::HistogramSet::merge() const
+libmaus2::util::Histogram::unique_ptr_type libmaus2::util::HistogramSet::merge() const
 {
 	if ( H.size() )
 	{

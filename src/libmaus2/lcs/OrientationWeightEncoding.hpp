@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_LCS_ORIENTATIONWEIGHTENCODING_HPP)
 #define LIBMAUS_LCS_ORIENTATIONWEIGHTENCODING_HPP
 
-#include <libmaus/lcs/OverlapOrientation.hpp>
-#include <libmaus/math/MetaLog.hpp>
-#include <libmaus/graph/TripleEdge.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/lcs/OverlapOrientation.hpp>
+#include <libmaus2/math/MetaLog.hpp>
+#include <libmaus2/graph/TripleEdge.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
 		struct OrientationWeightEncoding : public OverlapOrientation
 		{
-			typedef ::libmaus::graph::TripleEdge edge_type;
+			typedef ::libmaus2::graph::TripleEdge edge_type;
 
 			static unsigned int const orientation_bits = 
-				::libmaus::math::MetaNumBits<overlap_ar_complete_b>::bits;
+				::libmaus2::math::MetaNumBits<overlap_ar_complete_b>::bits;
 			static unsigned int const orientation_mask =
 				static_cast<uint64_t>((1ull << orientation_bits)-1ull);
 			static unsigned int const orientation_shift = 8*sizeof(edge_type::link_weight_type)-orientation_bits;
@@ -50,7 +50,7 @@ namespace libmaus
 				edge_type::link_weight_type const weight
 			)
 			{
-				return weight & ::libmaus::math::lowbits(orientation_shift);
+				return weight & ::libmaus2::math::lowbits(orientation_shift);
 			}
 			static overlap_orientation getOrientation(
 				edge_type::link_weight_type const weight

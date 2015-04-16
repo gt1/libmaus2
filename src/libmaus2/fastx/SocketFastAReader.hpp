@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(SOCKETFASTAREADER_HPP)
 #define SOCKETFASTAREADER_HPP
 
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/network/SocketFastReaderBase.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/network/SocketFastReaderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-                typedef FastAReaderTemplate < ::libmaus::network::SocketFastReaderBase > SocketFastAReader;
+                typedef FastAReaderTemplate < ::libmaus2::network::SocketFastReaderBase > SocketFastAReader;
 	}
 }
 #endif

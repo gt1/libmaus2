@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,19 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>	
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>	
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
-#include <libmaus/bambam/BamMultiAlignmentDecoderFactory.hpp>
+#include <libmaus2/bambam/BamMultiAlignmentDecoderFactory.hpp>
 
-#include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
+#include <libmaus2/lz/SimpleCompressedStreamInterval.hpp>
 
-#include <libmaus/bambam/BamEntryContainer.hpp>
-#include <libmaus/bambam/BamAlignmentReadGroupFilter.hpp>
+#include <libmaus2/bambam/BamEntryContainer.hpp>
+#include <libmaus2/bambam/BamAlignmentReadGroupFilter.hpp>
 
-using namespace libmaus::bambam;
-using namespace libmaus::util;
+using namespace libmaus2::bambam;
+using namespace libmaus2::util;
 using namespace std;
 
 int main(int argc, char * argv[])
@@ -37,8 +37,8 @@ int main(int argc, char * argv[])
 	{
 		ArgInfo const arginfo(argc,argv);
 		
-		libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type decwrapper(
-			libmaus::bambam::BamMultiAlignmentDecoderFactory::construct(
+		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type decwrapper(
+			libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(
 				arginfo,false // put rank
 			)
 		);
@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 		TempFileRemovalContainer::addTempFile(tmpfilename);
 
 		// collator type
-		typedef libmaus::bambam::CircularHashCollatingBamDecoder collator_type;
+		typedef libmaus2::bambam::CircularHashCollatingBamDecoder collator_type;
 		// typedef BamParallelCircularHashCollatingBamDecoder collator_type;
 		typedef collator_type::alignment_ptr_type alignment_ptr_type;
 		// set up collator

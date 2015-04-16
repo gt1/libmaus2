@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_GRAPH_FILTEREDGRAPHTYPES_HPP)
 #define LIBMAUS_GRAPH_FILTEREDGRAPHTYPES_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/graph/EdgeList.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/graph/EdgeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct FilteredGraphTypes
 		{
-			typedef libmaus::graph::EdgeListBase::edge_target_type filtered_graph_target_type;
-			typedef libmaus::graph::EdgeListBase::edge_count_type filtered_graph_num_edge_type;
+			typedef libmaus2::graph::EdgeListBase::edge_target_type filtered_graph_target_type;
+			typedef libmaus2::graph::EdgeListBase::edge_count_type filtered_graph_num_edge_type;
 			typedef uint8_t  filtered_graph_orientation_type;
-			typedef libmaus::graph::EdgeListBase::edge_weight_type filtered_graph_weight_type;
+			typedef libmaus2::graph::EdgeListBase::edge_weight_type filtered_graph_weight_type;
 		};
 	}
 }

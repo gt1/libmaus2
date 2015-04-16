@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_FASTX_FASTALINEPARSER_HPP)
 #define LIBMAUS_FASTX_FASTALINEPARSER_HPP
 
-#include <libmaus/fastx/FastAMapTable.hpp>
-#include <libmaus/fastx/CharTermTable.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
-#include <libmaus/fastx/FastALineParserLineInfo.hpp>
+#include <libmaus2/fastx/FastAMapTable.hpp>
+#include <libmaus2/fastx/CharTermTable.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
+#include <libmaus2/fastx/FastALineParserLineInfo.hpp>
 #include <istream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -33,15 +33,15 @@ namespace libmaus
 		{
 			typedef std::istream stream_type;
 			stream_type & stream;
-			libmaus::fastx::CharTermTable const newlineterm;
-			libmaus::fastx::SpaceTable const spacetable;
-			libmaus::fastx::FastAMapTable const FMT;
-			libmaus::autoarray::AutoArray<uint8_t> data;
-			libmaus::autoarray::AutoArray<uint8_t> id;
+			libmaus2::fastx::CharTermTable const newlineterm;
+			libmaus2::fastx::SpaceTable const spacetable;
+			libmaus2::fastx::FastAMapTable const FMT;
+			libmaus2::autoarray::AutoArray<uint8_t> data;
+			libmaus2::autoarray::AutoArray<uint8_t> id;
 			int64_t idlen;
 			
 			bool haveputback;
-			::libmaus::fastx::FastALineParserLineInfo putbackinfo;
+			::libmaus2::fastx::FastALineParserLineInfo putbackinfo;
 			
 			FastALineParser(stream_type & rstream)
 			: stream(rstream), newlineterm('\n'), idlen(-1), haveputback(false)
@@ -56,19 +56,19 @@ namespace libmaus
 						stream.get();
 			}
 			
-			void putback(::libmaus::fastx::FastALineParserLineInfo const & info)
+			void putback(::libmaus2::fastx::FastALineParserLineInfo const & info)
 			{
 				putbackinfo = info;
 				haveputback = true;
 			}
 
-			bool getNextLine(::libmaus::fastx::FastALineParserLineInfo & info)
+			bool getNextLine(::libmaus2::fastx::FastALineParserLineInfo & info)
 			{
 				if ( haveputback )
 				{
 					haveputback = false;
 					info = putbackinfo;
-					return info.linetype != ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line_eof;
+					return info.linetype != ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line_eof;
 				}
 			
 				uint8_t * pa = data.begin();
@@ -80,7 +80,7 @@ namespace libmaus
 				{
 					if ( pc == pe )
 					{
-						libmaus::autoarray::AutoArray<uint8_t> ndata(
+						libmaus2::autoarray::AutoArray<uint8_t> ndata(
 							std::max(static_cast<uint64_t>(1),static_cast<uint64_t>(2*data.size())),false);
 						std::copy(data.begin(),data.end(),ndata.begin());
 						
@@ -102,17 +102,17 @@ namespace libmaus
 				
 				if ( (info.linelen == 0) && (c == stream_type::traits_type::eof()) )
 				{
-					info.linetype = ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line_eof;
+					info.linetype = ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line_eof;
 					return false; 
 				}
 				else if ( info.linelen > 0 && *pa == '>' )
 				{
 					info.line++;
 					info.linelen--;
-					info.linetype = ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line;
+					info.linetype = ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line;
 					
 					if ( id.size() < info.linelen )
-						id = libmaus::autoarray::AutoArray<uint8_t>(info.linelen);
+						id = libmaus2::autoarray::AutoArray<uint8_t>(info.linelen);
 						
 					idlen = info.linelen;
 					memcpy(id.begin(),info.line,info.linelen);
@@ -120,7 +120,7 @@ namespace libmaus
 				}
 				else
 				{
-					info.linetype = ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_base_line;
+					info.linetype = ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_base_line;
 					
 					uint8_t * op = pa;
 					

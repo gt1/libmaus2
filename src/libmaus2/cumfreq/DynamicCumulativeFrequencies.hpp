@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -28,10 +28,10 @@
  * data structure according to Fenwick
  **/
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace cumfreq
 	{
@@ -39,7 +39,7 @@ namespace libmaus
 		{
 			private:
 			uint64_t const sigma;
-			::libmaus::autoarray::AutoArray<uint64_t> table;
+			::libmaus2::autoarray::AutoArray<uint64_t> table;
 
 			public:
 			DynamicCumulativeFrequencies(uint64_t rsigma)

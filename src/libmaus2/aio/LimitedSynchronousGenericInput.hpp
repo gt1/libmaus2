@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,9 +21,9 @@
 #if ! defined(LIMITEDSYNCHRONOUSGENERICINPUT_HPP)
 #define LIMITEDSYNCHRONOUSGENERICINPUT_HPP
 
-#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 		        //! this type
 		        typedef LimitedSynchronousGenericInput<value_type> this_type;
 		        //! unique pointer type
-		        typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		        typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 		        /**
 		         * constructor

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSCONTAINERFLUSHWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSCONTAINERFLUSHWORKPACKAGE_HPP
 
-#include <libmaus/bambam/ReadEndsContainer.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/ReadEndsContainer.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct PairReadEndsContainerFlushWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct PairReadEndsContainerFlushWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef PairReadEndsContainerFlushWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				libmaus::bambam::ReadEndsContainer::shared_ptr_type REC;
+				libmaus2::bambam::ReadEndsContainer::shared_ptr_type REC;
 		
-				PairReadEndsContainerFlushWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), REC()
+				PairReadEndsContainerFlushWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), REC()
 				{
 				
 				}		
 				PairReadEndsContainerFlushWorkPackage(
-					libmaus::bambam::ReadEndsContainer::shared_ptr_type RREC,
+					libmaus2::bambam::ReadEndsContainer::shared_ptr_type RREC,
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
 					uint64_t const rpackageid = 0
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REC(RREC)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), REC(RREC)
 				{
 				
 				}

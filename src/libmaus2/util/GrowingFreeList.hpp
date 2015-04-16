@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_UTIL_GROWINGFREELIST_HPP)
 #define LIBMAUS_UTIL_GROWINGFREELIST_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/FreeList.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/FreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		template<
 			typename _element_type, 
-			typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = libmaus::util::FreeListDefaultTypeInfo<_element_type> 
+			typename _allocator_type = libmaus2::util::FreeListDefaultAllocator<_element_type>,
+			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type> 
 		>
 		struct GrowingFreeList
 		{
@@ -39,8 +39,8 @@ namespace libmaus
 			typedef GrowingFreeList<element_type,allocator_type,type_info_type> this_type;
 
 			private:
-			libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> alloclist;
-			libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> freelist;
+			libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type> alloclist;
+			libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type> freelist;
 			uint64_t freelistfill;
 			allocator_type allocator;
 			
@@ -48,8 +48,8 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < alloclist.size(); ++i )
 					alloclist[i] = type_info_type::deallocate(alloclist[i]);
-				alloclist = libmaus::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
-				freelist = libmaus::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
+				alloclist = libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
+				freelist = libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type>(0);	
 				freelistfill = 0;
 			}
 			
@@ -99,7 +99,7 @@ namespace libmaus
 				if ( ! freelistfill )
 				{
 					// allocate more alignment objects
-					libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> nalloclist(
+					libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type> nalloclist(
 						std::max(
 							static_cast<uint64_t>(1),
 							static_cast<uint64_t>(2*alloclist.size())
@@ -115,7 +115,7 @@ namespace libmaus
 						p != nalloclist.end(); ++p )
 						*p = allocator();
 					
-					libmaus::autoarray::AutoArray<typename type_info_type::pointer_type> nfreelist(
+					libmaus2::autoarray::AutoArray<typename type_info_type::pointer_type> nfreelist(
 						std::max(
 							static_cast<uint64_t>(1),
 							static_cast<uint64_t>(2*freelist.size())

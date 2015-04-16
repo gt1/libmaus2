@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(RLENCODER_HPP)
 #define RLENCODER_HPP
 
-#include <libmaus/huffman/HuffmanEncoderFile.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/huffman/IndexLoader.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/huffman/PairAddSecond.hpp>
-#include <libmaus/huffman/IndexEntry.hpp>
+#include <libmaus2/huffman/HuffmanEncoderFile.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/huffman/IndexLoader.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/huffman/PairAddSecond.hpp>
+#include <libmaus2/huffman/IndexEntry.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -41,7 +41,7 @@ namespace libmaus
 			uint64_t const numsyms;
 
 			typedef std::pair<uint64_t,uint64_t> rl_pair;
-			::libmaus::autoarray::AutoArray < rl_pair > rlbuffer;
+			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
 
 			rl_pair * const pa;
 			rl_pair *       pc;
@@ -50,7 +50,7 @@ namespace libmaus
 			uint64_t cursym;
 			uint64_t curcnt;
 			
-			::libmaus::util::Histogram globalhist;
+			::libmaus2::util::Histogram globalhist;
 			std::vector < IndexEntry > index;
 			
 			bool indexwritten;
@@ -76,13 +76,13 @@ namespace libmaus
 				uint64_t const numsyms)
 			{
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
-				unsigned int const posbits = ::libmaus::math::bitsPerNum(maxpos);
+				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
 
 				uint64_t const kacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryKeyAdd());
-				unsigned int const kbits = ::libmaus::math::bitsPerNum(kacc);
+				unsigned int const kbits = ::libmaus2::math::bitsPerNum(kacc);
 
 				uint64_t const vacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryValueAdd());
-				unsigned int const vbits = ::libmaus::math::bitsPerNum(vacc);
+				unsigned int const vbits = ::libmaus2::math::bitsPerNum(vacc);
 
 				// index size (number of blocks)
 				writer.writeElias2(index.size());
@@ -161,8 +161,8 @@ namespace libmaus
 					uint64_t const blockpos = writer.getPos();
 					uint64_t numsyms = 0;
 				
-					::libmaus::util::Histogram symhist;
-					::libmaus::util::Histogram cnthist;
+					::libmaus2::util::Histogram symhist;
+					::libmaus2::util::Histogram cnthist;
 					for ( rl_pair * pi = pa; pi != pc; ++pi )
 					{
 						symhist(pi->first);
@@ -173,7 +173,7 @@ namespace libmaus
 					
 					if ( ! numsyms )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "numsyms=" << numsyms << " for pc-pa=" << pc-pa << " in RLEncoder::implicitFlush()" << std::endl;
 						se.finish();
 						throw se;
@@ -184,21 +184,21 @@ namespace libmaus
 					std::vector < std::pair<uint64_t,uint64_t > > const symfreqs = symhist.getFreqSymVector();
 					std::vector < std::pair<uint64_t,uint64_t > > const cntfreqs = cnthist.getFreqSymVector();
 					
-					assert ( ! ::libmaus::huffman::EscapeCanonicalEncoder::needEscape(symfreqs) );
+					assert ( ! ::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(symfreqs) );
 
-					::libmaus::huffman::CanonicalEncoder symenc(symhist.getByType<int64_t>());
-					::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type esccntenc;
-					::libmaus::huffman::CanonicalEncoder::unique_ptr_type cntenc;
+					::libmaus2::huffman::CanonicalEncoder symenc(symhist.getByType<int64_t>());
+					::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type esccntenc;
+					::libmaus2::huffman::CanonicalEncoder::unique_ptr_type cntenc;
 					
-					bool const cntesc = ::libmaus::huffman::EscapeCanonicalEncoder::needEscape(cntfreqs);
+					bool const cntesc = ::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(cntfreqs);
 					if ( cntesc )
 					{
-						::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tesccntenc(new ::libmaus::huffman::EscapeCanonicalEncoder(cntfreqs));
+						::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type tesccntenc(new ::libmaus2::huffman::EscapeCanonicalEncoder(cntfreqs));
 						esccntenc = UNIQUE_PTR_MOVE(tesccntenc);
 					}
 					else
 					{
-						::libmaus::huffman::CanonicalEncoder::unique_ptr_type tcntenc(new ::libmaus::huffman::CanonicalEncoder(cnthist.getByType<int64_t>()));
+						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tcntenc(new ::libmaus2::huffman::CanonicalEncoder(cnthist.getByType<int64_t>()));
 						cntenc = UNIQUE_PTR_MOVE(tcntenc);
 					}
 
@@ -272,7 +272,7 @@ namespace libmaus
 		{
 			typedef _huffmanencoderfile_type huffmanencoderfile_type;
 			typedef RLEncoderTemplate<_huffmanencoderfile_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			RLEncoderTemplate(std::string const & filename, uint64_t const n, uint64_t const bufsize)
 			: huffmanencoderfile_type(filename), RLEncoderBaseTemplate< huffmanencoderfile_type >(*this,n,bufsize)
@@ -302,7 +302,7 @@ namespace libmaus
 			)
 			{
 				uint64_t const indexpos = IndexLoader::getIndexPos(filename);
-				libmaus::autoarray::AutoArray< IndexEntry > subindex = IndexLoader::loadIndex(filename);
+				libmaus2::autoarray::AutoArray< IndexEntry > subindex = IndexLoader::loadIndex(filename);
 				
 				if ( subindex.size() )
 				{
@@ -320,7 +320,7 @@ namespace libmaus
 						
 					std::ifstream istr(filename.c_str(),std::ios::binary);
 					istr.seekg(datapos,std::ios::beg);
-					::libmaus::util::GetFileSize::copy ( istr, out, datalen, 1 );
+					::libmaus2::util::GetFileSize::copy ( istr, out, datalen, 1 );
 					
 					for ( uint64_t i = 0; i < subindex.size(); ++i )
 						index.push_back(subindex[i]);
@@ -334,7 +334,7 @@ namespace libmaus
 			)
 			{
 				uint64_t const indexpos = IndexLoader::getIndexPos(filename);
-				libmaus::autoarray::AutoArray< IndexEntry > subindex = IndexLoader::loadIndex(filename);
+				libmaus2::autoarray::AutoArray< IndexEntry > subindex = IndexLoader::loadIndex(filename);
 				
 				if ( subindex.size() )
 				{
@@ -352,7 +352,7 @@ namespace libmaus
 						
 					std::ifstream istr(filename.c_str(),std::ios::binary);
 					istr.seekg(datapos,std::ios::beg);
-					::libmaus::util::GetFileSize::copyIterator ( istr, out.getIterator(), datalen, 1 );
+					::libmaus2::util::GetFileSize::copyIterator ( istr, out.getIterator(), datalen, 1 );
 					
 					for ( uint64_t i = 0; i < subindex.size(); ++i )
 						index.push_back(subindex[i]);
@@ -371,13 +371,13 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLDecoder::getLength(): Failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}
-				::libmaus::bitio::StreamBitInputStream SBIS(istr);	
-				return ::libmaus::bitio::readElias2(SBIS);
+				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
+				return ::libmaus2::bitio::readElias2(SBIS);
 			}
 			
 			static void concatenate(std::vector<std::string> const & filenames, std::string const & outfilename, bool const removeinput = false)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_FASTX_FASTQBGZFWRITER_HPP)
 #define LIBMAUS_FASTX_FASTQBGZFWRITER_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/BgzfDeflateParallel.hpp>
-#include <libmaus/lz/BgzfDeflate.hpp>
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfDeflateParallel.hpp>
+#include <libmaus2/lz/BgzfDeflate.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastQBgzfWriter
 		{
 			typedef FastQBgzfWriter this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			std::string const indexfilename;
@@ -48,19 +48,19 @@ namespace libmaus
 			#endif
 
 			#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
-			libmaus::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr;
-			libmaus::aio::CheckedOutputStream::unique_ptr_type bgzfidxcntoutstr;
+			libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr;
+			libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidxcntoutstr;
 			#endif
-			libmaus::aio::CheckedOutputStream::unique_ptr_type fioutstr;
+			libmaus2::aio::CheckedOutputStream::unique_ptr_type fioutstr;
 
-			libmaus::autoarray::AutoArray<char> C;
+			libmaus2::autoarray::AutoArray<char> C;
 			uint64_t patlow;
 			uint64_t blockcnt;
 
 			#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
-			libmaus::lz::BgzfDeflateParallel::unique_ptr_type bgzfenc;
+			libmaus2::lz::BgzfDeflateParallel::unique_ptr_type bgzfenc;
 			#else
-			libmaus::lz::BgzfDeflate<std::ostream>::unique_ptr_type bgzfenc;
+			libmaus2::lz::BgzfDeflate<std::ostream>::unique_ptr_type bgzfenc;
 			#endif
 
 			uint64_t lnumsyms;
@@ -118,7 +118,7 @@ namespace libmaus
 
 			static std::string setupTempFile(std::string const & filename)
 			{
-				libmaus::util::TempFileRemovalContainer::addTempFile(filename);	
+				libmaus2::util::TempFileRemovalContainer::addTempFile(filename);	
 				return filename;
 			}
 
@@ -128,11 +128,11 @@ namespace libmaus
 				{
 					#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
 					uint64_t const bcnt = bgzfenc->writeSyncedCount(C.begin(),pc-C.begin());
-					libmaus::util::UTF8::encodeUTF8(bcnt,*bgzfidxcntoutstr);
-					libmaus::fastx::FastInterval const FI(patlow,pathigh,0,0,lnumsyms,minlen,maxlen);
+					libmaus2::util::UTF8::encodeUTF8(bcnt,*bgzfidxcntoutstr);
+					libmaus2::fastx::FastInterval const FI(patlow,pathigh,0,0,lnumsyms,minlen,maxlen);
 					#else
 					std::pair<uint64_t,uint64_t> bcntccnt = bgzfenc->writeSyncedCount(C.begin(),pc-C.begin());
-					libmaus::fastx::FastInterval const FI(patlow,pathigh,cacc,cacc+bcntccnt.second,lnumsyms,minlen,maxlen);
+					libmaus2::fastx::FastInterval const FI(patlow,pathigh,cacc,cacc+bcntccnt.second,lnumsyms,minlen,maxlen);
 					cacc += bcntccnt.second;
 					#endif
 					
@@ -209,15 +209,15 @@ namespace libmaus
 			    #if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
 			    bgzfidxfilename(setupTempFile(indexfilename + ".tmp.bgzfidx")),
 			    bgzfidxcntfilename(setupTempFile(indexfilename + ".tmp.bgzfidx.cnt")),
-			    bgzfidoutstr(new libmaus::aio::CheckedOutputStream(bgzfidxfilename)),
-			    bgzfidxcntoutstr(new libmaus::aio::CheckedOutputStream(bgzfidxcntfilename)),
+			    bgzfidoutstr(new libmaus2::aio::CheckedOutputStream(bgzfidxfilename)),
+			    bgzfidxcntoutstr(new libmaus2::aio::CheckedOutputStream(bgzfidxcntfilename)),
 			    #endif
-			    fioutstr(new libmaus::aio::CheckedOutputStream(fifilename)),
+			    fioutstr(new libmaus2::aio::CheckedOutputStream(fifilename)),
 			    C(0,false), patlow(0), blockcnt(0),
 			    #if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
-			    bgzfenc(new libmaus::lz::BgzfDeflateParallel(out,32,128,level,bgzfidoutstr.get())),
+			    bgzfenc(new libmaus2::lz::BgzfDeflateParallel(out,32,128,level,bgzfidoutstr.get())),
 			    #else
-			    bgzfenc(new libmaus::lz::BgzfDeflate<std::ostream>(out,level)),
+			    bgzfenc(new libmaus2::lz::BgzfDeflate<std::ostream>(out,level)),
 			    #endif
 			    lnumsyms(0),
 			    minlen(std::numeric_limits<uint64_t>::max()),
@@ -259,7 +259,7 @@ namespace libmaus
 				}
 			}
 						
-			void put(libmaus::fastx::FastQReader::pattern_type const & pattern)
+			void put(libmaus2::fastx::FastQReader::pattern_type const & pattern)
 			{
 				uint64_t const patlen = getFastQLength(pattern);
 				
@@ -312,9 +312,9 @@ namespace libmaus
 					fioutstr->flush();
 					fioutstr.reset();
 
-					libmaus::aio::CheckedOutputStream indexCOS(indexfilename);
-					::libmaus::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
-					libmaus::aio::CheckedInputStream fiCIS(fifilename);
+					libmaus2::aio::CheckedOutputStream indexCOS(indexfilename);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
+					libmaus2::aio::CheckedInputStream fiCIS(fifilename);
 					
 					#if defined(LIBMAUS_FASTX_FASTQBGZFWRITER_PARALLEL)
 					bgzfidoutstr->flush();
@@ -322,25 +322,25 @@ namespace libmaus
 					bgzfidxcntoutstr->flush();
 					bgzfidxcntoutstr.reset();
 					
-					libmaus::aio::CheckedInputStream bgzfidxCIS(bgzfidxfilename);
-					libmaus::aio::CheckedInputStream bgzfidxcntCIS(bgzfidxcntfilename);
+					libmaus2::aio::CheckedInputStream bgzfidxCIS(bgzfidxfilename);
+					libmaus2::aio::CheckedInputStream bgzfidxcntCIS(bgzfidxcntfilename);
 					
 					uint64_t uncompacc = 0;
 					uint64_t compacc = 0;
 					
 					for ( uint64_t i = 0; i < blockcnt; ++i )
 					{
-						uint64_t const bgzfblocks = libmaus::util::UTF8::decodeUTF8(bgzfidxcntCIS);
+						uint64_t const bgzfblocks = libmaus2::util::UTF8::decodeUTF8(bgzfidxcntCIS);
 						uint64_t uncomp = 0;
 						uint64_t comp = 0;
 						
 						for ( uint64_t j = 0; j < bgzfblocks; ++j )
 						{
-							uncomp += libmaus::util::UTF8::decodeUTF8(bgzfidxCIS);
-							comp += libmaus::util::UTF8::decodeUTF8(bgzfidxCIS);
+							uncomp += libmaus2::util::UTF8::decodeUTF8(bgzfidxCIS);
+							comp += libmaus2::util::UTF8::decodeUTF8(bgzfidxCIS);
 						}
 
-						libmaus::fastx::FastInterval FI = libmaus::fastx::FastInterval::deserialise(fiCIS);
+						libmaus2::fastx::FastInterval FI = libmaus2::fastx::FastInterval::deserialise(fiCIS);
 						FI.fileoffset = compacc;
 						FI.fileoffsethigh = compacc + comp;
 						
@@ -354,7 +354,7 @@ namespace libmaus
 
 					for ( uint64_t i = 0; i < blockcnt; ++i )
 					{
-						libmaus::fastx::FastInterval FI = libmaus::fastx::FastInterval::deserialise(fiCIS);
+						libmaus2::fastx::FastInterval FI = libmaus2::fastx::FastInterval::deserialise(fiCIS);
 						indexCOS << FI.serialise();
 					}
 					

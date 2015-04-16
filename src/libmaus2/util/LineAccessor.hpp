@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_UTIL_LINEACCESSOR_HPP)
 #define LIBMAUS_UTIL_LINEACCESSOR_HPP
 
-#include <libmaus/rank/ERank222B.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct LineAccessor
 		{
 			typedef LineAccessor this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
-			typedef libmaus::rank::ERank222B rank_type;
+			typedef libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 			typedef rank_type::writer_type rank_writer_type;
 			typedef rank_writer_type::data_type rank_data_type;
@@ -48,11 +48,11 @@ namespace libmaus
 			// number of lines
 			uint64_t const numsuperblocks;
 			// super block start pointers
-			libmaus::autoarray::AutoArray<uint64_t> S;
+			libmaus2::autoarray::AutoArray<uint64_t> S;
 			// line start pointers in super blocks
-			libmaus::autoarray::AutoArray<uint16_t> M;
+			libmaus2::autoarray::AutoArray<uint16_t> M;
 			// bit vector marking lines starting a new super block
-			libmaus::autoarray::AutoArray<rank_data_type> B;
+			libmaus2::autoarray::AutoArray<rank_data_type> B;
 			// rank dictionary on B
 			rank_ptr_type R;
 			

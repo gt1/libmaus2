@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(LSFPROCESS_HPP)
 #define LSFPROCESS_HPP
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/ForkProcessLSFSim.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/lsf/LSFStateBase.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/ForkProcessLSFSim.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/lsf/LSFStateBase.hpp>
 #include <vector>
 #include <string>
 
 #if defined(HAVE_LSF)
-namespace libmaus
+namespace libmaus2
 {
 	namespace lsf
 	{
 		struct LSF
 		{
-			static ::libmaus::parallel::OMPLock lsflock;
+			static ::libmaus2::parallel::OMPLock lsflock;
 			static void init(std::string const & sappname);
 			static std::string getClusterName();
 			
@@ -47,8 +47,8 @@ namespace libmaus
 		struct LSFProcess : public LSFStateBase
 		{
 		        typedef LSFProcess this_type;
-		        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-		        typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+		        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+		        typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 		        int64_t const id;
 		        
@@ -115,12 +115,12 @@ namespace libmaus
 	}
 }
 #else
-namespace libmaus
+namespace libmaus2
 {
 	namespace lsf
 	{
-		typedef ::libmaus::util::LSFSim LSF;
-		typedef ::libmaus::util::ForkProcessLSFSim LSFProcess;
+		typedef ::libmaus2::util::LSFSim LSF;
+		typedef ::libmaus2::util::ForkProcessLSFSim LSFProcess;
 	}
 }
 #endif

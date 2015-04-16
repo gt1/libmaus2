@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if !defined(LIBMAUS_GRAPH_GRAPHEDGEHEAPCOMPARATOR_HPP)
 #define LIBMAUS_GRAPH_GRAPHEDGEHEAPCOMPARATOR_HPP
 
-#include <libmaus/graph/GraphEdge.hpp>
+#include <libmaus2/graph/GraphEdge.hpp>
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{

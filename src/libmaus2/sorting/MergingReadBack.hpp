@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if !defined(LIBMAUS_SORTING_MERGINGREADBACK_HPP)
 #define LIBMAUS_SORTING_MERGINGREADBACK_HPP
 
-#include <libmaus/aio/BufferedOutput.hpp>
+#include <libmaus2/aio/BufferedOutput.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 			typedef _data_type data_type;
 			typedef _order_type order_type;
 			typedef MergingReadBack<data_type,order_type> this_type;
-			typedef typename libmaus::util::unique_ptr<order_type>::type order_ptr_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<order_type>::type order_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			struct SubBlock
@@ -61,7 +61,7 @@ namespace libmaus
 				}
 			};
 				
-			libmaus::aio::CheckedInputStream CIS;
+			libmaus2::aio::CheckedInputStream CIS;
 			
 			order_ptr_type Porder;
 			order_type & order;
@@ -70,10 +70,10 @@ namespace libmaus
 			
 			std::vector<uint64_t> blocksizes;
 			uint64_t const backblocksize;
-			libmaus::autoarray::AutoArray<uint64_t> blockoffsets;
+			libmaus2::autoarray::AutoArray<uint64_t> blockoffsets;
 			
-			libmaus::autoarray::AutoArray<data_type> blocks;
-			libmaus::autoarray::AutoArray<SubBlock> subblocks;
+			libmaus2::autoarray::AutoArray<data_type> blocks;
+			libmaus2::autoarray::AutoArray<SubBlock> subblocks;
 			
 			bool fillBlock(uint64_t const b)
 			{

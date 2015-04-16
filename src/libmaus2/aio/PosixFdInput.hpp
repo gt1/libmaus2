@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -32,10 +32,10 @@
 
 #include <cerrno>
 #include <cstring>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/lz/StreamWrapper.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/lz/StreamWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -43,8 +43,8 @@ namespace libmaus
 		{
 			public:
 			typedef PosixFdInput this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			std::string filename;
@@ -89,7 +89,7 @@ namespace libmaus
 							default:
 							{
 								int const error = errno;
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput(" << filename << "," << rflags << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
@@ -118,7 +118,7 @@ namespace libmaus
 							default:
 							{
 								int const error = errno;
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput::read(" << filename << "," << n << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
@@ -152,7 +152,7 @@ namespace libmaus
 							default:
 							{
 								int const error = errno;
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput::lseek(" << filename << "," << n << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
@@ -193,7 +193,7 @@ namespace libmaus
 								break;
 							default:
 							{
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput::close(" << filename << "," << fd << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
@@ -222,7 +222,7 @@ namespace libmaus
 							default:
 							{
 								int const error = errno;
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput::size(" << filename << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
@@ -233,7 +233,7 @@ namespace libmaus
 
 				if ( ! S_ISREG(sb.st_mode) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "PosixFdInput::size(" << filename << "," << fd << "): file descriptor does not designate a (regular) file" << std::endl;
 					se.finish();
 					throw se;				
@@ -261,7 +261,7 @@ namespace libmaus
 							default:
 							{
 								int const error = errno;
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput::size(" << filename << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
@@ -307,7 +307,7 @@ namespace libmaus
 							default:
 							{
 								int const error = errno;
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "PosixFdInput::size(" << filename << "): " << strerror(error) << std::endl;
 								se.finish();
 								throw se;

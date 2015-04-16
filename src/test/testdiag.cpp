@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/math/ipow.hpp>
-#include <libmaus/math/numbits.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/math/ipow.hpp>
+#include <libmaus2/math/numbits.hpp>
 
 struct MultipleAlignmentMatrixElement
 {
@@ -50,7 +50,7 @@ struct NumberBlockDiagonal
 	unsigned int const shift;
 	uint64_t const blocklen;
 	uint64_t const diag;
-	libmaus::autoarray::AutoArray<element_type> A;
+	libmaus2::autoarray::AutoArray<element_type> A;
 
 	NumberBlockDiagonal(
 		uint64_t const rr, 
@@ -61,9 +61,9 @@ struct NumberBlockDiagonal
 	  w(2*rr+1), 
 	  k(rk),
 	  k1(k-1),
-	  next(libmaus::math::nextTwoPow(w)),
-	  shift(::libmaus::math::numbits(next-1)),
-	  blocklen(::libmaus::math::ipow(next,k1)),
+	  next(libmaus2::math::nextTwoPow(w)),
+	  shift(::libmaus2::math::numbits(next-1)),
+	  blocklen(::libmaus2::math::ipow(next,k1)),
 	  diag(rdiag),
 	  A(blocklen*(diag+1))
 	{
@@ -162,7 +162,7 @@ void align(std::vector<std::string> const & A, uint64_t const radius)
 
 	std::vector<int64_t> coord(NB.k);	
 	uint64_t const mask = (1ull<<NB.shift)-1;
-	uint64_t const loops = ::libmaus::math::ipow(NB.w,NB.k1);
+	uint64_t const loops = ::libmaus2::math::ipow(NB.w,NB.k1);
 	
 	for ( uint64_t z = 0; z < A[0].size(); ++z )
 	{
@@ -174,7 +174,7 @@ void align(std::vector<std::string> const & A, uint64_t const radius)
 
 			for ( uint64_t j = 1; j < NB.k; ++j )
 			{
-				coord[NB.k-j] = ((y/libmaus::math::ipow(NB.w,j-1))%NB.w) -NB.r+z;				
+				coord[NB.k-j] = ((y/libmaus2::math::ipow(NB.w,j-1))%NB.w) -NB.r+z;				
 				ok = ok && coord[NB.k-j] >= 0;
 			}
 			

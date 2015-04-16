@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSLISTNODE_HPP)
 #define LIBMAUS_BAMBAM_READENDSLISTNODE_HPP
 
-#include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct ReadEndsListNode
 		{
 			typedef ReadEndsListNode this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			libmaus::bambam::ReadEnds A;
+			libmaus2::bambam::ReadEnds A;
 			ReadEndsListNode * next;
 			
 			ReadEndsListNode() : next(0) {}

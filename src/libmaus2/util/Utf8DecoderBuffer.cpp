@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Utf8DecoderBuffer.hpp>
+#include <libmaus2/util/Utf8DecoderBuffer.hpp>
 
-libmaus::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
+libmaus2::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 	std::string const & filename, 
 	::std::size_t rbuffersize
 )
@@ -41,7 +41,7 @@ libmaus::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 	setg(buffer.end(), buffer.end(), buffer.end());	
 }
 
-::std::streampos libmaus::util::Utf8DecoderBuffer::seekpos(::std::streampos sp, ::std::ios_base::openmode which)
+::std::streampos libmaus2::util::Utf8DecoderBuffer::seekpos(::std::streampos sp, ::std::ios_base::openmode which)
 {
 	if ( which & ::std::ios_base::in )
 	{
@@ -70,7 +70,7 @@ libmaus::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 	return -1;
 }
 
-::std::streampos libmaus::util::Utf8DecoderBuffer::seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
+::std::streampos libmaus2::util::Utf8DecoderBuffer::seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
 {
 	if ( which & ::std::ios_base::in )
 	{
@@ -107,7 +107,7 @@ libmaus::util::Utf8DecoderBuffer::Utf8DecoderBuffer(
 	return -1;
 }
 
-libmaus::util::Utf8DecoderBuffer::int_type libmaus::util::Utf8DecoderBuffer::underflow()
+libmaus2::util::Utf8DecoderBuffer::int_type libmaus2::util::Utf8DecoderBuffer::underflow()
 {
 	// if there is still data, then return it
 	if ( gptr() < egptr() )
@@ -141,20 +141,20 @@ libmaus::util::Utf8DecoderBuffer::int_type libmaus::util::Utf8DecoderBuffer::und
 	
 	// load packed data into memory
 	if ( inbuffer.size() < bytestoread )
-		inbuffer = ::libmaus::autoarray::AutoArray<uint8_t>(bytestoread);
+		inbuffer = ::libmaus2::autoarray::AutoArray<uint8_t>(bytestoread);
 	stream.read ( reinterpret_cast<char *>(inbuffer.begin()) , bytestoread );
 	if ( stream.gcount() != static_cast<int64_t>(bytestoread) )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Utf8DecoderBuffer::underflow() failed to read " << bytestoread << " bytes." << std::endl;
 		se.finish();
 		throw se;
 	}
 	
 	// decode utf-8 coded data into byte buffer
-	::libmaus::util::GetObject<uint8_t const *> G(inbuffer.begin());
+	::libmaus2::util::GetObject<uint8_t const *> G(inbuffer.begin());
 	for ( uint64_t i = 0; i < symstoread; ++i )
-		buffer[i] = ::libmaus::util::UTF8::decodeUTF8(G);
+		buffer[i] = ::libmaus2::util::UTF8::decodeUTF8(G);
 
 	setg(buffer.begin(),buffer.begin(),buffer.begin()+symstoread);
 

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,18 +20,18 @@
 #if !defined(SUFFIXPREFIX_HPP)
 #define SUFFIXPREFIX_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lcs/TraceContainer.hpp>
-#include <libmaus/lcs/GenericAlignmentPrint.hpp>
-#include <libmaus/lcs/SuffixPrefixResult.hpp>
-#include <libmaus/lcs/SuffixPrefixAlignmentPrint.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lcs/TraceContainer.hpp>
+#include <libmaus2/lcs/GenericAlignmentPrint.hpp>
+#include <libmaus2/lcs/SuffixPrefixResult.hpp>
+#include <libmaus2/lcs/SuffixPrefixAlignmentPrint.hpp>
 #include <map>
 #include <iostream>
 
-#include <libmaus/lcs/GenericEditDistance.hpp>
+#include <libmaus2/lcs/GenericEditDistance.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -61,7 +61,7 @@ namespace libmaus
 		{
 			typedef _score_type score_type;
 			typedef SuffixPrefixTemplate<score_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			typedef int32_t similarity_type;
 			typedef std::pair < similarity_type, step_type > element_type;
@@ -73,7 +73,7 @@ namespace libmaus
 			uint64_t const m1;
 
 			// matrix stored column wise
-			::libmaus::autoarray::AutoArray<element_type> M;
+			::libmaus2::autoarray::AutoArray<element_type> M;
 
 			public:
 			// trace for best infix alignment

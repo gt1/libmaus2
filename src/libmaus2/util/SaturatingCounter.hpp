@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,20 +20,20 @@
 #if ! defined(SATURATINGCOUNTER_HPP)
 #define SATURATINGCOUNTER_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/bitio/getBit.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/bitio/getBit.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct SaturatingCounter
 		{
 			typedef SaturatingCounter this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			SaturatingCounter & operator=(SaturatingCounter const &);
@@ -41,10 +41,10 @@ namespace libmaus
 		
 			public:
 			uint64_t const n;
-			::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> B;
+			::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> B;
 			uint8_t * const A;
 			
-			typedef ::libmaus::rank::ERank222B rank_type;
+			typedef ::libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
 			
 			rank_ptr_type rank;
@@ -87,7 +87,7 @@ namespace libmaus
 			}
 			bool getBit(uint64_t const i)
 			{
-				return ::libmaus::bitio::getBit(B.get(),i);
+				return ::libmaus2::bitio::getBit(B.get(),i);
 			}
 		};	
 		

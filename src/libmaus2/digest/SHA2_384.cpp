@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,43 +16,43 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/SHA2_384.hpp>
+#include <libmaus2/digest/SHA2_384.hpp>
 
 #if defined(LIBMAUS_HAVE_NETTLE)
 #include <nettle/sha.h>
 
-libmaus::digest::SHA2_384::SHA2_384() : ctx(0) {ctx = new sha384_ctx; }
-libmaus::digest::SHA2_384::~SHA2_384() { delete reinterpret_cast<sha384_ctx *>(ctx); }
-void libmaus::digest::SHA2_384::init() { sha384_init(reinterpret_cast<sha384_ctx *>(ctx)); }
-void libmaus::digest::SHA2_384::update(uint8_t const * t, size_t l) { sha384_update(reinterpret_cast<sha384_ctx *>(ctx),l,t); }
-void libmaus::digest::SHA2_384::digest(uint8_t * digest) { sha384_digest(reinterpret_cast<sha384_ctx *>(ctx),digestlength,&digest[0]); }
-void libmaus::digest::SHA2_384::copyFrom(libmaus::digest::SHA2_384 const & O)
+libmaus2::digest::SHA2_384::SHA2_384() : ctx(0) {ctx = new sha384_ctx; }
+libmaus2::digest::SHA2_384::~SHA2_384() { delete reinterpret_cast<sha384_ctx *>(ctx); }
+void libmaus2::digest::SHA2_384::init() { sha384_init(reinterpret_cast<sha384_ctx *>(ctx)); }
+void libmaus2::digest::SHA2_384::update(uint8_t const * t, size_t l) { sha384_update(reinterpret_cast<sha384_ctx *>(ctx),l,t); }
+void libmaus2::digest::SHA2_384::digest(uint8_t * digest) { sha384_digest(reinterpret_cast<sha384_ctx *>(ctx),digestlength,&digest[0]); }
+void libmaus2::digest::SHA2_384::copyFrom(libmaus2::digest::SHA2_384 const & O)
 {
 	(*reinterpret_cast<sha384_ctx *>(ctx)) = (*reinterpret_cast<sha384_ctx *>(O.ctx));
 }
 #else
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-libmaus::digest::SHA2_384::SHA2_384() : ctx(0) 
+libmaus2::digest::SHA2_384::SHA2_384() : ctx(0) 
 { 
-	libmaus::exception::LibMausException lme;
-	lme.getStream() << "libmaus::digest::SHA2_384::SHA2_384(): nettle library not present" << std::endl;
+	libmaus2::exception::LibMausException lme;
+	lme.getStream() << "libmaus2::digest::SHA2_384::SHA2_384(): nettle library not present" << std::endl;
 	lme.finish();
 	throw lme;
 }
-libmaus::digest::SHA2_384::~SHA2_384() 
+libmaus2::digest::SHA2_384::~SHA2_384() 
 { 
 }
-void libmaus::digest::SHA2_384::init() 
+void libmaus2::digest::SHA2_384::init() 
 { 
 }
-void libmaus::digest::SHA2_384::update(uint8_t const *, size_t) 
+void libmaus2::digest::SHA2_384::update(uint8_t const *, size_t) 
 {
 }
-void libmaus::digest::SHA2_384::digest(uint8_t *) 
+void libmaus2::digest::SHA2_384::digest(uint8_t *) 
 { 
 }
 #endif
 
-void libmaus::digest::SHA2_384::vinit() { init(); }
-void libmaus::digest::SHA2_384::vupdate(uint8_t const * u, size_t l) { update(u,l); }
+void libmaus2::digest::SHA2_384::vinit() { init(); }
+void libmaus2::digest::SHA2_384::vupdate(uint8_t const * u, size_t l) { update(u,l); }

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_ADAPTERFILTER_HPP)
 #define LIBMAUS_BAMBAM_ADAPTERFILTER_HPP
 
-#include <libmaus/fastx/QReorder.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/util/PushBuffer.hpp>
-#include <libmaus/bambam/BamDefaultAdapters.hpp>
-#include <libmaus/bambam/AdapterOffsetStrand.hpp>
+#include <libmaus2/fastx/QReorder.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/util/PushBuffer.hpp>
+#include <libmaus2/bambam/BamDefaultAdapters.hpp>
+#include <libmaus2/bambam/AdapterOffsetStrand.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct AdapterFilter
 		{
 			typedef AdapterFilter this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			enum { seedk = 3 };
@@ -69,7 +69,7 @@ namespace libmaus
 			
 			struct AdapterOffsetStrandFracComparator
 			{
-				bool operator()(libmaus::bambam::AdapterOffsetStrand const & A, libmaus::bambam::AdapterOffsetStrand const & B)
+				bool operator()(libmaus2::bambam::AdapterOffsetStrand const & A, libmaus2::bambam::AdapterOffsetStrand const & B)
 				{
 					return A.frac > B.frac;
 				}
@@ -80,10 +80,10 @@ namespace libmaus
 			std::vector<AdapterFragment> fragments;
 			std::vector<std::string> adaptersf;
 			std::vector<std::string> adaptersr;
-			std::vector<libmaus::bambam::BamAlignment::shared_ptr_type> badapters;
-			libmaus::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type kmerfilter;
-			libmaus::fastx::AutoArrayWordPutObject<uint64_t> A;
-			libmaus::autoarray::AutoArray<uint8_t> S;
+			std::vector<libmaus2::bambam::BamAlignment::shared_ptr_type> badapters;
+			libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type kmerfilter;
+			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> A;
+			libmaus2::autoarray::AutoArray<uint8_t> S;
 			uint64_t const wmask;
 			
 			void addFragments(
@@ -119,9 +119,9 @@ namespace libmaus
 			void init(std::istream & in)
 			{
 				assert ( seedlength );
-				libmaus::bambam::BamDecoder bamdec(in);
+				libmaus2::bambam::BamDecoder bamdec(in);
 
-				libmaus::autoarray::AutoArray<uint8_t> R(256);
+				libmaus2::autoarray::AutoArray<uint8_t> R(256);
 				std::fill(R.begin(),R.end(),4);
 				R['a'] = R['A'] = 0;
 				R['c'] = R['C'] = 1;
@@ -152,7 +152,7 @@ namespace libmaus
 					addFragments(R.begin(),readr,r,true);
 					
 					adaptersf.push_back(readf);
-					adaptersr.push_back(libmaus::fastx::reverseComplementUnmapped(readf));
+					adaptersr.push_back(libmaus2::fastx::reverseComplementUnmapped(readf));
 					badapters.push_back(bamdec.getAlignment().sclone());
 					
 					++r;
@@ -164,15 +164,15 @@ namespace libmaus
 				for ( uint64_t i = 0; i < fragments.size(); ++i )
 					W.push_back(fragments[i].w);
 					
-				libmaus::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type rkmerfilter(
-						new libmaus::fastx::QReorder4Set<seedk,uint64_t>(seedlength,W.begin(),W.end(),16)
+				libmaus2::fastx::QReorder4Set<seedk,uint64_t>::unique_ptr_type rkmerfilter(
+						new libmaus2::fastx::QReorder4Set<seedk,uint64_t>(seedlength,W.begin(),W.end(),16)
 					);
 					
 				kmerfilter = UNIQUE_PTR_MOVE(rkmerfilter);
 			
 			}
 
-			libmaus::fastx::AutoArrayWordPutObject<uint64_t> const & searchRanks(uint64_t const v, unsigned int const maxmis)
+			libmaus2::fastx::AutoArrayWordPutObject<uint64_t> const & searchRanks(uint64_t const v, unsigned int const maxmis)
 			{
 				kmerfilter->searchRanks(v,maxmis,A);
 				return A;
@@ -181,25 +181,25 @@ namespace libmaus
 			public:
 			AdapterFilter(std::string const & adapterfilename, unsigned int const rseedlength = 12)
 			: seedlength(rseedlength), S(256),
-			  wmask(libmaus::math::lowbits(seedlength * seedk))
+			  wmask(libmaus2::math::lowbits(seedlength * seedk))
 			{
-				libmaus::aio::CheckedInputStream CIS(adapterfilename);
+				libmaus2::aio::CheckedInputStream CIS(adapterfilename);
 				init(CIS);
 			}
 
 			AdapterFilter(std::istream & adapterstream, unsigned int const rseedlength = 12)
 			: seedlength(rseedlength), S(256),
-			  wmask(libmaus::math::lowbits(seedlength * seedk))
+			  wmask(libmaus2::math::lowbits(seedlength * seedk))
 			{
 				init(adapterstream);
 			}
 			
-			uint64_t getMatchStart(libmaus::bambam::AdapterOffsetStrand const & AOSentry) const
+			uint64_t getMatchStart(libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
 			{
 				return AOSentry.getMatchStart();
 			}
 			
-			uint64_t getAdapterMatchLength(uint64_t const n, libmaus::bambam::AdapterOffsetStrand const & AOSentry) const
+			uint64_t getAdapterMatchLength(uint64_t const n, libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
 			{
 				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
 				
@@ -219,14 +219,14 @@ namespace libmaus
 				return badapters[id]->getName();
 			}
 
-			char const * getAdapterName(libmaus::bambam::AdapterOffsetStrand const & AOSentry) const
+			char const * getAdapterName(libmaus2::bambam::AdapterOffsetStrand const & AOSentry) const
 			{
 				return getAdapterName(AOSentry.adpid);
 			}
 			
 			void getAdapterMatchFreqs(
 				uint64_t const n,
-				libmaus::bambam::AdapterOffsetStrand const & AOSentry,
+				libmaus2::bambam::AdapterOffsetStrand const & AOSentry,
 				uint64_t & fA,
 				uint64_t & fC,
 				uint64_t & fG,
@@ -257,7 +257,7 @@ namespace libmaus
 						case 't': case 'T': fT++; break;
 						default:
 						{
-							switch ( libmaus::random::Random::rand8() % 4 )
+							switch ( libmaus2::random::Random::rand8() % 4 )
 							{
 								case 0: fA++; break;
 								case 1: fC++; break;
@@ -272,7 +272,7 @@ namespace libmaus
 			void printAdapterMatch(
 				uint8_t const * const ua,
 				uint64_t const n,
-				libmaus::bambam::AdapterOffsetStrand const & AOSentry
+				libmaus2::bambam::AdapterOffsetStrand const & AOSentry
 			) const
 			{
 				std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
@@ -327,7 +327,7 @@ namespace libmaus
 				uint8_t const * const ua,
 				uint64_t const n,
 				unsigned int const maxmis,
-				libmaus::util::PushBuffer<libmaus::bambam::AdapterOffsetStrand> & AOSPB,
+				libmaus2::util::PushBuffer<libmaus2::bambam::AdapterOffsetStrand> & AOSPB,
 				int64_t const minscore,
 				double const minfrac,
 				double const minpfrac,
@@ -341,7 +341,7 @@ namespace libmaus
 				
 				if ( ue-u >= seedlength )
 				{
-					std::vector<libmaus::bambam::AdapterOffsetStrand> AOS;
+					std::vector<libmaus2::bambam::AdapterOffsetStrand> AOS;
 				
 					uint64_t w = 0;
 					for ( uint64_t i = 0; i < seedlength-1; ++i )
@@ -367,7 +367,7 @@ namespace libmaus
 								AdapterFragment const & frag = fragments[rank];
 								
 								AOS.push_back(
-									libmaus::bambam::AdapterOffsetStrand(
+									libmaus2::bambam::AdapterOffsetStrand(
 										frag.adpid,
 										static_cast<int16_t>(frag.adppos)-static_cast<int16_t>(matchpos),
 										frag.adpstr)
@@ -379,12 +379,12 @@ namespace libmaus
 					}
 					
 					std::sort(AOS.begin(),AOS.end());
-					std::vector<libmaus::bambam::AdapterOffsetStrand>::iterator it = std::unique(AOS.begin(),AOS.end());
+					std::vector<libmaus2::bambam::AdapterOffsetStrand>::iterator it = std::unique(AOS.begin(),AOS.end());
 					AOS.resize(it-AOS.begin());
 					
-					for ( std::vector<libmaus::bambam::AdapterOffsetStrand>::iterator itc = AOS.begin(); itc != AOS.end(); ++itc )
+					for ( std::vector<libmaus2::bambam::AdapterOffsetStrand>::iterator itc = AOS.begin(); itc != AOS.end(); ++itc )
 					{
-						libmaus::bambam::AdapterOffsetStrand & AOSentry = *itc;
+						libmaus2::bambam::AdapterOffsetStrand & AOSentry = *itc;
 					
 						std::string const & adp = AOSentry.adpstr ? adaptersr[AOSentry.adpid] : adaptersf[AOSentry.adpid];
 
@@ -442,7 +442,7 @@ namespace libmaus
 					{
 						if ( AOS[i].score >= minscore && (AOS[i].frac) >= minfrac && (AOS[i].pfrac) >= minpfrac )
 						{
-							libmaus::bambam::AdapterOffsetStrand & AOSentry = AOS[i];
+							libmaus2::bambam::AdapterOffsetStrand & AOSentry = AOS[i];
 
 							if ( verbose > 1 )
 								printAdapterMatch(ua,n,AOSentry);

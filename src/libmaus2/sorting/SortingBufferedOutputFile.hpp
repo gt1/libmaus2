@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_SORTING_SORTINGBUFFEREDOUTPUTFILE_HPP)
 #define LIBMAUS_SORTING_SORTINGBUFFEREDOUTPUTFILE_HPP
 
-#include <libmaus/sorting/MergingReadBack.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus2/sorting/MergingReadBack.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
@@ -32,13 +32,13 @@ namespace libmaus
 			typedef _data_type data_type;
 			typedef _order_type order_type;
 			typedef SortingBufferedOutputFile<data_type,order_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::sorting::MergingReadBack<data_type,order_type> merger_type;
-			typedef typename libmaus::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type merger_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::sorting::MergingReadBack<data_type,order_type> merger_type;
+			typedef typename libmaus2::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type merger_ptr_type;
 			
 			std::string const filename;
-			libmaus::aio::CheckedOutputStream COS;
-			libmaus::aio::SortingBufferedOutput<data_type,order_type> SBO;
+			libmaus2::aio::CheckedOutputStream COS;
+			libmaus2::aio::SortingBufferedOutput<data_type,order_type> SBO;
 			
 			SortingBufferedOutputFile(std::string const & rfilename, uint64_t const bufsize = 1024ull)
 			: filename(rfilename), COS(filename), SBO(COS,bufsize)
@@ -53,8 +53,8 @@ namespace libmaus
 			merger_ptr_type getMerger(uint64_t const backblocksize = 1024ull)
 			{
 				SBO.flush();
-				typename libmaus::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type ptr(
-					new libmaus::sorting::MergingReadBack<data_type,order_type>(filename,SBO.getBlockSizes(),backblocksize)
+				typename libmaus2::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type ptr(
+					new libmaus2::sorting::MergingReadBack<data_type,order_type>(filename,SBO.getBlockSizes(),backblocksize)
 				);
 				
 				return UNIQUE_PTR_MOVE(ptr);

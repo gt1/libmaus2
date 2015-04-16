@@ -3,8 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libmausirods
-Description: non pic irods interface in libmaus
+Name: libmaus2irods
+Description: non pic irods interface in libmaus2
 Requires: 
 Version: @VERSION@
 Libs: -L${libdir} -lmaus_irods -L@IRODSDIR@/lib/core/obj -lRodsAPIs -lgssapi_krb5 -pthread -ldl

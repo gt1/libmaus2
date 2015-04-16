@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_UTIL_UTF8BLOCKINDEX_HPP)
 #define LIBMAUS_UTIL_UTF8BLOCKINDEX_HPP
 
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/math/numbits.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/Utf8BlockIndexDecoder.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/math/numbits.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/Utf8BlockIndexDecoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct Utf8BlockIndex
 		{
 			typedef Utf8BlockIndex this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			uint64_t blocksize;
 			uint64_t lastblocksize;
 			uint64_t maxblockbytes;
-			::libmaus::autoarray::AutoArray<uint64_t> blockstarts;
+			::libmaus2::autoarray::AutoArray<uint64_t> blockstarts;
 			
 			private:
 			Utf8BlockIndex();
@@ -46,12 +46,12 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,blocksize);
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,lastblocksize);
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,maxblockbytes);
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,blockstarts.size()-1);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blocksize);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,lastblocksize);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,maxblockbytes);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blockstarts.size()-1);
 				for ( uint64_t i = 0; i < blockstarts.size(); ++i )
-					::libmaus::util::NumberSerialisation::serialiseNumber(stream,blockstarts[i]);	
+					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,blockstarts[i]);	
 			}
 			std::string serialise() const;
 			

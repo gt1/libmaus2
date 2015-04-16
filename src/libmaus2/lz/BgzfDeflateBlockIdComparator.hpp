@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEBLOCKIDCOMPARATOR_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEBLOCKIDCOMPARATOR_HPP
 
-#include <libmaus/lz/BgzfDeflateBase.hpp>
-#include <libmaus/lz/BgzfThreadOpBase.hpp>
+#include <libmaus2/lz/BgzfDeflateBase.hpp>
+#include <libmaus2/lz/BgzfThreadOpBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfDeflateBlockIdComparator
 		{
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & deflateB;
+			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfDeflateBase::unique_ptr_type> const & deflateB;
 					
-			BgzfDeflateBlockIdComparator(libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> const & rdeflateB) : deflateB(rdeflateB)
+			BgzfDeflateBlockIdComparator(libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfDeflateBase::unique_ptr_type> const & rdeflateB) : deflateB(rdeflateB)
 			{
 			
 			}

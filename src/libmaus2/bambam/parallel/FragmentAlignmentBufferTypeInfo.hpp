@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERTYPEINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERTYPEINFO_HPP
 
-#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 			{
 				typedef FragmentAlignmentBufferTypeInfo this_type;
 				
-				typedef libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type pointer_type;
+				typedef libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type pointer_type;
 				
 				static pointer_type getNullPointer()
 				{

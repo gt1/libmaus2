@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_AIO_INPUTSTREAMFACTORY_HPP)
 #define LIBMAUS_AIO_INPUTSTREAMFACTORY_HPP
 
-#include <libmaus/aio/InputStream.hpp>
+#include <libmaus2/aio/InputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		struct InputStreamFactory
 		{
 			typedef InputStreamFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			virtual ~InputStreamFactory() {}
 			virtual InputStream::unique_ptr_type constructUnique(std::string const & filename) = 0;

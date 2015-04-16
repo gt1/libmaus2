@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_UTIL_LINEBUFFER_HPP
 
 #include <istream>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -30,15 +30,15 @@ namespace libmaus
 		{
 			public:
 			typedef LineBuffer this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			// input stream
 			std::istream & file;
 			
 			// buffer
-			libmaus::autoarray::AutoArray<char> buffer;
+			libmaus2::autoarray::AutoArray<char> buffer;
 			// size of buffer
 			uint64_t bufsize;
 			// set to true when end of file has been observed
@@ -70,8 +70,8 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::util::LineBuffer: input error\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::util::LineBuffer: input error\n";
 					lme.finish();
 					throw lme;							
 				}
@@ -143,7 +143,7 @@ namespace libmaus
 								else
 								{
 									uint64_t const numbytes = lineend - bufferptrout;
-									libmaus::autoarray::AutoArray<char> tmpbuf(numbytes+1,false);
+									libmaus2::autoarray::AutoArray<char> tmpbuf(numbytes+1,false);
 										
 									memcpy(tmpbuf.begin(),bufferptrout,numbytes);
 									tmpbuf[numbytes] = '\n';

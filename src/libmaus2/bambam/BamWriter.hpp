@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMWRITER_HPP)
 #define LIBMAUS_BAMBAM_BAMWRITER_HPP
 
-#include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/BamBlockWriterBase.hpp>
-#include <libmaus/lz/BgzfDeflate.hpp>
-#include <libmaus/lz/BgzfDeflateParallel.hpp>
-#include <libmaus/lz/BgzfInflateDeflateParallel.hpp>
+#include <libmaus2/bambam/BamAlignmentEncoderBase.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamBlockWriterBase.hpp>
+#include <libmaus2/lz/BgzfDeflate.hpp>
+#include <libmaus2/lz/BgzfDeflateParallel.hpp>
+#include <libmaus2/lz/BgzfInflateDeflateParallel.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -37,21 +37,21 @@ namespace libmaus
 		{
 			public:
 			//! stream type
-			typedef ::libmaus::lz::BgzfDeflate<std::ostream> stream_type;
+			typedef ::libmaus2::lz::BgzfDeflate<std::ostream> stream_type;
 			//! this type
 			typedef BamWriterSerialStreamBase this_type;
 			//! unique pointer type
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
 			//! output stream pointer
-			::libmaus::util::unique_ptr<std::ofstream>::type Postr;
+			::libmaus2::util::unique_ptr<std::ofstream>::type Postr;
 			//! output stream reference
 			std::ostream & ostr;
 			//! compressor object
-			::libmaus::lz::BgzfDeflate<std::ostream> bgzfos;
+			::libmaus2::lz::BgzfDeflate<std::ostream> bgzfos;
 		
 			public:
 			/**
@@ -115,21 +115,21 @@ namespace libmaus
 		{
 			public:
 			//! stream type
-			typedef ::libmaus::lz::BgzfDeflateParallel stream_type;
+			typedef ::libmaus2::lz::BgzfDeflateParallel stream_type;
 			//! this type
 			typedef BamWriterParallelStreamBase this_type;
 			//! unique pointer type
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
 			//! output stream pointer
-			::libmaus::util::unique_ptr<std::ofstream>::type Postr;
+			::libmaus2::util::unique_ptr<std::ofstream>::type Postr;
 			//! output stream reference
 			std::ostream & ostr;
 			//! compressor object
-			::libmaus::lz::BgzfDeflateParallel bgzfos;
+			::libmaus2::lz::BgzfDeflateParallel bgzfos;
 		
 			public:
 			/**
@@ -174,13 +174,13 @@ namespace libmaus
 		{
 			public:
 			//! stream type
-			typedef ::libmaus::lz::BgzfInflateDeflateParallel stream_type;
+			typedef ::libmaus2::lz::BgzfInflateDeflateParallel stream_type;
 			//! this type
 			typedef BamWriterParallelRewriteStreamBase this_type;
 			//! unique pointer type
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
 			//! compressor object
@@ -258,14 +258,14 @@ namespace libmaus
 		 * BAM file writing class template
 		 **/
 		template<typename _base_type>
-		struct BamWriterTemplate : public ::libmaus::bambam::BamAlignmentEncoderBase, public libmaus::bambam::BamBlockWriterBase
+		struct BamWriterTemplate : public ::libmaus2::bambam::BamAlignmentEncoderBase, public libmaus2::bambam::BamBlockWriterBase
 		{
 			//! base type
 			typedef _base_type base_type;
 			//! this type
 			typedef BamWriterTemplate<base_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! stream type
 			typedef typename base_type::stream_type stream_type;
 
@@ -275,13 +275,13 @@ namespace libmaus
 			//! stream
 			base_type & stream;
 			//! encoding table
-			::libmaus::bambam::BamSeqEncodeTable seqtab;
+			::libmaus2::bambam::BamSeqEncodeTable seqtab;
 			//! encoding buffer
-			::libmaus::fastx::UCharBuffer ubuffer;
+			::libmaus2::fastx::UCharBuffer ubuffer;
 			//! BAM header pointer
-			::libmaus::bambam::BamHeader::unique_ptr_type pheader;
+			::libmaus2::bambam::BamHeader::unique_ptr_type pheader;
 			//! BAM header
-			::libmaus::bambam::BamHeader & header;
+			::libmaus2::bambam::BamHeader & header;
 			
 			public:
 			/**
@@ -292,8 +292,8 @@ namespace libmaus
 			 **/
 			BamWriterTemplate(
 				base_type & rstream, 
-				::libmaus::bambam::BamHeader const & rheader,
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0
+				::libmaus2::bambam::BamHeader const & rheader,
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * blockoutputcallbacks = 0
 			)
 			: Pstream(), stream(rstream), pheader(rheader.uclone()), header(*pheader)
 			{
@@ -355,7 +355,7 @@ namespace libmaus
 				uint8_t const qualoffset = 33
 			)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(ubuffer,seqtab,
+				::libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignment(ubuffer,seqtab,
 					name,namelen,refid,pos,mapq,flags,cigar,cigarlen,nextrefid,nextpos,
 					tlen,seq,seqlen,qual,qualoffset);
 			}
@@ -391,7 +391,7 @@ namespace libmaus
 				uint8_t const qualoffset = 33
 			)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(ubuffer,seqtab,
+				::libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignment(ubuffer,seqtab,
 					name,refid,pos,mapq,flags,cigar,nextrefid,nextpos,tlen,seq,qual,qualoffset);
 			}
 
@@ -404,7 +404,7 @@ namespace libmaus
 			template<typename value_type>
 			void putAuxString(std::string const & tag, value_type const & value)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString< ::libmaus::fastx::UCharBuffer,value_type>(ubuffer,tag,value);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxString< ::libmaus2::fastx::UCharBuffer,value_type>(ubuffer,tag,value);
 			}
 
 			/**
@@ -421,7 +421,7 @@ namespace libmaus
 				value_type const & value
 			)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber< ::libmaus::fastx::UCharBuffer, value_type>(ubuffer,tag,type,value);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber< ::libmaus2::fastx::UCharBuffer, value_type>(ubuffer,tag,type,value);
 			}
 
 			/**
@@ -438,7 +438,7 @@ namespace libmaus
 				std::vector<value_type> const & values
 			)
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray<value_type>(ubuffer,tag,type,values);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumberArray<value_type>(ubuffer,tag,type,values);
 			}
 			
 			/**
@@ -446,7 +446,7 @@ namespace libmaus
 			 **/
 			void commit()
 			{
-				::libmaus::bambam::BamAlignmentEncoderBase::writeToStream(ubuffer,getStream());
+				::libmaus2::bambam::BamAlignmentEncoderBase::writeToStream(ubuffer,getStream());
 			}
 
 			/**
@@ -463,7 +463,7 @@ namespace libmaus
 			void writeBamBlock(uint8_t const * data, uint64_t const blocksize)
 			{
 				// write block size
-				::libmaus::bambam::EncoderBase::putLE<typename base_type::stream_type,uint32_t>(getStream(),blocksize);
+				::libmaus2::bambam::EncoderBase::putLE<typename base_type::stream_type,uint32_t>(getStream(),blocksize);
 				// write bam entry data
 				getStream().write(reinterpret_cast<char const *>(data),blocksize);
 			}
@@ -482,7 +482,7 @@ namespace libmaus
 			//! this type
 			typedef BamWriter this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			static int getDefaultCompression()
 			{
@@ -498,9 +498,9 @@ namespace libmaus
 			 **/
 			BamWriter(
 				std::ostream & rostr, 
-				::libmaus::bambam::BamHeader const & rheader, 
+				::libmaus2::bambam::BamHeader const & rheader, 
 				int const level = getDefaultCompression(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: BamWriterSerialStreamBaseWrapper(rostr,level), BamWriterTemplate<BamWriterSerialStreamBase>(BamWriterSerialStreamBaseWrapper::bwssb,rheader,rblockoutputcallbacks)
 			{
@@ -514,9 +514,9 @@ namespace libmaus
 			 **/
 			BamWriter(
 				std::string const & filename, 
-				::libmaus::bambam::BamHeader const & rheader, 
+				::libmaus2::bambam::BamHeader const & rheader, 
 				int const level = getDefaultCompression(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: BamWriterSerialStreamBaseWrapper(filename,level), BamWriterTemplate<BamWriterSerialStreamBase>(BamWriterSerialStreamBaseWrapper::bwssb,rheader,rblockoutputcallbacks)
 			{
@@ -528,7 +528,7 @@ namespace libmaus
 			//! this type
 			typedef BamParallelWriter this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			static int getDefaultCompression()
 			{
@@ -545,9 +545,9 @@ namespace libmaus
 			BamParallelWriter(
 				std::ostream & rostr, 
 				uint64_t const numthreads,
-				::libmaus::bambam::BamHeader const & rheader, 
+				::libmaus2::bambam::BamHeader const & rheader, 
 				int const level = getDefaultCompression(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0				
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0				
 			)
 			: BamWriterParallelStreamBaseWrapper(rostr,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader,rblockoutputcallbacks)
 			{
@@ -562,9 +562,9 @@ namespace libmaus
 			BamParallelWriter(
 				std::string const & filename, 
 				uint64_t const numthreads,
-				::libmaus::bambam::BamHeader const & rheader, 
+				::libmaus2::bambam::BamHeader const & rheader, 
 				int const level = getDefaultCompression(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0			
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0			
 			)
 			: BamWriterParallelStreamBaseWrapper(filename,numthreads,level), BamWriterTemplate<BamWriterParallelStreamBase>(BamWriterParallelStreamBaseWrapper::bwpsb,rheader,rblockoutputcallbacks)
 			{
@@ -578,7 +578,7 @@ namespace libmaus
 			//! this type
 			typedef BamParallelRewriteWriter this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			/**
 			 * constructor for stream
@@ -589,8 +589,8 @@ namespace libmaus
 			 **/
 			BamParallelRewriteWriter(
 				BamWriterParallelRewriteStreamBase::stream_type & stream,
-				libmaus::bambam::BamHeader const & rheader,
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+				libmaus2::bambam::BamHeader const & rheader,
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: BamWriterParallelRewriteStreamBaseWrapper(stream), 
 			  BamWriterTemplate<BamWriterParallelRewriteStreamBase>(BamWriterParallelRewriteStreamBaseWrapper::bwpsb,rheader,rblockoutputcallbacks)

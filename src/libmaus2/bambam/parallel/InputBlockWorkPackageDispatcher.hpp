@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_INPUTBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/InputBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/RequeReadInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/InputBlockAddPendingInterface.hpp>
+#include <libmaus2/bambam/parallel/RequeReadInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 			/**
 			 * compressed block input dispatcher
 			 **/
-			struct InputBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct InputBlockWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				InputBlockWorkPackageReturnInterface & returnInterface;
 				InputBlockAddPendingInterface & addPending;
@@ -52,8 +52,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					// get type cast work package pointer
@@ -67,7 +67,7 @@ namespace libmaus
 					if ( BP->inputinfo->readLock.trylock() )
 					{
 						// free lock at end of scope
-						libmaus::parallel::ScopePosixSpinLock llock(BP->inputinfo->readLock,true /* pre locked */);
+						libmaus2::parallel::ScopePosixSpinLock llock(BP->inputinfo->readLock,true /* pre locked */);
 	
 						// do not run if eof is already set
 						bool running = !BP->inputinfo->getEOF();

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_GRAPH_TOPOLOGICALSORTING_HPP)
 #define LIBMAUS_GRAPH_TOPOLOGICALSORTING_HPP
 
-#include <libmaus/graph/ReachableVertices.hpp>
+#include <libmaus2/graph/ReachableVertices.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -34,7 +34,7 @@ namespace libmaus
 				projector_type projector = projector_type()
 			)
 			{
-				std::set<uint64_t> vertexSet = libmaus::graph::ReachableVertices::reachableVertices(edges,rv,projector);
+				std::set<uint64_t> vertexSet = libmaus2::graph::ReachableVertices::reachableVertices(edges,rv,projector);
 				
 				std::map< uint64_t,std::set<uint64_t> > fedges;
 				std::map< uint64_t,std::set<uint64_t> > redges;

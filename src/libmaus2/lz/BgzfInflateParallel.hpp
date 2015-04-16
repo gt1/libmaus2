@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEPARALLEL_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEPARALLEL_HPP
 
-#include <libmaus/lz/BgzfInflateBlock.hpp>
-#include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
-#include <libmaus/parallel/TerminatableSynchronousHeap.hpp>
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/OMPNumThreadsScope.hpp>
-#include <libmaus/lz/BgzfInflateBlockIdComparator.hpp>
-#include <libmaus/lz/BgzfInflateBlockIdInfo.hpp>
-#include <libmaus/lz/BgzfInflateParallelContext.hpp>
-#include <libmaus/lz/BgzfInflateParallelThread.hpp>
+#include <libmaus2/lz/BgzfInflateBlock.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousHeap.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/OMPNumThreadsScope.hpp>
+#include <libmaus2/lz/BgzfInflateBlockIdComparator.hpp>
+#include <libmaus2/lz/BgzfInflateBlockIdInfo.hpp>
+#include <libmaus2/lz/BgzfInflateParallelContext.hpp>
+#include <libmaus2/lz/BgzfInflateParallelThread.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateParallel
 		{
 			private:
-			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator> inflategloblist;
+			libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator> inflategloblist;
 			BgzfInflateParallelContext inflatecontext;
 
-			libmaus::autoarray::AutoArray<BgzfInflateParallelThread::unique_ptr_type> T;
+			libmaus2::autoarray::AutoArray<BgzfInflateParallelThread::unique_ptr_type> T;
 			
 			bool terminated;
 			
@@ -77,7 +77,7 @@ namespace libmaus
 			BgzfInflateParallel(
 				std::istream & rinflatein, 
 				uint64_t const rnumthreads = 
-					std::max(std::max(libmaus::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
+					std::max(std::max(libmaus2::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
 			: 
@@ -92,7 +92,7 @@ namespace libmaus
 				std::istream & rinflatein, 
 				std::ostream & rcopyostr,
 				uint64_t const rnumthreads = 
-					std::max(std::max(libmaus::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
+					std::max(std::max(libmaus2::parallel::OMPNumThreadsScope::getMaxThreads(),static_cast<uint64_t>(1))-1,
 						static_cast<uint64_t>(1))
 			)
 			: 
@@ -112,10 +112,10 @@ namespace libmaus
 			{
 				inflatecontext.inflategcnt = 0;
 					
-				if ( n < libmaus::lz::BgzfInflateBlock::getBgzfMaxBlockSize() )
+				if ( n < libmaus2::lz::BgzfInflateBlock::getBgzfMaxBlockSize() )
 				{
-					libmaus::exception::LibMausException se;
-					se.getStream() << "BgzfInflateParallel::read(): buffer provided is too small: " << n << " < " << libmaus::lz::BgzfInflateBlock::getBgzfMaxBlockSize() << std::endl;
+					libmaus2::exception::LibMausException se;
+					se.getStream() << "BgzfInflateParallel::read(): buffer provided is too small: " << n << " < " << libmaus2::lz::BgzfInflateBlock::getBgzfMaxBlockSize() << std::endl;
 					se.finish();
 					throw se;
 				}
@@ -132,7 +132,7 @@ namespace libmaus
 				/* we have an exception, terminate readers and throw it at caller */
 				if ( inflatecontext.inflateB[objectid]->failed() )
 				{
-					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+					libmaus2::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
 					terminated = true;
 					throw inflatecontext.inflateB[objectid]->getException();
@@ -152,7 +152,7 @@ namespace libmaus
 					inflatecontext.inflateB[objectid]->blockinfo.streameof
 				)
 				{
-					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+					libmaus2::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflategloblist.terminate();
 					terminated = true;
 					
@@ -167,12 +167,12 @@ namespace libmaus
 
 					std::copy(inflatecontext.inflateB[objectid]->data.begin(), inflatecontext.inflateB[objectid]->data.begin()+info.uncompressed, reinterpret_cast<uint8_t *>(data));
 
-					libmaus::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
+					libmaus2::parallel::ScopePosixMutex Q(inflatecontext.inflateqlock);
 					inflatecontext.inflatefreelist.push_back(objectid);
 					// read next block
 					inflatecontext.inflategloblist.enque(
 						BgzfThreadQueueElement(
-							libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_read_block,
+							libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_read_block,
 							objectid,
 							0
 						)
@@ -182,7 +182,7 @@ namespace libmaus
 					
 					inflatecontext.inflatedecompressedlist.setReadyFor(
 						BgzfThreadQueueElement(
-							libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_none,
+							libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_none,
 							0,
 							blockid+1
 						)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_LRU_SPARSELRUFILEBUNCH_HPP)
 #define LIBMAUS_LRU_SPARSELRUFILEBUNCH_HPP
 
-#include <libmaus/aio/CheckedInputOutputStream.hpp>
-#include <libmaus/lru/SparseLRU.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/aio/CheckedInputOutputStream.hpp>
+#include <libmaus2/lru/SparseLRU.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lru
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 		{
 			std::string const tmpfilenamebase;
 			SparseLRU SLRU;
-			std::map<uint64_t, libmaus::aio::CheckedInputOutputStream::shared_ptr_type> COSmap;
+			std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type> COSmap;
 			
 			std::string getFileName(uint64_t const id) const
 			{
@@ -48,7 +48,7 @@ namespace libmaus
 			
 			void remove(uint64_t const fileid)
 			{
-				std::map<uint64_t, libmaus::aio::CheckedInputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
+				std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
 				
 				if ( it != COSmap.end() )
 				{
@@ -61,9 +61,9 @@ namespace libmaus
 				::remove ( fn.c_str() );
 			}
 			
-			libmaus::aio::CheckedInputOutputStream & operator[](uint64_t const fileid)
+			libmaus2::aio::CheckedInputOutputStream & operator[](uint64_t const fileid)
 			{
-				std::map<uint64_t, libmaus::aio::CheckedInputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
+				std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
 				
 				if ( it != COSmap.end() )
 					return *(it->second);
@@ -73,7 +73,7 @@ namespace libmaus
 				// close file
 				if ( kickid >= 0 )
 				{
-					std::map<uint64_t, libmaus::aio::CheckedInputOutputStream::shared_ptr_type>::iterator ito = COSmap.find(kickid);
+					std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type>::iterator ito = COSmap.find(kickid);
 					assert ( ito != COSmap.end() );
 					
 					ito->second->flush();
@@ -83,9 +83,9 @@ namespace libmaus
 				
 				std::string const fn = getFileName(fileid);
 				
-				if ( libmaus::util::GetFileSize::fileExists(fn) )
+				if ( libmaus2::util::GetFileSize::fileExists(fn) )
 				{
-					libmaus::aio::CheckedInputOutputStream::shared_ptr_type ptr(new libmaus::aio::CheckedInputOutputStream(fn,
+					libmaus2::aio::CheckedInputOutputStream::shared_ptr_type ptr(new libmaus2::aio::CheckedInputOutputStream(fn,
 						std::ios_base::in | std::ios_base::out | std::ios_base::binary
 					));
 					
@@ -97,7 +97,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::aio::CheckedInputOutputStream::shared_ptr_type ptr(new libmaus::aio::CheckedInputOutputStream(fn,
+					libmaus2::aio::CheckedInputOutputStream::shared_ptr_type ptr(new libmaus2::aio::CheckedInputOutputStream(fn,
 						std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::trunc
 					));
 				

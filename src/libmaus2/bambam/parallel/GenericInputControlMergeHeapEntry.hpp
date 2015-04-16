@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLMERGEHEAPENTRY_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLMERGEHEAPENTRY_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/StrCmpNumRecode.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/bambam/StrCmpNumRecode.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,16 +31,16 @@ namespace libmaus
 		{
 			struct GenericInputControlMergeHeapEntryCoordinate
 			{
-				libmaus::bambam::parallel::DecompressedBlock * block;
+				libmaus2::bambam::parallel::DecompressedBlock * block;
 				uint64_t coord;
 				
 				inline void setup()
 				{
 					uint8_t const * algn4 = reinterpret_cast<uint8_t const *>(block->getNextParsePointer()) + sizeof(uint32_t);
 					coord = 
-						(static_cast<uint64_t>(static_cast<uint32_t>(libmaus::bambam::BamAlignmentDecoderBase::getRefID(algn4))) << 32)
+						(static_cast<uint64_t>(static_cast<uint32_t>(libmaus2::bambam::BamAlignmentDecoderBase::getRefID(algn4))) << 32)
 						|
-						static_cast<uint64_t>(static_cast<int64_t>(libmaus::bambam::BamAlignmentDecoderBase::getPos(algn4)) - std::numeric_limits<int32_t>::min());
+						static_cast<uint64_t>(static_cast<int64_t>(libmaus2::bambam::BamAlignmentDecoderBase::getPos(algn4)) - std::numeric_limits<int32_t>::min());
 						;	
 				}
 				
@@ -50,14 +50,14 @@ namespace libmaus
 				}
 
 				#if 0
-				GenericInputControlMergeHeapEntryCoordinate(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				GenericInputControlMergeHeapEntryCoordinate(libmaus2::bambam::parallel::DecompressedBlock * rblock)
 				: block(rblock)
 				{
 					setup();
 				}
 				#endif
 				
-				void set(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				void set(libmaus2::bambam::parallel::DecompressedBlock * rblock)
 				{
 					block = rblock;
 					setup();
@@ -79,20 +79,20 @@ namespace libmaus
 
 			struct GenericInputControlMergeHeapEntryQueryName
 			{
-				libmaus::bambam::parallel::DecompressedBlock * block;
+				libmaus2::bambam::parallel::DecompressedBlock * block;
 				char const * name;
 				int read1;
 
-				libmaus::autoarray::AutoArray<uint64_t> recoded;
+				libmaus2::autoarray::AutoArray<uint64_t> recoded;
 				size_t recodedlength;
 
 				inline void setup()
 				{
 					uint8_t const * algn4 = reinterpret_cast<uint8_t const *>(block->getNextParsePointer()) + sizeof(uint32_t);
 
-					name = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(algn4);
-					read1 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(algn4) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
-					recodedlength = libmaus::bambam::StrCmpNumRecode::recode(name,recoded);
+					name = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(algn4);
+					read1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(algn4) & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+					recodedlength = libmaus2::bambam::StrCmpNumRecode::recode(name,recoded);
 				}
 
 				GenericInputControlMergeHeapEntryQueryName()
@@ -101,14 +101,14 @@ namespace libmaus
 				}
 				
 				#if 0
-				GenericInputControlMergeHeapEntryQueryName(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				GenericInputControlMergeHeapEntryQueryName(libmaus2::bambam::parallel::DecompressedBlock * rblock)
 				: block(rblock)
 				{
 					setup();
 				}
 				#endif
 
-				void set(libmaus::bambam::parallel::DecompressedBlock * rblock)
+				void set(libmaus2::bambam::parallel::DecompressedBlock * rblock)
 				{
 					block = rblock;
 					setup();
@@ -142,7 +142,7 @@ namespace libmaus
 				
 				bool opcomp(GenericInputControlMergeHeapEntryQueryName const & A) const
 				{
-					int const r = libmaus::bambam::StrCmpNum::strcmpnum(name,A.name);
+					int const r = libmaus2::bambam::StrCmpNum::strcmpnum(name,A.name);
 				
 					if ( r != 0 )
 						return r < 0;

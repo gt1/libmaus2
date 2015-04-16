@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #define LIBMAUS_LZ_LZ4COMPRESS_HPP
 
 #include <ostream>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 			uint64_t const inputblocksize;
 			uint64_t const outputblocksize;
 			
-			libmaus::autoarray::AutoArray<char> outputblock;
+			libmaus2::autoarray::AutoArray<char> outputblock;
 			
 			std::ostream & out;
 			

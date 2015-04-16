@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,19 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/network/OpenSSLSocket.hpp>
-#include <libmaus/network/HttpBody.hpp>
-#include <libmaus/network/HttpHeader.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/network/OpenSSLSocket.hpp>
+#include <libmaus2/network/HttpBody.hpp>
+#include <libmaus2/network/HttpHeader.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{	
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 				
 		std::string const url = arginfo.getRestArg<std::string>(0);
-		libmaus::network::HttpHeader preheader("HEAD","",url);
+		libmaus2::network::HttpHeader preheader("HEAD","",url);
 		int64_t const length = preheader.getContentLength();
 		int64_t const packetsize = 
 			(
@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 		{
 			uint64_t const packetsize = 2048;
 			uint64_t const numpackets = (length + packetsize - 1)/packetsize;
-			libmaus::autoarray::AutoArray<char> A(256,false);
+			libmaus2::autoarray::AutoArray<char> A(256,false);
 
 			std::cerr << preheader.statusline << std::endl;
 			
@@ -61,8 +61,8 @@ int main(int argc, char * argv[])
 				addreqstr << "Range: bytes=" << low << "-" << (high-1) << "\r\n";
 				std::string const addreq = addreqstr.str();
 
-				libmaus::network::HttpHeader header("GET",addreq,url);
-				libmaus::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
+				libmaus2::network::HttpHeader header("GET",addreq,url);
+				libmaus2::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
 
 				uint64_t n = 0;
 				while ( (n = body.read(A.begin(),A.size())) != 0 )
@@ -72,11 +72,11 @@ int main(int argc, char * argv[])
 		// otherwise read document in one go
 		else
 		{
-			libmaus::network::HttpHeader header("GET","",url);
+			libmaus2::network::HttpHeader header("GET","",url);
 			std::cerr << header.statusline << std::endl;
-			libmaus::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
+			libmaus2::network::HttpBody body(header.getStream(),header.isChunked(),header.getContentLength());
 		
-			libmaus::autoarray::AutoArray<char> A(256,false);
+			libmaus2::autoarray::AutoArray<char> A(256,false);
 			uint64_t n = 0;
 			while ( (n = body.read(A.begin(),A.size())) != 0 )
 				std::cout.write(A.begin(),n);

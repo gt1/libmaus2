@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,20 +17,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/fastx/MultiWordDNABitBuffer.hpp>
-#include <libmaus/fastx/SingleWordDNABitBuffer.hpp>
+#include <libmaus2/fastx/MultiWordDNABitBuffer.hpp>
+#include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
 #include <ctime>
 #include <cstdlib>
 
-#include <libmaus/consensus/Consensus.hpp>
+#include <libmaus2/consensus/Consensus.hpp>
 
 template<unsigned int bases_per_word>
 void testMultiWordDNABitBuffer()
 {
 	for ( unsigned int k = 1; k <= 200; ++k )
 	{
-		::libmaus::fastx::MultiWordDNABitBuffer<bases_per_word> mwdbb3(k);
-		::libmaus::fastx::MultiWordDNABitBuffer<bases_per_word> mwdbb4(k);
+		::libmaus2::fastx::MultiWordDNABitBuffer<bases_per_word> mwdbb3(k);
+		::libmaus2::fastx::MultiWordDNABitBuffer<bases_per_word> mwdbb4(k);
 
 		std::cerr << "bases per word " << bases_per_word << " k=" << k << std::endl;
 
@@ -66,8 +66,8 @@ void testMultiWordDNABitBuffer32()
 {
 	for ( unsigned int k = 1; k <= 200; ++k )
 	{
-		::libmaus::fastx::MultiWordDNABitBuffer<bases_per_word> mwdbb3(k);
-		::libmaus::fastx::MultiWordDNABitBuffer<32> mwdbb4(k);
+		::libmaus2::fastx::MultiWordDNABitBuffer<bases_per_word> mwdbb3(k);
+		::libmaus2::fastx::MultiWordDNABitBuffer<32> mwdbb4(k);
 
 		std::cerr << "bases per word " << bases_per_word << " k=" << k << std::endl;
 
@@ -103,8 +103,8 @@ void testMultiWordDNABitBuffer32()
 
 void shortWordDNABitBufferTest()
 {
-	::libmaus::fastx::SingleWordDNABitBuffer swdbb(7);
-	::libmaus::fastx::MultiWordDNABitBuffer<32> mwdbb(7);
+	::libmaus2::fastx::SingleWordDNABitBuffer swdbb(7);
+	::libmaus2::fastx::MultiWordDNABitBuffer<32> mwdbb(7);
 	
 	for ( unsigned int i = 0; i < 2*swdbb.width; ++i )
 	{

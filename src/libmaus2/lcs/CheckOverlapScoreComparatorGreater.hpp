@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LCS_CHECKOVERLAPRESULTSCORECOMPARATOR_HPP)
 #define LIBMAUS_LCS_CHECKOVERLAPRESULTSCORECOMPARATOR_HPP
 
-#include <libmaus/lcs/CheckOverlapResult.hpp>
+#include <libmaus2/lcs/CheckOverlapResult.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{

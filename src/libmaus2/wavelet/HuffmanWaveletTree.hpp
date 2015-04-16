@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,31 +20,31 @@
 #if ! defined(HUFFMANWAVELETTREE_HPP)
 #define HUFFMANWAVELETTREE_HPP
 
-#include <libmaus/huffman/HuffmanSorting.hpp>
-#include <libmaus/util/stringFunctions.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/rank/ERank222BAppend.hpp>
-#include <libmaus/bitio/CheckedBitWriter.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/huffman/HuffmanSorting.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/rank/ERank222BAppend.hpp>
+#include <libmaus2/bitio/CheckedBitWriter.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
 #include <set>
 #include <ctime>
 
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
 		struct HuffmanWaveletTree
 		{
-			typedef ::libmaus::rank::ERank222B rank_type;
-			typedef ::libmaus::util::unique_ptr < HuffmanWaveletTree >::type unique_ptr_type;
+			typedef ::libmaus2::rank::ERank222B rank_type;
+			typedef ::libmaus2::util::unique_ptr < HuffmanWaveletTree >::type unique_ptr_type;
 
 			struct HuffmanWaveletTreeNavigationNode
 			{
-				typedef ::libmaus::util::unique_ptr<HuffmanWaveletTreeNavigationNode >::type unique_ptr_type;
+				typedef ::libmaus2::util::unique_ptr<HuffmanWaveletTreeNavigationNode >::type unique_ptr_type;
 
 				unique_ptr_type left;
 				unique_ptr_type right;
@@ -104,7 +104,7 @@ namespace libmaus
 					std::string line;
 					std::getline(in,line);
 
-					std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");
+					std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");
 
 					if ( tokens.size() != 2 || (tokens[0] != "HuffmanWaveletTreeNavigationNode") )
 						throw std::runtime_error("Malformed input in HuffmanWaveletTreeNavigationNode::deserialiseSimple()");
@@ -123,7 +123,7 @@ namespace libmaus
 							if ( ! in )
 								throw std::runtime_error("Stream invalid before read complete in HuffmanWaveletTreeNavigationNode::deserialiseSimple()");
 							
-							tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");	
+							tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");	
 
 							if ( tokens.size() != 4 )
 								throw std::runtime_error("Invalid input in HuffmanWaveletTreeNavigationNode::deserialiseSimple()");
@@ -387,20 +387,20 @@ namespace libmaus
 			static unsigned int const lookupwords = 1;
 
 			uint64_t const n;
-			::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type aroot;
+			::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type aroot;
 			huffman::HuffmanTreeNode const * root;
 			huffman::EncodeTable<lookupwords> const enctable;
 			autoarray::AutoArray < uint64_t > acode;
 			uint64_t * const code;
 			HuffmanWaveletTreeNavigationNode::unique_ptr_type anavroot;
 			HuffmanWaveletTreeNavigationNode const * const navroot;
-			::libmaus::util::unique_ptr<rank_type>::type UR;
+			::libmaus2::util::unique_ptr<rank_type>::type UR;
 			rank_type const * R;
 			
 			private:
 			HuffmanWaveletTree(
 				uint64_t const rn,
-				::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type raroot,
+				::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type raroot,
 				autoarray::AutoArray < uint64_t > & racode,
 				HuffmanWaveletTreeNavigationNode::unique_ptr_type & ranavroot
 			)
@@ -444,14 +444,14 @@ namespace libmaus
 				if ( ! in )
 					throw std::runtime_error("Stream failure in HuffmanWaveleTree::simpleDeserialise()");
 					
-				std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");
+				std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");
 				
 				if ( tokens.size() != 2 || tokens[0] != "HuffmanWaveletTree" )
 					throw std::runtime_error("Malformed input in HuffmanWaveleTree::simpleDeserialise()");
 					
 				uint64_t const n = atoll(tokens[1].c_str());
 				
-				::libmaus::util::shared_ptr<huffman::HuffmanTreeNode>::type aroot = huffman::HuffmanTreeNode::simpleDeserialise(in);
+				::libmaus2::util::shared_ptr<huffman::HuffmanTreeNode>::type aroot = huffman::HuffmanTreeNode::simpleDeserialise(in);
 				HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type anavroot = HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::deserialiseSimple(in);
 
 				std::getline(in,line);
@@ -459,7 +459,7 @@ namespace libmaus
 				if ( ! in )
 					throw std::runtime_error("Stream failure in HuffmanWaveleTree::simpleDeserialise()");
 
-				tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");
+				tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");
 				
 				if ( tokens.size() != 2 || tokens[0] != "Code" )
 					throw std::runtime_error("Malformed input in HuffmanWaveleTree::simpleDeserialise()");
@@ -486,7 +486,7 @@ namespace libmaus
 			uint64_t serialize(std::ostream & out) const
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
 				s += aroot->serialize(out);
 				s += acode.serialize(out);
 				s += HuffmanWaveletTreeNavigationNode::serialize(out,navroot);
@@ -644,8 +644,8 @@ namespace libmaus
 
 					for ( unsigned int j = 0; j < entry.symbols.size() && decsyms != n; ++j, ++decsyms )
 					{
-						std::pair < ::libmaus::uint::UInt < lookupwords >, unsigned int > const & code = enctable[entry.symbols[j]];
-						bool const ismsb = (code.first >> (code.second-1)) == ::libmaus::uint::UInt<lookupwords>(1ull);
+						std::pair < ::libmaus2::uint::UInt < lookupwords >, unsigned int > const & code = enctable[entry.symbols[j]];
+						bool const ismsb = (code.first >> (code.second-1)) == ::libmaus2::uint::UInt<lookupwords>(1ull);
 						
 						// msb
 						if ( ismsb )
@@ -706,14 +706,14 @@ namespace libmaus
 				// std::cerr << "path " << spath << " lsb " << lsb << " msb " << msb << std::endl;
 				
 				// std::cerr << "Sorting recursive..." << std::endl;
-				::libmaus::huffman::HuffmanSorting::huffmanSortRecursive(acode, offset, n, node, enctable, dectable, revtable, dectable0, dectable1, enctable0, enctable1);
+				::libmaus2::huffman::HuffmanSorting::huffmanSortRecursive(acode, offset, n, node, enctable, dectable, revtable, dectable0, dectable1, enctable0, enctable1);
 				// std::cerr << "Sorting recursive done." << std::endl;
 
 				#if 0
 				uint64_t const firsthighsym = 
 				#endif
 				// std::cerr << "Compressing code for transposition...";
-				::libmaus::huffman::HuffmanSorting::compressHuffmanCoded(acode, offset, n, enctable, dectable, node );
+				::libmaus2::huffman::HuffmanSorting::compressHuffmanCoded(acode, offset, n, enctable, dectable, node );
 				// std::cerr << "done." << std::endl;
 				
 				// std::cerr << "Copying msb vector back to code...";
@@ -763,10 +763,10 @@ namespace libmaus
 			static uint64_t deserializeNumber(std::istream & in, uint64_t & s)
 			{
 				uint64_t n;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n); // n
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n); // n
 				return n;
 			}
-			static ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type deserializeHuffmanTree(std::istream & in, uint64_t & s)
+			static ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type deserializeHuffmanTree(std::istream & in, uint64_t & s)
 			{
 				return huffman::HuffmanTreeNode::deserialize(in,s); // aroot
 			}
@@ -785,10 +785,10 @@ namespace libmaus
 			static uint64_t deserializeNumber(std::istream & in)
 			{
 				uint64_t n;
-				::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n); // n
+				::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n); // n
 				return n;
 			}
-			static ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type deserializeHuffmanTree(std::istream & in)
+			static ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type deserializeHuffmanTree(std::istream & in)
 			{
 				uint64_t s = 0;
 				return huffman::HuffmanTreeNode::deserialize(in,s); // aroot
@@ -966,7 +966,7 @@ namespace libmaus
 			}
 			
 			template<typename iterator>
-			HuffmanWaveletTree(iterator a, iterator e, ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type raroot )
+			HuffmanWaveletTree(iterator a, iterator e, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type raroot )
 			: n(e-a), aroot(raroot), root(aroot.get()),
 			  enctable(root),
 			  /*
@@ -1022,7 +1022,7 @@ namespace libmaus
 					uint64_t srank = smap[s[i]];
 					
 					#if 0
-					std::pair < ::libmaus::uint::UInt < lookupwords >, unsigned int > code = H0.enctable [ s[i] ];
+					std::pair < ::libmaus2::uint::UInt < lookupwords >, unsigned int > code = H0.enctable [ s[i] ];
 					#endif
 					
 					uint64_t frank = H0.rank(s[i],i);

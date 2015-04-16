@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,44 +20,44 @@
 #if ! defined(HASHCREATIONBASE_HPP)
 #define HASHCREATIONBASE_HPP
 
-#include <libmaus/fastx/MultiWordDNABitBuffer.hpp>
-#include <libmaus/fastx/acgtnMap.hpp>
+#include <libmaus2/fastx/MultiWordDNABitBuffer.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace clustering
 	{
 		struct HashCreationBase
 		{
-			typedef ::libmaus::fastx::MultiWordDNABitBuffer<31> multi_word_buffer_type;
+			typedef ::libmaus2::fastx::MultiWordDNABitBuffer<31> multi_word_buffer_type;
 
-			static ::libmaus::autoarray::AutoArray<uint8_t> createSymMap()
+			static ::libmaus2::autoarray::AutoArray<uint8_t> createSymMap()
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> S(256);
+				::libmaus2::autoarray::AutoArray<uint8_t> S(256);
 		
-				S['a'] = S['A'] = ::libmaus::fastx::mapChar('A');
-				S['c'] = S['C'] = ::libmaus::fastx::mapChar('C');
-				S['g'] = S['G'] = ::libmaus::fastx::mapChar('G');
-				S['t'] = S['T'] = ::libmaus::fastx::mapChar('T');
+				S['a'] = S['A'] = ::libmaus2::fastx::mapChar('A');
+				S['c'] = S['C'] = ::libmaus2::fastx::mapChar('C');
+				S['g'] = S['G'] = ::libmaus2::fastx::mapChar('G');
+				S['t'] = S['T'] = ::libmaus2::fastx::mapChar('T');
 		
 				return S;
 			}
 		
-			static ::libmaus::autoarray::AutoArray<uint8_t> createRevSymMap()
+			static ::libmaus2::autoarray::AutoArray<uint8_t> createRevSymMap()
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> S(256);
+				::libmaus2::autoarray::AutoArray<uint8_t> S(256);
 		
-				S['a'] = S['A'] = ::libmaus::fastx::mapChar('T');
-				S['c'] = S['C'] = ::libmaus::fastx::mapChar('G');
-				S['g'] = S['G'] = ::libmaus::fastx::mapChar('C');
-				S['t'] = S['T'] = ::libmaus::fastx::mapChar('A');
+				S['a'] = S['A'] = ::libmaus2::fastx::mapChar('T');
+				S['c'] = S['C'] = ::libmaus2::fastx::mapChar('G');
+				S['g'] = S['G'] = ::libmaus2::fastx::mapChar('C');
+				S['t'] = S['T'] = ::libmaus2::fastx::mapChar('A');
 		
 				return S;
 			}
 		
-			static ::libmaus::autoarray::AutoArray<unsigned int> createErrorMap()
+			static ::libmaus2::autoarray::AutoArray<unsigned int> createErrorMap()
 			{
-				::libmaus::autoarray::AutoArray<unsigned int> S(256);
+				::libmaus2::autoarray::AutoArray<unsigned int> S(256);
 				std::fill ( S.get(), S.get()+256, 1 );
 		
 				S['a'] = S['A'] = 0;
@@ -92,8 +92,8 @@ namespace libmaus
 				std::reverse(rstring.begin(),rstring.end());
 				for ( unsigned int i = 0; i < rstring.size(); ++i )
 					rstring[i] =
-						::libmaus::fastx::remapChar(
-							::libmaus::fastx::invertN(::libmaus::fastx::mapChar(rstring[i]))
+						::libmaus2::fastx::remapChar(
+							::libmaus2::fastx::invertN(::libmaus2::fastx::mapChar(rstring[i]))
 						);
 				return rstring;
 			}
@@ -207,7 +207,7 @@ namespace libmaus
 					}
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Cannot handle " << wordsperobject 
 							<< " words per object in sortShortArray.";
 						se.finish();
@@ -279,7 +279,7 @@ namespace libmaus
 					}
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Cannot handle " << wordsperobject 
 							<< " words per object in sortShortStable.";
 						se.finish();

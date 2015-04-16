@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define STREAMWRAPPERBUFFER_HPP
 
 #include <streambuf>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -31,14 +31,14 @@ namespace libmaus
 		{
 			typedef _stream_type stream_type;
 			typedef StreamWrapperBuffer this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			stream_type & stream;
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t streamreadpos;
 
 			StreamWrapperBuffer(StreamWrapperBuffer const &);

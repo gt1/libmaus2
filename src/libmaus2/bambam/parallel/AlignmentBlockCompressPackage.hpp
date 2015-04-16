@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTBLOCKCOMPRESSPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTBLOCKCOMPRESSPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/CompressBuffer.hpp>
-#include <libmaus/bambam/parallel/CompressionPendingElement.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/CompressBuffer.hpp>
+#include <libmaus2/bambam/parallel/CompressionPendingElement.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
 		namespace parallel
 		{
-			struct AlignmentBlockCompressPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct AlignmentBlockCompressPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef AlignmentBlockCompressPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 							
 				CompressBuffer * compbuf;
 				CompressionPendingElement * pend;
 	
-				AlignmentBlockCompressPackage() : libmaus::parallel::SimpleThreadWorkPackage(), compbuf(0), pend(0) {}
+				AlignmentBlockCompressPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), compbuf(0), pend(0) {}
 				
 				AlignmentBlockCompressPackage(
 					uint64_t const rpriority, 
@@ -46,7 +46,7 @@ namespace libmaus
 					CompressionPendingElement * rpend,
 					uint64_t const rdispatcherId
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), compbuf(rcompbuf), pend(rpend)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherId), compbuf(rcompbuf), pend(rpend)
 				{
 				}
 			

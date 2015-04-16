@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPCONCATDECODER_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPCONCATDECODER_HPP
 
-#include <libmaus/gamma/SparseGammaGapFileIndexMultiDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapFileIndexMultiDecoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
@@ -29,19 +29,19 @@ namespace libmaus
 		{
 			typedef SparseGammaGapConcatDecoder this_type;
 			
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			typedef libmaus::aio::SynchronousGenericInput<uint64_t> stream_type;
+			typedef libmaus2::aio::SynchronousGenericInput<uint64_t> stream_type;
 
 			SparseGammaGapFileIndexMultiDecoder::unique_ptr_type Pindex;
 			SparseGammaGapFileIndexMultiDecoder & index;
 			
 			std::vector<std::string> const filenames;
 			uint64_t fileptr;
-			libmaus::aio::CheckedInputStream::unique_ptr_type CIS;
-			libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
-			libmaus::gamma::GammaDecoder<stream_type>::unique_ptr_type gdec;
+			libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
+			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
+			libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type gdec;
 			std::pair<uint64_t,uint64_t> p;
 			
 			struct iterator
@@ -89,13 +89,13 @@ namespace libmaus
 					SGI.reset();
 					CIS.reset();
 					
-					libmaus::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus::aio::CheckedInputStream(filenames[fileptr++]));
+					libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus2::aio::CheckedInputStream(filenames[fileptr++]));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
-					libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
+					libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
 					SGI = UNIQUE_PTR_MOVE(tSGI);
 					
-					libmaus::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus::gamma::GammaDecoder<stream_type>(*SGI));
+					libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus2::gamma::GammaDecoder<stream_type>(*SGI));
 					gdec = UNIQUE_PTR_MOVE(tgdec);
 
 					p.first = gdec->decode();
@@ -144,7 +144,7 @@ namespace libmaus
 					uint64_t const curfileid = fileptr++;
 					std::string const fn = filenames[curfileid];
 
-					libmaus::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus::aio::CheckedInputStream(fn));
+					libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus2::aio::CheckedInputStream(fn));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
 					SparseGammaGapFileIndexDecoder & indexdec = index.getSingleDecoder(curfileid); // (*CIS);
@@ -163,10 +163,10 @@ namespace libmaus
 						CIS->clear();
 						CIS->seekg(0);
 
-						libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
+						libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
 						SGI = UNIQUE_PTR_MOVE(tSGI);
 						
-						libmaus::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus::gamma::GammaDecoder<stream_type>(*SGI));
+						libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus2::gamma::GammaDecoder<stream_type>(*SGI));
 						gdec = UNIQUE_PTR_MOVE(tgdec);
 
 						p.first = gdec->decode() - ikey;
@@ -185,11 +185,11 @@ namespace libmaus
 						CIS->seekg(word * 8);
 
 						// set up word reader
-						libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
+						libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
 						SGI = UNIQUE_PTR_MOVE(tSGI);
 
 						// set up gamma decoder
-						libmaus::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus::gamma::GammaDecoder<stream_type>(*SGI));
+						libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type tgdec(new libmaus2::gamma::GammaDecoder<stream_type>(*SGI));
 						gdec = UNIQUE_PTR_MOVE(tgdec);
 						// discard wbitoff bits
 						if ( wbitoff )
@@ -309,32 +309,32 @@ namespace libmaus
 				return iterator(this);
 			}
 
-			static uint64_t getNextKey(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
+			static uint64_t getNextKey(libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
 			{
 				this_type dec(index,ikey);
 				assert ( dec.hasNextKey() );
 				return ikey + dec.p.first;
 			}
-			static bool hasNextKey(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
+			static bool hasNextKey(libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
 			{
 				return this_type(index,ikey).hasNextKey();
 			}
 			
 			private:
-			static uint64_t getPrevKeyBlockStart(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
+			static uint64_t getPrevKeyBlockStart(libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & index, uint64_t const ikey)
 			{
 				assert ( index.hasPrevKey(ikey) );
 				std::pair<uint64_t,uint64_t> const p = index.getBlockIndex(ikey-1);
 				assert ( p.first < index.getFileNames().size() );
-				libmaus::gamma::SparseGammaGapFileIndexDecoder const & index1 = index.getSingleDecoder(p.first); // (filenames[p.first]);
+				libmaus2::gamma::SparseGammaGapFileIndexDecoder const & index1 = index.getSingleDecoder(p.first); // (filenames[p.first]);
 				return index1.get(p.second).ikey;
 			}
 			
 			public:
 			// get highest non-zero key before ikey or -1 if there is no such key
-			static int64_t getPrevKey(libmaus::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
+			static int64_t getPrevKey(libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder & index, /* std::vector<std::string> const & filenames, */ uint64_t const ikey)
 			{
-				// libmaus::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
+				// libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder index(filenames);
 			
 				if ( ! index.hasPrevKey(ikey) )
 					return -1;

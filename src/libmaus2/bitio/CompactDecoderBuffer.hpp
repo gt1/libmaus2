@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,15 +23,15 @@
 #include <istream>
 #include <fstream>
 #include <ios>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/bitio/Ctz.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/ArrayDecode.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/bitio/Ctz.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/ArrayDecode.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -40,7 +40,7 @@ namespace libmaus
 			private:
 			static uint64_t const headersize = 4*sizeof(uint64_t);
 			
-			::libmaus::aio::CheckedInputStream stream;
+			::libmaus2::aio::CheckedInputStream stream;
 			
 			// log of word size we are using
 			static unsigned int const loglog = 6;
@@ -54,8 +54,8 @@ namespace libmaus
 			uint64_t const alignmult;
 
 			uint64_t const buffersize;
-			::libmaus::bitio::CompactArray C;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::bitio::CompactArray C;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 			
 			uint64_t symsread;
 
@@ -68,12 +68,12 @@ namespace libmaus
 				::std::size_t rbuffersize
 			)
 			: stream(filename),
-			  b(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
-			  n(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
-			  s(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
-			  as(::libmaus::bitio::CompactArray::deserializeNumber(stream)),
+			  b(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  n(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  s(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
+			  as(::libmaus2::bitio::CompactArray::deserializeNumber(stream)),
 			  // smallest multiple aligning to bitsperentity bits
-			  alignmult(1ull << (loglog-::libmaus::bitio::Ctz::ctz(b))),
+			  alignmult(1ull << (loglog-::libmaus2::bitio::Ctz::ctz(b))),
 			  // make buffersize multiple of alignmult
 			  buffersize(((rbuffersize + alignmult-1)/alignmult)*alignmult),
 			  C(buffersize,b),
@@ -182,7 +182,7 @@ namespace libmaus
 				stream.read ( reinterpret_cast<char *>(C.D) , bytestoread );
 				if ( stream.gcount() != static_cast<int64_t>(bytestoread) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactDecoderBuffer::underflow() failed to read " << bytestoread << " bytes." << std::endl;
 					se.finish();
 					throw se;
@@ -205,8 +205,8 @@ namespace libmaus
 		struct CompactDecoderWrapper : public CompactDecoderBuffer, public ::std::istream
 		{
 			typedef CompactDecoderWrapper this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			CompactDecoderWrapper(std::string const & filename, uint64_t const buffersize = 64*1024)
 			: CompactDecoderBuffer(filename,buffersize), ::std::istream(this)

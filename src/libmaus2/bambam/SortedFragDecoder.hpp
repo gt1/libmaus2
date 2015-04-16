@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_BAMBAM_SORTEDFRAGDECODER_HPP)
 #define LIBMAUS_BAMBAM_SORTEDFRAGDECODER_HPP
 
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/bambam/ReadEndsHeapPairComparator.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/lz/SnappyInputStreamArrayFile.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEndsHeapPairComparator.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/lz/SnappyInputStreamArrayFile.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -38,23 +38,23 @@ namespace libmaus
 			//! this type
 			typedef SortedFragDecoder this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
 			//! uint64_t pair
 			typedef std::pair<uint64_t,uint64_t> upair;
 			//! snappy input array
-			::libmaus::lz::SnappyInputStreamArrayFile::unique_ptr_type infilearray;
+			::libmaus2::lz::SnappyInputStreamArrayFile::unique_ptr_type infilearray;
 			//! number of alignments per block
 			std::vector < uint64_t > const tmpoutcnts;
 			//! number of alignments read per block
 			std::vector < uint64_t > tmpincnts;
 			//! pair of list index and ReadEnds object
-			typedef std::pair<uint64_t,::libmaus::bambam::ReadEnds> qtype;
+			typedef std::pair<uint64_t,::libmaus2::bambam::ReadEnds> qtype;
 			//! merge heap
-			std::priority_queue<qtype,std::vector<qtype>,::libmaus::bambam::ReadEndsHeapPairComparator> Q;
+			std::priority_queue<qtype,std::vector<qtype>,::libmaus2::bambam::ReadEndsHeapPairComparator> Q;
 			
 			/**
 			 * convert vector of pairs [u_0,u_1),[u_1,u_2),... to index vector [u_0,u_1,u_2,...)
@@ -109,7 +109,7 @@ namespace libmaus
 				std::vector < upair > const & tmpoffsetintervals,
 				std::vector < uint64_t > const & rtmpoutcnts
 			)
-			: infilearray(::libmaus::lz::SnappyInputStreamArrayFile::construct(filename,pairsToIntervals(tmpoffsetintervals))),
+			: infilearray(::libmaus2::lz::SnappyInputStreamArrayFile::construct(filename,pairsToIntervals(tmpoffsetintervals))),
 			  tmpoutcnts(rtmpoutcnts),
 			  tmpincnts(tmpoutcnts.size(),0)
 			{
@@ -118,7 +118,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < tmpoffsetintervals.size(); ++i )
 					if ( tmpincnts[i] != tmpoutcnts[i] )
 					{
-						::libmaus::bambam::ReadEnds RE;
+						::libmaus2::bambam::ReadEnds RE;
 						RE.get((*infilearray)[i]);
 						Q.push(qtype(i,RE));
 						tmpincnts[i]++;
@@ -131,9 +131,9 @@ namespace libmaus
 			 * @param V vector of ReadEnds objects
 			 * @return true iff an object was appended to V, false if no more objects were available
 			 **/
-			bool getNext(std::vector< ::libmaus::bambam::ReadEnds> & V)
+			bool getNext(std::vector< ::libmaus2::bambam::ReadEnds> & V)
 			{
-				::libmaus::bambam::ReadEnds RE;
+				::libmaus2::bambam::ReadEnds RE;
 				bool const ok = getNext(RE);
 				
 				if ( ok )
@@ -148,7 +148,7 @@ namespace libmaus
 			 * @param RE reference to ReadEnds object to be filled
 			 * @return true iff an object could be decoded, false if no more objects were available
 			 **/
-			bool getNext(::libmaus::bambam::ReadEnds & RE)
+			bool getNext(::libmaus2::bambam::ReadEnds & RE)
 			{
 				if ( Q.size() )
 				{
@@ -160,7 +160,7 @@ namespace libmaus
 					
 					if ( tmpincnts[id] != tmpoutcnts[id] )
 					{
-						::libmaus::bambam::ReadEnds NRE;
+						::libmaus2::bambam::ReadEnds NRE;
 						NRE.get((*infilearray)[id]);
 						Q.push(qtype(id,NRE));
 						tmpincnts[id]++;

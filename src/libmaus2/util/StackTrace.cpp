@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/StackTrace.hpp>
+#include <libmaus2/util/StackTrace.hpp>
 #if defined(__linux__)
-#include <libmaus/util/PosixExecute.hpp>
+#include <libmaus2/util/PosixExecute.hpp>
 #endif
 
 #if defined(__linux__)
@@ -31,9 +31,9 @@ static std::string chomp(std::string s)
 }
 #endif
 
-libmaus::util::StackTrace::~StackTrace() {}
+libmaus2::util::StackTrace::~StackTrace() {}
 
-std::string libmaus::util::StackTrace::toString(bool const
+std::string libmaus2::util::StackTrace::toString(bool const
 #if defined(__linux)
 translate
 #endif
@@ -56,7 +56,7 @@ translate
                         std::string const comline = comlinestr.str();
                         
                         std::string addrout,addrerr;
-                        ::libmaus::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
+                        ::libmaus2::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
                         addrout = chomp(addrout);
                         
                         /*
@@ -71,7 +71,7 @@ translate
                         {
                         	std::string const mangled = B.second.substr(0,B.second.find_last_of('+'));
                         	std::string const offset = B.second.substr(B.second.find_last_of('+')+1);
-                        	B.second = libmaus::util::Demangle::demangleName(mangled) + "+" + offset;
+                        	B.second = libmaus2::util::Demangle::demangleName(mangled) + "+" + offset;
                         }
                         
                         ostr << B.first << "(" << B.second << ")" << "[" << A.second << ":" << addrout << "]\n";
@@ -87,7 +87,7 @@ translate
         return ostr.str();
 }
 
-void libmaus::util::StackTrace::simpleStackTrace(std::ostream &
+void libmaus2::util::StackTrace::simpleStackTrace(std::ostream &
 #if defined(LIBMAUS_HAVE_BACKTRACE)
 ostr
 #endif
@@ -106,7 +106,7 @@ ostr
 	#endif
 }
 
-libmaus::util::StackTrace::StackTrace() : trace()
+libmaus2::util::StackTrace::StackTrace() : trace()
 {
 	#if defined(LIBMAUS_HAVE_BACKTRACE)
 	unsigned int const depth = 20;
@@ -121,7 +121,7 @@ libmaus::util::StackTrace::StackTrace() : trace()
 	#endif
 }
 
-std::string libmaus::util::StackTrace::getExecPath()
+std::string libmaus2::util::StackTrace::getExecPath()
 {
 	#if defined(_linux__)
 	char buf[PATH_MAX+1];
@@ -135,7 +135,7 @@ std::string libmaus::util::StackTrace::getExecPath()
 	#endif
 }
 
-std::pair < std::string, std::string > libmaus::util::StackTrace::components(std::string line, char const start, char const end)
+std::pair < std::string, std::string > libmaus2::util::StackTrace::components(std::string line, char const start, char const end)
 {
 	uint64_t i = line.size();
 	
@@ -157,7 +157,7 @@ std::pair < std::string, std::string > libmaus::util::StackTrace::components(std
 		line.substr(i+1, addrend-(i+1) ));
 }
 
-std::string libmaus::util::StackTrace::getStackTrace(bool translate)
+std::string libmaus2::util::StackTrace::getStackTrace(bool translate)
 {
 	StackTrace st;
 	return st.toString(translate);

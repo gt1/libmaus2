@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,17 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/bambam/RgInfo.hpp>
-#include <libmaus/bambam/parallel/FastqToBamControl.hpp>
-#include <libmaus/lz/BgzfDeflate.hpp>
-#include <libmaus/parallel/NumCpus.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/bambam/RgInfo.hpp>
+#include <libmaus2/bambam/parallel/FastqToBamControl.hpp>
+#include <libmaus2/lz/BgzfDeflate.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 #include <config.h>
 
-static std::string writeHeader(libmaus::util::ArgInfo const & arginfo, std::ostream & out)
+static std::string writeHeader(libmaus2::util::ArgInfo const & arginfo, std::ostream & out)
 {
-	libmaus::bambam::RgInfo const rginfo(arginfo);
+	libmaus2::bambam::RgInfo const rginfo(arginfo);
 
 	std::ostringstream headerostr;
 	headerostr << "@HD\tVN:1.4\tSO:unknown\n";
@@ -38,30 +38,30 @@ static std::string writeHeader(libmaus::util::ArgInfo const & arginfo, std::ostr
 		<< "VN:" << std::string(PACKAGE_VERSION)
 		<< std::endl;
 	headerostr << rginfo.toString();
-	::libmaus::bambam::BamHeader bamheader;
+	::libmaus2::bambam::BamHeader bamheader;
 	bamheader.text = headerostr.str();		
 
-	libmaus::lz::BgzfOutputStream bgzf(out);
+	libmaus2::lz::BgzfOutputStream bgzf(out);
 	bamheader.serialise(bgzf);
 	bgzf.flush();
 	
 	return rginfo.ID;
 }
 
-static int fastqtobampar(libmaus::util::ArgInfo const & arginfo)
+static int fastqtobampar(libmaus2::util::ArgInfo const & arginfo)
 {
 	std::ostream & out = std::cout;
-	uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus::parallel::NumCpus::getNumLogicalProcessors());
+	uint64_t const numlogcpus = arginfo.getValue<int>("threads",libmaus2::parallel::NumCpus::getNumLogicalProcessors());
 	int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
 		
 	std::string const rgid = writeHeader(arginfo,out);
 
-	libmaus::parallel::SimpleThreadPool STP(numlogcpus);
+	libmaus2::parallel::SimpleThreadPool STP(numlogcpus);
 	uint64_t const outblocks = 1024;
 	uint64_t const inputblocksize = 1024*1024*64;
 	uint64_t const inblocks = 64;
-	libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO);
-	libmaus::bambam::parallel::FastqToBamControl FTBC(PFIS,out,STP,inblocks,inputblocksize,outblocks,level,rgid);
+	libmaus2::aio::PosixFdInputStream PFIS(STDIN_FILENO);
+	libmaus2::bambam::parallel::FastqToBamControl FTBC(PFIS,out,STP,inblocks,inputblocksize,outblocks,level,rgid);
 
 	FTBC.enqueReadPackage();
 	FTBC.waitCompressionFinished();
@@ -76,7 +76,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		return fastqtobampar(arginfo);
 	}

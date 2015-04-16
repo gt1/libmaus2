@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(NUMBITS_HPP)
 #define NUMBITS_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace math
 	{
@@ -65,13 +65,13 @@ namespace libmaus
 			NumBits8(NumBits8 const &);
 		
 			protected:
-			::libmaus::autoarray::AutoArray<unsigned int> T;
+			::libmaus2::autoarray::AutoArray<unsigned int> T;
 			
 			public:
 			NumBits8() : T(256)
 			{
 				for ( unsigned int i = 0; i < T.size(); ++i )
-					T[i] = ::libmaus::math::numbits(i);
+					T[i] = ::libmaus2::math::numbits(i);
 			}
 			virtual ~NumBits8() {}
 			
@@ -120,7 +120,7 @@ namespace libmaus
 
 		inline uint64_t nextTwoPow(uint64_t const n)
 		{
-			uint64_t const numbits = ::libmaus::math::numbits(n);
+			uint64_t const numbits = ::libmaus2::math::numbits(n);
 			
 			if ( n == (static_cast<uint64_t>(1ull) << (numbits-1)) )
 				return n;

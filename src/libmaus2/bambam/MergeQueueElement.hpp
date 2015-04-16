@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_MERGEQUEUEELEMENT_HPP)
 #define LIBMAUS_BAMBAM_MERGEQUEUEELEMENT_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 #include <cstring>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,7 +32,7 @@ namespace libmaus
 		struct MergeQueueElement
 		{
 			//! alignment
-			::libmaus::bambam::BamAlignment::shared_ptr_type algn;
+			::libmaus2::bambam::BamAlignment::shared_ptr_type algn;
 			//! input list index
 			uint64_t index;
 			
@@ -49,7 +49,7 @@ namespace libmaus
 			 * @param ralgn alignment
 			 * @param rindex index of input list
 			 **/
-			MergeQueueElement(::libmaus::bambam::BamAlignment::shared_ptr_type ralgn, uint64_t const rindex)
+			MergeQueueElement(::libmaus2::bambam::BamAlignment::shared_ptr_type ralgn, uint64_t const rindex)
 			: algn(ralgn), index(rindex) {}
 
 			/**
@@ -60,8 +60,8 @@ namespace libmaus
 			 * @return true iff A.name > B.name or A.name = B.name and A is read 2
 			 **/
 			static bool compare(
-				::libmaus::bambam::BamAlignment::shared_ptr_type const & A,
-				::libmaus::bambam::BamAlignment::shared_ptr_type const & B)
+				::libmaus2::bambam::BamAlignment::shared_ptr_type const & A,
+				::libmaus2::bambam::BamAlignment::shared_ptr_type const & B)
 			{
 				int r = strcmp(A->getName(),B->getName());
 				

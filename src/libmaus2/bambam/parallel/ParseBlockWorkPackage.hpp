@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PARSEBLOCKWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PARSEBLOCKWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/ParseInfo.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/ParseInfo.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct ParseBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct ParseBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef ParseBlockWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				DecompressedBlock::shared_ptr_type decompressedblock;
 				AlignmentBuffer::shared_ptr_type parseBlock;
@@ -42,7 +42,7 @@ namespace libmaus
 	
 				ParseBlockWorkPackage()
 				: 
-					libmaus::parallel::SimpleThreadWorkPackage(), 
+					libmaus2::parallel::SimpleThreadWorkPackage(), 
 					decompressedblock(),
 					parseBlock(),
 					parseInfo(0)
@@ -56,7 +56,7 @@ namespace libmaus
 					ParseInfo * rparseInfo,
 					uint64_t const rparseDispatcherId
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), 
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), 
 				  decompressedblock(rdecompressedblock), parseBlock(rparseBlock), parseInfo(rparseInfo)
 				{
 				}

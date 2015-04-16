@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/fastx/isFastQ.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/fastx/isFastQ.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-bool libmaus::fastx::IsFastQ::isFastQ(std::istream & istr)
+bool libmaus2::fastx::IsFastQ::isFastQ(std::istream & istr)
 {
 	int first = istr.get();
           
@@ -34,29 +34,29 @@ bool libmaus::fastx::IsFastQ::isFastQ(std::istream & istr)
 			return true;
 		else
 		{
-			::libmaus::exception::LibMausException se;
-			se.getStream() << "libmaus::fastx::IsFastQ::isFastQ(std::istream &): Unable to determine type of pattern file.";
+			::libmaus2::exception::LibMausException se;
+			se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(std::istream &): Unable to determine type of pattern file.";
 			se.finish();
 			throw se;
 		}
 	}
 	else
 	{
-		::libmaus::exception::LibMausException se;
-		se.getStream() << "libmaus::fastx::IsFastQ::isFastQ(std::istream &): Failed to read first character from pattern file..";
+		::libmaus2::exception::LibMausException se;
+		se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(std::istream &): Failed to read first character from pattern file..";
 		se.finish();
 		throw se;
 	}	
 }
 
-bool libmaus::fastx::IsFastQ::isFastQ(std::string const & filename)
+bool libmaus2::fastx::IsFastQ::isFastQ(std::string const & filename)
 {
 	std::ifstream istr(filename.c_str());
       
 	if ( ! istr.is_open() )
 	{
-		::libmaus::exception::LibMausException se;
-		se.getStream() << "libmaus::fastx::IsFastQ::isFastQ(std::string const &): Unable to open file " << filename;
+		::libmaus2::exception::LibMausException se;
+		se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(std::string const &): Unable to open file " << filename;
 		se.finish();
 		throw se;
 	}
@@ -64,12 +64,12 @@ bool libmaus::fastx::IsFastQ::isFastQ(std::string const & filename)
 	return isFastQ(istr);
 }
 
-bool libmaus::fastx::IsFastQ::isFastQ(std::vector<std::string> const & filenames)
+bool libmaus2::fastx::IsFastQ::isFastQ(std::vector<std::string> const & filenames)
 {
 	if ( ! filenames.size() )
 	{
-		::libmaus::exception::LibMausException se;
-		se.getStream() << "libmaus::fastx::IsFastQ::isFastQ(): no filenames provided.";
+		::libmaus2::exception::LibMausException se;
+		se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(): no filenames provided.";
 		se.finish();
 		throw se;
 	}
@@ -82,8 +82,8 @@ bool libmaus::fastx::IsFastQ::isFastQ(std::vector<std::string> const & filenames
 		
 		if ( nisfq != isfq )
 		{
-			::libmaus::exception::LibMausException se;
-			se.getStream() << "libmaus::fastx::IsFastQ::isFastQ(): file type inconsistent (FastA and FastQ in same list)";
+			::libmaus2::exception::LibMausException se;
+			se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(): file type inconsistent (FastA and FastQ in same list)";
 			se.finish();
 			throw se;		
 		}

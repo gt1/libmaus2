@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,11 +21,11 @@
 
 #include <zlib.h>
 #include <ostream>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/GzipHeader.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -38,11 +38,11 @@ namespace libmaus
 			uint64_t linemod;
 			uint64_t linecnt;
 			
-			libmaus::aio::PosixFdOutputStream::unique_ptr_type Pout;
+			libmaus2::aio::PosixFdOutputStream::unique_ptr_type Pout;
 			
 			uint64_t const buffersize;
-			::libmaus::autoarray::AutoArray<char> inbuffer;
-			::libmaus::autoarray::AutoArray<char> outbuffer;
+			::libmaus2::autoarray::AutoArray<char> inbuffer;
+			::libmaus2::autoarray::AutoArray<char> outbuffer;
 			z_stream strm;
 			uint32_t crc;
 			uint32_t isize;
@@ -97,7 +97,7 @@ namespace libmaus
 					std::cerr << "doInit() deflateInit2 failed" << std::endl;
 					#endif
 				
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "LineSplittingGzipOutputStreamBuffer::doInit(): deflateInit2 failed";
 					se.finish();
 					throw se;
@@ -124,7 +124,7 @@ namespace libmaus
 						std::cerr << "doSync() deflate failed" << std::endl;
 						#endif
 					
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "LineSplittingGzipOutputStreamBuffer::doSync: deflate failed: " << ret << " (" << strm.msg << ")";
 						se.finish();
 						throw se;
@@ -192,7 +192,7 @@ namespace libmaus
 							std::cerr << "doFullFlush deflate failed" << std::endl;
 							#endif
 						
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "LineSplittingGzipOutputStreamBuffer::doFullFlush: deflate failed with error " << ret << " (" << strm.msg << ")";
 							se.finish();
 							throw se;
@@ -224,7 +224,7 @@ namespace libmaus
 						std::cerr << "doFinish deflate failed" << std::endl;
 						#endif
 					
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "LineSplittingGzipOutputStreamBuffer::doFinish(): deflate failed: " << ret << " (" << strm.msg << ")";
 						se.finish();
 						throw se;
@@ -275,11 +275,11 @@ namespace libmaus
 				std::string const filename = fnostr.str();
 				
 				// open output stream
-				libmaus::aio::PosixFdOutputStream::unique_ptr_type Tout(new libmaus::aio::PosixFdOutputStream(filename));
+				libmaus2::aio::PosixFdOutputStream::unique_ptr_type Tout(new libmaus2::aio::PosixFdOutputStream(filename));
 				Pout = UNIQUE_PTR_MOVE(Tout);
 
 				// write gzip header
-				libmaus::lz::GzipHeaderConstantsBase::writeSimpleHeader(*Pout);
+				libmaus2::lz::GzipHeaderConstantsBase::writeSimpleHeader(*Pout);
 				// init compressor
 				doInit(level);
 				

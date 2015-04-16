@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(INDEXDECODERDATAARRAY_HPP)
 #define INDEXDECODERDATAARRAY_HPP
 
-#include <libmaus/huffman/IndexLoaderBase.hpp>
+#include <libmaus2/huffman/IndexLoaderBase.hpp>
 
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/util/ReverseByteOrder.hpp>
-#include <libmaus/huffman/IndexEntry.hpp>
-#include <libmaus/util/iterator.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/bitio/BitIOInput.hpp>
+#include <libmaus2/bitio/readElias.hpp>
+#include <libmaus2/util/ReverseByteOrder.hpp>
+#include <libmaus2/huffman/IndexEntry.hpp>
+#include <libmaus2/util/iterator.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
 #include <iostream>
 
 #if defined(__linux__)
@@ -38,7 +38,7 @@
 #include <sys/endian.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -48,11 +48,11 @@ namespace libmaus
 			typedef _owner_type owner_type;
 			typedef GetPosAdapter<owner_type> this_type;
 			
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef uint64_t value_type;
-			typedef ::libmaus::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
 
 			owner_type const * owner;
 			ifstream_ptr_type indexistr;
@@ -67,11 +67,11 @@ namespace libmaus
 			typedef _owner_type owner_type;
 			typedef GetKeyCntAdapter<owner_type> this_type;
 
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
-			typedef ::libmaus::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
 
 			owner_type const * owner;
 			ifstream_ptr_type indexistr;
@@ -86,11 +86,11 @@ namespace libmaus
 			typedef _owner_type owner_type;
 			typedef GetValueCntAdapter<owner_type> this_type;
 
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
-			typedef ::libmaus::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
 			
 			owner_type const * owner;
 			ifstream_ptr_type indexistr;
@@ -105,11 +105,11 @@ namespace libmaus
 			typedef _owner_type owner_type;
 			typedef GetKeyValueCntAdapter<owner_type> this_type;
 
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
-			typedef ::libmaus::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
 			
 			owner_type const * owner;
 			ifstream_ptr_type indexistr;
@@ -121,15 +121,15 @@ namespace libmaus
 		struct IndexDecoderData : public IndexLoaderBase
 		{
 			typedef IndexDecoderData this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typedef ::libmaus::util::ConstIteratorSharedPointer< GetPosAdapter<this_type>, uint64_t > const_pos_iterator;
-			typedef ::libmaus::util::ConstIteratorSharedPointer< GetKeyCntAdapter<this_type>, uint64_t > const_kcnt_iterator;
-			typedef ::libmaus::util::ConstIteratorSharedPointer< GetValueCntAdapter<this_type>, uint64_t > const_vcnt_iterator;
-			typedef ::libmaus::util::ConstIteratorSharedPointer< GetKeyValueCntAdapter<this_type>, uint64_t > const_kvcnt_iterator;
+			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetPosAdapter<this_type>, uint64_t > const_pos_iterator;
+			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetKeyCntAdapter<this_type>, uint64_t > const_kcnt_iterator;
+			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetValueCntAdapter<this_type>, uint64_t > const_vcnt_iterator;
+			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetKeyValueCntAdapter<this_type>, uint64_t > const_kvcnt_iterator;
 			
-			typedef ::libmaus::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
 
 			std::string filename;
 			uint64_t numentries;
@@ -252,13 +252,13 @@ namespace libmaus
 				indexistr.seekg(entrybytepos,std::ios::beg);
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(entrybytepos) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to index position " << entrybytepos << " in file " << filename << " of size " 
-						<< ::libmaus::util::GetFileSize::getFileSize(filename) << std::endl;
+						<< ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;
 				}
-				::libmaus::bitio::StreamBitInputStream SBIS(indexistr);
+				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
 			
 				SBIS.read(entrybitoff);
 				
@@ -275,7 +275,7 @@ namespace libmaus
 
 				if ( ! indexistr->is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "IndexDecoderData::openFile(): Failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -338,7 +338,7 @@ namespace libmaus
 
 				if ( ! indexistr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "IndexDecoderData::IndexDecoderData(): Failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -349,28 +349,28 @@ namespace libmaus
 				indexistr.seekg(indexpos,std::ios::beg);
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(indexpos) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to position " << indexpos << " of index in file " << filename << " of size " 
-						<< ::libmaus::util::GetFileSize::getFileSize(filename) << std::endl;
+						<< ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;
 				}
-				::libmaus::bitio::StreamBitInputStream SBIS(indexistr);
+				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
 				
 				// read size of index
-				numentries = ::libmaus::bitio::readElias2(SBIS);
+				numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
-				posbits = ::libmaus::bitio::readElias2(SBIS);
+				posbits = ::libmaus2::bitio::readElias2(SBIS);
 				
 				// k bits
-				kbits = ::libmaus::bitio::readElias2(SBIS);
+				kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
-				kacc = ::libmaus::bitio::readElias2(SBIS);
+				kacc = ::libmaus2::bitio::readElias2(SBIS);
 
 				// v bits
-				vbits = ::libmaus::bitio::readElias2(SBIS);
+				vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
-				vacc = ::libmaus::bitio::readElias2(SBIS);
+				vacc = ::libmaus2::bitio::readElias2(SBIS);
 				
 				// align
 				SBIS.flush();
@@ -396,14 +396,14 @@ namespace libmaus
 		struct KvAdapter
 		{
 			typedef KvAdapter this_type;
-			typedef ::libmaus::util::ConstIterator<this_type,uint64_t> const_iterator;
+			typedef ::libmaus2::util::ConstIterator<this_type,uint64_t> const_iterator;
 
-			::libmaus::autoarray::AutoArray<uint64_t> const & kvec;
-			::libmaus::autoarray::AutoArray<uint64_t> const & vvec;
+			::libmaus2::autoarray::AutoArray<uint64_t> const & kvec;
+			::libmaus2::autoarray::AutoArray<uint64_t> const & vvec;
 			
 			KvAdapter(
-				::libmaus::autoarray::AutoArray<uint64_t> const & rkvec,
-				::libmaus::autoarray::AutoArray<uint64_t> const & rvvec
+				::libmaus2::autoarray::AutoArray<uint64_t> const & rkvec,
+				::libmaus2::autoarray::AutoArray<uint64_t> const & rvvec
 			) : kvec(rkvec), vvec(rvvec)
 			{
 			
@@ -435,12 +435,12 @@ namespace libmaus
 		struct IndexDecoderDataArray
 		{
 			typedef IndexDecoderDataArray this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			::libmaus::autoarray::AutoArray<IndexDecoderData> data;
-			::libmaus::autoarray::AutoArray<uint64_t> kvec;
-			::libmaus::autoarray::AutoArray<uint64_t> vvec;
+			::libmaus2::autoarray::AutoArray<IndexDecoderData> data;
+			::libmaus2::autoarray::AutoArray<uint64_t> kvec;
+			::libmaus2::autoarray::AutoArray<uint64_t> vvec;
 			
 			FileBlockOffset findKBlock(uint64_t const offset) const
 			{
@@ -560,9 +560,9 @@ namespace libmaus
 						nonempty++;
 				}
 				
-				data = ::libmaus::autoarray::AutoArray<IndexDecoderData>(nonempty);
-				kvec = ::libmaus::autoarray::AutoArray<uint64_t>(nonempty+1,false);
-				vvec = ::libmaus::autoarray::AutoArray<uint64_t>(nonempty+1,false);
+				data = ::libmaus2::autoarray::AutoArray<IndexDecoderData>(nonempty);
+				kvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
+				vvec = ::libmaus2::autoarray::AutoArray<uint64_t>(nonempty+1,false);
 
 				for ( uint64_t i = 0, j = 0; i < filenames.size(); ++i )
 				{

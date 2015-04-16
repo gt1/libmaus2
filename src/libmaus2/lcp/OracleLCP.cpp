@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2008 Simon Puglisi
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <libmaus/lcp/OracleLCP.hpp>
+#include <libmaus2/lcp/OracleLCP.hpp>
 
 static const uint32_t cover0[] = {0};
 static const uint32_t cover1[] = {0,1};
@@ -33,9 +33,9 @@ static const uint32_t cover8[] = {0,1,3,7,
                                   65,80,89,96,
                                   114,122,128,150,
                                   196,197,201,219};
-const uint32_t * libmaus::lcp::OracleLCPBase::_covers[] = { cover0, cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8 };
-const uint32_t libmaus::lcp::OracleLCPBase::max_precomputed_cover = sizeof(_covers)/sizeof(_covers[0])-1;
-const uint32_t libmaus::lcp::OracleLCPBase::_cover_sizes[max_precomputed_cover+1] = {
+const uint32_t * libmaus2::lcp::OracleLCPBase::_covers[] = { cover0, cover1, cover2, cover3, cover4, cover5, cover6, cover7, cover8 };
+const uint32_t libmaus2::lcp::OracleLCPBase::max_precomputed_cover = sizeof(_covers)/sizeof(_covers[0])-1;
+const uint32_t libmaus2::lcp::OracleLCPBase::_cover_sizes[max_precomputed_cover+1] = {
    sizeof(cover0)/sizeof(cover0[0]),
    sizeof(cover1)/sizeof(cover1[0]),
    sizeof(cover2)/sizeof(cover2[0]),

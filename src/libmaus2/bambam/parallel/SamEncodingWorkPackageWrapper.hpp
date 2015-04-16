@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMENCODINGWORKPACKAGEWRAPPER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMENCODINGWORKPACKAGEWRAPPER_HPP
 
-#include <libmaus/bambam/parallel/SamEncodingWorkPackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/SamEncodingWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{			
-			struct SamEncodingWorkPackageWrapper : public libmaus::parallel::SimpleThreadWorkPackage
+			struct SamEncodingWorkPackageWrapper : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef SamEncodingWorkPackageWrapper this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				SamEncodingWorkPackage * package;
 			
-				SamEncodingWorkPackageWrapper() : libmaus::parallel::SimpleThreadWorkPackage() {}
+				SamEncodingWorkPackageWrapper() : libmaus2::parallel::SimpleThreadWorkPackage() {}
 				SamEncodingWorkPackageWrapper(uint64_t const rpriority, uint64_t const rdispatcherid, SamEncodingWorkPackage * rpackage)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), package(rpackage)
 				{
 				
 				}

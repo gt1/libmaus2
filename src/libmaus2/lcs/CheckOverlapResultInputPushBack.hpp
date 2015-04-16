@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(CHECKOVERLAPRESULTINPUTPUSHBACK_HPP)
 #define CHECKOVERLAPRESULTINPUTPUSHBACK_HPP
 
-#include <libmaus/lcs/CheckOverlapResult.hpp>
-#include <libmaus/lcs/CheckOverlapResultInput.hpp>
+#include <libmaus2/lcs/CheckOverlapResult.hpp>
+#include <libmaus2/lcs/CheckOverlapResultInput.hpp>
 #include <stack>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
 		struct CheckOverlapResultInputPushBack
 		{
 			typedef CheckOverlapResultInputPushBack this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			CheckOverlapResultInput CORI;
 			std::stack < CheckOverlapResult::shared_ptr_type > S;

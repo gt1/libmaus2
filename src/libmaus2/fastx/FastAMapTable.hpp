@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_FASTX_FASTAMAPTABLE_HPP)
 #define LIBMAUS_FASTX_FASTAMAPTABLE_HPP
 
-#include <libmaus/fastx/FastADefinedBasesTable.hpp>
+#include <libmaus2/fastx/FastADefinedBasesTable.hpp>
 #include <cctype>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastAMapTable
 		{
-			::libmaus::autoarray::AutoArray<uint8_t> table;
+			::libmaus2::autoarray::AutoArray<uint8_t> table;
 
 			FastAMapTable()
 			: table(256,false)
 			{
-				::libmaus::fastx::FastADefinedBasesTable FDBT;
+				::libmaus2::fastx::FastADefinedBasesTable FDBT;
 			
 				for ( uint64_t i = 0; i < 256; ++i )
 				{

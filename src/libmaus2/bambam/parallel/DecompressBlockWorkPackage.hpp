@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,29 +19,29 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSBLOCKWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSBLOCKWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/ControlInputInfo.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/ControlInputInfo.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct DecompressBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct DecompressBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef DecompressBlockWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				ControlInputInfo::input_block_type::shared_ptr_type inputblock;
 				DecompressedBlock::shared_ptr_type outputblock;
-				libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder;
+				libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder;
 	
 				DecompressBlockWorkPackage()
 				: 
-					libmaus::parallel::SimpleThreadWorkPackage(), 
+					libmaus2::parallel::SimpleThreadWorkPackage(), 
 					inputblock(),
 					outputblock(),
 					decoder()
@@ -52,10 +52,10 @@ namespace libmaus
 					uint64_t const rpriority, 
 					ControlInputInfo::input_block_type::shared_ptr_type rinputblock,
 					DecompressedBlock::shared_ptr_type routputblock,
-					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type rdecoder,
+					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type rdecoder,
 					uint64_t const rdecompressDispatcherId
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), inputblock(rinputblock), outputblock(routputblock), decoder(rdecoder)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdecompressDispatcherId), inputblock(rinputblock), outputblock(routputblock), decoder(rdecoder)
 				{
 				}
 			

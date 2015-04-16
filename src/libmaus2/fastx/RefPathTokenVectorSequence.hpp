@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_FASTX_REFPATHTOKENVECTORSEQUENCE_HPP)
 #define LIBMAUS_FASTX_REFPATHTOKENVECTORSEQUENCE_HPP
 
-#include <libmaus/fastx/RefPathTokenVector.hpp>
+#include <libmaus2/fastx/RefPathTokenVector.hpp>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{

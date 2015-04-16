@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lcs/MetaEditDistance.hpp>
-#include <libmaus/lcs/EditDistance.hpp>
-#include <libmaus/lcs/BandedEditDistance.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/lcs/MetaEditDistance.hpp>
+#include <libmaus2/lcs/EditDistance.hpp>
+#include <libmaus2/lcs/BandedEditDistance.hpp>
+#include <libmaus2/random/Random.hpp>
 
 static int64_t iabs(int64_t const v)
 {
@@ -97,7 +97,7 @@ static void enumerate(uint64_t const n, uint64_t const k, edit_a & E, edit_b & B
 
 	std::string a(n+3,'a');		
 	for ( uint64_t i = 0; i < a.size(); ++i )
-		a[i] = 'a' + (libmaus::random::Random::rand8() % k);
+		a[i] = 'a' + (libmaus2::random::Random::rand8() % k);
 	
 	std::string b(n,' ');	
 	for ( uint64_t i = 0; i < z; ++i )
@@ -119,7 +119,7 @@ static void enumerate(uint64_t const n, uint64_t const k, edit_a & E, edit_b & B
 template<typename edit_a, typename edit_b>
 void runtest(edit_a & E, edit_b & BE)
 {
-	libmaus::random::Random::setup(5);
+	libmaus2::random::Random::setup(5);
 
 	testEdit("lichesxein","lichtensteijn",E,BE);
 	testEdit("lichtensteijn","lichesxein",E,BE);
@@ -138,46 +138,46 @@ void runtest(edit_a & E, edit_b & BE)
 	enumerate(12,4,E,BE);
 }
 
-template<libmaus::lcs::edit_distance_priority_type edit_distance_priority>
+template<libmaus2::lcs::edit_distance_priority_type edit_distance_priority>
 void runtestconcrete()
 {
-	libmaus::lcs::EditDistance<edit_distance_priority> E;
-	libmaus::lcs::BandedEditDistance<edit_distance_priority> BE;
+	libmaus2::lcs::EditDistance<edit_distance_priority> E;
+	libmaus2::lcs::BandedEditDistance<edit_distance_priority> BE;
 	runtest(E,BE);
 }
 
-template<libmaus::lcs::edit_distance_priority_type edit_distance_priority>
+template<libmaus2::lcs::edit_distance_priority_type edit_distance_priority>
 void runtestmeta()
 {
-	libmaus::lcs::EditDistance<edit_distance_priority> E;
-	libmaus::lcs::MetaEditDistance<edit_distance_priority> BE;
+	libmaus2::lcs::EditDistance<edit_distance_priority> E;
+	libmaus2::lcs::MetaEditDistance<edit_distance_priority> BE;
 	runtest(E,BE);
 }
 
-template<libmaus::lcs::edit_distance_priority_type edit_distance_priority>
+template<libmaus2::lcs::edit_distance_priority_type edit_distance_priority>
 void runtestshort()
 {
-	libmaus::lcs::EditDistance<edit_distance_priority> E;
-	libmaus::lcs::BandedEditDistance<edit_distance_priority> BE;
+	libmaus2::lcs::EditDistance<edit_distance_priority> E;
+	libmaus2::lcs::BandedEditDistance<edit_distance_priority> BE;
 	testEdit("bbbbbba","bbbbb",E,BE,true);
 	testEdit("bbbbb","bbbbbba",E,BE,true);
 	testEdit("bbababb","bbaabbaab",E,BE,true);
 }
 
-#include <libmaus/lcs/LocalEditDistance.hpp>
-#include <libmaus/lcs/LocalAlignmentPrint.hpp>
-#include <libmaus/lcs/BandedLocalEditDistance.hpp>
-#include <libmaus/lcs/MetaLocalEditDistance.hpp>
+#include <libmaus2/lcs/LocalEditDistance.hpp>
+#include <libmaus2/lcs/LocalAlignmentPrint.hpp>
+#include <libmaus2/lcs/BandedLocalEditDistance.hpp>
+#include <libmaus2/lcs/MetaLocalEditDistance.hpp>
 
 int main()
 {
 	try
 	{
 		{
-			libmaus::lcs::BandedLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			libmaus2::lcs::BandedLocalEditDistance< ::libmaus2::lcs::diag_del_ins > LED;
 			std::string const a = "CTCCCCGGTTGCAGAATCGCGCAGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGCCG";
 			std::string const b =   "NCCCGGTTGCAGAATCGCGCATGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGN";
-			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(
+			libmaus2::lcs::LocalEditDistanceResult LEDR = LED.process(
 				a.begin(),a.size(),
 				b.begin(),b.size(),
 				// a.size()
@@ -185,32 +185,32 @@ int main()
 			);
 		
 			std::cerr << LEDR << std::endl;
-			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
 		}
 		
 		{
-			libmaus::lcs::LocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			libmaus2::lcs::LocalEditDistance< ::libmaus2::lcs::diag_del_ins > LED;
 			std::string const a = "XXXXXAABAAYYYY";
 			std::string const b = "ZAAAAZZ";
-			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size());
+			libmaus2::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size());
 		
 			std::cerr << LEDR << std::endl;
-			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
 		}
 		{
-			libmaus::lcs::MetaLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			libmaus2::lcs::MetaLocalEditDistance< ::libmaus2::lcs::diag_del_ins > LED;
 			std::string const a = "XXXXXAABAAYYYY";
 			std::string const b = "ZAAAAZZ";
-			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size(),a.size()-b.size());
+			libmaus2::lcs::LocalEditDistanceResult LEDR = LED.process(a.begin(),a.size(),b.begin(),b.size(),a.size()-b.size());
 		
 			std::cerr << LEDR << std::endl;
-			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
 		}
 		{
-			libmaus::lcs::BandedLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			libmaus2::lcs::BandedLocalEditDistance< ::libmaus2::lcs::diag_del_ins > LED;
 			std::string const a = "XXAABAAY";
 			std::string const b = "ZAAAAZZ";
-			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(
+			libmaus2::lcs::LocalEditDistanceResult LEDR = LED.process(
 				a.begin(),a.size(),
 				b.begin(),b.size(),
 				// a.size()
@@ -218,13 +218,13 @@ int main()
 			);
 		
 			std::cerr << LEDR << std::endl;
-			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
 		}
 		{
-			libmaus::lcs::MetaLocalEditDistance< ::libmaus::lcs::diag_del_ins > LED;
+			libmaus2::lcs::MetaLocalEditDistance< ::libmaus2::lcs::diag_del_ins > LED;
 			std::string const a = "XXAABAAY";
 			std::string const b = "ZAAAAZZ";
-			libmaus::lcs::LocalEditDistanceResult LEDR = LED.process(
+			libmaus2::lcs::LocalEditDistanceResult LEDR = LED.process(
 				a.begin(),a.size(),
 				b.begin(),b.size(),
 				// a.size()
@@ -232,17 +232,17 @@ int main()
 			);
 		
 			std::cerr << LEDR << std::endl;
-			libmaus::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,a,b,80,LED.ta,LED.te,LEDR);
 		}
 			
-		runtestshort< ::libmaus::lcs::diag_del_ins >();
-		runtestshort< ::libmaus::lcs::del_ins_diag >();
+		runtestshort< ::libmaus2::lcs::diag_del_ins >();
+		runtestshort< ::libmaus2::lcs::del_ins_diag >();
 
-		runtestmeta< ::libmaus::lcs::diag_del_ins >();
-		runtestconcrete< ::libmaus::lcs::diag_del_ins >();
+		runtestmeta< ::libmaus2::lcs::diag_del_ins >();
+		runtestconcrete< ::libmaus2::lcs::diag_del_ins >();
 
-		runtestmeta< ::libmaus::lcs::del_ins_diag >();
-		runtestconcrete< ::libmaus::lcs::del_ins_diag >();
+		runtestmeta< ::libmaus2::lcs::del_ins_diag >();
+		runtestconcrete< ::libmaus2::lcs::del_ins_diag >();
 	}
 	catch(std::exception const & ex)
 	{

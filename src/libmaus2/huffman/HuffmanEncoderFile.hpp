@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(HUFFMANENCODERFILE_HPP)
 #define HUFFMANENCODERFILE_HPP
 
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -36,7 +36,7 @@ namespace libmaus
 			typedef _output_type output_type;
 			typedef _bitwriter_type bitwriter_type;
 			typedef HuffmanEncoderFileTemplate<output_type,bitwriter_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef typename output_type::iterator_type iterator_type;
 		
@@ -80,8 +80,8 @@ namespace libmaus
 			}
 		};
 		
-		typedef HuffmanEncoderFileTemplate< ::libmaus::aio::SynchronousGenericOutputPosix<uint8_t>, ::libmaus::bitio::FastWriteBitWriterStream8Posix > HuffmanEncoderFile;
-		typedef HuffmanEncoderFileTemplate< ::libmaus::aio::SynchronousGenericOutput     <uint8_t>, ::libmaus::bitio::FastWriteBitWriterStream8Std > HuffmanEncoderFileStd;
+		typedef HuffmanEncoderFileTemplate< ::libmaus2::aio::SynchronousGenericOutputPosix<uint8_t>, ::libmaus2::bitio::FastWriteBitWriterStream8Posix > HuffmanEncoderFile;
+		typedef HuffmanEncoderFileTemplate< ::libmaus2::aio::SynchronousGenericOutput     <uint8_t>, ::libmaus2::bitio::FastWriteBitWriterStream8Std > HuffmanEncoderFileStd;
 	}
 }
 #endif

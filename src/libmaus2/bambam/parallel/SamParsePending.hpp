@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMPARSEPENDING_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMPARSEPENDING_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBase.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -29,13 +29,13 @@ namespace libmaus
 		{
 			struct SamParsePending
 			{
-				libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block;
+				libmaus2::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type block;
 				uint64_t subid;
 				uint64_t absid;
 				
 				SamParsePending() : block(), subid(0), absid(0) {}
 				SamParsePending(
-					libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type rblock,
+					libmaus2::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type rblock,
 					uint64_t rsubid,
 					uint64_t rabsid
 				) : block(rblock), subid(rsubid), absid(rabsid)

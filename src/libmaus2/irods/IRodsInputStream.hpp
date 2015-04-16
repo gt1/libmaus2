@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_IRODS_IRODSINPUTSTREAM_HPP)
 #define LIBMAUS_IRODS_IRODSINPUTSTREAM_HPP
 
-#include <libmaus/irods/IRodsInputStreamBuffer.hpp>
+#include <libmaus2/irods/IRodsInputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace irods
 	{
 		struct IRodsInputStream : public IRodsInputStreamBuffer, public std::istream
 		{
 			typedef IRodsInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			IRodsInputStream(std::string const & irodsPath, int64_t const bufsize = 64*1024, uint64_t const pushbacksize = 0) 
 			: IRodsInputStreamBuffer(irodsPath,bufsize,pushbacksize), std::istream(this) {}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQPARSEPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FASTQPARSEPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/FastqParsePackageFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/FastqParsePackageReturnInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/BamSeqEncodeTable.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
-#include <libmaus/fastx/CharBuffer.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/fastx/NameInfo.hpp>
+#include <libmaus2/bambam/parallel/FastqParsePackageFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/FastqParsePackageReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/BamSeqEncodeTable.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
+#include <libmaus2/fastx/CharBuffer.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/fastx/NameInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 
-			struct FastqParsePackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct FastqParsePackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef FastqParsePackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				FastqParsePackageReturnInterface & packageReturnInterface;
 				FastqParsePackageFinishedInterface & addPendingInterface;
-				libmaus::bambam::BamSeqEncodeTable const seqenc;
-				libmaus::fastx::SpaceTable const ST;
+				libmaus2::bambam::BamSeqEncodeTable const seqenc;
+				libmaus2::fastx::SpaceTable const ST;
 				std::string const rgid;
-				libmaus::autoarray::AutoArray<uint8_t> rgA;
+				libmaus2::autoarray::AutoArray<uint8_t> rgA;
 							
 				FastqParsePackageDispatcher(
 					FastqParsePackageReturnInterface & rpackageReturnInterface,
@@ -67,8 +67,8 @@ namespace libmaus
 				}
 			
 				void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					assert ( dynamic_cast<FastqParsePackage *>(P) != 0 );
@@ -83,8 +83,8 @@ namespace libmaus
 					deblock->P = deblock->D.begin();
 					deblock->uncompdatasize = 0;
 
-					libmaus::fastx::EntityBuffer<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> buffer;
-					libmaus::bambam::BamAlignment algn;
+					libmaus2::fastx::EntityBuffer<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> buffer;
+					libmaus2::bambam::BamAlignment algn;
 					
 					std::pair<uint8_t *, uint8_t *> Q = block->meta.blocks[data.subid];
 					while ( Q.first != Q.second )
@@ -98,7 +98,7 @@ namespace libmaus
 								++Q.first;
 							if ( Q.first == Q.second )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "Unexpected EOF." << std::endl;
 								lme.finish();
 								throw lme;
@@ -113,7 +113,7 @@ namespace libmaus
 						int32_t const refid = -1;
 						int32_t const pos = -1;
 						uint32_t const mapq = 0;
-						libmaus::bambam::cigar_operation const * cigar = 0;
+						libmaus2::bambam::cigar_operation const * cigar = 0;
 						uint32_t const cigarlen = 0;
 						int32_t const nextrefid = -1;
 						int32_t const nextpos = -1;
@@ -123,24 +123,24 @@ namespace libmaus
 						uint8_t const * qual = ls[3].first;
 						int const qualshift = 33;
 
-						libmaus::fastx::NameInfo const NI(
-							name,namelen,ST,libmaus::fastx::NameInfoBase::fastq_name_scheme_generic
+						libmaus2::fastx::NameInfo const NI(
+							name,namelen,ST,libmaus2::fastx::NameInfoBase::fastq_name_scheme_generic
 						);
 						
-						uint32_t flags = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
+						uint32_t flags = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
 						if ( NI.ispair )
 						{
-							flags |= libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
-							flags |= libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+							flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
+							flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
 							if ( NI.isfirst )
-								flags |= libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
 							else
-								flags |= libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
+								flags |= libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
 						}
 						
 						std::pair<uint8_t const *,uint8_t const *> NP = NI.getName();
 
-						libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment
+						libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignment
 						(
 							buffer,seqenc,NP.first,NP.second-NP.first,refid,pos,mapq,flags,cigar,cigarlen,
 							nextrefid,nextpos,tlen,seq,seqlen,qual,qualshift

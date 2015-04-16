@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_AIO_NAMEDTEMPORARYFILEALLOCATOR_HPP)
 #define LIBMAUS_AIO_NAMEDTEMPORARYFILEALLOCATOR_HPP
 
-#include <libmaus/aio/NamedTemporaryFile.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
+#include <libmaus2/aio/NamedTemporaryFile.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
 #include <iomanip>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -34,25 +34,25 @@ namespace libmaus
 			typedef _stream_type stream_type;
 			
 			std::string prefix;
-			libmaus::parallel::SynchronousCounter<uint64_t> * S;
+			libmaus2::parallel::SynchronousCounter<uint64_t> * S;
 			
 			NamedTemporaryFileAllocator() : prefix(), S(0) {}
 			NamedTemporaryFileAllocator(
 				std::string const & rprefix,
-				libmaus::parallel::SynchronousCounter<uint64_t> * const rS
+				libmaus2::parallel::SynchronousCounter<uint64_t> * const rS
 			) : prefix(rprefix), S(rS)
 			{
 			
 			}
 			
-			typename libmaus::aio::NamedTemporaryFile<stream_type>::shared_ptr_type operator()()
+			typename libmaus2::aio::NamedTemporaryFile<stream_type>::shared_ptr_type operator()()
 			{
 				uint64_t const lid = static_cast<uint64_t>((*S)++);
 				std::ostringstream fnostr;
 				fnostr << prefix << "_" << std::setw(6) << std::setfill('0') << lid;
 				std::string const fn = fnostr.str();
-				typename libmaus::aio::NamedTemporaryFile<stream_type>::shared_ptr_type ptr =
-					libmaus::aio::NamedTemporaryFile<stream_type>::sconstruct(fn,lid);
+				typename libmaus2::aio::NamedTemporaryFile<stream_type>::shared_ptr_type ptr =
+					libmaus2::aio::NamedTemporaryFile<stream_type>::sconstruct(fn,lid);
 				return ptr;
 			}
 		};

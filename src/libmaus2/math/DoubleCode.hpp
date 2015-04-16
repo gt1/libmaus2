@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,9 +22,9 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace math
 	{

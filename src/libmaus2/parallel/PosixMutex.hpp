@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(POSIXMUTEX_HPP)
 #define POSIXMUTEX_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 #include <cerrno>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
 #include <pthread.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
                 struct PosixMutex
                 {
                 	typedef PosixMutex this_type;
-                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
                 
                         pthread_mutex_t mutex;
                         
@@ -53,7 +53,7 @@ namespace libmaus
                         {
                         	if ( pthread_mutex_lock ( &mutex ) )
                         	{
-                        		::libmaus::exception::LibMausException se;
+                        		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_mutex_lock failed" << std::endl;
                         		se.finish();
                         		throw se;
@@ -63,7 +63,7 @@ namespace libmaus
                         {
                         	if ( pthread_mutex_unlock ( &mutex ) )
                         	{
-                        		::libmaus::exception::LibMausException se;
+                        		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_mutex_unlock failed" << std::endl;
                         		se.finish();
                         		throw se;                        	
@@ -82,7 +82,7 @@ namespace libmaus
 				}
 				else if ( r )
 				{
-                        		::libmaus::exception::LibMausException se;
+                        		::libmaus2::exception::LibMausException se;
                         		se.getStream() << "pthread_mutex_trylock failed" << std::endl;
                         		se.finish();
                         		throw se;                        						

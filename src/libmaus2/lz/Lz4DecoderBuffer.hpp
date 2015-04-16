@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,13 +21,13 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/Lz4Index.hpp>
-#include <libmaus/lz/Lz4Base.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/Lz4Index.hpp>
+#include <libmaus2/lz/Lz4Base.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -36,12 +36,12 @@ namespace libmaus
 			private:
 			static uint64_t const headersize = 1*sizeof(uint64_t);
 			
-			::libmaus::aio::CheckedInputStream::unique_ptr_type Pfilestream;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type Pfilestream;
 			std::istream & stream;
 			Lz4Index index;
 
-			::libmaus::autoarray::AutoArray<char> buffer;
-			::libmaus::autoarray::AutoArray<char> cbuffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> cbuffer;
 			
 			uint64_t symsread;
 
@@ -69,11 +69,11 @@ namespace libmaus
 			
 			public:
 			Lz4DecoderBuffer(std::string const & filename)
-			: Pfilestream(new ::libmaus::aio::CheckedInputStream(filename)),
+			: Pfilestream(new ::libmaus2::aio::CheckedInputStream(filename)),
 			  stream(*Pfilestream),
 			  index(stream),
 			  buffer(index.blocksize,false),
-			  cbuffer(libmaus::lz::Lz4Base::getCompressBound(index.blocksize),false),
+			  cbuffer(libmaus2::lz::Lz4Base::getCompressBound(index.blocksize),false),
 			  symsread(0)
 			{
 				init();
@@ -84,7 +84,7 @@ namespace libmaus
 			  stream(rstream),
 			  index(stream),
 			  buffer(index.blocksize,false),
-			  cbuffer(libmaus::lz::Lz4Base::getCompressBound(index.blocksize),false),
+			  cbuffer(libmaus2::lz::Lz4Base::getCompressBound(index.blocksize),false),
 			  symsread(0)
 			{
 				init();
@@ -185,8 +185,8 @@ namespace libmaus
 				if ( symsleft == 0 )
 					return traits_type::eof();
 				
-				uint64_t compressedsize = libmaus::util::UTF8::decodeUTF8(stream);
-				uint64_t uncompressedsize = libmaus::util::UTF8::decodeUTF8(stream);
+				uint64_t compressedsize = libmaus2::util::UTF8::decodeUTF8(stream);
+				uint64_t uncompressedsize = libmaus2::util::UTF8::decodeUTF8(stream);
 				
 				assert ( compressedsize <= cbuffer.size() );
 
@@ -194,7 +194,7 @@ namespace libmaus
 				stream.read(cbuffer.begin(),compressedsize);
 				if ( (!stream) || (stream.gcount() != static_cast<int64_t>(compressedsize)) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Lz4DecoderBuffer::underflow() failed to read block of " << compressedsize << " compressed bytes." << std::endl;
 					se.finish();
 					throw se;

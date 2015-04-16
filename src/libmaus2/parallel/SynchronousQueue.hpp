@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(SYNCHRONOUSQUEUE_HPP)
 #define SYNCHRONOUSQUEUE_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
-#include <libmaus/parallel/PosixMutex.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 #include <deque>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace parallel
         {
@@ -37,7 +37,7 @@ namespace libmaus
                 {
                 	typedef _value_type value_type;
                 	typedef SynchronousQueue<value_type> this_type;
-                	typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 	
                         std::deque < value_type > Q;
                         PosixSpinLock lock;
@@ -67,7 +67,7 @@ namespace libmaus
                         
 			size_t getFillState()
                         {
-                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 size_t const fill = Q.size();
                                 return fill;
                         }
@@ -75,7 +75,7 @@ namespace libmaus
                         void enque(value_type const q)
                         {
                         	{
-	                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+	                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
         	                        Q.push_back(q);
 				}
 
@@ -88,7 +88,7 @@ namespace libmaus
                         {
                                 semaphore.wait();
                                 
-                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 value_type const v = Q.front();
                                 Q.pop_front();
                                 return v;
@@ -99,7 +99,7 @@ namespace libmaus
                                 
                                 if ( ok )
                                 {
-	                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+	                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
 	                        	v = Q.front();
                 	                Q.pop_front();
                 	                return true;
@@ -122,7 +122,7 @@ namespace libmaus
 				else
 				{
 					lock.unlock();
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "SynchronousQueue::peek() called on empty queue." << std::endl;
 					se.finish();
 					throw se;

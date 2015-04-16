@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_PARALLEL_LOCKEDFREELIST_HPP)
 #define LIBMAUS_PARALLEL_LOCKEDFREELIST_HPP
 
-#include <libmaus/util/FreeList.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/util/FreeList.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
 		template<
 			typename _element_type, 
-			typename _allocator_type = libmaus::util::FreeListDefaultAllocator<_element_type>,
-			typename _type_info_type = libmaus::util::FreeListDefaultTypeInfo<_element_type> 
+			typename _allocator_type = libmaus2::util::FreeListDefaultAllocator<_element_type>,
+			typename _type_info_type = libmaus2::util::FreeListDefaultTypeInfo<_element_type> 
 		>
-		struct LockedFreeList : private libmaus::util::FreeList<_element_type,_allocator_type,_type_info_type>
+		struct LockedFreeList : private libmaus2::util::FreeList<_element_type,_allocator_type,_type_info_type>
 		{
 			typedef _element_type element_type;
 			typedef _allocator_type allocator_type;
 			typedef _type_info_type type_info_type;
-			typedef libmaus::util::FreeList<element_type,allocator_type,type_info_type> base_type;
+			typedef libmaus2::util::FreeList<element_type,allocator_type,type_info_type> base_type;
 			typedef LockedFreeList<element_type,allocator_type,type_info_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus::parallel::PosixSpinLock lock;
+			libmaus2::parallel::PosixSpinLock lock;
 
 			LockedFreeList(uint64_t const numel, allocator_type allocator = allocator_type()) : base_type(numel,allocator)
 			{
@@ -52,14 +52,14 @@ namespace libmaus
 			{
 			}
 			
-			libmaus::parallel::PosixSpinLock & getLock()
+			libmaus2::parallel::PosixSpinLock & getLock()
 			{
 				return lock;
 			}
 			
 			bool empty()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::empty();
 			}
 			
@@ -75,19 +75,19 @@ namespace libmaus
 
 			bool full()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::full();
 			}
 			
 			typename type_info_type::pointer_type get()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::get();
 			}
 
 			typename type_info_type::pointer_type getIf()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				
 				if ( base_type::empty() )
 					return type_info_type::getNullPointer();
@@ -97,7 +97,7 @@ namespace libmaus
 			
 			uint64_t get(std::vector<typename type_info_type::pointer_type> & V, uint64_t max)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				while ( max-- && (!base_type::empty()) )
 					V.push_back(base_type::get());
 				return V.size();
@@ -105,13 +105,13 @@ namespace libmaus
 			
 			void put(typename type_info_type::pointer_type ptr)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				base_type::put(ptr);
 			}
 
 			uint64_t putAndCount(typename type_info_type::pointer_type ptr)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(lock);
+				libmaus2::parallel::ScopePosixSpinLock slock(lock);
 				return base_type::putAndCount(ptr);
 			}
 			

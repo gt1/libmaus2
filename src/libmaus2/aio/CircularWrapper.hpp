@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_AIO_CIRCULARWRAPPER_HPP)
 #define LIBMAUS_AIO_CIRCULARWRAPPER_HPP
 
-#include <libmaus/aio/CircularBuffer.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/bitio/CompactDecoderBuffer.hpp>
-#include <libmaus/bitio/PacDecoderBuffer.hpp>
-#include <libmaus/lz/Lz4Decoder.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/aio/CircularBuffer.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/bitio/CompactDecoderBuffer.hpp>
+#include <libmaus2/bitio/PacDecoderBuffer.hpp>
+#include <libmaus2/lz/Lz4Decoder.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -39,9 +39,9 @@ namespace libmaus
 			//! this type
 			typedef CircularWrapper this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			/**
 			 * constructor from filename
@@ -95,9 +95,9 @@ namespace libmaus
 			//! this type
 			typedef Utf8CircularWrapper this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			/**
 			 * constructor from filename
@@ -150,9 +150,9 @@ namespace libmaus
 			//! this type
 			typedef CircularReverseWrapper this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			/**
 			 * constructor from filename
@@ -205,9 +205,9 @@ namespace libmaus
 			//! this type
 			typedef Utf8CircularReverseWrapper this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			/**
 			 * constructor from filename
@@ -253,12 +253,12 @@ namespace libmaus
 		};
 		
 		/**
-		 * class wrapping an object of type libmaus::aio::CheckedInputStream
+		 * class wrapping an object of type libmaus2::aio::CheckedInputStream
 		 **/
 		struct CheckedInputStreamWrapper
 		{
 			//! wrapped object
-			::libmaus::aio::CheckedInputStream stream;
+			::libmaus2::aio::CheckedInputStream stream;
 			
 			/**
 			 * constructor from file name
@@ -278,7 +278,7 @@ namespace libmaus
 		struct Utf8DecoderWrapperWrapper
 		{
 			//! wrapped object
-			::libmaus::util::Utf8DecoderWrapper stream;
+			::libmaus2::util::Utf8DecoderWrapper stream;
 			
 			/**
 			 * constructor from file name
@@ -292,12 +292,12 @@ namespace libmaus
 		};
 		
 		/**
-		 * class wrapping an object of type libmaus::bitio::CompactDecoderWrapper
+		 * class wrapping an object of type libmaus2::bitio::CompactDecoderWrapper
 		 **/
 		struct CompactDecoderWrapperWrapper
 		{
 			//! wrapped object
-			::libmaus::bitio::CompactDecoderWrapper stream;
+			::libmaus2::bitio::CompactDecoderWrapper stream;
 			
 			/**
 			 * constructor from file name
@@ -312,12 +312,12 @@ namespace libmaus
 		};
 
 		/**
-		 * class wrapping an object of type libmaus::bitio::PacDecoderWrapper
+		 * class wrapping an object of type libmaus2::bitio::PacDecoderWrapper
 		 **/
 		struct PacDecoderWrapperWrapper
 		{
 			//! wrapped object
-			::libmaus::bitio::PacDecoderWrapper stream;
+			::libmaus2::bitio::PacDecoderWrapper stream;
 			
 			/**
 			 * constructor from file name
@@ -332,12 +332,12 @@ namespace libmaus
 		};
 
 		/**
-		 * class wrapping an object of type libmaus::bitio::PacDecoderTermWrapper
+		 * class wrapping an object of type libmaus2::bitio::PacDecoderTermWrapper
 		 **/
 		struct PacDecoderTermWrapperWrapper
 		{
 			//! wrapped object
-			::libmaus::bitio::PacDecoderTermWrapper stream;
+			::libmaus2::bitio::PacDecoderTermWrapper stream;
 			
 			/**
 			 * constructor from file name
@@ -352,12 +352,12 @@ namespace libmaus
 		};
 		
 		/**
-		 * class wrapping an object of type libmaus::lz::Lz4Decoder
+		 * class wrapping an object of type libmaus2::lz::Lz4Decoder
 		 **/
 		struct Lz4DecoderWrapper
 		{
 			//! wrapped object
-			::libmaus::lz::Lz4Decoder stream;
+			::libmaus2::lz::Lz4Decoder stream;
 			
 			/**
 			 * constructor from file name

@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2002-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(UTF8_HPP)
 #define UTF8_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/Demangle.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -79,8 +79,8 @@ namespace libmaus
 
 				if ( c < 0 )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "EOF in decodeUTF8UncheckedEOF(" << ::libmaus::util::Demangle::demangle<stream_type>() <<" &)";
+					::libmaus2::exception::LibMausException se;
+					se.getStream() << "EOF in decodeUTF8UncheckedEOF(" << ::libmaus2::util::Demangle::demangle<stream_type>() <<" &)";
 					se.finish();
 					throw se;
 				}
@@ -114,16 +114,16 @@ namespace libmaus
 
 				if ( str0 < 0 )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "EOF in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+					::libmaus2::exception::LibMausException se;
+					se.getStream() << "EOF in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 					se.finish();
 					throw se;
 				}
 				
 				if ( (str0 & 0xc0) == 0x80 )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+					::libmaus2::exception::LibMausException se;
+					se.getStream() << "Defect code in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 					se.finish();
 					throw se;
 				}
@@ -136,7 +136,7 @@ namespace libmaus
 
 				// get useable bits from first byte
 				unsigned int bitsinfirstbyte = 8-len-1;
-				uint32_t number = str0 & ::libmaus::math::lowbits(bitsinfirstbyte);
+				uint32_t number = str0 & ::libmaus2::math::lowbits(bitsinfirstbyte);
 
 				// every additional byte provides 6 bits
 				// of information
@@ -147,15 +147,15 @@ namespace libmaus
 
 					if ( strn < 0 )
 					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "EOF in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "EOF in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 						se.finish();
 						throw se;
 					}
 					if ( (strn & 0xc0) != 0x80 )
 					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 						se.finish();
 						throw se;					
 					}
@@ -180,16 +180,16 @@ namespace libmaus
 
 					if ( str0 < 0 )
 					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "EOF in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "EOF in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 						se.finish();
 						throw se;
 					}
 
 					if ( (str0 & 0xc0) == 0x80 )
 					{
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "Defect code in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 						se.finish();
 						throw se;
 					}
@@ -204,7 +204,7 @@ namespace libmaus
 
 					// get useable bits from first byte
 					unsigned int bitsinfirstbyte = 8-len-1;
-					uint32_t number = str0 & ::libmaus::math::lowbits(bitsinfirstbyte);
+					uint32_t number = str0 & ::libmaus2::math::lowbits(bitsinfirstbyte);
 
 					// every additional byte provides 6 bits
 					// of information
@@ -216,15 +216,15 @@ namespace libmaus
 
 						if ( strn < 0 )
 						{
-							::libmaus::exception::LibMausException se;
-							se.getStream() << "EOF in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+							::libmaus2::exception::LibMausException se;
+							se.getStream() << "EOF in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 							se.finish();
 							throw se;
 						}
 						if ( (strn & 0xc0) != 0x80 )
 						{
-							::libmaus::exception::LibMausException se;
-							se.getStream() << "Defect code in decodeUTF8(" << ::libmaus::util::Demangle::demangle<in_type>() <<" &)";
+							::libmaus2::exception::LibMausException se;
+							se.getStream() << "Defect code in decodeUTF8(" << ::libmaus2::util::Demangle::demangle<in_type>() <<" &)";
 							se.finish();
 							throw se;					
 						}
@@ -291,7 +291,7 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Value " << num << " passed to encodeUTF8 is out of range for code.";
 					se.finish();
 					throw se;
@@ -341,7 +341,7 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Value " << num << " passed to encodeUTF8 is out of range for code.";
 					se.finish();
 					throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_PARALLEL_POSIXCONDITIONSEMAPHORE_HPP
 
 #include <pthread.h>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -40,7 +40,7 @@ namespace libmaus
 				if ( (r=pthread_cond_init(&cond,NULL)) != 0 )
 				{
 					int const error = r;
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "PosixConditionSemaphore: failed pthread_cond_init " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;				
@@ -50,7 +50,7 @@ namespace libmaus
 					pthread_cond_destroy(&cond);
 				
 					int const error = r;
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "PosixConditionSemaphore: failed pthread_mutex_init " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
@@ -71,7 +71,7 @@ namespace libmaus
 					if ( pthread_mutex_lock(mutex) != 0 )
 					{
 						int const error = errno;
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "PosixConditionSemaphore::ScopeMutexLock failed pthread_mutex_lock " << strerror(error) << std::endl;
 						lme.finish();
 						throw lme;
@@ -83,7 +83,7 @@ namespace libmaus
 					if ( pthread_mutex_unlock(mutex) != 0 )
 					{
 						int const error = errno;
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "PosixConditionSemaphore::ScopeMutexLock failed pthread_mutex_unlock " << strerror(error) << std::endl;
 						lme.finish();
 						throw lme;

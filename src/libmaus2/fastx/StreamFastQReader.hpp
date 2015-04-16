@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,21 +20,21 @@
 #if ! defined(LIBMAUS_FASTX_STREAMFASTQREADERWRAPPER_HPP)
 #define LIBMAUS_FASTX_STREAMFASTQREADERWRAPPER_HPP
 
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/fastx/StreamFastReaderBase.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/fastx/StreamFastReaderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-                typedef FastQReaderTemplate< ::libmaus::fastx::StreamFastReaderBase > StreamFastQReader;
+                typedef FastQReaderTemplate< ::libmaus2::fastx::StreamFastReaderBase > StreamFastQReader;
                 
                 struct StreamFastQReaderWrapper : public StreamFastQReader
                 {
                 	StreamFastQReaderWrapper(std::istream & in) : StreamFastQReader(&in,getDefaultQualityOffset()) {}
                 	StreamFastQReaderWrapper(std::istream & in, int const qualityOffset) : StreamFastQReader(&in,qualityOffset) {}
-                	StreamFastQReaderWrapper(std::istream & in, libmaus::fastx::FastInterval const & FI) : StreamFastQReader(&in,getDefaultQualityOffset(),FI) {}
-                	StreamFastQReaderWrapper(std::istream & in, int const qualityOffset, libmaus::fastx::FastInterval const & FI) : StreamFastQReader(&in,qualityOffset,FI) {}
+                	StreamFastQReaderWrapper(std::istream & in, libmaus2::fastx::FastInterval const & FI) : StreamFastQReader(&in,getDefaultQualityOffset(),FI) {}
+                	StreamFastQReaderWrapper(std::istream & in, int const qualityOffset, libmaus2::fastx::FastInterval const & FI) : StreamFastQReader(&in,qualityOffset,FI) {}
                 };
 	}
 }

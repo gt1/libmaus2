@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if !defined(LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTSTREAM_HPP
 
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/CountPutObject.hpp>
+#include <libmaus2/lz/DecompressorObjectFactory.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -37,9 +37,9 @@ namespace libmaus
 			
 			private:
 			stream_type & stream;
-			libmaus::lz::DecompressorObject::unique_ptr_type decompressor;
-			libmaus::autoarray::AutoArray<char> C;
-			libmaus::autoarray::AutoArray<char> B;
+			libmaus2::lz::DecompressorObject::unique_ptr_type decompressor;
+			libmaus2::autoarray::AutoArray<char> C;
+			libmaus2::autoarray::AutoArray<char> B;
 			char * pa;
 			char * pc;
 			char * pe;
@@ -57,7 +57,7 @@ namespace libmaus
 					
 					if ( ! stream )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "SimpleCompressedInputStream: failed to seek on init" << std::endl;
 						se.finish();
 						throw se;
@@ -67,23 +67,23 @@ namespace libmaus
 				if ( stream.peek() == stream_type::traits_type::eof() )
 					return false;
 			
-				libmaus::util::CountPutObject CPO;
-				uint64_t const uncomp = libmaus::util::UTF8::decodeUTF8(stream);
-				::libmaus::util::UTF8::encodeUTF8(uncomp,CPO);
-				uint64_t const comp = ::libmaus::util::NumberSerialisation::deserialiseNumber(stream);
-				::libmaus::util::NumberSerialisation::serialiseNumber(CPO,comp);
+				libmaus2::util::CountPutObject CPO;
+				uint64_t const uncomp = libmaus2::util::UTF8::decodeUTF8(stream);
+				::libmaus2::util::UTF8::encodeUTF8(uncomp,CPO);
+				uint64_t const comp = ::libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,comp);
 				
 				if ( comp > C.size() )
-					C = libmaus::autoarray::AutoArray<char>(comp,false);
+					C = libmaus2::autoarray::AutoArray<char>(comp,false);
 				if ( uncomp > B.size() )
-					B = libmaus::autoarray::AutoArray<char>(uncomp,false);
+					B = libmaus2::autoarray::AutoArray<char>(uncomp,false);
 					
 				stream.read(C.begin(),comp);
 				CPO.write(C.begin(),comp);
 				
 				if ( ! stream )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "SimpleCompressedInputStream: failed to read data" << std::endl;
 					se.finish();
 					throw se;
@@ -95,7 +95,7 @@ namespace libmaus
 
 				if ( ! ok )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "SimpleCompressedInputStream: failed to decompress data" << std::endl;
 					se.finish();
 					throw se;
@@ -113,7 +113,7 @@ namespace libmaus
 			
 			SimpleCompressedInputStream(
 				stream_type & rstream, 
-				libmaus::lz::DecompressorObjectFactory & decompfactory,
+				libmaus2::lz::DecompressorObjectFactory & decompfactory,
 				u64pair const offset = u64pair(0,0),
 				bool rblockseek = false
 			)
@@ -125,7 +125,7 @@ namespace libmaus
 					
 					if ( ! stream )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "SimpleCompressedInputStream: failed to seek on init" << std::endl;
 						se.finish();
 						throw se;
@@ -143,7 +143,7 @@ namespace libmaus
 						
 						if ( ! ok )
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "SimpleCompressedInputStream: init position is past end of stream" << std::endl;
 							se.finish();
 							throw se;

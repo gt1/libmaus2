@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -21,18 +21,18 @@
 
 #include <string>
 #include <vector>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct ReadEndsBlockDecoderBaseCollectionInfoBase
 		{
 			typedef ReadEndsBlockDecoderBaseCollectionInfoBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;			
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;			
 
 			std::string datafilename;
 			std::string indexfilename;
@@ -52,10 +52,10 @@ namespace libmaus
 			
 			void serialise(std::ostream & out) const
 			{
-				libmaus::util::StringSerialisation::serialiseString(out,datafilename);
-				libmaus::util::StringSerialisation::serialiseString(out,indexfilename);
-				libmaus::util::NumberSerialisation::serialiseNumberVector(out,blockelcnt);
-				libmaus::util::NumberSerialisation::serialiseNumberVector(out,indexoffset);
+				libmaus2::util::StringSerialisation::serialiseString(out,datafilename);
+				libmaus2::util::StringSerialisation::serialiseString(out,indexfilename);
+				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,blockelcnt);
+				libmaus2::util::NumberSerialisation::serialiseNumberVector(out,indexoffset);
 			}
 			
 			void moveAndSerialise(std::ostream & out)
@@ -66,10 +66,10 @@ namespace libmaus
 			
 			void deserialise(std::istream & in)
 			{
-				datafilename = libmaus::util::StringSerialisation::deserialiseString(in);
-				indexfilename = libmaus::util::StringSerialisation::deserialiseString(in);
-				blockelcnt = libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
-				indexoffset = libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				datafilename = libmaus2::util::StringSerialisation::deserialiseString(in);
+				indexfilename = libmaus2::util::StringSerialisation::deserialiseString(in);
+				blockelcnt = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				indexoffset = libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
 			}
 			
 			ReadEndsBlockDecoderBaseCollectionInfoBase(std::istream & in)

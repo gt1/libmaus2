@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMINDEX_HPP)
 #define LIBMAUS_BAMBAM_BAMINDEX_HPP
 
-#include <libmaus/bambam/BamIndexRef.hpp>
-#include <libmaus/util/PushBuffer.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/OutputFileNameTools.hpp>
+#include <libmaus2/bambam/BamIndexRef.hpp>
+#include <libmaus2/util/PushBuffer.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamIndex
 		{
 			typedef BamIndex this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
-			libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexRef> refs;
+			libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexRef> refs;
 			
 			template<typename stream_type, typename value_type, unsigned int length>
 			static value_type getLEInteger(stream_type & stream)
@@ -45,7 +45,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < length; ++i )
 					if ( stream.peek() == stream_type::traits_type::eof() )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "Failed to little endian number of length " << length << " in BamIndex::getLEInteger." << std::endl;
 						ex.finish();
 						throw ex;		
@@ -79,7 +79,7 @@ namespace libmaus
 					magic[3] != '\1'
 				)
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "Failed to read BAI magic BAI\\1." << std::endl;
 					ex.finish();
 					throw ex;
@@ -87,7 +87,7 @@ namespace libmaus
 				
 				uint32_t const numref = getLEInteger<stream_type,uint32_t,4>(stream);
 				
-				refs = libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexRef>(numref);
+				refs = libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexRef>(numref);
 				
 				for ( uint64_t i = 0; i < numref; ++i )
 				{
@@ -99,10 +99,10 @@ namespace libmaus
 					
 					if ( distbins )
 					{
-						refs[i].bin = libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin>(distbins,false);
+						refs[i].bin = libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin>(distbins,false);
 						
-						libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > pi(distbins,false);
-						libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin> prebins(distbins,false);
+						libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > pi(distbins,false);
+						libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin> prebins(distbins,false);
 						
 						for ( uint64_t j = 0; j < distbins; ++j )
 						{
@@ -112,7 +112,7 @@ namespace libmaus
 							// std::cerr << "chr " << i << " bin " << bin << " chunks " << chunks << std::endl;
 							
 							prebins[j].bin = bin;
-							prebins[j].chunks = libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin::Chunk>(chunks,false);
+							prebins[j].chunks = libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin::Chunk>(chunks,false);
 							
 							// read chunks
 							for ( uint64_t k = 0; k < chunks; ++k )
@@ -136,7 +136,7 @@ namespace libmaus
 					
 					if ( lins )
 					{
-						refs[i].lin.intervals = libmaus::autoarray::AutoArray<uint64_t>(lins,false);
+						refs[i].lin.intervals = libmaus2::autoarray::AutoArray<uint64_t>(lins,false);
 
 						for ( uint64_t j = 0; j < lins; ++j )
 							refs[i].lin.intervals[j] = getLEInteger<stream_type,uint64_t,8>(stream);
@@ -147,30 +147,30 @@ namespace libmaus
 			public:
 			BamIndex() {}
 			BamIndex(std::istream & in) { init(in); }
-			BamIndex(libmaus::aio::CheckedInputStream & in) { init(in); }
+			BamIndex(libmaus2::aio::CheckedInputStream & in) { init(in); }
 			BamIndex(std::string const & fn)
 			{
 				
-				std::string const clipped = libmaus::util::OutputFileNameTools::clipOff(fn,".bam");
+				std::string const clipped = libmaus2::util::OutputFileNameTools::clipOff(fn,".bam");
 				
-				if ( libmaus::util::GetFileSize::fileExists(clipped + ".bai") )
+				if ( libmaus2::util::GetFileSize::fileExists(clipped + ".bai") )
 				{
-					libmaus::aio::CheckedInputStream CIS(clipped + ".bai");
+					libmaus2::aio::CheckedInputStream CIS(clipped + ".bai");
 					init(CIS);
 				}
-				else if ( libmaus::util::GetFileSize::fileExists(fn + ".bai") )
+				else if ( libmaus2::util::GetFileSize::fileExists(fn + ".bai") )
 				{
-					libmaus::aio::CheckedInputStream CIS(fn + ".bai");
+					libmaus2::aio::CheckedInputStream CIS(fn + ".bai");
 					init(CIS);
 				}
-				else if ( libmaus::util::GetFileSize::fileExists(fn) )
+				else if ( libmaus2::util::GetFileSize::fileExists(fn) )
 				{
-					libmaus::aio::CheckedInputStream CIS(fn);
+					libmaus2::aio::CheckedInputStream CIS(fn);
 					init(CIS);
 				}
 				else
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamIndex::BamIndex(std::string const &): Cannot find index " << fn << std::endl;
 					se.finish();
 					throw se;
@@ -205,9 +205,9 @@ namespace libmaus
 			 * @param bins array for storing bins
 			 * @return number of bins stored
 			 **/
-			static uint64_t reg2bins(uint64_t beg, uint64_t end, libmaus::autoarray::AutoArray<uint16_t> & bins)
+			static uint64_t reg2bins(uint64_t beg, uint64_t end, libmaus2::autoarray::AutoArray<uint16_t> & bins)
 			{
-				libmaus::util::PushBuffer<uint16_t> PB;
+				libmaus2::util::PushBuffer<uint16_t> PB;
 				PB.A = bins;
 				
 				end -= 1;
@@ -238,10 +238,10 @@ namespace libmaus
 				uint64_t refid,
 				uint64_t beg, 
 				uint64_t end, 
-				libmaus::autoarray::AutoArray<BamIndexBin const *> & bins
+				libmaus2::autoarray::AutoArray<BamIndexBin const *> & bins
 			) const
 			{
-				libmaus::util::PushBuffer<BamIndexBin const *> PB;
+				libmaus2::util::PushBuffer<BamIndexBin const *> PB;
 				PB.A = bins;
 				
 				end -= 1;
@@ -274,7 +274,7 @@ namespace libmaus
 				uint64_t const end) const
 			{
 				// get set of matching bins
-				libmaus::autoarray::AutoArray<BamIndexBin const *> bins;
+				libmaus2::autoarray::AutoArray<BamIndexBin const *> bins;
 				uint64_t const numbins = reg2bins(refid,beg,end,bins);
 				std::vector < std::pair<uint64_t,uint64_t> > C;
 				
@@ -314,7 +314,7 @@ namespace libmaus
 				return C;
 			}
 
-			libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexRef> const & getRefs() const
+			libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexRef> const & getRefs() const
 			{
 				return refs;
 			}

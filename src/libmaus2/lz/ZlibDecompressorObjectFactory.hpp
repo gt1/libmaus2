@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_LZ_ZLIBDECOMPRESSOROBJECTFACTORY_HPP)
 #define LIBMAUS_LZ_ZLIBDECOMPRESSOROBJECTFACTORY_HPP
 
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/lz/ZlibDecompressorObject.hpp>
+#include <libmaus2/lz/DecompressorObjectFactory.hpp>
+#include <libmaus2/lz/ZlibDecompressorObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct ZlibDecompressorObjectFactory : public DecompressorObjectFactory
 		{
 			typedef ZlibDecompressorObjectFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			virtual ~ZlibDecompressorObjectFactory() {}
 			virtual DecompressorObject::unique_ptr_type operator()()

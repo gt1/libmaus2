@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(LIBMAUS_UTIL_FORKPROCESSLSFSIM_HPP)
 #define LIBMAUS_UTIL_FORKPROCESSLSFSIM_HPP
 
-#include <libmaus/util/ForkProcess.hpp>
-#include <libmaus/lsf/LSFStateBase.hpp>
-#include <libmaus/util/LSFSim.hpp>
+#include <libmaus2/util/ForkProcess.hpp>
+#include <libmaus2/lsf/LSFStateBase.hpp>
+#include <libmaus2/util/LSFSim.hpp>
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		/**
 		 * rudimentary class for simulation LSF jobs by ForkProcess objects
 		 **/
-		struct ForkProcessLSFSim : public ForkProcess, public ::libmaus::lsf::LSFStateBase
+		struct ForkProcessLSFSim : public ForkProcess, public ::libmaus2::lsf::LSFStateBase
 		{
 			//! this type
 			typedef ForkProcessLSFSim this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			/**
 			 * init the fake LSF system

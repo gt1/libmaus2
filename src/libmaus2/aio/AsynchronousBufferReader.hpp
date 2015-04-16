@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -24,10 +24,10 @@
 #include <cstring>
 #include <stdexcept>
 #include <cassert>
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 #if defined(LIBMAUS_HAVE_AIO)
 #include <aio.h>
@@ -38,7 +38,7 @@
 #include <fcntl.h>
 #include <cerrno>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -52,9 +52,9 @@ namespace libmaus
 			int const fd;
 			unsigned int const numbuffers;
 			unsigned int const bufsize;
-			::libmaus::autoarray::AutoArray < char > bufferspace;
-			::libmaus::autoarray::AutoArray < char * > buffers;
-			::libmaus::autoarray::AutoArray < aiocb > contexts;
+			::libmaus2::autoarray::AutoArray < char > bufferspace;
+			::libmaus2::autoarray::AutoArray < char * > buffers;
+			::libmaus2::autoarray::AutoArray < aiocb > contexts;
 			uint64_t low;
 			uint64_t high;
 			uint64_t offset;
@@ -109,8 +109,8 @@ namespace libmaus
 			{
 				if ( fd < 0 )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "::libmaus::aio::AsynchronousBufferReader: Failed to open file " << filename << ": " << strerror(errno);
+					::libmaus2::exception::LibMausException se;
+					se.getStream() << "::libmaus2::aio::AsynchronousBufferReader: Failed to open file " << filename << ": " << strerror(errno);
 					se.finish();
 					
 					/*
@@ -172,7 +172,7 @@ namespace libmaus
 
 #include <fstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -183,7 +183,7 @@ namespace libmaus
 		{
 			private:
 			uint64_t const bufsize;
-			::libmaus::autoarray::AutoArray<char> abuffer;
+			::libmaus2::autoarray::AutoArray<char> abuffer;
 			char * const buffer;
 			bool av;
 
@@ -247,9 +247,9 @@ namespace libmaus
 #include <string>
 #include <list>
 #include <fstream>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -264,7 +264,7 @@ namespace libmaus
 			typedef container_type::const_iterator iterator_type;
 
 			typedef AsynchronousBufferReader reader_type;
-			typedef ::libmaus::util::unique_ptr< reader_type >::type reader_ptr_type;
+			typedef ::libmaus2::util::unique_ptr< reader_type >::type reader_ptr_type;
 
 			container_type const C;
 			iterator_type ita;
@@ -294,9 +294,9 @@ namespace libmaus
 			: 
 				C(ina,ine), ita(C.begin()), ite(C.end()), numbuffers(rnumbuffers), bufsize(rbufsize)
 			{
-				while ( ita != ite && offset >= ::libmaus::util::GetFileSize::getFileSize(*ita) )
+				while ( ita != ite && offset >= ::libmaus2::util::GetFileSize::getFileSize(*ita) )
 				{
-					offset -= ::libmaus::util::GetFileSize::getFileSize(*ita);
+					offset -= ::libmaus2::util::GetFileSize::getFileSize(*ita);
 					ita++;
 				}
 

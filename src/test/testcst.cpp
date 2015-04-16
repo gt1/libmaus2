@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,21 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/suffixtree/CompressedSuffixTree.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/suffixtree/CompressedSuffixTree.hpp>
 
-#include <libmaus/eta/LinearETA.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
+#include <libmaus2/eta/LinearETA.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
 
-uint64_t countLeafsByTraversal(libmaus::suffixtree::CompressedSuffixTree const & CST)
+uint64_t countLeafsByTraversal(libmaus2::suffixtree::CompressedSuffixTree const & CST)
 {
-	libmaus::eta::LinearETA eta(CST.n);
+	libmaus2::eta::LinearETA eta(CST.n);
 
-	typedef libmaus::suffixtree::CompressedSuffixTree::Node Node;
-	libmaus::parallel::SynchronousCounter<uint64_t> leafs = 0;
+	typedef libmaus2::suffixtree::CompressedSuffixTree::Node Node;
+	libmaus2::parallel::SynchronousCounter<uint64_t> leafs = 0;
 	std::stack< std::pair<Node,uint64_t> > S; S.push(std::pair<Node,uint64_t>(CST.root(),0));
 	uint64_t const Sigma = CST.getSigma();
-	libmaus::autoarray::AutoArray<Node> children(Sigma,false);
+	libmaus2::autoarray::AutoArray<Node> children(Sigma,false);
 	
 	std::deque < Node > Q;
 	uint64_t const frac = 128;
@@ -57,14 +57,14 @@ uint64_t countLeafsByTraversal(libmaus::suffixtree::CompressedSuffixTree const &
 		}
 	}
 	
-	libmaus::parallel::OMPLock lock;
+	libmaus2::parallel::OMPLock lock;
 	
 	#if defined(_OPENMP)
 	#pragma omp parallel
 	#endif
 	while ( Q.size() )
 	{
-		libmaus::autoarray::AutoArray<Node> lchildren(Sigma,false);
+		libmaus2::autoarray::AutoArray<Node> lchildren(Sigma,false);
 		Node node(0,0);
 		
 		lock.lock();
@@ -111,7 +111,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const prefix = arginfo.getRestArg<std::string>(0);
 		std::string const hwtname = prefix+".hwt";
 		std::string const saname = prefix+".sa";
@@ -119,7 +119,7 @@ int main(int argc, char * argv[])
 		std::string const lcpname = prefix+".lcp";
 		std::string const rmmname = prefix+".rmm";
 		std::cerr << "Loading suffix tree...";
-		libmaus::suffixtree::CompressedSuffixTree CST(hwtname,saname,isaname,lcpname,rmmname);
+		libmaus2::suffixtree::CompressedSuffixTree CST(hwtname,saname,isaname,lcpname,rmmname);
 		std::cerr << "done." << std::endl;
 	
 		uint64_t const leafs = countLeafsByTraversal(CST);
@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
 		std::ostringstream ostr;
 		CST.serialise(ostr);
 		std::istringstream istr(ostr.str());
-		libmaus::suffixtree::CompressedSuffixTree rCST(istr);
+		libmaus2::suffixtree::CompressedSuffixTree rCST(istr);
 		#endif
 		
 		std::cerr << "[0] = " << CST.backwardExtend(CST.root(),0) << std::endl;
@@ -142,7 +142,7 @@ int main(int argc, char * argv[])
 		std::cerr << "[4] = " << CST.backwardExtend(CST.root(),4) << std::endl;
 		std::cerr << "[5] = " << CST.backwardExtend(CST.root(),5) << std::endl;
 		
-		typedef libmaus::suffixtree::CompressedSuffixTree::Node Node;
+		typedef libmaus2::suffixtree::CompressedSuffixTree::Node Node;
 		Node node = CST.root();
 		std::cerr << CST.parent(CST.firstChild(CST.root())) << std::endl;
 		std::cerr << "parent("<<node <<")="<< CST.parent(node) << " sdepth=" << CST.sdepth(node) << " firstChild=" << CST.firstChild(node) << " next=" << CST.nextSibling(CST.firstChild(node)) << std::endl;

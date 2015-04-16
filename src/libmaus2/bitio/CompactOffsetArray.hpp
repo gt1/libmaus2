@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(COMPACTOFFSETARRAY_HPP)
 #define COMPACTOFFSETARRAY_HPP
 
-#include <libmaus/bitio/CompactArrayBase.hpp>
+#include <libmaus2/bitio/CompactArrayBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{

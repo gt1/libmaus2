@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/GenericInputBamParseWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputBamParseWorkPackageBlockParsedInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBamParseWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBamParseWorkPackageBlockParsedInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputBamParseWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct GenericInputBamParseWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputBamParseWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				GenericInputBamParseWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputBamParseWorkPackageBlockParsedInterface & blockParsedInterface;
@@ -48,7 +48,7 @@ namespace libmaus
 				
 				}
 			
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputBamParseWorkPackage *>(P) != 0 );
 					GenericInputBamParseWorkPackage * BP = dynamic_cast<GenericInputBamParseWorkPackage *>(P);

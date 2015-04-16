@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_UTIL_TEMPFILENAMEGENERATORSTATE_HPP)
 #define LIBMAUS_UTIL_TEMPFILENAMEGENERATORSTATE_HPP
 
-#include <libmaus/math/Log.hpp>
+#include <libmaus2/math/Log.hpp>
 #include <iomanip>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{	
@@ -32,7 +32,7 @@ namespace libmaus
 			static int const dirmod = 64;
 			static int const filemod = 64;
 			static int const maxmod = (dirmod>filemod)?dirmod:filemod;
-			static int const digits = ::libmaus::math::LogCeil<maxmod,10>::log;
+			static int const digits = ::libmaus2::math::LogCeil<maxmod,10>::log;
 			
 			unsigned int depth;			
 			std::vector < int > nextdir;

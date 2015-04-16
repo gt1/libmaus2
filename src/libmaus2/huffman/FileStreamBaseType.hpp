@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,23 +20,23 @@
 #if ! defined(FILESTREAMBASETYPE_HPP)
 #define FILESTREAMBASETYPE_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 #include <string>
 #include <istream>
 #include <fstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
 		struct FileStreamBaseType
 		{
 			typedef FileStreamBaseType this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			typedef ::std::ifstream file_type;
-			typedef ::libmaus::util::unique_ptr<file_type>::type file_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<file_type>::type file_ptr_type;
 			
 			file_ptr_type fileptr;
 			std::istream & in;

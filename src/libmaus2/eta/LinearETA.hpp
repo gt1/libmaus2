@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -26,15 +26,15 @@
 #include <string>
 #include <sstream>
 #include <ctime>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace eta
 	{
 		struct LinearETA
 		{
-			::libmaus::timing::RealTimeClock rtc;
+			::libmaus2::timing::RealTimeClock rtc;
 			uint64_t const n;
 			
 			LinearETA(uint64_t const rn)

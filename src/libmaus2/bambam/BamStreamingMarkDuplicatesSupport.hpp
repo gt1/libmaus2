@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMSTREAMINGMARKDUPLICATESSUPPORT_HPP)
 #define LIBMAUS_BAMBAM_BAMSTREAMINGMARKDUPLICATESSUPPORT_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/BamAlignmentDecoder.hpp>
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/lru/SparseLRUFileBunch.hpp>
-#include <libmaus/math/iabs.hpp>
-#include <libmaus/sorting/SortingBufferedOutputFile.hpp>
-#include <libmaus/uint/uint.hpp>
-#include <libmaus/util/FreeList.hpp>
-#include <libmaus/util/GrowingFreeList.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoder.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/lru/SparseLRUFileBunch.hpp>
+#include <libmaus2/math/iabs.hpp>
+#include <libmaus2/sorting/SortingBufferedOutputFile.hpp>
+#include <libmaus2/uint/uint.hpp>
+#include <libmaus2/util/FreeList.hpp>
+#include <libmaus2/util/GrowingFreeList.hpp>
 
 #include <stdint.h>
 
@@ -37,7 +37,7 @@
 #define LIBMAUS_BAMSTREAMINGMARKDUPLICATESSUPPORT_INT32_MIN (-2147483647-1)
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -62,7 +62,7 @@ namespace libmaus
 			{
 				typedef PairHashKeyType this_type;
 
-				typedef libmaus::uint::UInt<4> key_type;
+				typedef libmaus2::uint::UInt<4> key_type;
 
 				key_type key;
 
@@ -76,8 +76,8 @@ namespace libmaus
 				}
 				
 				PairHashKeyType(
-					libmaus::bambam::BamAlignment const & algn,
-					libmaus::bambam::BamHeader const & header,
+					libmaus2::bambam::BamAlignment const & algn,
+					libmaus2::bambam::BamHeader const & header,
 					uint64_t tagid
 				) : key()
 				{
@@ -216,7 +216,7 @@ namespace libmaus
 			{
 				size_t operator()(PairHashKeyType const & H) const
 				{
-					return libmaus::hashing::EvaHash::hash642(H.key.A,PairHashKeyType::key_type::words);
+					return libmaus2::hashing::EvaHash::hash642(H.key.A,PairHashKeyType::key_type::words);
 				}
 			};
 
@@ -224,7 +224,7 @@ namespace libmaus
 			{
 				typedef FragmentHashKeyType this_type;
 
-				typedef libmaus::uint::UInt<3> key_type;
+				typedef libmaus2::uint::UInt<3> key_type;
 
 				key_type key;
 
@@ -233,8 +233,8 @@ namespace libmaus
 				FragmentHashKeyType() : key() {}	
 
 				FragmentHashKeyType(
-					libmaus::bambam::BamAlignment const & algn,
-					libmaus::bambam::BamHeader const & header,
+					libmaus2::bambam::BamAlignment const & algn,
+					libmaus2::bambam::BamHeader const & header,
 					bool const usemate,
 					uint64_t const tagid
 				) : key()
@@ -317,15 +317,15 @@ namespace libmaus
 			{
 				size_t operator()(FragmentHashKeyType const & H) const
 				{
-					return libmaus::hashing::EvaHash::hash642(H.key.A,FragmentHashKeyType::key_type::words);
+					return libmaus2::hashing::EvaHash::hash642(H.key.A,FragmentHashKeyType::key_type::words);
 				}
 			};
 
 			struct OutputQueueOrder
 			{
 				bool operator()(
-					std::pair<uint64_t,libmaus::bambam::BamAlignment *> const & A, 
-					std::pair<uint64_t,libmaus::bambam::BamAlignment *> const & B 
+					std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & A, 
+					std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & B 
 				)
 				{
 					return A.first > B.first;
@@ -341,13 +341,13 @@ namespace libmaus
 
 				writer_type & wr;
 
-				libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> & BAFL;	
+				libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & BAFL;	
 				
 				OutputQueueOrder const order;
 
 				std::priority_queue<
-					std::pair<uint64_t,libmaus::bambam::BamAlignment *>,
-					std::vector< std::pair<uint64_t,libmaus::bambam::BamAlignment *> >,
+					std::pair<uint64_t,libmaus2::bambam::BamAlignment *>,
+					std::vector< std::pair<uint64_t,libmaus2::bambam::BamAlignment *> >,
 					OutputQueueOrder
 				> OQ;
 					
@@ -355,20 +355,20 @@ namespace libmaus
 
 				uint64_t const entriespertmpfile;
 
-				libmaus::bambam::BamAuxFilterVector tagfilter;
+				libmaus2::bambam::BamAuxFilterVector tagfilter;
 
-				libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignment *> OL;
+				libmaus2::autoarray::AutoArray<libmaus2::bambam::BamAlignment *> OL;
 				uint64_t olsizefill;
 				
 				std::string const tmpfileprefix;
 				
 				std::map<uint64_t,uint64_t> tmpFileFill;
 				
-				libmaus::lru::SparseLRUFileBunch reorderfiles;
+				libmaus2::lru::SparseLRUFileBunch reorderfiles;
 
 				OutputQueue(
 					writer_type & rwr,
-					libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> & rBAFL,	
+					libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> & rBAFL,	
 					std::string const & rtmpfileprefix,
 					std::vector<std::string> const & filtertagvec,
 					uint64_t const rentriespertmpfile = 16*1024
@@ -388,7 +388,7 @@ namespace libmaus
 				{
 					for ( uint64_t i = 0; i < olsizefill; ++i )
 					{
-						libmaus::bambam::BamAlignment * palgn = OL[i];
+						libmaus2::bambam::BamAlignment * palgn = OL[i];
 						palgn->filterOutAux(tagfilter);
 						wr.writeAlignment(*palgn);
 						BAFL.put(palgn);
@@ -400,8 +400,8 @@ namespace libmaus
 				struct BamAlignmentRankComparator
 				{
 					bool operator()(
-						std::pair<uint64_t,libmaus::bambam::BamAlignment *> const & A, 
-						std::pair<uint64_t,libmaus::bambam::BamAlignment *> const & B)
+						std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & A, 
+						std::pair<uint64_t,libmaus2::bambam::BamAlignment *> const & B)
 					{
 						return A.first < B.first;
 					}
@@ -409,19 +409,19 @@ namespace libmaus
 				
 				void flushTempFile(uint64_t const tmpfileindex)
 				{
-					libmaus::aio::CheckedInputOutputStream & CIOS = reorderfiles[tmpfileindex];
+					libmaus2::aio::CheckedInputOutputStream & CIOS = reorderfiles[tmpfileindex];
 					CIOS.flush();
 					CIOS.clear();
 					CIOS.seekg(0,std::ios::beg);
 					CIOS.clear();
 					
 					uint64_t const n = tmpFileFill.find(tmpfileindex)->second;
-					libmaus::autoarray::AutoArray< std::pair<uint64_t,libmaus::bambam::BamAlignment *> > algns(n);
+					libmaus2::autoarray::AutoArray< std::pair<uint64_t,libmaus2::bambam::BamAlignment *> > algns(n);
 					
 					for ( uint64_t i = 0; i < n; ++i )
 					{
 						algns[i].second = BAFL.get();
-						libmaus::bambam::BamAlignmentDecoder::readAlignmentGz(CIOS,*(algns[i].second),0,false);
+						libmaus2::bambam::BamAlignmentDecoder::readAlignmentGz(CIOS,*(algns[i].second),0,false);
 						algns[i].first = algns[i].second->getRank();
 					}
 					
@@ -446,20 +446,20 @@ namespace libmaus
 					// std::cerr << "[V] flushed block " << tmpfileindex << std::endl;
 				}
 				
-				void addTmpFileEntry(libmaus::bambam::BamAlignment * algn)
+				void addTmpFileEntry(libmaus2::bambam::BamAlignment * algn)
 				{
 					addTmpFileEntry(algn, algn->getRank() / entriespertmpfile);
 				}
 				
 				void addTmpFileEntry(
-					libmaus::bambam::BamAlignment * algn, uint64_t const tmpfileindex
+					libmaus2::bambam::BamAlignment * algn, uint64_t const tmpfileindex
 				)
 				{
 					// make sure file does not exist before we start adding entries
 					if ( tmpFileFill.find(tmpfileindex) == tmpFileFill.end() )
 						reorderfiles.remove(tmpfileindex);
 				
-					libmaus::aio::CheckedInputOutputStream & CIOS = reorderfiles[tmpfileindex];
+					libmaus2::aio::CheckedInputOutputStream & CIOS = reorderfiles[tmpfileindex];
 					algn->serialise(CIOS);
 					BAFL.put(algn);
 					tmpFileFill[tmpfileindex]++;
@@ -493,7 +493,7 @@ namespace libmaus
 						OQ.size() && OQ.top().first == static_cast<uint64_t>(nextout)
 					)
 					{
-						libmaus::bambam::BamAlignment * palgn = OQ.top().second;
+						libmaus2::bambam::BamAlignment * palgn = OQ.top().second;
 
 						OL[olsizefill++] = palgn;
 						if ( olsizefill == OL.size() )
@@ -505,7 +505,7 @@ namespace libmaus
 				}
 
 				// add alignment
-				void push(libmaus::bambam::BamAlignment * algn)
+				void push(libmaus2::bambam::BamAlignment * algn)
 				{
 					// tmp file it is assigned to
 					uint64_t tmpfileindex;
@@ -518,7 +518,7 @@ namespace libmaus
 					{
 						int64_t const rank = algn->getRank();
 						assert ( rank >= 0 );
-						OQ.push(std::pair<uint64_t,libmaus::bambam::BamAlignment *>(rank,algn));
+						OQ.push(std::pair<uint64_t,libmaus2::bambam::BamAlignment *>(rank,algn));
 						flushInMemQueueInternal();
 									
 						if ( OQ.size() >= 32*1024 )
@@ -540,7 +540,7 @@ namespace libmaus
 					
 					if ( OQ.size() )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "BamStreamingMarkDuplicatesSupport::OutputQueue: internal error, output queue is not empty after flush attempt\n";
 						lme.finish();
 						throw lme;
@@ -623,7 +623,7 @@ namespace libmaus
 				
 				inline static uint64_t hash(key_type const v)
 				{
-					return libmaus::hashing::EvaHash::hash642(&v.key.A[0],v.key.words);
+					return libmaus2::hashing::EvaHash::hash642(&v.key.A[0],v.key.words);
 				}
 			};
 
@@ -701,7 +701,7 @@ namespace libmaus
 
 				inline static uint64_t hash(key_type const v)
 				{
-					return libmaus::hashing::EvaHash::hash642(&v.key.A[0],v.key.words);
+					return libmaus2::hashing::EvaHash::hash642(&v.key.A[0],v.key.words);
 				}
 			};
 
@@ -852,7 +852,7 @@ namespace libmaus
 				{
 					for ( OpticalInfoListNode ** c = l+1; c != t; ++c )
 						if (
-							libmaus::math::iabs(
+							libmaus2::math::iabs(
 								static_cast<int64_t>((*l)->y)
 								-
 								static_cast<int64_t>((*c)->y)
@@ -927,8 +927,8 @@ namespace libmaus
 				}
 				
 				uint64_t countOpticalDuplicates(
-					libmaus::autoarray::AutoArray<OpticalInfoListNode *> & A, 
-					libmaus::autoarray::AutoArray<bool> & B, 
+					libmaus2::autoarray::AutoArray<OpticalInfoListNode *> & A, 
+					libmaus2::autoarray::AutoArray<bool> & B, 
 					unsigned int const optminpixeldif = 100
 				)
 				{
@@ -940,9 +940,9 @@ namespace libmaus
 						for ( OpticalInfoListNode * cur = optlist; cur; cur = cur->next )
 							++n;
 						if ( n > A.size() )
-							A = libmaus::autoarray::AutoArray<OpticalInfoListNode *>(n);
+							A = libmaus2::autoarray::AutoArray<OpticalInfoListNode *>(n);
 						if ( n > B.size() )
-							B = libmaus::autoarray::AutoArray<bool>(n);
+							B = libmaus2::autoarray::AutoArray<bool>(n);
 
 						n = 0;
 						for ( OpticalInfoListNode * cur = optlist; cur; cur = cur->next )
@@ -961,18 +961,18 @@ namespace libmaus
 				}
 
 				void addOpticalInfo(
-					libmaus::bambam::BamAlignment const & algn,
-					libmaus::util::FreeList<OpticalInfoListNode> & OILNFL,
+					libmaus2::bambam::BamAlignment const & algn,
+					libmaus2::util::FreeList<OpticalInfoListNode> & OILNFL,
 					PairHashKeyType const & HK,
-					libmaus::sorting::SortingBufferedOutputFile<OpticalExternalInfoElement> & optSBOF,
-					libmaus::bambam::BamHeader const & header
+					libmaus2::sorting::SortingBufferedOutputFile<OpticalExternalInfoElement> & optSBOF,
+					libmaus2::bambam::BamHeader const & header
 				)
 				{
 					if ( HK.getLeft() )
 					{
 						uint16_t tile = 0;
 						uint32_t x = 0, y = 0;
-						if ( libmaus::bambam::ReadEndsBase::parseOptical(reinterpret_cast<uint8_t const *>(algn.getName()),tile,x,y) )
+						if ( libmaus2::bambam::ReadEndsBase::parseOptical(reinterpret_cast<uint8_t const *>(algn.getName()),tile,x,y) )
 						{
 							int64_t const rg = algn.getReadGroupId(header);
 							OpticalInfoListNode const newnode(optlist,rg+1,tile,x,y);
@@ -1004,7 +1004,7 @@ namespace libmaus
 					}
 				}
 
-				uint64_t deleteOpticalInfo(libmaus::util::FreeList<OpticalInfoListNode> & OILNFL)
+				uint64_t deleteOpticalInfo(libmaus2::util::FreeList<OpticalInfoListNode> & OILNFL)
 				{
 					OpticalInfoListNode * node = optlist;
 					uint64_t n = 0;

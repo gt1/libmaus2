@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMINDEXREF_HPP)
 #define LIBMAUS_BAMBAM_BAMINDEXREF_HPP
 
-#include <libmaus/bambam/BamIndexBin.hpp>
-#include <libmaus/bambam/BamIndexLinear.hpp>
+#include <libmaus2/bambam/BamIndexBin.hpp>
+#include <libmaus2/bambam/BamIndexLinear.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamIndexRef
 		{
 			typedef BamIndexRef this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			libmaus::autoarray::AutoArray<libmaus::bambam::BamIndexBin> bin;
-			libmaus::bambam::BamIndexLinear lin;
+			libmaus2::autoarray::AutoArray<libmaus2::bambam::BamIndexBin> bin;
+			libmaus2::bambam::BamIndexLinear lin;
 			
 			BamIndexRef() {}
 		};

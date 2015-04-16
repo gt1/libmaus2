@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLWORKPACKAGEFREELIST_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADPOOLWORKPACKAGEFREELIST_HPP
 
-#include <libmaus/parallel/PosixMutex.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -33,29 +33,29 @@ namespace libmaus
 			typedef _package_type package_type;
 			typedef typename package_type::unique_ptr_type package_ptr_type;
 			
-			libmaus::parallel::PosixSpinLock lock;
-			libmaus::autoarray::AutoArray<package_ptr_type> packages;
-			libmaus::autoarray::AutoArray<package_type *> freelist;
+			libmaus2::parallel::PosixSpinLock lock;
+			libmaus2::autoarray::AutoArray<package_ptr_type> packages;
+			libmaus2::autoarray::AutoArray<package_type *> freelist;
 			uint64_t freelistFill;
 			
 			SimpleThreadPoolWorkPackageFreeList() : freelistFill(0) {}
 			
 			size_t size()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return packages.size();				
 			}
 			
 			package_type * getPackage()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 			
 				if ( ! freelistFill )
 				{
 					uint64_t const newlistsize = packages.size() ? 2*packages.size() : 1;
 					
-					libmaus::autoarray::AutoArray<package_ptr_type> newpackages(newlistsize);
-					libmaus::autoarray::AutoArray<package_type *> newfreelist(newlistsize);
+					libmaus2::autoarray::AutoArray<package_ptr_type> newpackages(newlistsize);
+					libmaus2::autoarray::AutoArray<package_type *> newfreelist(newlistsize);
 					
 					for ( uint64_t i = 0; i < packages.size(); ++i )
 					{
@@ -77,7 +77,7 @@ namespace libmaus
 			
 			void returnPackage(package_type * ptr)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				freelist[freelistFill++] = ptr;
 			}
 		};

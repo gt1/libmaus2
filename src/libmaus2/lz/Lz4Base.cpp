@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lz/Lz4Base.hpp>
-#include <libmaus/lz/lz4.h>
+#include <libmaus2/lz/Lz4Base.hpp>
+#include <libmaus2/lz/lz4.h>
 
-uint64_t libmaus::lz::Lz4Base::getCompressBound(uint64_t const inputsize) { return LZ4_compressBound(inputsize); }
+uint64_t libmaus2::lz::Lz4Base::getCompressBound(uint64_t const inputsize) { return LZ4_compressBound(inputsize); }

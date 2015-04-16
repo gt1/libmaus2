@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,10 +21,10 @@
 #if ! defined(MEMINBUFFER_HPP)
 #define MEMINBUFFER_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -39,7 +39,7 @@ namespace libmaus
 			//! this type
 			typedef MemInBuffer<value_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
 		
 			private:
 			//! current input pointer

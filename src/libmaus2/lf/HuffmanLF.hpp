@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,22 +21,22 @@
 #define HUFFMANLF_HPP
 
 #include <memory>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
 
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/wavelet/HuffmanWaveletTree.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/wavelet/HuffmanWaveletTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
 		struct HuffmanLF
 		{
-			::libmaus::util::shared_ptr < ::libmaus::wavelet::HuffmanWaveletTree >::type W;
+			::libmaus2::util::shared_ptr < ::libmaus2::wavelet::HuffmanWaveletTree >::type W;
 			int minsym;
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 
 			uint64_t serialize(std::ostream & out)
 			{
@@ -45,11 +45,11 @@ namespace libmaus
 				return s;
 			}
 				
-			static ::libmaus::autoarray::AutoArray<uint64_t> computeD(::libmaus::wavelet::HuffmanWaveletTree const * W)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> computeD(::libmaus2::wavelet::HuffmanWaveletTree const * W)
 			{
 				uint64_t const symrange = W->enctable.getSymbolRange();
 				
-				::libmaus::autoarray::AutoArray<uint64_t> D( symrange + 1 );
+				::libmaus2::autoarray::AutoArray<uint64_t> D( symrange + 1 );
 				
 				for ( uint64_t i = 0; i < symrange; ++i )
 					if ( W->enctable.codeused [ i ] )
@@ -122,13 +122,13 @@ namespace libmaus
 			}
 			uint64_t getB() const
 			{
-				return ::libmaus::math::bitsPerNum(W->enctable.getSymbolRange()-1);
+				return ::libmaus2::math::bitsPerNum(W->enctable.getSymbolRange()-1);
 			}
 			
 			uint64_t deserialize(std::istream & istr)
 			{
 				uint64_t s = 0;
-				W = ::libmaus::util::shared_ptr < ::libmaus::wavelet::HuffmanWaveletTree >::type ( new ::libmaus::wavelet::HuffmanWaveletTree(istr,s) );
+				W = ::libmaus2::util::shared_ptr < ::libmaus2::wavelet::HuffmanWaveletTree >::type ( new ::libmaus2::wavelet::HuffmanWaveletTree(istr,s) );
 				minsym = W->enctable.minsym;
 				D = computeD(W.get());
 				std::cerr << "HLF: " << s << " bytes = " << s*8 << " bits" << " = " << (s+(1024*1024-1))/(1024*1024) << " mb " << std::endl;
@@ -145,25 +145,25 @@ namespace libmaus
 				s += deserialize(istr);
 			}
 			
-			HuffmanLF ( ::libmaus::util::shared_ptr < ::libmaus::wavelet::HuffmanWaveletTree>::type & RHWT ) : W(RHWT)
+			HuffmanLF ( ::libmaus2::util::shared_ptr < ::libmaus2::wavelet::HuffmanWaveletTree>::type & RHWT ) : W(RHWT)
 			{
 				minsym = W->enctable.minsym;
 				D = computeD(W.get());		
 			}
 
-			HuffmanLF ( ::libmaus::util::shared_ptr < bitio::CompactArray >::type ABWT )
+			HuffmanLF ( ::libmaus2::util::shared_ptr < bitio::CompactArray >::type ABWT )
 			{
-				W = ::libmaus::util::shared_ptr < ::libmaus::wavelet::HuffmanWaveletTree >::type ( new ::libmaus::wavelet::HuffmanWaveletTree(
+				W = ::libmaus2::util::shared_ptr < ::libmaus2::wavelet::HuffmanWaveletTree >::type ( new ::libmaus2::wavelet::HuffmanWaveletTree(
 					bitio::CompactArray::const_iterator(ABWT.get()),
 					bitio::CompactArray::const_iterator(ABWT.get())+ABWT->n
 					) );
 				minsym = W->enctable.minsym;
 				// ABWT.reset(0);
 			}
-			HuffmanLF ( ::libmaus::util::shared_ptr < bitio::CompactArray >::type ABWT, ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
+			HuffmanLF ( ::libmaus2::util::shared_ptr < bitio::CompactArray >::type ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
 			{
 				std::cerr << "Constructing Huffman shaped wavelet tree..." << std::endl;
-				W = ::libmaus::util::shared_ptr < ::libmaus::wavelet::HuffmanWaveletTree >::type ( new ::libmaus::wavelet::HuffmanWaveletTree(
+				W = ::libmaus2::util::shared_ptr < ::libmaus2::wavelet::HuffmanWaveletTree >::type ( new ::libmaus2::wavelet::HuffmanWaveletTree(
 					bitio::CompactArray::const_iterator(ABWT.get()),
 					bitio::CompactArray::const_iterator(ABWT.get())+ABWT->n,
 					ahnode

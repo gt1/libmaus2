@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(SWAPBITBLOCKSBYREVERSAL_HPP)
 #define SWAPBITBLOCKSBYREVERSAL_HPP
 
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/bitio/getBit.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/bitio/getBit.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_LCS_CHECKOVERLAPRESULT_HPP)
 #define LIBMAUS_LCS_CHECKOVERLAPRESULT_HPP
 
-#include <libmaus/lcs/OrientationWeightEncoding.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
+#include <libmaus2/lcs/OrientationWeightEncoding.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
 		struct CheckOverlapResult : public OrientationWeightEncoding
 		{
 			typedef CheckOverlapResult this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			bool valid;
 			uint64_t ia;
@@ -60,7 +60,7 @@ namespace libmaus
 					
 					uint64_t const rl = itc-ita;
 					assert ( rl != 0 );
-					::libmaus::util::UTF8::encodeUTF8(rl,out);
+					::libmaus2::util::UTF8::encodeUTF8(rl,out);
 					out.put(*ita);
 					
 					ita = itc;
@@ -90,7 +90,7 @@ namespace libmaus
 				
 				while ( decoding )
 				{
-					uint32_t const runlen = ::libmaus::util::UTF8::decodeUTF8(in);
+					uint32_t const runlen = ::libmaus2::util::UTF8::decodeUTF8(in);
 					
 					if ( runlen )
 					{
@@ -138,35 +138,35 @@ namespace libmaus
 			CheckOverlapResult(std::istream & in)
 			:
 				#if 0
-				valid(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				valid(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				#else
 				valid(in.get()),
 				#endif
-				ia(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				ib(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				score(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				windowminscore(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				ia(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				ib(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				score(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				windowminscore(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				#if 0
-				clipa(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				clipb(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				nummat(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				nummis(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numins(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numdel(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				orientation(static_cast<overlap_orientation>(::libmaus::util::NumberSerialisation::deserialiseNumber(in))),
+				clipa(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				clipb(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				nummat(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				nummis(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numins(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numdel(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				orientation(static_cast<overlap_orientation>(::libmaus2::util::NumberSerialisation::deserialiseNumber(in))),
 				#else
-				clipa(::libmaus::util::UTF8::decodeUTF8(in)),
-				clipb(::libmaus::util::UTF8::decodeUTF8(in)),
-				nummat(::libmaus::util::UTF8::decodeUTF8(in)),
-				nummis(::libmaus::util::UTF8::decodeUTF8(in)),
-				numins(::libmaus::util::UTF8::decodeUTF8(in)),
-				numdel(::libmaus::util::UTF8::decodeUTF8(in)),
-				orientation(static_cast<overlap_orientation>(::libmaus::util::UTF8::decodeUTF8(in))),
+				clipa(::libmaus2::util::UTF8::decodeUTF8(in)),
+				clipb(::libmaus2::util::UTF8::decodeUTF8(in)),
+				nummat(::libmaus2::util::UTF8::decodeUTF8(in)),
+				nummis(::libmaus2::util::UTF8::decodeUTF8(in)),
+				numins(::libmaus2::util::UTF8::decodeUTF8(in)),
+				numdel(::libmaus2::util::UTF8::decodeUTF8(in)),
+				orientation(static_cast<overlap_orientation>(::libmaus2::util::UTF8::decodeUTF8(in))),
 				#endif
 				#if 0
-				trace(::libmaus::util::StringSerialisation::deserialiseString(in))
+				trace(::libmaus2::util::StringSerialisation::deserialiseString(in))
 				#else
-				trace(rlDecodeTrace(::libmaus::util::StringSerialisation::deserialiseString(in)))
+				trace(rlDecodeTrace(::libmaus2::util::StringSerialisation::deserialiseString(in)))
 				#endif
 			{
 			}
@@ -174,44 +174,44 @@ namespace libmaus
 			void serialise(std::ostream & out) const
 			{
 				#if 0
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,valid);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,valid);
 				#else				
 				out.put(valid ? 1 : 0);
 				#endif
 				
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,ia);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,ib);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,score);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,windowminscore);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,ia);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,ib);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,score);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,windowminscore);
 				
 				#if 0
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,clipa);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,clipb);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,nummat);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,nummis);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numins);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numdel);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,static_cast<unsigned int>(orientation));
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,clipa);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,clipb);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,nummat);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,nummis);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numins);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numdel);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,static_cast<unsigned int>(orientation));
 				#else				
-				::libmaus::util::UTF8::encodeUTF8(clipa,out);
-				::libmaus::util::UTF8::encodeUTF8(clipb,out);
-				::libmaus::util::UTF8::encodeUTF8(nummat,out);
-				::libmaus::util::UTF8::encodeUTF8(nummis,out);
-				::libmaus::util::UTF8::encodeUTF8(numins,out);
-				::libmaus::util::UTF8::encodeUTF8(numdel,out);
-				::libmaus::util::UTF8::encodeUTF8(static_cast<unsigned int>(orientation),out);
+				::libmaus2::util::UTF8::encodeUTF8(clipa,out);
+				::libmaus2::util::UTF8::encodeUTF8(clipb,out);
+				::libmaus2::util::UTF8::encodeUTF8(nummat,out);
+				::libmaus2::util::UTF8::encodeUTF8(nummis,out);
+				::libmaus2::util::UTF8::encodeUTF8(numins,out);
+				::libmaus2::util::UTF8::encodeUTF8(numdel,out);
+				::libmaus2::util::UTF8::encodeUTF8(static_cast<unsigned int>(orientation),out);
 				#endif
 				
 				#if 0
-				::libmaus::util::StringSerialisation::serialiseString(out,trace);
+				::libmaus2::util::StringSerialisation::serialiseString(out,trace);
 				#else
-				::libmaus::util::StringSerialisation::serialiseString(out,rlEncodeTrace(trace));
+				::libmaus2::util::StringSerialisation::serialiseString(out,rlEncodeTrace(trace));
 				#endif
 			}
 			
 			static void serialiseVector(std::ostream & out, std::vector<CheckOverlapResult> const & V)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,V.size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					V[i].serialise(out);
 			}
@@ -225,7 +225,7 @@ namespace libmaus
 			
 			static std::vector<CheckOverlapResult::shared_ptr_type> deserialiseVectorShared(std::istream & in)
 			{
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				std::vector<CheckOverlapResult::shared_ptr_type> V(n);
 				for ( uint64_t i = 0; i < n; ++i )
 					V[i] = CheckOverlapResult::shared_ptr_type(new CheckOverlapResult(in));
@@ -234,7 +234,7 @@ namespace libmaus
 
 			static std::vector<CheckOverlapResult> deserialiseVector(std::istream & in)
 			{
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				std::vector<CheckOverlapResult> V(n);
 				for ( uint64_t i = 0; i < n; ++i )
 					V[i] = CheckOverlapResult(in);
@@ -255,7 +255,7 @@ namespace libmaus
 			
 			static void serialiseVector(std::ostream & out, std::vector<CheckOverlapResult::shared_ptr_type> const & V)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,V.size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,V.size());
 				for ( uint64_t i = 0; i < V.size(); ++i )
 					V[i]->serialise(out);
 			}

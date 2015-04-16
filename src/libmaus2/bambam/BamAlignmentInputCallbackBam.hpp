@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKBAM_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTINPUTCALLBACKBAM_HPP
 
-#include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>
-#include <libmaus/bambam/BamWriter.hpp>
-#include <libmaus/bambam/BamAlignmentInputPositionCallbackNull.hpp>
+#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
+#include <libmaus2/bambam/BamAlignmentInputPositionCallbackNull.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		template<typename _update_base_type = libmaus::bambam::BamAlignmentInputPositionCallbackNull>
+		template<typename _update_base_type = libmaus2::bambam::BamAlignmentInputPositionCallbackNull>
 		struct BamAlignmentInputCallbackBam : 
-			public ::libmaus::bambam::CollatingBamDecoderAlignmentInputCallback,
+			public ::libmaus2::bambam::CollatingBamDecoderAlignmentInputCallback,
 			public _update_base_type
 		{
 			typedef _update_base_type update_base_type;
 			typedef BamAlignmentInputCallbackBam<update_base_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			uint64_t als;
-			::libmaus::bambam::BamWriter::unique_ptr_type BWR;
+			::libmaus2::bambam::BamWriter::unique_ptr_type BWR;
 			
 			BamAlignmentInputCallbackBam(
 				std::string const & filename,
-				::libmaus::bambam::BamHeader const & bamheader,
+				::libmaus2::bambam::BamHeader const & bamheader,
 				int const rewritebamlevel
 			)
-			: update_base_type(bamheader), als(0), BWR(new ::libmaus::bambam::BamWriter(filename,bamheader,rewritebamlevel))
+			: update_base_type(bamheader), als(0), BWR(new ::libmaus2::bambam::BamWriter(filename,bamheader,rewritebamlevel))
 			{
 				
 			}
@@ -54,7 +54,7 @@ namespace libmaus
 			{
 			}
 
-			void operator()(::libmaus::bambam::BamAlignment const & A)
+			void operator()(::libmaus2::bambam::BamAlignment const & A)
 			{
 				als++;
 				update_base_type::updatePosition(A);

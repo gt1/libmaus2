@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,16 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/FastAStreamSet.hpp>
-#include <libmaus/fastx/FastALineParser.hpp>
-#include <libmaus/fastx/FastAMapTable.hpp>
-#include <libmaus/fastx/FastALineParserLineInfo.hpp>
-#include <libmaus/fastx/FastAMatchTable.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/aio/PosixFdInputStream.hpp>
+#include <libmaus2/fastx/FastAStreamSet.hpp>
+#include <libmaus2/fastx/FastALineParser.hpp>
+#include <libmaus2/fastx/FastAMapTable.hpp>
+#include <libmaus2/fastx/FastALineParserLineInfo.hpp>
+#include <libmaus2/fastx/FastAMatchTable.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
 
-#include <libmaus/wavelet/DynamicWaveletTree.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/wavelet/DynamicWaveletTree.hpp>
+#include <libmaus2/random/Random.hpp>
 
 #include <iostream>
 
@@ -33,32 +33,32 @@ int main()
 {
 	#if 0
 	{
-	::libmaus::fastx::FastAStreamSet F(std::cin);
+	::libmaus2::fastx::FastAStreamSet F(std::cin);
 	std::map<std::string,std::string> const M = F.computeMD5();
 	}
 	#endif
 
-	::libmaus::fastx::FastAMatchTable FAMT;
+	::libmaus2::fastx::FastAMatchTable FAMT;
 	std::cerr << FAMT;
 
-	libmaus::timing::RealTimeClock rtc;
+	libmaus2::timing::RealTimeClock rtc;
 	rtc.start();
 	
-	::libmaus::aio::PosixFdInputStream posin(STDIN_FILENO,64*1024);
-	::libmaus::fastx::FastAStreamSet FASS(posin);
-	libmaus::autoarray::AutoArray<char> B(64*1024,false);
-	std::pair<std::string,::libmaus::fastx::FastAStream::shared_ptr_type> P;
+	::libmaus2::aio::PosixFdInputStream posin(STDIN_FILENO,64*1024);
+	::libmaus2::fastx::FastAStreamSet FASS(posin);
+	libmaus2::autoarray::AutoArray<char> B(64*1024,false);
+	std::pair<std::string,::libmaus2::fastx::FastAStream::shared_ptr_type> P;
 	uint64_t bases = 0;
 	
 	double const erate = 0.03;
-	libmaus::random::Random::setup();
+	libmaus2::random::Random::setup();
 	
 	while ( FASS.getNextStream(P) )
 	{
-		libmaus::wavelet::DynamicWaveletTree<8,8> D(2);
+		libmaus2::wavelet::DynamicWaveletTree<8,8> D(2);
 	
 		std::string const & id = P.first;
-		::libmaus::fastx::FastAStream & basestream = *(P.second);
+		::libmaus2::fastx::FastAStream & basestream = *(P.second);
 		
 		uint64_t cnt = 0;
 		while ( true )
@@ -79,7 +79,7 @@ int main()
 				else if ( c == 'T' )
 					D.insert(3,cnt+i);
 				else
-					D.insert(libmaus::random::Random::rand8()%4,cnt+i);
+					D.insert(libmaus2::random::Random::rand8()%4,cnt+i);
 			}
 			
 			cnt += gcnt;
@@ -98,20 +98,20 @@ int main()
 		
 		for ( uint64_t i = 0; i < errors; ++i )
 		{
-			unsigned int const errtype = libmaus::random::Random::rand8() % 3;
+			unsigned int const errtype = libmaus2::random::Random::rand8() % 3;
 			switch ( errtype )
 			{
 				case 0:
 					{
-						uint64_t const inpos = libmaus::random::Random::rand64() % (D.size()+1);
-						unsigned int const inbase = libmaus::random::Random::rand8() % 4;
+						uint64_t const inpos = libmaus2::random::Random::rand64() % (D.size()+1);
+						unsigned int const inbase = libmaus2::random::Random::rand8() % 4;
 						D.insert(inbase,inpos);
 						break;
 					}
 				case 1:
 					if ( D.size() )
 					{
-						uint64_t const delpos = libmaus::random::Random::rand64() % (D.size());
+						uint64_t const delpos = libmaus2::random::Random::rand64() % (D.size());
 						D.remove(delpos);
 					}
 					break;
@@ -119,8 +119,8 @@ int main()
 				{
 					if ( D.size() )
 					{
-						uint64_t const subspos = libmaus::random::Random::rand64() % (D.size());
-						unsigned int const inbase = libmaus::random::Random::rand8() % 4;
+						uint64_t const subspos = libmaus2::random::Random::rand64() % (D.size());
+						unsigned int const inbase = libmaus2::random::Random::rand8() % 4;
 						D.remove(subspos);
 						D.insert(inbase,subspos);
 					}

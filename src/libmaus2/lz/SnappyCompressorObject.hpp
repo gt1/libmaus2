@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECT_HPP)
 #define LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECT_HPP
 
-#include <libmaus/lz/CompressorObject.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus2/lz/CompressorObject.hpp>
+#include <libmaus2/lz/SnappyCompress.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyCompressorObject : public CompressorObject
 		{
 			typedef SnappyCompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			SnappyCompressorObject() {}
 			~SnappyCompressorObject() {}
 
-			virtual size_t compress(char const * input, size_t inputLength, libmaus::autoarray::AutoArray<char> & output)
+			virtual size_t compress(char const * input, size_t inputLength, libmaus2::autoarray::AutoArray<char> & output)
 			{
 				uint64_t compressBound = SnappyCompress::compressBound(inputLength);
 				if ( output.size() < compressBound )
-					output = libmaus::autoarray::AutoArray<char>(compressBound,false);
+					output = libmaus2::autoarray::AutoArray<char>(compressBound,false);
 				
 				return SnappyCompress::rawcompress(input,inputLength,output.begin());
 			}

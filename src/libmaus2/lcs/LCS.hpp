@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(LCS_HPP)
 #define LCS_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lcs/BaseConstants.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lcs/BaseConstants.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
 		template < typename _error_count_type >
-		struct LCSBase : public ::libmaus::lcs::BaseConstants
+		struct LCSBase : public ::libmaus2::lcs::BaseConstants
 		{		
 			typedef _error_count_type error_count_type;
 			typedef LCSBase<error_count_type> this_type;
-			typedef ::libmaus::lcs::BaseConstants::step_type trace_element;
+			typedef ::libmaus2::lcs::BaseConstants::step_type trace_element;
 			// enum trace_element { SUBST_NONE, SUBST_CHAR, SUBST_IN, SUBST_DEL };
 			typedef std::pair < error_count_type , trace_element > matrix_element_type;
 			
@@ -180,8 +180,8 @@ namespace libmaus
 
 			uint64_t const n; // rows
 			uint64_t const m; // columns
-			::libmaus::autoarray::AutoArray < matrix_element_type > M;
-			::libmaus::autoarray::AutoArray < trace_element > trace;
+			::libmaus2::autoarray::AutoArray < matrix_element_type > M;
+			::libmaus2::autoarray::AutoArray < trace_element > trace;
 			trace_element * ta;
 			
 			LCS(uint64_t const rn, uint64_t const rm)
@@ -249,7 +249,7 @@ namespace libmaus
 					
 				}
 
-				trace = ::libmaus::autoarray::AutoArray < trace_element >(tracelen);
+				trace = ::libmaus2::autoarray::AutoArray < trace_element >(tracelen);
 				ta = trace.end();
 
 				tc = m; tr = n;
@@ -333,9 +333,9 @@ namespace libmaus
 			uint64_t const n;
 			uint64_t const k;
 			uint64_t const maxcolsize;
-			::libmaus::autoarray::AutoArray < matrix_element_type > M;
-			::libmaus::autoarray::AutoArray < uint64_t > O;
-			::libmaus::autoarray::AutoArray < trace_element > trace;
+			::libmaus2::autoarray::AutoArray < matrix_element_type > M;
+			::libmaus2::autoarray::AutoArray < uint64_t > O;
+			::libmaus2::autoarray::AutoArray < trace_element > trace;
 			trace_element * ta;
 
 			BandedLCS(uint64_t const rn, uint64_t const rk)

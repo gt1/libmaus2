@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYINPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SNAPPYINPUTSTREAM_HPP
 
-#include <libmaus/lz/SnappyCompress.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/lz/SnappyCompress.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyInputStream
 		{
 			typedef SnappyInputStream this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			std::istream & in;
 			uint64_t readpos;
 			bool const setpos;
 			uint64_t const endpos;
 
-			::libmaus::autoarray::AutoArray<char> B;
+			::libmaus2::autoarray::AutoArray<char> B;
 			char const * pa;
 			char const * pc;
 			char const * pe;
@@ -63,7 +63,7 @@ namespace libmaus
 				
 				if ( c < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unexpected EOF in SnappyInputStream::checkedGet()" << std::endl;
 					se.finish();
 					throw se;	
@@ -122,7 +122,7 @@ namespace libmaus
 						gcnt = 0;
 						if ( eofthrow )
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "EOF in SnappyInputStream::get()" << std::endl;
 							se.finish();
 							throw se;
@@ -225,24 +225,24 @@ namespace libmaus
 					uint64_t blocksize = sizeof(uint64_t) + sizeof(uint64_t);
 					
 					// size of uncompressed buffer
-					uint64_t const n        = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					uint64_t const n        = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					// size of compressed data
-					uint64_t const datasize = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					uint64_t const datasize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 					// add to block size
 					blocksize += datasize;
 						
 					if ( n > B.size() )
 					{
-						B = ::libmaus::autoarray::AutoArray<char>(0,false);
-						B = ::libmaus::autoarray::AutoArray<char>(n,false);
+						B = ::libmaus2::autoarray::AutoArray<char>(0,false);
+						B = ::libmaus2::autoarray::AutoArray<char>(n,false);
 					}
 					
 					pa = B.begin();
 					pc = pa;
 					pe = pa + n;
 
-					::libmaus::aio::IStreamWrapper wrapper(in);
-					::libmaus::lz::IstreamSource< ::libmaus::aio::IStreamWrapper> insource(wrapper,datasize);
+					::libmaus2::aio::IStreamWrapper wrapper(in);
+					::libmaus2::lz::IstreamSource< ::libmaus2::aio::IStreamWrapper> insource(wrapper,datasize);
 
 					try
 					{
@@ -250,7 +250,7 @@ namespace libmaus
 					}
 					catch(std::exception const & ex)
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "Failed to decompress snappy compressed data, comp=" << datasize << ", uncomp=" << n << ":\n" << ex.what() << "\n";
 						lme.finish();
 						throw lme;

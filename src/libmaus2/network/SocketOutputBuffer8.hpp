@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(SOCKETOUTPUTBUFFER8_HPP)
 #define SOCKETOUTPUTBUFFER8_HPP
 
-#include <libmaus/network/Socket.hpp>
+#include <libmaus2/network/Socket.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -31,17 +31,17 @@ namespace libmaus
 		{
 			typedef _data_type data_type;
 			typedef SocketOutputBufferTemplate<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
 
-			::libmaus::network::SocketBase * dst;
+			::libmaus2::network::SocketBase * dst;
 			int const tag;
-			::libmaus::autoarray::AutoArray<data_type> B;
+			::libmaus2::autoarray::AutoArray<data_type> B;
 			data_type * const pa;
 			data_type * pc;
 			data_type * const pe;
 
 			SocketOutputBufferTemplate(
-				::libmaus::network::SocketBase * rdst, 
+				::libmaus2::network::SocketBase * rdst, 
 				int const rtag,
 				uint64_t const bufsize)
 			: dst(rdst), tag(rtag), B(bufsize), pa(B.get()), pc(pa), pe(pa+B.getN())

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if !defined(ASYNCHRONOUSREADER_HPP)
 #define ASYNCHRONOUSREADER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 #include <iostream>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -51,9 +51,9 @@ namespace libmaus
                         unsigned int const numblocks;
 
                         //! patterns
-                        ::libmaus::autoarray::AutoArray < pattern_type > blocks;
+                        ::libmaus2::autoarray::AutoArray < pattern_type > blocks;
                         //! pointers/offsets into blocks array demarking blocks
-                        ::libmaus::autoarray::AutoArray < data_type > blockp;
+                        ::libmaus2::autoarray::AutoArray < data_type > blockp;
 
                         public:
                         /**
@@ -133,7 +133,7 @@ namespace libmaus
                         unsigned int const numblocks;
                         unsigned int const blocksize;
 
-                        ::libmaus::autoarray::AutoArray < data_type > blockp;
+                        ::libmaus2::autoarray::AutoArray < data_type > blockp;
 
                         public:
                         /**
@@ -200,8 +200,8 @@ namespace libmaus
                 	private:
                         data_type & data;        
                         
-			::libmaus::parallel::SynchronousQueue<unsigned int> unfilled;
-                        ::libmaus::parallel::TerminatableSynchronousQueue<unsigned int> filled;
+			::libmaus2::parallel::SynchronousQueue<unsigned int> unfilled;
+                        ::libmaus2::parallel::TerminatableSynchronousQueue<unsigned int> filled;
                         pthread_t thread;
 
                         void * readerThread()
@@ -279,7 +279,7 @@ namespace libmaus
                                 
                                 if ( pthread_create ( & thread, 0, dispatcher, this ) )
                                 {
-                                	libmaus::exception::LibMausException se;
+                                	libmaus2::exception::LibMausException se;
                                         se.getStream() << "Cannot create reader thread.";
                                         se.finish();
                                         throw se;

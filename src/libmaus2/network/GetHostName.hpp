@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(GETHOSTNAME_HPP)
 #define GETHOSTNAME_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <cerrno>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace network
         {
@@ -31,10 +31,10 @@ namespace libmaus
                 {
                         static std::string getHostName()
                         {
-                                ::libmaus::autoarray::AutoArray<char> hostnamebuf(1025);
+                                ::libmaus2::autoarray::AutoArray<char> hostnamebuf(1025);
                                 if ( gethostname(hostnamebuf.get(),hostnamebuf.size()-1) )
                                 {
-                                        ::libmaus::exception::LibMausException se;
+                                        ::libmaus2::exception::LibMausException se;
                                         se.getStream() << "gethostname() failed: " << strerror(errno) << std::endl;
                                         se.finish();
                                         throw se;

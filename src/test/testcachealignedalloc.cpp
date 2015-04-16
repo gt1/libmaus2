@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,20 +17,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 void testCacheAlignedAlloc()
 {
 	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
 	{
-	unsigned int const linesize = ::libmaus::util::I386CacheLineSize::getCacheLineSize();
+	unsigned int const linesize = ::libmaus2::util::I386CacheLineSize::getCacheLineSize();
 	std::cerr << "linesize = " << linesize << std::endl;
 	}
 	#endif
 
 	try
 	{
-		::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_memalign_cacheline> A(5);
+		::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> A(5);
 	}
 	catch(std::exception const & ex)
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(TRIPLEEDGE_HPP)
 #define TRIPLEEDGE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/random/Random.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -73,22 +73,22 @@ namespace libmaus
 			static TripleEdge random()
 			{
 				return TripleEdge ( 
-					::libmaus::random::Random::rand64() % 8,
-					::libmaus::random::Random::rand64() % 8,
-					::libmaus::random::Random::rand16() % 4
+					::libmaus2::random::Random::rand64() % 8,
+					::libmaus2::random::Random::rand64() % 8,
+					::libmaus2::random::Random::rand16() % 4
 				);
 			}
 			
-			static ::libmaus::autoarray::AutoArray<this_type> randomArray(uint64_t const n)
+			static ::libmaus2::autoarray::AutoArray<this_type> randomArray(uint64_t const n)
 			{
-				::libmaus::autoarray::AutoArray<this_type> A(n,false);
+				::libmaus2::autoarray::AutoArray<this_type> A(n,false);
 				for ( uint64_t i = 0; i < n; ++i )
 					A[i] = random();
 				return A;
 			}
-			static ::libmaus::autoarray::AutoArray<this_type> randomValidArray(uint64_t const n)
+			static ::libmaus2::autoarray::AutoArray<this_type> randomValidArray(uint64_t const n)
 			{
-				::libmaus::autoarray::AutoArray<this_type> A(n,false);
+				::libmaus2::autoarray::AutoArray<this_type> A(n,false);
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					A[i] = random();

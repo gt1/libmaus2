@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTBUFFER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTBUFFER_HPP
 
-#include <libmaus/bambam/parallel/PushBackSpace.hpp>
-#include <libmaus/util/GrowingFreeList.hpp>
-#include <libmaus/bambam/ChecksumsInterface.hpp>
+#include <libmaus2/bambam/parallel/PushBackSpace.hpp>
+#include <libmaus2/util/GrowingFreeList.hpp>
+#include <libmaus2/bambam/ChecksumsInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 			struct AlignmentBuffer
 			{
 				typedef AlignmentBuffer this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				typedef uint64_t pointer_type;
 				
@@ -41,7 +41,7 @@ namespace libmaus
 				uint64_t subid;
 			
 				// data
-				libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_c> A;
+				libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_c> A;
 				
 				// text (block data) insertion pointer
 				uint8_t * pA;
@@ -58,20 +58,20 @@ namespace libmaus
 				uint64_t volatile low;
 				
 				// alignment free list
-				libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> freelist;
+				libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> freelist;
 				
 				// MQ filter (for fixmate operation)
-				libmaus::bambam::BamAuxFilterVector const MQfilter;
+				libmaus2::bambam::BamAuxFilterVector const MQfilter;
 				// MS filter 
-				libmaus::bambam::BamAuxFilterVector const MSfilter;
+				libmaus2::bambam::BamAuxFilterVector const MSfilter;
 				// MC filter 
-				libmaus::bambam::BamAuxFilterVector const MCfilter;
+				libmaus2::bambam::BamAuxFilterVector const MCfilter;
 				// MT filter 
-				libmaus::bambam::BamAuxFilterVector const MTfilter;
+				libmaus2::bambam::BamAuxFilterVector const MTfilter;
 				// MQ,MS,MC,MT filter
-				libmaus::bambam::BamAuxFilterVector const MQMSMCMTfilter;
+				libmaus2::bambam::BamAuxFilterVector const MQMSMCMTfilter;
 				
-				std::deque<libmaus::bambam::BamAlignment *> stallBuffer;
+				std::deque<libmaus2::bambam::BamAlignment *> stallBuffer;
 				
 				size_t byteSize()
 				{
@@ -89,24 +89,24 @@ namespace libmaus
 						MCfilter.byteSize() +
 						MTfilter.byteSize() +
 						MQMSMCMTfilter.byteSize() +
-						stallBuffer.size() * sizeof(libmaus::bambam::BamAlignment *);
+						stallBuffer.size() * sizeof(libmaus2::bambam::BamAlignment *);
 				}
 				
-				void pushFrontStallBuffer(libmaus::bambam::BamAlignment * algn)
+				void pushFrontStallBuffer(libmaus2::bambam::BamAlignment * algn)
 				{
 					stallBuffer.push_front(algn);
 				}
 	
-				void pushBackStallBuffer(libmaus::bambam::BamAlignment * algn)
+				void pushBackStallBuffer(libmaus2::bambam::BamAlignment * algn)
 				{
 					stallBuffer.push_back(algn);
 				}
 				
-				libmaus::bambam::BamAlignment * popStallBuffer()
+				libmaus2::bambam::BamAlignment * popStallBuffer()
 				{
 					if ( stallBuffer.size() )
 					{
-						libmaus::bambam::BamAlignment * algn = stallBuffer.front();
+						libmaus2::bambam::BamAlignment * algn = stallBuffer.front();
 						stallBuffer.pop_front();
 						return algn;
 					}
@@ -119,7 +119,7 @@ namespace libmaus
 				char const * getNameAt(uint64_t const i)
 				{
 					return
-						libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[i] + sizeof(uint32_t));
+						libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[i] + sizeof(uint32_t));
 				}
 				
 				void computeSplitPoints(std::vector<size_t> & V)
@@ -156,18 +156,18 @@ namespace libmaus
 					assert ( V[numpoints] == f );
 				}
 							
-				void returnAlignments(std::vector<libmaus::bambam::BamAlignment *> & algns)
+				void returnAlignments(std::vector<libmaus2::bambam::BamAlignment *> & algns)
 				{
 					for ( uint64_t i = 0; i < algns.size(); ++i )
 						returnAlignment(algns[i]);
 				}
 				
-				void returnAlignment(libmaus::bambam::BamAlignment * algn)
+				void returnAlignment(libmaus2::bambam::BamAlignment * algn)
 				{
 					freelist.put(algn);
 				}
 				
-				uint64_t extractNextSameName(std::deque<libmaus::bambam::BamAlignment *> & algns)
+				uint64_t extractNextSameName(std::deque<libmaus2::bambam::BamAlignment *> & algns)
 				{
 					uint64_t const c = nextSameName();
 					
@@ -181,7 +181,7 @@ namespace libmaus
 						uint8_t const * p = getNextData();
 						
 						if ( len > algns[i]->D.size() )
-							algns[i]->D = libmaus::bambam::BamAlignment::D_array_type(len,false);
+							algns[i]->D = libmaus2::bambam::BamAlignment::D_array_type(len,false);
 							
 						algns[i]->blocksize = len;
 						memcpy(algns[i]->D.begin(),p,len);
@@ -197,12 +197,12 @@ namespace libmaus
 					if ( ! hasNext() )
 						return 0;
 					
-					char const * refname = libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + *pP + 4);
+					char const * refname = libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + *pP + 4);
 					uint64_t c = 1;
 					
 					while ( 
 						((pP + c) != reinterpret_cast<pointer_type const *>(A.end())) &&
-						(strcmp(libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[c] + 4),refname) == 0)
+						(strcmp(libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[c] + 4),refname) == 0)
 					)
 					{
 						++c;
@@ -491,7 +491,7 @@ namespace libmaus
 					if ( f <= 1 )
 						return f;
 					
-					char const * lastname = libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-1] + 4);
+					char const * lastname = libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-1] + 4);
 					
 					uint64_t s = 1;
 					
@@ -500,7 +500,7 @@ namespace libmaus
 						&&
 						strcmp(
 							lastname,
-							libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-s-1] + 4)	
+							libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-s-1] + 4)	
 						) == 0
 					)
 						++s;
@@ -508,7 +508,7 @@ namespace libmaus
 					#if 0	
 					for ( uint64_t i = 0; i < s; ++i )
 					{
-						std::cerr << "[" << i << "]=" << libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-i-1] + 4) << std::endl;
+						std::cerr << "[" << i << "]=" << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-i-1] + 4) << std::endl;
 					}
 					#endif
 					
@@ -517,7 +517,7 @@ namespace libmaus
 						assert (
 							strcmp(
 								lastname,
-								libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-s-1] + 4)
+								libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[f-s-1] + 4)
 							)
 							!= 
 							0
@@ -533,10 +533,10 @@ namespace libmaus
 					
 					for ( uint64_t i = low; ok && i < high; ++i )
 					{
-						libmaus::bambam::libmaus_bambam_alignment_validity val = 
-							libmaus::bambam::BamAlignmentDecoderBase::valid(A.begin() + pP[i] + 4, decodeLength(pP[i]));
+						libmaus2::bambam::libmaus2_bambam_alignment_validity val = 
+							libmaus2::bambam::BamAlignmentDecoderBase::valid(A.begin() + pP[i] + 4, decodeLength(pP[i]));
 					
-						ok = ok && ( val == libmaus::bambam::libmaus_bambam_alignment_validity_ok );
+						ok = ok && ( val == libmaus2::bambam::libmaus2_bambam_alignment_validity_ok );
 					}
 					
 					return ok;		
@@ -544,7 +544,7 @@ namespace libmaus
 
 				void updateChecksumsPacked(
 					uint64_t const low, uint64_t const high,
-					libmaus::bambam::ChecksumsInterface & chksums
+					libmaus2::bambam::ChecksumsInterface & chksums
 				) const
 				{
 					for ( uint64_t i = low; i < high; ++i )
@@ -564,13 +564,13 @@ namespace libmaus
 					
 					for ( uint64_t i = 0; ok && i < f; ++i )
 					{
-						libmaus::bambam::libmaus_bambam_alignment_validity val = 
-							libmaus::bambam::BamAlignmentDecoderBase::valid(
+						libmaus2::bambam::libmaus2_bambam_alignment_validity val = 
+							libmaus2::bambam::BamAlignmentDecoderBase::valid(
 								A.begin() + pP[pointerdif*i] + 4,
 								decodeLength(pP[pointerdif*i])
 						);
 					
-						ok = ok && ( val == libmaus::bambam::libmaus_bambam_alignment_validity_ok );
+						ok = ok && ( val == libmaus2::bambam::libmaus2_bambam_alignment_validity_ok );
 					}
 					
 					return ok;		
@@ -586,13 +586,13 @@ namespace libmaus
 
 					bool singlename = true;
 					char const * refname = 
-						libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[pointerdif*0] + 4);					
+						libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[pointerdif*0] + 4);					
 					
 					for ( uint64_t i = 1; singlename && i < f; ++i )
 					{
 						singlename = singlename &&
 							strcmp(
-								libmaus::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[pointerdif*i] + 4)
+								libmaus2::bambam::BamAlignmentDecoderBase::getReadName(A.begin() + pP[pointerdif*i] + 4)
 								,
 								refname
 							) == 0;

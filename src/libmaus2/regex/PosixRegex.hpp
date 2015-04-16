@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,7 +20,7 @@
 #if ! defined(LIBMAUS_REGEX_POSIX_REGEX_HPP)
 #define LIBMAUS_REGEX_POSIX_REGEX_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_REGEX_H)
 
@@ -28,9 +28,9 @@
 #include <regex.h>
 #include <cstring>
 #include <string>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace regex
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 				int res = regcomp(&preg,pattern.c_str(),cflags);
 				if ( res )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to compile regular expression " << pattern << std::endl;
 					se.finish();
 					throw se;		

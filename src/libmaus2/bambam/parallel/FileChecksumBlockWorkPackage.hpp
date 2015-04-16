@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FILECHECKSUMBLOCKWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FILECHECKSUMBLOCKWORKPACKAGE_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp>
-#include <libmaus/digest/DigestInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp>
+#include <libmaus2/digest/DigestInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{			
-			struct FileChecksumBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct FileChecksumBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef FileChecksumBlockWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
-				libmaus::bambam::parallel::GenericInputControlCompressionPending GICCP;
-				libmaus::digest::DigestInterface * checksum;
+				libmaus2::bambam::parallel::GenericInputControlCompressionPending GICCP;
+				libmaus2::digest::DigestInterface * checksum;
 
-				FileChecksumBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), GICCP(), checksum(0) {}
+				FileChecksumBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), GICCP(), checksum(0) {}
 				FileChecksumBlockWorkPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
-					libmaus::bambam::parallel::GenericInputControlCompressionPending rGICCP,
-					libmaus::digest::DigestInterface * rchecksum
+					libmaus2::bambam::parallel::GenericInputControlCompressionPending rGICCP,
+					libmaus2::digest::DigestInterface * rchecksum
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), checksum(rchecksum)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP), checksum(rchecksum)
 				{
 				}
                         

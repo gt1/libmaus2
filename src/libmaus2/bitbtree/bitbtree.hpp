@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -26,15 +26,15 @@
 #include <sstream>
 #include <stack>
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/uint/uint.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/uint/uint.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitbtree
 	{
@@ -64,7 +64,7 @@ namespace libmaus
 		template<unsigned int w>
 		struct BitBTreeLeaf
 		{
-			::libmaus::uint::UInt<w> data;
+			::libmaus2::uint::UInt<w> data;
 		};
 
 		template<unsigned int k, unsigned int w>
@@ -77,7 +77,7 @@ namespace libmaus
 			typedef BitBTreeInnerNode<node_ptr_type,bit_count_type,one_count_type,k> inner_node_type;
 			
 			typedef BitBTree<k,w> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			#if defined(__GNUC__) && ((__GNUC__ >= 5) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 1)))
 			static node_ptr_type const bitbtree_leaf_mask = (1ull << (8*sizeof(node_ptr_type)-1));
@@ -113,7 +113,7 @@ namespace libmaus
 			void serializeAsAutoArray(std::ostream & out) const
 			{
 				uint64_t const n = root_cnt;
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
 
 				bitio::OutputBuffer<uint64_t> ob(16*1024,out);
 				bitio::FastWriteBitWriterBuffer64 writer(ob);
@@ -127,8 +127,8 @@ namespace libmaus
 			struct NodeAllocator
 			{
 				typedef NodeAllocator<node_type, node_ptr_type, mask, bitbtree_node_base_mask_value> this_type;
-				typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				autoarray::AutoArray< node_type > Anodes;
 				node_type * nodes;
@@ -201,8 +201,8 @@ namespace libmaus
 			struct BlockNodeAllocator
 			{
 				typedef BlockNodeAllocator<node_type,node_ptr_type,mask,bitbtree_node_base_mask_value> this_type;
-				typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				static unsigned int const blockshift = 16;
 				static uint64_t const blocksize = 1ull<<blockshift;
@@ -559,7 +559,7 @@ namespace libmaus
 					leaf_type & lnode = getLeaf(ptr);
 					
 					for ( uint64_t j = 0; j < bitsperleaf; ++j )
-						lnode.data.setBit(j,::libmaus::bitio::getBit(A,z++));
+						lnode.data.setBit(j,::libmaus2::bitio::getBit(A,z++));
 					
 					// todo.push_back( std::pair<node_ptr_type,uint64_t>(ptr,bitsperleaf));
 					todo . push_back(VectorConstructionTuple(ptr,bitsperleaf,lnode.data.rank1(bitsperleaf-1)));
@@ -573,7 +573,7 @@ namespace libmaus
 					leaf_type & lnode = getLeaf(ptr);
 
 					for ( uint64_t j = 0; j < fracsyms; ++j )
-						lnode.data.setBit(j,::libmaus::bitio::getBit(A,z++));
+						lnode.data.setBit(j,::libmaus2::bitio::getBit(A,z++));
 
 					// todo.push_back( std::pair<node_ptr_type,uint64_t>(ptr,fracsyms));
 					todo . push_back(VectorConstructionTuple(ptr,fracsyms,lnode.data.rank1(fracsyms-1)));
@@ -770,7 +770,7 @@ namespace libmaus
 							node_ptr_type const right_ptr = pparent->data[right_index].ptr;
 							leaf_type * const right_leaf = &(getLeaf(right_ptr));
 							
-							::libmaus::uint::UInt<2*w> U(right_leaf->data);
+							::libmaus2::uint::UInt<2*w> U(right_leaf->data);
 							U <<= left_cnt;
 							U |= left_leaf->data;
 
@@ -812,7 +812,7 @@ namespace libmaus
 								uint64_t const left_cnt = (total_cnt + 1)/2;
 								uint64_t const right_cnt = total_cnt - left_cnt;
 								
-								::libmaus::uint::UInt<2*w> UUleft = U;
+								::libmaus2::uint::UInt<2*w> UUleft = U;
 								UUleft.keepLowBits(left_cnt);							
 								U >>= left_cnt;
 								
@@ -1115,7 +1115,7 @@ namespace libmaus
 										{
 											// std::cerr << "here." << std::endl;
 										
-											::libmaus::uint::UInt<2*w> U ( right_leaf->data );
+											::libmaus2::uint::UInt<2*w> U ( right_leaf->data );
 											U <<= middle_cnt;
 											U |= middle_leaf->data;
 
@@ -1161,7 +1161,7 @@ namespace libmaus
 										
 										if ( left_cnt + middle_cnt <= (2*64*w)-2 )
 										{
-											::libmaus::uint::UInt<2*w> U ( middle_leaf->data );
+											::libmaus2::uint::UInt<2*w> U ( middle_leaf->data );
 											U <<= left_cnt;
 											U |= left_leaf->data;
 											
@@ -1214,7 +1214,7 @@ namespace libmaus
 										{
 											if ( left_cnt + middle_cnt <= (2*64*w)-2 )
 											{
-												::libmaus::uint::UInt<2*w> U ( middle_leaf->data );
+												::libmaus2::uint::UInt<2*w> U ( middle_leaf->data );
 												U <<= left_cnt;
 												U |= left_leaf->data;
 												
@@ -1252,7 +1252,7 @@ namespace libmaus
 										{
 											if ( right_cnt + middle_cnt <= (2*64*w)-2 )
 											{
-												::libmaus::uint::UInt<2*w> U ( right_leaf->data );
+												::libmaus2::uint::UInt<2*w> U ( right_leaf->data );
 												U <<= middle_cnt;
 												U |= middle_leaf->data;
 
@@ -1318,7 +1318,7 @@ namespace libmaus
 										
 										assert ( (new_left_cnt + new_middle_cnt + new_right_cnt) == total_cnt );
 										
-										::libmaus::uint::UInt<2*w> U = middle_leaf->data;
+										::libmaus2::uint::UInt<2*w> U = middle_leaf->data;
 										U <<= left_cnt;
 										U |= left_leaf->data;
 										

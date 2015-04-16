@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/FastAIndex.hpp>
+#include <libmaus2/fastx/FastAIndex.hpp>
 
-std::ostream & libmaus::fastx::operator<<(std::ostream & out, libmaus::fastx::FastAIndex const & index)
+std::ostream & libmaus2::fastx::operator<<(std::ostream & out, libmaus2::fastx::FastAIndex const & index)
 {
 	for ( uint64_t i = 0; i < index.sequences.size(); ++i )
 		out << index.sequences[i];

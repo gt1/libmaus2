@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_READGROUP_HPP)
 #define LIBMAUS_BAMBAM_READGROUP_HPP
 
-#include <libmaus/util/unordered_map.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/util/StringMapCompare.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/util/unordered_map.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/util/StringMapCompare.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
 #include <string>
 #include <ostream>
@@ -30,7 +30,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -42,7 +42,7 @@ namespace libmaus
 			//! read group id
 			std::string ID;
 			//! key,value map
-			::libmaus::util::unordered_map<std::string,std::string>::type M;
+			::libmaus2::util::unordered_map<std::string,std::string>::type M;
 			//! library id
 			int64_t LBid;
 			
@@ -82,7 +82,7 @@ namespace libmaus
 			template<typename iterator>
 			static uint32_t hash(iterator ita, iterator ite)
 			{
-				return libmaus::hashing::EvaHash::hash(reinterpret_cast<uint8_t const *>(ita),ite-ita);
+				return libmaus2::hashing::EvaHash::hash(reinterpret_cast<uint8_t const *>(ita),ite-ita);
 			}
 
 			/**
@@ -102,7 +102,7 @@ namespace libmaus
 				
 				linestr << "@RG\tID:" << ID;
 				
-				for ( ::libmaus::util::unordered_map<std::string,std::string>::type::const_iterator ita = M.begin();
+				for ( ::libmaus2::util::unordered_map<std::string,std::string>::type::const_iterator ita = M.begin();
 					ita != M.end(); ++ita )
 					linestr << "\t" << ita->first << ":" << ita->second;
 					
@@ -113,7 +113,7 @@ namespace libmaus
 		struct ReadGroupVectorMerge
 		{
 			typedef ReadGroupVectorMerge this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			struct ReadGroupIndexComparator
 			{
@@ -133,11 +133,11 @@ namespace libmaus
 					if ( RA.ID != RB.ID )
 						return RA.ID < RB.ID;
 					else if ( 
-						libmaus::util::StringMapCompare::compare(RA.M,RB.M)
+						libmaus2::util::StringMapCompare::compare(RA.M,RB.M)
 						||
-						libmaus::util::StringMapCompare::compare(RB.M,RA.M)
+						libmaus2::util::StringMapCompare::compare(RB.M,RA.M)
 					)
-						return libmaus::util::StringMapCompare::compare(RA.M,RB.M);
+						return libmaus2::util::StringMapCompare::compare(RA.M,RB.M);
 					else
 						return RA.LBid < RB.LBid;
 				}
@@ -217,5 +217,5 @@ namespace libmaus
  * @param RG read group
  * @return out
  **/
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadGroup const & RG);
+std::ostream & operator<<(std::ostream & out, libmaus2::bambam::ReadGroup const & RG);
 #endif

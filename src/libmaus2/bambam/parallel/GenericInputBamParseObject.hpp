@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEOBJECT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEOBJECT_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -33,16 +33,16 @@ namespace libmaus
 			struct GenericInputBamParseObject
 			{
 				typedef GenericInputBamParseObject this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				GenericInputSingleDataBamParseInfo * parseInfo;
-				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type block;
+				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type block;
 				
 				GenericInputBamParseObject() : parseInfo(0), block() {}
 				GenericInputBamParseObject(
 					GenericInputSingleDataBamParseInfo * rparseInfo,
-					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type rblock
+					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type rblock
 				) : parseInfo(rparseInfo), block(rblock)
 				{
 				}

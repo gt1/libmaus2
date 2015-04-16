@@ -6,9 +6,9 @@
  * For licensing please see Bob Jenkins's remarks below.
  */
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace hashing
 	{

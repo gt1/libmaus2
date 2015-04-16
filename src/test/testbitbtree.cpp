@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bitbtree/bitbtree.hpp>
-#include <libmaus/util/BitList.hpp>
-#include <libmaus/util/VarBitList.hpp>
+#include <libmaus2/bitbtree/bitbtree.hpp>
+#include <libmaus2/util/BitList.hpp>
+#include <libmaus2/util/VarBitList.hpp>
 
 template<unsigned int k, unsigned int w>
 int testBitBTreeShort()
 {
-	::libmaus::bitbtree::BitBTree<k,w> B;
-	::libmaus::util::VarBitList L;
+	::libmaus2::bitbtree::BitBTree<k,w> B;
+	::libmaus2::util::VarBitList L;
 	
 	for ( uint64_t i = 0; i < B.getN(); ++i )
 		std::cerr << B[i] << std::endl;
@@ -56,7 +56,7 @@ int testBitBTreeShort()
 	
 	for ( uint64_t i = 0; i < 5000; ++i )
 	{
-		typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type cloned(B.clone());
+		typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type cloned(B.clone());
 		
 		uint64_t const pos = rand() % (B.getN()+1);
 		// uint64_t const pos = B.getN();
@@ -110,9 +110,9 @@ int testBitBTreeShort()
 template<unsigned int k, unsigned int w>
 int testBitBTreeFunctionalityInsertDelete()
 {
-	::libmaus::bitbtree::BitBTree<k,w> B;
+	::libmaus2::bitbtree::BitBTree<k,w> B;
 	#if defined(BITTREE_DEBUG)
-	::libmaus::util::VarBitList L;
+	::libmaus2::util::VarBitList L;
 	#endif
 	
 	// srand(time(0));
@@ -185,7 +185,7 @@ int testBitBTreeFunctionalityInsertDelete()
 #endif
 			std::cerr << "\r                               \r" << B.getN() << "\t" << B.bitSize();
 		
-		typename ::libmaus::bitbtree::BitBTree<k,w>::unique_ptr_type clone(B.clone());
+		typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type clone(B.clone());
 
 		bool b = rand() % 2;
 		uint64_t p = rand() % (B.getN()+1);
@@ -260,7 +260,7 @@ int main()
 
 	for ( uint64_t i = 0; i < 128; ++i )
 	{
-		::libmaus::uint::UInt<2> U;
+		::libmaus2::uint::UInt<2> U;
 		U.setBit(i,true);
 		assert ( U.getBit(i) );
 		assert ( U.rank1(i) == 1 );
@@ -271,7 +271,7 @@ int main()
 	std::cerr << "---" << std::endl;
 
 	uint64_t n = 128;
-	::libmaus::bitbtree::BitBTree<k,w> B(n,false);
+	::libmaus2::bitbtree::BitBTree<k,w> B(n,false);
 	
 	std::cerr << B << std::endl;
 	

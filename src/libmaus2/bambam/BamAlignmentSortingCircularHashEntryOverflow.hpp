@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #define LIBMAUS_BAMBAM_BAMALIGNMENTSORTINGCIRCULARHASHENTRYOVERFLOW_HPP
 
 #include <string>
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
-#include <libmaus/bambam/SnappyAlignmentMergeInput.hpp>
-#include <libmaus/bambam/BamAlignmentExpungeCallback.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/bambam/BamAlignmentNameComparator.hpp>
+#include <libmaus2/bambam/SnappyAlignmentMergeInput.hpp>
+#include <libmaus2/bambam/BamAlignmentExpungeCallback.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
@@ -39,17 +39,17 @@ namespace libmaus
 			//! this type
 			typedef BamAlignmentSortingCircularHashEntryOverflow this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			//! temp/overflow file name
 			std::string const fn;
 			//! output file
-			libmaus::aio::CheckedOutputStream COS;
+			libmaus2::aio::CheckedOutputStream COS;
 			//! output buffer
-			libmaus::autoarray::AutoArray<uint64_t> B;
+			libmaus2::autoarray::AutoArray<uint64_t> B;
 			
 			//! end of output buffer
 			uint64_t * const Pe;
@@ -61,7 +61,7 @@ namespace libmaus
 			uint8_t * D;
 
 			//! name comparator on buffer
-			libmaus::bambam::BamAlignmentNameComparator BANC;
+			libmaus2::bambam::BamAlignmentNameComparator BANC;
 			
 			//! index for blocks in temp file
 			std::vector < std::pair<uint64_t,uint64_t> > index;
@@ -114,13 +114,13 @@ namespace libmaus
 			/**
 			 * construct reader for reading back merged and sorted entries on disk
 			 **/
-			libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type constructMergeInput()
+			libmaus2::bambam::SnappyAlignmentMergeInput::unique_ptr_type constructMergeInput()
 			{
 				flush();
 				COS.flush();
 				COS.close();
 				B.release();
-				libmaus::bambam::SnappyAlignmentMergeInput::unique_ptr_type ptr(libmaus::bambam::SnappyAlignmentMergeInput::construct(index,fn));
+				libmaus2::bambam::SnappyAlignmentMergeInput::unique_ptr_type ptr(libmaus2::bambam::SnappyAlignmentMergeInput::construct(index,fn));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 			
@@ -137,7 +137,7 @@ namespace libmaus
 
 				uint64_t const prepos = COS.tellp();
 					
-				::libmaus::lz::SnappyOutputStream<libmaus::aio::CheckedOutputStream> snapOut(COS,64*1024);
+				::libmaus2::lz::SnappyOutputStream<libmaus2::aio::CheckedOutputStream> snapOut(COS,64*1024);
 
 				uint64_t occnt = 0;
 				uint64_t outp = 0;
@@ -150,9 +150,9 @@ namespace libmaus
 						if ( 
 							inp+1 < nump && 
 							BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
-							(libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
+							(libmaus2::bambam::BamAlignmentDecoderBase::isRead1(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
 							!=
-							libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
+							libmaus2::bambam::BamAlignmentDecoderBase::isRead1(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
 						)
 						{
 							P [ occnt ++ ] = P[inp++];
@@ -180,9 +180,9 @@ namespace libmaus
 						if ( 
 							inp+1 < nump && 
 							BANC.compareIntNameOnly(P[inp],P[inp+1]) == 0 &&
-							(libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
+							(libmaus2::bambam::BamAlignmentDecoderBase::isRead1(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp  ]+sizeof(uint32_t)))
 							!=
-							libmaus::bambam::BamAlignmentDecoderBase::isRead1(libmaus::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
+							libmaus2::bambam::BamAlignmentDecoderBase::isRead1(libmaus2::bambam::BamAlignmentDecoderBase::getFlags(Da+P[inp+1]+sizeof(uint32_t))))
 						)
 						{
 							P [ occnt ++ ] = P[inp++];
@@ -250,8 +250,8 @@ namespace libmaus
 				// throw exception if buffer is empty but space is still too small for input data		
 				if ( needflush && (D == Da) )
 				{
-					libmaus::exception::LibMausException se;
-					se.getStream() << "libmaus::bambam::BamAlignmentSortingCircularHashEntryOverflow::needFlush(): buffer is too small for single alignment." << std::endl;
+					libmaus2::exception::LibMausException se;
+					se.getStream() << "libmaus2::bambam::BamAlignmentSortingCircularHashEntryOverflow::needFlush(): buffer is too small for single alignment." << std::endl;
 					se.finish();
 					throw se;
 				}
@@ -271,7 +271,7 @@ namespace libmaus
 			{
 				if ( needFlush(n,first) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BamAlignmentSortingCircularHashEntryOverflow::write(): need flush for " << tlen << " bytes." << std::endl;
 					se.finish();
 					throw se;

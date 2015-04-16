@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(ERANK3C_HPP)
 #define ERANK3C_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/rank/log2table.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/rank/log2table.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
 #include <cassert>
 #include <iostream>
 
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -43,10 +43,10 @@ namespace libmaus
 		struct ERank3C : public ERankBase
 		{
 			public:
-			typedef ::libmaus::bitio::FastWriteBitWriter2 writer_type;
+			typedef ::libmaus2::bitio::FastWriteBitWriter2 writer_type;
 
 			typedef ERank3C this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			static unsigned int const sbbitwidth = 16;
@@ -62,22 +62,22 @@ namespace libmaus
 			uint64_t const n;
 			uint64_t n1;
 			
-			::libmaus::autoarray::AutoArray<uint16_t> CU;
+			::libmaus2::autoarray::AutoArray<uint16_t> CU;
 			
 			uint64_t const nums;
 			// super block 1 bits
-			::libmaus::autoarray::AutoArray<uint64_t> S;
+			::libmaus2::autoarray::AutoArray<uint64_t> S;
 			// super block code bits
-			::libmaus::autoarray::AutoArray<uint64_t> SE;
+			::libmaus2::autoarray::AutoArray<uint64_t> SE;
 			
 			uint64_t const numl;
 			// large block 1 bits
-			::libmaus::autoarray::AutoArray<uint16_t> L;
+			::libmaus2::autoarray::AutoArray<uint16_t> L;
 			// large block code bits
-			::libmaus::autoarray::AutoArray<uint16_t> LE;
+			::libmaus2::autoarray::AutoArray<uint16_t> LE;
 			
 			uint64_t const numm;
-			::libmaus::autoarray::AutoArray<uint8_t> M;
+			::libmaus2::autoarray::AutoArray<uint8_t> M;
 			
 			public:
 			uint64_t byteSize() const
@@ -132,7 +132,7 @@ namespace libmaus
 				for ( unsigned int i = 0; i < num; ++i )
 				{
 					v <<= 1;
-					v |= ::libmaus::bitio::getBit2(U,offset+i);
+					v |= ::libmaus2::bitio::getBit2(U,offset+i);
 				}
 				
 				return v;
@@ -334,8 +334,8 @@ namespace libmaus
 				// ::std::cerr << "bits " << n << " coded bits " << scc << ::std::endl;
 
 				// coded bit vector				
-				CU = ::libmaus::autoarray::AutoArray<uint16_t>((scc + 15) / 16 , false );
-				::libmaus::bitio::BitWriter2 W(CU.get());
+				CU = ::libmaus2::autoarray::AutoArray<uint16_t>((scc + 15) / 16 , false );
+				::libmaus2::bitio::BitWriter2 W(CU.get());
 
 				l = 0, m = 0;
 				for ( uint64_t s = 0 ; s < nums; ++s )

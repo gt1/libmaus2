@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-std::ostream & libmaus::parallel::operator<<(std::ostream & out, libmaus::parallel::SimpleThreadWorkPackage const & T)
+std::ostream & libmaus2::parallel::operator<<(std::ostream & out, libmaus2::parallel::SimpleThreadWorkPackage const & T)
 {
 	out << "SimpleThreadWorkPackage(" 
 		<< "priority=" << T.priority 
@@ -30,7 +30,7 @@ std::ostream & libmaus::parallel::operator<<(std::ostream & out, libmaus::parall
 	return out;
 }
 
-std::ostream & libmaus::parallel::operator<<(std::ostream & out, libmaus::parallel::SimpleThreadWorkPackage const * T)
+std::ostream & libmaus2::parallel::operator<<(std::ostream & out, libmaus2::parallel::SimpleThreadWorkPackage const * T)
 {
 	out << "SimpleThreadWorkPackage(" 
 		<< "priority=" << T->priority 

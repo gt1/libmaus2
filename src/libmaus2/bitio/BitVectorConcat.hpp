@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(BITVECTORCONCAT_HPP)
 #define BITVECTORCONCAT_HPP
 
-#include <libmaus/serialize/Serialize.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/bitio/OutputBuffer.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/serialize/Serialize.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/bitio/OutputBuffer.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -52,17 +52,17 @@ namespace libmaus
 				// std::cerr << "bits=" << tbits << " n=" << n << " padwords=" << padwords << std::endl;
 
 				// number of code words
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n+padwords);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n+padwords);
 				
-				::libmaus::bitio::OutputBuffer<uint64_t> OB(bufsize,out);
-				::libmaus::bitio::OutputBufferIterator<uint64_t> outputiterator(OB);
-				::libmaus::bitio::FastWriteBitWriterBuffer64 writer(outputiterator);
+				::libmaus2::bitio::OutputBuffer<uint64_t> OB(bufsize,out);
+				::libmaus2::bitio::OutputBufferIterator<uint64_t> outputiterator(OB);
+				::libmaus2::bitio::FastWriteBitWriterBuffer64 writer(outputiterator);
 				
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					// std::cerr << filenames[i].first << "\t" << filenames[i].second << std::endl;
 				
-					::libmaus::aio::SynchronousGenericInput<uint64_t> in(filenames[i].first,bufsize);
+					::libmaus2::aio::SynchronousGenericInput<uint64_t> in(filenames[i].first,bufsize);
 					uint64_t const ibits = filenames[i].second;
 					uint64_t const fwords = ibits / (8*sizeof(uint64_t));
 					uint64_t const rbits = ibits - fwords * 8*sizeof(uint64_t);

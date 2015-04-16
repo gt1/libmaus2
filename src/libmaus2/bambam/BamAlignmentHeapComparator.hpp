@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTHEAPCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTHEAPCOMPARATOR_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -36,7 +36,7 @@ namespace libmaus
 			//! comparator object
 			comparator_type const & comp;
 			//! alignments array
-			::libmaus::bambam::BamAlignment const * A;
+			::libmaus2::bambam::BamAlignment const * A;
 
 			/**
 			 * constructor
@@ -44,7 +44,7 @@ namespace libmaus
 			 * @param rcomp base comparator type
 			 * @param rA alignments array
 			 **/
-			BamAlignmentHeapComparator(comparator_type const & rcomp, ::libmaus::bambam::BamAlignment const * rA) : comp(rcomp), A(rA)
+			BamAlignmentHeapComparator(comparator_type const & rcomp, ::libmaus2::bambam::BamAlignment const * rA) : comp(rcomp), A(rA)
 			{
 			
 			}

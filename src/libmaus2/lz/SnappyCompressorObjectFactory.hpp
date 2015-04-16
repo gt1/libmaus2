@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECTFACTORY_HPP)
 #define LIBMAUS_LZ_SNAPPYCOMPRESSOROBJECTFACTORY_HPP
 
-#include <libmaus/lz/SnappyCompressorObject.hpp>
-#include <libmaus/lz/CompressorObjectFactory.hpp>
+#include <libmaus2/lz/SnappyCompressorObject.hpp>
+#include <libmaus2/lz/CompressorObjectFactory.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyCompressorObjectFactory : public CompressorObjectFactory
 		{
 			typedef SnappyCompressorObjectFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			virtual ~SnappyCompressorObjectFactory() {}
 			virtual CompressorObject::unique_ptr_type operator()()

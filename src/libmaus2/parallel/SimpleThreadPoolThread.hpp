@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_PARALLEL_THREADPOOLTHREAD_HPP)
 #define LIBMAUS_PARALLEL_THREADPOOLTHREAD_HPP
 
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/SimpleThreadPoolInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
 #if defined(__linux__)
 #include <unistd.h>
 #include <sys/syscall.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
-		struct SimpleThreadPoolThread : libmaus::parallel::PosixThread
+		struct SimpleThreadPoolThread : libmaus2::parallel::PosixThread
 		{
 			typedef SimpleThreadPoolThread this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			SimpleThreadPoolInterface & tpi;
 
-			libmaus::parallel::PosixSpinLock curpacklock;
-			libmaus::parallel::SimpleThreadWorkPackage * curpack;
+			libmaus2::parallel::PosixSpinLock curpacklock;
+			libmaus2::parallel::SimpleThreadWorkPackage * curpack;
 			
 			uint64_t const threadid;
 			
@@ -51,9 +51,9 @@ namespace libmaus
 			}
 			virtual ~SimpleThreadPoolThread() {}
 			
-			libmaus::parallel::SimpleThreadWorkPackage * getCurrentPackage()
+			libmaus2::parallel::SimpleThreadWorkPackage * getCurrentPackage()
 			{
-				libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
+				libmaus2::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
 				return curpack;				
 			}
 		
@@ -72,9 +72,9 @@ namespace libmaus
 					bool running = true;
 					while ( running )
 					{
-						libmaus::parallel::SimpleThreadWorkPackage * P = tpi.getPackage();
+						libmaus2::parallel::SimpleThreadWorkPackage * P = tpi.getPackage();
 						{
-							libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
+							libmaus2::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
 							curpack = P;
 						}
 						
@@ -92,7 +92,7 @@ namespace libmaus
 						{
 							disp->dispatch(P,tpi);
 						}
-						catch(libmaus::exception::LibMausException const & ex)
+						catch(libmaus2::exception::LibMausException const & ex)
 						{
 							tpi.panic(ex);
 						}
@@ -102,7 +102,7 @@ namespace libmaus
 						}
 						
 						{
-							libmaus::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
+							libmaus2::parallel::ScopePosixSpinLock lcurpacklock(curpacklock);
 							curpack = 0;							
 						}
 					}

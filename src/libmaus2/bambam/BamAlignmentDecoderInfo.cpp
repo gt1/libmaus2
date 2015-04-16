@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamAlignmentDecoderInfo.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderInfo.hpp>
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::BamAlignmentDecoderInfo const & o)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::BamAlignmentDecoderInfo const & o)
 {
-	out << "libmaus::bambam::BamAlignmentDecoderInfo("
+	out << "libmaus2::bambam::BamAlignmentDecoderInfo("
 		<< "inputfilename=" << o.inputfilename << ","
 		<< "inputformat=" <<  o.inputformat << ","
 		<< "inputthreads=" << o.inputthreads << ","

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_FM_KMERCACHE_HPP)
 #define LIBMAUS_FM_KMERCACHE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/fm/BidirectionalIndexInterval.hpp>
-#include <libmaus/fastx/acgtnMap.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/fm/BidirectionalIndexInterval.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fm
 	{
 		struct KmerCache
 		{
 			typedef KmerCache this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			unsigned int const k;
-			libmaus::autoarray::AutoArray< libmaus::fm::BidirectionalIndexInterval > C;
+			libmaus2::autoarray::AutoArray< libmaus2::fm::BidirectionalIndexInterval > C;
 			
 			static unsigned int const bits_per_symbol = 2;
 			
@@ -43,7 +43,7 @@ namespace libmaus
 				unsigned int const shift = (k-i-1) * bits_per_symbol;
 				
 				// remove previous symbol
-				v &= ~(libmaus::math::lowbits(bits_per_symbol) << shift);
+				v &= ~(libmaus2::math::lowbits(bits_per_symbol) << shift);
 				// add new symbol
 				v |= sym << shift;
 				
@@ -55,8 +55,8 @@ namespace libmaus
 				std::ostringstream ostr;
 				
 				for ( unsigned int i = 0; i < k; ++i )
-					ostr << libmaus::fastx::remapChar(
-						(v >> ((k-i-1)*bits_per_symbol)) & (libmaus::math::lowbits(bits_per_symbol))
+					ostr << libmaus2::fastx::remapChar(
+						(v >> ((k-i-1)*bits_per_symbol)) & (libmaus2::math::lowbits(bits_per_symbol))
 					);
 					
 				return ostr.str();
@@ -67,7 +67,7 @@ namespace libmaus
 				std::ostringstream ostr;
 				
 				for ( unsigned int i = 0; i < k; ++i )
-					ostr << libmaus::fastx::remapChar(V[i]-1);
+					ostr << libmaus2::fastx::remapChar(V[i]-1);
 					
 				return ostr.str();
 			}
@@ -80,7 +80,7 @@ namespace libmaus
 			}
 			
 			public:
-			template<typename index_type, unsigned int range_low = libmaus::fastx::mapChar('A')+1, unsigned int range_high = libmaus::fastx::mapChar('T')+1>
+			template<typename index_type, unsigned int range_low = libmaus2::fastx::mapChar('A')+1, unsigned int range_high = libmaus2::fastx::mapChar('T')+1>
 			static unique_ptr_type construct(index_type const & index, unsigned int const k)
 			{
 				unique_ptr_type Tptr(new this_type(k));
@@ -88,7 +88,7 @@ namespace libmaus
 				
 				std::vector<char> S(k+1,range_low);
 
-				std::vector<libmaus::fm::BidirectionalIndexInterval> B(k+1);
+				std::vector<libmaus2::fm::BidirectionalIndexInterval> B(k+1);
 				B[k] = index.epsilon();
 				for ( uint64_t i = 0; i < k; ++i )
 					B[k-i-1] = index.backwardExtend(B[k-i],S[k-i-1]);
@@ -128,7 +128,7 @@ namespace libmaus
 			}
 			
 			template<typename index_type, typename iterator>
-			libmaus::fm::BidirectionalIndexInterval lookup(index_type const & index, iterator query, uint64_t m) const
+			libmaus2::fm::BidirectionalIndexInterval lookup(index_type const & index, iterator query, uint64_t m) const
 			{
 				if ( m < k )
 				{
@@ -145,7 +145,7 @@ namespace libmaus
 						v |= (*(cquery++))-1;
 					}
 
-					libmaus::fm::BidirectionalIndexInterval bint = C[v];
+					libmaus2::fm::BidirectionalIndexInterval bint = C[v];
 								
 					cquery = query + m - k;
 					

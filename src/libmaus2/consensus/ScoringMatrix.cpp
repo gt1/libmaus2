@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,12 +16,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/consensus/ScoringMatrix.hpp>
+#include <libmaus2/consensus/ScoringMatrix.hpp>
 
 #if defined(LIBMAUS_HAVE_SEQAN)
 
 // Print a scoring scheme matrix to stdout.
-void libmaus::consensus::ScoringMatrix::showMatrix(std::ostream & out) const
+void libmaus2::consensus::ScoringMatrix::showMatrix(std::ostream & out) const
 {
 	// Print top row.
 	for (unsigned i = 0; i < seqan::ValueSize<TSequenceValue>::VALUE; ++i)
@@ -38,7 +38,7 @@ void libmaus::consensus::ScoringMatrix::showMatrix(std::ostream & out) const
 	}
 }
 
-libmaus::consensus::ScoringMatrix::ScoringMatrix() : base_type(gap_open_penalty,gap_extend_penalty)
+libmaus2::consensus::ScoringMatrix::ScoringMatrix() : base_type(gap_open_penalty,gap_extend_penalty)
 {
 	/* keeping base: good(1), changing base: bad(-1) */
 	seqan::setScore(*this,'A','A',1);

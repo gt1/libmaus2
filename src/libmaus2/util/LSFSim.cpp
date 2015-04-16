@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/LSFSim.hpp>
+#include <libmaus2/util/LSFSim.hpp>
 
-void libmaus::util::LSFSim::init(std::string const &) {}
-std::string libmaus::util::LSFSim::getClusterName()
+void libmaus2::util::LSFSim::init(std::string const &) {}
+std::string libmaus2::util::LSFSim::getClusterName()
 {
 	return "local";
 }

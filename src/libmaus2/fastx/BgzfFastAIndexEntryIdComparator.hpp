@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_FASTX_BGZFFASTAINDEXENTRYIDCOMPARATOR_HPP)
 #define LIBMAUS_FASTX_BGZFFASTAINDEXENTRYIDCOMPARATOR_HPP
 
-#include <libmaus/fastx/BgzfFastAIndexEntry.hpp>
+#include <libmaus2/fastx/BgzfFastAIndexEntry.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{

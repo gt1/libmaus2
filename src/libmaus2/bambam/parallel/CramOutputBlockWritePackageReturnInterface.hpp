@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKWRITEPACKAGERETURNINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKWRITEPACKAGERETURNINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/CramOutputBlockWritePackage.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlockWritePackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{

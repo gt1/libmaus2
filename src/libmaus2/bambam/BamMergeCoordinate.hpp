@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMMERGECOORDINATE_HPP)
 #define LIBMAUS_BAMBAM_BAMMERGECOORDINATE_HPP
 
-#include <libmaus/bambam/BamCatHeader.hpp>
-#include <libmaus/bambam/BamMergeTemplate.hpp>
+#include <libmaus2/bambam/BamCatHeader.hpp>
+#include <libmaus2/bambam/BamMergeTemplate.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamMergeCoordinateHeapComparator
 		{
-			libmaus::bambam::BamAlignment ** algns;
+			libmaus2::bambam::BamAlignment ** algns;
 			
-			BamMergeCoordinateHeapComparator(libmaus::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
+			BamMergeCoordinateHeapComparator(libmaus2::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
 		
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
-				libmaus::bambam::BamAlignment const * A = algns[a];
-				libmaus::bambam::BamAlignment const * B = algns[b];
+				libmaus2::bambam::BamAlignment const * A = algns[a];
+				libmaus2::bambam::BamAlignment const * B = algns[b];
 			
 				uint32_t const refida = A->getRefID();
 				uint32_t const refidb = B->getRefID();
@@ -59,7 +59,7 @@ namespace libmaus
 		{
 			BamMergeCoordinate object;
 			
-			BamMergeCoordinateWrapper(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
+			BamMergeCoordinateWrapper(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(arginfo,filenames,putrank) {}
 			BamMergeCoordinateWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(filenames,putrank) {}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,22 +20,22 @@
 #if ! defined(RLINDEX_HPP)
 #define RLINDEX_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/LELoad.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/select/ImpCacheLineSelectSupport.hpp>
-#include <libmaus/math/ilog.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/LELoad.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/select/ImpCacheLineSelectSupport.hpp>
+#include <libmaus2/math/ilog.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 #include <map>
 #include <cmath>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rl
 	{
 		struct PairPushBuffer
 		{
-			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t>, ::libmaus::autoarray::alloc_type_c > A;
+			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t>, ::libmaus2::autoarray::alloc_type_c > A;
 			std::pair<uint64_t,uint64_t> * P;
 			
 			PairPushBuffer()
@@ -74,12 +74,12 @@ namespace libmaus
 			uint64_t const logsymsperblock;
 			uint64_t const symsperblock;
 			uint64_t const bytespern;
-			::libmaus::autoarray::AutoArray<uint64_t> const BP;
+			::libmaus2::autoarray::AutoArray<uint64_t> const BP;
 			uint64_t const numlogicalblocks;
 			uint64_t const dictbytes;
-			::libmaus::autoarray::AutoArray<uint8_t> const RL;
+			::libmaus2::autoarray::AutoArray<uint8_t> const RL;
 			
-			::libmaus::autoarray::AutoArray<uint64_t> updateBP(::libmaus::autoarray::AutoArray<uint64_t> BP)
+			::libmaus2::autoarray::AutoArray<uint64_t> updateBP(::libmaus2::autoarray::AutoArray<uint64_t> BP)
 			{
 				if ( BP.size() )
 				{
@@ -93,12 +93,12 @@ namespace libmaus
 			
 			RLSimpleIndexDataBase(std::istream & in)
 			:
-				n ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				numsyms ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				logsymsperblock ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				numsyms ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				logsymsperblock ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				symsperblock ( 1ull << logsymsperblock ),
-				bytespern ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				BP ( updateBP(::libmaus::autoarray::AutoArray<uint64_t>(in)) ),
+				bytespern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				BP ( updateBP(::libmaus2::autoarray::AutoArray<uint64_t>(in)) ),
 				numlogicalblocks(BP.size()),
 				dictbytes(numsyms * bytespern),
 				RL ( in )
@@ -107,12 +107,12 @@ namespace libmaus
 
 			RLSimpleIndexDataBase(std::istream & in, uint64_t & rsize)
 			:
-				n ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				numsyms ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				logsymsperblock ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				numsyms ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				logsymsperblock ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				symsperblock ( 1ull << logsymsperblock ),
-				bytespern ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				BP ( updateBP(::libmaus::autoarray::AutoArray<uint64_t>(in,rsize)) ),
+				bytespern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				BP ( updateBP(::libmaus2::autoarray::AutoArray<uint64_t>(in,rsize)) ),
 				numlogicalblocks(BP.size()),
 				dictbytes(numsyms * bytespern),
 				RL ( in, rsize )
@@ -141,8 +141,8 @@ namespace libmaus
 			uint64_t const paybytes;
 			uint64_t const byterunthres;
 			uint64_t const symsperblock;
-			::libmaus::autoarray::AutoArray<uint8_t> const RL;
-			::libmaus::rank::ImpCacheLineRank const ICLR;
+			::libmaus2::autoarray::AutoArray<uint8_t> const RL;
+			::libmaus2::rank::ImpCacheLineRank const ICLR;
 			uint64_t const n1;
 			uint64_t const n0;
 			double const avg;
@@ -150,16 +150,16 @@ namespace libmaus
 			uint64_t const runsperblock;
 			unsigned int const ilog;
 			uint64_t const downrunsperblock;
-			::libmaus::select::ImpCacheLineSelectSupport const ISS;
+			::libmaus2::select::ImpCacheLineSelectSupport const ISS;
 			uint64_t const numlogicalblocks;
-			// ::libmaus::autoarray::AutoArray<uint64_t> const D;
+			// ::libmaus2::autoarray::AutoArray<uint64_t> const D;
 			
 			static uint64_t getSymsPerBlock(std::istream & in)
 			{
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				return ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				return ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 			
 			static uint64_t getSymsPerBlock(std::string const & filename)
@@ -177,15 +177,15 @@ namespace libmaus
 						
 			RLIndexDataBase(std::istream & in)
 			: 
-				n ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				bitspern ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				bytespern ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				numsyms ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				dictbytes ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				cachelinebytes ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				paybytes ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				byterunthres ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				symsperblock ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				bitspern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				bytespern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				numsyms ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				dictbytes ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				cachelinebytes ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				paybytes ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				byterunthres ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				symsperblock ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				RL(in),
 				ICLR(in),
 				n1(ICLR.n ? ICLR.rank1(ICLR.n-1) : 0),
@@ -193,7 +193,7 @@ namespace libmaus
 				avg(n0/static_cast<double>(n1-1.0)),
 				rl(1.0+avg),
 				runsperblock ( static_cast<uint64_t>(std::floor((6.0*64.0)/rl)) ),
-				ilog(::libmaus::math::ilog(runsperblock)),
+				ilog(::libmaus2::math::ilog(runsperblock)),
 				downrunsperblock(1ull << ilog),
 				ISS(ICLR,ilog),
 				numlogicalblocks( (n + symsperblock -1 ) / symsperblock )
@@ -203,15 +203,15 @@ namespace libmaus
 
 			RLIndexDataBase(std::istream & in, uint64_t & rsize)
 			: 
-				n ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				bitspern ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				bytespern ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				numsyms ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				dictbytes ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				cachelinebytes ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				paybytes ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				byterunthres ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-				symsperblock ( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				n ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				bitspern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				bytespern ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				numsyms ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				dictbytes ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				cachelinebytes ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				paybytes ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				byterunthres ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+				symsperblock ( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				RL(in,rsize),
 				ICLR(in,rsize),
 				n1(ICLR.n ? ICLR.rank1(ICLR.n-1) : 0),
@@ -219,7 +219,7 @@ namespace libmaus
 				avg(n0/static_cast<double>(n1-1.0)),
 				rl(1.0+avg),
 				runsperblock ( static_cast<uint64_t>(std::floor((6.0*64.0)/rl)) ),
-				ilog(::libmaus::math::ilog(runsperblock)),
+				ilog(::libmaus2::math::ilog(runsperblock)),
 				downrunsperblock(1ull << ilog),
 				ISS(ICLR,ilog),
 				numlogicalblocks( (n + symsperblock -1 ) / symsperblock )
@@ -270,28 +270,28 @@ namespace libmaus
 			typedef _base_type base_type;
 		
 			typedef RLIndexTemplate<base_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			::libmaus::autoarray::AutoArray<uint64_t> const D;
+			::libmaus2::autoarray::AutoArray<uint64_t> const D;
 
-			::libmaus::autoarray::AutoArray<uint64_t> computeDArray() const
+			::libmaus2::autoarray::AutoArray<uint64_t> computeDArray() const
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> D(base_type::numsyms);
+				::libmaus2::autoarray::AutoArray<uint64_t> D(base_type::numsyms);
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					D[i] = base_type::n ? rank(i,base_type::n-1) : 0;
 				return D;
 			}
 
-			::libmaus::autoarray::AutoArray<int64_t> symbolArray() const
+			::libmaus2::autoarray::AutoArray<int64_t> symbolArray() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> A(base_type::numsyms);
+				::libmaus2::autoarray::AutoArray<int64_t> A(base_type::numsyms);
 				for ( uint64_t i = 0; i < base_type::numsyms; ++i )
 					A[i] = i;
 				return A;
 			}
 
-			::libmaus::autoarray::AutoArray<int64_t> getSymbolArray() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbolArray() const
 			{
 				return symbolArray();
 			}
@@ -307,7 +307,7 @@ namespace libmaus
 				
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLIndex::load(): failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -317,7 +317,7 @@ namespace libmaus
 
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLIndex::load(): failed to load file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -373,11 +373,11 @@ namespace libmaus
 			{
 				switch ( base_type::bytespern )
 				{
-					case 1: return ::libmaus::util::loadValueLE1(p);
-					case 2: return ::libmaus::util::loadValueLE2(p);
-					case 3: return ::libmaus::util::loadValueLE3(p);
-					case 4: return ::libmaus::util::loadValueLE4(p);
-					case 5: return ::libmaus::util::loadValueLE5(p);
+					case 1: return ::libmaus2::util::loadValueLE1(p);
+					case 2: return ::libmaus2::util::loadValueLE2(p);
+					case 3: return ::libmaus2::util::loadValueLE3(p);
+					case 4: return ::libmaus2::util::loadValueLE4(p);
+					case 5: return ::libmaus2::util::loadValueLE5(p);
 					default: assert(0);
 				}
 			}
@@ -443,7 +443,7 @@ namespace libmaus
 				//std::cerr << "block offset=" << off << std::endl;
 				uint8_t const * p = base_type::RL.begin()+off;
 
-				::libmaus::util::LoadMultipleValuesCall::loadMultipleValues(p,C,base_type::numsyms,base_type::bytespern);
+				::libmaus2::util::LoadMultipleValuesCall::loadMultipleValues(p,C,base_type::numsyms,base_type::bytespern);
 				p += base_type::dictbytes;
 						
 				uint64_t rl;
@@ -718,7 +718,7 @@ namespace libmaus
 				uint64_t * C = reinterpret_cast<uint64_t *>(alloca( base_type::numsyms * sizeof(uint64_t) ));
 #endif
 
-				::libmaus::util::LoadMultipleValuesCall::loadMultipleValues(p,C,base_type::numsyms,base_type::bytespern);
+				::libmaus2::util::LoadMultipleValuesCall::loadMultipleValues(p,C,base_type::numsyms,base_type::bytespern);
 				p += base_type::dictbytes;
 
 				uint64_t rl;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if !defined(LIBMAUS_FASTX_FASTABGZFDECODER_HPP)
 #define LIBMAUS_FASTX_FASTABGZFDECODER_HPP
 
-#include <libmaus/fastx/FastABgzfDecoderBuffer.hpp>
+#include <libmaus2/fastx/FastABgzfDecoderBuffer.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-		struct FastABgzfDecoder : public ::libmaus::fastx::FastABgzfDecoderBuffer, public ::std::istream
+		struct FastABgzfDecoder : public ::libmaus2::fastx::FastABgzfDecoderBuffer, public ::std::istream
 		{
 			typedef FastABgzfDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			FastABgzfDecoder(
 				std::string const & filename,
-				::libmaus::fastx::FastABgzfIndexEntry const & indexentry,
+				::libmaus2::fastx::FastABgzfIndexEntry const & indexentry,
 				uint64_t const blocksize
 			)
-			: ::libmaus::fastx::FastABgzfDecoderBuffer(filename,indexentry,blocksize), ::std::istream(this)
+			: ::libmaus2::fastx::FastABgzfDecoderBuffer(filename,indexentry,blocksize), ::std::istream(this)
 			{
 				
 			}
 			FastABgzfDecoder(
 				std::istream & stream,
-				::libmaus::fastx::FastABgzfIndexEntry const & indexentry,
+				::libmaus2::fastx::FastABgzfIndexEntry const & indexentry,
 				uint64_t const blocksize
 			)
-			: ::libmaus::fastx::FastABgzfDecoderBuffer(stream,indexentry,blocksize), ::std::istream(this)
+			: ::libmaus2::fastx::FastABgzfDecoderBuffer(stream,indexentry,blocksize), ::std::istream(this)
 			{
 				
 			}

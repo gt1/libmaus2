@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTS_HPP)
 #define LIBMAUS_DIGEST_DIGESTS_HPP
 
-#include <libmaus/util/md5.hpp>
-#include <libmaus/digest/CRC32.hpp>
-#include <libmaus/digest/CRC32C.hpp>
-#include <libmaus/digest/Null.hpp>
-#include <libmaus/digest/SHA1.hpp>
-#include <libmaus/digest/SHA2_224.hpp>
-#include <libmaus/digest/SHA2_256.hpp>
-#include <libmaus/digest/SHA2_384.hpp>
-#include <libmaus/digest/SHA2_512.hpp>
-#include <libmaus/digest/SHA2_256_sse4.hpp>
-#include <libmaus/digest/SHA2_512_sse4.hpp>
+#include <libmaus2/digest/md5.hpp>
+#include <libmaus2/digest/CRC32.hpp>
+#include <libmaus2/digest/CRC32C.hpp>
+#include <libmaus2/digest/Null.hpp>
+#include <libmaus2/digest/SHA1.hpp>
+#include <libmaus2/digest/SHA2_224.hpp>
+#include <libmaus2/digest/SHA2_256.hpp>
+#include <libmaus2/digest/SHA2_384.hpp>
+#include <libmaus2/digest/SHA2_512.hpp>
+#include <libmaus2/digest/SHA2_256_sse4.hpp>
+#include <libmaus2/digest/SHA2_512_sse4.hpp>
 #endif

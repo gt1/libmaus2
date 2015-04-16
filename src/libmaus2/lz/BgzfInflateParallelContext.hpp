@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,36 +19,36 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEPARALLELCONTEXT_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEPARALLELCONTEXT_HPP
 
-#include <libmaus/lz/BgzfInflateBlock.hpp>
-#include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
-#include <libmaus/parallel/TerminatableSynchronousHeap.hpp>
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/OMPNumThreadsScope.hpp>
-#include <libmaus/lz/BgzfInflateBlockIdComparator.hpp>
-#include <libmaus/lz/BgzfInflateBlockIdInfo.hpp>
+#include <libmaus2/lz/BgzfInflateBlock.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousHeap.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/OMPNumThreadsScope.hpp>
+#include <libmaus2/lz/BgzfInflateBlockIdComparator.hpp>
+#include <libmaus2/lz/BgzfInflateBlockIdInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateParallelContext
 		{
-			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+			libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 				& inflategloblist;
 
 			std::istream & inflatein;
 			uint64_t inflateinid;
-			libmaus::parallel::PosixMutex inflateinlock;
+			libmaus2::parallel::PosixMutex inflateinlock;
 			
-			libmaus::parallel::PosixMutex inflateqlock;
+			libmaus2::parallel::PosixMutex inflateqlock;
 
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> inflateB;
+			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> inflateB;
 			
 			std::deque<uint64_t> inflatefreelist;
 			std::deque<uint64_t> inflatereadlist;
 			BgzfInflateBlockIdComparator inflateheapcomp;
 			BgzfInflateBlockIdInfo inflateheapinfo;
-			libmaus::parallel::SynchronousConsecutiveHeap<
+			libmaus2::parallel::SynchronousConsecutiveHeap<
 				BgzfThreadQueueElement,
 				BgzfInflateBlockIdInfo,
 				BgzfInflateBlockIdComparator
@@ -64,7 +64,7 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
 				{
-					libmaus::lz::BgzfInflateBlock::unique_ptr_type tinflateB(new libmaus::lz::BgzfInflateBlock(i));
+					libmaus2::lz::BgzfInflateBlock::unique_ptr_type tinflateB(new libmaus2::lz::BgzfInflateBlock(i));
 					inflateB[i] = UNIQUE_PTR_MOVE(tinflateB);
 					inflatefreelist.push_back(i);
 				}			
@@ -72,7 +72,7 @@ namespace libmaus
 				for ( uint64_t i = 0; i < inflateB.size(); ++i )
 					inflategloblist.enque(
 						BgzfThreadQueueElement(
-					        	libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_read_block,
+					        	libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_read_block,
 					        	i,
 					        	0
 						)
@@ -80,7 +80,7 @@ namespace libmaus
 			}
 		
 			BgzfInflateParallelContext(
-				libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+				libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 					& rinflategloblist,
 				std::istream & rinflatein, uint64_t const rnumblocks
 			)
@@ -95,7 +95,7 @@ namespace libmaus
 			}
 
 			BgzfInflateParallelContext(
-				libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+				libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 					& rinflategloblist,
 				std::istream & rinflatein, uint64_t const rnumblocks, std::ostream & rcopyostr
 			)

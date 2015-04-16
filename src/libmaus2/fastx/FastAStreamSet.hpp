@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,37 +19,37 @@
 #if ! defined(LIBMAUS_FASTX_FASTASTREAMSET_HPP)
 #define LIBMAUS_FASTX_FASTASTREAMSET_HPP
 
-#include <libmaus/fastx/FastAStream.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
-#include <libmaus/util/ToUpperTable.hpp>
-#include <libmaus/util/md5.hpp>
+#include <libmaus2/fastx/FastAStream.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
+#include <libmaus2/util/ToUpperTable.hpp>
+#include <libmaus2/digest/md5.hpp>
 
-#include <libmaus/fastx/RefPathTokenVectorSequence.hpp>
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/fastx/RefPathTokenVectorSequence.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastAStreamSet
 		{
-			::libmaus::fastx::FastALineParser parser;
+			::libmaus2::fastx::FastALineParser parser;
 			
 			FastAStreamSet(std::istream & in) : parser(in) {}
 			
 			bool getNextStream(std::pair<std::string,FastAStream::shared_ptr_type> & P)
 			{
-				::libmaus::fastx::FastALineParserLineInfo line;
+				::libmaus2::fastx::FastALineParserLineInfo line;
 				
 				if ( ! parser.getNextLine(line) )
 					return false;
 				
-				if ( line.linetype != ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line )
+				if ( line.linetype != ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "FastAStreamSet::getNextStream(): unexpected line type" << std::endl;
 					se.finish();
 					throw se;
@@ -57,8 +57,8 @@ namespace libmaus
 				
 				std::string const id(line.line,line.line+line.linelen);		
 
-				libmaus::fastx::FastAStream::shared_ptr_type ptr(
-					new libmaus::fastx::FastAStream(parser,64*1024,0));
+				libmaus2::fastx::FastAStream::shared_ptr_type ptr(
+					new libmaus2::fastx::FastAStream(parser,64*1024,0));
 					
 				P.first = id;
 				P.second = ptr;
@@ -70,11 +70,11 @@ namespace libmaus
 			{
 				std::pair<std::string,FastAStream::shared_ptr_type> P;
 				std::map<std::string,std::string> M;
-				libmaus::autoarray::AutoArray<char> B(64*1024,false);
+				libmaus2::autoarray::AutoArray<char> B(64*1024,false);
 				unsigned char * u = reinterpret_cast<unsigned char *>(B.begin());
-				libmaus::fastx::SpaceTable const S;
-				libmaus::util::ToUpperTable const T;
-				uint8_t digest[libmaus::util::MD5::digestlength];
+				libmaus2::fastx::SpaceTable const S;
+				libmaus2::util::ToUpperTable const T;
+				uint8_t digest[libmaus2::util::MD5::digestlength];
 				
 				char const * datadir = writedata ? getenv("REF_CACHE") : NULL;
 				if ( (!datadir) || (!*datadir) )
@@ -94,7 +94,7 @@ namespace libmaus
 				{
 					std::string id = P.first;
 					std::istream & str = *(P.second);
-					libmaus::util::MD5 md5;
+					libmaus2::util::MD5 md5;
 					md5.init();
 
 					std::ostringstream data;
@@ -149,7 +149,7 @@ namespace libmaus
 							if ( e.find("URL=") != std::string::npos && e.find("URL=") == 0 )
 								e = e.substr(strlen("URL="));
 
-							if ( libmaus::aio::InputStreamFactoryContainer::tryOpen(e) )
+							if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(e) )
 							{
 								found = true;
 								foundfn = e;
@@ -159,24 +159,24 @@ namespace libmaus
 						// data not found in cache
 						if ( !found )
 						{
-							libmaus::aio::PosixFdOutputStream PFOS(E.back());
+							libmaus2::aio::PosixFdOutputStream PFOS(E.back());
 							std::string const sdata = data.str();
 							PFOS.write(sdata.c_str(),sdata.size());
 							PFOS.flush();
 							if ( ! PFOS )
 							{
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "libmaus::fastx::FastAStreamSet: computeMD5 failed to write sequence data to file" << E.back() << std::endl;
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::fastx::FastAStreamSet: computeMD5 failed to write sequence data to file" << E.back() << std::endl;
 								lme.finish();
 								throw lme;
 							}
 						}
 						else if ( verify )
 						{
-							libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(foundfn));
+							libmaus2::aio::InputStream::unique_ptr_type Pin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(foundfn));
 							std::istream & PFIS = *Pin;
 
-							libmaus::util::MD5 checkmd5;
+							libmaus2::util::MD5 checkmd5;
 							checkmd5.init();
 
 							while ( PFIS )
@@ -190,8 +190,8 @@ namespace libmaus
 							
 							if ( scheckdigest != sdigest )
 							{
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "libmaus::fastx::FastAStreamSet: checksum for file " << foundfn << " is wrong" << std::endl;
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::fastx::FastAStreamSet: checksum for file " << foundfn << " is wrong" << std::endl;
 								lme.finish();
 								throw lme;
 							}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,19 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-#include <libmaus/bitio/PacDecoderBuffer.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/bitio/PacDecoderBuffer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
 		
 		#if 0
-		::libmaus::bitio::PacDecoderWrapper PDW(fn);
-		::libmaus::autoarray::AutoArray<char> C(64*1024);
+		::libmaus2::bitio::PacDecoderWrapper PDW(fn);
+		::libmaus2::autoarray::AutoArray<char> C(64*1024);
 		
 		while ( PDW )
 		{
@@ -42,14 +42,14 @@ int main(int argc, char * argv[])
 		#endif
 
 		{
-		::libmaus::bitio::PacDecoderTermWrapper PDW(fn,16*1024);
+		::libmaus2::bitio::PacDecoderTermWrapper PDW(fn,16*1024);
 		int r = -1;
 		while ( (r = PDW.get()) >= 0 )
 			std::cout << r;
 		std::cout << std::endl;
 		}
 		{
-		::libmaus::bitio::PacDecoderWrapper PDW(fn,16*1024);
+		::libmaus2::bitio::PacDecoderWrapper PDW(fn,16*1024);
 		int r = -1;
 		while ( (r = PDW.get()) >= 0 )
 			std::cout << r;

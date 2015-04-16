@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_NETWORK_FTPSOCKETINPUTSTREAMBUFFER_HPP)
 #define LIBMAUS_NETWORK_FTPSOCKETINPUTSTREAMBUFFER_HPP
 
-#include <libmaus/network/FtpSocketWrapper.hpp>
-#include <libmaus/network/SocketInputStreamBuffer.hpp>
+#include <libmaus2/network/FtpSocketWrapper.hpp>
+#include <libmaus2/network/SocketInputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct FtpSocketInputStreamBuffer : public FtpSocketWrapper, public SocketInputStreamBuffer
 		{
 			typedef FtpSocketInputStreamBuffer this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			FtpSocketInputStreamBuffer(
 				std::string const & url,
@@ -38,8 +38,8 @@ namespace libmaus
 				uint64_t const pushbacksize = 0
 			) 
 			:
-				libmaus::network::FtpSocketWrapper(url),
-				libmaus::network::SocketInputStreamBuffer(getFtpSocket(),bufsize,pushbacksize)
+				libmaus2::network::FtpSocketWrapper(url),
+				libmaus2::network::SocketInputStreamBuffer(getFtpSocket(),bufsize,pushbacksize)
 			{
 			
 			}

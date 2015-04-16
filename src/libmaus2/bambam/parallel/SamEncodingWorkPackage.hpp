@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMENCODINGWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMENCODINGWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/ScramCramEncoding.hpp>
-#include <libmaus/bambam/parallel/SamEncoderObject.hpp>
-#include <libmaus/bambam/BamFormatAuxiliary.hpp>
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/bambam/parallel/ScramCramEncoding.hpp>
+#include <libmaus2/bambam/parallel/SamEncoderObject.hpp>
+#include <libmaus2/bambam/BamFormatAuxiliary.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -48,7 +48,7 @@ namespace libmaus
 				void dispatch()
 				{
 					SamEncoderObject * encoder = reinterpret_cast<SamEncoderObject *>(context);
-					::libmaus::bambam::BamFormatAuxiliary auxdata;
+					::libmaus2::bambam::BamFormatAuxiliary auxdata;
 					
 					for ( size_t b = 0; b < numblocks; ++b )
 					{
@@ -60,11 +60,11 @@ namespace libmaus
 						
 						while ( A != Ae )
 						{
-							uint32_t const len = libmaus::bambam::DecoderBase::getLEInteger(
+							uint32_t const len = libmaus2::bambam::DecoderBase::getLEInteger(
 								reinterpret_cast<uint8_t const *>(A),sizeof(uint32_t));
 							A += sizeof(uint32_t);
 
-							libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(ostr,
+							libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(ostr,
 								reinterpret_cast<uint8_t const *>(A),len,*(encoder->Pheader),auxdata);
 							ostr.put('\n');
 							

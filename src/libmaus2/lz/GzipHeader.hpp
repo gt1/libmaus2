@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(GZIPHEADER_HPP)
 #define GZIPHEADER_HPP
 
-#include <libmaus/lz/StreamWrapper.hpp>
-#include <libmaus/types/types.hpp>
-#include <libmaus/lz/Inflate.hpp>
+#include <libmaus2/lz/StreamWrapper.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/lz/Inflate.hpp>
 #include <istream>
 #include <ostream>
 #include <vector>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -72,7 +72,7 @@ namespace libmaus
 				
 				if ( c < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::getByte(): reached unexpected end of file (broken file?)" << std::endl;
 					se.finish();
 					throw se;
@@ -209,7 +209,7 @@ namespace libmaus
 				
 				if ( (FID1 != ID1) || (FID2 != ID2) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::init(): file starts with non GZIP magic, expected " 
 						<< std::hex << static_cast<int>(ID1)  << ":" << static_cast<int>(ID2) << std::dec
 						<< " got "
@@ -223,7 +223,7 @@ namespace libmaus
 
 				if ( FCM != CM )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::init(): unknown compression method " << static_cast<int>(FCM) << std::endl;
 					se.finish();
 					throw se;				
@@ -338,7 +338,7 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::GzipHeader(): failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;				
@@ -364,7 +364,7 @@ namespace libmaus
 				
 				if ( (FID1 != ID1) || (FID2 != ID2) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::init(): file starts with non GZIP magic, expected " 
 						<< std::hex << static_cast<int>(ID1)  << ":" << static_cast<int>(ID2) << std::dec
 						<< " got "
@@ -378,7 +378,7 @@ namespace libmaus
 
 				if ( FCM != CM )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::init(): unknown compression method " << static_cast<int>(FCM) << std::endl;
 					se.finish();
 					throw se;				
@@ -443,7 +443,7 @@ namespace libmaus
 				
 				if ( (FID1 != ID1) || (FID2 != ID2) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::init(): file starts with non GZIP magic, expected " 
 						<< std::hex << static_cast<int>(ID1)  << ":" << static_cast<int>(ID2) << std::dec
 						<< " got "
@@ -457,7 +457,7 @@ namespace libmaus
 
 				if ( FCM != CM )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::init(): unknown compression method " << static_cast<int>(FCM) << std::endl;
 					se.finish();
 					throw se;				
@@ -520,7 +520,7 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "GzipHeader::GzipHeader(): failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;				

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,10 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/CircularHashCollatingBamDecoder.hpp>	
-#include <libmaus/bambam/BamWriter.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>	
+#include <libmaus2/bambam/BamWriter.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 using namespace std;
 
@@ -27,24 +27,24 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		/* remove temporary file at program exit */
 		std::string const tmpfilename = "tmpfile";
-		libmaus::util::TempFileRemovalContainer::addTempFile(tmpfilename);
+		libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilename);
 		
 		if ( arginfo.getPairCount("I") )
 		{
-			typedef libmaus::bambam::BamMergeCoordinateCircularHashCollatingBamDecoder collator_type;
+			typedef libmaus2::bambam::BamMergeCoordinateCircularHashCollatingBamDecoder collator_type;
 			typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
 			/* set up collator object */	
 			collator_type C(arginfo.getPairValues("I"),tmpfilename,0,true,20,32*1024*1024);
-			libmaus::bambam::BamHeader const & bamheader = C.getHeader();
+			libmaus2::bambam::BamHeader const & bamheader = C.getHeader();
 			// collator_type C(cin,8,tmpfilename);
 			pair<alignment_ptr_type,alignment_ptr_type> P;
 			
-			libmaus::bambam::BamWriter writer(std::cout,bamheader,0);
+			libmaus2::bambam::BamWriter writer(std::cout,bamheader,0);
 
 			/* read alignments */	
 			while ( C.tryPair(P) )
@@ -57,17 +57,17 @@ int main(int argc, char * argv[])
 		}
 		else
 		{
-			typedef libmaus::bambam::BamCircularHashCollatingBamDecoder collator_type;
+			typedef libmaus2::bambam::BamCircularHashCollatingBamDecoder collator_type;
 			// typedef BamParallelCircularHashCollatingBamDecoder collator_type;
 			typedef collator_type::alignment_ptr_type alignment_ptr_type;
 
 			/* set up collator object */	
 			collator_type C(cin,tmpfilename,0,true,20,32*1024*1024);
-			libmaus::bambam::BamHeader const & bamheader = C.getHeader();
+			libmaus2::bambam::BamHeader const & bamheader = C.getHeader();
 			// collator_type C(cin,8,tmpfilename);
 			pair<alignment_ptr_type,alignment_ptr_type> P;
 
-			libmaus::bambam::BamWriter writer(std::cout,bamheader,0);
+			libmaus2::bambam::BamWriter writer(std::cout,bamheader,0);
 
 			/* read alignments */	
 			while ( C.tryPair(P) )

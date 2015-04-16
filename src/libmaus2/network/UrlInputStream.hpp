@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_NETWORK_URLINPUTSTREAM_HPP)
 #define LIBMAUS_NETWORK_URLINPUTSTREAM_HPP
 
-#include <libmaus/network/UrlInputStreamBufferWrapper.hpp>
+#include <libmaus2/network/UrlInputStreamBufferWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct UrlInputStream : public UrlInputStreamBufferWrapper, public std::istream
 		{
 			typedef UrlInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			public:
 			UrlInputStream(std::string const & url, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 0)

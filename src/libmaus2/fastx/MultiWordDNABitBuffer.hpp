@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(LIBMAUS_FASTX_MULTIWORDDNABITBUFFER)
 #define LIBMAUS_FASTX_MULTIWORDDNABITBUFFER
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -47,10 +47,10 @@ namespace libmaus
 			unsigned int const width2;
 			unsigned int const singlewordbuffers;
 			unsigned int const fullshift;
-			::libmaus::autoarray::AutoArray < unsigned int > const basewidth;
-			::libmaus::autoarray::AutoArray < unsigned int > const topshift;
-			::libmaus::autoarray::AutoArray < data_type > const masks;
-			::libmaus::autoarray::AutoArray < data_type > buffers;
+			::libmaus2::autoarray::AutoArray < unsigned int > const basewidth;
+			::libmaus2::autoarray::AutoArray < unsigned int > const topshift;
+			::libmaus2::autoarray::AutoArray < data_type > const masks;
+			::libmaus2::autoarray::AutoArray < data_type > buffers;
 
 			void assign(MultiWordDNABitBuffer const & o)
 			{
@@ -74,9 +74,9 @@ namespace libmaus
 			}
 
 
-			::libmaus::autoarray::AutoArray < unsigned int > generateBaseWidth()
+			::libmaus2::autoarray::AutoArray < unsigned int > generateBaseWidth()
 			{
-				::libmaus::autoarray::AutoArray<unsigned int> basewidth(singlewordbuffers);
+				::libmaus2::autoarray::AutoArray<unsigned int> basewidth(singlewordbuffers);
 
 				for ( unsigned int i = 0; i < singlewordbuffers; ++i )
 					basewidth[i] = getMaxBasesPerWord();
@@ -86,9 +86,9 @@ namespace libmaus
 				return basewidth;
 			}
 
-			::libmaus::autoarray::AutoArray < unsigned int > generateTopShift()
+			::libmaus2::autoarray::AutoArray < unsigned int > generateTopShift()
 			{
-				::libmaus::autoarray::AutoArray<unsigned int> topshift(singlewordbuffers);
+				::libmaus2::autoarray::AutoArray<unsigned int> topshift(singlewordbuffers);
 
 				for ( unsigned int i = 0; i < singlewordbuffers; ++i )
 					topshift[i] = 2*(basewidth[i]-1);;
@@ -96,12 +96,12 @@ namespace libmaus
 				return topshift;
 			}
 
-			::libmaus::autoarray::AutoArray < data_type > generateMasks()
+			::libmaus2::autoarray::AutoArray < data_type > generateMasks()
 			{
-				::libmaus::autoarray::AutoArray<data_type> masks(singlewordbuffers);
+				::libmaus2::autoarray::AutoArray<data_type> masks(singlewordbuffers);
 
 				for ( unsigned int i = 0; i < singlewordbuffers; ++i )
-					masks[i] = ::libmaus::math::lowbits(2*basewidth[i]);
+					masks[i] = ::libmaus2::math::lowbits(2*basewidth[i]);
 
 				return masks;
 			}
@@ -162,7 +162,7 @@ namespace libmaus
 				unsigned int const width2 = width*2;
 				unsigned int const width22 = width2-2;
 				unsigned int shift = width22;
-				data_type pmask = ::libmaus::math::lowbits(2) << shift;
+				data_type pmask = ::libmaus2::math::lowbits(2) << shift;
 				std::ostringstream ostr;
 
 				for ( unsigned int i = 0; i < width; ++i, pmask >>= 2, shift -= 2 )

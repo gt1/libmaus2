@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if !defined(LIBMAUS_LZ_LZ4COMPRESSSTREAMBUFFER_HPP)
 #define LIBMAUS_LZ_LZ4COMPRESSSTREAMBUFFER_HPP
 
-#include <libmaus/lz/Lz4CompressWrapper.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/Lz4CompressWrapper.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <ostream>
 #include <streambuf>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct Lz4CompressStreamBuffer : public Lz4CompressWrapper, public ::std::streambuf
 		{
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 		
 			Lz4CompressStreamBuffer(std::ostream & out, uint64_t const blocksize)
 			: Lz4CompressWrapper(out, blocksize), buffer(blocksize,false)

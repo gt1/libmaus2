@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_PARALLEL_THREADPOOLINTERFACE_HPP)
 #define LIBMAUS_PARALLEL_THREADPOOLINTERFACE_HPP
 
-#include <libmaus/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/ThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/ThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
@@ -34,8 +34,8 @@ namespace libmaus
 			virtual void registerDispatcher(uint64_t const id, ThreadWorkPackageDispatcher * D) = 0;
 
 			virtual ThreadWorkPackage * getPackage() = 0;
-			virtual ThreadWorkPackageDispatcher * getDispatcher(libmaus::parallel::ThreadWorkPackage * P) = 0;
-			virtual void freePackage(libmaus::parallel::ThreadWorkPackage * P) = 0;
+			virtual ThreadWorkPackageDispatcher * getDispatcher(libmaus2::parallel::ThreadWorkPackage * P) = 0;
+			virtual void freePackage(libmaus2::parallel::ThreadWorkPackage * P) = 0;
 		};
 	}
 }

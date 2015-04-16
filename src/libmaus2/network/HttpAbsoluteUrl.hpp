@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,14 +21,14 @@
 
 #include <string>
 #include <cstring>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/network/UrlBase.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/network/UrlBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct HttpAbsoluteUrl : public ::libmaus::network::UrlBase
+		struct HttpAbsoluteUrl : public ::libmaus2::network::UrlBase
 		{
 			std::string host;
 			unsigned int port;
@@ -56,7 +56,7 @@ namespace libmaus
 					! isHttpsAbsoluteUrl(url)
 				)
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HttpAbsoluteUrl: malformed url " << url << std::endl;
 					lme.finish();
 					throw lme;		
@@ -96,7 +96,7 @@ namespace libmaus
 					
 					if ( !portistr )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HttpAbsoluteUrl: malformed url " << url << std::endl;
 						lme.finish();
 						throw lme;		
@@ -119,7 +119,7 @@ namespace libmaus
 			}
 		};
 
-		std::ostream & operator<<(std::ostream & out, libmaus::network::HttpAbsoluteUrl const & url);
+		std::ostream & operator<<(std::ostream & out, libmaus2::network::HttpAbsoluteUrl const & url);
 	}
 }
 #endif

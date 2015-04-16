@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,23 +22,23 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/network/Socket.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/network/Socket.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct LogPipeMultiplexGeneric
 		{
 			typedef LogPipeMultiplexGeneric this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			int stdoutpipe[2];
 			int stderrpipe[2];
 
-			::libmaus::network::ClientSocket::unique_ptr_type sock;
+			::libmaus2::network::ClientSocket::unique_ptr_type sock;
 			
 			pid_t pid;
 						

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BITIO_COMPACTARRAYWRITER_HPP)
 #define LIBMAUS_BITIO_COMPACTARRAYWRITER_HPP
 
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -33,10 +33,10 @@ namespace libmaus
 		 **/
 		struct CompactArrayWriter
 		{
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type COS;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type COS;
 			::std::ostream & out;
-			::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO;
-			::libmaus::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
+			::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
+			::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
 			
 			uint64_t const n;
 			uint64_t const b;
@@ -48,9 +48,9 @@ namespace libmaus
 				SGO.put( (n*b+63)/64 );
 				SGO.put( (n*b+63)/64 );
 
-				::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type it(SGO);
-				::libmaus::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type tFWBW(
-                                                new ::libmaus::bitio::FastWriteBitWriterBuffer64Sync(it)
+				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type it(SGO);
+				::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type tFWBW(
+                                                new ::libmaus2::bitio::FastWriteBitWriterBuffer64Sync(it)
                                         );
 				FWBW = UNIQUE_PTR_MOVE(tFWBW);
 			}
@@ -61,7 +61,7 @@ namespace libmaus
 				uint64_t const rb
 			)
 			:
-				COS(new ::libmaus::aio::CheckedOutputStream(filename)),
+				COS(new ::libmaus2::aio::CheckedOutputStream(filename)),
 				out(*COS),
 				SGO(out,8*1024),
 				n(rn),

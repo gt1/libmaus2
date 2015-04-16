@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_FASTX_FASTADEFINEDBASESTABLE_HPP)
 #define LIBMAUS_FASTX_FASTADEFINEDBASESTABLE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <algorithm>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastADefinedBasesTable
 		{
-			::libmaus::autoarray::AutoArray<bool> table;
+			::libmaus2::autoarray::AutoArray<bool> table;
 			
 			FastADefinedBasesTable()
 			: table(256,false)

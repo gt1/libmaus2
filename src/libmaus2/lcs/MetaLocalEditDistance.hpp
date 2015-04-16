@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_LCS_METALOCALEDITDISTANCE_HPP)
 #define LIBMAUS_LCS_METALOCALEDITDISTANCE_HPP
 
-#include <libmaus/lcs/LocalEditDistance.hpp>
-#include <libmaus/lcs/BandedLocalEditDistance.hpp>
+#include <libmaus2/lcs/LocalEditDistance.hpp>
+#include <libmaus2/lcs/BandedLocalEditDistance.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{		
 		template<
-			libmaus::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus::lcs::del_ins_diag
+			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
 		struct MetaLocalEditDistance : public LocalEditDistanceTraceContainer
 		{
-			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
+			static ::libmaus2::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
 			typedef MetaLocalEditDistance<edit_distance_priority> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			::libmaus::lcs::LocalEditDistance<edit_distance_priority> E;
-			::libmaus::lcs::BandedLocalEditDistance<edit_distance_priority> BE;
+			::libmaus2::lcs::LocalEditDistance<edit_distance_priority> E;
+			::libmaus2::lcs::BandedLocalEditDistance<edit_distance_priority> BE;
 			
-			typedef typename ::libmaus::lcs::LocalEditDistance<edit_distance_priority>::result_type result_type;
+			typedef typename ::libmaus2::lcs::LocalEditDistance<edit_distance_priority>::result_type result_type;
 			
 			MetaLocalEditDistance()
 			{
@@ -57,7 +57,7 @@ namespace libmaus
 				similarity_type const penalty_del = 1
 			)
 			{
-				if ( ::libmaus::lcs::BandedLocalEditDistance<edit_distance_priority>::validParameters(rn,rm,rk) )
+				if ( ::libmaus2::lcs::BandedLocalEditDistance<edit_distance_priority>::validParameters(rn,rm,rk) )
 				{
 					result_type const R = BE.process(aa,rn,bb,rm,rk,gain_match,penalty_subst,penalty_ins,penalty_del);
 					ta = BE.ta;

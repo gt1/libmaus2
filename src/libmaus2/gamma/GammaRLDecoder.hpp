@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,41 +20,41 @@
 #if ! defined(LIBMAUS_GAMMA_GAMMARLDECODER_HPP)
 #define LIBMAUS_GAMMA_GAMMARLDECODER_HPP
 
-#include <libmaus/bitio/BitIOInput.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/huffman/IndexDecoderDataArray.hpp>
-#include <libmaus/huffman/IndexLoader.hpp>
-#include <libmaus/gamma/GammaDecoder.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/readElias.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus2/huffman/IndexLoader.hpp>
+#include <libmaus2/gamma/GammaDecoder.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
 		struct GammaRLDecoder
 		{
 			typedef GammaRLDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			::libmaus::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
-			::libmaus::huffman::IndexDecoderDataArray const & idda;
+			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type Pidda;
+			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 
-			::libmaus::huffman::IndexEntryContainerVector const * iecv;
+			::libmaus2::huffman::IndexEntryContainerVector const * iecv;
 
 			typedef std::pair<uint64_t,uint64_t> rl_pair;
-			::libmaus::autoarray::AutoArray < rl_pair > rlbuffer;
+			::libmaus2::autoarray::AutoArray < rl_pair > rlbuffer;
 
 			rl_pair * pa;
 			rl_pair * pc;
 			rl_pair * pe;
 
-			::libmaus::aio::CheckedInputStream::unique_ptr_type CIS;
-			::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
-			::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
+			::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
+			::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
 
 			uint64_t fileptr;
 			uint64_t blockptr;
@@ -73,8 +73,8 @@ namespace libmaus
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream CIS(filename);
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
+				::libmaus2::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
 					std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
 				);
 				return SGI.get();
@@ -83,8 +83,8 @@ namespace libmaus
 			// get alphabet bits
 			static unsigned int getAlBits(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream CIS(filename);
-				::libmaus::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
+				::libmaus2::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
 					std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
 				);
 				SGI.get(); // file length
@@ -126,8 +126,8 @@ namespace libmaus
 					albits = getAlBits(idda.data[fileptr].filename);
 
 					// open new input file stream
-					::libmaus::aio::CheckedInputStream::unique_ptr_type tCIS(
-                                                        new ::libmaus::aio::CheckedInputStream(idda.data[fileptr].filename)
+					::libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(
+                                                        new ::libmaus2::aio::CheckedInputStream(idda.data[fileptr].filename)
                                                 );
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
@@ -137,15 +137,15 @@ namespace libmaus
 					else
 						CIS->seekg(idda.data[fileptr].getPos(blockptr),std::ios::beg);
 
-					::libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
-                                                        new ::libmaus::aio::SynchronousGenericInput<uint64_t>(*CIS,bufsize,
+					::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+                                                        new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,bufsize,
                                                                 std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
                                                         )
                                                 );
 					SGI = UNIQUE_PTR_MOVE(tSGI);
 					
-					::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
-                                                        new ::libmaus::gamma::GammaDecoder< ::libmaus::aio::SynchronousGenericInput<uint64_t> >(*SGI)
+					::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type tGD(
+                                                        new ::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >(*SGI)
                                                 );
 					GD = UNIQUE_PTR_MOVE(tGD);
 
@@ -180,7 +180,7 @@ namespace libmaus
 				
 				// increase buffersize if necessary
 				if ( bs > rlbuffer.size() )
-					rlbuffer = ::libmaus::autoarray::AutoArray < rl_pair >(bs,false);
+					rlbuffer = ::libmaus2::autoarray::AutoArray < rl_pair >(bs,false);
 				
 				// set up pointers
 				pa = rlbuffer.begin();
@@ -261,7 +261,7 @@ namespace libmaus
 					}
 					else
 					{
-						::libmaus::huffman::FileBlockOffset const FBO = idda.findVBlock(offset);
+						::libmaus2::huffman::FileBlockOffset const FBO = idda.findVBlock(offset);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 						restoffset = FBO.offset;
@@ -314,7 +314,7 @@ namespace libmaus
 				std::vector<std::string> const & rfilenames, uint64_t offset = 0, uint64_t const rbufsize = 64*1024
 			)
 			: 
-			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  iecv(0),
 			  pa(0), pc(0), pe(0),
@@ -325,7 +325,7 @@ namespace libmaus
 			}
 
 			GammaRLDecoder(
-				::libmaus::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t offset = 0,
 				uint64_t const rbufsize = 64*1024
 			)
@@ -341,8 +341,8 @@ namespace libmaus
 			}			
 
 			GammaRLDecoder(
-				::libmaus::huffman::IndexDecoderDataArray const & ridda,
-				::libmaus::huffman::IndexEntryContainerVector const * riecv,
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexEntryContainerVector const * riecv,
 				uint64_t offset = 0,
 				uint64_t const rbufsize = 64*1024
 			)

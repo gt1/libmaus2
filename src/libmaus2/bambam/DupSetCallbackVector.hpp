@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPSETCALLBACKVECTOR_HPP)
 #define LIBMAUS_BAMBAM_DUPSETCALLBACKVECTOR_HPP
 
-#include <libmaus/bambam/DupSetCallback.hpp>
-#include <libmaus/bambam/DuplicationMetrics.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/bambam/DupSetCallback.hpp>
+#include <libmaus2/bambam/DuplicationMetrics.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct DupSetCallbackVector : public ::libmaus::bambam::DupSetCallback
+		struct DupSetCallbackVector : public ::libmaus2::bambam::DupSetCallback
 		{
-			typedef std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> map_type;
-			typedef libmaus::util::unique_ptr<map_type>::type map_ptr_type;
+			typedef std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> map_type;
+			typedef libmaus2::util::unique_ptr<map_type>::type map_ptr_type;
 			
-			::libmaus::bitio::BitVector B;
+			::libmaus2::bitio::BitVector B;
 			map_ptr_type Pmetrics;
 			map_type & metrics;
 
 			void serialise(std::ostream & out) const
 			{
 				B.serialise(out);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,metrics.size());
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,metrics.size());
 				for (
-					std::map<uint64_t,::libmaus::bambam::DuplicationMetrics>::const_iterator ita = metrics.begin();
+					std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics>::const_iterator ita = metrics.begin();
 					ita != metrics.end();
 					++ita 
 				)
 				{
-					libmaus::util::NumberSerialisation::serialiseNumber(out,ita->first);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,ita->first);
 					ita->second.serialise(out);
 				}
 			}
@@ -54,21 +54,21 @@ namespace libmaus
 			DupSetCallbackVector(std::istream & in)
 			: B(in), Pmetrics(new map_type), metrics(*Pmetrics)
 			{
-				uint64_t const nummet = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const nummet = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				for ( uint64_t i = 0; i < nummet; ++i )
 				{
-					uint64_t const j = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-					::libmaus::bambam::DuplicationMetrics met(in);
+					uint64_t const j = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					::libmaus2::bambam::DuplicationMetrics met(in);
 					metrics[j] = met;
 				}
 			}
 
 			DupSetCallbackVector(
 				uint64_t const n,
-				std::map<uint64_t,::libmaus::bambam::DuplicationMetrics> & rmetrics
+				std::map<uint64_t,::libmaus2::bambam::DuplicationMetrics> & rmetrics
 			) : B(n), metrics(rmetrics) /* unpairedreadduplicates(), readpairduplicates(), metrics(rmetrics) */ {}
 			
-			void operator()(::libmaus::bambam::ReadEnds const & A)
+			void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				B.set(A.getRead1IndexInFile(),true);
 				

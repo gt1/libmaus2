@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,15 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/irods/IRodsSystem.hpp>
+#include <libmaus2/irods/IRodsSystem.hpp>
 #include <csignal>
 
-libmaus::irods::IRodsSystem::shared_ptr_type libmaus::irods::IRodsSystem::defaultIrodsSystem;
-libmaus::parallel::PosixMutex libmaus::irods::IRodsSystem::defaultIrodsSystemLock;
+libmaus2::irods::IRodsSystem::shared_ptr_type libmaus2::irods::IRodsSystem::defaultIrodsSystem;
+libmaus2::parallel::PosixMutex libmaus2::irods::IRodsSystem::defaultIrodsSystemLock;
 
-libmaus::irods::IRodsSystem::shared_ptr_type libmaus::irods::IRodsSystem::getDefaultIRodsSystem()
+libmaus2::irods::IRodsSystem::shared_ptr_type libmaus2::irods::IRodsSystem::getDefaultIRodsSystem()
 {
-	libmaus::parallel::ScopePosixMutex llock(defaultIrodsSystemLock);
+	libmaus2::parallel::ScopePosixMutex llock(defaultIrodsSystemLock);
 	if ( !defaultIrodsSystem )
 	{
 		IRodsSystem::shared_ptr_type tptr(new IRodsSystem);
@@ -34,7 +34,7 @@ libmaus::irods::IRodsSystem::shared_ptr_type libmaus::irods::IRodsSystem::getDef
 	return defaultIrodsSystem;
 }
 
-libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::openFile(
+libmaus2::irods::IRodsFileBase::unique_ptr_type libmaus2::irods::IRodsSystem::openFile(
 	#if defined(LIBMAUS_HAVE_IRODS)
 	IRodsSystem::shared_ptr_type irodsSystem, 
 	std::string const & filename
@@ -55,7 +55,7 @@ libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::open
 	memset (&pathParseHandle, 0, sizeof (pathParseHandle));
 	
 	// copy filename
-	libmaus::autoarray::AutoArray<char> filenameCopy(filename.size()+1,false);
+	libmaus2::autoarray::AutoArray<char> filenameCopy(filename.size()+1,false);
 	std::copy(filename.begin(),filename.end(),filenameCopy.begin());
 	filenameCopy[filename.size()] = 0;
 	
@@ -65,7 +65,7 @@ libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::open
 		char * subname = 0;
 		char * name = rodsErrorName(status,&subname);
 		
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsSystem::openFile: failed to parse filename " << filename << " via parseRodsPathStr, error code " << status << " (" << name << ")" << std::endl;
 		lme.finish();
 		throw lme;		
@@ -81,7 +81,7 @@ libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::open
 		char * subname = 0;
 		char * name = rodsErrorName(descriptor,&subname);
 	
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsSystem::openFile: failed to open file " << filename << " with error " << descriptor << " (" << name << ")" << std::endl;
 		lme.finish();
 		throw lme;		
@@ -93,14 +93,14 @@ libmaus::irods::IRodsFileBase::unique_ptr_type libmaus::irods::IRodsSystem::open
 
 	return UNIQUE_PTR_MOVE(tptr);
 	#else
-	libmaus::exception::LibMausException lme;
+	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "IRodsSystem::openFile: failed to open file " << filename << ": irods support not present" << std::endl;
 	lme.finish();
 	throw lme;		
 	#endif
 }	
 
-libmaus::irods::IRodsSystem::IRodsSystem() 
+libmaus2::irods::IRodsSystem::IRodsSystem() 
   #if defined(LIBMAUS_HAVE_IRODS)
 : 
   comm(0), 
@@ -113,7 +113,7 @@ libmaus::irods::IRodsSystem::IRodsSystem()
 	// read environment
 	if ( (status = getRodsEnv(&irodsEnvironment)) < 0 )
 	{
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsSystem: failed to get iRODS environment via getRodsEnv(): " << status << std::endl;
 		lme.finish();
 		throw lme;
@@ -135,7 +135,7 @@ libmaus::irods::IRodsSystem::IRodsSystem()
 		char * subname = 0;
 		char * name = rodsErrorName(errorMessage.status, &subname);
 		
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsSystem: failed to connect to iRODS via rcConnect(): "
 			<< name << " (" << subname << ")" << "(" << errorMessage.status << ")" << " " << errorMessage.msg << "\n";
 		lme.finish();
@@ -151,20 +151,20 @@ libmaus::irods::IRodsSystem::IRodsSystem()
 		char * subname = 0;
 		char * name = rodsErrorName(status, &subname);
 		
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsSystem: call clientLogin failed: " << status << " (" << name << ")\n";
 		lme.finish();
 		throw lme;		
 	}
 	#else
-	libmaus::exception::LibMausException lme;
+	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "IRodsSystem: iRODS support is not present." << std::endl;
 	lme.finish();
 	throw lme;						
 	#endif
 }
 
-libmaus::irods::IRodsSystem::~IRodsSystem()
+libmaus2::irods::IRodsSystem::~IRodsSystem()
 {
 	#if defined(LIBMAUS_HAVE_IRODS)
 	if ( prevpipesighandler != SIG_DFL )

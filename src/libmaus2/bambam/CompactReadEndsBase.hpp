@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_UTIL_COMPACTREADENDSBASE_HPP)
 #define LIBMAUS_UTIL_COMPACTREADENDSBASE_HPP
 
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -42,8 +42,8 @@ namespace libmaus
 			 */
 			static uint32_t decodeLength(uint8_t const * & p)
 			{
-				::libmaus::util::GetObject<uint8_t const *> G(p);
-				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				::libmaus2::util::GetObject<uint8_t const *> G(p);
+				uint32_t const len = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
 				p = G.p;
 				return len;
 			}
@@ -56,8 +56,8 @@ namespace libmaus
 			 */
 			static uint32_t decodeLength(uint8_t * & p)
 			{
-				::libmaus::util::GetObject<uint8_t *> G(p);
-				uint32_t const len = ::libmaus::util::UTF8::decodeUTF8Unchecked(G);
+				::libmaus2::util::GetObject<uint8_t *> G(p);
+				uint32_t const len = ::libmaus2::util::UTF8::decodeUTF8Unchecked(G);
 				p = G.p;
 				return len;
 			}
@@ -70,8 +70,8 @@ namespace libmaus
 			 **/
 			static uint64_t getNumberLength(uint32_t const n)
 			{
-				::libmaus::util::CountPutObject P;
-				::libmaus::util::UTF8::encodeUTF8(n,P);
+				::libmaus2::util::CountPutObject P;
+				::libmaus2::util::UTF8::encodeUTF8(n,P);
 				return P.c;
 			}
 			
@@ -81,9 +81,9 @@ namespace libmaus
 			 * @param R read ends object
 			 * @return length of R in compact representation in bytes
 			 */
-			static uint64_t getEntryLength(::libmaus::bambam::ReadEnds const & R)
+			static uint64_t getEntryLength(::libmaus2::bambam::ReadEnds const & R)
 			{
-				::libmaus::util::CountPutObject P;
+				::libmaus2::util::CountPutObject P;
 				R.put(P);
 				return P.c;
 			}
@@ -96,11 +96,11 @@ namespace libmaus
 			 * @return length of R in compact representation in bytes plus length of p in bytes
 			 **/
 			static uint64_t getEntryLength(
-				::libmaus::bambam::ReadEnds const & R,
-				::libmaus::bambam::BamAlignment const & p
+				::libmaus2::bambam::ReadEnds const & R,
+				::libmaus2::bambam::BamAlignment const & p
 			)
 			{
-				::libmaus::util::CountPutObject P;
+				::libmaus2::util::CountPutObject P;
 				R.put(P);
 				p.serialise(P);
 				return P.c;
@@ -115,12 +115,12 @@ namespace libmaus
 			 * @return length of R in compact representation in bytes plus length of p and q in bytes
 			 **/
 			static uint64_t getEntryLength(
-				::libmaus::bambam::ReadEnds const & R,
-				::libmaus::bambam::BamAlignment const & p,
-				::libmaus::bambam::BamAlignment const & q
+				::libmaus2::bambam::ReadEnds const & R,
+				::libmaus2::bambam::BamAlignment const & p,
+				::libmaus2::bambam::BamAlignment const & q
 			)
 			{
-				::libmaus::util::CountPutObject P;
+				::libmaus2::util::CountPutObject P;
 				R.put(P);
 				p.serialise(P);
 				q.serialise(P);

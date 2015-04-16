@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,10 +21,10 @@
 #if ! defined(LIBMAUS_UTIL_POSIXINPUTFILE_HPP)
 #define LIBMAUS_UTIL_POSIXINPUTFILE_HPP
 
-#include <libmaus/util/PosixFileDescriptor.hpp>
+#include <libmaus2/util/PosixFileDescriptor.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

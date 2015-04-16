@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(OSINDUCE_HPP)
 #define OSINDUCE_HPP
 
-#include <libmaus/suffixsort/SuccinctFactorList.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/util/IncreasingList.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
-#include <libmaus/math/isqrt.hpp>
+#include <libmaus2/suffixsort/SuccinctFactorList.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/util/IncreasingList.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/math/isqrt.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -36,12 +36,12 @@ namespace libmaus
 		enum induce_mode { mode_sort, mode_induce };
 
 		template<induce_mode mode, typename iterator>
-		::libmaus::bitio::CompactArray::unique_ptr_type induce(
+		::libmaus2::bitio::CompactArray::unique_ptr_type induce(
 			iterator it, // text
 			uint64_t const n, // length of text
 			uint64_t const b, // bits per symbol
 			uint64_t const sentinel, // sentinel symbol
-			::libmaus::suffixsort::SuccinctFactorList< iterator > & sast, // leftmost S type substrings/suffixes
+			::libmaus2::suffixsort::SuccinctFactorList< iterator > & sast, // leftmost S type substrings/suffixes
 			uint64_t zrank, // rank of position 0
 			bool const leftmostIsL, // leftmost position in text is L type
 			bool const verbose
@@ -51,7 +51,7 @@ namespace libmaus
 
 			// alphabet size (2^b)
 			uint64_t const k = n ? ((*std::max_element(it,it+n))+1) : 0;
-			uint64_t const kfragsize = std::max ( static_cast<uint64_t>(1024ull) , ::libmaus::math::isqrt(k) );
+			uint64_t const kfragsize = std::max ( static_cast<uint64_t>(1024ull) , ::libmaus2::math::isqrt(k) );
 			uint64_t const kruns = ( k + kfragsize - 1 ) / kfragsize;
 			uint64_t const wtsize = sast.size();
 			
@@ -71,12 +71,12 @@ namespace libmaus
 			std::cerr << "\n\n";
 			#endif
 
-			typedef ::libmaus::suffixsort::SuccinctFactorList<iterator> list_type;
+			typedef ::libmaus2::suffixsort::SuccinctFactorList<iterator> list_type;
 			typedef typename list_type::unique_ptr_type list_ptr_type;
-			// typedef ::libmaus::util::unique_ptr< std::vector < std::vector < uint8_t > > >::type VVptr;
+			// typedef ::libmaus2::util::unique_ptr< std::vector < std::vector < uint8_t > > >::type VVptr;
 
 			// character histogram
-			::libmaus::autoarray::AutoArray<uint64_t> Clow( k+1 );
+			::libmaus2::autoarray::AutoArray<uint64_t> Clow( k+1 );
 			for ( uint64_t i = 0; i < n; ++i )
 				Clow [ it[i] ] ++;
 			// compute prefix sums
@@ -86,12 +86,12 @@ namespace libmaus
 				std::cerr << "(Clow.bs=" << Clow.byteSize() << ")";
 			
 			// clones
-			::libmaus::autoarray::AutoArray<uint64_t> Hlow;
-			::libmaus::autoarray::AutoArray<uint64_t> Hhigh;
+			::libmaus2::autoarray::AutoArray<uint64_t> Hlow;
+			::libmaus2::autoarray::AutoArray<uint64_t> Hhigh;
 
 			/* BWT */
-			::libmaus::bitio::CompactArray::unique_ptr_type BBB;
-			::libmaus::bitio::CompactArray::unique_ptr_type E;
+			::libmaus2::bitio::CompactArray::unique_ptr_type BBB;
+			::libmaus2::bitio::CompactArray::unique_ptr_type E;
 			#if defined(INDUCE_DEBUG)
 			VVptr B_L;
 			VVptr B_S;
@@ -101,9 +101,9 @@ namespace libmaus
 			// allocate for computing BWT from sorted s* suffixes
 			if ( mode == mode_induce )
 			{
-				::libmaus::bitio::CompactArray::unique_ptr_type tBBB(new ::libmaus::bitio::CompactArray(n,b));
+				::libmaus2::bitio::CompactArray::unique_ptr_type tBBB(new ::libmaus2::bitio::CompactArray(n,b));
 				BBB = UNIQUE_PTR_MOVE(tBBB);
-				::libmaus::bitio::CompactArray::unique_ptr_type tE(new ::libmaus::bitio::CompactArray(wtsize,b));
+				::libmaus2::bitio::CompactArray::unique_ptr_type tE(new ::libmaus2::bitio::CompactArray(wtsize,b));
 				E = UNIQUE_PTR_MOVE(tE);
 			
 				#if defined(INDUCE_DEBUG)
@@ -119,33 +119,33 @@ namespace libmaus
 			}
 
 			/* name computation */
-			::libmaus::autoarray::AutoArray < uint64_t > LSbv;
-			::libmaus::autoarray::AutoArray < uint64_t > PSast;
-			::libmaus::autoarray::AutoArray < uint64_t > Psi;
+			::libmaus2::autoarray::AutoArray < uint64_t > LSbv;
+			::libmaus2::autoarray::AutoArray < uint64_t > PSast;
+			::libmaus2::autoarray::AutoArray < uint64_t > Psi;
 			// sorted lists of s* substrings
-			::libmaus::autoarray::AutoArray<list_ptr_type> sortedL;
-			::libmaus::autoarray::AutoArray<list_ptr_type> sortedS;
-			::libmaus::bitio::CompactArray::unique_ptr_type wtbase;
+			::libmaus2::autoarray::AutoArray<list_ptr_type> sortedL;
+			::libmaus2::autoarray::AutoArray<list_ptr_type> sortedS;
+			::libmaus2::bitio::CompactArray::unique_ptr_type wtbase;
 			// Phi lists
-			::libmaus::util::IncreasingList::unique_ptr_type Phi;
-			::libmaus::autoarray::AutoArray<uint64_t> PhiBase;
+			::libmaus2::util::IncreasingList::unique_ptr_type Phi;
+			::libmaus2::autoarray::AutoArray<uint64_t> PhiBase;
 			// wavelet tree for s* substrings
-			::libmaus::autoarray::AutoArray<uint64_t> wtbits;
-			::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B,uint64_t>::unique_ptr_type wt;
+			::libmaus2::autoarray::AutoArray<uint64_t> wtbits;
+			::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B,uint64_t>::unique_ptr_type wt;
 			
 			// histogram prefix sums
 			uint64_t wtcnt = 0;
-			::libmaus::autoarray::AutoArray<uint64_t> PhiBaseC;
+			::libmaus2::autoarray::AutoArray<uint64_t> PhiBaseC;
 
 			// allocate for sorting s* substrings
 			if ( mode == mode_sort )
 			{
-				LSbv = ::libmaus::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
-				PSast = ::libmaus::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
-				Psi = ::libmaus::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
-				sortedL = ::libmaus::autoarray::AutoArray<list_ptr_type>( k );
-				sortedS = ::libmaus::autoarray::AutoArray<list_ptr_type>( k );
-				::libmaus::bitio::CompactArray::unique_ptr_type twtbase(new ::libmaus::bitio::CompactArray(wtsize,b));
+				LSbv = ::libmaus2::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
+				PSast = ::libmaus2::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
+				Psi = ::libmaus2::autoarray::AutoArray < uint64_t > ( (n+63)/64 );
+				sortedL = ::libmaus2::autoarray::AutoArray<list_ptr_type>( k );
+				sortedS = ::libmaus2::autoarray::AutoArray<list_ptr_type>( k );
+				::libmaus2::bitio::CompactArray::unique_ptr_type twtbase(new ::libmaus2::bitio::CompactArray(wtsize,b));
 				wtbase = UNIQUE_PTR_MOVE(twtbase);
 				for ( uint64_t i = 0; i < sortedL.size(); ++i )
 				{
@@ -157,11 +157,11 @@ namespace libmaus
 					list_ptr_type tsortedSi(new list_type(it,n,b,sentinel));
 					sortedS[i] = UNIQUE_PTR_MOVE(tsortedSi);
 				}
-				::libmaus::util::IncreasingList::unique_ptr_type tPhi(new ::libmaus::util::IncreasingList(n,b));
+				::libmaus2::util::IncreasingList::unique_ptr_type tPhi(new ::libmaus2::util::IncreasingList(n,b));
 				Phi  = UNIQUE_PTR_MOVE(tPhi);
 				Phi->put(0,0);
 				Hlow = Clow.clone();
-				Hhigh = ::libmaus::autoarray::AutoArray<uint64_t>(k+1,false);
+				Hhigh = ::libmaus2::autoarray::AutoArray<uint64_t>(k+1,false);
 				std::copy(Clow.begin()+1,Clow.end(),Hhigh.begin());
 
 				#if defined(INDUCE_DEBUG)	
@@ -194,7 +194,7 @@ namespace libmaus
 				}
 
 				// bucket sort by last character
-				::libmaus::autoarray::AutoArray<list_ptr_type> Sast( k );
+				::libmaus2::autoarray::AutoArray<list_ptr_type> Sast( k );
 				for ( uint64_t i = 0; i < Sast.size(); ++i ) 
 				{
 					list_ptr_type Sasti(new list_type(it,n,b,sentinel));
@@ -231,8 +231,8 @@ namespace libmaus
 				if ( verbose )
 					std::cerr << "(constructing wt...";
 				assert ( wtcnt == wtsize );
-				wtbits = ::libmaus::wavelet::toWaveletTreeBits( wtbase.get(), false );
-				::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B,uint64_t>::unique_ptr_type twt(new ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B,uint64_t>(wtbits,wtsize,b));
+				wtbits = ::libmaus2::wavelet::toWaveletTreeBits( wtbase.get(), false );
+				::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B,uint64_t>::unique_ptr_type twt(new ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B,uint64_t>(wtbits,wtsize,b));
 				wt = UNIQUE_PTR_MOVE(twt);
 
 				if ( verbose )
@@ -255,7 +255,7 @@ namespace libmaus
 				std::cerr << "(inducing L type...";
 
 			/* general */
-			::libmaus::autoarray::AutoArray<list_ptr_type> Lex( kruns );
+			::libmaus2::autoarray::AutoArray<list_ptr_type> Lex( kruns );
 			for ( uint64_t i = 0; i < Lex.size(); ++i ) 
 			{
 				list_ptr_type tLexi(new list_type(it,n,b,sentinel));
@@ -273,7 +273,7 @@ namespace libmaus
 				uint64_t const khigh = std::min(klow + kfragsize, k);
 
 				#if 0
-				::libmaus::autoarray::AutoArray<list_ptr_type> LSin( khigh-klow );
+				::libmaus2::autoarray::AutoArray<list_ptr_type> LSin( khigh-klow );
 				for ( uint64_t i = 0; i < LSin.size(); ++i ) 
 					LSin[i] = list_ptr_type(new list_type(it,n,b,sentinel));
 				#endif
@@ -281,7 +281,7 @@ namespace libmaus
 				if ( verbose )
 					std::cerr << "(Setting up Lin...";
 
-				::libmaus::autoarray::AutoArray<list_ptr_type> Lin( khigh-klow );
+				::libmaus2::autoarray::AutoArray<list_ptr_type> Lin( khigh-klow );
 				for ( uint64_t i = 0; i < Lin.size(); ++i ) 
 				{
 					list_ptr_type tLin(new list_type(it,n,b,sentinel));
@@ -353,7 +353,7 @@ namespace libmaus
 							LS->copy ( *(Lin[i-klow]) );
 							
 							if ( mode == mode_sort )
-								::libmaus::bitio::putBit(LSbv.get(),r,1);
+								::libmaus2::bitio::putBit(LSbv.get(),r,1);
 						}
 						else
 						{
@@ -366,7 +366,7 @@ namespace libmaus
 									std::cerr << "trash (reached sentinel)" << std::endl;
 									#endif
 									sortedL[i]->copyReset(*(Lin[i-klow]));
-									::libmaus::bitio::putBit(PSast.get(),r,1);
+									::libmaus2::bitio::putBit(PSast.get(),r,1);
 									ltp = r;
 								}
 							}
@@ -485,7 +485,7 @@ namespace libmaus
 							#endif
 							
 							// mark rank of unsorted substring
-							::libmaus::bitio::putBit( Psi.get() , r, true );
+							::libmaus2::bitio::putBit( Psi.get() , r, true );
 						}
 					}
 				}
@@ -508,7 +508,7 @@ namespace libmaus
 					std::cerr << ")";
 			}
 			
-			Lex = ::libmaus::autoarray::AutoArray<list_ptr_type>();
+			Lex = ::libmaus2::autoarray::AutoArray<list_ptr_type>();
 			Clow.release();
 			
 			if ( verbose )
@@ -540,8 +540,8 @@ namespace libmaus
 			if ( mode == mode_sort )
 			{
 				std::cerr << "E=" << std::string(
-					::libmaus::bitio::CompactArray::const_iterator(E.get()),
-					::libmaus::bitio::CompactArray::const_iterator(E.get()) + ecnt
+					::libmaus2::bitio::CompactArray::const_iterator(E.get()),
+					::libmaus2::bitio::CompactArray::const_iterator(E.get()) + ecnt
 					) << std::endl;
 			}
 			#endif
@@ -556,7 +556,7 @@ namespace libmaus
 			if ( verbose )
 				std::cerr << "(inducing S type...";
 
-			::libmaus::autoarray::AutoArray<list_ptr_type> Sex( kruns );
+			::libmaus2::autoarray::AutoArray<list_ptr_type> Sex( kruns );
 			for ( uint64_t i = 0; i < Sex.size(); ++i ) 
 			{
 				list_ptr_type tSexi(new list_type(it,n,b,sentinel));
@@ -566,7 +566,7 @@ namespace libmaus
 			Sex[term/kfragsize]->cycle();
 
 			// character histogram shifted by one
-			::libmaus::autoarray::AutoArray<uint64_t> Chigh( k+1 );
+			::libmaus2::autoarray::AutoArray<uint64_t> Chigh( k+1 );
 			for ( uint64_t i = 0; i < n; ++i )
 				Chigh [ it[i] ] ++;
 			// compute prefix sums
@@ -595,7 +595,7 @@ namespace libmaus
 				if ( verbose )
 					std::cerr << "(Setting up Sin...";
 
-				::libmaus::autoarray::AutoArray<list_ptr_type> Sin( khigh-klow );
+				::libmaus2::autoarray::AutoArray<list_ptr_type> Sin( khigh-klow );
 				for ( uint64_t i = 0; i < Sin.size(); ++i ) 
 				{
 					list_ptr_type Sini(new list_type(it,n,b,sentinel));
@@ -716,7 +716,7 @@ namespace libmaus
 							if ( mode == mode_sort )
 							{
 								sortedS[i]->copyReset(*(Sin[i-klow]));
-								::libmaus::bitio::putBit(PSast.get(),r,1);
+								::libmaus2::bitio::putBit(PSast.get(),r,1);
 							}
 						}
 						
@@ -740,7 +740,7 @@ namespace libmaus
 
 						if ( mode == mode_sort )
 						{
-							while ( ! ::libmaus::bitio::getBit(LSbv.get(),--lsbvcnt) ) {}
+							while ( ! ::libmaus2::bitio::getBit(LSbv.get(),--lsbvcnt) ) {}
 						}
 
 						#if defined(INDUCE_DEBUG)
@@ -793,7 +793,7 @@ namespace libmaus
 
 						if ( mode == mode_sort )
 						{
-							while ( ! ::libmaus::bitio::getBit(LSbv.get(),--lsbvcnt) ) {}
+							while ( ! ::libmaus2::bitio::getBit(LSbv.get(),--lsbvcnt) ) {}
 						}
 
 						#if defined(INDUCE_DEBUG)
@@ -842,13 +842,13 @@ namespace libmaus
 			if ( mode == mode_sort )
 			{
 				if ( leftmostIsL )
-					::libmaus::bitio::putBit(LSbv.get(),ltp,1);
-				::libmaus::bitio::putBit(LSbv.get(),0,1);
+					::libmaus2::bitio::putBit(LSbv.get(),ltp,1);
+				::libmaus2::bitio::putBit(LSbv.get(),0,1);
 				
 				#if defined(INDUCE_DEBUG)
 				std::cerr << "Turning points: ";
 				for ( uint64_t i = 0; i < n; ++i )
-					if ( ::libmaus::bitio::getBit(LSbv.get(),i) )
+					if ( ::libmaus2::bitio::getBit(LSbv.get(),i) )
 						std::cerr << i << ";";
 				std::cerr << std::endl;
 				#endif
@@ -885,8 +885,8 @@ namespace libmaus
 				if ( verbose )
 					std::cerr << ")";
 
-				unsigned int const urankbits = ::libmaus::math::numbits(urankcnt-1);
-				::libmaus::bitio::CompactArray::unique_ptr_type reduced(new ::libmaus::bitio::CompactArray(sorted.size(),urankbits));
+				unsigned int const urankbits = ::libmaus2::math::numbits(urankcnt-1);
+				::libmaus2::bitio::CompactArray::unique_ptr_type reduced(new ::libmaus2::bitio::CompactArray(sorted.size(),urankbits));
 
 				#if defined(INDUCE_DEBUG)
 				std::cerr << "reduced alphabet size " << urankcnt << " bits "<< urankbits << std::endl;
@@ -912,7 +912,7 @@ namespace libmaus
 						if ( verbose )
 							std::cerr << "(" << (i/(1024*1024)) << ")";
 				
-					if ( ::libmaus::bitio::getBit(PSast.get(),i) )
+					if ( ::libmaus2::bitio::getBit(PSast.get(),i) )
 					{
 						#if defined(INDUCE_DEBUG)
 						std::cerr << i << ": ";
@@ -922,7 +922,7 @@ namespace libmaus
 						{
 							
 							uint64_t j = i;
-							while ( ! ::libmaus::bitio::getBit(LSbv.get(),j) )
+							while ( ! ::libmaus2::bitio::getBit(LSbv.get(),j) )
 							{
 								j = (*Phi)[j] % n;
 								#if defined(INDUCE_DEBUG)
@@ -932,7 +932,7 @@ namespace libmaus
 							#if defined(INDUCE_DEBUG)
 							std::cerr << "*";
 							#endif
-							while ( ! ::libmaus::bitio::getBit(Psi.get(),j) )
+							while ( ! ::libmaus2::bitio::getBit(Psi.get(),j) )
 							{
 								j = (*Phi)[j] % n;
 								

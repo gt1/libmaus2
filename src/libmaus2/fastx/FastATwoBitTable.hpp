@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_FASTX_FASTATWOBITTABLE_HPP)
 #define LIBMAUS_FASTX_FASTATWOBITTABLE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <limits>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastATwoBitTable
 		{
 			typedef FastATwoBitTable this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			libmaus::autoarray::AutoArray<unsigned char> T;
+			libmaus2::autoarray::AutoArray<unsigned char> T;
 			
 			FastATwoBitTable()
 			: T(static_cast<size_t>(std::numeric_limits<unsigned char>::max())+1,false)

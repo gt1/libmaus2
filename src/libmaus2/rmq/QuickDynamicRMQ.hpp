@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,9 +22,9 @@
 
 #include <limits>
 #include <cassert>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rmq
 	{
@@ -36,7 +36,7 @@ namespace libmaus
 		struct QuickDynamicRMQ
 		{
 			typedef QuickDynamicRMQ<array_iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type; 
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type; 
 
 			typedef typename std::iterator_traits<array_iterator>::value_type key_type;
 			array_iterator const A;
@@ -58,7 +58,7 @@ namespace libmaus
 
 			uint32_t const n;
 			uint32_t const d;
-			::libmaus::autoarray::AutoArray<uint32_t> M;
+			::libmaus2::autoarray::AutoArray<uint32_t> M;
 
 			uint32_t m(uint32_t h, uint32_t i) const { return h?M[(h-1)*n+i]:i; }
 				
@@ -68,7 +68,7 @@ namespace libmaus
 				if ( n )
 				{
 					// allocate table
-					M = ::libmaus::autoarray::AutoArray<uint32_t>(n*d);
+					M = ::libmaus2::autoarray::AutoArray<uint32_t>(n*d);
 
 					// first row of matrix is identity
 					// fill rest of rows using dynamic programming

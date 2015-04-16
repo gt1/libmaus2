@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEBLOCKIDINFO_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEBLOCKIDINFO_HPP
 
-#include <libmaus/lz/BgzfInflateBlock.hpp>
-#include <libmaus/lz/BgzfThreadOpBase.hpp>
+#include <libmaus2/lz/BgzfInflateBlock.hpp>
+#include <libmaus2/lz/BgzfThreadOpBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateBlockIdInfo
 		{
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> const & inflateB;
+			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> const & inflateB;
 					
 			BgzfInflateBlockIdInfo(
-				libmaus::autoarray::AutoArray<libmaus::lz::BgzfInflateBlock::unique_ptr_type> const & rinflateB
+				libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfInflateBlock::unique_ptr_type> const & rinflateB
 			) : inflateB(rinflateB)
 			{
 			

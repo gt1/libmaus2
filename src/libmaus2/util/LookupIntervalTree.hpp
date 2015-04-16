@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_UTIL_LOOKUPINTERVALTREE_HPP)
 #define LIBMAUS_UTIL_LOOKUPINTERVALTREE_HPP
 
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/random/Random.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -30,24 +30,24 @@ namespace libmaus
 		{
 			typedef LookupIntervalTree this_type;
 
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const H;
-			::libmaus::util::IntervalTree const I;
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const H;
+			::libmaus2::util::IntervalTree const I;
 			unsigned int const rangebits;
 			unsigned int const sublookupbits;
-			::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > const L;
+			::libmaus2::autoarray::AutoArray < ::libmaus2::util::IntervalTree const * > const L;
 			unsigned int const lookupshift;
 
-			::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > createLookup();
+			::libmaus2::autoarray::AutoArray < ::libmaus2::util::IntervalTree const * > createLookup();
 			LookupIntervalTree(
-				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & rH,
+				::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & rH,
 				unsigned int const rrangebits,
 				unsigned int const rsublookupbits
 			);
 
 			LookupIntervalTree(std::istream & in)
 			: H(in), I(H,0,H.size()),
-			  rangebits(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-			  sublookupbits(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+			  rangebits(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+			  sublookupbits(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			  L(createLookup()), lookupshift ( rangebits - sublookupbits )
 			{
 			
@@ -73,8 +73,8 @@ namespace libmaus
 			void serialise(std::ostream & out) const
 			{
 				H.serialize(out);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,rangebits);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,sublookupbits);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,rangebits);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,sublookupbits);
 			}
 			
 			std::string serialise() const

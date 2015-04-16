@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/parallel/ThreadPool.hpp>
+#include <libmaus2/parallel/ThreadPool.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
@@ -35,14 +35,14 @@ namespace libmaus
 
 		struct DummyThreadWorkPackage : public ThreadWorkPackage
 		{
-			libmaus::parallel::PosixMutex::shared_ptr_type mutex;
+			libmaus2::parallel::PosixMutex::shared_ptr_type mutex;
 			DummyThreadWorkPackageMeta * meta;
 		
 			DummyThreadWorkPackage() : mutex(), meta(0) {}
 			DummyThreadWorkPackage(
 				uint64_t const rpriority, 
 				uint64_t const rdispatcherid, 
-				libmaus::parallel::PosixMutex::shared_ptr_type rmutex,
+				libmaus2::parallel::PosixMutex::shared_ptr_type rmutex,
 				DummyThreadWorkPackageMeta * rmeta,
 				uint64_t const rpackageid = 0
 			)
@@ -71,15 +71,15 @@ namespace libmaus
 				DummyThreadWorkPackage * DP = dynamic_cast<DummyThreadWorkPackage *>(P);
 				assert ( DP );
 
-				libmaus::parallel::ScopePosixMutex mutex(*(DP->mutex));
+				libmaus2::parallel::ScopePosixMutex mutex(*(DP->mutex));
 				std::cerr << DP << std::endl;
 				
 				if ( DP->meta->unfinished < 1024 )
-					tpi.enque(libmaus::parallel::DummyThreadWorkPackage(
+					tpi.enque(libmaus2::parallel::DummyThreadWorkPackage(
 						DP->meta->unfinished++,DP->dispatcherid,DP->mutex,DP->meta)
 					);
 				if ( DP->meta->unfinished < 1024 )
-					tpi.enque(libmaus::parallel::DummyThreadWorkPackage(
+					tpi.enque(libmaus2::parallel::DummyThreadWorkPackage(
 						DP->meta->unfinished++,DP->dispatcherid,DP->mutex,DP->meta)
 					);
 
@@ -92,17 +92,17 @@ namespace libmaus
 
 int main()
 {
-	libmaus::parallel::ThreadPool TP(8);
+	libmaus2::parallel::ThreadPool TP(8);
 
 	uint64_t const dispid = 0;
 
-	libmaus::parallel::DummyThreadWorkPackageDispatcher dummydisp;
+	libmaus2::parallel::DummyThreadWorkPackageDispatcher dummydisp;
 	TP.registerDispatcher(dispid,&dummydisp);
 
-	libmaus::parallel::DummyThreadWorkPackageMeta meta;
-	libmaus::parallel::PosixMutex::shared_ptr_type printmutex(new libmaus::parallel::PosixMutex);
+	libmaus2::parallel::DummyThreadWorkPackageMeta meta;
+	libmaus2::parallel::PosixMutex::shared_ptr_type printmutex(new libmaus2::parallel::PosixMutex);
 
-	TP.enque(libmaus::parallel::DummyThreadWorkPackage(0,dispid,printmutex,&meta));
+	TP.enque(libmaus2::parallel::DummyThreadWorkPackage(0,dispid,printmutex,&meta));
 	
 	TP.join();
 }

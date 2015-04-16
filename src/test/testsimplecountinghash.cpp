@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/SimpleCountingHash.hpp>
+#include <libmaus2/util/SimpleCountingHash.hpp>
 
 void testSimpleCountingHash()
 {
-	::libmaus::util::SimpleCountingHash<uint32_t,uint8_t> H(16);
+	::libmaus2::util::SimpleCountingHash<uint32_t,uint8_t> H(16);
 
 	uint64_t const cnt = 
 		static_cast<uint64_t>(std::numeric_limits<uint8_t>::max()) * 2;

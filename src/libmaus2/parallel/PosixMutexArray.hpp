@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(POSIXMUTEXARRAY_HPP)
 #define POSIXMUTEXARRAY_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/parallel/PosixMutex.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 		{
 			unsigned int const blockbits;
 			unsigned int const hashbits;
-			::libmaus::autoarray::AutoArray < ::libmaus::parallel::PosixMutex > mutexes;
+			::libmaus2::autoarray::AutoArray < ::libmaus2::parallel::PosixMutex > mutexes;
 
 			PosixMutexArray(unsigned int const rblockbits, unsigned int rhashbits)
 			: blockbits(rblockbits), hashbits(rhashbits), mutexes(1ull << blockbits)

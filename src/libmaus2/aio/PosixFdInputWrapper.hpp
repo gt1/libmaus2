@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_AIO_POSIXFDINPUTWRAPPER_HPP)
 #define LIBMAUS_AIO_POSIXFDINPUTWRAPPER_HPP
 
-#include <libmaus/aio/PosixFdInput.hpp>
+#include <libmaus2/aio/PosixFdInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		struct PosixFdInputWrapper
 		{
-			libmaus::aio::PosixFdInput object;
+			libmaus2::aio::PosixFdInput object;
 			
 			PosixFdInputWrapper(int const rfd) : object(rfd) {}
 			PosixFdInputWrapper(std::string const & filename, int const rflags = PosixFdInput::getDefaultFlags()) : object(filename,rflags) {}

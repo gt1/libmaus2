@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,62 +20,62 @@
 #if ! defined(UNIQUEINDEX_HPP)
 #define UNIQUEINDEX_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/suffixsort/divsufsort.hpp>
-#include <libmaus/lf/LF.hpp>
-#include <libmaus/util/Array832.hpp>
-#include <libmaus/util/NegativeDifferenceArray.hpp>
-#include <libmaus/util/PositiveDifferenceArray.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/aio/SynchronousFastReaderBase.hpp>
-#include <libmaus/wavelet/ExternalWaveletGenerator.hpp>
-#include <libmaus/suffixsort/SkewSuffixSort.hpp>
-#include <libmaus/bitio/CompactQueue.hpp>
-#include <libmaus/bitio/SignedCompactArray.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/suffixsort/divsufsort.hpp>
+#include <libmaus2/lf/LF.hpp>
+#include <libmaus2/util/Array832.hpp>
+#include <libmaus2/util/NegativeDifferenceArray.hpp>
+#include <libmaus2/util/PositiveDifferenceArray.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/aio/SynchronousFastReaderBase.hpp>
+#include <libmaus2/wavelet/ExternalWaveletGenerator.hpp>
+#include <libmaus2/suffixsort/SkewSuffixSort.hpp>
+#include <libmaus2/bitio/CompactQueue.hpp>
+#include <libmaus2/bitio/SignedCompactArray.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct UniqueIndex2
 		{
 			typedef UniqueIndex2 this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			typedef uint8_t char_type;
 			#if 0
 			enum { ALPHABET_SIZE=256 };
-			typedef ::libmaus::suffixsort::DivSufSort<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_type;
-			typedef ::libmaus::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_util_type;
-			typedef ::libmaus::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,uint32_t *,uint32_t const *,ALPHABET_SIZE> sort_util_post_type;
+			typedef ::libmaus2::suffixsort::DivSufSort<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_type;
+			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_util_type;
+			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,uint32_t *,uint32_t const *,ALPHABET_SIZE> sort_util_post_type;
 			typedef sort_type::saidx_t saidx_t;
 			#endif
 			static uint64_t const sasamplingrate = 1024*1024;
 
-			typedef ::libmaus::bitio::CompactArray text_array_type;
+			typedef ::libmaus2::bitio::CompactArray text_array_type;
 			typedef text_array_type::unique_ptr_type text_array_ptr_type;
-			typedef ::libmaus::bitio::CompactArray::const_iterator compact_const_it;
-			typedef ::libmaus::bitio::CompactArray::iterator compact_it;
-			typedef ::libmaus::rank::ERank222B rank_type;			
+			typedef ::libmaus2::bitio::CompactArray::const_iterator compact_const_it;
+			typedef ::libmaus2::bitio::CompactArray::iterator compact_it;
+			typedef ::libmaus2::rank::ERank222B rank_type;			
 			typedef rank_type::writer_type rank_writer_type;
 			typedef rank_writer_type::data_type rank_data_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
-			typedef ::libmaus::wavelet::QuickWaveletTree<rank_type,uint64_t> wt_type;
+			typedef ::libmaus2::wavelet::QuickWaveletTree<rank_type,uint64_t> wt_type;
 			typedef wt_type::unique_ptr_type wt_ptr_type;
-			typedef ::libmaus::lf::QuickLF lf_type;
+			typedef ::libmaus2::lf::QuickLF lf_type;
 			typedef lf_type::unique_ptr_type lf_ptr_type;
 
 			text_array_ptr_type data;
 			uint64_t n;
 			lf_ptr_type lf;
-			::libmaus::util::Array864::unique_ptr_type LCP;
-			::libmaus::util::PositiveDifferenceArray64::unique_ptr_type next;
-			::libmaus::util::NegativeDifferenceArray64::unique_ptr_type prev;
-			::libmaus::autoarray::AutoArray<rank_data_type> R;
+			::libmaus2::util::Array864::unique_ptr_type LCP;
+			::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type next;
+			::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type prev;
+			::libmaus2::autoarray::AutoArray<rank_data_type> R;
 			rank_ptr_type dolrank;
-			::libmaus::autoarray::AutoArray<uint64_t> SISA;
-			::libmaus::autoarray::AutoArray<uint64_t> U;
+			::libmaus2::autoarray::AutoArray<uint64_t> SISA;
+			::libmaus2::autoarray::AutoArray<uint64_t> U;
 
 			static char_type fw(char_type const v)
 			{
@@ -120,7 +120,7 @@ namespace libmaus
 
 			static std::pair<uint64_t,uint64_t> countChars(std::vector<std::string> const & filenames)
 			{
-				::libmaus::aio::SynchronousFastReaderBase SFR(filenames);
+				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
 				
 				uint64_t numc = 0;
@@ -160,10 +160,10 @@ namespace libmaus
 			static text_array_ptr_type readFiles(std::vector<std::string> const & filenames, uint64_t const numc, uint64_t const numsep)
 			{
 				uint64_t const alphsize = (2*numsep+1) /* separators between reads */ + 5 /* ACGTN */ + 1 /* 0 terminator */;
-				uint64_t const albits = ::libmaus::math::bitsPerNum(alphsize-1);
+				uint64_t const albits = ::libmaus2::math::bitsPerNum(alphsize-1);
 			
 				text_array_ptr_type A = text_array_ptr_type(new text_array_type(2*numc+2,albits));
-				::libmaus::aio::SynchronousFastReaderBase SFR(filenames);
+				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
 				
 				compact_it p(A.get());
@@ -246,10 +246,10 @@ namespace libmaus
 			 * algorithm nsv864
 			 **/
 			template<typename lcp_array_type>
-			static ::libmaus::util::PositiveDifferenceArray64::unique_ptr_type nsv864(lcp_array_type const & LCP, int64_t const n)
+			static ::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type nsv864(lcp_array_type const & LCP, int64_t const n)
 			{
 				// allocate result array
-				::libmaus::autoarray::AutoArray<uint64_t> next(n,false);
+				::libmaus2::autoarray::AutoArray<uint64_t> next(n,false);
 
 				// do not crash for n==0
 				if ( n )
@@ -273,20 +273,20 @@ namespace libmaus
 					next[r] = next[r]-r;
 				}
 
-				::libmaus::util::Array864::unique_ptr_type anext(new ::libmaus::util::Array864(next.begin(),next.end()));
+				::libmaus2::util::Array864::unique_ptr_type anext(new ::libmaus2::util::Array864(next.begin(),next.end()));
 			  
 				// return result
-				return ::libmaus::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus::util::PositiveDifferenceArray64(anext));
+				return ::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray64(anext));
 			}
 
 			/**
 			 * algorithm psv864
 			 **/
 			template<typename lcp_array_type>
-			static ::libmaus::util::NegativeDifferenceArray64::unique_ptr_type psv864(lcp_array_type const & LCP, uint64_t const n)
+			static ::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type psv864(lcp_array_type const & LCP, uint64_t const n)
 			{
 				// allocate result array
-				::libmaus::autoarray::AutoArray<uint64_t> prev(n,false);
+				::libmaus2::autoarray::AutoArray<uint64_t> prev(n,false);
 
 				// do not crash for n==0
 				if ( n )
@@ -305,9 +305,9 @@ namespace libmaus
 				for ( uint64_t r = 0; r < n; ++r )
 					prev[r] = r-prev[r];
 				
-				::libmaus::util::Array864::unique_ptr_type aprev(new ::libmaus::util::Array864(prev.begin(),prev.end()));
+				::libmaus2::util::Array864::unique_ptr_type aprev(new ::libmaus2::util::Array864(prev.begin(),prev.end()));
 
-				return ::libmaus::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus::util::NegativeDifferenceArray64(aprev));
+				return ::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray64(aprev));
 			}
 
 
@@ -339,7 +339,7 @@ namespace libmaus
 			};
 
 			template<typename lf_type>
-			static ::libmaus::util::Array864::unique_ptr_type computeLCP(lf_type const * LF)
+			static ::libmaus2::util::Array864::unique_ptr_type computeLCP(lf_type const * LF)
 			{
 				typedef uint32_t lcp_elem_type;
 				uint64_t const n = LF->getN();
@@ -354,18 +354,18 @@ namespace libmaus
 					LF->W->multiRankCallBack(tn.sp,tn.ep,LF->D.get(),PMC);
 				}
 
-				::libmaus::autoarray::AutoArray<uint64_t> symfreq( (1ull<< LF->getB()) );
+				::libmaus2::autoarray::AutoArray<uint64_t> symfreq( (1ull<< LF->getB()) );
 							
 				for ( uint64_t i = 0; i < symfreq.getN(); ++i )
 					symfreq[i] = n?LF->W->rank(i,n-1):0;
 
-				::libmaus::autoarray::AutoArray<lcp_elem_type> WLCP(n+1,false);
+				::libmaus2::autoarray::AutoArray<lcp_elem_type> WLCP(n+1,false);
 				std::fill ( WLCP.get(), WLCP.get()+WLCP.getN(), std::numeric_limits<lcp_elem_type>::max() );
 							
-				::libmaus::suffixsort::CompactQueue Q0(n);
-				::libmaus::suffixsort::CompactQueue Q1(n);
-				::libmaus::suffixsort::CompactQueue * PQ0 = &Q0;
-				::libmaus::suffixsort::CompactQueue * PQ1 = &Q1;
+				::libmaus2::suffixsort::CompactQueue Q0(n);
+				::libmaus2::suffixsort::CompactQueue Q1(n);
+				::libmaus2::suffixsort::CompactQueue * PQ0 = &Q0;
+				::libmaus2::suffixsort::CompactQueue * PQ1 = &Q1;
 
 				for ( uint64_t i = 0; i < symfreq[0]; ++i )
 				{
@@ -385,7 +385,7 @@ namespace libmaus
 				}                
 				WLCP[n] = 0;
 
-				::libmaus::timing::RealTimeClock lcprtc; lcprtc.start();
+				::libmaus2::timing::RealTimeClock lcprtc; lcprtc.start();
 				std::cerr << "Computing LCP...";
 				lcp_elem_type cur_l = 1;
 				lcp_elem_type const unset = std::numeric_limits<lcp_elem_type>::max();
@@ -407,15 +407,15 @@ namespace libmaus
 					#endif
 					
 					uint64_t const numcontexts = numthreads;
-					::libmaus::autoarray::AutoArray < ::libmaus::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
+					::libmaus2::autoarray::AutoArray < ::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type > deqcontexts = PQ0->getContextList(numcontexts);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
 					for ( int64_t c = 0; c < static_cast<int64_t>(deqcontexts.size()); ++c )
 					{
-					  ::libmaus::suffixsort::CompactQueue::DequeContext * deqcontext = deqcontexts[c].get();
-					  ::libmaus::suffixsort::CompactQueue::EnqueBuffer::unique_ptr_type encbuf = PQ1->createEnqueBuffer();
+					  ::libmaus2::suffixsort::CompactQueue::DequeContext * deqcontext = deqcontexts[c].get();
+					  ::libmaus2::suffixsort::CompactQueue::EnqueBuffer::unique_ptr_type encbuf = PQ1->createEnqueBuffer();
 					  
 					  while ( !deqcontext->done() )
 					  {
@@ -439,7 +439,7 @@ namespace libmaus
 				if ( PQ0->fill )
 				{
 					std::deque< std::pair<uint64_t,uint64_t> > SQ0, SQ1;
-					::libmaus::suffixsort::CompactQueue::DequeContext::unique_ptr_type pcontext = PQ0->getGlobalDequeContext();
+					::libmaus2::suffixsort::CompactQueue::DequeContext::unique_ptr_type pcontext = PQ0->getGlobalDequeContext();
 					while ( !(pcontext->done()) )
 						SQ0.push_back(PQ0->deque(pcontext.get()));
 						
@@ -462,8 +462,8 @@ namespace libmaus
 					}
 				}
 			     
-				::libmaus::util::Array864::unique_ptr_type LCP = ::libmaus::util::Array864::unique_ptr_type(
-					new ::libmaus::util::Array864(WLCP.begin(),WLCP.end())
+				::libmaus2::util::Array864::unique_ptr_type LCP = ::libmaus2::util::Array864::unique_ptr_type(
+					new ::libmaus2::util::Array864(WLCP.begin(),WLCP.end())
 				);
 				std::cerr << "done, time " << lcprtc.getElapsedSeconds() << std::endl;
 
@@ -504,7 +504,7 @@ namespace libmaus
 			
 			uint64_t nextImproper(uint64_t const p) const
 			{
-				if ( ::libmaus::bitio::getBit(R.get(),p) )
+				if ( ::libmaus2::bitio::getBit(R.get(),p) )
 					return p;
 				else
 					return dolrank->select1 ( dolrank->rank1(p) );
@@ -536,7 +536,7 @@ namespace libmaus
 				}
 			};
 			
-			void readText(::libmaus::util::ArgInfo const & arginfo, uint64_t & numc, uint64_t & numsep)
+			void readText(::libmaus2::util::ArgInfo const & arginfo, uint64_t & numc, uint64_t & numsep)
 			{
 				std::cerr << "Counting characters...";
 				std::pair<uint64_t,uint64_t> NC = countChars(arginfo.restargs);
@@ -554,7 +554,7 @@ namespace libmaus
 			{
 				std::cerr << "Loading proper symbol vector...";
 				std::ifstream dolistr(dolvecname.c_str(),std::ios::binary);
-				R = libmaus::autoarray::AutoArray<uint64_t>(dolistr);
+				R = libmaus2::autoarray::AutoArray<uint64_t>(dolistr);
 				assert ( dolistr );
 				dolistr.close();
 				std::cerr << "done." << std::endl;				
@@ -572,22 +572,22 @@ namespace libmaus
 			std::string const fsisafilename;
 			std::string const fufilename;
 
-			UniqueIndex2(::libmaus::util::ArgInfo const & arginfo)
+			UniqueIndex2(::libmaus2::util::ArgInfo const & arginfo)
 			: fbwtname("unique2.bwt"), flcpfilename("unique2.lcp"), fprevname("unique2.prev"),
 			  fnextname("unique2.next"), dolvecname("unique2.dolvec"), fsisafilename("unique2.sisa"),
 			  fufilename("unique2.uni")
 			{
-				::libmaus::util::TempFileNameGenerator tmpgen("tmp",2);
+				::libmaus2::util::TempFileNameGenerator tmpgen("tmp",2);
 
 
 				if ( 
-					(! ::libmaus::util::GetFileSize::fileExists(fufilename))
+					(! ::libmaus2::util::GetFileSize::fileExists(fufilename))
 				) 
 				{
 					if ( 
-						(! ::libmaus::util::GetFileSize::fileExists(fbwtname)) 
+						(! ::libmaus2::util::GetFileSize::fileExists(fbwtname)) 
 						||
-						(! ::libmaus::util::GetFileSize::fileExists(fsisafilename))
+						(! ::libmaus2::util::GetFileSize::fileExists(fsisafilename))
 					)
 					{
 						std::string const fsafilename = "unique2.sa";
@@ -598,7 +598,7 @@ namespace libmaus
 						std::cerr << "Constucting proper symbol vector...";
 						uint64_t rankbitsperword = 8*sizeof(rank_data_type);
 						uint64_t rankdatawords = ((numc+1)+rankbitsperword-1)/rankbitsperword;
-						R = ::libmaus::autoarray::AutoArray<rank_data_type>(rankdatawords);
+						R = ::libmaus2::autoarray::AutoArray<rank_data_type>(rankdatawords);
 						rank_writer_type rwt(R.get());
 						for ( uint64_t i = 0; i < numc+1; ++i )
 							rwt.writeBit( data->get(i) < 1 || data->get(i) > 4 );
@@ -614,19 +614,19 @@ namespace libmaus
 						
 						assert ( numc == n/2-1 );
 
-						::libmaus::bitio::SignedCompactArray::unique_ptr_type CSA;
+						::libmaus2::bitio::SignedCompactArray::unique_ptr_type CSA;
 
-						if ( ! ::libmaus::util::GetFileSize::fileExists(fsafilename) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(fsafilename) )
 						{
-							CSA = ::libmaus::bitio::SignedCompactArray::unique_ptr_type(new ::libmaus::bitio::SignedCompactArray(n, ::libmaus::math::bitsPerNum(n) + 1 ));
-							typedef ::libmaus::bitio::SignedCompactArray::const_iterator compact_index_const_it;
-							typedef ::libmaus::bitio::SignedCompactArray::iterator compact_index_it;
+							CSA = ::libmaus2::bitio::SignedCompactArray::unique_ptr_type(new ::libmaus2::bitio::SignedCompactArray(n, ::libmaus2::math::bitsPerNum(n) + 1 ));
+							typedef ::libmaus2::bitio::SignedCompactArray::const_iterator compact_index_const_it;
+							typedef ::libmaus2::bitio::SignedCompactArray::iterator compact_index_it;
 							unsigned int const bitwidth = 64;
-							typedef ::libmaus::suffixsort::DivSufSort<bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it> compact_index_sort_type;
+							typedef ::libmaus2::suffixsort::DivSufSort<bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it> compact_index_sort_type;
 							
 							if ( (2*numsep+1)+5+1 > compact_index_sort_type::ALPHABET_SIZE )
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "too many fragments: " << numsep;
 								se.finish();
 								throw se;
@@ -635,7 +635,7 @@ namespace libmaus
 							compact_const_it cci = data->begin();
 							compact_index_it cii = CSA->begin();
 							std::cerr << "Running divsufsort on double compact representation using " << CSA->getB() << " bits per position...";
-							::libmaus::timing::RealTimeClock rtc; rtc.start();
+							::libmaus2::timing::RealTimeClock rtc; rtc.start();
 							{
 								ThreadLimit TL(1); // no multi threading in here
 								compact_index_sort_type::divsufsort(cci, cii, n);
@@ -653,7 +653,7 @@ namespace libmaus
 							std::cerr << "Checking suffix array...";
 							cci = compact_const_it(data.get());
 							cii = compact_index_it(CSA.get());
-							int r = ::libmaus::suffixsort::DivSufSortUtils<
+							int r = ::libmaus2::suffixsort::DivSufSortUtils<
 								bitwidth,compact_it,compact_const_it,compact_index_it,compact_index_const_it>::sufcheck(cci,cii,n,1);
 							std::cerr << r << "," << "done." << std::endl;
 							#endif
@@ -673,17 +673,17 @@ namespace libmaus
 						{
 							std::cerr << "Reading SA from disk...";
 							std::ifstream istr(fsafilename.c_str(),std::ios::binary);
-							CSA = ::libmaus::bitio::SignedCompactArray::unique_ptr_type(new ::libmaus::bitio::SignedCompactArray(istr));
+							CSA = ::libmaus2::bitio::SignedCompactArray::unique_ptr_type(new ::libmaus2::bitio::SignedCompactArray(istr));
 							assert ( istr );
 							istr.close();
 							std::cerr << "done." << std::endl;
 							assert ( CSA->size() == n );
 						}
 						
-						if ( ! ::libmaus::util::GetFileSize::fileExists(fsisafilename) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(fsisafilename) )
 						{
 							std::cerr << "Computing sampled inverse suffix array...";
-							SISA = ::libmaus::autoarray::AutoArray<uint64_t>( (numc+1+sasamplingrate-1)/sasamplingrate,false );
+							SISA = ::libmaus2::autoarray::AutoArray<uint64_t>( (numc+1+sasamplingrate-1)/sasamplingrate,false );
 							#if defined(_OPENMP)
 							#pragma omp parallel for
 							#endif
@@ -704,12 +704,12 @@ namespace libmaus
 						{
 							std::cerr << "Loading sampled inverse suffix array from disk...";
 							std::ifstream istr(fsisafilename.c_str(),std::ios::binary);
-							SISA = ::libmaus::autoarray::AutoArray<uint64_t>(istr);
+							SISA = ::libmaus2::autoarray::AutoArray<uint64_t>(istr);
 							assert ( istr );
 							std::cerr << "done." << std::endl;
 						}
 						
-						if ( ! ::libmaus::util::GetFileSize::fileExists(fbwtname) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(fbwtname) )
 						{
 							std::cerr << "Computing BWT...";
 							text_array_ptr_type BWT = text_array_ptr_type(new text_array_type(n,data->getB()));
@@ -729,7 +729,7 @@ namespace libmaus
 							std::cerr << "done." << std::endl;
 							
 							std::cerr << "Converting to wavelet tree bits...";
-							libmaus::autoarray::AutoArray<uint64_t> WTbits = ::libmaus::wavelet::toWaveletTreeBitsParallel(BWT.get());
+							libmaus2::autoarray::AutoArray<uint64_t> WTbits = ::libmaus2::wavelet::toWaveletTreeBitsParallel(BWT.get());
 							std::cerr << "done." << std::endl;
 
 							std::cerr << "Constructing wavelet tree...";
@@ -771,14 +771,14 @@ namespace libmaus
 					{
 						std::cerr << "Loading proper symbol vector...";
 						std::ifstream dolistr(dolvecname.c_str(),std::ios::binary);
-						R = libmaus::autoarray::AutoArray<uint64_t>(dolistr);
+						R = libmaus2::autoarray::AutoArray<uint64_t>(dolistr);
 						assert ( dolistr );
 						dolistr.close();
 						std::cerr << "done." << std::endl;				
 
 						std::cerr << "Loading sampled inverse suffix array from disk...";
 						std::ifstream ssaistr(fsisafilename.c_str(),std::ios::binary);
-						SISA = ::libmaus::autoarray::AutoArray<uint64_t>(ssaistr);
+						SISA = ::libmaus2::autoarray::AutoArray<uint64_t>(ssaistr);
 						assert ( ssaistr );
 						ssaistr.close();
 						std::cerr << "done." << std::endl;
@@ -797,7 +797,7 @@ namespace libmaus
 					
 					n = lf->getN();
 
-					if ( ! ::libmaus::util::GetFileSize::fileExists(flcpfilename) )
+					if ( ! ::libmaus2::util::GetFileSize::fileExists(flcpfilename) )
 					{
 						std::cerr << "Computing LCP...";
 						LCP = computeLCP(lf.get());
@@ -814,14 +814,14 @@ namespace libmaus
 					{
 						std::cerr << "Reading LCP from disk...";
 						std::ifstream istr(flcpfilename.c_str(),std::ios::binary);
-						LCP = ::libmaus::util::Array864::unique_ptr_type(new ::libmaus::util::Array864(istr));
+						LCP = ::libmaus2::util::Array864::unique_ptr_type(new ::libmaus2::util::Array864(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
 						istr.close();
 						std::cerr << "done." << std::endl;				
 					}
 
-					if ( ! ::libmaus::util::GetFileSize::fileExists(fprevname) )
+					if ( ! ::libmaus2::util::GetFileSize::fileExists(fprevname) )
 					{
 						std::cerr << "Computing prev...";
 						prev = psv864(*LCP,n);
@@ -838,14 +838,14 @@ namespace libmaus
 					{				
 						std::cerr << "Reading prev from disk...";
 						std::ifstream istr(fprevname.c_str(),std::ios::binary);
-						prev = ::libmaus::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus::util::NegativeDifferenceArray64(istr));
+						prev = ::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray64(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
 						istr.close();
 						std::cerr << "done." << std::endl;				
 					}
 					
-					if ( ! ::libmaus::util::GetFileSize::fileExists(fnextname) )
+					if ( ! ::libmaus2::util::GetFileSize::fileExists(fnextname) )
 					{
 						std::cerr << "Computing next...";
 						next = nsv864(*LCP,n);
@@ -862,7 +862,7 @@ namespace libmaus
 					{				
 						std::cerr << "Reading next from disk...";
 						std::ifstream istr(fnextname.c_str(),std::ios::binary);
-						next = ::libmaus::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus::util::PositiveDifferenceArray64(istr));
+						next = ::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray64(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
 						istr.close();
@@ -885,20 +885,20 @@ namespace libmaus
 					else
 						todo.push_back( qpair( upair(0,n/2-1), n-2 ) );				
 
-					::libmaus::autoarray::AutoArray<uint64_t> udist(1024);				
+					::libmaus2::autoarray::AutoArray<uint64_t> udist(1024);				
 						
-					::libmaus::parallel::OMPLock lock;	
+					::libmaus2::parallel::OMPLock lock;	
 					
 					uint64_t finished = 0;
 					
-					U = ::libmaus::autoarray::AutoArray<uint64_t>(n/2,false);
+					U = ::libmaus2::autoarray::AutoArray<uint64_t>(n/2,false);
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(todo.size()); ++i )
 					{
-						::libmaus::autoarray::AutoArray<uint64_t> ludist(udist.size());
+						::libmaus2::autoarray::AutoArray<uint64_t> ludist(udist.size());
 
 						qpair const & qp = todo[i];
 						upair const & up = qp.first;
@@ -948,7 +948,7 @@ namespace libmaus
 				else
 				{
 					std::ifstream istr(fufilename.c_str(),std::ios::binary);
-					U = ::libmaus::autoarray::AutoArray<uint64_t>(istr);
+					U = ::libmaus2::autoarray::AutoArray<uint64_t>(istr);
 					assert ( istr );
 					istr.close();
 				}
@@ -959,17 +959,17 @@ namespace libmaus
 		{
 			typedef uint8_t char_type;
 			enum { ALPHABET_SIZE=256 };
-			typedef ::libmaus::suffixsort::DivSufSort<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_type;
-			typedef ::libmaus::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_util_type;
-			typedef ::libmaus::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,uint32_t *,uint32_t const *,ALPHABET_SIZE> sort_util_post_type;
+			typedef ::libmaus2::suffixsort::DivSufSort<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_type;
+			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,int64_t *,int64_t const *,ALPHABET_SIZE> sort_util_type;
+			typedef ::libmaus2::suffixsort::DivSufSortUtils<64,char_type *,char_type const *,uint32_t *,uint32_t const *,ALPHABET_SIZE> sort_util_post_type;
 			typedef sort_type::saidx_t saidx_t;
 
 			typedef UniqueIndex this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			static std::pair<uint64_t,uint64_t> countChars(std::vector<std::string> const & filenames)
 			{
-				::libmaus::aio::SynchronousFastReaderBase SFR(filenames);
+				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
 				
 				uint64_t numc = 0;
@@ -1047,10 +1047,10 @@ namespace libmaus
 			}
 
 
-			static ::libmaus::autoarray::AutoArray<char_type> readFiles(std::vector<std::string> const & filenames, uint64_t const numc)
+			static ::libmaus2::autoarray::AutoArray<char_type> readFiles(std::vector<std::string> const & filenames, uint64_t const numc)
 			{
-				::libmaus::autoarray::AutoArray<char_type> A(numc,false);
-				::libmaus::aio::SynchronousFastReaderBase SFR(filenames);
+				::libmaus2::autoarray::AutoArray<char_type> A(numc,false);
+				::libmaus2::aio::SynchronousFastReaderBase SFR(filenames);
 				std::string line;
 				char_type * p = A.get();
 				char_type sep = 6;
@@ -1107,19 +1107,19 @@ namespace libmaus
 			}
 
 			#if 0
-			static ::libmaus::autoarray::AutoArray<char_type> computeBWT(::libmaus::autoarray::AutoArray<char_type> const & A)
+			static ::libmaus2::autoarray::AutoArray<char_type> computeBWT(::libmaus2::autoarray::AutoArray<char_type> const & A)
 			{
 				unsigned int const k = 8;
 				unsigned int const w = 32;
 				
 				uint64_t const n = A.size();
 				if ( ! n )
-					return ::libmaus::autoarray::AutoArray<char_type>();
+					return ::libmaus2::autoarray::AutoArray<char_type>();
 
 				unsigned int const albits = getAlBits();
-				::libmaus::wavelet::DynamicWaveletTree<k,w> B(albits);
-				::libmaus::cumfreq::DynamicCumulativeFrequencies scf(sort_type::ALPHABET_SIZE);
-				// ::libmaus::cumfreq::SlowCumFreq scf(sort_type::ALPHABET_SIZE);
+				::libmaus2::wavelet::DynamicWaveletTree<k,w> B(albits);
+				::libmaus2::cumfreq::DynamicCumulativeFrequencies scf(sort_type::ALPHABET_SIZE);
+				// ::libmaus2::cumfreq::SlowCumFreq scf(sort_type::ALPHABET_SIZE);
 				
 				uint64_t p = 0;
 				for ( int64_t i = n-2; i >= 0; --i )
@@ -1135,7 +1135,7 @@ namespace libmaus
 
 				std::cerr << "(dbwt " << 0 << ")" << std::endl;
 				
-				::libmaus::autoarray::AutoArray<char_type> BWT(n,false);
+				::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
 				
 				#if defined(_OPENMP)
 				#pragma omp parallel for
@@ -1153,29 +1153,29 @@ namespace libmaus
 			}
 			#endif
 
-			typedef ::libmaus::lf::QuickLF lf_type;
-			typedef ::libmaus::rank::ERank222B rank_type;
+			typedef ::libmaus2::lf::QuickLF lf_type;
+			typedef ::libmaus2::rank::ERank222B rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
-			//typedef ::libmaus::lf::LF lf_type;
+			//typedef ::libmaus2::lf::LF lf_type;
 			typedef lf_type::unique_ptr_type lf_ptr_type;
 			typedef lf_type::wt_type wt_type;
 			typedef wt_type::unique_ptr_type wt_ptr_type;
 
 			uint64_t numc;
 			uint64_t numsep;
-			::libmaus::autoarray::AutoArray<char_type> data;
-			::libmaus::autoarray::AutoArray<char_type> rdata;
+			::libmaus2::autoarray::AutoArray<char_type> data;
+			::libmaus2::autoarray::AutoArray<char_type> rdata;
 			uint64_t n;
-			::libmaus::autoarray::AutoArray<uint32_t> SA;
-			::libmaus::autoarray::AutoArray<uint32_t> ISA;
-			::libmaus::util::Array832::unique_ptr_type LCP;
-			::libmaus::util::NegativeDifferenceArray32::unique_ptr_type prev;
-			::libmaus::util::PositiveDifferenceArray32::unique_ptr_type next;
-			::libmaus::autoarray::AutoArray<uint32_t> RSA;
-			::libmaus::autoarray::AutoArray<uint32_t> RISA;
-			::libmaus::util::Array832::unique_ptr_type RLCP;
-			::libmaus::util::NegativeDifferenceArray32::unique_ptr_type rprev;
-			::libmaus::util::PositiveDifferenceArray32::unique_ptr_type rnext;
+			::libmaus2::autoarray::AutoArray<uint32_t> SA;
+			::libmaus2::autoarray::AutoArray<uint32_t> ISA;
+			::libmaus2::util::Array832::unique_ptr_type LCP;
+			::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type prev;
+			::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type next;
+			::libmaus2::autoarray::AutoArray<uint32_t> RSA;
+			::libmaus2::autoarray::AutoArray<uint32_t> RISA;
+			::libmaus2::util::Array832::unique_ptr_type RLCP;
+			::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type rprev;
+			::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type rnext;
 
 			wt_ptr_type qwt;
 			lf_ptr_type lf;
@@ -1217,10 +1217,10 @@ namespace libmaus
 			 * algorithm nsv832
 			 **/
 			template<typename lcp_array_type>
-			static ::libmaus::util::PositiveDifferenceArray32::unique_ptr_type nsv832(lcp_array_type const & LCP, int64_t n)
+			static ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type nsv832(lcp_array_type const & LCP, int64_t n)
 			{
 				// allocate result array
-				::libmaus::autoarray::AutoArray<uint32_t> next(n,false);
+				::libmaus2::autoarray::AutoArray<uint32_t> next(n,false);
 
 				// do not crash for n==0
 				if ( n )
@@ -1244,20 +1244,20 @@ namespace libmaus
 					next[r] = next[r]-r;
 				}
 
-				::libmaus::util::Array832::unique_ptr_type anext(new ::libmaus::util::Array832(next.begin(),next.end()));
+				::libmaus2::util::Array832::unique_ptr_type anext(new ::libmaus2::util::Array832(next.begin(),next.end()));
 			  
 				// return result
-				return ::libmaus::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus::util::PositiveDifferenceArray32(anext));
+				return ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray32(anext));
 			}
 
 			/**
 			 * algorithm psv832
 			 **/
 			template<typename lcp_array_type>
-			static ::libmaus::util::NegativeDifferenceArray32::unique_ptr_type psv832(lcp_array_type const & LCP, uint64_t n)
+			static ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type psv832(lcp_array_type const & LCP, uint64_t n)
 			{
 				// allocate result array
-				::libmaus::autoarray::AutoArray<uint32_t> prev(n,false);
+				::libmaus2::autoarray::AutoArray<uint32_t> prev(n,false);
 
 				// do not crash for n==0
 				if ( n )
@@ -1276,9 +1276,9 @@ namespace libmaus
 				for ( uint64_t r = 0; r < n; ++r )
 					prev[r] = r-prev[r];
 				
-				::libmaus::util::Array832::unique_ptr_type aprev(new ::libmaus::util::Array832(prev.begin(),prev.end()));
+				::libmaus2::util::Array832::unique_ptr_type aprev(new ::libmaus2::util::Array832(prev.begin(),prev.end()));
 
-				return ::libmaus::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus::util::NegativeDifferenceArray32(aprev));
+				return ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(aprev));
 			}
 
 			struct Node
@@ -1468,9 +1468,9 @@ namespace libmaus
 				return albits;
 			}
 			
-			UniqueIndex(::libmaus::util::ArgInfo const & arginfo)
+			UniqueIndex(::libmaus2::util::ArgInfo const & arginfo)
 			{
-				::libmaus::util::TempFileNameGenerator tmpgen("tmp",2);
+				::libmaus2::util::TempFileNameGenerator tmpgen("tmp",2);
 
 				std::cerr << "Counting characters...";
 				std::pair<uint64_t,uint64_t> NC = countChars(arginfo.restargs);
@@ -1480,7 +1480,7 @@ namespace libmaus
 				
 				if ( numsep+5+1 > sort_type::ALPHABET_SIZE )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "too many fragments: " << numsep;
 					se.finish();
 					throw se;
@@ -1512,8 +1512,8 @@ namespace libmaus
 					#endif
 					{
 						std::cerr << "Computing forward suffix array...";
-						if ( ::libmaus::util::GetFileSize::fileExists(fsafilename) &&
-							(::libmaus::util::GetFileSize::getFileSize(fsafilename) == (1*sizeof(uint64_t)+n*sizeof(uint32_t))) )
+						if ( ::libmaus2::util::GetFileSize::fileExists(fsafilename) &&
+							(::libmaus2::util::GetFileSize::getFileSize(fsafilename) == (1*sizeof(uint64_t)+n*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
 							::std::ifstream istr(fsafilename.c_str(),std::ios::binary);
@@ -1527,12 +1527,12 @@ namespace libmaus
 						{
 							std::cerr << "(comp)";
 
-							::libmaus::autoarray::AutoArray<int64_t> TSA(n,false);
+							::libmaus2::autoarray::AutoArray<int64_t> TSA(n,false);
 							// SAIS::SA_IS(data.get(), TSA.get(), n, ALPHABET_SIZE, 1);
 							sort_type::divsufsort(data.get(),TSA.get(),n);
 							// sort_util_type::sufcheck(data.get(),TSA.get(),n,1);
 							
-							SA = ::libmaus::autoarray::AutoArray<uint32_t>(n,false);
+							SA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 							std::copy ( TSA.begin(), TSA.end(), SA.begin() );
 							// sort_util_post_type::sufcheck(data.get(),SA.get(),n,1);
 							
@@ -1546,29 +1546,29 @@ namespace libmaus
 
 
 						std::cerr << "Computing LCP array...";
-						if ( ::libmaus::util::GetFileSize::fileExists(flcpfilename) &&
-							(::libmaus::util::GetFileSize::getFileSize(flcpfilename) == (1*sizeof(uint64_t)+(n+1)*sizeof(uint32_t))) )
+						if ( ::libmaus2::util::GetFileSize::fileExists(flcpfilename) &&
+							(::libmaus2::util::GetFileSize::getFileSize(flcpfilename) == (1*sizeof(uint64_t)+(n+1)*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
 							::std::ifstream istr(flcpfilename.c_str(),std::ios::binary);
-							::libmaus::autoarray::AutoArray<uint32_t> LLCP;
+							::libmaus2::autoarray::AutoArray<uint32_t> LLCP;
 							LLCP.deserialize(istr);
 							assert ( istr );
 							istr.close();
 							
-							LCP = ::libmaus::util::Array832::unique_ptr_type(new ::libmaus::util::Array832(LLCP.begin(),LLCP.end()));
+							LCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LLCP.begin(),LLCP.end()));
 						}
 						else
 						{
 							std::cerr << "(comp)";
-							::libmaus::autoarray::AutoArray<uint32_t> LLCP = ::libmaus::suffixsort::SkewSuffixSort<char_type,uint32_t>::lcpByPlcp(data.get(), n, SA.get(), 1);
+							::libmaus2::autoarray::AutoArray<uint32_t> LLCP = ::libmaus2::suffixsort::SkewSuffixSort<char_type,uint32_t>::lcpByPlcp(data.get(), n, SA.get(), 1);
 							LLCP[n] = 0;
 							std::ofstream ostr(flcpfilename.c_str(),std::ios::binary);
 							LLCP.serialize(ostr);
 							ostr.flush();
 							ostr.close();
 
-							LCP = ::libmaus::util::Array832::unique_ptr_type(new ::libmaus::util::Array832(LLCP.begin(),LLCP.end()));
+							LCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LLCP.begin(),LLCP.end()));
 						}
 						std::cerr << "done." << std::endl;
 					}
@@ -1578,8 +1578,8 @@ namespace libmaus
 					#endif
 					{
 						std::cerr << "Computing reverse suffix array...";
-						if ( ::libmaus::util::GetFileSize::fileExists(rsafilename) &&
-							(::libmaus::util::GetFileSize::getFileSize(rsafilename) == (1*sizeof(uint64_t)+n*sizeof(uint32_t))) )
+						if ( ::libmaus2::util::GetFileSize::fileExists(rsafilename) &&
+							(::libmaus2::util::GetFileSize::getFileSize(rsafilename) == (1*sizeof(uint64_t)+n*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
 							::std::ifstream istr(rsafilename.c_str(),std::ios::binary);
@@ -1592,12 +1592,12 @@ namespace libmaus
 						{
 							std::cerr << "(comp)";
 
-							::libmaus::autoarray::AutoArray<int64_t> TSA(n,false);
+							::libmaus2::autoarray::AutoArray<int64_t> TSA(n,false);
 							// SAIS::SA_IS(rdata.get(), TSA.get(), n, ALPHABET_SIZE, 1);
 							sort_type::divsufsort(rdata.get(),TSA.get(),n);
 							// sort_util_type::sufcheck(rdata.get(),TSA.get(),n,1);
 							
-							RSA = ::libmaus::autoarray::AutoArray<uint32_t>(n,false);
+							RSA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 							std::copy ( TSA.begin(), TSA.end(), RSA.begin() );
 							// sort_util_post_type::sufcheck(rdata.get(),RSA.get(),n,1);
 
@@ -1609,36 +1609,36 @@ namespace libmaus
 						std::cerr << "done." << std::endl;
 
 						std::cerr << "Computing reverse LCP array...";
-						if ( ::libmaus::util::GetFileSize::fileExists(rlcpfilename) &&
-							(::libmaus::util::GetFileSize::getFileSize(rlcpfilename) == (1*sizeof(uint64_t)+(n+1)*sizeof(uint32_t))) )
+						if ( ::libmaus2::util::GetFileSize::fileExists(rlcpfilename) &&
+							(::libmaus2::util::GetFileSize::getFileSize(rlcpfilename) == (1*sizeof(uint64_t)+(n+1)*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
 							::std::ifstream istr(rlcpfilename.c_str(),std::ios::binary);
-							::libmaus::autoarray::AutoArray<uint32_t> LRLCP;
+							::libmaus2::autoarray::AutoArray<uint32_t> LRLCP;
 							LRLCP.deserialize(istr);
 							assert ( istr );
 							istr.close();
 							
-							RLCP = ::libmaus::util::Array832::unique_ptr_type(new ::libmaus::util::Array832(LRLCP.begin(),LRLCP.end()));
+							RLCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LRLCP.begin(),LRLCP.end()));
 						}
 						else
 						{
 							std::cerr << "(comp)";
-							::libmaus::autoarray::AutoArray<uint32_t> LRLCP = ::libmaus::suffixsort::SkewSuffixSort<char_type,uint32_t>::lcpByPlcp(rdata.get(), n, RSA.get(), 1);
+							::libmaus2::autoarray::AutoArray<uint32_t> LRLCP = ::libmaus2::suffixsort::SkewSuffixSort<char_type,uint32_t>::lcpByPlcp(rdata.get(), n, RSA.get(), 1);
 							LRLCP[n] = 0;
 							std::ofstream ostr(rlcpfilename.c_str(),std::ios::binary);
 							LRLCP.serialize(ostr);
 							ostr.flush();
 							ostr.close();
 
-							RLCP = ::libmaus::util::Array832::unique_ptr_type(new ::libmaus::util::Array832(LRLCP.begin(),LRLCP.end()));
+							RLCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LRLCP.begin(),LRLCP.end()));
 						}
 						std::cerr << "done." << std::endl;
 					}
 				}
 				
 				std::cerr << "Computing forward ISA...";
-				ISA = ::libmaus::autoarray::AutoArray<uint32_t>(n,false);
+				ISA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 				#if defined(_OPENMP)
 				#pragma omp parallel for
 				#endif
@@ -1650,7 +1650,7 @@ namespace libmaus
 				std::cerr << "Alphabet size " << sort_type::ALPHABET_SIZE << " bits " << albits << std::endl;
 
 				std::cerr << "Computing reverse ISA...";
-				RISA = ::libmaus::autoarray::AutoArray<uint32_t>(n,false);
+				RISA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 				#if defined(_OPENMP)
 				#pragma omp parallel for
 				#endif
@@ -1660,12 +1660,12 @@ namespace libmaus
 
 				#define WTEXTERNAL
 
-				if ( ! ::libmaus::util::GetFileSize::fileExists(fbwtname) )
+				if ( ! ::libmaus2::util::GetFileSize::fileExists(fbwtname) )
 				{
 					#if defined(WTEXTERNAL)
-					::libmaus::wavelet::ExternalWaveletGenerator ewg(albits,tmpgen);
+					::libmaus2::wavelet::ExternalWaveletGenerator ewg(albits,tmpgen);
 					#else
-					::libmaus::autoarray::AutoArray<char_type> BWT(n,false);
+					::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
 					char_type * ppp = BWT.begin();
 					#endif
 					
@@ -1702,7 +1702,7 @@ namespace libmaus
 					ewg.createFinalStream(fbwtname);
 					std::cerr << "done." << std::endl;
 					#else
-					::libmaus::wavelet::WaveletTree< rank_type, char_type > WT(BWT.begin(),n);
+					::libmaus2::wavelet::WaveletTree< rank_type, char_type > WT(BWT.begin(),n);
 					std::ofstream wtostr(fbwtname.c_str(),std::ios::binary);
 					WT.serialize(wtostr);
 					wtostr.flush();
@@ -1719,12 +1719,12 @@ namespace libmaus
 					this->p0rank = p0rank;		
 				}
 
-				if ( ! ::libmaus::util::GetFileSize::fileExists(rbwtname) )
+				if ( ! ::libmaus2::util::GetFileSize::fileExists(rbwtname) )
 				{
 					#if defined(WTEXTERNAL)
-					::libmaus::wavelet::ExternalWaveletGenerator ewg(albits,tmpgen);
+					::libmaus2::wavelet::ExternalWaveletGenerator ewg(albits,tmpgen);
 					#else
-					::libmaus::autoarray::AutoArray<char_type> BWT(n,false);
+					::libmaus2::autoarray::AutoArray<char_type> BWT(n,false);
 					char_type * ppp = BWT.begin();
 					#endif
 					
@@ -1760,7 +1760,7 @@ namespace libmaus
 					ewg.createFinalStream(rbwtname);
 					std::cerr << "done." << std::endl;
 					#else
-					::libmaus::wavelet::WaveletTree< rank_type , char_type > WT(BWT.begin(),n);
+					::libmaus2::wavelet::WaveletTree< rank_type , char_type > WT(BWT.begin(),n);
 					std::ofstream ostr(rbwtname.c_str(),std::ios::binary);
 					WT.serialize(ostr);
 					ostr.flush();
@@ -1812,7 +1812,7 @@ namespace libmaus
 					#pragma omp section
 					#endif
 					{
-						if ( ! ::libmaus::util::GetFileSize::fileExists(prevname) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(prevname) )
 						{
 							prev = psv832(*LCP, n);
 							std::ofstream ostr(prevname.c_str(),std::ios::binary);
@@ -1824,7 +1824,7 @@ namespace libmaus
 						else
 						{
 							std::ifstream istr(prevname.c_str(),std::ios::binary);
-							prev = ::libmaus::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus::util::NegativeDifferenceArray32(istr));
+							prev = ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
 				 
@@ -1834,7 +1834,7 @@ namespace libmaus
 					#pragma omp section
 					#endif
 					{
-						if ( ! ::libmaus::util::GetFileSize::fileExists(nextname) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(nextname) )
 						{
 							next = nsv832(*LCP, n);
 							std::ofstream ostr(nextname.c_str(),std::ios::binary);
@@ -1846,7 +1846,7 @@ namespace libmaus
 						else
 						{
 							std::ifstream istr(nextname.c_str(),std::ios::binary);
-							next = ::libmaus::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus::util::PositiveDifferenceArray32(istr));
+							next = ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
 						}
@@ -1855,7 +1855,7 @@ namespace libmaus
 					#pragma omp section
 					#endif
 					{
-						if ( ! ::libmaus::util::GetFileSize::fileExists(rprevname) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(rprevname) )
 						{
 							rprev = psv832(*RLCP, n);
 							std::ofstream ostr(rprevname.c_str(),std::ios::binary);
@@ -1867,7 +1867,7 @@ namespace libmaus
 						else
 						{
 							std::ifstream istr(rprevname.c_str(),std::ios::binary);
-							rprev = ::libmaus::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus::util::NegativeDifferenceArray32(istr));
+							rprev = ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
 				 
@@ -1877,7 +1877,7 @@ namespace libmaus
 					#pragma omp section
 					#endif
 					{
-						if ( ! ::libmaus::util::GetFileSize::fileExists(rnextname) )
+						if ( ! ::libmaus2::util::GetFileSize::fileExists(rnextname) )
 						{
 							rnext = nsv832(*RLCP, n);
 							std::ofstream ostr(rnextname.c_str(),std::ios::binary);
@@ -1889,7 +1889,7 @@ namespace libmaus
 						else
 						{
 							std::ifstream istr(rnextname.c_str(),std::ios::binary);
-							rnext = ::libmaus::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus::util::PositiveDifferenceArray32(istr));
+							rnext = ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
 						}
@@ -1987,12 +1987,12 @@ namespace libmaus
 
 			void process(std::string const outfilename) const
 			{
-				::libmaus::util::TempFileNameGenerator tmpgen("uni_out_tmp",4);
+				::libmaus2::util::TempFileNameGenerator tmpgen("uni_out_tmp",4);
 				
 				uint64_t const pblocksize = 64*1024;
 				// uint64_t const pblocksize = 8ull * 1024ull * 1024ull * 1024ull; // 64*1024;
 				uint64_t const numblocks = (n + pblocksize-1)/pblocksize;
-				::libmaus::parallel::OMPLock lock;
+				::libmaus2::parallel::OMPLock lock;
 				
 				std::vector < std::string > unifilenames;
 				for ( uint64_t pp = 0; pp < numblocks; ++pp )
@@ -2006,7 +2006,7 @@ namespace libmaus
 				for ( int64_t pp = 0 ; pp < static_cast<int64_t>(numblocks); ++pp )
 				{
 					std::string const unioutname = unifilenames[pp];			
-					::libmaus::aio::SynchronousGenericOutput<uint32_t> uniout(unioutname,64*1024);
+					::libmaus2::aio::SynchronousGenericOutput<uint32_t> uniout(unioutname,64*1024);
 
 					uint64_t p = std::min(pp*pblocksize,n);
 					uint64_t const pn = std::min(p+pblocksize,n);
@@ -2111,13 +2111,13 @@ namespace libmaus
 				}
 
 				{		
-					::libmaus::aio::SynchronousGenericOutput<uint32_t> uniout(outfilename,64*1024);
+					::libmaus2::aio::SynchronousGenericOutput<uint32_t> uniout(outfilename,64*1024);
 					for ( uint64_t pp = 0; pp < numblocks; ++pp )
 					{
 						std::string const & filename = unifilenames[pp];
 
 						{
-						::libmaus::aio::SynchronousGenericInput<uint32_t> uniin(filename,64*1024);
+						::libmaus2::aio::SynchronousGenericInput<uint32_t> uniin(filename,64*1024);
 						uint32_t v;
 						
 						while ( uniin.getNext(v) )

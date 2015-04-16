@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,34 +20,34 @@
 #if ! defined(COMPACTFASTDECODER_HPP)
 #define COMPACTFASTDECODER_HPP
 
-#include <libmaus/aio/ReorderConcatGenericInput.hpp>
-#include <libmaus/fastx/CompactFastDecoderBase.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/fastx/Pattern.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/aio/ReorderConcatGenericInput.hpp>
+#include <libmaus2/fastx/CompactFastDecoderBase.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/fastx/Pattern.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
 #if ! defined(_WIN32)
-#include <libmaus/network/SocketFastReaderBase.hpp>
+#include <libmaus2/network/SocketFastReaderBase.hpp>
 #endif
 
 #include <fstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct CompactFastDecoder : public CompactFastDecoderBase
 		{
 			typedef CompactFastDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::fastx::Pattern pattern_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::fastx::Pattern pattern_type;
 
 			typedef std::ifstream file_input_stream_type;
-			typedef ::libmaus::util::unique_ptr<file_input_stream_type>::type file_input_stream_ptr_type;	
+			typedef ::libmaus2::util::unique_ptr<file_input_stream_type>::type file_input_stream_ptr_type;	
 
 			file_input_stream_ptr_type inptr;
 			std::istream & istr;
-			std::vector< ::libmaus::fastx::FastInterval > index;
+			std::vector< ::libmaus2::fastx::FastInterval > index;
 			
 			static uint64_t getNonDataSize(std::istream & istr)
 			{
@@ -60,7 +60,7 @@ namespace libmaus
 			}
 			static uint64_t getDataSize(std::string const & filename)
 			{
-			        uint64_t const filesize = ::libmaus::util::GetFileSize::getFileSize(filename);
+			        uint64_t const filesize = ::libmaus2::util::GetFileSize::getFileSize(filename);
 			        uint64_t const datasize = filesize - getNonDataSize(filename);
 			        return datasize;
 			}
@@ -82,7 +82,7 @@ namespace libmaus
 
 			        if ( truncate ( filename.c_str(), datasize ) < 0 )
 			        {
-			                ::libmaus::exception::LibMausException se;
+			                ::libmaus2::exception::LibMausException se;
 			                se.getStream() << "truncate(" << filename << "," << datasize << ") failed" << std::endl;
 			                se.finish();
 			                throw se;
@@ -105,9 +105,9 @@ namespace libmaus
 				return indexlen;
 			}
 
-			static std::vector< ::libmaus::fastx::FastInterval > loadIndex(std::istream & istr)
+			static std::vector< ::libmaus2::fastx::FastInterval > loadIndex(std::istream & istr)
 			{
-				std::vector< ::libmaus::fastx::FastInterval > index;
+				std::vector< ::libmaus2::fastx::FastInterval > index;
 				
 				uint64_t const indexlen = getIndexLength(istr);
 				
@@ -116,43 +116,43 @@ namespace libmaus
 
 				istr.seekg(-static_cast<int64_t>(indexlen),std::ios::cur);
 
-				index = ::libmaus::fastx::FastInterval::deserialiseVector(istr);
+				index = ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
 				
 				istr.seekg(0,std::ios::beg);
 			
 				return index;
 			}
 
-			static std::vector< ::libmaus::fastx::FastInterval > loadIndex(std::string const & filename)
+			static std::vector< ::libmaus2::fastx::FastInterval > loadIndex(std::string const & filename)
 			{
 			        std::ifstream istr(filename.c_str(),std::ios::binary);
 			        return loadIndex(istr);
 			}
 
-			static std::vector< ::libmaus::fastx::FastInterval > loadIndex(std::vector < std::string > const & filenames)
+			static std::vector< ::libmaus2::fastx::FastInterval > loadIndex(std::vector < std::string > const & filenames)
 			{                        
-			        std::vector< ::libmaus::fastx::FastInterval > index;
+			        std::vector< ::libmaus2::fastx::FastInterval > index;
 			        
 			        for ( uint64_t i = 0; i < filenames.size(); ++i )
-					::libmaus::fastx::FastInterval::append(index,loadIndex(filenames[i]));
+					::libmaus2::fastx::FastInterval::append(index,loadIndex(filenames[i]));
 
 			        return index;
 			}
 
-			static ::libmaus::fastx::FastInterval loadIndexSingleInterval(std::vector < std::string > const & filenames)
+			static ::libmaus2::fastx::FastInterval loadIndexSingleInterval(std::vector < std::string > const & filenames)
 			{
-				std::vector< ::libmaus::fastx::FastInterval > const index = loadIndex(filenames);
-				return ::libmaus::fastx::FastInterval::merge(index.begin(),index.end());
+				std::vector< ::libmaus2::fastx::FastInterval > const index = loadIndex(filenames);
+				return ::libmaus2::fastx::FastInterval::merge(index.begin(),index.end());
 			}
 
-			static ::libmaus::aio::FileFragment getDataFragment(std::string const & filename)
+			static ::libmaus2::aio::FileFragment getDataFragment(std::string const & filename)
 			{
-			        return ::libmaus::aio::FileFragment ( filename, 0, getDataSize(filename) );
+			        return ::libmaus2::aio::FileFragment ( filename, 0, getDataSize(filename) );
 			}
 			
-			static std::vector < ::libmaus::aio::FileFragment > getDataFragments(std::vector < std::string > const & filenames)
+			static std::vector < ::libmaus2::aio::FileFragment > getDataFragments(std::vector < std::string > const & filenames)
 			{
-			        std::vector < ::libmaus::aio::FileFragment > fragments;
+			        std::vector < ::libmaus2::aio::FileFragment > fragments;
 			        for ( uint64_t i = 0; i < filenames.size(); ++i )
 			                fragments.push_back(getDataFragment(filenames[i]));
 
@@ -187,16 +187,16 @@ namespace libmaus
 		struct CompactFastConcatDecoder : public CompactFastDecoderBase
 		{
 			typedef CompactFastConcatDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::fastx::Pattern pattern_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::fastx::Pattern pattern_type;
 			
-			typedef ::libmaus::aio::ReorderConcatGenericInput<uint8_t> input_type;
+			typedef ::libmaus2::aio::ReorderConcatGenericInput<uint8_t> input_type;
 			typedef input_type::unique_ptr_type input_ptr_type;
 			
 			typedef CompactFastDecoderBase base_type;
 
-			std::vector < ::libmaus::aio::FileFragment > fragments;
-			::libmaus::fastx::FastInterval const FI;
+			std::vector < ::libmaus2::aio::FileFragment > fragments;
+			::libmaus2::fastx::FastInterval const FI;
 			input_ptr_type pistr;
 			input_type & istr;
 			
@@ -214,7 +214,7 @@ namespace libmaus
 
 			CompactFastConcatDecoder(
 			        std::vector<std::string> const & filenames,
-			        ::libmaus::fastx::FastInterval const & rFI,
+			        ::libmaus2::fastx::FastInterval const & rFI,
 			        uint64_t const bufsize = 64*1024
                         )
 			: fragments(CompactFastDecoder::getDataFragments(filenames)), 
@@ -225,13 +225,13 @@ namespace libmaus
 			        nextid = FI.low;
 			}
 			
-			static ::std::vector< ::libmaus::fastx::FastInterval> parallelIndex(::std::vector< ::std::string > const & filenames, uint64_t /* frags */)
+			static ::std::vector< ::libmaus2::fastx::FastInterval> parallelIndex(::std::vector< ::std::string > const & filenames, uint64_t /* frags */)
 			{
 				return CompactFastDecoder::loadIndex(filenames);
 			}
 
 			template<typename strip_type>
-                        static std::vector < ::libmaus::fastx::FastInterval > computeCommonNameAlignedFrags(
+                        static std::vector < ::libmaus2::fastx::FastInterval > computeCommonNameAlignedFrags(
                         	std::vector<std::string> const & filenames, uint64_t const numfrags, uint64_t const /* mod */, strip_type & /* strip */
 			)
 			{
@@ -256,12 +256,12 @@ namespace libmaus
 			        return base_type::skipPattern(istr,codelen);
 			}
 
-			static ::libmaus::aio::FileFragment getDataFragment(std::string const & filename)
+			static ::libmaus2::aio::FileFragment getDataFragment(std::string const & filename)
 			{
 			        return CompactFastDecoder::getDataFragment(filename);
 			}
 			
-			static std::vector < ::libmaus::aio::FileFragment > getDataFragments(std::vector < std::string > const & filenames)
+			static std::vector < ::libmaus2::aio::FileFragment > getDataFragments(std::vector < std::string > const & filenames)
 			{
 			        return CompactFastDecoder::getDataFragments(filenames);
 			}
@@ -271,26 +271,26 @@ namespace libmaus
                 {
                 	std::vector<std::string> const filenames;                	
 			
-			std::vector < ::libmaus::aio::FileFragment > const fragments;
-			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const fragmentintervals;
-			::libmaus::util::IntervalTree::unique_ptr_type fragmenttree;
+			std::vector < ::libmaus2::aio::FileFragment > const fragments;
+			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const fragmentintervals;
+			::libmaus2::util::IntervalTree::unique_ptr_type fragmenttree;
 
-			std::vector < libmaus::fastx::FastInterval > const index;
-			::libmaus::util::IntervalTree::unique_ptr_type const indextree;
+			std::vector < libmaus2::fastx::FastInterval > const index;
+			::libmaus2::util::IntervalTree::unique_ptr_type const indextree;
 			
 			CompactFastConcatRandomAccessAdapter(std::vector<std::string> const & rfilenames)
 			: 
 				filenames(rfilenames),
 				fragments(CompactFastDecoder::getDataFragments(filenames)),
-				fragmentintervals(::libmaus::aio::FileFragment::toIntervalVector(fragments)),
-				fragmenttree(::libmaus::aio::FileFragment::toIntervalTree(fragments)),
+				fragmentintervals(::libmaus2::aio::FileFragment::toIntervalVector(fragments)),
+				fragmenttree(::libmaus2::aio::FileFragment::toIntervalTree(fragments)),
 				index(CompactFastDecoder::loadIndex(filenames)),
-				indextree(libmaus::fastx::FastInterval::toIntervalTree(index))
+				indextree(libmaus2::fastx::FastInterval::toIntervalTree(index))
 			{
 			
 			}
 
-			uint64_t operator()(uint64_t i, libmaus::autoarray::AutoArray<uint8_t> & D) const
+			uint64_t operator()(uint64_t i, libmaus2::autoarray::AutoArray<uint8_t> & D) const
 			{
 				assert ( index.size() );
 				assert ( i < index.rbegin()->high );
@@ -311,7 +311,7 @@ namespace libmaus
 				
 				uint64_t const ioffset = index[ii].fileoffset - fragmentintervals[fi].first;
 				
-				libmaus::aio::CheckedInputStream CIS(fragments[fi].filename);
+				libmaus2::aio::CheckedInputStream CIS(fragments[fi].filename);
 				CIS.seekg(fragments[fi].offset + ioffset);
 				
 				for ( ; i ; --i )
@@ -320,14 +320,14 @@ namespace libmaus
 				uint64_t const len = CompactFastDecoderBase::decodeSimple(CIS,D);
 				
 				for ( uint64_t j = 0; j < len; ++j )
-					D[j] = libmaus::fastx::remapChar(D[j]);
+					D[j] = libmaus2::fastx::remapChar(D[j]);
 				
 				return len;
 			}
 			
 			std::string operator[](uint64_t const i) const
 			{
-				libmaus::autoarray::AutoArray<uint8_t> D;
+				libmaus2::autoarray::AutoArray<uint8_t> D;
 				uint64_t const len = (*this)(i,D);
 				return std::string(D.begin(),D.begin()+len);
 			}
@@ -337,21 +337,21 @@ namespace libmaus
 		struct CompactFastSocketDecoder : public CompactFastDecoderBase
 		{
 			typedef CompactFastSocketDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::fastx::Pattern pattern_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::fastx::Pattern pattern_type;
 			
-			typedef ::libmaus::network::SocketBase socket_type;
-			typedef ::libmaus::network::SocketFastReaderBase input_type;
+			typedef ::libmaus2::network::SocketBase socket_type;
+			typedef ::libmaus2::network::SocketFastReaderBase input_type;
 			typedef input_type::unique_ptr_type input_ptr_type;
 
-			::std::vector < ::libmaus::fastx::FastInterval > const & index;
-			::libmaus::fastx::FastInterval const & FI;
+			::std::vector < ::libmaus2::fastx::FastInterval > const & index;
+			::libmaus2::fastx::FastInterval const & FI;
 			input_ptr_type pistr;
 			input_type & istr;
 			
 			CompactFastSocketDecoder(
 			        socket_type * const socket,
-        			::std::vector < ::libmaus::fastx::FastInterval > const & rindex,
+        			::std::vector < ::libmaus2::fastx::FastInterval > const & rindex,
         			uint64_t const i,
 			        uint64_t const bufsize = 64*1024
                         )

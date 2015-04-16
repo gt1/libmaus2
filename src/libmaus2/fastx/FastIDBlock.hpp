@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(FASTIDBLOCK_HPP)
 #define FASTIDBLOCK_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 			unsigned int blockid;
 			uint64_t numid;
 			uint64_t blocksize;
-			::libmaus::autoarray::AutoArray < std::string > aids;
+			::libmaus2::autoarray::AutoArray < std::string > aids;
 			std::string * ids;
 			uint64_t idbase;
 			
@@ -49,7 +49,7 @@ namespace libmaus
 			{
 				numid = rnumid;
 				blocksize = 0;
-				aids = ::libmaus::autoarray::AutoArray < std::string >(numid,false);
+				aids = ::libmaus2::autoarray::AutoArray < std::string >(numid,false);
 				ids = aids.get();
 				idbase = 0;
 			}

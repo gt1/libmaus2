@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMHEADER_HPP)
 #define LIBMAUS_BAMBAM_BAMHEADER_HPP
 
-#include <libmaus/bambam/BamHeaderParserState.hpp>
-#include <libmaus/lz/GzipStream.hpp>
-#include <libmaus/bambam/Chromosome.hpp>
-#include <libmaus/bambam/EncoderBase.hpp>
-#include <libmaus/bambam/DecoderBase.hpp>
-#include <libmaus/bambam/HeaderLine.hpp>
-#include <libmaus/util/stringFunctions.hpp>
-#include <libmaus/util/unordered_map.hpp>
-#include <libmaus/trie/TrieState.hpp>
-#include <libmaus/lz/BgzfInflateStream.hpp>
-#include <libmaus/lz/BgzfInflateParallelStream.hpp>
-#include <libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp>
-#include <libmaus/hashing/ConstantStringHash.hpp>
-#include <libmaus/bambam/ReadGroup.hpp>
-#include <libmaus/fastx/FastAStreamSet.hpp>
-#include <libmaus/util/OutputFileNameTools.hpp>
-#include <libmaus/lz/BufferedGzipStream.hpp>
-#include <libmaus/fastx/RefPathLookup.hpp>
+#include <libmaus2/bambam/BamHeaderParserState.hpp>
+#include <libmaus2/lz/GzipStream.hpp>
+#include <libmaus2/bambam/Chromosome.hpp>
+#include <libmaus2/bambam/EncoderBase.hpp>
+#include <libmaus2/bambam/DecoderBase.hpp>
+#include <libmaus2/bambam/HeaderLine.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
+#include <libmaus2/util/unordered_map.hpp>
+#include <libmaus2/trie/TrieState.hpp>
+#include <libmaus2/lz/BgzfInflateStream.hpp>
+#include <libmaus2/lz/BgzfInflateParallelStream.hpp>
+#include <libmaus2/lz/BgzfInflateDeflateParallelInputStream.hpp>
+#include <libmaus2/hashing/ConstantStringHash.hpp>
+#include <libmaus2/bambam/ReadGroup.hpp>
+#include <libmaus2/fastx/FastAStreamSet.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
+#include <libmaus2/lz/BufferedGzipStream.hpp>
+#include <libmaus2/fastx/RefPathLookup.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -47,26 +47,26 @@ namespace libmaus
 		 * BAM file header class
 		 **/
 		struct BamHeader : 
-			public ::libmaus::bambam::EncoderBase, 
-			public ::libmaus::bambam::DecoderBase
+			public ::libmaus2::bambam::EncoderBase, 
+			public ::libmaus2::bambam::DecoderBase
 		{
 			public:
 			typedef BamHeader this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			//! header text	
 			std::string text;
 			
 			private:
 			//! chromosome (reference sequence meta data) vector
-			std::vector< ::libmaus::bambam::Chromosome > chromosomes;
+			std::vector< ::libmaus2::bambam::Chromosome > chromosomes;
 			//! read groups vector
-			std::vector< ::libmaus::bambam::ReadGroup > RG;
+			std::vector< ::libmaus2::bambam::ReadGroup > RG;
 			//! trie for read group names
-			::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type RGTrie;
+			::libmaus2::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type RGTrie;
 			//! hash for read group names
-			libmaus::hashing::ConstantStringHash::shared_ptr_type RGCSH;
+			libmaus2::hashing::ConstantStringHash::shared_ptr_type RGCSH;
 			//! library names
 			std::vector<std::string> libs;
 			//! number of libaries
@@ -75,11 +75,11 @@ namespace libmaus
 			public:
 			bool checkSequenceChecksumsCached(bool const dothrow)
 			{
-				libmaus::fastx::RefPathLookup RPL;
+				libmaus2::fastx::RefPathLookup RPL;
 			
 				for ( size_t z = 0; z < chromosomes.size(); ++z )
 				{
-					::libmaus::bambam::Chromosome & chr = chromosomes[z];
+					::libmaus2::bambam::Chromosome & chr = chromosomes[z];
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
 					
 					std::string m5;
@@ -94,8 +94,8 @@ namespace libmaus
 
 					if ( ! havem5 )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::BamHeader: no M5 field for sequence " << chr.getNameCString() << std::endl;
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::BamHeader: no M5 field for sequence " << chr.getNameCString() << std::endl;
 						lme.finish();
 						throw lme;					
 					}
@@ -104,8 +104,8 @@ namespace libmaus
 					{
 						if ( dothrow )
 						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::BamHeader: no cached sequence found for " << chr.getNameCString() << std::endl;
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::bambam::BamHeader: no cached sequence found for " << chr.getNameCString() << std::endl;
 							lme.finish();
 							throw lme;					
 						}
@@ -136,18 +136,18 @@ namespace libmaus
 				{
 					for ( std::set < std::string >::const_iterator ita = S.begin(); ita != S.end(); ++ita )
 					{
-						libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(*ita));
+						libmaus2::aio::InputStream::unique_ptr_type Pin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(*ita));
 						std::istream * pin = Pin.get();
-						libmaus::lz::BufferedGzipStream::unique_ptr_type Pdecomp;
+						libmaus2::lz::BufferedGzipStream::unique_ptr_type Pdecomp;
 
-						if ( libmaus::util::OutputFileNameTools::endsOn(*ita,".gz") )
+						if ( libmaus2::util::OutputFileNameTools::endsOn(*ita,".gz") )
 						{
-							libmaus::lz::BufferedGzipStream::unique_ptr_type Tdecomp(new libmaus::lz::BufferedGzipStream(*pin));
+							libmaus2::lz::BufferedGzipStream::unique_ptr_type Tdecomp(new libmaus2::lz::BufferedGzipStream(*pin));
 							Pdecomp = UNIQUE_PTR_MOVE(Tdecomp);
 							pin = Pdecomp.get();
 						}
 						
-						libmaus::fastx::FastAStreamSet FASS(*pin);
+						libmaus2::fastx::FastAStreamSet FASS(*pin);
 						FASS.computeMD5(true /* write */,false /* verify cache */);
 					}				
 				}
@@ -164,16 +164,16 @@ namespace libmaus
 			 **/
 			void checkSequenceChecksums(std::string reference = std::string())
 			{
-				if ( reference.size() && libmaus::util::GetFileSize::fileExists(reference) && reference[0] != '/' )
+				if ( reference.size() && libmaus2::util::GetFileSize::fileExists(reference) && reference[0] != '/' )
 				{
-					libmaus::autoarray::AutoArray<char> cwdspace(std::max(static_cast<uint64_t>(2*PATH_MAX),static_cast<uint64_t>(1)));
+					libmaus2::autoarray::AutoArray<char> cwdspace(std::max(static_cast<uint64_t>(2*PATH_MAX),static_cast<uint64_t>(1)));
 					char * p = NULL;
 					while ( (! (p=getcwd(cwdspace.begin(),cwdspace.size()))) && errno == ERANGE )
 						cwdspace.resize(2*cwdspace.size());
 					if ( ! p )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::BamHeader: failed to get current directory." << std::endl;
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::BamHeader: failed to get current directory." << std::endl;
 						lme.finish();
 						throw lme;					
 					}
@@ -185,7 +185,7 @@ namespace libmaus
 				
 				for ( size_t z = 0; z < chromosomes.size(); ++z )
 				{
-					::libmaus::bambam::Chromosome & chr = chromosomes[z];
+					::libmaus2::bambam::Chromosome & chr = chromosomes[z];
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
 					
 					std::string m5, ur;
@@ -219,8 +219,8 @@ namespace libmaus
 						}
 						else
 						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::BamHeader: sequence " << chr.getNameCString() << " has neither M5 nor UR field" << std::endl;
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::bambam::BamHeader: sequence " << chr.getNameCString() << " has neither M5 nor UR field" << std::endl;
 							lme.finish();
 							throw lme;
 						}
@@ -236,18 +236,18 @@ namespace libmaus
 				
 				for ( std::set < std::string >::const_iterator ita = nom5ur.begin(); ita != nom5ur.end(); ++ita )
 				{
-					libmaus::aio::InputStream::unique_ptr_type Pin(libmaus::aio::InputStreamFactoryContainer::constructUnique(*ita));
+					libmaus2::aio::InputStream::unique_ptr_type Pin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(*ita));
 					std::istream * pin = Pin.get();
-					libmaus::lz::BufferedGzipStream::unique_ptr_type Pdecomp;
+					libmaus2::lz::BufferedGzipStream::unique_ptr_type Pdecomp;
 
-					if ( libmaus::util::OutputFileNameTools::endsOn(*ita,".gz") )
+					if ( libmaus2::util::OutputFileNameTools::endsOn(*ita,".gz") )
 					{
-						libmaus::lz::BufferedGzipStream::unique_ptr_type Tdecomp(new libmaus::lz::BufferedGzipStream(*pin));
+						libmaus2::lz::BufferedGzipStream::unique_ptr_type Tdecomp(new libmaus2::lz::BufferedGzipStream(*pin));
 						Pdecomp = UNIQUE_PTR_MOVE(Tdecomp);
 						pin = Pdecomp.get();
 					}
 					
-					libmaus::fastx::FastAStreamSet FASS(*pin);
+					libmaus2::fastx::FastAStreamSet FASS(*pin);
 					// id -> digest
 					std::map<std::string,std::string> submap = FASS.computeMD5(true /* write */,false /* verify cache */);
 					M [ *ita ] = submap;
@@ -255,7 +255,7 @@ namespace libmaus
 
 				for ( size_t z = 0; z < chromosomes.size(); ++z )
 				{
-					::libmaus::bambam::Chromosome & chr = chromosomes[z];
+					::libmaus2::bambam::Chromosome & chr = chromosomes[z];
 					std::vector< std::pair<std::string,std::string> > KV = chr.getSortedKeyValuePairs();
 					
 					std::string m5, ur;
@@ -279,8 +279,8 @@ namespace libmaus
 						
 						if ( M.find(ur) == M.end() )
 						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::BamHeader: failed to get data for URL " << ur << std::endl;
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::bambam::BamHeader: failed to get data for URL " << ur << std::endl;
 							lme.finish();
 							throw lme;			
 						}
@@ -289,8 +289,8 @@ namespace libmaus
 						
 						if ( submap.find(chr.getNameString()) == submap.end() )
 						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::BamHeader: sequence " << chr.getNameString() << " not found in file " << ur << std::endl;
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::bambam::BamHeader: sequence " << chr.getNameString() << " not found in file " << ur << std::endl;
 							lme.finish();
 							throw lme;							
 						}
@@ -426,7 +426,7 @@ namespace libmaus
 			{
 				if ( i < 0 || i >= static_cast<int64_t>(getNumReadGroups()) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamHeader::getReadGroupIdentifierAsString(): invalid numeric id " << i << std::endl;
 					se.finish();
 					throw se;					
@@ -475,7 +475,7 @@ namespace libmaus
 			 * @param ID read group name
 			 * @return read group object for ID
 			 **/
-			::libmaus::bambam::ReadGroup const * getReadGroup(char const * ID) const
+			::libmaus2::bambam::ReadGroup const * getReadGroup(char const * ID) const
 			{
 				int64_t const id = ID ? getReadGroupId(ID) : -1;
 				
@@ -545,16 +545,16 @@ namespace libmaus
 			 * @param RG read group vector
 			 * @return trie for read group names
 			 **/
-			static ::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type computeRgTrie(std::vector< ::libmaus::bambam::ReadGroup > const & RG)
+			static ::libmaus2::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type computeRgTrie(std::vector< ::libmaus2::bambam::ReadGroup > const & RG)
 			{
-				::libmaus::trie::Trie<char> trienofailure;
+				::libmaus2::trie::Trie<char> trienofailure;
 				std::vector<std::string> dict;
 				for ( uint64_t i = 0; i < RG.size(); ++i )
 					dict.push_back(RG[i].ID);
 				trienofailure.insertContainer(dict);
-				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
 					(trienofailure.toLinearHashTrie<uint32_t>());
-				::libmaus::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type LHTsnofailure(
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::shared_ptr_type LHTsnofailure(
 					LHTnofailure.release()
 					);
 
@@ -595,7 +595,7 @@ namespace libmaus
 							(startsWith(line,"@RG"))
 						)
 						{
-							std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");
+							std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");
 							ReadGroup RGI;
 							for ( uint64_t i = 1; i < tokens.size(); ++i )
 								if ( startsWith(tokens[i],"ID:") )
@@ -698,7 +698,7 @@ namespace libmaus
 							(startsWith(line,"@HD"))
 						)
 						{
-							std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");
+							std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");
 							for ( uint64_t i = 0; i < tokens.size(); ++i )
 								if ( startsWith(tokens[i],"VN:") )
 									version = tokens[i].substr(3);
@@ -742,7 +742,7 @@ namespace libmaus
 							(startsWith(line,"@HD"))
 						)
 						{
-							std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize<std::string>(line,"\t");
+							std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize<std::string>(line,"\t");
 							for ( uint64_t i = 0; i < tokens.size(); ++i )
 								if ( startsWith(tokens[i],"SO:") )
 									sortorder = tokens[i].substr(3);
@@ -771,11 +771,11 @@ namespace libmaus
 			 * @return rewritten header text
 			 **/
 			static std::string rewriteHeader(
-				std::string const & header, std::vector< ::libmaus::bambam::Chromosome > const & chromosomes,
+				std::string const & header, std::vector< ::libmaus2::bambam::Chromosome > const & chromosomes,
 				std::string const & rsortorder = std::string()
 			)
 			{
-				std::vector<HeaderLine> const hlv = ::libmaus::bambam::HeaderLine::extractLines(header);
+				std::vector<HeaderLine> const hlv = ::libmaus2::bambam::HeaderLine::extractLines(header);
 				HeaderLine const * hdline = 0;
 				std::map<std::string,HeaderLine const *> sqmap;
 				for ( uint64_t i = 0; i < hlv.size(); ++i )
@@ -790,7 +790,7 @@ namespace libmaus
 				{
 					if ( rsortorder.size() )
 					{
-						std::deque<std::string> tokens = ::libmaus::util::stringFunctions::tokenize(hdline->line,std::string("\t"));
+						std::deque<std::string> tokens = ::libmaus2::util::stringFunctions::tokenize(hdline->line,std::string("\t"));
 						
 						for ( uint64_t i = 1; i < tokens.size(); ++i )
 							if ( tokens[i].size() >= 3 && tokens[i].substr(0,3) == "SO:" )
@@ -842,20 +842,20 @@ namespace libmaus
 			 * @param V chromosomes (ref seqs)
 			 **/
 			template<typename stream_type>
-			static void encodeChromosomeVector(stream_type & ostr, std::vector< ::libmaus::bambam::Chromosome > const & V)
+			static void encodeChromosomeVector(stream_type & ostr, std::vector< ::libmaus2::bambam::Chromosome > const & V)
 			{
-				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,V.size());
+				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,V.size());
 				
 				for ( uint64_t i = 0; i < V.size(); ++i )
 				{
-					::libmaus::bambam::Chromosome const & chr = V[i];
+					::libmaus2::bambam::Chromosome const & chr = V[i];
 					std::pair<char const *, char const *> P = chr.getName();
 					
-					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,(P.second-P.first)+1);
+					::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,(P.second-P.first)+1);
 					ostr.write(P.first,P.second-P.first);
 					ostr.put(0);
 
-					::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.getLength());
+					::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,chr.getLength());
 				}
 			}
 
@@ -865,7 +865,7 @@ namespace libmaus
 			 * @param V reference sequence info vector
 			 * @return BAM binary encoding of V
 			 **/
-			static std::string encodeChromosomeVector(std::vector< ::libmaus::bambam::Chromosome > const & V)
+			static std::string encodeChromosomeVector(std::vector< ::libmaus2::bambam::Chromosome > const & V)
 			{
 				std::ostringstream ostr;
 				encodeChromosomeVector(ostr,V);
@@ -887,7 +887,7 @@ namespace libmaus
 				ostr.put('\1');
 
 				// length of plain text
-				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,text.size()/*+1 */);
+				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,text.size()/*+1 */);
 				// plain text
 				ostr.write(text.c_str(),text.size());
 				// ostr.put(0);
@@ -897,7 +897,7 @@ namespace libmaus
 
 			static void parseHeader(std::istream & in)
 			{
-				libmaus::lz::BgzfInflateStream bgzfin(in);
+				libmaus2::lz::BgzfInflateStream bgzfin(in);
 				BamHeaderParserState state;
 				
 				while ( ! state.parseHeader(bgzfin,1).first )
@@ -932,7 +932,7 @@ namespace libmaus
 
 				RG = getReadGroups(text);
 				RGTrie = computeRgTrie(RG);
-				RGCSH = libmaus::hashing::ConstantStringHash::constructShared(RG.begin(),RG.end());
+				RGCSH = libmaus2::hashing::ConstantStringHash::constructShared(RG.begin(),RG.end());
 				
 				if ( !RGCSH )
 				{
@@ -941,7 +941,7 @@ namespace libmaus
 						RGids.insert(RG[i].ID);
 					if ( RGids.size() != RG.size() )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "BamHeader::init(): Read group identifiers are not unique." << std::endl;
 						se.finish();
 						throw se;
@@ -963,7 +963,7 @@ namespace libmaus
 					else
 						RG[i].LBid = numlibs;
 						
-				std::vector<HeaderLine> headerlines = libmaus::bambam::HeaderLine::extractLinesByType(text,"SQ");
+				std::vector<HeaderLine> headerlines = libmaus2::bambam::HeaderLine::extractLinesByType(text,"SQ");
 				std::sort(headerlines.begin(),headerlines.end(),HeaderLineSQNameComparator());
 				
 				// fill information from text into refseq info
@@ -1011,7 +1011,7 @@ namespace libmaus
 								istr >> len;
 								if ( chromosomes[i].getLength() != len )
 								{
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << "BAM header is not consistent (binary and text do not match) for " << line.line << std::endl;
 									se.finish();
 									throw se;
@@ -1053,7 +1053,7 @@ namespace libmaus
 					fmagic[2] != 'M' ||
 					fmagic[3] != '\1' )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Wrong magic in BamHeader::init()" << std::endl;
 					se.finish();
 					throw se;					
@@ -1082,7 +1082,7 @@ namespace libmaus
 						name[j] = getByte(in);
 					int c = getByte(in); assert ( c == 0 );
 					uint64_t l_ref = getLEInteger(in,4);	
-					chromosomes.push_back( ::libmaus::bambam::Chromosome(name,l_ref) );
+					chromosomes.push_back( ::libmaus2::bambam::Chromosome(name,l_ref) );
 				}
 
 				initSetup();
@@ -1115,8 +1115,8 @@ namespace libmaus
 			 **/
 			static uint64_t getHeaderSize(std::string const & fn)
 			{
-				libmaus::aio::CheckedInputStream CIS(fn);
-				::libmaus::lz::GzipStream GS(CIS);
+				libmaus2::aio::CheckedInputStream CIS(fn);
+				::libmaus2::lz::GzipStream GS(CIS);
 				BamHeader header(GS);
 				return GS.tellg();
 			}
@@ -1136,7 +1136,7 @@ namespace libmaus
 			 **/
 			BamHeader(std::istream & in)
 			{
-				::libmaus::lz::GzipStream GS(in);
+				::libmaus2::lz::GzipStream GS(in);
 				init(GS);
 			}
 
@@ -1145,7 +1145,7 @@ namespace libmaus
 			 *
 			 * @param in gzip intput stream
 			 **/
-			BamHeader(::libmaus::lz::GzipStream & in)
+			BamHeader(::libmaus2::lz::GzipStream & in)
 			{
 				init(in);
 			}
@@ -1154,7 +1154,7 @@ namespace libmaus
 			 *
 			 * @param in serial bgzf decompressor
 			 **/
-			BamHeader(libmaus::lz::BgzfInflateStream & in)
+			BamHeader(libmaus2::lz::BgzfInflateStream & in)
 			{
 				init(in);
 			}
@@ -1163,7 +1163,7 @@ namespace libmaus
 			 *
 			 * @param in parallel bgzf decompressor
 			 **/
-			BamHeader(libmaus::lz::BgzfInflateParallelStream & in)
+			BamHeader(libmaus2::lz::BgzfInflateParallelStream & in)
 			{
 				init(in);
 			}
@@ -1172,7 +1172,7 @@ namespace libmaus
 			 *
 			 * @param in parallel bgzf decompressor
 			 **/
-			BamHeader(libmaus::lz::BgzfInflateDeflateParallelInputStream & in)
+			BamHeader(libmaus2::lz::BgzfInflateDeflateParallelInputStream & in)
 			{
 				init(in);
 			}
@@ -1303,7 +1303,7 @@ namespace libmaus
 					}					
 				}
 						
-				libmaus::exception::LibMausException se;
+				libmaus2::exception::LibMausException se;
 				se.getStream() << "Reference name " << name << " does not exist in file." << std::endl;
 				se.finish();
 				throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,11 +23,11 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -43,13 +43,13 @@ namespace libmaus
 			 * @return array containing the contents of the input file as elements of type data_type
 			 **/
 			template<typename data_type>
-			static ::libmaus::autoarray::AutoArray<data_type> readFile(std::string const & filename)
+			static ::libmaus2::autoarray::AutoArray<data_type> readFile(std::string const & filename)
 			{
 				// number of bytes
-				uint64_t const n8 = ::libmaus::util::GetFileSize::getFileSize(filename);
+				uint64_t const n8 = ::libmaus2::util::GetFileSize::getFileSize(filename);
 				if ( n8 % sizeof(data_type) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "GetFileSize::readFile(): size of file " << n8 << " is not a multiple of the data type size " << sizeof(data_type) << std::endl;
 					se.finish();
 					throw se;
@@ -58,13 +58,13 @@ namespace libmaus
 				uint64_t const n = n8/sizeof(data_type);
 				
 				// allocate array
-				::libmaus::autoarray::AutoArray<data_type> A(n,false);
+				::libmaus2::autoarray::AutoArray<data_type> A(n,false);
 				
 				// open file
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( !(istr && istr.is_open()) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to open file " << filename << " for reading." << std::endl;
 					se.finish();
 					throw se;				
@@ -93,7 +93,7 @@ namespace libmaus
 				uint64_t const multiplier = 1)
 			{
 				n *= multiplier;
-				::libmaus::autoarray::AutoArray < char > buf(16*1024,false);
+				::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
 				
 				while ( n )
 				{
@@ -103,8 +103,8 @@ namespace libmaus
 					if ( in.gcount() != static_cast<int64_t>(tocopy) )
 					{
 						int error = errno;
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Failed to read " << tocopy << " bytes in ::libmaus::util::GetFileSize::copy(): " << strerror(error) << std::endl;
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "Failed to read " << tocopy << " bytes in ::libmaus2::util::GetFileSize::copy(): " << strerror(error) << std::endl;
 						se.finish();
 						throw se;
 					}
@@ -113,8 +113,8 @@ namespace libmaus
 					if ( ! out )
 					{
 						int error = errno;
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Failed to write " << tocopy << " bytes in ::libmaus::util::GetFileSize::copy(): " << strerror(error) << std::endl;
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "Failed to write " << tocopy << " bytes in ::libmaus2::util::GetFileSize::copy(): " << strerror(error) << std::endl;
 						se.finish();
 						throw se;
 					}
@@ -144,7 +144,7 @@ namespace libmaus
 			)
 			{
 				n *= multiplier;
-				::libmaus::autoarray::AutoArray < char > buf(16*1024,false);
+				::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
 				
 				while ( n )
 				{
@@ -154,8 +154,8 @@ namespace libmaus
 					if ( in.gcount() != static_cast<int64_t>(tocopy) )
 					{
 						int error = errno;
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Failed to read " << tocopy << " bytes in ::libmaus::util::GetFileSize::copy(): " << strerror(error) << std::endl;
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "Failed to read " << tocopy << " bytes in ::libmaus2::util::GetFileSize::copy(): " << strerror(error) << std::endl;
 						se.finish();
 						throw se;
 					}
@@ -167,8 +167,8 @@ namespace libmaus
 					if ( ! out )
 					{
 						int error = errno;
-						::libmaus::exception::LibMausException se;
-						se.getStream() << "Failed to write " << tocopy << " bytes in ::libmaus::util::GetFileSize::copy(): " << strerror(error) << std::endl;
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "Failed to write " << tocopy << " bytes in ::libmaus2::util::GetFileSize::copy(): " << strerror(error) << std::endl;
 						se.finish();
 						throw se;
 					}
@@ -194,7 +194,7 @@ namespace libmaus
 				uint64_t const multiplier = 1)
 			{
 				n *= multiplier;
-				::libmaus::autoarray::AutoArray < char > buf(16*1024,false);
+				::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
 				
 				while ( n )
 				{
@@ -232,7 +232,7 @@ namespace libmaus
 			 * @param filename input file name
 			 * @return contents of file as byte array
 			 **/
-			static ::libmaus::autoarray::AutoArray<uint8_t> readFile(std::string const & filename);
+			static ::libmaus2::autoarray::AutoArray<uint8_t> readFile(std::string const & filename);
 			/**
 			 * @param filename input file name
 			 * @return true iff file exists (can be opened for reading)

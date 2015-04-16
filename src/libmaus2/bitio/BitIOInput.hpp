@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -25,11 +25,11 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio {
 
@@ -106,7 +106,7 @@ namespace libmaus
 							return 0;
 						else
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() <<  "EOF in readBit()" << std::endl;
 							se.finish();
 							throw se;
@@ -224,8 +224,8 @@ namespace libmaus
 			public:
 			typedef _stream_type stream_type;
 			typedef StreamBitInputStreamTemplate<stream_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:	
 			// input stream
@@ -259,7 +259,7 @@ namespace libmaus
 
 					if ( ncurByte < 0 )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "EOF in StreamBitInputStream::readBit()." << std::endl;
 						se.finish();
 						throw se;					
@@ -308,11 +308,11 @@ namespace libmaus
 					unsigned int const shift = (bitsleft - numbits);
 					uint8_t const shifted = static_cast<uint8_t>(curByte >> shift);
 					curByteMask >>= numbits;
-					return ::libmaus::math::lowbits(numbits) /* ((1 << numbits)-1) */ & shifted;
+					return ::libmaus2::math::lowbits(numbits) /* ((1 << numbits)-1) */ & shifted;
 				}
 
 				numbits -= bitsleft;
-				uint64_t result = (::libmaus::math::lowbits(bitsleft) /* ((1<<bitsleft)-1) */ & static_cast<uint64_t>(curByte)) << (numbits);
+				uint64_t result = (::libmaus2::math::lowbits(bitsleft) /* ((1<<bitsleft)-1) */ & static_cast<uint64_t>(curByte)) << (numbits);
 
 				while ( numbits >= 8 ) 
 				{
@@ -389,8 +389,8 @@ namespace libmaus
 			typedef _stream_type stream_type;
 			typedef _entity_type entity_type;
 			typedef MarkerStreamBitInputStreamTemplate<stream_type,entity_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			static entity_type const top_bit = static_cast<entity_type>(1) << (8*sizeof(entity_type)-1);
 			static entity_type const sub_top_bit = (top_bit >> 1);
@@ -426,7 +426,7 @@ namespace libmaus
 
 				if ( ncurByte < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "EOF in MarkerStreamBitInputStream::fillByteChecked()." << std::endl;
 					se.finish();
 					throw se;					
@@ -498,7 +498,7 @@ namespace libmaus
 						entity_type const shifted = static_cast<entity_type>(curByte >> shift);
 						
 						result <<= numbits;
-						result |= ::libmaus::math::lowbits(numbits) & shifted;
+						result |= ::libmaus2::math::lowbits(numbits) & shifted;
 						// all requested bits read
 						curByteMask >>= numbits;
 						numbits = 0;
@@ -507,7 +507,7 @@ namespace libmaus
 					else
 					{
 						result <<= bitsleft;
-						result |= (::libmaus::math::lowbits(bitsleft) & curByte);
+						result |= (::libmaus2::math::lowbits(bitsleft) & curByte);
 						fillByteChecked();
 						numbits -= bitsleft;
 					}

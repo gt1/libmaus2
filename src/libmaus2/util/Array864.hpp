@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_UTIL_ARRAY864)
 #define LIBMAUS_UTIL_ARRAY864
 
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/util/iterator.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/util/iterator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -42,9 +42,9 @@ namespace libmaus
 			//! this type
 			typedef Array864 this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! rank dictionary type
-			typedef ::libmaus::rank::ERank222B rank_type;
+			typedef ::libmaus2::rank::ERank222B rank_type;
 			//! writer type for bit vector used in rank dictionary
 			typedef rank_type::writer_type writer_type;
 			//! data type used for bit vector in rank dictionary
@@ -52,18 +52,18 @@ namespace libmaus
 			//! generator type for this array type
 			typedef Array864Generator generator_type;
 			//! const iterator type
-			typedef libmaus::util::ConstIterator<this_type,uint64_t> const_iterator;
+			typedef libmaus2::util::ConstIterator<this_type,uint64_t> const_iterator;
 
 			//! length of stored sequence
 			uint64_t n;
 			//! category bit vector
-			::libmaus::autoarray::AutoArray<data_type> B;
+			::libmaus2::autoarray::AutoArray<data_type> B;
 			//! rank dictionary
-			::libmaus::rank::ERank222B::unique_ptr_type R;
+			::libmaus2::rank::ERank222B::unique_ptr_type R;
 			//! subsequence stored using 8 bits per number
-			::libmaus::autoarray::AutoArray<uint8_t> A8;
+			::libmaus2::autoarray::AutoArray<uint8_t> A8;
 			//! subsequence stored using 64 bits per number
-			::libmaus::autoarray::AutoArray<uint64_t> A64;
+			::libmaus2::autoarray::AutoArray<uint64_t> A64;
 			
 			/**
 			 * @return estimated size of object in bytes
@@ -125,7 +125,7 @@ namespace libmaus
 			 **/
 			static unique_ptr_type load(std::string const & fs)
 			{
-				libmaus::aio::CheckedInputStream CIS(fs);
+				libmaus2::aio::CheckedInputStream CIS(fs);
 				unique_ptr_type u(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(u);
 			}
@@ -136,7 +136,7 @@ namespace libmaus
 			 * @param CIS input stream
 			 * @return deserialised object as unique pointer
 			 **/
-			static unique_ptr_type load(libmaus::aio::CheckedInputStream & CIS)
+			static unique_ptr_type load(libmaus2::aio::CheckedInputStream & CIS)
 			{
 				unique_ptr_type u(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(u);
@@ -155,7 +155,7 @@ namespace libmaus
 				
 				if ( n )
 				{
-					B = ::libmaus::autoarray::AutoArray<data_type>((n+63)/64);
+					B = ::libmaus2::autoarray::AutoArray<data_type>((n+63)/64);
 					writer_type W(B.get());
 				
 					for ( iterator i = a; i != e; ++i )
@@ -163,14 +163,14 @@ namespace libmaus
 					
 					W.flush();
 				
-					::libmaus::rank::ERank222B::unique_ptr_type tR(new ::libmaus::rank::ERank222B(B.get(), B.size()*64));
+					::libmaus2::rank::ERank222B::unique_ptr_type tR(new ::libmaus2::rank::ERank222B(B.get(), B.size()*64));
 					R = UNIQUE_PTR_MOVE(tR);
 					
 					uint64_t const n8 = R->rank1(n-1);
 					uint64_t const n64 = R->rank0(n-1);
 					
-					A8 = ::libmaus::autoarray::AutoArray<uint8_t>(n8,false);
-					A64 = ::libmaus::autoarray::AutoArray<uint64_t>(n64,false);
+					A8 = ::libmaus2::autoarray::AutoArray<uint8_t>(n8,false);
+					A64 = ::libmaus2::autoarray::AutoArray<uint64_t>(n64,false);
 
 					uint64_t j = 0;
 					for ( iterator i = a; i != e; ++i,++j )
@@ -206,13 +206,13 @@ namespace libmaus
 			{
 				if ( i >= n )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Access of element " << i << " >= " << n << " in Array864::operator[]";
 					se.finish();
 					throw se;
 				}
 			
-				if ( ::libmaus::bitio::getBit(B.get(),i) )
+				if ( ::libmaus2::bitio::getBit(B.get(),i) )
 					return A8[R->rank1(i)-1];
 				else
 					return A64[R->rank0(i)-1];
@@ -254,7 +254,7 @@ namespace libmaus
 			 * @param thres threshold
 			 * @return accumulation of values for keys not exceeding thres in histogram
 			 **/
-			static uint64_t getSmallerEqual(libmaus::util::Histogram & hist, int64_t const thres)
+			static uint64_t getSmallerEqual(libmaus2::util::Histogram & hist, int64_t const thres)
 			{
 				std::map<int64_t,uint64_t> const H = hist.getByType<int64_t>();
 				
@@ -282,17 +282,17 @@ namespace libmaus
 			 * @param hist bit length histogram storing the number of bits necessary
 			 *        to store each number in the sequence to be written by this generator
 			 **/
-			Array864Generator(libmaus::util::Histogram & hist) 
+			Array864Generator(libmaus2::util::Histogram & hist) 
 			: 
 				n8(getSmallerEqual(hist,8)), n64(getSmallerEqual(hist,64)-n8), n(n8+n64),
 				P(Array864::unique_ptr_type(new Array864)),
 				p8(0), p64(0)
 			{
-				P->B = ::libmaus::autoarray::AutoArray<data_type>((n+63)/64);
+				P->B = ::libmaus2::autoarray::AutoArray<data_type>((n+63)/64);
 				writer_type::unique_ptr_type twriter(new writer_type(P->B.begin()));
 				W = UNIQUE_PTR_MOVE(twriter);
-				P->A8 = ::libmaus::autoarray::AutoArray<uint8_t>(n8);
-				P->A64 = ::libmaus::autoarray::AutoArray<uint64_t>(n64);
+				P->A8 = ::libmaus2::autoarray::AutoArray<uint8_t>(n8);
+				P->A64 = ::libmaus2::autoarray::AutoArray<uint64_t>(n64);
 				P->n = n;
 			}
 			
@@ -321,7 +321,7 @@ namespace libmaus
 			Array864::unique_ptr_type createFinal()
 			{
 				W->flush();
-				::libmaus::rank::ERank222B::unique_ptr_type tPR(new ::libmaus::rank::ERank222B(P->B.get(), P->B.size()*64));
+				::libmaus2::rank::ERank222B::unique_ptr_type tPR(new ::libmaus2::rank::ERank222B(P->B.get(), P->B.size()*64));
 				P->R = UNIQUE_PTR_MOVE(tPR);
 				return UNIQUE_PTR_MOVE(P);
 			}

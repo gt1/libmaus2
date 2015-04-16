@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -24,14 +24,14 @@
 #include <vector>
 #include <limits>
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/uint/uint.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/uint/uint.hpp>
 
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
-#include <libmaus/huffman/HuffmanTreeLeaf.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman 
 	{
@@ -39,13 +39,13 @@ namespace libmaus
 		struct EncodeTable
 		{
 			typedef EncodeTable<words> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			enum Visit { First, Second, Third };
 			
 			int64_t minsym;
 			int64_t maxsym;
-			::libmaus::autoarray::AutoArray< ::std::pair < libmaus::uint::UInt < words >, unsigned int > > codes;
+			::libmaus2::autoarray::AutoArray< ::std::pair < libmaus2::uint::UInt < words >, unsigned int > > codes;
 			::std::vector<bool> codeused;
 			
 			uint64_t byteSize() const
@@ -88,17 +88,17 @@ namespace libmaus
 				return V;
 			}
 			
-			::std::pair < libmaus::uint::UInt < words >, unsigned int > const & operator[] ( int64_t sym ) const
+			::std::pair < libmaus2::uint::UInt < words >, unsigned int > const & operator[] ( int64_t sym ) const
 			{
 				assert ( checkSymbol(sym) );
 				return codes [ sym - minsym ];
 			}
 
-			::std::pair < libmaus::uint::UInt < words >, unsigned int > getNonMsbBits ( int64_t sym ) const
+			::std::pair < libmaus2::uint::UInt < words >, unsigned int > getNonMsbBits ( int64_t sym ) const
 			{
 				assert ( sym >= minsym && sym <= maxsym );
 				assert ( codeused[sym-minsym] );
-				::std::pair < libmaus::uint::UInt < words >, unsigned int > cp = codes [ sym - minsym ];
+				::std::pair < libmaus2::uint::UInt < words >, unsigned int > cp = codes [ sym - minsym ];
 				if ( cp.second )
 					cp.second -= 1;
 				cp.first.keepLowBits(cp.second);
@@ -106,15 +106,15 @@ namespace libmaus
 			}
 			
 			
-			static ::std::string printCode(libmaus::uint::UInt<words> const U, unsigned int const length)
+			static ::std::string printCode(libmaus2::uint::UInt<words> const U, unsigned int const length)
 			{
-				libmaus::uint::UInt<words> mask(1ull); mask <<= length-1;
+				libmaus2::uint::UInt<words> mask(1ull); mask <<= length-1;
 				::std::ostringstream ostr;
 				
-				while ( mask != libmaus::uint::UInt<words>() )
+				while ( mask != libmaus2::uint::UInt<words>() )
 				{
 					ostr << 
-						((U & mask)!=libmaus::uint::UInt<words>());			
+						((U & mask)!=libmaus2::uint::UInt<words>());			
 					mask >>= 1;
 				}
 
@@ -164,14 +164,14 @@ namespace libmaus
 				return R;
 			}
 			
-			static ::std::vector<bool> codeToVector(libmaus::uint::UInt<words> const U, unsigned int const length)
+			static ::std::vector<bool> codeToVector(libmaus2::uint::UInt<words> const U, unsigned int const length)
 			{
-				libmaus::uint::UInt<words> mask(1ull); mask <<= length-1;
+				libmaus2::uint::UInt<words> mask(1ull); mask <<= length-1;
 				::std::vector<bool> V;
 				
-				while ( mask != libmaus::uint::UInt<words>() )
+				while ( mask != libmaus2::uint::UInt<words>() )
 				{
-					V . push_back ( ((U & mask)!=libmaus::uint::UInt<words>()) );
+					V . push_back ( ((U & mask)!=libmaus2::uint::UInt<words>()) );
 					mask >>= 1;
 				}
 
@@ -328,7 +328,7 @@ namespace libmaus
 				::std::cerr << "Maximum symbol " << maxsym << ::std::endl;
 				*/
 				
-				codes = ::libmaus::autoarray::AutoArray< ::std::pair < libmaus::uint::UInt < words >, unsigned int > > ( maxsym-minsym+1 );
+				codes = ::libmaus2::autoarray::AutoArray< ::std::pair < libmaus2::uint::UInt < words >, unsigned int > > ( maxsym-minsym+1 );
 				codeused.resize( maxsym-minsym+1 );
 				for ( uint64_t i = 0; i < static_cast<uint64_t>(maxsym-minsym+1); ++i )
 					codeused[i] = 0;
@@ -345,14 +345,14 @@ namespace libmaus
 						HuffmanTreeLeaf const * lnode = dynamic_cast<HuffmanTreeLeaf const *>(node);
 						assert ( V.size() <= words*64 );
 						
-						libmaus::uint::UInt<words> U;
+						libmaus2::uint::UInt<words> U;
 						for ( uint64_t i = 0; i < V.size(); ++i )
 						{
 							U <<= 1;
-							U |= libmaus::uint::UInt<words>(static_cast<uint64_t>(V[i]));
+							U |= libmaus2::uint::UInt<words>(static_cast<uint64_t>(V[i]));
 						}
 						
-						codes [ lnode->symbol - minsym ]  = ::std::pair < libmaus::uint::UInt<words>, unsigned int > (U,V.size());
+						codes [ lnode->symbol - minsym ]  = ::std::pair < libmaus2::uint::UInt<words>, unsigned int > (U,V.size());
 						codeused [ lnode->symbol - minsym ] = true;
 					}
 					else 

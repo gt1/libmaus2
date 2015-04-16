@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,16 +17,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ForkProcessLSFSim.hpp>
+#include <libmaus2/util/ForkProcessLSFSim.hpp>
 #include <unistd.h>
 
-void libmaus::util::ForkProcessLSFSim::initLSF(std::string const & s) {
+void libmaus2::util::ForkProcessLSFSim::initLSF(std::string const & s) {
 	LSFSim::init(s);	
 }
 
-bool libmaus::util::ForkProcessLSFSim::distributeUnique() { return false; }
+bool libmaus2::util::ForkProcessLSFSim::distributeUnique() { return false; }
 
-libmaus::util::ForkProcessLSFSim::ForkProcessLSFSim(
+libmaus2::util::ForkProcessLSFSim::ForkProcessLSFSim(
 	std::string const & scommand,
 	std::string const & /* sjobname */,
 	std::string const & /* sproject */,
@@ -46,7 +46,7 @@ libmaus::util::ForkProcessLSFSim::ForkProcessLSFSim(
 
 }
 
-libmaus::util::ForkProcessLSFSim::state libmaus::util::ForkProcessLSFSim::getState()
+libmaus2::util::ForkProcessLSFSim::state libmaus2::util::ForkProcessLSFSim::getState()
 {
 	if ( isFinished() )
 		return state_done;
@@ -54,11 +54,11 @@ libmaus::util::ForkProcessLSFSim::state libmaus::util::ForkProcessLSFSim::getSta
 		return state_run;
 }
 
-bool libmaus::util::ForkProcessLSFSim::isFinished()
+bool libmaus2::util::ForkProcessLSFSim::isFinished()
 {
 	return (!running());
 }
-bool libmaus::util::ForkProcessLSFSim::finishedOk()
+bool libmaus2::util::ForkProcessLSFSim::finishedOk()
 {
 	if ( isFinished() )
 	{
@@ -70,40 +70,40 @@ bool libmaus::util::ForkProcessLSFSim::finishedOk()
 		return false;
 	}
 }
-void libmaus::util::ForkProcessLSFSim::wait(int sleepinterval)
+void libmaus2::util::ForkProcessLSFSim::wait(int sleepinterval)
 {
 	while ( ! isFinished() )
 		sleep(sleepinterval);
 	join();
 }
 
-std::string libmaus::util::ForkProcessLSFSim::getSingleHost() const
+std::string libmaus2::util::ForkProcessLSFSim::getSingleHost() const
 {
 	return "localhost";
 }
 		
-bool libmaus::util::ForkProcessLSFSim::getHost(::std::vector<std::string> & hostnames)
+bool libmaus2::util::ForkProcessLSFSim::getHost(::std::vector<std::string> & hostnames)
 {
 	hostnames = std::vector < std::string >(1,"localhost");
 	return true;
 }
 
-bool libmaus::util::ForkProcessLSFSim::isKnown()
+bool libmaus2::util::ForkProcessLSFSim::isKnown()
 {
 	return true;
 }
 
-bool libmaus::util::ForkProcessLSFSim::isUnfinished()
+bool libmaus2::util::ForkProcessLSFSim::isUnfinished()
 {
 	return ! isFinished();
 }
 
-std::map<int64_t,int64_t> libmaus::util::ForkProcessLSFSim::getIntStates()
+std::map<int64_t,int64_t> libmaus2::util::ForkProcessLSFSim::getIntStates()
 {
 	return std::map<int64_t,int64_t>();
 }
 
-libmaus::util::ForkProcessLSFSim::state libmaus::util::ForkProcessLSFSim::getState(std::map<int64_t,int64_t> const &)
+libmaus2::util::ForkProcessLSFSim::state libmaus2::util::ForkProcessLSFSim::getState(std::map<int64_t,int64_t> const &)
 {
 	if ( isFinished() )
 		return state_done;

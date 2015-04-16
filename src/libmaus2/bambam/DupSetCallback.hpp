@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPSETCALLBACK_HPP)
 #define LIBMAUS_BAMBAM_DUPSETCALLBACK_HPP
 
-#include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct DupSetCallback
 		{
 			virtual ~DupSetCallback() {}
-			virtual void operator()(::libmaus::bambam::ReadEnds const & A) = 0;
+			virtual void operator()(::libmaus2::bambam::ReadEnds const & A) = 0;
 			virtual uint64_t getNumDups() const = 0;
 			virtual void addOpticalDuplicates(uint64_t const libid, uint64_t const count) = 0;
 			virtual bool isMarked(uint64_t const i) const = 0;

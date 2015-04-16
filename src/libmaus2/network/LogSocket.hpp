@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,20 +20,20 @@
 #if ! defined(LOGSOCKET_HPP)
 #define LOGSOCKET_HPP
 
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/network/GetHostName.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/network/GetHostName.hpp>
 #include <iomanip>
 #include <fstream>
 #include <sys/wait.h>
 #include <poll.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct LogSocket
 		{
-			typedef ::libmaus::network::ServerSocket server_socket_type;
+			typedef ::libmaus2::network::ServerSocket server_socket_type;
 			typedef server_socket_type::unique_ptr_type server_socket_ptr_type;
 
 			unsigned short nextlogport;
@@ -46,7 +46,7 @@ namespace libmaus
 			{
 				std::ostringstream ostr;
 				ostr
-					<< ::libmaus::network::GetHostName::getHostName()
+					<< ::libmaus2::network::GetHostName::getHostName()
 					<< "_"
 					<< getpid()
 					<< "_"
@@ -69,7 +69,7 @@ namespace libmaus
 					server_socket_type::allocateServerSocket(
 						nextlogport,
 						16,
-						::libmaus::network::GetHostName::getHostName().c_str(),4096
+						::libmaus2::network::GetHostName::getHostName().c_str(),4096
 					)
 				);
                                 
@@ -78,7 +78,7 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(lp);
 			}
                         
-			void logprocess(::libmaus::network::SocketBase::unique_ptr_type socket)
+			void logprocess(::libmaus2::network::SocketBase::unique_ptr_type socket)
 			{
 				uint64_t const clientid = id++;
                                
@@ -86,7 +86,7 @@ namespace libmaus
                                
 				if ( pid == static_cast<pid_t>(-1) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to fork: " << strerror(errno) << std::endl;
 					se.finish();
 					throw se;
@@ -114,7 +114,7 @@ namespace libmaus
 								if ( (ready>0) && (pfd.revents & POLLIN) )
 								{
 									uint64_t stag;
-									::libmaus::autoarray::AutoArray<char> B = socket->readMessage<char>(stag);
+									::libmaus2::autoarray::AutoArray<char> B = socket->readMessage<char>(stag);
 													      
 									if ( stag == STDOUT_FILENO )
 									{
@@ -163,18 +163,18 @@ namespace libmaus
 				}
 			}
 
-			::libmaus::network::SocketBase::unique_ptr_type accept(
+			::libmaus2::network::SocketBase::unique_ptr_type accept(
 				std::string const & cmdline,
-				::libmaus::network::ServerSocket::unique_ptr_type logsock,
+				::libmaus2::network::ServerSocket::unique_ptr_type logsock,
 				unsigned int timeout = 0
 			)
 			{
 				return acceptReference(cmdline,logsock,timeout);
 			}
 
-                        ::libmaus::network::SocketBase::unique_ptr_type acceptReference(
+                        ::libmaus2::network::SocketBase::unique_ptr_type acceptReference(
                                 std::string const & cmdline,
-                                ::libmaus::network::ServerSocket::unique_ptr_type & logsock,
+                                ::libmaus2::network::ServerSocket::unique_ptr_type & logsock,
                                 unsigned int timeout = 0
                         )
                         {
@@ -207,14 +207,14 @@ namespace libmaus
 						
 						if ( ! ready )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "fd not ready after select in LogSocket::acceptReference(): " << strerror(errno);
 							se.finish();
 							throw se;
 						}
                                         
 						// std::cerr << "(accept...";
-                                                ::libmaus::network::SocketBase::unique_ptr_type socket;
+                                                ::libmaus2::network::SocketBase::unique_ptr_type socket;
                                                 
                                                 try
                                                 {
@@ -268,7 +268,7 @@ namespace libmaus
                                 
                                 accepted = false;
                                 
-                                ::libmaus::network::SocketBase::unique_ptr_type socket;
+                                ::libmaus2::network::SocketBase::unique_ptr_type socket;
                                 
                                 // accept control socket
                                 while ( !accepted )

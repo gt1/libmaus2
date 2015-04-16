@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LOG2TABLE_HPP)
 #define LOG2TABLE_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <algorithm>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{

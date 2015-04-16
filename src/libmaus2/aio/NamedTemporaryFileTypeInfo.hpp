@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_AIO_NAMEDTEMPORARYFILETYPEINFO_HPP)
 #define LIBMAUS_AIO_NAMEDTEMPORARYFILETYPEINFO_HPP
 
-#include <libmaus/aio/NamedTemporaryFile.hpp>
+#include <libmaus2/aio/NamedTemporaryFile.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 			typedef _stream_type stream_type;
 			typedef NamedTemporaryFileTypeInfo<stream_type> this_type;
 			
-			typedef typename libmaus::aio::NamedTemporaryFile<stream_type>::shared_ptr_type pointer_type;
+			typedef typename libmaus2::aio::NamedTemporaryFile<stream_type>::shared_ptr_type pointer_type;
 			
 			static pointer_type getNullPointer()
 			{

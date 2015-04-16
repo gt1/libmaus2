@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,14 +21,14 @@
 
 #include <istream>
 #include <cassert>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/network/SocketInputOutputInterface.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/network/SocketInputOutputInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct HttpBody : public libmaus::network::SocketInputInterface
+		struct HttpBody : public libmaus2::network::SocketInputInterface
 		{
 			std::istream & in;
 			bool eof;

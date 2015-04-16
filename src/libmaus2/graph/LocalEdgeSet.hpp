@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LOCALEDGESET_HPP)
 #define LOCALEDGESET_HPP
 
-#include <libmaus/clustering/EdgeList.hpp>
-#include <libmaus/clustering/EdgeBufferLocal.hpp>
+#include <libmaus2/clustering/EdgeList.hpp>
+#include <libmaus2/clustering/EdgeBufferLocal.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -35,8 +35,8 @@ namespace libmaus
 			uint64_t const readsperlist;
 			uint64_t const numlists;
 			
-			::libmaus::autoarray::AutoArray < EdgeList::unique_ptr_type > edgelists;
-			::libmaus::autoarray::AutoArray < EdgeBufferLocal::unique_ptr_type > edgebuffers;
+			::libmaus2::autoarray::AutoArray < EdgeList::unique_ptr_type > edgelists;
+			::libmaus2::autoarray::AutoArray < EdgeBufferLocal::unique_ptr_type > edgebuffers;
 			
 			LocalEdgeSet(
 				uint64_t const rsrclow,
@@ -64,7 +64,7 @@ namespace libmaus
 				}
 			}
 			
-			void operator()(::libmaus::graph::TripleEdge const & T)
+			void operator()(::libmaus2::graph::TripleEdge const & T)
 			{
 				if ( T.a >= srclow && T.a < srchigh )
 					edgebuffers [ (T.a-srclow) / readsperlist ]->put(T);

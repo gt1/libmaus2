@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,36 +19,36 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_GAPARRAYBYTEDECODER_HPP)
 #define LIBMAUS_SUFFIXSORT_GAPARRAYBYTEDECODER_HPP
 
-#include <libmaus/suffixsort/GapArrayByteOverflowKeyAccessor.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/util/iterator.hpp>
+#include <libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/util/iterator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		struct GapArrayByteDecoder
 		{
 			typedef GapArrayByteDecoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			uint8_t const * G;
 			uint64_t const gsize;
 
-			libmaus::aio::CheckedInputStream::unique_ptr_type pCIS;
+			libmaus2::aio::CheckedInputStream::unique_ptr_type pCIS;
 
 			uint64_t sparsecnt;
 			
-			libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type pSGI;
+			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type pSGI;
 				
 			uint64_t offset;
 				
-			static libmaus::aio::CheckedInputStream::unique_ptr_type openSparseFile(std::string const & filename)
+			static libmaus2::aio::CheckedInputStream::unique_ptr_type openSparseFile(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream::unique_ptr_type tCIS(
-					new libmaus::aio::CheckedInputStream(filename)
+				libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(
+					new libmaus2::aio::CheckedInputStream(filename)
 				);
 				
 				return UNIQUE_PTR_MOVE(tCIS);
@@ -62,15 +62,15 @@ namespace libmaus
 				return n;
 			}
 			
-			static libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type openWordPairFile(
+			static libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type openWordPairFile(
 				std::istream & CIS, uint64_t const n, uint64_t const offset
 			)
 			{
-				libmaus::suffixsort::GapArrayByteOverflowKeyAccessor acc(CIS);
-				libmaus::util::ConstIterator<libmaus::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> ita(&acc,0);
-				libmaus::util::ConstIterator<libmaus::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> ite(&acc,n);
+				libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor acc(CIS);
+				libmaus2::util::ConstIterator<libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> ita(&acc,0);
+				libmaus2::util::ConstIterator<libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> ite(&acc,n);
 			
-				libmaus::util::ConstIterator<libmaus::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> itc = std::lower_bound(ita,ite,offset);
+				libmaus2::util::ConstIterator<libmaus2::suffixsort::GapArrayByteOverflowKeyAccessor,uint64_t> itc = std::lower_bound(ita,ite,offset);
 				
 				uint64_t const el = itc-ita;
 				uint64_t const restel = n - el;
@@ -78,8 +78,8 @@ namespace libmaus
 				CIS.clear();
 				CIS.seekg( el * 2 * sizeof(uint64_t), std::ios::beg );
 				
-				libmaus::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
-					new libmaus::aio::SynchronousGenericInput<uint64_t>(CIS,1024,2*restel)
+				libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(
+					new libmaus2::aio::SynchronousGenericInput<uint64_t>(CIS,1024,2*restel)
 				);
 				
 				return UNIQUE_PTR_MOVE(tSGI);

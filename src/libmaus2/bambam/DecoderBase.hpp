@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_DECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_DECODERBASE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -44,8 +44,8 @@ namespace libmaus
 				
 				if ( c < 0 )
 				{
-					::libmaus::exception::LibMausException se;
-					se.getStream() << "Unexpected EOF in ::libmaus::bambam::DecoderBase::getByte()" << std::endl;
+					::libmaus2::exception::LibMausException se;
+					se.getStream() << "Unexpected EOF in ::libmaus2::bambam::DecoderBase::getByte()" << std::endl;
 					se.finish();
 					throw se;
 				}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_COLLATINGBAMDECODER_HPP)
 #define LIBMAUS_BAMBAM_COLLATINGBAMDECODER_HPP
 				
-#include <libmaus/bambam/MergeQueueElement.hpp>
-#include <libmaus/bambam/BamAlignmentComparator.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/lz/SnappyInputStreamArrayFile.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
-#include <libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
+#include <libmaus2/bambam/MergeQueueElement.hpp>
+#include <libmaus2/bambam/BamAlignmentComparator.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/lz/SnappyInputStreamArrayFile.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
+#include <libmaus2/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <queue>
 
 #define LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{	
@@ -41,13 +41,13 @@ namespace libmaus
 			//! this type
 			typedef CollatingBamDecoder this_type;
 			//! unique pointer
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			//! FastQ entry type
-			typedef ::libmaus::fastx::FASTQEntry pattern_type;
+			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
 			//! alignment type
-			typedef ::libmaus::bambam::BamAlignment alignment_type;
+			typedef ::libmaus2::bambam::BamAlignment alignment_type;
 			//! alignment pointer type
 			typedef alignment_type::shared_ptr_type alignment_ptr_type;
 			
@@ -60,16 +60,16 @@ namespace libmaus
 			//! temporary file name
 			std::string const tempfilename;
 			//! temporary output stream
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type tempfileout;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type tempfileout;
 			//! temporary input stream pointer
-			::libmaus::util::unique_ptr<std::ifstream>::type tempfilein;
+			::libmaus2::util::unique_ptr<std::ifstream>::type tempfilein;
 			//! snappy input array for reading back name sorted blocks
-			::libmaus::lz::SnappyInputStreamArrayFile::unique_ptr_type temparrayin;
+			::libmaus2::lz::SnappyInputStreamArrayFile::unique_ptr_type temparrayin;
 			//! collator state
 			decoder_state state;
 			
 			//! hash: hash value -> alignment	
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t,alignment_ptr_type> > hash;
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,alignment_ptr_type> > hash;
 			//! output list for passing alignment back to the caller
 			::std::deque < alignment_ptr_type > outputlist;
 			//! write out list for writing alignments out to disk
@@ -109,11 +109,11 @@ namespace libmaus
 			/**
 			 * @return pointer to temporary file stream
 			 **/
-			::libmaus::aio::CheckedOutputStream * getTempFile()
+			::libmaus2::aio::CheckedOutputStream * getTempFile()
 			{
 				if ( ! tempfileout.get() )
 				{
-					::libmaus::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus::aio::CheckedOutputStream(tempfilename));
+					::libmaus2::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus2::aio::CheckedOutputStream(tempfilename));
 					tempfileout = UNIQUE_PTR_MOVE(rtmpfile);
 				}
 				return tempfileout.get();
@@ -144,7 +144,7 @@ namespace libmaus
 			 **/
 			void init()
 			{
-				hash = ::libmaus::autoarray::AutoArray < std::pair<uint64_t, alignment_ptr_type> >(hashsize);
+				hash = ::libmaus2::autoarray::AutoArray < std::pair<uint64_t, alignment_ptr_type> >(hashsize);
 				state = reading;
 			}
 			
@@ -180,12 +180,12 @@ namespace libmaus
 				// if there is anything left, then write it out to file/disk
 				if ( writeoutlist.size() )
 				{
-					::libmaus::aio::CheckedOutputStream & tmpfile = *getTempFile();
+					::libmaus2::aio::CheckedOutputStream & tmpfile = *getTempFile();
 
 					uint64_t const prepos = tmpfile.tellp();
 					
 					#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY)
-					::libmaus::lz::SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > SOS(tmpfile);
+					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > SOS(tmpfile);
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
 						writeoutlist[i]->serialise(SOS);
 					SOS.flush();
@@ -202,11 +202,11 @@ namespace libmaus
 					#if defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY) && defined(LIBMAUS_BAMBAM_COLLATION_USE_SNAPPY_DEBUG)
 					tmpfile.flush();
 					
-					::libmaus::lz::SnappyOffsetFileInputStream SOFIS(tempfilename,prepos);
+					::libmaus2::lz::SnappyOffsetFileInputStream SOFIS(tempfilename,prepos);
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
 					{
-						::libmaus::bambam::BamAlignment::shared_ptr_type ptr = 
-							::libmaus::bambam::BamAlignment::load(SOFIS);
+						::libmaus2::bambam::BamAlignment::shared_ptr_type ptr = 
+							::libmaus2::bambam::BamAlignment::load(SOFIS);
 							
 						// std::cerr << "Expecting " << writeoutlist[i]->getName() << std::endl;
 						// std::cerr << "Got       " << ptr->getName() << std::endl;	
@@ -389,12 +389,12 @@ namespace libmaus
 							writeoutints.push_back(writeoutindex[i].first);
 						writeoutints.push_back(writeoutindex.back().second);
 
-						::libmaus::lz::SnappyInputStreamArrayFile::unique_ptr_type ttemparrayin(
-							::libmaus::lz::SnappyInputStreamArrayFile::construct(tempfilename,writeoutints.begin(),writeoutints.end())
+						::libmaus2::lz::SnappyInputStreamArrayFile::unique_ptr_type ttemparrayin(
+							::libmaus2::lz::SnappyInputStreamArrayFile::construct(tempfilename,writeoutints.begin(),writeoutints.end())
 						);
 						temparrayin = UNIQUE_PTR_MOVE(ttemparrayin);
 						#else
-						::libmaus::util::unique_ptr<std::ifstream>::type rtmpfile(new std::ifstream(tempfilename.c_str(),std::ios::binary));
+						::libmaus2::util::unique_ptr<std::ifstream>::type rtmpfile(new std::ifstream(tempfilename.c_str(),std::ios::binary));
 						tempfilein = UNIQUE_PTR_MOVE(rtmpfile);
 						#endif
 						
@@ -655,7 +655,7 @@ namespace libmaus
 			/**
 			 * @return BAM file header
 			 **/
-			libmaus::bambam::BamHeader const & getHeader() const
+			libmaus2::bambam::BamHeader const & getHeader() const
 			{
 				return bamdecoder.getHeader();
 			}
@@ -669,11 +669,11 @@ namespace libmaus
 			//! this type
 			typedef CollatingBamDecoderNoOrphans this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			//! pattern type
-			typedef ::libmaus::fastx::FASTQEntry pattern_type;
+			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
 			
 			//! next pattern id
 			uint64_t id;

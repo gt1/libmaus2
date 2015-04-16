@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_ENCODERBASE_HPP)
 #define LIBMAUS_BAMBAM_ENCODERBASE_HPP
 
-#include <libmaus/fastx/CharBuffer.hpp>
-#include <libmaus/bambam/CigarOperation.hpp>
+#include <libmaus2/fastx/CharBuffer.hpp>
+#include <libmaus2/bambam/CigarOperation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{

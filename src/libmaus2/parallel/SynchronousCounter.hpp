@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(SYNCHRONOUSCOUNTER_HPP)
 #define SYNCHRONOUSCOUNTER_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
@@ -35,7 +35,7 @@ namespace libmaus
 			typedef SynchronousCounter<value_type> this_type;
 		
 			#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
-			mutable ::libmaus::parallel::OMPLock lock;
+			mutable ::libmaus2::parallel::OMPLock lock;
 			#endif
 			volatile value_type cnt;
 			

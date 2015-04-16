@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if !defined(LIBMAUS_LZ_SIMPLECOMPRESSEDOUTPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDOUTPUTSTREAM_HPP
 
-#include <libmaus/lz/CompressorObjectFactory.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/lz/CompressorObjectFactory.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -34,16 +34,16 @@ namespace libmaus
 		{
 			typedef _stream_type stream_type;
 			typedef SimpleCompressedOutputStream<stream_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			stream_type & out;
 			CompressorObject::unique_ptr_type compressor;
-			::libmaus::autoarray::AutoArray<char> B;
+			::libmaus2::autoarray::AutoArray<char> B;
 			char * const pa;
 			char *       pc;
 			char * const pe;
 
-			::libmaus::autoarray::AutoArray<char> O;
+			::libmaus2::autoarray::AutoArray<char> O;
 
 			uint64_t compressedwritten;
 			
@@ -71,19 +71,19 @@ namespace libmaus
 				if ( pc != pa )
 				{
 					// byte counter
-					libmaus::util::CountPutObject CPO;
+					libmaus2::util::CountPutObject CPO;
 					
 					// compress data
 					// std::string const cdata = compressor->compress(std::string(pa,pc));
 					uint64_t const cdatasize = compressor->compress(pa,(pc-pa),O);
 
 					// number of uncompressed bytes					
-					::libmaus::util::UTF8::encodeUTF8(pc-pa,out);
-					::libmaus::util::UTF8::encodeUTF8(pc-pa,CPO);
+					::libmaus2::util::UTF8::encodeUTF8(pc-pa,out);
+					::libmaus2::util::UTF8::encodeUTF8(pc-pa,CPO);
 					
 					//  number of compressed bytes
-					::libmaus::util::NumberSerialisation::serialiseNumber(out,cdatasize);
-					::libmaus::util::NumberSerialisation::serialiseNumber(CPO,cdatasize);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(out,cdatasize);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,cdatasize);
 
 					// write compressed data
 					out.write(O.begin(),cdatasize);
@@ -91,7 +91,7 @@ namespace libmaus
 					
 					if ( ! out )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to flush SimpleCompressedOutputStream." << std::endl;
 						se.finish();
 						throw se;

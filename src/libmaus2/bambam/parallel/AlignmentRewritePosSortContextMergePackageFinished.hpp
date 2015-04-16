@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEPOSSORTCONTEXTMERGEPACKAGEFINISHED_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEPOSSORTCONTEXTMERGEPACKAGEFINISHED_HPP
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{

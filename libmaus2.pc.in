@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libmaus
+Name: libmaus2
 Description: succinct data structures
 Requires: @ZLIBREQ@ @GNUTLSREQ@ @NETTLEREQ@
 Version: @VERSION@

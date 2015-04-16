@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_MATH_INTEGERINTERVAL_HPP)
 #define LIBMAUS_MATH_INTEGERINTERVAL_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <numeric>
 #include <limits>
 #include <algorithm>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace math
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,25 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
-void libmaus::util::GetFileSize::copy(std::string const & from, std::string const & to)
+void libmaus2::util::GetFileSize::copy(std::string const & from, std::string const & to)
 {
-	::libmaus::aio::CheckedInputStream istr(from);
-	::libmaus::aio::CheckedOutputStream ostr(to);
+	::libmaus2::aio::CheckedInputStream istr(from);
+	::libmaus2::aio::CheckedOutputStream ostr(to);
 	copy(istr,ostr,getFileSize(from));
 	ostr.flush();
 	ostr.close();
 }
 
-int libmaus::util::GetFileSize::getSymbolAtPosition(std::string const & filename, uint64_t const pos)
+int libmaus2::util::GetFileSize::getSymbolAtPosition(std::string const & filename, uint64_t const pos)
 {
-	::libmaus::aio::CheckedInputStream CIS(filename);
+	::libmaus2::aio::CheckedInputStream CIS(filename);
 	CIS.seekg(pos,std::ios::beg);
 	int const c = CIS.get();
 	if ( c < 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to get symbol at position " << pos << " of " << filename << std::endl;
 		se.finish();
 		throw se;
@@ -44,15 +44,15 @@ int libmaus::util::GetFileSize::getSymbolAtPosition(std::string const & filename
 	return c;
 }
 
-::libmaus::autoarray::AutoArray<uint8_t> libmaus::util::GetFileSize::readFile(std::string const & filename)
+::libmaus2::autoarray::AutoArray<uint8_t> libmaus2::util::GetFileSize::readFile(std::string const & filename)
 {
-	::libmaus::autoarray::AutoArray<uint8_t> A;
+	::libmaus2::autoarray::AutoArray<uint8_t> A;
 	
 	if ( ! fileExists(filename) )
 		return A;
 	
 	uint64_t const fs = getFileSize(filename);
-	A = ::libmaus::autoarray::AutoArray<uint8_t>(fs);
+	A = ::libmaus2::autoarray::AutoArray<uint8_t>(fs);
 	
 	::std::ifstream istr(filename.c_str(), std::ios::binary);
 	assert ( istr.is_open() );
@@ -64,7 +64,7 @@ int libmaus::util::GetFileSize::getSymbolAtPosition(std::string const & filename
 	return A;
 }
 
-bool libmaus::util::GetFileSize::fileExists(std::string const & filename)
+bool libmaus2::util::GetFileSize::fileExists(std::string const & filename)
 {
 	std::ifstream istr(filename.c_str(), std::ios::binary);
 	if ( istr.is_open() )
@@ -78,7 +78,7 @@ bool libmaus::util::GetFileSize::fileExists(std::string const & filename)
 	}
 }
 
-uint64_t libmaus::util::GetFileSize::getFileSize(std::istream & istr)
+uint64_t libmaus2::util::GetFileSize::getFileSize(std::istream & istr)
 {
 	uint64_t const cur = istr.tellg();
 	istr.seekg(0,std::ios::end);
@@ -88,7 +88,7 @@ uint64_t libmaus::util::GetFileSize::getFileSize(std::istream & istr)
 	return l;
 }
 
-uint64_t libmaus::util::GetFileSize::getFileSize(std::wistream & istr)
+uint64_t libmaus2::util::GetFileSize::getFileSize(std::wistream & istr)
 {
 	uint64_t const cur = istr.tellg();
 	istr.seekg(0,std::ios::end);
@@ -98,7 +98,7 @@ uint64_t libmaus::util::GetFileSize::getFileSize(std::wistream & istr)
 	return l;
 }
 
-uint64_t libmaus::util::GetFileSize::getFileSize(std::string const & filename)
+uint64_t libmaus2::util::GetFileSize::getFileSize(std::string const & filename)
 {
 	std::ifstream istr(filename.c_str(),std::ios::binary);
 	istr.seekg(0,std::ios::end);
@@ -107,7 +107,7 @@ uint64_t libmaus::util::GetFileSize::getFileSize(std::string const & filename)
 	return l;
 }
 
-uint64_t libmaus::util::GetFileSize::getFileSize(std::vector<std::string> const & filenames)
+uint64_t libmaus2::util::GetFileSize::getFileSize(std::vector<std::string> const & filenames)
 {
 	uint64_t s = 0;
 	for ( uint64_t i = 0; i < filenames.size(); ++i )
@@ -115,7 +115,7 @@ uint64_t libmaus::util::GetFileSize::getFileSize(std::vector<std::string> const 
 	return s;
 }
 
-uint64_t libmaus::util::GetFileSize::getFileSize(std::vector< std::vector<std::string> > const & filenames)
+uint64_t libmaus2::util::GetFileSize::getFileSize(std::vector< std::vector<std::string> > const & filenames)
 {
 	uint64_t s = 0;
 	for ( uint64_t i = 0; i < filenames.size(); ++i )

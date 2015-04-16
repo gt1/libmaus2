@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_LZ_BGZFHEADERFUNCTIONS_HPP)
 #define LIBMAUS_LZ_BGZFHEADERFUNCTIONS_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/lz/BgzfConstants.hpp>
-#include <libmaus/lz/GzipHeader.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/lz/BgzfConstants.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 #include <cstring>
 #include <zlib.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -63,7 +63,7 @@ namespace libmaus
 					8 /* mem level, gzip default */, Z_DEFAULT_STRATEGY);
 				if ( ret != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "deflateInit2 failed." << std::endl;
 					se.finish();
 					throw se;
@@ -99,8 +99,8 @@ namespace libmaus
 			
 			static void setupHeader(uint8_t * const outbuf)
 			{
-				outbuf[0] = ::libmaus::lz::GzipHeader::ID1;
-				outbuf[1] = ::libmaus::lz::GzipHeader::ID2;
+				outbuf[0] = ::libmaus2::lz::GzipHeader::ID1;
+				outbuf[1] = ::libmaus2::lz::GzipHeader::ID2;
 				outbuf[2] = 8; // CM
 				outbuf[3] = 4; // FLG, extra data
 				outbuf[4] = outbuf[5] = outbuf[6] = outbuf[7] = 0; // MTIME

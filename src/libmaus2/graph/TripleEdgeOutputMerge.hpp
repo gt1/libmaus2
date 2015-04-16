@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,25 +20,25 @@
 #if ! defined(TRIPLEEDGEOUTPUTMERGE_HPP)
 #define TRIPLEEDGEOUTPUTMERGE_HPP
 
-#include <libmaus/graph/TripleEdgeOutput.hpp>
+#include <libmaus2/graph/TripleEdgeOutput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
-		struct TripleEdgeOutputMerge : public ::libmaus::graph::TripleEdgeOutput
+		struct TripleEdgeOutputMerge : public ::libmaus2::graph::TripleEdgeOutput
 		{
 			private:
-			typedef ::libmaus::graph::TripleEdgeOutput base_type;
+			typedef ::libmaus2::graph::TripleEdgeOutput base_type;
 		
-			::libmaus::graph::TripleEdge prevtrip;
+			::libmaus2::graph::TripleEdge prevtrip;
 
 			void flush()
 			{
 				if ( prevtrip.a != prevtrip.b )
 				{
 					base_type::write(prevtrip);
-					prevtrip = ::libmaus::graph::TripleEdge(0,0,0);
+					prevtrip = ::libmaus2::graph::TripleEdge(0,0,0);
 				}
 				base_type::flush();
 			}
@@ -55,7 +55,7 @@ namespace libmaus
 				flush();
 			}
 
-			void write(::libmaus::graph::TripleEdge const & T)
+			void write(::libmaus2::graph::TripleEdge const & T)
 			{
 				if ( (T.a != prevtrip.a) || (T.b != prevtrip.b) )
 				{

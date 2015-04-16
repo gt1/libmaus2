@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_INPUTINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_INPUTINFO_HPP
 
-#include <libmaus/bambam/parallel/InputBlock.hpp>
-#include <libmaus/parallel/LockedFreeList.hpp>
-#include <libmaus/parallel/LockedBool.hpp>
-#include <libmaus/bambam/parallel/InputBlockAllocator.hpp>
-#include <libmaus/bambam/parallel/InputBlockTypeInfo.hpp>
+#include <libmaus2/bambam/parallel/InputBlock.hpp>
+#include <libmaus2/parallel/LockedFreeList.hpp>
+#include <libmaus2/parallel/LockedBool.hpp>
+#include <libmaus2/bambam/parallel/InputBlockAllocator.hpp>
+#include <libmaus2/bambam/parallel/InputBlockTypeInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -40,17 +40,17 @@ namespace libmaus
 				typedef InputBlock input_block_type;
 			
 				// lock for everything below
-				libmaus::parallel::PosixSpinLock readLock;
+				libmaus2::parallel::PosixSpinLock readLock;
 				// input stream reference
 				std::istream & istr;
 				// returns true if end of file has been observed
-				libmaus::parallel::LockedBool eof;
+				libmaus2::parallel::LockedBool eof;
 				// id of this input stream
 				uint64_t volatile streamid;
 				// next input block id
 				uint64_t volatile blockid;
 				// list of free input blocks
-				libmaus::parallel::LockedFreeList<
+				libmaus2::parallel::LockedFreeList<
 					input_block_type,
 					InputBlockAllocator,
 					InputBlockTypeInfo

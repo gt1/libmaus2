@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,15 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/CRC32C.hpp>
-#include <libmaus/digest/CRC32C_Core.hpp>
+#include <libmaus2/digest/CRC32C.hpp>
+#include <libmaus2/digest/CRC32C_Core.hpp>
 
-libmaus::digest::CRC32C::CRC32C() : ctx(0) {}
-libmaus::digest::CRC32C::~CRC32C() {}
+libmaus2::digest::CRC32C::CRC32C() : ctx(0) {}
+libmaus2::digest::CRC32C::~CRC32C() {}
 	
-void libmaus::digest::CRC32C::init() { ctx = 0; }
-void libmaus::digest::CRC32C::update(uint8_t const * t, size_t l) { ctx = libmaus::digest::CRC32C_Core::crc32c_core(ctx,t,l); }
-void libmaus::digest::CRC32C::digest(uint8_t * digest) 
+void libmaus2::digest::CRC32C::init() { ctx = 0; }
+void libmaus2::digest::CRC32C::update(uint8_t const * t, size_t l) { ctx = libmaus2::digest::CRC32C_Core::crc32c_core(ctx,t,l); }
+void libmaus2::digest::CRC32C::digest(uint8_t * digest) 
 {
 	digest[0] = (ctx >> 24) & 0xFF;
 	digest[1] = (ctx >> 16) & 0xFF;
@@ -32,10 +32,10 @@ void libmaus::digest::CRC32C::digest(uint8_t * digest)
 	digest[3] = (ctx >>  0) & 0xFF;
 }
 
-void libmaus::digest::CRC32C::copyFrom(CRC32C const & O)
+void libmaus2::digest::CRC32C::copyFrom(CRC32C const & O)
 {
 	ctx = O.ctx;
 }
 
-void libmaus::digest::CRC32C::vinit() { init(); }
-void libmaus::digest::CRC32C::vupdate(uint8_t const * u, size_t l) { update(u,l); }
+void libmaus2::digest::CRC32C::vinit() { init(); }
+void libmaus2::digest::CRC32C::vupdate(uint8_t const * u, size_t l) { update(u,l); }

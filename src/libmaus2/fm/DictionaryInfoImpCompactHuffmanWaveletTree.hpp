@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_FM_DICTIONARYINFO_IMPCOMPACTHUFFMANWAVELETTREE_HPP)
 #define LIBMAUS_FM_DICTIONARYINFO_IMPCOMPACTHUFFMANWAVELETTREE_HPP
 
-#include <libmaus/fm/DictionaryInfo.hpp>
-#include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/fm/DictionaryInfo.hpp>
+#include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fm
 	{
 		template<>
-		struct DictionaryInfo<libmaus::wavelet::ImpCompactHuffmanWaveletTree>
+		struct DictionaryInfo<libmaus2::wavelet::ImpCompactHuffmanWaveletTree>
 		{
 			static std::string getDictionaryFileSuffix() { return ".hwt"; }
 			static std::string getSampledSuffixArraySuffix() { return ".sa"; }

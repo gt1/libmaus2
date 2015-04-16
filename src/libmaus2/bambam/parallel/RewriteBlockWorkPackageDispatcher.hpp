@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_REWRITEBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/RewritePackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentBufferReturnInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentBufferReinsertInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBufferAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentRewriteBufferReinsertForFillingInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/RewritePackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBufferReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBufferReinsertInterface.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewriteBufferAddPendingInterface.hpp>
+#include <libmaus2/bambam/parallel/AlignmentRewriteBufferReinsertForFillingInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			// dispatcher for block rewriting
-			struct RewriteBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct RewriteBlockWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				RewritePackageReturnInterface & packageReturnInterface;
 				AlignmentBufferReturnInterface & alignmentBufferReturnInterface;
@@ -56,14 +56,14 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					RewriteBlockWorkPackage * BP = dynamic_cast<RewriteBlockWorkPackage *>(P);
 					assert ( BP );
 					
-					libmaus::bambam::BamAlignment * stallAlgn = 0;
+					libmaus2::bambam::BamAlignment * stallAlgn = 0;
 					bool rewriteBlockFull = false;
 	
 					while ( (!rewriteBlockFull) && (stallAlgn=BP->parseBlock->popStallBuffer()) )
@@ -82,7 +82,7 @@ namespace libmaus
 					// if there is still space in the rewrite block
 					if ( ! rewriteBlockFull )
 					{
-						std::deque<libmaus::bambam::BamAlignment *> algns;
+						std::deque<libmaus2::bambam::BamAlignment *> algns;
 						
 						while ( 
 							(!rewriteBlockFull)
@@ -100,25 +100,25 @@ namespace libmaus
 								uint16_t const flags = algns[i]->getFlags();
 								
 								if ( 
-									(! (flags&libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED))
+									(! (flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED))
 									||
-									(flags & (libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY|libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY) )
+									(flags & (libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY|libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY) )
 								)
 								{
 									continue;
 								}
 								else if ( 
-									(flags&libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
+									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
 									&&
-									(!(flags&libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2))
+									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2))
 								)
 								{
 									i1 = i;
 								}
 								else if ( 
-									(flags&libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
+									(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
 									&&
-									(!(flags&libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1))
+									(!(flags&libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1))
 								)
 								{
 									i2 = i;
@@ -127,8 +127,8 @@ namespace libmaus
 							
 							if ( (i1 != -1) && (i2 != -1) )
 							{
-								libmaus::bambam::BamAlignment & a1 = *(algns[i1]);
-								libmaus::bambam::BamAlignment & a2 = *(algns[i2]);
+								libmaus2::bambam::BamAlignment & a1 = *(algns[i1]);
+								libmaus2::bambam::BamAlignment & a2 = *(algns[i2]);
 							
 								a1.filterOutAux(BP->parseBlock->MQMSMCMTfilter);
 								a2.filterOutAux(BP->parseBlock->MQMSMCMTfilter);
@@ -138,15 +138,15 @@ namespace libmaus
 								if ( algns[i2]->blocksize + 6 * (3+sizeof(int32_t)) > algns[i2]->D.size() )
 									a2.D.resize(algns[i2]->blocksize + 8 * (3+sizeof(int32_t)));
 								
-								libmaus::bambam::BamAlignment::fixMateInformationPreFiltered(a1,a2);
-								libmaus::bambam::BamAlignment::addMateBaseScorePreFiltered(a1,a2);
-								libmaus::bambam::BamAlignment::addMateCoordinatePreFiltered(a1,a2);
-								libmaus::bambam::BamAlignment::addMateTagPreFiltered(a1,a2,"MT");
+								libmaus2::bambam::BamAlignment::fixMateInformationPreFiltered(a1,a2);
+								libmaus2::bambam::BamAlignment::addMateBaseScorePreFiltered(a1,a2);
+								libmaus2::bambam::BamAlignment::addMateCoordinatePreFiltered(a1,a2);
+								libmaus2::bambam::BamAlignment::addMateTagPreFiltered(a1,a2,"MT");
 							}
 						
 							while ( algns.size() )
 							{
-								libmaus::bambam::BamAlignment * algn = algns.front();
+								libmaus2::bambam::BamAlignment * algn = algns.front();
 								int64_t const coordinate = algn->getCoordinate();
 								
 								if ( BP->rewriteBlock->put(reinterpret_cast<char const *>(algn->D.begin()),algn->blocksize,coordinate) )

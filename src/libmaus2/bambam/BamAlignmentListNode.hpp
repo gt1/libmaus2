@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTLISTNODE_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTLISTNODE_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamAlignmentListNode
 		{
 			typedef BamAlignmentListNode this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			libmaus::bambam::BamAlignment A;
+			libmaus2::bambam::BamAlignment A;
 			BamAlignmentListNode * next;
 			
 			BamAlignmentListNode() : next(0) {}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMRANGEDECODER_HPP)
 #define LIBMAUS_BAMBAM_BAMRANGEDECODER_HPP
 
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/bambam/BamIndex.hpp>
-#include <libmaus/bambam/BamRangeParser.hpp>
-#include <libmaus/util/OutputFileNameTools.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/bambam/BamIndex.hpp>
+#include <libmaus2/bambam/BamRangeParser.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		//! BAM decoder supporting ranges
-		struct BamRangeDecoder : public libmaus::bambam::BamAlignmentDecoder
+		struct BamRangeDecoder : public libmaus2::bambam::BamAlignmentDecoder
 		{
 			typedef BamRangeDecoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			/**
@@ -51,21 +51,21 @@ namespace libmaus
 				std::string bainame;
 				
 				// try to add .bai
-				if ( libmaus::aio::InputStreamFactoryContainer::tryOpen(bamname+".bai") )
+				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(bamname+".bai") )
 				{
 					return bamname+".bai";
 				}
 				// try to clip off .bam and then add .bai
-				else if ( libmaus::aio::InputStreamFactoryContainer::tryOpen(
-					libmaus::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai") 
+				else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(
+					libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai") 
 				)
 				{
-					return libmaus::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai";
+					return libmaus2::util::OutputFileNameTools::clipOff(bamname,".bam")+".bai";
 				}
 				// give up
 				else
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Unable to find index for file " << bamname << std::endl;
 					se.finish();
 					throw se;
@@ -78,12 +78,12 @@ namespace libmaus
 			 * @param filename BAM file name
 			 * @return header object from BAM file
 			 **/
-			static libmaus::bambam::BamHeader::unique_ptr_type loadHeader(std::string const & filename)
+			static libmaus2::bambam::BamHeader::unique_ptr_type loadHeader(std::string const & filename)
 			{
-				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename));
+				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
 				std::istream & CIS = *Pistr;
-				libmaus::lz::BgzfInflateStream BIS(CIS);
-				libmaus::bambam::BamHeader::unique_ptr_type Pheader(new libmaus::bambam::BamHeader(BIS));
+				libmaus2::lz::BgzfInflateStream BIS(CIS);
+				libmaus2::bambam::BamHeader::unique_ptr_type Pheader(new libmaus2::bambam::BamHeader(BIS));
 				return UNIQUE_PTR_MOVE(Pheader);
 			}
 
@@ -93,42 +93,42 @@ namespace libmaus
 			 * @param filename name of .bai index file
 			 * @return index
 			 **/
-			static libmaus::bambam::BamIndex::unique_ptr_type loadIndex(std::string const & filename)
+			static libmaus2::bambam::BamIndex::unique_ptr_type loadIndex(std::string const & filename)
 			{
-				libmaus::aio::InputStream::unique_ptr_type Pistr(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename));
+				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
 				std::istream & CIS = *Pistr;
-				libmaus::bambam::BamIndex::unique_ptr_type Pindex(new libmaus::bambam::BamIndex(CIS));
+				libmaus2::bambam::BamIndex::unique_ptr_type Pindex(new libmaus2::bambam::BamIndex(CIS));
 				return UNIQUE_PTR_MOVE(Pindex);
 			}
 			
 			//! pointer to bam header
-			libmaus::bambam::BamHeader::unique_ptr_type const Pheader;
+			libmaus2::bambam::BamHeader::unique_ptr_type const Pheader;
 			//! bam header reference
-			libmaus::bambam::BamHeader const & header;
+			libmaus2::bambam::BamHeader const & header;
 			
 			//! pointer to bam index (bai)
-			libmaus::bambam::BamIndex::unique_ptr_type const Pindex;
+			libmaus2::bambam::BamIndex::unique_ptr_type const Pindex;
 			//! bam index reference
-			libmaus::bambam::BamIndex const & index;
+			libmaus2::bambam::BamIndex const & index;
 			
 			//! range array
-			libmaus::autoarray::AutoArray<libmaus::bambam::BamRange::unique_ptr_type> ranges;
+			libmaus2::autoarray::AutoArray<libmaus2::bambam::BamRange::unique_ptr_type> ranges;
 			//! next element to be processed in ranges
 			uint64_t rangeidx;
 			//! pointer to range which is currently processed
-			libmaus::bambam::BamRange const * rangecur;
+			libmaus2::bambam::BamRange const * rangecur;
 
 			//! bam decoder wrapper			
-			libmaus::bambam::BamDecoderResetableWrapper wrapper;
+			libmaus2::bambam::BamDecoderResetableWrapper wrapper;
 			//! chunks for current range
 			std::vector< std::pair<uint64_t,uint64_t> > chunks;
 			//! next element to be processed in chunks
 			uint64_t chunkidx;
 			
 			//! decoder for current chunk
-			libmaus::bambam::BamAlignmentDecoder & decoder;
+			libmaus2::bambam::BamAlignmentDecoder & decoder;
 			//! alignment object in decoder
-			libmaus::bambam::BamAlignment & algn;
+			libmaus2::bambam::BamAlignment & algn;
 			
 			//! true if decoder is still active
 			bool active;
@@ -173,7 +173,7 @@ namespace libmaus
 					
 					if ( ok )
 					{
-						if ( (*rangecur)(algn) == libmaus::bambam::BamRange::interval_rel_pos_matching )
+						if ( (*rangecur)(algn) == libmaus2::bambam::BamRange::interval_rel_pos_matching )
 							return true;
 					}
 					else
@@ -212,12 +212,12 @@ namespace libmaus
 			 **/
 			BamRangeDecoder(std::string const & filename, std::string const & rranges, bool const rputrank = false)
 			:
-			  libmaus::bambam::BamAlignmentDecoder(rputrank), 
+			  libmaus2::bambam::BamAlignmentDecoder(rputrank), 
 			  Pheader(loadHeader(filename)),
 			  header(*Pheader),
 			  Pindex(loadIndex(deriveBamIndexName(filename))),
 			  index(*Pindex),
-			  ranges(libmaus::bambam::BamRangeParser::parse(rranges,header)),
+			  ranges(libmaus2::bambam::BamRangeParser::parse(rranges,header)),
 			  rangeidx(0),
 			  rangecur(0),
 			  wrapper(filename,header),
@@ -231,7 +231,7 @@ namespace libmaus
 			
 			void setRange(std::string const & rranges)
 			{
-				ranges = libmaus::bambam::BamRangeParser::parse(rranges,header);
+				ranges = libmaus2::bambam::BamRangeParser::parse(rranges,header);
 				rangeidx = 0;
 				rangecur = 0;
 				chunks.resize(0);
@@ -245,7 +245,7 @@ namespace libmaus
 			 *
 			 * @return alignment
 			 **/
-			libmaus::bambam::BamAlignment & getAlignment()
+			libmaus2::bambam::BamAlignment & getAlignment()
 			{
 				return algn;
 			}
@@ -256,7 +256,7 @@ namespace libmaus
 			 *
 			 * @return alignment
 			 **/
-			libmaus::bambam::BamAlignment const & getAlignment() const
+			libmaus2::bambam::BamAlignment const & getAlignment() const
 			{
 				return algn;
 			}
@@ -264,7 +264,7 @@ namespace libmaus
 			/**
 			 * @return BAM file header object
 			 **/
-			libmaus::bambam::BamHeader const & getHeader() const
+			libmaus2::bambam::BamHeader const & getHeader() const
 			{
 				return header;
 			}
@@ -273,7 +273,7 @@ namespace libmaus
 		/**
 		 * wrapper for a BamRangeDecoder object
 		 **/
-		struct BamRangeDecoderWrapper : public libmaus::bambam::BamAlignmentDecoderWrapper
+		struct BamRangeDecoderWrapper : public libmaus2::bambam::BamAlignmentDecoderWrapper
 		{
 			//! decoder object
 			BamRangeDecoder decoder;
@@ -291,7 +291,7 @@ namespace libmaus
 			
 			}
 			
-			libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return decoder;
 			}

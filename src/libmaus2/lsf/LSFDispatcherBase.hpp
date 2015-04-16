@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LSF_LSFDISPATCHERBASE_HPP)
 #define LIBMAUS_LSF_LSFDISPATCHERBASE_HPP
 
-#include <libmaus/lsf/ProcessSet.hpp>
+#include <libmaus2/lsf/ProcessSet.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lsf
 	{
@@ -30,20 +30,20 @@ namespace libmaus
 			static uint64_t const memgrace = 50;
 
 			uint64_t const exmem;
-			::libmaus::util::ArgInfo const & arginfo;
-			::libmaus::lsf::ProcessSet BPS;
+			::libmaus2::util::ArgInfo const & arginfo;
+			::libmaus2::lsf::ProcessSet BPS;
 
 			// submit processes
-			::libmaus::lsf::ProcessSet::AsynchronousWaiter::unique_ptr_type waiter;
+			::libmaus2::lsf::ProcessSet::AsynchronousWaiter::unique_ptr_type waiter;
 
-			static uint64_t getNumProcs(uint64_t const maxprocs, ::libmaus::util::ArgInfo const & arginfo)
+			static uint64_t getNumProcs(uint64_t const maxprocs, ::libmaus2::util::ArgInfo const & arginfo)
 			{
 				return std::min(static_cast<uint64_t>(maxprocs),arginfo.getValue<uint64_t>("numprocs",32));	
 			}
 
 			LSFDispatcherBase(
 				uint64_t const rexmem, 
-				::libmaus::util::ArgInfo const & rarginfo,
+				::libmaus2::util::ArgInfo const & rarginfo,
 				uint64_t const maxprocs,
 				std::string const & dispatchprogname,
 				uint64_t const lsfthreads = 1
@@ -60,7 +60,7 @@ namespace libmaus
 				if ( arginfo.hasArg("hosts") )
 				{
 					std::string const shosts = arginfo.getValue<std::string>("hosts","<null>");
-					std::deque < std::string > tokens = ::libmaus::util::stringFunctions::tokenize(shosts,std::string(","));
+					std::deque < std::string > tokens = ::libmaus2::util::stringFunctions::tokenize(shosts,std::string(","));
 					if ( tokens.size() )
 					{
 						reqhosts = std::vector < std::string > (tokens.begin(),tokens.end());

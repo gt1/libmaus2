@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_AIO_BUFFER_HPP)
 #define LIBMAUS_AIO_BUFFER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -29,7 +29,7 @@ namespace libmaus
 		struct Buffer
 		{
 			typedef _element_type element_type;
-			libmaus::autoarray::AutoArray<element_type> A;
+			libmaus2::autoarray::AutoArray<element_type> A;
 			element_type * const pa;
 			element_type * pc;
 			element_type * const pe;

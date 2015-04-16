@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(STREAMWRAPPER_HPP)
 #define STREAMWRAPPER_HPP
 
-#include <libmaus/lz/StreamWrapperBuffer.hpp>
+#include <libmaus2/lz/StreamWrapperBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{

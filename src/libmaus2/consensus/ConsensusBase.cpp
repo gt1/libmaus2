@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,42 +16,42 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/consensus/Consensus.hpp>
-#include <libmaus/math/binom.hpp>
+#include <libmaus2/consensus/Consensus.hpp>
+#include <libmaus2/math/binom.hpp>
 
 #if defined(LIBMAUS_HAVE_SEQAN)
-#include <libmaus/consensus/ScoringMatrix.hpp>
+#include <libmaus2/consensus/ScoringMatrix.hpp>
 #include <seqan/align.h>
 #include <seqan/graph_msa.h>
 #include <seqan/score.h>
 
 extern "C"
 {
-	int libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
+	int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 	{
-		return libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapper(thisptr,R,V,verbose,ostr);
+		return libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(thisptr,R,V,verbose,ostr);
 	}
 
-	int libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
+	int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapperC(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 	{
-		return libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(thisptr,R,V,verbose,ostr);
+		return libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(thisptr,R,V,verbose,ostr);
 	}
-	int libmaus_consensus_ConsensusComputationBase_construct_wrapperC(void ** vP)
+	int libmaus2_consensus_ConsensusComputationBase_construct_wrapperC(void ** vP)
 	{
-		return libmaus_consensus_ConsensusComputationBase_construct_wrapper(vP);
+		return libmaus2_consensus_ConsensusComputationBase_construct_wrapper(vP);
 	}
-	int libmaus_consensus_ConsensusComputationBase_destruct_wrapperC(void * vP)
+	int libmaus2_consensus_ConsensusComputationBase_destruct_wrapperC(void * vP)
 	{
-		return libmaus_consensus_ConsensusComputationBase_destruct_wrapper(vP);
+		return libmaus2_consensus_ConsensusComputationBase_destruct_wrapper(vP);
 	}
 }
 
-int libmaus_consensus_ConsensusComputationBase_construct_wrapper(void ** vP)
+int libmaus2_consensus_ConsensusComputationBase_construct_wrapper(void ** vP)
 {
 	try
 	{
 		*vP = 0;
-		libmaus::consensus::ConsensusComputationBase * base = new libmaus::consensus::ConsensusComputationBase;
+		libmaus2::consensus::ConsensusComputationBase * base = new libmaus2::consensus::ConsensusComputationBase;
 		*vP = base;
 		// std::cerr << "Set pointer to " << base << " == " << (*vP) << std::endl;
 		return 0;
@@ -64,11 +64,11 @@ int libmaus_consensus_ConsensusComputationBase_construct_wrapper(void ** vP)
 	}
 }
 
-int libmaus_consensus_ConsensusComputationBase_destruct_wrapper(void * vP)
+int libmaus2_consensus_ConsensusComputationBase_destruct_wrapper(void * vP)
 {
 	try
 	{
-		libmaus::consensus::ConsensusComputationBase * P = reinterpret_cast<libmaus::consensus::ConsensusComputationBase *>(vP);
+		libmaus2::consensus::ConsensusComputationBase * P = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase *>(vP);
 		// std::cerr << "Deleting ptr " << P << std::endl;
 		delete P;
 		return 0;
@@ -80,11 +80,11 @@ int libmaus_consensus_ConsensusComputationBase_destruct_wrapper(void * vP)
 	}
 }
 
-int libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
+int libmaus2_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
 	try
 	{
-		libmaus::consensus::ConsensusComputationBase::computeConsensusA(thisptr,R,V,verbose,ostr);
+		libmaus2::consensus::ConsensusComputationBase::computeConsensusA(thisptr,R,V,verbose,ostr);
 		return 0;
 	}
 	catch(std::exception const & ex)
@@ -94,11 +94,11 @@ int libmaus_consensus_ConsensusComputationBase_computeConsensusA_wrapper(void co
 	}
 }
 
-int libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
+int libmaus2_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
 	try
 	{
-		libmaus::consensus::ConsensusComputationBase::computeConsensusQ(thisptr,R,V,verbose,ostr);
+		libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(thisptr,R,V,verbose,ostr);
 		return 0;
 	}
 	catch(std::exception const & ex)
@@ -109,15 +109,15 @@ int libmaus_consensus_ConsensusComputationBase_computeConsensusQ_wrapper(void co
 }
 
 
-void libmaus::consensus::ConsensusComputationBase::computeConsensusA(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
+void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
-	libmaus::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus::consensus::ConsensusComputationBase const *>(thisptr);	
+	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);	
 	//std::cerr << "A using ptr " << thisptr << " == " << obj << std::endl;
 	obj->computeConsensusA(R,V,verbose,ostr);
 }
-void libmaus::consensus::ConsensusComputationBase::computeConsensusQ(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
+void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(void const * thisptr, void * R, void const * V, int const verbose, void * ostr)
 {
-	libmaus::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus::consensus::ConsensusComputationBase const *>(thisptr);
+	libmaus2::consensus::ConsensusComputationBase const * obj = reinterpret_cast<libmaus2::consensus::ConsensusComputationBase const *>(thisptr);
 	// std::cerr << "Q using ptr " << thisptr << " == " << obj << std::endl;
 	obj->computeConsensusQ(R,V,verbose,ostr);
 }
@@ -141,7 +141,7 @@ static inline char remapChar(char const c)
 	return m[static_cast<int>(c)];
 }
 
-libmaus::consensus::ConsensusComputationBase::ConsensusComputationBase() : mscoring(new ::libmaus::consensus::ScoringMatrix)
+libmaus2::consensus::ConsensusComputationBase::ConsensusComputationBase() : mscoring(new ::libmaus2::consensus::ScoringMatrix)
 {
 	// mscoring.showMatrix();
 }
@@ -166,7 +166,7 @@ static uint64_t getMaxRowLength(seqan::Align< seqan::String<seqan::Dna5> > const
 	return static_cast<uint64_t>(maxviewpos+1);
 }
 
-void libmaus::consensus::ConsensusComputationBase::computeConsensusA(void * vR, void const * vV, int const verbose, void * vostr) const
+void libmaus2::consensus::ConsensusComputationBase::computeConsensusA(void * vR, void const * vV, int const verbose, void * vostr) const
 {
 	std::string * R = reinterpret_cast<std::string *>(vR);
 	std::vector< std::string > const * V = reinterpret_cast< std::vector< std::string > const * >(vV);
@@ -288,11 +288,11 @@ void libmaus::consensus::ConsensusComputationBase::computeConsensusA(void * vR, 
 	*R = consensus;
 }
 
-void libmaus::consensus::ConsensusComputationBase::computeConsensusQ(
+void libmaus2::consensus::ConsensusComputationBase::computeConsensusQ(
 	void * vR, void const * vV, int const verbose, void * vostr) const
 {
 	std::string * R = reinterpret_cast<std::string *>(vR);
-	std::vector< ::libmaus::fastx::FastQElement > const * V = reinterpret_cast< std::vector< ::libmaus::fastx::FastQElement > const * >(vV);
+	std::vector< ::libmaus2::fastx::FastQElement > const * V = reinterpret_cast< std::vector< ::libmaus2::fastx::FastQElement > const * >(vV);
 	std::ostream * ostr = reinterpret_cast<std::ostream *>(vostr);
 
 	ScoringMatrix::base_type const & scoring = dynamic_cast<ScoringMatrix const &>(*mscoring);
@@ -318,11 +318,11 @@ void libmaus::consensus::ConsensusComputationBase::computeConsensusQ(
 	std::vector < double > consprob(6*rowlen);
 
 	// iterate over rows
-	double const nprob = ::libmaus::fastx::Phred::probCorrect(40);
+	double const nprob = ::libmaus2::fastx::Phred::probCorrect(40);
 	for ( uint64_t r = 0; r < length(rows(align)); ++r )
 	{
 		seqan::Gaps< seqan::String<seqan::Dna5>, seqan::ArrayGaps > const & arow = rows(align)[r];
-		::libmaus::fastx::FastQElement const & E = (*V)[r];
+		::libmaus2::fastx::FastQElement const & E = (*V)[r];
 		assert ( length(source(arow)) == E.query.size() );
 
 		if ( ostr && (verbose & 2) )

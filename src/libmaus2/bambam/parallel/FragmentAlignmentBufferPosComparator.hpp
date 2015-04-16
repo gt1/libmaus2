@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERPOSCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERPOSCOMPARATOR_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bambam/BamAlignmentPosComparator.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/bambam/BamAlignmentPosComparator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
@@ -37,7 +37,7 @@ namespace libmaus
 				
 				bool operator()(uint8_t * A, uint8_t * B) const
 				{
-					return libmaus::bambam::BamAlignmentPosComparator::compare(A + sizeof(uint32_t),B + sizeof(uint32_t));
+					return libmaus2::bambam::BamAlignmentPosComparator::compare(A + sizeof(uint32_t),B + sizeof(uint32_t));
 				}
 			};
 		}

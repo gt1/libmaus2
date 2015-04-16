@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,23 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lcs/HashContainer2.hpp>
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/lcs/HashContainer2.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 #include <algorithm>
 
 static std::string loadFirstPattern(std::string const & filename)
 {
-	::libmaus::fastx::FastAReader fa(filename);
-	::libmaus::fastx::FastAReader::pattern_type pattern;
+	::libmaus2::fastx::FastAReader fa(filename);
+	::libmaus2::fastx::FastAReader::pattern_type pattern;
 	if ( fa.getNextPatternUnlocked(pattern) )
 	{
 		return pattern.spattern;
 	}
 	else
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to read first pattern from file " << filename << std::endl;
 		se.finish();
 		throw se;
@@ -43,7 +43,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const a = loadFirstPattern(arginfo.getRestArg<std::string>(0));
 		std::string const b = loadFirstPattern(arginfo.getRestArg<std::string>(1));
 		bool const inva = arginfo.getValue<bool>("inva",false);
@@ -53,13 +53,13 @@ int main(int argc, char * argv[])
 		double const maxsubstfrac = arginfo.getValue<bool>("maxsubstfrac",0.05);
 		#endif
 
-		std::string const A = inva ? ::libmaus::fastx::reverseComplementUnmapped(a) : a;
-		std::string const B = invb ? ::libmaus::fastx::reverseComplementUnmapped(b) : b;
+		std::string const A = inva ? ::libmaus2::fastx::reverseComplementUnmapped(a) : a;
+		std::string const B = invb ? ::libmaus2::fastx::reverseComplementUnmapped(b) : b;
 
-		libmaus::lcs::HashContainer2 HC(4 /* kmer size */,A.size());
+		libmaus2::lcs::HashContainer2 HC(4 /* kmer size */,A.size());
 		HC.process(A.begin());
 
-		::libmaus::lcs::SuffixPrefixResult SPR = HC.match(B.begin(),B.size(),A.begin());
+		::libmaus2::lcs::SuffixPrefixResult SPR = HC.match(B.begin(),B.size(),A.begin());
 
 		HC.printAlignmentLines(
 			std::cerr,

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/ReadGroup.hpp>
+#include <libmaus2/bambam/ReadGroup.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus::bambam::ReadGroup const & RG)
+std::ostream & operator<<(std::ostream & out, libmaus2::bambam::ReadGroup const & RG)
 {
 	out << "ReadGroup(ID=" << RG.ID;
 	
-	for ( ::libmaus::util::unordered_map<std::string,std::string>::type::const_iterator ita = RG.M.begin();
+	for ( ::libmaus2::util::unordered_map<std::string,std::string>::type::const_iterator ita = RG.M.begin();
 		ita != RG.M.end(); ++ita )
 		out << "," << ita->first << "=" << ita->second;
 	

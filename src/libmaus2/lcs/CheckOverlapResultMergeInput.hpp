@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(CHECKOVERLAPRESULTMERGEINPUT_HPP)
 #define CHECKOVERLAPRESULTMERGEINPUT_HPP
 
-#include <libmaus/lcs/CheckOverlapResult.hpp>
-#include <libmaus/lcs/CheckOverlapResultInput.hpp>
-#include <libmaus/lcs/CheckOverlapResultIdHeapComparator.hpp>
+#include <libmaus2/lcs/CheckOverlapResult.hpp>
+#include <libmaus2/lcs/CheckOverlapResultInput.hpp>
+#include <libmaus2/lcs/CheckOverlapResultIdHeapComparator.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
 		struct CheckOverlapResultMergeInput
 		{
-			::libmaus::autoarray::AutoArray< CheckOverlapResultInput::unique_ptr_type > in;
+			::libmaus2::autoarray::AutoArray< CheckOverlapResultInput::unique_ptr_type > in;
 			
 			std::priority_queue <
 				std::pair<uint64_t,CheckOverlapResult::shared_ptr_type>, 

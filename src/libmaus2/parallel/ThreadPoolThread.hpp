@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_PARALLEL_THREADPOOLTHREAD_HPP)
 #define LIBMAUS_PARALLEL_THREADPOOLTHREAD_HPP
 
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/ThreadPoolInterface.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/ThreadPoolInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
-		struct ThreadPoolThread : libmaus::parallel::PosixThread
+		struct ThreadPoolThread : libmaus2::parallel::PosixThread
 		{
 			typedef ThreadPoolThread this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			ThreadPoolInterface & tpi;
 			
@@ -48,7 +48,7 @@ namespace libmaus
 				
 					while ( true )
 					{
-						libmaus::parallel::ThreadWorkPackage * P = tpi.getPackage();
+						libmaus2::parallel::ThreadWorkPackage * P = tpi.getPackage();
 						ThreadWorkPackageDispatcher * disp = tpi.getDispatcher(P);
 						disp->dispatch(P,tpi);
 						tpi.freePackage(P);

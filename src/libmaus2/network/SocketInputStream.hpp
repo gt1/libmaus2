@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_AIO_SOCKETINPUTSTREAM_HPP)
 #define LIBMAUS_AIO_SOCKETINPUTSTREAM_HPP
 
-#include <libmaus/network/SocketInputStreamBuffer.hpp>
+#include <libmaus2/network/SocketInputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct SocketInputStream : public SocketInputStreamBuffer, public std::istream
 		{
 			typedef SocketInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			SocketInputStream(
-				libmaus::network::SocketInputInterface & rbase, 
+				libmaus2::network::SocketInputInterface & rbase, 
 				uint64_t const bufsize, 
 				uint64_t const pushbacksize = 0
 			) 

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,17 +21,17 @@
 #if ! defined(FASTQENTRY_HPP)
 #define FASTQENTRY_HPP
 
-#include <libmaus/fastx/Pattern.hpp>
+#include <libmaus2/fastx/Pattern.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FASTQEntry : public Pattern
 		{
 		        typedef FASTQEntry this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                        typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			std::string plus;
 			std::string quality;

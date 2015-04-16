@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,16 +21,16 @@
 #define GAPDECODER_HPP
 
 #include <fstream>
-#include <libmaus/bitio/BitIOInput.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/huffman/RLDecoder.hpp>
-#include <libmaus/huffman/IndexDecoderDataArray.hpp>
-#include <libmaus/huffman/KvInitResult.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/readElias.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
+#include <libmaus2/huffman/IndexDecoderDataArray.hpp>
+#include <libmaus2/huffman/KvInitResult.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -38,21 +38,21 @@ namespace libmaus
 		struct GapDecoder
 		{
 			typedef GapDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			::libmaus::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
-			::libmaus::huffman::IndexDecoderDataArray const & idda;
+			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
+			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 			
-			::libmaus::util::unique_ptr<std::ifstream>::type istr;
-			typedef ::libmaus::huffman::BitInputBuffer4 sbis_type;
+			::libmaus2::util::unique_ptr<std::ifstream>::type istr;
+			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
 			typedef sbis_type::unique_ptr_type sbis_ptr_type;
 			sbis_ptr_type SBIS;			
 			bool needescape;
 			
-			::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type ECE;
-			::libmaus::huffman::CanonicalEncoder::unique_ptr_type CE;
+			::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type ECE;
+			::libmaus2::huffman::CanonicalEncoder::unique_ptr_type CE;
 			
-			::libmaus::autoarray::AutoArray<uint64_t, ::libmaus::autoarray::alloc_type_c > decodebuf;
+			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_c > decodebuf;
 			uint64_t * pa;
 			uint64_t * pc;
 			uint64_t * pe;
@@ -65,7 +65,7 @@ namespace libmaus
 				if ( fileptr < idda.data.size() )
 				{
 					/* open file */
-					::libmaus::util::unique_ptr<std::ifstream>::type tistr(
+					::libmaus2::util::unique_ptr<std::ifstream>::type tistr(
                                                 new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary));
 					istr = UNIQUE_PTR_MOVE(tistr);
 					
@@ -78,20 +78,20 @@ namespace libmaus
 					/* do we need escape symbols */
 					needescape = SBIS->readBit();
 					/* read number of entries in file */
-					/* n = */ ::libmaus::bitio::readElias2(*SBIS);
+					/* n = */ ::libmaus2::bitio::readElias2(*SBIS);
 					/* deserialise freqs */
-					::libmaus::autoarray::AutoArray< std::pair<int64_t, uint64_t> > dist =
-						::libmaus::huffman::CanonicalEncoder::deserialise(*SBIS);
+					::libmaus2::autoarray::AutoArray< std::pair<int64_t, uint64_t> > dist =
+						::libmaus2::huffman::CanonicalEncoder::deserialise(*SBIS);
 
 					/* instantiate Huffman decoder */
 					if ( needescape )
 					{
-						::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tECE(new ::libmaus::huffman::EscapeCanonicalEncoder(dist));
+						::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type tECE(new ::libmaus2::huffman::EscapeCanonicalEncoder(dist));
 						ECE = UNIQUE_PTR_MOVE(tECE);
 					}
 					else
 					{
-						::libmaus::huffman::CanonicalEncoder::unique_ptr_type tCE(new ::libmaus::huffman::CanonicalEncoder(dist));
+						::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tCE(new ::libmaus2::huffman::CanonicalEncoder(dist));
 						CE = UNIQUE_PTR_MOVE(tCE);
 					}
 					
@@ -126,7 +126,7 @@ namespace libmaus
 					}
 					else
 					{
-						::libmaus::huffman::FileBlockOffset const FBO = idda.findKBlock(offset);
+						::libmaus2::huffman::FileBlockOffset const FBO = idda.findKBlock(offset);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 						offset = FBO.offset;
@@ -179,7 +179,7 @@ namespace libmaus
 					}
 					else
 					{
-						::libmaus::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
+						::libmaus2::huffman::FileBlockOffset const FBO = idda.findKVBlock(kvtarget);
 						fileptr = FBO.fileptr;
 						blockptr = FBO.blockptr;
 					
@@ -233,7 +233,7 @@ namespace libmaus
 			}
 			
 			GapDecoder(
-				::libmaus::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t kvtarget,
 				KvInitResult & result 
 			)
@@ -254,7 +254,7 @@ namespace libmaus
 				KvInitResult & result 
 			)
 			:
-			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 
@@ -270,7 +270,7 @@ namespace libmaus
 				uint64_t * psymoffset = 0
 			)
 			:
-			  Pidda(::libmaus::huffman::IndexDecoderDataArray::construct(rfilenames)),
+			  Pidda(::libmaus2::huffman::IndexDecoderDataArray::construct(rfilenames)),
 			  idda(*Pidda),
 			  /* buffer */
 			  decodebuf(), pa(0), pc(0), pe(0), 
@@ -281,7 +281,7 @@ namespace libmaus
 			}
 
 			GapDecoder(
-				::libmaus::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
 				uint64_t offset = 0, 
 				uint64_t * psymoffset = 0
 			)
@@ -315,7 +315,7 @@ namespace libmaus
 				/* align to byte boundary */
 				SBIS->flush();
 				/* read block size */
-				uint64_t const blocksize = ::libmaus::bitio::readElias2(*SBIS);
+				uint64_t const blocksize = ::libmaus2::bitio::readElias2(*SBIS);
 
 				/* align to byte boundary */
 				SBIS->flush();
@@ -379,9 +379,9 @@ namespace libmaus
 			{
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				assert ( istr.is_open() );
-				::libmaus::bitio::StreamBitInputStream SBIS(istr);	
+				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
 				SBIS.readBit(); // need escape
-				return ::libmaus::bitio::readElias2(SBIS);
+				return ::libmaus2::bitio::readElias2(SBIS);
 			}
 			
 			// get length of vector of files in symbols

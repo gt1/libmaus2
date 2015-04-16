@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(PRODUCEEDGEREQUEST_HPP)
 #define PRODUCEEDGEREQUEST_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 #include <string>
 #include <vector>
 #include <fstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace clustering
 	{
@@ -49,18 +49,18 @@ namespace libmaus
 
 			ProduceEdgesRequest(std::istream & in)
 			: 
-			numreads( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
-			freqfilenames ( ::libmaus::util::StringSerialisation::deserialiseStringVector(in) ),
-			idexfilenames ( ::libmaus::util::StringSerialisation::deserialiseStringVector(in) )
+			numreads( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
+			freqfilenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) ),
+			idexfilenames ( ::libmaus2::util::StringSerialisation::deserialiseStringVector(in) )
 			{
 				
 			}
 				
 			void serialise(std::ostream & out) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,numreads);
-				::libmaus::util::StringSerialisation::serialiseStringVector(out,freqfilenames);
-				::libmaus::util::StringSerialisation::serialiseStringVector(out,idexfilenames);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,numreads);
+				::libmaus2::util::StringSerialisation::serialiseStringVector(out,freqfilenames);
+				::libmaus2::util::StringSerialisation::serialiseStringVector(out,idexfilenames);
 			}
 			
 			void serialise(std::string const & filename) const

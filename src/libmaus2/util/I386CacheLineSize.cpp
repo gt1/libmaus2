@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/I386CacheLineSize.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
 
 #if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
-void libmaus::util::I386CacheLineSize::cpuid(
+void libmaus2::util::I386CacheLineSize::cpuid(
 	uint32_t & eax,
 	uint32_t & ebx,
 	uint32_t & ecx,
@@ -122,14 +122,14 @@ void libmaus::util::I386CacheLineSize::cpuid(
 	}
 }
 
-uint64_t libmaus::util::I386CacheLineSize::xgetbv(uint32_t const index)
+uint64_t libmaus2::util::I386CacheLineSize::xgetbv(uint32_t const index)
 {
 	uint32_t eax, edx;
 	asm volatile(".byte 0x0f,0x01,0xd0" : "=a" (eax), "=d" (edx) : "c" (index)); // xgetbv, older versions of the tools don't know the opcode, thus byte sequence
 	return eax + (static_cast<uint64_t>(edx) << 32);
 }
 
-unsigned int libmaus::util::I386CacheLineSize::getCacheLineSizeSingle(unsigned int const val)
+unsigned int libmaus2::util::I386CacheLineSize::getCacheLineSizeSingle(unsigned int const val)
 {
 	switch ( val )
 	{
@@ -150,7 +150,7 @@ unsigned int libmaus::util::I386CacheLineSize::getCacheLineSizeSingle(unsigned i
 	}
 }
 
-unsigned int libmaus::util::I386CacheLineSize::getCacheLineSize(unsigned int const reg)
+unsigned int libmaus2::util::I386CacheLineSize::getCacheLineSize(unsigned int const reg)
 {
 	unsigned int linesize = 0;
 
@@ -167,7 +167,7 @@ unsigned int libmaus::util::I386CacheLineSize::getCacheLineSize(unsigned int con
 	return linesize;
 }
 
-unsigned int libmaus::util::I386CacheLineSize::getCacheLineSize()
+unsigned int libmaus2::util::I386CacheLineSize::getCacheLineSize()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -230,7 +230,7 @@ unsigned int libmaus::util::I386CacheLineSize::getCacheLineSize()
 /**
  * @return true if CPU supports SSE
  **/
-bool libmaus::util::I386CacheLineSize::hasSSE()
+bool libmaus2::util::I386CacheLineSize::hasSSE()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -254,7 +254,7 @@ bool libmaus::util::I386CacheLineSize::hasSSE()
 /**
  * @return true if CPU supports SSE2
  **/
-bool libmaus::util::I386CacheLineSize::hasSSE2()
+bool libmaus2::util::I386CacheLineSize::hasSSE2()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -278,7 +278,7 @@ bool libmaus::util::I386CacheLineSize::hasSSE2()
 /**
  * @return true if CPU supports SSE3
  **/
-bool libmaus::util::I386CacheLineSize::hasSSE3()
+bool libmaus2::util::I386CacheLineSize::hasSSE3()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -302,7 +302,7 @@ bool libmaus::util::I386CacheLineSize::hasSSE3()
 /**
  * @return true if CPU supports SSSE3
  **/
-bool libmaus::util::I386CacheLineSize::hasSSSE3()
+bool libmaus2::util::I386CacheLineSize::hasSSSE3()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -326,7 +326,7 @@ bool libmaus::util::I386CacheLineSize::hasSSSE3()
 /**
  * @return true if CPU supports SSE4.1
  **/
-bool libmaus::util::I386CacheLineSize::hasSSE41()
+bool libmaus2::util::I386CacheLineSize::hasSSE41()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -350,7 +350,7 @@ bool libmaus::util::I386CacheLineSize::hasSSE41()
 /**
  * @return true if CPU supports SSE4.2
  **/
-bool libmaus::util::I386CacheLineSize::hasSSE42()
+bool libmaus2::util::I386CacheLineSize::hasSSE42()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -374,7 +374,7 @@ bool libmaus::util::I386CacheLineSize::hasSSE42()
 /**
  * @return true if CPU supports popcnt
  **/
-bool libmaus::util::I386CacheLineSize::hasPopCnt()
+bool libmaus2::util::I386CacheLineSize::hasPopCnt()
 {
 	uint32_t eax, ebx, ecx, edx;
 
@@ -398,7 +398,7 @@ bool libmaus::util::I386CacheLineSize::hasPopCnt()
 /**
  * @return true if CPU supports avx
  **/
-bool libmaus::util::I386CacheLineSize::hasAVX()
+bool libmaus2::util::I386CacheLineSize::hasAVX()
 {
 	uint32_t eax, ebx, ecx, edx;
 

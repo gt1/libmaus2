@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(CHOOSECACHE_HPP)
 #define CHOOSECACHE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -33,11 +33,11 @@ namespace libmaus
 		struct ChooseCache
 		{
 			typedef ChooseCache this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			unsigned int const n;
-			::libmaus::autoarray::AutoArray<unsigned int> C;
+			::libmaus2::autoarray::AutoArray<unsigned int> C;
 
 			static unsigned int o(unsigned int const i) { return (i*(i+1))>>1; }
 			static unsigned int s(unsigned int const i) { return o(i+1); }

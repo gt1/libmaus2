@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,12 +21,12 @@
 #if ! defined(SIMPLEBLOOMFILTER_HPP)
 #define SIMPLEBLOOMFILTER_HPP
 
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/math/ilog.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/math/ilog.hpp>
 #include <cmath>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -36,7 +36,7 @@ namespace libmaus
 			static uint64_t const lockblocksize = _lockblocksize;
 
 			uint64_t const vectorsize;
-			::libmaus::autoarray::AutoArray< uint64_t > lockvector;
+			::libmaus2::autoarray::AutoArray< uint64_t > lockvector;
 			
 			SimpleBloomFilterLockBase(uint64_t const rvectorsize)
 			: vectorsize(rvectorsize), lockvector((vectorsize+lockblocksize-1)/lockblocksize)
@@ -61,7 +61,7 @@ namespace libmaus
 					locked = __sync_bool_compare_and_swap(word,v,v | mask);
 				}			
 				#else
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleBloomFilter::lockWord() called, but binary does not support atomic/sync operations." << std::endl;
 				se.finish();
 				throw se;
@@ -78,7 +78,7 @@ namespace libmaus
 				volatile uint64_t * const word = lockvector.begin()+wordoff;
 				__sync_fetch_and_and(word,invmask);
 				#else
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleBloomFilter::lockWord() called, but binary does not support atomic/sync operations." << std::endl;
 				se.finish();
 				throw se;				
@@ -98,8 +98,8 @@ namespace libmaus
 		struct SimpleBloomFilter
 		{
 			typedef SimpleBloomFilter this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static uint64_t const baseseed = 0x9e3779b97f4a7c13ULL;
 			unsigned int const numvectors;
@@ -107,7 +107,7 @@ namespace libmaus
 			uint64_t const vectorsize;
 			uint64_t const hashmask;
 						
-			::libmaus::autoarray::AutoArray< ::libmaus::bitio::BitVector::unique_ptr_type > vectors;
+			::libmaus2::autoarray::AutoArray< ::libmaus2::bitio::BitVector::unique_ptr_type > vectors;
 
 			SimpleBloomFilterLockBase<64> lockbase;
 			
@@ -117,7 +117,7 @@ namespace libmaus
 			{
 				for ( unsigned int i = 0; i < numvectors; ++i )
 				{
-					::libmaus::bitio::BitVector::unique_ptr_type tvectorsi(new ::libmaus::bitio::BitVector(vectorsize));
+					::libmaus2::bitio::BitVector::unique_ptr_type tvectorsi(new ::libmaus2::bitio::BitVector(vectorsize));
 					vectors[i] = UNIQUE_PTR_MOVE(tvectorsi);
 				}
 			}
@@ -125,7 +125,7 @@ namespace libmaus
 			
 			uint64_t hash(uint64_t const v, unsigned int const i) const
 			{
-				return libmaus::hashing::EvaHash::hash642(&v,1,baseseed+i) & hashmask;
+				return libmaus2::hashing::EvaHash::hash642(&v,1,baseseed+i) & hashmask;
 			}
 			
 			bool contains(uint64_t const v) const
@@ -213,7 +213,7 @@ namespace libmaus
 				double const l2 = ::std::log(2.0);
 				double const optm = -(static_cast<double>(n) * ::std::log(p)) / (l2*l2);
 				uint64_t const roundm = std::floor(optm+0.5);
-				uint64_t const nexttwopow = ::libmaus::math::nextTwoPow(roundm);
+				uint64_t const nexttwopow = ::libmaus2::math::nextTwoPow(roundm);
 				return std::max(nexttwopow,static_cast<uint64_t>(1u));
 			}
 			
@@ -221,7 +221,7 @@ namespace libmaus
 			{
 				uint64_t const optm = optimalM(n,p);
 				unsigned int const optk = optimalK(optm,n);
-				unsigned int const logoptm = ::libmaus::math::ilog(optm);
+				unsigned int const logoptm = ::libmaus2::math::ilog(optm);
 				// std::cerr << "optm=" << optm << " logoptm=" << logoptm << " optk=" << optk << std::endl;
 				unique_ptr_type ptr(new this_type(optk,logoptm));
 				return UNIQUE_PTR_MOVE(ptr);

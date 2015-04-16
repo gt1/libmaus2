@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSMERGEWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PAIRREADENDSMERGEWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/AddDuplicationMetricsInterface.hpp>
-#include <libmaus/bambam/ReadEndsBlockIndexSet.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/AddDuplicationMetricsInterface.hpp>
+#include <libmaus2/bambam/ReadEndsBlockIndexSet.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct PairReadEndsMergeWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct PairReadEndsMergeWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef PairReadEndsMergeWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				PairReadEndsMergeWorkPackageReturnInterface & packageReturnInterface;
 				PairReadEndsMergeWorkPackageFinishedInterface & mergeFinishedInterface;
@@ -45,25 +45,25 @@ namespace libmaus
 					PairReadEndsMergeWorkPackageReturnInterface & rpackageReturnInterface,
 					PairReadEndsMergeWorkPackageFinishedInterface & rmergeFinishedInterface,
 					AddDuplicationMetricsInterface & raddDuplicationMetricsInterface
-				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
+				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(), 
 				    packageReturnInterface(rpackageReturnInterface), mergeFinishedInterface(rmergeFinishedInterface),
 				    addDuplicationMetricsInterface(raddDuplicationMetricsInterface)
 				{
 				
 				}
 				virtual ~PairReadEndsMergeWorkPackageDispatcher() {}
-				virtual void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				virtual void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					PairReadEndsMergeWorkPackage * BP = dynamic_cast<PairReadEndsMergeWorkPackage *>(P);
 					assert ( BP );
 
 					ReadEndsBlockIndexSet pairindexset(*(BP->REQ.MI));
-					libmaus::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
+					libmaus2::bambam::DupSetCallbackSharedVector dvec(*(BP->REQ.dupbitvec));
 							
 					pairindexset.merge(
 						BP->REQ.SMI,
-						libmaus::bambam::DupMarkBase::isDupPair,
-						libmaus::bambam::DupMarkBase::markDuplicatePairs,
+						libmaus2::bambam::DupMarkBase::isDupPair,
+						libmaus2::bambam::DupMarkBase::markDuplicatePairs,
 						dvec);
 
 					addDuplicationMetricsInterface.addDuplicationMetrics(dvec.metrics);

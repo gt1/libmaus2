@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP)
 #define LIBMAUS_SUFFIXTREE_COMPRESSEDSUFFIXTREE_HPP
 
-#include <libmaus/lf/ImpCompactHuffmanWaveletLF.hpp>
-#include <libmaus/fm/SampledSA.hpp>
-#include <libmaus/fm/SampledISA.hpp>
-#include <libmaus/lcp/LCP.hpp>
-#include <libmaus/rmq/RMMTree.hpp>
+#include <libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp>
+#include <libmaus2/fm/SampledSA.hpp>
+#include <libmaus2/fm/SampledISA.hpp>
+#include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/rmq/RMMTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixtree
 	{
 		struct CompressedSuffixTree
 		{
-			typedef libmaus::lf::ImpCompactHuffmanWaveletLF lf_type;
+			typedef libmaus2::lf::ImpCompactHuffmanWaveletLF lf_type;
 			typedef lf_type::unique_ptr_type lf_ptr_type;
-			typedef libmaus::fm::SimpleSampledSA<lf_type> ssa_type;
+			typedef libmaus2::fm::SimpleSampledSA<lf_type> ssa_type;
 			typedef ssa_type::unique_ptr_type ssa_ptr_type;
-			typedef libmaus::fm::SampledISA<lf_type> sisa_type;
+			typedef libmaus2::fm::SampledISA<lf_type> sisa_type;
 			typedef sisa_type::unique_ptr_type sisa_ptr_type;
-			typedef libmaus::lcp::SuccinctLCP<lf_type,ssa_type,sisa_type> lcp_type;
+			typedef libmaus2::lcp::SuccinctLCP<lf_type,ssa_type,sisa_type> lcp_type;
 			typedef lcp_type::unique_ptr_type lcp_ptr_type;
-			typedef libmaus::rmq::RMMTree<lcp_type,3> rmm_tree_type;
+			typedef libmaus2::rmq::RMMTree<lcp_type,3> rmm_tree_type;
 			typedef rmm_tree_type::unique_ptr_type rmm_tree_ptr_type;
 
 			// compressed LF/phi
@@ -201,7 +201,7 @@ namespace libmaus
 				std::vector < Node > const & children;
 				uint64_t const sl;
 				
-				typedef libmaus::util::ConstIterator<this_type,int64_t> const_iterator;
+				typedef libmaus2::util::ConstIterator<this_type,int64_t> const_iterator;
 				
 				const_iterator begin() const
 				{
@@ -336,5 +336,5 @@ namespace libmaus
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::suffixtree::CompressedSuffixTree::Node const & node);
+std::ostream & operator<<(std::ostream & out, libmaus2::suffixtree::CompressedSuffixTree::Node const & node);
 #endif

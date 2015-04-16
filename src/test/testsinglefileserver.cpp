@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,20 +16,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/network/SingleFileServer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/network/SingleFileServer.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.restargs.at(0);
 		int const port = arginfo.getValue<int>("port",4444);
 		uint64_t const backlog = arginfo.getValue<int>("backlog",128);
 		std::string const hostname = arginfo.getUnparsedValue("hostname","localhost");
 
-		libmaus::network::SingleFileServer server(fn,hostname,port,backlog);
+		libmaus2::network::SingleFileServer server(fn,hostname,port,backlog);
 		server.exec();
 		std::cout << hostname << '\t' << server.port << '\t' << server.getPid() << std::endl;
 	}

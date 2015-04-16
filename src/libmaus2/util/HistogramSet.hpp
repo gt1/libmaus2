@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(HISTOGRAMSET_HPP)
 #define HISTOGRAMSET_HPP
 
-#include <libmaus/util/Histogram.hpp>
+#include <libmaus2/util/Histogram.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -34,10 +34,10 @@ namespace libmaus
 			//! this type
 			typedef HistogramSet this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			//! histograms array
-			::libmaus::autoarray::AutoArray < Histogram::unique_ptr_type > H;
+			::libmaus2::autoarray::AutoArray < Histogram::unique_ptr_type > H;
 			
 			/**
 			 * constructor

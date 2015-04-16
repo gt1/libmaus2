@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,23 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/md5.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/digest/md5.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 	
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			::libmaus::autoarray::AutoArray<uint8_t> const A = libmaus::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
+			::libmaus2::autoarray::AutoArray<uint8_t> const A = libmaus2::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
 			std::string const input(A.begin(),A.end());
 			std::string output;
-			libmaus::util::MD5::md5(input,output);
-			std::cout << arginfo.restargs[i] << "\t" << output << "\t" << std::hex << libmaus::util::MD5::md5(A.begin(), A.size()) << std::dec << std::endl;
+			libmaus2::util::MD5::md5(input,output);
+			std::cout << arginfo.restargs[i] << "\t" << output << "\t" << std::hex << libmaus2::util::MD5::md5(A.begin(), A.size()) << std::dec << std::endl;
 		}
 	}
 	catch(std::exception const & ex)

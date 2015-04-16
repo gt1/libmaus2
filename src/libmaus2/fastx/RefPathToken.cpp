@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/RefPathToken.hpp>
+#include <libmaus2/fastx/RefPathToken.hpp>
 
-std::ostream & libmaus::fastx::operator<<(std::ostream & out, libmaus::fastx::RefPathToken const & O)
+std::ostream & libmaus2::fastx::operator<<(std::ostream & out, libmaus2::fastx::RefPathToken const & O)
 {
-	if ( O.token == libmaus::fastx::RefPathToken::path_token_literal )
+	if ( O.token == libmaus2::fastx::RefPathToken::path_token_literal )
 	{
 		return out << "RefPathToken(literal," << O.s << ")";
 	}

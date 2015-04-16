@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,12 +21,12 @@
 #if ! defined(SYNCHRONOUSFASTREADERBASE_HPP)
 #define SYNCHRONOUSFASTREADERBASE_HPP
 
-#include <libmaus/fastx/CharBuffer.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus2/fastx/CharBuffer.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <cerrno>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 			//! this type
 			typedef SynchronousFastReaderBase this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			//! input file names
@@ -47,7 +47,7 @@ namespace libmaus
 			//! input type	
 			typedef std::ifstream input_type;
 			//! input pointer type
-			typedef ::libmaus::util::unique_ptr<input_type>::type input_type_ptr;
+			typedef ::libmaus2::util::unique_ptr<input_type>::type input_type_ptr;
 			//! file pointer first type
 			typedef input_type_ptr fpt_first_type;
 			//! file pointer second type
@@ -55,14 +55,14 @@ namespace libmaus
 			//! file pointer type
 			typedef std::pair < fpt_first_type, fpt_second_type > file_pair_type;
 			//! pointer to file pointer type
-			typedef ::libmaus::util::unique_ptr<file_pair_type>::type file_pair_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<file_pair_type>::type file_pair_ptr_type;
 			//! offset in file type
 			typedef std::pair< fpt_second_type, uint64_t > file_offset_type;
 
 			//! current file pointer
 			file_pair_ptr_type fpt;
 			//! input buffer
-			::libmaus::autoarray::AutoArray<uint8_t> B;
+			::libmaus2::autoarray::AutoArray<uint8_t> B;
 			//! input buffer start pointer
 			uint8_t * const pa;
 			//! input buffer current pointer
@@ -73,7 +73,7 @@ namespace libmaus
 			uint64_t c;
 			
 			//! character buffer
-			::libmaus::fastx::CharBuffer cb;
+			::libmaus2::fastx::CharBuffer cb;
 			
 			/**
 			 * get file pointer object for numerical offset in a list of files
@@ -89,7 +89,7 @@ namespace libmaus
 				std::vector<std::string>::const_iterator ita = filenames.begin();
 				
 				uint64_t l;
-				while ( ita != filenames.end() && offset >= (l=::libmaus::util::GetFileSize::getFileSize(*ita)) )
+				while ( ita != filenames.end() && offset >= (l=::libmaus2::util::GetFileSize::getFileSize(*ita)) )
 					++ita, offset -= l;
 			
 				return file_offset_type(ita,offset);
@@ -109,7 +109,7 @@ namespace libmaus
 				std::vector<std::string>::const_iterator ita = filenames.begin();
 				
 				uint64_t l;
-				while ( ita != filenames.end() && offset >= (l=::libmaus::util::GetFileSize::getFileSize(*ita)) )
+				while ( ita != filenames.end() && offset >= (l=::libmaus2::util::GetFileSize::getFileSize(*ita)) )
 					++ita, offset -= l;
 				
 				if ( ita != filenames.end() )
@@ -118,7 +118,7 @@ namespace libmaus
 					
 					if ( !itp->is_open() )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to open file " << *ita << ": " << strerror(errno);
 						se.finish();
 						throw se;
@@ -159,8 +159,8 @@ namespace libmaus
 				int const v = getNextCharacter();
 				if ( v < 0 )
 				{
-					::libmaus::exception::LibMausException ex;
-					ex.getStream() << "Failed to read number in ::libmaus::aio::SynchronousFastReaderBase::readNumber1().";
+					::libmaus2::exception::LibMausException ex;
+					ex.getStream() << "Failed to read number in ::libmaus2::aio::SynchronousFastReaderBase::readNumber1().";
 					ex.finish();
 					throw ex;
 				}

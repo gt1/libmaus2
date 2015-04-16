@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(TRIPLEEDGEBUFFER_HPP)
 #define TRIPLEEDGEBUFFER_HPP
 
-#include <libmaus/graph/TripleEdgeOperations.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
+#include <libmaus2/graph/TripleEdgeOperations.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <vector>
 #include <string>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -37,12 +37,12 @@ namespace libmaus
 		struct TripleEdgeBuffer
 		{
 			std::vector < std::vector < std::string > > filenames;
-			::libmaus::parallel::OMPLock filenamelock;
+			::libmaus2::parallel::OMPLock filenamelock;
 			// std::string const filenameprefix;
-			::libmaus::util::TempFileNameGenerator & tmpgen;
+			::libmaus2::util::TempFileNameGenerator & tmpgen;
 			uint64_t nextid;
 
-			TripleEdgeBuffer(::libmaus::util::TempFileNameGenerator & rtmpgen)
+			TripleEdgeBuffer(::libmaus2::util::TempFileNameGenerator & rtmpgen)
 			: tmpgen(rtmpgen), nextid(0)
 			{
 

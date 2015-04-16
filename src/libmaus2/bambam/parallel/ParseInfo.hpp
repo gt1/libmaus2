@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PARSEINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PARSEINFO_HPP
 
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
-#include <libmaus/bambam/BamHeaderParserState.hpp>
-#include <libmaus/bambam/parallel/PushBackSpace.hpp>
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp>
+#include <libmaus2/bambam/BamHeaderLowMem.hpp>
+#include <libmaus2/bambam/BamHeaderParserState.hpp>
+#include <libmaus2/bambam/parallel/PushBackSpace.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
@@ -36,16 +36,16 @@ namespace libmaus
 			struct ParseInfo
 			{
 				typedef ParseInfo this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				PushBackSpace BPDPBS;
 				
-				libmaus::bambam::BamHeaderParserState BHPS;
+				libmaus2::bambam::BamHeaderParserState BHPS;
 				bool volatile headerComplete;
-				libmaus::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
+				libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
 	
-				libmaus::autoarray::AutoArray<char> concatBuffer;
+				libmaus2::autoarray::AutoArray<char> concatBuffer;
 				unsigned int volatile concatBufferFill;
 				
 				enum parser_state_type {
@@ -75,13 +75,13 @@ namespace libmaus
 				
 				void setHeaderFromText(char const * c, size_t const s)
 				{
-					libmaus::bambam::BamHeaderLowMem::unique_ptr_type Theader(libmaus::bambam::BamHeaderLowMem::constructFromText(c,c+s));
+					libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Theader(libmaus2::bambam::BamHeaderLowMem::constructFromText(c,c+s));
 					Pheader = UNIQUE_PTR_MOVE(Theader);
 					headerComplete = true;
 					
 					// produce BAM header
 					std::string const text(c,c+s);
-					libmaus::bambam::BamHeader header(text);
+					libmaus2::bambam::BamHeader header(text);
 					std::ostringstream ostr;
 					header.serialise(ostr);
 					
@@ -132,9 +132,9 @@ namespace libmaus
 					return BPDPBS.empty();
 				}
 				
-				libmaus::bambam::BamHeader::unique_ptr_type getHeader()
+				libmaus2::bambam::BamHeader::unique_ptr_type getHeader()
 				{
-					libmaus::bambam::BamHeader::unique_ptr_type ptr(new libmaus::bambam::BamHeader(BHPS));
+					libmaus2::bambam::BamHeader::unique_ptr_type ptr(new libmaus2::bambam::BamHeader(BHPS));
 					return UNIQUE_PTR_MOVE(ptr);
 				}
 	
@@ -152,7 +152,7 @@ namespace libmaus
 				{
 					if ( ! headerComplete )
 					{
-						libmaus::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(block.P));
+						libmaus2::util::GetObject<uint8_t const *> G(reinterpret_cast<uint8_t const *>(block.P));
 						std::pair<bool,uint64_t> Q = BHPS.parseHeader(G,block.uncompdatasize);
 						
 						block.P += Q.second;
@@ -161,8 +161,8 @@ namespace libmaus
 						if ( Q.first )
 						{
 							headerComplete = true;
-							libmaus::bambam::BamHeaderLowMem::unique_ptr_type Theader(
-								libmaus::bambam::BamHeaderLowMem::constructFromText(
+							libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Theader(
+								libmaus2::bambam::BamHeaderLowMem::constructFromText(
 									BHPS.text.begin(),
 									BHPS.text.begin()+BHPS.l_text
 								)
@@ -177,7 +177,7 @@ namespace libmaus
 							// if this is the last block then this is an unexpected EOF within the header
 							if ( block.final )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "ParseInfo::parseBlock(): Unexpected EOF in BAM header." << std::endl;
 								lme.finish();
 								throw lme;
@@ -190,7 +190,7 @@ namespace libmaus
 					// check put back buffer
 					while ( ! BPDPBS.empty() )
 					{
-						libmaus::bambam::BamAlignment * talgn = BPDPBS.top();
+						libmaus2::bambam::BamAlignment * talgn = BPDPBS.top();
 						
 						if ( ! (algnbuf.put(reinterpret_cast<char const *>(talgn->D.begin()),talgn->blocksize)) )
 							// block needs to be processed again
@@ -323,7 +323,7 @@ namespace libmaus
 						)
 					)
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "ParseInfo::parseBlock(): Unexpected EOF in BAM data, parser_state=";
 
 						switch ( parser_state )

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_UTIL_PUSHBUFFER_HPP)
 #define LIBMAUS_UTIL_PUSHBUFFER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 			typedef _value_type value_type;
 			typedef PushBuffer<value_type> this_type;
 
-			libmaus::autoarray::AutoArray<value_type> A;
+			libmaus2::autoarray::AutoArray<value_type> A;
 			uint64_t f;
 			
 			PushBuffer() : A(), f(0) {}
@@ -53,7 +53,7 @@ namespace libmaus
 				if ( f == A.size() )
 				{
 					uint64_t const newsize = A.size() ? 2*A.size() : 1;
-					libmaus::autoarray::AutoArray<value_type> B(newsize,false);
+					libmaus2::autoarray::AutoArray<value_type> B(newsize,false);
 					std::copy(A.begin(),A.end(),B.begin());
 					A = B;
 				}
@@ -66,7 +66,7 @@ namespace libmaus
 				if ( f == A.size() )
 				{
 					uint64_t const newsize = A.size() ? 2*A.size() : 1;
-					libmaus::autoarray::AutoArray<value_type> B(newsize,false);
+					libmaus2::autoarray::AutoArray<value_type> B(newsize,false);
 					std::copy(A.begin(),A.end(),B.begin());
 					A = B;
 				}

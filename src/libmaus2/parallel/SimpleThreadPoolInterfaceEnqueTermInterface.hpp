@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACEENQUETERMINTERFACE_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
@@ -34,7 +34,7 @@ namespace libmaus
 
 			virtual void addLogString(std::string const & s) = 0;
 			virtual void addLogStringWithThreadId(std::string const & s) = 0;
-			virtual libmaus::parallel::PosixSpinLock & getGlobalLock() = 0;
+			virtual libmaus2::parallel::PosixSpinLock & getGlobalLock() = 0;
 		};
 	}
 }

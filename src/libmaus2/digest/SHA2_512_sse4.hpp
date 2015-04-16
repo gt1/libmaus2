@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_DIGEST_SHA2_512_SSE4_HPP)
 #define LIBMAUS_DIGEST_SHA2_512_SSE4_HPP
 
-#include <libmaus/digest/DigestBase.hpp>
-#include <libmaus/util/I386CacheLineSize.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/digest/DigestBase.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 	
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{
@@ -34,11 +34,11 @@ namespace libmaus
 			typedef SHA2_512_sse4 this_type;
 			
 			// temp block
-			libmaus::autoarray::AutoArray<uint8_t,libmaus::autoarray::alloc_type_memalign_cacheline> block;
+			libmaus2::autoarray::AutoArray<uint8_t,libmaus2::autoarray::alloc_type_memalign_cacheline> block;
 			// digest (state)
-			libmaus::autoarray::AutoArray<uint64_t,libmaus::autoarray::alloc_type_memalign_cacheline> digestw;
+			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> digestw;
 			// init data
-			libmaus::autoarray::AutoArray<uint64_t,libmaus::autoarray::alloc_type_memalign_cacheline> digestinit;
+			libmaus2::autoarray::AutoArray<uint64_t,libmaus2::autoarray::alloc_type_memalign_cacheline> digestinit;
 			// index in current block
 			uint64_t index;
 			// number of completed blocks

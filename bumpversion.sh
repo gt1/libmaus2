@@ -57,12 +57,12 @@ pushd debian
 dch --distribution unstable -v ${FIRST}.${SECOND}.${NEXTTHIRD}-1 "New upstream version ${FIRST}.${SECOND}.${NEXTTHIRD}"
 dch --release ""
 popd
-sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus0.install
-sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus0.shlibs
+sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus2.install
+sed -i  -e "s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/${FIRST}.${SECOND}.${NEXTTHIRD}/g" debian/libmaus2.shlibs
 
 git add debian/changelog
-git add debian/libmaus0.install
-git add debian/libmaus0.shlibs
+git add debian/libmaus2.install
+git add debian/libmaus2.shlibs
 
 git commit -F "${COMMITFILE}"
 
@@ -71,8 +71,8 @@ git push
 # back to experimental branch
 git checkout experimental
 
-TAG=libmaus_experimental_${FIRST}_${SECOND}_${NEXTTHIRD}
-git tag -a ${TAG} -m "libmaus experimental version ${FIRST}_${SECOND}_${NEXTTHIRD}"
+TAG=libmaus2_experimental_${FIRST}_${SECOND}_${NEXTTHIRD}
+git tag -a ${TAG} -m "libmaus2 experimental version ${FIRST}_${SECOND}_${NEXTTHIRD}"
 git push origin ${TAG}
 
 exit 0

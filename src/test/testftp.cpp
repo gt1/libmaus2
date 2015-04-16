@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,30 +16,30 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/network/FtpSocket.hpp>
-#include <libmaus/lz/BufferedGzipStream.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/network/FtpSocket.hpp>
+#include <libmaus2/lz/BufferedGzipStream.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const url = arginfo.getRestArg<std::string>(0);
 		int const gz = arginfo.getValue<int>("gz",0);
-		libmaus::network::FtpSocket ftpsock(url,0,true);
+		libmaus2::network::FtpSocket ftpsock(url,0,true);
 		std::istream & ftpstream = ftpsock.getStream();
 		std::istream * in = &ftpstream;
 		
-		libmaus::lz::BufferedGzipStream::unique_ptr_type gzptr;
+		libmaus2::lz::BufferedGzipStream::unique_ptr_type gzptr;
 		if ( gz )
 		{
-			libmaus::lz::BufferedGzipStream::unique_ptr_type tptr(new libmaus::lz::BufferedGzipStream(ftpstream));
+			libmaus2::lz::BufferedGzipStream::unique_ptr_type tptr(new libmaus2::lz::BufferedGzipStream(ftpstream));
 			gzptr = UNIQUE_PTR_MOVE(tptr);
 			in = gzptr.get();
 		}
 		
-		libmaus::autoarray::AutoArray<char> A(1024*1024,false);
+		libmaus2::autoarray::AutoArray<char> A(1024*1024,false);
 		uint64_t r = 0;
 		while ( *in )
 		{

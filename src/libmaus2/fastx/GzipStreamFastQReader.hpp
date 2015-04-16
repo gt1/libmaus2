@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,34 +20,34 @@
 #if ! defined(LIBMAUS_FASTX_GZIPSTREAMFASTQREADER_HPP)
 #define LIBMAUS_FASTX_GZIPSTREAMFASTQREADER_HPP
 
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/fastx/StreamFastQReader.hpp>
-#include <libmaus/lz/BufferedGzipStreamWrapper.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/fastx/StreamFastQReader.hpp>
+#include <libmaus2/lz/BufferedGzipStreamWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-                struct GzipStreamFastQReader : public libmaus::lz::BufferedGzipStreamWrapper, public StreamFastQReaderWrapper
+                struct GzipStreamFastQReader : public libmaus2::lz::BufferedGzipStreamWrapper, public StreamFastQReaderWrapper
                 {
                 	typedef GzipStreamFastQReader this_type;
-                	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 
                 	GzipStreamFastQReader(std::istream & in)
-                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
+                	: libmaus2::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object)
                 	{}
 
-                	GzipStreamFastQReader(std::istream & in, libmaus::fastx::FastInterval const & FI)
-                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object,FI)
+                	GzipStreamFastQReader(std::istream & in, libmaus2::fastx::FastInterval const & FI)
+                	: libmaus2::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(BufferedGzipStreamWrapper::object,FI)
                 	{
                 		disableByteCountChecking();
                 	}
 
                 	GzipStreamFastQReader(std::istream & in, int const qualityOffset)
-                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus::lz::BufferedGzipStreamWrapper::object,qualityOffset)
+                	: libmaus2::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus2::lz::BufferedGzipStreamWrapper::object,qualityOffset)
                 	{}
-                	GzipStreamFastQReader(std::istream & in, int const qualityOffset, libmaus::fastx::FastInterval const & FI)
-                	: libmaus::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus::lz::BufferedGzipStreamWrapper::object,qualityOffset,FI)
+                	GzipStreamFastQReader(std::istream & in, int const qualityOffset, libmaus2::fastx::FastInterval const & FI)
+                	: libmaus2::lz::BufferedGzipStreamWrapper(in), StreamFastQReaderWrapper(libmaus2::lz::BufferedGzipStreamWrapper::object,qualityOffset,FI)
                 	{
                 		disableByteCountChecking();                	
                 	}

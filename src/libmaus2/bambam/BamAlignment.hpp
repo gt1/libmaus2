@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENT_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENT_HPP
 
-#include <libmaus/bambam/BamAlignmentFixedSizeData.hpp>
-#include <libmaus/bambam/AlignmentValidity.hpp>
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/fastx/FASTQEntry.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/bambam/BamAlignmentFixedSizeData.hpp>
+#include <libmaus2/bambam/AlignmentValidity.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/bambam/BamAlignmentEncoderBase.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/fastx/FASTQEntry.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -41,14 +41,14 @@ namespace libmaus
 			//! this type
 			typedef BamAlignment this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			//! memory allocation type of data block
-			static const ::libmaus::autoarray::alloc_type D_array_alloc_type = ::libmaus::autoarray::alloc_type_memalign_cacheline;
+			static const ::libmaus2::autoarray::alloc_type D_array_alloc_type = ::libmaus2::autoarray::alloc_type_memalign_cacheline;
 			//! D array type
-			typedef ::libmaus::autoarray::AutoArray<uint8_t,D_array_alloc_type> D_array_type;
+			typedef ::libmaus2::autoarray::AutoArray<uint8_t,D_array_alloc_type> D_array_type;
 		
 			//! data array
 			D_array_type D;
@@ -128,14 +128,14 @@ namespace libmaus
 			template<typename input_type>
 			BamAlignment(input_type & in)
 			{
-				blocksize = ::libmaus::bambam::DecoderBase::getLEInteger(in,4);
+				blocksize = ::libmaus2::bambam::DecoderBase::getLEInteger(in,4);
 				// std::cerr << "Block size " << blocksize << std::endl;
 				D = D_array_type(blocksize,false);
 				in.read(reinterpret_cast<char *>(D.begin()),blocksize);
 				
 				if ( static_cast<int64_t>(in.gcount()) != static_cast<int64_t>(blocksize) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to read block of size " << blocksize << std::endl;
 					se.finish();
 					throw se;
@@ -149,10 +149,10 @@ namespace libmaus
 			 **/
 			void checkAlignment() const
 			{
-				libmaus_bambam_alignment_validity const validity = valid();	
-				if ( validity != libmaus_bambam_alignment_validity_ok )
+				libmaus2_bambam_alignment_validity const validity = valid();	
+				if ( validity != libmaus2_bambam_alignment_validity_ok )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid alignment: " << validity << std::endl;
 					se.finish();
 					throw se;					
@@ -164,12 +164,12 @@ namespace libmaus
 			 *
 			 * @param header SAM/BAM header
 			 **/
-			void checkAlignment(libmaus::bambam::BamHeader const & header) const
+			void checkAlignment(libmaus2::bambam::BamHeader const & header) const
 			{
-				libmaus_bambam_alignment_validity const validity = valid(header);	
-				if ( validity != libmaus_bambam_alignment_validity_ok )
+				libmaus2_bambam_alignment_validity const validity = valid(header);	
+				if ( validity != libmaus2_bambam_alignment_validity_ok )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid alignment: " << validity << std::endl;
 					se.finish();
 					throw se;					
@@ -181,9 +181,9 @@ namespace libmaus
 			 *
 			 * @return alignment validty code
 			 **/
-			libmaus_bambam_alignment_validity valid() const
+			libmaus2_bambam_alignment_validity valid() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::valid(D.begin(),blocksize);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::valid(D.begin(),blocksize);
 			}
 
 			/**
@@ -193,22 +193,22 @@ namespace libmaus
 			 * @return alignment validty code
 			 **/
 			template<typename header_type>
-			libmaus_bambam_alignment_validity valid(header_type const & header) const
+			libmaus2_bambam_alignment_validity valid(header_type const & header) const
 			{
-				libmaus_bambam_alignment_validity validity = valid();
+				libmaus2_bambam_alignment_validity validity = valid();
 				
-				if ( validity != libmaus_bambam_alignment_validity_ok )
+				if ( validity != libmaus2_bambam_alignment_validity_ok )
 					return validity;
 				
 				int32_t const refseq = getRefID();
 				if ( !((refseq == -1) || refseq < static_cast<int64_t>(header.getNumRef())) )
-					return libmaus_bambam_alignment_validity_invalid_refseq;
+					return libmaus2_bambam_alignment_validity_invalid_refseq;
 
 				int32_t const nextrefseq = getNextRefID();
 				if ( !((nextrefseq == -1) || nextrefseq < static_cast<int64_t>(header.getNumRef())) )
-					return libmaus_bambam_alignment_validity_invalid_next_refseq;
+					return libmaus2_bambam_alignment_validity_invalid_next_refseq;
 				
-				return libmaus_bambam_alignment_validity_ok;
+				return libmaus2_bambam_alignment_validity_ok;
 			}
 
 			/**
@@ -216,7 +216,7 @@ namespace libmaus
 			 **/
 			uint64_t getNumPreCigarBytes() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumPreCigarBytes(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNumPreCigarBytes(D.begin());
 			}
 			
 			/**
@@ -224,7 +224,7 @@ namespace libmaus
 			 **/
 			uint64_t getNumCigarBytes() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumCigarBytes(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNumCigarBytes(D.begin());
 			}
 
 			/**
@@ -240,7 +240,7 @@ namespace libmaus
 			 **/
 			uint64_t getNumPreNameBytes() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumPreNameBytes(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNumPreNameBytes(D.begin());
 			}
 
 			/**
@@ -248,7 +248,7 @@ namespace libmaus
 			 **/
 			uint64_t getNumNameBytes() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumNameBytes(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNumNameBytes(D.begin());
 			}
 
 			/**
@@ -266,9 +266,9 @@ namespace libmaus
 			 * @param A array for storing vector
 			 * @return number of cigar operations
 			 **/
-			uint32_t getCigarOperations(libmaus::autoarray::AutoArray<cigar_operation> & cigop) const
+			uint32_t getCigarOperations(libmaus2::autoarray::AutoArray<cigar_operation> & cigop) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarOperations(D.begin(),cigop);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarOperations(D.begin(),cigop);
 			}
 
 			/**
@@ -276,7 +276,7 @@ namespace libmaus
 			 **/
 			uint64_t getNumPreSeqBytes() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumPreSeqBytes(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNumPreSeqBytes(D.begin());
 			}
 			
 			/**
@@ -284,7 +284,7 @@ namespace libmaus
 			 **/
 			uint64_t getNumSeqBytes() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNumSeqBytes(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNumSeqBytes(D.begin());
 			}
 
 			/**
@@ -302,8 +302,8 @@ namespace libmaus
 			 **/
 			void replaceCigarString(std::string const & cigarstring)
 			{
-				std::vector<cigar_operation> cigar = ::libmaus::bambam::CigarStringParser::parseCigarString(cigarstring);
-				libmaus::bambam::BamAlignment::D_array_type T;
+				std::vector<cigar_operation> cigar = ::libmaus2::bambam::CigarStringParser::parseCigarString(cigarstring);
+				libmaus2::bambam::BamAlignment::D_array_type T;
 				replaceCigarString(cigar.begin(),cigar.size(),T);
 			}
 
@@ -313,9 +313,9 @@ namespace libmaus
 			 * @param cigarstring replacement cigarstring
 			 * @param T temporary array
 			 **/
-			void replaceCigarString(std::string const & cigarstring, libmaus::bambam::BamAlignment::D_array_type & T)
+			void replaceCigarString(std::string const & cigarstring, libmaus2::bambam::BamAlignment::D_array_type & T)
 			{
-				std::vector<cigar_operation> cigar = ::libmaus::bambam::CigarStringParser::parseCigarString(cigarstring);
+				std::vector<cigar_operation> cigar = ::libmaus2::bambam::CigarStringParser::parseCigarString(cigarstring);
 				replaceCigarString(cigar.begin(),cigar.size(),T);
 			}
 
@@ -343,7 +343,7 @@ namespace libmaus
 				std::string const & quality
 			)
 			{
-				libmaus::autoarray::AutoArray<uint8_t,D_array_alloc_type> T;
+				libmaus2::autoarray::AutoArray<uint8_t,D_array_alloc_type> T;
 				replaceSequence(seqenc,sequence.begin(),quality.begin(),sequence.size(),T);
 			}
 			
@@ -361,7 +361,7 @@ namespace libmaus
 				seq_iterator seq,
 				qual_iterator qual,
 				uint32_t const seqlen,
-				libmaus::autoarray::AutoArray<uint8_t,D_array_alloc_type> & T
+				libmaus2::autoarray::AutoArray<uint8_t,D_array_alloc_type> & T
 			)
 			{
 				uint64_t const oldlen = getLseq();
@@ -370,14 +370,14 @@ namespace libmaus
 				// uint64_t const newseq = (seqlen+1)/2;
 				uint64_t const post   = getNumPostSeqBytes();
 				
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( T, 0 /* pre + newseq + post */ );
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( T, 0 /* pre + newseq + post */ );
 				
 				// pre seq data
 				for ( uint64_t i = 0; i < pre; ++i )
 					buffer.put ( D [ i ] );
 
 				// seq data
-				::libmaus::bambam::BamAlignmentEncoderBase::encodeSeq(buffer,seqenc,seq,seqlen);
+				::libmaus2::bambam::BamAlignmentEncoderBase::encodeSeq(buffer,seqenc,seq,seqlen);
 				
 				// quality data
 				for ( uint64_t i = 0; i < seqlen; ++i )
@@ -425,19 +425,19 @@ namespace libmaus
 			template<typename cigar_iterator>
 			void replaceCigarString(
 				cigar_iterator cigar, uint32_t const cigarlen,
-				libmaus::bambam::BamAlignment::D_array_type & T
+				libmaus2::bambam::BamAlignment::D_array_type & T
 			)
 			{
 				uint64_t const pre    = getNumPreCigarBytes();
 				uint64_t const oldcig = getNumCigarBytes();
 				uint64_t const post   = getNumPostCigarBytes();
 				
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( T,0 /* getNumPreCigarBytes() + cigarlen * sizeof(uint32_t) + getNumPostCigarBytes() */ );
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> buffer( T,0 /* getNumPreCigarBytes() + cigarlen * sizeof(uint32_t) + getNumPostCigarBytes() */ );
 				
 				for ( uint64_t i = 0; i < pre; ++i )
 					buffer.put ( D [ i ] );
 
-				::libmaus::bambam::BamAlignmentEncoderBase::encodeCigar(buffer,cigar,cigarlen);
+				::libmaus2::bambam::BamAlignmentEncoderBase::encodeCigar(buffer,cigar,cigarlen);
 
 				for ( uint64_t i = 0; i < post; ++i )
 					buffer.put ( D [ pre + oldcig + i ] );
@@ -458,9 +458,9 @@ namespace libmaus
 			 **/
 			static uint64_t eraseCigarString(uint8_t * const D, uint64_t blocksize)
 			{
-				uint64_t const pre    = ::libmaus::bambam::BamAlignmentDecoderBase::getNumPreCigarBytes(D);
-				uint64_t const oldcig = ::libmaus::bambam::BamAlignmentDecoderBase::getNumCigarBytes(D);
-				uint64_t const post   = ::libmaus::bambam::BamAlignmentDecoderBase::getNumPostCigarBytes(D,blocksize);
+				uint64_t const pre    = ::libmaus2::bambam::BamAlignmentDecoderBase::getNumPreCigarBytes(D);
+				uint64_t const oldcig = ::libmaus2::bambam::BamAlignmentDecoderBase::getNumCigarBytes(D);
+				uint64_t const post   = ::libmaus2::bambam::BamAlignmentDecoderBase::getNumPostCigarBytes(D,blocksize);
 				
 				// move post cigar string bytes to position of old cigar string
 				memmove(
@@ -471,7 +471,7 @@ namespace libmaus
 				
 				blocksize -= oldcig;
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putCigarLen(D,0);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putCigarLen(D,0);
 				
 				return blocksize;
 			}
@@ -510,7 +510,7 @@ namespace libmaus
 			template<typename output_type>
 			void serialise(output_type & out) const
 			{
-				::libmaus::bambam::EncoderBase::putLE<output_type,uint32_t>(out,blocksize);
+				::libmaus2::bambam::EncoderBase::putLE<output_type,uint32_t>(out,blocksize);
 				out.write(reinterpret_cast<char const *>(D.begin()),blocksize);
 			}
 			
@@ -527,7 +527,7 @@ namespace libmaus
 			 **/
 			uint64_t hash() const
 			{
-				return ::libmaus::hashing::EvaHash::hash64(reinterpret_cast<uint8_t const *>(getName()),
+				return ::libmaus2::hashing::EvaHash::hash64(reinterpret_cast<uint8_t const *>(getName()),
 					getLReadName());
 			}
 
@@ -565,7 +565,7 @@ namespace libmaus
 			 **/
 			std::string getAuxAsString(char const * const tag) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
 			}
 
 			/**
@@ -578,7 +578,7 @@ namespace libmaus
 			template<typename N>
 			N getAuxAsNumber(char const * const tag) const
 			{			
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag);
 			}
 
 			/**
@@ -591,7 +591,7 @@ namespace libmaus
 			template<typename N>
 			bool getAuxAsNumber(char const * const tag, N & num) const
 			{			
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag,num);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag,num);
 			}
 
 			/**
@@ -602,7 +602,7 @@ namespace libmaus
 			 **/
 			bool hasAux(char const * const tag) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag) != 0;
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag) != 0;
 			}
 
 
@@ -616,9 +616,9 @@ namespace libmaus
 			template<typename value_type>
 			void putAuxNumber(char const * const tag, char const type, value_type const v)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -633,9 +633,9 @@ namespace libmaus
 			template<typename value_type>
 			void putAuxNumber(std::string const & tag, char const type, value_type const v)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(data,tag,type,v);
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -649,9 +649,9 @@ namespace libmaus
 			 **/
 			void putAuxString(std::string const & tag, std::string const & value)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value.c_str());
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value.c_str());
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -665,9 +665,9 @@ namespace libmaus
 			 **/
 			void putAuxString(char const * tag, char const * value)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxString(data,tag,value);
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -681,9 +681,9 @@ namespace libmaus
 			 **/
 			void putAuxNumberArray(std::string const & tag, std::vector<uint8_t> const & V)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',V);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',V);
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -699,9 +699,9 @@ namespace libmaus
 			template<typename iterator_type>
 			void putAuxNumberArray(std::string const & tag, iterator_type values, uint64_t const n)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',values,n);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',values,n);
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -717,9 +717,9 @@ namespace libmaus
 			template<typename iterator_type>
 			void putAuxNumberArray(char const * const tag, iterator_type values, uint64_t const n)
 			{
-				::libmaus::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
+				::libmaus2::fastx::EntityBuffer<uint8_t,D_array_alloc_type> data(D,blocksize);
 				
-				::libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',values,n);
+				::libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumberArray(data,tag,'C',values,n);
 
 				D = data.abuffer;
 				blocksize = data.length;
@@ -762,7 +762,7 @@ namespace libmaus
 			static void putUtf8Integer(container_type & cont, uint32_t const num)
 			{
 				PushBackPutObject<container_type> PBPO(cont);
-				::libmaus::util::UTF8::encodeUTF8(num,PBPO);				
+				::libmaus2::util::UTF8::encodeUTF8(num,PBPO);				
 			}
 	
 			/**
@@ -771,7 +771,7 @@ namespace libmaus
 			 * @param tag aux field id
 			 * @param rank field content
 			 **/
-			void putRank(std::string const & tag, uint64_t const rank /*, ::libmaus::bambam::BamHeader const & bamheader */)
+			void putRank(std::string const & tag, uint64_t const rank /*, ::libmaus2::bambam::BamHeader const & bamheader */)
 			{
 				std::vector<uint8_t> V;
 
@@ -816,7 +816,7 @@ namespace libmaus
 				assert ( ! tag[2] );
 			
 				uint8_t const * p = 
-					::libmaus::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag);
+					::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag);
 				
 				// check format	
 				if ( 
@@ -859,7 +859,7 @@ namespace libmaus
 			 **/
 			uint32_t hash32() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::hash32(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::hash32(D.begin());
 			}
 
 			/**
@@ -867,7 +867,7 @@ namespace libmaus
 			 **/
 			uint64_t getLseqByCigar() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getLseqByCigar(D.begin());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getLseqByCigar(D.begin());
 			}
 			
 			/**
@@ -883,7 +883,7 @@ namespace libmaus
 			 **/
 			char const * getReadGroup() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,"RG");
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,"RG");
 			}
 
 			/**
@@ -892,7 +892,7 @@ namespace libmaus
 			 **/
 			char const * getAuxString(char const * tagname) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,tagname);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,tagname);
 			}
 
 			/**
@@ -937,10 +937,10 @@ namespace libmaus
 			void formatAlignment(
 				std::ostream & ostr,
 				header_type const & bamheader,
-				::libmaus::bambam::BamFormatAuxiliary & auxiliary
+				::libmaus2::bambam::BamFormatAuxiliary & auxiliary
 			) const
 			{
-				::libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+				::libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(
 					ostr,D.get(),blocksize,bamheader,auxiliary);
 			}
 
@@ -954,10 +954,10 @@ namespace libmaus
 			template<typename header_type>
 			std::string formatAlignment(
 				header_type const & bamheader,
-				::libmaus::bambam::BamFormatAuxiliary & auxiliary
+				::libmaus2::bambam::BamFormatAuxiliary & auxiliary
 			) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::formatAlignment(
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::formatAlignment(
 					D.get(),blocksize,bamheader,auxiliary);
 			}
 			
@@ -970,7 +970,7 @@ namespace libmaus
 			template<typename header_type>
 			std::string formatAlignment(header_type const & bamheader) const
 			{
-				::libmaus::bambam::BamFormatAuxiliary auxiliary;
+				::libmaus2::bambam::BamFormatAuxiliary auxiliary;
 				return formatAlignment(bamheader,auxiliary);
 			}
 			
@@ -980,9 +980,9 @@ namespace libmaus
 			 * @param auxiliary formatting auxiliary object
 			 * @return FastQ entry as string
 			 **/
-			std::string formatFastq(::libmaus::bambam::BamFormatAuxiliary & auxiliary) const
+			std::string formatFastq(::libmaus2::bambam::BamFormatAuxiliary & auxiliary) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::formatFastq(D.get(),auxiliary);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::formatFastq(D.get(),auxiliary);
 			}
 			
 			/**
@@ -992,7 +992,7 @@ namespace libmaus
 			 **/
 			std::string formatFastq() const
 			{
-				::libmaus::bambam::BamFormatAuxiliary auxiliary;
+				::libmaus2::bambam::BamFormatAuxiliary auxiliary;
 				return formatFastq(auxiliary);				
 			}
 			
@@ -1001,7 +1001,7 @@ namespace libmaus
 			 **/
 			char const * getName() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(D.get());
 			}
 			
 			/**
@@ -1012,7 +1012,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->RefID;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(D.get());				
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(D.get());				
 				#endif
 			}
 			
@@ -1037,7 +1037,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Pos;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getPos(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(D.get());
 				#endif
 			}
 
@@ -1062,7 +1062,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NextRefID;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNextRefID(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNextRefID(D.get());
 				#endif
 			}
 			/**
@@ -1086,7 +1086,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NextPos;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNextPos(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNextPos(D.get());
 				#endif
 			}
 			/**
@@ -1107,7 +1107,7 @@ namespace libmaus
 			 **/
 			uint64_t getAlignmentEnd() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAlignmentEnd(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAlignmentEnd(D.get());
 			}
 			
 			/**
@@ -1118,7 +1118,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Bin;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getBin(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getBin(D.get());
 				#endif
 			}
 			
@@ -1130,7 +1130,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->MQ;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getMapQ(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getMapQ(D.get());
 				#endif
 			}
 			
@@ -1142,7 +1142,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NL;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getLReadName(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getLReadName(D.get());
 				#endif
 			}
 			
@@ -1154,7 +1154,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Flags;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(D.get());
 				#endif
 			}
 			
@@ -1166,7 +1166,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->NC;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getNCigar(D.get());			
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getNCigar(D.get());			
 				#endif
 			}
 			
@@ -1175,7 +1175,7 @@ namespace libmaus
 			 **/
 			std::string getCigarString() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarString(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarString(D.get());
 			}
 			
 			/**
@@ -1183,7 +1183,7 @@ namespace libmaus
 			 **/
 			std::string getFlagsS() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getFlagsS(D.get());			
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getFlagsS(D.get());			
 			}
 			
 			/**
@@ -1194,7 +1194,7 @@ namespace libmaus
 			 **/
 			char getCigarFieldOpAsChar(uint64_t const i) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarFieldOpAsChar(D.get(),i);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarFieldOpAsChar(D.get(),i);
 			}
 			
 			/**
@@ -1205,7 +1205,7 @@ namespace libmaus
 			 **/
 			uint32_t getCigarFieldOp(uint64_t const i) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarFieldOp(D.get(),i);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarFieldOp(D.get(),i);
 			}
 			/**
 			 * get length of i'th cigar operation
@@ -1215,7 +1215,7 @@ namespace libmaus
 			 **/
 			uint32_t getCigarFieldLength(uint64_t const i) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarFieldLength(D.get(),i);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarFieldLength(D.get(),i);
 			}
 			
 			/**
@@ -1226,7 +1226,7 @@ namespace libmaus
 			 **/
 			uint32_t getCigarField(uint64_t const i) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getCigarField(D.get(),i);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getCigarField(D.get(),i);
 			}
 			
 			/**
@@ -1237,7 +1237,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D.get())->Tlen;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getTlen(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getTlen(D.get());
 				#endif
 			}
 			
@@ -1246,7 +1246,7 @@ namespace libmaus
 				#if defined(LIBMAUS_BYTE_ORDER_LITTLE_ENDIAN)
 				return reinterpret_cast<BamAlignmentFixedSizeData const *>(D)->Lseq;
 				#else
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getLseq(D);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getLseq(D);
 				#endif			
 			}
 
@@ -1264,9 +1264,9 @@ namespace libmaus
 			 * @param A reference to array
 			 * @return length of sequence
 			 **/
-			uint64_t decodeRead(::libmaus::autoarray::AutoArray<char> & A) const
+			uint64_t decodeRead(::libmaus2::autoarray::AutoArray<char> & A) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeRead(D.get(),A);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeRead(D.get(),A);
 			}
 			/**
 			 * decode reverse complement of query sequence to array A, which is extended if necessary
@@ -1274,9 +1274,9 @@ namespace libmaus
 			 * @param A reference to array
 			 * @return length of sequence
 			 **/
-			uint64_t decodeReadRC(::libmaus::autoarray::AutoArray<char> & A) const
+			uint64_t decodeReadRC(::libmaus2::autoarray::AutoArray<char> & A) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeReadRC(D.get(),A);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeReadRC(D.get(),A);
 			}
 			/**
 			 * decode quality string
@@ -1284,9 +1284,9 @@ namespace libmaus
 			 * @param A reference to array
 			 * @return length of quality string
 			 **/
-			uint64_t decodeQual(::libmaus::autoarray::AutoArray<char> & A) const
+			uint64_t decodeQual(::libmaus2::autoarray::AutoArray<char> & A) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQual(D.get(),A);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeQual(D.get(),A);
 			}
 			/**
 			 * decode reverse of quality string
@@ -1294,9 +1294,9 @@ namespace libmaus
 			 * @param A reference to array
 			 * @return length of quality string
 			 **/
-			uint64_t decodeQualRC(::libmaus::autoarray::AutoArray<char> & A) const
+			uint64_t decodeQualRC(::libmaus2::autoarray::AutoArray<char> & A) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQualRC(D.get(),A);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeQualRC(D.get(),A);
 			}
 			
 			/**
@@ -1306,7 +1306,7 @@ namespace libmaus
 			{
 				uint64_t const rbeg = getPos();
 				uint64_t const rend = rbeg + getReferenceLength();
-				uint64_t const bin = libmaus::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend);
+				uint64_t const bin = libmaus2::bambam::BamAlignmentEncoderBase::reg2bin(rbeg,rend);
 				return bin;
 			}
 			
@@ -1315,7 +1315,7 @@ namespace libmaus
 			 **/
 			uint64_t getReferenceLength() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getReferenceLength(D.get());				
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(D.get());				
 			}
 			
 			/**
@@ -1323,7 +1323,7 @@ namespace libmaus
 			 **/
 			std::string getRead() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				uint64_t const len = decodeRead(A);
 				return std::string(A.begin(),A.begin()+len);
 			}
@@ -1333,7 +1333,7 @@ namespace libmaus
 			 **/
 			std::string getReadRC() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				uint64_t const len = decodeReadRC(A);
 				return std::string(A.begin(),A.begin()+len);
 			}
@@ -1343,7 +1343,7 @@ namespace libmaus
 			 **/
 			std::string getQual() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				uint64_t const len = decodeQual(A);
 				return std::string(A.begin(),A.begin()+len);
 			}
@@ -1352,7 +1352,7 @@ namespace libmaus
 			 **/
 			std::string getQualRC() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				uint64_t const len = decodeQualRC(A);
 				return std::string(A.begin(),A.begin()+len);
 			}
@@ -1360,15 +1360,15 @@ namespace libmaus
 			/**
 			 * @return iff alignment has the pair flag set
 			 **/
-			bool isPaired() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isPaired(getFlags()); }
+			bool isPaired() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isPaired(getFlags()); }
 			/**
 			 * @return iff alignment has the proper pair flag set
 			 **/
-			bool isProper() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isProper(getFlags()); }
+			bool isProper() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isProper(getFlags()); }
 			/**
 			 * @return iff alignment has the unmapped flag set
 			 **/
-			bool isUnmap() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isUnmap(getFlags()); }
+			bool isUnmap() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(getFlags()); }
 			/**
 			 * @return iff alignment does not have the unmapped flag set
 			 **/
@@ -1376,7 +1376,7 @@ namespace libmaus
 			/**
 			 * @return iff alignment has the mate unmapped flag set
 			 **/
-			bool isMateUnmap() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isMateUnmap(getFlags()); }
+			bool isMateUnmap() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isMateUnmap(getFlags()); }
 			/**
 			 * @return iff alignment has the mate unmapped flag not set
 			 **/
@@ -1384,35 +1384,35 @@ namespace libmaus
 			/**
 			 * @return iff alignment has the reverse strand flag set
 			 **/
-			bool isReverse() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isReverse(getFlags()); }
+			bool isReverse() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isReverse(getFlags()); }
 			/**
 			 * @return iff alignment has the mate reverse strand flag set
 			 **/
-			bool isMateReverse() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isMateReverse(getFlags()); }
+			bool isMateReverse() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isMateReverse(getFlags()); }
 			/**
 			 * @return iff alignment has read 1 flag set
 			 **/
-			bool isRead1() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isRead1(getFlags()); }
+			bool isRead1() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isRead1(getFlags()); }
 			/**
 			 * @return iff alignment has read 2 flag set
 			 **/
-			bool isRead2() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isRead2(getFlags()); }
+			bool isRead2() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isRead2(getFlags()); }
 			/**
 			 * @return iff alignment has the secondary alignment flag set
 			 **/
-			bool isSecondary() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isSecondary(getFlags()); }
+			bool isSecondary() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isSecondary(getFlags()); }
 			/**
 			 * @return iff alignment has the supplementary alignment flag set
 			 **/
-			bool isSupplementary() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isSupplementary(getFlags()); }
+			bool isSupplementary() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isSupplementary(getFlags()); }
 			/**
 			 * @return iff alignment has the quality control failed flag set
 			 **/
-			bool isQCFail() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isQCFail(getFlags()); }
+			bool isQCFail() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isQCFail(getFlags()); }
 			/**
 			 * @return iff alignment has the duplicate entry flag set
 			 **/
-			bool isDup() const { return ::libmaus::bambam::BamAlignmentDecoderBase::isDup(getFlags()); }
+			bool isDup() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::isDup(getFlags()); }
 			
 			/**
 			 * @return coordinate of the leftmost query sequence base (as opposed to the coordinate of the leftmost aligned query sequence base)
@@ -1420,7 +1420,7 @@ namespace libmaus
 			int64_t getCoordinate() const 
 			{ 
 				if ( !isUnmap() )
-					return ::libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(D.get()); 
+					return ::libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(D.get()); 
 				else
 					return -1;
 			}
@@ -1434,7 +1434,7 @@ namespace libmaus
 			int64_t getOffsetBeforeMatch() const
 			{
 				if ( !isUnmap() )
-					return ::libmaus::bambam::BamAlignmentDecoderBase::getOffsetBeforeMatch(D.get()); 
+					return ::libmaus2::bambam::BamAlignmentDecoderBase::getOffsetBeforeMatch(D.get()); 
 				else
 					return 0;
 			}
@@ -1444,7 +1444,7 @@ namespace libmaus
 			 * 
 			 * @return sum of quality score values of at least 15
 			 **/
-			uint64_t getScore() const { return ::libmaus::bambam::BamAlignmentDecoderBase::getScore(D.get()); }
+			uint64_t getScore() const { return ::libmaus2::bambam::BamAlignmentDecoderBase::getScore(D.get()); }
 			
 			/**
 			 * format alignment to FASTQEntry object
@@ -1452,7 +1452,7 @@ namespace libmaus
 			 * @param pattern fastq object
 			 * @param patid pattern id
 			 **/
-			void toPattern(::libmaus::fastx::FASTQEntry & pattern, uint64_t const patid) const
+			void toPattern(::libmaus2::fastx::FASTQEntry & pattern, uint64_t const patid) const
 			{
 				pattern.patid = patid;
 				pattern.sid = getName();
@@ -1502,55 +1502,55 @@ namespace libmaus
 			 *
 			 * @param v new reference id
 			 **/
-			void putRefId(int32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putRefId(D.get(),v); }
+			void putRefId(int32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putRefId(D.get(),v); }
 			/**
 			 * replace position by v
 			 *
 			 * @param v new position
 			 **/
-			void putPos(int32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putPos(D.get(),v); }
+			void putPos(int32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putPos(D.get(),v); }
 			/**
 			 * replace mate reference id by v
 			 *
 			 * @param v new mate reference id
 			 **/
-			void putNextRefId(int32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putNextRefId(D.get(),v); }
+			void putNextRefId(int32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putNextRefId(D.get(),v); }
 			/**
 			 * replace mate position by v
 			 *
 			 * @param v new mate position
 			 **/
-			void putNextPos(int32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putNextPos(D.get(),v); }
+			void putNextPos(int32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putNextPos(D.get(),v); }
 			/**
 			 * replace template length by v
 			 *
 			 * @param v new template length
 			 **/
-			void putTlen(int32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putTlen(D.get(),v); }
+			void putTlen(int32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putTlen(D.get(),v); }
 			/**
 			 * replace flags by v
 			 *
 			 * @param v new flags
 			 **/
-			void putFlags(uint32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putFlags(D.get(),v); }
+			void putFlags(uint32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putFlags(D.get(),v); }
 			/**
 			 * replace flags by v
 			 *
 			 * @param v new flags
 			 **/
-			void putMapQ(uint8_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putMapQ(D.get(),v); }
+			void putMapQ(uint8_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putMapQ(D.get(),v); }
 			/**
 			 * replace number of cigar operations by v
 			 *
 			 * @param v new number of cigar operations
 			 **/
-			void putCigarLen(uint32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putCigarLen(D.get(),v); }
+			void putCigarLen(uint32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putCigarLen(D.get(),v); }
 			/**
 			 * replace sequence length field by v
 			 *
 			 * @param v new sequence length field
 			 **/			
-			void putSeqLen(uint32_t const v) { ::libmaus::bambam::BamAlignmentEncoderBase::putSeqLen(D.get(),v); }
+			void putSeqLen(uint32_t const v) { ::libmaus2::bambam::BamAlignmentEncoderBase::putSeqLen(D.get(),v); }
 
 			/**
 			 * format alignment as fastq
@@ -1561,7 +1561,7 @@ namespace libmaus
 			template<typename iterator>
 			iterator putFastQ(iterator it) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::putFastQ(D.get(),it);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::putFastQ(D.get(),it);
 			}
 			
 			/**
@@ -1569,7 +1569,7 @@ namespace libmaus
 			 **/
 			uint64_t getFastQLength() const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getFastQLength(D.get());
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getFastQLength(D.get());
 			}
 			
 			/**
@@ -1582,7 +1582,7 @@ namespace libmaus
 			template<typename iterator>
 			iterator decodeRead(iterator S, uint64_t const seqlen) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeRead(D.get(),S,seqlen);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeRead(D.get(),S,seqlen);
 			}
 
 			/**
@@ -1595,7 +1595,7 @@ namespace libmaus
 			template<typename iterator>
 			iterator decodeReadRCIt(iterator S, uint64_t const seqlen) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::decodeReadRCIt(D.get(),S,seqlen);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeReadRCIt(D.get(),S,seqlen);
 			}
 
 			/**
@@ -1608,7 +1608,7 @@ namespace libmaus
                         template<typename iterator>
                         iterator decodeQual(iterator it, uint64_t const seqlen) const
                         {
-                        	return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQualIt(D.get(),it,seqlen);
+                        	return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeQualIt(D.get(),it,seqlen);
                         }
 
 			/**
@@ -1621,7 +1621,7 @@ namespace libmaus
                         template<typename iterator>
                         iterator decodeQualRcIt(iterator it, uint64_t const seqlen) const
                         {
-                        	return ::libmaus::bambam::BamAlignmentDecoderBase::decodeQualRcIt(D.get(),it,seqlen);
+                        	return ::libmaus2::bambam::BamAlignmentDecoderBase::decodeQualRcIt(D.get(),it,seqlen);
                         }
 
 			/**
@@ -1631,7 +1631,7 @@ namespace libmaus
 			 **/
 			void filterAux(BamAuxFilterVector const & tags)
 			{
-				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::filterAux(D.begin(),blocksize,tags);
+				blocksize = ::libmaus2::bambam::BamAlignmentDecoderBase::filterAux(D.begin(),blocksize,tags);
 			}
 			
 			/**
@@ -1642,7 +1642,7 @@ namespace libmaus
 			 **/
 			static uint64_t eraseAux(uint8_t const * const D)
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::getAux(D)-D;
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D)-D;
 			}
 
 			/**
@@ -1660,7 +1660,7 @@ namespace libmaus
 			 **/
 			void filterOutAux(BamAuxFilterVector const & tags)
 			{
-				blocksize = ::libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(D.begin(),blocksize,tags);
+				blocksize = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(D.begin(),blocksize,tags);
 			}
 
 			/**
@@ -1670,7 +1670,7 @@ namespace libmaus
 			 **/
 			void sortAux(BamAuxSortingBuffer & sortbuffer)
 			{
-				::libmaus::bambam::BamAlignmentDecoderBase::sortAux(D.begin(),blocksize,sortbuffer);
+				::libmaus2::bambam::BamAlignmentDecoderBase::sortAux(D.begin(),blocksize,sortbuffer);
 			}                        
 
 			/**
@@ -1679,9 +1679,9 @@ namespace libmaus
 			 * @param A array for storing aux tag markers
 			 * @return number of markers stored
 			 **/
-			uint64_t enumerateAuxTags(libmaus::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > & A) const
+			uint64_t enumerateAuxTags(libmaus2::autoarray::AutoArray < std::pair<uint8_t,uint8_t> > & A) const
 			{
-				return ::libmaus::bambam::BamAlignmentDecoderBase::enumerateAuxTags(D.begin(),blocksize,A);
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::enumerateAuxTags(D.begin(),blocksize,A);
 			}
 			
 			/**
@@ -1690,17 +1690,17 @@ namespace libmaus
 			 * @param O source alignment
 			 * @param filter tag set to be copied
 			 **/
-			void copyAuxTags(libmaus::bambam::BamAlignment const & O, BamAuxFilterVector const & filter)
+			void copyAuxTags(libmaus2::bambam::BamAlignment const & O, BamAuxFilterVector const & filter)
 			{
 				/*
 				 * compute number of bytes we will add to this alignment block
 				 */
-				uint8_t const * aux = libmaus::bambam::BamAlignmentDecoderBase::getAux(O.D.begin());
+				uint8_t const * aux = libmaus2::bambam::BamAlignmentDecoderBase::getAux(O.D.begin());
 				uint64_t addlength = 0;
 				
 				while ( aux < O.D.begin() + O.blocksize )
 				{
-					uint64_t const length = libmaus::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
+					uint64_t const length = libmaus2::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
 					
 					if ( filter(aux[0],aux[1]) )
 						addlength += length;
@@ -1713,12 +1713,12 @@ namespace libmaus
 					D.resize(blocksize + addlength);
 				
 				// copy aux fields
-				aux = libmaus::bambam::BamAlignmentDecoderBase::getAux(O.D.begin());
+				aux = libmaus2::bambam::BamAlignmentDecoderBase::getAux(O.D.begin());
 				uint8_t * outp = D.begin() + blocksize;
 
 				while ( aux < O.D.begin() + O.blocksize )
 				{
-					uint64_t const length = libmaus::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
+					uint64_t const length = libmaus2::bambam::BamAlignmentDecoderBase::getAuxLength(aux);
 					
 					if ( filter(aux[0],aux[1]) )
 					{
@@ -1739,8 +1739,8 @@ namespace libmaus
 			static void reverseComplementInplace(uint8_t * const D)
                         {
                         	uint64_t const lseq = getLseq(D);
-                        	libmaus::bambam::BamAlignmentDecoderBase::reverseComplementInplace(libmaus::bambam::BamAlignmentDecoderBase::getSeq(D),lseq);
-                        	uint8_t * qual = libmaus::bambam::BamAlignmentDecoderBase::getQual(D);
+                        	libmaus2::bambam::BamAlignmentDecoderBase::reverseComplementInplace(libmaus2::bambam::BamAlignmentDecoderBase::getSeq(D),lseq);
+                        	uint8_t * qual = libmaus2::bambam::BamAlignmentDecoderBase::getQual(D);
                         	std::reverse(qual,qual+lseq);
                         }                                                                                                                                                    
 
@@ -1767,9 +1767,9 @@ namespace libmaus
 				{
 					uint64_t const cigop = getCigarFieldOp(i);
 					if ( 
-						cigop == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
+						cigop == ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP 
 						||
-						cigop == ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
+						cigop == ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP 
 					)
 						return true;
 				}
@@ -1786,16 +1786,16 @@ namespace libmaus
 			 */
 			static int64_t computeInsertSize(BamAlignment const & A, BamAlignment const & B)
 			{
-				return libmaus::bambam::BamAlignmentDecoderBase::computeInsertSize(A.D.begin(),B.D.begin());
+				return libmaus2::bambam::BamAlignmentDecoderBase::computeInsertSize(A.D.begin(),B.D.begin());
 			}
 			
 			/**
 			 * make mate pair information of two alignments consistent (inspired by Picard code)
 			 */
 			static void fixMateInformation(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
-				libmaus::bambam::BamAuxFilterVector const & MQfilter
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAuxFilterVector const & MQfilter
 				)
 			{
 				rec1.filterOutAux(MQfilter);
@@ -1819,9 +1819,9 @@ namespace libmaus
 			/**
 			 * make mate pair information of two alignments consistent (inspired by Picard code)
 			 */
-			static void fixMateInformationPreFiltered(libmaus::bambam::BamAlignment & rec1, libmaus::bambam::BamAlignment & rec2)
+			static void fixMateInformationPreFiltered(libmaus2::bambam::BamAlignment & rec1, libmaus2::bambam::BamAlignment & rec2)
 			{
-				std::pair<int16_t,int16_t> const MQ = libmaus::bambam::BamAlignmentEncoderBase::fixMateInformation(rec1.D.get(),rec2.D.get());
+				std::pair<int16_t,int16_t> const MQ = libmaus2::bambam::BamAlignmentEncoderBase::fixMateInformation(rec1.D.get(),rec2.D.get());
 
 				if ( MQ.first >= 0 )
 					rec1.putAuxIntegerNumberFast('M','Q',MQ.first);
@@ -1833,9 +1833,9 @@ namespace libmaus
 			 * add quality score of mate as aux field
 			 */
 			static void addMateBaseScore(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
-				libmaus::bambam::BamAuxFilterVector const & MSfilter
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAuxFilterVector const & MSfilter
 				)
 			{
 				uint64_t const score1 = rec1.getScore();
@@ -1852,7 +1852,7 @@ namespace libmaus
 			/**
 			 * add quality score of mate as aux field
 			 */
-			static void addMateBaseScorePreFiltered(libmaus::bambam::BamAlignment & rec1, libmaus::bambam::BamAlignment & rec2)
+			static void addMateBaseScorePreFiltered(libmaus2::bambam::BamAlignment & rec1, libmaus2::bambam::BamAlignment & rec2)
 			{
 				uint64_t const score1 = rec1.getScore();
 				uint64_t const score2 = rec2.getScore();
@@ -1865,9 +1865,9 @@ namespace libmaus
 			 * add mapping coordinate of mate as aux field
 			 */
 			static void addMateCoordinate(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
-				libmaus::bambam::BamAuxFilterVector const & MCfilter
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAuxFilterVector const & MCfilter
 				)
 			{
 				uint64_t const coord1 = rec1.getCoordinate();
@@ -1883,7 +1883,7 @@ namespace libmaus
 			/**
 			 * add mapping coordinate of mate as aux field
 			 */
-			static void addMateCoordinatePreFiltered(libmaus::bambam::BamAlignment & rec1, libmaus::bambam::BamAlignment & rec2)
+			static void addMateCoordinatePreFiltered(libmaus2::bambam::BamAlignment & rec1, libmaus2::bambam::BamAlignment & rec2)
 			{
 				uint64_t const coord1 = rec1.getCoordinate();
 				uint64_t const coord2 = rec2.getCoordinate();
@@ -1896,9 +1896,9 @@ namespace libmaus
 			 * add tag of mate as aux field if present
 			 */
 			static void addMateTag(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
-				libmaus::bambam::BamAuxFilterVector const & MTfilter,
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAuxFilterVector const & MTfilter,
 				char const * tagname
 				)
 			{
@@ -1918,8 +1918,8 @@ namespace libmaus
 			 * add tag of mate as aux field if present
 			 */
 			static void addMateTagPreFiltered(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
 				char const * tagname
 				)
 			{
@@ -1936,9 +1936,9 @@ namespace libmaus
 			 * add tag of mate as aux field if present
 			 */
 			static void addMateTag(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
-				libmaus::bambam::BamAuxFilterVector const & MTfilter,
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAuxFilterVector const & MTfilter,
 				std::string const & tagname
 				)
 			{
@@ -1949,8 +1949,8 @@ namespace libmaus
 			 * add tag of mate as aux field if present
 			 */
 			static void addMateTagPreFiltered(
-				libmaus::bambam::BamAlignment & rec1, 
-				libmaus::bambam::BamAlignment & rec2,
+				libmaus2::bambam::BamAlignment & rec1, 
+				libmaus2::bambam::BamAlignment & rec2,
 				std::string const & tagname
 				)
 			{
@@ -1965,7 +1965,7 @@ namespace libmaus
 				return BamAlignmentDecoderBase::hasNonACGT(D.begin());
 			}
 			
-			void fillMd(::libmaus::bambam::MdStringComputationContext & context)
+			void fillMd(::libmaus2::bambam::MdStringComputationContext & context)
 			{
 				if ( context.diff )
 				{
@@ -1985,12 +1985,12 @@ namespace libmaus
 			 **/
 			template<typename it_a>
 			void calculateMd(
-				::libmaus::bambam::MdStringComputationContext & context,
+				::libmaus2::bambam::MdStringComputationContext & context,
 				it_a itref,
 				bool const warnchanges = true
 			)
 			{	
-				libmaus::bambam::BamAlignmentDecoderBase::calculateMd(D.begin(),blocksize,context,itref,warnchanges);
+				libmaus2::bambam::BamAlignmentDecoderBase::calculateMd(D.begin(),blocksize,context,itref,warnchanges);
 				fillMd(context);	
 			}
 			
@@ -2001,7 +2001,7 @@ namespace libmaus
 			 **/
 			uint64_t getFrontSoftClipping() const
 			{
-				return libmaus::bambam::BamAlignmentDecoderBase::getFrontSoftClipping(D.begin());
+				return libmaus2::bambam::BamAlignmentDecoderBase::getFrontSoftClipping(D.begin());
 			}
 			/**
 			 * get soft clipped bases at end of read
@@ -2010,7 +2010,7 @@ namespace libmaus
 			 **/
 			uint64_t getBackSoftClipping() const
 			{
-				return libmaus::bambam::BamAlignmentDecoderBase::getBackSoftClipping(D.begin());
+				return libmaus2::bambam::BamAlignmentDecoderBase::getBackSoftClipping(D.begin());
 			}
 
 			/**
@@ -2018,7 +2018,7 @@ namespace libmaus
 			 **/
 			std::string getClippedRead() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				uint64_t const len = decodeRead(A);
 				return std::string(
 					A.begin() + getFrontSoftClipping(),
@@ -2031,7 +2031,7 @@ namespace libmaus
 			 **/
 			std::string getFrontClippedBases() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				decodeRead(A);
 				return std::string(
 					A.begin(),
@@ -2044,7 +2044,7 @@ namespace libmaus
 			 **/
 			std::string getBackClippedBases() const
 			{
-				::libmaus::autoarray::AutoArray<char> A;
+				::libmaus2::autoarray::AutoArray<char> A;
 				uint64_t const len = decodeRead(A);
 				return std::string(
 					A.begin() + len - getBackSoftClipping(),

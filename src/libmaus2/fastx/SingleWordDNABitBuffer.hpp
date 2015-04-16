@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_FASTX_SINGLEWORDDNABITBUFFER_HPP)
 #define LIBMAUS_FASTX_SINGLEWORDDNABITBUFFER_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -57,17 +57,17 @@ namespace libmaus
 			
 			data_type getLowHalf() const
 			{
-				return buffer & ::libmaus::math::lowbits( getHalfBits() );
+				return buffer & ::libmaus2::math::lowbits( getHalfBits() );
 			}
 
 			data_type getLowHalfDownShiftOne() const
 			{
-				return (buffer >> 2) & ::libmaus::math::lowbits( getHalfBits() );
+				return (buffer >> 2) & ::libmaus2::math::lowbits( getHalfBits() );
 			}
 
 			data_type getTopHalf() const
 			{
-				return (buffer >> (getHalfBits()+((width&1)<<1) )) & ::libmaus::math::lowbits( getHalfBits() );
+				return (buffer >> (getHalfBits()+((width&1)<<1) )) & ::libmaus2::math::lowbits( getHalfBits() );
 			}
 			
 			static data_type middleToEnd(uint64_t const b, unsigned int k)
@@ -85,10 +85,10 @@ namespace libmaus
 				data_type const sym = (v >> (ii<<1))&3;
 				// symbols behind position i
 				unsigned int const backsyms = ii;
-				data_type const back = (v & (::libmaus::math::lowbits(backsyms<<1))) << 2;
+				data_type const back = (v & (::libmaus2::math::lowbits(backsyms<<1))) << 2;
 				// symbols in front of position i
 				unsigned int const frontsyms = k-(backsyms+1);
-				data_type const front = (v & (::libmaus::math::lowbits(frontsyms<<1) << ((backsyms+1)<<1)));
+				data_type const front = (v & (::libmaus2::math::lowbits(frontsyms<<1) << ((backsyms+1)<<1)));
 				data_type const rv = (front | back | sym);
 				return rv;
 			}
@@ -101,10 +101,10 @@ namespace libmaus
 				data_type const sym = (v & 0x3) << (ii<<1);
 				// number of symbols to be behind i
 				unsigned int const backsyms = ii;
-				data_type const back = (v >> 2) & ::libmaus::math::lowbits(backsyms<<1);
+				data_type const back = (v >> 2) & ::libmaus2::math::lowbits(backsyms<<1);
 				// number of symbols to be in front of i
 				unsigned int const frontsyms = k-(backsyms+1);
-				data_type const front = (v & (::libmaus::math::lowbits(frontsyms<<1) << ((backsyms+1)<<1)));
+				data_type const front = (v & (::libmaus2::math::lowbits(frontsyms<<1) << ((backsyms+1)<<1)));
 				// combined
 				data_type const rv = (front | back | sym);
 				return rv;
@@ -123,7 +123,7 @@ namespace libmaus
 			
 			data_type getBottomSym() const
 			{
-				return buffer & ::libmaus::math::lowbits( 2 );
+				return buffer & ::libmaus2::math::lowbits( 2 );
 			}
 			
 			data_type endToMiddle() const
@@ -146,18 +146,18 @@ namespace libmaus
 			data_type getMiddleMask() const
 			{
 				return
-					(::libmaus::math::lowbits(getHalfBits()) << (getHalfBits()+2))
+					(::libmaus2::math::lowbits(getHalfBits()) << (getHalfBits()+2))
 					|
-					::libmaus::math::lowbits(getHalfBits());
+					::libmaus2::math::lowbits(getHalfBits());
 					;
 			}
 
 			SingleWordDNABitBuffer(unsigned int const rwidth)
-			: width(rwidth), width2(2*width), width22(width2-2), mask(::libmaus::math::lowbits(2*width)), buffer(0)
+			: width(rwidth), width2(2*width), width22(width2-2), mask(::libmaus2::math::lowbits(2*width)), buffer(0)
 			{
 				if ( width > getMaxBases() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Cannot handle " << width << " > " << getMaxBases() << " bases in SingleWordDNABitBuffer.";
 					se.finish();
 					throw se;
@@ -171,7 +171,7 @@ namespace libmaus
 			{
 				if ( v >= 4 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "SingleWordDNABitBuffer::pushBackUnmasked(): invalid symbol " << v << std::endl;
 					se.finish();
 					throw se;
@@ -183,7 +183,7 @@ namespace libmaus
 			{
 				if ( v >= 4 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "SingleWordDNABitBuffer::pushBackMasked(): invalid symbol " << v << std::endl;
 					se.finish();
 					throw se;
@@ -196,7 +196,7 @@ namespace libmaus
 			{
 				if ( v >= 4 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "SingleWordDNABitBuffer::pushFront(): invalid symbol " << v << std::endl;
 					se.finish();
 					throw se;				}
@@ -222,7 +222,7 @@ namespace libmaus
 			std::string toString() const
 			{
 				unsigned int shift = width22;
-				data_type pmask = ::libmaus::math::lowbits(2) << shift;
+				data_type pmask = ::libmaus2::math::lowbits(2) << shift;
 				std::ostringstream ostr;
 
 				for ( unsigned int i = 0; i < width; ++i, pmask >>= 2, shift -= 2 )

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,36 +20,36 @@
 #if ! defined(FASTCLIENT_HPP)
 #define FASTCLIENT_HPP
 
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/fastx/SocketFastAReader.hpp>
-#include <libmaus/fastx/SocketFastQReader.hpp>
-#include <libmaus/fastx/CompactFastDecoder.hpp>
-#include <libmaus/network/SocketFastReaderBase.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/fastx/SocketFastAReader.hpp>
+#include <libmaus2/fastx/SocketFastQReader.hpp>
+#include <libmaus2/fastx/CompactFastDecoder.hpp>
+#include <libmaus2/network/SocketFastReaderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace fastx
         {
                 template<typename _socket_base>
-                struct FastClient: public ::libmaus::network::ClientSocket, public _socket_base
+                struct FastClient: public ::libmaus2::network::ClientSocket, public _socket_base
                 {
                         typedef _socket_base socket_base;
                         typedef FastClient<socket_base> this_type;
-                        typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         typedef typename socket_base::pattern_type pattern_type;
                         
                         FastClient(
                                 unsigned short const fqserverport,
                                 std::string const shostname,
-                                std::vector< ::libmaus::fastx::FastInterval > const & index,
+                                std::vector< ::libmaus2::fastx::FastInterval > const & index,
                                 uint64_t const i
                                 )
                         : ClientSocket(fqserverport,shostname.c_str()), _socket_base(this,index,i) {}
                 };
 
-                typedef FastClient< ::libmaus::fastx::SocketFastAReader > FastAClient;
-                typedef FastClient< ::libmaus::fastx::SocketFastQReader > FastQClient;
-                typedef FastClient< ::libmaus::fastx::CompactFastSocketDecoder > FastCClient;
+                typedef FastClient< ::libmaus2::fastx::SocketFastAReader > FastAClient;
+                typedef FastClient< ::libmaus2::fastx::SocketFastQReader > FastQClient;
+                typedef FastClient< ::libmaus2::fastx::CompactFastSocketDecoder > FastCClient;
         }
 }
 #endif

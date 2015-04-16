@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,9 +21,9 @@
 #define POSIXEXECUTE_HPP
 
 #include <string>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
                                           
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -31,10 +31,10 @@ namespace libmaus
 		{
 			static int getTempFile(std::string const stemplate, std::string & filename);
 			static std::string getBaseName(std::string const & name);
-			static std::string getProgBaseName(::libmaus::util::ArgInfo const & arginfo);
-			static int getTempFile(::libmaus::util::ArgInfo const & arginfo, std::string & filename);
+			static std::string getProgBaseName(::libmaus2::util::ArgInfo const & arginfo);
+			static int getTempFile(::libmaus2::util::ArgInfo const & arginfo, std::string & filename);
 			static std::string loadFile(std::string const filename);
-			static void executeOld(::libmaus::util::ArgInfo const & arginfo, std::string const & command, std::string & out, std::string & err);
+			static void executeOld(::libmaus2::util::ArgInfo const & arginfo, std::string const & command, std::string & out, std::string & err);
 			static int setNonBlockFlag (int desc, bool on);
 			static int execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow = false);
 		};

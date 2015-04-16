@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMINFOTYPEINFO)
 #define LIBMAUS_BAMBAM_SAMINFOTYPEINFO
 
-#include <libmaus/bambam/SamInfo.hpp>
+#include <libmaus2/bambam/SamInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -29,7 +29,7 @@ namespace libmaus
 		{
 			typedef SamInfoTypeInfo this_type;
 			
-			typedef libmaus::bambam::SamInfo::shared_ptr_type pointer_type;
+			typedef libmaus2::bambam::SamInfo::shared_ptr_type pointer_type;
 			
 			static pointer_type getNullPointer()
 			{

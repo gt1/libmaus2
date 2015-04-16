@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_FASTX_REFPATHTOKENVECTOR_HPP)
 #define LIBMAUS_FASTX_REFPATHTOKENVECTOR_HPP
 
-#include <libmaus/fastx/RefPathToken.hpp>
+#include <libmaus2/fastx/RefPathToken.hpp>
 #include <vector>
 #include <limits>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -129,7 +129,7 @@ namespace libmaus
 			}
 		};
 		
-		std::ostream & operator<<(std::ostream & out, libmaus::fastx::RefPathTokenVector const & O);
+		std::ostream & operator<<(std::ostream & out, libmaus2::fastx::RefPathTokenVector const & O);
 	}
 }
 #endif

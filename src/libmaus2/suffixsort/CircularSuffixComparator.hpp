@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_CIRCULARSUFFIXCOMPARATOR_HPP)
 #define LIBMAUS_SUFFIXSORT_CIRCULARSUFFIXCOMPARATOR_HPP
 
-#include <libmaus/aio/CircularWrapper.hpp>
-#include <libmaus/bitio/CompactDecoderBuffer.hpp>
+#include <libmaus2/aio/CircularWrapper.hpp>
+#include <libmaus2/bitio/CompactDecoderBuffer.hpp>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		struct CircularWrapperFactory
 		{
-			typedef ::libmaus::aio::CircularWrapper wrapper_type;
+			typedef ::libmaus2::aio::CircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 			typedef ::std::istream base_istream_type;
 			typedef base_istream_type::int_type int_type;
@@ -43,7 +43,7 @@ namespace libmaus
 
 		struct CompactDecoderWrapperFactory
 		{
-			typedef ::libmaus::aio::CompactCircularWrapper wrapper_type;
+			typedef ::libmaus2::aio::CompactCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 			typedef ::std::istream base_istream_type;
 			typedef base_istream_type::int_type int_type;
@@ -57,7 +57,7 @@ namespace libmaus
 
 		struct PacDecoderWrapperFactory
 		{
-			typedef ::libmaus::aio::PacCircularWrapper wrapper_type;
+			typedef ::libmaus2::aio::PacCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 			typedef ::std::istream base_istream_type;
 			typedef base_istream_type::int_type int_type;
@@ -71,7 +71,7 @@ namespace libmaus
 
 		struct PacTermDecoderWrapperFactory
 		{
-			typedef ::libmaus::aio::PacTermCircularWrapper wrapper_type;
+			typedef ::libmaus2::aio::PacTermCircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 			typedef ::std::istream base_istream_type;
 			typedef base_istream_type::int_type int_type;
@@ -85,7 +85,7 @@ namespace libmaus
 
 		struct Lz4DecoderWrapperFactory
 		{
-			typedef ::libmaus::aio::Lz4CircularWrapper wrapper_type;
+			typedef ::libmaus2::aio::Lz4CircularWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 			typedef ::std::istream base_istream_type;
 			typedef base_istream_type::int_type int_type;
@@ -99,7 +99,7 @@ namespace libmaus
 
 		struct Utf8DecoderWrapperFactory
 		{
-			typedef ::libmaus::aio::Utf8CircularWrapperWrapper wrapper_type;
+			typedef ::libmaus2::aio::Utf8CircularWrapperWrapper wrapper_type;
 			typedef wrapper_type::unique_ptr_type wrapper_ptr_type;
 			typedef ::std::wistream base_istream_type;
 			typedef base_istream_type::int_type int_type;

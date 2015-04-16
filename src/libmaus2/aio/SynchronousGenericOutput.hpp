@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,17 +20,17 @@
 #if ! defined(LIBMAUS_AIO_SYNCHRONOUSGENERICOUTPUT_HPP)
 #define LIBMAUS_AIO_SYNCHRONOUSGENERICOUTPUT_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/aio/PutOutputIterator.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/PutOutputIterator.hpp>
 #include <string>
 #include <fstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -43,11 +43,11 @@ namespace libmaus
                 	//! this type
                         typedef SynchronousGenericOutput<data_type> this_type;
                         //! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! output file stream type
-			typedef ::libmaus::util::unique_ptr< std::ofstream >::type ofstream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr< std::ofstream >::type ofstream_ptr_type;
 			//! file stream type
-			typedef ::libmaus::util::unique_ptr< std::fstream  >::type  fstream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr< std::fstream  >::type  fstream_ptr_type;
 			//! iterator type
 			typedef PutOutputIterator<data_type,this_type> iterator_type;
 
@@ -56,7 +56,7 @@ namespace libmaus
 			static bool const append = false;
 			
 			//! output buffer
-                        ::libmaus::autoarray::AutoArray<data_type> B;
+                        ::libmaus2::autoarray::AutoArray<data_type> B;
                         //! output buffer start pointer
                         data_type * const pa;
                         //! output buffer current pointer
@@ -85,7 +85,7 @@ namespace libmaus
                                 
                                 if ( ! W )
                                 {
-                                        ::libmaus::exception::LibMausException se;
+                                        ::libmaus2::exception::LibMausException se;
                                         se.getStream() << "Failed to write in SynchronousGenericOutput::writeBuffer()";
                                         se.finish();
                                         throw se;
@@ -105,8 +105,8 @@ namespace libmaus
                          * @param A array to be written
                          * @param outputfilename name of output file
                          **/
-			template< ::libmaus::autoarray::alloc_type atype >
-			static void writeArray(::libmaus::autoarray::AutoArray<data_type,atype> const & A, 
+			template< ::libmaus2::autoarray::alloc_type atype >
+			static void writeArray(::libmaus2::autoarray::AutoArray<data_type,atype> const & A, 
 				std::string const & outputfilename)
 			{
 				this_type out(outputfilename,64*1024);
@@ -169,7 +169,7 @@ namespace libmaus
 
                                 if ( ! W )
                                 {
-                                        ::libmaus::exception::LibMausException se;
+                                        ::libmaus2::exception::LibMausException se;
                                         se.getStream() << "Failed to flush in SynchronousGenericOutput::flush()";
                                         se.finish();
                                         throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(COMPACTOFFSETONEARRAY_HPP)
 #define COMPACTOFFSETONEARRAY_HPP
 
-#include <libmaus/bitio/CompactArrayBase.hpp>
-#include <libmaus/bitio/ReverseTable.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/bitio/putBits.hpp>
+#include <libmaus2/bitio/CompactArrayBase.hpp>
+#include <libmaus2/bitio/ReverseTable.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/bitio/putBits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -68,7 +68,7 @@ namespace libmaus
 				uint64_t cnt[2] = {0,0};
 				
 				for ( ; left != right; ++left )
-					cnt[ ::libmaus::bitio::getBit(D,addoffset+left*b) ]++;
+					cnt[ ::libmaus2::bitio::getBit(D,addoffset+left*b) ]++;
 					
 				lsb = cnt[0];
 				msb = cnt[1];					
@@ -80,11 +80,11 @@ namespace libmaus
 				
 				for ( uint64_t i = 0; i < length/2; ++i )
 				{
-					bool const v0 = ::libmaus::bitio::getBit(D,addoffset+l+i);
-					bool const v1 = ::libmaus::bitio::getBit(D,addoffset+h-i-1);
+					bool const v0 = ::libmaus2::bitio::getBit(D,addoffset+l+i);
+					bool const v1 = ::libmaus2::bitio::getBit(D,addoffset+h-i-1);
 					
-					::libmaus::bitio::putBit(D,addoffset+l+i,v1);
-					::libmaus::bitio::putBit(D,addoffset+h-i-1,v0);
+					::libmaus2::bitio::putBit(D,addoffset+l+i,v1);
+					::libmaus2::bitio::putBit(D,addoffset+h-i-1,v0);
 				}	
 			}
 
@@ -98,10 +98,10 @@ namespace libmaus
 				
 				for ( uint64_t i = 0; i < doublewords; ++i )
 				{
-					uint64_t a = revtable ( revtable.b, ::libmaus::bitio::getBits ( D, addoffset + l + i*revtable.b, revtable.b ));
-					uint64_t b = revtable ( revtable.b, ::libmaus::bitio::getBits ( D, addoffset + h - (i+1)*revtable.b, revtable.b ));
-					::libmaus::bitio::putBits ( D, addoffset + l+i*revtable.b, revtable.b, b );
-					::libmaus::bitio::putBits ( D, addoffset + h-(i+1)*revtable.b, revtable.b, a );		
+					uint64_t a = revtable ( revtable.b, ::libmaus2::bitio::getBits ( D, addoffset + l + i*revtable.b, revtable.b ));
+					uint64_t b = revtable ( revtable.b, ::libmaus2::bitio::getBits ( D, addoffset + h - (i+1)*revtable.b, revtable.b ));
+					::libmaus2::bitio::putBits ( D, addoffset + l+i*revtable.b, revtable.b, b );
+					::libmaus2::bitio::putBits ( D, addoffset + h-(i+1)*revtable.b, revtable.b, a );		
 				}
 				
 				uint64_t restl = l + doublewords * revtable.b;
@@ -109,11 +109,11 @@ namespace libmaus
 				
 				uint64_t restlength2 = (resth-restl)/2;
 				
-				uint64_t a = revtable ( restlength2, ::libmaus::bitio::getBits ( D, addoffset + restl, restlength2 ));
-				uint64_t b = revtable ( restlength2, ::libmaus::bitio::getBits ( D, addoffset + resth - restlength2, restlength2 ) );
+				uint64_t a = revtable ( restlength2, ::libmaus2::bitio::getBits ( D, addoffset + restl, restlength2 ));
+				uint64_t b = revtable ( restlength2, ::libmaus2::bitio::getBits ( D, addoffset + resth - restlength2, restlength2 ) );
 				
-				::libmaus::bitio::putBits ( D, addoffset + restl, restlength2, b );
-				::libmaus::bitio::putBits ( D, addoffset + resth-restlength2, restlength2, a );
+				::libmaus2::bitio::putBits ( D, addoffset + restl, restlength2, b );
+				::libmaus2::bitio::putBits ( D, addoffset + resth-restlength2, restlength2, a );
 				
 				assert ( restlength2 <= revtable.b );
 				

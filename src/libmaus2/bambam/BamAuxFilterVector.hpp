@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,44 +19,44 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMAUXFILTERVECTOR_HPP)
 #define LIBMAUS_BAMBAM_BAMAUXFILTERVECTOR_HPP
 
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/stringFunctions.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamAuxFilterVector
 		{
 			typedef BamAuxFilterVector this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			libmaus::bitio::BitVector B;
+			libmaus2::bitio::BitVector B;
 			
 			size_t byteSize() const
 			{
 				return B.byteSize();
 			}
 
-			static libmaus::bambam::BamAuxFilterVector::unique_ptr_type parseAuxFilterList(libmaus::util::ArgInfo const & arginfo)
+			static libmaus2::bambam::BamAuxFilterVector::unique_ptr_type parseAuxFilterList(libmaus2::util::ArgInfo const & arginfo)
 			{
-				libmaus::bambam::BamAuxFilterVector::unique_ptr_type pfilter;
+				libmaus2::bambam::BamAuxFilterVector::unique_ptr_type pfilter;
 				
 				if ( arginfo.hasArg("auxfilter") )
 				{
-					libmaus::bambam::BamAuxFilterVector::unique_ptr_type tfilter(
-						new libmaus::bambam::BamAuxFilterVector
+					libmaus2::bambam::BamAuxFilterVector::unique_ptr_type tfilter(
+						new libmaus2::bambam::BamAuxFilterVector
 					);
 
 					std::string const filterlist = arginfo.getUnparsedValue("auxfilter","");
-					std::deque<std::string> tokens = libmaus::util::stringFunctions::tokenize<std::string>(filterlist,std::string(","));
+					std::deque<std::string> tokens = libmaus2::util::stringFunctions::tokenize<std::string>(filterlist,std::string(","));
 					
 					for ( uint64_t i = 0; i < tokens.size(); ++i )
 					{
 						if ( tokens[i].size() != 2 )
 						{
-							libmaus::exception::LibMausException se;
+							libmaus2::exception::LibMausException se;
 							se.getStream() << "Malformed tag name " << tokens[i] << std::endl;
 							se.finish();
 							throw se;
@@ -104,7 +104,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamAuxFilterVector called for string which is not of length 2: " << s << std::endl;
 					se.finish();
 					throw se;

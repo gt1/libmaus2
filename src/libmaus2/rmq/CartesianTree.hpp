@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(CARTESIANTREE_HPP)
 #define CARTESIANTREE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rmq
 	{
@@ -35,9 +35,9 @@ namespace libmaus
 		struct CartesianTree
 		{
 			protected:
-			::libmaus::autoarray::AutoArray<uint64_t> leftright;
-			::libmaus::autoarray::AutoArray<uint64_t> parent;
-			::libmaus::autoarray::AutoArray<key_type> K;
+			::libmaus2::autoarray::AutoArray<uint64_t> leftright;
+			::libmaus2::autoarray::AutoArray<uint64_t> parent;
+			::libmaus2::autoarray::AutoArray<key_type> K;
 			uint64_t root;
 			uint64_t const n;
 
@@ -64,9 +64,9 @@ namespace libmaus
 			
 			void allocate()
 			{
-				leftright = ::libmaus::autoarray::AutoArray<uint64_t>(n<<1,true); for ( uint64_t i = 0; i < (n<<1); ++i ) leftright[i] = n;
-				parent = ::libmaus::autoarray::AutoArray<uint64_t>(n,false); for ( uint64_t i = 0; i < n; ++i ) parent[i] = n;
-				K = ::libmaus::autoarray::AutoArray<key_type>(n,false);
+				leftright = ::libmaus2::autoarray::AutoArray<uint64_t>(n<<1,true); for ( uint64_t i = 0; i < (n<<1); ++i ) leftright[i] = n;
+				parent = ::libmaus2::autoarray::AutoArray<uint64_t>(n,false); for ( uint64_t i = 0; i < n; ++i ) parent[i] = n;
+				K = ::libmaus2::autoarray::AutoArray<key_type>(n,false);
 			}
 
 			void inorder(::std::ostream & out, uint64_t node) const
@@ -203,16 +203,16 @@ namespace libmaus
 			{
 				::std::ostringstream ostr;
 				::std::ostream_iterator<uint8_t> ostrit(ostr);
-				::libmaus::bitio::BitWriterStream8 BWS8(ostrit);
+				::libmaus2::bitio::BitWriterStream8 BWS8(ostrit);
 				bps(BWS8);
 				BWS8.flush();
 				return ostr.str();
 			}
 			
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type bpsVector() const
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type bpsVector() const
 			{
-				::libmaus::bitio::IndexedBitVector::unique_ptr_type IB ( new ::libmaus::bitio::IndexedBitVector(2*n) );
-				::libmaus::bitio::BitWriter8 BW8(IB->A.get());
+				::libmaus2::bitio::IndexedBitVector::unique_ptr_type IB ( new ::libmaus2::bitio::IndexedBitVector(2*n) );
+				::libmaus2::bitio::BitWriter8 BW8(IB->A.get());
 				bps(BW8);
 				BW8.flush();
 				IB->setupIndex();

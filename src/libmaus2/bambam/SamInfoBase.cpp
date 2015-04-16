@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/SamInfoBase.hpp>
+#include <libmaus2/bambam/SamInfoBase.hpp>
 
 /*
  * the tables below were produced by the following c program
@@ -85,7 +85,7 @@ int main()
 	fprintf(stdout,"#if ! defined(LIBMAUS_BAMBAM_SAMINFO_HPP)\n");
 	fprintf(stdout,"#define LIBMAUS_BAMBAM_SAMINFO_HPP\n\n");
 	char const * s = 
-		"namespace libmaus\n"
+		"namespace libmaus2\n"
 		"{\n"
 		"\tnamespace bambam\n"
 		"\t{\n"
@@ -102,16 +102,16 @@ int main()
 		;
 	fprintf(stdout,"%s",s);
 	fprintf(stdout,"#endif\n");
-	printTable("libmaus::bambam::SamInfoBase::qnameValid",&qnameValid[0],sizeof(qnameValid)/sizeof(qnameValid[0]),stdout);
-	printTable("libmaus::bambam::SamInfoBase::rnameFirstValid",&rnameFirstValid[0],sizeof(rnameFirstValid)/sizeof(rnameFirstValid[0]),stdout);
-	printTable("libmaus::bambam::SamInfoBase::rnameOtherValid",&rnameOtherValid[0],sizeof(rnameOtherValid)/sizeof(rnameOtherValid[0]),stdout);
-	printTable("libmaus::bambam::SamInfoBase::seqValid",&seqValid[0],sizeof(seqValid)/sizeof(seqValid[0]),stdout);
-	printTable("libmaus::bambam::SamInfoBase::qualValid",&qualValid[0],sizeof(qualValid)/sizeof(qualValid[0]),stdout);
+	printTable("libmaus2::bambam::SamInfoBase::qnameValid",&qnameValid[0],sizeof(qnameValid)/sizeof(qnameValid[0]),stdout);
+	printTable("libmaus2::bambam::SamInfoBase::rnameFirstValid",&rnameFirstValid[0],sizeof(rnameFirstValid)/sizeof(rnameFirstValid[0]),stdout);
+	printTable("libmaus2::bambam::SamInfoBase::rnameOtherValid",&rnameOtherValid[0],sizeof(rnameOtherValid)/sizeof(rnameOtherValid[0]),stdout);
+	printTable("libmaus2::bambam::SamInfoBase::seqValid",&seqValid[0],sizeof(seqValid)/sizeof(seqValid[0]),stdout);
+	printTable("libmaus2::bambam::SamInfoBase::qualValid",&qualValid[0],sizeof(qualValid)/sizeof(qualValid[0]),stdout);
 	return 0;
 }
 */
 
-char const libmaus::bambam::SamInfoBase::qnameValid[256] = {
+char const libmaus2::bambam::SamInfoBase::qnameValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -120,7 +120,7 @@ char const libmaus::bambam::SamInfoBase::qnameValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
-char const libmaus::bambam::SamInfoBase::rnameFirstValid[256] = {
+char const libmaus2::bambam::SamInfoBase::rnameFirstValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,
 	1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -129,7 +129,7 @@ char const libmaus::bambam::SamInfoBase::rnameFirstValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
-char const libmaus::bambam::SamInfoBase::rnameOtherValid[256] = {
+char const libmaus2::bambam::SamInfoBase::rnameOtherValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -138,7 +138,7 @@ char const libmaus::bambam::SamInfoBase::rnameOtherValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
-char const libmaus::bambam::SamInfoBase::seqValid[256] = {
+char const libmaus2::bambam::SamInfoBase::seqValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -147,7 +147,7 @@ char const libmaus::bambam::SamInfoBase::seqValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
-char const libmaus::bambam::SamInfoBase::qualValid[256] = {
+char const libmaus2::bambam::SamInfoBase::qualValid[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,17 +20,17 @@
 #if ! defined(INFLATE_HPP)
 #define INFLATE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 #include <zlib.h>
 #include <cassert>
 
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -41,12 +41,12 @@ namespace libmaus
 			z_stream strm;
 			
 			typedef std::ifstream istr_file_type;
-			typedef ::libmaus::util::unique_ptr<istr_file_type>::type istr_file_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<istr_file_type>::type istr_file_ptr_type;
 			
 			istr_file_ptr_type pin;
 			std::istream & in;
-			::libmaus::autoarray::AutoArray<uint8_t> inbuf;
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_c> outbuf;
+			::libmaus2::autoarray::AutoArray<uint8_t> inbuf;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_c> outbuf;
 			uint64_t outbuffill;
 			uint8_t const * op;
 			int ret;
@@ -55,7 +55,7 @@ namespace libmaus
 			{
 				if ( (ret=inflateReset(&strm)) != Z_OK )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Inflate::zreset(): inflateReset failed";
 					se.finish();
 					throw se;									
@@ -83,7 +83,7 @@ namespace libmaus
 					
 				if (ret != Z_OK)
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "inflate failed in inflateInit";
 					se.finish();
 					throw se;
@@ -191,7 +191,7 @@ namespace libmaus
 
 				if ( ret != Z_OK && ret != Z_STREAM_END )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Inflate::fillBuffer(): zlib state clobbered after inflate(), state is ";
 					
 					switch ( ret )
@@ -236,10 +236,10 @@ namespace libmaus
 		struct BlockInflate
 		{
 			typedef BlockInflate this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef std::ifstream istream_type;
-			typedef ::libmaus::util::unique_ptr<istream_type>::type istream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<istream_type>::type istream_ptr_type;
 
 			std::vector < std::pair<uint64_t,uint64_t> > index;
 			uint64_t blockptr;
@@ -248,7 +248,7 @@ namespace libmaus
 			istream_ptr_type Pistr;
 			istream_type & istr;
 			
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_c> B;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_c> B;
 			uint8_t * pa;
 			uint8_t * pc;
 			uint8_t * pe;
@@ -259,15 +259,15 @@ namespace libmaus
 				std::vector < std::pair<uint64_t,uint64_t> > index;
 
 				istr.seekg(-8,std::ios::end);
-				uint64_t const indexpos = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+				uint64_t const indexpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				// std::cerr << "index at position " << indexpos << std::endl;
 				istr.seekg(indexpos,std::ios::beg);
-				uint64_t const indexlen = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+				uint64_t const indexlen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				// std::cerr << "indexlen " << indexlen << std::endl;
 				for ( uint64_t i = 0; i < indexlen; ++i )
 				{
-					uint64_t const blockpos = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
-					uint64_t const blocklen = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+					uint64_t const blockpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
+					uint64_t const blocklen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 					index.push_back(std::pair<uint64_t,uint64_t>(blockpos,blocklen));
 					// std::cerr << "blockpos=" << blockpos << " blocklen=" << blocklen << std::endl;
 				}
@@ -365,7 +365,7 @@ namespace libmaus
 					
 				istr.clear();
 				istr.seekg ( index[blockptr].first, std::ios::beg );
-				uint64_t const blocklen = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+				uint64_t const blocklen = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				if ( B.size() < blocklen )
 				{
 					B.resize(blocklen);
@@ -380,9 +380,9 @@ namespace libmaus
 				return true;
 			}
 			
-			::libmaus::autoarray::AutoArray<uint8_t> getReverse()
+			::libmaus2::autoarray::AutoArray<uint8_t> getReverse()
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> A(n,false);
+				::libmaus2::autoarray::AutoArray<uint8_t> A(n,false);
 				uint8_t * outptr = A.begin();
 				
 				for ( uint64_t i = 0; i < index.size(); ++i )
@@ -403,7 +403,7 @@ namespace libmaus
 		struct ConcatBlockInflate
 		{
 			typedef ConcatBlockInflate this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 					
 			std::vector<std::string> const filenames;
 			uint64_t fileptr;
@@ -491,7 +491,7 @@ namespace libmaus
 						int const val = CD.get();
 						if ( val != 0 )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "Failed to set correct split point at " << points[i] 
 								<< " expected 0 got " << val 
 								<< " point " << i << " points.size()=" << points.size()

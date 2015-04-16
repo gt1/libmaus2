@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,27 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/network/GnuTLSInit.hpp>
+#include <libmaus2/network/GnuTLSInit.hpp>
 
 #if defined(LIBMAUS_HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #endif
 
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-libmaus::parallel::PosixSpinLock libmaus::network::GnuTLSInit::lock;
-uint64_t libmaus::network::GnuTLSInit::initcomplete = 0;
+libmaus2::parallel::PosixSpinLock libmaus2::network::GnuTLSInit::lock;
+uint64_t libmaus2::network::GnuTLSInit::initcomplete = 0;
 
-libmaus::network::GnuTLSInit::GnuTLSInit()
+libmaus2::network::GnuTLSInit::GnuTLSInit()
 {
-	libmaus::parallel::ScopePosixSpinLock slock(lock);
+	libmaus2::parallel::ScopePosixSpinLock slock(lock);
 	if ( ! initcomplete++ )
 	{
 		#if defined(LIBMAUS_HAVE_GNUTLS)
 		if (gnutls_check_version("2.12.14") == NULL) 
 		{
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "Required GnuTLS 2.12.14 not available" << "\n";
 			lme.finish();
 			throw lme;
@@ -46,9 +46,9 @@ libmaus::network::GnuTLSInit::GnuTLSInit()
 		#endif
 	}
 }
-libmaus::network::GnuTLSInit::~GnuTLSInit()
+libmaus2::network::GnuTLSInit::~GnuTLSInit()
 {
-	libmaus::parallel::ScopePosixSpinLock slock(lock);
+	libmaus2::parallel::ScopePosixSpinLock slock(lock);
 	if ( ! --initcomplete )
 	{
 		#if defined(LIBMAUS_HAVE_GNUTLS)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_TRIE_SIMPLETRIE_HPP)
 #define LIBMAUS_TRIE_SIMPLETRIE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/SimpleHashMap.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/SimpleHashMap.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace trie
 	{
@@ -30,14 +30,14 @@ namespace libmaus
 		{
 			public:
 			typedef SimpleTrie this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			static double const critload;
 			
 			uint64_t nextfree;
-			libmaus::util::SimpleHashMap<uint64_t,uint64_t> H;
+			libmaus2::util::SimpleHashMap<uint64_t,uint64_t> H;
 			uint64_t nextid;
 			std::vector<int32_t> idvec;
 			

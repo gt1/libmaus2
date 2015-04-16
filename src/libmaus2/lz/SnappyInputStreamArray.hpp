@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYINPUTSTREAMARRAY_HPP)
 #define LIBMAUS_LZ_SNAPPYINPUTSTREAMARRAY_HPP
 
-#include <libmaus/lz/SnappyInputStream.hpp>
+#include <libmaus2/lz/SnappyInputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyInputStreamArray
 		{
-			::libmaus::autoarray::AutoArray<SnappyInputStream::unique_ptr_type> A;
+			::libmaus2::autoarray::AutoArray<SnappyInputStream::unique_ptr_type> A;
 
 			template<typename iterator>			
 			SnappyInputStreamArray(std::istream & in, iterator offa, iterator offe)

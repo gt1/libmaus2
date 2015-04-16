@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_AIO_SYNCHRONOUSOUTPUTBUFFER8POSIX_HPP)
 #define LIBMAUS_AIO_SYNCHRONOUSOUTPUTBUFFER8POSIX_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 			//! this type
 			typedef SynchronousOutputBuffer8Posix this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
 			
 			//! value type
 			typedef uint64_t value_type;
@@ -46,7 +46,7 @@ namespace libmaus
 			//! output file name
 			std::string const filename;
 			//! output buffer
-			::libmaus::autoarray::AutoArray<value_type> B;
+			::libmaus2::autoarray::AutoArray<value_type> B;
 			//! output buffer start pointer
 			value_type * const pa;
 			//! output buffer current pointer
@@ -65,7 +65,7 @@ namespace libmaus
                                 
                                 if ( fd < 0 )
                                 {
-				        ::libmaus::exception::LibMausException se;
+				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to open buffer file " << filename << " in SynchronousOutputBuffer8Posix::writeBuffer(): "
 				                << strerror(errno);
 				        se.finish();
@@ -76,7 +76,7 @@ namespace libmaus
                                 {
                                         close(fd);
 
-				        ::libmaus::exception::LibMausException se;
+				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to seek in file " << filename << " in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
 				        throw se;                                
@@ -89,7 +89,7 @@ namespace libmaus
 				{
 				        close(fd);
 				        
-				        ::libmaus::exception::LibMausException se;
+				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to write buffer in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
 				        throw se;
@@ -100,7 +100,7 @@ namespace libmaus
 				{
 				        close(fd);
 
-				        ::libmaus::exception::LibMausException se;
+				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to flush file in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
 				        throw se;
@@ -109,7 +109,7 @@ namespace libmaus
 				
 				if ( close(fd) )
 				{
-				        ::libmaus::exception::LibMausException se;
+				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to close file properly in SynchronousOutputBuffer8Posix::writeBuffer()";
 				        se.finish();
 				        throw se;				
@@ -135,7 +135,7 @@ namespace libmaus
 					int const tres = ::truncate(filename.c_str(),0);
 					if ( tres )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "SynchronousOutputBuffer8Posix::SynchronousOutputBuffer8Posix(): truncate() failed: " << strerror(errno) << std::endl;
 						se.finish();
 						throw se;

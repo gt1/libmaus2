@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 /**
  * constructor copying current values of AutoArray memory usage
  **/
-libmaus::autoarray::AutoArrayMemUsage::AutoArrayMemUsage()
+libmaus2::autoarray::AutoArrayMemUsage::AutoArrayMemUsage()
 : memusage(AutoArray_memusage), peakmemusage(AutoArray_peakmemusage), maxmem(AutoArray_maxmem)
 {
 }
@@ -31,7 +31,7 @@ libmaus::autoarray::AutoArrayMemUsage::AutoArrayMemUsage()
  * copy constructor
  * @param o object copied
  **/
-libmaus::autoarray::AutoArrayMemUsage::AutoArrayMemUsage(libmaus::autoarray::AutoArrayMemUsage const & o)
+libmaus2::autoarray::AutoArrayMemUsage::AutoArrayMemUsage(libmaus2::autoarray::AutoArrayMemUsage const & o)
 : memusage(o.memusage), peakmemusage(o.peakmemusage), maxmem(o.maxmem)
 {
 }
@@ -41,7 +41,7 @@ libmaus::autoarray::AutoArrayMemUsage::AutoArrayMemUsage(libmaus::autoarray::Aut
  * @param o object copied
  * @return *this
  **/
-libmaus::autoarray::AutoArrayMemUsage & libmaus::autoarray::AutoArrayMemUsage::operator=(AutoArrayMemUsage const & o)
+libmaus2::autoarray::AutoArrayMemUsage & libmaus2::autoarray::AutoArrayMemUsage::operator=(AutoArrayMemUsage const & o)
 {
 	memusage = o.memusage;
 	peakmemusage = o.peakmemusage;
@@ -54,7 +54,7 @@ libmaus::autoarray::AutoArrayMemUsage & libmaus::autoarray::AutoArrayMemUsage::o
  * @param o object to be compared
  * @return true iff *this == o
  **/
-bool libmaus::autoarray::AutoArrayMemUsage::operator==(libmaus::autoarray::AutoArrayMemUsage const & o) const
+bool libmaus2::autoarray::AutoArrayMemUsage::operator==(libmaus2::autoarray::AutoArrayMemUsage const & o) const
 {
 	return
 		memusage == o.memusage
@@ -68,35 +68,35 @@ bool libmaus::autoarray::AutoArrayMemUsage::operator==(libmaus::autoarray::AutoA
  * @param o object to be compared
  * @return true iff *this != o
  **/
-bool  libmaus::autoarray::AutoArrayMemUsage::operator!=(libmaus::autoarray::AutoArrayMemUsage const & o) const
+bool  libmaus2::autoarray::AutoArrayMemUsage::operator!=(libmaus2::autoarray::AutoArrayMemUsage const & o) const
 {
 	return ! ((*this)==o);
 }
 
-std::ostream & libmaus::autoarray::operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu)
+std::ostream & libmaus2::autoarray::operator<<(std::ostream & out, libmaus2::autoarray::AutoArrayMemUsage const & aamu)
 {
 	#if defined(_OPENMP)
-	libmaus::autoarray::AutoArray_lock.lock();
+	libmaus2::autoarray::AutoArray_lock.lock();
 	#endif
 	out << "AutoArrayMemUsage("
 		"memusage=" << static_cast<double>(aamu.memusage)/(1024.0*1024.0) << "," <<
 		"peakmemusage=" << static_cast<double>(aamu.peakmemusage)/(1024.0*1024.0) << "," <<
 		"maxmem=" << static_cast<double>(aamu.maxmem)/(1024.0*1024.0) << ")";
 	#if defined(_OPENMP)
-	libmaus::autoarray::AutoArray_lock.unlock();
+	libmaus2::autoarray::AutoArray_lock.unlock();
 	#endif			
 	return out;
 }
 
 #if defined(AUTOARRAY_TRACE)
-#include <libmaus/util/PosixExecute.hpp>
-#include <libmaus/util/UnitNum.hpp>
+#include <libmaus2/util/PosixExecute.hpp>
+#include <libmaus2/util/UnitNum.hpp>
 
 #include <set>
 
-void libmaus::autoarray::autoArrayPrintTraces(std::ostream & out)
+void libmaus2::autoarray::autoArrayPrintTraces(std::ostream & out)
 {
-	libmaus::parallel::ScopePosixSpinLock slock(tracelock);
+	libmaus2::parallel::ScopePosixSpinLock slock(tracelock);
 	std::sort(tracevector.begin(),tracevector.end());
 	std::reverse(tracevector.begin(),tracevector.end());
 	
@@ -154,7 +154,7 @@ void libmaus::autoarray::autoArrayPrintTraces(std::ostream & out)
 		std::string const comline = comlinestr.str();
 						
 		std::string addrout,addrerr;
-		::libmaus::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
+		::libmaus2::util::PosixExecute::execute(comline,addrout,addrerr,true /* do not throw exceptions */);
 		
 		std::vector<std::string> outputlines;
 		std::istringstream addristr(addrout);
@@ -217,7 +217,7 @@ void libmaus::autoarray::autoArrayPrintTraces(std::ostream & out)
 						mang = std::string();
 					}
 					
-					mang = libmaus::util::Demangle::demangleName(mang);
+					mang = libmaus2::util::Demangle::demangleName(mang);
 				}
 				else
 				{
@@ -250,7 +250,7 @@ void libmaus::autoarray::autoArrayPrintTraces(std::ostream & out)
 		}
 
 		out << "type=" << tracevector[i].type << std::endl;
-		out << "remcnt=" << libmaus::util::UnitNum::unitNum(tracevector[i].allocbytes - tracevector[i].freebytes) << std::endl;
+		out << "remcnt=" << libmaus2::util::UnitNum::unitNum(tracevector[i].allocbytes - tracevector[i].freebytes) << std::endl;
 		out << "alloccnt=" << tracevector[i].alloccnt << std::endl;
 		out << "allocbytes=" << tracevector[i].allocbytes << std::endl;
 		out << "freecnt=" << tracevector[i].freecnt << std::endl;

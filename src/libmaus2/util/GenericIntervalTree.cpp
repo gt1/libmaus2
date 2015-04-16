@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/GenericIntervalTree.hpp>
+#include <libmaus2/util/GenericIntervalTree.hpp>
 		
-libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > libmaus::util::GenericIntervalTree::computeNonEmpty(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V)
+libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > libmaus2::util::GenericIntervalTree::computeNonEmpty(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V)
 {
 	uint64_t nonempty = 0;
 	for ( uint64_t i = 0; i < V.size(); ++i )
@@ -29,30 +29,30 @@ libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > libmaus::util::Gen
 	if ( nonempty == 0 )
 		std::cerr << "all of the " << V.size() << " intervals are empty." << std::endl;
 
-	::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > R(nonempty);
+	::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > R(nonempty);
 	nonempty = 0;
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		if ( V[i].first != V[i].second )
 			R [ nonempty++ ] = V[i];
 	return R;
 }
-libmaus::bitio::IndexedBitVector::unique_ptr_type libmaus::util::GenericIntervalTree::computeNonEmptyBV(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V)
+libmaus2::bitio::IndexedBitVector::unique_ptr_type libmaus2::util::GenericIntervalTree::computeNonEmptyBV(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & V)
 {
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type BV(new ::libmaus::bitio::IndexedBitVector(V.size()));
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type BV(new ::libmaus2::bitio::IndexedBitVector(V.size()));
 	for ( uint64_t i = 0; i < V.size(); ++i )
 		(*BV)[i] = (V[i].first != V[i].second);
 	BV->setupIndex();
 	return UNIQUE_PTR_MOVE(BV);
 }
 
-libmaus::util::GenericIntervalTree::GenericIntervalTree(::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & H)
+libmaus2::util::GenericIntervalTree::GenericIntervalTree(::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & H)
 : nonempty(computeNonEmpty(H)), BV(computeNonEmptyBV(H)), 
   IT(nonempty.size() ? (new IntervalTree(nonempty,0,nonempty.size())) : 0)
 {
 
 }
 
-uint64_t libmaus::util::GenericIntervalTree::find(uint64_t const v) const
+uint64_t libmaus2::util::GenericIntervalTree::find(uint64_t const v) const
 {
 	uint64_t const r = IT->find(v);
 	return BV->select1(r);

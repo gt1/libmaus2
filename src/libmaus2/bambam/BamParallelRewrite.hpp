@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMPARALLELREWRITE_HPP)
 #define LIBMAUS_BAMBAM_BAMPARALLELREWRITE_HPP
 
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -39,23 +39,23 @@ namespace libmaus
 			 * @param header BAM header
 			 * @return rewritten/modified BAM header
 			 **/
-			virtual libmaus::bambam::BamHeader::unique_ptr_type operator()(libmaus::bambam::BamHeader const & header) const = 0;
+			virtual libmaus2::bambam::BamHeader::unique_ptr_type operator()(libmaus2::bambam::BamHeader const & header) const = 0;
 		};
 	
 		//! class for parallel rewriting of a BAM file
 		struct BamParallelRewrite
 		{
 			//! decoder type
-			typedef libmaus::bambam::BamParallelRewriteDecoder decoder_type;
+			typedef libmaus2::bambam::BamParallelRewriteDecoder decoder_type;
 			//! writer type
-			typedef libmaus::bambam::BamParallelRewriteWriter writer_type;
+			typedef libmaus2::bambam::BamParallelRewriteWriter writer_type;
 
 			//! parallel input stream
-			libmaus::lz::BgzfInflateDeflateParallelInputStream stream;
+			libmaus2::lz::BgzfInflateDeflateParallelInputStream stream;
 			//! decoder
 			decoder_type dec;
 			//! rewritten header
-			libmaus::bambam::BamHeader::unique_ptr_type rewrittenheader;
+			libmaus2::bambam::BamHeader::unique_ptr_type rewrittenheader;
 			//! writer
 			writer_type writer;
 
@@ -79,7 +79,7 @@ namespace libmaus
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
 				uint64_t const blocksperthread = getDefaultBlocksPerThread(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,dec.getHeader(),rblockoutputcallbacks) {}
 
@@ -95,12 +95,12 @@ namespace libmaus
 			 **/
 			BamParallelRewrite(
 				std::istream & in,
-				libmaus::bambam::BamHeader const & header,
+				libmaus2::bambam::BamHeader const & header,
 				std::ostream & out,
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
 				uint64_t const blocksperthread = getDefaultBlocksPerThread(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: stream(in,out,level,numthreads,blocksperthread), dec(stream), writer(stream.bgzf,header,rblockoutputcallbacks) {}
 
@@ -121,14 +121,14 @@ namespace libmaus
 				int const level, // Z_DEFAULT_COMPRESSION
 				uint64_t const numthreads,
 				uint64_t const blocksperthread = getDefaultBlocksPerThread(),
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			: stream(in,out,level,numthreads,blocksperthread), dec(stream), rewrittenheader(rewritecallback(dec.getHeader())), writer(stream.bgzf,*rewrittenheader,rblockoutputcallbacks) {}
 			
 			/**
 			 * @return decoder
 			 */
-			libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return dec;
 			}
@@ -150,7 +150,7 @@ namespace libmaus
 			 *
 			 * @return alignment
 			 */
-			libmaus::bambam::BamAlignment & getAlignment()
+			libmaus2::bambam::BamAlignment & getAlignment()
 			{
 				return dec.getAlignment();
 			}
@@ -162,7 +162,7 @@ namespace libmaus
 			 *
 			 * @return alignment
 			 */
-			libmaus::bambam::BamAlignment const & getAlignment() const
+			libmaus2::bambam::BamAlignment const & getAlignment() const
 			{
 				return dec.getAlignment();
 			}

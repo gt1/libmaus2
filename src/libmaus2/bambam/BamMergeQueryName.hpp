@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMMERGEQUERYNAME_HPP)
 #define LIBMAUS_BAMBAM_BAMMERGEQUERYNAME_HPP
 
-#include <libmaus/bambam/BamCatHeader.hpp>
-#include <libmaus/bambam/BamMergeTemplate.hpp>
-#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
+#include <libmaus2/bambam/BamCatHeader.hpp>
+#include <libmaus2/bambam/BamMergeTemplate.hpp>
+#include <libmaus2/bambam/BamAlignmentNameComparator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamMergeQueyNameHeapComparator
 		{
-			libmaus::bambam::BamAlignment ** algns;
+			libmaus2::bambam::BamAlignment ** algns;
 			
-			BamMergeQueyNameHeapComparator(libmaus::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
+			BamMergeQueyNameHeapComparator(libmaus2::bambam::BamAlignment ** ralgns) : algns(ralgns) {}
 		
 			bool operator()(uint64_t const a, uint64_t const b) const
 			{
-				return libmaus::bambam::BamAlignmentNameComparator::compareInt(*algns[a],*algns[b]) > 0;
+				return libmaus2::bambam::BamAlignmentNameComparator::compareInt(*algns[a],*algns[b]) > 0;
 			}
 		};
 
@@ -47,7 +47,7 @@ namespace libmaus
 			
 			BamMergeQueryNameWrapper(std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(filenames,putrank) {}
-			BamMergeQueryNameWrapper(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
+			BamMergeQueryNameWrapper(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames, bool const putrank = false)
 			: object(arginfo,filenames,putrank) {}
 		};
 	}

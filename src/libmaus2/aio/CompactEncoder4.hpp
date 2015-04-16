@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,11 +22,11 @@
 #define COMPACTENCODER4_HPP
 
 #include <fstream>
-#include <libmaus/aio/GenericOutput.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/aio/GenericOutput.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -40,7 +40,7 @@ namespace libmaus
 			//! ouput stream
 			std::ofstream ostr;
 			//! buffer for output stream
-			::libmaus::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type SGO;
+			::libmaus2::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type SGO;
 			//! current partial output byte
 			uint8_t c;
 			//! true if number of elements written so far is odd (and partial information is in c)
@@ -56,8 +56,8 @@ namespace libmaus
 			CompactEncoder4(std::string const & filename, uint64_t const n)
 			: ostr(filename.c_str(),std::ios::binary), odd(false)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(ostr,n);
-				SGO = ::libmaus::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type(new ::libmaus::aio::SynchronousGenericOutput<uint8_t>(ostr,64*1024));
+				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,n);
+				SGO = ::libmaus2::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type(new ::libmaus2::aio::SynchronousGenericOutput<uint8_t>(ostr,64*1024));
 			}
 			
 			/**

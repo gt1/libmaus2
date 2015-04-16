@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTINTERFACE_HPP)
 #define LIBMAUS_DIGEST_DIGESTINTERFACE_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/types/types.hpp>
 #include <sstream>
 #include <iomanip>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{
 		struct DigestInterface
 		{
 			typedef DigestInterface this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			virtual ~DigestInterface() {}
 			virtual void digest(uint8_t * digest) = 0;
@@ -45,7 +45,7 @@ namespace libmaus
 			virtual std::string vdigestAsString()
 			{
 				size_t const digestlength = vdigestlength();
-				libmaus::autoarray::AutoArray<uint8_t> D(digestlength,false);
+				libmaus2::autoarray::AutoArray<uint8_t> D(digestlength,false);
 				digest(D.begin());
 				return vdigestToString(D.begin());
 			}

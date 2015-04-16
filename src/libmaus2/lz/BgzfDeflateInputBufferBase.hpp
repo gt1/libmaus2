@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEINPUTBUFFERBASE_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEINPUTBUFFERBASE_HPP
 
-#include <libmaus/lz/BgzfConstants.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfConstants.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfDeflateInputBufferBase : public BgzfConstants
 		{
-			::libmaus::autoarray::AutoArray<uint8_t> inbuf;
+			::libmaus2::autoarray::AutoArray<uint8_t> inbuf;
 			
 			uint8_t * const pa;
 			uint8_t * pc;

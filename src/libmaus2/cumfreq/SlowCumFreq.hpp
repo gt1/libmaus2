@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2012 German Tischler
 
     This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,17 @@
 #if ! defined(SLOWCUMFREQ_HPP)
 #define SLOWCUMFREQ_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace cumfreq
 	{
 		struct SlowCumFreq
 		{
 			uint64_t s;
-			::libmaus::autoarray::AutoArray<uint64_t> A;
+			::libmaus2::autoarray::AutoArray<uint64_t> A;
 			
 			SlowCumFreq(uint64_t rs)
 			: s(rs), A(s,false)

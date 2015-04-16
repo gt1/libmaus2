@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,20 +21,20 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEDEFLATEPARALLELINPUTSTREAM_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEDEFLATEPARALLELINPUTSTREAM_HPP
 
-#include <libmaus/lz/StreamWrapper.hpp>
-#include <libmaus/lz/BgzfStreamWrapper.hpp>
-#include <libmaus/lz/BgzfInflateDeflateParallelWrapper.hpp>
+#include <libmaus2/lz/StreamWrapper.hpp>
+#include <libmaus2/lz/BgzfStreamWrapper.hpp>
+#include <libmaus2/lz/BgzfInflateDeflateParallelWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateDeflateParallelInputStream : 
-			public ::libmaus::lz::BgzfInflateDeflateParallelWrapper, 
-			public ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflateDeflateParallel >
+			public ::libmaus2::lz::BgzfInflateDeflateParallelWrapper, 
+			public ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateDeflateParallel >
 		{
 			typedef BgzfInflateDeflateParallelInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			BgzfInflateDeflateParallelInputStream(
 				std::istream & in,
@@ -43,9 +43,9 @@ namespace libmaus
 				uint64_t const rnumthreads,
 				uint64_t const rblocksperthread = 1
 			)
-			: ::libmaus::lz::BgzfInflateDeflateParallelWrapper(in,out,level,rnumthreads,rblocksperthread), 
-			  ::libmaus::lz::BgzfStreamWrapper< ::libmaus::lz::BgzfInflateDeflateParallel >(
-			  	::libmaus::lz::BgzfInflateDeflateParallelWrapper::bgzf,64*1024,0)
+			: ::libmaus2::lz::BgzfInflateDeflateParallelWrapper(in,out,level,rnumthreads,rblocksperthread), 
+			  ::libmaus2::lz::BgzfStreamWrapper< ::libmaus2::lz::BgzfInflateDeflateParallel >(
+			  	::libmaus2::lz::BgzfInflateDeflateParallelWrapper::bgzf,64*1024,0)
 			{
 				exceptions(std::ios::badbit);
 			}

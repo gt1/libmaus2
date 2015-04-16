@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_HUFFMAN_HUFFMANINPUTFILE_HPP)
 #define LIBMAUS_HUFFMAN_HUFFMANINPUTFILE_HPP
 
-#include <libmaus/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
 		struct HuffmanInputFile
 		{
-			typedef ::libmaus::huffman::BitInputBuffer4 sbis_type;			
+			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;			
 			
-			::libmaus::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
 			sbis_type::raw_input_ptr_type ript;
 			sbis_type::unique_ptr_type SBIS;
-			::libmaus::huffman::CanonicalEncoder const & canon;
+			::libmaus2::huffman::CanonicalEncoder const & canon;
 			
-			HuffmanInputFile(std::string const & filename, ::libmaus::huffman::CanonicalEncoder const & rcanon)
+			HuffmanInputFile(std::string const & filename, ::libmaus2::huffman::CanonicalEncoder const & rcanon)
 			: istr(
 				UNIQUE_PTR_MOVE(
-					::libmaus::aio::CheckedInputStream::unique_ptr_type(
-						new ::libmaus::aio::CheckedInputStream(filename)
+					::libmaus2::aio::CheckedInputStream::unique_ptr_type(
+						new ::libmaus2::aio::CheckedInputStream(filename)
 					)
 				)
 			  ),

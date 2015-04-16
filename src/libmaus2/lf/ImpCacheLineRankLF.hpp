@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,46 +19,46 @@
 #if ! defined(LIBMAUS_LF_IMPCACHELINERANKLF_HPP)
 #define LIBMAUS_LF_IMPCACHELINERANKLF_HPP
 
-#include <libmaus/huffman/RLDecoder.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
 		struct ImpCacheLineRankLF
 		{
-			typedef ::libmaus::rank::ImpCacheLineRank rank_type;
+			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			typedef rank_type::WriteContext writer_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;			
 			
 			typedef ImpCacheLineRankLF this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			uint64_t n;
-			::libmaus::autoarray::AutoArray < rank_ptr_type > rank_dictionaries;
-			::libmaus::autoarray::AutoArray < uint64_t > D;
+			::libmaus2::autoarray::AutoArray < rank_ptr_type > rank_dictionaries;
+			::libmaus2::autoarray::AutoArray < uint64_t > D;
 
 			static unique_ptr_type constructFromRL(std::string const & filename, uint64_t const maxval, uint64_t * const zcnt = 0)
 			{
-				::libmaus::huffman::RLDecoder decoder(std::vector<std::string>(1,filename));
+				::libmaus2::huffman::RLDecoder decoder(std::vector<std::string>(1,filename));
 				return unique_ptr_type(new this_type(decoder,maxval,zcnt));
 			}
 
 			static unique_ptr_type constructFromRL(std::vector<std::string> const & filenames, uint64_t const maxval, uint64_t * const zcnt = 0)
 			{
-				::libmaus::huffman::RLDecoder decoder(filenames);
+				::libmaus2::huffman::RLDecoder decoder(filenames);
 				return unique_ptr_type(new this_type(decoder,maxval,zcnt));
 			}
 
-			ImpCacheLineRankLF (::libmaus::huffman::RLDecoder & decoder, uint64_t const maxval, uint64_t * const zcnt = 0)
+			ImpCacheLineRankLF (::libmaus2::huffman::RLDecoder & decoder, uint64_t const maxval, uint64_t * const zcnt = 0)
 			: n(decoder.getN())
 			{
 				if ( n )
 				{
-					rank_dictionaries = ::libmaus::autoarray::AutoArray < rank_ptr_type >(maxval+1);
-					::libmaus::autoarray::AutoArray<writer_type> writers(rank_dictionaries.size());
+					rank_dictionaries = ::libmaus2::autoarray::AutoArray < rank_ptr_type >(maxval+1);
+					::libmaus2::autoarray::AutoArray<writer_type> writers(rank_dictionaries.size());
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
@@ -81,7 +81,7 @@ namespace libmaus
 						writers[j].flush();
 					}
 					
-					D = ::libmaus::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
+					D = ::libmaus2::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 						D [ i ] = rank_dictionaries[i]->rank1(n-1);
 					D.prefixSums();
@@ -101,7 +101,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < n; ++i )
 						maxval = std::max ( maxval, static_cast<uint64_t>(BWT[i]) );
 						
-					rank_dictionaries = ::libmaus::autoarray::AutoArray < rank_ptr_type >(maxval+1);
+					rank_dictionaries = ::libmaus2::autoarray::AutoArray < rank_ptr_type >(maxval+1);
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
@@ -117,7 +117,7 @@ namespace libmaus
 						writer.flush();
 					}
 					
-					D = ::libmaus::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
+					D = ::libmaus2::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 						D [ i ] = rank_dictionaries[i]->rank1(n-1);
 					D.prefixSums();

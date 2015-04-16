@@ -1,6 +1,6 @@
 /*
  * This file contains written code by Stephan Brumme published on http://create.stephan-brumme.com/
- * and modified for libmaus by German Tischler in 2014. The original zlib type license is given below.
+ * and modified for libmaus2 by German Tischler in 2014. The original zlib type license is given below.
  *
  * -----------------
  * Copyright (c) 2011-2013 Stephan Brumme. All rights reserved.
@@ -15,11 +15,11 @@
  * Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
  * -----------------
  *
- * The changes for libmaus are Copyright (c) 2014 German Tischler, the license remains the same.
+ * The changes for libmaus2 are Copyright (c) 2014 German Tischler, the license remains the same.
  */
-#include <libmaus/hashing/Crc32.hpp>
+#include <libmaus2/hashing/Crc32.hpp>
 
-uint32_t const libmaus::hashing::Crc32::Crc32Lookup[8][256] =
+uint32_t const libmaus2::hashing::Crc32::Crc32Lookup[8][256] =
 {
   { 0x00000000,0x77073096,0xEE0E612C,0x990951BA,0x076DC419,0x706AF48F,0xE963A535,0x9E6495A3,
     0x0EDB8832,0x79DCB8A4,0xE0D5E91E,0x97D2D988,0x09B64C2B,0x7EB17CBD,0xE7B82D07,0x90BF1D91,

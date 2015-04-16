@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,36 +19,36 @@
 #if ! defined(LIBMAUS_BAMBAM_SEQCHKSUMPRIMENUMBERS_HPP)
 #define LIBMAUS_BAMBAM_SEQCHKSUMPRIMENUMBERS_HPP
 
-#include <libmaus/math/UnsignedInteger.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct SeqChksumPrimeNumbers
 		{
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getMersenne31()
+			static libmaus2::math::UnsignedInteger<k> getMersenne31()
 			{
-				return libmaus::math::UnsignedInteger<k>(0x7FFFFFFFull);
+				return libmaus2::math::UnsignedInteger<k>(0x7FFFFFFFull);
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getMersenne521()
+			static libmaus2::math::UnsignedInteger<k> getMersenne521()
 			{
-				libmaus::math::UnsignedInteger< (521 + 31)/32 > M;
+				libmaus2::math::UnsignedInteger< (521 + 31)/32 > M;
 
 				M[0] = 1;
 				M <<= 521;
 				M -= 1;
 				
-				return libmaus::math::UnsignedInteger<k>(M);
+				return libmaus2::math::UnsignedInteger<k>(M);
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime64()
+			static libmaus2::math::UnsignedInteger<k> getPrime64()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 59UL;
 				if ( 1 < k )
@@ -57,9 +57,9 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime96()
+			static libmaus2::math::UnsignedInteger<k> getPrime96()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 17;
 				if ( 1 < k )
@@ -70,9 +70,9 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime128()
+			static libmaus2::math::UnsignedInteger<k> getPrime128()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 159;
 				if ( 1 < k )
@@ -85,9 +85,9 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime160()
+			static libmaus2::math::UnsignedInteger<k> getPrime160()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 47;
 				if ( 1 < k )
@@ -102,9 +102,9 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime192()
+			static libmaus2::math::UnsignedInteger<k> getPrime192()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 237;
 				if ( 1 < k )
@@ -121,9 +121,9 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime224()
+			static libmaus2::math::UnsignedInteger<k> getPrime224()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 63;
 				if ( 1 < k )
@@ -142,9 +142,9 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getPrime256()
+			static libmaus2::math::UnsignedInteger<k> getPrime256()
 			{
-				libmaus::math::UnsignedInteger<k> M;
+				libmaus2::math::UnsignedInteger<k> M;
 				if ( 0 < k )
 					M[0] = 0xFFFFFFFFUL - 189;
 				if ( 1 < k )
@@ -165,11 +165,11 @@ namespace libmaus
 			}
 
 			template<size_t k>
-			static libmaus::math::UnsignedInteger<k> getNextPrime512()
+			static libmaus2::math::UnsignedInteger<k> getNextPrime512()
 			{
-				libmaus::math::UnsignedInteger<k> U(1);
+				libmaus2::math::UnsignedInteger<k> U(1);
 				U <<= 512;
-				U += libmaus::math::UnsignedInteger<k>(75);
+				U += libmaus2::math::UnsignedInteger<k>(75);
 				return U;
 			}
 		};

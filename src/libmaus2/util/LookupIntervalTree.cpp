@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/LookupIntervalTree.hpp>
+#include <libmaus2/util/LookupIntervalTree.hpp>
 
-::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > libmaus::util::LookupIntervalTree::createLookup()
+::libmaus2::autoarray::AutoArray < ::libmaus2::util::IntervalTree const * > libmaus2::util::LookupIntervalTree::createLookup()
 {
-	::libmaus::autoarray::AutoArray < ::libmaus::util::IntervalTree const * > L(1ull << sublookupbits,false);
+	::libmaus2::autoarray::AutoArray < ::libmaus2::util::IntervalTree const * > L(1ull << sublookupbits,false);
 
 	for ( uint64_t i = 0; i < (1ull << sublookupbits); ++i )
 	{
@@ -38,8 +38,8 @@
 	return L;
 }
 
-libmaus::util::LookupIntervalTree::LookupIntervalTree(
-	::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & rH,
+libmaus2::util::LookupIntervalTree::LookupIntervalTree(
+	::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & rH,
 	unsigned int const rrangebits,
 	unsigned int const rsublookupbits
 ) : H(rH.clone()), I(H,0,H.size()), rangebits(rrangebits), sublookupbits(rsublookupbits),
@@ -48,7 +48,7 @@ libmaus::util::LookupIntervalTree::LookupIntervalTree(
 
 }
 
-void libmaus::util::LookupIntervalTree::test(bool setupRandom) const
+void libmaus2::util::LookupIntervalTree::test(bool setupRandom) const
 {
 	for ( uint64_t i = 0; i < H.size(); ++i )
 	{
@@ -57,11 +57,11 @@ void libmaus::util::LookupIntervalTree::test(bool setupRandom) const
 	}
 	
 	if ( setupRandom )
-		::libmaus::random::Random::setup();
+		::libmaus2::random::Random::setup();
 	
 	for ( uint64_t i = 0; i < 64*1024; ++i )
 	{
-		uint64_t const v = ::libmaus::random::Random::rand64() & ((1ull << (rangebits))-1);
+		uint64_t const v = ::libmaus2::random::Random::rand64() & ((1ull << (rangebits))-1);
 		assert ( find(v) == I.find(v) );
 	}
 }

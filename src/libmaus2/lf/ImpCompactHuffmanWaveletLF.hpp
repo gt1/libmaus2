@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(LIBMAUS_LF_IMPCOMPACTHUFFMANWAVELETLF_HPP)
 #define LIBMAUS_LF_IMPCOMPACTHUFFMANWAVELETLF_HPP
 
-#include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
@@ -31,15 +31,15 @@ namespace libmaus
 		{
 			typedef _wt_type wt_type;
 			typedef ImpCompactHuffmanWaveletLFTemplate<wt_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef typename wt_type::unique_ptr_type wt_ptr_type;
 		
 			wt_ptr_type const W;
 			uint64_t const n;
 			uint64_t const n0;
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 			
 			uint64_t byteSize() const
 			{
@@ -54,25 +54,25 @@ namespace libmaus
 				return n;
 			}
 			
-			::libmaus::autoarray::AutoArray<int64_t> getSymbols() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbols() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
+				::libmaus2::autoarray::AutoArray<int64_t> symbols = W->symbolArray();
 				std::sort(symbols.begin(),symbols.end());
 				return symbols;
 			}
 			
 			uint64_t getSymbolThres() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> const syms = getSymbols();
+				::libmaus2::autoarray::AutoArray<int64_t> const syms = getSymbols();
 				if ( syms.size() )
 					return syms[syms.size()-1]+1;
 				else
 					return 0;
 			}
 
-			::libmaus::autoarray::AutoArray<uint64_t> computeD(int64_t const rmaxsym = std::numeric_limits<int64_t>::min()) const
+			::libmaus2::autoarray::AutoArray<uint64_t> computeD(int64_t const rmaxsym = std::numeric_limits<int64_t>::min()) const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> const symbols = getSymbols();
+				::libmaus2::autoarray::AutoArray<int64_t> const symbols = getSymbols();
 				int64_t maxsym = rmaxsym;
 				int64_t minsym = std::numeric_limits<int64_t>::max();
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
@@ -91,7 +91,7 @@ namespace libmaus
 				
 				assert ( minsym >= 0 );
 				
-				::libmaus::autoarray::AutoArray<uint64_t> D(maxsym+1);
+				::libmaus2::autoarray::AutoArray<uint64_t> D(maxsym+1);
 				for ( uint64_t i = 0; i < symbols.size(); ++i )
 				{
 					int64_t const sym = symbols[i];
@@ -115,7 +115,7 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpHuffmanWaveletLFTemplate::load() failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -125,7 +125,7 @@ namespace libmaus
 				
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpHuffmanWaveletLFTemplate::load() failed to read file " << filename << std::endl;
 					se.finish();
 					throw se;					
@@ -226,8 +226,8 @@ namespace libmaus
 			}
 		};
 		
-		typedef ImpCompactHuffmanWaveletLFTemplate< ::libmaus::wavelet::ImpCompactHuffmanWaveletTree > ImpCompactHuffmanWaveletLF;
-		typedef ImpCompactHuffmanWaveletLFTemplate< ::libmaus::wavelet::ImpCompactRLHuffmanWaveletTree > ImpCompactRLHuffmanWaveletLF;
+		typedef ImpCompactHuffmanWaveletLFTemplate< ::libmaus2::wavelet::ImpCompactHuffmanWaveletTree > ImpCompactHuffmanWaveletLF;
+		typedef ImpCompactHuffmanWaveletLFTemplate< ::libmaus2::wavelet::ImpCompactRLHuffmanWaveletTree > ImpCompactRLHuffmanWaveletLF;
 	}
 }
 #endif

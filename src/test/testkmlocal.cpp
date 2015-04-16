@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,25 +16,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_KMLOCAL)
-#include <libmaus/fastx/CompactFastQMultiBlockReader.hpp>
-#include <libmaus/fastx/CompactFastQBlockGenerator.hpp>
-#include <libmaus/fastx/CompactFastQContainerDictionaryCreator.hpp>
-#include <libmaus/fastx/CompactFastQContainer.hpp>
-#include <libmaus/fastx/FqWeightQuantiser.hpp>
-#include <libmaus/fastx/CompactFastEncoder.hpp>
+#include <libmaus2/fastx/CompactFastQMultiBlockReader.hpp>
+#include <libmaus2/fastx/CompactFastQBlockGenerator.hpp>
+#include <libmaus2/fastx/CompactFastQContainerDictionaryCreator.hpp>
+#include <libmaus2/fastx/CompactFastQContainer.hpp>
+#include <libmaus2/fastx/FqWeightQuantiser.hpp>
+#include <libmaus2/fastx/CompactFastEncoder.hpp>
 
-int kmlocalmain(::libmaus::util::ArgInfo const & arginfo)
+int kmlocalmain(::libmaus2::util::ArgInfo const & arginfo)
 {
 	try
 	{
-		// ::libmaus::fastx::FqWeightQuantiser::statsRun(arginfo,arginfo.restargs,std::cerr);	
-		std::string scont = ::libmaus::fastx::CompactFastQBlockGenerator::encodeCompactFastQContainer(arginfo.restargs,0,3);
+		// ::libmaus2::fastx::FqWeightQuantiser::statsRun(arginfo,arginfo.restargs,std::cerr);	
+		std::string scont = ::libmaus2::fastx::CompactFastQBlockGenerator::encodeCompactFastQContainer(arginfo.restargs,0,3);
 		std::istringstream textistr(scont);
-		::libmaus::fastx::CompactFastQContainer CFQC(textistr);
-		::libmaus::fastx::CompactFastQContainer::pattern_type cpat;
+		::libmaus2::fastx::CompactFastQContainer CFQC(textistr);
+		::libmaus2::fastx::CompactFastQContainer::pattern_type cpat;
 		
 		for ( uint64_t i = 0; i < CFQC.size(); ++i )
 		{
@@ -44,18 +44,18 @@ int kmlocalmain(::libmaus::util::ArgInfo const & arginfo)
 
 		#if 1
 		std::ostringstream ostr;
-		::libmaus::fastx::CompactFastQBlockGenerator::encodeCompactFastQFile(arginfo.restargs,0,256,6/* qbits */,ostr);
+		::libmaus2::fastx::CompactFastQBlockGenerator::encodeCompactFastQFile(arginfo.restargs,0,256,6/* qbits */,ostr);
 		std::istringstream istr(ostr.str());
 		// CompactFastQSingleBlockReader<std::istream> CFQSBR(istr);
-		::libmaus::fastx::CompactFastQMultiBlockReader<std::istream> CFQMBR(istr);
-		::libmaus::fastx::CompactFastQMultiBlockReader<std::istream>::pattern_type pattern;
+		::libmaus2::fastx::CompactFastQMultiBlockReader<std::istream> CFQMBR(istr);
+		::libmaus2::fastx::CompactFastQMultiBlockReader<std::istream>::pattern_type pattern;
 		while ( CFQMBR.getNextPatternUnlocked(pattern) )
 		{
 			std::cout << pattern;
 		}
 		#endif
 
-		// ::libmaus::fastx::FqWeightQuantiser::rephredFastq(arginfo.restargs,arginfo);
+		// ::libmaus2::fastx::FqWeightQuantiser::rephredFastq(arginfo.restargs,arginfo);
 		return EXIT_SUCCESS;
 	}
 	catch(std::exception const & ex)
@@ -66,11 +66,11 @@ int kmlocalmain(::libmaus::util::ArgInfo const & arginfo)
 }
 #endif
 
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
-	::libmaus::util::ArgInfo arginfo(argc,argv);
+	::libmaus2::util::ArgInfo arginfo(argc,argv);
 	
 	#if defined(LIBMAUS_HAVE_KMLOCAL)
 	return kmlocalmain(arginfo);

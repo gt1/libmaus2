@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,31 +19,31 @@
 #if ! defined(LIBMAUS_NETWORK_LOGRECEIVER_HPP)
 #define LIBMAUS_NETWORK_LOGRECEIVER_HPP
 
-#include <libmaus/network/FileDescriptorPasser.hpp>
-#include <libmaus/network/LogReceiverTestProcess.hpp>
-#include <libmaus/parallel/PosixSemaphore.hpp>
+#include <libmaus2/network/FileDescriptorPasser.hpp>
+#include <libmaus2/network/LogReceiverTestProcess.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct LogReceiver : public ::libmaus::parallel::PosixProcess
+		struct LogReceiver : public ::libmaus2::parallel::PosixProcess
 		{
 			typedef LogReceiver this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static std::string computeSessionId();
 
 			struct ControlDescriptor
 			{
-				::libmaus::network::SocketBase::shared_ptr_type controlsock;
+				::libmaus2::network::SocketBase::shared_ptr_type controlsock;
 				uint64_t id;
 				std::string hostname;
 				
 				ControlDescriptor() : id(0) {}
 				ControlDescriptor(
-					::libmaus::network::SocketBase::shared_ptr_type & rcontrolsock,
+					::libmaus2::network::SocketBase::shared_ptr_type & rcontrolsock,
 					uint64_t const rid,
 					std::string const & rhostname)
 				: controlsock(rcontrolsock), id(rid), hostname(rhostname) {}
@@ -53,15 +53,15 @@ namespace libmaus
 			std::string const hostname;
 			std::string const logfileprefix;
 			unsigned short port;
-			::libmaus::network::ServerSocket::unique_ptr_type logsocket;
-			::libmaus::network::SocketPair::unique_ptr_type SP;
-			::libmaus::network::SocketBase::unique_ptr_type pcsocket;
-			::libmaus::network::SocketPair::unique_ptr_type SPpass;
-			::libmaus::parallel::NamedPosixSemaphore passsem;
+			::libmaus2::network::ServerSocket::unique_ptr_type logsocket;
+			::libmaus2::network::SocketPair::unique_ptr_type SP;
+			::libmaus2::network::SocketBase::unique_ptr_type pcsocket;
+			::libmaus2::network::SocketPair::unique_ptr_type SPpass;
+			::libmaus2::parallel::NamedPosixSemaphore passsem;
 
-			::libmaus::network::LogReceiverTestProcess::unique_ptr_type constructLogReceiverTestProcess(
+			::libmaus2::network::LogReceiverTestProcess::unique_ptr_type constructLogReceiverTestProcess(
 				uint64_t const id,
-				::libmaus::network::DispatchCallback * dc = 0
+				::libmaus2::network::DispatchCallback * dc = 0
 			);
 			std::vector<int> getOpenFds() const;
 			

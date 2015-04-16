@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEOUTPUTCALLBACKMD5_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEOUTPUTCALLBACKMD5_HPP
 
-#include <libmaus/util/md5.h>
-#include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus2/digest/md5.h>
+#include <libmaus2/lz/BgzfDeflateOutputCallback.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
 #include <sstream>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct BgzfDeflateOutputCallbackMD5 : public ::libmaus::lz::BgzfDeflateOutputCallback
+		struct BgzfDeflateOutputCallbackMD5 : public ::libmaus2::lz::BgzfDeflateOutputCallback
 		{
 			typedef BgzfDeflateOutputCallbackMD5 this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			md5_state_t pms;
 			md5_byte_t digest[16];
@@ -78,7 +78,7 @@ namespace libmaus
 			
 			void saveDigestAsFile(std::string const & filename)
 			{
-				libmaus::aio::CheckedOutputStream COS(filename);
+				libmaus2::aio::CheckedOutputStream COS(filename);
 				saveDigest(COS);
 				COS.flush();
 				COS.close();

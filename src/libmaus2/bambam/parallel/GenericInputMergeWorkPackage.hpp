@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,39 +19,39 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTMERGEWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTMERGEWORKPACKAGE_HPP
 
-#include <libmaus/util/FiniteSizeHeap.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/GenericInputSingleData.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlMergeHeapEntry.hpp>
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/util/FiniteSizeHeap.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputSingleData.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlMergeHeapEntry.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			template<typename _heap_element_type>
-			struct GenericInputMergeWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct GenericInputMergeWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef _heap_element_type heap_element_type;
 				typedef GenericInputMergeWorkPackage<heap_element_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-				libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * data;
-				libmaus::util::FiniteSizeHeap<heap_element_type> * mergeheap;
-				libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type algn;
+				libmaus2::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * data;
+				libmaus2::util::FiniteSizeHeap<heap_element_type> * mergeheap;
+				libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type algn;
 			
-				GenericInputMergeWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0), mergeheap(0) {}
+				GenericInputMergeWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data(0), mergeheap(0) {}
 				GenericInputMergeWorkPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
-					libmaus::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * rdata,
-					libmaus::util::FiniteSizeHeap<heap_element_type> * rmergeheap,
-					libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type ralgn
+					libmaus2::autoarray::AutoArray<GenericInputSingleData::unique_ptr_type> * rdata,
+					libmaus2::util::FiniteSizeHeap<heap_element_type> * rmergeheap,
+					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type ralgn
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata), mergeheap(rmergeheap), algn(ralgn)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata), mergeheap(rmergeheap), algn(ralgn)
 				{
 				
 				}

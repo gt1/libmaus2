@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,32 +16,32 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/DigestFactory.hpp>
+#include <libmaus2/digest/DigestFactory.hpp>
 #include <iostream>
-#include <libmaus/digest/Digests.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/Demangle.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/digest/Digests.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
-#include <libmaus/digest/sha256.h>
-#include <libmaus/digest/sha512.h>
-#include <libmaus/rank/BSwapBase.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/digest/sha256.h>
+#include <libmaus2/digest/sha512.h>
+#include <libmaus2/rank/BSwapBase.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/random/Random.hpp>
 
-#include <libmaus/digest/CRC32.hpp>
-#include <libmaus/digest/CRC32C_sse42.hpp>
-#include <libmaus/digest/CRC32C.hpp>
+#include <libmaus2/digest/CRC32.hpp>
+#include <libmaus2/digest/CRC32C_sse42.hpp>
+#include <libmaus2/digest/CRC32C.hpp>
 
 
 template<typename crc>
 void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
 {
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	crc dig;
 	dig.init();
 	dig.update(s,n);
-	out << libmaus::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
+	out << libmaus2::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
 	out << "\t" << rtc.getElapsedSeconds();	
 	out << std::endl;
 }
@@ -49,12 +49,12 @@ void printCRC(uint8_t const * s, uint64_t const n, std::ostream & out)
 template<typename crc>
 void printCRCSingleByteUpdate(uint8_t const * s, uint64_t const n, std::ostream & out)
 {
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	crc dig;
 	dig.init();
 	for ( uint64_t i = 0; i < n; ++i )
 		dig.update(s+i,1);
-	out << libmaus::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
+	out << libmaus2::util::Demangle::demangle<crc>() << "\t" << std::hex << dig.digestui() << std::dec;
 	out << "\t" << rtc.getElapsedSeconds();	
 	out << std::endl;
 }
@@ -95,7 +95,7 @@ typedef void (*sha2_func)(uint8_t const * text, uint32_t digest[8], uint64_t con
 
 void printCRCASM(uint8_t const * pa, size_t n, sha2_func const func, char const * name, std::ostream & out)
 {
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	
 	// block size for sha256
 	uint64_t const sha256_blocksize = 64;
@@ -106,7 +106,7 @@ void printCRCASM(uint8_t const * pa, size_t n, sha2_func const func, char const 
 	// number of blocks (we need at least 9 bytes left, 1 for start of padding, 8 for size of message in bits)
 	uint64_t const numblocks = (restsize >= 9) ? prenumblocks : (prenumblocks+1);
 	// space for blocks
-	::libmaus::autoarray::AutoArray<uint8_t> B(numblocks * sha256_blocksize,false);
+	::libmaus2::autoarray::AutoArray<uint8_t> B(numblocks * sha256_blocksize,false);
 
 	// copy data
 	std::copy(pa,pa+n,B.begin());
@@ -138,7 +138,7 @@ void printCRCASM(uint8_t const * pa, size_t n, sha2_func const func, char const 
 
 void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, char const * name, std::ostream & out)
 {
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	
 	uint64_t const sha2_blocksize = 64;
 	// full blocks
@@ -200,7 +200,7 @@ typedef void (*sha2_512_func)(uint8_t const * text, uint64_t digest[8], uint64_t
 
 void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const func, char const * name, std::ostream & out)
 {
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	
 	uint64_t const sha2_blocksize = 128;
 	// full blocks
@@ -279,37 +279,37 @@ std::string secondColumn(std::string const & s)
 }
 
 #if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
-#include <libmaus/digest/DigestFactory_SHA2_ASM.hpp>
+#include <libmaus2/digest/DigestFactory_SHA2_ASM.hpp>
 #endif
 
 #if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
-#include <libmaus/digest/DigestFactory_CRC32C_SSE42.hpp>
+#include <libmaus2/digest/DigestFactory_CRC32C_SSE42.hpp>
 #endif
 
-#include <libmaus/digest/DigestFactoryContainer.hpp>
+#include <libmaus2/digest/DigestFactoryContainer.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
 		#if defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
-		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_SHA2_ASM());
+		libmaus2::digest::DigestFactoryContainer::addFactories(libmaus2::digest::DigestFactory_SHA2_ASM());
 		#endif
 		#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(HAVE_SSE4)
-		libmaus::digest::DigestFactoryContainer::addFactories(libmaus::digest::DigestFactory_CRC32C_SSE42());
+		libmaus2::digest::DigestFactoryContainer::addFactories(libmaus2::digest::DigestFactory_CRC32C_SSE42());
 		#endif
 
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		{
-			std::cerr << "digests " << libmaus::digest::DigestFactoryContainer::getSupportedDigestsList() << std::endl;
+			std::cerr << "digests " << libmaus2::digest::DigestFactoryContainer::getSupportedDigestsList() << std::endl;
 		
 			std::string const hash = arginfo.restargs.at(0);
 			std::string const fn = arginfo.restargs.at(1);
 		
-			::libmaus::autoarray::AutoArray<uint8_t> A = libmaus::util::GetFileSize::readFile<uint8_t>(fn);
+			::libmaus2::autoarray::AutoArray<uint8_t> A = libmaus2::util::GetFileSize::readFile<uint8_t>(fn);
 			
-			libmaus::digest::DigestInterface::unique_ptr_type Pdigest(libmaus::digest::DigestFactoryContainer::construct(hash));
+			libmaus2::digest::DigestInterface::unique_ptr_type Pdigest(libmaus2::digest::DigestFactoryContainer::construct(hash));
 			
 			Pdigest->vinit();
 			Pdigest->vupdate(A.begin(),A.size());
@@ -321,22 +321,22 @@ int main(int argc, char * argv[])
 		
 		#if defined(LIBMAUS_HAVE_NETTLE) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
 		std::string ast(1024,'a');
-		libmaus::random::Random::setup(42);
+		libmaus2::random::Random::setup(42);
 		for ( uint64_t i = 0; i < ast.size(); ++i )
-			ast[i] = libmaus::random::Random::rand8();
+			ast[i] = libmaus2::random::Random::rand8();
 		
 		// test prefixes up to length of ast(1024)
 		for ( uint64_t i = 0; i <= ast.size(); ++i )
 		{
 			std::string const s = ast.substr(0,i);
-			::libmaus::autoarray::AutoArray<uint8_t> A(s.size(),false);
+			::libmaus2::autoarray::AutoArray<uint8_t> A(s.size(),false);
 			std::copy(s.begin(),s.end(),A.begin());
 			
 			std::ostringstream ostr0;
-			printCRC<libmaus::digest::SHA2_256>(A.begin(),A.size(),ostr0);
+			printCRC<libmaus2::digest::SHA2_256>(A.begin(),A.size(),ostr0);
 			std::string const s0 = secondColumn(ostr0.str());
 
-			if ( libmaus::util::I386CacheLineSize::hasSSE41() )
+			if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 			{
 				std::ostringstream ostr1;
 				printCRCASM(A.begin(),A.size(), sha256_sse4, "sha256_sse4",ostr1);
@@ -346,11 +346,11 @@ int main(int argc, char * argv[])
 				std::string const s2 = secondColumn(ostr2.str());
 
 				std::ostringstream ostr3;
-				printCRC<libmaus::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr3);
+				printCRC<libmaus2::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr3);
 				std::string const s3 = secondColumn(ostr3.str());
 
 				std::ostringstream ostr4;
-				printCRCSingleByteUpdate<libmaus::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr4);
+				printCRCSingleByteUpdate<libmaus2::digest::SHA2_256_sse4>(A.begin(),A.size(),ostr4);
 				std::string const s4 = secondColumn(ostr4.str());
 				
 				bool ok = s0 == s1 && s0 == s2 && s0 == s3 && s0 == s4;
@@ -374,25 +374,25 @@ int main(int argc, char * argv[])
 		for ( uint64_t i = 0; i <= ast.size(); ++i )
 		{
 			std::string const s = ast.substr(0,i);
-			::libmaus::autoarray::AutoArray<uint8_t> A(s.size(),false);
+			::libmaus2::autoarray::AutoArray<uint8_t> A(s.size(),false);
 			std::copy(s.begin(),s.end(),A.begin());
 			
 			std::ostringstream ostr0;
-			printCRC<libmaus::digest::SHA2_512>(A.begin(),A.size(),ostr0);
+			printCRC<libmaus2::digest::SHA2_512>(A.begin(),A.size(),ostr0);
 			std::string const s0 = secondColumn(ostr0.str());
 
-			if ( libmaus::util::I386CacheLineSize::hasSSE41() )
+			if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 			{
 				std::ostringstream ostr2;
 				printCRCASM512NoCopy(A.begin(), A.size(), sha512_sse4, "sha512_sse4_nocopy",ostr2);
 				std::string const s2 = secondColumn(ostr2.str());
 
 				std::ostringstream ostr3;
-				printCRC<libmaus::digest::SHA2_512_sse4>(A.begin(),A.size(),ostr3);
+				printCRC<libmaus2::digest::SHA2_512_sse4>(A.begin(),A.size(),ostr3);
 				std::string const s3 = secondColumn(ostr3.str());
 
 				std::ostringstream ostr4;
-				printCRCSingleByteUpdate<libmaus::digest::SHA2_512_sse4>(A.begin(),A.size(),ostr4);
+				printCRCSingleByteUpdate<libmaus2::digest::SHA2_512_sse4>(A.begin(),A.size(),ostr4);
 				std::string const s4 = secondColumn(ostr4.str());
 
 				bool ok = s0 == s2 && s0 == s3 && s0 == s4;
@@ -415,43 +415,43 @@ int main(int argc, char * argv[])
 			
 		for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 		{
-			::libmaus::autoarray::AutoArray<uint8_t> const A = libmaus::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
+			::libmaus2::autoarray::AutoArray<uint8_t> const A = libmaus2::util::GetFileSize::readFile<uint8_t>(arginfo.restargs.at(i));
 			std::string const text(A.begin(),A.end());
 
 			std::ostream & out = std::cout;
-			printCRC<libmaus::digest::Null>(A.begin(),A.size(),out);
-			printCRC<libmaus::digest::CRC32>(A.begin(),A.size(),out);
-			printCRC<libmaus::digest::CRC32C>(A.begin(),A.size(),out);
-			printCRC<libmaus::util::MD5>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::Null>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::CRC32>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::CRC32C>(A.begin(),A.size(),out);
+			printCRC<libmaus2::util::MD5>(A.begin(),A.size(),out);
 
 			#if defined(LIBMAUS_HAVE_NETTLE)
-			printCRC<libmaus::digest::SHA1>(A.begin(),A.size(),out);
-			printCRC<libmaus::digest::SHA2_224>(A.begin(),A.size(),out);
-			printCRC<libmaus::digest::SHA2_256>(A.begin(),A.size(),out);
-			printCRC<libmaus::digest::SHA2_384>(A.begin(),A.size(),out);
-			printCRC<libmaus::digest::SHA2_512>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::SHA1>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::SHA2_224>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::SHA2_256>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::SHA2_384>(A.begin(),A.size(),out);
+			printCRC<libmaus2::digest::SHA2_512>(A.begin(),A.size(),out);
 			#endif
 
 
 			#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
-			if ( libmaus::util::I386CacheLineSize::hasSSE42() )
+			if ( libmaus2::util::I386CacheLineSize::hasSSE42() )
 			{
-				printCRC<libmaus::digest::CRC32C_sse42>(A.begin(),A.size(),out);		
+				printCRC<libmaus2::digest::CRC32C_sse42>(A.begin(),A.size(),out);		
 			}
 			#endif
 
 			#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)	&& defined(LIBMAUS_HAVE_SHA2_ASSEMBLY)
-			if ( libmaus::util::I386CacheLineSize::hasSSE41() )
+			if ( libmaus2::util::I386CacheLineSize::hasSSE41() )
 			{
-				printCRC<libmaus::digest::SHA2_256_sse4>(A.begin(),A.size(),out);
+				printCRC<libmaus2::digest::SHA2_256_sse4>(A.begin(),A.size(),out);
 			
 				printCRCASM(A.begin(),A.size(), sha256_sse4, "sha256_sse4",out);
 				printCRCASMNoCopy(A.begin(), A.size(), sha256_sse4, "sha256_sse4_nocopy",out);
 
 				printCRCASM512NoCopy(A.begin(), A.size(), sha512_sse4, "sha512_sse4_nocopy", out);
-				printCRC<libmaus::digest::SHA2_512_sse4>(A.begin(),A.size(),out);
+				printCRC<libmaus2::digest::SHA2_512_sse4>(A.begin(),A.size(),out);
 			}
-			if ( libmaus::util::I386CacheLineSize::hasAVX() )
+			if ( libmaus2::util::I386CacheLineSize::hasAVX() )
 			{
 				printCRCASM(A.begin(),A.size(), sha256_avx, "sha256_avx",out);
 				printCRCASMNoCopy(A.begin(), A.size(), sha256_avx, "sha256_avx_nocopy",out);
@@ -464,7 +464,7 @@ int main(int argc, char * argv[])
 		}
 
 		#if ! defined(LIBMAUS_HAVE_NETTLE)
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "support for nettle library is not present" << std::endl;
 		lme.finish();
 		throw lme;

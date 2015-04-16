@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_MDSTRINGCOMPUTATIONCONTEXT_HPP)
 #define LIBMAUS_BAMBAM_MDSTRINGCOMPUTATIONCONTEXT_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamAuxFilterVector.hpp>
-#include <libmaus/bambam/CigarOperation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamAuxFilterVector.hpp>
+#include <libmaus2/bambam/CigarOperation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct MdStringComputationContext
 		{
-			libmaus::autoarray::AutoArray<libmaus::bambam::cigar_operation> cigop;
-			libmaus::autoarray::AutoArray<char> md;
-			libmaus::autoarray::AutoArray<uint8_t> T0;
-			libmaus::autoarray::AutoArray<uint8_t> T1;
-			libmaus::bambam::BamAuxFilterVector auxvec;
+			libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> cigop;
+			libmaus2::autoarray::AutoArray<char> md;
+			libmaus2::autoarray::AutoArray<uint8_t> T0;
+			libmaus2::autoarray::AutoArray<uint8_t> T1;
+			libmaus2::bambam::BamAuxFilterVector auxvec;
 			uint64_t nm;
 			bool mddiff;
 			bool nmdiff;
@@ -43,7 +43,7 @@ namespace libmaus
 			void checkSize(uint64_t const cigsum)
 			{
 				if ( 2*cigsum+1 > md.size() )
-					md = libmaus::autoarray::AutoArray<char>(2*cigsum+1);
+					md = libmaus2::autoarray::AutoArray<char>(2*cigsum+1);
 			}
 			
 			MdStringComputationContext()

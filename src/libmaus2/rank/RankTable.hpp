@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(RANKTABLE_HPP)
 #define RANKTABLE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 		struct RankTable
 		{
 			typedef RankTable this_type;
-			typedef ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
 			
 			private:
 			uint8_t const * const table;
@@ -71,7 +71,7 @@ namespace libmaus
 		struct SimpleRankTable
 		{
 			typedef SimpleRankTable this_type;
-			typedef ::libmaus::util::unique_ptr < this_type >::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr < this_type >::type unique_ptr_type;
 			
 			private:
 			uint8_t const * const table;

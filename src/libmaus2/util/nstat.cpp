@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/nstat.hpp>
+#include <libmaus2/util/nstat.hpp>
 
 /**
  * compute n staticic use ta = 50, b = 100 for n50
@@ -27,7 +27,7 @@
  * @param nval reference for storing n value
  * @param avg reference for storing average value
  **/
-void libmaus::util::NStat::nstat(
+void libmaus2::util::NStat::nstat(
 	std::vector<uint64_t> const & clens,
 	uint64_t const ta,
 	uint64_t const b,
@@ -50,7 +50,7 @@ void libmaus::util::NStat::nstat(
 		uint64_t const a = b-ta;
 		if ( a > b )
 		{
-			::libmaus::exception::LibMausException se;
+			::libmaus2::exception::LibMausException se;
 			se.getStream() << "Parameter error.";
 			se.finish();
 			throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,18 +17,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/aio/IsKnownLocalFileSystem.hpp>
-#include <libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/aio/IsKnownLocalFileSystem.hpp>
+#include <libmaus2/aio/LinuxStreamingPosixFdOutputStream.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 void writeStreaming(std::string const & fn, uint64_t const bufsize, uint64_t const numbufs)
 {
-	libmaus::aio::LinuxStreamingPosixFdOutputStream stream(fn,bufsize);
-	libmaus::autoarray::AutoArray<char> B(bufsize);
+	libmaus2::aio::LinuxStreamingPosixFdOutputStream stream(fn,bufsize);
+	libmaus2::autoarray::AutoArray<char> B(bufsize);
 	
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	uint64_t written = 0;
 	uint64_t prevprint = 0;
 	for ( uint64_t i = 0; i < numbufs; ++i )
@@ -50,10 +50,10 @@ void writeStreaming(std::string const & fn, uint64_t const bufsize, uint64_t con
 
 void writeNonStreaming(std::string const & fn, uint64_t const bufsize, uint64_t const numbufs)
 {
-	libmaus::aio::PosixFdOutputStream stream(fn,bufsize);
-	libmaus::autoarray::AutoArray<char> B(bufsize);
+	libmaus2::aio::PosixFdOutputStream stream(fn,bufsize);
+	libmaus2::autoarray::AutoArray<char> B(bufsize);
 	
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	uint64_t written = 0;
 	uint64_t prevprint = 0;
 	for ( uint64_t i = 0; i < numbufs; ++i )
@@ -78,7 +78,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 				
 		uint64_t const bufsize = arginfo.getValueUnsignedNumeric<uint64_t>("bufsize",8ull*1024ull*1024ull);
 		uint64_t const osize = arginfo.getValueUnsignedNumeric<uint64_t>("bytes",1024ull*1024ull*1024ull);
@@ -89,11 +89,11 @@ int main(int argc, char * argv[])
 		remove(fnstreaming.c_str());
 		remove(fnnonstreaming.c_str());
 
-		bool const local = libmaus::aio::IsKnownLocalFileSystem::isKnownLocalFileSystemCreate(fnstreaming);
+		bool const local = libmaus2::aio::IsKnownLocalFileSystem::isKnownLocalFileSystemCreate(fnstreaming);
 
 		if ( ! local )
 		{
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "file " << fnstreaming << " does not seem to be located on local storage." << std::endl;
 			lme.finish();
 			throw lme;		

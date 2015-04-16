@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(LIBMAUS_UTIL_UNIQUE_PTR_HPP)
 #define LIBMAUS_UTIL_UNIQUE_PTR_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_USE_STD_UNIQUE_PTR)
 #include <memory>
 #elif defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
-#include <libmaus/deleter/Deleter.hpp>
+#include <libmaus2/deleter/Deleter.hpp>
 #include <boost/interprocess/smart_ptr/unique_ptr.hpp>
 #endif
 
@@ -38,7 +38,7 @@
 #error "Required move function for unique_ptr objects not found."
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -48,7 +48,7 @@ namespace libmaus
 			#if defined(LIBMAUS_USE_STD_UNIQUE_PTR)
 			typedef typename ::std::unique_ptr<T> type;			
 			#elif defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
-			typedef typename ::boost::interprocess::unique_ptr<T,::libmaus::deleter::Deleter<T> > type;
+			typedef typename ::boost::interprocess::unique_ptr<T,::libmaus2::deleter::Deleter<T> > type;
 			#else
 			#error "Required unique_ptr not found."
 			#endif

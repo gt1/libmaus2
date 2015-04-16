@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,19 +17,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bambam/BamIndex.hpp>
-#include <libmaus/bambam/BamIndexGenerator.hpp>
-#include <libmaus/lz/BgzfInflate.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/util/Histogram.hpp>
+#include <libmaus2/bambam/BamIndex.hpp>
+#include <libmaus2/bambam/BamIndexGenerator.hpp>
+#include <libmaus2/lz/BgzfInflate.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/util/Histogram.hpp>
 
-uint64_t writeMappedFile(std::string const & bamfn, std::string const & rankfn, libmaus::util::Histogram & binhist)
+uint64_t writeMappedFile(std::string const & bamfn, std::string const & rankfn, libmaus2::util::Histogram & binhist)
 {
-	libmaus::rank::ImpCacheLineRank::WriteContextExternal WCE(rankfn);
-	libmaus::bambam::BamDecoder bamdec(bamfn);
-	libmaus::bambam::BamHeader const & header = bamdec.getHeader();
-	libmaus::bambam::BamAlignment & algn = bamdec.getAlignment();
+	libmaus2::rank::ImpCacheLineRank::WriteContextExternal WCE(rankfn);
+	libmaus2::bambam::BamDecoder bamdec(bamfn);
+	libmaus2::bambam::BamHeader const & header = bamdec.getHeader();
+	libmaus2::bambam::BamAlignment & algn = bamdec.getAlignment();
 	uint64_t r = 0;
 	
 	for ( ; bamdec.readAlignment(); ++r )
@@ -57,11 +57,11 @@ uint64_t writeMappedFile(std::string const & bamfn, std::string const & rankfn, 
 	return r;
 }
 
-void getBinHistogram(std::string const & bamfn, libmaus::util::Histogram & binhist)
+void getBinHistogram(std::string const & bamfn, libmaus2::util::Histogram & binhist)
 {
-	libmaus::bambam::BamDecoder bamdec(bamfn);
-	libmaus::bambam::BamHeader const & header = bamdec.getHeader();
-	libmaus::bambam::BamAlignment & algn = bamdec.getAlignment();
+	libmaus2::bambam::BamDecoder bamdec(bamfn);
+	libmaus2::bambam::BamHeader const & header = bamdec.getHeader();
+	libmaus2::bambam::BamAlignment & algn = bamdec.getAlignment();
 	uint64_t r = 0;
 	
 	for ( ; bamdec.readAlignment(); ++r )
@@ -86,43 +86,43 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.stringRestArg(0);
 
 		#if 0
 		std::cerr << "[D] computing mapped reads bit vector and bin histogram...";
 		std::string const tmpprefix = arginfo.getValue("tmpdir",arginfo.getDefaultTmpFileName());
 		std::string const mappedfile = tmpprefix + ".mapped";
-		libmaus::util::TempFileRemovalContainer::addTempFile(mappedfile);
-		libmaus::util::Histogram binhist;
+		libmaus2::util::TempFileRemovalContainer::addTempFile(mappedfile);
+		libmaus2::util::Histogram binhist;
 		uint64_t const n = writeMappedFile(fn,mappedfile,binhist);
 		
-		libmaus::aio::CheckedInputStream mappedCIS(mappedfile);
-		libmaus::rank::ImpCacheLineRank mappedrank(mappedCIS);
+		libmaus2::aio::CheckedInputStream mappedCIS(mappedfile);
+		libmaus2::rank::ImpCacheLineRank mappedrank(mappedCIS);
 		mappedCIS.close();
 		uint64_t const m = n ? mappedrank.rank1(n-1) : 0;
 		std::cerr << "done, n=" << n << " m=" << m << std::endl;
 		#endif
 
 		std::cerr << "[V] Computing bin histogram by straight scan...";
-		libmaus::util::Histogram binhist;
+		libmaus2::util::Histogram binhist;
 		getBinHistogram(fn,binhist);
 		std::cerr << ", done." << std::endl;
 
 		std::cerr << "[V] Computing bin histogram using index...";
-		libmaus::bambam::BamIndex index(fn);		
-		libmaus::bambam::BamDecoder bamdec(fn);
-		libmaus::bambam::BamHeader const & bamheader = bamdec.getHeader();
+		libmaus2::bambam::BamIndex index(fn);		
+		libmaus2::bambam::BamDecoder bamdec(fn);
+		libmaus2::bambam::BamHeader const & bamheader = bamdec.getHeader();
 		
-		libmaus::bambam::BamDecoderResetableWrapper BDRW(fn, bamheader);
-		libmaus::util::Histogram readhist;
+		libmaus2::bambam::BamDecoderResetableWrapper BDRW(fn, bamheader);
+		libmaus2::util::Histogram readhist;
 
 		for ( uint64_t r = 0; r < index.getRefs().size(); ++r )
 		{
 			std::cerr << "(" << static_cast<double>(r) / index.getRefs().size() << ")";
 			
-			libmaus::bambam::BamIndexRef const & ref = index.getRefs()[r];
-			libmaus::bambam::BamIndexLinear const & lin = ref.lin;
+			libmaus2::bambam::BamIndexRef const & ref = index.getRefs()[r];
+			libmaus2::bambam::BamIndexLinear const & lin = ref.lin;
 			std::cerr << "[L" << lin.intervals.size() << "]";
 			for ( uint64_t i = 0; i < lin.intervals.size(); ++i )
 			{
@@ -131,15 +131,15 @@ int main(int argc, char * argv[])
 			
 			for ( uint64_t i = 0; i < ref.bin.size(); ++i )
 			{
-				libmaus::bambam::BamIndexBin const & bin = ref.bin[i];
+				libmaus2::bambam::BamIndexBin const & bin = ref.bin[i];
 
 				if ( bin.bin < 37450 )
 				{
 					for ( uint64_t j = 0; j < bin.chunks.size(); ++j )
 					{
-						libmaus::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
+						libmaus2::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
 						BDRW.resetStream(c.first,c.second);
-						libmaus::bambam::BamAlignment const & algn = BDRW.getDecoder().getAlignment();
+						libmaus2::bambam::BamAlignment const & algn = BDRW.getDecoder().getAlignment();
 						uint64_t z = 0;
 						bool brok = false;
 						while ( BDRW.getDecoder().readAlignment() )

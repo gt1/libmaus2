@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,49 +19,49 @@
 #if ! defined(LIBMAUS_LF_LF_HPP)
 #define LIBMAUS_LF_LF_HPP
 
-#include <libmaus/lf/LFBase.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
+#include <libmaus2/lf/LFBase.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
 
 #if 0
 #include <memory>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
 
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/rank/CacheLineRank.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/wavelet/ExternalWaveletGenerator.hpp>
-#include <libmaus/huffman/RLDecoder.hpp>
-#include <libmaus/wavelet/ImpWaveletTree.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGenerator.hpp>
-#include <libmaus/wavelet/ImpHuffmanWaveletTree.hpp>
-#include <libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp>
-#include <libmaus/rl/RLIndex.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/rank/CacheLineRank.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/wavelet/ExternalWaveletGenerator.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
+#include <libmaus2/wavelet/ImpWaveletTree.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGenerator.hpp>
+#include <libmaus2/wavelet/ImpHuffmanWaveletTree.hpp>
+#include <libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp>
+#include <libmaus2/rl/RLIndex.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
-		struct LF : LFBase< ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, uint64_t > >
+		struct LF : LFBase< ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t > >
 		{
-			typedef LFBase< ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, uint64_t > > base_type;
+			typedef LFBase< ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t > > base_type;
 			
 			typedef base_type::wt_type wt_type;
 			typedef base_type::wt_ptr_type wt_ptr_type;
 			typedef LF this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			LF( std::istream & istr ) : base_type ( istr ) {}
 			LF( std::istream & istr, uint64_t & s ) : base_type(istr,s) {}
 			LF( wt_ptr_type & rW ) : base_type(rW) {}
 			LF( bitio::CompactArray::unique_ptr_type & ABWT ) : base_type(ABWT) {}
-			LF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
+			LF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
 			: base_type(ABWT,ahnode) {}			
 		};
 	}

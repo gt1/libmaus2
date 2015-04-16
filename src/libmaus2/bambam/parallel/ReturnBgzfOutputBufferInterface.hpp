@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_RETURNBGZFOUTPUTBUFFERINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_RETURNBGZFOUTPUTBUFFERINTERFACE_HPP
 
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct ReturnBgzfOutputBufferInterface
 			{
 				virtual ~ReturnBgzfOutputBufferInterface() {}
-				virtual void returnBgzfOutputBufferInterface(libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type &) = 0;
+				virtual void returnBgzfOutputBufferInterface(libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type &) = 0;
 			};
 		}
 	}

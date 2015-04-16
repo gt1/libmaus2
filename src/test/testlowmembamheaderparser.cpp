@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,29 +16,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/bambam/BamAlignmentDecoder.hpp>
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
-#include <libmaus/lz/BgzfDeflate.hpp>
-#include <libmaus/lz/BgzfInflateStream.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoder.hpp>
+#include <libmaus2/bambam/BamHeaderLowMem.hpp>
+#include <libmaus2/lz/BgzfDeflate.hpp>
+#include <libmaus2/lz/BgzfInflateStream.hpp>
 
 #include <config.h>
 
 /*
  * compute bit vector of used sequences
  */
-static ::libmaus::bitio::IndexedBitVector::unique_ptr_type getUsedSeqVector(std::istream & in)
+static ::libmaus2::bitio::IndexedBitVector::unique_ptr_type getUsedSeqVector(std::istream & in)
 {
-	libmaus::lz::BgzfInflateStream bgzfin(in);
+	libmaus2::lz::BgzfInflateStream bgzfin(in);
 
-	libmaus::bambam::BamHeaderLowMem::unique_ptr_type PBHLM ( libmaus::bambam::BamHeaderLowMem::constructFromBAM(bgzfin));
+	libmaus2::bambam::BamHeaderLowMem::unique_ptr_type PBHLM ( libmaus2::bambam::BamHeaderLowMem::constructFromBAM(bgzfin));
 
-	::libmaus::bambam::BamAlignment algn;
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type Psqused(new ::libmaus::bitio::IndexedBitVector(PBHLM->getNumRef()));
-	::libmaus::bitio::IndexedBitVector & sqused = *Psqused;
+	::libmaus2::bambam::BamAlignment algn;
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type Psqused(new ::libmaus2::bitio::IndexedBitVector(PBHLM->getNumRef()));
+	::libmaus2::bitio::IndexedBitVector & sqused = *Psqused;
 	uint64_t c = 0;
 	while ( 
-		libmaus::bambam::BamAlignmentDecoder::readAlignmentGz(bgzfin,algn)
+		libmaus2::bambam::BamAlignmentDecoder::readAlignmentGz(bgzfin,algn)
 	)
 	{
 		if ( algn.isMapped() )
@@ -64,24 +64,24 @@ static ::libmaus::bitio::IndexedBitVector::unique_ptr_type getUsedSeqVector(std:
 }
 
 static void filterBamUsedSequences(
-	libmaus::util::ArgInfo const & arginfo,
+	libmaus2::util::ArgInfo const & arginfo,
 	std::istream & in,
-	::libmaus::bitio::IndexedBitVector const & IBV,
+	::libmaus2::bitio::IndexedBitVector const & IBV,
 	std::ostream & out
 )
 {
-	libmaus::lz::BgzfInflateStream bgzfin(in);
-	libmaus::bambam::BamHeaderLowMem::unique_ptr_type PBHLM ( libmaus::bambam::BamHeaderLowMem::constructFromBAM(bgzfin));
+	libmaus2::lz::BgzfInflateStream bgzfin(in);
+	libmaus2::bambam::BamHeaderLowMem::unique_ptr_type PBHLM ( libmaus2::bambam::BamHeaderLowMem::constructFromBAM(bgzfin));
 
 
-	libmaus::lz::BgzfDeflate<std::ostream> bgzfout(out,1);
+	libmaus2::lz::BgzfDeflate<std::ostream> bgzfout(out,1);
 	PBHLM->serialiseSequenceSubset(bgzfout,IBV,"testlowmembamheaderparser" /* id */,"testlowmembamheaderparser" /* pn */,
 		arginfo.commandline /* pgCL */, PACKAGE_VERSION /* pgVN */
 	);
 
-	::libmaus::bambam::BamAlignment algn;
+	::libmaus2::bambam::BamAlignment algn;
 	uint64_t c = 0;
-	while ( libmaus::bambam::BamAlignmentDecoder::readAlignmentGz(bgzfin,algn) )
+	while ( libmaus2::bambam::BamAlignmentDecoder::readAlignmentGz(bgzfin,algn) )
 	{
 		if ( algn.isMapped() )
 		{
@@ -122,11 +122,11 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		if ( ! arginfo.hasArg("I") )
 		{
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "Mandatory key I (input file) is not set.\n";
 			lme.finish();
 			throw lme;
@@ -134,18 +134,18 @@ int main(int argc, char * argv[])
 		
 		std::string const fn = arginfo.restargs.at(0);
 		
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type PIBV;
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type PIBV;
 		
 		// compute vector of used sequences
 		{
-			libmaus::aio::PosixFdInputStream in(fn);
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type TIBV(getUsedSeqVector(in));
+			libmaus2::aio::PosixFdInputStream in(fn);
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type TIBV(getUsedSeqVector(in));
 			PIBV = UNIQUE_PTR_MOVE(TIBV);
 		}
 		
 		// filter file and remove all unused sequences from header
 		{
-			libmaus::aio::PosixFdInputStream in(fn);
+			libmaus2::aio::PosixFdInputStream in(fn);
 			filterBamUsedSequences(arginfo,in,*PIBV,std::cout);
 		}
 	}

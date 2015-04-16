@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTFREELIST_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTFREELIST_HPP
 
-#include <libmaus/bambam/BamAlignmentListNode.hpp>
-#include <libmaus/util/FreeList.hpp>
+#include <libmaus2/bambam/BamAlignmentListNode.hpp>
+#include <libmaus2/util/FreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		typedef libmaus::util::FreeList<libmaus::bambam::BamAlignmentListNode> BamAlignmentFreeList;
+		typedef libmaus2::util::FreeList<libmaus2::bambam::BamAlignmentListNode> BamAlignmentFreeList;
 	}
 }
 #endif

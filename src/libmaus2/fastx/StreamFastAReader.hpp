@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(LIBMAUS_FASTX_STREAMFASTAREADERWRAPPER_HPP)
 #define LIBMAUS_FASTX_STREAMFASTAREADERWRAPPER_HPP
 
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/fastx/StreamFastReaderBase.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/fastx/StreamFastReaderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-                typedef FastAReaderTemplate< ::libmaus::fastx::StreamFastReaderBase > StreamFastAReader;
+                typedef FastAReaderTemplate< ::libmaus2::fastx::StreamFastReaderBase > StreamFastAReader;
                 
                 struct StreamFastAReaderWrapper : public StreamFastAReader
                 {
                 	StreamFastAReaderWrapper(std::istream & in) : StreamFastAReader(&in) {}
-                	StreamFastAReaderWrapper(std::istream & in, libmaus::fastx::FastInterval const & FI) : StreamFastAReader(&in,FI) {}
+                	StreamFastAReaderWrapper(std::istream & in, libmaus2::fastx::FastInterval const & FI) : StreamFastAReader(&in,FI) {}
                 };
 	}
 }

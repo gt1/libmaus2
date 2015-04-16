@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if !defined(LIBMAUS_UTIL_DYNAMICLOADING_HPP)
 #define LIBMAUS_UTIL_DYNAMICLOADING_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 #if defined(LIBMAUS_HAVE_DLFCN_H)
 #include <dlfcn.h>
 #endif
 #include <string>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -41,9 +41,9 @@ namespace libmaus
 			//! this type
 			typedef DynamicLibrary this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			//! name of modules
 			std::string const modname;
@@ -73,9 +73,9 @@ namespace libmaus
 			//! this type
 			typedef DynamicLibraryFunction<func_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			//! pointer to library
 			DynamicLibrary::unique_ptr_type plib;
@@ -96,7 +96,7 @@ namespace libmaus
 				
 				if ( ! vfunc )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to dlsym(\""<<lib.modname<<"\",\"" << funcname << "\"): " << dlerror() << std::endl;
 					se.finish();
 					throw se;

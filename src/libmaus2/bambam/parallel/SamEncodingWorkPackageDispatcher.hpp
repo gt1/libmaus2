@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMENCODINGWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMENCODINGWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/SamEncodingWorkPackageWrapperReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/SamEncodingWorkPackageWrapperReturnInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct SamEncodingWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct SamEncodingWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef SamEncodingWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				SamEncodingWorkPackageWrapperReturnInterface & packageReturnInterface;
 						
@@ -40,7 +40,7 @@ namespace libmaus
 					SamEncodingWorkPackageWrapperReturnInterface & rpackageReturnInterface
 				) : packageReturnInterface(rpackageReturnInterface) {}
 				~SamEncodingWorkPackageDispatcher() {}
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					SamEncodingWorkPackageWrapper * BP = dynamic_cast<SamEncodingWorkPackageWrapper *>(P);
 					BP->dispatch();

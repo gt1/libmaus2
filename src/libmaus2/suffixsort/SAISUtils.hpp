@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,27 +21,27 @@
 #if ! defined(SAISUTILS_HPP)
 #define SAISUTILS_HPP
 
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/select/ESelectSimple.hpp>
-#include <libmaus/select/ESelect222B.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/select/ESelectSimple.hpp>
+#include <libmaus2/select/ESelect222B.hpp>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		template<typename iterator>
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type computeS(
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type computeS(
 			iterator C,
 			uint64_t const n
 		)
 		{
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype(new ::libmaus::bitio::IndexedBitVector(n,1 /* pad */));
-			::libmaus::bitio::IndexedBitVector & stype = *pstype;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type pstype(new ::libmaus2::bitio::IndexedBitVector(n,1 /* pad */));
+			::libmaus2::bitio::IndexedBitVector & stype = *pstype;
 
 
 			/* compute stype bit vector */
@@ -138,19 +138,19 @@ namespace libmaus
 		}
 
 		template<typename iterator>
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type computeSParallel(
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type computeSParallel(
 			iterator C,
 			uint64_t const n,
 			uint64_t const threads
 		)
 		{
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype(new ::libmaus::bitio::IndexedBitVector(n,1 /* pad */));
-			::libmaus::bitio::IndexedBitVector & stype = *pstype;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type pstype(new ::libmaus2::bitio::IndexedBitVector(n,1 /* pad */));
+			::libmaus2::bitio::IndexedBitVector & stype = *pstype;
 
 			if ( n )
 			{
 				uint64_t const packets = 2*threads;
-				::libmaus::autoarray::AutoArray<uint64_t> endpoints(packets+1);
+				::libmaus2::autoarray::AutoArray<uint64_t> endpoints(packets+1);
 				uint64_t const targfragsize = (n + packets - 1) / packets;
 				
 				#if 0
@@ -229,7 +229,7 @@ namespace libmaus
 			return UNIQUE_PTR_MOVE(pstype);
 		}
 
-		inline void sToSast(::libmaus::bitio::IndexedBitVector & stype)
+		inline void sToSast(::libmaus2::bitio::IndexedBitVector & stype)
 		{
 			uint64_t const n = stype.size();
 			/* convert stype bit vector to s*type bit vector */
@@ -237,14 +237,14 @@ namespace libmaus
 				stype [ i ] = stype[i] && (!stype[i-1]);
 		}
 
-		inline void sToSastParallel(::libmaus::bitio::IndexedBitVector & stype, uint64_t const threads)
+		inline void sToSastParallel(::libmaus2::bitio::IndexedBitVector & stype, uint64_t const threads)
 		{
 			uint64_t const n = stype.size();
 			
 			if ( n )
 			{
 				uint64_t const packets = 2*threads;
-				::libmaus::autoarray::AutoArray<uint64_t> endpoints(packets+1);
+				::libmaus2::autoarray::AutoArray<uint64_t> endpoints(packets+1);
 				uint64_t const targfragsize = (n + packets - 1) / packets;
 				
 				#if 0
@@ -294,15 +294,15 @@ namespace libmaus
 		}
 
 		template<typename iterator>
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type computeSast(
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type computeSast(
 			iterator C,
 			uint64_t const n
 		)
 		{
 			uint64_t const threads = 8;
 		
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype(computeSParallel(C,n,threads));
-			::libmaus::bitio::IndexedBitVector & stype = *pstype;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type pstype(computeSParallel(C,n,threads));
+			::libmaus2::bitio::IndexedBitVector & stype = *pstype;
 
 			sToSastParallel(stype,threads);
 			stype.setupIndex();
@@ -312,16 +312,16 @@ namespace libmaus
 
 
 		template<typename iterator>
-		::libmaus::bitio::IndexedBitVector::unique_ptr_type computeSast(
+		::libmaus2::bitio::IndexedBitVector::unique_ptr_type computeSast(
 			iterator C,
 			uint64_t const n,
-			::libmaus::autoarray::AutoArray < uint64_t > & Shist,
-			::libmaus::autoarray::AutoArray < uint64_t > & Lhist,
+			::libmaus2::autoarray::AutoArray < uint64_t > & Shist,
+			::libmaus2::autoarray::AutoArray < uint64_t > & Lhist,
 			typename ::std::iterator_traits< iterator > :: value_type & maxk
 		)
 		{
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type pstype = computeS(C,n);
-			::libmaus::bitio::IndexedBitVector & stype = *pstype;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type pstype = computeS(C,n);
+			::libmaus2::bitio::IndexedBitVector & stype = *pstype;
 			
 			typedef typename ::std::iterator_traits< iterator > :: value_type value_type;
 			maxk = std::numeric_limits< value_type >::min();
@@ -329,8 +329,8 @@ namespace libmaus
 			for ( uint64_t i = 0; i < n; ++i )
 				maxk = std::max(maxk,C[i]);
 
-			Shist = ::libmaus::autoarray::AutoArray < uint64_t >( maxk+2 );
-			Lhist = ::libmaus::autoarray::AutoArray < uint64_t >( maxk+2 );
+			Shist = ::libmaus2::autoarray::AutoArray < uint64_t >( maxk+2 );
+			Lhist = ::libmaus2::autoarray::AutoArray < uint64_t >( maxk+2 );
 
 			for ( uint64_t i = 0; i < n; ++i )
 				if ( stype.get(i) )
@@ -347,12 +347,12 @@ namespace libmaus
 		// comparator for S* type substrings
 		struct STypeComparator
 		{
-			::libmaus::bitio::CompactArray const & C;
-			::libmaus::bitio::IndexedBitVector const & stype;
+			::libmaus2::bitio::CompactArray const & C;
+			::libmaus2::bitio::IndexedBitVector const & stype;
 			
 			STypeComparator(
-				::libmaus::bitio::CompactArray const & rC,
-				::libmaus::bitio::IndexedBitVector const & rstype
+				::libmaus2::bitio::CompactArray const & rC,
+				::libmaus2::bitio::IndexedBitVector const & rstype
 			)
 			: C(rC), stype(rstype)
 			{
@@ -381,8 +381,8 @@ namespace libmaus
 					{
 						uint64_t const rbits = std::min(static_cast<uint64_t>(64),compbits);
 
-						uint64_t const va = ::libmaus::bitio::getBits(C.D,a,rbits);
-						uint64_t const vb = ::libmaus::bitio::getBits(C.D,b,rbits);
+						uint64_t const va = ::libmaus2::bitio::getBits(C.D,a,rbits);
+						uint64_t const vb = ::libmaus2::bitio::getBits(C.D,b,rbits);
 						
 						if ( va != vb )
 							return va < vb;
@@ -408,8 +408,8 @@ namespace libmaus
 					{
 						uint64_t const rbits = std::min(static_cast<uint64_t>(64),compbits);
 
-						uint64_t const va = ::libmaus::bitio::getBits(C.D,a,rbits);
-						uint64_t const vb = ::libmaus::bitio::getBits(C.D,b,rbits);
+						uint64_t const va = ::libmaus2::bitio::getBits(C.D,a,rbits);
+						uint64_t const vb = ::libmaus2::bitio::getBits(C.D,b,rbits);
 						
 						if ( va != vb )
 							return va < vb;
@@ -433,16 +433,16 @@ namespace libmaus
 		struct NameDecodeDict
 		{
 			typedef NameDecodeDict<hash_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			uint64_t const numcol;
 			uint64_t const numnoncol;
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type SubColVec;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type SubColVec;
 
-			::libmaus::autoarray::AutoArray<hash_type> HHNonCol;
-			::libmaus::bitio::CompactArray lennoncol;
+			::libmaus2::autoarray::AutoArray<hash_type> HHNonCol;
+			::libmaus2::bitio::CompactArray lennoncol;
 			
-			::libmaus::bitio::CompactArray HHCol;
+			::libmaus2::bitio::CompactArray HHCol;
 			
 			NameDecodeDict(
 				uint64_t const redast,
@@ -451,7 +451,7 @@ namespace libmaus
 				unsigned int const shortbits,
 				unsigned int const longbits
 				)
-			: numcol(rnumcol), numnoncol(rnumnoncol), SubColVec(new ::libmaus::bitio::IndexedBitVector(redast)),
+			: numcol(rnumcol), numnoncol(rnumnoncol), SubColVec(new ::libmaus2::bitio::IndexedBitVector(redast)),
 			  HHNonCol(numnoncol), lennoncol(numnoncol,shortbits), HHCol(numcol,longbits) {}
 			
 			uint64_t byteSize() const
@@ -486,9 +486,9 @@ namespace libmaus
 			}
 			
 			void setupSubColVec(
-				::libmaus::bitio::IndexedBitVector const & ColBV,
-				::libmaus::bitio::IndexedBitVector const & NonColBV,
-				::libmaus::autoarray::AutoArray<uint64_t> const & ColIndex
+				::libmaus2::bitio::IndexedBitVector const & ColBV,
+				::libmaus2::bitio::IndexedBitVector const & NonColBV,
+				::libmaus2::autoarray::AutoArray<uint64_t> const & ColIndex
 				)
 			{
 				for ( uint64_t i = 0; i < SubColVec->size(); ++i )
@@ -504,9 +504,9 @@ namespace libmaus
 		struct HashReducedString
 		{
 			typedef HashReducedString<hash_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			::libmaus::bitio::CompactArray::unique_ptr_type hreduced;
+			::libmaus2::bitio::CompactArray::unique_ptr_type hreduced;
 			typename NameDecodeDict<hash_type>::unique_ptr_type namedict;
 			
 			HashReducedString(
@@ -517,7 +517,7 @@ namespace libmaus
 				unsigned int const shortbits,
 				unsigned int const longbits
 				)
-			: hreduced(new ::libmaus::bitio::CompactArray(redast,::libmaus::math::numbits(numsubname))),
+			: hreduced(new ::libmaus2::bitio::CompactArray(redast,::libmaus2::math::numbits(numsubname))),
 			  namedict(new NameDecodeDict<hash_type>(redast,numcol,numnoncol,shortbits,longbits))
 			{}
 			
@@ -530,28 +530,28 @@ namespace libmaus
 		template<typename hash_type>
 		struct HashLookupTable
 		{
-			typedef ::libmaus::bitio::CompactArray array_type;
+			typedef ::libmaus2::bitio::CompactArray array_type;
 			typedef array_type::unique_ptr_type array_ptr_type;
 
-			typedef ::libmaus::util::ConstIterator<HashLookupTable,uint64_t> const_iterator;
+			typedef ::libmaus2::util::ConstIterator<HashLookupTable,uint64_t> const_iterator;
 
 			typedef HashLookupTable this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			// bit vector
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type B;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type B;
 			// table for short strings
-			::libmaus::autoarray::AutoArray< array_ptr_type > S;
+			::libmaus2::autoarray::AutoArray< array_ptr_type > S;
 			// explicit names of long strings
 			array_ptr_type L;
 			// text
-			::libmaus::bitio::CompactArray const & C;
+			::libmaus2::bitio::CompactArray const & C;
 			// s* bit vector
-			::libmaus::bitio::IndexedBitVector const & stype;
+			::libmaus2::bitio::IndexedBitVector const & stype;
 			// select dictionary
-			// typedef ::libmaus::select::ESelect222B<true> select_type;
+			// typedef ::libmaus2::select::ESelect222B<true> select_type;
 			static unsigned int const selectstepbitslog = 7;
-			typedef ::libmaus::select::ESelectSimple<true,selectstepbitslog> select_type;
+			typedef ::libmaus2::select::ESelectSimple<true,selectstepbitslog> select_type;
 			typename select_type::unique_ptr_type eselect;
 			//
 			uint64_t const soffset;
@@ -566,8 +566,8 @@ namespace libmaus
 				uint64_t const numsubbits,
 				uint64_t const redast,
 				uint64_t const minsumhigh,
-				::libmaus::bitio::CompactArray const & rC,
-				::libmaus::bitio::IndexedBitVector const & rstype,
+				::libmaus2::bitio::CompactArray const & rC,
+				::libmaus2::bitio::IndexedBitVector const & rstype,
 				// name dict
 				uint64_t const numcol,
 				uint64_t const numnoncol,
@@ -575,7 +575,7 @@ namespace libmaus
 				unsigned int const longbits
 			)
 			: 
-			  B(new ::libmaus::bitio::IndexedBitVector(redast)),
+			  B(new ::libmaus2::bitio::IndexedBitVector(redast)),
 			  S ( mini+1 ), 
 			  L(new array_type(minsumhigh,numsubbits)),
 			  C(rC),
@@ -644,7 +644,7 @@ namespace libmaus
 				{
 					std::pair<uint64_t,uint64_t> const P = sPos(i);
 					uint64_t const len = P.second-P.first;
-					uint64_t const v = ::libmaus::bitio::getBits(C.D,P.first*C.getB(),len*C.getB());
+					uint64_t const v = ::libmaus2::bitio::getBits(C.D,P.first*C.getB(),len*C.getB());
 					assert ( v < S[len]->size() );
 					return S[len]->get(v);
 				}
@@ -680,7 +680,7 @@ namespace libmaus
 			static uint64_t const printfrac = 256;
 			
 			array_type const & C;
-			::libmaus::bitio::IndexedBitVector const & stype;
+			::libmaus2::bitio::IndexedBitVector const & stype;
 			uint64_t const smallthres;
 			bool const verbose;
 			uint64_t const fraction;
@@ -700,34 +700,34 @@ namespace libmaus
 
 			/* data structures for hashing */
 			// low bits arrays
-			::libmaus::autoarray::AutoArray<hash_type> LB;
+			::libmaus2::autoarray::AutoArray<hash_type> LB;
 			// hash table
-			::libmaus::autoarray::AutoArray<hash_type> HH;
+			::libmaus2::autoarray::AutoArray<hash_type> HH;
 			// collision bit vector
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type ColBV;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type ColBV;
 			// non collision bit vector
-			::libmaus::bitio::IndexedBitVector::unique_ptr_type NonColBV;
+			::libmaus2::bitio::IndexedBitVector::unique_ptr_type NonColBV;
 			// 
-			::libmaus::autoarray::AutoArray<uint64_t> ColIndex;
+			::libmaus2::autoarray::AutoArray<uint64_t> ColIndex;
 			//
-			::libmaus::autoarray::AutoArray<uint64_t> ColIndexCopy;
+			::libmaus2::autoarray::AutoArray<uint64_t> ColIndexCopy;
 			//
-			::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> ColVec;
+			::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> ColVec;
 			//
-			::libmaus::util::Histogram slenhist;
+			::libmaus2::util::Histogram slenhist;
 		
 			HashReduction(
 				array_type const & rC, 
-				::libmaus::bitio::IndexedBitVector const & rstype,
+				::libmaus2::bitio::IndexedBitVector const & rstype,
 				uint64_t const rsmallthres,
 				bool const rverbose = false,
 				uint64_t const rfraction = 8
 			) : C(rC), stype(rstype), smallthres(rsmallthres), verbose(rverbose), 
 			    fraction(rfraction), n(C.size()), b(C.getB()),
-			    uintbits(::libmaus::math::numbits(std::numeric_limits<hash_type>::max())), 
+			    uintbits(::libmaus2::math::numbits(std::numeric_limits<hash_type>::max())), 
 			    uintbits1(uintbits-1),
-			    shortbits( ::libmaus::math::numbits((uintbits-1)/b) ),
-			    longbits ( ::libmaus::math::numbits(n-1) ),
+			    shortbits( ::libmaus2::math::numbits((uintbits-1)/b) ),
+			    longbits ( ::libmaus2::math::numbits(n-1) ),
 			    redast(0),
 			    numcolnames(0), numnoncolnames(0), numsubnames(0), numsubbits(0), 
 			    hashbits(0),
@@ -743,19 +743,19 @@ namespace libmaus
 					
 				hashbits = std::max(hashbits,b);
 					
-				::libmaus::timing::RealTimeClock rtc;
+				::libmaus2::timing::RealTimeClock rtc;
 				
 				if ( verbose )
 					std::cerr << "(hashbits=" << hashbits << ")";
 
 				/* data structures for hashing */
 				// hash table
-				HH = ::libmaus::autoarray::AutoArray<hash_type> ( 1ull << hashbits );
+				HH = ::libmaus2::autoarray::AutoArray<hash_type> ( 1ull << hashbits );
 				// collision bit vector
-				::libmaus::bitio::IndexedBitVector::unique_ptr_type tColBV(new ::libmaus::bitio::IndexedBitVector(HH.size()) );
+				::libmaus2::bitio::IndexedBitVector::unique_ptr_type tColBV(new ::libmaus2::bitio::IndexedBitVector(HH.size()) );
 				ColBV = UNIQUE_PTR_MOVE(tColBV);
 				// non collision bit vector
-				::libmaus::bitio::IndexedBitVector::unique_ptr_type tNonColBV(new ::libmaus::bitio::IndexedBitVector( HH.size() ) );
+				::libmaus2::bitio::IndexedBitVector::unique_ptr_type tNonColBV(new ::libmaus2::bitio::IndexedBitVector( HH.size() ) );
 				NonColBV = UNIQUE_PTR_MOVE(tNonColBV);
 				
 				if ( verbose )
@@ -763,7 +763,7 @@ namespace libmaus
 						<< static_cast<double>((LB.byteSize() + HH.byteSize() + ColBV->byteSize() + NonColBV->byteSize()))/C.byteSize() << ")";
 				
 				for ( unsigned int i = 0; i < LB.size(); ++i )
-					LB[i] = ::libmaus::math::lowbits(i);
+					LB[i] = ::libmaus2::math::lowbits(i);
 				hash_type const colmask = (static_cast<hash_type>(1) << (uintbits-1));
 
 				if ( verbose )
@@ -781,7 +781,7 @@ namespace libmaus
 					uint64_t const availc = std::min( (n-lastspos) , len );
 					unsigned int const getbits = std::min( availc*b, hashbits );
 					unsigned int const shiftbits = hashbits - getbits;
-					uint64_t const hash = (::libmaus::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
+					uint64_t const hash = (::libmaus2::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
 		
 					#if 0
 					std::cerr << "+++: ";			
@@ -792,7 +792,7 @@ namespace libmaus
 
 					if ( len*b < uintbits && len <= smallthres )
 					{
-						uint64_t const v = ::libmaus::bitio::getBits ( C.D , lastspos*b, len*b ) << (uintbits1-len*b);
+						uint64_t const v = ::libmaus2::bitio::getBits ( C.D , lastspos*b, len*b ) << (uintbits1-len*b);
 						
 						if ( ! HH[hash] )
 							HH[hash] = v;
@@ -836,7 +836,7 @@ namespace libmaus
 					rtc.start();
 				}
 					
-				ColIndex = ::libmaus::autoarray::AutoArray<uint64_t>(numcol+1);
+				ColIndex = ::libmaus2::autoarray::AutoArray<uint64_t>(numcol+1);
 				lastspos = 0;
 				for ( uint64_t i = ((1 < n)?stype.next1(1):n); i < n; i= ((i==(n-1))?(i+1):stype.next1(i+1)) )
 				{
@@ -846,7 +846,7 @@ namespace libmaus
 					uint64_t const availc = std::min( (n-lastspos) , len );
 					unsigned int const getbits = std::min( availc*b, hashbits );
 					unsigned int const shiftbits = hashbits - getbits;
-					uint64_t const hash = (::libmaus::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
+					uint64_t const hash = (::libmaus2::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
 
 					if ( ColBV->get(hash) )
 						ColIndex [ ColBV->rank1(hash) - 1 ]++;
@@ -874,7 +874,7 @@ namespace libmaus
 					rtc.start();
 				}
 
-				ColVec = ::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c>( ColIndex[ColIndex.size()-1] );
+				ColVec = ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c>( ColIndex[ColIndex.size()-1] );
 				lastspos = 0;
 				redast = 0;
 				for ( uint64_t i = ((1 < n)?stype.next1(1):n); i < n; i= ((i==(n-1))?(i+1):stype.next1(i+1)) )
@@ -885,7 +885,7 @@ namespace libmaus
 					uint64_t const availc = std::min( (n-lastspos) , len );
 					unsigned int const getbits = std::min( availc*b, hashbits );
 					unsigned int const shiftbits = hashbits - getbits;
-					uint64_t const hash = (::libmaus::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
+					uint64_t const hash = (::libmaus2::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
 
 					if ( ColBV->get(hash) )
 						ColVec [ ColIndex [ ColBV->rank1(hash) - 1 ]++ ] = lastspos;
@@ -921,7 +921,7 @@ namespace libmaus
 					uint64_t const blocksize = ( ColIndex.size() + printfrac - 1 ) / printfrac;
 					uint64_t const blocks = ( innerloops + blocksize - 1 ) / blocksize;
 					
-					::libmaus::parallel::OMPLock printlock;
+					::libmaus2::parallel::OMPLock printlock;
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1)
@@ -1007,7 +1007,7 @@ namespace libmaus
 				numcolnames = ColIndex[ColIndex.size()-1];
 				numnoncolnames = NonColBV->rank1( NonColBV->size()-1);
 				numsubnames = numnoncolnames + numcolnames;
-				numsubbits = ::libmaus::math::numbits(numsubnames);
+				numsubbits = ::libmaus2::math::numbits(numsubnames);
 
 				if ( verbose )
 					std::cerr << "(shrinked ColVec, bs="
@@ -1027,7 +1027,7 @@ namespace libmaus
 			
 			typename HashReducedString<hash_type>::unique_ptr_type computeReducedString()
 			{
-				::libmaus::timing::RealTimeClock rtc;
+				::libmaus2::timing::RealTimeClock rtc;
 			
 				if ( verbose )
 				{
@@ -1052,7 +1052,7 @@ namespace libmaus
 					uint64_t const availc = std::min( (n-lastspos) , len );
 					unsigned int const getbits = std::min( availc*b, hashbits );
 					unsigned int const shiftbits = hashbits - getbits;
-					uint64_t const hash = (::libmaus::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
+					uint64_t const hash = (::libmaus2::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
 
 					uint64_t name;
 
@@ -1078,7 +1078,7 @@ namespace libmaus
 						name = ColIndex [ ColBV->rank1(hash) ] + NonColBV->rank1(hash)-1;
 						assert ( HRS->namedict->SubColVec->get(name) == false );
 						uint64_t const v = HH[hash] >> (uintbits1-len*b);
-						assert ( v == ::libmaus::bitio::getBits ( C.D , lastspos*b, len*b ) );
+						assert ( v == ::libmaus2::bitio::getBits ( C.D , lastspos*b, len*b ) );
 						
 						HRS->namedict->setNonCol(name,v,len);
 					}
@@ -1119,7 +1119,7 @@ namespace libmaus
 
 			typename HashLookupTable<hash_type>::unique_ptr_type computeHashLookupTable()
 			{
-				::libmaus::timing::RealTimeClock rtc; rtc.start();
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 				
 				// slenhist.print(std::cerr);
 				std::map<uint64_t,uint64_t> const & slenhistmap = slenhist.get();
@@ -1174,7 +1174,7 @@ namespace libmaus
 					uint64_t const availc = std::min( (n-lastspos) , len );
 					unsigned int const getbits = std::min( availc*b, hashbits );
 					unsigned int const shiftbits = hashbits - getbits;
-					uint64_t const hash = (::libmaus::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
+					uint64_t const hash = (::libmaus2::bitio::getBits ( C.D , lastspos*b, getbits ) << shiftbits) | LB[shiftbits];
 
 					uint64_t name;
 
@@ -1200,7 +1200,7 @@ namespace libmaus
 						name = ColIndex [ ColBV->rank1(hash) ] + NonColBV->rank1(hash)-1;
 						assert ( HLT->namedict->SubColVec->get(name) == false );
 						uint64_t const v = HH[hash] >> (uintbits1-len*b);
-						assert ( v == ::libmaus::bitio::getBits ( C.D , lastspos*b, len*b ) );
+						assert ( v == ::libmaus2::bitio::getBits ( C.D , lastspos*b, len*b ) );
 						
 						HLT->namedict->setNonCol(name,v,len);
 					}
@@ -1211,7 +1211,7 @@ namespace libmaus
 					
 					if ( len <= mini )
 					{
-						HLT->S[len]->set(::libmaus::bitio::getBits ( C.D , lastspos*b, len*b ), name);
+						HLT->S[len]->set(::libmaus2::bitio::getBits ( C.D , lastspos*b, len*b ), name);
 						HLT->B->set(redast,true);
 					}
 					else
@@ -1234,7 +1234,7 @@ namespace libmaus
 				}
 				if ( 1 <= mini )
 				{
-					HLT->S[1]->set(::libmaus::bitio::getBits ( C.D , (n-1)*b, 1*b ), 0/*name*/);
+					HLT->S[1]->set(::libmaus2::bitio::getBits ( C.D , (n-1)*b, 1*b ), 0/*name*/);
 					HLT->B->set(redast,true);
 				}
 				else
@@ -1264,7 +1264,7 @@ namespace libmaus
 		template<typename array_type, typename hash_type /* = uint32_t */>
 		typename HashReducedString<hash_type>::unique_ptr_type compareHashReductions(
 			array_type const & C, 
-			::libmaus::bitio::IndexedBitVector const & stype,
+			::libmaus2::bitio::IndexedBitVector const & stype,
 			uint64_t const smallthres,
 			bool const verbose = false,
 			uint64_t const fraction = 8
@@ -1289,7 +1289,7 @@ namespace libmaus
 		template<typename array_type, typename hash_type /* =uint32_t */>
 		typename HashReducedString<hash_type>::unique_ptr_type computeReducedStringHash(
 			array_type const & C, 
-			::libmaus::bitio::IndexedBitVector const & stype,
+			::libmaus2::bitio::IndexedBitVector const & stype,
 			uint64_t const smallthres,
 			bool const verbose = false,
 			uint64_t const fraction = 8
@@ -1303,7 +1303,7 @@ namespace libmaus
 		template<typename array_type, typename hash_type /* =uint32_t */>
 		typename HashLookupTable<hash_type>::unique_ptr_type computeReducedStringHashLookupTable(
 			array_type const & C, 
-			::libmaus::bitio::IndexedBitVector const & stype,
+			::libmaus2::bitio::IndexedBitVector const & stype,
 			uint64_t const smallthres,
 			bool const verbose = false,
 			uint64_t const fraction = 8

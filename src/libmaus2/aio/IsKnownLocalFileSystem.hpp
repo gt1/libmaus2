@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_AIO_ISKNOWNLOCALFILESYSTEM_HPP)
 #define LIBMAUS_AIO_ISKNOWNLOCALFILESYSTEM_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_STATFS)
 #include <sys/vfs.h>
 #endif
 
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 				if ( r < 0 )
 				{
 					int const error = errno;
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "isKnownLocalFileSystem(): statfs failed with error " << strerror(error) << std::endl;
 					lme.finish();
 					throw lme;
@@ -64,14 +64,14 @@ namespace libmaus
 
 			static bool isKnownLocalFileSystemCreate(std::string const & filename)
 			{
-				if ( libmaus::util::GetFileSize::fileExists(filename) )
+				if ( libmaus2::util::GetFileSize::fileExists(filename) )
 				{
 					return isKnownLocalFileSystem(filename);
 				}
 				else
 				{
-					libmaus::util::TempFileRemovalContainer::addTempFile(filename);
-					libmaus::aio::CheckedOutputStream COS(filename);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(filename);
+					libmaus2::aio::CheckedOutputStream COS(filename);
 					COS.flush();
 					COS.close();
 					bool const local = isKnownLocalFileSystem(filename);

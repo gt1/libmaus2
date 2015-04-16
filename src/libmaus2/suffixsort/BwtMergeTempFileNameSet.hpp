@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,10 +23,10 @@
 #include <iomanip>
 #include <sstream>
 
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -42,7 +42,7 @@ namespace libmaus
 				std::ostringstream hwtnamestr;			
 				hwtnamestr << tmpfilenamebase << "_" << std::setw(4) << std::setfill('0') << id << std::setw(0) << suffix;
 				std::string const hwtname = hwtnamestr.str();
-				::libmaus::util::TempFileRemovalContainer::addTempFile(hwtname);
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(hwtname);
 
 				return hwtname;
 			}
@@ -66,7 +66,7 @@ namespace libmaus
 						<< std::setw(4) << std::setfill('0') << i  << std::setw(0) 
 						<< suffix;
 					std::string const hwtname = hwtnamestr.str();
-					::libmaus::util::TempFileRemovalContainer::addTempFile(hwtname);
+					::libmaus2::util::TempFileRemovalContainer::addTempFile(hwtname);
 					V.push_back(hwtname);
 				}
 				
@@ -129,12 +129,12 @@ namespace libmaus
 			{
 				setPrefix(prefix, numbwt, numgt);
 				for ( uint64_t i = 0; i < getGT().size(); ++i )
-					::libmaus::util::TempFileRemovalContainer::addTempFile(getGT()[i]);
+					::libmaus2::util::TempFileRemovalContainer::addTempFile(getGT()[i]);
 				for ( uint64_t i = 0; i < getBWT().size(); ++i )
-					::libmaus::util::TempFileRemovalContainer::addTempFile(getBWT()[i]);
-				::libmaus::util::TempFileRemovalContainer::addTempFile(getHWT());
-				::libmaus::util::TempFileRemovalContainer::addTempFile(getHist());
-				::libmaus::util::TempFileRemovalContainer::addTempFile(getSampledISA());			
+					::libmaus2::util::TempFileRemovalContainer::addTempFile(getBWT()[i]);
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(getHWT());
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(getHist());
+				::libmaus2::util::TempFileRemovalContainer::addTempFile(getSampledISA());			
 			}
 			
 			void removeGtFiles() const
@@ -214,12 +214,12 @@ namespace libmaus
 			template<typename stream_type>
 			BwtMergeTempFileNameSet(stream_type & in)
 			: 
-				gt(::libmaus::util::StringSerialisation::deserialiseStringVector(in)),
-				bwt(::libmaus::util::StringSerialisation::deserialiseStringVector(in)),
-				hwtreq(::libmaus::util::StringSerialisation::deserialiseString(in)),
-				hwt(::libmaus::util::StringSerialisation::deserialiseString(in)),
-				hist(::libmaus::util::StringSerialisation::deserialiseString(in)),
-				sampledisa(::libmaus::util::StringSerialisation::deserialiseString(in))
+				gt(::libmaus2::util::StringSerialisation::deserialiseStringVector(in)),
+				bwt(::libmaus2::util::StringSerialisation::deserialiseStringVector(in)),
+				hwtreq(::libmaus2::util::StringSerialisation::deserialiseString(in)),
+				hwt(::libmaus2::util::StringSerialisation::deserialiseString(in)),
+				hist(::libmaus2::util::StringSerialisation::deserialiseString(in)),
+				sampledisa(::libmaus2::util::StringSerialisation::deserialiseString(in))
 			{
 				
 			}
@@ -233,12 +233,12 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & out) const
 			{
-				::libmaus::util::StringSerialisation::serialiseStringVector(out,gt);
-				::libmaus::util::StringSerialisation::serialiseStringVector(out,bwt);
-				::libmaus::util::StringSerialisation::serialiseString(out,hwtreq);
-				::libmaus::util::StringSerialisation::serialiseString(out,hwt);
-				::libmaus::util::StringSerialisation::serialiseString(out,hist);
-				::libmaus::util::StringSerialisation::serialiseString(out,sampledisa);
+				::libmaus2::util::StringSerialisation::serialiseStringVector(out,gt);
+				::libmaus2::util::StringSerialisation::serialiseStringVector(out,bwt);
+				::libmaus2::util::StringSerialisation::serialiseString(out,hwtreq);
+				::libmaus2::util::StringSerialisation::serialiseString(out,hwt);
+				::libmaus2::util::StringSerialisation::serialiseString(out,hist);
+				::libmaus2::util::StringSerialisation::serialiseString(out,sampledisa);
 			}
 			
 			std::string serialise() const

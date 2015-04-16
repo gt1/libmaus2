@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/GeneFlatFileEntry.hpp>
+#include <libmaus2/bambam/GeneFlatFileEntry.hpp>
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::GeneFlatFileEntry const & O)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::GeneFlatFileEntry const & O)
 {
 	out.write(O.geneName.first,O.geneName.second-O.geneName.first); out.put('\t');
 	out.write(O.name.first,O.name.second-O.name.first); out.put('\t');

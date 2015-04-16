@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQDECODERBASE_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQDECODERBASE_HPP
 
-#include <libmaus/bitio/ArrayDecode.hpp>
-#include <libmaus/fastx/CompactFastDecoder.hpp>
-#include <libmaus/fastx/CompactFastQContext.hpp>
-#include <libmaus/fastx/CompactFastQHeader.hpp>
-#include <libmaus/fastx/FastQElement.hpp>
+#include <libmaus2/bitio/ArrayDecode.hpp>
+#include <libmaus2/fastx/CompactFastDecoder.hpp>
+#include <libmaus2/fastx/CompactFastQContext.hpp>
+#include <libmaus2/fastx/CompactFastQHeader.hpp>
+#include <libmaus2/fastx/FastQElement.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct CompactFastQDecoderBase
 		{
-			typedef ::libmaus::fastx::FASTQEntry pattern_type;
-			typedef ::libmaus::fastx::FastQElement element_type;
+			typedef ::libmaus2::fastx::FASTQEntry pattern_type;
+			typedef ::libmaus2::fastx::FastQElement element_type;
 			
 			template<typename stream_type>
 			static bool decodePattern(
 				stream_type & stream,
-				::libmaus::fastx::CompactFastQHeader const & header,
-				::libmaus::fastx::CompactFastQContext & context,
+				::libmaus2::fastx::CompactFastQHeader const & header,
+				::libmaus2::fastx::CompactFastQContext & context,
 				pattern_type & pattern
 			)
 			{
-				bool const ok = ::libmaus::fastx::CompactFastDecoderBase::decode(pattern,stream,context.nextid);
+				bool const ok = ::libmaus2::fastx::CompactFastDecoderBase::decode(pattern,stream,context.nextid);
 				
 				std::ostringstream sidstr;
 				sidstr << "read_" << pattern.patid;
@@ -53,11 +53,11 @@ namespace libmaus
 				
 				uint64_t const l = pattern.getPatternLength();
 				if ( l > context.qbuf.size() )
-					context.qbuf = ::libmaus::autoarray::AutoArray<uint8_t>(l);
+					context.qbuf = ::libmaus2::autoarray::AutoArray<uint8_t>(l);
 
 				// decode weight array
-				::libmaus::util::PutObject<uint8_t *> P(context.qbuf.begin());
-				::libmaus::bitio::ArrayDecode::decodeArray(stream,P,l,header.qbits);
+				::libmaus2::util::PutObject<uint8_t *> P(context.qbuf.begin());
+				::libmaus2::bitio::ArrayDecode::decodeArray(stream,P,l,header.qbits);
 
 				// dequantise		
 				for ( uint64_t i = 0; i < l; ++i )
@@ -73,8 +73,8 @@ namespace libmaus
 			template<typename stream_type>
 			static bool decodeElement(
 				stream_type & stream,
-				::libmaus::fastx::CompactFastQHeader const & header,
-				::libmaus::fastx::CompactFastQContext & context,
+				::libmaus2::fastx::CompactFastQHeader const & header,
+				::libmaus2::fastx::CompactFastQContext & context,
 				element_type & element
 			)
 			{

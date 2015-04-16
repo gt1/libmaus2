@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_REFIDINTERVAL_HPP)
 #define       LIBMAUS_BAMBAM_PARALLEL_REFIDINTERVAL_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{

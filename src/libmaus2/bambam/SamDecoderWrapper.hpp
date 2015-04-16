@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMDECODERWRAPPER_HPP)
 #define LIBMAUS_BAMBAM_SAMDECODERWRAPPER_HPP
 
-#include <libmaus/bambam/SamDecoder.hpp>
+#include <libmaus2/bambam/SamDecoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		/**
 		 * class wrapping a SamDecoder object
 		 **/		
-		struct SamDecoderWrapper : public libmaus::bambam::BamAlignmentDecoderWrapper
+		struct SamDecoderWrapper : public libmaus2::bambam::BamAlignmentDecoderWrapper
 		{
 			//! wrapped object
 			SamDecoder samdec;
@@ -59,11 +59,11 @@ namespace libmaus
 			 * @param istr inputstream
 			 * @param rputrank put rank (line number) on alignments
 			 **/
-			SamDecoderWrapper(libmaus::aio::InputStream::unique_ptr_type & istr, bool const rputrank = false) : samdec(istr,rputrank)
+			SamDecoderWrapper(libmaus2::aio::InputStream::unique_ptr_type & istr, bool const rputrank = false) : samdec(istr,rputrank)
 			{
 			}
 			
-			libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return samdec;
 			}

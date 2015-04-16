@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_LZ_RAZFDECODER_HPP)
 #define LIBMAUS_LZ_RAZFDECODER_HPP
 
-#include <libmaus/lz/RAZFDecoderBuffer.hpp>
+#include <libmaus2/lz/RAZFDecoderBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct RAZFDecoder : public libmaus::lz::RAZFDecoderBuffer, public ::std::istream
+		struct RAZFDecoder : public libmaus2::lz::RAZFDecoderBuffer, public ::std::istream
 		{
 			typedef RAZFDecoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			RAZFDecoder(std::string const & filename)
-			: libmaus::lz::RAZFDecoderBuffer(filename), ::std::istream(this)
+			: libmaus2::lz::RAZFDecoderBuffer(filename), ::std::istream(this)
 			{
 				
 			}
 			
 			RAZFDecoder(std::istream & in)
-			: libmaus::lz::RAZFDecoderBuffer(in), ::std::istream(this)
+			: libmaus2::lz::RAZFDecoderBuffer(in), ::std::istream(this)
 			{
 			
 			}

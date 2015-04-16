@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECT_HPP)
 #define LIBMAUS_LZ_SNAPPYDECOMPRESSOROBJECT_HPP
 
-#include <libmaus/lz/DecompressorObject.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus2/lz/DecompressorObject.hpp>
+#include <libmaus2/lz/SnappyCompress.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyDecompressorObject : public DecompressorObject
 		{
 			typedef SnappyDecompressorObject this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			virtual ~SnappyDecompressorObject() {}
 			virtual bool rawuncompress(char const * compressed, size_t compressed_length, char * uncompressed, size_t /* uncompressed_length */)

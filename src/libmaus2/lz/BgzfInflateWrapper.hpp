@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATEWRAPPER_HPP)
 #define LIBMAUS_LZ_BGZFINFLATEWRAPPER_HPP
 
-#include <libmaus/lz/BgzfInflate.hpp>
+#include <libmaus2/lz/BgzfInflate.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateWrapper
 		{
-			::libmaus::lz::BgzfInflate<std::istream> bgzf;
+			::libmaus2::lz::BgzfInflate<std::istream> bgzf;
 			
 			BgzfInflateWrapper(std::istream & in) : bgzf(in) {}
 			BgzfInflateWrapper(std::istream & in, std::ostream & out) : bgzf(in,out) {}
-			BgzfInflateWrapper(std::istream & in, libmaus::lz::BgzfVirtualOffset const & start, libmaus::lz::BgzfVirtualOffset const & end) : bgzf(in,start,end) {}
+			BgzfInflateWrapper(std::istream & in, libmaus2::lz::BgzfVirtualOffset const & start, libmaus2::lz::BgzfVirtualOffset const & end) : bgzf(in,start,end) {}
 		};
 	}
 }

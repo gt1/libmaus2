@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_UTIL_ARRAY832)
 #define LIBMAUS_UTIL_ARRAY832
 
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/getBit.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/getBit.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -39,9 +39,9 @@ namespace libmaus
 			//! this type
 			typedef Array832 this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! rank dictionary type
-			typedef ::libmaus::rank::ERank222B rank_type;
+			typedef ::libmaus2::rank::ERank222B rank_type;
 			//! writer type for rank dictionary
 			typedef rank_type::writer_type writer_type;
 			//! data type for storing bit vector
@@ -50,13 +50,13 @@ namespace libmaus
 			//! length of stored sequence
 			uint64_t n;
 			//! category bit vector
-			::libmaus::autoarray::AutoArray<data_type> B;
+			::libmaus2::autoarray::AutoArray<data_type> B;
 			//! rank dictionary on B
-			::libmaus::rank::ERank222B::unique_ptr_type R;
+			::libmaus2::rank::ERank222B::unique_ptr_type R;
 			//! sequence of numbers stored in 8 bits
-			::libmaus::autoarray::AutoArray<uint8_t> A8;
+			::libmaus2::autoarray::AutoArray<uint8_t> A8;
 			//! sequence of numbers stored in 32 bits
-			::libmaus::autoarray::AutoArray<uint32_t> A32;
+			::libmaus2::autoarray::AutoArray<uint32_t> A32;
 			
 			/**
 			 * serialise this object to the output stream out
@@ -93,7 +93,7 @@ namespace libmaus
 				if ( n )
 				{
 					uint64_t const n64 = (n+63)/64;
-					B = ::libmaus::autoarray::AutoArray<data_type>(n64);
+					B = ::libmaus2::autoarray::AutoArray<data_type>(n64);
 					writer_type W(B.get());
 				
 					for ( iterator i = a; i != e; ++i )
@@ -101,14 +101,14 @@ namespace libmaus
 					
 					W.flush();
 				
-					::libmaus::rank::ERank222B::unique_ptr_type tR(new ::libmaus::rank::ERank222B(B.get(), n64*64));
+					::libmaus2::rank::ERank222B::unique_ptr_type tR(new ::libmaus2::rank::ERank222B(B.get(), n64*64));
 					R = UNIQUE_PTR_MOVE(tR);
 					
 					uint64_t const n8 = R->rank1(n-1);
 					uint64_t const n32 = R->rank0(n-1);
 					
-					A8 = ::libmaus::autoarray::AutoArray<uint8_t>(n8,false);
-					A32 = ::libmaus::autoarray::AutoArray<uint32_t>(n32,false);
+					A8 = ::libmaus2::autoarray::AutoArray<uint8_t>(n8,false);
+					A32 = ::libmaus2::autoarray::AutoArray<uint32_t>(n32,false);
 
 					uint64_t j = 0;
 					for ( iterator i = a; i != e; ++i,++j )
@@ -144,13 +144,13 @@ namespace libmaus
 			{
 				if ( i >= n )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Access of element " << i << " >= " << n << " in Array832::operator[]";
 					se.finish();
 					throw se;
 				}
 			
-				if ( ::libmaus::bitio::getBit(B.get(),i) )
+				if ( ::libmaus2::bitio::getBit(B.get(),i) )
 					return A8[R->rank1(i)-1];
 				else
 					return A32[R->rank0(i)-1];

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -42,19 +42,19 @@
 #include <iostream>
 #include <set>
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/network/GetHostName.hpp>
-#include <libmaus/network/SocketInputOutputInterface.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/network/GetHostName.hpp>
+#include <libmaus2/network/SocketInputOutputInterface.hpp>
 #include <stdexcept>
 
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/SynchronousQueue.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/SynchronousQueue.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -62,8 +62,8 @@ namespace libmaus
 		{
 			public:
 			typedef SocketBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			static int multiPoll(std::vector<int> const & fds, int & pfd)
 			{
@@ -71,7 +71,7 @@ namespace libmaus
 			
 				uint64_t const limit = RLIMIT_NOFILE;
 				uint64_t const numfd = fds.size();
-				::libmaus::autoarray::AutoArray < struct pollfd > PFD(std::min(limit,numfd));
+				::libmaus2::autoarray::AutoArray < struct pollfd > PFD(std::min(limit,numfd));
 				uint64_t const loops = (fds.size() + limit - 1 )/limit;
 				
 				for ( uint64_t l = 0; l < loops; ++l )
@@ -173,7 +173,7 @@ namespace libmaus
 							}
 							else
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "SocketBase::write() to " << getStringAddr() << " failed: " << strerror(errno);
 								se.finish();
 								throw se;	
@@ -197,7 +197,7 @@ namespace libmaus
 						}
 						std::cerr << " remaining packet portion " << len;
 						std::cerr << std::endl;
-						::libmaus::util::StackTrace ST;
+						::libmaus2::util::StackTrace ST;
 						std::cerr << ST.toString(false);
 					}
 				}
@@ -252,7 +252,7 @@ namespace libmaus
 								<< ((rem >>  0) & 0xFF);
 						}
 						std::cerr << std::endl;
-						::libmaus::util::StackTrace ST;
+						::libmaus2::util::StackTrace ST;
 						std::cerr << ST.toString(false);
 					}
 					#else // __APPLE__
@@ -324,7 +324,7 @@ namespace libmaus
 								<< ((rem >>  0) & 0xFF);
 						}
 						std::cerr << std::endl;
-						::libmaus::util::StackTrace ST;
+						::libmaus2::util::StackTrace ST;
 						std::cerr << ST.toString(false);
 					}
 					#else // __APPLE__
@@ -359,7 +359,7 @@ namespace libmaus
 					
 					if ( ! he )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 						se.finish();
 						throw se;		
@@ -369,7 +369,7 @@ namespace libmaus
 					
 					if ( he->h_addr_list[0] == 0 )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "failed to get address for " << hostname << " via gethostbyname (no address returned)";
 						se.finish();
 						throw se;		
@@ -382,7 +382,7 @@ namespace libmaus
 						}
 						else
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "only IPv4 supported";
 							se.finish();
 							throw se;					
@@ -412,7 +412,7 @@ namespace libmaus
 				if ( fd < 0 )
 				{
 					cleanup();
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "socket() failed: " << strerror(errno);
 					se.finish();
 					throw se;
@@ -439,7 +439,7 @@ namespace libmaus
 					reinterpret_cast<char *>(&flag),sizeof(int));
 				if ( result < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "setsockopt() failed: " << strerror(errno);
 					se.finish();
 					throw;
@@ -455,7 +455,7 @@ namespace libmaus
 				{
 					int const error = errno;
 					
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ioctl("<<fd<<"," << F_GETFL << ",0" <<") failed: " << strerror(error) << std::endl;
 					se.finish();
 					throw se;
@@ -470,7 +470,7 @@ namespace libmaus
 				{
 					int const error = errno;
 					
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ioctl() failed: " << strerror(error);
 					se.finish();
 					throw se;				
@@ -583,9 +583,9 @@ namespace libmaus
 				barrierR();
 			}
 
-			template<typename data_type, ::libmaus::autoarray::alloc_type atype >
+			template<typename data_type, ::libmaus2::autoarray::alloc_type atype >
 			void writeMessageInBlocks(
-				::libmaus::autoarray::AutoArray<data_type,atype> const & A,
+				::libmaus2::autoarray::AutoArray<data_type,atype> const & A,
 				uint64_t const b = 8192
 				)
 			{
@@ -618,7 +618,7 @@ namespace libmaus
 				uint64_t const b
 				)
 			{
-				::libmaus::autoarray::AutoArray<data_type> B(b);
+				::libmaus2::autoarray::AutoArray<data_type> B(b);
 				// number of lements
 				writeSingle<uint64_t>(n);
 				// number of blocks
@@ -635,20 +635,20 @@ namespace libmaus
 
 			template<
 				typename data_type, 
-				::libmaus::autoarray::alloc_type atype /* = ::libmaus::autoarray::alloc_type_cxx */
+				::libmaus2::autoarray::alloc_type atype /* = ::libmaus2::autoarray::alloc_type_cxx */
 			>
-			::libmaus::autoarray::AutoArray<data_type,atype> readMessageInBlocks()
+			::libmaus2::autoarray::AutoArray<data_type,atype> readMessageInBlocks()
 			{
-				::libmaus::timing::RealTimeClock rtc; rtc.start();
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 			
 				uint64_t const n = readSingle<uint64_t>();
 				uint64_t const blocks = readSingle<uint64_t>();
-				::libmaus::autoarray::AutoArray<data_type,atype> A(n,false);
+				::libmaus2::autoarray::AutoArray<data_type,atype> A(n,false);
 				data_type * p = A.begin();
 				
 				for ( uint64_t i = 0; i < blocks; ++i )
 				{
-					::libmaus::autoarray::AutoArray<data_type> B = readMessage<data_type>();
+					::libmaus2::autoarray::AutoArray<data_type> B = readMessage<data_type>();
 					std::copy(B.begin(),B.end(),p);
 					p += B.size();
 				}
@@ -710,7 +710,7 @@ namespace libmaus
 			std::string readString(uint64_t & tag)
 			{
 				tag = readSingle<uint64_t>();
-				::libmaus::autoarray::AutoArray<char> A = readMessageInBlocks<char,::libmaus::autoarray::alloc_type_cxx>();
+				::libmaus2::autoarray::AutoArray<char> A = readMessageInBlocks<char,::libmaus2::autoarray::alloc_type_cxx>();
 				return std::string(A.get(),A.get()+A.size());
 			}
 			std::string readString()
@@ -745,9 +745,9 @@ namespace libmaus
 				
 				if ( n != 1 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Number of elements expected != 1 in " <<
-						::libmaus::util::Demangle::demangle<this_type>() << "::readSingle()";
+						::libmaus2::util::Demangle::demangle<this_type>() << "::readSingle()";
 					se.finish();
 					throw se;
 				}
@@ -757,7 +757,7 @@ namespace libmaus
 				
 				if ( red != static_cast<ssize_t>(toread) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to readSingle: " << strerror(errno);
 					se.finish();
 					throw se;
@@ -797,10 +797,10 @@ namespace libmaus
 			}
 
 			template<typename type_a, typename type_b>
-			::libmaus::autoarray::AutoArray < std::pair<type_a,type_b> > readPairVector()
+			::libmaus2::autoarray::AutoArray < std::pair<type_a,type_b> > readPairVector()
 			{
 				uint64_t const n = readSingle<uint64_t>();
-				::libmaus::autoarray::AutoArray < std::pair<type_a,type_b> > A(n,false);
+				::libmaus2::autoarray::AutoArray < std::pair<type_a,type_b> > A(n,false);
 				for ( uint64_t i = 0; i < n; ++i )
 					A[i] = readPair<type_a,type_b>();
 				return A;
@@ -824,7 +824,7 @@ namespace libmaus
 				
 				if ( red != static_cast<ssize_t>(toread) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to SocketBase::readMessage: " << strerror(errno);
 					se.finish();
 					throw se;
@@ -832,24 +832,24 @@ namespace libmaus
 			}
 
 			template<typename data_type>
-			::libmaus::autoarray::AutoArray<data_type> readMessage(uint64_t & tag)
+			::libmaus2::autoarray::AutoArray<data_type> readMessage(uint64_t & tag)
 			{
 				tag = readNumber();
 				uint64_t const n = readNumber();
 				
 				#if defined(READMESSAGEDEBUG)
 				std::cerr << "tag=" << tag << " n=" << n << std::endl;
-				::libmaus::timing::RealTimeClock rtc; rtc.start();
+				::libmaus2::timing::RealTimeClock rtc; rtc.start();
 				#endif
 				
-				::libmaus::autoarray::AutoArray<data_type> D(n,false);
+				::libmaus2::autoarray::AutoArray<data_type> D(n,false);
 				
 				uint64_t const toread = n * sizeof(data_type);
 				ssize_t const red = read ( reinterpret_cast<char *>(D.get()) , toread );
 
 				if ( red != static_cast<ssize_t>(toread) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to SocketBase::readMessage: " << strerror(errno);
 					se.finish();
 					throw se;
@@ -864,7 +864,7 @@ namespace libmaus
 			}
 
 			template<typename data_type>
-			::libmaus::autoarray::AutoArray<data_type> readMessage()
+			::libmaus2::autoarray::AutoArray<data_type> readMessage()
 			{
 				uint64_t tag;
 				return readMessage<data_type>(tag);
@@ -893,7 +893,7 @@ namespace libmaus
 				
 				if ( red != sizeof(A)/sizeof(A[0]) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to SocketBase::readNumber(): received " << red << " out of " << sizeof(A)/sizeof(A[0]) << " octets.";
 					se.finish();
 					throw se;
@@ -915,7 +915,7 @@ namespace libmaus
 		struct ClientSocket : public SocketBase
 		{
 			typedef ClientSocket this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			// sockaddr_in recadr;                     
 
@@ -928,7 +928,7 @@ namespace libmaus
 				
 				if ( connect(getFD(),reinterpret_cast<const sockaddr *>(&remaddr),sizeof(remaddr)) != 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "connect() failed: " << strerror(errno);
 					se.finish();
 					throw se;		
@@ -969,7 +969,7 @@ namespace libmaus
 		struct ServerSocket : public SocketBase
 		{
 			typedef ServerSocket this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			sockaddr_in recadr;
 			
@@ -1007,7 +1007,7 @@ namespace libmaus
 					}
 				}
 				
-				::libmaus::exception::LibMausException ex;
+				::libmaus2::exception::LibMausException ex;
 				ex.getStream() << "Failed to allocate ServerSocket (no ports available)";
 				ex.finish();
 				throw ex;
@@ -1027,7 +1027,7 @@ namespace libmaus
 						throw std::runtime_error("bind: address is already in use.");
 				
 					// cleanup();
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bind() failed: " << strerror(errno);
 					se.finish();
 					throw se;		
@@ -1036,7 +1036,7 @@ namespace libmaus
 				if ( listen ( getFD(), backlog ) != 0 )
 				{
 					// cleanup();
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "listen() failed: " << strerror(errno);
 					se.finish();
 					throw se;
@@ -1056,7 +1056,7 @@ namespace libmaus
 				
 				if ( afd < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "accept() failed: " << strerror(errno);
 					se.finish();
 					throw se;		
@@ -1089,7 +1089,7 @@ namespace libmaus
 				
 				if ( r < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "select failed on socket." << std::endl;
 					se.finish();
 					throw se;
@@ -1132,19 +1132,19 @@ namespace libmaus
 		{
 			typedef _data_type data_type;
 			typedef SocketOutputBuffer<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			::libmaus::network::SocketBase * const socket;
-			::libmaus::autoarray::AutoArray< data_type > B;
+			::libmaus2::network::SocketBase * const socket;
+			::libmaus2::autoarray::AutoArray< data_type > B;
 			data_type * const pa;
 			data_type * pc;
 			data_type * const pe;
-			::libmaus::timing::RealTimeClock flushclock;
+			::libmaus2::timing::RealTimeClock flushclock;
 			double flushtime;
 			uint64_t datatag;
 			
 			SocketOutputBuffer(
-				::libmaus::network::SocketBase * const rsocket, 
+				::libmaus2::network::SocketBase * const rsocket, 
 				uint64_t const bufsize,
 				uint64_t const rdatatag = 0
 			)
@@ -1186,7 +1186,7 @@ namespace libmaus
 		{
 			typedef _data_type data_type;
 			typedef SocketOutputBufferIterator<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			SocketOutputBuffer<data_type> * SOB;
 			
@@ -1205,12 +1205,12 @@ namespace libmaus
 		{
 			typedef _data_type data_type;
 			typedef SocketInputBuffer<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			::libmaus::network::SocketBase * const socket;
+			::libmaus2::network::SocketBase * const socket;
 			uint64_t const limit;
 			uint64_t proc;
-			::libmaus::autoarray::AutoArray< data_type > B;
+			::libmaus2::autoarray::AutoArray< data_type > B;
 			data_type * pa;
 			data_type * pc;
 			data_type * pe;
@@ -1234,7 +1234,7 @@ namespace libmaus
 			}
 			
 			SocketInputBuffer(
-				::libmaus::network::SocketBase * const rsocket,
+				::libmaus2::network::SocketBase * const rsocket,
 				uint64_t const rlimit = getDefaultLimit(), // std::numeric_limits<uint64_t>::max(),
 				uint64_t const rtermtag = getDefaultTermTag(), // std::numeric_limits<uint64_t>::max(),
 				bool const rrequestblock = getDefaultRequestBlock()
@@ -1265,7 +1265,7 @@ namespace libmaus
 					}
 					else
 					{
-						B = ::libmaus::autoarray::AutoArray< data_type >(n,false);
+						B = ::libmaus2::autoarray::AutoArray< data_type >(n,false);
 						pa = B.begin();
 						pc = pa;
 						socket->readMessage < data_type > (tag,pa,n);
@@ -1314,22 +1314,22 @@ namespace libmaus
 		};
 
 		template<typename _data_type>
-		struct AsynchronousSocketInputBuffer : public ::libmaus::parallel::PosixThread
+		struct AsynchronousSocketInputBuffer : public ::libmaus2::parallel::PosixThread
 		{
 			typedef _data_type data_type;
 			typedef AsynchronousSocketInputBuffer<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			::libmaus::network::SocketBase * const socket;
- 			::libmaus::autoarray::AutoArray< data_type > B;
+			::libmaus2::network::SocketBase * const socket;
+ 			::libmaus2::autoarray::AutoArray< data_type > B;
 			data_type * pa;
 			data_type * pc;
 			data_type * pe;
 			uint64_t const termtag;
 
- 			::libmaus::autoarray::AutoArray< data_type > D;
-			::libmaus::parallel::SynchronousQueue<uint64_t> fullqueue;
-			::libmaus::parallel::SynchronousQueue<uint64_t> emptyqueue;
+ 			::libmaus2::autoarray::AutoArray< data_type > D;
+			::libmaus2::parallel::SynchronousQueue<uint64_t> fullqueue;
+			::libmaus2::parallel::SynchronousQueue<uint64_t> emptyqueue;
 			
 			static uint64_t getDefaultTermTag()
 			{
@@ -1337,7 +1337,7 @@ namespace libmaus
 			}
 			
 			AsynchronousSocketInputBuffer(
-				::libmaus::network::SocketBase * const rsocket,
+				::libmaus2::network::SocketBase * const rsocket,
 				uint64_t const rtermtag = getDefaultTermTag()
 			)
 			: socket(rsocket),
@@ -1370,7 +1370,7 @@ namespace libmaus
 						}
 						else
 						{
-							D = ::libmaus::autoarray::AutoArray< data_type >(n,false);
+							D = ::libmaus2::autoarray::AutoArray< data_type >(n,false);
 							socket->readMessage < data_type > (tag,D.get(),n);
 							fullqueue.enque(0);
 						}

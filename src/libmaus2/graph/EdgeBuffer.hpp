@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(EDGEBUFFER_HPP)
 #define EDGEBUFFER_HPP
 
-#include <libmaus/graph/EdgeList.hpp>
-#include <libmaus/parallel/SynchronousQueue.hpp>
-#include <libmaus/parallel/PosixThread.hpp>
+#include <libmaus2/graph/EdgeList.hpp>
+#include <libmaus2/parallel/SynchronousQueue.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
@@ -34,9 +34,9 @@ namespace libmaus
 		{
 		        typedef _edge_type edge_type;
 			typedef EdgeBufferBase<edge_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			::libmaus::autoarray::AutoArray< edge_type > B;
+			::libmaus2::autoarray::AutoArray< edge_type > B;
 			edge_type * const pa;
 			edge_type * pc;
 			edge_type * const pe;
@@ -91,17 +91,17 @@ namespace libmaus
 		};
 
 		template < typename _edge_type >
-		struct EdgeBufferBaseSet : public ::libmaus::parallel::PosixThread
+		struct EdgeBufferBaseSet : public ::libmaus2::parallel::PosixThread
 		{
 		        typedef _edge_type edge_type;
 			typedef EdgeBufferBaseSet<edge_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef EdgeBufferBase<edge_type> buffer_type;
-			typedef typename ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<buffer_type>::type buffer_ptr_type;
 			
-			::libmaus::autoarray::AutoArray < buffer_ptr_type > B;
-			::libmaus::parallel::SynchronousQueue<int64_t> fullqueue;
-			::libmaus::parallel::SynchronousQueue<int64_t> emptyqueue;
+			::libmaus2::autoarray::AutoArray < buffer_ptr_type > B;
+			::libmaus2::parallel::SynchronousQueue<int64_t> fullqueue;
+			::libmaus2::parallel::SynchronousQueue<int64_t> emptyqueue;
 			uint64_t const numwriters;
 			EdgeList & EL;
 			
@@ -171,7 +171,7 @@ namespace libmaus
 		{
 		        typedef _edge_type edge_type;
 			typedef EdgeBufferProxy<edge_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			EdgeBufferBaseSet<edge_type> & EBBS;
 			typename EdgeBufferBaseSet<edge_type>::buffer_type * buffer;
@@ -200,11 +200,11 @@ namespace libmaus
 		{
 		        typedef _edge_type edge_type;
 			typedef EdgeBufferProxySet<edge_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef EdgeBufferProxy<edge_type> proxy_type;
 			typedef typename proxy_type::unique_ptr_type proxy_ptr_type;
 			
-			::libmaus::autoarray::AutoArray < proxy_ptr_type > proxies;
+			::libmaus2::autoarray::AutoArray < proxy_ptr_type > proxies;
 			
 			EdgeBufferProxySet(EdgeBufferBaseSet<edge_type> & EBBS, uint64_t const numproxies)
 			: proxies(numproxies)
@@ -224,7 +224,7 @@ namespace libmaus
 		{
 		        typedef _edge_type edge_type;
 		        typedef ParallelEdgeList<edge_type> this_type;
-		        typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		        typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef EdgeBufferBaseSet<edge_type> buffer_base_set;
 			typedef typename buffer_base_set::unique_ptr_type buffer_base_set_ptr;
@@ -265,7 +265,7 @@ namespace libmaus
 		{
 		        typedef _edge_type edge_type;
 		        typedef ParallelEdgeListSet<edge_type> this_type;
-		        typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+		        typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		        
 		        typedef ParallelEdgeList<edge_type> edge_list_type;
 		        typedef typename edge_list_type::unique_ptr_type edge_list_ptr_type;
@@ -274,8 +274,8 @@ namespace libmaus
 		        
 		        uint64_t const numlists;
 		        uint64_t const readsperlist;
-		        ::libmaus::autoarray::AutoArray < edge_list_ptr_type > edgelists;
-		        ::libmaus::autoarray::AutoArray < proxy_type * > proxies;
+		        ::libmaus2::autoarray::AutoArray < edge_list_ptr_type > edgelists;
+		        ::libmaus2::autoarray::AutoArray < proxy_type * > proxies;
 		        		        
 		        ParallelEdgeListSet(
 		                uint64_t const edgelow,

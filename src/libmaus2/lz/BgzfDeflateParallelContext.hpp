@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEPARALLELCONTEXT_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEPARALLELCONTEXT_HPP
 
-#include <libmaus/lz/BgzfDeflateBase.hpp>
-#include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
-#include <libmaus/parallel/TerminatableSynchronousHeap.hpp>
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/OMPNumThreadsScope.hpp>
-#include <libmaus/lz/BgzfDeflateBlockIdInfo.hpp>
-#include <libmaus/lz/BgzfDeflateBlockIdComparator.hpp>
-#include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
+#include <libmaus2/lz/BgzfDeflateBase.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousHeap.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/OMPNumThreadsScope.hpp>
+#include <libmaus2/lz/BgzfDeflateBlockIdInfo.hpp>
+#include <libmaus2/lz/BgzfDeflateBlockIdComparator.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputCallback.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfDeflateParallelContext
 		{
 			typedef BgzfDeflateParallelContext this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			libmaus::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
+			libmaus2::parallel::TerminatableSynchronousHeap<BgzfThreadQueueElement,BgzfThreadQueueElementHeapComparator>
 				& deflategloblist;
 
-			libmaus::parallel::PosixMutex deflateoutlock;
+			libmaus2::parallel::PosixMutex deflateoutlock;
 			// next block id to be filled with input
 			uint64_t deflateoutid;
 			// next block id to be written to compressed stream
@@ -53,8 +53,8 @@ namespace libmaus
 			// number of output bytes
 			uint64_t deflateoutbytes;
 
-			libmaus::autoarray::AutoArray<libmaus::lz::BgzfDeflateBase::unique_ptr_type> deflateB;
-			libmaus::parallel::SynchronousQueue<uint64_t> deflatefreelist;
+			libmaus2::autoarray::AutoArray<libmaus2::lz::BgzfDeflateBase::unique_ptr_type> deflateB;
+			libmaus2::parallel::SynchronousQueue<uint64_t> deflatefreelist;
 
 			//! current object handled by input/caller
 			int64_t deflatecurobject;
@@ -64,7 +64,7 @@ namespace libmaus
 			// queue for compressed blocks to be written to output stream
 			BgzfDeflateBlockIdComparator deflateheapcomp;
 			BgzfDeflateBlockIdInfo deflateheapinfo;
-			libmaus::parallel::SynchronousConsecutiveHeap<
+			libmaus2::parallel::SynchronousConsecutiveHeap<
 				BgzfThreadQueueElement,
 				BgzfDeflateBlockIdInfo,
 				BgzfDeflateBlockIdComparator
@@ -72,17 +72,17 @@ namespace libmaus
 			
 			// exception data
 			uint64_t deflateexceptionid;
-			libmaus::exception::LibMausException::unique_ptr_type deflatepse;
-			libmaus::parallel::PosixMutex deflateexlock;
+			libmaus2::exception::LibMausException::unique_ptr_type deflatepse;
+			libmaus2::parallel::PosixMutex deflateexlock;
 
 			//! queues lock
-			libmaus::parallel::PosixMutex deflateqlock;
+			libmaus2::parallel::PosixMutex deflateqlock;
 			
 			//! index stream
 			std::ostream * deflateindexstr;
 
 			//! output callbacks
-			std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
+			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 
 			static bool getDefaultDeflateGetCur()
 			{
@@ -90,7 +90,7 @@ namespace libmaus
 			}
 
 			BgzfDeflateParallelContext(
-				libmaus::parallel::TerminatableSynchronousHeap<
+				libmaus2::parallel::TerminatableSynchronousHeap<
 					BgzfThreadQueueElement,
 					BgzfThreadQueueElementHeapComparator
 				>
@@ -115,8 +115,8 @@ namespace libmaus
 			{
 				for ( uint64_t i = 0; i < deflateB.size(); ++i )
 				{
-					libmaus::lz::BgzfDeflateBase::unique_ptr_type tdeflateBi(
-                                                new libmaus::lz::BgzfDeflateBase(level,true)
+					libmaus2::lz::BgzfDeflateBase::unique_ptr_type tdeflateBi(
+                                                new libmaus2::lz::BgzfDeflateBase(level,true)
                                         );
 					deflateB[i] = UNIQUE_PTR_MOVE(tdeflateBi);
 					// completely empty buffer on flush
@@ -138,7 +138,7 @@ namespace libmaus
 			}
 
 
-			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
+			void registerBlockOutputCallback(::libmaus2::lz::BgzfDeflateOutputCallback * cb)
 			{
 				blockoutputcallbacks.push_back(cb);
 			}
@@ -155,7 +155,7 @@ namespace libmaus
 
 				if ( ! deflateout )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
 					throw se;				

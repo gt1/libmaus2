@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(COMPACTARRAY_HPP)
 #define COMPACTARRAY_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/CompactArrayBase.hpp>
-#include <libmaus/util/iterator.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/CompactArrayBase.hpp>
+#include <libmaus2/util/iterator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -34,13 +34,13 @@ namespace libmaus
 			static bool const synchronous = _synchronous;
 		
 			typedef CompactArrayTemplate<synchronous> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef uint64_t value_type;
 
-			typedef typename ::libmaus::util::AssignmentProxy<CompactArrayTemplate<synchronous>,value_type> proxy_type;
-			typedef typename ::libmaus::util::AssignmentProxyIterator<CompactArrayTemplate<synchronous>,value_type> iterator;
-			typedef typename ::libmaus::util::ConstIterator<CompactArrayTemplate<synchronous>,value_type> const_iterator;
+			typedef typename ::libmaus2::util::AssignmentProxy<CompactArrayTemplate<synchronous>,value_type> proxy_type;
+			typedef typename ::libmaus2::util::AssignmentProxyIterator<CompactArrayTemplate<synchronous>,value_type> iterator;
+			typedef typename ::libmaus2::util::ConstIterator<CompactArrayTemplate<synchronous>,value_type> const_iterator;
 			
 			const_iterator begin() const
 			{
@@ -62,7 +62,7 @@ namespace libmaus
 			uint64_t n;
 			uint64_t s; // number of words
 
-			::libmaus::autoarray::AutoArray<uint64_t, ::libmaus::autoarray::alloc_type_c> AD;
+			::libmaus2::autoarray::AutoArray<uint64_t, ::libmaus2::autoarray::alloc_type_c> AD;
 			uint64_t * D;
 			
 			uint64_t size() const
@@ -87,12 +87,12 @@ namespace libmaus
 			// get least i such that i*b is a multiple of 64
 			uint64_t getWordMod() const
 			{
-				return ::libmaus::math::lcm(b,64) / b;
+				return ::libmaus2::math::lcm(b,64) / b;
 			}
 			uint64_t getPageMod() const
 			{
 				assert ( (getWordMod() * b) % 64 == 0 );
-				return ::libmaus::math::lcm ( (getWordMod() * b) /* bits */, ::libmaus::autoarray::AutoArray<uint8_t>::getpagesize()*8 /* bits */ ) / b;
+				return ::libmaus2::math::lcm ( (getWordMod() * b) /* bits */, ::libmaus2::autoarray::AutoArray<uint8_t>::getpagesize()*8 /* bits */ ) / b;
 			}
 						
 			static std::pair<uint64_t,uint64_t> getParamPair(std::string const & filename, uint64_t const offset)
@@ -112,7 +112,7 @@ namespace libmaus
 			
 			static unique_ptr_type concat(
 				std::string const & filename,
-				::libmaus::autoarray::AutoArray<uint64_t> const & offsets,
+				::libmaus2::autoarray::AutoArray<uint64_t> const & offsets,
 				uint64_t const li, uint64_t const ri
 			)
 			{
@@ -150,7 +150,7 @@ namespace libmaus
 						
 						uint64_t const blocksize = 16*1024;
 						uint64_t wordsleft = (n*b+63)/64;
-						::libmaus::autoarray::AutoArray<uint64_t> B(blocksize,false);
+						::libmaus2::autoarray::AutoArray<uint64_t> B(blocksize,false);
 						
 						unsigned int const mod = totalbits % 64;
 						unsigned int const mod64 = 64-mod;
@@ -218,7 +218,7 @@ namespace libmaus
 					uint64_t n = 0;
 					uint64_t minn = std::numeric_limits<uint64_t>::max();
 				
-					::libmaus::autoarray::AutoArray<uint64_t> bitoffsets(filenames.size());
+					::libmaus2::autoarray::AutoArray<uint64_t> bitoffsets(filenames.size());
 					;
 					for ( uint64_t i = li; i < ri; ++i )
 					{
@@ -250,7 +250,7 @@ namespace libmaus
 						
 						uint64_t const blocksize = 16*1024;
 						uint64_t wordsleft = (n*b+63)/64;
-						::libmaus::autoarray::AutoArray<uint64_t> B(blocksize,false);
+						::libmaus2::autoarray::AutoArray<uint64_t> B(blocksize,false);
 
 						uint64_t const totalbits = bitoffsets[i-li];						
 						
@@ -314,7 +314,7 @@ namespace libmaus
 						
 						uint64_t const blocksize = 16*1024;
 						uint64_t wordsleft = (n*b+63)/64;
-						::libmaus::autoarray::AutoArray<uint64_t> B(blocksize,false);
+						::libmaus2::autoarray::AutoArray<uint64_t> B(blocksize,false);
 
 						uint64_t const totalbits = bitoffsets[i-li];						
 						
@@ -368,7 +368,7 @@ namespace libmaus
 			}
 
 			static unique_ptr_type concatSlow(std::string const & filename,
-				::libmaus::autoarray::AutoArray<uint64_t> const & offsets,
+				::libmaus2::autoarray::AutoArray<uint64_t> const & offsets,
 				uint64_t const li, uint64_t const ri)
 			{
 				unique_ptr_type ptr;
@@ -420,7 +420,7 @@ namespace libmaus
 				
 					uint64_t const b = getParamPair(filenames[li],0).first;
 					uint64_t n = 0;
-					::libmaus::autoarray::AutoArray<uint64_t> offsets(ri-li);
+					::libmaus2::autoarray::AutoArray<uint64_t> offsets(ri-li);
 				
 					for ( uint64_t i = li; i < ri; ++i )
 					{
@@ -463,7 +463,7 @@ namespace libmaus
 				
 					uint64_t const b = getParamPair(filenames[li],0).first;
 					uint64_t n = 0;
-					::libmaus::autoarray::AutoArray<uint64_t> offsets(ri-li);
+					::libmaus2::autoarray::AutoArray<uint64_t> offsets(ri-li);
 					uint64_t minsize = std::numeric_limits<uint64_t>::max();
 				
 					for ( uint64_t i = li; i < ri; ++i )
@@ -525,7 +525,7 @@ namespace libmaus
 			static uint64_t deserializeNumber(std::istream & in, uint64_t & t)
 			{
 				uint64_t n;
-				t += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in, &n);
+				t += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in, &n);
 				return n;
 			}
 			static uint64_t deserializeNumber(std::istream & in)
@@ -534,14 +534,14 @@ namespace libmaus
 				return deserializeNumber(in,t);
 			}
 			
-			static ::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> deserializeArray(std::istream & in, uint64_t & t)
+			static ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> deserializeArray(std::istream & in, uint64_t & t)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> AD;
+				::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> AD;
 				t += AD.deserialize(in);
 				return AD;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> deserializeArray(std::istream & in)
+			static ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> deserializeArray(std::istream & in)
 			{
 				uint64_t t;
 				return deserializeArray(in,t);
@@ -550,9 +550,9 @@ namespace libmaus
 			uint64_t serialize(std::ostream & out) const
 			{
 				uint64_t t = 0;
-				t += ::libmaus::serialize::Serialize<uint64_t>::serialize(out, CompactArrayBase::b);
-				t += ::libmaus::serialize::Serialize<uint64_t>::serialize(out, n);
-				t += ::libmaus::serialize::Serialize<uint64_t>::serialize(out, s);
+				t += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out, CompactArrayBase::b);
+				t += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out, n);
+				t += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out, s);
 				t += AD.serialize(out);
 				return t;
 			}
@@ -606,9 +606,9 @@ namespace libmaus
 				return (n*b+63)/64;
 			}
 			
-			static ::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c> allocate(uint64_t const n, uint64_t const b, uint64_t const pad = 0)
+			static ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c> allocate(uint64_t const n, uint64_t const b, uint64_t const pad = 0)
 			{
-				return ::libmaus::autoarray::AutoArray<uint64_t,::libmaus::autoarray::alloc_type_c>( computeS(n,b) + pad );
+				return ::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_c>( computeS(n,b) + pad );
 			}
 
 			uint64_t get(uint64_t const i) const
@@ -673,7 +673,7 @@ namespace libmaus
 				#if 0
 				if ( ! (( v & vmask ) == v) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactArray::putBits(): value " << v << " out of range for bit width " << b << std::endl;
 					se.finish();
 					throw se;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_FASTX_QREORDER_HPP)
 #define LIBMAUS_FASTX_QREORDER_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/types/types.hpp>
-#include <libmaus/math/lowbits.hpp>
-#include <libmaus/rank/popcnt.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/math/lowbits.hpp>
+#include <libmaus2/rank/popcnt.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -37,8 +37,8 @@ namespace libmaus
 			enum { k = _k };
 			
 			typedef QReorderTemplate4Base<k> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef uint64_t value_type;
 			
 			unsigned int l0;
@@ -81,10 +81,10 @@ namespace libmaus
 			    bits13(bits1+bits3),
 			    bits02(bits0+bits2),
 			    bits23(bits2+bits3),
-			    mask0( libmaus::math::lowbits(bits0) << (k*(l1+l2+l3)) ),
-			    mask1( libmaus::math::lowbits(bits1) << (k*(l2+l3)) ),
-			    mask2( libmaus::math::lowbits(bits2) << (k*(l3)) ),
-			    mask3( libmaus::math::lowbits(bits3) ),
+			    mask0( libmaus2::math::lowbits(bits0) << (k*(l1+l2+l3)) ),
+			    mask1( libmaus2::math::lowbits(bits1) << (k*(l2+l3)) ),
+			    mask2( libmaus2::math::lowbits(bits2) << (k*(l3)) ),
+			    mask3( libmaus2::math::lowbits(bits3) ),
 			    mask01( mask0 | mask1 ),
 			    mask23( mask2 | mask3 ),
 			    mask02( mask0 | mask2 ),
@@ -223,8 +223,8 @@ namespace libmaus
 			enum { sel_two = _sel_two };
 
 			typedef QReorderTemplate4<k,_sel_two> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			unique_ptr_type uclone() const
 			{
@@ -256,12 +256,12 @@ namespace libmaus
 			{
 				switch ( _sel_two )
 				{
-					case select_two_01: return libmaus::math::lowbits(base_type::bits2 + base_type::bits3);
-					case select_two_02: return libmaus::math::lowbits(base_type::bits1 + base_type::bits3);
-					case select_two_03: return libmaus::math::lowbits(base_type::bits1 + base_type::bits2);
-					case select_two_12: return libmaus::math::lowbits(base_type::bits0 + base_type::bits3);
-					case select_two_13: return libmaus::math::lowbits(base_type::bits0 + base_type::bits2);
-					case select_two_23: return libmaus::math::lowbits(base_type::bits0 + base_type::bits1);
+					case select_two_01: return libmaus2::math::lowbits(base_type::bits2 + base_type::bits3);
+					case select_two_02: return libmaus2::math::lowbits(base_type::bits1 + base_type::bits3);
+					case select_two_03: return libmaus2::math::lowbits(base_type::bits1 + base_type::bits2);
+					case select_two_12: return libmaus2::math::lowbits(base_type::bits0 + base_type::bits3);
+					case select_two_13: return libmaus2::math::lowbits(base_type::bits0 + base_type::bits2);
+					case select_two_23: return libmaus2::math::lowbits(base_type::bits0 + base_type::bits1);
 				}
 			}
 
@@ -301,8 +301,8 @@ namespace libmaus
 			enum { k = _k };
 
 			typedef QReorderTemplate<k> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef uint64_t value_type;
 
 			unsigned int const l;
@@ -337,9 +337,9 @@ namespace libmaus
 			QReorderTemplate(QReorderTemplate const & o)
 			:
 				l(o.l), l0(o.l0), l1(o.l1), l2(o.l2),
-				m0(::libmaus::math::lowbits(k*l0)),
-				m1(::libmaus::math::lowbits(k*l1)),
-				m2(::libmaus::math::lowbits(k*l2)),
+				m0(::libmaus2::math::lowbits(k*l0)),
+				m1(::libmaus2::math::lowbits(k*l1)),
+				m2(::libmaus2::math::lowbits(k*l2)),
 				s0((l1+l2)*k),
 				s1((l2)*k),
 				s2(0*k),
@@ -360,9 +360,9 @@ namespace libmaus
 				unsigned int const rl2
 			)
 			: l(rl), l0(rl0), l1(rl1), l2(rl2),
-			  m0(::libmaus::math::lowbits(k*l0)),
-			  m1(::libmaus::math::lowbits(k*l1)),
-			  m2(::libmaus::math::lowbits(k*l2)),
+			  m0(::libmaus2::math::lowbits(k*l0)),
+			  m1(::libmaus2::math::lowbits(k*l1)),
+			  m2(::libmaus2::math::lowbits(k*l2)),
 			  s0((l1+l2)*k),
 			  s1((l2)*k),
 			  s2(0*k),
@@ -423,7 +423,7 @@ namespace libmaus
 		{
 			unsigned int const lookupbits;
 			unsigned int const lookupshift;
-			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > cache;
+			libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > cache;
 			
 			template<typename iterator, typename qreorder_type>
 			QCache(
@@ -434,7 +434,7 @@ namespace libmaus
 			) : lookupbits( 
 				std::min(
 					rlookupbits, 
-					libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qreorder->frontmask()) 
+					libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qreorder->frontmask()) 
 				) 
 			    ),
 			    lookupshift ( qreorder->k*qreorder->l - lookupbits ),
@@ -469,18 +469,18 @@ namespace libmaus
 			typedef _value_type value_type;
 			typedef _qreorder_type qreorder_type;
 			typedef QReorderComponent<value_type,qreorder_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typename qreorder_type::unique_ptr_type qreorder;
-			libmaus::autoarray::AutoArray<value_type> const C;
+			libmaus2::autoarray::AutoArray<value_type> const C;
 			QReorderComparator const recomp;
 			QCache const cache;
 			
 			template<typename iterator>
-			static libmaus::autoarray::AutoArray<value_type> generateC(qreorder_type const & qreorder, iterator ita, iterator ite)
+			static libmaus2::autoarray::AutoArray<value_type> generateC(qreorder_type const & qreorder, iterator ita, iterator ite)
 			{
-				libmaus::autoarray::AutoArray<value_type> C(ite-ita,false);
+				libmaus2::autoarray::AutoArray<value_type> C(ite-ita,false);
 				value_type * outp = C.begin();
 				while ( ita != ite )
 					*(outp++) = qreorder(*(ita++));
@@ -605,7 +605,7 @@ namespace libmaus
 		{
 			static uint64_t compute(uint64_t const v)
 			{
-				return libmaus::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(KBlockBitCountPrep<k>::compute(v));
+				return libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(KBlockBitCountPrep<k>::compute(v));
 			}
 			
 			static uint64_t diff(uint64_t const a, uint64_t const b)
@@ -635,7 +635,7 @@ namespace libmaus
 		{
 			typedef _value_type value_type;
 			
-			libmaus::autoarray::AutoArray<value_type> A;
+			libmaus2::autoarray::AutoArray<value_type> A;
 			uint64_t p;
 			
 			AutoArrayWordPutObject() : p(0) {}
@@ -645,7 +645,7 @@ namespace libmaus
 				if ( p == A.size() )
 				{
 					uint64_t newsize = A.size() ? 2*A.size() : 1;
-					libmaus::autoarray::AutoArray<value_type> N(newsize,false);
+					libmaus2::autoarray::AutoArray<value_type> N(newsize,false);
 					std::copy(A.begin(),A.end(),N.begin());
 					A = N;
 				}
@@ -679,12 +679,12 @@ namespace libmaus
 			typedef _value_type value_type;
 			typedef _qreorder_type qreorder_type;
 			typedef QReorder4Component<value_type,qreorder_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef KBlockBitCount<qreorder_type::k> diff_type;
 			
 			typename qreorder_type::unique_ptr_type qreorder;
-			libmaus::autoarray::AutoArray<value_type> const C;
+			libmaus2::autoarray::AutoArray<value_type> const C;
 			QReorderComparator const recomp;
 			QCache const cache;
 			
@@ -694,9 +694,9 @@ namespace libmaus
 			}
 			
 			template<typename iterator>
-			static libmaus::autoarray::AutoArray<value_type> generateC(qreorder_type const & qreorder, iterator ita, iterator ite)
+			static libmaus2::autoarray::AutoArray<value_type> generateC(qreorder_type const & qreorder, iterator ita, iterator ite)
 			{
-				libmaus::autoarray::AutoArray<value_type> C(ite-ita,false);
+				libmaus2::autoarray::AutoArray<value_type> C(ite-ita,false);
 				value_type * outp = C.begin();
 				while ( ita != ite )
 					*(outp++) = qreorder(*(ita++));
@@ -830,8 +830,8 @@ namespace libmaus
 			typedef _value_type value_type;
 			
 			typedef QReorder4Set<_k,_value_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			unsigned int l0;
 			unsigned int l1;
@@ -906,7 +906,7 @@ namespace libmaus
 				unsigned int const l = l0+l1+l2+l3;
 				
 				unsigned int d = 0;
-				uint64_t const mask = libmaus::math::lowbits(k);
+				uint64_t const mask = libmaus2::math::lowbits(k);
 				
 				for ( unsigned int i = 0; i < l; ++i, a >>= k, b >>= k )
 					 if ( (a & mask) != (b & mask) )

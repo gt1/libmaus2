@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,17 +20,17 @@
 #if ! defined(LIBMAUS_UTIL_UTF8DECODERWRAPPER_HPP)
 #define LIBMAUS_UTIL_UTF8DECODERWRAPPER_HPP
 
-#include <libmaus/util/Utf8DecoderBuffer.hpp>
+#include <libmaus2/util/Utf8DecoderBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct Utf8DecoderWrapper : public Utf8DecoderBuffer, public ::std::wistream
 		{
 			typedef Utf8DecoderWrapper this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef Utf8DecoderBuffer::char_type char_type;
 		

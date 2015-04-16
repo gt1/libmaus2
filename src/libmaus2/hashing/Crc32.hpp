@@ -1,6 +1,6 @@
 /*
  * This file contains written code by Stephan Brumme published on http://create.stephan-brumme.com/
- * and modified for libmaus by German Tischler in 2014. The original zlib type license is given below.
+ * and modified for libmaus2 by German Tischler in 2014. The original zlib type license is given below.
  *
  * -----------------
  * Copyright (c) 2011-2013 Stephan Brumme. All rights reserved.
@@ -15,16 +15,16 @@
  * Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
  * -----------------
  *
- * The changes for libmaus are Copyright (c) 2014 German Tischler, the license remains the same.
+ * The changes for libmaus2 are Copyright (c) 2014 German Tischler, the license remains the same.
  */
 #if ! defined(LIBMAUS_HASHING_CRC32_HPP)
 #define LIBMAUS_HASHING_CRC32_HPP
  
-#include <libmaus/types/types.hpp>
-#include <libmaus/rank/BSwapBase.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/rank/BSwapBase.hpp>
 #include <cstdlib>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace hashing
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 			  while (length >= 8)
 			  {
 #if defined(LIBMAUS_BYTE_ORDER_BIG_ENDIAN)
-			    uint32_t one = *current++ ^ libmaus::rank::BSwapBase::bswap4(crc);
+			    uint32_t one = *current++ ^ libmaus2::rank::BSwapBase::bswap4(crc);
 			    uint32_t two = *current++;
 			    crc  = Crc32Lookup[0][ two      & 0xFF] ^
 				   Crc32Lookup[1][(two>> 8) & 0xFF] ^

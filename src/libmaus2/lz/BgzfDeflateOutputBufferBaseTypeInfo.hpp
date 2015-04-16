@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEOUTPUTBUFFERTYPEINFO_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEOUTPUTBUFFERTYPEINFO_HPP
 
-#include <libmaus/lz/BgzfDeflateOutputBufferBase.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputBufferBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -29,7 +29,7 @@ namespace libmaus
 		{
 			typedef BgzfDeflateOutputBufferBaseTypeInfo this_type;
 			
-			typedef libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type pointer_type;
+			typedef libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type pointer_type;
 			
 			static pointer_type getNullPointer()
 			{

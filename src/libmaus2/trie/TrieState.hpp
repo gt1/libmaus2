@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(TRIESTATE_HPP)
 #define TRIESTATE_HPP
 
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/SimpleHashMap.hpp>
-#include <libmaus/math/ilog.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/SimpleHashMap.hpp>
+#include <libmaus2/math/ilog.hpp>
+#include <libmaus2/math/lowbits.hpp>
 #include <vector>
 #include <map>
 #include <ostream>
@@ -31,7 +31,7 @@
 #include <stack>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace trie
 	{
@@ -40,8 +40,8 @@ namespace libmaus
 		{
 			typedef _char_type char_type;
 			typedef TrieState<char_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::map < char_type, shared_ptr_type > TT;
 			#if defined(TRIESTATET)
@@ -107,8 +107,8 @@ namespace libmaus
 		{
 			typedef _char_type char_type;
 			typedef LinearTrieStateBase<char_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			int64_t F;
 			bool final;
@@ -135,8 +135,8 @@ namespace libmaus
 		{
 			typedef _char_type char_type;
 			typedef LinearTrieState<char_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::map < char_type, uint64_t > TT;
 			
@@ -158,8 +158,8 @@ namespace libmaus
 		{
 			typedef _char_type char_type;
 			typedef LinearTrie<char_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::vector < LinearTrieState<char_type> > V;
 			
@@ -173,8 +173,8 @@ namespace libmaus
 			typedef _char_type char_type;
 			typedef _id_type id_type;
 			typedef LinearHashTrie<char_type,id_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			LinearHashTrie()
@@ -184,7 +184,7 @@ namespace libmaus
 			
 			public:
 			std::vector < LinearTrieStateBase<char_type> > V;
-			typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type H;
+			typename ::libmaus2::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type H;
 			
 			size_t byteSize()
 			{
@@ -204,7 +204,7 @@ namespace libmaus
 			{
 				shared_ptr_type O(new this_type);
 				O->V = this->V;
-				typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type tOH(this->H->uclone());
+				typename ::libmaus2::util::SimpleHashMap<uint64_t,id_type>::unique_ptr_type tOH(this->H->uclone());
 				O->H = UNIQUE_PTR_MOVE(tOH);
 				return O;
 			}
@@ -222,7 +222,7 @@ namespace libmaus
 			LinearHashTrie(uint64_t const rnumedges, double const lf = 0.7)
 			: V(), 
 			  H( 
-			  	new ::libmaus::util::SimpleHashMap<uint64_t,id_type>(ensureSize(rnumedges,::libmaus::math::ilog( rnumedges * (1.0/lf)) ) )
+			  	new ::libmaus2::util::SimpleHashMap<uint64_t,id_type>(ensureSize(rnumedges,::libmaus2::math::ilog( rnumedges * (1.0/lf)) ) )
 			  ) 
 			{}
 			
@@ -249,10 +249,10 @@ namespace libmaus
 				std::vector < uint64_t > edges;
 				
 				for (
-					typename ::libmaus::util::SimpleHashMap<uint64_t,id_type>::pair_type const * P = H->begin();
+					typename ::libmaus2::util::SimpleHashMap<uint64_t,id_type>::pair_type const * P = H->begin();
 					P != H->end();
 					++P )
-					if ( P->first != ::libmaus::util::SimpleHashMap<uint64_t,id_type>::unused() )
+					if ( P->first != ::libmaus2::util::SimpleHashMap<uint64_t,id_type>::unused() )
 					{
 						uint64_t const from = (P->first >> 32);
 						// uint64_t const c = P->first & 0xFFFFFFFFull;
@@ -411,7 +411,7 @@ namespace libmaus
 				 if ( ita->first != T.H->unused() )
 				 {
 				 	id_type const from = (ita->first) >> 32;
-				 	char_type const sym = (ita->first) & ::libmaus::math::lowbits(32);
+				 	char_type const sym = (ita->first) & ::libmaus2::math::lowbits(32);
 				 	id_type const to = (ita->second);
 				 	out << "(" << from << "," << sym << ")->" << to << ";";
 				 }
@@ -467,8 +467,8 @@ namespace libmaus
 		{
 			typedef _char_type char_type;
 			typedef Trie<char_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef TrieState<char_type> state_type;
 			typedef typename state_type::shared_ptr_type state_ptr_type;
 			typedef typename state_type::unique_ptr_type initial_ptr_type;

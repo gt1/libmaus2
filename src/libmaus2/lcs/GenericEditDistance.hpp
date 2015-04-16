@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if !defined(GENERICEDITDISTANCE_HPP)
 #define GENERICEDITDISTANCE_HPP
 
-#include <libmaus/lcs/GenericAlignmentPrint.hpp>
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/lcs/EditDistanceResult.hpp>
-#include <libmaus/lcs/BaseConstants.hpp>
-#include <libmaus/lcs/PenaltyConstants.hpp>
-#include <libmaus/lcs/TraceContainer.hpp>
+#include <libmaus2/lcs/GenericAlignmentPrint.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/lcs/EditDistanceResult.hpp>
+#include <libmaus2/lcs/BaseConstants.hpp>
+#include <libmaus2/lcs/PenaltyConstants.hpp>
+#include <libmaus2/lcs/TraceContainer.hpp>
 #include <map>
 #include <iostream>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{		
@@ -63,7 +63,7 @@ namespace libmaus
 		struct GenericEditDistance : public GenericTraceContainer
 		{
 			typedef GenericEditDistance this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			uint64_t const n; // rows
@@ -73,7 +73,7 @@ namespace libmaus
 
 			// matrix stored column wise
 			typedef std::pair < similarity_type, step_type > element_type;
-			::libmaus::autoarray::AutoArray<element_type> M;
+			::libmaus2::autoarray::AutoArray<element_type> M;
 
 			public:
 			GenericEditDistance(uint64_t const rn, uint64_t const rm, uint64_t const)
@@ -198,7 +198,7 @@ namespace libmaus
 		struct BandedEditDistance : public GenericTraceContainer
 		{
 			typedef BandedEditDistance this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
 			uint64_t const n; // columns
@@ -208,7 +208,7 @@ namespace libmaus
 
 			// matrix stored column wise
 			typedef std::pair < similarity_type, step_type > element_type;
-			::libmaus::autoarray::AutoArray<element_type> M;
+			::libmaus2::autoarray::AutoArray<element_type> M;
 						
 			public:
 			BandedEditDistance(uint64_t const rn, uint64_t const rm, uint64_t const rk)
@@ -303,17 +303,17 @@ namespace libmaus
 				
 				if ( k < std::max(n,m)-std::min(n,m) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Distance allowed does not allow difference in string length in "
-						<< ::libmaus::util::Demangle::demangle<this_type>() << "::process()";
+						<< ::libmaus2::util::Demangle::demangle<this_type>() << "::process()";
 					se.finish();
 					throw se;
 				}
 				if ( ! validParameters(n,m,k) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid parameters in "
-						<< ::libmaus::util::Demangle::demangle<this_type>() << "::process() (k too large)";
+						<< ::libmaus2::util::Demangle::demangle<this_type>() << "::process() (k too large)";
 					se.finish();
 					throw se;					
 				}

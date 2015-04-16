@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(ERANK222BAPPENDDYNAMIC_HPP)
 #define ERANK222BAPPENDDYNAMIC_HPP
 
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/rank/ERank222BBase.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/rank/ERank222BBase.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <cassert>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -45,7 +45,7 @@ namespace libmaus
 		{
 			public:
 			typedef ERank222BAppendDynamic this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			//! bit vector
@@ -160,7 +160,7 @@ namespace libmaus
 						
 			bool operator[](uint64_t const i) const
 			{
-				return ::libmaus::bitio::getBit(&(UUUUUUUU[i >> mbbitwidth]),i & mbmask);
+				return ::libmaus2::bitio::getBit(&(UUUUUUUU[i >> mbbitwidth]),i & mbmask);
 			}
 			
 			/**

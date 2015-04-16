@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,41 +19,41 @@
 #if ! defined(LIBMAUS_LF_IMPWTLF_HPP)
 #define LIBMAUS_LF_IMPWTLF_HPP
 
-#include <libmaus/huffman/RLDecoder.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/wavelet/ImpWaveletTree.hpp>
-#include <libmaus/wavelet/ImpExternalWaveletGenerator.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/wavelet/ImpWaveletTree.hpp>
+#include <libmaus2/wavelet/ImpExternalWaveletGenerator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
 		struct ImpWTLF
 		{
-			typedef ::libmaus::wavelet::ImpWaveletTree wt_type;
+			typedef ::libmaus2::wavelet::ImpWaveletTree wt_type;
 			typedef wt_type::unique_ptr_type wt_ptr_type;
 			
 			typedef ImpWTLF this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			uint64_t n;
 			wt_ptr_type W;
-			::libmaus::autoarray::AutoArray < uint64_t > D;
+			::libmaus2::autoarray::AutoArray < uint64_t > D;
 			
 			void serialise(std::ostream & out)
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,n);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 				W->serialise(out);
 			}
 			
 			ImpWTLF(std::istream & in)
-			: n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+			: n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			  W (new wt_type(in))
 			{				
 				if ( n )
 				{
-					D = ::libmaus::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
+					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )
 						D [ i ] = W->rank(i,n-1);
 					D.prefixSums();
@@ -61,7 +61,7 @@ namespace libmaus
 			}
 
 			template<typename iterator>
-			ImpWTLF ( iterator BWT, uint64_t const rn, ::libmaus::util::TempFileNameGenerator & rtmpgen, uint64_t const rmaxval = 0)
+			ImpWTLF ( iterator BWT, uint64_t const rn, ::libmaus2::util::TempFileNameGenerator & rtmpgen, uint64_t const rmaxval = 0)
 			: n(rn)
 			{
 				if ( n )
@@ -69,9 +69,9 @@ namespace libmaus
 					uint64_t maxval = rmaxval;
 					for ( uint64_t i = 0; i < n; ++i )
 						maxval = std::max ( maxval, static_cast<uint64_t>(BWT[i]) );
-					uint64_t const b = ::libmaus::math::numbits(maxval);
+					uint64_t const b = ::libmaus2::math::numbits(maxval);
 
-					::libmaus::wavelet::ImpExternalWaveletGenerator IEWG(b,rtmpgen);
+					::libmaus2::wavelet::ImpExternalWaveletGenerator IEWG(b,rtmpgen);
 					for ( uint64_t i = 0; i < n; ++i )
 						IEWG.putSymbol(BWT[i]);
 					std::string const tmpfilename = rtmpgen.getFileName();
@@ -83,7 +83,7 @@ namespace libmaus
 					istr.close();
 					remove ( tmpfilename.c_str() );
 					
-					D = ::libmaus::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
+					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )
 						D [ i ] = W->rank(i,n-1);
 					D.prefixSums();
@@ -92,24 +92,24 @@ namespace libmaus
 
 			static unique_ptr_type constructFromRL(std::string const & filename, uint64_t const maxval, std::string const & tmpprefix )
 			{
-				::libmaus::util::TempFileNameGenerator tmpgen(tmpprefix,2);
-				::libmaus::huffman::RLDecoder decoder(std::vector<std::string>(1,filename));
-				return unique_ptr_type(new this_type(decoder,::libmaus::math::numbits(maxval),tmpgen));
+				::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,2);
+				::libmaus2::huffman::RLDecoder decoder(std::vector<std::string>(1,filename));
+				return unique_ptr_type(new this_type(decoder,::libmaus2::math::numbits(maxval),tmpgen));
 			}
 
 			static unique_ptr_type constructFromRL(std::vector<std::string> const & filenames, uint64_t const maxval, std::string const & tmpprefix )
 			{
-				::libmaus::util::TempFileNameGenerator tmpgen(tmpprefix,2);
-				::libmaus::huffman::RLDecoder decoder(filenames);
-				return unique_ptr_type(new this_type(decoder,::libmaus::math::numbits(maxval),tmpgen));
+				::libmaus2::util::TempFileNameGenerator tmpgen(tmpprefix,2);
+				::libmaus2::huffman::RLDecoder decoder(filenames);
+				return unique_ptr_type(new this_type(decoder,::libmaus2::math::numbits(maxval),tmpgen));
 			}
 
-			ImpWTLF (::libmaus::huffman::RLDecoder & decoder, uint64_t const b, ::libmaus::util::TempFileNameGenerator & rtmpgen)
+			ImpWTLF (::libmaus2::huffman::RLDecoder & decoder, uint64_t const b, ::libmaus2::util::TempFileNameGenerator & rtmpgen)
 			: n(decoder.getN())
 			{
 				if ( n )
 				{	
-					::libmaus::wavelet::ImpExternalWaveletGenerator IEWG(b,rtmpgen);
+					::libmaus2::wavelet::ImpExternalWaveletGenerator IEWG(b,rtmpgen);
 					for ( uint64_t i = 0; i < n; ++i )
 						IEWG.putSymbol(decoder.decode());
 					std::string const tmpfilename = rtmpgen.getFileName();
@@ -121,7 +121,7 @@ namespace libmaus
 					istr.close();
 					remove ( tmpfilename.c_str() );
 					
-					D = ::libmaus::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
+					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )
 						D [ i ] = W->rank(i,n-1);
 					D.prefixSums();

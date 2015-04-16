@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(COMPACTSPARSEARRAY_HPP)
 #define COMPACTSPARSEARRAY_HPP
 
-#include <libmaus/bitio/CompactArrayBase.hpp>
-#include <libmaus/util/iterator.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/bitio/putBits.hpp>
+#include <libmaus2/bitio/CompactArrayBase.hpp>
+#include <libmaus2/util/iterator.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/bitio/putBits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -35,9 +35,9 @@ namespace libmaus
 			
 			typedef uint64_t value_type;
 
-			typedef ::libmaus::util::AssignmentProxy<this_type,value_type> proxy_type;
-			typedef ::libmaus::util::AssignmentProxyIterator<this_type,value_type> iterator;
-			typedef ::libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+			typedef ::libmaus2::util::AssignmentProxy<this_type,value_type> proxy_type;
+			typedef ::libmaus2::util::AssignmentProxyIterator<this_type,value_type> iterator;
+			typedef ::libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
 			
 			const_iterator begin() const
 			{
@@ -78,7 +78,7 @@ namespace libmaus
 			) : D(rD), n(rn), b(rb), o(ro), k(rk)
 			{}
 
-			uint64_t get(uint64_t i) const { return ::libmaus::bitio::getBits(D, i*k + o, b); }
+			uint64_t get(uint64_t i) const { return ::libmaus2::bitio::getBits(D, i*k + o, b); }
 			void set(uint64_t i, uint64_t v) { putBits(D, i*k+o, b, v); /* assert ( get(i) == v ); */ }	
 		};
 	}

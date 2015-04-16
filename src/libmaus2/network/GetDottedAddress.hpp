@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -27,12 +27,12 @@
 #include <string>
 #include <map>
 
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/network/Interface.hpp>
-#include <libmaus/network/GetHostName.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/network/Interface.hpp>
+#include <libmaus2/network/GetHostName.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -44,7 +44,7 @@ namespace libmaus
 					
 				if ( ! he )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 					se.finish();
 					throw se;		
@@ -52,13 +52,13 @@ namespace libmaus
 					
 				if ( he->h_addr_list[0] == 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to get address for " << hostname << " via gethostbyname (no address returned)";
 					se.finish();
 					throw se;		
 				}
 				
-				::libmaus::autoarray::AutoArray<char> B(256);
+				::libmaus2::autoarray::AutoArray<char> B(256);
 				std::string const dotted = inet_ntop(AF_INET,&(he->h_addr_list[0]),B.get(),B.size());
 
 				return dotted;
@@ -70,7 +70,7 @@ namespace libmaus
 					
 				if ( ! he )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to get address for " << hostname << " via gethostbyname: " << hstrerror(h_errno);
 					se.finish();
 					throw se;		
@@ -96,7 +96,7 @@ namespace libmaus
 			
 			static std::vector< std::vector <uint8_t> > getIP4Address()
 			{
-				return getIP4Address(::libmaus::network::GetHostName::getHostName());
+				return getIP4Address(::libmaus2::network::GetHostName::getHostName());
 			}
 
 			static std::vector <uint8_t> getClassC(std::string const & hostname)
@@ -104,7 +104,7 @@ namespace libmaus
 				std::vector< std::vector <uint8_t> > adr = getIP4Address(hostname);
 				if ( ! adr.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unable to get IPv4 address for hostname " << hostname << std::endl;
 					se.finish();
 					throw se;

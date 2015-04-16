@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,23 +17,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lcs/LCS.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/lcs/GenericAlignmentPrint.hpp>
-#include <libmaus/lcs/GenericEditDistance.hpp>
+#include <libmaus2/lcs/LCS.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/lcs/GenericAlignmentPrint.hpp>
+#include <libmaus2/lcs/GenericEditDistance.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		::libmaus::util::ArgInfo arginfo(argc,argv);
+		::libmaus2::util::ArgInfo arginfo(argc,argv);
 		
 		std::string const fna = arginfo.getRestArg<std::string>(0);
 		std::string const fnb = arginfo.getRestArg<std::string>(1);
 		
-		typedef ::libmaus::fastx::FastAReader reader_type;
+		typedef ::libmaus2::fastx::FastAReader reader_type;
 		typedef reader_type::pattern_type pattern_type;
 		
 		reader_type ra(fna);
@@ -55,8 +55,8 @@ int main(int argc, char * argv[])
 			uint64_t nb = pb.getPatternLength();			
 			uint64_t const dif = (na>=nb) ? (na-nb) : (nb-na);
 
-			::libmaus::lcs::BandedEditDistance BED(na,nb,2*dif);
-			/* ::libmaus::lcs::EditDistanceResult EDR = */ BED.process(pa.pattern,pb.pattern,na,nb);
+			::libmaus2::lcs::BandedEditDistance BED(na,nb,2*dif);
+			/* ::libmaus2::lcs::EditDistanceResult EDR = */ BED.process(pa.pattern,pb.pattern,na,nb);
 
 			BED.printAlignmentLines(std::cout,pa.spattern,pb.spattern,80);
 		}

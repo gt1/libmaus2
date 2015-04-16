@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,37 +16,37 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/digest/CRC32C_sse42.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/digest/CRC32C_sse42.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
 #if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
-#include <libmaus/util/I386CacheLineSize.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
 #endif
 
-libmaus::digest::CRC32C_sse42::CRC32C_sse42() : ctx(0) 
+libmaus2::digest::CRC32C_sse42::CRC32C_sse42() : ctx(0) 
 {
 	#if ! ( defined(LIBMAUS_USE_ASSEMBLY) &&  defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386) && defined(LIBMAUS_HAVE_SMMINTRIN_H) )
-	libmaus::exception::LibMausException lme;
+	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "CRC32C_sse42(): code has not been compiled into libmaus" << std::endl;
 	lme.finish();
 	throw lme;
 	#endif
 
 	#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
-	if ( !libmaus::util::I386CacheLineSize::hasSSE42() )
+	if ( !libmaus2::util::I386CacheLineSize::hasSSE42() )
 	{
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "CRC32C_sse42(): processor does not support SSE4.2" << std::endl;
 		lme.finish();
 		throw lme;
 	}
 	#endif
 }
-libmaus::digest::CRC32C_sse42::~CRC32C_sse42() {}
+libmaus2::digest::CRC32C_sse42::~CRC32C_sse42() {}
 	
-void libmaus::digest::CRC32C_sse42::init() { ctx = 0; }
+void libmaus2::digest::CRC32C_sse42::init() { ctx = 0; }
 
-void libmaus::digest::CRC32C_sse42::digest(uint8_t * digest) 
+void libmaus2::digest::CRC32C_sse42::digest(uint8_t * digest) 
 {
 	digest[0] = (ctx >> 24) & 0xFF;
 	digest[1] = (ctx >> 16) & 0xFF;
@@ -54,20 +54,20 @@ void libmaus::digest::CRC32C_sse42::digest(uint8_t * digest)
 	digest[3] = (ctx >>  0) & 0xFF;
 }
 
-void libmaus::digest::CRC32C_sse42::copyFrom(CRC32C_sse42 const & O)
+void libmaus2::digest::CRC32C_sse42::copyFrom(CRC32C_sse42 const & O)
 {
 	ctx = O.ctx;
 }
 
-void libmaus::digest::CRC32C_sse42::vinit() { init(); }
+void libmaus2::digest::CRC32C_sse42::vinit() { init(); }
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_SMMINTRIN_H)
 #include <smmintrin.h>
 #endif
 
-void libmaus::digest::CRC32C_sse42::update(uint8_t const * t, size_t l) 
+void libmaus2::digest::CRC32C_sse42::update(uint8_t const * t, size_t l) 
 {
 	#if defined(LIBMAUS_HAVE_SMMINTRIN_H) && defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_x86_64) && defined(LIBMAUS_HAVE_i386)
 	ctx = ~ctx;
@@ -130,4 +130,4 @@ void libmaus::digest::CRC32C_sse42::update(uint8_t const * t, size_t l)
 	#endif
 }
 
-void libmaus::digest::CRC32C_sse42::vupdate(uint8_t const * u, size_t l) { update(u,l); }
+void libmaus2::digest::CRC32C_sse42::vupdate(uint8_t const * u, size_t l) { update(u,l); }

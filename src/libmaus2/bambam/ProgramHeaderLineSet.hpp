@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PROGRAMHEADERLINESET_HPP)
 #define LIBMAUS_BAMBAM_PROGRAMHEADERLINESET_HPP
 
-#include <libmaus/bambam/HeaderLine.hpp>
+#include <libmaus2/bambam/HeaderLine.hpp>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -62,7 +62,7 @@ namespace libmaus
 						
 						if ( idmap.find(PP) == idmap.end() )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "Broken sam header: referenced ID by PP " << PP << " does not exist" << std::endl;
 							se.finish();
 							throw se;						
@@ -200,21 +200,21 @@ namespace libmaus
 					
 				if ( !ID.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ID is empty in addProgramLine" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( ID == PP )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ID==PP in addProgramLine" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( PP.size() && (ids.find(PP) == ids.end()) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PP=" << PP << " does not exist in addProgramLine" << std::endl;
 					se.finish();
 					throw se;				
@@ -286,21 +286,21 @@ namespace libmaus
 					
 				if ( !ID.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ID is empty in addProgramLine" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( ID == PP )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ID==PP in addProgramLine" << std::endl;
 					se.finish();
 					throw se;
 				}
 				if ( PP.size() && (ids.find(PP) == ids.end()) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "PP=" << PP << " does not exist in addProgramLine" << std::endl;
 					se.finish();
 					throw se;				
@@ -338,11 +338,11 @@ namespace libmaus
 		struct ProgramHeaderLinesMerge
 		{
 			typedef ProgramHeaderLinesMerge this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			std::string PGtext;
 			std::vector < std::string > PGids;
-			libmaus::autoarray::AutoArray< ::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type > tries;
+			libmaus2::autoarray::AutoArray< ::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type > tries;
 			std::vector < std::vector<uint64_t> > triedictmaps;
 
 			std::string const & mapPG(uint64_t const srcfileid, char const * from)
@@ -354,7 +354,7 @@ namespace libmaus
 					return PGids[triedictmaps[srcfileid][id]];
 				else
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Unknown PG id in mapPG: " << std::string(from,from+len) << std::endl;
 					se.finish();
 					throw se;
@@ -388,7 +388,7 @@ namespace libmaus
 						
 						if ( ! line.hasKey("ID") )
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "ProgramHeaderLinesMerge: PG line without ID field is invalid: " << line.line << std::endl;
 							lme.finish();
 							throw lme;
@@ -492,9 +492,9 @@ namespace libmaus
 						ldict.push_back(from);
 					}
 					
-					::libmaus::trie::Trie<char> trienofailure;
+					::libmaus2::trie::Trie<char> trienofailure;
 					trienofailure.insertContainer(ldict);
-					::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+					::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
 						(trienofailure.toLinearHashTrie<uint32_t>());
 						
 					tries[i] = UNIQUE_PTR_MOVE(LHTnofailure);

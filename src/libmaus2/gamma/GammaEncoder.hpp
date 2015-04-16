@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_GAMMA_GAMMAENCODER_HPP)
 #define LIBMAUS_GAMMA_GAMMAENCODER_HPP
 
-#include <libmaus/bitio/Clz.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/math/lowbits.hpp>
+#include <libmaus2/bitio/Clz.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/math/lowbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
-		struct GammaEncoderBase : public libmaus::bitio::Clz
+		struct GammaEncoderBase : public libmaus2::bitio::Clz
 		{
 			static inline unsigned int getCodeLen(uint64_t const code)
 			{
@@ -41,7 +41,7 @@ namespace libmaus
 		{
 			typedef _stream_type stream_type;
 			typedef GammaEncoder<stream_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
 			uint64_t v;
@@ -65,7 +65,7 @@ namespace libmaus
 				{
 					unsigned int const overflow = (codelen-bav);
 					stream.put((v << bav) | (code >> overflow));
-					v = code & libmaus::math::lowbits(overflow); 
+					v = code & libmaus2::math::lowbits(overflow); 
 						// ((1ull << overflow)-1);
 					bav = 64-overflow;
 				}			

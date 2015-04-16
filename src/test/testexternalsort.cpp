@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/sorting/SortingBufferedOutputFile.hpp>
+#include <libmaus2/sorting/SortingBufferedOutputFile.hpp>
 
 int main()
 {
@@ -25,7 +25,7 @@ int main()
 	typedef uint64_t data_type;
 	// typedef std::greater<data_type> order_type;
 	typedef std::less<data_type> order_type;
-	typedef libmaus::sorting::SortingBufferedOutputFile<data_type,order_type> sbof_type;
+	typedef libmaus2::sorting::SortingBufferedOutputFile<data_type,order_type> sbof_type;
 	sbof_type SBOF(filename,16);
 	
 	for ( uint64_t i = 0; i < 256; ++i )

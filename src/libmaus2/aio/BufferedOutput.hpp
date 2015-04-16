@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(BUFFEREDOUTPUT_HPP)
 #define BUFFEREDOUTPUT_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -37,10 +37,10 @@ namespace libmaus
 			//! this type
 			typedef BufferedOutputBase<data_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! block buffer
-			::libmaus::autoarray::AutoArray<data_type> B;
+			::libmaus2::autoarray::AutoArray<data_type> B;
 			//! start of buffer pointer
 			data_type * const pa;
 			//! current pointer
@@ -195,7 +195,7 @@ namespace libmaus
 			//! base class type
 			typedef BufferedOutputBase<data_type> base_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			std::ostream & out;
@@ -231,7 +231,7 @@ namespace libmaus
 					
 					if ( ! out )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to write " << (base_type::pc-base_type::pa)*sizeof(data_type) << " bytes." << std::endl;
 						se.finish();
 						throw se;
@@ -256,7 +256,7 @@ namespace libmaus
 			//! base class type
 			typedef BufferedOutputBase<data_type> base_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			/**
 			 * constructor
@@ -298,9 +298,9 @@ namespace libmaus
 			//! base class type
 			typedef BufferedOutputBase<data_type> base_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! order pointer type
-			typedef typename ::libmaus::util::unique_ptr<order_type>::type order_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<order_type>::type order_ptr_type;
 			
 			private:
 			std::ostream & out;
@@ -364,7 +364,7 @@ namespace libmaus
 					
 					if ( ! out )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to write " << base_type::fill()*sizeof(data_type) << " bytes." << std::endl;
 						se.finish();
 						throw se;

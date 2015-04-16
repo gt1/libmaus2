@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,11 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/types/types.hpp>
-#include <libmaus/rank/popcnt.hpp>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/rank/popcnt.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
 /**
  * Count the number of c bytes in block of 64 bytes starting from p.
@@ -87,7 +87,7 @@ static uint64_t count64(uint8_t const * p, uint8_t const c ='\n')
 	w = ~w;
 
 	// count number of bits set in w (equals number of c bytes in block)
-	return libmaus::rank::PopCnt8<sizeof(unsigned long long)>::popcnt8(w);	
+	return libmaus2::rank::PopCnt8<sizeof(unsigned long long)>::popcnt8(w);	
 }
 
 /**
@@ -141,7 +141,7 @@ static uint64_t countBranch(uint8_t const * p, uint64_t const n, uint8_t const c
 
 void testbytecnt(uint8_t const * B, uint64_t const n, uint64_t const runs)
 {
-	libmaus::timing::RealTimeClock rtc;
+	libmaus2::timing::RealTimeClock rtc;
 	uint64_t cnt;
 
 	rtc.start();
@@ -159,18 +159,18 @@ void testbytecnt(uint8_t const * B, uint64_t const n, uint64_t const runs)
 
 int main()
 {
-	libmaus::random::Random::setup(time(0));
+	libmaus2::random::Random::setup(time(0));
 	uint64_t const n = 64*1024*1024;
 	uint64_t const runs = 128;
-	libmaus::autoarray::AutoArray<uint8_t> B(n,false);
-	libmaus::timing::RealTimeClock rtc;
+	libmaus2::autoarray::AutoArray<uint8_t> B(n,false);
+	libmaus2::timing::RealTimeClock rtc;
 
 	for ( uint64_t i = 0; i < n; ++i )
-		B[i] = (libmaus::random::Random::rand8() & 1) ? '\n' : 'a';
+		B[i] = (libmaus2::random::Random::rand8() & 1) ? '\n' : 'a';
 	testbytecnt(B.begin(),B.size(),runs);
 
 	for ( uint64_t i = 0; i < n; ++i )
-		B[i] = libmaus::random::Random::rand8();
+		B[i] = libmaus2::random::Random::rand8();
 	testbytecnt(B.begin(),B.size(),runs);
 
 	for ( uint64_t i = 0; i < n; ++i )

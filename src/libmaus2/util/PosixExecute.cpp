@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,13 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/PosixExecute.hpp>
+#include <libmaus2/util/PosixExecute.hpp>
 
 #include <string>
 #include <cerrno>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,15 +38,15 @@
 #include <sys/types.h>
 #include <unistd.h>
                                           
-int libmaus::util::PosixExecute::getTempFile(std::string const stemplate, std::string & filename)
+int libmaus2::util::PosixExecute::getTempFile(std::string const stemplate, std::string & filename)
 {
-	::libmaus::autoarray::AutoArray<char> Atemplate(stemplate.size()+1);
+	::libmaus2::autoarray::AutoArray<char> Atemplate(stemplate.size()+1);
 	std::copy ( stemplate.begin(), stemplate.end(), Atemplate.get() );
 	int const fd = mkstemp ( Atemplate.get() );
 	
 	if ( fd < 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed in mkstemp: " << strerror(errno);
 		se.finish();
 		throw se;
@@ -57,38 +57,38 @@ int libmaus::util::PosixExecute::getTempFile(std::string const stemplate, std::s
 	return fd;
 }
 
-std::string libmaus::util::PosixExecute::getBaseName(std::string const & name)
+std::string libmaus2::util::PosixExecute::getBaseName(std::string const & name)
 {
-	::libmaus::autoarray::AutoArray<char> Aname(name.size()+1);
+	::libmaus2::autoarray::AutoArray<char> Aname(name.size()+1);
 	std::copy ( name.begin(), name.end(), Aname.get() );
 	char * bn = basename(Aname.get());
 	return std::string ( bn );
 }
 
-std::string libmaus::util::PosixExecute::getProgBaseName(::libmaus::util::ArgInfo const & arginfo)
+std::string libmaus2::util::PosixExecute::getProgBaseName(::libmaus2::util::ArgInfo const & arginfo)
 {
 	return getBaseName ( arginfo.progname );
 }
 
-int libmaus::util::PosixExecute::getTempFile(::libmaus::util::ArgInfo const & arginfo, std::string & filename)
+int libmaus2::util::PosixExecute::getTempFile(::libmaus2::util::ArgInfo const & arginfo, std::string & filename)
 {
 	::std::ostringstream prefixstr;
 	prefixstr << "/tmp/" << getProgBaseName(arginfo) << "_XXXXXX";
 	return getTempFile(prefixstr.str(),filename);
 }
 
-std::string libmaus::util::PosixExecute::loadFile(std::string const filename)
+std::string libmaus2::util::PosixExecute::loadFile(std::string const filename)
 {
-	uint64_t const len = ::libmaus::util::GetFileSize::getFileSize(filename);
+	uint64_t const len = ::libmaus2::util::GetFileSize::getFileSize(filename);
 	std::ifstream istr(filename.c_str(),std::ios::binary);
-	::libmaus::autoarray::AutoArray<char> data(len,false);
+	::libmaus2::autoarray::AutoArray<char> data(len,false);
 	istr.read ( data.get(), len );
 	assert ( istr );
 	assert ( istr.gcount() == static_cast<int64_t>(len) );
 	return std::string(data.get(),data.get()+data.size());
 }
 
-void libmaus::util::PosixExecute::executeOld(::libmaus::util::ArgInfo const & arginfo, std::string const & command, std::string & out, std::string & err)
+void libmaus2::util::PosixExecute::executeOld(::libmaus2::util::ArgInfo const & arginfo, std::string const & command, std::string & out, std::string & err)
 {
 	std::string stdoutfilename;
 	std::string stderrfilename;
@@ -107,7 +107,7 @@ void libmaus::util::PosixExecute::executeOld(::libmaus::util::ArgInfo const & ar
 		remove ( stdoutfilename.c_str() );
 		remove ( stderrfilename.c_str() );
 		
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to fork(): " << strerror(error);
 		se.finish();
 		throw se;
@@ -139,7 +139,7 @@ void libmaus::util::PosixExecute::executeOld(::libmaus::util::ArgInfo const & ar
 	}
 }
 
-int libmaus::util::PosixExecute::setNonBlockFlag (int desc, bool on)
+int libmaus2::util::PosixExecute::setNonBlockFlag (int desc, bool on)
 {
 	int oldflags = fcntl (desc, F_GETFL, 0);
 	/* If reading the flags failed, return error indication now. */
@@ -217,14 +217,14 @@ struct LocalAutoArray
 	}
 };
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
 struct Pipe
 {
 	typedef Pipe this_type;
-	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-	typedef libmaus::util::unique_ptr<this_type>::type shared_ptr_type;
+	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus2::util::unique_ptr<this_type>::type shared_ptr_type;
 
 	int fd[2];
 	
@@ -243,7 +243,7 @@ struct Pipe
 			}
 			else
 			{
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "pipe() failed: " << strerror(errno);
 				se.finish();
 				throw se;
@@ -298,10 +298,10 @@ struct Pipe
 	}
 };
 
-int libmaus::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
+int libmaus2::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
 {
-	char stderrfn[] = "/tmp/libmaus::util::PosixExecute::execute_XXXXXX";
-	char stdoutfn[] = "/tmp/libmaus::util::PosixExecute::execute_XXXXXX";
+	char stderrfn[] = "/tmp/libmaus2::util::PosixExecute::execute_XXXXXX";
+	char stdoutfn[] = "/tmp/libmaus2::util::PosixExecute::execute_XXXXXX";
 	bool stderrfnvalid = false;
 	bool stdoutfnvalid = false;
 	int stderrfd = -1;
@@ -573,7 +573,7 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 		{
 			try
 			{
-				std::cerr << "libmaus::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;		
+				std::cerr << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;		
 			}
 			catch(...)
 			{
@@ -581,8 +581,8 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 		}
 		else
 		{
-			libmaus::exception::LibMausException lme;
-			lme.getStream() << "libmaus::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
 			lme.finish();
 			throw lme;
 		}
@@ -592,7 +592,7 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 }
 
 #if 0
-int libmaus::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
+int libmaus2::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
 {
 	try
 	{
@@ -618,7 +618,7 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 			}
 			else
 			{
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "Failed to fork(): " << strerror(error) << std::endl;
 				se.finish();
 				throw se;
@@ -790,7 +790,7 @@ int libmaus::util::PosixExecute::execute(std::string const & command, std::strin
 				}
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Calling process " << command << " failed.";
 					se.finish();
 					throw se;

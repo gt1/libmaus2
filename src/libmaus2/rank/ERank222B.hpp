@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(ERANK222B_HPP)
 #define ERANK222B_HPP
 
-#include <libmaus/bitio/BitWriter.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <cassert>
 #include <stdexcept>
 
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -43,10 +43,10 @@ namespace libmaus
 		struct ERank222B : public ERankBase
 		{
 			public:
-			typedef ::libmaus::bitio::BitWriter8 writer_type;
+			typedef ::libmaus2::bitio::BitWriter8 writer_type;
 
 			typedef ERank222B this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			ERank222B & operator=(ERank222B const &);
@@ -79,8 +79,8 @@ namespace libmaus
 			uint64_t const numsuper;
 			uint64_t const nummini;
 			
-			::libmaus::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
-			::libmaus::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
+			::libmaus2::autoarray::AutoArray<uint64_t> S; // n / 2^16 * 64 bits = n / 2^10 = n/1024 bits
+			::libmaus2::autoarray::AutoArray<unsigned short> M; // n / 2^16 * 2^16 / 64 * 16 = n/4 bits
 			
 			static inline uint64_t divUp(uint64_t a, uint64_t b)
 			{

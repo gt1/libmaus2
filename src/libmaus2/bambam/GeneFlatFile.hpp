@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #define LIBMAUS_BAMBAM_GENEFLATFILE_HPP
 
 #include <cassert>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/bambam/GeneFlatFileEntry.hpp>
-#include <libmaus/lz/BufferedGzipStream.hpp>
-#include <libmaus/lz/IsGzip.hpp>
-#include <libmaus/util/LineAccessor.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/bambam/GeneFlatFileEntry.hpp>
+#include <libmaus2/lz/BufferedGzipStream.hpp>
+#include <libmaus2/lz/IsGzip.hpp>
+#include <libmaus2/util/LineAccessor.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -37,11 +37,11 @@ namespace libmaus
 		struct GeneFlatFile
 		{
 			typedef GeneFlatFile this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			private:
-			libmaus::autoarray::AutoArray<char> C;
-			libmaus::util::LineAccessor::unique_ptr_type LA;
+			libmaus2::autoarray::AutoArray<char> C;
+			libmaus2::util::LineAccessor::unique_ptr_type LA;
 			uint64_t nl;
 			
 			GeneFlatFile() : nl(0)
@@ -49,9 +49,9 @@ namespace libmaus
 			
 			}
 		
-			static libmaus::autoarray::AutoArray<char> loadFile(std::istream & in)
+			static libmaus2::autoarray::AutoArray<char> loadFile(std::istream & in)
 			{
-				libmaus::autoarray::AutoArray<char> C(1);
+				libmaus2::autoarray::AutoArray<char> C(1);
 				uint64_t p = 0;
 				
 				while ( in )
@@ -65,24 +65,24 @@ namespace libmaus
 					
 					if ( p == C.size() )
 					{
-						libmaus::autoarray::AutoArray<char> Cn(2*C.size(),false);
+						libmaus2::autoarray::AutoArray<char> Cn(2*C.size(),false);
 						std::copy(C.begin(),C.end(),Cn.begin());
 						C = Cn;
 					}
 				}
 				
-				libmaus::autoarray::AutoArray<char> Cn(p,false);
+				libmaus2::autoarray::AutoArray<char> Cn(p,false);
 				std::copy(C.begin(),C.begin()+p,Cn.begin());
 				
 				return Cn;
 			}
 
 			public:
-			void get(uint64_t const i, libmaus::bambam::GeneFlatFileEntry & entry) const
+			void get(uint64_t const i, libmaus2::bambam::GeneFlatFileEntry & entry) const
 			{
 				if ( i >= nl )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "GeneFlatFile::get(): line " << i << " is out of range." << std::endl;
 					lme.finish();
 					throw lme;
@@ -100,22 +100,22 @@ namespace libmaus
 				return nl;
 			}
 			
-			libmaus::bambam::GeneFlatFileEntry operator[](uint64_t const i) const
+			libmaus2::bambam::GeneFlatFileEntry operator[](uint64_t const i) const
 			{
-				libmaus::bambam::GeneFlatFileEntry entry;
+				libmaus2::bambam::GeneFlatFileEntry entry;
 				get(i,entry);
 				return entry;
 			}
 					
 			static unique_ptr_type construct(std::string const & fn)
 			{
-				libmaus::autoarray::AutoArray<char> C;
+				libmaus2::autoarray::AutoArray<char> C;
 				
-				libmaus::aio::CheckedInputStream PFIS(fn);
+				libmaus2::aio::CheckedInputStream PFIS(fn);
 				
-				if ( libmaus::lz::IsGzip::isGzip(PFIS) )
+				if ( libmaus2::lz::IsGzip::isGzip(PFIS) )
 				{
-					libmaus::lz::BufferedGzipStream gzstr(PFIS);
+					libmaus2::lz::BufferedGzipStream gzstr(PFIS);
 					C = loadFile(gzstr);
 				}
 				else
@@ -126,11 +126,11 @@ namespace libmaus
 				unique_ptr_type ptr(new this_type);
 				
 				ptr->C = C;
-				libmaus::util::LineAccessor::unique_ptr_type TLA(new libmaus::util::LineAccessor(ptr->C.begin(),ptr->C.end()));
+				libmaus2::util::LineAccessor::unique_ptr_type TLA(new libmaus2::util::LineAccessor(ptr->C.begin(),ptr->C.end()));
 				ptr->LA = UNIQUE_PTR_MOVE(TLA);
 				
 				uint64_t nl = ptr->LA->size();
-				libmaus::bambam::GeneFlatFileEntry entry;
+				libmaus2::bambam::GeneFlatFileEntry entry;
 				
 				while ( nl )
 				{

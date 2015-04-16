@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/CollatingBamDecoder.hpp>
+#include <libmaus2/bambam/CollatingBamDecoder.hpp>
 
-unsigned int const libmaus::bambam::CollatingBamDecoder::defaulthashbits = 16;
-unsigned int const libmaus::bambam::CollatingBamDecoder::defaulthashsize = 1u<<libmaus::bambam::CollatingBamDecoder::defaulthashbits;
-unsigned int const libmaus::bambam::CollatingBamDecoder::defaulthashmask = libmaus::bambam::CollatingBamDecoder::defaulthashsize-1;
-unsigned int const libmaus::bambam::CollatingBamDecoder::defaultwriteoutlistmax = 64*1024;
+unsigned int const libmaus2::bambam::CollatingBamDecoder::defaulthashbits = 16;
+unsigned int const libmaus2::bambam::CollatingBamDecoder::defaulthashsize = 1u<<libmaus2::bambam::CollatingBamDecoder::defaulthashbits;
+unsigned int const libmaus2::bambam::CollatingBamDecoder::defaulthashmask = libmaus2::bambam::CollatingBamDecoder::defaulthashsize-1;
+unsigned int const libmaus2::bambam::CollatingBamDecoder::defaultwriteoutlistmax = 64*1024;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,23 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/FastALineParserLineInfo.hpp>
+#include <libmaus2/fastx/FastALineParserLineInfo.hpp>
 #include <string>
 
-std::ostream & libmaus::fastx::operator<<(std::ostream & out, ::libmaus::fastx::FastALineParserLineInfo const & line)
+std::ostream & libmaus2::fastx::operator<<(std::ostream & out, ::libmaus2::fastx::FastALineParserLineInfo const & line)
 {
 	switch ( line.linetype )
 	{
-		case ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line_eof:
+		case ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line_eof:
 			out << "FastALineParserLineInfo(eof)";
 			break;
-		case ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line:
+		case ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line:
 			out << "FastALineParserLineInfo(id," << std::string(
 				reinterpret_cast<char const *>(line.line),
 				reinterpret_cast<char const *>(line.line)+line.linelen
 			) << ")";
 			break;
-		case ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_base_line:
+		case ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_base_line:
 			out << "FastALineParserLineInfo(base," << std::string(
 				reinterpret_cast<char const *>(line.line),
 				reinterpret_cast<char const *>(line.line)+line.linelen

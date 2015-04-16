@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2012 German Tischler
 
     This program is free software: you can redistribute it and/or modify
@@ -15,9 +15,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#include <libmaus/rank/log2table.hpp>
+#include <libmaus2/rank/log2table.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{

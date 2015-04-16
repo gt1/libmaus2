@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_FM_KMERTUPLE_HPP)
 #define LIBMAUS_FM_KMERTUPLE_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 
 #if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
-namespace libmaus
+namespace libmaus2
 {
 	namespace alignment
 	{
 		struct KmerTuple
 		{
-			libmaus::uint128_t kmer;
-			libmaus::uint128_t shiftkmer;
+			libmaus2::uint128_t kmer;
+			libmaus2::uint128_t shiftkmer;
 			uint64_t pos;
 			
 			KmerTuple() : kmer(0), shiftkmer(0), pos(0) {}
 			KmerTuple(
-				libmaus::uint128_t rkmer,
-				libmaus::uint128_t rshiftkmer,
+				libmaus2::uint128_t rkmer,
+				libmaus2::uint128_t rshiftkmer,
 				uint64_t rpos
 			) : kmer(rkmer), shiftkmer(rshiftkmer), pos(rpos) {}
 			
@@ -50,7 +50,7 @@ namespace libmaus
 	}
 }
 #else
-#error "libmaus::alignment::KmerTuple requires 128 bit integer which is not supported by the compiler/system."
+#error "libmaus2::alignment::KmerTuple requires 128 bit integer which is not supported by the compiler/system."
 #endif
 
 #endif

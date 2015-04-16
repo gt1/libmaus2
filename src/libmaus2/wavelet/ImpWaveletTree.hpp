@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(IMPWAVELETTREE_HPP)
 #define IMPWAVELETTREE_HPP
 
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
 		struct ImpWaveletTree
 		{
 			typedef ImpWaveletTree this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			uint64_t const n;
 			uint64_t const b;
 
-			typedef ::libmaus::rank::ImpCacheLineRank rank_type;
+			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
-			typedef ::libmaus::autoarray::AutoArray<rank_ptr_type> rank_array_type;
+			typedef ::libmaus2::autoarray::AutoArray<rank_ptr_type> rank_array_type;
 			
-			::libmaus::autoarray::AutoArray<rank_array_type> dicts;
+			::libmaus2::autoarray::AutoArray<rank_array_type> dicts;
 			rank_type const * root;
 
-			::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray<rank_type const * > > traces;
+			::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray<rank_type const * > > traces;
 			
 			uint64_t getN() const
 			{
@@ -61,8 +61,8 @@ namespace libmaus
 			
 			void serialise(std::ostream & out) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,n);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,b);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,b);
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 					for ( uint64_t j = 0; j < dicts[i].size(); ++j )
 						dicts[i][j]->serialise(out);
@@ -71,8 +71,8 @@ namespace libmaus
 			
 			ImpWaveletTree(std::istream & in)
 			:
-				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				b(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				b(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				dicts(b),
 				root(0),
 				traces ( 1ull << b )
@@ -107,7 +107,7 @@ namespace libmaus
 
 					for ( uint64_t i = 0; i < (1ull << b); ++i )
 					{
-						traces[i] = ::libmaus::autoarray::AutoArray<rank_type const *>(b);
+						traces[i] = ::libmaus2::autoarray::AutoArray<rank_type const *>(b);
 						rank_type const * node = root;
 	
 						for ( uint64_t mask = 1ull << (b-1), j = 0; mask; mask >>= 1, ++j )

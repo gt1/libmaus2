@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,12 +20,12 @@
 #if ! defined(OUTPUTBUFFER_HPP)
 #define OUTPUTBUFFER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <fstream>
 #include <cassert>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace bitio
         {
@@ -35,7 +35,7 @@ namespace libmaus
                         typedef _data_type data_type;
                         
                         unsigned int const n;
-                        ::libmaus::autoarray::AutoArray<data_type> B;
+                        ::libmaus2::autoarray::AutoArray<data_type> B;
                         unsigned int f;
                         std::ostream & out;
                         
@@ -120,7 +120,7 @@ namespace libmaus
                         typedef _data_type data_type;
                         
                         unsigned int const n;
-                        ::libmaus::autoarray::AutoArray<data_type> B;
+                        ::libmaus2::autoarray::AutoArray<data_type> B;
                         unsigned int c;
                         unsigned int f;
                         std::istream & in;

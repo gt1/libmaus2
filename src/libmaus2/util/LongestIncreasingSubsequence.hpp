@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(LONGESTINCREASINGSUBSEQUENCE_HPP)
 #define LONGESTINCREASINGSUBSEQUENCE_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -39,12 +39,12 @@ namespace libmaus
 			{
 				std::vector<uint64_t> M;
 				// previous index in longest increasing subsequence
-				::libmaus::autoarray::AutoArray<uint64_t> P(n,false);
+				::libmaus2::autoarray::AutoArray<uint64_t> P(n,false);
 
 				// length of longest increasing subsequence ending at i
 				std::vector<uint64_t> LA;
 				// histogram over LA (shifted by 1, as value 0 is not possible)
-				::libmaus::autoarray::AutoArray<uint64_t> L(n,false);
+				::libmaus2::autoarray::AutoArray<uint64_t> L(n,false);
 
 				for ( uint64_t i = 0; i < n; ++i )
 				{

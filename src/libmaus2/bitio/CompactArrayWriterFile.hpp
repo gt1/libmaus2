@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BITIO_COMPACTARRAYWRITERFILE_HPP)
 #define LIBMAUS_BITIO_COMPACTARRAYWRITERFILE_HPP
 
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -33,9 +33,9 @@ namespace libmaus
 		 **/
 		struct CompactArrayWriterFile
 		{
-			::libmaus::aio::CheckedOutputStream::unique_ptr_type COS;
-			::libmaus::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
-			::libmaus::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
+			::libmaus2::aio::CheckedOutputStream::unique_ptr_type COS;
+			::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
+			::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
 			
 			uint64_t       n;
 			uint64_t const b;
@@ -47,17 +47,17 @@ namespace libmaus
 				SGO->put(0); // (n*b+63)/64
 				SGO->put(0); // (n*b+63)/64
 
-				::libmaus::aio::SynchronousGenericOutput<uint64_t>::iterator_type it(*SGO);
-				::libmaus::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type tFWBW(
-                                                new ::libmaus::bitio::FastWriteBitWriterBuffer64Sync(it)
+				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::iterator_type it(*SGO);
+				::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type tFWBW(
+                                                new ::libmaus2::bitio::FastWriteBitWriterBuffer64Sync(it)
                                         );
 				FWBW = UNIQUE_PTR_MOVE(tFWBW);
 			}
 			
 			CompactArrayWriterFile(std::string const & filename, uint64_t const rb)
 			:
-				COS(new ::libmaus::aio::CheckedOutputStream(filename)),
-				SGO(new ::libmaus::aio::SynchronousGenericOutput<uint64_t>(*COS,8*1024)),
+				COS(new ::libmaus2::aio::CheckedOutputStream(filename)),
+				SGO(new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*COS,8*1024)),
 				n(0),
 				b(rb)
 			{
@@ -99,7 +99,7 @@ namespace libmaus
 					
 					// construct header
 					std::ostringstream ostr;
-					::libmaus::aio::SynchronousGenericOutput<uint64_t> HSGO(ostr,8);
+					::libmaus2::aio::SynchronousGenericOutput<uint64_t> HSGO(ostr,8);
 					HSGO.put(b);
 					HSGO.put(n);
 					HSGO.put((n*b+63)/64);

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,10 +22,10 @@
 #define LIBMAUS_LCS_LCSDYNAMIC_HPP
 
 #include <string>
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -34,7 +34,7 @@ namespace libmaus
 			static std::pair<uint64_t,uint64_t> lcs(std::string const & a, std::string const & b)
 			{
 				uint64_t const n = a.size(), m = b.size();
-				::libmaus::autoarray::AutoArray<uint32_t> M( 2*m , false );
+				::libmaus2::autoarray::AutoArray<uint32_t> M( 2*m , false );
 				uint32_t * m0 = M.get();
 				uint32_t * m1 = m0+m;
 				uint32_t maxlcp = 0;

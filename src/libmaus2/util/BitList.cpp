@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/BitList.hpp>
+#include <libmaus2/util/BitList.hpp>
 
-libmaus::util::BitList::BitList(uint64_t words)
+libmaus2::util::BitList::BitList(uint64_t words)
 {
 	for ( uint64_t i = 0; i < 64*words; ++i )
 		B.push_front(false);
 }
 
-uint64_t libmaus::util::BitList::select1(uint64_t rank) const
+uint64_t libmaus2::util::BitList::select1(uint64_t rank) const
 {
 	std::list<bool>::const_iterator I = B.begin();
 
@@ -53,7 +53,7 @@ uint64_t libmaus::util::BitList::select1(uint64_t rank) const
 	
 	return pos;
 }
-uint64_t libmaus::util::BitList::select0(uint64_t rank) const
+uint64_t libmaus2::util::BitList::select0(uint64_t rank) const
 {
 	std::list<bool>::const_iterator I = B.begin();
 
@@ -82,7 +82,7 @@ uint64_t libmaus::util::BitList::select0(uint64_t rank) const
 	return pos;
 }
 
-uint64_t libmaus::util::BitList::rank1(uint64_t pos) const
+uint64_t libmaus2::util::BitList::rank1(uint64_t pos) const
 {
 	std::list<bool>::const_iterator I = B.begin();
 	
@@ -97,7 +97,7 @@ uint64_t libmaus::util::BitList::rank1(uint64_t pos) const
 	return pc;
 }
 
-void libmaus::util::BitList::insertBit(uint64_t pos, bool b)
+void libmaus2::util::BitList::insertBit(uint64_t pos, bool b)
 {
 	assert ( pos < B.size() );
 
@@ -109,7 +109,7 @@ void libmaus::util::BitList::insertBit(uint64_t pos, bool b)
 	B.insert(I,b);
 	B.pop_back();
 }
-void libmaus::util::BitList::deleteBit(uint64_t pos)
+void libmaus2::util::BitList::deleteBit(uint64_t pos)
 {
 	assert ( pos < B.size() );
 
@@ -121,7 +121,7 @@ void libmaus::util::BitList::deleteBit(uint64_t pos)
 	B.erase(I);	
 	B.push_back(false);
 }
-void libmaus::util::BitList::setBit(uint64_t pos, bool b)
+void libmaus2::util::BitList::setBit(uint64_t pos, bool b)
 {
 	assert ( pos < B.size() );
 
@@ -133,7 +133,7 @@ void libmaus::util::BitList::setBit(uint64_t pos, bool b)
 	*I = b;	
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::util::BitList const & B)
+std::ostream & operator<<(std::ostream & out, libmaus2::util::BitList const & B)
 {
 	for ( std::list< bool >::const_iterator I = B.B.begin(); I != B.B.end(); ++I )
 		out << ((*I)?"1":"0");

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_HASHING_CIRCULARHASH_HPP)
 #define LIBMAUS_HASHING_CIRCULARHASH_HPP
 
-#include <libmaus/bitbtree/bitbtree.hpp>
-#include <libmaus/bambam/BamAlignmentExpungeCallback.hpp>
+#include <libmaus2/bitbtree/bitbtree.hpp>
+#include <libmaus2/bambam/BamAlignmentExpungeCallback.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace hashing
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 		{
 			typedef _overflow_type overflow_type;
 			typedef CircularHash<overflow_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef uint32_t pos_type;
 			typedef uint32_t entry_size_type;
@@ -50,15 +50,15 @@ namespace libmaus
 			uint64_t const bmask;
 			
 			// hash table
-			libmaus::autoarray::AutoArray<pos_type> H;
+			libmaus2::autoarray::AutoArray<pos_type> H;
 			// circular buffer
-			libmaus::autoarray::AutoArray<uint8_t> B;
+			libmaus2::autoarray::AutoArray<uint8_t> B;
 			// rank/select/next1 data structure
-			libmaus::bitbtree::BitBTree<8,8> R;
+			libmaus2::bitbtree::BitBTree<8,8> R;
 			// current insert pointer
 			pos_type ipos;
 			
-			libmaus::bambam::BamAlignmentExpungeCallback * expungecallback;
+			libmaus2::bambam::BamAlignmentExpungeCallback * expungecallback;
 			
 			uint64_t hashexpunge;
 			uint64_t wrapexpunge;
@@ -80,7 +80,7 @@ namespace libmaus
 					return bsize;
 				else
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "CircularHash: table size is too big." << std::endl;
 					se.finish();
 					throw se;
@@ -98,7 +98,7 @@ namespace libmaus
 			  tablesize(1ull << tablesizelog),
 			  tablemask(tablesize-1),
 			  entrysize(rentrysize),
-			  bsize(checkBSize(libmaus::math::nextTwoPow(entrysize * tablesize))),
+			  bsize(checkBSize(libmaus2::math::nextTwoPow(entrysize * tablesize))),
 			  bmask(bsize-1),
 			  H(tablesize,false),
 			  B(bsize,false),
@@ -235,7 +235,7 @@ namespace libmaus
 			}
 			
 			uint8_t const * getEntryData(
-				std::pair<pos_type,entry_size_type> const & P, libmaus::autoarray::AutoArray<uint8_t> & T
+				std::pair<pos_type,entry_size_type> const & P, libmaus2::autoarray::AutoArray<uint8_t> & T
 			) const
 			{
 				if ( P.first + P.second <= B.size() )
@@ -243,7 +243,7 @@ namespace libmaus
 				else
 				{
 					if ( T.size() < P.second )
-						T = libmaus::autoarray::AutoArray<uint8_t>(P.second,false);
+						T = libmaus2::autoarray::AutoArray<uint8_t>(P.second,false);
 					
 					uint64_t p = P.first & bmask;
 					for ( uint64_t i = 0; i < P.second; ++i, p = (p+1)&bmask )
@@ -328,7 +328,7 @@ namespace libmaus
 			 *
 			 * @param rrexpungecallback callback
 			 **/
-			void setExpungeCallback(libmaus::bambam::BamAlignmentExpungeCallback * rexpungecallback)
+			void setExpungeCallback(libmaus2::bambam::BamAlignmentExpungeCallback * rexpungecallback)
 			{
 				expungecallback = rexpungecallback;
 			}

@@ -1,6 +1,6 @@
 
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,9 +17,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/alignment/KmerInfo.hpp>
+#include <libmaus2/alignment/KmerInfo.hpp>
 
-std::ostream & libmaus::alignment::operator<<(std::ostream & out, libmaus::alignment::KmerInfo const & K)
+std::ostream & libmaus2::alignment::operator<<(std::ostream & out, libmaus2::alignment::KmerInfo const & K)
 {
 	return (out << "KmerInfo(" << K.rank << "," << K.pos << "," << K.offset << ")");
 }

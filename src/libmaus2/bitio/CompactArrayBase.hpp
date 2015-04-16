@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(COMPACTARRAYBASE_HPP)
 #define COMPACTARRAYBASE_HPP
 
-#include <libmaus/math/MetaLog.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/math/MetaLog.hpp>
+#include <libmaus2/types/types.hpp>
 #include <cassert>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
 		struct CompactArrayBase
 		{
 			static unsigned int const bcnt = 8 * sizeof(uint64_t);
-			static unsigned int const bshf = ::libmaus::math::MetaLog2<bcnt>::log;
+			static unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 			static unsigned int const bmsk = (1ul<<bshf)-1ul;
 			
 			static unsigned int globalBitsInFirstWord[4160];

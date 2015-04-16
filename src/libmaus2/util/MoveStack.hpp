@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(MOVESTACK_HPP)
 #define MOVESTACK_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace util
         {
@@ -31,10 +31,10 @@ namespace libmaus
                 {
                         typedef _type type;
                         typedef typename type::unique_ptr_type type_ptr;
-                        typedef ::libmaus::autoarray::AutoArray<type_ptr> array_type;
+                        typedef ::libmaus2::autoarray::AutoArray<type_ptr> array_type;
                         typedef typename array_type::unique_ptr_type array_ptr_type;
                         typedef MoveStack<type> this_type;
-                        typedef typename ::libmaus::util::unique_ptr< this_type>::type unique_ptr_type;
+                        typedef typename ::libmaus2::util::unique_ptr< this_type>::type unique_ptr_type;
                         
                         array_ptr_type array;
                         uint64_t fill;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQHEADER_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQHEADER_HPP
 
-#include <libmaus/fastx/FqWeightQuantiser.hpp>
+#include <libmaus2/fastx/FqWeightQuantiser.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct CompactFastQHeader
 		{
 			typedef CompactFastQHeader this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			uint64_t const blocklen;
 			uint64_t const numreads;
 			unsigned int const qbits;
-			::libmaus::fastx::FqWeightQuantiser const quant;
+			::libmaus2::fastx::FqWeightQuantiser const quant;
 			
 			uint64_t byteSize() const
 			{
@@ -45,8 +45,8 @@ namespace libmaus
 			template<typename stream_type>
 			CompactFastQHeader(stream_type & stream)
 			:
-			  blocklen(::libmaus::util::NumberSerialisation::deserialiseNumber(stream)),
-			  numreads(::libmaus::util::NumberSerialisation::deserialiseNumber(stream)),
+			  blocklen(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
+			  numreads(::libmaus2::util::NumberSerialisation::deserialiseNumber(stream)),
 			  qbits(stream.get()),
 			  quant(stream)
 			{
@@ -55,7 +55,7 @@ namespace libmaus
 			
 			static uint64_t getEmptyBlockHeaderSize()
 			{
-				::libmaus::fastx::FqWeightQuantiser quant;
+				::libmaus2::fastx::FqWeightQuantiser quant;
 				std::ostringstream ostr;
 				quant.serialise(ostr);
 				return 2*sizeof(uint64_t) + 1 * sizeof(uint8_t) + ostr.str().size();

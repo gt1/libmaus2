@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKWRITEPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKWRITEPACKAGE_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
-#include <libmaus/bambam/parallel/CramOutputBlock.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			
-			struct CramOutputBlockWritePackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct CramOutputBlockWritePackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef CramOutputBlockWritePackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				CramOutputBlock::shared_ptr_type block;
 				std::ostream * out;
 			
-				CramOutputBlockWritePackage() : libmaus::parallel::SimpleThreadWorkPackage() {}
+				CramOutputBlockWritePackage() : libmaus2::parallel::SimpleThreadWorkPackage() {}
 				CramOutputBlockWritePackage(uint64_t const rpriority, uint64_t const rdispatcherid, CramOutputBlock::shared_ptr_type rblock, std::ostream * rout)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), block(rblock), out(rout)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), block(rblock), out(rout)
 				{
 				
 				}

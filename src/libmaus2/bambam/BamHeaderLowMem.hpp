@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,47 +19,47 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMHEADERLOWMEM_HPP)
 #define LIBMAUS_BAMBAM_BAMHEADERLOWMEM_HPP
 
-#include <libmaus/bambam/DecoderBase.hpp>
-#include <libmaus/bambam/EncoderBase.hpp>
-#include <libmaus/bitio/BitVector.hpp>
-#include <libmaus/hashing/ConstantStringHash.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/trie/TrieState.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/LineAccessor.hpp>
-#include <libmaus/util/DigitTable.hpp>
+#include <libmaus2/bambam/DecoderBase.hpp>
+#include <libmaus2/bambam/EncoderBase.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
+#include <libmaus2/hashing/ConstantStringHash.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/trie/TrieState.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/LineAccessor.hpp>
+#include <libmaus2/util/DigitTable.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamHeaderLowMem;
-		std::ostream & operator<<(::std::ostream & out, ::libmaus::bambam::BamHeaderLowMem const & BHLM);
+		std::ostream & operator<<(::std::ostream & out, ::libmaus2::bambam::BamHeaderLowMem const & BHLM);
 			
 		struct BamHeaderLowMem :
-			public ::libmaus::bambam::EncoderBase, 
-			public ::libmaus::bambam::DecoderBase
+			public ::libmaus2::bambam::EncoderBase, 
+			public ::libmaus2::bambam::DecoderBase
 		{
 			public:
 			typedef BamHeaderLowMem this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
-			friend std::ostream & operator<<(::std::ostream & out, ::libmaus::bambam::BamHeaderLowMem const & BHLM);
+			friend std::ostream & operator<<(::std::ostream & out, ::libmaus2::bambam::BamHeaderLowMem const & BHLM);
 			
 			typedef uint32_t offset_type;
 			
 			
-			libmaus::autoarray::AutoArray<char> Atext;
+			libmaus2::autoarray::AutoArray<char> Atext;
 			char * text;
-			libmaus::util::LineAccessor::unique_ptr_type PLA;
+			libmaus2::util::LineAccessor::unique_ptr_type PLA;
 
-			libmaus::autoarray::AutoArray<char> SQtext;
-			libmaus::autoarray::AutoArray<int32_t> LNvec;
-			libmaus::autoarray::AutoArray<offset_type> SQoffsets;
+			libmaus2::autoarray::AutoArray<char> SQtext;
+			libmaus2::autoarray::AutoArray<int32_t> LNvec;
+			libmaus2::autoarray::AutoArray<offset_type> SQoffsets;
 			
-			libmaus::bitio::IndexedBitVector::unique_ptr_type Psqbitvec;
+			libmaus2::bitio::IndexedBitVector::unique_ptr_type Psqbitvec;
 			
 			int64_t HDid;
 			
@@ -77,11 +77,11 @@ namespace libmaus
 				) : idid(ridid), idtextoffset(ridtextoffset), lineid(rlineid) {}
 			};
 			
-			libmaus::autoarray::AutoArray<char> PGidtext;
-			libmaus::autoarray::AutoArray< IdSortInfo > PGidsort;
+			libmaus2::autoarray::AutoArray<char> PGidtext;
+			libmaus2::autoarray::AutoArray< IdSortInfo > PGidsort;
 
-			libmaus::autoarray::AutoArray<char> RGidtext;
-			libmaus::autoarray::AutoArray< IdSortInfo > RGidsort;
+			libmaus2::autoarray::AutoArray<char> RGidtext;
+			libmaus2::autoarray::AutoArray< IdSortInfo > RGidsort;
 			
 			char const * noparidstring;
 			
@@ -90,9 +90,9 @@ namespace libmaus
 			std::vector<uint32_t> rgtolib;
 
 			//! trie for read group names
-			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type RGTrie;
+			::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type RGTrie;
 			//! hash for read names
-			libmaus::hashing::ConstantStringHash::unique_ptr_type RGCSH;
+			libmaus2::hashing::ConstantStringHash::unique_ptr_type RGCSH;
 			
 			struct IdSortComparator
 			{
@@ -133,7 +133,7 @@ namespace libmaus
 				template<typename iterator>
 				static uint32_t hash(iterator ita, iterator ite)
 				{
-					return libmaus::hashing::EvaHash::hash(reinterpret_cast<uint8_t const *>(ita),ite-ita);
+					return libmaus2::hashing::EvaHash::hash(reinterpret_cast<uint8_t const *>(ita),ite-ita);
 				}
 
 				/**
@@ -154,14 +154,14 @@ namespace libmaus
 			{
 				typedef IdArrayAccessor this_type;
 			
-				libmaus::autoarray::AutoArray<char> const & text;
-				libmaus::autoarray::AutoArray< IdSortInfo > const & offsets;
+				libmaus2::autoarray::AutoArray<char> const & text;
+				libmaus2::autoarray::AutoArray< IdSortInfo > const & offsets;
 				
-				typedef libmaus::util::ConstIterator<this_type,char const *> const_iterator;
+				typedef libmaus2::util::ConstIterator<this_type,char const *> const_iterator;
 				
 				IdArrayAccessor(
-					libmaus::autoarray::AutoArray<char> const & rtext,
-					libmaus::autoarray::AutoArray< IdSortInfo > const & roffsets
+					libmaus2::autoarray::AutoArray<char> const & rtext,
+					libmaus2::autoarray::AutoArray< IdSortInfo > const & roffsets
 				
 				)
 				: text(rtext), offsets(roffsets)
@@ -233,14 +233,14 @@ namespace libmaus
 			 * @param RG read group vector
 			 * @return trie for read group names
 			 **/
-			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeRgTrie()
+			::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeRgTrie()
 			{
-				::libmaus::trie::Trie<char> trienofailure;
+				::libmaus2::trie::Trie<char> trienofailure;
 				std::vector<std::string> dict;
 				for ( uint64_t i = 0; i < getNumReadGroups(); ++i )
 					dict.push_back(getReadGroupIdentifierAsString(i));
 				trienofailure.insertContainer(dict);
-				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
 					(trienofailure.toLinearHashTrie<uint32_t>());
 
 				return UNIQUE_PTR_MOVE(LHTnofailure);
@@ -253,7 +253,7 @@ namespace libmaus
 					std::cerr << "[" << i << "]=" << PLA->getLine(text,i) << "\n";
 				#endif
 				
-				libmaus::util::DigitTable digtab;
+				libmaus2::util::DigitTable digtab;
 				
 				uint64_t sqtextlen = 0;
 				uint64_t numsq = 0;
@@ -295,7 +295,7 @@ namespace libmaus
 					{
 						if ( HDid != -1 )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: second HD line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;																			
@@ -318,7 +318,7 @@ namespace libmaus
 							
 						if ( j+2 >= P.second )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -342,7 +342,7 @@ namespace libmaus
 
 						if ( j+2 >= P.second )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -355,7 +355,7 @@ namespace libmaus
 
 						if ( ! (lnend-lnstart) )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -368,7 +368,7 @@ namespace libmaus
 							
 							if ( ! digtab[static_cast<unsigned char>(text[k])] )
 							{
-								::libmaus::exception::LibMausException se;
+								::libmaus2::exception::LibMausException se;
 								se.getStream() << "BamHeaderLowMem: defect @SQ line " << PLA->getLine(text,i) << std::endl;
 								se.finish();
 								throw se;
@@ -403,7 +403,7 @@ namespace libmaus
 					
 						if ( j+2 >= P.second )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with no ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -417,7 +417,7 @@ namespace libmaus
 
 						if ( idend == idstart )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with empty ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -443,7 +443,7 @@ namespace libmaus
 					
 						if ( j+2 >= P.second )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @RG line with no ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -457,7 +457,7 @@ namespace libmaus
 
 						if ( idend == idstart )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @RG line with empty ID field:\n" << PLA->getLine(text,i) << std::endl;
 							se.finish();
 							throw se;													
@@ -470,22 +470,22 @@ namespace libmaus
 					}
 				}
 				
-				SQtext = libmaus::autoarray::AutoArray<char>(sqtextlen + numsq,false);
+				SQtext = libmaus2::autoarray::AutoArray<char>(sqtextlen + numsq,false);
 				char * SQtextc = SQtext.begin();
-				LNvec = libmaus::autoarray::AutoArray<int32_t>(numsq,false);
-				SQoffsets = libmaus::autoarray::AutoArray<offset_type>(numsq+1,false);
-				libmaus::bitio::IndexedBitVector::unique_ptr_type Tsqbitvec(new libmaus::bitio::IndexedBitVector(PLA->size()));
+				LNvec = libmaus2::autoarray::AutoArray<int32_t>(numsq,false);
+				SQoffsets = libmaus2::autoarray::AutoArray<offset_type>(numsq+1,false);
+				libmaus2::bitio::IndexedBitVector::unique_ptr_type Tsqbitvec(new libmaus2::bitio::IndexedBitVector(PLA->size()));
 				Psqbitvec = UNIQUE_PTR_MOVE(Tsqbitvec);
 				
 				rglines.resize(numrg);
 				rgtolib.resize(numrg);
-				RGidtext = libmaus::autoarray::AutoArray<char>(rgidtextlen + numrg,false);
-				RGidsort = libmaus::autoarray::AutoArray< IdSortInfo >(numrg,false);
+				RGidtext = libmaus2::autoarray::AutoArray<char>(rgidtextlen + numrg,false);
+				RGidsort = libmaus2::autoarray::AutoArray< IdSortInfo >(numrg,false);
 				char * RGtextc = RGidtext.begin();
 				numrg = 0;
 				
-				PGidtext = libmaus::autoarray::AutoArray<char>(pgidtextlen + numpg,false);
-				PGidsort = libmaus::autoarray::AutoArray< IdSortInfo >(numpg,false);
+				PGidtext = libmaus2::autoarray::AutoArray<char>(pgidtextlen + numpg,false);
+				PGidsort = libmaus2::autoarray::AutoArray< IdSortInfo >(numpg,false);
 				char * PGtextc = PGidtext.begin();
 				numpg = 0;
 
@@ -685,7 +685,7 @@ namespace libmaus
 							++parend;
 						if ( parend==parstart )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with empty PP field:\n" << PLA->getLine(text,lineid) << std::endl;
 							se.finish();
 							throw se;						
@@ -696,7 +696,7 @@ namespace libmaus
 
 						if ( ! isi )
 						{
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() << "BamHeaderLowMem: defect @PG line with non-existant parent " << std::string(text+parstart,text+parend) << ":\n" << PLA->getLine(text,lineid) << std::endl;
 							se.finish();
 							throw se;													
@@ -720,7 +720,7 @@ namespace libmaus
 					uint64_t noparid;
 					if ( noparids.size() == 0 )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "BamHeaderLowMem: there is no PG line which is not a parent of another (PG chain is circular)" << "\n";
 						se.finish();
 						throw se;													
@@ -775,14 +775,14 @@ namespace libmaus
 					rgtolib[i] = P.first ? (std::lower_bound(libs.begin(),libs.end(),std::string(P.first,P.first+P.second)) - libs.begin()) : libs.size();
 				}
 				
-				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type TRGTrie ( computeRgTrie() );
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type TRGTrie ( computeRgTrie() );
 				RGTrie = UNIQUE_PTR_MOVE(TRGTrie);
 				
 				std::vector<ReadGroupHashProxy> RGproxies(getNumReadGroups());
 				for ( uint64_t i = 0; i < getNumReadGroups(); ++i )
 					RGproxies[i] = ReadGroupHashProxy(this,i);
-				libmaus::hashing::ConstantStringHash::unique_ptr_type TRGCSH (
-					libmaus::hashing::ConstantStringHash::construct(RGproxies.begin(),RGproxies.end())
+				libmaus2::hashing::ConstantStringHash::unique_ptr_type TRGCSH (
+					libmaus2::hashing::ConstantStringHash::construct(RGproxies.begin(),RGproxies.end())
 				);
 				RGCSH = UNIQUE_PTR_MOVE(TRGCSH);
 
@@ -793,7 +793,7 @@ namespace libmaus
 						RGids.insert(getReadGroupIdentifierAsString(i));
 					if ( RGids.size() != getNumReadGroups() )
 					{
-						libmaus::exception::LibMausException se;
+						libmaus2::exception::LibMausException se;
 						se.getStream() << "Read group identifiers are not unique." << std::endl;
 						se.finish();
 						throw se;
@@ -814,20 +814,20 @@ namespace libmaus
 					fmagic[2] != 'M' ||
 					fmagic[3] != '\1' )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Wrong magic in BamHeaderLowMem constructor" << std::endl;
 					se.finish();
 					throw se;					
 				}
 
 				uint64_t l_text = getLEInteger(in,4);
-				Atext = libmaus::autoarray::AutoArray<char>(l_text,false);
+				Atext = libmaus2::autoarray::AutoArray<char>(l_text,false);
 				text = Atext.begin();
 				
 				in.read(text,l_text);
 				if ( static_cast<int64_t>(in.gcount()) != static_cast<int64_t>(l_text) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to read header text in BamHeaderLowMem constructor" << std::endl;
 					se.finish();
 					throw se;									
@@ -837,7 +837,7 @@ namespace libmaus
 				while ( l_text && !text[l_text-1] )
 					--l_text;
 				
-				libmaus::util::LineAccessor::unique_ptr_type TLA(new libmaus::util::LineAccessor(text,text+l_text));
+				libmaus2::util::LineAccessor::unique_ptr_type TLA(new libmaus2::util::LineAccessor(text,text+l_text));
 				PLA = UNIQUE_PTR_MOVE(TLA);
 			}
 			
@@ -845,11 +845,11 @@ namespace libmaus
 			template<typename iterator>
 			void constructFromTextInternal(iterator ita, iterator ite)
 			{			
-				Atext = libmaus::autoarray::AutoArray<char>(ite-ita,false);
+				Atext = libmaus2::autoarray::AutoArray<char>(ite-ita,false);
 				text = Atext.begin();
 				std::copy(ita,ite,text);
 
-				libmaus::util::LineAccessor::unique_ptr_type TLA(new libmaus::util::LineAccessor(text,text+(ite-ita)));
+				libmaus2::util::LineAccessor::unique_ptr_type TLA(new libmaus2::util::LineAccessor(text,text+(ite-ita)));
 				PLA = UNIQUE_PTR_MOVE(TLA);
 
 				setupFromText();
@@ -861,11 +861,11 @@ namespace libmaus
 				setupFromText();
 				
 				uint64_t const n_ref = getLEInteger(in,4);
-				libmaus::autoarray::AutoArray<char> name;
+				libmaus2::autoarray::AutoArray<char> name;
 				
 				if ( n_ref != getNumRef() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BamHeaderLowMem: text and binary header information is not consistent:\n";
 					se.getStream() << "Number of sequences in text is " << getNumRef() << "\n";
 					se.getStream() << "Number of sequences in binary is " << n_ref << "\n";
@@ -878,7 +878,7 @@ namespace libmaus
 					uint64_t l_name = getLEInteger(in,4);
 					assert ( l_name );
 					if ( l_name > name.size() )
-						name = libmaus::autoarray::AutoArray<char>(l_name,false);
+						name = libmaus2::autoarray::AutoArray<char>(l_name,false);
 					for ( uint64_t j = 0 ; j < l_name; ++j )
 						name[j] = getByte(in);
 					assert ( name[l_name-1] == 0 );
@@ -886,7 +886,7 @@ namespace libmaus
 
 					if ( strcmp(name.begin(),SQtext.begin()+SQoffsets[i]) )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "BamHeaderLowMem: text and binary header information is not consistent:\n";
 						se.getStream() << "Sequence name in text: " << SQtext.begin()+SQoffsets[i] << "\n";
 						se.getStream() << "Sequence name in binary: " << name.begin() << "\n";
@@ -895,7 +895,7 @@ namespace libmaus
 					}
 					if ( static_cast<int64_t>(l_ref) != static_cast<int64_t>(LNvec[i]) )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "BamHeaderLowMem: text and binary header information is not consistent for sequence " << name.begin() << ":\n";
 						se.getStream() << "Sequence length in text: " << LNvec[i] << "\n";
 						se.getStream() << "Sequence length in binary: " << l_ref << "\n";
@@ -912,7 +912,7 @@ namespace libmaus
 			 * @param V chromosomes (ref seqs)
 			 **/
 			template<typename stream_type>
-			void encodeFilteredChromosomeVector(stream_type & ostr, ::libmaus::bitio::IndexedBitVector const & IBV) const
+			void encodeFilteredChromosomeVector(stream_type & ostr, ::libmaus2::bitio::IndexedBitVector const & IBV) const
 			{
 				// number of sequences to be kept
 				uint64_t const keep = IBV.size() ? IBV.rank1(IBV.size()-1) : 0;
@@ -921,17 +921,17 @@ namespace libmaus
 				
 				assert ( (IBV.size()+1) == SQoffsets.size() );
 			
-				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,keep);
+				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,keep);
 
 				for ( uint64_t i = 0; i < SQoffsets.size(); ++i )
 					if ( IBV.get(i) )
 					{
 						char const * name = getRefIDName(i);
 						uint64_t const namesize = strlen(name);
-						::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,namesize+1);
+						::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,namesize+1);
 						ostr.write(name,namesize);
 						ostr.put(0);
-						::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,getRefIDLength(i));	
+						::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,getRefIDLength(i));	
 					}
 			}
 			
@@ -952,7 +952,7 @@ namespace libmaus
 			
 			template<typename stream_type>
 			void writeTextSubset(
-				stream_type & ostr, ::libmaus::bitio::IndexedBitVector const & IBV,
+				stream_type & ostr, ::libmaus2::bitio::IndexedBitVector const & IBV,
 				std::string const & pgID,
 				std::string const & pgPN,
 				std::string const & pgCL,
@@ -1171,7 +1171,7 @@ namespace libmaus
 				
 				if ( ! P.first )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid read group id " << i << "\n";
 					se.finish();
 					throw se;
@@ -1296,7 +1296,7 @@ namespace libmaus
 
 				if ( idend == idstart )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Invalid empty library identifier in read group " 
 						<< getReadGroupIdentifierAsString(i) 
 						<< "\n";
@@ -1403,7 +1403,7 @@ namespace libmaus
 			 **/
 			template<typename stream_type>
 			void serialiseSequenceSubset(
-				stream_type & ostr, ::libmaus::bitio::IndexedBitVector const & IBV,
+				stream_type & ostr, ::libmaus2::bitio::IndexedBitVector const & IBV,
 				std::string const & pgID,
 				std::string const & pgPN,
 				std::string const & pgCL,
@@ -1417,11 +1417,11 @@ namespace libmaus
 				ostr.put('\1');
 
 				// compute length of header text
-				libmaus::util::CountPutObject CPO;
+				libmaus2::util::CountPutObject CPO;
 				writeTextSubset(CPO,IBV,pgID,pgPN,pgCL,pgVN);
 				
 				// write length of text
-				::libmaus::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,CPO.c);
+				::libmaus2::bambam::EncoderBase::putLE<stream_type,int32_t>(ostr,CPO.c);
 				// write text
 				writeTextSubset(ostr,IBV,pgID,pgPN,pgCL,pgVN);
 				
@@ -1454,7 +1454,7 @@ namespace libmaus
 					RGCSH->byteSize();
 			}		};
 		
-		inline std::ostream & operator<<(::std::ostream & out, ::libmaus::bambam::BamHeaderLowMem const & BHLM)
+		inline std::ostream & operator<<(::std::ostream & out, ::libmaus2::bambam::BamHeaderLowMem const & BHLM)
 		{
 			if ( BHLM.HDid != -1 )
 				out << BHLM.PLA->getLine(BHLM.text,BHLM.HDid) << "\n";

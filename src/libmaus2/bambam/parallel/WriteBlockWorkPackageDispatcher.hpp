@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_WRITEBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_WRITEBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp>
-#include <libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp>
+#include <libmaus2/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			// dispatcher for block writing
-			struct WriteBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct WriteBlockWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				WriteBlockWorkPackageReturnInterface & packageReturnInterface;
 				ReturnBgzfOutputBufferInterface & bufferReturnInterface;
@@ -49,16 +49,16 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					WriteBlockWorkPackage * BP = dynamic_cast<WriteBlockWorkPackage *>(P);
 					assert ( BP );
 					
 					std::ostream & out = *(BP->obj.out);
-					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf = BP->obj.obuf;
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = BP->obj.flushinfo;
+					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type obuf = BP->obj.obuf;
+					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const & flushinfo = BP->obj.flushinfo;
 					char const * outp = reinterpret_cast<char const *>(obuf->outbuf.begin());
 					uint64_t n = 0;
 

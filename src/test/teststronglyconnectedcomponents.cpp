@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/graph/StronglyConnectedComponents.hpp>
-#include <libmaus/graph/IdentityTargetProjector.hpp>
+#include <libmaus2/graph/StronglyConnectedComponents.hpp>
+#include <libmaus2/graph/IdentityTargetProjector.hpp>
 
 #include <iostream>
 
@@ -64,7 +64,7 @@ void testStronglyConnectedComponents()
 
 	{
 		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
-			libmaus::graph::StronglyConnectedComponents::strongConnectContract<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+			libmaus2::graph::StronglyConnectedComponents::strongConnectContract<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
 			
 		std::vector< uint64_t > const & componentsizes = components.second;
 			
@@ -79,7 +79,7 @@ void testStronglyConnectedComponents()
 	#if 0
 	{	
 		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
-			libmaus::graph::StronglyConnectedComponents::strongConnect<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+			libmaus2::graph::StronglyConnectedComponents::strongConnect<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
 			
 		std::vector< uint64_t > const & componentsizes = components.second;
 			
@@ -95,7 +95,7 @@ void testStronglyConnectedComponents()
 	
 	{
 		std::pair< std::vector< uint64_t >, std::vector< uint64_t > >  components = 
-			libmaus::graph::StronglyConnectedComponents::strongConnectKosaraju<uint64_t,libmaus::graph::IdentityTargetProjector>(edges,0);
+			libmaus2::graph::StronglyConnectedComponents::strongConnectKosaraju<uint64_t,libmaus2::graph::IdentityTargetProjector>(edges,0);
 				
 		std::vector< uint64_t > const & componentsizes = components.second;
 			

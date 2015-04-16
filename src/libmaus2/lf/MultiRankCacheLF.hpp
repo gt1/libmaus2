@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_LF_MULTIRANKCACHELF_HPP)
 #define LIBMAUS_LF_MULTIRANKCACHELF_HPP
 
-#include <libmaus/rank/CacheLineRank.hpp>
+#include <libmaus2/rank/CacheLineRank.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
 		struct MultiRankCacheLF
 		{
-			typedef ::libmaus::rank::CacheLineRank8 rank_type;
+			typedef ::libmaus2::rank::CacheLineRank8 rank_type;
 			typedef rank_type::WriteContext writer_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;			
 			
 			typedef MultiRankCacheLF this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			uint64_t n;
-			::libmaus::autoarray::AutoArray < rank_ptr_type > rank_dictionaries;
-			::libmaus::autoarray::AutoArray < uint64_t > D;
+			::libmaus2::autoarray::AutoArray < rank_ptr_type > rank_dictionaries;
+			::libmaus2::autoarray::AutoArray < uint64_t > D;
 
 			template<typename iterator>
 			MultiRankCacheLF ( iterator BWT, uint64_t const rn, uint64_t const rmaxval = 0)
@@ -49,7 +49,7 @@ namespace libmaus
 					for ( uint64_t i = 0; i < n; ++i )
 						maxval = std::max ( maxval, static_cast<uint64_t>(BWT[i]) );
 						
-					rank_dictionaries = ::libmaus::autoarray::AutoArray < rank_ptr_type >(maxval+1);
+					rank_dictionaries = ::libmaus2::autoarray::AutoArray < rank_ptr_type >(maxval+1);
 					
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 					{
@@ -65,7 +65,7 @@ namespace libmaus
 						writer.flush();
 					}
 					
-					D = ::libmaus::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
+					D = ::libmaus2::autoarray::AutoArray < uint64_t >(rank_dictionaries.size()+1);
 					for ( uint64_t i = 0; i < rank_dictionaries.size(); ++i )
 						D [ i ] = rank_dictionaries[i]->rank1(n-1);
 					D.prefixSums();

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_SORTING_PARALLELSTABLESORT_HPP)
 #define LIBMAUS_SORTING_PARALLELSTABLESORT_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/sorting/MergeStepBinSearchResult.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
-#include <libmaus/parallel/LockedCounter.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/sorting/MergeStepBinSearchResult.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
+#include <libmaus2/parallel/LockedCounter.hpp>
 #include <algorithm>
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
 		/**
 		 * parallel stable merge sort using additional space
 		 **/
-		struct ParallelStableSort : public libmaus::sorting::MergeStepBinSearchResult
+		struct ParallelStableSort : public libmaus2::sorting::MergeStepBinSearchResult
 		{
 			/**
 			 * sort context
@@ -224,7 +224,7 @@ namespace libmaus
 			{
 				ParallelStableSortContextBase<iterator,order_type> context;
 				std::vector<MergeRequest<iterator,order_type> > mergeRequests;
-				libmaus::parallel::LockedCounter requestsFinished;
+				libmaus2::parallel::LockedCounter requestsFinished;
 				
 				MergeLevel<iterator,order_type> * next;
 				
@@ -303,7 +303,7 @@ namespace libmaus
 			{
 				typedef MergeLevel<iterator,order_type> level_type;
 				std::vector<level_type> levels;
-				libmaus::parallel::SynchronousCounter<uint64_t> levelsFinished;
+				libmaus2::parallel::SynchronousCounter<uint64_t> levelsFinished;
 				
 				void setNextLevelPointers()
 				{
@@ -358,7 +358,7 @@ namespace libmaus
 				
 				ParallelStableSortContextBase<iterator,order_type> * context;
 				std::vector<request_type> baseSortRequests;
-				libmaus::parallel::LockedCounter requestsFinished;
+				libmaus2::parallel::LockedCounter requestsFinished;
 				
 				BaseSortRequestSet() : requestsFinished(0) {}
 				BaseSortRequestSet(ParallelStableSortContextBase<iterator,order_type> & rcontext)
@@ -477,8 +477,8 @@ namespace libmaus
 				typedef _iterator iterator;
 				typedef _order_type order_type;
 				typedef ParallelSortControl<iterator,order_type> this_type;
-				typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				ParallelStableSortContextBase<iterator,order_type> context;
 				BaseSortRequestSet<iterator,order_type> baseSortRequests;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(COMPACTQUEUE_HPP)
 #define COMPACTQUEUE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace suffixsort
         {
                 struct CompactQueue
                 {
                         uint64_t const n;
-                        ::libmaus::bitio::CompactArray Q;
+                        ::libmaus2::bitio::CompactArray Q;
                         uint64_t fill;
-                        ::libmaus::parallel::OMPLock batchlock;
+                        ::libmaus2::parallel::OMPLock batchlock;
 
                         template<typename iterator>
                         void enqueBatch(iterator a, iterator e)
@@ -89,7 +89,7 @@ namespace libmaus
                         struct DequeContext
                         {
                                 typedef DequeContext this_type;
-                                typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                                typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                                 
                                 uint64_t decptr;
                                 uint64_t fill;
@@ -111,10 +111,10 @@ namespace libmaus
                                 return DequeContext::unique_ptr_type(new DequeContext(0,fill));
                         }
                         
-                        ::libmaus::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts) const
+                        ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > getContextList(uint64_t numcontexts) const
                         {
                                 uint64_t const intervalsize = (n+numcontexts-1)/numcontexts;
-                                ::libmaus::autoarray::AutoArray< DequeContext::unique_ptr_type > contexts(numcontexts);
+                                ::libmaus2::autoarray::AutoArray< DequeContext::unique_ptr_type > contexts(numcontexts);
                                 
                                 #if defined(_OPENMP)
                                 #pragma omp parallel for
@@ -183,11 +183,11 @@ namespace libmaus
                         struct EnqueBuffer
                         {
                                 typedef EnqueBuffer this_type;
-                                typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                                typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         
                                 private:
                                 CompactQueue * const Q;
-                                ::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > B;
+                                ::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > B;
                                 std::pair<uint64_t,uint64_t> * const pa;
                                 std::pair<uint64_t,uint64_t> *       pc;
                                 std::pair<uint64_t,uint64_t> * const pe;

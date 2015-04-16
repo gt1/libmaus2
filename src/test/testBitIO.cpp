@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,17 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bitio/BitVectorInput.hpp>
-#include <libmaus/bitio/BitVectorOutput.hpp>
+#include <libmaus2/bitio/BitVectorInput.hpp>
+#include <libmaus2/bitio/BitVectorOutput.hpp>
 
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/SwapWordBitBlock.hpp>
-#include <libmaus/bitio/CompactSparseArray.hpp>
-#include <libmaus/bitio/CompactOffsetArray.hpp>
-#include <libmaus/bitio/CompactOffsetOneArray.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/bitio/swapBitBlocksByReversal.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/SwapWordBitBlock.hpp>
+#include <libmaus2/bitio/CompactSparseArray.hpp>
+#include <libmaus2/bitio/CompactOffsetArray.hpp>
+#include <libmaus2/bitio/CompactOffsetOneArray.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/bitio/swapBitBlocksByReversal.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 #include <cstdlib>
 #include <ctime>
 
@@ -99,14 +99,14 @@ void testGetPut()
 			for ( unsigned int i = 0; i < 10000; ++i )
 			{
 				unsigned int value = rand();
-				value &= libmaus::math::lowbits(numbits);
+				value &= libmaus2::math::lowbits(numbits);
 				
 				std::vector<bool> B0 = arrayToBitVector(&A[0],vecsize);
 				putBitsVector(B0,offset,numbits,value);
 				
-				libmaus::bitio::putBits(&A[0], offset, numbits, value);
+				libmaus2::bitio::putBits(&A[0], offset, numbits, value);
 			
-				assert ( libmaus::bitio::getBits(&A[0], offset, numbits) == value );
+				assert ( libmaus2::bitio::getBits(&A[0], offset, numbits) == value );
 
 				std::vector<bool> B1 = arrayToBitVector(&A[0],vecsize);
 				assert ( B0 == B1 );
@@ -140,14 +140,14 @@ void testGetPut64()
 			for ( unsigned int i = 0; i < 10000; ++i )
 			{
 				uint64_t value = rand64();
-				value &= libmaus::math::lowbits(numbits);
+				value &= libmaus2::math::lowbits(numbits);
 
 				std::vector<bool> B0 = arrayToBitVector(&A[0],vecsize);
 				putBitsVector(B0,offset,numbits,value);
 				
-				libmaus::bitio::putBits(&A[0], offset, numbits, value);
+				libmaus2::bitio::putBits(&A[0], offset, numbits, value);
 			
-				assert ( libmaus::bitio::getBits(&A[0], offset, numbits) == value );
+				assert ( libmaus2::bitio::getBits(&A[0], offset, numbits) == value );
 
 				std::vector<bool> B1 = arrayToBitVector(&A[0],vecsize);
 				assert ( B0 == B1 );
@@ -171,7 +171,7 @@ void sortCheck()
 	{
 		unsigned int n = (rand() % 1024) + 1;
 		unsigned int b = (rand() % 26) /* + 1 */;
-		libmaus::bitio::CompactArray C(n,b);
+		libmaus2::bitio::CompactArray C(n,b);
 		std::vector<uint64_t> V;
 		
 		for ( unsigned int i = 0; i < C.n; ++i )
@@ -188,8 +188,8 @@ void sortCheck()
 		std::cerr << std::endl;
 		#endif
 
-		libmaus::bitio::CompactArray::iterator ita(&C);
-		libmaus::bitio::CompactArray::iterator itb(&C); itb += C.n;
+		libmaus2::bitio::CompactArray::iterator ita(&C);
+		libmaus2::bitio::CompactArray::iterator itb(&C); itb += C.n;
 		std::sort ( ita, itb );
 		std::sort ( V.begin(), V.end() );
 		
@@ -217,7 +217,7 @@ void bubbleSortCheck()
 	{
 		unsigned int n = (rand() % 1024) + 1;
 		unsigned int b = (rand() % 26) /* + 1 */;
-		libmaus::bitio::CompactArray C(n,b);
+		libmaus2::bitio::CompactArray C(n,b);
 		std::vector<uint64_t> V;
 		
 		for ( unsigned int i = 0; i < C.n; ++i )
@@ -241,8 +241,8 @@ void bubbleSortCheck()
 			do
 			{
 				sorted = true;
-				libmaus::bitio::CompactArray::iterator ita(&C);
-				libmaus::bitio::CompactArray::iterator itb(&C); itb += 1;
+				libmaus2::bitio::CompactArray::iterator ita(&C);
+				libmaus2::bitio::CompactArray::iterator itb(&C); itb += 1;
 				
 				for ( uint64_t j = 0; j < n-1; ++j, ++ita, ++itb )
 				{
@@ -288,7 +288,7 @@ void stableSortCheck()
 	{
 		unsigned int n = (rand() % 1024) + 1;
 		unsigned int b = (rand() % 26) + 1;
-		libmaus::bitio::CompactArray C(n,b);
+		libmaus2::bitio::CompactArray C(n,b);
 		
 		for ( unsigned int i = 0; i < C.n; ++i )
 			C.set(i, rand() % (1ull << C.getB()) );
@@ -300,8 +300,8 @@ void stableSortCheck()
 		std::cerr << std::endl;
 		#endif
 
-		libmaus::bitio::CompactArray::iterator ita(&C);
-		libmaus::bitio::CompactArray::iterator itb(&C); itb += C.n;
+		libmaus2::bitio::CompactArray::iterator ita(&C);
+		libmaus2::bitio::CompactArray::iterator itb(&C); itb += C.n;
 		std::stable_sort ( ita, itb );
 		
 		#if 0
@@ -337,8 +337,8 @@ void sortSparseCheck()
 		
 		// std::cerr << "b=" << b << " k=" << k << " o=" << o << std::endl;
 		
-		libmaus::bitio::CompactArray D(n,k);
-		libmaus::bitio::CompactSparseArray C(D.D,n,b,o,k);
+		libmaus2::bitio::CompactArray D(n,k);
+		libmaus2::bitio::CompactSparseArray C(D.D,n,b,o,k);
 		
 		for ( unsigned int i = 0; i < C.n; ++i )
 		{
@@ -354,8 +354,8 @@ void sortSparseCheck()
 		std::cerr << std::endl;
 		#endif
 
-		libmaus::bitio::CompactSparseArray::iterator ita = C.begin();
-		libmaus::bitio::CompactSparseArray::iterator itb = C.end();
+		libmaus2::bitio::CompactSparseArray::iterator ita = C.begin();
+		libmaus2::bitio::CompactSparseArray::iterator itb = C.end();
 		std::sort ( ita, itb );
 		
 		#if 0
@@ -386,8 +386,8 @@ void sortStableSparseCheck()
 		
 		// std::cerr << "b=" << b << " k=" << k << " o=" << o << std::endl;
 		
-		libmaus::bitio::CompactArray D(n,k);
-		libmaus::bitio::CompactSparseArray C(D.D,n,b,o,k);
+		libmaus2::bitio::CompactArray D(n,k);
+		libmaus2::bitio::CompactSparseArray C(D.D,n,b,o,k);
 		
 		for ( unsigned int i = 0; i < C.n; ++i )
 		{
@@ -403,8 +403,8 @@ void sortStableSparseCheck()
 		std::cerr << std::endl;
 		#endif
 
-		libmaus::bitio::CompactSparseArray::iterator ita = C.begin();
-		libmaus::bitio::CompactSparseArray::iterator itb = C.end();
+		libmaus2::bitio::CompactSparseArray::iterator ita = C.begin();
+		libmaus2::bitio::CompactSparseArray::iterator itb = C.end();
 		std::stable_sort ( ita, itb );
 		
 		#if 0
@@ -427,8 +427,8 @@ void testBlockSwap()
 	uint64_t const numwords = 32;
 	uint64_t const numbits = 8*sizeof(uint64_t)*numwords;
 	
-	libmaus::autoarray::AutoArray<uint64_t> A0(numwords);
-	libmaus::autoarray::AutoArray<uint64_t> A1(numwords);
+	libmaus2::autoarray::AutoArray<uint64_t> A0(numwords);
+	libmaus2::autoarray::AutoArray<uint64_t> A1(numwords);
 	
 	for ( uint64_t z = 0; z < 100000; ++z )
 	{
@@ -443,8 +443,8 @@ void testBlockSwap()
 					
 		/* std::cerr << "numbits=" << numbits << " offset=" << offset << " l0=" << l0 << " l1=" << l1 << std::endl; */
 
-		libmaus::bitio::swapBitBlocksByReversal(A0.get(), offset, l0, l1);
-		libmaus::bitio::swapBitBlocks(A1.get(), offset, l0, l1);
+		libmaus2::bitio::swapBitBlocksByReversal(A0.get(), offset, l0, l1);
+		libmaus2::bitio::swapBitBlocks(A1.get(), offset, l0, l1);
 		
 		for ( uint64_t i = 0; i < numwords; ++i )
 			assert ( A0[i] == A1[i] );
@@ -456,7 +456,7 @@ void testBlockSwap()
 void testAutoArraySampling()
 {
 	uint64_t const n = 8*1024;
-	::libmaus::autoarray::AutoArray<uint64_t> A(n);
+	::libmaus2::autoarray::AutoArray<uint64_t> A(n);
 	for ( uint64_t i = 0; i < n; ++i )
 		A[i] = i;
 
@@ -472,10 +472,10 @@ void testAutoArraySampling()
 	std::istringstream istr(ostr.str());
 	std::ostringstream sostr;
 	
-	::libmaus::autoarray::AutoArray<uint64_t>::sampleCopy(istr,sostr,64);
+	::libmaus2::autoarray::AutoArray<uint64_t>::sampleCopy(istr,sostr,64);
 	
 	std::istringstream sistr(sostr.str());
-	::libmaus::autoarray::AutoArray<uint64_t> S;
+	::libmaus2::autoarray::AutoArray<uint64_t> S;
 	S.deserialize(sistr);
 	
 	for ( uint64_t i = 0; i < S.getN(); ++i )
@@ -484,10 +484,10 @@ void testAutoArraySampling()
 
 }
 
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/sorting/SerialRadixSort64.hpp>
-#include <libmaus/sorting/sorting.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/sorting/SerialRadixSort64.hpp>
+#include <libmaus2/sorting/sorting.hpp>
 
 struct Projector
 {
@@ -537,13 +537,13 @@ struct UIntProjector
 	}
 };
 
-#include <libmaus/bitio/MarkerFastWriteBitWriter.hpp>
+#include <libmaus2/bitio/MarkerFastWriteBitWriter.hpp>
 
 void testMarkerBitIO()
 {
 	std::ostringstream ostr;
 	std::ostream_iterator<uint8_t> ostrit(ostr);
-	libmaus::bitio::MarkerFastWriteBitWriterStream8 W(ostrit);
+	libmaus2::bitio::MarkerFastWriteBitWriterStream8 W(ostrit);
 	
 	uint64_t const n = 16*1024*1024;
 	
@@ -553,7 +553,7 @@ void testMarkerBitIO()
 	
 	std::cerr << "size of stream is " << ostr.str().size() << std::endl;
 	
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	uint64_t const loop = 32;
 	std::istringstream istr(ostr.str());
 
@@ -561,7 +561,7 @@ void testMarkerBitIO()
 	{
 		istr.clear();
 		istr.seekg(0);
-		libmaus::bitio::MarkerStreamBitInputStream R(istr);
+		libmaus2::bitio::MarkerStreamBitInputStream R(istr);
 	
 		for ( uint64_t i = 0; i < n; ++i )
 		{
@@ -578,8 +578,8 @@ void testMarkerBitIO()
 void testMarkerBitIO4()
 {
 	std::ostringstream ostr;
-	libmaus::aio::SynchronousGenericOutput<uint32_t> SGO(ostr,8*1024);
-	libmaus::bitio::MarkerFastWriteBitWriterBuffer32Sync W(SGO);
+	libmaus2::aio::SynchronousGenericOutput<uint32_t> SGO(ostr,8*1024);
+	libmaus2::bitio::MarkerFastWriteBitWriterBuffer32Sync W(SGO);
 	
 	uint64_t const n = 16*1024*1024;
 	
@@ -590,7 +590,7 @@ void testMarkerBitIO4()
 	std::cerr << "size of stream is " << ostr.str().size() << std::endl;
 	
 	#if 0
-	libmaus::timing::RealTimeClock rtc; rtc.start();
+	libmaus2::timing::RealTimeClock rtc; rtc.start();
 	uint64_t const loop = 32;
 	std::istringstream istr(ostr.str());
 
@@ -598,7 +598,7 @@ void testMarkerBitIO4()
 	{
 		istr.clear();
 		istr.seekg(0);
-		libmaus::bitio::MarkerStreamBitInputStream R(istr);
+		libmaus2::bitio::MarkerStreamBitInputStream R(istr);
 	
 		for ( uint64_t i = 0; i < n; ++i )
 		{
@@ -616,8 +616,8 @@ void testMarkerBitIO4()
 void testBitVectorIO()
 {
 	srand(5);
-	libmaus::bitio::BitVectorOutput bout0("t0");
-	libmaus::bitio::BitVectorOutput bout1("t1");
+	libmaus2::bitio::BitVectorOutput bout0("t0");
+	libmaus2::bitio::BitVectorOutput bout1("t1");
 
 	std::vector<bool> bits;		
 
@@ -642,7 +642,7 @@ void testBitVectorIO()
 	std::vector<std::string> V;
 	V.push_back("t0");
 	V.push_back("t1");
-	libmaus::bitio::BitVectorInput bin(V);
+	libmaus2::bitio::BitVectorInput bin(V);
 	
 	for ( uint64_t i = 0; i < n0+n1; ++i )
 	{
@@ -653,7 +653,7 @@ void testBitVectorIO()
 	for ( uint64_t offset = 0; offset <= n0+n1; ++offset )
 	{
 		// std::cerr << "offset=" << offset << std::endl;
-		libmaus::bitio::BitVectorInput bin(V,offset);
+		libmaus2::bitio::BitVectorInput bin(V,offset);
 		
 		for ( uint64_t j = offset; j < n0+n1; ++j )
 		{
@@ -680,14 +680,14 @@ int main()
 		testMarkerBitIO();	
 		testBlockSwap();
 		
-		// libmaus::bitio::CompactArrayBase::printglobaltables();
+		// libmaus2::bitio::CompactArrayBase::printglobaltables();
 		
 		if ( 0 )
 		{
 			uint64_t b = 5;
 			uint64_t n = 1ull << b;
 			uint64_t n2 = n/2;
-			libmaus::bitio::CompactArray C(n+2,b);
+			libmaus2::bitio::CompactArray C(n+2,b);
 			C.set(n,1);
 			C.set(n+1,n2);
 			
@@ -700,7 +700,7 @@ int main()
 				std::cerr << C.get(i) << ";";
 			std::cerr << std::endl;
 
-			libmaus::bitio::CompactOffsetOneArray O(C.n,b,0/*addoffset*/,C.D);
+			libmaus2::bitio::CompactOffsetOneArray O(C.n,b,0/*addoffset*/,C.D);
 
 			for ( uint64_t i = 0; i < O.n; ++i )
 				std::cerr << O.get(i) << ";";
@@ -717,7 +717,7 @@ int main()
 			std::cerr << std::endl;
 			
 			for ( uint64_t i = 0; i < C.n; ++i )
-				std::cerr << libmaus::bitio::getBit(C.D,i*b);
+				std::cerr << libmaus2::bitio::getBit(C.D,i*b);
 			std::cerr << std::endl;
 
 			for ( uint64_t i = 0; i < C.n; ++i )
@@ -727,17 +727,17 @@ int main()
 			O.rearrange();
 
 			for ( uint64_t i = 0; i < C.n; ++i )
-				std::cerr << libmaus::bitio::getBit(C.D,i);
+				std::cerr << libmaus2::bitio::getBit(C.D,i);
 			std::cerr << std::endl;
 
-			libmaus::bitio::CompactOffsetArray O2(n+2,b-1,n+2,C.D);
+			libmaus2::bitio::CompactOffsetArray O2(n+2,b-1,n+2,C.D);
 
 			for ( uint64_t i = 0; i < C.n; ++i )
 				std::cerr << O2.get(i) << ";";
 			std::cerr << std::endl;
 		}
 		uint64_t v = -1;
-		libmaus::bitio::CompactOffsetOneArray C(3,4/*b*/,0/*addoffset*/,&v);
+		libmaus2::bitio::CompactOffsetOneArray C(3,4/*b*/,0/*addoffset*/,&v);
 		
 		C.set(0,2);
 		C.set(2,0);

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/ValidatePackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/ValidateBlockAddPendingInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/ValidatePackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/ValidateBlockAddPendingInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			// dispatcher for block validation
-			struct ValidateBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct ValidateBlockWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				ValidatePackageReturnInterface   & packageReturnInterface;
 				ValidateBlockAddPendingInterface & addValidatedPendingInterface;
@@ -44,8 +44,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					ValidateBlockWorkPackage * BP = dynamic_cast<ValidateBlockWorkPackage *>(P);

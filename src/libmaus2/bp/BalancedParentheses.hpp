@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,7 +19,7 @@
 #if !defined(BALANCEDPARENTHESES_HPP)
 #define BALANCEDPARENTHESES_HPP
 
-#include <libmaus/bp/BalancedParenthesesBase.hpp>
+#include <libmaus2/bp/BalancedParenthesesBase.hpp>
 #include <stack>
 
 struct BalancedParentheses : public BalancedParenthesesBase
@@ -28,23 +28,23 @@ struct BalancedParentheses : public BalancedParenthesesBase
 
 	private:
 	// balanced parentheses vector
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type PUUB;
-	::libmaus::bitio::IndexedBitVector const & UUB;
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type PUUB;
+	::libmaus2::bitio::IndexedBitVector const & UUB;
 	uint64_t const * UB;
 
 	// first level pioneer vector
-	// ::libmaus::bitio::IndexedBitVector::unique_ptr_type const pion0;
-	libmaus::util::NearestNeighbourDictionary::unique_ptr_type pion0;
+	// ::libmaus2::bitio::IndexedBitVector::unique_ptr_type const pion0;
+	libmaus2::util::NearestNeighbourDictionary::unique_ptr_type pion0;
 	// first level pioneer family bit vector
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type const pio0;
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type const pio0;
 
 	// second level pioneer vector
-	// ::libmaus::bitio::IndexedBitVector::unique_ptr_type const pion1;
-	libmaus::util::NearestNeighbourDictionary::unique_ptr_type pion1;
+	// ::libmaus2::bitio::IndexedBitVector::unique_ptr_type const pion1;
+	libmaus2::util::NearestNeighbourDictionary::unique_ptr_type pion1;
 	// second level pioneer family bit vector
-	::libmaus::bitio::IndexedBitVector::unique_ptr_type const pio1;
+	::libmaus2::bitio::IndexedBitVector::unique_ptr_type const pio1;
 	// lookup table for second level pioneer family
-	::libmaus::autoarray::AutoArray<uint64_t> const pio1lookup;
+	::libmaus2::autoarray::AutoArray<uint64_t> const pio1lookup;
 
 	uint64_t byteSize() const
 	{
@@ -57,10 +57,10 @@ struct BalancedParentheses : public BalancedParenthesesBase
 			pio1lookup.byteSize();	
 	}
 
-	::libmaus::autoarray::AutoArray<uint64_t> computePio1Lookup() const
+	::libmaus2::autoarray::AutoArray<uint64_t> computePio1Lookup() const
 	{
 		IncreasingStack IS(pio1->size());
-		::libmaus::autoarray::AutoArray<uint64_t> pio1lookup(pio1->size());
+		::libmaus2::autoarray::AutoArray<uint64_t> pio1lookup(pio1->size());
 		for ( uint64_t i = 0; i < pio1->size(); ++i )
 			if ( (*pio1)[i] )
 			{
@@ -381,7 +381,7 @@ struct BalancedParentheses : public BalancedParenthesesBase
 		std::cerr << "done." << std::endl;
 	}
 
-	BalancedParentheses(::libmaus::bitio::IndexedBitVector::unique_ptr_type & rPUUB)
+	BalancedParentheses(::libmaus2::bitio::IndexedBitVector::unique_ptr_type & rPUUB)
 	: PUUB(UNIQUE_PTR_MOVE(rPUUB)), UUB(*PUUB), UB(UUB.get()), 
 	  // first level pioneer data
 	  pion0(BalancedParenthesesBase::calculatePioneerBitVectorNND(UUB,blocksize)),

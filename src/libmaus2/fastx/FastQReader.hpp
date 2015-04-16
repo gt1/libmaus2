@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,24 +21,24 @@
 #define FASTQREADER_HPP
 
 #if defined(FASTXASYNC)
-#include <libmaus/aio/AsynchronousReader.hpp>
+#include <libmaus2/aio/AsynchronousReader.hpp>
 #endif
 
-#include <libmaus/aio/SynchronousFastReaderBase.hpp>
-#include <libmaus/fastx/CharBuffer.hpp>
-#include <libmaus/fastx/CharTermTable.hpp>
-#include <libmaus/fastx/FastIDBlock.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/fastx/FASTQEntry.hpp>
-#include <libmaus/fastx/PatternBlock.hpp>
-#include <libmaus/fastx/SpaceTable.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/md5.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/aio/FileFragment.hpp>
-#include <libmaus/fastx/FastQElement.hpp>
+#include <libmaus2/aio/SynchronousFastReaderBase.hpp>
+#include <libmaus2/fastx/CharBuffer.hpp>
+#include <libmaus2/fastx/CharTermTable.hpp>
+#include <libmaus2/fastx/FastIDBlock.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/fastx/FASTQEntry.hpp>
+#include <libmaus2/fastx/PatternBlock.hpp>
+#include <libmaus2/fastx/SpaceTable.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/digest/md5.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/aio/FileFragment.hpp>
+#include <libmaus2/fastx/FastQElement.hpp>
 
 #include <limits>
 #include <vector>
@@ -46,7 +46,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -65,13 +65,13 @@ namespace libmaus
                         
                         #if defined(FASTXASYNC)
                         // types for asynchronous reader
-                        typedef ::libmaus::aio::AsynchronousStreamReaderData<reader_type> stream_data_type;
-                        typedef ::libmaus::aio::AsynchronousStreamReader< ::libmaus::aio::AsynchronousStreamReaderData<reader_type> > stream_reader_type;
-                        typedef ::libmaus::aio::AsynchronousIdData<reader_type> stream_id_type;
-                        typedef ::libmaus::aio::AsynchronousStreamReader<stream_id_type> stream_idreader_type;
+                        typedef ::libmaus2::aio::AsynchronousStreamReaderData<reader_type> stream_data_type;
+                        typedef ::libmaus2::aio::AsynchronousStreamReader< ::libmaus2::aio::AsynchronousStreamReaderData<reader_type> > stream_reader_type;
+                        typedef ::libmaus2::aio::AsynchronousIdData<reader_type> stream_id_type;
+                        typedef ::libmaus2::aio::AsynchronousStreamReader<stream_id_type> stream_idreader_type;
                         #endif
                         
-                        typedef typename ::libmaus::util::unique_ptr<reader_type>::type unique_ptr_type;
+                        typedef typename ::libmaus2::util::unique_ptr<reader_type>::type unique_ptr_type;
 
                         // lookup tables for scanning
                         CharTermTable atscanterm;
@@ -104,7 +104,7 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(rnextid),
-			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus::util::GetFileSize::getFileSize(filename), 0 /* syms */, 0 /* minlen */, 0 /* maxlen */),
+			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus2::util::GetFileSize::getFileSize(filename), 0 /* syms */, 0 /* minlen */, 0 /* maxlen */),
 			  checkbytecount(true)
                         {
                                 findNextMarker();
@@ -136,7 +136,7 @@ namespace libmaus
                           atscanterm('@'), plusscanterm('+'), newlineterm('\n'),
                           foundnextmarker(false),
                           qualityOffset(rqualityOffset), nextid(rnextid),
-			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus::util::GetFileSize::getFileSize(filenames), 0 /* numsyms */, 0 /* minlen */, 0 /* maxlen */),
+			  interval(nextid,std::numeric_limits<uint64_t>::max(),fileoffset,::libmaus2::util::GetFileSize::getFileSize(filenames), 0 /* numsyms */, 0 /* minlen */, 0 /* maxlen */),
 			  checkbytecount(true)
                         {
                                 findNextMarker();
@@ -578,9 +578,9 @@ namespace libmaus
                         
                         static std::string getNameAtPos(std::vector<std::string> const & filenames, uint64_t const pos)
                         {
-                        	uint64_t const flen = ::libmaus::util::GetFileSize::getFileSize(filenames);
+                        	uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
 				assert ( pos < flen );                        	
-                                ::libmaus::aio::SynchronousFastReaderBase istr(filenames,16,1024,pos);
+                                ::libmaus2::aio::SynchronousFastReaderBase istr(filenames,16,1024,pos);
                                 assert ( istr.getNextCharacter() == '@' );
                                 std::string name;
                                 bool const ok = istr.getLine(name);
@@ -589,11 +589,11 @@ namespace libmaus
                         }
                         
 			template<typename strip_type>
-                        static std::vector < ::libmaus::fastx::FastInterval > computeCommonNameAlignedFrags(
+                        static std::vector < ::libmaus2::fastx::FastInterval > computeCommonNameAlignedFrags(
                         	std::vector<std::string> const & filenames, uint64_t const numfrags, uint64_t const mod, strip_type & strip
 			)
 			{
-                        	uint64_t const flen = ::libmaus::util::GetFileSize::getFileSize(filenames);
+                        	uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
                         	uint64_t const fragsize = ( flen + numfrags - 1 ) / numfrags;
                         	std::vector < uint64_t > fragstarts;
                         	
@@ -609,13 +609,13 @@ namespace libmaus
                         	
                         	fragstarts.push_back(flen);
                         	
-                        	std::vector < ::libmaus::fastx::FastInterval > V;
+                        	std::vector < ::libmaus2::fastx::FastInterval > V;
                         	
                         	for ( uint64_t f = 1; f < fragstarts.size(); ++f )
                         		if ( fragstarts[f-1] != fragstarts[f] )
                         		{
                         			V.push_back(
-	                        			::libmaus::fastx::FastInterval(
+	                        			::libmaus2::fastx::FastInterval(
         	                				0,::std::numeric_limits<uint64_t>::max(),
                 	        				fragstarts[f-1],fragstarts[f],
                         					::std::numeric_limits<uint64_t>::max(),
@@ -632,7 +632,7 @@ namespace libmaus
                         static uint64_t searchNextStartCommonName(
                         	std::vector<std::string> const & filenames, uint64_t const pos, uint64_t const mod, strip_type & strip)
                         {
-                        	uint64_t const flen = ::libmaus::util::GetFileSize::getFileSize(filenames);
+                        	uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
                         	
                         	assert ( mod );
                         	if ( pos >= flen )
@@ -684,8 +684,8 @@ namespace libmaus
                          */
                         static uint64_t searchNextStart(std::vector<std::string> const & filenames, uint64_t const pos)
                         {
-                                uint64_t const flen = ::libmaus::util::GetFileSize::getFileSize(filenames);
-                                ::libmaus::aio::SynchronousFastReaderBase istr(filenames,16,1024,pos);
+                                uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
+                                ::libmaus2::aio::SynchronousFastReaderBase istr(filenames,16,1024,pos);
                                 
                                 if ( pos )
                                 {
@@ -746,22 +746,22 @@ namespace libmaus
                         	uint64_t const mod = 1, bool const verbose = false)
                         {
                                 std::string hash;
-                                bool const havehash = ::libmaus::util::MD5::md5(filenames,fracs,hash);
+                                bool const havehash = ::libmaus2::util::MD5::md5(filenames,fracs,hash);
                                 hash += ".idx";
                                 
-                                if ( havehash && ::libmaus::util::GetFileSize::fileExists(hash) )
+                                if ( havehash && ::libmaus2::util::GetFileSize::fileExists(hash) )
                                 {
                                 	// std::cerr << "Loading index from " << hash << std::endl;
                                         std::ifstream istr(hash.c_str(),std::ios::binary);
-                                        return ::libmaus::fastx::FastInterval::deserialiseVector(istr);
+                                        return ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
                                 }
                                 else if ( ! fracs )
                                 {
-                                	return std::vector < ::libmaus::fastx::FastInterval >();
+                                	return std::vector < ::libmaus2::fastx::FastInterval >();
                                 }
                                 else
                                 {
-                                        uint64_t const flen = ::libmaus::util::GetFileSize::getFileSize(filenames);
+                                        uint64_t const flen = ::libmaus2::util::GetFileSize::getFileSize(filenames);
                                         uint64_t const fracsize = (flen+fracs-1)/fracs;
                                         std::vector < uint64_t > fracstarts(fracs+1);
                                         fracstarts.back() = flen;
@@ -804,7 +804,7 @@ namespace libmaus
 					if ( verbose )
 						std::cerr << "Realigning intervals...";
 					uint64_t ilow = 0;
-					std::vector < ::libmaus::fastx::FastInterval > FIV;
+					std::vector < ::libmaus2::fastx::FastInterval > FIV;
 					for ( uint64_t i = 0; i < intlen.size(); ++i )
 					{
 						// std::cerr << "intlen[" << i << "]=" << intlen[i].numpat << std::endl;
@@ -841,7 +841,7 @@ namespace libmaus
 						if ( ilow != ihigh )
 						{
 							FIV.push_back( 
-								::libmaus::fastx::FastInterval(
+								::libmaus2::fastx::FastInterval(
 									ilow,ihigh,
 									fracstarts[i],fracstarts[i+1],
 									intlen[i].numsyms,
@@ -887,7 +887,7 @@ namespace libmaus
 					if ( havehash )
                                         {
                                                 std::ofstream ostr(hash.c_str(), std::ios::binary);
-                                                ::libmaus::fastx::FastInterval::serialiseVector(ostr,FIV);
+                                                ::libmaus2::fastx::FastInterval::serialiseVector(ostr,FIV);
                                                 ostr.flush();
                                                 ostr.close();
                                         }
@@ -966,10 +966,10 @@ namespace libmaus
                         {
 				std::string const indexfilename = getIndexFileName(filename,steps);
 				
-				if ( ::libmaus::util::GetFileSize::fileExists ( indexfilename ) )
+				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
 				        std::ifstream istr(indexfilename.c_str(), std::ios::binary);
-				        std::vector < FastInterval > intervals = ::libmaus::fastx::FastInterval::deserialiseVector(istr);
+				        std::vector < FastInterval > intervals = ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
 				        return intervals;
 				}
 				else
@@ -1018,36 +1018,36 @@ namespace libmaus
                                 return intervals;
                         }
 
-			static ::libmaus::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, FastInterval const & rinterval)
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, FastInterval const & rinterval)
 			{
 		                reader_type reader(filenames,rinterval);
 			        pattern_type pattern;
-			        ::libmaus::util::Histogram::unique_ptr_type Phist(new ::libmaus::util::Histogram());
-			        ::libmaus::util::Histogram & hist = *Phist;
+			        ::libmaus2::util::Histogram::unique_ptr_type Phist(new ::libmaus2::util::Histogram());
+			        ::libmaus2::util::Histogram & hist = *Phist;
 			        
 			        while ( reader.getNextPatternUnlocked(pattern) )
 			        {
 			                for ( uint64_t i = 0; i < pattern.patlen; ++i )
 			                        hist ( 
-			                                ::libmaus::fastx::remapChar(::libmaus::fastx::mapChar(pattern.pattern[i]))
+			                                ::libmaus2::fastx::remapChar(::libmaus2::fastx::mapChar(pattern.pattern[i]))
                                                 );
 			        }
 			        
 			        return UNIQUE_PTR_MOVE(Phist);
 			}
 
-			static ::libmaus::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval)
+			static ::libmaus2::util::Histogram::unique_ptr_type getHistogram(std::vector<std::string> const & filenames, std::vector<FastInterval> const & rinterval)
 			{
-			        ::libmaus::util::Histogram::unique_ptr_type Phist(new ::libmaus::util::Histogram());
-			        ::libmaus::util::Histogram & hist = *Phist;
-			        ::libmaus::parallel::OMPLock lock;
+			        ::libmaus2::util::Histogram::unique_ptr_type Phist(new ::libmaus2::util::Histogram());
+			        ::libmaus2::util::Histogram & hist = *Phist;
+			        ::libmaus2::parallel::OMPLock lock;
                                 
                                 #if defined(_OPENMP)
                                 #pragma omp parallel for schedule(dynamic,1)
                                 #endif
                                 for ( int64_t i = 0; i < static_cast<int64_t>(rinterval.size()); ++i )
                                 {
-                                        ::libmaus::util::Histogram::unique_ptr_type uhist = getHistogram(filenames,rinterval[i]);
+                                        ::libmaus2::util::Histogram::unique_ptr_type uhist = getHistogram(filenames,rinterval[i]);
                                         lock.lock();
                                         hist.merge ( *uhist );
                                         lock.unlock();
@@ -1056,23 +1056,23 @@ namespace libmaus
                                 return UNIQUE_PTR_MOVE(Phist);
 			}
 
-			static std::vector < ::libmaus::aio::FileFragment > getDataFragments(std::vector < std::string > const & filenames)
+			static std::vector < ::libmaus2::aio::FileFragment > getDataFragments(std::vector < std::string > const & filenames)
 			{
-			        std::vector < ::libmaus::aio::FileFragment > fragments;
+			        std::vector < ::libmaus2::aio::FileFragment > fragments;
 			        for ( uint64_t i = 0; i < filenames.size(); ++i )
 			                fragments.push_back(getDataFragment(filenames[i]));
 			                
 				return fragments;
 			}
 
-			static ::libmaus::aio::FileFragment getDataFragment(std::string const & filename)
+			static ::libmaus2::aio::FileFragment getDataFragment(std::string const & filename)
 			{
-			        return ::libmaus::aio::FileFragment ( filename, 0, ::libmaus::util::GetFileSize::getFileSize(filename) );
+			        return ::libmaus2::aio::FileFragment ( filename, 0, ::libmaus2::util::GetFileSize::getFileSize(filename) );
 			}
 
                 };
 
-                typedef FastQReaderTemplate< ::libmaus::aio::SynchronousFastReaderBase > FastQReader;
+                typedef FastQReaderTemplate< ::libmaus2::aio::SynchronousFastReaderBase > FastQReader;
         }
 }
 #endif

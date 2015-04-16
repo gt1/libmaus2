@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_BAMBAM_DUPSETCALLBACKSET_HPP)
 #define LIBMAUS_BAMBAM_DUPSETCALLBACKSET_HPP
 
-#include <libmaus/bambam/DupSetCallback.hpp>
+#include <libmaus2/bambam/DupSetCallback.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct DupSetCallbackSet : public ::libmaus::bambam::DupSetCallback
+		struct DupSetCallbackSet : public ::libmaus2::bambam::DupSetCallback
 		{
 			std::set<uint64_t> S;
 
-			virtual void operator()(::libmaus::bambam::ReadEnds const & A)
+			virtual void operator()(::libmaus2::bambam::ReadEnds const & A)
 			{
 				S.insert(A.getRead1IndexInFile());
 				

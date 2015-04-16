@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(GENERICSERIALISE_HPP)
 #define GENERICSERIALISE_HPP
 
-#include <libmaus/util/StringSerialisation.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 			{
 				std::ostringstream ostr;
 				ostr << D;
-				::libmaus::util::StringSerialisation::serialiseString(out,ostr.str());
+				::libmaus2::util::StringSerialisation::serialiseString(out,ostr.str());
 			}
 			/**
 			 * deserialise object serialised by the serialise function of this class
@@ -54,14 +54,14 @@ namespace libmaus
                         template<typename stream_type, typename data_type>
 			static data_type deserialise(stream_type & in)
 			{
-				std::string const s = ::libmaus::util::StringSerialisation::deserialiseString(in);
+				std::string const s = ::libmaus2::util::StringSerialisation::deserialiseString(in);
 				std::istringstream istr(s);
 				data_type d;
 				istr >> d;
 				
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failure in GenericSerialise::deserialise()" << std::endl;
 					se.finish();
 					throw se;

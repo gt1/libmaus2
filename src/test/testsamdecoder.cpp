@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,25 +17,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 // #include <iostream>
-#include <libmaus/aio/PosixFdInputStream.hpp>
-#include <libmaus/bambam/BamBlockWriterBaseFactory.hpp>
-#include <libmaus/bambam/SamDecoder.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/bambam/BamBlockWriterBaseFactory.hpp>
+#include <libmaus2/bambam/SamDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		bool const verbose = arginfo.getValue<int>("verbose",0);
-		libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO);
-		libmaus::bambam::SamDecoder SD(PFIS);
-		libmaus::bambam::BamAlignment const & algn = SD.getAlignment();
-		libmaus::bambam::BamHeader const & header = SD.getHeader();		
-		::libmaus::bambam::BamFormatAuxiliary aux;
+		libmaus2::aio::PosixFdInputStream PFIS(STDIN_FILENO);
+		libmaus2::bambam::SamDecoder SD(PFIS);
+		libmaus2::bambam::BamAlignment const & algn = SD.getAlignment();
+		libmaus2::bambam::BamHeader const & header = SD.getHeader();		
+		::libmaus2::bambam::BamFormatAuxiliary aux;
 
-		libmaus::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus::bambam::BamBlockWriterBaseFactory::construct(header,arginfo));
-		libmaus::bambam::BamBlockWriterBase & writer = *Pwriter;
+		libmaus2::bambam::BamBlockWriterBase::unique_ptr_type Pwriter(libmaus2::bambam::BamBlockWriterBaseFactory::construct(header,arginfo));
+		libmaus2::bambam::BamBlockWriterBase & writer = *Pwriter;
 		
 		if ( verbose )
 			std::cerr << header.text;

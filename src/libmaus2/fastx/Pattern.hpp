@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,11 +23,11 @@
 
 #include <string>
 #include <sstream>
-#include <libmaus/fastx/acgtnMap.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -100,8 +100,8 @@ namespace libmaus
                 struct Pattern : public PatternBase
                 {
                         typedef Pattern this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                        typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
                 
                         public:
                         std::string sid;
@@ -193,20 +193,20 @@ namespace libmaus
                                 {
                                         switch ( *(tpattern++) )
                                         {
-                                                case 'A': *(smapped_a++) = ::libmaus::fastx::mapChar('A'); 
-                                                          *(stransposed_a++) = ::libmaus::fastx::mapChar(::libmaus::fastx::invertUnmapped('A')); 
+                                                case 'A': *(smapped_a++) = ::libmaus2::fastx::mapChar('A'); 
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('A')); 
                                                           break;
-                                                case 'C': *(smapped_a++) = ::libmaus::fastx::mapChar('C'); 
-                                                          *(stransposed_a++) = ::libmaus::fastx::mapChar(::libmaus::fastx::invertUnmapped('C')); 
+                                                case 'C': *(smapped_a++) = ::libmaus2::fastx::mapChar('C'); 
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('C')); 
                                                           break;
-                                                case 'G': *(smapped_a++) = ::libmaus::fastx::mapChar('G'); 
-                                                          *(stransposed_a++) = ::libmaus::fastx::mapChar(::libmaus::fastx::invertUnmapped('G')); 
+                                                case 'G': *(smapped_a++) = ::libmaus2::fastx::mapChar('G'); 
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('G')); 
                                                           break;
-                                                case 'T': *(smapped_a++) = ::libmaus::fastx::mapChar('T'); 
-                                                          *(stransposed_a++) = ::libmaus::fastx::mapChar(::libmaus::fastx::invertUnmapped('T'));
+                                                case 'T': *(smapped_a++) = ::libmaus2::fastx::mapChar('T'); 
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('T'));
                                                           break;
-                                                default:  *(smapped_a++) = ::libmaus::fastx::mapChar('N');
-                                                          *(stransposed_a++) = ::libmaus::fastx::mapChar(::libmaus::fastx::invertUnmapped('N'));
+                                                default:  *(smapped_a++) = ::libmaus2::fastx::mapChar('N');
+                                                          *(stransposed_a++) = ::libmaus2::fastx::mapChar(::libmaus2::fastx::invertUnmapped('N'));
                                                           break;
                                         }
                                 }
@@ -222,7 +222,7 @@ namespace libmaus
                         void unmapSource()
                         {
                                 for ( uint64_t i = 0; i < spattern.size(); ++i )
-                                        spattern[i] = ::libmaus::fastx::remapChar(spattern[i]);
+                                        spattern[i] = ::libmaus2::fastx::remapChar(spattern[i]);
                         }
                         
                         std::ostream & printMultiLine(std::ostream & out, unsigned int const cols) const

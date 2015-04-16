@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/fastx/FastABgzfIndex.hpp>
+#include <libmaus2/fastx/FastABgzfIndex.hpp>
 
-::std::ostream & libmaus::fastx::operator<<(::std::ostream & out, ::libmaus::fastx::FastABgzfIndex const & F)
+::std::ostream & libmaus2::fastx::operator<<(::std::ostream & out, ::libmaus2::fastx::FastABgzfIndex const & F)
 {
 	out << "FastABgzfIndex(\n";
 	out << "\tblocksize=" << F.blocksize << "\n";

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_NETWORK_FILEURL_HPP)
 #define LIBMAUS_NETWORK_FILEURL_HPP
 
-#include <libmaus/network/UrlBase.hpp>
+#include <libmaus2/network/UrlBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -44,7 +44,7 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "FileUrl: " << url << " is not a file protocol URL" << "\n";
 						lme.finish();
 						throw lme;
@@ -52,7 +52,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FileUrl: " << url << " is not an URL" << "\n";
 					lme.finish();
 					throw lme;					

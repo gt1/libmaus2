@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,13 +21,13 @@
 #if ! defined(SYNCHRONOUSOUTPUTFILE8ARRAY_HPP)
 #define SYNCHRONOUSOUTPUTFILE8ARRAY_HPP
 
-#include <libmaus/util/IntervalTree.hpp>
-#include <libmaus/aio/SynchronousOutputBuffer8.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/aio/SynchronousOutputBuffer8.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <vector>
 #include <stdexcept>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -40,20 +40,20 @@ namespace libmaus
 			//! buffer type
 			typedef _buffer_type buffer_type;
 			//! buffer pointer type
-			typedef typename ::libmaus::util::unique_ptr<buffer_type>::type buffer_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<buffer_type>::type buffer_ptr_type;
 			//! this type
 			typedef SynchronousOutputFile8ArrayTemplate<buffer_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! hash intervals
-			::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const * HI;
+			::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const * HI;
 			//! output buffers
-			::libmaus::autoarray::AutoArray<buffer_ptr_type> buffers;
+			::libmaus2::autoarray::AutoArray<buffer_ptr_type> buffers;
 			//! output filenames
 			std::vector < std::string > filenames;
 			//! interval tree mapping hash values to intervals
-			::libmaus::util::IntervalTree::unique_ptr_type IT;
+			::libmaus2::util::IntervalTree::unique_ptr_type IT;
 			
 			/**
 			 * init using number of buffers and file prefix
@@ -82,14 +82,14 @@ namespace libmaus
 			 * @param tmpgen temporary file name generator
 			 * @param parallel if true then generate files in parallel
 			 **/
-			void init(uint64_t const numbuf, ::libmaus::util::TempFileNameGenerator & tmpgen, bool const parallel = false)
+			void init(uint64_t const numbuf, ::libmaus2::util::TempFileNameGenerator & tmpgen, bool const parallel = false)
 			{
 				filenames.resize(numbuf);
 
 				if ( parallel )
 				{
 					uint64_t created = 0;
-					::libmaus::parallel::OMPLock lock;
+					::libmaus2::parallel::OMPLock lock;
 				
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1)
@@ -141,10 +141,10 @@ namespace libmaus
 			 * @param fileprefix prefix for files
 			 **/
 			SynchronousOutputFile8ArrayTemplate(
-				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
 				std::string const & fileprefix
 			)
-			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus::util::IntervalTree(*HI,0,HI->size()))
+			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus2::util::IntervalTree(*HI,0,HI->size()))
 			{
 				init ( HI->size(), fileprefix );
 			}
@@ -155,10 +155,10 @@ namespace libmaus
 			 * @param tmpgen temporary file name generator object
 			 **/
 			SynchronousOutputFile8ArrayTemplate(
-				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
-				::libmaus::util::TempFileNameGenerator & tmpgen
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
+				::libmaus2::util::TempFileNameGenerator & tmpgen
 			)
-			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus::util::IntervalTree(*HI,0,HI->size()))
+			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus2::util::IntervalTree(*HI,0,HI->size()))
 			{
 				init ( HI->size(), tmpgen );
 			}
@@ -182,7 +182,7 @@ namespace libmaus
 			 * @param numbuf number of buffers
 			 * @param parallel if true, then generate buffers in parallel
 			 **/
-			SynchronousOutputFile8ArrayTemplate(::libmaus::util::TempFileNameGenerator & tmpgen, uint64_t const numbuf, bool const parallel = false)
+			SynchronousOutputFile8ArrayTemplate(::libmaus2::util::TempFileNameGenerator & tmpgen, uint64_t const numbuf, bool const parallel = false)
 			: HI(0), buffers(numbuf)
 			{
 				init ( numbuf, tmpgen, parallel );
@@ -196,11 +196,11 @@ namespace libmaus
 			 * @param truncate if true, then truncate files during buffer creation
 			 **/
 			SynchronousOutputFile8ArrayTemplate(
-				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > const & rHI, 
 				std::vector<std::string> const & filenames,
 				bool const truncate
 			)
-			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus::util::IntervalTree(*HI,0,HI->size()))
+			: HI(&rHI), buffers(HI->size()), IT(new ::libmaus2::util::IntervalTree(*HI,0,HI->size()))
 			{
 				init ( filenames, truncate );
 			}
@@ -262,22 +262,22 @@ namespace libmaus
 	}
 }
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		/**
 		 * specialisation of SynchronousOutputFile8ArrayTemplate for std buffers
 		 **/
-		typedef SynchronousOutputFile8ArrayTemplate<libmaus::aio::SynchronousOutputBuffer8> SynchronousOutputFile8Array;
+		typedef SynchronousOutputFile8ArrayTemplate<libmaus2::aio::SynchronousOutputBuffer8> SynchronousOutputFile8Array;
 	}
 }
 
 #if ! defined(_WIN32)
-#include <libmaus/aio/SynchronousOutputBuffer8Posix.hpp>
+#include <libmaus2/aio/SynchronousOutputBuffer8Posix.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -285,7 +285,7 @@ namespace libmaus
 		/**
 		 * specialisation of SynchronousOutputFile8ArrayTemplate for posix buffers
 		 **/
-		typedef SynchronousOutputFile8ArrayTemplate<libmaus::aio::SynchronousOutputBuffer8Posix> SynchronousOutputFile8ArrayPosix;
+		typedef SynchronousOutputFile8ArrayTemplate<libmaus2::aio::SynchronousOutputBuffer8Posix> SynchronousOutputFile8ArrayPosix;
 		#endif
 	}
 }

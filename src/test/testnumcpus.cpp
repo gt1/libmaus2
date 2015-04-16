@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/parallel/NumCpus.hpp>
+#include <libmaus2/parallel/NumCpus.hpp>
 #include <iostream>
 
 int main()
 {
-	std::cout << libmaus::parallel::NumCpus::getNumLogicalProcessors() << std::endl;
+	std::cout << libmaus2::parallel::NumCpus::getNumLogicalProcessors() << std::endl;
 }

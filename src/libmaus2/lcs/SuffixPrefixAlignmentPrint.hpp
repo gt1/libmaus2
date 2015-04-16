@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(SUFFIXPREFIXALIGNMENTPRINT_HPP)
 #define SUFFIXPREFIXALIGNMENTPRINT_HPP
 
-#include <libmaus/lcs/GenericAlignmentPrint.hpp>
-#include <libmaus/lcs/SuffixPrefixResult.hpp>
-#include <libmaus/util/ConsoleColor.hpp>
+#include <libmaus2/lcs/GenericAlignmentPrint.hpp>
+#include <libmaus2/lcs/SuffixPrefixResult.hpp>
+#include <libmaus2/util/ConsoleColor.hpp>
 #include <ostream>
 #include <iomanip>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{

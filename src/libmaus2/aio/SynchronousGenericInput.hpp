@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(SYNCHRONOUSGENERICINPUT_HPP)
 #define SYNCHRONOUSGENERICINPUT_HPP
 
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 #include <cerrno>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -38,16 +38,16 @@ namespace libmaus
 			//! input file stream type
 			typedef ::std::ifstream ifstream_type;
 			//! input file stream pointer type
-			typedef ::libmaus::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
 			//! this type
 			typedef SynchronousGenericInput<input_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			//! buffer size
 			uint64_t const bufsize;
 			//! input buffer
-			::libmaus::autoarray::AutoArray<input_type> buffer;
+			::libmaus2::autoarray::AutoArray<input_type> buffer;
 			//! input buffer start pointer
 			input_type const * const pa;
 			//! input buffer current pointer
@@ -84,7 +84,7 @@ namespace libmaus
 				
 				if ( checkmod && (bytesread % sizeof(input_type) != 0) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "SynchronousGenericInput::fillBuffer: Number of bytes " << bytesread << " read is not a multiple of entity type." << std::endl;
 					se.finish();
 					throw se;
@@ -116,17 +116,17 @@ namespace libmaus
 			 * @param inputfilename input file name
 			 * @return contents of file as array
 			 **/
-			template< ::libmaus::autoarray::alloc_type atype >
-			static ::libmaus::autoarray::AutoArray<input_type,atype> readArrayTemplate(std::string const & inputfilename)
+			template< ::libmaus2::autoarray::alloc_type atype >
+			static ::libmaus2::autoarray::AutoArray<input_type,atype> readArrayTemplate(std::string const & inputfilename)
 			{
-				::libmaus::aio::SynchronousGenericInput<input_type> in(inputfilename,64*1024);
+				::libmaus2::aio::SynchronousGenericInput<input_type> in(inputfilename,64*1024);
 				
 				uint64_t const fs =
-					::libmaus::util::GetFileSize::getFileSize(inputfilename);
+					::libmaus2::util::GetFileSize::getFileSize(inputfilename);
 				assert ( fs % sizeof(input_type) == 0 );
 				uint64_t const n = fs/sizeof(input_type);
 
-				::libmaus::autoarray::AutoArray<input_type,atype> A(n,false);
+				::libmaus2::autoarray::AutoArray<input_type,atype> A(n,false);
 			
 				for ( uint64_t i = 0; i < n; ++i )
 				{
@@ -145,9 +145,9 @@ namespace libmaus
 			 * @param inputfilename input file name
 			 * @return contents of file as array
 			 **/
-			static ::libmaus::autoarray::AutoArray<input_type,::libmaus::autoarray::alloc_type_cxx> readArray(std::string const & inputfilename)
+			static ::libmaus2::autoarray::AutoArray<input_type,::libmaus2::autoarray::alloc_type_cxx> readArray(std::string const & inputfilename)
 			{
-				return readArrayTemplate< ::libmaus::autoarray::alloc_type_cxx>(inputfilename);			
+				return readArrayTemplate< ::libmaus2::autoarray::alloc_type_cxx>(inputfilename);			
 			}
 
 			/**
@@ -191,13 +191,13 @@ namespace libmaus
 			  pa(buffer.get()), pc(pa), pe(pa),
 			  Pistr(new ifstream_type(filename.c_str(),std::ios::binary)),
 			  istr(*Pistr),
-			  totalwords ( std::min ( ::libmaus::util::GetFileSize::getFileSize(filename) / sizeof(input_type) - roffset, rtotalwords) ),
+			  totalwords ( std::min ( ::libmaus2::util::GetFileSize::getFileSize(filename) / sizeof(input_type) - roffset, rtotalwords) ),
 			  totalwordsread(0),
 			  checkmod(true)
 			{
 				if ( ! Pistr->is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unable to open file " << filename << ": " << strerror(errno);
 					se.finish();
 					throw se;
@@ -205,7 +205,7 @@ namespace libmaus
 				Pistr->seekg(roffset * sizeof(input_type), std::ios::beg);
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unable to seek file " << filename << ": " << strerror(errno);
 					se.finish();
 					throw se;

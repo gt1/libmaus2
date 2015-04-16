@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,9 +21,9 @@
 
 #include <string>
 #include <cstring>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -47,7 +47,7 @@ namespace libmaus
 			{
 				if ( ! isAbsoluteUrl(s) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "UrlBase::getProtocol() called for non absolute url " << s << "\n";
 					lme.finish();
 					throw lme;

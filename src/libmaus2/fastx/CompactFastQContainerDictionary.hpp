@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQCONTAINERDICTIONARY_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQCONTAINERDICTIONARY_HPP
 
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct CompactFastQContainerDictionary
 		{
 			typedef CompactFastQContainerDictionary this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			::libmaus::rank::ImpCacheLineRank::unique_ptr_type const designators;
-			::libmaus::autoarray::AutoArray<uint64_t> const longptrs;
-			::libmaus::autoarray::AutoArray<uint16_t> const shortptrs;
-			::libmaus::fastx::FastInterval const FI;
+			::libmaus2::rank::ImpCacheLineRank::unique_ptr_type const designators;
+			::libmaus2::autoarray::AutoArray<uint64_t> const longptrs;
+			::libmaus2::autoarray::AutoArray<uint16_t> const shortptrs;
+			::libmaus2::fastx::FastInterval const FI;
 
 			uint64_t byteSize() const
 			{
@@ -48,20 +48,20 @@ namespace libmaus
 
 			CompactFastQContainerDictionary(std::istream & in)
 			: 
-				designators(new ::libmaus::rank::ImpCacheLineRank(in)), 
+				designators(new ::libmaus2::rank::ImpCacheLineRank(in)), 
 				longptrs(in), 
 				shortptrs(in), 
-				FI(::libmaus::fastx::FastInterval::deserialise(in)) 
+				FI(::libmaus2::fastx::FastInterval::deserialise(in)) 
 			{
 				// std::cerr << "Dict FI " << FI << std::endl;
 			}
 			
-			CompactFastQContainerDictionary(::libmaus::network::SocketBase * in)
+			CompactFastQContainerDictionary(::libmaus2::network::SocketBase * in)
 			: 
-				designators(new ::libmaus::rank::ImpCacheLineRank(in)), 
-				longptrs(in->readMessageInBlocks<uint64_t,::libmaus::autoarray::alloc_type_cxx>()), 
-				shortptrs(in->readMessageInBlocks<uint16_t,::libmaus::autoarray::alloc_type_cxx>()), 
-				FI(::libmaus::fastx::FastInterval::deserialise(in->readString())) 
+				designators(new ::libmaus2::rank::ImpCacheLineRank(in)), 
+				longptrs(in->readMessageInBlocks<uint64_t,::libmaus2::autoarray::alloc_type_cxx>()), 
+				shortptrs(in->readMessageInBlocks<uint16_t,::libmaus2::autoarray::alloc_type_cxx>()), 
+				FI(::libmaus2::fastx::FastInterval::deserialise(in->readString())) 
 			{
 				// std::cerr << "Dict FI " << FI << std::endl;
 			}
@@ -73,10 +73,10 @@ namespace libmaus
 				designators->serialise(out);
 				longptrs.serialize(out);
 				shortptrs.serialize(out);
-				::libmaus::fastx::FastInterval::serialise(out,FI);
+				::libmaus2::fastx::FastInterval::serialise(out,FI);
 			}
 
-			void serialise(::libmaus::network::SocketBase * socket) const
+			void serialise(::libmaus2::network::SocketBase * socket) const
 			{
 				designators->serialise(socket);
 				socket->writeMessageInBlocks(longptrs);

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,22 +17,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/Utf8DecoderWrapper.hpp>
+#include <libmaus2/util/Utf8DecoderWrapper.hpp>
 
-libmaus::util::Utf8DecoderWrapper::Utf8DecoderWrapper(std::string const & filename, uint64_t const buffersize)
+libmaus2::util::Utf8DecoderWrapper::Utf8DecoderWrapper(std::string const & filename, uint64_t const buffersize)
 : Utf8DecoderBuffer(filename,buffersize), ::std::wistream(this)
 {
 	
 }
 
-wchar_t libmaus::util::Utf8DecoderWrapper::getSymbolAtPosition(std::string const & filename, uint64_t const offset)
+wchar_t libmaus2::util::Utf8DecoderWrapper::getSymbolAtPosition(std::string const & filename, uint64_t const offset)
 {
 	this_type I(filename);
 	I.seekg(offset);
 	return I.get();
 }
 
-uint64_t libmaus::util::Utf8DecoderWrapper::getFileSize(std::string const & filename)
+uint64_t libmaus2::util::Utf8DecoderWrapper::getFileSize(std::string const & filename)
 {
 	this_type I(filename);
 	I.seekg(0,std::ios::end);

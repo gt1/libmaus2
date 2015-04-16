@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,17 +20,17 @@
 #if ! defined(COMPUTEFASTXINTERVALS_HPP)
 #define COMPUTEFASTXINTERVALS_HPP
 
-#include <libmaus/fastx/FastInterval.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
 #include <iostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		template<typename reader_type>
 		struct ComputeFastXIntervals
 		{
-			static std::vector< ::libmaus::fastx::FastInterval > computeFastXIntervals(
+			static std::vector< ::libmaus2::fastx::FastInterval > computeFastXIntervals(
 				std::vector<std::string> const & filenames,
 				uint64_t const indexstep = 512ull*1024ull,
 				std::ostream & logfile = std::cerr)
@@ -42,7 +42,7 @@ namespace libmaus
 					reader_type::buildIndex(filenames[i],indexstep);
 			
 				logfile << "Computing fastx intervals...";
-				std::vector< ::libmaus::fastx::FastInterval > V = reader_type::buildIndex(filenames, indexstep );
+				std::vector< ::libmaus2::fastx::FastInterval > V = reader_type::buildIndex(filenames, indexstep );
 				logfile << "done." << std::endl;
 				return V;
 			}		

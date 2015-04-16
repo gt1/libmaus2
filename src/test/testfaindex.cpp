@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,14 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/FastAIndex.hpp>
+#include <libmaus2/fastx/FastAIndex.hpp>
 #include <iostream>
 
 int main()
 {
 	try
 	{
-		libmaus::fastx::FastAIndex index(std::cin);
+		libmaus2::fastx::FastAIndex index(std::cin);
 		std::cout << index;
 	}
 	catch(std::exception const & ex)

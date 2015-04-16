@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,17 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>
 #include <stdio.h>
 
-extern int libmaus_network_sendFd_C(int const socket, int const fd);
-extern int libmaus_network_receiveFd_C(int const socket);
+extern int libmaus2_network_sendFd_C(int const socket, int const fd);
+extern int libmaus2_network_receiveFd_C(int const socket);
 
-int libmaus_network_sendFd_C(int const socket, int const fd)
+int libmaus2_network_sendFd_C(int const socket, int const fd)
 {
 	char message[1] = { '\0' };
 	struct iovec io_vec[1] = { [0].iov_len  = sizeof(message), [0].iov_base = &message[0] };
@@ -59,7 +59,7 @@ int libmaus_network_sendFd_C(int const socket, int const fd)
 	return sendmsg(socket, &hdr, 0);
 }
 
-int libmaus_network_receiveFd_C(int const socket)
+int libmaus2_network_receiveFd_C(int const socket)
 {
 	char message[1];
 	struct iovec io_vec[1] = { [0].iov_len  = sizeof(message), [0].iov_base = &message[0] };

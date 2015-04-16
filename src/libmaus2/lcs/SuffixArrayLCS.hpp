@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(LIBMAUS_LCS_SUFFIXARRAYLCS_HPP)
 #define LIBMAUS_LCS_SUFFIXARRAYLCS_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/sv/sv.hpp>
-#include <libmaus/suffixsort/divsufsort.hpp>
-#include <libmaus/suffixsort/SkewSuffixSort.hpp>
-#include <libmaus/util/unordered_set.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/sv/sv.hpp>
+#include <libmaus2/suffixsort/divsufsort.hpp>
+#include <libmaus2/suffixsort/SkewSuffixSort.hpp>
+#include <libmaus2/util/unordered_set.hpp>
 
 #include <string>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -116,19 +116,19 @@ namespace libmaus
 				c[c.size()-1] = 1;
 				
 				// allocate suffix sorting
-				::libmaus::autoarray::AutoArray<int32_t> SA(c.size(),false);
+				::libmaus2::autoarray::AutoArray<int32_t> SA(c.size(),false);
 				
 				// perform suffix sorting
-				typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,alphabet_size+2> sort_type;
+				typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *,alphabet_size+2> sort_type;
 				sort_type::divsufsort(reinterpret_cast<uint8_t const *>(c.c_str()), SA.get(), c.size());
 
 				// compute LCP array
-				::libmaus::autoarray::AutoArray<int32_t> LCP = ::libmaus::suffixsort::SkewSuffixSort<uint8_t,int32_t>::lcpByPlcp(
+				::libmaus2::autoarray::AutoArray<int32_t> LCP = ::libmaus2::suffixsort::SkewSuffixSort<uint8_t,int32_t>::lcpByPlcp(
 					reinterpret_cast<uint8_t const *>(c.c_str()), c.size(), SA.get());
 
 				// compute psv and nsv arrays for simulating parent operation on suffix tree
-				::libmaus::autoarray::AutoArray<int32_t> const prev = ::libmaus::sv::PSV::psv(LCP.get(),LCP.size());
-				::libmaus::autoarray::AutoArray<int32_t> const next = ::libmaus::sv::NSV::nsv(LCP.get(),LCP.size());
+				::libmaus2::autoarray::AutoArray<int32_t> const prev = ::libmaus2::sv::PSV::psv(LCP.get(),LCP.size());
+				::libmaus2::autoarray::AutoArray<int32_t> const next = ::libmaus2::sv::NSV::nsv(LCP.get(),LCP.size());
 				
 				#if defined(LCS_DEBUG)
 				for ( uint64_t i = 0; i < c.size(); ++i )
@@ -152,7 +152,7 @@ namespace libmaus
 					Q.push_back ( QNode(i,i,0, (SA[i]< static_cast<int32_t>(a.size()+1)) ? 1:2, 1 ) );
 
 				// construct hash for tree nodes we have seen so far
-				typedef ::libmaus::util::unordered_set < QNode , HashQNode >::type hash_type;
+				typedef ::libmaus2::util::unordered_set < QNode , HashQNode >::type hash_type;
 				typedef hash_type::iterator hash_iterator_type;
 				typedef hash_type::const_iterator hash_const_iterator_type;
 				hash_type H(n);

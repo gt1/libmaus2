@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,10 +21,10 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/PosixFdInput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/PosixFdInput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 		{
 			public:
 			typedef PosixFdInputStreamBuffer this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			static int64_t getDefaultBlockSize()
@@ -41,7 +41,7 @@ namespace libmaus
 				return 64*1024;
 			}
 			
-			::libmaus::aio::PosixFdInput & stream;
+			::libmaus2::aio::PosixFdInput & stream;
 			int64_t const optblocksize;
 			
 			int64_t const filesize;
@@ -49,7 +49,7 @@ namespace libmaus
 			uint64_t const blocksize;
 			uint64_t const putbackspace;
 			
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 
 			uint64_t symsread;
 
@@ -62,7 +62,7 @@ namespace libmaus
 				
 				if ( ! ok )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "PosixFdInputStreamBuffer: invalid parameters for setg detected, a=" 
 						<< (void *)a << " b=" << (void *)b << " c=" << (void *)c << std::endl;
 					lme.finish();
@@ -93,7 +93,7 @@ namespace libmaus
 			
 			public:
 			PosixFdInputStreamBuffer(
-				::libmaus::aio::PosixFdInput & rstream,
+				::libmaus2::aio::PosixFdInput & rstream,
 				int64_t const rblocksize,
 				uint64_t const rputbackspace = 0
 			)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQCONTEXT_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQCONTEXT_HPP
 
-#include <libmaus/parallel/SynchronousCounter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct CompactFastQContext
 		{
-			::libmaus::parallel::SynchronousCounter<uint64_t> nextid;
-			::libmaus::autoarray::AutoArray<uint8_t> qbuf;
+			::libmaus2::parallel::SynchronousCounter<uint64_t> nextid;
+			::libmaus2::autoarray::AutoArray<uint8_t> qbuf;
 
 			CompactFastQContext(uint64_t const rnextid = 0) : nextid(rnextid), qbuf() {}
 			

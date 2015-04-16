@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,21 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/network/UrlInputStream.hpp>
+#include <libmaus2/network/UrlInputStream.hpp>
 
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/network/FtpSocket.hpp>
-#include <libmaus/network/FtpSocketInputStream.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/network/FtpSocket.hpp>
+#include <libmaus2/network/FtpSocketInputStream.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const url = arginfo.getRestArg<std::string>(0);
 
-		// libmaus::network::FtpSocketInputStream FSIS(url,1024);
-		libmaus::network::UrlInputStream FSIS(url,1024);
+		// libmaus2::network::FtpSocketInputStream FSIS(url,1024);
+		libmaus2::network::UrlInputStream FSIS(url,1024);
 
 		int c = -1;
 		while ( (c=FSIS.get()) >= 0 )

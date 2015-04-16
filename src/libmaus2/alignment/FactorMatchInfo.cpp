@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/alignment/FactorMatchInfo.hpp>
+#include <libmaus2/alignment/FactorMatchInfo.hpp>
 
-std::ostream & libmaus::fm::operator<<(std::ostream & out, libmaus::fm::FactorMatchInfo const & K)
+std::ostream & libmaus2::fm::operator<<(std::ostream & out, libmaus2::fm::FactorMatchInfo const & K)
 {
 	return (out << "FactorMatchInfo(" << K.pos << "," << K.offset << "," << K.len << ")");
 }

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PARSEINFOHEADERCOMPLETECALLBACK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PARSEINFOHEADERCOMPLETECALLBACK_HPP
 
-#include <libmaus/bambam/BamHeaderParserState.hpp>
+#include <libmaus2/bambam/BamHeaderParserState.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
@@ -30,7 +30,7 @@ namespace libmaus
 			struct ParseInfoHeaderCompleteCallback
 			{
 				virtual ~ParseInfoHeaderCompleteCallback() {}
-				virtual void bamHeaderComplete(libmaus::bambam::BamHeaderParserState const &) = 0;
+				virtual void bamHeaderComplete(libmaus2::bambam::BamHeaderParserState const &) = 0;
 			};
 		}
 	}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PARSEBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PARSEBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/DecompressedBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockReturnInterface.hpp>
-#include <libmaus/bambam/parallel/ParsedBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/ParsedBlockStallInterface.hpp>
-#include <libmaus/bambam/parallel/ParsePackageReturnInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlockAddPendingInterface.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlockReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/ParsedBlockAddPendingInterface.hpp>
+#include <libmaus2/bambam/parallel/ParsedBlockStallInterface.hpp>
+#include <libmaus2/bambam/parallel/ParsePackageReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			// dispatcher for block parsing
-			struct ParseBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct ParseBlockWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				DecompressedBlockAddPendingInterface & addDecompressedPendingInterface;
 				DecompressedBlockReturnInterface     & returnDecompressedInterface;
@@ -57,14 +57,14 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					ParseBlockWorkPackage * BP = dynamic_cast<ParseBlockWorkPackage *>(P);
 					assert ( BP );
 										
-					// tpi.addLogStringWithThreadId("ParseBlockWorkPackageDispatcher::dispatch() block id " + libmaus::util::NumberSerialisation::formatNumber(BP->decompressedblock->blockid,0));
+					// tpi.addLogStringWithThreadId("ParseBlockWorkPackageDispatcher::dispatch() block id " + libmaus2::util::NumberSerialisation::formatNumber(BP->decompressedblock->blockid,0));
 					
 					// can we parse all information in the decompressed input block?
 					if ( BP->parseInfo->parseBlock(*(BP->decompressedblock),*(BP->parseBlock)) )

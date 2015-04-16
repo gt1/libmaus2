@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMINFOBASE_HPP)
 #define LIBMAUS_BAMBAM_SAMINFOBASE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/DigitTable.hpp>
-#include <libmaus/util/AlphaDigitTable.hpp>
-#include <libmaus/util/AlphaTable.hpp>
-#include <libmaus/bambam/SamPrintableTable.hpp>
-#include <libmaus/bambam/SamZPrintableTable.hpp>
-#include <libmaus/math/DecimalNumberParser.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/DigitTable.hpp>
+#include <libmaus2/util/AlphaDigitTable.hpp>
+#include <libmaus2/util/AlphaTable.hpp>
+#include <libmaus2/bambam/SamPrintableTable.hpp>
+#include <libmaus2/bambam/SamZPrintableTable.hpp>
+#include <libmaus2/math/DecimalNumberParser.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -38,12 +38,12 @@ namespace libmaus
 			static char const rnameOtherValid[256];
 			static char const seqValid[256];
 			static char const qualValid[256];
-			static libmaus::util::DigitTable const DT;
-			static libmaus::util::AlphaDigitTable const ADT;
-			static libmaus::util::AlphaTable const AT;
-			static libmaus::bambam::SamPrintableTable const SPT;
-			static libmaus::bambam::SamZPrintableTable const SZPT;
-			static libmaus::math::DecimalNumberParser const DNP;
+			static libmaus2::util::DigitTable const DT;
+			static libmaus2::util::AlphaDigitTable const ADT;
+			static libmaus2::util::AlphaTable const AT;
+			static libmaus2::bambam::SamPrintableTable const SPT;
+			static libmaus2::bambam::SamZPrintableTable const SZPT;
+			static libmaus2::math::DecimalNumberParser const DNP;
 			
 			typedef char const * c_ptr_type;
 			typedef c_ptr_type c_ptr_type_pair[2];
@@ -68,7 +68,7 @@ namespace libmaus
 			#if 0
 			static void parseStringField(
 				c_ptr_type_pair field,
-				libmaus::autoarray::AutoArray<char> & str,
+				libmaus2::autoarray::AutoArray<char> & str,
 				sam_info_base_field_status & defined
 			)
 			{
@@ -79,7 +79,7 @@ namespace libmaus
 				
 				/* extend space if necessary */
 				if ( !((fieldlen+1) < str.size()) )
-					str = libmaus::autoarray::AutoArray<char>(fieldlen+1,false);
+					str = libmaus2::autoarray::AutoArray<char>(fieldlen+1,false);
 				
 				if ( fieldlen == 1 && field[0][0] == '*' )
 				{				
@@ -109,8 +109,8 @@ namespace libmaus
 				
 				if ( p == field[1] )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number for " << fieldname << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number for " << fieldname << "\n";
 					lme.finish();
 					throw lme;				
 				}
@@ -126,8 +126,8 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfoBase: unable to parse " << std::string(field[0],field[1]) << " as number\n";
 						lme.finish();
 						throw lme;
 					}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSSTREAMDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_READENDSSTREAMDECODERBASE_HPP
 
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/lz/SnappyInputStream.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/lz/SnappyInputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,19 +30,19 @@ namespace libmaus
 		{
 			typedef ReadEndsStreamDecoderBase this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			std::vector< std::istream * > Vin;
 			std::vector< std::istream * >::iterator Vinnext;
-			libmaus::lz::SnappyInputStream::unique_ptr_type pSIS;
+			libmaus2::lz::SnappyInputStream::unique_ptr_type pSIS;
 			
 			bool setupNextStream()
 			{
 				if ( Vinnext != Vin.end() )
 				{
-					libmaus::lz::SnappyInputStream::unique_ptr_type tSIS(new libmaus::lz::SnappyInputStream(**(Vinnext++)));
+					libmaus2::lz::SnappyInputStream::unique_ptr_type tSIS(new libmaus2::lz::SnappyInputStream(**(Vinnext++)));
 					pSIS = UNIQUE_PTR_MOVE(tSIS);
 					return true;					
 				}
@@ -64,7 +64,7 @@ namespace libmaus
 				setupNextStream();
 			}
 
-			bool get(libmaus::bambam::ReadEnds & RE)
+			bool get(libmaus2::bambam::ReadEnds & RE)
 			{
 				while ( true )
 				{

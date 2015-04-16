@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_HASHING_CONSTANTSTRINGHASH_HPP)
 #define LIBMAUS_HASHING_CONSTANTSTRINGHASH_HPP
 
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace hashing
 	{
 		struct ConstantStringHash
 		{
 			typedef ConstantStringHash this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 		
 			private:
 			unsigned int k;
 			uint64_t n;
 			uint64_t m;			
-			libmaus::autoarray::AutoArray<int64_t> H;
+			libmaus2::autoarray::AutoArray<int64_t> H;
 			
 			ConstantStringHash(ConstantStringHash const & O)
 			: k(O.k), n(O.n), m(O.m), H(O.H.size(),false)
@@ -102,7 +102,7 @@ namespace libmaus
 				
 				for ( ; (! ok) && n <= maxn; ++k, n <<= 1, m = (m << 1)|1 )
 				{
-					libmaus::autoarray::AutoArray<uint64_t> C(n);
+					libmaus2::autoarray::AutoArray<uint64_t> C(n);
 
 					for ( iterator it = ita; it != ite; ++it )
 					{
@@ -145,13 +145,13 @@ namespace libmaus
 				 */
 				if ( ! ok )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "Cannot create perfect hash of size <= " << maxn << " for " << ite-ita << " elements" << std::endl;
 					se.finish(false /* do not translate stack trace */);
 					throw se;
 				}
 				
-				H = libmaus::autoarray::AutoArray<int64_t>(n);
+				H = libmaus2::autoarray::AutoArray<int64_t>(n);
 				std::fill(H.begin(),H.end(),-1);
 				
 				for ( iterator it = ita; it != ite; ++it )

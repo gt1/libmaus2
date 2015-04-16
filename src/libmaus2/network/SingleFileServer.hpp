@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_NETWORK_SINGLEFILESERVER_HPP)
 #define LIBMAUS_NETWORK_SINGLEFILESERVER_HPP
 
-#include <libmaus/network/Socket.hpp>
+#include <libmaus2/network/Socket.hpp>
 #include <iostream>
 #include <set>
 #include <unistd.h>
@@ -27,19 +27,19 @@
 #include <sys/wait.h>
 #include <csignal>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace network
         {
                 struct SingleFileServer
                 {
                         typedef SingleFileServer this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                        typedef ::libmaus::network::ServerSocket server_socket_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::network::ServerSocket server_socket_type;
                         typedef server_socket_type::unique_ptr_type server_socket_ptr_type;
 
                         std::string filename;
-                        libmaus::autoarray::AutoArray<char> data;
+                        libmaus2::autoarray::AutoArray<char> data;
                         pid_t pid;
                         unsigned short port;
                         server_socket_ptr_type seso;
@@ -55,7 +55,7 @@ namespace libmaus
                                 std::string const & shostname,
                                 unsigned short rport = 4444,
                                 unsigned int const backlog = 128)
-                        : filename(rfilename), data(libmaus::autoarray::AutoArray<char>::readFile(filename)), port(rport), 
+                        : filename(rfilename), data(libmaus2::autoarray::AutoArray<char>::readFile(filename)), port(rport), 
                           seso((server_socket_type::allocateServerSocket(port,backlog,shostname.c_str(),8*1024)))
                         {
                         }
@@ -70,7 +70,7 @@ namespace libmaus
                                 
                                 if ( pid < 0 )
                                 {
-                                        ::libmaus::exception::LibMausException ex;
+                                        ::libmaus2::exception::LibMausException ex;
                                         ex.getStream() << "failed to fork: " << strerror(errno);
                                         ex.finish();
                                         throw ex;
@@ -84,7 +84,7 @@ namespace libmaus
                                         {        
                                                 try
                                                 {
-	                                                ::libmaus::network::SocketBase::unique_ptr_type recsock = seso->accept();
+	                                                ::libmaus2::network::SocketBase::unique_ptr_type recsock = seso->accept();
 	                                                
                                                         pid_t childpid = fork();
                                                         

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -18,10 +18,10 @@
 */
 
 #include <iostream>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
-#include <libmaus/random/Random.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/random/Random.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
 
 int main()
 {
@@ -29,10 +29,10 @@ int main()
 	{
 		for ( uint64_t q = 0; q < 100; ++q )
 		{
-			uint64_t const n = ::libmaus::random::Random::rand64() % (10*1024*1024) + 1;
-			uint64_t const b = ::libmaus::random::Random::rand64() % 8 + 1;
+			uint64_t const n = ::libmaus2::random::Random::rand64() % (10*1024*1024) + 1;
+			uint64_t const b = ::libmaus2::random::Random::rand64() % 8 + 1;
 
-			typedef ::libmaus::bitio::CompactArray array_type;
+			typedef ::libmaus2::bitio::CompactArray array_type;
 			typedef array_type::unique_ptr_type array_ptr_type;
 
 			array_ptr_type C( new array_type (n,b) );
@@ -41,18 +41,18 @@ int main()
 			{
 				if ( ( i & (1024*1024-1)) == 0 )
 					std::cerr << i << std::endl;
-				C->set ( i, ::libmaus::random::Random::rand64() & ((1ull<<b)-1) );
+				C->set ( i, ::libmaus2::random::Random::rand64() & ((1ull<<b)-1) );
 			}
 				
 			array_ptr_type D = C->clone();
 			
-			::libmaus::timing::RealTimeClock rtc; 
+			::libmaus2::timing::RealTimeClock rtc; 
 			rtc.start();
-			::libmaus::autoarray::AutoArray<uint64_t> WC = ::libmaus::wavelet::toWaveletTreeBits(C.get());
+			::libmaus2::autoarray::AutoArray<uint64_t> WC = ::libmaus2::wavelet::toWaveletTreeBits(C.get());
 			std::cerr << ", time=" << rtc.getElapsedSeconds() << std::endl;
 			
 			rtc.start();
-			::libmaus::autoarray::AutoArray<uint64_t> WD = ::libmaus::wavelet::toWaveletTreeBitsParallel(D.get());
+			::libmaus2::autoarray::AutoArray<uint64_t> WD = ::libmaus2::wavelet::toWaveletTreeBitsParallel(D.get());
 			std::cerr << ", time=" << rtc.getElapsedSeconds() << std::endl;
 			
 			assert ( WC.getN() == WD.getN() );

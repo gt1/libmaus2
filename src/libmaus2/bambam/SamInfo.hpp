@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMINFO_HPP)
 #define LIBMAUS_BAMBAM_SAMINFO_HPP
 
-#include <libmaus/bambam/SamInfoBase.hpp>
-#include <libmaus/bambam/BamFlagBase.hpp>
-#include <libmaus/bambam/CigarOperation.hpp>
-#include <libmaus/bambam/BamAlignmentEncoderBase.hpp>
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/math/DecimalNumberParser.hpp>
+#include <libmaus2/bambam/SamInfoBase.hpp>
+#include <libmaus2/bambam/BamFlagBase.hpp>
+#include <libmaus2/bambam/CigarOperation.hpp>
+#include <libmaus2/bambam/BamAlignmentEncoderBase.hpp>
+#include <libmaus2/bambam/BamHeaderLowMem.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/math/DecimalNumberParser.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct SamInfo : public libmaus::bambam::SamInfoBase
+		struct SamInfo : public libmaus2::bambam::SamInfoBase
 		{
 			typedef SamInfo this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			enum
 			{
@@ -70,26 +70,26 @@ namespace libmaus
 			sam_info_base_field_status seqdefined;
 			size_t seqlen;
 
-			libmaus::autoarray::AutoArray<char> tqual;
+			libmaus2::autoarray::AutoArray<char> tqual;
 			char const * qual;
 			sam_info_base_field_status qualdefined;
 			size_t quallen;
 			
 			c_ptr_type_pair fields[sam_info_mandatory_columns];
 			
-			std::vector<libmaus::bambam::cigar_operation> cigopvec;
+			std::vector<libmaus2::bambam::cigar_operation> cigopvec;
 			uint64_t cigopvecfill;
 
 			BamSeqEncodeTable const seqenc;
 			
 			//! trie for sequence names
-			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type SQTrie;
+			::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type SQTrie;
 
 			std::vector<unsigned int> numLengthUnsigned;
 
-			::libmaus::fastx::EntityBuffer<uint8_t,libmaus::bambam::BamAlignment::D_array_alloc_type> buffer;
-			libmaus::bambam::BamAlignment::unique_ptr_type Palgn;
-			libmaus::bambam::BamAlignment & algn;
+			::libmaus2::fastx::EntityBuffer<uint8_t,libmaus2::bambam::BamAlignment::D_array_alloc_type> buffer;
+			libmaus2::bambam::BamAlignment::unique_ptr_type Palgn;
+			libmaus2::bambam::BamAlignment & algn;
 
 			/**
 			 * compute trie for sequence names
@@ -98,14 +98,14 @@ namespace libmaus
 			 * @return trie for sequence names
 			 **/
 			template<typename header_type>
-			static ::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeSQTrie(header_type const & header)
+			static ::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type computeSQTrie(header_type const & header)
 			{
-				::libmaus::trie::Trie<char> trienofailure;
+				::libmaus2::trie::Trie<char> trienofailure;
 				std::vector<std::string> dict;
 				for ( uint64_t i = 0; i < header.getNumRef(); ++i )
 					dict.push_back(header.getRefIDName(i));
 				trienofailure.insertContainer(dict);
-				::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
+				::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure 
 					(trienofailure.toLinearHashTrie<uint32_t>());
 
 				return UNIQUE_PTR_MOVE(LHTnofailure);
@@ -141,13 +141,13 @@ namespace libmaus
 			template<typename header_type>
 			SamInfo(header_type const & rheader) 
 			: qname(0), rname(0), cigar(0), rnext(0), seq(0), qual(0),
-			  SQTrie(computeSQTrie(rheader)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus::bambam::BamAlignment), algn(*Palgn)
+			  SQTrie(computeSQTrie(rheader)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(new libmaus2::bambam::BamAlignment), algn(*Palgn)
 			{
 			
 			}
 			
 			template<typename header_type>
-			SamInfo(header_type const & rheader, libmaus::bambam::BamAlignment & ralgn)
+			SamInfo(header_type const & rheader, libmaus2::bambam::BamAlignment & ralgn)
 			: qname(0), rname(0), cigar(0), rnext(0), seq(0), qual(0),
 			  SQTrie(computeSQTrie(rheader)), numLengthUnsigned(computeNumLengthUnsigned()), Palgn(), algn(ralgn)
 			{
@@ -162,8 +162,8 @@ namespace libmaus
 				{
 					if ( ! DT[static_cast<uint8_t>(*p)] )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " (number expected)\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " (number expected)\n";
 						lme.finish();
 						throw lme;
 					}
@@ -176,12 +176,12 @@ namespace libmaus
 						num += (*(p++))-'0';
 					}
 					
-					libmaus::bambam::BamFlagBase::bam_cigar_ops op;
+					libmaus2::bambam::BamFlagBase::bam_cigar_ops op;
 					
 					if ( p == pe )
 					{					
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " (string ends on number)\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseCigar: invalid cigar string " << std::string(cigar,cigar+cigarlen) << " (string ends on number)\n";
 						lme.finish();
 						throw lme;
 					}
@@ -189,45 +189,45 @@ namespace libmaus
 					switch ( *(p++) )
 					{
 						case 'M':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH;
 							break;
 						case 'I':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS;
 							break;
 						case 'S':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP;
 							break;
 						case '=':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL;
 							break;
 						case 'X':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF;
 							break;
 						case 'D':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL;
 							break;
 						case 'N':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP;
 							break;
 						case 'H':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP;
 							break;
 						case 'P':
-							op = libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD;
+							op = libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD;
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException lme;
-							lme.getStream() << "libmaus::bambam::SamInfo::parseCigar: invalid cigar operator " << p[-1] << "\n";
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::bambam::SamInfo::parseCigar: invalid cigar operator " << p[-1] << "\n";
 							lme.finish();
 							throw lme;
 						}
 					}
 				
 					if ( cigopvecfill >= cigopvec.size() )
-						cigopvec.push_back(libmaus::bambam::cigar_operation(op,num));
+						cigopvec.push_back(libmaus2::bambam::cigar_operation(op,num));
 					else	
-						cigopvec[cigopvecfill] = libmaus::bambam::cigar_operation(op,num);
+						cigopvec[cigopvecfill] = libmaus2::bambam::cigar_operation(op,num);
 					
 					cigopvecfill++;
 				}			
@@ -242,8 +242,8 @@ namespace libmaus
 				{
 					if ( *pp != ',' )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseNumberArray: malformed optional field (unexpected non , character) " << std::string(pc,p);
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseNumberArray: malformed optional field (unexpected non , character) " << std::string(pc,p);
 						lme.finish();
 						throw lme;																							
 					}
@@ -294,15 +294,15 @@ namespace libmaus
 							istr >> f;
 							if ( ! istr )
 							{
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "libmaus::bambam::SamInfo::parseNumberArray: malformed optional field (unparsable floating point number) " << std::string(pc,p);
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::bambam::SamInfo::parseNumberArray: malformed optional field (unparsable floating point number) " << std::string(pc,p);
 								lme.finish();
 								throw lme;																										
 							}
 							if ( istr.get() != std::istream::traits_type::eof() )
 							{											
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "libmaus::bambam::SamInfo::parseNumberArray: malformed optional field (additional data after float number) " << std::string(pc,p);
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::bambam::SamInfo::parseNumberArray: malformed optional field (additional data after float number) " << std::string(pc,p);
 								lme.finish();
 								throw lme;																										
 							}
@@ -315,7 +315,7 @@ namespace libmaus
 				}
 
 				char const tag[3] = { pc[0], pc[1], 0 };
-				libmaus::bambam::BamAlignmentEncoderBase::putAuxNumberArray(buffer,&tag[0],dt,V.begin(),V.size());
+				libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumberArray(buffer,&tag[0],dt,V.begin(),V.size());
 			}
 
 			void parseSamLine(char const * pa, char const * pe)
@@ -342,8 +342,8 @@ namespace libmaus
 				
 				if ( col != sam_info_mandatory_columns )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: defect SAM line (less than " << sam_info_mandatory_columns << " columns): " << std::string(pa,pe);
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: defect SAM line (less than " << sam_info_mandatory_columns << " columns): " << std::string(pa,pe);
 					lme.finish();
 					throw lme;					
 				}
@@ -355,7 +355,7 @@ namespace libmaus
 
 				buffer.reset();
 				
-				libmaus::bambam::BamAlignmentEncoderBase::encodeAlignment(
+				libmaus2::bambam::BamAlignmentEncoderBase::encodeAlignment(
 					buffer,
 					seqenc,
 					qname,
@@ -402,14 +402,14 @@ namespace libmaus
 								
 								if ( p - pp != 1 )
 								{
-									libmaus::exception::LibMausException lme;
-									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (length of character field is not 1) " << std::string(pc,p);
+									libmaus2::exception::LibMausException lme;
+									lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (length of character field is not 1) " << std::string(pc,p);
 									lme.finish();
 									throw lme;
 								}
 
 								char const tag[3] = { pc[0], pc[1], 0 };								
-								libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'A',*pp);
+								libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'A',*pp);
 								
 								break;
 							}
@@ -420,8 +420,8 @@ namespace libmaus
 								
 								if ( ps == p )
 								{
-									libmaus::exception::LibMausException lme;
-									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (length of number is zero)" << std::string(pc,p);
+									libmaus2::exception::LibMausException lme;
+									lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (length of number is zero)" << std::string(pc,p);
 									lme.finish();
 									throw lme;								
 								}
@@ -430,13 +430,13 @@ namespace libmaus
 								{
 									int32_t const n = DNP.parseSignedNumber<int32_t>(ps,p);								
 									char const tag[3] = { pc[0], pc[1], 0 };
-									libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'i',n);
+									libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'i',n);
 								}
 								else
 								{
 									uint32_t const n = DNP.parseUnsignedNumber<uint32_t>(ps,p);
 									char const tag[3] = { pc[0], pc[1], 0 };
-									libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'I',n);
+									libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'I',n);
 								}
 								break;
 							}
@@ -449,22 +449,22 @@ namespace libmaus
 
 								if ( ! istr )
 								{
-									libmaus::exception::LibMausException lme;
-									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (unparsable float number) " << std::string(pc,p);
+									libmaus2::exception::LibMausException lme;
+									lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (unparsable float number) " << std::string(pc,p);
 									lme.finish();
 									throw lme;																							
 								}
 								
 								if ( istr.get() != std::istream::traits_type::eof() )
 								{								
-									libmaus::exception::LibMausException lme;
-									lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (additional data after float number) " << std::string(pc,p);
+									libmaus2::exception::LibMausException lme;
+									lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (additional data after float number) " << std::string(pc,p);
 									lme.finish();
 									throw lme;																							
 								}
 
 								char const tag[3] = { pc[0], pc[1], 0 };
-								libmaus::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'f',f);
+								libmaus2::bambam::BamAlignmentEncoderBase::putAuxNumber(buffer,&tag[0],'f',f);
 
 								break;
 							}
@@ -474,14 +474,14 @@ namespace libmaus
 								for ( char const * pp = pc+5; pp != p; ++pp )
 									if ( ! SZPT[static_cast<uint8_t>(*pp)] )
 									{
-										libmaus::exception::LibMausException lme;
-										lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (string field with invalid character) " << std::string(pc,p);
+										libmaus2::exception::LibMausException lme;
+										lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (string field with invalid character) " << std::string(pc,p);
 										lme.finish();
 										throw lme;															
 									}
 
 								char const tag[3] = { pc[0], pc[1], 0 };
-								libmaus::bambam::BamAlignmentEncoderBase::putAuxString(buffer,&tag[0],pc+5,p);
+								libmaus2::bambam::BamAlignmentEncoderBase::putAuxString(buffer,&tag[0],pc+5,p);
 								
 								break;
 							}
@@ -495,14 +495,14 @@ namespace libmaus
 										) 
 									)
 									{
-										libmaus::exception::LibMausException lme;
-										lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (hex field with invalid character) " << std::string(pc,p);
+										libmaus2::exception::LibMausException lme;
+										lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (hex field with invalid character) " << std::string(pc,p);
 										lme.finish();
 										throw lme;															
 									}
 
 								char const tag[3] = { pc[0], pc[1], 0 };
-								libmaus::bambam::BamAlignmentEncoderBase::putAuxHexString(buffer,&tag[0],pc+5,p);
+								libmaus2::bambam::BamAlignmentEncoderBase::putAuxHexString(buffer,&tag[0],pc+5,p);
 							
 								break;
 							}
@@ -512,8 +512,8 @@ namespace libmaus
 
 								if ( pp == p )
 								{
-										libmaus::exception::LibMausException lme;
-										lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (array data type missing) " << std::string(pc,p);
+										libmaus2::exception::LibMausException lme;
+										lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (array data type missing) " << std::string(pc,p);
 										lme.finish();
 										throw lme;																							
 								}
@@ -548,8 +548,8 @@ namespace libmaus
 							}
 							default:
 							{
-								libmaus::exception::LibMausException lme;
-								lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field (unknown type) " << std::string(pc,p);
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field (unknown type) " << std::string(pc,p);
 								lme.finish();
 								throw lme;						
 							}
@@ -557,8 +557,8 @@ namespace libmaus
 					}
 					else
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: malformed optional field " << std::string(pc,p) << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: malformed optional field " << std::string(pc,p) << "\n";
 						lme.finish();
 						throw lme;						
 					}
@@ -625,7 +625,7 @@ namespace libmaus
 				)
 				{
 					if ( tqual.size() < seqlen )
-						tqual = libmaus::autoarray::AutoArray<char>(seqlen,false);
+						tqual = libmaus2::autoarray::AutoArray<char>(seqlen,false);
 					memset(tqual.begin(),static_cast<char>(255),seqlen);
 					qual = tqual.begin();
 					quallen = seqlen;
@@ -660,8 +660,8 @@ namespace libmaus
 					
 					if ( (!ok) )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid query name " << std::string(qname,qname+qnamelen) << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid query name " << std::string(qname,qname+qnamelen) << "\n";
 						lme.finish();
 						throw lme;
 					}
@@ -670,8 +670,8 @@ namespace libmaus
 				
 				if ( flag < 0 || flag >= static_cast<int32_t>(1u<<16) )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid flag " << flag << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid flag " << flag << "\n";
 					lme.finish();
 					throw lme;
 				}
@@ -683,8 +683,8 @@ namespace libmaus
 
 					if ( p == pe )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty rname field\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid empty rname field\n";
 						lme.finish();
 						throw lme;
 					}
@@ -700,23 +700,23 @@ namespace libmaus
 					
 					if ( ! ok )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid rname field " << std::string(rname,rname+rnamelen) << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid rname field " << std::string(rname,rname+rnamelen) << "\n";
 						lme.finish();
 						throw lme;
 					}
 				}
 				if ( pos < 0 || pos >= static_cast<int32_t>(1u<<29) )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid pos field " << pos << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid pos field " << pos << "\n";
 					lme.finish();
 					throw lme;
 				}
 				if ( mapq < 0 || mapq >= static_cast<int32_t>(1u<<8) )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid mapq field " << mapq << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid mapq field " << mapq << "\n";
 					lme.finish();
 					throw lme;
 				}
@@ -728,8 +728,8 @@ namespace libmaus
 
 					if ( p == pe )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty rnext field\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid empty rnext field\n";
 						lme.finish();
 						throw lme;						
 					}
@@ -745,23 +745,23 @@ namespace libmaus
 				
 					if ( ! ok )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid rnext field " << std::string(rnext,rnext+rnextlen) << " length " << rnextlen << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid rnext field " << std::string(rnext,rnext+rnextlen) << " length " << rnextlen << "\n";
 						lme.finish();
 						throw lme;						
 					}
 				}
 				if ( pnext < 0 || pnext >= static_cast<int32_t>(1u<<29) )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid pnext field " << pnext << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid pnext field " << pnext << "\n";
 					lme.finish();
 					throw lme;						
 				}
 				if ( tlen < ((-(static_cast<int32_t>(1u<<29)))+1) || tlen >= static_cast<int32_t>(1u<<29) )
 				{
-					libmaus::exception::LibMausException lme;
-					lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid tlen field " << tlen << "\n";
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid tlen field " << tlen << "\n";
 					lme.finish();
 					throw lme;						
 				}
@@ -779,16 +779,16 @@ namespace libmaus
 					
 					if ( !ok )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid sequence string " << std::string(seq,seq+seqlen) << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid sequence string " << std::string(seq,seq+seqlen) << "\n";
 						lme.finish();
 						throw lme;						
 					}
 					#if 0
 					if ( p == seq )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty sequence string\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid empty sequence string\n";
 						lme.finish();
 						throw lme;						
 					}
@@ -808,16 +808,16 @@ namespace libmaus
 					
 					if ( !ok )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid base quality string " << std::string(qual,qual+quallen) << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid base quality string " << std::string(qual,qual+quallen) << "\n";
 						lme.finish();
 						throw lme;						
 					}
 					#if 0
 					if ( p == qual )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid empty base quality string\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid empty base quality string\n";
 						lme.finish();
 						throw lme;						
 					}
@@ -831,15 +831,15 @@ namespace libmaus
 				{
 					if ( seqlen != quallen )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: sequence length " << seqlen << " does not match length of quality string " << quallen << "\n";
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: sequence length " << seqlen << " does not match length of quality string " << quallen << "\n";
 						lme.finish();
 						throw lme;						
 					}	
 				}
 
-				bool qcfail = flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
-				bool secondary = flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
+				bool qcfail = flag & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
+				bool secondary = flag & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
 				// annotation (see SAM spec section 3.2, padded)
 				bool const annot = qcfail && secondary;
 
@@ -847,7 +847,7 @@ namespace libmaus
 					(cigardefined == sam_info_base_field_defined) && 
 					(seqdefined == sam_info_base_field_defined) && 
 					(!annot) &&
-					(! (flag & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ))
+					(! (flag & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP ))
 				)
 				{
 					uint64_t exseqlen = 0;
@@ -855,11 +855,11 @@ namespace libmaus
 					for ( uint64_t i = 0; i < cigopvecfill; ++i )
 						switch ( cigopvec[i].first )
 						{
-							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
-							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
-							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-							case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+							case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
 								exseqlen += cigopvec[i].second;
 								break;
 							default:
@@ -868,11 +868,11 @@ namespace libmaus
 
 					if ( exseqlen != seqlen )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::SamInfo::parseSamLine: invalid cigar string " 
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::SamInfo::parseSamLine: invalid cigar string " 
 							<< std::string(cigar,cigar+cigarlen) << " for sequence " << std::string(seq,seq+seqlen) 
 							<< " (sum " << exseqlen << " over match,ins,softclip,equal,diff does not match length of query sequence " << seqlen 
-							<< " flags=" << libmaus::bambam::BamAlignmentDecoderBase::flagsToString(flag) << ")\n";
+							<< " flags=" << libmaus2::bambam::BamAlignmentDecoderBase::flagsToString(flag) << ")\n";
 						lme.finish();
 						throw lme;
 					}

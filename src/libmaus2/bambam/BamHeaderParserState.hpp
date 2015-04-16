@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMHEADERPARSERSTATE_HPP)
 #define LIBMAUS_BAMBAM_BAMHEADERPARSERSTATE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/BamHeaderParserStateBase.hpp>
-#include <libmaus/bambam/Chromosome.hpp>
-#include <libmaus/bambam/DecoderBase.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/PutObject.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/BamHeaderParserStateBase.hpp>
+#include <libmaus2/bambam/Chromosome.hpp>
+#include <libmaus2/bambam/DecoderBase.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/PutObject.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct BamHeaderParserState : public ::libmaus::bambam::BamHeaderParserStateBase, public ::libmaus::bambam::DecoderBase
+		struct BamHeaderParserState : public ::libmaus2::bambam::BamHeaderParserStateBase, public ::libmaus2::bambam::DecoderBase
 		{
 			enum bam_header_parse_state
 			{
@@ -75,7 +75,7 @@ namespace libmaus
 			uint64_t b_l_text_read;
 			// length of text
 			uint64_t l_text;
-			libmaus::autoarray::AutoArray<char> text;
+			libmaus2::autoarray::AutoArray<char> text;
 			
 			// number of text bytes read
 			uint64_t b_text_read;
@@ -95,7 +95,7 @@ namespace libmaus
 			// number of name bytes read
 			uint64_t b_name_read;
 			// name
-			libmaus::autoarray::AutoArray<char> name;
+			libmaus2::autoarray::AutoArray<char> name;
 			
 			// number of reference sequence length bytes read
 			uint64_t b_l_ref_read;
@@ -103,20 +103,20 @@ namespace libmaus
 			uint64_t l_ref;
 
 			//! chromosome (reference sequence meta data) vector
-			std::vector< ::libmaus::bambam::Chromosome > chromosomes;
+			std::vector< ::libmaus2::bambam::Chromosome > chromosomes;
 			
 			uint64_t getSeriliasedLength() const
 			{
-				libmaus::util::CountPutObject CPO;
+				libmaus2::util::CountPutObject CPO;
 				serialise(CPO);
 				return CPO.c;
 			}
 			
-			libmaus::autoarray::AutoArray<char> getSerialised() const
+			libmaus2::autoarray::AutoArray<char> getSerialised() const
 			{
 				uint64_t const len = getSeriliasedLength();
-				libmaus::autoarray::AutoArray<char> B(len,false);
-				libmaus::util::PutObject<char *> C(B.begin());
+				libmaus2::autoarray::AutoArray<char> B(len,false);
+				libmaus2::util::PutObject<char *> C(B.begin());
 				serialise(C);
 				return B;
 			}
@@ -141,7 +141,7 @@ namespace libmaus
 				out.put((chromosomes.size() >> 24) & 0xFF);
 				for ( uint64_t i = 0; i < chromosomes.size(); ++i )
 				{
-					::libmaus::bambam::Chromosome const & C = chromosomes[i];
+					::libmaus2::bambam::Chromosome const & C = chromosomes[i];
 					std::pair<char const *, char const *> name = C.getName();
 					size_t const namesize = name.second-name.first;
 
@@ -208,7 +208,7 @@ namespace libmaus
 							}
 							else
 							{
-								libmaus::exception::LibMausException se;
+								libmaus2::exception::LibMausException se;
 								se.getStream() << "Wrong magic number for BAM file." << std::endl;
 								se.finish();
 								throw se;
@@ -334,7 +334,7 @@ namespace libmaus
 								while ( this->l_name && (!this->name[this->l_name-1]) )
 									-- this->l_name;							
 
-								this->chromosomes[this->b_ref] = ::libmaus::bambam::Chromosome(
+								this->chromosomes[this->b_ref] = ::libmaus2::bambam::Chromosome(
 									std::string(this->name.begin(),this->name.begin()+this->l_name),
 									this->l_ref
 								);
@@ -380,7 +380,7 @@ namespace libmaus
 				
 				if ( this->state == bam_header_read_failed )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamHeader::parseHeader failed." << std::endl;
 					se.finish();
 					throw se;

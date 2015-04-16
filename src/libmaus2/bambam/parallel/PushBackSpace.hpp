@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_PUSHBACKSPACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_PUSHBACKSPACE_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/util/GrowingFreeList.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/util/GrowingFreeList.hpp>
 #include <stack>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,14 +31,14 @@ namespace libmaus
 		{
 			struct PushBackSpace
 			{
-				libmaus::util::GrowingFreeList<libmaus::bambam::BamAlignment> algnFreeList;
-				std::stack<libmaus::bambam::BamAlignment *> putbackStack;
+				libmaus2::util::GrowingFreeList<libmaus2::bambam::BamAlignment> algnFreeList;
+				std::stack<libmaus2::bambam::BamAlignment *> putbackStack;
 				
 				size_t byteSize()
 				{
 					return
 						algnFreeList.byteSize() +
-						putbackStack.size() * sizeof(libmaus::bambam::BamAlignment *);
+						putbackStack.size() * sizeof(libmaus2::bambam::BamAlignment *);
 				}
 	
 				PushBackSpace()
@@ -49,7 +49,7 @@ namespace libmaus
 				
 				void push(uint8_t const * D, uint64_t const bs)
 				{
-					libmaus::bambam::BamAlignment * algn = algnFreeList.get();
+					libmaus2::bambam::BamAlignment * algn = algnFreeList.get();
 					algn->copyFrom(D,bs);
 					putbackStack.push(algn);
 				}
@@ -59,7 +59,7 @@ namespace libmaus
 					return putbackStack.empty();
 				}
 				
-				libmaus::bambam::BamAlignment * top()
+				libmaus2::bambam::BamAlignment * top()
 				{
 					assert ( ! empty() );
 					return putbackStack.top();

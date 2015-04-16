@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,14 +16,14 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/irods/IRodsFileBase.hpp>
+#include <libmaus2/irods/IRodsFileBase.hpp>
 
-libmaus::irods::IRodsFileBase::IRodsFileBase() : fdvalid(false)
+libmaus2::irods::IRodsFileBase::IRodsFileBase() : fdvalid(false)
 {
 
 }
 
-libmaus::irods::IRodsFileBase::~IRodsFileBase()
+libmaus2::irods::IRodsFileBase::~IRodsFileBase()
 {
 	#if defined(LIBMAUS_HAVE_IRODS)
 	if ( fdvalid )
@@ -39,7 +39,7 @@ libmaus::irods::IRodsFileBase::~IRodsFileBase()
 			char * subname = 0;
 			char * name = rodsErrorName(status,&subname);
 			
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "IRodsFileBase::~IRodsFileBase: failed to close data object: " << status << " (" << name << ")" << std::endl;
 			lme.finish();
 			throw lme;		
@@ -49,7 +49,7 @@ libmaus::irods::IRodsFileBase::~IRodsFileBase()
 }
 
 // read block of data
-uint64_t libmaus::irods::IRodsFileBase::read(char * buffer, uint64_t len)
+uint64_t libmaus2::irods::IRodsFileBase::read(char * buffer, uint64_t len)
 {
 	#if defined(LIBMAUS_HAVE_IRODS)
 	openedDataObjInp_t readInHandle;
@@ -68,7 +68,7 @@ uint64_t libmaus::irods::IRodsFileBase::read(char * buffer, uint64_t len)
 		char * subname = 0;
 		char * name = rodsErrorName(status,&subname);
 			
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsFileBase::read(): failed with status " << status << " (" << name << ")" << std::endl;
 		lme.finish();
 		throw lme;
@@ -81,7 +81,7 @@ uint64_t libmaus::irods::IRodsFileBase::read(char * buffer, uint64_t len)
 }
 
 // perform seek operation and return new position in stream
-uint64_t libmaus::irods::IRodsFileBase::seek(long offset, int whence)
+uint64_t libmaus2::irods::IRodsFileBase::seek(long offset, int whence)
 {
 	#if defined(LIBMAUS_HAVE_IRODS)
 	openedDataObjInp_t seekInput;
@@ -97,7 +97,7 @@ uint64_t libmaus::irods::IRodsFileBase::seek(long offset, int whence)
 		char * subname = 0;
 		char * name = rodsErrorName(status,&subname);
 			
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "IRodsFileBase::seek(): failed with status " << status << " (" << name << ")" << std::endl;
 		lme.finish();
 		throw lme;
@@ -109,7 +109,7 @@ uint64_t libmaus::irods::IRodsFileBase::seek(long offset, int whence)
 	#endif
 }
 
-uint64_t libmaus::irods::IRodsFileBase::size()
+uint64_t libmaus2::irods::IRodsFileBase::size()
 {
 	uint64_t const curpos = seek(0,SEEK_CUR);
 	uint64_t const filesize = seek(0,SEEK_END);

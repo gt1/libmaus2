@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -26,10 +26,10 @@
 #include <omp.h>
 #endif
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/sorting/MergeStepBinSearchResult.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/sorting/MergeStepBinSearchResult.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
@@ -499,7 +499,7 @@ namespace libmaus
 				};
 
 				uint64_t const thres;
-				libmaus::autoarray::AutoArray<MergePackage> Q;
+				libmaus2::autoarray::AutoArray<MergePackage> Q;
 				MergePackage * const qa;
 				MergePackage *       qc;
 				MergePackage * const qe;

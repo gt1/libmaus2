@@ -1,18 +1,18 @@
-#include <libmaus/fastx/CompactFastDecoder.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/fastx/CompactFastDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		std::vector<std::string> const fn = arginfo.restargs;
 		
-		libmaus::fastx::CompactFastConcatRandomAccessAdapter CFCRAA(fn);
-		libmaus::fastx::CompactFastConcatDecoder CFCD(fn);
+		libmaus2::fastx::CompactFastConcatRandomAccessAdapter CFCRAA(fn);
+		libmaus2::fastx::CompactFastConcatDecoder CFCD(fn);
 
-		libmaus::fastx::CompactFastConcatDecoder::pattern_type pat;
+		libmaus2::fastx::CompactFastConcatDecoder::pattern_type pat;
 		
 		for ( uint64_t id = 0; CFCD.getNextPatternUnlocked(pat); ++id )
 		{

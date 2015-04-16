@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGREADENDSCONTAINERFLUSHWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGREADENDSCONTAINERFLUSHWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/FragReadEndsContainerFlushFinishedInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/FragReadEndsContainerFlushWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/FragReadEndsContainerFlushFinishedInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct FragReadEndsContainerFlushWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct FragReadEndsContainerFlushWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef FragReadEndsContainerFlushWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				FragReadEndsContainerFlushWorkPackageReturnInterface & packageReturnInterface;
 				FragReadEndsContainerFlushFinishedInterface & flushFinishedInterface;
@@ -41,13 +41,13 @@ namespace libmaus
 				FragReadEndsContainerFlushWorkPackageDispatcher(
 					FragReadEndsContainerFlushWorkPackageReturnInterface & rpackageReturnInterface,
 					FragReadEndsContainerFlushFinishedInterface & rflushFinishedInterface	
-				) : libmaus::parallel::SimpleThreadWorkPackageDispatcher(), 
+				) : libmaus2::parallel::SimpleThreadWorkPackageDispatcher(), 
 				    packageReturnInterface(rpackageReturnInterface), flushFinishedInterface(rflushFinishedInterface)
 				{
 				
 				}
 				virtual ~FragReadEndsContainerFlushWorkPackageDispatcher() {}
-				virtual void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				virtual void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					FragReadEndsContainerFlushWorkPackage * BP = dynamic_cast<FragReadEndsContainerFlushWorkPackage *>(P);
 					assert ( BP );

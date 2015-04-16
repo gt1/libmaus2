@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,18 +19,18 @@
 #if ! defined(LIBMAUS_UTIL_SIMPLEHASHMAP_HPP)
 #define LIBMAUS_UTIL_SIMPLEHASHMAP_HPP
 
-#include <libmaus/util/SimpleHashMapHashCompute.hpp>
-#include <libmaus/util/SimpleHashMapKeyPrint.hpp>
-#include <libmaus/util/SimpleHashMapConstants.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/hashing/hash.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/math/primes16.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/parallel/SynchronousCounter.hpp>
+#include <libmaus2/util/SimpleHashMapHashCompute.hpp>
+#include <libmaus2/util/SimpleHashMapKeyPrint.hpp>
+#include <libmaus2/util/SimpleHashMapConstants.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/hashing/hash.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/math/primes16.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/parallel/SynchronousCounter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -43,8 +43,8 @@ namespace libmaus
 			typedef SimpleHashMapConstants<key_type> base_type;
 			typedef std::pair<key_type,value_type> pair_type;
 			typedef SimpleHashMap<key_type,value_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			protected:
 			unsigned int slog;
@@ -53,14 +53,14 @@ namespace libmaus
 			uint64_t fill;
 			
 			// hash array
-			::libmaus::autoarray::AutoArray<pair_type> H;
+			::libmaus2::autoarray::AutoArray<pair_type> H;
 
 			#if ! defined(LIBMAUS_HAVE_SYNC_OPS)
-			::libmaus::parallel::OMPLock hlock;
-			::libmaus::parallel::OMPLock clock;
+			::libmaus2::parallel::OMPLock hlock;
+			::libmaus2::parallel::OMPLock clock;
 			#endif
 			
-			::libmaus::parallel::OMPLock elock;
+			::libmaus2::parallel::OMPLock elock;
 			
 			public:
 			size_t byteSize() const
@@ -94,19 +94,19 @@ namespace libmaus
 
 			void serialise(std::ostream & out) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,slog);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,hashsize);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,hashmask);
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,fill);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,slog);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,hashsize);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,hashmask);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,fill);
 				H.serialize(out);
 			}
 			
 			SimpleHashMap(std::istream & in)
 			:
-				slog(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				hashsize(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				hashmask(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				fill(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				slog(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				hashsize(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				hashmask(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				fill(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				H(in)
 			{
 			
@@ -316,7 +316,7 @@ namespace libmaus
 					}
 				} while ( p != p0 );
 				
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleHashMap::insert(): unable to insert, table is full." << std::endl;
 				se.finish();
 				throw se;
@@ -374,7 +374,7 @@ namespace libmaus
 					}
 				} while ( p != p0 );
 				
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleHashMap::insert(): unable to insert, table is full." << std::endl;
 				se.finish();
 				throw se;
@@ -432,7 +432,7 @@ namespace libmaus
 					}
 				} while ( p != p0 );
 				
-				libmaus::exception::LibMausException lme;
+				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "SimpleHashMap::getIndex called for non-existing key ";
 				SimpleHashMapKeyPrint<_key_type>::printKey(lme.getStream(),v);
 				lme.getStream() << std::endl;
@@ -484,7 +484,7 @@ namespace libmaus
 					}
 					else if ( H[p].first == base_type::unused() )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "SimpleHashMap::get() called for key ";
 						SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(), v);
 						se.getStream() << " which is not contained." << std::endl;
@@ -497,7 +497,7 @@ namespace libmaus
 					}
 				} while ( p != p0 );
 				
-				::libmaus::exception::LibMausException se;
+				::libmaus2::exception::LibMausException se;
 				se.getStream() << "SimpleHashMap::get() called for key ";
 				SimpleHashMapKeyPrint<_key_type>::printKey(se.getStream(),v);
 				se.getStream() << " which is not contained." << std::endl;
@@ -527,10 +527,10 @@ namespace libmaus
 			
 			typedef SimpleHashMap<key_type,value_type> base_type;
 			typedef ExtendingSimpleHashMap<key_type,value_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typename ::libmaus::util::SimpleHashMap<key_type,value_type>::unique_ptr_type tmpMap;
+			typename ::libmaus2::util::SimpleHashMap<key_type,value_type>::unique_ptr_type tmpMap;
 		
 			ExtendingSimpleHashMap(unsigned int const rslog) : base_type(rslog) {}
 			ExtendingSimpleHashMap(std::istream & in) : base_type(in) {}
@@ -558,7 +558,7 @@ namespace libmaus
 					#pragma omp barrier
 					
 					// fill empty hash map
-					::libmaus::parallel::OMPLock cntlock;
+					::libmaus2::parallel::OMPLock cntlock;
 					int64_t cnt = 0;
 					
 					while ( cnt < omp_get_num_threads() )

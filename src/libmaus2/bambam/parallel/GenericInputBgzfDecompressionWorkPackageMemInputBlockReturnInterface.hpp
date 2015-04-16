@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBGZFDECOMPRESSIONWORKPACKAGEMEMINPUTBLOCKRETURNINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBGZFDECOMPRESSIONWORKPACKAGEMEMINPUTBLOCKRETURNINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/MemInputBlock.hpp>
+#include <libmaus2/bambam/parallel/MemInputBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -30,7 +30,7 @@ namespace libmaus
 			struct GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface
 			{
 				virtual ~GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface() {}
-				virtual void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus::bambam::parallel::MemInputBlock::shared_ptr_type ptr) = 0;
+				virtual void genericInputBgzfDecompressionWorkPackageMemInputBlockReturn(uint64_t streamid, libmaus2::bambam::parallel::MemInputBlock::shared_ptr_type ptr) = 0;
 			};
 		}
 	}

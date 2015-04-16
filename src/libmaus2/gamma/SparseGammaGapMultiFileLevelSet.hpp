@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,27 +19,27 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPMULTIFILELEVELSET_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPMULTIFILELEVELSET_HPP
 
-#include <libmaus/gamma/SparseGammaGapDecoder.hpp>
-#include <libmaus/gamma/SparseGammaGapMultiFile.hpp>
-#include <libmaus/gamma/SparseGammaGapMerge.hpp>
-#include <libmaus/gamma/GammaGapEncoder.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/parallel/PosixSemaphore.hpp>
+#include <libmaus2/gamma/SparseGammaGapDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapMultiFile.hpp>
+#include <libmaus2/gamma/SparseGammaGapMerge.hpp>
+#include <libmaus2/gamma/GammaGapEncoder.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
 		struct SparseGammaGapMultiFileLevelSet
 		{
-			libmaus::util::TempFileNameGenerator & tmpgen;
-			std::map< uint64_t,std::deque<libmaus::gamma::SparseGammaGapMultiFile> > L;
-			libmaus::parallel::OMPLock lock;
+			libmaus2::util::TempFileNameGenerator & tmpgen;
+			std::map< uint64_t,std::deque<libmaus2::gamma::SparseGammaGapMultiFile> > L;
+			libmaus2::parallel::OMPLock lock;
 			uint64_t addcnt;
 			uint64_t parts;		
 
@@ -48,22 +48,22 @@ namespace libmaus
 			std::map<uint64_t, SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type> mergefinishq;
 			std::map<uint64_t, SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type> mergeallq;
 			
-			std::vector<libmaus::parallel::PosixSemaphore *> mergepacksem;
-			std::vector<libmaus::parallel::PosixSemaphore *> termsem;
+			std::vector<libmaus2::parallel::PosixSemaphore *> mergepacksem;
+			std::vector<libmaus2::parallel::PosixSemaphore *> termsem;
 			uint64_t termsemcnt;
-			libmaus::parallel::OMPLock semlock;
+			libmaus2::parallel::OMPLock semlock;
 
 			SparseGammaGapMultiFileLevelSet(
-				libmaus::util::TempFileNameGenerator & rtmpgen,
+				libmaus2::util::TempFileNameGenerator & rtmpgen,
 				uint64_t const rparts
 			) : tmpgen(rtmpgen), addcnt(0), parts(rparts), nextmergeQid(0) {}
 			
-			void registerMergePackSemaphore(libmaus::parallel::PosixSemaphore * sema)
+			void registerMergePackSemaphore(libmaus2::parallel::PosixSemaphore * sema)
 			{
 				mergepacksem.push_back(sema);
 			}
 
-			void registerTermSemaphore(libmaus::parallel::PosixSemaphore * sema)
+			void registerTermSemaphore(libmaus2::parallel::PosixSemaphore * sema)
 			{
 				termsem.push_back(sema);
 			}
@@ -73,7 +73,7 @@ namespace libmaus
 				termsemcnt = rtermsemcnt;
 			}
 			
-			bool trySemPair(libmaus::parallel::PosixSemaphore & A, libmaus::parallel::PosixSemaphore & B)
+			bool trySemPair(libmaus2::parallel::PosixSemaphore & A, libmaus2::parallel::PosixSemaphore & B)
 			{
 				semlock.lock();
 				
@@ -92,12 +92,12 @@ namespace libmaus
 			 **/
 			bool needMerge(
 				uint64_t & l, 
-				std::pair<libmaus::gamma::SparseGammaGapMultiFile,libmaus::gamma::SparseGammaGapMultiFile> & P
+				std::pair<libmaus2::gamma::SparseGammaGapMultiFile,libmaus2::gamma::SparseGammaGapMultiFile> & P
 			)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				
-				for ( std::map< uint64_t,std::deque<libmaus::gamma::SparseGammaGapMultiFile> >::iterator ita = L.begin();
+				for ( std::map< uint64_t,std::deque<libmaus2::gamma::SparseGammaGapMultiFile> >::iterator ita = L.begin();
 					ita != L.end(); ++ita )
 					if ( ita->second.size() > 1 )
 					{
@@ -120,7 +120,7 @@ namespace libmaus
 
 			SparseGammaGapMultiFile doMerge(
 				uint64_t const l, 
-				std::pair<libmaus::gamma::SparseGammaGapMultiFile,libmaus::gamma::SparseGammaGapMultiFile> const & P,
+				std::pair<libmaus2::gamma::SparseGammaGapMultiFile,libmaus2::gamma::SparseGammaGapMultiFile> const & P,
 				std::string const & nfn // output file prefix
 			)
 			{
@@ -128,7 +128,7 @@ namespace libmaus
 				SparseGammaGapMultiFile const Sb = P.second;
 				
 				std::vector<std::string> const fno = 
-					libmaus::gamma::SparseGammaGapMerge::merge(Sa.fn,Sb.fn,nfn,parts);
+					libmaus2::gamma::SparseGammaGapMerge::merge(Sa.fn,Sb.fn,nfn,parts);
 
 				SparseGammaGapMultiFile N(fno,l+1);
 				
@@ -143,7 +143,7 @@ namespace libmaus
 			
 			bool checkMergePacket(uint64_t & packetid, uint64_t & subid)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				
 				if ( ! mergehandoutq.size() )
 					return false;
@@ -168,22 +168,22 @@ namespace libmaus
 			
 			SparseGammaGapMerge::SparseGammaGapMergeInfo * getMergeInfo(uint64_t const packetid)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				SparseGammaGapMerge::SparseGammaGapMergeInfo * ptr = mergeallq.find(packetid)->second.get();
 				return ptr;
 			}
 
 			// this method is not thread safe, so lock must be held when calling this method in parallel mode
-			libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * queueMergeInfo(libmaus::gamma::SparseGammaGapMultiFile const & A, libmaus::gamma::SparseGammaGapMultiFile const & B)
+			libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * queueMergeInfo(libmaus2::gamma::SparseGammaGapMultiFile const & A, libmaus2::gamma::SparseGammaGapMultiFile const & B)
 			{
-				libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo SGGMI = 
-					libmaus::gamma::SparseGammaGapMerge::getMergeInfoDelayedInit(
+				libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo SGGMI = 
+					libmaus2::gamma::SparseGammaGapMerge::getMergeInfoDelayedInit(
 						A.fn,B.fn,tmpgen.getFileName(),parts
 					);
 				SGGMI.setLevel(std::max(A.level,B.level)+1);
 										
-				libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type sptr(
-					new libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo
+				libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo::shared_ptr_type sptr(
+					new libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo
 				);
 
 				*sptr = SGGMI;
@@ -200,21 +200,21 @@ namespace libmaus
 			
 			bool isMergingQueueEmpty()
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				return mergeallq.size() == 0;
 			}
 
 			void putFile(std::vector<std::string> const & fn)
 			{
 				for ( uint64_t i = 0; i < fn.size(); ++i )
-					libmaus::util::TempFileRemovalContainer::addTempFile(fn[i]);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(fn[i]);
 				
 				SparseGammaGapMultiFile Sa(fn,0);
 				SparseGammaGapMultiFile Sb;
-				libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
+				libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
 				
 				{
-					libmaus::parallel::ScopeLock slock(lock);
+					libmaus2::parallel::ScopeLock slock(lock);
 					addcnt += 1;
 					
 					if ( L[0].size() )
@@ -243,19 +243,19 @@ namespace libmaus
 						
 					if ( ptr->incrementFinished() )
 					{
-						libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
+						libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
 					
 						ptr->removeInputFiles();
 
 						{						
-							libmaus::parallel::ScopeLock slock(lock);
+							libmaus2::parallel::ScopeLock slock(lock);
 							uint64_t const level = ptr->getLevel();
 
-							libmaus::gamma::SparseGammaGapMultiFile Sa(ptr->getOutputFileNames(),level);
+							libmaus2::gamma::SparseGammaGapMultiFile Sa(ptr->getOutputFileNames(),level);
 							
 							if ( L[level].size() )
 							{
-								libmaus::gamma::SparseGammaGapMultiFile Sb = L[level].front(); 
+								libmaus2::gamma::SparseGammaGapMultiFile Sb = L[level].front(); 
 								L[level].pop_front();
 								nptr = queueMergeInfo(Sa,Sb);
 							}
@@ -294,15 +294,15 @@ namespace libmaus
 					finished = true;
 				
 					uint64_t l = 0;
-					std::pair<libmaus::gamma::SparseGammaGapMultiFile,libmaus::gamma::SparseGammaGapMultiFile> P;
+					std::pair<libmaus2::gamma::SparseGammaGapMultiFile,libmaus2::gamma::SparseGammaGapMultiFile> P;
 					uint64_t packetid = 0;
 					uint64_t subid = 0;
-					libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
+					libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = 0;
 					
 					if ( needMerge(l,P) )
 					{
 						finished = false;		
-						libmaus::parallel::ScopeLock slock(lock);
+						libmaus2::parallel::ScopeLock slock(lock);
 						nptr = queueMergeInfo(P.first,P.second);
 					}
 					else if ( checkMergePacket(packetid,subid) )
@@ -316,9 +316,9 @@ namespace libmaus
 						{
 							ptr->removeInputFiles();
 						
-							libmaus::parallel::ScopeLock slock(lock);
+							libmaus2::parallel::ScopeLock slock(lock);
 							uint64_t const l = ptr->getLevel();
-							libmaus::gamma::SparseGammaGapMultiFile const N(ptr->getOutputFileNames(),l);
+							libmaus2::gamma::SparseGammaGapMultiFile const N(ptr->getOutputFileNames(),l);
 							L[l].push_back(N);
 							
 							assert ( mergeallq.find(packetid) != mergeallq.end() );
@@ -338,12 +338,12 @@ namespace libmaus
 			void addFile(std::vector<std::string> const & fn)
 			{
 				for ( uint64_t i = 0; i < fn.size(); ++i )
-					libmaus::util::TempFileRemovalContainer::addTempFile(fn[i]);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(fn[i]);
 				
 				SparseGammaGapMultiFile S(fn,0);
 				
 				{
-					libmaus::parallel::ScopeLock slock(lock);
+					libmaus2::parallel::ScopeLock slock(lock);
 					addcnt += 1;
 					L[0].push_back(S);
 				}
@@ -359,9 +359,9 @@ namespace libmaus
 			std::vector<std::string> merge(std::string const & outputfilenameprefix)
 			{
 				// set up merge queue Q
-				std::priority_queue<libmaus::gamma::SparseGammaGapMultiFile> Q;
+				std::priority_queue<libmaus2::gamma::SparseGammaGapMultiFile> Q;
 
-				for ( std::map< uint64_t,std::deque<libmaus::gamma::SparseGammaGapMultiFile> >::iterator ita = L.begin();
+				for ( std::map< uint64_t,std::deque<libmaus2::gamma::SparseGammaGapMultiFile> >::iterator ita = L.begin();
 					ita != L.end(); ++ita )
 					for ( uint64_t i = 0; i < ita->second.size(); ++i )
 						Q.push(ita->second[i]);
@@ -372,11 +372,11 @@ namespace libmaus
 				// do merging
 				while ( Q.size() > 1 )
 				{
-					std::pair<libmaus::gamma::SparseGammaGapMultiFile,libmaus::gamma::SparseGammaGapMultiFile> P;
+					std::pair<libmaus2::gamma::SparseGammaGapMultiFile,libmaus2::gamma::SparseGammaGapMultiFile> P;
 					P.first = Q.top(); Q.pop();
 					P.second = Q.top(); Q.pop();
 
-					libmaus::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = queueMergeInfo(P.first,P.second);
+					libmaus2::gamma::SparseGammaGapMerge::SparseGammaGapMergeInfo * nptr = queueMergeInfo(P.first,P.second);
 					nptr->initialise();
 					
 					#if defined(_OPENMP)
@@ -390,13 +390,13 @@ namespace libmaus
 							SparseGammaGapMerge::SparseGammaGapMergeInfo * ptr = getMergeInfo(packetid);
 							ptr->dispatch(subid);
 						
-							libmaus::parallel::ScopeLock slock(lock);
+							libmaus2::parallel::ScopeLock slock(lock);
 
 							if ( ptr->incrementFinished() )
 							{
 								ptr->removeInputFiles();
 
-								libmaus::gamma::SparseGammaGapMultiFile const N(ptr->getOutputFileNames(),P.second.level+1);
+								libmaus2::gamma::SparseGammaGapMultiFile const N(ptr->getOutputFileNames(),P.second.level+1);
 								Q.push(N);
 								
 								assert ( mergeallq.find(packetid) != mergeallq.end() );
@@ -420,7 +420,7 @@ namespace libmaus
 						std::ostringstream fnostr;
 						fnostr << outputfilenameprefix << "_" << std::setw(6) << std::setfill('0') << i;
 						std::string const fn = fnostr.str();
-						libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 						rename(Q.top().fn[i].c_str(),fn.c_str());
 						outputfilenames.push_back(fn);
 					}
@@ -455,17 +455,17 @@ namespace libmaus
 					uint64_t const low = std::min(p * partsize,n);
 					uint64_t const high = std::min(low+partsize,n);
 				
-					libmaus::gamma::SparseGammaGapConcatDecoder SGGD(fno,low);
-					libmaus::gamma::SparseGammaGapConcatDecoder::iterator it = SGGD.begin();
+					libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno,low);
+					libmaus2::gamma::SparseGammaGapConcatDecoder::iterator it = SGGD.begin();
 					
-					libmaus::gamma::GammaGapEncoder GGE(fn);
+					libmaus2::gamma::GammaGapEncoder GGE(fn);
 					GGE.encode(it,high-low);
 				}
 				
 				#if 0
 				std::cerr << "verifying." << std::endl;
-				libmaus::gamma::SparseGammaGapConcatDecoder SGGD(fno);
-				libmaus::gamma::GammaGapDecoder GGD(outputfilenames);
+				libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno);
+				libmaus2::gamma::GammaGapDecoder GGD(outputfilenames);
 				for ( uint64_t i = 0; i < n; ++i )
 				{
 					uint64_t const v0= SGGD.decode();

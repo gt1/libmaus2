@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,29 +19,29 @@
 #if ! defined(LIBMAUS_LF_QUICKLF_HPP)
 #define LIBMAUS_LF_QUICKLF_HPP
 
-#include <libmaus/lf/LFBase.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
+#include <libmaus2/lf/LFBase.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
-		struct QuickLF : LFBase< ::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, uint64_t > >
+		struct QuickLF : LFBase< ::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, uint64_t > >
 		{
-			typedef LFBase< ::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, uint64_t > > base_type;
+			typedef LFBase< ::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, uint64_t > > base_type;
 
 			typedef base_type::wt_type wt_type;
 			typedef base_type::wt_ptr_type wt_ptr_type;
 			typedef QuickLF this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 						
 			QuickLF( std::istream & istr ) : base_type ( istr ) {}
 			QuickLF( std::istream & istr, uint64_t & s ) : base_type(istr,s) {}
 			QuickLF( wt_ptr_type & rW ) : base_type(rW) {}
 			QuickLF( bitio::CompactArray::unique_ptr_type & ABWT ) : base_type(ABWT) {}
-			QuickLF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
+			QuickLF( bitio::CompactArray::unique_ptr_type & ABWT, ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode )
 			: base_type(ABWT,ahnode) {}			
 		};
 	}

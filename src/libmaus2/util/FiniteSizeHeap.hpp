@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_UTIL_FINITESIZEHEAP_HPP)
 #define LIBMAUS_UTIL_FINITESIZEHEAP_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -35,10 +35,10 @@ namespace libmaus
 			typedef _element_type element_type;
 			typedef _comparator_type comparator_type;
 			typedef FiniteSizeHeap<element_type,comparator_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;	
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;	
 			
-			libmaus::autoarray::AutoArray<element_type> H;
+			libmaus2::autoarray::AutoArray<element_type> H;
 			size_t f;
 			comparator_type comp;
 			

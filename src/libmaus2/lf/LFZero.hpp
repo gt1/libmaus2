@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,31 +21,31 @@
 #define LFZERO_HPP
 
 #include <memory>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
 
-#include <libmaus/wavelet/toWaveletTreeBits.hpp>
-#include <libmaus/wavelet/WaveletTree.hpp>
-#include <libmaus/wavelet/ImpHuffmanWaveletTree.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/rl/RLIndex.hpp>
+#include <libmaus2/wavelet/toWaveletTreeBits.hpp>
+#include <libmaus2/wavelet/WaveletTree.hpp>
+#include <libmaus2/wavelet/ImpHuffmanWaveletTree.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/rl/RLIndex.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
-		typedef ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B, uint64_t > lfz_wt_type;
-		typedef ::libmaus::wavelet::QuickWaveletTree< ::libmaus::rank::ERank222B, uint64_t > lfz_quick_wt_type;
-		typedef ::libmaus::wavelet::ImpHuffmanWaveletTree lfz_imp_huf_wt_type;
-		typedef ::libmaus::rl::RLIndex lfz_rlindex_type;
-		typedef ::libmaus::rl::RLSimpleIndex lfz_rlsimpleindex_type;
+		typedef ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B, uint64_t > lfz_wt_type;
+		typedef ::libmaus2::wavelet::QuickWaveletTree< ::libmaus2::rank::ERank222B, uint64_t > lfz_quick_wt_type;
+		typedef ::libmaus2::wavelet::ImpHuffmanWaveletTree lfz_imp_huf_wt_type;
+		typedef ::libmaus2::rl::RLIndex lfz_rlindex_type;
+		typedef ::libmaus2::rl::RLSimpleIndex lfz_rlsimpleindex_type;
 		
 		template<typename _wt_type, typename _z_array_type>
 		struct LFZeroTemplate
 		{
 			typedef LFZeroTemplate<_wt_type,_z_array_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
-			typedef typename ::libmaus::util::shared_ptr < this_type > :: type shared_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr < this_type > :: type shared_ptr_type;
 		
 			typedef _wt_type wt_type;
 			typedef typename wt_type::unique_ptr_type wt_ptr_type;
@@ -58,7 +58,7 @@ namespace libmaus
 			z_array_ptr_type PZ;
 			z_array_type const * Z;
 			uint64_t p0rank;
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 			uint64_t readlen;
 
 			uint64_t serialize(std::ostream & out)
@@ -66,19 +66,19 @@ namespace libmaus
 				uint64_t s = 0;
 				s += W->serialize(out);
 				Z->serialize(out);
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,p0rank);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,p0rank);
 				return s;
 			}
 				
-			static ::libmaus::autoarray::AutoArray<uint64_t> computeD(wt_type const * W)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> computeD(wt_type const * W)
 			{
-				::libmaus::autoarray::AutoArray<int64_t> syms = W->getSymbolArray();
+				::libmaus2::autoarray::AutoArray<int64_t> syms = W->getSymbolArray();
 				
 				if ( syms.size() )
 				{
 					std::sort(syms.begin(),syms.end());
 					int64_t const maxsym = syms[syms.size()-1];
-					::libmaus::autoarray::AutoArray<uint64_t> D(maxsym+1);
+					::libmaus2::autoarray::AutoArray<uint64_t> D(maxsym+1);
 					for ( uint64_t i = 0; i < syms.size(); ++i )
 						D [ syms[i] ] = W->rank(syms[i],W->getN()-1);
 					D.prefixSums();
@@ -86,7 +86,7 @@ namespace libmaus
 				}
 				else
 				{
-					return ::libmaus::autoarray::AutoArray<uint64_t>();
+					return ::libmaus2::autoarray::AutoArray<uint64_t>();
 				}				
 			}
 			
@@ -113,7 +113,7 @@ namespace libmaus
 				std::cerr << "done." << std::endl;
 				
 				std::cerr << "LFZero Loading p0rank...";
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(istr,&p0rank);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(istr,&p0rank);
 				std::cerr << "done." << std::endl;
 				
 				std::cerr << "LFZero computing D vector...";
@@ -234,7 +234,7 @@ namespace libmaus
 				return p0rank;
 			}
 			
-			bool check(::libmaus::bitio::CompactArray const * C) const
+			bool check(::libmaus2::bitio::CompactArray const * C) const
 			{
 				uint64_t const n = getN();
 				uint64_t rr = p0rank;
@@ -335,19 +335,19 @@ namespace libmaus
 			}
 		};
 
-		typedef LFZeroTemplate < lfz_wt_type, ::libmaus::autoarray::AutoArray<uint32_t> > LFZero;
+		typedef LFZeroTemplate < lfz_wt_type, ::libmaus2::autoarray::AutoArray<uint32_t> > LFZero;
 		typedef LFZeroTemplate < lfz_wt_type, lfz_wt_type > LFZeroWT;
-		typedef LFZeroTemplate < lfz_quick_wt_type, ::libmaus::autoarray::AutoArray<uint32_t> > LFZeroQuick;
+		typedef LFZeroTemplate < lfz_quick_wt_type, ::libmaus2::autoarray::AutoArray<uint32_t> > LFZeroQuick;
 		typedef LFZeroTemplate < lfz_quick_wt_type, lfz_wt_type > LFZeroQuickWT;
 
-		typedef LFZeroTemplate < lfz_imp_huf_wt_type, ::libmaus::autoarray::AutoArray<uint32_t> > LFZeroImp;
-		typedef LFZeroTemplate < lfz_imp_huf_wt_type, ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B , uint64_t > > LFZeroImpWt;
+		typedef LFZeroTemplate < lfz_imp_huf_wt_type, ::libmaus2::autoarray::AutoArray<uint32_t> > LFZeroImp;
+		typedef LFZeroTemplate < lfz_imp_huf_wt_type, ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B , uint64_t > > LFZeroImpWt;
 
-		typedef LFZeroTemplate < lfz_rlindex_type, ::libmaus::autoarray::AutoArray<uint32_t> > LFZeroRL;
-		typedef LFZeroTemplate < lfz_rlindex_type, ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B , uint64_t > > LFZeroRLWt;
+		typedef LFZeroTemplate < lfz_rlindex_type, ::libmaus2::autoarray::AutoArray<uint32_t> > LFZeroRL;
+		typedef LFZeroTemplate < lfz_rlindex_type, ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B , uint64_t > > LFZeroRLWt;
 
-		typedef LFZeroTemplate < lfz_rlsimpleindex_type, ::libmaus::autoarray::AutoArray<uint32_t> > LFZeroRLSimple;
-		typedef LFZeroTemplate < lfz_rlsimpleindex_type, ::libmaus::wavelet::WaveletTree< ::libmaus::rank::ERank222B , uint64_t > > LFZeroRLSimpleWt;
+		typedef LFZeroTemplate < lfz_rlsimpleindex_type, ::libmaus2::autoarray::AutoArray<uint32_t> > LFZeroRLSimple;
+		typedef LFZeroTemplate < lfz_rlsimpleindex_type, ::libmaus2::wavelet::WaveletTree< ::libmaus2::rank::ERank222B , uint64_t > > LFZeroRLSimpleWt;
 	}
 }
 #endif

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lcs/LocalBaseConstants.hpp>
+#include <libmaus2/lcs/LocalBaseConstants.hpp>
 
-std::ostream & libmaus::lcs::operator<<(std::ostream & out, libmaus::lcs::LocalBaseConstants::step_type const s)
+std::ostream & libmaus2::lcs::operator<<(std::ostream & out, libmaus2::lcs::LocalBaseConstants::step_type const s)
 {
 	switch ( s )
 	{

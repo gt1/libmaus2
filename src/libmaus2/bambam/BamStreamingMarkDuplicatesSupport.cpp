@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,24 +16,24 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp>
+#include <libmaus2/bambam/BamStreamingMarkDuplicatesSupport.hpp>
 
-std::ostream & libmaus::bambam::operator<<(
+std::ostream & libmaus2::bambam::operator<<(
 	std::ostream & out, 
-	libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_type const & ori
+	libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientation_type const & ori
 )
 {
 	switch ( ori )
 	{
-		case libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_FF: return out << "FF";
-		case libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_FR: return out << "FR";
-		case libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_RF: return out << "RF";
-		case libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_RR: return out << "RR";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_FF: return out << "FF";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_FR: return out << "FR";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_RF: return out << "RF";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType::pair_orientaton_RR: return out << "RR";
 		default: return out << "unknown_orientation";
 	}
 }
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & ostr, libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType const & H)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & ostr, libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType const & H)
 {
 	ostr << "PairHashKeyType(";
 	ostr << "refid=" << H.getRefId();
@@ -54,20 +54,20 @@ std::ostream & libmaus::bambam::operator<<(std::ostream & ostr, libmaus::bambam:
 	return ostr;
 }
 
-std::ostream & libmaus::bambam::operator<<(
+std::ostream & libmaus2::bambam::operator<<(
 	std::ostream & out, 
-	libmaus::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_type const & ori
+	libmaus2::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_type const & ori
 )
 {
 	switch ( ori )
 	{
-		case libmaus::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_F: return out << "F";
-		case libmaus::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_R: return out << "R";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_F: return out << "F";
+		case libmaus2::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType::fragment_orientation_R: return out << "R";
 		default: return out << "unknown_orientation";
 	}
 }
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & ostr, libmaus::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType const & H)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & ostr, libmaus2::bambam::BamStreamingMarkDuplicatesSupport::FragmentHashKeyType const & H)
 {
 	ostr << "FragmentHashKeyType(";
 	ostr << "refid=" << H.getRefId();
@@ -83,7 +83,7 @@ std::ostream & libmaus::bambam::operator<<(std::ostream & ostr, libmaus::bambam:
 	return ostr;
 }
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::BamStreamingMarkDuplicatesSupport::OpticalInfoListNode const & O)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::BamStreamingMarkDuplicatesSupport::OpticalInfoListNode const & O)
 {
 	out << "OpticalInfoListNode(";
 	
@@ -93,9 +93,9 @@ std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::
 	return out;
 }
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::BamStreamingMarkDuplicatesSupport::OpticalExternalInfoElement const & O)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::BamStreamingMarkDuplicatesSupport::OpticalExternalInfoElement const & O)
 {
-	libmaus::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType HK(O.key);
+	libmaus2::bambam::BamStreamingMarkDuplicatesSupport::PairHashKeyType HK(O.key);
 	out << "OpticalExternalInfoElement(";
 	out << HK << ",";
 	out << O.readgroup << ",";

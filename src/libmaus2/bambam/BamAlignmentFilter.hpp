@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTFILTER_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTFILTER_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamAlignmentFilter
 		{
 			virtual ~BamAlignmentFilter() {}
-			virtual bool operator()(libmaus::bambam::BamAlignment const & algn) const = 0;
+			virtual bool operator()(libmaus2::bambam::BamAlignment const & algn) const = 0;
 		};
 	}
 }

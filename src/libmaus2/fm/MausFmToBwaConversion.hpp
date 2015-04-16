@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #define LIBMAUS_FM_MAUSFMTOBWACONVERSION_HPP
 
 #include <string>
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fm
 	{
@@ -33,13 +33,13 @@ namespace libmaus
 			/*
 			 * load cumulative symbol frequences for 5 symbol alphabet (4 regular symbols + 1 terminator symbol)
 			 */
-			static ::libmaus::autoarray::AutoArray<uint64_t> loadL2T(std::string const & infn);
+			static ::libmaus2::autoarray::AutoArray<uint64_t> loadL2T(std::string const & infn);
 
 			/**
 			 * load cumulative symbol frequences for 5 symbol alphabet (1 terminator symbol + 4 regular symbols)
 			 * and remove terminator symbol
 			 **/
-			static ::libmaus::autoarray::AutoArray<uint64_t> loadL2(std::string const & infn);
+			static ::libmaus2::autoarray::AutoArray<uint64_t> loadL2(std::string const & infn);
 
 			/**
 			 * load ISA[0]

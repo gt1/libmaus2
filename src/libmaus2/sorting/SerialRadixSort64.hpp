@@ -25,10 +25,10 @@ THE SOFTWARE.
 #if ! defined(LIBMAUS_SORTING_SERIALRADIXSORT64_HPP)
 #define LIBMAUS_SORTING_SERIALRADIXSORT64_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace sorting
 	{
@@ -43,7 +43,7 @@ namespace libmaus
 			static inline uint64_t u8_5(data_type const & v, projector_type const & p) { return (((p(v)) >> 55) & 0x7FFULL); }
 
 			static inline void radixSort(
-				::libmaus::autoarray::AutoArray < data_type > & Areader, 
+				::libmaus2::autoarray::AutoArray < data_type > & Areader, 
 				uint64_t const n,
 				projector_type const & p
 			)
@@ -63,7 +63,7 @@ namespace libmaus
 				// if (n < HIST_SIZE) { std::sort(reader,reader+n); return; }
 				
 				/* allocate 6 lists of HIST_SIZE elements */
-				::libmaus::autoarray::AutoArray< uint64_t > Ab0(6 * HIST_SIZE, false);
+				::libmaus2::autoarray::AutoArray< uint64_t > Ab0(6 * HIST_SIZE, false);
 				uint64_t * const b0   = Ab0.get();
 				uint64_t * const b1   = b0 + HIST_SIZE;
 				uint64_t * const b2   = b1 + HIST_SIZE;
@@ -97,7 +97,7 @@ namespace libmaus
 					tsum  = b5[j] + sum5; b5[j] = sum5 - 1; sum5  = tsum;
 				}
 
-				::libmaus::autoarray::AutoArray< data_type > Awriter(n,false);
+				::libmaus2::autoarray::AutoArray< data_type > Awriter(n,false);
 				data_type *writer = Awriter.get();
 
 				/* sort */
@@ -122,7 +122,7 @@ namespace libmaus
 				// if (n < HIST_SIZE) { std::sort(reader,reader+n); return; }
 				
 				/* allocate 6 lists of HIST_SIZE elements */
-				::libmaus::autoarray::AutoArray< uint64_t > Ab0(6 * HIST_SIZE, false);
+				::libmaus2::autoarray::AutoArray< uint64_t > Ab0(6 * HIST_SIZE, false);
 				uint64_t * const b0   = Ab0.get();
 				uint64_t * const b1   = b0 + HIST_SIZE;
 				uint64_t * const b2   = b1 + HIST_SIZE;

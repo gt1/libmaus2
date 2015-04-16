@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/parallel/TerminatableSynchronousReorderSet.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousReorderSet.hpp>
 #include <iostream>
 
 void testSynchronousReorderSet()
 {
 	try
 	{
-		::libmaus::parallel::TerminatableSynchronousReorderSet<uint64_t> TSH;
+		::libmaus2::parallel::TerminatableSynchronousReorderSet<uint64_t> TSH;
 		TSH.enque(0,5);
 		TSH.enque(1,3);
 		TSH.enque(2,4);

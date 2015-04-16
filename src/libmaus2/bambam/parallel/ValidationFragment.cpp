@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/parallel/ValidationFragment.hpp>
+#include <libmaus2/bambam/parallel/ValidationFragment.hpp>
 
-std::ostream & libmaus::bambam::parallel::operator<<(std::ostream & out, libmaus::bambam::parallel::ValidationFragment const & V)
+std::ostream & libmaus2::bambam::parallel::operator<<(std::ostream & out, libmaus2::bambam::parallel::ValidationFragment const & V)
 {
 	out << "ValidationFragment(id=" << V.buffer->id << ",low=" << V.low << ",high=" << V.high << ")";
 	return out;

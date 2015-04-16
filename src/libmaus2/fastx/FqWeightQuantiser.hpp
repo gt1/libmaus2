@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_FASTX_FQWEIGHTQUANTISER_HPP)
 #define LIBMAUS_FASTX_FQWEIGHTQUANTISER_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_KMLOCAL)
-#include <libmaus/quantisation/ClusterComputation.hpp>
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/fastx/Phred.hpp>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/lz/BufferedGzipStream.hpp>
-#include <libmaus/fastx/StreamFastQReader.hpp>
+#include <libmaus2/quantisation/ClusterComputation.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/fastx/Phred.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/lz/BufferedGzipStream.hpp>
+#include <libmaus2/fastx/StreamFastQReader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -38,13 +38,13 @@ namespace libmaus
 
 		struct FqWeightQuantiser
 		{
-			::libmaus::util::ArgInfo const nullarginfo;
-			::libmaus::quantisation::Quantiser::unique_ptr_type const uquant;
-			::libmaus::quantisation::Quantiser const & quant;
+			::libmaus2::util::ArgInfo const nullarginfo;
+			::libmaus2::quantisation::Quantiser::unique_ptr_type const uquant;
+			::libmaus2::quantisation::Quantiser const & quant;
 			double psnr;
-			::libmaus::autoarray::AutoArray<uint8_t> const rephredTable;
-			::libmaus::autoarray::AutoArray<uint8_t> const phredForQuant;
-			::libmaus::autoarray::AutoArray<uint8_t> const quantForPhred;
+			::libmaus2::autoarray::AutoArray<uint8_t> const rephredTable;
+			::libmaus2::autoarray::AutoArray<uint8_t> const phredForQuant;
+			::libmaus2::autoarray::AutoArray<uint8_t> const quantForPhred;
 			
 			uint64_t byteSize() const
 			{
@@ -71,7 +71,7 @@ namespace libmaus
 			}
 			
 			static int getQualityOffset(
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::vector<std::string> const & filenames,
 				std::ostream * logstr = 0
 			)
@@ -86,9 +86,9 @@ namespace libmaus
 				{
 					for ( uint64_t f = 0; (!fqoffset) && f < filenames.size(); ++f )
 					{
-						libmaus::aio::CheckedInputStream CIS(filenames[f]);
-						libmaus::lz::BufferedGzipStream BGS(CIS);
-						libmaus::fastx::StreamFastQReaderWrapper fqin(BGS);
+						libmaus2::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus2::lz::BufferedGzipStream BGS(CIS);
+						libmaus2::fastx::StreamFastQReaderWrapper fqin(BGS);
 						fqoffset = fqin.getOffset();
 					}
 					
@@ -102,7 +102,7 @@ namespace libmaus
 				}
 				else
 				{
-					fqoffset = fqoffset ? fqoffset : ::libmaus::fastx::FastQReader::getOffset(filenames);
+					fqoffset = fqoffset ? fqoffset : ::libmaus2::fastx::FastQReader::getOffset(filenames);
 						
 					if ( logstr )
 					{
@@ -115,7 +115,7 @@ namespace libmaus
 
 				if ( ! fqoffset )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unable to guess fastq quality format offset." << std::endl;
 					se.finish();
 					throw se;
@@ -125,7 +125,7 @@ namespace libmaus
 			}
 
 			static std::map<uint64_t,uint64_t> getFastQWeightHistogram(
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::vector<std::string> const & filenames,
 				std::ostream * logstr = 0
 			)
@@ -140,16 +140,16 @@ namespace libmaus
 				if ( logstr )
 					(*logstr) << "Computing weight histogram from " 
 						<< ((fqmax == std::numeric_limits<uint64_t>::max()) ? std::string("all") :
-							::libmaus::util::NumberSerialisation::formatNumber(fqmax,0))
+							::libmaus2::util::NumberSerialisation::formatNumber(fqmax,0))
 						<< " reads, offset=" << fqoffset << "...";
 				
-				::libmaus::autoarray::AutoArray<unsigned int> qtab(256);
+				::libmaus2::autoarray::AutoArray<unsigned int> qtab(256);
 				for ( uint64_t i = 0; i < 40; ++i )
 					qtab[i] = i;
 				for ( uint64_t i = 40; i < qtab.size(); ++i )
 					qtab[i] = 40;
 				
-				::libmaus::util::Histogram hist;
+				::libmaus2::util::Histogram hist;
 
 				if ( gzinput )
 				{
@@ -157,10 +157,10 @@ namespace libmaus
 					
 					for ( uint64_t f = 0; decoded < fqmax && f < filenames.size(); ++f )
 					{
-						libmaus::aio::CheckedInputStream CIS(filenames[f]);
-						libmaus::lz::BufferedGzipStream BGS(CIS);
-						libmaus::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
-						::libmaus::fastx::StreamFastQReaderWrapper::pattern_type pattern;
+						libmaus2::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus2::lz::BufferedGzipStream BGS(CIS);
+						libmaus2::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
+						::libmaus2::fastx::StreamFastQReaderWrapper::pattern_type pattern;
 
 						while ( fqin.getNextPatternUnlocked(pattern) && decoded++ < fqmax )
 						{
@@ -177,8 +177,8 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::fastx::FastQReader reader(filenames,fqoffset);
-					::libmaus::fastx::FastQReader::pattern_type pattern;
+					::libmaus2::fastx::FastQReader reader(filenames,fqoffset);
+					::libmaus2::fastx::FastQReader::pattern_type pattern;
 					while ( reader.getNextPatternUnlocked(pattern) && pattern.patid < fqmax )
 					{
 						uint8_t const * q = reinterpret_cast<uint8_t const *>(pattern.quality.c_str());
@@ -245,7 +245,7 @@ namespace libmaus
 				std::vector<double>::iterator p = VQ.begin();
 				for ( std::map < uint64_t, uint64_t >::const_iterator ita = Qfreq.begin(); ita != Qfreq.end(); ++ita )
 				{
-					double const err = ::libmaus::fastx::Phred::phred_error[ita->first];
+					double const err = ::libmaus2::fastx::Phred::phred_error[ita->first];
 					for ( uint64_t i = 0; i < ita->second; ++i )
 						*(p++) = err;
 				}
@@ -259,7 +259,7 @@ namespace libmaus
 			}
 
 			static double computePsnr(
-				::libmaus::quantisation::Quantiser const & quant,
+				::libmaus2::quantisation::Quantiser const & quant,
 				std::map<uint64_t,uint64_t> const & weighthistogram
 			)
 			{
@@ -273,7 +273,7 @@ namespace libmaus
 					uint64_t const v = ita->first;
 					uint64_t const c = ita->second;
 
-					maxphred = std::max(maxphred,::libmaus::fastx::Phred::phred_error[v]);				
+					maxphred = std::max(maxphred,::libmaus2::fastx::Phred::phred_error[v]);				
 					mse += c * squaredError(quant,v);
 				}
 				mse /= total;
@@ -284,23 +284,23 @@ namespace libmaus
 				return psnr;			
 			}
 			
-			::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiser(
-				::libmaus::util::ArgInfo const & arginfo,
+			::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
+				::libmaus2::util::ArgInfo const & arginfo,
 				uint64_t const numsteps,
 				std::vector<double> const & VQ
 				)
 			{
-				::libmaus::quantisation::Quantiser::unique_ptr_type uquant = 
+				::libmaus2::quantisation::Quantiser::unique_ptr_type uquant = 
 					UNIQUE_PTR_MOVE(
-						::libmaus::quantisation::ClusterComputation::constructQuantiser(
+						::libmaus2::quantisation::ClusterComputation::constructQuantiser(
 							VQ,numsteps,arginfo.getValue<uint64_t>("fqquantruns",5000)
 						)
 					);
 				return UNIQUE_PTR_MOVE(uquant);	
 			}
 
-			::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiser(
-				::libmaus::util::ArgInfo const & arginfo,
+			::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
+				::libmaus2::util::ArgInfo const & arginfo,
 				uint64_t const numsteps,
 				std::map < uint64_t, uint64_t > const & Qfreq
 				)
@@ -309,8 +309,8 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(constructQuantiser(arginfo,numsteps,VQ));
 			}
 
-			::libmaus::quantisation::Quantiser::unique_ptr_type constructQuantiser(
-				::libmaus::util::ArgInfo const & arginfo,
+			::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
+				::libmaus2::util::ArgInfo const & arginfo,
 				uint64_t const numsteps,
 				std::vector<std::string> const & filenames,
 				std::ostream * logstr = 0
@@ -326,7 +326,7 @@ namespace libmaus
 					for ( std::map<uint64_t,uint64_t>::const_iterator ita = weighthistogram.begin(); ita != weighthistogram.end(); ++ita )
 					{
 						uint64_t const weight = ita->first;
-						double const phred = ::libmaus::fastx::Phred::phred_error[weight];
+						double const phred = ::libmaus2::fastx::Phred::phred_error[weight];
 						VQ.push_back(phred);
 					}
 					
@@ -336,7 +336,7 @@ namespace libmaus
 					{
 						*logstr << "Constructing quantiser for " << VQ.size() << " steps...";
 					}
-					::libmaus::quantisation::Quantiser::unique_ptr_type ptr = 
+					::libmaus2::quantisation::Quantiser::unique_ptr_type ptr = 
 						UNIQUE_PTR_MOVE(constructQuantiser(arginfo,VQ.size(),VQ));
 						
 					psnr = computePsnr(*ptr,weighthistogram);
@@ -358,7 +358,7 @@ namespace libmaus
 					{
 						*logstr << "Constructing quantiser for " << numsteps << " steps...";
 					}
-					::libmaus::quantisation::Quantiser::unique_ptr_type ptr = 
+					::libmaus2::quantisation::Quantiser::unique_ptr_type ptr = 
 						UNIQUE_PTR_MOVE(constructQuantiser(arginfo,numsteps,Qfreq));
 						
 					psnr = computePsnr(*ptr,weighthistogram);
@@ -374,7 +374,7 @@ namespace libmaus
 			
 			FqWeightQuantiser() 
 			  : nullarginfo(std::vector<std::string>(1,"<prog>")),
-			    uquant(UNIQUE_PTR_MOVE(new ::libmaus::quantisation::Quantiser(std::vector<double>(0)))),
+			    uquant(UNIQUE_PTR_MOVE(new ::libmaus2::quantisation::Quantiser(std::vector<double>(0)))),
 			    quant(*uquant),
 			    rephredTable(0),
 			    phredForQuant(0),
@@ -384,7 +384,7 @@ namespace libmaus
 			FqWeightQuantiser(
 				std::vector<std::string> const & filenames,
 				uint64_t const numsteps,
-				::libmaus::util::ArgInfo const * rarginfo = 0,
+				::libmaus2::util::ArgInfo const * rarginfo = 0,
 				std::ostream * logstr = 0
 			) : nullarginfo(std::vector<std::string>(1,"<prog>")),
 			    uquant(UNIQUE_PTR_MOVE(constructQuantiser(rarginfo ? *rarginfo : nullarginfo, numsteps, filenames, logstr))),
@@ -400,7 +400,7 @@ namespace libmaus
 			FqWeightQuantiser(
 				std::vector<double> const & VQ,
 				uint64_t const numsteps,
-				::libmaus::util::ArgInfo const * rarginfo = 0
+				::libmaus2::util::ArgInfo const * rarginfo = 0
 			) : nullarginfo(std::vector<std::string>(1,"<prog>")),
 			    uquant(UNIQUE_PTR_MOVE(constructQuantiser(rarginfo ? *rarginfo : nullarginfo, numsteps, VQ))),
 			    quant(*uquant),
@@ -414,7 +414,7 @@ namespace libmaus
 				quant.serialise(ostr);
 				std::istringstream istr(ostr.str());
 				
-				::libmaus::quantisation::Quantiser requant(istr);
+				::libmaus2::quantisation::Quantiser requant(istr);
 				
 				std::cerr << "----AAA----\n";
 				std::cerr << quant;
@@ -426,12 +426,12 @@ namespace libmaus
 			template<typename stream_type>
 			FqWeightQuantiser(stream_type & in)
 			: nullarginfo(std::vector<std::string>(1,"<prog>")),
-			  uquant(new ::libmaus::quantisation::Quantiser(in)),
+			  uquant(new ::libmaus2::quantisation::Quantiser(in)),
 			  quant(*uquant),
-			  psnr(::libmaus::util::NumberSerialisation::deserialiseDouble(in)),
-			  rephredTable(quant.size() ? getPhredMappingTable() : ::libmaus::autoarray::AutoArray<uint8_t>() ),
-			  phredForQuant(quant.size() ? getPhredForQuantTable() : ::libmaus::autoarray::AutoArray<uint8_t>() ),
-			  quantForPhred(quant.size() ? getQuantForPhredTable() : ::libmaus::autoarray::AutoArray<uint8_t>() )
+			  psnr(::libmaus2::util::NumberSerialisation::deserialiseDouble(in)),
+			  rephredTable(quant.size() ? getPhredMappingTable() : ::libmaus2::autoarray::AutoArray<uint8_t>() ),
+			  phredForQuant(quant.size() ? getPhredForQuantTable() : ::libmaus2::autoarray::AutoArray<uint8_t>() ),
+			  quantForPhred(quant.size() ? getQuantForPhredTable() : ::libmaus2::autoarray::AutoArray<uint8_t>() )
 			{
 			
 			}
@@ -439,7 +439,7 @@ namespace libmaus
 			void serialise(std::ostream & out) const
 			{
 				quant.serialise(out);
-				::libmaus::util::NumberSerialisation::serialiseDouble(out,psnr);
+				::libmaus2::util::NumberSerialisation::serialiseDouble(out,psnr);
 			}
 			
 			std::string serialise() const
@@ -458,7 +458,7 @@ namespace libmaus
 			// quantise phred
 			uint64_t operator()(uint64_t const v) const
 			{
-				return quant(::libmaus::fastx::Phred::phred_error[v]);
+				return quant(::libmaus2::fastx::Phred::phred_error[v]);
 			}
 			
 			// decode
@@ -468,9 +468,9 @@ namespace libmaus
 				return quant[v];
 			}
 			
-			static double squaredError(::libmaus::quantisation::Quantiser const & quantiser, uint64_t const v)
+			static double squaredError(::libmaus2::quantisation::Quantiser const & quantiser, uint64_t const v)
 			{
-				double const phred = ::libmaus::fastx::Phred::phred_error[v];
+				double const phred = ::libmaus2::fastx::Phred::phred_error[v];
 				uint64_t const quant = quantiser(phred);
 				double const decoded = quantiser[quant];
 				double const diff = (decoded-phred);
@@ -489,12 +489,12 @@ namespace libmaus
 				
 				for ( 
 					uint64_t i = 0; 
-					i < sizeof(::libmaus::fastx::Phred::phred_error)
-					   /sizeof(::libmaus::fastx::Phred::phred_error[0]); 
+					i < sizeof(::libmaus2::fastx::Phred::phred_error)
+					   /sizeof(::libmaus2::fastx::Phred::phred_error[0]); 
 					++i 
 				)
 				{
-					double const lerr = std::abs(prob-::libmaus::fastx::Phred::phred_error[i]);
+					double const lerr = std::abs(prob-::libmaus2::fastx::Phred::phred_error[i]);
 					if ( lerr < minerr )
 					{
 						minerr = lerr;
@@ -510,25 +510,25 @@ namespace libmaus
 				return getClosestPhredForProb(quant[q]);
 			}
 			
-			::libmaus::autoarray::AutoArray<uint8_t> getPhredForQuantTable() const
+			::libmaus2::autoarray::AutoArray<uint8_t> getPhredForQuantTable() const
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> T(quant.size(),false);
+				::libmaus2::autoarray::AutoArray<uint8_t> T(quant.size(),false);
 				for ( uint64_t i = 0; i < quant.size(); ++i )
 					T[i] = getClosestPhredForQuant(i);
 				return T;
 			}
 			
-			::libmaus::autoarray::AutoArray<uint8_t> getQuantForPhredTable() const
+			::libmaus2::autoarray::AutoArray<uint8_t> getQuantForPhredTable() const
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> T(256,false);
+				::libmaus2::autoarray::AutoArray<uint8_t> T(256,false);
 				for ( uint64_t i = 0; i < T.size(); ++i )
 					T[i] = (*this)(i);
 				return T;
 			}
 
-			::libmaus::autoarray::AutoArray<uint8_t> getPhredMappingTable() const
+			::libmaus2::autoarray::AutoArray<uint8_t> getPhredMappingTable() const
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> T(256,false);
+				::libmaus2::autoarray::AutoArray<uint8_t> T(256,false);
 				
 				for ( uint64_t i = 0; i < T.size(); ++i )
 				{
@@ -548,13 +548,13 @@ namespace libmaus
 					logstr
 						<< "q=" << q << " quant[q]=" << quant[q]
 						<< " closest phred=" << getClosestPhredForQuant(q)
-						<< " phred val=" << ::libmaus::fastx::Phred::phred_error[getClosestPhredForQuant(q)] << std::endl;
+						<< " phred val=" << ::libmaus2::fastx::Phred::phred_error[getClosestPhredForQuant(q)] << std::endl;
 				}
 			}
 			
 			static void rephredFastq(
 				std::vector<std::string> const & filenames,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::ostream * logstr = 0
 			)
 			{
@@ -563,7 +563,7 @@ namespace libmaus
 
 			static void rephredFastq(
 				std::vector<std::string> const & filenames,
-				::libmaus::util::ArgInfo const & arginfo,
+				::libmaus2::util::ArgInfo const & arginfo,
 				std::ostream & out,
 				std::ostream * logstr = 0
 			)
@@ -580,10 +580,10 @@ namespace libmaus
 				{
 					for ( uint64_t f = 0; f < filenames.size(); ++f )
 					{
-						libmaus::aio::CheckedInputStream CIS(filenames[f]);
-						libmaus::lz::BufferedGzipStream BGS(CIS);
-						libmaus::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
-						::libmaus::fastx::StreamFastQReader::pattern_type pattern;
+						libmaus2::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus2::lz::BufferedGzipStream BGS(CIS);
+						libmaus2::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
+						::libmaus2::fastx::StreamFastQReader::pattern_type pattern;
 
 						while ( fqin.getNextPatternUnlocked(pattern) )
 						{
@@ -594,8 +594,8 @@ namespace libmaus
 				}
 				else
 				{				
-					::libmaus::fastx::FastQReader reader(filenames,fqoffset);
-					::libmaus::fastx::FastQReader::pattern_type pattern;
+					::libmaus2::fastx::FastQReader reader(filenames,fqoffset);
+					::libmaus2::fastx::FastQReader::pattern_type pattern;
 				
 					while ( reader.getNextPatternUnlocked(pattern) )
 					{
@@ -609,7 +609,7 @@ namespace libmaus
 			
 			
 			static void statsRun(
-				::libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames,
+				::libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & filenames,
 				std::ostream & logstr
 			)
 			{
@@ -637,7 +637,7 @@ namespace libmaus
 						uint64_t const v = ita->first;
 						uint64_t const c = ita->second;
 						
-						double const phred = ::libmaus::fastx::Phred::phred_error[v]; // computed phred
+						double const phred = ::libmaus2::fastx::Phred::phred_error[v]; // computed phred
 						double const dec = fqwq.quant[fqwq.quant(phred)]; // quantise and decode
 						double const lerr = std::sqrt(((dec-phred)*(dec-phred)));
 						err += lerr * c;
@@ -652,7 +652,7 @@ namespace libmaus
 					logstr << "numsteps " << numsteps << " averge error " << err/total << " psnr " << psnr << std::endl;
 
 					fqwq.printClosestPhred(logstr);
-					::libmaus::autoarray::AutoArray<uint8_t> T = fqwq.getPhredMappingTable();
+					::libmaus2::autoarray::AutoArray<uint8_t> T = fqwq.getPhredMappingTable();
 					
 					logstr << "\n";					
 				}

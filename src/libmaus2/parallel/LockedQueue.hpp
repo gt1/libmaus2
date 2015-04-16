@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if !defined(LIBMAUS_PARALLEL_LOCKEDQUEUE_HPP)
 #define LIBMAUS_PARALLEL_LOCKEDQUEUE_HPP
 
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #include <deque>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{	
@@ -31,10 +31,10 @@ namespace libmaus
 		{
 			typedef _value_type value_type;
 			typedef LockedQueue<value_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus::parallel::PosixSpinLock lock;
+			libmaus2::parallel::PosixSpinLock lock;
 			std::deque<value_type> Q;
 			
 			LockedQueue()
@@ -43,7 +43,7 @@ namespace libmaus
 			
 			}
 			
-			libmaus::parallel::PosixSpinLock & getLock()
+			libmaus2::parallel::PosixSpinLock & getLock()
 			{
 				return lock;
 			}
@@ -60,19 +60,19 @@ namespace libmaus
 			
 			uint64_t size()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.size();
 			}
 			
 			bool empty()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.size() == 0;	
 			}
 			
 			void push_back(value_type const v)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				Q.push_back(v);
 			}
 
@@ -83,38 +83,38 @@ namespace libmaus
 
 			uint64_t push_back_and_size(value_type const v)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				Q.push_back(v);
 				return Q.size();
 			}
 
 			void push_front(value_type const v)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				Q.push_front(v);
 			}
 
 			void pop_back()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				Q.pop_back();
 			}
 
 			void pop_front()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				Q.pop_front();
 			}
 
 			value_type front()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.front();
 			}
 
 			value_type back()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				return Q.back();
 			}
 
@@ -140,7 +140,7 @@ namespace libmaus
 
 			value_type dequeFront()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				value_type const v = Q.front();
 				Q.pop_front();
 				return v;
@@ -155,7 +155,7 @@ namespace libmaus
 			
 			bool tryDequeFront(value_type & v)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( Q.size() )
 				{
 					v = Q.front();
@@ -170,7 +170,7 @@ namespace libmaus
 			
 			uint64_t tryDequeFront(std::vector<value_type> & V, uint64_t max)
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				while ( max-- && Q.size() )
 				{
 					V.push_back(Q.front());
@@ -181,7 +181,7 @@ namespace libmaus
 
 			value_type dequeBack()
 			{
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				value_type const v = Q.back();
 				Q.pop_back();
 				return v;

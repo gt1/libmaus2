@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,21 +20,21 @@
 #if ! defined(INTERVALTREE_HPP)
 #define INTERVALTREE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 #include <vector>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct IntervalTree
 		{
 			typedef IntervalTree this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			unique_ptr_type leftchild;
 			unique_ptr_type rightchild;
@@ -44,7 +44,7 @@ namespace libmaus
 			bool isLeaf() const;
 
 			IntervalTree(
-				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
+				::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const & H,
 				uint64_t const ileft,
 				uint64_t const iright,
 				bool const check = true

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,11 +23,11 @@
 
 #include <limits>
 #include <sstream>
-#include <libmaus/bitio/BitIO.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/math/MetaLog.hpp>
+#include <libmaus2/bitio/BitIO.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/math/MetaLog.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -44,7 +44,7 @@ namespace libmaus
 
 				typedef typename std::iterator_traits<iterator>::value_type value_type;
 				unsigned int const bcnt = 8 * sizeof(value_type);
-				unsigned int const bshf = ::libmaus::math::MetaLog2<bcnt>::log;
+				unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 				unsigned int const bmsk = (1ul<<bshf)-1ul;
 
 				uint64_t byteSkip = (offset >> bshf);
@@ -92,7 +92,7 @@ namespace libmaus
 				// bits in value type = 64
 				unsigned int const bcnt = 8 * sizeof(value_type);
 				// log 64 = 6
-				unsigned int const bshf = ::libmaus::math::MetaLog2<bcnt>::log;
+				unsigned int const bshf = ::libmaus2::math::MetaLog2<bcnt>::log;
 				// bitmask 63
 				uint64_t const bmsk = (1ull << bshf)-1;
 

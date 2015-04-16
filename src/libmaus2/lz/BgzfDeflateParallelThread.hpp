@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATEPARALLELTHREAD_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATEPARALLELTHREAD_HPP
 
-#include <libmaus/lz/BgzfDeflateBase.hpp>
-#include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
-#include <libmaus/parallel/TerminatableSynchronousHeap.hpp>
-#include <libmaus/parallel/PosixThread.hpp>
-#include <libmaus/parallel/OMPNumThreadsScope.hpp>
-#include <libmaus/lz/BgzfDeflateBlockIdInfo.hpp>
-#include <libmaus/lz/BgzfDeflateBlockIdComparator.hpp>
-#include <libmaus/lz/BgzfDeflateParallelContext.hpp>
-#include <libmaus/lz/BgzfThreadOpBase.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/lz/BgzfDeflateBase.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousHeap.hpp>
+#include <libmaus2/parallel/PosixThread.hpp>
+#include <libmaus2/parallel/OMPNumThreadsScope.hpp>
+#include <libmaus2/lz/BgzfDeflateBlockIdInfo.hpp>
+#include <libmaus2/lz/BgzfDeflateBlockIdComparator.hpp>
+#include <libmaus2/lz/BgzfDeflateParallelContext.hpp>
+#include <libmaus2/lz/BgzfThreadOpBase.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct BgzfDeflateParallelThread : public libmaus::parallel::PosixThread, public libmaus::lz::BgzfThreadOpBase
+		struct BgzfDeflateParallelThread : public libmaus2::parallel::PosixThread, public libmaus2::lz::BgzfThreadOpBase
 		{
 			typedef BgzfDeflateParallelThread this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			BgzfDeflateParallelContext & deflatecontext;
 			
@@ -65,23 +65,23 @@ namespace libmaus
 						break;
 					}
 
-					libmaus_lz_bgzf_op_type op = defglob.op;
+					libmaus2_lz_bgzf_op_type op = defglob.op;
 					uint64_t objectid = 0;
 					
 					{
-						libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
+						libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
 						
 						switch ( op )
 						{
-							case libmaus_lz_bgzf_op_compress_block:
+							case libmaus2_lz_bgzf_op_compress_block:
 								objectid = deflatecontext.deflatecompqueue.front();
 								deflatecontext.deflatecompqueue.pop_front();
 								break;
-							case libmaus_lz_bgzf_op_write_block:
+							case libmaus2_lz_bgzf_op_write_block:
 							{
 								BgzfThreadQueueElement const btqe = deflatecontext.deflatewritequeue.deque();
 								objectid = btqe.objectid;
-								libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
+								libmaus2::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
 								assert ( deflatecontext.deflateB[objectid]->blockid == deflatecontext.deflatenextwriteid );
 								break;
 							}
@@ -89,12 +89,12 @@ namespace libmaus
 								break;
 						}
 
-						assert ( op != libmaus_lz_bgzf_op_none );
+						assert ( op != libmaus2_lz_bgzf_op_none );
 					}					
 					
 					switch ( op )
 					{
-						case libmaus_lz_bgzf_op_compress_block:
+						case libmaus2_lz_bgzf_op_compress_block:
 						{
 							try
 							{
@@ -103,14 +103,14 @@ namespace libmaus
 								deflatecontext.deflateB[objectid]->compsize = BDZSBFI.getCompressedSize();
 								deflatecontext.deflateB[objectid]->flushinfo = BDZSBFI;
 							}
-							catch(libmaus::exception::LibMausException const & ex)
+							catch(libmaus2::exception::LibMausException const & ex)
 							{								
-								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+								libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
 					
 								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
 								{
 									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
-									libmaus::exception::LibMausException::unique_ptr_type tex(ex.uclone());
+									libmaus2::exception::LibMausException::unique_ptr_type tex(ex.uclone());
 									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 								}
 								
@@ -119,17 +119,17 @@ namespace libmaus
 							}
 							catch(std::exception const & ex)
 							{
-								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+								libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
 
 								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 0 < deflatecontext.deflateexceptionid )
 								{
 									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 0;
 								
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << ex.what() << std::endl;
 									se.finish();
 
-									libmaus::exception::LibMausException::unique_ptr_type tex(se.uclone());
+									libmaus2::exception::LibMausException::unique_ptr_type tex(se.uclone());
 									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 								}
 								
@@ -137,10 +137,10 @@ namespace libmaus
 								deflatecontext.deflateB[objectid]->flushinfo = BgzfDeflateZStreamBaseFlushInfo();
 							}
 
-							libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
+							libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateqlock);
 							deflatecontext.deflatewritequeue.enque(
 								BgzfThreadQueueElement(
-									libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_write_block,
+									libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_write_block,
 									objectid,
 									deflatecontext.deflateB[objectid]->blockid
 								),
@@ -148,9 +148,9 @@ namespace libmaus
 							);
 							break;
 						}
-						case libmaus_lz_bgzf_op_write_block:
+						case libmaus2_lz_bgzf_op_write_block:
 						{
-							libmaus::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
+							libmaus2::parallel::ScopePosixMutex O(deflatecontext.deflateoutlock);
 							try
 							{
 								#if 0
@@ -178,7 +178,7 @@ namespace libmaus
 								#if 0 // this test is done in streamWrite()
 								if ( ! deflatecontext.deflateout )
 								{
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << "BgzfDeflateParallel: output error on output stream." << std::endl;
 									se.finish();
 									throw se;
@@ -193,42 +193,42 @@ namespace libmaus
 									}
 									else if ( deflatecontext.deflateB[objectid]->flushinfo.blocks == 1 )
 									{
-										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_u,*(deflatecontext.deflateindexstr));
-										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_c,*(deflatecontext.deflateindexstr));
+										libmaus2::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_u,*(deflatecontext.deflateindexstr));
+										libmaus2::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_c,*(deflatecontext.deflateindexstr));
 									}
 									else if ( deflatecontext.deflateB[objectid]->flushinfo.blocks == 2 )
 									{
-										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_u,*(deflatecontext.deflateindexstr));
-										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_c,*(deflatecontext.deflateindexstr));
-										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_b_u,*(deflatecontext.deflateindexstr));
-										libmaus::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_b_c,*(deflatecontext.deflateindexstr));
+										libmaus2::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_u,*(deflatecontext.deflateindexstr));
+										libmaus2::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_a_c,*(deflatecontext.deflateindexstr));
+										libmaus2::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_b_u,*(deflatecontext.deflateindexstr));
+										libmaus2::util::UTF8::encodeUTF8(deflatecontext.deflateB[objectid]->flushinfo.block_b_c,*(deflatecontext.deflateindexstr));
 									}
 								}
 							}
-							catch(libmaus::exception::LibMausException const & ex)
+							catch(libmaus2::exception::LibMausException const & ex)
 							{								
-								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+								libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
 
 								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
 								{
 									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
-									libmaus::exception::LibMausException::unique_ptr_type tex(ex.uclone());
+									libmaus2::exception::LibMausException::unique_ptr_type tex(ex.uclone());
 									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);									
 								}
 							}
 							catch(std::exception const & ex)
 							{
-								libmaus::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
+								libmaus2::parallel::ScopePosixMutex S(deflatecontext.deflateexlock);
 
 								if ( deflatecontext.deflateB[objectid]->blockid * 2 + 1 < deflatecontext.deflateexceptionid )
 								{
 									deflatecontext.deflateexceptionid = deflatecontext.deflateB[objectid]->blockid * 2 + 1;
 								
-									libmaus::exception::LibMausException se;
+									libmaus2::exception::LibMausException se;
 									se.getStream() << ex.what() << std::endl;
 									se.finish();
 
-									libmaus::exception::LibMausException::unique_ptr_type tex(se.uclone());
+									libmaus2::exception::LibMausException::unique_ptr_type tex(se.uclone());
 
 									deflatecontext.deflatepse = UNIQUE_PTR_MOVE(tex);
 								}
@@ -237,7 +237,7 @@ namespace libmaus
 							deflatecontext.deflatenextwriteid += 1;								
 							deflatecontext.deflatewritequeue.setReadyFor(
 								BgzfThreadQueueElement(
-									libmaus::lz::BgzfThreadOpBase::libmaus_lz_bgzf_op_write_block,
+									libmaus2::lz::BgzfThreadOpBase::libmaus2_lz_bgzf_op_write_block,
 									objectid,
 									deflatecontext.deflatenextwriteid
 									),

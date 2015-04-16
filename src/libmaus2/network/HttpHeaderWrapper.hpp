@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_NETWORK_HTTPHEADERWRAPPER_HPP)
 #define LIBMAUS_NETWORK_HTTPHEADERWRAPPER_HPP
 
-#include <libmaus/network/HttpHeader.hpp>
+#include <libmaus2/network/HttpHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct HttpHeaderWrapper
 		{
 			private:
-			libmaus::network::HttpHeader object;
+			libmaus2::network::HttpHeader object;
 			
 			public:
 			HttpHeaderWrapper() : object() {}
@@ -37,7 +37,7 @@ namespace libmaus
 			HttpHeaderWrapper(std::string method, std::string addreq, std::string host, std::string path, unsigned int port = 80, bool ssl = false)
 			: object(method,addreq,host,path,port,ssl) {}
 			
-			libmaus::network::HttpHeader & getHttpHeader()
+			libmaus2::network::HttpHeader & getHttpHeader()
 			{
 				return object;
 			}

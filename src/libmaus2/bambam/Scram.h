@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,7 +20,7 @@
 #if ! defined(LIBMAUS_BAMBAM_SCRAM_H)
 #define LIBMAUS_BAMBAM_SCRAM_H
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_SYS_TYPES_H)
 #include <sys/types.h>
@@ -51,7 +51,7 @@ typedef struct {
 typedef scram_cram_io_input_t * (*scram_cram_io_allocate_read_input_t)  (char const * filename, int const decompress);
 typedef scram_cram_io_input_t * (*scram_cram_io_deallocate_read_input_t)(scram_cram_io_input_t * obj);
 
-typedef struct _libmaus_bambam_ScramDecoder
+typedef struct _libmaus2_bambam_ScramDecoder
 {
 	/** input file name */
 	char * filename;
@@ -74,17 +74,17 @@ typedef struct _libmaus_bambam_ScramDecoder
 	uint8_t const * buffer;
 	/** length of alignment block in bytes */
 	uint64_t        blocksize;
-} libmaus_bambam_ScramDecoder;
+} libmaus2_bambam_ScramDecoder;
 
-typedef struct _libmaus_bambam_ScramHeader
+typedef struct _libmaus2_bambam_ScramHeader
 {
 	/** text */
 	char * text;
 	/** header structure */
 	void * header;
-} libmaus_bambam_ScramHeader;
+} libmaus2_bambam_ScramHeader;
 
-typedef struct _libmaus_bambam_ScramEncoder
+typedef struct _libmaus2_bambam_ScramEncoder
 {
 	/** output file name */
 	char * filename;
@@ -93,7 +93,7 @@ typedef struct _libmaus_bambam_ScramEncoder
 	/** reference file name */
 	char * referencefilename;
 	/** header object */
-	libmaus_bambam_ScramHeader * header;
+	libmaus2_bambam_ScramHeader * header;
 	
 	/** scram encoder */
 	void * encoder;
@@ -102,17 +102,17 @@ typedef struct _libmaus_bambam_ScramEncoder
 	char * buffer;
 	/** size of buffer in bytes */
 	uint64_t buffersize;
-} libmaus_bambam_ScramEncoder;
+} libmaus2_bambam_ScramEncoder;
 
-typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename);
-typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Type)(
+typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Type)(char const * rfilename, char const * rmode, char const * rreferencefilename);
+typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback_Type)(
 	char const * filename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
 	size_t const bufsize,
 	char const * rreferencefilename
 );
-typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Range_Type)(
+typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Range_Type)(
 	char const * rfilename, 
 	char const * rmode, 
 	char const * rreferencefilename, 
@@ -120,7 +120,7 @@ typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Range_Ty
 	const start, 
 	int64_t const end
 );
-typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Range_Type)(
+typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback_Range_Type)(
 	char const * rfilename, 
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
@@ -130,19 +130,19 @@ typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_New_Cram_Inp
 	const start, 
 	int64_t const end
 );
-typedef libmaus_bambam_ScramDecoder *(* libmaus_bambam_ScramDecoder_Delete_Type)(libmaus_bambam_ScramDecoder * object);
-typedef int (* libmaus_bambam_ScramDecoder_Decode_Type)(libmaus_bambam_ScramDecoder * object);
+typedef libmaus2_bambam_ScramDecoder *(* libmaus2_bambam_ScramDecoder_Delete_Type)(libmaus2_bambam_ScramDecoder * object);
+typedef int (* libmaus2_bambam_ScramDecoder_Decode_Type)(libmaus2_bambam_ScramDecoder * object);
 
-typedef libmaus_bambam_ScramHeader *(* libmaus_bambam_ScramHeader_New_Type   )(char const * headertext);
-typedef libmaus_bambam_ScramHeader *(* libmaus_bambam_ScramHeader_Delete_Type)(libmaus_bambam_ScramHeader * header);
+typedef libmaus2_bambam_ScramHeader *(* libmaus2_bambam_ScramHeader_New_Type   )(char const * headertext);
+typedef libmaus2_bambam_ScramHeader *(* libmaus2_bambam_ScramHeader_Delete_Type)(libmaus2_bambam_ScramHeader * header);
 
-typedef libmaus_bambam_ScramEncoder *(* libmaus_bambam_ScramEncoder_New_Type)(
+typedef libmaus2_bambam_ScramEncoder *(* libmaus2_bambam_ScramEncoder_New_Type)(
 	char const * headertext,
 	char const * rfilename, char const * rmode, char const * rreferencefilename,
 	int const rverbose
 );
-typedef libmaus_bambam_ScramEncoder *(* libmaus_bambam_ScramEncoder_Delete_Type)(libmaus_bambam_ScramEncoder * object);
-typedef int (* libmaus_bambam_ScramEncoder_Encode_Type)(libmaus_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len);
+typedef libmaus2_bambam_ScramEncoder *(* libmaus2_bambam_ScramEncoder_Delete_Type)(libmaus2_bambam_ScramEncoder * object);
+typedef int (* libmaus2_bambam_ScramEncoder_Encode_Type)(libmaus2_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len);
 
 /**
  * allocate scram decoder
@@ -152,7 +152,7 @@ typedef int (* libmaus_bambam_ScramEncoder_Encode_Type)(libmaus_bambam_ScramEnco
  * @param rreferencefilename reference filename, null pointer for none
  * @return scram decoder object or null if creation failed
  **/
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfilename, char const * rmode, char const * rreferencefilename);
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New(char const * rfilename, char const * rmode, char const * rreferencefilename);
 /**
  * allocate CRAM decoder via callbacks
  *
@@ -163,7 +163,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New(char const * rfile
  * @param rreferencefilename reference filename, null pointer for none
  * @return scram decoder object or null if creation failed
  **/
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callback(
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback(
 	char const * filename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
@@ -181,7 +181,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
  * @param end range upper end
  * @return scram decoder object or null if creation failed
  **/
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * ref, int64_t const start, int64_t const end);
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Range(char const * rfilename, char const * rmode, char const * rreferencefilename, char const * ref, int64_t const start, int64_t const end);
 /**
  * allocate CRAM decoder via callbacks
  *
@@ -192,7 +192,7 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Range(char const *
  * @param rreferencefilename reference filename, null pointer for none
  * @return scram decoder object or null if creation failed
  **/
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callback_Range(
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_New_Cram_Input_Callback_Range(
 	char const * filename,
 	scram_cram_io_allocate_read_input_t   callback_allocate_function,
 	scram_cram_io_deallocate_read_input_t callback_deallocate_function,
@@ -208,14 +208,14 @@ libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_New_Cram_Input_Callbac
  * @param scram decoder object
  * @return null pointer
  **/
-libmaus_bambam_ScramDecoder * libmaus_bambam_ScramDecoder_Delete(libmaus_bambam_ScramDecoder * object);
+libmaus2_bambam_ScramDecoder * libmaus2_bambam_ScramDecoder_Delete(libmaus2_bambam_ScramDecoder * object);
 /**
  * decode next alignment
  *
  * @param object decoder object
  * @return 0=ok, -1=eof, -2=failure
  **/
-int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object);
+int libmaus2_bambam_ScramDecoder_Decode(libmaus2_bambam_ScramDecoder * object);
 
 /**
  * construct a header from a given text
@@ -223,14 +223,14 @@ int libmaus_bambam_ScramDecoder_Decode(libmaus_bambam_ScramDecoder * object);
  * @param headertext plain text header
  * @return scram header object
  **/
-libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_New(char const * headertext);
+libmaus2_bambam_ScramHeader * libmaus2_bambam_ScramHeader_New(char const * headertext);
 /**
  * deallocate scram header object
  *
  * @param header object
  * @return null
  **/
-libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_Delete(libmaus_bambam_ScramHeader * header);
+libmaus2_bambam_ScramHeader * libmaus2_bambam_ScramHeader_Delete(libmaus2_bambam_ScramHeader * header);
 
 /**
  * construct an encoder
@@ -240,7 +240,7 @@ libmaus_bambam_ScramHeader * libmaus_bambam_ScramHeader_Delete(libmaus_bambam_Sc
  * @param rmode file mode
  * @param rreferencefilename name of reference for cram output
  **/
-libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
+libmaus2_bambam_ScramEncoder * libmaus2_bambam_ScramEncoder_New(
 	char const * headertext,
 	char const * rfilename, 
 	char const * rmode, 
@@ -253,7 +253,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_New(
  * @param object encoder object
  * @return null
  **/
-libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_Delete(libmaus_bambam_ScramEncoder * object);
+libmaus2_bambam_ScramEncoder * libmaus2_bambam_ScramEncoder_Delete(libmaus2_bambam_ScramEncoder * object);
 /**
  * encode sequence
  *
@@ -261,7 +261,7 @@ libmaus_bambam_ScramEncoder * libmaus_bambam_ScramEncoder_Delete(libmaus_bambam_
  * @param len length of BAM block in bytes
  * @return -1 on failure
  **/
-int libmaus_bambam_ScramEncoder_Encode(libmaus_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len);
+int libmaus2_bambam_ScramEncoder_Encode(libmaus2_bambam_ScramEncoder * encoder, uint8_t const * seq, uint64_t const len);
 
 #if defined(__cplusplus)
 }

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(INDEXLOADERBASE_HPP)
 #define INDEXLOADERBASE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <fstream>
 
 #if defined(__linux__)
@@ -33,7 +33,7 @@
 #include <sys/endian.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{

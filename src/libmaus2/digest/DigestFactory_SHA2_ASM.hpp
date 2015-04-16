@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTFACTORY_SHA2_ASM_HPP)
 #define LIBMAUS_DIGEST_DIGESTFACTORY_SHA2_ASM_HPP
 
-#include <libmaus/digest/DigestFactoryInterface.hpp>
+#include <libmaus2/digest/DigestFactoryInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{
@@ -34,11 +34,11 @@ namespace libmaus
 				return getSupportedDigestsStatic();
 			}
 			
-			static libmaus::digest::DigestInterface::unique_ptr_type constructStatic(std::string const & name);
+			static libmaus2::digest::DigestInterface::unique_ptr_type constructStatic(std::string const & name);
 
-			libmaus::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const
+			libmaus2::digest::DigestInterface::unique_ptr_type construct(std::string const & name) const
 			{
-				libmaus::digest::DigestInterface::unique_ptr_type tptr(constructStatic(name));
+				libmaus2::digest::DigestInterface::unique_ptr_type tptr(constructStatic(name));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 

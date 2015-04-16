@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_AIO_INPUTSTREAMFACTORYCONTAINER_HPP)
 #define LIBMAUS_AIO_INPUTSTREAMFACTORYCONTAINER_HPP
 
-#include <libmaus/aio/InputStreamFactory.hpp>
-#include <libmaus/aio/PosixFdInputStreamFactory.hpp>
-#include <libmaus/network/UrlInputStreamFactory.hpp>
+#include <libmaus2/aio/InputStreamFactory.hpp>
+#include <libmaus2/aio/PosixFdInputStreamFactory.hpp>
+#include <libmaus2/network/UrlInputStreamFactory.hpp>
 #include <cctype>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		struct InputStreamFactoryContainer
 		{
 			private:
-			static std::map<std::string,libmaus::aio::InputStreamFactory::shared_ptr_type> factories;
+			static std::map<std::string,libmaus2::aio::InputStreamFactory::shared_ptr_type> factories;
 			
-			static std::map<std::string,libmaus::aio::InputStreamFactory::shared_ptr_type> setupFactories()
+			static std::map<std::string,libmaus2::aio::InputStreamFactory::shared_ptr_type> setupFactories()
 			{
-				std::map<std::string,libmaus::aio::InputStreamFactory::shared_ptr_type> tfactories;
+				std::map<std::string,libmaus2::aio::InputStreamFactory::shared_ptr_type> tfactories;
 				
-				libmaus::aio::PosixFdInputStreamFactory::shared_ptr_type tfilefact(new libmaus::aio::PosixFdInputStreamFactory);
+				libmaus2::aio::PosixFdInputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::PosixFdInputStreamFactory);
 				tfactories["file"] = tfilefact;
 
-				libmaus::network::UrlInputStreamFactory::shared_ptr_type turlfact(new libmaus::network::UrlInputStreamFactory);
+				libmaus2::network::UrlInputStreamFactory::shared_ptr_type turlfact(new libmaus2::network::UrlInputStreamFactory);
 				tfactories["ftp"] = turlfact;
 				tfactories["http"] = turlfact;
 				tfactories["https"] = turlfact;
@@ -80,7 +80,7 @@ namespace libmaus
 											
 					if ( factories.find(protocol) != factories.end() )
 					{
-						libmaus::aio::InputStreamFactory::shared_ptr_type factory = factories.find(protocol)->second;
+						libmaus2::aio::InputStreamFactory::shared_ptr_type factory = factories.find(protocol)->second;
 						return true;
 					}
 					else
@@ -92,7 +92,7 @@ namespace libmaus
 				return false;
 			}
 			
-			static libmaus::aio::InputStreamFactory::shared_ptr_type getFactory(std::string const & url)
+			static libmaus2::aio::InputStreamFactory::shared_ptr_type getFactory(std::string const & url)
 			{
 				if ( haveFactoryForProtocol(url) )
 				{
@@ -110,9 +110,9 @@ namespace libmaus
 			}
 			
 			public:
-			static libmaus::aio::InputStream::unique_ptr_type constructUnique(std::string const & url)
+			static libmaus2::aio::InputStream::unique_ptr_type constructUnique(std::string const & url)
 			{
-				libmaus::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
+				libmaus2::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
 				
 				if ( haveFactoryForProtocol(url) )
 				{
@@ -125,25 +125,25 @@ namespace libmaus
 					
 					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
 					{
-						libmaus::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url));
+						libmaus2::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
 					{
-						libmaus::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url.substr(protocol.size()+1)));
+						libmaus2::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url.substr(protocol.size()+1)));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 				}
 				else
 				{
-					libmaus::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url));
+					libmaus2::aio::InputStream::unique_ptr_type tptr(factory->constructUnique(url));
 					return UNIQUE_PTR_MOVE(tptr);				
 				}
 			}
 
-			static libmaus::aio::InputStream::shared_ptr_type constructShared(std::string const & url)
+			static libmaus2::aio::InputStream::shared_ptr_type constructShared(std::string const & url)
 			{
-				libmaus::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
+				libmaus2::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
 				
 				if ( haveFactoryForProtocol(url) )
 				{
@@ -156,18 +156,18 @@ namespace libmaus
 					
 					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
 					{
-						libmaus::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url));
+						libmaus2::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url));
 						return tptr;
 					}
 					else
 					{
-						libmaus::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url.substr(protocol.size()+1)));
+						libmaus2::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url.substr(protocol.size()+1)));
 						return tptr;
 					}
 				}
 				else
 				{
-					libmaus::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url));
+					libmaus2::aio::InputStream::shared_ptr_type tptr(factory->constructShared(url));
 					return tptr;
 				}
 			}
@@ -176,7 +176,7 @@ namespace libmaus
 			{
 				try
 				{
-					libmaus::aio::InputStream::shared_ptr_type tptr(constructShared(url));
+					libmaus2::aio::InputStream::shared_ptr_type tptr(constructShared(url));
 					return true;
 				}
 				catch(...)
@@ -185,7 +185,7 @@ namespace libmaus
 				}
 			}
 			
-			static void addHandler(std::string const & protocol, libmaus::aio::InputStreamFactory::shared_ptr_type factory)
+			static void addHandler(std::string const & protocol, libmaus2::aio::InputStreamFactory::shared_ptr_type factory)
 			{
 				factories[protocol] = factory;			
 			}

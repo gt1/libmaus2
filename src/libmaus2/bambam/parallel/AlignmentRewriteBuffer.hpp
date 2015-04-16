@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_ALIGNMENTREWRITEBUFFER_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
@@ -32,7 +32,7 @@ namespace libmaus
 				typedef uint64_t pointer_type;
 			
 				// data
-				libmaus::autoarray::AutoArray<uint8_t> A;
+				libmaus2::autoarray::AutoArray<uint8_t> A;
 				
 				// text (block data) insertion pointer
 				uint8_t * pA;
@@ -45,7 +45,7 @@ namespace libmaus
 				std::vector<uint64_t> blocksizes;
 	
 				uint64_t blocksCompressed;
-				libmaus::parallel::PosixSpinLock blocksCompressedLock;
+				libmaus2::parallel::PosixSpinLock blocksCompressedLock;
 	
 				std::pair<uint8_t const *,uint64_t> at(uint64_t const i) const
 				{

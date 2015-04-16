@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,16 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lru/SparseLRUFileBunch.hpp>
-#include <libmaus/lru/LRU.hpp>
-#include <libmaus/lru/FileBunchLRU.hpp>
+#include <libmaus2/lru/SparseLRUFileBunch.hpp>
+#include <libmaus2/lru/LRU.hpp>
+#include <libmaus2/lru/FileBunchLRU.hpp>
 
 void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 {
-	libmaus::autoarray::AutoArray<char> C = libmaus::autoarray::AutoArray<char>::readFile("configure.ac");
+	libmaus2::autoarray::AutoArray<char> C = libmaus2::autoarray::AutoArray<char>::readFile("configure.ac");
 	uint64_t bytesperpart = (C.size() + tparts-1)/tparts;
 	uint64_t parts = (C.size() + bytesperpart-1)/bytesperpart;
-	libmaus::lru::SparseLRUFileBunch SLRUFB("tmpf",maxcur);
+	libmaus2::lru::SparseLRUFileBunch SLRUFB("tmpf",maxcur);
 
 	for ( uint64_t j = 0; j < parts; ++j )
 		SLRUFB.remove(j);
@@ -38,7 +38,7 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 			
 			if ( p < C.size() )
 			{
-				libmaus::aio::CheckedInputOutputStream & str = SLRUFB[j];
+				libmaus2::aio::CheckedInputOutputStream & str = SLRUFB[j];
 				str.put(C[p]);
 			}
 		}
@@ -49,7 +49,7 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 
 	for ( uint64_t j = 0; j < parts; ++j )
 	{
-		libmaus::aio::CheckedInputOutputStream & str = SLRUFB[j];
+		libmaus2::aio::CheckedInputOutputStream & str = SLRUFB[j];
 		str.flush();
 		
 		str.seekg(0,std::ios::end);
@@ -81,7 +81,7 @@ int main()
 {
 	try
 	{
-		libmaus::lru::SparseLRU SLRU(4);
+		libmaus2::lru::SparseLRU SLRU(4);
 
 		std::cerr << SLRU.get(0) << std::endl;
 		std::cerr << SLRU.get(1) << std::endl;

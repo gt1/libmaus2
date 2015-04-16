@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #define LIBMAUS_UTIL_SIMPLEHASHMAPKEYPRINT_HPP
 
 #include <iostream>
-#include <libmaus/types/types.hpp>
-#include <libmaus/uint/uint.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/uint/uint.hpp>
 #include <vector>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -38,9 +38,9 @@ namespace libmaus
 		};
 		
 		template<unsigned int k>
-		struct SimpleHashMapKeyPrint< libmaus::uint::UInt<k> >
+		struct SimpleHashMapKeyPrint< libmaus2::uint::UInt<k> >
 		{
-			static std::ostream & printKey(std::ostream & out, libmaus::uint::UInt<k> const & U)
+			static std::ostream & printKey(std::ostream & out, libmaus2::uint::UInt<k> const & U)
 			{
 				return (out << U);
 			}
@@ -48,11 +48,11 @@ namespace libmaus
 		
 		#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
 		template<>
-		struct SimpleHashMapKeyPrint<libmaus::uint128_t>
+		struct SimpleHashMapKeyPrint<libmaus2::uint128_t>
 		{
-			static std::ostream & printKey(std::ostream & out, libmaus::uint128_t const & rv)
+			static std::ostream & printKey(std::ostream & out, libmaus2::uint128_t const & rv)
 			{
-				libmaus::uint128_t v = rv;
+				libmaus2::uint128_t v = rv;
 				if ( ! v )
 					return out << '0';
 				else

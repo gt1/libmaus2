@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -32,12 +32,12 @@ namespace libmaus
 			typedef _value_type value_type;
 			typedef _rank_type rank_type;
 			typedef FastRank<value_type,rank_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			uint64_t n;
-			libmaus::autoarray::AutoArray<value_type> AV;
+			libmaus2::autoarray::AutoArray<value_type> AV;
 			value_type * V;	
-			libmaus::autoarray::AutoArray<rank_type> R;
+			libmaus2::autoarray::AutoArray<rank_type> R;
 			int64_t maxsym;
 			uint64_t mod;
 			uint64_t mask;
@@ -80,7 +80,7 @@ namespace libmaus
 				uint64_t const numthreads = 1;
 				#endif
 				
-				libmaus::parallel::OMPLock lock;
+				libmaus2::parallel::OMPLock lock;
 
 				if ( rmaxsym == std::numeric_limits<int64_t>::min() )
 				{
@@ -120,7 +120,7 @@ namespace libmaus
 				
 					if ( n > 0 && maxsym < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "FastRank: maximum symbol code is smaller than 0" << std::endl;
 						lme.finish();
 						throw lme;
@@ -132,17 +132,17 @@ namespace libmaus
 						assert ( V[i] == it[i] );
 					#endif
 					
-					mod = libmaus::math::nextTwoPow(maxsym+1);
+					mod = libmaus2::math::nextTwoPow(maxsym+1);
 					mask = mod-1;
 					invmask = ~mask;
 
-					uint64_t const div = libmaus::math::lcm(numthreads,mod);
+					uint64_t const div = libmaus2::math::lcm(numthreads,mod);
 					nperpack = (n+div-1)/div;
 					packs = (n + nperpack - 1)/nperpack;
 					
 					// std::cerr << "mod=" << mod << " mask=" << std::hex << mask << " invmask=" << invmask << std::dec << std::endl;
 					
-					libmaus::autoarray::AutoArray<uint64_t> Alhist(mod * packs,false);
+					libmaus2::autoarray::AutoArray<uint64_t> Alhist(mod * packs,false);
 
 					#if defined(_OPENMP)
 					#pragma omp parallel for
@@ -190,7 +190,7 @@ namespace libmaus
 					}
 					#endif
 					
-					R = libmaus::autoarray::AutoArray<rank_type>(n,false);
+					R = libmaus2::autoarray::AutoArray<rank_type>(n,false);
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for
@@ -214,16 +214,16 @@ namespace libmaus
 				else // if ( rmaxsym >= 0 )
 				{
 					maxsym = rmaxsym;
-					mod = libmaus::math::nextTwoPow(maxsym+1);
+					mod = libmaus2::math::nextTwoPow(maxsym+1);
 					mask = mod-1;
 					invmask = ~mask;
 
-					uint64_t const div = libmaus::math::lcm(numthreads,mod);
+					uint64_t const div = libmaus2::math::lcm(numthreads,mod);
 					uint64_t const nperpack = (n+div-1)/div;
 					int64_t const packs = (n + nperpack - 1)/nperpack;
 
 					// block/thread local histograms
-					libmaus::autoarray::AutoArray<uint64_t> Alhist(mod * packs,false);
+					libmaus2::autoarray::AutoArray<uint64_t> Alhist(mod * packs,false);
 
 					// copy data and compute histograms
 					#if defined(_OPENMP)
@@ -265,7 +265,7 @@ namespace libmaus
 					}
 					
 					// compute R array
-					R = libmaus::autoarray::AutoArray<rank_type>(n,false);
+					R = libmaus2::autoarray::AutoArray<rank_type>(n,false);
 					
 					#if defined(_OPENMP)
 					#pragma omp parallel for

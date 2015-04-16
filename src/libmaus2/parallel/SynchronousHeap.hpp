@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,18 +20,18 @@
 #if ! defined(SYNCHRONOUSHEAP_HPP)
 #define SYNCHRONOUSHEAP_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/parallel/TerminatableSynchronousQueue.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/parallel/TerminatableSynchronousQueue.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
-#include <libmaus/parallel/PosixMutex.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
-#include <libmaus/parallel/PosixSemaphore.hpp>
-#include <libmaus/parallel/PosixConditionSemaphore.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixConditionSemaphore.hpp>
 #include <deque>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace parallel
         {
@@ -68,7 +68,7 @@ namespace libmaus
                         void enque(value_type const q)
                         {
                         	{
-                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 Q.push(q);
                                 }
                                 semaphore.post();
@@ -76,7 +76,7 @@ namespace libmaus
                         value_type deque()
                         {
                                 semaphore.wait();
-                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 value_type const v = Q.top();
                                 Q.pop();
                                 return v;
@@ -86,7 +86,7 @@ namespace libmaus
                         {
 	                        std::priority_queue < value_type, std::vector<value_type>, compare > C;
 	                        {
-	                        	libmaus::parallel::ScopePosixSpinLock llock(lock);
+	                        	libmaus2::parallel::ScopePosixSpinLock llock(lock);
 	                        	C = Q;
 				}
 	                        std::vector<value_type> V;
@@ -105,7 +105,7 @@ namespace libmaus
                 {
                 	typedef _value_type value_type;
                 	typedef SynchronousConsecutiveHeapDefaultInfo<value_type> this_type;
-                	typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+                	typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                 
                 	value_type operator()(value_type const i) const
                 	{
@@ -148,7 +148,7 @@ namespace libmaus
                         	uint64_t postcnt = 0;
                         
                         	{
-					libmaus::parallel::ScopePosixSpinLock llock(lock);
+					libmaus2::parallel::ScopePosixSpinLock llock(lock);
 					while ( 
 						preQ.size() && 
 						info(preQ.top()) == next && 
@@ -170,10 +170,10 @@ namespace libmaus
 
 			void enque(value_type const q)
 			{
-				enque< libmaus::parallel::TerminatableSynchronousQueue<value_type> >(q,0);
+				enque< libmaus2::parallel::TerminatableSynchronousQueue<value_type> >(q,0);
 			}
 
-                        // template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
+                        // template<typename glob_queue_type = libmaus2::parallel::TerminatableSynchronousQueue<value_type> >
                         template<typename glob_queue_type>
                         void enque(
                         	value_type const q, 
@@ -181,7 +181,7 @@ namespace libmaus
 			)
                         {
                         	{
-					libmaus::parallel::ScopePosixSpinLock llock(lock);
+					libmaus2::parallel::ScopePosixSpinLock llock(lock);
         	                        preQ.push(q);
                                 }
 
@@ -190,10 +190,10 @@ namespace libmaus
 
 			void setReadyFor(value_type const rreadyfor)
 			{
-				setReadyFor< libmaus::parallel::TerminatableSynchronousQueue<value_type> > (rreadyfor,0);
+				setReadyFor< libmaus2::parallel::TerminatableSynchronousQueue<value_type> > (rreadyfor,0);
 			}
                         
-                        // template<typename glob_queue_type = libmaus::parallel::TerminatableSynchronousQueue<value_type> >
+                        // template<typename glob_queue_type = libmaus2::parallel::TerminatableSynchronousQueue<value_type> >
                         template<typename glob_queue_type>
                         void setReadyFor(
                         	value_type const rreadyfor, 
@@ -201,7 +201,7 @@ namespace libmaus
 			)
                         {
                         	{
-					libmaus::parallel::ScopePosixSpinLock llock(lock);
+					libmaus2::parallel::ScopePosixSpinLock llock(lock);
         	                	readyfor = rreadyfor;
                         	}
 
@@ -211,7 +211,7 @@ namespace libmaus
                         value_type deque()
                         {
                                 semaphore.wait();
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
                                 value_type const v = Q.front();
                                 Q.pop_front();
                                 return v;
@@ -220,7 +220,7 @@ namespace libmaus
                         void putback(value_type const i)
                         {
                         	{
-					libmaus::parallel::ScopePosixSpinLock llock(lock);
+					libmaus2::parallel::ScopePosixSpinLock llock(lock);
         	                	Q.push_front(i);
                         	}
                         	semaphore.post();

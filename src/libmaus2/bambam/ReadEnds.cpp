@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,26 +16,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
 
-::libmaus::util::DigitTable const ::libmaus::bambam::ReadEndsBase::D;
+::libmaus2::util::DigitTable const ::libmaus2::bambam::ReadEndsBase::D;
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEnds::read_end_orientation reo)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::ReadEnds::read_end_orientation reo)
 {
 	switch ( reo )
 	{
-		case libmaus::bambam::ReadEnds::F: out << "F"; break;
-		case libmaus::bambam::ReadEnds::R: out << "R"; break;
-		case libmaus::bambam::ReadEnds::FF: out << "FF"; break;
-		case libmaus::bambam::ReadEnds::FR: out << "FR"; break;
-		case libmaus::bambam::ReadEnds::RF: out << "RF"; break;
-		case libmaus::bambam::ReadEnds::RR: out << "RR"; break;
+		case libmaus2::bambam::ReadEnds::F: out << "F"; break;
+		case libmaus2::bambam::ReadEnds::R: out << "R"; break;
+		case libmaus2::bambam::ReadEnds::FF: out << "FF"; break;
+		case libmaus2::bambam::ReadEnds::FR: out << "FR"; break;
+		case libmaus2::bambam::ReadEnds::RF: out << "RF"; break;
+		case libmaus2::bambam::ReadEnds::RR: out << "RR"; break;
 	}
 	
 	return out;
 }
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEndsBase const & RE)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::ReadEndsBase const & RE)
 {
 	out << "ReadEndsBase("
 		<< "libId=" << RE.libraryId << ","
@@ -56,9 +56,9 @@ std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::
 	return out;
 }
 
-std::ostream & libmaus::bambam::operator<<(std::ostream & out, libmaus::bambam::ReadEnds const & RE)
+std::ostream & libmaus2::bambam::operator<<(std::ostream & out, libmaus2::bambam::ReadEnds const & RE)
 {
-	out << "ReadEnds(" << static_cast<libmaus::bambam::ReadEndsBase const &>(RE) << ")";
+	out << "ReadEnds(" << static_cast<libmaus2::bambam::ReadEndsBase const &>(RE) << ")";
 		
 	if ( RE.p )
 		out << "[" << RE.p->getName() << "]";

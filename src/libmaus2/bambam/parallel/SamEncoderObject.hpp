@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMENCODEROBJECT_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMENCODEROBJECT_HPP
 
-#include <libmaus/bambam/BamHeaderLowMem.hpp>
+#include <libmaus2/bambam/BamHeaderLowMem.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,12 +31,12 @@ namespace libmaus
 			struct SamEncoderObject
 			{
 				typedef SamEncoderObject this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 					
-				libmaus::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
+				libmaus2::bambam::BamHeaderLowMem::unique_ptr_type Pheader;
 					
-				SamEncoderObject(libmaus::bambam::BamHeaderLowMem::unique_ptr_type & Theader)
+				SamEncoderObject(libmaus2::bambam::BamHeaderLowMem::unique_ptr_type & Theader)
 				: Pheader(UNIQUE_PTR_MOVE(Theader))
 				{
 					

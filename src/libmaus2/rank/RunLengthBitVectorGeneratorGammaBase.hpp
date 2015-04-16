@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATORGAMMABASE_HPP)
 #define LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATORGAMMABASE_HPP
 
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/gamma/GammaEncoder.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
 		struct RunLengthBitVectorGeneratorGammaBase
 		{
 			typedef RunLengthBitVectorGeneratorGammaBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::ostream & ostr;
-			::libmaus::aio::SynchronousGenericOutput<uint64_t> SGO;
-			::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > GE;
+			::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
+			::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > GE;
 			
 			RunLengthBitVectorGeneratorGammaBase(std::ostream & rostr)
 			: ostr(rostr), SGO(ostr,64*1024), GE(SGO)

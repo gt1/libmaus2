@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(SYNCHRONOUSREORDERSET_HPP)
 #define SYNCHRONOUSREORDERSET_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_PTHREADS)
-#include <libmaus/parallel/PosixMutex.hpp>
-#include <libmaus/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 #include <deque>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace parallel
         {

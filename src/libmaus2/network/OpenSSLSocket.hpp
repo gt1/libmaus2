@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_NETWORK_OPENSSLSOCKET_HPP)
 #define LIBMAUS_NETWORK_OPENSSLSOCKET_HPP
 
-#include <libmaus/network/OpenSSLInit.hpp>
-#include <libmaus/network/SocketInputOutputInterface.hpp>
+#include <libmaus2/network/OpenSSLInit.hpp>
+#include <libmaus2/network/SocketInputOutputInterface.hpp>
 #include <cstring>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
-		struct OpenSSLSocket : public ::libmaus::network::OpenSSLInit, public SocketInputOutputInterface
+		struct OpenSSLSocket : public ::libmaus2::network::OpenSSLInit, public SocketInputOutputInterface
 		{
 			typedef OpenSSLSocket this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			#if defined(LIBMAUS_HAVE_OPENSSL)
 			SSL_CTX * ctx;
@@ -92,7 +92,7 @@ namespace libmaus
 				{
 					cleanup();
 					
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					unsigned long r;
 					while ( (r=ERR_get_error()) )
 						lme.getStream() << ERR_error_string(r,NULL) << std::endl;
@@ -104,7 +104,7 @@ namespace libmaus
 				{
 					cleanup();
 					
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					unsigned long r;
 					while ( (r=ERR_get_error()) )
 						lme.getStream() << ERR_error_string(r,NULL) << std::endl;
@@ -119,7 +119,7 @@ namespace libmaus
 				{	
 					cleanup();
 					
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					unsigned long r;
 					while ( (r=ERR_get_error()) )
 						lme.getStream() << ERR_error_string(r,NULL) << std::endl;
@@ -141,7 +141,7 @@ namespace libmaus
 				{
 					cleanup();
 					
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					unsigned long r;
 					while ( (r=ERR_get_error()) )
 						lme.getStream() << ERR_error_string(r,NULL) << std::endl;
@@ -153,7 +153,7 @@ namespace libmaus
 				{
 					cleanup();
 					
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					unsigned long r;
 					while ( (r=ERR_get_error()) )
 						lme.getStream() << ERR_error_string(r,NULL) << std::endl;
@@ -171,7 +171,7 @@ namespace libmaus
 						{
 							cleanup();
 							
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "server certificate verification failed: " << verres << std::endl;
 				
 							unsigned long r;
@@ -193,7 +193,7 @@ namespace libmaus
 					{
 						cleanup();
 							
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "server did not present a certificate" << std::endl;
 				
 						unsigned long r;
@@ -219,7 +219,7 @@ namespace libmaus
 				std::cerr << "[D] cipher description " << desc;
 				// int     SSL_CIPHER_get_bits(const SSL_CIPHER *c,int *alg_bits);				
 				#else
-				libmaus::exception::LibMausException lme;
+				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "OpenSSLSocket: openssl support is not present" << std::endl;
 				lme.finish();
 				throw lme;				
@@ -250,7 +250,7 @@ namespace libmaus
 
 					if( (w=BIO_write(bio, p, n)) <= 0)
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "OpenSSLSocket::write() failed: " << std::endl;
 				
 						unsigned long r;
@@ -268,7 +268,7 @@ namespace libmaus
 					}
 				}
 				#else
-				libmaus::exception::LibMausException lme;
+				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "OpenSSLSocket::write() failed: openssl support is not present" << std::endl;
 				lme.finish();
 				throw lme;		
@@ -292,7 +292,7 @@ namespace libmaus
 
 				if ( r < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "OpenSSLSocket::read() failed: " << std::endl;
 				
 					unsigned long r;
@@ -307,7 +307,7 @@ namespace libmaus
 					return static_cast<uint64_t>(r);
 				}
 				#else
-				libmaus::exception::LibMausException lme;
+				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "OpenSSLSocket::read() failed: openssl support is not present" << std::endl;
 				lme.finish();
 				throw lme;		

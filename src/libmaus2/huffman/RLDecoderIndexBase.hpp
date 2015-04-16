@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,33 +21,33 @@
 #define RLDECODERINDEXBASE_HPP
 
 #include <fstream>
-#include <libmaus/bitio/BitIOInput.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/GenericIntervalTree.hpp>
-#include <libmaus/huffman/IndexLoader.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/readElias.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/GenericIntervalTree.hpp>
+#include <libmaus2/huffman/IndexLoader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
 		struct RLDecoderIndexBase : public IndexLoader
 		{
 			typedef RLDecoderIndexBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			std::vector<std::string> filenames;
 			// (blockpos,kcnt,numsyms in block)
-			::libmaus::autoarray::AutoArray < libmaus::autoarray::AutoArray< IndexEntry > > const index;
+			::libmaus2::autoarray::AutoArray < libmaus2::autoarray::AutoArray< IndexEntry > > const index;
 			// total symbols in file
 			uint64_t const n;
 			
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const symaccu;
-			::libmaus::util::GenericIntervalTree const symtree;
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const segaccu;
-			::libmaus::util::GenericIntervalTree const segtree;
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const symaccu;
+			::libmaus2::util::GenericIntervalTree const symtree;
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > const segaccu;
+			::libmaus2::util::GenericIntervalTree const segtree;
 
 			void printIndex() const
 			{
@@ -59,18 +59,18 @@ namespace libmaus
 				}
 			}
 
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > computeSymAccu() const
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > computeSymAccu() const
 			{
 				uint64_t numint = 0;
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					numint += index[i].size();
-				::libmaus::autoarray::AutoArray<uint64_t> preaccu(numint+1);
+				::libmaus2::autoarray::AutoArray<uint64_t> preaccu(numint+1);
 				uint64_t outptr = 0;
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					for ( uint64_t j = 0; j < index[i].size(); ++j )
 						preaccu[outptr++] = index[i][j].vcnt;
 				preaccu.prefixSums();
-				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > symaccu(numint);
+				::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > symaccu(numint);
 				for ( uint64_t i = 1; i < preaccu.size(); ++i )
 					symaccu[i-1] = std::pair<uint64_t,uint64_t>(preaccu[i-1],preaccu[i]);
 	
@@ -87,13 +87,13 @@ namespace libmaus
 				return symaccu;
 			}
 			
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > computeSegAccu() const
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > computeSegAccu() const
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> preaccu(index.size()+1);
+				::libmaus2::autoarray::AutoArray<uint64_t> preaccu(index.size()+1);
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					preaccu[i] = index[i].size();
 				preaccu.prefixSums();
-				::libmaus::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > accu(index.size());
+				::libmaus2::autoarray::AutoArray < std::pair<uint64_t,uint64_t> > accu(index.size());
 				for ( uint64_t i = 1; i < preaccu.size(); ++i )
 					accu[i-1] = std::pair<uint64_t,uint64_t>(preaccu[i-1],preaccu[i]);
 				return accu;
@@ -111,13 +111,13 @@ namespace libmaus
 				std::ifstream istr(filename.c_str(),std::ios::binary);
 				if ( ! istr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLDecoder::getLength(): Failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}
-				::libmaus::bitio::StreamBitInputStream SBIS(istr);	
-				return ::libmaus::bitio::readElias2(SBIS);
+				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
+				return ::libmaus2::bitio::readElias2(SBIS);
 			}
 
 			RLDecoderIndexBase(std::vector<std::string> const & rfilenames)

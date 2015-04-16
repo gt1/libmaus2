@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_BLOCKCOMPRESSPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_BLOCKCOMPRESSPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp>
-#include <libmaus/bambam/parallel/ReturnCompressionPendingElementInterface.hpp>
-#include <libmaus/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/parallel/LockedGrowingFreeList.hpp>
-#include <libmaus/lz/CompressorObject.hpp>
-#include <libmaus/lz/CompressorObjectFreeListAllocator.hpp>
+#include <libmaus2/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp>
+#include <libmaus2/bambam/parallel/ReturnCompressionPendingElementInterface.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/parallel/LockedGrowingFreeList.hpp>
+#include <libmaus2/lz/CompressorObject.hpp>
+#include <libmaus2/lz/CompressorObjectFreeListAllocator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{		
 		namespace parallel
 		{
 			// dispatcher for block compression
-			struct BlockCompressPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct BlockCompressPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
-				libmaus::parallel::LockedGrowingFreeList<libmaus::lz::CompressorObject, libmaus::lz::CompressorObjectFreeListAllocator> & compfreelist;
+				libmaus2::parallel::LockedGrowingFreeList<libmaus2::lz::CompressorObject, libmaus2::lz::CompressorObjectFreeListAllocator> & compfreelist;
 				AddPendingCompressBufferWriteInterface & addPendingWriteInterface;
 				ReturnCompressionPendingElementInterface & returnCompressionPendingElementInterface;
 				AlignmentBlockCompressPackageReturnInterface & packageReturnInterface;
 				
 				BlockCompressPackageDispatcher(
-					libmaus::parallel::LockedGrowingFreeList<libmaus::lz::CompressorObject, libmaus::lz::CompressorObjectFreeListAllocator> & rcompfreelist,
+					libmaus2::parallel::LockedGrowingFreeList<libmaus2::lz::CompressorObject, libmaus2::lz::CompressorObjectFreeListAllocator> & rcompfreelist,
 					AddPendingCompressBufferWriteInterface & raddPendingWriteInterface,
 					ReturnCompressionPendingElementInterface & rreturnCompressionPendingElementInterface,
 					AlignmentBlockCompressPackageReturnInterface & rpackageReturnInterface
@@ -54,8 +54,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					AlignmentBlockCompressPackage * BP = dynamic_cast<AlignmentBlockCompressPackage *>(P);
@@ -92,7 +92,7 @@ namespace libmaus
 					
 					uint64_t const insize = compin - compbuf->inputBuffer.begin();
 					
-					libmaus::lz::CompressorObject * compressor = compfreelist.get();
+					libmaus2::lz::CompressorObject * compressor = compfreelist.get();
 	
 					try
 					{

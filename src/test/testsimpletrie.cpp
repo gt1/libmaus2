@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,13 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/trie/SimpleTrie.hpp>
+#include <libmaus2/trie/SimpleTrie.hpp>
 
 int main()
 {
 	try
 	{
-		libmaus::trie::SimpleTrie ST;
+		libmaus2::trie::SimpleTrie ST;
 		std::cerr << ST.insert("ab") << std::endl;
 		std::cerr << ST.insert("ac") << std::endl;
 		std::cerr << ST.insert("ab") << std::endl;

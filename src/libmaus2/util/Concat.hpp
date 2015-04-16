@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(CONCAT_HPP)
 #define CONCAT_HPP
 
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{

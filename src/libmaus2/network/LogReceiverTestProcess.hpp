@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_NETWORK_LOGRECEIVERTESTPROCESS_HPP)
 #define LIBMAUS_NETWORK_LOGRECEIVERTESTPROCESS_HPP
 
-#include <libmaus/network/LogReceiverDispatcherBase.hpp>
-#include <libmaus/parallel/PosixProcess.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/network/LogReceiverDispatcherBase.hpp>
+#include <libmaus2/parallel/PosixProcess.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 
-		struct LogReceiverTestProcess : public ::libmaus::parallel::PosixProcess, public LogReceiverDispatcherBase
+		struct LogReceiverTestProcess : public ::libmaus2::parallel::PosixProcess, public LogReceiverDispatcherBase
 		{
 			typedef LogReceiverTestProcess this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			
 			std::string const sid;
@@ -75,7 +75,7 @@ namespace libmaus
 					::close(closeFds[i]);
 
 				std::vector<std::string> const args(1,std::string("testprocess"));
-				::libmaus::util::ArgInfo const arginfo(args);
+				::libmaus2::util::ArgInfo const arginfo(args);
 				return dispatch(arginfo,sid,loghostname,port,id,dc);
 			}
 		};

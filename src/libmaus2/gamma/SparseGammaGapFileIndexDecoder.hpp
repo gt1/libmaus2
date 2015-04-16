@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPFILEINDEXDECODER_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPFILEINDEXDECODER_HPP
 
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.hpp>
-#include <libmaus/util/GenericIntervalTree.hpp>
-#include <libmaus/util/iterator.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/gamma/SparseGammaGapFileIndexDecoderEntry.hpp>
+#include <libmaus2/util/GenericIntervalTree.hpp>
+#include <libmaus2/util/iterator.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
@@ -36,27 +36,27 @@ namespace libmaus
 		struct SparseGammaGapFileIndexDecoder
 		{
 			typedef SparseGammaGapFileIndexDecoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
-			typedef libmaus::gamma::SparseGammaGapFileIndexDecoderEntry value_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::gamma::SparseGammaGapFileIndexDecoderEntry value_type;
 
-			typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+			typedef libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
 
 			private:
-			libmaus::aio::CheckedInputStream::unique_ptr_type CIS;
+			libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
 			std::istream & in;
 			uint64_t maxkey;
 			uint64_t numentries;
 
-			mutable libmaus::parallel::OMPLock lock;
+			mutable libmaus2::parallel::OMPLock lock;
 			mutable std::map<uint64_t,value_type> cache;
 			
 			void init()
 			{
 				in.clear();
 				in.seekg(-2*static_cast<int64_t>(sizeof(uint64_t)),std::ios::end);
-				maxkey = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				numentries = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				maxkey = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				numentries = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 
 			const_iterator begin() const
@@ -77,7 +77,7 @@ namespace libmaus
 			}
 			
 			SparseGammaGapFileIndexDecoder(std::string const & filename)
-			: CIS(new libmaus::aio::CheckedInputStream(filename)), in(*CIS)
+			: CIS(new libmaus2::aio::CheckedInputStream(filename)), in(*CIS)
 			{
 				init();
 			}	
@@ -86,13 +86,13 @@ namespace libmaus
 			{
 				if ( i >= numentries )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "SparseGammaGapFileIndexDecoder::get() out of range: " << i << " >= " << numentries << std::endl;
 					se.finish();
 					throw se;
 				}
 			
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 
 				// check cache
 				if ( cache.find(i) != cache.end() )
@@ -100,8 +100,8 @@ namespace libmaus
 				
 				in.clear();
 				in.seekg(-2*sizeof(uint64_t)-2*numentries*sizeof(uint64_t) + i*(2*sizeof(uint64_t)), std::ios::end);
-				uint64_t const ikey = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				uint64_t const ibitoff = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const ikey = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const ibitoff = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				value_type const v(ikey,ibitoff);
 				
 				// extend cache
@@ -124,7 +124,7 @@ namespace libmaus
 			{
 				if ( isEmpty() )
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "SparseGammaGapFileIndexDecoder::getMinKey(): index is empty" << std::endl;
 					ex.finish();
 					throw ex;

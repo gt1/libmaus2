@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(CONCATREQUEST_HPP)
 #define CONCATREQUEST_HPP
 
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/util/Concat.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/Concat.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -35,7 +35,7 @@ namespace libmaus
 			//! this type
 			typedef ConcatRequest this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			//! list of input file names
 			std::vector<std::string> const infilenames;
@@ -104,7 +104,7 @@ namespace libmaus
 			 * @param requestfilename file name of file containing the serialised request
 			 * @return deserialised ConcatRequest object wrapped in unique pointer class
 			 **/
-			static ::libmaus::util::ConcatRequest::unique_ptr_type load(std::string const & requestfilename);
+			static ::libmaus2::util::ConcatRequest::unique_ptr_type load(std::string const & requestfilename);
 		};
 	}
 }

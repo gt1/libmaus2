@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,17 +19,17 @@
 #if ! defined(LIBMAUS_NETWORK_FTPSOCKETINPUTSTREAM_HPP)
 #define LIBMAUS_NETWORK_FTPSOCKETINPUTSTREAM_HPP
 
-#include <libmaus/network/FtpSocketInputStreamBuffer.hpp>
+#include <libmaus2/network/FtpSocketInputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct FtpSocketInputStream : public FtpSocketInputStreamBuffer, std::istream
 		{
 			typedef FtpSocketInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			FtpSocketInputStream(
 				std::string const & url,

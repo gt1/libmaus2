@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,10 +17,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/fm/BidirectionalIndexIntervalSymbol.hpp>
+#include <libmaus2/fm/BidirectionalIndexIntervalSymbol.hpp>
 
-std::ostream & libmaus::fm::operator<<(std::ostream & out, libmaus::fm::BidirectionalIndexIntervalSymbol const & BI)
+std::ostream & libmaus2::fm::operator<<(std::ostream & out, libmaus2::fm::BidirectionalIndexIntervalSymbol const & BI)
 {
-	out << "libmaus::fm::BidirectionalIndexIntervalSymbol(" << BI.sym << "," << static_cast<BidirectionalIndexInterval const &>(BI) << ")";
+	out << "libmaus2::fm::BidirectionalIndexIntervalSymbol(" << BI.sym << "," << static_cast<BidirectionalIndexInterval const &>(BI) << ")";
 	return out;
 }

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTFACTORYCONTAINER_HPP)
 #define LIBMAUS_DIGEST_DIGESTFACTORYCONTAINER_HPP
 
-#include <libmaus/digest/DigestFactory.hpp>
+#include <libmaus2/digest/DigestFactory.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{
@@ -81,18 +81,18 @@ namespace libmaus
 					factories[ita->first] = ita->second;
 			}
 			
-			static libmaus::digest::DigestInterface::unique_ptr_type construct(std::string const & name)
+			static libmaus2::digest::DigestInterface::unique_ptr_type construct(std::string const & name)
 			{
 				std::map< std::string, DigestFactoryInterface::shared_ptr_type >::const_iterator ita = factories.find(name);
 				
 				if ( ita != factories.end() )
 				{
-					libmaus::digest::DigestInterface::unique_ptr_type ptr(ita->second->construct(name));
+					libmaus2::digest::DigestInterface::unique_ptr_type ptr(ita->second->construct(name));
 					return UNIQUE_PTR_MOVE(ptr);
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "DigestFactoryContainer::construct: digest " << name << " is not supported" << std::endl;
 					lme.finish();
 					throw lme;

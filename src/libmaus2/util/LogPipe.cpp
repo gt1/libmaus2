@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/LogPipe.hpp>
+#include <libmaus2/util/LogPipe.hpp>
 
-libmaus::util::LogPipe::LogPipe(
+libmaus2::util::LogPipe::LogPipe(
 	std::string const & serverhostname,
 	unsigned short outport,
 	unsigned short errport,
@@ -28,13 +28,13 @@ libmaus::util::LogPipe::LogPipe(
 	)
 : pid(-1)
 {
-	::libmaus::network::ClientSocket::unique_ptr_type toutsock(new ::libmaus::network::ClientSocket(outport,serverhostname.c_str()));
+	::libmaus2::network::ClientSocket::unique_ptr_type toutsock(new ::libmaus2::network::ClientSocket(outport,serverhostname.c_str()));
 	outsock = UNIQUE_PTR_MOVE(toutsock);
 	outsock->setNoDelay();
 	outsock->writeMessage<uint64_t>(0,&rank,1);
 	outsock->writeString(0,sid);
 		
-	::libmaus::network::ClientSocket::unique_ptr_type terrsock(new ::libmaus::network::ClientSocket(errport,serverhostname.c_str()));
+	::libmaus2::network::ClientSocket::unique_ptr_type terrsock(new ::libmaus2::network::ClientSocket(errport,serverhostname.c_str()));
 	errsock = UNIQUE_PTR_MOVE(terrsock);
 	errsock->setNoDelay();
 	errsock->writeMessage<uint64_t>(0,&rank,1);
@@ -43,14 +43,14 @@ libmaus::util::LogPipe::LogPipe(
 	#if 1
 	if ( pipe(&stdoutpipe[0]) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "pipe() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;
 	}
 	if ( pipe(&stderrpipe[0]) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "pipe() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;
@@ -58,14 +58,14 @@ libmaus::util::LogPipe::LogPipe(
 	
 	if ( close(STDOUT_FILENO) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;		
 	}
 	if ( close(STDERR_FILENO) != 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "close() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;		
@@ -73,14 +73,14 @@ libmaus::util::LogPipe::LogPipe(
 
 	if ( dup2(stdoutpipe[1],STDOUT_FILENO) == -1 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;				
 	}
 	if ( dup2(stderrpipe[1],STDERR_FILENO) == -1 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "dup2() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;				
@@ -90,7 +90,7 @@ libmaus::util::LogPipe::LogPipe(
 	
 	if ( pid < 0 )
 	{
-		::libmaus::exception::LibMausException se;
+		::libmaus2::exception::LibMausException se;
 		se.getStream() << "fork() failed: " << strerror(errno) << std::endl;
 		se.finish();
 		throw se;		
@@ -138,7 +138,7 @@ libmaus::util::LogPipe::LogPipe(
 						{
 							if ( stdoutpipe[0] != -1 && FD_ISSET(stdoutpipe[0],&fds) )
 							{
-								::libmaus::autoarray::AutoArray<char> B(1024,false);
+								::libmaus2::autoarray::AutoArray<char> B(1024,false);
 								ssize_t red = read(stdoutpipe[0],B.get(),B.size());
 								if ( red <= 0 )
 								{
@@ -153,7 +153,7 @@ libmaus::util::LogPipe::LogPipe(
 							}
 							if ( stderrpipe[0] != -1 && FD_ISSET(stderrpipe[0],&fds) )
 							{
-								::libmaus::autoarray::AutoArray<char> B(1024,false);
+								::libmaus2::autoarray::AutoArray<char> B(1024,false);
 								ssize_t red = read(stderrpipe[0],B.get(),B.size());
 								if ( red <= 0 )
 								{
@@ -190,7 +190,7 @@ libmaus::util::LogPipe::LogPipe(
 	#endif
 }
 
-void libmaus::util::LogPipe::join()
+void libmaus2::util::LogPipe::join()
 {
 	close(stdoutpipe[1]);
 	close(stderrpipe[1]);
@@ -200,7 +200,7 @@ void libmaus::util::LogPipe::join()
 	waitpid(pid,&status,0);
 }
 
-libmaus::util::LogPipe::~LogPipe()
+libmaus2::util::LogPipe::~LogPipe()
 {
 	join();
 }

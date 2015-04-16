@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/rank/RankTable.hpp>
-#include <libmaus/rank/popcnt.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/rank/RankTable.hpp>
+#include <libmaus2/rank/popcnt.hpp>
 #include <cassert>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -81,7 +81,7 @@ namespace libmaus
 				table = new uint8_t [ (1<<16) ];
 				
 				for ( uint32_t m = 0; m < (1u<<16); ++m )
-					table[m] = ::libmaus::rank::PopCnt4<sizeof(int)>::popcnt4(m);
+					table[m] = ::libmaus2::rank::PopCnt4<sizeof(int)>::popcnt4(m);
 
 				return table;
 			}

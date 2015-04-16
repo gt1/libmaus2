@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_ALIGNMENT_BAMLINEINFO_HPP)
 #define LIBMAUS_ALIGNMENT_BAMLINEINFO_HPP
 
-#include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace alignment
 	{
@@ -34,7 +34,7 @@ namespace libmaus
 			int32_t pos;
 			uint32_t mapq;
 			uint32_t flags;
-			std::vector<libmaus::bambam::cigar_operation> cigops;
+			std::vector<libmaus2::bambam::cigar_operation> cigops;
 			int32_t nextrefid;
 			int32_t nextpos;
 			int32_t templatelength;
@@ -44,7 +44,7 @@ namespace libmaus
 			
 			uint64_t getFrontSoftClipping() const
 			{
-				if ( cigops.size() && cigops.front().first == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+				if ( cigops.size() && cigops.front().first == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
 					return cigops.front().second;	
 				else
 					return 0;
@@ -52,7 +52,7 @@ namespace libmaus
 
 			uint64_t getBackSoftClipping() const
 			{
-				if ( cigops.size() && cigops.back().first == libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
+				if ( cigops.size() && cigops.back().first == libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP )
 					return cigops.back().second;	
 				else
 					return 0;
@@ -66,11 +66,11 @@ namespace libmaus
 				{
 					switch ( cigops[i].first )
 					{
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
 							e += cigops[i].second;
-						case libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
 							n += cigops[i].second;
 							break;
 						default:
@@ -93,7 +93,7 @@ namespace libmaus
 				int32_t rpos,
 				uint32_t rmapq,
 				uint32_t rflags,
-				std::vector<libmaus::bambam::cigar_operation> const & rcigops,
+				std::vector<libmaus2::bambam::cigar_operation> const & rcigops,
 				int32_t rnextrefid,
 				int32_t rnextpos,
 				int32_t rtemplatelength,
@@ -107,11 +107,11 @@ namespace libmaus
 			{
 			}
 			
-			void encode(libmaus::bambam::BamWriter & bamwr) const
+			void encode(libmaus2::bambam::BamWriter & bamwr) const
 			{
 				bamwr.encodeAlignment<
 					std::string::const_iterator,
-					std::vector<libmaus::bambam::cigar_operation>::const_iterator,
+					std::vector<libmaus2::bambam::cigar_operation>::const_iterator,
 					std::string::const_iterator,
 					std::string::const_iterator
 				>

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -26,14 +26,14 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
-#include <libmaus/types/types.hpp>
-#include <libmaus/util/unordered_map.hpp>
-#include <libmaus/bambam/StrCmpNum.hpp>
-#include <libmaus/util/StringMapCompare.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/util/unordered_map.hpp>
+#include <libmaus2/bambam/StrCmpNum.hpp>
+#include <libmaus2/util/StringMapCompare.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -76,8 +76,8 @@ namespace libmaus
 					bool const ok = (khigh-klow==2) && restkv[khigh] == ':';
 					if ( ! ok )
 					{
-						libmaus::exception::LibMausException lme;
-						lme.getStream() << "libmaus::bambam::Chromosome::getSortedKeyValuePairs(): malformed key/value part " 
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::bambam::Chromosome::getSortedKeyValuePairs(): malformed key/value part " 
 							<< restkv 
 							<< " low=" << low << " high=" << high << " interval=" << std::string(restkv.begin()+low,restkv.begin()+high)
 							<< " klow=" << klow << " khigh=" << khigh << " kinterval=" << std::string(restkv.begin()+klow,restkv.begin()+khigh)

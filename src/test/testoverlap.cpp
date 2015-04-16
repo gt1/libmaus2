@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,13 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lcs/HammingOverlapDetection.hpp>
+#include <libmaus2/lcs/HammingOverlapDetection.hpp>
 
 int main()
 {
 	try
 	{
-		libmaus::lcs::HammingOverlapDetection::testOverlapCombinations(true);
+		libmaus2::lcs::HammingOverlapDetection::testOverlapCombinations(true);
 	}
 	catch(std::exception const & ex)
 	{

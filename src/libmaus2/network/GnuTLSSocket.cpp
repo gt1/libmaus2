@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/network/GnuTLSSocket.hpp>
+#include <libmaus2/network/GnuTLSSocket.hpp>
 
 #if defined(LIBMAUS_HAVE_GNUTLS)
 #include <gnutls/gnutls.h>
@@ -26,7 +26,7 @@
 
 #if defined(LIBMAUS_HAVE_GNUTLS)
 /* check certificate */
-int libmaus::network::GnuTLSSocket::verify_certificate_callback(gnutls_session_t session)
+int libmaus2::network::GnuTLSSocket::verify_certificate_callback(gnutls_session_t session)
 {
 	/* read hostname */
 	#if 0
@@ -67,7 +67,7 @@ int libmaus::network::GnuTLSSocket::verify_certificate_callback(gnutls_session_t
 }
 #endif
 
-libmaus::network::GnuTLSSocket::GnuTLSSocket(
+libmaus2::network::GnuTLSSocket::GnuTLSSocket(
 	std::string const & 
 		#if defined(LIBMAUS_HAVE_GNUTLS)
 		rhostname
@@ -92,13 +92,13 @@ libmaus::network::GnuTLSSocket::GnuTLSSocket(
 		#if defined(LIBMAUS_HAVE_GNUTLS)
 		checkcertificate
 		#endif
-) : libmaus::network::GnuTLSInit()
+) : libmaus2::network::GnuTLSInit()
 #if defined(LIBMAUS_HAVE_GNUTLS)
 , hostname(rhostname)
 #endif
 {
 	#if defined(LIBMAUS_HAVE_GNUTLS)
-	libmaus::network::ClientSocket::unique_ptr_type TCS(new libmaus::network::ClientSocket(port,hostname.c_str()));
+	libmaus2::network::ClientSocket::unique_ptr_type TCS(new libmaus2::network::ClientSocket(port,hostname.c_str()));
 	PCS = UNIQUE_PTR_MOVE(TCS);
 
 	/* X509 stuff */
@@ -137,7 +137,7 @@ libmaus::network::GnuTLSSocket::GnuTLSSocket(
 
 	if (ret < 0) 
 	{
-		libmaus::exception::LibMausException lme;
+		libmaus2::exception::LibMausException lme;
 		lme.getStream() << "GnuTLSSocket: TLS handshake failed : " << gnutls_strerror(ret) << "\n";
 		lme.finish();
 		throw lme;
@@ -154,14 +154,14 @@ libmaus::network::GnuTLSSocket::GnuTLSSocket(
 		#endif
 	}
 	#else
-	libmaus::exception::LibMausException lme;
+	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "GnuTLSSocket: no support for GNU TLS present.\n";
 	lme.finish();
 	throw lme;
 	#endif
 }
 
-libmaus::network::GnuTLSSocket::~GnuTLSSocket()
+libmaus2::network::GnuTLSSocket::~GnuTLSSocket()
 {
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	gnutls_bye(session, GNUTLS_SHUT_RDWR);
@@ -170,12 +170,12 @@ libmaus::network::GnuTLSSocket::~GnuTLSSocket()
 	#endif
 }
 
-void libmaus::network::GnuTLSSocket::write(std::string const & s)
+void libmaus2::network::GnuTLSSocket::write(std::string const & s)
 {
 	write(s.c_str(),s.size());
 }
 
-void libmaus::network::GnuTLSSocket::write(
+void libmaus2::network::GnuTLSSocket::write(
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	char const * p, size_t n
 	#else
@@ -197,7 +197,7 @@ void libmaus::network::GnuTLSSocket::write(
 					break;
 				default:
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "GnuTLSSocket::write failed with error " << gnutls_strerror(r) << "\n";
 					lme.finish();
 					throw lme;		
@@ -213,7 +213,7 @@ void libmaus::network::GnuTLSSocket::write(
 	#endif
 }
 
-ssize_t libmaus::network::GnuTLSSocket::readPart(
+ssize_t libmaus2::network::GnuTLSSocket::readPart(
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	char * p, size_t n
 	#else
@@ -231,7 +231,7 @@ ssize_t libmaus::network::GnuTLSSocket::readPart(
 	
 		if ( gnutls_error_is_fatal(r) ) 
 		{
-			libmaus::exception::LibMausException lme;
+			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "GnuTLSSocket::readPart failed with error " << gnutls_strerror(r) << "\n";
 			lme.finish();
 			throw lme;				
@@ -242,7 +242,7 @@ ssize_t libmaus::network::GnuTLSSocket::readPart(
 			
 			if ( ++loops > maxloops )
 			{
-				libmaus::exception::LibMausException lme;
+				libmaus2::exception::LibMausException lme;
 				lme.getStream() << "GnuTLSSocket::readPart failed with error " << gnutls_strerror(r) << "\n";
 				lme.finish();
 				throw lme;						
@@ -263,7 +263,7 @@ ssize_t libmaus::network::GnuTLSSocket::readPart(
 	#endif
 }
 
-ssize_t libmaus::network::GnuTLSSocket::read(
+ssize_t libmaus2::network::GnuTLSSocket::read(
 	#if defined(LIBMAUS_HAVE_GNUTLS)
 	char * p, size_t n
 	#else

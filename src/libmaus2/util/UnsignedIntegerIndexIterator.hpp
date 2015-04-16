@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_UTIL_UNSIGNEDINTEGERINDEXITERATOR_HPP)
 #define LIBMAUS_UTIL_UNSIGNEDINTEGERINDEXITERATOR_HPP
 
-#include <libmaus/math/UnsignedInteger.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
 #include <iterator>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -35,7 +35,7 @@ namespace libmaus
 			static size_t const k = _k;
 			typedef UnsignedIntegerIndexIterator<owner_type,data_type,k> this_type;
 
-			typedef libmaus::math::UnsignedInteger<k> index_type;
+			typedef libmaus2::math::UnsignedInteger<k> index_type;
 
 			typedef ::std::random_access_iterator_tag iterator_category;
 			typedef typename ::std::iterator< ::std::random_access_iterator_tag, data_type>::value_type value_type;
@@ -110,7 +110,7 @@ namespace libmaus
 		};
 
 		template<typename _owner_type, typename _data_type, size_t _k>
-		inline UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> operator+(UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & I, libmaus::math::UnsignedInteger<_k> const & j)
+		inline UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> operator+(UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & I, libmaus2::math::UnsignedInteger<_k> const & j)
 		{
 			UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> J = I;
 			J += j;
@@ -118,7 +118,7 @@ namespace libmaus
 		}
 
 		template<typename _owner_type, typename _data_type, size_t _k>
-		inline UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> operator- ( UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & I, libmaus::math::UnsignedInteger<_k> const & j)
+		inline UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> operator- ( UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & I, libmaus2::math::UnsignedInteger<_k> const & j)
 		{
 			UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> J = I;
 			J -= j;
@@ -126,7 +126,7 @@ namespace libmaus
 		}
 
 		template<typename _owner_type, typename _data_type, size_t _k>
-		inline libmaus::math::UnsignedInteger<_k> operator- ( UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & I, UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & J )
+		inline libmaus2::math::UnsignedInteger<_k> operator- ( UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & I, UnsignedIntegerIndexIterator<_owner_type,_data_type,_k> const & J )
 		{
 			return I.i - J.i;
 		}

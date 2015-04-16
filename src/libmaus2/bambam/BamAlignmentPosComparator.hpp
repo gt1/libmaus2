@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTPOSCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTPOSCOMPARATOR_HPP
 
-#include <libmaus/bambam/BamAlignmentDecoderBase.hpp>
-#include <libmaus/bambam/BamAlignmentNameComparator.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
+#include <libmaus2/bambam/BamAlignmentNameComparator.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -50,14 +50,14 @@ namespace libmaus
 			 **/
 			static bool compare(uint8_t const * da, uint8_t const * db)
 			{
-				int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(da);
-				int32_t const refb = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(db);
+				int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(da);
+				int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(db);
 				
 				if ( refa != refb )
 					return  static_cast<uint32_t>(refa) < static_cast<uint32_t>(refb);
 
-				int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(da);
-				int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(db);
+				int32_t const posa = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(da);
+				int32_t const posb = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(db);
 				
 				return posa < posb;
 			}
@@ -71,8 +71,8 @@ namespace libmaus
 			 **/
 			static int compareInt(uint8_t const * da, uint8_t const * db)
 			{
-				int32_t const refa = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(da);
-				int32_t const refb = ::libmaus::bambam::BamAlignmentDecoderBase::getRefID(db);
+				int32_t const refa = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(da);
+				int32_t const refb = ::libmaus2::bambam::BamAlignmentDecoderBase::getRefID(db);
 				
 				if ( refa != refb )
 				{
@@ -82,8 +82,8 @@ namespace libmaus
 						return 1;
 				}
 
-				int32_t const posa = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(da);
-				int32_t const posb = ::libmaus::bambam::BamAlignmentDecoderBase::getPos(db);
+				int32_t const posa = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(da);
+				int32_t const posb = ::libmaus2::bambam::BamAlignmentDecoderBase::getPos(db);
 				
 				if ( posa < posb )
 					return -1;

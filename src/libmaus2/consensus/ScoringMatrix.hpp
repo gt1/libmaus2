@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS_SCORINGMATRIX_HPP)
 #define LIBMAUS_SCORINGMATRIX_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_SEQAN)
 #include <iostream>
@@ -28,21 +28,21 @@
 #include <seqan/align.h>
 #include <seqan/graph_msa.h>
 #include <seqan/score.h>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/Object.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/Object.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace consensus
 	{
 		struct ScoringMatrix : 
 			public seqan::Score < int, seqan::ScoreMatrix<seqan::Dna5, seqan::Default> >,
-			public ::libmaus::util::Object< ::libmaus::consensus::ScoringMatrix >
+			public ::libmaus2::util::Object< ::libmaus2::consensus::ScoringMatrix >
 		{
 			typedef ScoringMatrix this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef seqan::Dna5 TSequenceValue;
 			typedef seqan::Score < int, seqan::ScoreMatrix<TSequenceValue, seqan::Default> > base_type;

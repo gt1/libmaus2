@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_LZ_BGZFPARALLELRECODEBASE_HPP)
 #define LIBMAUS_LZ_BGZFPARALLELRECODEBASE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/BgzfConstants.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfConstants.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct BgzfParallelRecodeDeflateBase : public ::libmaus::lz::BgzfConstants
+		struct BgzfParallelRecodeDeflateBase : public ::libmaus2::lz::BgzfConstants
 		{
-			libmaus::autoarray::AutoArray<uint8_t> B;
+			libmaus2::autoarray::AutoArray<uint8_t> B;
 			
 			uint8_t * const pa;
 			uint8_t * pc;

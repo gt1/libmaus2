@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQCONTAINER_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQCONTAINER_HPP
 
-#include <libmaus/fastx/CompactFastQContainerDictionary.hpp>
-#include <libmaus/fastx/CompactFastQContext.hpp>
-#include <libmaus/fastx/CompactFastQHeader.hpp>
-#include <libmaus/fastx/CompactFastQDecoderBase.hpp>
+#include <libmaus2/fastx/CompactFastQContainerDictionary.hpp>
+#include <libmaus2/fastx/CompactFastQContext.hpp>
+#include <libmaus2/fastx/CompactFastQHeader.hpp>
+#include <libmaus2/fastx/CompactFastQDecoderBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
-		struct CompactFastQContainer : public ::libmaus::fastx::CompactFastQDecoderBase
+		struct CompactFastQContainer : public ::libmaus2::fastx::CompactFastQDecoderBase
 		{
                         typedef CompactFastQContainer this_type;
-                        typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-                        typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+                        typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+                        typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			::libmaus::autoarray::AutoArray<uint8_t> T;
-			::libmaus::fastx::CompactFastQContainerDictionary::unique_ptr_type dict;
-			::libmaus::fastx::CompactFastQHeader::unique_ptr_type H;
-			::libmaus::fastx::CompactFastQContext C;
+			::libmaus2::autoarray::AutoArray<uint8_t> T;
+			::libmaus2::fastx::CompactFastQContainerDictionary::unique_ptr_type dict;
+			::libmaus2::fastx::CompactFastQHeader::unique_ptr_type H;
+			::libmaus2::fastx::CompactFastQContext C;
 			
 			uint64_t byteSize() const
 			{
@@ -59,21 +59,21 @@ namespace libmaus
 			}
 			
 			CompactFastQContainer(std::istream & textstr)
-			: T(textstr), dict(new ::libmaus::fastx::CompactFastQContainerDictionary(textstr)), H(), C()
+			: T(textstr), dict(new ::libmaus2::fastx::CompactFastQContainerDictionary(textstr)), H(), C()
 			{
 				GetObject G(T.begin());
-				H = UNIQUE_PTR_MOVE(::libmaus::fastx::CompactFastQHeader::unique_ptr_type(new ::libmaus::fastx::CompactFastQHeader(G)));
+				H = UNIQUE_PTR_MOVE(::libmaus2::fastx::CompactFastQHeader::unique_ptr_type(new ::libmaus2::fastx::CompactFastQHeader(G)));
 			}
 
-			CompactFastQContainer(::libmaus::network::SocketBase * textstr)
-			: T(textstr->readMessageInBlocks<uint8_t,::libmaus::autoarray::alloc_type_cxx>()), 
-			  dict(new ::libmaus::fastx::CompactFastQContainerDictionary(textstr)), H(), C()
+			CompactFastQContainer(::libmaus2::network::SocketBase * textstr)
+			: T(textstr->readMessageInBlocks<uint8_t,::libmaus2::autoarray::alloc_type_cxx>()), 
+			  dict(new ::libmaus2::fastx::CompactFastQContainerDictionary(textstr)), H(), C()
 			{
 				GetObject G(T.begin());
-				H = UNIQUE_PTR_MOVE(::libmaus::fastx::CompactFastQHeader::unique_ptr_type(new ::libmaus::fastx::CompactFastQHeader(G)));
+				H = UNIQUE_PTR_MOVE(::libmaus2::fastx::CompactFastQHeader::unique_ptr_type(new ::libmaus2::fastx::CompactFastQHeader(G)));
 			}
 
-			void serialise(::libmaus::network::SocketBase * socket) const
+			void serialise(::libmaus2::network::SocketBase * socket) const
 			{
 				socket->writeMessageInBlocks(T);
 				dict->serialise(socket);
@@ -86,7 +86,7 @@ namespace libmaus
 				
 				if ( ! istr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "CompactFastQContainer::load(): failed to load file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -105,16 +105,16 @@ namespace libmaus
 			{
 				GetObject G(T.begin()+(*dict)[i - dict->FI.low]);
 				C.nextid = i;
-				::libmaus::fastx::CompactFastQDecoderBase::decodePattern<GetObject>(G,*H,C,pat);
+				::libmaus2::fastx::CompactFastQDecoderBase::decodePattern<GetObject>(G,*H,C,pat);
 				pat.patid = i;
 			}
 
 			void getPattern(pattern_type & pat, uint64_t i) const
 			{
 				GetObject G(T.begin()+(*dict)[i - dict->FI.low]);
-				::libmaus::fastx::CompactFastQContext C;
+				::libmaus2::fastx::CompactFastQContext C;
 				C.nextid = i;
-				::libmaus::fastx::CompactFastQDecoderBase::decodePattern<GetObject>(G,*H,C,pat);
+				::libmaus2::fastx::CompactFastQDecoderBase::decodePattern<GetObject>(G,*H,C,pat);
 				pat.patid = i;
 			}
 
@@ -122,15 +122,15 @@ namespace libmaus
 			{
 				GetObject G(T.begin()+(*dict)[i - dict->FI.low]);
 				C.nextid = i;
-				::libmaus::fastx::CompactFastQDecoderBase::decodeElement<GetObject>(G,*H,C,pat);
+				::libmaus2::fastx::CompactFastQDecoderBase::decodeElement<GetObject>(G,*H,C,pat);
 			}
 
 			void getElement(element_type & pat, uint64_t i) const
 			{
 				GetObject G(T.begin()+(*dict)[i - dict->FI.low]);
-				::libmaus::fastx::CompactFastQContext C;
+				::libmaus2::fastx::CompactFastQContext C;
 				C.nextid = i;
-				::libmaus::fastx::CompactFastQDecoderBase::decodeElement<GetObject>(G,*H,C,pat);
+				::libmaus2::fastx::CompactFastQDecoderBase::decodeElement<GetObject>(G,*H,C,pat);
 			}
 			
 			element_type operator[](uint64_t const i) const

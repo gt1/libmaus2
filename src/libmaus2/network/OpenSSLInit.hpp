@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,8 +19,8 @@
 #if ! defined(LIBMAUS_NETWORK_OPENSSLINIT_HPP)
 #define LIBMAUS_NETWORK_OPENSSLINIT_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 
 #if defined(LIBMAUS_HAVE_OPENSSL)
 #include <openssl/bio.h>
@@ -28,13 +28,13 @@
 #include <openssl/err.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct OpenSSLInit
 		{
-			static libmaus::parallel::PosixSpinLock lock;
+			static libmaus2::parallel::PosixSpinLock lock;
 			static uint64_t initcomplete;
 			
 			OpenSSLInit()
@@ -42,7 +42,7 @@ namespace libmaus
 				std::ostringstream errstr;
 				if ( ! init(errstr) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << errstr.str() << std::endl;
 					lme.finish();
 					throw lme;
@@ -61,7 +61,7 @@ namespace libmaus
 			)
 			{
 				#if defined(LIBMAUS_HAVE_OPENSSL)
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( ! initcomplete )
 				{
 					SSL_load_error_strings();   
@@ -83,7 +83,7 @@ namespace libmaus
 			static void shutdown()
 			{
 				#if defined(LIBMAUS_HAVE_OPENSSL)
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( initcomplete && (! --initcomplete) )
 				{
 					ERR_free_strings();

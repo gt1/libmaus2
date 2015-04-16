@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(GAPENCODER_HPP)
 #define GAPENCODER_HPP
 
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/huffman/HuffmanEncoderFile.hpp>
-#include <libmaus/huffman/GapDecoder.hpp>
-#include <libmaus/util/Histogram.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
-#include <libmaus/huffman/PairAddSecond.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/huffman/HuffmanEncoderFile.hpp>
+#include <libmaus2/huffman/GapDecoder.hpp>
+#include <libmaus2/util/Histogram.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
+#include <libmaus2/huffman/PairAddSecond.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -35,31 +35,31 @@ namespace libmaus
 		{
 			std::string const filename;
 			bool const needescape;
-			::libmaus::huffman::HuffmanEncoderFile gapHEF;
-			::libmaus::huffman::CanonicalEncoder::unique_ptr_type GCE;
-			::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type GECE;
+			::libmaus2::huffman::HuffmanEncoderFile gapHEF;
+			::libmaus2::huffman::CanonicalEncoder::unique_ptr_type GCE;
+			::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type GECE;
 			// (block position, sum in block)
 			std::vector < IndexEntry > index;
 			
 			GapEncoder(
 				std::string const & rfilename,
-				::libmaus::util::Histogram & gaphist,
+				::libmaus2::util::Histogram & gaphist,
 				uint64_t const numentries
 			)
 			: filename(rfilename), 
-			  needescape(::libmaus::huffman::EscapeCanonicalEncoder::needEscape(gaphist.getFreqSymVector())), 
+			  needescape(::libmaus2::huffman::EscapeCanonicalEncoder::needEscape(gaphist.getFreqSymVector())), 
 			  gapHEF(filename)
 			{
 				// std::cerr << "need escape: " << needescape << std::endl;
 			
 				if ( needescape )
 				{
-					::libmaus::huffman::EscapeCanonicalEncoder::unique_ptr_type tGECE(new ::libmaus::huffman::EscapeCanonicalEncoder(gaphist.getFreqSymVector()));
+					::libmaus2::huffman::EscapeCanonicalEncoder::unique_ptr_type tGECE(new ::libmaus2::huffman::EscapeCanonicalEncoder(gaphist.getFreqSymVector()));
 					GECE = UNIQUE_PTR_MOVE(tGECE);
 				}
 				else
 				{
-					::libmaus::huffman::CanonicalEncoder::unique_ptr_type tGCE(new ::libmaus::huffman::CanonicalEncoder(gaphist.getByType<int64_t>()));
+					::libmaus2::huffman::CanonicalEncoder::unique_ptr_type tGCE(new ::libmaus2::huffman::CanonicalEncoder(gaphist.getByType<int64_t>()));
 					GCE = UNIQUE_PTR_MOVE(tGCE);
 				}
 
@@ -88,13 +88,13 @@ namespace libmaus
 				uint64_t const indexpos = gapHEF.getPos();
 
 				uint64_t const maxpos = index.size() ? index[index.size()-1].pos : 0;
-				unsigned int const posbits = ::libmaus::math::bitsPerNum(maxpos);
+				unsigned int const posbits = ::libmaus2::math::bitsPerNum(maxpos);
 				
 				uint64_t const kacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryKeyAdd());
-				unsigned int const kbits = ::libmaus::math::bitsPerNum(kacc);
+				unsigned int const kbits = ::libmaus2::math::bitsPerNum(kacc);
 
 				uint64_t const vacc = std::accumulate(index.begin(),index.end(),0ull,IndexEntryValueAdd());
-				unsigned int const vbits = ::libmaus::math::bitsPerNum(vacc);
+				unsigned int const vbits = ::libmaus2::math::bitsPerNum(vacc);
 
 				// write number of entries in index
 				gapHEF.writeElias2(index.size());
@@ -231,7 +231,7 @@ namespace libmaus
 			{
 				if ( ! infilenames.size() )
 				{				
-					::libmaus::util::Histogram hist;
+					::libmaus2::util::Histogram hist;
 					GapEncoder enc(outfilename,hist,0);
 					enc.flush();
 				}
@@ -240,8 +240,8 @@ namespace libmaus
 					typedef GapDecoder decoder_type;
 					typedef decoder_type::unique_ptr_type decoder_ptr_type;
 					
-					::libmaus::util::Histogram hist;
-					::libmaus::autoarray::AutoArray<decoder_ptr_type> decoders(infilenames.size());
+					::libmaus2::util::Histogram hist;
+					::libmaus2::autoarray::AutoArray<decoder_ptr_type> decoders(infilenames.size());
 
 					// check length of files
 					uint64_t const n = infilenames.size() ? GapDecoder::getLength(infilenames[0]) : 0;
@@ -253,7 +253,7 @@ namespace libmaus
 					{
 						// std::cerr << "Setting up decoder for " << infilenames[i] << std::endl;
 						for ( uint64_t j = 0; j < infilenames[i].size(); ++j )
-							assert ( ::libmaus::util::GetFileSize::fileExists(infilenames[i][j]) );
+							assert ( ::libmaus2::util::GetFileSize::fileExists(infilenames[i][j]) );
 						
 						decoder_ptr_type tdecodersi(new decoder_type(infilenames[i]));
 						decoders[i] = UNIQUE_PTR_MOVE(tdecodersi);
@@ -282,7 +282,7 @@ namespace libmaus
 					
 					uint64_t const bs = 32*1024;
 					uint64_t const blocks = ( n + bs - 1 ) / bs;
-					::libmaus::autoarray::AutoArray<uint64_t> B(bs,false);
+					::libmaus2::autoarray::AutoArray<uint64_t> B(bs,false);
 
 					for ( uint64_t b = 0; b < blocks; ++b )
 					{

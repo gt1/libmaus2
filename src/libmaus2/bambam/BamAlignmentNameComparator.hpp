@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTNAMECOMPARATOR_HPP
 
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/bambam/StrCmpNum.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/bambam/StrCmpNum.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -58,8 +58,8 @@ namespace libmaus
 			 **/
 			static bool compare(uint8_t const * da, uint8_t const * db)
 			{
-				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
-				char const * nameb = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(db);
+				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
+				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
 
 				int const r = strcmpnum(namea,nameb);
 				bool res;
@@ -71,13 +71,13 @@ namespace libmaus
 				else if ( r == 0 )
 				{
 					// read 1 before read 2
-					uint32_t const flagsa = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(da);
-					uint32_t const flagsb = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(db);
+					uint32_t const flagsa = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da);
+					uint32_t const flagsb = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db);
 					
-					int const r1a = (flagsa & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
-					int const r1b = (flagsb & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
-					int const r2a = (flagsa & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
-					int const r2b = (flagsb & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
+					int const r1a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
+					int const r1b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) != 0;
+					int const r2a = (flagsa & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
+					int const r2b = (flagsb & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2) != 0;
 					
 					int const r1 = ((1-r1a) << 1) | (1-r2a);
 					int const r2 = ((1-r1b) << 1) | (1-r2b);
@@ -100,7 +100,7 @@ namespace libmaus
 			 * @param db second alignment
 			 * @return true iff da < db (alignments referenced by da and db, not pointers)
 			 **/
-			static bool compare(libmaus::bambam::BamAlignment const & A, libmaus::bambam::BamAlignment const & B)
+			static bool compare(libmaus2::bambam::BamAlignment const & A, libmaus2::bambam::BamAlignment const & B)
 			{
 				return compare(A.D.begin(),B.D.begin());
 			}
@@ -114,8 +114,8 @@ namespace libmaus
 			 **/
 			static int compareInt(uint8_t const * da, uint8_t const * db)
 			{
-				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
-				char const * nameb = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(db);
+				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
+				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
 
 				int const r = strcmpnum(namea,nameb);
 				
@@ -123,8 +123,8 @@ namespace libmaus
 					return r;
 
 				// read 1 before read 2
-				int const r1 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
-				int const r2 = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				int const r1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(da) & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+				int const r2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(db) & ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
 				
 				if ( r1 == r2 )
 					return 0;
@@ -142,7 +142,7 @@ namespace libmaus
 			 * @param db second alignment
 			 * @return true iff da < db (alignments referenced by da and db, not pointers)
 			 **/
-			static bool compareInt(libmaus::bambam::BamAlignment const & A, libmaus::bambam::BamAlignment const & B)
+			static bool compareInt(libmaus2::bambam::BamAlignment const & A, libmaus2::bambam::BamAlignment const & B)
 			{
 				return compareInt(A.D.begin(),B.D.begin());
 			}
@@ -156,8 +156,8 @@ namespace libmaus
 			 **/
 			static int compareIntNameOnly(uint8_t const * da, uint8_t const * db)
 			{
-				char const * namea = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(da);
-				char const * nameb = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(db);
+				char const * namea = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(da);
+				char const * nameb = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(db);
 
 				return strcmpnum(namea,nameb);
 			}

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_PARALLEL_LOCKEDBOOL_HPP)
 #define LIBMAUS_PARALLEL_LOCKEDBOOL_HPP
 
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 
 #if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{
 		struct LockedBool
 		{
 			#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
-			libmaus::parallel::PosixSpinLock lock;
+			libmaus2::parallel::PosixSpinLock lock;
 			#else
-			libmaus::parallel::OMPLock lock;
+			libmaus2::parallel::OMPLock lock;
 			#endif
 			volatile bool b;
 			

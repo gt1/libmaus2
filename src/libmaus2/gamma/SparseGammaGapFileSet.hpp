@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,29 +19,29 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPFILESET_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPFILESET_HPP
 
-#include <libmaus/gamma/SparseGammaGapDecoder.hpp>
-#include <libmaus/gamma/SparseGammaGapFile.hpp>
-#include <libmaus/gamma/SparseGammaGapMerge.hpp>
-#include <libmaus/gamma/GammaGapEncoder.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
+#include <libmaus2/gamma/SparseGammaGapDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapFile.hpp>
+#include <libmaus2/gamma/SparseGammaGapMerge.hpp>
+#include <libmaus2/gamma/GammaGapEncoder.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
 #include <queue>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
 		struct SparseGammaGapFileSet
 		{
-			libmaus::util::TempFileNameGenerator & tmpgen;
-			std::priority_queue<libmaus::gamma::SparseGammaGapFile> Q;
-			libmaus::parallel::OMPLock lock;
+			libmaus2::util::TempFileNameGenerator & tmpgen;
+			std::priority_queue<libmaus2::gamma::SparseGammaGapFile> Q;
+			libmaus2::parallel::OMPLock lock;
 			uint64_t addcnt;
 		
-			SparseGammaGapFileSet(libmaus::util::TempFileNameGenerator & rtmpgen) : tmpgen(rtmpgen), addcnt(0) {}
+			SparseGammaGapFileSet(libmaus2::util::TempFileNameGenerator & rtmpgen) : tmpgen(rtmpgen), addcnt(0) {}
 			
 			bool needMerge()
 			{
@@ -95,15 +95,15 @@ namespace libmaus
 				SparseGammaGapFile const Sb = Q.top(); Q.pop();
 				// assert ( Sa.level == Sb.level );
 				
-				libmaus::util::TempFileRemovalContainer::addTempFile(nfn);
+				libmaus2::util::TempFileRemovalContainer::addTempFile(nfn);
 				
 				SparseGammaGapFile N(nfn,Sa.level+1);
 				Q.push(N);
 
-				libmaus::aio::CheckedInputStream ina(Sa.fn);
-				libmaus::aio::CheckedInputStream inb(Sb.fn);
-				libmaus::aio::CheckedOutputStream out(nfn);
-				libmaus::gamma::SparseGammaGapMerge::merge(ina,inb,out);
+				libmaus2::aio::CheckedInputStream ina(Sa.fn);
+				libmaus2::aio::CheckedInputStream inb(Sb.fn);
+				libmaus2::aio::CheckedOutputStream out(nfn);
+				libmaus2::gamma::SparseGammaGapMerge::merge(ina,inb,out);
 				
 				#if 0
 				std::cerr << "merged " << Sa.fn << " and " << Sb.fn << " to " << nfn << std::endl;
@@ -116,11 +116,11 @@ namespace libmaus
 			
 			void addFile(std::string const & fn)
 			{
-				libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+				libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 				
 				SparseGammaGapFile S(fn,0);
 				
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				addcnt += 1;
 				Q.push(S);
 				
@@ -130,7 +130,7 @@ namespace libmaus
 			
 			void merge(std::string const & outputfilename)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 
 				while ( canMerge() )
 					doMerge(tmpgen.getFileName());
@@ -141,18 +141,18 @@ namespace libmaus
 
 			void mergeToDense(std::string const & outputfilename, uint64_t const n)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 
 				while ( canMerge() )
 					doMerge(tmpgen.getFileName());
 					
 				if ( !Q.empty() )
 				{
-					libmaus::aio::CheckedInputStream CIS(Q.top().fn);
-					libmaus::gamma::SparseGammaGapDecoder SGGD(CIS);
-					libmaus::gamma::SparseGammaGapDecoder::iterator it = SGGD.begin();
+					libmaus2::aio::CheckedInputStream CIS(Q.top().fn);
+					libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
+					libmaus2::gamma::SparseGammaGapDecoder::iterator it = SGGD.begin();
 					
-					libmaus::gamma::GammaGapEncoder GGE(outputfilename);
+					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
 					GGE.encode(it,n);
 					
 					remove(Q.top().fn.c_str());

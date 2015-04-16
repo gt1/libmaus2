@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_MATH_LOG_HPP)
 #define LIBMAUS_MATH_LOG_HPP
 
-#include <libmaus/math/IPower.hpp>
+#include <libmaus2/math/IPower.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace math
 	{
@@ -42,7 +42,7 @@ namespace libmaus
 		struct LogCeil
 		{
 			static int const log =
-				(::libmaus::math::IPower< b,LogFloor<num,b>::log >::n == num) ? (LogFloor<num,b>::log) : (LogFloor<num,b>::log+1);
+				(::libmaus2::math::IPower< b,LogFloor<num,b>::log >::n == num) ? (LogFloor<num,b>::log) : (LogFloor<num,b>::log+1);
 		};
 	}
 }

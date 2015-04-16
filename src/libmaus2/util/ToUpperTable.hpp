@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,20 +20,20 @@
 #if ! defined(LIBMAUS_UTIL_TOUPPERTABLE_HPP)
 #define LIBMAUS_UTIL_TOUPPERTABLE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <cctype>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
                 struct ToUpperTable
                 {
 			typedef ToUpperTable this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			::libmaus::autoarray::AutoArray<uint8_t> touppertable;
+			::libmaus2::autoarray::AutoArray<uint8_t> touppertable;
 
                         ToUpperTable() : touppertable(256)
                         {

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/huffman/IndexLoaderBase.hpp>
+#include <libmaus2/huffman/IndexLoaderBase.hpp>
 #include <iostream>
 #include <sstream>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/math/isqrt.hpp>
-#include <libmaus/wavelet/HuffmanWaveletTree.hpp>
-#include <libmaus/huffman/CanonicalEncoder.hpp>
-#include <libmaus/huffman/HuffmanTree.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/math/isqrt.hpp>
+#include <libmaus2/wavelet/HuffmanWaveletTree.hpp>
+#include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/huffman/HuffmanTree.hpp>
 
 bool checkNontrivial(std::string const & s)
 {
@@ -48,7 +48,7 @@ void testRangeQuantile()
 		if ( !checkNontrivial(s) )
 			continue;
 			
-		::libmaus::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
+		::libmaus2::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
 
                 std::pair < std::vector < uint64_t >, std::vector < uint64_t > > SOBC = hwt.enctable.symsOrderedByCode();
 		
@@ -73,7 +73,7 @@ void testRangeQuantile()
 			hwt.root->serialize(ostr1);
 			std::cerr << "(1) size " << ostr1.str().size() << std::endl;
 			std::istringstream istr1(ostr1.str());
-			::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type acopy = ::libmaus::huffman::HuffmanTreeNode::deserialize(istr1);
+			::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type acopy = ::libmaus2::huffman::HuffmanTreeNode::deserialize(istr1);
 			std::ostringstream ostr2;
 			acopy->serialize(ostr2);
 			std::cerr << "(2) size " << ostr2.str().size() << std::endl;
@@ -85,7 +85,7 @@ void testRangeQuantile()
 			std::cerr << "(3) size " << ostr3.str().size() << std::endl;
 			
 			std::istringstream istr3(ostr3.str());
-			::libmaus::wavelet::HuffmanWaveletTree hwt3(istr3);
+			::libmaus2::wavelet::HuffmanWaveletTree hwt3(istr3);
 
 			std::ostringstream ostr4;
 			hwt3.serialize(ostr4);
@@ -137,7 +137,7 @@ void testRangeQuantile()
 		if ( !checkNontrivial(s) )
 			continue;
 	
-		::libmaus::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
+		::libmaus2::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
 
                 std::pair < std::vector < uint64_t >, std::vector < uint64_t > > SOBC = hwt.enctable.symsOrderedByCode();
 		
@@ -162,7 +162,7 @@ void testRangeQuantile()
 			hwt.root->serialize(ostr1);
 			std::cerr << "(1) size " << ostr1.str().size() << std::endl;
 			std::istringstream istr1(ostr1.str());
-			::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type acopy = ::libmaus::huffman::HuffmanTreeNode::deserialize(istr1);
+			::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type acopy = ::libmaus2::huffman::HuffmanTreeNode::deserialize(istr1);
 			std::ostringstream ostr2;
 			acopy->serialize(ostr2);
 			std::cerr << "(2) size " << ostr2.str().size() << std::endl;
@@ -174,7 +174,7 @@ void testRangeQuantile()
 			std::cerr << "(3) size " << ostr3.str().size() << std::endl;
 			
 			std::istringstream istr3(ostr3.str());
-			::libmaus::wavelet::HuffmanWaveletTree hwt3(istr3);
+			::libmaus2::wavelet::HuffmanWaveletTree hwt3(istr3);
 
 			std::ostringstream ostr4;
 			hwt3.serialize(ostr4);
@@ -223,7 +223,7 @@ void testSmaller()
 		if ( !checkNontrivial(s) )
 			continue;
 			
-		::libmaus::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
+		::libmaus2::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
 
                 std::pair < std::vector < uint64_t >, std::vector < uint64_t > > SOBC = hwt.enctable.symsOrderedByCode();
 		
@@ -284,7 +284,7 @@ void testSmaller()
 		if ( !checkNontrivial(s) )
 			continue;
 	
-		::libmaus::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
+		::libmaus2::wavelet::HuffmanWaveletTree hwt(s.c_str(), s.c_str() + s.size());
 
                 std::pair < std::vector < uint64_t >, std::vector < uint64_t > > SOBC = hwt.enctable.symsOrderedByCode();
 		
@@ -333,8 +333,8 @@ void testSmaller()
 void runTests()
 {
 	std::string text = "aabbbacabbaba";
-        ::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type root = ::libmaus::huffman::HuffmanBase::createTree( text.begin(), text.end() );
-        ::libmaus::huffman::EncodeTable<1> enctable(root.get());
+        ::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type root = ::libmaus2::huffman::HuffmanBase::createTree( text.begin(), text.end() );
+        ::libmaus2::huffman::EncodeTable<1> enctable(root.get());
         
         std::cerr << std::hex;
         enctable.print();
@@ -344,7 +344,7 @@ void runTests()
         
         root->square(8);        
         
-        ::libmaus::huffman::EncodeTable<1> enctablesq(root.get());
+        ::libmaus2::huffman::EncodeTable<1> enctablesq(root.get());
 
         std::cerr << std::hex;
         enctablesq.print();
@@ -352,17 +352,17 @@ void runTests()
         
         // return 0;
 	
-	::libmaus::wavelet::HuffmanWaveletTree::testTree();
+	::libmaus2::wavelet::HuffmanWaveletTree::testTree();
 
 	testRangeQuantile();
 	testSmaller();
 
-	::libmaus::huffman::HuffmanSorting::test();
+	::libmaus2::huffman::HuffmanSorting::test();
 
-	::libmaus::wavelet::HuffmanWaveletTree::testTree();
+	::libmaus2::wavelet::HuffmanWaveletTree::testTree();
                               
 	std::string a = "aaba";
-	::libmaus::wavelet::HuffmanWaveletTree H0(a.begin(),a.end());
+	::libmaus2::wavelet::HuffmanWaveletTree H0(a.begin(),a.end());
                                
 	for ( unsigned int i = 0; i < a.size(); ++i )
 		assert ( H0[i] == a[i] );                                     
@@ -378,8 +378,8 @@ struct RestBitsBlock
 {
 	uint64_t bits;
 	uint64_t words;
-	::libmaus::autoarray::AutoArray<uint64_t> block;
-	::libmaus::bitio::FastWriteBitWriter8 writer;
+	::libmaus2::autoarray::AutoArray<uint64_t> block;
+	::libmaus2::bitio::FastWriteBitWriter8 writer;
 	FlushCallback & flush;
 	uint64_t bitsused;
 	uint64_t bitsleft;
@@ -464,9 +464,9 @@ void testFib(uint64_t a)
 		n += F[i];
 	}
 
-	::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type aroot = ::libmaus::huffman::HuffmanBase::createTree(F);
+	::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(F);
 
-	::libmaus::huffman::EncodeTable<2> enctable(aroot.get());
+	::libmaus2::huffman::EncodeTable<2> enctable(aroot.get());
 	
 	uint64_t t = 0;
 	for ( uint64_t i = 0; i < a; ++i )
@@ -480,13 +480,13 @@ int testHwtSimpleSerialisation()
 	try
 	{
 		std::string text = "abracadabra";
-		::libmaus::wavelet::HuffmanWaveletTree  HWT(text.begin(),text.end());
+		::libmaus2::wavelet::HuffmanWaveletTree  HWT(text.begin(),text.end());
 		
 		{
 		std::ostringstream ostr0;
 		HWT.root->lineSerialise(ostr0);
 		std::istringstream istr0(ostr0.str());
-		::libmaus::util::shared_ptr< ::libmaus::huffman::HuffmanTreeNode >::type sroot0 = ::libmaus::huffman::HuffmanTreeNode::simpleDeserialise(istr0);
+		::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type sroot0 = ::libmaus2::huffman::HuffmanTreeNode::simpleDeserialise(istr0);
 	
 		std::ostringstream ostr1;
 		sroot0->lineSerialise(ostr1);
@@ -502,7 +502,7 @@ int testHwtSimpleSerialisation()
 		std::ostringstream ostr0;
 		HWT.navroot->lineSerialise(ostr0);
 		std::istringstream istr0(ostr0.str());
-		::libmaus::wavelet::HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type uroot0 = ::libmaus::wavelet::HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::deserialiseSimple(istr0);
+		::libmaus2::wavelet::HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type uroot0 = ::libmaus2::wavelet::HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::deserialiseSimple(istr0);
 		
 		std::ostringstream ostr1;
 		uroot0->lineSerialise(ostr1);
@@ -518,7 +518,7 @@ int testHwtSimpleSerialisation()
 		std::ostringstream ostr0;
 		HWT.simpleSerialise(ostr0);
 		std::istringstream istr0(ostr0.str());
-		::libmaus::wavelet::HuffmanWaveletTree::unique_ptr_type uroot0 = ::libmaus::wavelet::HuffmanWaveletTree::simpleDeserialise(istr0);
+		::libmaus2::wavelet::HuffmanWaveletTree::unique_ptr_type uroot0 = ::libmaus2::wavelet::HuffmanWaveletTree::simpleDeserialise(istr0);
 		
 		for ( uint64_t i = 0; i < HWT.n; ++i )
 			assert ( HWT[i] == (*uroot0)[i] );
@@ -542,13 +542,13 @@ void testFibonacciTables()
 	
 }
 
-#include <libmaus/aio/GenericInput.hpp>
-#include <libmaus/timing/RealTimeClock.hpp>
-#include <libmaus/huffman/RLEncoder.hpp>
-#include <libmaus/huffman/RLDecoder.hpp>
+#include <libmaus2/aio/GenericInput.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/huffman/RLEncoder.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
 
-#include <libmaus/huffman/GapEncoder.hpp>
-#include <libmaus/huffman/GapDecoder.hpp>
+#include <libmaus2/huffman/GapEncoder.hpp>
+#include <libmaus2/huffman/GapDecoder.hpp>
 
 
 uint64_t fibo(uint64_t i)
@@ -578,13 +578,13 @@ void testHuffmanTree()
 	for ( uint64_t i = 0; i < 15; ++i )
 		M[i]  = 1;
 	#endif
-	libmaus::huffman::HuffmanTree H(M.begin(),M.size(),true,true);
+	libmaus2::huffman::HuffmanTree H(M.begin(),M.size(),true,true);
 	// std::cerr << H;
 	// H.printLeafCodes(std::cerr);
 	
 	std::string const ser = H.serialise();
 	std::istringstream istr(ser);
-	libmaus::huffman::HuffmanTree H2(istr);
+	libmaus2::huffman::HuffmanTree H2(istr);
 	assert ( H == H2 );
 	#if 0
 	H2.testComputeSubTreeCounts();
@@ -594,13 +594,13 @@ void testHuffmanTree()
 	H2.testAssignDfsIds();
 	#endif
 	
-	libmaus::huffman::HuffmanTree H3(M.begin(),M.size(),true /* sort leafs by depth */,true /* assign codes */,true /* order by inner nodes by dfs */);
+	libmaus2::huffman::HuffmanTree H3(M.begin(),M.size(),true /* sort leafs by depth */,true /* assign codes */,true /* order by inner nodes by dfs */);
 	std::cerr << "start reordered: " << H3.root()-H3.leafs() << std::endl;
 	std::cerr << H3;
 		
 	std::ostringstream ostrout;
-	libmaus::bitio::BitWriterStream8 BWS8(ostrout);
-	libmaus::huffman::HuffmanTree::EncodeTable E(H);
+	libmaus2::bitio::BitWriterStream8 BWS8(ostrout);
+	libmaus2::huffman::HuffmanTree::EncodeTable E(H);
 	for ( uint64_t i = 0; i < 16; ++i )
 	{
 		int64_t const sym = i % 15;
@@ -609,7 +609,7 @@ void testHuffmanTree()
 	BWS8.flush();
 	
 	std::istringstream bitistr(ostrout.str());
-	libmaus::bitio::StreamBitInputStream BIN(bitistr);
+	libmaus2::bitio::StreamBitInputStream BIN(bitistr);
 	for ( uint64_t i = 0; i < 16; ++i )
 	{
 		// std::cerr << H.decodeSlow(BIN) << std::endl;
@@ -631,8 +631,8 @@ void testHuffmanTreeNoCnt()
 	syms.push_back(10);
 	syms.push_back(16);
 	syms.push_back(33);
-	libmaus::huffman::HuffmanTree H(syms);
-	libmaus::huffman::HuffmanTree::EncodeTable E(H);
+	libmaus2::huffman::HuffmanTree H(syms);
+	libmaus2::huffman::HuffmanTree::EncodeTable E(H);
 	std::cerr << H;
 	std::cerr << E;
 }
@@ -644,27 +644,27 @@ int main()
 	
 	return 0;
 
-	::libmaus::util::Histogram hist;
+	::libmaus2::util::Histogram hist;
 	unsigned int seq[] = { 0,1,1,0,1,2,4,1,3,1,5,1,1,1 };
 	uint64_t const seqn = sizeof(seq)/sizeof(seq[0]);
 	for ( uint64_t i = 0; i < seqn; ++i )
 		hist(seq[i]);
 	std::string const fn = "debug";
-	::libmaus::huffman::GapEncoder GE(fn,hist,seqn);
+	::libmaus2::huffman::GapEncoder GE(fn,hist,seqn);
 	GE.encode(&seq[0],&seq[seqn]);
 	
-	::libmaus::huffman::GapDecoder GD(std::vector<std::string>(1,fn));
+	::libmaus2::huffman::GapDecoder GD(std::vector<std::string>(1,fn));
 
 	#if 1
 	{
 		std::string const s = "fischersfritzefischtfrischefischeveronikaderlenzistda";
-		::libmaus::huffman::CanonicalEncoder CE(s.begin(),s.end());
-		::libmaus::huffman::HuffmanTreeNode::unique_ptr_type root = CE.codeToTree();
+		::libmaus2::huffman::CanonicalEncoder CE(s.begin(),s.end());
+		::libmaus2::huffman::HuffmanTreeNode::unique_ptr_type root = CE.codeToTree();
 		root->lineSerialise(std::cerr);
 		
 		CE.print(std::cerr);
 		
-		::libmaus::huffman::EncodeTable<2> E(root.get());
+		::libmaus2::huffman::EncodeTable<2> E(root.get());
 		E.printChar();
 		
 		for ( uint64_t i = 0; i < s.size(); ++i )
@@ -680,30 +680,30 @@ int main()
 	#if 0
 	{
 		std::string const testfilename = "testfile";
-		::libmaus::huffman::RLEncoder::unique_ptr_type RLE(new ::libmaus::huffman::RLEncoder(testfilename,1ull << 50,64*1024));
+		::libmaus2::huffman::RLEncoder::unique_ptr_type RLE(new ::libmaus2::huffman::RLEncoder(testfilename,1ull << 50,64*1024));
 		RLE->encode(5);
 		RLE->flush();
 		RLE.reset();
 		
-		::libmaus::huffman::RLDecoder rldec(testfilename);	
+		::libmaus2::huffman::RLDecoder rldec(testfilename);	
 	}
 	#endif
 
 	srand(time(0));
 	
-	::libmaus::autoarray::AutoArray<uint8_t> A = ::libmaus::aio::GenericInput<uint8_t>::readArray("mis");
+	::libmaus2::autoarray::AutoArray<uint8_t> A = ::libmaus2::aio::GenericInput<uint8_t>::readArray("mis");
 	std::map<int64_t,uint64_t> F;
 	for ( uint64_t i = 0; i < A.size(); ++i )
 		F [ A[i] ] ++;
 	
-	::libmaus::huffman::CanonicalEncoder cane(F,12);
+	::libmaus2::huffman::CanonicalEncoder cane(F,12);
 	cane.print();
 	
 	std::ostringstream ostr;
-	typedef libmaus::bitio::FastWriteBitWriterStream8 writer_type;
+	typedef libmaus2::bitio::FastWriteBitWriterStream8 writer_type;
 	writer_type writer(ostr);
 	
-	::libmaus::timing::RealTimeClock rtc; rtc.start();
+	::libmaus2::timing::RealTimeClock rtc; rtc.start();
 	for ( uint64_t i = 0; i < A.size(); ++i )
 		cane.encode ( writer, A[i] );
 	writer.flush();
@@ -712,7 +712,7 @@ int main()
 	writer.flush();
 	std::cerr << "Encode time " << rtc.getElapsedSeconds() << std::endl;
 	
-	typedef libmaus::bitio::StreamBitInputStream reader_type;
+	typedef libmaus2::bitio::StreamBitInputStream reader_type;
 	std::istringstream istr(ostr.str());
 	reader_type reader(istr);
 
@@ -728,8 +728,8 @@ int main()
 	// std::cerr << "Here." << std::endl;
 
 	std::istringstream bibistr(ostr.str());
-	::libmaus::huffman::FileStreamBaseType::unique_ptr_type FSBT(new ::libmaus::huffman::FileStreamBaseType(bibistr));
-	::libmaus::huffman::BitInputBuffer4 BIB(FSBT,32);
+	::libmaus2::huffman::FileStreamBaseType::unique_ptr_type FSBT(new ::libmaus2::huffman::FileStreamBaseType(bibistr));
+	::libmaus2::huffman::BitInputBuffer4 BIB(FSBT,32);
 
 	rtc.start();
 	for ( uint64_t i = 0; i < A.size(); ++i )
@@ -757,13 +757,13 @@ int main()
 	#if 1
 	std::string text = "abracadabra";
 	std::string::const_iterator ita = text.begin(), itb = text.end();
-	::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type aroot = ::libmaus::huffman::HuffmanBase::createTree(ita,itb);
+	::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type aroot = ::libmaus2::huffman::HuffmanBase::createTree(ita,itb);
 	uint64_t const n = text.size();
-	::libmaus::autoarray::AutoArray < uint64_t > code = hufEncodeString (ita,itb, aroot.get());
+	::libmaus2::autoarray::AutoArray < uint64_t > code = hufEncodeString (ita,itb, aroot.get());
 
 	uint64_t const declookup = 8;
-	::libmaus::huffman::DecodeTable dectable(aroot.get(), declookup);
-	::libmaus::huffman::EncodeTable<2> enctable(aroot.get());
+	::libmaus2::huffman::DecodeTable dectable(aroot.get(), declookup);
+	::libmaus2::huffman::EncodeTable<2> enctable(aroot.get());
 	
 	enctable.printChar();
 	
@@ -771,7 +771,7 @@ int main()
 	
 	std::cerr << "Code length " << codelen << std::endl;
 	uint64_t const abps = (codelen + (n-1)) / n;
-	uint64_t const rawbitblocksize = ::libmaus::math::isqrt(n * abps);
+	uint64_t const rawbitblocksize = ::libmaus2::math::isqrt(n * abps);
 	uint64_t const bitblocksize = ((rawbitblocksize+63)/64)*64;
 	
 	std::cerr << "Average code length " << abps << std::endl;
@@ -788,14 +788,14 @@ int main()
 	
 	while ( decsyms < text.size() )
 	{
-		uint8_t const bits = ::libmaus::bitio::getBits(code.get(), boff, declookup);
+		uint8_t const bits = ::libmaus2::bitio::getBits(code.get(), boff, declookup);
 		boff += declookup;
-		::libmaus::huffman::DecodeTableEntry const & decentry = dectable(tableid,bits);
+		::libmaus2::huffman::DecodeTableEntry const & decentry = dectable(tableid,bits);
 		std::vector<int> const & symbols = decentry.symbols;
 		
 		for ( unsigned int i = 0; i < std::min(static_cast<uint64_t>(symbols.size()), text.size()-decsyms); ++i )
 		{
-			std::pair< ::libmaus::uint::UInt<2> , unsigned int > L = enctable.getNonMsbBits(symbols[i]);
+			std::pair< ::libmaus2::uint::UInt<2> , unsigned int > L = enctable.getNonMsbBits(symbols[i]);
 			bool const H = enctable.getBitFromTop(symbols[i],0);
 			
 			std::cerr << "(" << "[" << H << "]" << static_cast<char>(symbols[i]) << ")"

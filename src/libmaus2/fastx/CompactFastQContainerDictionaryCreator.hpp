@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_FASTX_COMPACTFASTQCONTAINERDICTIONARYCREATOR_HPP)
 #define LIBMAUS_FASTX_COMPACTFASTQCONTAINERDICTIONARYCREATOR_HPP
 
-#include <libmaus/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -37,10 +37,10 @@ namespace libmaus
 			uint64_t longidx;
 			uint64_t shortidx;
 			
-			::libmaus::rank::ImpCacheLineRank::unique_ptr_type designators;
-			::libmaus::rank::ImpCacheLineRank::WriteContext desigwc;
-			::libmaus::autoarray::AutoArray<uint64_t> longptrs;
-			::libmaus::autoarray::AutoArray<uint16_t> shortptrs;
+			::libmaus2::rank::ImpCacheLineRank::unique_ptr_type designators;
+			::libmaus2::rank::ImpCacheLineRank::WriteContext desigwc;
+			::libmaus2::autoarray::AutoArray<uint64_t> longptrs;
+			::libmaus2::autoarray::AutoArray<uint16_t> shortptrs;
 			
 			uint64_t byteSize() const
 			{
@@ -75,13 +75,13 @@ namespace libmaus
 			{
 				reset();
 				
-				designators = UNIQUE_PTR_MOVE(::libmaus::rank::ImpCacheLineRank::unique_ptr_type(
-					new ::libmaus::rank::ImpCacheLineRank(numshort)
+				designators = UNIQUE_PTR_MOVE(::libmaus2::rank::ImpCacheLineRank::unique_ptr_type(
+					new ::libmaus2::rank::ImpCacheLineRank(numshort)
 				));
 				desigwc = designators->getWriteContext();
 				
-				longptrs = ::libmaus::autoarray::AutoArray<uint64_t>(numlong);
-				shortptrs = ::libmaus::autoarray::AutoArray<uint16_t>(numshort);
+				longptrs = ::libmaus2::autoarray::AutoArray<uint64_t>(numlong);
+				shortptrs = ::libmaus2::autoarray::AutoArray<uint16_t>(numshort);
 			}
 			
 			void serialise(std::ostream & out)

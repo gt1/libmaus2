@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,33 +19,33 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKFRAGMENTWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKFRAGMENTWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/ValidationFragment.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/ValidationFragment.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct ValidateBlockFragmentWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct ValidateBlockFragmentWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef ValidateBlockFragmentWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				AlignmentBuffer::shared_ptr_type parseBlock;
 				ValidationFragment fragment;
 	
-				ValidateBlockFragmentWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock() {}
+				ValidateBlockFragmentWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), parseBlock() {}
 				
 				ValidateBlockFragmentWorkPackage(
 					uint64_t const rpriority, 
 					ValidationFragment const & rfragment,
 					uint64_t const rparseDispatcherId
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), fragment(rfragment)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), fragment(rfragment)
 				{
 				}
 			
@@ -59,7 +59,7 @@ namespace libmaus
 					return fragment.dispatch();
 				}
 				
-				void updateChecksums(libmaus::bambam::ChecksumsInterface & chksums)
+				void updateChecksums(libmaus2::bambam::ChecksumsInterface & chksums)
 				{
 					fragment.updateChecksums(chksums);
 				}

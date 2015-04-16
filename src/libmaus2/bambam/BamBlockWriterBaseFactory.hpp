@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMBLOCKWRITERBASEFACTORY_HPP)
 #define LIBMAUS_BAMBAM_BAMBLOCKWRITERBASEFACTORY_HPP
 
-#include <libmaus/bambam/BamWriter.hpp>
+#include <libmaus2/bambam/BamWriter.hpp>
 #if defined(LIBMAUS_HAVE_IO_LIB)
-#include <libmaus/bambam/ScramEncoder.hpp>
+#include <libmaus2/bambam/ScramEncoder.hpp>
 #endif
-#include <libmaus/bambam/SamEncoder.hpp>
+#include <libmaus2/bambam/SamEncoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamBlockWriterBaseFactory
 		{
 			typedef BamBlockWriterBaseFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			BamBlockWriterBaseFactory() {}
 			virtual ~BamBlockWriterBaseFactory() {}
@@ -51,12 +51,12 @@ namespace libmaus
 					case Z_NO_COMPRESSION:
 						return "uncompressed";				
 					#if defined(LIBMAUS_HAVE_IGZIP)
-					case libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL:
+					case libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL:
 						return "igzip";
 					#endif
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "BamBlockWriterBaseFactory::levelToString(): Unknown compression level " << level << std::endl;
 						se.finish();
 						throw se;
@@ -89,7 +89,7 @@ namespace libmaus
 				S.insert(Z_BEST_COMPRESSION);
 				S.insert(Z_NO_COMPRESSION);
 				#if defined(LIBMAUS_HAVE_IGZIP)
-				S.insert(libmaus::lz::IGzipDeflate::getCompressionLevel());
+				S.insert(libmaus2::lz::IGzipDeflate::getCompressionLevel());
 				#endif
 				return S;
 			}
@@ -103,12 +103,12 @@ namespace libmaus
 					case Z_BEST_COMPRESSION:
 					case Z_DEFAULT_COMPRESSION:
 					#if defined(LIBMAUS_HAVE_IGZIP)
-					case libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL:
+					case libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL:
 					#endif
 						break;
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream()
 							<< "Unknown compression level, please use"
 							<< " level=" << Z_DEFAULT_COMPRESSION << " (default) or"
@@ -116,7 +116,7 @@ namespace libmaus
 							<< " level=" << Z_BEST_COMPRESSION << " (best) or"
 							<< " level=" << Z_NO_COMPRESSION << " (no compression)"
 							#if defined(LIBMAUS_HAVE_IGZIP)
-							<< " or level=" << libmaus::lz::IGzipDeflate::COMPRESSION_LEVEL << " (igzip)"
+							<< " or level=" << libmaus2::lz::IGzipDeflate::COMPRESSION_LEVEL << " (igzip)"
 							#endif
 							<< std::endl;
 						se.finish();
@@ -158,10 +158,10 @@ namespace libmaus
 				return "bam";
 			}
 
-			static libmaus::bambam::BamBlockWriterBase::unique_ptr_type construct(
-				libmaus::bambam::BamHeader const & bamheader,
-				libmaus::util::ArgInfo const & arginfo,
-				std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
+			static libmaus2::bambam::BamBlockWriterBase::unique_ptr_type construct(
+				libmaus2::bambam::BamHeader const & bamheader,
+				libmaus2::util::ArgInfo const & arginfo,
+				std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> const * rblockoutputcallbacks = 0
 			)
 			{
 				std::string const outputformat = arginfo.getValue<std::string>("outputformat",getDefaultOutputFormat());
@@ -171,8 +171,8 @@ namespace libmaus
 
 				if ( (outputformat != "bam") && rblockoutputcallbacks && rblockoutputcallbacks->size() )
 				{
-					libmaus::exception::LibMausException ex;
-					ex.getStream() << "libmaus::bambam::BamBlockWriterBaseFactory: output callbacks are not supported for output formats other than bam" << std::endl;
+					libmaus2::exception::LibMausException ex;
+					ex.getStream() << "libmaus2::bambam::BamBlockWriterBaseFactory: output callbacks are not supported for output formats other than bam" << std::endl;
 					ex.finish();
 					throw ex;
 				}
@@ -185,12 +185,12 @@ namespace libmaus
 					{
 						if ( outputisstdout )
 						{
-							libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::BamWriter(std::cout,bamheader,level,rblockoutputcallbacks));
+							libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::BamWriter(std::cout,bamheader,level,rblockoutputcallbacks));
 							return UNIQUE_PTR_MOVE(tptr);
 						}
 						else
 						{
-							libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::BamWriter(outputfilename,bamheader,level,rblockoutputcallbacks));
+							libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::BamWriter(outputfilename,bamheader,level,rblockoutputcallbacks));
 							return UNIQUE_PTR_MOVE(tptr);
 						}
 					}
@@ -198,12 +198,12 @@ namespace libmaus
 					{
 						if ( outputisstdout )
 						{
-							libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::BamParallelWriter(std::cout,outputthreads,bamheader,level,rblockoutputcallbacks));
+							libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::BamParallelWriter(std::cout,outputthreads,bamheader,level,rblockoutputcallbacks));
 							return UNIQUE_PTR_MOVE(tptr);
 						}
 						else
 						{
-							libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::BamParallelWriter(outputfilename,outputthreads,bamheader,level,rblockoutputcallbacks));
+							libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::BamParallelWriter(outputfilename,outputthreads,bamheader,level,rblockoutputcallbacks));
 							return UNIQUE_PTR_MOVE(tptr);
 						}
 					}
@@ -218,15 +218,15 @@ namespace libmaus
 				{
 					if ( outputisstdout )
 					{
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(
-							new libmaus::bambam::SamEncoder(std::cout,bamheader)
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(
+							new libmaus2::bambam::SamEncoder(std::cout,bamheader)
 						);
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
 					{
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(
-							new libmaus::bambam::SamEncoder(outputfilename,bamheader)
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(
+							new libmaus2::bambam::SamEncoder(outputfilename,bamheader)
 						);
 						return UNIQUE_PTR_MOVE(tptr);
 					}
@@ -238,12 +238,12 @@ namespace libmaus
 
 					if ( outputisstdout )
 					{
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,"-","ws","",true /* verbose */));
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,"-","ws","",true /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
 					{					
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,outputfilename,"ws","",true /* verbose */));
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,outputfilename,"ws","",true /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 				}
@@ -254,19 +254,19 @@ namespace libmaus
 				
 					if ( outputisstdout )
 					{
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,"-","wc",reference,scramverbose /* verbose */));
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,"-","wc",reference,scramverbose /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 					else
 					{					
-						libmaus::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus::bambam::ScramEncoder(bamheader,outputfilename,"wc",reference,scramverbose /* verbose */));
+						libmaus2::bambam::BamBlockWriterBase::unique_ptr_type tptr(new libmaus2::bambam::ScramEncoder(bamheader,outputfilename,"wc",reference,scramverbose /* verbose */));
 						return UNIQUE_PTR_MOVE(tptr);
 					}
 				}
 				#endif
 				else
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamBlockWriterBaseFactory::construct(): unknown/unsupported output format " << outputformat << std::endl;
 					se.finish();
 					throw se;

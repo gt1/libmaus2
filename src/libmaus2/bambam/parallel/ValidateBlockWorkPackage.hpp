@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,31 +19,31 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_VALIDATEBLOCKWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct ValidateBlockWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct ValidateBlockWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef ValidateBlockWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				AlignmentBuffer::shared_ptr_type parseBlock;
 	
-				ValidateBlockWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), parseBlock() {}
+				ValidateBlockWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), parseBlock() {}
 				
 				ValidateBlockWorkPackage(
 					uint64_t const rpriority, 
 					AlignmentBuffer::shared_ptr_type rparseBlock,
 					uint64_t const rparseDispatcherId
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rparseDispatcherId), parseBlock(rparseBlock)
 				{
 				}
 			

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKCOMPRESSIONWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKCOMPRESSIONWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlBlockCompressionWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct GenericInputControlBlockCompressionWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef GenericInputControlBlockCompressionWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 						
 				GenericInputControlCompressionPending GICCP;
 						
-				GenericInputControlBlockCompressionWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), GICCP() {}
+				GenericInputControlBlockCompressionWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), GICCP() {}
 				GenericInputControlBlockCompressionWorkPackage(
 					uint64_t const rpriority, 
 					uint64_t const rdispatcherid, 
 					GenericInputControlCompressionPending rGICCP
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), GICCP(rGICCP)
 				{
 							
 				}

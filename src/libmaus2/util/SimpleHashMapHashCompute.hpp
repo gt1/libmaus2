@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if !defined(LIBMAUS_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP)
 #define LIBMAUS_UTIL_SIMPLEHASHMAPHASHCOMPUTE_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/hashing/hash.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/hashing/hash.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{	
@@ -33,19 +33,19 @@ namespace libmaus
 			
 			inline static uint64_t hash(uint64_t const v)
 			{
-				return libmaus::hashing::EvaHash::hash642(&v,1);
+				return libmaus2::hashing::EvaHash::hash642(&v,1);
 			}
 		};
 
 		#if defined(LIBMAUS_HAVE_UNSIGNED_INT128)
 		template<>
-		struct SimpleHashMapHashCompute<libmaus::uint128_t>
+		struct SimpleHashMapHashCompute<libmaus2::uint128_t>
 		{
-			typedef libmaus::uint128_t key_type;
+			typedef libmaus2::uint128_t key_type;
 			
-			inline static uint64_t hash(libmaus::uint128_t const v)
+			inline static uint64_t hash(libmaus2::uint128_t const v)
 			{
-				return libmaus::hashing::EvaHash::hash642(reinterpret_cast<uint64_t const *>(&v),2);
+				return libmaus2::hashing::EvaHash::hash642(reinterpret_cast<uint64_t const *>(&v),2);
 			}
 		};
 		#endif

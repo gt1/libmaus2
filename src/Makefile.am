@@ -1,1594 +1,1594 @@
 ACLOCAL_AMFLAGS=-I m4
 
 EXTRA_DIST = \
-	libmaus/digest/sha256_sse4.asm \
-	libmaus/digest/sha512_sse4.asm \
-	libmaus/digest/sha256_avx1.asm \
-	libmaus/digest/sha512_avx.asm \
-	libmaus/digest/sha256_avx2_rorx2.asm \
-	libmaus/digest/sha256_avx2_rorx8.asm \
-	libmaus/digest/sha512_avx2_rorx.asm
+	libmaus2/digest/sha256_sse4.asm \
+	libmaus2/digest/sha512_sse4.asm \
+	libmaus2/digest/sha256_avx1.asm \
+	libmaus2/digest/sha512_avx.asm \
+	libmaus2/digest/sha256_avx2_rorx2.asm \
+	libmaus2/digest/sha256_avx2_rorx8.asm \
+	libmaus2/digest/sha512_avx2_rorx.asm
 
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
-lib_LTLIBRARIES = libmaus.la libmauslsf.la
-lib_LIBRARIES = libmausdigests.a libmausdigests_sse4.a libmaus_irods.a libmausseqchksumsfactory.a
+lib_LTLIBRARIES = libmaus2.la libmaus2lsf.la
+lib_LIBRARIES = libmaus2digests.a libmaus2digests_sse4.a libmaus2_irods.a libmaus2seqchksumsfactory.a
 
-libmaus_modules_LTLIBRARIES = libmaus_kmlocal_mod.la libmaus_consensus_mod.la libmaus_scram_mod.la
-libmaus_modulesdir = $(libdir)/libmaus/$(PACKAGE_VERSION)
+libmaus2_modules_LTLIBRARIES = libmaus2_kmlocal_mod.la libmaus2_consensus_mod.la libmaus2_scram_mod.la
+libmaus2_modulesdir = $(libdir)/libmaus2/$(PACKAGE_VERSION)
 
-libmausdigests_a_SOURCES = libmaus/digest/SHA2_256_sse4.cpp libmaus/digest/SHA2_512_sse4.cpp libmaus/digest/DigestFactory_SHA2_ASM.cpp
-libmausdigests_a_DEPENDENCIES = @DIGESTASMOBJ@
-libmausdigests_a_LIBADD = @DIGESTASMOBJ@
+libmaus2digests_a_SOURCES = libmaus2/digest/SHA2_256_sse4.cpp libmaus2/digest/SHA2_512_sse4.cpp libmaus2/digest/DigestFactory_SHA2_ASM.cpp
+libmaus2digests_a_DEPENDENCIES = @DIGESTASMOBJ@
+libmaus2digests_a_LIBADD = @DIGESTASMOBJ@
 
-libmausdigests_sse4_a_SOURCES = libmaus/digest/CRC32C_sse42.cpp libmaus/digest/DigestFactory_CRC32C_SSE42.cpp
-libmausdigests_sse4_a_CXXFLAGS = @MSSE4@
+libmaus2digests_sse4_a_SOURCES = libmaus2/digest/CRC32C_sse42.cpp libmaus2/digest/DigestFactory_CRC32C_SSE42.cpp
+libmaus2digests_sse4_a_CXXFLAGS = @MSSE4@
 
-libmaus_irods_a_SOURCES = libmaus/irods/IRodsSystem.cpp libmaus/irods/IRodsFileBase.cpp
-libmaus_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
+libmaus2_irods_a_SOURCES = libmaus2/irods/IRodsSystem.cpp libmaus2/irods/IRodsFileBase.cpp
+libmaus2_irods_a_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 
-libmausseqchksumsfactory_a_SOURCES = libmaus/bambam/ChecksumsFactory.cpp
-libmausseqchksumsfactory_a_CPPFLAGS = @GMPCPPFLAGS@
+libmaus2seqchksumsfactory_a_SOURCES = libmaus2/bambam/ChecksumsFactory.cpp
+libmaus2seqchksumsfactory_a_CPPFLAGS = @GMPCPPFLAGS@
 
 CLEANFILES=sha256_sse4.o sha256_avx1.o sha256_avx2_rorx2.o sha256_avx2_rorx8.o sha512_avx2_rorx.o sha512_avx.o sha512_sse4.o
 
-sha256_sse4.o: $(abs_srcdir)/libmaus/digest/sha256_sse4.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o $(abs_srcdir)/libmaus/digest/sha256_sse4.asm
-sha256_avx1.o: $(abs_srcdir)/libmaus/digest/sha256_avx1.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx1.o $(abs_srcdir)/libmaus/digest/sha256_avx1.asm
-sha256_avx2_rorx2.o: $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx2.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx2.o $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx2.asm
-sha256_avx2_rorx8.o: $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx8.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx8.o $(abs_srcdir)/libmaus/digest/sha256_avx2_rorx8.asm
-sha512_avx2_rorx.o: $(abs_srcdir)/libmaus/digest/sha512_avx2_rorx.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx2_rorx.o $(abs_srcdir)/libmaus/digest/sha512_avx2_rorx.asm
-sha512_avx.o: $(abs_srcdir)/libmaus/digest/sha512_avx.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx.o $(abs_srcdir)/libmaus/digest/sha512_avx.asm
-sha512_sse4.o: $(abs_srcdir)/libmaus/digest/sha512_sse4.asm
-	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_sse4.o $(abs_srcdir)/libmaus/digest/sha512_sse4.asm
+sha256_sse4.o: $(abs_srcdir)/libmaus2/digest/sha256_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_sse4.o $(abs_srcdir)/libmaus2/digest/sha256_sse4.asm
+sha256_avx1.o: $(abs_srcdir)/libmaus2/digest/sha256_avx1.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx1.o $(abs_srcdir)/libmaus2/digest/sha256_avx1.asm
+sha256_avx2_rorx2.o: $(abs_srcdir)/libmaus2/digest/sha256_avx2_rorx2.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx2.o $(abs_srcdir)/libmaus2/digest/sha256_avx2_rorx2.asm
+sha256_avx2_rorx8.o: $(abs_srcdir)/libmaus2/digest/sha256_avx2_rorx8.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha256_avx2_rorx8.o $(abs_srcdir)/libmaus2/digest/sha256_avx2_rorx8.asm
+sha512_avx2_rorx.o: $(abs_srcdir)/libmaus2/digest/sha512_avx2_rorx.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx2_rorx.o $(abs_srcdir)/libmaus2/digest/sha512_avx2_rorx.asm
+sha512_avx.o: $(abs_srcdir)/libmaus2/digest/sha512_avx.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_avx.o $(abs_srcdir)/libmaus2/digest/sha512_avx.asm
+sha512_sse4.o: $(abs_srcdir)/libmaus2/digest/sha512_sse4.asm
+	@YASMEXE@ -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o sha512_sse4.o $(abs_srcdir)/libmaus2/digest/sha512_sse4.asm
 
-libmaus_la_SOURCES = libmaus/StaticInitialization.cpp \
-	libmaus/autoarray/AutoArray.cpp \
-	libmaus/bitio/CompactArray.cpp libmaus/rank/RankTable.cpp \
-	libmaus/rank/log2table.cpp libmaus/fastx/isFastQ.cpp libmaus/wavelet/toWaveletTreeBits.cpp \
-	libmaus/suffixsort/divsufsort.cpp libmaus/rmq/FischerSystematicSuccinctRMQ.cpp libmaus/lcp/OracleLCP.cpp \
-	libmaus/util/StackTrace.cpp libmaus/lcs/OverlapComputation.cpp \
-	libmaus/lcs/HashContainer.cpp \
-	libmaus/lcs/HashContainer2.cpp \
-	libmaus/util/md5.cpp libmaus/util/I386CacheLineSize.cpp \
-	libmaus/math/primes16.cpp \
-	libmaus/util/OutputFileNameTools.cpp \
-	libmaus/select/ESelectBase.cpp \
-	libmaus/bambam/CigarStringParser.cpp \
-	libmaus/consensus/Consensus.cpp \
-	libmaus/graph/EdgeList.cpp \
-	libmaus/fastx/Phred.cpp \
-	libmaus/network/sendReceiveFd.c \
-	libmaus/quantisation/ClusterComputation.cpp \
-	libmaus/lz/SnappyCompress.cpp \
-	libmaus/bambam/CollatingBamDecoder.cpp \
-	libmaus/bambam/ReadEndsContainer.cpp \
-	libmaus/bambam/ReadEnds.cpp \
-	libmaus/util/TempFileRemovalContainer.cpp \
-	libmaus/network/LogReceiver.cpp \
-	libmaus/huffman/IndexLoaderBase.cpp \
-	libmaus/bambam/BamAlignmentDecoderBase.cpp \
-	libmaus/bambam/StrCmpNum.cpp \
-	libmaus/huffman/KvInitResult.cpp \
-	libmaus/fm/MausFmToBwaConversion.cpp \
-	libmaus/util/TempFileNameGenerator.cpp \
-	libmaus/util/TempFileNameGeneratorState.cpp \
-	libmaus/util/ArgInfo.cpp \
-	libmaus/util/Array832.cpp \
-	libmaus/util/Array864.cpp \
-	libmaus/util/BitList.cpp \
-	libmaus/util/VarBitList.cpp \
-	libmaus/util/Concat.cpp \
-	libmaus/util/ConcatRequest.cpp \
-	libmaus/util/ConsoleColor.cpp \
-	libmaus/util/Demangle.cpp \
-	libmaus/util/DynamicLoading.cpp \
-	libmaus/util/ForkProcess.cpp \
-	libmaus/util/LSFSim.cpp \
-	libmaus/util/ForkProcessLSFSim.cpp \
-	libmaus/util/GetFileSize.cpp \
-	libmaus/util/Histogram.cpp \
-	libmaus/util/HistogramSet.cpp \
-	libmaus/util/IncreasingList.cpp \
-	libmaus/util/IntervalTree.cpp \
-	libmaus/util/GenericIntervalTree.cpp \
-	libmaus/util/LogPipe.cpp \
-	libmaus/util/LogPipeMultiplex.cpp \
-	libmaus/util/LogPipeMultiplexGeneric.cpp \
-	libmaus/util/LookupIntervalTree.cpp \
-	libmaus/util/md5_interface.cpp \
-	libmaus/util/MemLimit.cpp \
-	libmaus/util/MemUsage.cpp \
-	libmaus/util/NearestNeighbourDictionary.cpp \
-	libmaus/util/NegativeDifferenceArray32.cpp \
-	libmaus/util/NegativeDifferenceArray64.cpp \
-	libmaus/util/nstat.cpp \
-	libmaus/util/PositiveDifferenceArray32.cpp \
-	libmaus/util/PositiveDifferenceArray64.cpp \
-	libmaus/util/PosixExecute.cpp \
-	libmaus/util/PosixFileDescriptor.cpp \
-	libmaus/util/PosixInputFile.cpp \
-	libmaus/util/SaturatingCounter.cpp \
-	libmaus/util/StringSerialisation.cpp \
-	libmaus/util/SuccinctBorderArray.cpp \
-	libmaus/util/Terminal.cpp \
-	libmaus/util/OctetString.cpp \
-	libmaus/util/Utf8String.cpp \
-	libmaus/util/Utf8BlockIndexDecoder.cpp \
-	libmaus/util/Utf8BlockIndex.cpp \
-	libmaus/util/Utf8DecoderBuffer.cpp \
-	libmaus/util/Utf8DecoderWrapper.cpp \
-	libmaus/suffixtree/CompressedSuffixTree.cpp \
-	libmaus/bambam/AlignmentValidity.cpp \
-	libmaus/bambam/BamFlagBase.cpp \
-	libmaus/bambam/ReadGroup.cpp \
-	libmaus/bambam/DuplicationMetrics.cpp \
-	libmaus/bambam/BamDefaultAdapters.cpp \
-	libmaus/bambam/BamRange.cpp \
-	libmaus/graph/GraphEdge.cpp \
-	libmaus/bambam/BamIndexBinChunk.cpp \
-	libmaus/bambam/BamIndexLinearChunk.cpp \
-	libmaus/huffman/HuffmanTree.cpp \
-	libmaus/bambam/BamAlignmentDecoderInfo.cpp \
-	libmaus/lz/Lz4Base.cpp \
-	libmaus/lz/Lz4Compress.cpp \
-	libmaus/lz/Lz4DecoderBuffer.cpp \
-	libmaus/lz/lz4.c \
-	libmaus/fm/BidirectionalIndexInterval.cpp  \
-	libmaus/fm/BidirectionalIndexIntervalSymbol.cpp \
-	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.cpp \
-	libmaus/fastx/FastALineParserLineInfo.cpp \
-	libmaus/fastx/FastAMatchTable.cpp \
-	libmaus/lcs/EditDistanceResult.cpp \
-	libmaus/fastx/FastABgzfIndexEntry.cpp \
-	libmaus/fastx/FastABgzfIndex.cpp \
-	libmaus/parallel/ThreadWorkPackage.cpp \
-	libmaus/parallel/SimpleThreadWorkPackage.cpp \
-	libmaus/lz/RAZFIndex.cpp \
-	libmaus/fastx/FastAIndexEntry.cpp \
-	libmaus/fastx/FastAIndex.cpp \
-	libmaus/network/HttpAbsoluteUrl.cpp \
-	libmaus/hashing/Crc32.cpp \
-	libmaus/lz/IGzipDeflate.cpp \
-	libmaus/lcs/LocalBaseConstants.cpp \
-	libmaus/lcs/LocalEditDistanceResult.cpp \
-	libmaus/bambam/BamHeaderParserStateBase.cpp \
-	libmaus/bambam/GeneFlatFile.cpp \
-	libmaus/bambam/GeneFlatFileEntry.cpp \
-	libmaus/trie/SimpleTrie.cpp \
-	libmaus/network/GnuTLSInit.cpp \
-	libmaus/network/GnuTLSSocket.cpp \
-	libmaus/bambam/BamStreamingMarkDuplicatesSupport.cpp \
-	libmaus/alignment/FactorMatchInfo.cpp \
-	libmaus/alignment/KmerInfo.cpp \
-	libmaus/bambam/SamInfoBase.cpp \
-	libmaus/digest/SHA1.cpp \
-	libmaus/digest/SHA2_224.cpp \
-	libmaus/digest/SHA2_256.cpp \
-	libmaus/digest/SHA2_384.cpp \
-	libmaus/digest/SHA2_512.cpp \
-	libmaus/digest/CRC32.cpp \
-	libmaus/digest/CRC32C_Core.cpp \
-	libmaus/digest/CRC32C.cpp \
-	libmaus/digest/CRC32_Core.cpp \
-	libmaus/bambam/parallel/ValidationFragment.cpp \
-	libmaus/bambam/parallel/GenericInputControlStreamInfo.cpp \
-	libmaus/fastx/NameInfoBase.cpp \
-	libmaus/bambam/parallel/RefIdInterval.cpp \
-	libmaus/fastx/RefPathToken.cpp \
-	libmaus/fastx/RefPathTokenVector.cpp
+libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
+	libmaus2/autoarray/AutoArray.cpp \
+	libmaus2/bitio/CompactArray.cpp libmaus2/rank/RankTable.cpp \
+	libmaus2/rank/log2table.cpp libmaus2/fastx/isFastQ.cpp libmaus2/wavelet/toWaveletTreeBits.cpp \
+	libmaus2/suffixsort/divsufsort.cpp libmaus2/rmq/FischerSystematicSuccinctRMQ.cpp libmaus2/lcp/OracleLCP.cpp \
+	libmaus2/util/StackTrace.cpp libmaus2/lcs/OverlapComputation.cpp \
+	libmaus2/lcs/HashContainer.cpp \
+	libmaus2/lcs/HashContainer2.cpp \
+	libmaus2/digest/md5.cpp libmaus2/util/I386CacheLineSize.cpp \
+	libmaus2/math/primes16.cpp \
+	libmaus2/util/OutputFileNameTools.cpp \
+	libmaus2/select/ESelectBase.cpp \
+	libmaus2/bambam/CigarStringParser.cpp \
+	libmaus2/consensus/Consensus.cpp \
+	libmaus2/graph/EdgeList.cpp \
+	libmaus2/fastx/Phred.cpp \
+	libmaus2/network/sendReceiveFd.c \
+	libmaus2/quantisation/ClusterComputation.cpp \
+	libmaus2/lz/SnappyCompress.cpp \
+	libmaus2/bambam/CollatingBamDecoder.cpp \
+	libmaus2/bambam/ReadEndsContainer.cpp \
+	libmaus2/bambam/ReadEnds.cpp \
+	libmaus2/util/TempFileRemovalContainer.cpp \
+	libmaus2/network/LogReceiver.cpp \
+	libmaus2/huffman/IndexLoaderBase.cpp \
+	libmaus2/bambam/BamAlignmentDecoderBase.cpp \
+	libmaus2/bambam/StrCmpNum.cpp \
+	libmaus2/huffman/KvInitResult.cpp \
+	libmaus2/fm/MausFmToBwaConversion.cpp \
+	libmaus2/util/TempFileNameGenerator.cpp \
+	libmaus2/util/TempFileNameGeneratorState.cpp \
+	libmaus2/util/ArgInfo.cpp \
+	libmaus2/util/Array832.cpp \
+	libmaus2/util/Array864.cpp \
+	libmaus2/util/BitList.cpp \
+	libmaus2/util/VarBitList.cpp \
+	libmaus2/util/Concat.cpp \
+	libmaus2/util/ConcatRequest.cpp \
+	libmaus2/util/ConsoleColor.cpp \
+	libmaus2/util/Demangle.cpp \
+	libmaus2/util/DynamicLoading.cpp \
+	libmaus2/util/ForkProcess.cpp \
+	libmaus2/util/LSFSim.cpp \
+	libmaus2/util/ForkProcessLSFSim.cpp \
+	libmaus2/util/GetFileSize.cpp \
+	libmaus2/util/Histogram.cpp \
+	libmaus2/util/HistogramSet.cpp \
+	libmaus2/util/IncreasingList.cpp \
+	libmaus2/util/IntervalTree.cpp \
+	libmaus2/util/GenericIntervalTree.cpp \
+	libmaus2/util/LogPipe.cpp \
+	libmaus2/util/LogPipeMultiplex.cpp \
+	libmaus2/util/LogPipeMultiplexGeneric.cpp \
+	libmaus2/util/LookupIntervalTree.cpp \
+	libmaus2/digest/md5_interface.cpp \
+	libmaus2/util/MemLimit.cpp \
+	libmaus2/util/MemUsage.cpp \
+	libmaus2/util/NearestNeighbourDictionary.cpp \
+	libmaus2/util/NegativeDifferenceArray32.cpp \
+	libmaus2/util/NegativeDifferenceArray64.cpp \
+	libmaus2/util/nstat.cpp \
+	libmaus2/util/PositiveDifferenceArray32.cpp \
+	libmaus2/util/PositiveDifferenceArray64.cpp \
+	libmaus2/util/PosixExecute.cpp \
+	libmaus2/util/PosixFileDescriptor.cpp \
+	libmaus2/util/PosixInputFile.cpp \
+	libmaus2/util/SaturatingCounter.cpp \
+	libmaus2/util/StringSerialisation.cpp \
+	libmaus2/util/SuccinctBorderArray.cpp \
+	libmaus2/util/Terminal.cpp \
+	libmaus2/util/OctetString.cpp \
+	libmaus2/util/Utf8String.cpp \
+	libmaus2/util/Utf8BlockIndexDecoder.cpp \
+	libmaus2/util/Utf8BlockIndex.cpp \
+	libmaus2/util/Utf8DecoderBuffer.cpp \
+	libmaus2/util/Utf8DecoderWrapper.cpp \
+	libmaus2/suffixtree/CompressedSuffixTree.cpp \
+	libmaus2/bambam/AlignmentValidity.cpp \
+	libmaus2/bambam/BamFlagBase.cpp \
+	libmaus2/bambam/ReadGroup.cpp \
+	libmaus2/bambam/DuplicationMetrics.cpp \
+	libmaus2/bambam/BamDefaultAdapters.cpp \
+	libmaus2/bambam/BamRange.cpp \
+	libmaus2/graph/GraphEdge.cpp \
+	libmaus2/bambam/BamIndexBinChunk.cpp \
+	libmaus2/bambam/BamIndexLinearChunk.cpp \
+	libmaus2/huffman/HuffmanTree.cpp \
+	libmaus2/bambam/BamAlignmentDecoderInfo.cpp \
+	libmaus2/lz/Lz4Base.cpp \
+	libmaus2/lz/Lz4Compress.cpp \
+	libmaus2/lz/Lz4DecoderBuffer.cpp \
+	libmaus2/lz/lz4.c \
+	libmaus2/fm/BidirectionalIndexInterval.cpp  \
+	libmaus2/fm/BidirectionalIndexIntervalSymbol.cpp \
+	libmaus2/gamma/SparseGammaGapFileIndexDecoderEntry.cpp \
+	libmaus2/fastx/FastALineParserLineInfo.cpp \
+	libmaus2/fastx/FastAMatchTable.cpp \
+	libmaus2/lcs/EditDistanceResult.cpp \
+	libmaus2/fastx/FastABgzfIndexEntry.cpp \
+	libmaus2/fastx/FastABgzfIndex.cpp \
+	libmaus2/parallel/ThreadWorkPackage.cpp \
+	libmaus2/parallel/SimpleThreadWorkPackage.cpp \
+	libmaus2/lz/RAZFIndex.cpp \
+	libmaus2/fastx/FastAIndexEntry.cpp \
+	libmaus2/fastx/FastAIndex.cpp \
+	libmaus2/network/HttpAbsoluteUrl.cpp \
+	libmaus2/hashing/Crc32.cpp \
+	libmaus2/lz/IGzipDeflate.cpp \
+	libmaus2/lcs/LocalBaseConstants.cpp \
+	libmaus2/lcs/LocalEditDistanceResult.cpp \
+	libmaus2/bambam/BamHeaderParserStateBase.cpp \
+	libmaus2/bambam/GeneFlatFile.cpp \
+	libmaus2/bambam/GeneFlatFileEntry.cpp \
+	libmaus2/trie/SimpleTrie.cpp \
+	libmaus2/network/GnuTLSInit.cpp \
+	libmaus2/network/GnuTLSSocket.cpp \
+	libmaus2/bambam/BamStreamingMarkDuplicatesSupport.cpp \
+	libmaus2/alignment/FactorMatchInfo.cpp \
+	libmaus2/alignment/KmerInfo.cpp \
+	libmaus2/bambam/SamInfoBase.cpp \
+	libmaus2/digest/SHA1.cpp \
+	libmaus2/digest/SHA2_224.cpp \
+	libmaus2/digest/SHA2_256.cpp \
+	libmaus2/digest/SHA2_384.cpp \
+	libmaus2/digest/SHA2_512.cpp \
+	libmaus2/digest/CRC32.cpp \
+	libmaus2/digest/CRC32C_Core.cpp \
+	libmaus2/digest/CRC32C.cpp \
+	libmaus2/digest/CRC32_Core.cpp \
+	libmaus2/bambam/parallel/ValidationFragment.cpp \
+	libmaus2/bambam/parallel/GenericInputControlStreamInfo.cpp \
+	libmaus2/fastx/NameInfoBase.cpp \
+	libmaus2/bambam/parallel/RefIdInterval.cpp \
+	libmaus2/fastx/RefPathToken.cpp \
+	libmaus2/fastx/RefPathTokenVector.cpp
 
-noinst_HEADERS = libmaus/lz/lz4.h
+noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
-libmaus_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
-libmaus_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ # @DIGESTASMOBJ@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
+libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ # @DIGESTASMOBJ@
 
-libmauslsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
-libmauslsf_la_SOURCES = libmaus/lsf/LSFProcess.cpp
-libmauslsf_la_CPPFLAGS = @WARNCPPFLAGS@ ${LSFCPPFLAGS}
-libmauslsf_la_LIBADD = libmaus.la ${LSFLIBS}
+libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
+libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
+libmaus2lsf_la_CPPFLAGS = @WARNCPPFLAGS@ ${LSFCPPFLAGS}
+libmaus2lsf_la_LIBADD = libmaus2.la ${LSFLIBS}
 
-libmaus_kmlocal_mod_la_CPPFLAGS = @KMLOCALCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
-libmaus_kmlocal_mod_la_CXXFLAGS = @KMLOCALCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
-libmaus_kmlocal_mod_la_LIBADD   = @KMLOCALLIBS@     @LIBMAUSLIBS@
-libmaus_kmlocal_mod_la_SOURCES  = libmaus/quantisation/KMLocalInterface.cpp
+libmaus2_kmlocal_mod_la_CPPFLAGS = @KMLOCALCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
+libmaus2_kmlocal_mod_la_CXXFLAGS = @KMLOCALCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
+libmaus2_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
+libmaus2_kmlocal_mod_la_LIBADD   = @KMLOCALLIBS@     @LIBMAUSLIBS@
+libmaus2_kmlocal_mod_la_SOURCES  = libmaus2/quantisation/KMLocalInterface.cpp
 
-libmaus_consensus_mod_la_CPPFLAGS = @SEQANCPPFLAGS@                 @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
-libmaus_consensus_mod_la_CXXFLAGS = @SEQANCXXFLAGS@                 @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
-libmaus_consensus_mod_la_LIBADD   = @SEQANLIBS@ @LIBMAUSLIBS@
-libmaus_consensus_mod_la_SOURCES  = libmaus/consensus/ConsensusBase.cpp libmaus/consensus/ScoringMatrix.cpp \
-	libmaus/fastx/Phred.cpp
+libmaus2_consensus_mod_la_CPPFLAGS = @SEQANCPPFLAGS@                 @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
+libmaus2_consensus_mod_la_CXXFLAGS = @SEQANCXXFLAGS@                 @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
+libmaus2_consensus_mod_la_LDFLAGS  = @SEQANLDFLAGS@  @SEQANLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
+libmaus2_consensus_mod_la_LIBADD   = @SEQANLIBS@ @LIBMAUSLIBS@
+libmaus2_consensus_mod_la_SOURCES  = libmaus2/consensus/ConsensusBase.cpp libmaus2/consensus/ScoringMatrix.cpp \
+	libmaus2/fastx/Phred.cpp
 
-libmaus_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
-libmaus_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
-libmaus_scram_mod_la_LIBADD   = @IOLIBLIBS@ @LIBMAUSLIBS@
-libmaus_scram_mod_la_SOURCES  = libmaus/bambam/Scram.c
+libmaus2_scram_mod_la_CPPFLAGS = @IOLIBCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
+libmaus2_scram_mod_la_CXXFLAGS = @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
+libmaus2_scram_mod_la_LDFLAGS  = @IOLIBLDFLAGS@  @IOLIBLIBS@     @LIBMAUSLDFLAGS@  @LIBMAUSLIBS@     -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
+libmaus2_scram_mod_la_LIBADD   = @IOLIBLIBS@ @LIBMAUSLIBS@
+libmaus2_scram_mod_la_SOURCES  = libmaus2/bambam/Scram.c
 
-libmaus_includedir=$(includedir)/libmaus/
-libmaus_include_HEADERS=libmaus/LibMausConfig.hpp
+libmaus2_includedir=$(includedir)/libmaus2/
+libmaus2_include_HEADERS=libmaus2/LibMausConfig.hpp
 
-libmausautoarray_includedir=$(includedir)/libmaus/autoarray/
-libmausautoarray_include_HEADERS = libmaus/autoarray/AutoArray.hpp libmaus/autoarray/AutoArray2d.hpp
+libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
+libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
 
-libmausindex_includedir=$(includedir)/libmaus/index/
-libmausindex_include_HEADERS = libmaus/index/ExternalMemoryIndexGenerator.hpp \
-	libmaus/index/ExternalMemoryIndexRecord.hpp \
-	libmaus/index/ExternalMemoryIndexDecoder.hpp \
-	libmaus/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp
+libmaus2index_includedir=$(includedir)/libmaus2/index/
+libmaus2index_include_HEADERS = libmaus2/index/ExternalMemoryIndexGenerator.hpp \
+	libmaus2/index/ExternalMemoryIndexRecord.hpp \
+	libmaus2/index/ExternalMemoryIndexDecoder.hpp \
+	libmaus2/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp
 
-libmausgamma_includedir=$(includedir)/libmaus/gamma/
-libmausgamma_include_HEADERS = libmaus/gamma/GammaEncoder.hpp libmaus/gamma/GammaDecoder.hpp \
-	libmaus/gamma/GammaGapEncoder.hpp libmaus/gamma/GammaGapDecoder.hpp \
-	libmaus/gamma/GammaRLDecoder.hpp  libmaus/gamma/GammaRLEncoder.hpp \
-	libmaus/gamma/SparseGammaGapEncoder.hpp libmaus/gamma/SparseGammaGapDecoder.hpp libmaus/gamma/SparseGammaGapMerge.hpp \
-	libmaus/gamma/SparseGammaGapFile.hpp \
-	libmaus/gamma/SparseGammaGapMultiFile.hpp \
-	libmaus/gamma/SparseGammaGapFileSet.hpp \
-	libmaus/gamma/SparseGammaGapFileLevelSet.hpp \
-	libmaus/gamma/SparseGammaGapFileIndexDecoderEntry.hpp \
-	libmaus/gamma/SparseGammaGapFileIndexDecoder.hpp \
-	libmaus/gamma/SparseGammaGapFileIndexMultiDecoder.hpp \
-	libmaus/gamma/SparseGammaGapConcatDecoder.hpp \
-	libmaus/gamma/SparseGammaGapMultiFileSet.hpp \
-	libmaus/gamma/SparseGammaGapMultiFileLevelSet.hpp \
-	libmaus/gamma/SparseGammaGapBlockEncoder.hpp
+libmaus2gamma_includedir=$(includedir)/libmaus2/gamma/
+libmaus2gamma_include_HEADERS = libmaus2/gamma/GammaEncoder.hpp libmaus2/gamma/GammaDecoder.hpp \
+	libmaus2/gamma/GammaGapEncoder.hpp libmaus2/gamma/GammaGapDecoder.hpp \
+	libmaus2/gamma/GammaRLDecoder.hpp  libmaus2/gamma/GammaRLEncoder.hpp \
+	libmaus2/gamma/SparseGammaGapEncoder.hpp libmaus2/gamma/SparseGammaGapDecoder.hpp libmaus2/gamma/SparseGammaGapMerge.hpp \
+	libmaus2/gamma/SparseGammaGapFile.hpp \
+	libmaus2/gamma/SparseGammaGapMultiFile.hpp \
+	libmaus2/gamma/SparseGammaGapFileSet.hpp \
+	libmaus2/gamma/SparseGammaGapFileLevelSet.hpp \
+	libmaus2/gamma/SparseGammaGapFileIndexDecoderEntry.hpp \
+	libmaus2/gamma/SparseGammaGapFileIndexDecoder.hpp \
+	libmaus2/gamma/SparseGammaGapFileIndexMultiDecoder.hpp \
+	libmaus2/gamma/SparseGammaGapConcatDecoder.hpp \
+	libmaus2/gamma/SparseGammaGapMultiFileSet.hpp \
+	libmaus2/gamma/SparseGammaGapMultiFileLevelSet.hpp \
+	libmaus2/gamma/SparseGammaGapBlockEncoder.hpp
 
-libmausregex_includedir=$(includedir)/libmaus/regex/
-libmausregex_include_HEADERS = libmaus/regex/PosixRegex.hpp
+libmaus2regex_includedir=$(includedir)/libmaus2/regex/
+libmaus2regex_include_HEADERS = libmaus2/regex/PosixRegex.hpp
 
-libmausserialize_includedir=$(includedir)/libmaus/serialize/
-libmausserialize_include_HEADERS = libmaus/serialize/Serialize.hpp
+libmaus2serialize_includedir=$(includedir)/libmaus2/serialize/
+libmaus2serialize_include_HEADERS = libmaus2/serialize/Serialize.hpp
 
-libmaustypes_includedir=$(includedir)/libmaus/types/
-libmaustypes_include_HEADERS = libmaus/types/types.hpp
+libmaus2types_includedir=$(includedir)/libmaus2/types/
+libmaus2types_include_HEADERS = libmaus2/types/types.hpp
 
-libmauslz_includedir=$(includedir)/libmaus/lz/
-libmauslz_include_HEADERS = libmaus/lz/Inflate.hpp libmaus/lz/Deflate.hpp libmaus/lz/GzipHeader.hpp libmaus/lz/StreamWrapper.hpp \
-	libmaus/lz/GzipSingleStream.hpp libmaus/lz/GzipStream.hpp libmaus/lz/GzipStreamWrapper.hpp \
-	libmaus/lz/BufferedGzipStream.hpp libmaus/lz/StdOstreamSink.hpp libmaus/lz/IstreamSource.hpp \
-	libmaus/lz/SnappyCompress.hpp libmaus/lz/BgzfInflate.hpp libmaus/lz/BgzfInflateWrapper.hpp \
-	libmaus/lz/BgzfInflateStream.hpp \
-	libmaus/lz/BgzfDeflate.hpp \
-	libmaus/lz/BgzfInflateBase.hpp \
-	libmaus/lz/BgzfInflateBlock.hpp \
-	libmaus/lz/BgzfInflateParallel.hpp \
-	libmaus/lz/BgzfInflateParallelWrapper.hpp \
-	libmaus/lz/BgzfInflateParallelStream.hpp \
-	libmaus/lz/BgzfDeflateBase.hpp \
-	libmaus/lz/BgzfInflateBlockIdComparator.hpp \
-	libmaus/lz/BgzfInflateBlockIdInfo.hpp \
-	libmaus/lz/BgzfInflateParallelContext.hpp \
-	libmaus/lz/BgzfInflateParallelThread.hpp \
-	libmaus/lz/BgzfDeflateBlockIdInfo.hpp \
-	libmaus/lz/BgzfDeflateBlockIdComparator.hpp \
-	libmaus/lz/BgzfDeflateParallelContext.hpp \
-	libmaus/lz/BgzfDeflateParallelThread.hpp \
-	libmaus/lz/BgzfConstants.hpp \
-	libmaus/lz/BgzfDeflateHeaderFunctions.hpp \
-	libmaus/lz/BgzfDeflateInputBufferBase.hpp \
-	libmaus/lz/BgzfDeflateOutputBufferBase.hpp \
-	libmaus/lz/BgzfDeflateZStreamBase.hpp \
-	libmaus/lz/BgzfInflateHeaderBase.hpp \
-	libmaus/lz/BgzfInflateZStreamBase.hpp \
-	libmaus/lz/BgzfRecode.hpp \
-	libmaus/lz/BgzfThreadOpBase.hpp \
-	libmaus/lz/BgzfInflateDeflateParallel.hpp \
-	libmaus/lz/BgzfInflateDeflateParallelThread.hpp \
-	libmaus/lz/BgzfDeflateParallel.hpp \
-	libmaus/lz/BgzfVirtualOffset.hpp \
-	libmaus/lz/BgzfInflateDeflateParallelWrapper.hpp \
-	libmaus/lz/BgzfInflateDeflateParallelInputStream.hpp \
-	libmaus/lz/BgzfDeflateOutputCallback.hpp \
-	libmaus/lz/BgzfDeflateOutputCallbackMD5.hpp \
-	libmaus/lz/BgzfParallelRecodeDeflateBase.hpp \
-	libmaus/lz/BgzfRecodeParallel.hpp \
-	libmaus/lz/BgzfDeflateZStreamBaseFlushInfo.hpp \
-	libmaus/lz/Lz4Base.hpp \
-	libmaus/lz/Lz4CompressStreamBuffer.hpp \
-	libmaus/lz/Lz4CompressWrapper.hpp \
-	libmaus/lz/Lz4Decoder.hpp \
-	libmaus/lz/Lz4Index.hpp \
-	libmaus/lz/Lz4Compress.hpp \
-	libmaus/lz/Lz4CompressStream.hpp \
-	libmaus/lz/Lz4DecoderBuffer.hpp \
-	libmaus/lz/GzipOutputStreamBuffer.hpp \
-	libmaus/lz/GzipOutputStream.hpp \
-	libmaus/lz/BgzfInflateInfo.hpp \
-	libmaus/lz/BgzfStreamWrapper.hpp \
-	libmaus/lz/CompressorObject.hpp \
-	libmaus/lz/CompressorObjectFactory.hpp \
-	libmaus/lz/SimpleCompressedOutputStream.hpp \
-	libmaus/lz/SnappyCompressorObject.hpp \
-	libmaus/lz/SnappyCompressorObjectFactory.hpp \
-	libmaus/lz/DecompressorObject.hpp \
-	libmaus/lz/DecompressorObjectFactory.hpp \
-	libmaus/lz/SnappyDecompressorObject.hpp \
-	libmaus/lz/SnappyDecompressorObjectFactory.hpp \
-	libmaus/lz/SimpleCompressedInputStream.hpp \
-	libmaus/lz/SimpleCompressedConcatInputStreamFragment.hpp \
-	libmaus/lz/SimpleCompressedConcatInputStream.hpp \
-	libmaus/lz/SnappyInputStreamArrayFile.hpp \
-	libmaus/lz/SnappyInputStreamArray.hpp \
-	libmaus/lz/SnappyStringInputStream.hpp \
-	libmaus/lz/SnappyOffsetFileInputStream.hpp \
-	libmaus/lz/SnappyFileInputStream.hpp \
-	libmaus/lz/SnappyInputStream.hpp \
-	libmaus/lz/SnappyFileOutputStream.hpp \
-	libmaus/lz/SnappyOutputStream.hpp \
-	libmaus/lz/SimpleCompressedStreamInterval.hpp \
-	libmaus/lz/ZlibCompressorObjectFactory.hpp \
-	libmaus/lz/ZlibDecompressorObjectFactory.hpp \
-	libmaus/lz/ZlibCompressorObject.hpp \
-	libmaus/lz/ZlibDecompressorObject.hpp \
-	libmaus/lz/SimpleCompressedStreamNamedInterval.hpp \
-	libmaus/lz/SimpleCompressedInputBlock.hpp \
-	libmaus/lz/SimpleCompressedInputBlockConcat.hpp \
-	libmaus/lz/SimpleCompressedInputBlockConcatBlock.hpp \
-	libmaus/lz/RAZFConstants.hpp \
-	libmaus/lz/RAZFDecoderBuffer.hpp \
-	libmaus/lz/RAZFDecoder.hpp \
-	libmaus/lz/RAZFIndex.hpp \
-	libmaus/lz/IGzipDeflate.hpp \
-	libmaus/lz/IsGzip.hpp \
-	libmaus/lz/BufferedGzipStreamWrapper.hpp \
-	libmaus/lz/StreamWrapperBuffer.hpp \
-	libmaus/lz/BufferedGzipStreamBuffer.hpp \
-	libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp \
-	libmaus/lz/PlainOrGzipStream.hpp \
-	libmaus/lz/LineSplittingGzipOutputStreamBuffer.hpp \
-	libmaus/lz/LineSplittingGzipOutputStream.hpp \
-	libmaus/lz/CompressorObjectFreeListAllocator.hpp \
-	libmaus/lz/SnappyCompressorObjectFreeListAllocator.hpp \
-	libmaus/lz/SnappyCompressorObjectFactoryWrapper.hpp \
-	libmaus/lz/ZlibCompressorObjectFactoryWrapper.hpp \
-	libmaus/lz/ZlibCompressorObjectFreeListAllocator.hpp \
-	libmaus/lz/CompressorObjectFreeListAllocatorFactory.hpp \
-	libmaus/lz/BgzfDeflateOutputBufferBaseTypeInfo.hpp \
-	libmaus/lz/BgzfDeflateOutputBufferBaseAllocator.hpp \
-	libmaus/lz/BgzfDeflateZStreamBaseAllocator.hpp \
-	libmaus/lz/BgzfDeflateZStreamBaseTypeInfo.hpp \
-	libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp \
-	libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp
+libmaus2lz_includedir=$(includedir)/libmaus2/lz/
+libmaus2lz_include_HEADERS = libmaus2/lz/Inflate.hpp libmaus2/lz/Deflate.hpp libmaus2/lz/GzipHeader.hpp libmaus2/lz/StreamWrapper.hpp \
+	libmaus2/lz/GzipSingleStream.hpp libmaus2/lz/GzipStream.hpp libmaus2/lz/GzipStreamWrapper.hpp \
+	libmaus2/lz/BufferedGzipStream.hpp libmaus2/lz/StdOstreamSink.hpp libmaus2/lz/IstreamSource.hpp \
+	libmaus2/lz/SnappyCompress.hpp libmaus2/lz/BgzfInflate.hpp libmaus2/lz/BgzfInflateWrapper.hpp \
+	libmaus2/lz/BgzfInflateStream.hpp \
+	libmaus2/lz/BgzfDeflate.hpp \
+	libmaus2/lz/BgzfInflateBase.hpp \
+	libmaus2/lz/BgzfInflateBlock.hpp \
+	libmaus2/lz/BgzfInflateParallel.hpp \
+	libmaus2/lz/BgzfInflateParallelWrapper.hpp \
+	libmaus2/lz/BgzfInflateParallelStream.hpp \
+	libmaus2/lz/BgzfDeflateBase.hpp \
+	libmaus2/lz/BgzfInflateBlockIdComparator.hpp \
+	libmaus2/lz/BgzfInflateBlockIdInfo.hpp \
+	libmaus2/lz/BgzfInflateParallelContext.hpp \
+	libmaus2/lz/BgzfInflateParallelThread.hpp \
+	libmaus2/lz/BgzfDeflateBlockIdInfo.hpp \
+	libmaus2/lz/BgzfDeflateBlockIdComparator.hpp \
+	libmaus2/lz/BgzfDeflateParallelContext.hpp \
+	libmaus2/lz/BgzfDeflateParallelThread.hpp \
+	libmaus2/lz/BgzfConstants.hpp \
+	libmaus2/lz/BgzfDeflateHeaderFunctions.hpp \
+	libmaus2/lz/BgzfDeflateInputBufferBase.hpp \
+	libmaus2/lz/BgzfDeflateOutputBufferBase.hpp \
+	libmaus2/lz/BgzfDeflateZStreamBase.hpp \
+	libmaus2/lz/BgzfInflateHeaderBase.hpp \
+	libmaus2/lz/BgzfInflateZStreamBase.hpp \
+	libmaus2/lz/BgzfRecode.hpp \
+	libmaus2/lz/BgzfThreadOpBase.hpp \
+	libmaus2/lz/BgzfInflateDeflateParallel.hpp \
+	libmaus2/lz/BgzfInflateDeflateParallelThread.hpp \
+	libmaus2/lz/BgzfDeflateParallel.hpp \
+	libmaus2/lz/BgzfVirtualOffset.hpp \
+	libmaus2/lz/BgzfInflateDeflateParallelWrapper.hpp \
+	libmaus2/lz/BgzfInflateDeflateParallelInputStream.hpp \
+	libmaus2/lz/BgzfDeflateOutputCallback.hpp \
+	libmaus2/lz/BgzfDeflateOutputCallbackMD5.hpp \
+	libmaus2/lz/BgzfParallelRecodeDeflateBase.hpp \
+	libmaus2/lz/BgzfRecodeParallel.hpp \
+	libmaus2/lz/BgzfDeflateZStreamBaseFlushInfo.hpp \
+	libmaus2/lz/Lz4Base.hpp \
+	libmaus2/lz/Lz4CompressStreamBuffer.hpp \
+	libmaus2/lz/Lz4CompressWrapper.hpp \
+	libmaus2/lz/Lz4Decoder.hpp \
+	libmaus2/lz/Lz4Index.hpp \
+	libmaus2/lz/Lz4Compress.hpp \
+	libmaus2/lz/Lz4CompressStream.hpp \
+	libmaus2/lz/Lz4DecoderBuffer.hpp \
+	libmaus2/lz/GzipOutputStreamBuffer.hpp \
+	libmaus2/lz/GzipOutputStream.hpp \
+	libmaus2/lz/BgzfInflateInfo.hpp \
+	libmaus2/lz/BgzfStreamWrapper.hpp \
+	libmaus2/lz/CompressorObject.hpp \
+	libmaus2/lz/CompressorObjectFactory.hpp \
+	libmaus2/lz/SimpleCompressedOutputStream.hpp \
+	libmaus2/lz/SnappyCompressorObject.hpp \
+	libmaus2/lz/SnappyCompressorObjectFactory.hpp \
+	libmaus2/lz/DecompressorObject.hpp \
+	libmaus2/lz/DecompressorObjectFactory.hpp \
+	libmaus2/lz/SnappyDecompressorObject.hpp \
+	libmaus2/lz/SnappyDecompressorObjectFactory.hpp \
+	libmaus2/lz/SimpleCompressedInputStream.hpp \
+	libmaus2/lz/SimpleCompressedConcatInputStreamFragment.hpp \
+	libmaus2/lz/SimpleCompressedConcatInputStream.hpp \
+	libmaus2/lz/SnappyInputStreamArrayFile.hpp \
+	libmaus2/lz/SnappyInputStreamArray.hpp \
+	libmaus2/lz/SnappyStringInputStream.hpp \
+	libmaus2/lz/SnappyOffsetFileInputStream.hpp \
+	libmaus2/lz/SnappyFileInputStream.hpp \
+	libmaus2/lz/SnappyInputStream.hpp \
+	libmaus2/lz/SnappyFileOutputStream.hpp \
+	libmaus2/lz/SnappyOutputStream.hpp \
+	libmaus2/lz/SimpleCompressedStreamInterval.hpp \
+	libmaus2/lz/ZlibCompressorObjectFactory.hpp \
+	libmaus2/lz/ZlibDecompressorObjectFactory.hpp \
+	libmaus2/lz/ZlibCompressorObject.hpp \
+	libmaus2/lz/ZlibDecompressorObject.hpp \
+	libmaus2/lz/SimpleCompressedStreamNamedInterval.hpp \
+	libmaus2/lz/SimpleCompressedInputBlock.hpp \
+	libmaus2/lz/SimpleCompressedInputBlockConcat.hpp \
+	libmaus2/lz/SimpleCompressedInputBlockConcatBlock.hpp \
+	libmaus2/lz/RAZFConstants.hpp \
+	libmaus2/lz/RAZFDecoderBuffer.hpp \
+	libmaus2/lz/RAZFDecoder.hpp \
+	libmaus2/lz/RAZFIndex.hpp \
+	libmaus2/lz/IGzipDeflate.hpp \
+	libmaus2/lz/IsGzip.hpp \
+	libmaus2/lz/BufferedGzipStreamWrapper.hpp \
+	libmaus2/lz/StreamWrapperBuffer.hpp \
+	libmaus2/lz/BufferedGzipStreamBuffer.hpp \
+	libmaus2/lz/PlainOrGzipStreamBufferWrapper.hpp \
+	libmaus2/lz/PlainOrGzipStream.hpp \
+	libmaus2/lz/LineSplittingGzipOutputStreamBuffer.hpp \
+	libmaus2/lz/LineSplittingGzipOutputStream.hpp \
+	libmaus2/lz/CompressorObjectFreeListAllocator.hpp \
+	libmaus2/lz/SnappyCompressorObjectFreeListAllocator.hpp \
+	libmaus2/lz/SnappyCompressorObjectFactoryWrapper.hpp \
+	libmaus2/lz/ZlibCompressorObjectFactoryWrapper.hpp \
+	libmaus2/lz/ZlibCompressorObjectFreeListAllocator.hpp \
+	libmaus2/lz/CompressorObjectFreeListAllocatorFactory.hpp \
+	libmaus2/lz/BgzfDeflateOutputBufferBaseTypeInfo.hpp \
+	libmaus2/lz/BgzfDeflateOutputBufferBaseAllocator.hpp \
+	libmaus2/lz/BgzfDeflateZStreamBaseAllocator.hpp \
+	libmaus2/lz/BgzfDeflateZStreamBaseTypeInfo.hpp \
+	libmaus2/lz/BgzfInflateZStreamBaseAllocator.hpp \
+	libmaus2/lz/BgzfInflateZStreamBaseTypeInfo.hpp
 
-libmausbambam_includedir=$(includedir)/libmaus/bambam/
-libmausbambam_include_HEADERS = libmaus/bambam/DecoderBase.hpp libmaus/bambam/Chromosome.hpp \
-	libmaus/bambam/BamAlignmentDecoderBase.hpp \
-	libmaus/bambam/BamFormatAuxiliary.hpp \
-	libmaus/bambam/EncoderBase.hpp \
-	libmaus/bambam/BamHeader.hpp \
-	libmaus/bambam/BamAlignment.hpp \
-	libmaus/bambam/BamDecoder.hpp \
-	libmaus/bambam/BamAlignmentComparator.hpp \
-	libmaus/bambam/MergeQueueElement.hpp \
-	libmaus/bambam/CollatingBamDecoder.hpp \
-	libmaus/bambam/CigarOperation.hpp \
-	libmaus/bambam/CigarStringParser.hpp \
-	libmaus/bambam/BamSeqEncodeTable.hpp \
-	libmaus/bambam/BamAlignmentEncoderBase.hpp \
-	libmaus/bambam/BamFlagBase.hpp \
-	libmaus/bambam/BamWriter.hpp \
-	libmaus/bambam/HeaderLine.hpp \
-	libmaus/bambam/ProgramHeaderLineSet.hpp \
-	libmaus/bambam/ReadEnds.hpp \
-	libmaus/bambam/ReadEndsHeapPairComparator.hpp \
-	libmaus/bambam/CompactReadEndsBase.hpp \
-	libmaus/bambam/CompactReadEndsComparator.hpp \
-	libmaus/bambam/SortedFragDecoder.hpp \
-	libmaus/bambam/ReadEndsContainer.hpp \
-	libmaus/bambam/DuplicationMetrics.hpp \
-	libmaus/bambam/OpticalComparator.hpp \
-	libmaus/bambam/BamAlignmentHeapComparator.hpp \
-	libmaus/bambam/BamAlignmentNameComparator.hpp \
-	libmaus/bambam/BamAlignmentPosComparator.hpp \
-	libmaus/bambam/BamEntryContainer.hpp \
-	libmaus/bambam/Scram.h \
-	libmaus/bambam/AlignmentValidity.hpp \
-	libmaus/bambam/ScramDecoder.hpp \
-	libmaus/bambam/ScramEncoder.hpp \
-	libmaus/bambam/SnappyAlignmentMergeInput.hpp \
-	libmaus/bambam/BamAlignmentPrinter.hpp \
-	libmaus/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp \
-	libmaus/bambam/CircularHashCollatingBamDecoder.hpp \
-	libmaus/bambam/BamToFastqOutputFileSet.hpp \
-	libmaus/bambam/BamAlignmentDecoder.hpp \
-	libmaus/bambam/CollatingBamDecoderAlignmentInputCallback.hpp \
-	libmaus/bambam/ReadGroup.hpp \
-	libmaus/bambam/BamAuxFilterVector.hpp \
-	libmaus/bambam/BamDefaultAdapters.hpp \
-	libmaus/bambam/AdapterOffsetStrand.hpp \
-	libmaus/bambam/AdapterFilter.hpp \
-	libmaus/bambam/BamIndexBin.hpp \
-	libmaus/bambam/BamIndexLinear.hpp \
-	libmaus/bambam/BamIndexRef.hpp \
-	libmaus/bambam/BamIndex.hpp \
-	libmaus/bambam/BamRange.hpp \
-	libmaus/bambam/BamRangeParser.hpp \
-	libmaus/bambam/BamRangeDecoder.hpp \
-	libmaus/bambam/BamParallelRewrite.hpp \
-	libmaus/bambam/BamAlignmentExpungeCallback.hpp \
-	libmaus/bambam/StrCmpNum.hpp \
-	libmaus/bambam/BamCatHeader.hpp \
-	libmaus/bambam/BamCat.hpp \
-	libmaus/bambam/BamMergeCoordinate.hpp \
-	libmaus/bambam/BamMergeTemplate.hpp \
-	libmaus/bambam/BamMergeQueryName.hpp \
-	libmaus/bambam/BamIndexBinChunk.hpp \
-	libmaus/bambam/BamIndexLinearChunk.hpp \
-	libmaus/bambam/BamIndexGenerator.hpp \
-	libmaus/bambam/BgzfDeflateOutputCallbackBamIndex.hpp \
-	libmaus/bambam/BamAlignmentInputCallbackBam.hpp \
-	libmaus/bambam/BamAlignmentInputCallbackSnappy.hpp \
-	libmaus/bambam/BamHeaderUpdate.hpp \
-	libmaus/bambam/DupSetCallback.hpp \
-	libmaus/bambam/DupSetCallbackSet.hpp \
-	libmaus/bambam/DupSetCallbackStream.hpp \
-	libmaus/bambam/DupSetCallbackVector.hpp \
-	libmaus/bambam/BamAlignmentListNode.hpp \
-	libmaus/bambam/BamAlignmentPairListNode.hpp \
-	libmaus/bambam/ReadEndsListNode.hpp \
-	libmaus/bambam/BamAlignmentFreeList.hpp \
-	libmaus/bambam/BamAlignmentPairFreeList.hpp \
-	libmaus/bambam/ReadEndsFreeList.hpp \
-	libmaus/bambam/DupMarkBase.hpp \
-	libmaus/bambam/BamAlignmentSnappyInput.hpp \
-	libmaus/bambam/BamAlignmentInputPositionUpdateCallback.hpp \
-	libmaus/bambam/BamAlignmentInputPositionCallbackNull.hpp \
-	libmaus/bambam/BamBlockWriterBase.hpp \
-	libmaus/bambam/BamBlockWriterBaseFactory.hpp \
-	libmaus/bambam/BamAlignmentDecoderInfo.hpp \
-	libmaus/bambam/BamAlignmentDecoderFactory.hpp \
-	libmaus/bambam/BamMultiAlignmentDecoderFactory.hpp \
-	libmaus/bambam/BamIndexMetaInfo.hpp \
-	libmaus/bambam/MdStringComputationContext.hpp \
-	libmaus/bambam/BamAlignmentFilter.hpp \
-	libmaus/bambam/BamAlignmentReadGroupFilter.hpp \
-	libmaus/bambam/MdNmRecalculation.hpp \
-	libmaus/bambam/CramRange.hpp \
-	libmaus/bambam/ChromosomeVectorMerge.hpp \
-	libmaus/bambam/BamHeaderLowMem.hpp \
-	libmaus/bambam/GeneFlatFile.hpp \
-	libmaus/bambam/GeneFlatFileEntry.hpp \
-	libmaus/bambam/BamStreamingMarkDuplicatesSupport.hpp \
-	libmaus/bambam/BamStreamingMarkDuplicates.hpp \
-	libmaus/bambam/BamHeaderParserStateBase.hpp \
-	libmaus/bambam/BamHeaderParserState.hpp \
-	libmaus/bambam/BamAlignmentReg2Bin.hpp \
-	libmaus/bambam/SamInfoBase.hpp \
-	libmaus/bambam/SamInfo.hpp \
-	libmaus/bambam/SamPrintableTable.hpp \
-	libmaus/bambam/SamZPrintableTable.hpp \
-	libmaus/bambam/SamDecoder.hpp \
-	libmaus/bambam/SamDecoderWrapper.hpp \
-	libmaus/bambam/BamAlignmentFixedSizeData.hpp \
-	libmaus/bambam/BamAuxSortingBufferEntry.hpp \
-	libmaus/bambam/BamAuxSortingBuffer.hpp \
-	libmaus/bambam/ReadEndsContainerBase.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBase.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBaseCollection.hpp \
-	libmaus/bambam/ReadEndsStreamDecoderBase.hpp \
-	libmaus/bambam/ReadEndsStreamDecoderFileBase.hpp \
-	libmaus/bambam/ReadEndsStreamDecoder.hpp \
-	libmaus/bambam/ReadEndsBasePointerComparator.hpp \
-	libmaus/bambam/ReadEndsBase.hpp \
-	libmaus/bambam/ReadEndsBaseLongHashAttributeComparator.hpp \
-	libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp \
-	libmaus/bambam/ScramInputContainer.hpp \
-	libmaus/bambam/SamEncoder.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
-	libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp \
-	libmaus/bambam/ReadEndsBlockIndexSet.hpp \
-	libmaus/bambam/DupSetCallbackSharedVector.hpp \
-	libmaus/bambam/SamInfoAllocator.hpp \
-	libmaus/bambam/SamInfoTypeInfo.hpp \
-	libmaus/bambam/RgInfo.hpp \
-	libmaus/bambam/SeqChksumPrimeNumbers.hpp \
-	libmaus/bambam/SeqChksumUpdateContext.hpp \
-	libmaus/bambam/ChecksumsInterface.hpp \
-	libmaus/bambam/ChecksumsFactory.hpp \
-	libmaus/bambam/ChecksumsInterfaceAllocator.hpp \
-	libmaus/bambam/ChecksumsInterfaceTypeInfo.hpp \
-	libmaus/bambam/StrCmpNumRecode.hpp
+libmaus2bambam_includedir=$(includedir)/libmaus2/bambam/
+libmaus2bambam_include_HEADERS = libmaus2/bambam/DecoderBase.hpp libmaus2/bambam/Chromosome.hpp \
+	libmaus2/bambam/BamAlignmentDecoderBase.hpp \
+	libmaus2/bambam/BamFormatAuxiliary.hpp \
+	libmaus2/bambam/EncoderBase.hpp \
+	libmaus2/bambam/BamHeader.hpp \
+	libmaus2/bambam/BamAlignment.hpp \
+	libmaus2/bambam/BamDecoder.hpp \
+	libmaus2/bambam/BamAlignmentComparator.hpp \
+	libmaus2/bambam/MergeQueueElement.hpp \
+	libmaus2/bambam/CollatingBamDecoder.hpp \
+	libmaus2/bambam/CigarOperation.hpp \
+	libmaus2/bambam/CigarStringParser.hpp \
+	libmaus2/bambam/BamSeqEncodeTable.hpp \
+	libmaus2/bambam/BamAlignmentEncoderBase.hpp \
+	libmaus2/bambam/BamFlagBase.hpp \
+	libmaus2/bambam/BamWriter.hpp \
+	libmaus2/bambam/HeaderLine.hpp \
+	libmaus2/bambam/ProgramHeaderLineSet.hpp \
+	libmaus2/bambam/ReadEnds.hpp \
+	libmaus2/bambam/ReadEndsHeapPairComparator.hpp \
+	libmaus2/bambam/CompactReadEndsBase.hpp \
+	libmaus2/bambam/CompactReadEndsComparator.hpp \
+	libmaus2/bambam/SortedFragDecoder.hpp \
+	libmaus2/bambam/ReadEndsContainer.hpp \
+	libmaus2/bambam/DuplicationMetrics.hpp \
+	libmaus2/bambam/OpticalComparator.hpp \
+	libmaus2/bambam/BamAlignmentHeapComparator.hpp \
+	libmaus2/bambam/BamAlignmentNameComparator.hpp \
+	libmaus2/bambam/BamAlignmentPosComparator.hpp \
+	libmaus2/bambam/BamEntryContainer.hpp \
+	libmaus2/bambam/Scram.h \
+	libmaus2/bambam/AlignmentValidity.hpp \
+	libmaus2/bambam/ScramDecoder.hpp \
+	libmaus2/bambam/ScramEncoder.hpp \
+	libmaus2/bambam/SnappyAlignmentMergeInput.hpp \
+	libmaus2/bambam/BamAlignmentPrinter.hpp \
+	libmaus2/bambam/BamAlignmentSortingCircularHashEntryOverflow.hpp \
+	libmaus2/bambam/CircularHashCollatingBamDecoder.hpp \
+	libmaus2/bambam/BamToFastqOutputFileSet.hpp \
+	libmaus2/bambam/BamAlignmentDecoder.hpp \
+	libmaus2/bambam/CollatingBamDecoderAlignmentInputCallback.hpp \
+	libmaus2/bambam/ReadGroup.hpp \
+	libmaus2/bambam/BamAuxFilterVector.hpp \
+	libmaus2/bambam/BamDefaultAdapters.hpp \
+	libmaus2/bambam/AdapterOffsetStrand.hpp \
+	libmaus2/bambam/AdapterFilter.hpp \
+	libmaus2/bambam/BamIndexBin.hpp \
+	libmaus2/bambam/BamIndexLinear.hpp \
+	libmaus2/bambam/BamIndexRef.hpp \
+	libmaus2/bambam/BamIndex.hpp \
+	libmaus2/bambam/BamRange.hpp \
+	libmaus2/bambam/BamRangeParser.hpp \
+	libmaus2/bambam/BamRangeDecoder.hpp \
+	libmaus2/bambam/BamParallelRewrite.hpp \
+	libmaus2/bambam/BamAlignmentExpungeCallback.hpp \
+	libmaus2/bambam/StrCmpNum.hpp \
+	libmaus2/bambam/BamCatHeader.hpp \
+	libmaus2/bambam/BamCat.hpp \
+	libmaus2/bambam/BamMergeCoordinate.hpp \
+	libmaus2/bambam/BamMergeTemplate.hpp \
+	libmaus2/bambam/BamMergeQueryName.hpp \
+	libmaus2/bambam/BamIndexBinChunk.hpp \
+	libmaus2/bambam/BamIndexLinearChunk.hpp \
+	libmaus2/bambam/BamIndexGenerator.hpp \
+	libmaus2/bambam/BgzfDeflateOutputCallbackBamIndex.hpp \
+	libmaus2/bambam/BamAlignmentInputCallbackBam.hpp \
+	libmaus2/bambam/BamAlignmentInputCallbackSnappy.hpp \
+	libmaus2/bambam/BamHeaderUpdate.hpp \
+	libmaus2/bambam/DupSetCallback.hpp \
+	libmaus2/bambam/DupSetCallbackSet.hpp \
+	libmaus2/bambam/DupSetCallbackStream.hpp \
+	libmaus2/bambam/DupSetCallbackVector.hpp \
+	libmaus2/bambam/BamAlignmentListNode.hpp \
+	libmaus2/bambam/BamAlignmentPairListNode.hpp \
+	libmaus2/bambam/ReadEndsListNode.hpp \
+	libmaus2/bambam/BamAlignmentFreeList.hpp \
+	libmaus2/bambam/BamAlignmentPairFreeList.hpp \
+	libmaus2/bambam/ReadEndsFreeList.hpp \
+	libmaus2/bambam/DupMarkBase.hpp \
+	libmaus2/bambam/BamAlignmentSnappyInput.hpp \
+	libmaus2/bambam/BamAlignmentInputPositionUpdateCallback.hpp \
+	libmaus2/bambam/BamAlignmentInputPositionCallbackNull.hpp \
+	libmaus2/bambam/BamBlockWriterBase.hpp \
+	libmaus2/bambam/BamBlockWriterBaseFactory.hpp \
+	libmaus2/bambam/BamAlignmentDecoderInfo.hpp \
+	libmaus2/bambam/BamAlignmentDecoderFactory.hpp \
+	libmaus2/bambam/BamMultiAlignmentDecoderFactory.hpp \
+	libmaus2/bambam/BamIndexMetaInfo.hpp \
+	libmaus2/bambam/MdStringComputationContext.hpp \
+	libmaus2/bambam/BamAlignmentFilter.hpp \
+	libmaus2/bambam/BamAlignmentReadGroupFilter.hpp \
+	libmaus2/bambam/MdNmRecalculation.hpp \
+	libmaus2/bambam/CramRange.hpp \
+	libmaus2/bambam/ChromosomeVectorMerge.hpp \
+	libmaus2/bambam/BamHeaderLowMem.hpp \
+	libmaus2/bambam/GeneFlatFile.hpp \
+	libmaus2/bambam/GeneFlatFileEntry.hpp \
+	libmaus2/bambam/BamStreamingMarkDuplicatesSupport.hpp \
+	libmaus2/bambam/BamStreamingMarkDuplicates.hpp \
+	libmaus2/bambam/BamHeaderParserStateBase.hpp \
+	libmaus2/bambam/BamHeaderParserState.hpp \
+	libmaus2/bambam/BamAlignmentReg2Bin.hpp \
+	libmaus2/bambam/SamInfoBase.hpp \
+	libmaus2/bambam/SamInfo.hpp \
+	libmaus2/bambam/SamPrintableTable.hpp \
+	libmaus2/bambam/SamZPrintableTable.hpp \
+	libmaus2/bambam/SamDecoder.hpp \
+	libmaus2/bambam/SamDecoderWrapper.hpp \
+	libmaus2/bambam/BamAlignmentFixedSizeData.hpp \
+	libmaus2/bambam/BamAuxSortingBufferEntry.hpp \
+	libmaus2/bambam/BamAuxSortingBuffer.hpp \
+	libmaus2/bambam/ReadEndsContainerBase.hpp \
+	libmaus2/bambam/ReadEndsBlockDecoderBase.hpp \
+	libmaus2/bambam/ReadEndsBlockDecoderBaseCollection.hpp \
+	libmaus2/bambam/ReadEndsStreamDecoderBase.hpp \
+	libmaus2/bambam/ReadEndsStreamDecoderFileBase.hpp \
+	libmaus2/bambam/ReadEndsStreamDecoder.hpp \
+	libmaus2/bambam/ReadEndsBasePointerComparator.hpp \
+	libmaus2/bambam/ReadEndsBase.hpp \
+	libmaus2/bambam/ReadEndsBaseLongHashAttributeComparator.hpp \
+	libmaus2/bambam/ReadEndsBaseShortHashAttributeComparator.hpp \
+	libmaus2/bambam/ScramInputContainer.hpp \
+	libmaus2/bambam/SamEncoder.hpp \
+	libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp \
+	libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp \
+	libmaus2/bambam/ReadEndsBlockIndexSet.hpp \
+	libmaus2/bambam/DupSetCallbackSharedVector.hpp \
+	libmaus2/bambam/SamInfoAllocator.hpp \
+	libmaus2/bambam/SamInfoTypeInfo.hpp \
+	libmaus2/bambam/RgInfo.hpp \
+	libmaus2/bambam/SeqChksumPrimeNumbers.hpp \
+	libmaus2/bambam/SeqChksumUpdateContext.hpp \
+	libmaus2/bambam/ChecksumsInterface.hpp \
+	libmaus2/bambam/ChecksumsFactory.hpp \
+	libmaus2/bambam/ChecksumsInterfaceAllocator.hpp \
+	libmaus2/bambam/ChecksumsInterfaceTypeInfo.hpp \
+	libmaus2/bambam/StrCmpNumRecode.hpp
 
-libmausbambamparallel_includedir=$(includedir)/libmaus/bambam/parallel/
-libmausbambamparallel_include_HEADERS = \
-	libmaus/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp \
-	libmaus/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp \
-	libmaus/bambam/parallel/AlignmentBlockCompressPackage.hpp \
-	libmaus/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/AlignmentBufferAllocator.hpp \
-	libmaus/bambam/parallel/AlignmentBufferHeapComparator.hpp \
-	libmaus/bambam/parallel/AlignmentBuffer.hpp \
-	libmaus/bambam/parallel/AlignmentBufferReinsertInterface.hpp \
-	libmaus/bambam/parallel/AlignmentBufferReturnInterface.hpp \
-	libmaus/bambam/parallel/AlignmentBufferTypeInfo.hpp \
-	libmaus/bambam/parallel/AlignmentRewriteBufferAddPendingInterface.hpp \
-	libmaus/bambam/parallel/AlignmentRewriteBufferAllocator.hpp \
-	libmaus/bambam/parallel/AlignmentRewriteBufferCoordinateComparator.hpp \
-	libmaus/bambam/parallel/AlignmentRewriteBuffer.hpp \
-	libmaus/bambam/parallel/AlignmentRewriteBufferPosComparator.hpp \
-	libmaus/bambam/parallel/AlignmentRewriteBufferReinsertForFillingInterface.hpp \
-	libmaus/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp \
-	libmaus/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp \
-	libmaus/bambam/parallel/AlignmentRewritePosSortContextBaseBlockSortedInterface.hpp \
-	libmaus/bambam/parallel/AlignmentRewritePosSortContext.hpp \
-	libmaus/bambam/parallel/AlignmentRewritePosSortContextMergePackageFinished.hpp \
-	libmaus/bambam/parallel/BaseMergeSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/BaseSortWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/BaseSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/BgzfInflateZStreamBaseGetInterface.hpp \
-	libmaus/bambam/parallel/BgzfInflateZStreamBaseReturnInterface.hpp \
-	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackage.hpp \
-	libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp \
-	libmaus/bambam/parallel/BlockCompressPackageDispatcher.hpp \
-	libmaus/bambam/parallel/CompressBufferAllocator.hpp \
-	libmaus/bambam/parallel/CompressBufferHeapComparator.hpp \
-	libmaus/bambam/parallel/CompressBuffer.hpp \
-	libmaus/bambam/parallel/CompressionPendingElement.hpp \
-	libmaus/bambam/parallel/ControlInputInfo.hpp \
-	libmaus/bambam/parallel/DecompressBlocksWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/DecompressBlocksWorkPackage.hpp \
-	libmaus/bambam/parallel/DecompressBlocksWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/DecompressBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/DecompressBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/DecompressBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/DecompressedBlockAddPendingInterface.hpp \
-	libmaus/bambam/parallel/DecompressedBlockAllocator.hpp \
-	libmaus/bambam/parallel/DecompressedBlock.hpp \
-	libmaus/bambam/parallel/DecompressedBlockReturnInterface.hpp \
-	libmaus/bambam/parallel/DecompressedBlockTypeInfo.hpp \
-	libmaus/bambam/parallel/DecompressedPendingObjectHeapComparator.hpp \
-	libmaus/bambam/parallel/DecompressedPendingObject.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferAllocator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortPackage.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferFragment.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortPackage.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitchHelper.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitch.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferSortContextBaseBlockSortedInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferSortContext.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferSortContextMergePackageFinished.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferSortFinishedInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferTypeInfo.hpp \
-	libmaus/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp \
-	libmaus/bambam/parallel/InputBlockAddPendingInterface.hpp \
-	libmaus/bambam/parallel/InputBlockAllocator.hpp \
-	libmaus/bambam/parallel/InputBlock.hpp \
-	libmaus/bambam/parallel/InputBlockReturnInterface.hpp \
-	libmaus/bambam/parallel/InputBlockTypeInfo.hpp \
-	libmaus/bambam/parallel/InputBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/InputBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/MergeSortWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/ParseBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/ParseBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/ParsedBlockAddPendingInterface.hpp \
-	libmaus/bambam/parallel/ParsedBlockStallInterface.hpp \
-	libmaus/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp \
-	libmaus/bambam/parallel/ParseInfo.hpp \
-	libmaus/bambam/parallel/ParsePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/PushBackSpace.hpp \
-	libmaus/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp \
-	libmaus/bambam/parallel/RequeReadInterface.hpp \
-	libmaus/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp \
-	libmaus/bambam/parallel/ReturnCompressionPendingElementInterface.hpp \
-	libmaus/bambam/parallel/ReturnRewriteBufferInterface.hpp \
-	libmaus/bambam/parallel/RewriteBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/RewriteBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/RewritePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp \
-	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectHeapComparator.hpp \
-	libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp \
-	libmaus/bambam/parallel/SortControl.hpp \
-	libmaus/bambam/parallel/SortFinishedInterface.hpp \
-	libmaus/bambam/parallel/ValidateBlockAddPendingInterface.hpp \
-	libmaus/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp \
-	libmaus/bambam/parallel/ValidateBlockFragmentPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp \
-	libmaus/bambam/parallel/ValidateBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/ValidateBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/ValidatePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/ValidationFragment.hpp \
-	libmaus/bambam/parallel/WriteBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/WriteBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/WritePendingObjectHeapComparator.hpp \
-	libmaus/bambam/parallel/WritePendingObject.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackage.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackage.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/ReadEndsContainerAllocator.hpp \
-	libmaus/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
-	libmaus/bambam/parallel/ReadEndsContainerFreeListInterface.hpp \
-	libmaus/bambam/parallel/AddDuplicationMetricsInterface.hpp \
-	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackage.hpp \
-	libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackage.hpp \
-	libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragReadEndsContainerFlushFinishedInterface.hpp \
-	libmaus/bambam/parallel/FragReadEndsContainerFlushWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/PairReadEndsContainerFlushFinishedInterface.hpp \
-	libmaus/bambam/parallel/ReadEndsMergeRequest.hpp \
-	libmaus/bambam/parallel/FragReadEndsMergeWorkPackage.hpp \
-	libmaus/bambam/parallel/FragReadEndsMergeWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragReadEndsMergeWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/FragReadEndsMergeWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/PairReadEndsMergeWorkPackage.hpp \
-	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/MemInputBlock.hpp \
-	libmaus/bambam/parallel/GenericInputBamParseObject.hpp \
-	libmaus/bambam/parallel/GenericInputBamParseWorkPackageBlockParsedInterface.hpp \
-	libmaus/bambam/parallel/GenericInputBamParseWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputBamParseWorkPackage.hpp \
-	libmaus/bambam/parallel/GenericInputBamParseWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputBase.hpp \
-	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackage.hpp \
-	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface.hpp \
-	libmaus/bambam/parallel/GenericInputBlock.hpp \
-	libmaus/bambam/parallel/GenericInputControlMergeBlockFinishedInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlMergeHeapEntry.hpp \
-	libmaus/bambam/parallel/GenericInputControlMergeRequeue.hpp \
-	libmaus/bambam/parallel/GenericInputControlReadAddPendingInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlReadWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputControlReadWorkPackage.hpp \
-	libmaus/bambam/parallel/GenericInputControlReadWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlSetMergeStallSlotInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlStreamInfo.hpp \
-	libmaus/bambam/parallel/GenericInputControlSubBlockPendingHeapComparator.hpp \
-	libmaus/bambam/parallel/GenericInputControlSubBlockPending.hpp \
-	libmaus/bambam/parallel/GenericInputHeapComparator.hpp \
-	libmaus/bambam/parallel/GenericInputMergeDecompressedBlockReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputMergeWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputMergeWorkPackage.hpp \
-	libmaus/bambam/parallel/GenericInputMergeWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputMergeWorkRequest.hpp \
-	libmaus/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp \
-	libmaus/bambam/parallel/GenericInputSingleData.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockCompressionFinishedInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackage.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlCompressionPending.hpp \
-	libmaus/bambam/parallel/GenericInputControlCompressionPendingHeapComparator.hpp \
-	libmaus/bambam/parallel/GenericInputControlGetCompressorInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlPutCompressorInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlReorderWorkPackage.hpp \
-	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockWritePackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlockWritePackage.hpp \
-	libmaus/bambam/parallel/GenericInputBlockSubBlockInfo.hpp \
-	libmaus/bambam/parallel/GenericInputBlockFillResult.hpp \
-	libmaus/bambam/parallel/GenericInputBlockTypeInfo.hpp \
-	libmaus/bambam/parallel/GenericInputBlockAllocator.hpp \
-	libmaus/bambam/parallel/DecompressedBlockHeapComparator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackage.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/PairReadEndsContainerFlushWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp \
-	libmaus/bambam/parallel/SamParsePending.hpp \
-	libmaus/bambam/parallel/SamParsePendingHeapComparator.hpp \
-	libmaus/bambam/parallel/SamParseWorkPackage.hpp \
-	libmaus/bambam/parallel/BlockSortControlBase.hpp \
-	libmaus/bambam/parallel/SamParsePutSamInfoInterface.hpp \
-	libmaus/bambam/parallel/SamParseGetSamInfoInterface.hpp \
-	libmaus/bambam/parallel/SamParseFragmentParsedInterface.hpp \
-	libmaus/bambam/parallel/SamParseDecompressedBlockFinishedInterface.hpp \
-	libmaus/bambam/parallel/SamParseWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/SamParseWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/BlockSortControl.hpp \
-	libmaus/bambam/parallel/BlockMergeControl.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlocksWritePackage.hpp \
-	libmaus/bambam/parallel/FastQInputDescBase.hpp \
-	libmaus/bambam/parallel/FastqToBamControlInputBlockHeapComparator.hpp \
-	libmaus/bambam/parallel/FastqToBamControlSubReadPending.hpp \
-	libmaus/bambam/parallel/FastqToBamControlSubReadPendingHeapComparator.hpp \
-	libmaus/bambam/parallel/DecompressedBlockReorderHeapComparator.hpp \
-	libmaus/bambam/parallel/FastQInputDesc.hpp \
-	libmaus/bambam/parallel/FastqInputPackage.hpp \
-	libmaus/bambam/parallel/FastqInputPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FastqInputPackageAddPendingInterface.hpp \
-	libmaus/bambam/parallel/FastqInputPackageDispatcher.hpp \
-	libmaus/bambam/parallel/FastqParsePackage.hpp \
-	libmaus/bambam/parallel/FastqParsePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FastqParsePackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/FastqParsePackageDispatcher.hpp \
-	libmaus/bambam/parallel/FastqToBamControl.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageDispatcher.hpp \
-	libmaus/bambam/parallel/GenericInputControlBlocksWritePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/ChecksumsInterfaceGetInterface.hpp \
-	libmaus/bambam/parallel/ChecksumsInterfacePutInterface.hpp \
-	libmaus/bambam/parallel/FileChecksumBlockWorkPackage.hpp \
-	libmaus/bambam/parallel/FileChecksumBlockWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/FileChecksumBlockFinishedInterface.hpp \
-	libmaus/bambam/parallel/FileChecksumBlockWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/BamBlockIndexingWorkPackage.hpp \
-	libmaus/bambam/parallel/BamBlockIndexingWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/BamBlockIndexingBlockFinishedInterface.hpp \
-	libmaus/bambam/parallel/BamBlockIndexingWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/CramInterface.h \
-	libmaus/bambam/parallel/CramOutputBlock.hpp \
-	libmaus/bambam/parallel/CramOutputBlockSizeComparator.hpp \
-	libmaus/bambam/parallel/SamEncoderObject.hpp \
-	libmaus/bambam/parallel/CramOutputBlockWritePackage.hpp \
-	libmaus/bambam/parallel/CramOutputBlockWritePackageReturnInterface.hpp \
-	libmaus/bambam/parallel/CramOutputBlockWritePackageFinishedInterface.hpp \
-	libmaus/bambam/parallel/CramOutputBlockWritePackageDispatcher.hpp \
-	libmaus/bambam/parallel/CramPassPointerObject.hpp \
-	libmaus/bambam/parallel/CramPassPointerObjectComparator.hpp \
-	libmaus/bambam/parallel/CramPassPointerObjectTypeInfo.hpp \
-	libmaus/bambam/parallel/CramPassPointerObjectAllocator.hpp \
-	libmaus/bambam/parallel/ScramCramEncoding.hpp \
-	libmaus/bambam/parallel/CramOutputBlockIdComparator.hpp \
-	libmaus/bambam/parallel/FragmentAlignmentBufferQueryNameComparator.hpp \
-	libmaus/bambam/parallel/CramEncodingWorkPackage.hpp \
-	libmaus/bambam/parallel/SamEncodingWorkPackage.hpp \
-	libmaus/bambam/parallel/SamEncodingWorkPackageWrapper.hpp \
-	libmaus/bambam/parallel/CramOutputBlockChecksumPackage.hpp \
-	libmaus/bambam/parallel/CramOutputBlockChecksumPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/CramOutputBlockChecksumComputedInterface.hpp \
-	libmaus/bambam/parallel/CramOutputBlockChecksumPackageDispatcher.hpp \
-	libmaus/bambam/parallel/CramEncodingWorkPackageReturnInterface.hpp \
-	libmaus/bambam/parallel/SamEncodingWorkPackageWrapperReturnInterface.hpp \
-	libmaus/bambam/parallel/SamEncodingWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/BlockMergeControlTypeBase.hpp \
-	libmaus/bambam/parallel/CramEncodingSupportData.hpp \
-	libmaus/bambam/parallel/CramEncodingWorkPackageDispatcher.hpp \
-	libmaus/bambam/parallel/RefIdInterval.hpp
+libmaus2bambamparallel_includedir=$(includedir)/libmaus2/bambam/parallel/
+libmaus2bambamparallel_include_HEADERS = \
+	libmaus2/bambam/parallel/AddPendingCompressBufferWriteInterface.hpp \
+	libmaus2/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentBlockCompressPackage.hpp \
+	libmaus2/bambam/parallel/AlignmentBlockCompressPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentBufferAllocator.hpp \
+	libmaus2/bambam/parallel/AlignmentBufferHeapComparator.hpp \
+	libmaus2/bambam/parallel/AlignmentBuffer.hpp \
+	libmaus2/bambam/parallel/AlignmentBufferReinsertInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentBufferReturnInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentBufferTypeInfo.hpp \
+	libmaus2/bambam/parallel/AlignmentRewriteBufferAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentRewriteBufferAllocator.hpp \
+	libmaus2/bambam/parallel/AlignmentRewriteBufferCoordinateComparator.hpp \
+	libmaus2/bambam/parallel/AlignmentRewriteBuffer.hpp \
+	libmaus2/bambam/parallel/AlignmentRewriteBufferPosComparator.hpp \
+	libmaus2/bambam/parallel/AlignmentRewriteBufferReinsertForFillingInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentRewritePosMergeSortPackage.hpp \
+	libmaus2/bambam/parallel/AlignmentRewritePosSortBaseSortPackage.hpp \
+	libmaus2/bambam/parallel/AlignmentRewritePosSortContextBaseBlockSortedInterface.hpp \
+	libmaus2/bambam/parallel/AlignmentRewritePosSortContext.hpp \
+	libmaus2/bambam/parallel/AlignmentRewritePosSortContextMergePackageFinished.hpp \
+	libmaus2/bambam/parallel/BaseMergeSortWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/BaseSortWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/BaseSortWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/BgzfInflateZStreamBaseGetInterface.hpp \
+	libmaus2/bambam/parallel/BgzfInflateZStreamBaseReturnInterface.hpp \
+	libmaus2/bambam/parallel/BgzfLinearMemCompressWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/BgzfLinearMemCompressWorkPackage.hpp \
+	libmaus2/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/BgzfOutputBlockWrittenInterface.hpp \
+	libmaus2/bambam/parallel/BlockCompressPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/CompressBufferAllocator.hpp \
+	libmaus2/bambam/parallel/CompressBufferHeapComparator.hpp \
+	libmaus2/bambam/parallel/CompressBuffer.hpp \
+	libmaus2/bambam/parallel/CompressionPendingElement.hpp \
+	libmaus2/bambam/parallel/ControlInputInfo.hpp \
+	libmaus2/bambam/parallel/DecompressBlocksWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/DecompressBlocksWorkPackage.hpp \
+	libmaus2/bambam/parallel/DecompressBlocksWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/DecompressBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/DecompressBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/DecompressBlockWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/DecompressedBlockAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/DecompressedBlockAllocator.hpp \
+	libmaus2/bambam/parallel/DecompressedBlock.hpp \
+	libmaus2/bambam/parallel/DecompressedBlockReturnInterface.hpp \
+	libmaus2/bambam/parallel/DecompressedBlockTypeInfo.hpp \
+	libmaus2/bambam/parallel/DecompressedPendingObjectHeapComparator.hpp \
+	libmaus2/bambam/parallel/DecompressedPendingObject.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferAllocator.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferBaseSortPackage.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferFragment.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferHeapComparator.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferMergeSortPackage.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitchHelper.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferPointerTypeSwitch.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferSortContextBaseBlockSortedInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferSortContext.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferSortContextMergePackageFinished.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferSortFinishedInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferTypeInfo.hpp \
+	libmaus2/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp \
+	libmaus2/bambam/parallel/InputBlockAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/InputBlockAllocator.hpp \
+	libmaus2/bambam/parallel/InputBlock.hpp \
+	libmaus2/bambam/parallel/InputBlockReturnInterface.hpp \
+	libmaus2/bambam/parallel/InputBlockTypeInfo.hpp \
+	libmaus2/bambam/parallel/InputBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/InputBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/InputBlockWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/MergeSortWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/ParseBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/ParseBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/ParsedBlockAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/ParsedBlockStallInterface.hpp \
+	libmaus2/bambam/parallel/ParseInfoHeaderCompleteCallback.hpp \
+	libmaus2/bambam/parallel/ParseInfo.hpp \
+	libmaus2/bambam/parallel/ParsePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/PushBackSpace.hpp \
+	libmaus2/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp \
+	libmaus2/bambam/parallel/RequeReadInterface.hpp \
+	libmaus2/bambam/parallel/ReturnBgzfOutputBufferInterface.hpp \
+	libmaus2/bambam/parallel/ReturnCompressionPendingElementInterface.hpp \
+	libmaus2/bambam/parallel/ReturnRewriteBufferInterface.hpp \
+	libmaus2/bambam/parallel/RewriteBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/RewriteBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/RewritePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp \
+	libmaus2/bambam/parallel/SmallLinearBlockCompressionPendingObjectHeapComparator.hpp \
+	libmaus2/bambam/parallel/SmallLinearBlockCompressionPendingObject.hpp \
+	libmaus2/bambam/parallel/SortControl.hpp \
+	libmaus2/bambam/parallel/SortFinishedInterface.hpp \
+	libmaus2/bambam/parallel/ValidateBlockAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/ValidateBlockFragmentAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/ValidateBlockFragmentPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/ValidateBlockFragmentWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/ValidateBlockFragmentWorkPackage.hpp \
+	libmaus2/bambam/parallel/ValidateBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/ValidateBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/ValidatePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/ValidationFragment.hpp \
+	libmaus2/bambam/parallel/WriteBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/WriteBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/WriteBlockWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/WritePendingObjectHeapComparator.hpp \
+	libmaus2/bambam/parallel/WritePendingObject.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferReorderWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferReorderWorkPackageFinishedInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferNameComparator.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteReadEndsWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/ReadEndsContainerAllocator.hpp \
+	libmaus2/bambam/parallel/ReadEndsContainerTypeInfo.hpp \
+	libmaus2/bambam/parallel/ReadEndsContainerFreeListInterface.hpp \
+	libmaus2/bambam/parallel/AddDuplicationMetricsInterface.hpp \
+	libmaus2/bambam/parallel/PairReadEndsContainerFlushWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragReadEndsContainerFlushWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragReadEndsContainerFlushWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FragReadEndsContainerFlushFinishedInterface.hpp \
+	libmaus2/bambam/parallel/FragReadEndsContainerFlushWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/PairReadEndsContainerFlushWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/PairReadEndsContainerFlushFinishedInterface.hpp \
+	libmaus2/bambam/parallel/ReadEndsMergeRequest.hpp \
+	libmaus2/bambam/parallel/FragReadEndsMergeWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragReadEndsMergeWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FragReadEndsMergeWorkPackageFinishedInterface.hpp \
+	libmaus2/bambam/parallel/FragReadEndsMergeWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/PairReadEndsMergeWorkPackage.hpp \
+	libmaus2/bambam/parallel/PairReadEndsMergeWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/PairReadEndsMergeWorkPackageFinishedInterface.hpp \
+	libmaus2/bambam/parallel/PairReadEndsMergeWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/MemInputBlock.hpp \
+	libmaus2/bambam/parallel/GenericInputBamParseObject.hpp \
+	libmaus2/bambam/parallel/GenericInputBamParseWorkPackageBlockParsedInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputBamParseWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputBamParseWorkPackage.hpp \
+	libmaus2/bambam/parallel/GenericInputBamParseWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputBase.hpp \
+	libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackage.hpp \
+	libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputBlock.hpp \
+	libmaus2/bambam/parallel/GenericInputControlMergeBlockFinishedInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlMergeHeapEntry.hpp \
+	libmaus2/bambam/parallel/GenericInputControlMergeRequeue.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReadAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReadWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReadWorkPackage.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReadWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlSetMergeStallSlotInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlStreamInfo.hpp \
+	libmaus2/bambam/parallel/GenericInputControlSubBlockPendingHeapComparator.hpp \
+	libmaus2/bambam/parallel/GenericInputControlSubBlockPending.hpp \
+	libmaus2/bambam/parallel/GenericInputHeapComparator.hpp \
+	libmaus2/bambam/parallel/GenericInputMergeDecompressedBlockReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputMergeWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputMergeWorkPackage.hpp \
+	libmaus2/bambam/parallel/GenericInputMergeWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputMergeWorkRequest.hpp \
+	libmaus2/bambam/parallel/GenericInputSingleDataBamParseInfo.hpp \
+	libmaus2/bambam/parallel/GenericInputSingleData.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockCompressionFinishedInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockCompressionWorkPackage.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockCompressionWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockCompressionWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlCompressionPending.hpp \
+	libmaus2/bambam/parallel/GenericInputControlCompressionPendingHeapComparator.hpp \
+	libmaus2/bambam/parallel/GenericInputControlGetCompressorInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlPutCompressorInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReorderWorkPackage.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReorderWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReorderWorkPackageFinishedInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlReorderWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockWritePackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockWritePackageBlockWrittenInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockWritePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlockWritePackage.hpp \
+	libmaus2/bambam/parallel/GenericInputBlockSubBlockInfo.hpp \
+	libmaus2/bambam/parallel/GenericInputBlockFillResult.hpp \
+	libmaus2/bambam/parallel/GenericInputBlockTypeInfo.hpp \
+	libmaus2/bambam/parallel/GenericInputBlockAllocator.hpp \
+	libmaus2/bambam/parallel/DecompressedBlockHeapComparator.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferBaseSortWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackage.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/PairReadEndsContainerFlushWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferMergeSortWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferPosComparator.hpp \
+	libmaus2/bambam/parallel/SamParsePending.hpp \
+	libmaus2/bambam/parallel/SamParsePendingHeapComparator.hpp \
+	libmaus2/bambam/parallel/SamParseWorkPackage.hpp \
+	libmaus2/bambam/parallel/BlockSortControlBase.hpp \
+	libmaus2/bambam/parallel/SamParsePutSamInfoInterface.hpp \
+	libmaus2/bambam/parallel/SamParseGetSamInfoInterface.hpp \
+	libmaus2/bambam/parallel/SamParseFragmentParsedInterface.hpp \
+	libmaus2/bambam/parallel/SamParseDecompressedBlockFinishedInterface.hpp \
+	libmaus2/bambam/parallel/SamParseWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/SamParseWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/BlockSortControl.hpp \
+	libmaus2/bambam/parallel/BlockMergeControl.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlocksWritePackage.hpp \
+	libmaus2/bambam/parallel/FastQInputDescBase.hpp \
+	libmaus2/bambam/parallel/FastqToBamControlInputBlockHeapComparator.hpp \
+	libmaus2/bambam/parallel/FastqToBamControlSubReadPending.hpp \
+	libmaus2/bambam/parallel/FastqToBamControlSubReadPendingHeapComparator.hpp \
+	libmaus2/bambam/parallel/DecompressedBlockReorderHeapComparator.hpp \
+	libmaus2/bambam/parallel/FastQInputDesc.hpp \
+	libmaus2/bambam/parallel/FastqInputPackage.hpp \
+	libmaus2/bambam/parallel/FastqInputPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FastqInputPackageAddPendingInterface.hpp \
+	libmaus2/bambam/parallel/FastqInputPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FastqParsePackage.hpp \
+	libmaus2/bambam/parallel/FastqParsePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FastqParsePackageFinishedInterface.hpp \
+	libmaus2/bambam/parallel/FastqParsePackageDispatcher.hpp \
+	libmaus2/bambam/parallel/FastqToBamControl.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlocksWritePackageDispatcher.hpp \
+	libmaus2/bambam/parallel/GenericInputControlBlocksWritePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/ChecksumsInterfaceGetInterface.hpp \
+	libmaus2/bambam/parallel/ChecksumsInterfacePutInterface.hpp \
+	libmaus2/bambam/parallel/FileChecksumBlockWorkPackage.hpp \
+	libmaus2/bambam/parallel/FileChecksumBlockWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/FileChecksumBlockFinishedInterface.hpp \
+	libmaus2/bambam/parallel/FileChecksumBlockWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/BamBlockIndexingWorkPackage.hpp \
+	libmaus2/bambam/parallel/BamBlockIndexingWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/BamBlockIndexingBlockFinishedInterface.hpp \
+	libmaus2/bambam/parallel/BamBlockIndexingWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/CramInterface.h \
+	libmaus2/bambam/parallel/CramOutputBlock.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockSizeComparator.hpp \
+	libmaus2/bambam/parallel/SamEncoderObject.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockWritePackage.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockWritePackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockWritePackageFinishedInterface.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockWritePackageDispatcher.hpp \
+	libmaus2/bambam/parallel/CramPassPointerObject.hpp \
+	libmaus2/bambam/parallel/CramPassPointerObjectComparator.hpp \
+	libmaus2/bambam/parallel/CramPassPointerObjectTypeInfo.hpp \
+	libmaus2/bambam/parallel/CramPassPointerObjectAllocator.hpp \
+	libmaus2/bambam/parallel/ScramCramEncoding.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockIdComparator.hpp \
+	libmaus2/bambam/parallel/FragmentAlignmentBufferQueryNameComparator.hpp \
+	libmaus2/bambam/parallel/CramEncodingWorkPackage.hpp \
+	libmaus2/bambam/parallel/SamEncodingWorkPackage.hpp \
+	libmaus2/bambam/parallel/SamEncodingWorkPackageWrapper.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockChecksumPackage.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockChecksumPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockChecksumComputedInterface.hpp \
+	libmaus2/bambam/parallel/CramOutputBlockChecksumPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/CramEncodingWorkPackageReturnInterface.hpp \
+	libmaus2/bambam/parallel/SamEncodingWorkPackageWrapperReturnInterface.hpp \
+	libmaus2/bambam/parallel/SamEncodingWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/BlockMergeControlTypeBase.hpp \
+	libmaus2/bambam/parallel/CramEncodingSupportData.hpp \
+	libmaus2/bambam/parallel/CramEncodingWorkPackageDispatcher.hpp \
+	libmaus2/bambam/parallel/RefIdInterval.hpp
 
-libmausbitio_includedir=$(includedir)/libmaus/bitio
-libmausbitio_include_HEADERS=\
-	libmaus/bitio/BitIO.hpp \
-	libmaus/bitio/BitIOOutput.hpp \
-	libmaus/bitio/CompactArray.hpp \
-	libmaus/bitio/CompactArrayBase.hpp \
-	libmaus/bitio/OutputBuffer.hpp \
-	libmaus/bitio/BitIOInput.hpp \
-	libmaus/bitio/getBits.hpp \
-	libmaus/bitio/ReverseTable.hpp \
-	libmaus/bitio/CompactQueue.hpp \
-	libmaus/bitio/putBits.hpp \
-	libmaus/bitio/SwapWordBitBlock.hpp \
-	libmaus/bitio/swapBitBlocksByReversal.hpp \
-	libmaus/bitio/putBit.hpp \
-	libmaus/bitio/getBit.hpp \
-	libmaus/bitio/readElias.hpp \
-	libmaus/bitio/BitWriter.hpp \
-	libmaus/bitio/CheckedBitWriter.hpp \
-	libmaus/bitio/FastWriteBitWriter.hpp \
-	libmaus/bitio/BitVector.hpp \
-	libmaus/bitio/SignedCompactArray.hpp \
-	libmaus/bitio/BufferIterator.hpp \
-	libmaus/bitio/BitVectorConcat.hpp \
-	libmaus/bitio/CompactSparseArray.hpp \
-	libmaus/bitio/CompactOffsetArray.hpp \
-	libmaus/bitio/CompactOffsetOneArray.hpp \
-	libmaus/bitio/ArrayDecode.hpp \
-	libmaus/bitio/BitStreamFileDecoder.hpp \
-	libmaus/bitio/Clz.hpp \
-	libmaus/bitio/CompactDecoderBuffer.hpp \
-	libmaus/bitio/Ctz.hpp \
-	libmaus/bitio/CompactArrayWriter.hpp \
-	libmaus/bitio/CompactArrayWriterFile.hpp \
-	libmaus/bitio/PacDecoderBuffer.hpp \
-	libmaus/bitio/MarkerFastWriteBitWriter.hpp \
-	libmaus/bitio/BitVectorInput.hpp \
-	libmaus/bitio/BitVectorOutput.hpp
+libmaus2bitio_includedir=$(includedir)/libmaus2/bitio
+libmaus2bitio_include_HEADERS=\
+	libmaus2/bitio/BitIO.hpp \
+	libmaus2/bitio/BitIOOutput.hpp \
+	libmaus2/bitio/CompactArray.hpp \
+	libmaus2/bitio/CompactArrayBase.hpp \
+	libmaus2/bitio/OutputBuffer.hpp \
+	libmaus2/bitio/BitIOInput.hpp \
+	libmaus2/bitio/getBits.hpp \
+	libmaus2/bitio/ReverseTable.hpp \
+	libmaus2/bitio/CompactQueue.hpp \
+	libmaus2/bitio/putBits.hpp \
+	libmaus2/bitio/SwapWordBitBlock.hpp \
+	libmaus2/bitio/swapBitBlocksByReversal.hpp \
+	libmaus2/bitio/putBit.hpp \
+	libmaus2/bitio/getBit.hpp \
+	libmaus2/bitio/readElias.hpp \
+	libmaus2/bitio/BitWriter.hpp \
+	libmaus2/bitio/CheckedBitWriter.hpp \
+	libmaus2/bitio/FastWriteBitWriter.hpp \
+	libmaus2/bitio/BitVector.hpp \
+	libmaus2/bitio/SignedCompactArray.hpp \
+	libmaus2/bitio/BufferIterator.hpp \
+	libmaus2/bitio/BitVectorConcat.hpp \
+	libmaus2/bitio/CompactSparseArray.hpp \
+	libmaus2/bitio/CompactOffsetArray.hpp \
+	libmaus2/bitio/CompactOffsetOneArray.hpp \
+	libmaus2/bitio/ArrayDecode.hpp \
+	libmaus2/bitio/BitStreamFileDecoder.hpp \
+	libmaus2/bitio/Clz.hpp \
+	libmaus2/bitio/CompactDecoderBuffer.hpp \
+	libmaus2/bitio/Ctz.hpp \
+	libmaus2/bitio/CompactArrayWriter.hpp \
+	libmaus2/bitio/CompactArrayWriterFile.hpp \
+	libmaus2/bitio/PacDecoderBuffer.hpp \
+	libmaus2/bitio/MarkerFastWriteBitWriter.hpp \
+	libmaus2/bitio/BitVectorInput.hpp \
+	libmaus2/bitio/BitVectorOutput.hpp
 
-libmausrank_includedir=$(includedir)/libmaus/rank
-libmausrank_include_HEADERS=\
-	libmaus/rank/ChooseCache.hpp \
-	libmaus/rank/CodeBase.hpp \
-	libmaus/rank/DecodeCache.hpp \
-	libmaus/rank/ERank222BAppend.hpp \
-	libmaus/rank/ERank222B.hpp \
-	libmaus/rank/ERank222BP.hpp \
-	libmaus/rank/ERank222.hpp \
-	libmaus/rank/ERank22B.hpp \
-	libmaus/rank/ERank22.hpp \
-	libmaus/rank/ERank2.hpp \
-	libmaus/rank/ERank3C.hpp \
-	libmaus/rank/ERank3.hpp \
-	libmaus/rank/ERankBase.hpp \
-	libmaus/rank/ERank.hpp \
-	libmaus/rank/log2table.hpp \
-	libmaus/rank/popcnt.hpp \
-	libmaus/rank/RankTable.hpp \
-	libmaus/rank/Proc01.hpp \
-	libmaus/rank/EncodeCache.hpp \
-	libmaus/rank/CacheLineRank.hpp \
-	libmaus/rank/ImpCacheLineRank.hpp \
-	libmaus/rank/ERank222BBase.hpp \
-	libmaus/rank/ERank222BAppendDynamic.hpp \
-	libmaus/rank/RunLengthBitVectorBase.hpp \
-	libmaus/rank/RunLengthBitVector.hpp \
-	libmaus/rank/RunLengthBitVectorGenerator.hpp \
-	libmaus/rank/RunLengthBitVectorStream.hpp \
-	libmaus/rank/RunLengthBitVectorGeneratorBase.hpp \
-	libmaus/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
-	libmaus/rank/FastRank.hpp \
-	libmaus/rank/BSwapBase.hpp
+libmaus2rank_includedir=$(includedir)/libmaus2/rank
+libmaus2rank_include_HEADERS=\
+	libmaus2/rank/ChooseCache.hpp \
+	libmaus2/rank/CodeBase.hpp \
+	libmaus2/rank/DecodeCache.hpp \
+	libmaus2/rank/ERank222BAppend.hpp \
+	libmaus2/rank/ERank222B.hpp \
+	libmaus2/rank/ERank222BP.hpp \
+	libmaus2/rank/ERank222.hpp \
+	libmaus2/rank/ERank22B.hpp \
+	libmaus2/rank/ERank22.hpp \
+	libmaus2/rank/ERank2.hpp \
+	libmaus2/rank/ERank3C.hpp \
+	libmaus2/rank/ERank3.hpp \
+	libmaus2/rank/ERankBase.hpp \
+	libmaus2/rank/ERank.hpp \
+	libmaus2/rank/log2table.hpp \
+	libmaus2/rank/popcnt.hpp \
+	libmaus2/rank/RankTable.hpp \
+	libmaus2/rank/Proc01.hpp \
+	libmaus2/rank/EncodeCache.hpp \
+	libmaus2/rank/CacheLineRank.hpp \
+	libmaus2/rank/ImpCacheLineRank.hpp \
+	libmaus2/rank/ERank222BBase.hpp \
+	libmaus2/rank/ERank222BAppendDynamic.hpp \
+	libmaus2/rank/RunLengthBitVectorBase.hpp \
+	libmaus2/rank/RunLengthBitVector.hpp \
+	libmaus2/rank/RunLengthBitVectorGenerator.hpp \
+	libmaus2/rank/RunLengthBitVectorStream.hpp \
+	libmaus2/rank/RunLengthBitVectorGeneratorBase.hpp \
+	libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
+	libmaus2/rank/FastRank.hpp \
+	libmaus2/rank/BSwapBase.hpp
 	
-libmausselect_includedir=$(includedir)/libmaus/select
-libmausselect_include_HEADERS=\
-	libmaus/select/ESelect222B.hpp \
-	libmaus/select/ESelectBase.hpp \
-	libmaus/select/ESelectSimple.hpp \
-	libmaus/select/ImpCacheLineSelectSupport.hpp
+libmaus2select_includedir=$(includedir)/libmaus2/select
+libmaus2select_include_HEADERS=\
+	libmaus2/select/ESelect222B.hpp \
+	libmaus2/select/ESelectBase.hpp \
+	libmaus2/select/ESelectSimple.hpp \
+	libmaus2/select/ImpCacheLineSelectSupport.hpp
 
-libmausdeleter_includedir=$(includedir)/libmaus/deleter
-libmausdeleter_include_HEADERS=\
-	libmaus/deleter/Deleter.hpp 
+libmaus2deleter_includedir=$(includedir)/libmaus2/deleter
+libmaus2deleter_include_HEADERS=\
+	libmaus2/deleter/Deleter.hpp 
 
-libmauswavelet_includedir=$(includedir)/libmaus/wavelet
-libmauswavelet_include_HEADERS=\
-	libmaus/wavelet/toWaveletTreeBits.hpp \
-	libmaus/wavelet/WaveletTree.hpp \
-	libmaus/wavelet/HuffmanWaveletTree.hpp \
-	libmaus/wavelet/DynamicHuffmanWaveletTree.hpp \
-	libmaus/wavelet/DynamicWaveletTree.hpp \
-	libmaus/wavelet/ExternalWaveletGenerator.hpp \
-	libmaus/wavelet/ImpWaveletTree.hpp \
-	libmaus/wavelet/ImpExternalWaveletGenerator.hpp \
-	libmaus/wavelet/ImpExternalWaveletGeneratorHuffmanParallel.hpp \
-	libmaus/wavelet/ImpExternalWaveletGeneratorHuffman.hpp \
-	libmaus/wavelet/ImpHuffmanWaveletTree.hpp \
-	libmaus/wavelet/Utf8ToImpHuffmanWaveletTree.hpp \
-	libmaus/wavelet/Utf8ToImpCompactHuffmanWaveletTree.hpp \
-	libmaus/wavelet/ImpCompactHuffmanWaveletTree.hpp \
-	libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp \
-	libmaus/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp
+libmaus2wavelet_includedir=$(includedir)/libmaus2/wavelet
+libmaus2wavelet_include_HEADERS=\
+	libmaus2/wavelet/toWaveletTreeBits.hpp \
+	libmaus2/wavelet/WaveletTree.hpp \
+	libmaus2/wavelet/HuffmanWaveletTree.hpp \
+	libmaus2/wavelet/DynamicHuffmanWaveletTree.hpp \
+	libmaus2/wavelet/DynamicWaveletTree.hpp \
+	libmaus2/wavelet/ExternalWaveletGenerator.hpp \
+	libmaus2/wavelet/ImpWaveletTree.hpp \
+	libmaus2/wavelet/ImpExternalWaveletGenerator.hpp \
+	libmaus2/wavelet/ImpExternalWaveletGeneratorHuffmanParallel.hpp \
+	libmaus2/wavelet/ImpExternalWaveletGeneratorHuffman.hpp \
+	libmaus2/wavelet/ImpHuffmanWaveletTree.hpp \
+	libmaus2/wavelet/Utf8ToImpHuffmanWaveletTree.hpp \
+	libmaus2/wavelet/Utf8ToImpCompactHuffmanWaveletTree.hpp \
+	libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp \
+	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp \
+	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp
 
-libmaushuffman_includedir=$(includedir)/libmaus/huffman
-libmaushuffman_include_HEADERS=\
-	libmaus/huffman/CompressTable.hpp \
-	libmaus/huffman/DecodeTable.hpp \
-	libmaus/huffman/EncodeTable.hpp \
-	libmaus/huffman/hufEncodeString.hpp \
-	libmaus/huffman/HuffmanBase.hpp \
-	libmaus/huffman/huffman.hpp \
-	libmaus/huffman/HuffmanSorting.hpp \
-	libmaus/huffman/HuffmanTreeInnerNode.hpp \
-	libmaus/huffman/HuffmanTreeLeafComparator.hpp \
-	libmaus/huffman/HuffmanTreeLeaf.hpp \
-	libmaus/huffman/HuffmanTreeNode.hpp \
-	libmaus/huffman/CanonicalEncoder.hpp \
-	libmaus/huffman/RLDecoder.hpp \
-	libmaus/huffman/RLEncoder.hpp \
-	libmaus/huffman/HuffmanEncoderFile.hpp \
-	libmaus/huffman/IndexLoader.hpp \
-	libmaus/huffman/GapDecoder.hpp \
-	libmaus/huffman/GapEncoder.hpp \
-	libmaus/huffman/FileStreamBaseType.hpp \
-	libmaus/huffman/BitInputBuffer.hpp \
-	libmaus/huffman/PairAddSecond.hpp \
-	libmaus/huffman/IndexEntry.hpp \
-	libmaus/huffman/IndexLoaderBase.hpp \
-	libmaus/huffman/RLDecoderIndexBase.hpp \
-	libmaus/huffman/GapDecoderIndexBase.hpp \
-	libmaus/huffman/IndexDecoderDataArray.hpp \
-	libmaus/huffman/HuffmanInputFile.hpp \
-	libmaus/huffman/KvInitResult.hpp \
-	libmaus/huffman/HuffmanTree.hpp
+libmaus2huffman_includedir=$(includedir)/libmaus2/huffman
+libmaus2huffman_include_HEADERS=\
+	libmaus2/huffman/CompressTable.hpp \
+	libmaus2/huffman/DecodeTable.hpp \
+	libmaus2/huffman/EncodeTable.hpp \
+	libmaus2/huffman/hufEncodeString.hpp \
+	libmaus2/huffman/HuffmanBase.hpp \
+	libmaus2/huffman/huffman.hpp \
+	libmaus2/huffman/HuffmanSorting.hpp \
+	libmaus2/huffman/HuffmanTreeInnerNode.hpp \
+	libmaus2/huffman/HuffmanTreeLeafComparator.hpp \
+	libmaus2/huffman/HuffmanTreeLeaf.hpp \
+	libmaus2/huffman/HuffmanTreeNode.hpp \
+	libmaus2/huffman/CanonicalEncoder.hpp \
+	libmaus2/huffman/RLDecoder.hpp \
+	libmaus2/huffman/RLEncoder.hpp \
+	libmaus2/huffman/HuffmanEncoderFile.hpp \
+	libmaus2/huffman/IndexLoader.hpp \
+	libmaus2/huffman/GapDecoder.hpp \
+	libmaus2/huffman/GapEncoder.hpp \
+	libmaus2/huffman/FileStreamBaseType.hpp \
+	libmaus2/huffman/BitInputBuffer.hpp \
+	libmaus2/huffman/PairAddSecond.hpp \
+	libmaus2/huffman/IndexEntry.hpp \
+	libmaus2/huffman/IndexLoaderBase.hpp \
+	libmaus2/huffman/RLDecoderIndexBase.hpp \
+	libmaus2/huffman/GapDecoderIndexBase.hpp \
+	libmaus2/huffman/IndexDecoderDataArray.hpp \
+	libmaus2/huffman/HuffmanInputFile.hpp \
+	libmaus2/huffman/KvInitResult.hpp \
+	libmaus2/huffman/HuffmanTree.hpp
 
-libmausmath_includedir=$(includedir)/libmaus/math
-libmausmath_include_HEADERS=\
-	libmaus/math/isqrt.hpp \
-	libmaus/math/bitsPerNum.hpp \
-	libmaus/math/MetaLog.hpp \
-	libmaus/math/lowbits.hpp \
-	libmaus/math/numbits.hpp \
-	libmaus/math/gcd.hpp \
-	libmaus/math/binom.hpp \
-	libmaus/math/primes16.hpp \
-	libmaus/math/ilog.hpp \
-	libmaus/math/DoubleCode.hpp \
-	libmaus/math/iabs.hpp \
-	libmaus/math/IPower.hpp \
-	libmaus/math/Log.hpp \
-	libmaus/math/ipow.hpp \
-	libmaus/math/IntegerInterval.hpp \
-	libmaus/math/DecimalNumberParser.hpp \
-	libmaus/math/UnsignedInteger.hpp
+libmaus2math_includedir=$(includedir)/libmaus2/math
+libmaus2math_include_HEADERS=\
+	libmaus2/math/isqrt.hpp \
+	libmaus2/math/bitsPerNum.hpp \
+	libmaus2/math/MetaLog.hpp \
+	libmaus2/math/lowbits.hpp \
+	libmaus2/math/numbits.hpp \
+	libmaus2/math/gcd.hpp \
+	libmaus2/math/binom.hpp \
+	libmaus2/math/primes16.hpp \
+	libmaus2/math/ilog.hpp \
+	libmaus2/math/DoubleCode.hpp \
+	libmaus2/math/iabs.hpp \
+	libmaus2/math/IPower.hpp \
+	libmaus2/math/Log.hpp \
+	libmaus2/math/ipow.hpp \
+	libmaus2/math/IntegerInterval.hpp \
+	libmaus2/math/DecimalNumberParser.hpp \
+	libmaus2/math/UnsignedInteger.hpp
 
-libmausrl_includedir=$(includedir)/libmaus/rl
-libmausrl_include_HEADERS=\
-	libmaus/rl/RLIndex.hpp
+libmaus2rl_includedir=$(includedir)/libmaus2/rl
+libmaus2rl_include_HEADERS=\
+	libmaus2/rl/RLIndex.hpp
 
-libmausutil_includedir=$(includedir)/libmaus/util
-libmausutil_include_HEADERS=\
-	libmaus/util/stringFunctions.hpp \
-	libmaus/util/BitList.hpp \
-	libmaus/util/VarBitList.hpp \
-	libmaus/util/VarList.hpp \
-	libmaus/util/IntervalTree.hpp \
-	libmaus/util/LookupIntervalTree.hpp \
-	libmaus/util/StringSerialisation.hpp \
-	libmaus/util/NumberSerialisation.hpp \
-	libmaus/util/GetFileSize.hpp \
-	libmaus/util/unique_ptr.hpp \
-	libmaus/util/shared_ptr.hpp \
-	libmaus/util/TempFileNameGenerator.hpp \
-	libmaus/util/TempFileNameGeneratorState.hpp \
-	libmaus/util/Demangle.hpp \
-	libmaus/util/BitsPerNum.hpp \
-	libmaus/util/ArgInfo.hpp \
-	libmaus/util/Concat.hpp \
-	libmaus/util/ConcatRequest.hpp \
-	libmaus/util/PosixExecute.hpp \
-	libmaus/util/StackTrace.hpp \
-	libmaus/util/CompactNumberArray.hpp \
-	libmaus/util/ArrayIterator.hpp \
-	libmaus/util/OffsetArray.hpp \
-	libmaus/util/Array832.hpp \
-	libmaus/util/Array864.hpp \
-	libmaus/util/NegativeDifferenceArray32.hpp \
-	libmaus/util/NegativeDifferenceArray64.hpp \
-	libmaus/util/PositiveDifferenceArray32.hpp \
-	libmaus/util/PositiveDifferenceArray64.hpp \
-	libmaus/util/UniqueIndex.hpp \
-	libmaus/util/Terminal.hpp \
-	libmaus/util/nstat.hpp \
-	libmaus/util/WriteableString.hpp \
-	libmaus/util/ForkProcess.hpp \
-	libmaus/util/LogPipe.hpp \
-	libmaus/util/MoveStack.hpp \
-	libmaus/util/LongestIncreasingSubsequence.hpp \
-	libmaus/util/utf8.hpp \
-	libmaus/util/md5.hpp \
-	libmaus/util/md5.h \
-	libmaus/util/MemLimit.hpp \
-	libmaus/util/Histogram.hpp \
-	libmaus/util/IncreasingList.hpp \
-	libmaus/util/GenericSerialisation.hpp \
-	libmaus/util/ConsoleColor.hpp \
-	libmaus/util/LogPipeMultiplex.hpp \
-	libmaus/util/LogPipeMultiplexGeneric.hpp \
-	libmaus/util/iterator.hpp \
-	libmaus/util/SaturatingCounter.hpp \
-	libmaus/util/I386CacheLineSize.hpp \
-	libmaus/util/IncreasingStack.hpp \
-	libmaus/util/NearestNeighbourDictionary.hpp \
-	libmaus/util/MemUsage.hpp \
-	libmaus/util/unordered_set.hpp \
-	libmaus/util/unordered_map.hpp \
-	libmaus/util/ReverseByteOrder.hpp \
-	libmaus/util/SimpleBloomFilter.hpp \
-	libmaus/util/SimpleCountingHash.hpp \
-	libmaus/util/SimpleHashMap.hpp \
-	libmaus/util/SimpleHashSet.hpp \
-	libmaus/util/OutputFileNameTools.hpp \
-	libmaus/util/LELoad.hpp \
-	libmaus/util/GetObject.hpp \
-	libmaus/util/PutObject.hpp \
-	libmaus/util/PutObjectReverse.hpp \
-	libmaus/util/CountPutObject.hpp \
-	libmaus/util/CountPutIterator.hpp \
-	libmaus/util/PosixFileDescriptor.hpp \
-	libmaus/util/AlphaDigitTable.hpp \
-	libmaus/util/AlphaTable.hpp \
-	libmaus/util/DigitTable.hpp \
-	libmaus/util/TempFileRemovalContainer.hpp \
-	libmaus/util/DynamicLoading.hpp \
-	libmaus/util/Object.hpp \
-	libmaus/util/KMP.hpp \
-	libmaus/util/NumberMapSerialisation.hpp \
-	libmaus/util/Utf8BlockIndex.hpp \
-	libmaus/util/Utf8DecoderBuffer.hpp \
-	libmaus/util/Utf8String.hpp \
-	libmaus/util/UnsignedCharVariant.hpp \
-	libmaus/util/LSFSim.hpp \
-	libmaus/util/ForkProcessLSFSim.hpp \
-	libmaus/util/CountGetObject.hpp \
-	libmaus/util/HistogramSet.hpp \
-	libmaus/util/GenericIntervalTree.hpp \
-	libmaus/util/PosixInputFile.hpp \
-	libmaus/util/OctetString.hpp \
-	libmaus/util/Utf8StringPairAdapter.hpp \
-	libmaus/util/Utf8BlockIndexDecoder.hpp \
-	libmaus/util/Utf8DecoderWrapper.hpp \
-	libmaus/util/TempFileContainer.hpp \
-	libmaus/util/FileTempFileContainer.hpp \
-	libmaus/util/MemTempFileContainer.hpp \
-	libmaus/util/ImpCompactNumberArray.hpp \
-	libmaus/util/ContainerGetObject.hpp \
-	libmaus/util/PushBuffer.hpp \
-	libmaus/util/SuccinctBorderArray.hpp \
-	libmaus/util/LineAccessor.hpp \
-	libmaus/util/StringMapCompare.hpp \
-	libmaus/util/FreeList.hpp \
-	libmaus/util/ToUpperTable.hpp \
-	libmaus/util/BorderArray.hpp \
-	libmaus/util/SimpleHashMapConstants.hpp \
-	libmaus/util/SimpleHashMapKeyPrint.hpp \
-	libmaus/util/GrowingFreeList.hpp \
-	libmaus/util/SimpleHashMapHashCompute.hpp \
-	libmaus/util/SimpleHashMapInsDel.hpp \
-	libmaus/util/SimpleHashMapNumberCast.hpp \
-	libmaus/util/SimpleHashSetInsDel.hpp \
-	libmaus/util/LineBuffer.hpp \
-	libmaus/util/UnsignedIntegerIndexIterator.hpp \
-	libmaus/util/FiniteSizeHeap.hpp \
-	libmaus/util/UnitNum.hpp \
-	libmaus/util/NotDigitOrTermTable.hpp
+libmaus2util_includedir=$(includedir)/libmaus2/util
+libmaus2util_include_HEADERS=\
+	libmaus2/util/stringFunctions.hpp \
+	libmaus2/util/BitList.hpp \
+	libmaus2/util/VarBitList.hpp \
+	libmaus2/util/VarList.hpp \
+	libmaus2/util/IntervalTree.hpp \
+	libmaus2/util/LookupIntervalTree.hpp \
+	libmaus2/util/StringSerialisation.hpp \
+	libmaus2/util/NumberSerialisation.hpp \
+	libmaus2/util/GetFileSize.hpp \
+	libmaus2/util/unique_ptr.hpp \
+	libmaus2/util/shared_ptr.hpp \
+	libmaus2/util/TempFileNameGenerator.hpp \
+	libmaus2/util/TempFileNameGeneratorState.hpp \
+	libmaus2/util/Demangle.hpp \
+	libmaus2/util/BitsPerNum.hpp \
+	libmaus2/util/ArgInfo.hpp \
+	libmaus2/util/Concat.hpp \
+	libmaus2/util/ConcatRequest.hpp \
+	libmaus2/util/PosixExecute.hpp \
+	libmaus2/util/StackTrace.hpp \
+	libmaus2/util/CompactNumberArray.hpp \
+	libmaus2/util/ArrayIterator.hpp \
+	libmaus2/util/OffsetArray.hpp \
+	libmaus2/util/Array832.hpp \
+	libmaus2/util/Array864.hpp \
+	libmaus2/util/NegativeDifferenceArray32.hpp \
+	libmaus2/util/NegativeDifferenceArray64.hpp \
+	libmaus2/util/PositiveDifferenceArray32.hpp \
+	libmaus2/util/PositiveDifferenceArray64.hpp \
+	libmaus2/util/UniqueIndex.hpp \
+	libmaus2/util/Terminal.hpp \
+	libmaus2/util/nstat.hpp \
+	libmaus2/util/WriteableString.hpp \
+	libmaus2/util/ForkProcess.hpp \
+	libmaus2/util/LogPipe.hpp \
+	libmaus2/util/MoveStack.hpp \
+	libmaus2/util/LongestIncreasingSubsequence.hpp \
+	libmaus2/util/utf8.hpp \
+	libmaus2/digest/md5.hpp \
+	libmaus2/digest/md5.h \
+	libmaus2/util/MemLimit.hpp \
+	libmaus2/util/Histogram.hpp \
+	libmaus2/util/IncreasingList.hpp \
+	libmaus2/util/GenericSerialisation.hpp \
+	libmaus2/util/ConsoleColor.hpp \
+	libmaus2/util/LogPipeMultiplex.hpp \
+	libmaus2/util/LogPipeMultiplexGeneric.hpp \
+	libmaus2/util/iterator.hpp \
+	libmaus2/util/SaturatingCounter.hpp \
+	libmaus2/util/I386CacheLineSize.hpp \
+	libmaus2/util/IncreasingStack.hpp \
+	libmaus2/util/NearestNeighbourDictionary.hpp \
+	libmaus2/util/MemUsage.hpp \
+	libmaus2/util/unordered_set.hpp \
+	libmaus2/util/unordered_map.hpp \
+	libmaus2/util/ReverseByteOrder.hpp \
+	libmaus2/util/SimpleBloomFilter.hpp \
+	libmaus2/util/SimpleCountingHash.hpp \
+	libmaus2/util/SimpleHashMap.hpp \
+	libmaus2/util/SimpleHashSet.hpp \
+	libmaus2/util/OutputFileNameTools.hpp \
+	libmaus2/util/LELoad.hpp \
+	libmaus2/util/GetObject.hpp \
+	libmaus2/util/PutObject.hpp \
+	libmaus2/util/PutObjectReverse.hpp \
+	libmaus2/util/CountPutObject.hpp \
+	libmaus2/util/CountPutIterator.hpp \
+	libmaus2/util/PosixFileDescriptor.hpp \
+	libmaus2/util/AlphaDigitTable.hpp \
+	libmaus2/util/AlphaTable.hpp \
+	libmaus2/util/DigitTable.hpp \
+	libmaus2/util/TempFileRemovalContainer.hpp \
+	libmaus2/util/DynamicLoading.hpp \
+	libmaus2/util/Object.hpp \
+	libmaus2/util/KMP.hpp \
+	libmaus2/util/NumberMapSerialisation.hpp \
+	libmaus2/util/Utf8BlockIndex.hpp \
+	libmaus2/util/Utf8DecoderBuffer.hpp \
+	libmaus2/util/Utf8String.hpp \
+	libmaus2/util/UnsignedCharVariant.hpp \
+	libmaus2/util/LSFSim.hpp \
+	libmaus2/util/ForkProcessLSFSim.hpp \
+	libmaus2/util/CountGetObject.hpp \
+	libmaus2/util/HistogramSet.hpp \
+	libmaus2/util/GenericIntervalTree.hpp \
+	libmaus2/util/PosixInputFile.hpp \
+	libmaus2/util/OctetString.hpp \
+	libmaus2/util/Utf8StringPairAdapter.hpp \
+	libmaus2/util/Utf8BlockIndexDecoder.hpp \
+	libmaus2/util/Utf8DecoderWrapper.hpp \
+	libmaus2/util/TempFileContainer.hpp \
+	libmaus2/util/FileTempFileContainer.hpp \
+	libmaus2/util/MemTempFileContainer.hpp \
+	libmaus2/util/ImpCompactNumberArray.hpp \
+	libmaus2/util/ContainerGetObject.hpp \
+	libmaus2/util/PushBuffer.hpp \
+	libmaus2/util/SuccinctBorderArray.hpp \
+	libmaus2/util/LineAccessor.hpp \
+	libmaus2/util/StringMapCompare.hpp \
+	libmaus2/util/FreeList.hpp \
+	libmaus2/util/ToUpperTable.hpp \
+	libmaus2/util/BorderArray.hpp \
+	libmaus2/util/SimpleHashMapConstants.hpp \
+	libmaus2/util/SimpleHashMapKeyPrint.hpp \
+	libmaus2/util/GrowingFreeList.hpp \
+	libmaus2/util/SimpleHashMapHashCompute.hpp \
+	libmaus2/util/SimpleHashMapInsDel.hpp \
+	libmaus2/util/SimpleHashMapNumberCast.hpp \
+	libmaus2/util/SimpleHashSetInsDel.hpp \
+	libmaus2/util/LineBuffer.hpp \
+	libmaus2/util/UnsignedIntegerIndexIterator.hpp \
+	libmaus2/util/FiniteSizeHeap.hpp \
+	libmaus2/util/UnitNum.hpp \
+	libmaus2/util/NotDigitOrTermTable.hpp
 
-libmausuint_includedir=$(includedir)/libmaus/uint
-libmausuint_include_HEADERS=\
-	libmaus/uint/uint.hpp 
+libmaus2uint_includedir=$(includedir)/libmaus2/uint
+libmaus2uint_include_HEADERS=\
+	libmaus2/uint/uint.hpp 
 
-libmausbp_includedir=$(includedir)/libmaus/bp
-libmausbp_include_HEADERS=\
-	libmaus/bp/BalancedParenthesesBase.hpp \
-	libmaus/bp/BalancedParentheses.hpp
+libmaus2bp_includedir=$(includedir)/libmaus2/bp
+libmaus2bp_include_HEADERS=\
+	libmaus2/bp/BalancedParenthesesBase.hpp \
+	libmaus2/bp/BalancedParentheses.hpp
 
-libmausbitbtree_includedir=$(includedir)/libmaus/bitbtree
-libmausbitbtree_include_HEADERS=\
-	libmaus/bitbtree/bitbtree.hpp
+libmaus2bitbtree_includedir=$(includedir)/libmaus2/bitbtree
+libmaus2bitbtree_include_HEADERS=\
+	libmaus2/bitbtree/bitbtree.hpp
 
-libmauscumfreq_includedir=$(includedir)/libmaus/cumfreq
-libmauscumfreq_include_HEADERS=\
-	libmaus/cumfreq/DynamicCumulativeFrequencies.hpp \
-	libmaus/cumfreq/SlowCumFreq.hpp
+libmaus2cumfreq_includedir=$(includedir)/libmaus2/cumfreq
+libmaus2cumfreq_include_HEADERS=\
+	libmaus2/cumfreq/DynamicCumulativeFrequencies.hpp \
+	libmaus2/cumfreq/SlowCumFreq.hpp
 
-libmauseta_includedir=$(includedir)/libmaus/eta
-libmauseta_include_HEADERS=\
-	libmaus/eta/LinearETA.hpp 
+libmaus2eta_includedir=$(includedir)/libmaus2/eta
+libmaus2eta_include_HEADERS=\
+	libmaus2/eta/LinearETA.hpp 
 
-libmaustrie_includedir=$(includedir)/libmaus/trie
-libmaustrie_include_HEADERS=\
-	libmaus/trie/TrieState.hpp \
-	libmaus/trie/SimpleTrie.hpp
+libmaus2trie_includedir=$(includedir)/libmaus2/trie
+libmaus2trie_include_HEADERS=\
+	libmaus2/trie/TrieState.hpp \
+	libmaus2/trie/SimpleTrie.hpp
 
-libmausaio_includedir=$(includedir)/libmaus/aio
-libmausaio_include_HEADERS=\
-	libmaus/aio/AsynchronousBufferReader.hpp \
-	libmaus/aio/AsynchronousWriter.hpp \
-	libmaus/aio/AsynchronousReader.hpp \
-	libmaus/aio/OutputBuffer8.hpp \
-	libmaus/aio/OutputBuffer84Bit.hpp \
-	libmaus/aio/TerminatedOutputBuffer84Bit.hpp \
-	libmaus/aio/OutputBuffer.hpp \
-	libmaus/aio/OutputFile8Array.hpp \
-	libmaus/aio/GenericInput.hpp \
-	libmaus/aio/MetaOutputFile8Array.hpp \
-	libmaus/aio/SynchronousOutputFile8Array.hpp \
-	libmaus/aio/MetaOutputBuffer8.hpp \
-	libmaus/aio/SynchronousOutputBuffer8.hpp \
-	libmaus/aio/BlockSynchronousOutputBuffer8.hpp \
-	libmaus/aio/GenericOutput.hpp \
-	libmaus/aio/MemInBuffer.hpp \
-	libmaus/aio/MemOutBuffer.hpp \
-	libmaus/aio/BufferedOutput.hpp \
-	libmaus/aio/FileFragment.hpp \
-	libmaus/aio/AsynchronousFastReaderBase.hpp \
-	libmaus/aio/SynchronousFastReaderBase.hpp \
-	libmaus/aio/LimitedGenericInput.hpp \
-	libmaus/aio/SynchronousGenericInput.hpp \
-	libmaus/aio/LimitedSynchronousGenericInput.hpp \
-	libmaus/aio/ReorderConcatGenericInput.hpp \
-	libmaus/aio/GetLength.hpp \
-	libmaus/aio/CompactDecoder4.hpp \
-	libmaus/aio/CompactEncoder4.hpp \
-	libmaus/aio/WriteCompactArray.hpp \
-	libmaus/aio/SynchronousGenericOutput.hpp \
-	libmaus/aio/SynchronousOutputBuffer8Posix.hpp \
-	libmaus/aio/SynchronousGenericOutputPosix.hpp \
-	libmaus/aio/PutOutputIterator.hpp \
-	libmaus/aio/CheckedInputStream.hpp \
-	libmaus/aio/CheckedOutputStream.hpp \
-	libmaus/aio/CircularBuffer.hpp \
-	libmaus/aio/CircularWrapper.hpp \
-	libmaus/aio/IStreamWrapper.hpp \
-	libmaus/aio/CheckedInputStreamAtOffset.hpp \
-	libmaus/aio/Buffer.hpp \
-	libmaus/aio/SingleFileFragmentMerge.hpp \
-	libmaus/aio/CheckedInputOutputStream.hpp \
-	libmaus/aio/PosixFdInput.hpp \
-	libmaus/aio/PosixFdInputWrapper.hpp \
-	libmaus/aio/PosixFdInputStream.hpp \
-	libmaus/aio/PosixFdOutputStreamBuffer.hpp \
-	libmaus/aio/PosixFdOutputStream.hpp \
-	libmaus/aio/PosixFdInputStreamBuffer.hpp \
-	libmaus/aio/LinuxStreamingPosixFdOutputStreamBuffer.hpp \
-	libmaus/aio/LinuxStreamingPosixFdOutputStream.hpp \
-	libmaus/aio/IsKnownLocalFileSystem.hpp \
-	libmaus/aio/LineSplittingPosixFdOutputStreamBuffer.hpp \
-	libmaus/aio/LineSplittingPosixFdOutputStream.hpp \
-	libmaus/aio/NamedTemporaryFile.hpp \
-	libmaus/aio/NamedTemporaryFileTypeInfo.hpp \
-	libmaus/aio/NamedTemporaryFileAllocator.hpp \
-	libmaus/aio/InputStreamWrapper.hpp \
-	libmaus/aio/InputStream.hpp \
-	libmaus/aio/InputStreamFactory.hpp \
-	libmaus/aio/PosixFdInputStreamFactory.hpp \
-	libmaus/aio/InputStreamFactoryContainer.hpp
+libmaus2aio_includedir=$(includedir)/libmaus2/aio
+libmaus2aio_include_HEADERS=\
+	libmaus2/aio/AsynchronousBufferReader.hpp \
+	libmaus2/aio/AsynchronousWriter.hpp \
+	libmaus2/aio/AsynchronousReader.hpp \
+	libmaus2/aio/OutputBuffer8.hpp \
+	libmaus2/aio/OutputBuffer84Bit.hpp \
+	libmaus2/aio/TerminatedOutputBuffer84Bit.hpp \
+	libmaus2/aio/OutputBuffer.hpp \
+	libmaus2/aio/OutputFile8Array.hpp \
+	libmaus2/aio/GenericInput.hpp \
+	libmaus2/aio/MetaOutputFile8Array.hpp \
+	libmaus2/aio/SynchronousOutputFile8Array.hpp \
+	libmaus2/aio/MetaOutputBuffer8.hpp \
+	libmaus2/aio/SynchronousOutputBuffer8.hpp \
+	libmaus2/aio/BlockSynchronousOutputBuffer8.hpp \
+	libmaus2/aio/GenericOutput.hpp \
+	libmaus2/aio/MemInBuffer.hpp \
+	libmaus2/aio/MemOutBuffer.hpp \
+	libmaus2/aio/BufferedOutput.hpp \
+	libmaus2/aio/FileFragment.hpp \
+	libmaus2/aio/AsynchronousFastReaderBase.hpp \
+	libmaus2/aio/SynchronousFastReaderBase.hpp \
+	libmaus2/aio/LimitedGenericInput.hpp \
+	libmaus2/aio/SynchronousGenericInput.hpp \
+	libmaus2/aio/LimitedSynchronousGenericInput.hpp \
+	libmaus2/aio/ReorderConcatGenericInput.hpp \
+	libmaus2/aio/GetLength.hpp \
+	libmaus2/aio/CompactDecoder4.hpp \
+	libmaus2/aio/CompactEncoder4.hpp \
+	libmaus2/aio/WriteCompactArray.hpp \
+	libmaus2/aio/SynchronousGenericOutput.hpp \
+	libmaus2/aio/SynchronousOutputBuffer8Posix.hpp \
+	libmaus2/aio/SynchronousGenericOutputPosix.hpp \
+	libmaus2/aio/PutOutputIterator.hpp \
+	libmaus2/aio/CheckedInputStream.hpp \
+	libmaus2/aio/CheckedOutputStream.hpp \
+	libmaus2/aio/CircularBuffer.hpp \
+	libmaus2/aio/CircularWrapper.hpp \
+	libmaus2/aio/IStreamWrapper.hpp \
+	libmaus2/aio/CheckedInputStreamAtOffset.hpp \
+	libmaus2/aio/Buffer.hpp \
+	libmaus2/aio/SingleFileFragmentMerge.hpp \
+	libmaus2/aio/CheckedInputOutputStream.hpp \
+	libmaus2/aio/PosixFdInput.hpp \
+	libmaus2/aio/PosixFdInputWrapper.hpp \
+	libmaus2/aio/PosixFdInputStream.hpp \
+	libmaus2/aio/PosixFdOutputStreamBuffer.hpp \
+	libmaus2/aio/PosixFdOutputStream.hpp \
+	libmaus2/aio/PosixFdInputStreamBuffer.hpp \
+	libmaus2/aio/LinuxStreamingPosixFdOutputStreamBuffer.hpp \
+	libmaus2/aio/LinuxStreamingPosixFdOutputStream.hpp \
+	libmaus2/aio/IsKnownLocalFileSystem.hpp \
+	libmaus2/aio/LineSplittingPosixFdOutputStreamBuffer.hpp \
+	libmaus2/aio/LineSplittingPosixFdOutputStream.hpp \
+	libmaus2/aio/NamedTemporaryFile.hpp \
+	libmaus2/aio/NamedTemporaryFileTypeInfo.hpp \
+	libmaus2/aio/NamedTemporaryFileAllocator.hpp \
+	libmaus2/aio/InputStreamWrapper.hpp \
+	libmaus2/aio/InputStream.hpp \
+	libmaus2/aio/InputStreamFactory.hpp \
+	libmaus2/aio/PosixFdInputStreamFactory.hpp \
+	libmaus2/aio/InputStreamFactoryContainer.hpp
 
-libmausparallel_includedir=$(includedir)/libmaus/parallel
-libmausparallel_include_HEADERS=\
-	libmaus/parallel/OMPLock.hpp \
-	libmaus/parallel/PosixMutex.hpp \
-	libmaus/parallel/PosixSpinLock.hpp \
-	libmaus/parallel/PosixSemaphore.hpp \
-	libmaus/parallel/SynchronousQueue.hpp \
-	libmaus/parallel/TerminatableSynchronousQueue.hpp \
-	libmaus/parallel/PosixMutexArray.hpp \
-	libmaus/parallel/PosixThread.hpp \
-	libmaus/parallel/Pipe.hpp \
-	libmaus/parallel/SynchronousHeap.hpp \
-	libmaus/parallel/TerminatableSynchronousHeap.hpp \
-	libmaus/parallel/SynchronousReorderSet.hpp \
-	libmaus/parallel/TerminatableSynchronousReorderSet.hpp  \
-	libmaus/parallel/SynchronousCounter.hpp \
-	libmaus/parallel/PosixProcess.hpp \
-	libmaus/parallel/OMPNumThreadsScope.hpp \
-	libmaus/parallel/LockedBool.hpp \
-	libmaus/parallel/ThreadWorkPackage.hpp \
-	libmaus/parallel/ThreadWorkPackageComparator.hpp \
-	libmaus/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp \
-	libmaus/parallel/ThreadWorkPackageDispatcher.hpp \
-	libmaus/parallel/ThreadPoolInterface.hpp \
-	libmaus/parallel/ThreadPoolThread.hpp \
-	libmaus/parallel/ThreadPool.hpp \
-	libmaus/parallel/SimpleThreadPool.hpp \
-	libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp \
-	libmaus/parallel/SimpleThreadPoolInterface.hpp \
-	libmaus/parallel/SimpleThreadPoolThread.hpp \
-	libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp \
-	libmaus/parallel/SimpleThreadWorkPackageComparator.hpp \
-	libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp \
-	libmaus/parallel/SimpleThreadWorkPackage.hpp \
-	libmaus/parallel/LockedQueue.hpp \
-	libmaus/parallel/NumCpus.hpp \
-	libmaus/parallel/LockedFreeList.hpp \
-	libmaus/parallel/LockedHeap.hpp \
-	libmaus/parallel/LockedCounter.hpp \
-	libmaus/parallel/LockedGrowingFreeList.hpp \
-	libmaus/parallel/PosixConditionSemaphore.hpp
+libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
+libmaus2parallel_include_HEADERS=\
+	libmaus2/parallel/OMPLock.hpp \
+	libmaus2/parallel/PosixMutex.hpp \
+	libmaus2/parallel/PosixSpinLock.hpp \
+	libmaus2/parallel/PosixSemaphore.hpp \
+	libmaus2/parallel/SynchronousQueue.hpp \
+	libmaus2/parallel/TerminatableSynchronousQueue.hpp \
+	libmaus2/parallel/PosixMutexArray.hpp \
+	libmaus2/parallel/PosixThread.hpp \
+	libmaus2/parallel/Pipe.hpp \
+	libmaus2/parallel/SynchronousHeap.hpp \
+	libmaus2/parallel/TerminatableSynchronousHeap.hpp \
+	libmaus2/parallel/SynchronousReorderSet.hpp \
+	libmaus2/parallel/TerminatableSynchronousReorderSet.hpp  \
+	libmaus2/parallel/SynchronousCounter.hpp \
+	libmaus2/parallel/PosixProcess.hpp \
+	libmaus2/parallel/OMPNumThreadsScope.hpp \
+	libmaus2/parallel/LockedBool.hpp \
+	libmaus2/parallel/ThreadWorkPackage.hpp \
+	libmaus2/parallel/ThreadWorkPackageComparator.hpp \
+	libmaus2/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp \
+	libmaus2/parallel/ThreadWorkPackageDispatcher.hpp \
+	libmaus2/parallel/ThreadPoolInterface.hpp \
+	libmaus2/parallel/ThreadPoolThread.hpp \
+	libmaus2/parallel/ThreadPool.hpp \
+	libmaus2/parallel/SimpleThreadPool.hpp \
+	libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp \
+	libmaus2/parallel/SimpleThreadPoolInterface.hpp \
+	libmaus2/parallel/SimpleThreadPoolThread.hpp \
+	libmaus2/parallel/SimpleThreadPoolWorkPackageFreeList.hpp \
+	libmaus2/parallel/SimpleThreadWorkPackageComparator.hpp \
+	libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp \
+	libmaus2/parallel/SimpleThreadWorkPackage.hpp \
+	libmaus2/parallel/LockedQueue.hpp \
+	libmaus2/parallel/NumCpus.hpp \
+	libmaus2/parallel/LockedFreeList.hpp \
+	libmaus2/parallel/LockedHeap.hpp \
+	libmaus2/parallel/LockedCounter.hpp \
+	libmaus2/parallel/LockedGrowingFreeList.hpp \
+	libmaus2/parallel/PosixConditionSemaphore.hpp
 
-libmausfastx_includedir=$(includedir)/libmaus/fastx
-libmausfastx_include_HEADERS=\
-	libmaus/fastx/CharTermTable.hpp \
-	libmaus/fastx/SpaceTable.hpp \
-	libmaus/fastx/CharBuffer.hpp \
-	libmaus/fastx/Pattern.hpp \
-	libmaus/fastx/acgtnMap.hpp \
-	libmaus/fastx/FastAReader.hpp \
-	libmaus/fastx/PatternBlock.hpp \
-	libmaus/fastx/FastIDBlock.hpp \
-	libmaus/fastx/FastQReader.hpp \
-	libmaus/fastx/FASTQEntry.hpp \
-	libmaus/fastx/isFastQ.hpp \
-	libmaus/fastx/MultiWordDNABitBuffer.hpp \
-	libmaus/fastx/SingleWordDNABitBuffer.hpp \
-	libmaus/fastx/FastInterval.hpp \
-	libmaus/fastx/FastAReaderSplit.hpp \
-	libmaus/fastx/FastQReaderSplit.hpp \
-	libmaus/fastx/ConcatWriter.hpp \
-	libmaus/fastx/FastFirstToLastReverseAdapter.hpp \
-	libmaus/fastx/FastServer.hpp \
-	libmaus/fastx/FastClient.hpp \
-	libmaus/fastx/CompactFastDecoderBase.hpp \
-	libmaus/fastx/CompactFastDecoder.hpp \
-	libmaus/fastx/CompactFastEncoder.hpp \
-	libmaus/fastx/CompactReadContainer.hpp \
-	libmaus/fastx/SocketFastAReader.hpp \
-	libmaus/fastx/SocketFastQReader.hpp \
-	libmaus/fastx/SubSamplingFastReader.hpp \
-	libmaus/fastx/SlashStrip.hpp \
-	libmaus/fastx/FirstWhiteSpaceSlashStrip.hpp \
-	libmaus/fastx/Phred.hpp \
-	libmaus/fastx/FastQElement.hpp \
-	libmaus/fastx/ComputeFastXIntervals.hpp \
-	libmaus/fastx/FqWeightQuantiser.hpp \
-	libmaus/fastx/CompactFastQHeader.hpp \
-	libmaus/fastx/CompactFastQContext.hpp \
-	libmaus/fastx/CompactFastQDecoderBase.hpp \
-	libmaus/fastx/CompactFastQContainerDictionary.hpp \
-	libmaus/fastx/CompactFastQContainer.hpp \
-	libmaus/fastx/CompactFastQContainerDictionaryCreator.hpp \
-	libmaus/fastx/CompactFastQBlockGenerator.hpp \
-	libmaus/fastx/CompactFastQSingleBlockReader.hpp \
-	libmaus/fastx/CompactFastQMultiBlockReader.hpp \
-	libmaus/fastx/CompactFastTerminator.hpp \
-	libmaus/fastx/CompactFastReplace.hpp \
-	libmaus/fastx/QReorder.hpp \
-	libmaus/fastx/StreamFastReaderBase.hpp \
-	libmaus/fastx/StreamFastQReader.hpp \
-	libmaus/fastx/GzipStreamFastQReader.hpp \
-	libmaus/fastx/GzipFileFastQReader.hpp \
-	libmaus/fastx/FastQBgzfWriter.hpp \
-	libmaus/fastx/StreamFastAReader.hpp \
-	libmaus/fastx/FastALineParserLineInfo.hpp \
-	libmaus/fastx/FastADefinedBasesTable.hpp \
-	libmaus/fastx/FastAMapTable.hpp \
-	libmaus/fastx/FastAMatchTable.hpp \
-	libmaus/fastx/FastALineParser.hpp \
-	libmaus/fastx/FastAStreamWrapper.hpp \
-	libmaus/fastx/FastAStream.hpp \
-	libmaus/fastx/FastAStreamSet.hpp \
-	libmaus/fastx/BgzfFastAIndexEntry.hpp \
-	libmaus/fastx/BgzfFastAIndexEntryNameComparator.hpp \
-	libmaus/fastx/BgzfFastAIndexEntryIdComparator.hpp \
-	libmaus/fastx/FastABgzfIndexEntry.hpp \
-	libmaus/fastx/FastABgzfIndex.hpp \
-	libmaus/fastx/FastABgzfDecoder.hpp \
-	libmaus/fastx/FastABgzfDecoderBuffer.hpp \
-	libmaus/fastx/FastAIndexEntry.hpp \
-	libmaus/fastx/FastAIndex.hpp \
-	libmaus/fastx/FastAInfo.hpp \
-	libmaus/fastx/FastATwoBitTable.hpp \
-	libmaus/fastx/FastABPConstants.hpp \
-	libmaus/fastx/FastABPGenerator.hpp \
-	libmaus/fastx/FastaBPSequenceDecoder.hpp \
-	libmaus/fastx/FastaBPDecoder.hpp \
-	libmaus/fastx/NameInfoBase.hpp \
-	libmaus/fastx/NameInfo.hpp \
-	libmaus/fastx/RefPathToken.hpp \
-	libmaus/fastx/RefPathTokenVector.hpp \
-	libmaus/fastx/RefPathTokenVectorSequence.hpp \
-	libmaus/fastx/RefPathLookup.hpp
+libmaus2fastx_includedir=$(includedir)/libmaus2/fastx
+libmaus2fastx_include_HEADERS=\
+	libmaus2/fastx/CharTermTable.hpp \
+	libmaus2/fastx/SpaceTable.hpp \
+	libmaus2/fastx/CharBuffer.hpp \
+	libmaus2/fastx/Pattern.hpp \
+	libmaus2/fastx/acgtnMap.hpp \
+	libmaus2/fastx/FastAReader.hpp \
+	libmaus2/fastx/PatternBlock.hpp \
+	libmaus2/fastx/FastIDBlock.hpp \
+	libmaus2/fastx/FastQReader.hpp \
+	libmaus2/fastx/FASTQEntry.hpp \
+	libmaus2/fastx/isFastQ.hpp \
+	libmaus2/fastx/MultiWordDNABitBuffer.hpp \
+	libmaus2/fastx/SingleWordDNABitBuffer.hpp \
+	libmaus2/fastx/FastInterval.hpp \
+	libmaus2/fastx/FastAReaderSplit.hpp \
+	libmaus2/fastx/FastQReaderSplit.hpp \
+	libmaus2/fastx/ConcatWriter.hpp \
+	libmaus2/fastx/FastFirstToLastReverseAdapter.hpp \
+	libmaus2/fastx/FastServer.hpp \
+	libmaus2/fastx/FastClient.hpp \
+	libmaus2/fastx/CompactFastDecoderBase.hpp \
+	libmaus2/fastx/CompactFastDecoder.hpp \
+	libmaus2/fastx/CompactFastEncoder.hpp \
+	libmaus2/fastx/CompactReadContainer.hpp \
+	libmaus2/fastx/SocketFastAReader.hpp \
+	libmaus2/fastx/SocketFastQReader.hpp \
+	libmaus2/fastx/SubSamplingFastReader.hpp \
+	libmaus2/fastx/SlashStrip.hpp \
+	libmaus2/fastx/FirstWhiteSpaceSlashStrip.hpp \
+	libmaus2/fastx/Phred.hpp \
+	libmaus2/fastx/FastQElement.hpp \
+	libmaus2/fastx/ComputeFastXIntervals.hpp \
+	libmaus2/fastx/FqWeightQuantiser.hpp \
+	libmaus2/fastx/CompactFastQHeader.hpp \
+	libmaus2/fastx/CompactFastQContext.hpp \
+	libmaus2/fastx/CompactFastQDecoderBase.hpp \
+	libmaus2/fastx/CompactFastQContainerDictionary.hpp \
+	libmaus2/fastx/CompactFastQContainer.hpp \
+	libmaus2/fastx/CompactFastQContainerDictionaryCreator.hpp \
+	libmaus2/fastx/CompactFastQBlockGenerator.hpp \
+	libmaus2/fastx/CompactFastQSingleBlockReader.hpp \
+	libmaus2/fastx/CompactFastQMultiBlockReader.hpp \
+	libmaus2/fastx/CompactFastTerminator.hpp \
+	libmaus2/fastx/CompactFastReplace.hpp \
+	libmaus2/fastx/QReorder.hpp \
+	libmaus2/fastx/StreamFastReaderBase.hpp \
+	libmaus2/fastx/StreamFastQReader.hpp \
+	libmaus2/fastx/GzipStreamFastQReader.hpp \
+	libmaus2/fastx/GzipFileFastQReader.hpp \
+	libmaus2/fastx/FastQBgzfWriter.hpp \
+	libmaus2/fastx/StreamFastAReader.hpp \
+	libmaus2/fastx/FastALineParserLineInfo.hpp \
+	libmaus2/fastx/FastADefinedBasesTable.hpp \
+	libmaus2/fastx/FastAMapTable.hpp \
+	libmaus2/fastx/FastAMatchTable.hpp \
+	libmaus2/fastx/FastALineParser.hpp \
+	libmaus2/fastx/FastAStreamWrapper.hpp \
+	libmaus2/fastx/FastAStream.hpp \
+	libmaus2/fastx/FastAStreamSet.hpp \
+	libmaus2/fastx/BgzfFastAIndexEntry.hpp \
+	libmaus2/fastx/BgzfFastAIndexEntryNameComparator.hpp \
+	libmaus2/fastx/BgzfFastAIndexEntryIdComparator.hpp \
+	libmaus2/fastx/FastABgzfIndexEntry.hpp \
+	libmaus2/fastx/FastABgzfIndex.hpp \
+	libmaus2/fastx/FastABgzfDecoder.hpp \
+	libmaus2/fastx/FastABgzfDecoderBuffer.hpp \
+	libmaus2/fastx/FastAIndexEntry.hpp \
+	libmaus2/fastx/FastAIndex.hpp \
+	libmaus2/fastx/FastAInfo.hpp \
+	libmaus2/fastx/FastATwoBitTable.hpp \
+	libmaus2/fastx/FastABPConstants.hpp \
+	libmaus2/fastx/FastABPGenerator.hpp \
+	libmaus2/fastx/FastaBPSequenceDecoder.hpp \
+	libmaus2/fastx/FastaBPDecoder.hpp \
+	libmaus2/fastx/NameInfoBase.hpp \
+	libmaus2/fastx/NameInfo.hpp \
+	libmaus2/fastx/RefPathToken.hpp \
+	libmaus2/fastx/RefPathTokenVector.hpp \
+	libmaus2/fastx/RefPathTokenVectorSequence.hpp \
+	libmaus2/fastx/RefPathLookup.hpp
 
-libmaustiming_includedir=$(includedir)/libmaus/timing
-libmaustiming_include_HEADERS=\
-	libmaus/timing/RealTimeClock.hpp
+libmaus2timing_includedir=$(includedir)/libmaus2/timing
+libmaus2timing_include_HEADERS=\
+	libmaus2/timing/RealTimeClock.hpp
 
-libmausexception_includedir=$(includedir)/libmaus/exception
-libmausexception_include_HEADERS=\
-	libmaus/exception/LibMausException.hpp
+libmaus2exception_includedir=$(includedir)/libmaus2/exception
+libmaus2exception_include_HEADERS=\
+	libmaus2/exception/LibMausException.hpp
 
-libmaussorting_includedir=$(includedir)/libmaus/sorting
-libmaussorting_include_HEADERS=\
-	libmaus/sorting/sorting.hpp \
-	libmaus/sorting/ParallelRadixSort.hpp \
-	libmaus/sorting/SerialRadixSort64.hpp \
-	libmaus/sorting/PairFileSorting.hpp \
-	libmaus/sorting/InPlaceParallelSort.hpp \
-	libmaus/sorting/MergingReadBack.hpp \
-	libmaus/sorting/SortingBufferedOutputFile.hpp \
-	libmaus/sorting/MergeStepBinSearchResult.hpp \
-	libmaus/sorting/ParallelStableSort.hpp
+libmaus2sorting_includedir=$(includedir)/libmaus2/sorting
+libmaus2sorting_include_HEADERS=\
+	libmaus2/sorting/sorting.hpp \
+	libmaus2/sorting/ParallelRadixSort.hpp \
+	libmaus2/sorting/SerialRadixSort64.hpp \
+	libmaus2/sorting/PairFileSorting.hpp \
+	libmaus2/sorting/InPlaceParallelSort.hpp \
+	libmaus2/sorting/MergingReadBack.hpp \
+	libmaus2/sorting/SortingBufferedOutputFile.hpp \
+	libmaus2/sorting/MergeStepBinSearchResult.hpp \
+	libmaus2/sorting/ParallelStableSort.hpp
 
-libmaushashing_includedir=$(includedir)/libmaus/hashing
-libmaushashing_include_HEADERS=\
-	libmaus/hashing/hash.hpp \
-	libmaus/hashing/CircularHash.hpp \
-	libmaus/hashing/ConstantStringHash.hpp \
-	libmaus/hashing/Crc32.hpp
+libmaus2hashing_includedir=$(includedir)/libmaus2/hashing
+libmaus2hashing_include_HEADERS=\
+	libmaus2/hashing/hash.hpp \
+	libmaus2/hashing/CircularHash.hpp \
+	libmaus2/hashing/ConstantStringHash.hpp \
+	libmaus2/hashing/Crc32.hpp
 
-libmausdigest_includedir=$(includedir)/libmaus/digest
-libmausdigest_include_HEADERS=\
-	libmaus/digest/DigestBase.hpp \
-	libmaus/digest/SHA1.hpp \
-	libmaus/digest/SHA2_224.hpp \
-	libmaus/digest/SHA2_256.hpp \
-	libmaus/digest/SHA2_384.hpp \
-	libmaus/digest/SHA2_512.hpp \
-	libmaus/digest/CRC32.hpp \
-	libmaus/digest/Digests.hpp \
-	libmaus/digest/Null.hpp \
-	libmaus/digest/SHA2_256_sse4.hpp \
-	libmaus/digest/sha256.h \
-	libmaus/digest/sha512.h \
-	libmaus/digest/SHA2_512_sse4.hpp \
-	libmaus/digest/CRC32C_sse42.hpp \
-	libmaus/digest/CRC32C_Core.hpp \
-	libmaus/digest/CRC32C.hpp \
-	libmaus/digest/CRC32_Core.hpp \
-	libmaus/digest/DigestInterface.hpp \
-	libmaus/digest/DigestFactory.hpp \
-	libmaus/digest/DigestFactoryContainer.hpp \
-	libmaus/digest/DigestFactory_SHA2_ASM.hpp \
-	libmaus/digest/DigestFactory_CRC32C_SSE42.hpp \
-	libmaus/digest/DigestFactoryInterface.hpp
+libmaus2digest_includedir=$(includedir)/libmaus2/digest
+libmaus2digest_include_HEADERS=\
+	libmaus2/digest/DigestBase.hpp \
+	libmaus2/digest/SHA1.hpp \
+	libmaus2/digest/SHA2_224.hpp \
+	libmaus2/digest/SHA2_256.hpp \
+	libmaus2/digest/SHA2_384.hpp \
+	libmaus2/digest/SHA2_512.hpp \
+	libmaus2/digest/CRC32.hpp \
+	libmaus2/digest/Digests.hpp \
+	libmaus2/digest/Null.hpp \
+	libmaus2/digest/SHA2_256_sse4.hpp \
+	libmaus2/digest/sha256.h \
+	libmaus2/digest/sha512.h \
+	libmaus2/digest/SHA2_512_sse4.hpp \
+	libmaus2/digest/CRC32C_sse42.hpp \
+	libmaus2/digest/CRC32C_Core.hpp \
+	libmaus2/digest/CRC32C.hpp \
+	libmaus2/digest/CRC32_Core.hpp \
+	libmaus2/digest/DigestInterface.hpp \
+	libmaus2/digest/DigestFactory.hpp \
+	libmaus2/digest/DigestFactoryContainer.hpp \
+	libmaus2/digest/DigestFactory_SHA2_ASM.hpp \
+	libmaus2/digest/DigestFactory_CRC32C_SSE42.hpp \
+	libmaus2/digest/DigestFactoryInterface.hpp
 
-libmauslf_includedir=$(includedir)/libmaus/lf
-libmauslf_include_HEADERS=\
-	libmaus/lf/LF.hpp \
-	libmaus/lf/HuffmanLF.hpp \
-	libmaus/lf/LFZero.hpp \
-	libmaus/lf/DArray.hpp \
-	libmaus/lf/ImpCompactHuffmanWaveletLF.hpp \
-	libmaus/lf/LFBase.hpp \
-	libmaus/lf/QuickLF.hpp \
-	libmaus/lf/MultiRankLF.hpp \
-	libmaus/lf/MultiRankCacheLF.hpp \
-	libmaus/lf/ImpCacheLineRankLF.hpp \
-	libmaus/lf/ImpCacheLineRankLFNonZero.hpp \
-	libmaus/lf/ImpHuffmanWaveletLF.hpp \
-	libmaus/lf/ImpWTLF.hpp \
-	libmaus/lf/RLIndexLF.hpp
+libmaus2lf_includedir=$(includedir)/libmaus2/lf
+libmaus2lf_include_HEADERS=\
+	libmaus2/lf/LF.hpp \
+	libmaus2/lf/HuffmanLF.hpp \
+	libmaus2/lf/LFZero.hpp \
+	libmaus2/lf/DArray.hpp \
+	libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp \
+	libmaus2/lf/LFBase.hpp \
+	libmaus2/lf/QuickLF.hpp \
+	libmaus2/lf/MultiRankLF.hpp \
+	libmaus2/lf/MultiRankCacheLF.hpp \
+	libmaus2/lf/ImpCacheLineRankLF.hpp \
+	libmaus2/lf/ImpCacheLineRankLFNonZero.hpp \
+	libmaus2/lf/ImpHuffmanWaveletLF.hpp \
+	libmaus2/lf/ImpWTLF.hpp \
+	libmaus2/lf/RLIndexLF.hpp
 
-libmausfm_includedir=$(includedir)/libmaus/fm
-libmausfm_include_HEADERS=\
-	libmaus/fm/FM.hpp \
-	libmaus/fm/SampledSA.hpp \
-	libmaus/fm/SampledISA.hpp \
-	libmaus/fm/MausFmToBwaConversion.hpp \
-	libmaus/fm/BidirectionalIndexInterval.hpp \
-	libmaus/fm/BidirectionalIndexIntervalSymbol.hpp \
-	libmaus/fm/DictionaryInfo.hpp \
-	libmaus/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
-	libmaus/fm/BidirectionalDnaIndexTemplate.hpp \
-	libmaus/fm/KmerCache.hpp
+libmaus2fm_includedir=$(includedir)/libmaus2/fm
+libmaus2fm_include_HEADERS=\
+	libmaus2/fm/FM.hpp \
+	libmaus2/fm/SampledSA.hpp \
+	libmaus2/fm/SampledISA.hpp \
+	libmaus2/fm/MausFmToBwaConversion.hpp \
+	libmaus2/fm/BidirectionalIndexInterval.hpp \
+	libmaus2/fm/BidirectionalIndexIntervalSymbol.hpp \
+	libmaus2/fm/DictionaryInfo.hpp \
+	libmaus2/fm/DictionaryInfoImpCompactHuffmanWaveletTree.hpp \
+	libmaus2/fm/BidirectionalDnaIndexTemplate.hpp \
+	libmaus2/fm/KmerCache.hpp
 
-libmausalignment_includedir=$(includedir)/libmaus/alignment
-libmausalignment_include_HEADERS=\
-	libmaus/alignment/KmerTuple.hpp \
-	libmaus/alignment/FactorMatchInfo.hpp \
-	libmaus/alignment/KmerInfo.hpp \
-	libmaus/alignment/FactorMatchInfoPosComparator.hpp \
-	libmaus/alignment/FMIIntervalComparator.hpp \
-	libmaus/alignment/BamLineInfo.hpp \
-	libmaus/alignment/SimpleLocalAligner.hpp
+libmaus2alignment_includedir=$(includedir)/libmaus2/alignment
+libmaus2alignment_include_HEADERS=\
+	libmaus2/alignment/KmerTuple.hpp \
+	libmaus2/alignment/FactorMatchInfo.hpp \
+	libmaus2/alignment/KmerInfo.hpp \
+	libmaus2/alignment/FactorMatchInfoPosComparator.hpp \
+	libmaus2/alignment/FMIIntervalComparator.hpp \
+	libmaus2/alignment/BamLineInfo.hpp \
+	libmaus2/alignment/SimpleLocalAligner.hpp
 
-libmauslcp_includedir=$(includedir)/libmaus/lcp
-libmauslcp_include_HEADERS=\
-	libmaus/lcp/LCP.hpp \
-	libmaus/lcp/OracleLCP.hpp
+libmaus2lcp_includedir=$(includedir)/libmaus2/lcp
+libmaus2lcp_include_HEADERS=\
+	libmaus2/lcp/LCP.hpp \
+	libmaus2/lcp/OracleLCP.hpp
 
-libmausrandom_includedir=$(includedir)/libmaus/random
-libmausrandom_include_HEADERS=\
-	libmaus/random/Random.hpp
+libmaus2random_includedir=$(includedir)/libmaus2/random
+libmaus2random_include_HEADERS=\
+	libmaus2/random/Random.hpp
 
-libmausgraph_includedir=$(includedir)/libmaus/graph
-libmausgraph_include_HEADERS=\
-	libmaus/graph/TripleEdge.hpp \
-	libmaus/graph/TripleEdgeInput.hpp \
-	libmaus/graph/TripleEdgeOutput.hpp \
-	libmaus/graph/TripleEdgeOutputMerge.hpp \
-	libmaus/graph/TripleEdgeOperations.hpp \
-	libmaus/graph/TripleEdgeBuffer.hpp \
-	libmaus/graph/TripleEdgeBufferSet.hpp \
-	libmaus/graph/TripleEdgeOutputSet.hpp \
-	libmaus/graph/U64Buffer.hpp \
-	libmaus/graph/TripleIOTest.hpp \
-	libmaus/graph/EdgeList.hpp \
-	libmaus/graph/EdgeBuffer.hpp \
-	libmaus/graph/EdgeListLocalFlush.hpp \
-	libmaus/graph/EdgeListLocalLockedFlush.hpp \
-	libmaus/graph/EdgeListLocked.hpp \
-	libmaus/graph/EdgeBufferLocal.hpp \
-	libmaus/graph/EdgeBufferLocalLocked.hpp \
-	libmaus/graph/EdgeListLockedSet.hpp \
-	libmaus/graph/LocalEdgeSet.hpp \
-	libmaus/graph/TripleEdgeCompact.hpp \
-	libmaus/graph/FilteredGraphTypes.hpp \
-	libmaus/graph/GraphEdge.hpp \
-	libmaus/graph/GraphEdgeBuffer.hpp \
-	libmaus/graph/GraphEdgeBlockBuffer.hpp \
-	libmaus/graph/GraphEdgeHeapComparator.hpp \
-	libmaus/graph/GraphEdgeMerge.hpp \
-	libmaus/graph/StronglyConnectedComponents.hpp \
-	libmaus/graph/IdentityTargetProjector.hpp \
-	libmaus/graph/ReachableVertices.hpp \
-	libmaus/graph/TopologicalSorting.hpp
+libmaus2graph_includedir=$(includedir)/libmaus2/graph
+libmaus2graph_include_HEADERS=\
+	libmaus2/graph/TripleEdge.hpp \
+	libmaus2/graph/TripleEdgeInput.hpp \
+	libmaus2/graph/TripleEdgeOutput.hpp \
+	libmaus2/graph/TripleEdgeOutputMerge.hpp \
+	libmaus2/graph/TripleEdgeOperations.hpp \
+	libmaus2/graph/TripleEdgeBuffer.hpp \
+	libmaus2/graph/TripleEdgeBufferSet.hpp \
+	libmaus2/graph/TripleEdgeOutputSet.hpp \
+	libmaus2/graph/U64Buffer.hpp \
+	libmaus2/graph/TripleIOTest.hpp \
+	libmaus2/graph/EdgeList.hpp \
+	libmaus2/graph/EdgeBuffer.hpp \
+	libmaus2/graph/EdgeListLocalFlush.hpp \
+	libmaus2/graph/EdgeListLocalLockedFlush.hpp \
+	libmaus2/graph/EdgeListLocked.hpp \
+	libmaus2/graph/EdgeBufferLocal.hpp \
+	libmaus2/graph/EdgeBufferLocalLocked.hpp \
+	libmaus2/graph/EdgeListLockedSet.hpp \
+	libmaus2/graph/LocalEdgeSet.hpp \
+	libmaus2/graph/TripleEdgeCompact.hpp \
+	libmaus2/graph/FilteredGraphTypes.hpp \
+	libmaus2/graph/GraphEdge.hpp \
+	libmaus2/graph/GraphEdgeBuffer.hpp \
+	libmaus2/graph/GraphEdgeBlockBuffer.hpp \
+	libmaus2/graph/GraphEdgeHeapComparator.hpp \
+	libmaus2/graph/GraphEdgeMerge.hpp \
+	libmaus2/graph/StronglyConnectedComponents.hpp \
+	libmaus2/graph/IdentityTargetProjector.hpp \
+	libmaus2/graph/ReachableVertices.hpp \
+	libmaus2/graph/TopologicalSorting.hpp
 
-libmausbtree_includedir=$(includedir)/libmaus/btree
-libmausbtree_include_HEADERS=\
-	libmaus/btree/btree.hpp
+libmaus2btree_includedir=$(includedir)/libmaus2/btree
+libmaus2btree_include_HEADERS=\
+	libmaus2/btree/btree.hpp
 
-libmauslru_includedir=$(includedir)/libmaus/lru
-libmauslru_include_HEADERS=\
-	libmaus/lru/LRU.hpp \
-	libmaus/lru/SparseLRU.hpp \
-	libmaus/lru/SparseLRUFileBunch.hpp \
-	libmaus/lru/FileBunchLRU.hpp
+libmaus2lru_includedir=$(includedir)/libmaus2/lru
+libmaus2lru_include_HEADERS=\
+	libmaus2/lru/LRU.hpp \
+	libmaus2/lru/SparseLRU.hpp \
+	libmaus2/lru/SparseLRUFileBunch.hpp \
+	libmaus2/lru/FileBunchLRU.hpp
 
-libmausclustering_includedir=$(includedir)/libmaus/clustering
-libmausclustering_include_HEADERS=\
-	libmaus/clustering/HashCreation.hpp \
-	libmaus/clustering/HashCreationBase.hpp \
-	libmaus/clustering/ProduceEdgeRequest.hpp \
-	libmaus/clustering/KmerBase.hpp
+libmaus2clustering_includedir=$(includedir)/libmaus2/clustering
+libmaus2clustering_include_HEADERS=\
+	libmaus2/clustering/HashCreation.hpp \
+	libmaus2/clustering/HashCreationBase.hpp \
+	libmaus2/clustering/ProduceEdgeRequest.hpp \
+	libmaus2/clustering/KmerBase.hpp
 
-libmaussuffixsort_includedir=$(includedir)/libmaus/suffixsort
-libmaussuffixsort_include_HEADERS=\
-	libmaus/suffixsort/SkewSuffixSort.hpp \
-	libmaus/suffixsort/divsufsort.hpp \
-	libmaus/suffixsort/SAIS_Mori.hpp \
-	libmaus/suffixsort/SuccinctFactorList.hpp \
-	libmaus/suffixsort/SAISUtils.hpp \
-	libmaus/suffixsort/OSInduce.hpp \
-	libmaus/suffixsort/CircularBwt.hpp \
-	libmaus/suffixsort/CircularSuffixComparator.hpp \
-	libmaus/suffixsort/BwtMergeTempFileNameSet.hpp \
-	libmaus/suffixsort/BwtMergeZBlock.hpp \
-	libmaus/suffixsort/BwtMergeTempFileNameSetVector.hpp \
-	libmaus/suffixsort/BwtMergeBlockSortResult.hpp \
-	libmaus/suffixsort/BwtMergeZBlockRequest.hpp \
-	libmaus/suffixsort/BwtMergeZBlockRequestVector.hpp \
-	libmaus/suffixsort/GapMergePacket.hpp \
-	libmaus/suffixsort/BwtMergeEnumBase.hpp \
-	libmaus/suffixsort/ByteInputTypes.hpp \
-	libmaus/suffixsort/CompactInputTypes.hpp \
-	libmaus/suffixsort/PacInputTypes.hpp \
-	libmaus/suffixsort/PacTermInputTypes.hpp \
-	libmaus/suffixsort/Utf8InputTypes.hpp \
-	libmaus/suffixsort/Lz4InputTypes.hpp \
-	libmaus/suffixsort/GapArrayByteDecoderBuffer.hpp \
-	libmaus/suffixsort/GapArrayByte.hpp \
-	libmaus/suffixsort/GapArrayByteDecoder.hpp \
-	libmaus/suffixsort/GapArrayByteOverflowKeyAccessor.hpp
+libmaus2suffixsort_includedir=$(includedir)/libmaus2/suffixsort
+libmaus2suffixsort_include_HEADERS=\
+	libmaus2/suffixsort/SkewSuffixSort.hpp \
+	libmaus2/suffixsort/divsufsort.hpp \
+	libmaus2/suffixsort/SAIS_Mori.hpp \
+	libmaus2/suffixsort/SuccinctFactorList.hpp \
+	libmaus2/suffixsort/SAISUtils.hpp \
+	libmaus2/suffixsort/OSInduce.hpp \
+	libmaus2/suffixsort/CircularBwt.hpp \
+	libmaus2/suffixsort/CircularSuffixComparator.hpp \
+	libmaus2/suffixsort/BwtMergeTempFileNameSet.hpp \
+	libmaus2/suffixsort/BwtMergeZBlock.hpp \
+	libmaus2/suffixsort/BwtMergeTempFileNameSetVector.hpp \
+	libmaus2/suffixsort/BwtMergeBlockSortResult.hpp \
+	libmaus2/suffixsort/BwtMergeZBlockRequest.hpp \
+	libmaus2/suffixsort/BwtMergeZBlockRequestVector.hpp \
+	libmaus2/suffixsort/GapMergePacket.hpp \
+	libmaus2/suffixsort/BwtMergeEnumBase.hpp \
+	libmaus2/suffixsort/ByteInputTypes.hpp \
+	libmaus2/suffixsort/CompactInputTypes.hpp \
+	libmaus2/suffixsort/PacInputTypes.hpp \
+	libmaus2/suffixsort/PacTermInputTypes.hpp \
+	libmaus2/suffixsort/Utf8InputTypes.hpp \
+	libmaus2/suffixsort/Lz4InputTypes.hpp \
+	libmaus2/suffixsort/GapArrayByteDecoderBuffer.hpp \
+	libmaus2/suffixsort/GapArrayByte.hpp \
+	libmaus2/suffixsort/GapArrayByteDecoder.hpp \
+	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp
 
-libmaussuffixtree_includedir=$(includedir)/libmaus/suffixtree
-libmaussuffixtree_include_HEADERS=\
-	libmaus/suffixtree/CompressedSuffixTree.hpp
+libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
+libmaus2suffixtree_include_HEADERS=\
+	libmaus2/suffixtree/CompressedSuffixTree.hpp
 
-libmausrmq_includedir=$(includedir)/libmaus/rmq
-libmausrmq_include_HEADERS=\
-	libmaus/rmq/FischerSystematicSuccinctRMQ.hpp \
-	libmaus/rmq/QuickDynamicRMQ.hpp \
-	libmaus/rmq/CartesianTree.hpp \
-	libmaus/rmq/RMMTree.hpp
+libmaus2rmq_includedir=$(includedir)/libmaus2/rmq
+libmaus2rmq_include_HEADERS=\
+	libmaus2/rmq/FischerSystematicSuccinctRMQ.hpp \
+	libmaus2/rmq/QuickDynamicRMQ.hpp \
+	libmaus2/rmq/CartesianTree.hpp \
+	libmaus2/rmq/RMMTree.hpp
 
-libmausnetwork_includedir=$(includedir)/libmaus/network
-libmausnetwork_include_HEADERS=\
-	libmaus/network/Socket.hpp \
-	libmaus/network/GetHostName.hpp \
-	libmaus/network/LogSocket.hpp \
-	libmaus/network/SocketFastReaderBase.hpp \
-	libmaus/network/Interface.hpp \
-	libmaus/network/GetDottedAddress.hpp \
-	libmaus/network/UDPSocket.hpp \
-	libmaus/network/GenericServer.hpp \
-	libmaus/network/SocketOutputBuffer8.hpp \
-	libmaus/network/SocketOutputBuffer8Set.hpp \
-	libmaus/network/sendReceiveFd.h \
-	libmaus/network/SocketPair.hpp \
-	libmaus/network/FileDescriptorPasser.hpp \
-	libmaus/network/LogReceiverTestProcess.hpp \
-	libmaus/network/LogReceiver.hpp \
-	libmaus/network/LogReceiverDispatcherBase.hpp \
-	libmaus/network/CurlInit.hpp \
-	libmaus/network/OpenSSLInit.hpp \
-	libmaus/network/SocketInputStreamBuffer.hpp \
-	libmaus/network/SocketInputStream.hpp \
-	libmaus/network/HttpAbsoluteUrl.hpp \
-	libmaus/network/SocketInputOutputInterface.hpp \
-	libmaus/network/OpenSSLSocket.hpp \
-	libmaus/network/FtpUrl.hpp \
-	libmaus/network/HttpBody.hpp \
-	libmaus/network/HttpHeader.hpp \
-	libmaus/network/FtpSocket.hpp \
-	libmaus/network/UrlBase.hpp \
-	libmaus/network/HttpHeaderWrapper.hpp \
-	libmaus/network/HttpBodyWrapper.hpp \
-	libmaus/network/FtpSocketWrapper.hpp \
-	libmaus/network/HttpSocketInputStreamBuffer.hpp \
-	libmaus/network/HttpSocketInputStream.hpp \
-	libmaus/network/FtpSocketInputStreamBuffer.hpp \
-	libmaus/network/FtpSocketInputStream.hpp \
-	libmaus/network/FileUrl.hpp \
-	libmaus/network/UrlInputStreamBufferWrapper.hpp \
-	libmaus/network/UrlInputStream.hpp \
-	libmaus/network/GnuTLSInit.hpp \
-	libmaus/network/GnuTLSSocket.hpp \
-	libmaus/network/SingleFileServer.hpp \
-	libmaus/network/UrlInputStreamFactory.hpp
+libmaus2network_includedir=$(includedir)/libmaus2/network
+libmaus2network_include_HEADERS=\
+	libmaus2/network/Socket.hpp \
+	libmaus2/network/GetHostName.hpp \
+	libmaus2/network/LogSocket.hpp \
+	libmaus2/network/SocketFastReaderBase.hpp \
+	libmaus2/network/Interface.hpp \
+	libmaus2/network/GetDottedAddress.hpp \
+	libmaus2/network/UDPSocket.hpp \
+	libmaus2/network/GenericServer.hpp \
+	libmaus2/network/SocketOutputBuffer8.hpp \
+	libmaus2/network/SocketOutputBuffer8Set.hpp \
+	libmaus2/network/sendReceiveFd.h \
+	libmaus2/network/SocketPair.hpp \
+	libmaus2/network/FileDescriptorPasser.hpp \
+	libmaus2/network/LogReceiverTestProcess.hpp \
+	libmaus2/network/LogReceiver.hpp \
+	libmaus2/network/LogReceiverDispatcherBase.hpp \
+	libmaus2/network/CurlInit.hpp \
+	libmaus2/network/OpenSSLInit.hpp \
+	libmaus2/network/SocketInputStreamBuffer.hpp \
+	libmaus2/network/SocketInputStream.hpp \
+	libmaus2/network/HttpAbsoluteUrl.hpp \
+	libmaus2/network/SocketInputOutputInterface.hpp \
+	libmaus2/network/OpenSSLSocket.hpp \
+	libmaus2/network/FtpUrl.hpp \
+	libmaus2/network/HttpBody.hpp \
+	libmaus2/network/HttpHeader.hpp \
+	libmaus2/network/FtpSocket.hpp \
+	libmaus2/network/UrlBase.hpp \
+	libmaus2/network/HttpHeaderWrapper.hpp \
+	libmaus2/network/HttpBodyWrapper.hpp \
+	libmaus2/network/FtpSocketWrapper.hpp \
+	libmaus2/network/HttpSocketInputStreamBuffer.hpp \
+	libmaus2/network/HttpSocketInputStream.hpp \
+	libmaus2/network/FtpSocketInputStreamBuffer.hpp \
+	libmaus2/network/FtpSocketInputStream.hpp \
+	libmaus2/network/FileUrl.hpp \
+	libmaus2/network/UrlInputStreamBufferWrapper.hpp \
+	libmaus2/network/UrlInputStream.hpp \
+	libmaus2/network/GnuTLSInit.hpp \
+	libmaus2/network/GnuTLSSocket.hpp \
+	libmaus2/network/SingleFileServer.hpp \
+	libmaus2/network/UrlInputStreamFactory.hpp
 
-libmaussv_includedir=$(includedir)/libmaus/sv
-libmaussv_include_HEADERS=\
-	libmaus/sv/sv.hpp 
+libmaus2sv_includedir=$(includedir)/libmaus2/sv
+libmaus2sv_include_HEADERS=\
+	libmaus2/sv/sv.hpp 
 	
-libmaushdf5_includedir=$(includedir)/libmaus/hdf5
-libmaushdf5_include_HEADERS=\
-	libmaus/hdf5/HDF5MuteErrorHandler.hpp \
-	libmaus/hdf5/HDF5Handle.hpp
+libmaus2hdf5_includedir=$(includedir)/libmaus2/hdf5
+libmaus2hdf5_include_HEADERS=\
+	libmaus2/hdf5/HDF5MuteErrorHandler.hpp \
+	libmaus2/hdf5/HDF5Handle.hpp
 	
-libmausirods_includedir=$(includedir)/libmaus/irods
-libmausirods_include_HEADERS=\
-	libmaus/irods/IRodsFileBase.hpp \
-	libmaus/irods/IRodsSystem.hpp \
-	libmaus/irods/IRodsCommProvider.hpp \
-	libmaus/irods/IRodsInputStreamBuffer.hpp \
-	libmaus/irods/IRodsInputStream.hpp \
-	libmaus/irods/IRodsInputStreamFactory.hpp
+libmaus2irods_includedir=$(includedir)/libmaus2/irods
+libmaus2irods_include_HEADERS=\
+	libmaus2/irods/IRodsFileBase.hpp \
+	libmaus2/irods/IRodsSystem.hpp \
+	libmaus2/irods/IRodsCommProvider.hpp \
+	libmaus2/irods/IRodsInputStreamBuffer.hpp \
+	libmaus2/irods/IRodsInputStream.hpp \
+	libmaus2/irods/IRodsInputStreamFactory.hpp
 
-libmauslcs_includedir=$(includedir)/libmaus/lcs
-libmauslcs_include_HEADERS=\
-	libmaus/lcs/SuffixArrayLCS.hpp \
-	libmaus/lcs/LCSRef.hpp \
-	libmaus/lcs/LCSDynamic.hpp \
-	libmaus/lcs/SuffixPrefix.hpp \
-	libmaus/lcs/OverlapComputation.hpp \
-	libmaus/lcs/LCS.hpp \
-	libmaus/lcs/GenericEditDistance.hpp \
-	libmaus/lcs/EditDistanceResult.hpp \
-	libmaus/lcs/BaseConstants.hpp \
-	libmaus/lcs/PenaltyConstants.hpp \
-	libmaus/lcs/TraceContainer.hpp \
-	libmaus/lcs/GenericAlignmentPrint.hpp \
-	libmaus/lcs/SuffixPrefixResult.hpp \
-	libmaus/lcs/SuffixPrefixAlignmentPrint.hpp \
-	libmaus/lcs/OffsetElement.hpp \
-	libmaus/lcs/HashContainer.hpp \
-	libmaus/lcs/HashContainer2.hpp \
-	libmaus/lcs/DistNodeType.hpp \
-	libmaus/lcs/OverlapComputationBlockRequest.hpp \
-	libmaus/lcs/OverlapOrientation.hpp \
-	libmaus/lcs/OrientationWeightEncoding.hpp \
-	libmaus/lcs/CheckOverlapResult.hpp \
-	libmaus/lcs/CheckOverlapResultIdComparator.hpp \
-	libmaus/lcs/CheckOverlapResultIdHeapComparator.hpp \
-	libmaus/lcs/CheckOverlapResultInput.hpp \
-	libmaus/lcs/CheckOverlapResultInputPushBack.hpp \
-	libmaus/lcs/CheckOverlapResultMergeInput.hpp \
-	libmaus/lcs/CheckOverlapScoreComparatorGreater.hpp \
-	libmaus/lcs/CheckOverlapResultOperations.hpp \
-	libmaus/lcs/HammingOverlapDetection.hpp \
-	libmaus/lcs/AlignmentPrint.hpp \
-	libmaus/lcs/AlignmentTraceContainer.hpp \
-	libmaus/lcs/EditDistance.hpp \
-	libmaus/lcs/BandedEditDistance.hpp \
-	libmaus/lcs/MetaEditDistance.hpp \
-	libmaus/lcs/EditDistanceTraceContainer.hpp \
-	libmaus/lcs/EditDistancePriorityType.hpp \
-	libmaus/lcs/LocalBaseConstants.hpp \
-	libmaus/lcs/LocalPenaltyConstants.hpp \
-	libmaus/lcs/LocalAlignmentTraceContainer.hpp \
-	libmaus/lcs/LocalEditDistanceTraceContainer.hpp \
-	libmaus/lcs/LocalAlignmentPrint.hpp \
-	libmaus/lcs/LocalEditDistance.hpp \
-	libmaus/lcs/LocalEditDistanceResult.hpp \
-	libmaus/lcs/MetaLocalEditDistance.hpp \
-	libmaus/lcs/BandedLocalEditDistance.hpp
+libmaus2lcs_includedir=$(includedir)/libmaus2/lcs
+libmaus2lcs_include_HEADERS=\
+	libmaus2/lcs/SuffixArrayLCS.hpp \
+	libmaus2/lcs/LCSRef.hpp \
+	libmaus2/lcs/LCSDynamic.hpp \
+	libmaus2/lcs/SuffixPrefix.hpp \
+	libmaus2/lcs/OverlapComputation.hpp \
+	libmaus2/lcs/LCS.hpp \
+	libmaus2/lcs/GenericEditDistance.hpp \
+	libmaus2/lcs/EditDistanceResult.hpp \
+	libmaus2/lcs/BaseConstants.hpp \
+	libmaus2/lcs/PenaltyConstants.hpp \
+	libmaus2/lcs/TraceContainer.hpp \
+	libmaus2/lcs/GenericAlignmentPrint.hpp \
+	libmaus2/lcs/SuffixPrefixResult.hpp \
+	libmaus2/lcs/SuffixPrefixAlignmentPrint.hpp \
+	libmaus2/lcs/OffsetElement.hpp \
+	libmaus2/lcs/HashContainer.hpp \
+	libmaus2/lcs/HashContainer2.hpp \
+	libmaus2/lcs/DistNodeType.hpp \
+	libmaus2/lcs/OverlapComputationBlockRequest.hpp \
+	libmaus2/lcs/OverlapOrientation.hpp \
+	libmaus2/lcs/OrientationWeightEncoding.hpp \
+	libmaus2/lcs/CheckOverlapResult.hpp \
+	libmaus2/lcs/CheckOverlapResultIdComparator.hpp \
+	libmaus2/lcs/CheckOverlapResultIdHeapComparator.hpp \
+	libmaus2/lcs/CheckOverlapResultInput.hpp \
+	libmaus2/lcs/CheckOverlapResultInputPushBack.hpp \
+	libmaus2/lcs/CheckOverlapResultMergeInput.hpp \
+	libmaus2/lcs/CheckOverlapScoreComparatorGreater.hpp \
+	libmaus2/lcs/CheckOverlapResultOperations.hpp \
+	libmaus2/lcs/HammingOverlapDetection.hpp \
+	libmaus2/lcs/AlignmentPrint.hpp \
+	libmaus2/lcs/AlignmentTraceContainer.hpp \
+	libmaus2/lcs/EditDistance.hpp \
+	libmaus2/lcs/BandedEditDistance.hpp \
+	libmaus2/lcs/MetaEditDistance.hpp \
+	libmaus2/lcs/EditDistanceTraceContainer.hpp \
+	libmaus2/lcs/EditDistancePriorityType.hpp \
+	libmaus2/lcs/LocalBaseConstants.hpp \
+	libmaus2/lcs/LocalPenaltyConstants.hpp \
+	libmaus2/lcs/LocalAlignmentTraceContainer.hpp \
+	libmaus2/lcs/LocalEditDistanceTraceContainer.hpp \
+	libmaus2/lcs/LocalAlignmentPrint.hpp \
+	libmaus2/lcs/LocalEditDistance.hpp \
+	libmaus2/lcs/LocalEditDistanceResult.hpp \
+	libmaus2/lcs/MetaLocalEditDistance.hpp \
+	libmaus2/lcs/BandedLocalEditDistance.hpp
 
-libmausquantisation_includedir=$(includedir)/libmaus/quantisation/
-libmausquantisation_include_HEADERS = libmaus/quantisation/Quantiser.hpp libmaus/quantisation/ClusterComputation.hpp libmaus/quantisation/KmeansDataType.hpp \
-	libmaus/quantisation/KMLocalInterface.hpp
+libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
+libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
+	libmaus2/quantisation/KMLocalInterface.hpp
 
 	
-libmauslsf_includedir=$(includedir)/libmaus/lsf
-libmauslsf_include_HEADERS=\
-	libmaus/lsf/LSFProcess.hpp \
-	libmaus/lsf/ProcessSet.hpp \
-	libmaus/lsf/Process.hpp \
-	libmaus/lsf/LSFDispatcherBase.hpp \
-	libmaus/lsf/LSFStateBase.hpp \
-	libmaus/lsf/DispatchedLsfProcess.hpp  \
-	libmaus/lsf/SimpleDispatchedLsfProcessSet.hpp \
-	libmaus/lsf/LSFTaskQueue.hpp
+libmaus2lsf_includedir=$(includedir)/libmaus2/lsf
+libmaus2lsf_include_HEADERS=\
+	libmaus2/lsf/LSFProcess.hpp \
+	libmaus2/lsf/ProcessSet.hpp \
+	libmaus2/lsf/Process.hpp \
+	libmaus2/lsf/LSFDispatcherBase.hpp \
+	libmaus2/lsf/LSFStateBase.hpp \
+	libmaus2/lsf/DispatchedLsfProcess.hpp  \
+	libmaus2/lsf/SimpleDispatchedLsfProcessSet.hpp \
+	libmaus2/lsf/LSFTaskQueue.hpp
 
-libmausconsensus_includedir=$(includedir)/libmaus/consensus/
-libmausconsensus_include_HEADERS =\
-	libmaus/consensus/Consensus.hpp \
-	libmaus/consensus/ScoringMatrix.hpp
+libmaus2consensus_includedir=$(includedir)/libmaus2/consensus/
+libmaus2consensus_include_HEADERS =\
+	libmaus2/consensus/Consensus.hpp \
+	libmaus2/consensus/ScoringMatrix.hpp
 
 EXTRA_PROGRAMS = testlsf testlsflist \
 	testAIO \
@@ -1722,461 +1722,461 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
-testgunzip_LDADD = libmaus.la
+testgunzip_LDADD = libmaus2.la
 
 teststronglyconnectedcomponents_SOURCES = test/teststronglyconnectedcomponents.cpp
-teststronglyconnectedcomponents_LDADD = libmaus.la
+teststronglyconnectedcomponents_LDADD = libmaus2.la
 
 testtopologicalsorting_SOURCES = test/testtopologicalsorting.cpp
-testtopologicalsorting_LDADD = libmaus.la
+testtopologicalsorting_LDADD = libmaus2.la
 
 testbytecnt_SOURCES = test/testbytecnt.cpp
-testbytecnt_LDADD = libmaus.la
+testbytecnt_LDADD = libmaus2.la
 
 testlru_SOURCES = test/testlru.cpp
-testlru_LDADD = libmaus.la
+testlru_LDADD = libmaus2.la
 
 testsimpletrie_SOURCES = test/testsimpletrie.cpp
-testsimpletrie_LDADD = libmaus.la
+testsimpletrie_LDADD = libmaus2.la
 
 testthreadpool_SOURCES = test/testthreadpool.cpp
-testthreadpool_LDADD = libmaus.la
+testthreadpool_LDADD = libmaus2.la
 
 testsimplethreadpool_SOURCES = test/testsimplethreadpool.cpp
-testsimplethreadpool_LDADD = libmaus.la
+testsimplethreadpool_LDADD = libmaus2.la
 
 testthreadpoolbamdecode_SOURCES = test/testthreadpoolbamdecode.cpp
-testthreadpoolbamdecode_LDADD = libmaus.la
+testthreadpoolbamdecode_LDADD = libmaus2.la
 
 testsimplethreadpoolbamdecode_SOURCES = test/testsimplethreadpoolbamdecode.cpp
-testsimplethreadpoolbamdecode_LDADD = libmaus.la @SNAPPYLIBS@
+testsimplethreadpoolbamdecode_LDADD = libmaus2.la @SNAPPYLIBS@
 testsimplethreadpoolbamdecode_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsimplethreadpoolbamdecode_LDFLAGS = @SNAPPYLDFLAGS@
 
 testsyncfastreaderbase_SOURCES = test/testsyncfastreaderbase.cpp
-testsyncfastreaderbase_LDADD = libmaus.la
+testsyncfastreaderbase_LDADD = libmaus2.la
 
 testblocksynchronous_SOURCES = test/testblocksynchronous.cpp
-testblocksynchronous_LDADD = libmaus.la
+testblocksynchronous_LDADD = libmaus2.la
 
 testcachealignedalloc_SOURCES = test/testcachealignedalloc.cpp
-testcachealignedalloc_LDADD = libmaus.la
+testcachealignedalloc_LDADD = libmaus2.la
 
 testsyncreorderset_SOURCES = test/testsyncreorderset.cpp
-testsyncreorderset_LDADD = libmaus.la
+testsyncreorderset_LDADD = libmaus2.la
 
 testhashcollisions_SOURCES = test/testhashcollisions.cpp
-testhashcollisions_LDADD = libmaus.la
+testhashcollisions_LDADD = libmaus2.la
 
 testsimplebloomcollisions_SOURCES = test/testsimplebloomcollisions.cpp
-testsimplebloomcollisions_LDADD = libmaus.la
+testsimplebloomcollisions_LDADD = libmaus2.la
 
 testsimplehash_SOURCES = test/testsimplehash.cpp
-testsimplehash_LDADD = libmaus.la
+testsimplehash_LDADD = libmaus2.la
 
 testsimplecountinghash_SOURCES = test/testsimplecountinghash.cpp
-testsimplecountinghash_LDADD = libmaus.la
+testsimplecountinghash_LDADD = libmaus2.la
 
 testregex_SOURCES = test/testregex.cpp
-testregex_LDADD = libmaus.la
+testregex_LDADD = libmaus2.la
 
 testlogging_SOURCES = test/testlogging.cpp
-testlogging_LDADD = libmaus.la
+testlogging_LDADD = libmaus2.la
 
 testTrie_SOURCES = test/testTrie.cpp
-testTrie_LDADD = libmaus.la
+testTrie_LDADD = libmaus2.la
 
 testFork_SOURCES = test/testFork.cpp
-testFork_LDADD = libmaus.la
+testFork_LDADD = libmaus2.la
 
 testBitIO_SOURCES = test/testBitIO.cpp
-testBitIO_LDADD = libmaus.la
+testBitIO_LDADD = libmaus2.la
 
 testDivSufSort_SOURCES = test/testDivSufSort.cpp
-testDivSufSort_LDADD = libmaus.la
+testDivSufSort_LDADD = libmaus2.la
 
 testRank_SOURCES = test/testRank.cpp
-testRank_LDADD = libmaus.la ${SDSLLIBS}
+testRank_LDADD = libmaus2.la ${SDSLLIBS}
 testRank_CPPFLAGS = ${SDSLCPPFLAGS}
 
 testHuffman_SOURCES = test/testHuffman.cpp
-testHuffman_LDADD = libmaus.la
+testHuffman_LDADD = libmaus2.la
 
 testbitbtree_SOURCES = test/testbitbtree.cpp
-testbitbtree_LDADD = libmaus.la
+testbitbtree_LDADD = libmaus2.la
 
 testBWTDyn_SOURCES = test/testBWTDyn.cpp
-testBWTDyn_LDADD = libmaus.la
+testBWTDyn_LDADD = libmaus2.la
 
 testBWTHufDyn_SOURCES = test/testBWTHufDyn.cpp
-testBWTHufDyn_LDADD = libmaus.la
+testBWTHufDyn_LDADD = libmaus2.la
 
 testAIO_SOURCES = test/testAIO.cpp
-testAIO_LDADD = libmaus.la
+testAIO_LDADD = libmaus2.la
 
 testFastRead_SOURCES = test/testFastRead.cpp
-testFastRead_LDADD = libmaus.la
+testFastRead_LDADD = libmaus2.la
 
 testDNABitWords_SOURCES = test/testDNABitWords.cpp
-testDNABitWords_LDADD = libmaus.la
+testDNABitWords_LDADD = libmaus2.la
 
 testbtree_SOURCES = test/testbtree.cpp
-testbtree_LDADD = libmaus.la
+testbtree_LDADD = libmaus2.la
 
 testToWaveletTreeBits_SOURCES = test/testToWaveletTreeBits.cpp
-testToWaveletTreeBits_LDADD = libmaus.la
+testToWaveletTreeBits_LDADD = libmaus2.la
 
 testWaveletExternal_SOURCES = test/testWaveletExternal.cpp
-testWaveletExternal_LDADD = libmaus.la
+testWaveletExternal_LDADD = libmaus2.la
 
 testIsa_SOURCES = test/testIsa.cpp
-testIsa_LDADD = libmaus.la
+testIsa_LDADD = libmaus2.la
 
 testOS_SOURCES = test/testOS.cpp
-testOS_LDADD = libmaus.la
+testOS_LDADD = libmaus2.la
 
 testlz_SOURCES = test/testlz.cpp
-testlz_LDADD = libmaus.la
+testlz_LDADD = libmaus2.la
 
 testbandedlcs_SOURCES = test/testbandedlcs.cpp
-testbandedlcs_LDADD = libmaus.la
+testbandedlcs_LDADD = libmaus2.la
 
 testbamwriter_SOURCES = test/testbamwriter.cpp
-testbamwriter_LDADD = libmaus.la
+testbamwriter_LDADD = libmaus2.la
 
 testConsensus_SOURCES = test/testConsensus.cpp
-testConsensus_LDADD = libmaus.la
+testConsensus_LDADD = libmaus2.la
 
 testhashlcs_SOURCES = test/testhashlcs.cpp
-testhashlcs_LDADD = libmaus.la
+testhashlcs_LDADD = libmaus2.la
 
 testkmlocal_SOURCES = test/testkmlocal.cpp
-testkmlocal_LDADD = libmaus.la
+testkmlocal_LDADD = libmaus2.la
 
 testarraydecode_SOURCES = test/testarraydecode.cpp
-testarraydecode_LDADD = libmaus.la
+testarraydecode_LDADD = libmaus2.la
 
 testsnappy_SOURCES = test/testsnappy.cpp
 testsnappy_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsnappy_LDFLAGS = @SNAPPYLDFLAGS@
-testsnappy_LDADD = libmaus.la @SNAPPYLIBS@
+testsnappy_LDADD = libmaus2.la @SNAPPYLIBS@
 
 testsnappyconcat_SOURCES = test/testsnappyconcat.cpp
 testsnappyconcat_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsnappyconcat_LDFLAGS = @SNAPPYLDFLAGS@
-testsnappyconcat_LDADD = libmaus.la @SNAPPYLIBS@
+testsnappyconcat_LDADD = libmaus2.la @SNAPPYLIBS@
 
 testlsf_SOURCES = test/testlsf.cpp
 testlsf_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
 testlsf_LDFLAGS = ${LSFLDFLAGS}
-testlsf_LDADD = libmaus.la libmauslsf.la ${LSFLIBS}
+testlsf_LDADD = libmaus2.la libmaus2lsf.la ${LSFLIBS}
 
 testlsfdispatcher_SOURCES = test/testlsfdispatcher.cpp
-testlsfdispatcher_LDADD = libmaus.la
+testlsfdispatcher_LDADD = libmaus2.la
 
 testlsfclient_SOURCES = test/testlsfclient.cpp
-testlsfclient_LDADD = libmaus.la
+testlsfclient_LDADD = libmaus2.la
 
 testlsfclientfw_SOURCES = test/testlsfclientfw.cpp
-testlsfclientfw_LDADD = libmaus.la
+testlsfclientfw_LDADD = libmaus2.la
 
 testdl_SOURCES = test/testdl.cpp
-testdl_LDADD = libmaus.la ${DLLIB}
+testdl_LDADD = libmaus2.la ${DLLIB}
 
 testdifenc_SOURCES = test/testdifenc.cpp
-testdifenc_LDADD = libmaus.la
+testdifenc_LDADD = libmaus2.la
 
 testkmp_SOURCES = test/testkmp.cpp
-testkmp_LDADD = libmaus.la
+testkmp_LDADD = libmaus2.la
 
 testbwtmergeinternal_SOURCES = test/testbwtmergeinternal.cpp
-testbwtmergeinternal_LDADD = libmaus.la
+testbwtmergeinternal_LDADD = libmaus2.la
 
 testfastarewrite_SOURCES = test/testfastarewrite.cpp
-testfastarewrite_LDADD = libmaus.la
+testfastarewrite_LDADD = libmaus2.la
 
 testfastarecode_SOURCES = test/testfastarecode.cpp
-testfastarecode_LDADD = libmaus.la
+testfastarecode_LDADD = libmaus2.la
 
 testbamtofastq_SOURCES = test/testbamtofastq.cpp
-testbamtofastq_LDADD = libmaus.la @SNAPPYLIBS@
+testbamtofastq_LDADD = libmaus2.la @SNAPPYLIBS@
 testbamtofastq_CPPFLAGS = @SNAPPYCPPFLAGS@
 testbamtofastq_LDFLAGS = @SNAPPYLDFLAGS@ @DLLIB@
 
 testbamrange_SOURCES = test/testbamrange.cpp
-testbamrange_LDADD = libmaus.la
+testbamrange_LDADD = libmaus2.la
 
 testbammateerase_SOURCES = test/testbammateerase.cpp
-testbammateerase_LDADD = libmaus.la
+testbammateerase_LDADD = libmaus2.la
 
 testbamdamage_SOURCES = test/testbamdamage.cpp
-testbamdamage_LDADD = libmaus.la @SNAPPYLIBS@
+testbamdamage_LDADD = libmaus2.la @SNAPPYLIBS@
 testbamdamage_CPPFLAGS = @SNAPPYCPPFLAGS@
 testbamdamage_LDFLAGS = @SNAPPYLDFLAGS@
 
 testgamma_SOURCES = test/testgamma.cpp
-testgamma_LDADD = libmaus.la
+testgamma_LDADD = libmaus2.la
 
 testcompact_SOURCES = test/testcompact.cpp
-testcompact_LDADD = libmaus.la
+testcompact_LDADD = libmaus2.la
 
 testbytetocompact_SOURCES = test/testbytetocompact.cpp
-testbytetocompact_LDADD = libmaus.la
+testbytetocompact_LDADD = libmaus2.la
 
 testscramtosam_SOURCES = test/testscramtosam.cpp
-testscramtosam_LDADD    = libmaus_irods.a libmaus.la @IRODSLIBS@ @DLLIB@
+testscramtosam_LDADD    = libmaus2_irods.a libmaus2.la @IRODSLIBS@ @DLLIB@
 testscramtosam_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 testscramtosam_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
-testscramtosam_DEPENDENCIES = libmaus_irods.a libmaus.la
+testscramtosam_DEPENDENCIES = libmaus2_irods.a libmaus2.la
 
 testpacdecode_SOURCES = test/testpacdecode.cpp
-testpacdecode_LDADD = libmaus.la
+testpacdecode_LDADD = libmaus2.la
 
 testutf8split_SOURCES = test/testutf8split.cpp
-testutf8split_LDADD = libmaus.la
+testutf8split_LDADD = libmaus2.la
 
 testcirchash_SOURCES = test/testcirchash.cpp
 testcirchash_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcirchash_LDFLAGS = @SNAPPYLDFLAGS@
-testcirchash_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testcirchash_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
 
 testrmmtree_SOURCES = test/testrmmtree.cpp
-testrmmtree_LDADD = libmaus.la
+testrmmtree_LDADD = libmaus2.la
 
 testcst_SOURCES = test/testcst.cpp
-testcst_LDADD = libmaus.la
+testcst_LDADD = libmaus2.la
 
 testbamcmp_SOURCES = test/testbamcmp.cpp
-testbamcmp_LDADD = libmaus.la
+testbamcmp_LDADD = libmaus2.la
 
 testbamdif_SOURCES = test/testbamdif.cpp
-testbamdif_LDADD = libmaus.la
+testbamdif_LDADD = libmaus2.la
 
 testqreorder_SOURCES = test/testqreorder.cpp
-testqreorder_LDADD = libmaus.la
+testqreorder_LDADD = libmaus2.la
 
 testfqbgzf_SOURCES = test/testfqbgzf.cpp
-testfqbgzf_LDADD = libmaus.la
+testfqbgzf_LDADD = libmaus2.la
 
 testoverlap_SOURCES = test/testoverlap.cpp
-testoverlap_LDADD = libmaus.la
+testoverlap_LDADD = libmaus2.la
 
 testcompactfastrandom_SOURCES = test/testcompactfastrandom.cpp
-testcompactfastrandom_LDADD = libmaus.la
+testcompactfastrandom_LDADD = libmaus2.la
 
 testbamindex_SOURCES = test/testbamindex.cpp
-testbamindex_LDADD = libmaus.la
+testbamindex_LDADD = libmaus2.la
 
 testlsflist_SOURCES = test/testlsflist.cpp
 testlsflist_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
 testlsflist_LDFLAGS = ${LSFLDFLAGS}
-testlsflist_LDADD = libmaus.la libmauslsf.la ${LSFLIBS}
+testlsflist_LDADD = libmaus2.la libmaus2lsf.la ${LSFLIBS}
 
 testbamrewrite_SOURCES = test/testbamrewrite.cpp
-testbamrewrite_LDADD = libmaus.la
+testbamrewrite_LDADD = libmaus2.la
 
 testfastqstream_SOURCES = test/testfastqstream.cpp
-testfastqstream_LDADD = libmaus.la
+testfastqstream_LDADD = libmaus2.la
 
 testsort_SOURCES = test/testsort.cpp
-testsort_LDADD = libmaus.la
+testsort_LDADD = libmaus2.la
 
 testexternalsort_SOURCES = test/testexternalsort.cpp
-testexternalsort_LDADD = libmaus.la
+testexternalsort_LDADD = libmaus2.la
 
 testcollatespeed_SOURCES = test/testcollatespeed.cpp
 testcollatespeed_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcollatespeed_LDFLAGS = @SNAPPYLDFLAGS@
-testcollatespeed_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testcollatespeed_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
 
 testbamheaderparser_SOURCES = test/testbamheaderparser.cpp
-testbamheaderparser_LDADD = libmaus.la
+testbamheaderparser_LDADD = libmaus2.la
 
 testbammergecoordinate_SOURCES = test/testbammergecoordinate.cpp
-testbammergecoordinate_LDADD = libmaus.la @DLLIB@
+testbammergecoordinate_LDADD = libmaus2.la @DLLIB@
 
 testbammergequeryname_SOURCES = test/testbammergequeryname.cpp
-testbammergequeryname_LDADD = libmaus.la @DLLIB@
+testbammergequeryname_LDADD = libmaus2.la @DLLIB@
 
 testbamcat_SOURCES = test/testbamcat.cpp
-testbamcat_LDADD = libmaus.la @DLLIB@
+testbamcat_LDADD = libmaus2.la @DLLIB@
 
 testbammergecollate_SOURCES = test/testbammergecollate.cpp
 testbammergecollate_LDFLAGS = @SNAPPYLDFLAGS@
-testbammergecollate_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testbammergecollate_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
 testbammergecollate_CPPFLAGS = @SNAPPYCPPFLAGS@
 
 testautoarray2d_SOURCES = test/testautoarray2d.cpp
-testautoarray2d_LDADD = libmaus.la
+testautoarray2d_LDADD = libmaus2.la
 
 testhist_SOURCES = test/testhist.cpp
-testhist_LDADD = libmaus.la
+testhist_LDADD = libmaus2.la
 
 testfastaparse_SOURCES = test/testfastaparse.cpp
-testfastaparse_LDADD = libmaus.la
+testfastaparse_LDADD = libmaus2.la
 
 testvalidatebamindex_SOURCES = test/testvalidatebamindex.cpp
-testvalidatebamindex_LDADD = libmaus.la
+testvalidatebamindex_LDADD = libmaus2.la
 
 testeditdistance_SOURCES = test/testeditdistance.cpp
-testeditdistance_LDADD = libmaus.la
+testeditdistance_LDADD = libmaus2.la
 
 testgaparraybyte_SOURCES = test/testgaparraybyte.cpp
-testgaparraybyte_LDADD = libmaus.la
+testgaparraybyte_LDADD = libmaus2.la
 
 testzlibconcat_SOURCES = test/testzlibconcat.cpp
-testzlibconcat_LDADD = libmaus.la
+testzlibconcat_LDADD = libmaus2.la
 testzlibconcat_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testsimplecompressblock_SOURCES = test/testsimplecompressblock.cpp
-testsimplecompressblock_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testsimplecompressblock_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
 testsimplecompressblock_CPPFLAGS =  @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testsimplecompressblock_LDFLAGS = @SNAPPYLDFLAGS@
 
 testrazdec_SOURCES = test/testrazdec.cpp
-testrazdec_LDADD = libmaus.la
+testrazdec_LDADD = libmaus2.la
 testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testfaindex_SOURCES = test/testfaindex.cpp
-testfaindex_LDADD = libmaus.la
+testfaindex_LDADD = libmaus2.la
 
 testcurl_SOURCES = test/testcurl.cpp
-testcurl_LDADD = libmaus.la
+testcurl_LDADD = libmaus2.la
 testcurl_CPPFLAGS =  @LIBCURLCPPFLAGS@ @WARNCPPFLAGS@
 testcurl_LDFLAGS = @LIBCURLLIBS@
 
 testfastablockrecode_SOURCES = test/testfastablockrecode.cpp
-testfastablockrecode_LDADD = libmaus.la
+testfastablockrecode_LDADD = libmaus2.la
 
 testhttp_SOURCES = test/testhttp.cpp
-testhttp_LDADD = libmaus.la
+testhttp_LDADD = libmaus2.la
 testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
 testhttp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testftp_SOURCES = test/testftp.cpp
-testftp_LDADD = libmaus.la
+testftp_LDADD = libmaus2.la
 testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
 testftp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testurlinputstream_SOURCES = test/testurlinputstream.cpp
-testurlinputstream_LDADD = libmaus.la
+testurlinputstream_LDADD = libmaus2.la
 testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
 testurlinputstream_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
-testrlhist_LDADD = libmaus.la
+testrlhist_LDADD = libmaus2.la
 
 testnumcpus_SOURCES = test/testnumcpus.cpp
-testnumcpus_LDADD = libmaus.la
+testnumcpus_LDADD = libmaus2.la
 
 testdiag_SOURCES = test/testdiag.cpp
-testdiag_LDADD = libmaus.la
+testdiag_LDADD = libmaus2.la
 testdiag_CPPFLAGS = ${AM_CPPFLAGS}
 testdiag_LDFLAGS = ${AM_LDFLAGS}
 
 testlinuxstreamingwrite_SOURCES = test/testlinuxstreamingwrite.cpp
-testlinuxstreamingwrite_LDADD = libmaus.la
+testlinuxstreamingwrite_LDADD = libmaus2.la
 testlinuxstreamingwrite_CPPFLAGS = ${AM_CPPFLAGS}
 testlinuxstreamingwrite_LDFLAGS = ${AM_LDFLAGS}
 
 testlowmembamheaderparser_SOURCES = test/testlowmembamheaderparser.cpp
-testlowmembamheaderparser_LDADD = libmaus.la
+testlowmembamheaderparser_LDADD = libmaus2.la
 testlowmembamheaderparser_CPPFLAGS = ${AM_CPPFLAGS}
 testlowmembamheaderparser_LDFLAGS = ${AM_LDFLAGS}
 
 testgeneflatfile_SOURCES = test/testgeneflatfile.cpp
-testgeneflatfile_LDADD = libmaus.la
+testgeneflatfile_LDADD = libmaus2.la
 testgeneflatfile_CPPFLAGS = ${AM_CPPFLAGS}
 testgeneflatfile_LDFLAGS = ${AM_LDFLAGS}
 
 testgnutls_SOURCES = test/testgnutls.cpp
-testgnutls_LDADD = libmaus.la
+testgnutls_LDADD = libmaus2.la
 testgnutls_CPPFLAGS = ${AM_CPPFLAGS} @GNUTLSCPPFLAGS@
 testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
 
 testparallelbamsorting_SOURCES = test/testparallelbamsorting.cpp
 testparallelbamsorting_CPPFLAGS = @SNAPPYCPPFLAGS@
 testparallelbamsorting_LDFLAGS = @SNAPPYLDFLAGS@
-testparallelbamsorting_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testparallelbamsorting_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
 
 testparallelbamvalidation_SOURCES = test/testparallelbamvalidation.cpp
 testparallelbamvalidation_CPPFLAGS = @SNAPPYCPPFLAGS@
 testparallelbamvalidation_LDFLAGS = @SNAPPYLDFLAGS@
-testparallelbamvalidation_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB}
+testparallelbamvalidation_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
 
 testlinebuffer_SOURCES = test/testlinebuffer.cpp
-testlinebuffer_LDADD = libmaus.la
+testlinebuffer_LDADD = libmaus2.la
 testlinebuffer_CPPFLAGS = ${AM_CPPFLAGS}
 testlinebuffer_LDFLAGS = ${AM_LDFLAGS}
 
 testsamdecoder_SOURCES = test/testsamdecoder.cpp
-testsamdecoder_LDADD = libmaus.la ${DLLIB}
+testsamdecoder_LDADD = libmaus2.la ${DLLIB}
 testsamdecoder_CPPFLAGS = ${AM_CPPFLAGS}
 testsamdecoder_LDFLAGS = ${AM_LDFLAGS}
 
 testdecimalnumberparser_SOURCES = test/testdecimalnumberparser.cpp
-testdecimalnumberparser_LDADD = libmaus.la
+testdecimalnumberparser_LDADD = libmaus2.la
 testdecimalnumberparser_CPPFLAGS = ${AM_CPPFLAGS}
 testdecimalnumberparser_LDFLAGS = ${AM_LDFLAGS}
 
 testunsignedinteger_SOURCES = test/testunsignedinteger.cpp
-testunsignedinteger_LDADD = libmaus.la
+testunsignedinteger_LDADD = libmaus2.la
 testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
 testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
 
 testsha_SOURCES = test/testsha.cpp
-testsha_LDADD = libmaus.la @NETTLELIBS@ libmausdigests.a libmausdigests_sse4.a
+testsha_LDADD = libmaus2.la @NETTLELIBS@ libmaus2digests.a libmaus2digests_sse4.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
-testsha_DEPENDENCIES = libmaus.la libmausdigests.a libmausdigests_sse4.a
+testsha_DEPENDENCIES = libmaus2.la libmaus2digests.a libmaus2digests_sse4.a
 
 testmd5_SOURCES = test/testmd5.cpp
-testmd5_LDADD = libmaus.la
+testmd5_LDADD = libmaus2.la
 testmd5_CPPFLAGS = ${AM_CPPFLAGS}
 testmd5_LDFLAGS = ${AM_LDFLAGS}
 
 testsinglefileserver_SOURCES = test/testsinglefileserver.cpp
-testsinglefileserver_LDADD = libmaus.la
+testsinglefileserver_LDADD = libmaus2.la
 testsinglefileserver_CPPFLAGS = ${AM_CPPFLAGS}
 testsinglefileserver_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamrewrite_SOURCES = test/testparallelbamrewrite.cpp
-testparallelbamrewrite_LDADD = libmaus.la
+testparallelbamrewrite_LDADD = libmaus2.la
 testparallelbamrewrite_CPPFLAGS = ${AM_CPPFLAGS}
 testparallelbamrewrite_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamblocksort_SOURCES = test/testparallelbamblocksort.cpp
-testparallelbamblocksort_LDADD = libmaus.la @SNAPPYLIBS@ ${DLLIB} libmausseqchksumsfactory.a libmausdigests.a libmausdigests_sse4.a @GMPLIBS@
+testparallelbamblocksort_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB} libmaus2seqchksumsfactory.a libmaus2digests.a libmaus2digests_sse4.a @GMPLIBS@
 testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS} @SNAPPYLDFLAGS@ @GMPLDFLAGS@
 
 testhdf5_SOURCES  = test/testhdf5.cpp
-testhdf5_LDADD    = libmaus.la @HDF5LIBS@
+testhdf5_LDADD    = libmaus2.la @HDF5LIBS@
 testhdf5_CPPFLAGS = @HDF5CPPFLAGS@ @WARNCPPFLAGS@
 testhdf5_LDFLAGS  = ${AM_LDFLAGS} @HDF5LDFLAGS@
 
 testmapperm_SOURCES  = test/testmapperm.cpp
-testmapperm_LDADD    = libmaus.la
+testmapperm_LDADD    = libmaus2.la
 testmapperm_CPPFLAGS = @WARNCPPFLAGS@
 testmapperm_LDFLAGS  = ${AM_LDFLAGS}
 
 testexternalmemoryindex_SOURCES  = test/testexternalmemoryindex.cpp
-testexternalmemoryindex_LDADD    = libmaus.la @SNAPPYLIBS@
+testexternalmemoryindex_LDADD    = libmaus2.la @SNAPPYLIBS@
 testexternalmemoryindex_CPPFLAGS = @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testexternalmemoryindex_LDFLAGS  = ${AM_LDFLAGS} @SNAPPYLDFLAGS@
 
 testirods_SOURCES  = test/testirods.cpp
-testirods_LDADD    = libmaus_irods.a libmaus.la @IRODSLIBS@ 
+testirods_LDADD    = libmaus2_irods.a libmaus2.la @IRODSLIBS@ 
 testirods_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 testirods_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
-testirods_DEPENDENCIES = libmaus_irods.a libmaus.la
+testirods_DEPENDENCIES = libmaus2_irods.a libmaus2.la
 
 testfastqtobam_SOURCES  = test/testfastqtobam.cpp
-testfastqtobam_LDADD    = libmaus.la
+testfastqtobam_LDADD    = libmaus2.la
 testfastqtobam_CPPFLAGS = @WARNCPPFLAGS@
 testfastqtobam_LDFLAGS  = ${AM_LDFLAGS}
 
 testsamrecoding_SOURCES  = test/testsamrecoding.cpp
-testsamrecoding_LDADD    = libmaus.la ${DLLIB}
+testsamrecoding_LDADD    = libmaus2.la ${DLLIB}
 testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}

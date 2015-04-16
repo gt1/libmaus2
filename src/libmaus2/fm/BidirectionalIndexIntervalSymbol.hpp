@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,13 +19,13 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_BIDIRECTIONALINDEXINTERVALSYMBOL_HPP)
 #define LIBMAUS_SUFFIXSORT_BIDIRECTIONALINDEXINTERVALSYMBOL_HPP
 
-#include <libmaus/fm/BidirectionalIndexInterval.hpp>
+#include <libmaus2/fm/BidirectionalIndexInterval.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fm
 	{
-		struct BidirectionalIndexIntervalSymbol : public libmaus::fm::BidirectionalIndexInterval
+		struct BidirectionalIndexIntervalSymbol : public libmaus2::fm::BidirectionalIndexInterval
 		{
 			int64_t sym;
 			

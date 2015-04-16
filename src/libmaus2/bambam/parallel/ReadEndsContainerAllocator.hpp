@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_READENDCONTAINERALLOCATOR_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_READENDCONTAINERALLOCATOR_HPP
 
-#include <libmaus/bambam/ReadEndsContainer.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/bambam/ReadEndsContainer.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,7 +32,7 @@ namespace libmaus
 			{
 				uint64_t blocksize;
 				std::string filenamebase;
-				libmaus::parallel::LockedCounter nextid;
+				libmaus2::parallel::LockedCounter nextid;
 				
 				ReadEndsContainerAllocator() : blocksize(0), filenamebase(), nextid(0) {}
 				ReadEndsContainerAllocator(
@@ -40,14 +40,14 @@ namespace libmaus
 					std::string const & rfilenamebase
 				) : blocksize(rblocksize), filenamebase(rfilenamebase), nextid(0) {}
 				
-				libmaus::bambam::ReadEndsContainer::shared_ptr_type operator()()
+				libmaus2::bambam::ReadEndsContainer::shared_ptr_type operator()()
 				{
 					uint64_t const id = nextid.increment();
-					std::string const datafilename = filenamebase + libmaus::util::NumberSerialisation::formatNumber(id,6);
+					std::string const datafilename = filenamebase + libmaus2::util::NumberSerialisation::formatNumber(id,6);
 					std::string const indexfilename = datafilename + ".index";
-					libmaus::util::TempFileRemovalContainer::addTempFile(datafilename);
-					libmaus::util::TempFileRemovalContainer::addTempFile(indexfilename);
-					libmaus::bambam::ReadEndsContainer::shared_ptr_type ptr(new ReadEndsContainer(blocksize,datafilename,indexfilename));
+					libmaus2::util::TempFileRemovalContainer::addTempFile(datafilename);
+					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfilename);
+					libmaus2::bambam::ReadEndsContainer::shared_ptr_type ptr(new ReadEndsContainer(blocksize,datafilename,indexfilename));
 					return ptr;
 				}
 			};

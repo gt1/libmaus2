@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -22,27 +22,27 @@
 #include <cstdlib>
 #include <ctime>
 
-#include <libmaus/rmq/RMMTree.hpp>
-#include <libmaus/random/Random.hpp>
+#include <libmaus2/rmq/RMMTree.hpp>
+#include <libmaus2/random/Random.hpp>
 
 int testImpCompactArray()
 {
-	libmaus::random::Random::setup();
+	libmaus2::random::Random::setup();
 	std::vector<uint64_t> V;
 	for ( uint64_t i = 0; i < 64*1024; ++i )
-		V.push_back(libmaus::random::Random::rand64() % 128);
+		V.push_back(libmaus2::random::Random::rand64() % 128);
 
-	libmaus::util::ImpCompactNumberArray::unique_ptr_type P(
-		libmaus::util::ImpCompactNumberArrayGenerator::constructFromArray(V.begin(),V.size())
+	libmaus2::util::ImpCompactNumberArray::unique_ptr_type P(
+		libmaus2::util::ImpCompactNumberArrayGenerator::constructFromArray(V.begin(),V.size())
 	);
-	libmaus::util::ImpCompactNumberArray & I = *P;
+	libmaus2::util::ImpCompactNumberArray & I = *P;
 	
 	std::ostringstream ostr;
 	I.serialise(ostr);
 	std::istringstream istr(ostr.str());
-	libmaus::util::ImpCompactNumberArray::unique_ptr_type P2(libmaus::util::ImpCompactNumberArray::load(istr));
+	libmaus2::util::ImpCompactNumberArray::unique_ptr_type P2(libmaus2::util::ImpCompactNumberArray::load(istr));
 	
-	for ( libmaus::util::ImpCompactNumberArray::const_iterator ita = P2->begin(); ita != P2->end(); ++ita )
+	for ( libmaus2::util::ImpCompactNumberArray::const_iterator ita = P2->begin(); ita != P2->end(); ++ita )
 	{
 		assert ( (*ita) == V[ita-P2->begin()] );
 		// std::cerr << *ita << std::endl;
@@ -54,12 +54,12 @@ int testRMMTree()
 {
 	for ( uint64_t z = 0; z < 128; ++z )
 	{
-		libmaus::random::Random::setup(time(0)+z);
-		uint64_t const n = 3912 + libmaus::random::Random::rand64() % 32;
+		libmaus2::random::Random::setup(time(0)+z);
+		uint64_t const n = 3912 + libmaus2::random::Random::rand64() % 32;
 		std::vector<uint64_t> V;
 		for ( uint64_t i = 0; i < n; ++i )
-			V.push_back(libmaus::random::Random::rand64() % 128);
-		libmaus::rmq::RMMTree< std::vector<uint64_t>, 5, true /* debug */> RMM(V,V.size());
+			V.push_back(libmaus2::random::Random::rand64() % 128);
+		libmaus2::rmq::RMMTree< std::vector<uint64_t>, 5, true /* debug */> RMM(V,V.size());
 	
 		#if defined(_OPENMP)
 		#pragma omp parallel for

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_ALIGNMENT_FACTORMATCHINFOPOSCOMPARATOR_HPP)
 #define LIBMAUS_ALIGNMENT_FACTORMATCHINFOPOSCOMPARATOR_HPP
 
-#include <libmaus/alignment/FactorMatchInfo.hpp>
+#include <libmaus2/alignment/FactorMatchInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace alignment
 	{
 		struct FactorMatchInfoPosComparator
 		{
-			bool operator()(libmaus::fm::FactorMatchInfo const & A, libmaus::fm::FactorMatchInfo const & B)
+			bool operator()(libmaus2::fm::FactorMatchInfo const & A, libmaus2::fm::FactorMatchInfo const & B)
 			{
 				return A.pos < B.pos;
 			}	

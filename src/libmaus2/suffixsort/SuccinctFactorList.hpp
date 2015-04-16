@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(SUCCINCTFACTORLIST_HPP)
 #define SUCCINCTFACTORLIST_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/bitio/putBit.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/bitio/putBits.hpp>
-#include <libmaus/math/numbits.hpp>
-#include <libmaus/util/Histogram.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/bitio/putBit.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/bitio/putBits.hpp>
+#include <libmaus2/math/numbits.hpp>
+#include <libmaus2/util/Histogram.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -41,11 +41,11 @@ namespace libmaus
 		{
 			typedef _iterator iterator;
 			typedef SuccinctFactorListContext<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			static unsigned int computeSmallThresPreLog(uint64_t const n, uint64_t const b)
 			{
-				return (3*::libmaus::math::numbits(n)+b-1) / b;
+				return (3*::libmaus2::math::numbits(n)+b-1) / b;
 			}
 
 			static unsigned int computeSmallThres(uint64_t const logn, uint64_t const b)
@@ -70,10 +70,10 @@ namespace libmaus
 				uint64_t const rsentinel
 			)
 			: n(rn),
-			  logn(::libmaus::math::numbits(rn)), 
+			  logn(::libmaus2::math::numbits(rn)), 
 			  b(rb), 
 			  smallthres(computeSmallThres(logn,b)),
-			  smalllen( ::libmaus::math::numbits(smallthres) ),
+			  smalllen( ::libmaus2::math::numbits(smallthres) ),
 			  I(rI),
 			  sentinel(rsentinel)
 			{
@@ -89,12 +89,12 @@ namespace libmaus
 			
 			typedef _iterator iterator;
 			typedef SuccinctFactorListBlock<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			typedef uint32_t bit_ptr_type;
 			
 			// bit block
-			::libmaus::autoarray::AutoArray < uint64_t > B;
+			::libmaus2::autoarray::AutoArray < uint64_t > B;
 			bit_ptr_type outptr;
 			bit_ptr_type inptr;
 
@@ -112,7 +112,7 @@ namespace libmaus
 			
 			storage_type getType(uint64_t const ptr) const
 			{
-				if ( ::libmaus::bitio::getBit(B.get(),ptr) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr) )
 					return storage_implicit;
 				else
 					return storage_explicit;
@@ -228,10 +228,10 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::bitio::putBits(B.get(),inptr,1   /*numbits*/,1/*implicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn/*numbits*/,i/*implicit*/); inptr += context->logn;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn/*numbits*/,j/*implicit*/); inptr += context->logn;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn/*numbits*/,k/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,1   /*numbits*/,1/*implicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn/*numbits*/,i/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn/*numbits*/,j/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn/*numbits*/,k/*implicit*/); inptr += context->logn;
 					return true;
 				}
 			}
@@ -249,13 +249,13 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::bitio::putBits(B.get(),inptr,1       /*numbits*/,0   /*explicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,j-i /*explicit*/); inptr += context->smalllen;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,k-i /*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,1       /*numbits*/,0   /*explicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,j-i /*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,k-i /*explicit*/); inptr += context->smalllen;
 					
 					for ( uint64_t l = i; l < j; ++l )
 					{
-						::libmaus::bitio::putBits(B.get(),inptr,context->b,context->I[l]); 
+						::libmaus2::bitio::putBits(B.get(),inptr,context->b,context->I[l]); 
 						inptr += context->b;
 					}
 					
@@ -265,15 +265,15 @@ namespace libmaus
 
 			uint64_t size(uint64_t ptr) const
 			{
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					uint64_t const i = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const j = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					return j-i;
 				}
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 					return len;
 				}
 			}
@@ -282,16 +282,16 @@ namespace libmaus
 			uint64_t cycle(uint64_t ptr)
 			{
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					uint64_t const i = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const j = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const k = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
 					
 					if ( k == i )
-						::libmaus::bitio::putBits(B.get(),ptr,context->logn/*numbits*/,j-1/*implicit*/);
+						::libmaus2::bitio::putBits(B.get(),ptr,context->logn/*numbits*/,j-1/*implicit*/);
 					else
-						::libmaus::bitio::putBits(B.get(),ptr,context->logn/*numbits*/,k-1/*implicit*/);
+						::libmaus2::bitio::putBits(B.get(),ptr,context->logn/*numbits*/,k-1/*implicit*/);
 								
 					ptr += context->logn;
 					
@@ -299,13 +299,13 @@ namespace libmaus
 				}
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-					uint64_t const shift = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
+					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
 					
 					if ( shift == 0 )
-						::libmaus::bitio::putBits(B.get(),ptr,context->smalllen/*numbits*/,len-1/*implicit*/);
+						::libmaus2::bitio::putBits(B.get(),ptr,context->smalllen/*numbits*/,len-1/*implicit*/);
 					else
-						::libmaus::bitio::putBits(B.get(),ptr,context->smalllen/*numbits*/,shift-1/*implicit*/);
+						::libmaus2::bitio::putBits(B.get(),ptr,context->smalllen/*numbits*/,shift-1/*implicit*/);
 
 					ptr += context->smalllen;			
 					ptr += len*context->b;
@@ -351,10 +351,10 @@ namespace libmaus
 				}
 				else
 				{
-					::libmaus::bitio::putBits(B.get(),inptr,1       /*numbits*/,0   /*explicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,len /*explicit*/); inptr += context->smalllen;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,len /*explicit*/); inptr += context->smalllen;
-					::libmaus::bitio::putBits(B.get(),inptr,len*context->b,word); 
+					::libmaus2::bitio::putBits(B.get(),inptr,1       /*numbits*/,0   /*explicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,len /*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen/*numbits*/,len /*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,len*context->b,word); 
 					inptr += len*context->b;
 					
 					return true;
@@ -396,14 +396,14 @@ namespace libmaus
 				assert ( ptr != inptr );
 
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
 					ptr += 3*context->logn;
 				}
 				// explicit
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/);
+					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/);
 					ptr += (2*context->smalllen + len*context->b);
 				}
 
@@ -428,11 +428,11 @@ namespace libmaus
 				assert ( ptr != inptr );
 				
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					uint64_t const i = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const j = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const k = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					out 
 						<< "implicit(" << i << "," << j << "," << k << ",";
 
@@ -452,26 +452,26 @@ namespace libmaus
 				// explicit
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-					uint64_t const shift = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 					out << "explicit(" << len << "," << shift << ",";
 
 					for ( uint64_t l = 0; l < len; ++l )
 					{
-						uint64_t const c = ::libmaus::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
+						uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
 						out << static_cast<char>(c);				
 					}
 
 					out << ",";
 					for ( uint64_t l = 0; l < shift; ++l )
 					{
-						uint64_t const c = ::libmaus::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
+						uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
 						out << static_cast<char>(c);				
 					}
 					out << ",";
 					for ( uint64_t l = shift; l < len; ++l )
 					{
-						uint64_t const c = ::libmaus::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
+						uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr + (l*context->b),context->b/*numbits*/);
 						out << static_cast<char>(c);				
 					}
 					
@@ -494,34 +494,34 @@ namespace libmaus
 				while ( ptr != inptr )
 				{
 					// implicit
-					if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+					if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 					{
-						uint64_t const i = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-						uint64_t const j = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-						uint64_t const k = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+						uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+						uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+						uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 						
 						pptr -= (1 + 3*context->logn);
-						::libmaus::bitio::putBits(P->B.get(),pptr,1             /*numbits*/,1/*implicit*/);
-						::libmaus::bitio::putBits(P->B.get(),pptr+1,context->logn        /*numbits*/,i/*implicit*/);
-						::libmaus::bitio::putBits(P->B.get(),pptr+1+context->logn,context->logn   /*numbits*/,j/*implicit*/);
-						::libmaus::bitio::putBits(P->B.get(),pptr+1+2*context->logn,context->logn /*numbits*/,k/*implicit*/);
+						::libmaus2::bitio::putBits(P->B.get(),pptr,1             /*numbits*/,1/*implicit*/);
+						::libmaus2::bitio::putBits(P->B.get(),pptr+1,context->logn        /*numbits*/,i/*implicit*/);
+						::libmaus2::bitio::putBits(P->B.get(),pptr+1+context->logn,context->logn   /*numbits*/,j/*implicit*/);
+						::libmaus2::bitio::putBits(P->B.get(),pptr+1+2*context->logn,context->logn /*numbits*/,k/*implicit*/);
 					}
 					// explicit
 					else
 					{
-						uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-						uint64_t const shift = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+						uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+						uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 						
 						pptr -= (1 + 2*context->smalllen + len*context->b);
 
-						::libmaus::bitio::putBits(P->B.get(),pptr,           1        /*numbits*/,0/*explicit*/);
-						::libmaus::bitio::putBits(P->B.get(),pptr+1,         context->smalllen /*numbits*/,len);
-						::libmaus::bitio::putBits(P->B.get(),pptr+1+context->smalllen,context->smalllen /*numbits*/,shift);
+						::libmaus2::bitio::putBits(P->B.get(),pptr,           1        /*numbits*/,0/*explicit*/);
+						::libmaus2::bitio::putBits(P->B.get(),pptr+1,         context->smalllen /*numbits*/,len);
+						::libmaus2::bitio::putBits(P->B.get(),pptr+1+context->smalllen,context->smalllen /*numbits*/,shift);
 						
 						for ( uint64_t i = 0; i < len; ++i )
 						{
-							uint64_t const c = ::libmaus::bitio::getBits(B.get(),ptr,context->b/*numbits*/); ptr += context->b;
-							::libmaus::bitio::putBits(P->B.get(),pptr+1+2*context->smalllen+i*context->b,context->b /*numbits*/,c);
+							uint64_t const c = ::libmaus2::bitio::getBits(B.get(),ptr,context->b/*numbits*/); ptr += context->b;
+							::libmaus2::bitio::putBits(P->B.get(),pptr+1+2*context->smalllen+i*context->b,context->b /*numbits*/,c);
 						}
 					}
 				}
@@ -544,12 +544,12 @@ namespace libmaus
 			uint64_t peek(uint64_t ptr) const
 			{
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					uint64_t const i = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					//uint64_t const j = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					//uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
 					ptr += context->logn;
-					uint64_t const k = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					
 					if ( k == i )
 						return context->sentinel;
@@ -559,14 +559,14 @@ namespace libmaus
 				// explicit
 				else
 				{
-					// uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
+					// uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
 					ptr += context->smalllen;
-					uint64_t const shift = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 					
 					if ( ! shift )
 						return context->sentinel;
 					else		
-						return ::libmaus::bitio::getBits(B.get(),ptr + (shift-1)*context->b,context->b/*numbits*/);
+						return ::libmaus2::bitio::getBits(B.get(),ptr + (shift-1)*context->b,context->b/*numbits*/);
 				}
 			}
 
@@ -580,24 +580,24 @@ namespace libmaus
 			uint64_t peekPre(uint64_t ptr) const
 			{
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					//uint64_t const i = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					//uint64_t const i = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
 					ptr += context->logn;
-					//uint64_t const j = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
+					//uint64_t const j = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); 
 					ptr += context->logn;
-					uint64_t const k = ::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const k = ::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					
 					return context->I[k];
 				}
 				// explicit
 				else
 				{
-					// uint64_t const len = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
+					// uint64_t const len = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); 
 					ptr += context->smalllen;
-					uint64_t const shift = ::libmaus::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const shift = ::libmaus2::bitio::getBits(B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 					
-					return ::libmaus::bitio::getBits(B.get(),ptr + (shift)*context->b,context->b/*numbits*/);
+					return ::libmaus2::bitio::getBits(B.get(),ptr + (shift)*context->b,context->b/*numbits*/);
 				}
 			}
 
@@ -605,14 +605,14 @@ namespace libmaus
 			uint64_t operator()(uint64_t ptr, uint64_t i) const
 			{
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),ptr++) )
 				{
-					return context->I[::libmaus::bitio::getBits(B.get(),ptr,context->logn/*numbits*/)+i];
+					return context->I[::libmaus2::bitio::getBits(B.get(),ptr,context->logn/*numbits*/)+i];
 				}
 				// explicit
 				else
 				{
-					return ::libmaus::bitio::getBits(B.get(),ptr+2*context->smalllen+i*context->b,context->b);
+					return ::libmaus2::bitio::getBits(B.get(),ptr+2*context->smalllen+i*context->b,context->b);
 				}
 			}
 
@@ -620,14 +620,14 @@ namespace libmaus
 			bool pop()
 			{
 				// implicit
-				if ( ::libmaus::bitio::getBit(B.get(),outptr++) )
+				if ( ::libmaus2::bitio::getBit(B.get(),outptr++) )
 				{
 					outptr += 3*context->logn;
 				}
 				// explicit
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(B.get(),outptr,context->smalllen/*numbits*/);   
+					uint64_t const len = ::libmaus2::bitio::getBits(B.get(),outptr,context->smalllen/*numbits*/);   
 					outptr += 2*context->smalllen + len*context->b;
 				}
 				
@@ -641,39 +641,39 @@ namespace libmaus
 				uint64_t ptr = O.outptr;
 						
 				// implicit
-				if ( ::libmaus::bitio::getBit(O.B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(O.B.get(),ptr++) )
 				{
 					if ( getBits()-inptr < 1ull+3ull*context->logn )
 						return false;
 
-					uint64_t const i = ::libmaus::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const j = ::libmaus::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const k = ::libmaus::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const i = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const j = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const k = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 
-					::libmaus::bitio::putBits(B.get(),inptr,1    /*numbits*/,1/*implicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,i/*implicit*/); inptr += context->logn;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,k/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,1    /*numbits*/,1/*implicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,i/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,k/*implicit*/); inptr += context->logn;
 					
 					return true;
 				}
 				// explicit
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(O.B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
-					uint64_t const shift = ::libmaus::bitio::getBits(O.B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const len = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const shift = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 
 					if ( getBits()-inptr < 1+2*context->smalllen+context->b*len )
 						return false;
 					
-					::libmaus::bitio::putBits(B.get(),inptr,1        /*numbits*/,   0  /*explicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen /*numbits*/,   len/*explicit*/); inptr += context->smalllen;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen    /*numbits*/,shift/*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,1        /*numbits*/,   0  /*explicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen /*numbits*/,   len/*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen    /*numbits*/,shift/*explicit*/); inptr += context->smalllen;
 					
 					for ( uint64_t i = 0; i < len; ++i )
 					{
-						uint64_t const c = ::libmaus::bitio::getBits(O.B.get(),ptr,context->b/*numbits*/); ptr += context->b;
-						::libmaus::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;		
+						uint64_t const c = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->b/*numbits*/); ptr += context->b;
+						::libmaus2::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;		
 					}
 					
 					return true;
@@ -688,40 +688,40 @@ namespace libmaus
 				uint64_t ptr = O.outptr;
 						
 				// implicit
-				if ( ::libmaus::bitio::getBit(O.B.get(),ptr++) )
+				if ( ::libmaus2::bitio::getBit(O.B.get(),ptr++) )
 				{
 					if ( getBits()-inptr < 1ull+3ull*context->logn )
 						return false;
 
-					uint64_t const i = ::libmaus::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
-					uint64_t const j = ::libmaus::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const i = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
+					uint64_t const j = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->logn/*numbits*/); ptr += context->logn;
 					ptr += context->logn; // skip k
 
-					::libmaus::bitio::putBits(B.get(),inptr,1    /*numbits*/,1/*implicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,i/*implicit*/); inptr += context->logn;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
-					::libmaus::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,1    /*numbits*/,1/*implicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,i/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->logn /*numbits*/,j/*implicit*/); inptr += context->logn;
 					
 					return true;
 				}
 				// explicit
 				else
 				{
-					uint64_t const len = ::libmaus::bitio::getBits(O.B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
+					uint64_t const len = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->smalllen/*numbits*/); ptr += context->smalllen;
 					// skip shift
 					ptr += context->smalllen;
 
 					if ( getBits()-inptr < 1+2*context->smalllen+context->b*len )
 						return false;
 					
-					::libmaus::bitio::putBits(B.get(),inptr,1        /*numbits*/,   0  /*explicit*/); inptr += 1;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen /*numbits*/,   len/*explicit*/); inptr += context->smalllen;
-					::libmaus::bitio::putBits(B.get(),inptr,context->smalllen    /*numbits*/,len/*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,1        /*numbits*/,   0  /*explicit*/); inptr += 1;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen /*numbits*/,   len/*explicit*/); inptr += context->smalllen;
+					::libmaus2::bitio::putBits(B.get(),inptr,context->smalllen    /*numbits*/,len/*explicit*/); inptr += context->smalllen;
 					
 					for ( uint64_t i = 0; i < len; ++i )
 					{
-						uint64_t const c = ::libmaus::bitio::getBits(O.B.get(),ptr,context->b/*numbits*/); ptr += context->b;
-						::libmaus::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;		
+						uint64_t const c = ::libmaus2::bitio::getBits(O.B.get(),ptr,context->b/*numbits*/); ptr += context->b;
+						::libmaus2::bitio::putBits(B.get(),inptr,context->b /*numbits*/,c/*explicit*/); inptr += context->b;		
 					}
 					
 					return true;
@@ -742,7 +742,7 @@ namespace libmaus
 			typedef typename block_type::unique_ptr_type block_ptr_type;
 			
 			typedef SuccinctFactorList<iterator> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			// static unsigned int const bufsize = 8*1024;
 			static unsigned int const prebufsize = 512u;
@@ -763,7 +763,7 @@ namespace libmaus
 			uint64_t const sentinel;
 			*/
 			
-			::libmaus::autoarray::AutoArray < 	block_ptr_type > B;
+			::libmaus2::autoarray::AutoArray < 	block_ptr_type > B;
 			uint32_t blow;
 			uint32_t bhigh;
 						
@@ -892,9 +892,9 @@ namespace libmaus
 					s++;
 				return s;
 			}
-			::libmaus::util::Histogram::unique_ptr_type sizeHistogram() const
+			::libmaus2::util::Histogram::unique_ptr_type sizeHistogram() const
 			{
-				::libmaus::util::Histogram::unique_ptr_type hist(new ::libmaus::util::Histogram);
+				::libmaus2::util::Histogram::unique_ptr_type hist(new ::libmaus2::util::Histogram);
 				for ( const_iterator it = begin(); it != end(); ++it )
 					(*hist)(it.size());
 				return UNIQUE_PTR_MOVE(hist);
@@ -903,7 +903,7 @@ namespace libmaus
 			void extendBlockArray()
 			{
 				uint64_t const nb = B.size() ? 2*B.size() : 1;
-				::libmaus::autoarray::AutoArray < 	block_ptr_type > NB(nb);
+				::libmaus2::autoarray::AutoArray < 	block_ptr_type > NB(nb);
 				
 				for ( uint64_t i = 0; i < B.size(); ++i )
 					NB[i] = UNIQUE_PTR_MOVE(B[i]);
@@ -920,7 +920,7 @@ namespace libmaus
 			
 			static uint64_t computeLogN(uint64_t const n)
 			{
-				return ::libmaus::math::numbits(n);
+				return ::libmaus2::math::numbits(n);
 			}
 			
 			SuccinctFactorList(
@@ -1017,7 +1017,7 @@ namespace libmaus
 			{
 				if ( blow == bhigh )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "peek() called on empty SuccinctFactorList." << std::endl;
 					se.finish();
 					throw se;
@@ -1031,7 +1031,7 @@ namespace libmaus
 			{
 				if ( blow == bhigh )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "peek() called on empty SuccinctFactorList." << std::endl;
 					se.finish();
 					throw se;
@@ -1045,7 +1045,7 @@ namespace libmaus
 			{
 				if ( blow == bhigh )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "cycle() called on empty SuccinctFactorList." << std::endl;
 					se.finish();
 					throw se;
@@ -1060,7 +1060,7 @@ namespace libmaus
 			{
 				if ( blow == bhigh )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "pop() called on empty SuccinctFactorList." << std::endl;
 					se.finish();
 					throw se;

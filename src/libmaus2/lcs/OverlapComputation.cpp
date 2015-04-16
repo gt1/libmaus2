@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,17 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lcs/OverlapComputation.hpp>
+#include <libmaus2/lcs/OverlapComputation.hpp>
 
 /* minimum overlap */
-unsigned long const ::libmaus::lcs::OverlapComputation::defaultmintracelength = 
-	::libmaus::lcs::OverlapComputation::getDefaultMinTraceLength();
+unsigned long const ::libmaus2::lcs::OverlapComputation::defaultmintracelength = 
+	::libmaus2::lcs::OverlapComputation::getDefaultMinTraceLength();
 /* max allowed indels in overlap */
-double const ::libmaus::lcs::OverlapComputation::defaultmaxindelfrac = 
-	::libmaus::lcs::OverlapComputation::getDefaultMaxIndelFrac();
+double const ::libmaus2::lcs::OverlapComputation::defaultmaxindelfrac = 
+	::libmaus2::lcs::OverlapComputation::getDefaultMaxIndelFrac();
 /* max allowed substitutions in overlap */
-double const ::libmaus::lcs::OverlapComputation::defaultmaxsubstfrac = 
-	::libmaus::lcs::OverlapComputation::getDefaultMaxSubstFrac();
+double const ::libmaus2::lcs::OverlapComputation::defaultmaxsubstfrac = 
+	::libmaus2::lcs::OverlapComputation::getDefaultMaxSubstFrac();
 /* minimum overlap */
-int64_t const ::libmaus::lcs::OverlapComputation::defaultminscore = 
-	::libmaus::lcs::OverlapComputation::getDefaultMinScore();
+int64_t const ::libmaus2::lcs::OverlapComputation::defaultminscore = 
+	::libmaus2::lcs::OverlapComputation::getDefaultMinScore();

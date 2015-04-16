@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,22 +19,22 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYFILEOUTPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SNAPPYFILEOUTPUTSTREAM_HPP
 
-#include <libmaus/lz/SnappyOutputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SnappyFileOutputStream
 		{
 			typedef SnappyFileOutputStream this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			// std::ofstream ostr;
-			::libmaus::aio::CheckedOutputStream ostr;
-			SnappyOutputStream< ::libmaus::aio::CheckedOutputStream > sos;
+			::libmaus2::aio::CheckedOutputStream ostr;
+			SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > sos;
 
 			SnappyFileOutputStream(std::string const & filename, uint64_t const bufsize = 64*1024)
 			: ostr(filename.c_str()), sos(ostr,bufsize) {}

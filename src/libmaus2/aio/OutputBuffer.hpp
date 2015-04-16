@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(OUTPUTBUFFER_HPP)
 #define OUTPUTBUFFER_HPP
 
-#include <libmaus/aio/AsynchronousWriter.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -32,7 +32,7 @@ namespace libmaus
 		{
 			private:
 			//! buffer
-			::libmaus::autoarray::AutoArray<uint8_t> B;
+			::libmaus2::autoarray::AutoArray<uint8_t> B;
 			//! buffer start pointer
 			uint8_t * const pa;
 			//! buffer current pointer
@@ -40,7 +40,7 @@ namespace libmaus
 			//! buffer end pointer
 			uint8_t * const pe;
 			//! async writer
-			::libmaus::aio::AsynchronousWriter W;
+			::libmaus2::aio::AsynchronousWriter W;
 
 			/**
 			 * write buffer contents to writer

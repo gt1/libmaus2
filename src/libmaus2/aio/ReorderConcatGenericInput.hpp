@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,11 +21,11 @@
 #if ! defined(REORDERCONCATGENERICINPUT_HPP)
 #define REORDERCONCATGENERICINPUT_HPP
 
-#include <libmaus/aio/FileFragment.hpp>
-#include <libmaus/util/ConcatRequest.hpp>
+#include <libmaus2/aio/FileFragment.hpp>
+#include <libmaus2/util/ConcatRequest.hpp>
 #include <cerrno>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -40,7 +40,7 @@ namespace libmaus
 			//! this type
 			typedef ReorderConcatGenericInput<value_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			private:
 			//! fragment vector
@@ -50,12 +50,12 @@ namespace libmaus
 			//! input stream type
 			typedef std::ifstream reader_type;
 			//! input stream pointer type
-			typedef ::libmaus::util::unique_ptr<reader_type>::type reader_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<reader_type>::type reader_ptr_type;
 			
 			//! buffer size
 			uint64_t const bufsize;
 			//! input buffer
-			::libmaus::autoarray::AutoArray < input_type > B;
+			::libmaus2::autoarray::AutoArray < input_type > B;
 			//! input buffer start pointer
 			input_type * const pa;
 			//! input buffer current pointer
@@ -95,9 +95,9 @@ namespace libmaus
 
 			                if ( (! reader) || (reader->gcount() != static_cast<int64_t>(toreadbytes) ) )
 			                {
-			                        ::libmaus::exception::LibMausException se;
+			                        ::libmaus2::exception::LibMausException se;
 			                        se.getStream() << "Failed to read in ReorderConcatGenericInput<" 
-			                                << ::libmaus::util::Demangle::demangle<input_type>() << ">::fillBuffer(): " << strerror(errno);
+			                                << ::libmaus2::util::Demangle::demangle<input_type>() << ">::fillBuffer(): " << strerror(errno);
                                                 se.finish();
                                                 throw se;                
 			                }
@@ -129,9 +129,9 @@ namespace libmaus
 			                reader = UNIQUE_PTR_MOVE(treader);
 			                if ( !reader->is_open() )
 			                {
-			                        ::libmaus::exception::LibMausException se;
+			                        ::libmaus2::exception::LibMausException se;
 			                        se.getStream() << "Failed to open file " << it->filename << " in ReorderConcatGenericInput<" 
-			                                << ::libmaus::util::Demangle::demangle<input_type>() << ">::init(): " << strerror(errno);
+			                                << ::libmaus2::util::Demangle::demangle<input_type>() << ">::init(): " << strerror(errno);
                                                 se.finish();
                                                 throw se;
 			                }
@@ -149,9 +149,9 @@ namespace libmaus
 			                        (static_cast<int64_t>(reader->tellg()) != static_cast<int64_t>(seekword * sizeof(input_type))) 
                                         )
 			                {
-			                        ::libmaus::exception::LibMausException se;
+			                        ::libmaus2::exception::LibMausException se;
 			                        se.getStream() << "Failed to seek to word " << seekword << " in file " << it->filename << " in ReorderConcatGenericInput<" 
-			                                << ::libmaus::util::Demangle::demangle<input_type>() << ">::init(): " << strerror(errno);
+			                                << ::libmaus2::util::Demangle::demangle<input_type>() << ">::init(): " << strerror(errno);
                                                 se.finish();
                                                 throw se;                
 			                }
@@ -326,7 +326,7 @@ namespace libmaus
 			}
 
 			//! fragment vector type
-			typedef std::vector < ::libmaus::aio::FileFragment > fragment_vector;
+			typedef std::vector < ::libmaus2::aio::FileFragment > fragment_vector;
 
 			/**
 			 * load a fragment vector from a list of files
@@ -339,11 +339,11 @@ namespace libmaus
                                 {
                                         std::string const infile = infilenames[i];
                                         
-                                        uint64_t const fs = ::libmaus::util::GetFileSize::getFileSize(infile);
+                                        uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(infile);
                                                                                 
                                         if ( fs % sizeof(value_type) )
                                         {
-                                                ::libmaus::exception::LibMausException se;
+                                                ::libmaus2::exception::LibMausException se;
                                                 se.getStream() << "Size " << fs << " of file " << infile << " is not a multiple of " <<
                                                         sizeof(value_type);
                                                 se.finish();
@@ -351,7 +351,7 @@ namespace libmaus
                                         }
                                         
                                         uint64_t const n = fs / sizeof(value_type);
-                                        frags[i] = ::libmaus::aio::FileFragment ( infile , 0 , n );
+                                        frags[i] = ::libmaus2::aio::FileFragment ( infile , 0 , n );
                                 }
                                 
                                 return frags;
@@ -364,7 +364,7 @@ namespace libmaus
                          **/
 	        	static fragment_vector loadFragmentVectorRequest(std::string const & requestfilename)
         		{
-	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req(::libmaus::util::ConcatRequest::load(requestfilename));
+	        	        ::libmaus2::util::ConcatRequest::unique_ptr_type req(::libmaus2::util::ConcatRequest::load(requestfilename));
 		                return loadFragmentVector(req->infilenames);
                         }
 
@@ -383,7 +383,7 @@ namespace libmaus
                                 uint64_t const offset = 0
                         )
                         {
-	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req(::libmaus::util::ConcatRequest::load(requestfilename));
+	        	        ::libmaus2::util::ConcatRequest::unique_ptr_type req(::libmaus2::util::ConcatRequest::load(requestfilename));
 		                fragment_vector frags = loadFragmentVector(req->infilenames);
                                 return UNIQUE_PTR_MOVE(unique_ptr_type( new this_type(frags,bufsize,limit,offset) ));
                         }
@@ -414,7 +414,7 @@ namespace libmaus
                          **/
                         static uint64_t getSize(std::vector < std::string > const & filenames)
                         {
-                                return ::libmaus::util::GetFileSize::getFileSize(filenames) / sizeof(value_type);
+                                return ::libmaus2::util::GetFileSize::getFileSize(filenames) / sizeof(value_type);
                         }
                         /**
                          * get sum of sizes of the files stored in a serialised ConcatRequest object
@@ -423,7 +423,7 @@ namespace libmaus
                          **/
                         static uint64_t getSize(std::string const & requestfilename)
                         {
-	        	        ::libmaus::util::ConcatRequest::unique_ptr_type req(::libmaus::util::ConcatRequest::load(requestfilename));
+	        	        ::libmaus2::util::ConcatRequest::unique_ptr_type req(::libmaus2::util::ConcatRequest::load(requestfilename));
 		                fragment_vector frags = loadFragmentVector(req->infilenames);
 		                uint64_t len = 0;
 		                
@@ -440,7 +440,7 @@ namespace libmaus
                          * @param outputfilename name of output file
                          **/
                         static void toSerial(
-                        	std::vector < ::libmaus::aio::FileFragment > const & fragments,
+                        	std::vector < ::libmaus2::aio::FileFragment > const & fragments,
                         	std::string const & outputfilename
                         	)
 			{
@@ -448,7 +448,7 @@ namespace libmaus
 				
 				if ( (! ostr) || (!(ostr.is_open())) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to open file " << outputfilename << " for writing: " 
 						<< strerror(errno)
 						<< std::endl;
@@ -469,7 +469,7 @@ namespace libmaus
                          * @param outputfilename name of the output stream (for verbosity only)
                          **/
                         static void toSerial(
-                        	std::vector < ::libmaus::aio::FileFragment > const & fragments,
+                        	std::vector < ::libmaus2::aio::FileFragment > const & fragments,
                         	std::ostream & ostr,
                         	std::string const outputfilename = "-"
                         	)
@@ -477,7 +477,7 @@ namespace libmaus
 				uint64_t const bufsize = 64*1024;
 				unique_ptr_type infile = UNIQUE_PTR_MOVE(unique_ptr_type(new this_type(fragments,bufsize)));
 				uint64_t n = infile->getTotalWords();
-				::libmaus::autoarray::AutoArray<value_type> B(bufsize,false);
+				::libmaus2::autoarray::AutoArray<value_type> B(bufsize,false);
 				
 				while ( n )
 				{
@@ -490,7 +490,7 @@ namespace libmaus
 						
 					if ( (! ostr) )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Failed to write data to file " << outputfilename 
 							<< ": " 
 							<< strerror(errno)
@@ -506,7 +506,7 @@ namespace libmaus
 
 				if ( (! ostr) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to flush data to file " << outputfilename 
 						<< ": " 
 						<< strerror(errno)
@@ -544,7 +544,7 @@ namespace libmaus
 
                                         if ( ! restwords )
                                         {
-                                                ::libmaus::exception::LibMausException se;
+                                                ::libmaus2::exception::LibMausException se;
                                                 se.getStream() << "Inconsistency: totalwords=" << totalwords << " restwords=" << restwords;
                                                 se.finish();
                                                 throw se;

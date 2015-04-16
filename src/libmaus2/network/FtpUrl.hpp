@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,9 +21,9 @@
 
 #include <string>
 #include <sstream>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
@@ -85,7 +85,7 @@ namespace libmaus
 			{
 				if ( ! parseUrl(url,host,port,path) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "invalid ftp url " << url << std::endl;
 					lme.finish();
 					throw lme;

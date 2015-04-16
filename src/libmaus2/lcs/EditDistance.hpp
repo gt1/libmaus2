@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,32 +20,32 @@
 #if !defined(LIBMAUS_LCS_EDITDISTANCE_HPP)
 #define LIBMAUS_LCS_EDITDISTANCE_HPP
 
-#include <libmaus/lcs/EditDistancePriorityType.hpp>
-#include <libmaus/lcs/EditDistanceTraceContainer.hpp>
-#include <libmaus/lcs/AlignmentPrint.hpp>
-#include <libmaus/types/types.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/lcs/EditDistanceResult.hpp>
-#include <libmaus/lcs/BaseConstants.hpp>
-#include <libmaus/lcs/PenaltyConstants.hpp>
-#include <libmaus/lcs/AlignmentTraceContainer.hpp>
+#include <libmaus2/lcs/EditDistancePriorityType.hpp>
+#include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
+#include <libmaus2/lcs/AlignmentPrint.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/lcs/EditDistanceResult.hpp>
+#include <libmaus2/lcs/BaseConstants.hpp>
+#include <libmaus2/lcs/PenaltyConstants.hpp>
+#include <libmaus2/lcs/AlignmentTraceContainer.hpp>
 #include <map>
 #include <iostream>
 #include <iomanip>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{		
 		template<
-			libmaus::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus::lcs::del_ins_diag
+			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
 		struct EditDistance : public EditDistanceTraceContainer
 		{
-			static ::libmaus::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
+			static ::libmaus2::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
 			typedef EditDistance<edit_distance_priority> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef EditDistanceResult result_type;
 		
 			private:
@@ -56,7 +56,7 @@ namespace libmaus
 
 			// matrix stored column wise
 			typedef std::pair < similarity_type, step_type > element_type;
-			::libmaus::autoarray::AutoArray<element_type> M;
+			::libmaus2::autoarray::AutoArray<element_type> M;
 			
 			void setup(
 				uint64_t const rn,
@@ -70,7 +70,7 @@ namespace libmaus
 				m1 = m+1;
 			
 				if ( M.size() < n1*m1 )
-					M = ::libmaus::autoarray::AutoArray<element_type>(n1*m1,false);
+					M = ::libmaus2::autoarray::AutoArray<element_type>(n1*m1,false);
 				if ( EditDistanceTraceContainer::capacity() < n+m )
 					EditDistanceTraceContainer::resize(n+m);
 			}

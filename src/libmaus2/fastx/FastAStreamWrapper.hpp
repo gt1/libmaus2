@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,27 +20,27 @@
 #define LIBMAUS_FASTX_FASTASTREAMWRAPPER_HPP
 
 #include <streambuf>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/fastx/FastALineParser.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/fastx/FastALineParser.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastAStreamWrapper : public ::std::streambuf
 		{
 			private:
-			::libmaus::fastx::FastALineParser & parser;
+			::libmaus2::fastx::FastALineParser & parser;
 			uint64_t const buffersize;
 			uint64_t const pushbackspace;
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t streamreadpos;
 
 			FastAStreamWrapper(FastAStreamWrapper const &);
 			FastAStreamWrapper & operator=(FastAStreamWrapper &);
 			
 			public:
-			FastAStreamWrapper(::libmaus::fastx::FastALineParser & rparser, ::std::size_t rbuffersize, std::size_t rpushbackspace)
+			FastAStreamWrapper(::libmaus2::fastx::FastALineParser & rparser, ::std::size_t rbuffersize, std::size_t rpushbackspace)
 			: parser(rparser), 
 			  buffersize(rbuffersize),
 			  pushbackspace(rpushbackspace),
@@ -82,7 +82,7 @@ namespace libmaus
 				char * inptr = midptr;
 				uint64_t readavail = buffer.end()-midptr;
 				uint64_t n = 0;
-				::libmaus::fastx::FastALineParserLineInfo info;
+				::libmaus2::fastx::FastALineParserLineInfo info;
 				bool running = true;
 
 				while ( running )
@@ -98,12 +98,12 @@ namespace libmaus
 					{
 						switch ( info.linetype )
 						{
-							case ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line:
-							case ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_id_line_eof:
+							case ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line:
+							case ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_id_line_eof:
 								parser.putback(info);
 								running = false;
 								break;
-							case ::libmaus::fastx::FastALineParserLineInfo::libmaus_fastx_fasta_base_line:
+							case ::libmaus2::fastx::FastALineParserLineInfo::libmaus2_fastx_fasta_base_line:
 							{
 								// amount of data to be copied
 								uint64_t const linecopy = std::min(info.linelen,readavail);

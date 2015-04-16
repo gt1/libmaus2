@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,8 +17,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <cstdio>
-#include <libmaus/quantisation/KMLocalInterface.hpp>
-#include <libmaus/quantisation/KmeansDataType.hpp>
+#include <libmaus2/quantisation/KMLocalInterface.hpp>
+#include <libmaus2/quantisation/KmeansDataType.hpp>
 
 #if defined(LIBMAUS_HAVE_KMLOCAL)
 #include "KMlocal.h"
@@ -124,28 +124,28 @@ static std::vector<double> * kmeans(std::vector<uint64_t>::const_iterator vita, 
 
 static void * kmeansWrapperByType(unsigned int const type, void * pvita, uint64_t const rn, uint64_t const k, uint64_t const runs, unsigned int const debug)
 {
-	typedef libmaus::quantisation::kmeans_data_type data_type_type;
+	typedef libmaus2::quantisation::kmeans_data_type data_type_type;
 
 	switch ( static_cast< data_type_type >(type) )
 	{
-		case ::libmaus::quantisation::type_double: return kmeans(*(reinterpret_cast<std::vector<double>::const_iterator *>(pvita)),rn,k,runs,debug);
-		case ::libmaus::quantisation::type_unsigned_int: return kmeans(*(reinterpret_cast<std::vector<unsigned int>::const_iterator *>(pvita)),rn,k,runs,debug);
-		case ::libmaus::quantisation::type_uint64_t: return kmeans(*(reinterpret_cast<std::vector<uint64_t>::const_iterator *>(pvita)),rn,k,runs,debug);
+		case ::libmaus2::quantisation::type_double: return kmeans(*(reinterpret_cast<std::vector<double>::const_iterator *>(pvita)),rn,k,runs,debug);
+		case ::libmaus2::quantisation::type_unsigned_int: return kmeans(*(reinterpret_cast<std::vector<unsigned int>::const_iterator *>(pvita)),rn,k,runs,debug);
+		case ::libmaus2::quantisation::type_uint64_t: return kmeans(*(reinterpret_cast<std::vector<uint64_t>::const_iterator *>(pvita)),rn,k,runs,debug);
 		default: return 0;
 	}
 }
 
 extern "C" {
-	void * libmaus_quantisation_kmeansWrapperByTypeC(unsigned int const type, void * pvita, uint64_t const rn, uint64_t const k, uint64_t const runs, unsigned int const debug)
+	void * libmaus2_quantisation_kmeansWrapperByTypeC(unsigned int const type, void * pvita, uint64_t const rn, uint64_t const k, uint64_t const runs, unsigned int const debug)
 	{
 		return kmeansWrapperByType(type,pvita,rn,k,runs,debug);
 	}
 }
 #else
 extern "C" {
-	void * libmaus_quantisation_kmeansWrapperByTypeC(unsigned int const /* type */, void * /* pvita */, uint64_t const /* rn */, uint64_t const /* k */, uint64_t const /* runs */, unsigned int const /* debug */)
+	void * libmaus2_quantisation_kmeansWrapperByTypeC(unsigned int const /* type */, void * /* pvita */, uint64_t const /* rn */, uint64_t const /* k */, uint64_t const /* runs */, unsigned int const /* debug */)
 	{
-		fprintf(stderr,"libmaus_quantisation_kmeansWrapperByTypeC called, but clustering code is not present.");
+		fprintf(stderr,"libmaus2_quantisation_kmeansWrapperByTypeC called, but clustering code is not present.");
 		return 0;
 	}
 }

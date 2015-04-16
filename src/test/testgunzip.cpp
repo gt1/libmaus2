@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,17 +16,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lz/PlainOrGzipStream.hpp>
-#include <libmaus/lz/BufferedGzipStream.hpp>
-// #include <libmaus/lz/PlainOrGzipStreamBufferWrapper.hpp>
+#include <libmaus2/lz/PlainOrGzipStream.hpp>
+#include <libmaus2/lz/BufferedGzipStream.hpp>
+// #include <libmaus2/lz/PlainOrGzipStreamBufferWrapper.hpp>
 
 int main()
 {
 	try
 	{
-		// ::libmaus::lz::BufferedGzipStream BGS(std::cin);
-		libmaus::lz::PlainOrGzipStream BGS(std::cin);
-		::libmaus::autoarray::AutoArray<char> B(64*1024);
+		// ::libmaus2::lz::BufferedGzipStream BGS(std::cin);
+		libmaus2::lz::PlainOrGzipStream BGS(std::cin);
+		::libmaus2::autoarray::AutoArray<char> B(64*1024);
 		
 		while ( BGS )
 		{

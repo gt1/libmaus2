@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,16 +19,16 @@
 #if ! defined(LIBMAUS_GRAPH_GRAPHEDGEBUFFER_HPP)
 #define LIBMAUS_GRAPH_GRAPHEDGEBUFFER_HPP
 
-#include <libmaus/graph/GraphEdge.hpp>
+#include <libmaus2/graph/GraphEdge.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace graph
 	{
 		struct GraphEdgeBuffer
 		{
-			libmaus::aio::CheckedOutputStream COS;
-			libmaus::autoarray::AutoArray<GraphEdge> B;
+			libmaus2::aio::CheckedOutputStream COS;
+			libmaus2::autoarray::AutoArray<GraphEdge> B;
 			GraphEdge * const pa;
 			GraphEdge * pc;
 			GraphEdge * const pe;

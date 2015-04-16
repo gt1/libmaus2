@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,20 +20,20 @@
 #define LIBMAUS_LZ_BGZFINFLATEHEADERBASE_HPP
 
 #include <zlib.h>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/BgzfConstants.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/BgzfConstants.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfInflateHeaderBase : public BgzfConstants
 		{
 			typedef BgzfInflateHeaderBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			::libmaus::autoarray::AutoArray<uint8_t,::libmaus::autoarray::alloc_type_memalign_cacheline> header;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> header;
 		
 			BgzfInflateHeaderBase()
 			: header(getBgzfHeaderSize(),false)
@@ -81,7 +81,7 @@ namespace libmaus
 				
 				if ( static_cast<ssize_t>(stream.gcount()) != static_cast<ssize_t>(getBgzfHeaderSize()) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): unexpected EOF while reading header";
 					se.finish(false);
 					throw se;						
@@ -92,7 +92,7 @@ namespace libmaus
 					header[12] != 66 || header[13] != 67 || header[14] != 2 || header[15] != 0
 				)
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
 					se.finish(false);
 					throw se;			
@@ -102,7 +102,7 @@ namespace libmaus
 
 				if ( cblocksize < getBgzfHeaderSize() + getBgzfFooterSize() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): invalid header data";
 					se.finish(false);
 					throw se;					

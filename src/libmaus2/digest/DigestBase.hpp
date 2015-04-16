@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_DIGEST_DIGESTBASE_HPP)
 #define LIBMAUS_DIGEST_DIGESTBASE_HPP
 
-#include <libmaus/digest/DigestInterface.hpp>
-#include <libmaus/math/UnsignedInteger.hpp>
+#include <libmaus2/digest/DigestInterface.hpp>
+#include <libmaus2/math/UnsignedInteger.hpp>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace digest
 	{		
@@ -68,12 +68,12 @@ namespace libmaus
 				}
 			}
 
-			libmaus::math::UnsignedInteger<digestlength/4> digestui() 
+			libmaus2::math::UnsignedInteger<digestlength/4> digestui() 
 			{
 				uint8_t adigest[digestlength];
 				digest(adigest);
 				
-				libmaus::math::UnsignedInteger<digestlength/4> U;
+				libmaus2::math::UnsignedInteger<digestlength/4> U;
 				uint8_t * udigest = &adigest[0];
 				for ( size_t i = 0; i < digestlength/4; ++i )
 				{
@@ -125,9 +125,9 @@ namespace libmaus
 				return n;
 			}
 
-			libmaus::math::UnsignedInteger<0> digestui() 
+			libmaus2::math::UnsignedInteger<0> digestui() 
 			{
-				return libmaus::math::UnsignedInteger<0>();
+				return libmaus2::math::UnsignedInteger<0>();
 			}
 
 			virtual void vinit() = 0;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FASTQINPUTPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FASTQINPUTPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/FastQInputDesc.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/FastQInputDesc.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{			
-			struct FastqInputPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct FastqInputPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef FastqInputPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				FastQInputDesc * data;
 			
-				FastqInputPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data(0)
+				FastqInputPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data(0)
 				{				
 				}		
 				FastqInputPackage(uint64_t const rpriority, uint64_t const rdispatcherid, FastQInputDesc * rdata)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
 				
 				}

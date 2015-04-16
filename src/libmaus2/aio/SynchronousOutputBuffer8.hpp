@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,13 +21,13 @@
 #if ! defined(LIBMAUS_AIO_SYNCHRONOUSOUTPUTBUFFER8_HPP)
 #define LIBMAUS_AIO_SYNCHRONOUSOUTPUTBUFFER8_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/AsynchronousWriter.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/AsynchronousWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -40,13 +40,13 @@ namespace libmaus
                 	//! this type
                         typedef SynchronousOutputBuffer8 this_type;
                         //! unique pointer type
-                        typedef ::libmaus::util::unique_ptr < this_type > :: type unique_ptr_type;
+                        typedef ::libmaus2::util::unique_ptr < this_type > :: type unique_ptr_type;
                 
                         private:
                         //! output file name
 			std::string const filename;
 			//! output buffer
-                        ::libmaus::autoarray::AutoArray<uint64_t> B;
+                        ::libmaus2::autoarray::AutoArray<uint64_t> B;
                         //! output buffer start pointer
                         uint64_t * const pa;
                         //! output buffer current pointer
@@ -68,7 +68,7 @@ namespace libmaus
 				
 				if ( ! ostr )
 				{
-				        ::libmaus::exception::LibMausException se;
+				        ::libmaus2::exception::LibMausException se;
 				        se.getStream() << "Failed to flush buffer in SynchronousOutputBuffer8::writeBuffer()";
 				        se.finish();
 				        throw se;

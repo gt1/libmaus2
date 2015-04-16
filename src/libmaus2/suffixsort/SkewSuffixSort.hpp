@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(SKEWSUFFIXSORT_HPP)
 #define SKEWSUFFIXSORT_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/aio/OutputBuffer8.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/OutputBuffer8.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 #include <limits>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -39,13 +39,13 @@ namespace libmaus
 			)
 		{
 			uint64_t const fs =
-				::libmaus::util::GetFileSize::getFileSize(inputfilename);
+				::libmaus2::util::GetFileSize::getFileSize(inputfilename);
 			assert ( fs % sizeof(elem_type) == 0 );
 			uint64_t const n = fs/sizeof(elem_type);
 
-			::libmaus::autoarray::AutoArray<elem_type> Phi(n,false);
+			::libmaus2::autoarray::AutoArray<elem_type> Phi(n,false);
 			
-			::libmaus::aio::SynchronousGenericInput<elem_type> SA(inputfilename,64*1024);
+			::libmaus2::aio::SynchronousGenericInput<elem_type> SA(inputfilename,64*1024);
 			
 			if ( n )
 			{
@@ -66,7 +66,7 @@ namespace libmaus
 				}
 			}
 			
-			::libmaus::aio::SynchronousGenericOutput<elem_type>::writeArray(Phi,outputfilename);		
+			::libmaus2::aio::SynchronousGenericOutput<elem_type>::writeArray(Phi,outputfilename);		
 		}
 
 		// compute plcp	array
@@ -79,8 +79,8 @@ namespace libmaus
 		{
 			uint64_t l = 0;
   
-			::libmaus::aio::SynchronousGenericInput<elem_type> PHI(phiname,64*1024);
-			::libmaus::aio::SynchronousGenericOutput<lcp_data_type> PLCP(plcpname,64*1024);
+			::libmaus2::aio::SynchronousGenericInput<elem_type> PHI(phiname,64*1024);
+			::libmaus2::aio::SynchronousGenericOutput<lcp_data_type> PLCP(plcpname,64*1024);
 
 			key_iterator const tn = t+n;
 			
@@ -117,8 +117,8 @@ namespace libmaus
 		{
 			uint64_t l = 0;
   
-			::libmaus::aio::SynchronousGenericInput<elem_type> PHI(phiname,64*1024);
-			::libmaus::aio::SynchronousGenericOutput<lcp_data_type> PLCP(plcpname,64*1024);
+			::libmaus2::aio::SynchronousGenericInput<elem_type> PHI(phiname,64*1024);
+			::libmaus2::aio::SynchronousGenericOutput<lcp_data_type> PLCP(plcpname,64*1024);
 
 			key_iterator const tn = t+n;
 			
@@ -148,14 +148,14 @@ namespace libmaus
 		template<typename elem_type>
 		inline void saToISA(std::string const & safilename, std::string const & isafilename)
 		{
-			::libmaus::aio::SynchronousGenericInput<elem_type> SA(safilename,64*1024);
+			::libmaus2::aio::SynchronousGenericInput<elem_type> SA(safilename,64*1024);
 		
 			uint64_t const fs =
-				::libmaus::util::GetFileSize::getFileSize(safilename);
+				::libmaus2::util::GetFileSize::getFileSize(safilename);
 			assert ( fs % sizeof(elem_type) == 0 );
 			uint64_t const n = fs/sizeof(elem_type);
 			
-			::libmaus::autoarray::AutoArray<elem_type> AISA(n,false);
+			::libmaus2::autoarray::AutoArray<elem_type> AISA(n,false);
 			
 			for ( uint64_t i = 0; i < n; ++i )
 			{
@@ -166,7 +166,7 @@ namespace libmaus
 				AISA [ v ] = i;
 			}
 
-			::libmaus::aio::SynchronousGenericOutput<elem_type>::writeArray(AISA,isafilename);			
+			::libmaus2::aio::SynchronousGenericOutput<elem_type>::writeArray(AISA,isafilename);			
 		}
 
 		// compute lcp array using plcp array
@@ -177,16 +177,16 @@ namespace libmaus
 			std::string const & lcpfilename)
 		{
 			uint64_t const fs =
-				::libmaus::util::GetFileSize::getFileSize(isafilename);
+				::libmaus2::util::GetFileSize::getFileSize(isafilename);
 			assert ( fs % sizeof(elem_type) == 0 );
 			uint64_t const n = fs/sizeof(elem_type);
 			
-			assert ( n == ::libmaus::util::GetFileSize::getFileSize(plcpfilename)/sizeof(lcp_data_type) );
+			assert ( n == ::libmaus2::util::GetFileSize::getFileSize(plcpfilename)/sizeof(lcp_data_type) );
 
-			::libmaus::autoarray::AutoArray<lcp_data_type> LCP(n,false);
+			::libmaus2::autoarray::AutoArray<lcp_data_type> LCP(n,false);
 
-			::libmaus::aio::SynchronousGenericInput<elem_type> ISA(isafilename,64*1024);
-			::libmaus::aio::SynchronousGenericInput<lcp_data_type> PLCP(plcpfilename,64*1024);
+			::libmaus2::aio::SynchronousGenericInput<elem_type> ISA(isafilename,64*1024);
+			::libmaus2::aio::SynchronousGenericInput<lcp_data_type> PLCP(plcpfilename,64*1024);
           
 			for ( uint64_t i = 0; i < n; ++i )
 			{
@@ -201,7 +201,7 @@ namespace libmaus
 				LCP[visa] = vplcp;
 			}
 
-			::libmaus::aio::SynchronousGenericOutput<lcp_data_type> OLCP(lcpfilename,64*1024);
+			::libmaus2::aio::SynchronousGenericOutput<lcp_data_type> OLCP(lcpfilename,64*1024);
 
 			for ( uint64_t i = 0; i < n; ++i )
 				OLCP.put(LCP[i]);
@@ -327,13 +327,13 @@ namespace libmaus
 				// accessor
 				OffsetArray<key_type,elem_type,offset> O(y,n);
 				// allocate counting array
-				::libmaus::autoarray::AutoArray<elem_type> Abuckcnt(static_cast<elem_type>(maxelem-minelem)+1,true); elem_type * const buckcnt = Abuckcnt.get();
+				::libmaus2::autoarray::AutoArray<elem_type> Abuckcnt(static_cast<elem_type>(maxelem-minelem)+1,true); elem_type * const buckcnt = Abuckcnt.get();
 				// count
 				for ( elem_type i = 0; i < P01len; ++i ) buckcnt[O[P01[i]]-minelem]++;
 				// cumulate to obtain bucket start indices
 				elem_type sum = 0; for ( elem_type i = 0; i < static_cast<elem_type>(maxelem-minelem)+1; ++i ) { elem_type const cur = buckcnt[i]; buckcnt[i] = sum; sum += cur; }
 				// temporary array
-				::libmaus::autoarray::AutoArray<elem_type> AtP01(P01len); elem_type * const tP01 = AtP01.get();
+				::libmaus2::autoarray::AutoArray<elem_type> AtP01(P01len); elem_type * const tP01 = AtP01.get();
 				// sort
 				for ( elem_type i = 0; i < P01len; ++i )
 					tP01[ buckcnt[O[P01[i]]-minelem]++ ] = P01[i];
@@ -353,13 +353,13 @@ namespace libmaus
 				// accessor
 				OffsetArray<key_type,elem_type,offset> O(y,n);
 				// allocate counting array
-				::libmaus::autoarray::AutoArray<elem_type> Abuckcnt(static_cast<elem_type>(maxelem)+1,true); elem_type * const buckcnt = Abuckcnt.get();
+				::libmaus2::autoarray::AutoArray<elem_type> Abuckcnt(static_cast<elem_type>(maxelem)+1,true); elem_type * const buckcnt = Abuckcnt.get();
 				// count
 				for ( elem_type i = 0; i < P01len; ++i ) buckcnt[O[P01[i]]]++;
 				// cumulate to obtain bucket start indices
 				elem_type sum = 0; for ( elem_type i = 0; i < static_cast<elem_type>(maxelem)+1; ++i ) { elem_type const cur = buckcnt[i]; buckcnt[i] = sum; sum += cur; }
 				// temporary array
-				::libmaus::autoarray::AutoArray<elem_type> AtP01(P01len); elem_type * const tP01 = AtP01.get();
+				::libmaus2::autoarray::AutoArray<elem_type> AtP01(P01len); elem_type * const tP01 = AtP01.get();
 				// sort
 				for ( elem_type i = 0; i < P01len; ++i )
 					tP01[ buckcnt[O[P01[i]]]++ ] = P01[i];
@@ -388,14 +388,14 @@ namespace libmaus
 		struct SkewSuffixSort
 		{
 			template<typename iterator>
-			static ::libmaus::autoarray::AutoArray<elem_type> skewSuffixSortRef(
+			static ::libmaus2::autoarray::AutoArray<elem_type> skewSuffixSortRef(
 				iterator const & ry, elem_type const n
 			)
 			{
-				::libmaus::autoarray::AutoArray<key_type> y(n);
+				::libmaus2::autoarray::AutoArray<key_type> y(n);
 				for ( uint64_t i = 0; i < n; ++i )
 					y[i] = ry[i];
-				::libmaus::autoarray::AutoArray<elem_type> Ap(n);
+				::libmaus2::autoarray::AutoArray<elem_type> Ap(n);
 				skewSuffixSort ( y.get(), n, Ap.get() );
 				
 				return Ap;
@@ -436,7 +436,7 @@ namespace libmaus
 					bool const n_mod_3_0 = ((n%3)==0);
 					
 					// compute array P01
-					elem_type const P01len = ((2*n)/3)+1; ::libmaus::autoarray::AutoArray<elem_type> AP01(P01len,false); elem_type * P01 = AP01.get();
+					elem_type const P01len = ((2*n)/3)+1; ::libmaus2::autoarray::AutoArray<elem_type> AP01(P01len,false); elem_type * P01 = AP01.get();
 					for ( elem_type i = 0; i < n; ++i ) { elem_type const mod = i%3; if ( (mod == 0) || (mod == 1) ) *(P01++) = i; } if ( n_mod_3_0 ) *(P01++) = n; P01 = AP01.get();
 
 #if defined(SKEW_SUFFIX_SORT_DEBUG)
@@ -466,7 +466,7 @@ namespace libmaus
 					OffsetArray<key_type,elem_type,0> O(y,n);
 					elem_type trank = 0; key_type c0 = O[P01[0]+0]; key_type c1 = O[P01[0]+1]; key_type c2 = !O[P01[0]+2];
 					elem_type const zsize = P01len;
-					::libmaus::autoarray::AutoArray<elem_type> Az(zsize, false); elem_type * z = Az.get();
+					::libmaus2::autoarray::AutoArray<elem_type> Az(zsize, false); elem_type * z = Az.get();
 					for ( elem_type i = 0; i < P01len; ++i )
 					{
 						key_type const d0 = O[P01[i]+0]; key_type const d1 = O[P01[i]+1]; key_type const d2 = O[P01[i]+2];
@@ -488,7 +488,7 @@ namespace libmaus
 #endif
 
 					// recursion, compute suffix array q of z
-					::libmaus::autoarray::AutoArray<elem_type> Aq(zsize,false); elem_type * q = Aq.get();
+					::libmaus2::autoarray::AutoArray<elem_type> Aq(zsize,false); elem_type * q = Aq.get();
 					// we have unique ranks, compute suffix array directly
 					if ( trank == P01len )
 						for ( size_t i = 0; i < zsize; ++i )
@@ -501,8 +501,8 @@ namespace libmaus
 					
 					// q is now the suffix array of z
 					// compute array L01, "suffix array" for the 0 mod 3 and 1 mod 3 suffixes
-					::libmaus::autoarray::AutoArray<elem_type> AL01(zsize,false); elem_type * L01 = AL01.get();
-					::libmaus::autoarray::AutoArray<elem_type> As(n+2,false); elem_type * s = As.get();
+					::libmaus2::autoarray::AutoArray<elem_type> AL01(zsize,false); elem_type * L01 = AL01.get();
+					::libmaus2::autoarray::AutoArray<elem_type> As(n+2,false); elem_type * s = As.get();
 					for ( elem_type j = 0; j < zsize; ++j )
 					{
 						elem_type pos;
@@ -529,7 +529,7 @@ namespace libmaus
 
 					// list of suffixes at positions i mod 3 = 2
 					elem_type const L2len = n/3;
-					::libmaus::autoarray::AutoArray<elem_type> AL2(L2len,false); elem_type * L2 = AL2.get();
+					::libmaus2::autoarray::AutoArray<elem_type> AL2(L2len,false); elem_type * L2 = AL2.get();
 					for ( elem_type i = 2; i < n; i += 3 ) *(L2++) = i; L2 = AL2.get();
 					// sort
 					OffsetBucketSort<elem_type,elem_type,1>::offsetBucketSort(s,n,L2,L2len,zsize);
@@ -587,12 +587,12 @@ namespace libmaus
 			}
 
 			// compute plcp	array
-			static ::libmaus::autoarray::AutoArray<elem_type> plcpPhi(
+			static ::libmaus2::autoarray::AutoArray<elem_type> plcpPhi(
 				key_type const * t, size_t const n, elem_type const * const Phi)
 			{
 				elem_type l = 0;
           
-				::libmaus::autoarray::AutoArray<elem_type> APLCP(n,false); elem_type * PLCP = APLCP.get();
+				::libmaus2::autoarray::AutoArray<elem_type> APLCP(n,false); elem_type * PLCP = APLCP.get();
 				key_type const * const tn = t+n;
 				for ( size_t i = 0; i < n; ++i )
 				{
@@ -615,10 +615,10 @@ namespace libmaus
 				return APLCP;
 			}
 			
-			static ::libmaus::autoarray::AutoArray<elem_type> computePhi(elem_type const * const SA, uint64_t const n)
+			static ::libmaus2::autoarray::AutoArray<elem_type> computePhi(elem_type const * const SA, uint64_t const n)
 			{
 				// compute Phi
-				::libmaus::autoarray::AutoArray<elem_type> APhi(n,false); elem_type * Phi = APhi.get();
+				::libmaus2::autoarray::AutoArray<elem_type> APhi(n,false); elem_type * Phi = APhi.get();
 				Phi[SA[0]] = n;
 				for ( size_t i = 1; i < n; ++i )
 					Phi[SA[i]] = SA[i-1];
@@ -627,19 +627,19 @@ namespace libmaus
 			}
 
 			// compute plcp	array
-			static ::libmaus::autoarray::AutoArray<elem_type> plcp(
+			static ::libmaus2::autoarray::AutoArray<elem_type> plcp(
 				key_type const * t, size_t const n, elem_type const * const SA)
 			{
 				// compute Phi
-				::libmaus::autoarray::AutoArray<elem_type> APhi = computePhi(SA,n); 
+				::libmaus2::autoarray::AutoArray<elem_type> APhi = computePhi(SA,n); 
 				return plcpPhi(t,n,APhi.get());
 			}
 
 			// compute lcp array using plcp array
-			static ::libmaus::autoarray::AutoArray<elem_type> lcpByPlcp(key_type const * t, size_t const n, elem_type const * const SA, size_t const pad = 0)
+			static ::libmaus2::autoarray::AutoArray<elem_type> lcpByPlcp(key_type const * t, size_t const n, elem_type const * const SA, size_t const pad = 0)
 			{
-				::libmaus::autoarray::AutoArray<elem_type> APLCP = plcp(t,n,SA); elem_type const * const PLCP = APLCP.get();
-				::libmaus::autoarray::AutoArray<elem_type> ALCP(n+pad,false); elem_type * LCP = ALCP.get();
+				::libmaus2::autoarray::AutoArray<elem_type> APLCP = plcp(t,n,SA); elem_type const * const PLCP = APLCP.get();
+				::libmaus2::autoarray::AutoArray<elem_type> ALCP(n+pad,false); elem_type * LCP = ALCP.get();
           
 				for ( size_t i = 0; i < n; ++i )
 					LCP[i] = PLCP[SA[i]];
@@ -649,9 +649,9 @@ namespace libmaus
 
 			// compute lcp array using plcp array
 			template<typename iterator>
-			static ::libmaus::autoarray::AutoArray<elem_type> lcpByPlcpRef(iterator const & rt, size_t const n, elem_type const * const SA)
+			static ::libmaus2::autoarray::AutoArray<elem_type> lcpByPlcpRef(iterator const & rt, size_t const n, elem_type const * const SA)
 			{
-				::libmaus::autoarray::AutoArray<key_type> t(n);
+				::libmaus2::autoarray::AutoArray<key_type> t(n);
 				for ( uint64_t i = 0; i < n; ++i )
 					t[i] = rt[i];
 

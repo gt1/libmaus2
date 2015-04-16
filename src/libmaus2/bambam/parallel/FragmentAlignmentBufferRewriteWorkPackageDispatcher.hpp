@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERREWRITEWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/BamAuxFilterVector.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteUpdateInterval.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteFragmentCompleteInterface.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBufferRewriteWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/BamAuxFilterVector.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -36,16 +36,16 @@ namespace libmaus
 			/**
 			 * block rewrite dispatcher
 			 **/
-			struct FragmentAlignmentBufferRewriteWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct FragmentAlignmentBufferRewriteWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				FragmentAlignmentBufferRewriteWorkPackageReturnInterface & packageReturnInterface;
 				FragmentAlignmentBufferRewriteFragmentCompleteInterface & fragmentCompleteInterface;
 				FragmentAlignmentBufferRewriteUpdateInterval & updateIntervalInterface;
-				libmaus::bambam::BamAuxFilterVector MQfilter;
+				libmaus2::bambam::BamAuxFilterVector MQfilter;
 				bool const fixmates;
-				libmaus::bambam::BamAuxFilterVector MCMSMTfilter;
+				libmaus2::bambam::BamAuxFilterVector MCMSMTfilter;
 				bool const dupmarksupport;
-				libmaus::bambam::BamAuxFilterVector MQMCMSMTfilter;
+				libmaus2::bambam::BamAuxFilterVector MQMCMSMTfilter;
 				std::string const tagtag;
 				char const * ctagtag;
 				
@@ -74,8 +74,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					// get type cast work package pointer
@@ -92,14 +92,14 @@ namespace libmaus
 					size_t looplow  = ind;
 					size_t const loopend = ind+num;
 					
-					libmaus::autoarray::AutoArray<uint8_t> ATA1;
-					libmaus::autoarray::AutoArray<uint8_t> ATA2;
+					libmaus2::autoarray::AutoArray<uint8_t> ATA1;
+					libmaus2::autoarray::AutoArray<uint8_t> ATA2;
 					// 2(Tag) + 1(Z) + String + nul = String + 4
 
 					while ( looplow < loopend )
 					{
 						std::pair<uint8_t *,uint64_t> Pref = BP->algn->at(looplow);
-						char const * refname = ::libmaus::bambam::BamAlignmentDecoderBase::getReadName(Pref.first);
+						char const * refname = ::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(Pref.first);
 
 						size_t loophigh = looplow+1;
 						// increase until we reach the end or find a different read name
@@ -107,7 +107,7 @@ namespace libmaus
 							loophigh < loopend &&
 							strcmp(
 								refname,
-								::libmaus::bambam::BamAlignmentDecoderBase::getReadName(BP->algn->textAt(loophigh))
+								::libmaus2::bambam::BamAlignmentDecoderBase::getReadName(BP->algn->textAt(loophigh))
 							) == 0
 						)
 						{
@@ -128,25 +128,25 @@ namespace libmaus
 							for ( size_t i = looplow; i < loophigh; ++i )
 							{
 								uint8_t const * text = BP->algn->textAt(i);
-								uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
+								uint32_t const flags = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(text);
 								
 								if ( 
-									(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY) == 0 &&
-									(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY) == 0
+									(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY) == 0 &&
+									(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY) == 0
 								)
 								{
 									if (
-										(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
+										(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
 										&&
-										!(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
+										!(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
 									)
 									{
 										firsti = i;
 									}
 									else if (
-										(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
+										(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2)
 										&&
-										!(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
+										!(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1)
 									)
 									{
 										secondi = i;
@@ -157,13 +157,13 @@ namespace libmaus
 						if ( firsti != -1 )
 						{						
 							uint8_t const * text = BP->algn->textAt(firsti);
-							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
+							uint32_t const flags = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(text);
 							
 							// mapped?
-							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
+							if ( !(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
 							{
-								int64_t const coord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(text);
-								int64_t const pos = libmaus::bambam::BamAlignmentDecoderBase::getPos(text);
+								int64_t const coord = libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(text);
+								int64_t const pos = libmaus2::bambam::BamAlignmentDecoderBase::getPos(text);
 								
 								if ( coord < pos )
 								{
@@ -181,13 +181,13 @@ namespace libmaus
 						if ( secondi != -1 )
 						{						
 							uint8_t const * text = BP->algn->textAt(secondi);
-							uint32_t const flags = ::libmaus::bambam::BamAlignmentDecoderBase::getFlags(text);
+							uint32_t const flags = ::libmaus2::bambam::BamAlignmentDecoderBase::getFlags(text);
 
 							// mapped?
-							if ( !(flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
+							if ( !(flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP) )
 							{
-								int64_t const coord = libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(text);
-								int64_t const pos = libmaus::bambam::BamAlignmentDecoderBase::getPos(text);
+								int64_t const coord = libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(text);
+								int64_t const pos = libmaus2::bambam::BamAlignmentDecoderBase::getPos(text);
 								
 								if ( coord < pos )
 								{
@@ -206,7 +206,7 @@ namespace libmaus
 						{
 							if ( firsti >= 0 && secondi >= 0 )
 							{
-								MQP = libmaus::bambam::BamAlignmentEncoderBase::fixMateInformation(
+								MQP = libmaus2::bambam::BamAlignmentEncoderBase::fixMateInformation(
 									BP->algn->textAt(firsti),
 									BP->algn->textAt(secondi)
 								);
@@ -220,14 +220,14 @@ namespace libmaus
 								std::pair<uint8_t *,uint64_t> Pfirst = BP->algn->at(firsti);
 								std::pair<uint8_t *,uint64_t> Psecond = BP->algn->at(secondi);
 								
-								MSP.first = ::libmaus::bambam::BamAlignmentDecoderBase::getScore(Psecond.first);
-								MSP.second = ::libmaus::bambam::BamAlignmentDecoderBase::getScore(Pfirst.first);
-								MCP.first = ::libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(Psecond.first);
-								MCP.second = ::libmaus::bambam::BamAlignmentDecoderBase::getCoordinate(Pfirst.first);
+								MSP.first = ::libmaus2::bambam::BamAlignmentDecoderBase::getScore(Psecond.first);
+								MSP.second = ::libmaus2::bambam::BamAlignmentDecoderBase::getScore(Pfirst.first);
+								MCP.first = ::libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(Psecond.first);
+								MCP.second = ::libmaus2::bambam::BamAlignmentDecoderBase::getCoordinate(Pfirst.first);
 								
-								char const * TA1 = ::libmaus::bambam::BamAlignmentDecoderBase::getAuxString(
+								char const * TA1 = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(
 									Psecond.first, Psecond.second, ctagtag);
-								char const * TA2 = ::libmaus::bambam::BamAlignmentDecoderBase::getAuxString(
+								char const * TA2 = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(
 									Pfirst.first, Pfirst.second, ctagtag);
 									
 								if ( TA1 )
@@ -264,17 +264,17 @@ namespace libmaus
 
 							if ( fixmates && dupmarksupport )
 							{							
-								P.second = ::libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MQMCMSMTfilter);
+								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MQMCMSMTfilter);
 								BP->algn->setLengthAt(i,P.second);
 							}
 							else if ( fixmates )
 							{
-								P.second = ::libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MQfilter);
+								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MQfilter);
 								BP->algn->setLengthAt(i,P.second);
 							}
 							else if ( dupmarksupport )
 							{								
-								P.second = ::libmaus::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MCMSMTfilter);
+								P.second = ::libmaus2::bambam::BamAlignmentDecoderBase::filterOutAux(P.first,P.second,MCMSMTfilter);
 								BP->algn->setLengthAt(i,P.second);
 							}
 							
@@ -399,20 +399,20 @@ namespace libmaus
 						
 						if ( pfirst )
 						{
-							uint32_t const flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(pfirst + sizeof(uint32_t));
-							if ( flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
+							uint32_t const flags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pfirst + sizeof(uint32_t));
+							if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
 								pfirst = 0;
 						}
 						if ( psecond )
 						{
-							uint32_t const flags = libmaus::bambam::BamAlignmentDecoderBase::getFlags(psecond + sizeof(uint32_t));
-							if ( flags & libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
+							uint32_t const flags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(psecond + sizeof(uint32_t));
+							if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP )
 								psecond = 0;						
 						}
 						
 						if ( pfirst && psecond )
 						{
-							// std::cerr << libmaus::bambam::BamAlignmentDecoderBase::getReadName(pfirst + sizeof(uint32_t)) << std::endl;
+							// std::cerr << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(pfirst + sizeof(uint32_t)) << std::endl;
 						}
 						
 						looplow = loophigh;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,12 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/hashing/hash.hpp>
+#include <libmaus2/hashing/hash.hpp>
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include <libmaus/util/SimpleHashMap.hpp>
+#include <libmaus2/util/SimpleHashMap.hpp>
 
 void testHashCollisions()
 {
@@ -37,7 +37,7 @@ void testHashCollisions()
 		V.clear();
 		for ( unsigned int j = 0; j < jcnt; ++j )
 		{
-			uint64_t const val = libmaus::hashing::EvaHash::hash2Single(i,(0xb979379e)+j) & ((1ull << 16)-1);
+			uint64_t const val = libmaus2::hashing::EvaHash::hash2Single(i,(0xb979379e)+j) & ((1ull << 16)-1);
 			// std::cerr << (val & ((1ull<<16)-1)) << std::endl;
 			S[val]++;
 			V.push_back(val);
@@ -69,17 +69,17 @@ void testHashCollisions()
 
 int main(/* int argc, char * argv[] */)
 {
-	libmaus::uint::UInt<1> U;
-	libmaus::util::SimpleHashMapKeyPrint< libmaus::uint::UInt<1> >::printKey(std::cerr,U);
+	libmaus2::uint::UInt<1> U;
+	libmaus2::util::SimpleHashMapKeyPrint< libmaus2::uint::UInt<1> >::printKey(std::cerr,U);
 	std::cerr << std::endl;
 
-	libmaus::util::SimpleHashMapConstants< libmaus::uint::UInt<2> > SHMC;
+	libmaus2::util::SimpleHashMapConstants< libmaus2::uint::UInt<2> > SHMC;
 
 	std::cerr << "unused " << SHMC.unused() << std::endl;
 	
-	libmaus::util::SimpleHashMap< libmaus::uint::UInt<1>, uint64_t > H(1);
+	libmaus2::util::SimpleHashMap< libmaus2::uint::UInt<1>, uint64_t > H(1);
 	
-	H.insertNonSyncExtend(libmaus::uint::UInt<1>(5), 5, 0.8 );
+	H.insertNonSyncExtend(libmaus2::uint::UInt<1>(5), 5, 0.8 );
 
 	testHashCollisions();
 }

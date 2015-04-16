@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMPARSEWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMPARSEWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/SamParsePending.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/SamParsePending.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct SamParseWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct SamParseWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef SamParseWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				uint64_t streamid;
 				SamParsePending SPP;
-				libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db;
+				libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type db;
 				
 				SamParseWorkPackage()
-				: libmaus::parallel::SimpleThreadWorkPackage(), streamid(0), SPP(), db()
+				: libmaus2::parallel::SimpleThreadWorkPackage(), streamid(0), SPP(), db()
 				{	
 				}		
 				SamParseWorkPackage(
@@ -48,9 +48,9 @@ namespace libmaus
 					uint64_t const rdispatcherid, 
 					uint64_t const rstreamid,
 					SamParsePending const & rSPP,
-					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type rdb
+					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type rdb
 				)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), streamid(rstreamid), SPP(rSPP), db(rdb)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), streamid(rstreamid), SPP(rSPP), db(rdb)
 				{
 				
 				}

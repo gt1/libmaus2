@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,24 +20,24 @@
 #if ! defined(LIBMAUS_HDF5_HDF5HANDLE_HPP)
 #define LIBMAUS_HDF5_HDF5HANDLE_HPP
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_HDF5)
 #include <hdf5.h>
 #include <hdf5_hl.h>
-#include <libmaus/hdf5/HDF5MuteErrorHandler.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/hdf5/HDF5MuteErrorHandler.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace hdf5
 	{
 		struct HDF5Handle
 		{
 			typedef HDF5Handle this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			private:
 			enum handle_type_enum { 
@@ -101,7 +101,7 @@ namespace libmaus
 				
 				if ( status < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::~HDF5Handle: Failed to close HDF5 handle" << std::endl;
 					lme.finish();
 					throw lme;
@@ -118,7 +118,7 @@ namespace libmaus
 				
 				if ( shandle->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::createFileHandle: failed to open handle for " << filename << std::endl;
 					lme.finish();
 					throw lme;
@@ -139,7 +139,7 @@ namespace libmaus
 
 				if ( shandle->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::createMemoryHandle: failed to open handle" << std::endl;
 					lme.finish();
 					throw lme;
@@ -160,7 +160,7 @@ namespace libmaus
         
 				if ( shandle->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::getRootGroup: failed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -198,7 +198,7 @@ namespace libmaus
         
 				if ( shandle->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::getGroup: failed for " << name << std::endl;
 					lme.finish();
 					throw lme;
@@ -219,7 +219,7 @@ namespace libmaus
 				
 				if ( shandle->handle < 0 )
 				{				
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::getObject: failed for." << std::endl;
 					lme.finish();
 					throw lme;
@@ -238,7 +238,7 @@ namespace libmaus
 				
 				if ( status < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::getType: failed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -251,7 +251,7 @@ namespace libmaus
 			{
 				shared_ptr_type obj = getObject();
 				ssize_t len = H5Iget_name(obj->handle,0,0);
-				libmaus::autoarray::AutoArray<char> A(len+1,false);
+				libmaus2::autoarray::AutoArray<char> A(len+1,false);
 				A[len] = 0;
 				H5Iget_name(obj->handle,A.begin(),A.size());
 				return std::string(A.begin(),A.begin()+len);
@@ -281,7 +281,7 @@ namespace libmaus
 
 					if ( cgroup->getType() != H5O_TYPE_GROUP )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::getPath: path element" << subpath << " originates from a non group" << std::endl;
 						lme.finish();
 						throw lme;
@@ -291,7 +291,7 @@ namespace libmaus
 					
 					if ( ! childpresent.first )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::getPath: path element" << subpath << " does not exist" << std::endl;
 						lme.finish();
 						throw lme;
@@ -307,7 +307,7 @@ namespace libmaus
 							break;
 						default:
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "HDF5Handle::getPath: path element" << subpath << " is not a group or dataset" << std::endl;
 							lme.finish();
 							throw lme;			
@@ -487,7 +487,7 @@ namespace libmaus
 				
 				if ( ret < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::hasAttribute: failed" << std::endl;
 					lme.finish();
 					throw lme;				
@@ -537,7 +537,7 @@ namespace libmaus
 				
 				if ( ret < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::getAttributes: failed" << std::endl;
 					lme.finish();
 					throw lme;				
@@ -554,7 +554,7 @@ namespace libmaus
 				
 				if ( dataset->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::getDataset: failed for " << name << std::endl;
 					lme.finish();
 					throw lme;								
@@ -576,7 +576,7 @@ namespace libmaus
 				
 				if ( dataspace->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::datasetToString: failed" << std::endl;
 					lme.finish();
 					throw lme;								
@@ -589,7 +589,7 @@ namespace libmaus
 				
 				if ( datatype->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::datasetToString: failed" << std::endl;
 					lme.finish();
 					throw lme;								
@@ -603,12 +603,12 @@ namespace libmaus
 				if ( dclass == H5T_STRING && rank == 0 && (! (H5Tis_variable_str(datatype->handle))) )
 				{
 					size_t const size = H5Tget_size(datatype->handle);
-					libmaus::autoarray::AutoArray<char> A(size,false);					
+					libmaus2::autoarray::AutoArray<char> A(size,false);					
 					herr_t err = H5Dread(handle, datatype->handle, H5S_ALL, H5S_ALL, H5P_DEFAULT, A.begin());
 					
 					if ( err < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::datasetToString: failed" << std::endl;
 						lme.finish();
 						throw lme;														
@@ -618,7 +618,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::datasetToString: failed, not a fixed length string" << std::endl;
 					lme.finish();
 					throw lme;													
@@ -635,7 +635,7 @@ namespace libmaus
 				
 				if ( attr->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 					lme.finish();
 					throw lme;													
@@ -647,7 +647,7 @@ namespace libmaus
 				
 				if ( dataspace->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -659,7 +659,7 @@ namespace libmaus
 				
 				if ( datatype->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -673,12 +673,12 @@ namespace libmaus
 				if ( dclass == H5T_STRING && rank == 0 && (! (H5Tis_variable_str(datatype->handle))) )
 				{
 					size_t const size = H5Tget_size(datatype->handle);
-					libmaus::autoarray::AutoArray<char> A(size,false);					
+					libmaus2::autoarray::AutoArray<char> A(size,false);					
 					herr_t err = H5Aread(attr->handle, datatype->handle, A.begin());
 					
 					if ( err < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 						lme.finish();
 						throw lme;														
@@ -693,7 +693,7 @@ namespace libmaus
 
 					if ( err < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 						lme.finish();
 						throw lme;														
@@ -710,7 +710,7 @@ namespace libmaus
 
 					if ( err < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 						lme.finish();
 						throw lme;														
@@ -734,7 +734,7 @@ namespace libmaus
 
 							if ( err < 0 )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 								lme.finish();
 								throw lme;														
@@ -752,7 +752,7 @@ namespace libmaus
 
 							if ( err < 0 )
 							{
-								libmaus::exception::LibMausException lme;
+								libmaus2::exception::LibMausException lme;
 								lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 								lme.finish();
 								throw lme;														
@@ -765,7 +765,7 @@ namespace libmaus
 						}
 						default:
 						{
-							libmaus::exception::LibMausException lme;
+							libmaus2::exception::LibMausException lme;
 							lme.getStream() << "HDF5Handle::decodeAttributeString: failed" << std::endl;
 							lme.finish();
 							throw lme;
@@ -774,7 +774,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeString: failed (not a string, class="<< dclass << ")" << std::endl;
 					lme.finish();
 					throw lme;																	
@@ -791,7 +791,7 @@ namespace libmaus
 				
 				if ( attr->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeDouble: failed" << std::endl;
 					lme.finish();
 					throw lme;													
@@ -803,7 +803,7 @@ namespace libmaus
 				
 				if ( dataspace->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeDouble: failed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -815,7 +815,7 @@ namespace libmaus
 				
 				if ( datatype->handle < 0 )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeDouble: failed" << std::endl;
 					lme.finish();
 					throw lme;
@@ -833,7 +833,7 @@ namespace libmaus
 					
 					if ( err < 0 )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "HDF5Handle::decodeAttributeDouble: failed" << std::endl;
 						lme.finish();
 						throw lme;														
@@ -843,7 +843,7 @@ namespace libmaus
 				}
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "HDF5Handle::decodeAttributeDouble: failed (not a string)" << std::endl;
 					lme.finish();
 					throw lme;																	

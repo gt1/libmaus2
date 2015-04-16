@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -29,14 +29,14 @@
 #include <sys/endian.h>
 #endif
 
-#include <libmaus/huffman/FileStreamBaseType.hpp>
-#include <libmaus/math/MetaLog.hpp>
-#include <libmaus/math/lowbits.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/huffman/FileStreamBaseType.hpp>
+#include <libmaus2/math/MetaLog.hpp>
+#include <libmaus2/math/lowbits.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-#include <libmaus/util/ReverseByteOrder.hpp>
+#include <libmaus2/util/ReverseByteOrder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -49,16 +49,16 @@ namespace libmaus
 			typedef _raw_input_ptr_type raw_input_ptr_type;
 			typedef _buffer_data_type buffer_data_type;
 			typedef BitInputBufferTemplate<buffer_data_type,raw_input_ptr_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			typedef typename raw_input_ptr_type::element_type raw_input_type;
 
 			raw_input_ptr_type in;
 
 			enum { buffer_data_type_bits = 8*sizeof(buffer_data_type) };
-			enum { buffer_data_type_shift = ::libmaus::math::MetaLog2< buffer_data_type_bits >::log };
+			enum { buffer_data_type_shift = ::libmaus2::math::MetaLog2< buffer_data_type_bits >::log };
 			
-			::libmaus::autoarray::AutoArray<buffer_data_type> B;
+			::libmaus2::autoarray::AutoArray<buffer_data_type> B;
 			buffer_data_type * const pa;
 			buffer_data_type * const pe;
 			buffer_data_type * const pm;
@@ -116,7 +116,7 @@ namespace libmaus
 				if ( bits <= wordfill || bits <= buffer_data_type_bits )
 				{
 					fillWord(bits);
-					uint64_t const mask = ::libmaus::math::lowbits(bits) << (wordfill-bits);
+					uint64_t const mask = ::libmaus2::math::lowbits(bits) << (wordfill-bits);
 					uint64_t const val = (word & mask) >> (wordfill-bits);
 					word &= ~mask;
 					wordfill -= bits;
@@ -129,7 +129,7 @@ namespace libmaus
 					wordfill = 0;
 					word = 0;
 					fillWord(bits);
-					uint64_t const mask = ::libmaus::math::lowbits(bits) << (wordfill-bits);
+					uint64_t const mask = ::libmaus2::math::lowbits(bits) << (wordfill-bits);
 					val |= (word & mask) >> (wordfill-bits);
 					word &= ~mask;
 					wordfill -= bits;
@@ -140,7 +140,7 @@ namespace libmaus
 			uint64_t peek(unsigned int const bits)
 			{
 				fillWord(bits);
-				uint64_t const mask = ::libmaus::math::lowbits(bits) << (wordfill-bits);
+				uint64_t const mask = ::libmaus2::math::lowbits(bits) << (wordfill-bits);
 				uint64_t const val = (word & mask) >> (wordfill-bits);
 				return val;
 			}
@@ -148,7 +148,7 @@ namespace libmaus
 			void erase(unsigned int const bits)
 			{
 				assert ( bits <= wordfill );
-				uint64_t const mask = ::libmaus::math::lowbits(bits) << (wordfill-bits);
+				uint64_t const mask = ::libmaus2::math::lowbits(bits) << (wordfill-bits);
 				word &= ~mask;
 				wordfill -= bits;
 				bitsread += bits;				
@@ -186,7 +186,7 @@ namespace libmaus
 							#elif defined(__linux__)
 							B [ i ] = bswap_64( B[i] );
 							#else
-							B [ i ] = ::libmaus::util::ReverseByteOrder::reverseByteOrder<uint64_t>(B[i]);
+							B [ i ] = ::libmaus2::util::ReverseByteOrder::reverseByteOrder<uint64_t>(B[i]);
 							#endif
 							break;
 						case 4:
@@ -202,7 +202,7 @@ namespace libmaus
 							#elif defined(__linux__)
 							B [ i ] = bswap_32( B[i] );
 							#else
-							B [ i ] = ::libmaus::util::ReverseByteOrder::reverseByteOrder<uint32_t>(B[i]);
+							B [ i ] = ::libmaus2::util::ReverseByteOrder::reverseByteOrder<uint32_t>(B[i]);
 							#endif
 							break;
 						case 2:
@@ -213,7 +213,7 @@ namespace libmaus
 							#elif defined(__linux__)
 							B [ i ] = bswap_16( B[i] );
 							#else
-							B [ i ] = ::libmaus::util::ReverseByteOrder::reverseByteOrder<uint16_t>(B[i]);
+							B [ i ] = ::libmaus2::util::ReverseByteOrder::reverseByteOrder<uint16_t>(B[i]);
 							#endif
 							break;
 						case 1:

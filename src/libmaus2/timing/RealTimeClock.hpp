@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,8 +21,8 @@
 #if ! defined(LIBMAUS_TIMING_REALTIMECLOCK_HPP)
 #define LIBMAUS_TIMING_REALTIMECLOCK_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/types/types.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/types/types.hpp>
 #include <sstream>
 #include <iomanip>
 
@@ -34,7 +34,7 @@
 #include <sys/time.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace timing
 	{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_BGZFLINEARMEMCOMPRESSWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_BGZFLINEARMEMCOMPRESSWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp>
-#include <libmaus/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp>
-#include <libmaus/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/BgzfLinearMemCompressWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GetBgzfDeflateZStreamBaseInterface.hpp>
+#include <libmaus2/bambam/parallel/PutBgzfDeflateZStreamBaseInterface.hpp>
+#include <libmaus2/bambam/parallel/SmallLinearBlockCompressionPendingObjectFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/AddWritePendingBgzfBlockInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{			
 			// dispatcher for block compression
-			struct BgzfLinearMemCompressWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct BgzfLinearMemCompressWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				BgzfLinearMemCompressWorkPackageReturnInterface & returnPackageObject;
 				GetBgzfDeflateZStreamBaseInterface & getBgzfDeflateZStreamBaseObject;
@@ -59,17 +59,17 @@ namespace libmaus
 
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */
 				)
 				{
 					BgzfLinearMemCompressWorkPackage * BP = dynamic_cast<BgzfLinearMemCompressWorkPackage *>(P);
 					assert ( BP );
 
-					libmaus::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outbuf = BP->outbuf;
-					libmaus::lz::BgzfDeflateZStreamBase::shared_ptr_type compressor = getBgzfDeflateZStreamBaseObject.getBgzfDeflateZStreamBase();
+					libmaus2::lz::BgzfDeflateOutputBufferBase::shared_ptr_type outbuf = BP->outbuf;
+					libmaus2::lz::BgzfDeflateZStreamBase::shared_ptr_type compressor = getBgzfDeflateZStreamBaseObject.getBgzfDeflateZStreamBase();
 					
-					libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const flushinfo = compressor->flush(BP->obj.pa,BP->obj.pe,*outbuf);
+					libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const flushinfo = compressor->flush(BP->obj.pa,BP->obj.pe,*outbuf);
 					
 					#if 0
 					tpi.getGlobalLock().lock();

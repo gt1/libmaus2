@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,20 +20,20 @@
 #if ! defined(ESELECT222B_HPP)
 #define ESELECT222B_HPP
 
-#include <libmaus/select/ESelectBase.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/rank/ERank222B.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/select/ESelectBase.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/rank/ERank222B.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <cassert>
 #include <stdexcept>
 #include <memory>
 
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace select
 	{
@@ -44,9 +44,9 @@ namespace libmaus
 		struct ESelect222B : public ESelectBase<sym>
 		{
 			typedef ESelect222B<sym> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef ::libmaus::bitio::BitWriter8 writer_type;
+			typedef ::libmaus2::bitio::BitWriter8 writer_type;
 
 			private:
 			static unsigned int const sbonewidth = 16;
@@ -70,32 +70,32 @@ namespace libmaus
 			uint64_t const num1;
 			
 			uint64_t const numsuper;
-			::libmaus::autoarray::AutoArray < uint64_t > S;
-			::libmaus::autoarray::AutoArray < uint64_t > SL;
-			::libmaus::util::unique_ptr < ::libmaus::rank::ERank222B >::type SLr;
+			::libmaus2::autoarray::AutoArray < uint64_t > S;
+			::libmaus2::autoarray::AutoArray < uint64_t > SL;
+			::libmaus2::util::unique_ptr < ::libmaus2::rank::ERank222B >::type SLr;
 			// large superblocks
-			::libmaus::autoarray::AutoArray < uint64_t > LS;
+			::libmaus2::autoarray::AutoArray < uint64_t > LS;
 			// miniblocks
-			::libmaus::autoarray::AutoArray < uint32_t > M;
+			::libmaus2::autoarray::AutoArray < uint32_t > M;
 			// large miniblocks vector
-			::libmaus::autoarray::AutoArray < uint64_t > ML;
-			::libmaus::util::unique_ptr <  ::libmaus::rank::ERank222B >::type MLr;
+			::libmaus2::autoarray::AutoArray < uint64_t > ML;
+			::libmaus2::util::unique_ptr <  ::libmaus2::rank::ERank222B >::type MLr;
 			// large miniblocks
-			::libmaus::autoarray::AutoArray < uint32_t > LM;
+			::libmaus2::autoarray::AutoArray < uint32_t > LM;
 			// microblock boundaries
-			::libmaus::autoarray::AutoArray < uint16_t > MI;
+			::libmaus2::autoarray::AutoArray < uint16_t > MI;
 	
 
 			static uint64_t computeNum1(uint64_t const * const UUUUUUUU, uint64_t const rn)
 			{
 				if ( rn % 64 )
-					throw ::std::runtime_error("libmaus::select::ESelect222B: n is not multiple of miniblock size 64.");
+					throw ::std::runtime_error("libmaus2::select::ESelect222B: n is not multiple of miniblock size 64.");
 
 				uint64_t const numwords = rn / 64;
 				uint64_t num1 = 0;
 				
 				for ( uint64_t i = 0; i < numwords; ++i )
-					num1 += ::libmaus::rank::ERankBase::popcount8(ESelectBase<sym>::process(UUUUUUUU[i]));
+					num1 += ::libmaus2::rank::ERankBase::popcount8(ESelectBase<sym>::process(UUUUUUUU[i]));
 					
 				return num1;
 			}
@@ -105,7 +105,7 @@ namespace libmaus
 			 **/
 			bool isLargeSuperBlock(uint64_t const s) const
 			{
-				return ::libmaus::bitio::getBit(SL.get(), s) != 0;
+				return ::libmaus2::bitio::getBit(SL.get(), s) != 0;
 			}
 			uint64_t getSmallSuperBlockIndex(uint64_t const s) const
 			{
@@ -181,7 +181,7 @@ namespace libmaus
 				uint64_t const mm = m - (s * minipersuper);
 
 				// large miniblock?			
-				if ( ::libmaus::bitio::getBit(ML.get(), mp) )
+				if ( ::libmaus2::bitio::getBit(ML.get(), mp) )
 				{
 					uint64_t const lmi = getLargeMiniBlockIndex(mp);
 					// ::std::cerr << "large miniblock." << ::std::endl;
@@ -201,7 +201,7 @@ namespace libmaus
 				i -= (sbones * s) + (mbones * mm) + (mibones * mimi);
 				uint64_t j = S[s] + M[mp] + MI[mip];
 				
-				// assert ( ::libmaus::bitio::getBit( UUUUUUUU , j ) == 1 );
+				// assert ( ::libmaus2::bitio::getBit( UUUUUUUU , j ) == 1 );
 
 				if ( ! i )
 					return j;
@@ -215,7 +215,7 @@ namespace libmaus
 					uint64_t const v = ESelectBase<sym>::process(UUUUUUUU[ (j+1)/ 64 ]);
 					unsigned int const restbits = (64-(j+1)%64);
 					uint64_t const restmask = ((1ull << restbits)-1);
-					uint64_t const p = ::libmaus::rank::ERankBase::popcount8( v & restmask );
+					uint64_t const p = ::libmaus2::rank::ERankBase::popcount8( v & restmask );
 
 					// selected bit is not in this word
 					if ( p < i )
@@ -228,7 +228,7 @@ namespace libmaus
 				uint64_t w = (j+1)/64;
 				unsigned int p;
 					
-				while ( (p=::libmaus::rank::ERankBase::popcount8(ESelectBase<sym>::process(UUUUUUUU[w]))) < i )
+				while ( (p=::libmaus2::rank::ERankBase::popcount8(ESelectBase<sym>::process(UUUUUUUU[w]))) < i )
 				{
 					j += 64;
 					i -= p;
@@ -246,7 +246,7 @@ namespace libmaus
 					return;
 
 				if ( n % 64 )
-					throw ::std::runtime_error("::libmaus::select::ESelect222B: n is not multiple of miniblock size 64.");
+					throw ::std::runtime_error("::libmaus2::select::ESelect222B: n is not multiple of miniblock size 64.");
 					
 				uint64_t const numwords = n / 64;
 				
@@ -273,7 +273,7 @@ namespace libmaus
 				/**
 				 * construct large superblock vector
 				 **/
-				SL = ::libmaus::autoarray::AutoArray<uint64_t> ( (numsuper + 63)/64 );
+				SL = ::libmaus2::autoarray::AutoArray<uint64_t> ( (numsuper + 63)/64 );
 				writer_type WSL (SL.get());
 				
 				for ( uint64_t i = 0; i < numsuper; ++i )
@@ -283,8 +283,8 @@ namespace libmaus
 				/**
 				 * rank dictionary for large superblock vector
 				 **/	
-				::libmaus::util::unique_ptr <  ::libmaus::rank::ERank222B >::type tSLr (
-                                        new ::libmaus::rank::ERank222B( SL.get(), ((numsuper + 63)/64)*64 )
+				::libmaus2::util::unique_ptr <  ::libmaus2::rank::ERank222B >::type tSLr (
+                                        new ::libmaus2::rank::ERank222B( SL.get(), ((numsuper + 63)/64)*64 )
                                 );
 				SLr = UNIQUE_PTR_MOVE(tSLr);
 				
@@ -377,7 +377,7 @@ namespace libmaus
 				/**
 				 * construct rank dictionary for large miniblock vector
 				 **/
-				::libmaus::util::unique_ptr< ::libmaus::rank::ERank222B >::type tMLr ( new  ::libmaus::rank::ERank222B( ML.get(), ((m + 63)/64)*64 ) );
+				::libmaus2::util::unique_ptr< ::libmaus2::rank::ERank222B >::type tMLr ( new  ::libmaus2::rank::ERank222B( ML.get(), ((m + 63)/64)*64 ) );
 				MLr = UNIQUE_PTR_MOVE(tMLr);
 				
 				uint64_t largemini = MLr->rank1(m - 1);

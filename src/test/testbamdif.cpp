@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,26 +16,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 struct SequenceComparison
 {
-	libmaus::bambam::BamHeader header;
+	libmaus2::bambam::BamHeader header;
 
-	::libmaus::autoarray::AutoArray<char> seqa;
-	::libmaus::autoarray::AutoArray<char> seqb;
+	::libmaus2::autoarray::AutoArray<char> seqa;
+	::libmaus2::autoarray::AutoArray<char> seqb;
 	
-	::libmaus::autoarray::AutoArray<int64_t> mapa;
-	::libmaus::autoarray::AutoArray<int64_t> mapb;
-	libmaus::autoarray::AutoArray<libmaus::bambam::cigar_operation> cigop;
+	::libmaus2::autoarray::AutoArray<int64_t> mapa;
+	::libmaus2::autoarray::AutoArray<int64_t> mapb;
+	libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> cigop;
 
-	SequenceComparison(libmaus::bambam::BamHeader const & rheader) : header(rheader)
+	SequenceComparison(libmaus2::bambam::BamHeader const & rheader) : header(rheader)
 	{
 	
 	}
 	
-	bool operator()(libmaus::bambam::BamAlignment & A, libmaus::bambam::BamAlignment & B)
+	bool operator()(libmaus2::bambam::BamAlignment & A, libmaus2::bambam::BamAlignment & B)
 	{
 		uint64_t la = A.decodeRead(seqa);
 		uint64_t lb = B.decodeRead(seqb);
@@ -53,19 +53,19 @@ struct SequenceComparison
 	}
 
 	void flip(
-		libmaus::bambam::BamAlignment & ala_1, libmaus::bambam::BamAlignment & ala_2
+		libmaus2::bambam::BamAlignment & ala_1, libmaus2::bambam::BamAlignment & ala_2
 	)
 	{
 		ala_1.reverseComplementInplace();
 
-		uint16_t const fmask = static_cast<uint16_t>(libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE);
-		uint16_t const rmask = static_cast<uint16_t>(libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE);
+		uint16_t const fmask = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE);
+		uint16_t const rmask = static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE);
 
 		ala_1.putFlags ( ala_1.getFlags() ^ fmask );
 		ala_2.putFlags ( ala_2.getFlags() ^ rmask );
 	}
 	
-	bool opposite(libmaus::bambam::BamAlignment & A, libmaus::bambam::BamAlignment & B)
+	bool opposite(libmaus2::bambam::BamAlignment & A, libmaus2::bambam::BamAlignment & B)
 	{
 		B.reverseComplementInplace();
 		uint64_t const la = A.decodeRead(seqa);
@@ -92,8 +92,8 @@ struct SequenceComparison
 	}
 	
 	void checkFlip(
-		libmaus::bambam::BamAlignment & ala_1, libmaus::bambam::BamAlignment & ala_2,
-		libmaus::bambam::BamAlignment & alb_1, libmaus::bambam::BamAlignment & alb_2
+		libmaus2::bambam::BamAlignment & ala_1, libmaus2::bambam::BamAlignment & ala_2,
+		libmaus2::bambam::BamAlignment & alb_1, libmaus2::bambam::BamAlignment & alb_2
 	)
 	{
 		if ( ala_1.isMapped() && !alb_1.isMapped() && ala_1.isReverse() != alb_1.isReverse() )
@@ -107,8 +107,8 @@ struct SequenceComparison
 	}
 
 	void checkFlipRaw(
-		libmaus::bambam::BamAlignment & ala_1, libmaus::bambam::BamAlignment & ala_2,
-		libmaus::bambam::BamAlignment & alb_1, libmaus::bambam::BamAlignment & alb_2
+		libmaus2::bambam::BamAlignment & ala_1, libmaus2::bambam::BamAlignment & ala_2,
+		libmaus2::bambam::BamAlignment & alb_1, libmaus2::bambam::BamAlignment & alb_2
 	)
 	{
 		if ( ala_1.isMapped() && (!alb_1.isMapped()) && opposite(ala_1,alb_1) )
@@ -122,8 +122,8 @@ struct SequenceComparison
 	}
 
 	void checkFlipRawUnmapped(
-		libmaus::bambam::BamAlignment & ala_1, libmaus::bambam::BamAlignment & ala_2,
-		libmaus::bambam::BamAlignment & alb_1, libmaus::bambam::BamAlignment & alb_2
+		libmaus2::bambam::BamAlignment & ala_1, libmaus2::bambam::BamAlignment & ala_2,
+		libmaus2::bambam::BamAlignment & alb_1, libmaus2::bambam::BamAlignment & alb_2
 	)
 	{
 		if ( (!ala_1.isMapped()) && (!alb_1.isMapped()) && opposite(ala_1,alb_1) )
@@ -132,11 +132,11 @@ struct SequenceComparison
 			flip(alb_2,alb_1);
 	}
 	
-	void fillMap(libmaus::bambam::BamAlignment & A, ::libmaus::autoarray::AutoArray<int64_t> & M)
+	void fillMap(libmaus2::bambam::BamAlignment & A, ::libmaus2::autoarray::AutoArray<int64_t> & M)
 	{
 		uint64_t const l = A.getLseq();
 		if ( l > M.size() )
-			M = ::libmaus::autoarray::AutoArray<int64_t>(l,false);
+			M = ::libmaus2::autoarray::AutoArray<int64_t>(l,false);
 		std::fill(M.begin(),M.end(),-1);
 
 		if ( A.isMapped() )
@@ -149,35 +149,35 @@ struct SequenceComparison
 			
 			for ( ; 
 				i < numop && 
-				cigop[i].first != ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH &&
-				cigop[i].first != ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL &&
-				cigop[i].first != ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF 
+				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH &&
+				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL &&
+				cigop[i].first != ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF 
 				; ++i
 			)
 			{
 				switch ( cigop[i].first )
 				{
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
 						assert(0);
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
 						// refpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
 						// refpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP:
 						// readpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
 						break;
 				}
 			}
@@ -188,28 +188,28 @@ struct SequenceComparison
 			{
 				switch ( cigop[i].first )
 				{
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CMATCH:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CEQUAL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDIFF:
 						for ( int64_t j = 0; j < cigop[i].second; ++j )
 							M[readpos++] = refpos++;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CINS:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CDEL:
 						refpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CREF_SKIP:
 						refpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CSOFT_CLIP:
 						readpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CHARD_CLIP:
 						// readpos += cigop[i].second;
 						break;
-					case ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
+					case ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_CPAD:
 						break;
 				}
 			
@@ -217,7 +217,7 @@ struct SequenceComparison
 		}
 	}
 	
-	bool matchingMatchPos(libmaus::bambam::BamAlignment & A, libmaus::bambam::BamAlignment & B)
+	bool matchingMatchPos(libmaus2::bambam::BamAlignment & A, libmaus2::bambam::BamAlignment & B)
 	{
 		if ( A.isMapped() && B.isMapped() )
 		{
@@ -259,34 +259,34 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const fna = arginfo.getRestArg<std::string>(0);
 		std::string const fnb = arginfo.getRestArg<std::string>(1);
 		
-		libmaus::bambam::BamDecoder bama(fna);
-		libmaus::bambam::BamDecoder bamb(fnb);
+		libmaus2::bambam::BamDecoder bama(fna);
+		libmaus2::bambam::BamDecoder bamb(fnb);
 
-		libmaus::bambam::BamHeader const & heada = bama.getHeader();
-		// libmaus::bambam::BamHeader const & headb = bamb.getHeader();
+		libmaus2::bambam::BamHeader const & heada = bama.getHeader();
+		// libmaus2::bambam::BamHeader const & headb = bamb.getHeader();
 		
-		libmaus::bambam::BamAlignment & ala = bama.getAlignment();
-		libmaus::bambam::BamAlignment & alb = bamb.getAlignment();
+		libmaus2::bambam::BamAlignment & ala = bama.getAlignment();
+		libmaus2::bambam::BamAlignment & alb = bamb.getAlignment();
 		
-		libmaus::bambam::BamAlignment ala_1, ala_2;
-		libmaus::bambam::BamAlignment alb_1, alb_2;
+		libmaus2::bambam::BamAlignment ala_1, ala_2;
+		libmaus2::bambam::BamAlignment alb_1, alb_2;
 		
-		::libmaus::bambam::BamFormatAuxiliary aux;
+		::libmaus2::bambam::BamFormatAuxiliary aux;
 		// uint64_t alcnt = 0;
 		// bool eq = true;
 		// uint64_t const mod = 16*1024*1024;
 		
 		SequenceComparison seqcomp(heada);
 		
-		::libmaus::autoarray::AutoArray<char> ala_1_r;
-		::libmaus::autoarray::AutoArray<char> ala_2_r;
-		::libmaus::autoarray::AutoArray<char> alb_1_r;
-		::libmaus::autoarray::AutoArray<char> alb_2_r;
+		::libmaus2::autoarray::AutoArray<char> ala_1_r;
+		::libmaus2::autoarray::AutoArray<char> ala_2_r;
+		::libmaus2::autoarray::AutoArray<char> alb_1_r;
+		::libmaus2::autoarray::AutoArray<char> alb_2_r;
 		
 		uint64_t cnteq = 0;
 		uint64_t cntdif = 0;
@@ -302,7 +302,7 @@ int main(int argc, char * argv[])
 			
 			if ( ! bama.readAlignment() )
 			{
-				libmaus::exception::LibMausException se;
+				libmaus2::exception::LibMausException se;
 				se.getStream() << "EOF on " << fna << " while looking for mate." << std::endl;
 				se.finish();
 				throw se;				
@@ -312,7 +312,7 @@ int main(int argc, char * argv[])
 		
 			if ( ! bamb.readAlignment() )
 			{
-				libmaus::exception::LibMausException se;
+				libmaus2::exception::LibMausException se;
 				se.getStream() << "EOF on " << fnb << std::endl;
 				se.finish();
 				throw se;
@@ -322,7 +322,7 @@ int main(int argc, char * argv[])
 
 			if ( ! bamb.readAlignment() )
 			{
-				libmaus::exception::LibMausException se;
+				libmaus2::exception::LibMausException se;
 				se.getStream() << "EOF on " << fnb << " while looking for mate." << std::endl;
 				se.finish();
 				throw se;
@@ -333,9 +333,9 @@ int main(int argc, char * argv[])
 			if ( seqcomp(ala_1,alb_2) && seqcomp(ala_2,alb_1) && (!seqcomp(ala_1,ala_2)) )
 			{
 				uint16_t const rmask = 
-					static_cast<uint16_t>(libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) 
+					static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1) 
 					| 
-					static_cast<uint16_t>(libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2);
+					static_cast<uint16_t>(libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2);
 
 				alb_1.putFlags ( (alb_1.getFlags() ^ rmask) );
 				alb_2.putFlags ( (alb_2.getFlags() ^ rmask) );
@@ -481,7 +481,7 @@ int main(int argc, char * argv[])
 
 		if ( bama.readAlignment() )
 		{
-			libmaus::exception::LibMausException se;
+			libmaus2::exception::LibMausException se;
 			se.getStream() << "EOF on " << fna << std::endl;
 			se.finish();
 			throw se;

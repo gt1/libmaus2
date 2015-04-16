@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,21 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/bambam/BamParallelRewrite.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamParallelRewrite.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		uint64_t const numthreads = arginfo.getValue<uint64_t>("numthreads",8);
 
-		libmaus::bambam::BamParallelRewrite BPR(std::cin,std::cout,Z_DEFAULT_COMPRESSION,numthreads,4 /* blocks per thread */);
-		libmaus::bambam::BamAlignmentDecoder & dec = BPR.getDecoder();
-		libmaus::bambam::BamParallelRewrite::writer_type & writer = BPR.getWriter();
+		libmaus2::bambam::BamParallelRewrite BPR(std::cin,std::cout,Z_DEFAULT_COMPRESSION,numthreads,4 /* blocks per thread */);
+		libmaus2::bambam::BamAlignmentDecoder & dec = BPR.getDecoder();
+		libmaus2::bambam::BamParallelRewrite::writer_type & writer = BPR.getWriter();
 
-		libmaus::bambam::BamAlignment const & algn = dec.getAlignment();
+		libmaus2::bambam::BamAlignment const & algn = dec.getAlignment();
 		uint64_t cnt = 0;
 		for ( ; dec.readAlignment(); ++cnt )
 		{

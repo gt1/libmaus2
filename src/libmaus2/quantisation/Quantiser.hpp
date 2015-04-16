@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,14 +19,14 @@
 #if ! defined(LIBMAUS_QUANTISATION_QUANTISER_HPP)
 #define LIBMAUS_QUANTISATION_QUANTISER_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
 #include <vector>
 #include <cmath>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace quantisation
 	{
@@ -38,8 +38,8 @@ namespace libmaus
 			friend std::ostream & operator<<(std::ostream & out, Quantiser const & Q);
 		
 			typedef Quantiser this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			private:
 			std::vector<double> const centres;
@@ -55,18 +55,18 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & out) const
 			{
-				::libmaus::util::UTF8::encodeUTF8(centres.size(),out);
+				::libmaus2::util::UTF8::encodeUTF8(centres.size(),out);
 				for ( uint64_t i = 0; i < centres.size(); ++i )
-					::libmaus::util::NumberSerialisation::serialiseDouble(out,centres[i]);
+					::libmaus2::util::NumberSerialisation::serialiseDouble(out,centres[i]);
 			}
 			
 			template<typename stream_type>
 			static std::vector<double> decodeCentreVector(stream_type & in)
 			{
-				uint64_t const len = ::libmaus::util::UTF8::decodeUTF8(in);
+				uint64_t const len = ::libmaus2::util::UTF8::decodeUTF8(in);
 				std::vector<double> centres;
 				for ( uint64_t i = 0; i < len; ++i )
-					centres.push_back(::libmaus::util::NumberSerialisation::deserialiseDouble(in));
+					centres.push_back(::libmaus2::util::NumberSerialisation::deserialiseDouble(in));
 				return centres;
 			}
 			

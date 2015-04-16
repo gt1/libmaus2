@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,10 +21,10 @@
 
 #include <ostream>
 #include <deque>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/util/stringFunctions.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/util/stringFunctions.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -74,32 +74,32 @@ namespace libmaus
 			static uint64_t stringToFlag(std::string const & s)
 			{
 				if ( s == "PAIRED" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPAIRED;
 				else if ( s == "PROPER_PAIR" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FPROPER_PAIR;
 				else if ( s == "UNMAP" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FUNMAP;
 				else if ( s == "MUNMAP" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMUNMAP;
 				else if ( s == "REVERSE" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREVERSE;
 				else if ( s == "MREVERSE" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FMREVERSE;
 				else if ( s == "READ1" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD1;
 				else if ( s == "READ2" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FREAD2;
 				else if ( s == "SECONDARY" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSECONDARY;
 				else if ( s == "QCFAIL" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FQCFAIL;
 				else if ( s == "DUP" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FDUP;
 				else if ( s == "SUPPLEMENTARY" )
-					return ::libmaus::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY;
+					return ::libmaus2::bambam::BamFlagBase::LIBMAUS_BAMBAM_FSUPPLEMENTARY;
 				else
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Unknown flag " << s << std::endl;
 					se.finish();
 					throw se;
@@ -114,7 +114,7 @@ namespace libmaus
 			 **/
 			static uint64_t stringToFlags(std::string const & s)
 			{
-				std::deque<std::string> const tokens = ::libmaus::util::stringFunctions::tokenize(s,std::string(","));
+				std::deque<std::string> const tokens = ::libmaus2::util::stringFunctions::tokenize(s,std::string(","));
 				uint64_t flags = 0;
 				
 				for ( uint64_t i = 0; i < tokens.size(); ++i )

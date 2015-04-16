@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if ! defined(LIBMAUS_UTIL_FILETEMPFILECONTAINER_HPP)
 #define LIBMAUS_UTIL_FILETEMPFILECONTAINER_HPP
 
-#include <libmaus/util/TempFileContainer.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/TempFileContainer.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		/**
 		 * file based temporary storage container class
 		 **/
-		struct FileTempFileContainer : public libmaus::util::TempFileContainer
+		struct FileTempFileContainer : public libmaus2::util::TempFileContainer
 		{
 			//! type of output stream of temporary storage
-			typedef libmaus::aio::CheckedOutputStream output_stream_type;
+			typedef libmaus2::aio::CheckedOutputStream output_stream_type;
 			//! pointer to output stream
-			typedef libmaus::util::shared_ptr<output_stream_type>::type output_stream_ptr_type;
+			typedef libmaus2::util::shared_ptr<output_stream_type>::type output_stream_ptr_type;
 			//! type of input stream for temporary storage
-			typedef libmaus::aio::CheckedInputStream input_stream_type;
+			typedef libmaus2::aio::CheckedInputStream input_stream_type;
 			//! pointer to input stream
-			typedef libmaus::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
+			typedef libmaus2::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
 			
 			//! temporary file name generator object
-			libmaus::util::TempFileNameGenerator & tmpgen;
+			libmaus2::util::TempFileNameGenerator & tmpgen;
 			//! output streams
 			std::map < uint64_t, output_stream_ptr_type > outstreams;
 			//! output file names
@@ -54,7 +54,7 @@ namespace libmaus
 			//! input streams
 			std::map < uint64_t, input_stream_ptr_type > instreams;
 			//! concurrency lock
-			libmaus::parallel::OMPLock lock;
+			libmaus2::parallel::OMPLock lock;
 			
 			/**
 			 * constructor
@@ -62,10 +62,10 @@ namespace libmaus
 			 * @param rtmpgen generator object for temporary file names
 			 **/
 			FileTempFileContainer(
-				libmaus::util::TempFileNameGenerator & rtmpgen
+				libmaus2::util::TempFileNameGenerator & rtmpgen
 			) : tmpgen(rtmpgen)
 			{
-				libmaus::util::TempFileRemovalContainer::setup();
+				libmaus2::util::TempFileRemovalContainer::setup();
 			}
 			
 			/**
@@ -77,9 +77,9 @@ namespace libmaus
 			 **/
 			std::ostream & openOutputTempFile(uint64_t id)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				filenames[id] = tmpgen.getFileName();
-				libmaus::util::TempFileRemovalContainer::addTempFile(filenames[id]);
+				libmaus2::util::TempFileRemovalContainer::addTempFile(filenames[id]);
 				outstreams[id] = output_stream_ptr_type(new output_stream_type(filenames[id]));
 				return *(outstreams[id]);
 			}
@@ -91,7 +91,7 @@ namespace libmaus
 			 **/
 			std::ostream & getOutputTempFile(uint64_t id)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				return *(outstreams[id]);
 			}
 			/**
@@ -101,7 +101,7 @@ namespace libmaus
 			 **/
 			void closeOutputTempFile(uint64_t id)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				if ( outstreams.find(id) != outstreams.end() )
 				{
 					outstreams.find(id)->second->flush();
@@ -117,7 +117,7 @@ namespace libmaus
 			 **/
 			std::istream & openInputTempFile(uint64_t id)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				assert ( filenames.find(id) != filenames.end() );
 				
 				instreams[id] = input_stream_ptr_type(new input_stream_type(filenames.find(id)->second));
@@ -131,7 +131,7 @@ namespace libmaus
 			 **/
 			void closeInputTempFile(uint64_t id)
 			{
-				libmaus::parallel::ScopeLock slock(lock);
+				libmaus2::parallel::ScopeLock slock(lock);
 				if ( instreams.find(id) != instreams.end() )
 				{
 					instreams.erase(instreams.find(id));

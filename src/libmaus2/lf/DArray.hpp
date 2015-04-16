@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,35 +19,35 @@
 #if ! defined(LIBMAUS_LF_DARRAY_HPP)
 #define LIBMAUS_LF_DARRAY_HPP
 
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lf
 	{
 		struct DArray
 		{
 			typedef DArray this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			::libmaus::autoarray::AutoArray<uint64_t> D;
+			::libmaus2::autoarray::AutoArray<uint64_t> D;
 			
 			template<typename stream_type>
-			static ::libmaus::autoarray::AutoArray<uint64_t> loadArray(stream_type & CIS)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> loadArray(stream_type & CIS)
 			{
-				uint64_t const s = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
-				::libmaus::autoarray::AutoArray<uint64_t> D(s,false);
+				uint64_t const s = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
+				::libmaus2::autoarray::AutoArray<uint64_t> D(s,false);
 				for ( uint64_t i = 0; i < s; ++i )
-					D[i] = ::libmaus::util::NumberSerialisation::deserialiseNumber(CIS);
+					D[i] = ::libmaus2::util::NumberSerialisation::deserialiseNumber(CIS);
 				return D;
 			}
 
-			static ::libmaus::autoarray::AutoArray<uint64_t> loadArray(std::string const & filename)
+			static ::libmaus2::autoarray::AutoArray<uint64_t> loadArray(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream CIS(filename);	
+				::libmaus2::aio::CheckedInputStream CIS(filename);	
 				return loadArray(CIS);
 			}
 			
@@ -75,14 +75,14 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & stream) const
 			{	
-				::libmaus::util::NumberSerialisation::serialiseNumber(stream,D.size());
+				::libmaus2::util::NumberSerialisation::serialiseNumber(stream,D.size());
 				
 				for ( uint64_t i = 0; i < D.size(); ++i )
-					::libmaus::util::NumberSerialisation::serialiseNumber(stream,D[i]);
+					::libmaus2::util::NumberSerialisation::serialiseNumber(stream,D[i]);
 			}
 			void serialise(std::string const & filename) const
 			{
-				::libmaus::aio::CheckedOutputStream COS(filename);
+				::libmaus2::aio::CheckedOutputStream COS(filename);
 				serialise(COS);
 			}
 			
@@ -90,7 +90,7 @@ namespace libmaus
 			{
 				if ( o.D.size() != D.size() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "DArray::merge(): array sizes are not compatible." << std::endl;
 					se.finish();
 					throw se;

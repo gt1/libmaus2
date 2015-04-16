@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,23 +19,23 @@
 #if ! defined(LIBMAUS_BITIO_BITSTREAMFILEDECODER_HPP)
 #define LIBMAUS_BITIO_BITSTREAMFILEDECODER_HPP
 
-#include <libmaus/huffman/BitInputBuffer.hpp>
+#include <libmaus2/huffman/BitInputBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
 		struct BitStreamFileDecoder
 		{
-			typedef ::libmaus::huffman::BitInputBuffer4 sbis_type;
+			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
 			
-			::libmaus::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
 			sbis_type::raw_input_ptr_type ript;
 			sbis_type::unique_ptr_type SBIS;
 			
-			static ::libmaus::aio::CheckedInputStream::unique_ptr_type openFileAtPosition(std::string const & filename, uint64_t const pos)
+			static ::libmaus2::aio::CheckedInputStream::unique_ptr_type openFileAtPosition(std::string const & filename, uint64_t const pos)
 			{
-				::libmaus::aio::CheckedInputStream::unique_ptr_type istr(new ::libmaus::aio::CheckedInputStream(filename));
+				::libmaus2::aio::CheckedInputStream::unique_ptr_type istr(new ::libmaus2::aio::CheckedInputStream(filename));
 				istr->seekg(pos,std::ios::beg);
 				return UNIQUE_PTR_MOVE(istr);
 			}

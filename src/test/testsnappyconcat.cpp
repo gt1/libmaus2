@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,29 +17,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/lz/SimpleCompressedStreamInterval.hpp>
+#include <libmaus2/lz/SimpleCompressedStreamInterval.hpp>
 
-#include <libmaus/lz/SnappyCompressorObjectFactory.hpp>
-#include <libmaus/lz/SnappyDecompressorObjectFactory.hpp>
+#include <libmaus2/lz/SnappyCompressorObjectFactory.hpp>
+#include <libmaus2/lz/SnappyDecompressorObjectFactory.hpp>
 
-#include <libmaus/lz/SimpleCompressedInputStream.hpp>
-#include <libmaus/lz/SimpleCompressedConcatInputStream.hpp>
-#include <libmaus/lz/SimpleCompressedOutputStream.hpp>
+#include <libmaus2/lz/SimpleCompressedInputStream.hpp>
+#include <libmaus2/lz/SimpleCompressedConcatInputStream.hpp>
+#include <libmaus2/lz/SimpleCompressedOutputStream.hpp>
 
 #include <iostream>
 
 void testSingle(std::string const & s0)
 {
 	uint64_t const l0 = s0.size();
-	libmaus::autoarray::AutoArray<char> C(s0.size(),false);
+	libmaus2::autoarray::AutoArray<char> C(s0.size(),false);
 
 	for ( uint64_t bs = 1; bs <= 16; ++bs )
 		for ( uint64_t b_0 = 0; b_0 <= l0; ++b_0 )
 			for ( uint64_t b_1 = 0; b_1 <= l0-b_0; ++b_1 )
 			{
 				std::ostringstream o_0;
-				libmaus::lz::SnappyCompressorObjectFactory scompfact;
-				libmaus::lz::SimpleCompressedOutputStream<std::ostream> lzout_0(o_0,scompfact,bs);
+				libmaus2::lz::SnappyCompressorObjectFactory scompfact;
+				libmaus2::lz::SimpleCompressedOutputStream<std::ostream> lzout_0(o_0,scompfact,bs);
 			
 				lzout_0.write(s0.c_str(),b_0);
 				std::pair<uint64_t,uint64_t> start_0 = lzout_0.getOffset();
@@ -52,8 +52,8 @@ void testSingle(std::string const & s0)
 				std::string const u0 = s0.substr(b_0,b_1);
 				
 				std::istringstream i_0(o_0.str());
-				libmaus::lz::SnappyDecompressorObjectFactory decompfact;
-				libmaus::lz::SimpleCompressedInputStream<std::istream> decomp(i_0,decompfact,start_0);
+				libmaus2::lz::SnappyDecompressorObjectFactory decompfact;
+				libmaus2::lz::SimpleCompressedInputStream<std::istream> decomp(i_0,decompfact,start_0);
 				
 				uint64_t j = 0;
 				for ( uint64_t i = 0; i < u0.size(); ++i )
@@ -88,9 +88,9 @@ void testConcat(std::string const & s0, std::string const & s1)
 						#endif
 
 						std::ostringstream o_0, o_1;
-						libmaus::lz::SnappyCompressorObjectFactory scompfact;
-						libmaus::lz::SimpleCompressedOutputStream<std::ostream> lzout_0(o_0,scompfact,bs);
-						libmaus::lz::SimpleCompressedOutputStream<std::ostream> lzout_1(o_1,scompfact,bs);
+						libmaus2::lz::SnappyCompressorObjectFactory scompfact;
+						libmaus2::lz::SimpleCompressedOutputStream<std::ostream> lzout_0(o_0,scompfact,bs);
+						libmaus2::lz::SimpleCompressedOutputStream<std::ostream> lzout_1(o_1,scompfact,bs);
 						
 						// std::cerr << "encoding s_0" << std::endl;
 						lzout_0.write(s0.c_str(),b_0);
@@ -114,16 +114,16 @@ void testConcat(std::string const & s0, std::string const & s1)
 						std::string const u = u0+u1;
 						
 						std::istringstream i_0(o_0.str());
-						libmaus::lz::SimpleCompressedConcatInputStreamFragment<std::istream> frag_0(start_0,end_0,&i_0);
+						libmaus2::lz::SimpleCompressedConcatInputStreamFragment<std::istream> frag_0(start_0,end_0,&i_0);
 						std::istringstream i_1(o_1.str());
-						libmaus::lz::SimpleCompressedConcatInputStreamFragment<std::istream> frag_1(start_1,end_1,&i_1);
+						libmaus2::lz::SimpleCompressedConcatInputStreamFragment<std::istream> frag_1(start_1,end_1,&i_1);
 						
-						std::vector<libmaus::lz::SimpleCompressedConcatInputStreamFragment<std::istream> > frags;
+						std::vector<libmaus2::lz::SimpleCompressedConcatInputStreamFragment<std::istream> > frags;
 						frags.push_back(frag_0);
 						frags.push_back(frag_1);
 						
-						libmaus::lz::SnappyDecompressorObjectFactory decompfact;
-						libmaus::lz::SimpleCompressedConcatInputStream<std::istream> conc(frags,decompfact);
+						libmaus2::lz::SnappyDecompressorObjectFactory decompfact;
+						libmaus2::lz::SimpleCompressedConcatInputStream<std::istream> conc(frags,decompfact);
 						
 						#if 0
 						std::cerr << "expecting " << u << std::endl;

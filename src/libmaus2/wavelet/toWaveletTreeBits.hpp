@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(TOWAVELETTREEBITS_HPP)
 #define TOWAVELETTREEBITS_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
-		libmaus::autoarray::AutoArray<uint64_t> toWaveletTreeBits(libmaus::bitio::CompactArray * C, bool const verbose = true);
-		libmaus::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus::bitio::CompactArray * C);
+		libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBits(libmaus2::bitio::CompactArray * C, bool const verbose = true);
+		libmaus2::autoarray::AutoArray<uint64_t> toWaveletTreeBitsParallel(::libmaus2::bitio::CompactArray * C);
 	}
 }
 #endif

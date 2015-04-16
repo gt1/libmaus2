@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -18,8 +18,8 @@
 */
 #include <iostream>
 #include <cstdlib>
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/fastx/QReorder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/fastx/QReorder.hpp>
 
 void printBits(uint64_t const i)
 {
@@ -39,7 +39,7 @@ void testReorder4()
 	
 	for ( uint64_t z = 0; z < 16; ++z )
 	{
-		libmaus::fastx::QReorderTemplate4Base<k> Q(
+		libmaus2::fastx::QReorderTemplate4Base<k> Q(
 			fraglen+((z&1)!=0),
 			fraglen+((z&2)!=0),
 			fraglen+((z&4)!=0),
@@ -61,7 +61,7 @@ void testReorder4()
 uint64_t slowComp(uint64_t a, uint64_t b, unsigned int k, unsigned int l)
 {	
 	unsigned int d = 0;
-	uint64_t const mask = libmaus::math::lowbits(k);
+	uint64_t const mask = libmaus2::math::lowbits(k);
 	
 	for ( unsigned int i = 0; i < l; ++i, a >>= k, b >>= k )
 		 if ( (a & mask) != (b & mask) )
@@ -99,8 +99,8 @@ void testQReorder4Set()
 	for ( uint64_t i = 0; i < 32; ++i )
 		V.push_back( rand() & bmask );
 
-	libmaus::fastx::QReorder4Set<k,uint64_t> QR(l,V.begin(),V.end(),2);
-	libmaus::fastx::AutoArrayWordPutObject<uint64_t> AAWPO;
+	libmaus2::fastx::QReorder4Set<k,uint64_t> QR(l,V.begin(),V.end(),2);
+	libmaus2::fastx::AutoArrayWordPutObject<uint64_t> AAWPO;
 	for ( uint64_t i = 0; i < V.size(); ++i )
 	{
 		QR.search(V[i],0,AAWPO);

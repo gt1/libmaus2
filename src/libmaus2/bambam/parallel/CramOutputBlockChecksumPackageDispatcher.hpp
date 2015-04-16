@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKCHECKSUMPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_CRAMOUTPUTBLOCKCHECKSUMPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/CramOutputBlockChecksumComputedInterface.hpp>
-#include <libmaus/bambam/parallel/CramOutputBlockChecksumPackageReturnInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlockChecksumComputedInterface.hpp>
+#include <libmaus2/bambam/parallel/CramOutputBlockChecksumPackageReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct CramOutputBlockChecksumPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct CramOutputBlockChecksumPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef CramOutputBlockChecksumPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				CramOutputBlockChecksumPackageReturnInterface & packageReturnInterface;
 				CramOutputBlockChecksumComputedInterface & checksumComputedInterface;
@@ -43,12 +43,12 @@ namespace libmaus
 					CramOutputBlockChecksumComputedInterface & rchecksumComputedInterface
 				) : packageReturnInterface(rpackageReturnInterface), checksumComputedInterface(rchecksumComputedInterface) {}
 				~CramOutputBlockChecksumPackageDispatcher() {}
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					CramOutputBlockChecksumPackage * BP = dynamic_cast<CramOutputBlockChecksumPackage *>(P);
 
 					CramOutputBlock::shared_ptr_type block = BP->block;
-					libmaus::digest::DigestInterface * filechecksum = BP->filechecksum;
+					libmaus2::digest::DigestInterface * filechecksum = BP->filechecksum;
 
 					if ( block->fill )
 						filechecksum->vupdate(reinterpret_cast<uint8_t const *>(block->A->begin()),block->fill);

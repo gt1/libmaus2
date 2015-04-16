@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/MemUsage.hpp>
+#include <libmaus2/util/MemUsage.hpp>
 
 #if defined(__APPLE__)
 #include <mach/mach.h>
@@ -33,7 +33,7 @@
 #include <unistd.h>
 #endif
 
-libmaus::util::MemUsage::MemUsage()
+libmaus2::util::MemUsage::MemUsage()
 : VmPeak(0), VmSize(0), VmLck(0), VmHWM(0), VmRSS(0),
   VmData(0), VmStk(0), VmExe(0), VmLib(0), VmPTE(0)
 {
@@ -77,7 +77,7 @@ libmaus::util::MemUsage::MemUsage()
 	#endif
 }
 
-libmaus::util::MemUsage::MemUsage(MemUsage const & o)
+libmaus2::util::MemUsage::MemUsage(MemUsage const & o)
 : VmPeak(o.VmPeak),
   VmSize(o.VmSize),
   VmLck(o.VmLck),
@@ -91,7 +91,7 @@ libmaus::util::MemUsage::MemUsage(MemUsage const & o)
 {	
 }
 
-libmaus::util::MemUsage & libmaus::util::MemUsage::operator=(libmaus::util::MemUsage const & o)
+libmaus2::util::MemUsage & libmaus2::util::MemUsage::operator=(libmaus2::util::MemUsage const & o)
 {
 	VmPeak = o.VmPeak;
 	VmSize = o.VmSize;
@@ -106,7 +106,7 @@ libmaus::util::MemUsage & libmaus::util::MemUsage::operator=(libmaus::util::MemU
 	return *this;
 }
 
-bool libmaus::util::MemUsage::operator==(libmaus::util::MemUsage const & o) const
+bool libmaus2::util::MemUsage::operator==(libmaus2::util::MemUsage const & o) const
 {
 	return
 		VmPeak == o.VmPeak &&
@@ -121,12 +121,12 @@ bool libmaus::util::MemUsage::operator==(libmaus::util::MemUsage const & o) cons
 		VmPTE  == o.VmPTE;
 }
 
-bool libmaus::util::MemUsage::operator!=(libmaus::util::MemUsage const & o) const
+bool libmaus2::util::MemUsage::operator!=(libmaus2::util::MemUsage const & o) const
 {
 	return !((*this)==o);
 }
 
-uint64_t libmaus::util::MemUsage::getMemParam(std::map<std::string,std::string> const & M, std::string const key)
+uint64_t libmaus2::util::MemUsage::getMemParam(std::map<std::string,std::string> const & M, std::string const key)
 {
 	if ( M.find(key) != M.end() )
 	{
@@ -137,7 +137,7 @@ uint64_t libmaus::util::MemUsage::getMemParam(std::map<std::string,std::string> 
 	return 0;
 }
 
-uint64_t libmaus::util::MemUsage::parseMemPair(std::string const & V)
+uint64_t libmaus2::util::MemUsage::parseMemPair(std::string const & V)
 {
 	std::pair<std::string,std::string> P;
 	
@@ -156,7 +156,7 @@ uint64_t libmaus::util::MemUsage::parseMemPair(std::string const & V)
 	return 0;
 }
 
-bool libmaus::util::MemUsage::tokenise(std::string line, std::pair<std::string,std::string> & P)
+bool libmaus2::util::MemUsage::tokenise(std::string line, std::pair<std::string,std::string> & P)
 {
 	bool containsspace = false;
 	uint64_t spacepos = 0;
@@ -190,7 +190,7 @@ bool libmaus::util::MemUsage::tokenise(std::string line, std::pair<std::string,s
 	return false;	
 }
 
-std::map<std::string,std::string> libmaus::util::MemUsage::getProcSelfStatusMap()
+std::map<std::string,std::string> libmaus2::util::MemUsage::getProcSelfStatusMap()
 {
 	std::map<std::string,std::string> M;
 	
@@ -217,7 +217,7 @@ std::map<std::string,std::string> libmaus::util::MemUsage::getProcSelfStatusMap(
 	return M;
 }
 
-std::ostream & libmaus::util::operator<<(std::ostream & out, libmaus::util::MemUsage const & M)
+std::ostream & libmaus2::util::operator<<(std::ostream & out, libmaus2::util::MemUsage const & M)
 {
 	out << "MemUsage("
 		<< "size=" << static_cast<double>(M.VmSize)/(1024.0*1024.0) << ","

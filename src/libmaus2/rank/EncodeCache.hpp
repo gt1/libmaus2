@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(ENCODECACHE_HPP)
 #define ENCODECACHE_HPP
 
-#include <libmaus/rank/CodeBase.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/CodeBase.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <algorithm>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -35,7 +35,7 @@ namespace libmaus
 		struct EncodeCache : public CodeBase
 		{
 			typedef EncodeCache<n,type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			private:
 			autoarray::AutoArray<type> cache_n;

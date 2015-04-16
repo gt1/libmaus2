@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,19 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/TempFileNameGenerator.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
 
-libmaus::util::TempFileNameGenerator::TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth)
+libmaus2::util::TempFileNameGenerator::TempFileNameGenerator(std::string const rprefix, unsigned int const rdepth)
 : state(rdepth,rprefix), startstate(state)
 {
-	::libmaus::util::TempFileRemovalContainer::setup();
+	::libmaus2::util::TempFileRemovalContainer::setup();
 }
-libmaus::util::TempFileNameGenerator::~TempFileNameGenerator()
+libmaus2::util::TempFileNameGenerator::~TempFileNameGenerator()
 {
 	cleanupDirs();
 }
 
-std::string libmaus::util::TempFileNameGenerator::getFileName()
+std::string libmaus2::util::TempFileNameGenerator::getFileName()
 {
 	lock.lock();
 	
@@ -39,7 +39,7 @@ std::string libmaus::util::TempFileNameGenerator::getFileName()
 	return fn;
 }
 
-void libmaus::util::TempFileNameGenerator::cleanupDirs()
+void libmaus2::util::TempFileNameGenerator::cleanupDirs()
 {
 	TempFileNameGeneratorState rmdirstate = startstate;
 	

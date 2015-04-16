@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,55 +20,55 @@
 #if ! defined(IMPEXTERNALWAVELETGENERATORHUFFMAN_HPP)
 #define IMPEXTERNALWAVELETGENERATORHUFFMAN_HPP
 
-#include <libmaus/util/TempFileNameGenerator.hpp>
-#include <libmaus/bitio/BufferIterator.hpp>
-#include <libmaus/bitio/BitVectorConcat.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/rank/ERankBase.hpp>
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
-#include <libmaus/huffman/HuffmanTreeLeaf.hpp>
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/TempFileContainer.hpp>
+#include <libmaus2/util/TempFileNameGenerator.hpp>
+#include <libmaus2/bitio/BufferIterator.hpp>
+#include <libmaus2/bitio/BitVectorConcat.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/TempFileContainer.hpp>
 
-#include <libmaus/util/unordered_map.hpp>
+#include <libmaus2/util/unordered_map.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
 		struct ImpExternalWaveletGeneratorHuffman
 		{
 			typedef ImpExternalWaveletGeneratorHuffman this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			// rank type
-			typedef ::libmaus::rank::ImpCacheLineRank rank_type;
+			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			// bit output stream contexts
 			typedef rank_type::WriteContextExternal context_type;
 			// pointer to output context
 			typedef context_type::unique_ptr_type context_ptr_type;
 			// vector of contexts
-			typedef ::libmaus::autoarray::AutoArray<context_ptr_type> context_vector_type;
+			typedef ::libmaus2::autoarray::AutoArray<context_ptr_type> context_vector_type;
 			// pair of context pointer and bit
 			typedef std::pair < context_type * , bool > bit_type;
 			// vector of bit type
-			typedef ::libmaus::autoarray::AutoArray < bit_type > bit_vector_type;
+			typedef ::libmaus2::autoarray::AutoArray < bit_type > bit_vector_type;
 			// vector of bit vector type
-			typedef ::libmaus::autoarray::AutoArray < bit_vector_type > bit_vectors_type;
+			typedef ::libmaus2::autoarray::AutoArray < bit_vector_type > bit_vectors_type;
 
 			private:
 			static uint64_t const bufsize = 64*1024;
 		
-			::libmaus::huffman::HuffmanTreeNode const * root;
-			::libmaus::util::TempFileContainer & tmpcnt;
-			// ::libmaus::util::TempFileNameGenerator & tmpgen;
+			::libmaus2::huffman::HuffmanTreeNode const * root;
+			::libmaus2::util::TempFileContainer & tmpcnt;
+			// ::libmaus2::util::TempFileNameGenerator & tmpgen;
 			
 			// std::vector < std::string > outputfilenames;
 			
-			::libmaus::autoarray::AutoArray<context_ptr_type> contexts;
+			::libmaus2::autoarray::AutoArray<context_ptr_type> contexts;
 			bit_vectors_type bv;
 			std::map<int64_t,uint64_t> leafToId;
 
@@ -86,31 +86,31 @@ namespace libmaus
 			
 			public:
 			ImpExternalWaveletGeneratorHuffman(
-				::libmaus::huffman::HuffmanTreeNode const * rroot, 
-				::libmaus::util::TempFileContainer & rtmpcnt
+				::libmaus2::huffman::HuffmanTreeNode const * rroot, 
+				::libmaus2::util::TempFileContainer & rtmpcnt
 			)
 			: root(rroot), tmpcnt(rtmpcnt), symbols(0)
 			{
-				std::map < ::libmaus::huffman::HuffmanTreeNode const * , ::libmaus::huffman::HuffmanTreeInnerNode const * > parentMap;
-				std::map < ::libmaus::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
-				std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf const * > leafMap;
+				std::map < ::libmaus2::huffman::HuffmanTreeNode const * , ::libmaus2::huffman::HuffmanTreeInnerNode const * > parentMap;
+				std::map < ::libmaus2::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
+				std::map < int64_t, ::libmaus2::huffman::HuffmanTreeLeaf const * > leafMap;
 				
-				std::stack < ::libmaus::huffman::HuffmanTreeNode const * > S;
+				std::stack < ::libmaus2::huffman::HuffmanTreeNode const * > S;
 				S.push(root);
 				
 				while ( ! S.empty() )
 				{
-					::libmaus::huffman::HuffmanTreeNode const * cur = S.top();
+					::libmaus2::huffman::HuffmanTreeNode const * cur = S.top();
 					S.pop();
 
 					if ( cur->isLeaf() )
 					{
-						::libmaus::huffman::HuffmanTreeLeaf const * leaf = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(cur);
+						::libmaus2::huffman::HuffmanTreeLeaf const * leaf = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(cur);
 						leafMap [ leaf->symbol ] = leaf;
 					}
 					else
 					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(cur);
+						::libmaus2::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(cur);
 						uint64_t const id = nodeToId.size();
 
 						// assert ( id == outputfilenames.size() );
@@ -127,7 +127,7 @@ namespace libmaus
 				}
 
 				// set up bit writer contexts
-				contexts = ::libmaus::autoarray::AutoArray<context_ptr_type>(nodeToId.size());
+				contexts = ::libmaus2::autoarray::AutoArray<context_ptr_type>(nodeToId.size());
 				for ( uint64_t i = 0; i < contexts.size(); ++i )
 				{
 					context_ptr_type tcontextsi(new context_type(
@@ -135,14 +135,14 @@ namespace libmaus
 					contexts[i] = UNIQUE_PTR_MOVE(tcontextsi);
 				}
 					
-				bv = ::libmaus::autoarray::AutoArray < bit_vector_type >(leafMap.size());
+				bv = ::libmaus2::autoarray::AutoArray < bit_vector_type >(leafMap.size());
 				uint64_t lid = 0;
-				for ( std::map < int64_t, ::libmaus::huffman::HuffmanTreeLeaf const * >::const_iterator ita = leafMap.begin();
+				for ( std::map < int64_t, ::libmaus2::huffman::HuffmanTreeLeaf const * >::const_iterator ita = leafMap.begin();
 					ita != leafMap.end(); ++ita, ++lid )
 				{
 					uint64_t d = 0;
-					::libmaus::huffman::HuffmanTreeLeaf const * const leaf = ita->second;
-					::libmaus::huffman::HuffmanTreeNode const * cur = leaf;
+					::libmaus2::huffman::HuffmanTreeLeaf const * const leaf = ita->second;
+					::libmaus2::huffman::HuffmanTreeNode const * cur = leaf;
 					
 					// compute code length
 					while ( parentMap.find(cur) != parentMap.end() )
@@ -160,7 +160,7 @@ namespace libmaus
 					// store code vector and adjoint contexts
 					while ( parentMap.find(cur) != parentMap.end() )
 					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(cur)->second;
+						::libmaus2::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(cur)->second;
 						uint64_t const parentid = nodeToId.find(parent)->second;
 
 						if ( cur == parent->left )
@@ -194,9 +194,9 @@ namespace libmaus
 				flush();
 
 				uint64_t p = 0;
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,symbols); // n
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,symbols); // n
 				p += root->serialize(out); // huffman code tree
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,contexts.size()); // number of bit vectors
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,contexts.size()); // number of bit vectors
 				
 				std::vector<uint64_t> nodeposvec;
 
@@ -212,15 +212,15 @@ namespace libmaus
 					tmpcnt.closeOutputTempFile(i);	
 					
 					// bits written
-					p += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,64*datawordswritten);
+					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,64*datawordswritten);
 					// auto array header (words written)
-					p += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
+					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
 					//std::string const filename = outputfilenames[i];
-					//::libmaus::aio::CheckedInputStream istr(filename);
+					//::libmaus2::aio::CheckedInputStream istr(filename);
 					std::istream & istr = tmpcnt.openInputTempFile(i);
 					// std::ifstream istr(filename.c_str(),std::ios::binary);
 					// std::cerr << "Copying " << allwordswritten << " from stream " << filename << std::endl;
-					::libmaus::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
+					::libmaus2::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
 					p += allwordswritten * sizeof(uint64_t);
 					tmpcnt.closeInputTempFile(i);
 
@@ -228,8 +228,8 @@ namespace libmaus
 				}
 				
 				uint64_t const indexpos = p;
-				p += ::libmaus::util::NumberSerialisation::serialiseNumberVector(out,nodeposvec);
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,indexpos);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,nodeposvec);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,indexpos);
 					
 				out.flush();
 				
@@ -238,7 +238,7 @@ namespace libmaus
 			
 			void createFinalStream(std::string const & filename)
 			{
-				::libmaus::aio::CheckedOutputStream ostr(filename);
+				::libmaus2::aio::CheckedOutputStream ostr(filename);
 				createFinalStream(ostr);
 				ostr.flush();
 				ostr.close();

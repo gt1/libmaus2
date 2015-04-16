@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,13 +23,13 @@
 #include <vector>
 #include <map>
 
-#include <libmaus/uint/uint.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
-#include <libmaus/huffman/HuffmanTreeLeaf.hpp>
+#include <libmaus2/uint/uint.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 		{
 			::std::vector<int> symbols;
 			unsigned int nexttable;
-			libmaus::uint::UInt<words> compressed;
+			libmaus2::uint::UInt<words> compressed;
 			::std::vector<unsigned int> thresholds;
 			unsigned int bitswritten;
 		};
@@ -50,7 +50,7 @@ namespace libmaus
 			
 			unsigned int const lookupbits;
 			uint64_t const entriespernode;
-			::libmaus::autoarray::AutoArray < CompressTableEntry<words> > entries;
+			::libmaus2::autoarray::AutoArray < CompressTableEntry<words> > entries;
 			
 			CompressTableEntry<words> const & operator()(unsigned int const tableid, uint64_t const mask) const
 			{
@@ -103,7 +103,7 @@ namespace libmaus
 					}
 				}
 				
-				entries = ::libmaus::autoarray::AutoArray < CompressTableEntry<words> >( entriespernode * idToNode.size() );
+				entries = ::libmaus2::autoarray::AutoArray < CompressTableEntry<words> >( entriespernode * idToNode.size() );
 				
 				// ::std::cerr << "Number of entries is " << entriespernode * idToNode.size() << ::std::endl;
 				
@@ -118,7 +118,7 @@ namespace libmaus
 						HuffmanTreeNode const * cur = inode;
 						bool eraseNextBit = (cur == root);
 						unsigned int bitswritten = 0;
-						libmaus::uint::UInt<words> compressed;
+						libmaus2::uint::UInt<words> compressed;
 						
 						for ( unsigned int b = 0; b != lookupbits; ++b )
 						{
@@ -130,7 +130,7 @@ namespace libmaus
 								{
 									bitswritten++;
 									compressed <<= 1;
-									compressed |= libmaus::uint::UInt<words>(1ull);
+									compressed |= libmaus2::uint::UInt<words>(1ull);
 								}
 								cur = icur->right;
 							}
@@ -140,7 +140,7 @@ namespace libmaus
 								{
 									bitswritten++;
 									compressed <<= 1;
-									compressed |= libmaus::uint::UInt<words>(0ull);
+									compressed |= libmaus2::uint::UInt<words>(0ull);
 								}
 								cur = icur->left;
 							}

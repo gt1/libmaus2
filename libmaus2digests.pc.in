@@ -3,8 +3,8 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libmausdigests
-Description: non pic digest routines in libmaus
+Name: libmaus2digests
+Description: non pic digest routines in libmaus2
 Requires: @ZLIBREQ@ @NETTLEREQ@
 Version: @VERSION@
 Libs: -L${libdir} -lmausdigests -lmausdigests_sse4

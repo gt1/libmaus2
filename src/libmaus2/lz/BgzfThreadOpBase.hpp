@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,35 +21,35 @@
 #include <map>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct BgzfThreadOpBase
 		{
-			enum libmaus_lz_bgzf_op_type { 
-				libmaus_lz_bgzf_op_write_block = 0,
-				libmaus_lz_bgzf_op_compress_block = 1, 
-				libmaus_lz_bgzf_op_decompress_block = 2, 
-				libmaus_lz_bgzf_op_read_block = 3, 
-				libmaus_lz_bgzf_op_none = 4
+			enum libmaus2_lz_bgzf_op_type { 
+				libmaus2_lz_bgzf_op_write_block = 0,
+				libmaus2_lz_bgzf_op_compress_block = 1, 
+				libmaus2_lz_bgzf_op_decompress_block = 2, 
+				libmaus2_lz_bgzf_op_read_block = 3, 
+				libmaus2_lz_bgzf_op_none = 4
 			};
 		};
 		
-		inline std::ostream & operator<<(std::ostream & out, BgzfThreadOpBase::libmaus_lz_bgzf_op_type const op)
+		inline std::ostream & operator<<(std::ostream & out, BgzfThreadOpBase::libmaus2_lz_bgzf_op_type const op)
 		{
 			switch ( op )
 			{
-				case BgzfThreadOpBase::libmaus_lz_bgzf_op_read_block:
-					out << "libmaus_lz_bgzf_op_read_block"; break;
-				case BgzfThreadOpBase::libmaus_lz_bgzf_op_decompress_block:
-					out << "libmaus_lz_bgzf_op_decompress_block"; break;
-				case BgzfThreadOpBase::libmaus_lz_bgzf_op_compress_block:
-					out << "libmaus_lz_bgzf_op_compress_block"; break;
-				case BgzfThreadOpBase::libmaus_lz_bgzf_op_write_block:
-					out << "libmaus_lz_bgzf_op_write_block"; break;
-				case BgzfThreadOpBase::libmaus_lz_bgzf_op_none:
-					out << "libmaus_lz_bgzf_op_none"; break;
+				case BgzfThreadOpBase::libmaus2_lz_bgzf_op_read_block:
+					out << "libmaus2_lz_bgzf_op_read_block"; break;
+				case BgzfThreadOpBase::libmaus2_lz_bgzf_op_decompress_block:
+					out << "libmaus2_lz_bgzf_op_decompress_block"; break;
+				case BgzfThreadOpBase::libmaus2_lz_bgzf_op_compress_block:
+					out << "libmaus2_lz_bgzf_op_compress_block"; break;
+				case BgzfThreadOpBase::libmaus2_lz_bgzf_op_write_block:
+					out << "libmaus2_lz_bgzf_op_write_block"; break;
+				case BgzfThreadOpBase::libmaus2_lz_bgzf_op_none:
+					out << "libmaus2_lz_bgzf_op_none"; break;
 			}
 			
 			return out;
@@ -57,12 +57,12 @@ namespace libmaus
 				
 		struct BgzfThreadQueueElement
 		{
-			BgzfThreadOpBase::libmaus_lz_bgzf_op_type op;
+			BgzfThreadOpBase::libmaus2_lz_bgzf_op_type op;
 			uint64_t objectid;
 			uint64_t blockid;
 				
 			BgzfThreadQueueElement(
-				BgzfThreadOpBase::libmaus_lz_bgzf_op_type const rop = BgzfThreadOpBase::libmaus_lz_bgzf_op_none, 
+				BgzfThreadOpBase::libmaus2_lz_bgzf_op_type const rop = BgzfThreadOpBase::libmaus2_lz_bgzf_op_none, 
 				uint64_t const robjectid = 0,
 				uint64_t const rblockid = 0
 			)

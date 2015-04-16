@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(INDEXLOADER_HPP)
 #define INDEXLOADER_HPP
 
-#include <libmaus/huffman/IndexLoaderBase.hpp>
+#include <libmaus2/huffman/IndexLoaderBase.hpp>
 
-#include <libmaus/bitio/readElias.hpp>
-#include <libmaus/util/ReverseByteOrder.hpp>
-#include <libmaus/huffman/IndexEntry.hpp>
-#include <libmaus/util/iterator.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/bitio/BitIOInput.hpp>
+#include <libmaus2/bitio/readElias.hpp>
+#include <libmaus2/util/ReverseByteOrder.hpp>
+#include <libmaus2/huffman/IndexEntry.hpp>
+#include <libmaus2/util/iterator.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/bitio/BitIOInput.hpp>
 #include <iostream>
-#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
 
 #if defined(__linux__)
 #include <byteswap.h>
@@ -39,19 +39,19 @@
 #include <sys/endian.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
 		struct IndexEntryContainer
 		{
 			typedef IndexEntryContainer this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			::libmaus::autoarray::AutoArray< IndexEntry > const index;
+			::libmaus2::autoarray::AutoArray< IndexEntry > const index;
 			
-			IndexEntryContainer(libmaus::autoarray::AutoArray< IndexEntry > & rindex)
+			IndexEntryContainer(libmaus2::autoarray::AutoArray< IndexEntry > & rindex)
 			: index(rindex)
 			{
 			
@@ -80,11 +80,11 @@ namespace libmaus
 
 				typedef IndexEntryKeyGetAdapter<IndexEntry const *> adapter_type;
 				adapter_type IEKGA(index.get());
-				::libmaus::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
-				::libmaus::util::ConstIterator<adapter_type,uint64_t> ite(ita);
+				::libmaus2::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
+				::libmaus2::util::ConstIterator<adapter_type,uint64_t> ite(ita);
 				ite += index.size();
 				
-				::libmaus::util::ConstIterator<adapter_type,uint64_t> R =
+				::libmaus2::util::ConstIterator<adapter_type,uint64_t> R =
 					::std::lower_bound(ita,ite,k);
 					
 				if ( R == ite )
@@ -103,11 +103,11 @@ namespace libmaus
 
 				typedef IndexEntryValueGetAdapter<IndexEntry const *> adapter_type;
 				adapter_type IEKGA(index.get());
-				::libmaus::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
-				::libmaus::util::ConstIterator<adapter_type,uint64_t> ite(ita);
+				::libmaus2::util::ConstIterator<adapter_type,uint64_t> const ita(&IEKGA);
+				::libmaus2::util::ConstIterator<adapter_type,uint64_t> ite(ita);
 				ite += index.size();
 				
-				::libmaus::util::ConstIterator<adapter_type,uint64_t> R =
+				::libmaus2::util::ConstIterator<adapter_type,uint64_t> R =
 					::std::lower_bound(ita,ite,v);
 					
 				if ( R == ite )
@@ -146,12 +146,12 @@ namespace libmaus
 		struct IndexEntryContainerVector
 		{
 			typedef IndexEntryContainerVector this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A;
+			::libmaus2::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A;
 			
-			IndexEntryContainerVector(::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> & rA)
+			IndexEntryContainerVector(::libmaus2::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> & rA)
 			: A(rA)
 			{
 			}
@@ -191,8 +191,8 @@ namespace libmaus
 
 		struct IndexLoaderSequential : public IndexLoaderBase
 		{
-			::libmaus::aio::CheckedInputStream indexistr;
-			::libmaus::bitio::StreamBitInputStream SBIS;
+			::libmaus2::aio::CheckedInputStream indexistr;
+			::libmaus2::bitio::StreamBitInputStream SBIS;
 			
 			uint64_t numentries;
 			unsigned int posbits;
@@ -206,19 +206,19 @@ namespace libmaus
 				indexistr.seekg(indexpos,std::ios::beg);
 
 				// read size of index
-				numentries = ::libmaus::bitio::readElias2(SBIS);
+				numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
-				posbits = ::libmaus::bitio::readElias2(SBIS);
+				posbits = ::libmaus2::bitio::readElias2(SBIS);
 				
 				// k bits
-				kbits = ::libmaus::bitio::readElias2(SBIS);
+				kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
-				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
 
 				// v bits
-				vbits = ::libmaus::bitio::readElias2(SBIS);
+				vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
-				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
 				
 				// align
 				SBIS.flush();
@@ -238,10 +238,10 @@ namespace libmaus
 			/* 
 			 * load indexes for multiple files 
 			 */
-			static ::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray< IndexEntry > > 
+			static ::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< IndexEntry > > 
 				loadIndex(std::vector<std::string> const & filenames)
 			{
-				::libmaus::autoarray::AutoArray< ::libmaus::autoarray::AutoArray< IndexEntry > > index(filenames.size());
+				::libmaus2::autoarray::AutoArray< ::libmaus2::autoarray::AutoArray< IndexEntry > > index(filenames.size());
 				
 				for ( uint64_t i = 0; i < index.size(); ++i )
 					index[i] = loadIndex(filenames[i]);
@@ -252,7 +252,7 @@ namespace libmaus
 
 			static IndexEntryContainerVector::unique_ptr_type loadAccIndex(std::vector<std::string> const & filenames)
 			{
-				::libmaus::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A(filenames.size());
+				::libmaus2::autoarray::AutoArray<IndexEntryContainer::unique_ptr_type> A(filenames.size());
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					IndexEntryContainer::unique_ptr_type tAi(loadAccIndex(filenames[i]));
@@ -272,26 +272,26 @@ namespace libmaus
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 
-				::libmaus::aio::CheckedInputStream indexistr(filename);
+				::libmaus2::aio::CheckedInputStream indexistr(filename);
 				// seek to index position
 				indexistr.seekg(indexpos,std::ios::beg);
 				// 
-				::libmaus::bitio::StreamBitInputStream SBIS(indexistr);
+				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
 				
 				// read size of index
-				uint64_t const numentries = ::libmaus::bitio::readElias2(SBIS);
+				uint64_t const numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
-				unsigned int const posbits = ::libmaus::bitio::readElias2(SBIS);
+				unsigned int const posbits = ::libmaus2::bitio::readElias2(SBIS);
 				
 				// k bits
-				unsigned int const kbits = ::libmaus::bitio::readElias2(SBIS);
+				unsigned int const kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
-				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
 
 				// v bits
-				unsigned int const vbits = ::libmaus::bitio::readElias2(SBIS);
+				unsigned int const vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
-				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
 				
 				// align
 				SBIS.flush();
@@ -301,7 +301,7 @@ namespace libmaus
 				// std::cerr << "numentries " << numentries << std::endl;
 				
 				// read index
-				libmaus::autoarray::AutoArray< IndexEntry > index(numentries+1,false);
+				libmaus2::autoarray::AutoArray< IndexEntry > index(numentries+1,false);
 				
 				for ( uint64_t i = 0; i < numentries+1; ++i )
 				{
@@ -319,7 +319,7 @@ namespace libmaus
 			/*
 			 * load index for one file 
 			 */
-			static libmaus::autoarray::AutoArray< IndexEntry > loadIndex(std::string const & filename)
+			static libmaus2::autoarray::AutoArray< IndexEntry > loadIndex(std::string const & filename)
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 
@@ -327,7 +327,7 @@ namespace libmaus
 
 				if ( ! indexistr.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "RLDecoder::loadIndex(): Failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -337,28 +337,28 @@ namespace libmaus
 				indexistr.seekg(indexpos,std::ios::beg);
 				if ( static_cast<int64_t>(indexistr.tellg()) != static_cast<int64_t>(indexpos) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to seek to index position " << indexpos << " in file " << filename << " of size " 
-						<< ::libmaus::util::GetFileSize::getFileSize(filename) << std::endl;
+						<< ::libmaus2::util::GetFileSize::getFileSize(filename) << std::endl;
 					se.finish();
 					throw se;
 				}
-				::libmaus::bitio::StreamBitInputStream SBIS(indexistr);
+				::libmaus2::bitio::StreamBitInputStream SBIS(indexistr);
 				
 				// read size of index
-				uint64_t const numentries = ::libmaus::bitio::readElias2(SBIS);
+				uint64_t const numentries = ::libmaus2::bitio::readElias2(SBIS);
 				// pos bits
-				unsigned int const posbits = ::libmaus::bitio::readElias2(SBIS);
+				unsigned int const posbits = ::libmaus2::bitio::readElias2(SBIS);
 				
 				// k bits
-				unsigned int const kbits = ::libmaus::bitio::readElias2(SBIS);
+				unsigned int const kbits = ::libmaus2::bitio::readElias2(SBIS);
 				// k acc
-				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
 
 				// v bits
-				unsigned int const vbits = ::libmaus::bitio::readElias2(SBIS);
+				unsigned int const vbits = ::libmaus2::bitio::readElias2(SBIS);
 				// v acc
-				/* uint64_t const symacc = */ ::libmaus::bitio::readElias2(SBIS);
+				/* uint64_t const symacc = */ ::libmaus2::bitio::readElias2(SBIS);
 				
 				// align
 				SBIS.flush();
@@ -368,12 +368,12 @@ namespace libmaus
 				// std::cerr << "numentries " << numentries << std::endl;
 				
 				// read index
-				libmaus::autoarray::AutoArray< IndexEntry > index(numentries,false);
+				libmaus2::autoarray::AutoArray< IndexEntry > index(numentries,false);
 				
 				// #define INDEXLOADERDEBUG
 				
 				#if defined(INDEXLOADERDEBUG)
-				libmaus::autoarray::AutoArray< IndexEntry > tindex(numentries+1);
+				libmaus2::autoarray::AutoArray< IndexEntry > tindex(numentries+1);
 				#endif
 
 				for ( uint64_t i = 0; i < numentries; ++i )

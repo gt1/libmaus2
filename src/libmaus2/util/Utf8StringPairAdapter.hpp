@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_UTIL_UTF8STRINGPAIRADAPTER_HPP)
 #define LIBMAUS_UTIL_UTF8STRINGPAIRADAPTER_HPP
 
-#include <libmaus/util/Utf8String.hpp>
+#include <libmaus2/util/Utf8String.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{		

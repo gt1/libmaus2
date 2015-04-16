@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/huffman/RLDecoder.hpp>
+#include <libmaus2/huffman/RLDecoder.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.getRestArg<std::string>(0);
-		libmaus::util::Histogram::unique_ptr_type thist(libmaus::huffman::RLDecoder::getRunLengthHistogram(fn));
+		libmaus2::util::Histogram::unique_ptr_type thist(libmaus2::huffman::RLDecoder::getRunLengthHistogram(fn));
 		std::map<uint64_t,uint64_t> const M = thist->getByType<uint64_t>();
 
 		uint64_t runtotal = 0;
@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
 			total += ita->first * ita->second;
 		}
 			
-		uint64_t const n = libmaus::huffman::RLDecoder::getLength(fn);
+		uint64_t const n = libmaus2::huffman::RLDecoder::getLength(fn);
 		
 		std::cout << "[S]\taverage run-length\t" << thist->avg() << std::endl;
 		

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,22 +20,22 @@
 #if ! defined(LIBMAUS_UTIL_POSITIVEDIFFERENCEARRAY32_HPP)
 #define LIBMAUS_UTIL_POSITIVEDIFFERENCEARRAY32_HPP
 
-#include <libmaus/util/Array832.hpp>
+#include <libmaus2/util/Array832.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
 		struct PositiveDifferenceArray32
 		{
-			::libmaus::util::Array832::unique_ptr_type A;
+			::libmaus2::util::Array832::unique_ptr_type A;
 			typedef PositiveDifferenceArray32 this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
 			void serialise(std::ostream & out) const;
 
 			PositiveDifferenceArray32(::std::istream & in);
-			PositiveDifferenceArray32(::libmaus::util::Array832::unique_ptr_type & rA);
+			PositiveDifferenceArray32(::libmaus2::util::Array832::unique_ptr_type & rA);
 			
 			uint32_t operator[](uint64_t const i) const
 			{

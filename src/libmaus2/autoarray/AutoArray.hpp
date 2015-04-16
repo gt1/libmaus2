@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,21 +23,21 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cassert>
-#include <libmaus/serialize/Serialize.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/parallel/OMPLock.hpp>
-#include <libmaus/util/Demangle.hpp>
-#include <libmaus/exception/LibMausException.hpp>
-#include <libmaus/math/gcd.hpp>
+#include <libmaus2/serialize/Serialize.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/parallel/OMPLock.hpp>
+#include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/math/gcd.hpp>
 #include <sstream>
 #include <fstream>
 #include <limits>
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
-#include <libmaus/util/I386CacheLineSize.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
 
 // #define AUTOARRAY_TRACE 7
 #if defined(AUTOARRAY_TRACE)
@@ -67,10 +67,10 @@
 #endif
 
 #if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace autoarray
 	{
@@ -78,9 +78,9 @@ namespace libmaus
 		extern uint64_t volatile AutoArray_peakmemusage;
 		extern uint64_t volatile AutoArray_maxmem;
 		#if defined(LIBMAUS_HAVE_POSIX_SPINLOCKS)
-		extern ::libmaus::parallel::PosixSpinLock AutoArray_lock;
+		extern ::libmaus2::parallel::PosixSpinLock AutoArray_lock;
 		#elif defined(_OPENMP)
-		extern ::libmaus::parallel::OMPLock AutoArray_lock;
+		extern ::libmaus2::parallel::OMPLock AutoArray_lock;
 		#endif
 
 		enum alloc_type { alloc_type_cxx = 0, alloc_type_c = 1, alloc_type_memalign_cacheline = 2 };
@@ -225,24 +225,24 @@ namespace libmaus
 		#endif
 		#if defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
 		/**
-		 * class for erasing an array of boost::interprocess::unique_ptr<N,::libmaus::deleter::Deleter<N> > objects
+		 * class for erasing an array of boost::interprocess::unique_ptr<N,::libmaus2::deleter::Deleter<N> > objects
 		 **/
 		template<typename N>
-		struct ArrayErase< typename ::boost::interprocess::unique_ptr<N,::libmaus::deleter::Deleter<N> > >
+		struct ArrayErase< typename ::boost::interprocess::unique_ptr<N,::libmaus2::deleter::Deleter<N> > >
 		{
 			/**
-			 * erase an array of n elements of type boost::interprocess::unique_ptr<N,::libmaus::deleter::Deleter<N> >
+			 * erase an array of n elements of type boost::interprocess::unique_ptr<N,::libmaus2::deleter::Deleter<N> >
 			 * @param array to be erased
 			 * @param n number of elements in array
 			 **/
-			static void erase(typename ::libmaus::util::unique_ptr<N>::type * array, uint64_t const n);
+			static void erase(typename ::libmaus2::util::unique_ptr<N>::type * array, uint64_t const n);
 		};
 		#endif
 
 		#if defined(AUTOARRAY_TRACE)
 		extern std::vector< AutoArrayBackTrace<AUTOARRAY_TRACE> > tracevector;
-		extern libmaus::parallel::PosixSpinLock backtracelock;
-		extern libmaus::parallel::PosixSpinLock tracelock;
+		extern libmaus2::parallel::PosixSpinLock backtracelock;
+		extern libmaus2::parallel::PosixSpinLock tracelock;
 		
 		extern void autoArrayPrintTraces(std::ostream & out);
 		#endif
@@ -261,9 +261,9 @@ namespace libmaus
 			//! this type
 			typedef AutoArray<value_type,atype> this_type;
 			//! unique pointer object for this type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer object for this type
-			typedef typename ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			//! iterator: pointer to N
 			typedef N * iterator;
@@ -282,7 +282,7 @@ namespace libmaus
 
 			void fillTrace()
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(backtracelock);
+				libmaus2::parallel::ScopePosixSpinLock slock(backtracelock);
 				void * ltrace[AUTOARRAY_TRACE+2];
 
 				tracelength = backtrace(&ltrace[0],AUTOARRAY_TRACE+2);
@@ -331,7 +331,7 @@ namespace libmaus
 			{
 				fillTrace();
 				
-				libmaus::parallel::ScopePosixSpinLock slock(tracelock);
+				libmaus2::parallel::ScopePosixSpinLock slock(tracelock);
 				uint64_t const i = findTrace();
 				
 				if ( i == tracevector.size() )
@@ -364,7 +364,7 @@ namespace libmaus
 
 			void traceOut(size_t const bytes)
 			{
-				libmaus::parallel::ScopePosixSpinLock slock(tracelock);
+				libmaus2::parallel::ScopePosixSpinLock slock(tracelock);
 				uint64_t const i = findTrace();
 				
 				assert ( i < tracevector.size() );
@@ -395,7 +395,7 @@ namespace libmaus
 				{
 					__sync_fetch_and_sub(&AutoArray_memusage, n * sizeof(N));
 
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes.";
 					se.finish();
 					throw se;
@@ -417,7 +417,7 @@ namespace libmaus
 					AutoArray_lock.unlock();
 					#endif	
 					
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "bad allocation: AutoArray mem limit of " << AutoArray_maxmem << " bytes exceeded by new allocation of " << n*sizeof(N) << " bytes.";
 					se.finish();
 					throw se;
@@ -508,7 +508,7 @@ namespace libmaus
 					{
 						topfailed = true;
 					}
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() 
 						<< getTypeName()
 						<< " failed to allocate " << n << " elements ("
@@ -577,7 +577,7 @@ namespace libmaus
 			 **/
 			static std::string getValueTypeName()
 			{
-				return ::libmaus::util::Demangle::demangle<value_type>();
+				return ::libmaus2::util::Demangle::demangle<value_type>();
 			}
 			
 			/**
@@ -641,7 +641,7 @@ namespace libmaus
 				uint64_t const elperthread = (getN() + numthreads-1)/numthreads;
 				uint64_t const parts = (getN() + elperthread-1)/elperthread;
 				
-				libmaus::autoarray::AutoArray<N> partial(parts+1,false);
+				libmaus2::autoarray::AutoArray<N> partial(parts+1,false);
 				
 				#if defined(_OPENMP)
 				#pragma omp parallel for
@@ -689,7 +689,7 @@ namespace libmaus
 			 **/
 			static uint64_t putHeader(std::ostream & out, uint64_t const n)
 			{
-				return ::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				return ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
 			}
 
 			/**
@@ -703,7 +703,7 @@ namespace libmaus
 				uint64_t s = 0;
 				if ( writeHeader )
 					s += putHeader(out,n);
-				s += ::libmaus::serialize::Serialize<N>::serializeArray(out,array,n);
+				s += ::libmaus2::serialize::Serialize<N>::serializeArray(out,array,n);
 				return s;
 			}
 			
@@ -732,7 +732,7 @@ namespace libmaus
 				ostr.flush();
 				if ( ! ostr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to serialize " << getTypeName() << " of size " << size() << " to file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -740,7 +740,7 @@ namespace libmaus
 				ostr.close();
 				if ( ! ostr )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "Failed to serialize " << getTypeName() << " of size " << size() << " to file " << filename << std::endl;
 					se.finish();
 					throw se;
@@ -759,8 +759,8 @@ namespace libmaus
 			uint64_t serializePrefix(std::ostream & out, uint64_t const tn) const
 			{
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::serialize(out,tn);
-				s += ::libmaus::serialize::Serialize<N>::serializeArray(out,array,tn);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,tn);
+				s += ::libmaus2::serialize::Serialize<N>::serializeArray(out,array,tn);
 				return s;
 			}
 
@@ -796,7 +796,7 @@ namespace libmaus
 			 **/
 			uint64_t getPageMod() const
 			{
-				return ::libmaus::math::lcm(getpagesize(),sizeof(uint64_t)) / sizeof(uint64_t);
+				return ::libmaus2::math::lcm(getpagesize(),sizeof(uint64_t)) / sizeof(uint64_t);
 			}
 
 			/**
@@ -818,7 +818,7 @@ namespace libmaus
 							{
 								topfailed = true;
 							}
-							::libmaus::exception::LibMausException se;
+							::libmaus2::exception::LibMausException se;
 							se.getStream() 
 								<< getTypeName()
 								<< "::resize() failed to allocate " << rn << " elements ("
@@ -868,7 +868,7 @@ namespace libmaus
 					return sclinesize;
 				
 				#if defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)				
-				return ::libmaus::util::I386CacheLineSize::getCacheLineSize();				
+				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();				
 				#else
 				return 64ull;
 				#endif
@@ -879,7 +879,7 @@ namespace libmaus
 				uint64_t cachelinesize = 0;
 				DWORD bufsize = 0;
 				GetLogicalProcessorInformation(0, &bufsize);
-				::libmaus::autoarray::AutoArray<uint8_t> Abuffer(bufsize);
+				::libmaus2::autoarray::AutoArray<uint8_t> Abuffer(bufsize);
 	                        SYSTEM_LOGICAL_PROCESSOR_INFORMATION * const buffer = reinterpret_cast<SYSTEM_LOGICAL_PROCESSOR_INFORMATION *>(Abuffer.get());
 	                        GetLogicalProcessorInformation(&buffer[0], &bufsize);
 	                            
@@ -909,12 +909,12 @@ namespace libmaus
 			#elif defined(LIBMAUS_USE_ASSEMBLY) && defined(LIBMAUS_HAVE_i386)
 			static uint64_t getCacheLineSize() 
 			{
-				return ::libmaus::util::I386CacheLineSize::getCacheLineSize();
+				return ::libmaus2::util::I386CacheLineSize::getCacheLineSize();
 			}
 			#else
 			static uint64_t getCacheLineSize() 
 			{
-				libmaus::exception::LibMausException se;
+				libmaus2::exception::LibMausException se;
 				se.getStream() << "AutoArray<>::getCacheLineSize(): cache line size detection not available." << std::endl;
 				se.finish();
 				throw se;
@@ -959,10 +959,10 @@ namespace libmaus
 			{
 				release();
 				uint64_t s = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
 				increaseTotalAllocation(n);
 				allocateArray(n);
-				s += ::libmaus::serialize::Serialize<N>::deserializeArray(in,array,n);
+				s += ::libmaus2::serialize::Serialize<N>::deserializeArray(in,array,n);
 				return s;
 			}
 			
@@ -976,8 +976,8 @@ namespace libmaus
 			{
 				uint64_t s = 0;
 				uint64_t n;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
-				s += ::libmaus::serialize::Serialize<N>::ignoreArray(in,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				s += ::libmaus2::serialize::Serialize<N>::ignoreArray(in,n);
 				return s;
 			}
 			/**
@@ -989,8 +989,8 @@ namespace libmaus
 			{
 				uint64_t s = 0;
 				uint64_t n;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
-				s += ::libmaus::serialize::Serialize<N>::skipArray(in,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				s += ::libmaus2::serialize::Serialize<N>::skipArray(in,n);
 				return s;
 			}
 			/**
@@ -1003,8 +1003,8 @@ namespace libmaus
 			{
 				uint64_t s = 0;
 				uint64_t n;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
 
 				uint64_t const bufferbytes = 16*1024;
 				uint64_t const tocopy = n * sizeof(N);
@@ -1051,11 +1051,11 @@ namespace libmaus
 				uint64_t s = 0;
 
 				uint64_t in_n;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&in_n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&in_n);
 				assert ( in );
 
 				uint64_t const out_n = ( in_n + rate - 1 ) / rate;
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,out_n);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,out_n);
 				
 				uint64_t const maxbufferbytes = 16*1024;
 				
@@ -1255,7 +1255,7 @@ namespace libmaus
 			static uint64_t readNumber(std::istream & in, uint64_t & s)
 			{
 				uint64_t n = 0;
-				s += ::libmaus::serialize::Serialize<uint64_t>::deserialize(in,&n);
+				s += ::libmaus2::serialize::Serialize<uint64_t>::deserialize(in,&n);
 				return n;
 			}
 			/**
@@ -1283,7 +1283,7 @@ namespace libmaus
 				
 				increaseTotalAllocation(n);
 				allocateArray(n);
-				s += ::libmaus::serialize::Serialize<N>::deserializeArray(in,array,n);
+				s += ::libmaus2::serialize::Serialize<N>::deserializeArray(in,array,n);
 			}
 			/**
 			 * deserialise object from stream in.
@@ -1298,7 +1298,7 @@ namespace libmaus
 
 				increaseTotalAllocation(n);
 				allocateArray(n);
-				::libmaus::serialize::Serialize<N>::deserializeArray(in,array,n);
+				::libmaus2::serialize::Serialize<N>::deserializeArray(in,array,n);
 			}
 
 			/**
@@ -1359,7 +1359,7 @@ namespace libmaus
 					return array[i]; 
 				else
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "AutoArray<"<<getTypeName()<<">::at(" << i << "): index is out of bounds for array of size " << size() << std::endl;
 					ex.finish();
 					throw ex;
@@ -1377,7 +1377,7 @@ namespace libmaus
 					return array[i]; 
 				else
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "AutoArray<"<<getTypeName()<<">::at(" << i << "): index is out of bounds for array of size " << size() << std::endl;
 					ex.finish();
 					throw ex;
@@ -1485,7 +1485,7 @@ namespace libmaus
 				uint64_t const offset,
 				uint64_t const length)
 			{
-				::libmaus::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::CheckedInputStream CIS(filename);
 				CIS.seekg(offset*sizeof(N));
 				AutoArray<N> A(length,false);
 				CIS.read ( reinterpret_cast<char *>(A.begin()), length*sizeof(N));
@@ -1499,13 +1499,13 @@ namespace libmaus
 			 **/
 			static AutoArray<N> readFile(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::CheckedInputStream CIS(filename);
 				CIS.seekg(0, std::ios::end);
 				uint64_t const filesize = CIS.tellg();
 				
 				if ( filesize % sizeof(N) )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "AutoArray::readFile(" << filename << "): file size " << filesize << " is not a multiple of " << sizeof(N) << std::endl;
 					se.finish();
 					throw se;
@@ -1537,11 +1537,11 @@ namespace libmaus
 		#endif
 		#if defined(LIBMAUS_USE_BOOST_UNIQUE_PTR)
 		template<typename N>
-		void ArrayErase< typename ::boost::interprocess::unique_ptr<N,::libmaus::deleter::Deleter<N> > >::erase(typename ::libmaus::util::unique_ptr<N>::type * array, uint64_t const n)
+		void ArrayErase< typename ::boost::interprocess::unique_ptr<N,::libmaus2::deleter::Deleter<N> > >::erase(typename ::libmaus2::util::unique_ptr<N>::type * array, uint64_t const n)
 		{
 			for ( uint64_t i = 0; i < n; ++i )
 			{
-				typename ::libmaus::util::unique_ptr<N>::type ptr;
+				typename ::libmaus2::util::unique_ptr<N>::type ptr;
 				array[i] = UNIQUE_PTR_MOVE(ptr);
 			}
 		}
@@ -1608,7 +1608,7 @@ namespace libmaus
 			return true;
 		}
 
-		std::ostream & operator<<(std::ostream & out, libmaus::autoarray::AutoArrayMemUsage const & aamu);
+		std::ostream & operator<<(std::ostream & out, libmaus2::autoarray::AutoArrayMemUsage const & aamu);
 	}
 }
 

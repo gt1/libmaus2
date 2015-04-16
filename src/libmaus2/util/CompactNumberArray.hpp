@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(LIBMAUS_UTIL_COMPACTNUMBERARRAY_HPP)
 #define LIBMAUS_UTIL_COMPACTNUMBERARRAY_HPP
 
-#include <libmaus/wavelet/HuffmanWaveletTree.hpp>
-#include <libmaus/math/bitsPerNum.hpp>
+#include <libmaus2/wavelet/HuffmanWaveletTree.hpp>
+#include <libmaus2/math/bitsPerNum.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -38,9 +38,9 @@ namespace libmaus
 		struct CompactNumberArray
 		{
 			//! huffman shaped wavelet tree storing the length of each number
-			::libmaus::wavelet::HuffmanWaveletTree::unique_ptr_type H;
+			::libmaus2::wavelet::HuffmanWaveletTree::unique_ptr_type H;
 			//! fixed size number arrays, one for each bit length required
-			::libmaus::autoarray::AutoArray < ::libmaus::bitio::CompactArray::unique_ptr_type > C;
+			::libmaus2::autoarray::AutoArray < ::libmaus2::bitio::CompactArray::unique_ptr_type > C;
 
 			/**
 			 * construct number of bits needed array for given sequence
@@ -50,12 +50,12 @@ namespace libmaus
 			 * @return array storing number of bits required for each number
 			 **/
 			template<typename iterator>
-			static ::libmaus::autoarray::AutoArray<uint8_t> getBitArray(iterator a, iterator e)
+			static ::libmaus2::autoarray::AutoArray<uint8_t> getBitArray(iterator a, iterator e)
 			{
 				uint64_t const n = e-a;
-				::libmaus::autoarray::AutoArray<uint8_t> B(n,false);
+				::libmaus2::autoarray::AutoArray<uint8_t> B(n,false);
 				for ( uint64_t i = 0; i < n; ++i )
-					B[i] = ::libmaus::math::bitsPerNum(*(a++));
+					B[i] = ::libmaus2::math::bitsPerNum(*(a++));
 				return B;
 			}
 			/**
@@ -66,11 +66,11 @@ namespace libmaus
 			 * @return unique pointer wrapping Huffman shaped wavelet tree
 			 **/
 			template<typename iterator>
-			static ::libmaus::wavelet::HuffmanWaveletTree::unique_ptr_type getBitWT(iterator a, iterator e)
+			static ::libmaus2::wavelet::HuffmanWaveletTree::unique_ptr_type getBitWT(iterator a, iterator e)
 			{
-				::libmaus::autoarray::AutoArray<uint8_t> B = getBitArray(a,e);
-				::libmaus::wavelet::HuffmanWaveletTree::unique_ptr_type H (
-					new ::libmaus::wavelet::HuffmanWaveletTree(B.begin(),B.end())
+				::libmaus2::autoarray::AutoArray<uint8_t> B = getBitArray(a,e);
+				::libmaus2::wavelet::HuffmanWaveletTree::unique_ptr_type H (
+					new ::libmaus2::wavelet::HuffmanWaveletTree(B.begin(),B.end())
 					);
 				
 				for ( uint64_t i = 0; i < B.size(); ++i )
@@ -93,7 +93,7 @@ namespace libmaus
 					if ( i && H->enctable.checkSymbol(i) )
 					{
 						uint64_t const numsyms = H->rank(i, (e-a)-1);
-						C[i] = ::libmaus::bitio::CompactArray::unique_ptr_type(new ::libmaus::bitio::CompactArray(numsyms,i));
+						C[i] = ::libmaus2::bitio::CompactArray::unique_ptr_type(new ::libmaus2::bitio::CompactArray(numsyms,i));
 						std::cerr << numsyms << " symbols use " << i << " bits " << std::endl;
 					}
 				
@@ -101,7 +101,7 @@ namespace libmaus
 				uint64_t j = 0;
 				for ( iterator i = a; i != e; ++i, ++j )
 				{
-					uint64_t const bits = ::libmaus::math::bitsPerNum(*i);
+					uint64_t const bits = ::libmaus2::math::bitsPerNum(*i);
 					assert ( (*H)[j] == bits );
 					
 					if ( bits )

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,9 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/util/OutputFileNameTools.hpp>
+#include <libmaus2/util/OutputFileNameTools.hpp>
 
-std::string libmaus::util::OutputFileNameTools::lcp(std::string const & a, std::string const & b)
+std::string libmaus2::util::OutputFileNameTools::lcp(std::string const & a, std::string const & b)
 {
 	uint64_t i = 0;
 	
@@ -29,7 +29,7 @@ std::string libmaus::util::OutputFileNameTools::lcp(std::string const & a, std::
 	return a.substr(0,i);
 }
 
-std::string libmaus::util::OutputFileNameTools::lcp(std::vector<std::string> const & V)
+std::string libmaus2::util::OutputFileNameTools::lcp(std::vector<std::string> const & V)
 {
 	if ( V.size() )
 	{
@@ -44,12 +44,12 @@ std::string libmaus::util::OutputFileNameTools::lcp(std::vector<std::string> con
 	}
 }
 
-bool libmaus::util::OutputFileNameTools::endsOn(std::string const & a, std::string const & b)
+bool libmaus2::util::OutputFileNameTools::endsOn(std::string const & a, std::string const & b)
 {
 	return a.size() >= b.size() && a.substr(a.size()-b.size()) == b;
 }
 
-std::string libmaus::util::OutputFileNameTools::clipOff(std::string const & a, std::string const & b)
+std::string libmaus2::util::OutputFileNameTools::clipOff(std::string const & a, std::string const & b)
 {
 	if ( endsOn(a,b) )
 		return a.substr(0,a.size()-b.size());
@@ -57,7 +57,7 @@ std::string libmaus::util::OutputFileNameTools::clipOff(std::string const & a, s
 		return a;
 }
 
-std::string libmaus::util::OutputFileNameTools::endClip(std::string a, char const * const * V)
+std::string libmaus2::util::OutputFileNameTools::endClip(std::string a, char const * const * V)
 {
 	for ( ; *V ; ++V )
 	{
@@ -67,7 +67,7 @@ std::string libmaus::util::OutputFileNameTools::endClip(std::string a, char cons
 	return a;
 }
 
-std::string libmaus::util::OutputFileNameTools::endClipLcp(std::vector<std::string> const & V, char const * const * const E)
+std::string libmaus2::util::OutputFileNameTools::endClipLcp(std::vector<std::string> const & V, char const * const * const E)
 {
 	return endClip(lcp(V),E);
 }

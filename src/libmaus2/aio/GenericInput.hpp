@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,21 +21,21 @@
 #if ! defined(GENERICINPUT_HPP)
 #define GENERICINPUT_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/aio/AsynchronousBufferReader.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/StringSerialisation.hpp>
-#include <libmaus/util/Demangle.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/ConcatRequest.hpp>
-#include <libmaus/aio/FileFragment.hpp>
-#include <libmaus/util/GetFileSize.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/aio/AsynchronousBufferReader.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
+#include <libmaus2/util/Demangle.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/ConcatRequest.hpp>
+#include <libmaus2/aio/FileFragment.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
 #include <limits>
 #include <set>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -50,12 +50,12 @@ namespace libmaus
 			//! this type
 			typedef GenericInput<input_type> this_type;
 			//! unique pointer type
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			//! buffer size
 			uint64_t const bufsize;
 			//! asynchronous reader class
-			::libmaus::aio::AsynchronousBufferReader ABR;
+			::libmaus2::aio::AsynchronousBufferReader ABR;
 			//! elements left in current buffer
 			uint64_t curbufleft;
 			//! current buffer
@@ -75,15 +75,15 @@ namespace libmaus
 			 * @param inputfilename file name
 			 * @return array
 			 **/
-			static ::libmaus::autoarray::AutoArray<input_type> readArray(std::string const & inputfilename)
+			static ::libmaus2::autoarray::AutoArray<input_type> readArray(std::string const & inputfilename)
 			{
 				uint64_t const fs =
-					::libmaus::util::GetFileSize::getFileSize(inputfilename);
+					::libmaus2::util::GetFileSize::getFileSize(inputfilename);
 				assert ( fs % sizeof(input_type) == 0 );
 				uint64_t const n = fs/sizeof(input_type);
 
-				::libmaus::aio::GenericInput<input_type> in(inputfilename,64*1024);
-				::libmaus::autoarray::AutoArray<input_type> A(n,false);
+				::libmaus2::aio::GenericInput<input_type> in(inputfilename,64*1024);
+				::libmaus2::autoarray::AutoArray<input_type> A(n,false);
 			
 				for ( uint64_t i = 0; i < n; ++i )
 				{
@@ -109,7 +109,7 @@ namespace libmaus
 				curbufleft(0),
 				curbuf(reinterpret_cast<char const *>(0),0),
 				curword(0),
-				totalwords ( ::libmaus::util::GetFileSize::getFileSize(filename) / sizeof(input_type) - roffset ),
+				totalwords ( ::libmaus2::util::GetFileSize::getFileSize(filename) / sizeof(input_type) - roffset ),
 				totalwordsread(0)
 			{
 

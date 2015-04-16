@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_GAPARRAYDECODERBUFFER_HPP)
 #define LIBMAUS_SUFFIXSORT_GAPARRAYDECODERBUFFER_HPP
 
-#include <libmaus/suffixsort/GapArrayByteDecoder.hpp>
+#include <libmaus2/suffixsort/GapArrayByteDecoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
 		struct GapArrayByteDecoderBuffer
 		{
 			typedef GapArrayByteDecoderBuffer this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			GapArrayByteDecoder & decoder;
-			libmaus::autoarray::AutoArray<uint64_t> B;
+			libmaus2::autoarray::AutoArray<uint64_t> B;
 			uint64_t * pa;
 			uint64_t * pc;
 			uint64_t * pe;

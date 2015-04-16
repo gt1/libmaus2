@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_BGZFINFLATEZSTREAMBASERETURNINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_BGZFINFLATEZSTREAMBASERETURNINTERFACE_HPP
 
-#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -31,7 +31,7 @@ namespace libmaus
 			struct BgzfInflateZStreamBaseReturnInterface
 			{
 				virtual ~BgzfInflateZStreamBaseReturnInterface() {}
-				virtual void putBgzfInflateZStreamBaseReturn(libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder) = 0;
+				virtual void putBgzfInflateZStreamBaseReturn(libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder) = 0;
 			};
 		}
 	}

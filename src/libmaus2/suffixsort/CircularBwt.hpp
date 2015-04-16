@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_SUFFIXSORT_CIRCULARBWT_HPP)
 #define LIBMAUS_SUFFIXSORT_CIRCULARBWT_HPP
 
-#include <libmaus/suffixsort/divsufsort.hpp>
+#include <libmaus2/suffixsort/divsufsort.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace suffixsort
 	{
@@ -34,9 +34,9 @@ namespace libmaus
 
 				// std::cerr << "[V] Block sorting...";
 				uint8_t const * utext = reinterpret_cast<uint8_t const *>(s2.c_str()) + beg;
-				typedef ::libmaus::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *> sort_type;
+				typedef ::libmaus2::suffixsort::DivSufSort<32,uint8_t *,uint8_t const *,int32_t *,int32_t const *> sort_type;
 				typedef sort_type::saidx_t saidx_t;
-				::libmaus::autoarray::AutoArray<saidx_t> SA(s2.size()-beg);
+				::libmaus2::autoarray::AutoArray<saidx_t> SA(s2.size()-beg);
 				sort_type::divsufsort ( utext, SA.begin() , SA.size() );
 				// std::cerr << "done." << std::endl;
 				

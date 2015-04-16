@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_NETWORK_CURLINIT_HPP)
 #define LIBMAUS_NETWORK_CURLINIT_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/parallel/PosixSpinLock.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/parallel/PosixSpinLock.hpp>
 
 #if defined(LIBMAUS_HAVE_LIBCURL)
 #include <curl/curl.h>
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace network
 	{
 		struct CurlInit
 		{
-			static libmaus::parallel::PosixSpinLock lock;
+			static libmaus2::parallel::PosixSpinLock lock;
 			static uint64_t initcomplete;
 			
 			CurlInit()
@@ -40,7 +40,7 @@ namespace libmaus
 				std::ostringstream errstr;
 				if ( ! init(errstr) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << errstr.str() << std::endl;
 					lme.finish();
 					throw lme;
@@ -55,7 +55,7 @@ namespace libmaus
 			static bool init(std::ostream & errstr)
 			{
 				#if defined(LIBMAUS_HAVE_LIBCURL)
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( ! initcomplete )
 				{
 					CURLcode const initfailed = curl_global_init(CURL_GLOBAL_ALL);
@@ -84,7 +84,7 @@ namespace libmaus
 			static void shutdown()
 			{
 				#if defined(LIBMAUS_HAVE_LIBCURL)
-				libmaus::parallel::ScopePosixSpinLock llock(lock);
+				libmaus2::parallel::ScopePosixSpinLock llock(lock);
 				if ( initcomplete && (! --initcomplete) )
 					curl_global_cleanup();
 				#endif

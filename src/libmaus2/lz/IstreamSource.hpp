@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,8 +19,8 @@
 #if ! defined(LIBMAUS_LZ_ISTREAMSOURCE_HPP)
 #define LIBMAUS_LZ_ISTREAMSOURCE_HPP
 
-#include <libmaus/LibMausConfig.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/LibMausConfig.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 #include <istream>
 
 #if defined(LIBMAUS_HAVE_SNAPPY)
@@ -28,7 +28,7 @@
 #include <snappy.h>
 #define IstreamSourceBaseType ::snappy::Source
 #else
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -41,10 +41,10 @@ namespace libmaus
 		};
 	}
 }
-#define IstreamSourceBaseType ::libmaus::lz::IstreamSourceBase
+#define IstreamSourceBaseType ::libmaus2::lz::IstreamSourceBase
 #endif
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -53,7 +53,7 @@ namespace libmaus
 		{
 			in_type & in;
 			uint64_t avail;
-			::libmaus::autoarray::AutoArray<char> A;
+			::libmaus2::autoarray::AutoArray<char> A;
 			char * const pa;
 			char * pc;
 			char * pe;

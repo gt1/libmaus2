@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,18 +20,18 @@
 #if ! defined(ESELECTBASE_HPP)
 #define ESELECTBASE_HPP
 
-#include <libmaus/rank/ERankBase.hpp>
+#include <libmaus2/rank/ERankBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace select
 	{
 		template<bool _sym>
-		struct ESelectBase : public ::libmaus::rank::ERankBase
+		struct ESelectBase : public ::libmaus2::rank::ERankBase
 		{
 			static bool const sym = _sym;
 			typedef ESelectBase<_sym> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			static inline uint64_t process(uint64_t v)
 			{
@@ -48,10 +48,10 @@ namespace libmaus
 			/**
 			 * compute four russians table
 			 **/
-			static ::libmaus::autoarray::AutoArray<uint8_t> computeRussians();
+			static ::libmaus2::autoarray::AutoArray<uint8_t> computeRussians();
 
 			// russians table
-			::libmaus::autoarray::AutoArray<uint8_t> const R;
+			::libmaus2::autoarray::AutoArray<uint8_t> const R;
 
 			/**
 			 * return offset of i+1th 1 bit in v

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -24,11 +24,11 @@
 #include <vector>
 #include <memory>
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bitio/getBits.hpp>
-#include <libmaus/bitio/BitWriter.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bitio/getBits.hpp>
+#include <libmaus2/bitio/BitWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -38,8 +38,8 @@ namespace libmaus
 		struct HuffmanTreeNode
 		{
 			typedef HuffmanTreeNode this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			virtual bool isLeaf() const = 0;
 			virtual uint64_t getFrequency() const = 0;
@@ -63,22 +63,22 @@ namespace libmaus
 			{
 				if ( isLeaf() )
 					throw ::std::runtime_error("Cannot square unary alphabet tree.");
-				::libmaus::util::shared_ptr < HuffmanTreeNode >::type  acloned ( clone() );
+				::libmaus2::util::shared_ptr < HuffmanTreeNode >::type  acloned ( clone() );
 				square( acloned.get(), shift );
 			}
 			
 			virtual HuffmanTreeNode * clone() const = 0;
-			virtual ::libmaus::util::shared_ptr < HuffmanTreeNode >::type aclone() const
+			virtual ::libmaus2::util::shared_ptr < HuffmanTreeNode >::type aclone() const
 			{
-				return ::libmaus::util::shared_ptr < HuffmanTreeNode >::type(clone());
+				return ::libmaus2::util::shared_ptr < HuffmanTreeNode >::type(clone());
 			}
 
-			virtual ::libmaus::autoarray::AutoArray<uint64_t> structureArray() const
+			virtual ::libmaus2::autoarray::AutoArray<uint64_t> structureArray() const
 			{
 				::std::vector < bool > B;
 				structureVector(B);
 				
-				::libmaus::autoarray::AutoArray<uint64_t> A( (B.size() + 63) / 64 );
+				::libmaus2::autoarray::AutoArray<uint64_t> A( (B.size() + 63) / 64 );
 				bitio::BitWriter8 W(A.get());
 				for ( uint64_t i = 0; i < B.size(); ++i )
 				{
@@ -88,11 +88,11 @@ namespace libmaus
 				
 				return A;
 			}
-			virtual ::libmaus::autoarray::AutoArray<int64_t> symbolArray() const
+			virtual ::libmaus2::autoarray::AutoArray<int64_t> symbolArray() const
 			{
 				::std::vector < int64_t > B;
 				symbolVector(B);
-				::libmaus::autoarray::AutoArray<int64_t> A(B.size());			
+				::libmaus2::autoarray::AutoArray<int64_t> A(B.size());			
 				::std::copy ( B.begin(), B.end(), A.get());
 				return A;
 			}
@@ -102,46 +102,46 @@ namespace libmaus
 				return symbolArray().size();
 			}
 			
-			virtual ::libmaus::autoarray::AutoArray<uint64_t> depthArray() const
+			virtual ::libmaus2::autoarray::AutoArray<uint64_t> depthArray() const
 			{
 				::std::vector < uint64_t > B;
 				depthVector(B);
-				::libmaus::autoarray::AutoArray<uint64_t> A(B.size());			
+				::libmaus2::autoarray::AutoArray<uint64_t> A(B.size());			
 				::std::copy ( B.begin(), B.end(), A.get());
 				return A;
 			}
-			virtual ::libmaus::autoarray::AutoArray<std::pair<int64_t,uint64_t> > symbolDepthArray() const
+			virtual ::libmaus2::autoarray::AutoArray<std::pair<int64_t,uint64_t> > symbolDepthArray() const
 			{
 				::std::vector < std::pair<int64_t,uint64_t> > B;
 				symbolDepthVector(B);
-				::libmaus::autoarray::AutoArray< std::pair<int64_t,uint64_t> > A(B.size());			
+				::libmaus2::autoarray::AutoArray< std::pair<int64_t,uint64_t> > A(B.size());			
 				::std::copy ( B.begin(), B.end(), A.get());
 				return A;
 			}
 			uint64_t serialize(::std::ostream & out) const
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> struc = structureArray();
-				::libmaus::autoarray::AutoArray<int64_t> symb = symbolArray();
+				::libmaus2::autoarray::AutoArray<uint64_t> struc = structureArray();
+				::libmaus2::autoarray::AutoArray<int64_t> symb = symbolArray();
 				uint64_t s = 0;
 				s += struc.serialize(out);
 				s += symb.serialize(out);
 				out.flush();
 				return s;
 			}
-			static ::libmaus::util::shared_ptr < HuffmanTreeNode >::type deserialize(::std::istream & in)
+			static ::libmaus2::util::shared_ptr < HuffmanTreeNode >::type deserialize(::std::istream & in)
 			{
 				uint64_t s = 0;
 				return deserialize(in,s);
 			}
-			static ::libmaus::util::shared_ptr < HuffmanTreeNode >::type deserialize(::std::istream & in,uint64_t & s)
+			static ::libmaus2::util::shared_ptr < HuffmanTreeNode >::type deserialize(::std::istream & in,uint64_t & s)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> struc;
-				::libmaus::autoarray::AutoArray<int64_t> symb;
+				::libmaus2::autoarray::AutoArray<uint64_t> struc;
+				::libmaus2::autoarray::AutoArray<int64_t> symb;
 				s += struc.deserialize(in);
 				s += symb.deserialize(in);
 				
 				if ( !symb.getN() )
-					return ::libmaus::util::shared_ptr < HuffmanTreeNode >::type();
+					return ::libmaus2::util::shared_ptr < HuffmanTreeNode >::type();
 				else
 				{
 					uint64_t istruc = 0;
@@ -180,7 +180,7 @@ namespace libmaus
 			}
 			virtual void lineSerialise(::std::ostream & out, ::std::map<  HuffmanTreeNode const *, uint64_t > const & idmap) const = 0;
 			
-			static ::libmaus::util::shared_ptr < HuffmanTreeNode >::type simpleDeserialise(::std::istream & in);
+			static ::libmaus2::util::shared_ptr < HuffmanTreeNode >::type simpleDeserialise(::std::istream & in);
 		};
 	}
 }

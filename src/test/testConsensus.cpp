@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,22 +16,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/clustering/HashCreation.hpp>
+#include <libmaus2/clustering/HashCreation.hpp>
 
-
-#include <libmaus/consensus/Consensus.hpp>
-#include <libmaus/fastx/FastAReader.hpp>
-#include <libmaus/fastx/SocketFastAReader.hpp>
+#include <libmaus2/consensus/Consensus.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
+#include <libmaus2/fastx/SocketFastAReader.hpp>
 
 #if defined(LIBMAUS_HAVE_SEQAN)
 void computeConsensus()
 {
-	::libmaus::consensus::ConsensusComputation::unique_ptr_type CC(new ::libmaus::consensus::ConsensusComputation);
+	::libmaus2::consensus::ConsensusComputation::unique_ptr_type CC(new ::libmaus2::consensus::ConsensusComputation);
 	
-	typedef ::libmaus::fastx::SocketFastAReader reader_type;
+	typedef ::libmaus2::fastx::SocketFastAReader reader_type;
 	typedef reader_type::pattern_type pattern_type;
 	
-	::libmaus::network::SocketBase sockbase(STDIN_FILENO);
+	::libmaus2::network::SocketBase sockbase(STDIN_FILENO);
 	reader_type sockreader(&sockbase);
 
 	std::vector<std::string> V;
@@ -63,7 +62,7 @@ int main()
 	#if defined(LIBMAUS_HAVE_SEQAN)
 	computeConsensus();
 	#else
-	std::cerr << "libmaus is compiled without SeqAN support. Consensus computation is thus not present." << std::endl;
+	std::cerr << "libmaus2 is compiled without SeqAN support. Consensus computation is thus not present." << std::endl;
 	#endif
 	           
 	return 0;

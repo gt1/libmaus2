@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,14 +20,14 @@
 #if ! defined(DYNAMICHUFFMANWAVELTTREE_HPP)
 #define DYNAMICHUFFMANWAVELTTREE_HPP
 
-#include <libmaus/bitbtree/bitbtree.hpp>
-#include <libmaus/huffman/huffman.hpp>
-#include <libmaus/wavelet/HuffmanWaveletTree.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/bitbtree/bitbtree.hpp>
+#include <libmaus2/huffman/huffman.hpp>
+#include <libmaus2/wavelet/HuffmanWaveletTree.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 #include <memory>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
@@ -36,13 +36,13 @@ namespace libmaus
 		{
 			// private:
 			static unsigned int const lookupwords = 1;
-			typedef typename ::libmaus::bitbtree::BitBTree<k,w> bitbtreetype;
+			typedef typename ::libmaus2::bitbtree::BitBTree<k,w> bitbtreetype;
 			typedef typename bitbtreetype::inner_node_allocator_type inner_node_allocator_type;
 			typedef typename bitbtreetype::leaf_node_allocator_type leaf_node_allocator_type;
 
 			struct DynamicHuffmanWaveletTreeNode
 			{
-				typedef typename ::libmaus::util::unique_ptr<
+				typedef typename ::libmaus2::util::unique_ptr<
 					DynamicHuffmanWaveletTreeNode
 					>::type unique_ptr_type;
 
@@ -51,41 +51,41 @@ namespace libmaus
 				unique_ptr_type right;
 				
 				DynamicHuffmanWaveletTreeNode(
-					::libmaus::huffman::HuffmanTreeInnerNode const * const node,
-					typename ::libmaus::util::shared_ptr < inner_node_allocator_type >::type & inner_node_allocator,
-					typename ::libmaus::util::shared_ptr < leaf_node_allocator_type >::type & leaf_node_allocator
+					::libmaus2::huffman::HuffmanTreeInnerNode const * const node,
+					typename ::libmaus2::util::shared_ptr < inner_node_allocator_type >::type & inner_node_allocator,
+					typename ::libmaus2::util::shared_ptr < leaf_node_allocator_type >::type & leaf_node_allocator
 				) : btree(inner_node_allocator,leaf_node_allocator)
 				{
 					if ( ! (node->left->isLeaf()) )
 					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * const hleft = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(node->left);
+						::libmaus2::huffman::HuffmanTreeInnerNode const * const hleft = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(node->left);
 						unique_ptr_type tleft ( new DynamicHuffmanWaveletTreeNode(hleft,inner_node_allocator,leaf_node_allocator) ) ;
 						left = UNIQUE_PTR_MOVE(tleft);
 					}
 					#if 0
 					else
 					{
-						::libmaus::huffman::HuffmanTreeLeaf const * const hleft = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(node->left);
+						::libmaus2::huffman::HuffmanTreeLeaf const * const hleft = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(node->left);
 						std::cerr << "reached left leaf " << hleft->symbol << std::endl;
 					}
 					#endif
 					if ( ! (node->right->isLeaf()) )
 					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * const hright = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(node->right);
+						::libmaus2::huffman::HuffmanTreeInnerNode const * const hright = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(node->right);
 						unique_ptr_type tright(new DynamicHuffmanWaveletTreeNode(hright,inner_node_allocator,leaf_node_allocator));
 						right = UNIQUE_PTR_MOVE(tright);
 					}
 					#if 0
 					else
 					{
-						::libmaus::huffman::HuffmanTreeLeaf const * const hright = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(node->right);
+						::libmaus2::huffman::HuffmanTreeLeaf const * const hright = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(node->right);
 						std::cerr << "reached right leaf " << hright->symbol << std::endl;			
 					}
 					#endif	
 				}
 				
 				template<typename writer_type>
-				::libmaus::wavelet::HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type serialize(writer_type & writer, uint64_t & offset) const
+				::libmaus2::wavelet::HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type serialize(writer_type & writer, uint64_t & offset) const
 				{
 					HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type Hnode =
 						HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type ( new HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode (offset) );
@@ -131,11 +131,11 @@ namespace libmaus
 				}
 			};
 			
-			typename ::libmaus::util::shared_ptr < inner_node_allocator_type >::type inner_node_allocator;
-			typename ::libmaus::util::shared_ptr < leaf_node_allocator_type >::type leaf_node_allocator;
-			typename ::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type hroot;
+			typename ::libmaus2::util::shared_ptr < inner_node_allocator_type >::type inner_node_allocator;
+			typename ::libmaus2::util::shared_ptr < leaf_node_allocator_type >::type leaf_node_allocator;
+			typename ::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type hroot;
 
-			typename ::libmaus::util::unique_ptr< ::libmaus::huffman::EncodeTable<lookupwords> >::type enctable;
+			typename ::libmaus2::util::unique_ptr< ::libmaus2::huffman::EncodeTable<lookupwords> >::type enctable;
 			typename DynamicHuffmanWaveletTreeNode::unique_ptr_type data;
 			uint64_t n;
 			
@@ -150,7 +150,7 @@ namespace libmaus
 				/**
 				 * length of sequence
 				 **/
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,n);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,n);
 				
 				/**
 				 * huffman tree
@@ -162,7 +162,7 @@ namespace libmaus
 				 **/		
 				uint64_t const totalbits = data.get() ? data->countBits() : 0;
 				uint64_t const totalwords = (totalbits + 63)/64;
-				::libmaus::serialize::Serialize<uint64_t>::serialize(out,totalwords);
+				::libmaus2::serialize::Serialize<uint64_t>::serialize(out,totalwords);
 
 				HuffmanWaveletTree::HuffmanWaveletTreeNavigationNode::unique_ptr_type navroot;
 				bitio::OutputBuffer<uint64_t> ob(16*1024,out);
@@ -180,7 +180,7 @@ namespace libmaus
 			}
 
 			DynamicHuffmanWaveletTree(
-				::libmaus::util::shared_ptr<huffman::HuffmanTreeNode>::type & rhroot
+				::libmaus2::util::shared_ptr<huffman::HuffmanTreeNode>::type & rhroot
 			)
 			: 
 				inner_node_allocator(new inner_node_allocator_type()),
@@ -207,8 +207,8 @@ namespace libmaus
 			{
 				assert ( p <= n );
 				
-				std::pair < ::libmaus::uint::UInt < lookupwords >, unsigned int > const & codeandlen = (*enctable)[key];
-				::libmaus::uint::UInt < lookupwords > const & code = codeandlen.first;
+				std::pair < ::libmaus2::uint::UInt < lookupwords >, unsigned int > const & codeandlen = (*enctable)[key];
+				::libmaus2::uint::UInt < lookupwords > const & code = codeandlen.first;
 				unsigned int const codelen = codeandlen.second;
 				DynamicHuffmanWaveletTreeNode * node = data.get();
 				
@@ -267,8 +267,8 @@ namespace libmaus
 			{
 				assert ( p < n );
 
-				std::pair < ::libmaus::uint::UInt < lookupwords >, unsigned int > const & codeandlen = (*enctable)[key];
-				::libmaus::uint::UInt < lookupwords > const & code = codeandlen.first;
+				std::pair < ::libmaus2::uint::UInt < lookupwords >, unsigned int > const & codeandlen = (*enctable)[key];
+				::libmaus2::uint::UInt < lookupwords > const & code = codeandlen.first;
 				unsigned int const codelen = codeandlen.second;
 				DynamicHuffmanWaveletTreeNode * node = data.get();
 				

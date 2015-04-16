@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,31 +19,31 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMALIGNMENTDECODERFACTORY_HPP)
 #define LIBMAUS_BAMBAM_BAMALIGNMENTDECODERFACTORY_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
-#include <libmaus/bambam/CramRange.hpp>
-#include <libmaus/bambam/SamDecoderWrapper.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
+#include <libmaus2/bambam/CramRange.hpp>
+#include <libmaus2/bambam/SamDecoderWrapper.hpp>
 
 #if defined(LIBMAUS_HAVE_IO_LIB)
-#include <libmaus/bambam/ScramDecoder.hpp>
-#include <libmaus/bambam/ScramInputContainer.hpp>
+#include <libmaus2/bambam/ScramDecoder.hpp>
+#include <libmaus2/bambam/ScramInputContainer.hpp>
 #endif
 
-#include <libmaus/bambam/BamAlignmentDecoderInfo.hpp>
-#include <libmaus/bambam/BamRangeDecoder.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoderInfo.hpp>
+#include <libmaus2/bambam/BamRangeDecoder.hpp>
 
-#include <libmaus/aio/InputStreamFactory.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/InputStreamFactory.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		struct BamAlignmentDecoderFactory
 		{
 			typedef BamAlignmentDecoderFactory this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			BamAlignmentDecoderInfo const BADI;
 			
@@ -78,30 +78,30 @@ namespace libmaus
 			}
 			
 			
-			libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type operator()() const
+			libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type operator()() const
 			{
-				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(BADI));
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(BADI));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 			
-			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				BamAlignmentDecoderInfo const & BADI,
 				std::istream & stdin = std::cin
 			)
 			{
-				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 					construct(stdin,BADI.inputfilename,BADI.inputformat,BADI.inputthreads,BADI.reference,BADI.putrank,BADI.copystr,BADI.range)
 				);
 				
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
-				libmaus::bambam::BamAlignmentDecoderInfo const & BADI, bool const putrank, std::istream & stdin
+			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+				libmaus2::bambam::BamAlignmentDecoderInfo const & BADI, bool const putrank, std::istream & stdin
 			)
 			{
-				libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-					libmaus::bambam::BamAlignmentDecoderFactory::construct(
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+					libmaus2::bambam::BamAlignmentDecoderFactory::construct(
 						stdin,
 						BADI.inputfilename,
 						BADI.inputformat,
@@ -115,7 +115,7 @@ namespace libmaus
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
-			static libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
+			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::istream & stdin = std::cin,
 				std::string const & inputfilename = BamAlignmentDecoderInfo::getDefaultInputFileName(),
 				std::string const & inputformat = BamAlignmentDecoderInfo::getDefaultInputFormat(),
@@ -140,27 +140,27 @@ namespace libmaus
 						{
 							if ( range.size() )
 							{
-								libmaus::exception::LibMausException ex;
+								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for input via stdin" << std::endl;
 								ex.finish();
 								throw ex;								
 							}
 							else if ( copystr )
 							{
-								libmaus::aio::InputStream::unique_ptr_type iptr(
-									new libmaus::aio::InputStream(stdin)
+								libmaus2::aio::InputStream::unique_ptr_type iptr(
+									new libmaus2::aio::InputStream(stdin)
 								);								
-								libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamDecoderWrapper(iptr,*copystr,putrank)
 								);
 								return UNIQUE_PTR_MOVE(tptr);
 							}
 							else
 							{
-								libmaus::aio::InputStream::unique_ptr_type iptr(
-									new libmaus::aio::InputStream(stdin)
+								libmaus2::aio::InputStream::unique_ptr_type iptr(
+									new libmaus2::aio::InputStream(stdin)
 								);
-								libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamDecoderWrapper(iptr,putrank)
 								);
 								return UNIQUE_PTR_MOVE(tptr);
@@ -170,7 +170,7 @@ namespace libmaus
 						{
 							if ( copystr )
 							{
-								libmaus::exception::LibMausException ex;
+								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for file based input" << std::endl;
 								ex.finish();
 								throw ex;		
@@ -179,17 +179,17 @@ namespace libmaus
 							{
 								if ( range.size() )
 								{
-									libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-										new libmaus::bambam::BamRangeDecoderWrapper(inputfilename,range,putrank)
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+										new libmaus2::bambam::BamRangeDecoderWrapper(inputfilename,range,putrank)
 									);
 									return UNIQUE_PTR_MOVE(tptr);
 								}
 								else
 								{
-									libmaus::aio::InputStream::unique_ptr_type iptr(
-										libmaus::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
+									libmaus2::aio::InputStream::unique_ptr_type iptr(
+										libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 									);
-									libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+									libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 										new BamDecoderWrapper(iptr,putrank)
 									);
 									return UNIQUE_PTR_MOVE(tptr);
@@ -201,7 +201,7 @@ namespace libmaus
 					{					
 						if ( range.size() )
 						{
-							libmaus::exception::LibMausException ex;
+							libmaus2::exception::LibMausException ex;
 							ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for parallel input" << std::endl;
 							ex.finish();
 							throw ex;								
@@ -210,16 +210,16 @@ namespace libmaus
 						{
 							if ( copystr )
 							{
-								libmaus::aio::InputStream::unique_ptr_type iptr(new libmaus::aio::InputStream(stdin));
-								libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(stdin));
+								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamParallelDecoderWrapper(iptr,*copystr,inputthreads,putrank)
 								);
 								return UNIQUE_PTR_MOVE(tptr);
 							}
 							else
 							{
-								libmaus::aio::InputStream::unique_ptr_type iptr(new libmaus::aio::InputStream(stdin));
-								libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(stdin));
+								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamParallelDecoderWrapper(iptr,inputthreads,putrank)
 								);
 								return UNIQUE_PTR_MOVE(tptr);
@@ -229,17 +229,17 @@ namespace libmaus
 						{
 							if ( copystr )
 							{
-								libmaus::exception::LibMausException ex;
+								libmaus2::exception::LibMausException ex;
 								ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for file based input" << std::endl;
 								ex.finish();
 								throw ex;		
 							}
 							else
 							{
-								libmaus::aio::InputStream::unique_ptr_type iptr(
-									libmaus::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
+								libmaus2::aio::InputStream::unique_ptr_type iptr(
+									libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 								);
-								libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamParallelDecoderWrapper(iptr,inputthreads,putrank)
 								);
 								return UNIQUE_PTR_MOVE(tptr);					
@@ -257,14 +257,14 @@ namespace libmaus
 				{
 					if ( copystr )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for SAM based input" << std::endl;
 						ex.finish();
 						throw ex;		
 					}
 					if ( range.size() )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for the sam input format" << std::endl;
 						ex.finish();
 						throw ex;		
@@ -272,19 +272,19 @@ namespace libmaus
 					
 					if ( inputisstdin )
 					{
-						libmaus::aio::InputStream::unique_ptr_type iptr(new libmaus::aio::InputStream(stdin));
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::SamDecoderWrapper(iptr,putrank)
+						libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(stdin));
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::SamDecoderWrapper(iptr,putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);						
 					}
 					else
 					{
-						libmaus::aio::InputStream::unique_ptr_type iptr(
-							libmaus::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
+						libmaus2::aio::InputStream::unique_ptr_type iptr(
+							libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
 						);
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::SamDecoderWrapper(iptr,putrank)
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::SamDecoderWrapper(iptr,putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);					
 					}
@@ -294,14 +294,14 @@ namespace libmaus
 				{
 					if ( copystr )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for io_lib based input" << std::endl;
 						ex.finish();
 						throw ex;		
 					}
 					if ( range.size() )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for the sam input format" << std::endl;
 						ex.finish();
 						throw ex;		
@@ -309,15 +309,15 @@ namespace libmaus
 					
 					if ( inputisstdin )
 					{
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper("-","rs","",putrank)
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::ScramDecoderWrapper("-","rs","",putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);						
 					}
 					else
 					{
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rs","",putrank)
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::ScramDecoderWrapper(inputfilename,"rs","",putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);					
 					}
@@ -326,14 +326,14 @@ namespace libmaus
 				{
 					if ( copystr )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for io_lib based input" << std::endl;
 						ex.finish();
 						throw ex;		
 					}
 					if ( range.size() )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for the sbam input format" << std::endl;
 						ex.finish();
 						throw ex;		
@@ -341,15 +341,15 @@ namespace libmaus
 					
 					if ( inputisstdin )
 					{
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper("-","rb","",putrank)
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::ScramDecoderWrapper("-","rb","",putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);						
 					}
 					else
 					{
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rb","",putrank)
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::ScramDecoderWrapper(inputfilename,"rb","",putrank)
 						);
 						return UNIQUE_PTR_MOVE(tptr);					
 					}
@@ -360,7 +360,7 @@ namespace libmaus
 										
 					if ( copystr )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BamAlignmentDecoderFactory::construct(): Stream copy option is not valid for io_lib based input" << std::endl;
 						ex.finish();
 						throw ex;		
@@ -369,7 +369,7 @@ namespace libmaus
 					{
 						if ( inputisstdin )
 						{
-							libmaus::exception::LibMausException ex;
+							libmaus2::exception::LibMausException ex;
 							ex.getStream() << "BamAlignmentDecoderFactory::construct(): ranges are not supported for input via stdin" << std::endl;
 							ex.finish();
 							throw ex;		
@@ -381,19 +381,19 @@ namespace libmaus
 					if ( inputisstdin )
 					{
 						#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper(
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::ScramDecoderWrapper(
 								std::string("-"),
-								libmaus::bambam::ScramInputContainer::allocate,
-								libmaus::bambam::ScramInputContainer::deallocate,
+								libmaus2::bambam::ScramInputContainer::allocate,
+								libmaus2::bambam::ScramInputContainer::deallocate,
 								4096,
 								reference,
 								putrank
 							)
 						);
 						#else
-						libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-							new libmaus::bambam::ScramDecoderWrapper("-","rc",reference,putrank)
+						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+							new libmaus2::bambam::ScramDecoderWrapper("-","rc",reference,putrank)
 						);
 						#endif
 						return UNIQUE_PTR_MOVE(tptr);						
@@ -403,11 +403,11 @@ namespace libmaus
 						if ( cramrange.rangeref.size() )
 						{
 							#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
-							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-								new libmaus::bambam::ScramDecoderWrapper(
+							libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								new libmaus2::bambam::ScramDecoderWrapper(
 									inputfilename,
-									libmaus::bambam::ScramInputContainer::allocate,
-									libmaus::bambam::ScramInputContainer::deallocate,
+									libmaus2::bambam::ScramInputContainer::allocate,
+									libmaus2::bambam::ScramInputContainer::deallocate,
 									4096,
 									reference,
 									cramrange.rangeref,cramrange.rangestart,cramrange.rangeend,
@@ -415,8 +415,8 @@ namespace libmaus
 								)
 							);
 							#else
-							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-								new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,
+							libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								new libmaus2::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,
 									cramrange.rangeref,cramrange.rangestart,cramrange.rangeend,putrank)
 							);
 							#endif
@@ -425,19 +425,19 @@ namespace libmaus
 						else
 						{
 							#if defined(LIBMAUS_HAVE_IO_LIB_INPUT_CALLBACKS)
-							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-								new libmaus::bambam::ScramDecoderWrapper(
+							libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								new libmaus2::bambam::ScramDecoderWrapper(
 									inputfilename,
-									libmaus::bambam::ScramInputContainer::allocate,
-									libmaus::bambam::ScramInputContainer::deallocate,
+									libmaus2::bambam::ScramInputContainer::allocate,
+									libmaus2::bambam::ScramInputContainer::deallocate,
 									4096,
 									reference,
 									putrank
 								)
 							);
 							#else			
-							libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-								new libmaus::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,putrank)
+							libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
+								new libmaus2::bambam::ScramDecoderWrapper(inputfilename,"rc",reference,putrank)
 							);
 							#endif
 							return UNIQUE_PTR_MOVE(tptr);					
@@ -447,7 +447,7 @@ namespace libmaus
 				#endif
 				else
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "Invalid input format " << inputformat << std::endl;
 					ex.finish();
 					throw ex;

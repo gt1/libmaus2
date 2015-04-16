@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,9 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/bambam/BamDefaultAdapters.hpp>
+#include <libmaus2/bambam/BamDefaultAdapters.hpp>
 
-uint8_t const libmaus::bambam::BamDefaultAdapters::adapters_bam[1134] =
+uint8_t const libmaus2::bambam::BamDefaultAdapters::adapters_bam[1134] =
 {
 	31,139,8,4,0,0,0,0,0,255,6,0,66,67,2,0,81,4,181,152,93,111,219,54,20,134,53,160,55,238,205,38,
 	78,105,189,174,197,34,129,67,185,97,138,107,181,41,6,3,193,66,69,67,105,108,115,141,56,237,190,10,20,114,172,56,
@@ -58,10 +58,10 @@ uint8_t const libmaus::bambam::BamDefaultAdapters::adapters_bam[1134] =
 	2,0,27,0,3,0,0,0,0,0,0,0,0,0
 };
 
-std::string libmaus::bambam::BamDefaultAdapters::getDefaultAdapters()
+std::string libmaus2::bambam::BamDefaultAdapters::getDefaultAdapters()
 {
 	return std::string(
-		&libmaus::bambam::BamDefaultAdapters::adapters_bam[0],
-		&libmaus::bambam::BamDefaultAdapters::adapters_bam[sizeof(libmaus::bambam::BamDefaultAdapters::adapters_bam)]
+		&libmaus2::bambam::BamDefaultAdapters::adapters_bam[0],
+		&libmaus2::bambam::BamDefaultAdapters::adapters_bam[sizeof(libmaus2::bambam::BamDefaultAdapters::adapters_bam)]
 	);
 }

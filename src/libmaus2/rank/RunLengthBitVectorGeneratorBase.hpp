@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,21 +19,21 @@
 #if ! defined(LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATORBASE_HPP)
 #define LIBMAUS_RANK_RUNLENGTHBITVECTORGENERATORBASE_HPP
 
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/gamma/GammaEncoder.hpp>
-#include <libmaus/rank/RunLengthBitVectorBase.hpp>
-#include <libmaus/util/shared_ptr.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/gamma/GammaEncoder.hpp>
+#include <libmaus2/rank/RunLengthBitVectorBase.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
 		struct RunLengthBitVectorGeneratorBase
 		{		
 			typedef RunLengthBitVectorGeneratorBase this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			// number of bits per rank acc
 			uint64_t const rankaccbits;
@@ -46,18 +46,18 @@ namespace libmaus
 			// number of blocks
 			uint64_t blocks;
 			// gamma encoder
-			::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > & GE;
+			::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > & GE;
 			// index stream
 			std::iostream & indexstr;
 			
 			RunLengthBitVectorGeneratorBase(
 				uint64_t const rbacc, // start 1 bit accumulator value
 				unsigned int const rblocksize, // block size
-				::libmaus::gamma::GammaEncoder < ::libmaus::aio::SynchronousGenericOutput<uint64_t> > & rGE,
+				::libmaus2::gamma::GammaEncoder < ::libmaus2::aio::SynchronousGenericOutput<uint64_t> > & rGE,
 				std::iostream & rindexstr
 			)
 			: 
-				rankaccbits(libmaus::rank::RunLengthBitVectorBase::getRankAccBits()), 
+				rankaccbits(libmaus2::rank::RunLengthBitVectorBase::getRankAccBits()), 
 				bacc(rbacc),
 				blocksize(rblocksize),
 				blocks(0),
@@ -86,7 +86,7 @@ namespace libmaus
 						// bit offset for block
 						uint64_t const bitoff = GE.getOffset();
 						// write bit offset
-						libmaus::serialize::Serialize<uint64_t>::serialize(indexstr,bitoff);
+						libmaus2::serialize::Serialize<uint64_t>::serialize(indexstr,bitoff);
 						// write accumulator bacc
 						GE.encodeWord(bacc,rankaccbits);
 						// encode first bit				

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCKSUBBLOCKINFO_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBLOCKSUBBLOCKINFO_HPP
 
-#include <libmaus/parallel/LockedCounter.hpp>
+#include <libmaus2/parallel/LockedCounter.hpp>
 #include <vector>
 #include <utility>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,11 +32,11 @@ namespace libmaus
 			struct GenericInputBlockSubBlockInfo
 			{
 				typedef GenericInputBlockSubBlockInfo this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				std::vector< std::pair<uint8_t *,uint8_t *> > blocks;
-				libmaus::parallel::LockedCounter returnedBlocks;
+				libmaus2::parallel::LockedCounter returnedBlocks;
 				uint64_t streamid;
 				uint64_t blockid;
 				bool eof;

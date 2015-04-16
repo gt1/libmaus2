@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -27,33 +27,33 @@
 #include <queue>
 #include <stack>
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/lcs/CheckOverlapResult.hpp>
-#include <libmaus/lcs/SuffixPrefix.hpp>
-#include <libmaus/lcs/HashContainer.hpp>
-#include <libmaus/lcs/HashContainer2.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/fastx/FastQReader.hpp>
-#include <libmaus/fastx/FastAReader.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/lcs/CheckOverlapResult.hpp>
+#include <libmaus2/lcs/SuffixPrefix.hpp>
+#include <libmaus2/lcs/HashContainer.hpp>
+#include <libmaus2/lcs/HashContainer2.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/fastx/FastQReader.hpp>
+#include <libmaus2/fastx/FastAReader.hpp>
 #if ! defined(_WIN32)
-#include <libmaus/fastx/FastClient.hpp>
+#include <libmaus2/fastx/FastClient.hpp>
 #endif
 #if ! defined(_WIN32)
-#include <libmaus/util/Terminal.hpp>
+#include <libmaus2/util/Terminal.hpp>
 #endif
-#include <libmaus/aio/SynchronousOutputFile8Array.hpp>
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
-#include <libmaus/aio/GenericInput.hpp>
-#include <libmaus/lcs/LCSDynamic.hpp>
-#include <libmaus/graph/TripleEdge.hpp>
-#include <libmaus/fastx/CompactReadContainer.hpp>
-#include <libmaus/lcs/OverlapComputationBlockRequest.hpp>
-#include <libmaus/lcs/OverlapOrientation.hpp>
-#include <libmaus/network/Socket.hpp>
-#include <libmaus/lcs/OrientationWeightEncoding.hpp>
-#include <libmaus/lcs/HammingOverlapDetection.hpp>
+#include <libmaus2/aio/SynchronousOutputFile8Array.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/GenericInput.hpp>
+#include <libmaus2/lcs/LCSDynamic.hpp>
+#include <libmaus2/graph/TripleEdge.hpp>
+#include <libmaus2/fastx/CompactReadContainer.hpp>
+#include <libmaus2/lcs/OverlapComputationBlockRequest.hpp>
+#include <libmaus2/lcs/OverlapOrientation.hpp>
+#include <libmaus2/network/Socket.hpp>
+#include <libmaus2/lcs/OrientationWeightEncoding.hpp>
+#include <libmaus2/lcs/HammingOverlapDetection.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -115,17 +115,17 @@ namespace libmaus
 			)
 			{
 				#if 1
-				::libmaus::lcs::SuffixPrefixDna5 SP(a.size(),b.size());
-				::libmaus::lcs::SuffixPrefixResult SPR = SP.process(a.begin(),b.begin());
+				::libmaus2::lcs::SuffixPrefixDna5 SP(a.size(),b.size());
+				::libmaus2::lcs::SuffixPrefixResult SPR = SP.process(a.begin(),b.begin());
 				// uint64_t const tracelength = SP.getTraceLength();
-				SP.printAlignmentLines(out,a,b,SPR,::libmaus::util::Terminal::getColumns());
+				SP.printAlignmentLines(out,a,b,SPR,::libmaus2::util::Terminal::getColumns());
 				#else
-				::libmaus::lcs::HashContainer2 HC(12 /* k */, a.size());
+				::libmaus2::lcs::HashContainer2 HC(12 /* k */, a.size());
 				HC.process(a.begin());
-				::libmaus::lcs::SuffixPrefixResult const SPR = HC.match(b.begin(),b.size(),a.begin(),maxindelfrac);
+				::libmaus2::lcs::SuffixPrefixResult const SPR = HC.match(b.begin(),b.size(),a.begin(),maxindelfrac);
 				HC.printAlignmentLines(out,a.begin(),b.begin(),b.size(),SPR,
 					#if ! defined(_WIN32)
-					::libmaus::util::Terminal::getColumns()
+					::libmaus2::util::Terminal::getColumns()
 					#else
 					80
 					#endif
@@ -146,7 +146,7 @@ namespace libmaus
 			{
 				std::ostringstream sstr, rstr;
 				int64_t const scores = showOverlapSingle(sstr,a,b,maxindelfrac);
-				int64_t const scorer = showOverlapSingle(rstr,::libmaus::fastx::reverseComplementUnmapped(b),::libmaus::fastx::reverseComplementUnmapped(a),maxindelfrac);
+				int64_t const scorer = showOverlapSingle(rstr,::libmaus2::fastx::reverseComplementUnmapped(b),::libmaus2::fastx::reverseComplementUnmapped(a),maxindelfrac);
 				
 				if ( scores >= scorer )
 					out << sstr.str();
@@ -161,14 +161,14 @@ namespace libmaus
 			)
 			{
 				#if 1
-				::libmaus::lcs::SuffixPrefixDna5 SP(a.size(),b.size());
-				::libmaus::lcs::SuffixPrefixResult SPR = SP.process(a.begin(),b.begin());
+				::libmaus2::lcs::SuffixPrefixDna5 SP(a.size(),b.size());
+				::libmaus2::lcs::SuffixPrefixResult SPR = SP.process(a.begin(),b.begin());
 				// uint64_t const tracelength = SP.getTraceLength();
 				SP.printInfixAlignment(a.begin(),b.begin(),SPR,out);
 				#else
-				::libmaus::lcs::HashContainer2 HC(12 /* k */, a.size());
+				::libmaus2::lcs::HashContainer2 HC(12 /* k */, a.size());
 				HC.process(a.begin());
-				::libmaus::lcs::SuffixPrefixResult const SPR = HC.match(b.begin(),b.size(),a.begin(),maxindelfrac);
+				::libmaus2::lcs::SuffixPrefixResult const SPR = HC.match(b.begin(),b.size(),a.begin(),maxindelfrac);
 				HC.printInfixAlignment(a.begin(),b.begin(),SPR,out);
 				// uint64_t const tracelength = HC.trace.size();
 				#endif
@@ -196,7 +196,7 @@ namespace libmaus
 			{
 				std::ostringstream sstr, rstr;
 				int64_t const scores = showOverlapCoverSingle(sstr,a,b,maxindelfrac);
-				int64_t const scorer = showOverlapCoverSingle(rstr,::libmaus::fastx::reverseComplementUnmapped(b),::libmaus::fastx::reverseComplementUnmapped(a),maxindelfrac);
+				int64_t const scorer = showOverlapCoverSingle(rstr,::libmaus2::fastx::reverseComplementUnmapped(b),::libmaus2::fastx::reverseComplementUnmapped(a),maxindelfrac);
 
 				#if 0				
 				out << "scores=" << scores << " scorer=" << scorer << std::endl;
@@ -215,17 +215,17 @@ namespace libmaus
 
 			static uint64_t printQuadAlignment(std::string const & a, std::string const & b)
 			{
-				::libmaus::lcs::SuffixPrefixDna5 SP(a.size(),b.size());
-				::libmaus::lcs::SuffixPrefixResult const SPR = SP.process(a.begin(),b.begin());
+				::libmaus2::lcs::SuffixPrefixDna5 SP(a.size(),b.size());
+				::libmaus2::lcs::SuffixPrefixResult const SPR = SP.process(a.begin(),b.begin());
 				std::cerr << "quad alignment: " << std::endl;
 				SP.printAlignmentLines(std::cerr,a,b,SPR,
 					#if ! defined(_WIN32)
-					::libmaus::util::Terminal::getColumns()
+					::libmaus2::util::Terminal::getColumns()
 					#else
 					80
 					#endif
 				);
-				return std::max(0, SP.getTraceScore() ); // ::libmaus::lcs::TraceContainer::getTraceScore(SP.trace.begin(),SP.trace.end()));
+				return std::max(0, SP.getTraceScore() ); // ::libmaus2::lcs::TraceContainer::getTraceScore(SP.trace.begin(),SP.trace.end()));
 			}
 			
 			enum single_check_type {
@@ -249,13 +249,13 @@ namespace libmaus
 			)
 			{
 				#if 1
-				::libmaus::lcs::SuffixPrefixDna5 HC(a.size(),b.size());
-				::libmaus::lcs::SuffixPrefixResult SPR = HC.process(a.begin(),b.begin());
+				::libmaus2::lcs::SuffixPrefixDna5 HC(a.size(),b.size());
+				::libmaus2::lcs::SuffixPrefixResult SPR = HC.process(a.begin(),b.begin());
 				uint64_t const tracelength = HC.getTraceLength();
 				#else
-				::libmaus::lcs::HashContainer2 HC(12 /* k */, a.size());
+				::libmaus2::lcs::HashContainer2 HC(12 /* k */, a.size());
 				HC.process(a.begin());
-				::libmaus::lcs::SuffixPrefixResult const SPR = HC.match(b.begin(),b.size(),a.begin(),maxindelfrac);
+				::libmaus2::lcs::SuffixPrefixResult const SPR = HC.match(b.begin(),b.size(),a.begin(),maxindelfrac);
 				uint64_t const tracelength = HC.trace.size();
 				#endif
 
@@ -560,8 +560,8 @@ namespace libmaus
 				OverlapComputationBlockRequest const & OCBR,
 				edges_array_type & edges,
 				srcreads_container_type & srcreads,
-				::libmaus::network::SocketBase * sock,
-				::libmaus::parallel::OMPLock & lock
+				::libmaus2::network::SocketBase * sock,
+				::libmaus2::parallel::OMPLock & lock
 				)
 			{
 				// typedef typename reader_type::unique_ptr_type reader_ptr_type;
@@ -594,7 +594,7 @@ namespace libmaus
 						break;
 
 					std::string const & b = pattern.spattern;
-					std::string const br = ::libmaus::fastx::reverseComplementUnmapped(b);
+					std::string const br = ::libmaus2::fastx::reverseComplementUnmapped(b);
 					
 					CheckOverlapResult * ACORV[5];
 					CheckOverlapResult ** const CORVa = &ACORV[0];
@@ -604,7 +604,7 @@ namespace libmaus
 						// uint64_t const local = (edgeit->a - OCBR.FI.low);
 						// std::string const & b = srcreads[local];
 						std::string const a = srcreads[edgeit->a];
-						std::string const ar = ::libmaus::fastx::reverseComplementUnmapped(a);
+						std::string const ar = ::libmaus2::fastx::reverseComplementUnmapped(a);
 
 						edge_type edge;
 						CheckOverlapResult const COR = 
@@ -675,14 +675,14 @@ namespace libmaus
 				OverlapComputationBlockRequest const & OCBR,
 				edges_array_type & edges,
 				srcreads_container_type & srcreads,
-				::libmaus::network::SocketBase * sock,
-				::libmaus::parallel::OMPLock & lock
+				::libmaus2::network::SocketBase * sock,
+				::libmaus2::parallel::OMPLock & lock
 				)
 			{
 				// typedef typename reader_type::unique_ptr_type reader_ptr_type;
 				typedef typename reader_type::pattern_type pattern_type;
 				
-				libmaus::lcs::HammingOverlapDetection HOD;
+				libmaus2::lcs::HammingOverlapDetection HOD;
 				
 				unsigned int const mintracelength = OCBR.mintracelength;
 				int64_t const minscore = OCBR.minscore;
@@ -718,7 +718,7 @@ namespace libmaus
 					{
 						std::string const a = srcreads[edgeit->a];
 
-						libmaus::lcs::OverlapOrientation::overlap_orientation orientation;
+						libmaus2::lcs::OverlapOrientation::overlap_orientation orientation;
 						uint64_t overhang;
 						int64_t maxscore;
 						
@@ -773,10 +773,10 @@ namespace libmaus
 			template<typename edges_array_type>
 			static uint64_t handleBlock(
 				OverlapComputationBlockRequest const & OCBR,
-				::libmaus::fastx::CompactReadContainer & srcreads,
+				::libmaus2::fastx::CompactReadContainer & srcreads,
 				edges_array_type & edges,
-				::libmaus::network::SocketBase * sock,
-				::libmaus::parallel::OMPLock & lock
+				::libmaus2::network::SocketBase * sock,
+				::libmaus2::parallel::OMPLock & lock
 			)
 			{
 				#if 1
@@ -805,7 +805,7 @@ namespace libmaus
 					#if defined(UNCOMPRESSED)
 					if ( OCBR.isfastq )
 					{
-						typedef ::libmaus::fastx::FastQReader reader_type;
+						typedef ::libmaus2::fastx::FastQReader reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
 						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
@@ -813,14 +813,14 @@ namespace libmaus
 					}
 					else
 					{
-						typedef ::libmaus::fastx::FastAReader reader_type;
+						typedef ::libmaus2::fastx::FastAReader reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
 						// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
 						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
 					}
 					#else
-					typedef ::libmaus::fastx::CompactFastConcatDecoder reader_type;
+					typedef ::libmaus2::fastx::CompactFastConcatDecoder reader_type;
 					typedef reader_type::unique_ptr_type reader_ptr_type;
 					reader_ptr_type blockreader ( new reader_type (OCBR.inputfiles,OCBR.SUBFI) );
 					// edgeok = processReads<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);					
@@ -832,7 +832,7 @@ namespace libmaus
 					#if defined(UNCOMPRESSED)
 					if ( OCBR.isfastq )
 					{
-						typedef ::libmaus::fastx::FastQClient reader_type;
+						typedef ::libmaus2::fastx::FastQClient reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						std::cerr << "Using host " << OCBR.serverhostname << " port " << OCBR.serverport << std::endl;
 						reader_ptr_type blockreader ( new reader_type (
@@ -845,7 +845,7 @@ namespace libmaus
 					}
 					else
 					{
-						typedef ::libmaus::fastx::FastAClient reader_type;
+						typedef ::libmaus2::fastx::FastAClient reader_type;
 						typedef reader_type::unique_ptr_type reader_ptr_type;
 						std::cerr << "Using host " << OCBR.serverhostname << " port " << OCBR.serverport << std::endl;
 						reader_ptr_type blockreader ( new reader_type (
@@ -857,7 +857,7 @@ namespace libmaus
 						edgeok = processReadsHamming<reader_type>(blockreader,OCBR,edges,srcreads,sock,lock);
 					}
 					#else
-					typedef ::libmaus::fastx::FastCClient reader_type;
+					typedef ::libmaus2::fastx::FastCClient reader_type;
 					typedef reader_type::unique_ptr_type reader_ptr_type;
 					std::cerr << "Using host " << OCBR.serverhostname << " port " << OCBR.serverport << std::endl;
 					reader_ptr_type blockreader ( new reader_type (

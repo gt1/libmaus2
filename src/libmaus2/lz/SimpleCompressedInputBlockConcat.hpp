@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,34 +19,34 @@
 #if ! defined(LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTBLOCKCONCAT_HPP)
 #define LIBMAUS_LZ_SIMPLECOMPRESSEDINPUTBLOCKCONCAT_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/lz/DecompressorObjectFactory.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/lz/SimpleCompressedStreamNamedInterval.hpp>
-#include <libmaus/lz/SimpleCompressedInputBlockConcatBlock.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lz/DecompressorObjectFactory.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/lz/SimpleCompressedStreamNamedInterval.hpp>
+#include <libmaus2/lz/SimpleCompressedInputBlockConcatBlock.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct SimpleCompressedInputBlockConcat
 		{
 			typedef SimpleCompressedInputBlockConcat this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			std::vector<libmaus::lz::SimpleCompressedStreamNamedInterval> const intervals;
-			std::vector<libmaus::lz::SimpleCompressedStreamNamedInterval>::const_iterator intervalsIt;
-			libmaus::lz::SimpleCompressedStreamNamedInterval const * currentInterval;
+			std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> const intervals;
+			std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval>::const_iterator intervalsIt;
+			libmaus2::lz::SimpleCompressedStreamNamedInterval const * currentInterval;
 			
 			uint64_t streampos;
 			
-			libmaus::aio::CheckedInputStream::unique_ptr_type Pcis;
+			libmaus2::aio::CheckedInputStream::unique_ptr_type Pcis;
 						
 			SimpleCompressedInputBlockConcat(
-				std::vector<libmaus::lz::SimpleCompressedStreamNamedInterval> const & rintervals
+				std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> const & rintervals
 			)
 			: intervals(rintervals), intervalsIt(intervals.begin()), streampos(0)
 			{
@@ -78,7 +78,7 @@ namespace libmaus
 					currentInterval = &(*(intervalsIt++));
 					block.currentInterval = currentInterval;
 					// open file
-					libmaus::aio::CheckedInputStream::unique_ptr_type Tcis(new libmaus::aio::CheckedInputStream(currentInterval->name));
+					libmaus2::aio::CheckedInputStream::unique_ptr_type Tcis(new libmaus2::aio::CheckedInputStream(currentInterval->name));
 					Pcis = UNIQUE_PTR_MOVE(Tcis);
 					
 					// seek
@@ -88,17 +88,17 @@ namespace libmaus
 				
 				block.blockstreampos = streampos;
 			
-				libmaus::util::CountPutObject CPO;
-				block.uncompsize = libmaus::util::UTF8::decodeUTF8(*Pcis);
-				::libmaus::util::UTF8::encodeUTF8(block.uncompsize,CPO);
+				libmaus2::util::CountPutObject CPO;
+				block.uncompsize = libmaus2::util::UTF8::decodeUTF8(*Pcis);
+				::libmaus2::util::UTF8::encodeUTF8(block.uncompsize,CPO);
 				
-				block.compsize = ::libmaus::util::NumberSerialisation::deserialiseNumber(*Pcis);
-				::libmaus::util::NumberSerialisation::serialiseNumber(CPO,block.compsize);
+				block.compsize = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*Pcis);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(CPO,block.compsize);
 				
 				block.metasize = CPO.c;
 				
 				if ( block.compsize > block.I.size() )
-					block.I = libmaus::autoarray::AutoArray<uint8_t>(block.compsize,false);
+					block.I = libmaus2::autoarray::AutoArray<uint8_t>(block.compsize,false);
 				
 				Pcis->read(reinterpret_cast<char *>(block.I.begin()),block.compsize);
 				

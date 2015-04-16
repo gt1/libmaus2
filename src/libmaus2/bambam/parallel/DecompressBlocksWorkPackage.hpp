@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSBLOCKSWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSBLOCKSWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/ControlInputInfo.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlock.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/ControlInputInfo.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlock.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct DecompressBlocksWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct DecompressBlocksWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef DecompressBlocksWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				std::vector<ControlInputInfo::input_block_type::shared_ptr_type> inputblocks;
 				std::vector<DecompressedBlock::shared_ptr_type> outputblocks;
 	
-				DecompressBlocksWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage() {}
+				DecompressBlocksWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage() {}
 				
 				void setData(
 					uint64_t const rpriority, 
@@ -47,7 +47,7 @@ namespace libmaus
 					uint64_t const rdecompressDispatcherId
 				)
 				{
-					libmaus::parallel::SimpleThreadWorkPackage::priority = rpriority;
+					libmaus2::parallel::SimpleThreadWorkPackage::priority = rpriority;
 					
 					if ( inputblocks.size() != rinputblocks.size() )
 						inputblocks.resize(rinputblocks.size());
@@ -57,7 +57,7 @@ namespace libmaus
 					std::copy(rinputblocks.begin(),rinputblocks.end(),inputblocks.begin());
 					std::copy(routputblocks.begin(),routputblocks.end(),outputblocks.begin());
 					
-					libmaus::parallel::SimpleThreadWorkPackage::dispatcherid = rdecompressDispatcherId;
+					libmaus2::parallel::SimpleThreadWorkPackage::dispatcherid = rdecompressDispatcherId;
 				}
 			
 				char const * getPackageName() const

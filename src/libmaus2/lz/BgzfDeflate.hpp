@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_LZ_BGZFDEFLATE_HPP)
 #define LIBMAUS_LZ_BGZFDEFLATE_HPP
 
-#include <libmaus/lz/GzipHeader.hpp>
-#include <libmaus/lz/BgzfDeflateBase.hpp>
-#include <libmaus/lz/BgzfDeflateOutputCallback.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/lz/BgzfDeflateBase.hpp>
+#include <libmaus2/lz/BgzfDeflateOutputCallback.hpp>
 #include <zlib.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -34,10 +34,10 @@ namespace libmaus
 			typedef BgzfDeflateBase base_type;
 			typedef _stream_type stream_type;
 			typedef BgzfDeflate<_stream_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			stream_type & stream;
-			std::vector< ::libmaus::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
+			std::vector< ::libmaus2::lz::BgzfDeflateOutputCallback *> blockoutputcallbacks;
 
 			BgzfDeflate(
 				stream_type & rstream, 
@@ -48,7 +48,7 @@ namespace libmaus
 			{
 			}
 
-			void registerBlockOutputCallback(::libmaus::lz::BgzfDeflateOutputCallback * cb)
+			void registerBlockOutputCallback(::libmaus2::lz::BgzfDeflateOutputCallback * cb)
 			{
 				blockoutputcallbacks.push_back(cb);
 			}
@@ -64,7 +64,7 @@ namespace libmaus
 
 				if ( ! stream )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "failed to write compressed data to bgzf stream." << std::endl;
 					se.finish();
 					throw se;				
@@ -142,7 +142,7 @@ namespace libmaus
 				// check that buffer is empty before we start
 				if ( pc != pa )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflate::writeSyncedCount() called for unsynced object." << std::endl;
 					se.finish();
 					throw se;
@@ -215,7 +215,7 @@ namespace libmaus
 
 		struct BgzfOutputStreamBuffer : public BgzfDeflateWrapper<std::ostream>, public ::std::streambuf
 		{
-			::libmaus::autoarray::AutoArray<char> buffer;
+			::libmaus2::autoarray::AutoArray<char> buffer;
 		
 			BgzfOutputStreamBuffer(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION)
 			: BgzfDeflateWrapper<std::ostream>(out,level,true), buffer(BgzfConstants::getBgzfMaxBlockSize(),false) 
@@ -257,8 +257,8 @@ namespace libmaus
 		struct BgzfOutputStream : public BgzfOutputStreamBuffer, public std::ostream
 		{	
 			typedef BgzfOutputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			BgzfOutputStream(std::ostream & out, int const level = Z_DEFAULT_COMPRESSION)
 			: BgzfOutputStreamBuffer(out,level), std::ostream(this)

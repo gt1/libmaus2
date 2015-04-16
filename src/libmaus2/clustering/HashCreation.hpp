@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(HASHCREATION_HPP)
 #define HASHCREATION_HPP
 
-#include <libmaus/fastx/ComputeFastXIntervals.hpp>
-#include <libmaus/clustering/HashCreationBase.hpp>
-#include <libmaus/fastx/FastInterval.hpp>
-#include <libmaus/fastx/SingleWordDNABitBuffer.hpp>
-#include <libmaus/graph/TripleEdgeOutputSet.hpp>
-#include <libmaus/bitio/getBit.hpp>
-#include <libmaus/aio/SynchronousOutputFile8Array.hpp>
+#include <libmaus2/fastx/ComputeFastXIntervals.hpp>
+#include <libmaus2/clustering/HashCreationBase.hpp>
+#include <libmaus2/fastx/FastInterval.hpp>
+#include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
+#include <libmaus2/graph/TripleEdgeOutputSet.hpp>
+#include <libmaus2/bitio/getBit.hpp>
+#include <libmaus2/aio/SynchronousOutputFile8Array.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace clustering
 	{
@@ -48,13 +48,13 @@ namespace libmaus
 			uint64_t const hashtablesize;
 			unsigned int const hashshift;
 
-			::libmaus::autoarray::AutoArray<uint8_t> const S;
-			::libmaus::autoarray::AutoArray<uint8_t> const R;
-			::libmaus::autoarray::AutoArray<unsigned int> const E;
+			::libmaus2::autoarray::AutoArray<uint8_t> const S;
+			::libmaus2::autoarray::AutoArray<uint8_t> const R;
+			::libmaus2::autoarray::AutoArray<unsigned int> const E;
 
 			void serialise(std::ostream & out) const
 			{
-				::libmaus::util::NumberSerialisation::serialiseNumber(out,k);
+				::libmaus2::util::NumberSerialisation::serialiseNumber(out,k);
 			}
 			
 			void serialise(std::string const & filename) const
@@ -68,7 +68,7 @@ namespace libmaus
 			
 			HashCreationTables(std::istream & in)
 			:
-			        k(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+			        k(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 			        hashlen(std::min(k,maxhashlen)),
 			        hashbits(std::min(maxhashbits, 2*hashlen)), hashtablesize(1ull<<hashbits),
 			        hashshift(2*hashlen-hashbits), 
@@ -93,8 +93,8 @@ namespace libmaus
 			void handleReadHistogram(
 				pattern_iterator_type pattern,
 				uint64_t const l,
-				::libmaus::fastx::SingleWordDNABitBuffer & forw,
-				::libmaus::fastx::SingleWordDNABitBuffer & reve,
+				::libmaus2::fastx::SingleWordDNABitBuffer & forw,
+				::libmaus2::fastx::SingleWordDNABitBuffer & reve,
 				uint64_t * const O
 				) const
 			{
@@ -183,8 +183,8 @@ namespace libmaus
 			template<typename reader_param_type>
 			void computeHashFrequencyBlock(uint64_t * const O, reader_param_type & patfile) const
 			{
-				::libmaus::fastx::SingleWordDNABitBuffer forw(hashlen);
-				::libmaus::fastx::SingleWordDNABitBuffer reve(hashlen);
+				::libmaus2::fastx::SingleWordDNABitBuffer forw(hashlen);
+				::libmaus2::fastx::SingleWordDNABitBuffer reve(hashlen);
 		
 				typename reader_param_type::pattern_type pattern;
 		
@@ -196,10 +196,10 @@ namespace libmaus
 					);
 			}
 
-			::libmaus::autoarray::AutoArray < std::pair<uint64_t, uint64_t> > getHashIntervals(
+			::libmaus2::autoarray::AutoArray < std::pair<uint64_t, uint64_t> > getHashIntervals(
 				uint64_t const maxmem,
 				uint64_t const numthreads,
-				::libmaus::autoarray::AutoArray<uint64_t> const & O
+				::libmaus2::autoarray::AutoArray<uint64_t> const & O
 			) const
 			{
 				uint64_t const bytesperkmerdata = multi_word_buffer_type::getNumberOfBufferBytes(k);
@@ -235,7 +235,7 @@ namespace libmaus
 					hashlow = hashhigh;
 				}
 				
-				::libmaus::autoarray::AutoArray <  std::pair<uint64_t, uint64_t> > A(V.size());
+				::libmaus2::autoarray::AutoArray <  std::pair<uint64_t, uint64_t> > A(V.size());
 				std::copy ( V.begin(), V.end(), A.get() );
 		
 				return A;
@@ -374,12 +374,12 @@ namespace libmaus
 			HashCreation(unsigned int const rk) : HashCreationTables(rk) {}
 
 			static void computeReadLengthDistributionBlock(
-				::libmaus::fastx::FastInterval const & FI,
+				::libmaus2::fastx::FastInterval const & FI,
 				std::vector<std::string> const & filenames,
 				::std::map<uint64_t,uint64_t> & high
 				)
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> low(1024);
+				::libmaus2::autoarray::AutoArray<uint64_t> low(1024);
 		
 				reader_type patfile(filenames, FI);
 				typename reader_type::pattern_type pattern;
@@ -399,7 +399,7 @@ namespace libmaus
 			}
 
 			void computeHashFrequencyBlock(
-				::libmaus::fastx::FastInterval const & FI,
+				::libmaus2::fastx::FastInterval const & FI,
 				std::vector<std::string> const & filenames,
 				uint64_t * const O
 				) const
@@ -408,21 +408,21 @@ namespace libmaus
 				base_type::computeHashFrequencyBlock(O,patfile);
 			}
 		
-			::libmaus::autoarray::AutoArray<uint64_t> computeHashFrequencies(
+			::libmaus2::autoarray::AutoArray<uint64_t> computeHashFrequencies(
 				std::vector<std::string> const & filenames,
-				std::vector< ::libmaus::fastx::FastInterval> const & V
+				std::vector< ::libmaus2::fastx::FastInterval> const & V
 				) const
 			{
 				// mutex for std err and histogram accumulation
-				::libmaus::parallel::OMPLock cerrlock;
+				::libmaus2::parallel::OMPLock cerrlock;
 				
 				uint64_t const numthreads = getMaxThreads();
 		
 				// typedef typename reader_type::block_type block_type;
 		
-				typedef ::libmaus::autoarray::AutoArray<uint64_t> hashtabletype;
+				typedef ::libmaus2::autoarray::AutoArray<uint64_t> hashtabletype;
 				typedef hashtabletype::unique_ptr_type hashtableptrtype;
-				::libmaus::autoarray::AutoArray< hashtableptrtype > hashtables(numthreads);
+				::libmaus2::autoarray::AutoArray< hashtableptrtype > hashtables(numthreads);
 
 				#if defined(_OPENMP)
 				#pragma omp parallel for schedule(dynamic,1)
@@ -438,7 +438,7 @@ namespace libmaus
 				#endif
 				for ( int64_t zz = 0; zz < static_cast<int64_t>(V.size()); ++zz )
 				{
-					::libmaus::autoarray::AutoArray<uint64_t> & O = *(hashtables[getThreadNum()]);
+					::libmaus2::autoarray::AutoArray<uint64_t> & O = *(hashtables[getThreadNum()]);
 		
 					cerrlock.lock();
 					std::cerr << "thread " << getThreadNum() << " got packet " << V[zz] << std::endl;
@@ -467,7 +467,7 @@ namespace libmaus
 				uint64_t const * pp,
 				uint64_t const numocc,
 				uint64_t const wordsperkmer,
-				::libmaus::graph::TripleEdgeOutputSet & tos,
+				::libmaus2::graph::TripleEdgeOutputSet & tos,
 				uint64_t const kmeroccthres,
 				uint64_t const * const readKillList
 				) const
@@ -560,13 +560,13 @@ namespace libmaus
 								if ( nextsecid != secid )
 								{
 									bool const curlive = 
-										!::libmaus::bitio::getBit ( readKillList , curid ); 
+										!::libmaus2::bitio::getBit ( readKillList , curid ); 
 									bool const seclive = 
-										!::libmaus::bitio::getBit ( readKillList , secid ); 
+										!::libmaus2::bitio::getBit ( readKillList , secid ); 
 
 									if ( curlive && seclive )
 									{
-										::libmaus::graph::TripleEdge
+										::libmaus2::graph::TripleEdge
 											trip(curid,secid,std::min(numcur,numsec));
 										tos.write(trip);
 									}
@@ -588,13 +588,13 @@ namespace libmaus
 							}
 							{
 								bool const curlive = 
-									!::libmaus::bitio::getBit ( readKillList , curid ); 
+									!::libmaus2::bitio::getBit ( readKillList , curid ); 
 								bool const seclive = 
-									!::libmaus::bitio::getBit ( readKillList , secid ); 
+									!::libmaus2::bitio::getBit ( readKillList , secid ); 
 
 								if ( curlive && seclive )
 								{
-									::libmaus::graph::TripleEdge 
+									::libmaus2::graph::TripleEdge 
 										trip(curid,secid,std::min(numcur,numsec));
 									tos.write(trip);
 								}	
@@ -632,7 +632,7 @@ namespace libmaus
 				uint64_t const * pp,
 				uint64_t const numocc,
 				uint64_t const wordsperkmer,
-				::libmaus::graph::TripleEdgeOutputSet & tos,
+				::libmaus2::graph::TripleEdgeOutputSet & tos,
 				uint64_t const kmeroccthres
 				) const
 			{
@@ -723,9 +723,9 @@ namespace libmaus
 			
 								if ( nextsecid != secid )
 								{
-									::libmaus::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
+									::libmaus2::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
 									tos.write(tripforw);
-									::libmaus::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
+									::libmaus2::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
 									tos.write(tripreve);
 		
 									#if defined(KMERDEBUG)
@@ -744,9 +744,9 @@ namespace libmaus
 								}
 							}
 							{
-								::libmaus::graph::TripleEdge trip(curid,secid,std::min(numcur,numsec));
+								::libmaus2::graph::TripleEdge trip(curid,secid,std::min(numcur,numsec));
 								tos.write(trip);
-								::libmaus::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
+								::libmaus2::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
 								tos.write(tripreve);
 
 								#if defined(KMERDEBUG)
@@ -815,9 +815,9 @@ namespace libmaus
 			
 								if ( nextsecid != secid )
 								{
-									::libmaus::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
+									::libmaus2::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
 									cb(tripforw);
-									::libmaus::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
+									::libmaus2::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
 									cb(tripreve);
 		
 									secid = nextsecid;
@@ -829,9 +829,9 @@ namespace libmaus
 								}
 							}
 							{
-								::libmaus::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
+								::libmaus2::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
 								cb(tripforw);
-								::libmaus::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
+								::libmaus2::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
 								cb(tripreve);
 							}
 			
@@ -850,7 +850,7 @@ namespace libmaus
 			static inline void handleKmerBlockIdOnly(
 				iterator_type pp,
 				uint64_t const numocc,
-				::libmaus::graph::TripleEdgeOutputSet & tos,
+				::libmaus2::graph::TripleEdgeOutputSet & tos,
 				uint64_t const kmeroccthres
 				)
 			{
@@ -883,9 +883,9 @@ namespace libmaus
 			
 								if ( nextsecid != secid )
 								{
-									::libmaus::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
+									::libmaus2::graph::TripleEdge tripforw(curid,secid,std::min(numcur,numsec));
 									tos.write(tripforw);
-									::libmaus::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
+									::libmaus2::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
 									tos.write(tripreve);
 		
 									secid = nextsecid;
@@ -897,9 +897,9 @@ namespace libmaus
 								}
 							}
 							{
-								::libmaus::graph::TripleEdge trip(curid,secid,std::min(numcur,numsec));
+								::libmaus2::graph::TripleEdge trip(curid,secid,std::min(numcur,numsec));
 								tos.write(trip);
-								::libmaus::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
+								::libmaus2::graph::TripleEdge tripreve(secid,curid,std::min(numcur,numsec));
 								tos.write(tripreve);
 							}
 			
@@ -939,7 +939,7 @@ namespace libmaus
 			template<typename output_file_array_type>
 			void computeUnsortedKmerFileBlock(
 				::std::vector<std::string> const & filenames,
-				::libmaus::fastx::FastInterval const & FI,
+				::libmaus2::fastx::FastInterval const & FI,
 				output_file_array_type & OBA,
 				uint64_t const hlow = 0,
 				uint64_t const hhigh = std::numeric_limits<uint64_t>::max()
@@ -951,26 +951,26 @@ namespace libmaus
 					
 			std::vector < std::vector < std::string > > computeUnsortedKmerFiles(
 				std::string const & tempfileprefix,
-				::libmaus::util::TempFileNameGenerator * rtmpgen,
-				::libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & HI,
-				std::vector< ::libmaus::fastx::FastInterval> const & V,
+				::libmaus2::util::TempFileNameGenerator * rtmpgen,
+				::libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t > > const & HI,
+				std::vector< ::libmaus2::fastx::FastInterval> const & V,
 				std::vector<std::string> const & filenames
 				) const
 			{
 				uint64_t const numthreads = getMaxThreads();
 			
-				::libmaus::parallel::OMPLock cerrlock;
+				::libmaus2::parallel::OMPLock cerrlock;
 		
-				typedef ::libmaus::aio::SynchronousOutputFile8Array output_file_array_type;
-				::libmaus::autoarray::AutoArray < output_file_array_type::unique_ptr_type > bufferarrays(numthreads); 
+				typedef ::libmaus2::aio::SynchronousOutputFile8Array output_file_array_type;
+				::libmaus2::autoarray::AutoArray < output_file_array_type::unique_ptr_type > bufferarrays(numthreads); 
 				
-				::libmaus::util::TempFileNameGenerator::unique_ptr_type ptmpgen;
-				::libmaus::util::TempFileNameGenerator * tmpgen = 0;
+				::libmaus2::util::TempFileNameGenerator::unique_ptr_type ptmpgen;
+				::libmaus2::util::TempFileNameGenerator * tmpgen = 0;
 				
 				if ( ! rtmpgen )
 				{
-					::libmaus::util::TempFileNameGenerator::unique_ptr_type tptmpgen(
-                                                new ::libmaus::util::TempFileNameGenerator(tempfileprefix + "_tmpdir" , 4 ));
+					::libmaus2::util::TempFileNameGenerator::unique_ptr_type tptmpgen(
+                                                new ::libmaus2::util::TempFileNameGenerator(tempfileprefix + "_tmpdir" , 4 ));
 					ptmpgen = UNIQUE_PTR_MOVE(tptmpgen);
 					tmpgen = ptmpgen.get();
 				}
@@ -1046,7 +1046,7 @@ namespace libmaus
 					
 					if ( ! istr )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Unable to parse " << sval << " as kmer occurence threshold.";
 						se.finish();
 						throw se;
@@ -1071,7 +1071,7 @@ namespace libmaus
 					
 					if ( ! istr )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Unable to parse " << sval << " as component size threshold.";
 						se.finish();
 						throw se;
@@ -1096,7 +1096,7 @@ namespace libmaus
 					
 					if ( ! istr )
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Unable to parse " << sval << " as edge weight threshold.";
 						se.finish();
 						throw se;

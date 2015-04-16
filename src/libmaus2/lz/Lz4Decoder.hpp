@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if !defined(LIBMAUS_LZ_LZ4DECODER_HPP)
 #define LIBMAUS_LZ_LZ4DECODER_HPP
 
-#include <libmaus/lz/Lz4DecoderBuffer.hpp>
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/lz/Lz4DecoderBuffer.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 #include <string>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
 		struct Lz4Decoder : public Lz4DecoderBuffer, public ::std::istream
 		{
 			typedef Lz4Decoder this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			Lz4Decoder(std::string const & filename)
 			: Lz4DecoderBuffer(filename), ::std::istream(this)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_FASTX_REFPATHLOOKUP_HPP)
 #define LIBMAUS_FASTX_REFPATHLOOKUP_HPP
 
-#include <libmaus/fastx/RefPathTokenVectorSequence.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/fastx/RefPathTokenVectorSequence.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -78,7 +78,7 @@ namespace libmaus
 					if ( e.find("URL=") != std::string::npos && e.find("URL=") == 0 )
 						e = e.substr(strlen("URL="));
 
-					if ( libmaus::aio::InputStreamFactoryContainer::tryOpen(e) )
+					if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(e) )
 						found = true;
 				}
 				

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #define LIBMAUS_LZ_LZ4INDEX_HPP
 
 #include <istream>
-#include <libmaus/util/utf8.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -38,23 +38,23 @@ namespace libmaus
 			uint64_t indexpos;
 			
 			Lz4Index(std::istream & rstream)
-			: stream(rstream), blocksize(libmaus::util::NumberSerialisation::deserialiseNumber(stream))
+			: stream(rstream), blocksize(libmaus2::util::NumberSerialisation::deserialiseNumber(stream))
 			{	
 				// read block size
 				stream.clear();
 				stream.seekg(0,std::ios::beg);
-				blocksize = libmaus::util::UTF8::decodeUTF8(stream);
+				blocksize = libmaus2::util::UTF8::decodeUTF8(stream);
 				
 				// read meta position
 				stream.clear();
 				stream.seekg(-static_cast<ssize_t>(sizeof(uint64_t)),std::ios::end);
-				metapos = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+				metapos = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				
 				// read payloadbytes
 				stream.clear();
 				stream.seekg(metapos,std::ios::beg);
-				payloadbytes = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
-				numblocks = libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+				payloadbytes = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
+				numblocks = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 				
 				indexpos = metapos + 2*sizeof(uint64_t);
 			}
@@ -63,7 +63,7 @@ namespace libmaus
 			{
 				stream.clear();
 				stream.seekg(indexpos + i*sizeof(uint64_t),std::ios::beg);
-				return libmaus::util::NumberSerialisation::deserialiseNumber(stream);
+				return libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 			}
 		};
 	}

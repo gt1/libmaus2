@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if !defined(LIBMAUS_RMQ_RMMTREE_HPP)
 #define LIBMAUS_RMQ_RMMTREE_HPP
 
-#include <libmaus/util/ImpCompactNumberArray.hpp>
-#include <libmaus/util/Array864.hpp>
+#include <libmaus2/util/ImpCompactNumberArray.hpp>
+#include <libmaus2/util/Array864.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rmq
 	{
@@ -33,10 +33,10 @@ namespace libmaus
 			static unsigned int const klog = _klog;
 			static bool const rmmtreedebug = _rmmtreedebug;
 			typedef RMMTree<base_layer_type,klog,rmmtreedebug>  this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef libmaus::util::ImpCompactNumberArray C_type;
-			// typedef libmaus::util::Array864 C_type;
+			typedef libmaus2::util::ImpCompactNumberArray C_type;
+			// typedef libmaus2::util::Array864 C_type;
 			typedef C_type::unique_ptr_type C_ptr_type;
 
 			static unsigned int const k = (1u << klog);
@@ -45,9 +45,9 @@ namespace libmaus
 			base_layer_type const & B;
 			uint64_t const n;
 			unsigned int const numlevels;
-			libmaus::autoarray::AutoArray< libmaus::bitio::CompactArray::unique_ptr_type > I;
-			libmaus::autoarray::AutoArray< C_ptr_type > C;
-			libmaus::autoarray::AutoArray< uint64_t > S;
+			libmaus2::autoarray::AutoArray< libmaus2::bitio::CompactArray::unique_ptr_type > I;
+			libmaus2::autoarray::AutoArray< C_ptr_type > C;
+			libmaus2::autoarray::AutoArray< uint64_t > S;
 			
 			uint64_t byteSize() const
 			{
@@ -71,11 +71,11 @@ namespace libmaus
 			template<typename stream_type>
 			void serialise(stream_type & out)
 			{
-				libmaus::util::NumberSerialisation::serialiseNumber(out,n);
-				libmaus::util::NumberSerialisation::serialiseNumber(out,numlevels);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,numlevels);
 
-				libmaus::util::NumberSerialisation::serialiseNumber(out,I.size());
-				libmaus::util::NumberSerialisation::serialiseNumber(out,C.size());
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,I.size());
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,C.size());
 
 				S.serialize(out);
 				
@@ -89,15 +89,15 @@ namespace libmaus
 			RMMTree(stream_type & in, base_layer_type const & rB)
 			: 
 				B(rB),
-				n(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				numlevels(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				I(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
-				C(libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				n(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				numlevels(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				I(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
+				C(libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				S(in)
 			{
 				for ( uint64_t i = 0; i < I.size(); ++i )
 				{
-					libmaus::bitio::CompactArray::unique_ptr_type tIi(new libmaus::bitio::CompactArray(in));
+					libmaus2::bitio::CompactArray::unique_ptr_type tIi(new libmaus2::bitio::CompactArray(in));
 					I[i] = UNIQUE_PTR_MOVE(tIi);
 				}
 				for ( uint64_t i = 0; i < C.size(); ++i )
@@ -109,7 +109,7 @@ namespace libmaus
 			
 			static unique_ptr_type load(base_layer_type const & B, std::string const & fn)
 			{
-				libmaus::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::CheckedInputStream CIS(fn);
 				unique_ptr_type ptr(
                                                 new this_type(CIS,B)
                                         );
@@ -139,13 +139,13 @@ namespace libmaus
 			}
 			
 			template<typename in_iterator>
-			static libmaus::util::Histogram::unique_ptr_type fillSubHistogram(
+			static libmaus2::util::Histogram::unique_ptr_type fillSubHistogram(
 				in_iterator in_it,
 				uint64_t const in
 			)
 			{
-				libmaus::util::Histogram::unique_ptr_type phist(new libmaus::util::Histogram);
-				libmaus::util::Histogram & hist = *phist;
+				libmaus2::util::Histogram::unique_ptr_type phist(new libmaus2::util::Histogram);
+				libmaus2::util::Histogram & hist = *phist;
 
 				uint64_t const full = in >> klog;
 				uint64_t const rest = in-full*k;
@@ -160,7 +160,7 @@ namespace libmaus
 							vmin = vj;
 					}
 					
-					hist(libmaus::math::bitsPerNum(vmin));
+					hist(libmaus2::math::bitsPerNum(vmin));
 				}
 				if ( rest )
 				{
@@ -172,20 +172,20 @@ namespace libmaus
 							vmin = vj;
 					}
 					
-					hist(libmaus::math::bitsPerNum(vmin));
+					hist(libmaus2::math::bitsPerNum(vmin));
 				}
 				
 				return UNIQUE_PTR_MOVE(phist);
 			}
 
 			template<typename in_iterator>
-			static libmaus::huffman::HuffmanTreeNode::shared_ptr_type fillSubNode(
+			static libmaus2::huffman::HuffmanTreeNode::shared_ptr_type fillSubNode(
 				in_iterator in_it, uint64_t in
 			)
 			{
-				libmaus::util::Histogram::unique_ptr_type phist = UNIQUE_PTR_MOVE(fillSubHistogram(in_it,in));
+				libmaus2::util::Histogram::unique_ptr_type phist = UNIQUE_PTR_MOVE(fillSubHistogram(in_it,in));
 				std::map<int64_t,uint64_t> const probs = phist->getByType<int64_t>();
-				libmaus::huffman::HuffmanTreeNode::shared_ptr_type snode = libmaus::huffman::HuffmanBase::createTree(probs);
+				libmaus2::huffman::HuffmanTreeNode::shared_ptr_type snode = libmaus2::huffman::HuffmanBase::createTree(probs);
 				return snode;
 			}
 
@@ -193,7 +193,7 @@ namespace libmaus
 			static void fillSubArrays(
 				in_iterator in_it,
 				uint64_t const in,
-				libmaus::bitio::CompactArray & I,
+				libmaus2::bitio::CompactArray & I,
 				C_generator_type & impgen
 			)
 			{
@@ -247,20 +247,20 @@ namespace libmaus
 					uint64_t const out = (in+k-1) >> klog;
 					
 					// minimal indices for next level
-					libmaus::bitio::CompactArray::unique_ptr_type tIlevel(
-                                                new libmaus::bitio::CompactArray(out,klog));
+					libmaus2::bitio::CompactArray::unique_ptr_type tIlevel(
+                                                new libmaus2::bitio::CompactArray(out,klog));
 					I[level] = UNIQUE_PTR_MOVE(tIlevel);
 
-					libmaus::util::Histogram::unique_ptr_type subhist;
+					libmaus2::util::Histogram::unique_ptr_type subhist;
 
 					if ( level == 0 )
 					{
-						libmaus::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(B.begin(),in));
+						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(B.begin(),in));
 						subhist = UNIQUE_PTR_MOVE(tsubhist);
 					}
 					else
 					{
-						libmaus::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(C[level-1]->begin(),in));
+						libmaus2::util::Histogram::unique_ptr_type tsubhist(fillSubHistogram(C[level-1]->begin(),in));
 						subhist = UNIQUE_PTR_MOVE(tsubhist);
 					}
 					

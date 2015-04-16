@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_UTIL_SUCCINCTBORDERARRAY_HPP)
 #define LIBMAUS_UTIL_SUCCINCTBORDERARRAY_HPP
 
-#include <libmaus/rank/ERank222BAppendDynamic.hpp>
+#include <libmaus2/rank/ERank222BAppendDynamic.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -30,9 +30,9 @@ namespace libmaus
 			private:
 			struct SuccinctBorderArrayAccessor
 			{
-				libmaus::rank::ERank222BAppendDynamic & B;
+				libmaus2::rank::ERank222BAppendDynamic & B;
 				
-				SuccinctBorderArrayAccessor(libmaus::rank::ERank222BAppendDynamic & rB) : B(rB)
+				SuccinctBorderArrayAccessor(libmaus2::rank::ERank222BAppendDynamic & rB) : B(rB)
 				{
 				}
 				
@@ -54,7 +54,7 @@ namespace libmaus
 				}
 			};
 
-			libmaus::rank::ERank222BAppendDynamic B;
+			libmaus2::rank::ERank222BAppendDynamic B;
 			SuccinctBorderArrayAccessor S;
 			uint64_t const n;
 			
@@ -135,7 +135,7 @@ namespace libmaus
 			 **/
 			static bool check(std::string const & s)
 			{
-				libmaus::util::SuccinctBorderArray SBA(s);
+				libmaus2::util::SuccinctBorderArray SBA(s);
 				return SBA.checkString(s);
 			}
 
@@ -164,5 +164,5 @@ namespace libmaus
 	}
 }
 
-std::ostream & operator<<(std::ostream & out, libmaus::util::SuccinctBorderArray const & S);
+std::ostream & operator<<(std::ostream & out, libmaus2::util::SuccinctBorderArray const & S);
 #endif

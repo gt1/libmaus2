@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,21 +21,21 @@
 #include <vector>
 #include <sstream>
 #include <cstdlib>
-#include <libmaus/suffixsort/GapArrayByte.hpp>
+#include <libmaus2/suffixsort/GapArrayByte.hpp>
 
 void testGapArrayByte()
 {
 	uint64_t const gsize = 329114;
-	libmaus::autoarray::AutoArray<uint32_t> GG(gsize);
+	libmaus2::autoarray::AutoArray<uint32_t> GG(gsize);
 	for ( uint64_t i = 0; i < gsize; ++i )
 		GG[i] = 1;
 	
 	for ( uint64_t i = 0; i < 32; ++i )
-		GG[libmaus::random::Random::rand64() % gsize] = 257;
+		GG[libmaus2::random::Random::rand64() % gsize] = 257;
 	
 	uint64_t const numthreads = 32;
 	
-	libmaus::suffixsort::GapArrayByte GAB(gsize,16,numthreads,"tmp");
+	libmaus2::suffixsort::GapArrayByte GAB(gsize,16,numthreads,"tmp");
 
 	#if defined(_OPENMP)
 	#pragma omp parallel for num_threads(numthreads)
@@ -52,8 +52,8 @@ void testGapArrayByte()
 	GAB.flush();
 	
 	uint64_t offset = 0;
-	libmaus::suffixsort::GapArrayByteDecoder::unique_ptr_type pdec(GAB.getDecoder(offset));
-	libmaus::autoarray::AutoArray<uint32_t> TT(48);
+	libmaus2::suffixsort::GapArrayByteDecoder::unique_ptr_type pdec(GAB.getDecoder(offset));
+	libmaus2::autoarray::AutoArray<uint32_t> TT(48);
 	
 	while ( offset != gsize )
 	{

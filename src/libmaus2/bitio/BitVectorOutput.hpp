@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_BITIO_BITVECTOROUTPUT_HPP)
 #define LIBMAUS_BITIO_BITVECTOROUTPUT_HPP
 
-#include <libmaus/aio/SynchronousGenericOutput.hpp>
+#include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
 		struct BitVectorOutput
 		{
-			libmaus::aio::CheckedOutputStream::unique_ptr_type pout;
-			libmaus::aio::SynchronousGenericOutput<uint64_t> SGO;
+			libmaus2::aio::CheckedOutputStream::unique_ptr_type pout;
+			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			uint64_t v;
 			unsigned int b;
 			
-			BitVectorOutput(std::string const & filename) : pout(new libmaus::aio::CheckedOutputStream(filename)), SGO(*pout,8*1024), v(0), b(64) {}
+			BitVectorOutput(std::string const & filename) : pout(new libmaus2::aio::CheckedOutputStream(filename)), SGO(*pout,8*1024), v(0), b(64) {}
 			BitVectorOutput(std::ostream & out) : pout(), SGO(out,8192), v(0), b(64) {}
 			
 			void writeBit(bool const bit)

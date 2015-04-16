@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,30 +19,30 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMHEADERUPDATE_HPP)
 #define LIBMAUS_BAMBAM_BAMHEADERUPDATE_HPP
 
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/BamParallelRewrite.hpp>
-#include <libmaus/bambam/ProgramHeaderLineSet.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamParallelRewrite.hpp>
+#include <libmaus2/bambam/ProgramHeaderLineSet.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
-		struct BamHeaderUpdate : public libmaus::bambam::BamHeaderRewriteCallback
+		struct BamHeaderUpdate : public libmaus2::bambam::BamHeaderRewriteCallback
 		{
-			libmaus::util::ArgInfo const & arginfo;
+			libmaus2::util::ArgInfo const & arginfo;
 			std::string const id;
 			std::string const packageversion;
 
-			BamHeaderUpdate(libmaus::util::ArgInfo const & rarginfo, std::string const & rid, std::string const & rpackageversion)
+			BamHeaderUpdate(libmaus2::util::ArgInfo const & rarginfo, std::string const & rid, std::string const & rpackageversion)
 			: arginfo(rarginfo), id(rid), packageversion(rpackageversion)
 			{
 			
 			}
 
-			static ::libmaus::bambam::BamHeader::unique_ptr_type updateHeader(
-				::libmaus::util::ArgInfo const & arginfo,
-				::libmaus::bambam::BamHeader const & header,
+			static ::libmaus2::bambam::BamHeader::unique_ptr_type updateHeader(
+				::libmaus2::util::ArgInfo const & arginfo,
+				::libmaus2::bambam::BamHeader const & header,
 				std::string const & id,
 				std::string const & packageversion
 			)
@@ -50,23 +50,23 @@ namespace libmaus
 				std::string const headertext(header.text);
 
 				// add PG line to header
-				std::string const upheadtext = ::libmaus::bambam::ProgramHeaderLineSet::addProgramLine(
+				std::string const upheadtext = ::libmaus2::bambam::ProgramHeaderLineSet::addProgramLine(
 					headertext,
 					id, // ID
 					id, // PN
 					arginfo.commandline, // CL
-					::libmaus::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
+					::libmaus2::bambam::ProgramHeaderLineSet(headertext).getLastIdInChain(), // PP
 					packageversion //std::string(PACKAGE_VERSION) // VN			
 				);
 				// construct new header
-				::libmaus::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus::bambam::BamHeader(upheadtext));
+				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(new ::libmaus2::bambam::BamHeader(upheadtext));
 				
 				return UNIQUE_PTR_MOVE(uphead);
 			}
 
-			::libmaus::bambam::BamHeader::unique_ptr_type operator()(::libmaus::bambam::BamHeader const & header)  const
+			::libmaus2::bambam::BamHeader::unique_ptr_type operator()(::libmaus2::bambam::BamHeader const & header)  const
 			{
-				::libmaus::bambam::BamHeader::unique_ptr_type ptr(updateHeader(arginfo,header,id,packageversion));
+				::libmaus2::bambam::BamHeader::unique_ptr_type ptr(updateHeader(arginfo,header,id,packageversion));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
 		};

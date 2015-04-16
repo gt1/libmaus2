@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEWORKPACKAGE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBAMPARSEWORKPACKAGE_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBamParseObject.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBamParseObject.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackage.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputBamParseWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+			struct GenericInputBamParseWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 			{
 				typedef GenericInputBamParseWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 				GenericInputBamParseObject data;
 			
-				GenericInputBamParseWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage(), data() {}
+				GenericInputBamParseWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage(), data() {}
 				GenericInputBamParseWorkPackage(uint64_t const rpriority, uint64_t const rdispatcherid, GenericInputBamParseObject rdata)
-				: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
+				: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid), data(rdata)
 				{
 				
 				}

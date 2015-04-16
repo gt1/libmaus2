@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,16 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lsf/SimpleDispatchedLsfProcessSet.hpp>
+#include <libmaus2/lsf/SimpleDispatchedLsfProcessSet.hpp>
 
-void testBunch(::libmaus::util::ArgInfo const & arginfo)
+void testBunch(::libmaus2::util::ArgInfo const & arginfo)
 {
 	try
 	{
 		std::cerr << "--- testing bunch setting ---" << std::endl;
 	
 		bool const verbose = arginfo.getValue<uint64_t>("verbose",0);
-		::libmaus::lsf::SimpleDispatchedLsfProcessSet SDLPS("testlsf",verbose);
+		::libmaus2::lsf::SimpleDispatchedLsfProcessSet SDLPS("testlsf",verbose);
 		uint64_t const numprocs = arginfo.getValue<uint64_t>("numprocs",8);
 		std::vector < uint64_t > const ids = SDLPS.startProcessesAndWait(numprocs/* wait for all */,numprocs,arginfo,"testlsfdispatcher","testlsfclient",1,100);
 	
@@ -47,7 +47,7 @@ void testBunch(::libmaus::util::ArgInfo const & arginfo)
 			{
 				try
 				{
-					::libmaus::lsf::SimpleDispatchedLsfProcessSet::proc_ptr proc = SDLPS.process(id);
+					::libmaus2::lsf::SimpleDispatchedLsfProcessSet::proc_ptr proc = SDLPS.process(id);
 					assert ( proc );
 					assert ( proc->controlsocket );
 					std::string const mes = proc->controlsocket->readString();
@@ -77,7 +77,7 @@ void testBunch(::libmaus::util::ArgInfo const & arginfo)
 	}
 }
 
-struct TestLsfTaskQueue : public ::libmaus::lsf::LsfTaskQueue
+struct TestLsfTaskQueue : public ::libmaus2::lsf::LsfTaskQueue
 {
 	std::deque < uint64_t > Q;
 	std::vector < std::string > payloads;
@@ -120,14 +120,14 @@ struct TestLsfTaskQueue : public ::libmaus::lsf::LsfTaskQueue
         }
 };
 
-void testFarmerWorker(::libmaus::util::ArgInfo const & arginfo)
+void testFarmerWorker(::libmaus2::util::ArgInfo const & arginfo)
 {
 	try
 	{
 		std::cerr << "--- testing farmer/worker setting ---" << std::endl;
 		
 		bool const verbose = arginfo.getValue<uint64_t>("verbose",0);
-		::libmaus::lsf::SimpleDispatchedLsfProcessSet SDLPS("testlsf",verbose);
+		::libmaus2::lsf::SimpleDispatchedLsfProcessSet SDLPS("testlsf",verbose);
 		uint64_t const numprocs = arginfo.getValue<uint64_t>("numprocs",8);
 					
 		uint64_t const taskcnt = 128;
@@ -145,14 +145,14 @@ int main(int argc, char ** argv)
 {
 	try
 	{
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
-		::libmaus::lsf::LSF::init(arginfo.progname);
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
+		::libmaus2::lsf::LSF::init(arginfo.progname);
 
 		testFarmerWorker(arginfo);
 		// testBunch(arginfo);
 
 		#if 0
-		::libmaus::network::LogReceiver::unique_ptr_type LR(new ::libmaus::network::LogReceiver("testlsf",4444,1024));
+		::libmaus2::network::LogReceiver::unique_ptr_type LR(new ::libmaus2::network::LogReceiver("testlsf",4444,1024));
 		
 		std::vector < DispatchedLsfProcess::shared_ptr_type > procs = 
 			DispatchedLsfProcess::start(arginfo,LR->sid,LR->hostname,LR->port,8/*id*/,"testlsfdispatcher","testlsfclient",1/* numthreads*/,100/*mem*/,0/*hosts*/,0/*cwd*/,0/*tmpspace*/,false/*valgrind*/);

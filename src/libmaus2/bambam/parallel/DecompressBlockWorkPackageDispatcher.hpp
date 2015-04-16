@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSBLOCKWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSBLOCKWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/bambam/parallel/DecompressBlockWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/InputBlockReturnInterface.hpp>
-#include <libmaus/bambam/parallel/DecompressedBlockAddPendingInterface.hpp>
-#include <libmaus/bambam/parallel/BgzfInflateZStreamBaseReturnInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/DecompressBlockWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/InputBlockReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/DecompressedBlockAddPendingInterface.hpp>
+#include <libmaus2/bambam/parallel/BgzfInflateZStreamBaseReturnInterface.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
 			// dispatcher for block decompression
-			struct DecompressBlockWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct DecompressBlockWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				DecompressBlockWorkPackageReturnInterface & packageReturnInterface;
 				InputBlockReturnInterface & inputBlockReturnInterface;
@@ -52,8 +52,8 @@ namespace libmaus
 				}
 			
 				virtual void dispatch(
-					libmaus::parallel::SimpleThreadWorkPackage * P, 
-					libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
+					libmaus2::parallel::SimpleThreadWorkPackage * P, 
+					libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & tpi
 				)
 				{
 					DecompressBlockWorkPackage * BP = dynamic_cast<DecompressBlockWorkPackage *>(P);
@@ -74,7 +74,7 @@ namespace libmaus
 							<< " got " << std::hex << crc << std::dec << std::endl;
 						tpi.getGlobalLock().unlock();
 						
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "DecompressBlockWorkPackageDispatcher: corrupt input data (crc mismatch)\n";
 						lme.finish();
 						throw lme;

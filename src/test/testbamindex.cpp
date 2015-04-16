@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,14 +17,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/bambam/BamIndex.hpp>
-#include <libmaus/bambam/BamIndexGenerator.hpp>
-#include <libmaus/lz/BgzfInflate.hpp>
-#include <libmaus/bambam/BamDecoder.hpp>
+#include <libmaus2/bambam/BamIndex.hpp>
+#include <libmaus2/bambam/BamIndexGenerator.hpp>
+#include <libmaus2/lz/BgzfInflate.hpp>
+#include <libmaus2/bambam/BamDecoder.hpp>
 
-libmaus::aio::CheckedInputStream::unique_ptr_type openFile(std::string const & fn)
+libmaus2::aio::CheckedInputStream::unique_ptr_type openFile(std::string const & fn)
 {
-	libmaus::aio::CheckedInputStream::unique_ptr_type bamCIS(new libmaus::aio::CheckedInputStream(fn));
+	libmaus2::aio::CheckedInputStream::unique_ptr_type bamCIS(new libmaus2::aio::CheckedInputStream(fn));
 	return UNIQUE_PTR_MOVE(bamCIS);
 }
 
@@ -32,48 +32,48 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const fn = arginfo.stringRestArg(0);
 
 		std::ostringstream indexostr;
-		if ( !libmaus::util::GetFileSize::fileExists(fn+".bai") )
+		if ( !libmaus2::util::GetFileSize::fileExists(fn+".bai") )
 		{
-			libmaus::bambam::BamIndexGenerator indexgen("indextmp",true,true,false/*debug*/);
-			libmaus::aio::CheckedInputStream::unique_ptr_type bamCIS(openFile(fn));
-			// libmaus::lz::BgzfInflate<libmaus::aio::CheckedInputStream> bgzfin(*bamCIS);
-			libmaus::lz::BgzfInflate<std::istream> bgzfin(*bamCIS);
+			libmaus2::bambam::BamIndexGenerator indexgen("indextmp",true,true,false/*debug*/);
+			libmaus2::aio::CheckedInputStream::unique_ptr_type bamCIS(openFile(fn));
+			// libmaus2::lz::BgzfInflate<libmaus2::aio::CheckedInputStream> bgzfin(*bamCIS);
+			libmaus2::lz::BgzfInflate<std::istream> bgzfin(*bamCIS);
 		
-			libmaus::lz::BgzfInflateInfo P;
-			libmaus::autoarray::AutoArray<uint8_t> B(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
+			libmaus2::lz::BgzfInflateInfo P;
+			libmaus2::autoarray::AutoArray<uint8_t> B(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
 			while ( !(P=bgzfin.readAndInfo(reinterpret_cast<char *>(B.begin()), B.size())).streameof )
 				indexgen.addBlock(B.begin(),P.compressed,P.uncompressed);
 			indexgen.flush(indexostr);
 			bamCIS.reset();
 			
-			libmaus::aio::CheckedOutputStream COS(fn+".bai");
+			libmaus2::aio::CheckedOutputStream COS(fn+".bai");
 			std::string const & index = indexostr.str();
 			COS.write(index.c_str(),index.size());
 			COS.flush();
 			COS.close();
 		}
 		
-		libmaus::autoarray::AutoArray<char> const indexA = libmaus::autoarray::AutoArray<char>::readFile(fn+".bai");
+		libmaus2::autoarray::AutoArray<char> const indexA = libmaus2::autoarray::AutoArray<char>::readFile(fn+".bai");
 		indexostr.write(indexA.begin(),indexA.size());
 		std::istringstream indexistr(indexostr.str());
-		libmaus::bambam::BamIndex index(indexistr);
+		libmaus2::bambam::BamIndex index(indexistr);
 
-		libmaus::bambam::BamDecoder::unique_ptr_type pbamdec(new libmaus::bambam::BamDecoder(fn));
-		libmaus::bambam::BamHeader::unique_ptr_type bamheader = pbamdec->getHeader().uclone();
+		libmaus2::bambam::BamDecoder::unique_ptr_type pbamdec(new libmaus2::bambam::BamDecoder(fn));
+		libmaus2::bambam::BamHeader::unique_ptr_type bamheader = pbamdec->getHeader().uclone();
 		pbamdec.reset();
 		
 		assert ( index.getRefs().size() == bamheader->getNumRef() );
 
-		libmaus::bambam::BamDecoderResetableWrapper BDRW(fn, *bamheader);
+		libmaus2::bambam::BamDecoderResetableWrapper BDRW(fn, *bamheader);
 
 		for ( uint64_t r = 0; r < index.getRefs().size(); ++r )
 		{
-			libmaus::bambam::BamIndexRef const & ref = index.getRefs()[r];
-			libmaus::bambam::BamIndexLinear const & lin = ref.lin;
+			libmaus2::bambam::BamIndexRef const & ref = index.getRefs()[r];
+			libmaus2::bambam::BamIndexLinear const & lin = ref.lin;
 			for ( uint64_t i = 0; i < lin.intervals.size(); ++i )
 			{
 				
@@ -81,11 +81,11 @@ int main(int argc, char * argv[])
 			
 			for ( uint64_t i = 0; i < ref.bin.size(); ++i )
 			{
-				libmaus::bambam::BamIndexBin const & bin = ref.bin[i];
+				libmaus2::bambam::BamIndexBin const & bin = ref.bin[i];
 
 				for ( uint64_t j = 0; j < bin.chunks.size(); ++j )
 				{
-					libmaus::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
+					libmaus2::bambam::BamIndexBin::Chunk const & c = bin.chunks[j];
 					std::cerr 
 						<< "refid=" << r 
 						<< " bin=" << bin.bin 

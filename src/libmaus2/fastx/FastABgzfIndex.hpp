@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,28 +19,28 @@
 #if ! defined(LIBMAUS_FASTX_FASTABGZFINDEX_HPP)
 #define LIBMAUS_FASTX_FASTABGZFINDEX_HPP
 
-#include <libmaus/fastx/FastABgzfIndexEntry.hpp>
-#include <libmaus/fastx/FastABgzfDecoder.hpp>
-#include <libmaus/trie/TrieState.hpp>
+#include <libmaus2/fastx/FastABgzfIndexEntry.hpp>
+#include <libmaus2/fastx/FastABgzfDecoder.hpp>
+#include <libmaus2/trie/TrieState.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastABgzfIndex
 		{
 			typedef FastABgzfIndex this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			uint64_t blocksize;
-			std::vector< ::libmaus::fastx::FastABgzfIndexEntry > entries;
+			std::vector< ::libmaus2::fastx::FastABgzfIndexEntry > entries;
 			std::vector< std::string > shortnames;
-			::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure;
+			::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type LHTnofailure;
 			
 			static unique_ptr_type load(std::string const & filename)
 			{
-				libmaus::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::CheckedInputStream CIS(filename);
 				unique_ptr_type tptr(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
@@ -48,16 +48,16 @@ namespace libmaus
 			void init(std::istream & indexistr)
 			{
 				indexistr.seekg(0,std::ios::beg);
-				blocksize = libmaus::util::NumberSerialisation::deserialiseNumber(indexistr);
+				blocksize = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
 				
 				indexistr.seekg(-8,std::ios::end);
-				uint64_t imetaoffset = libmaus::util::NumberSerialisation::deserialiseNumber(indexistr);
+				uint64_t imetaoffset = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
 				indexistr.seekg(imetaoffset,std::ios::beg);
-				uint64_t const numseq = libmaus::util::NumberSerialisation::deserialiseNumber(indexistr);
+				uint64_t const numseq = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
 				
 				if ( numseq )
 				{
-					uint64_t const firstpos = libmaus::util::NumberSerialisation::deserialiseNumber(indexistr);
+					uint64_t const firstpos = libmaus2::util::NumberSerialisation::deserialiseNumber(indexistr);
 					
 					indexistr.seekg(firstpos,std::ios::beg);
 					
@@ -66,13 +66,13 @@ namespace libmaus
 
 					for ( uint64_t i = 0; i < numseq; ++i )
 					{
-						entries[i] = ::libmaus::fastx::FastABgzfIndexEntry(indexistr);
+						entries[i] = ::libmaus2::fastx::FastABgzfIndexEntry(indexistr);
 						shortnames[i] = entries[i].shortname;
 					}
 
-					::libmaus::trie::Trie<char> trienofailure;
+					::libmaus2::trie::Trie<char> trienofailure;
 					trienofailure.insertContainer(shortnames);
-					::libmaus::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type tLHTnofailure(trienofailure.toLinearHashTrie<uint32_t>());
+					::libmaus2::trie::LinearHashTrie<char,uint32_t>::unique_ptr_type tLHTnofailure(trienofailure.toLinearHashTrie<uint32_t>());
 					LHTnofailure = UNIQUE_PTR_MOVE(tLHTnofailure);
 				}
 			}
@@ -92,12 +92,12 @@ namespace libmaus
 				return LHTnofailure->searchCompleteNoFailureZ(name);
 			}
 			
-			::libmaus::fastx::FastABgzfIndexEntry const & operator[](int64_t const i) const
+			::libmaus2::fastx::FastABgzfIndexEntry const & operator[](int64_t const i) const
 			{
 				if ( i < 0 )
 				{
-					libmaus::exception::LibMausException ex;
-					ex.getStream() << "::libmaus::fastx::FastABgzfIndexEntry::operator[] called for non existant id" << std::endl;
+					libmaus2::exception::LibMausException ex;
+					ex.getStream() << "::libmaus2::fastx::FastABgzfIndexEntry::operator[] called for non existant id" << std::endl;
 					ex.finish();
 					throw ex;
 				}
@@ -118,7 +118,7 @@ namespace libmaus
 			}
 		};
 
-		::std::ostream & operator<<(::std::ostream & out, ::libmaus::fastx::FastABgzfIndex const & F);
+		::std::ostream & operator<<(::std::ostream & out, ::libmaus2::fastx::FastABgzfIndex const & F);
 	}
 }
 #endif

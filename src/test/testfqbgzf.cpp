@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -16,20 +16,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/util/ArgInfo.hpp>
-#include <libmaus/fastx/SocketFastQReader.hpp>
-#include <libmaus/util/PushBuffer.hpp>
-#include <libmaus/lz/BgzfDeflateParallel.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/fastx/SocketFastQReader.hpp>
+#include <libmaus2/util/PushBuffer.hpp>
+#include <libmaus2/lz/BgzfDeflateParallel.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
 
-struct PatternBuffer : public libmaus::util::PushBuffer<libmaus::fastx::SocketFastQReader::pattern_type>
+struct PatternBuffer : public libmaus2::util::PushBuffer<libmaus2::fastx::SocketFastQReader::pattern_type>
 {
 	PatternBuffer()
 	{
 	
 	}
 	
-	libmaus::fastx::SocketFastQReader::pattern_type & getNextPattern()
+	libmaus2::fastx::SocketFastQReader::pattern_type & getNextPattern()
 	{
 		return get();
 	}	
@@ -39,11 +39,11 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		if ( !arginfo.hasArg("index") )
 		{
-			libmaus::exception::LibMausException se;
+			libmaus2::exception::LibMausException se;
 			se.getStream() << "Please set the index key (e.g. index=file.idx)" << std::endl;
 			se.finish();
 			throw se;
@@ -53,22 +53,22 @@ int main(int argc, char * argv[])
 		std::string const deftmp = arginfo.getDefaultTmpFileName();
 		std::string const fifilename = deftmp + ".fi";
 		std::string const bgzfidxfilename = deftmp + ".bgzfidx";
-		libmaus::util::TempFileRemovalContainer::addTempFile(fifilename);
-		libmaus::util::TempFileRemovalContainer::addTempFile(bgzfidxfilename);
+		libmaus2::util::TempFileRemovalContainer::addTempFile(fifilename);
+		libmaus2::util::TempFileRemovalContainer::addTempFile(bgzfidxfilename);
 	
-		::libmaus::network::SocketBase fdin(STDIN_FILENO);
-		typedef ::libmaus::fastx::SocketFastQReader reader_type;
+		::libmaus2::network::SocketBase fdin(STDIN_FILENO);
+		typedef ::libmaus2::fastx::SocketFastQReader reader_type;
 		reader_type reader(&fdin,0 /* q offset */);
 		
-		libmaus::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr(
-			new libmaus::aio::CheckedOutputStream(bgzfidxfilename)
+		libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr(
+			new libmaus2::aio::CheckedOutputStream(bgzfidxfilename)
 		);
-		libmaus::aio::CheckedOutputStream::unique_ptr_type fioutstr(
-			new libmaus::aio::CheckedOutputStream(fifilename)
+		libmaus2::aio::CheckedOutputStream::unique_ptr_type fioutstr(
+			new libmaus2::aio::CheckedOutputStream(fifilename)
 		);
-		libmaus::lz::BgzfDeflateParallel::unique_ptr_type 
+		libmaus2::lz::BgzfDeflateParallel::unique_ptr_type 
 			bgzfenc(
-				new libmaus::lz::BgzfDeflateParallel(
+				new libmaus2::lz::BgzfDeflateParallel(
 					std::cout,32,128,Z_DEFAULT_COMPRESSION,
 					bgzfidoutstr.get()
 				)
@@ -80,7 +80,7 @@ int main(int argc, char * argv[])
 		uint64_t fqacc = 0;
 		uint64_t patacc = 0;
 		uint64_t numblocks = 0;
-		libmaus::autoarray::AutoArray<char> outbuf(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
+		libmaus2::autoarray::AutoArray<char> outbuf(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false);
 	
 		while ( reader.getNextPatternUnlocked(buf.getNextPattern()) )
 		{
@@ -96,7 +96,7 @@ int main(int argc, char * argv[])
 				qlen + 1
 			;
 
-			if ( fqacc + fqlen <= libmaus::lz::BgzfConstants::getBgzfMaxBlockSize() )
+			if ( fqacc + fqlen <= libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize() )
 			{
 				fqacc += fqlen;
 			}
@@ -144,7 +144,7 @@ int main(int argc, char * argv[])
 				uint64_t const fqminlen = minlen;
 				uint64_t const fqmaxlen = maxlen;
 				
-				libmaus::fastx::FastInterval FI(
+				libmaus2::fastx::FastInterval FI(
 					fqlow,fqhigh,fqfileoffset,fqfileoffsethigh,
 					fqnumsyms,fqminlen,fqmaxlen
 				);
@@ -207,7 +207,7 @@ int main(int argc, char * argv[])
 		uint64_t const fqminlen = minlen;
 		uint64_t const fqmaxlen = maxlen;
 		
-		libmaus::fastx::FastInterval FI(
+		libmaus2::fastx::FastInterval FI(
 			fqlow,fqhigh,fqfileoffset,fqfileoffsethigh,
 			fqnumsyms,fqminlen,fqmaxlen
 		);
@@ -230,23 +230,23 @@ int main(int argc, char * argv[])
 		fioutstr->flush();
 		fioutstr.reset();
 		
-		libmaus::aio::CheckedInputStream fiin(fifilename);
-		libmaus::aio::CheckedInputStream bgzfidxin(bgzfidxfilename);
-		libmaus::fastx::FastInterval rFI;
+		libmaus2::aio::CheckedInputStream fiin(fifilename);
+		libmaus2::aio::CheckedInputStream bgzfidxin(bgzfidxfilename);
+		libmaus2::fastx::FastInterval rFI;
 		
 		uint64_t filow = 0;
 		uint64_t fihigh = 0;
 		
-		libmaus::aio::CheckedOutputStream indexCOS(indexfilename);
+		libmaus2::aio::CheckedOutputStream indexCOS(indexfilename);
 		uint64_t const combrate = 4;
-		::libmaus::util::NumberSerialisation::serialiseNumber(indexCOS,(numblocks+combrate-1)/combrate);
-		std::vector < libmaus::fastx::FastInterval > FIV;
+		::libmaus2::util::NumberSerialisation::serialiseNumber(indexCOS,(numblocks+combrate-1)/combrate);
+		std::vector < libmaus2::fastx::FastInterval > FIV;
 		
 		for ( uint64_t i = 0; i < numblocks; ++i )
 		{
-			rFI = libmaus::fastx::FastInterval::deserialise(fiin);
-			/* uint64_t const uncomp = */ libmaus::util::UTF8::decodeUTF8(bgzfidxin);
-			uint64_t const comp = libmaus::util::UTF8::decodeUTF8(bgzfidxin);
+			rFI = libmaus2::fastx::FastInterval::deserialise(fiin);
+			/* uint64_t const uncomp = */ libmaus2::util::UTF8::decodeUTF8(bgzfidxin);
+			uint64_t const comp = libmaus2::util::UTF8::decodeUTF8(bgzfidxin);
 			
 			fihigh += comp;
 			
@@ -259,7 +259,7 @@ int main(int argc, char * argv[])
 			
 			if ( FIV.size() == combrate )
 			{
-				indexCOS << libmaus::fastx::FastInterval::merge(FIV.begin(),FIV.end()).serialise();
+				indexCOS << libmaus2::fastx::FastInterval::merge(FIV.begin(),FIV.end()).serialise();
 				FIV.clear();
 			}
 			// indexCOS << rFI.serialise();
@@ -269,7 +269,7 @@ int main(int argc, char * argv[])
 		
 		if ( FIV.size() )
 		{
-			indexCOS << libmaus::fastx::FastInterval::merge(FIV.begin(),FIV.end()).serialise();
+			indexCOS << libmaus2::fastx::FastInterval::merge(FIV.begin(),FIV.end()).serialise();
 			FIV.clear();	
 		}
 		

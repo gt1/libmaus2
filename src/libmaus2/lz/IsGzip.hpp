@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_LZ_ISGZIP_HPP
 
 #include <istream>
-#include <libmaus/lz/GzipHeader.hpp>
+#include <libmaus2/lz/GzipHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -48,8 +48,8 @@ namespace libmaus
 				in.putback(b1);
 				in.putback(b0);
 				
-				return b0 == libmaus::lz::GzipHeaderConstantsBase::ID1 &&
-				       b1 == libmaus::lz::GzipHeaderConstantsBase::ID2;
+				return b0 == libmaus2::lz::GzipHeaderConstantsBase::ID1 &&
+				       b1 == libmaus2::lz::GzipHeaderConstantsBase::ID2;
 			}
 		};
 	}

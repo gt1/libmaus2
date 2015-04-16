@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,31 +20,31 @@
 #if ! defined(IMPHUFFMANWAVELETTREE_HPP)
 #define IMPHUFFMANWAVELETTREE_HPP
 
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
-#include <libmaus/huffman/EncodeTable.hpp>
-#include <libmaus/math/numbits.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/EncodeTable.hpp>
+#include <libmaus2/math/numbits.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace wavelet
 	{
 		struct ImpHuffmanWaveletTree
 		{
 			typedef ImpHuffmanWaveletTree this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-			typedef ::libmaus::rank::ImpCacheLineRank rank_type;
+			typedef ::libmaus2::rank::ImpCacheLineRank rank_type;
 			typedef rank_type::unique_ptr_type rank_ptr_type;
-			typedef ::libmaus::autoarray::AutoArray<rank_ptr_type> rank_array_type;
+			typedef ::libmaus2::autoarray::AutoArray<rank_ptr_type> rank_array_type;
 			
 			uint64_t const n;
-			::libmaus::util::shared_ptr < ::libmaus::huffman::HuffmanTreeNode >::type const sroot;
+			::libmaus2::util::shared_ptr < ::libmaus2::huffman::HuffmanTreeNode >::type const sroot;
 			rank_array_type dicts;
 			rank_type const * root;
-			::libmaus::huffman::EncodeTable<1> enctable;
+			::libmaus2::huffman::EncodeTable<1> enctable;
 			uint64_t maxdepth;
 			
 			std::vector<uint64_t> nodepos;
@@ -67,19 +67,19 @@ namespace libmaus
 				return s;
 			}
 			
-			bool haveSymbol(::libmaus::huffman::HuffmanTreeNode const * node, int64_t const sym) const
+			bool haveSymbol(::libmaus2::huffman::HuffmanTreeNode const * node, int64_t const sym) const
 			{
 				if ( node->isLeaf() )
 				{
-					::libmaus::huffman::HuffmanTreeLeaf const * leaf =
-						dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(node);
+					::libmaus2::huffman::HuffmanTreeLeaf const * leaf =
+						dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(node);
 
 					return leaf->symbol == sym;
 				}
 				else
 				{
-					::libmaus::huffman::HuffmanTreeInnerNode const * inode =
-						dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(node);
+					::libmaus2::huffman::HuffmanTreeInnerNode const * inode =
+						dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(node);
 					
 					return haveSymbol(inode->left,sym) || haveSymbol(inode->right,sym);
 				}
@@ -90,14 +90,14 @@ namespace libmaus
 				return haveSymbol(sroot.get(),sym);
 			}
 			
-			::libmaus::autoarray::AutoArray<int64_t> getSymbolArray() const
+			::libmaus2::autoarray::AutoArray<int64_t> getSymbolArray() const
 			{
 				return sroot->symbolArray();
 			}
 			
 			uint64_t getB() const
 			{
-				::libmaus::autoarray::AutoArray<int64_t> syms = getSymbolArray();
+				::libmaus2::autoarray::AutoArray<int64_t> syms = getSymbolArray();
 				std::sort(syms.begin(),syms.end());
 				if ( ! syms.size() )
 				{
@@ -105,28 +105,28 @@ namespace libmaus
 				}
 				else if ( syms[0] < 0 )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpHuffmanWaveletTree::getB() called on tree containing negative symbols in alphabet." << std::endl;
 					se.finish();
 					throw se;
 				}
 				else
 				{
-					return ::libmaus::math::numbits(static_cast<uint64_t>(syms[syms.size()-1]));
+					return ::libmaus2::math::numbits(static_cast<uint64_t>(syms[syms.size()-1]));
 				}
 			}
 			
 			uint64_t serialise(std::ostream & out) const
 			{
 				uint64_t p = 0;
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,n);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
 				p += sroot->serialize(out);
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,dicts.size());
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,dicts.size());
 				for ( uint64_t i = 0; i < dicts.size(); ++i )
 					p += dicts[i]->serialise(out);
 				uint64_t const indexpos = p;
-				p += ::libmaus::util::NumberSerialisation::serialiseNumberVector(out,nodepos);
-				p += ::libmaus::util::NumberSerialisation::serialiseNumber(out,indexpos);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumberVector(out,nodepos);
+				p += ::libmaus2::util::NumberSerialisation::serialiseNumber(out,indexpos);
 				out.flush();
 
 				return p;
@@ -139,31 +139,31 @@ namespace libmaus
 			
 			static std::vector<uint64_t> loadIndex(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
+				::libmaus2::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
 				assert ( istr.is_open() );
 				istr.seekg(-8,std::ios::end);
-				uint64_t const indexpos = ::libmaus::util::NumberSerialisation::deserialiseNumber(istr);
+				uint64_t const indexpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
 				istr.clear();
 				istr.seekg(indexpos,std::ios::beg);
-				return ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(istr);
+				return ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(istr);
 			}
 			
 			void init()
 			{
-				std::map < ::libmaus::huffman::HuffmanTreeNode const * , ::libmaus::huffman::HuffmanTreeInnerNode const * > parentMap;
-				std::map < ::libmaus::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
+				std::map < ::libmaus2::huffman::HuffmanTreeNode const * , ::libmaus2::huffman::HuffmanTreeInnerNode const * > parentMap;
+				std::map < ::libmaus2::huffman::HuffmanTreeInnerNode const *, uint64_t > nodeToId;
 				
-				std::stack < ::libmaus::huffman::HuffmanTreeNode const * > S;
+				std::stack < ::libmaus2::huffman::HuffmanTreeNode const * > S;
 				S.push(sroot.get());
 				
 				while ( ! S.empty() )
 				{
-					::libmaus::huffman::HuffmanTreeNode const * cur = S.top();
+					::libmaus2::huffman::HuffmanTreeNode const * cur = S.top();
 					S.pop();
 
 					if ( !cur->isLeaf() )
 					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(cur);
+						::libmaus2::huffman::HuffmanTreeInnerNode const * node = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(cur);
 						uint64_t const id = nodeToId.size();
 						nodeToId [ node ] = id;
 
@@ -176,15 +176,15 @@ namespace libmaus
 					}
 				}
 				
-				for ( std::map < ::libmaus::huffman::HuffmanTreeInnerNode const *, uint64_t >::const_iterator ita = nodeToId.begin();
+				for ( std::map < ::libmaus2::huffman::HuffmanTreeInnerNode const *, uint64_t >::const_iterator ita = nodeToId.begin();
 					ita != nodeToId.end(); ++ita )
 				{
-					::libmaus::huffman::HuffmanTreeInnerNode const * node = ita->first;
+					::libmaus2::huffman::HuffmanTreeInnerNode const * node = ita->first;
 					uint64_t const nodeid = ita->second;
 					
 					if ( parentMap.find(node) != parentMap.end() )
 					{
-						::libmaus::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(node)->second;
+						::libmaus2::huffman::HuffmanTreeInnerNode const * parent = parentMap.find(node)->second;
 						uint64_t const parentid = nodeToId.find(parent)->second;
 						
 						dicts [ nodeid ] -> parent = dicts [ parentid ].get();
@@ -204,11 +204,11 @@ namespace libmaus
 					#if 0
 					if ( node->left->isLeaf() )
 					{
-						dicts[nodeid]->left = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(node->left)->symbol;
+						dicts[nodeid]->left = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(node->left)->symbol;
 					}
 					if ( node->right->isLeaf() )
 					{
-						dicts[nodeid]->right = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(node->right)->symbol;
+						dicts[nodeid]->right = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(node->right)->symbol;
 					}
 					#endif
 				}
@@ -218,7 +218,7 @@ namespace libmaus
 					root = dicts[0].get();
 				}
 				
-				::libmaus::autoarray::AutoArray<uint64_t> depth = sroot->depthArray();
+				::libmaus2::autoarray::AutoArray<uint64_t> depth = sroot->depthArray();
 				maxdepth = 0;
 				for ( uint64_t i = 0; i < depth.size(); ++i )
 					maxdepth = std::max(maxdepth,depth[i]);
@@ -228,11 +228,11 @@ namespace libmaus
 			ImpHuffmanWaveletTree(stream_type & in)
 			:
 				// number of symbols
-				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				// root of huffman tree
-				sroot ( ::libmaus::huffman::HuffmanTreeNode::deserialize(in) ),
+				sroot ( ::libmaus2::huffman::HuffmanTreeNode::deserialize(in) ),
 				// number of contexts = number of bit vectors
-				dicts( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				dicts( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				// root of dictionary tree
 				root(0),
 				//
@@ -249,8 +249,8 @@ namespace libmaus
 					dicts [ i ] -> checkSanity();
 				}
 					
-				nodepos = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in); // index position
+				nodepos = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in); // index position
 				
 				init();
 			}
@@ -259,11 +259,11 @@ namespace libmaus
 			ImpHuffmanWaveletTree(stream_type & in, uint64_t & s)
 			:
 				// number of symbols
-				n(::libmaus::util::NumberSerialisation::deserialiseNumber(in)),
+				n(::libmaus2::util::NumberSerialisation::deserialiseNumber(in)),
 				// root of huffman tree
-				sroot ( ::libmaus::huffman::HuffmanTreeNode::deserialize(in,s) ),
+				sroot ( ::libmaus2::huffman::HuffmanTreeNode::deserialize(in,s) ),
 				// number of contexts = number of bit vectors
-				dicts( ::libmaus::util::NumberSerialisation::deserialiseNumber(in) ),
+				dicts( ::libmaus2::util::NumberSerialisation::deserialiseNumber(in) ),
 				// root of dictionary tree
 				root(0),
 				//
@@ -279,8 +279,8 @@ namespace libmaus
 					dicts [ i ] = UNIQUE_PTR_MOVE(tdictsi);
 				}
 					
-				nodepos = ::libmaus::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
-				::libmaus::util::NumberSerialisation::deserialiseNumber(in); // index position
+				nodepos = ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(in);
+				::libmaus2::util::NumberSerialisation::deserialiseNumber(in); // index position
 				
 				s += (1+nodepos.size()+1)*sizeof(uint64_t);
 				
@@ -291,7 +291,7 @@ namespace libmaus
 			ImpHuffmanWaveletTree(
 				std::string const & filename,
 				uint64_t const rn,
-				::libmaus::util::shared_ptr< ::libmaus::huffman::HuffmanTreeNode >::type rsroot,
+				::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type rsroot,
 				uint64_t const numnodes,
 				std::vector<uint64_t> const & rnodepos
 			)
@@ -302,7 +302,7 @@ namespace libmaus
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(dicts.size()); ++i )
 				{
-					::libmaus::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
+					::libmaus2::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
 					istr.seekg(nodepos[i],std::ios::beg);
 					rank_ptr_type tdictsi(new rank_type(istr));
 					dicts[i] = UNIQUE_PTR_MOVE(tdictsi);
@@ -314,19 +314,19 @@ namespace libmaus
 			public:
 			static unique_ptr_type load(std::string const & filename)
 			{
-				::libmaus::aio::CheckedInputStream in(filename.c_str());
+				::libmaus2::aio::CheckedInputStream in(filename.c_str());
 				
 				if ( ! in.is_open() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "ImpHuffmanWaveletTree::load(): failed to open file " << filename << std::endl;
 					se.finish();
 					throw se;
 				}
 				
-				uint64_t const n = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				::libmaus::util::shared_ptr< ::libmaus::huffman::HuffmanTreeNode >::type const sroot = ::libmaus::huffman::HuffmanTreeNode::deserialize(in);
-				uint64_t const numnodes = ::libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type const sroot = ::libmaus2::huffman::HuffmanTreeNode::deserialize(in);
+				uint64_t const numnodes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				in.close();
 				
 				std::vector<uint64_t> const nodepos = loadIndex(filename);
@@ -349,7 +349,7 @@ namespace libmaus
 			int64_t operator[](uint64_t i) const
 			{
 				rank_type const * node = root;
-				::libmaus::huffman::HuffmanTreeNode const * hnode = sroot.get();
+				::libmaus2::huffman::HuffmanTreeNode const * hnode = sroot.get();
 				unsigned int sym;
 				
 				#if 0
@@ -365,25 +365,25 @@ namespace libmaus
 					{
 						i = r1-1;
 						node = node->right;
-						hnode = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(hnode)->right;
+						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->right;
 					}
 					else
 					{
 						i = i-r1;
 						node = node->left;
-						hnode = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
+						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
 					}
 				}
 				
 				assert ( hnode->isLeaf() );
 				
-				return dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(hnode)->symbol;
+				return dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(hnode)->symbol;
 			}
 
 			std::pair<int64_t,uint64_t> inverseSelect(uint64_t i) const
 			{
 				rank_type const * node = root;
-				::libmaus::huffman::HuffmanTreeNode const * hnode = sroot.get();
+				::libmaus2::huffman::HuffmanTreeNode const * hnode = sroot.get();
 				unsigned int sym;
 				
 				while ( node )
@@ -394,20 +394,20 @@ namespace libmaus
 					{
 						i = r1-1;
 						node = node->right;
-						hnode = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(hnode)->right;
+						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->right;
 					}
 					else
 					{
 						i = i-r1;
 						node = node->left;
-						hnode = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
+						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
 					}
 				}
 				
 				assert ( hnode->isLeaf() );
 				
 				return std::pair<uint64_t,uint64_t>(
-					dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(hnode)->symbol,
+					dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(hnode)->symbol,
 					i);
 			}
 
@@ -422,7 +422,7 @@ namespace libmaus
 
 				// #define HDEBUG
 				#if defined(HDEBUG)
-				::libmaus::huffman::HuffmanTreeNode const * hnode = sroot.get();
+				::libmaus2::huffman::HuffmanTreeNode const * hnode = sroot.get();
 				std::cerr << "code is " << s << " length "<< b << std::endl;
 				#endif
 				
@@ -443,7 +443,7 @@ namespace libmaus
 						node = node->right;
 
 						#if defined(HDEBUG)
-						hnode = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(hnode)->right;
+						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->right;
 						#endif
 					}
 					else
@@ -455,7 +455,7 @@ namespace libmaus
 						node = node->left;
 
 						#if defined(HDEBUG)
-						hnode = dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
+						hnode = dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const *>(hnode)->left;
 						#endif
 					}
 				}
@@ -464,7 +464,7 @@ namespace libmaus
 				assert ( hnode->isLeaf() );
 
 				assert ( 
-					dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const *>(hnode)->symbol
+					dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const *>(hnode)->symbol
 					== sym );
 				std::cerr << "here." << std::endl;
 				#endif
@@ -635,7 +635,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							M[dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol] = E.r-E.l;
+							M[dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol] = E.r-E.l;
 						}
 						else
 						{
@@ -695,7 +695,7 @@ namespace libmaus
 						if ( E.hnode->isLeaf() )
 						{	
 							*(PP++) = std::pair<int64_t,uint64_t>(
-								dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol,
+								dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol,
 								E.r-E.l
 							);
 						}
@@ -756,7 +756,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							P [ dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol ] = E.r-E.l;
+							P [ dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol ] = E.r-E.l;
 						}
 						else
 						{
@@ -821,7 +821,7 @@ namespace libmaus
 					if ( E.r-E.l )
 					{
 						if ( E.hnode->isLeaf() )
-							*(PP++) = StepElement(dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol, E.l, E.l-E.r);
+							*(PP++) = StepElement(dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol, E.l, E.l-E.r);
 						else
 						{
 							switch ( E.v )
@@ -877,7 +877,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							P [ dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol ] = std::pair<uint64_t,uint64_t>(E.l,E.r-E.l);
+							P [ dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol ] = std::pair<uint64_t,uint64_t>(E.l,E.r-E.l);
 						}
 						else
 						{
@@ -917,7 +917,7 @@ namespace libmaus
 				uint64_t r;
 				visit v;
 				rank_type const * node;
-				::libmaus::huffman::HuffmanTreeNode const * hnode;
+				::libmaus2::huffman::HuffmanTreeNode const * hnode;
 				
 				EnumerateRangeSymbolsStackElement() : l(0), r(0), v(first), node(0), hnode(0) {}
 				EnumerateRangeSymbolsStackElement(
@@ -925,7 +925,7 @@ namespace libmaus
 					uint64_t const rr,
 					visit const rv,
 					rank_type const * const rnode,
-					::libmaus::huffman::HuffmanTreeNode const * const rhnode
+					::libmaus2::huffman::HuffmanTreeNode const * const rhnode
 				) : l(rl), r(rr), v(rv), node(rnode), hnode(rhnode) {}
 				
 				EnumerateRangeSymbolsStackElement left() const
@@ -933,14 +933,14 @@ namespace libmaus
 					assert ( ! hnode->isLeaf() );
 					
 					return
-						EnumerateRangeSymbolsStackElement(node->rankm0(l),node->rankm0(r),first,node->left, dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const * >(hnode)->left);
+						EnumerateRangeSymbolsStackElement(node->rankm0(l),node->rankm0(r),first,node->left, dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const * >(hnode)->left);
 				}
 				EnumerateRangeSymbolsStackElement right() const
 				{
 					assert ( ! hnode->isLeaf() );
 					
 					return
-						EnumerateRangeSymbolsStackElement(node->rankm1(l),node->rankm1(r),first,node->right, dynamic_cast< ::libmaus::huffman::HuffmanTreeInnerNode const * >(hnode)->right);
+						EnumerateRangeSymbolsStackElement(node->rankm1(l),node->rankm1(r),first,node->right, dynamic_cast< ::libmaus2::huffman::HuffmanTreeInnerNode const * >(hnode)->right);
 				}
 			};
 
@@ -974,7 +974,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							int64_t const sym = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
+							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							*(PP++) = 
 								std::pair< int64_t,std::pair<uint64_t,uint64_t> > (
 									sym,
@@ -1056,7 +1056,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							int64_t const sym = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
+							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							cb ( sym, D[sym] + E.l, D[sym] + E.r );
 						}
 						else
@@ -1121,7 +1121,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							int64_t const sym = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
+							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							uint64_t const sp = D[sym] + E.l;
 							uint64_t const ep = D[sym] + E.r;
 						
@@ -1195,7 +1195,7 @@ namespace libmaus
 					{
 						if ( E.hnode->isLeaf() )
 						{	
-							int64_t const sym = dynamic_cast< ::libmaus::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
+							int64_t const sym = dynamic_cast< ::libmaus2::huffman::HuffmanTreeLeaf const * >(E.hnode)->symbol;
 							uint64_t const sp = D[sym] + E.l;
 							uint64_t const ep = D[sym] + E.r;
 

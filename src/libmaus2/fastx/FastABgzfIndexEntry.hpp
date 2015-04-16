@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -21,11 +21,11 @@
 
 #include <string>
 #include <vector>
-#include <libmaus/util/StringSerialisation.hpp>
+#include <libmaus2/util/StringSerialisation.hpp>
 #include <istream>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -45,14 +45,14 @@ namespace libmaus
 			
 			FastABgzfIndexEntry(std::istream & in)
 			{
-				name = libmaus::util::StringSerialisation::deserialiseString(in);
-				shortname = libmaus::util::StringSerialisation::deserialiseString(in);
-				patlen = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				zoffset = libmaus::util::NumberSerialisation::deserialiseNumber(in);
-				numblocks = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				name = libmaus2::util::StringSerialisation::deserialiseString(in);
+				shortname = libmaus2::util::StringSerialisation::deserialiseString(in);
+				patlen = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				zoffset = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				numblocks = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				blocks.resize(numblocks+1);
 				for ( uint64_t i = 0; i < numblocks+1; ++i )
-					blocks[i] = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+					blocks[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 		};
 

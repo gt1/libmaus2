@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_FASTX_FASTAINFO_HPP)
 #define LIBMAUS_FASTX_FASTAINFO_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/CountPutObject.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/util/utf8.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/CountPutObject.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/util/utf8.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -46,14 +46,14 @@ namespace libmaus
 			}
 			FastAInfo(std::istream & in)
 			{
-				len = libmaus::util::NumberSerialisation::deserialiseNumber(in);
+				len = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				uint64_t sidlenlen = 0;
-				uint64_t const sidlen = libmaus::util::UTF8::decodeUTF8(in,sidlenlen);
-				libmaus::autoarray::AutoArray<char> B(sidlen,false);
+				uint64_t const sidlen = libmaus2::util::UTF8::decodeUTF8(in,sidlenlen);
+				libmaus2::autoarray::AutoArray<char> B(sidlen,false);
 				in.read(B.begin(),sidlen);
 				if ( in.gcount() != static_cast<int64_t>(sidlen) )
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "FastAInfo(std::istream &): unexpected EOF/IO failure" << std::endl;
 					lme.finish();
 					throw lme;		
@@ -73,8 +73,8 @@ namespace libmaus
 			template<typename stream_type>
 			void serialiseInternal(stream_type & out) const
 			{
-				libmaus::util::NumberSerialisation::serialiseNumber(out,len);
-				libmaus::util::UTF8::encodeUTF8(sid.size(),out);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,len);
+				libmaus2::util::UTF8::encodeUTF8(sid.size(),out);
 				out.write(sid.c_str(),sid.size());
 			}
 
@@ -82,7 +82,7 @@ namespace libmaus
 			template<typename stream_type>	
 			uint64_t serialise(stream_type & out) const
 			{
-				libmaus::util::CountPutObject CPO;
+				libmaus2::util::CountPutObject CPO;
 				serialiseInternal(CPO);
 				serialiseInternal(out);
 				

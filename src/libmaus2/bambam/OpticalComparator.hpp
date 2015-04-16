@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_OPTICALCOMPARATOR_HPP)
 #define LIBMAUS_BAMBAM_OPTICALCOMPARATOR_HPP
 
-#include <libmaus/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -38,7 +38,7 @@ namespace libmaus
 			 * @param B second read ends object
 			 * @return A < B for optical parameters
 			 **/
-			bool operator()(::libmaus::bambam::ReadEnds const & A, ::libmaus::bambam::ReadEnds const & B)
+			bool operator()(::libmaus2::bambam::ReadEnds const & A, ::libmaus2::bambam::ReadEnds const & B)
 			{
 				if ( A.readGroup != B.readGroup )
 					return A.readGroup < B.readGroup;
@@ -57,7 +57,7 @@ namespace libmaus
 			 * @param B second read ends object
 			 * @return A < B for optical parameters
 			 **/
-			bool operator()(::libmaus::bambam::ReadEnds const * A, ::libmaus::bambam::ReadEnds const * B)
+			bool operator()(::libmaus2::bambam::ReadEnds const * A, ::libmaus2::bambam::ReadEnds const * B)
 			{
 				return (*this)(*A,*B);
 			}

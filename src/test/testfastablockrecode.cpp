@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -17,21 +17,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/fastx/FastABPGenerator.hpp>
-#include <libmaus/fastx/FastaBPDecoder.hpp>
-#include <libmaus/util/ArgInfo.hpp>
+#include <libmaus2/fastx/FastABPGenerator.hpp>
+#include <libmaus2/fastx/FastaBPDecoder.hpp>
+#include <libmaus2/util/ArgInfo.hpp>
 
 int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
 		std::ostringstream ostr;
-		libmaus::fastx::FastABPGenerator::fastAToFastaBP(std::cin,ostr,&std::cerr);
+		libmaus2::fastx::FastABPGenerator::fastAToFastaBP(std::cin,ostr,&std::cerr);
 
 		std::istringstream istrpre(ostr.str());
-		libmaus::fastx::FastaBPDecoder fabd(istrpre);
+		libmaus2::fastx::FastaBPDecoder fabd(istrpre);
 		fabd.checkBlockPointers(istrpre);
 		fabd.printSequences(istrpre,std::cout);		
 		uint64_t const totalseqlength = fabd.getTotalSequenceLength(istrpre);
@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
 		std::vector<double> dectimes;
 		for ( uint64_t i = 0; i < runs; ++i )
 		{
-			libmaus::timing::RealTimeClock rtc;
+			libmaus2::timing::RealTimeClock rtc;
 			rtc.start();
 			fabd.decodeSequencesNull(istrpre);
 			dectimes.push_back(totalseqlength / rtc.getElapsedSeconds());

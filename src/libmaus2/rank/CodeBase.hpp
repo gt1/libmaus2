@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,10 +20,10 @@
 #if ! defined(CODEBASE_HPP)
 #define CODEBASE_HPP
 
-#include <libmaus/rank/ChooseCache.hpp>
-#include <libmaus/util/unique_ptr.hpp>
+#include <libmaus2/rank/ChooseCache.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace rank
 	{
@@ -33,7 +33,7 @@ namespace libmaus
 		struct CodeBase
 		{
 			typedef CodeBase this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			protected:
 			/**

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,9 +21,9 @@
 #if ! defined(LIBMAUS_LCS_OVERLAPORIENTATION_HPP)
 #define LIBMAUS_LCS_OVERLAPORIENTATION_HPP
 
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -95,7 +95,7 @@ namespace libmaus
 						return overlap_ar_complete_b;
 					default:
 					{
-						::libmaus::exception::LibMausException se;
+						::libmaus2::exception::LibMausException se;
 						se.getStream() << "Orientation " << static_cast<int>(o) << " has no inverse." << std::endl;
 						se.finish();
 						throw se;

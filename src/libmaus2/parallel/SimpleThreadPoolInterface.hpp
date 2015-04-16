@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,11 +19,11 @@
 #if ! defined(LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACE_HPP)
 #define LIBMAUS_PARALLEL_SIMPLETHREADPOOLINTERFACE_HPP
 
-#include <libmaus/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/parallel/ThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace parallel
 	{		
@@ -34,11 +34,11 @@ namespace libmaus
 			virtual void notifyThreadStart() = 0;
 			virtual void registerDispatcher(uint64_t const id, SimpleThreadWorkPackageDispatcher * D) = 0;
 			virtual void panic(std::exception const &) = 0;
-			virtual void panic(libmaus::exception::LibMausException const &) = 0;
+			virtual void panic(libmaus2::exception::LibMausException const &) = 0;
 			virtual bool isInPanicMode() = 0;
 
 			virtual SimpleThreadWorkPackage * getPackage() = 0;
-			virtual SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus::parallel::SimpleThreadWorkPackage * P) = 0;
+			virtual SimpleThreadWorkPackageDispatcher * getDispatcher(libmaus2::parallel::SimpleThreadWorkPackage * P) = 0;
 			
 			#if defined(__linux__)
 			virtual void setTaskId(uint64_t const threadid, uint64_t const taskid) = 0;

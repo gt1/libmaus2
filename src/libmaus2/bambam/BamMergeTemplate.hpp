@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_BAMBAM_BAMMERGETEMPLATE_HPP)
 #define LIBMAUS_BAMBAM_BAMMERGETEMPLATE_HPP
 
-#include <libmaus/bambam/BamCatHeader.hpp>
+#include <libmaus2/bambam/BamCatHeader.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -35,18 +35,18 @@ namespace libmaus
 			typedef _heap_comparator_type heap_comparator_type;
 			typedef _sort_check_type sort_check_type;
 			typedef BamMergeTemplate<heap_comparator_type,sort_check_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef libmaus::bambam::BamAlignmentDecoderWrapper decoder_wrapper_type;
+			typedef libmaus2::bambam::BamAlignmentDecoderWrapper decoder_wrapper_type;
 			typedef decoder_wrapper_type::unique_ptr_type decoder_wrapper_pointer_type;
-			typedef libmaus::autoarray::AutoArray<decoder_wrapper_pointer_type> wrapper_array_type;
+			typedef libmaus2::autoarray::AutoArray<decoder_wrapper_pointer_type> wrapper_array_type;
 			typedef wrapper_array_type::unique_ptr_type wrapper_array_pointer_type;
-			typedef libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignmentDecoder *> decoder_array_type;
+			typedef libmaus2::autoarray::AutoArray<libmaus2::bambam::BamAlignmentDecoder *> decoder_array_type;
 			typedef decoder_array_type::unique_ptr_type decoder_array_pointer_type;
-			typedef libmaus::autoarray::AutoArray<libmaus::bambam::BamAlignment *> algns_array_type;
+			typedef libmaus2::autoarray::AutoArray<libmaus2::bambam::BamAlignment *> algns_array_type;
 			typedef algns_array_type::unique_ptr_type algns_array_pointer_type;
 			
-			std::vector<libmaus::bambam::BamAlignmentDecoderInfo> infos;
+			std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> infos;
 			std::vector<std::string> const filenames;
 			wrapper_array_pointer_type Pwrappers;
 			wrapper_array_type & wrappers;
@@ -57,7 +57,7 @@ namespace libmaus
 			algns_array_pointer_type Palgns;
 			algns_array_type & algns;
 			
-			libmaus::bambam::BamCatHeader header;
+			libmaus2::bambam::BamCatHeader header;
 			heap_comparator_type comp;
 			std::priority_queue < uint64_t, std::vector< uint64_t >, heap_comparator_type > Q;
 			
@@ -70,13 +70,13 @@ namespace libmaus
 				}
 			}
 			
-			static wrapper_array_pointer_type constructWrappers(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & infos)
+			static wrapper_array_pointer_type constructWrappers(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & infos)
 			{
 				wrapper_array_pointer_type Pwrappers(new wrapper_array_type(infos.size()));
 				
 				for ( uint64_t i = 0; i < infos.size(); ++i )
 				{
-					libmaus::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr ( libmaus::bambam::BamAlignmentDecoderFactory::construct(infos[i]) );
+					libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr ( libmaus2::bambam::BamAlignmentDecoderFactory::construct(infos[i]) );
 					(*Pwrappers)[i] = UNIQUE_PTR_MOVE(tptr);
 				}
 				
@@ -109,7 +109,7 @@ namespace libmaus
 			{
 				if ( ! sort_check_type::issorted(header) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamMergeTemplate::BamMergeTemplate(): cannot merge, not all files are marked as sorted." << std::endl;
 					se.finish();
 					throw se;
@@ -117,7 +117,7 @@ namespace libmaus
 				
 				if ( ! sort_check_type::istopological(header) )
 				{
-					libmaus::exception::LibMausException se;
+					libmaus2::exception::LibMausException se;
 					se.getStream() << "BamMergeTemplate::BamMergeTemplate(): cannot merge, order of reference sequences is inconsistent between files (no topological sorting of order graph possible)." << std::endl;
 					se.finish();
 					throw se;				
@@ -130,9 +130,9 @@ namespace libmaus
 			}
 			
 			public:
-			BamMergeTemplate(libmaus::util::ArgInfo const & arginfo, std::vector<std::string> const & rfilenames, bool const putrank = false) 
+			BamMergeTemplate(libmaus2::util::ArgInfo const & arginfo, std::vector<std::string> const & rfilenames, bool const putrank = false) 
 			: BamAlignmentDecoder(putrank), 
-			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)),
+			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(arginfo,rfilenames)),
 			  Pwrappers(constructWrappers(infos)),
 			  wrappers(*Pwrappers),
 			  Pdecoders(constructDecoderArray(wrappers)),
@@ -148,7 +148,7 @@ namespace libmaus
 
 			BamMergeTemplate(std::vector<std::string> const & rfilenames, bool const putrank = false) 
 			: BamAlignmentDecoder(putrank), 
-			  infos(libmaus::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)),
+			  infos(libmaus2::bambam::BamAlignmentDecoderInfo::filenameToInfo(rfilenames)),
 			  Pwrappers(constructWrappers(infos)),
 			  wrappers(*Pwrappers),
 			  Pdecoders(constructDecoderArray(wrappers)),
@@ -162,7 +162,7 @@ namespace libmaus
 				init();
 			}
 
-			BamMergeTemplate(std::vector<libmaus::bambam::BamAlignmentDecoderInfo> const & rinfos, bool const putrank = false)
+			BamMergeTemplate(std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & rinfos, bool const putrank = false)
 			: BamAlignmentDecoder(putrank), 
 			  infos(rinfos),
 			  Pwrappers(constructWrappers(infos)),
@@ -205,12 +205,12 @@ namespace libmaus
 				}
 			}
 			
-			virtual libmaus::bambam::BamHeader const & getHeader() const
+			virtual libmaus2::bambam::BamHeader const & getHeader() const
 			{
 				return *(header.bamheader);
 			}
 			
-			virtual libmaus::bambam::BamAlignmentDecoder & getDecoder()
+			virtual libmaus2::bambam::BamAlignmentDecoder & getDecoder()
 			{
 				return *this;
 			}

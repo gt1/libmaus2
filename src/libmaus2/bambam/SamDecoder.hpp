@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,40 +19,40 @@
 #if ! defined(LIBMAUS_BAMBAM_SAMDECODER_HPP)
 #define LIBMAUS_BAMBAM_SAMDECODER_HPP
 
-#include <libmaus/util/LineBuffer.hpp>
-#include <libmaus/bambam/SamInfo.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/BamAlignmentDecoder.hpp>
-#include <libmaus/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/util/LineBuffer.hpp>
+#include <libmaus2/bambam/SamInfo.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamAlignmentDecoder.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{	
 		/**
 		 * SAM file decoding class
 		 **/
-		struct SamDecoder : public libmaus::bambam::BamAlignmentDecoder
+		struct SamDecoder : public libmaus2::bambam::BamAlignmentDecoder
 		{
 			//! this type
 			typedef SamDecoder this_type;
 			//! unique pointer type
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer type
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
-			libmaus::aio::InputStream::unique_ptr_type AISTR;
+			libmaus2::aio::InputStream::unique_ptr_type AISTR;
 			//! input stream
 			std::istream & in;
 			//! line buffer
-			libmaus::util::LineBuffer lb;
+			libmaus2::util::LineBuffer lb;
 			//! BAM header pointer
-			::libmaus::bambam::BamHeader::unique_ptr_type Pbamheader;
+			::libmaus2::bambam::BamHeader::unique_ptr_type Pbamheader;
 			//! BAM header
-			::libmaus::bambam::BamHeader const & bamheader;
+			::libmaus2::bambam::BamHeader const & bamheader;
 			//! sam line
-			::libmaus::bambam::SamInfo samline;
+			::libmaus2::bambam::SamInfo samline;
 
 			/**
 			 * interval alignment input method
@@ -77,7 +77,7 @@ namespace libmaus
 				return true;
 			}
 
-			static ::libmaus::bambam::BamHeader::unique_ptr_type readSamHeader(libmaus::util::LineBuffer & lb)
+			static ::libmaus2::bambam::BamHeader::unique_ptr_type readSamHeader(libmaus2::util::LineBuffer & lb)
 			{
 				std::ostringstream istr;
 				char const * pa = 0;
@@ -100,7 +100,7 @@ namespace libmaus
 				if ( lineok )
 					lb.putback(pa);
 				
-				::libmaus::bambam::BamHeader::unique_ptr_type tptr(new ::libmaus::bambam::BamHeader(istr.str()));
+				::libmaus2::bambam::BamHeader::unique_ptr_type tptr(new ::libmaus2::bambam::BamHeader(istr.str()));
 				
 				return UNIQUE_PTR_MOVE(tptr);
 			}
@@ -114,8 +114,8 @@ namespace libmaus
 			 **/
 			SamDecoder(std::string const & filename, bool const rputrank = false)
 			: 
-			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  AISTR(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
+			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
+			  AISTR(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  in(*AISTR),
 			  lb(in,64*1024),
 			  Pbamheader(readSamHeader(lb)),
@@ -131,8 +131,8 @@ namespace libmaus
 			 **/
 			SamDecoder(std::istream & rin, bool const rputrank = false)
 			: 
-			  libmaus::bambam::BamAlignmentDecoder(rputrank),
-			  AISTR(new libmaus::aio::InputStream(rin)),
+			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
+			  AISTR(new libmaus2::aio::InputStream(rin)),
 			  in(*AISTR),
 			  lb(in,64*1024),
 			  Pbamheader(readSamHeader(lb)),
@@ -146,9 +146,9 @@ namespace libmaus
 			 * @param in input stream delivering BAM
 			 * @param rputrank if true, then a rank auxiliary tag will be attached to each alignment
 			 **/
-			SamDecoder(libmaus::aio::InputStream::unique_ptr_type & rin, bool const rputrank = false)
+			SamDecoder(libmaus2::aio::InputStream::unique_ptr_type & rin, bool const rputrank = false)
 			: 
-			  libmaus::bambam::BamAlignmentDecoder(rputrank),
+			  libmaus2::bambam::BamAlignmentDecoder(rputrank),
 			  AISTR(UNIQUE_PTR_MOVE(rin)),
 			  in(*AISTR),
 			  lb(in,64*1024),
@@ -160,7 +160,7 @@ namespace libmaus
 			/**
 			 * @return BAM header
 			 **/
-			libmaus::bambam::BamHeader const & getHeader() const
+			libmaus2::bambam::BamHeader const & getHeader() const
 			{
 				return bamheader;
 			}

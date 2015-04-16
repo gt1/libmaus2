@@ -1,5 +1,5 @@
 /**
-    libmaus
+    libmaus2
     Copyright (C) 2012 German Tischler
 
     This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
-#include <libmaus/math/primes16.hpp>
+#include <libmaus2/math/primes16.hpp>
 uint32_t primes16[65536] = {
 3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,
 103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,
@@ -5935,7 +5935,7 @@ int main()
 			sieve.push_back(i);
 	}
 	
-	std::cout << "#include <libmaus/math/primes16.hpp>\n";
+	std::cout << "#include <libmaus2/math/primes16.hpp>\n";
 	std::cout << "uint32_t primes16["<< (sieve.size()-1) << "] = {\n";
 	std::ostringstream * line = new std::ostringstream;
 	for ( uint64_t i = 1; i < sieve.size(); ++i )

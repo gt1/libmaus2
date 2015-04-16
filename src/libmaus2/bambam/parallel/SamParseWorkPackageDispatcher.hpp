@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,25 +19,25 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_SAMPARSEWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_SAMPARSEWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/SamParsePutSamInfoInterface.hpp>
-#include <libmaus/bambam/parallel/SamParseGetSamInfoInterface.hpp>
-#include <libmaus/bambam/parallel/SamParseFragmentParsedInterface.hpp>
-#include <libmaus/bambam/parallel/SamParseDecompressedBlockFinishedInterface.hpp>
-#include <libmaus/bambam/parallel/SamParseWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/SamParseWorkPackage.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/SamParsePutSamInfoInterface.hpp>
+#include <libmaus2/bambam/parallel/SamParseGetSamInfoInterface.hpp>
+#include <libmaus2/bambam/parallel/SamParseFragmentParsedInterface.hpp>
+#include <libmaus2/bambam/parallel/SamParseDecompressedBlockFinishedInterface.hpp>
+#include <libmaus2/bambam/parallel/SamParseWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/SamParseWorkPackage.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct SamParseWorkPackageDispatcher : libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct SamParseWorkPackageDispatcher : libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef SamParseWorkPackage this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				SamParseWorkPackageReturnInterface & packageReturnInterface;
 				SamParseDecompressedBlockFinishedInterface & blockFinishedInterface;
@@ -62,21 +62,21 @@ namespace libmaus
 				
 				}
 						
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					SamParseWorkPackage * BP = dynamic_cast<SamParseWorkPackage *>(P);
 					assert ( BP );
 					
 					SamParsePending & SPP = BP->SPP;
 
-					libmaus::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type & block = SPP.block;
+					libmaus2::bambam::parallel::GenericInputBase::generic_input_shared_block_ptr_type & block = SPP.block;
 					uint64_t const subid = SPP.subid;
 					uint64_t const absid = SPP.absid;
 					uint64_t const streamid = BP->streamid;
 					std::pair<uint8_t *,uint8_t *> Q = block->meta.blocks[subid];
-					libmaus::bambam::parallel::DecompressedBlock::shared_ptr_type db = BP->db;
-					libmaus::bambam::SamInfo::shared_ptr_type saminfo = getSamInfoInterface.samParseGetSamInfo();
-					libmaus::bambam::BamAlignment & algn = saminfo->algn;
+					libmaus2::bambam::parallel::DecompressedBlock::shared_ptr_type db = BP->db;
+					libmaus2::bambam::SamInfo::shared_ptr_type saminfo = getSamInfoInterface.samParseGetSamInfo();
+					libmaus2::bambam::BamAlignment & algn = saminfo->algn;
 
 					db->uncompdatasize = 0;
 					db->P = db->D.begin();

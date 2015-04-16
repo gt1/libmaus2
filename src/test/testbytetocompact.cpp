@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,15 +17,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
-#include <libmaus/bitio/CompactDecoderBuffer.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/bitio/CompactArrayWriter.hpp>
-#include <libmaus/bitio/Clz.hpp>
+#include <libmaus2/bitio/CompactDecoderBuffer.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/bitio/CompactArrayWriter.hpp>
+#include <libmaus2/bitio/Clz.hpp>
 
 void testctz()
 {
 	for ( uint64_t i = 1, j = 0; i; i <<=1, ++j )
-		assert ( ::libmaus::bitio::Ctz::ctz(i) == j );
+		assert ( ::libmaus2::bitio::Ctz::ctz(i) == j );
 }
 
 void testcompact()
@@ -36,13 +36,13 @@ void testcompact()
 	std::string const fnm("tmpfile.merged");
 	#endif
 
-	::libmaus::util::TempFileRemovalContainer::setup();
-	::libmaus::util::TempFileRemovalContainer::addTempFile(fn);
+	::libmaus2::util::TempFileRemovalContainer::setup();
+	::libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 	
 	uint64_t n = 1024*1024;
 	unsigned int const b = 3;
-	::libmaus::bitio::CompactArray CA(n,b);
-	::libmaus::bitio::CompactArrayWriter CAW(fn,n,b);
+	::libmaus2::bitio::CompactArray CA(n,b);
+	::libmaus2::bitio::CompactArrayWriter CAW(fn,n,b);
 	srand(time(0));
 	for ( uint64_t i = 0; i < n; ++i )
 	{
@@ -51,18 +51,18 @@ void testcompact()
 	}
 	CAW.flush();
 	#if 0
-	::libmaus::aio::CheckedOutputStream COS(fn);
+	::libmaus2::aio::CheckedOutputStream COS(fn);
 	CA.serialize(COS);
 	COS.flush();
 	COS.close();
 	#endif
 	
-	::libmaus::aio::CheckedInputStream CIS(fn);
-	std::cerr << "compact file size is " << ::libmaus::util::GetFileSize::getFileSize(CIS) << std::endl;
+	::libmaus2::aio::CheckedInputStream CIS(fn);
+	std::cerr << "compact file size is " << ::libmaus2::util::GetFileSize::getFileSize(CIS) << std::endl;
 	assert ( CIS.tellg() == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );
 	
-	::libmaus::bitio::CompactDecoderWrapper W(fn,4096);
+	::libmaus2::bitio::CompactDecoderWrapper W(fn,4096);
 	
 	W.seekg(0,std::ios::end);
 	int64_t const fs = W.tellg();
@@ -111,9 +111,9 @@ void testcompact()
 /**
  * compute character histogram in parallel
  **/
-::libmaus::autoarray::AutoArray<uint64_t> computeCharHist(std::string const & inputfile)
+::libmaus2::autoarray::AutoArray<uint64_t> computeCharHist(std::string const & inputfile)
 {
-	uint64_t const n = ::libmaus::util::GetFileSize::getFileSize(inputfile);
+	uint64_t const n = ::libmaus2::util::GetFileSize::getFileSize(inputfile);
 	
 	#if defined(_OPENMP)
 	uint64_t const numthreads = omp_get_max_threads();
@@ -123,8 +123,8 @@ void testcompact()
 
 	uint64_t const packsize = (n + numthreads-1)/numthreads;
 
-	::libmaus::parallel::OMPLock lock;
-	::libmaus::autoarray::AutoArray<uint64_t> ghist(256);	
+	::libmaus2::parallel::OMPLock lock;
+	::libmaus2::autoarray::AutoArray<uint64_t> ghist(256);	
 	#if defined(_OPENMP)
 	#pragma omp parallel for
 	#endif
@@ -136,12 +136,12 @@ void testcompact()
 		
 		if ( range )
 		{
-			::libmaus::autoarray::AutoArray<uint64_t> lhist(ghist.size());	
-			::libmaus::aio::CheckedInputStream CIS(inputfile);
+			::libmaus2::autoarray::AutoArray<uint64_t> lhist(ghist.size());	
+			::libmaus2::aio::CheckedInputStream CIS(inputfile);
 			CIS.seekg(low);
 			uint64_t const blocksize = 8192;
 			uint64_t const numblocks = ((range)+blocksize-1)/blocksize;
-			::libmaus::autoarray::AutoArray<uint8_t> B(blocksize);
+			::libmaus2::autoarray::AutoArray<uint8_t> B(blocksize);
 			
 			for ( uint64_t b = 0; b < numblocks; ++b )
 			{
@@ -168,20 +168,20 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		::libmaus::util::ArgInfo const arginfo(argc,argv);
+		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const input = arginfo.getRestArg<std::string>(0);
 		std::string const output = arginfo.getRestArg<std::string>(1);
 		unsigned int const verbose = arginfo.getValue<unsigned int>("verbose",1);
 		unsigned int const addterm = arginfo.getValue<unsigned int>("addterm",0) ? 1 : 0;
 
-		::libmaus::autoarray::AutoArray<uint64_t> const chist = computeCharHist(input);
+		::libmaus2::autoarray::AutoArray<uint64_t> const chist = computeCharHist(input);
 		uint64_t maxsym = 0;
 		for ( uint64_t i = 0; i < chist.size(); ++i )
 			if ( chist[i] )
 				maxsym = i;
 		if ( addterm )
 			maxsym += 1;
-		unsigned int const b = maxsym ? (64-::libmaus::bitio::Clz::clz(maxsym)) : 0;
+		unsigned int const b = maxsym ? (64-::libmaus2::bitio::Clz::clz(maxsym)) : 0;
 
 		uint64_t const n = std::accumulate(chist.begin(),chist.end(),0ull);
 		if ( verbose )
@@ -189,9 +189,9 @@ int main(int argc, char * argv[])
 
 		uint64_t const blocksize = 8*1024;
 		uint64_t const numblocks = (n+blocksize-1)/blocksize;
-		::libmaus::autoarray::AutoArray<uint8_t> B(blocksize);
-		::libmaus::aio::CheckedInputStream CIS(input);
-		::libmaus::bitio::CompactArrayWriter CAW(output,n+addterm,b);
+		::libmaus2::autoarray::AutoArray<uint8_t> B(blocksize);
+		::libmaus2::aio::CheckedInputStream CIS(input);
+		::libmaus2::bitio::CompactArrayWriter CAW(output,n+addterm,b);
 		int64_t lastperc = -1;
 		
 		if ( verbose )
@@ -227,7 +227,7 @@ int main(int argc, char * argv[])
 		CAW.flush();
 		
 		#if 0
-		::libmaus::bitio::CompactDecoderWrapper CDW(output);
+		::libmaus2::bitio::CompactDecoderWrapper CDW(output);
 		for ( uint64_t i = 0; i < n+addterm; ++i )
 			std::cerr << CDW.get();
 		std::cerr << std::endl;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #define LIBMAUS_FASTX_NAMEINFOBASE_HPP
 
 #include <string>
-#include <libmaus/exception/LibMausException.hpp>
+#include <libmaus2/exception/LibMausException.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
@@ -47,7 +47,7 @@ namespace libmaus
 					return fastq_name_scheme_pairedfiles;
 				else
 				{
-					libmaus::exception::LibMausException lme;
+					libmaus2::exception::LibMausException lme;
 					lme.getStream() << "unknown read name scheme " << schemename << std::endl;
 					lme.finish();
 					throw lme;	

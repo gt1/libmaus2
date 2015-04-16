@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -21,13 +21,13 @@
 #if ! defined(FM_HPP)
 #define FM_HPP
 
-#include <libmaus/lf/LF.hpp>
-#include <libmaus/fm/SampledSA.hpp>
-#include <libmaus/fm/SampledISA.hpp>
-#include <libmaus/lcp/LCP.hpp>
-#include <libmaus/util/shared_ptr.hpp>
+#include <libmaus2/lf/LF.hpp>
+#include <libmaus2/fm/SampledSA.hpp>
+#include <libmaus2/fm/SampledISA.hpp>
+#include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
         namespace fm
         {
@@ -35,11 +35,11 @@ namespace libmaus
                 struct FM
                 {
                         typedef FM<lf_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
-                        typedef ::libmaus::fm::SimpleSampledSA<lf_type> sampled_sa_type;
-                        typedef ::libmaus::fm::SampledISA<lf_type> sampled_isa_type;
-                        typedef ::libmaus::lcp::SuccinctLCP<lf_type,sampled_sa_type,sampled_isa_type> lcp_type;
+                        typedef ::libmaus2::fm::SimpleSampledSA<lf_type> sampled_sa_type;
+                        typedef ::libmaus2::fm::SampledISA<lf_type> sampled_isa_type;
+                        typedef ::libmaus2::lcp::SuccinctLCP<lf_type,sampled_sa_type,sampled_isa_type> lcp_type;
 			typedef typename lf_type::shared_ptr_type lf_ptr_type;
 			typedef typename lcp_type::unique_ptr_type lcp_ptr_type;
 
@@ -84,7 +84,7 @@ namespace libmaus
                                 
                                 std::cerr << "extracting text";
                           
-                                ::libmaus::parallel::OMPLock cerrlock;
+                                ::libmaus2::parallel::OMPLock cerrlock;
                                 uint64_t blocksfinished = 0;
                                 int64_t const numblocks = static_cast<int64_t>((lf->getN() + blocksize-1)/blocksize);
                                 
@@ -123,8 +123,8 @@ namespace libmaus
                         uint64_t serialize(std::ostream & out)
                         {
                                 uint64_t s = 0;
-                                s += ::libmaus::serialize::Serialize<unsigned int>::serialize(out,haveReverse);
-                                s += ::libmaus::serialize::Serialize<unsigned int>::serialize(out,haveLCP);
+                                s += ::libmaus2::serialize::Serialize<unsigned int>::serialize(out,haveReverse);
+                                s += ::libmaus2::serialize::Serialize<unsigned int>::serialize(out,haveLCP);
                                 s += lf->serialize(out);
                                 s += sa->serialize(out);
                                 s += isa->serialize(out);
@@ -141,11 +141,11 @@ namespace libmaus
                                 uint64_t s = 0;
 
                                 std::cerr << "FM reading haveReverse...";
-                                s += ::libmaus::serialize::Serialize<unsigned int>::deserialize(in,&haveReverse);
+                                s += ::libmaus2::serialize::Serialize<unsigned int>::deserialize(in,&haveReverse);
                                 std::cerr << haveReverse << std::endl;
                                 
                                 std::cerr << "FM reading haveLCP...";
-                                s += ::libmaus::serialize::Serialize<unsigned int>::deserialize(in,&haveLCP);
+                                s += ::libmaus2::serialize::Serialize<unsigned int>::deserialize(in,&haveLCP);
                                 std::cerr << haveLCP << std::endl;
 
                                 std::cerr << "FM reading LF..." << std::endl;
@@ -322,7 +322,7 @@ namespace libmaus
                                 bitio::CompactArray::unique_ptr_type ABWT, 
                                 uint64_t sasamplingrate,
                                 uint64_t isasamplingrate,
-                                ::libmaus::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode,
+                                ::libmaus2::util::shared_ptr < huffman::HuffmanTreeNode >::type ahnode,
                                 bool usetext = false
                         )
                         : haveReverse(false), haveLCP(true), lf(new lf_type (ABWT,ahnode)), sa( new sampled_sa_type(lf.get(), sasamplingrate) ),

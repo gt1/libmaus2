@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,26 +19,26 @@
 #if ! defined(LIBMAUS_FASTX_FASTALINEPARSERLINEINFO_HPP)
 #define LIBMAUS_FASTX_FASTALINEPARSERLINEINFO_HPP
 
-#include <libmaus/types/types.hpp>
+#include <libmaus2/types/types.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct FastALineParserLineInfo
 		{
-			enum line_type_type { libmaus_fastx_fasta_id_line, libmaus_fastx_fasta_base_line, libmaus_fastx_fasta_id_line_eof };
+			enum line_type_type { libmaus2_fastx_fasta_id_line, libmaus2_fastx_fasta_base_line, libmaus2_fastx_fasta_id_line_eof };
 				
 			uint8_t const * line;
 			line_type_type linetype;
 			uint64_t linelen;
 			
 			FastALineParserLineInfo()
-			: line(0), linetype(libmaus_fastx_fasta_id_line_eof), linelen(0) {}
+			: line(0), linetype(libmaus2_fastx_fasta_id_line_eof), linelen(0) {}
 		};
 
-		std::ostream & operator<<(std::ostream & out, ::libmaus::fastx::FastALineParserLineInfo const & line);
+		std::ostream & operator<<(std::ostream & out, ::libmaus2::fastx::FastALineParserLineInfo const & line);
 	}
 }
 #endif

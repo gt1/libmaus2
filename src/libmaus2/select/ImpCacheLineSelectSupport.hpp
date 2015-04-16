@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,29 +20,29 @@
 #if ! defined(IMPCACHELINESELECT_HPP)
 #define IMPCACHELINESELECT_HPP
 
-#include <libmaus/rank/ImpCacheLineRank.hpp>
-#include <libmaus/select/ESelectBase.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
+#include <libmaus2/select/ESelectBase.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace select
 	{
-		struct ImpCacheLineSelectSupport : public ::libmaus::select::ESelectBase<1>
+		struct ImpCacheLineSelectSupport : public ::libmaus2::select::ESelectBase<1>
 		{
-			typedef ::libmaus::select::ESelectBase<1> base_type;
+			typedef ::libmaus2::select::ESelectBase<1> base_type;
 			typedef ImpCacheLineSelectSupport this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef ::libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			::libmaus::rank::ImpCacheLineRank const & ICLR;
+			::libmaus2::rank::ImpCacheLineRank const & ICLR;
 			unsigned int const slog;
 			uint64_t const s;
 			uint64_t const n1;
-			::libmaus::autoarray::AutoArray<uint64_t> const sdict;
+			::libmaus2::autoarray::AutoArray<uint64_t> const sdict;
 			
-			::libmaus::autoarray::AutoArray<uint64_t> constructSdict() const
+			::libmaus2::autoarray::AutoArray<uint64_t> constructSdict() const
 			{
-				::libmaus::autoarray::AutoArray<uint64_t> sdict((n1 + s-1)/s);
+				::libmaus2::autoarray::AutoArray<uint64_t> sdict((n1 + s-1)/s);
 			
 				assert ( ICLR.A.size() % 8 == 0 );
 				uint64_t const numblocks = ICLR.A.size()/8;
@@ -71,7 +71,7 @@ namespace libmaus
 				return sdict;
 			}
 			
-			ImpCacheLineSelectSupport(::libmaus::rank::ImpCacheLineRank const & rICLR, unsigned int const rslog)
+			ImpCacheLineSelectSupport(::libmaus2::rank::ImpCacheLineRank const & rICLR, unsigned int const rslog)
 			: ICLR(rICLR), slog(rslog), s(1ull << slog),
 			  n1(ICLR.n ? ICLR.rank1(ICLR.n-1) : 0), sdict(constructSdict())
 			{
@@ -145,12 +145,12 @@ namespace libmaus
 				uint64_t lpcnt;
 
 				// 64 bits left, figure out if bit is in upper or lower half of word
-				if ( rbb >= (lpcnt=::libmaus::rank::PopCnt4<sizeof(int)>::popcnt4(v >> 32)) )
+				if ( rbb >= (lpcnt=::libmaus2::rank::PopCnt4<sizeof(int)>::popcnt4(v >> 32)) )
 					rbb -= lpcnt, v &= 0xFFFFFFFFUL, woff += 32;
 				else
 					v >>= 32;
 				// 32 bits left
-				if ( rbb >= (lpcnt=::libmaus::rank::PopCnt4<sizeof(int)>::popcnt4(v >> 16)) )
+				if ( rbb >= (lpcnt=::libmaus2::rank::PopCnt4<sizeof(int)>::popcnt4(v >> 16)) )
 					rbb -= lpcnt, v &= 0xFFFFUL, woff += 16;
 				else
 					v >>= 16;

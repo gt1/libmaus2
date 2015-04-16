@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,24 +19,24 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKCOMPRESSIONWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLBLOCKCOMPRESSIONWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/GenericInputControlPutCompressorInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlGetCompressorInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlBlockCompressionWorkPackage.hpp>
-#include <libmaus/bambam/parallel/GenericInputControlBlockCompressionFinishedInterface.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlPutCompressorInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlGetCompressorInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlBlockCompressionWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlBlockCompressionWorkPackage.hpp>
+#include <libmaus2/bambam/parallel/GenericInputControlBlockCompressionFinishedInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputControlBlockCompressionWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct GenericInputControlBlockCompressionWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputControlBlockCompressionWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 				GenericInputControlBlockCompressionWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputControlBlockCompressionFinishedInterface & blockCompressedInterface;
@@ -46,22 +46,22 @@ namespace libmaus
 				GenericInputControlBlockCompressionWorkPackageDispatcher(
 					GenericInputControlBlockCompressionWorkPackageReturnInterface & rpackageReturnInterface,
 					GenericInputControlBlockCompressionFinishedInterface & rblockCompressedInterface,
-					libmaus::bambam::parallel::GenericInputControlGetCompressorInterface & rgetCompressorInterface,
-					libmaus::bambam::parallel::GenericInputControlPutCompressorInterface & rputCompressorInterface
+					libmaus2::bambam::parallel::GenericInputControlGetCompressorInterface & rgetCompressorInterface,
+					libmaus2::bambam::parallel::GenericInputControlPutCompressorInterface & rputCompressorInterface
 				)
 				: packageReturnInterface(rpackageReturnInterface), blockCompressedInterface(rblockCompressedInterface),
 				  getCompressorInterface(rgetCompressorInterface), putCompressorInterface(rputCompressorInterface)
 				{
 				}
 			
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputControlBlockCompressionWorkPackage *>(P) != 0 );
 					GenericInputControlBlockCompressionWorkPackage * BP = dynamic_cast<GenericInputControlBlockCompressionWorkPackage *>(P);
 			
 					GenericInputControlCompressionPending & GICCP = BP->GICCP;
-					libmaus::lz::BgzfDeflateZStreamBase::shared_ptr_type compressor = getCompressorInterface.genericInputControlGetCompressor();		
-					libmaus::lz::BgzfDeflateOutputBufferBase & outblock = *(GICCP.outblock);
+					libmaus2::lz::BgzfDeflateZStreamBase::shared_ptr_type compressor = getCompressorInterface.genericInputControlGetCompressor();		
+					libmaus2::lz::BgzfDeflateOutputBufferBase & outblock = *(GICCP.outblock);
 					std::pair<uint8_t *,uint8_t *> R = GICCP.P;
 
 					if ( R.first == R.second )
@@ -77,11 +77,11 @@ namespace libmaus
 							outblock.outbuf.begin()
 						);
 						
-						GICCP.flushinfo = libmaus::lz::BgzfDeflateZStreamBaseFlushInfo(0,sizeof(emptybgzfblock)/sizeof(emptybgzfblock[0]));
+						GICCP.flushinfo = libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo(0,sizeof(emptybgzfblock)/sizeof(emptybgzfblock[0]));
 					}
 					else
 					{
-						libmaus::lz::BgzfDeflateZStreamBaseFlushInfo const info = compressor->flush(R.first,R.second,outblock);
+						libmaus2::lz::BgzfDeflateZStreamBaseFlushInfo const info = compressor->flush(R.first,R.second,outblock);
 						GICCP.flushinfo = info;
 					}
 										

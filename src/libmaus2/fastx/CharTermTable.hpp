@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,16 +20,16 @@
 #if ! defined(LIBMAUS_FASTX_CHARTERMTABLE_HPP)
 #define LIBMAUS_FASTX_CHARTERMTABLE_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace fastx
 	{
 		struct CharTermTable
 		{
 			private:
-			::libmaus::autoarray::AutoArray<bool> atable;
+			::libmaus2::autoarray::AutoArray<bool> atable;
 			bool * table;
 			
 			CharTermTable & operator=(CharTermTable const &);

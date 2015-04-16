@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,35 +19,35 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBGZFDECOMPRESSIONWORKPACKAGEDISPATCHER_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTBGZFDECOMPRESSIONWORKPACKAGEDISPATCHER_HPP
 
-#include <libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface.hpp>
-#include <libmaus/bambam/parallel/GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface.hpp>
-#include <libmaus/parallel/LockedFreeList.hpp>
-#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface.hpp>
+#include <libmaus2/bambam/parallel/GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface.hpp>
+#include <libmaus2/parallel/LockedFreeList.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBase.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
 		namespace parallel
 		{
-			struct GenericInputBgzfDecompressionWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+			struct GenericInputBgzfDecompressionWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 			{
 				typedef GenericInputBgzfDecompressionWorkPackageDispatcher this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 				
 				GenericInputBgzfDecompressionWorkPackageReturnInterface & packageReturnInterface;
 				GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface & genericInputBgzfDecompressionWorkPackageMemInputBlockReturn;
 				GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface & genericInputBgzfDecompressionWorkPackageDecompressedBlockReturn;
 				GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface & genericInputBgzfDecompressionWorkSubBlockDecompressionFinished;
 			
-				libmaus::parallel::LockedFreeList<
-					libmaus::lz::BgzfInflateZStreamBase,
-					libmaus::lz::BgzfInflateZStreamBaseAllocator,
-					libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+				libmaus2::parallel::LockedFreeList<
+					libmaus2::lz::BgzfInflateZStreamBase,
+					libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+					libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 				> & deccont;
 			
 			
@@ -56,10 +56,10 @@ namespace libmaus
 					GenericInputBgzfDecompressionWorkPackageMemInputBlockReturnInterface & rgenericInputBgzfDecompressionWorkPackageMemInputBlockReturn,
 					GenericInputBgzfDecompressionWorkPackageDecompressedBlockReturnInterface & rgenericInputBgzfDecompressionWorkPackageDecompressedBlockReturn,
 					GenericInputBgzfDecompressionWorkSubBlockDecompressionFinishedInterface & rgenericInputBgzfDecompressionWorkSubBlockDecompressionFinished,
-					libmaus::parallel::LockedFreeList<
-						libmaus::lz::BgzfInflateZStreamBase,
-						libmaus::lz::BgzfInflateZStreamBaseAllocator,
-						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+					libmaus2::parallel::LockedFreeList<
+						libmaus2::lz::BgzfInflateZStreamBase,
+						libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 					> & rdeccont
 				)
 				: packageReturnInterface(rpackageReturnInterface),
@@ -71,7 +71,7 @@ namespace libmaus
 				
 				}
 			
-				void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+				void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 				{
 					assert ( dynamic_cast<GenericInputBgzfDecompressionWorkPackage *>(P) != 0 );
 					GenericInputBgzfDecompressionWorkPackage * BP = dynamic_cast<GenericInputBgzfDecompressionWorkPackage *>(P);
@@ -97,7 +97,7 @@ namespace libmaus
 							
 					if ( crc != data.mib->crc )
 					{
-						libmaus::exception::LibMausException lme;
+						libmaus2::exception::LibMausException lme;
 						lme.getStream() << "CRC mismatch." << std::endl;
 						lme.finish();
 						throw lme;

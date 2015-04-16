@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,15 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/parallel/ThreadPool.hpp>
-#include <libmaus/lz/BgzfInflateBase.hpp>
-#include <libmaus/parallel/LockedBool.hpp>
-#include <libmaus/bambam/BamHeader.hpp>
-#include <libmaus/bambam/BamAlignment.hpp>
-#include <libmaus/util/GetObject.hpp>
-#include <libmaus/bambam/BamAlignmentPosComparator.hpp>
+#include <libmaus2/parallel/ThreadPool.hpp>
+#include <libmaus2/lz/BgzfInflateBase.hpp>
+#include <libmaus2/parallel/LockedBool.hpp>
+#include <libmaus2/bambam/BamHeader.hpp>
+#include <libmaus2/bambam/BamAlignment.hpp>
+#include <libmaus2/util/GetObject.hpp>
+#include <libmaus2/bambam/BamAlignmentPosComparator.hpp>
 
-libmaus::parallel::PosixMutex cerrmutex;
+libmaus2::parallel::PosixMutex cerrmutex;
 
 struct BamThreadPoolDecodeBamParseQueueInfo
 {
@@ -85,10 +85,10 @@ struct BamThreadPoolDecodeBamProcessQueueInfo
 struct BamProcessBuffer
 {
 	typedef BamProcessBuffer this_type;
-	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-	typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-	libmaus::autoarray::AutoArray<uint64_t> B8;
+	libmaus2::autoarray::AutoArray<uint64_t> B8;
 
 	uint8_t * const ca;
 	uint8_t * cc;
@@ -136,7 +136,7 @@ struct PosixLockedQueue
 {
 	typedef _value_type value_type;
 
-	libmaus::parallel::PosixMutex lock;
+	libmaus2::parallel::PosixMutex lock;
 	std::deque<value_type> Q;
 	
 	PosixLockedQueue()
@@ -147,55 +147,55 @@ struct PosixLockedQueue
 	
 	uint64_t size()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		return Q.size();
 	}
 	
 	bool empty()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		return Q.size() == 0;	
 	}
 	
 	void push_back(value_type const v)
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		Q.push_back(v);
 	}
 
 	void push_front(value_type const v)
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		Q.push_front(v);
 	}
 
 	void pop_back()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		Q.pop_back();
 	}
 
 	void pop_front()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		Q.pop_front();
 	}
 
 	value_type front()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		return Q.front();
 	}
 
 	value_type back()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		return Q.back();
 	}
 
 	value_type dequeFront()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		value_type const v = Q.front();
 		Q.pop_front();
 		return v;
@@ -203,7 +203,7 @@ struct PosixLockedQueue
 
 	value_type dequeBack()
 	{
-		libmaus::parallel::ScopePosixMutex llock(lock);
+		libmaus2::parallel::ScopePosixMutex llock(lock);
 		value_type const v = Q.back();
 		Q.pop_back();
 		return v;
@@ -225,40 +225,40 @@ struct BamThreadPoolDecodeContextBase
 	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamparse = 0;
 	static unsigned int const bamthreadpooldecodecontextbase_dispatcher_priority_bamprocess = 0;
 
-	libmaus::parallel::PosixMutex packageIdLock;
+	libmaus2::parallel::PosixMutex packageIdLock;
 	uint64_t nextPackageId;
 	
 	uint64_t getNextPackageId()
 	{
-		libmaus::parallel::ScopePosixMutex lpackageIdLock(packageIdLock);
+		libmaus2::parallel::ScopePosixMutex lpackageIdLock(packageIdLock);
 		return nextPackageId++;
 	}
 	
-	libmaus::parallel::PosixMutex inputLock;
+	libmaus2::parallel::PosixMutex inputLock;
 	std::istream & in;
 	uint64_t readCnt;
-	libmaus::parallel::LockedBool readComplete;
-	libmaus::autoarray::AutoArray< libmaus::lz::BgzfInflateBase::unique_ptr_type > inflateBases;
-	libmaus::autoarray::AutoArray< char > inflateDecompressSpace;
-	libmaus::parallel::SynchronousQueue<uint64_t> inflateBasesFreeList;
+	libmaus2::parallel::LockedBool readComplete;
+	libmaus2::autoarray::AutoArray< libmaus2::lz::BgzfInflateBase::unique_ptr_type > inflateBases;
+	libmaus2::autoarray::AutoArray< char > inflateDecompressSpace;
+	libmaus2::parallel::SynchronousQueue<uint64_t> inflateBasesFreeList;
 	uint64_t nextInputBlockId;
 	
-	libmaus::parallel::PosixMutex decompressLock;
+	libmaus2::parallel::PosixMutex decompressLock;
 	uint64_t decompressCnt;
-	libmaus::parallel::LockedBool decompressComplete;
+	libmaus2::parallel::LockedBool decompressComplete;
 	
-	libmaus::parallel::PosixMutex bamParseQueueLock;
+	libmaus2::parallel::PosixMutex bamParseQueueLock;
 	std::priority_queue<BamThreadPoolDecodeBamParseQueueInfo> bamparseQueue;
 	std::priority_queue<BamThreadPoolDecodeBamParseQueueInfo> bamparseStall;
 	uint64_t bamParseNextBlock;
 
-	libmaus::parallel::PosixMutex bamParseLock;
+	libmaus2::parallel::PosixMutex bamParseLock;
 	uint64_t bamParseCnt;
-	libmaus::parallel::LockedBool bamParseComplete;
+	libmaus2::parallel::LockedBool bamParseComplete;
 
-	libmaus::parallel::LockedBool haveheader;
-	::libmaus::bambam::BamHeaderParserState bamheaderparsestate;
-	libmaus::bambam::BamHeader header;
+	libmaus2::parallel::LockedBool haveheader;
+	::libmaus2::bambam::BamHeaderParserState bamheaderparsestate;
+	libmaus2::bambam::BamHeader header;
 	
 	enum bam_parser_state_type {
 		bam_parser_state_read_blocklength,
@@ -269,15 +269,15 @@ struct BamThreadPoolDecodeContextBase
 	unsigned int bamBlockSizeRead;
 	uint32_t bamBlockSizeValue;
 	uint32_t bamBlockDataRead;
-	libmaus::bambam::BamAlignment bamGatherBuffer;
+	libmaus2::bambam::BamAlignment bamGatherBuffer;
 	
-	libmaus::autoarray::AutoArray<BamProcessBuffer::unique_ptr_type> processBuffers;
+	libmaus2::autoarray::AutoArray<BamProcessBuffer::unique_ptr_type> processBuffers;
 	PosixLockedQueue<uint64_t> processBuffersFreeList;
 	uint64_t nextProcessBufferIdIn;
-	libmaus::parallel::PosixMutex nextProcessBufferIdOutLock;
+	libmaus2::parallel::PosixMutex nextProcessBufferIdOutLock;
 	uint64_t nextProcessBufferIdOut;
 
-	libmaus::parallel::LockedBool bamProcessComplete;
+	libmaus2::parallel::LockedBool bamProcessComplete;
 		
 	BamThreadPoolDecodeContextBase(
 		std::istream & rin,
@@ -295,7 +295,7 @@ struct BamThreadPoolDecodeContextBase
 	  readCnt(0),
 	  readComplete(false), 
 	  inflateBases(numInflateBases),
-	  inflateDecompressSpace(numInflateBases * libmaus::lz::BgzfConstants::getBgzfMaxBlockSize()),
+	  inflateDecompressSpace(numInflateBases * libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize()),
 	  inflateBasesFreeList(),
 	  nextInputBlockId(0),
 	  decompressLock(),
@@ -323,7 +323,7 @@ struct BamThreadPoolDecodeContextBase
 	{
 		for ( uint64_t i = 0; i < inflateBases.size(); ++i )
 		{
-			libmaus::lz::BgzfInflateBase::unique_ptr_type tptr(new libmaus::lz::BgzfInflateBase);
+			libmaus2::lz::BgzfInflateBase::unique_ptr_type tptr(new libmaus2::lz::BgzfInflateBase);
 			inflateBases[i] = UNIQUE_PTR_MOVE(tptr);
 			inflateBasesFreeList.enque(i);
 		}
@@ -338,11 +338,11 @@ struct BamThreadPoolDecodeContextBase
 	
 	char * getDecompressSpace(uint64_t const rbaseid)
 	{
-		return inflateDecompressSpace.begin() + rbaseid * libmaus::lz::BgzfConstants::getBgzfMaxBlockSize();
+		return inflateDecompressSpace.begin() + rbaseid * libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize();
 	}
 };
 
-struct BamThreadPoolDecodeReadPackage : public ::libmaus::parallel::ThreadWorkPackage
+struct BamThreadPoolDecodeReadPackage : public ::libmaus2::parallel::ThreadWorkPackage
 {
 	BamThreadPoolDecodeContextBase * contextbase;
 
@@ -351,7 +351,7 @@ struct BamThreadPoolDecodeReadPackage : public ::libmaus::parallel::ThreadWorkPa
 		uint64_t const rpackageid,
 		BamThreadPoolDecodeContextBase * rcontextbase
 	)
-	: ::libmaus::parallel::ThreadWorkPackage(
+	: ::libmaus2::parallel::ThreadWorkPackage(
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_priority_read,
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_id_read,
 		rpackageid
@@ -360,19 +360,19 @@ struct BamThreadPoolDecodeReadPackage : public ::libmaus::parallel::ThreadWorkPa
 	
 	}
 
-	virtual ::libmaus::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeReadPackage(packageid,contextbase));
+		::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeReadPackage(packageid,contextbase));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	virtual ::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeReadPackage(packageid,contextbase));
+		::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeReadPackage(packageid,contextbase));
 		return sptr;
 	}
 };
 
-struct BamThreadPoolDecodeDecompressPackage : public ::libmaus::parallel::ThreadWorkPackage
+struct BamThreadPoolDecodeDecompressPackage : public ::libmaus2::parallel::ThreadWorkPackage
 {
 	BamThreadPoolDecodeContextBase * contextbase;
 
@@ -389,7 +389,7 @@ struct BamThreadPoolDecodeDecompressPackage : public ::libmaus::parallel::Thread
 		uint64_t rblockid
 		
 	)
-	: ::libmaus::parallel::ThreadWorkPackage(
+	: ::libmaus2::parallel::ThreadWorkPackage(
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_priority_decompress,
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_id_decompress,
 		rpackageid
@@ -398,20 +398,20 @@ struct BamThreadPoolDecodeDecompressPackage : public ::libmaus::parallel::Thread
 	
 	}
 
-	virtual ::libmaus::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeDecompressPackage(packageid,contextbase,blockmeta,baseid,blockid));
+		::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeDecompressPackage(packageid,contextbase,blockmeta,baseid,blockid));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	virtual ::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeDecompressPackage(packageid,contextbase,blockmeta,baseid,blockid));
+		::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeDecompressPackage(packageid,contextbase,blockmeta,baseid,blockid));
 		return sptr;
 	}
 };
 
 
-struct BamThreadPoolDecodeBamParsePackage : public ::libmaus::parallel::ThreadWorkPackage
+struct BamThreadPoolDecodeBamParsePackage : public ::libmaus2::parallel::ThreadWorkPackage
 {
 	BamThreadPoolDecodeContextBase * contextbase;
 
@@ -427,7 +427,7 @@ struct BamThreadPoolDecodeBamParsePackage : public ::libmaus::parallel::ThreadWo
 		uint64_t rbaseid,
 		uint64_t rblockid		
 	)
-	: ::libmaus::parallel::ThreadWorkPackage(
+	: ::libmaus2::parallel::ThreadWorkPackage(
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_priority_bamparse,
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_id_bamparse,
 		rpackageid
@@ -436,19 +436,19 @@ struct BamThreadPoolDecodeBamParsePackage : public ::libmaus::parallel::ThreadWo
 	
 	}
 
-	virtual ::libmaus::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeBamParsePackage(packageid,contextbase,blockmeta,baseid,blockid));
+		::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeBamParsePackage(packageid,contextbase,blockmeta,baseid,blockid));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	virtual ::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeBamParsePackage(packageid,contextbase,blockmeta,baseid,blockid));
+		::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeBamParsePackage(packageid,contextbase,blockmeta,baseid,blockid));
 		return sptr;
 	}
 };
 
-struct BamThreadPoolDecodeBamProcessPackage : public ::libmaus::parallel::ThreadWorkPackage
+struct BamThreadPoolDecodeBamProcessPackage : public ::libmaus2::parallel::ThreadWorkPackage
 {
 	BamThreadPoolDecodeContextBase * contextbase;
 	uint64_t baseid;
@@ -461,7 +461,7 @@ struct BamThreadPoolDecodeBamProcessPackage : public ::libmaus::parallel::Thread
 		uint64_t rbaseid,
 		uint64_t rblockid		
 	)
-	: ::libmaus::parallel::ThreadWorkPackage(
+	: ::libmaus2::parallel::ThreadWorkPackage(
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_priority_bamprocess,
 		BamThreadPoolDecodeContextBase::bamthreadpooldecodecontextbase_dispatcher_id_bamprocess,
 		rpackageid
@@ -470,32 +470,32 @@ struct BamThreadPoolDecodeBamProcessPackage : public ::libmaus::parallel::Thread
 	
 	}
 
-	virtual ::libmaus::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type uclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeBamProcessPackage(packageid,contextbase,baseid,blockid));
+		::libmaus2::parallel::ThreadWorkPackage::unique_ptr_type tptr(new BamThreadPoolDecodeBamProcessPackage(packageid,contextbase,baseid,blockid));
 		return UNIQUE_PTR_MOVE(tptr);
 	}
-	virtual ::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
+	virtual ::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sclone() const
 	{
-		::libmaus::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeBamProcessPackage(packageid,contextbase,baseid,blockid));
+		::libmaus2::parallel::ThreadWorkPackage::shared_ptr_type sptr(new BamThreadPoolDecodeBamProcessPackage(packageid,contextbase,baseid,blockid));
 		return sptr;
 	}
 };
 
-struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus::parallel::ThreadWorkPackageDispatcher
+struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus2::parallel::ThreadWorkPackageDispatcher
 {
 	virtual ~BamThreadPoolDecodeReadPackageDispatcher() {}
 	virtual void dispatch(
-		libmaus::parallel::ThreadWorkPackage * P, 
-		libmaus::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
+		libmaus2::parallel::ThreadWorkPackage * P, 
+		libmaus2::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
 	)
 	{
 		assert ( dynamic_cast<BamThreadPoolDecodeReadPackage *>(P) != 0 );
 		
 		BamThreadPoolDecodeReadPackage & RP = *dynamic_cast<BamThreadPoolDecodeReadPackage *>(P);
 		BamThreadPoolDecodeContextBase & contextbase = *(RP.contextbase);
-		libmaus::parallel::PosixMutex & inputLock = contextbase.inputLock;
-		libmaus::parallel::ScopePosixMutex slock(inputLock);
+		libmaus2::parallel::PosixMutex & inputLock = contextbase.inputLock;
+		libmaus2::parallel::ScopePosixMutex slock(inputLock);
 		
 		// handle empty input file
 		if ( 
@@ -547,12 +547,12 @@ struct BamThreadPoolDecodeReadPackageDispatcher : public libmaus::parallel::Thre
 	}
 };
 
-struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel::ThreadWorkPackageDispatcher
+struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus2::parallel::ThreadWorkPackageDispatcher
 {
 	virtual ~BamThreadPoolDecodeDecompressPackageDispatcher() {}
 	virtual void dispatch(
-		libmaus::parallel::ThreadWorkPackage * P, 
-		libmaus::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
+		libmaus2::parallel::ThreadWorkPackage * P, 
+		libmaus2::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
 	)
 	{
 		assert ( dynamic_cast<BamThreadPoolDecodeDecompressPackage *>(P) != 0 );
@@ -569,7 +569,7 @@ struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel
 		cerrmutex.unlock();
 		#endif
 
-		libmaus::parallel::ScopePosixMutex ldecompressLock(contextbase.decompressLock);
+		libmaus2::parallel::ScopePosixMutex ldecompressLock(contextbase.decompressLock);
 		contextbase.decompressCnt += 1;
 		if ( contextbase.readComplete.get() && (contextbase.decompressCnt == contextbase.readCnt) )
 		{
@@ -588,7 +588,7 @@ struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel
 				RP.blockmeta,RP.baseid,RP.blockid);
 
 			// enque the parse info object
-			libmaus::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
+			libmaus2::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
 			contextbase.bamparseQueue.push(qinfo);
 			
 			// check whether this is the next block for parsing
@@ -611,7 +611,7 @@ struct BamThreadPoolDecodeDecompressPackageDispatcher : public libmaus::parallel
 	}
 };
 
-struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::ThreadWorkPackageDispatcher
+struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus2::parallel::ThreadWorkPackageDispatcher
 {
 	template<unsigned int len>
 	static uint64_t decodeLittleEndianInteger(uint8_t const * pa)
@@ -624,8 +624,8 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 
 	virtual ~BamThreadPoolDecodeBamParsePackageDispatcher() {}
 	virtual void dispatch(
-		libmaus::parallel::ThreadWorkPackage * P, 
-		libmaus::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
+		libmaus2::parallel::ThreadWorkPackage * P, 
+		libmaus2::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
 	)
 	{
 		assert ( dynamic_cast<BamThreadPoolDecodeBamParsePackage *>(P) != 0 );
@@ -646,7 +646,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 
 		if ( (! contextbase.haveheader.get()) && (pa != pc) )
 		{			
-			::libmaus::util::GetObject<uint8_t const *> G(pa);
+			::libmaus2::util::GetObject<uint8_t const *> G(pa);
 			std::pair<bool,uint64_t> const P = contextbase.bamheaderparsestate.parseHeader(G,pc-pa);
 
 			// header complete?
@@ -738,7 +738,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 						#endif
 
 						if ( contextbase.bamBlockSizeValue > contextbase.bamGatherBuffer.D.size() )
-							contextbase.bamGatherBuffer.D = libmaus::bambam::BamAlignment::D_array_type(contextbase.bamBlockSizeValue);
+							contextbase.bamGatherBuffer.D = libmaus2::bambam::BamAlignment::D_array_type(contextbase.bamBlockSizeValue);
 					}
 					break;
 				}
@@ -811,7 +811,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		if ( ! stall )
 		{
 			
-			libmaus::parallel::ScopePosixMutex lbamParseLock(contextbase.bamParseLock);
+			libmaus2::parallel::ScopePosixMutex lbamParseLock(contextbase.bamParseLock);
 			contextbase.bamParseCnt += 1;
 			if ( contextbase.decompressComplete.get() && (contextbase.bamParseCnt == contextbase.decompressCnt) )
 			{
@@ -852,7 +852,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 			);
 
 			// enque the parse info object in the stall queue
-			libmaus::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
+			libmaus2::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
 			contextbase.bamparseStall.push(qinfo);
 		}
 
@@ -888,7 +888,7 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 		{
 			// process next bam parse object if any is available
 			{
-				libmaus::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
+				libmaus2::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
 				contextbase.bamParseNextBlock += 1;
 
 				if ( contextbase.bamParseNextBlock == contextbase.bamparseQueue.top().blockid )
@@ -912,12 +912,12 @@ struct BamThreadPoolDecodeBamParsePackageDispatcher : public libmaus::parallel::
 };
 
 
-struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel::ThreadWorkPackageDispatcher
+struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus2::parallel::ThreadWorkPackageDispatcher
 {
 	virtual ~BamThreadPoolDecodeBamProcessPackageDispatcher() {}
 	virtual void dispatch(
-		libmaus::parallel::ThreadWorkPackage * P, 
-		libmaus::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
+		libmaus2::parallel::ThreadWorkPackage * P, 
+		libmaus2::parallel::ThreadPoolInterfaceEnqueTermInterface & tpi
 	)
 	{
 		assert ( dynamic_cast<BamThreadPoolDecodeBamProcessPackage *>(P) != 0 );
@@ -933,7 +933,7 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 
 		BamProcessBuffer * processBuffer = contextbase.processBuffers[RP.baseid].get();
 		std::reverse(processBuffer->pc,processBuffer->pa);
-		libmaus::bambam::BamAlignmentPosComparator BAPC(processBuffer->ca);
+		libmaus2::bambam::BamAlignmentPosComparator BAPC(processBuffer->ca);
 		std::stable_sort(processBuffer->pc,processBuffer->pa,BAPC);
 		
 		#if 0
@@ -946,12 +946,12 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 		contextbase.processBuffersFreeList.push_back(RP.baseid);
 		
 		{
-		libmaus::parallel::ScopePosixMutex lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
+		libmaus2::parallel::ScopePosixMutex lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
 		contextbase.nextProcessBufferIdOut += 1;
 		}
 
 		{
-			libmaus::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
+			libmaus2::parallel::ScopePosixMutex lbamParseQueueLock(contextbase.bamParseQueueLock);
 			
 			if ( contextbase.bamparseStall.size() )
 			{
@@ -975,7 +975,7 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 		}
 
 		{
-		libmaus::parallel::ScopePosixMutex lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
+		libmaus2::parallel::ScopePosixMutex lnextProcessBufferIdOutLock(contextbase.nextProcessBufferIdOutLock);
 		#if 0
 		cerrmutex.lock();
 		std::cerr 
@@ -998,14 +998,14 @@ struct BamThreadPoolDecodeBamProcessPackageDispatcher : public libmaus::parallel
 
 struct BamThreadPoolDecodeContext : public BamThreadPoolDecodeContextBase
 {
-	libmaus::parallel::ThreadPool & TP;
+	libmaus2::parallel::ThreadPool & TP;
 
 	BamThreadPoolDecodeContext(
 		std::istream & rin, 
 		uint64_t const numInflateBases,
 		uint64_t const numProcessBuffers,
 		uint64_t const processBufferSize,
-		libmaus::parallel::ThreadPool & rTP
+		libmaus2::parallel::ThreadPool & rTP
 	)
 	: BamThreadPoolDecodeContextBase(rin,numInflateBases,numProcessBuffers,processBufferSize), TP(rTP) 
 	{
@@ -1022,7 +1022,7 @@ struct BamThreadPoolDecodeContext : public BamThreadPoolDecodeContextBase
 	}
 };
 
-#include <libmaus/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/PosixFdInputStream.hpp>
 
 int main()
 {
@@ -1034,7 +1034,7 @@ int main()
 	
 	std::cerr << "numthreads=" << numthreads << std::endl;
 
-	libmaus::parallel::ThreadPool TP(numthreads);
+	libmaus2::parallel::ThreadPool TP(numthreads);
 
 	BamThreadPoolDecodeReadPackageDispatcher readdispatcher;
 	TP.registerDispatcher(BamThreadPoolDecodeContext::bamthreadpooldecodecontextbase_dispatcher_id_read,&readdispatcher);
@@ -1048,15 +1048,15 @@ int main()
 	uint64_t numProcessBuffers = 2*numthreads;
 	uint64_t processBufferSize = 64*1024*1024;
 
-	libmaus::aio::PosixFdInputStream PFIS(STDIN_FILENO,256*1024);
+	libmaus2::aio::PosixFdInputStream PFIS(STDIN_FILENO,256*1024);
 	BamThreadPoolDecodeContext context(PFIS,8*numthreads,numProcessBuffers,processBufferSize,TP);
 	context.startup();
 
 #if 0
-	libmaus::parallel::DummyThreadWorkPackageMeta meta;
-	libmaus::parallel::PosixMutex::shared_ptr_type printmutex(new libmaus::parallel::PosixMutex);
+	libmaus2::parallel::DummyThreadWorkPackageMeta meta;
+	libmaus2::parallel::PosixMutex::shared_ptr_type printmutex(new libmaus2::parallel::PosixMutex);
 
-	TP.enque(libmaus::parallel::DummyThreadWorkPackage(0,dispid,printmutex,&meta));
+	TP.enque(libmaus2::parallel::DummyThreadWorkPackage(0,dispid,printmutex,&meta));
 #endif
 	
 	TP.join();

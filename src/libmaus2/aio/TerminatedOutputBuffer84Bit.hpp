@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(TERMINATEDOUTPUTBUFFER84BIT_HPP)
 #define TERMINATEDOUTPUTBUFFER84BIT_HPP
 
-#include <libmaus/aio/OutputBuffer84Bit.hpp>
+#include <libmaus2/aio/OutputBuffer84Bit.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
@@ -36,7 +36,7 @@ namespace libmaus
 			//! terminator exponent (length of terminator sequences in symbols)
 			unsigned int const expo;
 			//! terminator buffer
-			::libmaus::autoarray::AutoArray<uint8_t> termbuf;
+			::libmaus2::autoarray::AutoArray<uint8_t> termbuf;
 		
 			public:
 			/**

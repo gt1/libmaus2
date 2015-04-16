@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_LZ_STDOSTREAMSINK)
 #define LIBMAUS_LZ_STDOSTREAMSINK
 
-#include <libmaus/LibMausConfig.hpp>
+#include <libmaus2/LibMausConfig.hpp>
 
 #if defined(LIBMAUS_HAVE_SNAPPY)
 #include <snappy-sinksource.h>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{

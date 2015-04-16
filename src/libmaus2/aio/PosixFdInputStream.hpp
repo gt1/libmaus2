@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,19 +19,19 @@
 #if ! defined(LIBMAUS_AIO_POSIXFDINPUTSTREAM_HPP)
 #define LIBMAUS_AIO_POSIXFDINPUTSTREAM_HPP
 
-#include <libmaus/aio/PosixFdInputWrapper.hpp>
-// #include <libmaus/lz/StreamWrapper.hpp>
-#include <libmaus/aio/PosixFdInputStreamBuffer.hpp>
+#include <libmaus2/aio/PosixFdInputWrapper.hpp>
+// #include <libmaus2/lz/StreamWrapper.hpp>
+#include <libmaus2/aio/PosixFdInputStreamBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace aio
 	{
 		struct PosixFdInputStream : public PosixFdInputWrapper, public PosixFdInputStreamBuffer, public std::istream
 		{
 			typedef PosixFdInputStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			PosixFdInputStream(int const rfd, int64_t const bufsize = -1, uint64_t const pushbacksize = 0) 
 			: PosixFdInputWrapper(rfd), PosixFdInputStreamBuffer(PosixFdInputWrapper::object,bufsize,pushbacksize),

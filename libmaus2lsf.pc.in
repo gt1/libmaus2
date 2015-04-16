@@ -3,9 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libmauslsf
+Name: libmaus2lsf
 Description: succinct data structures lsf module
-Requires: libmaus
+Requires: libmaus2
 Version: @VERSION@
 Libs: -L${libdir} -lmauslsf @LSFLIBS@
 Cflags: -I${includedir} @LSFCPPFLAGS@

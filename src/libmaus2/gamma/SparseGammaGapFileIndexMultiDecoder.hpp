@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,36 +19,36 @@
 #if ! defined(LIBMAUS_GAMMA_SPARSEGAMMAGAPFILEINDEXMULTIDECODER_HPP)
 #define LIBMAUS_GAMMA_SPARSEGAMMAGAPFILEINDEXMULTIDECODER_HPP
 
-#include <libmaus/gamma/SparseGammaGapFileIndexDecoder.hpp>
+#include <libmaus2/gamma/SparseGammaGapFileIndexDecoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace gamma
 	{
 		struct SparseGammaGapFileIndexMultiDecoder
 		{
 			typedef SparseGammaGapFileIndexMultiDecoder this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			typedef SparseGammaGapFileIndexDecoder single_decoder_type;
 			typedef single_decoder_type::value_type value_type;
 			typedef single_decoder_type::unique_ptr_type single_decoder_ptr_type;
 
 			private:
 			std::vector<std::string> filenames;
-			libmaus::autoarray::AutoArray<single_decoder_ptr_type> decs;
+			libmaus2::autoarray::AutoArray<single_decoder_ptr_type> decs;
 			
-			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H;
-			libmaus::util::IntervalTree::unique_ptr_type I;
-			libmaus::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > BC;
-			libmaus::util::IntervalTree::unique_ptr_type B;
+			libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > H;
+			libmaus2::util::IntervalTree::unique_ptr_type I;
+			libmaus2::autoarray::AutoArray< std::pair<uint64_t,uint64_t> > BC;
+			libmaus2::util::IntervalTree::unique_ptr_type B;
 			uint64_t numentries;
 
-			static libmaus::autoarray::AutoArray<single_decoder_ptr_type> openDecoders(
+			static libmaus2::autoarray::AutoArray<single_decoder_ptr_type> openDecoders(
 				std::vector<std::string> & filenames
 			)
 			{
-				libmaus::autoarray::AutoArray<single_decoder_ptr_type> decs(filenames.size());
+				libmaus2::autoarray::AutoArray<single_decoder_ptr_type> decs(filenames.size());
 				uint64_t numdecs = 0;
 				
 				for ( uint64_t i = 0; i < decs.size(); ++i )
@@ -68,7 +68,7 @@ namespace libmaus
 					while ( filenames.size() > numdecs )
 						filenames.pop_back();
 						
-					libmaus::autoarray::AutoArray<single_decoder_ptr_type> tdecs(numdecs);
+					libmaus2::autoarray::AutoArray<single_decoder_ptr_type> tdecs(numdecs);
 					for ( uint64_t i = 0; i < numdecs; ++i )
 						tdecs[i] = UNIQUE_PTR_MOVE(decs[i]);
 						
@@ -79,7 +79,7 @@ namespace libmaus
 			}
 
 			public:
-			typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+			typedef libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
 
 			const_iterator begin() const
 			{
@@ -123,13 +123,13 @@ namespace libmaus
 				
 				if ( H.size() )
 				{
-					libmaus::util::IntervalTree::unique_ptr_type tI(new libmaus::util::IntervalTree(H,0,H.size()));
+					libmaus2::util::IntervalTree::unique_ptr_type tI(new libmaus2::util::IntervalTree(H,0,H.size()));
 					I = UNIQUE_PTR_MOVE(tI);
 				}
 
 				if ( BC.size() )
 				{
-					libmaus::util::IntervalTree::unique_ptr_type tB(new libmaus::util::IntervalTree(BC,0,BC.size()));
+					libmaus2::util::IntervalTree::unique_ptr_type tB(new libmaus2::util::IntervalTree(BC,0,BC.size()));
 					B = UNIQUE_PTR_MOVE(tB);
 				}
 				
@@ -140,7 +140,7 @@ namespace libmaus
 			{
 				if ( i >= decs.size() )
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "SparseGammaGapFileIndexMultiDecoder::getSingleDecoder(): index out of range" << std::endl;
 					ex.finish();
 					throw ex;
@@ -172,7 +172,7 @@ namespace libmaus
 			{
 				if ( i >= numentries )
 				{
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "SparseGammaGapFileIndexMultiDecoder::get(): index out of range" << std::endl;
 					ex.finish();
 					throw ex;
@@ -188,7 +188,7 @@ namespace libmaus
 			{
 				if ( fileptr >= decs.size() || blockptr >= decs[fileptr]->size() )
 				{				
-					libmaus::exception::LibMausException ex;
+					libmaus2::exception::LibMausException ex;
 					ex.getStream() << "SparseGammaGapFileIndexMultiDecoder::get(): index out of range" << std::endl;
 					ex.finish();
 					throw ex;
@@ -271,7 +271,7 @@ namespace libmaus
 				SparseGammaGapFileIndexMultiDecoderBlockCountAccessor accessorb;
 				uint64_t range;
 
-				typedef libmaus::util::ConstIterator<this_type,value_type> const_iterator;
+				typedef libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
 
 				const_iterator begin() const
 				{

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,12 +19,12 @@
 #if ! defined(LIBMAUS_LZ_BGZFINFLATE_HPP)
 #define LIBMAUS_LZ_BGZFINFLATE_HPP
 
-#include <libmaus/lz/BgzfInflateBase.hpp>
-#include <libmaus/lz/BgzfInflateInfo.hpp>
-#include <libmaus/lz/BgzfVirtualOffset.hpp>
+#include <libmaus2/lz/BgzfInflateBase.hpp>
+#include <libmaus2/lz/BgzfInflateInfo.hpp>
+#include <libmaus2/lz/BgzfVirtualOffset.hpp>
 #include <ostream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
@@ -33,8 +33,8 @@ namespace libmaus
 		{
 			typedef _stream_type stream_type;
 			typedef BgzfInflate<stream_type> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			private:
 			stream_type & stream;
@@ -42,8 +42,8 @@ namespace libmaus
 			std::ostream * ostr;
 
 			bool const haveoffsets;
-			libmaus::lz::BgzfVirtualOffset const startoffset;
-			libmaus::lz::BgzfVirtualOffset const endoffset;
+			libmaus2::lz::BgzfVirtualOffset const startoffset;
+			libmaus2::lz::BgzfVirtualOffset const endoffset;
 			
 			uint64_t compressedread;
 			
@@ -55,8 +55,8 @@ namespace libmaus
 			  haveoffsets(false), startoffset(0), endoffset(0), compressedread(0), terminated(false) {}
 			BgzfInflate(
 				stream_type & rstream, 
-				libmaus::lz::BgzfVirtualOffset const rstartoffset,
-				libmaus::lz::BgzfVirtualOffset const rendoffset
+				libmaus2::lz::BgzfVirtualOffset const rstartoffset,
+				libmaus2::lz::BgzfVirtualOffset const rendoffset
 			) 
 			: 
 				stream(rstream),
@@ -78,7 +78,7 @@ namespace libmaus
 				/* check if buffer given is large enough */	
 				if ( n < getBgzfMaxBlockSize() )
 				{
-					::libmaus::exception::LibMausException se;
+					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfInflate::decompressBlock(): provided buffer is too small: " << n << " < " << getBgzfMaxBlockSize();
 					se.finish();
 					throw se;				
@@ -107,7 +107,7 @@ namespace libmaus
 					
 					if ( ! (*ostr) )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BgzfInflate::readAndInfo(): failed to write compressed input to copy stream." << std::endl;
 						ex.finish();
 						throw ex;
@@ -122,7 +122,7 @@ namespace libmaus
 					/* check for I/O failure */
 					if ( ! (*ostr) )
 					{
-						libmaus::exception::LibMausException ex;
+						libmaus2::exception::LibMausException ex;
 						ex.getStream() << "BgzfInflate::readAndInfo(): failed to flush copy stream." << std::endl;
 						ex.finish();
 						throw ex;

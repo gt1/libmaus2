@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,20 +19,20 @@
 #if ! defined(BUFFEREDGZIPSTREAM_HPP)
 #define BUFFEREDGZIPSTREAM_HPP
 
-#include <libmaus/lz/GzipStreamWrapper.hpp>
+#include <libmaus2/lz/GzipStreamWrapper.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{
-		struct BufferedGzipStream : public GzipStreamWrapper, ::libmaus::lz::StreamWrapper< ::libmaus::lz::GzipStream >
+		struct BufferedGzipStream : public GzipStreamWrapper, ::libmaus2::lz::StreamWrapper< ::libmaus2::lz::GzipStream >
 		{
 			typedef BufferedGzipStream this_type;
-			typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
 			BufferedGzipStream(::std::istream & in, uint64_t const bufsize = 64*1024, uint64_t const pushbacksize = 64*1024)
-			: GzipStreamWrapper(in), ::libmaus::lz::StreamWrapper< ::libmaus::lz::GzipStream >(GZ,bufsize,pushbacksize)
+			: GzipStreamWrapper(in), ::libmaus2::lz::StreamWrapper< ::libmaus2::lz::GzipStream >(GZ,bufsize,pushbacksize)
 			{
 			
 			}	

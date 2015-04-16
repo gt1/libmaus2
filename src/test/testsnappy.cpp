@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -17,27 +17,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus/aio/SynchronousGenericInput.hpp>
-#include <libmaus/lz/SnappyStringInputStream.hpp>
-#include <libmaus/lz/SnappyOutputStream.hpp>
-#include <libmaus/lz/SnappyOffsetFileInputStream.hpp>
-#include <libmaus/lz/SnappyInputStream.hpp>
-#include <libmaus/lz/SnappyInputStreamArray.hpp>
-#include <libmaus/lz/SnappyInputStreamArrayFile.hpp>
-#include <libmaus/lz/SnappyFileOutputStream.hpp>
-#include <libmaus/lz/SnappyFileInputStream.hpp>
-#include <libmaus/lz/SnappyDecompressorObject.hpp>
-#include <libmaus/lz/SnappyDecompressorObjectFactory.hpp>
-#include <libmaus/lz/SnappyCompressorObject.hpp>
-#include <libmaus/lz/SnappyCompressorObjectFactory.hpp>
-#include <libmaus/lz/SnappyCompress.hpp>
+#include <libmaus2/aio/SynchronousGenericInput.hpp>
+#include <libmaus2/lz/SnappyStringInputStream.hpp>
+#include <libmaus2/lz/SnappyOutputStream.hpp>
+#include <libmaus2/lz/SnappyOffsetFileInputStream.hpp>
+#include <libmaus2/lz/SnappyInputStream.hpp>
+#include <libmaus2/lz/SnappyInputStreamArray.hpp>
+#include <libmaus2/lz/SnappyInputStreamArrayFile.hpp>
+#include <libmaus2/lz/SnappyFileOutputStream.hpp>
+#include <libmaus2/lz/SnappyFileInputStream.hpp>
+#include <libmaus2/lz/SnappyDecompressorObject.hpp>
+#include <libmaus2/lz/SnappyDecompressorObjectFactory.hpp>
+#include <libmaus2/lz/SnappyCompressorObject.hpp>
+#include <libmaus2/lz/SnappyCompressorObjectFactory.hpp>
+#include <libmaus2/lz/SnappyCompress.hpp>
 
 void testSnappy()
 {
-	libmaus::autoarray::AutoArray<char> A = ::libmaus::aio::SynchronousGenericInput<char>::readArray("configure");
+	libmaus2::autoarray::AutoArray<char> A = ::libmaus2::aio::SynchronousGenericInput<char>::readArray("configure");
 	std::string const message(A.begin(),A.end()) ;
-	std::string const compressed = ::libmaus::lz::SnappyCompress::compress(message);
-	std::string const uncompressed = ::libmaus::lz::SnappyCompress::uncompress(compressed);
+	std::string const compressed = ::libmaus2::lz::SnappyCompress::compress(message);
+	std::string const uncompressed = ::libmaus2::lz::SnappyCompress::uncompress(compressed);
 	
 	std::cerr << "single block test " << ((uncompressed==message)?"ok":"FAILED") 
 		<< " (uncompressed " << uncompressed.size() << " compressed " << compressed.size() << ")"
@@ -46,17 +46,17 @@ void testSnappy()
 
 void testSnappyStream()
 {
-	libmaus::autoarray::AutoArray<char> A = ::libmaus::aio::SynchronousGenericInput<char>::readArray("configure");
+	libmaus2::autoarray::AutoArray<char> A = ::libmaus2::aio::SynchronousGenericInput<char>::readArray("configure");
 	std::string const message(A.begin(),A.end()) ;
 
 	std::ostringstream ostr;
-	::libmaus::lz::SnappyOutputStream<std::ostringstream> SOS(ostr,64*1024);
+	::libmaus2::lz::SnappyOutputStream<std::ostringstream> SOS(ostr,64*1024);
 	SOS.write(A.begin(),A.size());
 	SOS.flush();
 	ostr.flush();
 	
 	std::string const & streamdata = ostr.str();
-	::libmaus::lz::SnappyStringInputStream SIS(streamdata);
+	::libmaus2::lz::SnappyStringInputStream SIS(streamdata);
 	
 	std::ostringstream comp;
 	int c = -1;
@@ -64,8 +64,8 @@ void testSnappyStream()
 		comp.put(c);
 		
 	
-	::libmaus::lz::SnappyStringInputStream SISB(streamdata);
-	libmaus::autoarray::AutoArray<char> B(A.size(),false);
+	::libmaus2::lz::SnappyStringInputStream SISB(streamdata);
+	libmaus2::autoarray::AutoArray<char> B(A.size(),false);
 	char * p = B.begin();
 	uint64_t d;
 	while ( (d = SISB.read(p,64*1024)) != 0 )
@@ -78,8 +78,8 @@ void testSnappyStream()
 
 void testSnappyStreamDual()
 {
-	libmaus::autoarray::AutoArray<char> A = ::libmaus::aio::SynchronousGenericInput<char>::readArray("configure");
-	libmaus::autoarray::AutoArray<char> B = ::libmaus::aio::SynchronousGenericInput<char>::readArray("configure.in");
+	libmaus2::autoarray::AutoArray<char> A = ::libmaus2::aio::SynchronousGenericInput<char>::readArray("configure");
+	libmaus2::autoarray::AutoArray<char> B = ::libmaus2::aio::SynchronousGenericInput<char>::readArray("configure.in");
 
 	std::string const messageA(A.begin(),A.end()) ;
 	std::string const messageB(B.begin(),B.end()) ;
@@ -90,13 +90,13 @@ void testSnappyStreamDual()
 	std::ostringstream ostr;
 	
 	offsets.push_back(ostr.tellp());
-	::libmaus::lz::SnappyOutputStream<std::ostringstream> SOSA(ostr,64*1024);
+	::libmaus2::lz::SnappyOutputStream<std::ostringstream> SOSA(ostr,64*1024);
 	SOSA.write(messageA.c_str(),messageA.size());
 	messages.push_back(&messageA);
 	SOSA.flush();
 
 	offsets.push_back(ostr.tellp());
-	::libmaus::lz::SnappyOutputStream<std::ostringstream> SOSB(ostr,64*1024);
+	::libmaus2::lz::SnappyOutputStream<std::ostringstream> SOSB(ostr,64*1024);
 	SOSB.write(messageB.c_str(),messageB.size());
 	messages.push_back(&messageB);
 	SOSB.flush();
@@ -106,7 +106,7 @@ void testSnappyStreamDual()
 	ostr.flush();
 
 	std::istringstream istr(ostr.str());
-	::libmaus::lz::SnappyInputStreamArray SISA(istr,offsets.begin(),offsets.end());
+	::libmaus2::lz::SnappyInputStreamArray SISA(istr,offsets.begin(),offsets.end());
 	
 	bool ok = true;
 	for ( uint64_t i = 0; ok && i+1 < offsets.size(); ++i )

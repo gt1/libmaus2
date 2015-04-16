@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,9 +20,9 @@
 #if ! defined(TRACECONTAINER_HPP)
 #define TRACECONTAINER_HPP
 
-#include <libmaus/lcs/PenaltyConstants.hpp>
+#include <libmaus2/lcs/PenaltyConstants.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lcs
 	{
@@ -36,7 +36,7 @@ namespace libmaus
 			virtual ~TraceContainer() {}
 		
 			// trace
-			::libmaus::autoarray::AutoArray<step_type> trace;
+			::libmaus2::autoarray::AutoArray<step_type> trace;
 			//
 			step_type * const te;
 			step_type * ta;

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,11 +20,11 @@
 #if ! defined(BUFFERITERATOR_HPP)
 #define BUFFERITERATOR_HPP
 
-#include <libmaus/util/unique_ptr.hpp>
-#include <libmaus/bitio/OutputBuffer.hpp>
-#include <libmaus/bitio/FastWriteBitWriter.hpp>
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/bitio/OutputBuffer.hpp>
+#include <libmaus2/bitio/FastWriteBitWriter.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bitio
 	{
@@ -34,11 +34,11 @@ namespace libmaus
 			typedef _data_type data_type;
 			
 			typedef BufferIterator<data_type> this_type;
-			typedef typename ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			::libmaus::bitio::OutputFile<data_type> outputfile;
-			::libmaus::bitio::OutputBufferIterator<data_type> outputiterator;
-			::libmaus::bitio::FastWriteBitWriterBuffer64 writer;
+			::libmaus2::bitio::OutputFile<data_type> outputfile;
+			::libmaus2::bitio::OutputBufferIterator<data_type> outputiterator;
+			::libmaus2::bitio::FastWriteBitWriterBuffer64 writer;
 			uint64_t bits;
 			
 			BufferIterator(std::string const & filename, uint64_t const bufsize)

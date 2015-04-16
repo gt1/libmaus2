@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,9 +19,9 @@
 #if ! defined(LIBMAUS_LZ_SNAPPYSTRINGINPUTSTREAM_HPP)
 #define LIBMAUS_LZ_SNAPPYSTRINGINPUTSTREAM_HPP
 
-#include <libmaus/lz/SnappyInputStream.hpp>
+#include <libmaus2/lz/SnappyInputStream.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace lz
 	{

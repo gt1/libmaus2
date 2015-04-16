@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -16,15 +16,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/StreamFastQReader.hpp>
-#include <libmaus/hdf5/HDF5Handle.hpp>
-#include <libmaus/lz/GzipOutputStream.hpp>
-#include <libmaus/parallel/LockedCounter.hpp>
-#include <libmaus/parallel/SimpleThreadPool.hpp>
-#include <libmaus/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
-#include <libmaus/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
-#include <libmaus/parallel/SimpleThreadWorkPackageDispatcher.hpp>
-#include <libmaus/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/fastx/StreamFastQReader.hpp>
+#include <libmaus2/hdf5/HDF5Handle.hpp>
+#include <libmaus2/lz/GzipOutputStream.hpp>
+#include <libmaus2/parallel/LockedCounter.hpp>
+#include <libmaus2/parallel/SimpleThreadPool.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolInterfaceEnqueTermInterface.hpp>
+#include <libmaus2/parallel/SimpleThreadPoolWorkPackageFreeList.hpp>
+#include <libmaus2/parallel/SimpleThreadWorkPackageDispatcher.hpp>
+#include <libmaus2/aio/PosixFdOutputStream.hpp>
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -101,48 +101,48 @@ void enumFiles(std::string const & filename, FileCallback & FC)
 	}
 }
 
-struct Fast5ToFastQWorkPackage : public libmaus::parallel::SimpleThreadWorkPackage
+struct Fast5ToFastQWorkPackage : public libmaus2::parallel::SimpleThreadWorkPackage
 {
 	typedef Fast5ToFastQWorkPackage this_type;
-	typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 	uint64_t id;
 	std::string filename;
 	std::ostream * out;
-	libmaus::parallel::PosixMutex * outmutex;
+	libmaus2::parallel::PosixMutex * outmutex;
 	std::string idsuffix;
-	std::map<std::string, libmaus::util::Histogram::shared_ptr_type > * rlHhistograms;
-	libmaus::parallel::PosixSpinLock * rlHhistogramsLock;
+	std::map<std::string, libmaus2::util::Histogram::shared_ptr_type > * rlHhistograms;
+	libmaus2::parallel::PosixSpinLock * rlHhistogramsLock;
 	volatile uint64_t * minexpstarttime;
 	volatile uint64_t * maxexpstarttime;
-	libmaus::parallel::PosixSpinLock * expstarttimelock;
+	libmaus2::parallel::PosixSpinLock * expstarttimelock;
 	std::map< std::string, std::vector < std::pair<double,uint64_t> > > * throughputvector;
-	libmaus::parallel::PosixSpinLock * throughputvectorlock;
+	libmaus2::parallel::PosixSpinLock * throughputvectorlock;
 	std::string * filenamelcp;
 	volatile bool * filenamelcpvalid;
-	libmaus::parallel::PosixSpinLock * filenamelcplock;
+	libmaus2::parallel::PosixSpinLock * filenamelcplock;
 
-	Fast5ToFastQWorkPackage() : libmaus::parallel::SimpleThreadWorkPackage()
+	Fast5ToFastQWorkPackage() : libmaus2::parallel::SimpleThreadWorkPackage()
 	{}
 	Fast5ToFastQWorkPackage(
 		uint64_t const rid,
 		std::string const & rfilename,
 		std::ostream * rout,
-		libmaus::parallel::PosixMutex * routmutex,
+		libmaus2::parallel::PosixMutex * routmutex,
 		std::string const & ridsuffix,
-		std::map<std::string, libmaus::util::Histogram::shared_ptr_type > * rrlHhistograms,
-		libmaus::parallel::PosixSpinLock * rrlHhistogramsLock,
+		std::map<std::string, libmaus2::util::Histogram::shared_ptr_type > * rrlHhistograms,
+		libmaus2::parallel::PosixSpinLock * rrlHhistogramsLock,
 		volatile uint64_t * rminexpstarttime,
 		volatile uint64_t * rmaxexpstarttime,
-		libmaus::parallel::PosixSpinLock * rexpstarttimelock,
+		libmaus2::parallel::PosixSpinLock * rexpstarttimelock,
 		std::map< std::string, std::vector < std::pair<double,uint64_t> > > * rthroughputvector,
-		libmaus::parallel::PosixSpinLock * rthroughputvectorlock,
+		libmaus2::parallel::PosixSpinLock * rthroughputvectorlock,
 		std::string * rfilenamelcp,
 		volatile bool * rfilenamelcpvalid,
-		libmaus::parallel::PosixSpinLock * rfilenamelcplock,
+		libmaus2::parallel::PosixSpinLock * rfilenamelcplock,
 		uint64_t const rpriority, uint64_t const rdispatcherid, uint64_t const rpackageid = 0
 	)
-	: libmaus::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), id(rid), filename(rfilename), out(rout), outmutex(routmutex), idsuffix(ridsuffix),
+	: libmaus2::parallel::SimpleThreadWorkPackage(rpriority,rdispatcherid,rpackageid), id(rid), filename(rfilename), out(rout), outmutex(routmutex), idsuffix(ridsuffix),
 	  rlHhistograms(rrlHhistograms), rlHhistogramsLock(rrlHhistogramsLock),
 	  minexpstarttime(rminexpstarttime),
 	  maxexpstarttime(rmaxexpstarttime),
@@ -174,7 +174,7 @@ struct Fast5ToFastQWorkPackageFinishedInterface
 };
 
 // work package dispatcher for Fast5 to FastQ conversion
-struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThreadWorkPackageDispatcher
+struct Fast5ToFastQWorkPackageDispatcher : public libmaus2::parallel::SimpleThreadWorkPackageDispatcher
 {
 	Fast5ToFastQWorkPackageFinishedInterface & finishedInterface;
 	Fast5ToFastQWorkPackageReturnInterface & returnInterface;
@@ -185,7 +185,7 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 	
 	}
 
-	void dispatch(libmaus::parallel::SimpleThreadWorkPackage * P, libmaus::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
+	void dispatch(libmaus2::parallel::SimpleThreadWorkPackage * P, libmaus2::parallel::SimpleThreadPoolInterfaceEnqueTermInterface & /* tpi */)
 	{
 		Fast5ToFastQWorkPackage * F = dynamic_cast<Fast5ToFastQWorkPackage *>(P);
 		assert ( F );
@@ -193,9 +193,9 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 		try
 		{
 			// load data into memory
-			libmaus::autoarray::AutoArray<char> B = libmaus::autoarray::AutoArray<char>::readFile(F->filename);
+			libmaus2::autoarray::AutoArray<char> B = libmaus2::autoarray::AutoArray<char>::readFile(F->filename);
 			// open HDF5
-			libmaus::hdf5::HDF5Handle::shared_ptr_type fhandle = libmaus::hdf5::HDF5Handle::createMemoryHandle(B.begin(),B.size());
+			libmaus2::hdf5::HDF5Handle::shared_ptr_type fhandle = libmaus2::hdf5::HDF5Handle::createMemoryHandle(B.begin(),B.size());
 			bool printed = false;
 
 			{
@@ -205,7 +205,7 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 					filename = filename.substr(filename.find_last_of('/')+1);
 				}
 				
-				libmaus::parallel::ScopePosixSpinLock lock(*(F->filenamelcplock));
+				libmaus2::parallel::ScopePosixSpinLock lock(*(F->filenamelcplock));
 				if ( ! *(F->filenamelcpvalid) )
 				{
 					*(F->filenamelcp) = filename;
@@ -248,34 +248,34 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 					suexpstarttime >> uexpstarttime;
 					
 					{
-						libmaus::parallel::ScopePosixSpinLock lock(*(F->expstarttimelock));
+						libmaus2::parallel::ScopePosixSpinLock lock(*(F->expstarttimelock));
 						*(F->minexpstarttime) = std::min(static_cast<uint64_t>(*(F->minexpstarttime)),uexpstarttime);
 						*(F->maxexpstarttime) = std::max(static_cast<uint64_t>(*(F->maxexpstarttime)),uexpstarttime);
 					}
 										
 					// set up FastQ parser
 					std::istringstream istr(fq);
-					libmaus::fastx::StreamFastQReaderWrapper reader(istr);
-					libmaus::fastx::StreamFastQReaderWrapper::pattern_type pattern;
+					libmaus2::fastx::StreamFastQReaderWrapper reader(istr);
+					libmaus2::fastx::StreamFastQReaderWrapper::pattern_type pattern;
 					
 					// read entries and modify name
 					while ( reader.getNextPatternUnlocked(pattern) )
 					{
 						{
-							libmaus::parallel::ScopePosixSpinLock lock(*(F->rlHhistogramsLock));
-							std::map<std::string, libmaus::util::Histogram::shared_ptr_type> & M = 
+							libmaus2::parallel::ScopePosixSpinLock lock(*(F->rlHhistogramsLock));
+							std::map<std::string, libmaus2::util::Histogram::shared_ptr_type> & M = 
 								*(F->rlHhistograms);
 							if ( M.find(*fqp) == M.end() )
-								M[*fqp] = libmaus::util::Histogram::shared_ptr_type(
-									new libmaus::util::Histogram
+								M[*fqp] = libmaus2::util::Histogram::shared_ptr_type(
+									new libmaus2::util::Histogram
 								);
 							
-							libmaus::util::Histogram & H = *(M.find(*fqp)->second);
+							libmaus2::util::Histogram & H = *(M.find(*fqp)->second);
 							H(pattern.spattern.size());
 						}
 						
 						{
-							libmaus::parallel::ScopePosixSpinLock lock(*(F->throughputvectorlock));
+							libmaus2::parallel::ScopePosixSpinLock lock(*(F->throughputvectorlock));
 							(*(F->throughputvector))[*fqp].push_back(
 								std::pair<double,uint64_t>(dexpstarttime+deventsstarttime,pattern.spattern.size())
 							);
@@ -287,9 +287,9 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 							pattern.sid += F->idsuffix;
 						}
 						pattern.sid += "_";
-						pattern.sid += libmaus::util::NumberSerialisation::formatNumber(F->id,6);
+						pattern.sid += libmaus2::util::NumberSerialisation::formatNumber(F->id,6);
 						pattern.sid += " seqlen=";
-						pattern.sid += libmaus::util::NumberSerialisation::formatNumber(pattern.spattern.size(),0);
+						pattern.sid += libmaus2::util::NumberSerialisation::formatNumber(pattern.spattern.size(),0);
 						pattern.sid += " path=";
 						pattern.sid += *fqp;
 						pattern.sid += " channel=";
@@ -309,14 +309,14 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 						// lock output stream and write data
 						if ( ! printed )
 						{
-							libmaus::parallel::ScopePosixMutex smutex(*(F->outmutex));
+							libmaus2::parallel::ScopePosixMutex smutex(*(F->outmutex));
 							F->out->write(
 								outblock.c_str(),
 								outblock.size()
 							);
 
 							{
-								libmaus::parallel::ScopePosixSpinLock lock(*(F->throughputvectorlock));
+								libmaus2::parallel::ScopePosixSpinLock lock(*(F->throughputvectorlock));
 								(*(F->throughputvector))["/Analyses/Basecall_2D_000/BaseCalled_template_or_2D/Fastq"].push_back(
 									std::pair<double,uint64_t>(dexpstarttime+deventsstarttime,pattern.spattern.size())
 								);
@@ -340,37 +340,37 @@ struct Fast5ToFastQWorkPackageDispatcher : public libmaus::parallel::SimpleThrea
 struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFinishedInterface, public Fast5ToFastQWorkPackageReturnInterface
 {
 	std::ostream & out;
-	libmaus::parallel::PosixMutex outmutex;
+	libmaus2::parallel::PosixMutex outmutex;
 	
 	// number of files detected so far
-	libmaus::parallel::LockedCounter c_in;
+	libmaus2::parallel::LockedCounter c_in;
 	// number of files finished
-	libmaus::parallel::LockedCounter c_out;
+	libmaus2::parallel::LockedCounter c_out;
 	// id suffix for name line
 	std::string idsuffix;
 	// free list for packages
-	libmaus::parallel::SimpleThreadPoolWorkPackageFreeList<Fast5ToFastQWorkPackage> packageFreeList;
+	libmaus2::parallel::SimpleThreadPoolWorkPackageFreeList<Fast5ToFastQWorkPackage> packageFreeList;
 	// thread pool
-	libmaus::parallel::SimpleThreadPool STP;
+	libmaus2::parallel::SimpleThreadPool STP;
 	// package dispatcher
 	Fast5ToFastQWorkPackageDispatcher fast5tofastqdispatcher;
 	// dispatcher id
 	uint64_t const fast5tofastqdispatcherid;
 	// read length histograms
-	std::map<std::string, libmaus::util::Histogram::shared_ptr_type > rlHhistograms;
-	libmaus::parallel::PosixSpinLock rlHhistogramsLock;
+	std::map<std::string, libmaus2::util::Histogram::shared_ptr_type > rlHhistograms;
+	libmaus2::parallel::PosixSpinLock rlHhistogramsLock;
 
 
 	std::map < std::string, std::vector < std::pair<double,uint64_t> > > throughputvector;
-	libmaus::parallel::PosixSpinLock throughputvectorlock;
+	libmaus2::parallel::PosixSpinLock throughputvectorlock;
 
 	volatile uint64_t minexpstarttime;
 	volatile uint64_t maxexpstarttime;
-	libmaus::parallel::PosixSpinLock expstarttimelock;
+	libmaus2::parallel::PosixSpinLock expstarttimelock;
 
 	std::string  filenamelcp;
 	volatile bool filenamelcpvalid;
-	libmaus::parallel::PosixSpinLock filenamelcplock;
+	libmaus2::parallel::PosixSpinLock filenamelcplock;
 
 	// work package finished callback
 	void fast5ToFastQWorkPackageFinished()
@@ -437,7 +437,7 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 	void printHistograms(std::string const & fileprefix, size_t const gran = 250)
 	{
 		for (
-			std::map<std::string, libmaus::util::Histogram::shared_ptr_type >::iterator ita = rlHhistograms.begin();
+			std::map<std::string, libmaus2::util::Histogram::shared_ptr_type >::iterator ita = rlHhistograms.begin();
 			ita != rlHhistograms.end();
 			++ita )
 		{
@@ -457,9 +457,9 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 				type = type.substr(strlen("/Analyses/Basecall_2D_000/BaseCalled_"));
 				
 			std::string const fn = fileprefix + "_" + type + "_rl.dat";
-			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			libmaus2::aio::PosixFdOutputStream PFOS(fn);
 			std::string const gplfn = fileprefix + "_" + type + "_rl.gplot";
-			libmaus::aio::PosixFdOutputStream gplPFOS(gplfn);
+			libmaus2::aio::PosixFdOutputStream gplPFOS(gplfn);
 
 			gplPFOS << "set terminal postscript eps\n";
 			gplPFOS << "set boxwidth 1 relative\n";
@@ -470,7 +470,7 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 			gplPFOS << "plot \""<< fn << "\" with boxes notitle\n";
 			gplPFOS.flush();
 
-			libmaus::util::Histogram & hist = *(ita->second);
+			libmaus2::util::Histogram & hist = *(ita->second);
 			std::map<uint64_t,uint64_t> M = hist.get();
 			uint64_t s = 0;
 			
@@ -538,10 +538,10 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 				type = type.substr(strlen("/Analyses/Basecall_2D_000/BaseCalled_"));
 				
 			std::string const fn = fileprefix + "_" + type + ".dat";
-			libmaus::aio::PosixFdOutputStream PFOS(fn);
+			libmaus2::aio::PosixFdOutputStream PFOS(fn);
 			
 			std::string const gplotfn = fileprefix + "_" + type + ".gnuplot";
-			libmaus::aio::PosixFdOutputStream gplotPFOS(gplotfn);
+			libmaus2::aio::PosixFdOutputStream gplotPFOS(gplotfn);
 
 			gplotPFOS << "set terminal postscript eps\n";
 			gplotPFOS << "set xlabel \"Experiment run-time in hours\"\n";
@@ -607,17 +607,17 @@ int main(int argc, char * argv[])
 {
 	try
 	{
-		libmaus::util::ArgInfo const arginfo(argc,argv);
+		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		std::string const idsuffix = arginfo.getUnparsedValue("idsuffix","");
 		bool const removefiles = arginfo.getValue<unsigned int>("removefiles",true);
 	
 		std::ostream * Pout = &std::cout;
-		libmaus::lz::GzipOutputStream::unique_ptr_type Pgz;
+		libmaus2::lz::GzipOutputStream::unique_ptr_type Pgz;
 		if ( arginfo.getValue<int>("gz",0) )
 		{
 			int const level = arginfo.getValue<int>("level",Z_DEFAULT_COMPRESSION);
-			libmaus::lz::GzipOutputStream::unique_ptr_type Tgz(new libmaus::lz::GzipOutputStream(*Pout,64*1024,level));
+			libmaus2::lz::GzipOutputStream::unique_ptr_type Tgz(new libmaus2::lz::GzipOutputStream(*Pout,64*1024,level));
 			Pgz = UNIQUE_PTR_MOVE(Tgz);
 			Pout = Pgz.get();
 		}

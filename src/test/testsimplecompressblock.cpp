@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -16,23 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/lz/SimpleCompressedInputBlockConcat.hpp>
+#include <libmaus2/lz/SimpleCompressedInputBlockConcat.hpp>
 
-#include <libmaus/lz/SimpleCompressedInputBlock.hpp>
-#include <libmaus/lz/SimpleCompressedOutputStream.hpp>
-#include <libmaus/lz/ZlibCompressorObjectFactory.hpp>
-#include <libmaus/lz/ZlibDecompressorObjectFactory.hpp>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/TempFileRemovalContainer.hpp>
-#include <libmaus/aio/CheckedOutputStream.hpp>
+#include <libmaus2/lz/SimpleCompressedInputBlock.hpp>
+#include <libmaus2/lz/SimpleCompressedOutputStream.hpp>
+#include <libmaus2/lz/ZlibCompressorObjectFactory.hpp>
+#include <libmaus2/lz/ZlibDecompressorObjectFactory.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/CheckedOutputStream.hpp>
 #include <sstream>
 
 void testInputBlock()
 {
 	std::ostringstream ostr;
-	libmaus::lz::ZlibCompressorObjectFactory compfact;
-	libmaus::lz::SimpleCompressedOutputStream<std::ostream> compstr(ostr,compfact);
-	libmaus::autoarray::AutoArray<char> B(64*1024,false);
+	libmaus2::lz::ZlibCompressorObjectFactory compfact;
+	libmaus2::lz::SimpleCompressedOutputStream<std::ostream> compstr(ostr,compfact);
+	libmaus2::autoarray::AutoArray<char> B(64*1024,false);
 	
 	while ( std::cin )
 	{
@@ -44,8 +44,8 @@ void testInputBlock()
 	ostr.flush();
 	
 	std::istringstream istr(ostr.str());
-	libmaus::lz::ZlibDecompressorObjectFactory decompfact;
-	libmaus::lz::SimpleCompressedInputBlock block(decompfact);
+	libmaus2::lz::ZlibDecompressorObjectFactory decompfact;
+	libmaus2::lz::SimpleCompressedInputBlock block(decompfact);
 	
 	while ( block.readBlock(istr) && ! block.eof )
 	{
@@ -58,13 +58,13 @@ void testInputBlock()
 
 void testConcatInputBlock()
 {
-	libmaus::autoarray::AutoArray<char> data = libmaus::autoarray::AutoArray<char>::readFile("configure");
+	libmaus2::autoarray::AutoArray<char> data = libmaus2::autoarray::AutoArray<char>::readFile("configure");
 	uint64_t const tparts = 10;
 	uint64_t const partsize = (data.size()+tparts-1)/tparts;
 	uint64_t const parts = (data.size()+partsize-1)/partsize;
-	libmaus::lz::ZlibCompressorObjectFactory zcfact;
+	libmaus2::lz::ZlibCompressorObjectFactory zcfact;
 	uint64_t low = 0;
-	std::vector<libmaus::lz::SimpleCompressedStreamNamedInterval> intervals;
+	std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> intervals;
 	
 	std::vector<std::string> filenames;
 	for ( uint64_t i = 0; i < parts; ++i )
@@ -76,9 +76,9 @@ void testConcatInputBlock()
 		std::ostringstream fnostr;
 		fnostr << "tmp_" << std::setw(6) << std::setfill('0') << i;
 		std::string const fn = fnostr.str();
-		libmaus::util::TempFileRemovalContainer::addTempFile(fn);
-		libmaus::aio::CheckedOutputStream COS(fn);
-		libmaus::lz::SimpleCompressedOutputStream<std::ostream> zout(COS,zcfact);
+		libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::lz::SimpleCompressedOutputStream<std::ostream> zout(COS,zcfact);
 		zout.put(0);
 		std::pair<uint64_t,uint64_t> pre = zout.getOffset();
 		zout.write(data.begin()+low,blocksize);
@@ -89,16 +89,16 @@ void testConcatInputBlock()
 		
 		low = high;
 		
-		intervals.push_back(libmaus::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
-		intervals.push_back(libmaus::lz::SimpleCompressedStreamNamedInterval(pre,post,fn));
-		intervals.push_back(libmaus::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
+		intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
+		intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(pre,post,fn));
+		intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
 	}
 
-	intervals.push_back(libmaus::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
+	intervals.push_back(libmaus2::lz::SimpleCompressedStreamNamedInterval(std::pair<uint64_t,uint64_t>(0,0),std::pair<uint64_t,uint64_t>(0,0),"/dev/nullz"));
 	
-	libmaus::lz::ZlibDecompressorObjectFactory zdfact;
-	libmaus::lz::SimpleCompressedInputBlockConcatBlock block(zdfact);
-	libmaus::lz::SimpleCompressedInputBlockConcat conc(intervals);
+	libmaus2::lz::ZlibDecompressorObjectFactory zdfact;
+	libmaus2::lz::SimpleCompressedInputBlockConcatBlock block(zdfact);
+	libmaus2::lz::SimpleCompressedInputBlockConcat conc(intervals);
 	
 	do
 	{

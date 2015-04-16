@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,13 +20,13 @@
 #if ! defined(DECODETABLE_HPP)
 #define DECODETABLE_HPP
 
-#include <libmaus/huffman/HuffmanTreeNode.hpp>
-#include <libmaus/huffman/HuffmanTreeLeaf.hpp>
-#include <libmaus/huffman/HuffmanTreeInnerNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeNode.hpp>
+#include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
+#include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
 
 #include <map>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace huffman
 	{
@@ -40,13 +40,13 @@ namespace libmaus
 		struct DecodeTable
 		{
 			typedef DecodeTable this_type;
-			typedef ::libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
 			enum Visit { First, Second, Third };
 			
 			unsigned int const lookupbits;
 			uint64_t const entriespernode;
-			::libmaus::autoarray::AutoArray < DecodeTableEntry > entries;
+			::libmaus2::autoarray::AutoArray < DecodeTableEntry > entries;
 			unsigned int innernodes;
 
 			void printSingle() const
@@ -187,7 +187,7 @@ namespace libmaus
 				}
 				
 				innernodes = idToNode.size();
-				entries = ::libmaus::autoarray::AutoArray < DecodeTableEntry >( entriespernode * idToNode.size() );
+				entries = ::libmaus2::autoarray::AutoArray < DecodeTableEntry >( entriespernode * idToNode.size() );
 				
 				// ::std::cerr << "Number of entries is " << entriespernode * idToNode.size() << ::std::endl;
 				

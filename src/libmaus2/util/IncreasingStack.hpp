@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,15 +20,15 @@
 #if ! defined(INCREASINGSTACK_HPP)
 #define INCREASINGSTACK_HPP
 
-#include <libmaus/types/types.hpp>
-#include <libmaus/bitio/BitVector.hpp>
+#include <libmaus2/types/types.hpp>
+#include <libmaus2/bitio/BitVector.hpp>
 
 struct IncreasingStack
 {
 	uint64_t n;
 	uint64_t b;
-	::libmaus::bitio::BitVector data;
-	::libmaus::bitio::BitVector blockused;
+	::libmaus2::bitio::BitVector data;
+	::libmaus2::bitio::BitVector blockused;
 	uint64_t topv;
 	uint64_t fill;
 	
@@ -56,7 +56,7 @@ struct IncreasingStack
 	{
 		if ( ! fill )
 		{
-			::libmaus::exception::LibMausException se;
+			::libmaus2::exception::LibMausException se;
 			se.getStream() << "IncreasingStack::top() called on empty stack." << std::endl;
 			se.finish();
 			throw se;

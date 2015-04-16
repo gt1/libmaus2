@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -20,19 +20,19 @@
 #if ! defined(LIBMAUS_UTIL_MD5_HPP)
 #define LIBMAUS_UTIL_MD5_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/md5.h>
-#include <libmaus/math/UnsignedInteger.hpp>
-#include <libmaus/digest/DigestBase.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/digest/md5.h>
+#include <libmaus2/math/UnsignedInteger.hpp>
+#include <libmaus2/digest/DigestBase.hpp>
 
 #include <iomanip>
 #include <sstream>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
-		struct MD5 : public libmaus::digest::DigestBase<16,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
+		struct MD5 : public libmaus2::digest::DigestBase<16,6 /* block size 64 shift */, true /* need padding */, 8 /* number length */, false>
 		{
 			void * ctx;
 		
@@ -40,8 +40,8 @@ namespace libmaus
 			static bool md5(std::vector<std::string> const & V, std::string & output);
 			static bool md5(std::vector<std::string> const & V, uint64_t const k, std::string & output);
 			static void md5(uint8_t const * in, size_t const len, uint8_t digest[digestlength]);
-			static void md5(uint8_t const * in, size_t const len, libmaus::math::UnsignedInteger<digestlength/4> & digest);
-			static libmaus::math::UnsignedInteger<digestlength/4> md5(uint8_t const * in, size_t const len);
+			static void md5(uint8_t const * in, size_t const len, libmaus2::math::UnsignedInteger<digestlength/4> & digest);
+			static libmaus2::math::UnsignedInteger<digestlength/4> md5(uint8_t const * in, size_t const len);
 			
 			MD5();
 			~MD5();

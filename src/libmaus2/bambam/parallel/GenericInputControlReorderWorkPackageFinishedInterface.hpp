@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2015 German Tischler
     Copyright (C) 2011-2015 Genome Research Limited
 
@@ -19,10 +19,10 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEFINISHEDINTERFACE_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_GENERICINPUTCONTROLREORDERWORKPACKAGEFINISHEDINTERFACE_HPP
 
-#include <libmaus/bambam/parallel/AlignmentBuffer.hpp>
-#include <libmaus/bambam/parallel/FragmentAlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/AlignmentBuffer.hpp>
+#include <libmaus2/bambam/parallel/FragmentAlignmentBuffer.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -32,8 +32,8 @@ namespace libmaus
 			{
 				virtual ~GenericInputControlReorderWorkPackageFinishedInterface() {}
 				virtual void genericInputControlReorderWorkPackageFinished(
-					libmaus::bambam::parallel::AlignmentBuffer::shared_ptr_type in,
-					libmaus::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type out
+					libmaus2::bambam::parallel::AlignmentBuffer::shared_ptr_type in,
+					libmaus2::bambam::parallel::FragmentAlignmentBuffer::shared_ptr_type out
 				) = 0;
 			};
 		}

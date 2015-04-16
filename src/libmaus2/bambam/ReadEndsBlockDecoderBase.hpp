@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -19,31 +19,31 @@
 #if ! defined(LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASE_HPP)
 #define LIBMAUS_BAMBAM_READENDSBLOCKDECODERBASE_HPP
 
-#include <libmaus/bambam/CompactReadEndsBase.hpp>
-#include <libmaus/bambam/CompactReadEndsComparator.hpp>
-#include <libmaus/bambam/ReadEnds.hpp>
-#include <libmaus/bambam/ReadEndsBaseLongHashAttributeComparator.hpp>
-#include <libmaus/bambam/ReadEndsBaseShortHashAttributeComparator.hpp>
-#include <libmaus/bambam/ReadEndsContainerBase.hpp>
-#include <libmaus/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp>
-#include <libmaus/util/iterator.hpp>
-#include <libmaus/lru/SparseLRU.hpp>
-#include <libmaus/index/ExternalMemoryIndexDecoder.hpp>
+#include <libmaus2/bambam/CompactReadEndsBase.hpp>
+#include <libmaus2/bambam/CompactReadEndsComparator.hpp>
+#include <libmaus2/bambam/ReadEnds.hpp>
+#include <libmaus2/bambam/ReadEndsBaseLongHashAttributeComparator.hpp>
+#include <libmaus2/bambam/ReadEndsBaseShortHashAttributeComparator.hpp>
+#include <libmaus2/bambam/ReadEndsContainerBase.hpp>
+#include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfo.hpp>
+#include <libmaus2/util/iterator.hpp>
+#include <libmaus2/lru/SparseLRU.hpp>
+#include <libmaus2/index/ExternalMemoryIndexDecoder.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{	
 		template<bool _proxy>
-		struct ReadEndsBlockDecoderBase : public ::libmaus::bambam::ReadEndsContainerBase
+		struct ReadEndsBlockDecoderBase : public ::libmaus2::bambam::ReadEndsContainerBase
 		{
 			static bool const proxy = _proxy;
 			
 			typedef ReadEndsBlockDecoderBase<proxy> this_type;
-			typedef typename libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			typedef libmaus::util::ConstIterator<this_type,ReadEnds> const_iterator;
+			typedef libmaus2::util::ConstIterator<this_type,ReadEnds> const_iterator;
 
 			private:
 			ReadEndsBlockDecoderBaseCollectionInfoDataStreamProvider & dataprovider;
@@ -55,25 +55,25 @@ namespace libmaus
 			uint64_t const numentries;
 			uint64_t const numblocks;
 			
-			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Pindex;
-			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift> & Rindex;
+			libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Pindex;
+			libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift> & Rindex;
 
 			mutable uint64_t blockloaded;
 			mutable bool blockloadedvalid;
-			mutable libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds> B;
+			mutable libmaus2::autoarray::AutoArray<libmaus2::bambam::ReadEnds> B;
 
-			mutable libmaus::lru::SparseLRU primaryProxyLRU;
+			mutable libmaus2::lru::SparseLRU primaryProxyLRU;
 			mutable std::map<uint64_t,ReadEnds> primaryProxyMap;
 
-			mutable libmaus::lru::SparseLRU secondaryProxyLRU;
+			mutable libmaus2::lru::SparseLRU secondaryProxyLRU;
 			mutable std::map<uint64_t,ReadEnds> secondaryProxyMap;
 			
-			libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type openIndex()
+			libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type openIndex()
 			{
 				index.clear();
 				index.seekg(indexoffset,std::ios::beg);
-				libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Tindex(
-					new libmaus::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>(index)
+				libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>::unique_ptr_type Tindex(
+					new libmaus2::index::ExternalMemoryIndexDecoder<ReadEndsBase,baseIndexShift,innerIndexShift>(index)
 				);
 				return UNIQUE_PTR_MOVE(Tindex);
 			}
@@ -90,13 +90,13 @@ namespace libmaus
 				data.clear();
 				data.seekg(IP.first);
 				
-				libmaus::lz::SnappyInputStream SIS(data);
+				libmaus2::lz::SnappyInputStream SIS(data);
 				SIS.ignore(IP.second);
 				
 				if ( blocksize > B.size() )
 				{
-					B = libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds>();
-					B = libmaus::autoarray::AutoArray<libmaus::bambam::ReadEnds>(blocksize,false);
+					B = libmaus2::autoarray::AutoArray<libmaus2::bambam::ReadEnds>();
+					B = libmaus2::autoarray::AutoArray<libmaus2::bambam::ReadEnds>(blocksize,false);
 				}
 				
 				for ( uint64_t j = 0; j < blocksize; ++j )

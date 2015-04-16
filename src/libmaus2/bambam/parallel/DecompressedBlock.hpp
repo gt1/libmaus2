@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2014 German Tischler
     Copyright (C) 2011-2014 Genome Research Limited
 
@@ -19,15 +19,15 @@
 #if ! defined(LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDBLOCK_HPP)
 #define LIBMAUS_BAMBAM_PARALLEL_DECOMPRESSEDBLOCK_HPP
 
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/bambam/parallel/InputBlock.hpp>
-#include <libmaus/bambam/parallel/MemInputBlock.hpp>
-#include <libmaus/lz/BgzfInflateZStreamBase.hpp>
-#include <libmaus/lz/BgzfInflateZStreamBaseAllocator.hpp>
-#include <libmaus/lz/BgzfInflateZStreamBaseTypeInfo.hpp>
-#include <libmaus/parallel/LockedFreeList.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/bambam/parallel/InputBlock.hpp>
+#include <libmaus2/bambam/parallel/MemInputBlock.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBase.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBaseAllocator.hpp>
+#include <libmaus2/lz/BgzfInflateZStreamBaseTypeInfo.hpp>
+#include <libmaus2/parallel/LockedFreeList.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace bambam
 	{
@@ -39,11 +39,11 @@ namespace libmaus
 			struct DecompressedBlock
 			{
 				typedef DecompressedBlock this_type;
-				typedef libmaus::util::unique_ptr<this_type>::type unique_ptr_type;
-				typedef libmaus::util::shared_ptr<this_type>::type shared_ptr_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 	
 				//! decompressed data
-				libmaus::autoarray::AutoArray<char,libmaus::autoarray::alloc_type_c> D;
+				libmaus2::autoarray::AutoArray<char,libmaus2::autoarray::alloc_type_c> D;
 				//! size of uncompressed data
 				uint64_t uncompdatasize;
 				//! next byte pointer
@@ -56,7 +56,7 @@ namespace libmaus
 				uint64_t blockid;
 				
 				//! parse pointers
-				libmaus::autoarray::AutoArray<size_t,libmaus::autoarray::alloc_type_c> PP;
+				libmaus2::autoarray::AutoArray<size_t,libmaus2::autoarray::alloc_type_c> PP;
 				//! number of parse pointers
 				size_t nPP;
 				//! current parse pointer
@@ -161,7 +161,7 @@ namespace libmaus
 				
 				DecompressedBlock() 
 				: 
-					D(libmaus::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
+					D(libmaus2::lz::BgzfConstants::getBgzfMaxBlockSize(),false), 
 					uncompdatasize(0), 
 					P(0),
 					final(false),
@@ -182,7 +182,7 @@ namespace libmaus
 				}
 	
 				uint64_t decompressBlock(
-					libmaus::lz::BgzfInflateZStreamBase * decoder,
+					libmaus2::lz::BgzfInflateZStreamBase * decoder,
 					char * in,
 					unsigned int const inlen,
 					unsigned int const outlen,
@@ -195,7 +195,7 @@ namespace libmaus
 				}
 
 				uint64_t decompressBlock(
-					libmaus::lz::BgzfInflateZStreamBase * decoder,
+					libmaus2::lz::BgzfInflateZStreamBase * decoder,
 					uint8_t * in,
 					unsigned int const inlen,
 					unsigned int const outlen,
@@ -208,7 +208,7 @@ namespace libmaus
 				}
 	
 				uint64_t decompressBlock(
-					libmaus::lz::BgzfInflateZStreamBase * decoder,
+					libmaus2::lz::BgzfInflateZStreamBase * decoder,
 					InputBlock * inblock,
 					unsigned int const outoff = 0
 				)
@@ -220,7 +220,7 @@ namespace libmaus
 				}
 
 				uint64_t decompressBlock(
-					libmaus::lz::BgzfInflateZStreamBase * decoder,
+					libmaus2::lz::BgzfInflateZStreamBase * decoder,
 					MemInputBlock * inblock,
 					unsigned int const outoff = 0
 				)
@@ -232,10 +232,10 @@ namespace libmaus
 				}
 	
 				uint64_t decompressBlock(
-					libmaus::parallel::LockedFreeList<
-						libmaus::lz::BgzfInflateZStreamBase,
-						libmaus::lz::BgzfInflateZStreamBaseAllocator,
-						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+					libmaus2::parallel::LockedFreeList<
+						libmaus2::lz::BgzfInflateZStreamBase,
+						libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 						> & deccont,
 					char * in,
 					unsigned int const inlen,
@@ -243,17 +243,17 @@ namespace libmaus
 					unsigned int const outoff = 0
 				)
 				{
-					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
+					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
 					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen,outoff);
 					deccont.put(decoder);
 					return r;
 				}
 
 				uint64_t decompressBlock(
-					libmaus::parallel::LockedFreeList<
-						libmaus::lz::BgzfInflateZStreamBase,
-						libmaus::lz::BgzfInflateZStreamBaseAllocator,
-						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+					libmaus2::parallel::LockedFreeList<
+						libmaus2::lz::BgzfInflateZStreamBase,
+						libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 						> & deccont,
 					uint8_t * in,
 					unsigned int const inlen,
@@ -261,17 +261,17 @@ namespace libmaus
 					unsigned int const outoff = 0
 				)
 				{
-					libmaus::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
+					libmaus2::lz::BgzfInflateZStreamBase::shared_ptr_type decoder = deccont.get();				
 					uint64_t const r = decompressBlock(decoder.get(),in,inlen,outlen,outoff);
 					deccont.put(decoder);
 					return r;
 				}
 				
 				uint64_t decompressBlock(
-					libmaus::parallel::LockedFreeList<
-						libmaus::lz::BgzfInflateZStreamBase,
-						libmaus::lz::BgzfInflateZStreamBaseAllocator,
-						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+					libmaus2::parallel::LockedFreeList<
+						libmaus2::lz::BgzfInflateZStreamBase,
+						libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 						> & deccont,
 					InputBlock & inblock
 				)
@@ -283,10 +283,10 @@ namespace libmaus
 				}
 
 				uint64_t decompressBlock(
-					libmaus::parallel::LockedFreeList<
-						libmaus::lz::BgzfInflateZStreamBase,
-						libmaus::lz::BgzfInflateZStreamBaseAllocator,
-						libmaus::lz::BgzfInflateZStreamBaseTypeInfo
+					libmaus2::parallel::LockedFreeList<
+						libmaus2::lz::BgzfInflateZStreamBase,
+						libmaus2::lz::BgzfInflateZStreamBaseAllocator,
+						libmaus2::lz::BgzfInflateZStreamBaseTypeInfo
 						> & deccont,
 					MemInputBlock & inblock
 				)

@@ -1,5 +1,5 @@
 /*
-    libmaus
+    libmaus2
     Copyright (C) 2009-2013 German Tischler
     Copyright (C) 2011-2013 Genome Research Limited
 
@@ -23,16 +23,16 @@
 #include <istream>
 #include <fstream>
 #include <ios>
-#include <libmaus/autoarray/AutoArray.hpp>
-#include <libmaus/util/GetFileSize.hpp>
-#include <libmaus/aio/CheckedInputStream.hpp>
-#include <libmaus/util/NumberSerialisation.hpp>
-#include <libmaus/bitio/Ctz.hpp>
-#include <libmaus/bitio/CompactArray.hpp>
-#include <libmaus/bitio/ArrayDecode.hpp>
-#include <libmaus/util/Utf8BlockIndex.hpp>
+#include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
+#include <libmaus2/bitio/Ctz.hpp>
+#include <libmaus2/bitio/CompactArray.hpp>
+#include <libmaus2/bitio/ArrayDecode.hpp>
+#include <libmaus2/util/Utf8BlockIndex.hpp>
 
-namespace libmaus
+namespace libmaus2
 {
 	namespace util
 	{
@@ -43,18 +43,18 @@ namespace libmaus
 			
 			static uint64_t const headersize = 4*sizeof(uint64_t);
 			
-			::libmaus::util::Utf8BlockIndexDecoder indexdecoder;
+			::libmaus2::util::Utf8BlockIndexDecoder indexdecoder;
 			uint64_t const blocksize;
                         uint64_t const lastblocksize;
                         uint64_t const maxblockbytes;
                         uint64_t const numblocks;
                         
-			::libmaus::aio::CheckedInputStream stream;
+			::libmaus2::aio::CheckedInputStream stream;
 			uint64_t const n;
 			uint64_t const buffersize;
 
-			::libmaus::autoarray::AutoArray<uint8_t> inbuffer;
-			::libmaus::autoarray::AutoArray<wchar_t> buffer;
+			::libmaus2::autoarray::AutoArray<uint8_t> inbuffer;
+			::libmaus2::autoarray::AutoArray<wchar_t> buffer;
 			
 			uint64_t symsread;
 
