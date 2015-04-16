@@ -34,7 +34,33 @@ namespace libmaus
 			int volatile sigcnt;
 			
 			PosixConditionSemaphore()
-			: cond(PTHREAD_COND_INITIALIZER), mutex(PTHREAD_MUTEX_INITIALIZER), sigcnt(0) {}
+			: sigcnt(0) 
+			{
+				int r;
+				if ( (r=pthread_cond_init(&cond,NULL)) != 0 )
+				{
+					int const error = r;
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore: failed pthread_cond_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;				
+				}
+				if ( (r=pthread_mutex_init(&mutex,NULL)) != 0 )
+				{
+					pthread_cond_destroy(&cond);
+				
+					int const error = r;
+					libmaus::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore: failed pthread_mutex_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+			~PosixConditionSemaphore()
+			{
+				pthread_cond_destroy(&cond);
+				pthread_mutex_destroy(&mutex);
+			}
 			
 			struct ScopeMutexLock
 			{
