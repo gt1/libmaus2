@@ -1,0 +1,5 @@
+make distclean
+sh configure --prefix=/usr
+make
+sudo checkinstall --pkgname @PACKAGE_NAME@ --pkgversion @PACKAGE_VERSION@ --backup=no --default --deldoc \
+	--maintainer="German Tischler"
