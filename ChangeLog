@@ -1,3 +1,9 @@
+libmaus2 (2.0.1-1) unstable; urgency=medium
+
+  * no change version bump to test version bumping script 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 18 Apr 2015 21:57:33 +0100
+
 libmaus2 (2.0.0-1) unstable; urgency=low
 
   * import libmaus code
