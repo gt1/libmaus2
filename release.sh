@@ -1,8 +1,6 @@
 #! /bin/bash
 
 # update branches
-git checkout bamparallel
-git pull
 git checkout experimental
 git pull
 git checkout experimental-debian
@@ -46,7 +44,7 @@ git checkout debian-launchpad
 git merge master
 tar xzvf debian.tar.gz
 rm debian.tar.gz
-sed -i -e  "s|libstaden-read-dev (>= 1\.13\.0)|staden-io-lib-current-dev (>= 1.13.0)|" debian/control
+sed -i -e  "s|libstaden-read-dev (>= 1\.13\.0)|staden-io-lib-trunk-dev (>= 1.13.0)|" debian/control
 git commit -a -m "update dependency for launchpad"
 git push
 git checkout experimental
