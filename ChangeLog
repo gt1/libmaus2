@@ -1,3 +1,9 @@
+libmaus2 (2.0.3-1) unstable; urgency=medium
+
+  * update shlibs file for debian packaging 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 19 Apr 2015 11:46:15 +0100
+
 libmaus2 (2.0.2-1) unstable; urgency=medium
 
   * add missing seqchksum factory library in debian packaging files
