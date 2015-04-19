@@ -1,3 +1,9 @@
+libmaus2 (2.0.2-1) unstable; urgency=medium
+
+  * add missing seqchksum factory library in debian packaging files
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 19 Apr 2015 10:00:51 +0100
+
 libmaus2 (2.0.1-1) unstable; urgency=medium
 
   * no change version bump to test version bumping script 
