@@ -1148,8 +1148,21 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/StdInputOutputStreamFactory.hpp \
 	libmaus2/aio/InputOutputStreamWrapper.hpp \
 	libmaus2/aio/PosixFdInputOutputStreamBuffer.hpp \
-	libmaus2/aio/PosixFdInputOutputStream.hpp
-
+	libmaus2/aio/PosixFdInputOutputStream.hpp \
+	libmaus2/aio/PosixFdInputOutputStreamFactory.hpp \
+	libmaus2/aio/MemoryFileAdapter.hpp \
+	libmaus2/aio/MemoryFileContainer.hpp \
+	libmaus2/aio/MemoryFile.hpp \
+	libmaus2/aio/MemoryInputOutputStreamBuffer.hpp \
+	libmaus2/aio/MemoryInputOutputStreamFactory.hpp \
+	libmaus2/aio/MemoryInputOutputStream.hpp \
+	libmaus2/aio/MemoryInputStreamBuffer.hpp \
+	libmaus2/aio/MemoryInputStreamFactory.hpp \
+	libmaus2/aio/MemoryInputStream.hpp \
+	libmaus2/aio/MemoryOutputStreamBuffer.hpp \
+	libmaus2/aio/MemoryOutputStreamFactory.hpp \
+	libmaus2/aio/MemoryOutputStream.hpp
+	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
 	libmaus2/parallel/OMPLock.hpp \

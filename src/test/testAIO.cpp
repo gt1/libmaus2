@@ -65,11 +65,15 @@ void testPosixFdInput()
 	}	
 }
 
+#include <libmaus2/aio/MemoryFileContainer.hpp>
+#include <libmaus2/aio/MemoryInputOutputStream.hpp>
+#include <libmaus2/aio/MemoryOutputStream.hpp>
 
-int main(int argc, char * argv[])
+template<typename stream_type, typename output_stream_type, typename input_stream_type>
+void testInputOutput()
 {
 	{
-		libmaus2::aio::PosixFdInputOutputStream PFIOS("t",std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
 		PFIOS.put('a');
 		std::cerr << PFIOS.tellp() << std::endl;
 		PFIOS.seekg(0,std::ios::beg);
@@ -98,6 +102,8 @@ int main(int argc, char * argv[])
 
 		PFIOS.clear();
 		
+		std::cerr << "---" << std::endl;
+		
 		PFIOS.seekp(2,std::ios::beg);
 		PFIOS.put('e');
 		PFIOS.put('f');
@@ -116,7 +122,7 @@ int main(int argc, char * argv[])
 	std::cerr << "-----" << std::endl;
 
 	{
-		libmaus2::aio::PosixFdInputOutputStream PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
 
 		int c;
 		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
@@ -124,9 +130,11 @@ int main(int argc, char * argv[])
 			std::cerr << (char) c << std::endl;
 		}
 	}
+	
+	std::cerr << std::string("---") << std::endl;
 
 	{
-		libmaus2::aio::PosixFdInputOutputStream PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
 
 		PFIOS.seekg(0,std::ios::end);
 		
@@ -147,6 +155,49 @@ int main(int argc, char * argv[])
 		
 		PFIOS.clear();
 	}
+
+	std::cerr << std::string("---") << std::endl;
+	
+	{
+		output_stream_type PFOS("t");
+		PFOS.put('1');
+		PFOS.put('2');
+		PFOS.put('3');
+		PFOS.put('4');
+		PFOS.put('5');
+	}
+
+	{
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+	}
+
+	std::cerr << std::string("***") << std::endl;
+
+	{
+		input_stream_type PFIOS("t");
+
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+	}
+}
+
+#include <libmaus2/aio/MemoryOutputStreamBuffer.hpp>
+#include <libmaus2/aio/MemoryInputStreamBuffer.hpp>
+#include <libmaus2/aio/MemoryInputStream.hpp>
+
+int main(int argc, char * argv[])
+{
+	// testInputOutput<libmaus2::aio::PosixFdInputOutputStream>();
+	testInputOutput<libmaus2::aio::MemoryInputOutputStream,libmaus2::aio::MemoryOutputStream,libmaus2::aio::MemoryInputStream>();
 	
 	return 0;
 

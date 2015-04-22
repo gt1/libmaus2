@@ -21,6 +21,7 @@
 
 #include <libmaus2/aio/InputStreamFactory.hpp>
 #include <libmaus2/aio/PosixFdInputStreamFactory.hpp>
+#include <libmaus2/aio/MemoryInputStreamFactory.hpp>
 #include <libmaus2/network/UrlInputStreamFactory.hpp>
 #include <cctype>
 
@@ -39,6 +40,9 @@ namespace libmaus2
 				
 				libmaus2::aio::PosixFdInputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::PosixFdInputStreamFactory);
 				tfactories["file"] = tfilefact;
+
+				libmaus2::aio::MemoryInputStreamFactory::shared_ptr_type tmemfact(new libmaus2::aio::MemoryInputStreamFactory);
+				tfactories["mem"] = tmemfact;
 
 				libmaus2::network::UrlInputStreamFactory::shared_ptr_type turlfact(new libmaus2::network::UrlInputStreamFactory);
 				tfactories["ftp"] = turlfact;

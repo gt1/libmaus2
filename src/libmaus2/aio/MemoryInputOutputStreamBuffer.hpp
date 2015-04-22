@@ -16,12 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_AIO_POSIXFDINPUTOUTPUTSTREAMBUFFER_HPP)
-#define LIBMAUS2_AIO_POSIXFDINPUTOUTPUTSTREAMBUFFER_HPP
+#if ! defined(LIBMAUS2_AIO_MEMORYINPUTOUTPUTSTREAMBUFFER_HPP)
+#define LIBMAUS2_AIO_MEMORYINPUTOUTPUTSTREAMBUFFER_HPP
 
 #include <ostream>
-#include <libmaus2/autoarray/AutoArray.hpp>
-#include <libmaus2/aio/PosixFdInput.hpp>
+#include <libmaus2/aio/MemoryFileContainer.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -31,7 +30,7 @@ namespace libmaus2
 {
 	namespace aio
 	{
-		struct PosixFdInputOutputStreamBuffer : public ::std::streambuf
+		struct MemoryInputOutputStreamBuffer : public ::std::streambuf
 		{
 			private:
 			// get default block size
@@ -40,23 +39,8 @@ namespace libmaus2
 				return 64*1024;
 			}
 
-			// get optimal i/o block size
-			static int64_t getOptimalIOBlockSize(int const fd, std::string const & fn)
-			{
-				int64_t const fsopt = libmaus2::aio::PosixFdInput::getOptimalIOBlockSize(fd,fn);
-				
-				if ( fsopt <= 0 )
-					return getDefaultBlockSize();
-				else
-					return fsopt;
-			}
-			
-			// file descriptor
-			int fd;
-			// close file at deconstruction if true
-			bool closefd;
-			// optimal block size for file system
-			int64_t const optblocksize;
+			// memory file
+			libmaus2::aio::MemoryFileAdapter::shared_ptr_type fd;
 			// size of buffer
 			uint64_t const buffersize;
 			// buffer
@@ -68,19 +52,19 @@ namespace libmaus2
 			uint64_t writepos;
 
 			// open the file
-			int doOpen(std::string const & filename, std::ios_base::openmode const cxxmode)
+			libmaus2::aio::MemoryFileAdapter::shared_ptr_type doOpen(std::string const & filename, std::ios_base::openmode const cxxmode)
 			{	
 				if ( (cxxmode & std::ios::app) )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): neither std::ios::app flag not supported" << std::endl;
+					lme.getStream() << "libmaus2::aio::MemoryInputOutputStreamBuffer::doOpen(): std::ios::app flag not supported" << std::endl;
 					lme.finish();
 					throw lme;				
 				}
 				if ( (cxxmode & std::ios::ate) )
 				{
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): neither std::ios::ate flag not supported" << std::endl;
+					lme.getStream() << "libmaus2::aio::MemoryInputOutputStreamBuffer::doOpen(): std::ios::ate flag not supported" << std::endl;
 					lme.finish();
 					throw lme;
 				}
@@ -88,91 +72,27 @@ namespace libmaus2
 				{
 				
 					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "libmaus2::aio::PosixFdInputOutputStreamBuffer::doOpen(): std::ios::in or std::ios::out not set " << std::endl;
+					lme.getStream() << "libmaus2::aio::MemoryInputOutputStreamBuffer::doOpen(): std::ios::in or std::ios::out not set " << std::endl;
 					lme.finish();
 					throw lme;
 				}
 				
-				int mode = O_RDWR | O_CREAT;
-
-				// truncate if requested
-				if ( (cxxmode & std::ios::trunc) )
-				{
-					mode |= O_TRUNC;
-				}
-							
-				int fd = -1;
+				libmaus2::aio::MemoryFileAdapter::shared_ptr_type ptr(libmaus2::aio::MemoryFileContainer::getEntry(filename));
 				
-				while ( (fd = open(filename.c_str(),mode,0644)) < 0 )
-				{
-					int const error = errno;
-					
-					switch ( error )
-					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						default:
-						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixInputOutputStreamBuffer::doOpen(): open("<<filename<< "," << mode << ") failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
-						}
-					}					
-				}
+				if ( cxxmode & std::ios::trunc )
+					ptr->truncate();
 				
-				return fd;
+				return ptr;
 			}
 
 			// close the file descriptor
 			void doClose()
 			{
-				while ( close(fd) < 0 )
-				{
-					int const error = errno;
-					
-					switch ( error )
-					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						default:
-						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixInputOutputStreamBuffer::doClose(): close() failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
-						}
-					}					
-				}
 			}
 
 			// flush the file
 			void doFlush()
 			{
-				while ( fsync(fd) < 0 )
-				{
-					int const error = errno;
-					
-					switch ( error )
-					{
-						case EINTR:
-						case EAGAIN:
-							break;
-						case EROFS:
-						case EINVAL:
-							// descriptor does not support flushing
-							return;
-						default:
-						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixInputOutputStreamBuffer::doSync(): fsync() failed: " << strerror(error) << std::endl;
-							se.finish();
-							throw se;
-						}
-					}					
-				}
 			}
 			
 
@@ -181,7 +101,7 @@ namespace libmaus2
 			{
 				off_t off = static_cast<off_t>(-1);
 			
-				while ( (off=::lseek(fd,p,whence)) == static_cast<off_t>(-1) )
+				while ( (off=fd->lseek(p,whence)) == static_cast<off_t>(-1) )
 				{
 					int const error = errno;
 					
@@ -214,7 +134,7 @@ namespace libmaus2
 
 				while ( n )
 				{
-					ssize_t const w = ::write(fd,p,n);
+					ssize_t const w = fd->write(p,n);
 					
 					if ( w < 0 )
 					{
@@ -249,7 +169,7 @@ namespace libmaus2
 			{
 				ssize_t r = -1;
 				
-				while ( (r=::read(fd,buffer,count)) < 0 )
+				while ( (r=fd->read(buffer,count)) < 0 )
 				{
 					int const error = errno;
 					
@@ -291,25 +211,10 @@ namespace libmaus2
 			}
 
 			public:
-			PosixFdInputOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
-			: fd(rfd), 
-			  closefd(false), 
-			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,std::string()) : rbuffersize),
-			  buffersize(optblocksize), 
-			  buffer(buffersize,false),
-			  readpos(0),
-			  writepos(0)
-			{
-				setg(buffer.end(),buffer.end(),buffer.end());
-				setp(buffer.begin(),buffer.end()-1);
-			}
-
-			PosixFdInputOutputStreamBuffer(std::string const & fn, std::ios_base::openmode const cxxmode, int64_t const rbuffersize)
+			MemoryInputOutputStreamBuffer(std::string const & fn, std::ios_base::openmode const cxxmode, int64_t const rbuffersize)
 			: 
 			  fd(doOpen(fn,cxxmode)), 
-			  closefd(true), 
-			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,fn) : rbuffersize),
-			  buffersize(optblocksize), 
+			  buffersize(rbuffersize < 0 ? getDefaultBlockSize() : rbuffersize), 
 			  buffer(buffersize,false),
 			  readpos(0),
 			  writepos(0)
@@ -320,11 +225,9 @@ namespace libmaus2
 				setp(buffer.begin(),buffer.end()-1);
 			}
 
-			~PosixFdInputOutputStreamBuffer()
+			~MemoryInputOutputStreamBuffer()
 			{
 				sync();
-				if ( closefd )
-					doClose();
 			}
 
 			int sync()

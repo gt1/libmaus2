@@ -21,6 +21,7 @@
 
 #include <libmaus2/aio/OutputStreamFactory.hpp>
 #include <libmaus2/aio/PosixFdOutputStreamFactory.hpp>
+#include <libmaus2/aio/MemoryOutputStreamFactory.hpp>
 #include <cctype>
 
 namespace libmaus2
@@ -38,6 +39,9 @@ namespace libmaus2
 				
 				libmaus2::aio::PosixFdOutputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::PosixFdOutputStreamFactory);
 				tfactories["file"] = tfilefact;
+
+				libmaus2::aio::MemoryOutputStreamFactory::shared_ptr_type tmemfact(new libmaus2::aio::MemoryOutputStreamFactory);
+				tfactories["mem"] = tmemfact;
 
 				return tfactories;
 			}

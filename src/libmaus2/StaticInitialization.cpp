@@ -255,3 +255,8 @@ char const libmaus2::util::NotDigitOrTermTable::table[256] = {
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 };
+
+#include <libmaus2/aio/MemoryFileContainer.hpp>
+
+libmaus2::parallel::PosixMutex libmaus2::aio::MemoryFileContainer::lock;
+std::map < std::string, libmaus2::aio::MemoryFile::shared_ptr_type > libmaus2::aio::MemoryFileContainer::M;

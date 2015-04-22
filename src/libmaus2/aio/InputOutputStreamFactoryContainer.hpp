@@ -20,6 +20,8 @@
 #define LIBMAUS2_AIO_INPUTOUTPUTSTREAMFACTORYCONTAINER_HPP
 
 #include <libmaus2/aio/StdInputOutputStreamFactory.hpp>
+#include <libmaus2/aio/PosixFdInputOutputStreamFactory.hpp>
+#include <libmaus2/aio/MemoryInputOutputStreamFactory.hpp>
 #include <cctype>
 #include <map>
 
@@ -36,8 +38,12 @@ namespace libmaus2
 			{
 				std::map<std::string,libmaus2::aio::InputOutputStreamFactory::shared_ptr_type> tfactories;
 				
-				libmaus2::aio::StdInputOutputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::StdInputOutputStreamFactory);
+				// libmaus2::aio::StdInputOutputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::StdInputOutputStreamFactory);
+				libmaus2::aio::PosixFdInputOutputStreamFactory::shared_ptr_type tfilefact(new libmaus2::aio::PosixFdInputOutputStreamFactory);
 				tfactories["file"] = tfilefact;
+
+				libmaus2::aio::MemoryInputOutputStreamFactory::shared_ptr_type tmemfact(new libmaus2::aio::MemoryInputOutputStreamFactory);
+				tfactories["mem"] = tmemfact;
 				
 				return tfactories;
 			}
