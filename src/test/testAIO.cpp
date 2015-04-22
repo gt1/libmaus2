@@ -29,6 +29,8 @@
 #include <map>
 #include <cmath>
 
+#include <libmaus2/aio/PosixFdInputOutputStream.hpp>
+
 void testPosixFdInput()
 {
 	::libmaus2::autoarray::AutoArray<unsigned char> A = libmaus2::util::GetFileSize::readFile("configure");
@@ -66,6 +68,88 @@ void testPosixFdInput()
 
 int main(int argc, char * argv[])
 {
+	{
+		libmaus2::aio::PosixFdInputOutputStream PFIOS("t",std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+		PFIOS.put('a');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0,std::ios::beg);
+		std::cerr << (char)PFIOS.get() << std::endl;
+		PFIOS.seekg(0);
+		std::cerr << (char)PFIOS.get() << std::endl;
+		
+		PFIOS.seekp(0,std::ios::beg);
+		PFIOS.put('b');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0,std::ios::beg);
+		std::cerr << (char)PFIOS.get() << std::endl;
+		PFIOS.seekg(0);
+		std::cerr << (char)PFIOS.get() << std::endl;
+
+		PFIOS.seekp(0,std::ios::beg);
+		PFIOS.put('c');
+		PFIOS.put('d');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0);
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+
+		PFIOS.clear();
+		
+		PFIOS.seekp(2,std::ios::beg);
+		PFIOS.put('e');
+		PFIOS.put('f');
+		PFIOS.put('g');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0);
+		// int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+		
+		PFIOS.clear();
+	}
+	
+	std::cerr << "-----" << std::endl;
+
+	{
+		libmaus2::aio::PosixFdInputOutputStream PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+	}
+
+	{
+		libmaus2::aio::PosixFdInputOutputStream PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+
+		PFIOS.seekg(0,std::ios::end);
+		
+		int64_t const l = PFIOS.tellg();
+
+		for ( int64_t i = 0; i < l; ++i )
+		{
+			PFIOS.seekp(-(i+1),std::ios::end);
+			PFIOS.put('a'+i);
+		}
+		
+		PFIOS.seekg(0);
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+		
+		PFIOS.clear();
+	}
+	
+	return 0;
+
 	{
 		libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
 		for ( uint64_t i = 0; i < 17; ++i )

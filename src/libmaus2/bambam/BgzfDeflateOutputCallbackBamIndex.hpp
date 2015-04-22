@@ -22,6 +22,7 @@
 #include <libmaus2/digest/md5.h>
 #include <libmaus2/lz/BgzfDeflateOutputCallback.hpp>
 #include <libmaus2/bambam/BamIndexGenerator.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <sstream>
 #include <iomanip>
 
@@ -64,8 +65,8 @@ namespace libmaus2
 			
 			void flush(std::string const & filename)
 			{
-				libmaus2::aio::CheckedOutputStream COS(filename);
-				flush(COS);
+				libmaus2::aio::OutputStream::unique_ptr_type pCOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
+				flush(*pCOS);
 			}
 		};
 	}

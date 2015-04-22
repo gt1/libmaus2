@@ -1,7 +1,7 @@
 /*
     libmaus2
-    Copyright (C) 2009-2014 German Tischler
-    Copyright (C) 2011-2014 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
+    Copyright (C) 2011-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,31 +16,24 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_AIO_NAMEDTEMPORARYFILETYPEINFO_HPP)
-#define LIBMAUS2_AIO_NAMEDTEMPORARYFILETYPEINFO_HPP
+#if ! defined(LIBMAUS2_AIO_OUTPUTSTREAMFACTORY_HPP)
+#define LIBMAUS2_AIO_OUTPUTSTREAMFACTORY_HPP
 
-#include <libmaus2/aio/NamedTemporaryFile.hpp>
+#include <libmaus2/aio/OutputStream.hpp>
 
 namespace libmaus2
 {
 	namespace aio
 	{
-		struct NamedTemporaryFileTypeInfo
+		struct OutputStreamFactory
 		{
-			typedef NamedTemporaryFileTypeInfo this_type;
+			typedef OutputStreamFactory this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			typedef libmaus2::aio::NamedTemporaryFile::shared_ptr_type pointer_type;
-			
-			static pointer_type getNullPointer()
-			{
-				pointer_type p;
-				return p;
-			}
-			
-			static pointer_type deallocate(pointer_type /* p */)
-			{
-				return getNullPointer();
-			}
+			virtual ~OutputStreamFactory() {}
+			virtual OutputStream::unique_ptr_type constructUnique(std::string const & filename) = 0;
+			virtual OutputStream::shared_ptr_type constructShared(std::string const & filename) = 0;
 		};
 	}
 }

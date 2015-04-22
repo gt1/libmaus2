@@ -214,6 +214,16 @@ libmaus2::math::DecimalNumberParser const libmaus2::bambam::SamInfoBase::DNP;
 std::map<std::string,libmaus2::aio::InputStreamFactory::shared_ptr_type> libmaus2::aio::InputStreamFactoryContainer::factories =
 	libmaus2::aio::InputStreamFactoryContainer::setupFactories();
 
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+
+std::map<std::string,libmaus2::aio::OutputStreamFactory::shared_ptr_type> libmaus2::aio::OutputStreamFactoryContainer::factories =
+	libmaus2::aio::OutputStreamFactoryContainer::setupFactories();
+
+#include <libmaus2/aio/InputOutputStreamFactoryContainer.hpp>
+
+std::map<std::string,libmaus2::aio::InputOutputStreamFactory::shared_ptr_type> libmaus2::aio::InputOutputStreamFactoryContainer::factories =
+	libmaus2::aio::InputOutputStreamFactoryContainer::setupFactories();
+
 #include <libmaus2/bambam/ScramInputContainer.hpp>
 
 std::map<void *, libmaus2::util::shared_ptr<scram_cram_io_input_t>::type > libmaus2::bambam::ScramInputContainer::Mcontrol;	

@@ -25,6 +25,7 @@
 #include <libmaus2/lz/BgzfDeflate.hpp>
 #include <libmaus2/lz/BgzfDeflateParallel.hpp>
 #include <libmaus2/lz/BgzfInflateDeflateParallel.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -47,7 +48,7 @@ namespace libmaus2
 
 			private:
 			//! output stream pointer
-			::libmaus2::util::unique_ptr<std::ofstream>::type Postr;
+			::libmaus2::aio::OutputStream::unique_ptr_type Postr;
 			//! output stream reference
 			std::ostream & ostr;
 			//! compressor object
@@ -67,7 +68,8 @@ namespace libmaus2
 			 * @param filename output file name
 			 * @param level zlib compression level
 			 **/
-			BamWriterSerialStreamBase(std::string const & filename, int const level = Z_DEFAULT_COMPRESSION) : Postr(new std::ofstream(filename.c_str(),std::ios::binary)), ostr(*Postr), bgzfos(ostr,level) {}
+			BamWriterSerialStreamBase(std::string const & filename, int const level = Z_DEFAULT_COMPRESSION) 
+			: Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename.c_str())), ostr(*Postr), bgzfos(ostr,level) {}
 			
 			/**
 			 * destructor
@@ -125,7 +127,7 @@ namespace libmaus2
 
 			private:
 			//! output stream pointer
-			::libmaus2::util::unique_ptr<std::ofstream>::type Postr;
+			::libmaus2::aio::OutputStream::unique_ptr_type Postr;
 			//! output stream reference
 			std::ostream & ostr;
 			//! compressor object
@@ -147,7 +149,7 @@ namespace libmaus2
 			 * @param level zlib compression level
 			 **/
 			BamWriterParallelStreamBase(std::string const & filename, uint64_t const numthreads, int const level = Z_DEFAULT_COMPRESSION) 
-			: Postr(new std::ofstream(filename.c_str(),std::ios::binary)), ostr(*Postr), bgzfos(ostr,numthreads,4*numthreads,level) {}
+			: Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename.c_str())), ostr(*Postr), bgzfos(ostr,numthreads,4*numthreads,level) {}
 			
 			/**
 			 * destructor

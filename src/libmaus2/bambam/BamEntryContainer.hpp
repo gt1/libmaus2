@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_BAMBAM_BAMENTRYCONTAINER_HPP)
 #define LIBMAUS2_BAMBAM_BAMENTRYCONTAINER_HPP
 
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/bambam/BamAlignmentHeapComparator.hpp>
 #include <libmaus2/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus2/bambam/BamAlignmentPosComparator.hpp>
@@ -54,7 +54,7 @@ namespace libmaus2
 
 			private:
 			//! compressed stream type
-			typedef ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::CheckedOutputStream > compressed_stream_type;
+			typedef ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream > compressed_stream_type;
 			//! buffer data type
 			typedef uint64_t data_type;
 			//! size of snappy blocks in bytes
@@ -74,7 +74,7 @@ namespace libmaus2
 			//! temporary file names
 			std::vector<std::string> tmpfileoutnames;
 			//! temporary output streams
-			::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type> Ptmpfileout;
+			::libmaus2::autoarray::AutoArray< ::libmaus2::aio::OutputStream::unique_ptr_type> Ptmpfileout;
 			//! temporary output compressed streams
 			::libmaus2::autoarray::AutoArray< compressed_stream_type::unique_ptr_type> Ptmpfilecompout;
 			//! intervals
@@ -122,8 +122,8 @@ namespace libmaus2
 				{
 					uint64_t const numfiles = std::max(parallel,static_cast<uint64_t>(1ull));
 
-					Ptmpfileout = ::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type>(numfiles);
-					Ptmpfilecompout = ::libmaus2::autoarray::AutoArray< ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::CheckedOutputStream >::unique_ptr_type>(numfiles);
+					Ptmpfileout = ::libmaus2::autoarray::AutoArray< ::libmaus2::aio::OutputStream::unique_ptr_type>(numfiles);
+					Ptmpfilecompout = ::libmaus2::autoarray::AutoArray< ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type>(numfiles);
 
 					tmpfileoutnames.resize(numfiles);
 					
@@ -138,11 +138,11 @@ namespace libmaus2
 						
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 					
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type t(new ::libmaus2::aio::CheckedOutputStream(fn));
+						::libmaus2::aio::OutputStream::unique_ptr_type t(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(fn));
 						Ptmpfileout[i] = UNIQUE_PTR_MOVE(t);
 						
-						::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::CheckedOutputStream >::unique_ptr_type tscos(
-							new ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::CheckedOutputStream >(*(Ptmpfileout[i]),compfact,64*1024));
+						::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type tscos(
+							new ::libmaus2::lz::SimpleCompressedOutputStream< ::libmaus2::aio::OutputStream >(*(Ptmpfileout[i]),compfact,64*1024));
 						Ptmpfilecompout[i] = UNIQUE_PTR_MOVE(tscos);
 					}
 				}
@@ -162,7 +162,7 @@ namespace libmaus2
 					Ptmpfilecompout[i]->flush();
 					Ptmpfilecompout[i].reset();
 					Ptmpfileout[i]->flush();
-					Ptmpfileout[i]->close();						
+					// Ptmpfileout[i]->close();						
 					Ptmpfileout[i].reset();
 				}
 			}
@@ -453,16 +453,16 @@ namespace libmaus2
 					::libmaus2::autoarray::AutoArray< ::libmaus2::bambam::BamAlignment > algns(nummerge);
 					::libmaus2::bambam::BamAlignmentHeapComparator<comparator_type> heapcmp(BAPC,algns.begin());
 					
-					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedInputStream::unique_ptr_type > infiles(tmpfileoutnames.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::InputStream::unique_ptr_type > infiles(tmpfileoutnames.size());
 					for ( uint64_t i = 0; i < tmpfileoutnames.size(); ++i )
 					{
-						::libmaus2::aio::CheckedInputStream::unique_ptr_type tptr(new ::libmaus2::aio::CheckedInputStream(tmpfileoutnames[i]));
+						::libmaus2::aio::InputStream::unique_ptr_type tptr(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(tmpfileoutnames[i]));
 						infiles[i] = UNIQUE_PTR_MOVE(tptr);						
 					}
 					libmaus2::lz::SnappyDecompressorObjectFactory decfact;
-					::libmaus2::autoarray::AutoArray< ::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::CheckedInputStream>::unique_ptr_type > instreams(nummerge);
+					::libmaus2::autoarray::AutoArray< ::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::InputStream>::unique_ptr_type > instreams(nummerge);
 					
-					typedef ::libmaus2::lz::SimpleCompressedConcatInputStreamFragment< ::libmaus2::aio::CheckedInputStream > fragment_type;
+					typedef ::libmaus2::lz::SimpleCompressedConcatInputStreamFragment< ::libmaus2::aio::InputStream > fragment_type;
 					
 					for ( uint64_t i = 0; i < tmpfileintervals.size(); ++i )
 					{
@@ -472,8 +472,8 @@ namespace libmaus2
 						for ( uint64_t j = 0; j < subint.size(); ++j )
 							frags.push_back(fragment_type(subint[j].start,subint[j].end,infiles[j].get()));
 							
-						::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::CheckedInputStream>::unique_ptr_type tptr(
-							new ::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::CheckedInputStream>(
+						::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::InputStream>::unique_ptr_type tptr(
+							new ::libmaus2::lz::SimpleCompressedConcatInputStream< ::libmaus2::aio::InputStream>(
 								frags,decfact
 							)
 						);

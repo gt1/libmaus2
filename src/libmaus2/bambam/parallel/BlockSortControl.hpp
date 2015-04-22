@@ -21,7 +21,6 @@
 
 #include <libmaus2/aio/NamedTemporaryFileAllocator.hpp>
 #include <libmaus2/aio/NamedTemporaryFileTypeInfo.hpp>
-#include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/bambam/SamInfoAllocator.hpp>
 #include <libmaus2/bambam/SamInfoTypeInfo.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBufferAllocator.hpp>
@@ -302,13 +301,12 @@ namespace libmaus2
 					SmallLinearBlockCompressionPendingObjectHeapComparator> compressionUnqueuedPending;
 
 				libmaus2::parallel::SynchronousCounter<uint64_t> tempFileCounter;
-				typedef libmaus2::aio::PosixFdOutputStream temp_file_stream_type;
-				typedef libmaus2::aio::NamedTemporaryFile<temp_file_stream_type> temp_file_type;
-				typedef libmaus2::aio::NamedTemporaryFileAllocator<temp_file_stream_type> temp_file_allocator_type;
+				typedef libmaus2::aio::NamedTemporaryFile temp_file_type;
+				typedef libmaus2::aio::NamedTemporaryFileAllocator temp_file_allocator_type;
 				typedef libmaus2::parallel::LockedGrowingFreeList<
-					libmaus2::aio::NamedTemporaryFile<libmaus2::aio::PosixFdOutputStream>,
-					libmaus2::aio::NamedTemporaryFileAllocator<libmaus2::aio::PosixFdOutputStream>,
-					libmaus2::aio::NamedTemporaryFileTypeInfo<libmaus2::aio::PosixFdOutputStream>
+					libmaus2::aio::NamedTemporaryFile,
+					libmaus2::aio::NamedTemporaryFileAllocator,
+					libmaus2::aio::NamedTemporaryFileTypeInfo
 				> temp_file_free_list_type;
 
 				temp_file_allocator_type tempFileAllocator;
@@ -999,12 +997,12 @@ namespace libmaus2
 				{
 					for ( uint64_t i = 0; i < tempFileVector.size(); ++i )
 						if ( tempFileVector[i] )
-							tempFileVector[i]->stream.flush();
+							tempFileVector[i]->getStream().flush();
 				}
 				
 				void addTempFile()
 				{
-					libmaus2::aio::NamedTemporaryFile<libmaus2::aio::PosixFdOutputStream>::shared_ptr_type ptr = tempFileFreeList->get();
+					libmaus2::aio::NamedTemporaryFile::shared_ptr_type ptr = tempFileFreeList->get();
 					uint64_t const id = ptr->id;
 					libmaus2::util::TempFileRemovalContainer::addTempFile(ptr->name);
 					
@@ -1019,7 +1017,7 @@ namespace libmaus2
 					tempFileHeap.push(std::pair<uint64_t,uint64_t>(tempFileUseCount[id],id));					
 				}
 
-				libmaus2::aio::NamedTemporaryFile<libmaus2::aio::PosixFdOutputStream>::shared_ptr_type getTempFile()
+				libmaus2::aio::NamedTemporaryFile::shared_ptr_type getTempFile()
 				{
 					libmaus2::parallel::ScopePosixSpinLock slock(tempFileLock);
 					
@@ -1033,7 +1031,7 @@ namespace libmaus2
 					uint64_t const id = P.second;
 					tempFileUseCount[id] += 1;
 					
-					libmaus2::aio::NamedTemporaryFile<libmaus2::aio::PosixFdOutputStream>::shared_ptr_type ptr = tempFileVector.at(id);
+					libmaus2::aio::NamedTemporaryFile::shared_ptr_type ptr = tempFileVector.at(id);
 					
 					return ptr;
 				}
@@ -1129,8 +1127,10 @@ namespace libmaus2
 				
 				void saveFragMergeInfo(std::string const & fn)
 				{
-					libmaus2::aio::PosixFdOutputStream PFIS(fn);
-					saveFragMergeInfo(PFIS);
+					libmaus2::aio::OutputStream::unique_ptr_type PFIS(
+						libmaus2::aio::OutputStreamFactoryContainer::constructUnique(fn)
+					);
+					saveFragMergeInfo(*PFIS);
 				}
 				
 				static std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > loadMergeInfo(std::istream & in)
@@ -1144,8 +1144,8 @@ namespace libmaus2
 				
 				static std::vector< ::libmaus2::bambam::ReadEndsBlockDecoderBaseCollectionInfoBase > loadMergeInfo(std::string const & fn)
 				{
-					libmaus2::aio::PosixFdInputStream PFIS(fn);
-					return loadMergeInfo(PFIS);
+					libmaus2::aio::InputStream::unique_ptr_type PFIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
+					return loadMergeInfo(*PFIS);
 				}
 
 				libmaus2::util::shared_ptr<
@@ -1177,8 +1177,8 @@ namespace libmaus2
 
 				void savePairMergeInfo(std::string const & fn)
 				{
-					libmaus2::aio::PosixFdOutputStream PFIS(fn);
-					savePairMergeInfo(PFIS);
+					libmaus2::aio::OutputStream::unique_ptr_type PFIS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(fn));
+					savePairMergeInfo(*PFIS);
 				}
 
 				void fragReadEndsMergeWorkPackageFinished(FragReadEndsMergeWorkPackage *)
@@ -1269,7 +1269,10 @@ namespace libmaus2
 								uint64_t const indexoffset = frag.indexoffset[i];
 								uint64_t const blockelcnt = frag.blockelcnt[i];
 								
-								libmaus2::aio::PosixFdInputStream indexPFIS(indexfilename);
+								libmaus2::aio::InputStream::unique_ptr_type PindexPFIS(
+									libmaus2::aio::InputStreamFactoryContainer::constructUnique(indexfilename)
+								);
+								libmaus2::aio::InputStream & indexPFIS = *PindexPFIS;
 								indexPFIS.seekg(indexoffset,std::ios::beg);
 								libmaus2::index::ExternalMemoryIndexDecoder<
 									libmaus2::bambam::ReadEndsBase,
@@ -1279,7 +1282,11 @@ namespace libmaus2
 
 								{
 									std::pair<uint64_t,uint64_t> const pos = index[0];
-									libmaus2::aio::PosixFdInputStream dataPFIS(datafilename);
+
+									libmaus2::aio::InputStream::unique_ptr_type PdataPFIS(
+										libmaus2::aio::InputStreamFactoryContainer::constructUnique(datafilename)
+									);
+									libmaus2::aio::InputStream & dataPFIS = *PdataPFIS;
 									dataPFIS.seekg(pos.first);
 									libmaus2::lz::SnappyInputStream dataSnappy(dataPFIS);
 									dataSnappy.ignore(pos.second);
@@ -1313,7 +1320,13 @@ namespace libmaus2
 									for ( uint64_t b = 0; b < numbaseblocks; ++b )
 									{
 										std::pair<uint64_t,uint64_t> const pos = index[b];
-										libmaus2::aio::PosixFdInputStream dataPFIS(datafilename);
+										
+										libmaus2::aio::InputStream::unique_ptr_type PdataPFIS(
+											libmaus2::aio::InputStreamFactoryContainer::constructUnique(
+												datafilename
+											)
+										);
+										libmaus2::aio::InputStream & dataPFIS = *PdataPFIS;
 										dataPFIS.seekg(pos.first);
 										libmaus2::lz::SnappyInputStream dataSnappy(dataPFIS);
 										dataSnappy.ignore(pos.second);
@@ -1400,8 +1413,14 @@ namespace libmaus2
 								std::string const & indexfilename = pair.indexfilename;
 								uint64_t const indexoffset = pair.indexoffset[i];
 								uint64_t const blockelcnt = pair.blockelcnt[i];
-								
-								libmaus2::aio::PosixFdInputStream indexPFIS(indexfilename);
+
+								libmaus2::aio::InputStream::unique_ptr_type PindexPFIS(
+									libmaus2::aio::InputStreamFactoryContainer::constructUnique(
+										indexfilename
+									)
+								);
+								libmaus2::aio::InputStream & indexPFIS = *PindexPFIS;
+
 								indexPFIS.seekg(indexoffset,std::ios::beg);
 								libmaus2::index::ExternalMemoryIndexDecoder<
 									libmaus2::bambam::ReadEndsBase,
@@ -1411,7 +1430,14 @@ namespace libmaus2
 								
 								{
 									std::pair<uint64_t,uint64_t> const pos = index[0];
-									libmaus2::aio::PosixFdInputStream dataPFIS(datafilename);
+
+									libmaus2::aio::InputStream::unique_ptr_type PdataPFIS(
+										libmaus2::aio::InputStreamFactoryContainer::constructUnique(
+											datafilename
+										)
+									);
+									libmaus2::aio::InputStream & dataPFIS = *PdataPFIS;
+
 									dataPFIS.seekg(pos.first);
 									libmaus2::lz::SnappyInputStream dataSnappy(dataPFIS);
 									dataSnappy.ignore(pos.second);
@@ -1446,7 +1472,14 @@ namespace libmaus2
 									for ( uint64_t b = 0; b < numbaseblocks; ++b )
 									{
 										std::pair<uint64_t,uint64_t> const pos = index[b];
-										libmaus2::aio::PosixFdInputStream dataPFIS(datafilename);
+
+										libmaus2::aio::InputStream::unique_ptr_type PdataPFIS(
+											libmaus2::aio::InputStreamFactoryContainer::constructUnique(
+												datafilename
+											)
+										);
+										libmaus2::aio::InputStream & dataPFIS = *PdataPFIS;
+
 										dataPFIS.seekg(pos.first);
 										libmaus2::lz::SnappyInputStream dataSnappy(dataPFIS);
 										dataSnappy.ignore(pos.second);
@@ -2111,7 +2144,7 @@ namespace libmaus2
 					{
 						libmaus2::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
 						
-						libmaus2::aio::NamedTemporaryFile<libmaus2::aio::PosixFdOutputStream>::shared_ptr_type tmpptr;
+						libmaus2::aio::NamedTemporaryFile::shared_ptr_type tmpptr;
 						
 						{
 							libmaus2::parallel::ScopePosixSpinLock sblock(blockStartsLock);
@@ -2135,7 +2168,7 @@ namespace libmaus2
 						#endif
 
 						writePendingQueue.push(
-							WritePendingObject(tmpptr->id /* stream id */,&(tmpptr->stream),blockid,subid,obuf,flushinfo)
+							WritePendingObject(tmpptr->id /* stream id */,&(tmpptr->getStream()),blockid,subid,obuf,flushinfo)
 						);
 					}
 					

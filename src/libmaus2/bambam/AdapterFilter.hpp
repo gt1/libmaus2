@@ -24,6 +24,7 @@
 #include <libmaus2/util/PushBuffer.hpp>
 #include <libmaus2/bambam/BamDefaultAdapters.hpp>
 #include <libmaus2/bambam/AdapterOffsetStrand.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -183,8 +184,8 @@ namespace libmaus2
 			: seedlength(rseedlength), S(256),
 			  wmask(libmaus2::math::lowbits(seedlength * seedk))
 			{
-				libmaus2::aio::CheckedInputStream CIS(adapterfilename);
-				init(CIS);
+				libmaus2::aio::InputStream::unique_ptr_type pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(adapterfilename));
+				init(*pCIS);
 			}
 
 			AdapterFilter(std::istream & adapterstream, unsigned int const rseedlength = 12)

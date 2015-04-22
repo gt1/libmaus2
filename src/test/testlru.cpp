@@ -38,7 +38,7 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 			
 			if ( p < C.size() )
 			{
-				libmaus2::aio::CheckedInputOutputStream & str = SLRUFB[j];
+				libmaus2::aio::InputOutputStream & str = SLRUFB[j];
 				str.put(C[p]);
 			}
 		}
@@ -49,7 +49,7 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 
 	for ( uint64_t j = 0; j < parts; ++j )
 	{
-		libmaus2::aio::CheckedInputOutputStream & str = SLRUFB[j];
+		libmaus2::aio::InputOutputStream & str = SLRUFB[j];
 		str.flush();
 		
 		str.seekg(0,std::ios::end);

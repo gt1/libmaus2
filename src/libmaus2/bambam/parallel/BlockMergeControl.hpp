@@ -19,7 +19,6 @@
 #if ! defined(LIBMAUS2_BAMBAM_PARALLEL_BLOCKMERGECONTROL_HPP)
 #define LIBMAUS2_BAMBAM_PARALLEL_BLOCKMERGECONTROL_HPP
 
-#include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/bambam/ChecksumsInterfaceAllocator.hpp>
 #include <libmaus2/bambam/ChecksumsInterfaceTypeInfo.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBufferAllocator.hpp>
@@ -70,6 +69,8 @@
 #include <libmaus2/bambam/parallel/SamEncodingWorkPackageWrapper.hpp>
 #include <libmaus2/bambam/parallel/SamEncodingWorkPackage.hpp>
 #include <libmaus2/bambam/parallel/CramEncodingWorkPackage.hpp>
+
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 		
 namespace libmaus2
 {
@@ -1961,7 +1962,12 @@ namespace libmaus2
 				{
 					if ( Pbamindexgenerator )
 					{
-						libmaus2::aio::PosixFdOutputStream PFOS(filename);
+						libmaus2::aio::OutputStream::unique_ptr_type PPFOS(
+							libmaus2::aio::OutputStreamFactoryContainer::constructUnique(
+								filename
+							)
+						);
+						libmaus2::aio::OutputStream & PFOS = *PPFOS;
 						writeBamIndex(PFOS);
 						PFOS.flush();
 					}

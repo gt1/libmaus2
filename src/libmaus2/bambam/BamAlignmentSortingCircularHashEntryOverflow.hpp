@@ -21,7 +21,7 @@
 
 #include <string>
 #include <libmaus2/types/types.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/bambam/BamAlignmentNameComparator.hpp>
 #include <libmaus2/bambam/SnappyAlignmentMergeInput.hpp>
 #include <libmaus2/bambam/BamAlignmentExpungeCallback.hpp>
@@ -47,7 +47,8 @@ namespace libmaus2
 			//! temp/overflow file name
 			std::string const fn;
 			//! output file
-			libmaus2::aio::CheckedOutputStream COS;
+			libmaus2::aio::OutputStream::unique_ptr_type pCOS;
+			libmaus2::aio::OutputStream & COS;
 			//! output buffer
 			libmaus2::autoarray::AutoArray<uint64_t> B;
 			
@@ -97,7 +98,8 @@ namespace libmaus2
 			 **/
 			BamAlignmentSortingCircularHashEntryOverflow(std::string const & rfn, uint64_t const bufsize = 128*1024)
 			: fn(rfn),
-			  COS(fn),
+			  pCOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(fn)),
+			  COS(*pCOS),
 			  B( (bufsize+7) / 8 ,false ),
 			  Pe(B.end()),
 			  P(Pe),
@@ -118,7 +120,8 @@ namespace libmaus2
 			{
 				flush();
 				COS.flush();
-				COS.close();
+				// COS.close();
+				pCOS.reset();
 				B.release();
 				libmaus2::bambam::SnappyAlignmentMergeInput::unique_ptr_type ptr(libmaus2::bambam::SnappyAlignmentMergeInput::construct(index,fn));
 				return UNIQUE_PTR_MOVE(ptr);
@@ -137,7 +140,7 @@ namespace libmaus2
 
 				uint64_t const prepos = COS.tellp();
 					
-				::libmaus2::lz::SnappyOutputStream<libmaus2::aio::CheckedOutputStream> snapOut(COS,64*1024);
+				::libmaus2::lz::SnappyOutputStream<libmaus2::aio::OutputStream> snapOut(COS,64*1024);
 
 				uint64_t occnt = 0;
 				uint64_t outp = 0;

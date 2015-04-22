@@ -20,7 +20,7 @@
 #define LIBMAUS2_INDEX_EXTERNALMEMORYINDEXDECODER_HPP
 
 #include <libmaus2/index/ExternalMemoryIndexDecoderFindLargestSmallerResult.hpp>
-#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/index/ExternalMemoryIndexRecord.hpp>
 
 namespace libmaus2
@@ -41,7 +41,7 @@ namespace libmaus2
 			static uint64_t const base_index_step = 1ull << base_level_log;
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
 		
-			libmaus2::aio::PosixFdInputStream::unique_ptr_type PPFIS;
+			libmaus2::aio::InputStream::unique_ptr_type PPFIS;
 			std::istream & PFIS;
 
 			std::vector<uint64_t> levelstarts;
@@ -167,7 +167,7 @@ namespace libmaus2
 			}
 
 			ExternalMemoryIndexDecoder(std::string const & filename, uint64_t const rcache_thres = 2048) 
-			: PPFIS(new libmaus2::aio::PosixFdInputStream(filename)), PFIS(*PPFIS), object_size(data_type::getSerialisedObjectSize()), record_size(2*sizeof(uint64_t)+object_size)
+			: PPFIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), PFIS(*PPFIS), object_size(data_type::getSerialisedObjectSize()), record_size(2*sizeof(uint64_t)+object_size)
 			{
 				setup(rcache_thres);
 			}

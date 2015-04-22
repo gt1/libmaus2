@@ -20,8 +20,7 @@
 #define LIBMAUS2_BAMBAM_READENDSBLOCKDECODERBASECOLLECTIONINFO_HPP
 
 #include <libmaus2/bambam/ReadEndsBlockDecoderBaseCollectionInfoBase.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
-#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/parallel/PosixMutex.hpp>
 
 namespace libmaus2
@@ -76,8 +75,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;			
 			
-			typedef libmaus2::aio::PosixFdInputStream input_stream_type;
-			// typedef libmaus2::aio::CheckedInputStream input_stream_type;
+			typedef libmaus2::aio::InputStream input_stream_type;
 			
 			// private:		
 			input_stream_type::shared_ptr_type datastr;
@@ -97,15 +95,15 @@ namespace libmaus2
 				std::vector < uint64_t > const & rindexoffset
 			) : 
 			    ReadEndsBlockDecoderBaseCollectionInfoBase(rdatafilename,rindexfilename,rblockelcnt,rindexoffset),
-			    datastr(new input_stream_type(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
-			    indexstr(new input_stream_type(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
+			    datastr (libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
+			    indexstr(libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
 			{}
 			
 			ReadEndsBlockDecoderBaseCollectionInfo(ReadEndsBlockDecoderBaseCollectionInfoBase const & O)
 			: 
 			    ReadEndsBlockDecoderBaseCollectionInfoBase(O), 
-			    datastr(new input_stream_type(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
-			    indexstr(new input_stream_type(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
+			    datastr (libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::datafilename)),
+			    indexstr(libmaus2::aio::InputStreamFactoryContainer::constructShared(ReadEndsBlockDecoderBaseCollectionInfoBase::indexfilename))
 			{
 			}
 			

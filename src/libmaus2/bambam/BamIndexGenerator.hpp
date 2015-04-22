@@ -20,8 +20,8 @@
 #define LIBMAUS2_BAMBAM_BAMINDEXGENERATOR_HPP
 
 #include <libmaus2/aio/Buffer.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/aio/SingleFileFragmentMerge.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
@@ -267,13 +267,15 @@ namespace libmaus2
 
 			static bool checkConsisteny(std::string const & binfn, std::string const & linfn, uint64_t const numrefseq)
 			{
-				::libmaus2::aio::CheckedInputStream binCIS(binfn);
-				::libmaus2::aio::CheckedInputStream linCIS(linfn);
+				::libmaus2::aio::InputStream::unique_ptr_type PbinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(binfn));
+				std::istream & binCIS = *PbinCIS;
+				::libmaus2::aio::InputStream::unique_ptr_type PlinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(linfn));
+				std::istream & linCIS = *PlinCIS;
 				
 				while ( 
-					binCIS.peek() != ::libmaus2::aio::CheckedInputStream::traits_type::eof()
+					binCIS.peek() != ::std::istream::traits_type::eof()
 					&&
-					linCIS.peek() != ::libmaus2::aio::CheckedInputStream::traits_type::eof()
+					linCIS.peek() != ::std::istream::traits_type::eof()
 				)
 				{
 					std::pair<int64_t,uint64_t> const L = countLinearChunks(linCIS);
@@ -342,8 +344,8 @@ namespace libmaus2
 			std::string const binchunktmpfilename;
 			std::string const linchunktmpfilename;
 			std::string const metatmpfilename;
-			::libmaus2::aio::CheckedOutputStream::unique_ptr_type chunkCOS;
-			::libmaus2::aio::CheckedOutputStream::unique_ptr_type linCOS;
+			::libmaus2::aio::OutputStream::unique_ptr_type chunkCOS;
+			::libmaus2::aio::OutputStream::unique_ptr_type linCOS;
 			::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type metaOut;
 
 			::libmaus2::aio::Buffer< ::libmaus2::bambam::BamIndexBinChunk> BCB;
@@ -380,8 +382,8 @@ namespace libmaus2
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(linchunktmpfilename);
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(metatmpfilename);
 
-				::libmaus2::aio::CheckedOutputStream::unique_ptr_type tchunkCOS(new ::libmaus2::aio::CheckedOutputStream(binchunktmpfilename));
-				::libmaus2::aio::CheckedOutputStream::unique_ptr_type tlinCOS(new ::libmaus2::aio::CheckedOutputStream(linchunktmpfilename));
+				::libmaus2::aio::OutputStream::unique_ptr_type tchunkCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(binchunktmpfilename));
+				::libmaus2::aio::OutputStream::unique_ptr_type tlinCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(linchunktmpfilename));
 				::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type tmetaOut(
 					new ::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >(metatmpfilename,128)
 				);
@@ -721,11 +723,11 @@ namespace libmaus2
 				}
 
 				chunkCOS->flush();
-				chunkCOS->close();
+				// chunkCOS->close();
 				chunkCOS.reset();
 				
 				linCOS->flush();
-				linCOS->close();
+				// linCOS->close();
 				linCOS.reset();
 				
 				metaOut->flush();
@@ -749,8 +751,11 @@ namespace libmaus2
 				}
 
 				/* write index */
-				::libmaus2::aio::CheckedInputStream binCIS(binchunktmpfilename);
-				::libmaus2::aio::CheckedInputStream linCIS(linchunktmpfilename);
+				::libmaus2::aio::InputStream::unique_ptr_type PbinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(binchunktmpfilename));
+				::libmaus2::aio::InputStream & binCIS = *PbinCIS;
+				::libmaus2::aio::InputStream::unique_ptr_type PlinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(linchunktmpfilename));
+				::libmaus2::aio::InputStream & linCIS = *PlinCIS;
+				
 				::libmaus2::aio::SynchronousGenericInput< ::libmaus2::bambam::BamIndexMetaInfo > metaIn(metatmpfilename,128);
 					
 				out.put('B');
@@ -894,8 +899,8 @@ namespace libmaus2
 
 			void flush(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedOutputStream COS(filename);
-				flush(COS);
+				::libmaus2::aio::OutputStream::unique_ptr_type pCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
+				flush(*pCOS);
 			}
 		};
 	}
