@@ -47,55 +47,37 @@ namespace libmaus2
 			void truncate()
 			{
 				p = 0;
-				memfile->f = 0;
-				memfile->A->resize(0);
+				memfile->truncatep();
 			}
 			
 			ssize_t read(char * buffer, size_t len)
 			{
-				// std::cerr << "read(" << len << ")";
-			
-				assert ( p <= memfile->f );
+				size_t const r = memfile->readp(p,buffer,len);
 				
-				ssize_t tocopy = std::min(static_cast<uint64_t>(memfile->f-p), static_cast<uint64_t>(len));
-				
-				std::copy ( memfile->A->begin() + p, memfile->A->begin() + p + tocopy, buffer );
-				
-				p += tocopy;
-				
-				return tocopy;
+				if ( r < 0 )
+				{
+					return r;
+				}
+				else
+				{
+					p += r;
+					return r;
+				}
 			}
 			
 			ssize_t write(char const * buffer, size_t len)
 			{
-				// std::cerr << "write(" << len << ")";
+				ssize_t const w = memfile->writep(p, buffer, len);
 				
-				while ( p + len > memfile->A->size() )
+				if ( w < 0 )
 				{
-					size_t oldsize = memfile->A->size();
-					size_t newsize = (oldsize*17)/16;
-					
-					if ( newsize <= oldsize )
-						newsize = oldsize + 1024;
-					
-					try
-					{
-						memfile->A->resize(newsize);
-					}
-					catch(...)
-					{
-						errno = ENOMEM;
-						return -1;
-					}
+					return w;
 				}
-				
-				std::copy(buffer,buffer+len,memfile->A->begin() + p);
-				p += len;
-				
-				if ( p > memfile->f )
-					memfile->f = p;
-				
-				return len;
+				else
+				{
+					p += w;
+					return w;
+				}
 			}
 			
 			off_t lseek(off_t offset, int whence)
@@ -113,7 +95,7 @@ namespace libmaus2
 						abs = p + offset;
 						break;
 					case SEEK_END:
-						abs = memfile->f + offset;
+						abs = memfile->size() + offset;
 						break;
 					default:
 						return static_cast<off_t>(-1);
@@ -121,7 +103,7 @@ namespace libmaus2
 				
 				if ( abs < 0 )
 					return static_cast<off_t>(-1);
-				if ( static_cast<uint64_t>(abs) > memfile->f )
+				if ( static_cast<uint64_t>(abs) > memfile->size() )
 					return static_cast<off_t>(-1);
 				
 				p = static_cast<uint64_t>(abs);
@@ -131,7 +113,7 @@ namespace libmaus2
 			
 			off_t getFileSize()
 			{
-				return memfile->f;
+				return memfile->size();
 			}
 		};
 	}

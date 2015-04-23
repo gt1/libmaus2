@@ -40,7 +40,56 @@ namespace libmaus2
 			MemoryFile() : A(new array_type(0)), f(0)
 			{
 			
-			}						
+			}
+			
+			void truncatep()
+			{
+				A->resize(0);
+				f = 0;
+			}
+			
+			ssize_t writep(uint64_t p, char const * c, uint64_t n)
+			{
+				while ( p + n > A->size() )
+				{
+					uint64_t oldsize = A->size();
+					uint64_t newsize = std::max(oldsize + 1024, (oldsize * 17)/16 );
+					try
+					{
+						A->resize(newsize);
+					}
+					catch(...)
+					{
+						errno = ENOMEM;
+						return -1;
+					}
+				}
+				
+				memcpy(A->begin() + p, c, n);
+				
+				if ( p+n > f )
+					f = p+n;
+					
+				return n;
+			}
+			
+			ssize_t readp(uint64_t p, char * c, uint64_t n)
+			{
+				if ( p > f )
+					return -1;
+				
+				uint64_t const av = f-p;
+				uint64_t const r = std::min(n,av);
+				
+				memcpy(c,A->begin()+p,r);
+				
+				return r;
+			}
+			
+			uint64_t size() const
+			{
+				return f;
+			}
 		};
 	}
 }
