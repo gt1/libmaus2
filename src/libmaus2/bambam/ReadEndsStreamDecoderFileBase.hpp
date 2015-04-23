@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_BAMBAM_READENDSSTREAMDECODERFILEBASE_HPP)
 #define LIBMAUS2_BAMBAM_READENDSSTREAMDECODERFILEBASE_HPP
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -34,11 +34,11 @@ namespace libmaus2
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			std::string const filename;
-			libmaus2::aio::CheckedInputStream::unique_ptr_type pCIS;
+			libmaus2::aio::InputStream::unique_ptr_type pCIS;
 			std::istream * in;
 			
 			ReadEndsStreamDecoderFileBase(std::string const & rfilename)
-			: filename(rfilename), pCIS(new libmaus2::aio::CheckedInputStream(filename)), in(pCIS.get())
+			: filename(rfilename), pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), in(pCIS.get())
 			{}
 			
 			ReadEndsStreamDecoderFileBase(std::istream & rin)

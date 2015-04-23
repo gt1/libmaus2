@@ -23,7 +23,7 @@
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/bambam/BamAlignment.hpp>
-#include <libmaus2/aio/PosixFdOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -35,13 +35,13 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
-			libmaus2::aio::PosixFdOutputStream::unique_ptr_type PFOS;
+			libmaus2::aio::OutputStream::unique_ptr_type PFOS;
 			std::ostream & ostr;
 			libmaus2::bambam::BamHeader const & header;
 			::libmaus2::bambam::BamFormatAuxiliary auxdata;
 
 			SamEncoder(std::string const & filename, libmaus2::bambam::BamHeader const & rheader)
-			: PFOS(new libmaus2::aio::PosixFdOutputStream(filename)), ostr(*PFOS), header(rheader), auxdata()
+			: PFOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename)), ostr(*PFOS), header(rheader), auxdata()
 			{
 				ostr << header.text;
 			}

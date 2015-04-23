@@ -23,6 +23,7 @@
 #include <libmaus2/util/PushBuffer.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/util/OutputFileNameTools.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -147,25 +148,33 @@ namespace libmaus2
 			public:
 			BamIndex() {}
 			BamIndex(std::istream & in) { init(in); }
-			BamIndex(libmaus2::aio::CheckedInputStream & in) { init(in); }
 			BamIndex(std::string const & fn)
 			{
 				
 				std::string const clipped = libmaus2::util::OutputFileNameTools::clipOff(fn,".bam");
 				
-				if ( libmaus2::util::GetFileSize::fileExists(clipped + ".bai") )
+				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(clipped + ".bai") )
 				{
-					libmaus2::aio::CheckedInputStream CIS(clipped + ".bai");
+					libmaus2::aio::InputStream::unique_ptr_type Pin(
+						libmaus2::aio::InputStreamFactoryContainer::constructUnique(clipped + ".bai")
+					);
+					libmaus2::aio::InputStream & CIS = *Pin;
 					init(CIS);
 				}
-				else if ( libmaus2::util::GetFileSize::fileExists(fn + ".bai") )
+				else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(fn + ".bai") )
 				{
-					libmaus2::aio::CheckedInputStream CIS(fn + ".bai");
+					libmaus2::aio::InputStream::unique_ptr_type Pin(
+						libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn + ".bai")
+					);
+					libmaus2::aio::InputStream & CIS = *Pin;
 					init(CIS);
 				}
-				else if ( libmaus2::util::GetFileSize::fileExists(fn) )
+				else if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(fn) )
 				{
-					libmaus2::aio::CheckedInputStream CIS(fn);
+					libmaus2::aio::InputStream::unique_ptr_type Pin(
+						libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn)
+					);
+					libmaus2::aio::InputStream & CIS = *Pin;
 					init(CIS);
 				}
 				else

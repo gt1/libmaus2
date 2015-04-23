@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_BAMBAM_MDNMRECALCULATION_HPP)
 #define LIBMAUS2_BAMBAM_MDNMRECALCULATION_HPP
 
-#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/bambam/BamAlignment.hpp>
 #include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus2/fastx/FastAIndex.hpp>
@@ -45,7 +45,10 @@ namespace libmaus2
 			libmaus2::fastx::FastAIndex::unique_ptr_type Pfaindex;
 			bool const havebgzfindex;
 			::libmaus2::fastx::FastABgzfIndex::unique_ptr_type Pbgzfindex;
-			::libmaus2::aio::PosixFdInputStream refin;
+
+			::libmaus2::aio::InputStream::unique_ptr_type Prefin;
+			::libmaus2::aio::InputStream & refin;
+
 			::libmaus2::lz::RAZFDecoder::unique_ptr_type razfdec;
 			libmaus2::fastx::StreamFastAReaderWrapper::pattern_type currefpat;
 
@@ -79,8 +82,9 @@ namespace libmaus2
 			}
 			
 			static bool isGzip(std::string const & filename)
-			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
+			{	
+				libmaus2::aio::InputStream::unique_ptr_type PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+				libmaus2::aio::InputStream & CIS = *PCIS;
 				return isGzip(CIS);
 			}
 			
@@ -133,7 +137,8 @@ namespace libmaus2
 			  ),
 			  havebgzfindex(isbgzf && libmaus2::util::GetFileSize::fileExists(reference+".idx")),
 			  Pbgzfindex(havebgzfindex ? ::libmaus2::fastx::FastABgzfIndex::load(reference+".idx") : ::libmaus2::fastx::FastABgzfIndex::unique_ptr_type() ),
-			  refin(reference,rioblocksize), 
+			  Prefin(libmaus2::aio::InputStreamFactoryContainer::constructUnique(reference)), 
+			  refin(*Prefin),
 			  razfdec(israzf ? (new ::libmaus2::lz::RAZFDecoder(refin)) : 0 ),
 			  validate(rvalidate), 
 			  loadrefid(-1), 

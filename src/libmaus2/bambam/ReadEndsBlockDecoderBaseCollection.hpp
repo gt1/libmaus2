@@ -36,6 +36,7 @@
 #include <libmaus2/util/DigitTable.hpp>
 #include <libmaus2/util/CountGetObject.hpp>
 #include <libmaus2/util/UnsignedIntegerIndexIterator.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -425,8 +426,8 @@ namespace libmaus2
 				for ( uint64_t i = 1; i < rinfo.size(); ++i )
 					O[i] = O[i-1] + rinfo[i-1].indexoffset.size();
 				
-				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pindexstreams(rinfo.size());
-				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pdatastreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pindexstreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pdatastreams(rinfo.size());
 				libmaus2::autoarray::AutoArray<short_index_decoder_pointer_type> Pdecoders(numblocks);
 				
 				// open index and data streams	
@@ -438,9 +439,9 @@ namespace libmaus2
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
-					libmaus2::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].indexfilename));
+					libmaus2::aio::InputStream::unique_ptr_type tptr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(rinfo[i].indexfilename));
 					Pindexstreams[i] = UNIQUE_PTR_MOVE(tptr);
-					libmaus2::aio::PosixFdInputStream::unique_ptr_type iptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].datafilename));
+					libmaus2::aio::InputStream::unique_ptr_type iptr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(rinfo[i].datafilename));
 					Pdatastreams[i] = UNIQUE_PTR_MOVE(iptr);
 				}
 				#if defined(READENDSBLOCKTIMING)
@@ -866,8 +867,8 @@ namespace libmaus2
 				for ( uint64_t i = 1; i < rinfo.size(); ++i )
 					O[i] = O[i-1] + rinfo[i-1].indexoffset.size();
 				
-				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pindexstreams(rinfo.size());
-				libmaus2::autoarray::AutoArray<libmaus2::aio::PosixFdInputStream::unique_ptr_type> Pdatastreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pindexstreams(rinfo.size());
+				libmaus2::autoarray::AutoArray<libmaus2::aio::InputStream::unique_ptr_type> Pdatastreams(rinfo.size());
 				libmaus2::autoarray::AutoArray<long_index_decoder_pointer_type> Pdecoders(numblocks);
 				
 				// open index and data streams	
@@ -879,9 +880,9 @@ namespace libmaus2
 				#endif
 				for ( uint64_t i = 0; i < rinfo.size(); ++i )
 				{
-					libmaus2::aio::PosixFdInputStream::unique_ptr_type tptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].indexfilename));
+					libmaus2::aio::InputStream::unique_ptr_type tptr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(rinfo[i].indexfilename));
 					Pindexstreams[i] = UNIQUE_PTR_MOVE(tptr);
-					libmaus2::aio::PosixFdInputStream::unique_ptr_type iptr(new libmaus2::aio::PosixFdInputStream(rinfo[i].datafilename));
+					libmaus2::aio::InputStream::unique_ptr_type iptr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(rinfo[i].datafilename));
 					Pdatastreams[i] = UNIQUE_PTR_MOVE(iptr);
 				}
 				#if defined(READENDSBLOCKTIMING)

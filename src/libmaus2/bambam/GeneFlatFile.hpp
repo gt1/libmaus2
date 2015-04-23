@@ -20,7 +20,7 @@
 #define LIBMAUS2_BAMBAM_GENEFLATFILE_HPP
 
 #include <cassert>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/bambam/GeneFlatFileEntry.hpp>
 #include <libmaus2/lz/BufferedGzipStream.hpp>
 #include <libmaus2/lz/IsGzip.hpp>
@@ -111,7 +111,8 @@ namespace libmaus2
 			{
 				libmaus2::autoarray::AutoArray<char> C;
 				
-				libmaus2::aio::CheckedInputStream PFIS(fn);
+				libmaus2::aio::InputStream::unique_ptr_type PPFIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
+				libmaus2::aio::InputStream & PFIS = *PPFIS;
 				
 				if ( libmaus2::lz::IsGzip::isGzip(PFIS) )
 				{

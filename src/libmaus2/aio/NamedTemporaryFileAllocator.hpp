@@ -28,11 +28,8 @@ namespace libmaus2
 {
 	namespace aio
 	{
-		template<typename _stream_type>
 		struct NamedTemporaryFileAllocator
 		{
-			typedef _stream_type stream_type;
-			
 			std::string prefix;
 			libmaus2::parallel::SynchronousCounter<uint64_t> * S;
 			
@@ -45,14 +42,14 @@ namespace libmaus2
 			
 			}
 			
-			typename libmaus2::aio::NamedTemporaryFile<stream_type>::shared_ptr_type operator()()
+			typename libmaus2::aio::NamedTemporaryFile::shared_ptr_type operator()()
 			{
 				uint64_t const lid = static_cast<uint64_t>((*S)++);
 				std::ostringstream fnostr;
 				fnostr << prefix << "_" << std::setw(6) << std::setfill('0') << lid;
 				std::string const fn = fnostr.str();
-				typename libmaus2::aio::NamedTemporaryFile<stream_type>::shared_ptr_type ptr =
-					libmaus2::aio::NamedTemporaryFile<stream_type>::sconstruct(fn,lid);
+				libmaus2::aio::NamedTemporaryFile::shared_ptr_type ptr =
+					libmaus2::aio::NamedTemporaryFile::sconstruct(fn,lid);
 				return ptr;
 			}
 		};

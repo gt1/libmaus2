@@ -19,7 +19,8 @@
 #if ! defined(LIBMAUS2_LRU_SPARSELRUFILEBUNCH_HPP)
 #define LIBMAUS2_LRU_SPARSELRUFILEBUNCH_HPP
 
-#include <libmaus2/aio/CheckedInputOutputStream.hpp>
+#include <libmaus2/aio/InputOutputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/lru/SparseLRU.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 
@@ -31,7 +32,7 @@ namespace libmaus2
 		{
 			std::string const tmpfilenamebase;
 			SparseLRU SLRU;
-			std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type> COSmap;
+			std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type> COSmap;
 			
 			std::string getFileName(uint64_t const id) const
 			{
@@ -48,7 +49,7 @@ namespace libmaus2
 			
 			void remove(uint64_t const fileid)
 			{
-				std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
+				std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
 				
 				if ( it != COSmap.end() )
 				{
@@ -61,9 +62,9 @@ namespace libmaus2
 				::remove ( fn.c_str() );
 			}
 			
-			libmaus2::aio::CheckedInputOutputStream & operator[](uint64_t const fileid)
+			libmaus2::aio::InputOutputStream & operator[](uint64_t const fileid)
 			{
-				std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
+				std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type>::iterator it = COSmap.find(fileid);
 				
 				if ( it != COSmap.end() )
 					return *(it->second);
@@ -73,7 +74,7 @@ namespace libmaus2
 				// close file
 				if ( kickid >= 0 )
 				{
-					std::map<uint64_t, libmaus2::aio::CheckedInputOutputStream::shared_ptr_type>::iterator ito = COSmap.find(kickid);
+					std::map<uint64_t, libmaus2::aio::InputOutputStream::shared_ptr_type>::iterator ito = COSmap.find(kickid);
 					assert ( ito != COSmap.end() );
 					
 					ito->second->flush();
@@ -83,9 +84,9 @@ namespace libmaus2
 				
 				std::string const fn = getFileName(fileid);
 				
-				if ( libmaus2::util::GetFileSize::fileExists(fn) )
+				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(fn) )
 				{
-					libmaus2::aio::CheckedInputOutputStream::shared_ptr_type ptr(new libmaus2::aio::CheckedInputOutputStream(fn,
+					libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(fn,
 						std::ios_base::in | std::ios_base::out | std::ios_base::binary
 					));
 					
@@ -97,7 +98,7 @@ namespace libmaus2
 				}
 				else
 				{
-					libmaus2::aio::CheckedInputOutputStream::shared_ptr_type ptr(new libmaus2::aio::CheckedInputOutputStream(fn,
+					libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(fn,
 						std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::trunc
 					));
 				

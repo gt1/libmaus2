@@ -39,6 +39,9 @@
 
 #include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
 
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
+
 namespace libmaus2
 {
 	namespace bambam
@@ -77,9 +80,9 @@ namespace libmaus2
 			std::string const tempfilenameindex;
 			
 			//! temporary output file stream
-			::libmaus2::aio::CheckedOutputStream::unique_ptr_type tempfileout;
+			::libmaus2::aio::OutputStream::unique_ptr_type tempfileout;
 			//! compressed output stream
-			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream >::unique_ptr_type pSOS;
+			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type pSOS;
 			
 			//! index generator type
 			typedef libmaus2::index::ExternalMemoryIndexGenerator<
@@ -93,12 +96,6 @@ namespace libmaus2
 			index_generator_pointer_type Pindexer;
 			uint64_t indexerpos;
 			
-			#if 0
-			//! temporary output file stream for index
-			::libmaus2::aio::CheckedOutputStream::unique_ptr_type tempfileindexout;
-			//! index block start vector
-			uint64_t indexpos;
-			#endif
 			std::vector<uint64_t> indexblockstart;
 			
 			//! uint64_t pair
@@ -119,11 +116,11 @@ namespace libmaus2
 			/**
 			 * @return temporary file output stream
 			 **/
-			::libmaus2::aio::CheckedOutputStream & getTempFile()
+			::libmaus2::aio::OutputStream & getTempFile()
 			{
 				if ( ! tempfileout.get() )
 				{
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus2::aio::CheckedOutputStream(tempfilename));
+					::libmaus2::aio::OutputStream::unique_ptr_type rtmpfile(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(tempfilename));
 					tempfileout = UNIQUE_PTR_MOVE(rtmpfile);
 				}
 				return *tempfileout;
@@ -152,12 +149,12 @@ namespace libmaus2
 			/**
 			 * @return compressed temporary file output stream
 			 **/
-			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > & getCompressedTempFile()
+			::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream > & getCompressedTempFile()
 			{
 				if ( ! pSOS )
 				{
-					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream >::unique_ptr_type tSOS(
-						new ::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream >(getTempFile())
+					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream >::unique_ptr_type tSOS(
+						new ::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream >(getTempFile())
 					);
 					pSOS = UNIQUE_PTR_MOVE(tSOS);
 				}
@@ -347,6 +344,17 @@ namespace libmaus2
 				A.release();				
 				iptr = A.end();
 			}
+
+			/**
+			 * remove the temporary files
+			 **/
+			void removeTmpFiles()
+			{
+				if ( tempfilename.size() )
+					libmaus2::aio::FileRemoval::removeFile(tempfilename);
+				if ( tempfilenameindex.size() )
+					libmaus2::aio::FileRemoval::removeFile(tempfilenameindex);
+			}
 			
 			/**
 			 * flush and close output files, deallocate memory
@@ -499,7 +507,7 @@ namespace libmaus2
 					if ( indexer )
 						indexblockstart.push_back(indexer->setup());
 						
-					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > & SOS = getCompressedTempFile();
+					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream > & SOS = getCompressedTempFile();
 					uint64_t const prepos = SOS.getOffset().first;
 					assert ( SOS.getOffset().second == 0 );
 							

@@ -23,6 +23,7 @@
 #include <libmaus2/bambam/BamAlignmentHeapComparator.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
 #include <libmaus2/lz/SnappyOffsetFileInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <queue>
 
 namespace libmaus2
@@ -41,7 +42,7 @@ namespace libmaus2
 
 			private:
 			//! file stream
-			libmaus2::aio::CheckedInputStream::unique_ptr_type Psingle;
+			libmaus2::aio::InputStream::unique_ptr_type Psingle;
 			//! block index
 			std::vector < std::pair < uint64_t, uint64_t > > index;
 			//! snappy decoder array
@@ -106,7 +107,7 @@ namespace libmaus2
 						if ( index[i].second )
 							streams[i].reset();
 					
-					libmaus2::aio::CheckedInputStream::unique_ptr_type TCIS(new libmaus2::aio::CheckedInputStream(fn));
+					libmaus2::aio::InputStream::unique_ptr_type TCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
 					Psingle	= UNIQUE_PTR_MOVE(TCIS);
 
 					for ( uint64_t i = 0; i < index.size(); ++i )

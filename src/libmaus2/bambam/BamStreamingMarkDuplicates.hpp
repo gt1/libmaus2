@@ -756,13 +756,13 @@ namespace libmaus2
 
 			void writeMetrics(libmaus2::util::ArgInfo const & arginfo)
 			{
-				::libmaus2::aio::CheckedOutputStream::unique_ptr_type pM;
+				::libmaus2::aio::OutputStream::unique_ptr_type pM;
 				std::ostream * pmetricstr = 0;
 				
 				if ( arginfo.hasArg("M") && (arginfo.getValue<std::string>("M","") != "") )
 				{
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type tpM(
-							new ::libmaus2::aio::CheckedOutputStream(arginfo.getValue<std::string>("M",std::string("M")))
+					::libmaus2::aio::OutputStream::unique_ptr_type tpM(
+							::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(arginfo.getValue<std::string>("M",std::string("M")))
 						);
 					pM = UNIQUE_PTR_MOVE(tpM);
 					pmetricstr = pM.get();

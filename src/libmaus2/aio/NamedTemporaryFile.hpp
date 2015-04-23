@@ -22,25 +22,28 @@
 #include <string>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
 	namespace aio
 	{
-		template<typename _stream_type>
 		struct NamedTemporaryFile
 		{
-			typedef _stream_type stream_type;
-			typedef NamedTemporaryFile<stream_type> this_type;
-			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			typedef NamedTemporaryFile this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			std::string const name;
 			uint64_t const id;
-			stream_type stream;
+			libmaus2::aio::OutputStream::unique_ptr_type stream;
 			
 			NamedTemporaryFile(std::string const & rname, uint64_t const rid)
-			: name(rname), id(rid), stream(name) {}
+			: name(rname), id(rid), stream()
+			{
+				libmaus2::aio::OutputStream::unique_ptr_type tstream(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(name));
+				stream = UNIQUE_PTR_MOVE(tstream);
+			}
 			
 			static unique_ptr_type uconstruct(std::string const & rname, uint64_t const rid)
 			{
@@ -64,9 +67,9 @@ namespace libmaus2
 				return name;
 			}
 			
-			stream_type & getStream()
+			libmaus2::aio::OutputStream & getStream()
 			{
-				return stream;
+				return *stream;
 			}
 		};
 	}

@@ -25,6 +25,8 @@
 #include <libmaus2/lz/SnappyInputStreamArrayFile.hpp>
 #include <libmaus2/lz/SnappyOutputStream.hpp>
 #include <libmaus2/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <queue>
 
 #define LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY
@@ -60,9 +62,9 @@ namespace libmaus2
 			//! temporary file name
 			std::string const tempfilename;
 			//! temporary output stream
-			::libmaus2::aio::CheckedOutputStream::unique_ptr_type tempfileout;
+			::libmaus2::aio::OutputStream::unique_ptr_type tempfileout;
 			//! temporary input stream pointer
-			::libmaus2::util::unique_ptr<std::ifstream>::type tempfilein;
+			::libmaus2::aio::InputStream::unique_ptr_type tempfilein;
 			//! snappy input array for reading back name sorted blocks
 			::libmaus2::lz::SnappyInputStreamArrayFile::unique_ptr_type temparrayin;
 			//! collator state
@@ -109,11 +111,11 @@ namespace libmaus2
 			/**
 			 * @return pointer to temporary file stream
 			 **/
-			::libmaus2::aio::CheckedOutputStream * getTempFile()
+			::libmaus2::aio::OutputStream * getTempFile()
 			{
 				if ( ! tempfileout.get() )
 				{
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type rtmpfile(new ::libmaus2::aio::CheckedOutputStream(tempfilename));
+					::libmaus2::aio::OutputStream::unique_ptr_type rtmpfile(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(tempfilename));
 					tempfileout = UNIQUE_PTR_MOVE(rtmpfile);
 				}
 				return tempfileout.get();
@@ -129,7 +131,7 @@ namespace libmaus2
 				if ( tempfileout.get() )
 				{
 					tempfileout->flush();
-					tempfileout->close();
+					// tempfileout->close();
 					tempfileout.reset();
 					return true;
 				}
@@ -180,12 +182,12 @@ namespace libmaus2
 				// if there is anything left, then write it out to file/disk
 				if ( writeoutlist.size() )
 				{
-					::libmaus2::aio::CheckedOutputStream & tmpfile = *getTempFile();
+					::libmaus2::aio::OutputStream & tmpfile = *getTempFile();
 
 					uint64_t const prepos = tmpfile.tellp();
 					
 					#if defined(LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY)
-					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > SOS(tmpfile);
+					::libmaus2::lz::SnappyOutputStream< ::libmaus2::aio::OutputStream > SOS(tmpfile);
 					for ( uint64_t i = 0; i < writeoutlist.size(); ++i )
 						writeoutlist[i]->serialise(SOS);
 					SOS.flush();
@@ -394,7 +396,7 @@ namespace libmaus2
 						);
 						temparrayin = UNIQUE_PTR_MOVE(ttemparrayin);
 						#else
-						::libmaus2::util::unique_ptr<std::ifstream>::type rtmpfile(new std::ifstream(tempfilename.c_str(),std::ios::binary));
+						::libmaus2::aio::InputStream::unique_ptr_type rtmpfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(tempfilename));
 						tempfilein = UNIQUE_PTR_MOVE(rtmpfile);
 						#endif
 						
