@@ -40,6 +40,7 @@
 #include <libmaus2/index/ExternalMemoryIndexGenerator.hpp>
 
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -342,6 +343,17 @@ namespace libmaus2
 			{
 				A.release();				
 				iptr = A.end();
+			}
+
+			/**
+			 * remove the temporary files
+			 **/
+			void removeTmpFiles()
+			{
+				if ( tempfilename.size() )
+					libmaus2::aio::FileRemoval::removeFile(tempfilename);
+				if ( tempfilenameindex.size() )
+					libmaus2::aio::FileRemoval::removeFile(tempfilenameindex);
 			}
 			
 			/**

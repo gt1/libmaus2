@@ -1071,6 +1071,28 @@ namespace libmaus2
 					readEndsPairContainerFreeList.put(REC);
 					unflushedPairReadEndsContainers -= 1;
 				}
+				
+				void removeFragReadEndsContainerTempFiles()
+				{
+					std::vector < libmaus2::bambam::ReadEndsContainer::shared_ptr_type > V = readEndsFragContainerFreeList.getAll();
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i]->removeTmpFiles();
+					readEndsFragContainerFreeList.put(V);
+				}
+
+				void removePairReadEndsContainerTempFiles()
+				{
+					std::vector < libmaus2::bambam::ReadEndsContainer::shared_ptr_type > V = readEndsPairContainerFreeList.getAll();
+					for ( uint64_t i = 0; i < V.size(); ++i )
+						V[i]->removeTmpFiles();
+					readEndsPairContainerFreeList.put(V);
+				}
+				
+				void removeReadEndsContainerTempFiles()
+				{
+					removeFragReadEndsContainerTempFiles();
+					removePairReadEndsContainerTempFiles();
+				}
 
 				void enqueFlushFragReadEndsLists()
 				{
@@ -1644,6 +1666,9 @@ namespace libmaus2
 						metricsstr << "## HISTOGRAM\nBIN\tVALUE" << std::endl;
 						metrics.begin()->second.printHistogram(metricsstr);
 					}
+					
+					// remove the temp files
+					removeReadEndsContainerTempFiles();
 				}
 
 				static uint64_t getSamMaxParseBlockSize()

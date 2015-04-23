@@ -1161,7 +1161,8 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/MemoryInputStream.hpp \
 	libmaus2/aio/MemoryOutputStreamBuffer.hpp \
 	libmaus2/aio/MemoryOutputStreamFactory.hpp \
-	libmaus2/aio/MemoryOutputStream.hpp
+	libmaus2/aio/MemoryOutputStream.hpp \
+	libmaus2/aio/FileRemoval.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\

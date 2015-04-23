@@ -193,6 +193,7 @@ void testInputOutput()
 #include <libmaus2/aio/MemoryOutputStreamBuffer.hpp>
 #include <libmaus2/aio/MemoryInputStreamBuffer.hpp>
 #include <libmaus2/aio/MemoryInputStream.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 int main(int argc, char * argv[])
 {

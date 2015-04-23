@@ -52,7 +52,7 @@ namespace libmaus2
 			
 			ssize_t read(char * buffer, size_t len)
 			{
-				size_t const r = memfile->readp(p,buffer,len);
+				ssize_t const r = memfile->readp(p,buffer,len);
 				
 				if ( r < 0 )
 				{

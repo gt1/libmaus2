@@ -31,11 +31,12 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
+			
+			#if defined(MEMORY_FILE_SINGLE_BLOCK)
 			typedef libmaus2::autoarray::AutoArray<char,libmaus2::autoarray::alloc_type_c> array_type;
 			typedef array_type::shared_ptr_type array_ptr_type;
 			
 			array_ptr_type A;
-			uint64_t f;
 	
 			MemoryFile() : A(new array_type(0)), f(0)
 			{
@@ -85,11 +86,165 @@ namespace libmaus2
 				
 				return r;
 			}
+			#else
+			typedef libmaus2::autoarray::AutoArray<char> block_type;
+			typedef block_type::shared_ptr_type block_ptr_type;
+			std::vector<block_ptr_type> blocks;
 			
+			static uint64_t getPrimitiveBlockSize()
+			{
+				return 4096;
+			}
+			
+			static uint64_t getMaxBlocks()
+			{
+				return 64;
+			}
+			
+			static uint64_t getMaxBlockSize()
+			{
+				return 256*1024;
+			}
+			
+			MemoryFile() : blocks(), f(0)
+			{
+			}
+			
+			void truncatep()
+			{
+				f = 0;
+				blocks.resize(0);
+			}
+			
+			uint64_t capacity() const
+			{
+				if ( blocks.size() )
+					return blocks.size() * blocks[0]->size();
+				else
+					return 0;
+			}
+			
+			void addBlock()
+			{
+				if ( ! blocks.size() )
+				{
+					block_ptr_type ptr(new block_type(getPrimitiveBlockSize(),false));
+					blocks.push_back(ptr);
+				}
+				else
+				{
+					if ( blocks.size() >= getMaxBlocks() && blocks[0]->size() < getMaxBlockSize() )
+					{
+						assert ( blocks.size() == getMaxBlocks() );
+						assert ( getMaxBlocks() % 2 == 0 );
+						
+						uint64_t const oldblocksize = blocks[0]->size();
+						uint64_t const newblocksize = oldblocksize << 1;
+												
+						for ( std::vector<block_ptr_type>::size_type i = 0; i < getMaxBlocks()/2; ++i )
+						{
+							block_ptr_type ptr(new block_type(newblocksize,false));
+							std::copy(blocks[2*i+0]->begin(),blocks[2*i+0]->end(),ptr->begin());
+							std::copy(blocks[2*i+1]->begin(),blocks[2*i+1]->end(),ptr->begin()+oldblocksize);
+							blocks[2*i+0] = block_ptr_type();
+							blocks[2*i+1] = block_ptr_type();
+							blocks[i] = ptr;
+						}
+						
+						blocks.resize(getMaxBlocks()/2);		
+					}
+
+					block_ptr_type ptr(new block_type(blocks[0]->size(),false));
+					blocks.push_back(ptr);				
+				}
+			}
+
+			ssize_t writep(uint64_t p, char const * c, uint64_t n)
+			{
+				while ( p+n > capacity() )
+				{
+					try
+					{
+						addBlock();
+					}
+					catch(...)
+					{
+						errno = ENOMEM;
+						return -1;
+					}
+				}
+				
+				if ( p + n > f )
+					f = p+n;
+				
+				ssize_t w = 0;
+				assert ( blocks.size() );
+				uint64_t const blocksize = blocks[0]->size();
+				
+				while ( n )
+				{
+					uint64_t const blockid = p / blocksize;
+					uint64_t const blocklow = blockid * blocksize;
+					uint64_t const blockhigh = blocklow + blocksize;
+					assert ( blockhigh > p );
+					uint64_t const tocopy = std::min(n, blockhigh - p);
+					memcpy(
+						blocks[blockid]->begin()+(p-blocklow),
+						c,tocopy
+					);
+					
+					p += tocopy;
+					c += tocopy;
+					n -= tocopy;
+					w += tocopy;
+				}
+			
+				return w;
+			}
+			ssize_t readp(uint64_t p, char * c, uint64_t n)
+			{
+				if ( p > f )
+					return -1;
+					
+				ssize_t r = 0;
+				uint64_t const blocksize = blocks[0]->size();
+				
+				uint64_t const av = f-p;
+				n = std::min(n,av);
+				
+				while ( n )
+				{
+					uint64_t const blockid = p / blocksize;
+					uint64_t const blocklow = blockid * blocksize;
+					uint64_t const blockhigh = blocklow + blocksize;
+					assert ( blockhigh > p );
+					uint64_t const tocopy = std::min(n, blockhigh - p);
+					
+					assert ( blockid < blocks.size() );
+
+					memcpy(
+						c,
+						blocks[blockid]->begin() + (p-blocklow),
+						tocopy
+					);				
+
+					p += tocopy;
+					c += tocopy;
+					n -= tocopy;
+					r += tocopy;
+				}
+			
+				return r;
+			}
+			#endif
+
+			uint64_t f;
+
 			uint64_t size() const
 			{
 				return f;
 			}
+
 		};
 	}
 }
