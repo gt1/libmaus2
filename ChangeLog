@@ -1,3 +1,9 @@
+libmaus2 (2.0.4-1) unstable; urgency=low
+
+  * add memory based i/o stream classes 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 23 Apr 2015 13:31:45 +0100
+
 libmaus2 (2.0.3-1) unstable; urgency=medium
 
   * update shlibs file for debian packaging 
