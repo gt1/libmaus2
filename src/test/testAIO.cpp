@@ -29,6 +29,8 @@
 #include <map>
 #include <cmath>
 
+#include <libmaus2/aio/PosixFdInputOutputStream.hpp>
+
 void testPosixFdInput()
 {
 	::libmaus2::autoarray::AutoArray<unsigned char> A = libmaus2::util::GetFileSize::readFile("configure");
@@ -63,9 +65,143 @@ void testPosixFdInput()
 	}	
 }
 
+#include <libmaus2/aio/MemoryFileContainer.hpp>
+#include <libmaus2/aio/MemoryInputOutputStream.hpp>
+#include <libmaus2/aio/MemoryOutputStream.hpp>
+
+template<typename stream_type, typename output_stream_type, typename input_stream_type>
+void testInputOutput()
+{
+	{
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary|std::ios::trunc);
+		PFIOS.put('a');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0,std::ios::beg);
+		std::cerr << (char)PFIOS.get() << std::endl;
+		PFIOS.seekg(0);
+		std::cerr << (char)PFIOS.get() << std::endl;
+		
+		PFIOS.seekp(0,std::ios::beg);
+		PFIOS.put('b');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0,std::ios::beg);
+		std::cerr << (char)PFIOS.get() << std::endl;
+		PFIOS.seekg(0);
+		std::cerr << (char)PFIOS.get() << std::endl;
+
+		PFIOS.seekp(0,std::ios::beg);
+		PFIOS.put('c');
+		PFIOS.put('d');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0);
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+
+		PFIOS.clear();
+		
+		std::cerr << "---" << std::endl;
+		
+		PFIOS.seekp(2,std::ios::beg);
+		PFIOS.put('e');
+		PFIOS.put('f');
+		PFIOS.put('g');
+		std::cerr << PFIOS.tellp() << std::endl;
+		PFIOS.seekg(0);
+		// int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+		
+		PFIOS.clear();
+	}
+	
+	std::cerr << "-----" << std::endl;
+
+	{
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+	}
+	
+	std::cerr << std::string("---") << std::endl;
+
+	{
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+
+		PFIOS.seekg(0,std::ios::end);
+		
+		int64_t const l = PFIOS.tellg();
+
+		for ( int64_t i = 0; i < l; ++i )
+		{
+			PFIOS.seekp(-(i+1),std::ios::end);
+			PFIOS.put('a'+i);
+		}
+		
+		PFIOS.seekg(0);
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+		
+		PFIOS.clear();
+	}
+
+	std::cerr << std::string("---") << std::endl;
+	
+	{
+		output_stream_type PFOS("t");
+		PFOS.put('1');
+		PFOS.put('2');
+		PFOS.put('3');
+		PFOS.put('4');
+		PFOS.put('5');
+	}
+
+	{
+		stream_type PFIOS("t",std::ios::in|std::ios::out|std::ios::binary);
+
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+	}
+
+	std::cerr << std::string("***") << std::endl;
+
+	{
+		input_stream_type PFIOS("t");
+
+		int c;
+		while ( (c=PFIOS.get()) != std::iostream::traits_type::eof() )
+		{
+			std::cerr << (char) c << std::endl;
+		}
+	}
+}
+
+#include <libmaus2/aio/MemoryOutputStreamBuffer.hpp>
+#include <libmaus2/aio/MemoryInputStreamBuffer.hpp>
+#include <libmaus2/aio/MemoryInputStream.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 int main(int argc, char * argv[])
 {
+	// testInputOutput<libmaus2::aio::PosixFdInputOutputStream>();
+	testInputOutput<libmaus2::aio::MemoryInputOutputStream,libmaus2::aio::MemoryOutputStream,libmaus2::aio::MemoryInputStream>();
+	
+	return 0;
+
 	{
 		libmaus2::aio::LineSplittingPosixFdOutputStream LSOUT("split",4,32);
 		for ( uint64_t i = 0; i < 17; ++i )

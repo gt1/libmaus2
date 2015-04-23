@@ -32,7 +32,7 @@
 #include <libmaus2/util/MemUsage.hpp>
 #include <libmaus2/util/GetObject.hpp>
 #include <libmaus2/bambam/BgzfDeflateOutputCallbackBamIndex.hpp>
-#include <libmaus2/aio/PosixFdInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/bambam/BamHeaderParserStateBase.hpp>
 #include <libmaus2/bambam/BamAlignmentSnappyInput.hpp>
 
@@ -348,14 +348,16 @@ namespace libmaus2
 			{
 				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
 
-				::libmaus2::aio::CheckedOutputStream::unique_ptr_type pO;
+				::libmaus2::aio::OutputStream::unique_ptr_type pO;
 				std::ostream * poutputstr = 0;
 				
 				if ( arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "") )
 				{
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type tpO(
-							new ::libmaus2::aio::CheckedOutputStream(arginfo.getValue<std::string>("O",std::string("O")))
-						);
+					::libmaus2::aio::OutputStream::unique_ptr_type tpO(
+						::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(
+							arginfo.getValue<std::string>("O",std::string("O"))
+						)
+					);
 					pO = UNIQUE_PTR_MOVE(tpO);
 					poutputstr = pO.get();
 				}
@@ -545,14 +547,15 @@ namespace libmaus2
 			{
 				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
 
-				::libmaus2::aio::CheckedOutputStream::unique_ptr_type pO;
+				::libmaus2::aio::OutputStream::unique_ptr_type pO;
+				
 				std::ostream * poutputstr = 0;
 				
 				if ( arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "") )
 				{
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type tpO(
-							new ::libmaus2::aio::CheckedOutputStream(arginfo.getValue<std::string>("O",std::string("O")))
-						);
+					::libmaus2::aio::OutputStream::unique_ptr_type tpO(
+						::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(arginfo.getValue<std::string>("O",std::string("O")))
+					);
 					pO = UNIQUE_PTR_MOVE(tpO);
 					poutputstr = pO.get();
 				}
@@ -736,14 +739,16 @@ namespace libmaus2
 			{
 				::libmaus2::bambam::BamHeader::unique_ptr_type uphead(::libmaus2::bambam::BamHeaderUpdate::updateHeader(arginfo,bamheader,progid,packageversion));
 
-				::libmaus2::aio::CheckedOutputStream::unique_ptr_type pO;
+				::libmaus2::aio::OutputStream::unique_ptr_type pO;
+
 				std::ostream * poutputstr = 0;
 				
 				if ( arginfo.hasArg("O") && (arginfo.getValue<std::string>("O","") != "") )
 				{
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type tpO(
-							new ::libmaus2::aio::CheckedOutputStream(arginfo.getValue<std::string>("O",std::string("O")))
-						);
+					::libmaus2::aio::OutputStream::unique_ptr_type tpO(
+						::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(arginfo.getValue<std::string>("O",std::string("O")))
+					);
+
 					pO = UNIQUE_PTR_MOVE(tpO);
 					poutputstr = pO.get();
 				}
@@ -970,12 +975,14 @@ namespace libmaus2
 					
 					bool const inputisbam = (arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "")) || rewritebam;
 				
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type pO;
+					::libmaus2::aio::OutputStream::unique_ptr_type pO;
 					std::ostream * poutputstr = 0;
 					
 					if ( outputisfile )
 					{
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tpO(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
+						::libmaus2::aio::OutputStream::unique_ptr_type tpO(
+							::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(outputfilename)
+						);
 						pO = UNIQUE_PTR_MOVE(tpO);
 						poutputstr = pO.get();
 					}
@@ -1018,7 +1025,8 @@ namespace libmaus2
 							}
 							else
 							{
-								libmaus2::aio::CheckedInputStream CIS(inputfilename);
+								libmaus2::aio::InputStream::unique_ptr_type pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename));
+								libmaus2::aio::InputStream & CIS = *pCIS;
 								::libmaus2::bambam::BamHeaderUpdate UH(arginfo,progid,packageversion);
 								libmaus2::bambam::BamParallelRewrite BPR(CIS,UH,outputstr,level,markthreads,libmaus2::bambam::BamParallelRewrite::getDefaultBlocksPerThread() /* blocks per thread */,Pcbs);
 								libmaus2::bambam::BamAlignmentDecoder & dec = BPR.getDecoder();
@@ -1055,9 +1063,10 @@ namespace libmaus2
 					else if ( arginfo.hasArg("I") && (arginfo.getValue<std::string>("I","") != "") )
 					{
 						std::string const inputfilename = arginfo.getValue<std::string>("I","I");
-						//libmaus2::aio::CheckedInputStream CIS(inputfilename);
-						uint64_t const inputbuffersize = arginfo.getValueUnsignedNumeric<uint64_t>("inputbuffersize",2*1024*1024);
-						libmaus2::aio::PosixFdInputStream PFIS(inputfilename,inputbuffersize);
+						libmaus2::aio::InputStream::unique_ptr_type PPFIS(
+							libmaus2::aio::InputStreamFactoryContainer::constructUnique(inputfilename)
+						);
+						libmaus2::aio::InputStream & PFIS = *PPFIS;
 					
 						if ( markthreads == 1 )
 							addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,PFIS /* CIS */,Pcbs,progid,packageversion);
@@ -1067,8 +1076,9 @@ namespace libmaus2
 					else
 					{
 						if ( rewritebam )
-						{
-							libmaus2::aio::CheckedInputStream CIS(recompressedalignments);
+						{	
+							libmaus2::aio::InputStream::unique_ptr_type pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(recompressedalignments));
+							libmaus2::aio::InputStream & CIS = *pCIS;
 							
 							if ( markthreads == 1 )
 								addBamDuplicateFlag(arginfo,verbose,bamheader,maxrank,mod,level,DSC,CIS,Pcbs,progid,packageversion);

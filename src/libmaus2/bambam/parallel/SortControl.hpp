@@ -22,7 +22,6 @@
 #include <libmaus2/aio/NamedTemporaryFileAllocator.hpp>
 #include <libmaus2/aio/NamedTemporaryFileTypeInfo.hpp>
 #include <libmaus2/aio/NamedTemporaryFile.hpp>
-#include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBlockCompressPackage.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBufferAllocator.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBufferTypeInfo.hpp>
@@ -104,12 +103,11 @@ namespace libmaus2
 				
 				std::string const tempfileprefix;
 				libmaus2::parallel::SynchronousCounter<uint64_t> tempfilesyncid;
-				typedef libmaus2::aio::PosixFdOutputStream temp_stream_type;
-				typedef libmaus2::aio::NamedTemporaryFile<temp_stream_type> named_temp_file_type;
+				typedef libmaus2::aio::NamedTemporaryFile named_temp_file_type;
 				libmaus2::parallel::LockedFreeList<
 					named_temp_file_type, 
-					libmaus2::aio::NamedTemporaryFileAllocator<temp_stream_type>,
-					libmaus2::aio::NamedTemporaryFileTypeInfo<temp_stream_type>
+					libmaus2::aio::NamedTemporaryFileAllocator,
+					libmaus2::aio::NamedTemporaryFileTypeInfo
 				> tmpfilefreelist;
 				std::map<uint64_t,std::string> tempfileidtoname;
 	
@@ -944,7 +942,7 @@ namespace libmaus2
 					STP(rSTP),
 					tempfileprefix(rtempfileprefix),
 					tempfilesyncid(0),
-					tmpfilefreelist(STP.getNumThreads(),libmaus2::aio::NamedTemporaryFileAllocator<libmaus2::aio::PosixFdOutputStream>(tempfileprefix,&tempfilesyncid)),
+					tmpfilefreelist(STP.getNumThreads(),libmaus2::aio::NamedTemporaryFileAllocator(tempfileprefix,&tempfilesyncid)),
 					compfreelist(rcompfreelist),
 					readDispatcher(*this,*this,*this),
 					readDispatcherId(STP.getNextDispatcherId()),

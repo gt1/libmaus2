@@ -164,7 +164,7 @@ namespace libmaus2
 			 **/
 			void checkSequenceChecksums(std::string reference = std::string())
 			{
-				if ( reference.size() && libmaus2::util::GetFileSize::fileExists(reference) && reference[0] != '/' )
+				if ( reference.size() && libmaus2::aio::InputStreamFactoryContainer::tryOpen(reference) && reference[0] != '/' )
 				{
 					libmaus2::autoarray::AutoArray<char> cwdspace(std::max(static_cast<uint64_t>(2*PATH_MAX),static_cast<uint64_t>(1)));
 					char * p = NULL;
@@ -1115,8 +1115,8 @@ namespace libmaus2
 			 **/
 			static uint64_t getHeaderSize(std::string const & fn)
 			{
-				libmaus2::aio::CheckedInputStream CIS(fn);
-				::libmaus2::lz::GzipStream GS(CIS);
+				libmaus2::aio::InputStream::unique_ptr_type CIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
+				::libmaus2::lz::GzipStream GS(*CIS);
 				BamHeader header(GS);
 				return GS.tellg();
 			}

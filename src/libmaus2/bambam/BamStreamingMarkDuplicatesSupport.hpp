@@ -409,7 +409,7 @@ namespace libmaus2
 				
 				void flushTempFile(uint64_t const tmpfileindex)
 				{
-					libmaus2::aio::CheckedInputOutputStream & CIOS = reorderfiles[tmpfileindex];
+					libmaus2::aio::InputOutputStream & CIOS = reorderfiles[tmpfileindex];
 					CIOS.flush();
 					CIOS.clear();
 					CIOS.seekg(0,std::ios::beg);
@@ -459,7 +459,7 @@ namespace libmaus2
 					if ( tmpFileFill.find(tmpfileindex) == tmpFileFill.end() )
 						reorderfiles.remove(tmpfileindex);
 				
-					libmaus2::aio::CheckedInputOutputStream & CIOS = reorderfiles[tmpfileindex];
+					libmaus2::aio::InputOutputStream & CIOS = reorderfiles[tmpfileindex];
 					algn->serialise(CIOS);
 					BAFL.put(algn);
 					tmpFileFill[tmpfileindex]++;

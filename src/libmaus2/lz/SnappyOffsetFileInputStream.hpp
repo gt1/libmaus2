@@ -20,6 +20,7 @@
 #define LIBMAUS2_LZ_SNAPPYOFFSETFILEINPUTSTREAM_HPP
 
 #include <libmaus2/lz/SnappyInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -30,7 +31,7 @@ namespace libmaus2
 			typedef SnappyOffsetFileInputStream this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typedef libmaus2::aio::CheckedInputStream stream_type;
+			typedef libmaus2::aio::InputStream stream_type;
 			typedef stream_type::unique_ptr_type stream_ptr_type;
 		
 			stream_ptr_type Pistr;
@@ -39,7 +40,7 @@ namespace libmaus2
 			
 			stream_ptr_type openFileAtOffset(std::string const & filename, uint64_t const offset)
 			{
-				stream_ptr_type Pistr(new stream_type(filename.c_str()));
+				stream_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
 				Pistr->seekg(offset,std::ios::beg);
 				
 				return UNIQUE_PTR_MOVE(Pistr);

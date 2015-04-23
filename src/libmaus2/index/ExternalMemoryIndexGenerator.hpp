@@ -23,9 +23,9 @@
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/aio/CheckedInputOutputStream.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
-#include <libmaus2/aio/PosixFdInputStream.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/index/ExternalMemoryIndexRecord.hpp>
+#include <libmaus2/aio/InputOutputStreamFactoryContainer.hpp>
 #include <iomanip>
 
 namespace libmaus2
@@ -48,7 +48,8 @@ namespace libmaus2
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
 			static uint64_t const inner_index_mask = (inner_index_step-1);
 		
-			libmaus2::aio::CheckedInputOutputStream::unique_ptr_type Pstream;
+			// libmaus2::aio::CheckedInputOutputStream::unique_ptr_type Pstream;
+			libmaus2::aio::InputOutputStream::unique_ptr_type Pstream;
 			std::iostream & stream;
 			uint64_t ic;
 			bool flushed;
@@ -72,7 +73,8 @@ namespace libmaus2
 			}
 			
 			ExternalMemoryIndexGenerator(std::string const & filename)
-			: Pstream(new libmaus2::aio::CheckedInputOutputStream(filename)), stream(*Pstream), ic(0), flushed(false), writeCache(1024),
+			: Pstream(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(filename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary)), stream(*Pstream), 
+			  ic(0), flushed(false), writeCache(1024),
 			  wa(writeCache.begin()), wc(wa), we(writeCache.end())
 			{
 			

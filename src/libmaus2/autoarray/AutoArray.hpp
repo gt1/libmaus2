@@ -259,7 +259,7 @@ namespace libmaus2
 			//! symbol type equals element_type
 			typedef value_type symbol_type;
 			//! this type
-			typedef AutoArray<value_type,atype> this_type;
+			typedef AutoArray<value_type,atype,erase_type> this_type;
 			//! unique pointer object for this type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			//! shared pointer object for this type
