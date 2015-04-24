@@ -257,6 +257,26 @@ char const libmaus2::util::NotDigitOrTermTable::table[256] = {
 };
 
 #include <libmaus2/aio/MemoryFileContainer.hpp>
+#include <libmaus2/util/ArgInfoParseBase.hpp>
 
 libmaus2::parallel::PosixMutex libmaus2::aio::MemoryFileContainer::lock;
 std::map < std::string, libmaus2::aio::MemoryFile::shared_ptr_type > libmaus2::aio::MemoryFileContainer::M;
+
+static uint64_t getMemoryFileMaxBlockSize()
+{
+	char const * mem = getenv("MEMORYFILEMAXBLOCKSIZE");
+
+	if ( ! mem )
+		// return std::numeric_limits<uint64_t>::max();
+		return 16ull*1024ull*1024ull;
+	else
+	{
+		uint64_t const v = libmaus2::util::ArgInfoParseBase::parseValueUnsignedNumeric<uint64_t>("MEMORYFILEMAXBLOCKSIZE",mem);
+		
+		std::cerr << "[D] using value " << v << " (parsed from " << mem << ") for MEMORYFILEMAXBLOCKSIZE" << std::endl;
+		
+		return v;
+	}
+}
+
+uint64_t libmaus2::aio::MemoryFile::maxblocksize = getMemoryFileMaxBlockSize();

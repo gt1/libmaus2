@@ -1045,7 +1045,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/UnsignedIntegerIndexIterator.hpp \
 	libmaus2/util/FiniteSizeHeap.hpp \
 	libmaus2/util/UnitNum.hpp \
-	libmaus2/util/NotDigitOrTermTable.hpp
+	libmaus2/util/NotDigitOrTermTable.hpp \
+	libmaus2/util/ArgInfoParseBase.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
