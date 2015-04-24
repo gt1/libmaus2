@@ -1,3 +1,9 @@
+libmaus2 (2.0.5-1) unstable; urgency=low
+
+  * increase memory file block size 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 24 Apr 2015 09:13:29 +0100
+
 libmaus2 (2.0.4-1) unstable; urgency=low
 
   * add memory based i/o stream classes 
