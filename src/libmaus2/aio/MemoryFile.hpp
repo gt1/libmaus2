@@ -30,7 +30,8 @@ namespace libmaus2
 			typedef MemoryFile this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-
+			
+			static uint64_t maxblocksize;
 			
 			#if defined(MEMORY_FILE_SINGLE_BLOCK)
 			typedef libmaus2::autoarray::AutoArray<char,libmaus2::autoarray::alloc_type_c> array_type;
@@ -103,7 +104,7 @@ namespace libmaus2
 			
 			static uint64_t getMaxBlockSize()
 			{
-				return 256*1024;
+				return maxblocksize;
 			}
 			
 			MemoryFile() : blocks(), f(0)
