@@ -57,7 +57,8 @@ namespace libmaus2
 			 **/
 			operator bool() const
 			{
-				return *out;
+				bool const ok = *out;
+				return ok;
 			}
 			
 			/**
