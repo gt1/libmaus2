@@ -410,11 +410,11 @@ namespace libmaus2
 				{
 					if ( which == std::ios_base::in )
 					{
-						return seekpos(readpos + (gptr()-eback()),which);
+						return seekpos(readpos + (gptr()-eback()) + off,which);
 					}
 					else if ( which == std::ios_base::out )
 					{
-						return seekpos(writepos + (pptr()-pbase()),which);
+						return seekpos(writepos + (pptr()-pbase()) + off,which);
 					}
 					else
 					{

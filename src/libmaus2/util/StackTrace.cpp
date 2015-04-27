@@ -52,7 +52,7 @@ translate
                         std::string const & addr = A.second;
                         
                         std::ostringstream comlinestr;
-                        comlinestr << "/usr/bin/addr2line" << " -e " << execname << " " << addr;
+                        comlinestr << "addr2line" << " --exe=" << execname << " " << addr;
                         std::string const comline = comlinestr.str();
                         
                         std::string addrout,addrerr;

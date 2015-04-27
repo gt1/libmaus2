@@ -298,8 +298,137 @@ struct Pipe
 	}
 };
 
+static int doClose(int fd)
+{
+	while ( true )
+	{
+		int const r = ::close(fd);
+		
+		if ( r < 0 )
+		{
+			switch ( errno )
+			{
+				case EINTR:
+					break;
+				default:
+					return r;
+			}
+		}
+		else
+		{
+			return r;
+		}
+	}
+}
+
+int parseEscapeCode(std::string const & command, size_t const j)
+{
+	if ( j+1 < command.size() )
+	{
+		switch ( command[j+1] )
+		{
+			case '0':
+				// extend this to general numbers
+				return (0);
+				break;
+			case 'a':
+				return ('\a');
+				break;
+			case 'b':
+				return ('\b');
+				break;
+			case 't':
+				return ('\t');
+				break;
+			case 'n':
+				return ('\n');
+				break;
+			case 'v':
+				return ('\v');
+				break;
+			case 'f':
+				return ('\f');
+				break;
+			case 'r':
+				return ('\r');
+				break;
+			default:
+				return -1;
+		}
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+std::vector<std::string> parseCommand(std::string const & command)
+{
+	uint64_t i = 0;
+	std::vector<std::string> V;
+	
+	while ( i < command.size() )
+	{
+		while ( i < command.size() && isspace(command[i]) )
+			++i;
+		
+		uint64_t j = i;
+		
+		std::ostringstream ostr;
+		while ( j < command.size() && !isspace(command[j]) )
+		{
+			if ( command[j] == '\\' )
+			{
+				int const r = parseEscapeCode(command,j);
+				if ( r >= 0 )
+					ostr.put(r);
+				j += 2;
+			}
+			else if ( command[j] == '"' )
+			{
+				++j;
+				while ( j < command.size() && command[j] != '"' )
+				{
+					if ( command[j] == '\\' )
+					{
+						int const r = parseEscapeCode(command,j);
+						if ( r >= 0 )
+							ostr.put(r);
+						j += 2;			
+					}
+					else
+					{
+						ostr.put(command[j++]);
+					}
+				}
+				++j;
+			}
+			else if ( command[j] == '\'' )
+			{
+				++j;
+				while ( j < command.size() && command[j] != '\'' )
+					ostr.put(command[j++]);
+				++j;
+			}
+			else
+			{
+				ostr.put(command[j++]);
+			}
+		}
+		
+		std::string const s = ostr.str();
+		if ( s.size() )
+			V.push_back(s);
+		
+		i = j;
+	}
+	
+	return V;
+}
+
 int libmaus2::util::PosixExecute::execute(std::string const & command, std::string & out, std::string & err, bool const donotthrow)
 {
+	libmaus2::parallel::ScopePosixMutex slock(libmaus2::util::PosixExecute::lock);
 	char stderrfn[] = "/tmp/libmaus2::util::PosixExecute::execute_XXXXXX";
 	char stdoutfn[] = "/tmp/libmaus2::util::PosixExecute::execute_XXXXXX";
 	bool stderrfnvalid = false;
@@ -316,7 +445,62 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	struct stat statout;
 	size_t errread = 0;
 	size_t outread = 0;
+	int stdindup = -1;
+	int stdoutdup = -1;
+	int stderrdup = -1;
+	bool copybackin = false;
+	bool copybackout = false;
+	bool copybackerr = false;
+	/* int r; */
+	std::vector<std::string> V = parseCommand(command);
+	char * argmem = NULL;
+	size_t argmemsize = 0;
+	char * argmemt = NULL;
+	char ** argptrs = NULL;
 	
+	for ( uint64_t i = 0; i < V.size(); ++i )
+	{
+		// std::cerr << "command[" << i << "]=" << V[i] << std::endl;	
+		argmemsize += V[i].size()+1;
+	}
+	
+	argmem = (char *)malloc(argmemsize);
+	
+	if ( ! argmem )
+	{
+		returncode = EXIT_FAILURE;
+		error = ENOMEM;
+		goto cleanup;
+	}
+	
+	memset(argmem,0,argmemsize);
+	
+	argptrs = (char **)malloc((V.size()+1) * sizeof(char *));
+	
+	if ( ! argptrs )
+	{
+		returncode = EXIT_FAILURE;
+		error = ENOMEM;
+		goto cleanup;
+	}
+	
+	memset(argptrs,0,(V.size()+1) * sizeof(char *));
+	
+	argmemt = argmem;
+	for ( uint64_t i = 0; i < V.size(); ++i )
+	{
+		memcpy(argmemt,V[i].c_str(),V[i].size());
+		argptrs[i] = argmemt;
+		argmemt += V[i].size()+1;
+	}
+	
+	#if 0
+	std::cerr << "calling " << argptrs[0] << std::endl;
+	for ( uint64_t i = 1; i < V.size(); ++i )
+		std::cerr << "arg[" << i << "]=" << argptrs[i] << std::endl;
+	assert ( argptrs[V.size()] == NULL );
+	#endif
+
 	if ( (stderrfd = mkstemp(&stderrfn[0])) < 0 )
 	{
 		returncode = EXIT_FAILURE;
@@ -338,7 +522,6 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		stdoutfnvalid = true;
 	}
-
 	
 	if ( (nullfd = open("/dev/null",O_RDONLY)) < 0 )
 	{
@@ -347,8 +530,94 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		goto cleanup;	
 	}
 	
+	if ( (stdindup = dup(STDIN_FILENO)) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;		
+	}
 	
-	child = fork();
+	if ( (stdoutdup = dup(STDOUT_FILENO)) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;		
+	}
+
+	if ( (stderrdup = dup(STDERR_FILENO)) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;		
+	}
+	
+	if ( doClose(STDIN_FILENO) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	else
+	{
+		copybackin = true;
+	}
+	
+	if ( doClose(STDOUT_FILENO) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	else
+	{
+		copybackout = true;
+	}
+	
+	if ( doClose(STDERR_FILENO) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	else
+	{
+		copybackerr = true;
+	}
+
+	if ( dup2(nullfd,STDIN_FILENO) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;		
+	}
+	if ( dup2(stdoutfd,STDOUT_FILENO) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	if ( dup2(stderrfd,STDERR_FILENO) < 0 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+
+	#if 0
+	r = system(command.c_str());
+	
+	if ( r == -1 )
+	{
+		returncode = EXIT_FAILURE;
+		error = errno;
+		goto cleanup;
+	}
+	else
+	{
+		returncode = WEXITSTATUS(r);
+	}
+	#else	
+	child = vfork();
 	
 	if ( child < 0 )
 	{
@@ -361,20 +630,14 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	{
 		try
 		{
-			if ( dup2(nullfd,STDIN_FILENO) < 0 )
-				_exit(EXIT_FAILURE);
-			if ( dup2(stdoutfd,STDOUT_FILENO) < 0 )
-				_exit(EXIT_FAILURE);
-			if ( dup2(stderrfd,STDERR_FILENO) < 0 )
-				_exit(EXIT_FAILURE);
-			
-			::close(nullfd);
-			::close(stdoutfd);
-			::close(stderrfd);
-		
+			#if 0
 			int const r = system(command.c_str());
-		
 			_exit(WEXITSTATUS(r));
+			#endif
+			
+			execvp(argptrs[0], argptrs);
+			
+			_exit(EXIT_FAILURE);
 		}
 		catch(...)
 		{
@@ -417,6 +680,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			break;
 		}
 	}
+	#endif
 	
 	if ( lseek(stderrfd,0,SEEK_SET) != 0 )
 	{
@@ -431,7 +695,6 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		error = errno;
 		goto cleanup;
 	}
-	
 	
 	if ( fstat(stderrfd,&staterr) < 0 )
 	{
@@ -536,21 +799,72 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	}
 			
 	cleanup:
+	
+	if ( copybackin )
+	{
+		if ( dup2(stdindup,STDIN_FILENO) < 0 )
+		{
+			if ( returncode >= 0 )
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+			}
+		}
+	}
+	if ( copybackout )
+	{
+		if ( dup2(stdoutdup,STDOUT_FILENO) < 0 )
+		{
+			if ( returncode >= 0 )
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+			}
+		}	
+	}
+	if ( copybackerr )
+	{
+		if ( dup2(stderrdup,STDERR_FILENO) < 0 )
+		{
+			if ( returncode >= 0 )
+			{
+				returncode = EXIT_FAILURE;
+				error = errno;
+			}
+		}
+	}
+	if ( stdindup >= 0 )
+	{
+		doClose(stdindup);
+		stdindup = -1;
+	}
+	if ( stdoutdup >= 0 )
+	{
+		doClose(stdoutdup);
+		stdoutdup = -1;
+	}
+	if ( stderrdup >= 0 )
+	{
+		doClose(stderrdup);
+		stderrdup = -1;
+	}
+		
 	if ( stderrfd >= 0 )
 	{
-		::close(stderrfd);
+		doClose(stderrfd);
 		stderrfd = -1;
 	}
 	if ( stdoutfd >= 0 )
 	{
-		::close(stdoutfd);
+		doClose(stdoutfd);
 		stdoutfd = -1;
 	}
 	if ( nullfd >= 0 )
 	{
-		::close(nullfd);
+		doClose(nullfd);
 		nullfd = -1;
 	}
+
 	if ( stderrfnvalid )
 		remove(&stderrfn[0]);
 	if ( stdoutfnvalid )
@@ -566,7 +880,19 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		free(tempmemout);
 		tempmemout = NULL;
 	}
+
+	if ( argmem )
+	{
+		::free(argmem);
+		argmem = NULL;
+	}	
 	
+	if ( argptrs )
+	{
+		::free(argptrs);
+		argptrs = NULL;
+	}
+			
 	if ( returncode != EXIT_SUCCESS )
 	{	
 		if ( donotthrow )
@@ -587,7 +913,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			throw lme;
 		}
 	}
-		
+				
 	return returncode;
 }
 

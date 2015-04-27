@@ -56,6 +56,7 @@ namespace libmaus2
 				
 				if ( r < 0 )
 				{
+					std::cerr << "MemoryFileAdapter::read failed readp" << std::endl;
 					return r;
 				}
 				else
@@ -71,6 +72,7 @@ namespace libmaus2
 				
 				if ( w < 0 )
 				{
+					std::cerr << "MemoryFileAdapter::write failed writep" << std::endl;
 					return w;
 				}
 				else
@@ -98,13 +100,22 @@ namespace libmaus2
 						abs = memfile->size() + offset;
 						break;
 					default:
+					{
+						std::cerr << "MemoryFileAdapter::lseek failed lseek (unknown whence)" << std::endl;
 						return static_cast<off_t>(-1);
+					}
 				}
 				
 				if ( abs < 0 )
+				{
+					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " < 0" << std::endl;
 					return static_cast<off_t>(-1);
+				}
 				if ( static_cast<uint64_t>(abs) > memfile->size() )
+				{
+					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " > size = " << memfile->size() << std::endl;
 					return static_cast<off_t>(-1);
+				}
 				
 				p = static_cast<uint64_t>(abs);
 				

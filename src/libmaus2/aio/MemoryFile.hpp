@@ -60,8 +60,15 @@ namespace libmaus2
 					{
 						A->resize(newsize);
 					}
+					catch(std::exception const & ex)
+					{
+						std::cerr << "libmaus2::aio::MemoryFile::writep: " << ex.what () << " p=" << p << " n=" << n << " name=" << name << std::endl;
+						errno = ENOMEM;
+						return -1;						
+					}
 					catch(...)
 					{
+						std::cerr << "libmaus2::aio::MemoryFile::writep: ellipsis p=" << p << " n=" << n << " name=" << name << std::endl;
 						errno = ENOMEM;
 						return -1;
 					}
@@ -78,7 +85,10 @@ namespace libmaus2
 			ssize_t readp(uint64_t p, char * c, uint64_t n)
 			{
 				if ( p > f )
+				{
+					std::cerr << "libmaus2::aio::MemoryFile::readp: p=" << p << " > f=" << f << std::endl;
 					return -1;
+				}
 				
 				uint64_t const av = f-p;
 				uint64_t const r = std::min(n,av);
@@ -168,8 +178,15 @@ namespace libmaus2
 					{
 						addBlock();
 					}
+					catch(std::exception const & ex)
+					{
+						std::cerr << "libmaus2::aio::MemoryFile::writep: " << ex.what () << " p=" << p << " n=" << n << " name=" << name << std::endl;
+						errno = ENOMEM;
+						return -1;						
+					}
 					catch(...)
 					{
+						std::cerr << "libmaus2::aio::MemoryFile::writep: ellipsis p=" << p << " n=" << n << " name=" << name << std::endl;
 						errno = ENOMEM;
 						return -1;
 					}
@@ -205,7 +222,10 @@ namespace libmaus2
 			ssize_t readp(uint64_t p, char * c, uint64_t n)
 			{
 				if ( p > f )
+				{
+					std::cerr << "libmaus2::aio::MemoryFile::readp: p=" << p << " > f=" << f << std::endl;
 					return -1;
+				}
 					
 				ssize_t r = 0;
 				uint64_t const blocksize = blocks[0]->size();
@@ -246,6 +266,7 @@ namespace libmaus2
 				return f;
 			}
 
+			std::string name;
 		};
 	}
 }
