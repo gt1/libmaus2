@@ -54,6 +54,7 @@ namespace libmaus2
 				else
 				{
 					MemoryFile::shared_ptr_type tmemfile(new MemoryFile);
+					tmemfile->name = name;
 					M[name] = tmemfile;
 					memfile = tmemfile;
 				}

@@ -1,3 +1,9 @@
+libmaus2 (2.0.6-1) unstable; urgency=low
+
+  * fix bam indexing 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 27 Apr 2015 10:35:56 +0100
+
 libmaus2 (2.0.5-1) unstable; urgency=low
 
   * increase memory file block size 
