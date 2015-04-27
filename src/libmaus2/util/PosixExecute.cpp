@@ -799,50 +799,22 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	}
 			
 	cleanup:
-	#if 0
-	std::ofstream errstream("errstream",std::ios::app);
-	
-	errstream << "here " << error << " " << strerror(error) << std::endl;
-	errstream << "copybackin=" << copybackin << " copybackout=" << copybackout << " copybackerr=" << copybackerr << std::endl;
-	#endif
 	
 	if ( copybackin )
 	{
-		#if 0
-		errstream << "copybackin " << stdindup << " " << STDIN_FILENO << std::endl;	
-		#endif
-	
 		if ( dup2(stdindup,STDIN_FILENO) < 0 )
 		{
-			#if 0
-			errstream << "copybackin failed " << strerror(errno) << std::endl;
-			#endif
-		
 			if ( returncode >= 0 )
 			{
 				returncode = EXIT_FAILURE;
 				error = errno;
 			}
 		}
-		else
-		{
-			#if 0
-			errstream << "copybackin dup2 ok" << std::endl;
-			#endif
-		}
 	}
 	if ( copybackout )
 	{
-		#if 0
-		errstream << "copybackout" << stdoutdup << " " << STDOUT_FILENO << std::endl;	
-		#endif
-		
 		if ( dup2(stdoutdup,STDOUT_FILENO) < 0 )
 		{
-			#if 0
-			errstream << "failed " << strerror(errno) << std::endl;
-			#endif
-			
 			if ( returncode >= 0 )
 			{
 				returncode = EXIT_FAILURE;
@@ -852,16 +824,8 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	}
 	if ( copybackerr )
 	{
-		#if 0
-		errstream << "copybackerr" << stderrdup << " " << STDERR_FILENO << std::endl;	
-		#endif
-		
 		if ( dup2(stderrdup,STDERR_FILENO) < 0 )
 		{
-			#if 0
-			errstream << "failed " << strerror(errno) << std::endl;
-			#endif
-			
 			if ( returncode >= 0 )
 			{
 				returncode = EXIT_FAILURE;
