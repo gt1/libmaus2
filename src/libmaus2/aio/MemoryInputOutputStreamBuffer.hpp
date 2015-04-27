@@ -327,16 +327,7 @@ namespace libmaus2
 				// seek relative to end of file
 				else if ( (way == ::std::ios_base::end) )
 				{
-					off_t const curoff = doSeek(0, SEEK_CUR);
-					off_t const endoff = doSeek(0, SEEK_END);
-					off_t const curag = doSeek(curoff,SEEK_SET);
-					
-					if ( curag != curoff )
-						return -1;
-					
-					if ( endoff == static_cast<off_t>(-1) )
-						return -1;
-					
+					off_t const endoff = fd->getFileSize();
 					return seekpos(endoff+off,which);
 				}
 				else

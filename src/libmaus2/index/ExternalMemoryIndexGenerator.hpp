@@ -108,17 +108,25 @@ namespace libmaus2
 					uint64_t const record_size = 2*sizeof(uint64_t)+object_size;
 					
 					std::vector<uint64_t> levelstarts;
+					std::vector<uint64_t> levelends;
 					std::vector<uint64_t> levelcnts;
 					
 					unsigned int level = 0;
 					uint64_t incnt = ic;
 					
+					// end of level 0
+					uint64_t const el0pos = stream.tellp();
+					
 					// get position of level 0 records in file
-					uint64_t l0pos = static_cast<uint64_t>(stream.tellp()) - (ic * record_size);
+					uint64_t l0pos = el0pos - (ic * record_size);
 					
 					// store position and number
 					levelstarts.push_back(l0pos);
+					levelends.push_back(el0pos);
 					levelcnts.push_back(incnt);
+
+					// seek to start of level
+					stream.seekg(l0pos,std::ios::beg);
 
 					// perform subsampling until we have constructed a single root node
 					while ( incnt > inner_index_step )
@@ -127,7 +135,11 @@ namespace libmaus2
 						uint64_t gpos = levelstarts[level];
 						uint64_t ppos = gpos + incnt * record_size;
 						
+						uint64_t const egpos = ppos;
+						uint64_t const eppos = ppos + outcnt * record_size;
+						
 						levelstarts.push_back(ppos);
+						levelends.push_back(eppos);
 						levelcnts.push_back(outcnt);
 						
 						stream.seekg(gpos,std::ios::beg);
@@ -175,7 +187,10 @@ namespace libmaus2
 							
 							stream.seekg(gpos,std::ios::beg);
 							wc = wa;
-						}							
+						}
+						
+						assert ( static_cast<off_t>(stream.tellg()) == static_cast<off_t>(egpos) );
+						assert ( ppos == eppos );
 						
 						incnt = outcnt;
 						level += 1;
@@ -184,6 +199,8 @@ namespace libmaus2
 					// go to end of records for last level
 					uint64_t const llpos = stream.tellg();
 					uint64_t ppos = llpos + levelcnts.back() * record_size;
+					assert ( ppos == levelends.back() );
+
 					// set put pointer to set position
 					stream.seekp(ppos);
 					
