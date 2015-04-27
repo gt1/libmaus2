@@ -341,12 +341,15 @@ namespace libmaus2
 			uint64_t unmappedcnt;
 			uint64_t refstart;
 			
-			std::string const binchunktmpfilename;
-			std::string const linchunktmpfilename;
+			std::string binchunktmpfilename;
+			std::string linchunktmpfilename;
 			std::string const metatmpfilename;
+
 			::libmaus2::aio::OutputStream::unique_ptr_type chunkCOS;
 			::libmaus2::aio::OutputStream::unique_ptr_type linCOS;
+			::libmaus2::aio::OutputStream::unique_ptr_type metaOutFile;
 			::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type metaOut;
+			uint64_t metaOutWords;
 
 			::libmaus2::aio::Buffer< ::libmaus2::bambam::BamIndexBinChunk> BCB;
 			std::vector< std::pair<uint64_t,uint64_t> > binchunkfrags;
@@ -373,7 +376,7 @@ namespace libmaus2
 			  mappedcnt(0), unmappedcnt(0), refstart(0),
 			  binchunktmpfilename(tmpfileprefix+".bin"), linchunktmpfilename(tmpfileprefix+".lin"),
 			  metatmpfilename(tmpfileprefix+".meta"),
-			  chunkCOS(), linCOS(), metaOut(),
+			  chunkCOS(), linCOS(), metaOut(), metaOutWords(0),
 			  BCB(), binchunkfrags(), BLC(), linearchunkfrags(),
 			  verbose(rverbose), validate(rvalidate), debug(rdebug),
 			  blocksetup(false)
@@ -383,13 +386,17 @@ namespace libmaus2
 				::libmaus2::util::TempFileRemovalContainer::addTempFile(metatmpfilename);
 
 				::libmaus2::aio::OutputStream::unique_ptr_type tchunkCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(binchunktmpfilename));
-				::libmaus2::aio::OutputStream::unique_ptr_type tlinCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(linchunktmpfilename));
-				::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type tmetaOut(
-					new ::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >(metatmpfilename,128)
-				);
-				
 				chunkCOS = UNIQUE_PTR_MOVE(tchunkCOS);
+				
+				::libmaus2::aio::OutputStream::unique_ptr_type tlinCOS(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(linchunktmpfilename));
 				linCOS = UNIQUE_PTR_MOVE(tlinCOS);
+				
+				::libmaus2::aio::OutputStream::unique_ptr_type tmetaOutFile(::libmaus2::aio::OutputStreamFactoryContainer::constructUnique(metatmpfilename));				
+				metaOutFile = UNIQUE_PTR_MOVE(tmetaOutFile);
+
+				::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >::unique_ptr_type tmetaOut(
+					new ::libmaus2::aio::SynchronousGenericOutput< ::libmaus2::bambam::BamIndexMetaInfo >(*metaOutFile,128)
+				);
 				metaOut = UNIQUE_PTR_MOVE(tmetaOut);
 			}
 			
@@ -518,6 +525,7 @@ namespace libmaus2
 												std::cerr << "[V] " << header.getRefIDName(prevrefid) << " " << mappedcnt << " " << unmappedcnt << std::endl;
 											
 											metaOut->put ( ::libmaus2::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
+											metaOutWords += 1;
 										}
 									
 										mappedcnt = 0;
@@ -720,6 +728,7 @@ namespace libmaus2
 						std::cerr << "[V] " << header.getRefIDName(prevrefid) << " " << mappedcnt << " " << unmappedcnt << std::endl;
 
 					metaOut->put ( ::libmaus2::bambam::BamIndexMetaInfo(prevrefid,refstart,(alcmpstart << 16) | alstart,mappedcnt,unmappedcnt) );
+					metaOutWords += 1;
 				}
 
 				chunkCOS->flush();
@@ -729,15 +738,23 @@ namespace libmaus2
 				linCOS->flush();
 				// linCOS->close();
 				linCOS.reset();
-				
+
 				metaOut->flush();
 				metaOut.reset();
+				metaOutFile->flush();
+				metaOutFile.reset();
 				
 				if ( verbose )
 					std::cerr << "[V] " << alcnt << std::endl;
 					
-				::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexBinChunk>::merge(binchunktmpfilename,binchunkfrags);
-				::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexLinearChunk>::merge(linchunktmpfilename,linearchunkfrags);
+				std::string const binchunktmpfilename_unmerged = binchunktmpfilename;
+				std::string const linchunktmpfilename_unmerged = linchunktmpfilename;
+					
+				binchunktmpfilename = ::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexBinChunk>::merge_(binchunktmpfilename,binchunkfrags);
+				linchunktmpfilename = ::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexLinearChunk>::merge_(linchunktmpfilename,linearchunkfrags);
+				
+				libmaus2::aio::FileRemoval::removeFile(binchunktmpfilename_unmerged);
+				libmaus2::aio::FileRemoval::removeFile(linchunktmpfilename_unmerged);
 
 				/* check consistency */
 				bool const consistent = checkConsisteny(binchunktmpfilename,linchunktmpfilename,header.getNumRef());
@@ -755,9 +772,10 @@ namespace libmaus2
 				::libmaus2::aio::InputStream & binCIS = *PbinCIS;
 				::libmaus2::aio::InputStream::unique_ptr_type PlinCIS(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(linchunktmpfilename));
 				::libmaus2::aio::InputStream & linCIS = *PlinCIS;
-				
-				::libmaus2::aio::SynchronousGenericInput< ::libmaus2::bambam::BamIndexMetaInfo > metaIn(metatmpfilename,128);
-					
+
+				::libmaus2::aio::InputStream::unique_ptr_type PmetaIn(::libmaus2::aio::InputStreamFactoryContainer::constructUnique(metatmpfilename));
+				::libmaus2::aio::SynchronousGenericInput< ::libmaus2::bambam::BamIndexMetaInfo > metaIn(*PmetaIn,128,metaOutWords);
+
 				out.put('B');
 				out.put('A');
 				out.put('I');
