@@ -34,7 +34,9 @@ namespace libmaus2
 			MemoryInputOutputStream(std::string const & filename, std::ios_base::openmode const cxxmode, int64_t const bufsize = -1) 
 			: MemoryInputOutputStreamBuffer(filename,cxxmode,bufsize),
 			  std::iostream(this)
-			{}
+			{
+				exceptions(std::ios::badbit);
+			}
 		};
 	}
 }
