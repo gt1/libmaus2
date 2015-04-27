@@ -1,3 +1,9 @@
+libmaus2 (2.0.7-1) unstable; urgency=low
+
+  * fix for random failures in ExternalMemoryIndexGenerator due to undefined get pointer
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 27 Apr 2015 23:36:08 +0100
+
 libmaus2 (2.0.6-1) unstable; urgency=low
 
   * fix bam indexing 
