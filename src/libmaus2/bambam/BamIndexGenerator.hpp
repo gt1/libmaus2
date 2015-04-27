@@ -750,8 +750,8 @@ namespace libmaus2
 				std::string const binchunktmpfilename_unmerged = binchunktmpfilename;
 				std::string const linchunktmpfilename_unmerged = linchunktmpfilename;
 					
-				binchunktmpfilename = ::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexBinChunk>::merge_(binchunktmpfilename,binchunkfrags);
-				linchunktmpfilename = ::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexLinearChunk>::merge_(linchunktmpfilename,linearchunkfrags);
+				binchunktmpfilename = ::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexBinChunk>::merge(binchunktmpfilename,binchunkfrags);
+				linchunktmpfilename = ::libmaus2::aio::SingleFileFragmentMerge< ::libmaus2::bambam::BamIndexLinearChunk>::merge(linchunktmpfilename,linearchunkfrags);
 				
 				libmaus2::aio::FileRemoval::removeFile(binchunktmpfilename_unmerged);
 				libmaus2::aio::FileRemoval::removeFile(linchunktmpfilename_unmerged);

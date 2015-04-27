@@ -20,9 +20,10 @@
 #if ! defined(LIBMAUS2_AIO_SINGLEFILEFRAGMENTMERGE_HPP)
 #define LIBMAUS2_AIO_SINGLEFILEFRAGMENTMERGE_HPP
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <libmaus2/aio/CheckedOutputStream.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 #include <queue>
 #include <vector>
 
@@ -58,7 +59,7 @@ namespace libmaus2
 
 
 			std::string const & fn;
-			libmaus2::aio::CheckedInputStream CIS;
+			libmaus2::aio::InputStream::unique_ptr_type pCIS;
 			std::vector< std::pair<uint64_t,uint64_t> > frags;
 			
 			std::priority_queue<
@@ -68,14 +69,14 @@ namespace libmaus2
 			> Q;
 			
 			SingleFileFragmentMerge(std::string const & rfn, std::vector< std::pair<uint64_t,uint64_t> > const & rfrags)
-			: fn(rfn), CIS(fn), frags(rfrags)
+			: fn(rfn), pCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn)), frags(rfrags)
 			{
 				for ( uint64_t i = 0; i < frags.size(); ++i )
 					if ( frags[i].first != frags[i].second )
 					{
-						CIS.seekg(frags[i].first);
+						pCIS->seekg(frags[i].first);
 						element_type BC;
-						CIS.read(reinterpret_cast<char *>(&BC), sizeof(element_type));
+						pCIS->read(reinterpret_cast<char *>(&BC), sizeof(element_type));
 						frags[i].first += sizeof(element_type);
 						Q.push(std::pair< uint64_t, element_type >(i,BC));
 					}
@@ -93,10 +94,10 @@ namespace libmaus2
 				uint64_t const fragindex = P.first;
 				if ( frags[fragindex].first < frags[fragindex].second )
 				{
-					CIS.seekg(frags[fragindex].first);
+					pCIS->seekg(frags[fragindex].first);
 					element_type NBC;
 
-					CIS.read(reinterpret_cast<char *>(&NBC), sizeof(element_type));
+					pCIS->read(reinterpret_cast<char *>(&NBC), sizeof(element_type));
 					Q.push(std::pair< uint64_t, element_type >(fragindex,NBC));
 					
 					frags[fragindex].first += sizeof(element_type);
@@ -105,21 +106,24 @@ namespace libmaus2
 				return true;
 			}
 
-			//! perform merge in temporary file and move resulting file to original file name
-			static void merge(
+			//! perform merge and return name of merged file name
+			static std::string merge(
 				std::string const & infn, std::vector< std::pair<uint64_t,uint64_t> > const & frags
 			)
 			{
 				this_type BCM(infn,frags);
-				libmaus2::util::TempFileRemovalContainer::addTempFile(infn + ".tmp");
-				libmaus2::aio::CheckedOutputStream COS(infn + ".tmp");
+				std::string const nfile = infn + ".tmp";
+				libmaus2::util::TempFileRemovalContainer::addTempFile(nfile);
+				libmaus2::aio::OutputStream::unique_ptr_type pCOS(
+					libmaus2::aio::OutputStreamFactoryContainer::constructUnique(nfile)
+				);
 				element_type BC;
 				while ( BCM.getNext(BC) )
-					COS.write(reinterpret_cast<char const *>(&BC),sizeof(element_type));
-				COS.flush();
-				COS.close();
+					pCOS->write(reinterpret_cast<char const *>(&BC),sizeof(element_type));
+				pCOS->flush();
+				pCOS.reset();
 				
-				rename((infn + ".tmp").c_str(),infn.c_str());
+				return nfile;
 			}
 		};
 	}
