@@ -280,3 +280,7 @@ static uint64_t getMemoryFileMaxBlockSize()
 }
 
 uint64_t libmaus2::aio::MemoryFile::maxblocksize = getMemoryFileMaxBlockSize();
+
+#include <libmaus2/util/PosixExecute.hpp>
+
+libmaus2::parallel::PosixMutex libmaus2::util::PosixExecute::lock;

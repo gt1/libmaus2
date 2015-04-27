@@ -22,6 +22,7 @@
 
 #include <string>
 #include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/parallel/PosixMutex.hpp>
                                           
 namespace libmaus2
 {
@@ -29,6 +30,8 @@ namespace libmaus2
 	{
 		struct PosixExecute
 		{
+			static libmaus2::parallel::PosixMutex lock;
+			
 			static int getTempFile(std::string const stemplate, std::string & filename);
 			static std::string getBaseName(std::string const & name);
 			static std::string getProgBaseName(::libmaus2::util::ArgInfo const & arginfo);
