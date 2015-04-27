@@ -34,7 +34,9 @@ namespace libmaus2
 			MemoryInputStream(std::string const & filename, int64_t const bufsize = -1, uint64_t const pushbacksize = 0)
 			: MemoryInputStreamBuffer(filename,bufsize,pushbacksize),
 			  std::istream(this)
-			{}
+			{
+				exceptions(std::ios::badbit);
+			}
 		};
 	}
 }
