@@ -54,6 +54,7 @@ namespace libmaus2
 			int64_t const optblocksize;
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
+			uint64_t writepos;
 
 			void doClose()
 			{
@@ -162,6 +163,7 @@ namespace libmaus2
 					{
 						assert ( w <= static_cast<int64_t>(n) );
 						n -= w;
+						writepos += w;
 					}
 				}
 				
@@ -175,7 +177,8 @@ namespace libmaus2
 			  closefd(false), 
 			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,std::string()) : rbuffersize),
 			  buffersize(optblocksize), 
-			  buffer(buffersize,false)
+			  buffer(buffersize,false),
+			  writepos(0)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
@@ -186,7 +189,8 @@ namespace libmaus2
 			  closefd(true), 
 			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,fn) : rbuffersize),
 			  buffersize(optblocksize), 
-			  buffer(buffersize,false)
+			  buffer(buffersize,false),
+			  writepos(0)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
@@ -216,6 +220,19 @@ namespace libmaus2
 				doFlush();
 				return 0; // no error, -1 for error
 			}			
+
+			/**
+			 * relative seek
+			 **/
+			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
+			{
+				// seek relative to current position
+				if ( (way == ::std::ios_base::cur) && (which == std::ios_base::out) && (off == 0) )
+					return writepos + (pptr()-pbase());
+				else
+					return -1;
+			}
+
 		};
 	}
 }
