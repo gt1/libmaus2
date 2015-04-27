@@ -94,10 +94,10 @@ namespace libmaus2
 						abs = offset;
 						break;
 					case SEEK_CUR:
-						abs = p + offset;
+						abs = static_cast<off_t>(p) + offset;
 						break;
 					case SEEK_END:
-						abs = memfile->size() + offset;
+						abs = static_cast<off_t>(memfile->size()) + offset;
 						break;
 					default:
 					{
@@ -111,7 +111,7 @@ namespace libmaus2
 					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " < 0" << std::endl;
 					return static_cast<off_t>(-1);
 				}
-				if ( static_cast<uint64_t>(abs) > memfile->size() )
+				if ( static_cast<off_t>(abs) > static_cast<off_t>(memfile->size()) )
 				{
 					std::cerr << "MemoryFileAdapter::lseek failed lseek absolute position abs=" << abs << " > size = " << memfile->size() << std::endl;
 					return static_cast<off_t>(-1);
