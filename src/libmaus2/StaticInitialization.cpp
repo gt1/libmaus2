@@ -284,3 +284,15 @@ uint64_t libmaus2::aio::MemoryFile::maxblocksize = getMemoryFileMaxBlockSize();
 #include <libmaus2/util/PosixExecute.hpp>
 
 libmaus2::parallel::PosixMutex libmaus2::util::PosixExecute::lock;
+
+#include <libmaus2/random/GaussianRandom.hpp>
+
+double const libmaus2::random::GaussianRandom::series[20] =
+{
+	 1.0/GaussianRandom::erfseries(0), -1.0/GaussianRandom::erfseries(1),  1.0/GaussianRandom::erfseries(2), -1.0/GaussianRandom::erfseries(3),  1.0/GaussianRandom::erfseries(4),
+	-1.0/GaussianRandom::erfseries(5),  1.0/GaussianRandom::erfseries(6), -1.0/GaussianRandom::erfseries(7),  1.0/GaussianRandom::erfseries(8), -1.0/GaussianRandom::erfseries(9),
+	 1.0/GaussianRandom::erfseries(10), -1.0/GaussianRandom::erfseries(11),  1.0/GaussianRandom::erfseries(12), -1.0/GaussianRandom::erfseries(13),  1.0/GaussianRandom::erfseries(14),
+	-1.0/GaussianRandom::erfseries(15),  1.0/GaussianRandom::erfseries(16), -1.0/GaussianRandom::erfseries(17),  1.0/GaussianRandom::erfseries(18), -1.0/GaussianRandom::erfseries(19),
+};
+double const libmaus2::random::GaussianRandom::pref = 2.0 / ::std::sqrt(M_PI);
+int const libmaus2::random::GaussianRandom::seriesuse = 4;
