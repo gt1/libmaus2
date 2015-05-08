@@ -183,7 +183,10 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/NameInfoBase.cpp \
 	libmaus2/bambam/parallel/RefIdInterval.cpp \
 	libmaus2/fastx/RefPathToken.cpp \
-	libmaus2/fastx/RefPathTokenVector.cpp
+	libmaus2/fastx/RefPathTokenVector.cpp \
+	libmaus2/dazzler/db/HitsFastaInfo.cpp \
+	libmaus2/dazzler/db/HitsIndexBase.cpp \
+	libmaus2/dazzler/db/DatabaseFile.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -217,6 +220,9 @@ libmaus2_scram_mod_la_SOURCES  = libmaus2/bambam/Scram.c
 
 libmaus2_includedir=$(includedir)/libmaus2/
 libmaus2_include_HEADERS=libmaus2/LibMausConfig.hpp
+
+libmaus2dazzlerdb_includedir=$(includedir)/libmaus2/dazzler/db
+libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/HitsIndexBase.hpp  libmaus2/dazzler/db/HitsFastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
@@ -1747,7 +1753,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testhdf5 \
 	testirods \
 	testfastqtobam \
-	testsamrecoding
+	testsamrecoding \
+	testdazzlerhitsdb
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2210,3 +2217,8 @@ testsamrecoding_SOURCES  = test/testsamrecoding.cpp
 testsamrecoding_LDADD    = libmaus2.la ${DLLIB}
 testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}
+
+testdazzlerhitsdb_SOURCES  = test/testdazzlerhitsdb.cpp
+testdazzlerhitsdb_LDADD    = libmaus2.la ${DLLIB}
+testdazzlerhitsdb_CPPFLAGS = @WARNCPPFLAGS@
+testdazzlerhitsdb_LDFLAGS  = ${AM_LDFLAGS}
