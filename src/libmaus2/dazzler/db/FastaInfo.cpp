@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <libmaus2/dazzler/db/HitsFastaInfo.hpp>
+#include <libmaus2/dazzler/db/FastaInfo.hpp>
 
-std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, HitsFastaInfo const & info)
+std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, FastaInfo const & info)
 {
-	return out << "HitsFastaInfo(fnumreads=" << info.fnumreads << ",fastaprolog=" << info.fastaprolog << ",fastafn=" << info.fastafn << ")";
+	return out << "FastaInfo(fnumreads=" << info.fnumreads << ",fastaprolog=" << info.fastaprolog << ",fastafn=" << info.fastafn << ")";
 }

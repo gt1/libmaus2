@@ -37,7 +37,7 @@ namespace libmaus2
 						if ( c < 0 )
 						{
 							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::align: read failure/eof" << std::endl;
+							lme.getStream() << "InputBase::align: read failure/eof" << std::endl;
 							lme.finish();
 							throw lme;
 						}
@@ -57,7 +57,7 @@ namespace libmaus2
 						if ( c < 0 )
 						{
 							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::getLittleEndianInteger4: read failure/eof while expecting number" << std::endl;
+							lme.getStream() << "InputBase::getLittleEndianInteger4: read failure/eof while expecting number" << std::endl;
 							lme.finish();
 							throw lme;
 						}
@@ -79,7 +79,7 @@ namespace libmaus2
 						if ( c < 0 )
 						{
 							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::getLittleEndianInteger4: read failure/eof while expecting number" << std::endl;
+							lme.getStream() << "InputBase::getLittleEndianInteger4: read failure/eof while expecting number" << std::endl;
 							lme.finish();
 							throw lme;
 						}
@@ -101,7 +101,7 @@ namespace libmaus2
 						if ( c < 0 )
 						{
 							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::getLittleEndianInteger8: read failure/eof while expecting number" << std::endl;
+							lme.getStream() << "InputBase::getLittleEndianInteger8: read failure/eof while expecting number" << std::endl;
 							lme.finish();
 							throw lme;
 						}

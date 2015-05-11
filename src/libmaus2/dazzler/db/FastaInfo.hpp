@@ -28,26 +28,26 @@ namespace libmaus2
 	{
 		namespace db
 		{
-			struct HitsFastaInfo
+			struct FastaInfo
 			{
 				uint64_t fnumreads;
 				std::string const fastaprolog;
 				std::string fastafn;
 				
-				HitsFastaInfo()
+				FastaInfo()
 				: fnumreads(0)
 				{
 				
 				}
 
-				HitsFastaInfo(uint64_t const rfnumreads, std::string const & rfastaprolog, std::string const & rfastafn)
+				FastaInfo(uint64_t const rfnumreads, std::string const & rfastaprolog, std::string const & rfastafn)
 				: fnumreads(rfnumreads), fastaprolog(rfastaprolog), fastafn(rfastafn)
 				{
 				
 				}
 			};
 
-			std::ostream & operator<<(std::ostream & out, HitsFastaInfo const & info);
+			std::ostream & operator<<(std::ostream & out, FastaInfo const & info);
 		}
 	}
 }

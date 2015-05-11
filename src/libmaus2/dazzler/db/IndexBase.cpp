@@ -15,11 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/dazzler/db/HitsIndexBase.hpp>
+#include <libmaus2/dazzler/db/IndexBase.hpp>
 
-std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::dazzler::db::HitsIndexBase const & H)
+std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::dazzler::db::IndexBase const & H)
 {
-	return out << "HitsIndexBase("
+	return out << "IndexBase("
 		<< "ureads=" << H.ureads << ","
 		<< "treads=" << H.treads << ","
 		<< "cutoff=" << H.cutoff << ","

@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		namespace db
 		{
-			struct HitsIndexBase : public InputBase
+			struct IndexBase : public InputBase
 			{
 				// untrimmed number of reads
 				int32_t ureads;
@@ -59,12 +59,12 @@ namespace libmaus2
 				bool loaded;
 				
 
-				HitsIndexBase()
+				IndexBase()
 				{
 				
 				}
 				
-				HitsIndexBase(std::istream & in)
+				IndexBase(std::istream & in)
 				{
 					deserialise(in);
 				}
@@ -101,7 +101,7 @@ namespace libmaus2
 				}
 			};
 
-			std::ostream & operator<<(std::ostream & out, HitsIndexBase const & H);
+			std::ostream & operator<<(std::ostream & out, IndexBase const & H);
 		}
 	}
 }

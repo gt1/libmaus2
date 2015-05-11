@@ -18,8 +18,8 @@
 #if ! defined(LIBMAUS2_DAZZLER_DB_DATABASEFILE_HPP)
 #define LIBMAUS2_DAZZLER_DB_DATABASEFILE_HPP
 
-#include <libmaus2/dazzler/db/HitsFastaInfo.hpp>
-#include <libmaus2/dazzler/db/HitsIndexBase.hpp>
+#include <libmaus2/dazzler/db/FastaInfo.hpp>
+#include <libmaus2/dazzler/db/IndexBase.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/dazzler/db/Read.hpp>
 
@@ -37,7 +37,7 @@ namespace libmaus2
 				int part;
 				std::string dbpath;
 				uint64_t nfiles;
-				std::vector<libmaus2::dazzler::db::HitsFastaInfo> fileinfo;
+				std::vector<libmaus2::dazzler::db::FastaInfo> fileinfo;
 				
 				uint64_t numblocks;
 				uint64_t blocksize;
@@ -48,7 +48,7 @@ namespace libmaus2
 				std::vector<upair> blocks;
 				
 				std::string idxpath;
-				libmaus2::dazzler::db::HitsIndexBase indexbase;
+				libmaus2::dazzler::db::IndexBase indexbase;
 				uint64_t indexoffset;
 
 				std::string bpspath;
@@ -266,7 +266,7 @@ namespace libmaus2
 						std::string const fastaprolog = tokens[1];
 						std::string const fastafn = tokens[2];
 						
-						fileinfo.push_back(libmaus2::dazzler::db::HitsFastaInfo(fnumreads,fastaprolog,fastafn));			
+						fileinfo.push_back(libmaus2::dazzler::db::FastaInfo(fnumreads,fastaprolog,fastafn));			
 					}
 					
 					std::string numblocksline;
@@ -344,7 +344,7 @@ namespace libmaus2
 					}
 					
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
-					libmaus2::dazzler::db::HitsIndexBase ldb(*Pidxfile);
+					libmaus2::dazzler::db::IndexBase ldb(*Pidxfile);
 					
 					indexbase = ldb;
 					indexoffset = Pidxfile->tellg();
