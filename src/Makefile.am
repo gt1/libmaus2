@@ -223,7 +223,7 @@ libmaus2_includedir=$(includedir)/libmaus2/
 libmaus2_include_HEADERS=libmaus2/LibMausConfig.hpp
 
 libmaus2dazzlerdb_includedir=$(includedir)/libmaus2/dazzler/db
-libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/dazzler/db/FastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp libmaus2/dazzler/db/InputBase.hpp |
+libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/dazzler/db/FastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp libmaus2/dazzler/db/InputBase.hpp \
 	libmaus2/dazzler/db/GetByteCounter.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
