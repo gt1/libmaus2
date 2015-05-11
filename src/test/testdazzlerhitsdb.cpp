@@ -18,6 +18,7 @@
 #include <iostream>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/dazzler/db/DatabaseFile.hpp>
+#include <libmaus2/dazzler/align/AlignmentFile.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -28,9 +29,15 @@ int main(int argc, char * argv[])
 		std::string s = arginfo.restargs.at(0);
 		
 		libmaus2::dazzler::db::DatabaseFile HDF(s);		
-		
+
+		#if 0		
 		for ( uint64_t i = 0; i < HDF.size(); ++i )
 			std::cout << HDF[i] << std::endl;
+		#endif
+		
+		std::string aligns = arginfo.restargs.at(1);
+		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
+		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
 	}
 	catch(std::exception const & ex)
 	{

@@ -68,6 +68,50 @@ namespace libmaus2
 				}
 
 				template<typename stream_type>
+				static int16_t getLittleEndianInteger2(stream_type & in, uint64_t & offset)
+				{
+					align(in, sizeof(int16_t), offset);
+
+					int16_t v = 0;
+					for ( size_t i = 0; i < sizeof(int16_t); ++i )
+					{
+						int c = in.get();
+						if ( c < 0 )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "InputBase::getLittleEndianInteger2: read failure/eof while expecting number" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+						offset += 1;
+						v |= (static_cast<int16_t>(static_cast<uint8_t>(c)) << (8*i));
+					}
+					return v;
+				}
+
+				template<typename stream_type>
+				static uint16_t getUnsignedLittleEndianInteger2(stream_type & in, uint64_t & offset)
+				{
+					align(in, sizeof(uint16_t), offset);
+
+					uint16_t v = 0;
+					for ( size_t i = 0; i < sizeof(uint16_t); ++i )
+					{
+						int c = in.get();
+						if ( c < 0 )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "InputBase::getLittleEndianInteger2: read failure/eof while expecting number" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+						offset += 1;
+						v |= (static_cast<uint16_t>(static_cast<uint8_t>(c)) << (8*i));
+					}
+					return v;
+				}
+
+				template<typename stream_type>
 				static uint32_t getUnsignedLittleEndianInteger4(stream_type & in, uint64_t & offset)
 				{
 					align(in, sizeof(uint32_t), offset);
