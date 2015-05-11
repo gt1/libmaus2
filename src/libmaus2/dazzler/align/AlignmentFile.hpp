@@ -31,7 +31,7 @@ namespace libmaus2
 				static uint8_t const TRACE_XOVR = 125;
 			
 				int64_t novl; // number of overlaps
-				int32_t tspace;
+				int32_t tspace; // trace spacing
 				bool small;
 				size_t tbytes;
 				

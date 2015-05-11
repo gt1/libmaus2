@@ -38,6 +38,18 @@ int main(int argc, char * argv[])
 		std::string aligns = arginfo.restargs.at(1);
 		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
+
+		libmaus2::dazzler::align::Overlap OVL;
+		while ( algn.getNextOverlap(*Palgnfile,OVL) )
+		{
+			// check path
+			int32_t p = OVL.path.bbpos;
+			for ( size_t i = 0; i < OVL.path.path.size(); ++i )
+				p += OVL.path.path[i].second;
+			assert ( p == OVL.path.bepos );
+			
+			std::cerr << OVL << std::endl;
+		}
 	}
 	catch(std::exception const & ex)
 	{
