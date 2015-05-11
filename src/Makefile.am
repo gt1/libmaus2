@@ -186,7 +186,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/RefPathTokenVector.cpp \
 	libmaus2/dazzler/db/HitsFastaInfo.cpp \
 	libmaus2/dazzler/db/HitsIndexBase.cpp \
-	libmaus2/dazzler/db/DatabaseFile.cpp
+	libmaus2/dazzler/db/DatabaseFile.cpp \
+	libmaus2/dazzler/db/Read.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -222,7 +223,8 @@ libmaus2_includedir=$(includedir)/libmaus2/
 libmaus2_include_HEADERS=libmaus2/LibMausConfig.hpp
 
 libmaus2dazzlerdb_includedir=$(includedir)/libmaus2/dazzler/db
-libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/HitsIndexBase.hpp  libmaus2/dazzler/db/HitsFastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp
+libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/HitsIndexBase.hpp  libmaus2/dazzler/db/HitsFastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp libmaus2/dazzler/db/InputBase.hpp |
+	libmaus2/dazzler/db/GetByteCounter.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp

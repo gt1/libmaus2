@@ -21,7 +21,7 @@
 #include <libmaus2/dazzler/db/HitsFastaInfo.hpp>
 #include <libmaus2/dazzler/db/HitsIndexBase.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
-
+#include <libmaus2/dazzler/db/Read.hpp>
 
 namespace libmaus2
 {
@@ -50,6 +50,8 @@ namespace libmaus2
 				std::string idxpath;
 				libmaus2::dazzler::db::HitsIndexBase indexbase;
 				uint64_t indexoffset;
+
+				std::string bpspath;
 
 				static std::string getPath(std::string const & s)
 				{
@@ -128,6 +130,69 @@ namespace libmaus2
 					
 					return false;
 				}
+
+				size_t decodeRead(
+					std::istream & bpsstream, 
+					libmaus2::autoarray::AutoArray<char> & A,
+					int32_t const rlen
+				) const
+				{
+					if ( static_cast<int32_t>(A.size()) < rlen )
+						A = libmaus2::autoarray::AutoArray<char>(rlen,false);
+					return decodeRead(bpsstream,A.begin(),rlen);
+				}
+				
+				size_t decodeRead(
+					std::istream & bpsstream,
+					char * const C,
+					int32_t const rlen
+				) const
+				{
+					bpsstream.read(C + (rlen - (rlen+3)/4),(rlen+3)/4);
+					if ( bpsstream.gcount() != (rlen+3)/4 )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "libmaus2::dazzler::db::Read::decode(): input failure" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					unsigned char * p = reinterpret_cast<unsigned char *>(C + ( rlen - ((rlen+3)>>2) ));
+					char * o = C;
+					for ( int32_t i = 0; i < (rlen>>2); ++i )
+					{
+						unsigned char v = *(p++);
+						
+						*(o++) = libmaus2::fastx::remapChar((v >> 6)&3);
+						*(o++) = libmaus2::fastx::remapChar((v >> 4)&3);
+						*(o++) = libmaus2::fastx::remapChar((v >> 2)&3);
+						*(o++) = libmaus2::fastx::remapChar((v >> 0)&3);
+					}
+					if ( rlen & 3 )
+					{
+						unsigned char v = *(p++);
+						size_t rest = rlen - ((rlen>>2)<<2);
+
+						if ( rest )
+						{
+							*(o++) = libmaus2::fastx::remapChar((v >> 6)&3);
+							rest--;
+						}
+						if ( rest )
+						{
+							*(o++) = libmaus2::fastx::remapChar((v >> 4)&3);
+							rest--;
+						}
+						if ( rest )
+						{
+							*(o++) = libmaus2::fastx::remapChar((v >> 2)&3);
+							rest--;
+						}
+					}
+					
+					return rlen;
+				}
+
 				
 				DatabaseFile()
 				{
@@ -283,6 +348,107 @@ namespace libmaus2
 					
 					indexbase = ldb;
 					indexoffset = Pidxfile->tellg();
+
+					bpspath = path + "/." + root + ".bps";
+					if ( ! libmaus2::aio::InputStreamFactoryContainer::tryOpen(bpspath) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Cannot find index file " << bpspath << std::endl;
+						lme.finish();
+						throw lme;			
+					}
+	
+					#if 0
+					libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+					libmaus2::autoarray::AutoArray<char> B;
+					for ( int64_t i = 0; i < indexbase.nreads; ++i )
+					{
+						Read R = getRead(i);
+						Pbpsfile->seekg(R.boff,std::ios::beg);
+						size_t const l = R.decode(*Pbpsfile,B,R.rlen);
+						std::cerr << R << "\t" << std::string(B.begin(),B.begin()+l) << std::endl;
+					}
+					#endif
+					
+					#if 0
+					libmaus2::autoarray::AutoArray<char> A;
+					std::vector<uint64_t> off;
+					decodeReads(0, indexbase.nreads, A, off);
+					
+					for ( uint64_t i = 0; i < indexbase.nreads; ++i )
+					{
+						std::cerr << std::string(A.begin()+off[i],A.begin()+off[i+1]) << std::endl;
+					}
+					std::cerr << off[indexbase.nreads] << std::endl;
+					#endif
+				}
+				
+				Read getRead(size_t const i) const
+				{
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+
+					Pidxfile->seekg(indexoffset + i * Read::serialisedSize);
+					
+					Read R(*Pidxfile);
+					
+					return R;
+				}
+				
+				void getReadInterval(size_t const low, size_t const high, std::vector<Read> & V) const
+				{
+					V.resize(high-low);
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					Pidxfile->seekg(indexoffset + low * Read::serialisedSize);
+					for ( size_t i = low; i < high; ++i )
+						V[i-low].deserialise(*Pidxfile);
+				}
+				
+				void decodeReads(size_t const low, size_t const high, libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const
+				{
+					off.resize((high-low)+1);
+					off[0] = 0;
+					
+					if ( high - low )
+					{
+						libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+						Pidxfile->seekg(indexoffset + low * Read::serialisedSize);
+						
+						Read R0(*Pidxfile);
+						Pidxfile->seekg(indexoffset + low * Read::serialisedSize);
+
+						libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+						Pbpsfile->seekg(R0.boff,std::ios::beg);
+						
+						for ( size_t i = 0; i < high-low; ++i )
+						{
+							Read R(*Pidxfile);
+							off[i+1] = off[i] + R.rlen;
+						}
+
+						A = libmaus2::autoarray::AutoArray<char>(off[high],false);
+						for ( size_t i = 0; i < high-low; ++i )
+							decodeRead(*Pbpsfile,A.begin()+off[i],off[i+1]-off[i]);
+					}
+				}
+				
+				size_t decodeRead(size_t const i, libmaus2::autoarray::AutoArray<char> & A) const
+				{
+					Read const R = getRead(i);
+					libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+					Pbpsfile->seekg(R.boff,std::ios::beg);
+					return decodeRead(*Pbpsfile,A,R.rlen);
+				}
+				
+				std::string operator[](size_t const i) const
+				{
+					libmaus2::autoarray::AutoArray<char> A;
+					size_t const rlen = decodeRead(i,A);
+					return std::string(A.begin(),A.begin()+rlen);
+				}
+				
+				size_t size() const
+				{
+					return indexbase.nreads;
 				}
 			};
 

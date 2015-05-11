@@ -18,8 +18,7 @@
 #if ! defined(LIBMAUS2_DAZZLER_DB_HITSINDEXBASE_HPP)
 #define LIBMAUS2_DAZZLER_DB_HITSINDEXBASE_HPP
 
-#include <libmaus2/types/types.hpp>
-#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/dazzler/db/InputBase.hpp>
 #include <istream>
 
 namespace libmaus2
@@ -28,7 +27,7 @@ namespace libmaus2
 	{
 		namespace db
 		{
-			struct HitsIndexBase
+			struct HitsIndexBase : public InputBase
 			{
 				// untrimmed number of reads
 				int32_t ureads;
@@ -59,101 +58,7 @@ namespace libmaus2
 				// are records loaded into memory
 				bool loaded;
 				
-				static void align(std::istream & in, size_t const s, uint64_t & offset)
-				{
-					while ( offset % s )
-					{
-						int c = in.get();
-						if ( c < 0 )
-						{
-							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::align: read failure/eof" << std::endl;
-							lme.finish();
-							throw lme;
-						}
-						offset += 1;
-					}
-				}
 
-				static int32_t getLittleEndianInteger4(std::istream & in, uint64_t & offset)
-				{
-					align(in, sizeof(int32_t), offset);
-
-					int32_t v = 0;
-					for ( size_t i = 0; i < sizeof(int32_t); ++i )
-					{
-						int c = in.get();
-						if ( c < 0 )
-						{
-							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::getLittleEndianInteger4: read failure/eof while expecting number" << std::endl;
-							lme.finish();
-							throw lme;
-						}
-						offset += 1;
-						v |= (static_cast<int32_t>(static_cast<uint8_t>(c)) << (8*i));
-					}
-					return v;
-				}
-
-				static uint32_t getUnsignedLittleEndianInteger4(std::istream & in, uint64_t & offset)
-				{
-					align(in, sizeof(uint32_t), offset);
-
-					uint32_t v = 0;
-					for ( size_t i = 0; i < sizeof(uint32_t); ++i )
-					{
-						int c = in.get();
-						if ( c < 0 )
-						{
-							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::getLittleEndianInteger4: read failure/eof while expecting number" << std::endl;
-							lme.finish();
-							throw lme;
-						}
-						offset += 1;
-						v |= (static_cast<uint32_t>(static_cast<uint8_t>(c)) << (8*i));
-					}
-					return v;
-				}
-
-				static int64_t getLittleEndianInteger8(std::istream & in, uint64_t & offset)
-				{
-					align(in, sizeof(int64_t), offset);
-
-					int64_t v = 0;
-					for ( size_t i = 0; i < sizeof(int64_t); ++i )
-					{
-						int c = in.get();
-						if ( c < 0 )
-						{
-							libmaus2::exception::LibMausException lme;
-							lme.getStream() << "HitsIndexBase::getLittleEndianInteger8: read failure/eof while expecting number" << std::endl;
-							lme.finish();
-							throw lme;
-						}
-						offset += 1;
-						v |= (static_cast<int64_t>(static_cast<uint8_t>(c)) << (8*i));
-					}
-					return v;
-				}
-				
-				static float getFloat(std::istream & in, uint64_t & offset)
-				{
-					align(in, sizeof(int32_t), offset);
-					
-					uint32_t const u = getUnsignedLittleEndianInteger4(in, offset);
-					union numberpun
-					{
-						float fvalue;
-						uint32_t uvalue;
-					};
-					numberpun np;
-					np.uvalue = u;
-					return np.fvalue;
-				}
-
-				
 				HitsIndexBase()
 				{
 				
@@ -201,3 +106,4 @@ namespace libmaus2
 	}
 }
 #endif
+// 40

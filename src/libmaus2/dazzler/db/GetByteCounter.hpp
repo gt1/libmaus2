@@ -15,26 +15,39 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <iostream>
-#include <libmaus2/util/ArgInfo.hpp>
-#include <libmaus2/dazzler/db/DatabaseFile.hpp>
+#if ! defined(LIBMAUS2_DAZZLER_DB_GETBYTECOUNTER_HPP)
+#define LIBMAUS2_DAZZLER_DB_GETBYTECOUNTER_HPP
 
-int main(int argc, char * argv[])
+#include <libmaus2/types/types.hpp>
+
+namespace libmaus2
 {
-	try
+	namespace dazzler
 	{
-		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
-		std::string s = arginfo.restargs.at(0);
-		
-		libmaus2::dazzler::db::DatabaseFile HDF(s);		
-		
-		for ( uint64_t i = 0; i < HDF.size(); ++i )
-			std::cout << HDF[i] << std::endl;
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
+		namespace db
+		{
+			struct GetByteCounter
+			{
+				uint64_t c;
+				
+				GetByteCounter()
+				: c(0)
+				{
+				
+				}
+				
+				int get()
+				{
+					++c;
+					return 0;
+				}
+				
+				bool operator()() const
+				{
+					return true;
+				}
+			};
+		}
 	}
 }
+#endif

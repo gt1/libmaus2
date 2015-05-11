@@ -15,26 +15,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <iostream>
-#include <libmaus2/util/ArgInfo.hpp>
-#include <libmaus2/dazzler/db/DatabaseFile.hpp>
+#include <libmaus2/dazzler/db/Read.hpp>
 
-int main(int argc, char * argv[])
+std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::dazzler::db::Read const & R)
 {
-	try
-	{
-		libmaus2::util::ArgInfo const arginfo(argc,argv);
-		
-		std::string s = arginfo.restargs.at(0);
-		
-		libmaus2::dazzler::db::DatabaseFile HDF(s);		
-		
-		for ( uint64_t i = 0; i < HDF.size(); ++i )
-			std::cout << HDF[i] << std::endl;
-	}
-	catch(std::exception const & ex)
-	{
-		std::cerr << ex.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+	return out << "Read(" 
+		<< "origin=" << R.origin << ","
+		<< "rlen=" << R.rlen << ","
+		<< "fpulse=" << R.fpulse << ","
+		<< "boff=" << R.boff << ","
+		<< "coff=" << R.coff << ","
+		<< "flags=" << R.flags << ")";
 }
+
+size_t const libmaus2::dazzler::db::Read::serialisedSize = libmaus2::dazzler::db::Read::computeSerialisedSize();
