@@ -1761,7 +1761,7 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testirods \
 	testfastqtobam \
 	testsamrecoding \
-	testdazzlerhitsdb
+	testdazzlerdb
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2225,7 +2225,7 @@ testsamrecoding_LDADD    = libmaus2.la ${DLLIB}
 testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}
 
-testdazzlerhitsdb_SOURCES  = test/testdazzlerhitsdb.cpp
-testdazzlerhitsdb_LDADD    = libmaus2.la ${DLLIB}
-testdazzlerhitsdb_CPPFLAGS = @WARNCPPFLAGS@
-testdazzlerhitsdb_LDFLAGS  = ${AM_LDFLAGS}
+testdazzlerdb_SOURCES  = test/testdazzlerdb.cpp
+testdazzlerdb_LDADD    = libmaus2.la ${DLLIB}
+testdazzlerdb_CPPFLAGS = @WARNCPPFLAGS@
+testdazzlerdb_LDFLAGS  = ${AM_LDFLAGS}
