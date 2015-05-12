@@ -106,4 +106,3 @@ namespace libmaus2
 	}
 }
 #endif
-// 40

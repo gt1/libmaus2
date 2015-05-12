@@ -40,13 +40,13 @@ namespace libmaus2
 			virtual ~StdInputOutputStreamFactory() {}
 			virtual libmaus2::aio::InputOutputStream::unique_ptr_type constructUnique(std::string const & filename, std::ios_base::openmode mode)
 			{
-				libmaus2::util::shared_ptr<std::iostream>::type iptr(new std::fstream(filename,mode));
+				libmaus2::util::shared_ptr<std::iostream>::type iptr(new std::fstream(filename.c_str(),mode));
 				libmaus2::aio::InputOutputStream::unique_ptr_type istr(new libmaus2::aio::InputOutputStream(iptr));
 				return UNIQUE_PTR_MOVE(istr);
 			}
 			virtual libmaus2::aio::InputOutputStream::shared_ptr_type constructShared(std::string const & filename, std::ios_base::openmode mode)
 			{
-				libmaus2::util::shared_ptr<std::iostream>::type iptr(new std::fstream(filename,mode));
+				libmaus2::util::shared_ptr<std::iostream>::type iptr(new std::fstream(filename.c_str(),mode));
 				libmaus2::aio::InputOutputStream::shared_ptr_type istr(new libmaus2::aio::InputOutputStream(iptr));
 				return istr;
 			}
