@@ -1,7 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2015 German Tischler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,16 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/lcs/EditDistanceResult.hpp>
 
-std::ostream & libmaus2::lcs::operator<<(std::ostream & out, ::libmaus2::lcs::EditDistanceResult const & o)
+#include <libmaus2/dazzler/db/FastaInfo.hpp>
+
+std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, FastaInfo const & info)
 {
-	out << "libmaus2::lcs::EditDistanceResult("
-		<<  "+=" << o.nummat
-		<< ",-=" << o.nummis
-		<< ",I=" << o.numins
-		<< ",D=" << o.numdel
-		<< ",d=" << (o.nummis+o.numins+o.numdel)
-		<< ")";
-	return out;
+	return out << "FastaInfo(fnumreads=" << info.fnumreads << ",fastaprolog=" << info.fastaprolog << ",fastafn=" << info.fastafn << ")";
 }

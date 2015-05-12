@@ -1,7 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2015 German Tischler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,16 +15,39 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/lcs/EditDistanceResult.hpp>
+#if ! defined(LIBMAUS2_DAZZLER_DB_GETBYTECOUNTER_HPP)
+#define LIBMAUS2_DAZZLER_DB_GETBYTECOUNTER_HPP
 
-std::ostream & libmaus2::lcs::operator<<(std::ostream & out, ::libmaus2::lcs::EditDistanceResult const & o)
+#include <libmaus2/types/types.hpp>
+
+namespace libmaus2
 {
-	out << "libmaus2::lcs::EditDistanceResult("
-		<<  "+=" << o.nummat
-		<< ",-=" << o.nummis
-		<< ",I=" << o.numins
-		<< ",D=" << o.numdel
-		<< ",d=" << (o.nummis+o.numins+o.numdel)
-		<< ")";
-	return out;
+	namespace dazzler
+	{
+		namespace db
+		{
+			struct GetByteCounter
+			{
+				uint64_t c;
+				
+				GetByteCounter()
+				: c(0)
+				{
+				
+				}
+				
+				int get()
+				{
+					++c;
+					return 0;
+				}
+				
+				bool operator()() const
+				{
+					return true;
+				}
+			};
+		}
+	}
 }
+#endif
