@@ -48,6 +48,28 @@ namespace libmaus2
 			
 			}
 			
+			void reset()
+			{
+				ta = te = trace.begin();
+			}
+			
+			void push(AlignmentTraceContainer const & O)
+			{
+				size_t const pre = getTraceLength();
+				size_t const oth = O.getTraceLength();
+				
+				if ( pre + oth > trace.size() )
+				{
+					trace.resize(pre + oth);
+					
+					ta = trace.begin();
+					te = trace.begin()+pre;
+				}
+				
+				for ( size_t i = 0; i < oth; ++i )
+					*(te++) = O.ta[i];
+			}
+			
 			void resize(uint64_t const tracelen)
 			{
 				trace = ::libmaus2::autoarray::AutoArray<step_type>(tracelen,false);

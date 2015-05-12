@@ -25,6 +25,7 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, ::libmaus2::lcs::Ed
 		<< ",-=" << o.nummis
 		<< ",I=" << o.numins
 		<< ",D=" << o.numdel
+		<< ",d=" << (o.nummis+o.numins+o.numdel)
 		<< ")";
 	return out;
 }

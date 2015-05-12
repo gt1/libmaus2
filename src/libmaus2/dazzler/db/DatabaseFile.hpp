@@ -22,6 +22,7 @@
 #include <libmaus2/dazzler/db/IndexBase.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/dazzler/db/Read.hpp>
+#include <libmaus2/rank/ImpCacheLineRank.hpp>
 
 namespace libmaus2
 {
@@ -52,6 +53,8 @@ namespace libmaus2
 				uint64_t indexoffset;
 
 				std::string bpspath;
+				
+				libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ptrim;
 
 				static std::string getPath(std::string const & s)
 				{
@@ -381,13 +384,32 @@ namespace libmaus2
 					}
 					std::cerr << off[indexbase.nreads] << std::endl;
 					#endif
+
+					uint64_t const n = indexbase.nreads;
+					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
+					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
+										
+					libmaus2::rank::ImpCacheLineRank::WriteContext context = Ptrim->getWriteContext();
+					for ( uint64_t i = 0; i < n; ++i )
+						context.writeBit(true);
+					context.flush();
 				}
 				
 				Read getRead(size_t const i) const
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					
+					if ( i >= size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getRead: read index " << i << " out of range (not in [" << 0 << "," << size() << ")" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					uint64_t const mappedindex = Ptrim->select1(i);
 
-					Pidxfile->seekg(indexoffset + i * Read::serialisedSize);
+					Pidxfile->seekg(indexoffset + mappedindex * Read::serialisedSize);
 					
 					Read R(*Pidxfile);
 					
@@ -396,11 +418,32 @@ namespace libmaus2
 				
 				void getReadInterval(size_t const low, size_t const high, std::vector<Read> & V) const
 				{
+					V.resize(0);
 					V.resize(high-low);
+					
+					if ( high-low && high > size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getReadInterval: read index " << high-1 << " out of range (not in [" << 0 << "," << size() << ")" << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
-					Pidxfile->seekg(indexoffset + low * Read::serialisedSize);
 					for ( size_t i = low; i < high; ++i )
+					{
+						uint64_t const mappedindex = Ptrim->select1(i);
+						
+						if ( Pidxfile->tellg() != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							Pidxfile->seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
 						V[i-low].deserialise(*Pidxfile);
+					}
+				}
+				
+				void getAllReads(std::vector<Read> & V) const
+				{
+					getReadInterval(0,size(),V);
 				}
 				
 				void decodeReads(size_t const low, size_t const high, libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const
@@ -410,24 +453,21 @@ namespace libmaus2
 					
 					if ( high - low )
 					{
-						libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
-						Pidxfile->seekg(indexoffset + low * Read::serialisedSize);
-						
-						Read R0(*Pidxfile);
-						Pidxfile->seekg(indexoffset + low * Read::serialisedSize);
-
-						libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
-						Pbpsfile->seekg(R0.boff,std::ios::beg);
+						std::vector<Read> V;
+						getReadInterval(low,high,V);
 						
 						for ( size_t i = 0; i < high-low; ++i )
-						{
-							Read R(*Pidxfile);
-							off[i+1] = off[i] + R.rlen;
-						}
+							off[i+1] = off[i] + V[i].rlen;
+
+						libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
 
 						A = libmaus2::autoarray::AutoArray<char>(off[high],false);
 						for ( size_t i = 0; i < high-low; ++i )
+						{
+							if ( Pbpsfile->tellg() != V[i].boff )
+								Pbpsfile->seekg(V[i].boff,std::ios::beg);
 							decodeRead(*Pbpsfile,A.begin()+off[i],off[i+1]-off[i]);
+						}
 					}
 				}
 				
@@ -448,7 +488,32 @@ namespace libmaus2
 				
 				size_t size() const
 				{
-					return indexbase.nreads;
+					return Ptrim->n ? Ptrim->rank1(Ptrim->n-1) : 0;
+				}
+				
+				/**
+				 * compute the trim vector. This function currently only masks out reads which do not have the DB_BEST flag set.
+				 **/
+				void computeTrimVector()
+				{
+					uint64_t const n = indexbase.nreads;
+					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
+					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
+
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					Pidxfile->seekg(indexoffset);
+										
+					libmaus2::rank::ImpCacheLineRank::WriteContext context = Ptrim->getWriteContext();
+					for ( uint64_t i = 0; i < n; ++i )
+					{
+						Read R(*Pidxfile);
+						
+						bool const keep = (R.flags & Read::DB_BEST) != 0;
+						
+						context.writeBit(keep);
+					}
+					
+					context.flush();
 				}
 			};
 

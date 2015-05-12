@@ -58,6 +58,11 @@ namespace libmaus2
 				{
 					deserialise(in);
 				}
+				
+				bool isInverse() const
+				{
+					return (flags & 1) != 0;
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, Overlap const & P);
