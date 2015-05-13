@@ -1,3 +1,9 @@
+libmaus2 (2.0.11-1) unstable; urgency=medium
+
+  * fixes for older versions of gcc 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 13 May 2015 15:00:23 +0200
+
 libmaus2 (2.0.10-1) unstable; urgency=medium
 
   * add dazzler DB and alignment decoding classes 
