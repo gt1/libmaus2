@@ -42,7 +42,7 @@ namespace libmaus2
 			
 			}
 			
-			typename libmaus2::aio::NamedTemporaryFile::shared_ptr_type operator()()
+			libmaus2::aio::NamedTemporaryFile::shared_ptr_type operator()()
 			{
 				uint64_t const lid = static_cast<uint64_t>((*S)++);
 				std::ostringstream fnostr;

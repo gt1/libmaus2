@@ -31,7 +31,7 @@ namespace libmaus2
 			struct FastaInfo
 			{
 				uint64_t fnumreads;
-				std::string const fastaprolog;
+				std::string fastaprolog;
 				std::string fastafn;
 				
 				FastaInfo()

@@ -430,12 +430,16 @@ namespace libmaus2
 					}
 
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					
 					for ( size_t i = low; i < high; ++i )
 					{
 						uint64_t const mappedindex = Ptrim->select1(i);
 						
-						if ( Pidxfile->tellg() != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
-							Pidxfile->seekg(indexoffset + mappedindex * Read::serialisedSize);
+						if ( 
+							static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) 
+						)
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
 						
 						V[i-low].deserialise(*Pidxfile);
 					}
@@ -460,12 +464,15 @@ namespace libmaus2
 							off[i+1] = off[i] + V[i].rlen;
 
 						libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+						std::istream & bpsfile = *Pbpsfile;
 
 						A = libmaus2::autoarray::AutoArray<char>(off[high],false);
 						for ( size_t i = 0; i < high-low; ++i )
 						{
-							if ( Pbpsfile->tellg() != V[i].boff )
-								Pbpsfile->seekg(V[i].boff,std::ios::beg);
+							if ( 
+								static_cast<int64_t>(bpsfile.tellg()) != static_cast<int64_t>(V[i].boff)
+							)
+								bpsfile.seekg(V[i].boff,std::ios::beg);
 							decodeRead(*Pbpsfile,A.begin()+off[i],off[i+1]-off[i]);
 						}
 					}

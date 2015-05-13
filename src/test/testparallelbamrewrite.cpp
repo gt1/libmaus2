@@ -655,7 +655,7 @@ namespace libmaus2
 						if ( parseStallSlot )
 							STP.printLog(std::cerr);
 										
-						assert ( parseStallSlot == 0 );
+						assert ( parseStallSlot == AlignmentBuffer::shared_ptr_type() );
 
 						parseStallSlot = algn;
 					}

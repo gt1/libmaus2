@@ -49,3 +49,6 @@ src/test[a-zA-Z]*
 */*/*/.deps
 */*/*/*/.deps
 log*
+compile_gcc_*.sh
+compile.sh
+compile_clang.sh
