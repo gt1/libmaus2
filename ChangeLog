@@ -1,3 +1,9 @@
+libmaus2 (2.0.12-1) unstable; urgency=medium
+
+  * fix installation (missing file) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 13 May 2015 16:24:23 +0200
+
 libmaus2 (2.0.11-1) unstable; urgency=medium
 
   * fixes for older versions of gcc 
