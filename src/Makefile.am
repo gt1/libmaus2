@@ -183,7 +183,13 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/NameInfoBase.cpp \
 	libmaus2/bambam/parallel/RefIdInterval.cpp \
 	libmaus2/fastx/RefPathToken.cpp \
-	libmaus2/fastx/RefPathTokenVector.cpp
+	libmaus2/fastx/RefPathTokenVector.cpp \
+	libmaus2/dazzler/db/FastaInfo.cpp \
+	libmaus2/dazzler/db/IndexBase.cpp \
+	libmaus2/dazzler/db/DatabaseFile.cpp \
+	libmaus2/dazzler/db/Read.cpp \
+	libmaus2/dazzler/align/Path.cpp \
+	libmaus2/dazzler/align/Overlap.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -217,6 +223,13 @@ libmaus2_scram_mod_la_SOURCES  = libmaus2/bambam/Scram.c
 
 libmaus2_includedir=$(includedir)/libmaus2/
 libmaus2_include_HEADERS=libmaus2/LibMausConfig.hpp
+
+libmaus2dazzlerdb_includedir=$(includedir)/libmaus2/dazzler/db
+libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/dazzler/db/FastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp libmaus2/dazzler/db/InputBase.hpp \
+	libmaus2/dazzler/db/GetByteCounter.hpp
+	
+libmaus2dazzleralign_includedir=$(includedir)/libmaus2/dazzler/align
+libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
@@ -1392,7 +1405,9 @@ libmaus2lcp_include_HEADERS=\
 
 libmaus2random_includedir=$(includedir)/libmaus2/random
 libmaus2random_include_HEADERS=\
-	libmaus2/random/Random.hpp
+	libmaus2/random/Random.hpp \
+	libmaus2/random/UniformUnitRandom.hpp \
+	libmaus2/random/GaussianRandom.hpp
 
 libmaus2graph_includedir=$(includedir)/libmaus2/graph
 libmaus2graph_include_HEADERS=\
@@ -1745,7 +1760,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testhdf5 \
 	testirods \
 	testfastqtobam \
-	testsamrecoding
+	testsamrecoding \
+	testdazzlerdb
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2208,3 +2224,8 @@ testsamrecoding_SOURCES  = test/testsamrecoding.cpp
 testsamrecoding_LDADD    = libmaus2.la ${DLLIB}
 testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}
+
+testdazzlerdb_SOURCES  = test/testdazzlerdb.cpp
+testdazzlerdb_LDADD    = libmaus2.la ${DLLIB}
+testdazzlerdb_CPPFLAGS = @WARNCPPFLAGS@
+testdazzlerdb_LDFLAGS  = ${AM_LDFLAGS}

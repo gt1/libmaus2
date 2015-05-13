@@ -1,7 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2013 German Tischler
-    Copyright (C) 2011-2013 Genome Research Limited
+    Copyright (C) 2015 German Tischler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,16 +15,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/lcs/EditDistanceResult.hpp>
+#include <libmaus2/dazzler/align/Path.hpp>
 
-std::ostream & libmaus2::lcs::operator<<(std::ostream & out, ::libmaus2::lcs::EditDistanceResult const & o)
+std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, Path const & P)
 {
-	out << "libmaus2::lcs::EditDistanceResult("
-		<<  "+=" << o.nummat
-		<< ",-=" << o.nummis
-		<< ",I=" << o.numins
-		<< ",D=" << o.numdel
-		<< ",d=" << (o.nummis+o.numins+o.numdel)
-		<< ")";
+	out << "Path(";
+
+	out << "tlen=" << P.tlen << ";";
+	out << "diffs=" << P.diffs << ";";
+	out << "abpos=" << P.abpos << ";";
+	out << "bbpos=" << P.bbpos << ";";
+	out << "aepos=" << P.aepos << ";";
+	out << "bepos=" << P.bepos << ";";
+	
+	for ( size_t i = 0; i < P.path.size(); ++i )
+		out << "[" << P.path[i].first << "," << P.path[i].second << "]" << (i+1 < P.path.size() ? ";" : "");
+	
+	out << ")";
+	
 	return out;
 }
