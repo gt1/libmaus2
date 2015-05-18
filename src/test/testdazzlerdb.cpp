@@ -40,6 +40,7 @@ int main(int argc, char * argv[])
 		}
 		
 		bool const printAlignments = arginfo.getValue<int>("print",1);
+		bool const loadall = arginfo.getValue<int>("loadall",false);
 		
 		std::string const dbfn = arginfo.restargs.at(0);
 		std::string const aligns = arginfo.restargs.at(1);
@@ -53,6 +54,12 @@ int main(int argc, char * argv[])
 		std::vector<libmaus2::dazzler::db::Read> allReads;
 		DB.getAllReads(allReads);
 		#endif
+	
+		libmaus2::autoarray::AutoArray<char> readsA;
+		std::vector<uint64_t> readsOff;	
+		
+		if ( loadall )
+			DB.decodeAllReads(readsA,readsOff);
 		
 		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
@@ -80,9 +87,10 @@ int main(int argc, char * argv[])
 			#endif
 			
 			// read A
-			std::string const aread = DB[OVL.aread];
+			std::string const aread = loadall ? std::string(readsA.begin()+readsOff[OVL.aread],readsA.begin()+readsOff[OVL.aread+1]) : DB[OVL.aread];
 			// read B (or reverse complement)
-			std::string const bread = OVL.isInverse() ? libmaus2::fastx::reverseComplementUnmapped(DB[OVL.bread]) : DB[OVL.bread];
+			std::string const braw  = loadall ? std::string(readsA.begin()+readsOff[OVL.bread],readsA.begin()+readsOff[OVL.bread+1]) : DB[OVL.bread];
+			std::string const bread = OVL.isInverse() ? libmaus2::fastx::reverseComplementUnmapped(braw) : braw;
 
 			// part of A used for alignment			
 			std::string const asub = aread.substr(OVL.path.abpos,OVL.path.aepos-OVL.path.abpos);
