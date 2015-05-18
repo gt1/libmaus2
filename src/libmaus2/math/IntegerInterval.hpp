@@ -68,6 +68,22 @@ namespace libmaus2
 				return IntegerInterval<N>(B.from,std::min(B.to,A.to));
 			}
 			
+			static IntegerInterval<N> span(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
+			{
+				if ( A.isEmpty() )
+					return B;
+				else if ( B.isEmpty() )
+					return A;
+				else
+				{
+					if ( A.from > B.from )
+						return span(B,A);
+					assert ( A.from <= B.from );
+					
+					return IntegerInterval<N>(A.from, std::max(A.to,B.to));
+				}
+			}
+			
 			IntegerInterval<N> intersection(IntegerInterval<N> const & B) const
 			{
 				return intersection(*this,B);
@@ -109,6 +125,39 @@ namespace libmaus2
 				
 				return R;
 			}
+			
+			bool contains(IntegerInterval<N> const & I) const
+			{
+				if ( I.isEmpty() )
+				{
+					return true;
+				}
+				else if ( isEmpty() )
+				{
+					return false;
+				}
+				else
+				{
+					return from <= I.from && to >= I.to;
+				}
+			}
+			
+			bool operator==(IntegerInterval<N> const & I) const
+			{
+				if ( isEmpty() )
+					return I.isEmpty();
+				else
+					return from == I.from && to == I.to;
+			}
+		};
+
+		template<typename N>
+		std::ostream & operator<<(std::ostream & out, IntegerInterval<N> const & II)
+		{
+			if ( II.from <= II.to )
+				return out << '[' << II.from << "," << II.to << ']';
+			else
+				return out << "[empty]";
 		};
 	}
 }
