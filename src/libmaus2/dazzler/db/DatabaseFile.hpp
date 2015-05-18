@@ -493,6 +493,11 @@ namespace libmaus2
 					return std::string(A.begin(),A.begin()+rlen);
 				}
 				
+				void decodeAllReads(libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const
+				{
+					decodeReads(0, size(), A, off);
+				}
+				
 				size_t size() const
 				{
 					return Ptrim->n ? Ptrim->rank1(Ptrim->n-1) : 0;
