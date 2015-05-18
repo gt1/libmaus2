@@ -1610,7 +1610,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/LocalEditDistance.hpp \
 	libmaus2/lcs/LocalEditDistanceResult.hpp \
 	libmaus2/lcs/MetaLocalEditDistance.hpp \
-	libmaus2/lcs/BandedLocalEditDistance.hpp
+	libmaus2/lcs/BandedLocalEditDistance.hpp \
+	libmaus2/lcs/ND.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
@@ -1761,7 +1762,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testirods \
 	testfastqtobam \
 	testsamrecoding \
-	testdazzlerdb
+	testdazzlerdb \
+	testnd
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2229,3 +2231,8 @@ testdazzlerdb_SOURCES  = test/testdazzlerdb.cpp
 testdazzlerdb_LDADD    = libmaus2.la ${DLLIB}
 testdazzlerdb_CPPFLAGS = @WARNCPPFLAGS@
 testdazzlerdb_LDFLAGS  = ${AM_LDFLAGS}
+
+testnd_SOURCES  = test/testnd.cpp
+testnd_LDADD    = libmaus2.la ${DLLIB}
+testnd_CPPFLAGS = @WARNCPPFLAGS@
+testnd_LDFLAGS  = ${AM_LDFLAGS}

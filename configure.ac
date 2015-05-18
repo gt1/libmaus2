@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.12,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:12:0
+AC_INIT(libmaus2,2.0.13,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:13:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2579,7 +2579,7 @@ TESTPROGS="${TESTPROGS} testbytecnt teststronglyconnectedcomponents"
 TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
 TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
-TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb"
+TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=
