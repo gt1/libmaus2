@@ -21,6 +21,7 @@
 #include <libmaus2/dazzler/align/AlignmentFile.hpp>
 #include <libmaus2/lcs/EditDistance.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
+#include <libmaus2/lcs/ND.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -61,8 +62,8 @@ int main(int argc, char * argv[])
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 		uint64_t const cols = isatty(STDOUT_FILENO) ? w.ws_col : 80;
 
-		libmaus2::lcs::EditDistance<> ED;
 		libmaus2::lcs::EditDistanceTraceContainer ATC;		
+		libmaus2::lcs::ND ND;
 		libmaus2::dazzler::align::Overlap OVL;
 		
 		// number of alignments processed
@@ -89,16 +90,15 @@ int main(int argc, char * argv[])
 			std::string const bsub = bread.substr(OVL.path.bbpos,OVL.path.bepos-OVL.path.bbpos);
 
 			#if 0
-			libmaus2::lcs::EditDistance<> ED;
-			libmaus2::lcs::EditDistanceResult ED_EDR = ED.process(
+			libmaus2::lcs::EditDistance<> LND;
+			LND.process(
 				asub.begin(),
 				asub.size(),
 				bsub.begin(),
-				bsub.size()
-				/* , k  */
+				bsub.size(),
+				std::numeric_limits<uint64_t>::max()
 			);
-			std::cerr << ED_EDR << std::endl;
-			ED.printAlignmentLines(std::cout,asub,bsub,cols);
+			LND.printAlignmentLines(std::cout,asub,bsub,cols);
 			#endif
 			
 			// current point on A
@@ -121,18 +121,27 @@ int main(int argc, char * argv[])
 				// block on B
 				std::string const bsubsub = bread.substr(b_i,b_i_1-b_i);
 
+				bool const ok = ND.process(
+					asubsub.begin(),
+					asubsub.size(),
+					bsubsub.begin(),
+					bsubsub.size()
+				);
+				assert ( ok );
+
 				#if 0
-				libmaus2::lcs::EditDistanceResult ED_EDR = 
+				std::cout << asubsub << std::endl;
+				std::cout << bsubsub << std::endl;
+				ND.printAlignmentLines(std::cout,asubsub,bsubsub,cols);
 				#endif
-					// compute (global) alignment of blocks
-					ED.process(asubsub.begin(),asubsub.size(),bsubsub.begin(),bsubsub.size()/* , k  */);
+				
 				#if 0
 				std::cerr << ED_EDR << "\t" << OVL.path.path[i].first << std::endl;
 				ED.printAlignmentLines(std::cout,asubsub,bsubsub,cols);
 				#endif
 				
 				// add trace to full alignment
-				ATC.push(ED);
+				ATC.push(ND);
 				
 				// update start points
 				b_i = b_i_1;
