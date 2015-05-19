@@ -62,6 +62,20 @@ namespace libmaus2
 			{
 				return static_cast<AlignmentTraceContainer const &>(*this);
 			}
+
+			template<typename iterator_a, typename iterator_b>
+			std::ostream & printAlignmentLines(
+				std::ostream & out, 
+				iterator_a a, 
+				size_t const an,
+				iterator_b b,
+				size_t const bn,
+				uint64_t const rlinewidth
+			) const
+			{
+				AlignmentPrint::printAlignmentLines(out,a,an,b,bn,rlinewidth,ta,te);
+				return out;
+			}
 		};
 	}
 }
