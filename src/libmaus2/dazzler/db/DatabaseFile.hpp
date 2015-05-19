@@ -134,22 +134,22 @@ namespace libmaus2
 					return false;
 				}
 
-				size_t decodeRead(
+				static size_t decodeRead(
 					std::istream & bpsstream, 
 					libmaus2::autoarray::AutoArray<char> & A,
 					int32_t const rlen
-				) const
+				)
 				{
 					if ( static_cast<int32_t>(A.size()) < rlen )
 						A = libmaus2::autoarray::AutoArray<char>(rlen,false);
 					return decodeRead(bpsstream,A.begin(),rlen);
 				}
 				
-				size_t decodeRead(
+				static size_t decodeRead(
 					std::istream & bpsstream,
 					char * const C,
 					int32_t const rlen
-				) const
+				)
 				{
 					bpsstream.read(C + (rlen - (rlen+3)/4),(rlen+3)/4);
 					if ( bpsstream.gcount() != (rlen+3)/4 )
@@ -484,6 +484,12 @@ namespace libmaus2
 					libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
 					Pbpsfile->seekg(R.boff,std::ios::beg);
 					return decodeRead(*Pbpsfile,A,R.rlen);
+				}
+
+				libmaus2::aio::InputStream::unique_ptr_type openBaseStream()
+				{
+					libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+					return UNIQUE_PTR_MOVE(Pbpsfile);
 				}
 				
 				std::string operator[](size_t const i) const
