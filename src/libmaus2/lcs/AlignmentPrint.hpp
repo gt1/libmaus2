@@ -202,6 +202,108 @@ namespace libmaus2
 				
 				return out;
 			}
+
+			template<typename alignment_iterator, typename iterator_a, typename iterator_b>
+			static std::ostream & printAlignmentLines(
+				std::ostream & out, 
+				iterator_a a,
+				size_t const an,
+				iterator_b b,
+				size_t const bn,
+				uint64_t const rlinewidth,
+				alignment_iterator const rta,
+				alignment_iterator const rte
+			)
+			{
+				std::ostringstream astr;
+				
+				iterator_a ita = a;
+				iterator_a itae = a + an;
+				
+				for ( alignment_iterator ta = rta; ta != rte; ++ta )
+				{
+					switch ( *ta )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+						case STEP_DEL:
+							if ( ita == itae )
+								std::cerr << "accessing a beyond end." << std::endl;
+							astr << (*ita++);
+							break;
+						case STEP_INS:
+							astr << " ";
+							// ita++;
+							break;
+					}
+				}
+				astr << std::string(ita,itae);
+				
+				std::ostringstream bstr;
+				// out << std::string(SPR.aclip,' ') << std::endl;
+
+				iterator_b itb = b;
+				iterator_b itbe = b + bn;
+
+				for ( alignment_iterator ta = rta; ta != rte; ++ta )
+				{
+					switch ( *ta )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+						case STEP_INS:
+							if ( itb == itbe )
+								std::cerr << "accessing b beyond end." << std::endl;
+							bstr << (*itb++);
+							break;
+						case STEP_DEL:
+							bstr << " ";
+							// ita++;
+							break;
+					}
+				}
+				bstr << std::string(itb,itbe);
+				
+				std::ostringstream cstr;
+				printTrace(cstr,rta,rte);
+
+				std::string const aa = astr.str();
+				std::string const ba = bstr.str();
+				std::string const ca = cstr.str();
+				uint64_t const linewidth = rlinewidth-2;
+				uint64_t const numlines = (std::max(aa.size(),ba.size()) + linewidth-1) / linewidth;
+				
+				for ( uint64_t i = 0; i < numlines; ++i )
+				{
+					uint64_t pl = i*linewidth;
+					
+					out << "A ";
+					if ( pl < aa.size() )
+					{
+						uint64_t const alen = std::min(linewidth,aa.size()-pl);
+						out << aa.substr(pl,alen);
+					}
+					out << std::endl;
+					
+					out << "B ";
+					if ( pl < ba.size() )
+					{
+						uint64_t const blen = std::min(linewidth,ba.size()-pl);
+						out << ba.substr(pl,blen);
+					}
+					out << std::endl;
+
+					out << "  ";
+					if ( pl < ca.size() )
+					{
+						uint64_t const clen = std::min(linewidth,ca.size()-pl);
+						out << ca.substr(pl,clen);
+					}
+					out << std::endl;
+				}
+				
+				return out;
+			}
 		};
 	}
 }
