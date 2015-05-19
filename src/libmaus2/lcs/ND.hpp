@@ -135,10 +135,6 @@ namespace libmaus2
 				{
 					upair P = Q.front();
 					Q.pop_front();
-
-					#if 0				
-					std::cerr << "P.first=" << P.first << " P.second=" << P.second << std::endl;
-					#endif
 					
 					// start point on a	
 					unsigned int pa = P.first;
@@ -255,22 +251,14 @@ namespace libmaus2
 				}
 				
 				// did we reach the bottom right corner?
-				if ( 
-					// diagaccess_get_f(editops,diagptr_f(na,nb,diaglen)) != step_none 
-					aligned
-				)
+				if ( aligned )
 				{
 					EditDistanceTraceContainer::reset();
 					if ( EditDistanceTraceContainer::capacity() < na+nb )
 						EditDistanceTraceContainer::resize(na+nb);
 					
 					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-					
-					#if 0
-					traceend = trace.end();
-					tracebegin = trace.end();
-					#endif
-					
+										
 					unsigned int pa = na;
 					unsigned int pb = nb;
 					
@@ -279,14 +267,7 @@ namespace libmaus2
 						switch ( diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen)) )
 						{
 							case step_diag:
-								if ( a[--pa] == b[--pb] )
-								{
-									*(--EditDistanceTraceContainer::ta) = STEP_MATCH;
-								}
-								else
-								{
-									*(--EditDistanceTraceContainer::ta) = STEP_MISMATCH;									
-								}
+								*(--EditDistanceTraceContainer::ta) = (a[--pa] == b[--pb]) ? STEP_MATCH : STEP_MISMATCH;
 								break;
 							case step_del:
 								*(--EditDistanceTraceContainer::ta) = STEP_DEL;
@@ -308,7 +289,6 @@ namespace libmaus2
 				{
 					return false;
 				}
-				
 			}
 		};
 	}
