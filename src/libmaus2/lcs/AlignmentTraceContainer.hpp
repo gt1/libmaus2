@@ -22,6 +22,7 @@
 
 #include <libmaus2/lcs/PenaltyConstants.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
+#include <libmaus2/lcs/AlignmentStatistics.hpp>
 
 namespace libmaus2
 {
@@ -110,6 +111,30 @@ namespace libmaus2
 					}
 				}
 				return score;
+			}
+						
+			AlignmentStatistics getAlignmentStatistics() const
+			{
+				AlignmentStatistics stats;
+				
+				for ( step_type const * tc = ta; tc != te; ++tc )			
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							stats.matches++;
+							break;
+						case STEP_MISMATCH:
+							stats.mismatches++;
+							break;
+						case STEP_INS:
+							stats.insertions++;
+							break;
+						case STEP_DEL:
+							stats.deletions++;
+							break;
+					}
+
+				return stats;
 			}
 			
 			template<typename it>

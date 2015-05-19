@@ -189,7 +189,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/db/DatabaseFile.cpp \
 	libmaus2/dazzler/db/Read.cpp \
 	libmaus2/dazzler/align/Path.cpp \
-	libmaus2/dazzler/align/Overlap.cpp
+	libmaus2/dazzler/align/Overlap.cpp \
+	libmaus2/lcs/AlignmentStatistics.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1611,7 +1612,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/LocalEditDistanceResult.hpp \
 	libmaus2/lcs/MetaLocalEditDistance.hpp \
 	libmaus2/lcs/BandedLocalEditDistance.hpp \
-	libmaus2/lcs/ND.hpp
+	libmaus2/lcs/ND.hpp \
+	libmaus2/lcs/AlignmentStatistics.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
