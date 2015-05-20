@@ -22,7 +22,7 @@
 #include <libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp>
 #include <libmaus2/fm/SampledSA.hpp>
 #include <libmaus2/fm/SampledISA.hpp>
-#include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/lcp/SuccinctLCP.hpp>
 #include <libmaus2/rmq/RMMTree.hpp>
 
 namespace libmaus2

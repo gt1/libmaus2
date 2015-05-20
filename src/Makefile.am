@@ -1402,7 +1402,10 @@ libmaus2alignment_include_HEADERS=\
 libmaus2lcp_includedir=$(includedir)/libmaus2/lcp
 libmaus2lcp_include_HEADERS=\
 	libmaus2/lcp/LCP.hpp \
-	libmaus2/lcp/OracleLCP.hpp
+	libmaus2/lcp/OracleLCP.hpp \
+	libmaus2/lcp/SuccinctLCP.hpp \
+	libmaus2/lcp/WaveletLCPResult.hpp \
+	libmaus2/lcp/WaveletLCP.hpp
 
 libmaus2random_includedir=$(includedir)/libmaus2/random
 libmaus2random_include_HEADERS=\
