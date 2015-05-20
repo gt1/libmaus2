@@ -533,6 +533,22 @@ namespace libmaus2
 					
 					context.flush();
 				}
+
+				uint64_t computeReadLengthSum() const
+				{
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));					
+					Pidxfile->seekg(indexoffset);
+					
+					uint64_t s = 0;
+					for ( uint64_t i = 0; i < Ptrim->n; ++i )
+					{
+						Read R(*Pidxfile);
+						if ( (*Ptrim)[i] )
+							s += R.rlen;
+					}				
+					
+					return s;
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, DatabaseFile const & D);
