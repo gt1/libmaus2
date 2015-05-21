@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/lcs/ND.hpp>
+#include <libmaus2/lcs/NDextend.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/fastx/StreamFastAReader.hpp>
 
@@ -34,7 +35,7 @@ int main(int argc, char * argv[])
 		// maximum number of errors
 		unsigned int d = 30;
 		
-		libmaus2::lcs::ND nd;
+		libmaus2::lcs::NDextend nd;
 		bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d);
 		
 		if ( ok )

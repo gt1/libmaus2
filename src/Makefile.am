@@ -1616,6 +1616,7 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/MetaLocalEditDistance.hpp \
 	libmaus2/lcs/BandedLocalEditDistance.hpp \
 	libmaus2/lcs/ND.hpp \
+	libmaus2/lcs/NDextend.hpp \
 	libmaus2/lcs/AlignmentStatistics.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
