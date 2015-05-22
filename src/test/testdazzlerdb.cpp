@@ -22,6 +22,7 @@
 #include <libmaus2/lcs/EditDistance.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
+#include <libmaus2/lcs/NDextend.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -82,7 +83,7 @@ int main(int argc, char * argv[])
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
 
 		libmaus2::lcs::EditDistanceTraceContainer ATC;		
-		libmaus2::lcs::ND ND;
+		libmaus2::lcs::NDextend ND;
 		libmaus2::dazzler::align::Overlap OVL;
 		
 		// number of alignments processed
@@ -188,21 +189,33 @@ int main(int argc, char * argv[])
 			}
 
 			#if 0
-			ND.process(
+			bool const ok = ND.process(
 				aptr + OVL.path.abpos,
 				OVL.path.aepos-OVL.path.abpos,
 				bptr + OVL.path.bbpos,
 				OVL.path.bepos-OVL.path.bbpos
 			);
-			std::cout << ND.getAlignmentStatistics() << std::endl;
-			ND.printAlignmentLines(
-				std::cout,
-				aptr + OVL.path.abpos,
-				OVL.path.aepos-OVL.path.abpos,
-				bptr + OVL.path.bbpos,
-				OVL.path.bepos-OVL.path.bbpos,
-				cols
-			);
+			if ( ok )
+			{
+				if ( printAlignments )
+				{
+					std::cout << std::string(80,'A') << "\n";
+					std::cout << ND.getAlignmentStatistics() << std::endl;
+					ND.printAlignmentLines(
+						std::cout,
+						aptr + OVL.path.abpos,
+						OVL.path.aepos-OVL.path.abpos,
+						bptr + OVL.path.bbpos,
+						OVL.path.bepos-OVL.path.bbpos,
+						cols
+					);
+					std::cout << std::string(80,'E') << "\n";
+				}
+			}
+			else
+			{
+				std::cout << "no alignment." << std::endl;
+			}
 			#endif
 			
 			// current point on A
