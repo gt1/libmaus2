@@ -58,6 +58,14 @@ namespace libmaus2
 				{
 					deserialise(in);
 				}
+				
+				uint64_t getNumErrors() const
+				{
+					uint64_t s = 0;
+					for ( uint64_t i = 0; i < path.size(); ++i )
+						s += path[i].first;
+					return s;
+				}
 			};
 			
 			std::ostream & operator<<(std::ostream & out, Path const & P);
