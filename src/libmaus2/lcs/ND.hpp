@@ -99,6 +99,76 @@ namespace libmaus2
 			{
 			}
 			
+			void printMatrix(std::ostream & out, size_t const na, size_t const nb) const
+			{
+				// min size
+				unsigned int const nmin = na < nb ? na : nb;
+
+				// maximum length of diagonals (extend to multiple of elperbyte)
+				unsigned int const diaglen = ( ((nmin + 1) + elperbyte - 1) / elperbyte ) * elperbyte;
+
+				for ( size_t pa = 0; pa <= na; ++pa )
+				{
+					for ( size_t pb = 0; pb <= nb; ++pb )
+					{
+						if ( diagptr_f(pa,pb,diaglen)/4 < editops.size() )
+						{
+							switch ( 
+								diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen))
+							)
+							{
+								case step_none: out.put('?'); break;
+								case step_diag: out.put('\\'); break;
+								case step_ins:  out.put('i'); break;
+								case step_del:  out.put('d'); break;
+							}
+						}
+						else
+						{
+							out.put(' ');
+						}
+					}
+					
+					out << "\n";
+				}
+			}
+			
+			template<typename iterator_a, typename iterator_b>
+			inline upair slide(
+				upair const & P, 
+				iterator_a a,
+				uint64_t const na, 
+				iterator_b b,
+				uint64_t const nb, 
+				uint64_t const diaglen
+			)
+			{
+				// start point on a	
+				unsigned int pa = P.first;
+				// start point on b
+				unsigned int pb = P.second;
+				// diagonal pointer
+				unsigned int diagptr = diagptr_f(pa,pb,diaglen);
+				
+				// steps we can go along a		
+				unsigned int const sa = na-pa;
+				// steps we can go along b
+				unsigned int const sb = nb-pb;
+				// minimum of the two
+				unsigned int s = sa < sb ? sa : sb;
+				
+				// slide
+				while ( s && a[pa] == b[pb] && (diagaccess_get_f(editops,diagptr+1) == step_none) )
+				{
+					// assert ( diagaccess_get_f(editops,diagptr+1) == step_none );
+					diagaccess_set_f(editops,++diagptr,step_diag);
+					--s, ++pa, ++pb;						
+				}
+
+
+				return upair(pa,pb);
+			}
+			
 			template<typename iterator_a, typename iterator_b>
 			bool process(
 				iterator_a a,
@@ -113,54 +183,44 @@ namespace libmaus2
 
 				// maximum length of diagonals (extend to multiple of elperbyte)
 				unsigned int const diaglen = ( ((nmin + 1) + elperbyte - 1) / elperbyte ) * elperbyte;
-				// todo queue	
-				std::deque<upair> Q;
-				// insert origin
-				Q.push_back(upair(0,0));
-				// current distance
-				unsigned int curd = 0;
-				// points to be processed with this distance 
-				unsigned int dc = 1;
-				// points with distance curd+1
-				unsigned int nextdc = 0;
 
-				// trace data (4 operations per byte)
 				size_t const basesize = ((2+1) * diaglen ) / elperbyte;
 				if ( editops.size() < basesize )
 					editops.resize(basesize);
-				std::fill(editops.begin(),editops.begin()+basesize,0);
+				std::fill(editops.begin(),editops.begin()+basesize,0);		
+
+				// todo queue	
+				std::deque<upair> Q;
+				// insert origin
+				Q.push_back(slide(upair(0,0),a,na,b,nb,diaglen));
+
+				// trace data (4 operations per byte)
 				bool aligned = false;
 
-				while ( Q.size() )
+				for ( unsigned int curd = 0 ; curd <= d && (!aligned); ++curd )
 				{
-					upair P = Q.front();
-					Q.pop_front();
-					
-					// start point on a	
-					unsigned int pa = P.first;
-					// start point on b
-					unsigned int pb = P.second;
-
-					unsigned int diagptr = diagptr_f(pa,pb,diaglen);
-					
-					// steps we can go along a		
-					unsigned int const sa = na-pa;
-					// steps we can go along b
-					unsigned int const sb = nb-pb;
-					// minimum of the two
-					unsigned int s = sa < sb ? sa : sb;
-					
-					// slide
-					bool ok = true;
-					while ( s && a[pa] == b[pb] && (ok=(diagaccess_get_f(editops,diagptr+1) == step_none)) )
+					if ( curd > 0 )
 					{
-						// assert ( diagaccess_get_f(editops,diagptr+1) == step_none );
-						diagaccess_set_f(editops,++diagptr,step_diag);
-						--s, ++pa, ++pb;
+						size_t const prevsize = (((2*(curd+0)) + 1) * diaglen ) / elperbyte;
+						// assert ( editops.size() == prevsize );
+						size_t const nextsize = (((2*(curd+1)) + 1) * diaglen ) / elperbyte;
+						if ( editops.size() < nextsize )
+							editops.resize( nextsize );
+						std::fill(editops.begin()+prevsize,editops.begin()+nextsize,0);
 					}
-					
-					if ( ok )
+					uint64_t const numpoints = Q.size();
+										
+					// error phase
+					for ( uint64_t i = 0; i < numpoints; ++i )
 					{
+						upair P = Q.front();
+						Q.pop_front();
+
+						// start point on a	
+						unsigned int pa = P.first;
+						// start point on b
+						unsigned int pb = P.second;
+
 						// at least one not at end	
 						if ( (na-pa) | (nb-pb) )
 						{
@@ -179,20 +239,17 @@ namespace libmaus2
 										if ( diagaccess_get_f(editops,diagptr_f(pa,pb+1,diaglen)) == step_none )
 										{
 											diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-											Q.push_back(upair(pa,pb+1));
-											nextdc += 1;
+											Q.push_back(slide(upair(pa,pb+1),a,na,b,nb,diaglen));
 										}
 										if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb,diaglen)) == step_none )
 										{
 											diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-											Q.push_back(upair(pa+1,pb));
-											nextdc += 1;
+											Q.push_back(slide(upair(pa+1,pb),a,na,b,nb,diaglen));
 										}
 										if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb+1,diaglen)) == step_none )
 										{
 											diagaccess_set_f(editops,diagptr_f(pa+1,pb+1,diaglen),step_diag);
-											Q.push_back(upair(pa+1,pb+1));
-											nextdc += 1;
+											Q.push_back(slide(upair(pa+1,pb+1),a,na,b,nb,diaglen));
 										}
 									}
 									// b is at end
@@ -204,8 +261,7 @@ namespace libmaus2
 										if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb,diaglen)) == step_none )
 										{
 											diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-											Q.push_back(upair(pa+1,pb));
-											nextdc += 1;
+											Q.push_back(slide(upair(pa+1,pb),a,na,b,nb,diaglen));
 										}
 									}	
 								}
@@ -215,8 +271,7 @@ namespace libmaus2
 									if ( diagaccess_get_f(editops,diagptr_f(pa,pb+1,diaglen)) == step_none )
 									{
 										diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-										Q.push_back(upair(pa,pb+1));
-										nextdc++;
+										Q.push_back(slide(upair(pa,pb+1),a,na,b,nb,diaglen));
 									}
 								}
 							}
@@ -225,40 +280,28 @@ namespace libmaus2
 						else
 						{
 							aligned = true;
-							// std::cerr << "! curd=" << curd << std::endl;
 							break;
-						}
-					}
-					
-					// no more points for this distance?
-					if ( ! --dc )
-					{
-						dc = nextdc;
-						nextdc = 0;
-						curd++;
-						
-						// resize editops vector
-						if ( curd < d )
-						{
-							size_t const prevsize = (((2*(curd+0)) + 1) * diaglen ) / elperbyte;
-							// assert ( editops.size() == prevsize );
-							size_t const nextsize = (((2*(curd+1)) + 1) * diaglen ) / elperbyte;
-							if ( editops.size() < nextsize )
-								editops.resize( nextsize );
-							std::fill(editops.begin()+prevsize,editops.begin()+nextsize,0);
 						}
 					}
 				}
 				
 				// did we reach the bottom right corner?
-				if ( aligned )
+				if ( 
+					// diagaccess_get_f(editops,diagptr_f(na,nb,diaglen)) != step_none 
+					aligned
+				)
 				{
 					EditDistanceTraceContainer::reset();
 					if ( EditDistanceTraceContainer::capacity() < na+nb )
 						EditDistanceTraceContainer::resize(na+nb);
 					
 					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-										
+					
+					#if 0
+					traceend = trace.end();
+					tracebegin = trace.end();
+					#endif
+					
 					unsigned int pa = na;
 					unsigned int pb = nb;
 					
@@ -267,7 +310,14 @@ namespace libmaus2
 						switch ( diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen)) )
 						{
 							case step_diag:
-								*(--EditDistanceTraceContainer::ta) = (a[--pa] == b[--pb]) ? STEP_MATCH : STEP_MISMATCH;
+								if ( a[--pa] == b[--pb] )
+								{
+									*(--EditDistanceTraceContainer::ta) = STEP_MATCH;
+								}
+								else
+								{
+									*(--EditDistanceTraceContainer::ta) = STEP_MISMATCH;									
+								}
 								break;
 							case step_del:
 								*(--EditDistanceTraceContainer::ta) = STEP_DEL;
@@ -289,6 +339,7 @@ namespace libmaus2
 				{
 					return false;
 				}
+				
 			}
 		};
 	}
