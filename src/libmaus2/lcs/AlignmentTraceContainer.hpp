@@ -23,6 +23,8 @@
 #include <libmaus2/lcs/PenaltyConstants.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lcs/AlignmentStatistics.hpp>
+#include <libmaus2/math/lowbits.hpp>
+#include <libmaus2/rank/popcnt.hpp>
 
 #include <set>
 #include <map>
@@ -55,6 +57,36 @@ namespace libmaus2
 			void reset()
 			{
 				ta = te = trace.begin();
+			}
+			
+			uint64_t windowError(unsigned int k = 8*sizeof(uint64_t)) const
+			{
+				unsigned int maxerr = 0;
+				uint64_t evec = 0;
+				uint64_t const emask = ::libmaus2::math::lowbits(k);
+				
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					evec <<= 1;
+					
+					switch ( *tc )
+					{
+						case STEP_MISMATCH:
+						case STEP_INS:
+						case STEP_DEL:
+							evec |= 1;
+							break;
+						case STEP_MATCH:
+							evec |= 0;
+							break;
+					}
+					
+					evec &= emask;
+					
+					maxerr = std::max(maxerr,static_cast<unsigned int>(libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(evec)));
+				}
+				
+				return maxerr;
 			}
 			
 			struct ClipPair
@@ -408,6 +440,14 @@ namespace libmaus2
 					}
 
 				return stats;
+			}
+
+			uint64_t getNumErrors() const
+			{
+				AlignmentStatistics stats =
+				getAlignmentStatistics(); return
+				stats.mismatches + stats.insertions +
+				stats.deletions;
 			}
 			
 			template<typename it>
