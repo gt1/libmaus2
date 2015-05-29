@@ -76,6 +76,23 @@ namespace libmaus2
 				AlignmentPrint::printAlignmentLines(out,a,an,b,bn,rlinewidth,ta,te);
 				return out;
 			}
+
+			template<typename iterator_a, typename iterator_b, typename map_function_t>
+			std::ostream & printAlignmentLines(
+				std::ostream & out, 
+				iterator_a a,
+				size_t const an,
+				iterator_b b,
+				size_t const bn,
+				uint64_t const rlinewidth,
+				map_function_t map_function
+			)
+			{
+				AlignmentPrint::printAlignmentLines(
+					out,a,an,b,bn,rlinewidth,ta,te,map_function
+				);
+				return out;
+			}
 		};
 	}
 }
