@@ -83,6 +83,7 @@ int main(int argc, char * argv[])
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
 
 		libmaus2::lcs::EditDistanceTraceContainer ATC;		
+		libmaus2::lcs::NDextend ND40;
 		libmaus2::lcs::NDextend ND;
 		libmaus2::dazzler::align::Overlap OVL;
 		
@@ -189,14 +190,71 @@ int main(int argc, char * argv[])
 			}
 
 			#if 0
+			bool const ok40 = ND40.process(
+				aptr + OVL.path.abpos,
+				OVL.path.aepos-OVL.path.abpos,
+				bptr + OVL.path.bbpos,
+				OVL.path.bepos-OVL.path.bbpos,
+				std::numeric_limits<uint64_t>::max(),
+				40
+			);
+			if ( ok40 )
+			{
+				if ( printAlignments )
+				{
+					std::cout << std::string(80,'A') << "\n";
+					std::cout << ND40.getAlignmentStatistics() << "\t" << ND40.getNumErrors() << std::endl;
+					std::cout << OVL.getNumErrors() << std::endl;
+					ND40.printAlignmentLines(
+						std::cout,
+						aptr + OVL.path.abpos,
+						OVL.path.aepos-OVL.path.abpos,
+						bptr + OVL.path.bbpos,
+						OVL.path.bepos-OVL.path.bbpos,
+						cols
+					);
+					std::cout << std::string(80,'E') << "\n";
+				}
+			}
+			else
+			{
+				std::cout << "no alignment." << std::endl;
+			}
+			#endif
+
+			#if 0
+			bool const ok40 = ND40.process(
+				aptr + OVL.path.abpos,
+				OVL.path.aepos-OVL.path.abpos,
+				bptr + OVL.path.bbpos,
+				OVL.path.bepos-OVL.path.bbpos,
+				std::numeric_limits<uint64_t>::max(),
+				40
+				// , 40
+			);
+			uint64_t const err40 = ND40.windowError();
+			
 			bool const ok = ND.process(
 				aptr + OVL.path.abpos,
 				OVL.path.aepos-OVL.path.abpos,
 				bptr + OVL.path.bbpos,
 				OVL.path.bepos-OVL.path.bbpos
 			);
+			uint64_t const errinf = ND.windowError();
+			
+			if ( err40 != errinf )
+			{		
+				std::cerr << "err40=" << err40 << " errinf=" << errinf << std::endl;
+
+				std::cout << "40:  " << ND40.getAlignmentStatistics() << std::endl;
+				std::cout << "inf: " << ND.getAlignmentStatistics() << std::endl;
+
+				// assert ( err40 == errinf );
+			}
+						
 			if ( ok )
 			{
+			
 				if ( printAlignments )
 				{
 					std::cout << std::string(80,'A') << "\n";
