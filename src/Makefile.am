@@ -190,7 +190,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/db/Read.cpp \
 	libmaus2/dazzler/align/Path.cpp \
 	libmaus2/dazzler/align/Overlap.cpp \
-	libmaus2/lcs/AlignmentStatistics.cpp
+	libmaus2/lcs/AlignmentStatistics.cpp \
+	libmaus2/fastx/SingleWordDNABitBuffer.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1769,7 +1770,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfastqtobam \
 	testsamrecoding \
 	testdazzlerdb \
-	testnd
+	testnd \
+	testfastashred
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2242,3 +2244,8 @@ testnd_SOURCES  = test/testnd.cpp
 testnd_LDADD    = libmaus2.la ${DLLIB}
 testnd_CPPFLAGS = @WARNCPPFLAGS@
 testnd_LDFLAGS  = ${AM_LDFLAGS}
+
+testfastashred_SOURCES  = test/testfastashred.cpp
+testfastashred_LDADD    = libmaus2.la ${DLLIB}
+testfastashred_CPPFLAGS = @WARNCPPFLAGS@
+testfastashred_LDFLAGS  = ${AM_LDFLAGS}
