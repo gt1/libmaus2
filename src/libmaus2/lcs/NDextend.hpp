@@ -36,6 +36,8 @@ namespace libmaus2
 	{
 		struct NDextend : public EditDistanceTraceContainer
 		{
+			static uint64_t const evecmask = 0x7FFFFFFFFFFFFFFFull;
+
 			private:
 			struct QueueElement
 			{
@@ -95,8 +97,44 @@ namespace libmaus2
 				uint64_t const diagid = diagid_f(x,y);
 				uint64_t const diagoffset = diagoffset_f(x,y);
 				uint64_t diagptr = diagid * diaglen + diagoffset;
+				
 				return diagptr;
 			}
+			
+			static inline std::pair<uint64_t,uint64_t> rdiagptr_f(uint64_t ptr, uint64_t const diaglen)
+			{
+				uint64_t diagoffset = ptr % diaglen;
+				uint64_t diagid = ptr / diaglen;
+				
+				if ( diagid == 0 )
+				{
+					return std::pair<uint64_t,uint64_t>(diagoffset,diagoffset);
+				}
+				else
+				{
+					if ( (diagid) % 2 == 0 )
+					{
+						return std::pair<uint64_t,uint64_t>(diagoffset,diagoffset+(diagid>>1));
+					}
+					else
+					{
+						return std::pair<uint64_t,uint64_t>(diagoffset + (((diagid-1)/2)+1),diagoffset);
+					}
+				}
+			}
+			
+			#if 0
+			static void inline enumDiag()
+			{
+				uint64_t const diaglen = 6;
+				for ( uint64_t i = 0; i < 5; ++i )
+					for ( uint64_t j = 0; j < 5; ++j )
+					{
+						std::pair<uint64_t,uint64_t> P = rdiagptr_f(diagptr_f(i,j,diaglen),diaglen);
+						std::cerr << i << "," << j << " " << P.first << "," << P.second << std::endl;
+					}
+			}
+			#endif
 
 			// edit operations per byte
 			enum edit_op { step_none = 0, step_diag = 1, step_ins  = 2, step_del  = 3 };
@@ -130,15 +168,11 @@ namespace libmaus2
 			{
 				uint64_t offset;
 				uint64_t const shift = (ptr & 31) << 1;
-				
+								
 				if ( H.offset(ptr>>5,offset) )
-				{
 					H.updateOffset(offset,H.atOffset(offset) | (static_cast<uint64_t>(e) << shift));
-				}
 				else
-				{
 					H.insertNonSyncExtend(ptr>>5,static_cast<uint64_t>(e) << shift,0.8);
-				}
 			}
 			
 			libmaus2::util::SimpleHashMap<uint64_t,uint64_t> editops;
@@ -196,6 +230,73 @@ namespace libmaus2
 			}
 			
 			template<typename iterator_a, typename iterator_b>
+			inline QueueElement slide(
+				QueueElement const & P, 
+				iterator_a a, size_t const na, 
+				iterator_b b, size_t const nb, 
+				uint64_t const diaglen,
+				uint64_t & maxantidiag
+			)
+			{
+				// start point on a	
+				uint64_t pa = P.pa;
+				// start point on b
+				uint64_t pb = P.pb;
+
+				uint32_t mat = P.mat;
+				uint32_t mis = P.mis;
+				uint32_t ins = P.ins;
+				uint32_t del = P.del;
+				uint64_t evec = P.evec;
+
+				// steps we can go along a
+				uint64_t const sa = na-pa;
+				// steps we can go along b
+				uint64_t const sb = nb-pb;
+				// minimum of the two
+				uint64_t s = sa < sb ? sa : sb;
+
+				// slide
+				uint64_t diagptr = diagptr_f(pa,pb,diaglen)+1;
+				while ( s && a[pa] == b[pb] && (diagaccess_get_f(editops,diagptr) == step_none) )
+				{
+					diagaccess_set_f(editops,diagptr,step_diag);
+					++mat, ++pa, ++pb, ++diagptr, --s;
+					evec = (evec & evecmask) << 1;
+				}
+
+				// anti diagonal id
+				uint64_t const antidiag = pa + pb;
+				maxantidiag = std::max(maxantidiag,antidiag);
+
+				return QueueElement(pa,pb,mat,mis,ins,del,evec);
+			}
+
+			void printMatrix(std::ostream & out, size_t const na, size_t const nb) const
+			{
+				// maximum length of diagonals (extend to multiple of elperbyte)
+				unsigned int const diaglen = std::min(na,nb)+1;
+
+				for ( size_t pa = 0; pa <= na; ++pa )
+				{
+					for ( size_t pb = 0; pb <= nb; ++pb )
+					{
+						switch ( 
+							diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen))
+						)
+						{
+							case step_none: out.put('?'); break;
+							case step_diag: out.put('\\'); break;
+							case step_ins:  out.put('i'); break;
+							case step_del:  out.put('d'); break;
+						}
+					}
+					
+					out << "\n";
+				}
+			}
+
+			template<typename iterator_a, typename iterator_b>
 			bool process(
 				iterator_a a,
 				size_t const na,
@@ -206,72 +307,53 @@ namespace libmaus2
 				uint64_t const maxevecpopcnt = std::numeric_limits<uint64_t>::max()
 			)
 			{
-				// todo queue	
-				std::deque<QueueElement> Q;
-				// insert origin
-				Q.push_back(QueueElement(0,0,0,0,0,0,0));
+				editops.clear();
+				
 				// diag len
 				uint64_t const diaglen = std::min(na,nb)+1;
-				// current distance
-				unsigned int curd = 0;
-				// points to be processed with this distance 
-				unsigned int dc = 1;
-				// points with distance curd+1
-				unsigned int nextdc = 0;
-				// current maximum antidiagonal
-				uint64_t curmaxantidiag = 0;
-				// next d maximum antidiagonal
-				uint64_t nextmaxantidiag = 0;
+				// todo queue	
+				std::deque<QueueElement> Q;
+				// maximum antidiagonal
+				uint64_t maxantidiag = 0;
+				// insert origin
+				Q.push_back(slide(QueueElement(0,0,0,0,0,0,0),a,na,b,nb,diaglen,maxantidiag));
 
 				// trace data
-				editops.clear();
 				bool aligned = false;
 
-				uint64_t const evecmask = 0x7FFFFFFFFFFFFFFFull;
-
-				while ( Q.size() )
+				for ( unsigned int curd = 0; curd <= d && (!aligned); ++curd )
 				{
-					QueueElement P = Q.front();
-					Q.pop_front();
-					
-					// start point on a	
-					uint64_t pa = P.pa;
-					// start point on b
-					uint64_t pb = P.pb;
-					// anti diagonal id
-					uint64_t const antidiag = pa + pb;
-					
-					assert ( antidiag <= curmaxantidiag );
-					
-					if ( curmaxantidiag - antidiag <= maxantidiagdiff )
+					uint64_t const numpoints = Q.size();
+										
+					uint64_t nextmaxantidiag = 0;
+					for ( uint64_t i = 0; i < numpoints; ++i )
 					{
-						uint32_t mat = P.mat;
-						uint32_t mis = P.mis;
-						uint32_t ins = P.ins;
-						uint32_t del = P.del;
-						uint64_t evec = P.evec;
+						QueueElement P = Q.front();
+						Q.pop_front();
+					
+						// start point on a	
+						uint64_t pa = P.pa;
+						// start point on b
+						uint64_t pb = P.pb;
 
-						// steps we can go along a
-						uint64_t const sa = na-pa;
-						// steps we can go along b
-						uint64_t const sb = nb-pb;
-						// minimum of the two
-						uint64_t s = sa < sb ? sa : sb;
+						// anti diagonal id
+						uint64_t const antidiag = pa + pb;
+						assert ( antidiag <= maxantidiag );
 
-						// slide
-						bool ok = true;
-						uint64_t diagptr = diagptr_f(pa,pb,diaglen)+1;
-						while ( s && a[pa] == b[pb] && (ok=(diagaccess_get_f(editops,diagptr) == step_none)) )
+						if ( 
+							maxantidiag - antidiag <= maxantidiagdiff 
+							&&
+							(libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(P.evec) <= maxevecpopcnt)
+						)
 						{
-							diagaccess_set_f(editops,diagptr,step_diag);
-							++mat, ++pa, ++pb, ++diagptr, --s;
-							evec = (evec & evecmask) << 1;
-						}
+							uint32_t mat = P.mat;
+							uint32_t mis = P.mis;
+							uint32_t ins = P.ins;
+							uint32_t del = P.del;
+							uint64_t evec = P.evec;
 
-						if ( ok )
-						{
 							// at least one not at end
-							if ( (na-pa) | (nb-pb) )
+							if ( (na-pa) || (nb-pb) )
 							{
 								// one more error is still in range
 								if ((curd+1)<=d)
@@ -288,38 +370,20 @@ namespace libmaus2
 											if ( diagaccess_get_f(editops,diagptr_f(pa,pb+1,diaglen)) == step_none )
 											{
 												QueueElement qel(pa,pb+1,mat,mis,ins+1,del,((evec & evecmask) << 1) | 1ull);
-
-												if ( (libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qel.evec) <= maxevecpopcnt) )
-												{
-													nextmaxantidiag = std::max(nextmaxantidiag,static_cast<uint64_t>(qel.pa+qel.pb));
-													Q.push_back(qel);
-													diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-													nextdc += 1;
-												}
+												diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
+												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb,mat,mis,ins,del+1,((evec & evecmask) << 1) | 1ull);
-
-												if ( (libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qel.evec) <= maxevecpopcnt) )
-												{
-													nextmaxantidiag = std::max(nextmaxantidiag,static_cast<uint64_t>(qel.pa+qel.pb));
-													Q.push_back(qel);
-													diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-													nextdc += 1;
-												}
+												diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
+												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb+1,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb+1,mat,mis+1,ins,del,((evec & evecmask) << 1) | 1ull);
-
-												if ( (libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qel.evec) <= maxevecpopcnt) )
-												{
-													nextmaxantidiag = std::max(nextmaxantidiag,static_cast<uint64_t>(qel.pa+qel.pb));
-													Q.push_back(qel);
-													diagaccess_set_f(editops,diagptr_f(pa+1,pb+1,diaglen),step_diag);
-													nextdc += 1;
-												}
+												diagaccess_set_f(editops,diagptr_f(pa+1,pb+1,diaglen),step_diag);
+												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 										}
 										// b is at end
@@ -331,14 +395,8 @@ namespace libmaus2
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb,mat,mis,ins,del+1,((evec & evecmask) << 1) | 1ull);
-
-												if ( (libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qel.evec) <= maxevecpopcnt) )
-												{
-													nextmaxantidiag = std::max(nextmaxantidiag,static_cast<uint64_t>(qel.pa+qel.pb));
-													Q.push_back(qel);
-													diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-													nextdc += 1;
-												}
+												diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
+												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 										}
 									}
@@ -348,14 +406,8 @@ namespace libmaus2
 										if ( diagaccess_get_f(editops,diagptr_f(pa,pb+1,diaglen)) == step_none )
 										{
 											QueueElement qel(pa,pb+1,mat,mis,ins+1,del,((evec & evecmask) << 1) | 1ull);
-
-											if ( (libmaus2::rank::PopCnt8<sizeof(unsigned long)>::popcnt8(qel.evec) <= maxevecpopcnt) )
-											{
-												nextmaxantidiag = std::max(nextmaxantidiag,static_cast<uint64_t>(qel.pa+qel.pb));
-												Q.push_back(qel);
-												diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-												nextdc++;
-											}
+											diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
+											Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 										}
 									}
 								}
@@ -368,16 +420,8 @@ namespace libmaus2
 							}
 						}
 					}
-					
-					// no more points for this distance?
-					if ( ! --dc )
-					{
-						dc = nextdc;
-						nextdc = 0;
-						curmaxantidiag = nextmaxantidiag;
-						nextmaxantidiag = 0;
-						curd++;						
-					}
+
+					maxantidiag = nextmaxantidiag;					
 				}
 				
 				// did we reach the bottom right corner?
