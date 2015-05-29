@@ -24,6 +24,9 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lcs/AlignmentStatistics.hpp>
 
+#include <set>
+#include <map>
+
 namespace libmaus2
 {
 	namespace lcs
@@ -52,6 +55,276 @@ namespace libmaus2
 			void reset()
 			{
 				ta = te = trace.begin();
+			}
+			
+			struct ClipPair
+			{
+				std::pair<uint64_t,uint64_t> A;
+				std::pair<uint64_t,uint64_t> B;
+				
+				ClipPair() {}
+				ClipPair(
+					std::pair<uint64_t,uint64_t> const & rA,
+					std::pair<uint64_t,uint64_t> const & rB
+				) : A(rA), B(rB) {}
+				
+				bool check() const
+				{
+					return
+						A.first < A.second &&
+						B.first < B.second;
+				}
+				
+				static ClipPair merge(ClipPair const & A, ClipPair const & B)
+				{
+					return
+						ClipPair(
+							std::pair<uint64_t,uint64_t>(
+								A.A.first,
+								B.A.second
+							),
+							std::pair<uint64_t,uint64_t>(
+								A.B.first,
+								B.B.second
+							)
+						);
+				}
+				
+				static bool overlap(ClipPair const & A, ClipPair const & B)
+				{
+					if ( A.A.first > B.A.first )
+						return overlap(B,A);
+					
+					assert ( A.A.first <= B.A.first );
+					assert ( A.check() );
+					assert ( B.check() );
+					
+					bool oa = A.A.second >= B.A.first;
+					bool ob = A.B.second >= B.B.first;
+					
+					return oa || ob;
+				}
+			};
+			
+			std::vector < ClipPair > lowQuality(int const k, unsigned int const thres) const
+			{
+				std::vector < ClipPair > R;
+				
+				assert ( k <= static_cast<int>(sizeof(libmaus2::uint128_t) * 8) );
+				
+				if ( k && (te-ta) >= k )
+				{
+					std::vector < std::pair<uint64_t,uint64_t> > V;
+					
+					libmaus2::uint128_t const outmask = static_cast<libmaus2::uint128_t>(1) << (k-1);
+					libmaus2::uint128_t w = 0;
+					unsigned int e;
+					
+					step_type const * tc = ta;
+					
+					for ( int i = 0; i < (k-1); ++i, ++tc )
+						switch ( *tc )
+						{
+							case STEP_MISMATCH:
+							case STEP_INS:
+							case STEP_DEL:
+								w <<= 1;
+								w |= 1;
+								e += 1;
+								break;
+							case STEP_MATCH:
+								w <<= 1;
+								break;
+						}
+					
+					int64_t low = -1, high = -1;
+											
+					while ( tc != te )
+					{
+						if ( w & outmask )
+							e -= 1;
+
+						w <<= 1;
+						switch ( *(tc++) )
+						{
+							case STEP_MISMATCH:
+							case STEP_INS:
+							case STEP_DEL:
+								w |= 1;
+								e += 1;
+								break;
+							case STEP_MATCH:
+								break;
+						}
+						
+						if ( e >= thres )
+						{
+							if ( low < 0 )
+							{
+								low = (tc-ta)-k;
+								high = tc-ta;
+							}
+							else
+							{
+								high = tc-ta;
+							}
+						}
+						else
+						{
+							if ( low >= 0 )
+								V.push_back(std::pair<uint64_t,uint64_t>(low,high));
+							low = high = -1;
+						}
+					}
+
+					if ( low >= 0 )
+						V.push_back(std::pair<uint64_t,uint64_t>(low,high));
+
+					std::map<uint64_t, std::pair<uint64_t,uint64_t> > pmap;
+					std::set<uint64_t> pset;
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						pset.insert(V[i].first);
+						pset.insert(V[i].second);
+					}
+					
+					uint64_t apos = 0, bpos = 0;
+					for ( tc = ta; tc != te; ++tc )
+					{
+						if ( pset.find(tc-ta) != pset.end() )
+							pmap[tc-ta] = std::pair<uint64_t,uint64_t>(apos,bpos);
+					
+						switch ( *tc )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								apos += 1;
+								bpos += 1;
+								break;
+							case STEP_INS:
+								bpos += 1;
+								break;
+							case STEP_DEL:
+								apos += 1;
+								break;
+						}
+						
+					}
+
+					if ( pset.find(tc-ta) != pset.end() )
+						pmap[tc-ta] = std::pair<uint64_t,uint64_t>(apos,bpos);
+						
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						assert ( pmap.find(V[i].first) != pmap.end() );
+						assert ( pmap.find(V[i].second) != pmap.end() );
+						
+						std::map<uint64_t, std::pair<uint64_t,uint64_t> >::const_iterator Vfirst = pmap.find(V[i].first);
+						std::map<uint64_t, std::pair<uint64_t,uint64_t> >::const_iterator Vsecond = pmap.find(V[i].second);
+
+						std::pair<uint64_t,uint64_t> apos(Vfirst->second.first ,Vsecond->second.first);
+						std::pair<uint64_t,uint64_t> bpos(Vfirst->second.second,Vsecond->second.second);
+						
+						R.push_back(ClipPair(apos,bpos));
+					}
+				}
+				
+				uint64_t low = 0;
+				uint64_t o = 0;
+				
+				while ( low < R.size() )
+				{
+					ClipPair CP = R[low];
+					
+					uint64_t high = low+1;
+					while ( high < R.size() && ClipPair::overlap(CP,R[high]) )
+					{
+						CP = ClipPair::merge(CP,R[high]);
+						++high;
+					}
+					
+					R[o++] = CP;
+					
+					low = high;
+				}
+				
+				R.resize(o);
+				
+				return R;
+			}
+			
+			std::pair<uint64_t,uint64_t> prefixPositive(
+				int64_t const match_score    = gain_match,
+				int64_t const mismatch_score = penalty_subst,
+				int64_t const ins_score      = penalty_ins,
+				int64_t const del_score      = penalty_del			
+			)
+			{
+				std::reverse(ta,te);
+				std::pair<uint64_t,uint64_t> const P = suffixPositive(match_score,mismatch_score,ins_score,del_score);
+				std::reverse(ta,te);
+				return P;
+			}
+			
+			std::pair<uint64_t,uint64_t> suffixPositive(
+				int64_t const match_score    = gain_match,
+				int64_t const mismatch_score = penalty_subst,
+				int64_t const ins_score      = penalty_ins,
+				int64_t const del_score      = penalty_del
+			)
+			{
+				step_type * tc = te;
+				step_type * tne = te;
+				
+				int64_t score = 0;
+				while ( tc != ta )
+				{
+					step_type const cur = *(--tc);
+					
+					switch ( cur )
+					{
+						case STEP_MATCH:
+							score += match_score;
+							break;
+						case STEP_MISMATCH:
+							score -= mismatch_score;
+							break;
+						case STEP_INS:
+							score -= ins_score;
+							break;
+						case STEP_DEL:
+							score -= del_score;
+							break;
+					}
+					
+					if ( score < 0 )
+					{
+						score = 0;
+						tne = tc;
+					}
+				}
+				
+				// count how many symbols need to be removed from the back of a and b resp
+				uint64_t rema = 0, remb = 0;
+				for ( tc = tne; tc != te; ++tc )
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+							rema += 1;
+							remb += 1;
+							break;
+						case STEP_DEL:
+							rema += 1;
+							break;
+						case STEP_INS:
+							remb += 1;
+							break;
+					}
+				
+				te = tne;
+				
+				return std::pair<uint64_t,uint64_t>(rema,remb);				
 			}
 			
 			void push(AlignmentTraceContainer const & O)
