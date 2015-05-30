@@ -670,7 +670,11 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 						if ( std::max(a_t_len,b_t_len) >= 100 )
 						{
 							libmaus2::lcs::NDextend nd;
-							bool const ok = nd.process(reg_a_low,reg_a_high-reg_a_low,reg_b_low,reg_b_high-reg_b_low);
+							bool const ok = nd.process(
+								reg_a_low,reg_a_high-reg_a_low,reg_b_low,reg_b_high-reg_b_low,
+								std::numeric_limits<uint64_t>::max(),
+								40
+							);
 						
 							if ( ok )
 							{
@@ -835,7 +839,8 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 											uint64_t blen = HQ[i].second.second;
 										
 											libmaus2::lcs::NDextend rend;
-											rend.process(text.begin()+apos,alen,text.begin()+bpos,blen);
+											rend.process(text.begin()+apos,alen,text.begin()+bpos,blen,
+												std::numeric_limits<uint64_t>::max(),40);
 											
 											std::pair<uint64_t,uint64_t> const sufP = rend.suffixPositive(1,1,1,1);
 											alen -= sufP.first;
@@ -865,15 +870,16 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 									}									
 								}
 									
-								std::cerr << std::string(80,'E') << std::endl;
-								
+								// std::cerr << std::string(80,'E') << std::endl;							
 								rel = true;
 							}
 						}
 					}
 
+					#if 0
 					if ( rel )
 						std::cerr << std::string(80,'-') << std::endl;
+					#endif
 				}
 									
 					
