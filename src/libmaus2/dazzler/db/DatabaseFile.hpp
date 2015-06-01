@@ -510,10 +510,13 @@ namespace libmaus2
 				}
 				
 				/**
-				 * compute the trim vector. This function currently only masks out reads which do not have the DB_BEST flag set.
+				 * compute the trim vector
 				 **/
 				void computeTrimVector()
 				{
+					if ( all && cutoff < 0 )
+						return;
+				
 					uint64_t const n = indexbase.nreads;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
@@ -526,7 +529,11 @@ namespace libmaus2
 					{
 						Read R(*Pidxfile);
 						
-						bool const keep = (R.flags & Read::DB_BEST) != 0;
+						bool const keep = 
+							(all || (R.flags & Read::DB_BEST) != 0) 
+							&&
+							((cutoff < 0) || (R.rlen >= cutoff))
+						;
 						
 						context.writeBit(keep);
 					}
