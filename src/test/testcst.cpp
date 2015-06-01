@@ -22,6 +22,7 @@
 
 #include <libmaus2/eta/LinearETA.hpp>
 #include <libmaus2/parallel/SynchronousCounter.hpp>
+#include <libmaus2/util/ReverseAdapter.hpp>
 
 uint64_t countLeafsByTraversal(libmaus2::suffixtree::CompressedSuffixTree const & CST)
 {
@@ -177,17 +178,209 @@ struct MatchEntryAbsPosComparator
 
 #include <libmaus2/lcs/NDextend.hpp>
 
+
 void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & CST, uint64_t const k)
 {
 	// get text
+	std::cerr << "Decoding text...";
 	libmaus2::autoarray::AutoArray<char> text;
 	uint64_t const textn = CST.extractTextParallel(text);
+	std::cerr << "done." << std::endl;
 	
 	std::vector<uint64_t> tpos;
+	std::cerr << "Decomposing text into blocks...";
 	for ( uint64_t i = 0; i < textn; ++i )
 		if ( text[i] == 0 )
 			tpos.push_back(i);
+	std::cerr << "done." << std::endl;
+			
+	uint64_t const emask = libmaus2::math::lowbits(k);
+	uint64_t const emask1 = k ? libmaus2::math::lowbits(k-1) : 0;
+
+	for ( uint64_t j = 0; j < tpos.size(); ++j )
+	{
+		uint64_t const low = j?(tpos[j-1]+1):0;
+		uint64_t const high = tpos[j];
+		
+		std::cerr << "[" << low << "," << high << ")\n";
+
+		if ( high-low >= k )
+		{
+			std::map < uint64_t, std::set<uint64_t> > Pseen;
+		
+			uint64_t z = low;
+			libmaus2::fastx::SingleWordDNABitBuffer fb(k), rb(k);
+			uint64_t e = 0;
+			
+			for ( uint64_t i = 0; i+1 < k; ++i )
+			{
+				char const c = text[z++]-1;
+
+				e &= emask1;
+				e <<= 1;
+				
+				if ( c < 4 )
+				{
+					fb.pushBackMasked(c);
+					rb.pushFront(libmaus2::fastx::invertN(c));
+				}
+				else
+				{
+					fb.pushBackMasked(0);
+					rb.pushFront(0);
+					e |= 1;
+				}
+			}
+			
+			while ( z < high )
+			{
+				char const c = text[z++]-1;
+				
+				e &= emask1;
+				e <<= 1;
+				
+				if ( c < 4 )
+				{
+					fb.pushBackMasked(c);
+					rb.pushFront(libmaus2::fastx::invertN(c));
+				}
+				else
+				{
+					fb.pushBackMasked(0);
+					rb.pushFront(0);
+					e |= 1;					
+				}
+
+				uint64_t const p0 = z-k;
+								
+				while ( Pseen.size() && Pseen.begin()->first < p0 )
+					Pseen.erase ( Pseen.begin() );
+				
+				// error free?
+				if ( ! e )
+				{
+					libmaus2::suffixtree::CompressedSuffixTree::Node node = CST.root();
+					for ( uint64_t x = 0; x < k; ++x )
+						node = CST.backwardExtend(node,text[z-x-1]);
+					assert ( node.sp != node.ep );
+					
+					if ( node.ep - node.sp > 1 )
+					{
+						bool ok = false;
+						std::vector<uint64_t> P1;
+						
+						for ( uint64_t i = node.sp; i < node.ep; ++i )
+						{
+				        		uint64_t const pos = (*(CST.SSA))[i];
+				        		if ( pos == p0 )
+				        			ok = true;
+							else
+								P1.push_back(pos);
+						}
+						
+						std::sort ( P1.begin(), P1.end() );
+						
+						for ( uint64_t i = 0; i < P1.size(); ++i )
+						{				
+							uint64_t p1 = P1[i];
+							
+							if ( 
+								(
+									Pseen.find(p0) == Pseen.end() ||
+									Pseen.find(p0)->second.find(p1) == Pseen.find(p0)->second.end()
+								)
+								#if 1
+								&&
+								std::abs(static_cast<int64_t>(p0)-static_cast<int64_t>(p1)) >= k
+								#endif
+							)
+							{
+								#if 0
+								libmaus2::util::ReverseAdapter<char const *> RA(text.begin(),text.begin()+p0+k);
+								libmaus2::util::ReverseAdapter<char const *> RB(text.begin(),text.begin()+p1+k);
+								libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char> CA(&RA);
+								libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char> CB(&RB);
+								libmaus2::lcs::NDextend ndr;
+								ndr.process<
+									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>,
+									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>,
+									true
+								>(
+									CA,p0+k,
+									CB,p1+k,
+									std::numeric_limits<uint64_t>::max(),
+									20,20
+								);
+								std::pair<uint64_t,uint64_t> Rlen = ndr.getStringLengthUsed();
+								uint64_t const ep0 = p0 - (Rlen.first-k);
+								uint64_t const ep1 = p1 - (Rlen.second-k);
+								#else
+								uint64_t const ep0 = p0;
+								uint64_t const ep1 = p1;
+								#endif
+
+								libmaus2::lcs::NDextend nd;
+								bool const ok = nd.process<char const *, char const *,true /* check for self matches */>(
+									text.begin()+ep0,text.size()-ep0,
+									text.begin()+ep1,text.size()-ep1,
+									std::numeric_limits<uint64_t>::max(),
+									20,
+									20
+								);
+
+								std::pair<uint64_t,uint64_t> Alen = nd.getStringLengthUsed();
+
+								if ( std::max(Alen.first,Alen.second) >= 100 )
+								{
+									std::cerr 
+										<< "region A=[" << ep0 << "," << ep0+Alen.first << ") "
+										<< "region B=[" << ep1 << "," << ep1+Alen.second << ")\n";
+									nd.printAlignmentLines<char const *, char const *, char(*)(char)>(
+										std::cerr,
+										text.begin()+ep0,Alen.first,
+										text.begin()+ep1,Alen.second,
+										80,
+										decode
+									);
+								}
+								
+								std::vector < std::pair<uint64_t,uint64_t> > const koff = nd.getKMatchOffsets(k);	
+								
+								for ( uint64_t i = 0; i < koff.size(); ++i )
+									Pseen [ ep0 + koff[i].first ] .insert ( ep1 + koff[i].second);
+
+								#if 0
+								ndr.printAlignmentLines<
+									libmaus2::util::ConstIterator<ReverseAdapter<char const *>,char>,
+									libmaus2::util::ConstIterator<ReverseAdapter<char const *>,char>,
+									char(*)(char)
+								>(
+									std::cerr,
+									CA,Rlen.first,
+									CB,Rlen.second,
+									80,
+									decode
+								);
+								#endif
+							}
+						}
+						assert ( ok );
+					}
+				}
+
+				#if 0				
+				std::cerr << std::string(80,'-') << std::endl;
+				std::cerr << fb << std::endl;
+				std::cerr << rb << std::endl;
+				#endif
+				
+				if ( (z & (1024*1024-1)) == 0 )
+					std::cerr << z << std::endl;
+			}
+		}		
+	}
 	
+	#if 0
 	#if 0
 	for ( uint64_t j = 0; j < tpos.size(); ++j )
 	{
@@ -887,9 +1080,9 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 			}
 		}		
 	}
-
 	
 	// wv now contains the list of kmers with frequencies
+	#endif
 }
 
 int main(int argc, char * argv[])
