@@ -239,8 +239,7 @@ namespace libmaus2
 							case STEP_DEL:
 								apos += 1;
 								break;
-						}
-						
+						}						
 					}
 
 					if ( pset.find(tc-ta) != pset.end() )
@@ -444,10 +443,83 @@ namespace libmaus2
 
 			uint64_t getNumErrors() const
 			{
-				AlignmentStatistics stats =
-				getAlignmentStatistics(); return
-				stats.mismatches + stats.insertions +
-				stats.deletions;
+				AlignmentStatistics stats = getAlignmentStatistics(); 
+				return stats.mismatches + stats.insertions + stats.deletions;
+			}
+
+			std::pair<uint64_t,uint64_t> getStringLengthUsed() const
+			{
+				uint64_t apos = 0, bpos = 0;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+					}						
+				}
+				
+				return std::pair<uint64_t,uint64_t>(apos,bpos);
+			}
+
+			std::vector < std::pair<uint64_t,uint64_t> > getKMatchOffsets(unsigned int const k) const
+			{
+				uint64_t apos = 0, bpos = 0;
+				uint64_t const kmask = libmaus2::math::lowbits(k);
+				uint64_t const kmask1 = k ? libmaus2::math::lowbits(k-1) : 0;
+				uint64_t e = 0;
+				std::vector < std::pair<uint64_t,uint64_t> > R;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					if ( (tc-ta >= k) && (e == kmask) )
+					{
+						assert ( apos >= k );
+						assert ( bpos >= k );
+						R.push_back(std::pair<uint64_t,uint64_t>(apos-k,bpos-k));	
+					}
+
+					e &= kmask1;
+					e <<= 1;
+
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							apos += 1;
+							bpos += 1;
+							e |= 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+					}						
+				}
+
+				if ( (te-ta >= k) && (e == kmask) )
+				{
+					assert ( apos >= k );
+					assert ( bpos >= k );
+					R.push_back(std::pair<uint64_t,uint64_t>(apos-k,bpos-k));				
+				}
+
+				return R;
 			}
 			
 			template<typename it>
