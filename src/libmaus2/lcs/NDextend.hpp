@@ -65,6 +65,15 @@ namespace libmaus2
 				{
 				
 				}
+				
+				int64_t getScore() const
+				{
+					return	
+						static_cast<int64_t>(mat) -
+						static_cast<int64_t>(mis) -
+						static_cast<int64_t>(ins) -
+						static_cast<int64_t>(del);
+				}
 			};
 
 			// id of diagonal
@@ -296,7 +305,7 @@ namespace libmaus2
 				}
 			}
 
-			template<typename iterator_a, typename iterator_b>
+			template<typename iterator_a, typename iterator_b, bool check_self = false>
 			bool process(
 				iterator_a a,
 				size_t const na,
@@ -312,7 +321,7 @@ namespace libmaus2
 				// diag len
 				uint64_t const diaglen = std::min(na,nb)+1;
 				// todo queue	
-				std::deque<QueueElement> Q;
+				std::deque<QueueElement> Q, nextQ;
 				// maximum antidiagonal
 				uint64_t maxantidiag = 0;
 				// insert origin
@@ -321,20 +330,28 @@ namespace libmaus2
 				// trace data
 				bool aligned = false;
 
-				for ( unsigned int curd = 0; curd <= d && (!aligned); ++curd )
+				for ( unsigned int curd = 0; curd <= d; ++curd )
 				{
-					uint64_t const numpoints = Q.size();
-										
+					nextQ.clear();
+
 					uint64_t nextmaxantidiag = 0;
-					for ( uint64_t i = 0; i < numpoints; ++i )
+					for ( uint64_t i = 0; i < Q.size(); ++i )
 					{
-						QueueElement P = Q.front();
-						Q.pop_front();
+						QueueElement const & P = Q[i];
 					
 						// start point on a	
 						uint64_t pa = P.pa;
 						// start point on b
 						uint64_t pb = P.pb;
+						
+						if ( 
+							check_self &&
+							( a + pa == b + pb )
+						)
+						{
+							EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
+							return false;		
+						}
 
 						// anti diagonal id
 						uint64_t const antidiag = pa + pb;
@@ -371,19 +388,19 @@ namespace libmaus2
 											{
 												QueueElement qel(pa,pb+1,mat,mis,ins+1,del,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb,mat,mis,ins,del+1,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb+1,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb+1,mat,mis+1,ins,del,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa+1,pb+1,diaglen),step_diag);
-												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 										}
 										// b is at end
@@ -396,7 +413,7 @@ namespace libmaus2
 											{
 												QueueElement qel(pa+1,pb,mat,mis,ins,del+1,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-												Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 											}
 										}
 									}
@@ -407,7 +424,7 @@ namespace libmaus2
 										{
 											QueueElement qel(pa,pb+1,mat,mis,ins+1,del,((evec & evecmask) << 1) | 1ull);
 											diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-											Q.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+											nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
 										}
 									}
 								}
@@ -421,7 +438,14 @@ namespace libmaus2
 						}
 					}
 
-					maxantidiag = nextmaxantidiag;					
+					maxantidiag = nextmaxantidiag;
+					
+					if ( aligned )
+						break;
+					else if ( nextQ.size() == 0 )
+						break;
+					else
+						Q.swap(nextQ);
 				}
 				
 				// did we reach the bottom right corner?
@@ -458,6 +482,60 @@ namespace libmaus2
 					}
 					
 					return true;
+				}
+				else if ( Q.size() )
+				{
+					// find Q entry with maximum score
+					int64_t maxscore = std::numeric_limits<int64_t>::min();
+					uint64_t maxscoreindex = 0;
+					
+					for ( uint64_t i = 0; i < Q.size(); ++i )
+					{
+						int64_t const score = Q[i].getScore();
+												
+						if ( score > maxscore )
+						{
+							maxscore = score;
+							maxscoreindex = i;
+						}
+							
+					}
+					
+					QueueElement const & P = Q[maxscoreindex];
+				
+					uint64_t pa = P.pa;
+					uint64_t pb = P.pb;
+
+					EditDistanceTraceContainer::reset();
+					if ( EditDistanceTraceContainer::capacity() < pa+pb )
+						EditDistanceTraceContainer::resize(pa+pb);
+
+					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
+					
+					while ( pa != 0 || pb != 0 )
+					{
+						switch ( diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen)) )
+						{
+							case step_diag:
+								*(--EditDistanceTraceContainer::ta) = (a[--pa] == b[--pb]) ? STEP_MATCH : STEP_MISMATCH;
+								break;
+							case step_del:
+								*(--EditDistanceTraceContainer::ta) = STEP_DEL;
+								pa-=1;
+								break;
+							case step_ins:
+								*(--EditDistanceTraceContainer::ta) = STEP_INS;
+								pb-=1;
+								break;
+							default:
+								assert ( false );
+								break;
+						}
+					}
+					
+					suffixPositive();
+
+					return false;				
 				}
 				else
 				{
