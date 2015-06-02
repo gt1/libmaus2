@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/lcs/ND.hpp>
+#include <libmaus2/lcs/NDextend.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/fastx/StreamFastAReader.hpp>
 
@@ -27,15 +28,24 @@ int main(int argc, char * argv[])
 			
 		// std::string a = "ACGTACGT";
 		// std::string b = "ACGTTTACGZ";
-		std::string const a = "GCAGGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
-		std::string const b = "TGCAGCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+		std::string a = "GCAGGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+		std::string b = "TGCAGCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+		//std::string const a = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAACATGCGAAAATTTACCTAAAAA";
+		//std::string const b = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAAAATGCGAAAATTGACCTAAAAA";
 		
+		libmaus2::random::Random::setup();
+		for ( uint64_t i = 0; i < 50; ++i )
+		{
+			a += ((libmaus2::random::Random::rand8() % 4) + 'A');
+			b += ((libmaus2::random::Random::rand8() % 4) + 'A');
+		}
 
 		// maximum number of errors
 		unsigned int d = 30;
 		
-		libmaus2::lcs::ND nd;
-		bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d);
+		libmaus2::lcs::NDextend nd;
+		bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
 		
 		if ( ok )
 		{
@@ -44,6 +54,7 @@ int main(int argc, char * argv[])
 		}
 		else
 		{
+			nd.printAlignment(std::cout,a.begin(),b.begin());
 			std::cout << "no alignment found" << std::endl;
 		}
 	}

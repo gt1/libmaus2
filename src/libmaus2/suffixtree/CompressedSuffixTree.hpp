@@ -22,8 +22,9 @@
 #include <libmaus2/lf/ImpCompactHuffmanWaveletLF.hpp>
 #include <libmaus2/fm/SampledSA.hpp>
 #include <libmaus2/fm/SampledISA.hpp>
-#include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/lcp/SuccinctLCP.hpp>
 #include <libmaus2/rmq/RMMTree.hpp>
+#include <libmaus2/parallel/OMPNumThreadsScope.hpp>
 
 namespace libmaus2
 {
@@ -80,6 +81,54 @@ namespace libmaus2
 				Node() : sp(0), ep(0) {}
 				Node(uint64_t const rsp, uint64_t const rep) : sp(rsp), ep(rep) {}
 			};
+			
+			template<typename iterator>
+			void extractText(iterator const it, uint64_t const low, uint64_t const high) const
+			{
+				uint64_t r = (*SISA)[ high % n ];
+				uint64_t c = high-low;
+				iterator ite = it + (high-low);
+				
+				while ( ite != it )
+				{
+					std::pair<int64_t,uint64_t> const P = LF->extendedLF(r);
+					*(--ite) = P.first;
+					r = P.second;
+				}
+			}
+
+			template<typename data_type>
+			uint64_t extractText(libmaus2::autoarray::AutoArray<data_type> & D) const
+			{
+				if ( D.size() < n )
+					D.resize(n);
+				extractText(D.begin(),0,n);
+				
+				return n;
+			}
+			
+			template<typename data_type>
+			uint64_t extractTextParallel(libmaus2::autoarray::AutoArray<data_type> & D) const
+			{
+				if ( D.size() < n )
+					D.resize(n);
+			
+				uint64_t const numthreads = libmaus2::parallel::OMPNumThreadsScope::getMaxThreads();
+				uint64_t const blocksize = (n + numthreads-1)/numthreads;
+				uint64_t const numblocks = (n + blocksize-1)/blocksize;
+				
+				#if defined(_OPENMP)
+				#pragma omp parallel for
+				#endif
+				for ( uint64_t t = 0; t < numblocks; ++t )
+				{
+					uint64_t const low = t * blocksize;
+					uint64_t const high = std::min(low+blocksize,n);
+					extractText(D.begin()+low,low,high);
+				}
+				
+				return n;
+			}			
 			
 			/*
 			 * string depth

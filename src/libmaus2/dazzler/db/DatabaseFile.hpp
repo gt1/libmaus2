@@ -134,22 +134,22 @@ namespace libmaus2
 					return false;
 				}
 
-				size_t decodeRead(
+				static size_t decodeRead(
 					std::istream & bpsstream, 
 					libmaus2::autoarray::AutoArray<char> & A,
 					int32_t const rlen
-				) const
+				)
 				{
 					if ( static_cast<int32_t>(A.size()) < rlen )
 						A = libmaus2::autoarray::AutoArray<char>(rlen,false);
 					return decodeRead(bpsstream,A.begin(),rlen);
 				}
 				
-				size_t decodeRead(
+				static size_t decodeRead(
 					std::istream & bpsstream,
 					char * const C,
 					int32_t const rlen
-				) const
+				)
 				{
 					bpsstream.read(C + (rlen - (rlen+3)/4),(rlen+3)/4);
 					if ( bpsstream.gcount() != (rlen+3)/4 )
@@ -485,6 +485,12 @@ namespace libmaus2
 					Pbpsfile->seekg(R.boff,std::ios::beg);
 					return decodeRead(*Pbpsfile,A,R.rlen);
 				}
+
+				libmaus2::aio::InputStream::unique_ptr_type openBaseStream()
+				{
+					libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
+					return UNIQUE_PTR_MOVE(Pbpsfile);
+				}
 				
 				std::string operator[](size_t const i) const
 				{
@@ -504,10 +510,13 @@ namespace libmaus2
 				}
 				
 				/**
-				 * compute the trim vector. This function currently only masks out reads which do not have the DB_BEST flag set.
+				 * compute the trim vector
 				 **/
 				void computeTrimVector()
 				{
+					if ( all && cutoff < 0 )
+						return;
+				
 					uint64_t const n = indexbase.nreads;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
@@ -520,12 +529,32 @@ namespace libmaus2
 					{
 						Read R(*Pidxfile);
 						
-						bool const keep = (R.flags & Read::DB_BEST) != 0;
+						bool const keep = 
+							(all || (R.flags & Read::DB_BEST) != 0) 
+							&&
+							((cutoff < 0) || (R.rlen >= cutoff))
+						;
 						
 						context.writeBit(keep);
 					}
 					
 					context.flush();
+				}
+
+				uint64_t computeReadLengthSum() const
+				{
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));					
+					Pidxfile->seekg(indexoffset);
+					
+					uint64_t s = 0;
+					for ( uint64_t i = 0; i < Ptrim->n; ++i )
+					{
+						Read R(*Pidxfile);
+						if ( (*Ptrim)[i] )
+							s += R.rlen;
+					}				
+					
+					return s;
 				}
 			};
 

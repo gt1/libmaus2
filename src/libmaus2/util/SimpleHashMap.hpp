@@ -467,6 +467,34 @@ namespace libmaus2
 				
 				return false;
 			}
+
+			// returns true if key v is contained
+			bool offset(key_type const v, uint64_t & r) const
+			{
+				uint64_t const p0 = hash(v);
+				uint64_t p = p0;
+
+				do
+				{
+					// position in use?
+					if ( H[p].first == base_type::unused() )
+					{
+						return false;
+					}
+					// correct value stored
+					else if ( H[p].first == v )
+					{
+						r = p;
+						return true;
+					}
+					else
+					{
+						p = displace(p,v);
+					}
+				} while ( p != p0 );
+				
+				return false;
+			}
 			
 			// get count for value v
 			value_type get(key_type const v) const
@@ -516,6 +544,16 @@ namespace libmaus2
 						return H[p].second;
 					else
 						p = displace(p,v);
+			}
+			
+			void updateOffset(uint64_t const offset, value_type const v)
+			{
+				H[offset].second = v;
+			}
+			
+			value_type atOffset(uint64_t const offset) const
+			{
+				return H[offset].second;
 			}
 		};
 

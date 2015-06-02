@@ -189,7 +189,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/db/DatabaseFile.cpp \
 	libmaus2/dazzler/db/Read.cpp \
 	libmaus2/dazzler/align/Path.cpp \
-	libmaus2/dazzler/align/Overlap.cpp
+	libmaus2/dazzler/align/Overlap.cpp \
+	libmaus2/lcs/AlignmentStatistics.cpp \
+	libmaus2/fastx/SingleWordDNABitBuffer.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1059,7 +1061,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/FiniteSizeHeap.hpp \
 	libmaus2/util/UnitNum.hpp \
 	libmaus2/util/NotDigitOrTermTable.hpp \
-	libmaus2/util/ArgInfoParseBase.hpp
+	libmaus2/util/ArgInfoParseBase.hpp \
+	libmaus2/util/ReverseAdapter.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1401,7 +1404,10 @@ libmaus2alignment_include_HEADERS=\
 libmaus2lcp_includedir=$(includedir)/libmaus2/lcp
 libmaus2lcp_include_HEADERS=\
 	libmaus2/lcp/LCP.hpp \
-	libmaus2/lcp/OracleLCP.hpp
+	libmaus2/lcp/OracleLCP.hpp \
+	libmaus2/lcp/SuccinctLCP.hpp \
+	libmaus2/lcp/WaveletLCPResult.hpp \
+	libmaus2/lcp/WaveletLCP.hpp
 
 libmaus2random_includedir=$(includedir)/libmaus2/random
 libmaus2random_include_HEADERS=\
@@ -1611,7 +1617,9 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/LocalEditDistanceResult.hpp \
 	libmaus2/lcs/MetaLocalEditDistance.hpp \
 	libmaus2/lcs/BandedLocalEditDistance.hpp \
-	libmaus2/lcs/ND.hpp
+	libmaus2/lcs/ND.hpp \
+	libmaus2/lcs/NDextend.hpp \
+	libmaus2/lcs/AlignmentStatistics.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
@@ -1763,7 +1771,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testfastqtobam \
 	testsamrecoding \
 	testdazzlerdb \
-	testnd
+	testnd \
+	testfastashred
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2236,3 +2245,8 @@ testnd_SOURCES  = test/testnd.cpp
 testnd_LDADD    = libmaus2.la ${DLLIB}
 testnd_CPPFLAGS = @WARNCPPFLAGS@
 testnd_LDFLAGS  = ${AM_LDFLAGS}
+
+testfastashred_SOURCES  = test/testfastashred.cpp
+testfastashred_LDADD    = libmaus2.la ${DLLIB}
+testfastashred_CPPFLAGS = @WARNCPPFLAGS@
+testfastashred_LDFLAGS  = ${AM_LDFLAGS}

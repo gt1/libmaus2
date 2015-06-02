@@ -22,10 +22,24 @@
 #include <libmaus2/lcs/EditDistance.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
+#include <libmaus2/lcs/NDextend.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
 #include <unistd.h>
+
+uint64_t getColumns()
+{
+	// get window size
+	struct winsize w;
+	
+	if ( isatty(STDOUT_FILENO) && ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 )
+		return w.ws_col;
+	else if ( getenv("COLUMNS") != 0 )
+		return atoi(getenv("COLUMNS"));
+	else
+		return 80;
+}
 
 int main(int argc, char * argv[])
 {
@@ -41,6 +55,7 @@ int main(int argc, char * argv[])
 		
 		bool const printAlignments = arginfo.getValue<int>("print",1);
 		bool const loadall = arginfo.getValue<int>("loadall",false);
+		uint64_t const cols = getColumns();
 		
 		std::string const dbfn = arginfo.restargs.at(0);
 		std::string const aligns = arginfo.restargs.at(1);
@@ -49,6 +64,9 @@ int main(int argc, char * argv[])
 		
 		// compute the trim vector
 		DB.computeTrimVector();
+
+		std::vector<libmaus2::dazzler::db::Read> readsMeta;
+		DB.getAllReads(readsMeta);
 
 		#if 0
 		std::vector<libmaus2::dazzler::db::Read> allReads;
@@ -64,18 +82,28 @@ int main(int argc, char * argv[])
 		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
 
-		// get window size
-		struct winsize w;
-		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-		uint64_t const cols = isatty(STDOUT_FILENO) ? w.ws_col : 80;
-
 		libmaus2::lcs::EditDistanceTraceContainer ATC;		
-		libmaus2::lcs::ND ND;
+		libmaus2::lcs::NDextend ND40;
+		libmaus2::lcs::NDextend ND;
 		libmaus2::dazzler::align::Overlap OVL;
 		
 		// number of alignments processed
 		uint64_t z = 0;
 		
+		libmaus2::autoarray::AutoArray<char> Aspace;
+		int64_t aid = -1;
+		char const * aptr = NULL;
+		
+		libmaus2::autoarray::AutoArray<char> Bspace;
+		libmaus2::autoarray::AutoArray<char> Binvspace;
+		int64_t bid = -1;
+		char const * bbaseptr = NULL;
+		char const * bptr = NULL;
+		bool Binvspacevalid = false;
+
+		libmaus2::aio::InputStream::unique_ptr_type PbaseStreamA(DB.openBaseStream());
+		libmaus2::aio::InputStream::unique_ptr_type PbaseStreamB(DB.openBaseStream());
+
 		while ( algn.getNextOverlap(*Palgnfile,OVL) )
 		{
 			#if 0
@@ -86,27 +114,166 @@ int main(int argc, char * argv[])
 			assert ( p == OVL.path.bepos );
 			#endif
 			
-			// read A
-			std::string const aread = loadall ? std::string(readsA.begin()+readsOff[OVL.aread],readsA.begin()+readsOff[OVL.aread+1]) : DB[OVL.aread];
-			// read B (or reverse complement)
-			std::string const braw  = loadall ? std::string(readsA.begin()+readsOff[OVL.bread],readsA.begin()+readsOff[OVL.bread+1]) : DB[OVL.bread];
-			std::string const bread = OVL.isInverse() ? libmaus2::fastx::reverseComplementUnmapped(braw) : braw;
+			if ( OVL.aread != aid )
+			{
+				libmaus2::dazzler::db::Read const & R = readsMeta.at(OVL.aread);
+				
+				if ( loadall )
+				{
+					#if 0
+					if ( R.rlen > static_cast<int64_t>(Aspace.size()) )
+						Aspace.resize(R.rlen);
+					std::copy(readsA.begin()+readsOff[OVL.aread],readsA.begin()+readsOff[OVL.aread+1],Aspace.begin());
+					#endif
+					
+					aptr = readsA.begin()+readsOff[OVL.aread];
+				}
+				else
+				{
+					PbaseStreamA->clear();
+					PbaseStreamA->seekg(R.boff);
+					libmaus2::dazzler::db::DatabaseFile::decodeRead(*PbaseStreamA,Aspace,R.rlen);
+					aptr = Aspace.begin();
+				}
+				
+				aid = OVL.aread;
+			}
 
-			// part of A used for alignment			
-			std::string const asub = aread.substr(OVL.path.abpos,OVL.path.aepos-OVL.path.abpos);
-			// part of B used for alignment
-			std::string const bsub = bread.substr(OVL.path.bbpos,OVL.path.bepos-OVL.path.bbpos);
+			if ( OVL.bread != bid )
+			{
+				libmaus2::dazzler::db::Read const & R = readsMeta.at(OVL.bread);
+				
+				if ( loadall )
+				{
+					#if 0
+					if ( R.rlen > static_cast<int64_t>(Bspace.size()) )
+						Bspace.resize(R.rlen);
+					std::copy(readsA.begin()+readsOff[OVL.bread],readsA.begin()+readsOff[OVL.bread+1],Bspace.begin());
+					#endif
+					bbaseptr = readsA.begin()+readsOff[OVL.bread];
+				}
+				else
+				{
+					PbaseStreamB->clear();
+					PbaseStreamB->seekg(R.boff);
+					libmaus2::dazzler::db::DatabaseFile::decodeRead(*PbaseStreamB,Bspace,R.rlen);
+					bbaseptr = Bspace.begin();
+				}
+				
+				bid = OVL.bread;
+				Binvspacevalid = false;						
+			}
+			
+			if ( OVL.isInverse() )
+			{
+				if ( ! Binvspacevalid )
+				{
+					libmaus2::dazzler::db::Read const & R = readsMeta.at(OVL.bread);
+				
+					if ( R.rlen > static_cast<int64_t>(Binvspace.size()) )
+						Binvspace.resize(R.rlen);
+				
+					char const * pin =  bbaseptr;
+					char * pout = Binvspace.begin() + R.rlen;
+				
+					for ( int64_t i = 0; i < R.rlen; ++i )
+						*(--pout) = libmaus2::fastx::invertUnmapped(*(pin++));
+
+					Binvspacevalid = true;
+				}
+
+				bptr = Binvspace.begin();
+			}
+			else
+			{
+				bptr = bbaseptr;
+			}
 
 			#if 0
-			libmaus2::lcs::EditDistance<> LND;
-			LND.process(
-				asub.begin(),
-				asub.size(),
-				bsub.begin(),
-				bsub.size(),
-				std::numeric_limits<uint64_t>::max()
+			bool const ok40 = ND40.process(
+				aptr + OVL.path.abpos,
+				OVL.path.aepos-OVL.path.abpos,
+				bptr + OVL.path.bbpos,
+				OVL.path.bepos-OVL.path.bbpos,
+				std::numeric_limits<uint64_t>::max(),
+				40
 			);
-			LND.printAlignmentLines(std::cout,asub,bsub,cols);
+			if ( ok40 )
+			{
+				if ( printAlignments )
+				{
+					std::cout << std::string(80,'A') << "\n";
+					std::cout << ND40.getAlignmentStatistics() << "\t" << ND40.getNumErrors() << std::endl;
+					std::cout << OVL.getNumErrors() << std::endl;
+					ND40.printAlignmentLines(
+						std::cout,
+						aptr + OVL.path.abpos,
+						OVL.path.aepos-OVL.path.abpos,
+						bptr + OVL.path.bbpos,
+						OVL.path.bepos-OVL.path.bbpos,
+						cols
+					);
+					std::cout << std::string(80,'E') << "\n";
+				}
+			}
+			else
+			{
+				std::cout << "no alignment." << std::endl;
+			}
+			#endif
+
+			#if 0
+			bool const ok40 = ND40.process(
+				aptr + OVL.path.abpos,
+				OVL.path.aepos-OVL.path.abpos,
+				bptr + OVL.path.bbpos,
+				OVL.path.bepos-OVL.path.bbpos,
+				std::numeric_limits<uint64_t>::max(),
+				40
+				// , 40
+			);
+			uint64_t const err40 = ND40.windowError();
+			
+			bool const ok = ND.process(
+				aptr + OVL.path.abpos,
+				OVL.path.aepos-OVL.path.abpos,
+				bptr + OVL.path.bbpos,
+				OVL.path.bepos-OVL.path.bbpos
+			);
+			uint64_t const errinf = ND.windowError();
+			
+			if ( err40 != errinf )
+			{		
+				std::cerr << "err40=" << err40 << " errinf=" << errinf << std::endl;
+
+				std::cout << "40:  " << ND40.getAlignmentStatistics() << std::endl;
+				std::cout << "inf: " << ND.getAlignmentStatistics() << std::endl;
+
+				// assert ( err40 == errinf );
+			}
+						
+			if ( ok )
+			{
+			
+				if ( printAlignments )
+				{
+					std::cout << std::string(80,'A') << "\n";
+					std::cout << ND.getAlignmentStatistics() << std::endl;
+					ND.printAlignmentLines(
+						std::cout,
+						aptr + OVL.path.abpos,
+						OVL.path.aepos-OVL.path.abpos,
+						bptr + OVL.path.bbpos,
+						OVL.path.bepos-OVL.path.bbpos,
+						cols
+					);
+					std::cout << std::string(80,'E') << "\n";
+				}
+			}
+			else
+			{
+				std::cout << "no alignment." << std::endl;
+			}
 			#endif
 			
 			// current point on A
@@ -124,23 +291,19 @@ int main(int argc, char * argv[])
 				// block end point on B
 				int32_t const b_i_1 = b_i + OVL.path.path[i].second;
 
-				// block on A		
-				std::string const asubsub = aread.substr(std::max(a_i,OVL.path.abpos),a_i_1-std::max(a_i,OVL.path.abpos));
+				// block on A
+				char const * asubsub_b = aptr + std::max(a_i,OVL.path.abpos);
+				char const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,OVL.path.abpos);
+				
 				// block on B
-				std::string const bsubsub = bread.substr(b_i,b_i_1-b_i);
+				char const * bsubsub_b = bptr + b_i;
+				char const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
 
-				bool const ok = ND.process(
-					asubsub.begin(),
-					asubsub.size(),
-					bsubsub.begin(),
-					bsubsub.size()
-				);
+				bool const ok = ND.process(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
 				assert ( ok );
 
 				#if 0
-				std::cout << asubsub << std::endl;
-				std::cout << bsubsub << std::endl;
-				ND.printAlignmentLines(std::cout,asubsub,bsubsub,cols);
+				ND.printAlignmentLines(std::cout,asubsub_b,asubsub_e-asubsub_b,bsubsub_b,bsubsub_e-bsubsub_b,cols);
 				#endif
 				
 				#if 0
@@ -160,7 +323,8 @@ int main(int argc, char * argv[])
 			if ( printAlignments )
 			{
 				std::cout << OVL << std::endl;
-				ATC.printAlignmentLines(std::cout,asub,bsub,cols);
+				std::cout << ATC.getAlignmentStatistics() << std::endl;
+				ATC.printAlignmentLines(std::cout,aptr + OVL.path.abpos,OVL.path.aepos-OVL.path.abpos,bptr + OVL.path.bbpos,OVL.path.bepos-OVL.path.bbpos,cols);
 			}
 			
 			z += 1;
