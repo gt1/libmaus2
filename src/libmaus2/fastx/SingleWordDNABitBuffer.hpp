@@ -29,10 +29,15 @@ namespace libmaus2
 {
 	namespace fastx
 	{
+		struct SingleWordDNABitBuffer;
+		std::ostream & operator<<(std::ostream & out, SingleWordDNABitBuffer const & S);
+
 		struct SingleWordDNABitBuffer
 		{
 			typedef uint64_t data_type;
 			typedef SingleWordDNABitBuffer this_type;
+			
+			friend std::ostream & operator<<(std::ostream & out, SingleWordDNABitBuffer const & S);
 
 			static unsigned int getMaxBases()
 			{
@@ -221,16 +226,13 @@ namespace libmaus2
 
 			std::string toString() const
 			{
-				unsigned int shift = width22;
-				data_type pmask = ::libmaus2::math::lowbits(2) << shift;
 				std::ostringstream ostr;
-
-				for ( unsigned int i = 0; i < width; ++i, pmask >>= 2, shift -= 2 )
-					ostr << ((buffer & pmask) >> shift);
-				
+				ostr << *this;
 				return ostr.str();
 			}
 		};
+		
+		std::ostream & operator<<(std::ostream & out, SingleWordDNABitBuffer const & S);
 	}
 }
 #endif

@@ -63,6 +63,11 @@ namespace libmaus2
 				{
 					return (flags & 1) != 0;
 				}
+				
+				uint64_t getNumErrors() const
+				{
+					return path.getNumErrors();
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, Overlap const & P);

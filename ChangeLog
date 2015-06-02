@@ -1,3 +1,13 @@
+libmaus2 (2.0.14-1) unstable; urgency=medium
+
+  * various improvements of n*d alignments and alignment printing
+  * extending SimpleHashMap class API
+  * adding local alignment quality filters in NDextend
+  * adding suffix and prefix positive alignment reduction functions
+  * fix n*d alignment algorithms (make inserting error and sliding separate phases)
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 02 Jun 2015 09:33:50 +0200
+
 libmaus2 (2.0.13-1) unstable; urgency=medium
 
   * add nd time global alignment algorithm 

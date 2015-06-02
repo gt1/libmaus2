@@ -16,8 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #if ! defined(LIBMAUS2_SV_SV_HPP)
 #define LIBMAUS2_SV_SV_HPP
 
@@ -63,7 +61,13 @@ namespace libmaus2
 				return next;
 			}
 		};
+	}
+}
 
+namespace libmaus2
+{
+	namespace sv
+	{
 		struct PSV
 		{
 			/**

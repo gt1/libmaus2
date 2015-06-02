@@ -24,6 +24,7 @@
 #include <libmaus2/suffixsort/divsufsort.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
 #include <libmaus2/lcp/LCP.hpp>
+#include <libmaus2/lcp/SuccinctLCP.hpp>
 #include <libmaus2/lcp/OracleLCP.hpp>
 
 #include <libmaus2/fm/SampledSA.hpp>
