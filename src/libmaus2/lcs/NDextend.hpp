@@ -305,7 +305,7 @@ namespace libmaus2
 				}
 			}
 
-			template<typename iterator_a, typename iterator_b, bool check_self = false>
+			template<typename iterator_a, typename iterator_b>
 			bool process(
 				iterator_a a,
 				size_t const na,
@@ -313,7 +313,8 @@ namespace libmaus2
 				size_t const nb,
 				uint64_t const d = std::numeric_limits<uint64_t>::max(),
 				uint64_t const maxantidiagdiff = std::numeric_limits<uint64_t>::max(),
-				uint64_t const maxevecpopcnt = std::numeric_limits<uint64_t>::max()
+				uint64_t const maxevecpopcnt = std::numeric_limits<uint64_t>::max(),
+				bool const check_self = true
 			)
 			{
 				editops.clear();

@@ -24,6 +24,10 @@
 #include <libmaus2/parallel/SynchronousCounter.hpp>
 #include <libmaus2/util/ReverseAdapter.hpp>
 
+#include <libmaus2/fastx/acgtnMap.hpp>
+#include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
+#include <libmaus2/lcs/NDextend.hpp>
+
 uint64_t countLeafsByTraversal(libmaus2::suffixtree::CompressedSuffixTree const & CST)
 {
 	libmaus2::eta::LinearETA eta(CST.n);
@@ -108,11 +112,10 @@ uint64_t countLeafsByTraversal(libmaus2::suffixtree::CompressedSuffixTree const 
 	return leafs;
 }
 
-#include <libmaus2/fastx/acgtnMap.hpp>
-
-libmaus2::uint128_t rc(libmaus2::uint128_t v, uint64_t const k)
+template<typename word_type>
+word_type rc(word_type v, uint64_t const k)
 {
-	libmaus2::uint128_t w = 0;
+	word_type w = 0;
 	
 	for ( uint64_t i = 0; i < k; ++i )
 	{
@@ -123,8 +126,6 @@ libmaus2::uint128_t rc(libmaus2::uint128_t v, uint64_t const k)
 	
 	return w;
 }
-
-#include <libmaus2/fastx/SingleWordDNABitBuffer.hpp>
 
 char decode(char c)
 {
@@ -175,9 +176,6 @@ struct MatchEntryAbsPosComparator
 			return A.offset < B.offset;
 	}
 };
-
-#include <libmaus2/lcs/NDextend.hpp>
-
 
 void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & CST, uint64_t const k)
 {
@@ -303,13 +301,13 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								libmaus2::lcs::NDextend ndr;
 								ndr.process<
 									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>,
-									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>,
-									true
+									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>
 								>(
 									CA,p0+k,
 									CB,p1+k,
 									std::numeric_limits<uint64_t>::max(),
-									20,20
+									20,20,
+									true /* check self */
 								);
 								std::pair<uint64_t,uint64_t> Rlen = ndr.getStringLengthUsed();
 								uint64_t const ep0 = p0 - (Rlen.first-k);
@@ -320,12 +318,13 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								#endif
 
 								libmaus2::lcs::NDextend nd;
-								bool const ok = nd.process<char const *, char const *,true /* check for self matches */>(
+								bool const ok = nd.process<char const *, char const *>(
 									text.begin()+ep0,text.size()-ep0,
 									text.begin()+ep1,text.size()-ep1,
 									std::numeric_limits<uint64_t>::max(),
 									20,
-									20
+									20,
+									true /* check self */
 								);
 
 								std::pair<uint64_t,uint64_t> Alen = nd.getStringLengthUsed();
@@ -416,7 +415,8 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 	#endif
 
 	libmaus2::suffixtree::CompressedSuffixTree::lcp_type const & LCP = *(CST.LCP);
-	std::vector<libmaus2::uint128_t> words;
+        typedef libmaus2::uint128_t word_type;
+	std::vector<word_type> words;
 	
 	uint64_t const numthreads = libmaus2::parallel::OMPNumThreadsScope::getMaxThreads();
 	uint64_t const tnumblocks = 32*numthreads;
@@ -464,7 +464,6 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
         splitpoints.push_back(CST.n);
         std::cerr << "done." << std::endl;
         
-        typedef libmaus2::uint128_t word_type;
         typedef std::vector < word_type > word_vector_type;
         typedef libmaus2::util::shared_ptr<word_vector_type>::type word_vector_ptr_type;
         
@@ -478,7 +477,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
         {
         	word_vector_ptr_type pwords(new word_vector_type);
         	wordvecs[t] = pwords;
-        	std::vector<libmaus2::uint128_t> & lwords = *pwords;
+        	std::vector<word_type> & lwords = *pwords;
         
 		uint64_t low = splitpoints[t];
 
@@ -502,7 +501,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 			
 				if ( ok )
 				{
-					libmaus2::uint128_t wf = 0;
+					word_type wf = 0;
 				
 					for ( uint64_t i = 0; i < k; ++i )
 					{
@@ -533,8 +532,8 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
         uint64_t erased = 0;
         for ( uint64_t i = 0; i < wv.size(); ++i )
         {
-        	libmaus2::uint128_t const w = (wv[i] >> 32);
-		libmaus2::uint128_t const r = rc(w,k);
+        	word_type const w = (wv[i] >> 32);
+		word_type const r = rc(w,k);
 
         	#if 0
         	libmaus2::fastx::SingleWordDNABitBuffer SWDB(k);
@@ -655,13 +654,13 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 
 				if ( ! emask )
 				{
-		        		word_vector_type::const_iterator itf = std::lower_bound(wv.begin(),wv.end(),libmaus2::uint128_t(fb.buffer) << 32);
-		        		word_vector_type::const_iterator itr = std::lower_bound(wv.begin(),wv.end(),libmaus2::uint128_t(rb.buffer) << 32);
+		        		word_vector_type::const_iterator itf = std::lower_bound(wv.begin(),wv.end(),word_type(fb.buffer) << 32);
+		        		word_vector_type::const_iterator itr = std::lower_bound(wv.begin(),wv.end(),word_type(rb.buffer) << 32);
 			
-					if ( (itf != wv.end() && (*itf >> 32) == libmaus2::uint128_t(fb.buffer)) )
+					if ( (itf != wv.end() && (*itf >> 32) == word_type(fb.buffer)) )
 						frpos.push_back(z-k);
 					
-					if ( (itr != wv.end() && (*itr >> 32) == libmaus2::uint128_t(rb.buffer)) )
+					if ( (itr != wv.end() && (*itr >> 32) == word_type(rb.buffer)) )
 						rrpos.push_back(z-k);
 				}
 

@@ -142,14 +142,20 @@ namespace libmaus2
 			{
 				std::vector < ClipPair > R;
 				
-				assert ( k <= static_cast<int>(sizeof(libmaus2::uint128_t) * 8) );
+				#if defined(LIBMAUS2_HAVE_UNSIGNED_INT128)
+				typedef libmaus2::uint128_t mask_type;
+				#else
+				typedef uint64_t mask_type;
+				#endif
+				
+				assert ( k <= static_cast<int>(sizeof(mask_type) * 8) );
 				
 				if ( k && (te-ta) >= k )
 				{
 					std::vector < std::pair<uint64_t,uint64_t> > V;
 					
-					libmaus2::uint128_t const outmask = static_cast<libmaus2::uint128_t>(1) << (k-1);
-					libmaus2::uint128_t w = 0;
+					mask_type const outmask = static_cast<mask_type>(1) << (k-1);
+					mask_type w = 0;
 					unsigned int e;
 					
 					step_type const * tc = ta;
