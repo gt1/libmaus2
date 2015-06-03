@@ -29,13 +29,14 @@
 #include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
 #include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
 #include <libmaus2/rank/ImpCacheLineRank.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <libmaus2/util/TempFileContainer.hpp>
 #include <libmaus2/huffman/HuffmanTree.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 
 #include <libmaus2/util/unordered_map.hpp>
+
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -258,14 +259,15 @@ namespace libmaus2
 					}
 					concatTempFileNames[i] = tmpcnt.getFileName();
 					libmaus2::util::TempFileRemovalContainer::addTempFile(concatTempFileNames[i]);
-					libmaus2::aio::CheckedOutputStream COS(concatTempFileNames[i]);
+					libmaus2::aio::OutputStream::unique_ptr_type PCOS(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(concatTempFileNames[i]));
+					std::ostream & COS = *PCOS;
 					
 					// round up
 					wordsv[i] = libmaus2::bitio::BitVectorConcat::concatenateBitVectors(infiles,COS,6);
 					
 					// flush and close file
 					COS.flush();
-					COS.close();
+					PCOS.reset();
 				}
 
 				uint64_t symbols = 0;
@@ -289,7 +291,8 @@ namespace libmaus2
 				{
 					nodeposvec.push_back(p);
 				
-					libmaus2::aio::CheckedInputStream istr(concatTempFileNames[i]);
+					libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(concatTempFileNames[i]));
+					std::istream & istr = *Pistr;
 					uint64_t inwords;
 					::libmaus2::serialize::Serialize<uint64_t>::deserialize(istr,&inwords);
 					assert ( inwords == wordsv[i] );
@@ -370,10 +373,11 @@ namespace libmaus2
 			
 			void createFinalStream(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedOutputStream ostr(filename);
+				libmaus2::aio::OutputStream::unique_ptr_type Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
+				std::ostream & ostr = *Postr;
 				createFinalStream(ostr);
 				ostr.flush();
-				ostr.close();
+				Postr.reset();
 			}
 		};
 	}

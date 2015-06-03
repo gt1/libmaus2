@@ -95,8 +95,8 @@ namespace libmaus2
 					#endif
 					for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 					{
-						::libmaus2::aio::CheckedInputStream CIS(fn);
-						CIS.setBufferSize(16*1024);
+						libmaus2::aio::InputStream::unique_ptr_type PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn));
+						libmaus2::aio::InputStream & CIS = *PCIS;
 						CIS.seekg(partstarts[i]);
 						
 						uint64_t lsyms = 0;

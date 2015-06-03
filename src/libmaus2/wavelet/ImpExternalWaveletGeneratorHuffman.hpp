@@ -29,11 +29,11 @@
 #include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
 #include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
 #include <libmaus2/rank/ImpCacheLineRank.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <libmaus2/util/TempFileContainer.hpp>
 
 #include <libmaus2/util/unordered_map.hpp>
+
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -216,7 +216,6 @@ namespace libmaus2
 					// auto array header (words written)
 					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
 					//std::string const filename = outputfilenames[i];
-					//::libmaus2::aio::CheckedInputStream istr(filename);
 					std::istream & istr = tmpcnt.openInputTempFile(i);
 					// std::ifstream istr(filename.c_str(),std::ios::binary);
 					// std::cerr << "Copying " << allwordswritten << " from stream " << filename << std::endl;
@@ -238,10 +237,11 @@ namespace libmaus2
 			
 			void createFinalStream(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedOutputStream ostr(filename);
+				libmaus2::aio::OutputStream::unique_ptr_type Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
+				std::ostream & ostr = *Postr;
 				createFinalStream(ostr);
 				ostr.flush();
-				ostr.close();
+				Postr.reset();
 			}
 		};
 	}
