@@ -28,6 +28,7 @@
 
 #include <libmaus2/lcs/NDextendAllPass.hpp>
 #include <libmaus2/lcs/NDextendACGTPass.hpp>
+#include <libmaus2/lcs/NDextend1234Pass.hpp>
 
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
 #include <libmaus2/util/SimpleHashMap.hpp>
@@ -255,13 +256,17 @@ namespace libmaus2
 				iterator_a a, size_t const na, 
 				iterator_b b, size_t const nb, 
 				uint64_t const diaglen,
-				uint64_t & maxantidiag
+				uint64_t & maxantidiag,
+				bool const self_check
 			)
-			{
+			{					
 				// start point on a	
 				uint64_t pa = P.pa;
 				// start point on b
 				uint64_t pb = P.pb;
+
+				if ( self_check && ((a+pa)==(b+pb)) )
+					return P;
 
 				uint32_t mat = P.mat;
 				uint32_t mis = P.mis;
@@ -328,6 +333,13 @@ namespace libmaus2
 				bool const check_self = true
 			)
 			{
+				if ( check_self && (a==b) )
+				{
+					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
+					return false;		
+				}
+
+
 				editops.clear();
 				
 				// diag len
@@ -337,7 +349,7 @@ namespace libmaus2
 				// maximum antidiagonal
 				uint64_t maxantidiag = 0;
 				// insert origin
-				Q.push_back(slide(QueueElement(0,0,0,0,0,0,0),a,na,b,nb,diaglen,maxantidiag));
+				Q.push_back(slide(QueueElement(0,0,0,0,0,0,0),a,na,b,nb,diaglen,maxantidiag,check_self));
 
 				// trace data
 				bool aligned = false;
@@ -400,19 +412,19 @@ namespace libmaus2
 											{
 												QueueElement qel(pa,pb+1,mat,mis,ins+1,del,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag,check_self));
 											}
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb,mat,mis,ins,del+1,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag,check_self));
 											}
 											if ( diagaccess_get_f(editops,diagptr_f(pa+1,pb+1,diaglen)) == step_none )
 											{
 												QueueElement qel(pa+1,pb+1,mat,mis+1,ins,del,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa+1,pb+1,diaglen),step_diag);
-												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag,check_self));
 											}
 										}
 										// b is at end
@@ -425,7 +437,7 @@ namespace libmaus2
 											{
 												QueueElement qel(pa+1,pb,mat,mis,ins,del+1,((evec & evecmask) << 1) | 1ull);
 												diagaccess_set_f(editops,diagptr_f(pa+1,pb,diaglen),step_del);
-												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+												nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag,check_self));
 											}
 										}
 									}
@@ -436,7 +448,7 @@ namespace libmaus2
 										{
 											QueueElement qel(pa,pb+1,mat,mis,ins+1,del,((evec & evecmask) << 1) | 1ull);
 											diagaccess_set_f(editops,diagptr_f(pa,pb+1,diaglen),step_ins);
-											nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag));
+											nextQ.push_back(slide(qel,a,na,b,nb,diaglen,nextmaxantidiag,check_self));
 										}
 									}
 								}
@@ -567,6 +579,7 @@ namespace libmaus2
 		
 		typedef NDextendTemplate<NDextendAllPass> NDextend;
 		typedef NDextendTemplate<NDextendACGTPass> NDextendDNA;
+		typedef NDextendTemplate<NDextend1234Pass> NDextendDNAMapped1;
 	}
 }
 #endif
