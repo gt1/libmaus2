@@ -202,7 +202,7 @@ namespace libmaus2
 				
 				}
 
-				DatabaseFile(std::string const & s)
+				DatabaseFile(std::string const & s) : cutoff(-1)
 				{
 					isdam = endsOn(s,".dam");
 					root = isdam ? getRoot(s,".dam") : getRoot(s,".db");
@@ -516,6 +516,8 @@ namespace libmaus2
 				{
 					if ( all && cutoff < 0 )
 						return;
+						
+					std::cerr << "cut off " << cutoff << std::endl;
 				
 					uint64_t const n = indexbase.nreads;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
