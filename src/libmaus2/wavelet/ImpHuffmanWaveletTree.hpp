@@ -26,6 +26,7 @@
 #include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
 #include <libmaus2/huffman/EncodeTable.hpp>
 #include <libmaus2/math/numbits.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -139,13 +140,12 @@ namespace libmaus2
 			
 			static std::vector<uint64_t> loadIndex(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
-				assert ( istr.is_open() );
-				istr.seekg(-8,std::ios::end);
-				uint64_t const indexpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(istr);
-				istr.clear();
-				istr.seekg(indexpos,std::ios::beg);
-				return ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(istr);
+				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+				Pistr->seekg(-8,std::ios::end);
+				uint64_t const indexpos = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*Pistr);
+				Pistr->clear();
+				Pistr->seekg(indexpos,std::ios::beg);
+				return ::libmaus2::util::NumberSerialisation::deserialiseNumberVector<uint64_t>(*Pistr);
 			}
 			
 			void init()
@@ -302,7 +302,8 @@ namespace libmaus2
 				#endif
 				for ( int64_t i = 0; i < static_cast<int64_t>(dicts.size()); ++i )
 				{
-					::libmaus2::aio::CheckedInputStream istr(filename.c_str(),std::ios::binary);
+					libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+					std::istream & istr = *Pistr;
 					istr.seekg(nodepos[i],std::ios::beg);
 					rank_ptr_type tdictsi(new rank_type(istr));
 					dicts[i] = UNIQUE_PTR_MOVE(tdictsi);
@@ -314,20 +315,12 @@ namespace libmaus2
 			public:
 			static unique_ptr_type load(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedInputStream in(filename.c_str());
-				
-				if ( ! in.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "ImpHuffmanWaveletTree::load(): failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
-				
+				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+				std::istream & in = *Pistr;				
 				uint64_t const n = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 				::libmaus2::util::shared_ptr< ::libmaus2::huffman::HuffmanTreeNode >::type const sroot = ::libmaus2::huffman::HuffmanTreeNode::deserialize(in);
 				uint64_t const numnodes = ::libmaus2::util::NumberSerialisation::deserialiseNumber(in);
-				in.close();
+				Pistr.reset();
 				
 				std::vector<uint64_t> const nodepos = loadIndex(filename);
 				

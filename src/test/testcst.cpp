@@ -293,12 +293,12 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								#endif
 							)
 							{
-								#if 0
+								#if 1
 								libmaus2::util::ReverseAdapter<char const *> RA(text.begin(),text.begin()+p0+k);
 								libmaus2::util::ReverseAdapter<char const *> RB(text.begin(),text.begin()+p1+k);
 								libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char> CA(&RA);
 								libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char> CB(&RB);
-								libmaus2::lcs::NDextend ndr;
+								libmaus2::lcs::NDextendDNAMapped1 ndr;
 								ndr.process<
 									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>,
 									libmaus2::util::ConstIterator<libmaus2::util::ReverseAdapter<char const *>,char>
@@ -317,7 +317,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								uint64_t const ep1 = p1;
 								#endif
 
-								libmaus2::lcs::NDextend nd;
+								libmaus2::lcs::NDextendDNAMapped1 nd;
 								bool const ok = nd.process<char const *, char const *>(
 									text.begin()+ep0,text.size()-ep0,
 									text.begin()+ep1,text.size()-ep1,
@@ -333,7 +333,9 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								{
 									std::cerr 
 										<< "region A=[" << ep0 << "," << ep0+Alen.first << ") "
-										<< "region B=[" << ep1 << "," << ep1+Alen.second << ")\n";
+										<< "region B=[" << ep1 << "," << ep1+Alen.second << ") "
+										<< p0 << std::endl;
+									#if 0
 									nd.printAlignmentLines<char const *, char const *, char(*)(char)>(
 										std::cerr,
 										text.begin()+ep0,Alen.first,
@@ -341,6 +343,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 										80,
 										decode
 									);
+									#endif
 								}
 								
 								std::vector < std::pair<uint64_t,uint64_t> > const koff = nd.getKMatchOffsets(k);	
@@ -861,7 +864,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 
 						if ( std::max(a_t_len,b_t_len) >= 100 )
 						{
-							libmaus2::lcs::NDextend nd;
+							libmaus2::lcs::NDextendDNAMapped1 nd;
 							bool const ok = nd.process(
 								reg_a_low,reg_a_high-reg_a_low,reg_b_low,reg_b_high-reg_b_low,
 								std::numeric_limits<uint64_t>::max(),
@@ -922,7 +925,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 										);
 									
 										#if 0
-										libmaus2::lcs::NDextend rend;
+										libmaus2::lcs::NDextendDNAMapped1 rend;
 										bool const subok = rend.process(
 											reg_a_low + alow,
 											LQ.front().A.first,
@@ -977,7 +980,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 											std::cerr << "alen=" << alen << std::endl;
 											std::cerr << "blen=" << blen << std::endl;
 											
-											libmaus2::lcs::NDextend rend;
+											libmaus2::lcs::NDextendDNAMapped1 rend;
 											bool const subok = rend.process(reg_a_low + alow,alen,reg_b_low + blow,blen);
 
 											rend.printAlignmentLines<char const *, char const *, char(*)(char)>(
@@ -1009,7 +1012,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 										std::cerr << "blen*=" << blen << std::endl;
 										std::cerr << "reg_b_high-reg_b_low=" << reg_b_high-reg_b_low << std::endl;
 
-										libmaus2::lcs::NDextend rend;
+										libmaus2::lcs::NDextendDNAMapped1 rend;
 										bool const subok = rend.process(reg_a_low + alow,alen,reg_b_low + blow,blen);
 
 										rend.printAlignmentLines<char const *, char const *, char(*)(char)>(
@@ -1030,7 +1033,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 											uint64_t bpos = (reg_b_low + HQ[i].second.first)-text.begin();
 											uint64_t blen = HQ[i].second.second;
 										
-											libmaus2::lcs::NDextend rend;
+											libmaus2::lcs::NDextendDNAMapped1 rend;
 											rend.process(text.begin()+apos,alen,text.begin()+bpos,blen,
 												std::numeric_limits<uint64_t>::max(),40);
 											
