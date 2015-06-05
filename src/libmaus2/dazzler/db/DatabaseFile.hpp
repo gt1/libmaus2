@@ -516,8 +516,6 @@ namespace libmaus2
 				{
 					if ( all && cutoff < 0 )
 						return;
-						
-					std::cerr << "cut off " << cutoff << std::endl;
 				
 					uint64_t const n = indexbase.nreads;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));

@@ -53,6 +53,28 @@ namespace libmaus2
 				);
 			}
 			
+			static N hausdorffDistance(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
+			{
+				if ( A.isEmpty() )
+				{
+					if ( B.isEmpty() )
+						return N();
+					else
+						return std::numeric_limits<N>::max();
+				}
+
+				if ( B.from < A.from )
+					return hausdorffDistance(B,A);
+				assert ( A.from <= B.from );
+
+				// no overlap?
+				if ( A.to < B.from )
+					return B.from - A.to;
+
+				// overlap
+				return std::max(B.from-A.from, std::max(A.to,B.to) - std::min(A.to,B.to));
+			}
+
 			static IntegerInterval<N> intersection(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
 			{
 				if ( A.isEmpty() || B.isEmpty() )
