@@ -37,7 +37,7 @@ namespace libmaus2
 				
 				int64_t alre;
 
-				void deserialise(std::istream & in)
+				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
 					novl = getLittleEndianInteger8(in,offset);
@@ -52,7 +52,9 @@ namespace libmaus2
 					{
 						small = false;
 						tbytes = sizeof(uint16_t);
-					}					
+					}
+					
+					return offset;		
 				}
 				
 				AlignmentFile()
@@ -64,13 +66,25 @@ namespace libmaus2
 					deserialise(in);
 					alre = 0;
 				}
+
+				AlignmentFile(std::istream & in, uint64_t & s)
+				{
+					s += deserialise(in);
+					alre = 0;
+				}
 				
 				bool getNextOverlap(std::istream & in, Overlap & OVL)
+				{
+					uint64_t s = 0;
+					return getNextOverlap(in,OVL,s);
+				}
+
+				bool getNextOverlap(std::istream & in, Overlap & OVL, uint64_t & s)
 				{
 					if ( alre >= novl )
 						return false;
 				
-					OVL.deserialise(in);
+					s += OVL.deserialise(in);
 					OVL.path.path.resize(OVL.path.tlen/2);
 						
 					assert ( OVL.path.tlen % 2 == 0 );
@@ -92,6 +106,8 @@ namespace libmaus2
 							
 							OVL.path.path[i] = Path::tracepoint(a,b);
 						}
+						
+						s += OVL.path.tlen;
 					}
 					else
 					{
@@ -102,6 +118,8 @@ namespace libmaus2
 							int16_t const b = getLittleEndianInteger2(in,offset);
 							OVL.path.path[i] = Path::tracepoint(a,b);
 						}
+						
+						s += OVL.path.tlen << 1;
 					}
 					
 					alre += 1;
