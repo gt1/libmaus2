@@ -29,8 +29,8 @@
 #include <libmaus2/huffman/HuffmanTreeInnerNode.hpp>
 #include <libmaus2/huffman/HuffmanTreeLeaf.hpp>
 #include <libmaus2/util/unordered_map.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -360,13 +360,12 @@ namespace libmaus2
 
 			void createFinalStream(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedOutputStream ostr(filename);
-				// std::ofstream ostr(filename.c_str(),std::ios::binary);
-				createFinalStreamTemplate< ::libmaus2::aio::CheckedOutputStream >(ostr);
-				ostr.flush();
-				ostr.close();
+				libmaus2::aio::OutputStream::unique_ptr_type Postr(libmaus2::aio::OutputStreamFactoryContainer::constructUnique(filename));
+				libmaus2::aio::OutputStream & out = *Postr;
+				createFinalStreamTemplate< libmaus2::aio::OutputStream >(out);
+				out.flush();
+				Postr.reset();
 			}
-		
 		};
 	}
 }

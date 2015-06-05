@@ -1062,7 +1062,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/UnitNum.hpp \
 	libmaus2/util/NotDigitOrTermTable.hpp \
 	libmaus2/util/ArgInfoParseBase.hpp \
-	libmaus2/util/ReverseAdapter.hpp
+	libmaus2/util/ReverseAdapter.hpp \
+	libmaus2/util/MemoryStatistics.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
@@ -1619,7 +1620,10 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedLocalEditDistance.hpp \
 	libmaus2/lcs/ND.hpp \
 	libmaus2/lcs/NDextend.hpp \
-	libmaus2/lcs/AlignmentStatistics.hpp
+	libmaus2/lcs/AlignmentStatistics.hpp \
+	libmaus2/lcs/NDextendAllPass.hpp \
+	libmaus2/lcs/NDextendACGTPass.hpp \
+	libmaus2/lcs/NDextend1234Pass.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \

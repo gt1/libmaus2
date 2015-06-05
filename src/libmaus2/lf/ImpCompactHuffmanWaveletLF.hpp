@@ -112,14 +112,8 @@ namespace libmaus2
 			
 			static unique_ptr_type loadSequential(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				if ( ! istr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "ImpHuffmanWaveletLFTemplate::load() failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::InputStream::unique_ptr_type Pistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+				libmaus2::aio::InputStream & istr = *Pistr;
 				
 				unique_ptr_type ptr ( new this_type ( istr ) );
 				
