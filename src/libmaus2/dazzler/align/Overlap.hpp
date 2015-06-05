@@ -35,9 +35,11 @@ namespace libmaus2
 				
 				// 40
 				
-				void deserialise(std::istream & in)
+				uint64_t deserialise(std::istream & in)
 				{
-					path.deserialise(in);
+					uint64_t s = 0;
+					
+					s += path.deserialise(in);
 					
 					uint64_t offset = 0;
 					flags = getUnsignedLittleEndianInteger4(in,offset);
@@ -46,7 +48,11 @@ namespace libmaus2
 
 					getLittleEndianInteger4(in,offset); // padding
 					
+					s += offset;
+					
 					// std::cerr << "flags=" << flags << " aread=" << aread << " bread=" << bread << std::endl;
+					
+					return s;
 				}
 				
 				Overlap()
@@ -57,6 +63,11 @@ namespace libmaus2
 				Overlap(std::istream & in)
 				{
 					deserialise(in);
+				}
+
+				Overlap(std::istream & in, uint64_t & s)
+				{
+					s += deserialise(in);
 				}
 				
 				bool isInverse() const

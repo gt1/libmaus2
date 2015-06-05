@@ -39,7 +39,7 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 				
-				void deserialise(std::istream & in)
+				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
 					tlen = getLittleEndianInteger4(in,offset);
@@ -48,6 +48,7 @@ namespace libmaus2
 					bbpos = getLittleEndianInteger4(in,offset);
 					aepos = getLittleEndianInteger4(in,offset);
 					bepos = getLittleEndianInteger4(in,offset);
+					return offset;
 				}
 				
 				Path()
@@ -57,6 +58,10 @@ namespace libmaus2
 				Path(std::istream & in)
 				{
 					deserialise(in);
+				}
+				Path(std::istream & in, uint64_t & s)
+				{
+					s += deserialise(in);
 				}
 				
 				uint64_t getNumErrors() const
