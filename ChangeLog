@@ -1,3 +1,9 @@
+libmaus2 (2.0.15-1) unstable; urgency=medium
+
+  * add invalid symbol support in NDextend 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 05 Jun 2015 08:59:44 +0200
+
 libmaus2 (2.0.14-1) unstable; urgency=medium
 
   * various improvements of n*d alignments and alignment printing
