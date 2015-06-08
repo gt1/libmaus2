@@ -53,6 +53,44 @@ namespace libmaus2
 				);
 			}
 			
+			static N absdiff(N const a, N const b)
+			{
+				if ( a >= b )
+					return a-b;
+				else
+					return b-a;
+			}
+			
+			static N hausdorffSlow(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
+			{
+				if ( A.isEmpty() )
+				{
+					if ( B.isEmpty() )
+						return N();
+					else
+						return std::numeric_limits<N>::max();
+				}
+				
+				N maxdiff = 0;
+				
+				for ( N i = A.from; i <= A.to; ++i )
+				{
+					N mindiff = std::numeric_limits<N>::max();
+					for ( N j = B.from; j <= B.to; ++j )
+						mindiff = std::min(mindiff,absdiff(i,j));
+					maxdiff = std::max(maxdiff,mindiff);	
+				}
+				for ( N i = B.from; i <= B.to; ++i )
+				{
+					N mindiff = std::numeric_limits<N>::max();
+					for ( N j = A.from; j <= A.to; ++j )
+						mindiff = std::min(mindiff,absdiff(i,j));
+					maxdiff = std::max(maxdiff,mindiff);	
+				}
+				
+				return maxdiff;
+			}
+			
 			static N hausdorffDistance(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
 			{
 				if ( A.isEmpty() )
@@ -63,16 +101,17 @@ namespace libmaus2
 						return std::numeric_limits<N>::max();
 				}
 
-				if ( B.from < A.from )
-					return hausdorffDistance(B,A);
-				assert ( A.from <= B.from );
-
-				// no overlap?
-				if ( A.to < B.from )
-					return B.from - A.to;
-
-				// overlap
-				return std::max(B.from-A.from, std::max(A.to,B.to) - std::min(A.to,B.to));
+				return
+					std::max(
+						std::max(
+							std::min(absdiff(A.from,B.from),absdiff(A.from,B.to)),
+							std::min(absdiff(A.to,B.from),absdiff(A.to,B.to))
+						),
+						std::max(
+							std::min(absdiff(B.from,A.from),absdiff(B.from,A.to)),
+							std::min(absdiff(B.to,A.from),absdiff(B.to,A.to))
+						)
+					);
 			}
 
 			static IntegerInterval<N> intersection(IntegerInterval<N> const & A, IntegerInterval<N> const & B)
