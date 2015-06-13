@@ -200,6 +200,104 @@ namespace libmaus2
 					return rlen;
 				}
 
+				static size_t decodeReadSegment(
+					std::istream & bpsstream,
+					char * C,
+					int32_t offset,
+					int32_t rlen
+				)
+				{
+					int32_t const rrlen = rlen;
+					
+					if ( (offset >> 2) )
+					{
+						bpsstream.seekg((offset >> 2), std::ios::cur);
+						offset -= ((offset >> 2) << 2);
+					}
+
+					assert ( offset < 4 );
+					
+					if ( offset & 3 )
+					{
+						int const c = bpsstream.get();
+						if ( c < 0 )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::dazzler::db::Read::decodeReadSegment(): input failure" << std::endl;
+							lme.finish();
+							throw lme;		
+						}
+					
+						char t[4] = {
+							libmaus2::fastx::remapChar((c >> 6)&3),
+							libmaus2::fastx::remapChar((c >> 4)&3),
+							libmaus2::fastx::remapChar((c >> 2)&3),
+							libmaus2::fastx::remapChar((c >> 0)&3)		
+						};
+						
+						uint64_t const align = 4-(offset&3);
+						uint64_t const tocopy = std::min(rlen,static_cast<int32_t>(align));
+						
+						std::copy(
+							&t[0] + (offset & 3),
+							&t[0] + (offset & 3) + tocopy,
+							C
+						);
+						
+						C += tocopy;
+						offset -= tocopy;
+						rlen -= tocopy;
+					}
+					
+					if ( rlen )
+					{
+						assert ( offset == 0 );
+					
+						bpsstream.read(C + (rlen - (rlen+3)/4),(rlen+3)/4);
+						if ( bpsstream.gcount() != (rlen+3)/4 )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "libmaus2::dazzler::db::Read::decode(): input failure" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+
+						unsigned char * p = reinterpret_cast<unsigned char *>(C + ( rlen - ((rlen+3)>>2) ));
+						char * o = C;
+						for ( int32_t i = 0; i < (rlen>>2); ++i )
+						{
+							unsigned char v = *(p++);
+							
+							*(o++) = libmaus2::fastx::remapChar((v >> 6)&3);
+							*(o++) = libmaus2::fastx::remapChar((v >> 4)&3);
+							*(o++) = libmaus2::fastx::remapChar((v >> 2)&3);
+							*(o++) = libmaus2::fastx::remapChar((v >> 0)&3);
+						}
+						if ( rlen & 3 )
+						{
+							unsigned char v = *(p++);
+							size_t rest = rlen - ((rlen>>2)<<2);
+
+							if ( rest )
+							{
+								*(o++) = libmaus2::fastx::remapChar((v >> 6)&3);
+								rest--;
+							}
+							if ( rest )
+							{
+								*(o++) = libmaus2::fastx::remapChar((v >> 4)&3);
+								rest--;
+							}
+							if ( rest )
+							{
+								*(o++) = libmaus2::fastx::remapChar((v >> 2)&3);
+								rest--;
+							}
+						}
+					}
+					
+					return rrlen;
+				}
 				
 				DatabaseFile()
 				{
