@@ -191,7 +191,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/Path.cpp \
 	libmaus2/dazzler/align/Overlap.cpp \
 	libmaus2/lcs/AlignmentStatistics.cpp \
-	libmaus2/fastx/SingleWordDNABitBuffer.cpp
+	libmaus2/fastx/SingleWordDNABitBuffer.cpp \
+	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1063,7 +1064,8 @@ libmaus2util_include_HEADERS=\
 	libmaus2/util/NotDigitOrTermTable.hpp \
 	libmaus2/util/ArgInfoParseBase.hpp \
 	libmaus2/util/ReverseAdapter.hpp \
-	libmaus2/util/MemoryStatistics.hpp
+	libmaus2/util/MemoryStatistics.hpp \
+	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.hpp
 
 libmaus2uint_includedir=$(includedir)/libmaus2/uint
 libmaus2uint_include_HEADERS=\
