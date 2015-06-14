@@ -43,6 +43,13 @@ int main(int argc, char * argv[])
 {
 	try
 	{
+		{
+			int A[] = { 1,2,2,3,0,1,2,3 };
+			int const n = sizeof(A)/sizeof(A[0]);
+			libmaus2::util::LongestIncreasingSubsequenceExtendedResult::unique_ptr_type const M = libmaus2::util::LongestIncreasingSubsequence<int const *>::longestIncreasingSubsequenceExtended(&A[0],n);
+			std::cerr << *M << std::endl;
+		}
+
 		::libmaus2::util::ArgInfo const arginfo(argc,argv);
 		std::string const a = loadFirstPattern(arginfo.getRestArg<std::string>(0));
 		std::string const b = loadFirstPattern(arginfo.getRestArg<std::string>(1));
