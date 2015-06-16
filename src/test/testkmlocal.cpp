@@ -18,6 +18,9 @@
 */
 #include <libmaus2/LibMausConfig.hpp>
 
+#include <libmaus2/clustering/KMeans.hpp>
+#include <libmaus2/random/UniformUnitRandom.hpp>
+
 #if defined(LIBMAUS2_HAVE_KMLOCAL)
 #include <libmaus2/fastx/CompactFastQMultiBlockReader.hpp>
 #include <libmaus2/fastx/CompactFastQBlockGenerator.hpp>
@@ -30,6 +33,80 @@ int kmlocalmain(::libmaus2::util::ArgInfo const & arginfo)
 {
 	try
 	{
+		{
+			uint64_t const n = 32*1024;
+			std::vector<double> V(n);
+			#if 0
+			V.push_back(0);
+			V.push_back(0);
+			V.push_back(1);
+			V.push_back(1);
+			V.push_back(1);
+			V.push_back(1);
+			V.push_back(1);
+			V.push_back(1);
+			V.push_back(1);
+			V.push_back(2);
+			V.push_back(2);
+			#endif
+			
+			for ( uint64_t i = 0; i < V.size(); ++i )
+				V[i] = libmaus2::random::UniformUnitRandom::uniformUnitRandom();
+			
+			// V.push_back(2);
+			uint64_t const loops = 100;
+			
+			for ( uint64_t k = 1; k < V.size(); ++k )
+			{
+				std::vector<double> const R = libmaus2::clustering::KMeans::kmeans(V.begin(), V.size(), k);
+			
+				std::cerr << "k=" << k << std::endl;
+			
+				#if 0
+				for ( uint64_t i = 0; i < R.size(); ++i )
+					std::cerr << "R[" << i << "]=" << R[i] << std::endl;
+				#endif
+			}
+		}
+	
+		{
+		std::vector<double> V;
+		V.push_back(0);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(2);
+		V.push_back(3);
+		V.push_back(4);
+		V.push_back(5);
+		V.push_back(6);
+		V.push_back(7);
+		V.push_back(8);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(9);
+		V.push_back(10);
+		
+		for ( uint64_t k = 1; k <= V.size(); ++k )
+		{	
+			std::cerr << "k==" << k << " " << std::set<double>(V.begin(),V.end()).size() << std::endl;
+			::libmaus2::quantisation::Quantiser::unique_ptr_type quant(libmaus2::quantisation::ClusterComputation::constructQuantiser(V,k));
+			std::cerr << k << " " << quant->silhouette(V) << std::endl;
+		}
+		}
+
 		// ::libmaus2::fastx::FqWeightQuantiser::statsRun(arginfo,arginfo.restargs,std::cerr);	
 		std::string scont = ::libmaus2::fastx::CompactFastQBlockGenerator::encodeCompactFastQContainer(arginfo.restargs,0,3);
 		std::istringstream textistr(scont);
