@@ -448,7 +448,7 @@ namespace libmaus2
 				std::sort(V.begin(),V.end());
 				return V;
 			}
-			
+
 			/*
 			 * recursive backward search under hamming distance
 			 * only up to half of the mismatches is allowed in the first half
@@ -738,6 +738,68 @@ namespace libmaus2
 					nump += VBI[i].second.siz;
 				
 				return nump;
+			}
+			
+			template<typename iterator>
+			void extractText(iterator const it, uint64_t const low, uint64_t const high, uint64_t r) const
+			{
+				iterator ita = it + low;
+				iterator ite = it + high;
+				
+				while ( ite != ita )
+				{
+					std::pair<int64_t,uint64_t> const P = LF->extendedLF(r);
+					*(--ite) = P.first;
+					r = P.second;
+				}
+			}
+			
+			template<typename iterator>
+			void extractText(iterator const it)
+			{
+				typedef std::pair<uint64_t,uint64_t> upair;
+				std::vector<upair> V;
+				uint64_t const n = LF->n;
+				uint64_t const nz = n ? LF->W->rank(0,n-1) : 0;
+				for ( uint64_t i = 0; i < nz; ++i )
+				{
+					uint64_t const r = (LF->W->select(0,i));
+					uint64_t const p = (*SA)[r];
+					V.push_back(upair(p,r));
+				}
+				std::sort(V.begin(),V.end());
+
+				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					uint64_t const i0 = i;
+					uint64_t const i1 = (i+1) % V.size();
+					extractText(it, V[i0].first, V[i1].first ? V[i1].first : n, V[i1].second);
+				}
+			}
+			template<typename iterator>
+			void extractTextParallel(iterator const it)
+			{
+				typedef std::pair<uint64_t,uint64_t> upair;
+				std::vector<upair> V;
+				uint64_t const n = LF->n;
+				uint64_t const nz = n ? LF->W->rank(0,n-1) : 0;
+				for ( uint64_t i = 0; i < nz; ++i )
+				{
+					uint64_t const r = (LF->W->select(0,i));
+					uint64_t const p = (*SA)[r];
+					V.push_back(upair(p,r));
+				}
+				std::sort(V.begin(),V.end());
+
+				#if defined(_OPENMP)
+				#pragma omp parallel for schedule(dynamic,1)
+				#endif
+				for ( uint64_t i = 0; i < V.size(); ++i )
+				{
+					uint64_t const i0 = i;
+					uint64_t const i1 = (i+1) % V.size();
+					extractText(it, V[i0].first, V[i1].first ? V[i1].first : n, V[i1].second);
+				}
 			}
 		};
 
