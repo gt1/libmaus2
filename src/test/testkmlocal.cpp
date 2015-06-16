@@ -33,41 +33,6 @@ int kmlocalmain(::libmaus2::util::ArgInfo const & arginfo)
 {
 	try
 	{
-		{
-			uint64_t const n = 32*1024;
-			std::vector<double> V(n);
-			#if 0
-			V.push_back(0);
-			V.push_back(0);
-			V.push_back(1);
-			V.push_back(1);
-			V.push_back(1);
-			V.push_back(1);
-			V.push_back(1);
-			V.push_back(1);
-			V.push_back(1);
-			V.push_back(2);
-			V.push_back(2);
-			#endif
-			
-			for ( uint64_t i = 0; i < V.size(); ++i )
-				V[i] = libmaus2::random::UniformUnitRandom::uniformUnitRandom();
-			
-			// V.push_back(2);
-			uint64_t const loops = 100;
-			
-			for ( uint64_t k = 1; k < V.size(); ++k )
-			{
-				std::vector<double> const R = libmaus2::clustering::KMeans::kmeans(V.begin(), V.size(), k);
-			
-				std::cerr << "k=" << k << std::endl;
-			
-				#if 0
-				for ( uint64_t i = 0; i < R.size(); ++i )
-					std::cerr << "R[" << i << "]=" << R[i] << std::endl;
-				#endif
-			}
-		}
 	
 		{
 		std::vector<double> V;
@@ -148,6 +113,43 @@ int kmlocalmain(::libmaus2::util::ArgInfo const & arginfo)
 int main(int argc, char * argv[])
 {
 	::libmaus2::util::ArgInfo arginfo(argc,argv);
+
+	{
+		uint64_t const n = 32*1024;
+		std::vector<double> V(n);
+		#if 0
+		V.push_back(0);
+		V.push_back(0);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(2);
+		V.push_back(2);
+		#endif
+		
+		for ( uint64_t i = 0; i < V.size(); ++i )
+			V[i] = libmaus2::random::UniformUnitRandom::uniformUnitRandom();
+		
+		// V.push_back(2);
+		uint64_t const loops = 100;
+		
+		for ( uint64_t k = 1; k < V.size(); ++k )
+		{
+			std::vector<double> const R = libmaus2::clustering::KMeans::kmeans(V.begin(), V.size(), k);
+		
+			std::cerr << "k=" << k << std::endl;
+		
+			#if 0
+			for ( uint64_t i = 0; i < R.size(); ++i )
+				std::cerr << "R[" << i << "]=" << R[i] << std::endl;
+			#endif
+		}
+	}
+
 	
 	#if defined(LIBMAUS2_HAVE_KMLOCAL)
 	return kmlocalmain(arginfo);
