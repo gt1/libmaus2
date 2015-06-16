@@ -23,6 +23,7 @@
 #include <cassert>
 #include <set>
 #include <cmath>
+#include <limits>
 
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/random/Random.hpp>
