@@ -1467,7 +1467,8 @@ libmaus2clustering_include_HEADERS=\
 	libmaus2/clustering/HashCreation.hpp \
 	libmaus2/clustering/HashCreationBase.hpp \
 	libmaus2/clustering/ProduceEdgeRequest.hpp \
-	libmaus2/clustering/KmerBase.hpp
+	libmaus2/clustering/KmerBase.hpp \
+	libmaus2/clustering/KMeans.hpp
 
 libmaus2suffixsort_includedir=$(includedir)/libmaus2/suffixsort
 libmaus2suffixsort_include_HEADERS=\
