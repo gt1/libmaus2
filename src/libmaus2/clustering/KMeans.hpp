@@ -24,6 +24,7 @@
 #include <set>
 #include <cmath>
 #include <limits>
+#include <map>
 
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/random/Random.hpp>
@@ -128,8 +129,6 @@ namespace libmaus2
 				double const ethres
 			)
 			{
-				typedef typename std::iterator_traits<iterator>::value_type value_type;
-			
 				std::set<double> S;
 				
 				std::vector<uint64_t> ileft(n);
@@ -191,8 +190,6 @@ namespace libmaus2
 				double preve = std::numeric_limits<double>::max();
 				for ( uint64_t l = 0; l < maxloops; ++l )
 				{
-					uint64_t low = 0;
-					
 					// erase histogram
 					std::fill(H.begin(),H.end(),0);
 					// error
@@ -259,6 +256,85 @@ namespace libmaus2
 								
 				return R;
 			}
+
+			static double dissimilarity(double const v1, double const v2)
+			{
+				return (v1-v2)*(v1-v2);
+			}
+			
+			static double silhouette(
+				std::vector<double> const & V,
+				std::vector<double> const & C
+			)
+			{
+				// find cluster for each data point
+				std::map < uint64_t, std::vector<double> > M;
+				
+				for ( uint64_t i = 0; i < V.size(); ++i )
+					M[findClosest(C,V[i])].push_back(V[i]);
+								
+				double s = 0;
+				uint64_t sn = 0;	
+				for ( std::map < uint64_t, std::vector<double> >::const_iterator ita = M.begin(); ita != M.end(); ++ita )
+				{
+					// id of this cluster
+					uint64_t const thiscluster = ita->first;
+					// values in this cluster
+					std::vector<double> const & thisvalvec = ita->second;
+					
+					double   clusters = 0.0;
+					uint64_t clustersn = 0; 
+					
+					// iterate over values in this cluster
+					for ( uint64_t x0 = 0; x0 < thisvalvec.size(); ++x0 )
+					{
+						// get value
+						double const v_x_0 = thisvalvec[x0];
+						double a_x_0 = 0.0; 
+						
+						// compare to other values in this cluster
+						for ( uint64_t x1 = 0; x1 < thisvalvec.size(); ++x1 )
+							a_x_0 += dissimilarity(v_x_0,thisvalvec[x1]);
+						
+						if ( thisvalvec.size() )
+							a_x_0 /= thisvalvec.size();
+						
+						double b_x_0_min = std::numeric_limits<double>::max();
+						// iterate over other clusters
+						for ( std::map<uint64_t, std::vector<double> >::const_iterator sita = M.begin(); sita != M.end(); ++sita )
+							if ( sita->first != thiscluster )
+							{
+								std::vector<double> const & othervalvec = sita->second;
+								
+								double b_x_0 = 0.0;
+								uint64_t const b_x_0_n = othervalvec.size();
+								
+								for ( uint64_t x1 = 0; x1 < othervalvec.size(); ++x1 )
+									b_x_0 += dissimilarity(v_x_0,othervalvec[x1]);
+
+								b_x_0 /= b_x_0_n ? b_x_0_n : 1.0;
+								
+								if ( b_x_0 < b_x_0_min )
+									b_x_0_min = b_x_0;
+							}						
+						
+						double const s_x_0 = (b_x_0_min - a_x_0) / std::max(a_x_0,b_x_0_min);
+						
+						clusters += s_x_0;
+						clustersn += 1;
+					}
+
+					clusters /= clustersn;
+										
+					s += clusters;
+					sn += 1;
+				}
+				
+				s /= sn;
+					
+				return s;
+			}
+
 		};	
 	}
 }
