@@ -260,6 +260,7 @@ namespace libmaus2
 			static double dissimilarity(double const v1, double const v2)
 			{
 				return (v1-v2)*(v1-v2);
+				// return std::abs(v1-v2);
 			}
 			
 			static double silhouette(
@@ -322,12 +323,11 @@ namespace libmaus2
 						
 						clusters += s_x_0;
 						clustersn += 1;
+						s += s_x_0;
+						sn += 1;
 					}
 
 					clusters /= clustersn;
-										
-					s += clusters;
-					sn += 1;
 				}
 				
 				s /= sn;
