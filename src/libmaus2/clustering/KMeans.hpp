@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cassert>
 #include <set>
+#include <cmath>
 
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/random/Random.hpp>
@@ -142,22 +143,22 @@ namespace libmaus2
 					{
 						double s = 0.0;
 						std::vector<double> const R(S.begin(),S.end());
-						for ( uint64_t i = 0; i < ileft.size(); ++i )
+						for ( uint64_t z = 0; z < ileft.size(); ++z )
 						{
-							uint64_t const j = findClosest(R,V[ileft[i]]);
-							double const dif = (R[j]-V[ileft[i]]) * (R[j]-V[ileft[i]]);
-							D[i] = dif;
+							uint64_t const j = findClosest(R,V[ileft[z]]);
+							double const dif = (R[j]-V[ileft[z]]) * (R[j]-V[ileft[z]]);
+							D[z] = dif;
 							s += dif;
 						}
 						if ( s )
 						{
-							for ( uint64_t i = 0; i < ileft.size(); ++i )
-								D[i] /= s;
+							for ( uint64_t z = 0; z < ileft.size(); ++z )
+								D[z] /= s;
 							s = 0;
-							for ( uint64_t i = 0; i < ileft.size(); ++i )
+							for ( uint64_t z = 0; z < ileft.size(); ++z )
 							{
-								double const t = D[i];
-								D[i] = s;
+								double const t = D[z];
+								D[z] = s;
 								s += t;
 							}
 							
@@ -254,7 +255,7 @@ namespace libmaus2
 						R = RC;
 					}
 				}
-				
+								
 				return R;
 			}
 		};	
