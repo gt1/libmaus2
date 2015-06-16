@@ -77,66 +77,6 @@ namespace libmaus2
 			{
 			}
 			
-			static double dissimilarity(double const v1, double const v2)
-			{
-				return std::abs(v1-v2);
-			}
-			
-			double silhouette(std::vector<double> const V) const
-			{
-				std::map < uint64_t, std::vector<double> > M;
-				
-				for ( uint64_t i = 0; i < V.size(); ++i )
-					M[(*this)[V[i]] ].push_back(V[i]);
-					
-				std::set<uint64_t> levelset;
-				for ( std::map < uint64_t, std::vector<double> >::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-					levelset.insert(ita->first);
-				
-				double s = 0;
-				uint64_t sn = 0;	
-				for ( std::map < uint64_t, std::vector<double> >::const_iterator ita = M.begin(); ita != M.end(); ++ita )
-				{
-					uint64_t const thiscluster = ita->first;
-					std::vector<double> const & thisvalvec = ita->second;
-					
-					for ( uint64_t x0 = 0; x0 < thisvalvec.size(); ++x0 )
-					{
-						double const v_x_0 = thisvalvec[x0];
-						double a_x_0 = 0.0; 
-						
-						for ( uint64_t x1 = 0; x1 < thisvalvec.size(); ++x1 )
-							if ( x1 != x0 )
-								a_x_0 += dissimilarity(v_x_0,thisvalvec[x1]);
-						
-						a_x_0 /= (thisvalvec.size() > 1) ? (thisvalvec.size()-1) : 1.0;
-						
-						double b_x_0 = 0.0;
-						uint64_t b_x_0_n = 0;
-						for ( std::map<uint64_t, std::vector<double> >::const_iterator sita = M.begin(); sita != M.end(); ++sita )
-							if ( sita->first != thiscluster )
-							{
-								std::vector<double> const & othervalvec = sita->second;
-								for ( uint64_t x1 = 0; x1 < othervalvec.size(); ++x1 )
-									b_x_0 += dissimilarity(v_x_0,othervalvec[x1]);
-								b_x_0_n += othervalvec.size();
-							}	
-							
-						b_x_0 /= b_x_0_n ? b_x_0_n : 1.0;
-						
-						double const s_x_0 = (b_x_0 - a_x_0) / std::max(a_x_0,b_x_0);
-						
-						s += s_x_0;
-					}
-
-					sn += thisvalvec.size();
-				}
-				
-				s /= sn;
-					
-				return s;
-			}
-			
 			uint64_t operator()(double const val) const
 			{
 				std::vector<double>::const_iterator it = 

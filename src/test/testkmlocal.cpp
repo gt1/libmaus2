@@ -68,7 +68,6 @@ int kmlocalmain(::libmaus2::util::ArgInfo const & arginfo)
 		{	
 			std::cerr << "k==" << k << " " << std::set<double>(V.begin(),V.end()).size() << std::endl;
 			::libmaus2::quantisation::Quantiser::unique_ptr_type quant(libmaus2::quantisation::ClusterComputation::constructQuantiser(V,k));
-			std::cerr << k << " " << quant->silhouette(V) << std::endl;
 		}
 		}
 
