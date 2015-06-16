@@ -59,6 +59,23 @@ namespace libmaus2
 				ta = te = trace.begin();
 			}
 			
+			void reverse()
+			{
+				std::reverse(ta,te);
+			}
+			
+			unsigned int clipOffLastKMatches(unsigned int k)
+			{
+				unsigned int c = 0;
+				while ( k-- && ta != te && te[-1] == STEP_MATCH )
+				{
+					--te;
+					++c;
+				}
+				
+				return c;
+			}
+			
 			uint64_t windowError(unsigned int k = 8*sizeof(uint64_t)) const
 			{
 				unsigned int maxerr = 0;
@@ -369,8 +386,15 @@ namespace libmaus2
 				size_t const pre = getTraceLength();
 				size_t const oth = O.getTraceLength();
 				
-				if ( pre + oth > trace.size() )
+				if ( ta != trace.begin() )
 				{
+					std::copy(ta,te,trace.begin());
+					ta = trace.begin();
+					te = trace.begin()+pre;
+				}
+				
+				if ( pre + oth > trace.size() )
+				{	
 					trace.resize(pre + oth);
 					
 					ta = trace.begin();
@@ -478,6 +502,35 @@ namespace libmaus2
 				return std::pair<uint64_t,uint64_t>(apos,bpos);
 			}
 
+			std::vector < std::pair<uint64_t,uint64_t> > getTracePoints() const
+			{
+				uint64_t apos = 0, bpos = 0;
+				std::vector < std::pair<uint64_t,uint64_t> > R;
+
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					R.push_back(std::pair<uint64_t,uint64_t>(apos,bpos));
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+					}						
+				}
+
+				R.push_back(std::pair<uint64_t,uint64_t>(apos,bpos));
+				
+				return R;
+			}
+
 			std::vector < std::pair<uint64_t,uint64_t> > getKMatchOffsets(unsigned int const k) const
 			{
 				uint64_t apos = 0, bpos = 0;
@@ -548,6 +601,9 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							ostr.put('D');
+							break;
+						default:
+							ostr.put('?');
 							break;
 					}
 				}
