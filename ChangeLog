@@ -1,3 +1,9 @@
+libmaus2 (2.0.20-1) unstable; urgency=medium
+
+  * add 1-d kmeans clustering code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 16 Jun 2015 14:55:30 +0200
+
 libmaus2 (2.0.19-1) unstable; urgency=medium
 
   * add extended variant for longest increasing sub sequence
