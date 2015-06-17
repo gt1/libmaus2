@@ -567,6 +567,37 @@ namespace libmaus2
 			{
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
 			}
+			
+			/**
+			 * get auxiliary field for tag (case insensative) as string, returns empty
+			 * string if tag is not present
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @return contents of auxiliary field identified by tag
+			 **/ 
+			std::string getAuxAsStringNC(char const * const tag) const
+			{
+			    std::string ret = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,tag);
+			    
+			    if (ret.empty()) {
+			    	char alt[3];
+				
+				strncpy(alt, tag, 2);
+				alt[2] = '\0';
+
+				if (isupper(alt[0])) {
+			    	    alt[0] = tolower(alt[0]);
+				    alt[1] = tolower(alt[1]);
+				} else {
+			    	    alt[0] = toupper(alt[0]);
+				    alt[1] = toupper(alt[1]);
+				}
+				
+				ret = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsString(D.get(),blocksize,alt);
+			    }
+			    
+			    return ret;
+			}
 
 			/**
 			 * get auxiliary field for tag as number, throws an exception if tag is not present or
@@ -595,6 +626,69 @@ namespace libmaus2
 			}
 
 			/**
+			 * get auxiliary field for tag (case insensative) as number, throws an exception if tag is
+			 * not present or tag content is not numeric
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @return contents of auxiliary field identified by tag as number
+			 **/
+			template<typename N>
+			N getAuxAsNumberNC(char const *const tag) const
+			{
+			    char alt[3];
+			    
+			    strncpy(alt, tag, 2);
+			    alt[2] = '\0';
+			    
+			    if (isupper(alt[0])) {
+			    	alt[0] = tolower(alt[0]);
+				alt[1] = tolower(alt[1]);
+			    } else {
+			    	alt[0] = toupper(alt[0]);
+				alt[1] = toupper(alt[1]);
+			    }
+			    
+			    N num;
+			    
+			    if (::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag,num)) {
+			    	return num;
+			    } else {
+			    	return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,alt);
+			    }
+			}
+
+			/**
+			 * get auxiliary field for tag (case insensative) as number
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @param num space for storing number
+			 * @return true if field is present and can be extracted
+			 **/
+			template<typename N>
+			bool getAuxAsNumberNC(char const *const tag, N & num) const
+			{
+			    char alt[3];
+			    
+			    strncpy(alt, tag, 2);
+			    alt[2] = '\0';
+			    
+			    if (isupper(alt[0])) {
+			    	alt[0] = tolower(alt[0]);
+				alt[1] = tolower(alt[1]);
+			    } else {
+			    	alt[0] = toupper(alt[0]);
+				alt[1] = toupper(alt[1]);
+			    }
+			    
+			    if (::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,tag,num)) {
+			    	return true;
+			    } else {
+			    	return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxAsNumber<N>(D.get(),blocksize,alt,num);
+			    }
+			}
+			
+			
+			/**
 			 * check if auxiliary field for tag is present
 			 *
 			 * @param tag two letter auxiliary tag identifier
@@ -603,6 +697,35 @@ namespace libmaus2
 			bool hasAux(char const * const tag) const
 			{
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag) != 0;
+			}
+			
+			
+			/**
+			 * check if auxiliary field for tag (case insensative) is present
+			 *
+			 * @param tag two letter auxiliary tag identifier
+			 * @return true iff tag is present
+			 **/
+			bool hasAuxNC(char const * const tag) const
+			{
+			    char alt[3];
+			    
+			    strncpy(alt, tag, 2);
+			    alt[2] = '\0';
+			    
+			    if (isupper(alt[0])) {
+			    	alt[0] = tolower(alt[0]);
+				alt[1] = tolower(alt[1]);
+			    } else {
+			    	alt[0] = toupper(alt[0]);
+				alt[1] = toupper(alt[1]);
+			    }
+			    
+			    if (::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,tag) != 0) {
+			    	return true;
+			    } else {
+			    	return ::libmaus2::bambam::BamAlignmentDecoderBase::getAux(D.get(),blocksize,alt) != 0;
+			    }
 			}
 
 
@@ -894,7 +1017,35 @@ namespace libmaus2
 			{
 				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D.begin(),blocksize,tagname);
 			}
+			
+			/**
+			 * @param tag aux field tag (case insensative)
+			 * @return contents of the aux field (null pointer if not present)
+			 **/
+			char const * getAuxStringNC(char const * const tag) const
+			{
+			    const char *ret = ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D.get(),blocksize,tag);
+			    
+			    if (!ret) {
+			    	char alt[3];
+				
+				strncpy(alt, tag, 2);
+				alt[2] = '\0';
 
+				if (isupper(alt[0])) {
+			    	    alt[0] = tolower(alt[0]);
+				    alt[1] = tolower(alt[1]);
+				} else {
+			    	    alt[0] = toupper(alt[0]);
+				    alt[1] = toupper(alt[1]);
+				}
+				
+				return ::libmaus2::bambam::BamAlignmentDecoderBase::getAuxString(D.get(),blocksize,alt);
+			    }
+			    
+			    return ret;
+			}
+			
 			/**
 			 * @param bamheader BAM header object
 			 * @return read group id or -1 if not defined
@@ -1844,8 +1995,8 @@ namespace libmaus2
 				rec1.filterOutAux(MSfilter);
 				rec2.filterOutAux(MSfilter);
 				
-				rec1.putAuxNumber("MS",'i',score2);
-				rec2.putAuxNumber("MS",'i',score1);								
+				rec1.putAuxNumber("ms",'i',score2);
+				rec2.putAuxNumber("ms",'i',score1);								
 			}
 
 
@@ -1857,8 +2008,8 @@ namespace libmaus2
 				uint64_t const score1 = rec1.getScore();
 				uint64_t const score2 = rec2.getScore();
 				
-				rec1.putAuxIntegerNumberFast('M', 'S', score2);
-				rec2.putAuxIntegerNumberFast('M', 'S', score1);
+				rec1.putAuxIntegerNumberFast('m', 's', score2);
+				rec2.putAuxIntegerNumberFast('m', 's', score1);
 			}
 
 			/**
@@ -1876,8 +2027,8 @@ namespace libmaus2
 				rec1.filterOutAux(MCfilter);
 				rec2.filterOutAux(MCfilter);
 				
-				rec1.putAuxNumber("MC",'i',coord2);
-				rec2.putAuxNumber("MC",'i',coord1);								
+				rec1.putAuxNumber("mc",'i',coord2);
+				rec2.putAuxNumber("mc",'i',coord1);								
 			}
 
 			/**
@@ -1888,8 +2039,8 @@ namespace libmaus2
 				uint64_t const coord1 = rec1.getCoordinate();
 				uint64_t const coord2 = rec2.getCoordinate();
 				
-				rec1.putAuxIntegerNumberFast('M', 'C', coord2);
-				rec2.putAuxIntegerNumberFast('M', 'C', coord1);
+				rec1.putAuxIntegerNumberFast('m', 'c', coord2);
+				rec2.putAuxIntegerNumberFast('m', 'c', coord1);
 			}
 
 			/**
@@ -1909,9 +2060,9 @@ namespace libmaus2
 				rec2.filterOutAux(MTfilter);
 				
 				if ( MT2 )
-					rec1.putAuxString("MT",MT2);
+					rec1.putAuxString("mt",MT2);
 				if ( MT1 )
-					rec2.putAuxString("MT",MT1);								
+					rec2.putAuxString("mt",MT1);								
 			}
 
 			/**
@@ -1927,9 +2078,9 @@ namespace libmaus2
 				char const * MT2 = rec2.getAuxString(tagname);
 				
 				if ( MT2 )
-					rec1.putAuxString("MT",MT2);
+					rec1.putAuxString("mt",MT2);
 				if ( MT1 )
-					rec2.putAuxString("MT",MT1);								
+					rec2.putAuxString("mt",MT1);								
 			}
 
 			/**
