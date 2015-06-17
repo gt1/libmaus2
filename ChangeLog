@@ -1,3 +1,12 @@
+libmaus2 (2.0.22-1) unstable; urgency=medium
+
+  * add extraction of alignment operations in blocks of equal elements
+  * add access to single entries by id in FastAIndex 
+  * add reconstruction of read names from dazzler dbs
+  * change behaviour of MD/NM computation for allowing cigar strings to start with deletions
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 17 Jun 2015 14:26:51 +0200
+
 libmaus2 (2.0.21-1) unstable; urgency=medium
 
   * move silhouette code from Quantiser to KMeans 

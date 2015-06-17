@@ -54,6 +54,26 @@ namespace libmaus2
 			
 			}
 			
+			std::vector < std::pair<step_type,uint64_t> > getOpBlocks() const
+			{
+				std::vector < std::pair<step_type,uint64_t> > R;
+				
+				step_type const * tc = ta;
+				
+				while ( tc != te )
+				{
+					step_type const * tt = tc;
+					while ( tt != te && *tt == *tc )
+						++tt;
+						
+					R.push_back(std::pair<step_type,uint64_t>(*tc,tt-tc));
+					
+					tc = tt;
+				}
+				
+				return R;
+			}
+			
 			void reset()
 			{
 				ta = te = trace.begin();

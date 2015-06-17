@@ -2131,7 +2131,7 @@ namespace libmaus2
 			 * calculate MD and NM fields
 			 *
 			 * @param context temporary space and result storage
-			 * @param pointer to reference at position of first match/mismatch
+			 * @param pointer to reference at position of first non clipping op
 			 * @param warnchanges warn about changes on stderr if previous values are present
 			 **/
 			template<typename it_a>
