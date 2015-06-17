@@ -43,6 +43,7 @@ namespace libmaus2
 				std::string dbpath;
 				uint64_t nfiles;
 				std::vector<libmaus2::dazzler::db::FastaInfo> fileinfo;
+				std::vector<uint64_t> fileoffsets;
 				
 				uint64_t numblocks;
 				uint64_t blocksize;
@@ -495,6 +496,51 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < n; ++i )
 						context.writeBit(true);
 					context.flush();
+					
+					fileoffsets.resize(fileinfo.size());
+					for ( uint64_t i = 0; i < fileinfo.size(); ++i )
+						fileoffsets[i] = fileinfo[i].fnumreads;
+					uint64_t sum = 0;
+					for ( uint64_t i = 0; i < fileoffsets.size(); ++i )
+					{
+						uint64_t const t = fileoffsets[i];
+						fileoffsets[i] = sum;
+						sum += t;
+					}
+					fileoffsets.push_back(sum);
+				}
+				
+				uint64_t readIdToFileId(uint64_t const readid) const
+				{
+					if ( readid >= fileoffsets.back() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::readIdToFileId: file id is out of range" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					std::vector<uint64_t>::const_iterator ita = std::lower_bound(fileoffsets.begin(),fileoffsets.end(),readid);
+					
+					assert ( ita != fileoffsets.end() );
+					if ( readid != *ita )
+					{
+						assert ( ita != fileoffsets.begin() );
+						--ita;
+					}
+					assert ( readid >= *ita );
+					assert ( readid < *(ita+1) );
+					
+					return (ita-fileoffsets.begin());
+				}
+				
+				std::string getReadName(uint64_t const i) const
+				{
+					std::ostringstream ostr;
+					uint64_t const fileid = readIdToFileId(i);
+					Read const R = getRead(i);
+					ostr << fileinfo[fileid].fastaprolog << '/' << R.origin << '/' << R.fpulse << '_' << R.fpulse + R.rlen;
+					return ostr.str();
 				}
 				
 				Read getRead(size_t const i) const
