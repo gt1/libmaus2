@@ -3257,14 +3257,14 @@ namespace libmaus2
 				
 				return ostr.str();
 			}
-
+			
 			/**
 			 * calculate MD and NM fields
 			 *
 			 * @param B alignment block
 			 * @param blocksize length of block in bytes
 			 * @param context temporary space and result storage
-			 * @param pointer to reference at position of first match/mismatch
+			 * @param pointer to reference at position of first non clipping op
 			 * @param warnchanges warn about changes on stderr if previous values are present
 			 **/
 			template<typename it_a>
@@ -3302,19 +3302,6 @@ namespace libmaus2
 					0 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 
-				static const uint8_t calmd_delmult[] =
-				{
-					0, // LIBMAUS2_BAMBAM_CMATCH = 0,
-					0, // LIBMAUS2_BAMBAM_CINS = 1,
-					1, // LIBMAUS2_BAMBAM_CDEL = 2,
-					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
-					0, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS2_BAMBAM_CPAD = 6,
-					0, // LIBMAUS2_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS2_BAMBAM_CDIFF = 8
-				};
-
 				static const uint8_t calmd_readadvance[] =
 				{
 					1, // LIBMAUS2_BAMBAM_CMATCH = 0,
@@ -3341,19 +3328,6 @@ namespace libmaus2
 					1 // LIBMAUS2_BAMBAM_CDIFF = 8
 				};
 			
-				static const uint8_t calmd_softclipinsmult[] =
-				{
-					0, // LIBMAUS2_BAMBAM_CMATCH = 0,
-					1, // LIBMAUS2_BAMBAM_CINS = 1,
-					0, // LIBMAUS2_BAMBAM_CDEL = 2,
-					0, // LIBMAUS2_BAMBAM_CREF_SKIP = 3,
-					1, // LIBMAUS2_BAMBAM_CSOFT_CLIP = 4,
-					0, // LIBMAUS2_BAMBAM_CHARD_CLIP = 5,
-					0, // LIBMAUS2_BAMBAM_CPAD = 6,
-					0, // LIBMAUS2_BAMBAM_CEQUAL = 7,
-					0 // LIBMAUS2_BAMBAM_CDIFF = 8
-				};
-				
 				context.diff = false;
 
 				if ( ! libmaus2::bambam::BamAlignmentDecoderBase::isUnmap(
@@ -3385,17 +3359,7 @@ namespace libmaus2
 					uint64_t readpos = 0;
 					// index on RL cigar string
 					uint64_t cigi = 0;
-					
-					for ( ; cigi != numcigop && (!calmd_preterm[cigop[cigi].first]); ++cigi )
-					{
-						int32_t const cigo = cigop[cigi].first;
-						uint64_t const cigp = cigop[cigi].second;
-						
-						numins += calmd_insmult[cigo] * cigp;
-						numdel += calmd_delmult[cigo] * cigp;
-						readpos += calmd_softclipinsmult[cigo] * cigp;
-					}
-					
+										
 					it_a const itreforg = itref;
 					uint64_t a = 0;
 					char * mdp = context.md.begin();
@@ -3510,9 +3474,20 @@ namespace libmaus2
 							std::cerr << "[D] " << libmaus2::bambam::BamAlignmentDecoderBase::getReadName(B) << ":" << libmaus2::bambam::BamAlignmentDecoderBase::getFlags(B) << " update NM from " << prevnm << " to " << context.nm << "\n";
 					}
 					
-					assert ( readpos == readlength );
-					assert ( itref == itreforg + libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(B) );
-					
+					if ( readpos != readlength )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentDecoderBase::calculateMd: readpos=" << readpos << " != " << readlength << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					if ( itref != itreforg + libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(B) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "BamAlignmentDecoderBase::calculateMd: itrefdif=" << itref-itreforg << " != reflength " << libmaus2::bambam::BamAlignmentDecoderBase::getReferenceLength(B) << std::endl;
+						lme.finish();
+						throw lme;					
+					}					
 					context.eraseold = prevmd || haveprevnm;
 				}
 			}
