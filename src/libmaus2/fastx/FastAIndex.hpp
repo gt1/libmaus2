@@ -23,6 +23,7 @@
 #include <libmaus2/fastx/FastAIndexEntry.hpp>
 #include <libmaus2/util/stringFunctions.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 #include <vector>
 #include <sstream>
@@ -43,6 +44,16 @@ namespace libmaus2
 			FastAIndex() : sequences()
 			{
 			
+			}
+			
+			std::vector<libmaus2::fastx::FastAIndexEntry>::size_type size() const
+			{
+				return sequences.size();
+			}
+			
+			libmaus2::fastx::FastAIndexEntry operator[](std::vector<libmaus2::fastx::FastAIndexEntry>::size_type const i) const
+			{
+				return sequences.at(i);
 			}
 			
 			uint64_t getSequenceIdByName(std::string const & s) const
@@ -118,8 +129,10 @@ namespace libmaus2
 			
 			static unique_ptr_type load(std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
-				unique_ptr_type tptr(new this_type(CIS));
+				libmaus2::aio::InputStream::unique_ptr_type PCIS(
+					libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)
+				);
+				unique_ptr_type tptr(new this_type(*PCIS));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 			
