@@ -25,37 +25,40 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
+
+		for ( uint64_t i = 0; i < 10; ++i )
+		{	
+			// std::string a = "ACGTACGT";
+			// std::string b = "ACGTTTACGZ";
+			std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+			//std::string const a = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAACATGCGAAAATTTACCTAAAAA";
+			//std::string const b = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAAAATGCGAAAATTGACCTAAAAA";
 			
-		// std::string a = "ACGTACGT";
-		// std::string b = "ACGTTTACGZ";
-		std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
-		std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+			libmaus2::random::Random::setup();
+			for ( uint64_t i = 0; i < 50; ++i )
+			{
+				a += ((libmaus2::random::Random::rand8() % 4) + 'A');
+				b += ((libmaus2::random::Random::rand8() % 4) + 'A');
+			}
 
-		//std::string const a = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAACATGCGAAAATTTACCTAAAAA";
-		//std::string const b = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAAAATGCGAAAATTGACCTAAAAA";
-		
-		libmaus2::random::Random::setup();
-		for ( uint64_t i = 0; i < 50; ++i )
-		{
-			a += ((libmaus2::random::Random::rand8() % 4) + 'A');
-			b += ((libmaus2::random::Random::rand8() % 4) + 'A');
-		}
-
-		// maximum number of errors
-		unsigned int d = 30;
-		
-		libmaus2::lcs::NDextendDNA nd;
-		bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
-		
-		if ( ok )
-		{
-			// nd.printTrace(std::cout,a.begin(),b.begin());
-			nd.printAlignment(std::cout,a.begin(),b.begin());
-		}
-		else
-		{
-			nd.printAlignment(std::cout,a.begin(),b.begin());
-			std::cout << "no alignment found" << std::endl;
+			// maximum number of errors
+			unsigned int d = 30;
+			
+			libmaus2::lcs::NDextendDNA nd;
+			bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
+			
+			if ( ok )
+			{
+				// nd.printTrace(std::cout,a.begin(),b.begin());
+				nd.printAlignment(std::cout,a.begin(),b.begin());
+			}
+			else
+			{
+				nd.printAlignment(std::cout,a.begin(),b.begin());
+				std::cout << "no alignment found" << std::endl;
+			}
 		}
 	}
 	// catch(std::exception const & ex)
