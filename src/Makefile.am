@@ -1626,7 +1626,9 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/AlignmentStatistics.hpp \
 	libmaus2/lcs/NDextendAllPass.hpp \
 	libmaus2/lcs/NDextendACGTPass.hpp \
-	libmaus2/lcs/NDextend1234Pass.hpp
+	libmaus2/lcs/NDextend1234Pass.hpp \
+	libmaus2/lcs/BitVectorResultCallbackInterface.hpp \
+	libmaus2/lcs/BitVector.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
