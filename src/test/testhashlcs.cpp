@@ -39,10 +39,40 @@ static std::string loadFirstPattern(std::string const & filename)
 	}
 }
 
+#include <libmaus2/lcs/BitVector.hpp>
+
+struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCallbackInterface
+{
+	std::ostream & out;
+	
+	BitVectorResultPrintCallback(std::ostream & rout) : out(rout)
+	{
+	}
+	
+	void operator()(size_t const p, uint64_t const distance)
+	{
+		out << "BitVector::match: end position " << p << " distance " << distance << std::endl;
+	}				
+};
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		{
+			std::string const text = "remachine";
+			std::string const query = "match";
+			
+			BitVectorResultPrintCallback CB(std::cerr);
+			
+			libmaus2::lcs::BitVector<uint64_t>::bitvector(
+				text.begin(),text.size(),
+				query.begin(),query.size(),
+				CB,
+				3
+			);
+		}
+	
 		{
 			int A[] = { 1,2,2,3,0,1,2,3 };
 			int const n = sizeof(A)/sizeof(A[0]);

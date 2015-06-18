@@ -45,7 +45,10 @@ namespace libmaus2
 			typedef SimpleHashMap<key_type,value_type> this_type;
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-
+			
+			private:
+			SimpleHashMap() : slog(0), hashsize(0), hashmask(0), fill(0), H(0), elock() {}
+			
 			protected:
 			unsigned int slog;
 			uint64_t hashsize;
@@ -80,16 +83,22 @@ namespace libmaus2
 			
 			unique_ptr_type uclone() const
 			{
-				unique_ptr_type O(new this_type(slog));
-				std::copy(H.begin(),H.end(),O->H.begin());
+				unique_ptr_type O(new this_type);
+				
+				O->slog = slog;
+				O->hashsize = hashsize;
+				O->hashmask = hashmask;
+				O->fill = fill;
+				O->H = H.clone();
+			
 				return UNIQUE_PTR_MOVE(O);
 			}
 
 			shared_ptr_type sclone() const
 			{
-				shared_ptr_type O(new this_type(slog));
-				std::copy(H.begin(),H.end(),O->H.begin());
-				return O;
+				unique_ptr_type U(uclone());
+				shared_ptr_type S(U.release());
+				return S;
 			}
 
 			void serialise(std::ostream & out) const
@@ -115,13 +124,25 @@ namespace libmaus2
 			virtual ~SimpleHashMap() {}
 			
 			void clear()
-			{
+			{	
 				for ( pair_type * ita = begin(); ita != end(); ++ita )
 					ita->first = base_type::unused();
 				fill = 0;
 			}
-			
-			void clear(_key_type * keys, uint64_t const n)
+
+			void clearFast()
+			{	
+				slog = 0;
+				hashsize = 1ull << slog;
+				hashmask = hashsize-1;
+				fill = 0;
+				
+				for ( pair_type * ita = begin(); ita != end(); ++ita )
+					ita->first = base_type::unused();
+				fill = 0;
+			}
+
+			void clear(key_type * keys, uint64_t const n)
 			{
 				for ( uint64_t i = 0; i < n; ++i )
 					keys[i] = getIndex(keys[i]);
@@ -131,19 +152,19 @@ namespace libmaus2
 			}
 			
 			pair_type const * begin() const { return H.begin(); }
-			pair_type const * end() const { return H.end(); }
-			pair_type * begin() { return H.begin(); }
-			pair_type * end() { return H.end(); }
+			pair_type const * end() const   { return H.begin()+hashsize; }
+			pair_type * begin()             { return H.begin(); }
+			pair_type * end()               { return H.begin()+hashsize; }
 			
 			uint64_t getTableSize() const
 			{
-				return H.size();
+				return hashsize;
 			}
 			
 			unique_ptr_type extend() const
 			{
 				unique_ptr_type O(new this_type(slog+1));
-				for ( uint64_t i = 0; i < H.size(); ++i )
+				for ( uint64_t i = 0; i < hashsize; ++i )
 					if ( H[i].first != base_type::unused() )
 						O->insert ( H[i].first, H[i].second );
 				return UNIQUE_PTR_MOVE(O);
@@ -171,47 +192,93 @@ namespace libmaus2
 				uint64_t const numblocks
 				)
 			{
-				uint64_t const blocksize = (from.H.size()+numblocks-1) / numblocks;
+				uint64_t const blocksize = (from.hashsize+numblocks-1) / numblocks;
 				uint64_t const idlow = blockid*blocksize;
-				uint64_t const idhigh = std::min(idlow+blocksize,from.H.size());
+				uint64_t const idhigh = std::min(idlow+blocksize,from.hashsize);
 				
 				for ( uint64_t i = idlow; i < idhigh; ++i )
 					if ( from.H[i].first != base_type::unused() )
 						to.insert(from.H[i].first,from.H[i].second);
 			}
 
-			void extendInternal()
+			void extendInternal(unsigned int const logadd = 1)
 			{
-				unique_ptr_type O(new this_type(slog+1));
-				for ( uint64_t i = 0; i < H.size(); ++i )
-					if ( H[i].first != base_type::unused() )
-						O->insert ( H[i].first, H[i].second );
+				assert ( logadd > 0 );
+			
+				if ( H.size() >= 3*hashsize )
+				{
+					pair_type * reinsert_begin = H.end()-hashsize;
+					pair_type * reinsert_end   = H.end();
+					
+					std::copy(H.begin(),H.begin()+hashsize,reinsert_begin);
+					
+					hashsize <<= 1;
+					hashmask = hashsize-1;
+					slog += 1;
+										
+					for ( uint64_t i = 0; i < hashsize; ++i )
+						H[i].first = base_type::unused();
+					
+					for ( pair_type * p = reinsert_begin; p != reinsert_end; ++p )
+						if ( p->first != base_type::unused() )
+							insert(p->first,p->second);		
+				}
+				else
+				{
+					unique_ptr_type O(new this_type(slog+logadd));
+					for ( uint64_t i = 0; i < hashsize; ++i )
+						if ( H[i].first != base_type::unused() )
+							O->insert ( H[i].first, H[i].second );
 				
-				slog = O->slog;
-				hashsize = O->hashsize;
-				hashmask = O->hashmask;
-				fill = O->fill;
-				H = O->H;
+					slog = O->slog;
+					hashsize = O->hashsize;
+					hashmask = O->hashmask;
+					fill = O->fill;
+					H = O->H;
+				}
 			}
 
-			void extendInternalNonSync()
+			void extendInternalNonSync(unsigned int const logadd = 1)
 			{
-				unique_ptr_type O(new this_type(slog+1));
-				for ( uint64_t i = 0; i < H.size(); ++i )
-					if ( H[i].first != base_type::unused() )
-						O->insertNonSync ( H[i].first, H[i].second );
+				assert ( logadd > 0 );
 				
-				slog = O->slog;
-				hashsize = O->hashsize;
-				hashmask = O->hashmask;
-				fill = O->fill;
-				H = O->H;
+				if ( H.size() >= 3*hashsize )
+				{				
+					pair_type * reinsert_begin = H.end()-hashsize;
+					pair_type * reinsert_end   = H.end();
+					
+					std::copy(H.begin(),H.begin()+hashsize,reinsert_begin);
+					
+					hashsize <<= 1;
+					hashmask = hashsize-1;
+					slog += 1;
+										
+					for ( uint64_t i = 0; i < hashsize; ++i )
+						H[i].first = base_type::unused();
+					
+					for ( pair_type * p = reinsert_begin; p != reinsert_end; ++p )
+						if ( p->first != base_type::unused() )
+							insertNonSync(p->first,p->second);		
+				}
+				else
+				{
+					unique_ptr_type O(new this_type(slog+logadd));
+					for ( uint64_t i = 0; i < hashsize; ++i )
+						if ( H[i].first != base_type::unused() )
+							O->insertNonSync ( H[i].first, H[i].second );
+					
+					slog = O->slog;
+					hashsize = O->hashsize;
+					hashmask = O->hashmask;
+					fill = O->fill;
+					H = O->H;
+				}
 			}
 
 			SimpleHashMap(unsigned int const rslog)
 			: slog(rslog), hashsize(1ull << slog), hashmask(hashsize-1), fill(0), H(hashsize,false), elock()
 			{
-				std::fill(H.begin(),H.end(),pair_type(base_type::unused(),value_type()));
+				std::fill(H.begin(),H.begin()+hashsize,pair_type(base_type::unused(),value_type()));
 			}
 			
 			inline uint64_t hash(uint64_t const v) const
@@ -231,21 +298,21 @@ namespace libmaus2
 		
 			double loadFactor() const
 			{
-				return static_cast<double>(fill) / H.size();
+				return static_cast<double>(fill) / hashsize;
 			}
 			
-			void insertExtend(key_type const v, value_type const w, double const loadthres)
+			void insertExtend(key_type const v, value_type const w, double const loadthres, unsigned int const logadd = 1)
 			{
-				if ( loadFactor() >= loadthres || (fill == H.size()) )
-					extendInternal();
+				if ( loadFactor() >= loadthres || (fill == hashsize) )
+					extendInternal(logadd);
 				
 				insert(v,w);
 			}
 
-			void insertNonSyncExtend(key_type const v, value_type const w, double const loadthres)
+			void insertNonSyncExtend(key_type const v, value_type const w, double const loadthres, unsigned int const logadd = 1)
 			{
-				if ( loadFactor() >= loadthres || (fill == H.size()) )
-					extendInternalNonSync();
+				if ( loadFactor() >= loadthres || (fill == hashsize) )
+					extendInternalNonSync(logadd);
 				
 				insertNonSync(v,w);
 			}

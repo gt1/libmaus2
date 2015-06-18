@@ -189,7 +189,7 @@ namespace libmaus2
 				if ( H.offset(ptr>>5,offset) )
 					H.updateOffset(offset,H.atOffset(offset) | (static_cast<uint64_t>(e) << shift));
 				else
-					H.insertNonSyncExtend(ptr>>5,static_cast<uint64_t>(e) << shift,0.8);
+					H.insertNonSyncExtend(ptr>>5,static_cast<uint64_t>(e) << shift,0.8,2 /* log add */);
 			}
 			
 			libmaus2::util::SimpleHashMap<uint64_t,uint64_t> editops;
@@ -340,7 +340,7 @@ namespace libmaus2
 				}
 
 
-				editops.clear();
+				editops.clearFast();
 				
 				// diag len
 				uint64_t const diaglen = std::min(na,nb)+1;
