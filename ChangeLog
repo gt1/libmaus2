@@ -1,3 +1,15 @@
+libmaus2 (2.0.25-1) unstable; urgency=medium
+
+  * add getOpBlocks method using storage provided by caller in AlignmentTraceContainer
+  * add multi character put operation in EntityBuffer
+  * add peek operation in dazzler AlignmentFile
+  * use multi character put for query name in EntityBuffer for BAM encoding
+  * add calculateMd version not using sequence encoded in alignment block but external one
+  * fix sam output for empty query sequences
+  * add option not to reset buffer when encoding alignments
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 19 Jun 2015 13:11:52 +0200
+
 libmaus2 (2.0.24-1) unstable; urgency=medium
 
   * add bit parallel alignment algorithm 
