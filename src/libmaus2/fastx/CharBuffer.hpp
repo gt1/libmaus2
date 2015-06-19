@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #if ! defined(CHARBUFFER_HPP)
 #define CHARBUFFER_HPP
 
@@ -67,6 +66,22 @@ namespace libmaus2
                         void put(value_type c)
                         {
                         	bufferPush(c);
+                        }
+                        
+                        template<typename iterator>
+                        void put(iterator c, size_t n)
+                        {
+                        	while ( n )
+                        	{
+                        		if ( length == buffersize )
+                        			expandBuffer();
+
+					size_t const space = buffersize - length;
+					size_t tocopy = std::min(n,space);
+					n -= tocopy;
+					while ( tocopy-- )
+                        			buffer[length++] = *(c++);
+                        	}
                         }
                         
                         void expandBuffer()
