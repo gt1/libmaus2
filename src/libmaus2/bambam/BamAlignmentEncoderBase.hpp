@@ -392,8 +392,7 @@ namespace libmaus2
 				putLE<buffer_type, int32_t>(buffer,tlen); // offset 28
 				
 				// name
-				for ( uint32_t i = 0; i < namelen; ++i )
-					buffer.put(name[i]);
+				buffer.put(name,namelen);
 				buffer.put(0);
 
 				// encode cigar string				
