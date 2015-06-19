@@ -345,7 +345,8 @@ namespace libmaus2
 				seq_iterator seq,
 				uint32_t const seqlen,
 				qual_iterator qual,
-				uint8_t const qualoffset = 33
+				uint8_t const qualoffset = 33,
+				bool const resetBuffer = true
 			)
 			{
 				typedef ::libmaus2::fastx::EntityBuffer<uint8_t,alloc_type> buffer_type;
@@ -360,7 +361,8 @@ namespace libmaus2
 			
 				// typedef ::libmaus2::fastx::UCharBuffer UCharBuffer;
 				
-				buffer.reset();
+				if ( resetBuffer )
+					buffer.reset();
 				
 				uint32_t const bin = 
 					(cigarlen > 0xFFFFul)
@@ -390,8 +392,7 @@ namespace libmaus2
 				putLE<buffer_type, int32_t>(buffer,tlen); // offset 28
 				
 				// name
-				for ( uint32_t i = 0; i < namelen; ++i )
-					buffer.put(name[i]);
+				buffer.put(name,namelen);
 				buffer.put(0);
 
 				// encode cigar string				
@@ -437,7 +438,8 @@ namespace libmaus2
 				uint32_t const tlen,
 				std::string const & seq,
 				std::string const & qual,
-				uint8_t const qualoffset = 33
+				uint8_t const qualoffset = 33,
+				bool const resetBuffer = true
 			)
 			{
 				std::vector<cigar_operation> cigvec = 
@@ -449,7 +451,8 @@ namespace libmaus2
 					cigvec.begin(),cigvec.size(),							
 					nextrefid,nextpos,tlen,
 					seq.begin(),seq.size(),
-					qual.begin(),qualoffset);
+					qual.begin(),qualoffset,
+					resetBuffer);
 			}
 
 			/**

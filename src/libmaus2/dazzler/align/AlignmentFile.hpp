@@ -36,6 +36,9 @@ namespace libmaus2
 				size_t tbytes;
 				
 				int64_t alre;
+				
+				Overlap putbackslot;
+				bool putbackslotactive;
 
 				uint64_t deserialise(std::istream & in)
 				{
@@ -58,19 +61,29 @@ namespace libmaus2
 				}
 				
 				AlignmentFile()
+				: putbackslotactive(false)
 				{
 				}
 				
 				AlignmentFile(std::istream & in)
+				: putbackslotactive(false)
 				{
 					deserialise(in);
 					alre = 0;
 				}
 
 				AlignmentFile(std::istream & in, uint64_t & s)
+				: putbackslotactive(false)
 				{
 					s += deserialise(in);
 					alre = 0;
+				}
+				
+				bool peekNextOverlap(std::istream & in, Overlap & OVL)
+				{
+					putbackslotactive = putbackslotactive || getNextOverlap(in,putbackslot);
+					OVL = putbackslot;
+					return putbackslotactive;
 				}
 				
 				bool getNextOverlap(std::istream & in, Overlap & OVL)
@@ -81,6 +94,12 @@ namespace libmaus2
 
 				bool getNextOverlap(std::istream & in, Overlap & OVL, uint64_t & s)
 				{
+					if ( putbackslotactive )
+					{
+						OVL = putbackslot;
+						putbackslotactive = false;
+						return true;
+					}
 					if ( alre >= novl )
 						return false;
 				

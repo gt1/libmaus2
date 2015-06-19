@@ -3157,7 +3157,10 @@ namespace libmaus2
 				ostr.put('\t');
 
 				uint64_t const seqlen = decodeRead(E,auxdata.seq);
-				ostr.write(auxdata.seq.begin(),seqlen);
+				if ( seqlen )
+					ostr.write(auxdata.seq.begin(),seqlen);
+				else
+					ostr.put('*');
 				ostr.put('\t');
 
 				if ( seqlen && getQual(E)[0] == 255 )
@@ -3264,7 +3267,9 @@ namespace libmaus2
 			 * @param B alignment block
 			 * @param blocksize length of block in bytes
 			 * @param context temporary space and result storage
-			 * @param pointer to reference at position of first non clipping op
+			 * @param itref pointer to reference at position of first non clipping op
+			 * @param seq pointer to encoded query sequence
+			 * @param readlength length of query sequence
 			 * @param warnchanges warn about changes on stderr if previous values are present
 			 **/
 			template<typename it_a>
@@ -3273,6 +3278,8 @@ namespace libmaus2
 				uint64_t const blocksize,
 				::libmaus2::bambam::MdStringComputationContext & context,
 				it_a itref,
+				uint8_t const * seq,
+				uint64_t const readlength,
 				bool const warnchanges = true
 			)
 			{
@@ -3335,11 +3342,6 @@ namespace libmaus2
 					) 
 				)
 				{
-					// length of read in bases
-					uint64_t const readlength = libmaus2::bambam::BamAlignmentDecoderBase::getLseq(B);
-					// encoded sequence
-					uint8_t const * seq = libmaus2::bambam::BamAlignmentDecoderBase::getSeq(B);
-					
 					// number of cigar operations
 					libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> & cigop = context.cigop;
 					uint32_t const numcigop = libmaus2::bambam::BamAlignmentDecoderBase::getCigarOperations(B,cigop);
@@ -3490,6 +3492,28 @@ namespace libmaus2
 					}					
 					context.eraseold = prevmd || haveprevnm;
 				}
+			
+			}
+
+			/**
+			 * calculate MD and NM fields
+			 *
+			 * @param B alignment block
+			 * @param blocksize length of block in bytes
+			 * @param context temporary space and result storage
+			 * @param pointer to reference at position of first non clipping op
+			 * @param warnchanges warn about changes on stderr if previous values are present
+			 **/
+			template<typename it_a>
+			static void calculateMd(
+				uint8_t const * B,
+				uint64_t const blocksize,
+				::libmaus2::bambam::MdStringComputationContext & context,
+				it_a itref,
+				bool const warnchanges = true
+			)
+			{
+				calculateMd(B,blocksize,context,itref,libmaus2::bambam::BamAlignmentDecoderBase::getSeq(B),libmaus2::bambam::BamAlignmentDecoderBase::getLseq(B),warnchanges);
 			}
 
 			/**

@@ -73,6 +73,28 @@ namespace libmaus2
 				
 				return R;
 			}
+
+			size_t getOpBlocks(libmaus2::autoarray::AutoArray<std::pair<step_type,uint64_t> > & A) const
+			{
+				if ( static_cast<ptrdiff_t>(A.size()) < te-ta )
+					A.resize(te-ta);
+				
+				step_type const * tc = ta;
+				std::pair<step_type,uint64_t> * p = A.begin();
+				
+				while ( tc != te )
+				{
+					step_type const * tt = tc;
+					while ( tt != te && *tt == *tc )
+						++tt;
+					
+					*(p++) = std::pair<step_type,uint64_t>(*tc,tt-tc);
+					
+					tc = tt;
+				}
+				
+				return p-A.begin();
+			}
 			
 			void reset()
 			{
