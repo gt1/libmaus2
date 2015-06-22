@@ -84,7 +84,7 @@ namespace libmaus2
 					int64_t const thisref = algn.getRefID();
 					int64_t const thiscoord = algn.getCoordinate();
 					int64_t const otherref = algn.getNextRefID();
-					int64_t const othercoord = algn.getAuxAsNumber<int32_t>("MC");
+					int64_t const othercoord = algn.getAuxAsNumberNC<int32_t>("mc");
 					
 					// is this the left mapping end?
 					bool const isleft =
@@ -242,7 +242,7 @@ namespace libmaus2
 					if ( usemate )
 					{
 						int64_t const thisref = algn.getNextRefID();
-						int64_t const thiscoord = algn.getAuxAsNumber<int32_t>("MC");
+						int64_t const thiscoord = algn.getAuxAsNumberNC<int32_t>("mc");
 						fragment_orientation_type fragor = algn.isMateReverse() ? fragment_orientation_R : fragment_orientation_F;
 						uint64_t const ufragor = static_cast<uint64_t>(fragor);
 						key.A[0] = 
