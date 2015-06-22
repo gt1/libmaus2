@@ -75,14 +75,14 @@ namespace libmaus2
 				{
 					MQfilter.set("MQ");
 					
-					MCMSMTfilter.set("MC");
-					MCMSMTfilter.set("MS");
-					MCMSMTfilter.set("MT");
+					MCMSMTfilter.set("mc");
+					MCMSMTfilter.set("ms");
+					MCMSMTfilter.set("mt");
 
 					MQMCMSMTfilter.set("MQ");
-					MQMCMSMTfilter.set("MC");
-					MQMCMSMTfilter.set("MS");
-					MQMCMSMTfilter.set("MT");
+					MQMCMSMTfilter.set("mc");
+					MQMCMSMTfilter.set("ms");
+					MQMCMSMTfilter.set("mt");
 				}
 			
 				virtual void dispatch(
@@ -243,8 +243,8 @@ namespace libmaus2
 									size_t const len = strlen(TA1);
 									if ( len + 4 > ATA1.size() )
 										ATA1.resize(len+4);
-									ATA1[0] = 'M';
-									ATA1[1] = 'T';
+									ATA1[0] = 'm';
+									ATA1[1] = 't';
 									ATA1[2] = 'Z';
 									std::copy(TA1,TA1+len,ATA1.begin()+3);
 									ATA1[len+3] = 0;
@@ -255,8 +255,8 @@ namespace libmaus2
 									size_t const len = strlen(TA2);
 									if ( len + 4 > ATA2.size() )
 										ATA2.resize(len+4);
-									ATA2[0] = 'M';
-									ATA2[1] = 'T';
+									ATA2[0] = 'm';
+									ATA2[1] = 't';
 									ATA2[2] = 'Z';
 									std::copy(TA2,TA2+len,ATA2.begin()+3);
 									ATA2[len+3] = 0;
@@ -304,7 +304,7 @@ namespace libmaus2
 								if ( MSP.first >= 0 )
 								{
 									uint8_t const T[7] = { 
-										'M', 'S', 'I', 
+										'm', 's', 'I', 
 										static_cast<uint8_t>((MSP.first >>  0) & 0xFF),
 										static_cast<uint8_t>((MSP.first >>  8) & 0xFF),
 										static_cast<uint8_t>((MSP.first >> 16) & 0xFF),
@@ -317,7 +317,7 @@ namespace libmaus2
 								if ( MCP.first >= 0 )
 								{
 									uint8_t const T[7] = { 
-										'M', 'C', 'I', 
+										'm', 'c', 'I', 
 										static_cast<uint8_t>((MCP.first >>  0) & 0xFF),
 										static_cast<uint8_t>((MCP.first >>  8) & 0xFF),
 										static_cast<uint8_t>((MCP.first >> 16) & 0xFF),
@@ -348,7 +348,7 @@ namespace libmaus2
 								if ( MSP.second >= 0 )
 								{
 									uint8_t const T[7] = { 
-										'M', 'S', 'I', 
+										'm', 's', 'I', 
 										static_cast<uint8_t>((MSP.second >>  0) & 0xFF),
 										static_cast<uint8_t>((MSP.second >>  8) & 0xFF),
 										static_cast<uint8_t>((MSP.second >> 16) & 0xFF),
@@ -361,7 +361,7 @@ namespace libmaus2
 								if ( MCP.second >= 0 )
 								{
 									uint8_t const T[7] = { 
-										'M', 'C', 'I', 
+										'm', 'c', 'I', 
 										static_cast<uint8_t>((MCP.second >>  0) & 0xFF),
 										static_cast<uint8_t>((MCP.second >>  8) & 0xFF),
 										static_cast<uint8_t>((MCP.second >> 16) & 0xFF),

@@ -339,9 +339,9 @@ namespace libmaus2
 				{
 					std::vector<std::string> V;
 					V.push_back(std::string("MQ"));
-					V.push_back(std::string("MS"));
-					V.push_back(std::string("MC"));
-					V.push_back(std::string("MT"));
+					V.push_back(std::string("ms"));
+					V.push_back(std::string("mc"));
+					V.push_back(std::string("mt"));
 					return V;
 				}
 				
@@ -353,9 +353,9 @@ namespace libmaus2
 				AlignmentBuffer(uint64_t const buffersize, uint64_t const rpointerdif = 1)
 				: id(0), subid(0), A(alignPointerSize(buffersize),false), pA(A.begin()), pP(reinterpret_cast<pointer_type *>(A.end())), pointerdif(rpointerdif), final(false), low(0),
 				  MQfilter(std::vector<std::string>(1,std::string("MQ"))),
-				  MSfilter(std::vector<std::string>(1,std::string("MS"))),
-				  MCfilter(std::vector<std::string>(1,std::string("MC"))),
-				  MTfilter(std::vector<std::string>(1,std::string("MT"))),
+				  MSfilter(std::vector<std::string>(1,std::string("ms"))),
+				  MCfilter(std::vector<std::string>(1,std::string("mc"))),
+				  MTfilter(std::vector<std::string>(1,std::string("mt"))),
 				  MQMSMCMTfilter(getMQMSMCMTFilterVector())
 				{
 					assert ( pointerdif >= 1 );

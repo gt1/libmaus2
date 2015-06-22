@@ -141,7 +141,7 @@ namespace libmaus2
 								libmaus2::bambam::BamAlignment::fixMateInformationPreFiltered(a1,a2);
 								libmaus2::bambam::BamAlignment::addMateBaseScorePreFiltered(a1,a2);
 								libmaus2::bambam::BamAlignment::addMateCoordinatePreFiltered(a1,a2);
-								libmaus2::bambam::BamAlignment::addMateTagPreFiltered(a1,a2,"MT");
+								libmaus2::bambam::BamAlignment::addMateTagPreFiltered(a1,a2,"mt");
 							}
 						
 							while ( algns.size() )
