@@ -1,3 +1,9 @@
+libmaus2 (2.0.26-1) unstable; urgency=medium
+
+  * imported lower case tag handling for duplicate marking by Andrew Whitwham
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 22 Jun 2015 11:14:42 +0200
+
 libmaus2 (2.0.25-1) unstable; urgency=medium
 
   * add getOpBlocks method using storage provided by caller in AlignmentTraceContainer
