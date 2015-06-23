@@ -21,6 +21,7 @@
 
 #include <pthread.h>
 #include <libmaus2/exception/LibMausException.hpp>
+#include <cstring>
 
 namespace libmaus2
 {
