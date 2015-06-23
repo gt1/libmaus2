@@ -24,6 +24,7 @@
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/network/SocketPair.hpp>
 #include <libmaus2/network/Socket.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 
 namespace libmaus2
 {
