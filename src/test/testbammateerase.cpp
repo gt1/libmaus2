@@ -42,17 +42,17 @@ int main(int argc, char * argv[])
 		{
 			if ( randomer )
 			{
-				if ( rand() & 1 == 1 )
+				if ( (rand() & 1) == 1 )
 					algn.putNextRefId(-1);
-				if ( rand() & 1 == 1 )
+				if ( (rand() & 1) == 1 )
 					algn.putNextPos(-1);
-				if ( rand() & 1 == 1 )
+				if ( (rand() & 1) == 1 )
 					algn.putTlen(0);			
-				if ( rand() & 1 == 1 )
+				if ( (rand() & 1) == 1 )
 					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMUNMAP)) );
-				if ( rand() & 1 == 1 )
+				if ( (rand() & 1) == 1 )
 					algn.putFlags( algn.getFlags() & (~(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FMREVERSE)) );
-				if ( rand() & 1 == 1 )
+				if ( (rand() & 1) == 1 )
 					algn.filterOutAux(MQfilter);
 				algn.serialise(wrstream);			
 			}
