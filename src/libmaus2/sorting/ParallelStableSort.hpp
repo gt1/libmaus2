@@ -465,6 +465,8 @@ namespace libmaus2
 							state = sort_state_done;
 						
 							break;
+						case sort_state_done:
+							break;
 					}
 					
 					return state == sort_state_done;
