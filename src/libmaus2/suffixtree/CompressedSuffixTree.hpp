@@ -86,7 +86,7 @@ namespace libmaus2
 			void extractText(iterator const it, uint64_t const low, uint64_t const high) const
 			{
 				uint64_t r = (*SISA)[ high % n ];
-				uint64_t c = high-low;
+				// uint64_t c = high-low;
 				iterator ite = it + (high-low);
 				
 				while ( ite != it )
