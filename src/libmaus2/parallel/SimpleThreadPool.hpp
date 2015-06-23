@@ -258,8 +258,6 @@ namespace libmaus2
 				long const tid = syscall(SYS_gettid);
 				return pmap.find(tid)->second;
 				#else
-				pthread_t self = pthread_self();
-				
 				for ( uint64_t i = 0; i < threads.size(); ++i )
 					if ( threads[i]->isCurrent() )
 						return i;
