@@ -109,7 +109,7 @@ namespace libmaus2
 
 				sigcnt += 1;
 				
-				pthread_cond_broadcast(&cond);
+				pthread_cond_signal(&cond);
 			}
 		};
 	}
