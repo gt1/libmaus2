@@ -20,7 +20,7 @@
 #define LIBMAUS2_PARALLEL_SIMPLETHREADPOOL_HPP
 
 #include <libmaus2/parallel/PosixSpinLock.hpp>
-#include <libmaus2/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixConditionSemaphore.hpp>
 #include <libmaus2/parallel/TerminatableSynchronousHeap.hpp>
 #include <libmaus2/parallel/SimpleThreadPoolThread.hpp>
 #include <libmaus2/parallel/SimpleThreadPoolInterface.hpp>
@@ -53,7 +53,7 @@ namespace libmaus2
 			libmaus2::exception::LibMausException::unique_ptr_type lme;
 						
 			// semaphore for notifying about start completion
-			libmaus2::parallel::PosixSemaphore startsem;
+			libmaus2::parallel::PosixConditionSemaphore startsem;
 				
 			// threads		
 			libmaus2::autoarray::AutoArray<SimpleThreadPoolThread::unique_ptr_type> threads;
