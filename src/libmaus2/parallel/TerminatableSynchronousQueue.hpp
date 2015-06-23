@@ -27,6 +27,157 @@ namespace libmaus2
 {
         namespace parallel
         {
+                #if defined(__APPLE__)
+                /**
+                 * posix condition variable based version for Darwin, which has limited support for posix semaphores (no timed waits)
+                 **/
+                template<typename _value_type>
+                struct TerminatableSynchronousQueue
+                {
+                        typedef _value_type value_type;
+                        typedef TerminatableSynchronousQueue<value_type> this_type;
+                                                
+                        pthread_mutex_t mutex;
+                        pthread_cond_t cond;
+                        size_t volatile numwait;
+                        std::deque<value_type> Q;
+                        bool volatile terminated;
+                        
+                        struct MutexLock
+                        {
+                                pthread_mutex_t * mutex;
+                                bool locked;
+                                
+                                void obtain()
+                                {
+                                        if ( ! locked )
+                                        {
+                                                int const r = pthread_mutex_lock(mutex);
+                                                if ( r != 0 )
+                                                {
+                                                        int const error = errno;
+                                                        libmaus2::exception::LibMausException lme;
+                                                        lme.getStream() << "MutexLock: " << strerror(error) << std::endl;
+                                                        lme.finish();
+                                                        throw lme;
+                                                }
+                                                locked = true;
+                                        }
+                                }
+                                
+                                MutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex), locked(false)
+                                {
+                                        obtain();
+                                }
+                                
+                                void release()
+                                {
+                                        if ( locked )
+                                        {
+                                                int const r = pthread_mutex_unlock(mutex);
+                                                if ( r != 0 )
+                                                {
+                                                        int const error = errno;
+                                                        libmaus2::exception::LibMausException lme;
+                                                        lme.getStream() << "~MutexLock: " << strerror(error) << std::endl;
+                                                        lme.finish();
+                                                        throw lme;
+                                                }
+
+                                                locked = false;
+                                        }                                
+                                }
+                                
+                                ~MutexLock()
+                                {
+                                        release();
+                                }
+                        };
+                                                
+                        TerminatableSynchronousQueue()
+                        : mutex(PTHREAD_MUTEX_INITIALIZER), cond(PTHREAD_COND_INITIALIZER), numwait(0), Q(), terminated(false)
+                        {
+                        
+                        }
+                        
+                        ~TerminatableSynchronousQueue()
+                        {
+                        
+                        }
+
+                        void enque(value_type const v)
+                        {
+                                MutexLock M(mutex);
+                                Q.push_back(v);
+                                pthread_cond_signal(&cond);
+                        }
+
+                        size_t getFillState()
+                        {
+                                uint64_t f;
+                                
+                                {
+                                        MutexLock M(mutex);
+                                        f = Q.size();
+                                }
+                                
+                                return f;
+                        }
+                        
+                        bool isTerminated()
+                        {
+                                bool lterminated;
+                                {
+                                MutexLock M(mutex);
+                                lterminated = terminated;
+                                }
+                                return lterminated;
+                        }
+                        
+                        void terminate()
+                        {
+                                size_t numnoti = 0;
+                                {
+                                        MutexLock M(mutex);
+                                        terminated = true;
+                                        numnoti = numwait;
+                                }
+                                for ( size_t i = 0; i < numnoti; ++i )
+                                        pthread_cond_signal(&cond);
+                        }
+                        
+                        value_type deque()
+                        {
+                                MutexLock M(mutex);
+                                
+                                while ( (! terminated) && (!Q.size()) )
+                                {
+                                        numwait++;
+                                        int const r = pthread_cond_wait(&cond,&mutex);
+                                        if ( r != 0 )
+                                        {
+                                                int const error = errno;
+                                                libmaus2::exception::LibMausException lme;
+                                                lme.getStream() << "~MutexLock: " << strerror(error) << std::endl;
+                                                lme.finish();
+                                                throw lme;
+                                        }
+                                        numwait--;
+                                }
+                                
+                                if ( Q.size() )
+                                {
+                                        value_type v = Q.front();
+                                        Q.pop_front();
+                                        return v;
+                                }
+                                else
+                                {
+                                        throw std::runtime_error("Queue is terminated");                                
+                                }
+                        }
+                };
+                #else
                 template<typename value_type>
                 struct TerminatableSynchronousQueue : public SynchronousQueue<value_type>
                 {
@@ -73,6 +224,7 @@ namespace libmaus2
                                 return v;
                         }
                 };
+                #endif
         }
 }
 #endif
