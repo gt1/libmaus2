@@ -25,7 +25,7 @@
 #if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <libmaus2/parallel/PosixMutex.hpp>
 #include <libmaus2/parallel/PosixSpinLock.hpp>
-#include <libmaus2/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixConditionSemaphore.hpp>
 #include <deque>
 
 namespace libmaus2
@@ -41,7 +41,7 @@ namespace libmaus2
                 	
                         std::deque < value_type > Q;
                         PosixSpinLock lock;
-                        PosixSemaphore semaphore;
+                        PosixConditionSemaphore semaphore;
                         
                         this_type * parent;
                         
