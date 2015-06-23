@@ -29,44 +29,21 @@ namespace libmaus2
 		struct PosixConditionSemaphore
 		{
 			pthread_cond_t cond;
-			pthread_mutex_t mutex;
-			
+			pthread_mutex_t mutex;			
 			int volatile sigcnt;
 			
-			PosixConditionSemaphore()
-			: sigcnt(0) 
+			PosixConditionSemaphore() : cond(PTHREAD_COND_INITIALIZER), mutex(PTHREAD_MUTEX_INITIALIZER), sigcnt(0)
 			{
-				int r;
-				if ( (r=pthread_cond_init(&cond,NULL)) != 0 )
-				{
-					int const error = r;
-					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "PosixConditionSemaphore: failed pthread_cond_init " << strerror(error) << std::endl;
-					lme.finish();
-					throw lme;				
-				}
-				if ( (r=pthread_mutex_init(&mutex,NULL)) != 0 )
-				{
-					pthread_cond_destroy(&cond);
-				
-					int const error = r;
-					libmaus2::exception::LibMausException lme;
-					lme.getStream() << "PosixConditionSemaphore: failed pthread_mutex_init " << strerror(error) << std::endl;
-					lme.finish();
-					throw lme;
-				}
 			}
 			~PosixConditionSemaphore()
 			{
-				pthread_cond_destroy(&cond);
-				pthread_mutex_destroy(&mutex);
 			}
 			
 			struct ScopeMutexLock
 			{
 				pthread_mutex_t * mutex;
 			
-				ScopeMutexLock(pthread_mutex_t * rmutex) : mutex(rmutex)
+				ScopeMutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex)
 				{
 					if ( pthread_mutex_lock(mutex) != 0 )
 					{
@@ -93,7 +70,7 @@ namespace libmaus2
 
 			bool trywait()
 			{
-				ScopeMutexLock slock(&mutex);
+				ScopeMutexLock slock(mutex);
 			
 				bool r = false;
 								
@@ -108,7 +85,7 @@ namespace libmaus2
 			
 			void wait()
 			{
-				ScopeMutexLock slock(&mutex);
+				ScopeMutexLock slock(mutex);
 
 				bool done = false;
 				while ( !done )
@@ -127,40 +104,11 @@ namespace libmaus2
 			
 			void post()
 			{
-				ScopeMutexLock slock(&mutex);
+				ScopeMutexLock slock(mutex);
 
 				sigcnt += 1;
 				
 				pthread_cond_broadcast(&cond);
-			}
-			
-			bool timedWait()
-			{
-				ScopeMutexLock slock(&mutex);
-
-				// time structures
-				struct timeval tv;
-				struct timezone tz;
-				struct timespec waittime;
-
-				// get time of day
-				gettimeofday(&tv,&tz);
-                                
-				// set wait time to 1 second
-				waittime.tv_sec = tv.tv_sec + 1;
-				waittime.tv_nsec = static_cast<uint64_t>(tv.tv_usec)*1000;
-
-				if ( ! sigcnt )
-					pthread_cond_timedwait(&cond,&mutex,&waittime);
-
-				bool r = false;
-				if ( sigcnt )
-				{
-					sigcnt -= 1;
-					r = true;
-				}
-								
-				return r;
 			}
 		};
 	}
