@@ -31,6 +31,7 @@
 #if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <semaphore.h>
 #include <sys/time.h>
+#include <unistd.h>
 	
 namespace libmaus2
 {
