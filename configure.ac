@@ -668,23 +668,27 @@ if test "${openmp}" = "yes" ; then
 fi
 
 if test "${debug}" = "yes" ; then
-        CXXFLAGS="${CXXFLAGS} -g -O0 -rdynamic"
-        CFLAGS="${CFLAGS} -g -O0 -rdynamic"
+        CXXFLAGS="${CXXFLAGS} -g -O0"
+        CFLAGS="${CFLAGS} -g -O0"
+        LDFLAGS="-rdynamic"
 	openmp="no"
 else
 	if test "${profile}" = "yes" ; then
-	        CXXFLAGS="${CXXFLAGS} -g -pg -rdynamic"
-	        CFLAGS="${CFLAGS} -g -pg -rdynamic"
+	        CXXFLAGS="${CXXFLAGS} -g -pg"
+	        CFLAGS="${CFLAGS} -g -pg"
+	        LDFLAGS="-rdynamic"
 	else
 		if test "${optimization}" = "yes" ; then
 			case ${CXX} in
 				g++)
-					CXXFLAGS="${CXXFLAGS} -O3 -rdynamic"
-					CFLAGS="${CFLAGS} -O3 -rdynamic"
+					CXXFLAGS="${CXXFLAGS} -O3"
+					CFLAGS="${CFLAGS} -O3"
+				        LDFLAGS="-rdynamic"
 					;;
 				*-mingw32msvc-g++)
-					CXXFLAGS="${CXXFLAGS} -O3 -rdynamic"
-					CFLAGS="${CFLAGS} -O3 -rdynamic"
+					CXXFLAGS="${CXXFLAGS} -O3"
+					CFLAGS="${CFLAGS} -O3"
+				        LDFLAGS="-rdynamic"
 					;;
 				cl.exe)
 					CXXFLAGS="${CXXFLAGS} -O2 -Ob2 -Ot -Oy"
