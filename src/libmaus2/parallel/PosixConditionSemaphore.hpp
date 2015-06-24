@@ -20,6 +20,7 @@
 #define LIBMAUS2_PARALLEL_POSIXCONDITIONSEMAPHORE_HPP
 
 #include <cstring>
+#include <cerrno>
 #include <libmaus2/exception/LibMausException.hpp>
 #include <libmaus2/parallel/SimpleSemaphoreInterface.hpp>
 
@@ -36,11 +37,47 @@ namespace libmaus2
 			pthread_mutex_t mutex;			
 			int volatile sigcnt;
 			
-			PosixConditionSemaphore() : cond(PTHREAD_COND_INITIALIZER), mutex(PTHREAD_MUTEX_INITIALIZER), sigcnt(0)
+			void initCond()
 			{
+				if ( pthread_cond_init(&cond,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}			
+			}
+
+			void initMutex()
+			{
+				if ( pthread_mutex_init(&mutex,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initMutex(): failed pthread_mutex_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+			
+			PosixConditionSemaphore() : sigcnt(0)
+			{
+				initCond();
+				try
+				{
+					initMutex();
+				}
+				catch(...)
+				{
+					pthread_cond_destroy(&cond);
+					throw;
+				}
 			}
 			~PosixConditionSemaphore()
 			{
+				pthread_mutex_destroy(&mutex);
+				pthread_cond_destroy(&cond);
 			}
 			
 			struct ScopeMutexLock

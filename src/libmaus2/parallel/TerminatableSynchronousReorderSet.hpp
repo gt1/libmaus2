@@ -104,16 +104,51 @@ namespace libmaus2
                                         release();
                                 }
                         };
+
+			void initCond()
+			{
+				if ( pthread_cond_init(&cond,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}			
+			}
+
+			void initMutex()
+			{
+				if ( pthread_mutex_init(&mutex,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initMutex(): failed pthread_mutex_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
                                                 
                         TerminatableSynchronousReorderSet(uint64_t const rnext = 0)
-                        : mutex(PTHREAD_MUTEX_INITIALIZER), cond(PTHREAD_COND_INITIALIZER), numwait(0), Q(), terminated(false), next(rnext)
+                        : numwait(0), Q(), terminated(false), next(rnext)
                         {
-                        
+				initCond();
+				try
+				{
+					initMutex();
+				}
+				catch(...)
+				{
+					pthread_cond_destroy(&cond);
+					throw;
+				}                        
                         }
                         
                         ~TerminatableSynchronousReorderSet()
                         {
-                        
+                        	pthread_mutex_destroy(&mutex);
+                        	pthread_cond_destroy(&cond);
                         }
 
                         size_t getFillState()
