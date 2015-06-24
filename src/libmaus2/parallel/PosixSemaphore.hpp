@@ -17,166 +17,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if ! defined(POSIXSEMAPHORE_HPP)
-#define POSIXSEMAPHORE_HPP
+#if ! defined(LIBMAUS2_PARALLEL_POSIXSEMAPHORE_HPP)
+#define LIBMAUS2_PARALLEL_POSIXSEMAPHORE_HPP
 
-#include <libmaus2/LibMausConfig.hpp>
-
-#if defined(LIBMAUS2_HAVE_PTHREADS)
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/parallel/TimedSemaphoreInterface.hpp>
 
 #include <ctime>
 #include <cerrno>
-#include <semaphore.h>
-#include <sys/time.h>
 #include <cstring>
 #include <stdexcept>
-#include <libmaus2/exception/LibMausException.hpp>
-#include <fcntl.h>           /* For O_* constants */
-#include <sys/types.h>
-#include <unistd.h>
-#include <iomanip>
 
+#if defined(LIBMAUS2_HAVE_PTHREADS)
+#include <semaphore.h>
+#include <sys/time.h>
+	
 namespace libmaus2
 {
 	namespace parallel
-	{
-		struct NamedPosixSemaphore
-		{
-			private:
-			NamedPosixSemaphore & operator=(NamedPosixSemaphore const &);
-			NamedPosixSemaphore(NamedPosixSemaphore const &);
-		
-			public:
-			std::string const semname;
-			bool const primary;
-			sem_t * psemaphore;
-			
-			static std::string getDefaultName()
-			{
-				std::ostringstream ostr;
-				ostr << "/s" 
-					<< std::hex << std::setw(4) << std::setfill('0') << (getpid()&0xFFFF) << std::setw(0) << std::dec
-					<< std::hex << std::setw(8) << std::setfill('0') << (time(0)&0xFFFFFFFFULL) << std::setw(0) << std::dec;
-				return ostr.str();			
-			}
-			
-			NamedPosixSemaphore(std::string const & rsemname, bool rprimary)
-			: semname(rsemname), primary(rprimary), psemaphore(0)
-			{
-				if ( primary )
-					psemaphore = sem_open(semname.c_str(), O_CREAT | O_EXCL, 0700, 0);
-				else
-					psemaphore = sem_open(semname.c_str(), 0);
-					
-				if ( psemaphore == SEM_FAILED )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to open semaphore " << semname << ": " << strerror(errno) << " primary " << primary << std::endl;
-					se.finish();
-					throw se;
-				}
-			}
-			~NamedPosixSemaphore()
-			{
-				sem_close(psemaphore);
-				if ( primary )
-					sem_unlink(semname.c_str());
-			}
-
-                        void post()
-                        {
-                        	while ( sem_post ( psemaphore ) != 0 )
-                        	{
-                        		int const lerrno = errno;
-                        		
-                        		switch ( lerrno )
-                        		{
-                        			case EINTR:
-							break;
-						default:
-						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixSemaphore::post(): " << strerror(lerrno) << std::endl;
-							se.finish();
-							throw se;
-						}
-                        		}
-                        	}
-                        }
-
-                        void wait()
-                        {
-                        	while ( sem_wait ( psemaphore ) != 0 )
-                        	{
-                        		int const lerrno = errno;
-                        		
-                        		switch ( lerrno )
-                        		{
-                        			case EINTR:
-							break;
-						default:
-						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixSemaphore::wait(): " << strerror(lerrno) << std::endl;
-							se.finish();
-							throw se;
-						}
-                        		}
-                        	
-                        	}
-			}
-
-                        bool trywait()
-                        {
-                        	while ( sem_trywait ( psemaphore ) != 0 )
-                        	{
-                        		int const lerrno = errno;
-                        		
-                        		switch ( lerrno )
-                        		{
-                        			case EAGAIN:
-                        				return false;
-                        				break;
-                        			case EINTR:
-							break;
-						default:
-						{
-							libmaus2::exception::LibMausException se;
-							se.getStream() << "PosixSemaphore::trywait(): " << strerror(lerrno) << std::endl;
-							se.finish();
-							throw se;
-						}
-                        		}
-                        	}
-                        	
-                        	return true;
-			}
-
-
-                        int getValue()
-                        {
-                        	int v = 0;
-                        	int r = sem_getvalue(psemaphore,&v);
-                        	
-                        	if ( r != 0 )
-                        	{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to sem_getvalue: " << strerror(errno) << std::endl;
-					se.finish();
-					throw se;
-                        	}
-                        	
-                        	return v;
-                        }
-                        
-                        void assureNonZero()
-                        {
-                        	if ( !getValue() )
-                        		post();
-                        }
-		};
-	
-                struct PosixSemaphore
+	{		
+                struct PosixSemaphore : public TimedSemaphoreInterface
                 {
                 	typedef PosixSemaphore this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;

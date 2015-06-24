@@ -21,12 +21,14 @@
 #define TERMINATABLESYNCHRONOUSHEAP_HPP
 
 #include <libmaus2/parallel/SynchronousHeap.hpp>
+#include <libmaus2/parallel/PosixSemaphore.hpp>
 
 #if defined(LIBMAUS2_HAVE_PTHREADS)
 namespace libmaus2
 {
         namespace parallel
         {
+        	#if defined(__APPLE__)
                 /**
                  * posix condition variable based version
                  **/
@@ -114,21 +116,18 @@ namespace libmaus2
 
                         void enque(value_type const v)
                         {
-                                {
-                                        MutexLock M(mutex);
-                                        Q.push(v);
-                                }
-                                
+                                MutexLock M(mutex);
+                                Q.push(v);
                                 int const r = pthread_cond_signal(&cond);
                                                                 
-                                if ( r )
-                                {
-                                        int const error = errno;
-                                        libmaus2::exception::LibMausException lme;
-                                        lme.getStream() << "enque: " << strerror(error) << std::endl;
+       	                        if ( r )
+               	                {
+                       	                int const error = errno;
+                               	        libmaus2::exception::LibMausException lme;
+               	                        lme.getStream() << "enque: " << strerror(error) << std::endl;
                                         lme.finish();
-                                        throw lme;
-                                }
+       	                                throw lme;
+                       	        }
                         }
 
                         size_t getFillState()
@@ -155,23 +154,22 @@ namespace libmaus2
                         
                         void terminate()
                         {
-                                size_t numnoti = 0;
-                                {
-                                        MutexLock M(mutex);
-                                        terminated += 1;
+                        	MutexLock M(mutex);
+                                terminated += 1;
 
-					if ( terminated >= terminatedthreshold )
-                                 	       numnoti = numwait;
-                                }
-                                for ( size_t i = 0; i < numnoti; ++i )
-                                        pthread_cond_signal(&cond);
+	                        size_t numnoti = 0;
+				if ( terminated >= terminatedthreshold )
+                                	numnoti = numwait;
+
+				for ( size_t i = 0; i < numnoti; ++i )
+        	                	pthread_cond_signal(&cond);
                         }
                         
                         value_type deque()
                         {
                                 MutexLock M(mutex);
                                 
-                                while ( (! terminated) && (!Q.size()) )
+                                while ( (terminated < terminatedthreshold) && (!Q.size()) )
                                 {
                                         numwait++;
                                         int const r = pthread_cond_wait(&cond,&mutex);
@@ -217,6 +215,127 @@ namespace libmaus2
 				return V;
                         }
                 };
+                #else
+                /**
+                 * semaphore variable based version
+                 **/
+                template<typename _value_type, typename _compare = ::std::less<_value_type> >
+                struct TerminatableSynchronousHeap
+                {
+                        typedef _value_type value_type;
+                        typedef _compare compare;
+                        typedef TerminatableSynchronousHeap<value_type,compare> this_type;
+                                                
+                        libmaus2::parallel::SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
+                        libmaus2::parallel::SimpleSemaphoreInterface & semaphore;
+                        libmaus2::parallel::PosixSpinLock lock;
+                        
+                        size_t volatile numwait;
+                        std::priority_queue<value_type, std::vector<value_type>, compare > Q;
+                        volatile uint64_t terminated;
+                        uint64_t const terminatedthreshold;
+
+                        TerminatableSynchronousHeap(uint64_t const rterminatedthreshold = 1)
+                        : Psemaphore(new libmaus2::parallel::PosixSemaphore), 
+                          semaphore(*Psemaphore),
+                          lock(),
+                          numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
+                        {
+                        
+                        }
+
+                        TerminatableSynchronousHeap(compare const & comp, uint64_t const rterminatedthreshold = 1)
+                        : Psemaphore(new libmaus2::parallel::PosixSemaphore), 
+                          semaphore(*Psemaphore),
+                          lock(),
+                          numwait(0), Q(), terminated(0), terminatedthreshold(rterminatedthreshold)
+                        {
+                        
+                        }
+                        
+                        ~TerminatableSynchronousHeap()
+                        {
+                        
+                        }
+
+                        void enque(value_type const v)
+                        {
+                        	ScopePosixSpinLock M(lock);
+                                Q.push(v);
+                                semaphore.post();
+                        }
+
+                        size_t getFillState()
+                        {
+                        	ScopePosixSpinLock M(lock);
+                                uint64_t f = Q.size();
+                                return f;
+                        }
+                        
+                        bool isTerminated()
+                        {
+                        	ScopePosixSpinLock M(lock);
+                                return terminated >= terminatedthreshold;
+                        }
+                        
+                        void terminate()
+                        {
+                        	ScopePosixSpinLock M(lock);
+                                terminated += 1;
+
+	                        size_t numnoti = 0;
+				if ( terminated >= terminatedthreshold )
+                                	numnoti = numwait;
+
+				for ( size_t i = 0; i < numnoti; ++i )
+        	                	semaphore.post();
+                        }
+                        
+                        value_type deque()
+                        {
+                        	ScopePosixSpinLock M(lock);
+                                
+                                while ( (terminated < terminatedthreshold) && (!Q.size()) )
+                                {
+                                        numwait++;
+                                
+                                        M.unlock();
+                                        semaphore.wait();
+                                        M.lock();
+
+                                        numwait--;
+                                }
+                                
+                                if ( Q.size() )
+                                {
+                                        value_type v = Q.top();
+                                        Q.pop();
+                                        return v;
+                                }
+                                else
+                                {
+                                        throw std::runtime_error("Heap is terminated");                                
+                                }
+                        }
+
+                        std::vector<value_type> pending()
+                        {
+	                        std::priority_queue < value_type, std::vector<value_type>, compare > C;
+	                        {
+	                        	ScopePosixSpinLock M(lock);
+	                        	C = Q;
+				}
+	                        std::vector<value_type> V;
+	                        while ( ! C.empty() )
+	                        {
+	                        	V.push_back(C.top());
+	                        	C.pop();
+				}
+				
+				return V;
+                        }
+                };
+                #endif
         }
 }
 #endif

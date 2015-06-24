@@ -19,15 +19,18 @@
 #if ! defined(LIBMAUS2_PARALLEL_POSIXCONDITIONSEMAPHORE_HPP)
 #define LIBMAUS2_PARALLEL_POSIXCONDITIONSEMAPHORE_HPP
 
-#include <pthread.h>
-#include <libmaus2/exception/LibMausException.hpp>
 #include <cstring>
+#include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/parallel/SimpleSemaphoreInterface.hpp>
+
+#if defined(LIBMAUS2_HAVE_PTHREADS)
+#include <pthread.h>
 
 namespace libmaus2
 {
 	namespace parallel
 	{
-		struct PosixConditionSemaphore
+		struct PosixConditionSemaphore : public SimpleSemaphoreInterface
 		{
 			pthread_cond_t cond;
 			pthread_mutex_t mutex;			
@@ -114,4 +117,5 @@ namespace libmaus2
 		};
 	}
 }
+#endif // PTHREADS
 #endif
