@@ -670,25 +670,25 @@ fi
 if test "${debug}" = "yes" ; then
         CXXFLAGS="${CXXFLAGS} -g -O0"
         CFLAGS="${CFLAGS} -g -O0"
-        LDFLAGS="-rdynamic"
+        LDFLAGS="${LDFLAGS} -rdynamic"
 	openmp="no"
 else
 	if test "${profile}" = "yes" ; then
 	        CXXFLAGS="${CXXFLAGS} -g -pg"
 	        CFLAGS="${CFLAGS} -g -pg"
-	        LDFLAGS="-rdynamic"
+	        LDFLAGS="${LDFLAGS} -rdynamic"
 	else
 		if test "${optimization}" = "yes" ; then
 			case ${CXX} in
 				g++)
 					CXXFLAGS="${CXXFLAGS} -O3"
 					CFLAGS="${CFLAGS} -O3"
-				        LDFLAGS="-rdynamic"
+				        LDFLAGS="${LDFLAGS} -rdynamic"
 					;;
 				*-mingw32msvc-g++)
 					CXXFLAGS="${CXXFLAGS} -O3"
 					CFLAGS="${CFLAGS} -O3"
-				        LDFLAGS="-rdynamic"
+				        LDFLAGS="${LDFLAGS} -rdynamic"
 					;;
 				cl.exe)
 					CXXFLAGS="${CXXFLAGS} -O2 -Ob2 -Ot -Oy"
