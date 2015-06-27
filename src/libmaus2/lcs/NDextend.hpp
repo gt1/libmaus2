@@ -29,6 +29,7 @@
 #include <libmaus2/lcs/NDextendAllPass.hpp>
 #include <libmaus2/lcs/NDextendACGTPass.hpp>
 #include <libmaus2/lcs/NDextend1234Pass.hpp>
+#include <libmaus2/lcs/Aligner.hpp>
 
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
 #include <libmaus2/util/SimpleHashMap.hpp>
@@ -39,7 +40,7 @@ namespace libmaus2
 	namespace lcs
 	{
 		template<typename _valid_symbol_type>
-		struct NDextendTemplate : public EditDistanceTraceContainer
+		struct NDextendTemplate : public EditDistanceTraceContainer, public Aligner
 		{
 			typedef _valid_symbol_type valid_symbol_type;
 			typedef NDextendTemplate<valid_symbol_type> this_type;
@@ -574,6 +575,16 @@ namespace libmaus2
 					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
 					return false;
 				}
+			}
+
+			void align(uint8_t const * a,size_t const l_a,uint8_t const * b,size_t const l_b)
+			{
+				process(a,l_a,b,l_b);
+			}
+			
+			AlignmentTraceContainer const & getTraceContainer() const
+			{
+				return *this;
 			}
 		};
 		

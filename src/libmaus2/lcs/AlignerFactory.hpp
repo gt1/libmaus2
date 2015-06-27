@@ -19,6 +19,7 @@
 #define LIBMAUS2_LCS_ALIGNERFACTORY_HPP
 
 #include <libmaus2/lcs/Aligner.hpp>
+#include <set>
 
 namespace libmaus2
 {
@@ -27,6 +28,9 @@ namespace libmaus2
 		struct AlignerFactory
 		{
 			enum aligner_type {
+				libmaus2_lcs_AlignerFactory_EditDistance,
+				libmaus2_lcs_AlignerFactory_ND,
+				libmaus2_lcs_AlignerFactory_NDextend,
 				libmaus2_lcs_AlignerFactory_x128_8,
 				libmaus2_lcs_AlignerFactory_x128_16,
 				libmaus2_lcs_AlignerFactory_y256_8,
@@ -34,7 +38,10 @@ namespace libmaus2
 			};
 			
 			static libmaus2::lcs::Aligner::unique_ptr_type construct(aligner_type const type);
+			static std::set<aligner_type> getSupportedAligners();
 		};
+		
+		std::ostream & operator<<(std::ostream & out, AlignerFactory::aligner_type const & A);
 	}
 }
 #endif

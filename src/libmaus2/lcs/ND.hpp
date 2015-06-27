@@ -27,12 +27,13 @@
 #include <sstream>
 
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
+#include <libmaus2/lcs/Aligner.hpp>
 
 namespace libmaus2
 {
 	namespace lcs
 	{
-		struct ND : public EditDistanceTraceContainer
+		struct ND : public EditDistanceTraceContainer, public Aligner
 		{
 			private:
 			typedef std::pair<unsigned int, unsigned int> upair;
@@ -340,6 +341,16 @@ namespace libmaus2
 					return false;
 				}
 				
+			}
+
+			void align(uint8_t const * a,size_t const l_a,uint8_t const * b,size_t const l_b)
+			{
+				process(a,l_a,b,l_b);
+			}
+			
+			AlignmentTraceContainer const & getTraceContainer() const
+			{
+				return *this;
 			}
 		};
 	}

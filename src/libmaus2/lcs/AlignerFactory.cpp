@@ -23,11 +23,93 @@
 #include <libmaus2/lcs/SimdX86GlobalAlignmentY256_16.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentY256_8.hpp>
 #include <libmaus2/util/I386CacheLineSize.hpp>
+#include <libmaus2/lcs/EditDistance.hpp>
+#include <libmaus2/lcs/ND.hpp>
+#include <libmaus2/lcs/NDextend.hpp>
+
+std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFactory::getSupportedAligners()
+{
+	std::set<aligner_type> S;
+	
+	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_EditDistance);
+	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_ND);
+	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NDextend);
+
+	#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+	if (
+		libmaus2::util::I386CacheLineSize::hasSSE2()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSSE3()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSE41()
+	)
+	{
+		S.insert(libmaus2_lcs_AlignerFactory_x128_8);
+	}
+	#endif
+	#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+	if (
+		libmaus2::util::I386CacheLineSize::hasSSE2()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSSE3()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSE41()
+	)
+	{
+		S.insert(libmaus2_lcs_AlignerFactory_x128_16);
+	}
+	#endif
+	#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+	if (
+		libmaus2::util::I386CacheLineSize::hasSSE2()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSSE3()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSE41()
+		&&
+		libmaus2::util::I386CacheLineSize::hasAVX2()
+	)
+	{
+		S.insert(libmaus2_lcs_AlignerFactory_y256_8);
+	}
+	#endif
+	#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+	if (
+		libmaus2::util::I386CacheLineSize::hasSSE2()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSSE3()
+		&&
+		libmaus2::util::I386CacheLineSize::hasSSE41()
+		&&
+		libmaus2::util::I386CacheLineSize::hasAVX2()
+	)
+	{
+		S.insert(libmaus2_lcs_AlignerFactory_y256_16);
+	}
+	#endif
+	
+	return S;
+}
 
 libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct(libmaus2::lcs::AlignerFactory::aligner_type const type)
 {
 	switch ( type )
 	{
+		case libmaus2_lcs_AlignerFactory_EditDistance:
+		{
+			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::EditDistance<>);
+			return UNIQUE_PTR_MOVE(T);
+		}
+		case libmaus2_lcs_AlignerFactory_ND:
+		{
+			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::ND);
+			return UNIQUE_PTR_MOVE(T);
+		}
+		case libmaus2_lcs_AlignerFactory_NDextend:
+		{
+			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::NDextend);
+			return UNIQUE_PTR_MOVE(T);
+		}
 		case libmaus2_lcs_AlignerFactory_x128_8:
 		{
 			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
@@ -86,7 +168,7 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 		}
 		case libmaus2_lcs_AlignerFactory_y256_8:
 		{
-			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8)
+			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 			if (
 				libmaus2::util::I386CacheLineSize::hasSSE2()
 				&&
@@ -117,7 +199,7 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 		}
 		case libmaus2_lcs_AlignerFactory_y256_16:
 		{
-			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16)
+			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 			if (
 				libmaus2::util::I386CacheLineSize::hasSSE2()
 				&&
@@ -156,4 +238,34 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 			break;
 		}
 	}
+}
+
+std::ostream & libmaus2::lcs::operator<<(std::ostream & out, AlignerFactory::aligner_type const & A)
+{
+	switch ( A )
+	{	
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_EditDistance:
+			out << "libmaus2_lcs_AlignerFactory_EditDistance";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_ND:
+			out << "libmaus2_lcs_AlignerFactory_ND";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NDextend:
+			out << "libmaus2_lcs_AlignerFactory_NDextend";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_x128_8:
+			out << "libmaus2_lcs_AlignerFactory_x128_8";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_x128_16:
+			out << "libmaus2_lcs_AlignerFactory_x128_16";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_y256_8:
+			out << "libmaus2_lcs_AlignerFactory_y256_8";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_y256_16:
+			out << "libmaus2_lcs_AlignerFactory_y256_16";
+			break;
+	}                                                                                                                                                       
+
+	return out;
 }
