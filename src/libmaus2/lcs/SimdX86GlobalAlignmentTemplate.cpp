@@ -288,48 +288,52 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::align(
 	
 	int64_t py = l_b;
 	int64_t px = l_a;
-	while ( px != 0 || py != 0 )
+
+	LIBMAUS2_SIMD_ELEMENT_TYPE const * pcur = diagmem + (py+px+1) * allocdiaglen + px;
+	LIBMAUS2_SIMD_ELEMENT_TYPE cval = (l_a || l_b) ? (*pcur) : 0;
+
+	while ( pcur != diagmem + allocdiaglen )
 	{
-		// return std::pair<int64_t,int64_t>(P.first+P.second,P.second);
-	
-		std::pair<int64_t,int64_t> const Pleft      = squareToDiag(std::pair<int64_t,int64_t>(py,px-1));
-		std::pair<int64_t,int64_t> const Ptop       (Pleft.first,Pleft.second+1);
-		std::pair<int64_t,int64_t> const Pdiag      (Pleft.first-1,Pleft.second);
-		std::pair<int64_t,int64_t> const Pcurrent   (Pleft.first+1,Pleft.second+1);
+		LIBMAUS2_SIMD_ELEMENT_TYPE const * ptop   = pcur - allocdiaglen;
+		LIBMAUS2_SIMD_ELEMENT_TYPE const * pleft  = ptop - 1;
+		LIBMAUS2_SIMD_ELEMENT_TYPE const * pdiag  = pleft - allocdiaglen;
 		
-		bool const inspossible = 
-			py && diagmem[(Ptop.first+1)*allocdiaglen + Ptop.second]+1 == diagmem[(Pcurrent.first+1)*allocdiaglen + Pcurrent.second];
-		bool const delpossible =
-			px && diagmem[(Pleft.first+1)*allocdiaglen + Pleft.second]+1 == diagmem[(Pcurrent.first+1)*allocdiaglen + Pcurrent.second];
-		bool const diagpossible =
-			px && py &&
-			diagmem[(Pcurrent.first+1)*allocdiaglen + Pcurrent.second] == diagmem[(Pdiag.first+1)*allocdiaglen + Pdiag.second]+
-			(a[px-1] != b[py-1]);
-			
-		assert ( inspossible || delpossible || diagpossible );
+		LIBMAUS2_SIMD_ELEMENT_TYPE nval;
+		LIBMAUS2_SIMD_ELEMENT_TYPE neq;
 		
-		if ( diagpossible )
+		if ( px && py && cval == (nval=*pdiag)+(neq = a[px-1] != b[py-1]) )
 		{
-			bool eq = a[px-1] == b[py-1];
 			px -= 1;
 			py -= 1;
 
-			if ( eq )
-				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MATCH;
-			else
+			pcur -= (allocdiaglen<<1)+1;		
+		
+			if ( neq )
 				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MISMATCH;
+			else
+				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MATCH;
+
+			cval = nval;
 		}
-		else if ( inspossible )
+		else if ( py && (nval=*ptop)+1 == cval )
 		{
 			*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_INS;
 			
-			py -= 1;			
+			py -= 1;	
+			
+			pcur -= allocdiaglen;
+			
+			cval = nval;
 		}
-		else if ( delpossible )
+		else if ( px && (nval=*pleft)+1 == cval )
 		{
 			*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_DEL;
 			
-			px -= 1;						
+			px -= 1;
+			
+			pcur -= (allocdiaglen+1);
+
+			cval = nval;
 		}
-	}
+	}	
 }
