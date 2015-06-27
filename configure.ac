@@ -1060,16 +1060,16 @@ fi
 LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8=no
 AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (Y256/8 variant)])
 if test \
-	"${have_mm256_load_si256}" -a \
-	"${have_mm256_loadu_si256}" -a \
-	"${have_mm256_store_si256}" -a \
-	"${have_mm256_andnot_si256}" -a \
-	"${have_mm256_or_si256}" -a \
-	"${have_mm256_cmpeq_epi8}" -a \
-	"${have_mm256_adds_epu8}" -a \
-	"${have_mm256_shuffle_epi8}" -a \
-	"${have_mm256_permute2f128_si256}" -a \
-	"${have_mm256_min_epu8}" ; then
+	"${have_mm256_load_si256}" = "yes" -a \
+	"${have_mm256_loadu_si256}" = "yes"  -a \
+	"${have_mm256_store_si256}" = "yes"  -a \
+	"${have_mm256_andnot_si256}" = "yes"  -a \
+	"${have_mm256_or_si256}" = "yes"  -a \
+	"${have_mm256_cmpeq_epi8}" = "yes"  -a \
+	"${have_mm256_adds_epu8}" = "yes"  -a \
+	"${have_mm256_shuffle_epi8}" = "yes"  -a \
+	"${have_mm256_permute2f128_si256}" = "yes"  -a \
+	"${have_mm256_min_epu8}" = "yes"  ; then
 	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8=yes
 fi
 AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8}])
@@ -1137,16 +1137,16 @@ fi
 LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=no
 AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (Y256/16 variant)])
 if test \
-	"${have_mm256_load_si256}" -a \
-	"${have_mm256_loadu_si256}" -a \
-	"${have_mm256_store_si256}" -a \
-	"${have_mm256_andnot_si256}" -a \
-	"${have_mm256_or_si256}" -a \
-	"${have_mm256_cmpeq_epi16}" -a \
-	"${have_mm256_adds_epu16}" -a \
-	"${have_mm256_shuffle_epi8}" -a \
-	"${have_mm256_permute2f128_si256}" -a \
-	"${have_mm256_min_epu16}" ; then
+	"${have_mm256_load_si256}" = "yes"  -a \
+	"${have_mm256_loadu_si256}" = "yes"  -a \
+	"${have_mm256_store_si256}" = "yes"  -a \
+	"${have_mm256_andnot_si256}" = "yes"  -a \
+	"${have_mm256_or_si256}" = "yes"  -a \
+	"${have_mm256_cmpeq_epi16}" = "yes"  -a \
+	"${have_mm256_adds_epu16}" = "yes"  -a \
+	"${have_mm256_shuffle_epi8}" = "yes"  -a \
+	"${have_mm256_permute2f128_si256}" = "yes"  -a \
+	"${have_mm256_min_epu16}" = "yes"  ; then
 	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=yes
 fi
 AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16}])

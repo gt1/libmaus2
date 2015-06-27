@@ -15,8 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/LibMausConfig.hpp>
+
+#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16)
 #include <libmaus2/lcs/SimdX86GlobalAlignmentX128_16.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentConstants128.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentX128_16_def.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentTemplate.cpp> 
 #include <libmaus2/lcs/SimdX86GlobalAlignmentX128_16_undef.hpp>
+#endif

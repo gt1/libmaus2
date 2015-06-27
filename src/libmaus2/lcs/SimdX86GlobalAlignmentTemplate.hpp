@@ -19,7 +19,6 @@
 #include <unistd.h> // for getpagesize
 
 #include <cassert>
-#include <cstdint>
 #include <cstdlib>
 
 #include <algorithm> // reverse
@@ -35,6 +34,7 @@
 
 #include <libmaus2/lcs/AlignmentTraceContainer.hpp>
 #include <libmaus2/lcs/Aligner.hpp>
+#include <libmaus2/types/types.hpp>
 
 namespace libmaus2
 {

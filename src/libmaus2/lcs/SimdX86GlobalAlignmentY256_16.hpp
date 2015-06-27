@@ -18,8 +18,14 @@
 #if ! defined(LIBMAUS2_LCS_SIMDX86GLOALALIGNMENTY256_16_HPP)
 #define LIBMAUS2_LCS_SIMDX86GLOALALIGNMENTY256_16_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+
+#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16)
+
 #include <libmaus2/lcs/SimdX86GlobalAlignmentY256_16_def.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentTemplate.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentY256_16_undef.hpp>
+
+#endif
 
 #endif
