@@ -64,6 +64,7 @@ int main(int argc, char * argv[])
 {
 	try
 	{
+		try
 		{
 			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
 			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
@@ -75,9 +76,13 @@ int main(int argc, char * argv[])
 			Tptr->align(reinterpret_cast<uint8_t const *>(text.c_str()),text.size(),reinterpret_cast<uint8_t const *>(query.c_str()),query.size());
 			libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
 			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
-
+		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << ex.what() << std::endl;
 		}
 
+		try
 		{
 			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
 			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
@@ -91,7 +96,12 @@ int main(int argc, char * argv[])
 			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
 
 		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << ex.what() << std::endl;
+		}
 
+		try
 		{
 			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
 			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
@@ -105,7 +115,12 @@ int main(int argc, char * argv[])
 			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
 
 		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << ex.what() << std::endl;
+		}
 
+		try
 		{
 			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
 			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
@@ -118,6 +133,10 @@ int main(int argc, char * argv[])
 			libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
 			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
 
+		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << ex.what() << std::endl;
 		}
 	
 		{

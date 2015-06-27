@@ -22,6 +22,7 @@
 #include <libmaus2/lcs/SimdX86GlobalAlignmentX128_8.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentY256_16.hpp>
 #include <libmaus2/lcs/SimdX86GlobalAlignmentY256_8.hpp>
+#include <libmaus2/util/I386CacheLineSize.hpp>
 
 libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct(libmaus2::lcs::AlignerFactory::aligner_type const type)
 {
@@ -29,35 +30,83 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 	{
 		case libmaus2_lcs_AlignerFactory_x128_8:
 		{
-			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8)
-			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentX128_8);
-			return UNIQUE_PTR_MOVE(T);
+			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+			if (
+				libmaus2::util::I386CacheLineSize::hasSSE2()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSSE3()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSE41()
+			)
+			{
+				libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentX128_8);
+				return UNIQUE_PTR_MOVE(T);
+			}
+			else
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type X128_8 (insufficient instruction set)" << std::endl;
+				lme.finish();
+				throw lme;
+			}
 			#else
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type X128_8" << std::endl;
 			lme.finish();
 			throw lme;
-			break;			
 			#endif
 		}
 		case libmaus2_lcs_AlignerFactory_x128_16:
 		{
-			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16)
-			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentX128_16);
-			return UNIQUE_PTR_MOVE(T);
+			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
+			if (
+				libmaus2::util::I386CacheLineSize::hasSSE2()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSSE3()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSE41()
+			)
+			{
+				libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentX128_16);
+				return UNIQUE_PTR_MOVE(T);
+			}
+			else
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type X128_16 (insufficient instruction set)" << std::endl;
+				lme.finish();
+				throw lme;
+			}
 			#else
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type X128_16" << std::endl;
 			lme.finish();
 			throw lme;
-			break;			
 			#endif
 		}
 		case libmaus2_lcs_AlignerFactory_y256_8:
 		{
 			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8)
-			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentY256_8);
-			return UNIQUE_PTR_MOVE(T);
+			if (
+				libmaus2::util::I386CacheLineSize::hasSSE2()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSSE3()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSE41()
+				&&
+				libmaus2::util::I386CacheLineSize::hasAVX2()
+			)
+			{
+				libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentY256_8);
+				return UNIQUE_PTR_MOVE(T);
+			}
+			else
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Y256_8 (insufficient instruction set)" << std::endl;
+				lme.finish();
+				throw lme;
+			}
 			#else
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Y256_8" << std::endl;
@@ -69,8 +118,26 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 		case libmaus2_lcs_AlignerFactory_y256_16:
 		{
 			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16)
-			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentY256_16);
-			return UNIQUE_PTR_MOVE(T);
+			if (
+				libmaus2::util::I386CacheLineSize::hasSSE2()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSSE3()
+				&&
+				libmaus2::util::I386CacheLineSize::hasSSE41()
+				&&
+				libmaus2::util::I386CacheLineSize::hasAVX2()
+			)
+			{
+				libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentY256_16);
+				return UNIQUE_PTR_MOVE(T);
+			}
+			else
+			{
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Y256_16 (insufficient instruction set)" << std::endl;
+				lme.finish();
+				throw lme;
+			}
 			#else
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Y256_16" << std::endl;
@@ -78,6 +145,7 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 			throw lme;
 			break;			
 			#endif
+
 		}
 		default:
 		{
