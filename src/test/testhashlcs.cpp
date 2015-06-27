@@ -16,6 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/lcs/SimdX86GlobalAlignmentX128_8.hpp>
+
 #include <libmaus2/lcs/HashContainer2.hpp>
 #include <libmaus2/fastx/FastAReader.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
@@ -55,10 +57,69 @@ struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCal
 	}				
 };
 
+#include <libmaus2/lcs/AlignerFactory.hpp>
+#include <libmaus2/lcs/AlignmentPrint.hpp>
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		{
+			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+			libmaus2::lcs::Aligner::unique_ptr_type Tptr(
+				libmaus2::lcs::AlignerFactory::construct(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_x128_8)
+			);
+			
+			Tptr->align(reinterpret_cast<uint8_t const *>(text.c_str()),text.size(),reinterpret_cast<uint8_t const *>(query.c_str()),query.size());
+			libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
+
+		}
+
+		{
+			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+			libmaus2::lcs::Aligner::unique_ptr_type Tptr(
+				libmaus2::lcs::AlignerFactory::construct(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_x128_16)
+			);
+			
+			Tptr->align(reinterpret_cast<uint8_t const *>(text.c_str()),text.size(),reinterpret_cast<uint8_t const *>(query.c_str()),query.size());
+			libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
+
+		}
+
+		{
+			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+			libmaus2::lcs::Aligner::unique_ptr_type Tptr(
+				libmaus2::lcs::AlignerFactory::construct(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_y256_8)
+			);
+			
+			Tptr->align(reinterpret_cast<uint8_t const *>(text.c_str()),text.size(),reinterpret_cast<uint8_t const *>(query.c_str()),query.size());
+			libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
+
+		}
+
+		{
+			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+			libmaus2::lcs::Aligner::unique_ptr_type Tptr(
+				libmaus2::lcs::AlignerFactory::construct(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_y256_16)
+			);
+			
+			Tptr->align(reinterpret_cast<uint8_t const *>(text.c_str()),text.size(),reinterpret_cast<uint8_t const *>(query.c_str()),query.size());
+			libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
+			libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
+
+		}
+	
 		{
 			std::string const text = "remachine";
 			std::string const query = "match";

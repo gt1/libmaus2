@@ -30,23 +30,28 @@ int main(int argc, char * argv[])
 		{	
 			// std::string a = "ACGTACGT";
 			// std::string b = "ACGTTTACGZ";
-			std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
-			std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+			//std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			//std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+			std::string const a =  "mause";
+			std::string const b = "krause";
 
 			//std::string const a = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAACATGCGAAAATTTACCTAAAAA";
 			//std::string const b = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAAAATGCGAAAATTGACCTAAAAA";
 			
+			#if 0
 			libmaus2::random::Random::setup();
 			for ( uint64_t i = 0; i < 50; ++i )
 			{
 				a += ((libmaus2::random::Random::rand8() % 4) + 'A');
 				b += ((libmaus2::random::Random::rand8() % 4) + 'A');
 			}
+			#endif
 
 			// maximum number of errors
 			unsigned int d = 30;
 			
-			libmaus2::lcs::NDextendDNA nd;
+			libmaus2::lcs::NDextend nd; // DNA nd;
 			bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
 			
 			if ( ok )

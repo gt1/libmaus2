@@ -12,8 +12,20 @@ EXTRA_DIST = \
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 
-lib_LTLIBRARIES = libmaus2.la libmaus2lsf.la
+lib_LTLIBRARIES = libmaus2.la libmaus2lsf.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 lib_LIBRARIES = libmaus2digests.a libmaus2digests_sse4.a libmaus2_irods.a libmaus2seqchksumsfactory.a
+
+libmaus2_simd_align_128_la_SOURCES = \
+	libmaus2/lcs/SimdX86GlobalAlignmentConstants128.cpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_8.cpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_16.cpp
+libmaus2_simd_align_128_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@
+
+libmaus2_simd_align_256_la_SOURCES = \
+	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.cpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
+libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
 
 libmaus2_modules_LTLIBRARIES = libmaus2_kmlocal_mod.la libmaus2_consensus_mod.la libmaus2_scram_mod.la
 libmaus2_modulesdir = $(libdir)/libmaus2/$(PACKAGE_VERSION)
@@ -192,13 +204,16 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/Overlap.cpp \
 	libmaus2/lcs/AlignmentStatistics.cpp \
 	libmaus2/fastx/SingleWordDNABitBuffer.cpp \
-	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.cpp
+	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.cpp \
+	libmaus2/lcs/AlignerFactory.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
 libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ # @DIGESTASMOBJ@
+libmaus2_la_DEPENDENCIES = libmaus2_simd_align_128.la libmaus2_simd_align_256.la
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ \
+	libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
@@ -1631,12 +1646,28 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/NDextendACGTPass.hpp \
 	libmaus2/lcs/NDextend1234Pass.hpp \
 	libmaus2/lcs/BitVectorResultCallbackInterface.hpp \
-	libmaus2/lcs/BitVector.hpp
+	libmaus2/lcs/BitVector.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentConstants128.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentTemplate.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_16_def.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_16.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_16_undef.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_8_def.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_8.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentX128_8_undef.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_16_def.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_16_undef.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_8_def.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.hpp \
+	libmaus2/lcs/SimdX86GlobalAlignmentY256_8_undef.hpp \
+	libmaus2/lcs/Aligner.hpp \
+	libmaus2/lcs/AlignerFactory.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
 	libmaus2/quantisation/KMLocalInterface.hpp
-
 	
 libmaus2lsf_includedir=$(includedir)/libmaus2/lsf
 libmaus2lsf_include_HEADERS=\
