@@ -61,6 +61,15 @@ struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCal
 #include <libmaus2/lcs/AlignmentPrint.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
 
+#include <csignal>
+volatile bool timerexpired = false;
+// sighandler_t signal(int signum, sighandler_t handler);
+void sigalrm(int)
+{
+	timerexpired = true;
+}
+
+
 int main(int argc, char * argv[])
 {
 	try
@@ -89,11 +98,20 @@ int main(int argc, char * argv[])
 				libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
 				std::cerr << trace.getAlignmentStatistics() << std::endl;
 				
-				uint64_t const n = 1024*1024;
+				uint64_t const b = 1024;
+				uint64_t n = 0;
+				timerexpired = false;
+				sighandler_t oldhandler = signal(SIGALRM,sigalrm);
+				alarm(5);
 				rtc.start();
-				for ( uint64_t i = 0; i < n; ++i )
-					Tptr->align(t,tn,q,qn);			
+				while ( ! timerexpired )
+				{
+					for ( uint64_t i = 0; i < b; ++i )
+						Tptr->align(t,tn,q,qn);			
+					n += b;
+				}
 				double const sec = rtc.getElapsedSeconds();
+				signal(SIGALRM,oldhandler);
 				double const rate = n /sec;
 				R[type] = rate;
 				std::cerr << rate << " alns/s" << std::endl;
