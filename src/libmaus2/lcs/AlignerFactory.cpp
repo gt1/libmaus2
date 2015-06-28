@@ -40,8 +40,6 @@ std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFact
 		libmaus2::util::I386CacheLineSize::hasSSE2()
 		&&
 		libmaus2::util::I386CacheLineSize::hasSSSE3()
-		&&
-		libmaus2::util::I386CacheLineSize::hasSSE41()
 	)
 	{
 		S.insert(libmaus2_lcs_AlignerFactory_x128_8);
@@ -117,8 +115,6 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 				libmaus2::util::I386CacheLineSize::hasSSE2()
 				&&
 				libmaus2::util::I386CacheLineSize::hasSSSE3()
-				&&
-				libmaus2::util::I386CacheLineSize::hasSSE41()
 			)
 			{
 				libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::SimdX86GlobalAlignmentX128_8);
