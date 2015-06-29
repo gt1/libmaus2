@@ -284,7 +284,9 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::align(
 	std::pair<int64_t,int64_t> const Ped(l_b,l_a);
 	std::pair<int64_t,int64_t> const PDed(squareToDiag(Ped));
 	int64_t const editdistance = diagmem[(PDed.first+1)*allocdiaglen + PDed.second];
-	libmaus2::lcs::AlignmentTraceContainer::resize(std::max(l_a,l_b)+editdistance);
+	if ( std::max(l_a,l_b)+editdistance > libmaus2::lcs::AlignmentTraceContainer::capacity() )
+		libmaus2::lcs::AlignmentTraceContainer::resize(std::max(l_a,l_b)+editdistance);
+	libmaus2::lcs::AlignmentTraceContainer::reset();
 	
 	int64_t py = l_b;
 	int64_t px = l_a;
