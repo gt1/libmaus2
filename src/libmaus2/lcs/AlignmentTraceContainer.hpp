@@ -98,7 +98,7 @@ namespace libmaus2
 			
 			void reset()
 			{
-				ta = te = trace.begin();
+				ta = te = trace.end();
 			}
 			
 			void reverse()
