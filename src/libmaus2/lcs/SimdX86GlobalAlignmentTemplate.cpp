@@ -69,8 +69,10 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::allocateMemory(
 	{
 		if ( posix_memalign(reinterpret_cast<void **>(&mem),getpagesize(),nsize) != 0 )
 		{
-			std::cerr << "posix_memalign failed to allocate " << nsize << " bytes of memory." << std::endl;
-			exit(1);
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "posix_memalign failed to allocate " << nsize << " bytes of memory." << std::endl;
+			lme.finish();
+			throw lme;
 		}
 		else
 		{
