@@ -305,17 +305,13 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::align(
 		LIBMAUS2_SIMD_ELEMENT_TYPE nval;
 		LIBMAUS2_SIMD_ELEMENT_TYPE neq;
 		
-		if ( px && py && cval == (nval=*pdiag)+(neq = a[px-1] != b[py-1]) )
+		if ( px && (nval=*pleft)+1 == cval )
 		{
+			*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_DEL;
+			
 			px -= 1;
-			py -= 1;
-
-			pcur -= (allocdiaglen<<1)+1;		
-		
-			if ( neq )
-				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MISMATCH;
-			else
-				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MATCH;
+			
+			pcur -= (allocdiaglen+1);
 
 			cval = nval;
 		}
@@ -329,13 +325,17 @@ void libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::align(
 			
 			cval = nval;
 		}
-		else if ( px && (nval=*pleft)+1 == cval )
+		else if ( px && py && cval == (nval=*pdiag)+(neq = a[px-1] != b[py-1]) )
 		{
-			*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_DEL;
-			
 			px -= 1;
-			
-			pcur -= (allocdiaglen+1);
+			py -= 1;
+
+			pcur -= (allocdiaglen<<1)+1;		
+		
+			if ( neq )
+				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MISMATCH;
+			else
+				*(--libmaus2::lcs::AlignmentTraceContainer::ta) = STEP_MATCH;
 
 			cval = nval;
 		}

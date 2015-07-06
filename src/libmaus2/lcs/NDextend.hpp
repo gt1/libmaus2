@@ -579,7 +579,12 @@ namespace libmaus2
 
 			void align(uint8_t const * a,size_t const l_a,uint8_t const * b,size_t const l_b)
 			{
-				process(a,l_a,b,l_b);
+				process(a,l_a,b,l_b,
+					std::numeric_limits<uint64_t>::max(),
+					std::numeric_limits<uint64_t>::max(),
+					std::numeric_limits<uint64_t>::max(),
+					false
+					);
 			}
 			
 			AlignmentTraceContainer const & getTraceContainer() const

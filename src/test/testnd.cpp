@@ -33,8 +33,11 @@ int main(int argc, char * argv[])
 			//std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
 			//std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
 
-			std::string const a =  "mause";
-			std::string const b = "krause";
+			//std::string const a =  "mause";
+			//std::string const b = "krause";
+			std::string const a = "A";
+			std::string const b = "T";
+			
 
 			//std::string const a = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAACATGCGAAAATTTACCTAAAAA";
 			//std::string const b = "ATGGAAATTAAATTTTTTGGCCATATTTTGCAAATTTTGATGACCCCTTACAAAAAATGCGAAAATTGACCTAAAAA";
@@ -52,11 +55,17 @@ int main(int argc, char * argv[])
 			unsigned int d = 30;
 			
 			libmaus2::lcs::NDextend nd; // DNA nd;
-			bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
+			// bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);
+			bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size());
 			
 			if ( ok )
 			{
-				// nd.printTrace(std::cout,a.begin(),b.begin());
+				#if 0
+				nd.printTrace(std::cout,
+					nd.getTraceContainer().ta,
+					nd.getTraceContainer().te);
+				std::cerr << std::endl;
+				#endif
 				nd.printAlignment(std::cout,a.begin(),b.begin());
 			}
 			else

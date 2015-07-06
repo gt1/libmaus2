@@ -30,16 +30,25 @@ namespace libmaus2
 	{
 		struct FtpSocket : public SocketInputInterface
 		{
+			typedef FtpSocket this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			typedef ::libmaus2::network::ServerSocket server_socket_type;
 			typedef server_socket_type::unique_ptr_type server_socket_ptr_type;
 			
+			// url
 			libmaus2::network::FtpUrl ftpurl;
+			// control stream socket
 			libmaus2::network::ClientSocket CS;
+			// most recently received status line
 			std::string statusline;
 			libmaus2::network::SocketBase::unique_ptr_type recsock;
 			bool verbose;
 			libmaus2::network::SocketInputStream::unique_ptr_type Pstream;
 			int64_t size;
+			bool const quitoneof;
+			bool quitsent;
 
 			uint64_t readServerMessage()
 			{
@@ -109,38 +118,46 @@ namespace libmaus2
 					std::cerr << command;
 				CS.write(command.c_str(),command.size());
 			}
-
-			FtpSocket(
-				std::string const & url,
-				uint64_t restartpoint = 0,
-				bool const rverbose = false
-			)
-			: ftpurl(url), CS(ftpurl.port,ftpurl.host.c_str()), verbose(rverbose), size(-1)
+			
+			void checkHELO()
 			{
 				// read helo message
 				checkedReadServerMessage();
 				if ( verbose )
-					std::cerr << statusline << std::endl;
-				
+					std::cerr << statusline << std::endl;			
+			}
+			
+			void sendUser()
+			{
 				// send username
 				writeCommand("USER anonymous\r\n");
 				checkedReadServerMessage();
 				if ( verbose )
-					std::cerr << statusline << std::endl;
-					
+					std::cerr << statusline << std::endl;			
+			}
+			
+			void sendPass()
+			{
 				// send "password"
 				writeCommand("PASS anon@\r\n");
 				checkedReadServerMessage();
 				if ( verbose )
-					std::cerr << statusline << std::endl;
+					std::cerr << statusline << std::endl;			
+			}
+			
+			void setBinaryMode()
+			{
 				// binary mode
 				writeCommand("TYPE I\r\n");
 				checkedReadServerMessage();
 				if ( verbose )
-					std::cerr << statusline << std::endl;
-
+					std::cerr << statusline << std::endl;			
+			}
+			
+			std::pair<std::string,std::string> getDirAndFile(std::string path)
+			{
 				// split path into file and directory
-				std::string file = ftpurl.path;
+				std::string file = path;
 				std::string dir;
 				uint64_t lastslash = file.find_last_of('/');
 				if ( lastslash != std::string::npos )
@@ -149,6 +166,11 @@ namespace libmaus2
 					file = file.substr(lastslash+1);
 				}
 				
+				return std::pair<std::string,std::string>(dir,file);
+			}
+
+			void sendCwd(std::string const & dir)
+			{
 				// change directory
 				std::ostringstream cwdostr;
 				cwdostr << "CWD " << dir << "\r\n";
@@ -157,7 +179,10 @@ namespace libmaus2
 				checkedReadServerMessage();
 				if ( verbose )
 					std::cerr << statusline << std::endl;
-				
+			}
+			
+			void sendSize(std::string const & file)
+			{
 				// size command
 				std::ostringstream sizeostr;
 				sizeostr << "SIZE " << file << "\r\n";
@@ -165,8 +190,8 @@ namespace libmaus2
 				writeCommand(sizecom);
 				uint64_t sizeret = readServerMessage();
 				if ( verbose )
-					std::cerr << statusline << std::endl;
-					
+					std::cerr << statusline << std::endl;			
+
 				if ( sizeret == 213 && statusline.size() >= 4 )
 				{
 					std::string sizeline = statusline.substr(4);
@@ -183,14 +208,24 @@ namespace libmaus2
 					
 					size = v;
 				}
-				
+			}
+
+			bool sendPasv()
+			{
 				// see if we can use passive mode
 				writeCommand("PASV\r\n");
-				uint64_t const pasvstat = checkedReadServerMessage();
+				uint64_t const pasvstat = readServerMessage();
 				if ( verbose )
 					std::cerr << statusline << std::endl;
 				bool const havepasv = pasvstat < 400;
 
+				return havepasv;			
+			}
+			
+			void setupDataStream(std::string const & datacommand, uint64_t const restartpoint = 0)
+			{
+				bool const havepasv = sendPasv();
+			
 				server_socket_ptr_type seso;
 				std::string passivehost;
 				int64_t passiveport = -1;
@@ -296,9 +331,7 @@ namespace libmaus2
 				}
 				
 				// send RETR command
-				std::ostringstream retrostr;
-				retrostr << "RETR " << file << "\r\n";
-				writeCommand(retrostr.str());
+				writeCommand(datacommand);
 				checkedReadServerMessage();
 				if ( verbose )
 					std::cerr << statusline << std::endl;
@@ -314,32 +347,105 @@ namespace libmaus2
 					new libmaus2::network::SocketInputStream(*this,64*1024)
 				);
 				Pstream = UNIQUE_PTR_MOVE(Tstream);
+			
+			}
+
+			void setupFileStream(std::string const & file, uint64_t const restartpoint = 0)
+			{
+				sendSize(file);
+				std::ostringstream retrostr;
+				retrostr << "RETR " << file << "\r\n";
+				setupDataStream(retrostr.str(),restartpoint);
+			}
+
+			void setupListStream()
+			{
+				std::ostringstream retrostr;
+				retrostr << "LIST\r\n";
+				setupDataStream(retrostr.str());
+			}
+
+			void sendQuit()
+			{
+				writeCommand("QUIT\r\n");
+				quitsent = true;
+				checkedReadServerMessage();
+				if ( verbose )
+					std::cerr << statusline << std::endl;
+			}
+			
+			FtpSocket(
+				std::string const & url,
+				uint64_t restartpoint = 0,
+				bool const rverbose = false,
+				bool const rquitoneof = true
+			)
+			: ftpurl(url), CS(ftpurl.port,ftpurl.host.c_str()), verbose(rverbose), size(-1), quitoneof(rquitoneof), quitsent(false)
+			{
+				checkHELO();
+				sendUser();
+				sendPass();
+				setBinaryMode();
+
+				if ( ftpurl.path.size() )
+				{
+					std::pair<std::string,std::string> const P = getDirAndFile(ftpurl.path);
+					std::string const dir = P.first;
+					std::string const file = P.second;
+					sendCwd(dir);	
+					
+					if ( file.size() )
+						setupDataStream(file,restartpoint);
+				}
+			}
+			
+			~FtpSocket()
+			{
+				if ( ! quitsent )
+					sendQuit();
 			}
 			
 			std::istream & getStream()
 			{
-				return *Pstream;
+				if ( recsock )
+					return *Pstream;
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "FtpSocket::getStream(): no data stream" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
 			}
+			
 			
 			ssize_t read(char * p, size_t n)
 			{
-				ssize_t r = recsock->read(p,n);
-				
-				if ( r <= 0 )
+				if ( recsock )
 				{
-					recsock.reset();		
+					ssize_t r = recsock->read(p,n);
 
-					checkedReadServerMessage();
-					if ( verbose )
-						std::cerr << statusline << std::endl;
+					if ( r <= 0 )
+					{
+						recsock.reset();		
 
-					writeCommand("QUIT\r\n");
-					checkedReadServerMessage();
-					if ( verbose )
-						std::cerr << statusline << std::endl;
+						checkedReadServerMessage();
+						if ( verbose )
+							std::cerr << statusline << std::endl;
+
+						if ( quitoneof )
+							sendQuit();
+					}
+
+					return r;
 				}
-				
-				return r;
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "FtpSocket::read(): no data stream" << std::endl;
+					lme.finish();
+					throw lme;				
+				}
 			}
 
 			ssize_t readPart(char * p, size_t n)

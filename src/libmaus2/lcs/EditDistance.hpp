@@ -112,9 +112,10 @@ namespace libmaus2
 			{
 			}
 
+			// pure edit distance
 			void align(uint8_t const * a,size_t const l_a,uint8_t const * b,size_t const l_b)
 			{
-				process(a,l_a,b,l_b);
+				process(a,l_a,b,l_b,0 /* k */, 0 /* match gain */,1,1,1);
 			}
 						
 			template<typename iterator_a, typename iterator_b>

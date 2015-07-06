@@ -285,27 +285,20 @@ namespace libmaus2
 						}
 					}
 				}
-				
+
 				// did we reach the bottom right corner?
 				if ( 
 					// diagaccess_get_f(editops,diagptr_f(na,nb,diaglen)) != step_none 
 					aligned
 				)
 				{
-					EditDistanceTraceContainer::reset();
 					if ( EditDistanceTraceContainer::capacity() < na+nb )
 						EditDistanceTraceContainer::resize(na+nb);
-					
-					EditDistanceTraceContainer::te = EditDistanceTraceContainer::ta = EditDistanceTraceContainer::trace.end();
-					
-					#if 0
-					traceend = trace.end();
-					tracebegin = trace.end();
-					#endif
-					
+					EditDistanceTraceContainer::reset();
+
 					unsigned int pa = na;
 					unsigned int pb = nb;
-					
+
 					while ( pa != 0 || pb != 0 )
 					{
 						switch ( diagaccess_get_f(editops,diagptr_f(pa,pb,diaglen)) )
@@ -333,7 +326,7 @@ namespace libmaus2
 								break;
 						}
 					}					
-					
+
 					return true;
 				}
 				else

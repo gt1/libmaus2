@@ -69,10 +69,7 @@ namespace libmaus2
 						
 					host = host.substr(0,col);
 				}
-				
-				if ( !path.size() )
-					path = "/";
-				
+								
 				return true;
 			}
 

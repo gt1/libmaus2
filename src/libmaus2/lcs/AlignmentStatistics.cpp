@@ -24,6 +24,7 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, libmaus2::lcs::Alig
 		<< "mismatches=" << A.mismatches << ","
 		<< "insertions=" << A.insertions << ","
 		<< "deletions=" << A.deletions  << ","
+		<< "editdistance=" << A.mismatches+A.insertions+A.deletions << ","
 		<< "erate=" << A.getErrorRate()
 		<< ")";
 }

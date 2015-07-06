@@ -1815,7 +1815,8 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsamrecoding \
 	testdazzlerdb \
 	testnd \
-	testfastashred
+	testfastashred \
+	testalignerspeed
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2293,3 +2294,8 @@ testfastashred_SOURCES  = test/testfastashred.cpp
 testfastashred_LDADD    = libmaus2.la ${DLLIB}
 testfastashred_CPPFLAGS = @WARNCPPFLAGS@
 testfastashred_LDFLAGS  = ${AM_LDFLAGS}
+
+testalignerspeed_SOURCES  = test/testalignerspeed.cpp
+testalignerspeed_LDADD    = libmaus2.la ${DLLIB}
+testalignerspeed_CPPFLAGS = @WARNCPPFLAGS@
+testalignerspeed_LDFLAGS  = ${AM_LDFLAGS}
