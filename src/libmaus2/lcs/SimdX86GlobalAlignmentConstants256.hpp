@@ -38,6 +38,18 @@ namespace libmaus2
 			static uint8_t const ymm_8_select_15[sizeof(__m256i)]       __attribute__((aligned(sizeof(__m256i))));
 			static uint8_t const ymm_8_mask16[sizeof(__m256i)]     __attribute__((aligned(sizeof(__m256i))));
 			static uint8_t const ymm_8_shiftover[sizeof(__m256i)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_all_ff[sizeof(__m256i)/sizeof(uint8_t)]          __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_first_ff_rest_0[sizeof(__m256i)/sizeof(uint8_t)] __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_all_one[sizeof(__m256i)/sizeof(uint8_t)]         __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_select_15[sizeof(__m256i)/sizeof(uint8_t)]       __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_mask16[sizeof(__m256i)/sizeof(uint8_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_shiftover[sizeof(__m256i)/sizeof(uint8_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_last_ff_rest_0[sizeof(__m256i)/sizeof(uint8_t)]       __attribute__((aligned(sizeof(__m128i))));
+			static uint8_t const ymm_8_banded_select_16[sizeof(__m256i)/sizeof(uint8_t)]       __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_shiftoverleft[sizeof(__m256i)/sizeof(uint8_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_mask15[sizeof(__m256i)/sizeof(uint8_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_16_to_end[sizeof(__m256i)/sizeof(uint8_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint8_t const ymm_8_banded_select_first_to_back[sizeof(__m256i)/sizeof(uint8_t)]      __attribute__((aligned(sizeof(__m256i))));
 			#endif
 			#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16)
 			static uint16_t const ymm_16_all_ff[sizeof(__m256i)/sizeof(uint16_t)]          __attribute__((aligned(sizeof(__m256i))));
@@ -46,6 +58,18 @@ namespace libmaus2
 			static uint16_t const ymm_16_select_15[sizeof(__m256i)/sizeof(uint16_t)]       __attribute__((aligned(sizeof(__m256i))));
 			static uint16_t const ymm_16_mask16[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
 			static uint16_t const ymm_16_shiftover[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_all_ff[sizeof(__m256i)/sizeof(uint16_t)]          __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_first_ff_rest_0[sizeof(__m256i)/sizeof(uint16_t)] __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_all_one[sizeof(__m256i)/sizeof(uint16_t)]         __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_select_15[sizeof(__m256i)/sizeof(uint16_t)]       __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_mask16[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_shiftover[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_last_ff_rest_0[sizeof(__m256i)/sizeof(uint16_t)]       __attribute__((aligned(sizeof(__m128i))));
+			static uint16_t const ymm_16_banded_select_16[sizeof(__m256i)/sizeof(uint16_t)]       __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_shiftoverleft[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_mask15[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_16_to_end[sizeof(__m256i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m256i))));
+			static uint16_t const ymm_16_banded_select_first_to_back[sizeof(__m256i)/sizeof(uint16_t)]      __attribute__((aligned(sizeof(__m256i))));
 			#endif
 		};
 	}

@@ -23,6 +23,13 @@ uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_first_ff_
 uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_all_one[sizeof(__m128i)]         __attribute__((aligned(sizeof(__m128i)))) = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_shift_right[sizeof(__m128i)]     __attribute__((aligned(sizeof(__m128i)))) = {0x80,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
 uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_select_last[sizeof(__m128i)]     __attribute__((aligned(sizeof(__m128i)))) = {15,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_first_ff_rest_0[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0xff,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_shift_right[sizeof(__m128i)]     __attribute__((aligned(sizeof(__m128i)))) = {0x80,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_select_last[sizeof(__m128i)]     __attribute__((aligned(sizeof(__m128i)))) = {15,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_all_one[sizeof(__m128i)]         __attribute__((aligned(sizeof(__m128i)))) = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_shift_left[sizeof(__m128i)]      __attribute__((aligned(sizeof(__m128i)))) = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0x80};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_last_ff_rest_0[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i))))  = {0x0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0xff};
+uint8_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_8_banded_select_first_to_back[sizeof(__m128i)]      __attribute__((aligned(sizeof(__m128i)))) = { 0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0 };
 #endif
 
 #if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16)
@@ -31,4 +38,11 @@ uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_first_f
 uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_all_one[sizeof(__m128i)/sizeof(uint16_t)]         __attribute__((aligned(sizeof(__m128i)))) = {1,1,1,1,1,1,1,1};
 uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_shift_right[sizeof(__m128i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m128i)))) = {0x8080,0x0100,0x0302,0x0504,0x0706,0x0908,0x0b0a,0x0d0c};
 uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_select_last[sizeof(__m128i)/sizeof(uint16_t)]     __attribute__((aligned(sizeof(__m128i)))) = {0x0f0e,0x8080,0x8080,0x8080,0x8080,0x8080,0x8080,0x8080};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_first_ff_rest_0[sizeof(__m128i)/sizeof(uint16_t)]      __attribute__((aligned(sizeof(__m128i)))) = {0xffff,0,0,0,0,0,0,0};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_shift_right[sizeof(__m128i)/sizeof(uint16_t)]          __attribute__((aligned(sizeof(__m128i)))) = {0x8080,0x0100,0x0302,0x0504,0x0706,0x0908,0x0b0a,0x0d0c};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_select_last[sizeof(__m128i)/sizeof(uint16_t)]          __attribute__((aligned(sizeof(__m128i)))) = {0x0f0e,0x8080,0x8080,0x8080,0x8080,0x8080,0x8080,0x8080};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_all_one[sizeof(__m128i)/sizeof(uint16_t)]              __attribute__((aligned(sizeof(__m128i)))) = {1,1,1,1,1,1,1,1};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_shift_left[sizeof(__m128i)/sizeof(uint16_t)]           __attribute__((aligned(sizeof(__m128i)))) = {0x0302,0x0504,0x0706,0x0908,0x0b0a,0x0d0c,0x0f0e,0x8080};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_last_ff_rest_0[sizeof(__m128i)/sizeof(uint16_t)]       __attribute__((aligned(sizeof(__m128i)))) = {0,0,0,0,0,0,0,0xffff};
+uint16_t const libmaus2::lcs::SimdX86GlobalAlignmentConstants128::xmm_16_banded_select_first_to_back[sizeof(__m128i)/sizeof(uint16_t)] __attribute__((aligned(sizeof(__m128i)))) = {0x8080,0x8080,0x8080,0x8080,0x8080,0x8080,0x8080,0x0100};
 #endif

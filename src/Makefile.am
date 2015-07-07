@@ -17,12 +17,16 @@ lib_LIBRARIES = libmaus2digests.a libmaus2digests_sse4.a libmaus2_irods.a libmau
 
 libmaus2_simd_align_128_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants128.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_8.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentX128_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentX128_16.cpp
 libmaus2_simd_align_128_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@
 
 libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8.cpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
@@ -205,20 +209,19 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/AlignmentStatistics.cpp \
 	libmaus2/fastx/SingleWordDNABitBuffer.cpp \
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.cpp \
-	libmaus2/lcs/AlignerFactory.cpp
+	libmaus2/lcs/AlignerFactory.cpp \
+	libmaus2/lcs/BandedAlignerFactory.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
 libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
-libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ -L.libs
-libmaus2_la_DEPENDENCIES = libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ \
-	libmaus2_simd_align_128.la libmaus2_simd_align_256.la
+libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
 libmaus2lsf_la_CPPFLAGS = @WARNCPPFLAGS@ ${LSFCPPFLAGS}
-libmaus2lsf_la_LIBADD = libmaus2.la ${LSFLIBS}
+libmaus2lsf_la_LIBADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${LSFLIBS}
 
 libmaus2_kmlocal_mod_la_CPPFLAGS = @KMLOCALCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus2_kmlocal_mod_la_CXXFLAGS = @KMLOCALCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
@@ -1663,7 +1666,22 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.hpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8_undef.hpp \
 	libmaus2/lcs/Aligner.hpp \
-	libmaus2/lcs/AlignerFactory.hpp
+	libmaus2/lcs/AlignerFactory.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentTemplate.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16_def.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_16_undef.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_8_def.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_8.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentX128_8_undef.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16_def.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_16_undef.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8_def.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8.hpp \
+	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8_undef.hpp \
+	libmaus2/lcs/BandedAligner.hpp \
+	libmaus2/lcs/BandedAlignerFactory.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
@@ -1821,481 +1839,481 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 noinst_PROGRAMS = @TESTPROGS@
 
 testgunzip_SOURCES = test/testgunzip.cpp
-testgunzip_LDADD = libmaus2.la
+testgunzip_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 teststronglyconnectedcomponents_SOURCES = test/teststronglyconnectedcomponents.cpp
-teststronglyconnectedcomponents_LDADD = libmaus2.la
+teststronglyconnectedcomponents_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testtopologicalsorting_SOURCES = test/testtopologicalsorting.cpp
-testtopologicalsorting_LDADD = libmaus2.la
+testtopologicalsorting_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbytecnt_SOURCES = test/testbytecnt.cpp
-testbytecnt_LDADD = libmaus2.la
+testbytecnt_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testlru_SOURCES = test/testlru.cpp
-testlru_LDADD = libmaus2.la
+testlru_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsimpletrie_SOURCES = test/testsimpletrie.cpp
-testsimpletrie_LDADD = libmaus2.la
+testsimpletrie_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testthreadpool_SOURCES = test/testthreadpool.cpp
-testthreadpool_LDADD = libmaus2.la
+testthreadpool_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsimplethreadpool_SOURCES = test/testsimplethreadpool.cpp
-testsimplethreadpool_LDADD = libmaus2.la
+testsimplethreadpool_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testthreadpoolbamdecode_SOURCES = test/testthreadpoolbamdecode.cpp
-testthreadpoolbamdecode_LDADD = libmaus2.la
+testthreadpoolbamdecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsimplethreadpoolbamdecode_SOURCES = test/testsimplethreadpoolbamdecode.cpp
-testsimplethreadpoolbamdecode_LDADD = libmaus2.la @SNAPPYLIBS@
+testsimplethreadpoolbamdecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
 testsimplethreadpoolbamdecode_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsimplethreadpoolbamdecode_LDFLAGS = @SNAPPYLDFLAGS@
 
 testsyncfastreaderbase_SOURCES = test/testsyncfastreaderbase.cpp
-testsyncfastreaderbase_LDADD = libmaus2.la
+testsyncfastreaderbase_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testblocksynchronous_SOURCES = test/testblocksynchronous.cpp
-testblocksynchronous_LDADD = libmaus2.la
+testblocksynchronous_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcachealignedalloc_SOURCES = test/testcachealignedalloc.cpp
-testcachealignedalloc_LDADD = libmaus2.la
+testcachealignedalloc_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsyncreorderset_SOURCES = test/testsyncreorderset.cpp
-testsyncreorderset_LDADD = libmaus2.la
+testsyncreorderset_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testhashcollisions_SOURCES = test/testhashcollisions.cpp
-testhashcollisions_LDADD = libmaus2.la
+testhashcollisions_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsimplebloomcollisions_SOURCES = test/testsimplebloomcollisions.cpp
-testsimplebloomcollisions_LDADD = libmaus2.la
+testsimplebloomcollisions_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsimplehash_SOURCES = test/testsimplehash.cpp
-testsimplehash_LDADD = libmaus2.la
+testsimplehash_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsimplecountinghash_SOURCES = test/testsimplecountinghash.cpp
-testsimplecountinghash_LDADD = libmaus2.la
+testsimplecountinghash_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testregex_SOURCES = test/testregex.cpp
-testregex_LDADD = libmaus2.la
+testregex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testlogging_SOURCES = test/testlogging.cpp
-testlogging_LDADD = libmaus2.la
+testlogging_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testTrie_SOURCES = test/testTrie.cpp
-testTrie_LDADD = libmaus2.la
+testTrie_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testFork_SOURCES = test/testFork.cpp
-testFork_LDADD = libmaus2.la
+testFork_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testBitIO_SOURCES = test/testBitIO.cpp
-testBitIO_LDADD = libmaus2.la
+testBitIO_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testDivSufSort_SOURCES = test/testDivSufSort.cpp
-testDivSufSort_LDADD = libmaus2.la
+testDivSufSort_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testRank_SOURCES = test/testRank.cpp
-testRank_LDADD = libmaus2.la ${SDSLLIBS}
+testRank_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${SDSLLIBS}
 testRank_CPPFLAGS = ${SDSLCPPFLAGS}
 
 testHuffman_SOURCES = test/testHuffman.cpp
-testHuffman_LDADD = libmaus2.la
+testHuffman_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbitbtree_SOURCES = test/testbitbtree.cpp
-testbitbtree_LDADD = libmaus2.la
+testbitbtree_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testBWTDyn_SOURCES = test/testBWTDyn.cpp
-testBWTDyn_LDADD = libmaus2.la
+testBWTDyn_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testBWTHufDyn_SOURCES = test/testBWTHufDyn.cpp
-testBWTHufDyn_LDADD = libmaus2.la
+testBWTHufDyn_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testAIO_SOURCES = test/testAIO.cpp
-testAIO_LDADD = libmaus2.la
+testAIO_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testFastRead_SOURCES = test/testFastRead.cpp
-testFastRead_LDADD = libmaus2.la
+testFastRead_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testDNABitWords_SOURCES = test/testDNABitWords.cpp
-testDNABitWords_LDADD = libmaus2.la
+testDNABitWords_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbtree_SOURCES = test/testbtree.cpp
-testbtree_LDADD = libmaus2.la
+testbtree_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testToWaveletTreeBits_SOURCES = test/testToWaveletTreeBits.cpp
-testToWaveletTreeBits_LDADD = libmaus2.la
+testToWaveletTreeBits_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testWaveletExternal_SOURCES = test/testWaveletExternal.cpp
-testWaveletExternal_LDADD = libmaus2.la
+testWaveletExternal_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testIsa_SOURCES = test/testIsa.cpp
-testIsa_LDADD = libmaus2.la
+testIsa_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testOS_SOURCES = test/testOS.cpp
-testOS_LDADD = libmaus2.la
+testOS_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testlz_SOURCES = test/testlz.cpp
-testlz_LDADD = libmaus2.la
+testlz_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbandedlcs_SOURCES = test/testbandedlcs.cpp
-testbandedlcs_LDADD = libmaus2.la
+testbandedlcs_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbamwriter_SOURCES = test/testbamwriter.cpp
-testbamwriter_LDADD = libmaus2.la
+testbamwriter_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testConsensus_SOURCES = test/testConsensus.cpp
-testConsensus_LDADD = libmaus2.la
+testConsensus_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testhashlcs_SOURCES = test/testhashlcs.cpp
-testhashlcs_LDADD = libmaus2.la
+testhashlcs_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testkmlocal_SOURCES = test/testkmlocal.cpp
-testkmlocal_LDADD = libmaus2.la
+testkmlocal_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testarraydecode_SOURCES = test/testarraydecode.cpp
-testarraydecode_LDADD = libmaus2.la
+testarraydecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsnappy_SOURCES = test/testsnappy.cpp
 testsnappy_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsnappy_LDFLAGS = @SNAPPYLDFLAGS@
-testsnappy_LDADD = libmaus2.la @SNAPPYLIBS@
+testsnappy_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
 
 testsnappyconcat_SOURCES = test/testsnappyconcat.cpp
 testsnappyconcat_CPPFLAGS = @SNAPPYCPPFLAGS@
 testsnappyconcat_LDFLAGS = @SNAPPYLDFLAGS@
-testsnappyconcat_LDADD = libmaus2.la @SNAPPYLIBS@
+testsnappyconcat_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
 
 testlsf_SOURCES = test/testlsf.cpp
 testlsf_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
 testlsf_LDFLAGS = ${LSFLDFLAGS}
-testlsf_LDADD = libmaus2.la libmaus2lsf.la ${LSFLIBS}
+testlsf_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2lsf.la ${LSFLIBS}
 
 testlsfdispatcher_SOURCES = test/testlsfdispatcher.cpp
-testlsfdispatcher_LDADD = libmaus2.la
+testlsfdispatcher_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testlsfclient_SOURCES = test/testlsfclient.cpp
-testlsfclient_LDADD = libmaus2.la
+testlsfclient_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testlsfclientfw_SOURCES = test/testlsfclientfw.cpp
-testlsfclientfw_LDADD = libmaus2.la
+testlsfclientfw_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testdl_SOURCES = test/testdl.cpp
-testdl_LDADD = libmaus2.la ${DLLIB}
+testdl_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 
 testdifenc_SOURCES = test/testdifenc.cpp
-testdifenc_LDADD = libmaus2.la
+testdifenc_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testkmp_SOURCES = test/testkmp.cpp
-testkmp_LDADD = libmaus2.la
+testkmp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbwtmergeinternal_SOURCES = test/testbwtmergeinternal.cpp
-testbwtmergeinternal_LDADD = libmaus2.la
+testbwtmergeinternal_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testfastarewrite_SOURCES = test/testfastarewrite.cpp
-testfastarewrite_LDADD = libmaus2.la
+testfastarewrite_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testfastarecode_SOURCES = test/testfastarecode.cpp
-testfastarecode_LDADD = libmaus2.la
+testfastarecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbamtofastq_SOURCES = test/testbamtofastq.cpp
-testbamtofastq_LDADD = libmaus2.la @SNAPPYLIBS@
+testbamtofastq_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
 testbamtofastq_CPPFLAGS = @SNAPPYCPPFLAGS@
 testbamtofastq_LDFLAGS = @SNAPPYLDFLAGS@ @DLLIB@
 
 testbamrange_SOURCES = test/testbamrange.cpp
-testbamrange_LDADD = libmaus2.la
+testbamrange_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbammateerase_SOURCES = test/testbammateerase.cpp
-testbammateerase_LDADD = libmaus2.la
+testbammateerase_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbamdamage_SOURCES = test/testbamdamage.cpp
-testbamdamage_LDADD = libmaus2.la @SNAPPYLIBS@
+testbamdamage_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
 testbamdamage_CPPFLAGS = @SNAPPYCPPFLAGS@
 testbamdamage_LDFLAGS = @SNAPPYLDFLAGS@
 
 testgamma_SOURCES = test/testgamma.cpp
-testgamma_LDADD = libmaus2.la
+testgamma_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcompact_SOURCES = test/testcompact.cpp
-testcompact_LDADD = libmaus2.la
+testcompact_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbytetocompact_SOURCES = test/testbytetocompact.cpp
-testbytetocompact_LDADD = libmaus2.la
+testbytetocompact_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testscramtosam_SOURCES = test/testscramtosam.cpp
-testscramtosam_LDADD    = libmaus2_irods.a libmaus2.la @IRODSLIBS@ @DLLIB@
+testscramtosam_LDADD    = libmaus2_irods.a libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @IRODSLIBS@ @DLLIB@
 testscramtosam_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 testscramtosam_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
-testscramtosam_DEPENDENCIES = libmaus2_irods.a libmaus2.la
+testscramtosam_DEPENDENCIES = libmaus2_irods.a libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testpacdecode_SOURCES = test/testpacdecode.cpp
-testpacdecode_LDADD = libmaus2.la
+testpacdecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testutf8split_SOURCES = test/testutf8split.cpp
-testutf8split_LDADD = libmaus2.la
+testutf8split_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcirchash_SOURCES = test/testcirchash.cpp
 testcirchash_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcirchash_LDFLAGS = @SNAPPYLDFLAGS@
-testcirchash_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
+testcirchash_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB}
 
 testrmmtree_SOURCES = test/testrmmtree.cpp
-testrmmtree_LDADD = libmaus2.la
+testrmmtree_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcst_SOURCES = test/testcst.cpp
-testcst_LDADD = libmaus2.la
+testcst_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbamcmp_SOURCES = test/testbamcmp.cpp
-testbamcmp_LDADD = libmaus2.la
+testbamcmp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbamdif_SOURCES = test/testbamdif.cpp
-testbamdif_LDADD = libmaus2.la
+testbamdif_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testqreorder_SOURCES = test/testqreorder.cpp
-testqreorder_LDADD = libmaus2.la
+testqreorder_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testfqbgzf_SOURCES = test/testfqbgzf.cpp
-testfqbgzf_LDADD = libmaus2.la
+testfqbgzf_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testoverlap_SOURCES = test/testoverlap.cpp
-testoverlap_LDADD = libmaus2.la
+testoverlap_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcompactfastrandom_SOURCES = test/testcompactfastrandom.cpp
-testcompactfastrandom_LDADD = libmaus2.la
+testcompactfastrandom_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbamindex_SOURCES = test/testbamindex.cpp
-testbamindex_LDADD = libmaus2.la
+testbamindex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testlsflist_SOURCES = test/testlsflist.cpp
 testlsflist_CPPFLAGS = ${AM_CPPFLAGS} ${LSFCPPFLAGS}
 testlsflist_LDFLAGS = ${LSFLDFLAGS}
-testlsflist_LDADD = libmaus2.la libmaus2lsf.la ${LSFLIBS}
+testlsflist_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2lsf.la ${LSFLIBS}
 
 testbamrewrite_SOURCES = test/testbamrewrite.cpp
-testbamrewrite_LDADD = libmaus2.la
+testbamrewrite_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testfastqstream_SOURCES = test/testfastqstream.cpp
-testfastqstream_LDADD = libmaus2.la
+testfastqstream_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testsort_SOURCES = test/testsort.cpp
-testsort_LDADD = libmaus2.la
+testsort_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testexternalsort_SOURCES = test/testexternalsort.cpp
-testexternalsort_LDADD = libmaus2.la
+testexternalsort_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcollatespeed_SOURCES = test/testcollatespeed.cpp
 testcollatespeed_CPPFLAGS = @SNAPPYCPPFLAGS@
 testcollatespeed_LDFLAGS = @SNAPPYLDFLAGS@
-testcollatespeed_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
+testcollatespeed_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB}
 
 testbamheaderparser_SOURCES = test/testbamheaderparser.cpp
-testbamheaderparser_LDADD = libmaus2.la
+testbamheaderparser_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testbammergecoordinate_SOURCES = test/testbammergecoordinate.cpp
-testbammergecoordinate_LDADD = libmaus2.la @DLLIB@
+testbammergecoordinate_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @DLLIB@
 
 testbammergequeryname_SOURCES = test/testbammergequeryname.cpp
-testbammergequeryname_LDADD = libmaus2.la @DLLIB@
+testbammergequeryname_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @DLLIB@
 
 testbamcat_SOURCES = test/testbamcat.cpp
-testbamcat_LDADD = libmaus2.la @DLLIB@
+testbamcat_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @DLLIB@
 
 testbammergecollate_SOURCES = test/testbammergecollate.cpp
 testbammergecollate_LDFLAGS = @SNAPPYLDFLAGS@
-testbammergecollate_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
+testbammergecollate_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB}
 testbammergecollate_CPPFLAGS = @SNAPPYCPPFLAGS@
 
 testautoarray2d_SOURCES = test/testautoarray2d.cpp
-testautoarray2d_LDADD = libmaus2.la
+testautoarray2d_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testhist_SOURCES = test/testhist.cpp
-testhist_LDADD = libmaus2.la
+testhist_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testfastaparse_SOURCES = test/testfastaparse.cpp
-testfastaparse_LDADD = libmaus2.la
+testfastaparse_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testvalidatebamindex_SOURCES = test/testvalidatebamindex.cpp
-testvalidatebamindex_LDADD = libmaus2.la
+testvalidatebamindex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testeditdistance_SOURCES = test/testeditdistance.cpp
-testeditdistance_LDADD = libmaus2.la
+testeditdistance_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testgaparraybyte_SOURCES = test/testgaparraybyte.cpp
-testgaparraybyte_LDADD = libmaus2.la
+testgaparraybyte_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testzlibconcat_SOURCES = test/testzlibconcat.cpp
-testzlibconcat_LDADD = libmaus2.la
+testzlibconcat_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testzlibconcat_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testsimplecompressblock_SOURCES = test/testsimplecompressblock.cpp
-testsimplecompressblock_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
+testsimplecompressblock_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB}
 testsimplecompressblock_CPPFLAGS =  @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testsimplecompressblock_LDFLAGS = @SNAPPYLDFLAGS@
 
 testrazdec_SOURCES = test/testrazdec.cpp
-testrazdec_LDADD = libmaus2.la
+testrazdec_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testfaindex_SOURCES = test/testfaindex.cpp
-testfaindex_LDADD = libmaus2.la
+testfaindex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testcurl_SOURCES = test/testcurl.cpp
-testcurl_LDADD = libmaus2.la
+testcurl_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testcurl_CPPFLAGS =  @LIBCURLCPPFLAGS@ @WARNCPPFLAGS@
 testcurl_LDFLAGS = @LIBCURLLIBS@
 
 testfastablockrecode_SOURCES = test/testfastablockrecode.cpp
-testfastablockrecode_LDADD = libmaus2.la
+testfastablockrecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testhttp_SOURCES = test/testhttp.cpp
-testhttp_LDADD = libmaus2.la
+testhttp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
 testhttp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testftp_SOURCES = test/testftp.cpp
-testftp_LDADD = libmaus2.la
+testftp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
 testftp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testurlinputstream_SOURCES = test/testurlinputstream.cpp
-testurlinputstream_LDADD = libmaus2.la
+testurlinputstream_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
 testurlinputstream_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
-testrlhist_LDADD = libmaus2.la
+testrlhist_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testnumcpus_SOURCES = test/testnumcpus.cpp
-testnumcpus_LDADD = libmaus2.la
+testnumcpus_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testdiag_SOURCES = test/testdiag.cpp
-testdiag_LDADD = libmaus2.la
+testdiag_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testdiag_CPPFLAGS = ${AM_CPPFLAGS}
 testdiag_LDFLAGS = ${AM_LDFLAGS}
 
 testlinuxstreamingwrite_SOURCES = test/testlinuxstreamingwrite.cpp
-testlinuxstreamingwrite_LDADD = libmaus2.la
+testlinuxstreamingwrite_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testlinuxstreamingwrite_CPPFLAGS = ${AM_CPPFLAGS}
 testlinuxstreamingwrite_LDFLAGS = ${AM_LDFLAGS}
 
 testlowmembamheaderparser_SOURCES = test/testlowmembamheaderparser.cpp
-testlowmembamheaderparser_LDADD = libmaus2.la
+testlowmembamheaderparser_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testlowmembamheaderparser_CPPFLAGS = ${AM_CPPFLAGS}
 testlowmembamheaderparser_LDFLAGS = ${AM_LDFLAGS}
 
 testgeneflatfile_SOURCES = test/testgeneflatfile.cpp
-testgeneflatfile_LDADD = libmaus2.la
+testgeneflatfile_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testgeneflatfile_CPPFLAGS = ${AM_CPPFLAGS}
 testgeneflatfile_LDFLAGS = ${AM_LDFLAGS}
 
 testgnutls_SOURCES = test/testgnutls.cpp
-testgnutls_LDADD = libmaus2.la
+testgnutls_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testgnutls_CPPFLAGS = ${AM_CPPFLAGS} @GNUTLSCPPFLAGS@
 testgnutls_LDFLAGS = ${AM_LDFLAGS} @GNUTLSLIBS@
 
 testparallelbamsorting_SOURCES = test/testparallelbamsorting.cpp
 testparallelbamsorting_CPPFLAGS = @SNAPPYCPPFLAGS@
 testparallelbamsorting_LDFLAGS = @SNAPPYLDFLAGS@
-testparallelbamsorting_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
+testparallelbamsorting_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB}
 
 testparallelbamvalidation_SOURCES = test/testparallelbamvalidation.cpp
 testparallelbamvalidation_CPPFLAGS = @SNAPPYCPPFLAGS@
 testparallelbamvalidation_LDFLAGS = @SNAPPYLDFLAGS@
-testparallelbamvalidation_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB}
+testparallelbamvalidation_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB}
 
 testlinebuffer_SOURCES = test/testlinebuffer.cpp
-testlinebuffer_LDADD = libmaus2.la
+testlinebuffer_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testlinebuffer_CPPFLAGS = ${AM_CPPFLAGS}
 testlinebuffer_LDFLAGS = ${AM_LDFLAGS}
 
 testsamdecoder_SOURCES = test/testsamdecoder.cpp
-testsamdecoder_LDADD = libmaus2.la ${DLLIB}
+testsamdecoder_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testsamdecoder_CPPFLAGS = ${AM_CPPFLAGS}
 testsamdecoder_LDFLAGS = ${AM_LDFLAGS}
 
 testdecimalnumberparser_SOURCES = test/testdecimalnumberparser.cpp
-testdecimalnumberparser_LDADD = libmaus2.la
+testdecimalnumberparser_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testdecimalnumberparser_CPPFLAGS = ${AM_CPPFLAGS}
 testdecimalnumberparser_LDFLAGS = ${AM_LDFLAGS}
 
 testunsignedinteger_SOURCES = test/testunsignedinteger.cpp
-testunsignedinteger_LDADD = libmaus2.la
+testunsignedinteger_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testunsignedinteger_CPPFLAGS = ${AM_CPPFLAGS}
 testunsignedinteger_LDFLAGS = ${AM_LDFLAGS}
 
 testsha_SOURCES = test/testsha.cpp
-testsha_LDADD = libmaus2.la @NETTLELIBS@ libmaus2digests.a libmaus2digests_sse4.a
+testsha_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @NETTLELIBS@ libmaus2digests.a libmaus2digests_sse4.a
 testsha_CPPFLAGS = ${AM_CPPFLAGS} @NETTLECPPFLAGS@
 testsha_LDFLAGS = ${AM_LDFLAGS} @NETTLELDFLAGS@
-testsha_DEPENDENCIES = libmaus2.la libmaus2digests.a libmaus2digests_sse4.a
+testsha_DEPENDENCIES = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la libmaus2digests.a libmaus2digests_sse4.a
 
 testmd5_SOURCES = test/testmd5.cpp
-testmd5_LDADD = libmaus2.la
+testmd5_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testmd5_CPPFLAGS = ${AM_CPPFLAGS}
 testmd5_LDFLAGS = ${AM_LDFLAGS}
 
 testsinglefileserver_SOURCES = test/testsinglefileserver.cpp
-testsinglefileserver_LDADD = libmaus2.la
+testsinglefileserver_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testsinglefileserver_CPPFLAGS = ${AM_CPPFLAGS}
 testsinglefileserver_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamrewrite_SOURCES = test/testparallelbamrewrite.cpp
-testparallelbamrewrite_LDADD = libmaus2.la
+testparallelbamrewrite_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testparallelbamrewrite_CPPFLAGS = ${AM_CPPFLAGS}
 testparallelbamrewrite_LDFLAGS = ${AM_LDFLAGS}
 
 testparallelbamblocksort_SOURCES = test/testparallelbamblocksort.cpp
-testparallelbamblocksort_LDADD = libmaus2.la @SNAPPYLIBS@ ${DLLIB} libmaus2seqchksumsfactory.a libmaus2digests.a libmaus2digests_sse4.a @GMPLIBS@
+testparallelbamblocksort_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@ ${DLLIB} libmaus2seqchksumsfactory.a libmaus2digests.a libmaus2digests_sse4.a @GMPLIBS@
 testparallelbamblocksort_CPPFLAGS = ${AM_CPPFLAGS} ${CPPFLAGS} @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testparallelbamblocksort_LDFLAGS = ${AM_LDFLAGS} ${LDFLAGS} @SNAPPYLDFLAGS@ @GMPLDFLAGS@
 
 testhdf5_SOURCES  = test/testhdf5.cpp
-testhdf5_LDADD    = libmaus2.la @HDF5LIBS@
+testhdf5_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @HDF5LIBS@
 testhdf5_CPPFLAGS = @HDF5CPPFLAGS@ @WARNCPPFLAGS@
 testhdf5_LDFLAGS  = ${AM_LDFLAGS} @HDF5LDFLAGS@
 
 testmapperm_SOURCES  = test/testmapperm.cpp
-testmapperm_LDADD    = libmaus2.la
+testmapperm_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testmapperm_CPPFLAGS = @WARNCPPFLAGS@
 testmapperm_LDFLAGS  = ${AM_LDFLAGS}
 
 testexternalmemoryindex_SOURCES  = test/testexternalmemoryindex.cpp
-testexternalmemoryindex_LDADD    = libmaus2.la @SNAPPYLIBS@
+testexternalmemoryindex_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @SNAPPYLIBS@
 testexternalmemoryindex_CPPFLAGS = @WARNCPPFLAGS@ @SNAPPYCPPFLAGS@
 testexternalmemoryindex_LDFLAGS  = ${AM_LDFLAGS} @SNAPPYLDFLAGS@
 
 testirods_SOURCES  = test/testirods.cpp
-testirods_LDADD    = libmaus2_irods.a libmaus2.la @IRODSLIBS@ 
+testirods_LDADD    = libmaus2_irods.a libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la @IRODSLIBS@ 
 testirods_CPPFLAGS = @IRODSCPPFLAGS@ @WARNCPPFLAGS@
 testirods_LDFLAGS  = ${AM_LDFLAGS} @IRODSLDFLAGS@
-testirods_DEPENDENCIES = libmaus2_irods.a libmaus2.la
+testirods_DEPENDENCIES = libmaus2_irods.a libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testfastqtobam_SOURCES  = test/testfastqtobam.cpp
-testfastqtobam_LDADD    = libmaus2.la
+testfastqtobam_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testfastqtobam_CPPFLAGS = @WARNCPPFLAGS@
 testfastqtobam_LDFLAGS  = ${AM_LDFLAGS}
 
 testsamrecoding_SOURCES  = test/testsamrecoding.cpp
-testsamrecoding_LDADD    = libmaus2.la ${DLLIB}
+testsamrecoding_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}
 
 testdazzlerdb_SOURCES  = test/testdazzlerdb.cpp
-testdazzlerdb_LDADD    = libmaus2.la ${DLLIB}
+testdazzlerdb_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testdazzlerdb_CPPFLAGS = @WARNCPPFLAGS@
 testdazzlerdb_LDFLAGS  = ${AM_LDFLAGS}
 
 testnd_SOURCES  = test/testnd.cpp
-testnd_LDADD    = libmaus2.la ${DLLIB}
+testnd_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testnd_CPPFLAGS = @WARNCPPFLAGS@
 testnd_LDFLAGS  = ${AM_LDFLAGS}
 
 testfastashred_SOURCES  = test/testfastashred.cpp
-testfastashred_LDADD    = libmaus2.la ${DLLIB}
+testfastashred_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testfastashred_CPPFLAGS = @WARNCPPFLAGS@
 testfastashred_LDFLAGS  = ${AM_LDFLAGS}
 
 testalignerspeed_SOURCES  = test/testalignerspeed.cpp
-testalignerspeed_LDADD    = libmaus2.la ${DLLIB}
+testalignerspeed_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testalignerspeed_CPPFLAGS = @WARNCPPFLAGS@
 testalignerspeed_LDFLAGS  = ${AM_LDFLAGS}

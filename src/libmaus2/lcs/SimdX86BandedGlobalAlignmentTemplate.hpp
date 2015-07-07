@@ -34,44 +34,51 @@
 #include <libmaus2/lcs/AlignmentTraceContainer.hpp>
 #include <libmaus2/lcs/Aligner.hpp>
 #include <libmaus2/types/types.hpp>
+#include <libmaus2/lcs/BandedAligner.hpp>
 
 namespace libmaus2
 {
 	namespace lcs
 	{
-		struct LIBMAUS2_SIMD_CLASS_NAME : public libmaus2::lcs::AlignmentTraceContainer, public libmaus2::lcs::Aligner
+		struct LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME : public libmaus2::lcs::AlignmentTraceContainer, public libmaus2::lcs::BandedAligner
 		{
 			private:
-			LIBMAUS2_SIMD_ELEMENT_TYPE * diagmem;
+			LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * diagmem;
 			size_t diagmemsize;
-			LIBMAUS2_SIMD_ELEMENT_TYPE * aspace;
-			size_t aspacesize;
-			LIBMAUS2_SIMD_ELEMENT_TYPE * bspace;
-			size_t bspacesize;
+			LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * textmem;
+			size_t textmemsize;
+			LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * querymem;
+			size_t querymemsize;
 
-			std::pair<int64_t,int64_t> diagToSquare(std::pair<int64_t,int64_t> const P)
+			static void allocateMemory(size_t const rsize, size_t const sizealign, LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE * & mem, size_t & memsize);
+			
+			public:
+			LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME();
+			~LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME();
+
+			void align(
+				uint8_t const * a,
+				size_t const l_a,
+				uint8_t const * b,
+				size_t const l_b,
+				size_t const d
+			);
+			
+			static std::pair<int64_t,int64_t> squareToDiag(std::pair<int64_t,int64_t> const P, size_t const d)
 			{
-				return std::pair<int64_t,int64_t>(P.first-P.second,P.second);
+				int64_t const di = P.first + P.second;
+				
+				if ( di % 2 == 0 )
+				{
+					return std::pair<int64_t,int64_t>(di,P.second - di / 2 + d);
+				}
+				else
+				{				
+					return std::pair<int64_t,int64_t>(di,P.second - (di) / 2 + d);
+				}
 			}
 			
-			std::pair<int64_t,int64_t> squareToDiag(std::pair<int64_t,int64_t> const P)
-			{
-				return std::pair<int64_t,int64_t>(P.first+P.second,P.second);
-			}
-
-			void allocateMemory(
-				size_t const rsize,
-				size_t const sizealign,
-				LIBMAUS2_SIMD_ELEMENT_TYPE * & mem,
-				size_t & memsize
-			);
-
-			public:
-			LIBMAUS2_SIMD_CLASS_NAME();
-			~LIBMAUS2_SIMD_CLASS_NAME();
-
-			void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b);
-			AlignmentTraceContainer const & getTraceContainer() const { return *this; }
+			AlignmentTraceContainer const & getTraceContainer() const;
 		};
 	}
 }
