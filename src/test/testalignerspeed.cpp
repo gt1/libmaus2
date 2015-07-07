@@ -31,6 +31,21 @@
 #include <libmaus2/fastx/CharBuffer.hpp>
 #include <libmaus2/lcs/AlignerFactory.hpp>
 
+struct AlignInfo
+{
+	unsigned int l_a;
+	unsigned int l_b;
+	
+	AlignInfo() {}
+	AlignInfo(
+		unsigned int const rl_a,
+		unsigned int const rl_b
+	) : l_a(rl_a), l_b(rl_b)
+	{
+	
+	}
+};
+
 int main(int argc, char * argv[])
 {
 	try
@@ -155,20 +170,6 @@ int main(int argc, char * argv[])
 		
 		libmaus2::fastx::UCharBuffer ubuffer;
 		
-		struct AlignInfo
-		{
-			unsigned int l_a;
-			unsigned int l_b;
-			
-			AlignInfo() {}
-			AlignInfo(
-				unsigned int const rl_a,
-				unsigned int const rl_b
-			) : l_a(rl_a), l_b(rl_b)
-			{
-			
-			}
-		};
 		
 		std::vector <AlignInfo> alinfo;
 		uint64_t const maxdata = 1024*1024*128;
