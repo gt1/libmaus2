@@ -99,6 +99,10 @@ namespace libmaus2
 			 * @return true if CPU supports avx
 			 **/
 			static bool hasAVX();
+			/**
+			 * @return true if CPU supports avx
+			 **/
+			static bool hasAVX2();
 		};
 		#endif
 	}

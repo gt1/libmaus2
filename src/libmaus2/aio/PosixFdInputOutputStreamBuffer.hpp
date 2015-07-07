@@ -401,12 +401,12 @@ namespace libmaus2
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
 			{
 				// absolute seek
-				if ( (way == ::std::ios_base::beg) )
+				if ( way == ::std::ios_base::beg )
 				{
 					return seekpos(off,which);
 				}
 				// seek relative to current position
-				else if ( (way == ::std::ios_base::cur) )
+				else if ( way == ::std::ios_base::cur )
 				{
 					if ( which == std::ios_base::in )
 					{
@@ -422,7 +422,7 @@ namespace libmaus2
 					}
 				}
 				// seek relative to end of file
-				else if ( (way == ::std::ios_base::end) )
+				else if ( way == ::std::ios_base::end )
 				{
 					off_t const curoff = doSeek(0, SEEK_CUR);
 					off_t const endoff = doSeek(0, SEEK_END);

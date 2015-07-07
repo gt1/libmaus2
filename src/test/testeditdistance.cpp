@@ -169,10 +169,33 @@ void runtestshort()
 #include <libmaus2/lcs/BandedLocalEditDistance.hpp>
 #include <libmaus2/lcs/MetaLocalEditDistance.hpp>
 
+#include <libmaus2/lcs/BandedAlignerFactory.hpp>
+
 int main()
 {
 	try
 	{
+		{
+			std::set < libmaus2::lcs::BandedAlignerFactory::aligner_type > sup =libmaus2::lcs::BandedAlignerFactory::getSupportedAligners();
+
+			std::string const a = "CTCCCCGGTTGCAGAATCGCGCAGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGCCG";
+			std::string const b =   "NCCCGGTTGCAGAATCGCGCATGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGN";
+
+			uint8_t const * ua = reinterpret_cast<uint8_t const *>(a.c_str()); 
+			size_t const la = a.size();
+			uint8_t const * ub = reinterpret_cast<uint8_t const *>(b.c_str()); 
+			size_t const lb = b.size();
+			
+			for ( std::set < libmaus2::lcs::BandedAlignerFactory::aligner_type >::const_iterator ita = sup.begin(); ita != sup.end(); ++ita )
+			{
+				std::cerr << *ita << std::endl;
+				libmaus2::lcs::BandedAligner::unique_ptr_type P (libmaus2::lcs::BandedAlignerFactory::construct(*ita) );
+				P->align(ua,la,ub,lb,2*(std::max(a.size(),b.size())-std::min(a.size(),b.size())));
+				libmaus2::lcs::AlignmentTraceContainer const & trace = P->getTraceContainer();
+				libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cerr,a,b,80,trace.ta,trace.te);
+			}
+		}
+	
 		{
 			libmaus2::lcs::BandedLocalEditDistance< ::libmaus2::lcs::diag_del_ins > LED;
 			std::string const a = "CTCCCCGGTTGCAGAATCGCGCAGAACACAGGATTCCCTAAGCAACCTTTCCACTAGAATCGCCG";

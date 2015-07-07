@@ -26,7 +26,6 @@
 #if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <libmaus2/parallel/PosixMutex.hpp>
 #include <libmaus2/parallel/PosixSpinLock.hpp>
-#include <libmaus2/parallel/PosixSemaphore.hpp>
 #include <libmaus2/parallel/PosixConditionSemaphore.hpp>
 #include <deque>
 #include <queue>
@@ -40,13 +39,11 @@ namespace libmaus2
                 {
                         std::priority_queue < value_type, std::vector<value_type>, compare > Q;
                         PosixSpinLock lock;
-                        #if defined(__APPLE__)
-                        PosixConditionSemaphore semaphore;
-                        #else
-                        PosixSemaphore semaphore;                        
-                        #endif
+                        SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
+                        SimpleSemaphoreInterface & semaphore;
                         
                         SynchronousHeap()
+                        : Q(), lock(), Psemaphore(new PosixSemaphore), semaphore(*Psemaphore)
                         {
                         
                         }
@@ -122,14 +119,15 @@ namespace libmaus2
                         value_type next;
                         std::deque<value_type> Q;
                         PosixSpinLock lock;
-                        PosixSemaphore semaphore;
+                        SimpleSemaphoreInterface::unique_ptr_type Psemaphore;
+                        SimpleSemaphoreInterface & semaphore;
                         value_type readyfor;
                         
                         SynchronousConsecutiveHeap(
                         	compare const & comp,
                         	info_type const & rinfo
 			)
-                        : info(rinfo), preQ(comp), next(value_type()), readyfor(value_type())
+                        : info(rinfo), preQ(comp), next(value_type()), Q(), lock(), Psemaphore(new PosixSemaphore), semaphore(*Psemaphore), readyfor(value_type())
                         {
                         
                         }

@@ -34,6 +34,7 @@ namespace libmaus2
 	{
 		template<size_t k> struct UnsignedInteger;
 		template<size_t k> UnsignedInteger<k> operator*(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
+		template<size_t k, typename b_type> UnsignedInteger<k> operator/(UnsignedInteger<k> const & A, b_type const & B);
 		template<size_t k> UnsignedInteger<k> operator/(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 		template<size_t k> UnsignedInteger<k> operator%(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
 		template<size_t k> std::pair< UnsignedInteger<k>,UnsignedInteger<k> > divmod(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B);
@@ -431,6 +432,12 @@ namespace libmaus2
 		}
 
 		template<size_t k>
+		UnsignedInteger<k> operator+(UnsignedInteger<k> const & A, int const B)
+		{
+			return A + UnsignedInteger<k>(B);
+		}
+
+		template<size_t k>
 		UnsignedInteger<k> operator-(UnsignedInteger<k> const & A, UnsignedInteger<k> const & B)
 		{
 			UnsignedInteger<k> R = A;			
@@ -495,6 +502,10 @@ namespace libmaus2
 			return UnsignedInteger<k>(R);
 		}
 
+		template<size_t k> UnsignedInteger<k> operator/(UnsignedInteger<k> const & rA, int const rB)
+		{
+			return rA / UnsignedInteger<k>(rB);
+		}
 
 		/**
 		 * modulo operator

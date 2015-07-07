@@ -16,6 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/lcs/SimdX86GlobalAlignmentX128_8.hpp>
+
 #include <libmaus2/lcs/HashContainer2.hpp>
 #include <libmaus2/fastx/FastAReader.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
@@ -55,10 +57,73 @@ struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCal
 	}				
 };
 
+#include <libmaus2/lcs/AlignerFactory.hpp>
+#include <libmaus2/lcs/AlignmentPrint.hpp>
+#include <libmaus2/timing/RealTimeClock.hpp>
+
+#include <csignal>
+volatile bool timerexpired = false;
+// sighandler_t signal(int signum, sighandler_t handler);
+void sigalrm(int)
+{
+	timerexpired = true;
+}
+
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		{
+			std::set<libmaus2::lcs::AlignerFactory::aligner_type> const sup = libmaus2::lcs::AlignerFactory::getSupportedAligners();
+			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			uint8_t const * t = reinterpret_cast<uint8_t const *>(text.c_str());
+			size_t const tn = text.size();
+			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+			uint8_t const * q = reinterpret_cast<uint8_t const *>(query.c_str());
+			size_t const qn = query.size();
+			libmaus2::timing::RealTimeClock rtc;
+			std::map < libmaus2::lcs::AlignerFactory::aligner_type, double > R;
+			
+			for ( std::set<libmaus2::lcs::AlignerFactory::aligner_type>::const_iterator ita = sup.begin(); ita != sup.end(); ++ita )
+			{
+				libmaus2::lcs::AlignerFactory::aligner_type const type = *ita;
+				std::cerr << "\naligner type " << type << "\n" << std::endl;
+				libmaus2::lcs::Aligner::unique_ptr_type Tptr(
+					libmaus2::lcs::AlignerFactory::construct(type)
+				);
+				Tptr->align(t,tn,q,qn);
+	
+				libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
+				libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
+				std::cerr << trace.getAlignmentStatistics() << std::endl;
+				
+				uint64_t const b = 1024;
+				uint64_t n = 0;
+				timerexpired = false;
+				sighandler_t oldhandler = signal(SIGALRM,sigalrm);
+				alarm(5);
+				rtc.start();
+				while ( ! timerexpired )
+				{
+					for ( uint64_t i = 0; i < b; ++i )
+						Tptr->align(t,tn,q,qn);			
+					n += b;
+				}
+				double const sec = rtc.getElapsedSeconds();
+				signal(SIGALRM,oldhandler);
+				double const rate = n /sec;
+				R[type] = rate;
+				std::cerr << rate << " alns/s" << std::endl;
+			}
+			
+			for ( std::map < libmaus2::lcs::AlignerFactory::aligner_type, double >::const_iterator ita = R.begin();
+				ita != R.end(); ++ita )
+			{
+				std::cerr << ita->first << "\t" << ita->second << std::endl;
+			}
+		}
+	
 		{
 			std::string const text = "remachine";
 			std::string const query = "match";

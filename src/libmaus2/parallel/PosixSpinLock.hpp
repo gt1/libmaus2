@@ -225,16 +225,30 @@ namespace libmaus2
                 struct ScopePosixSpinLock
                 {
                 	PosixSpinLock & spinlock;
+                	bool locked;
+                	
+                	void lock()
+                	{
+                		spinlock.lock();
+                		locked = true;
+                	}
+                	
+                	void unlock()
+                	{
+                		spinlock.unlock();
+                		locked = false;
+                	}
                 	
                 	ScopePosixSpinLock(PosixSpinLock & rspinlock, bool prelocked = false)
-                	: spinlock(rspinlock)
+                	: spinlock(rspinlock), locked(prelocked)
                 	{
                 		if ( ! prelocked )
-	                		spinlock.lock();
+                			lock();
                 	}
                 	~ScopePosixSpinLock()
                 	{
-                		spinlock.unlock();
+                		if ( locked )
+	                		spinlock.unlock();
                 	}
                 };
 	}

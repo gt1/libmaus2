@@ -52,8 +52,13 @@ namespace libmaus2
 			double getErrorRate() const
 			{
 				return
-					static_cast<double>(mismatches + insertions + deletions ) /
+					static_cast<double>(mismatches + insertions + deletions) /
 					static_cast<double>(matches + mismatches + insertions + deletions);
+			}
+			
+			uint64_t getEditDistance() const
+			{
+				return mismatches + insertions + deletions;
 			}
 		};
 		

@@ -28,51 +28,211 @@ namespace libmaus2
         namespace parallel
         {
                 template<typename value_type>
-                struct TerminatableSynchronousReorderSet : public SynchronousReorderSet<value_type>
+                struct TerminatableSynchronousReorderSet
                 {
-                        typedef SynchronousReorderSet<value_type> parent_type;
+                	typedef std::pair< uint64_t, value_type > pair_type;
+                	typedef typename ::std::set<pair_type>::iterator iterator_type;
 
-                        PosixMutex terminatelock;
-                        volatile bool terminated;
+                        pthread_mutex_t mutex;
+                        pthread_cond_t cond;
+                        size_t volatile numwait;
+                        bool volatile terminated;
+                	uint64_t next;
+                        std::set < pair_type > Q;
+
+			struct SynchronousReorderSetPairComp
+			{
+				SynchronousReorderSetPairComp() {}
+				
+				bool operator()(pair_type const & A, pair_type const & B)
+				{
+					if ( A.first != B.first )
+						return A.first < B.first;
+					else
+						return A.second < B.second;
+				}
+			};
+
                         
-                        TerminatableSynchronousReorderSet()
+                        struct MutexLock
                         {
-                                terminated = false;
+                                pthread_mutex_t * mutex;
+                                bool locked;
+                                
+                                void obtain()
+                                {
+                                        if ( ! locked )
+                                        {
+                                                int const r = pthread_mutex_lock(mutex);
+                                                if ( r != 0 )
+                                                {
+                                                        int const error = errno;
+                                                        libmaus2::exception::LibMausException lme;
+                                                        lme.getStream() << "MutexLock: " << strerror(error) << std::endl;
+                                                        lme.finish();
+                                                        throw lme;
+                                                }
+                                                locked = true;
+                                        }
+                                }
+                                
+                                MutexLock(pthread_mutex_t & rmutex) : mutex(&rmutex), locked(false)
+                                {
+                                        obtain();
+                                }
+                                
+                                void release()
+                                {
+                                        if ( locked )
+                                        {
+                                                int const r = pthread_mutex_unlock(mutex);
+                                                if ( r != 0 )
+                                                {
+                                                        int const error = errno;
+                                                        libmaus2::exception::LibMausException lme;
+                                                        lme.getStream() << "~MutexLock: " << strerror(error) << std::endl;
+                                                        lme.finish();
+                                                        throw lme;
+                                                }
+
+                                                locked = false;
+                                        }                                
+                                }
+                                
+                                ~MutexLock()
+                                {
+                                        release();
+                                }
+                        };
+
+			void initCond()
+			{
+				if ( pthread_cond_init(&cond,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initCond(): failed pthread_cond_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}			
+			}
+
+			void initMutex()
+			{
+				if ( pthread_mutex_init(&mutex,NULL) != 0 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixConditionSemaphore::initMutex(): failed pthread_mutex_init " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
+                                                
+                        TerminatableSynchronousReorderSet(uint64_t const rnext = 0)
+                        : numwait(0), Q(), terminated(false), next(rnext)
+                        {
+				initCond();
+				try
+				{
+					initMutex();
+				}
+				catch(...)
+				{
+					pthread_cond_destroy(&cond);
+					throw;
+				}                        
+                        }
+                        
+                        ~TerminatableSynchronousReorderSet()
+                        {
+                        	pthread_mutex_destroy(&mutex);
+                        	pthread_cond_destroy(&cond);
+                        }
+
+                        size_t getFillState()
+                        {
+                                uint64_t f;
+                                
+                                {
+                                        MutexLock M(mutex);
+                                        f = Q.size();
+                                }
+                                
+                                return f;
+                        }
+                        
+                        bool isTerminated()
+                        {
+                                bool lterminated;
+                                {
+                                MutexLock M(mutex);
+                                lterminated = terminated;
+                                }
+                                return lterminated;
                         }
                         
                         void terminate()
                         {
-                                terminatelock.lock();
-                                terminated = true;
-                                terminatelock.unlock();
+                                size_t numnoti = 0;
+                                {
+                                        MutexLock M(mutex);
+                                        terminated = true;
+                                        numnoti = numwait;
+                                }
+                                for ( size_t i = 0; i < numnoti; ++i )
+                                        pthread_cond_signal(&cond);
                         }
-                        bool isTerminated()
+
+                        void enque(uint64_t const idx, value_type const q)
                         {
-                                terminatelock.lock();
-                                bool const isTerm = terminated;
-                                terminatelock.unlock();
-                                return isTerm;
+                        	uint64_t postcnt = 0;
+
+                                MutexLock M(mutex);
+                        	
+                                Q.insert(pair_type(idx,q));
+                                
+                                for ( iterator_type I = Q.begin(); I != Q.end() && I->first == next; ++I )
+                               		next++, postcnt++;
+
+                                M.release();
+
+                                for ( uint64_t i = 0; i < postcnt; ++i )
+	                                pthread_cond_signal(&cond);
                         }
                         
                         value_type deque()
                         {
-                                while ( !parent_type::semaphore.timedWait() )
+                                MutexLock M(mutex);
+                                
+                                while ( (! terminated) && (!Q.size()) )
                                 {
-                                        terminatelock.lock();
-                                        bool const isterminated = terminated;
-                                        terminatelock.unlock();
-                                        
-                                        if ( isterminated )
-                                                throw std::runtime_error("ReorderSet is terminated");
+                                        numwait++;
+                                        int const r = pthread_cond_wait(&cond,&mutex);
+                                        if ( r != 0 )
+                                        {
+                                                int const error = errno;
+                                                libmaus2::exception::LibMausException lme;
+                                                lme.getStream() << "~MutexLock: " << strerror(error) << std::endl;
+                                                lme.finish();
+                                                throw lme;
+                                        }
+                                        numwait--;
                                 }
+                                
+                                if ( Q.size() )
+                                {
 
-                                parent_type::lock.lock();
-                                typename parent_type::iterator_type const I = parent_type::Q.begin();
-                                std::pair<uint64_t,value_type> const P = *I;                                
-                                value_type const v = P.second;
-                                parent_type::Q.erase(I);
-                                parent_type::lock.unlock();
-                                return v;
+	                                iterator_type const I = Q.begin();
+        	                        std::pair<uint64_t,value_type> const P = *I;
+                	                Q.erase(I);
+                	                return P.second;
+                                }
+                                else
+                                {
+                                        throw std::runtime_error("Queue is terminated");                                
+                                }
                         }
                 };
         }

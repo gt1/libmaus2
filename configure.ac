@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.26,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:26:0
+AC_INIT(libmaus2,2.0.28,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:28:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -551,6 +551,62 @@ if test "${msse4}" = "yes" ; then
 fi
 
 AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
+CXXFLAGS="-msse2"
+AC_MSG_CHECKING([whether the C++ compiler supports the -msse2 flag])
+AC_TRY_COMPILE([],[],[msse2=yes],[msse2=no])
+AC_MSG_RESULT([${msse2}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+MSSE2=
+if test "${msse2}" = "yes" ; then
+	MSSE2="-msse2"
+fi
+
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
+CXXFLAGS="-mssse3"
+AC_MSG_CHECKING([whether the C++ compiler supports the -mssse3 flag])
+AC_TRY_COMPILE([],[],[mssse3=yes],[mssse3=no])
+AC_MSG_RESULT([${mssse3}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+MSSSE3=
+if test "${mssse3}" = "yes" ; then
+	MSSSE3="-mssse3"
+fi
+
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
+CXXFLAGS="-msse4.1"
+AC_MSG_CHECKING([whether the C++ compiler supports the -msse4.1 flag])
+AC_TRY_COMPILE([],[],[msse41=yes],[msse41=no])
+AC_MSG_RESULT([${msse41}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+MSSE41=
+if test "${msse41}" = "yes" ; then
+	MSSE41="-msse4.1"
+fi
+
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVE="${CXXFLAGS}"
+CXXFLAGS="-mavx2"
+AC_MSG_CHECKING([whether the C++ compiler supports the -mavx2 flag])
+AC_TRY_COMPILE([],[],[mavx2=yes],[mavx2=no])
+AC_MSG_RESULT([${mavx2}])
+CXXFLAGS="${CXXFLAGS_SAVE}"
+AC_LANG_POP
+
+MAVX2=
+if test "${mavx2}" = "yes" ; then
+	MAVX2="-mavx2"
+fi
+
+AC_LANG_PUSH([C++])
 CXXFLAGS_SAVE=${CXXFLAGS}
 CPPFLAGS_SAVE=${CPPFLAGS}
 if test "${msse4}" = "yes" ; then
@@ -565,6 +621,555 @@ AC_LANG_POP
 HAVESMMINTRINH=
 if [[ "${smmintrin_h}" = "yes" ]] ; then
 	HAVESMMINTRINH="#define LIBMAUS2_HAVE_SMMINTRIN_H"
+fi
+
+AC_CHECK_HEADER(immintrin.h, [immintrin_h=yes], [immintrin_h=no])
+
+have_mm_load_si128=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_load_si128])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t const xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i const reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));],[have_mm_load_si128=yes],[have_mm_load_si128=no])
+	AC_MSG_RESULT([${have_mm_load_si128}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_loadu_si128=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_loadu_si128])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t const xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i const reg = _mm_loadu_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+	],[have_mm_loadu_si128=yes],[have_mm_loadu_si128=no])
+	AC_MSG_RESULT([${have_mm_loadu_si128}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+
+have_mm_store_si128=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_store_si128])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i const reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+_mm_store_si128(reinterpret_cast<__m128i *>(&xmm[0]),reg);
+	],[have_mm_store_si128=yes],[have_mm_store_si128=no])
+	AC_MSG_RESULT([${have_mm_store_si128}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+
+have_mm_andnot_si128=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_andnot_si128])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_andnot_si128(reg,reg);
+	],[have_mm_andnot_si128=yes],[have_mm_andnot_si128=no])
+	AC_MSG_RESULT([${have_mm_andnot_si128}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+	
+have_mm_or_si128=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_or_si128])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_or_si128(reg,reg);
+	],[have_mm_or_si128=yes],[have_mm_or_si128=no])
+	AC_MSG_RESULT([${have_mm_or_si128}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_cmpeq_epi8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_cmpeq_epi8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_cmpeq_epi8(reg,reg);
+	],[have_mm_cmpeq_epi8=yes],[have_mm_cmpeq_epi8=no])
+	AC_MSG_RESULT([${have_mm_cmpeq_epi8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_adds_epu8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_adds_epu8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_adds_epu8(reg,reg);
+	],[have_mm_adds_epu8=yes],[have_mm_adds_epu8=no])
+	AC_MSG_RESULT([${have_mm_adds_epu8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_min_epu8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_min_epu8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_min_epu8(reg,reg);
+	],[have_mm_min_epu8=yes],[have_mm_min_epu8=no])
+	AC_MSG_RESULT([${have_mm_min_epu8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_shuffle_epi8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" -a "${mssse3}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2} -mssse3"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_shuffle_epi8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_shuffle_epi8(reg,reg);
+	],[have_mm_shuffle_epi8=yes],[have_mm_shuffle_epi8=no])
+	AC_MSG_RESULT([${have_mm_shuffle_epi8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8=no
+AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (X128/8 variant)])
+if test \
+	"${have_mm_load_si128}" = "yes" -a \
+	"${have_mm_loadu_si128}" = "yes" -a \
+	"${have_mm_store_si128}" = "yes" -a \
+	"${have_mm_andnot_si128}" = "yes" -a \
+	"${have_mm_or_si128}" = "yes" -a \
+	"${have_mm_cmpeq_epi8}" = "yes" -a \
+	"${have_mm_adds_epu8}" = "yes" -a \
+	"${have_mm_min_epu8}" = "yes" -a \
+	"${have_mm_shuffle_epi8}" = "yes" ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8=yes
+fi
+AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8}])
+
+have_mm_cmpeq_epi16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_cmpeq_epi16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_cmpeq_epi16(reg,reg);
+	],[have_mm_cmpeq_epi16=yes],[have_mm_cmpeq_epi16=no])
+	AC_MSG_RESULT([${have_mm_cmpeq_epi16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_adds_epu16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_adds_epu16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_adds_epu16(reg,reg);
+	],[have_mm_adds_epu16=yes],[have_mm_adds_epu16=no])
+	AC_MSG_RESULT([${have_mm_adds_epu16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm_min_epu16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${have_mm_load_si128}" = "yes" -a "${msse41}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MSSE2} ${MSSE41}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm_min_epu16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t xmm[sizeof(__m128i)] __attribute__((aligned(sizeof(__m128i)))) = {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+__m128i reg = _mm_load_si128(reinterpret_cast<__m128i const *>(&xmm[0]));
+reg = _mm_min_epu16(reg,reg);
+	],[have_mm_min_epu16=yes],[have_mm_min_epu16=no])
+	AC_MSG_RESULT([${have_mm_min_epu16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16=no
+AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (X128/16 variant)])
+if test \
+	"${have_mm_load_si128}" = "yes" -a \
+	"${have_mm_loadu_si128}" = "yes" -a \
+	"${have_mm_store_si128}" = "yes" -a \
+	"${have_mm_andnot_si128}" = "yes" -a \
+	"${have_mm_or_si128}" = "yes" -a \
+	"${have_mm_cmpeq_epi16}" = "yes" -a \
+	"${have_mm_adds_epu16}" = "yes" -a \
+	"${have_mm_min_epu16}" = "yes" -a \
+	"${have_mm_shuffle_epi8}" = "yes" ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16=yes
+fi
+AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16}])
+
+have_mm256_load_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_load_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t const ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i const reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));],[have_mm256_load_si256=yes],[have_mm256_load_si256=no])
+	AC_MSG_RESULT([${have_mm256_load_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_loadu_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_loadu_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t const ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i const reg = _mm256_loadu_si256(reinterpret_cast<__m256i const *>(&ymm[0]));],[have_mm256_loadu_si256=yes],[have_mm256_loadu_si256=no])
+	AC_MSG_RESULT([${have_mm256_loadu_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_store_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_store_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i const reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+_mm256_store_si256(reinterpret_cast<__m256i *>(&ymm[0]),reg);
+],[have_mm256_store_si256=yes],[have_mm256_store_si256=no])
+	AC_MSG_RESULT([${have_mm256_store_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_andnot_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_andnot_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_andnot_si256(reg,reg);
+],[have_mm256_andnot_si256=yes],[have_mm256_andnot_si256=no])
+	AC_MSG_RESULT([${have_mm256_andnot_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_or_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_or_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_or_si256(reg,reg);
+],[have_mm256_or_si256=yes],[have_mm256_or_si256=no])
+	AC_MSG_RESULT([${have_mm256_or_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_cmpeq_epi8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_cmpeq_epi8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_cmpeq_epi8(reg,reg);
+],[have_mm256_cmpeq_epi8=yes],[have_mm256_cmpeq_epi8=no])
+	AC_MSG_RESULT([${have_mm256_cmpeq_epi8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_adds_epu8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_adds_epu8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_adds_epu8(reg,reg);
+],[have_mm256_adds_epu8=yes],[have_mm256_adds_epu8=no])
+	AC_MSG_RESULT([${have_mm256_adds_epu8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_shuffle_epi8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_shuffle_epi8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_shuffle_epi8(reg,reg);
+],[have_mm256_shuffle_epi8=yes],[have_mm256_shuffle_epi8=no])
+	AC_MSG_RESULT([${have_mm256_shuffle_epi8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_min_epu8=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_min_epu8])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_min_epu8(reg,reg);
+],[have_mm256_min_epu8=yes],[have_mm256_min_epu8=no])
+	AC_MSG_RESULT([${have_mm256_min_epu8}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_permute2f128_si256=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_permute2f128_si256])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_permute2f128_si256(reg,reg,8);
+],[have_mm256_permute2f128_si256=yes],[have_mm256_permute2f128_si256=no])
+	AC_MSG_RESULT([${have_mm256_permute2f128_si256}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8=no
+AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (Y256/8 variant)])
+if test \
+	"${have_mm256_load_si256}" = "yes" -a \
+	"${have_mm256_loadu_si256}" = "yes"  -a \
+	"${have_mm256_store_si256}" = "yes"  -a \
+	"${have_mm256_andnot_si256}" = "yes"  -a \
+	"${have_mm256_or_si256}" = "yes"  -a \
+	"${have_mm256_cmpeq_epi8}" = "yes"  -a \
+	"${have_mm256_adds_epu8}" = "yes"  -a \
+	"${have_mm256_shuffle_epi8}" = "yes"  -a \
+	"${have_mm256_permute2f128_si256}" = "yes"  -a \
+	"${have_mm256_min_epu8}" = "yes"  ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8=yes
+fi
+AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8}])
+
+have_mm256_cmpeq_epi16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_cmpeq_epi16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_cmpeq_epi16(reg,reg);
+],[have_mm256_cmpeq_epi16=yes],[have_mm256_cmpeq_epi16=no])
+	AC_MSG_RESULT([${have_mm256_cmpeq_epi16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_adds_epu16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_adds_epu16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_adds_epu16(reg,reg);
+],[have_mm256_adds_epu16=yes],[have_mm256_adds_epu16=no])
+	AC_MSG_RESULT([${have_mm256_adds_epu16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+have_mm256_min_epu16=no
+if test "${msse2}" = "yes" -a "${immintrin_h}" = "yes" -a "${nullx}" = "yes" -a "${mavx2}" = "yes" -a "${have_mm256_load_si256}" = "yes" ; then
+	AC_LANG_PUSH([C++])
+	CXXFLAGS_SAVE="${CXXFLAGS}"
+	CXXFLAGS="-std=gnu++0x ${MAVX2}"
+	AC_MSG_CHECKING([whether the C++ compiler supports _mm256_min_epu16])
+	AC_TRY_COMPILE([#include <immintrin.h>
+#include <cstdint>],[
+uint8_t ymm[sizeof(__m256i)] __attribute__((aligned(sizeof(__m256i)))) = {
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
+	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
+};
+__m256i reg = _mm256_load_si256(reinterpret_cast<__m256i const *>(&ymm[0]));
+reg = _mm256_min_epu16(reg,reg);
+],[have_mm256_min_epu16=yes],[have_mm256_min_epu16=no])
+	AC_MSG_RESULT([${have_mm256_min_epu16}])
+	CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+fi
+
+LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=no
+AC_MSG_CHECKING([whether the C++ compiler supports all intrinsics required for SIMD global alignment (Y256/16 variant)])
+if test \
+	"${have_mm256_load_si256}" = "yes"  -a \
+	"${have_mm256_loadu_si256}" = "yes"  -a \
+	"${have_mm256_store_si256}" = "yes"  -a \
+	"${have_mm256_andnot_si256}" = "yes"  -a \
+	"${have_mm256_or_si256}" = "yes"  -a \
+	"${have_mm256_cmpeq_epi16}" = "yes"  -a \
+	"${have_mm256_adds_epu16}" = "yes"  -a \
+	"${have_mm256_shuffle_epi8}" = "yes"  -a \
+	"${have_mm256_permute2f128_si256}" = "yes"  -a \
+	"${have_mm256_min_epu16}" = "yes"  ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=yes
+fi
+AC_MSG_RESULT([${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16}])
+
+if test "${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8}" = "yes" ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8="#define LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8"
+else
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8=
+fi
+if test "${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16}" = "yes" ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16="#define LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16"
+else
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16=
+fi
+if test "${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8}" = "yes" ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8="#define LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8"
+else
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8=
+fi
+if test "${LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16}" = "yes" ; then
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16="#define LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16"
+else
+	LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16=
 fi
 
 if test "${nullx}" = "yes" ; then
@@ -668,23 +1273,27 @@ if test "${openmp}" = "yes" ; then
 fi
 
 if test "${debug}" = "yes" ; then
-        CXXFLAGS="${CXXFLAGS} -g -O0 -rdynamic"
-        CFLAGS="${CFLAGS} -g -O0 -rdynamic"
+        CXXFLAGS="${CXXFLAGS} -g -O0"
+        CFLAGS="${CFLAGS} -g -O0"
+        LDFLAGS="${LDFLAGS} -rdynamic"
 	openmp="no"
 else
 	if test "${profile}" = "yes" ; then
-	        CXXFLAGS="${CXXFLAGS} -g -pg -rdynamic"
-	        CFLAGS="${CFLAGS} -g -pg -rdynamic"
+	        CXXFLAGS="${CXXFLAGS} -g -pg"
+	        CFLAGS="${CFLAGS} -g -pg"
+	        LDFLAGS="${LDFLAGS} -rdynamic"
 	else
 		if test "${optimization}" = "yes" ; then
 			case ${CXX} in
 				g++)
-					CXXFLAGS="${CXXFLAGS} -O3 -rdynamic"
-					CFLAGS="${CFLAGS} -O3 -rdynamic"
+					CXXFLAGS="${CXXFLAGS} -O3"
+					CFLAGS="${CFLAGS} -O3"
+				        LDFLAGS="${LDFLAGS} -rdynamic"
 					;;
 				*-mingw32msvc-g++)
-					CXXFLAGS="${CXXFLAGS} -O3 -rdynamic"
-					CFLAGS="${CFLAGS} -O3 -rdynamic"
+					CXXFLAGS="${CXXFLAGS} -O3"
+					CFLAGS="${CFLAGS} -O3"
+				        LDFLAGS="${LDFLAGS} -rdynamic"
 					;;
 				cl.exe)
 					CXXFLAGS="${CXXFLAGS} -O2 -Ob2 -Ot -Oy"
@@ -2579,7 +3188,7 @@ TESTPROGS="${TESTPROGS} testbytecnt teststronglyconnectedcomponents"
 TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
 TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
-TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred"
+TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=
@@ -2838,4 +3447,12 @@ AC_SUBST([GMPLDFLAGS])
 AC_SUBST([GMPCPPFLAGS])
 AC_SUBST([GMPLIBS])
 AC_SUBST([IOLIBNEWINTERFACEDEFINE])
+AC_SUBST([LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8])
+AC_SUBST([LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_16])
+AC_SUBST([LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_8])
+AC_SUBST([LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_Y256_16])
+AC_SUBST([MSSE2])
+AC_SUBST([MSSSE3])
+AC_SUBST([MSSE41])
+AC_SUBST([MAVX2])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
