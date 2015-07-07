@@ -63,7 +63,6 @@ struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCal
 
 #include <csignal>
 volatile bool timerexpired = false;
-// sighandler_t signal(int signum, sighandler_t handler);
 void sigalrm(int)
 {
 	timerexpired = true;
@@ -101,7 +100,7 @@ int main(int argc, char * argv[])
 				uint64_t const b = 1024;
 				uint64_t n = 0;
 				timerexpired = false;
-				sighandler_t oldhandler = signal(SIGALRM,sigalrm);
+				void (*oldhandler)(int) = signal(SIGALRM,sigalrm);
 				alarm(5);
 				rtc.start();
 				while ( ! timerexpired )
