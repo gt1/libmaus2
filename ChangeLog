@@ -1,3 +1,9 @@
+libmaus2 (2.0.30-1) unstable; urgency=medium
+
+  * update debian packaging files 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 08 Jul 2015 15:40:03 +0200
+
 libmaus2 (2.0.29-1) unstable; urgency=medium
 
   * fix compilation on Darwin 
