@@ -49,7 +49,17 @@ libmaus2::irods::IRodsFileBase::~IRodsFileBase()
 }
 
 // read block of data
-uint64_t libmaus2::irods::IRodsFileBase::read(char * buffer, uint64_t len)
+uint64_t libmaus2::irods::IRodsFileBase::read(
+	char * 
+		#if defined(LIBMAUS2_HAVE_IRODS)
+		buffer
+		#endif
+		, 
+	uint64_t 
+		#if defined(LIBMAUS2_HAVE_IRODS)
+		len
+		#endif
+)
 {
 	#if defined(LIBMAUS2_HAVE_IRODS)
 	openedDataObjInp_t readInHandle;
@@ -81,7 +91,17 @@ uint64_t libmaus2::irods::IRodsFileBase::read(char * buffer, uint64_t len)
 }
 
 // perform seek operation and return new position in stream
-uint64_t libmaus2::irods::IRodsFileBase::seek(long offset, int whence)
+uint64_t libmaus2::irods::IRodsFileBase::seek(
+	long
+		#if defined(LIBMAUS2_HAVE_IRODS)
+		offset
+		#endif
+		, 
+	int
+		#if defined(LIBMAUS2_HAVE_IRODS)
+		whence
+		#endif
+)
 {
 	#if defined(LIBMAUS2_HAVE_IRODS)
 	openedDataObjInp_t seekInput;

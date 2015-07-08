@@ -24,7 +24,7 @@
 
 #if defined(LIBMAUS2_HAVE_PTHREADS)
 #include <libmaus2/parallel/PosixMutex.hpp>
-#include <libmaus2/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixConditionSemaphore.hpp>
 #include <deque>
 #include <set>
 
@@ -54,7 +54,7 @@ namespace libmaus2
                 	uint64_t next;
                         std::set < pair_type > Q;
                         PosixMutex lock;
-                        PosixSemaphore semaphore;
+                        PosixConditionSemaphore semaphore;
                         
                         SynchronousReorderSet(uint64_t const rnext = 0)
                         : next(rnext)

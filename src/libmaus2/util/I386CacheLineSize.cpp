@@ -418,6 +418,8 @@ bool libmaus2::util::I386CacheLineSize::hasAVX()
 	cpuid(eax,ebx,ecx,edx);
 
 	// check for XSAVE/XRSTOR and AVX bits
+	// 0x10000000ul == AVX
+	// 0x08000000ul == XSAVE enabled by OS
 	if ( (ecx & 0x018000000ul) != 0x018000000ul )
 		return false;
 
@@ -425,6 +427,54 @@ bool libmaus2::util::I386CacheLineSize::hasAVX()
 	uint64_t const xbv = xgetbv(0);
 		
 	if ( (xbv & 0x6) != 0x6 )
+		return false;
+
+	return true;
+}
+/**
+ * @return true if CPU supports avx2
+ **/
+bool libmaus2::util::I386CacheLineSize::hasAVX2()
+{
+	uint32_t eax, ebx, ecx, edx;
+
+	eax = 0;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+	
+	if ( 1 > eax )
+		return false;
+
+	eax = 1;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	// check for XSAVE/XRSTOR and AVX bits
+	// 0x08000000ul == XSAVE enabled by OS
+	if ( (ecx & 0x08000000ul) != 0x08000000ul )
+		return false;
+
+	// check state saving for xmm and ymm		
+	uint64_t const xbv = xgetbv(0);
+		
+	if ( (xbv & 0x6) != 0x6 )
+		return false;
+		
+	if ( 7 > eax )
+		return false;
+
+	eax = 7;
+	ebx = 0;
+	ecx = 0;
+	edx = 0;
+	cpuid(eax,ebx,ecx,edx);
+
+	// check for AVX2 bit
+	if ( (ebx & 0x20ul) != 0x20ul )
 		return false;
 
 	return true;

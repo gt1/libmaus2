@@ -98,7 +98,7 @@ namespace libmaus2
 			
 			void reset()
 			{
-				ta = te = trace.begin();
+				ta = te = trace.end();
 			}
 			
 			void reverse()
@@ -215,7 +215,7 @@ namespace libmaus2
 					
 					mask_type const outmask = static_cast<mask_type>(1) << (k-1);
 					mask_type w = 0;
-					unsigned int e;
+					unsigned int e = 0;
 					
 					step_type const * tc = ta;
 					

@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_PARALLEL_THREADPOOL_HPP)
 #define LIBMAUS2_PARALLEL_THREADPOOL_HPP
 
-#include <libmaus2/parallel/PosixSemaphore.hpp>
+#include <libmaus2/parallel/PosixConditionSemaphore.hpp>
 #include <libmaus2/parallel/TerminatableSynchronousHeap.hpp>
 #include <libmaus2/parallel/ThreadPoolThread.hpp>
 #include <libmaus2/parallel/ThreadWorkPackageComparator.hpp>
@@ -38,7 +38,7 @@ namespace libmaus2
 			uint64_t nextpackageid;
 			libmaus2::parallel::PosixMutex nextpackageidlock;
 			
-			libmaus2::parallel::PosixSemaphore startsem;
+			libmaus2::parallel::PosixConditionSemaphore startsem;
 			
 			std::map<uint64_t, ThreadWorkPackage::shared_ptr_type> packagemap;
 			

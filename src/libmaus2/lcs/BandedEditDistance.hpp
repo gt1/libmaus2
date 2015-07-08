@@ -22,6 +22,7 @@
 #include <libmaus2/lcs/EditDistancePriorityType.hpp>
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
 #include <libmaus2/lcs/EditDistanceResult.hpp>
+#include <libmaus2/lcs/BandedAligner.hpp>
 #include <iomanip>
 
 namespace libmaus2
@@ -31,7 +32,7 @@ namespace libmaus2
 		template<
 			libmaus2::lcs::edit_distance_priority_type _edit_distance_priority = ::libmaus2::lcs::del_ins_diag
 		>
-		struct BandedEditDistance : public EditDistanceTraceContainer
+		struct BandedEditDistance : public EditDistanceTraceContainer, public BandedAligner
 		{
 			static ::libmaus2::lcs::edit_distance_priority_type const edit_distance_priority = _edit_distance_priority;
 			typedef BandedEditDistance<edit_distance_priority> this_type;
@@ -136,6 +137,11 @@ namespace libmaus2
 			
 			BandedEditDistance()
 			{
+			}
+			
+			void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b, size_t const k)
+			{
+				process(a,l_a,b,l_b,k,0,1,1,1);
 			}
 			
 			template<typename iterator_a, typename iterator_b>
@@ -610,6 +616,11 @@ namespace libmaus2
 
 					return result_type(0,0,nummat,nummis);
 				}
+			}
+
+			AlignmentTraceContainer const & getTraceContainer() const
+			{
+				return *this;
 			}
 		};
 	}

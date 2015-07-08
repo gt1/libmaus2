@@ -1,3 +1,21 @@
+libmaus2 (2.0.29-1) unstable; urgency=medium
+
+  * fix compilation on Darwin 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 08 Jul 2015 09:47:08 +0200
+
+libmaus2 (2.0.28-1) unstable; urgency=medium
+
+  * fix compilation on gcc 4.1.2 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 07 Jul 2015 15:58:40 +0200
+
+libmaus2 (2.0.27-1) unstable; urgency=medium
+
+  * add SIMD based global alignment code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Tue, 07 Jul 2015 15:53:14 +0200
+
 libmaus2 (2.0.26-1) unstable; urgency=medium
 
   * imported lower case tag handling for duplicate marking by Andrew Whitwham
