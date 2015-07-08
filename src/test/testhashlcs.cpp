@@ -58,6 +58,7 @@ struct BitVectorResultPrintCallback : public ::libmaus2::lcs::BitVectorResultCal
 };
 
 #include <libmaus2/lcs/AlignerFactory.hpp>
+#include <libmaus2/lcs/BandedAlignerFactory.hpp>
 #include <libmaus2/lcs/AlignmentPrint.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
 
@@ -117,6 +118,56 @@ int main(int argc, char * argv[])
 			}
 			
 			for ( std::map < libmaus2::lcs::AlignerFactory::aligner_type, double >::const_iterator ita = R.begin();
+				ita != R.end(); ++ita )
+			{
+				std::cerr << ita->first << "\t" << ita->second << std::endl;
+			}
+		}
+
+		{
+			std::set<libmaus2::lcs::BandedAlignerFactory::aligner_type> const sup = libmaus2::lcs::BandedAlignerFactory::getSupportedAligners();
+			std::string text =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+			uint8_t const * t = reinterpret_cast<uint8_t const *>(text.c_str());
+			size_t const tn = text.size();
+			std::string query = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+			uint8_t const * q = reinterpret_cast<uint8_t const *>(query.c_str());
+			size_t const qn = query.size();
+			libmaus2::timing::RealTimeClock rtc;
+			std::map < libmaus2::lcs::BandedAlignerFactory::aligner_type, double > R;
+			
+			for ( std::set<libmaus2::lcs::BandedAlignerFactory::aligner_type>::const_iterator ita = sup.begin(); ita != sup.end(); ++ita )
+			{
+				libmaus2::lcs::BandedAlignerFactory::aligner_type const type = *ita;
+				std::cerr << "\naligner type " << type << "\n" << std::endl;
+				libmaus2::lcs::BandedAligner::unique_ptr_type Tptr(
+					libmaus2::lcs::BandedAlignerFactory::construct(type)
+				);
+				Tptr->align(t,tn,q,qn,8);
+	
+				libmaus2::lcs::AlignmentTraceContainer const & trace = Tptr->getTraceContainer();
+				libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,text.begin(),text.size(),query.begin(),query.size(),80,trace.ta,trace.te);
+				std::cerr << trace.getAlignmentStatistics() << std::endl;
+				
+				uint64_t const b = 1024;
+				uint64_t n = 0;
+				timerexpired = false;
+				void (*oldhandler)(int) = signal(SIGALRM,sigalrm);
+				alarm(5);
+				rtc.start();
+				while ( ! timerexpired )
+				{
+					for ( uint64_t i = 0; i < b; ++i )
+						Tptr->align(t,tn,q,qn,8);
+					n += b;
+				}
+				double const sec = rtc.getElapsedSeconds();
+				signal(SIGALRM,oldhandler);
+				double const rate = n /sec;
+				R[type] = rate;
+				std::cerr << rate << " alns/s" << std::endl;
+			}
+			
+			for ( std::map < libmaus2::lcs::BandedAlignerFactory::aligner_type, double >::const_iterator ita = R.begin();
 				ita != R.end(); ++ita )
 			{
 				std::cerr << ita->first << "\t" << ita->second << std::endl;
