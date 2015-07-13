@@ -186,7 +186,7 @@ int main(int argc, char * argv[])
 			std::cerr << "k3=" << k << " error " << libmaus2::clustering::KMeans::error(V,R) << " " << libmaus2::clustering::KMeans::error(V,Rnopp) << std::endl;
 			#endif
 
-			std::vector<std::vector<double>> const Rnopp = libmaus2::clustering::KMeans::kmeans(V, k, false);
+			std::vector< std::vector<double> > const Rnopp = libmaus2::clustering::KMeans::kmeans(V, k, false);
 			std::cerr << "k3=" << k << " error " << libmaus2::clustering::KMeans::error(V,Rnopp) << " " << libmaus2::clustering::KMeans::silhouette(V,Rnopp) << std::endl;
 		
 			#if 0
