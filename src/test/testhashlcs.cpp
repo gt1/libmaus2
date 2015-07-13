@@ -24,6 +24,8 @@
 
 #include <algorithm>
 
+#include <libmaus2/lcs/NP.hpp>
+
 static std::string loadFirstPattern(std::string const & filename)
 {
 	::libmaus2::fastx::FastAReader fa(filename);
@@ -69,9 +71,112 @@ void sigalrm(int)
 	timerexpired = true;
 }
 
+#include <libmaus2/math/Rational.hpp>
+#include <libmaus2/math/BernoulliNumber.hpp>
+#include <libmaus2/math/Faulhaber.hpp>
+
+#include <libmaus2/lcs/EditDistance.hpp>
 
 int main(int argc, char * argv[])
 {
+	{
+		#if 0
+		std::string const a = "hamstetr";
+		std::string const b = "hramster";
+		#endif
+
+		std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
+		std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+		
+		libmaus2::lcs::NP np;
+		
+		std::cerr << np.np(a.begin(),a.end(),b.begin(),b.end()) << std::endl;
+		
+		#if 0
+		std::string::const_iterator aa = a.begin();
+		std::string::const_iterator ae = a.end();
+		std::string::const_iterator ba = b.begin();
+		std::string::const_iterator be = b.end();
+		#endif
+		
+		char const * aa = a.c_str();
+		char const * ae = aa + a.size();
+		char const * ba = b.c_str();
+		char const * be = ba + b.size();
+	
+		libmaus2::timing::RealTimeClock rtc; rtc.start();
+		int d = 0;	
+		uint64_t n = 5*1024*1024;
+		for ( size_t i = 0; i < n; ++i )
+			d += np.np(aa,ae,ba,be);
+			
+		double const ela = rtc.getElapsedSeconds();
+		
+		std::cerr << "d=" << d << " " <<  n/ela << std::endl;
+		
+		libmaus2::lcs::EditDistance<> ED;
+		ED.process(a.begin(),a.size(),b.begin(),b.size(),0,0,1,1,1);
+		std::cerr << ED.getAlignmentStatistics() << std::endl;
+	}
+
+	try
+	{
+		libmaus2::math::Rational<> R1(1);
+		libmaus2::math::Rational<> R2(2);
+		
+		std::cerr << "R1=" << R1 << std::endl;
+		std::cerr << "R2=" << R2 << std::endl;
+		std::cerr << "R1+R2=" << R1+R2 << std::endl;
+		std::cerr << "R1-R2=" << R1-R2 << std::endl;
+		std::cerr << "R1*R2=" << R1*R2 << std::endl;
+		std::cerr << "R1/R2=" << R1/R2 << std::endl;
+		
+		R1 *= R2;
+		std::cerr << "R1 after R1*=R2 = " << R1 << std::endl;
+		R1 /= R2;
+		std::cerr << "R1 after R1/=R2 = " << R1 << std::endl;
+		R1 /= R2;
+		std::cerr << "R1 after R1/=R2 = " << R1 << std::endl;
+
+		libmaus2::math::Rational<> R3(2,3);
+		libmaus2::math::Rational<> R4(5,4);
+		
+		std::cerr << static_cast<double>(R3) << std::endl;
+		std::cerr << static_cast<double>(R4) << std::endl;
+		std::cerr << static_cast<double>(R3)+static_cast<double>(R4) << " " << static_cast<double>(R3+R4) << std::endl;
+		std::cerr << static_cast<double>(R4)+static_cast<double>(R3) << " " << static_cast<double>(R4+R3) << std::endl;
+		std::cerr << static_cast<double>(R3)-static_cast<double>(R4) << " " << static_cast<double>(R3-R4) << std::endl;
+		std::cerr << static_cast<double>(R4)-static_cast<double>(R3) << " " << static_cast<double>(R4-R3) << std::endl;
+		std::cerr << static_cast<double>(R3)*static_cast<double>(R4) << " " << static_cast<double>(R3*R4) << std::endl;
+		std::cerr << static_cast<double>(R4)*static_cast<double>(R3) << " " << static_cast<double>(R4*R3) << std::endl;
+		std::cerr << static_cast<double>(R3)/static_cast<double>(R4) << " " << static_cast<double>(R3/R4) << std::endl;
+		std::cerr << static_cast<double>(R4)/static_cast<double>(R3) << " " << static_cast<double>(R4/R3) << std::endl;
+		
+		
+		for ( uint64_t i = 0; i <= 24; ++i )
+		{
+			std::cerr << "B(" << i << ")=" << libmaus2::math::BernoulliNumber::B(i) << std::endl;
+		}
+		
+		for ( uint64_t i = 0; i < 20; ++i )
+		{
+			std::vector < libmaus2::math::Rational<> > const P = libmaus2::math::Faulhaber::polynomial(i);
+			for (uint64_t j = 0; j<P.size(); ++j )
+				std::cerr << P[j] << ";";
+			std::cerr << std::endl;
+		}
+		
+		/*
+		 * T(d,0) = 1
+		 * T(d,i>0) = T(d-1,i) + 2 * \sum_{j=1}{i-1} T(d-1,j) + 2
+		 */
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
+	}
+
 	try
 	{
 		{
@@ -116,7 +221,7 @@ int main(int argc, char * argv[])
 				R[type] = rate;
 				std::cerr << rate << " alns/s" << std::endl;
 			}
-			
+						
 			for ( std::map < libmaus2::lcs::AlignerFactory::aligner_type, double >::const_iterator ita = R.begin();
 				ita != R.end(); ++ita )
 			{

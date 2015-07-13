@@ -30,6 +30,7 @@
 
 #include <libmaus2/fastx/CharBuffer.hpp>
 #include <libmaus2/lcs/AlignerFactory.hpp>
+#include <libmaus2/lcs/NP.hpp>
 
 struct AlignInfo
 {
@@ -300,6 +301,54 @@ int main(int argc, char * argv[])
 			
 			if ( z % 1024 == 0 )
 				std::cerr.put('.');
+		}
+		
+		{
+			uint8_t const * p = ubuffer.begin();
+			libmaus2::lcs::EditDistance<> ED;
+			libmaus2::lcs::NP np;
+		
+			for ( uint64_t i = 0; i < alinfo.size(); ++i )
+			{
+				unsigned int const l_a = alinfo[i].l_a;
+				unsigned int const l_b = alinfo[i].l_b;
+				
+				uint8_t const * a = p;
+				p += l_a;
+				uint8_t const * b = p;
+				p += l_b;
+
+				unsigned int const npv = np.np(a,a+l_a,b,b+l_b);
+				ED.process(a,l_a,b,l_b,0,0,1,1,1);
+				libmaus2::lcs::AlignmentStatistics AS = ED.getAlignmentStatistics();
+				
+				if ( npv != AS.getEditDistance() )
+				{
+					std::cerr << "expect " << AS.getEditDistance() << " got " << npv << std::endl;
+				}
+				//assert ( npv == AS.getEditDistance() );
+			}
+		}
+
+		{
+			uint8_t const * p = ubuffer.begin();
+			libmaus2::lcs::NP np;
+
+			libmaus2::timing::RealTimeClock rtc; rtc.start();		
+			for ( uint64_t i = 0; i < alinfo.size(); ++i )
+			{
+				unsigned int const l_a = alinfo[i].l_a;
+				unsigned int const l_b = alinfo[i].l_b;
+				
+				uint8_t const * a = p;
+				p += l_a;
+				uint8_t const * b = p;
+				p += l_b;
+
+				np.np(a,a+l_a,b,b+l_b);
+			}
+			double const ela = rtc.getElapsedSeconds();
+			std::cerr << "NP " << alinfo.size() / ela << std::endl;
 		}
 		
 		{
