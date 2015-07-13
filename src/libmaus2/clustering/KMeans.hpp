@@ -101,7 +101,6 @@ namespace libmaus2
 				uint64_t const maxloops = 16*1024, double const ethres = 1e-6
 			)
 			{
-				uint64_t const n = V.size();
 				std::vector< std::vector<double> > R = kmeansCore(V,k,pp,maxloops,ethres);
 				double e = error(V,R);
 								
