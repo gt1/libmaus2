@@ -29,6 +29,7 @@ namespace libmaus2
 			struct NPElement
 			{
 				int offset;
+				int id;
 			};
 
 			libmaus2::autoarray::AutoArray<NPElement> DE;
@@ -67,6 +68,7 @@ namespace libmaus2
 				size_t const bn = be-b;
 				size_t const sn = std::max(an,bn);
 				int const numdiag = (sn<<1)+1;
+				int id = 0;
 				
 				if ( numdiag > static_cast<int>(DE.size()) )
 				{
@@ -84,7 +86,11 @@ namespace libmaus2
 				DN[fdiag].offset = 0;
 
 				// how far do we get without an error?
-				DP[0].offset = slide<iter_a,iter_b,false>(a,ae,b,be,0);
+				{
+					int const s = slide<iter_a,iter_b,false>(a,ae,b,be,0);
+					DP[0].offset = s;
+					DP[0].id = id++;
+				}
 				
 				int d = 1;
 				if ( DP[fdiag].offset != fdiagoff )
@@ -93,16 +99,19 @@ namespace libmaus2
 						int const p = DP[0].offset;
 						int const s = slide<iter_a,iter_b,true>(a,ae,b+1,be,p);
 						DN[-1].offset = p + s;
+						DN[-1].id = id++;
 					}
 					{
 						int const p = DP[0].offset+1;
 						int const s = slide<iter_a,iter_b,false>(a,ae,b,be,p);
 						DN[ 0].offset = p + s;
+						DN[ 0].id = id++;
 					}
 					{
 						int const p = DP[0].offset;
 						int const s = slide<iter_a,iter_b,false>(a+1,ae,b,be,p);
 						DN[ 1].offset = p + s;
+						DN[ 1].id = id++;
 					}
 					d += 1;
 					std::swap(DP,DN);
@@ -136,6 +145,8 @@ namespace libmaus2
 							int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
 							DN[-d+1].offset = p + s;
 						}
+
+						DN[-d+1].id = id++;
 						
 						bb -= 1;
 					}
@@ -176,6 +187,8 @@ namespace libmaus2
 								DN[di].offset = p + s;
 							}
 						}
+
+						DN[di].id = id++;
 						
 						bb -= 1;
 					}
@@ -215,6 +228,8 @@ namespace libmaus2
 								DN[0].offset = p + s;
 							}
 						}
+
+						DN[0].id = id++;
 						
 						aa += 1;
 					}
@@ -256,6 +271,8 @@ namespace libmaus2
 							}
 						}
 						
+						DN[di].id = id++;
+						
 						aa += 1;
 					}
 
@@ -276,6 +293,8 @@ namespace libmaus2
 							DN[ d-1].offset = p + s;
 						}
 						
+						DN[d-1].id = id++;
+						
 						aa += 1;
 					}
 					
@@ -284,6 +303,7 @@ namespace libmaus2
 						int const p = DP[ d-1].offset;
 						int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
 						DN[d  ].offset = p + s; 
+						DN[d].id = id++;
 					}
 					
 					std::swap(DP,DN);
