@@ -87,10 +87,19 @@ int main(int argc, char * argv[])
 
 		std::string a =  "GCAGNGTGGAAAGCACCGCAAATCACATTTACGAAAAAGCTCTGTTAACCCCGATTTAGGTGGCGACATTCCCCTTGACATAATAAAGTCTGTACCAAGAG";
 		std::string b = "TGCAGNCTGGAAGCACCGCAAAAATCAAAATTTACGAAAAAGTCGTCTGTTAACCCGATGTTAGGTGCCGGAAACTTTCCCCTTGACTAATAAAGTCTGTACAGAG";
+
+		#if 0
+		{
+		libmaus2::lcs::EditDistance<> ED;
+		ED.process(a.begin(),a.size(),b.begin(),b.size(),0,0,1,1,1);
+		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,a.begin(),a.size(),b.begin(),b.size(),80,ED.ta,ED.te);
+		}
+		#endif
 		
 		libmaus2::lcs::NP np;
 		
 		std::cerr << np.np(a.begin(),a.end(),b.begin(),b.end()) << std::endl;
+		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,a.begin(),a.size(),b.begin(),b.size(),80,np.ta,np.te);
 		
 		#if 0
 		std::string::const_iterator aa = a.begin();
