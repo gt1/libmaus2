@@ -1,3 +1,9 @@
+libmaus2 (2.0.32-1) unstable; urgency=medium
+
+  * fix linker issue 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 15 Jul 2015 11:40:44 +0200
+
 libmaus2 (2.0.31-1) unstable; urgency=medium
 
   * adding multi dimensional k-means clustering
