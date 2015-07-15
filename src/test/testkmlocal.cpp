@@ -113,6 +113,7 @@ int main(int argc, char * argv[])
 {
 	::libmaus2::util::ArgInfo arginfo(argc,argv);
 
+	#if 0
 	{
 		uint64_t const n = 32*1024;
 		std::vector<double> V(n);
@@ -141,6 +142,52 @@ int main(int argc, char * argv[])
 			std::vector<double> const R = libmaus2::clustering::KMeans::kmeans(V.begin(), V.size(), k);
 		
 			std::cerr << "k=" << k << std::endl;
+		
+			#if 0
+			for ( uint64_t i = 0; i < R.size(); ++i )
+				std::cerr << "R[" << i << "]=" << R[i] << std::endl;
+			#endif
+		}
+	}
+	#endif
+
+	{
+		uint64_t const n = 32*1024;
+		std::vector<std::vector<double> > V(n);
+		#if 0
+		V.push_back(0);
+		V.push_back(0);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(1);
+		V.push_back(2);
+		V.push_back(2);
+		#endif
+		
+		for ( uint64_t i = 0; i < V.size(); ++i )
+		{	
+			for ( uint64_t j = 0; j < 3; ++j )
+				V[i].push_back(libmaus2::random::UniformUnitRandom::uniformUnitRandom());
+		}
+		
+		// V.push_back(2);
+		uint64_t const loops = 100;
+		
+		for ( uint64_t k = 1; k < V.size(); ++k )
+		{
+			#if 0
+			std::vector<std::vector<double>> const R = libmaus2::clustering::KMeans::kmeans(V, k);
+			std::vector<std::vector<double>> const Rnopp = libmaus2::clustering::KMeans::kmeans(V, k, false);
+		
+			std::cerr << "k3=" << k << " error " << libmaus2::clustering::KMeans::error(V,R) << " " << libmaus2::clustering::KMeans::error(V,Rnopp) << std::endl;
+			#endif
+
+			std::vector< std::vector<double> > const Rnopp = libmaus2::clustering::KMeans::kmeans(V, k, false);
+			std::cerr << "k3=" << k << " error " << libmaus2::clustering::KMeans::error(V,Rnopp) << " " << libmaus2::clustering::KMeans::silhouette(V,Rnopp) << std::endl;
 		
 			#if 0
 			for ( uint64_t i = 0; i < R.size(); ++i )

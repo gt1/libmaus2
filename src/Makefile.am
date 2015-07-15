@@ -22,6 +22,7 @@ libmaus2_simd_align_128_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentX128_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentX128_16.cpp
 libmaus2_simd_align_128_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@
+libmaus2_simd_align_128_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
 libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.cpp \
@@ -30,6 +31,7 @@ libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
+libmaus2_simd_align_256_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
 libmaus2_modules_LTLIBRARIES = libmaus2_kmlocal_mod.la libmaus2_consensus_mod.la libmaus2_scram_mod.la
 libmaus2_modulesdir = $(libdir)/libmaus2/$(PACKAGE_VERSION)
@@ -960,7 +962,10 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/ipow.hpp \
 	libmaus2/math/IntegerInterval.hpp \
 	libmaus2/math/DecimalNumberParser.hpp \
-	libmaus2/math/UnsignedInteger.hpp
+	libmaus2/math/UnsignedInteger.hpp \
+	libmaus2/math/Rational.hpp \
+	libmaus2/math/BernoulliNumber.hpp \
+	libmaus2/math/Faulhaber.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
@@ -1681,7 +1686,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8.hpp \
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8_undef.hpp \
 	libmaus2/lcs/BandedAligner.hpp \
-	libmaus2/lcs/BandedAlignerFactory.hpp
+	libmaus2/lcs/BandedAlignerFactory.hpp \
+	libmaus2/lcs/NP.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
@@ -1966,6 +1972,7 @@ testConsensus_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align
 
 testhashlcs_SOURCES = test/testhashlcs.cpp
 testhashlcs_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
+testhashlcs_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
 
 testkmlocal_SOURCES = test/testkmlocal.cpp
 testkmlocal_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
@@ -2315,5 +2322,4 @@ testfastashred_LDFLAGS  = ${AM_LDFLAGS}
 
 testalignerspeed_SOURCES  = test/testalignerspeed.cpp
 testalignerspeed_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
-testalignerspeed_CPPFLAGS = @WARNCPPFLAGS@
-testalignerspeed_LDFLAGS  = ${AM_LDFLAGS}
+testalignerspeed_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

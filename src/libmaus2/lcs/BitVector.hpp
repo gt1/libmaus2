@@ -80,7 +80,7 @@ namespace libmaus2
 								
 				static word_type const one = static_cast<word_type>(1);
 				for ( size_t i = 0; i < m; ++i )
-					B[ q[i] ] |= one << i;
+					B[ static_cast<int>(q[i]) ] |= one << i;
 					
 				word_type VP = lowbits(m);
 				word_type VN = 0;
@@ -91,7 +91,7 @@ namespace libmaus2
 				
 				for ( size_t i = 0; i < n; ++i )
 				{
-					word_type const X = B[t[i]] | VN;
+					word_type const X = B[static_cast<int>(t[i])] | VN;
 					word_type const D0 = ((VP + (X & VP)) ^ VP) | X;
 					word_type const HN = VP & D0;
 					word_type const HP = VN | ~(VP|D0);

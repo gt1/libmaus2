@@ -15,17 +15,40 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_BITVECTORRESULTCALLBACKINTERFACE_HPP)
-#define LIBMAUS2_LCS_BITVECTORRESULTCALLBACKINTERFACE_HPP
+#if ! defined(LIBMAUS2_MATH_BERNOULLINUMBER_HPP)
+#define LIBMAUS2_MATH_BERNOULLINUMBER_HPP
+
+#include <libmaus2/math/binom.hpp>
+#include <libmaus2/math/Rational.hpp>
+#include <vector>
 
 namespace libmaus2
 {
-	namespace lcs
+	namespace math
 	{
-		struct BitVectorResultCallbackInterface
+		struct BernoulliNumber
 		{
-			virtual ~BitVectorResultCallbackInterface() {}
-			virtual void operator()(size_t const p, uint64_t const distance) = 0;
+			/**
+			 * compute n'th Bernoulli number B_n
+			 **/
+			static Rational<> B(unsigned int const n)
+			{
+				std::vector< Rational<> > R;
+				R.push_back(Rational<>(1));
+				R.push_back(Rational<>(-1,2));
+
+				for ( uint64_t i = 2; i <= n; ++i )
+				{
+					Rational<> V;
+					for ( uint64_t k = 0; k < i; ++k )
+						V += Rational<>(libmaus2::math::Binom::binomialCoefficientInteger(k,i+1)) * R[k];
+					V /= Rational<>(i+1);
+					V = -V;
+					R.push_back(V);
+				}
+				
+				return R[n];		
+			}
 		};
 	}
 }
