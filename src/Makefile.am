@@ -22,6 +22,7 @@ libmaus2_simd_align_128_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentX128_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentX128_16.cpp
 libmaus2_simd_align_128_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@
+libmaus2_simd_align_128_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
 libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentConstants256.cpp \
@@ -30,6 +31,7 @@ libmaus2_simd_align_256_la_SOURCES = \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_8.cpp \
 	libmaus2/lcs/SimdX86GlobalAlignmentY256_16.cpp
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
+libmaus2_simd_align_256_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
 libmaus2_modules_LTLIBRARIES = libmaus2_kmlocal_mod.la libmaus2_consensus_mod.la libmaus2_scram_mod.la
 libmaus2_modulesdir = $(libdir)/libmaus2/$(PACKAGE_VERSION)
