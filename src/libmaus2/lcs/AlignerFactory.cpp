@@ -26,6 +26,7 @@
 #include <libmaus2/lcs/EditDistance.hpp>
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
+#include <libmaus2/lcs/NP.hpp>
 
 std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFactory::getSupportedAligners()
 {
@@ -34,6 +35,7 @@ std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFact
 	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_EditDistance);
 	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_ND);
 	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NDextend);
+	S.insert(libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NP);
 
 	#if defined(LIBMAUS2_HAVE_GLOBAL_ALIGNMENT_X128_8) && defined(LIBMAUS2_USE_ASSEMBLY) && defined(LIBMAUS2_HAVE_i386)
 	if (
@@ -106,6 +108,11 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 		case libmaus2_lcs_AlignerFactory_NDextend:
 		{
 			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::NDextend);
+			return UNIQUE_PTR_MOVE(T);
+		}
+		case libmaus2_lcs_AlignerFactory_NP:
+		{
+			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::NP);
 			return UNIQUE_PTR_MOVE(T);
 		}
 		case libmaus2_lcs_AlignerFactory_x128_8:
@@ -260,6 +267,9 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, AlignerFactory::ali
 			break;
 		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_y256_16:
 			out << "libmaus2_lcs_AlignerFactory_y256_16";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NP:
+			out << "libmaus2_lcs_AlignerFactory_NP";
 			break;
 	}                                                                                                                                                       
 

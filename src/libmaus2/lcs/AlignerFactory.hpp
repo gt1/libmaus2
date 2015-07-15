@@ -34,7 +34,8 @@ namespace libmaus2
 				libmaus2_lcs_AlignerFactory_x128_8,
 				libmaus2_lcs_AlignerFactory_x128_16,
 				libmaus2_lcs_AlignerFactory_y256_8,
-				libmaus2_lcs_AlignerFactory_y256_16
+				libmaus2_lcs_AlignerFactory_y256_16,
+				libmaus2_lcs_AlignerFactory_NP
 			};
 			
 			static libmaus2::lcs::Aligner::unique_ptr_type construct(aligner_type const type);

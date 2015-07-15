@@ -81,6 +81,16 @@ namespace libmaus2
 				return H.top();
 			}
 			
+			static uint64_t binomialCoefficientInteger(uint64_t k, uint64_t n)
+			{
+				std::vector < uint64_t > cnt;
+				fillBinomialVector(k,n,cnt);
+				uint64_t v = 1;
+				for ( uint64_t i = 0; i < cnt.size(); ++i )
+					v *= cnt[i];
+				return v;
+			}
+			
 			static double slowPow(double const x, unsigned int const e)
 			{
 				double tx = x;
