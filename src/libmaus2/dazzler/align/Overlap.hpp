@@ -19,6 +19,7 @@
 #define LIBMAUS2_DAZZLER_ALIGN_OVERLAP_HPP
 
 #include <libmaus2/dazzler/align/Path.hpp>
+#include <libmaus2/lcs/Aligner.hpp>
 		
 namespace libmaus2
 {
@@ -78,6 +79,57 @@ namespace libmaus2
 				uint64_t getNumErrors() const
 				{
 					return path.getNumErrors();
+				}
+				
+				/**
+				 * compute alignment trace
+				 *
+				 * @param aptr base sequence of aread
+				 * @param bptr base sequence of bread if isInverse() returns false, reverse complement of bread if isInverse() returns true
+				 * @param tspace trace point spacing
+				 * @param ATC trace container for storing trace
+				 * @param aligner aligner
+				 **/
+				void computeTrace(
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					int64_t const tspace,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+					
+					// reset trace container
+					ATC.reset();
+					
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						// block on A
+						uint8_t const * asubsub_b = aptr + std::max(a_i,path.abpos);
+						uint8_t const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,path.abpos);
+						
+						// block on B
+						uint8_t const * bsubsub_b = bptr + b_i;
+						uint8_t const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
+
+						aligner.align(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
+						
+						// add trace to full alignment
+						ATC.push(aligner.getTraceContainer());
+						
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
 				}
 			};
 

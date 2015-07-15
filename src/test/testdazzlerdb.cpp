@@ -252,48 +252,9 @@ int main(int argc, char * argv[])
 				bptr = bbaseptr;
 			}
 
-			// current point on A
-			int32_t a_i = ( OVL.path.abpos / algn.tspace ) * algn.tspace;
-			// current point on B
-			int32_t b_i = ( OVL.path.bbpos );
-			
-			// reset trace container
-			ATC.reset();
-			
-			for ( size_t i = 0; i < OVL.path.path.size(); ++i )
-			{
-				// block end point on A
-				int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + algn.tspace), static_cast<int32_t>(OVL.path.aepos) );
-				// block end point on B
-				int32_t const b_i_1 = b_i + OVL.path.path[i].second;
 
-				// block on A
-				char const * asubsub_b = aptr + std::max(a_i,OVL.path.abpos);
-				char const * asubsub_e = asubsub_b + a_i_1-std::max(a_i,OVL.path.abpos);
-				
-				// block on B
-				char const * bsubsub_b = bptr + b_i;
-				char const * bsubsub_e = bsubsub_b + (b_i_1-b_i);
-
-				bool const ok = ND.process(asubsub_b,(asubsub_e-asubsub_b),bsubsub_b,bsubsub_e-bsubsub_b);
-				assert ( ok );
-
-				#if 0
-				ND.printAlignmentLines(std::cout,asubsub_b,asubsub_e-asubsub_b,bsubsub_b,bsubsub_e-bsubsub_b,cols);
-				#endif
-				
-				#if 0
-				std::cerr << ED_EDR << "\t" << OVL.path.path[i].first << std::endl;
-				ED.printAlignmentLines(std::cout,asubsub,bsubsub,cols);
-				#endif
-				
-				// add trace to full alignment
-				ATC.push(ND);
-				
-				// update start points
-				b_i = b_i_1;
-				a_i = a_i_1;
-			}
+			// compute alignment trace
+			OVL.computeTrace(reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),algn.tspace,ATC,ND);
 
 			// print alignment if requested
 			if ( printAlignments )
