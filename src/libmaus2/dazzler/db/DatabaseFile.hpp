@@ -656,6 +656,19 @@ namespace libmaus2
 					return std::string(A.begin(),A.begin()+rlen);
 				}
 				
+				std::string decodeRead(size_t const i, bool const inv) const
+				{					
+					libmaus2::autoarray::AutoArray<char> A;
+					size_t const rlen = decodeRead(i,A);
+					if ( inv )
+					{
+						std::reverse(A.begin(),A.begin()+rlen);
+						for ( size_t i = 0; i < rlen; ++i )
+							A[i] = libmaus2::fastx::invertUnmapped(A[i]);
+					}
+					return std::string(A.begin(),A.begin()+rlen);
+				}
+				
 				void decodeAllReads(libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const
 				{
 					decodeReads(0, size(), A, off);

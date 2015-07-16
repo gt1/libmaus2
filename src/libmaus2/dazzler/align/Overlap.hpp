@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		namespace align
 		{
-			struct Overlap : public libmaus2::dazzler::db::InputBase
+			struct Overlap : public libmaus2::dazzler::db::InputBase, public libmaus2::dazzler::db::OutputBase
 			{
 				Path path;
 				uint32_t flags;
@@ -56,6 +56,57 @@ namespace libmaus2
 					return s;
 				}
 				
+				uint64_t serialise(std::ostream & out)
+				{
+					uint64_t s = 0;
+					s += path.serialise(out);
+					uint64_t offset = 0;
+					putUnsignedLittleEndianInteger4(out,flags,offset);
+					putLittleEndianInteger4(out,aread,offset);
+					putLittleEndianInteger4(out,bread,offset);
+					putLittleEndianInteger4(out,0,offset); // padding
+					s += offset;
+					return s;
+				}
+				
+				uint64_t serialiseWithPath(std::ostream & out, bool const small) const
+				{
+					uint64_t s = 0;
+					s += path.serialise(out);
+					uint64_t offset = 0;
+					putUnsignedLittleEndianInteger4(out,flags,offset);
+					putLittleEndianInteger4(out,aread,offset);
+					putLittleEndianInteger4(out,bread,offset);
+					putLittleEndianInteger4(out,0,offset); // padding
+					s += offset;
+					s += path.serialisePath(out,small);
+					return s;	
+				}
+				
+				bool operator==(Overlap const & O) const
+				{
+					return
+						compareMeta(O) && path == O.path;
+				}
+				
+				bool compareMeta(Overlap const & O) const
+				{
+					return 
+						path.comparePathMeta(O.path) &&
+						flags == O.flags &&
+						aread == O.aread &&
+						bread == O.bread;
+				}
+
+				bool compareMetaLower(Overlap const & O) const
+				{
+					return 
+						path.comparePathMetaLower(O.path) &&
+						flags == O.flags &&
+						aread == O.aread &&
+						bread == O.bread;
+				}
+				
 				Overlap()
 				{
 				
@@ -79,6 +130,92 @@ namespace libmaus2
 				uint64_t getNumErrors() const
 				{
 					return path.getNumErrors();
+				}
+				
+				static Overlap computeOverlap(
+					int64_t const flags,
+					int64_t const aread,
+					int64_t const bread,
+					int64_t const abpos,
+					int64_t const aepos,
+					int64_t const bbpos,
+					int64_t const bepos,
+					int64_t const tspace,
+					libmaus2::lcs::AlignmentTraceContainer const & ATC
+				)
+				{
+					Overlap OVL;
+					OVL.flags = flags;
+					OVL.aread = aread;
+					OVL.bread = bread;
+					OVL.path = computePath(abpos,aepos,bbpos,bepos,tspace,ATC);
+					return OVL;
+				}
+
+				static Path computePath(
+					int64_t const abpos,
+					int64_t const aepos,
+					int64_t const bbpos,
+					int64_t const bepos,
+					int64_t const tspace,
+					libmaus2::lcs::AlignmentTraceContainer const & ATC
+				)
+				{
+					Path path;
+					
+					path.abpos = abpos;
+					path.bbpos = bbpos;
+					path.aepos = aepos;
+					path.bepos = bepos;
+					path.diffs = 0;
+
+					// current point on A
+					int64_t a_i = ( path.abpos / tspace ) * tspace;
+					
+					libmaus2::lcs::AlignmentTraceContainer::step_type const * tc = ATC.ta;
+
+					while ( a_i < aepos )
+					{
+						int64_t a_c = std::max(abpos,a_i);
+						// block end point on A
+						int64_t const a_i_1 = std::min ( static_cast<int64_t>(a_i + tspace), static_cast<int64_t>(path.aepos) );
+						
+						int64_t bforw = 0;
+						int64_t err = 0;
+						while ( a_c < a_i_1 )
+						{
+							assert ( tc < ATC.te );
+							switch ( *(tc++) )
+							{
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_MATCH:
+									++a_c;
+									++bforw;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_MISMATCH:
+									++a_c;
+									++bforw;
+									++err;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_DEL:
+									++a_c;
+									++err;
+									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_INS:
+									++bforw;
+									++err;
+									break;
+							}
+						}
+						
+						path.diffs += err;
+						path.path.push_back(Path::tracepoint(err,bforw));
+						
+						a_i = a_i_1;
+					}
+					
+					path.tlen = path.path.size() << 1;
+
+					return path;
 				}
 				
 				/**
@@ -130,6 +267,84 @@ namespace libmaus2
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
+				}
+
+				/**
+				 * get error block histogram
+				 *
+				 * @param tspace trace point spacing
+				 **/
+				void fillErrorHistogram(
+					int64_t const tspace, 
+					std::map< uint64_t, std::map<uint64_t,uint64_t> > & H) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+										
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						if ( 
+							(a_i_1 - a_i) == tspace 
+							&&
+							(a_i % tspace == 0)
+							&&
+							(a_i_1 % tspace == 0)
+						)
+							H [ a_i / tspace ][path.path[i].first]++;
+						
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+				}
+
+				/**
+				 * get bases in full blocks and number of errors in these blocks
+				 *
+				 * @param tspace trace point spacing
+				 **/
+				std::pair<uint64_t,uint64_t> fullBlockErrors(int64_t const tspace) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+					
+					uint64_t errors = 0;
+					uint64_t length = 0;
+										
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						if ( 
+							(a_i_1 - a_i) == tspace 
+							&&
+							(a_i % tspace == 0)
+							&&
+							(a_i_1 % tspace == 0)
+						)
+						{
+							errors += path.path[i].first;
+							length += tspace;
+						}
+						
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+					
+					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
 			};
 

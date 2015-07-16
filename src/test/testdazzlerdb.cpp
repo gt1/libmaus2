@@ -23,6 +23,7 @@
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
+#include <libmaus2/dazzler/db/OutputBase.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -147,6 +148,7 @@ int main(int argc, char * argv[])
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
 
 		libmaus2::lcs::EditDistanceTraceContainer ATC;		
+		libmaus2::lcs::EditDistanceTraceContainer RATC;		
 		libmaus2::lcs::NDextendDNA ND;
 		libmaus2::dazzler::align::Overlap OVL;
 		
@@ -255,6 +257,31 @@ int main(int argc, char * argv[])
 
 			// compute alignment trace
 			OVL.computeTrace(reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),algn.tspace,ATC,ND);
+
+			{
+				libmaus2::dazzler::align::Overlap ROVL =
+					libmaus2::dazzler::align::Overlap::computeOverlap(
+						OVL.flags,
+						OVL.aread,
+						OVL.bread,
+						OVL.path.abpos,
+						OVL.path.aepos,
+						OVL.path.bbpos,
+						OVL.path.bepos,
+						algn.tspace,
+						ATC
+					);
+
+				ROVL.computeTrace(reinterpret_cast<uint8_t const *>(aptr),reinterpret_cast<uint8_t const *>(bptr),algn.tspace,RATC,ND);
+	
+				if ( ! ROVL.compareMetaLower(OVL) )
+				{
+					std::cerr << OVL << std::endl;
+					std::cerr << ROVL << std::endl;
+				
+					assert ( ROVL.compareMetaLower(OVL) );
+				}
+			}
 
 			// print alignment if requested
 			if ( printAlignments )
