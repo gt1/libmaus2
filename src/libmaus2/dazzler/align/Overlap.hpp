@@ -346,6 +346,72 @@ namespace libmaus2
 					
 					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
+
+				/**
+				 * fill number of spanning reads for each sparse trace point on read
+				 *
+				 * @param tspace trace point spacing
+				 **/
+				void fillSpanHistogram(
+					int64_t const tspace, 
+					std::map< uint64_t, uint64_t > & H,
+					uint64_t const ethres,
+					uint64_t const cthres
+				) const
+				{
+					std::vector<uint64_t> M(path.path.size(),std::numeric_limits<uint64_t>::max());
+				
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+															
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						if ( 
+							(a_i_1 - a_i) == tspace 
+							&&
+							(a_i % tspace == 0)
+							&&
+							(a_i_1 % tspace == 0)
+							&&
+							path.path[i].first <= ethres
+						)
+						{
+							M . at ( i ) = path.path[i].first;
+							// assert ( a_i / tspace == i );
+						}
+						
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+					
+					uint64_t numleft = 0;
+					uint64_t numright = 0;
+					for ( uint64_t i = 0; i < M.size(); ++i )
+						if ( M[i] != std::numeric_limits<uint64_t>::max() )
+							numright++;
+
+					for ( uint64_t i = 0; i < M.size(); ++i )
+					{
+						bool const below = M[i] != std::numeric_limits<uint64_t>::max();
+						
+						if ( below )
+							numright -= 1;
+						
+						if ( numleft >= cthres && numright >= cthres )
+							H [ i ] += 1;
+
+						if ( below )
+							numleft += 1;
+					}
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, Overlap const & P);
