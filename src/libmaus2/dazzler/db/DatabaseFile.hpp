@@ -726,6 +726,42 @@ namespace libmaus2
 					
 					return s;
 				}
+
+				static std::string getTrackFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname, std::string const & type)
+				{
+					if ( part )
+					{
+						std::ostringstream ostr;
+						ostr << path << "/" << root << "." << part << "." << trackname << "." << type;
+						if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(ostr.str()) )
+							return ostr.str();
+					}
+
+					std::ostringstream ostr;
+					ostr << path << "/" << root << "." << trackname << "." << type;
+
+					return ostr.str();
+				}
+
+				static std::string getTrackAnnoFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname) 
+				{
+					return getTrackFileName(path,root,part,trackname,"anno");
+				}
+
+				static std::string getTrackDataFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname)
+				{
+					return getTrackFileName(path,root,part,trackname,"data");
+				}
+
+				std::string getTrackAnnoFileName(std::string const & trackname) const
+				{
+					return getTrackAnnoFileName(path,root,part,trackname);
+				}
+
+				std::string getTrackDataFileName(std::string const & trackname) const
+				{
+					return getTrackDataFileName(path,root,part,trackname);
+				}
 			};
 
 			std::ostream & operator<<(std::ostream & out, DatabaseFile const & D);
