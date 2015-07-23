@@ -513,16 +513,33 @@ namespace libmaus2
 					if ( part )
 					{
 						indexbase.nreads = blocks[part].first - blocks[part-1].first;
-						indexbase.treads = blocks[part].second - blocks[part-1].second;
-					}
-					else if ( blocks.size() )
-					{
-						indexbase.nreads = blocks.back().first - blocks.front().first;
-						indexbase.treads = blocks.back().second - blocks.front().second;
+						indexbase.ufirst = blocks[part-1].first;
+						indexbase.tfirst = blocks[part-1].second;
 					}
 					else
 					{
-						indexbase.nreads = 0;
+						if ( blocks.size() )
+							indexbase.nreads = blocks.back().first - blocks.front().first;
+						else
+							indexbase.nreads = 0;
+
+						indexbase.ufirst = 0;
+						indexbase.tfirst = 0;
+					}
+
+					{
+						libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+						std::istream & idxfile = *Pidxfile;
+						idxfile.seekg(indexoffset + /* mappedindex */ indexbase.ufirst * Read::serialisedSize);
+						Read R;
+						indexbase.totlen = 0;
+						indexbase.maxlen = 0;
+						for ( int64_t i = 0; i < indexbase.nreads; ++i )
+						{
+							R.deserialise(idxfile);
+							indexbase.totlen += R.rlen;
+							indexbase.maxlen = std::max(indexbase.maxlen,R.rlen);
+						}					
 					}
 				}
 				
@@ -703,7 +720,7 @@ namespace libmaus2
 					if ( all && cutoff < 0 )
 						return;
 				
-					uint64_t const n = indexbase.ureads;
+					int64_t const n = indexbase.ureads;
 					uint64_t numkept = 0;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
@@ -712,7 +729,9 @@ namespace libmaus2
 					Pidxfile->seekg(indexoffset);
 										
 					libmaus2::rank::ImpCacheLineRank::WriteContext context = Ptrim->getWriteContext();
-					for ( uint64_t i = 0; i < n; ++i )
+					indexbase.totlen = 0;
+					indexbase.maxlen = 0;
+					for ( int64_t i = 0; i < n; ++i )
 					{
 						Read R(*Pidxfile);
 						
@@ -723,17 +742,22 @@ namespace libmaus2
 						;
 						
 						if ( keep )
-							numkept++;
+						{						
+							if ( i >= indexbase.ufirst && i < indexbase.ufirst+indexbase.nreads )
+							{
+								numkept++;
+								indexbase.totlen += R.rlen;
+								indexbase.maxlen = std::max(indexbase.maxlen,R.rlen);
+							}
+						}
 						
 						context.writeBit(keep);
 					}
 					
 					context.flush();
 					
-					indexbase.treads = numkept; // set number of reads in trimmed database
-
-					if ( part )
-						indexbase.treads = blocks[part].second - blocks[part-1].second;
+					indexbase.trimmed = true;
+					indexbase.nreads = numkept;
 				}
 
 				uint64_t computeReadLengthSum() const

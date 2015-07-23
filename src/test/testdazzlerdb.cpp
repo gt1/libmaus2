@@ -144,6 +144,11 @@ int main(int argc, char * argv[])
 			std::cerr << "usage: " << argv[0] << " <reads.db> <alignments.las> or <reads.db> <reads.db> <alignments.las>" << std::endl;
 			return EXIT_FAILURE;
 		}
+		
+		if ( PDB1 )
+			std::cerr << *PDB1;
+		if ( PDB2 )
+			std::cerr << *PDB2;
 					
 		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);

@@ -31,5 +31,7 @@ std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::d
 		<< "maxlen=" << H.maxlen << ","
 		<< "totlen=" << H.totlen << ","
 		<< "nreads=" << H.nreads << ","
+		<< "ufirst=" << H.ufirst << ","
+		<< "tfirst=" << H.tfirst << ","
 		<< "trimmed=" << H.trimmed << ")";
 }
