@@ -488,7 +488,8 @@ namespace libmaus2
 					std::cerr << off[indexbase.nreads] << std::endl;
 					#endif
 
-					uint64_t const n = indexbase.nreads;
+					// compute untrimmed vector (each bit set)
+					uint64_t const n = indexbase.ureads;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
 										
@@ -508,6 +509,21 @@ namespace libmaus2
 						sum += t;
 					}
 					fileoffsets.push_back(sum);
+					
+					if ( part )
+					{
+						indexbase.nreads = blocks[part].first - blocks[part-1].first;
+						indexbase.treads = blocks[part].second - blocks[part-1].second;
+					}
+					else if ( blocks.size() )
+					{
+						indexbase.nreads = blocks.back().first - blocks.front().first;
+						indexbase.treads = blocks.back().second - blocks.front().second;
+					}
+					else
+					{
+						indexbase.nreads = 0;
+					}
 				}
 				
 				uint64_t readIdToFileId(uint64_t const readid) const
@@ -687,7 +703,8 @@ namespace libmaus2
 					if ( all && cutoff < 0 )
 						return;
 				
-					uint64_t const n = indexbase.nreads;
+					uint64_t const n = indexbase.ureads;
+					uint64_t numkept = 0;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
 
@@ -705,10 +722,18 @@ namespace libmaus2
 							((cutoff < 0) || (R.rlen >= cutoff))
 						;
 						
+						if ( keep )
+							numkept++;
+						
 						context.writeBit(keep);
 					}
 					
 					context.flush();
+					
+					indexbase.treads = numkept; // set number of reads in trimmed database
+
+					if ( part )
+						indexbase.treads = blocks[part].second - blocks[part-1].second;
 				}
 
 				uint64_t computeReadLengthSum() const

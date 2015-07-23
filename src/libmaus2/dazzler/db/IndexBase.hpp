@@ -73,18 +73,19 @@ namespace libmaus2
 				{
 					uint64_t offset = 0;
 				
-					ureads  = getLittleEndianInteger4(in,offset);
-					treads  = getLittleEndianInteger4(in,offset);
-					cutoff  = getLittleEndianInteger4(in,offset);
-					all     = getLittleEndianInteger4(in,offset);
+					ureads  = getLittleEndianInteger4(in,offset); // number of reads in untrimmed database
+					treads  = getLittleEndianInteger4(in,offset); // number of reads in trimmed database
+					cutoff  = getLittleEndianInteger4(in,offset); // length cut off
+					all     = getLittleEndianInteger4(in,offset); // keep all reads
 
+					// symbol frequences
 					for ( size_t i = 0; i < sizeof(freq)/sizeof(freq[0]); ++i )
 						freq[i] = getFloat(in,offset);
 
-					maxlen  = getLittleEndianInteger4(in,offset);
-					totlen  = getLittleEndianInteger8(in,offset);
-					nreads  = getLittleEndianInteger4(in,offset);
-					trimmed = getLittleEndianInteger4(in,offset);
+					maxlen  = getLittleEndianInteger4(in,offset); // maximum length of a reads
+					totlen  = getLittleEndianInteger8(in,offset); // total length
+					/* nreads  = */ getLittleEndianInteger4(in,offset); // number of reads
+					trimmed = getLittleEndianInteger4(in,offset); 
 					
 					/* part = */   getLittleEndianInteger4(in,offset);
 					/* ufirst = */ getLittleEndianInteger4(in,offset);
@@ -97,7 +98,7 @@ namespace libmaus2
 					/* reads =  */ getLittleEndianInteger8(in,offset); // 8 byte pointer
 					/* tracks = */ getLittleEndianInteger8(in,offset); // 8 byte pointer				
 					
-					nreads = ureads;
+					nreads = ureads; /* number of untrimmed reads */
 				}
 			};
 
