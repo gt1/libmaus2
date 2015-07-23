@@ -25,6 +25,7 @@
 
 #include <fstream>
 #include <vector>
+#include <set>
 
 uint64_t getFileLength(std::string const & textfilename)
 {
@@ -231,6 +232,32 @@ void computeBWT(std::string const & textfilename, std::ostream & output)
 		obuf[n-i-1] = R[sym];
 	}
 	output.write ( reinterpret_cast<char const *>(obuf.get()), n );
+	
+	{
+		std::ostringstream ostr;
+		B.serialise(ostr);
+		std::istringstream istr(ostr.str());
+		::libmaus2::wavelet::DynamicWaveletTree<k,w> Bre(istr);	
+		assert ( B.n == Bre.n );
+		assert ( B.identical(Bre) );
+		// assert ( B == Bre );
+		std::set<int> S;
+		
+		for ( uint64_t i = 0; i < B.n; ++i )
+		{
+			assert ( B[i] == B[i] );
+			S.insert(B[i]);
+		}		
+
+		for ( uint64_t i = 0; i < B.n; ++i )
+		{
+			assert ( B[i] == Bre[i] );
+			for ( std::set<int>::const_iterator ita = S.begin(); ita != S.end(); ++ita )
+				assert (
+					B.rank(*ita,i) == Bre.rank(*ita,i)
+				);
+		}
+	}
 }
 
 int main(int argc, char * argv[])
