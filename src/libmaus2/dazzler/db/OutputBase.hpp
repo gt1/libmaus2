@@ -104,7 +104,6 @@ namespace libmaus2
 						}
 						offset += 1;
 					}
-					return v;
 				}
 
 				template<typename stream_type>
