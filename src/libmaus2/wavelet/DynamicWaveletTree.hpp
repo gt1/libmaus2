@@ -45,6 +45,12 @@ namespace libmaus2
 			uint64_t const b;
 			uint64_t n;
 			
+			bool identical(this_type const & O) const
+			{
+				return 
+					R->identical(*(O.R)) && b == O.b && n == O.n;
+			}
+			
 			unique_ptr_type clone() const
 			{
 				unique_ptr_type C(new DynamicWaveletTree<k,w>(b));
@@ -57,6 +63,26 @@ namespace libmaus2
 			: R(new ::libmaus2::bitbtree::BitBTree<k,w>() ), b(rb), n(0)
 			{
 				
+			}
+			
+			void serialise(std::ostream & out) const
+			{
+				R->serialise(out);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,b);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,n);
+			}
+			
+			static typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type loadBitBTree(std::istream & in)
+			{
+				typename ::libmaus2::bitbtree::BitBTree<k,w>::unique_ptr_type Ptree(new ::libmaus2::bitbtree::BitBTree<k,w>);
+				Ptree->deserialise(in);
+				return UNIQUE_PTR_MOVE(Ptree);
+			}
+			
+			DynamicWaveletTree(std::istream & in)
+			: R(loadBitBTree(in)), b(libmaus2::util::NumberSerialisation::deserialiseNumber(in)), n(libmaus2::util::NumberSerialisation::deserialiseNumber(in))
+			{
+			
 			}
 			
 			uint64_t size() const

@@ -19,6 +19,7 @@
 #define LIBMAUS_DAZZLER_ALIGN_PATH_HPP
 
 #include <libmaus2/dazzler/db/InputBase.hpp>
+#include <libmaus2/dazzler/db/OutputBase.hpp>
 #include <utility>
 
 namespace libmaus2
@@ -27,7 +28,7 @@ namespace libmaus2
 	{
 		namespace align
 		{
-			struct Path : public libmaus2::dazzler::db::InputBase
+			struct Path : public libmaus2::dazzler::db::InputBase, public libmaus2::dazzler::db::OutputBase
 			{
 				typedef std::pair<uint16_t,uint16_t> tracepoint;
 
@@ -39,6 +40,34 @@ namespace libmaus2
 				int32_t aepos;
 				int32_t bepos;
 				
+				bool operator==(Path const & O) const
+				{
+					return
+						comparePathMeta(O) && path == O.path;
+				}
+				
+				bool comparePathMeta(Path const & O) const
+				{
+					return 
+						tlen == O.tlen &&
+						diffs == O.diffs &&
+						abpos == O.abpos &&
+						bbpos == O.bbpos &&
+						aepos == O.aepos &&
+						bepos == O.bepos;
+				}
+				
+				bool comparePathMetaLower(Path const & O) const
+				{
+					return 
+						tlen == O.tlen &&
+						diffs <= O.diffs &&
+						abpos == O.abpos &&
+						bbpos == O.bbpos &&
+						aepos == O.aepos &&
+						bepos == O.bepos;
+				}
+				
 				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
@@ -49,6 +78,68 @@ namespace libmaus2
 					aepos = getLittleEndianInteger4(in,offset);
 					bepos = getLittleEndianInteger4(in,offset);
 					return offset;
+				}
+				
+				uint64_t serialise(std::ostream & out) const
+				{
+					uint64_t offset = 0;
+					putLittleEndianInteger4(out,tlen,offset);
+					putLittleEndianInteger4(out,diffs,offset);
+					putLittleEndianInteger4(out,abpos,offset);
+					putLittleEndianInteger4(out,bbpos,offset);
+					putLittleEndianInteger4(out,aepos,offset);
+					putLittleEndianInteger4(out,bepos,offset);
+					return offset;
+				}
+				
+				uint64_t serialiseWithPath(std::ostream & out, bool const small) const
+				{
+					uint64_t s = 0;
+					s += serialise(out);
+					s += serialisePath(out,small);
+					return s;
+				}
+				
+				uint64_t serialisePath(std::ostream & out, bool const small) const
+				{
+					uint64_t s = 0;
+					if ( small )
+					{
+						for ( uint64_t i = 0; i < path.size(); ++i )
+						{
+							out.put(path[i].first);
+							if ( ! out )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: output error" << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							s += 1;
+							out.put(path[i].second);
+							if ( ! out )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "Path::serialisePath: output error" << std::endl;
+								lme.finish();
+								throw lme;
+							}
+							s += 1;
+						}
+						return s;
+					}
+					else
+					{
+						uint64_t offset = 0;
+						
+						for ( uint64_t i = 0; i < path.size(); ++i )
+						{
+							putLittleEndianInteger2(out,path[i].first,offset);
+							putLittleEndianInteger2(out,path[i].second,offset);
+						}
+						
+						return offset;
+					}
 				}
 				
 				Path()

@@ -26,7 +26,7 @@ namespace libmaus2
 	{
 		namespace align
 		{
-			struct AlignmentFile : public libmaus2::dazzler::db::InputBase
+			struct AlignmentFile : public libmaus2::dazzler::db::InputBase, public libmaus2::dazzler::db::OutputBase
 			{
 				static uint8_t const TRACE_XOVR = 125;
 			
@@ -58,6 +58,14 @@ namespace libmaus2
 					}
 					
 					return offset;		
+				}
+				
+				uint64_t serialiseHeader(std::ostream & out) const
+				{
+					uint64_t offset = 0;
+					putLittleEndianInteger8(out,novl,offset);
+					putLittleEndianInteger4(out,tspace,offset);
+					return offset;
 				}
 				
 				AlignmentFile()

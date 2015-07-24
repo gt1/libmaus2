@@ -15,23 +15,27 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/dazzler/db/IndexBase.hpp>
+#if ! defined(LIBMAUS2_DAZZLER_DB_TRACKANNOINTERFACE_HPP)
+#define LIBMAUS2_DAZZLER_DB_TRACKANNOINTERFACE_HPP
 
-std::ostream & libmaus2::dazzler::db::operator<<(std::ostream & out, libmaus2::dazzler::db::IndexBase const & H)
+#include <libmaus2/util/unique_ptr.hpp>
+#include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/types/types.hpp>
+
+namespace libmaus2
 {
-	return out << "IndexBase("
-		<< "ureads=" << H.ureads << ","
-		<< "treads=" << H.treads << ","
-		<< "cutoff=" << H.cutoff << ","
-		<< "all=" << H.all << ","
-		<< "freq[A]=" << H.freq[0] << ","
-		<< "freq[C]=" << H.freq[1] << ","
-		<< "freq[G]=" << H.freq[2] << ","
-		<< "freq[T]=" << H.freq[3] << ","
-		<< "maxlen=" << H.maxlen << ","
-		<< "totlen=" << H.totlen << ","
-		<< "nreads=" << H.nreads << ","
-		<< "ufirst=" << H.ufirst << ","
-		<< "tfirst=" << H.tfirst << ","
-		<< "trimmed=" << H.trimmed << ")";
+	namespace dazzler
+	{
+		struct TrackAnnoInterface
+		{
+			typedef TrackAnnoInterface this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			
+			virtual ~TrackAnnoInterface() {}
+			virtual uint64_t operator[](uint64_t const i) const = 0;
+			virtual void shift(uint64_t const s) = 0;
+		};
+	}
 }
+#endif

@@ -31,6 +31,7 @@
 #include <libmaus2/rank/popcnt.hpp>
 #include <libmaus2/bitio/BitIOOutput.hpp>
 #include <libmaus2/bitio/putBits.hpp>
+#include <libmaus2/util/NumberSerialisation.hpp>
 
 namespace libmaus2
 {
@@ -467,6 +468,18 @@ namespace libmaus2
 					
 					A [ words-1 ] >>= c;
 				}
+			}
+
+			void serialise(std::ostream & out) const
+			{
+				for ( size_t i = 0; i < words; ++i )
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,A[i]);
+			}
+			
+			void deserialise(std::istream & in)
+			{
+				for ( size_t i = 0; i < words; ++i )
+					A[i] = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
 			}
 
 			void serialize(std::ostream & out) const

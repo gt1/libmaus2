@@ -56,6 +56,28 @@ namespace libmaus2
 			::libmaus2::autoarray::AutoArray<char> buffer;
 			uint64_t writepos;
 
+			void doSeekAbsolute(uint64_t const p)
+			{
+				while ( ::lseek(fd,p,SEEK_SET) == static_cast<off_t>(-1) )
+				{
+					int const error = errno;
+					
+					switch ( error )
+					{
+						case EINTR:
+						case EAGAIN:
+							break;
+						default:
+						{
+							libmaus2::exception::LibMausException se;
+							se.getStream() << "PosixOutputStreamBuffer::doSeekkAbsolute(): lseek() failed: " << strerror(error) << std::endl;
+							se.finish();
+							throw se;
+						}
+					}					
+				}
+			}
+
 			void doClose()
 			{
 				while ( close(fd) < 0 )
@@ -221,6 +243,24 @@ namespace libmaus2
 				return 0; // no error, -1 for error
 			}			
 
+                        /**
+                         * seek to absolute position
+                         **/
+                        ::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
+                        {
+                        	if ( (which & ::std::ios_base::out) )
+                        	{
+                        		doSync();
+                        		doSeekAbsolute(sp);
+                        		writepos = sp;
+                        		return sp;
+				}
+				else
+				{
+					return -1;
+				}
+                        }
+
 			/**
 			 * relative seek
 			 **/
@@ -229,6 +269,8 @@ namespace libmaus2
 				// seek relative to current position
 				if ( (way == ::std::ios_base::cur) && (which == std::ios_base::out) && (off == 0) )
 					return writepos + (pptr()-pbase());
+				else if ( (way == ::std::ios_base::beg) && (which == std::ios_base::out) )
+					return seekpos(off,which);
 				else
 					return -1;
 			}

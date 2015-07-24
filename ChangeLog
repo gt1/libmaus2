@@ -1,3 +1,16 @@
+libmaus2 (2.0.33-1) unstable; urgency=medium
+
+  * add trace computation method in libmaus2::dazzler::align::Overlap
+  * add more seeking capabilities in PosixFdOutputStreamBuffer (seek to absolute position)
+  * add overlap output in dazzler namespace
+  * add sparse to dense trace and vice versa in dazzler namespace
+  * add method for checking whether two alignments cross in AlignmentTraceContainer 
+  * add method for computing span histogram
+  * add serialisation for bitbtree and DynamicWaveletTree
+  * implemented track input for dazzler databases (untested)
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 24 Jul 2015 10:35:20 +0200
+
 libmaus2 (2.0.32-1) unstable; urgency=medium
 
   * fix linker issue 

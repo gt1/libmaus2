@@ -35,6 +35,10 @@ namespace libmaus2
 	{
 		struct AlignmentTraceContainer : public PenaltyConstants
 		{
+			typedef AlignmentTraceContainer this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+		
 			private:
 			AlignmentTraceContainer & operator=(AlignmentTraceContainer const &);
 			AlignmentTraceContainer(AlignmentTraceContainer const &);
@@ -196,6 +200,82 @@ namespace libmaus2
 					return oa || ob;
 				}
 			};
+			
+			static bool cross(
+				AlignmentTraceContainer const & A,
+				size_t Aapos,
+				size_t Abpos,
+				uint64_t & offseta,
+				AlignmentTraceContainer const & B,
+				size_t Bapos,
+				size_t Bbpos,
+				uint64_t & offsetb
+			)
+			{
+				step_type const * Atc = A.ta;
+				step_type const * Btc = B.ta;
+				
+				while ( 
+					(!(Aapos == Bapos && Abpos == Bbpos)) && (Atc != A.te) && (Btc != B.te)
+				)
+				{
+					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
+				
+					while ( 
+						(Atc != A.te) && 
+						(
+							(Aapos < Bapos) ||
+							((Aapos == Bapos) && (Abpos < Bbpos))
+						)
+					)
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Aapos += 1;
+								Abpos += 1;
+								break;
+							case STEP_INS:
+								Abpos += 1;
+								break;
+							case STEP_DEL:
+								Aapos += 1;
+								break;
+						}						
+					}
+					while ( 
+						(Btc != B.te) && 
+						(
+							(Bapos < Aapos)
+							||
+							((Bapos == Aapos) && (Bbpos < Abpos))
+						)
+					)
+					{
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bapos += 1;
+								Bbpos += 1;
+								break;
+							case STEP_INS:
+								Bbpos += 1;
+								break;
+							case STEP_DEL:
+								Bapos += 1;
+								break;
+						}						
+					}					
+				}
+				
+				offseta = Atc - A.ta;
+				offsetb = Btc - B.ta;
+				
+				return
+					(Aapos == Bapos) && (Abpos == Bbpos);
+			}
 			
 			std::vector < ClipPair > lowQuality(int const k, unsigned int const thres) const
 			{
