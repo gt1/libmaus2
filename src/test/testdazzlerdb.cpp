@@ -24,7 +24,6 @@
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
 #include <libmaus2/dazzler/db/OutputBase.hpp>
-#include <libmaus2/dazzler/db/TrackIO.hpp>
 
 #include <sys/ioctl.h>
 #include <stdio.h>
