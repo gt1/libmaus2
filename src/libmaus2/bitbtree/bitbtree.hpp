@@ -65,6 +65,16 @@ namespace libmaus2
 		struct BitBTreeLeaf
 		{
 			::libmaus2::uint::UInt<w> data;
+			
+			void serialise(std::ostream & out) const
+			{
+				data.serialise(out);
+			}
+			
+			void deserialise(std::istream & in)
+			{
+				data.deserialise(in);
+			}
 		};
 
 		template<unsigned int k, unsigned int w>
@@ -86,6 +96,190 @@ namespace libmaus2
 			#define bitbtree_leaf_mask 0x80000000UL
 			#define bitbtree_node_base_mask 0x7FFFFFFFUL
 			#endif
+			
+			bool identical(this_type const & O, node_ptr_type ptr, node_ptr_type optr) const
+			{
+				if ( isLeaf(ptr) != O.isLeaf(optr) )
+					return false;
+				
+				if ( isLeaf(ptr) )
+				{
+					leaf_type const & anode = getLeaf(ptr);
+					leaf_type const & bnode = O.getLeaf(optr);
+					bool const ok = ( anode.data == bnode.data );
+					
+					if ( ! ok )
+						std::cerr << "data" << std::endl;
+					
+					return ok;
+				}
+				else
+				{
+					inner_node_type const & inode = getNode(ptr);
+					inner_node_type const & onode = O.getNode(optr);				
+					
+					if ( inode.dataFilled != onode.dataFilled )
+					{
+						std::cerr << "data filled " << inode.dataFilled << " " << onode.dataFilled << std::endl;
+						return false;
+					}
+
+					for ( unsigned int i = 0; i < inode.dataFilled; ++i )
+					{
+						if ( inode.data[i].cnt != onode.data[i].cnt )
+						{
+							std::cerr << "cnt" << std::endl;
+							return false;
+						}
+						if ( inode.data[i].bcnt != onode.data[i].bcnt )
+						{
+							std::cerr << "bcnt" << std::endl;
+							return false;
+						}
+						if ( ! identical(O,inode.data[i].ptr,onode.data[i].ptr) )
+							return false;
+					}
+					
+					return true;
+				}
+			}
+			
+			bool identical(this_type const & O) const
+			{
+				if ( root_cnt != O.root_cnt )
+				{
+					std::cerr << "root_cnt" << std::endl;
+					return false;
+				}
+				if ( root_bcnt != O.root_bcnt )
+				{
+					std::cerr << "root_bcnt" << std::endl;
+					return false;
+				}
+				if ( empty != O.empty )
+				{
+					std::cerr << "empty" << std::endl;
+					return false;
+				}
+				if ( depth != O.depth )
+				{
+					std::cerr << "depth" << std::endl;
+					return false;
+				}
+				if ( ! empty )
+					return identical(O,root,O.root);
+				else
+					return true;
+			}
+			
+			void serialise(std::ostream & out, node_ptr_type ptr) const
+			{
+				int const d = isLeaf(ptr) ? 255 : 254;
+				out.put(d);
+				
+				if ( isLeaf(ptr) )
+				{
+					leaf_type const & lnode = getLeaf(ptr);
+					lnode.serialise(out);					
+				}
+				else
+				{
+					inner_node_type const & inode = getNode(ptr);
+					//libmaus2::util::UTF8::encodeUTF8(inode.dataFilled,out);
+					libmaus2::util::NumberSerialisation::serialiseNumber(out,inode.dataFilled);
+					for ( unsigned int i = 0; i < inode.dataFilled; ++i )
+					{
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,inode.data[i].cnt);
+						libmaus2::util::NumberSerialisation::serialiseNumber(out,inode.data[i].bcnt);
+						serialise(out,inode.data[i].ptr);
+					}
+				}
+			}
+
+			node_ptr_type deserialiseNode(std::istream & in)
+			{
+				int const d = in.get();
+				
+				if ( d < 0 )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bitbtree::BitBTree::deserialiseNode(): unexpected EOF" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				
+				if ( d == 255 )
+				{
+					node_ptr_type pleaf = allocateLeaf();					
+					leaf_type & lnode = getLeaf(pleaf);
+					lnode.deserialise(in);
+					
+					return pleaf;
+				}
+				else if ( d == 254 )
+				{
+					node_ptr_type pin = allocateNode();
+					inner_node_type & inode = getNode(pin);
+					//inode.dataFilled = libmaus2::util::UTF8::decodeUTF8(in);
+					inode.dataFilled = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+					for ( unsigned int i = 0; i < inode.dataFilled; ++i )
+					{
+						inode.data[i].cnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+						inode.data[i].bcnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+						inode.data[i].ptr = deserialiseNode(in);
+					}
+					
+					return pin;
+				}
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bitbtree::BitBTree::deserialiseNode(): unknown node type" << std::endl;
+					lme.finish();
+					throw lme;					
+				}
+			}
+
+			void serialise(std::ostream & out) const
+			{
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,root_cnt);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,root_bcnt);
+				out.put(empty);
+				libmaus2::util::NumberSerialisation::serialiseNumber(out,depth);
+				if ( ! empty )
+					serialise(out,root);
+			}
+			
+			void deserialise(std::istream & in)
+			{
+				if ( ! empty )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bitbtree::BitBTree::deserialise(): cannot deserialise into non empty tree" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				
+				root_cnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				root_bcnt = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+				
+				int const dempty = in.get();
+
+				if ( dempty < 0 )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::bitbtree::BitBTree::deserialise(): unexpected EOF" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+				
+				empty = dempty;
+
+				depth = libmaus2::util::NumberSerialisation::deserialiseNumber(in);
+
+				if ( ! empty )
+					root = deserialiseNode(in);
+			}
 			
 			template<typename writer_type> 
 			void serialize(writer_type & writer, node_ptr_type ptr, bit_count_type cnt) const
@@ -1592,7 +1786,7 @@ namespace libmaus2
 							i -= innernode.data[j].cnt;
 					}
 					
-					throw std::out_of_range("Position does not exist.");
+					throw std::out_of_range("setBitQuick: Position does not exist.");
 				}
 			}
 
@@ -1615,7 +1809,7 @@ namespace libmaus2
 							i -= innernode.data[j].cnt;
 					}
 					
-					throw std::out_of_range("Position does not exist.");
+					throw std::out_of_range("access: Position does not exist.");
 				}
 			}
 
@@ -1643,7 +1837,7 @@ namespace libmaus2
 						}
 					}
 					
-					throw std::out_of_range("Position does not exist.");
+					throw std::out_of_range("rank1: Position does not exist.");
 				}
 			}
 
@@ -1674,7 +1868,7 @@ namespace libmaus2
 						}
 					}
 					
-					throw std::out_of_range("Position does not exist.");
+					throw std::out_of_range("inverseSelect1: Position does not exist.");
 				}
 			}
 
@@ -1705,7 +1899,7 @@ namespace libmaus2
 						}
 					}
 					
-					throw std::out_of_range("Position does not exist.");
+					throw std::out_of_range("inverseSelect0: Position does not exist.");
 				}
 			}
 

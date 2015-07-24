@@ -20,6 +20,7 @@
 
 #include <libmaus2/dazzler/db/FastaInfo.hpp>
 #include <libmaus2/dazzler/db/IndexBase.hpp>
+#include <libmaus2/dazzler/db/Track.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/dazzler/db/Read.hpp>
 #include <libmaus2/rank/ImpCacheLineRank.hpp>
@@ -488,7 +489,8 @@ namespace libmaus2
 					std::cerr << off[indexbase.nreads] << std::endl;
 					#endif
 
-					uint64_t const n = indexbase.nreads;
+					// compute untrimmed vector (each bit set)
+					uint64_t const n = indexbase.ureads;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
 										
@@ -508,6 +510,38 @@ namespace libmaus2
 						sum += t;
 					}
 					fileoffsets.push_back(sum);
+					
+					if ( part )
+					{
+						indexbase.nreads = blocks[part].first - blocks[part-1].first;
+						indexbase.ufirst = blocks[part-1].first;
+						indexbase.tfirst = blocks[part-1].second;
+					}
+					else
+					{
+						if ( blocks.size() )
+							indexbase.nreads = blocks.back().first - blocks.front().first;
+						else
+							indexbase.nreads = 0;
+
+						indexbase.ufirst = 0;
+						indexbase.tfirst = 0;
+					}
+
+					{
+						libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+						std::istream & idxfile = *Pidxfile;
+						idxfile.seekg(indexoffset + /* mappedindex */ indexbase.ufirst * Read::serialisedSize);
+						Read R;
+						indexbase.totlen = 0;
+						indexbase.maxlen = 0;
+						for ( int64_t i = 0; i < indexbase.nreads; ++i )
+						{
+							R.deserialise(idxfile);
+							indexbase.totlen += R.rlen;
+							indexbase.maxlen = std::max(indexbase.maxlen,R.rlen);
+						}					
+					}
 				}
 				
 				uint64_t readIdToFileId(uint64_t const readid) const
@@ -656,6 +690,19 @@ namespace libmaus2
 					return std::string(A.begin(),A.begin()+rlen);
 				}
 				
+				std::string decodeRead(size_t const i, bool const inv) const
+				{					
+					libmaus2::autoarray::AutoArray<char> A;
+					size_t const rlen = decodeRead(i,A);
+					if ( inv )
+					{
+						std::reverse(A.begin(),A.begin()+rlen);
+						for ( size_t i = 0; i < rlen; ++i )
+							A[i] = libmaus2::fastx::invertUnmapped(A[i]);
+					}
+					return std::string(A.begin(),A.begin()+rlen);
+				}
+				
 				void decodeAllReads(libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const
 				{
 					decodeReads(0, size(), A, off);
@@ -674,7 +721,8 @@ namespace libmaus2
 					if ( all && cutoff < 0 )
 						return;
 				
-					uint64_t const n = indexbase.nreads;
+					int64_t const n = indexbase.ureads;
+					uint64_t numkept = 0;
 					libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ttrim(new libmaus2::rank::ImpCacheLineRank(n));
 					Ptrim = UNIQUE_PTR_MOVE(Ttrim);
 
@@ -682,7 +730,9 @@ namespace libmaus2
 					Pidxfile->seekg(indexoffset);
 										
 					libmaus2::rank::ImpCacheLineRank::WriteContext context = Ptrim->getWriteContext();
-					for ( uint64_t i = 0; i < n; ++i )
+					indexbase.totlen = 0;
+					indexbase.maxlen = 0;
+					for ( int64_t i = 0; i < n; ++i )
 					{
 						Read R(*Pidxfile);
 						
@@ -692,10 +742,23 @@ namespace libmaus2
 							((cutoff < 0) || (R.rlen >= cutoff))
 						;
 						
+						if ( keep )
+						{						
+							if ( i >= indexbase.ufirst && i < indexbase.ufirst+indexbase.nreads )
+							{
+								numkept++;
+								indexbase.totlen += R.rlen;
+								indexbase.maxlen = std::max(indexbase.maxlen,R.rlen);
+							}
+						}
+						
 						context.writeBit(keep);
 					}
 					
 					context.flush();
+					
+					indexbase.trimmed = true;
+					indexbase.nreads = numkept;
 				}
 
 				uint64_t computeReadLengthSum() const
@@ -713,6 +776,207 @@ namespace libmaus2
 					
 					return s;
 				}
+
+				static std::string getTrackFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname, std::string const & type)
+				{
+					if ( part )
+					{
+						std::ostringstream ostr;
+						ostr << path << "/" << root << "." << part << "." << trackname << "." << type;
+						if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(ostr.str()) )
+							return ostr.str();
+					}
+
+					std::ostringstream ostr;
+					ostr << path << "/" << root << "." << trackname << "." << type;
+
+					return ostr.str();
+				}
+
+				static std::string getTrackAnnoFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname) 
+				{
+					return getTrackFileName(path,root,part,trackname,"anno");
+				}
+
+				static std::string getTrackDataFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname)
+				{
+					return getTrackFileName(path,root,part,trackname,"data");
+				}
+
+				std::string getTrackAnnoFileName(std::string const & trackname) const
+				{
+					return getTrackAnnoFileName(path,root,part,trackname);
+				}
+
+				std::string getTrackDataFileName(std::string const & trackname) const
+				{
+					return getTrackDataFileName(path,root,part,trackname);
+				}
+
+				Track::unique_ptr_type readTrack(std::string const & trackname) const
+				{				
+					bool ispart = false;
+					std::string annoname;
+
+					// check whether annotation/track is specific to this block
+					if ( 
+						this->part &&
+						libmaus2::aio::InputStreamFactoryContainer::tryOpen(this->path + "/" + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno" )
+					)
+					{
+						ispart = true;
+						annoname = this->path + "/" + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno";
+					}
+					// no, try whole database
+					else
+					{
+						annoname = this->path + "/" + this->root + "." + trackname + ".anno";
+					}
+					
+					if ( ! libmaus2::aio::InputStreamFactoryContainer::tryOpen(annoname) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Unable to open " << annoname << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					std::string dataname;
+					if ( ispart )
+						dataname = this->path + "/" + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".data";
+					else
+						dataname = this->path + "/" + this->root + "." + trackname + ".data";
+					
+					libmaus2::aio::InputStream::unique_ptr_type Panno(libmaus2::aio::InputStreamFactoryContainer::constructUnique(annoname));
+					std::istream & anno = *Panno;
+				
+					uint64_t offset = 0;
+					int32_t tracklen = InputBase::getLittleEndianInteger4(anno,offset);
+					int32_t size = InputBase::getLittleEndianInteger4(anno,offset);
+					
+					libmaus2::aio::InputStream::unique_ptr_type Pdata;
+					if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(dataname) )
+					{
+						libmaus2::aio::InputStream::unique_ptr_type Tdata(libmaus2::aio::InputStreamFactoryContainer::constructUnique(dataname));
+						Pdata = UNIQUE_PTR_MOVE(Tdata);
+					}
+				
+					TrackAnnoInterface::unique_ptr_type PDanno;
+					libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type Adata;
+					
+					// number of reads in database loaded
+					uint64_t const nreads = this->indexbase.nreads;
+					
+					// check whether we have a consistent number of reads
+					if ( static_cast<int64_t>(nreads) != tracklen )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "Number of reads in track " << tracklen << " does not match number of reads in block/database " << nreads << std::endl;
+						lme.finish();
+						throw lme;				
+					}
+
+					// if database is part but track is for complete database then seek
+					if ( this->part && ! ispart )
+					{
+						if ( this->indexbase.trimmed )
+							anno.seekg(size * this->indexbase.tfirst, std::ios::cur);
+						else
+							anno.seekg(size * this->indexbase.ufirst, std::ios::cur);
+					}
+					
+					uint64_t const annoread = Pdata ? (nreads+1) : nreads;
+
+					if ( size == 1 )
+					{
+						TrackAnno<uint8_t>::unique_ptr_type Tanno(new TrackAnno<uint8_t>(annoread));
+
+						for ( uint64_t i = 0; i < annoread; ++i )
+						{
+							int const c = Panno->get();
+							if ( c < 0 )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "TrackIO::readTrack: unexpected EOF" << std::endl;
+								lme.finish();
+								throw lme;						
+							}
+							Tanno->A[i] = c;
+						}
+				
+						TrackAnnoInterface::unique_ptr_type Tint(Tanno.release());
+						PDanno = UNIQUE_PTR_MOVE(Tint);
+					}
+					if ( size == 2 )
+					{
+						TrackAnno<uint16_t>::unique_ptr_type Tanno(new TrackAnno<uint16_t>(annoread));
+
+						uint64_t offset = 0;
+						for ( uint64_t i = 0; i < annoread; ++i )
+							Tanno->A[i] = InputBase::getLittleEndianInteger2(*Panno,offset);
+				
+						TrackAnnoInterface::unique_ptr_type Tint(Tanno.release());
+						PDanno = UNIQUE_PTR_MOVE(Tint);
+					}
+					if ( size == 4 )
+					{
+						TrackAnno<uint32_t>::unique_ptr_type Tanno(new TrackAnno<uint32_t>(annoread));
+
+						uint64_t offset = 0;
+						for ( uint64_t i = 0; i < annoread; ++i )
+							Tanno->A[i] = InputBase::getLittleEndianInteger4(*Panno,offset);
+				
+						TrackAnnoInterface::unique_ptr_type Tint(Tanno.release());
+						PDanno = UNIQUE_PTR_MOVE(Tint);
+					}
+					else if ( size == 8 )
+					{
+						TrackAnno<uint64_t>::unique_ptr_type Tanno(new TrackAnno<uint64_t>(annoread));
+
+						uint64_t offset = 0;
+						for ( uint64_t i = 0; i < annoread; ++i )
+							Tanno->A[i] = InputBase::getLittleEndianInteger8(*Panno,offset);
+				
+						TrackAnnoInterface::unique_ptr_type Tint(Tanno.release());
+						PDanno = UNIQUE_PTR_MOVE(Tint);
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "TrackIO::readTrack: unknown size " << size << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
+					if ( Pdata )
+					{
+						if ( (*PDanno)[0] )
+							Pdata->seekg((*PDanno)[0]);
+						
+						int64_t const toread = (*PDanno)[nreads] - (*PDanno)[0];
+						
+						libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type Tdata(new libmaus2::autoarray::AutoArray<unsigned char>(toread,false));
+						Adata = UNIQUE_PTR_MOVE(Tdata);
+						
+						Pdata->read ( reinterpret_cast<char *>(Adata->begin()), toread );
+						
+						if ( Pdata->gcount() != toread )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "TrackIO::readTrack: failed to read data" << size << std::endl;
+							lme.finish();
+							throw lme;
+						}
+						
+						PDanno->shift((*PDanno)[0]);
+					}
+					// incomplete
+
+					Track::unique_ptr_type track(new Track(trackname,PDanno,Adata));
+					
+					return UNIQUE_PTR_MOVE(track);
+				}
+
 			};
 
 			std::ostream & operator<<(std::ostream & out, DatabaseFile const & D);
