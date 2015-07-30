@@ -899,7 +899,10 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		{
 			try
 			{
-				std::cerr << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;		
+				if ( error == 0 )
+					std::cerr << "libmaus2::util::PosixExecute::execute(): \"" << command << "\" exited with status " << returncode << std::endl;
+				else
+					std::cerr << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
 			}
 			catch(...)
 			{
@@ -908,7 +911,10 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		else
 		{
 			libmaus2::exception::LibMausException lme;
-			lme.getStream() << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
+			if ( error == 0 )
+				lme.getStream() << "libmaus2::util::PosixExecute::execute(): \"" << command << "\" exited with status " << returncode << std::endl;
+			else
+				lme.getStream() << "libmaus2::util::PosixExecute::execute() failed: " << strerror(error) << std::endl;
 			lme.finish();
 			throw lme;
 		}
