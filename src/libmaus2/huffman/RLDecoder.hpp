@@ -20,7 +20,7 @@
 #if ! defined(RLDECODER_HPP)
 #define RLDECODER_HPP
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/bitio/BitIOInput.hpp>
 #include <libmaus2/bitio/readElias.hpp>
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
@@ -339,9 +339,10 @@ namespace libmaus2
 
 					libmaus2::huffman::IndexEntry const ientry = IDD.readEntry(plow);
 					
-					libmaus2::aio::CheckedInputStream CIS(filename);
+					libmaus2::aio::InputStream::unique_ptr_type PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+					std::istream & CIS = *PCIS;
 					CIS.clear();
-					CIS.seekg(ientry.pos,std::ios::beg);					
+					CIS.seekg(ientry.pos,std::ios::beg);
 
 					// set up bit input
 					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(CIS));

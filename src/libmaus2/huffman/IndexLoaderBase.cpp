@@ -25,7 +25,8 @@
  */
 uint64_t libmaus2::huffman::IndexLoaderBase::getIndexPos(std::string const & filename)
 {
-	::libmaus2::aio::CheckedInputStream indexistr(filename);
+	libmaus2::aio::InputStream::unique_ptr_type Pindexistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+	std::istream & indexistr = *Pindexistr;
 
 	// read position of index (last 8 bytes of file)
 	// and convert byte order if necessary

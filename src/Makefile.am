@@ -1207,7 +1207,9 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/MemoryOutputStreamBuffer.hpp \
 	libmaus2/aio/MemoryOutputStreamFactory.hpp \
 	libmaus2/aio/MemoryOutputStream.hpp \
-	libmaus2/aio/FileRemoval.hpp
+	libmaus2/aio/FileRemoval.hpp \
+	libmaus2/aio/InputStreamPointerWrapper.hpp \
+	libmaus2/aio/InputStreamInstance.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1444,7 +1446,8 @@ libmaus2random_includedir=$(includedir)/libmaus2/random
 libmaus2random_include_HEADERS=\
 	libmaus2/random/Random.hpp \
 	libmaus2/random/UniformUnitRandom.hpp \
-	libmaus2/random/GaussianRandom.hpp
+	libmaus2/random/GaussianRandom.hpp \
+	libmaus2/random/DNABaseNoiseSpiker.hpp
 
 libmaus2graph_includedir=$(includedir)/libmaus2/graph
 libmaus2graph_include_HEADERS=\

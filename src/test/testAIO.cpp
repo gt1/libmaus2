@@ -24,6 +24,7 @@
 #include <libmaus2/aio/PosixFdInputStream.hpp>
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 #include <vector>
 #include <map>
@@ -197,6 +198,15 @@ void testInputOutput()
 
 int main(int argc, char * argv[])
 {
+	{
+	libmaus2::aio::InputStreamInstance in("configure");
+	int c = -1;
+	while ( (c=in.get()) != std::istream::traits_type::eof() )
+		std::cout.put(c);
+	
+	// return 0;
+	}
+	
 	// testInputOutput<libmaus2::aio::PosixFdInputOutputStream>();
 	testInputOutput<libmaus2::aio::MemoryInputOutputStream,libmaus2::aio::MemoryOutputStream,libmaus2::aio::MemoryInputStream>();
 	
