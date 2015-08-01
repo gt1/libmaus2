@@ -29,13 +29,13 @@ namespace libmaus2
 		{
 			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
 			
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			sbis_type::raw_input_ptr_type ript;
 			sbis_type::unique_ptr_type SBIS;
 			
-			static ::libmaus2::aio::CheckedInputStream::unique_ptr_type openFileAtPosition(std::string const & filename, uint64_t const pos)
+			static ::libmaus2::aio::InputStreamInstance::unique_ptr_type openFileAtPosition(std::string const & filename, uint64_t const pos)
 			{
-				::libmaus2::aio::CheckedInputStream::unique_ptr_type istr(new ::libmaus2::aio::CheckedInputStream(filename));
+				::libmaus2::aio::InputStreamInstance::unique_ptr_type istr(new ::libmaus2::aio::InputStreamInstance(filename));
 				istr->seekg(pos,std::ios::beg);
 				return UNIQUE_PTR_MOVE(istr);
 			}

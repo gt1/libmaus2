@@ -1558,12 +1558,12 @@ namespace libmaus2
 						uint64_t const nphigh = nodepacks[np].second;
 						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
 						
-						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::InputStreamInstance::unique_ptr_type > tmpCIS(numparts);
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							::libmaus2::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus2::aio::CheckedInputStream(tmpfilenames[i]));
+							::libmaus2::aio::InputStreamInstance::unique_ptr_type ttmpCISi(new ::libmaus2::aio::InputStreamInstance(tmpfilenames[i]));
 							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
 							::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
@@ -1631,7 +1631,7 @@ namespace libmaus2
 					
 					for ( uint64_t i = 0; i < nptempfilenames.size(); ++i )
 					{
-						::libmaus2::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
+						::libmaus2::aio::InputStreamInstance tmpCIS(nptempfilenames[i]);
 						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
 						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
@@ -2176,12 +2176,12 @@ namespace libmaus2
 						uint64_t const nphigh = nodepacks[np].second;
 						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
 						
-						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::CheckedInputStream::unique_ptr_type > tmpCIS(numparts);
+						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::InputStreamInstance::unique_ptr_type > tmpCIS(numparts);
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
 						
 						for ( uint64_t i = 0; i < numparts; ++i )
 						{
-							::libmaus2::aio::CheckedInputStream::unique_ptr_type ttmpCISi(new ::libmaus2::aio::CheckedInputStream(tmpfilenames[i]));
+							::libmaus2::aio::InputStreamInstance::unique_ptr_type ttmpCISi(new ::libmaus2::aio::InputStreamInstance(tmpfilenames[i]));
 							tmpCIS[i] = UNIQUE_PTR_MOVE(ttmpCISi);
 							tmpCIS[i]->seekg(vnodewordcnt[i][nplow]*sizeof(uint64_t));
 							::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type ttmpSGIi(new ::libmaus2::aio::SynchronousGenericInput<uint64_t>(*tmpCIS[i],1024));
@@ -2249,7 +2249,7 @@ namespace libmaus2
 					
 					for ( uint64_t i = 0; i < nptempfilenames.size(); ++i )
 					{
-						::libmaus2::aio::CheckedInputStream tmpCIS(nptempfilenames[i]);
+						::libmaus2::aio::InputStreamInstance tmpCIS(nptempfilenames[i]);
 						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
 						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;

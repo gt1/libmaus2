@@ -23,7 +23,7 @@
 
 #include <libmaus2/fastx/CharBuffer.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <cerrno>
 
 namespace libmaus2

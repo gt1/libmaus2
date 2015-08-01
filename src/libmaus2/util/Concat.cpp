@@ -38,7 +38,7 @@ uint64_t libmaus2::util::Concat::concat(std::string const & filename, std::ostre
 {
 	uint64_t n = ::libmaus2::util::GetFileSize::getFileSize(filename);
 	::libmaus2::autoarray::AutoArray < char > buf(16*1024,false);
-	libmaus2::aio::CheckedInputStream in(filename);
+	libmaus2::aio::InputStreamInstance in(filename);
 	uint64_t c = 0;
 	
 	while ( n )
@@ -50,9 +50,7 @@ uint64_t libmaus2::util::Concat::concat(std::string const & filename, std::ostre
 		n -= toread;
 		c += toread;
 	}
-	
-	in.close();
-	
+		
 	return c;
 }
 

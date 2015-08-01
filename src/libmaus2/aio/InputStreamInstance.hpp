@@ -19,7 +19,7 @@
 #define LIBMAUS2_AIO_INPUTSTREAMINSTANCE_HPP
 
 #include <libmaus2/aio/InputStreamPointerWrapper.hpp>
-#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <istream>
 
 namespace libmaus2
 {
@@ -27,16 +27,11 @@ namespace libmaus2
 	{
 		struct InputStreamInstance : protected InputStreamPointerWrapper, public std::istream
 		{
-			InputStreamInstance(
-				std::string const & fn
-			)
-			: InputStreamPointerWrapper(
-				libmaus2::aio::InputStreamFactoryContainer::constructUnique(fn)
-			),
-			std::istream(InputStreamPointerWrapper::getStreamReference().rdbuf())
-			{
+			typedef InputStreamInstance this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			}
+			InputStreamInstance(std::string const & fn);
 		};
 	}
 }

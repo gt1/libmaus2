@@ -21,6 +21,7 @@
 
 #include <libmaus2/fastx/FastABgzfIndexEntry.hpp>
 #include <libmaus2/fastx/FastABgzfDecoder.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/trie/TrieState.hpp>
 
 namespace libmaus2
@@ -40,7 +41,7 @@ namespace libmaus2
 			
 			static unique_ptr_type load(std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::InputStreamInstance CIS(filename);
 				unique_ptr_type tptr(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(tptr);
 			}

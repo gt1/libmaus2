@@ -478,10 +478,10 @@ namespace libmaus2
                         	typedef RewriteInfoDecoder this_type;
                         	typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
                         
-                        	::libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
+                        	::libmaus2::aio::InputStreamInstance::unique_ptr_type CIS;
                         	
                         	RewriteInfoDecoder(std::string const & filename)
-                        	: CIS(new ::libmaus2::aio::CheckedInputStream(filename))
+                        	: CIS(new ::libmaus2::aio::InputStreamInstance(filename))
                         	{
                         	
                         	}

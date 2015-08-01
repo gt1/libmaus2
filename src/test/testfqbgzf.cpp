@@ -230,8 +230,8 @@ int main(int argc, char * argv[])
 		fioutstr->flush();
 		fioutstr.reset();
 		
-		libmaus2::aio::CheckedInputStream fiin(fifilename);
-		libmaus2::aio::CheckedInputStream bgzfidxin(bgzfidxfilename);
+		libmaus2::aio::InputStreamInstance fiin(fifilename);
+		libmaus2::aio::InputStreamInstance bgzfidxin(bgzfidxfilename);
 		libmaus2::fastx::FastInterval rFI;
 		
 		uint64_t filow = 0;

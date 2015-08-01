@@ -25,7 +25,7 @@
 #include <ios>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
 #include <libmaus2/bitio/Ctz.hpp>
 #include <libmaus2/bitio/CompactArray.hpp>
@@ -38,7 +38,7 @@ namespace libmaus2
 		struct PacDecoderBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus2::aio::CheckedInputStream stream;
+			::libmaus2::aio::InputStreamInstance stream;
 			
 			// log of word size we are using
 			static unsigned int const loglog = 3;
@@ -60,7 +60,7 @@ namespace libmaus2
 			PacDecoderBuffer(PacDecoderBuffer const &);
 			PacDecoderBuffer & operator=(PacDecoderBuffer&);
 			
-			static uint64_t getNumberOfSymbols(::libmaus2::aio::CheckedInputStream & stream)
+			static uint64_t getNumberOfSymbols(::libmaus2::aio::InputStreamInstance & stream)
 			{
 				stream.seekg(-1,std::ios::end);
 				uint64_t const databytes = stream.tellg();

@@ -21,7 +21,7 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/Lz4Index.hpp>
 #include <libmaus2/lz/Lz4Base.hpp>
@@ -36,7 +36,7 @@ namespace libmaus2
 			private:
 			static uint64_t const headersize = 1*sizeof(uint64_t);
 			
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type Pfilestream;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type Pfilestream;
 			std::istream & stream;
 			Lz4Index index;
 
@@ -69,7 +69,7 @@ namespace libmaus2
 			
 			public:
 			Lz4DecoderBuffer(std::string const & filename)
-			: Pfilestream(new ::libmaus2::aio::CheckedInputStream(filename)),
+			: Pfilestream(new ::libmaus2::aio::InputStreamInstance(filename)),
 			  stream(*Pfilestream),
 			  index(stream),
 			  buffer(index.blocksize,false),

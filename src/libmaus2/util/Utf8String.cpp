@@ -73,7 +73,7 @@ libmaus2::util::Utf8String::Utf8String(
 	uint64_t offset, 
 	uint64_t blength)
 {	
-	::libmaus2::aio::CheckedInputStream CIS(filename);
+	::libmaus2::aio::InputStreamInstance CIS(filename);
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(CIS);
 	offset = std::min(offset,fs);
 	blength = std::min(blength,fs-offset);
@@ -143,7 +143,7 @@ libmaus2::util::Utf8String::Utf8String(std::wistream & CIS, uint64_t const octet
 	for ( int64_t i = 0; i < static_cast<int64_t>(numparts); ++i )
 	{
 		uint64_t j = std::min(i*tpartsize,fs);
-		::libmaus2::aio::CheckedInputStream G(fn);
+		::libmaus2::aio::InputStreamInstance G(fn);
 		G.seekg(j);
 		
 		while ( j != fs && ((G.get() & 0xc0) == 0x80) )
@@ -297,18 +297,18 @@ struct HistogramThread : public ::libmaus2::parallel::PosixThread
 	::libmaus2::parallel::PosixMutex mutex;
 	::libmaus2::util::ExtendingSimpleCountingHash<uint64_t,uint64_t> ESCH(8u);
 	
-	typedef HistogramThread< ::libmaus2::aio::CheckedInputStream > thread_type;
+	typedef HistogramThread< ::libmaus2::aio::InputStreamInstance > thread_type;
 	typedef thread_type::unique_ptr_type thread_ptr_type;
-	::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedInputStream::unique_ptr_type > getters(numparts);
+	::libmaus2::autoarray::AutoArray< ::libmaus2::aio::InputStreamInstance::unique_ptr_type > getters(numparts);
 	::libmaus2::autoarray::AutoArray<thread_ptr_type> threads(numparts);
 
 	for ( uint64_t i = 0; i < numparts; ++i )
 	{
-		::libmaus2::aio::CheckedInputStream::unique_ptr_type tgettersi(
-                                new ::libmaus2::aio::CheckedInputStream(fn)
+		::libmaus2::aio::InputStreamInstance::unique_ptr_type tgettersi(
+                                new ::libmaus2::aio::InputStreamInstance(fn)
                         );
 		getters[i] = UNIQUE_PTR_MOVE(tgettersi);
-		getters[i]->setBufferSize(16*1024);
+		// getters[i]->setBufferSize(16*1024);
 		getters[i]->seekg(partstarts[i]);
 		thread_ptr_type tthreadsi(new thread_type(*getters[i],
                                 partstarts[i+1]-partstarts[i],mutex,ESCH,i));

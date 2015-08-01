@@ -356,7 +356,7 @@ void testsparsegammalevelmerge()
 	std::string const ffn = tmpgen.getFileName();
 	SGGF.merge(ffn);
 	
-	libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
@@ -685,7 +685,7 @@ void testsparsegammamerge()
 	std::string const ffn = tmpgen.getFileName();
 	SGGF.merge(ffn);
 	
-	libmaus2::aio::CheckedInputStream CIS(ffn);
+	libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
@@ -736,7 +736,7 @@ void testsparsegammamultimerge()
 	std::string const ffn = tmpgen.getFileName();
 	std::vector<std::string> const fno = SGGF.merge(ffn);
 	
-	// libmaus2::aio::CheckedInputStream CIS(ffn);
+	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
@@ -789,7 +789,7 @@ void testsparsegammamultifilesetmerge()
 	std::string const ffn = tmpgen.getFileName();
 	std::vector<std::string> const fno = SGGF.merge(ffn);
 	
-	// libmaus2::aio::CheckedInputStream CIS(ffn);
+	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::SparseGammaGapConcatDecoder SGGD(fno);
 	for ( uint64_t i = 0; i < 60; ++i )
 	{
@@ -842,7 +842,7 @@ void testsparsegammamultifilesetmergedense()
 	std::string const ffn = tmpgen.getFileName();
 	std::vector<std::string> const fno = SGGF.mergeToDense(ffn,maxval+1);
 	
-	// libmaus2::aio::CheckedInputStream CIS(ffn);
+	// libmaus2::aio::InputStreamInstance CIS(ffn);
 	libmaus2::gamma::GammaGapDecoder SGGD(fno);
 	for ( uint64_t i = 0; i < maxval+1; ++i )
 	{

@@ -212,7 +212,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/fastx/SingleWordDNABitBuffer.cpp \
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.cpp \
 	libmaus2/lcs/AlignerFactory.cpp \
-	libmaus2/lcs/BandedAlignerFactory.cpp
+	libmaus2/lcs/BandedAlignerFactory.cpp \
+	libmaus2/aio/InputStreamInstance.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 

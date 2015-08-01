@@ -32,6 +32,8 @@
 
 #include <libmaus2/aio/PosixFdInputOutputStream.hpp>
 
+#include <libmaus2/aio/CheckedInputStream.hpp>
+
 void testPosixFdInput()
 {
 	::libmaus2::autoarray::AutoArray<unsigned char> A = libmaus2::util::GetFileSize::readFile("configure");

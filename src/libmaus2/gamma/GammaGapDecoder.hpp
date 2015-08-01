@@ -23,7 +23,7 @@
 #include <libmaus2/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus2/huffman/KvInitResult.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 
 namespace libmaus2
@@ -38,7 +38,7 @@ namespace libmaus2
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 			
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
 
@@ -55,8 +55,8 @@ namespace libmaus2
 				if ( fileptr < idda.data.size() && blockptr < idda.data[fileptr].numentries )
 				{
 					/* open file */
-					::libmaus2::aio::CheckedInputStream::unique_ptr_type tistr(
-                                                        new ::libmaus2::aio::CheckedInputStream(idda.data[fileptr].filename)
+					::libmaus2::aio::InputStreamInstance::unique_ptr_type tistr(
+                                                        new ::libmaus2::aio::InputStreamInstance(idda.data[fileptr].filename)
                                                 );
 					istr = UNIQUE_PTR_MOVE(tistr);
 

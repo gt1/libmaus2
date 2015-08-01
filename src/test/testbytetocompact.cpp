@@ -57,7 +57,7 @@ void testcompact()
 	COS.close();
 	#endif
 	
-	::libmaus2::aio::CheckedInputStream CIS(fn);
+	::libmaus2::aio::InputStreamInstance CIS(fn);
 	std::cerr << "compact file size is " << ::libmaus2::util::GetFileSize::getFileSize(CIS) << std::endl;
 	assert ( CIS.tellg() == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );
@@ -137,7 +137,7 @@ void testcompact()
 		if ( range )
 		{
 			::libmaus2::autoarray::AutoArray<uint64_t> lhist(ghist.size());	
-			::libmaus2::aio::CheckedInputStream CIS(inputfile);
+			::libmaus2::aio::InputStreamInstance CIS(inputfile);
 			CIS.seekg(low);
 			uint64_t const blocksize = 8192;
 			uint64_t const numblocks = ((range)+blocksize-1)/blocksize;
@@ -190,7 +190,7 @@ int main(int argc, char * argv[])
 		uint64_t const blocksize = 8*1024;
 		uint64_t const numblocks = (n+blocksize-1)/blocksize;
 		::libmaus2::autoarray::AutoArray<uint8_t> B(blocksize);
-		::libmaus2::aio::CheckedInputStream CIS(input);
+		::libmaus2::aio::InputStreamInstance CIS(input);
 		::libmaus2::bitio::CompactArrayWriter CAW(output,n+addterm,b);
 		int64_t lastperc = -1;
 		

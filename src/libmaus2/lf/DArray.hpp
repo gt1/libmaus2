@@ -21,7 +21,7 @@
 
 #include <libmaus2/util/NumberSerialisation.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -47,7 +47,7 @@ namespace libmaus2
 
 			static ::libmaus2::autoarray::AutoArray<uint64_t> loadArray(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedInputStream CIS(filename);	
+				::libmaus2::aio::InputStreamInstance CIS(filename);	
 				return loadArray(CIS);
 			}
 			

@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		struct SnappyFileInputStream
 		{
-			libmaus2::aio::CheckedInputStream istr;
+			libmaus2::aio::InputStreamInstance istr;
 			SnappyInputStream instream;
 			
 			SnappyFileInputStream(std::string const & filename)
