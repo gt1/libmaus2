@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
 		
 		if ( maxseqlen <= 256*1024 )
 		{
-			::libmaus2::aio::CheckedInputStream CIS(tempfilename);
+			::libmaus2::aio::InputStreamInstance CIS(tempfilename);
 			::libmaus2::autoarray::AutoArray<uint8_t> B(maxseqlen+1,false);
 
 			while ( infodec->get(info) )
@@ -137,7 +137,7 @@ int main(int argc, char * argv[])
 				uint64_t const seqbeg = curpos + (info.idlen+2);
 				uint64_t const seqend = seqbeg + info.seqlen;
 				
-				::libmaus2::aio::CheckedInputStream CIS(tempfilename); CIS.seekg(seqbeg);
+				::libmaus2::aio::InputStreamInstance CIS(tempfilename); CIS.seekg(seqbeg);
 				::libmaus2::util::GetFileSize::copyMap(CIS,COS,cmap.begin(),seqend-seqbeg+1);
 				
 				::libmaus2::aio::CircularReverseWrapper CRW(tempfilename,seqend);
