@@ -32,7 +32,7 @@ std::string libmaus2::util::Utf8BlockIndex::serialise() const
 
 libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::constructFromSerialised(std::string const & fn)
 {
-	::libmaus2::aio::CheckedInputStream CIS(fn);
+	::libmaus2::aio::InputStreamInstance CIS(fn);
 
 	unique_ptr_type UP(new Utf8BlockIndex);
 
@@ -78,7 +78,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	}
 
 	
-	::libmaus2::aio::CheckedInputStream::unique_ptr_type CIS(new ::libmaus2::aio::CheckedInputStream(fn));
+	::libmaus2::aio::InputStreamInstance::unique_ptr_type CIS(new ::libmaus2::aio::InputStreamInstance(fn));
 	std::vector<uint64_t> preblockstarts;
 	
 	for ( uint64_t b = 0; b < numbblocks; ++b )
@@ -105,11 +105,11 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 	
 	preblockstarts.push_back(fs);
 	::libmaus2::autoarray::AutoArray<uint64_t> bblocksyms(numbblocks+1,false);
-	::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedInputStream::unique_ptr_type > thrstreams(numthreads,false);
+	::libmaus2::autoarray::AutoArray< ::libmaus2::aio::InputStreamInstance::unique_ptr_type > thrstreams(numthreads,false);
 	for ( uint64_t t = 0; t < numthreads; ++t )
 	{
-		::libmaus2::aio::CheckedInputStream::unique_ptr_type thrstreamst
-                        (new ::libmaus2::aio::CheckedInputStream(fn));
+		::libmaus2::aio::InputStreamInstance::unique_ptr_type thrstreamst
+                        (new ::libmaus2::aio::InputStreamInstance(fn));
 		thrstreams[t] = UNIQUE_PTR_MOVE(thrstreamst);
 	}
 	
@@ -124,7 +124,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		uint64_t const threadid = 0;
 		#endif
 		
-		::libmaus2::aio::CheckedInputStream * CIS = thrstreams[threadid].get();
+		::libmaus2::aio::InputStreamInstance * CIS = thrstreams[threadid].get();
 		CIS->clear();
 		CIS->seekg(preblockstarts[b]);
 		
@@ -161,7 +161,7 @@ libmaus2::util::Utf8BlockIndex::unique_ptr_type libmaus2::util::Utf8BlockIndex::
 		uint64_t const threadid = 0;
 		#endif
 		
-		::libmaus2::aio::CheckedInputStream * CIS = thrstreams[threadid].get();
+		::libmaus2::aio::InputStreamInstance * CIS = thrstreams[threadid].get();
 		CIS->clear();
 		CIS->seekg(preblockstarts[b]);
 		

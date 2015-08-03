@@ -1864,11 +1864,11 @@ void mergeSortedBlocks(libmaus2::util::ArgInfo const & arginfo, MergeInfo const 
 	uint64_t const numthreads = 1;
 	#endif
 
-	libmaus2::autoarray::AutoArray<libmaus2::aio::CheckedInputStream::unique_ptr_type> inputfiles(mergeinfo.tmpfilenames.size());
+	libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> inputfiles(mergeinfo.tmpfilenames.size());
 	libmaus2::lz::ZlibDecompressorObjectFactory decfact;
 	for ( uint64_t i = 0; i < inputfiles.size(); ++i )
 	{
-		libmaus2::aio::CheckedInputStream::unique_ptr_type tptr(new libmaus2::aio::CheckedInputStream(mergeinfo.tmpfilenames[i]));
+		libmaus2::aio::InputStreamInstance::unique_ptr_type tptr(new libmaus2::aio::InputStreamInstance(mergeinfo.tmpfilenames[i]));
 		inputfiles[i] = UNIQUE_PTR_MOVE(tptr);
 	}
 	
@@ -3689,11 +3689,11 @@ void bamparsort(libmaus2::util::ArgInfo const & arginfo, std::string const & new
 	#if 0
 	std::cerr << "CHECKING SORTING OF BLOCKS..." << std::endl;
 	{
-	libmaus2::autoarray::AutoArray<libmaus2::aio::CheckedInputStream::unique_ptr_type> inputfiles(mergeinfo.tmpfilenames.size());
+	libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> inputfiles(mergeinfo.tmpfilenames.size());
 	libmaus2::lz::ZlibDecompressorObjectFactory decfact;
 	for ( uint64_t i = 0; i < inputfiles.size(); ++i )
 	{
-		libmaus2::aio::CheckedInputStream::unique_ptr_type tptr(new libmaus2::aio::CheckedInputStream(mergeinfo.tmpfilenames[i]));
+		libmaus2::aio::InputStreamInstance::unique_ptr_type tptr(new libmaus2::aio::InputStreamInstance(mergeinfo.tmpfilenames[i]));
 		inputfiles[i] = UNIQUE_PTR_MOVE(tptr);
 	}
 	

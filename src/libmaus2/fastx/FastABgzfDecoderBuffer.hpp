@@ -21,7 +21,7 @@
 
 #include <streambuf>
 #include <istream>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/fastx/FastABgzfIndexEntry.hpp>
 #include <libmaus2/lz/BgzfInflate.hpp>
@@ -33,7 +33,7 @@ namespace libmaus2
 		struct FastABgzfDecoderBuffer : public ::std::streambuf
 		{
 			private:
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type Pfilestream;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type Pfilestream;
 			::std::istream & stream;
 
 			::libmaus2::fastx::FastABgzfIndexEntry const indexentry;
@@ -72,7 +72,7 @@ namespace libmaus2
 				uint64_t const rputbackspace = 0
 			)
 			: 
-			  Pfilestream(new ::libmaus2::aio::CheckedInputStream(filename)),
+			  Pfilestream(new ::libmaus2::aio::InputStreamInstance(filename)),
 			  stream(*Pfilestream),
 			  indexentry(rindexentry),
 			  blocksize(rblocksize),

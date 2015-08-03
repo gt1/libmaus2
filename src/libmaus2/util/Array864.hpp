@@ -23,6 +23,7 @@
 #include <libmaus2/bitio/getBit.hpp>
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/util/iterator.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -125,18 +126,18 @@ namespace libmaus2
 			 **/
 			static unique_ptr_type load(std::string const & fs)
 			{
-				libmaus2::aio::CheckedInputStream CIS(fs);
+				libmaus2::aio::InputStreamInstance CIS(fs);
 				unique_ptr_type u(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(u);
 			}
 
 			/**
-			 * load serialised object from CheckedInputStream CIS
+			 * load serialised object from InputStreamInstance CIS
 			 *
 			 * @param CIS input stream
 			 * @return deserialised object as unique pointer
 			 **/
-			static unique_ptr_type load(libmaus2::aio::CheckedInputStream & CIS)
+			static unique_ptr_type load(std::istream & CIS)
 			{
 				unique_ptr_type u(new this_type(CIS));
 				return UNIQUE_PTR_MOVE(u);

@@ -108,7 +108,7 @@ namespace libmaus2
 			
 			static unique_ptr_type loadFile(std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::InputStreamInstance CIS(filename);
 				unique_ptr_type ptr(load(CIS));
 				return UNIQUE_PTR_MOVE(ptr);
 			}

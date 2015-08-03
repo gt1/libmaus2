@@ -33,8 +33,8 @@ int main(int argc, char * argv[])
 			for ( uint64_t i = 0; i < arginfo.restargs.size(); ++i )
 			{
 				std::string const fn = arginfo.restargs.at(i);
-				libmaus2::aio::CheckedInputStream CIS1(fn);
-				libmaus2::aio::CheckedInputStream CIS2(fn);
+				libmaus2::aio::InputStreamInstance CIS1(fn);
+				libmaus2::aio::InputStreamInstance CIS2(fn);
 				libmaus2::util::LineBuffer LB(CIS1);
 				
 				while ( LB.getline(&a,&e) )

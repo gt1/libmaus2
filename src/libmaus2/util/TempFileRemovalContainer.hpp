@@ -25,6 +25,7 @@
 #include <string>
 #include <cstdlib>
 #include <map>
+#include <libmaus2/aio/FileRemoval.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
 #include <semaphore.h>
 #include <unistd.h>
@@ -282,7 +283,7 @@ namespace libmaus2
 			static void removeTempFiles()
 			{
 				for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
-					remove ( tmpfilenames[i].c_str() );
+					libmaus2::aio::FileRemoval::removeFile(tmpfilenames[i]);
 			}
 			
 			static void removeSemaphores()

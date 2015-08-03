@@ -20,6 +20,7 @@
 #define LIBMAUS2_HUFFMAN_HUFFMANINPUTFILE_HPP
 
 #include <libmaus2/huffman/CanonicalEncoder.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -29,19 +30,13 @@ namespace libmaus2
 		{
 			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;			
 			
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
+			::libmaus2::aio::InputStream::unique_ptr_type istr;
 			sbis_type::raw_input_ptr_type ript;
 			sbis_type::unique_ptr_type SBIS;
 			::libmaus2::huffman::CanonicalEncoder const & canon;
 			
 			HuffmanInputFile(std::string const & filename, ::libmaus2::huffman::CanonicalEncoder const & rcanon)
-			: istr(
-				UNIQUE_PTR_MOVE(
-					::libmaus2::aio::CheckedInputStream::unique_ptr_type(
-						new ::libmaus2::aio::CheckedInputStream(filename)
-					)
-				)
-			  ),
+			: istr(libmaus::aio::InputStreamFactoryContainer::constructUnique(filename)),
 			  ript(
 				UNIQUE_PTR_MOVE(
 					sbis_type::raw_input_ptr_type(

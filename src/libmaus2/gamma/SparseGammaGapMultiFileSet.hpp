@@ -23,7 +23,7 @@
 #include <libmaus2/gamma/SparseGammaGapMultiFile.hpp>
 #include <libmaus2/gamma/SparseGammaGapMerge.hpp>
 #include <libmaus2/gamma/GammaGapEncoder.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/CheckedOutputStream.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>

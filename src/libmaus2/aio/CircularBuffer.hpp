@@ -24,7 +24,7 @@
 #include <fstream>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/Utf8DecoderWrapper.hpp>
 #include <libmaus2/util/UnsignedCharVariant.hpp>
 
@@ -171,7 +171,7 @@ namespace libmaus2
 		};
 
 		//! byte oriented circular buffer
-		typedef CircularBufferTemplate< ::libmaus2::aio::CheckedInputStream  > CircularBuffer;
+		typedef CircularBufferTemplate< ::libmaus2::aio::InputStreamInstance  > CircularBuffer;
 		//! utf-8 coded circular buffer
 		typedef CircularBufferTemplate< ::libmaus2::util::Utf8DecoderWrapper > Utf8CircularBuffer;
 
@@ -327,7 +327,7 @@ namespace libmaus2
 			}
 		};
 
-		typedef CircularReverseBufferTemplate< ::libmaus2::aio::CheckedInputStream  > CircularReverseBuffer;
+		typedef CircularReverseBufferTemplate< ::libmaus2::aio::InputStreamInstance  > CircularReverseBuffer;
 		typedef CircularReverseBufferTemplate< ::libmaus2::util::Utf8DecoderWrapper > Utf8CircularReverseBuffer;
 	}
 }

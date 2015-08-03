@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 #include <libmaus2/autoarray/AutoArray.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/CheckedOutputStream.hpp>
 
 namespace libmaus2
@@ -61,19 +61,9 @@ namespace libmaus2
 				::libmaus2::autoarray::AutoArray<data_type> A(n,false);
 				
 				// open file
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				if ( !(istr && istr.is_open()) )
-				{
-					libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to open file " << filename << " for reading." << std::endl;
-					se.finish();
-					throw se;				
-				}
-				
+				libmaus2::aio::InputStreamInstance istr(filename);
 				istr.read ( reinterpret_cast<char *>(A.get()), n8 );
-				
-				istr.close();
-				
+								
 				return A;
 			}
 

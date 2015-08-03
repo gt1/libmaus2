@@ -21,7 +21,7 @@
 
 void libmaus2::util::GetFileSize::copy(std::string const & from, std::string const & to)
 {
-	::libmaus2::aio::CheckedInputStream istr(from);
+	::libmaus2::aio::InputStreamInstance istr(from);
 	::libmaus2::aio::CheckedOutputStream ostr(to);
 	copy(istr,ostr,getFileSize(from));
 	ostr.flush();
@@ -30,7 +30,7 @@ void libmaus2::util::GetFileSize::copy(std::string const & from, std::string con
 
 int libmaus2::util::GetFileSize::getSymbolAtPosition(std::string const & filename, uint64_t const pos)
 {
-	::libmaus2::aio::CheckedInputStream CIS(filename);
+	::libmaus2::aio::InputStreamInstance CIS(filename);
 	CIS.seekg(pos,std::ios::beg);
 	int const c = CIS.get();
 	if ( c < 0 )

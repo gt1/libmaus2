@@ -22,7 +22,7 @@
 #include <libmaus2/util/TempFileContainer.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/CheckedOutputStream.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <map>
@@ -41,7 +41,7 @@ namespace libmaus2
 			//! pointer to output stream
 			typedef libmaus2::util::shared_ptr<output_stream_type>::type output_stream_ptr_type;
 			//! type of input stream for temporary storage
-			typedef libmaus2::aio::CheckedInputStream input_stream_type;
+			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! pointer to input stream
 			typedef libmaus2::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
 			

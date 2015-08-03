@@ -109,7 +109,7 @@ namespace libmaus2
 			
 			static unique_ptr_type load(base_layer_type const & B, std::string const & fn)
 			{
-				libmaus2::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::InputStreamInstance CIS(fn);
 				unique_ptr_type ptr(
                                                 new this_type(CIS,B)
                                         );

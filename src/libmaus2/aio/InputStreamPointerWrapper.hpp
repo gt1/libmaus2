@@ -1,7 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2014 German Tischler
-    Copyright (C) 2011-2014 Genome Research Limited
+    Copyright (C) 2015 German Tischler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,25 +15,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LZ_SNAPPYFILEINPUTSTREAM_HPP)
-#define LIBMAUS2_LZ_SNAPPYFILEINPUTSTREAM_HPP
+#if ! defined(LIBMAUS2_AIO_INPUTSTREAMPOINTERWRAPPER_HPP)
+#define LIBMAUS2_AIO_INPUTSTREAMPOINTERWRAPPER_HPP
 
-#include <libmaus2/lz/SnappyInputStream.hpp>
+#include <libmaus2/aio/InputStream.hpp>
 
 namespace libmaus2
 {
-	namespace lz
+	namespace aio
 	{
-		struct SnappyFileInputStream
+		struct InputStreamPointerWrapper
 		{
-			libmaus2::aio::InputStreamInstance istr;
-			SnappyInputStream instream;
+			libmaus2::aio::InputStream::unique_ptr_type ptr;
 			
-			SnappyFileInputStream(std::string const & filename)
-			: istr(filename), instream(istr,0,true) {}
-			int get() { return instream.get(); }
-			uint64_t read(char * c, uint64_t const n) { return instream.read(c,n); }
-			uint64_t gcount() const { return instream.gcount(); }
+			InputStreamPointerWrapper(libmaus2::aio::InputStream::unique_ptr_type rptr)
+			: ptr(UNIQUE_PTR_MOVE(rptr)) {}
+			
+			std::istream & getStreamReference()
+			{
+				return *ptr;
+			}
 		};
 	}
 }

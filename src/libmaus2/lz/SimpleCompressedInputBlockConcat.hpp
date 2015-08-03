@@ -43,7 +43,7 @@ namespace libmaus2
 			
 			uint64_t streampos;
 			
-			libmaus2::aio::CheckedInputStream::unique_ptr_type Pcis;
+			libmaus2::aio::InputStreamInstance::unique_ptr_type Pcis;
 						
 			SimpleCompressedInputBlockConcat(
 				std::vector<libmaus2::lz::SimpleCompressedStreamNamedInterval> const & rintervals
@@ -78,7 +78,7 @@ namespace libmaus2
 					currentInterval = &(*(intervalsIt++));
 					block.currentInterval = currentInterval;
 					// open file
-					libmaus2::aio::CheckedInputStream::unique_ptr_type Tcis(new libmaus2::aio::CheckedInputStream(currentInterval->name));
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Tcis(new libmaus2::aio::InputStreamInstance(currentInterval->name));
 					Pcis = UNIQUE_PTR_MOVE(Tcis);
 					
 					// seek

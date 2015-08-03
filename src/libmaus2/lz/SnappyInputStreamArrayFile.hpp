@@ -20,6 +20,7 @@
 #define LIBMAUS2_LZ_SNAPPYINPUTSTREAMARRAYFILE_HPP
 
 #include <libmaus2/lz/SnappyInputStreamArray.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -31,7 +32,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			libmaus2::aio::CheckedInputStream istr;
+			libmaus2::aio::InputStreamInstance istr;
 			SnappyInputStreamArray array;
 			
 			template<typename iterator>

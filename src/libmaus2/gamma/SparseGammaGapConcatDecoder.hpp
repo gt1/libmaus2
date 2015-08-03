@@ -39,7 +39,7 @@ namespace libmaus2
 			
 			std::vector<std::string> const filenames;
 			uint64_t fileptr;
-			libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
+			libmaus2::aio::InputStreamInstance::unique_ptr_type CIS;
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			libmaus2::gamma::GammaDecoder<stream_type>::unique_ptr_type gdec;
 			std::pair<uint64_t,uint64_t> p;
@@ -89,7 +89,7 @@ namespace libmaus2
 					SGI.reset();
 					CIS.reset();
 					
-					libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus2::aio::CheckedInputStream(filenames[fileptr++]));
+					libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(new libmaus2::aio::InputStreamInstance(filenames[fileptr++]));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
 					libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type tSGI(new libmaus2::aio::SynchronousGenericInput<uint64_t>(*CIS,8*1024));
@@ -144,7 +144,7 @@ namespace libmaus2
 					uint64_t const curfileid = fileptr++;
 					std::string const fn = filenames[curfileid];
 
-					libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(new libmaus2::aio::CheckedInputStream(fn));
+					libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(new libmaus2::aio::InputStreamInstance(fn));
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					
 					SparseGammaGapFileIndexDecoder & indexdec = index.getSingleDecoder(curfileid); // (*CIS);

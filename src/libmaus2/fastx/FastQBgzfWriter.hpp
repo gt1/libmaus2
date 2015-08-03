@@ -21,7 +21,7 @@
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/aio/CheckedOutputStream.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/BgzfDeflateParallel.hpp>
 #include <libmaus2/lz/BgzfDeflate.hpp>
@@ -314,7 +314,7 @@ namespace libmaus2
 
 					libmaus2::aio::CheckedOutputStream indexCOS(indexfilename);
 					::libmaus2::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
-					libmaus2::aio::CheckedInputStream fiCIS(fifilename);
+					libmaus2::aio::InputStreamInstance fiCIS(fifilename);
 					
 					#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 					bgzfidoutstr->flush();
@@ -322,8 +322,8 @@ namespace libmaus2
 					bgzfidxcntoutstr->flush();
 					bgzfidxcntoutstr.reset();
 					
-					libmaus2::aio::CheckedInputStream bgzfidxCIS(bgzfidxfilename);
-					libmaus2::aio::CheckedInputStream bgzfidxcntCIS(bgzfidxcntfilename);
+					libmaus2::aio::InputStreamInstance bgzfidxCIS(bgzfidxfilename);
+					libmaus2::aio::InputStreamInstance bgzfidxcntCIS(bgzfidxcntfilename);
 					
 					uint64_t uncompacc = 0;
 					uint64_t compacc = 0;

@@ -21,7 +21,6 @@
 
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
-#include <libmaus2/aio/CheckedInputOutputStream.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/index/ExternalMemoryIndexRecord.hpp>
@@ -48,7 +47,6 @@ namespace libmaus2
 			static uint64_t const inner_index_step = 1ull << inner_level_log;
 			static uint64_t const inner_index_mask = (inner_index_step-1);
 		
-			// libmaus2::aio::CheckedInputOutputStream::unique_ptr_type Pstream;
 			libmaus2::aio::InputOutputStream::unique_ptr_type Pstream;
 			std::iostream & stream;
 			uint64_t ic;

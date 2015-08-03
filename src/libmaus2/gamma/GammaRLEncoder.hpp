@@ -237,7 +237,7 @@ namespace libmaus2
 					uint64_t const datalen = indexpos-headerlen;
 					
 					// copy data
-					::libmaus2::aio::CheckedInputStream CIS(infilenames[i]);
+					::libmaus2::aio::InputStreamInstance CIS(infilenames[i]);
 					CIS.seekg(headerlen);
 					::libmaus2::util::GetFileSize::copy(CIS,COS,datalen);
 					

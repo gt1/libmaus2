@@ -86,7 +86,7 @@ namespace libmaus2
 				{
 					for ( uint64_t f = 0; (!fqoffset) && f < filenames.size(); ++f )
 					{
-						libmaus2::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus2::aio::InputStreamInstance CIS(filenames[f]);
 						libmaus2::lz::BufferedGzipStream BGS(CIS);
 						libmaus2::fastx::StreamFastQReaderWrapper fqin(BGS);
 						fqoffset = fqin.getOffset();
@@ -157,7 +157,7 @@ namespace libmaus2
 					
 					for ( uint64_t f = 0; decoded < fqmax && f < filenames.size(); ++f )
 					{
-						libmaus2::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus2::aio::InputStreamInstance CIS(filenames[f]);
 						libmaus2::lz::BufferedGzipStream BGS(CIS);
 						libmaus2::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
 						::libmaus2::fastx::StreamFastQReaderWrapper::pattern_type pattern;
@@ -580,7 +580,7 @@ namespace libmaus2
 				{
 					for ( uint64_t f = 0; f < filenames.size(); ++f )
 					{
-						libmaus2::aio::CheckedInputStream CIS(filenames[f]);
+						libmaus2::aio::InputStreamInstance CIS(filenames[f]);
 						libmaus2::lz::BufferedGzipStream BGS(CIS);
 						libmaus2::fastx::StreamFastQReaderWrapper fqin(BGS,fqoffset);
 						::libmaus2::fastx::StreamFastQReader::pattern_type pattern;

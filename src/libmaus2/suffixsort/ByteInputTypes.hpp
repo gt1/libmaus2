@@ -20,7 +20,7 @@
 #define LIBMAUS2_SUFFIXSORT_BYTEINPUTTYPES_HPP
 
 #include <libmaus2/suffixsort/BwtMergeEnumBase.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/CircularWrapper.hpp>
 #include <libmaus2/suffixsort/CircularSuffixComparator.hpp>
 #include <libmaus2/util/OctetString.hpp>
@@ -32,7 +32,7 @@ namespace libmaus2
 		struct ByteInputTypes : public libmaus2::suffixsort::BwtMergeEnumBase
 		{
 			typedef ::std::istream base_input_stream;
-			typedef ::libmaus2::aio::CheckedInputStream linear_wrapper;
+			typedef ::libmaus2::aio::InputStreamInstance linear_wrapper;
 			typedef ::libmaus2::aio::CircularWrapper circular_wrapper;
 			typedef ::libmaus2::aio::CircularReverseWrapper circular_reverse_wrapper;
 			typedef ::libmaus2::suffixsort::CircularSuffixComparator circular_suffix_comparator;

@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_LZ_RAZFINDEX_HPP)
 #define LIBMAUS2_LZ_RAZFINDEX_HPP
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/lz/GzipHeader.hpp>
 #include <libmaus2/lz/RAZFConstants.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
@@ -84,7 +84,7 @@ namespace libmaus2
 			
 			static bool hasRazfHeader(std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::InputStreamInstance CIS(filename);
 				return hasRazfHeader(CIS);
 			}
 			
@@ -141,7 +141,7 @@ namespace libmaus2
 			RAZFIndex(std::string const & fn)
 			: uncompressed(0), compressed(0), headerlength(0)
 			{
-				libmaus2::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::InputStreamInstance CIS(fn);
 				init(CIS);
 			}	
 			

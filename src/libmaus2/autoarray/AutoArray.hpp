@@ -37,7 +37,7 @@
 #include <cstddef>
 #include <cstring>
 #include <libmaus2/util/I386CacheLineSize.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 // #define AUTOARRAY_TRACE 7
 #if defined(AUTOARRAY_TRACE)
@@ -1485,7 +1485,7 @@ namespace libmaus2
 				uint64_t const offset,
 				uint64_t const length)
 			{
-				::libmaus2::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::InputStreamInstance CIS(filename);
 				CIS.seekg(offset*sizeof(N));
 				AutoArray<N> A(length,false);
 				CIS.read ( reinterpret_cast<char *>(A.begin()), length*sizeof(N));
@@ -1499,7 +1499,7 @@ namespace libmaus2
 			 **/
 			static AutoArray<N> readFile(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::InputStreamInstance CIS(filename);
 				CIS.seekg(0, std::ios::end);
 				uint64_t const filesize = CIS.tellg();
 				
@@ -1515,7 +1515,27 @@ namespace libmaus2
 				CIS.seekg(0, std::ios::beg);
 				
 				AutoArray<N> A(length,false);
-				CIS.read ( reinterpret_cast<char *>(A.begin()), length*sizeof(N), 64ull*1024ull);
+				
+				uint64_t t = length*sizeof(N);
+				char * p = reinterpret_cast<char *>(A.begin());
+				uint64_t const bs = 64*1024;
+				while ( t )
+				{
+					uint64_t const toread = std::min(t,bs);
+					CIS.read(p,toread);
+					
+					if ( CIS.gcount() != static_cast<int64_t>(toread) )
+					{
+						::libmaus2::exception::LibMausException se;
+						se.getStream() << "AutoArray::readFile(" << filename << "): file size " << filesize << " input error" << std::endl;
+						se.finish();
+						throw se;
+					}
+					
+					t -= toread;
+					p += toread;
+				}
+				
 				return A;
 			}
 		};

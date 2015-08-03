@@ -311,7 +311,7 @@ namespace libmaus2
 				
 				uint64_t const ioffset = index[ii].fileoffset - fragmentintervals[fi].first;
 				
-				libmaus2::aio::CheckedInputStream CIS(fragments[fi].filename);
+				libmaus2::aio::InputStreamInstance CIS(fragments[fi].filename);
 				CIS.seekg(fragments[fi].offset + ioffset);
 				
 				for ( ; i ; --i )

@@ -24,6 +24,7 @@
 #include <libmaus2/exception/LibMausException.hpp>
 #include <fstream>
 #include <string>
+#include <libmaus2/aio/CheckedInputStream.hpp>
 
 namespace libmaus2
 {
