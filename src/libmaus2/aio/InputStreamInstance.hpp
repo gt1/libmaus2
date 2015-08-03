@@ -32,6 +32,33 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			InputStreamInstance(std::string const & fn);
+
+			/**
+			 * get a single symbol from file filename at position offset
+			 *
+			 * @param filename name of file
+			 * @param offset file offset
+			 * @return symbol/byte at position offset in file filename
+			 **/
+			static int getSymbolAtPosition(std::string const & filename, uint64_t const offset)
+			{
+				this_type CIS(filename);
+				CIS.seekg(offset);
+				return CIS.get();
+			}
+
+			/**
+			 * return size of file filename
+			 *
+			 * @param filename name of file
+			 * @return size of file filename in bytes
+			 **/			
+			static uint64_t getFileSize(std::string const & filename)
+			{
+				this_type CIS(filename);
+				CIS.seekg(0,std::ios::end);
+				return CIS.tellg();
+			}
 		};
 	}
 }
