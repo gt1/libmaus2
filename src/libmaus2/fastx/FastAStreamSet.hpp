@@ -25,7 +25,6 @@
 #include <libmaus2/digest/md5.hpp>
 
 #include <libmaus2/fastx/RefPathTokenVectorSequence.hpp>
-#include <libmaus2/aio/PosixFdInputStream.hpp>
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
