@@ -20,7 +20,6 @@
 #define LIBMAUS2_AIO_CIRCULARWRAPPER_HPP
 
 #include <libmaus2/aio/CircularBuffer.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <libmaus2/bitio/CompactDecoderBuffer.hpp>
 #include <libmaus2/bitio/PacDecoderBuffer.hpp>
 #include <libmaus2/lz/Lz4Decoder.hpp>
@@ -252,25 +251,6 @@ namespace libmaus2
 			}
 		};
 		
-		/**
-		 * class wrapping an object of type libmaus2::aio::CheckedInputStream
-		 **/
-		struct CheckedInputStreamWrapper
-		{
-			//! wrapped object
-			::libmaus2::aio::CheckedInputStream stream;
-			
-			/**
-			 * constructor from file name
-			 *
-			 * @param filename file name
-			 **/
-			CheckedInputStreamWrapper(std::string const & filename)
-			: stream(filename)
-			{
-			
-			}
-		};
 
 		/**
 		 * class wrapping an object of type Utf8DecoderWrapper
@@ -370,31 +350,7 @@ namespace libmaus2
 			
 			}
 		};
-		
-		/**
-		 * class for instantiating a circular input stream
-		 **/
-		struct CheckedCircularWrapper : public CheckedInputStreamWrapper, public CircularWrapper
-		{
-			/**
-			 * constructor
-			 *
-			 * @param filename file name
-			 * @param offset initial file offset
-			 * @param buffersize size of streambuf object
-			 * @param pushbackspace size of push back buffer
-			 **/
-			CheckedCircularWrapper(
-				std::string const & filename, 
-				uint64_t const offset, 
-				uint64_t const buffersize = 64*1024, 
-				uint64_t const pushbackspace = 64
-			)
-			: CheckedInputStreamWrapper(filename), CircularWrapper(CheckedInputStreamWrapper::stream,offset,buffersize,pushbackspace)
-			{
-			
-			}
-		};
+
 
 		/**
 		 * class for instantiating a circular compact input stream
@@ -506,25 +462,6 @@ namespace libmaus2
 			}
 		};
 
-		/**
-		 * class for instantiating a circular reversed input stream
-		 **/
-		struct CheckedCircularReverseWrapper : public CheckedInputStreamWrapper, public CircularReverseWrapper
-		{
-			/**
-			 * constructor
-			 *
-			 * @param filename file name
-			 * @param offset initial file offset
-			 * @param buffersize size of streambuf object
-			 * @param pushbackspace size of push back buffer
-			 **/
-			CheckedCircularReverseWrapper(std::string const & filename, uint64_t const offset, uint64_t const buffersize = 64*1024, uint64_t const pushbackspace = 64)
-			: CheckedInputStreamWrapper(filename), CircularReverseWrapper(CheckedInputStreamWrapper::stream,offset,buffersize,pushbackspace)
-			{
-			
-			}
-		};
 
 		/**
 		 * class for instantiating a circular reversed compact input stream
