@@ -27,6 +27,7 @@
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
 #include <libmaus2/lcs/NP.hpp>
+#include <libmaus2/lcs/DalignerNP.hpp>
 
 std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFactory::getSupportedAligners()
 {
@@ -86,6 +87,10 @@ std::set<libmaus2::lcs::AlignerFactory::aligner_type> libmaus2::lcs::AlignerFact
 	{
 		S.insert(libmaus2_lcs_AlignerFactory_y256_16);
 	}
+	#endif
+
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	S.insert(libmaus2_lcs_AlignerFactory_Daligner_NP);
 	#endif
 	
 	return S;
@@ -232,6 +237,19 @@ libmaus2::lcs::Aligner::unique_ptr_type libmaus2::lcs::AlignerFactory::construct
 			#endif
 
 		}
+		case libmaus2_lcs_AlignerFactory_Daligner_NP:
+		{
+			#if defined(LIBMAUS2_HAVE_DALIGNER)
+			libmaus2::lcs::Aligner::unique_ptr_type T(new libmaus2::lcs::DalignerNP);
+			return UNIQUE_PTR_MOVE(T);
+			#else
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "libmaus2::lcs::AlignerFactory::construct: unsupported aligner type Daligner" << std::endl;
+			lme.finish();
+			throw lme;
+			break;						
+			#endif	
+		}
 		default:
 		{
 			libmaus2::exception::LibMausException lme;
@@ -270,6 +288,9 @@ std::ostream & libmaus2::lcs::operator<<(std::ostream & out, AlignerFactory::ali
 			break;
 		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_NP:
 			out << "libmaus2_lcs_AlignerFactory_NP";
+			break;
+		case ::libmaus2::lcs::AlignerFactory::libmaus2_lcs_AlignerFactory_Daligner_NP:
+			out << "libmaus2_lcs_AlignerFactory_Daligner_NP";
 			break;
 	}                                                                                                                                                       
 

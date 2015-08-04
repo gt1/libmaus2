@@ -29,6 +29,12 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#if defined(LIBMAUS2_HAVE_DALIGNER)
+#include "DB.h"
+#include "align.h"
+#include "QV.h"
+#endif
+
 uint64_t getColumns()
 {
 	// get window size

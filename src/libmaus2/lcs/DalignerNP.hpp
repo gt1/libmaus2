@@ -15,35 +15,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_LCS_ALIGNERFACTORY_HPP)
-#define LIBMAUS2_LCS_ALIGNERFACTORY_HPP
+#if ! defined(LIBMAUS2_LCS_DALIGNERNP_HPP)
+#define LIBMAUS2_LCS_DALIGNERNP_HPP
 
+#include <libmaus2/lcs/AlignmentTraceContainer.hpp>
 #include <libmaus2/lcs/Aligner.hpp>
-#include <set>
 
 namespace libmaus2
 {
 	namespace lcs
 	{
-		struct AlignerFactory
+		struct DalignerNP : public Aligner, public AlignmentTraceContainer
 		{
-			enum aligner_type {
-				libmaus2_lcs_AlignerFactory_EditDistance,
-				libmaus2_lcs_AlignerFactory_ND,
-				libmaus2_lcs_AlignerFactory_NDextend,
-				libmaus2_lcs_AlignerFactory_x128_8,
-				libmaus2_lcs_AlignerFactory_x128_16,
-				libmaus2_lcs_AlignerFactory_y256_8,
-				libmaus2_lcs_AlignerFactory_y256_16,
-				libmaus2_lcs_AlignerFactory_NP,
-				libmaus2_lcs_AlignerFactory_Daligner_NP
-			};
+			typedef DalignerNP this_type;
+			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			static libmaus2::lcs::Aligner::unique_ptr_type construct(aligner_type const type);
-			static std::set<aligner_type> getSupportedAligners();
+			private:
+			libmaus2::autoarray::AutoArray<char> A;
+			libmaus2::autoarray::AutoArray<char> B;
+			void * data;
+				
+			public:
+			DalignerNP();
+			~DalignerNP();
+			void align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b);
+			AlignmentTraceContainer const & getTraceContainer() const;
 		};
-		
-		std::ostream & operator<<(std::ostream & out, AlignerFactory::aligner_type const & A);
 	}
 }
 #endif

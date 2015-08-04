@@ -76,6 +76,7 @@ void sigalrm(int)
 #include <libmaus2/math/Faulhaber.hpp>
 
 #include <libmaus2/lcs/EditDistance.hpp>
+#include <libmaus2/lcs/DalignerNP.hpp>
 
 int main(int argc, char * argv[])
 {
