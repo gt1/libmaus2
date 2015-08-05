@@ -114,7 +114,7 @@ namespace libmaus2
 					COS->write(header.c_str(),header.size());
 					
 					// close file
-					COS->close();
+					// COS->close();
 					COS.reset();
 				}
 			}
