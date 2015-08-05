@@ -77,11 +77,12 @@ namespace libmaus2
 					std::string const tmpfilename = rtmpgen.getFileName();
 					IEWG.createFinalStream(tmpfilename);
 					
-					std::ifstream istr(tmpfilename.c_str(),std::ios::binary);
+					{
+					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					wt_ptr_type tW(new wt_type(istr));
 					W = UNIQUE_PTR_MOVE(tW);
-					istr.close();
-					remove ( tmpfilename.c_str() );
+					}
+					libmaus2::aio::FileRemoval::removeFile (tmpfilename);
 					
 					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )
@@ -115,11 +116,12 @@ namespace libmaus2
 					std::string const tmpfilename = rtmpgen.getFileName();
 					IEWG.createFinalStream(tmpfilename);
 					
-					std::ifstream istr(tmpfilename.c_str(),std::ios::binary);
+					{
+					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					wt_ptr_type tW(new wt_type(istr));
 					W = UNIQUE_PTR_MOVE(tW);
-					istr.close();
-					remove ( tmpfilename.c_str() );
+					}
+					libmaus2::aio::FileRemoval::removeFile ( tmpfilename );
 					
 					D = ::libmaus2::autoarray::AutoArray < uint64_t >((1ull<<W->getB())+1);
 					for ( uint64_t i = 0; i < (1ull<<W->getB()); ++i )

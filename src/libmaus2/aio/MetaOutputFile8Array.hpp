@@ -22,6 +22,7 @@
 #include <libmaus2/aio/OutputBuffer8.hpp>
 #include <libmaus2/aio/GenericInput.hpp>
 #include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <vector>
 #include <set>
 #include <deque>
@@ -173,16 +174,7 @@ namespace libmaus2
 			 **/
 			static bool fileExists(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(), std::ios::binary);
-				if ( istr.is_open() )
-				{
-					istr.close();
-					return true;
-				}
-				else
-				{
-					return false;
-				}
+				return libmaus2::aio::InputStreamFactoryContainer::tryOpen(filename);
 			}
 
 			/**
@@ -314,9 +306,8 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 					if ( ! fileExists(filenames[i]) )
 					{
-						std::ofstream ostr(filenames[i].c_str(),std::ios::binary);
+						libmaus2::aio::OutputStreamInstance ostr(filenames[i]);
 						ostr.flush();
-						ostr.close();
 					}
 			}
 			

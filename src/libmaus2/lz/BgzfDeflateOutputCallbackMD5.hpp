@@ -21,7 +21,7 @@
 
 #include <libmaus2/digest/md5.h>
 #include <libmaus2/lz/BgzfDeflateOutputCallback.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <sstream>
 #include <iomanip>
 
@@ -78,10 +78,9 @@ namespace libmaus2
 			
 			void saveDigestAsFile(std::string const & filename)
 			{
-				libmaus2::aio::CheckedOutputStream COS(filename);
+				libmaus2::aio::OutputStreamInstance COS(filename);
 				saveDigest(COS);
 				COS.flush();
-				COS.close();
 			}
 		};
 	}

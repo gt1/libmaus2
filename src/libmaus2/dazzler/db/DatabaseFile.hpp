@@ -782,13 +782,13 @@ namespace libmaus2
 					if ( part )
 					{
 						std::ostringstream ostr;
-						ostr << path << "/" << root << "." << part << "." << trackname << "." << type;
+						ostr << path << "/" << "." << root << "." << part << "." << trackname << "." << type;
 						if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(ostr.str()) )
 							return ostr.str();
 					}
 
 					std::ostringstream ostr;
-					ostr << path << "/" << root << "." << trackname << "." << type;
+					ostr << path << "/" << "." << root << "." << trackname << "." << type;
 
 					return ostr.str();
 				}

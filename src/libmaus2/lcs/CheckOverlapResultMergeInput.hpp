@@ -78,7 +78,7 @@ namespace libmaus2
 			static void merge(std::vector<std::string> const & inputfilenames, std::string const & outputfilename)
 			{
 				CheckOverlapResultMergeInput in(inputfilenames);
-				std::ofstream ostr(outputfilename.c_str(),std::ios::binary);
+				libmaus2::aio::OutputStreamInstance ostr(outputfilename);
 				
 				CheckOverlapResult::shared_ptr_type ptr;
 				
@@ -87,7 +87,6 @@ namespace libmaus2
 					
 				ostr.flush();
 				assert ( ostr );
-				ostr.close();
 			}
 		};
 	}

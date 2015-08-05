@@ -28,6 +28,7 @@
 #include <cassert>
 
 #include <libmaus2/exception/LibMausException.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -52,19 +53,10 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 				{
 					std::string const & fn = filenames[i];
-					std::ifstream istr(fn.c_str(),std::ios::binary);
-					if ( ! istr.is_open() )
-					{
-						::libmaus2::exception::LibMausException se;
-						se.getStream() << "IsFastQ::getFirstCharacter(): Failed to open file " << fn << std::endl;
-						se.finish();
-						throw se;
-					}
+					libmaus2::aio::InputStreamInstance istr(fn);
 					
 					int const c = getFirstCharacter(istr);
-					
-					istr.close();
-					
+										
 					if ( c >= 0 )
 						return c;
 				}

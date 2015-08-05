@@ -97,7 +97,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::Histogram binhist;
 		uint64_t const n = writeMappedFile(fn,mappedfile,binhist);
 		
-		libmaus2::aio::CheckedInputStream mappedCIS(mappedfile);
+		libmaus2::aio::InputStreamInstance mappedCIS(mappedfile);
 		libmaus2::rank::ImpCacheLineRank mappedrank(mappedCIS);
 		mappedCIS.close();
 		uint64_t const m = n ? mappedrank.rank1(n-1) : 0;

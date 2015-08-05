@@ -44,8 +44,12 @@ namespace libmaus2
                         typedef SynchronousGenericOutput<data_type> this_type;
                         //! unique pointer type
 			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			
 			//! output file stream type
-			typedef ::libmaus2::util::unique_ptr< std::ofstream >::type ofstream_ptr_type;
+			typedef ::libmaus2::aio::OutputStreamInstance ofstream_type;
+			//! output file stream pointer type
+			typedef ::libmaus2::util::unique_ptr< ofstream_type >::type ofstream_ptr_type;
+			
 			//! file stream type
 			typedef ::libmaus2::util::unique_ptr< std::fstream  >::type  fstream_ptr_type;
 			//! iterator type
@@ -127,7 +131,7 @@ namespace libmaus2
 			 **/
                         SynchronousGenericOutput(std::string const & filename, uint64_t const bufsize, bool const truncate = true, uint64_t const offset = 0, bool const /* metasync */ = true)
                         : B(bufsize,false), pa(B.get()), pc(pa), pe(pa+B.getN()), 
-                          PW ( truncate ? new std::ofstream(filename.c_str(),std::ios::binary|std::ios::out|std::ios::trunc) : 0),
+                          PW ( truncate ? new ofstream_type(filename) : 0),
                           PF ( truncate ? 0 : new std::fstream(filename.c_str(), std::ios::binary|std::ios::in|std::ios::out|std::ios::ate) ),
                           W  ( truncate ? (static_cast<std::ostream &>(*PW)) : (static_cast<std::ostream &>(*PF)) ),
                           datawrittentofile(0)

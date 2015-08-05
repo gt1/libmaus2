@@ -37,7 +37,7 @@ namespace libmaus2
 		{
 			static uint64_t const maxbufsize = 256*1024;
 			
-			typedef ::libmaus2::util::unique_ptr<std::ofstream>::type out_file_ptr_type;
+			typedef libmaus2::aio::OutputStreamInstance::unique_ptr_type out_file_ptr_type;
 			
 			z_stream strm;
 			out_file_ptr_type out_ptr;
@@ -98,7 +98,7 @@ namespace libmaus2
 				std::string const & filename,
 				int level = Z_DEFAULT_COMPRESSION,
 				bool const addHeader = true
-			) : out_ptr ( out_file_ptr_type(new std::ofstream(filename.c_str(),std::ios::binary) ) ),
+			) : out_ptr ( new libmaus2::aio::OutputStreamInstance(filename) ),
 			    out(*out_ptr)
 			{
 				if ( addHeader )
@@ -278,7 +278,7 @@ namespace libmaus2
 				
 				if ( out_ptr.get() )
 				{
-					out_ptr->close();
+					out_ptr->flush();
 					out_ptr.reset();
 				}
 			}
@@ -289,7 +289,7 @@ namespace libmaus2
 			typedef BGZFWriter this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef std::ofstream ostream_type;
+			typedef libmaus2::aio::OutputStreamInstance ostream_type;
 			typedef ::libmaus2::util::unique_ptr<ostream_type>::type ostream_ptr_type;
 			
 			ostream_ptr_type Postr;
@@ -305,7 +305,7 @@ namespace libmaus2
 			: ostr(rostr), level(rlevel), B(64*1024,false), pa(B.begin()), pc(pa), pe(B.end())
 			{}
 			BGZFWriter(std::string const & filename, int const rlevel = Z_DEFAULT_COMPRESSION)
-			: Postr(new ostream_type(filename.c_str(),std::ios::binary)), ostr(*Postr), level(rlevel),
+			: Postr(new ostream_type(filename)), ostr(*Postr), level(rlevel),
 			  B(64*1024,false), pa(B.begin()), pc(pa), pe(B.end())
 			{}
 			
@@ -434,7 +434,7 @@ namespace libmaus2
 			typedef BlockDeflate this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef std::ofstream ostream_type;
+			typedef libmaus2::aio::OutputStreamInstance ostream_type;
 			typedef ::libmaus2::util::unique_ptr<ostream_type>::type ostream_ptr_type;
 			
 			ostream_ptr_type Postr;
@@ -450,7 +450,7 @@ namespace libmaus2
 			int const level;
 			
 			BlockDeflate(std::string const & filename, uint64_t const blocksize = 128ull*1024ull, int rlevel = Z_DEFAULT_COMPRESSION)
-			: Postr(new ostream_type(filename.c_str(),std::ios::binary)), ostr(*Postr),
+			: Postr(new ostream_type(filename)), ostr(*Postr),
 			  B(blocksize), pa(B.begin()), pc(pa), pe(B.end()), level(rlevel)
 			{}
 			

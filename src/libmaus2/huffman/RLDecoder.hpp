@@ -48,7 +48,7 @@ namespace libmaus2
 			rl_pair * pc;
 			rl_pair * pe;
 
-			::libmaus2::util::unique_ptr<std::ifstream>::type istr;
+			::libmaus2::util::unique_ptr<libmaus2::aio::InputStreamInstance>::type istr;
 
 			#if defined(SLOWDEC)
 			::libmaus2::bitio::StreamBitInputStream::unique_ptr_type SBIS;
@@ -67,20 +67,10 @@ namespace libmaus2
 					assert ( blockptr < idda.data[fileptr].numentries ); // check block pointer
 
 					// open new input file stream
-					::libmaus2::util::unique_ptr<std::ifstream>::type tistr(
-                                                new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary));
+					::libmaus2::util::unique_ptr<libmaus2::aio::InputStreamInstance>::type tistr(
+                                                new libmaus2::aio::InputStreamInstance(idda.data[fileptr].filename));
 					istr = UNIQUE_PTR_MOVE(tistr);
 				
-					// check whether file is open
-					if ( ! istr->is_open() )
-					{
-						::libmaus2::exception::LibMausException se;
-						se.getStream() << "RLDecoder::openNewFile(): Failed to open file " 
-							<< idda.data[fileptr].filename << std::endl;
-						se.finish();
-						throw se;
-					}
-
 					// seek to position and check if we succeeded
 					istr->clear();
 					istr->seekg(idda.data[fileptr].getPos(blockptr),std::ios::beg);
@@ -297,8 +287,7 @@ namespace libmaus2
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				assert ( istr.is_open() );
+				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
 				// SBIS.readBit(); // need escape
 				return ::libmaus2::bitio::readElias2(SBIS);

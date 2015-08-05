@@ -89,8 +89,7 @@ namespace libmaus2
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				assert ( istr.is_open() );
+				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
 				SBIS.readBit(); // need escape
 				return ::libmaus2::bitio::readElias2(SBIS);
@@ -112,8 +111,7 @@ namespace libmaus2
 				for ( uint64_t fileptr = 0; fileptr < index.size(); ++fileptr )
 				{
 					blocksizes[fileptr] = ::libmaus2::autoarray::AutoArray<uint64_t>(index[fileptr].size(),false);
-					std::ifstream istr(filenames[fileptr].c_str(),std::ios::binary);
-					assert ( istr.is_open() );
+					libmaus2::aio::InputStreamInstance istr(filenames[fileptr]);
 					
 					for ( uint64_t blockptr = 0; blockptr < index[fileptr].size(); ++blockptr )
 					{

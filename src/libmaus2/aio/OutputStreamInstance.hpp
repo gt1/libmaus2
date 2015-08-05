@@ -1,7 +1,6 @@
 /*
     libmaus2
-    Copyright (C) 2009-2015 German Tischler
-    Copyright (C) 2011-2015 Genome Research Limited
+    Copyright (C) 2015 German Tischler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,36 +15,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_AIO_INPUTSTREAMFACTORY_HPP)
-#define LIBMAUS2_AIO_INPUTSTREAMFACTORY_HPP
+#if ! defined(LIBMAUS2_AIO_OUTPUTSTREAMINSTANCE_HPP)
+#define LIBMAUS2_AIO_OUTPUTSTREAMINSTANCE_HPP
 
-#include <libmaus2/aio/InputStream.hpp>
+#include <libmaus2/aio/OutputStreamPointerWrapper.hpp>
+#include <ostream>
 
 namespace libmaus2
 {
 	namespace aio
 	{
-		struct InputStreamFactory
+		struct OutputStreamInstance : protected OutputStreamPointerWrapper, public std::ostream
 		{
-			typedef InputStreamFactory this_type;
+			typedef OutputStreamInstance this_type;
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			virtual ~InputStreamFactory() {}
-			virtual InputStream::unique_ptr_type constructUnique(std::string const & filename) = 0;
-			virtual InputStream::shared_ptr_type constructShared(std::string const & filename) = 0;
-			virtual bool tryOpen(std::string const & fn)
-			{
-				try
-				{
-					InputStream::unique_ptr_type ptr(constructUnique(fn));
-					return true;
-				}
-				catch(...)
-				{
-					return false;
-				}
-			}
+			OutputStreamInstance(std::string const & fn);
 		};
 	}
 }

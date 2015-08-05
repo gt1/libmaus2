@@ -217,7 +217,6 @@ namespace libmaus2
 					p += ::libmaus2::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
 					//std::string const filename = outputfilenames[i];
 					std::istream & istr = tmpcnt.openInputTempFile(i);
-					// std::ifstream istr(filename.c_str(),std::ios::binary);
 					// std::cerr << "Copying " << allwordswritten << " from stream " << filename << std::endl;
 					::libmaus2::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
 					p += allwordswritten * sizeof(uint64_t);

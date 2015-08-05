@@ -591,7 +591,7 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 	libmaus2::parallel::LockedBool bamSortComplete;
 
 	std::vector<std::string> tmpfilenames;
-	libmaus2::autoarray::AutoArray<libmaus2::aio::CheckedOutputStream::unique_ptr_type> tmpfiles;
+	libmaus2::autoarray::AutoArray<libmaus2::aio::OutputStreamInstance::unique_ptr_type> tmpfiles;
 	libmaus2::lz::ZlibCompressorObjectFactory compressorFactory;
 	libmaus2::autoarray::AutoArray<libmaus2::lz::SimpleCompressedOutputStream<std::ostream>::unique_ptr_type> compressedTmpFiles;
 	libmaus2::parallel::PosixSpinLock tmpfileblockslock;
@@ -716,8 +716,8 @@ struct BamThreadPoolDecodeContextBase : public BamThreadPoolDecodeContextBaseCon
 			std::string const fn = ostr.str();
 			tmpfilenames[i] = fn;
 			libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type tptr(
-				new libmaus2::aio::CheckedOutputStream(fn)
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type tptr(
+				new libmaus2::aio::OutputStreamInstance(fn)
 			);
 			tmpfiles[i] = UNIQUE_PTR_MOVE(tptr);
 			

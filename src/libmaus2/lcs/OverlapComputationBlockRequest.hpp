@@ -115,13 +115,11 @@ namespace libmaus2
 			
 			void serialise(std::string const & filename)
 			{
-				std::ofstream ostr(filename.c_str(),std::ios::binary);
-				assert ( ostr.is_open() );
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				assert ( ostr );
 				serialise(ostr);
 				ostr.flush();
 				assert ( ostr );
-				ostr.close();
 			}
 			
 			void serialise(std::ostream & out)

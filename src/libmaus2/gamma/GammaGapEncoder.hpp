@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_GAMMA_GAMMAGAPENCODER_HPP)
 #define LIBMAUS2_GAMMA_GAMMAGAPENCODER_HPP
 
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/huffman/IndexEntry.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
@@ -39,7 +39,7 @@ namespace libmaus2
 			
 			static uint64_t const blocksize = 256*1024;
 			
-			::libmaus2::aio::CheckedOutputStream COS;
+			::libmaus2::aio::OutputStreamInstance COS;
 			::std::vector< ::libmaus2::huffman::IndexEntry > index;
 			
 			GammaGapEncoder(std::string const & filename)

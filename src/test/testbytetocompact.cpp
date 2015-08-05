@@ -51,7 +51,7 @@ void testcompact()
 	}
 	CAW.flush();
 	#if 0
-	::libmaus2::aio::CheckedOutputStream COS(fn);
+	::libmaus2::aio::OutputStreamInstance COS(fn);
 	CA.serialize(COS);
 	COS.flush();
 	COS.close();

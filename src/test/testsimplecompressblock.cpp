@@ -24,7 +24,7 @@
 #include <libmaus2/lz/ZlibDecompressorObjectFactory.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <sstream>
 
 void testInputBlock()
@@ -77,7 +77,7 @@ void testConcatInputBlock()
 		fnostr << "tmp_" << std::setw(6) << std::setfill('0') << i;
 		std::string const fn = fnostr.str();
 		libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::lz::SimpleCompressedOutputStream<std::ostream> zout(COS,zcfact);
 		zout.put(0);
 		std::pair<uint64_t,uint64_t> pre = zout.getOffset();

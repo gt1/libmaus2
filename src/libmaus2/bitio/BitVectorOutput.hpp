@@ -27,12 +27,12 @@ namespace libmaus2
 	{
 		struct BitVectorOutput
 		{
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type pout;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type pout;
 			libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO;
 			uint64_t v;
 			unsigned int b;
 			
-			BitVectorOutput(std::string const & filename) : pout(new libmaus2::aio::CheckedOutputStream(filename)), SGO(*pout,8*1024), v(0), b(64) {}
+			BitVectorOutput(std::string const & filename) : pout(new libmaus2::aio::OutputStreamInstance(filename)), SGO(*pout,8*1024), v(0), b(64) {}
 			BitVectorOutput(std::ostream & out) : pout(), SGO(out,8192), v(0), b(64) {}
 			
 			void writeBit(bool const bit)

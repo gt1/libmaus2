@@ -67,10 +67,10 @@ namespace libmaus2
                 };
                 
                 template<typename _data_type>
-                struct OutputFile : public std::ofstream, OutputBuffer<_data_type>
+                struct OutputFile : public libmaus2::aio::OutputStreamInstance, OutputBuffer<_data_type>
                 {
                         OutputFile(unsigned int const rn, std::string const & filename)
-                        : std::ofstream(filename.c_str(),std::ios::binary), OutputBuffer<_data_type>(rn,*this) {}
+                        : libmaus2::aio::OutputStreamInstance(filename), OutputBuffer<_data_type>(rn,*this) {}
                         ~OutputFile() {}
                         
                         void flush()

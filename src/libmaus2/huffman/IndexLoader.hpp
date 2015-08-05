@@ -324,15 +324,7 @@ namespace libmaus2
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 
-				std::ifstream indexistr(filename.c_str(),std::ios::binary);
-
-				if ( ! indexistr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "RLDecoder::loadIndex(): Failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::InputStreamInstance indexistr(filename);
 
 				// seek to index position
 				indexistr.seekg(indexpos,std::ios::beg);

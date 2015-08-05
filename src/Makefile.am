@@ -213,13 +213,15 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/util/LongestIncreasingSubsequenceExtendedResult.cpp \
 	libmaus2/lcs/AlignerFactory.cpp \
 	libmaus2/lcs/BandedAlignerFactory.cpp \
-	libmaus2/aio/InputStreamInstance.cpp
+	libmaus2/aio/InputStreamInstance.cpp \
+	libmaus2/lcs/DalignerNP.cpp \
+	libmaus2/aio/OutputStreamInstance.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@
-libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
+libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
@@ -1210,7 +1212,10 @@ libmaus2aio_include_HEADERS=\
 	libmaus2/aio/MemoryOutputStream.hpp \
 	libmaus2/aio/FileRemoval.hpp \
 	libmaus2/aio/InputStreamPointerWrapper.hpp \
-	libmaus2/aio/InputStreamInstance.hpp
+	libmaus2/aio/InputStreamInstance.hpp \
+	libmaus2/aio/InputStreamInstanceAtOffset.hpp \
+	libmaus2/aio/OutputStreamPointerWrapper.hpp \
+	libmaus2/aio/OutputStreamInstance.hpp
 	
 libmaus2parallel_includedir=$(includedir)/libmaus2/parallel
 libmaus2parallel_include_HEADERS=\
@@ -1693,7 +1698,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/SimdX86BandedGlobalAlignmentY256_8_undef.hpp \
 	libmaus2/lcs/BandedAligner.hpp \
 	libmaus2/lcs/BandedAlignerFactory.hpp \
-	libmaus2/lcs/NP.hpp
+	libmaus2/lcs/NP.hpp \
+	libmaus2/lcs/DalignerNP.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
@@ -1846,7 +1852,9 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testdazzlerdb \
 	testnd \
 	testfastashred \
-	testalignerspeed
+	testalignerspeed \
+	testfastasingleline \
+	testdazzleralignmentrewrite
 
 noinst_PROGRAMS = @TESTPROGS@
 
@@ -2312,9 +2320,9 @@ testsamrecoding_CPPFLAGS = @WARNCPPFLAGS@
 testsamrecoding_LDFLAGS  = ${AM_LDFLAGS}
 
 testdazzlerdb_SOURCES  = test/testdazzlerdb.cpp
-testdazzlerdb_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
-testdazzlerdb_CPPFLAGS = @WARNCPPFLAGS@
-testdazzlerdb_LDFLAGS  = ${AM_LDFLAGS}
+testdazzlerdb_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB} @DALIGNERLIBS@
+testdazzlerdb_CPPFLAGS = @WARNCPPFLAGS@ ${AM_CPPFLAGS} @DALIGNERCPPFLAGS@
+testdazzlerdb_LDFLAGS  = ${AM_LDFLAGS} @DALIGNERLDFLAGS@
 
 testnd_SOURCES  = test/testnd.cpp
 testnd_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
@@ -2329,3 +2337,11 @@ testfastashred_LDFLAGS  = ${AM_LDFLAGS}
 testalignerspeed_SOURCES  = test/testalignerspeed.cpp
 testalignerspeed_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
 testalignerspeed_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testfastasingleline_SOURCES  = test/testfastasingleline.cpp
+testfastasingleline_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testfastasingleline_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
+
+testdazzleralignmentrewrite_SOURCES  = test/testdazzleralignmentrewrite.cpp
+testdazzleralignmentrewrite_LDADD    = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la ${DLLIB}
+testdazzleralignmentrewrite_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@

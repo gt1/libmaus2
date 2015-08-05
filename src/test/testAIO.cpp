@@ -32,7 +32,7 @@
 
 #include <libmaus2/aio/PosixFdInputOutputStream.hpp>
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 void testPosixFdInput()
 {
@@ -238,7 +238,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text1.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -252,7 +252,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text2.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -274,7 +274,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text1.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -288,7 +288,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text2.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -305,7 +305,7 @@ int main(int argc, char * argv[])
 		libmaus2::autoarray::AutoArray<char> A(fs,false);
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			CIS.read(A.begin(),fs);
 		}
 		

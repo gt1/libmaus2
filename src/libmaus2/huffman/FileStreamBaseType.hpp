@@ -35,14 +35,14 @@ namespace libmaus2
 			typedef FileStreamBaseType this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 		
-			typedef ::std::ifstream file_type;
+			typedef libmaus2::aio::InputStreamInstance file_type;
 			typedef ::libmaus2::util::unique_ptr<file_type>::type file_ptr_type;
 			
 			file_ptr_type fileptr;
 			std::istream & in;
 		
 			FileStreamBaseType(std::string const & filename, uint64_t const offset)
-			: fileptr ( new file_type ( filename.c_str(), std::ios::binary ) ), in(*fileptr)
+			: fileptr ( new file_type ( filename ) ), in(*fileptr)
 			{
 				if ( offset )
 					in.seekg(offset, std::ios::beg);

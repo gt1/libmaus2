@@ -553,7 +553,7 @@ namespace libmaus2
 			void readDolVec()
 			{
 				std::cerr << "Loading proper symbol vector...";
-				std::ifstream dolistr(dolvecname.c_str(),std::ios::binary);
+				libmaus2::aio::InputStreamInstance dolistr(dolvecname);
 				R = libmaus2::autoarray::AutoArray<uint64_t>(dolistr);
 				assert ( dolistr );
 				dolistr.close();
@@ -606,10 +606,11 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 						
 						std::cerr << "Writing proper symbol vector to disk...";
-						std::ofstream dolvecostr(dolvecname.c_str(),std::ios::binary);
+						{
+						libmaus2::aio::OutputStreamInstance dolvecostr(dolvecname);
 						R.serialize(dolvecostr);
 						dolvecostr.flush();
-						dolvecostr.close();
+						}
 						std::cerr << "done." << std::endl;
 						
 						assert ( numc == n/2-1 );
@@ -643,10 +644,11 @@ namespace libmaus2
 							std::cerr << "done, time " << rtc.getElapsedSeconds() << std::endl;
 
 							std::cerr << "Writing SA to disk...";
-							std::ofstream ostr(fsafilename.c_str(),std::ios::binary);
+							{
+							libmaus2::aio::OutputStreamInstance ostr(fsafilename);
 							CSA->serialize(ostr);
 							ostr.flush();
-							ostr.close();
+							}
 							std::cerr << "done." << std::endl;
 
 							#if 0
@@ -672,7 +674,7 @@ namespace libmaus2
 						else
 						{
 							std::cerr << "Reading SA from disk...";
-							std::ifstream istr(fsafilename.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(fsafilename);
 							CSA = ::libmaus2::bitio::SignedCompactArray::unique_ptr_type(new ::libmaus2::bitio::SignedCompactArray(istr));
 							assert ( istr );
 							istr.close();
@@ -694,16 +696,17 @@ namespace libmaus2
 							std::cerr << "done." << std::endl;
 							
 							std::cerr << "Storing sampled inverse suffix array on disk...";
-							std::ofstream ostr(fsisafilename.c_str(),std::ios::binary);
+							{
+							libmaus2::aio::OutputStreamInstance ostr(fsisafilename);
 							SISA.serialize(ostr);
 							ostr.flush();
-							ostr.close();
+							}
 							std::cerr << "done." << std::endl;
 						}
 						else
 						{
 							std::cerr << "Loading sampled inverse suffix array from disk...";
-							std::ifstream istr(fsisafilename.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(fsisafilename);
 							SISA = ::libmaus2::autoarray::AutoArray<uint64_t>(istr);
 							assert ( istr );
 							std::cerr << "done." << std::endl;
@@ -751,16 +754,17 @@ namespace libmaus2
 							#endif
 							
 							std::cerr << "Writing LF to disk...";
-							std::ofstream ostr(fbwtname.c_str(),std::ios::binary);
+							{
+							libmaus2::aio::OutputStreamInstance ostr(fbwtname);
 							lf->serialize(ostr);
 							ostr.flush();
-							ostr.close();
+							}
 							std::cerr << "done." << std::endl;
 						}
 						else
 						{
 							std::cerr << "Reading LF from disk...";
-							std::ifstream istr(fbwtname.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(fbwtname);
 							lf = lf_ptr_type(new lf_type(istr));
 							assert ( istr );
 							istr.close();
@@ -770,21 +774,21 @@ namespace libmaus2
 					else
 					{
 						std::cerr << "Loading proper symbol vector...";
-						std::ifstream dolistr(dolvecname.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance dolistr(dolvecname);
 						R = libmaus2::autoarray::AutoArray<uint64_t>(dolistr);
 						assert ( dolistr );
 						dolistr.close();
 						std::cerr << "done." << std::endl;				
 
 						std::cerr << "Loading sampled inverse suffix array from disk...";
-						std::ifstream ssaistr(fsisafilename.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance ssaistr(fsisafilename);
 						SISA = ::libmaus2::autoarray::AutoArray<uint64_t>(ssaistr);
 						assert ( ssaistr );
 						ssaistr.close();
 						std::cerr << "done." << std::endl;
 
 						std::cerr << "Reading LF from disk...";
-						std::ifstream istr(fbwtname.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance istr(fbwtname);
 						lf = lf_ptr_type(new lf_type(istr));
 						assert ( istr );
 						istr.close();
@@ -804,16 +808,17 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 					
 						std::cerr << "Serialising LCP...";
-						std::ofstream ostr(flcpfilename.c_str(),std::ios::binary);
+						{
+						libmaus2::aio::OutputStreamInstance ostr(flcpfilename);
 						LCP->serialise(ostr);
 						ostr.flush();
-						ostr.close();
+						}
 						std::cerr << "done." << std::endl;
 					}
 					else
 					{
 						std::cerr << "Reading LCP from disk...";
-						std::ifstream istr(flcpfilename.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance istr(flcpfilename);
 						LCP = ::libmaus2::util::Array864::unique_ptr_type(new ::libmaus2::util::Array864(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
@@ -828,16 +833,17 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 					
 						std::cerr << "Writing prev to disk...";	
-						std::ofstream ostr(fprevname.c_str(),std::ios::binary);
+						{
+						libmaus2::aio::OutputStreamInstance ostr(fprevname);
 						prev->serialise(ostr);
 						ostr.flush();
-						ostr.close();
+						}
 						std::cerr << "done." << std::endl;
 					}
 					else
 					{				
 						std::cerr << "Reading prev from disk...";
-						std::ifstream istr(fprevname.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance istr(fprevname);
 						prev = ::libmaus2::util::NegativeDifferenceArray64::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray64(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
@@ -852,16 +858,17 @@ namespace libmaus2
 						std::cerr << "done." << std::endl;
 					
 						std::cerr << "Writing next to disk...";	
-						std::ofstream ostr(fnextname.c_str(),std::ios::binary);
+						{
+						libmaus2::aio::OutputStreamInstance ostr(fnextname);
 						next->serialise(ostr);
 						ostr.flush();
-						ostr.close();
+						}
 						std::cerr << "done." << std::endl;
 					}
 					else
 					{				
 						std::cerr << "Reading next from disk...";
-						std::ifstream istr(fnextname.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance istr(fnextname);
 						next = ::libmaus2::util::PositiveDifferenceArray64::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray64(istr));
 						assert ( istr );
 						assert ( lf->getN() == n );
@@ -939,15 +946,14 @@ namespace libmaus2
 						if ( udist[i] )
 							std::cerr << i << "\t" << udist[i] << std::endl;
 							
-					std::ofstream ostr(fufilename.c_str(),std::ios::binary);
+					libmaus2::aio::OutputStreamInstance ostr(fufilename);
 					U.serialize(ostr);
 					ostr.flush();
 					assert ( ostr );
-					ostr.close();
 				}
 				else
 				{
-					std::ifstream istr(fufilename.c_str(),std::ios::binary);
+					libmaus2::aio::InputStreamInstance istr(fufilename);
 					U = ::libmaus2::autoarray::AutoArray<uint64_t>(istr);
 					assert ( istr );
 					istr.close();
@@ -1516,7 +1522,7 @@ namespace libmaus2
 							(::libmaus2::util::GetFileSize::getFileSize(fsafilename) == (1*sizeof(uint64_t)+n*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
-							::std::ifstream istr(fsafilename.c_str(),std::ios::binary);
+							::libmaus2::aio::InputStreamInstance istr(fsafilename);
 							SA.deserialize(istr);
 							assert ( istr );
 							istr.close();
@@ -1536,10 +1542,9 @@ namespace libmaus2
 							std::copy ( TSA.begin(), TSA.end(), SA.begin() );
 							// sort_util_post_type::sufcheck(data.get(),SA.get(),n,1);
 							
-							std::ofstream ostr(fsafilename.c_str(),std::ios::binary);
+							libmaus2::aio::OutputStreamInstance ostr(fsafilename);
 							SA.serialize(ostr);
 							ostr.flush();
-							ostr.close();
 						}
 						assert ( SA.size() == n );
 						std::cerr << "done." << std::endl;
@@ -1550,7 +1555,7 @@ namespace libmaus2
 							(::libmaus2::util::GetFileSize::getFileSize(flcpfilename) == (1*sizeof(uint64_t)+(n+1)*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
-							::std::ifstream istr(flcpfilename.c_str(),std::ios::binary);
+							::libmaus2::aio::InputStreamInstance istr(flcpfilename);
 							::libmaus2::autoarray::AutoArray<uint32_t> LLCP;
 							LLCP.deserialize(istr);
 							assert ( istr );
@@ -1563,10 +1568,11 @@ namespace libmaus2
 							std::cerr << "(comp)";
 							::libmaus2::autoarray::AutoArray<uint32_t> LLCP = ::libmaus2::suffixsort::SkewSuffixSort<char_type,uint32_t>::lcpByPlcp(data.get(), n, SA.get(), 1);
 							LLCP[n] = 0;
-							std::ofstream ostr(flcpfilename.c_str(),std::ios::binary);
+							{
+							libmaus2::aio::OutputStreamInstance ostr(flcpfilename);
 							LLCP.serialize(ostr);
 							ostr.flush();
-							ostr.close();
+							}
 
 							LCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LLCP.begin(),LLCP.end()));
 						}
@@ -1582,7 +1588,7 @@ namespace libmaus2
 							(::libmaus2::util::GetFileSize::getFileSize(rsafilename) == (1*sizeof(uint64_t)+n*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
-							::std::ifstream istr(rsafilename.c_str(),std::ios::binary);
+							::libmaus2::aio::InputStreamInstance istr(rsafilename);
 							RSA.deserialize(istr);
 							assert ( istr );
 							istr.close();
@@ -1600,11 +1606,12 @@ namespace libmaus2
 							RSA = ::libmaus2::autoarray::AutoArray<uint32_t>(n,false);
 							std::copy ( TSA.begin(), TSA.end(), RSA.begin() );
 							// sort_util_post_type::sufcheck(rdata.get(),RSA.get(),n,1);
-
-							std::ofstream ostr(rsafilename.c_str(),std::ios::binary);
+							
+							{
+							libmaus2::aio::OutputStreamInstance ostr(rsafilename);
 							RSA.serialize(ostr);
 							ostr.flush();
-							ostr.close();
+							}
 						}
 						std::cerr << "done." << std::endl;
 
@@ -1613,7 +1620,7 @@ namespace libmaus2
 							(::libmaus2::util::GetFileSize::getFileSize(rlcpfilename) == (1*sizeof(uint64_t)+(n+1)*sizeof(uint32_t))) )
 						{
 							std::cerr << "(load)";
-							::std::ifstream istr(rlcpfilename.c_str(),std::ios::binary);
+							::libmaus2::aio::InputStreamInstance istr(rlcpfilename);
 							::libmaus2::autoarray::AutoArray<uint32_t> LRLCP;
 							LRLCP.deserialize(istr);
 							assert ( istr );
@@ -1626,10 +1633,11 @@ namespace libmaus2
 							std::cerr << "(comp)";
 							::libmaus2::autoarray::AutoArray<uint32_t> LRLCP = ::libmaus2::suffixsort::SkewSuffixSort<char_type,uint32_t>::lcpByPlcp(rdata.get(), n, RSA.get(), 1);
 							LRLCP[n] = 0;
-							std::ofstream ostr(rlcpfilename.c_str(),std::ios::binary);
+							{
+							libmaus2::aio::OutputStreamInstance ostr(rlcpfilename);
 							LRLCP.serialize(ostr);
 							ostr.flush();
-							ostr.close();
+							}
 
 							RLCP = ::libmaus2::util::Array832::unique_ptr_type(new ::libmaus2::util::Array832(LRLCP.begin(),LRLCP.end()));
 						}
@@ -1703,11 +1711,12 @@ namespace libmaus2
 					std::cerr << "done." << std::endl;
 					#else
 					::libmaus2::wavelet::WaveletTree< rank_type, char_type > WT(BWT.begin(),n);
-					std::ofstream wtostr(fbwtname.c_str(),std::ios::binary);
+					{
+					libmaus2::aio::OutputStreamInstance wtostr(fbwtname);
 					WT.serialize(wtostr);
 					wtostr.flush();
 					assert ( wtostr );
-					wtostr.close();
+					}
 					#endif
 				}
 				else
@@ -1761,11 +1770,12 @@ namespace libmaus2
 					std::cerr << "done." << std::endl;
 					#else
 					::libmaus2::wavelet::WaveletTree< rank_type , char_type > WT(BWT.begin(),n);
-					std::ofstream ostr(rbwtname.c_str(),std::ios::binary);
+					{
+					libmaus2::aio::OutputStreamInstance ostr(rbwtname);
 					WT.serialize(ostr);
 					ostr.flush();
 					assert ( ostr );
-					ostr.close();
+					}
 					#endif
 				}
 				else
@@ -1778,7 +1788,7 @@ namespace libmaus2
 				}
 
 				std::cerr << "Loading BWT...";
-				::std::ifstream bwtin(fbwtname.c_str(),std::ios::binary);
+				::libmaus2::aio::InputStreamInstance bwtin(fbwtname);
 				qwt = UNIQUE_PTR_MOVE(wt_ptr_type(new wt_type(bwtin)));
 				bwtin.close();
 				std::cerr << "done." << std::endl;
@@ -1788,7 +1798,7 @@ namespace libmaus2
 				std::cerr << "done." << std::endl;
 				
 				std::cerr << "Loading reverse BWT...";
-				::std::ifstream rbwtin("rbwt",std::ios::binary);
+				::libmaus2::aio::InputStreamInstance rbwtin("rbwt");
 				rqwt = UNIQUE_PTR_MOVE(wt_ptr_type(new wt_type(rbwtin)));
 				rbwtin.close();
 				std::cerr << "done." << std::endl;
@@ -1815,15 +1825,14 @@ namespace libmaus2
 						if ( ! ::libmaus2::util::GetFileSize::fileExists(prevname) )
 						{
 							prev = psv832(*LCP, n);
-							std::ofstream ostr(prevname.c_str(),std::ios::binary);
+							libmaus2::aio::OutputStreamInstance ostr(prevname);
 							prev->serialise(ostr);
 							ostr.flush();
 							assert ( ostr );
-							ostr.close();
 						}
 						else
 						{
-							std::ifstream istr(prevname.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(prevname);
 							prev = ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
@@ -1837,15 +1846,14 @@ namespace libmaus2
 						if ( ! ::libmaus2::util::GetFileSize::fileExists(nextname) )
 						{
 							next = nsv832(*LCP, n);
-							std::ofstream ostr(nextname.c_str(),std::ios::binary);
+							libmaus2::aio::OutputStreamInstance ostr(nextname);
 							next->serialise(ostr);
 							ostr.flush();
 							assert ( ostr );
-							ostr.close();
 						}
 						else
 						{
-							std::ifstream istr(nextname.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(nextname);
 							next = ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
@@ -1858,15 +1866,14 @@ namespace libmaus2
 						if ( ! ::libmaus2::util::GetFileSize::fileExists(rprevname) )
 						{
 							rprev = psv832(*RLCP, n);
-							std::ofstream ostr(rprevname.c_str(),std::ios::binary);
+							libmaus2::aio::OutputStreamInstance ostr(rprevname);
 							rprev->serialise(ostr);
 							ostr.flush();
 							assert ( ostr );
-							ostr.close();
 						}
 						else
 						{
-							std::ifstream istr(rprevname.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(rprevname);
 							rprev = ::libmaus2::util::NegativeDifferenceArray32::unique_ptr_type(new ::libmaus2::util::NegativeDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
@@ -1880,15 +1887,14 @@ namespace libmaus2
 						if ( ! ::libmaus2::util::GetFileSize::fileExists(rnextname) )
 						{
 							rnext = nsv832(*RLCP, n);
-							std::ofstream ostr(rnextname.c_str(),std::ios::binary);
+							libmaus2::aio::OutputStreamInstance ostr(rnextname);
 							rnext->serialise(ostr);
 							ostr.flush();
 							assert ( ostr );
-							ostr.close();
 						}
 						else
 						{
-							std::ifstream istr(rnextname.c_str(),std::ios::binary);
+							libmaus2::aio::InputStreamInstance istr(rnextname);
 							rnext = ::libmaus2::util::PositiveDifferenceArray32::unique_ptr_type(new ::libmaus2::util::PositiveDifferenceArray32(istr));
 							assert ( istr );
 							istr.close();
@@ -2124,7 +2130,7 @@ namespace libmaus2
 							uniout.put(v);
 						}
 							
-						remove ( filename.c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( filename );
 					}
 					uniout.flush();
 				}		

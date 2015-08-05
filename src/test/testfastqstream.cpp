@@ -26,7 +26,7 @@
 
 void decodeGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
 {
-	libmaus2::aio::CheckedInputStream FICIS(indexfilename);
+	libmaus2::aio::InputStreamInstance FICIS(indexfilename);
 	std::vector < libmaus2::fastx::FastInterval > FIV = 
 		libmaus2::fastx::FastInterval::deserialiseVector(FICIS);
 		
@@ -55,7 +55,7 @@ std::string getNameBase(std::string const & s)
 
 void countReadsGzipFastqBlocks(std::string const & filename, std::string const & indexfilename)
 {
-	libmaus2::aio::CheckedInputStream FICIS(indexfilename);
+	libmaus2::aio::InputStreamInstance FICIS(indexfilename);
 	std::vector < libmaus2::fastx::FastInterval > FIV = 
 		libmaus2::fastx::FastInterval::deserialiseVector(FICIS);
 

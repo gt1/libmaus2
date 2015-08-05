@@ -24,7 +24,7 @@
 #include <libmaus2/gamma/SparseGammaGapMerge.hpp>
 #include <libmaus2/gamma/GammaGapEncoder.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
@@ -83,7 +83,7 @@ namespace libmaus2
 
 				libmaus2::aio::InputStreamInstance ina(Sa.fn);
 				libmaus2::aio::InputStreamInstance inb(Sb.fn);
-				libmaus2::aio::CheckedOutputStream out(nfn);
+				libmaus2::aio::OutputStreamInstance out(nfn);
 				libmaus2::gamma::SparseGammaGapMerge::merge(ina,inb,out);
 				
 				// remove input files

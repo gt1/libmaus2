@@ -20,7 +20,7 @@
 #if ! defined(LIBMAUS2_AIO_SINGLEFILEFRAGMENTMERGE_HPP)
 #define LIBMAUS2_AIO_SINGLEFILEFRAGMENTMERGE_HPP
 
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>

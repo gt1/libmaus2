@@ -342,7 +342,7 @@ void testsparsegammalevelmerge()
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
-		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::gamma::SparseGammaGapEncoder SGE(COS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
@@ -671,7 +671,7 @@ void testsparsegammamerge()
 	for ( uint64_t i = 0; i < 25;  ++i )
 	{
 		std::string const fn = tmpgen.getFileName();
-		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::gamma::SparseGammaGapEncoder SGE(COS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
@@ -720,7 +720,7 @@ void testsparsegammamultimerge()
 	{
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
-		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
 		remove(indexfn.c_str());
@@ -773,7 +773,7 @@ void testsparsegammamultifilesetmerge()
 	{
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
-		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
 		remove(indexfn.c_str());
@@ -824,7 +824,7 @@ void testsparsegammamultifilesetmergedense()
 	{
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
-		libmaus2::aio::CheckedOutputStream COS(fn);
+		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
 		remove(indexfn.c_str());

@@ -113,7 +113,7 @@ namespace libmaus2
 						// auto array header
 						::libmaus2::serialize::Serialize<uint64_t>::serialize(out,allwordswritten);
 						std::string const filename = outputfilenames[i][j];
-						std::ifstream istr(filename.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance istr(filename);
 						::libmaus2::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
 						
 						remove(filename.c_str());
@@ -124,10 +124,9 @@ namespace libmaus2
 			
 			void createFinalStream(std::string const & filename)
 			{
-				std::ofstream ostr(filename.c_str(),std::ios::binary);
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				createFinalStream(ostr);
 				ostr.flush();
-				ostr.close();
 			}
 		};
 	}

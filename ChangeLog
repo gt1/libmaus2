@@ -1,3 +1,10 @@
+libmaus2 (2.0.35-1) unstable; urgency=medium
+
+  * merge Andrew Whitwham's duplicate marking stats fix
+  * replace instances of ifstream and ofstream by InputStreamInstance and OutputStreamInstance
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 05 Aug 2015 17:34:54 +0200
+
 libmaus2 (2.0.34-1) unstable; urgency=medium
 
   * add InputStreamInstance class

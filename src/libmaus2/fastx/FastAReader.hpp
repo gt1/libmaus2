@@ -37,7 +37,7 @@
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/aio/FileFragment.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <limits>
 #include <vector>
 
@@ -255,7 +255,7 @@ namespace libmaus2
 				
 				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
-				        std::ifstream istr(indexfilename.c_str(), std::ios::binary);
+				        libmaus2::aio::InputStreamInstance istr(indexfilename);
 				        std::vector < FastInterval > intervals = ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
 				        return intervals;
 				}
@@ -264,10 +264,9 @@ namespace libmaus2
                                         reader_type reader(filename);
 	        			std::vector<FastInterval> intervals = reader.enumerateOffsets(steps);
 				
-        				std::ofstream ostr(indexfilename.c_str(), std::ios::binary);
+        				libmaus2::aio::OutputStreamInstance ostr(indexfilename);
 	        			FastInterval::serialiseVector(ostr,intervals);
 		        		ostr.flush();
-			        	ostr.close();
 				
 			        	return intervals;
                                 }
@@ -576,7 +575,7 @@ namespace libmaus2
 			static uint64_t rewriteFiles(std::vector<std::string> const & filenames, std::string const & outfilename, std::string const & indexfilename)
                         {
 				::libmaus2::aio::SynchronousGenericOutput<char> SGO(outfilename,64*1024);
-				::libmaus2::aio::CheckedOutputStream COS(indexfilename);
+				::libmaus2::aio::OutputStreamInstance COS(indexfilename);
 				uint64_t const c = rewriteFilesToBuffer(filenames,SGO,COS);
 				SGO.flush();
 				COS.flush();

@@ -150,7 +150,8 @@ namespace libmaus2
 
 							if ( 
 								(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY) == 0 &&
-								(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY) == 0
+								(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY) == 0 &&
+								(flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL) == 0
 							)
 							{
 								if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP )
@@ -414,6 +415,8 @@ namespace libmaus2
 											libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSECONDARY
 											|
 											libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FSUPPLEMENTARY
+											|
+											libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL
 										)
 								);
 							if ( relfrag )
@@ -437,13 +440,13 @@ namespace libmaus2
 						if ( pfirst )
 						{
 							uint32_t const flags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(pfirst + sizeof(uint32_t));
-							if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP )
+							if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP || flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL)
 								pfirst = 0;
 						}
 						if ( psecond )
 						{
 							uint32_t const flags = libmaus2::bambam::BamAlignmentDecoderBase::getFlags(psecond + sizeof(uint32_t));
-							if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP )
+							if ( flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FUNMAP || flags & libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_FQCFAIL)
 								psecond = 0;						
 						}
 						

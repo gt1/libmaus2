@@ -40,7 +40,7 @@ namespace libmaus2
 		
 			z_stream strm;
 			
-			typedef std::ifstream istr_file_type;
+			typedef libmaus2::aio::InputStreamInstance istr_file_type;
 			typedef ::libmaus2::util::unique_ptr<istr_file_type>::type istr_file_ptr_type;
 			
 			istr_file_ptr_type pin;
@@ -96,7 +96,7 @@ namespace libmaus2
 				init(windowSizeLog);
 			}
 			Inflate(std::string const & filename, int windowSizeLog = 0) 
-			: pin(new istr_file_type(filename.c_str(),std::ios::binary)), 
+			: pin(new istr_file_type(filename)), 
 			  in(*pin), inbuf(input_buffer_size,false), outbuf(16*1024,false), outbuffill(0), op(0)
 			{
 				init(windowSizeLog);
@@ -238,7 +238,7 @@ namespace libmaus2
 			typedef BlockInflate this_type;
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			
-			typedef std::ifstream istream_type;
+			typedef libmaus2::aio::InputStreamInstance istream_type;
 			typedef ::libmaus2::util::unique_ptr<istream_type>::type istream_ptr_type;
 
 			std::vector < std::pair<uint64_t,uint64_t> > index;
@@ -255,7 +255,7 @@ namespace libmaus2
 			
 			static std::vector < std::pair<uint64_t,uint64_t> > loadIndex(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
+				libmaus2::aio::InputStreamInstance istr(filename);
 				std::vector < std::pair<uint64_t,uint64_t> > index;
 
 				istr.seekg(-8,std::ios::end);
@@ -307,7 +307,7 @@ namespace libmaus2
 			
 			BlockInflate(std::string const & filename, uint64_t pos = 0)
 			: index(loadIndex(filename)), blockptr(0), n(computeSize(index)),
-			  Pistr(new istream_type(filename.c_str(),std::ios::binary)), istr(*Pistr),
+			  Pistr(new istream_type(filename)), istr(*Pistr),
 			  B(), pa(0), pc(0), pe(0)
 			{
 				// std::cerr << "pos=" << pos << std::endl;

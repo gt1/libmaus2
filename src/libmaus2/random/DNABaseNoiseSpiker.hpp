@@ -103,12 +103,35 @@ namespace libmaus2
 				state_change_map[state_error_high][state_error_low] = 1-state_change_map[state_error_high][state_error_high ];
 				state_start_map[state_error_low] = startlowprob;
 				state_start_map[state_error_high] = 1 - state_start_map[state_error_low];
-			}
+			}			
 			
-			std::string modify(std::string const & sub) const
+			struct ErrorStats
+			{
+				uint64_t numins;
+				uint64_t numdel;
+				uint64_t numsubst;
+				
+				ErrorStats()
+				{
+				
+				}
+				
+				ErrorStats(
+					uint64_t rnumins,
+					uint64_t rnumdel,
+					uint64_t rnumsubst
+				) : numins(rnumins), numdel(rnumdel), numsubst(rnumsubst)
+				{
+				
+				}
+			};
+
+			std::string modify(std::string const & sub, ErrorStats * const estats = 0) const
 			{
 				std::ostringstream ostr;
-				modify(ostr,sub,0,0,0,0);
+				ErrorStats const E = modify(ostr,sub,0,0,0,0);
+				if ( estats )
+					*estats = E;
 				std::istringstream istr(ostr.str());
 			        libmaus2::fastx::StreamFastAReaderWrapper SFQR(istr);
 				libmaus2::fastx::StreamFastAReaderWrapper::pattern_type pattern;
@@ -124,7 +147,7 @@ namespace libmaus2
 				}
 			}
 			
-			void modify(
+			ErrorStats modify(
 				std::ostream & out,
 				std::string sub, 
 				uint64_t const pos, 
@@ -175,11 +198,11 @@ namespace libmaus2
 				    {
 					double const p = libmaus2::random::UniformUnitRandom::uniformUnitRandom();
 					uint64_t const errpos = std::floor(libmaus2::random::UniformUnitRandom::uniformUnitRandom() * (high-low-1) + 0.5) + low;
-					
+										
 					if ( p < err_prob_cumul.find(err_subst)->second )
 					{
 					    // no error yet?
-					    if ( errM.find(errpos) == errM.end() )
+					    if ( errM.find(errpos) == errM.end() || errM.find(errpos)->second.size() == 0 )
 					    {
 						errM[errpos].push_back(err_subst);
 						errplaced++;
@@ -198,7 +221,7 @@ namespace libmaus2
 					else if ( p < err_prob_cumul.find(err_del)->second )
 					{
 					    // no error yet?
-					    if ( errM.find(errpos) == errM.end() )
+					    if ( errM.find(errpos) == errM.end() || errM.find(errpos)->second.size() == 0 )
 					    {
 						errM[errpos].push_back(err_del);
 						errplaced++;
@@ -227,6 +250,8 @@ namespace libmaus2
 				errostr << "pos=" << pos << ';';
 				errostr << "strand=" << strand << ';';
 				
+				uint64_t numins = 0, numdel = 0, numsubst = 0;
+				
 				for ( std::map<uint64_t,std::vector<err_type_enum> >::const_iterator ita = errM.begin(); ita != errM.end(); ++ita )
 				{
 				    uint64_t const pos = ita->first;
@@ -247,6 +272,7 @@ namespace libmaus2
 					    }
 					    baseostr.put(insbase);
 					    errostr << 'i' << static_cast<char>(insbase);
+					    numins += 1;
 					}
 
 				    // base not deleted?
@@ -265,6 +291,7 @@ namespace libmaus2
 					    }                    
 					    baseostr.put(insbase);
 					    errostr << 's' << static_cast<char>(insbase);
+					    numsubst += 1;
 					}
 					else
 					{
@@ -275,6 +302,7 @@ namespace libmaus2
 				    else
 				    {
 					errostr.put('d');
+					numdel += 1;
 				    }
 				}
 				
@@ -293,6 +321,7 @@ namespace libmaus2
 				    b_low = high;
 				}
 			
+				return ErrorStats(numins,numdel,numsubst);
 			}	
 		};
 	}

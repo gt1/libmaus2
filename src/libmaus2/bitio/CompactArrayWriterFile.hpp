@@ -33,7 +33,7 @@ namespace libmaus2
 		 **/
 		struct CompactArrayWriterFile
 		{
-			::libmaus2::aio::CheckedOutputStream::unique_ptr_type COS;
+			::libmaus2::aio::OutputStreamInstance::unique_ptr_type COS;
 			::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type SGO;
 			::libmaus2::bitio::FastWriteBitWriterBuffer64Sync::unique_ptr_type FWBW;
 			
@@ -56,7 +56,7 @@ namespace libmaus2
 			
 			CompactArrayWriterFile(std::string const & filename, uint64_t const rb)
 			:
-				COS(new ::libmaus2::aio::CheckedOutputStream(filename)),
+				COS(new ::libmaus2::aio::OutputStreamInstance(filename)),
 				SGO(new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*COS,8*1024)),
 				n(0),
 				b(rb)
