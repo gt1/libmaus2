@@ -63,6 +63,13 @@ namespace libmaus2
 					return istr;
 				}
 			}
+			virtual bool tryOpen(std::string const & filename)
+			{
+				if ( filename == "-" )
+					return true;
+				else
+					return PosixFdInput::tryOpen(filename);
+			}
 		};
 	}
 }

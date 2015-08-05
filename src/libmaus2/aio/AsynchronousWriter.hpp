@@ -199,7 +199,6 @@ namespace libmaus2
 			 **/
 			~AsynchronousWriter()
 			{
-				ostr.close();
 			}
 			
 			/**
