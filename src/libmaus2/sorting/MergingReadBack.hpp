@@ -20,6 +20,7 @@
 #define LIBMAUS2_SORTING_MERGINGREADBACK_HPP
 
 #include <libmaus2/aio/BufferedOutput.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <queue>
 
 namespace libmaus2
@@ -61,7 +62,7 @@ namespace libmaus2
 				}
 			};
 				
-			libmaus2::aio::CheckedInputStream CIS;
+			libmaus2::aio::InputStream::unique_ptr_type PCIS;
 			
 			order_ptr_type Porder;
 			order_type & order;
@@ -81,9 +82,18 @@ namespace libmaus2
 						
 				if ( toread )
 				{
-					CIS.clear();
-					CIS.seekg(blockoffsets[b] * sizeof(data_type));
-					CIS.read(reinterpret_cast<char *>(subblocks[b].pa),toread * sizeof(data_type));
+					PCIS->clear();
+					PCIS->seekg(blockoffsets[b] * sizeof(data_type));
+					PCIS->read(reinterpret_cast<char *>(subblocks[b].pa),toread * sizeof(data_type));
+					
+					if ( PCIS->gcount() != static_cast<ssize_t>(toread * sizeof(data_type)) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "MergingReadBack::fillBlock: input failed to read " << toread << " elements from block " << b << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
 					blockoffsets[b] += toread;
 					blocksizes[b] -= toread;
 				
@@ -119,7 +129,7 @@ namespace libmaus2
 			public:
 			MergingReadBack(std::string const & filename, std::vector<uint64_t> const & rblocksizes, uint64_t const rbackblocksize = 1024)
 			: 
-				CIS(filename), 
+				PCIS(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), 
 				Porder(new order_type), 
 				order(*Porder), 
 				HOA(&order), 

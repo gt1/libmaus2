@@ -36,9 +36,9 @@ namespace libmaus2
 			//! input type
 			typedef input_type value_type;
 			//! input file stream type
-			typedef ::std::ifstream ifstream_type;
+			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! input file stream pointer type
-			typedef ::libmaus2::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<input_stream_type>::type input_stream_pointer_type;
 			//! this type
 			typedef SynchronousGenericInput<input_type> this_type;
 			//! unique pointer type
@@ -56,7 +56,7 @@ namespace libmaus2
 			input_type const * pe;
 
 			//! input stream pointer
-			ifstream_ptr_type Pistr;
+			input_stream_pointer_type Pistr;
 			//! input stream reference
 			std::istream & istr;
 
@@ -189,19 +189,12 @@ namespace libmaus2
 			)
 			: bufsize(rbufsize), buffer(bufsize,false), 
 			  pa(buffer.get()), pc(pa), pe(pa),
-			  Pistr(new ifstream_type(filename.c_str(),std::ios::binary)),
+			  Pistr(new input_stream_type(filename)),
 			  istr(*Pistr),
 			  totalwords ( std::min ( ::libmaus2::util::GetFileSize::getFileSize(filename) / sizeof(input_type) - roffset, rtotalwords) ),
 			  totalwordsread(0),
 			  checkmod(true)
 			{
-				if ( ! Pistr->is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Unable to open file " << filename << ": " << strerror(errno);
-					se.finish();
-					throw se;
-				}
 				Pistr->seekg(roffset * sizeof(input_type), std::ios::beg);
 				if ( ! istr )
 				{
@@ -217,9 +210,8 @@ namespace libmaus2
 			 **/
 			~SynchronousGenericInput()
 			{
-				if ( Pistr && Pistr->is_open() )
+				if ( Pistr )
 				{
-					Pistr->close();
 					Pistr.reset();
 				}
 			}

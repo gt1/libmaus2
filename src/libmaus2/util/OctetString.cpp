@@ -38,7 +38,7 @@ libmaus2::util::OctetString::OctetString(
 	uint64_t offset, 
 	uint64_t blength)
 {	
-	::libmaus2::aio::CheckedInputStream CIS(filename);
+	::libmaus2::aio::InputStreamInstance CIS(filename);
 	uint64_t const fs = ::libmaus2::util::GetFileSize::getFileSize(CIS);
 	offset = std::min(offset,fs);
 	blength = std::min(blength,fs-offset);

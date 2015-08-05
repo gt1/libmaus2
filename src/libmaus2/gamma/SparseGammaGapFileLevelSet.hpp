@@ -23,8 +23,8 @@
 #include <libmaus2/gamma/SparseGammaGapFile.hpp>
 #include <libmaus2/gamma/SparseGammaGapMerge.hpp>
 #include <libmaus2/gamma/GammaGapEncoder.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
@@ -81,9 +81,9 @@ namespace libmaus2
 				
 				SparseGammaGapFile N(nfn,l+1);
 
-				libmaus2::aio::CheckedInputStream ina(Sa.fn);
-				libmaus2::aio::CheckedInputStream inb(Sb.fn);
-				libmaus2::aio::CheckedOutputStream out(nfn);
+				libmaus2::aio::InputStreamInstance ina(Sa.fn);
+				libmaus2::aio::InputStreamInstance inb(Sb.fn);
+				libmaus2::aio::OutputStreamInstance out(nfn);
 				libmaus2::gamma::SparseGammaGapMerge::merge(ina,inb,out);
 				
 				// remove input files
@@ -165,7 +165,7 @@ namespace libmaus2
 
 				if ( merge(tmpfilename) )
 				{
-					libmaus2::aio::CheckedInputStream CIS(tmpfilename);
+					libmaus2::aio::InputStreamInstance CIS(tmpfilename);
 					libmaus2::gamma::SparseGammaGapDecoder SGGD(CIS);
 					libmaus2::gamma::SparseGammaGapDecoder::iterator it = SGGD.begin();
 					

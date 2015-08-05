@@ -229,7 +229,7 @@ namespace libmaus2
 				uint64_t * p;
 				uint64_t * ps;
 				
-				::libmaus2::util::unique_ptr<std::ofstream>::type Postr;
+				libmaus2::aio::OutputStreamInstance::unique_ptr_type Postr;
 				::std::ostream & ostr;
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type out;
 				
@@ -254,7 +254,7 @@ namespace libmaus2
 				WriteContextExternal(std::string const & filename)
 				: bitpos(0), w(0), s(0), 
 				  B(8), p(B.begin()), ps(p),
-				  Postr(new std::ofstream(filename.c_str(),std::ios::binary)),
+				  Postr(new libmaus2::aio::OutputStreamInstance(filename)),
 				  ostr(*Postr),
 				  blockswritten(0)
 				{
@@ -272,7 +272,7 @@ namespace libmaus2
 				WriteContextExternal(std::string const & filename, uint64_t const n, bool const writeHeader = true)
 				: bitpos(0), w(0), s(0), 
 				  B(8), p(B.begin()), ps(p),
-				  Postr(new std::ofstream(filename.c_str(),std::ios::binary)),
+				  Postr(new libmaus2::aio::OutputStreamInstance(filename)),
 				  ostr(*Postr),
 				  blockswritten(0)
 				{

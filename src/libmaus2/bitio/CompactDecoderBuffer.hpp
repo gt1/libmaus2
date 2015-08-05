@@ -25,7 +25,7 @@
 #include <ios>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
 #include <libmaus2/bitio/Ctz.hpp>
 #include <libmaus2/bitio/CompactArray.hpp>
@@ -40,7 +40,7 @@ namespace libmaus2
 			private:
 			static uint64_t const headersize = 4*sizeof(uint64_t);
 			
-			::libmaus2::aio::CheckedInputStream stream;
+			::libmaus2::aio::InputStreamInstance stream;
 			
 			// log of word size we are using
 			static unsigned int const loglog = 6;

@@ -136,7 +136,7 @@ namespace libmaus2
 			
 			uint64_t createFinalStream(std::string const & filename)
 			{
-				std::ofstream out(filename.c_str(),std::ios::binary);
+				libmaus2::aio::OutputStreamInstance out(filename);
 				return createFinalStream(out);
 			}
 			

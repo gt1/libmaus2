@@ -22,9 +22,9 @@
 #include <libmaus2/lz/BgzfInflate.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
 
-libmaus2::aio::CheckedInputStream::unique_ptr_type openFile(std::string const & fn)
+libmaus2::aio::InputStreamInstance::unique_ptr_type openFile(std::string const & fn)
 {
-	libmaus2::aio::CheckedInputStream::unique_ptr_type bamCIS(new libmaus2::aio::CheckedInputStream(fn));
+	libmaus2::aio::InputStreamInstance::unique_ptr_type bamCIS(new libmaus2::aio::InputStreamInstance(fn));
 	return UNIQUE_PTR_MOVE(bamCIS);
 }
 
@@ -39,8 +39,8 @@ int main(int argc, char * argv[])
 		if ( !libmaus2::util::GetFileSize::fileExists(fn+".bai") )
 		{
 			libmaus2::bambam::BamIndexGenerator indexgen("indextmp",true,true,false/*debug*/);
-			libmaus2::aio::CheckedInputStream::unique_ptr_type bamCIS(openFile(fn));
-			// libmaus2::lz::BgzfInflate<libmaus2::aio::CheckedInputStream> bgzfin(*bamCIS);
+			libmaus2::aio::InputStreamInstance::unique_ptr_type bamCIS(openFile(fn));
+			// libmaus2::lz::BgzfInflate<libmaus2::aio::InputStreamInstance> bgzfin(*bamCIS);
 			libmaus2::lz::BgzfInflate<std::istream> bgzfin(*bamCIS);
 		
 			libmaus2::lz::BgzfInflateInfo P;
@@ -50,11 +50,10 @@ int main(int argc, char * argv[])
 			indexgen.flush(indexostr);
 			bamCIS.reset();
 			
-			libmaus2::aio::CheckedOutputStream COS(fn+".bai");
+			libmaus2::aio::OutputStreamInstance COS(fn+".bai");
 			std::string const & index = indexostr.str();
 			COS.write(index.c_str(),index.size());
 			COS.flush();
-			COS.close();
 		}
 		
 		libmaus2::autoarray::AutoArray<char> const indexA = libmaus2::autoarray::AutoArray<char>::readFile(fn+".bai");

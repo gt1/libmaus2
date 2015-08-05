@@ -29,7 +29,6 @@
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/bitio/BitIOInput.hpp>
 #include <iostream>
-#include <libmaus2/aio/CheckedInputStream.hpp>
 
 #if defined(__linux__)
 #include <byteswap.h>
@@ -191,7 +190,8 @@ namespace libmaus2
 
 		struct IndexLoaderSequential : public IndexLoaderBase
 		{
-			::libmaus2::aio::CheckedInputStream indexistr;
+			libmaus2::aio::InputStream::unique_ptr_type Pindexistr;
+			std::istream & indexistr;
 			::libmaus2::bitio::StreamBitInputStream SBIS;
 			
 			uint64_t numentries;
@@ -200,7 +200,7 @@ namespace libmaus2
 			unsigned int vbits;		
 			
 			IndexLoaderSequential(std::string const & filename)
-			: indexistr(filename), SBIS(indexistr)
+			: Pindexistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename)), indexistr(*Pindexistr), SBIS(indexistr)
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 				indexistr.seekg(indexpos,std::ios::beg);
@@ -272,7 +272,8 @@ namespace libmaus2
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 
-				::libmaus2::aio::CheckedInputStream indexistr(filename);
+				libmaus2::aio::InputStream::unique_ptr_type Pindexistr(libmaus2::aio::InputStreamFactoryContainer::constructUnique(filename));
+				std::istream & indexistr = *Pindexistr;
 				// seek to index position
 				indexistr.seekg(indexpos,std::ios::beg);
 				// 
@@ -323,15 +324,7 @@ namespace libmaus2
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 
-				std::ifstream indexistr(filename.c_str(),std::ios::binary);
-
-				if ( ! indexistr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "RLDecoder::loadIndex(): Failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::InputStreamInstance indexistr(filename);
 
 				// seek to index position
 				indexistr.seekg(indexpos,std::ios::beg);

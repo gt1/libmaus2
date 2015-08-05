@@ -590,7 +590,7 @@ namespace libmaus2
 
 			static unique_ptr_type load(sampled_sa_type const & rsa, std::string const & fn)
 			{
-				libmaus2::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::InputStreamInstance CIS(fn);
 				unique_ptr_type ptr(new this_type(CIS,rsa));
 				return UNIQUE_PTR_MOVE(ptr);
 			}

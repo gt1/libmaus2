@@ -21,6 +21,7 @@
 #define SAMPLEDSA_HPP
 
 #include <libmaus2/lf/LF.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/bitio/putBits.hpp>
 #include <libmaus2/util/unique_ptr.hpp>
 
@@ -302,7 +303,7 @@ namespace libmaus2
 			
 			static unique_ptr_type load(lf_type const * lf, std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::InputStreamInstance CIS(filename);
 				unique_ptr_type ptr(new this_type(lf,CIS));
 				return UNIQUE_PTR_MOVE(ptr);
 			}

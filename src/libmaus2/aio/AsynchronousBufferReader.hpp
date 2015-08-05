@@ -179,7 +179,7 @@ namespace libmaus2
 		/**
 		 * synchronous input with asynchronous api (for systems without asynchronous input)
 		 **/
-		struct AsynchronousBufferReader : std::ifstream
+		struct AsynchronousBufferReader : libmaus2::aio::InputStreamInstance
 		{
 			private:
 			uint64_t const bufsize;
@@ -202,10 +202,10 @@ namespace libmaus2
 				uint64_t const rbufsize,
 				uint64_t const offset
 			)
-			: std::ifstream(filename.c_str()), bufsize(rnumbufs * rbufsize), 
+			: libmaus2::aio::InputStreamInstance(filename), bufsize(rnumbufs * rbufsize), 
                           abuffer(bufsize), buffer(abuffer.get()), av(true)
 			{
-				std::ifstream::seekg(offset,std::ios::beg);
+				libmaus2::aio::InputStreamInstance::seekg(offset,std::ios::beg);
 			}
 			/**
 			 * get next buffer
@@ -217,10 +217,10 @@ namespace libmaus2
 			{
 				assert ( av );
 			
-				std::ifstream::read(buffer,bufsize);
+				libmaus2::aio::InputStreamInstance::read(buffer,bufsize);
 				
 				data.first = buffer;
-				data.second = std::ifstream::gcount();
+				data.second = libmaus2::aio::InputStreamInstance::gcount();
 				av = false;
 				
 				// std::cerr << "Got " << data.second << std::endl;

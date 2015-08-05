@@ -36,17 +36,16 @@ namespace libmaus2
 
 			uint64_t const bufsize;
 			::libmaus2::autoarray::AutoArray< TripleEdge > B;
-			std::ifstream istr;
+			libmaus2::aio::InputStreamInstance istr;
 
 			uint64_t curbufleft;
 			TripleEdge const * curtrip;
 
 			static uint64_t getFileLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str());
+				libmaus2::aio::InputStreamInstance istr(filename);
 				istr.seekg(0,std::ios::end);
 				uint64_t const l = istr.tellg();
-				istr.close();
 				return l;
 			}
 			
@@ -61,7 +60,7 @@ namespace libmaus2
 			: 
 				bufsize(rbufsize), 
 				B(bufsize),
-				istr(filename.c_str(),std::ios::binary),
+				istr(filename),
 				curbufleft(0),
 				curtrip(0)
 			{

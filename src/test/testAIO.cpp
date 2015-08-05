@@ -24,12 +24,15 @@
 #include <libmaus2/aio/PosixFdInputStream.hpp>
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 #include <vector>
 #include <map>
 #include <cmath>
 
 #include <libmaus2/aio/PosixFdInputOutputStream.hpp>
+
+#include <libmaus2/aio/InputStreamInstance.hpp>
 
 void testPosixFdInput()
 {
@@ -197,6 +200,15 @@ void testInputOutput()
 
 int main(int argc, char * argv[])
 {
+	{
+	libmaus2::aio::InputStreamInstance in("configure");
+	int c = -1;
+	while ( (c=in.get()) != std::istream::traits_type::eof() )
+		std::cout.put(c);
+	
+	// return 0;
+	}
+	
 	// testInputOutput<libmaus2::aio::PosixFdInputOutputStream>();
 	testInputOutput<libmaus2::aio::MemoryInputOutputStream,libmaus2::aio::MemoryOutputStream,libmaus2::aio::MemoryInputStream>();
 	
@@ -226,7 +238,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text1.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -240,7 +252,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text2.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -262,7 +274,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text1.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -276,7 +288,7 @@ int main(int argc, char * argv[])
 		}
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			libmaus2::autoarray::AutoArray<char> C(text2.size());
 			CIS.read(C.begin(),C.size());
 			assert ( CIS.get() < 0 );
@@ -293,7 +305,7 @@ int main(int argc, char * argv[])
 		libmaus2::autoarray::AutoArray<char> A(fs,false);
 		
 		{
-			libmaus2::aio::CheckedInputStream CIS(fn);
+			libmaus2::aio::InputStreamInstance CIS(fn);
 			CIS.read(A.begin(),fs);
 		}
 		

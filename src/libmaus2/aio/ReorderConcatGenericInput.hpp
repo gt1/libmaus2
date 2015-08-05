@@ -48,7 +48,7 @@ namespace libmaus2
 			//! current pointer in fragment vector
 			std::vector < FileFragment >::const_iterator it;
 			//! input stream type
-			typedef std::ifstream reader_type;
+			typedef libmaus2::aio::InputStreamInstance reader_type;
 			//! input stream pointer type
 			typedef ::libmaus2::util::unique_ptr<reader_type>::type reader_ptr_type;
 			
@@ -125,17 +125,8 @@ namespace libmaus2
 			        if ( it != V.end() )
 			        {
 			                // std::cerr << "Switching to " << it->toString() << " offset " << offset << std::endl;
-					reader_ptr_type treader(new reader_type(it->filename.c_str(),std::ios::binary));
+					reader_ptr_type treader(new reader_type(it->filename));
 			                reader = UNIQUE_PTR_MOVE(treader);
-			                if ( !reader->is_open() )
-			                {
-			                        ::libmaus2::exception::LibMausException se;
-			                        se.getStream() << "Failed to open file " << it->filename << " in ReorderConcatGenericInput<" 
-			                                << ::libmaus2::util::Demangle::demangle<input_type>() << ">::init(): " << strerror(errno);
-                                                se.finish();
-                                                throw se;
-			                }
-			                
 			                assert ( offset <= it->len );
 
 			                restwords = it->len - offset ;
@@ -444,21 +435,8 @@ namespace libmaus2
                         	std::string const & outputfilename
                         	)
 			{
-				std::ofstream ostr(outputfilename.c_str(),std::ios::binary);
-				
-				if ( (! ostr) || (!(ostr.is_open())) )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to open file " << outputfilename << " for writing: " 
-						<< strerror(errno)
-						<< std::endl;
-					se.finish();
-					throw se;
-				}
-			
+				libmaus2::aio::OutputStreamInstance ostr(outputfilename);
 				toSerial(fragments,ostr,outputfilename);
-				
-				ostr.close();
 			}
 
                         /**

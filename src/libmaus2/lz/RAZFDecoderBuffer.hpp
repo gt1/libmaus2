@@ -30,7 +30,7 @@ namespace libmaus2
 		struct RAZFDecoderBuffer : public ::std::streambuf, public ::libmaus2::lz::RAZFConstants
 		{
 			private:
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type Pfilestream;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type Pfilestream;
 			std::istream & stream;
 			
 			libmaus2::lz::RAZFIndex const index;
@@ -88,7 +88,7 @@ namespace libmaus2
 
 			public:
 			RAZFDecoderBuffer(std::string const & filename)
-			: Pfilestream(new ::libmaus2::aio::CheckedInputStream(filename)),
+			: Pfilestream(new ::libmaus2::aio::InputStreamInstance(filename)),
 			  stream(*Pfilestream),
 			  index(stream),
 			  inbuffer(razf_block_size,false),

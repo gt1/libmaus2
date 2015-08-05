@@ -21,34 +21,34 @@
 #define LIBMAUS2_FASTX_GZIPFILEFASTQREADER_HPP
 
 #include <libmaus2/fastx/GzipStreamFastQReader.hpp>
-#include <libmaus2/aio/CheckedInputStreamAtOffset.hpp>
+#include <libmaus2/aio/InputStreamInstanceAtOffset.hpp>
 
 namespace libmaus2
 {
 	namespace fastx
 	{
-		struct GzipFileFastQReader : public libmaus2::aio::CheckedInputStreamAtOffsetWrapper, GzipStreamFastQReader
+		struct GzipFileFastQReader : public libmaus2::aio::InputStreamInstanceAtOffsetWrapper, GzipStreamFastQReader
 		{
                 	typedef GzipFileFastQReader this_type;
                 	typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 
 			GzipFileFastQReader(std::string const & filename)
-			: libmaus2::aio::CheckedInputStreamAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus2::aio::CheckedInputStreamAtOffsetWrapper::object)
+			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object)
 			{
 			
 			}
 			GzipFileFastQReader(std::string const & filename, int const qualityOffset)
-			: libmaus2::aio::CheckedInputStreamAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus2::aio::CheckedInputStreamAtOffsetWrapper::object,qualityOffset)
+			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object,qualityOffset)
 			{
 			
 			}
 			GzipFileFastQReader(std::string const & filename, libmaus2::fastx::FastInterval const & FI)
-			: libmaus2::aio::CheckedInputStreamAtOffsetWrapper(filename,FI.fileoffset), GzipStreamFastQReader(libmaus2::aio::CheckedInputStreamAtOffsetWrapper::object,FI)
+			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename,FI.fileoffset), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object,FI)
 			{
 			
 			}
 			GzipFileFastQReader(std::string const & filename, int const qualityOffset, libmaus2::fastx::FastInterval const & FI)
-			: libmaus2::aio::CheckedInputStreamAtOffsetWrapper(filename,FI.fileoffset), GzipStreamFastQReader(libmaus2::aio::CheckedInputStreamAtOffsetWrapper::object,qualityOffset,FI)
+			: libmaus2::aio::InputStreamInstanceAtOffsetWrapper(filename,FI.fileoffset), GzipStreamFastQReader(libmaus2::aio::InputStreamInstanceAtOffsetWrapper::object,qualityOffset,FI)
 			{
 			
 			}

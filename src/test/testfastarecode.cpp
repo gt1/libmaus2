@@ -23,7 +23,7 @@
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/fastx/FastAReader.hpp>
 #include <libmaus2/aio/CircularWrapper.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 
 int main(int argc, char * argv[])
@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 		
 		/* uint64_t const numseq = */ ::libmaus2::fastx::FastAReader::rewriteFiles(inputfilenames,tempfilename,indexfilename);
 		uint64_t curpos = 0;
-		::libmaus2::aio::CheckedOutputStream COS(outfilename);
+		::libmaus2::aio::OutputStreamInstance COS(outfilename);
 		
 		// 0,A,C,G,T,N
 		// map forward
@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
 		
 		if ( maxseqlen <= 256*1024 )
 		{
-			::libmaus2::aio::CheckedInputStream CIS(tempfilename);
+			::libmaus2::aio::InputStreamInstance CIS(tempfilename);
 			::libmaus2::autoarray::AutoArray<uint8_t> B(maxseqlen+1,false);
 
 			while ( infodec->get(info) )
@@ -137,7 +137,7 @@ int main(int argc, char * argv[])
 				uint64_t const seqbeg = curpos + (info.idlen+2);
 				uint64_t const seqend = seqbeg + info.seqlen;
 				
-				::libmaus2::aio::CheckedInputStream CIS(tempfilename); CIS.seekg(seqbeg);
+				::libmaus2::aio::InputStreamInstance CIS(tempfilename); CIS.seekg(seqbeg);
 				::libmaus2::util::GetFileSize::copyMap(CIS,COS,cmap.begin(),seqend-seqbeg+1);
 				
 				::libmaus2::aio::CircularReverseWrapper CRW(tempfilename,seqend);

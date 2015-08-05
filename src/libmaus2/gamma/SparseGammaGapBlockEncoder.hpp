@@ -21,7 +21,7 @@
 
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/CheckedInputOutputStream.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
@@ -43,7 +43,7 @@ namespace libmaus2
 			typedef libmaus2::aio::SynchronousGenericOutput<uint64_t> stream_type;
 			
 			// w output stream
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type SGOCOS;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type SGOCOS;
 			// rw index stream
 			libmaus2::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
 			
@@ -83,7 +83,7 @@ namespace libmaus2
 				std::string const & indexfilename,
 				uint64_t const rblocksize = 64*1024
 			)
-			: SGOCOS(new libmaus2::aio::CheckedOutputStream(filename)), 
+			: SGOCOS(new libmaus2::aio::OutputStreamInstance(filename)), 
 			  indexUP(new libmaus2::aio::CheckedInputOutputStream(indexfilename)),
 			  SGOout(*SGOCOS), 
 			  indexout(*indexUP),
@@ -202,7 +202,7 @@ namespace libmaus2
 					std::string const indexfn = fn+".idx";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);				
 					
-					libmaus2::aio::CheckedOutputStream COS(fn);
+					libmaus2::aio::OutputStreamInstance COS(fn);
 					libmaus2::aio::CheckedInputOutputStream indexstr(indexfn);
 
 					this_type enc(
@@ -228,7 +228,6 @@ namespace libmaus2
 					
 					enc.term();
 					COS.flush();
-					COS.close();
 				}
 				
 				return partfn;
@@ -237,7 +236,7 @@ namespace libmaus2
 			template<typename it>
 			static void encodeArray(it const ita, it const ite, std::string const & fn)
 			{
-				libmaus2::aio::CheckedOutputStream COS(fn);
+				libmaus2::aio::OutputStreamInstance COS(fn);
 				std::string const indexfn = fn+".idx";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
 				libmaus2::aio::CheckedInputOutputStream indexCOS(indexfn);

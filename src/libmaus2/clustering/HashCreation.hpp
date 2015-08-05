@@ -59,11 +59,10 @@ namespace libmaus2
 			
 			void serialise(std::string const & filename) const
 			{
-				std::ofstream ostr(filename.c_str(), std::ios::binary);
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				serialise(ostr);
 				ostr.flush();
 				assert ( ostr );
-				ostr.close();
 			}
 			
 			HashCreationTables(std::istream & in)

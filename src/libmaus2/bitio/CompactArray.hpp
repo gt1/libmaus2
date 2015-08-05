@@ -97,16 +97,13 @@ namespace libmaus2
 						
 			static std::pair<uint64_t,uint64_t> getParamPair(std::string const & filename, uint64_t const offset)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				assert ( istr.is_open() );
+				libmaus2::aio::InputStreamInstance istr(filename);
 				
 				istr.seekg ( offset, std::ios::beg );
 						
 				uint64_t const b = deserializeNumber(istr);
 				uint64_t const n = deserializeNumber(istr);
-				
-				istr.close();
-				
+								
 				return std::pair<uint64_t,uint64_t>(b,n);
 			}
 			
@@ -138,9 +135,8 @@ namespace libmaus2
 					
 					for ( uint64_t i = li; i < ri; ++i )
 					{
-						std::ifstream istr(filename.c_str(),std::ios::binary);
+						libmaus2::aio::InputStreamInstance istr(filename);
 						istr.seekg ( offsets[i], std::ios::beg );
-						assert ( istr.is_open() );
 								
 						uint64_t const b = deserializeNumber(istr);
 						uint64_t const n = deserializeNumber(istr);
@@ -193,9 +189,7 @@ namespace libmaus2
 								wordsleft -= wordstoread;
 							}						
 						}
-						
-						istr.close();
-						
+												
 						totalbits += n*b;
 					}
 				}
@@ -239,8 +233,7 @@ namespace libmaus2
 					#endif			
 					for ( int64_t i = li; i < static_cast<int64_t>(ri); i += 2 )
 					{
-						std::ifstream istr(filenames[i].c_str(),std::ios::binary);
-						assert ( istr.is_open() );
+						libmaus2::aio::InputStreamInstance istr(filenames[i]);
 								
 						uint64_t const b = deserializeNumber(istr);
 						uint64_t const n = deserializeNumber(istr);
@@ -294,17 +287,14 @@ namespace libmaus2
 								
 								wordsleft -= wordstoread;
 							}						
-						}
-						
-						istr.close();						
+						}						
 					}
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1)
 					#endif			
 					for ( int64_t i = li+1; i < static_cast<int64_t>(ri); i += 2 )
 					{
-						std::ifstream istr(filenames[i].c_str(),std::ios::binary);
-						assert ( istr.is_open() );
+						libmaus2::aio::InputStreamInstance istr(filenames[i]);
 								
 						uint64_t const b = deserializeNumber(istr);
 						uint64_t const n = deserializeNumber(istr);
@@ -358,9 +348,7 @@ namespace libmaus2
 								
 								wordsleft -= wordstoread;
 							}						
-						}
-						
-						istr.close();						
+						}						
 					}
 				}
 				
@@ -393,16 +381,13 @@ namespace libmaus2
 					
 					for ( uint64_t i = li; i < ri; ++i )					
 					{
-						std::ifstream istr(filename.c_str(),std::ios::binary);
-						assert ( istr.is_open() );
+						libmaus2::aio::InputStreamInstance istr(filename);
 						istr.seekg ( offsets[i], std::ios::beg );
 
 						CompactArrayTemplate<synchronous> C(istr);
 						
 						for ( uint64_t j = 0; j < C.n; ++j )
-							ptr->set ( p++, C.get(j) );
-						
-						istr.close();
+							ptr->set ( p++, C.get(j) );						
 					}
 				}
 				
@@ -437,15 +422,12 @@ namespace libmaus2
 					{
 						uint64_t p = offsets[i-li];
 						
-						std::ifstream istr(filenames[i].c_str(),std::ios::binary);
-						assert ( istr.is_open() );
+						libmaus2::aio::InputStreamInstance istr(filenames[i]);
 
 						CompactArrayTemplate<synchronous> C(istr);
 						
 						for ( uint64_t j = 0; j < C.n; ++j )
-							ptr->set ( p++, C.get(j) );
-						
-						istr.close();
+							ptr->set ( p++, C.get(j) );						
 					}
 				}
 				
@@ -490,15 +472,12 @@ namespace libmaus2
 					{
 						uint64_t p = offsets[i-li];
 						
-						std::ifstream istr(filenames[i].c_str(),std::ios::binary);
-						assert ( istr.is_open() );
+						libmaus2::aio::InputStreamInstance istr(filenames[i]);
 
 						CompactArrayTemplate<synchronous> C(istr);
 						
 						for ( uint64_t j = 0; j < C.n; ++j )
-							ptr->set ( p++, C.get(j) );
-						
-						istr.close();
+							ptr->set ( p++, C.get(j) );						
 					}
 					#if defined(_OPENMP)
 					#pragma omp parallel for schedule(dynamic,1)
@@ -507,15 +486,12 @@ namespace libmaus2
 					{
 						uint64_t p = offsets[i-li];
 						
-						std::ifstream istr(filenames[i].c_str(),std::ios::binary);
-						assert ( istr.is_open() );
+						libmaus2::aio::InputStreamInstance istr(filenames[i]);
 
 						CompactArrayTemplate<synchronous> C(istr);
 						
 						for ( uint64_t j = 0; j < C.n; ++j )
-							ptr->set ( p++, C.get(j) );
-						
-						istr.close();
+							ptr->set ( p++, C.get(j) );						
 					}
 				}
 				

@@ -22,7 +22,7 @@
 
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/exception/LibMausException.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <fstream>
 
 #if defined(__linux__)

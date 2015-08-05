@@ -41,7 +41,7 @@ typedef ::libmaus2::gamma::GammaRLDecoder rl_decoder;
 {
 	std::string const inhist = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".hist";
 	
-	::libmaus2::aio::CheckedInputStream histCIS(inhist);
+	::libmaus2::aio::InputStreamInstance histCIS(inhist);
 	std::map<uint64_t,uint64_t> chist = ::libmaus2::util::NumberMapSerialisation::deserialiseMap<std::istream,uint64_t,uint64_t>(histCIS);
 	
 	if ( ! chist.size() )
@@ -101,7 +101,7 @@ typedef ::libmaus2::gamma::GammaRLDecoder rl_decoder;
  **/
 uint64_t libmaus2::fm::MausFmToBwaConversion::loadPrimary(std::string const & inisa)
 {
-	::libmaus2::aio::CheckedInputStream isaCIS(inisa);
+	::libmaus2::aio::InputStreamInstance isaCIS(inisa);
 	
 	uint64_t isasamplingrate = 0;
 	::libmaus2::serialize::Serialize<uint64_t>::deserialize(isaCIS,&isasamplingrate);
@@ -167,7 +167,7 @@ void libmaus2::fm::MausFmToBwaConversion::rewriteSa(std::string const & infn, st
 	std::cerr << "[D] n=" << n << std::endl;
 	
 	std::string const insa = ::libmaus2::util::OutputFileNameTools::clipOff(infn,".bwt") + ".sa";
-	::libmaus2::aio::CheckedInputStream saCIS(insa);
+	::libmaus2::aio::InputStreamInstance saCIS(insa);
 
 	// read SA header
 	uint64_t sasamplingrate = 0;
@@ -238,13 +238,11 @@ void libmaus2::fm::MausFmToBwaConversion::rewrite(
 		throw se;	
 	}
 
-	::libmaus2::aio::CheckedOutputStream COSbwt(outbwt);
+	::libmaus2::aio::OutputStreamInstance COSbwt(outbwt);
 	rewriteBwt(inbwt,COSbwt);
 	COSbwt.flush();
-	COSbwt.close();
 
-	::libmaus2::aio::CheckedOutputStream COSsa(outsa);
+	::libmaus2::aio::OutputStreamInstance COSsa(outsa);
 	rewriteSa(inbwt,COSsa);
 	COSsa.flush();
-	COSsa.close();
 }

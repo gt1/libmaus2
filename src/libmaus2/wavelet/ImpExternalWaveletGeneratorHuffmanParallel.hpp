@@ -264,11 +264,10 @@ namespace libmaus2
 					std::vector < std::pair< std::string, uint64_t >  > const concVec = getIdConcatVector(i);
 
 					std::string const tmpfilename = concatTempFileNames[i];
-					std::ofstream ostr(tmpfilename.c_str(),std::ios::binary);
+					libmaus2::aio::OutputStreamInstance ostr(tmpfilename);
 					wordsv[i] = ::libmaus2::bitio::BitVectorConcat::concatenateBitVectors(concVec,ostr,6 /* write multiple of 6 words */);
 					assert ( ostr );
 					ostr.flush();
-					ostr.close();
 				}
 				
 				std::vector<uint64_t> nodeposvec;	
@@ -280,7 +279,7 @@ namespace libmaus2
 					nodeposvec.push_back(p);
 				
 					std::string const tmpfilename = concatTempFileNames[i];
-					std::ifstream istr(tmpfilename.c_str(),std::ios::binary);
+					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					uint64_t inwords;
 					::libmaus2::serialize::Serialize<uint64_t>::deserialize(istr,&inwords);
 					assert ( inwords == wordsv[i] );

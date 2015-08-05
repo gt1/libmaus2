@@ -20,7 +20,7 @@
 #define LIBMAUS2_SUFFIXSORT_GAPARRAYBYTEDECODER_HPP
 
 #include <libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/iterator.hpp>
 
@@ -37,7 +37,7 @@ namespace libmaus2
 			uint8_t const * G;
 			uint64_t const gsize;
 
-			libmaus2::aio::CheckedInputStream::unique_ptr_type pCIS;
+			libmaus2::aio::InputStreamInstance::unique_ptr_type pCIS;
 
 			uint64_t sparsecnt;
 			
@@ -45,10 +45,10 @@ namespace libmaus2
 				
 			uint64_t offset;
 				
-			static libmaus2::aio::CheckedInputStream::unique_ptr_type openSparseFile(std::string const & filename)
+			static libmaus2::aio::InputStreamInstance::unique_ptr_type openSparseFile(std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(
-					new libmaus2::aio::CheckedInputStream(filename)
+				libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(
+					new libmaus2::aio::InputStreamInstance(filename)
 				);
 				
 				return UNIQUE_PTR_MOVE(tCIS);

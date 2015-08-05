@@ -52,7 +52,7 @@ namespace libmaus2
 			rl_pair * pc;
 			rl_pair * pe;
 
-			::libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
+			::libmaus2::aio::InputStreamInstance::unique_ptr_type CIS;
 			::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			::libmaus2::gamma::GammaDecoder< ::libmaus2::aio::SynchronousGenericInput<uint64_t> >::unique_ptr_type GD;
 
@@ -73,7 +73,7 @@ namespace libmaus2
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::InputStreamInstance CIS(filename);
 				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
 					std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
 				);
@@ -83,7 +83,7 @@ namespace libmaus2
 			// get alphabet bits
 			static unsigned int getAlBits(std::string const & filename)
 			{
-				::libmaus2::aio::CheckedInputStream CIS(filename);
+				::libmaus2::aio::InputStreamInstance CIS(filename);
 				::libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,64,
 					std::numeric_limits<uint64_t>::max() /* total words */,false /* checkmod */
 				);
@@ -126,8 +126,8 @@ namespace libmaus2
 					albits = getAlBits(idda.data[fileptr].filename);
 
 					// open new input file stream
-					::libmaus2::aio::CheckedInputStream::unique_ptr_type tCIS(
-                                                        new ::libmaus2::aio::CheckedInputStream(idda.data[fileptr].filename)
+					::libmaus2::aio::InputStreamInstance::unique_ptr_type tCIS(
+                                                        new ::libmaus2::aio::InputStreamInstance(idda.data[fileptr].filename)
                                                 );
 					CIS = UNIQUE_PTR_MOVE(tCIS);
 					

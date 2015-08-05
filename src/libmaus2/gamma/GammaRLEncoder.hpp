@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_GAMMA_GAMMARLENCODER_HPP)
 #define LIBMAUS2_GAMMA_GAMMARLENCODER_HPP
 
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/huffman/IndexEntry.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
@@ -40,7 +40,7 @@ namespace libmaus2
 			
 			uint64_t const blocksize;
 			
-			::libmaus2::aio::CheckedOutputStream COS;
+			::libmaus2::aio::OutputStreamInstance COS;
 			sgo_type SGO;
 			::libmaus2::gamma::GammaEncoder < sgo_type > GE;
 						
@@ -221,7 +221,7 @@ namespace libmaus2
 				uint64_t const n = ::libmaus2::gamma::GammaRLDecoder::getLength(infilenames);
 				unsigned int const albits = infilenames.size() ? ::libmaus2::gamma::GammaRLDecoder::getAlBits(infilenames[0]) : 0;
 				
-				::libmaus2::aio::CheckedOutputStream COS(outfilename);
+				::libmaus2::aio::OutputStreamInstance COS(outfilename);
 				::libmaus2::aio::SynchronousGenericOutput<uint64_t> SGO(COS,64);
 				SGO.put(n);
 				SGO.put(albits);
@@ -237,7 +237,7 @@ namespace libmaus2
 					uint64_t const datalen = indexpos-headerlen;
 					
 					// copy data
-					::libmaus2::aio::CheckedInputStream CIS(infilenames[i]);
+					::libmaus2::aio::InputStreamInstance CIS(infilenames[i]);
 					CIS.seekg(headerlen);
 					::libmaus2::util::GetFileSize::copy(CIS,COS,datalen);
 					

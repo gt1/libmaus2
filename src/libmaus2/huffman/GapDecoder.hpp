@@ -43,7 +43,7 @@ namespace libmaus2
 			::libmaus2::huffman::IndexDecoderDataArray::unique_ptr_type const Pidda;
 			::libmaus2::huffman::IndexDecoderDataArray const & idda;
 			
-			::libmaus2::util::unique_ptr<std::ifstream>::type istr;
+			libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			typedef ::libmaus2::huffman::BitInputBuffer4 sbis_type;
 			typedef sbis_type::unique_ptr_type sbis_ptr_type;
 			sbis_ptr_type SBIS;			
@@ -65,12 +65,10 @@ namespace libmaus2
 				if ( fileptr < idda.data.size() )
 				{
 					/* open file */
-					::libmaus2::util::unique_ptr<std::ifstream>::type tistr(
-                                                new std::ifstream(idda.data[fileptr].filename.c_str(),std::ios::binary));
+					libmaus2::aio::InputStreamInstance::unique_ptr_type tistr(
+                                                new libmaus2::aio::InputStreamInstance(idda.data[fileptr].filename));
 					istr = UNIQUE_PTR_MOVE(tistr);
-					
-					assert ( istr->is_open() );
-						
+											
 					/* inst SBIS */
 					sbis_type::raw_input_ptr_type ript(new sbis_type::raw_input_type(*istr));
 					sbis_ptr_type tSBIS(new sbis_type(ript,64*1024));
@@ -377,8 +375,7 @@ namespace libmaus2
 			// get length of file in symbols
 			static uint64_t getLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				assert ( istr.is_open() );
+				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
 				SBIS.readBit(); // need escape
 				return ::libmaus2::bitio::readElias2(SBIS);

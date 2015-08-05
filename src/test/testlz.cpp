@@ -245,7 +245,7 @@ void testlz4()
 	
 	{
 		libmaus2::lz::Lz4CompressStream compressor(ostr,16*1024);
-		libmaus2::aio::CheckedInputStream CIS("configure");
+		libmaus2::aio::InputStreamInstance CIS("configure");
 		int c;
 		while ( (c=CIS.get()) > 0 )
 			compressor.put(c);
@@ -305,7 +305,7 @@ void testlz4()
 
 void testGzip()
 {
-	libmaus2::aio::CheckedInputStream CIS("configure");
+	libmaus2::aio::InputStreamInstance CIS("configure");
 	uint64_t t = 0;
 	std::ostringstream ostr;
 	{

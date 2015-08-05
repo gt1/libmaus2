@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		struct BitVectorInput
 		{
-			libmaus2::aio::CheckedInputStream::unique_ptr_type istr;
+			libmaus2::aio::InputStreamInstance::unique_ptr_type istr;
 			libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type SGI;
 			
 			std::vector<std::string> filenames;
@@ -39,7 +39,7 @@ namespace libmaus2
 			
 			static uint64_t getLength(std::string const & fn)
 			{
-				libmaus2::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::InputStreamInstance CIS(fn);
 				CIS.seekg(-8,std::ios::end);
 				libmaus2::aio::SynchronousGenericInput<uint64_t> SGI(CIS,1);
 				uint64_t n = 0;
@@ -91,8 +91,8 @@ namespace libmaus2
 				{
 					std::string const fn = filenames[nextfile++];
 
-					libmaus2::aio::CheckedInputStream::unique_ptr_type tistr(
-						new libmaus2::aio::CheckedInputStream(fn)
+					libmaus2::aio::InputStreamInstance::unique_ptr_type tistr(
+						new libmaus2::aio::InputStreamInstance(fn)
 					);
 					istr = UNIQUE_PTR_MOVE(tistr);
 							
@@ -141,8 +141,8 @@ namespace libmaus2
 
 							std::string const fn = filenames[nextfile++];
 							
-							libmaus2::aio::CheckedInputStream::unique_ptr_type tistr(
-								new libmaus2::aio::CheckedInputStream(fn)
+							libmaus2::aio::InputStreamInstance::unique_ptr_type tistr(
+								new libmaus2::aio::InputStreamInstance(fn)
 							);
 							istr = UNIQUE_PTR_MOVE(tistr);
 							

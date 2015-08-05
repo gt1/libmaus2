@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
 			for ( uint64_t j = 0; j < runs; ++j )		
 			{
 				rtc.start();
-				libmaus2::aio::CheckedInputStream CIS(fn);
+				libmaus2::aio::InputStreamInstance CIS(fn);
 				libmaus2::bambam::BamCircularHashCollatingBamDecoder bamdec(CIS,"tmpfile");
 				uint64_t cnt = 0;
 				while ( bamdec.tryPair(P) )

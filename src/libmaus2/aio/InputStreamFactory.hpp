@@ -34,6 +34,18 @@ namespace libmaus2
 			virtual ~InputStreamFactory() {}
 			virtual InputStream::unique_ptr_type constructUnique(std::string const & filename) = 0;
 			virtual InputStream::shared_ptr_type constructShared(std::string const & filename) = 0;
+			virtual bool tryOpen(std::string const & fn)
+			{
+				try
+				{
+					InputStream::unique_ptr_type ptr(constructUnique(fn));
+					return true;
+				}
+				catch(...)
+				{
+					return false;
+				}
+			}
 		};
 	}
 }

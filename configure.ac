@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.33,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:33:0
+AC_INIT(libmaus2,2.0.36,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:36:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -3188,7 +3188,7 @@ TESTPROGS="${TESTPROGS} testbytecnt teststronglyconnectedcomponents"
 TESTPROGS="${TESTPROGS} testtopologicalsorting testlinebuffer testsamdecoder testdecimalnumberparser"
 TESTPROGS="${TESTPROGS} testunsignedinteger testmd5 testsha testsinglefileserver"
 TESTPROGS="${TESTPROGS} testparallelbamvalidation testparallelbamrewrite testbammateerase testparallelbamblocksort"
-TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed"
+TESTPROGS="${TESTPROGS} testmapperm testexternalmemoryindex testfastqtobam testsamrecoding testdazzlerdb testnd testfastashred testalignerspeed testfastasingleline testdazzleralignmentrewrite"
 
 HDF5CPPFLAGS=
 HDF5CXXFLAGS=
@@ -3270,6 +3270,117 @@ int main(int argc, char * argv[[]]) {
 		GMPCPPFLAGS=
 		GMPLIBS=
 	fi
+fi
+
+AC_ARG_WITH([daligner],
+	[AS_HELP_STRING([--with-daligner@<:@=PATH@:>@], [path to installed daligner align library @<:@default=no@:>@])],
+	[with_daligner=${withval}],
+	[with_daligner=no])
+LIBMAUS2_HAVE_DALIGNER=
+DALIGNERCPPFLAGS=
+DALIGNERLDFLAGS=
+DALIGNERLIBS=
+
+if test "${with_daligner}" != "no" ; then
+	DALIGNERDIR=
+	if test "${with_daligner}" != "yes" ; then
+		DALIGNERDIR=${with_daligner}
+	fi
+	
+	CPPFLAGS_SAVE=${CPPFLAGS}
+	CXXFLAGS_SAVE=${CXXFLAGS}
+	LIBS_SAVE=${LIBS}
+	LDFLAGS_SAVE=${LDFLAGS}
+	
+	if test ! -z "${DALIGNERDIR}" ; then
+		DALIGNERCPPFLAGS="-I${DALIGNERDIR}/include"
+		DALIGNERLDFLAGS="-L${DALIGNERDIR}/lib -Wl,-rpath=${DALIGNERDIR}/lib"
+		DALIGNERLIBS="-lalign"
+		
+		CPPFLAGS="${CPPFLAGS} ${DALIGNERCPPFLAGS}"
+		LDFLAGS="${LDFLAGS} ${DALIGNERLDFLAGS}"
+		LIBS="${LIBS} ${DALIGNERLIBS}"
+	fi
+
+	AC_LANG_PUSH([C++])
+	AC_CHECK_HEADER(align.h, [daligner_align_h=yes], [daligner_align_h=no])
+	AC_LANG_POP
+	
+	if test "${daligner_align_h}" = "yes" ; then
+AC_MSG_CHECKING([for align.h])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([#include <align.h>
+],[
+	return 0;
+],[daligner_align_h=yes],[daligner_align_h=no])
+AC_MSG_RESULT([${daligner_align_h}])	
+	fi
+	
+	if test "${daligner_align_h}" = "yes" ; then	
+AC_MSG_CHECKING([whether we can compile a program using the daligner library])
+AC_LANG_PUSH([C++])
+	AC_TRY_LINK([
+#include <align.h>
+#include <cstdlib>
+#include <cstring>
+
+struct DalignerWorkData
+{
+	Work_Data * data;
+	
+	DalignerWorkData() : data(NULL)
+	{
+		data = New_Work_Data();
+
+		if ( ! data )
+		{
+			abort();
+		}
+	}
+	
+	~DalignerWorkData()
+	{
+		Free_Work_Data(data);
+	}
+};
+],[
+	char t[] = "ACGTACGT";
+	char q[] = "ACGTTACGT";
+	size_t const tn = strlen(t);
+	size_t const qn = strlen(q);
+	Path path;
+	path.trace = NULL;
+	path.tlen = 0;
+	path.diffs = 40;
+	path.abpos = 0;
+	path.bbpos = 0;
+	path.aepos = tn;
+	path.bepos = qn;
+
+	Alignment algn;
+	algn.path = &path;
+	algn.flags = 0;
+	algn.aseq = t;
+	algn.bseq = q;
+	algn.alen = tn;
+	algn.blen = qn;
+	
+	DalignerWorkData DWD;
+
+	Compute_Trace_ALL(&algn,DWD.data);
+
+	return 0;
+],[daligner=yes],[daligner=no])
+AC_MSG_RESULT([${daligner}])
+		if test "${daligner}" = "yes" ; then
+			LIBMAUS2_HAVE_DALIGNER="#define LIBMAUS2_HAVE_DALIGNER"
+		fi
+	fi
+
+	CPPFLAGS=${CPPFLAGS_SAVE}
+	CXXFLAGS=${CXXFLAGS_SAVE}
+	LIBS=${LIBS_SAVE}
+	LDFLAGS=${LDFLAGS_SAVE}
 fi
 
 
@@ -3455,4 +3566,8 @@ AC_SUBST([MSSE2])
 AC_SUBST([MSSSE3])
 AC_SUBST([MSSE41])
 AC_SUBST([MAVX2])
+AC_SUBST([LIBMAUS2_HAVE_DALIGNER])
+AC_SUBST([DALIGNERCPPFLAGS])
+AC_SUBST([DALIGNERLDFLAGS])
+AC_SUBST([DALIGNERLIBS])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)

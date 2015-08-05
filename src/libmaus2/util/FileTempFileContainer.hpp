@@ -22,8 +22,8 @@
 #include <libmaus2/util/TempFileContainer.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <map>
 
@@ -37,11 +37,11 @@ namespace libmaus2
 		struct FileTempFileContainer : public libmaus2::util::TempFileContainer
 		{
 			//! type of output stream of temporary storage
-			typedef libmaus2::aio::CheckedOutputStream output_stream_type;
+			typedef libmaus2::aio::OutputStreamInstance output_stream_type;
 			//! pointer to output stream
 			typedef libmaus2::util::shared_ptr<output_stream_type>::type output_stream_ptr_type;
 			//! type of input stream for temporary storage
-			typedef libmaus2::aio::CheckedInputStream input_stream_type;
+			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! pointer to input stream
 			typedef libmaus2::util::shared_ptr<input_stream_type>::type input_stream_ptr_type;
 			
@@ -105,7 +105,7 @@ namespace libmaus2
 				if ( outstreams.find(id) != outstreams.end() )
 				{
 					outstreams.find(id)->second->flush();
-					outstreams.find(id)->second->close();
+					outstreams.find(id)->second.reset();
 					outstreams.erase(outstreams.find(id));
 				}
 			}

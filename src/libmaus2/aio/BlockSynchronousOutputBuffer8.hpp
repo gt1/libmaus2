@@ -26,6 +26,7 @@
 #include <libmaus2/aio/SynchronousOutputBuffer8.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -286,7 +287,7 @@ namespace libmaus2
 			        uint64_t const fracscale = 5000;
 			        #endif
 			        uint64_t proc = 0;
-                                std::ifstream istr(filename.c_str(), std::ios::binary);
+                                libmaus2::aio::InputStreamInstance istr(filename);
 			        ::libmaus2::aio::SynchronousGenericInput<uint64_t> idxin ( idxfilename, 16 );
 			        
 			        bool ok = true;
@@ -338,12 +339,8 @@ namespace libmaus2
 			        remove ( idxfilename.c_str() );
 
 			        for ( uint64_t i = 0; i < h; ++i )
-			        {
-			                std::ifstream istr(filenames[i].c_str(),std::ios::binary);
-			                
-			                if ( ! istr.is_open() )
+			                if ( ! libmaus2::aio::InputStreamFactoryContainer::tryOpen(filenames[i]) )
                                                 filenames[i] = std::string();                                        
-                                }
 			        
 			        return filenames;
 			}

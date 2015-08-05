@@ -170,7 +170,7 @@ namespace libmaus2
 				
 				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
-				        std::ifstream istr(indexfilename.c_str(), std::ios::binary);
+				        libmaus2::aio::InputStreamInstance istr(indexfilename);
 				        std::vector < FastInterval > intervals = ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
 				        return intervals;
 				}
@@ -179,10 +179,9 @@ namespace libmaus2
                                         reader_type reader(filename);
 	        			std::vector<FastInterval> intervals = reader.enumerateOffsets(steps);
 				
-        				std::ofstream ostr(indexfilename.c_str(), std::ios::binary);
+        				libmaus2::aio::OutputStreamInstance ostr(indexfilename);
 	        			FastInterval::serialiseVector(ostr,intervals);
 		        		ostr.flush();
-			        	ostr.close();
 				
 			        	return intervals;
                                 }

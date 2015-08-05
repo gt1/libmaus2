@@ -25,7 +25,7 @@
 #include <sys/vfs.h>
 #endif
 
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 
@@ -71,11 +71,12 @@ namespace libmaus2
 				else
 				{
 					libmaus2::util::TempFileRemovalContainer::addTempFile(filename);
-					libmaus2::aio::CheckedOutputStream COS(filename);
+					{
+					libmaus2::aio::OutputStreamInstance COS(filename);
 					COS.flush();
-					COS.close();
+					}
 					bool const local = isKnownLocalFileSystem(filename);
-					remove(filename.c_str());
+					libmaus2::aio::FileRemoval::removeFile(filename.c_str());
 					return local;
 				}
 			}

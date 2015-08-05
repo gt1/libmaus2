@@ -19,7 +19,7 @@
 #if ! defined(LIBMAUS2_GAMMA_SPARSEGAMMAGAPFILEINDEXDECODER_HPP)
 #define LIBMAUS2_GAMMA_SPARSEGAMMAGAPFILEINDEXDECODER_HPP
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/gamma/SparseGammaGapFileIndexDecoderEntry.hpp>
 #include <libmaus2/util/GenericIntervalTree.hpp>
 #include <libmaus2/util/iterator.hpp>
@@ -43,7 +43,7 @@ namespace libmaus2
 			typedef libmaus2::util::ConstIterator<this_type,value_type> const_iterator;
 
 			private:
-			libmaus2::aio::CheckedInputStream::unique_ptr_type CIS;
+			libmaus2::aio::InputStreamInstance::unique_ptr_type CIS;
 			std::istream & in;
 			uint64_t maxkey;
 			uint64_t numentries;
@@ -77,7 +77,7 @@ namespace libmaus2
 			}
 			
 			SparseGammaGapFileIndexDecoder(std::string const & filename)
-			: CIS(new libmaus2::aio::CheckedInputStream(filename)), in(*CIS)
+			: CIS(new libmaus2::aio::InputStreamInstance(filename)), in(*CIS)
 			{
 				init();
 			}	

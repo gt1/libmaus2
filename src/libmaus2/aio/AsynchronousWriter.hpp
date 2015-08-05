@@ -179,7 +179,7 @@ namespace libmaus2
 		struct AsynchronousWriter
 		{
 			private:
-			std::ofstream ostr;
+			libmaus2::aio::OutputStreamInstance ostr;
 			::libmaus2::parallel::OMPLock lock;
 			
 			public:
@@ -189,7 +189,7 @@ namespace libmaus2
 			 * @param filename name of file
 			 **/
 			AsynchronousWriter ( std::string const & filename, uint64_t = 16 )
-			: ostr ( filename.c_str() )
+			: ostr ( filename )
 			{
 			
 			}
@@ -199,7 +199,6 @@ namespace libmaus2
 			 **/
 			~AsynchronousWriter()
 			{
-				ostr.close();
 			}
 			
 			/**

@@ -27,7 +27,7 @@ namespace libmaus2
 	{
 		struct GraphEdgeBuffer
 		{
-			libmaus2::aio::CheckedOutputStream COS;
+			libmaus2::aio::OutputStreamInstance COS;
 			libmaus2::autoarray::AutoArray<GraphEdge> B;
 			GraphEdge * const pa;
 			GraphEdge * pc;

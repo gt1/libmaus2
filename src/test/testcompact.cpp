@@ -50,13 +50,13 @@ void testcompact()
 	}
 	CAW.flush();
 	#if 0
-	::libmaus2::aio::CheckedOutputStream COS(fn);
+	::libmaus2::aio::OutputStreamInstance COS(fn);
 	CA.serialize(COS);
 	COS.flush();
 	COS.close();
 	#endif
 	
-	::libmaus2::aio::CheckedInputStream CIS(fn);
+	::libmaus2::aio::InputStreamInstance CIS(fn);
 	std::cerr << "compact file size is " << ::libmaus2::util::GetFileSize::getFileSize(CIS) << std::endl;
 	assert ( static_cast< ::std::streampos > (CIS.tellg()) == static_cast< ::std::streampos >(0) );
 	assert ( CIS.get() >= 0 );

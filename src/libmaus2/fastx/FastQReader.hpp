@@ -752,7 +752,7 @@ namespace libmaus2
                                 if ( havehash && ::libmaus2::util::GetFileSize::fileExists(hash) )
                                 {
                                 	// std::cerr << "Loading index from " << hash << std::endl;
-                                        std::ifstream istr(hash.c_str(),std::ios::binary);
+                                        libmaus2::aio::InputStreamInstance istr(hash);
                                         return ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
                                 }
                                 else if ( ! fracs )
@@ -886,10 +886,9 @@ namespace libmaus2
 
 					if ( havehash )
                                         {
-                                                std::ofstream ostr(hash.c_str(), std::ios::binary);
+                                                libmaus2::aio::OutputStreamInstance ostr(hash);
                                                 ::libmaus2::fastx::FastInterval::serialiseVector(ostr,FIV);
                                                 ostr.flush();
-                                                ostr.close();
                                         }
                                         
                                         return FIV;
@@ -968,7 +967,7 @@ namespace libmaus2
 				
 				if ( ::libmaus2::util::GetFileSize::fileExists ( indexfilename ) )
 				{
-				        std::ifstream istr(indexfilename.c_str(), std::ios::binary);
+				        libmaus2::aio::InputStreamInstance istr(indexfilename);
 				        std::vector < FastInterval > intervals = ::libmaus2::fastx::FastInterval::deserialiseVector(istr);
 				        return intervals;
 				}
@@ -977,10 +976,9 @@ namespace libmaus2
                                         reader_type reader(filename);
 	        			std::vector<FastInterval> intervals = reader.enumerateOffsets(steps);
 				
-        				std::ofstream ostr(indexfilename.c_str(), std::ios::binary);
+        				libmaus2::aio::OutputStreamInstance ostr(indexfilename);
 	        			FastInterval::serialiseVector(ostr,intervals);
 		        		ostr.flush();
-			        	ostr.close();
 				
 			        	return intervals;
                                 }

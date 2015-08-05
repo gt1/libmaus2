@@ -273,10 +273,8 @@ int main(int argc, char * argv[])
 	
 	try
 	{
-		std::ofstream out(outputfilename.c_str(), std::ios::binary);
+		libmaus2::aio::OutputStreamInstance out(outputfilename);
 		computeBWT(textfilename,out);
-		out.close();
-		
 	}
 	catch(std::exception const & ex)
 	{

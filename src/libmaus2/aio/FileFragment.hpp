@@ -24,7 +24,7 @@
 #include <set>
 #include <fstream>
 #include <libmaus2/util/StringSerialisation.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/IntervalTree.hpp>
 
 namespace libmaus2
@@ -149,7 +149,7 @@ namespace libmaus2
 			 **/
 			static std::vector<FileFragment> loadVector(std::string const & filename)
 			{
-				libmaus2::aio::CheckedInputStream CIS(filename);
+				libmaus2::aio::InputStreamInstance CIS(filename);
 			        std::vector<FileFragment> V = deserialiseVector(CIS);
 			        return V;
 			}

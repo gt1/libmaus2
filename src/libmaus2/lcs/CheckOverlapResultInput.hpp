@@ -31,11 +31,11 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
-			std::ifstream ifstr;
+			libmaus2::aio::InputStreamInstance ifstr;
 			std::istream & istr;
 		
 			CheckOverlapResultInput(std::string const & filename)
-			: ifstr(filename.c_str(),std::ios::binary), istr(ifstr)
+			: ifstr(filename), istr(ifstr)
 			{
 			
 			}

@@ -33,7 +33,7 @@ namespace libmaus2
 			uint64_t maxblockbytes;
 			uint64_t numblocks;
 			
-			::libmaus2::aio::CheckedInputStream CIS;
+			::libmaus2::aio::InputStreamInstance CIS;
 			
 			Utf8BlockIndexDecoder(std::string const & filename);
 			

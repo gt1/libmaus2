@@ -20,7 +20,7 @@
 #define LIBMAUS2_SORTING_SORTINGBUFFEREDOUTPUTFILE_HPP
 
 #include <libmaus2/sorting/MergingReadBack.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef typename libmaus2::sorting::MergingReadBack<data_type,order_type>::unique_ptr_type merger_ptr_type;
 			
 			std::string const filename;
-			libmaus2::aio::CheckedOutputStream COS;
+			libmaus2::aio::OutputStreamInstance COS;
 			libmaus2::aio::SortingBufferedOutput<data_type,order_type> SBO;
 			
 			SortingBufferedOutputFile(std::string const & rfilename, uint64_t const bufsize = 1024ull)

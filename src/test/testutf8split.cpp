@@ -177,10 +177,11 @@ void testUtf8BlockIndexDecoder(std::string const & fn)
 		(::libmaus2::util::Utf8BlockIndex::constructFromUtf8File(fn));
 
 	std::string const idxfn = fn + ".idx";
-	::libmaus2::aio::CheckedOutputStream COS(idxfn);
-	index->serialise(COS);
-	COS.flush();
-	COS.close();
+	{
+		::libmaus2::aio::OutputStreamInstance COS(idxfn);
+		index->serialise(COS);
+		COS.flush();
+	}
 	
 	::libmaus2::util::Utf8BlockIndexDecoder deco(idxfn);
 	assert ( deco.numblocks+1 == index->blockstarts.size() );

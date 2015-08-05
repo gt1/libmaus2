@@ -25,7 +25,7 @@
 #include <ios>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
-#include <libmaus2/aio/CheckedInputStream.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
 #include <libmaus2/bitio/Ctz.hpp>
 #include <libmaus2/bitio/CompactArray.hpp>
@@ -49,7 +49,7 @@ namespace libmaus2
                         uint64_t const maxblockbytes;
                         uint64_t const numblocks;
                         
-			::libmaus2::aio::CheckedInputStream stream;
+			::libmaus2::aio::InputStreamInstance stream;
 			uint64_t const n;
 			uint64_t const buffersize;
 
