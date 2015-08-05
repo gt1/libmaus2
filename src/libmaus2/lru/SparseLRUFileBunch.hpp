@@ -82,30 +82,15 @@ namespace libmaus2
 					COSmap.erase(ito);
 				}
 				
-				std::string const fn = getFileName(fileid);
-				
-				if ( libmaus2::aio::InputStreamFactoryContainer::tryOpen(fn) )
-				{
-					libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(fn,
-						std::ios_base::in | std::ios_base::out | std::ios_base::binary
-					));
-					
-					COSmap[fileid] = ptr;
-					
-					ptr->seekg(0,std::ios::end);
-				
-					return *ptr;
-				}
-				else
-				{
-					libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(fn,
-						std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::trunc
-					));
-				
-					COSmap[fileid] = ptr;
-				
-					return *ptr;				
-				}
+				libmaus2::aio::InputOutputStream::shared_ptr_type ptr(libmaus2::aio::InputOutputStreamFactoryContainer::constructShared(getFileName(fileid),
+					std::ios_base::in | std::ios_base::out | std::ios_base::binary
+				));
+
+				COSmap[fileid] = ptr;
+
+				ptr->seekg(0,std::ios::end);
+
+				return *ptr;
 			}
 		};
 	}
