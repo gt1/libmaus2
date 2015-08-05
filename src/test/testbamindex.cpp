@@ -50,11 +50,10 @@ int main(int argc, char * argv[])
 			indexgen.flush(indexostr);
 			bamCIS.reset();
 			
-			libmaus2::aio::CheckedOutputStream COS(fn+".bai");
+			libmaus2::aio::OutputStreamInstance COS(fn+".bai");
 			std::string const & index = indexostr.str();
 			COS.write(index.c_str(),index.size());
 			COS.flush();
-			COS.close();
 		}
 		
 		libmaus2::autoarray::AutoArray<char> const indexA = libmaus2::autoarray::AutoArray<char>::readFile(fn+".bai");

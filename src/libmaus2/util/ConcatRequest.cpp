@@ -43,11 +43,10 @@ void libmaus2::util::ConcatRequest::serialise(std::ostream & out) const
 
 void libmaus2::util::ConcatRequest::serialise(std::string const & filename) const
 {
-	std::ofstream ostr(filename.c_str(), std::ios::binary);
+	libmaus2::aio::OutputStreamInstance ostr(filename);
 	serialise(ostr);
 	ostr.flush();
 	assert ( ostr );
-	ostr.close();
 }
 
 void libmaus2::util::ConcatRequest::serialise(

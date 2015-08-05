@@ -38,6 +38,7 @@
 #include <cstring>
 #include <libmaus2/util/I386CacheLineSize.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 
 // #define AUTOARRAY_TRACE 7
 #if defined(AUTOARRAY_TRACE)
@@ -727,17 +728,9 @@ namespace libmaus2
 			 **/
 			uint64_t serialize(std::string const & filename, bool writeHeader = true) const
 			{
-				std::ofstream ostr(filename.c_str(),std::ios::binary);
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				uint64_t const s = serialize(ostr,writeHeader);
 				ostr.flush();
-				if ( ! ostr )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to serialize " << getTypeName() << " of size " << size() << " to file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
-				ostr.close();
 				if ( ! ostr )
 				{
 					::libmaus2::exception::LibMausException se;

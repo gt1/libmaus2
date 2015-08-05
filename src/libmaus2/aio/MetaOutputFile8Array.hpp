@@ -314,9 +314,8 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
 					if ( ! fileExists(filenames[i]) )
 					{
-						std::ofstream ostr(filenames[i].c_str(),std::ios::binary);
+						libmaus2::aio::OutputStreamInstance ostr(filenames[i]);
 						ostr.flush();
-						ostr.close();
 					}
 			}
 			

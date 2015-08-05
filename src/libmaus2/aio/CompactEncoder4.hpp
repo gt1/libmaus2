@@ -38,7 +38,7 @@ namespace libmaus2
 		{
 			private:
 			//! ouput stream
-			std::ofstream ostr;
+			libmaus2::aio::OutputStreamInstance ostr;
 			//! buffer for output stream
 			::libmaus2::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type SGO;
 			//! current partial output byte
@@ -54,7 +54,7 @@ namespace libmaus2
 			 * @param n number of elements to be written
 			 **/
 			CompactEncoder4(std::string const & filename, uint64_t const n)
-			: ostr(filename.c_str(),std::ios::binary), odd(false)
+			: ostr(filename), odd(false)
 			{
 				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,n);
 				SGO = ::libmaus2::aio::SynchronousGenericOutput<uint8_t>::unique_ptr_type(new ::libmaus2::aio::SynchronousGenericOutput<uint8_t>(ostr,64*1024));

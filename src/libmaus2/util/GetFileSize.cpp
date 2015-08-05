@@ -22,10 +22,9 @@
 void libmaus2::util::GetFileSize::copy(std::string const & from, std::string const & to)
 {
 	::libmaus2::aio::InputStreamInstance istr(from);
-	::libmaus2::aio::CheckedOutputStream ostr(to);
+	::libmaus2::aio::OutputStreamInstance ostr(to);
 	copy(istr,ostr,getFileSize(from));
 	ostr.flush();
-	ostr.close();
 }
 
 int libmaus2::util::GetFileSize::getSymbolAtPosition(std::string const & filename, uint64_t const pos)

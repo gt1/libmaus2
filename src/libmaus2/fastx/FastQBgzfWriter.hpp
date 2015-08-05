@@ -20,7 +20,7 @@
 #define LIBMAUS2_FASTX_FASTQBGZFWRITER_HPP
 
 #include <libmaus2/types/types.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/BgzfDeflateParallel.hpp>
@@ -48,10 +48,10 @@ namespace libmaus2
 			#endif
 
 			#if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr;
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidxcntoutstr;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type bgzfidoutstr;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type bgzfidxcntoutstr;
 			#endif
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type fioutstr;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type fioutstr;
 
 			libmaus2::autoarray::AutoArray<char> C;
 			uint64_t patlow;
@@ -209,10 +209,10 @@ namespace libmaus2
 			    #if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			    bgzfidxfilename(setupTempFile(indexfilename + ".tmp.bgzfidx")),
 			    bgzfidxcntfilename(setupTempFile(indexfilename + ".tmp.bgzfidx.cnt")),
-			    bgzfidoutstr(new libmaus2::aio::CheckedOutputStream(bgzfidxfilename)),
-			    bgzfidxcntoutstr(new libmaus2::aio::CheckedOutputStream(bgzfidxcntfilename)),
+			    bgzfidoutstr(new libmaus2::aio::OutputStreamInstance(bgzfidxfilename)),
+			    bgzfidxcntoutstr(new libmaus2::aio::OutputStreamInstance(bgzfidxcntfilename)),
 			    #endif
-			    fioutstr(new libmaus2::aio::CheckedOutputStream(fifilename)),
+			    fioutstr(new libmaus2::aio::OutputStreamInstance(fifilename)),
 			    C(0,false), patlow(0), blockcnt(0),
 			    #if defined(LIBMAUS2_FASTX_FASTQBGZFWRITER_PARALLEL)
 			    bgzfenc(new libmaus2::lz::BgzfDeflateParallel(out,32,128,level,bgzfidoutstr.get())),
@@ -312,7 +312,7 @@ namespace libmaus2
 					fioutstr->flush();
 					fioutstr.reset();
 
-					libmaus2::aio::CheckedOutputStream indexCOS(indexfilename);
+					libmaus2::aio::OutputStreamInstance indexCOS(indexfilename);
 					::libmaus2::util::NumberSerialisation::serialiseNumber(indexCOS,blockcnt);
 					libmaus2::aio::InputStreamInstance fiCIS(fifilename);
 					

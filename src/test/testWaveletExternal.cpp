@@ -375,9 +375,11 @@ void testCompactHuffmanPar()
 	
 	std::string tmpfilename = "tmp.hwt";
 	// std::ostringstream ostr;
-	libmaus2::aio::CheckedOutputStream COS(tmpfilename);
-	IEWGHN.createFinalStream(COS);
-	COS.close();
+	{
+		libmaus2::aio::OutputStreamInstance COS(tmpfilename);
+		IEWGHN.createFinalStream(COS);
+	}
+	
 	// std::istringstream istr(ostr.str());
 	// libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(tmpfilename);
 	libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename));

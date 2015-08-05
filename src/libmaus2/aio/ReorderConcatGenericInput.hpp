@@ -444,21 +444,8 @@ namespace libmaus2
                         	std::string const & outputfilename
                         	)
 			{
-				std::ofstream ostr(outputfilename.c_str(),std::ios::binary);
-				
-				if ( (! ostr) || (!(ostr.is_open())) )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Failed to open file " << outputfilename << " for writing: " 
-						<< strerror(errno)
-						<< std::endl;
-					se.finish();
-					throw se;
-				}
-			
+				libmaus2::aio::OutputStreamInstance ostr(outputfilename);
 				toSerial(fragments,ostr,outputfilename);
-				
-				ostr.close();
 			}
 
                         /**

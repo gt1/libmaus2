@@ -79,9 +79,10 @@ uint64_t libmaus2::util::Concat::concatParallel(
 		P[i] = ::libmaus2::util::GetFileSize::getFileSize(files[i]);
 	P.prefixSums();
 
-	std::ofstream ostr(outputfilename.c_str(),std::ios::binary);
+	{
+	libmaus2::aio::OutputStreamInstance ostr(outputfilename);
 	ostr.flush();
-	ostr.close();
+	}
 
 	#if defined(_OPENMP)
 	#pragma omp parallel for schedule(dynamic,1)
@@ -117,10 +118,9 @@ uint64_t libmaus2::util::Concat::concatParallel(
 
 uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & files, std::string const & outputfile, bool const rem)
 {
-	libmaus2::aio::CheckedOutputStream out(outputfile.c_str(),std::ios::binary);
+	libmaus2::aio::OutputStreamInstance out(outputfile.c_str());
 	uint64_t const c = concat(files,out,rem);
 	out.flush();
-	out.close();
 	return c;
 }			
 

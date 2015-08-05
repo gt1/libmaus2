@@ -27,6 +27,8 @@
 #include <libmaus2/timing/RealTimeClock.hpp>
 #include <libmaus2/util/Histogram.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -46,7 +48,7 @@ namespace libmaus2
 			std::vector<uint64_t *> Oe;
 			
 			std::string tmpfilename;
-			libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS;
+			libmaus2::aio::OutputStreamInstance::unique_ptr_type tmpCOS;
 			libmaus2::parallel::OMPLock tmpfilelock;
 			std::vector<uint64_t> blocksizes;
 
@@ -89,15 +91,15 @@ namespace libmaus2
 				assert ( p == O.end() );
 
 				libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilename);
-				libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOS(
-					new libmaus2::aio::CheckedOutputStream(tmpfilename)
+				libmaus2::aio::OutputStreamInstance::unique_ptr_type ttmpCOS(
+					new libmaus2::aio::OutputStreamInstance(tmpfilename)
 				);
 				
 				tmpCOS = UNIQUE_PTR_MOVE(ttmpCOS);
 			}
 			~GapArrayByte()
 			{
-				remove(tmpfilename.c_str());
+				libmaus2::aio::FileRemoval::removeFile(tmpfilename);
 			}
 				
 			void flush()

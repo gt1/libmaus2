@@ -119,7 +119,7 @@ namespace libmaus2
 						);
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::OutputStreamInstance tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
@@ -170,7 +170,7 @@ namespace libmaus2
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,htree.get()));
 					
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type tmpCOS(new ::libmaus2::aio::OutputStreamInstance(tmpfilenames[partid]));
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
 							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
@@ -414,7 +414,6 @@ namespace libmaus2
 						tmpSGO->flush();
 						tmpSGO.reset();
 						tmpCOS->flush();
-						tmpCOS->close();
 						tmpCOS.reset();
 					}
 
@@ -455,13 +454,13 @@ namespace libmaus2
 					assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::OutputStreamInstance::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
-                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type ttmpCOSnp(
+                                                                new ::libmaus2::aio::OutputStreamInstance(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSnp);
 					}
@@ -475,7 +474,7 @@ namespace libmaus2
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::OutputStreamInstance & npout = *(tmpCOS[np]);
 						
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::InputStreamInstance::unique_ptr_type > tmpCIS(numparts);
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
@@ -533,8 +532,8 @@ namespace libmaus2
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
-					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::OutputStreamInstance::unique_ptr_type Pfinalout(new ::libmaus2::aio::OutputStreamInstance(outputfilename));
+					::libmaus2::aio::OutputStreamInstance & finalout = *Pfinalout;
 					
 					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += htree->serialize(finalout);
@@ -574,7 +573,7 @@ namespace libmaus2
 					::libmaus2::wavelet::ImpHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::OutputStreamInstance debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
 						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
@@ -643,7 +642,7 @@ namespace libmaus2
 						);
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::OutputStreamInstance tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
@@ -685,7 +684,7 @@ namespace libmaus2
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,htree.get()));
 					
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type tmpCOS(new ::libmaus2::aio::OutputStreamInstance(tmpfilenames[partid]));
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
 							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
@@ -931,7 +930,6 @@ namespace libmaus2
 						tmpSGO->flush();
 						tmpSGO.reset();
 						tmpCOS->flush();
-						tmpCOS->close();
 						tmpCOS.reset();
 					}
 
@@ -972,13 +970,13 @@ namespace libmaus2
 					// assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::OutputStreamInstance::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOSi(
-                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type ttmpCOSi(
+                                                                new ::libmaus2::aio::OutputStreamInstance(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSi);
 					}
@@ -992,7 +990,7 @@ namespace libmaus2
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::OutputStreamInstance & npout = *(tmpCOS[np]);
 						
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::InputStreamInstance::unique_ptr_type > tmpCIS(numparts);
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
@@ -1050,8 +1048,8 @@ namespace libmaus2
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
-					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::OutputStreamInstance::unique_ptr_type Pfinalout(new ::libmaus2::aio::OutputStreamInstance(outputfilename));
+					::libmaus2::aio::OutputStreamInstance & finalout = *Pfinalout;
 					
 					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += htree->serialize(finalout);
@@ -1091,7 +1089,7 @@ namespace libmaus2
 					::libmaus2::wavelet::ImpHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::OutputStreamInstance debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
 						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
@@ -1141,7 +1139,7 @@ namespace libmaus2
 						);
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::OutputStreamInstance tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
@@ -1201,7 +1199,7 @@ namespace libmaus2
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,htree));
 					
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type tmpCOS(new ::libmaus2::aio::OutputStreamInstance(tmpfilenames[partid]));
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
 							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
@@ -1445,7 +1443,6 @@ namespace libmaus2
 						tmpSGO->flush();
 						tmpSGO.reset();
 						tmpCOS->flush();
-						tmpCOS->close();
 						tmpCOS.reset();
 					}
 
@@ -1486,13 +1483,13 @@ namespace libmaus2
 					assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::OutputStreamInstance::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type ttmpCOSnp(
-                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type ttmpCOSnp(
+                                                                new ::libmaus2::aio::OutputStreamInstance(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(ttmpCOSnp);
 					}
@@ -1506,7 +1503,7 @@ namespace libmaus2
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::OutputStreamInstance & npout = *(tmpCOS[np]);
 						
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::InputStreamInstance::unique_ptr_type > tmpCIS(numparts);
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
@@ -1564,8 +1561,8 @@ namespace libmaus2
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
-					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::OutputStreamInstance::unique_ptr_type Pfinalout(new ::libmaus2::aio::OutputStreamInstance(outputfilename));
+					::libmaus2::aio::OutputStreamInstance & finalout = *Pfinalout;
 					
 					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += htree->serialize(finalout);
@@ -1605,7 +1602,7 @@ namespace libmaus2
 					::libmaus2::wavelet::ImpHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::OutputStreamInstance debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
 						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();
@@ -1682,7 +1679,7 @@ namespace libmaus2
 						);
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(tmpfilenames[i]);
 						// touch file
-						::libmaus2::aio::CheckedOutputStream tmpCOS(tmpfilenames[i]);
+						::libmaus2::aio::OutputStreamInstance tmpCOS(tmpfilenames[i]);
 					}
 				
 					uint64_t const numnodes = htree->numsyms()-1;
@@ -1787,7 +1784,7 @@ namespace libmaus2
 						std::stack<ImpWaveletStackElement> S;
 						S.push(ImpWaveletStackElement(pbleft,pbright,0,lnumsyms,0,htree));
 					
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOS(new ::libmaus2::aio::CheckedOutputStream(tmpfilenames[partid]));
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type tmpCOS(new ::libmaus2::aio::OutputStreamInstance(tmpfilenames[partid]));
 						::libmaus2::aio::SynchronousGenericOutput<uint64_t>::unique_ptr_type tmpSGO(
 							new ::libmaus2::aio::SynchronousGenericOutput<uint64_t>(*tmpCOS,8*1024));
 					
@@ -2031,7 +2028,6 @@ namespace libmaus2
 						tmpSGO->flush();
 						tmpSGO.reset();
 						tmpCOS->flush();
-						tmpCOS->close();
 						tmpCOS.reset();
 					}
 
@@ -2075,13 +2071,13 @@ namespace libmaus2
 					assert ( nodepacks.size() <= numthreads );
 
 					std::vector<std::string> nptempfilenames;
-					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::CheckedOutputStream::unique_ptr_type > tmpCOS(nodepacks.size());
+					::libmaus2::autoarray::AutoArray< ::libmaus2::aio::OutputStreamInstance::unique_ptr_type > tmpCOS(nodepacks.size());
 					for ( uint64_t np = 0; np < nodepacks.size(); ++np )
 					{
 						nptempfilenames.push_back(tmpfilenamebase + "_np_" + ::libmaus2::util::NumberSerialisation::formatNumber(np,6));
 						::libmaus2::util::TempFileRemovalContainer::addTempFile(nptempfilenames[np]);
-						::libmaus2::aio::CheckedOutputStream::unique_ptr_type tmpCOSnp(
-                                                                new ::libmaus2::aio::CheckedOutputStream(nptempfilenames[np])
+						::libmaus2::aio::OutputStreamInstance::unique_ptr_type tmpCOSnp(
+                                                                new ::libmaus2::aio::OutputStreamInstance(nptempfilenames[np])
                                                         );
 						tmpCOS[np] = UNIQUE_PTR_MOVE(tmpCOSnp);
 					}
@@ -2098,7 +2094,7 @@ namespace libmaus2
 					{
 						uint64_t const nplow = nodepacks[np].first;
 						uint64_t const nphigh = nodepacks[np].second;
-						::libmaus2::aio::CheckedOutputStream & npout = *(tmpCOS[np]);
+						::libmaus2::aio::OutputStreamInstance & npout = *(tmpCOS[np]);
 						
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::InputStreamInstance::unique_ptr_type > tmpCIS(numparts);
 						::libmaus2::autoarray::AutoArray < ::libmaus2::aio::SynchronousGenericInput<uint64_t>::unique_ptr_type > tmpSGI(numparts);
@@ -2156,8 +2152,8 @@ namespace libmaus2
 					nodebytesizes.prefixSums();
 
 					uint64_t outfilepos = 0;
-					::libmaus2::aio::CheckedOutputStream::unique_ptr_type Pfinalout(new ::libmaus2::aio::CheckedOutputStream(outputfilename));
-					::libmaus2::aio::CheckedOutputStream & finalout = *Pfinalout;
+					::libmaus2::aio::OutputStreamInstance::unique_ptr_type Pfinalout(new ::libmaus2::aio::OutputStreamInstance(outputfilename));
+					::libmaus2::aio::OutputStreamInstance & finalout = *Pfinalout;
 					
 					outfilepos += ::libmaus2::util::NumberSerialisation::serialiseNumber(finalout,symsperpart[numparts]);
 					outfilepos += htree->serialize(finalout);
@@ -2197,7 +2193,7 @@ namespace libmaus2
 					::libmaus2::wavelet::ImpHuffmanWaveletTree const & IHWT = *PIHWT;
 					assert ( IHWT.getN() == symsperpart[symsperpart.size()-1] );
 					
-					::libmaus2::aio::CheckedOutputStream debCOS(fn + ".debug");
+					::libmaus2::aio::OutputStreamInstance debCOS(fn + ".debug");
 					for ( uint64_t i = 0; i < IHWT.size(); ++i )
 						::libmaus2::util::UTF8::encodeUTF8(IHWT[i],debCOS);
 					debCOS.flush();

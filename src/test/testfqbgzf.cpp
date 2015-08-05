@@ -60,11 +60,11 @@ int main(int argc, char * argv[])
 		typedef ::libmaus2::fastx::SocketFastQReader reader_type;
 		reader_type reader(&fdin,0 /* q offset */);
 		
-		libmaus2::aio::CheckedOutputStream::unique_ptr_type bgzfidoutstr(
-			new libmaus2::aio::CheckedOutputStream(bgzfidxfilename)
+		libmaus2::aio::OutputStreamInstance::unique_ptr_type bgzfidoutstr(
+			new libmaus2::aio::OutputStreamInstance(bgzfidxfilename)
 		);
-		libmaus2::aio::CheckedOutputStream::unique_ptr_type fioutstr(
-			new libmaus2::aio::CheckedOutputStream(fifilename)
+		libmaus2::aio::OutputStreamInstance::unique_ptr_type fioutstr(
+			new libmaus2::aio::OutputStreamInstance(fifilename)
 		);
 		libmaus2::lz::BgzfDeflateParallel::unique_ptr_type 
 			bgzfenc(
@@ -237,7 +237,7 @@ int main(int argc, char * argv[])
 		uint64_t filow = 0;
 		uint64_t fihigh = 0;
 		
-		libmaus2::aio::CheckedOutputStream indexCOS(indexfilename);
+		libmaus2::aio::OutputStreamInstance indexCOS(indexfilename);
 		uint64_t const combrate = 4;
 		::libmaus2::util::NumberSerialisation::serialiseNumber(indexCOS,(numblocks+combrate-1)/combrate);
 		std::vector < libmaus2::fastx::FastInterval > FIV;
@@ -274,7 +274,6 @@ int main(int argc, char * argv[])
 		}
 		
 		indexCOS.flush();
-		indexCOS.close();
 	}
 	catch(std::exception const & ex)
 	{

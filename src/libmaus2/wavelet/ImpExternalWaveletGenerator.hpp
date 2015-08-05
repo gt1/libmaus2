@@ -124,10 +124,9 @@ namespace libmaus2
 			
 			void createFinalStream(std::string const & filename)
 			{
-				std::ofstream ostr(filename.c_str(),std::ios::binary);
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				createFinalStream(ostr);
 				ostr.flush();
-				ostr.close();
 			}
 		};
 	}

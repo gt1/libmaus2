@@ -238,13 +238,11 @@ void libmaus2::fm::MausFmToBwaConversion::rewrite(
 		throw se;	
 	}
 
-	::libmaus2::aio::CheckedOutputStream COSbwt(outbwt);
+	::libmaus2::aio::OutputStreamInstance COSbwt(outbwt);
 	rewriteBwt(inbwt,COSbwt);
 	COSbwt.flush();
-	COSbwt.close();
 
-	::libmaus2::aio::CheckedOutputStream COSsa(outsa);
+	::libmaus2::aio::OutputStreamInstance COSsa(outsa);
 	rewriteSa(inbwt,COSsa);
 	COSsa.flush();
-	COSsa.close();
 }

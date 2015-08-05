@@ -25,7 +25,7 @@
 #include <vector>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 
 namespace libmaus2
 {

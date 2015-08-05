@@ -21,7 +21,7 @@
 
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
@@ -100,7 +100,7 @@ namespace libmaus2
 				std::string const & fn
 			)
 			{
-				libmaus2::aio::CheckedOutputStream COS(fn);
+				libmaus2::aio::OutputStreamInstance COS(fn);
 				encodeArray(ita,ite,COS);
 			}
 		};	

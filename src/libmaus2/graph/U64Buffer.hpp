@@ -122,12 +122,11 @@ namespace libmaus2
 				
 				std::sort ( T.get(), T.get() + numtriples );
 
-				std::ofstream ostr(filename.c_str(), std::ios::binary);
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				ostr.write( reinterpret_cast<char const *>(T.get()), len );
 				assert ( ostr );
 				ostr.flush();
 				assert ( ostr );
-				ostr.close();
 			}
 
 			void sortFiles() const

@@ -99,8 +99,8 @@ namespace libmaus2
 						ostr << filenameprefix << "_" << std::setfill('0') << std::setw(6) << clientid;
 						std::string fnprefix = ostr.str();
 					       
-						std::ofstream out((fnprefix+".out").c_str(),std::ios::binary);
-						std::ofstream err((fnprefix+".err").c_str(),std::ios::binary);
+						libmaus2::aio::OutputStreamInstance out((fnprefix+".out"));
+						libmaus2::aio::OutputStreamInstance err((fnprefix+".err"));
 				       
 						bool running = true;
 					       

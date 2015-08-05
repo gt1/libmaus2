@@ -20,7 +20,7 @@
 #define LIBMAUS2_LZ_SNAPPYFILEOUTPUTSTREAM_HPP
 
 #include <libmaus2/lz/SnappyOutputStream.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -32,9 +32,8 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			// std::ofstream ostr;
-			::libmaus2::aio::CheckedOutputStream ostr;
-			SnappyOutputStream< ::libmaus2::aio::CheckedOutputStream > sos;
+			::libmaus2::aio::OutputStreamInstance ostr;
+			SnappyOutputStream< ::libmaus2::aio::OutputStreamInstance > sos;
 
 			SnappyFileOutputStream(std::string const & filename, uint64_t const bufsize = 64*1024)
 			: ostr(filename.c_str()), sos(ostr,bufsize) {}

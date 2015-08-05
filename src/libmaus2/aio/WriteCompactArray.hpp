@@ -41,25 +41,10 @@ namespace libmaus2
 			template<typename N>
 			static void writeArray(::libmaus2::autoarray::AutoArray<N,::libmaus2::autoarray::alloc_type_c> const & T, std::string const & filename, uint64_t const n)
 			{
-				std::ofstream ostr(filename.c_str(),std::ios::binary);
-				if ( ! ostr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Cannot open file " << filename << " for writing." << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::OutputStreamInstance ostr(filename);
 				::libmaus2::util::NumberSerialisation::serialiseNumber(ostr,n);
 				ostr.write ( reinterpret_cast<char const *>(T.begin()), T.size()*sizeof(N) );
 				ostr.flush();
-				ostr.close();
-				if ( ! ostr )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "Cannot write file " << filename << "." << std::endl;
-					se.finish();
-					throw se;
-				}
 			}
 
 			/**

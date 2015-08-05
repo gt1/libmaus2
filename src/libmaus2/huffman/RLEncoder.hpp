@@ -297,7 +297,7 @@ namespace libmaus2
 			}
 			
 			static void append(
-				std::ofstream & out, std::string const & filename,
+				std::ostream & out, std::string const & filename,
 				std::vector< IndexEntry > & index
 			)
 			{

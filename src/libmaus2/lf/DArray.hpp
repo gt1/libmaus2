@@ -22,6 +22,7 @@
 #include <libmaus2/util/NumberSerialisation.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 
 namespace libmaus2
 {
@@ -82,7 +83,7 @@ namespace libmaus2
 			}
 			void serialise(std::string const & filename) const
 			{
-				::libmaus2::aio::CheckedOutputStream COS(filename);
+				::libmaus2::aio::OutputStreamInstance COS(filename);
 				serialise(COS);
 			}
 			

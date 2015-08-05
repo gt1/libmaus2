@@ -42,8 +42,8 @@ namespace libmaus2
 			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef ::libmaus2::fastx::Pattern pattern_type;
 
-			typedef std::ifstream file_input_stream_type;
-			typedef ::libmaus2::util::unique_ptr<file_input_stream_type>::type file_input_stream_ptr_type;	
+			typedef libmaus2::aio::InputStreamInstance file_input_stream_type;
+			typedef file_input_stream_type::unique_ptr_type file_input_stream_ptr_type;	
 
 			file_input_stream_ptr_type inptr;
 			std::istream & istr;
@@ -55,7 +55,7 @@ namespace libmaus2
 			}
 			static uint64_t getNonDataSize(std::string const & filename)
 			{
-                                std::ifstream istr(filename.c_str(),std::ios::binary);
+                                libmaus2::aio::InputStreamInstance istr(filename);
                                 return getNonDataSize(istr);
 			}
 			static uint64_t getDataSize(std::string const & filename)
@@ -67,7 +67,7 @@ namespace libmaus2
 			
 			static bool checkTerminator(std::string const & filename)
 			{
-                                std::ifstream istr(filename.c_str(),std::ios::binary);
+                                libmaus2::aio::InputStreamInstance istr(filename);
                                 int64_t const nd = getNonDataSize(istr);
                                 istr.seekg(0,std::ios::end);
                                 istr.seekg(-nd,std::ios::cur);
@@ -125,7 +125,7 @@ namespace libmaus2
 
 			static std::vector< ::libmaus2::fastx::FastInterval > loadIndex(std::string const & filename)
 			{
-			        std::ifstream istr(filename.c_str(),std::ios::binary);
+			        libmaus2::aio::InputStreamInstance istr(filename);
 			        return loadIndex(istr);
 			}
 
@@ -165,7 +165,7 @@ namespace libmaus2
 
 			CompactFastDecoder(std::string const & filename)
 			: CompactFastDecoderBase(), 
-			  inptr(new file_input_stream_type(filename.c_str(),std::ios::binary)), 
+			  inptr(new file_input_stream_type(filename)), 
 			  istr(*inptr), index(loadIndex(istr))
 			{}
 

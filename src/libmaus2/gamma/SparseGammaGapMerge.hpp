@@ -175,7 +175,7 @@ namespace libmaus2
 					std::string const & fn = fno.at(p);
 					std::string const indexfn = fn + ".idx";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
-					libmaus2::aio::CheckedOutputStream COS(fn);
+					libmaus2::aio::OutputStreamInstance COS(fn);
 					libmaus2::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
 					merge(
 						/* fna,fnb, */
@@ -337,7 +337,7 @@ namespace libmaus2
 				std::string const indexfilename = outputfilename + ".idx";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfilename);
 				
-				libmaus2::aio::CheckedOutputStream COS(outputfilename);
+				libmaus2::aio::OutputStreamInstance COS(outputfilename);
 				libmaus2::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
 				
 				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder indexa(fna);

@@ -18,7 +18,7 @@
 */
 
 #include <libmaus2/network/LogReceiver.hpp>
-#include <libmaus2/aio/CheckedOutputStream.hpp>
+#include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/random/Random.hpp>
 #include <libmaus2/util/MoveStack.hpp>
 
@@ -234,8 +234,8 @@ int libmaus2::network::LogReceiver::run()
 	::libmaus2::util::MoveStack < ::libmaus2::network::FileDescriptorPasser > passprocs;
 	
 	// log files and log file sockets
-	std::map<uint64_t,::libmaus2::aio::CheckedOutputStream::shared_ptr_type> outfiles;
-	std::map<uint64_t,::libmaus2::aio::CheckedOutputStream::shared_ptr_type> errfiles;
+	std::map<uint64_t,::libmaus2::aio::OutputStreamInstance::shared_ptr_type> outfiles;
+	std::map<uint64_t,::libmaus2::aio::OutputStreamInstance::shared_ptr_type> errfiles;
 	std::map<uint64_t,::libmaus2::network::SocketBase::shared_ptr_type> logsockets;
 	std::map<int,uint64_t> fdToId;
 	
@@ -330,8 +330,8 @@ int libmaus2::network::LogReceiver::run()
 						fdToId[newcon->getFD()] = remid;
 
 						std::string const lfprefix = getLogFileNamePrefix(remid);
-						outfiles[remid] = ::libmaus2::aio::CheckedOutputStream::shared_ptr_type(new ::libmaus2::aio::CheckedOutputStream(lfprefix+".out"));
-						errfiles[remid] = ::libmaus2::aio::CheckedOutputStream::shared_ptr_type(new ::libmaus2::aio::CheckedOutputStream(lfprefix+".err"));
+						outfiles[remid] = ::libmaus2::aio::OutputStreamInstance::shared_ptr_type(new ::libmaus2::aio::OutputStreamInstance(lfprefix+".out"));
+						errfiles[remid] = ::libmaus2::aio::OutputStreamInstance::shared_ptr_type(new ::libmaus2::aio::OutputStreamInstance(lfprefix+".err"));
 					}
 					// control stream connection
 					else if ( contype == "control" )
