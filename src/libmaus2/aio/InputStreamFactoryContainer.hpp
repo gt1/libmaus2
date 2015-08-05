@@ -178,14 +178,29 @@ namespace libmaus2
 			
 			static bool tryOpen(std::string const & url)
 			{
-				try
+				libmaus2::aio::InputStreamFactory::shared_ptr_type factory = getFactory(url);
+
+				if ( haveFactoryForProtocol(url) )
 				{
-					libmaus2::aio::InputStream::shared_ptr_type tptr(constructShared(url));
-					return true;
+					uint64_t col = url.size();
+					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
+						if ( url[i] == ':' )
+							col = i;
+
+					std::string const protocol = url.substr(0,col);
+
+					if ( protocol == "ftp" || protocol == "http" || protocol == "https" )
+					{
+						return factory->tryOpen(url);
+					}
+					else
+					{
+						return factory->tryOpen(url.substr(protocol.size()+1));
+					}
 				}
-				catch(...)
+				else
 				{
-					return false;
+					return factory->tryOpen(url);
 				}
 			}
 			

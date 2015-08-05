@@ -68,6 +68,63 @@ namespace libmaus2
 					close();	
 			}
 			
+			static bool tryOpen(std::string const & filename, int const rflags = getDefaultFlags())
+			{
+				char const * cfilename = filename.c_str();
+				int fd = -1;
+
+				// try to open the file
+				while ( fd == -1 )
+				{
+					fd = ::open(cfilename,rflags);
+
+					if ( fd == -1 )
+					{
+						switch ( errno )
+						{
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+								// cannot open file
+								return false;
+						}
+					}
+				}
+
+				assert ( fd != -1 );
+
+				// close file
+				while ( fd != -1 )
+				{
+					if ( ::close(fd) == -1 )
+					{
+						switch ( errno )
+						{
+							case EINTR:
+							case EAGAIN:
+								break;
+							default:
+							{
+								int const error = errno;
+								libmaus2::exception::LibMausException se;
+								se.getStream() << "PosixFdInput::tryOpen(" << filename << "," << rflags << "): " << strerror(error) << std::endl;
+								se.finish();
+								throw se;
+
+							}
+						}
+					}
+					else
+					{
+						fd = -1;
+					}
+				}
+
+				// could open file
+				return true;
+			}
+
 			PosixFdInput(int const rfd) : filename(), fd(rfd), gcnt(0), closeOnDeconstruct(false)
 			{
 			}
