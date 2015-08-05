@@ -309,10 +309,13 @@ namespace libmaus2
 				uint64_t const thislib = algn.getLibraryId(header);
 				::libmaus2::bambam::DuplicationMetrics & met = metrics[thislib];
 				
-				if ( ! algn.isMapped() )
-					++met.unmapped;
-				else if ( (!algn.isPaired()) || algn.isMateUnmap() )
-					++met.unpaired;
+				if ( ! (algn.isSupplementary() || algn.isSecondary() || algn.isQCFail()) )
+				{
+				        if ( ! algn.isMapped() )
+					        ++met.unmapped;
+				    	else if ( (!algn.isPaired()) || algn.isMateUnmap() )
+					    	++met.unpaired;
+				}
 
 				uint64_t tagid = 0;
 
