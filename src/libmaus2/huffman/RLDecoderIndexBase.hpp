@@ -108,14 +108,7 @@ namespace libmaus2
 			}
 			static uint64_t getLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				if ( ! istr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "RLDecoder::getLength(): Failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
 				return ::libmaus2::bitio::readElias2(SBIS);
 			}

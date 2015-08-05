@@ -279,7 +279,7 @@ namespace libmaus2
 					nodeposvec.push_back(p);
 				
 					std::string const tmpfilename = concatTempFileNames[i];
-					std::ifstream istr(tmpfilename.c_str(),std::ios::binary);
+					libmaus2::aio::InputStreamInstance istr(tmpfilename);
 					uint64_t inwords;
 					::libmaus2::serialize::Serialize<uint64_t>::deserialize(istr,&inwords);
 					assert ( inwords == wordsv[i] );

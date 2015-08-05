@@ -42,12 +42,15 @@ namespace libmaus2
 				uint64_t const len = ::libmaus2::util::GetFileSize::getFileSize(filename);
 				assert ( len % sizeof(::libmaus2::graph::TripleEdge) == 0 );
 				uint64_t const numtriples = len / sizeof(::libmaus2::graph::TripleEdge);
-				std::ifstream istr(filename.c_str(), std::ios::binary);
+				
 				::libmaus2::autoarray::AutoArray< ::libmaus2::graph::TripleEdge> T(numtriples);
+				
+				{
+				libmaus2::aio::InputStreamInstance istr(filename);
 				istr.read ( reinterpret_cast<char *>(T.get()), len);
 				assert ( istr );
 				assert ( istr.gcount() == static_cast<int64_t>(len) );
-				istr.close(); 
+				}
 				
 				std::sort ( T.get(), T.get() + numtriples );
 

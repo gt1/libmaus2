@@ -45,7 +45,7 @@ namespace libmaus2
 			std::vector<std::string> const filenames;
 		
 			//! input type	
-			typedef std::ifstream input_type;
+			typedef libmaus2::aio::InputStreamInstance input_type;
 			//! input pointer type
 			typedef ::libmaus2::util::unique_ptr<input_type>::type input_type_ptr;
 			//! file pointer first type
@@ -114,16 +114,8 @@ namespace libmaus2
 				
 				if ( ita != filenames.end() )
 				{
-					input_type_ptr itp(new input_type(ita->c_str(),std::ios::binary));
-					
-					if ( !itp->is_open() )
-					{
-						::libmaus2::exception::LibMausException se;
-						se.getStream() << "Failed to open file " << *ita << ": " << strerror(errno);
-						se.finish();
-						throw se;
-					}
-					
+					input_type_ptr itp(new input_type(*ita));
+										
 					if ( offset != 0 )
 						itp->seekg(offset,std::ios::beg);
 					
@@ -292,7 +284,7 @@ namespace libmaus2
 						fpt->first.reset();
 						if ( fpt->second != filenames.end() )
 						{
-							input_type_ptr tfptfirst(new input_type(fpt->second->c_str(),std::ios::binary));
+							input_type_ptr tfptfirst(new input_type(*(fpt->second)));
 							fpt->first = UNIQUE_PTR_MOVE(tfptfirst);
 						}
 					}

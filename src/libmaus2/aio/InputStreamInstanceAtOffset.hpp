@@ -48,7 +48,7 @@ namespace libmaus2
 			 * constructor
 			 * 
 			 * @param rfilename file name
-			 * @param mode file open mode (as for std::ifstream)
+			 * @param offset
 			 **/
 			InputStreamInstanceAtOffset(std::string const & rfilename, uint64_t const offset = 0)
 			: InputStreamInstance(rfilename)
@@ -70,7 +70,7 @@ namespace libmaus2
 			 * constructor
 			 * 
 			 * @param rfilename file name
-			 * @param mode file open mode (as for std::ifstream)
+			 * @param offset
 			 **/
 			InputStreamInstanceAtOffsetWrapper(std::string const & rfilename, uint64_t const offset = 0)
 			: object(rfilename,offset) {}

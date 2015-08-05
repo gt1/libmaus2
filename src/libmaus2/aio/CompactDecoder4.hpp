@@ -42,9 +42,9 @@ namespace libmaus2
 			
 			private:
 			//! input stream type
-			typedef std::ifstream ifstream_type;
+			typedef libmaus2::aio::InputStreamInstance input_stream_type;
 			//! input stream unique pointer type
-			typedef ::libmaus2::util::unique_ptr<ifstream_type>::type ifstream_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<input_stream_type>::type input_stream_pointer_type;
 			
 			//! buffer for undecoded input data
 			::libmaus2::autoarray::AutoArray<uint8_t> decodeBuffer;
@@ -66,7 +66,7 @@ namespace libmaus2
 			uint64_t const n;
 			
 			//! current input file
-			ifstream_ptr_type istr;
+			input_stream_pointer_type istr;
 			//! number of symbols to be skipped
 			uint64_t skip;
 			//! number of unread symbols in current file
@@ -91,7 +91,7 @@ namespace libmaus2
 				assert ( fita != filenames.end() );
 				assert ( skip < getLength(*fita) );
 				
-				istr = ifstream_ptr_type(new ifstream_type(fita->c_str(),std::ios::binary));
+				istr = input_stream_pointer_type(new input_stream_type(*fita));
 				fita++;
 				fileunread = ::libmaus2::util::NumberSerialisation::deserialiseNumber(*istr);
 				assert ( istr->is_open() );

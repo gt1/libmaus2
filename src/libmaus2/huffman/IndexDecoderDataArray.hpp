@@ -52,12 +52,13 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 			
 			typedef uint64_t value_type;
-			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef libmaus2::aio::InputStreamInstance input_stream_type;
+			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
 
 			owner_type const * owner;
-			ifstream_ptr_type indexistr;
+			input_stream_pointer_type indexistr;
 
-			GetPosAdapter(owner_type const * rowner, ifstream_ptr_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
+			GetPosAdapter(owner_type const * rowner, input_stream_pointer_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
 			value_type get(uint64_t const i) const { return owner->getPos(*indexistr,i); }
 		};
 
@@ -71,12 +72,13 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
-			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
+			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
 
 			owner_type const * owner;
-			ifstream_ptr_type indexistr;
+			input_stream_pointer_type indexistr;
 
-			GetKeyCntAdapter(owner_type const * rowner, ifstream_ptr_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}			
+			GetKeyCntAdapter(owner_type const * rowner, input_stream_pointer_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}			
 			value_type get(uint64_t const i) const { return owner->getKeyCnt(*indexistr,i); }
 		};
 
@@ -90,12 +92,13 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
-			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
+			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
 			
 			owner_type const * owner;
-			ifstream_ptr_type indexistr;
+			input_stream_pointer_type indexistr;
 
-			GetValueCntAdapter(owner_type const * rowner, ifstream_ptr_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
+			GetValueCntAdapter(owner_type const * rowner, input_stream_pointer_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
 			value_type get(uint64_t const i) const { return owner->getValueCnt(*indexistr,i); }
 		};
 
@@ -109,12 +112,13 @@ namespace libmaus2
 			typedef typename ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			typedef uint64_t value_type;
-			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
+			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
 			
 			owner_type const * owner;
-			ifstream_ptr_type indexistr;
+			input_stream_pointer_type indexistr;
 
-			GetKeyValueCntAdapter(owner_type const * rowner, ifstream_ptr_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
+			GetKeyValueCntAdapter(owner_type const * rowner, input_stream_pointer_type const & rindexistr) : owner(rowner), indexistr(rindexistr) {}
 			value_type get(uint64_t const i) const { return owner->getKeyValueCnt(*indexistr,i); }
 		};
 
@@ -129,7 +133,8 @@ namespace libmaus2
 			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetValueCntAdapter<this_type>, uint64_t > const_vcnt_iterator;
 			typedef ::libmaus2::util::ConstIteratorSharedPointer< GetKeyValueCntAdapter<this_type>, uint64_t > const_kvcnt_iterator;
 			
-			typedef ::libmaus2::util::shared_ptr< ::std::ifstream >::type ifstream_ptr_type;
+			typedef ::libmaus2::aio::InputStreamInstance input_stream_type;
+			typedef ::libmaus2::util::shared_ptr< input_stream_type >::type input_stream_pointer_type;
 
 			std::string filename;
 			uint64_t numentries;
@@ -142,28 +147,28 @@ namespace libmaus2
 						
 			GetPosAdapter<this_type>::shared_ptr_type getPosAdapter() const
 			{
-				ifstream_ptr_type file = openFile();
+				input_stream_pointer_type file = openFile();
 				GetPosAdapter<this_type>::shared_ptr_type adptr(new GetPosAdapter<this_type>(this,file));
 				return adptr;
 			}
 			
 			GetKeyCntAdapter<this_type>::shared_ptr_type getKeyCntAdapter() const
 			{
-				ifstream_ptr_type file = openFile();
+				input_stream_pointer_type file = openFile();
 				GetKeyCntAdapter<this_type>::shared_ptr_type adptr(new GetKeyCntAdapter<this_type>(this,file));
 				return adptr;
 			}
 
 			GetValueCntAdapter<this_type>::shared_ptr_type getValueCntAdapter() const
 			{
-				ifstream_ptr_type file = openFile();
+				input_stream_pointer_type file = openFile();
 				GetValueCntAdapter<this_type>::shared_ptr_type adptr(new GetValueCntAdapter<this_type>(this,file));
 				return adptr;
 			}
 
 			GetKeyValueCntAdapter<this_type>::shared_ptr_type getKeyValueCntAdapter() const
 			{
-				ifstream_ptr_type file = openFile();
+				input_stream_pointer_type file = openFile();
 				GetKeyValueCntAdapter<this_type>::shared_ptr_type adptr(new GetKeyValueCntAdapter<this_type>(this,file));
 				return adptr;
 			}
@@ -221,27 +226,27 @@ namespace libmaus2
 				return entry.kcnt + entry.vcnt;
 			}
 
-			uint64_t getPos(std::ifstream & istr, uint64_t const entryid) const
+			uint64_t getPos(std::istream & istr, uint64_t const entryid) const
 			{
 				return readEntry(istr,entryid).pos;
 			}
 
-			uint64_t getKeyCnt(std::ifstream & istr, uint64_t const entryid) const
+			uint64_t getKeyCnt(std::istream & istr, uint64_t const entryid) const
 			{
 				return readEntry(istr,entryid).kcnt;
 			}
 
-			uint64_t getValueCnt(std::ifstream & istr, uint64_t const entryid) const
+			uint64_t getValueCnt(std::istream & istr, uint64_t const entryid) const
 			{
 				return readEntry(istr,entryid).vcnt;
 			}
-			uint64_t getKeyValueCnt(std::ifstream & istr, uint64_t const entryid) const
+			uint64_t getKeyValueCnt(std::istream & istr, uint64_t const entryid) const
 			{
 				IndexEntry const entry = readEntry(istr,entryid);
 				return entry.kcnt + entry.vcnt;
 			}
 			
-			IndexEntry readEntry(std::ifstream & indexistr, uint64_t const entryid) const
+			IndexEntry readEntry(std::istream & indexistr, uint64_t const entryid) const
 			{
 				uint64_t const entrybitpos = getEntryBitPos(entryid);
 				uint64_t const entrybytepos = entrybitpos>>3;
@@ -269,24 +274,15 @@ namespace libmaus2
 				return IndexEntry(pos,kcnt,vcnt);
 			}
 
-			ifstream_ptr_type openFile() const
+			input_stream_pointer_type openFile() const
 			{
-				ifstream_ptr_type indexistr(new ::std::ifstream(filename.c_str(),std::ios::binary));
-
-				if ( ! indexistr->is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "IndexDecoderData::openFile(): Failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
-				
+				input_stream_pointer_type indexistr(new input_stream_type(filename));				
 				return indexistr;
 			}
 
 			IndexEntry readEntry(uint64_t const entryid) const
 			{
-				ifstream_ptr_type indexistr = openFile();
+				input_stream_pointer_type indexistr = openFile();
 				return readEntry(*indexistr,entryid);
 			}
 
@@ -334,15 +330,7 @@ namespace libmaus2
 			{
 				uint64_t const indexpos = getIndexPos(filename);
 
-				std::ifstream indexistr(filename.c_str(),std::ios::binary);
-
-				if ( ! indexistr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "IndexDecoderData::IndexDecoderData(): Failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::InputStreamInstance indexistr(filename);
 
 				// seek to index position
 				indexistr.clear();

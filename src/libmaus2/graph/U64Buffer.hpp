@@ -100,10 +100,9 @@ namespace libmaus2
 
 			uint64_t getFileLength(uint64_t const idx) const
 			{
-				std::ifstream istr(getFileName(idx).c_str());
+				libmaus2::aio::InputStreamInstance istr(getFileName(idx));
 				istr.seekg(0,std::ios::end);
 				uint64_t const l = istr.tellg();
-				istr.close();
 				return l;
 			}
 
@@ -113,7 +112,7 @@ namespace libmaus2
 				assert ( len % sizeof(::libmaus2::graph::TripleEdge) == 0 );
 				uint64_t const numtriples = len / sizeof(::libmaus2::graph::TripleEdge);
 				std::string const filename = getFileName(idx);
-				std::ifstream istr(filename.c_str(), std::ios::binary);
+				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::autoarray::AutoArray< ::libmaus2::graph::TripleEdge> T(numtriples);
 				istr.read ( reinterpret_cast<char *>(T.get()), len);
 				assert ( istr );

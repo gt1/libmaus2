@@ -318,7 +318,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < subindex.size(); ++i )
 						subindex[i].pos += ndatapos;
 						
-					std::ifstream istr(filename.c_str(),std::ios::binary);
+					libmaus2::aio::InputStreamInstance istr(filename);
 					istr.seekg(datapos,std::ios::beg);
 					::libmaus2::util::GetFileSize::copy ( istr, out, datalen, 1 );
 					
@@ -350,7 +350,7 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < subindex.size(); ++i )
 						subindex[i].pos += ndatapos;
 						
-					std::ifstream istr(filename.c_str(),std::ios::binary);
+					libmaus2::aio::InputStreamInstance istr(filename);
 					istr.seekg(datapos,std::ios::beg);
 					::libmaus2::util::GetFileSize::copyIterator ( istr, out.getIterator(), datalen, 1 );
 					
@@ -368,14 +368,7 @@ namespace libmaus2
 			}
 			static uint64_t getLength(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				if ( ! istr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "RLDecoder::getLength(): Failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
+				libmaus2::aio::InputStreamInstance istr(filename);
 				::libmaus2::bitio::StreamBitInputStream SBIS(istr);	
 				return ::libmaus2::bitio::readElias2(SBIS);
 			}

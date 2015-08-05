@@ -164,7 +164,7 @@ namespace libmaus2
 			
 			static uint64_t getSymsPerBlock(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
+				libmaus2::aio::InputStreamInstance istr(filename);
 				return getSymsPerBlock(istr);
 			}
 			
@@ -303,16 +303,7 @@ namespace libmaus2
 
 			static unique_ptr_type load(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
-				
-				if ( ! istr.is_open() )
-				{
-					::libmaus2::exception::LibMausException se;
-					se.getStream() << "RLIndex::load(): failed to open file " << filename << std::endl;
-					se.finish();
-					throw se;
-				}
-				
+				libmaus2::aio::InputStreamInstance istr(filename);
 				unique_ptr_type ptr(new this_type(istr));
 
 				if ( ! istr )
@@ -331,7 +322,7 @@ namespace libmaus2
 
 			static unique_ptr_type construct(std::string const & filename)
 			{
-				std::ifstream istr(filename.c_str(),std::ios::binary);
+				libmaus2::aio::InputStreamInstance istr(filename);
 				unique_ptr_type ptr(new this_type(istr));
 				return UNIQUE_PTR_MOVE(ptr);
 			}
