@@ -54,6 +54,27 @@ int main(int argc, char * argv[])
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 
+		#if defined(LIBMAUS2_HAVE_DALIGNER)
+		{
+			std::string const dbfn = arginfo.restargs.at(0);
+			libmaus2::autoarray::AutoArray<char> Adbfn(dbfn.size()+1);
+			std::copy(dbfn.begin(),dbfn.end(),Adbfn.begin());
+			Adbfn[dbfn.size()] = 0;
+			
+			HITS_DB db;
+			int const r = Open_DB(Adbfn.begin(),&db);
+			if ( r < 0 )
+			{
+				std::cerr << "Failed to Open_DB" << std::endl;
+			}
+			else
+			{
+				std::cerr << "database opened ok" << std::endl;
+				Close_DB(&db);
+			}
+		}
+		#endif
+
 		bool const printAlignments = arginfo.getValue<int>("print",1);
 		bool const loadall  = arginfo.getValue<int>("loadalla",false);
 		bool loadalla = arginfo.getValue<int>("loadalla",loadall);
