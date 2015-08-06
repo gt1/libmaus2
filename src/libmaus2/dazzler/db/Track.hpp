@@ -24,23 +24,29 @@ namespace libmaus2
 {
 	namespace dazzler
 	{	
-		struct Track
+		namespace db
 		{
-			typedef Track this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-		
-			std::string name;
-			TrackAnnoInterface::unique_ptr_type PDanno;
-			libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type Adata;
-		
-			Track(std::string const & rname, TrackAnnoInterface::unique_ptr_type & rPDanno, libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type & rAdata)
-			: name(rname), PDanno(UNIQUE_PTR_MOVE(rPDanno)), Adata(UNIQUE_PTR_MOVE(rAdata))
+			struct Track
 			{
-			
-			}
-		};
+				typedef Track this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				std::string name;
+				TrackAnnoInterface::unique_ptr_type PDanno;
+				libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type Adata;
+
+				Track(std::string const & rname, TrackAnnoInterface::unique_ptr_type & rPDanno, libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type & rAdata)
+				: name(rname), PDanno(UNIQUE_PTR_MOVE(rPDanno)), Adata(UNIQUE_PTR_MOVE(rAdata))
+				{
+				}
+
+				TrackAnnoInterface const & getAnno() const
+				{
+					return *PDanno;
+				}
+			};
+		}
 	}
 }
 #endif
