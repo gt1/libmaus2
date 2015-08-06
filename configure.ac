@@ -135,86 +135,6 @@ if test "${with_igzip}" != "no" ; then
 	fi
 fi
 
-AC_ARG_WITH([kmlocal],
-	[AS_HELP_STRING([--with-kmlocal@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=no@:>@])],
-	[with_kmlocal=${withval}],
-	[with_kmlocal=no])
-
-KMLOCAL=
-if test "${with_kmlocal}" != "no" ; then
-
-	if test ! -z "${with_kmlocal}" ; then
-		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
-		if test -z "${PKG_CONFIG_PATH}" ; then
-			export PKG_CONFIG_PATH="${with_kmlocal}/lib/pkgconfig"
-		else
-			export PKG_CONFIG_PATH="${with_kmlocal}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-		fi
-	fi
-
-	PKG_CHECK_MODULES([kmlocal],[kmlocal >= 1.7.2],[kmlocalpkg=yes],[kmlocalpkg=no])
-
-	if test ! -z "${with_kmlocal}" ; then
-		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
-			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
-		fi
-	fi
-
-	KMLOCAL=
-	if [[ "${kmlocalpkg}" = "yes" ]] ; then
-		# PKG_CHECK_MODULES([kmlocal],[kmlocal >= 1.7.2])
-
-		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${kmlocal_LIBS}"
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${kmlocal_CFLAGS}"
-		AC_MSG_CHECKING([whether we can compile a kmlocal program])
-		AC_TRY_LINK([#include "KMlocal.h"
-	#include <cstring>
-	#include <iostream>
-	],[KMterm  term(100, 0, 0, 0,              // run for 100 stages
-		     0.10, 0.10, 3,             // other typical parameter values 
-		     0.50, 10, 0.95);
-
-		int         k       = 4;                    // number of centers
-		int         dim     = 2;                    // dimension
-		int         nPts    = 20;                   // number of data points
-
-		KMdata dataPts(dim, nPts);                  // allocate data storage
-		kmUniformPts(dataPts.getPts(), nPts, dim);  // generate random points
-		dataPts.buildKcTree();                      // build filtering structure
-		KMfilterCenters ctrs(k, dataPts);           // allocate centers
-
-							// run the algorithm
-		KMlocalLloyds       kmAlg(ctrs, term);      // repeated Lloyd's
-		// KMlocalSwap      kmAlg(ctrs, term);      // Swap heuristic
-		// KMlocalEZ_Hybrid kmAlg(ctrs, term);      // EZ-Hybrid heuristic
-		// KMlocalHybrid    kmAlg(ctrs, term);      // Hybrid heuristic
-		ctrs = kmAlg.execute();                     // execute
-							// print number of stages
-		std::cout << "Number of stages: " << kmAlg.getTotalStages() << "\n";
-							// print average distortion
-		std::cout << "Average distortion: " << ctrs.getDist()/nPts << "\n";
-		ctrs.print();                               // print final centers
-
-		kmExit(0);
-		],[kmlocal=yes],[kmlocal=no])
-		AC_MSG_RESULT([${kmlocal}])
-		LIBS="${LIBSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-		AC_LANG_POP
-
-		if [[ "$kmlocal" = "no" ]] ; then
-			AC_MSG_ERROR([Failed to compile kmlocal program.]);
-		else
-			KMLOCAL="#define LIBMAUS2_HAVE_KMLOCAL"
-			KMLOCALLIBS="${kmlocal_LIBS}"
-			KMLOCALCPPFLAGS="${kmlocal_CFLAGS}"
-		fi
-	fi
-fi
-
 PKG_CHECK_MODULES([zlib],[zlib >= 0],[zlibpkg=yes],[zlibpkg=no])
 
 if [[ "${zlibpkg}" = "yes" ]] ; then
@@ -3165,7 +3085,7 @@ TESTPROGS="testAIO testbitbtree testBitIO testbtree testBWTDyn testBWTHufDyn tes
 TESTPROGS="${TESTPROGS} testDNABitWords testFastRead testFork testHuffman testIsa testkmp"
 TESTPROGS="${TESTPROGS} testlz testOS testRank testToWaveletTreeBits testWaveletExternal"
 TESTPROGS="${TESTPROGS} testTrie testConsensus testbandedlcs testbamwriter testhashlcs"
-TESTPROGS="${TESTPROGS} testkmlocal testarraydecode testsnappy testsnappyconcat testgunzip"
+TESTPROGS="${TESTPROGS} testarraydecode testsnappy testsnappyconcat testgunzip"
 TESTPROGS="${TESTPROGS} testlogging testregex testhashcollisions testsimplebloomcollisions"
 TESTPROGS="${TESTPROGS} testsimplehash testsimplecountinghash testsyncreorderset"
 TESTPROGS="${TESTPROGS} testcachealignedalloc testblocksynchronous testsyncfastreaderbase"
@@ -3464,17 +3384,12 @@ AC_SUBST([HAVEUNISTDH])
 AC_SUBST([HAVESTDINTH])
 AC_SUBST([REGEXH])
 AC_SUBST([SEQAN])
-AC_SUBST([KMLOCAL])
 AC_SUBST([LIBMAUSHAVEBOOSTREGEX])
 AC_SUBST([LIBMAUSHAVESNAPPY])
 AC_SUBST([HAVEDLFCNH])
 AC_SUBST([abs_builddir])
 AC_SUBST([DLFUNCS])
 AC_SUBST([DLLIB])
-AC_SUBST([KMLOCALLDFLAGS])
-AC_SUBST([KMLOCALLIBS])
-AC_SUBST([KMLOCALCPPFLAGS])
-AC_SUBST([KMLOCALCXXFLAGS])
 AC_SUBST([SNAPPYCPPFLAGS])
 AC_SUBST([SNAPPYCXXFLAGS])
 AC_SUBST([SNAPPYLDFLAGS])

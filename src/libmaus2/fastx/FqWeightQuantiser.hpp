@@ -21,7 +21,6 @@
 
 #include <libmaus2/LibMausConfig.hpp>
 
-#if defined(LIBMAUS2_HAVE_KMLOCAL)
 #include <libmaus2/quantisation/ClusterComputation.hpp>
 #include <libmaus2/fastx/FastQReader.hpp>
 #include <libmaus2/fastx/Phred.hpp>
@@ -290,13 +289,12 @@ namespace libmaus2
 				std::vector<double> const & VQ
 				)
 			{
-				::libmaus2::quantisation::Quantiser::unique_ptr_type uquant = 
-					UNIQUE_PTR_MOVE(
-						::libmaus2::quantisation::ClusterComputation::constructQuantiser(
-							VQ,numsteps,arginfo.getValue<uint64_t>("fqquantruns",5000)
-						)
-					);
-				return UNIQUE_PTR_MOVE(uquant);	
+				::libmaus2::quantisation::Quantiser::unique_ptr_type uquant(
+					::libmaus2::quantisation::ClusterComputation::constructQuantiser(
+						VQ,numsteps,arginfo.getValue<uint64_t>("fqquantruns",5000)
+					)
+				);
+				return uquant;	
 			}
 
 			::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
@@ -306,7 +304,8 @@ namespace libmaus2
 				)
 			{
 				std::vector<double> VQ; constructSampleVector(Qfreq,VQ);
-				return UNIQUE_PTR_MOVE(constructQuantiser(arginfo,numsteps,VQ));
+				::libmaus2::quantisation::Quantiser::unique_ptr_type Pquant(constructQuantiser(arginfo,numsteps,VQ));
+				return Pquant;
 			}
 
 			::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
@@ -667,5 +666,4 @@ namespace libmaus2
 		}
 	}
 }
-#endif
 #endif
