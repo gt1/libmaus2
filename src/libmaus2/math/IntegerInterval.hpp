@@ -40,6 +40,14 @@ namespace libmaus2
 			IntegerInterval() : from(0), to(0) {}
 			IntegerInterval(N const rfrom, N const rto) : from(rfrom), to(rto) {}
 			
+			bool operator<(IntegerInterval<N> const & O) const
+			{
+				if ( from != O.from )
+					return from < O.from;
+				else
+					return to < O.to;
+			}
+
 			bool isEmpty() const
 			{
 				return to < from;
@@ -209,6 +217,14 @@ namespace libmaus2
 					return I.isEmpty();
 				else
 					return from == I.from && to == I.to;
+			}
+
+			N diameter() const
+			{
+				if ( from <= to )
+					return (to-from+N(1));
+				else
+					return N();
 			}
 		};
 
