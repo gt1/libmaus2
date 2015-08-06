@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus2/network/OpenSSLSocket.hpp>
 #include <libmaus2/network/HttpBody.hpp>
 #include <libmaus2/network/HttpHeader.hpp>
 #include <libmaus2/util/ArgInfo.hpp>

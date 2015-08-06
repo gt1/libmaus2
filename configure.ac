@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.38,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:38:0
+AC_INIT(libmaus2,2.0.39,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:39:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -132,86 +132,6 @@ if test "${with_igzip}" != "no" ; then
 		IGZIPLDFLAGS=
 		IGZIPLIBS=
 		AC_MSG_ERROR([Failed to compile igzip program.]);
-	fi
-fi
-
-AC_ARG_WITH([kmlocal],
-	[AS_HELP_STRING([--with-kmlocal@<:@=PATH@:>@], [path to installed kmlocal library @<:@default=no@:>@])],
-	[with_kmlocal=${withval}],
-	[with_kmlocal=no])
-
-KMLOCAL=
-if test "${with_kmlocal}" != "no" ; then
-
-	if test ! -z "${with_kmlocal}" ; then
-		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
-		if test -z "${PKG_CONFIG_PATH}" ; then
-			export PKG_CONFIG_PATH="${with_kmlocal}/lib/pkgconfig"
-		else
-			export PKG_CONFIG_PATH="${with_kmlocal}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-		fi
-	fi
-
-	PKG_CHECK_MODULES([kmlocal],[kmlocal >= 1.7.2],[kmlocalpkg=yes],[kmlocalpkg=no])
-
-	if test ! -z "${with_kmlocal}" ; then
-		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
-			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
-		fi
-	fi
-
-	KMLOCAL=
-	if [[ "${kmlocalpkg}" = "yes" ]] ; then
-		# PKG_CHECK_MODULES([kmlocal],[kmlocal >= 1.7.2])
-
-		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${kmlocal_LIBS}"
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${kmlocal_CFLAGS}"
-		AC_MSG_CHECKING([whether we can compile a kmlocal program])
-		AC_TRY_LINK([#include "KMlocal.h"
-	#include <cstring>
-	#include <iostream>
-	],[KMterm  term(100, 0, 0, 0,              // run for 100 stages
-		     0.10, 0.10, 3,             // other typical parameter values 
-		     0.50, 10, 0.95);
-
-		int         k       = 4;                    // number of centers
-		int         dim     = 2;                    // dimension
-		int         nPts    = 20;                   // number of data points
-
-		KMdata dataPts(dim, nPts);                  // allocate data storage
-		kmUniformPts(dataPts.getPts(), nPts, dim);  // generate random points
-		dataPts.buildKcTree();                      // build filtering structure
-		KMfilterCenters ctrs(k, dataPts);           // allocate centers
-
-							// run the algorithm
-		KMlocalLloyds       kmAlg(ctrs, term);      // repeated Lloyd's
-		// KMlocalSwap      kmAlg(ctrs, term);      // Swap heuristic
-		// KMlocalEZ_Hybrid kmAlg(ctrs, term);      // EZ-Hybrid heuristic
-		// KMlocalHybrid    kmAlg(ctrs, term);      // Hybrid heuristic
-		ctrs = kmAlg.execute();                     // execute
-							// print number of stages
-		std::cout << "Number of stages: " << kmAlg.getTotalStages() << "\n";
-							// print average distortion
-		std::cout << "Average distortion: " << ctrs.getDist()/nPts << "\n";
-		ctrs.print();                               // print final centers
-
-		kmExit(0);
-		],[kmlocal=yes],[kmlocal=no])
-		AC_MSG_RESULT([${kmlocal}])
-		LIBS="${LIBSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-		AC_LANG_POP
-
-		if [[ "$kmlocal" = "no" ]] ; then
-			AC_MSG_ERROR([Failed to compile kmlocal program.]);
-		else
-			KMLOCAL="#define LIBMAUS2_HAVE_KMLOCAL"
-			KMLOCALLIBS="${kmlocal_LIBS}"
-			KMLOCALCPPFLAGS="${kmlocal_CFLAGS}"
-		fi
 	fi
 fi
 
@@ -2246,47 +2166,6 @@ if test "${with_lsf}" != "no" ; then
 
 fi
 
-AC_ARG_WITH([cuda],
-	[AS_HELP_STRING([--with-cuda@<:@=PATH@:>@], [path to installed CUDA tools @<:@default=/usr/local/cuda@:>@])],
-	[with_cuda=${withval}],
-	[with_cuda=/usr/local/cuda])
-
-CUDADIR=
-if test "${with_cuda}" != "no" ; then
-	AC_MSG_CHECKING([whether ${with_cuda}/bin/nvcc exists])
-
-	if test -x "${with_cuda}/bin/nvcc" ; then
-		CUDANVCC="${with_cuda}/bin/nvcc"
-		AC_MSG_RESULT([yes])
-	else
-		CUDANVCC="no"
-		AC_MSG_RESULT([no])
-	fi
-
-	if test "${CUDANVCC}" != "no" ; then
-		AC_MSG_CHECKING([whether we can compile a program using ${with_cuda}/bin/nvcc])	
-
-		CXXSAVE="${CXX}"
-		CXX="${CUDANVCC}"
-		CXXFLAGSSAVE="${CXXFLAGS}"
-		CXXFLAGS=""
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS=""
-
-	        AC_LANG_PUSH([C++])
-
-		AC_TRY_COMPILE([#include <cuda.h>],[cuInit(0);],[nvcc_compile=yes],[nvcc_compile=no])
-		AC_MSG_RESULT([${nvcc_compile}])
-
-		AC_LANG_POP
-
-		CXX="${CXXSAVE}"
-		CXXFLAGS="${CXXFLAGSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-
-	fi
-fi
-
 case $target_cpu in
 	i386|i486|i586|i686)
 		HAVEI386="#define LIBMAUS2_HAVE_i386"
@@ -2756,111 +2635,6 @@ if [[ "${have_lzma_h}" = "yes" ]] ; then
 	LIBS="${LIBS_SAVE}"
 fi
 
-AC_ARG_WITH([libcurl],
-	[AS_HELP_STRING([--with-libcurl@<:@=PATH@:>@], [path to installed libcurl library @<:@default=no@:>@])],
-	[with_libcurl=${withval}],
-	[with_libcurl=no])
-
-LIBCURL=
-if test "${with_libcurl}" != "no" ; then
-
-	if test ! -z "${with_libcurl}" ; then
-		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
-		if test -z "${PKG_CONFIG_PATH}" ; then
-			export PKG_CONFIG_PATH="${with_libcurl}/lib/pkgconfig"
-		else
-			export PKG_CONFIG_PATH="${with_libcurl}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-		fi
-	fi
-
-	PKG_CHECK_MODULES([libcurl],[libcurl >= 1.7.2],[libcurlpkg=yes],[libcurlpkg=no])
-
-	if test ! -z "${with_libcurl}" ; then
-		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
-			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
-		fi
-	fi
-
-	LIBCURL=
-	if [[ "${libcurlpkg}" = "yes" ]] ; then
-		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${libcurl_LIBS}"
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${libcurl_CFLAGS}"
-		AC_MSG_CHECKING([whether we can compile a libcurl program])
-		AC_TRY_LINK([#include <curl/curl.h>
-	],[curl_global_init(CURL_GLOBAL_ALL);],[libcurl=yes],[libcurl=no])
-		AC_MSG_RESULT([${libcurl}])
-		LIBS="${LIBSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-		AC_LANG_POP
-
-		if [[ "$libcurl" = "no" ]] ; then
-			AC_MSG_ERROR([Failed to compile libcurl program.]);
-		else
-			LIBCURL="#define LIBMAUS2_HAVE_LIBCURL"
-			LIBCURLLIBS="${libcurl_LIBS}"
-			LIBCURLCPPFLAGS="${libcurl_CFLAGS}"
-		fi
-	fi
-
-fi
-
-AC_ARG_WITH([openssl],
-	[AS_HELP_STRING([--with-openssl@<:@=PATH@:>@], [path to installed openssl library @<:@default=no@:>@])],
-	[with_openssl=${withval}],
-	[with_openssl=no])
-
-OPENSSL=
-if test "${with_openssl}" != "no" ; then
-
-	if test ! -z "${with_openssl}" ; then
-		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
-		if test -z "${PKG_CONFIG_PATH}" ; then
-			export PKG_CONFIG_PATH="${with_openssl}/lib/pkgconfig"
-		else
-			export PKG_CONFIG_PATH="${with_openssl}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-		fi
-	fi
-
-	PKG_CHECK_MODULES([openssl],[openssl >= 1.0.1],[opensslpkg=yes],[opensslpkg=no])
-
-	if test ! -z "${with_openssl}" ; then
-		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
-			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
-		fi
-	fi
-
-	OPENSSL=
-	if [[ "${opensslpkg}" = "yes" ]] ; then
-		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${openssl_LIBS}"
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${openssl_CFLAGS}"
-		AC_MSG_CHECKING([whether we can compile a openssl program])
-		AC_TRY_LINK([#include <openssl/bio.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>],[SSL_library_init();
-SSL_load_error_strings();
-ERR_load_BIO_strings();
-],[openssl=yes],[openssl=no])
-		AC_MSG_RESULT([${openssl}])
-		LIBS="${LIBSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-		AC_LANG_POP
-
-		if [[ "$openssl" = "no" ]] ; then
-			AC_MSG_ERROR([Failed to compile openssl program.]);
-		else
-			OPENSSL="#define LIBMAUS2_HAVE_OPENSSL"
-			OPENSSLLIBS="${openssl_LIBS}"
-			OPENSSLCPPFLAGS="${openssl_CFLAGS}"
-		fi
-	fi
-fi
-
 AC_ARG_WITH([gnutls],
 	[AS_HELP_STRING([--with-gnutls@<:@=PATH@:>@], [path to installed gnutls library @<:@default=no@:>@])],
 	[with_gnutls=${withval}],
@@ -3165,7 +2939,7 @@ TESTPROGS="testAIO testbitbtree testBitIO testbtree testBWTDyn testBWTHufDyn tes
 TESTPROGS="${TESTPROGS} testDNABitWords testFastRead testFork testHuffman testIsa testkmp"
 TESTPROGS="${TESTPROGS} testlz testOS testRank testToWaveletTreeBits testWaveletExternal"
 TESTPROGS="${TESTPROGS} testTrie testConsensus testbandedlcs testbamwriter testhashlcs"
-TESTPROGS="${TESTPROGS} testkmlocal testarraydecode testsnappy testsnappyconcat testgunzip"
+TESTPROGS="${TESTPROGS} testarraydecode testsnappy testsnappyconcat testgunzip"
 TESTPROGS="${TESTPROGS} testlogging testregex testhashcollisions testsimplebloomcollisions"
 TESTPROGS="${TESTPROGS} testsimplehash testsimplecountinghash testsyncreorderset"
 TESTPROGS="${TESTPROGS} testcachealignedalloc testblocksynchronous testsyncfastreaderbase"
@@ -3181,7 +2955,7 @@ TESTPROGS="${TESTPROGS} testbammergequeryname testbamcat testautoarray2d testhis
 TESTPROGS="${TESTPROGS} testfastaparse testvalidatebamindex testeditdistance testthreadpool"
 TESTPROGS="${TESTPROGS} testsimplethreadpool testthreadpoolbamdecode testsimplethreadpoolbamdecode"
 TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock testrazdec"
-TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
+TESTPROGS="${TESTPROGS} testfaindex testfastablockrecode testhttp testftp testrlhist"
 TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
 TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
 TESTPROGS="${TESTPROGS} testbytecnt teststronglyconnectedcomponents"
@@ -3464,17 +3238,12 @@ AC_SUBST([HAVEUNISTDH])
 AC_SUBST([HAVESTDINTH])
 AC_SUBST([REGEXH])
 AC_SUBST([SEQAN])
-AC_SUBST([KMLOCAL])
 AC_SUBST([LIBMAUSHAVEBOOSTREGEX])
 AC_SUBST([LIBMAUSHAVESNAPPY])
 AC_SUBST([HAVEDLFCNH])
 AC_SUBST([abs_builddir])
 AC_SUBST([DLFUNCS])
 AC_SUBST([DLLIB])
-AC_SUBST([KMLOCALLDFLAGS])
-AC_SUBST([KMLOCALLIBS])
-AC_SUBST([KMLOCALCPPFLAGS])
-AC_SUBST([KMLOCALCXXFLAGS])
 AC_SUBST([SNAPPYCPPFLAGS])
 AC_SUBST([SNAPPYCXXFLAGS])
 AC_SUBST([SNAPPYLDFLAGS])
@@ -3500,12 +3269,6 @@ AC_SUBST([IOLIBLIBS])
 AC_SUBST([HAVEGETPAGESIZE])
 AC_SUBST([HAVEMSGCMSGCLOEXEC])
 AC_SUBST([WARNCPPFLAGS])
-AC_SUBST([LIBCURL])
-AC_SUBST([LIBCURLCPPFLAGS])
-AC_SUBST([LIBCURLLIBS])
-AC_SUBST([OPENSSL])
-AC_SUBST([OPENSSLCPPFLAGS])
-AC_SUBST([OPENSSLLIBS])
 AC_SUBST([POSIXSPINLOCKS])
 AC_SUBST([HAVESYNCLOCK])
 AC_SUBST([HAVEDARWINSPINLOCKS])

@@ -33,7 +33,7 @@ libmaus2_simd_align_256_la_SOURCES = \
 libmaus2_simd_align_256_la_CXXFLAGS = @MSSE2@ @MSSSE3@ @MSSE41@ @MAVX2@
 libmaus2_simd_align_256_la_LDFLAGS = @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 
-libmaus2_modules_LTLIBRARIES = libmaus2_kmlocal_mod.la libmaus2_consensus_mod.la libmaus2_scram_mod.la
+libmaus2_modules_LTLIBRARIES = libmaus2_consensus_mod.la libmaus2_scram_mod.la
 libmaus2_modulesdir = $(libdir)/libmaus2/$(PACKAGE_VERSION)
 
 libmaus2digests_a_SOURCES = libmaus2/digest/SHA2_256_sse4.cpp libmaus2/digest/SHA2_512_sse4.cpp libmaus2/digest/DigestFactory_SHA2_ASM.cpp
@@ -84,7 +84,6 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/graph/EdgeList.cpp \
 	libmaus2/fastx/Phred.cpp \
 	libmaus2/network/sendReceiveFd.c \
-	libmaus2/quantisation/ClusterComputation.cpp \
 	libmaus2/lz/SnappyCompress.cpp \
 	libmaus2/bambam/CollatingBamDecoder.cpp \
 	libmaus2/bambam/ReadEndsContainer.cpp \
@@ -219,20 +218,14 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
 libmaus2lsf_la_CPPFLAGS = @WARNCPPFLAGS@ ${LSFCPPFLAGS}
 libmaus2lsf_la_LIBADD = ${LSFLIBS}
-
-libmaus2_kmlocal_mod_la_CPPFLAGS = @KMLOCALCPPFLAGS@ @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
-libmaus2_kmlocal_mod_la_CXXFLAGS = @KMLOCALCXXFLAGS@ @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
-libmaus2_kmlocal_mod_la_LDFLAGS  = @KMLOCALLDFLAGS@  @LIBMAUSLDFLAGS@                 -module  -shared -export-dynamic ${AM_LDFLAGS} -avoid-version
-libmaus2_kmlocal_mod_la_LIBADD   = @KMLOCALLIBS@     @LIBMAUSLIBS@
-libmaus2_kmlocal_mod_la_SOURCES  = libmaus2/quantisation/KMLocalInterface.cpp
 
 libmaus2_consensus_mod_la_CPPFLAGS = @SEQANCPPFLAGS@                 @LIBMAUSCPPFLAGS@ ${AM_CPPFLAGS} @WARNCPPFLAGS@
 libmaus2_consensus_mod_la_CXXFLAGS = @SEQANCXXFLAGS@                 @LIBMAUSCXXFLAGS@ ${AM_CXXFLAGS} -fPIC
@@ -1565,13 +1558,10 @@ libmaus2network_include_HEADERS=\
 	libmaus2/network/LogReceiverTestProcess.hpp \
 	libmaus2/network/LogReceiver.hpp \
 	libmaus2/network/LogReceiverDispatcherBase.hpp \
-	libmaus2/network/CurlInit.hpp \
-	libmaus2/network/OpenSSLInit.hpp \
 	libmaus2/network/SocketInputStreamBuffer.hpp \
 	libmaus2/network/SocketInputStream.hpp \
 	libmaus2/network/HttpAbsoluteUrl.hpp \
 	libmaus2/network/SocketInputOutputInterface.hpp \
-	libmaus2/network/OpenSSLSocket.hpp \
 	libmaus2/network/FtpUrl.hpp \
 	libmaus2/network/HttpBody.hpp \
 	libmaus2/network/HttpHeader.hpp \
@@ -1702,8 +1692,7 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/DalignerNP.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
-libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp \
-	libmaus2/quantisation/KMLocalInterface.hpp
+libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp
 	
 libmaus2lsf_includedir=$(includedir)/libmaus2/lsf
 libmaus2lsf_include_HEADERS=\
@@ -1745,7 +1734,6 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testbandedlcs \
 	testbamwriter \
 	testhashlcs \
-	testkmlocal \
 	testarraydecode \
 	testsnappy \
 	testsnappyconcat \
@@ -1813,7 +1801,6 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsimplecompressblock \
 	testrazdec \
 	testfaindex \
-	testcurl \
 	testfastablockrecode \
 	testhttp \
 	testftp \
@@ -1987,9 +1974,6 @@ testConsensus_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align
 testhashlcs_SOURCES = test/testhashlcs.cpp
 testhashlcs_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 testhashlcs_CPPFLAGS = ${AM_CPPFLAGS} @WARNCPPFLAGS@
-
-testkmlocal_SOURCES = test/testkmlocal.cpp
-testkmlocal_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testarraydecode_SOURCES = test/testarraydecode.cpp
 testarraydecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
@@ -2178,28 +2162,23 @@ testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 testfaindex_SOURCES = test/testfaindex.cpp
 testfaindex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
-testcurl_SOURCES = test/testcurl.cpp
-testcurl_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testcurl_CPPFLAGS =  @LIBCURLCPPFLAGS@ @WARNCPPFLAGS@
-testcurl_LDFLAGS = @LIBCURLLIBS@
-
 testfastablockrecode_SOURCES = test/testfastablockrecode.cpp
 testfastablockrecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
 
 testhttp_SOURCES = test/testhttp.cpp
 testhttp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
-testhttp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
+testhttp_CPPFLAGS = @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testhttp_LDFLAGS = @GNUTLSLIBS@
 
 testftp_SOURCES = test/testftp.cpp
 testftp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
-testftp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
+testftp_CPPFLAGS = @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testftp_LDFLAGS = @GNUTLSLIBS@
 
 testurlinputstream_SOURCES = test/testurlinputstream.cpp
 testurlinputstream_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
-testurlinputstream_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
+testurlinputstream_CPPFLAGS = @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testurlinputstream_LDFLAGS = @GNUTLSLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
 testrlhist_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la

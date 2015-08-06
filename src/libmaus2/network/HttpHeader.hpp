@@ -21,7 +21,6 @@
 
 #include <libmaus2/network/HttpAbsoluteUrl.hpp>
 #include <libmaus2/network/Socket.hpp>
-#include <libmaus2/network/OpenSSLSocket.hpp>
 #include <libmaus2/network/GnuTLSSocket.hpp>
 #include <libmaus2/network/SocketInputStream.hpp>
 #include <libmaus2/util/stringFunctions.hpp>
@@ -55,7 +54,6 @@ namespace libmaus2
 			::libmaus2::network::HttpAbsoluteUrl url;
 
 			libmaus2::network::ClientSocket::unique_ptr_type CS;
-			libmaus2::network::OpenSSLSocket::unique_ptr_type OS;
 			libmaus2::network::GnuTLSSocket::unique_ptr_type GTLSIOS;
 			libmaus2::network::SocketInputOutputInterface * SIOS;
 			libmaus2::network::SocketInputStream::unique_ptr_type SIS;
@@ -217,7 +215,6 @@ namespace libmaus2
 					fields.clear();
 					
 					CS.reset();
-					OS.reset();
 					SIS.reset();
 					GTLSIOS.reset();
 					SIOS = 0;
@@ -241,9 +238,10 @@ namespace libmaus2
 							GTLSIOS = UNIQUE_PTR_MOVE(tGTLSIOS);
 							SIOS = GTLSIOS.get();
 							#else	
-							libmaus2::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus2::network::OpenSSLSocket(proxyurl.host,proxyurl.port,0,"/etc/ssl/certs",true));
-							OS = UNIQUE_PTR_MOVE(tOS);						
-							SIOS = OS.get();
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "HttpHeader::init(): proxy url requires SSL but libmaus2 is compiled without support for GNUTLS" << std::endl;
+							lme.finish();
+							throw lme;
 							#endif
 
 							libmaus2::network::SocketInputStream::unique_ptr_type tSIS(new libmaus2::network::SocketInputStream(*SIOS,64*1024));
@@ -270,10 +268,10 @@ namespace libmaus2
 							
 							SIOS = GTLSIOS.get();
 							#else
-							libmaus2::network::OpenSSLSocket::unique_ptr_type tOS(new libmaus2::network::OpenSSLSocket(host,port,0,"/etc/ssl/certs",true));
-							OS = UNIQUE_PTR_MOVE(tOS);
-						
-							SIOS = OS.get();
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "HttpHeader::init(): url requires SSL but libmaus2 is compiled without support for GNUTLS" << std::endl;
+							lme.finish();
+							throw lme;
 							#endif
 
 							libmaus2::network::SocketInputStream::unique_ptr_type tSIS(new libmaus2::network::SocketInputStream(*SIOS,64*1024));
