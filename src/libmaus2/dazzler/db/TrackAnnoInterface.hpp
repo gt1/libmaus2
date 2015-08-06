@@ -26,16 +26,20 @@ namespace libmaus2
 {
 	namespace dazzler
 	{
-		struct TrackAnnoInterface
+		namespace db
 		{
-			typedef TrackAnnoInterface this_type;
-			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-			virtual ~TrackAnnoInterface() {}
-			virtual uint64_t operator[](uint64_t const i) const = 0;
-			virtual void shift(uint64_t const s) = 0;
-		};
+			struct TrackAnnoInterface
+			{
+				typedef TrackAnnoInterface this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				virtual ~TrackAnnoInterface() {}
+				virtual uint64_t operator[](uint64_t const i) const = 0;
+				virtual void shift(uint64_t const s) = 0;
+				virtual uint64_t size() const = 0;
+			};
+		}
 	}
 }
 #endif
