@@ -81,6 +81,15 @@ void sigalrm(int)
 int main(int argc, char * argv[])
 {
 	{
+		libmaus2::lcs::NP NP;
+		std::string const b = "ATCTTATCTATCTTATCATCTATCATTATCTTTCTTATCATTATCTTATCTTATCTTATTTATCTTATATTATCTTATCTATATCTTATCATATCTTATCTTATCTTATCTTTCTTTTATTTCATTATCTTATCATATCTTATCTTATCT";
+		std::string const a = "";
+
+		NP.np(a.begin(),a.end(),b.begin(),b.end());
+		
+		libmaus2::lcs::AlignmentPrint::printAlignmentLines(std::cout,a.begin(),a.size(),b.begin(),b.size(),80,NP.ta,NP.te);
+	}
+	{
 		#if 0
 		std::string const a = "hamstetr";
 		std::string const b = "hramster";

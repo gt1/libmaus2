@@ -25,34 +25,51 @@ namespace libmaus2
 {
 	namespace dazzler
 	{	
-		template<typename _element_type>
-		struct TrackAnno : public TrackAnnoInterface
+		namespace db
 		{
-			typedef _element_type element_type;
-			typedef TrackAnno<element_type> this_type;
-			typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
-			typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
-			
-			libmaus2::autoarray::AutoArray<element_type> A;
-			
-			TrackAnno()
+			template<typename _element_type>
+			struct TrackAnno : public TrackAnnoInterface
 			{
-			
-			}
-			
-			TrackAnno(uint64_t const n) : A(n) {}
-			
-			uint64_t operator[](uint64_t const i) const
-			{
-				return A[i];
-			}
-			
-			void shift(uint64_t const s)
-			{
-				for ( uint64_t i = 0; i < A.size(); ++i )
-					A[i] -= s;
-			}
-		};
+				typedef _element_type element_type;
+				typedef TrackAnno<element_type> this_type;
+				typedef typename libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef typename libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+
+				libmaus2::autoarray::AutoArray<element_type> A;
+
+				TrackAnno()
+				{
+				}
+
+				TrackAnno(uint64_t const n) : A(n) {}
+
+				uint64_t operator[](uint64_t const i) const
+				{
+					if ( i < size() )
+					{
+						return A[i];
+					}
+					else
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "TrackAnno::operator[]: index " << i << " is out of range [" << 0 << "," << size() << ")" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				}
+
+				uint64_t size() const
+				{
+					return A.size();
+				}
+
+				void shift(uint64_t const s)
+				{
+					for ( uint64_t i = 0; i < A.size(); ++i )
+						A[i] -= s;
+				}
+			};
+		}
 	}
 }
 #endif

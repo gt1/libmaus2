@@ -90,6 +90,26 @@ namespace libmaus2
 			{
 				size_t const an = ae-a;
 				size_t const bn = be-b;
+				
+				if ( ! an )
+				{
+					if ( AlignmentTraceContainer::capacity() <= bn )
+						AlignmentTraceContainer::resize(bn);
+					AlignmentTraceContainer::reset();
+					AlignmentTraceContainer::ta -= bn;
+					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_INS);
+					return bn;
+				}
+				else if ( ! bn )
+				{
+					if ( AlignmentTraceContainer::capacity() <= an )
+						AlignmentTraceContainer::resize(an);
+					AlignmentTraceContainer::reset();
+					AlignmentTraceContainer::ta -= an;
+					std::fill(AlignmentTraceContainer::ta,AlignmentTraceContainer::te,STEP_DEL);
+					return an;
+				}
+				
 				size_t const sn = std::max(an,bn);
 				int const numdiag = (sn<<1)+1;
 				int id = 0;
@@ -98,7 +118,7 @@ namespace libmaus2
 				{
 					DE.resize(numdiag);
 					DO.resize(numdiag);
-				}
+				}				
 						
 				NPElement * DP = DE.begin() + sn;
 				NPElement * DN = DO.begin() + sn;
@@ -427,7 +447,7 @@ namespace libmaus2
 				}
 				
 				int const ed = d-1;
-				
+								
 				if ( AlignmentTraceContainer::capacity() <= std::min(an,bn)+ed )
 					AlignmentTraceContainer::resize(std::min(an,bn)+ed);
 				AlignmentTraceContainer::reset();

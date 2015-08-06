@@ -593,7 +593,7 @@ namespace libmaus2
 					if ( i >= size() )
 					{
 						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "DatabaseFile::getRead: read index " << i << " out of range (not in [" << 0 << "," << size() << ")" << std::endl;
+						lme.getStream() << "DatabaseFile::getRead: read index " << i << " out of range (not in [" << 0 << "," << size() << "))" << std::endl;
 						lme.finish();
 						throw lme;
 					}
@@ -615,7 +615,7 @@ namespace libmaus2
 					if ( high-low && high > size() )
 					{
 						libmaus2::exception::LibMausException lme;
-						lme.getStream() << "DatabaseFile::getReadInterval: read index " << high-1 << " out of range (not in [" << 0 << "," << size() << ")" << std::endl;
+						lme.getStream() << "DatabaseFile::getReadInterval: read index " << high-1 << " out of range (not in [" << 0 << "," << size() << "))" << std::endl;
 						lme.finish();
 						throw lme;					
 					}
@@ -821,16 +821,16 @@ namespace libmaus2
 					// check whether annotation/track is specific to this block
 					if ( 
 						this->part &&
-						libmaus2::aio::InputStreamFactoryContainer::tryOpen(this->path + "/" + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno" )
+						libmaus2::aio::InputStreamFactoryContainer::tryOpen(this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno" )
 					)
 					{
 						ispart = true;
-						annoname = this->path + "/" + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno";
+						annoname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno";
 					}
 					// no, try whole database
 					else
 					{
-						annoname = this->path + "/" + this->root + "." + trackname + ".anno";
+						annoname = this->path + "/" + "." + this->root + "." + trackname + ".anno";
 					}
 					
 					if ( ! libmaus2::aio::InputStreamFactoryContainer::tryOpen(annoname) )
@@ -843,9 +843,9 @@ namespace libmaus2
 					
 					std::string dataname;
 					if ( ispart )
-						dataname = this->path + "/" + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".data";
+						dataname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".data";
 					else
-						dataname = this->path + "/" + this->root + "." + trackname + ".data";
+						dataname = this->path + "/" + "." + this->root + "." + trackname + ".data";
 					
 					libmaus2::aio::InputStream::unique_ptr_type Panno(libmaus2::aio::InputStreamFactoryContainer::constructUnique(annoname));
 					std::istream & anno = *Panno;

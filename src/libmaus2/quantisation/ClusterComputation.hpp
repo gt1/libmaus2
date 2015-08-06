@@ -21,6 +21,7 @@
 
 #include <libmaus2/LibMausConfig.hpp>
 #include <libmaus2/quantisation/Quantiser.hpp>
+#include <libmaus2/clustering/KMeans.hpp>
 
 namespace libmaus2
 {
@@ -28,15 +29,18 @@ namespace libmaus2
 	{
 		struct ClusterComputation
 		{
-			template<typename iterator>
-			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiserTemplate(
-				iterator ita, uint64_t const n, uint64_t const k, uint64_t const runs = 100);				
+			template<typename value_type>
 			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
-				std::vector<double> const & V, uint64_t const k, uint64_t const runs = 100);
-			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
-				std::vector<unsigned int> const & V, uint64_t const k, uint64_t const runs = 100);
-			static ::libmaus2::quantisation::Quantiser::unique_ptr_type constructQuantiser(
-				std::vector<uint64_t> const & V, uint64_t const k, uint64_t const runs = 100);
+				std::vector<value_type> const & V, uint64_t const k, uint64_t const runs = 100
+			)
+			{
+				std::vector<double> const centres =
+					libmaus2::clustering::KMeans::kmeans(V.begin(),V.size(),k,true /* pp */, runs);
+				::libmaus2::quantisation::Quantiser::unique_ptr_type Pquant(
+					new ::libmaus2::quantisation::Quantiser(centres)
+				);
+				return Pquant;
+			}
 		};
 	}
 }

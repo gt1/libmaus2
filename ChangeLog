@@ -1,3 +1,19 @@
+libmaus2 (2.0.39-1) unstable; urgency=medium
+
+  * remove unused code and configure options 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 06 Aug 2015 18:10:48 +0200
+
+libmaus2 (2.0.38-1) unstable; urgency=medium
+
+  * fixing error messages and track path construction in dazzler::DatabaseFile
+  * moving Track class to dazzler::db namespace
+  * adding size method in TrackAnnoInterface and TrackAnno
+  * adding operator< and diameter method in IntegerInterval
+  * fixing NP aligner class for empty strings
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 06 Aug 2015 15:50:23 +0200
+
 libmaus2 (2.0.37-1) unstable; urgency=medium
 
   * remove extraneous close call 

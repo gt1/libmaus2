@@ -46,8 +46,6 @@ libmaus2 can use functionality from several other code bases. This includes:
  - SeqAN [http://www.seqan.de/] : libmaus2 contains a wrapper class for
    consensus computation. The actual consensus computation is done by SeqAN.
    libmaus2 only offers a somewhat simplified interface.
- - kmlocal [http://www.cs.umd.edu/~mount/Projects/KMeans/] : libmaus2 can use
-   this kmeans clustering code for the requantisation of FastQ quality values.
 
 The compilation on Darwin (MacOS X) may require the installation of the 
 following packages:
