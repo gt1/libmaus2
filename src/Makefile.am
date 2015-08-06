@@ -218,9 +218,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
@@ -1558,12 +1558,10 @@ libmaus2network_include_HEADERS=\
 	libmaus2/network/LogReceiverTestProcess.hpp \
 	libmaus2/network/LogReceiver.hpp \
 	libmaus2/network/LogReceiverDispatcherBase.hpp \
-	libmaus2/network/OpenSSLInit.hpp \
 	libmaus2/network/SocketInputStreamBuffer.hpp \
 	libmaus2/network/SocketInputStream.hpp \
 	libmaus2/network/HttpAbsoluteUrl.hpp \
 	libmaus2/network/SocketInputOutputInterface.hpp \
-	libmaus2/network/OpenSSLSocket.hpp \
 	libmaus2/network/FtpUrl.hpp \
 	libmaus2/network/HttpBody.hpp \
 	libmaus2/network/HttpHeader.hpp \
@@ -2169,18 +2167,18 @@ testfastablockrecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_sim
 
 testhttp_SOURCES = test/testhttp.cpp
 testhttp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testhttp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
-testhttp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
+testhttp_CPPFLAGS = @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testhttp_LDFLAGS = @GNUTLSLIBS@
 
 testftp_SOURCES = test/testftp.cpp
 testftp_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testftp_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
-testftp_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
+testftp_CPPFLAGS = @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testftp_LDFLAGS = @GNUTLSLIBS@
 
 testurlinputstream_SOURCES = test/testurlinputstream.cpp
 testurlinputstream_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testurlinputstream_CPPFLAGS = @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
-testurlinputstream_LDFLAGS = @OPENSSLLIBS@ @GNUTLSLIBS@
+testurlinputstream_CPPFLAGS = @GNUTLSCPPFLAGS@ @WARNCPPFLAGS@
+testurlinputstream_LDFLAGS = @GNUTLSLIBS@
 
 testrlhist_SOURCES = test/testrlhist.cpp
 testrlhist_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la

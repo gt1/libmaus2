@@ -2676,60 +2676,6 @@ if [[ "${have_lzma_h}" = "yes" ]] ; then
 	LIBS="${LIBS_SAVE}"
 fi
 
-AC_ARG_WITH([openssl],
-	[AS_HELP_STRING([--with-openssl@<:@=PATH@:>@], [path to installed openssl library @<:@default=no@:>@])],
-	[with_openssl=${withval}],
-	[with_openssl=no])
-
-OPENSSL=
-if test "${with_openssl}" != "no" ; then
-
-	if test ! -z "${with_openssl}" ; then
-		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
-		if test -z "${PKG_CONFIG_PATH}" ; then
-			export PKG_CONFIG_PATH="${with_openssl}/lib/pkgconfig"
-		else
-			export PKG_CONFIG_PATH="${with_openssl}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-		fi
-	fi
-
-	PKG_CHECK_MODULES([openssl],[openssl >= 1.0.1],[opensslpkg=yes],[opensslpkg=no])
-
-	if test ! -z "${with_openssl}" ; then
-		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
-			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
-		fi
-	fi
-
-	OPENSSL=
-	if [[ "${opensslpkg}" = "yes" ]] ; then
-		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${openssl_LIBS}"
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${openssl_CFLAGS}"
-		AC_MSG_CHECKING([whether we can compile a openssl program])
-		AC_TRY_LINK([#include <openssl/bio.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>],[SSL_library_init();
-SSL_load_error_strings();
-ERR_load_BIO_strings();
-],[openssl=yes],[openssl=no])
-		AC_MSG_RESULT([${openssl}])
-		LIBS="${LIBSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-		AC_LANG_POP
-
-		if [[ "$openssl" = "no" ]] ; then
-			AC_MSG_ERROR([Failed to compile openssl program.]);
-		else
-			OPENSSL="#define LIBMAUS2_HAVE_OPENSSL"
-			OPENSSLLIBS="${openssl_LIBS}"
-			OPENSSLCPPFLAGS="${openssl_CFLAGS}"
-		fi
-	fi
-fi
-
 AC_ARG_WITH([gnutls],
 	[AS_HELP_STRING([--with-gnutls@<:@=PATH@:>@], [path to installed gnutls library @<:@default=no@:>@])],
 	[with_gnutls=${withval}],
@@ -3364,9 +3310,6 @@ AC_SUBST([IOLIBLIBS])
 AC_SUBST([HAVEGETPAGESIZE])
 AC_SUBST([HAVEMSGCMSGCLOEXEC])
 AC_SUBST([WARNCPPFLAGS])
-AC_SUBST([OPENSSL])
-AC_SUBST([OPENSSLCPPFLAGS])
-AC_SUBST([OPENSSLLIBS])
 AC_SUBST([POSIXSPINLOCKS])
 AC_SUBST([HAVESYNCLOCK])
 AC_SUBST([HAVEDARWINSPINLOCKS])
