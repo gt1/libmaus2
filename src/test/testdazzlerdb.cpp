@@ -70,6 +70,22 @@ int main(int argc, char * argv[])
 			else
 			{
 				std::cerr << "database opened ok" << std::endl;
+
+				char inqualtrackname[] = "inqual";
+
+				int const tr = Check_Track(&db,&inqualtrackname[0]);
+
+				std::cerr << "tr=" << tr << std::endl;
+
+				if ( tr >= 0 )
+				{
+					HITS_TRACK *inqualtrack = Load_Track(&db,&inqualtrackname[0]);
+					std::cerr << "track name=" << inqualtrack->name << std::endl;
+					std::cerr << "size=" << inqualtrack->size << std::endl;
+					std::cerr << "anno=" << inqualtrack->anno << std::endl;
+					std::cerr << "data=" << inqualtrack->data << std::endl;
+				}
+
 				Close_DB(&db);
 			}
 		}
@@ -175,6 +191,26 @@ int main(int argc, char * argv[])
 			std::cerr << *PDB1;
 		if ( PDB2 )
 			std::cerr << *PDB2;
+
+		try
+		{
+			libmaus2::dazzler::db::Track::unique_ptr_type track(PDB1->readTrack("inqual"));
+			std::cerr << "loaded track " << track->name << std::endl;
+			libmaus2::dazzler::db::TrackAnnoInterface const & anno = track->getAnno();
+			for ( uint64_t i = 0; i < PDB1->size(); ++i )
+			{
+				std::cerr << i << "\t" << anno[i] << "\t" << anno[i+1] << "\t" << anno[i+1]-anno[i] << "\t" << PDB1->getRead(i) << std::endl;
+
+				#if 0
+				if ( anno[i+1]-anno[i] != (PDB1->getRead(i).rlen + 99)/100 )
+					std::cerr << "weird" << std::endl;
+				#endif
+			}
+		}
+		catch(std::exception const & ex)
+		{
+			std::cerr << ex.what();
+		}
 					
 		libmaus2::aio::InputStream::unique_ptr_type Palgnfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(aligns));
 		libmaus2::dazzler::align::AlignmentFile algn(*Palgnfile);
