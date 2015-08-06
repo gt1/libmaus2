@@ -2676,57 +2676,6 @@ if [[ "${have_lzma_h}" = "yes" ]] ; then
 	LIBS="${LIBS_SAVE}"
 fi
 
-AC_ARG_WITH([libcurl],
-	[AS_HELP_STRING([--with-libcurl@<:@=PATH@:>@], [path to installed libcurl library @<:@default=no@:>@])],
-	[with_libcurl=${withval}],
-	[with_libcurl=no])
-
-LIBCURL=
-if test "${with_libcurl}" != "no" ; then
-
-	if test ! -z "${with_libcurl}" ; then
-		PKGCONFIGPATHSAVE="${PKG_CONFIG_PATH}"
-		if test -z "${PKG_CONFIG_PATH}" ; then
-			export PKG_CONFIG_PATH="${with_libcurl}/lib/pkgconfig"
-		else
-			export PKG_CONFIG_PATH="${with_libcurl}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-		fi
-	fi
-
-	PKG_CHECK_MODULES([libcurl],[libcurl >= 1.7.2],[libcurlpkg=yes],[libcurlpkg=no])
-
-	if test ! -z "${with_libcurl}" ; then
-		if test ! -z "${PKGCONFIGPATHSAVE}" ; then
-			export PKG_CONFIG_PATH="${PKGCONFIGPATHSAVE}"
-		fi
-	fi
-
-	LIBCURL=
-	if [[ "${libcurlpkg}" = "yes" ]] ; then
-		AC_LANG_PUSH([C++])
-		LIBSSAVE="${LIBS}"
-		LIBS="${LIBS} ${libcurl_LIBS}"
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS="${CPPFLAGS} ${libcurl_CFLAGS}"
-		AC_MSG_CHECKING([whether we can compile a libcurl program])
-		AC_TRY_LINK([#include <curl/curl.h>
-	],[curl_global_init(CURL_GLOBAL_ALL);],[libcurl=yes],[libcurl=no])
-		AC_MSG_RESULT([${libcurl}])
-		LIBS="${LIBSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-		AC_LANG_POP
-
-		if [[ "$libcurl" = "no" ]] ; then
-			AC_MSG_ERROR([Failed to compile libcurl program.]);
-		else
-			LIBCURL="#define LIBMAUS2_HAVE_LIBCURL"
-			LIBCURLLIBS="${libcurl_LIBS}"
-			LIBCURLCPPFLAGS="${libcurl_CFLAGS}"
-		fi
-	fi
-
-fi
-
 AC_ARG_WITH([openssl],
 	[AS_HELP_STRING([--with-openssl@<:@=PATH@:>@], [path to installed openssl library @<:@default=no@:>@])],
 	[with_openssl=${withval}],
@@ -3101,7 +3050,7 @@ TESTPROGS="${TESTPROGS} testbammergequeryname testbamcat testautoarray2d testhis
 TESTPROGS="${TESTPROGS} testfastaparse testvalidatebamindex testeditdistance testthreadpool"
 TESTPROGS="${TESTPROGS} testsimplethreadpool testthreadpoolbamdecode testsimplethreadpoolbamdecode"
 TESTPROGS="${TESTPROGS} testgaparraybyte testzlibconcat testsimplecompressblock testrazdec"
-TESTPROGS="${TESTPROGS} testfaindex testcurl testfastablockrecode testhttp testftp testrlhist"
+TESTPROGS="${TESTPROGS} testfaindex testfastablockrecode testhttp testftp testrlhist"
 TESTPROGS="${TESTPROGS} testnumcpus testdiag testlinuxstreamingwrite testlowmembamheaderparser"
 TESTPROGS="${TESTPROGS} testgeneflatfile testurlinputstream testsimpletrie testgnutls testlru"
 TESTPROGS="${TESTPROGS} testbytecnt teststronglyconnectedcomponents"
@@ -3415,9 +3364,6 @@ AC_SUBST([IOLIBLIBS])
 AC_SUBST([HAVEGETPAGESIZE])
 AC_SUBST([HAVEMSGCMSGCLOEXEC])
 AC_SUBST([WARNCPPFLAGS])
-AC_SUBST([LIBCURL])
-AC_SUBST([LIBCURLCPPFLAGS])
-AC_SUBST([LIBCURLLIBS])
 AC_SUBST([OPENSSL])
 AC_SUBST([OPENSSLCPPFLAGS])
 AC_SUBST([OPENSSLLIBS])

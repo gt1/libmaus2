@@ -117,11 +117,6 @@ unsigned int const libmaus2::lz::RAZFConstants::razf_window_bits = 15;
 uint64_t const libmaus2::lz::RAZFConstants::razf_block_size = 1ull << razf_window_bits;
 uint64_t const libmaus2::lz::RAZFConstants::razf_bin_size = (1ull << 32) / razf_block_size;
 
-#include <libmaus2/network/CurlInit.hpp>
-
-uint64_t libmaus2::network::CurlInit::initcomplete = 0;
-libmaus2::parallel::PosixSpinLock libmaus2::network::CurlInit::lock;
-
 #include <libmaus2/network/OpenSSLInit.hpp>
 
 uint64_t libmaus2::network::OpenSSLInit::initcomplete = 0;

@@ -218,9 +218,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
-libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @LIBCURLCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
+libmaus2_la_CPPFLAGS = @LIBMAUSCPPFLAGS@ @SNAPPYCPPFLAGS@ @ZLIBCPPFLAGS@ @WARNCPPFLAGS@ @OPENSSLCPPFLAGS@ @GNUTLSCPPFLAGS@ @NETTLECPPFLAGS@ @IGZIPCPPFLAGS@ @DALIGNERCPPFLAGS@
 libmaus2_la_LDFLAGS = @LIBMAUSLDFLAGS@ @SNAPPYLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@ @IGZIPLDFLAGS@ @GNUTLSLDFLAGS@ @NETTLELDFLAGS@ @DALIGNERLDFLAGS@
-libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @LIBCURLLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
+libmaus2_la_LIBADD = @DLLIB@ @SNAPPYLIBS@ @ZLIBLIBS@ @OPENSSLLIBS@ @IGZIPLIBS@ @GNUTLSLIBS@ @NETTLELIBS@ @DALIGNERLIBS@
 
 libmaus2lsf_la_LDFLAGS = @LSFLDFLAGS@ @LIBMAUSLDFLAGS@ -version-info ${LIBRARY_VERSION} @LIBMAUSSTATIC@
 libmaus2lsf_la_SOURCES = libmaus2/lsf/LSFProcess.cpp
@@ -1558,7 +1558,6 @@ libmaus2network_include_HEADERS=\
 	libmaus2/network/LogReceiverTestProcess.hpp \
 	libmaus2/network/LogReceiver.hpp \
 	libmaus2/network/LogReceiverDispatcherBase.hpp \
-	libmaus2/network/CurlInit.hpp \
 	libmaus2/network/OpenSSLInit.hpp \
 	libmaus2/network/SocketInputStreamBuffer.hpp \
 	libmaus2/network/SocketInputStream.hpp \
@@ -1804,7 +1803,6 @@ EXTRA_PROGRAMS = testlsf testlsflist \
 	testsimplecompressblock \
 	testrazdec \
 	testfaindex \
-	testcurl \
 	testfastablockrecode \
 	testhttp \
 	testftp \
@@ -2165,11 +2163,6 @@ testrazdec_CPPFLAGS = @ZLIBCPPFLAGS@ @WARNCPPFLAGS@
 
 testfaindex_SOURCES = test/testfaindex.cpp
 testfaindex_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-
-testcurl_SOURCES = test/testcurl.cpp
-testcurl_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
-testcurl_CPPFLAGS =  @LIBCURLCPPFLAGS@ @WARNCPPFLAGS@
-testcurl_LDFLAGS = @LIBCURLLIBS@
 
 testfastablockrecode_SOURCES = test/testfastablockrecode.cpp
 testfastablockrecode_LDADD = libmaus2.la libmaus2_simd_align_128.la libmaus2_simd_align_256.la
