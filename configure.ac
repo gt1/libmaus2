@@ -2166,47 +2166,6 @@ if test "${with_lsf}" != "no" ; then
 
 fi
 
-AC_ARG_WITH([cuda],
-	[AS_HELP_STRING([--with-cuda@<:@=PATH@:>@], [path to installed CUDA tools @<:@default=/usr/local/cuda@:>@])],
-	[with_cuda=${withval}],
-	[with_cuda=/usr/local/cuda])
-
-CUDADIR=
-if test "${with_cuda}" != "no" ; then
-	AC_MSG_CHECKING([whether ${with_cuda}/bin/nvcc exists])
-
-	if test -x "${with_cuda}/bin/nvcc" ; then
-		CUDANVCC="${with_cuda}/bin/nvcc"
-		AC_MSG_RESULT([yes])
-	else
-		CUDANVCC="no"
-		AC_MSG_RESULT([no])
-	fi
-
-	if test "${CUDANVCC}" != "no" ; then
-		AC_MSG_CHECKING([whether we can compile a program using ${with_cuda}/bin/nvcc])	
-
-		CXXSAVE="${CXX}"
-		CXX="${CUDANVCC}"
-		CXXFLAGSSAVE="${CXXFLAGS}"
-		CXXFLAGS=""
-		CPPFLAGSSAVE="${CPPFLAGS}"
-		CPPFLAGS=""
-
-	        AC_LANG_PUSH([C++])
-
-		AC_TRY_COMPILE([#include <cuda.h>],[cuInit(0);],[nvcc_compile=yes],[nvcc_compile=no])
-		AC_MSG_RESULT([${nvcc_compile}])
-
-		AC_LANG_POP
-
-		CXX="${CXXSAVE}"
-		CXXFLAGS="${CXXFLAGSSAVE}"
-		CPPFLAGS="${CPPFLAGSSAVE}"
-
-	fi
-fi
-
 case $target_cpu in
 	i386|i486|i586|i686)
 		HAVEI386="#define LIBMAUS2_HAVE_i386"
