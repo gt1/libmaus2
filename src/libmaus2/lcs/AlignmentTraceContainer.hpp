@@ -442,6 +442,105 @@ namespace libmaus2
 				return P;
 			}
 			
+			static int64_t getScore(
+				step_type const * ta,
+				step_type const * te,
+				int64_t const match_score    = gain_match,
+				int64_t const mismatch_score = penalty_subst,
+				int64_t const ins_score      = penalty_ins,
+				int64_t const del_score      = penalty_del
+			)
+			{
+				int64_t score = 0;
+				
+				while ( ta != te )
+				{
+					step_type const cur = *(ta++);
+					
+					switch ( cur )
+					{
+						case STEP_MATCH:
+							score += match_score;
+							break;
+						case STEP_MISMATCH:
+							score -= mismatch_score;
+							break;
+						case STEP_INS:
+							score -= ins_score;
+							break;
+						case STEP_DEL:
+							score -= del_score;
+							break;
+					}
+				}
+				
+				return score;
+			}
+			
+			std::pair<step_type const *, step_type const *> bestLocalScore(
+				int64_t const match_score    = gain_match,
+				int64_t const mismatch_score = penalty_subst,
+				int64_t const ins_score      = penalty_ins,
+				int64_t const del_score      = penalty_del
+			) const
+			{
+				return bestLocalScore(ta,te,match_score,mismatch_score,ins_score,del_score);
+			}
+
+			static std::pair<step_type const *, step_type const *> bestLocalScore(
+				step_type const * ta,
+				step_type const * te,
+				int64_t const match_score    = gain_match,
+				int64_t const mismatch_score = penalty_subst,
+				int64_t const ins_score      = penalty_ins,
+				int64_t const del_score      = penalty_del
+			)
+			{
+				step_type const * tc = ta;
+				step_type const * tbegin = ta;
+				
+				step_type const * tbeststart = ta;
+				step_type const * tbestend = ta;
+				
+				int64_t score = 0;
+				int64_t bestscore = 0;
+				
+				while ( tc != te )
+				{
+					step_type const cur = *(tc++);
+					
+					switch ( cur )
+					{
+						case STEP_MATCH:
+							score += match_score;
+							break;
+						case STEP_MISMATCH:
+							score -= mismatch_score;
+							break;
+						case STEP_INS:
+							score -= ins_score;
+							break;
+						case STEP_DEL:
+							score -= del_score;
+							break;
+					}
+					
+					if ( score > bestscore )
+					{
+						bestscore = score;
+						tbeststart = tbegin;
+						tbestend = tc;					
+					}
+					if ( score < 0 )
+					{
+						score = 0;
+						tbegin = tc;
+					}
+				}
+				
+				return std::pair<step_type const *, step_type const *>(tbeststart,tbestend);
+			}
+			
 			std::pair<uint64_t,uint64_t> suffixPositive(
 				int64_t const match_score    = gain_match,
 				int64_t const mismatch_score = penalty_subst,
@@ -600,6 +699,11 @@ namespace libmaus2
 			}
 
 			std::pair<uint64_t,uint64_t> getStringLengthUsed() const
+			{
+				return getStringLengthUsed(ta,te);
+			}
+
+			static std::pair<uint64_t,uint64_t> getStringLengthUsed(step_type const * ta, step_type const * te)
 			{
 				uint64_t apos = 0, bpos = 0;
 
