@@ -20,6 +20,7 @@
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/bambam/BamDecoder.hpp>
 #include <libmaus2/bambam/CircularHashCollatingBamDecoder.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 int main(int argc, char * argv[])
 {
@@ -63,7 +64,7 @@ int main(int argc, char * argv[])
 					if ( P.second )
 						++cnt;
 				}
-				remove("tmpfile");
+				libmaus2::aio::FileRemoval::removeFile("tmpfile");
 				double const lela = rtc.getElapsedSeconds();
 				
 				std::cerr << "[D] " << "cnt=" << cnt << " ela=" << lela 

@@ -121,7 +121,7 @@ void testUtf8Bwt(std::string const & fn)
 	}
 	
 	// remove huffman shaped wavelet tree
-	remove ((fn+".hwt").c_str());
+	libmaus2::aio::FileRemoval::removeFile ((fn+".hwt"));
 }
 
 void testUtf8Circular(std::string const & fn)
@@ -241,7 +241,7 @@ int main(int argc, char * argv[])
 		testUtf8Seek(fn);
 		#endif
 		
-		remove ( (fn + ".idx").c_str() ); // remove index
+		libmaus2::aio::FileRemoval::removeFile ( (fn + ".idx") ); // remove index
 	}
 	catch(std::exception const & ex)
 	{

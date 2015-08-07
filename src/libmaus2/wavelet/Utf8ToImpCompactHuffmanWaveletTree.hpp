@@ -545,7 +545,7 @@ namespace libmaus2
 					}
 
 					for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
-						remove ( tmpfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( tmpfilenames[i] );
 						
 					nodebytesizes.prefixSums();
 
@@ -568,7 +568,7 @@ namespace libmaus2
 						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
 						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
-						remove ( nptempfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( nptempfilenames[i] );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
@@ -1077,7 +1077,7 @@ namespace libmaus2
 					}
 
 					for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
-						remove ( tmpfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( tmpfilenames[i] );
 						
 					nodebytesizes.prefixSums();
 
@@ -1100,7 +1100,7 @@ namespace libmaus2
 						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
 						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
-						remove ( nptempfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( nptempfilenames[i] );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
@@ -1611,7 +1611,7 @@ namespace libmaus2
 					}
 
 					for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
-						remove ( tmpfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( tmpfilenames[i] );
 						
 					nodebytesizes.prefixSums();
 
@@ -1633,7 +1633,7 @@ namespace libmaus2
 						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
 						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
-						remove ( nptempfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( nptempfilenames[i] );
 					}
 					
 					uint64_t const indexpos = outfilepos;	
@@ -2228,7 +2228,7 @@ namespace libmaus2
 					}
 
 					for ( uint64_t i = 0; i < tmpfilenames.size(); ++i )
-						remove ( tmpfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( tmpfilenames[i] );
 						
 					nodebytesizes.prefixSums();
 
@@ -2250,7 +2250,7 @@ namespace libmaus2
 						uint64_t const tmpfilesize = ::libmaus2::util::GetFileSize::getFileSize(tmpCIS);
 						::libmaus2::util::GetFileSize::copy(tmpCIS,finalout,tmpfilesize);
 						outfilepos += tmpfilesize;
-						remove ( nptempfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( nptempfilenames[i] );
 					}
 					
 					uint64_t const indexpos = outfilepos;	

@@ -334,7 +334,7 @@ namespace libmaus2
 				
 				if ( deleteinput )
 					for ( uint64_t i = 0; i < filenames.size(); ++i )
-						remove(filenames[i].c_str());
+						libmaus2::aio::FileRemoval::removeFile(filenames[i]);
 				
 				if ( second )
 					mergeTriples< TripleSecondComparator<uint64_t,uint64_t,uint64_t>, out_type >(

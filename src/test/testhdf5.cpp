@@ -512,9 +512,9 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 				std::cerr << "[E] epstopdf failed" << std::endl;			
 			}
 
-			remove(fn.c_str());
-			remove(gplfn.c_str());
-			remove(epsfn.c_str());
+			libmaus2::aio::FileRemoval::removeFile(fn);
+			libmaus2::aio::FileRemoval::removeFile(gplfn);
+			libmaus2::aio::FileRemoval::removeFile(epsfn);
 		}
 	}
 	
@@ -595,9 +595,9 @@ struct PrintFileCallback : public FileCallback, public Fast5ToFastQWorkPackageFi
 			
 			if ( removeFiles )
 			{
-				remove(fn.c_str());
-				remove(gplotfn.c_str());
-				remove(epsfn.c_str());
+				libmaus2::aio::FileRemoval::removeFile(fn);
+				libmaus2::aio::FileRemoval::removeFile(gplotfn);
+				libmaus2::aio::FileRemoval::removeFile(epsfn);
 			}
 		}
 	}

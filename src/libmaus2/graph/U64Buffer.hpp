@@ -148,8 +148,8 @@ namespace libmaus2
 					{
 						NQ.push_back ( mergeFiles(Q[i+0],Q[i+1]) );
 
-						remove ( getFileName ( Q[i+0] ) . c_str() );
-						remove ( getFileName ( Q[i+1] ) . c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( getFileName ( Q[i+0] ) );
+						libmaus2::aio::FileRemoval::removeFile ( getFileName ( Q[i+1] ) );
 					}
 					if ( Q.size() % 2 )
 						NQ.push_back( Q.back() );

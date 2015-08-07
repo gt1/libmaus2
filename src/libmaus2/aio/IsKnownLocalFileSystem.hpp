@@ -76,7 +76,7 @@ namespace libmaus2
 					COS.flush();
 					}
 					bool const local = isKnownLocalFileSystem(filename);
-					libmaus2::aio::FileRemoval::removeFile(filename.c_str());
+					libmaus2::aio::FileRemoval::removeFile(filename);
 					return local;
 				}
 			}

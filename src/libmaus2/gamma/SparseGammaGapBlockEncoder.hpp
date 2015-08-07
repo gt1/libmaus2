@@ -241,7 +241,7 @@ namespace libmaus2
 				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
 				libmaus2::aio::CheckedInputOutputStream indexCOS(indexfn);
 				encodeArray(ita,ite,COS,indexCOS);
-				remove(indexfn.c_str());
+				libmaus2::aio::FileRemoval::removeFile(indexfn);
 			}
 		};	
 	}

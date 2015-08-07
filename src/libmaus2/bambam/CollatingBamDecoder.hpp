@@ -27,6 +27,7 @@
 #include <libmaus2/bambam/CollatingBamDecoderAlignmentInputCallback.hpp>
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 #include <queue>
 
 #define LIBMAUS2_BAMBAM_COLLATION_USE_SNAPPY
@@ -456,13 +457,13 @@ namespace libmaus2
 						if ( temparrayin )
 						{
 							temparrayin.reset();
-							remove ( tempfilename.c_str() );
+							libmaus2::aio::FileRemoval::removeFile ( tempfilename );
 						}
 						#else
 						if ( tempfilein )
 						{
 							tempfilein.reset();
-							remove ( tempfilename.c_str() );
+							libmaus2::aio::FileRemoval::removeFile ( tempfilename );
 						}
 						#endif
 						state = done;

@@ -24,6 +24,7 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -104,8 +105,8 @@ void libmaus2::util::PosixExecute::executeOld(::libmaus2::util::ArgInfo const & 
 	
 		close(stdoutfd);
 		close(stderrfd);
-		remove ( stdoutfilename.c_str() );
-		remove ( stderrfilename.c_str() );
+		libmaus2::aio::FileRemoval::removeFile ( stdoutfilename );
+		libmaus2::aio::FileRemoval::removeFile ( stderrfilename );
 		
 		::libmaus2::exception::LibMausException se;
 		se.getStream() << "Failed to fork(): " << strerror(error);
@@ -866,9 +867,9 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 	}
 
 	if ( stderrfnvalid )
-		remove(&stderrfn[0]);
+		libmaus2::aio::FileRemoval::removeFile(&stderrfn[0]);
 	if ( stdoutfnvalid )
-		remove(&stdoutfn[0]);
+		libmaus2::aio::FileRemoval::removeFile(&stdoutfn[0]);
 		
 	if ( tempmemerr )
 	{

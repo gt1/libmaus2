@@ -82,7 +82,7 @@ int testBlockSynchronous()
 			assert (V == M[i]);
 			#endif
 			
-			remove ( filenames[i].c_str() );
+			libmaus2::aio::FileRemoval::removeFile ( filenames[i] );
 		}
 	
 		return EXIT_SUCCESS;

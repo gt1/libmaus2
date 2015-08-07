@@ -386,7 +386,7 @@ namespace libmaus2
 				{
 					appendTemplate(writer,filenames[i],index);
 					if ( removeinput )
-						remove(filenames[i].c_str());
+						libmaus2::aio::FileRemoval::removeFile(filenames[i]);
 				}
 				
 				writer.flushBitStream();

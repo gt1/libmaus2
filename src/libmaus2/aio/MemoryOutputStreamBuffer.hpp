@@ -44,6 +44,7 @@ namespace libmaus2
 			libmaus2::aio::MemoryFileAdapter::shared_ptr_type fd;
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
+			uint64_t writepos;
 
 			void doClose()
 			{
@@ -80,7 +81,7 @@ namespace libmaus2
 							default:
 							{
 								libmaus2::exception::LibMausException se;
-								se.getStream() << "PosixOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
+								se.getStream() << "MemoryOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
 							}
@@ -90,6 +91,7 @@ namespace libmaus2
 					{
 						assert ( w <= static_cast<int64_t>(n) );
 						n -= w;
+						writepos += w;
 					}
 				}
 				
@@ -102,7 +104,8 @@ namespace libmaus2
 			: 
 			  fd(doOpen(fn)), 
 			  buffersize((rbuffersize < 0) ? getDefaultBlockSize() : rbuffersize), 
-			  buffer(buffersize,false)
+			  buffer(buffersize,false),
+			  writepos(0)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
@@ -129,6 +132,19 @@ namespace libmaus2
 				doSync();
 				return 0; // no error, -1 for error
 			}			
+
+			/**
+			 * relative seek
+			 **/
+			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
+			{
+				// seek relative to current position with offset 0 (allow tellp call to work)
+				if ( (way == ::std::ios_base::cur) && (which == std::ios_base::out) && (off == 0) )
+					return writepos + (pptr()-pbase());
+				else
+					return -1;
+			}
+
 		};
 	}
 }
