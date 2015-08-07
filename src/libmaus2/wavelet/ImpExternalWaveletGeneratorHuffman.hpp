@@ -222,7 +222,7 @@ namespace libmaus2
 					p += allwordswritten * sizeof(uint64_t);
 					tmpcnt.closeInputTempFile(i);
 
-					// remove(filename.c_str());
+					// libmaus2::aio::FileRemoval::removeFile(filename);
 				}
 				
 				uint64_t const indexpos = p;

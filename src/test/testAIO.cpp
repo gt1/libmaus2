@@ -259,7 +259,7 @@ int main(int argc, char * argv[])
 			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
 		}
 		
-		remove(fn.c_str());
+		libmaus2::aio::FileRemoval::removeFile(fn);
 	}
 
 	{
@@ -295,7 +295,7 @@ int main(int argc, char * argv[])
 			assert ( strncmp ( text2.c_str(), C.begin(), C.size() ) == 0 );
 		}
 		
-		remove(fn.c_str());
+		libmaus2::aio::FileRemoval::removeFile(fn);
 	}
 	
 	// test putback buffer in PosixFdInputStream

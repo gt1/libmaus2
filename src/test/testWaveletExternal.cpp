@@ -385,7 +385,7 @@ void testCompactHuffmanPar()
 	libmaus2::wavelet::ImpCompactHuffmanWaveletTree::unique_ptr_type pIHWTN(libmaus2::wavelet::ImpCompactHuffmanWaveletTree::load(tmpfilename));
 	libmaus2::wavelet::ImpCompactHuffmanWaveletTree const & IHWTN = *pIHWTN;
 	// libmaus2::wavelet::ImpCompactHuffmanWaveletTree IHWTN(istr);
-	remove(tmpfilename.c_str());
+	libmaus2::aio::FileRemoval::removeFile(tmpfilename);
 	
 	// std::cerr << IHWTN.size() << std::endl;
 	assert ( IHWTN.size() == n );

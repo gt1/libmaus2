@@ -116,7 +116,7 @@ namespace libmaus2
 						libmaus2::aio::InputStreamInstance istr(filename);
 						::libmaus2::util::GetFileSize::copy (istr, out, allwordswritten, sizeof(uint64_t));
 						
-						remove(filename.c_str());
+						libmaus2::aio::FileRemoval::removeFile(filename);
 					}
 				
 				out.flush();

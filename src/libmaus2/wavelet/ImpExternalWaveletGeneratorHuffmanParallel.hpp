@@ -115,7 +115,7 @@ namespace libmaus2
 				void removeFiles()
 				{
 					for ( uint64_t i = 0; i < outputfilenames.size(); ++i )
-						remove ( outputfilenames[i].c_str() );
+						libmaus2::aio::FileRemoval::removeFile ( outputfilenames[i] );
 				}
 			};
 			
@@ -340,7 +340,7 @@ namespace libmaus2
 						p += writebytes;
 					}
 					
-					// remove ( tmpfilename.c_str() );
+					// libmaus2::aio::FileRemoval::removeFile ( tmpfilename );
 				}
 
 				uint64_t const indexpos = p;
@@ -350,7 +350,7 @@ namespace libmaus2
 				out.flush();
 
 				for ( uint64_t i = 0; i < numnodes; ++i )
-					remove ( concatTempFileNames[i].c_str() );
+					libmaus2::aio::FileRemoval::removeFile ( concatTempFileNames[i] );
 				
 				removeFiles();
 				

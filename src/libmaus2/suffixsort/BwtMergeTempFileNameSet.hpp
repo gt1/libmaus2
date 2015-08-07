@@ -141,38 +141,38 @@ namespace libmaus2
 			{
 				for ( uint64_t i = 0; i < gt.size(); ++i )
 					if ( gt[i].size() )
-						remove ( gt[i].c_str() );			
+						libmaus2::aio::FileRemoval::removeFile ( gt[i] );			
 			}
 			
 			void removeHwtReqFiles() const
 			{
 				if ( hwtreq.size() )
-					remove ( hwtreq.c_str() );			
+					libmaus2::aio::FileRemoval::removeFile ( hwtreq );			
 			}
 			
 			void removeHwtFiles() const
 			{
 				if ( hwt.size() )
-					remove ( hwt.c_str() );			
+					libmaus2::aio::FileRemoval::removeFile ( hwt );			
 			}
 			
 			void removeHistFiles() const
 			{
 				if ( hist.size() )
-					remove ( hist.c_str() );			
+					libmaus2::aio::FileRemoval::removeFile ( hist );			
 			}
 			
 			void removeSampledIsaFiles() const
 			{
 				if ( sampledisa.size() )
-					remove ( sampledisa.c_str() );			
+					libmaus2::aio::FileRemoval::removeFile ( sampledisa );
 			}
 			
 			void removeBwtFiles() const
 			{
 				for ( uint64_t i = 0; i < bwt.size(); ++i )
 					if ( bwt[i].size() )
-						remove ( bwt[i].c_str() );			
+						libmaus2::aio::FileRemoval::removeFile ( bwt[i] );
 			}
 			
 			void removeFilesButBwtAndGt() const

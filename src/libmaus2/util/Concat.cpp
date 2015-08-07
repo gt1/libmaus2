@@ -18,6 +18,7 @@
 */
 
 #include <libmaus2/util/Concat.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 uint64_t libmaus2::util::Concat::concat(std::istream & in, std::ostream & out)
 {
@@ -62,7 +63,7 @@ uint64_t libmaus2::util::Concat::concat(std::vector < std::string > const & file
 	{
 		c += concat ( files[i] , out );
 		if ( rem )
-			::remove ( files[i].c_str() );
+			::libmaus2::aio::FileRemoval::removeFile ( files[i] );
 	}
 	
 	return c;
@@ -93,7 +94,7 @@ uint64_t libmaus2::util::Concat::concatParallel(
 		out.seekp(P[i],std::ios::beg);
 		concat ( files[i] , out );
 		if ( rem )
-			::remove ( files[i].c_str() );
+			::libmaus2::aio::FileRemoval::removeFile ( files[i] );
 		out.flush();
 		out.close();
 	}
