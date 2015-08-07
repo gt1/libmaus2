@@ -133,14 +133,36 @@ namespace libmaus2
 				return 0; // no error, -1 for error
 			}			
 
+
+			/**
+			 * seek to absolute position
+			 **/
+			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
+			{
+				if ( (which & ::std::ios_base::out) )
+				{
+					doSync();
+					fd->lseek(sp,SEEK_SET);
+					writepos = sp;
+					return sp;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+
 			/**
 			 * relative seek
 			 **/
 			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
 			{
-				// seek relative to current position with offset 0 (allow tellp call to work)
-				if ( (way == ::std::ios_base::cur) && (which == std::ios_base::out) && (off == 0) )
-					return writepos + (pptr()-pbase());
+				if ( way == ::std::ios_base::cur )
+					return seekpos(writepos + (pptr()-pbase()));
+				else if ( way == ::std::ios_base::beg )
+					return seekpos(off,which);
+				else if ( way == ::std::ios_base::end )
+					return seekpos(fd->getFileSize() + off, which);
 				else
 					return -1;
 			}
