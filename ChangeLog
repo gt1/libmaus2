@@ -1,3 +1,9 @@
+libmaus2 (2.0.40-1) unstable; urgency=medium
+
+  * update debian packaging info 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 07 Aug 2015 08:12:43 +0200
+
 libmaus2 (2.0.39-1) unstable; urgency=medium
 
   * remove unused code and configure options 
