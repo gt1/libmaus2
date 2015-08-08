@@ -262,7 +262,7 @@ namespace libmaus2
 					ioff += datalen;
 					
 					if ( removeinput )
-						remove(infilenames[i].c_str());
+						libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
 				}
 
 				// write index

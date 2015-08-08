@@ -182,7 +182,7 @@ namespace libmaus2
 						*indexa,*indexb,
 						sp.at(p),sp.at(p+1),COS,indexstr
 					);
-					remove(indexfn.c_str());			
+					libmaus2::aio::FileRemoval::removeFile(indexfn);
 				}
 
 				bool dispatchNext()
@@ -267,9 +267,9 @@ namespace libmaus2
 				void removeInputFiles()
 				{
 					for ( uint64_t i = 0; i < fna.size(); ++i )
-						remove(fna[i].c_str());
+						libmaus2::aio::FileRemoval::removeFile(fna[i]);
 					for ( uint64_t i = 0; i < fnb.size(); ++i )
-						remove(fnb[i].c_str());					
+						libmaus2::aio::FileRemoval::removeFile(fnb[i]);
 				}
 			};
 
@@ -345,7 +345,7 @@ namespace libmaus2
 				
 				merge(indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
 				
-				remove(indexfilename.c_str());
+				libmaus2::aio::FileRemoval::removeFile(indexfilename);
 			}
 		
 			static void merge(

@@ -135,7 +135,7 @@ namespace libmaus2
 				if ( instreams.find(id) != instreams.end() )
 				{
 					instreams.erase(instreams.find(id));
-					remove ( filenames.find(id)->second.c_str() );
+					libmaus2::aio::FileRemoval::removeFile ( filenames.find(id)->second );
 				}
 			}
 		};

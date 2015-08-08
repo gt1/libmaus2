@@ -44,6 +44,7 @@ namespace libmaus2
 			libmaus2::aio::MemoryFileAdapter::shared_ptr_type fd;
 			uint64_t const buffersize;
 			::libmaus2::autoarray::AutoArray<char> buffer;
+			uint64_t writepos;
 
 			void doClose()
 			{
@@ -80,7 +81,7 @@ namespace libmaus2
 							default:
 							{
 								libmaus2::exception::LibMausException se;
-								se.getStream() << "PosixOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
+								se.getStream() << "MemoryOutputStreamBuffer::doSync(): write() failed: " << strerror(error) << std::endl;
 								se.finish();
 								throw se;
 							}
@@ -90,6 +91,7 @@ namespace libmaus2
 					{
 						assert ( w <= static_cast<int64_t>(n) );
 						n -= w;
+						writepos += w;
 					}
 				}
 				
@@ -102,7 +104,8 @@ namespace libmaus2
 			: 
 			  fd(doOpen(fn)), 
 			  buffersize((rbuffersize < 0) ? getDefaultBlockSize() : rbuffersize), 
-			  buffer(buffersize,false)
+			  buffer(buffersize,false),
+			  writepos(0)
 			{
 				setp(buffer.begin(),buffer.end()-1);
 			}
@@ -129,6 +132,41 @@ namespace libmaus2
 				doSync();
 				return 0; // no error, -1 for error
 			}			
+
+
+			/**
+			 * seek to absolute position
+			 **/
+			::std::streampos seekpos(::std::streampos sp, ::std::ios_base::openmode which = ::std::ios_base::in | ::std::ios_base::out)
+			{
+				if ( (which & ::std::ios_base::out) )
+				{
+					doSync();
+					fd->lseek(sp,SEEK_SET);
+					writepos = sp;
+					return sp;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+
+			/**
+			 * relative seek
+			 **/
+			::std::streampos seekoff(::std::streamoff off, ::std::ios_base::seekdir way, ::std::ios_base::openmode which)
+			{
+				if ( way == ::std::ios_base::cur )
+					return seekpos(writepos + (pptr()-pbase()));
+				else if ( way == ::std::ios_base::beg )
+					return seekpos(off,which);
+				else if ( way == ::std::ios_base::end )
+					return seekpos(fd->getFileSize() + off, which);
+				else
+					return -1;
+			}
+
 		};
 	}
 }

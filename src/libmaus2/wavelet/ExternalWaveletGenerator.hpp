@@ -86,7 +86,7 @@ namespace libmaus2
 			void removeFiles()
 			{
 				for ( uint64_t i = 0; i < filenames.size(); ++i )
-					remove ( filenames[i].first.c_str() );			
+					libmaus2::aio::FileRemoval::removeFile ( filenames[i].first );
 			}
 			
 			public:

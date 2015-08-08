@@ -18,6 +18,7 @@
 */
 
 #include <libmaus2/sorting/SortingBufferedOutputFile.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 int main()
 {
@@ -42,5 +43,5 @@ int main()
 	}
 	std::cout << std::endl;
 
-	remove(filename.c_str());
+	libmaus2::aio::FileRemoval::removeFile(filename);
 }

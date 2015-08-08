@@ -488,6 +488,7 @@ void testAutoArraySampling()
 #include <libmaus2/timing/RealTimeClock.hpp>
 #include <libmaus2/sorting/SerialRadixSort64.hpp>
 #include <libmaus2/sorting/sorting.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 struct Projector
 {
@@ -662,8 +663,8 @@ void testBitVectorIO()
 		}
 	}
 	
-	remove("t0");
-	remove("t1");
+	libmaus2::aio::FileRemoval::removeFile("t0");
+	libmaus2::aio::FileRemoval::removeFile("t1");
 }
                      
 int main()

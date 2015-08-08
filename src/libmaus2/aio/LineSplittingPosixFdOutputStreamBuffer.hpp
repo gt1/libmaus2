@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/PosixFdInput.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -249,7 +250,7 @@ namespace libmaus2
 
 				// delete empty file if no data was written				
 				if ( deletefile )
-					remove(deletefilename.c_str());
+					libmaus2::aio::FileRemoval::removeFile(deletefilename);
 			}
 			
 			int_type overflow(int_type c = traits_type::eof())

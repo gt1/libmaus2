@@ -87,8 +87,8 @@ namespace libmaus2
 				libmaus2::gamma::SparseGammaGapMerge::merge(ina,inb,out);
 				
 				// remove input files
-				remove(Sa.fn.c_str());
-				remove(Sb.fn.c_str());
+				libmaus2::aio::FileRemoval::removeFile(Sa.fn);
+				libmaus2::aio::FileRemoval::removeFile(Sb.fn);
 
 				#if 0
 				std::cerr << "merged " << Sa << " and " << Sb << " to " << N << std::endl;
@@ -172,7 +172,7 @@ namespace libmaus2
 					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
 					GGE.encode(it,n);
 
-					remove(tmpfilename.c_str());
+					libmaus2::aio::FileRemoval::removeFile(tmpfilename);
 				}
 			}
 		};

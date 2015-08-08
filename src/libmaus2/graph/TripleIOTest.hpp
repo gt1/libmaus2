@@ -79,7 +79,7 @@ namespace libmaus2
 					assert ( edges[i] == redges[i] );
 					
 				if ( deleteFile )
-					remove ( filename.c_str() );
+					libmaus2::aio::FileRemoval::removeFile ( filename );
 				
 				return edges;
 			}
@@ -114,8 +114,8 @@ namespace libmaus2
 				::libmaus2::graph::TripleEdgeOperations::sortFile(fileb);
 				::libmaus2::graph::TripleEdgeOperations::mergeFiles(filea,fileb,filem);
 				
-				remove ( filea.c_str() );
-				remove ( fileb.c_str() );
+				libmaus2::aio::FileRemoval::removeFile ( filea );
+				libmaus2::aio::FileRemoval::removeFile ( fileb );
 			
 				if ( triplesa.getN() + triplesb.getN() != M.size() )
 					std::cerr << "***" << std::endl;
@@ -169,7 +169,7 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < triplesm.getN(); ++i )
 					assert ( triplesm[i] == redges[i] );
 				
-				remove ( filem.c_str() );
+				libmaus2::aio::FileRemoval::removeFile ( filem );
 			}
 		};
 	}

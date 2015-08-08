@@ -281,9 +281,9 @@ void testgammarl()
 			assert ( GD3.decode() == static_cast<int64_t>(Vcat[off+i]) );
 	}
 
-	remove ( fn.c_str() );
-	remove ( fn2.c_str() );
-	remove ( fn3.c_str() );	
+	libmaus2::aio::FileRemoval::removeFile ( fn );
+	libmaus2::aio::FileRemoval::removeFile ( fn2 );
+	libmaus2::aio::FileRemoval::removeFile ( fn3 );	
 }
 
 void testgammasparse()
@@ -377,7 +377,7 @@ void testsparsegammalevelmerge()
 	}
 	std::cerr << std::endl;
 	
-	remove(ffn.c_str());
+	libmaus2::aio::FileRemoval::removeFile(ffn);
 }
 
 
@@ -464,7 +464,7 @@ void testSparseGammaConcat()
 			
 			// remove files
 			for ( uint64_t i = 0; i < concfn.size(); ++i )
-				remove(concfn[i].c_str());
+				libmaus2::aio::FileRemoval::removeFile(concfn[i]);
 			
 			std::cerr << An << "\t" << z+1 << std::endl;
 		}
@@ -542,11 +542,11 @@ void testSparseGammaGapMergingSmall(uint64_t * A, uint64_t const An, uint64_t * 
 
 	// remove files
 	for ( uint64_t i = 0; i < concafn.size(); ++i )
-		remove(concafn[i].c_str());
+		libmaus2::aio::FileRemoval::removeFile(concafn[i]);
 	for ( uint64_t i = 0; i < concbfn.size(); ++i )
-		remove(concbfn[i].c_str());
+		libmaus2::aio::FileRemoval::removeFile(concbfn[i]);
 	for ( uint64_t i = 0; i < concofn.size(); ++i )
-		remove(concofn[i].c_str());
+		libmaus2::aio::FileRemoval::removeFile(concofn[i]);
 }
 
 libmaus2::autoarray::AutoArray<uint64_t> randomArray(uint64_t const n, uint64_t const klow, uint64_t const khigh)
@@ -706,7 +706,7 @@ void testsparsegammamerge()
 	}
 	std::cerr << std::endl;
 	
-	remove(ffn.c_str());
+	libmaus2::aio::FileRemoval::removeFile(ffn);
 }
 
 
@@ -723,7 +723,7 @@ void testsparsegammamultimerge()
 		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
-		remove(indexfn.c_str());
+		libmaus2::aio::FileRemoval::removeFile(indexfn);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -758,7 +758,7 @@ void testsparsegammamultimerge()
 	std::cerr << std::endl;
 
 	for ( uint64_t i = 0; i < fno.size(); ++i )
-		remove(fno[i].c_str());
+		libmaus2::aio::FileRemoval::removeFile(fno[i]);
 }
 
 #include <libmaus2/gamma/SparseGammaGapMultiFileLevelSet.hpp>
@@ -776,7 +776,7 @@ void testsparsegammamultifilesetmerge()
 		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
-		remove(indexfn.c_str());
+		libmaus2::aio::FileRemoval::removeFile(indexfn);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -811,7 +811,7 @@ void testsparsegammamultifilesetmerge()
 	std::cerr << std::endl;
 
 	for ( uint64_t i = 0; i < fno.size(); ++i )
-		remove(fno[i].c_str());
+		libmaus2::aio::FileRemoval::removeFile(fno[i]);
 }
 
 void testsparsegammamultifilesetmergedense()
@@ -827,7 +827,7 @@ void testsparsegammamultifilesetmergedense()
 		libmaus2::aio::OutputStreamInstance COS(fn);
 		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
 		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
-		remove(indexfn.c_str());
+		libmaus2::aio::FileRemoval::removeFile(indexfn);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -866,7 +866,7 @@ void testsparsegammamultifilesetmergedense()
 	for ( uint64_t i = 0; i < fno.size(); ++i )
 	{
 		// std::cerr << fno[i] << std::endl;
-		remove(fno[i].c_str());
+		libmaus2::aio::FileRemoval::removeFile(fno[i]);
 	}
 }
 
