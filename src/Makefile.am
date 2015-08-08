@@ -214,7 +214,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/BandedAlignerFactory.cpp \
 	libmaus2/aio/InputStreamInstance.cpp \
 	libmaus2/lcs/DalignerNP.cpp \
-	libmaus2/aio/OutputStreamInstance.cpp
+	libmaus2/aio/OutputStreamInstance.cpp \
+	libmaus2/aio/OutputStreamFactoryContainer.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 

@@ -34,6 +34,7 @@ namespace libmaus2
 			virtual ~OutputStreamFactory() {}
 			virtual OutputStream::unique_ptr_type constructUnique(std::string const & filename) = 0;
 			virtual OutputStream::shared_ptr_type constructShared(std::string const & filename) = 0;
+			virtual void rename(std::string const & from, std::string const & to) = 0;
 		};
 	}
 }
