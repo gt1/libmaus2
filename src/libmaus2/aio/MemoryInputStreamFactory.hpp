@@ -21,6 +21,7 @@
 
 #include <libmaus2/aio/InputStreamFactory.hpp>
 #include <libmaus2/aio/MemoryInputStream.hpp>
+#include <libmaus2/aio/MemoryFileContainer.hpp>
 
 namespace libmaus2
 {
@@ -44,6 +45,10 @@ namespace libmaus2
 				libmaus2::util::shared_ptr<std::istream>::type iptr(new MemoryInputStream(filename));
 				libmaus2::aio::InputStream::shared_ptr_type istr(new libmaus2::aio::InputStream(iptr));
 				return istr;
+			}
+			virtual bool tryOpen(std::string const & fn)
+			{
+				return libmaus2::aio::MemoryFileContainer::hasEntry(fn);
 			}
 		};
 	}

@@ -45,6 +45,10 @@ namespace libmaus2
 				libmaus2::aio::OutputStream::shared_ptr_type istr(new libmaus2::aio::OutputStream(iptr));
 				return istr;
 			}
+			virtual void rename(std::string const & from, std::string const & to)
+			{
+				libmaus2::aio::MemoryFileContainer::rename(from,to);
+			}
 		};
 	}
 }
