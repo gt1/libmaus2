@@ -110,8 +110,8 @@ namespace libmaus2
 				#endif
 				
 				// remove input files
-				remove(Sa.fn.c_str());
-				remove(Sb.fn.c_str());
+				libmaus2::aio::FileRemoval::removeFile(Sa.fn);
+				libmaus2::aio::FileRemoval::removeFile(Sb.fn);
 			}
 			
 			void addFile(std::string const & fn)
@@ -155,7 +155,7 @@ namespace libmaus2
 					libmaus2::gamma::GammaGapEncoder GGE(outputfilename);
 					GGE.encode(it,n);
 					
-					remove(Q.top().fn.c_str());
+					libmaus2::aio::FileRemoval::removeFile(Q.top().fn);
 				}
 			}
 		};

@@ -27,6 +27,7 @@
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -278,7 +279,7 @@ namespace libmaus2
 			                std::ostringstream fnostr;
 			                fnostr << filename << "." << std::setw(6) << std::setfill('0') << i;
 			                filenames.push_back(fnostr.str());
-                                        remove ( filenames[i].c_str() );
+                                        libmaus2::aio::FileRemoval::removeFile ( filenames[i] );
                                 }
 
                                 #if 0
@@ -335,8 +336,8 @@ namespace libmaus2
                                         }
 			        }
 			        
-			        remove ( filename.c_str() );
-			        remove ( idxfilename.c_str() );
+			        libmaus2::aio::FileRemoval::removeFile ( filename );
+			        libmaus2::aio::FileRemoval::removeFile ( idxfilename );
 
 			        for ( uint64_t i = 0; i < h; ++i )
 			                if ( ! libmaus2::aio::InputStreamFactoryContainer::tryOpen(filenames[i]) )
@@ -474,7 +475,7 @@ namespace libmaus2
 			        idxcomp->flush();
 			        idxcomp.reset();
 			        
-			        remove ( idxfilename.c_str() );
+			        libmaus2::aio::FileRemoval::removeFile ( idxfilename );
 			        rename ( idxcompfilename.c_str(), idxfilename.c_str() );
 			}
 

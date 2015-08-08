@@ -108,9 +108,9 @@ namespace libmaus2
 				
 				// remove input files
 				for ( uint64_t i = 0; i < Sa.fn.size(); ++i )
-					remove(Sa.fn[i].c_str());
+					libmaus2::aio::FileRemoval::removeFile(Sa.fn[i]);
 				for ( uint64_t i = 0; i < Sb.fn.size(); ++i )
-					remove(Sb.fn[i].c_str());
+					libmaus2::aio::FileRemoval::removeFile(Sb.fn[i]);
 			}
 			
 			void addFile(std::vector<std::string> const & fn)
@@ -175,7 +175,7 @@ namespace libmaus2
 					GGE.encode(it,n);
 				
 					for ( uint64_t i = 0; i < Q.top().fn.size(); ++i )
-						remove(Q.top().fn[i].c_str());
+						libmaus2::aio::FileRemoval::removeFile(Q.top().fn[i]);
 				}
 			}
 		};

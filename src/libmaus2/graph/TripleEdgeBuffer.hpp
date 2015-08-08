@@ -75,7 +75,7 @@ namespace libmaus2
 				TripleEdgeOperations::multiwayMergeFiles ( rest, outputfilename );
 				
 				for ( uint64_t i = 0; i < rest.size(); ++i )
-					remove ( rest[i].c_str() );
+					libmaus2::aio::FileRemoval::removeFile ( rest[i] );
 				
 				return outputfilename;
 			}
@@ -125,8 +125,8 @@ namespace libmaus2
 				if ( needmerge )
 				{
 					TripleEdgeOperations::mergeFiles(filenamea,filenameb,outputfilename);
-					remove ( filenamea.c_str() );
-					remove ( filenameb.c_str() );
+					libmaus2::aio::FileRemoval::removeFile ( filenamea );
+					libmaus2::aio::FileRemoval::removeFile ( filenameb );
 					/*
 					std::cerr << "Registering " << outputfilename << " from merging " <<
 						filenamea << " and " << filenameb << std::endl;

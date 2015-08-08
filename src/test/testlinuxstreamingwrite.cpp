@@ -86,8 +86,8 @@ int main(int argc, char * argv[])
 
 		std::string const fnstreaming = fn + ".streaming";
 		std::string const fnnonstreaming = fn + ".nonstreaming";
-		remove(fnstreaming.c_str());
-		remove(fnnonstreaming.c_str());
+		libmaus2::aio::FileRemoval::removeFile(fnstreaming);
+		libmaus2::aio::FileRemoval::removeFile(fnnonstreaming);
 
 		bool const local = libmaus2::aio::IsKnownLocalFileSystem::isKnownLocalFileSystemCreate(fnstreaming);
 

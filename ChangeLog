@@ -1,3 +1,10 @@
+libmaus2 (2.0.41-1) unstable; urgency=medium
+
+  * implement seek operations on MemoryOutput streams
+  * replace remove calls by FileRemoval class calls
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 08 Aug 2015 12:40:07 +0200
+
 libmaus2 (2.0.40-1) unstable; urgency=medium
 
   * update debian packaging info 

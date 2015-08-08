@@ -217,7 +217,7 @@ namespace libmaus2
 
 						if ( ids.size() == 0 )
 						{
-							remove ( infilename.c_str() );
+							libmaus2::aio::FileRemoval::removeFile ( infilename );
 						}
 						else if ( ids.size() == 1 )
 						{
@@ -298,7 +298,7 @@ namespace libmaus2
 									TodoTriple ( out[i], maskshift + maskwidth , vids[i] )
 								);	
 
-							remove ( infilename.c_str() );
+							libmaus2::aio::FileRemoval::removeFile ( infilename );
 						}
 					}
 				}

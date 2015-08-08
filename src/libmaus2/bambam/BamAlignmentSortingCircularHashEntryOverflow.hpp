@@ -138,7 +138,15 @@ namespace libmaus2
 				
 				std::sort(P,Pe,BANC);
 
-				uint64_t const prepos = COS.tellp();
+				std::streampos const prepos = COS.tellp();
+				
+				if ( prepos < 0 )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "BamAlignmentSortingCircularHashEntryOverflow: tellp() failed on output stream" << std::endl;
+					lme.finish();
+					throw lme;
+				}
 					
 				::libmaus2::lz::SnappyOutputStream<libmaus2::aio::OutputStream> snapOut(COS,64*1024);
 

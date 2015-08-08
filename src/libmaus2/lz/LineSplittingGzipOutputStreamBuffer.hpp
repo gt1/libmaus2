@@ -24,6 +24,7 @@
 #include <libmaus2/aio/PosixFdOutputStream.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/GzipHeader.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -318,7 +319,7 @@ namespace libmaus2
 				doTerminate();
 				
 				if ( deletefile )
-					remove(deletefilename.c_str());
+					libmaus2::aio::FileRemoval::removeFile(deletefilename);
 					
 				#if defined(LINESPLITTINGGZIPOUTPUTSTREAMDEBUG)
 				std::cerr << "Destructor done." << std::endl;

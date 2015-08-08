@@ -38,7 +38,7 @@ namespace libmaus2
 				if ( hasPrefix(name,"file://") )
 				{
 					std::string const fn = name.substr(strlen("file://"));
-					remove(fn.c_str());
+					libmaus2::aio::FileRemoval::removeFile(fn);
 				}
 				else if ( hasPrefix(name,"mem:") )
 				{
@@ -47,7 +47,7 @@ namespace libmaus2
 				}
 				else
 				{
-					remove(name.c_str());
+					::remove(name.c_str());
 				}
 			}
 		};

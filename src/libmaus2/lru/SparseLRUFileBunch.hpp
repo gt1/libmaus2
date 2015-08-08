@@ -23,6 +23,7 @@
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/lru/SparseLRU.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -59,7 +60,7 @@ namespace libmaus2
 				
 				std::string const fn = getFileName(fileid);
 				
-				::remove ( fn.c_str() );
+				::libmaus2::aio::FileRemoval::removeFile ( fn );
 			}
 			
 			libmaus2::aio::InputOutputStream & operator[](uint64_t const fileid)

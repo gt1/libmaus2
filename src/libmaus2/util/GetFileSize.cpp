@@ -18,6 +18,7 @@
 */
 
 #include <libmaus2/util/GetFileSize.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 
 void libmaus2::util::GetFileSize::copy(std::string const & from, std::string const & to)
 {
@@ -53,28 +54,17 @@ int libmaus2::util::GetFileSize::getSymbolAtPosition(std::string const & filenam
 	uint64_t const fs = getFileSize(filename);
 	A = ::libmaus2::autoarray::AutoArray<uint8_t>(fs);
 	
-	::std::ifstream istr(filename.c_str(), std::ios::binary);
-	assert ( istr.is_open() );
+	libmaus2::aio::InputStreamInstance istr(filename);
 	istr.read ( reinterpret_cast<char *>(A.get()), fs );
 	assert ( istr );
 	assert ( istr.gcount() == static_cast<int64_t>(fs) );
-	istr.close();
 	
 	return A;
 }
 
 bool libmaus2::util::GetFileSize::fileExists(std::string const & filename)
 {
-	std::ifstream istr(filename.c_str(), std::ios::binary);
-	if ( istr.is_open() )
-	{
-		istr.close();
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return libmaus2::aio::InputStreamFactoryContainer::tryOpen(filename);
 }
 
 uint64_t libmaus2::util::GetFileSize::getFileSize(std::istream & istr)
@@ -99,10 +89,9 @@ uint64_t libmaus2::util::GetFileSize::getFileSize(std::wistream & istr)
 
 uint64_t libmaus2::util::GetFileSize::getFileSize(std::string const & filename)
 {
-	std::ifstream istr(filename.c_str(),std::ios::binary);
+	libmaus2::aio::InputStreamInstance istr(filename);
 	istr.seekg(0,std::ios::end);
 	uint64_t const l = istr.tellg();
-	istr.close();
 	return l;
 }
 

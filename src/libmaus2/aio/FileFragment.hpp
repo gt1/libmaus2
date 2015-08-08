@@ -26,6 +26,7 @@
 #include <libmaus2/util/StringSerialisation.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/IntervalTree.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 
 namespace libmaus2
 {
@@ -114,7 +115,7 @@ namespace libmaus2
 			{
 			        std::vector<std::string> S = getFileNames(V);
 			        for ( uint64_t i = 0; i < S.size(); ++i )
-			                remove ( S[i].c_str() );
+			                libmaus2::aio::FileRemoval::removeFile ( S[i] );
 			}
 			
 			/**
