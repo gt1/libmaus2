@@ -22,6 +22,7 @@
 #include <libmaus2/aio/OutputStreamFactory.hpp>
 #include <libmaus2/aio/PosixFdOutputStreamFactory.hpp>
 #include <libmaus2/aio/MemoryOutputStreamFactory.hpp>
+#include <libmaus2/aio/FileRemoval.hpp>
 #include <cctype>
 
 namespace libmaus2
@@ -107,6 +108,8 @@ namespace libmaus2
 				}
 			}
 			
+			static void copy(std::string const & from, std::string const & to);
+
 			public:
 			static libmaus2::aio::OutputStream::unique_ptr_type constructUnique(std::string const & url)
 			{
@@ -138,6 +141,25 @@ namespace libmaus2
 				{
 					libmaus2::aio::OutputStream::unique_ptr_type tptr(factory->constructUnique(url));
 					return UNIQUE_PTR_MOVE(tptr);				
+				}
+			}
+
+			static std::string getInnerURLPart(std::string const & url)
+			{
+				if ( haveFactoryForProtocol(url) )
+				{
+					uint64_t col = url.size();
+					for ( uint64_t i = 0; i < url.size() && col == url.size(); ++i )
+						if ( url[i] == ':' )
+							col = i;
+
+					std::string const protocol = url.substr(0,col);
+
+					return url.substr(protocol.size()+1);
+				}
+				else
+				{
+					return url;
 				}
 			}
 
@@ -187,6 +209,22 @@ namespace libmaus2
 				}
 			}
 			
+			static void rename(std::string const & from, std::string const & to)
+			{
+				libmaus2::aio::OutputStreamFactory::shared_ptr_type fromfact = getFactory(from);
+				libmaus2::aio::OutputStreamFactory::shared_ptr_type tofact   = getFactory(to);
+
+				if ( fromfact.get() == tofact.get() )
+				{
+					fromfact->rename(getInnerURLPart(from),getInnerURLPart(to));
+				}
+				else
+				{
+					copy(from,to);
+					::libmaus2::aio::FileRemoval::removeFile(from);
+				}
+			}
+
 			static void addHandler(std::string const & protocol, libmaus2::aio::OutputStreamFactory::shared_ptr_type factory)
 			{
 				factories[protocol] = factory;			

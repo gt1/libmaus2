@@ -59,7 +59,7 @@ namespace libmaus2
 			// open the file
 			libmaus2::aio::MemoryFileAdapter::shared_ptr_type doOpen(std::string const & filename)
 			{	
-				libmaus2::aio::MemoryFileAdapter::shared_ptr_type ptr(libmaus2::aio::MemoryFileContainer::getEntry(filename));
+				libmaus2::aio::MemoryFileAdapter::shared_ptr_type ptr(libmaus2::aio::MemoryFileContainer::getEntryIfExists(filename));
 				return ptr;
 			}
 
