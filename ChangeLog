@@ -1,3 +1,9 @@
+libmaus2 (2.0.42-1) unstable; urgency=medium
+
+  * implement renaming scheme in OutputStreamFactoryContainer 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 08 Aug 2015 23:45:00 +0200
+
 libmaus2 (2.0.41-1) unstable; urgency=medium
 
   * implement seek operations on MemoryOutput streams
