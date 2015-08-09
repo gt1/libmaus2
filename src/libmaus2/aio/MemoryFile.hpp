@@ -219,6 +219,16 @@ namespace libmaus2
 			
 				return w;
 			}
+
+			uint64_t getBlockSize() const
+			{
+				if ( blocks.size() )
+					// all blocks have the same size, so get size of the first one
+					return blocks[0]->size();
+				else
+					return 0;
+			}
+
 			ssize_t readp(uint64_t p, char * c, uint64_t n)
 			{
 				if ( p > f )
@@ -228,7 +238,7 @@ namespace libmaus2
 				}
 					
 				ssize_t r = 0;
-				uint64_t const blocksize = blocks[0]->size();
+				uint64_t const blocksize = getBlockSize();
 				
 				uint64_t const av = f-p;
 				n = std::min(n,av);

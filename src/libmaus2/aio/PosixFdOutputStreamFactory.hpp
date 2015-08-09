@@ -63,6 +63,17 @@ namespace libmaus2
 					return istr;
 				}
 			}
+			virtual void rename(std::string const & from, std::string const & to)
+			{
+				if ( ::rename(from.c_str(),to.c_str()) == -1 )
+				{
+					int const error = errno;
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "PosixFdOutputStreamFactory::rename(" << from << "," << to << "): " << strerror(error) << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
 		};
 	}
 }

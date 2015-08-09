@@ -39,6 +39,52 @@ namespace libmaus2
 				std::string, MemoryFile::shared_ptr_type 
 			> M;
 			
+			static void rename(std::string const & from, std::string const & to)
+			{
+				libmaus2::parallel::ScopePosixMutex slock(lock);
+				std::map < std::string, MemoryFile::shared_ptr_type >::iterator it = M.find(from);
+
+				if ( it != M.end() )
+				{
+					MemoryFile::shared_ptr_type file = it->second;
+					M.erase(it);
+					M[to] = file;
+				}
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::aio::MemoryFileContainer::rename(" << from << "," << to << "): file " << from << " does not exist" << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
+			static bool hasEntry(std::string const & name)
+			{
+				libmaus2::parallel::ScopePosixMutex slock(lock);
+				return M.find(name) != M.end();
+			}
+
+			static MemoryFileAdapter::shared_ptr_type getEntryIfExists(std::string const & name)
+			{
+				libmaus2::parallel::ScopePosixMutex slock(lock);
+
+				std::map < std::string, MemoryFile::shared_ptr_type >::iterator ita = M.find(name);
+
+				if ( ita != M.end() )
+				{
+					MemoryFileAdapter::shared_ptr_type ptr(new MemoryFileAdapter(ita->second));
+					return ptr;
+				}
+				else
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "libmaus2::aio::MemoryFileContainer::getEntryIfExists(): file " << name << " does not exist." << std::endl;
+					lme.finish();
+					throw lme;
+				}
+			}
+
 			static MemoryFileAdapter::shared_ptr_type getEntry(std::string const & name)
 			{
 				libmaus2::parallel::ScopePosixMutex slock(lock);
