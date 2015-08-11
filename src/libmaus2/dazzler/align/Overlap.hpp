@@ -20,6 +20,8 @@
 
 #include <libmaus2/dazzler/align/Path.hpp>
 #include <libmaus2/lcs/Aligner.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
+#include <libmaus2/dazzler/align/TraceBlock.hpp>
 		
 namespace libmaus2
 {
@@ -345,6 +347,75 @@ namespace libmaus2
 					}
 					
 					return std::pair<uint64_t,uint64_t>(length,errors);
+				}
+				
+				
+				std::vector<TraceBlock> getTraceBlocks(int64_t const tspace) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+					
+					std::vector < TraceBlock > V;
+															
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						V.push_back(
+							TraceBlock(
+								std::pair<int64_t,int64_t>(a_i,a_i_1),
+								std::pair<int64_t,int64_t>(b_i,b_i_1)
+							)
+						);
+						
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+					
+					return V;
+				}
+				
+				static bool haveOverlappingTraceBlock(std::vector<TraceBlock> const & VA, std::vector<TraceBlock> const & VB)
+				{
+					uint64_t b_low = 0;
+					
+					for ( uint64_t i = 0; i < VA.size(); ++i )
+					{
+						while ( (b_low < VB.size()) && (VB[b_low].A.second <= VA[i].A.first) )
+							++b_low;
+							
+						assert ( (b_low == VB.size()) || (VB[b_low].A.second > VA[i].A.first) );
+
+						uint64_t b_high = b_low;
+						while ( b_high < VB.size() && (VB[b_high].A.first < VA[i].A.second) )
+							++b_high;
+							
+						assert ( (b_high == VB.size()) || (VB[b_high].A.first >= VA[i].A.second) );
+							
+						if ( b_high-b_low )
+						{
+							for ( uint64_t j = b_low; j < b_high; ++j )
+							{
+								assert ( VA[i].overlapsA(VB[j]) );
+								if ( VA[i].overlapsB(VB[j]) )
+									return true;
+							}
+						}						
+					}
+					
+					return false;
+				
+				}
+
+				static bool haveOverlappingTraceBlock(Overlap const & A, Overlap const & B, int64_t const tspace)
+				{
+					return haveOverlappingTraceBlock(A.getTraceBlocks(tspace),B.getTraceBlocks(tspace));
 				}
 
 				/**

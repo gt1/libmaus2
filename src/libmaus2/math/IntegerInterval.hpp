@@ -20,6 +20,7 @@
 #define LIBMAUS2_MATH_INTEGERINTERVAL_HPP
 
 #include <libmaus2/types/types.hpp>
+#include <ostream>
 #include <numeric>
 #include <limits>
 #include <algorithm>
