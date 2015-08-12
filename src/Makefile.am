@@ -216,7 +216,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/lcs/DalignerNP.cpp \
 	libmaus2/aio/OutputStreamInstance.cpp \
 	libmaus2/aio/OutputStreamFactoryContainer.cpp \
-	libmaus2/dazzler/align/TraceBlock.cpp
+	libmaus2/dazzler/align/TraceBlock.cpp \
+	libmaus2/dazzler/align/ApproximateRun.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -253,7 +254,7 @@ libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/
 	
 libmaus2dazzleralign_includedir=$(includedir)/libmaus2/dazzler/align
 libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp \
-	libmaus2/dazzler/align/TraceBlock.hpp libmaus2/dazzler/align/TraceBlockVectorCache.hpp
+	libmaus2/dazzler/align/TraceBlock.hpp libmaus2/dazzler/align/TraceBlockVectorCache.hpp libmaus2/dazzler/align/ApproximateRun.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp

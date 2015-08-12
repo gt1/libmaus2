@@ -60,6 +60,108 @@ namespace libmaus2
 
 				std::string bpspath;
 				
+				uint64_t getUntrimmedBlockSize(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockSize(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return blocks.back().first;
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockSize(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return blocks[blockid].first - blocks[blockid-1].first;
+				}
+
+				uint64_t getTrimmedBlockSize(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockSize(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return blocks.back().second;
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockSize(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return blocks[blockid].second - blocks[blockid-1].second;
+				}
+
+				std::pair<uint64_t,uint64_t> getUntrimmedBlockInterval(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockInterval(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return std::pair<uint64_t,uint64_t>(blocks.front().first,blocks.back().first);
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockInterval(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return std::pair<uint64_t,uint64_t>(blocks[blockid-1].first,blocks[blockid].first);
+				}
+
+				std::pair<uint64_t,uint64_t> getTrimmedBlockInterval(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockInterval(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return std::pair<uint64_t,uint64_t>(blocks.front().second,blocks.back().second);
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockInterval(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return std::pair<uint64_t,uint64_t>(blocks[blockid-1].second,blocks[blockid].second);
+				}
+
+
+				
 				libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ptrim;
 
 				static std::string getPath(std::string const & s)
@@ -775,6 +877,42 @@ namespace libmaus2
 					}				
 					
 					return s;
+				}
+
+				static std::string getBlockTrackFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname, std::string const & type)
+				{
+					if ( part )
+					{
+						std::ostringstream ostr;
+						ostr << path << "/" << "." << root << "." << part << "." << trackname << "." << type;
+						return ostr.str();
+					}
+					else
+					{
+						std::ostringstream ostr;
+						ostr << path << "/" << "." << root << "." << trackname << "." << type;
+						return ostr.str();
+					}
+				}
+
+				static std::string getBlockTrackAnnoFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname) 
+				{
+					return getBlockTrackFileName(path,root,part,trackname,"anno");
+				}
+
+				static std::string getBlockTrackDataFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname) 
+				{
+					return getBlockTrackFileName(path,root,part,trackname,"data");
+				}
+				
+				std::string getBlockTrackAnnoFileName(std::string const & trackname, int64_t const part) const
+				{
+					return getBlockTrackAnnoFileName(path,root,part,trackname);
+				}
+
+				std::string getBlockTrackDataFileName(std::string const & trackname, int64_t const part) const
+				{
+					return getBlockTrackDataFileName(path,root,part,trackname);
 				}
 
 				static std::string getTrackFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname, std::string const & type)
