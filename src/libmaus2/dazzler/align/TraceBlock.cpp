@@ -19,5 +19,5 @@
 
 std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::TraceBlock const & TB)
 {
-	return out << "TraceBlock(A=[" << TB.A.first << "," << TB.A.second << "),B=[" << TB.B.first << "," << TB.B.second << "))";
+	return out << "TraceBlock(A=[" << TB.A.first << "," << TB.A.second << "),B=[" << TB.B.first << "," << TB.B.second << "),err="<<TB.err <<")";
 }

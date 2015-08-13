@@ -219,6 +219,38 @@ namespace libmaus2
 
 					return path;
 				}
+
+				static Path computePath(std::vector<TraceBlock> const & V)
+				{
+					Path path;
+					
+					if ( ! V.size() )
+					{
+						path.abpos = 0;
+						path.bbpos = 0;
+						path.aepos = 0;
+						path.bepos = 0;
+						path.diffs = 0;
+						path.tlen = 0;
+					}
+					else
+					{
+						path.abpos = V.front().A.first;
+						path.aepos = V.back().A.second;
+						path.bbpos = V.front().B.first;
+						path.bepos = V.back().B.second;
+						path.diffs = 0;
+						path.tlen = 2*V.size();
+						
+						for ( uint64_t i = 0; i < V.size(); ++i )
+						{
+							path.path.push_back(Path::tracepoint(V[i].err,V[i].B.second-V[i].B.first));
+							path.diffs += V[i].err;
+						}
+					}
+
+					return path;
+				}
 				
 				/**
 				 * compute alignment trace
@@ -349,7 +381,6 @@ namespace libmaus2
 					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
 				
-				
 				std::vector<TraceBlock> getTraceBlocks(int64_t const tspace) const
 				{
 					// current point on A
@@ -361,6 +392,8 @@ namespace libmaus2
 															
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(path.abpos) );
 						// block end point on A
 						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
 						// block end point on B
@@ -368,8 +401,9 @@ namespace libmaus2
 
 						V.push_back(
 							TraceBlock(
-								std::pair<int64_t,int64_t>(a_i,a_i_1),
-								std::pair<int64_t,int64_t>(b_i,b_i_1)
+								std::pair<int64_t,int64_t>(a_i_0,a_i_1),
+								std::pair<int64_t,int64_t>(b_i,b_i_1),
+								path.path[i].first
 							)
 						);
 						
@@ -381,6 +415,22 @@ namespace libmaus2
 					return V;
 				}
 				
+				std::vector<uint64_t> getFullBlocks(int64_t const tspace) const
+				{
+					std::vector<TraceBlock> const TB = getTraceBlocks(tspace);
+					std::vector<uint64_t> B;
+					for ( uint64_t i = 0; i < TB.size(); ++i )
+						if ( 
+							TB[i].A.second - TB[i].A.first == tspace 
+						)
+						{
+							assert ( TB[i].A.first % tspace == 0 );
+							
+							B.push_back(TB[i].A.first / tspace);
+						}
+					return B;
+				}
+								
 				static bool haveOverlappingTraceBlock(std::vector<TraceBlock> const & VA, std::vector<TraceBlock> const & VB)
 				{
 					uint64_t b_low = 0;

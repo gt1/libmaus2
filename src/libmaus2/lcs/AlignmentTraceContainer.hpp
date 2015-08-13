@@ -541,6 +541,56 @@ namespace libmaus2
 				return std::pair<step_type const *, step_type const *>(tbeststart,tbestend);
 			}
 			
+			std::pair<step_type const *, step_type const *> bLengthFront(uint64_t l)
+			{
+				step_type const * tc = ta;
+				
+				while ( tc != te && l )
+				{
+					switch ( *(tc++) )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+							--l;
+							break;
+						case STEP_DEL:
+							break;
+						case STEP_INS:
+							--l;
+							break;
+					}
+				}
+				
+				assert ( ! l );
+				
+				return std::pair<step_type const *, step_type const *>(ta,tc);
+			}
+
+			std::pair<step_type const *, step_type const *> bLengthBack(uint64_t l)
+			{
+				step_type const * tc = te;
+				
+				while ( tc != ta && l )
+				{
+					switch ( *(--tc) )
+					{
+						case STEP_MATCH:
+						case STEP_MISMATCH:
+							--l;
+							break;
+						case STEP_DEL:
+							break;
+						case STEP_INS:
+							--l;
+							break;
+					}
+				}
+				
+				assert ( ! l );
+				
+				return std::pair<step_type const *, step_type const *>(tc,te);
+			}
+			
 			std::pair<uint64_t,uint64_t> suffixPositive(
 				int64_t const match_score    = gain_match,
 				int64_t const mismatch_score = penalty_subst,
