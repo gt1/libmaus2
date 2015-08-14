@@ -25,6 +25,7 @@
 #include <limits>
 #include <algorithm>
 #include <cassert>
+#include <vector>
 
 namespace libmaus2
 {
