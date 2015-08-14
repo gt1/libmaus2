@@ -18,41 +18,24 @@
 #if ! defined(LIBMAUS2_DAZZLER_DB_INQUALCONTAINER_HPP)
 #define LIBMAUS2_DAZZLER_DB_INQUALCONTAINER_HPP
 
-#include <libmaus2/dazzler/db/DatabaseFile.hpp>
-
+#include <libmaus2/dazzler/db/PartTrackContainer.hpp>
+		
 namespace libmaus2
 {
 	namespace dazzler
 	{
 		namespace db
 		{
-			struct InqualContainer
+			struct InqualContainer : public PartTrackContainer
 			{
-				::libmaus2::dazzler::db::DatabaseFile const & DB;
-				libmaus2::autoarray::AutoArray<libmaus2::dazzler::db::Track::unique_ptr_type> Atracks;
-				
 				InqualContainer(libmaus2::dazzler::db::DatabaseFile const & rDB)
-				: DB(rDB), Atracks(DB.numblocks)
+				: PartTrackContainer(rDB,"inqual")
 				{
-					for ( uint64_t i = 0; i < Atracks.size(); ++i )
-					{
-						try
-						{
-							libmaus2::dazzler::db::Track::unique_ptr_type Ttrack(DB.readTrack("inqual",i+1));
-							Atracks[i] = UNIQUE_PTR_MOVE(Ttrack);
-							
-							std::cerr << "loaded quality for block " << (i+1) << std::endl;
-						}
-						catch(...)
-						{
-						
-						}
-					}
 				}
 				
 				bool haveQualityForBlock(uint64_t const blockid) const
 				{
-					return blockid >= 1 && blockid <= Atracks.size() && Atracks[blockid-1];
+					return haveBlock(blockid);
 				}
 				
 				libmaus2::dazzler::db::Track const & getQualityForBlock(uint64_t const blockid) const
@@ -106,6 +89,17 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
+				}
+				
+				unsigned char getQualityForBase(uint64_t const id, uint64_t const base, int64_t const tspace) const
+				{
+					std::pair<unsigned char const *, unsigned char const *> const P = getQualityForRead(id);
+					return P.first[base/tspace];
+				}
+				
+				double getErrorForBase(uint64_t const id, uint64_t const base, int64_t const tspace) const
+				{
+					return phredToError(getQualityForBase(id,base,tspace));
 				}
 
 				static double phredToError(unsigned int const v)

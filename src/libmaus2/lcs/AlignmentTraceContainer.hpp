@@ -718,7 +718,7 @@ namespace libmaus2
 				return score;
 			}
 						
-			AlignmentStatistics getAlignmentStatistics() const
+			static AlignmentStatistics getAlignmentStatistics(step_type const * ta, step_type const * te)
 			{
 				AlignmentStatistics stats;
 				
@@ -742,10 +742,20 @@ namespace libmaus2
 				return stats;
 			}
 
+			AlignmentStatistics getAlignmentStatistics() const
+			{
+				return getAlignmentStatistics(ta,te);
+			}
+
+			static uint64_t getNumErrors(step_type const * ta, step_type const * te)
+			{
+				AlignmentStatistics stats = getAlignmentStatistics(ta,te); 
+				return stats.mismatches + stats.insertions + stats.deletions;
+			}
+			
 			uint64_t getNumErrors() const
 			{
-				AlignmentStatistics stats = getAlignmentStatistics(); 
-				return stats.mismatches + stats.insertions + stats.deletions;
+				return getNumErrors(ta,te);
 			}
 
 			std::pair<uint64_t,uint64_t> getStringLengthUsed() const

@@ -250,7 +250,7 @@ libmaus2dazzlerdb_includedir=$(includedir)/libmaus2/dazzler/db
 libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/dazzler/db/FastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp libmaus2/dazzler/db/InputBase.hpp \
 	libmaus2/dazzler/db/GetByteCounter.hpp libmaus2/dazzler/db/Read.hpp libmaus2/dazzler/db/OutputBase.hpp \
 	libmaus2/dazzler/db/TrackAnnoInterface.hpp libmaus2/dazzler/db/TrackAnno.hpp \
-	libmaus2/dazzler/db/Track.hpp libmaus2/dazzler/db/InqualContainer.hpp
+	libmaus2/dazzler/db/Track.hpp libmaus2/dazzler/db/InqualContainer.hpp libmaus2/dazzler/db/PartTrackContainer.hpp
 	
 libmaus2dazzleralign_includedir=$(includedir)/libmaus2/dazzler/align
 libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp \
