@@ -336,8 +336,8 @@ namespace libmaus2
 			 * n number of values
 			 * R centres
 			 **/
-			template<typename iterator>
-			static double error(iterator V, uint64_t n, std::vector<double> const & R)
+			template<typename iterator, typename dissimilarity_type>
+			static double error(iterator V, uint64_t n, std::vector<double> const & R, dissimilarity_type const & dissimilarity)
 			{
 				typedef typename std::iterator_traits<iterator>::value_type value_type;
 				
@@ -346,18 +346,19 @@ namespace libmaus2
 				{
 					value_type const v = *(V++);
 					uint64_t const i = findClosest(R,v);
-					e += (R[i]-v)*(R[i]-v);
+					e += dissimilarity(R[i],v);
 				}
 				
 				return e;
 			}
 
-			template<typename iterator>
+			template<typename iterator, typename dissimilarity_type>
 			static std::vector<double> kmeansCore(
 				iterator V, uint64_t const n, uint64_t k, 
 				bool const pp,
 				uint64_t const maxloops, 
-				double const ethres
+				double const ethres,
+				dissimilarity_type const & dissimilarity
 			)
 			{
 				// pre centres
@@ -385,7 +386,7 @@ namespace libmaus2
 							// find closests centre
 							uint64_t const j = findClosest(R,V[ileft[z]]);
 							// compute distance
-							double const dif = (R[j]-V[ileft[z]]) * (R[j]-V[ileft[z]]);
+							double const dif = dissimilarity(R[j],V[ileft[z]]);
 							// set distance
 							D[z] = dif;
 							// accumulate
@@ -453,7 +454,7 @@ namespace libmaus2
 					{
 						I[i] = findClosest(R,V[i]);
 						H[I[i]] += 1;
-						e += (V[i]-R[I[i]])*(V[i]-R[I[i]]);
+						e += dissimilarity(V[i],R[I[i]]);
 					}
 
 					// break if improvement is smaller than threshold					
@@ -486,24 +487,34 @@ namespace libmaus2
 				
 				return R;
 			}
+			
+			struct SquareDissimilary
+			{
+				double operator()(double const a, double const b) const
+				{
+					double const d = a-b;
+					return d*d;
+				}
+			};
 
-			template<typename iterator>
+			template<typename iterator, typename dissimilarity_type = SquareDissimilary>
 			static std::vector<double> kmeans(
 				iterator V, 
 				uint64_t const n,
 				uint64_t const k, 
 				bool const pp = true,
 				uint64_t const iterations = 10, 
-				uint64_t const maxloops = 16*1024, double const ethres = 1e-6
+				uint64_t const maxloops = 16*1024, double const ethres = 1e-6,
+				dissimilarity_type const & dissimilarity = dissimilarity_type()
 			)
 			{
-				std::vector<double> R = kmeansCore(V,n,k,pp,maxloops,ethres);
-				double e = error(V,n,R);
+				std::vector<double> R = kmeansCore(V,n,k,pp,maxloops,ethres,dissimilarity);
+				double e = error(V,n,R,dissimilarity);
 								
 				for ( uint64_t i = 1; i < iterations; ++i )
 				{
-					std::vector<double> RC = kmeansCore(V,n,k,pp,maxloops,ethres);
-					double re = error(V,n,RC);
+					std::vector<double> RC = kmeansCore(V,n,k,pp,maxloops,ethres,dissimilarity);
+					double re = error(V,n,RC,dissimilarity);
 					if ( re < e )
 					{
 						e = re;
