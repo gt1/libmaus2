@@ -43,6 +43,13 @@ namespace libmaus2
 				std::vector<double> const & B
 			)
 			{
+				if ( A.size() != B.size() )
+				{
+					libmaus2::exception::LibMausException lme;
+					lme.getStream() << "KMeans::error(std::vector<double> const & A,std::vector<double> const & B): A.size()=" << A.size() << " != B.size()=" << B.size() << std::endl;
+					lme.finish();
+					throw lme;
+				}
 				assert ( A.size() == B.size() );
 				double e = 0;
 				for ( uint64_t i = 0; i < A.size(); ++i )
@@ -81,6 +88,14 @@ namespace libmaus2
 				for ( uint64_t i = 0; i < R.size(); ++i )
 				{
 					std::vector<double> const & C = R[i];
+					
+					if ( C.size() != V.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "KMeans::findClosest(): C.size()=" << C.size() << " != V.size()=" << V.size() << std::endl;
+						lme.finish();
+						throw lme;
+					}
 					assert ( C.size() == V.size() );
 					double le = error(C,V);
 					if ( le < e )
@@ -296,7 +311,7 @@ namespace libmaus2
 					bool const ok = ( *it >= v ) && ( *(it-1) <= v );
 					if ( ! ok )
 					{
-						std::cerr << "failed v=" << v << " *(it-1)=" << *(it-1) << " *it=" << *it << std::endl;
+						std::cerr << "KMeans::findClosest(centres_type const & R, double const v): failed v=" << v << " *(it-1)=" << *(it-1) << " *it=" << *it << std::endl;
 						assert ( ok );
 					}
 					

@@ -35,6 +35,11 @@ namespace libmaus2
 			{
 				return *ptr;
 			}
+			
+			void reset(libmaus2::aio::InputStream::unique_ptr_type tptr)
+			{
+				ptr = UNIQUE_PTR_MOVE(tptr);
+			}
 		};
 	}
 }
