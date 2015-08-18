@@ -19,14 +19,7 @@
 
 std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::ApproximateRun const & AR)
 {
-	out << "ApproximateRun(a_readid=" << AR.a_readid << ",b_readid={";
-	for ( std::set<int64_t>::const_iterator ita = AR.b_readid.begin(); ita != AR.b_readid.end(); ++ita )
-	{
-		if ( ita != AR.b_readid.begin() )
-			out << ",";
-		out << *ita;
-	}
-	out << "}"
+	out << "ApproximateRun(a_readid=" << AR.a_readid << ",b_readid=" << AR.b_readid
 		<< ",full=(" << AR.full.first << "," << AR.full.second << "),alignment="
 		<< ((AR.approximate_run_alignment == ApproximateRun::approximate_run_alignment_left) ? "left" : "right")
 		<< ",other={";

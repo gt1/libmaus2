@@ -34,7 +34,7 @@ namespace libmaus2
 			struct ApproximateRun
 			{
 				int64_t a_readid;
-				std::set<int64_t> b_readid;
+				int64_t b_readid;
 				std::pair<int64_t,int64_t> full;
 				
 				enum approximate_run_alignment_type
@@ -51,9 +51,7 @@ namespace libmaus2
 				{
 					uint64_t offset = 0;
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(out,a_readid,offset);
-					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(out,b_readid.size(),offset);
-					for ( std::set<int64_t>::const_iterator ita = b_readid.begin(); ita != b_readid.end(); ++ita )
-						libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(out,*ita,offset);
+					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(out,b_readid,offset);
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(out,full.first,offset);
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(out,full.second,offset);
 					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger4(out,static_cast<int>(approximate_run_alignment),offset);
@@ -67,10 +65,7 @@ namespace libmaus2
 				{
 					uint64_t offset = 0;
 					a_readid = libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(in,offset);
-					b_readid.clear();
-					uint64_t const b_readid_size = libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(in,offset);
-					for ( uint64_t i = 0; i < b_readid_size; ++i )
-						b_readid.insert(libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(in,offset));
+					b_readid = libmaus2::dazzler::db::InputBase::getLittleEndianInteger4(in,offset);
 					full.first = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 					full.second = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 					
@@ -110,25 +105,7 @@ namespace libmaus2
 					else if ( approximate_run_alignment != A.approximate_run_alignment )
 						return approximate_run_alignment < A.approximate_run_alignment;
 					else if ( b_readid != A.b_readid )
-					{
-						std::set<int64_t>::const_iterator Uita = b_readid.begin();
-						std::set<int64_t>::const_iterator Vita = A.b_readid.begin();
-						
-						while ( Uita != b_readid.end() && Vita != A.b_readid.end() )
-						{
-							if ( *Uita != *Vita )
-								return *Uita < *Vita;
-							else
-							{
-								++Uita;
-								++Vita;
-							}
-						}
-						
-						assert ( Uita != b_readid.end() || Vita != A.b_readid.end() );
-						
-						return Uita == b_readid.end();
-					}
+						return b_readid < A.b_readid;
 					else
 					{
 						uint64_t const m = std::min(other.size(),A.other.size());
