@@ -1,6 +1,7 @@
 /*
     libmaus2
-    Copyright (C) 2015 German Tischler
+    Copyright (C) 2011-2014 Genome Research Limited
+    Copyright (C) 2009-2015 German Tischler
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
