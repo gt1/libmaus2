@@ -914,7 +914,8 @@ libmaus2wavelet_include_HEADERS=\
 	libmaus2/wavelet/Utf8ToImpCompactHuffmanWaveletTree.hpp \
 	libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp \
 	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp \
-	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp
+	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp \
+	libmaus2/wavelet/RlToHwtBase.hpp
 
 libmaus2huffman_includedir=$(includedir)/libmaus2/huffman
 libmaus2huffman_include_HEADERS=\
