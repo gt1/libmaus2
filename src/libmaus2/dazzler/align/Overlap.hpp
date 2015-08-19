@@ -477,27 +477,36 @@ namespace libmaus2
 					int64_t const tspace, 
 					std::map< uint64_t, uint64_t > & H,
 					uint64_t const ethres,
-					uint64_t const cthres
+					uint64_t const cthres,
+					uint64_t const rlen
 				) const
 				{
 					std::vector<uint64_t> M(path.path.size(),std::numeric_limits<uint64_t>::max());
-				
+
+					// id of lowest block in alignment
+					uint64_t const lowblockid = (path.abpos / tspace);
+					// id of highest block in alignment
+					uint64_t const highblockid = ((path.aepos-1) / tspace);
+					// number of blocks
+					uint64_t const numblocks = (rlen + tspace - 1)/tspace;
 					// current point on A
-					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					int32_t a_i = lowblockid * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
 															
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
+						// start point on A
+						int32_t const a_i_0 = std::max ( a_i, path.abpos );
 						// block end point on A
 						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
 						if ( 
-							(a_i_1 - a_i) == tspace 
+							(a_i_1 - a_i_0) == tspace 
 							&&
-							(a_i % tspace == 0)
+							(a_i_0 % tspace == 0)
 							&&
 							(a_i_1 % tspace == 0)
 							&&
@@ -513,12 +522,14 @@ namespace libmaus2
 						a_i = a_i_1;
 					}
 					
+					// number of valid blocks on the right
 					uint64_t numleft = 0;
 					uint64_t numright = 0;
 					for ( uint64_t i = 0; i < M.size(); ++i )
 						if ( M[i] != std::numeric_limits<uint64_t>::max() )
 							numright++;
 
+					// mark all blocks as spanned if we find at least cthres ok blocks left and right of it (at any distance)
 					for ( uint64_t i = 0; i < M.size(); ++i )
 					{
 						bool const below = M[i] != std::numeric_limits<uint64_t>::max();
@@ -526,11 +537,36 @@ namespace libmaus2
 						if ( below )
 							numright -= 1;
 						
-						if ( numleft >= cthres && numright >= cthres )
-							H [ i ] += 1;
+						if ( 
+							(numleft >= cthres && numright >= cthres)
+						)
+							H [ lowblockid + i ] += 1;
 
 						if ( below )
 							numleft += 1;
+					}
+					
+					// mark first cthres blocks as spanned if all first cthres blocks are ok
+					if ( lowblockid == 0 && M.size() >= 2*cthres )
+					{
+						uint64_t numok = 0;
+						for ( uint64_t i = 0; i < 2*cthres; ++i )
+							if ( M.at(i) != std::numeric_limits<uint64_t>::max() )
+								++numok;
+						if ( numok == 2*cthres )
+							for ( uint64_t i = 0; i < cthres; ++i )
+								H [ i ] += 1;
+					}
+					// mark last cthres blocks as spanned if all last 2*cthres blocks are ok
+					if ( highblockid+1 == numblocks && M.size() >= 2*cthres )
+					{
+						uint64_t numok = 0;
+						for ( uint64_t i = 0; i < 2*cthres; ++i )
+							if ( M.at(M.size()-i-1) != std::numeric_limits<uint64_t>::max() )
+								++numok;
+						if ( numok == 2*cthres )
+							for ( uint64_t i = 0; i < cthres; ++i )
+								H [ numblocks - i - 1 ] += 1;
 					}
 				}
 			};
