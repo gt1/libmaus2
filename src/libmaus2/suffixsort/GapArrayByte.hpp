@@ -166,7 +166,7 @@ namespace libmaus2
 				SGO->flush();
 				SGO.reset();
 				
-				rename(tmpfilesorted.c_str(), tmpfilename.c_str());
+				libmaus2::aio::OutputStreamFactoryContainer::rename(tmpfilesorted, tmpfilename);
 			}
 
 			/**
