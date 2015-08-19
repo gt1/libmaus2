@@ -217,7 +217,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/aio/OutputStreamInstance.cpp \
 	libmaus2/aio/OutputStreamFactoryContainer.cpp \
 	libmaus2/dazzler/align/TraceBlock.cpp \
-	libmaus2/dazzler/align/ApproximateRun.cpp
+	libmaus2/dazzler/align/ApproximateRun.cpp \
+	libmaus2/suffixsort/BwtMergeBlockSortRequest.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1536,7 +1537,8 @@ libmaus2suffixsort_include_HEADERS=\
 	libmaus2/suffixsort/GapArrayByte.hpp \
 	libmaus2/suffixsort/GapArrayByteDecoder.hpp \
 	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp \
-	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp
+	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp \
+	libmaus2/suffixsort/BwtMergeBlockSortRequest.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\
