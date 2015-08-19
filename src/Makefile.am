@@ -915,7 +915,8 @@ libmaus2wavelet_include_HEADERS=\
 	libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp \
 	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp \
 	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp \
-	libmaus2/wavelet/RlToHwtBase.hpp
+	libmaus2/wavelet/RlToHwtBase.hpp \
+	libmaus2/wavelet/RlToHwtTermRequest.hpp
 
 libmaus2huffman_includedir=$(includedir)/libmaus2/huffman
 libmaus2huffman_include_HEADERS=\
@@ -1534,7 +1535,8 @@ libmaus2suffixsort_include_HEADERS=\
 	libmaus2/suffixsort/GapArrayByteDecoderBuffer.hpp \
 	libmaus2/suffixsort/GapArrayByte.hpp \
 	libmaus2/suffixsort/GapArrayByteDecoder.hpp \
-	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp
+	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp \
+	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\

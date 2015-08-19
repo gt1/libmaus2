@@ -581,6 +581,27 @@ namespace libmaus2
 				Optr->flush();
 				Optr.reset();
 			}
+			
+			static bool haveAlphabetBits()
+			{
+				return false;
+			}
+
+			static unsigned int getAlBits(std::string const &)
+			{
+				libmaus2::exception::LibMausException ex;
+				ex.getStream() << "RLDecoder::getAlBits(): operation not supported" << std::endl;
+				ex.finish();
+				throw ex;
+			}
+
+			static unsigned int getAlBits(std::vector<std::string> const &)
+			{
+				libmaus2::exception::LibMausException ex;
+				ex.getStream() << "RLDecoder::getAlBits(): operation not supported" << std::endl;
+				ex.finish();
+				throw ex;
+			}
 		};
 	}
 }

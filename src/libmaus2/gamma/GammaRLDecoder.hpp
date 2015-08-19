@@ -356,6 +356,11 @@ namespace libmaus2
 			{
 				init(offset);
 			}			
+
+			static bool haveAlphabetBits()
+			{ 
+				return true;
+			}                                                                                      
 		};
 	}
 }
