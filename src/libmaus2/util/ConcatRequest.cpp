@@ -74,14 +74,7 @@ void libmaus2::util::ConcatRequest::execute(bool const removeFiles) const
 
 libmaus2::util::ConcatRequest::unique_ptr_type libmaus2::util::ConcatRequest::load(std::string const & requestfilename)
 {
-	std::ifstream istr(requestfilename.c_str(),std::ios::binary);
-	if ( ! istr.is_open() )
-	{
-		::libmaus2::exception::LibMausException se;
-		se.getStream() << "Failed to open file " << requestfilename << std::endl;
-		se.finish();
-		throw se;
-	}
+	libmaus2::aio::InputStreamInstance istr(requestfilename);
 	::libmaus2::util::ConcatRequest::unique_ptr_type req ( new ::libmaus2::util::ConcatRequest(istr) );
 	if ( !istr )
 	{

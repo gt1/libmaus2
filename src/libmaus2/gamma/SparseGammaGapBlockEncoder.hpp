@@ -22,12 +22,12 @@
 #include <libmaus2/gamma/GammaEncoder.hpp>
 #include <libmaus2/gamma/GammaDecoder.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
-#include <libmaus2/aio/CheckedInputOutputStream.hpp>
 #include <libmaus2/aio/SynchronousGenericOutput.hpp>
 #include <libmaus2/aio/SynchronousGenericInput.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/InputOutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -45,7 +45,8 @@ namespace libmaus2
 			// w output stream
 			libmaus2::aio::OutputStreamInstance::unique_ptr_type SGOCOS;
 			// rw index stream
-			libmaus2::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
+			//libmaus2::aio::CheckedInputOutputStream::unique_ptr_type indexUP;
+			libmaus2::aio::InputOutputStream::unique_ptr_type indexUP;
 			
 			std::ostream & SGOout;
 			std::iostream & indexout;
@@ -84,7 +85,7 @@ namespace libmaus2
 				uint64_t const rblocksize = 64*1024
 			)
 			: SGOCOS(new libmaus2::aio::OutputStreamInstance(filename)), 
-			  indexUP(new libmaus2::aio::CheckedInputOutputStream(indexfilename)),
+			  indexUP(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfilename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary)),
 			  SGOout(*SGOCOS), 
 			  indexout(*indexUP),
 			  SGO(SGOout,8*1024),
@@ -203,10 +204,15 @@ namespace libmaus2
 					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);				
 					
 					libmaus2::aio::OutputStreamInstance COS(fn);
-					libmaus2::aio::CheckedInputOutputStream indexstr(indexfn);
+					libmaus2::aio::InputOutputStream::unique_ptr_type Pindexstr(
+						libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(
+							indexfn,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary
+						)
+					);
+					// libmaus2::aio::CheckedInputOutputStream indexstr(indexfn);
 
 					this_type enc(
-						COS,indexstr,
+						COS,*Pindexstr,
 						(p==0)?(-1):gita[partstarts[p]-1],
 						blocksize
 					);
@@ -228,6 +234,9 @@ namespace libmaus2
 					
 					enc.term();
 					COS.flush();
+					
+					Pindexstr.reset();
+					libmaus2::aio::FileRemoval::removeFile(indexfn);
 				}
 				
 				return partfn;
@@ -239,8 +248,13 @@ namespace libmaus2
 				libmaus2::aio::OutputStreamInstance COS(fn);
 				std::string const indexfn = fn+".idx";
 				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
-				libmaus2::aio::CheckedInputOutputStream indexCOS(indexfn);
-				encodeArray(ita,ite,COS,indexCOS);
+				
+				libmaus2::aio::InputOutputStream::unique_ptr_type PindexCOS(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfn,
+					std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+				// libmaus2::aio::CheckedInputOutputStream indexCOS(indexfn);
+				encodeArray(ita,ite,COS,*PindexCOS);
+				PindexCOS.reset();
+				
 				libmaus2::aio::FileRemoval::removeFile(indexfn);
 			}
 		};	

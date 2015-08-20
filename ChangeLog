@@ -1,3 +1,9 @@
+libmaus2 (2.0.44-1) unstable; urgency=medium
+
+  * use i/o factory classes in SparseGamma related classes 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Aug 2015 16:22:55 +0200
+
 libmaus2 (2.0.43-1) unstable; urgency=medium
 
   * replace ::rename calls by libmaus2::aio::OutputStreamFactoryContainer::rename

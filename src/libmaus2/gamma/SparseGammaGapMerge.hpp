@@ -176,12 +176,16 @@ namespace libmaus2
 					std::string const indexfn = fn + ".idx";
 					libmaus2::util::TempFileRemovalContainer::addTempFile(indexfn);
 					libmaus2::aio::OutputStreamInstance COS(fn);
-					libmaus2::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
+
+					libmaus2::aio::InputOutputStream::unique_ptr_type Pindexstr(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfn,
+						std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+					// libmaus2::aio::CheckedInputOutputStream indexstr(indexfn.c_str());
 					merge(
 						/* fna,fnb, */
 						*indexa,*indexb,
-						sp.at(p),sp.at(p+1),COS,indexstr
+						sp.at(p),sp.at(p+1),COS,*Pindexstr
 					);
+					Pindexstr.reset();
 					libmaus2::aio::FileRemoval::removeFile(indexfn);
 				}
 
@@ -338,12 +342,16 @@ namespace libmaus2
 				libmaus2::util::TempFileRemovalContainer::addTempFile(indexfilename);
 				
 				libmaus2::aio::OutputStreamInstance COS(outputfilename);
-				libmaus2::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
+				libmaus2::aio::InputOutputStream::unique_ptr_type Pindexstr(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfilename,
+					std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+				//libmaus2::aio::CheckedInputOutputStream indexstr(indexfilename.c_str());
 				
 				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder indexa(fna);
 				libmaus2::gamma::SparseGammaGapFileIndexMultiDecoder indexb(fnb);
 				
-				merge(indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,indexstr);
+				merge(indexa,indexb,0,std::numeric_limits<uint64_t>::max(),COS,*Pindexstr);
+				
+				Pindexstr.reset();
 				
 				libmaus2::aio::FileRemoval::removeFile(indexfilename);
 			}
