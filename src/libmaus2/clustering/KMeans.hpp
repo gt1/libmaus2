@@ -512,7 +512,8 @@ namespace libmaus2
 				}
 			};
 
-			template<typename iterator, typename dissimilarity_type = SquareDissimilary>
+
+			template<typename iterator, typename dissimilarity_type>
 			static std::vector<double> kmeans(
 				iterator V, 
 				uint64_t const n,
@@ -539,6 +540,20 @@ namespace libmaus2
 								
 				return R;
 			}
+
+			template<typename iterator>
+			static std::vector<double> kmeans(
+				iterator V, 
+				uint64_t const n,
+				uint64_t const k, 
+				bool const pp = true,
+				uint64_t const iterations = 10, 
+				uint64_t const maxloops = 16*1024, double const ethres = 1e-6
+			)
+			{
+				return kmeans<iterator,SquareDissimilary>(V,n,k,pp,iterations,maxloops,ethres,SquareDissimilary());
+			}
+
 
 			static double dissimilarity(double const v1, double const v2)
 			{
