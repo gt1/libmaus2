@@ -35,10 +35,37 @@ struct PatternBuffer : public libmaus2::util::PushBuffer<libmaus2::fastx::Socket
 	}	
 };
 
+#include <libmaus2/clustering/KMeans.hpp>
+
 int main(int argc, char * argv[])
 {
 	try
 	{
+		{
+		std::vector<double> V;
+		V.push_back(1);
+		V.push_back(2);
+		V.push_back(3);
+		V.push_back(4);
+		V.push_back(5);
+		std::vector<double> C = libmaus2::clustering::KMeans::kmeans(V.begin(),V.size(),2);
+		for ( uint64_t i = 0; i < C.size(); ++i )
+			std::cerr << C[i] << std::endl;
+		}
+		#if 0
+			template<typename iterator, typename dissimilarity_type = Dissimilary>
+			static std::vector<double> kmeans(
+				iterator V, 
+				uint64_t const n,
+				uint64_t const k, 
+				bool const pp = true,
+				uint64_t const iterations = 10, 
+				uint64_t const maxloops = 16*1024, double const ethres = 1e-6,
+				dissimilarity_type dissimilary = dissimilarity_type()
+			)
+		#endif
+		
+	
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		
 		if ( !arginfo.hasArg("index") )

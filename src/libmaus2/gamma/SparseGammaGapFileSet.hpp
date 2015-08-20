@@ -27,6 +27,7 @@
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/util/TempFileNameGenerator.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/parallel/OMPLock.hpp>
 #include <queue>
 
@@ -136,7 +137,7 @@ namespace libmaus2
 					doMerge(tmpgen.getFileName());
 					
 				if ( !Q.empty() )
-					rename(Q.top().fn.c_str(),outputfilename.c_str());
+					libmaus2::aio::OutputStreamFactoryContainer::rename(Q.top().fn.c_str(),outputfilename.c_str());
 			}
 
 			void mergeToDense(std::string const & outputfilename, uint64_t const n)

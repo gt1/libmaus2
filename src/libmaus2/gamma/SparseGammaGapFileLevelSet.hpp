@@ -149,7 +149,7 @@ namespace libmaus2
 				
 				if ( !Q.empty() )
 				{
-					rename(Q.top().fn.c_str(),outputfilename.c_str());
+					libmaus2::aio::OutputStreamFactoryContainer::rename(Q.top().fn.c_str(),outputfilename.c_str());
 					return true;
 				}
 				else

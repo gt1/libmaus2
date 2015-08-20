@@ -421,7 +421,7 @@ namespace libmaus2
 						fnostr << outputfilenameprefix << "_" << std::setw(6) << std::setfill('0') << i;
 						std::string const fn = fnostr.str();
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
-						rename(Q.top().fn[i].c_str(),fn.c_str());
+						libmaus2::aio::OutputStreamFactoryContainer::rename(Q.top().fn[i].c_str(),fn.c_str());
 						outputfilenames.push_back(fn);
 					}
 				}
