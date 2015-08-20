@@ -223,7 +223,7 @@ namespace libmaus2
 						{
 							uint64_t const idword = *(ids.begin());
 							assert ( idword < filenames.size() );
-							rename ( infilename.c_str(), filenames[idword].c_str() );
+							libmaus2::aio::OutputStreamFactoryContainer::rename ( infilename.c_str(), filenames[idword].c_str() );
 						}
 						else
 						{

@@ -28,6 +28,7 @@
 #include <libmaus2/huffman/IndexDecoderDataArray.hpp>
 #include <libmaus2/util/HistogramSet.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/huffman/IndexLoader.hpp>
 
 namespace libmaus2
 {
@@ -142,6 +143,20 @@ namespace libmaus2
 
 			RLDecoder(
 				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
+				uint64_t offset = 0
+			)
+			:
+			  Pidda(),
+			  idda(ridda), 
+			  pa(0), pc(0), pe(0),
+			  fileptr(0), blockptr(0)
+			{
+				init(offset);
+			}
+
+			RLDecoder(
+				::libmaus2::huffman::IndexDecoderDataArray const & ridda,
+				::libmaus2::huffman::IndexEntryContainerVector const * = 0,
 				uint64_t offset = 0
 			)
 			:
@@ -565,6 +580,27 @@ namespace libmaus2
 				
 				Optr->flush();
 				Optr.reset();
+			}
+			
+			static bool haveAlphabetBits()
+			{
+				return false;
+			}
+
+			static unsigned int getAlBits(std::string const &)
+			{
+				libmaus2::exception::LibMausException ex;
+				ex.getStream() << "RLDecoder::getAlBits(): operation not supported" << std::endl;
+				ex.finish();
+				throw ex;
+			}
+
+			static unsigned int getAlBits(std::vector<std::string> const &)
+			{
+				libmaus2::exception::LibMausException ex;
+				ex.getStream() << "RLDecoder::getAlBits(): operation not supported" << std::endl;
+				ex.finish();
+				throw ex;
 			}
 		};
 	}

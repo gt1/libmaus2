@@ -215,7 +215,10 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/aio/InputStreamInstance.cpp \
 	libmaus2/lcs/DalignerNP.cpp \
 	libmaus2/aio/OutputStreamInstance.cpp \
-	libmaus2/aio/OutputStreamFactoryContainer.cpp
+	libmaus2/aio/OutputStreamFactoryContainer.cpp \
+	libmaus2/dazzler/align/TraceBlock.cpp \
+	libmaus2/dazzler/align/ApproximateRun.cpp \
+	libmaus2/suffixsort/BwtMergeBlockSortRequest.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -248,10 +251,13 @@ libmaus2dazzlerdb_includedir=$(includedir)/libmaus2/dazzler/db
 libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/dazzler/db/FastaInfo.hpp libmaus2/dazzler/db/DatabaseFile.hpp libmaus2/dazzler/db/InputBase.hpp \
 	libmaus2/dazzler/db/GetByteCounter.hpp libmaus2/dazzler/db/Read.hpp libmaus2/dazzler/db/OutputBase.hpp \
 	libmaus2/dazzler/db/TrackAnnoInterface.hpp libmaus2/dazzler/db/TrackAnno.hpp \
-	libmaus2/dazzler/db/Track.hpp
+	libmaus2/dazzler/db/Track.hpp libmaus2/dazzler/db/InqualContainer.hpp libmaus2/dazzler/db/PartTrackContainer.hpp \
+	libmaus2/dazzler/db/ReadLRUContainer.hpp
 	
 libmaus2dazzleralign_includedir=$(includedir)/libmaus2/dazzler/align
-libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp
+libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp \
+	libmaus2/dazzler/align/TraceBlock.hpp libmaus2/dazzler/align/TraceBlockVectorCache.hpp libmaus2/dazzler/align/ApproximateRun.hpp \
+	libmaus2/dazzler/align/ApproximateRunPartContainer.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
@@ -909,7 +915,9 @@ libmaus2wavelet_include_HEADERS=\
 	libmaus2/wavelet/Utf8ToImpCompactHuffmanWaveletTree.hpp \
 	libmaus2/wavelet/ImpCompactHuffmanWaveletTree.hpp \
 	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffman.hpp \
-	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp
+	libmaus2/wavelet/ImpExternalWaveletGeneratorCompactHuffmanParallel.hpp \
+	libmaus2/wavelet/RlToHwtBase.hpp \
+	libmaus2/wavelet/RlToHwtTermRequest.hpp
 
 libmaus2huffman_includedir=$(includedir)/libmaus2/huffman
 libmaus2huffman_include_HEADERS=\
@@ -1528,7 +1536,9 @@ libmaus2suffixsort_include_HEADERS=\
 	libmaus2/suffixsort/GapArrayByteDecoderBuffer.hpp \
 	libmaus2/suffixsort/GapArrayByte.hpp \
 	libmaus2/suffixsort/GapArrayByteDecoder.hpp \
-	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp
+	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp \
+	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp \
+	libmaus2/suffixsort/BwtMergeBlockSortRequest.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\

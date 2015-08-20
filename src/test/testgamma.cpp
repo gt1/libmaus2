@@ -721,9 +721,8 @@ void testsparsegammamultimerge()
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
 		libmaus2::aio::OutputStreamInstance COS(fn);
-		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
-		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
-		libmaus2::aio::FileRemoval::removeFile(indexfn);
+		libmaus2::aio::InputOutputStream::unique_ptr_type PindexCIOS(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfn,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,*PindexCIOS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -731,6 +730,9 @@ void testsparsegammamultimerge()
 		SGE.term();
 		
 		SGGF.addFile(fn);
+		
+		PindexCIOS.reset();
+		libmaus2::aio::FileRemoval::removeFile(indexfn);
 	}
 	
 	std::string const ffn = tmpgen.getFileName();
@@ -774,9 +776,9 @@ void testsparsegammamultifilesetmerge()
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
 		libmaus2::aio::OutputStreamInstance COS(fn);
-		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
-		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
-		libmaus2::aio::FileRemoval::removeFile(indexfn);
+		//libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
+		libmaus2::aio::InputOutputStream::unique_ptr_type PindexCIOS(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfn,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,*PindexCIOS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -784,6 +786,9 @@ void testsparsegammamultifilesetmerge()
 		SGE.term();
 		
 		SGGF.addFile(fn);
+
+		PindexCIOS.reset();
+		libmaus2::aio::FileRemoval::removeFile(indexfn);
 	}
 	
 	std::string const ffn = tmpgen.getFileName();
@@ -825,9 +830,9 @@ void testsparsegammamultifilesetmergedense()
 		std::string const fn = tmpgen.getFileName();
 		std::string const indexfn = fn+".idx";
 		libmaus2::aio::OutputStreamInstance COS(fn);
-		libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
-		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,indexCIOS);
-		libmaus2::aio::FileRemoval::removeFile(indexfn);
+		//libmaus2::aio::CheckedInputOutputStream indexCIOS(indexfn);
+		libmaus2::aio::InputOutputStream::unique_ptr_type PindexCIOS(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfn,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+		libmaus2::gamma::SparseGammaGapBlockEncoder SGE(COS,*PindexCIOS);
 		
 		SGE.encode(2*i,i+1);   refM[2*i]   += (i+1);
 		SGE.encode(2*i+2,i+1); refM[2*i+2] += (i+1);
@@ -835,6 +840,9 @@ void testsparsegammamultifilesetmergedense()
 		SGE.term();
 		
 		SGGF.addFile(fn);
+
+		PindexCIOS.reset();
+		libmaus2::aio::FileRemoval::removeFile(indexfn);
 	}
 	
 	uint64_t const maxval = refM.size() ? (refM.rbegin())->first : 0;

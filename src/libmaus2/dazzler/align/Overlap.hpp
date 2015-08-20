@@ -20,6 +20,8 @@
 
 #include <libmaus2/dazzler/align/Path.hpp>
 #include <libmaus2/lcs/Aligner.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
+#include <libmaus2/dazzler/align/TraceBlock.hpp>
 		
 namespace libmaus2
 {
@@ -217,6 +219,38 @@ namespace libmaus2
 
 					return path;
 				}
+
+				static Path computePath(std::vector<TraceBlock> const & V)
+				{
+					Path path;
+					
+					if ( ! V.size() )
+					{
+						path.abpos = 0;
+						path.bbpos = 0;
+						path.aepos = 0;
+						path.bepos = 0;
+						path.diffs = 0;
+						path.tlen = 0;
+					}
+					else
+					{
+						path.abpos = V.front().A.first;
+						path.aepos = V.back().A.second;
+						path.bbpos = V.front().B.first;
+						path.bepos = V.back().B.second;
+						path.diffs = 0;
+						path.tlen = 2*V.size();
+						
+						for ( uint64_t i = 0; i < V.size(); ++i )
+						{
+							path.path.push_back(Path::tracepoint(V[i].err,V[i].B.second-V[i].B.first));
+							path.diffs += V[i].err;
+						}
+					}
+
+					return path;
+				}
 				
 				/**
 				 * compute alignment trace
@@ -276,7 +310,9 @@ namespace libmaus2
 				 **/
 				void fillErrorHistogram(
 					int64_t const tspace, 
-					std::map< uint64_t, std::map<uint64_t,uint64_t> > & H) const
+					std::map< uint64_t, std::map<uint64_t,uint64_t> > & H,
+					int64_t const rlen
+				) const
 				{
 					// current point on A
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
@@ -285,19 +321,36 @@ namespace libmaus2
 										
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
+						// block start on A
+						int32_t const a_i_0 = std::max( a_i, path.abpos );
 						// block end point on A
 						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
 						if ( 
-							(a_i_1 - a_i) == tspace 
-							&&
-							(a_i % tspace == 0)
-							&&
-							(a_i_1 % tspace == 0)
+							(
+								(a_i_1 - a_i_0) == tspace 
+								&&
+								(a_i_0 % tspace == 0)
+								&&
+								(a_i_1 % tspace == 0)
+							)
+							||
+							(
+								a_i_1 == rlen
+							)
 						)
+						{
+							#if 0
+							if ( a_i_0 == path.abpos )
+								std::cerr << "start block" << std::endl;
+							if ( a_i_1 == rlen )
+								std::cerr << "end block" << std::endl;
+							#endif
+								
 							H [ a_i / tspace ][path.path[i].first]++;
+						}
 						
 						// update start points
 						b_i = b_i_1;
@@ -346,6 +399,93 @@ namespace libmaus2
 					
 					return std::pair<uint64_t,uint64_t>(length,errors);
 				}
+				
+				std::vector<TraceBlock> getTraceBlocks(int64_t const tspace) const
+				{
+					// current point on A
+					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					// current point on B
+					int32_t b_i = ( path.bbpos );
+					
+					std::vector < TraceBlock > V;
+															
+					for ( size_t i = 0; i < path.path.size(); ++i )
+					{
+						// block start point on A
+						int32_t const a_i_0 = std::max ( a_i, static_cast<int32_t>(path.abpos) );
+						// block end point on A
+						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
+						// block end point on B
+						int32_t const b_i_1 = b_i + path.path[i].second;
+
+						V.push_back(
+							TraceBlock(
+								std::pair<int64_t,int64_t>(a_i_0,a_i_1),
+								std::pair<int64_t,int64_t>(b_i,b_i_1),
+								path.path[i].first
+							)
+						);
+						
+						// update start points
+						b_i = b_i_1;
+						a_i = a_i_1;
+					}
+					
+					return V;
+				}
+				
+				std::vector<uint64_t> getFullBlocks(int64_t const tspace) const
+				{
+					std::vector<TraceBlock> const TB = getTraceBlocks(tspace);
+					std::vector<uint64_t> B;
+					for ( uint64_t i = 0; i < TB.size(); ++i )
+						if ( 
+							TB[i].A.second - TB[i].A.first == tspace 
+						)
+						{
+							assert ( TB[i].A.first % tspace == 0 );
+							
+							B.push_back(TB[i].A.first / tspace);
+						}
+					return B;
+				}
+								
+				static bool haveOverlappingTraceBlock(std::vector<TraceBlock> const & VA, std::vector<TraceBlock> const & VB)
+				{
+					uint64_t b_low = 0;
+					
+					for ( uint64_t i = 0; i < VA.size(); ++i )
+					{
+						while ( (b_low < VB.size()) && (VB[b_low].A.second <= VA[i].A.first) )
+							++b_low;
+							
+						assert ( (b_low == VB.size()) || (VB[b_low].A.second > VA[i].A.first) );
+
+						uint64_t b_high = b_low;
+						while ( b_high < VB.size() && (VB[b_high].A.first < VA[i].A.second) )
+							++b_high;
+							
+						assert ( (b_high == VB.size()) || (VB[b_high].A.first >= VA[i].A.second) );
+							
+						if ( b_high-b_low )
+						{
+							for ( uint64_t j = b_low; j < b_high; ++j )
+							{
+								assert ( VA[i].overlapsA(VB[j]) );
+								if ( VA[i].overlapsB(VB[j]) )
+									return true;
+							}
+						}						
+					}
+					
+					return false;
+				
+				}
+
+				static bool haveOverlappingTraceBlock(Overlap const & A, Overlap const & B, int64_t const tspace)
+				{
+					return haveOverlappingTraceBlock(A.getTraceBlocks(tspace),B.getTraceBlocks(tspace));
+				}
 
 				/**
 				 * fill number of spanning reads for each sparse trace point on read
@@ -356,31 +496,46 @@ namespace libmaus2
 					int64_t const tspace, 
 					std::map< uint64_t, uint64_t > & H,
 					uint64_t const ethres,
-					uint64_t const cthres
+					uint64_t const cthres,
+					uint64_t const rlen
 				) const
 				{
 					std::vector<uint64_t> M(path.path.size(),std::numeric_limits<uint64_t>::max());
-				
+
+					// id of lowest block in alignment
+					uint64_t const lowblockid = (path.abpos / tspace);
+					// number of blocks
+					uint64_t const numblocks = (rlen+tspace-1)/tspace;
 					// current point on A
-					int32_t a_i = ( path.abpos / tspace ) * tspace;
+					int32_t a_i = lowblockid * tspace;
 					// current point on B
 					int32_t b_i = ( path.bbpos );
 															
 					for ( size_t i = 0; i < path.path.size(); ++i )
 					{
+						// start point on A
+						int32_t const a_i_0 = std::max ( a_i, path.abpos );
 						// block end point on A
 						int32_t const a_i_1 = std::min ( static_cast<int32_t>(a_i + tspace), static_cast<int32_t>(path.aepos) );
 						// block end point on B
 						int32_t const b_i_1 = b_i + path.path[i].second;
 
 						if ( 
-							(a_i_1 - a_i) == tspace 
-							&&
-							(a_i % tspace == 0)
-							&&
-							(a_i_1 % tspace == 0)
-							&&
-							path.path[i].first <= ethres
+							(
+								(a_i_1 - a_i_0) == tspace 
+								&&
+								(a_i_0 % tspace == 0)
+								&&
+								(a_i_1 % tspace == 0)
+								&&
+								path.path[i].first <= ethres
+							)
+							||
+							(
+								(a_i_1 == path.aepos)
+								&&
+								(path.path[i].first <= ethres)
+							)
 						)
 						{
 							M . at ( i ) = path.path[i].first;
@@ -392,12 +547,14 @@ namespace libmaus2
 						a_i = a_i_1;
 					}
 					
+					// number of valid blocks on the right
 					uint64_t numleft = 0;
 					uint64_t numright = 0;
 					for ( uint64_t i = 0; i < M.size(); ++i )
 						if ( M[i] != std::numeric_limits<uint64_t>::max() )
 							numright++;
 
+					// mark all blocks as spanned if we find at least cthres ok blocks left and right of it (at any distance)
 					for ( uint64_t i = 0; i < M.size(); ++i )
 					{
 						bool const below = M[i] != std::numeric_limits<uint64_t>::max();
@@ -405,11 +562,40 @@ namespace libmaus2
 						if ( below )
 							numright -= 1;
 						
-						if ( numleft >= cthres && numright >= cthres )
-							H [ i ] += 1;
+						if ( 
+							(numleft >= cthres && numright >= cthres)
+						)
+							H [ lowblockid + i ] += 1;
 
 						if ( below )
 							numleft += 1;
+					}
+					
+					// mark first cthres blocks as spanned if all first cthres blocks are ok
+					if ( (path.abpos == 0) && M.size() >= 2*cthres )
+					{
+						uint64_t numok = 0;
+						for ( uint64_t i = 0; i < 2*cthres; ++i )
+							if ( M.at(i) != std::numeric_limits<uint64_t>::max() )
+								++numok;
+						if ( numok == 2*cthres )
+						{
+							for ( uint64_t i = 0; i < cthres; ++i )
+								H [ i ] += 1;
+						}
+					}
+					// mark last cthres blocks as spanned if all last 2*cthres blocks are ok
+					if ( (path.aepos == static_cast<int64_t>(rlen)) && M.size() >= 2*cthres )
+					{
+						uint64_t numok = 0;
+						for ( uint64_t i = 0; i < 2*cthres; ++i )
+							if ( M.at(M.size()-i-1) != std::numeric_limits<uint64_t>::max() )
+								++numok;
+						if ( numok == 2*cthres )
+						{
+							for ( uint64_t i = 0; i < cthres; ++i )
+								H [ numblocks - i - 1 ] += 1;
+						}
 					}
 				}
 			};

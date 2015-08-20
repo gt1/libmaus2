@@ -51,16 +51,7 @@ bool libmaus2::fastx::IsFastQ::isFastQ(std::istream & istr)
 
 bool libmaus2::fastx::IsFastQ::isFastQ(std::string const & filename)
 {
-	std::ifstream istr(filename.c_str());
-      
-	if ( ! istr.is_open() )
-	{
-		::libmaus2::exception::LibMausException se;
-		se.getStream() << "libmaus2::fastx::IsFastQ::isFastQ(std::string const &): Unable to open file " << filename;
-		se.finish();
-		throw se;
-	}
-
+	libmaus2::aio::InputStreamInstance istr(filename);
 	return isFastQ(istr);
 }
 

@@ -69,6 +69,19 @@ namespace libmaus2
 				else
 					return 0;
 			}
+
+			std::pair<uint64_t,uint64_t> getMaximumLengthAndInstance() const
+			{
+				if ( L.size() )
+				{
+					uint64_t const * it = std::max_element<uint64_t const *>(L.begin(),L.end());
+					return std::pair<uint64_t,uint64_t>(*it,it-L.begin());
+				}
+				else
+				{
+					return std::pair<uint64_t,uint64_t>(0,0);
+				}
+			}
 			
 			bool hasNext(uint64_t const i) const
 			{

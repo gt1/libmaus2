@@ -28,6 +28,7 @@
 #include <libmaus2/util/GetFileSize.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <libmaus2/aio/FileRemoval.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -476,7 +477,7 @@ namespace libmaus2
 			        idxcomp.reset();
 			        
 			        libmaus2::aio::FileRemoval::removeFile ( idxfilename );
-			        rename ( idxcompfilename.c_str(), idxfilename.c_str() );
+			        libmaus2::aio::OutputStreamFactoryContainer::rename ( idxcompfilename.c_str(), idxfilename.c_str() );
 			}
 
 		};

@@ -15,32 +15,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_AIO_INPUTSTREAMPOINTERWRAPPER_HPP)
-#define LIBMAUS2_AIO_INPUTSTREAMPOINTERWRAPPER_HPP
+#include <libmaus2/dazzler/align/TraceBlock.hpp>
 
-#include <libmaus2/aio/InputStream.hpp>
-
-namespace libmaus2
+std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::TraceBlock const & TB)
 {
-	namespace aio
-	{
-		struct InputStreamPointerWrapper
-		{
-			libmaus2::aio::InputStream::unique_ptr_type ptr;
-			
-			InputStreamPointerWrapper(libmaus2::aio::InputStream::unique_ptr_type rptr)
-			: ptr(UNIQUE_PTR_MOVE(rptr)) {}
-			
-			std::istream & getStreamReference()
-			{
-				return *ptr;
-			}
-			
-			void reset(libmaus2::aio::InputStream::unique_ptr_type tptr)
-			{
-				ptr = UNIQUE_PTR_MOVE(tptr);
-			}
-		};
-	}
+	return out << "TraceBlock(A=[" << TB.A.first << "," << TB.A.second << "),B=[" << TB.B.first << "," << TB.B.second << "),err="<<TB.err <<")";
 }
-#endif

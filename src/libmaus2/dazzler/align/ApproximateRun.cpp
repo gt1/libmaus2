@@ -15,32 +15,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_AIO_INPUTSTREAMPOINTERWRAPPER_HPP)
-#define LIBMAUS2_AIO_INPUTSTREAMPOINTERWRAPPER_HPP
+#include <libmaus2/dazzler/align/ApproximateRun.hpp>
 
-#include <libmaus2/aio/InputStream.hpp>
-
-namespace libmaus2
+std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::ApproximateRun const & AR)
 {
-	namespace aio
-	{
-		struct InputStreamPointerWrapper
-		{
-			libmaus2::aio::InputStream::unique_ptr_type ptr;
-			
-			InputStreamPointerWrapper(libmaus2::aio::InputStream::unique_ptr_type rptr)
-			: ptr(UNIQUE_PTR_MOVE(rptr)) {}
-			
-			std::istream & getStreamReference()
-			{
-				return *ptr;
-			}
-			
-			void reset(libmaus2::aio::InputStream::unique_ptr_type tptr)
-			{
-				ptr = UNIQUE_PTR_MOVE(tptr);
-			}
-		};
-	}
+	out << "ApproximateRun(a_readid=" << AR.a_readid << ",b_readid=" << AR.b_readid
+		<< ",full=(" << AR.full.first << "," << AR.full.second << "),alignment="
+		<< ((AR.approximate_run_alignment == ApproximateRun::approximate_run_alignment_left) ? "left" : "right")
+		<< ",other={";
+	for ( uint64_t i = 0; i < AR.other.size(); ++i )
+		out << AR.other[i] << ((i+1<AR.other.size()) ? "," : "}");
+	out << ")";
+	return out;
 }
-#endif

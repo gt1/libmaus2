@@ -60,6 +60,176 @@ namespace libmaus2
 
 				std::string bpspath;
 				
+				struct PairFirstComparator
+				{
+					bool operator()(upair const & A, upair const & B) const
+					{
+						return A.first < B.first;
+					}
+				};
+
+				struct PairSecondComparator
+				{
+					bool operator()(upair const & A, upair const & B) const
+					{
+						return A.second < B.second;
+					}
+				};
+				
+				uint64_t getBlockForIdUntrimmed(uint64_t const id) const
+				{
+					if ( ! blocks.size() || id >= blocks.back().first )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getBlockForIdUntrimmed(): id " << id << " is out of range" << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+
+					std::vector<upair>::const_iterator it = std::lower_bound(blocks.begin(),blocks.end(),upair(id,0),PairFirstComparator());
+					
+					uint64_t idx;
+					
+					if ( it != blocks.end() && it->first == id )
+						idx = it-blocks.begin();
+					else
+						idx = (it-blocks.begin())-1;
+						
+					assert ( id >= blocks[idx].first );
+					assert ( id < blocks[idx+1].first );
+					
+					// block ids are 1 based
+					return idx + 1;
+				}
+
+				uint64_t getBlockForIdTrimmed(uint64_t const id) const
+				{
+					if ( ! blocks.size() || id >= blocks.back().second )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getBlockForIdTrimmed(): id " << id << " is out of range" << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+
+					std::vector<upair>::const_iterator it = std::lower_bound(blocks.begin(),blocks.end(),upair(0,id),PairSecondComparator());
+					
+					uint64_t idx;
+					
+					if ( it != blocks.end() && it->second == id )
+						idx = it-blocks.begin();
+					else
+						idx = (it-blocks.begin())-1;
+						
+					assert ( id >= blocks[idx].second );
+					assert ( id < blocks[idx+1].second );
+					
+					// block ids are 1 based
+					return idx + 1;
+				}
+				
+				uint64_t getUntrimmedBlockSize(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockSize(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return blocks.back().first;
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockSize(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return blocks[blockid].first - blocks[blockid-1].first;
+				}
+
+				uint64_t getTrimmedBlockSize(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockSize(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return blocks.back().second;
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockSize(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return blocks[blockid].second - blocks[blockid-1].second;
+				}
+
+				std::pair<uint64_t,uint64_t> getUntrimmedBlockInterval(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockInterval(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return std::pair<uint64_t,uint64_t>(blocks.front().first,blocks.back().first);
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getUntrimmedBlockInterval(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return std::pair<uint64_t,uint64_t>(blocks[blockid-1].first,blocks[blockid].first);
+				}
+
+				std::pair<uint64_t,uint64_t> getTrimmedBlockInterval(uint64_t const blockid) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockInterval(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					// no block id given, return whole database
+					if ( ! blockid )
+						return std::pair<uint64_t,uint64_t>(blocks.front().second,blocks.back().second);
+						
+					if ( ! ( blockid < blocks.size() ) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getTrimmedBlockInterval(): invalid block id " << blockid << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return std::pair<uint64_t,uint64_t>(blocks[blockid-1].second,blocks[blockid].second);
+				}
+
+
+				
 				libmaus2::rank::ImpCacheLineRank::unique_ptr_type Ptrim;
 
 				static std::string getPath(std::string const & s)
@@ -777,6 +947,42 @@ namespace libmaus2
 					return s;
 				}
 
+				static std::string getBlockTrackFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname, std::string const & type)
+				{
+					if ( part )
+					{
+						std::ostringstream ostr;
+						ostr << path << "/" << "." << root << "." << part << "." << trackname << "." << type;
+						return ostr.str();
+					}
+					else
+					{
+						std::ostringstream ostr;
+						ostr << path << "/" << "." << root << "." << trackname << "." << type;
+						return ostr.str();
+					}
+				}
+
+				static std::string getBlockTrackAnnoFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname) 
+				{
+					return getBlockTrackFileName(path,root,part,trackname,"anno");
+				}
+
+				static std::string getBlockTrackDataFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname) 
+				{
+					return getBlockTrackFileName(path,root,part,trackname,"data");
+				}
+				
+				std::string getBlockTrackAnnoFileName(std::string const & trackname, int64_t const part) const
+				{
+					return getBlockTrackAnnoFileName(path,root,part,trackname);
+				}
+
+				std::string getBlockTrackDataFileName(std::string const & trackname, int64_t const part) const
+				{
+					return getBlockTrackDataFileName(path,root,part,trackname);
+				}
+
 				static std::string getTrackFileName(std::string const & path, std::string const & root, int64_t const part, std::string const & trackname, std::string const & type)
 				{
 					if ( part )
@@ -813,19 +1019,23 @@ namespace libmaus2
 					return getTrackDataFileName(path,root,part,trackname);
 				}
 
-				Track::unique_ptr_type readTrack(std::string const & trackname) const
-				{				
+				Track::unique_ptr_type readTrack(std::string const & trackname, int64_t const rpart = -1) const
+				{	
+					int64_t const part = (rpart >= 0) ? rpart : this->part;
+
 					bool ispart = false;
 					std::string annoname;
 
 					// check whether annotation/track is specific to this block
 					if ( 
-						this->part &&
-						libmaus2::aio::InputStreamFactoryContainer::tryOpen(this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno" )
+						part &&
+						libmaus2::aio::InputStreamFactoryContainer::tryOpen(
+							this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(part,0) + "." + trackname + ".anno" 
+						)
 					)
 					{
 						ispart = true;
-						annoname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".anno";
+						annoname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(part,0) + "." + trackname + ".anno";
 					}
 					// no, try whole database
 					else
@@ -840,10 +1050,10 @@ namespace libmaus2
 						lme.finish();
 						throw lme;
 					}
-					
+										
 					std::string dataname;
 					if ( ispart )
-						dataname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(this->part,0) + "." + trackname + ".data";
+						dataname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(part,0) + "." + trackname + ".data";
 					else
 						dataname = this->path + "/" + "." + this->root + "." + trackname + ".data";
 					
@@ -865,7 +1075,7 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<unsigned char>::unique_ptr_type Adata;
 					
 					// number of reads in database loaded
-					uint64_t const nreads = this->indexbase.nreads;
+					uint64_t const nreads = (ispart ? tracklen : this->indexbase.nreads);
 					
 					// check whether we have a consistent number of reads
 					if ( static_cast<int64_t>(nreads) != tracklen )
@@ -877,7 +1087,7 @@ namespace libmaus2
 					}
 
 					// if database is part but track is for complete database then seek
-					if ( this->part && ! ispart )
+					if ( part && ! ispart )
 					{
 						if ( this->indexbase.trimmed )
 							anno.seekg(size * this->indexbase.tfirst, std::ios::cur);
