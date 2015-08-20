@@ -1,3 +1,9 @@
+libmaus2 (2.0.45-1) unstable; urgency=medium
+
+  * fix compilation on gcc 4.1.2 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Aug 2015 17:51:13 +0200
+
 libmaus2 (2.0.44-1) unstable; urgency=medium
 
   * use i/o factory classes in SparseGamma related classes 
