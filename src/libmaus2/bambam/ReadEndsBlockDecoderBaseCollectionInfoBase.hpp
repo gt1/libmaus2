@@ -23,6 +23,7 @@
 #include <vector>
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 
 namespace libmaus2
 {
@@ -44,8 +45,8 @@ namespace libmaus2
 			{
 				std::string const mdatafilename =  datafilename + ".moved";
 				std::string const mindexfilename =  indexfilename + ".moved";
-				rename(datafilename.c_str(),mdatafilename.c_str());
-				rename(indexfilename.c_str(),mindexfilename.c_str());
+				libmaus2::aio::OutputStreamFactoryContainer::rename(datafilename.c_str(),mdatafilename.c_str());
+				libmaus2::aio::OutputStreamFactoryContainer::rename(indexfilename.c_str(),mindexfilename.c_str());
 				datafilename = mdatafilename;
 				indexfilename = mindexfilename;
 			}

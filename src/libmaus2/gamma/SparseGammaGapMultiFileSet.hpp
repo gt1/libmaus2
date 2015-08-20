@@ -151,7 +151,7 @@ namespace libmaus2
 						std::ostringstream ostr;
 						ostr << outputfilenameprefix << "_" << std::setw(6) << std::setfill('0') << i;
 						std::string const fn = ostr.str();
-						rename(S.fn[i].c_str(),fn.c_str());
+						libmaus2::aio::OutputStreamFactoryContainer::rename(S.fn[i].c_str(),fn.c_str());
 						fno.push_back(fn);
 					}
 				}
