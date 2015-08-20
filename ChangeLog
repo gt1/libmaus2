@@ -1,3 +1,33 @@
+libmaus2 (2.0.43-1) unstable; urgency=medium
+
+  * replace ::rename calls by libmaus2::aio::OutputStreamFactoryContainer::rename
+  * improve handling of first and last blocks in Overlap class histogram methods
+  * replace rename system call with more general verison in OutputStreamFactoryContainer
+  * improve computation of spanning read histogram in Overlap class
+  * import BwtMergeBlockSortRequest class from BWTB3m
+  * add getAlBits check function in GammaRLDecoder and RLDecoder
+  * imported RlToHwtTermRequest and BwtMergeBlockSortRequestBase classes from BWTB3M
+  * add parallel wavelet tree  from run length coded sequences (import from BWTB3M)
+  * add construct in RLDecoder for API compatibility with GammaRLDecoder
+  * replace read id set with single read id of b read in ApproximateRun
+  * add reset method in InputStreamPointerWrapper
+  * replace assert by exception in KMeans class
+  * add ReadLRUContainer class
+  * add ApproximateRunPartContainer class
+  * generalise k  *means clustering
+  * add bLengthFront/Back in AlignmentTraceContainer
+  * add number of errors in TraceBlock
+  * add TraceBlock vector to Path and vice versa in Overlap class
+  * add InqualContainer class
+  * add ApproximateRun class
+  * add block based track file name construction methods in DatabaseFile
+  * add TraceBlock class
+  * add computation of TraceBlock vector in Overlap class
+  * add method for computing whether two TraceBlock vectors have intersecting blocks
+  * add TraceBlockVectorCache class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 20 Aug 2015 11:32:46 +0200
+
 libmaus2 (2.0.42-1) unstable; urgency=medium
 
   * implement renaming scheme in OutputStreamFactoryContainer 
