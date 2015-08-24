@@ -1,3 +1,9 @@
+libmaus2 (2.0.46-1) unstable; urgency=medium
+
+  * add sse4 compiler flag in .pc file (if --enable-sse4 is given while running configure) 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 24 Aug 2015 09:14:54 +0200
+
 libmaus2 (2.0.45-1) unstable; urgency=medium
 
   * fix compilation on gcc 4.1.2 
