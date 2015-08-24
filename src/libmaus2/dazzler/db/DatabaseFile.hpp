@@ -785,6 +785,55 @@ namespace libmaus2
 					return R;
 				}
 				
+				uint64_t trimmedToUntrimmed(size_t const i) const
+				{
+					if ( i >= size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::trimmedToUntrimmed: read index " << i << " out of range (not in [" << 0 << "," << size() << "))" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					uint64_t const mappedindex = Ptrim->select1(i);
+
+					return mappedindex;
+				}
+
+				uint64_t untrimmedToTrimmed(size_t const i) const
+				{
+					if ( ! isInTrimmed(i) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::untrimmedToTrimmed: read index " << i << " is not in trimmed database" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					return Ptrim->rank1(i)-1;
+				}
+				
+				bool isInTrimmed(size_t const i) const
+				{
+					if ( ! blocks.size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::isInTrimmed(): blocks vector is empty" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+					
+					if ( i >= blocks.back().first )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::isInTrimmed(): index is out of range" << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+					
+					return (*Ptrim)[i];
+				}
+				
 				void getReadInterval(size_t const low, size_t const high, std::vector<Read> & V) const
 				{
 					V.resize(0);
