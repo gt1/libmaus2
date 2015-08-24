@@ -738,6 +738,14 @@ namespace libmaus2
 					return (ita-fileoffsets.begin());
 				}
 				
+				std::string getReadName(uint64_t const i, Read const & R) const
+				{
+					std::ostringstream ostr;
+					uint64_t const fileid = readIdToFileId(i);
+					ostr << fileinfo[fileid].fastaprolog << '/' << R.origin << '/' << R.fpulse << '_' << R.fpulse + R.rlen;
+					return ostr.str();
+				}
+
 				std::string getReadName(uint64_t const i, std::vector<Read> const & meta) const
 				{
 					std::ostringstream ostr;
