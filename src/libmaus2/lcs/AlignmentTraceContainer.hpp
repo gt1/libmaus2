@@ -276,6 +276,177 @@ namespace libmaus2
 				return
 					(Aapos == Bapos) && (Abpos == Bbpos);
 			}
+
+			static bool a_sync(
+				AlignmentTraceContainer const & A,
+				size_t Aapos,
+				uint64_t & offseta,
+				AlignmentTraceContainer const & B,
+				size_t Bapos,
+				uint64_t & offsetb
+			)
+			{
+				step_type const * Atc = A.ta;
+				step_type const * Btc = B.ta;
+				
+				while ( 
+					(!(Aapos == Bapos)) && (Atc != A.te) && (Btc != B.te)
+				)
+				{
+					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
+				
+					while ( (Atc != A.te) && (Aapos < Bapos) )
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Aapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Aapos += 1;
+								break;
+						}						
+					}
+					while ( (Btc != B.te) && (Bapos < Aapos) )
+					{
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bapos += 1;
+								break;
+							case STEP_INS:
+								break;
+							case STEP_DEL:
+								Bapos += 1;
+								break;
+						}						
+					}					
+				}
+
+				offseta = Atc - A.ta;
+				offsetb = Btc - B.ta;
+				
+				return (Aapos == Bapos);
+			}
+
+			static bool b_sync(
+				AlignmentTraceContainer const & A,
+				size_t Abpos,
+				uint64_t & offseta,
+				AlignmentTraceContainer const & B,
+				size_t Bbpos,
+				uint64_t & offsetb
+			)
+			{
+				step_type const * Atc = A.ta;
+				step_type const * Btc = B.ta;
+				
+				while ( 
+					(!(Abpos == Bbpos)) && (Atc != A.te) && (Btc != B.te)
+				)
+				{
+					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
+				
+					while ( 
+						(Atc != A.te) &&  (Abpos < Bbpos)
+					)
+					{
+						switch ( *(Atc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Abpos += 1;
+								break;
+							case STEP_INS:
+								Abpos += 1;
+								break;
+							case STEP_DEL:
+								break;
+						}						
+					}
+					while ( (Btc != B.te) && (Bbpos < Abpos) )
+					{
+						switch ( *(Btc++) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bbpos += 1;
+								break;
+							case STEP_INS:
+								Bbpos += 1;
+								break;
+							case STEP_DEL:
+								break;
+						}						
+					}					
+				}
+				
+				offseta = Atc - A.ta;
+				offsetb = Btc - B.ta;
+				
+				return (Abpos == Bbpos);
+			}
+
+			static bool b_sync_reverse(
+				AlignmentTraceContainer const & A,
+				size_t Abpos,
+				uint64_t & offseta,
+				AlignmentTraceContainer const & B,
+				size_t Bbpos,
+				uint64_t & offsetb
+			)
+			{
+				step_type const * Atc = A.te;
+				step_type const * Btc = B.te;
+				
+				while ( (!(Abpos == Bbpos)) && (Atc != A.ta) && (Btc != B.ta) )
+				{
+					// std::cerr << Aapos << "," << Abpos << " " << Bapos << "," << Bbpos << std::endl;
+				
+					while ( 
+						(Atc != A.ta) &&  (Abpos > Bbpos)
+					)
+					{
+						switch ( *(--Atc) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Abpos -= 1;
+								break;
+							case STEP_INS:
+								Abpos -= 1;
+								break;
+							case STEP_DEL:
+								break;
+						}						
+					}
+					while ( (Btc != B.ta) && (Bbpos > Abpos) )
+					{
+						switch ( *(--Btc) )
+						{
+							case STEP_MATCH:
+							case STEP_MISMATCH:
+								Bbpos -= 1;
+								break;
+							case STEP_INS:
+								Bbpos -= 1;
+								break;
+							case STEP_DEL:
+								break;
+						}						
+					}					
+				}
+				
+				offseta = Atc - A.ta;
+				offsetb = Btc - B.ta;
+				
+				return (Abpos == Bbpos);
+			}
+
 			
 			std::vector < ClipPair > lowQuality(int const k, unsigned int const thres) const
 			{
@@ -590,16 +761,19 @@ namespace libmaus2
 				
 				return std::pair<step_type const *, step_type const *>(tc,te);
 			}
-			
-			std::pair<uint64_t,uint64_t> suffixPositive(
+
+			template<typename step_type_in_ptr>
+			static std::pair<uint64_t,uint64_t> suffixPositive(
+				step_type_in_ptr & ta,
+				step_type_in_ptr & te,
 				int64_t const match_score    = gain_match,
 				int64_t const mismatch_score = penalty_subst,
 				int64_t const ins_score      = penalty_ins,
 				int64_t const del_score      = penalty_del
 			)
 			{
-				step_type * tc = te;
-				step_type * tne = te;
+				step_type_in_ptr tc = te;
+				step_type_in_ptr tne = te;
 				
 				int64_t score = 0;
 				while ( tc != ta )
@@ -651,6 +825,17 @@ namespace libmaus2
 				
 				return std::pair<uint64_t,uint64_t>(rema,remb);				
 			}
+			
+			std::pair<uint64_t,uint64_t> suffixPositive(
+				int64_t const match_score    = gain_match,
+				int64_t const mismatch_score = penalty_subst,
+				int64_t const ins_score      = penalty_ins,
+				int64_t const del_score      = penalty_del
+			)
+			{
+				return suffixPositive(ta,te,match_score,mismatch_score,ins_score,del_score);
+			}
+
 			
 			void push(AlignmentTraceContainer const & O)
 			{
