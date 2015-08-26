@@ -67,7 +67,15 @@ namespace libmaus2
 					putLittleEndianInteger4(out,tspace,offset);
 					return offset;
 				}
-				
+
+				static uint64_t serialiseHeader(std::ostream & out, int64_t const novl, int32_t const tspace)
+				{
+					uint64_t offset = 0;
+					putLittleEndianInteger8(out,novl,offset);
+					putLittleEndianInteger4(out,tspace,offset);
+					return offset;
+				}
+
 				AlignmentFile()
 				: putbackslotactive(false)
 				{
