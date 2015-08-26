@@ -886,6 +886,10 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
 	libmaus2/rank/FastRank.hpp \
 	libmaus2/rank/BSwapBase.hpp
+
+libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
+libmaus2geometry_include_HEADERS=\
+	libmaus2/geometry/RangeSet.hpp
 	
 libmaus2select_includedir=$(includedir)/libmaus2/select
 libmaus2select_include_HEADERS=\
