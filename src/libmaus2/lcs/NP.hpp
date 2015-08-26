@@ -51,7 +51,7 @@ namespace libmaus2
 
 			libmaus2::autoarray::AutoArray<NPElement> DE;
 			libmaus2::autoarray::AutoArray<NPElement> DO;
-			libmaus2::autoarray::AutoArray<TraceElement> trace;
+			libmaus2::autoarray::AutoArray<TraceElement,libmaus2::autoarray::alloc_type_c> trace;
 			
 			template<typename iter_a, typename iter_b, bool neg>
 			static inline int slide(iter_a a, iter_a const ae, iter_b b, iter_a const be, int const offset)
@@ -185,7 +185,14 @@ namespace libmaus2
 				for ( ; DP[fdiag].offset != fdiagoff; ++d )
 				{
 					if ( trace.size() < (d+1)*numdiag )
-						trace.resize((d+1)*numdiag);
+					{
+						static uint64_t const cnt = 11;
+						static uint64_t const div = 10;
+						uint64_t const mult = (trace.size() * cnt) / div;
+						uint64_t const reqsize = (d+1)*numdiag;
+						uint64_t const newsize = std::max(mult,reqsize);
+						trace.resize(newsize);
+					}
 
 					iter_a aa = a;
 					iter_b bb = b + d;
