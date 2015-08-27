@@ -1,3 +1,17 @@
+libmaus2 (2.0.47-1) unstable; urgency=medium
+
+  * only add sse4 flag in .pc file if --enable-sse4 is used during configure
+  * add static serialiseHeader method in AlignmentFile class
+  * avoid quadratic runtime due to memory reallocation/copying in NP aligner class
+  * add step_type typedefs in PenalyBase class
+  * add a_sync, b_sync and b_sync_reverse methods in AlignmentTraceContainer class
+  * fix suffixPositive method to actually set the computed trace points in AlignmentTraceContainer class
+  * add RangeSet class
+  * add SatsContainer class in Makefile
+  * add some helper methods in DatabaseFile
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 27 Aug 2015 09:38:49 +0200
+
 libmaus2 (2.0.46-1) unstable; urgency=medium
 
   * add sse4 compiler flag in .pc file (if --enable-sse4 is given while running configure) 
