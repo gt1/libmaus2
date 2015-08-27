@@ -100,6 +100,63 @@ namespace libmaus2
 				}
 			}
 
+			void erase(element_type const & elem)
+			{
+				typedef std::pair<uint64_t,uint64_t> upair;
+				typedef std::pair<int,upair> q_element;
+				
+				std::deque< q_element > todo; 
+				
+				if ( elem.getTo() > elem.getFrom() )
+				{
+					todo.push_back(q_element(k,upair(elem.getFrom(),elem.getTo())));
+			
+					while ( todo.size() )
+					{
+						q_element q = todo.front();
+						todo.pop_front();
+						
+						int const level = k-q.first;
+
+						uint64_t const basebin = (1ull << level)-1;
+						uint64_t const div = (1ull<<(q.first+1));
+						
+						uint64_t const mask = (q.first >= 0) ? (1<<q.first) : 0;
+
+						uint64_t const low = q.second.first;
+						uint64_t const high = q.second.second;
+						uint64_t const bin = basebin + low/div;
+
+						// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
+						
+						assert ( high > low );
+						
+						bool const cross = ((high-1)&mask) != (low & mask);
+						
+						if ( cross || q.first < 0 )
+						{
+							if ( bins.find(bin) != bins.end() )
+							{
+								std::vector<element_type> & V = bins.find(bin)->second;
+								
+								uint64_t o = 0;
+								for ( uint64_t i = 0; i < V.size(); ++i )
+									if ( !(V[i] == elem) )
+										V[o++] = V[i];
+								
+								V.resize(o);
+							}
+							break;
+						}
+						else
+						{
+							assert ( q.first >= 0 );
+							todo.push_back(q_element(q.first-1,upair(low,high)));
+						}
+					}
+				}
+			}
+
 			std::vector<element_type const *> search(element_type const & elem) const
 			{
 				std::vector<element_type const *> R;
