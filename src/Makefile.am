@@ -252,12 +252,14 @@ libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/
 	libmaus2/dazzler/db/GetByteCounter.hpp libmaus2/dazzler/db/Read.hpp libmaus2/dazzler/db/OutputBase.hpp \
 	libmaus2/dazzler/db/TrackAnnoInterface.hpp libmaus2/dazzler/db/TrackAnno.hpp \
 	libmaus2/dazzler/db/Track.hpp libmaus2/dazzler/db/InqualContainer.hpp libmaus2/dazzler/db/PartTrackContainer.hpp \
-	libmaus2/dazzler/db/ReadLRUContainer.hpp
+	libmaus2/dazzler/db/ReadLRUContainer.hpp libmaus2/dazzler/db/SatsContainer.hpp
 	
 libmaus2dazzleralign_includedir=$(includedir)/libmaus2/dazzler/align
 libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp \
 	libmaus2/dazzler/align/TraceBlock.hpp libmaus2/dazzler/align/TraceBlockVectorCache.hpp libmaus2/dazzler/align/ApproximateRun.hpp \
-	libmaus2/dazzler/align/ApproximateRunPartContainer.hpp
+	libmaus2/dazzler/align/ApproximateRunPartContainer.hpp libmaus2/dazzler/align/SortingOverlapOutputBuffer.hpp \
+	libmaus2/dazzler/align/OverlapHeapComparator.hpp libmaus2/dazzler/align/SortingOverlapBlockInput.hpp \
+	libmaus2/dazzler/align/SortingOverlapOutputBufferMerger.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
@@ -886,6 +888,10 @@ libmaus2rank_include_HEADERS=\
 	libmaus2/rank/RunLengthBitVectorGeneratorGammaBase.hpp \
 	libmaus2/rank/FastRank.hpp \
 	libmaus2/rank/BSwapBase.hpp
+
+libmaus2geometry_includedir=$(includedir)/libmaus2/geometry
+libmaus2geometry_include_HEADERS=\
+	libmaus2/geometry/RangeSet.hpp
 	
 libmaus2select_includedir=$(includedir)/libmaus2/select
 libmaus2select_include_HEADERS=\

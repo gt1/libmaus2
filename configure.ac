@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.46,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:46:0
+AC_INIT(libmaus2,2.0.49,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:49:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -1924,6 +1924,7 @@ if test "${sse4}" = "yes" ; then
 		LIBMAUSCXXFLAGS="${LIBMAUSCXXFLAGS} -msse4"
 		LIBMAUSCFLAGS="${LIBMAUSCFLAGS} -msse4"
 		LIBMAUSCPPFLAGS="${LIBMAUSCPPFLAGS}"
+		PKGSSE4="${MSSE4}"
 	fi
 fi
 
@@ -3333,4 +3334,5 @@ AC_SUBST([LIBMAUS2_HAVE_DALIGNER])
 AC_SUBST([DALIGNERCPPFLAGS])
 AC_SUBST([DALIGNERLDFLAGS])
 AC_SUBST([DALIGNERLIBS])
+AC_SUBST([PKGSSE4])
 AC_OUTPUT(Makefile src/Makefile libmaus2.pc libmaus2digests.pc libmaus2lsf.pc libmaus2irods.pc libmaus2seqchksumsfactory.pc ubuntu.sh src/libmaus2/LibMausConfig.hpp)
