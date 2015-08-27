@@ -28,6 +28,9 @@ namespace libmaus2
 		{
 			struct AlignmentFile : public libmaus2::dazzler::db::InputBase, public libmaus2::dazzler::db::OutputBase
 			{
+				typedef AlignmentFile this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			
 				static uint8_t const TRACE_XOVR = 125;
 			
 				int64_t novl; // number of overlaps
@@ -39,6 +42,14 @@ namespace libmaus2
 				
 				Overlap putbackslot;
 				bool putbackslotactive;
+				
+				static bool tspaceToSmall(int64_t const tspace)
+				{				
+					if ( tspace <= TRACE_XOVR )
+						return true;
+					else
+						return false;
+				}
 
 				uint64_t deserialise(std::istream & in)
 				{
@@ -109,7 +120,7 @@ namespace libmaus2
 				}
 
 				bool getNextOverlap(std::istream & in, Overlap & OVL, uint64_t & s)
-				{
+				{				
 					if ( putbackslotactive )
 					{
 						OVL = putbackslot;
@@ -118,7 +129,16 @@ namespace libmaus2
 					}
 					if ( alre >= novl )
 						return false;
-				
+						
+					readOverlap(in,OVL,s,small);
+
+					alre += 1;
+
+					return true;
+				}
+
+				static void readOverlap(std::istream & in, Overlap & OVL, uint64_t & s, bool const small)
+				{
 					s += OVL.deserialise(in);
 					OVL.path.path.resize(OVL.path.tlen/2);
 						
@@ -155,11 +175,7 @@ namespace libmaus2
 						}
 						
 						s += OVL.path.tlen << 1;
-					}
-					
-					alre += 1;
-					
-					return true;
+					}					
 				}				
 			};
 		}

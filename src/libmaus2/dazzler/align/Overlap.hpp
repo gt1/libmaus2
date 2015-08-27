@@ -36,6 +36,26 @@ namespace libmaus2
 				int32_t aread;
 				int32_t bread;
 				
+				bool operator<(Overlap const & O) const
+				{
+					if ( aread != O.aread )
+						return aread < O.aread;
+					else if ( bread != O.bread )
+						return bread < O.bread;
+					else if ( isInverse() != O.isInverse() )
+						return !isInverse();
+					else if ( path.abpos != O.path.abpos )
+						return path.abpos < O.path.abpos;
+					else if ( path.aepos != O.path.aepos )
+						return path.aepos < O.path.aepos;
+					else if ( path.bbpos != O.path.bbpos )
+						return path.bbpos < O.path.bbpos;
+					else if ( path.bepos != O.path.bepos )
+						return path.bepos < O.path.bepos;
+					else
+						return false;
+				}
+				
 				// 40
 				
 				uint64_t deserialise(std::istream & in)
