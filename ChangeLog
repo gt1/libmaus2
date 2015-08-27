@@ -1,3 +1,9 @@
+libmaus2 (2.0.48-1) unstable; urgency=medium
+
+  * add dazzler alignment sorting code 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 27 Aug 2015 12:04:29 +0200
+
 libmaus2 (2.0.47-1) unstable; urgency=medium
 
   * only add sse4 flag in .pc file if --enable-sse4 is used during configure
