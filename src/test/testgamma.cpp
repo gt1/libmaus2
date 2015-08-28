@@ -634,20 +634,20 @@ void testSparseGammaGapMergingRandom()
 
 void testSparseGammaGapMergingSmall()
 {
-	uint64_t const A0[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 };
+	uint64_t const AZ[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 };
 	uint64_t const A1[] = { 1,3,50,52,75,77,1000,1002,2000,3000 };
 	uint64_t const A2[] = { 11,13,60,62,82,83 };
 	uint64_t const A3[] = { };
-	uint64_t const *A[] = { &A0[0], &A1[0], &A2[0], &A3[0], 0 };
-	uint64_t const An[] = { sizeof(A0)/sizeof(A0[0]), sizeof(A1)/sizeof(A1[0]), sizeof(A2)/sizeof(A2[0]), sizeof(A3)/sizeof(A3[0]), 0 };
+	uint64_t const *A[] = { &AZ[0], &A1[0], &A2[0], &A3[0], 0 };
+	uint64_t const An[] = { sizeof(AZ)/sizeof(AZ[0]), sizeof(A1)/sizeof(A1[0]), sizeof(A2)/sizeof(A2[0]), sizeof(A3)/sizeof(A3[0]), 0 };
 	
-	uint64_t const B0[] = { 1,6,1,7,21,1,6,6,7,5,43,13,18,24,29,95,86,72,77 };
+	uint64_t const BZ[] = { 1,6,1,7,21,1,6,6,7,5,43,13,18,24,29,95,86,72,77 };
 	uint64_t const B1[] = { 11,13,60,62,82,83 };
 	uint64_t const B2[] = { 1000,1002,1004,1006,1008,1010,1012, 1014, 1017, 1020 };
 	uint64_t const B3[] = { };
 	uint64_t const B4[] = { 1,6,1,7,21,1,6,6,7,4,42,14,16,25,28,100,83,70,75 };
-	uint64_t const *B[] = { &B0[0], &B1[0], &B2[2], &B3[0], &B4[0], 0 };
-	uint64_t const Bn[] = { sizeof(B0)/sizeof(B0[0]), sizeof(B1)/sizeof(B1[0]), sizeof(B2)/sizeof(B2[0]), sizeof(B3)/sizeof(B3[0]), sizeof(B4)/sizeof(B4[0]), 0 };
+	uint64_t const *B[] = { &BZ[0], &B1[0], &B2[2], &B3[0], &B4[0], 0 };
+	uint64_t const Bn[] = { sizeof(BZ)/sizeof(BZ[0]), sizeof(B1)/sizeof(B1[0]), sizeof(B2)/sizeof(B2[0]), sizeof(B3)/sizeof(B3[0]), sizeof(B4)/sizeof(B4[0]), 0 };
 	
 	for ( uint64_t a = 0; A[a]; ++a )
 		for ( uint64_t b = 0; B[b]; ++b )
