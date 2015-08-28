@@ -35,6 +35,36 @@ namespace libmaus2
 				int64_t aepos;
 				int64_t bbpos;
 				int64_t bepos;
+
+				bool operator<(OverlapMeta const & O) const
+				{
+					if ( aread != O.aread )
+						return aread < O.aread;
+					else if ( bread != O.bread )
+						return bread < O.bread;
+					else if ( inv != O.inv )
+						return !inv;
+					else if ( abpos != O.abpos )
+						return abpos < O.abpos;
+					else if ( aepos != O.aepos )
+						return aepos < O.aepos;
+					else if ( bbpos != O.bbpos )
+						return bbpos < O.bbpos;
+					else if ( bepos != O.bepos )
+						return bepos < O.bepos;
+					else
+						return false;
+				}
+
+				bool operator!=(OverlapMeta const & O) const
+				{
+					return (*this<O)||(O<*this);
+				}
+
+				bool operator==(OverlapMeta const & O) const
+				{
+					return !(*this!=O);
+				}
 				
 				OverlapMeta() {}
 				OverlapMeta(

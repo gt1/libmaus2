@@ -23,6 +23,9 @@
 #include <libmaus2/dazzler/align/OverlapMeta.hpp>
 #include <libmaus2/dazzler/align/OverlapIndexerBase.hpp>		
 #include <libmaus2/dazzler/align/AlignmentFile.hpp>
+#include <libmaus2/aio/InputStreamFactoryContainer.hpp>
+#include <libmaus2/index/ExternalMemoryIndexDecoder.hpp>
+#include <libmaus2/aio/InputStreamInstance.hpp>
 		
 namespace libmaus2
 {
@@ -57,9 +60,142 @@ namespace libmaus2
 					}
 				}
 				
-				static std::string constructIndex(std::string const & aligns)
+				static std::string getIndexName(std::string const & aligns)
 				{
-					std::string const indexfn = std::string(".") + aligns + ".idx";
+					std::string::size_type const p = aligns.find_last_of('/');
+				
+					if ( p == std::string::npos )
+						return std::string(".") + aligns + std::string(".idx");
+					else
+					{
+						std::string const prefix = aligns.substr(0,p);
+						std::string const suffix = aligns.substr(p+1);
+						return prefix + "/." + suffix + ".idx";
+					}
+				}
+				
+				static bool haveIndex(std::string const & aligns)
+				{
+					return libmaus2::aio::InputStreamFactoryContainer::tryOpen(getIndexName(aligns));
+				}
+				
+				static void openAlignmentFileAtRead(
+					std::string const & aligns,
+					int64_t const aread,
+					libmaus2::aio::InputStreamInstance::unique_ptr_type & Pfile,
+					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type & Palgn
+				)
+				{
+					if ( aread == 0 )
+					{
+						libmaus2::aio::InputStreamInstance::unique_ptr_type Tfile(new libmaus2::aio::InputStreamInstance(aligns));
+						Pfile = UNIQUE_PTR_MOVE(Tfile);
+						libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Talgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
+						Palgn = UNIQUE_PTR_MOVE(Talgn);
+					}
+					else
+					{
+						if ( ! haveIndex(aligns) )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "OverlapIndexer::openAlignmentFileAtRead: index file " << getIndexName(aligns) << " not available" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+						libmaus2::aio::InputStreamInstance::unique_ptr_type Tfile(new libmaus2::aio::InputStreamInstance(aligns));
+						Pfile = UNIQUE_PTR_MOVE(Tfile);
+
+						libmaus2::index::ExternalMemoryIndexDecoder<OverlapMeta,base_level_log,inner_level_log> EMID(getIndexName(aligns));
+						libmaus2::index::ExternalMemoryIndexDecoderFindLargestSmallerResult<OverlapMeta> ER = EMID.findLargestSmaller(OverlapMeta(aread,0,0,0,0,0,0));
+
+						libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Talgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
+						Palgn = UNIQUE_PTR_MOVE(Talgn);
+						
+						Palgn->alre += (ER.blockid << base_level_log);
+						Pfile->clear();
+						Pfile->seekg(ER.P.first);
+						
+						libmaus2::dazzler::align::Overlap OVL;
+						
+						uint64_t ppos = Pfile->tellg();
+						
+						while ( Palgn->peekNextOverlap(*Pfile,OVL) && OVL.aread < aread )
+						{
+							Palgn->getNextOverlap(*Pfile,OVL);
+							ppos = Pfile->tellg();
+						}
+
+						if ( Palgn->putbackslotactive )
+						{
+							Palgn->putbackslotactive = false;
+							assert ( Palgn->alre > 0 );
+							Palgn->alre -= 1;
+						}
+						
+						Pfile->clear();
+						Pfile->seekg(ppos);
+					}
+				}
+				
+				static int64_t getMaximumARead(std::string const & aligns)
+				{
+					if ( ! haveIndex(aligns) )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "OverlapIndexer::getMaximumARead: index file " << getIndexName(aligns) << " not available" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+				
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile(new libmaus2::aio::InputStreamInstance(aligns));
+					
+					libmaus2::index::ExternalMemoryIndexDecoder<OverlapMeta,base_level_log,inner_level_log> EMID(getIndexName(aligns));
+					
+					// empty file?
+					if ( !EMID.size() )
+						return -1;
+					
+					std::pair<uint64_t,uint64_t> const P = EMID[EMID.size()-1];
+					
+					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
+					Palgn->novl -= ((EMID.size()-1) << base_level_log);
+					Pfile->clear();
+					Pfile->seekg(P.first);
+						
+					libmaus2::dazzler::align::Overlap OVL;
+					int64_t aread = -1;
+					while ( Palgn->getNextOverlap(*Pfile,OVL) )
+						aread = OVL.aread;
+						
+					return aread;
+				}
+				
+				static void openAlignmentFileRegion(
+					std::string const & aligns,
+					int64_t afrom, // lower bound, included
+					int64_t ato, // upper bound, not included
+					libmaus2::aio::InputStreamInstance::unique_ptr_type & Pfile,
+					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type & Palgn
+				)
+				{
+					if ( ato < afrom )
+						ato = afrom;
+				
+					openAlignmentFileAtRead(aligns,ato,Pfile,Palgn);
+					
+					int64_t const numabove = Palgn->novl-Palgn->alre; 
+					
+					openAlignmentFileAtRead(aligns,afrom,Pfile,Palgn);
+					
+					if ( Palgn->novl >= numabove )
+						Palgn->novl -= numabove;
+					else
+						Palgn->novl = 0;
+				}
+
+				static std::string constructIndex(std::string const & aligns, std::ostream * verbstr = 0)
+				{
+					std::string const indexfn = getIndexName(aligns);
 					libmaus2::index::ExternalMemoryIndexGenerator<OverlapMeta,base_level_log,inner_level_log> EMIG(indexfn);
 					EMIG.setup();
 
@@ -71,7 +207,7 @@ namespace libmaus2
 					// current a-read id
 					libmaus2::dazzler::align::Overlap OVLprev;
 					bool haveprev = false;
-					int64_t lp = 0;
+					uint64_t lp = 0;
 					std::pair<bool,uint64_t> P;
 
 					// get next overlap                                                                                                                                                                                                                                
@@ -93,7 +229,7 @@ namespace libmaus2
 							}
 						}
 						
-						if ( (lp++ & EMIG.base_index_mask) == 0 )
+						if ( ((lp++) & EMIG.base_index_mask) == 0 )
 						{
 							EMIG.put(
 								OverlapMeta(OVL),
@@ -103,6 +239,11 @@ namespace libmaus2
 					
 						haveprev = true;
 						OVLprev = OVL;
+						
+						if ( verbstr && ((lp & (1024*1024-1)) == 0) )
+						{
+							(*verbstr) << "[V] " << static_cast<double>(lp)/algn.novl << std::endl;
+						}
 					}
 					
 					EMIG.flush();
