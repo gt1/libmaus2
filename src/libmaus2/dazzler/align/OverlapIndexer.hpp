@@ -70,7 +70,7 @@ namespace libmaus2
 
 					// current a-read id
 					libmaus2::dazzler::align::Overlap OVLprev;
-					bool haveprev;
+					bool haveprev = false;
 					int64_t lp = 0;
 					std::pair<bool,uint64_t> P;
 
@@ -84,7 +84,10 @@ namespace libmaus2
 							if ( !ok )
 							{
 								libmaus2::exception::LibMausException lme;
-								lme.getStream() << "file " << aligns << " is not sorted" << std::endl;
+								lme.getStream() << "file " << aligns << " is not sorted" << std::endl
+									<< OVLprev << std::endl
+									<< OVL << std::endl
+									;
 								lme.finish();
 								throw lme;
 							}
