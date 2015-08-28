@@ -1,3 +1,9 @@
+libmaus2 (2.0.51-1) unstable; urgency=medium
+
+  * New upstream version 2.0.51
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 28 Aug 2015 16:54:24 +0200
+
 libmaus2 (2.0.50-1) unstable; urgency=medium
 
   * New upstream version 2.0.50
