@@ -341,6 +341,26 @@ namespace libmaus2
 			}
 			
 			/**
+			 * get value for restarg; the value is parsed as an unsigned number with a unit like
+			 * k=1024, K=1000, m=1024*1024, M=1000*1000, etc.
+			 *
+			 * @param id
+			 * @return value parsed as type
+			 **/
+			template<typename type>
+			type getRestArgValueUnsignedNumeric(uint64_t const id) const
+			{
+				std::ostringstream ostr;
+				ostr << "argument " << id;
+				return parseValueUnsignedNumeric<type>(ostr.str(),getUnparsedRestArg(id));
+			}
+			
+			uint64_t getNumRestArgs() const
+			{
+				return restargs.size();
+			}
+			
+			/**
 			 * check whether a key=value pair is present for key
 			 *
 			 * @param key id of key

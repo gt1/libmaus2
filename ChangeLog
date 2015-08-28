@@ -1,3 +1,14 @@
+libmaus2 (2.0.51-1) unstable; urgency=medium
+
+  * add methods for accessing rest args in ArgInfo class
+  * add equality comparisons in OverlapMeta class
+  * add functions for decoding ranges of alignments in OverlapIndexer (read alignment files from given read id to given read id)
+  * add indexing classes for dazzler alignment files
+  * add AlignmentSplitWriter class for dazzler alignment files
+  * add sortAndMerge method in dazzler alignment sorting class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 28 Aug 2015 16:54:10 +0200
+
 libmaus2 (2.0.50-1) unstable; urgency=medium
 
   * fix compilation on systems defining B0 as a macro 

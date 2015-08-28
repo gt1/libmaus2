@@ -259,7 +259,9 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/TraceBlock.hpp libmaus2/dazzler/align/TraceBlockVectorCache.hpp libmaus2/dazzler/align/ApproximateRun.hpp \
 	libmaus2/dazzler/align/ApproximateRunPartContainer.hpp libmaus2/dazzler/align/SortingOverlapOutputBuffer.hpp \
 	libmaus2/dazzler/align/OverlapHeapComparator.hpp libmaus2/dazzler/align/SortingOverlapBlockInput.hpp \
-	libmaus2/dazzler/align/SortingOverlapOutputBufferMerger.hpp
+	libmaus2/dazzler/align/SortingOverlapOutputBufferMerger.hpp libmaus2/dazzler/align/AlignmentSplitWriter.hpp \
+	libmaus2/dazzler/align/OverlapMeta.hpp libmaus2/dazzler/align/OverlapIndexerBase.hpp \
+	libmaus2/dazzler/align/OverlapIndexer.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
