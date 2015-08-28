@@ -26,8 +26,8 @@
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
+#include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <queue>
-			
 		
 namespace libmaus2
 {
@@ -207,6 +207,48 @@ namespace libmaus2
 						haveprev = true;
 						OVLprev = P.second;
 					}
+				}
+
+				static void sortAndMerge(std::vector<std::string> infilenames, std::string const & outputfilename, std::string const & tmpfilebase, uint64_t const mergefanin = 64)
+				{
+					uint64_t tmpid = 0;
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+					{
+						std::ostringstream fnostr;
+						fnostr << tmpfilebase << "_" << (tmpid++);
+						std::string const fn = fnostr.str();
+						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+						libmaus2::dazzler::align::SortingOverlapOutputBuffer::sortFile(infilenames[i],fn);
+						infilenames[i] = fn;
+					}
+					
+					while ( infilenames.size() > 1 )
+					{
+						std::vector<std::string> ninfilenames;
+						
+						uint64_t const numpack = (infilenames.size() + mergefanin - 1)/mergefanin;
+						
+						for ( uint64_t j = 0; j < numpack; ++j )
+						{
+							uint64_t const low = j * mergefanin;
+							uint64_t const high = std::min(low+mergefanin,static_cast<uint64_t>(infilenames.size()));
+							std::vector<std::string> tomerge(infilenames.begin()+low,infilenames.begin()+high);
+							std::ostringstream fnostr;
+							fnostr << tmpfilebase << "_" << (tmpid++);
+							std::string const fn = fnostr.str();
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::dazzler::align::SortingOverlapOutputBuffer::mergeFiles(tomerge,fn);
+							ninfilenames.push_back(fn);
+							for ( uint64_t i = low; i < high; ++i )
+								libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
+						}
+						
+						infilenames = ninfilenames;
+					}
+					
+					assert ( infilenames.size() == 1 );
+
+					libmaus2::aio::OutputStreamFactoryContainer::rename(infilenames[0],outputfilename);				
 				}
 			};
 		}
