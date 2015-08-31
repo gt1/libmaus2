@@ -145,8 +145,6 @@ namespace libmaus2
 				
 					if ( PEMIG )
 					{
-						std::cerr << "flushing emig" << std::endl;
-					
 						PEMIG->flush();
 						PEMIG.reset();
 					}
