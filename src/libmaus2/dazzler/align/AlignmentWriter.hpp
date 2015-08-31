@@ -74,7 +74,7 @@ namespace libmaus2
 					if ( IOSI )
 					{
 						indexer_type::unique_ptr_type Tptr(new indexer_type(*IOSI));
-						Pptr = UNIQUE_PTR_MOVE(Pptr);
+						Pptr = UNIQUE_PTR_MOVE(Tptr);
 					}				
 					
 					return UNIQUE_PTR_MOVE(Pptr);
@@ -87,6 +87,42 @@ namespace libmaus2
 				  DOSI(*PDOSI),
 				  PIOSI(openIndexStream(ifn,createindex)),
 				  PEMIG(creatIndexer(PIOSI.get())),
+				  tspace(rtspace),
+				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
+				  novlexptd(rnovlexptd),
+				  novl(0),
+				  dpos(0)
+				{
+					if ( PEMIG )
+						PEMIG->setup();
+					dpos += libmaus2::dazzler::align::AlignmentFile::serialiseHeader(DOSI,novlexptd,tspace);					
+				}
+
+				AlignmentWriter(std::ostream & rDOSI, int64_t const rtspace, uint64_t const rnovlexptd = 0)
+				: fn(), 
+				  ifn(),
+				  PDOSI(),
+				  DOSI(rDOSI),
+				  PIOSI(),
+				  PEMIG(creatIndexer(PIOSI.get())),
+				  tspace(rtspace),
+				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
+				  novlexptd(rnovlexptd),
+				  novl(0),
+				  dpos(0)
+				{
+					if ( PEMIG )
+						PEMIG->setup();
+					dpos += libmaus2::dazzler::align::AlignmentFile::serialiseHeader(DOSI,novlexptd,tspace);
+				}
+
+				AlignmentWriter(std::ostream & rDOSI, std::iostream & indexstream, int64_t const rtspace, uint64_t const rnovlexptd = 0)
+				: fn(), 
+				  ifn(),
+				  PDOSI(),
+				  DOSI(rDOSI),
+				  PIOSI(),
+				  PEMIG(creatIndexer(&indexstream)),
 				  tspace(rtspace),
 				  small(libmaus2::dazzler::align::AlignmentFile::tspaceToSmall(tspace)),
 				  novlexptd(rnovlexptd),
@@ -109,6 +145,8 @@ namespace libmaus2
 				
 					if ( PEMIG )
 					{
+						std::cerr << "flushing emig" << std::endl;
+					
 						PEMIG->flush();
 						PEMIG.reset();
 					}
