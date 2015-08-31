@@ -1,3 +1,10 @@
+libmaus2 (2.0.52-1) unstable; urgency=medium
+
+  * add AlignmentWriter class
+  * enable .las file indexing while sorting/merging .las files 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 31 Aug 2015 10:06:35 +0200
+
 libmaus2 (2.0.51-1) unstable; urgency=medium
 
   * add methods for accessing rest args in ArgInfo class
