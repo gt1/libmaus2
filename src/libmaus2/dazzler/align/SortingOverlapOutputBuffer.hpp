@@ -27,6 +27,7 @@
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
+#include <libmaus2/dazzler/align/AlignmentWriter.hpp>
 #include <queue>
 		
 namespace libmaus2
@@ -91,10 +92,11 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(tptr);
 				}
 				
-				void mergeToFile(std::ostream & out, int64_t const tspace)
+				void mergeToFile(std::ostream & out, std::iostream & indexstream, int64_t const tspace)
 				{
 					SortingOverlapOutputBufferMerger::unique_ptr_type merger(getMerger());
-					libmaus2::dazzler::align::AlignmentFile::serialiseHeader(out,0/*novl*/,tspace);
+					
+					libmaus2::dazzler::align::AlignmentWriter writer(out,indexstream,tspace);					
 					libmaus2::dazzler::align::Overlap NOVL;
 					uint64_t novl = 0;
 					
@@ -109,23 +111,20 @@ namespace libmaus2
 							assert ( ok );
 						}
 					
-						NOVL.serialiseWithPath(out,small);
+						writer.put(NOVL);
 						novl += 1;
 						
 						haveprev = true;
 						OVLprev = NOVL;
 					}
-					
-					out.clear();
-					out.seekp(0,std::ios::beg);
-					uint64_t offset = 0;
-					libmaus2::dazzler::db::OutputBase::putLittleEndianInteger8(out,novl,offset);                                        
 				}
 
 				void mergeToFile(std::string const & filename, int64_t const tspace)
 				{
+					std::string const indexfilename = libmaus2::dazzler::align::OverlapIndexer::getIndexName(filename);
 					libmaus2::aio::OutputStreamInstance OSI(filename);
-					mergeToFile(OSI,tspace);
+					libmaus2::aio::InputOutputStream::unique_ptr_type Pindexstream(libmaus2::aio::InputOutputStreamFactoryContainer::constructUnique(indexfilename,std::ios::in|std::ios::out|std::ios::trunc|std::ios::binary));
+					mergeToFile(OSI,*Pindexstream,tspace);
 				}
 				
 				static void sortFile(std::string const & infilename, std::string const & outfilename, uint64_t const n = 64*1024, std::string tmpfilename = std::string())
@@ -180,10 +179,8 @@ namespace libmaus2
 							
 						novl += AF[i]->novl;
 					}
-							
-					libmaus2::aio::OutputStreamInstance OSI(outfilename);
-
-					libmaus2::dazzler::align::AlignmentFile::serialiseHeader(OSI,novl,(tspace < 0) ? 0 : tspace);
+					
+					libmaus2::dazzler::align::AlignmentWriter AW(outfilename,(tspace < 0) ? 0 : tspace,true /* create index */,novl);	
 					
 					bool haveprev = false;
 					libmaus2::dazzler::align::Overlap OVLprev;
@@ -198,8 +195,8 @@ namespace libmaus2
 							bool const ok = !(P.second < OVLprev);
 							assert ( ok );
 						}
-						
-						P.second.serialiseWithPath(OSI, AF[P.first]->small);
+					
+						AW.put(P.second);	
 
 						if ( AF[P.first]->getNextOverlap(*(AISI[P.first]),OVL) )
 							Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(P.first,OVL));
@@ -218,6 +215,7 @@ namespace libmaus2
 						fnostr << tmpfilebase << "_" << (tmpid++);
 						std::string const fn = fnostr.str();
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+						libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
 						libmaus2::dazzler::align::SortingOverlapOutputBuffer::sortFile(infilenames[i],fn);
 						infilenames[i] = fn;
 					}
@@ -237,10 +235,14 @@ namespace libmaus2
 							fnostr << tmpfilebase << "_" << (tmpid++);
 							std::string const fn = fnostr.str();
 							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
 							libmaus2::dazzler::align::SortingOverlapOutputBuffer::mergeFiles(tomerge,fn);
 							ninfilenames.push_back(fn);
 							for ( uint64_t i = low; i < high; ++i )
+							{
 								libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
+								libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[i]));
+							}
 						}
 						
 						infilenames = ninfilenames;
@@ -248,7 +250,11 @@ namespace libmaus2
 					
 					assert ( infilenames.size() == 1 );
 
-					libmaus2::aio::OutputStreamFactoryContainer::rename(infilenames[0],outputfilename);				
+					libmaus2::aio::OutputStreamFactoryContainer::rename(infilenames[0],outputfilename);
+					libmaus2::aio::OutputStreamFactoryContainer::rename(
+						libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[0]),
+						libmaus2::dazzler::align::OverlapIndexer::getIndexName(outputfilename)
+					);
 				}
 			};
 		}
