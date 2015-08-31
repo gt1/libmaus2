@@ -169,6 +169,18 @@ namespace libmaus2
 						
 					return aread;
 				}
+
+				static int64_t getMinimumARead(std::string const & aligns)
+				{
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile(new libmaus2::aio::InputStreamInstance(aligns));
+					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn(new libmaus2::dazzler::align::AlignmentFile(*Pfile));
+					libmaus2::dazzler::align::Overlap OVL;
+					int64_t aread = -1;
+					if ( Palgn->getNextOverlap(*Pfile,OVL) )
+						aread = OVL.aread;
+						
+					return aread;
+				}
 				
 				static void openAlignmentFileRegion(
 					std::string const & aligns,
