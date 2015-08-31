@@ -31,6 +31,10 @@ namespace libmaus2
 		{
 			struct AlignmentWriter : public libmaus2::dazzler::align::OverlapIndexerBase
 			{
+				typedef AlignmentWriter this_type;
+				typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+				typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
+			
 				// output file name
 				std::string const fn;
 				// index file name
@@ -145,8 +149,6 @@ namespace libmaus2
 				
 					if ( PEMIG )
 					{
-						std::cerr << "flushing emig" << std::endl;
-					
 						PEMIG->flush();
 						PEMIG.reset();
 					}

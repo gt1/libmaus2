@@ -1546,7 +1546,8 @@ libmaus2suffixsort_include_HEADERS=\
 	libmaus2/suffixsort/GapArrayByteDecoder.hpp \
 	libmaus2/suffixsort/GapArrayByteOverflowKeyAccessor.hpp \
 	libmaus2/suffixsort/BwtMergeBlockSortRequestBase.hpp \
-	libmaus2/suffixsort/BwtMergeBlockSortRequest.hpp
+	libmaus2/suffixsort/BwtMergeBlockSortRequest.hpp \
+	libmaus2/suffixsort/SmallestRotation.hpp
 
 libmaus2suffixtree_includedir=$(includedir)/libmaus2/suffixtree
 libmaus2suffixtree_include_HEADERS=\

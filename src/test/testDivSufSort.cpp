@@ -33,6 +33,8 @@
 #include <libmaus2/util/MemTempFileContainer.hpp>
 #include <libmaus2/util/FileTempFileContainer.hpp>
 
+#include <libmaus2/suffixsort/SmallestRotation.hpp>
+
 void testBin()
 {
 	for ( uint64_t n = 1; n <= 14; ++n )
@@ -197,7 +199,6 @@ void testTempFileContainer()
 
 int main(int argc, char * argv[])
 {
-
 	testBin();
 
 	if ( argc < 2 )
