@@ -1,3 +1,10 @@
+libmaus2 (2.0.53-1) unstable; urgency=medium
+
+  * adding getMinimumARead method in OverlapIndexer class
+  * adding method for computing the smallest rotation of a string
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 31 Aug 2015 14:21:06 +0200
+
 libmaus2 (2.0.52-1) unstable; urgency=medium
 
   * add AlignmentWriter class
