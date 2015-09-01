@@ -176,7 +176,32 @@ namespace libmaus2
 						
 						s += OVL.path.tlen << 1;
 					}					
-				}				
+				}
+				
+				static int64_t getTSpace(std::string const & aligns)
+				{
+					libmaus2::aio::InputStreamInstance ISI(aligns);
+					this_type algn(ISI);
+					return algn.tspace;
+				}
+				
+				static int64_t getTSpace(std::vector<std::string> const & Valigns)
+				{
+					if ( ! Valigns.size() )
+						return -1;
+					
+					int64_t const tspace = getTSpace(Valigns[0]);
+					for ( uint64_t i = 1 ; i < Valigns.size(); ++i )
+						if ( getTSpace(Valigns[i]) != tspace )
+						{						
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "AlignmentFile::getTSpace(): tspace is inconsistent across file vector" << std::endl;
+							lme.finish();
+							throw lme;
+						}
+						
+					return tspace;
+				}
 			};
 		}
 	}
