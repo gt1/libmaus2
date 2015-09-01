@@ -116,6 +116,8 @@ namespace libmaus2
 					bepos = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 				}
 			};
+			
+			std::ostream & operator<<(std::ostream & out, OverlapMeta const & OM);
 		}
 	}
 }
