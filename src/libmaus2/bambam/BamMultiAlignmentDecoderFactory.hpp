@@ -57,7 +57,7 @@ namespace libmaus2
 			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				std::vector<libmaus2::bambam::BamAlignmentDecoderInfo> const & BADI,
 				bool const putrank = false,
-				std::istream & stdin = std::cin
+				std::istream & istdin = std::cin
 			)
 			{
 				if ( ! BADI.size() || BADI.size() > 1 )
@@ -68,7 +68,7 @@ namespace libmaus2
 				else
 				{
 					libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-						libmaus2::bambam::BamAlignmentDecoderFactory::construct(BADI[0],putrank,stdin)
+						libmaus2::bambam::BamAlignmentDecoderFactory::construct(BADI[0],putrank,istdin)
 					);
 					return UNIQUE_PTR_MOVE(tptr);
 				}			
@@ -78,7 +78,7 @@ namespace libmaus2
 				libmaus2::util::ArgInfo const & arginfo,
 				bool const putrank = false, 
 				std::ostream * copystr = 0,
-				std::istream & stdin = std::cin
+				std::istream & istdin = std::cin
 			)
 			{
 				std::vector<std::string> const I = arginfo.getPairValues("I");
@@ -89,7 +89,7 @@ namespace libmaus2
 				if ( ! I.size() )
 					V.push_back(libmaus2::bambam::BamAlignmentDecoderInfo::constructInfo(arginfo,"-",false,copystr));
 
-				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,stdin));
+				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(construct(V,putrank,istdin));
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 		};
