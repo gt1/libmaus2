@@ -15,21 +15,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if ! defined(LIBMAUS2_DAZZLER_ALIGN_OVERLAPINDEXBASE_HPP)
-#define LIBMAUS2_DAZZLER_ALIGN_OVERLAPINDEXBASE_HPP
+#include <libmaus2/dazzler/align/OverlapMeta.hpp>
 
-namespace libmaus2
+std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::OverlapMeta const & O)
 {
-	namespace dazzler
-	{
-		namespace align
-		{
-			struct OverlapIndexerBase
-			{
-				static unsigned int const base_level_log = 8;
-				static unsigned int const inner_level_log = 3;			
-			};
-		}
-	}
+	return
+		out << "OverlapMeta("
+			<< "aread=" << O.aread << ","
+			<< "bread=" << O.bread << ","
+			<< "inv=" << O.inv << ","
+			<< "abpos=" << O.abpos << ","
+			<< "aepos=" << O.aepos << ","
+			<< "bbpos=" << O.bbpos << ","
+			<< "bepos=" << O.bepos << ")";
 }
-#endif

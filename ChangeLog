@@ -1,3 +1,26 @@
+libmaus2 (2.0.54-1) unstable; urgency=medium
+
+  * add self alignment avoidance in NP class
+  * add getReadLengthInterval and getAllReadLengths methods in DatabaseFile
+  * add output operator for OverlapMeta class
+  * add getTSpace method in AlignmentFile class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 02 Sep 2015 09:26:09 +0200
+
+libmaus2 (2.0.53-1) unstable; urgency=medium
+
+  * adding getMinimumARead method in OverlapIndexer class
+  * adding method for computing the smallest rotation of a string
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 31 Aug 2015 14:21:06 +0200
+
+libmaus2 (2.0.52-1) unstable; urgency=medium
+
+  * add AlignmentWriter class
+  * enable .las file indexing while sorting/merging .las files 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 31 Aug 2015 10:06:35 +0200
+
 libmaus2 (2.0.51-1) unstable; urgency=medium
 
   * add methods for accessing rest args in ArgInfo class

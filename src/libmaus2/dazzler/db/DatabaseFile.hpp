@@ -862,10 +862,47 @@ namespace libmaus2
 						V[i-low].deserialise(*Pidxfile);
 					}
 				}
+
+				void getReadLengthInterval(size_t const low, size_t const high, std::vector<uint64_t> & V) const
+				{
+					V.resize(0);
+					V.resize(high-low);
+					
+					if ( high-low && high > size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getReadInterval: read index " << high-1 << " out of range (not in [" << 0 << "," << size() << "))" << std::endl;
+						lme.finish();
+						throw lme;					
+					}
+
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					libmaus2::dazzler::db::Read R;
+					
+					for ( size_t i = low; i < high; ++i )
+					{
+						uint64_t const mappedindex = Ptrim->select1(i);
+						
+						if ( 
+							static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) 
+						)
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						
+						R.deserialise(*Pidxfile);
+						V[i-low] = R.rlen;
+					}
+				}
 				
 				void getAllReads(std::vector<Read> & V) const
 				{
 					getReadInterval(0,size(),V);
+				}
+
+				void getAllReadLengths(std::vector<uint64_t> & V) const
+				{
+					getReadLengthInterval(0,size(),V);
 				}
 				
 				void decodeReads(size_t const low, size_t const high, libmaus2::autoarray::AutoArray<char> & A, std::vector<uint64_t> & off) const

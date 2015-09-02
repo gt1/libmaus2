@@ -1082,7 +1082,7 @@ namespace libmaus2
 				return ostr.str();
 			}
 			
-			std::string traceToString()
+			std::string traceToString() const
 			{
 				return traceToString(ta,te);
 			}
