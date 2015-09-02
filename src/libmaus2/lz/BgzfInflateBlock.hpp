@@ -38,7 +38,7 @@ namespace libmaus2
 				bgzfinflateblockstate_decompressed_block
 			};
 		
-			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> data;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_pagesize> data;
 			::libmaus2::lz::BgzfInflateInfo blockinfo;
 			libmaus2::exception::LibMausException::unique_ptr_type ex;
 			bgzfinflateblockstate state;

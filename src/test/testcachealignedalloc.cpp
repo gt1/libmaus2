@@ -38,7 +38,20 @@ void testCacheAlignedAlloc()
 	}
 }
 
+void testPageAlignedAlloc()
+{
+	try
+	{
+		::libmaus2::autoarray::AutoArray<uint64_t,::libmaus2::autoarray::alloc_type_memalign_pagesize> A(5);
+	}
+	catch(std::exception const & ex)
+	{
+		std::cerr << ex.what() << std::endl;
+	}
+}
+
 int main(/*int argc, char * argv[]*/)
 {
 	testCacheAlignedAlloc();
+	testPageAlignedAlloc();
 }
