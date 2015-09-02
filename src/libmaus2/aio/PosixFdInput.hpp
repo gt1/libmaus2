@@ -55,7 +55,7 @@ namespace libmaus2
 			public:
 			static int getDefaultFlags()
 			{
-				#if defined(__APPLE__) || defined(__FreeBSD__)
+				#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
 				return O_RDONLY;
 				#else
 				return O_RDONLY|O_LARGEFILE;
@@ -340,6 +340,7 @@ namespace libmaus2
 			
 			static int64_t getOptimalIOBlockSize(int const fd, std::string const & filename)
 			{
+				#if defined(LIBMAUS2_HAVE_STATFS)
 				struct statfs buf;
 				int r = -1;
 
@@ -374,6 +375,9 @@ namespace libmaus2
 				}
 
 				return buf.f_bsize;
+				#else
+				return -1;
+				#endif
 			}
 		};
 	}
