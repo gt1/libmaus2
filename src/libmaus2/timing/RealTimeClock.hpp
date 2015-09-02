@@ -109,7 +109,7 @@ namespace libmaus2
 			}
 		};
 
-#if defined(__linux) || defined(__FreeBSD__) || defined(__APPLE__)
+#if defined(__linux) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__NetBSD__)
 		typedef uint64_t rtc_u_int64_t;
 
 		struct RealTimeClock : public RealTimeClockBase
