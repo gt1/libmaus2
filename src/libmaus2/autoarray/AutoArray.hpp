@@ -849,6 +849,7 @@ namespace libmaus2
 				std::swap(n,o.n);
 			}
 					
+			private:
 			/**
 			 * @return size of a (level 1) cache line in bytes
 			 **/
@@ -914,7 +915,7 @@ namespace libmaus2
 			}			
 			#endif
 			
-
+			public:
 			/**
 			 * release memory (set size of array to zero)
 			 **/
