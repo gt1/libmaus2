@@ -86,7 +86,16 @@ namespace libmaus2
 			}
 
 			template<typename iter_a, typename iter_b>
-			int np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
+			int np(iter_a const a, iter_a const ae, iter_b const b, iter_b const be, bool const self_check = false)
+			{
+				if ( self_check )
+					return npTemplate<iter_a,iter_b,true>(a,ae,b,be);
+				else
+					return npTemplate<iter_a,iter_b,false>(a,ae,b,be);
+			}
+
+			template<typename iter_a, typename iter_b, bool self_check>
+			int npTemplate(iter_a const a, iter_a const ae, iter_b const b, iter_b const be)
 			{
 				size_t const an = ae-a;
 				size_t const bn = be-b;
@@ -131,84 +140,168 @@ namespace libmaus2
 
 				// how far do we get without an error?
 				{
-					if ( trace.size() < numdiag )
-						trace.resize(numdiag);
+					if ( trace.size() < id+1 )
+						trace.resize(id+1);
 				
-					int const s = slide<iter_a,iter_b,false>(a,ae,b,be,0);
-					DP[0].offset = s;
-					int const nodeid = id++;
-					DP[0].id = nodeid;
-					trace[nodeid].prev = 0;
-					trace[nodeid].slide = s;
-					trace[nodeid].op = trace_op_none;
+					if ( (!self_check) || (a!=b) )
+					{
+						int const s = slide<iter_a,iter_b,false>(a,ae,b,be,0);
+						DP[0].offset = s;
+						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
+						DP[0].id = nodeid;
+						trace[nodeid].prev = 0;
+						trace[nodeid].slide = s;
+						trace[nodeid].op = trace_op_none;
+					}
+					else
+					{
+						DP[0].offset = 0;
+						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
+						DP[0].id = nodeid;
+						trace[nodeid].prev = 0;
+						trace[nodeid].slide = 0;
+						trace[nodeid].op = trace_op_none;
+					}
 				}
 				
 				int d = 1;
 				if ( DP[fdiag].offset != fdiagoff )
 				{
-					if ( trace.size() < (d+1)*numdiag )
-						trace.resize((d+1)*numdiag);
+					if ( trace.size() < id+3 )
+						trace.resize(id+3);
 						
 					{
-						int const p = DP[0].offset;
-						int const s = slide<iter_a,iter_b,true>(a,ae,b+1,be,p);
-						DN[-1].offset = p + s;
-						int const nodeid = id++;
-						DN[-1].id = nodeid;
-						trace[nodeid].prev = DP[0].id;
-						trace[nodeid].slide = s;
-						trace[nodeid].op = trace_op_ins;
+						if ( (!self_check) || (a!=b+1) )
+						{
+							int const p = DP[0].offset;
+							int const s = slide<iter_a,iter_b,true>(a,ae,b+1,be,p);
+							DN[-1].offset = p + s;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[-1].id = nodeid;
+							trace[nodeid].prev = DP[0].id;
+							trace[nodeid].slide = s;
+							trace[nodeid].op = trace_op_ins;
+						}
+						else
+						{
+							DN[-1].offset = -1;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[-1].id = nodeid;
+							trace[nodeid].prev = DP[0].id;
+							trace[nodeid].slide = 0;
+							trace[nodeid].op = trace_op_ins;
+							
+							if ( fdiag == -1 && DP[0].offset == fdiagoff )
+								DN[fdiag].offset = fdiagoff;
+						}
 					}
 					{
-						int const p = DP[0].offset+1;
-						int const s = slide<iter_a,iter_b,false>(a,ae,b,be,p);
-						DN[ 0].offset = p + s;
-						int const nodeid = id++;
-						DN[ 0].id = nodeid;
-						trace[nodeid].prev = DP[0].id;
-						trace[nodeid].slide = s;
-						trace[nodeid].op = trace_op_diag;
+						if ( (!self_check) || (a!=b) )
+						{
+							int const p = DP[0].offset+1;
+							int const s = slide<iter_a,iter_b,false>(a,ae,b,be,p);
+							DN[ 0].offset = p + s;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[ 0].id = nodeid;
+							trace[nodeid].prev = DP[0].id;
+							trace[nodeid].slide = s;
+							trace[nodeid].op = trace_op_diag;
+						}
+						else
+						{
+							DN[ 0].offset = -1;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[ 0].id = nodeid;
+							trace[nodeid].prev = DP[0].id;
+							trace[nodeid].slide = 0;
+							trace[nodeid].op = trace_op_diag;
+
+							if ( fdiag == 0 && DP[0].offset+1 == fdiagoff )
+								DN[fdiag].offset = fdiagoff;
+						}
 					}
 					{
-						int const p = DP[0].offset;
-						int const s = slide<iter_a,iter_b,false>(a+1,ae,b,be,p);
-						DN[ 1].offset = p + s;
-						int const nodeid = id++;
-						DN[ 1].id = nodeid;
-						trace[nodeid].prev = DP[0].id;
-						trace[nodeid].slide = s;
-						trace[nodeid].op = trace_op_del;
+						if ( (!self_check) || (a+1!=b) )
+						{
+							int const p = DP[0].offset;
+							int const s = slide<iter_a,iter_b,false>(a+1,ae,b,be,p);
+							DN[ 1].offset = p + s;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[ 1].id = nodeid;
+							trace[nodeid].prev = DP[0].id;
+							trace[nodeid].slide = s;
+							trace[nodeid].op = trace_op_del;
+						}
+						else
+						{						
+							DN[ 1].offset = -1;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[ 1].id = nodeid;
+							trace[nodeid].prev = DP[0].id;
+							trace[nodeid].slide = 0;
+							trace[nodeid].op = trace_op_del;
+
+							if ( fdiag == 1 && DP[0].offset == fdiagoff )
+								DN[fdiag].offset = fdiagoff;
+						}
 					}
 					d += 1;
 					std::swap(DP,DN);
 				}
 				for ( ; DP[fdiag].offset != fdiagoff; ++d )
 				{
-					if ( trace.size() < (d+1)*numdiag )
+					if ( trace.size() < id + (2*d+1) )
 					{
 						static uint64_t const cnt = 11;
 						static uint64_t const div = 10;
 						uint64_t const mult = (trace.size() * cnt) / div;
-						uint64_t const reqsize = (d+1)*numdiag;
+						uint64_t const reqsize = id + (2*d+1);
 						uint64_t const newsize = std::max(mult,reqsize);
 						trace.resize(newsize);
 					}
-
+										
 					iter_a aa = a;
 					iter_b bb = b + d;
 				
 					{
-						// extend below
-						int const p = DP[-d+1].offset;
-						int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
-						DN[-d].offset   = p + s;
-						bb -= 1;
+						if ( (!self_check) || (aa!=bb) )
+						{
+							// extend below
+							int const p = DP[-d+1].offset;
+							int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
+							DN[-d].offset   = p + s;
 
-						int const nodeid = id++;
-						DN[-d].id = nodeid;
-						trace[nodeid].prev = DP[-d+1].id;
-						trace[nodeid].slide = s;
-						trace[nodeid].op = trace_op_ins;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[-d].id = nodeid;
+							trace[nodeid].prev = DP[-d+1].id;
+							trace[nodeid].slide = s;
+							trace[nodeid].op = trace_op_ins;
+						}
+						else
+						{
+							// extend below
+							DN[-d].offset   = -1;
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[-d].id = nodeid;
+							trace[nodeid].prev = DP[-d+1].id;
+							trace[nodeid].slide = 0;
+							trace[nodeid].op = trace_op_ins;						
+
+							if ( fdiag == -d && DP[-d+1].offset == fdiagoff )
+								DN[fdiag].offset = fdiagoff;
+						}
+
+						bb -= 1;
 					}
 					
 					{
@@ -216,28 +309,54 @@ namespace libmaus2
 						int const diag = DP[-d+1].offset;
 
 						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
 						DN[-d+1].id = nodeid;
 						
-						if ( diag+1 >= top )
+						if ( (!self_check) || (aa!=bb) )
 						{
-							int const p = diag+1;
-							int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p); 
-							DN[-d+1].offset = p + s;
-							trace[nodeid].prev = DP[-d+1].id;
-							trace[nodeid].slide = s;
-							trace[nodeid].op = trace_op_diag;
+							if ( diag+1 >= top )
+							{
+								int const p = diag+1;
+								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p); 
+								DN[-d+1].offset = p + s;
+								trace[nodeid].prev = DP[-d+1].id;
+								trace[nodeid].slide = s;
+								trace[nodeid].op = trace_op_diag;
+							}
+							else
+							{
+								int const p = top;
+								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
+								DN[-d+1].offset = p + s;
+								trace[nodeid].prev = DP[-d+2].id;
+								trace[nodeid].slide = s;
+								trace[nodeid].op = trace_op_ins;
+							}
 						}
 						else
 						{
-							int const p = top;
-							int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
-							DN[-d+1].offset = p + s;
-							trace[nodeid].prev = DP[-d+2].id;
-							trace[nodeid].slide = s;
-							trace[nodeid].op = trace_op_ins;
+							if ( diag+1 >= top )
+							{
+								DN[-d+1].offset = -1;
+								trace[nodeid].prev = DP[-d+1].id;
+								trace[nodeid].slide = 0;
+								trace[nodeid].op = trace_op_diag;
+
+								if ( fdiag == -d+1 && diag+1 == fdiagoff )
+									DN[fdiag].offset = fdiagoff;
+							}
+							else
+							{
+								DN[-d+1].offset = -1;
+								trace[nodeid].prev = DP[-d+2].id;
+								trace[nodeid].slide = 0;
+								trace[nodeid].op = trace_op_ins;
+
+								if ( fdiag == -d+1 && top == fdiagoff )
+									DN[fdiag].offset = fdiagoff;
+							}
 						}
 
-						
 						bb -= 1;
 					}
 
@@ -248,52 +367,105 @@ namespace libmaus2
 						int const top  = DP[di+1].offset;
 
 						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
 						DN[di].id = nodeid;
 						
-						if ( diag >= left )
+						if ( (!self_check) || (aa!=bb) )
 						{
-							if ( diag+1 >= top )
+							if ( diag >= left )
 							{
-								int const p = diag+1;
-								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_diag;
+								if ( diag+1 >= top )
+								{
+									int const p = diag+1;
+									int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_diag;
+								}
+								else
+								{
+									int const p = top;
+									int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_ins;
+								}
 							}
 							else
 							{
-								int const p = top;
-								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di+1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_ins;
+								if ( left+1 >= top )
+								{
+									int const p = left+1;
+									int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di-1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_del;
+								}
+								else
+								{
+									int const p = top;
+									int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_ins;
+								}
 							}
 						}
 						else
 						{
-							if ( left+1 >= top )
+							if ( diag >= left )
 							{
-								int const p = left+1;
-								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di-1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_del;
+								if ( diag+1 >= top )
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_diag;
+									
+									if ( fdiag == di && diag+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
+								else
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_ins;
+
+									if ( fdiag == di && top == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
 							}
 							else
 							{
-								int const p = top;
-								int const s = slide<iter_a,iter_b,true>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di+1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_ins;
+								if ( left+1 >= top )
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di-1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_del;
+
+									if ( fdiag == di && left+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
+								else
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_ins;
+
+									if ( fdiag == di && top == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
 							}
+						
 						}
 
-						
 						bb -= 1;
 					}
 
@@ -303,52 +475,104 @@ namespace libmaus2
 						int const top = DP[1].offset;
 
 						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
 						DN[0].id = nodeid;
 						
-						if ( diag >= left )
+						if ( (!self_check) || (aa!=bb) )
 						{
-							if ( diag >= top )
+							if ( diag >= left )
 							{
-								int const p = diag+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[0].offset = p + s;
-								trace[nodeid].prev = DP[0].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_diag;
+								if ( diag >= top )
+								{
+									int const p = diag+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[0].offset = p + s;
+									trace[nodeid].prev = DP[0].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_diag;
+								}
+								else
+								{
+									int const p = top+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[0].offset = p + s;
+									trace[nodeid].prev = DP[1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_ins;
+								}
 							}
 							else
 							{
-								int const p = top+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[0].offset = p + s;
-								trace[nodeid].prev = DP[1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_ins;
+								if ( left >= top )
+								{
+									int const p = left+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[0].offset = p + s;
+									trace[nodeid].prev = DP[-1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_del;
+								}
+								else
+								{
+									int const p = top+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[0].offset = p + s;
+									trace[nodeid].prev = DP[1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_ins;
+								}
 							}
 						}
 						else
 						{
-							if ( left >= top )
+							if ( diag >= left )
 							{
-								int const p = left+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[0].offset = p + s;
-								trace[nodeid].prev = DP[-1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_del;
+								if ( diag >= top )
+								{
+									DN[0].offset = -1;
+									trace[nodeid].prev = DP[0].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_diag;
+
+									if ( fdiag == 0 && diag+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
+								else
+								{
+									DN[0].offset = -1;
+									trace[nodeid].prev = DP[1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_ins;
+
+									if ( fdiag == 0 && top+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
 							}
 							else
 							{
-								int const p = top+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[0].offset = p + s;
-								trace[nodeid].prev = DP[1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_ins;
+								if ( left >= top )
+								{
+									DN[0].offset = -1;
+									trace[nodeid].prev = DP[-1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_del;
+
+									if ( fdiag == 0 && left+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
+								else
+								{
+									DN[0].offset = -1;
+									trace[nodeid].prev = DP[1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_ins;
+
+									if ( fdiag == 0 && top+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
 							}
 						}
 
-						
 						aa += 1;
 					}
 					
@@ -359,51 +583,103 @@ namespace libmaus2
 						int const top  = DP[di+1].offset;
 
 						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
 						DN[di].id = nodeid;
 						
-						if ( diag+1 >= left )
-						{
-							if ( diag >= top )
+						if ( (!self_check) || (aa!=bb) )
+						{						
+							if ( diag+1 >= left )
 							{
-								int const p = diag+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_diag;
+								if ( diag >= top )
+								{
+									int const p = diag+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_diag;
+								}
+								else
+								{
+									int const p = top+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_ins;
+								}
 							}
 							else
 							{
-								int const p = top+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di+1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_ins;
+								if ( left >= top+1 )
+								{
+									int const p = left;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di-1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_del;
+								}
+								else
+								{
+									int const p = top+1;
+									int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+									DN[di].offset = p + s;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = s;
+									trace[nodeid].op = trace_op_ins;
+								}
 							}
 						}
 						else
 						{
-							if ( left >= top+1 )
+							if ( diag+1 >= left )
 							{
-								int const p = left;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di-1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_del;
+								if ( diag >= top )
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_diag;
+
+									if ( fdiag == di && diag+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
+								else
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_ins;
+
+									if ( fdiag == di && top+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
 							}
 							else
 							{
-								int const p = top+1;
-								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-								DN[di].offset = p + s;
-								trace[nodeid].prev = DP[di+1].id;
-								trace[nodeid].slide = s;
-								trace[nodeid].op = trace_op_ins;
+								if ( left >= top+1 )
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di-1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_del;
+
+									if ( fdiag == di && left == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
+								else
+								{
+									DN[di].offset = -1;
+									trace[nodeid].prev = DP[di+1].id;
+									trace[nodeid].slide = 0;
+									trace[nodeid].op = trace_op_ins;
+
+									if ( fdiag == di && top+1 == fdiagoff )
+										DN[fdiag].offset = fdiagoff;
+								}
 							}
 						}
-						
 						
 						aa += 1;
 					}
@@ -413,41 +689,86 @@ namespace libmaus2
 						int const diag = DP[d-1].offset;
 
 						int const nodeid = id++;
+						assert ( nodeid < trace.size() );
 						DN[d-1].id = nodeid;
 						
-						if ( diag+1 >= left )
-						{
-							int const p = diag+1;
-							int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-							DN[ d-1].offset = p + s;
-							trace[nodeid].prev = DP[d-1].id;
-							trace[nodeid].slide = s;
-							trace[nodeid].op = trace_op_diag;
+						if ( (!self_check) || (aa!=bb) )
+						{						
+							if ( diag+1 >= left )
+							{
+								int const p = diag+1;
+								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+								DN[ d-1].offset = p + s;
+								trace[nodeid].prev = DP[d-1].id;
+								trace[nodeid].slide = s;
+								trace[nodeid].op = trace_op_diag;
+							}
+							else
+							{
+								int const p = left;
+								int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+								DN[ d-1].offset = p + s;
+								trace[nodeid].prev = DP[d-2].id;
+								trace[nodeid].slide = s;
+								trace[nodeid].op = trace_op_del;
+							}
 						}
 						else
 						{
-							int const p = left;
-							int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-							DN[ d-1].offset = p + s;
-							trace[nodeid].prev = DP[d-2].id;
-							trace[nodeid].slide = s;
-							trace[nodeid].op = trace_op_del;
-						}
+							if ( diag+1 >= left )
+							{
+								DN[ d-1].offset = -1;
+								trace[nodeid].prev = DP[d-1].id;
+								trace[nodeid].slide = 0;
+								trace[nodeid].op = trace_op_diag;
+
+								if ( fdiag == d-1 && diag+1 == fdiagoff )
+									DN[fdiag].offset = fdiagoff;
+							}
+							else
+							{
+								DN[ d-1].offset = -1;
+								trace[nodeid].prev = DP[d-2].id;
+								trace[nodeid].slide = 0;
+								trace[nodeid].op = trace_op_del;
+
+								if ( fdiag == d-1 && left == fdiagoff )
+									DN[fdiag].offset = fdiagoff;
+							}
 						
+						}						
 						
 						aa += 1;
 					}
 					
 					{
-						// extend above
-						int const p = DP[ d-1].offset;
-						int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
-						DN[d  ].offset = p + s; 
-						int const nodeid = id++;
-						DN[d].id = nodeid;
-						trace[nodeid].prev = DP[ d-1].id;
-						trace[nodeid].slide = s;
-						trace[nodeid].op = trace_op_del;
+						if ( (!self_check) || (aa!=bb) )
+						{						
+							// extend above
+							int const p = DP[ d-1].offset;
+							int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
+							DN[d  ].offset = p + s; 
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[d].id = nodeid;
+							trace[nodeid].prev = DP[ d-1].id;
+							trace[nodeid].slide = s;
+							trace[nodeid].op = trace_op_del;
+						}
+						else
+						{
+							// extend above
+							DN[d  ].offset = -1; 
+							int const nodeid = id++;
+							assert ( nodeid < trace.size() );
+							DN[d].id = nodeid;
+							trace[nodeid].prev = DP[ d-1].id;
+							trace[nodeid].slide = 0;
+							trace[nodeid].op = trace_op_del;						
+
+							if ( fdiag == d && DP[ d-1].offset == fdiagoff )
+								DN[fdiag].offset = fdiagoff;
+						}
 					}
 					
 					std::swap(DP,DN);
