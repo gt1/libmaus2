@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.54,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:54:0
+AC_INIT(libmaus2,2.0.55,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:55:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -2002,7 +2002,27 @@ if test "${pthread}" = "yes" ; then
 	AC_CHECK_FUNC(pthread_setaffinity_np,pthread_setaffinity_np_func=yes,pthread_setaffinity_np_func=no)
 	AC_CHECK_FUNC(prctl,prctl_func=yes,prctl_func=no)
 	AC_LANG_POP
-
+	
+	if test "${ac_cv_func_pthread_setaffinity_np}" = "yes" ; then
+		AC_LANG_PUSH([C++])
+		CXXFLAGS_SAVE="${CXXFLAGS}"
+		CXXFLAGS="-pthread"
+		AC_MSG_CHECKING([for pthread_setaffinity_np support])
+		AC_TRY_COMPILE([#include <pthread.h>],[
+#if defined(__FreeBSD__) || defined(__NetBSD__)
+typedef cpuset_t cpu_set_t;
+#endif                                                                        
+cpu_set_t cpuset;
+pthread_t thread;
+CPU_ZERO(&cpuset);
+CPU_SET(0,&cpuset);
+pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+		],[ac_cv_func_pthread_setaffinity_np=yes],[ac_cv_func_pthread_setaffinity_np=no])
+		AC_MSG_RESULT([${ac_cv_pthread_setname_np_func}])
+		CXXFLAGS="${CXXFLAGS_SAVE}"
+	AC_LANG_POP
+		
+	fi
 
 	CXXFLAGS="${CXXFLAGS_SAVE}"
 fi
@@ -2037,7 +2057,7 @@ fi
 
 HAVESEMTIMEDWWAIT=
 if [[ "${ac_cv_func_sem_timedwait}" = "yes" ]] ; then
-	HAVESEMPOST="#define LIBMAUS2_HAVE_SEM_TIMEDWAIT"
+	HAVESEMTIMEDWAIT="#define LIBMAUS2_HAVE_SEM_TIMEDWAIT"
 fi
 
 HAVEPTHREADSETNAME_NP=

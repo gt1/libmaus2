@@ -86,23 +86,23 @@ namespace libmaus2
 			
 			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
 				BamAlignmentDecoderInfo const & BADI,
-				std::istream & stdin = std::cin
+				std::istream & istdin = std::cin
 			)
 			{
 				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
-					construct(stdin,BADI.inputfilename,BADI.inputformat,BADI.inputthreads,BADI.reference,BADI.putrank,BADI.copystr,BADI.range)
+					construct(istdin,BADI.inputfilename,BADI.inputformat,BADI.inputthreads,BADI.reference,BADI.putrank,BADI.copystr,BADI.range)
 				);
 				
 				return UNIQUE_PTR_MOVE(tptr);
 			}
 
 			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
-				libmaus2::bambam::BamAlignmentDecoderInfo const & BADI, bool const putrank, std::istream & stdin
+				libmaus2::bambam::BamAlignmentDecoderInfo const & BADI, bool const putrank, std::istream & istdin
 			)
 			{
 				libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 					libmaus2::bambam::BamAlignmentDecoderFactory::construct(
-						stdin,
+						istdin,
 						BADI.inputfilename,
 						BADI.inputformat,
 						BADI.inputthreads,
@@ -116,7 +116,7 @@ namespace libmaus2
 			}
 
 			static libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type construct(
-				std::istream & stdin = std::cin,
+				std::istream & istdin = std::cin,
 				std::string const & inputfilename = BamAlignmentDecoderInfo::getDefaultInputFileName(),
 				std::string const & inputformat = BamAlignmentDecoderInfo::getDefaultInputFormat(),
 				uint64_t const inputthreads = BamAlignmentDecoderInfo::getDefaultThreads(),
@@ -148,7 +148,7 @@ namespace libmaus2
 							else if ( copystr )
 							{
 								libmaus2::aio::InputStream::unique_ptr_type iptr(
-									new libmaus2::aio::InputStream(stdin)
+									new libmaus2::aio::InputStream(istdin)
 								);								
 								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamDecoderWrapper(iptr,*copystr,putrank)
@@ -158,7 +158,7 @@ namespace libmaus2
 							else
 							{
 								libmaus2::aio::InputStream::unique_ptr_type iptr(
-									new libmaus2::aio::InputStream(stdin)
+									new libmaus2::aio::InputStream(istdin)
 								);
 								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamDecoderWrapper(iptr,putrank)
@@ -210,7 +210,7 @@ namespace libmaus2
 						{
 							if ( copystr )
 							{
-								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(stdin));
+								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(istdin));
 								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamParallelDecoderWrapper(iptr,*copystr,inputthreads,putrank)
 								);
@@ -218,7 +218,7 @@ namespace libmaus2
 							}
 							else
 							{
-								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(stdin));
+								libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(istdin));
 								libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 									new BamParallelDecoderWrapper(iptr,inputthreads,putrank)
 								);
@@ -272,7 +272,7 @@ namespace libmaus2
 					
 					if ( inputisstdin )
 					{
-						libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(stdin));
+						libmaus2::aio::InputStream::unique_ptr_type iptr(new libmaus2::aio::InputStream(istdin));
 						libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type tptr(
 							new libmaus2::bambam::SamDecoderWrapper(iptr,putrank)
 						);

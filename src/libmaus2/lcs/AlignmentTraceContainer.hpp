@@ -902,6 +902,115 @@ namespace libmaus2
 				}
 				return score;
 			}
+			
+			static std::vector< std::pair<int64_t,uint64_t> > matchDiagonalHistogram(step_type const * ta, step_type const * te)
+			{
+				std::map<int64_t,uint64_t> M;
+				uint64_t apos = 0, bpos = 0;
+				
+				for ( step_type const * tc = ta; tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							M [ static_cast<int64_t>(apos)-static_cast<int64_t>(bpos) ] += 1;
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+					}
+				}
+				
+				std::vector< std::pair<int64_t,uint64_t> > V;
+				for ( std::map<int64_t,uint64_t>::const_iterator ita = M.begin(); ita != M.end(); ++ita )
+					V.push_back(std::pair<int64_t,uint64_t>(ita->first,ita->second));
+				
+				return V;
+			}
+
+			// compute how many operations we consume when going adv steps forward on a
+			static std::pair<uint64_t,uint64_t> advanceA(step_type const * ta, step_type const * te, uint64_t const adv)
+			{
+				uint64_t apos = 0, bpos = 0;
+				step_type const * tc = ta;
+
+				for ( ; apos < adv && tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+					}
+				}
+
+				return std::pair<uint64_t,uint64_t>(apos,tc-ta);
+			}
+
+			std::pair<uint64_t,uint64_t> advanceA(uint64_t const adv) const
+			{
+				return advanceA(ta,te,adv);
+			}
+
+			// compute how many operations we consume when going adv steps forward on b
+			static std::pair<uint64_t,uint64_t> advanceB(step_type const * ta, step_type const * te, uint64_t const adv)
+			{
+				uint64_t apos = 0, bpos = 0;
+				step_type const * tc = ta;
+
+				for ( ; bpos < adv && tc != te; ++tc )
+				{
+					switch ( *tc )
+					{
+						case STEP_MATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_MISMATCH:
+							apos += 1;
+							bpos += 1;
+							break;
+						case STEP_INS:
+							bpos += 1;
+							break;
+						case STEP_DEL:
+							apos += 1;
+							break;
+					}
+				}
+
+				return std::pair<uint64_t,uint64_t>(bpos,tc-ta);
+			}
+
+			std::pair<uint64_t,uint64_t> advanceB(uint64_t const adv) const
+			{
+				return advanceB(ta,te,adv);
+			}
+			
+			std::vector< std::pair<int64_t,uint64_t> > matchDiagonalHistogram()
+			{
+				return matchDiagonalHistogram(ta,te);
+			}
 						
 			static AlignmentStatistics getAlignmentStatistics(step_type const * ta, step_type const * te)
 			{
