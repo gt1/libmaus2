@@ -129,7 +129,11 @@ namespace libmaus2
 						throw se; 					
 					}
 
+					#if defined(PTHREAD_STACK_MIN)
 					uint64_t const stacksize = std::max(rstacksize,static_cast<uint64_t>(PTHREAD_STACK_MIN));
+					#else
+					uint64_t const stacksize = std::max(rstacksize,static_cast<uint64_t>(64*1024));
+					#endif
 
 					if ( pthread_attr_setstacksize(&attr,stacksize) != 0 )
 					{
