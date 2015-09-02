@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <sys/uio.h>
 #endif
 
