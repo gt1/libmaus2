@@ -200,7 +200,11 @@ namespace libmaus2
 						return false;
 					else
 					{
+						#if defined(__APPLE__)
 						std::cerr << "sem_trywait failed with error " << strerror(errno) << " on semaphore " << semname << std::endl;
+						#else
+						std::cerr << "sem_trywait failed with error " << strerror(errno) << std::endl;
+						#endif
 						throw std::runtime_error("sem_trywait failed on semaphore.");
 					}
 				}   

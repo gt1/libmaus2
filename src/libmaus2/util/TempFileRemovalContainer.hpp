@@ -46,7 +46,7 @@ namespace libmaus2
 	
 		struct SignalHandlerContainer
 		{
-			#if defined(__APPLE__) || defined(__FreeBSD__)
+			#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
 			typedef sig_t sighandler_t;
 			#else
 			typedef ::sighandler_t sighandler_t;
@@ -249,7 +249,7 @@ namespace libmaus2
 	
 		struct TempFileRemovalContainer
 		{
-			#if defined(__APPLE__) || defined(__FreeBSD__)
+			#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
 			typedef sig_t sighandler_t;
 			#else
 			typedef ::sighandler_t sighandler_t;
