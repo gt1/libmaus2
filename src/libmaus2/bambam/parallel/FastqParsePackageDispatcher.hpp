@@ -83,7 +83,7 @@ namespace libmaus2
 					deblock->P = deblock->D.begin();
 					deblock->uncompdatasize = 0;
 
-					libmaus2::fastx::EntityBuffer<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> buffer;
+					libmaus2::fastx::EntityBuffer<uint8_t,libmaus2::bambam::BamAlignment::D_array_alloc_type> buffer;
 					libmaus2::bambam::BamAlignment algn;
 					
 					std::pair<uint8_t *, uint8_t *> Q = block->meta.blocks[data.subid];

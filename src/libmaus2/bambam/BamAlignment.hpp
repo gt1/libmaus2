@@ -46,7 +46,7 @@ namespace libmaus2
 			typedef ::libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			//! memory allocation type of data block
-			static const ::libmaus2::autoarray::alloc_type D_array_alloc_type = ::libmaus2::autoarray::alloc_type_memalign_cacheline;
+			static const ::libmaus2::autoarray::alloc_type D_array_alloc_type = ::libmaus2::autoarray::alloc_type_memalign_pagesize;
 			//! D array type
 			typedef ::libmaus2::autoarray::AutoArray<uint8_t,D_array_alloc_type> D_array_type;
 		

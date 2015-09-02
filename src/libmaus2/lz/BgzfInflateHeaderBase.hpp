@@ -33,7 +33,7 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> header;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_pagesize> header;
 		
 			BgzfInflateHeaderBase()
 			: header(getBgzfHeaderSize(),false)

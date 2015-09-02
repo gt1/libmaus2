@@ -37,7 +37,7 @@ namespace libmaus2
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 
 			// space for compressed input data
-			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_cacheline> block;
+			::libmaus2::autoarray::AutoArray<uint8_t,::libmaus2::autoarray::alloc_type_memalign_pagesize> block;
 
 			BgzfInflateBase()
 			: BgzfInflateHeaderBase(), block(getBgzfMaxBlockSize(),false)

@@ -84,7 +84,7 @@ namespace libmaus2
 		extern ::libmaus2::parallel::OMPLock AutoArray_lock;
 		#endif
 
-		enum alloc_type { alloc_type_cxx = 0, alloc_type_c = 1, alloc_type_memalign_cacheline = 2 };
+		enum alloc_type { alloc_type_cxx = 0, alloc_type_c = 1, alloc_type_memalign_cacheline = 2, alloc_type_memalign_pagesize = 3 };
 		
 		#if defined(AUTOARRAY_TRACE)
 		template<unsigned int n>
@@ -180,6 +180,26 @@ namespace libmaus2
 		 **/
 		template<typename N>
 		struct AlignedAllocation<N,alloc_type_memalign_cacheline>
+		{
+			/**
+			 * allocate n elements of type N aligned to an address aligned to a multiple of align
+			 * @param n number of elements to allocate
+			 * @param align requested multiplier for address
+			 * @return pointer to allocated memory
+			 **/
+			static N * alignedAllocate(uint64_t const n, uint64_t const align);			
+			/**
+			 * free memory allocate through alignedAllocate
+			 * @param alignedp pointer to memory to be freed
+			 **/
+			static void freeAligned(N * alignedp);
+		};
+
+		/**
+		 * class for the allocation of memory: special version for aligned allocation
+		 **/
+		template<typename N>
+		struct AlignedAllocation<N,alloc_type_memalign_pagesize>
 		{
 			/**
 			 * allocate n elements of type N aligned to an address aligned to a multiple of align
@@ -500,6 +520,26 @@ namespace libmaus2
 							#endif
 							break;
 						}
+						case alloc_type_memalign_pagesize:
+						{
+							uint64_t const pagesize = getpagesize();
+							#if defined(_WIN32)
+							array = reinterpret_cast<N *>(_aligned_malloc( n * sizeof(N), pagesize ));
+							if ( ! array )
+								throw std::bad_alloc();
+							#elif defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
+							int r = posix_memalign(reinterpret_cast<void**>(&array),pagesize,n * sizeof(N) );
+							if ( r )
+							{
+								int const aerrno = r;
+								std::cerr << "allocation failure: " << strerror(aerrno) << " pagesize=" << pagesize << " requested size is " << n*sizeof(N) << std::endl;
+								throw std::bad_alloc();
+							}
+							#else
+							array = AlignedAllocation<N,atype>::alignedAllocate(n,pagesize);
+							#endif
+							break;
+						}
 					}
 				}
 				catch(std::bad_alloc const & ex)
@@ -595,6 +635,8 @@ namespace libmaus2
 						return "alloc_type_c";
 					case alloc_type_memalign_cacheline:
 						return "alloc_type_memalign_cacheline";
+					case alloc_type_memalign_pagesize:
+						return "alloc_type_memalign_pagesize";
 					default:
 						return "alloc_type_unknown";
 				}
@@ -777,6 +819,16 @@ namespace libmaus2
 			        GetSystemInfo (&system_info);
 			        return system_info.dwPageSize;
 			}
+			#elif defined(LIBMAUS2_HAVE_UNISTD_H) && defined(_SC_PAGESIZE)
+			static uint64_t getpagesize()
+			{
+				return sysconf(_SC_PAGESIZE);
+			}
+			#elif defined(LIBMAUS2_HAVE_UNISTD_H) && defined(PAGE_SIZE)
+			static uint64_t getpagesize()
+			{
+				return sysconf(PAGE_SIZE);
+			}
 			#else
 			static uint64_t getpagesize()
 			{
@@ -830,6 +882,7 @@ namespace libmaus2
 					}
 					case alloc_type_cxx:
 					case alloc_type_memalign_cacheline:
+					case alloc_type_memalign_pagesize:
 						{
 							this_type C(rn,false);
 							uint64_t const copy = std::min(size(),C.size());
@@ -849,6 +902,7 @@ namespace libmaus2
 				std::swap(n,o.n);
 			}
 					
+			private:
 			/**
 			 * @return size of a (level 1) cache line in bytes
 			 **/
@@ -914,7 +968,7 @@ namespace libmaus2
 			}			
 			#endif
 			
-
+			public:
 			/**
 			 * release memory (set size of array to zero)
 			 **/
@@ -935,6 +989,13 @@ namespace libmaus2
 						free(array);
 						#else
 						AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(array);
+						#endif
+						break;
+					case alloc_type_memalign_pagesize:
+						#if defined(_WIN32) || defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
+						free(array);
+						#else
+						AlignedAllocation<N,alloc_type_memalign_pagesize>::freeAligned(array);
 						#endif
 						break;
 				}
@@ -1598,6 +1659,39 @@ namespace libmaus2
 
 		template<typename N>
 		void AlignedAllocation<N,alloc_type_memalign_cacheline>::freeAligned(N * alignedp)
+		{
+			if ( alignedp )
+				// delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
+				delete [] (
+					(uint8_t **)(alignedp)
+				)[-1];
+		}
+
+		template<typename N>
+		N * AlignedAllocation<N,alloc_type_memalign_pagesize>::alignedAllocate(uint64_t const n, uint64_t const align)
+		{
+			uint64_t const allocbytes = (sizeof(N *) - 1) + align  + n * sizeof(N);
+			uint8_t * const allocp = new uint8_t[ allocbytes ];
+			uint8_t * const alloce = allocp + allocbytes;
+			uint64_t const mod = reinterpret_cast<uint64_t>(allocp) % align;
+
+			uint8_t * alignedp = mod ? (allocp + (align-mod)) : allocp;
+			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
+
+			while ( (alignedp - allocp) < static_cast<ptrdiff_t>(sizeof(N *)) )
+				alignedp += align;
+
+			assert ( reinterpret_cast<uint64_t>(alignedp) % align == 0 );
+			assert ( alloce - alignedp >= static_cast<ptrdiff_t>(n*sizeof(N)) );
+			assert ( alignedp-allocp >= static_cast<ptrdiff_t>(sizeof(uint8_t *)) );
+				
+			(reinterpret_cast<uint8_t **>(alignedp))[-1] = allocp;
+				
+			return reinterpret_cast<N *>(alignedp);		
+		}
+
+		template<typename N>
+		void AlignedAllocation<N,alloc_type_memalign_pagesize>::freeAligned(N * alignedp)
 		{
 			if ( alignedp )
 				// delete [] (reinterpret_cast<uint8_t **>((alignedp)))[-1];
