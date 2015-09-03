@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_AIO_SYNCHRONOUSOUTPUTBUFFER8POSIX_HPP)
 #define LIBMAUS2_AIO_SYNCHRONOUSOUTPUTBUFFER8POSIX_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/aio/AsynchronousWriter.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>

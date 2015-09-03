@@ -45,6 +45,7 @@
 #include <execinfo.h>
 #endif
 
+#include <libmaus2/LibMausConfig.hpp>
 #if defined(LIBMAUS2_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif

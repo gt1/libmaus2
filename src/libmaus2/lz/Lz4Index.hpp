@@ -19,6 +19,11 @@
 #if !defined(LIBMAUS2_LZ_LZ4INDEX_HPP)
 #define LIBMAUS2_LZ_LZ4INDEX_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <istream>
 #include <libmaus2/util/utf8.hpp>
 #include <libmaus2/util/NumberSerialisation.hpp>
