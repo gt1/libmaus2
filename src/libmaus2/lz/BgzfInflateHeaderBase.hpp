@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_LZ_BGZFINFLATEHEADERBASE_HPP)
 #define LIBMAUS2_LZ_BGZFINFLATEHEADERBASE_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <zlib.h>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/lz/BgzfConstants.hpp>

@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_UTIL_ISTREAMWRAPPER_HPP)
 #define LIBMAUS2_UTIL_ISTREAMWRAPPER_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <istream>
 #include <libmaus2/exception/LibMausException.hpp>
 

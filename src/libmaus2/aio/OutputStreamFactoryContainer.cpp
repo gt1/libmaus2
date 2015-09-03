@@ -22,6 +22,11 @@
 #include <libmaus2/aio/InputStreamInstance.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 void libmaus2::aio::OutputStreamFactoryContainer::copy(std::string const & from, std::string const & to)
 {
 	libmaus2::aio::InputStreamInstance in(from);

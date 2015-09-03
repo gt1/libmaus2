@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_AIO_POSIXFDOUTPUTSTREAMBUFFER_HPP)
 #define LIBMAUS2_AIO_POSIXFDOUTPUTSTREAMBUFFER_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <ostream>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/aio/PosixFdInput.hpp>

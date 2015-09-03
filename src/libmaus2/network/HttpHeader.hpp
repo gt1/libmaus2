@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_NETWORK_HTTPHEADER_HPP)
 #define LIBMAUS2_NETWORK_HTTPHEADER_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <libmaus2/network/HttpAbsoluteUrl.hpp>
 #include <libmaus2/network/Socket.hpp>
 #include <libmaus2/network/GnuTLSSocket.hpp>

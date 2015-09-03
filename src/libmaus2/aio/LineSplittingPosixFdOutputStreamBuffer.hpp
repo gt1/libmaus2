@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_AIO_LINESPLITTINGPOSIXFDOUTPUTBUFFER_HPP)
 #define LIBMAUS2_AIO_LINESPLITTINGPOSIXFDOUTPUTBUFFER_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <ostream>
 #include <sstream>
 #include <iomanip>

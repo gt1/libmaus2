@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_FASTX_FASTABPSEQUENCEDECODER_HPP)
 #define LIBMAUS2_FASTX_FASTABPSEQUENCEDECODER_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/bambam/BamAlignmentDecoderBase.hpp>
 #include <libmaus2/fastx/acgtnMap.hpp>

@@ -19,6 +19,11 @@
 
 #include <libmaus2/util/LogPipe.hpp>
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 libmaus2::util::LogPipe::LogPipe(
 	std::string const & serverhostname,
 	unsigned short outport,

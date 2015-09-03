@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERFRAGMENT_HPP)
 #define LIBMAUS2_BAMBAM_PARALLEL_FRAGMENTALIGNMENTBUFFERFRAGMENT_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/bambam/parallel/RefIdInterval.hpp>
 

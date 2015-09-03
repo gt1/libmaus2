@@ -19,6 +19,11 @@
 #if !defined(LIBMAUS2_SORTING_MERGINGREADBACK_HPP)
 #define LIBMAUS2_SORTING_MERGINGREADBACK_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <libmaus2/aio/BufferedOutput.hpp>
 #include <libmaus2/aio/InputStreamFactoryContainer.hpp>
 #include <queue>

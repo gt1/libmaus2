@@ -19,6 +19,11 @@
 
 #include <libmaus2/util/LogPipeMultiplex.hpp>
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 libmaus2::util::LogPipeMultiplex::LogPipeMultiplex(
 	std::string const & serverhostname,
 	unsigned short port,

@@ -18,6 +18,11 @@
 */
 
 #include <libmaus2/util/PosixFileDescriptor.hpp>
+
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
 			
 libmaus2::util::PosixFileDescriptor::PosixFileDescriptor() : fd(-1) {}
 libmaus2::util::PosixFileDescriptor::PosixFileDescriptor(int rfd) : fd(rfd) {}
