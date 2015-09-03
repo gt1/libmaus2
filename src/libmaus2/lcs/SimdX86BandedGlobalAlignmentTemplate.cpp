@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iomanip>
+#include <libmaus2/autoarray/AutoArray.hpp>
 
 static std::ostream & printRegister(std::ostream & out, LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const reg)
 {
@@ -56,23 +57,35 @@ libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::LIBMAUS2_LCS_SIMD_BANDED_CLA
 			
 }
 
+static void alignedFree(void * mem)
+{
+	if ( mem )
+	{
+		#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
+		::free(mem);
+		#else
+		::libmaus2::autoarray::AlignedAllocation<unsigned char,libmaus2::autoarray::alloc_type_memalign_pagesize>::freeAligned(reinterpret_cast<unsigned char *>(mem));
+		#endif
+	}
+}
+
 libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::~LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME()
 {
 	if ( diagmem )
 	{
-		free(diagmem);
+		alignedFree(diagmem);
 		diagmem = 0;
 		diagmemsize = 0;
 	}
 	if ( textmem )
 	{
-		free(textmem);
+		alignedFree(textmem);
 		textmem = 0;
 		textmemsize = 0;
 	}
 	if ( querymem )
 	{
-		free(querymem);
+		alignedFree(querymem);
 		querymem = 0;
 		querymemsize = 0;
 	}
@@ -87,7 +100,8 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::allocateMemory(
 {
 	if ( mem )
 	{
-		free(mem);
+		alignedFree(mem);
+		mem = 0;
 		memsize = 0;
 	}
 
@@ -95,6 +109,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::allocateMemory(
 
 	if ( nsize > memsize )
 	{
+		#if defined(LIBMAUS2_HAVE_POSIX_MEMALIGN)
 		if ( posix_memalign(reinterpret_cast<void **>(&mem),getpagesize(),nsize) != 0 )
 		{
 			libmaus2::exception::LibMausException lme;
@@ -106,6 +121,19 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::allocateMemory(
 		{
 			memsize = nsize;
 		}
+		#else
+		if ( ! (mem = reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE *>(libmaus2::autoarray::AlignedAllocation<unsigned char,libmaus2::autoarray::alloc_type_memalign_pagesize>::alignedAllocate(nsize,getpagesize()))) )
+		{
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "libmaus2::autoarray::AlignedAllocation<unsigned char,libmaus2::autoarray::alloc_type_memalign_pagesize>::alignedAllocate failed to allocate " << nsize << " bytes of memory." << std::endl;
+			lme.finish();
+			throw lme;
+		}
+		else
+		{
+			memsize = nsize;
+		}
+		#endif
 	}
 }
 
