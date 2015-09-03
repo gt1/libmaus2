@@ -25,6 +25,7 @@
 #if defined(LIBMAUS2_HAVE_SYS_TYPES_H)
 #include <sys/types.h>
 #endif
+#include <libmaus2/LibMausConfig.hpp>
 #if defined(LIBMAUS2_HAVE_UNISTD_H)
 #include <unistd.h>
 #endif

@@ -723,7 +723,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 		goto cleanup;		
 	}
 	
-	while ( (ssize_t)errread < (ssize_t)staterr.st_size )
+	while ( static_cast<ssize_t>(errread) < static_cast<ssize_t>(staterr.st_size) )
 	{
 		size_t toread = staterr.st_size - errread;
 		ssize_t const r = ::read(stderrfd,tempmemerr+errread,toread);
@@ -752,7 +752,7 @@ int libmaus2::util::PosixExecute::execute(std::string const & command, std::stri
 			errread += r;
 		}
 	}
-	while ( (ssize_t)outread < (ssize_t)statout.st_size )
+	while ( static_cast<ssize_t>(outread) < static_cast<ssize_t>(statout.st_size) )
 	{
 		size_t toread = statout.st_size - outread;
 		ssize_t const r = ::read(stdoutfd,tempmemout+outread,toread);

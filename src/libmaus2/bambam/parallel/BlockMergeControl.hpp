@@ -19,6 +19,11 @@
 #if ! defined(LIBMAUS2_BAMBAM_PARALLEL_BLOCKMERGECONTROL_HPP)
 #define LIBMAUS2_BAMBAM_PARALLEL_BLOCKMERGECONTROL_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <libmaus2/bambam/ChecksumsInterfaceAllocator.hpp>
 #include <libmaus2/bambam/ChecksumsInterfaceTypeInfo.hpp>
 #include <libmaus2/bambam/parallel/AlignmentBufferAllocator.hpp>

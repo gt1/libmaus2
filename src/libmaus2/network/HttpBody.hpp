@@ -19,6 +19,11 @@
 #if !defined(LIBMAUS2_NETWORK_HTTPBODY_HPP)
 #define LIBMAUS2_NETWORK_HTTPBODY_HPP
 
+#include <libmaus2/LibMausConfig.hpp>
+#if defined(LIBMAUS2_HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
+
 #include <istream>
 #include <cassert>
 #include <libmaus2/exception/LibMausException.hpp>

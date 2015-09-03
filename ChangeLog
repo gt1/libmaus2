@@ -1,3 +1,9 @@
+libmaus2 (2.0.58-1) unstable; urgency=medium
+
+  * make sure we include unistd.h before using ssize_t 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 03 Sep 2015 16:30:55 +0200
+
 libmaus2 (2.0.57-1) unstable; urgency=medium
 
   * fix aligned allocation in case posix_memalign is not available
