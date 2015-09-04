@@ -1,3 +1,9 @@
+libmaus2 (2.0.59-1) unstable; urgency=medium
+
+  * added AutoArrayMultiMap class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 04 Sep 2015 11:12:22 +0200
+
 libmaus2 (2.0.58-1) unstable; urgency=medium
 
   * make sure we include unistd.h before using ssize_t 
