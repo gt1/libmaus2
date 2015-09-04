@@ -265,7 +265,7 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/OverlapIndexer.hpp libmaus2/dazzler/align/AlignmentWriter.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
-libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp
+libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
 
 libmaus2index_includedir=$(includedir)/libmaus2/index/
 libmaus2index_include_HEADERS = libmaus2/index/ExternalMemoryIndexGenerator.hpp \
