@@ -47,18 +47,18 @@ namespace libmaus2
 					int prev = -1;
 					
 					for ( uint64_t i = 0; i < 2*n-1; ++i )
-						if ( SA[i] < n )
+						if ( SA[i] < static_cast<int64_t>(n) )
 						{
-							int l = LCP[i];
-							for ( int j = prev + 1; j < i; ++j )
-								l = std::min(LCP[j],l);
+							int64_t l = LCP[i];
+							for ( int64_t j = prev + 1; j < static_cast<int64_t>(i); ++j )
+								l = std::min(static_cast<int64_t>(LCP[j]),l);
 							LCP[i] = l;
 							prev = i;						
 						}
 					
 					uint64_t o = 0;
 					for ( uint64_t i = 0; i < 2*n-1; ++i )
-						if ( SA[i] < n )
+						if ( SA[i] < static_cast<int64_t>(n) )
 						{
 							LCP[o] = LCP[i];
 							SA[o] = SA[i];
@@ -66,7 +66,7 @@ namespace libmaus2
 						}
 
 					uint64_t j = 1;
-					while ( j < n && LCP[j] >= n )
+					while ( j < n && LCP[j] >= static_cast<int64_t>(n) )
 						++j;
 						
 					return *std::min_element(SA.begin(),SA.begin()+j);

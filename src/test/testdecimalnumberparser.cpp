@@ -21,7 +21,11 @@
 #include <libmaus2/math/DecimalNumberParser.hpp>
 #include <libmaus2/timing/RealTimeClock.hpp>
 
-int main(int argc, char * argv[])
+int main(
+	#if 0
+	int argc, char * argv[]
+	#endif
+)
 {
 	try
 	{
