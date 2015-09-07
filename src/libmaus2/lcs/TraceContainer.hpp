@@ -70,6 +70,8 @@ namespace libmaus2
 						case STEP_DEL:
 							score -= penalty_del;
 							break;
+						case STEP_RESET:
+							break;
 					}
 					
 				int64_t minscore = score;
@@ -90,6 +92,8 @@ namespace libmaus2
 						case STEP_DEL:
 							score += penalty_del;
 							break;
+						case STEP_RESET:
+							break;
 					}
 					switch ( *(cr++) )
 					{
@@ -104,6 +108,8 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							score -= penalty_del;
+							break;
+						case STEP_RESET:
 							break;
 					}
 					
@@ -178,6 +184,9 @@ namespace libmaus2
 						case STEP_DEL:
 							score -= penalty_del;
 							break;
+						case STEP_RESET:
+							score = 0;
+							break;
 					}
 				}
 				return score;
@@ -203,6 +212,9 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							ostr.put('D');
+							break;
+						case STEP_RESET:
+							ostr.put('R');
 							break;
 					}
 				}
@@ -271,6 +283,7 @@ namespace libmaus2
 						case STEP_MISMATCH:
 						case STEP_INS:
 						case STEP_DEL:
+						case STEP_RESET:
 							mat = 0;
 							break;
 						case STEP_MATCH:

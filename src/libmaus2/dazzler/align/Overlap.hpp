@@ -226,6 +226,8 @@ namespace libmaus2
 									++bforw;
 									++err;
 									break;
+								case libmaus2::lcs::AlignmentTraceContainer::STEP_RESET:
+									break;
 							}
 						}
 						

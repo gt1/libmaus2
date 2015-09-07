@@ -46,7 +46,7 @@ namespace libmaus2
 			uint64_t k;
 			uint64_t k21;
 
-			typedef std::pair < similarity_type, step_type > element_type;
+			typedef std::pair < similarity_type, PenaltyConstants::step_type > element_type;
 			libmaus2::autoarray::AutoArray<element_type> M;
 
 			element_type operator()(
@@ -161,7 +161,7 @@ namespace libmaus2
 					
 					p += k;
 					for ( uint64_t i = 0; i < (k+1); ++i )
-						*(p++) = element_type(0,STEP_RESET);
+						*(p++) = element_type(0,PenaltyConstants::STEP_RESET);
 						
 					iterator_a a = aa;
 					iterator_b b = bb;
@@ -178,10 +178,10 @@ namespace libmaus2
 						// top
 						int64_t const psc = q->first-penalty_ins;
 						if ( psc < 0 )
-							*p = element_type(0,STEP_RESET);
+							*p = element_type(0,PenaltyConstants::STEP_RESET);
 						else
 						{
-							*p = element_type(psc,STEP_INS);
+							*p = element_type(psc,PenaltyConstants::STEP_INS);
 							if ( p->first > maxel->first )
 								maxel = p;
 						}
@@ -214,20 +214,20 @@ namespace libmaus2
 									{
 										if ( left >= diag )								
 											// left
-											*p = element_type(left,STEP_DEL);
+											*p = element_type(left,PenaltyConstants::STEP_DEL);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									}
 									// top > left
 									else
 									{
 										if ( top >= diag )
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									}
 									break;
 								case diag_del_ins:
@@ -235,25 +235,25 @@ namespace libmaus2
 									{
 										if ( diag >= top )
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 										else
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 									}
 									else
 									{
 										if ( left >= top )
 											// left
-											*p = element_type(left,STEP_DEL);
+											*p = element_type(left,PenaltyConstants::STEP_DEL);
 										else
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 									}
 									break;
 							}
 							
 							if ( p->first < 0 )
-								*p = element_type(0,STEP_RESET);
+								*p = element_type(0,PenaltyConstants::STEP_RESET);
 							else if ( p->first > maxel->first )
 								maxel = p;
 						}
@@ -280,20 +280,20 @@ namespace libmaus2
 							{
 								case del_ins_diag:
 									if ( left >= diag )							
-										*p = element_type(left,STEP_DEL);
+										*p = element_type(left,PenaltyConstants::STEP_DEL);
 									else
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									break;
 								case diag_del_ins:
 									if ( diag >= left )
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									else
-										*p = element_type(left,STEP_DEL);
+										*p = element_type(left,PenaltyConstants::STEP_DEL);
 									break;
 							}
 							
 							if ( p->first < 0 )
-								*p = element_type(0,STEP_RESET);
+								*p = element_type(0,PenaltyConstants::STEP_RESET);
 							else if ( p->first > maxel->first )
 								maxel = p;
 						}
@@ -326,20 +326,20 @@ namespace libmaus2
 						{
 							case del_ins_diag:
 								if ( af_top >= af_diag )
-									*p = element_type(af_top,STEP_INS);
+									*p = element_type(af_top,PenaltyConstants::STEP_INS);
 								else						
-									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+									*p = element_type(af_diag,af_dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 								break;
 							case diag_del_ins:
 								if ( af_diag >= af_top )
-									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+									*p = element_type(af_diag,af_dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 								else
-									*p = element_type(af_top,STEP_INS);
+									*p = element_type(af_top,PenaltyConstants::STEP_INS);
 								break;
 						}
 						
 						if ( p->first < 0 )
-							*p = element_type(0,STEP_RESET);
+							*p = element_type(0,PenaltyConstants::STEP_RESET);
 						else if ( p->first > maxel->first )
 							maxel = p;
 						
@@ -371,20 +371,20 @@ namespace libmaus2
 									{
 										if ( left >= diag )
 											// left
-											*p = element_type(left,STEP_DEL);
+											*p = element_type(left,PenaltyConstants::STEP_DEL);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);								
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);								
 									}
 									// top > left
 									else
 									{
 										if ( top >= diag )
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									}
 									break;
 								case diag_del_ins:
@@ -392,25 +392,25 @@ namespace libmaus2
 									{
 										if ( diag >= top )
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 										else
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 									}
 									else
 									{
 										if ( left >= top )
 											// left
-											*p = element_type(left,STEP_DEL);
+											*p = element_type(left,PenaltyConstants::STEP_DEL);
 										else
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 									}
 									break;
 							}
 							
 							if ( p->first < 0 )
-								*p = element_type(0,STEP_RESET);
+								*p = element_type(0,PenaltyConstants::STEP_RESET);
 							else if ( p->first > maxel->first )
 								maxel = p;
 						}
@@ -437,20 +437,20 @@ namespace libmaus2
 							{
 								case del_ins_diag:
 									if ( left >= diag )
-										*p = element_type(left,STEP_DEL);
+										*p = element_type(left,PenaltyConstants::STEP_DEL);
 									else
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									break;
 								case diag_del_ins:
 									if ( diag >= left )
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									else
-										*p = element_type(left,STEP_DEL);
+										*p = element_type(left,PenaltyConstants::STEP_DEL);
 									break;
 							}
 							
 							if ( p->first < 0 )
-								*p = element_type(0,STEP_RESET);
+								*p = element_type(0,PenaltyConstants::STEP_RESET);
 							else if ( p->first > maxel->first )
 								maxel = p;
 						}
@@ -475,20 +475,20 @@ namespace libmaus2
 						{
 							case del_ins_diag:
 								if ( af_top >= af_diag )
-									*p = element_type(af_top,STEP_INS);
+									*p = element_type(af_top,PenaltyConstants::STEP_INS);
 								else
-									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+									*p = element_type(af_diag,af_dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 								break;
 							case diag_del_ins:
 								if ( af_diag >= af_top )
-									*p = element_type(af_diag,af_dmatch ? STEP_MATCH : STEP_MISMATCH);
+									*p = element_type(af_diag,af_dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 								else
-									*p = element_type(af_top,STEP_INS);
+									*p = element_type(af_top,PenaltyConstants::STEP_INS);
 								break;
 						}
 						
 						if ( p->first < 0 )
-							*p = element_type(0,STEP_RESET);
+							*p = element_type(0,PenaltyConstants::STEP_RESET);
 						else if ( p->first > maxel->first )
 							maxel = p;
 						
@@ -520,20 +520,20 @@ namespace libmaus2
 									{
 										if ( left >= diag )
 											// left
-											*p = element_type(left,STEP_DEL);
+											*p = element_type(left,PenaltyConstants::STEP_DEL);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									}
 									// top > left
 									else
 									{
 										if ( top >= diag )								
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 										else
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									}
 									break;
 								case diag_del_ins:
@@ -541,25 +541,25 @@ namespace libmaus2
 									{
 										if ( diag >= top )
 											// diag
-											*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+											*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 										else
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 									}
 									else
 									{
 										if ( left >= top )
 											// left
-											*p = element_type(left,STEP_DEL);
+											*p = element_type(left,PenaltyConstants::STEP_DEL);
 										else
 											// top
-											*p = element_type(top,STEP_INS);
+											*p = element_type(top,PenaltyConstants::STEP_INS);
 									}
 									break;
 							}
 
 							if ( p->first < 0 )
-								*p = element_type(0,STEP_RESET);
+								*p = element_type(0,PenaltyConstants::STEP_RESET);
 							else if ( p->first > maxel->first )
 								maxel = p;
 						}
@@ -601,11 +601,11 @@ namespace libmaus2
 					uint64_t const offbackdiaga = offback - (offbackb * k21);
 					int64_t const offbacka = (static_cast<int64_t>(offbackb) - static_cast<int64_t>(k)) + offbackdiaga;
 					
-					step_type * tc = te;
+					PenaltyConstants::step_type * tc = te;
 					
 					uint64_t numins = 0, numdel = 0, nummis = 0, nummat = 0;
 
-					while ( p->second != STEP_RESET )
+					while ( p->second != PenaltyConstants::STEP_RESET )
 					{
 						// std::cerr << AlignmentPrint::stepToString(p->second) << std::endl;
 					
@@ -613,19 +613,19 @@ namespace libmaus2
 						
 						switch ( p->second )
 						{
-							case STEP_MATCH:
+							case PenaltyConstants::STEP_MATCH:
 								p -= k21;
 								nummat++;
 								break;
-							case STEP_MISMATCH:
+							case PenaltyConstants::STEP_MISMATCH:
 								p -= k21;
 								nummis++;
 								break;
-							case STEP_INS:
+							case PenaltyConstants::STEP_INS:
 								numins++;
 								p -= (k21-1);
 								break;
-							case STEP_DEL:
+							case PenaltyConstants::STEP_DEL:
 								numdel++;
 								p -= 1; // (p-k21)+1;
 								break;
@@ -648,7 +648,7 @@ namespace libmaus2
 					assert ( k == 0 );
 					assert ( n == m );
 					
-					step_type * tc = te - n;
+					PenaltyConstants::step_type * tc = te - n;
 					ta = tc;
 					uint64_t nummis = 0, nummat = 0;
 					
@@ -656,12 +656,12 @@ namespace libmaus2
 						if ( aa[i] == bb[i] )
 						{
 							nummat++;
-							*(tc++) = STEP_MATCH;
+							*(tc++) = PenaltyConstants::STEP_MATCH;
 						}
 						else
 						{
 							nummis++;
-							*(tc++) = STEP_MISMATCH;
+							*(tc++) = PenaltyConstants::STEP_MISMATCH;
 						}
 
 					return result_type(0,0,nummat,nummis,0,0,0,0);

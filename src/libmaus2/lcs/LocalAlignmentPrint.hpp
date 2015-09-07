@@ -28,7 +28,7 @@ namespace libmaus2
 {
 	namespace lcs
 	{
-		struct LocalAlignmentPrint : public LocalBaseConstants
+		struct LocalAlignmentPrint : public BaseConstants
 		{
 			virtual ~LocalAlignmentPrint() {}
 		

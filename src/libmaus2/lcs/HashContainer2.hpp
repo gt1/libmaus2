@@ -677,6 +677,8 @@ namespace libmaus2
 												case ::libmaus2::lcs::BaseConstants::STEP_DEL:
 													bpos++;
 													break;
+												case ::libmaus2::lcs::BaseConstants::STEP_RESET:
+													break;
 											}
 										uint64_t alen = 0, blen = 0;
 										for ( uint64_t j = tracestart; j < traceend; ++j )
@@ -764,6 +766,8 @@ namespace libmaus2
 									break;
 								case ::libmaus2::lcs::BaseConstants::STEP_MISMATCH:
 									nummis++;
+									break;
+								case ::libmaus2::lcs::BaseConstants::STEP_RESET:
 									break;
 							}
 						
