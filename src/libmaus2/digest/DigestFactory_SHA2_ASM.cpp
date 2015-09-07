@@ -48,12 +48,19 @@ libmaus2::digest::DigestInterface::unique_ptr_type libmaus2::digest::DigestFacto
 			libmaus2::digest::DigestInterface::unique_ptr_type tptr(new libmaus2::digest::SHA2_512_sse4);
 			return UNIQUE_PTR_MOVE(tptr);
 		}
+		else
+		{
+			libmaus2::exception::LibMausException lme;
+			lme.getStream() << "DigestFactory_SHA2_ASM: unsupported hash " << name << std::endl;
+			lme.finish();
+			throw lme;
+		}
 	}
 	else
 	#endif
 	{
 		libmaus2::exception::LibMausException lme;
-		lme.getStream() << "DigestFactory: unsupported hash " << name << std::endl;
+		lme.getStream() << "DigestFactory_SHA2_ASM: unsupported hash " << name << std::endl;
 		lme.finish();
 		throw lme;
 	}
