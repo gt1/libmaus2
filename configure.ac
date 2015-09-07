@@ -3164,6 +3164,16 @@ struct DalignerWorkData
 
 	Compute_Trace_ALL(&algn,DWD.data);
 
+	float freq[] = { 0.25, 0.25, 0.25, 0.25 };
+	Align_Spec * spec = New_Align_Spec(0.75 /* correlation */, 100 /* tspace */, &freq[0]);
+	Work_Data * workdata = New_Work_Data();
+	Alignment align;
+
+	Path * la_path = Local_Alignment(&align,workdata,spec,0,0,0,-1,-1);
+
+	Free_Work_Data(workdata);
+	Free_Align_Spec(spec);
+
 	return 0;
 ],[daligner=yes],[daligner=no])
 AC_MSG_RESULT([${daligner}])
