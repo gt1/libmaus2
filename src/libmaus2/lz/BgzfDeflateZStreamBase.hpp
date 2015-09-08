@@ -285,7 +285,7 @@ namespace libmaus2
 			
 			BgzfDeflateZStreamBaseFlushInfo flush(uint8_t * const pa, uint8_t * const pe, BgzfDeflateOutputBufferBase & out)
 			{
-				if ( pe-pa > getBgzfMaxBlockSize() )
+				if ( pe-pa > static_cast<ptrdiff_t>(getBgzfMaxBlockSize()) )
 				{
 					::libmaus2::exception::LibMausException se;
 					se.getStream() << "BgzfDeflateZStreamBase()::flush: block is too big for BGZF" << std::endl;
