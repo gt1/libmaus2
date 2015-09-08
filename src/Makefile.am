@@ -219,7 +219,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/TraceBlock.cpp \
 	libmaus2/dazzler/align/ApproximateRun.cpp \
 	libmaus2/suffixsort/BwtMergeBlockSortRequest.cpp \
-	libmaus2/dazzler/align/OverlapMeta.cpp
+	libmaus2/dazzler/align/OverlapMeta.cpp \
+	libmaus2/lcs/DalignerLocalAlignment.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 

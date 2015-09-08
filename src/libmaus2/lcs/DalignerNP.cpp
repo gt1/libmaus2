@@ -50,7 +50,19 @@ libmaus2::lcs::DalignerNP::~DalignerNP()
 	#endif
 
 }
-void libmaus2::lcs::DalignerNP::align(uint8_t const * a, size_t const l_a, uint8_t const * b, size_t const l_b)
+void libmaus2::lcs::DalignerNP::align(
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
+	uint8_t const * a, 
+	size_t const l_a, 
+	uint8_t const * b, 
+	size_t const l_b
+	#else
+	uint8_t const *, 
+	size_t const, 
+	uint8_t const *, 
+	size_t const
+	#endif
+)
 {
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	if ( l_a > A.size() )
