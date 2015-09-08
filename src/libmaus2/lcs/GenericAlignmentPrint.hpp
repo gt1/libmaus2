@@ -40,6 +40,7 @@ namespace libmaus2
 					case STEP_MISMATCH: return "-";
 					case STEP_INS: return "I";
 					case STEP_DEL: return "D";
+					case STEP_RESET: return "R";
 					default: return "?";
 				}
 			}
@@ -83,6 +84,8 @@ namespace libmaus2
 							out << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				out << std::endl;
@@ -99,6 +102,8 @@ namespace libmaus2
 						case STEP_INS:
 							out << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -134,6 +139,8 @@ namespace libmaus2
 							astr << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				astr << std::string(ita,a.end());
@@ -157,6 +164,8 @@ namespace libmaus2
 						case STEP_INS:
 							bstr << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}

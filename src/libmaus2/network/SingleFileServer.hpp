@@ -47,7 +47,10 @@ namespace libmaus2
                         static void sigchildhandler(int)
                         {
                         	int status;
-                        	pid_t pid = waitpid(-1,&status,WNOHANG);
+                        	#if 0
+                        	pid_t pid = 
+                        	#endif
+                        		waitpid(-1,&status,WNOHANG);
                         }
                         
                         SingleFileServer(

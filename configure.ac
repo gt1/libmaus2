@@ -1,5 +1,5 @@
-AC_INIT(libmaus2,2.0.59,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
-LIBRARY_VERSION=2:59:0
+AC_INIT(libmaus2,2.0.62,[gt1@sanger.ac.uk],[libmaus2],[http://www.sanger.ac.uk])
+LIBRARY_VERSION=2:62:0
 AC_MSG_NOTICE([Configuring for source in directory ${srcdir}])
 AC_CANONICAL_SYSTEM
 AC_CANONICAL_HOST
@@ -3163,6 +3163,16 @@ struct DalignerWorkData
 	DalignerWorkData DWD;
 
 	Compute_Trace_ALL(&algn,DWD.data);
+
+	float freq[] = { 0.25, 0.25, 0.25, 0.25 };
+	Align_Spec * spec = New_Align_Spec(0.75 /* correlation */, 100 /* tspace */, &freq[0]);
+	Work_Data * workdata = New_Work_Data();
+	Alignment align;
+
+	Path * la_path = Local_Alignment(&align,workdata,spec,0,0,0,-1,-1);
+
+	Free_Work_Data(workdata);
+	Free_Align_Spec(spec);
 
 	return 0;
 ],[daligner=yes],[daligner=no])

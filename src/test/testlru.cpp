@@ -54,10 +54,14 @@ void testlrusparsefile(uint64_t const tparts, uint64_t const maxcur)
 		
 		str.seekg(0,std::ios::end);
 		str.clear();
+		#if 0
 		uint64_t const l = str.tellg();
+		#endif
 		str.seekg(0,std::ios::beg);
 		str.clear();
+		#if 0
 		uint64_t const l2 = str.tellg();
+		#endif
 		
 		for ( uint64_t i = 0; i < bytesperpart; ++i )
 		{

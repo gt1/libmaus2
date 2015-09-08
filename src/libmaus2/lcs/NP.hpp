@@ -121,7 +121,7 @@ namespace libmaus2
 				
 				size_t const sn = std::max(an,bn);
 				int const numdiag = (sn<<1)+1;
-				int id = 0;
+				int64_t id = 0;
 				
 				if ( numdiag > static_cast<int>(DE.size()) )
 				{
@@ -140,7 +140,7 @@ namespace libmaus2
 
 				// how far do we get without an error?
 				{
-					if ( trace.size() < id+1 )
+					if ( static_cast<int64_t>(trace.size()) < id+1 )
 						trace.resize(id+1);
 				
 					if ( (!self_check) || (a!=b) )
@@ -148,7 +148,7 @@ namespace libmaus2
 						int const s = slide<iter_a,iter_b,false>(a,ae,b,be,0);
 						DP[0].offset = s;
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DP[0].id = nodeid;
 						trace[nodeid].prev = 0;
 						trace[nodeid].slide = s;
@@ -158,7 +158,7 @@ namespace libmaus2
 					{
 						DP[0].offset = 0;
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DP[0].id = nodeid;
 						trace[nodeid].prev = 0;
 						trace[nodeid].slide = 0;
@@ -169,7 +169,7 @@ namespace libmaus2
 				int d = 1;
 				if ( DP[fdiag].offset != fdiagoff )
 				{
-					if ( trace.size() < id+3 )
+					if ( static_cast<int64_t>(trace.size()) < id+3 )
 						trace.resize(id+3);
 						
 					{
@@ -179,7 +179,7 @@ namespace libmaus2
 							int const s = slide<iter_a,iter_b,true>(a,ae,b+1,be,p);
 							DN[-1].offset = p + s;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[-1].id = nodeid;
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = s;
@@ -189,7 +189,7 @@ namespace libmaus2
 						{
 							DN[-1].offset = -1;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[-1].id = nodeid;
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = 0;
@@ -206,7 +206,7 @@ namespace libmaus2
 							int const s = slide<iter_a,iter_b,false>(a,ae,b,be,p);
 							DN[ 0].offset = p + s;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[ 0].id = nodeid;
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = s;
@@ -216,7 +216,7 @@ namespace libmaus2
 						{
 							DN[ 0].offset = -1;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[ 0].id = nodeid;
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = 0;
@@ -233,7 +233,7 @@ namespace libmaus2
 							int const s = slide<iter_a,iter_b,false>(a+1,ae,b,be,p);
 							DN[ 1].offset = p + s;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[ 1].id = nodeid;
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = s;
@@ -243,7 +243,7 @@ namespace libmaus2
 						{						
 							DN[ 1].offset = -1;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[ 1].id = nodeid;
 							trace[nodeid].prev = DP[0].id;
 							trace[nodeid].slide = 0;
@@ -258,7 +258,7 @@ namespace libmaus2
 				}
 				for ( ; DP[fdiag].offset != fdiagoff; ++d )
 				{
-					if ( trace.size() < id + (2*d+1) )
+					if ( static_cast<int64_t>(trace.size()) < id + (2*d+1) )
 					{
 						static uint64_t const cnt = 11;
 						static uint64_t const div = 10;
@@ -280,7 +280,7 @@ namespace libmaus2
 							DN[-d].offset   = p + s;
 
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[-d].id = nodeid;
 							trace[nodeid].prev = DP[-d+1].id;
 							trace[nodeid].slide = s;
@@ -291,7 +291,7 @@ namespace libmaus2
 							// extend below
 							DN[-d].offset   = -1;
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[-d].id = nodeid;
 							trace[nodeid].prev = DP[-d+1].id;
 							trace[nodeid].slide = 0;
@@ -309,7 +309,7 @@ namespace libmaus2
 						int const diag = DP[-d+1].offset;
 
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[-d+1].id = nodeid;
 						
 						if ( (!self_check) || (aa!=bb) )
@@ -367,7 +367,7 @@ namespace libmaus2
 						int const top  = DP[di+1].offset;
 
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[di].id = nodeid;
 						
 						if ( (!self_check) || (aa!=bb) )
@@ -475,7 +475,7 @@ namespace libmaus2
 						int const top = DP[1].offset;
 
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[0].id = nodeid;
 						
 						if ( (!self_check) || (aa!=bb) )
@@ -583,7 +583,7 @@ namespace libmaus2
 						int const top  = DP[di+1].offset;
 
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[di].id = nodeid;
 						
 						if ( (!self_check) || (aa!=bb) )
@@ -689,7 +689,7 @@ namespace libmaus2
 						int const diag = DP[d-1].offset;
 
 						int const nodeid = id++;
-						assert ( nodeid < trace.size() );
+						assert ( nodeid < static_cast<int64_t>(trace.size()) );
 						DN[d-1].id = nodeid;
 						
 						if ( (!self_check) || (aa!=bb) )
@@ -749,7 +749,7 @@ namespace libmaus2
 							int const s = slide<iter_a,iter_b,false>(aa,ae,bb,be,p);
 							DN[d  ].offset = p + s; 
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[d].id = nodeid;
 							trace[nodeid].prev = DP[ d-1].id;
 							trace[nodeid].slide = s;
@@ -760,7 +760,7 @@ namespace libmaus2
 							// extend above
 							DN[d  ].offset = -1; 
 							int const nodeid = id++;
-							assert ( nodeid < trace.size() );
+							assert ( nodeid < static_cast<int64_t>(trace.size()) );
 							DN[d].id = nodeid;
 							trace[nodeid].prev = DP[ d-1].id;
 							trace[nodeid].slide = 0;

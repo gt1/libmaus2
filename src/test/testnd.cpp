@@ -52,7 +52,7 @@ int main(int argc, char * argv[])
 			#endif
 
 			// maximum number of errors
-			unsigned int d = 30;
+			// unsigned int d = 30;
 			
 			libmaus2::lcs::NDextend nd; // DNA nd;
 			// bool const ok = nd.process(a.begin(),a.size(),b.begin(),b.size(),d,40,30);

@@ -242,7 +242,12 @@ void testranddiv128()
 }
 #endif
 
-int main(int argc, char * argv[])
+int main(
+	#if 0
+	int argc, 
+	char * argv[]
+	#endif
+)
 {
 	libmaus2::random::Random::setup();
 

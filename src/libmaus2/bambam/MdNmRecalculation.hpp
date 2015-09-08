@@ -125,7 +125,13 @@ namespace libmaus2
 				return indexname;
 			}
 
-			MdNmRecalculation(std::string const & reference, bool const rvalidate, bool const rrecompindetonly, bool const rwarnchange, uint64_t const rioblocksize)
+			MdNmRecalculation(
+				std::string const & reference, bool const rvalidate, bool const rrecompindetonly, bool const rwarnchange, 
+				uint64_t const 
+					#if 0
+					rioblocksize
+					#endif
+			)
 			: 
 			  isgz(isGzip(reference)),
 			  israzf(isgz && libmaus2::lz::RAZFIndex::hasRazfHeader(reference)),

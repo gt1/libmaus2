@@ -28,7 +28,7 @@ namespace libmaus2
 	{
 		struct BaseConstants
 		{
-			enum step_type { STEP_MATCH, STEP_MISMATCH, STEP_INS, STEP_DEL };
+			enum step_type { STEP_MATCH, STEP_MISMATCH, STEP_INS, STEP_DEL, STEP_RESET };
 			typedef step_type * step_type_ptr;
 			typedef step_type const * step_type_const_ptr;
 			
@@ -43,6 +43,7 @@ namespace libmaus2
 				case BaseConstants::STEP_MISMATCH: out << "-"; break;
 				case BaseConstants::STEP_INS: out << "I"; break;
 				case BaseConstants::STEP_DEL: out << "D"; break;
+				case BaseConstants::STEP_RESET: out << "R"; break;
 			}
 			return out;
 		}

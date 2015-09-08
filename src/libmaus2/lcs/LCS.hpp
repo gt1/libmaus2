@@ -48,6 +48,8 @@ namespace libmaus2
 						return "STEP_INS";
 					case this_type::STEP_DEL:
 						return "STEP_DEL";
+					case this_type::STEP_RESET:
+						return "STEP_RESET";
 					default:
 						return "SUBST_UNKNOWN";
 				}	
@@ -92,6 +94,8 @@ namespace libmaus2
 							lineb << *(B++);
 							linec << 'D';
 							break;
+						case this_type::STEP_RESET:
+							break;
 					}
 				}
 				
@@ -132,6 +136,8 @@ namespace libmaus2
 							break;
 						case this_type::STEP_DEL:
 							B++;
+							break;
+						case this_type::STEP_RESET:
 							break;
 					}
 				}
@@ -245,6 +251,8 @@ namespace libmaus2
 						case base_type::STEP_DEL:
 							tr -= 1;
 							break;
+						case base_type::STEP_RESET:
+							break;
 					}
 					
 				}
@@ -270,6 +278,8 @@ namespace libmaus2
 							break;
 						case base_type::STEP_DEL:
 							tr -= 1;
+							break;
+						case base_type::STEP_RESET:
 							break;
 					}
 				}
@@ -622,6 +632,8 @@ namespace libmaus2
 								break;
 							case BaseConstants::STEP_DEL:
 								tr -= 1;
+								break;
+							case BaseConstants::STEP_RESET:
 								break;
 						}
 					}

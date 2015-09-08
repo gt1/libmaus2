@@ -142,6 +142,9 @@ namespace libmaus2
 						case STEP_MATCH:
 							evec |= 0;
 							break;
+						case STEP_RESET:
+							evec = 0;
+							break;
 					}
 					
 					evec &= emask;
@@ -242,6 +245,8 @@ namespace libmaus2
 							case STEP_DEL:
 								Aapos += 1;
 								break;
+							case STEP_RESET:
+								break;
 						}						
 					}
 					while ( 
@@ -265,6 +270,8 @@ namespace libmaus2
 								break;
 							case STEP_DEL:
 								Bapos += 1;
+								break;
+							case STEP_RESET:
 								break;
 						}						
 					}					
@@ -308,6 +315,8 @@ namespace libmaus2
 							case STEP_DEL:
 								Aapos += 1;
 								break;
+							case STEP_RESET:
+								break;
 						}						
 					}
 					while ( (Btc != B.te) && (Bapos < Aapos) )
@@ -322,6 +331,8 @@ namespace libmaus2
 								break;
 							case STEP_DEL:
 								Bapos += 1;
+								break;
+							case STEP_RESET:
 								break;
 						}						
 					}					
@@ -366,6 +377,8 @@ namespace libmaus2
 								break;
 							case STEP_DEL:
 								break;
+							case STEP_RESET:
+								break;
 						}						
 					}
 					while ( (Btc != B.te) && (Bbpos < Abpos) )
@@ -380,6 +393,8 @@ namespace libmaus2
 								Bbpos += 1;
 								break;
 							case STEP_DEL:
+								break;
+							case STEP_RESET:
 								break;
 						}						
 					}					
@@ -422,6 +437,8 @@ namespace libmaus2
 								break;
 							case STEP_DEL:
 								break;
+							case STEP_RESET:
+								break;
 						}						
 					}
 					while ( (Btc != B.ta) && (Bbpos > Abpos) )
@@ -436,6 +453,8 @@ namespace libmaus2
 								Bbpos -= 1;
 								break;
 							case STEP_DEL:
+								break;
+							case STEP_RESET:
 								break;
 						}						
 					}					
@@ -483,6 +502,8 @@ namespace libmaus2
 							case STEP_MATCH:
 								w <<= 1;
 								break;
+							case STEP_RESET:
+								break;
 						}
 					
 					int64_t low = -1, high = -1;
@@ -502,6 +523,8 @@ namespace libmaus2
 								e += 1;
 								break;
 							case STEP_MATCH:
+								break;
+							case STEP_RESET:
 								break;
 						}
 						
@@ -554,6 +577,8 @@ namespace libmaus2
 								break;
 							case STEP_DEL:
 								apos += 1;
+								break;
+							case STEP_RESET:
 								break;
 						}						
 					}
@@ -642,6 +667,9 @@ namespace libmaus2
 						case STEP_DEL:
 							score -= del_score;
 							break;
+						case STEP_RESET:
+							score = 0;
+							break;
 					}
 				}
 				
@@ -694,6 +722,9 @@ namespace libmaus2
 						case STEP_DEL:
 							score -= del_score;
 							break;
+						case STEP_RESET:
+							score = 0;
+							break;
 					}
 					
 					if ( score > bestscore )
@@ -729,6 +760,8 @@ namespace libmaus2
 						case STEP_INS:
 							--l;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				
@@ -753,6 +786,8 @@ namespace libmaus2
 							break;
 						case STEP_INS:
 							--l;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -794,9 +829,12 @@ namespace libmaus2
 						case STEP_DEL:
 							score -= del_score;
 							break;
+						case STEP_RESET:
+							score = 0;
+							break;
 					}
 					
-					if ( score < 0 )
+					if ( score <= 0 )
 					{
 						score = 0;
 						tne = tc;
@@ -818,6 +856,8 @@ namespace libmaus2
 							break;
 						case STEP_INS:
 							remb += 1;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				
@@ -898,6 +938,9 @@ namespace libmaus2
 						case STEP_DEL:
 							score -= penalty_del;
 							break;
+						case STEP_RESET:
+							score = 0;
+							break;
 					}
 				}
 				return score;
@@ -926,6 +969,8 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							apos += 1;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -960,6 +1005,8 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							apos += 1;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -996,6 +1043,8 @@ namespace libmaus2
 						case STEP_DEL:
 							apos += 1;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 
@@ -1030,6 +1079,8 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							stats.deletions++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 
@@ -1076,6 +1127,8 @@ namespace libmaus2
 						case STEP_DEL:
 							apos += 1;
 							break;
+						case STEP_RESET:
+							break;
 					}						
 				}
 				
@@ -1103,6 +1156,8 @@ namespace libmaus2
 						case STEP_DEL:
 							apos += 1;
 							break;
+						case STEP_RESET:
+							break;
 					}						
 				}
 
@@ -1121,7 +1176,7 @@ namespace libmaus2
 
 				for ( step_type const * tc = ta; tc != te; ++tc )
 				{
-					if ( (tc-ta >= k) && (e == kmask) )
+					if ( (tc-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
 					{
 						assert ( apos >= k );
 						assert ( bpos >= k );
@@ -1148,10 +1203,12 @@ namespace libmaus2
 						case STEP_DEL:
 							apos += 1;
 							break;
+						case STEP_RESET:
+							break;
 					}						
 				}
 
-				if ( (te-ta >= k) && (e == kmask) )
+				if ( (te-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
 				{
 					assert ( apos >= k );
 					assert ( bpos >= k );
@@ -1181,6 +1238,9 @@ namespace libmaus2
 							break;
 						case STEP_DEL:
 							ostr.put('D');
+							break;
+						case STEP_RESET:
+							ostr.put('R');
 							break;
 						default:
 							ostr.put('?');

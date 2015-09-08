@@ -129,9 +129,8 @@ namespace libmaus2
 				}
 			}
 
-                                                
                         TerminatableSynchronousReorderSet(uint64_t const rnext = 0)
-                        : numwait(0), Q(), terminated(false), next(rnext)
+                        : mutex(), cond(), numwait(0), terminated(false), next(rnext), Q()
                         {
 				initCond();
 				try

@@ -219,7 +219,8 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/TraceBlock.cpp \
 	libmaus2/dazzler/align/ApproximateRun.cpp \
 	libmaus2/suffixsort/BwtMergeBlockSortRequest.cpp \
-	libmaus2/dazzler/align/OverlapMeta.cpp
+	libmaus2/dazzler/align/OverlapMeta.cpp \
+	libmaus2/lcs/DalignerLocalAlignment.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -1710,7 +1711,8 @@ libmaus2lcs_include_HEADERS=\
 	libmaus2/lcs/BandedAligner.hpp \
 	libmaus2/lcs/BandedAlignerFactory.hpp \
 	libmaus2/lcs/NP.hpp \
-	libmaus2/lcs/DalignerNP.hpp
+	libmaus2/lcs/DalignerNP.hpp \
+	libmaus2/lcs/DalignerLocalAlignment.hpp
 
 libmaus2quantisation_includedir=$(includedir)/libmaus2/quantisation/
 libmaus2quantisation_include_HEADERS = libmaus2/quantisation/Quantiser.hpp libmaus2/quantisation/ClusterComputation.hpp libmaus2/quantisation/KmeansDataType.hpp

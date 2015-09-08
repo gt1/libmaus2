@@ -765,6 +765,8 @@ namespace libmaus2
 								case ::libmaus2::lcs::BaseConstants::STEP_MISMATCH:
 									nummis++;
 									break;
+								case ::libmaus2::lcs::BaseConstants::STEP_RESET:
+									break;
 							}
 						
 						uint64_t const bclip = n+numins-trace.size();

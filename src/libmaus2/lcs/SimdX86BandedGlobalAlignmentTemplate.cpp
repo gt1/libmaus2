@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <libmaus2/autoarray/AutoArray.hpp>
 
+#if 0
 static std::ostream & printRegister(std::ostream & out, LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const reg)
 {
 	LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE sp[sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE)] __attribute__((aligned(sizeof(reg))));
@@ -37,7 +38,9 @@ static std::ostream & printRegisterChar(std::ostream & out, LIBMAUS2_LCS_SIMD_BA
 			((i+1<(sizeof(reg)/sizeof(LIBMAUS2_LCS_SIMD_BANDED_ELEMENT_TYPE)))?",":"");
 	return out;
 }
+#endif
 
+#if 0
 static std::string formatRegister(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const reg)
 {
 	std::ostringstream ostr;
@@ -51,6 +54,7 @@ static std::string formatRegisterChar(LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE const r
 	printRegisterChar(ostr,reg);
 	return ostr.str();
 }
+#endif
 
 libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME() : diagmem(0), diagmemsize(0), textmem(0), textmemsize(0), querymem(0), querymemsize(0)
 {
@@ -221,7 +225,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 
 	LIBMAUS2_LCS_SIMD_BANDED_INIT
 	
-	for ( int64_t di = 1; di <= compdiag; ++di )
+	for ( int64_t di = 1; di <= static_cast<int64_t>(compdiag); ++di )
 	{
 		assert ( diag_1 == reinterpret_cast<LIBMAUS2_LCS_SIMD_BANDED_WORD_TYPE *>(diagmem) + (di-1)*words_necessary );
 		// std::cerr << "di=" << di << " allocdiag=" << allocdiag << std::endl;
@@ -480,11 +484,11 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 	
 	// trace back
 	if ( 
-		(cur.first >= 0 && cur.first <= compdiag) && 
+		(cur.first >= 0 && cur.first <= static_cast<int64_t>(compdiag)) && 
 		(
-			(((cur.first & 1) == 0) && cur.second >= 0 && cur.second < 2*d+1)
+			(((cur.first & 1) == 0) && cur.second >= 0 && cur.second < static_cast<int64_t>(2*d+1))
 			||
-			(((cur.first & 1) == 1) && cur.second >= 0 && cur.second < 2*d+2)
+			(((cur.first & 1) == 1) && cur.second >= 0 && cur.second < static_cast<int64_t>(2*d+2))
 		)
 	)
 	{
@@ -499,7 +503,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 			libmaus2::lcs::AlignmentTraceContainer::reset();
 		}
 		
-		while ( cur.first != 0 || cur.second != d )
+		while ( cur.first != 0 || cur.second != static_cast<int64_t>(d) )
 		{
 			bool neq;
 			
@@ -552,7 +556,7 @@ void libmaus2::lcs::LIBMAUS2_LCS_SIMD_BANDED_CLASS_NAME::align(uint8_t const * a
 				// top
 				else
 				{
-					assert ( pb && (cur.second < (2*d+1)) && *p == *(p-diaglen)+1 );
+					assert ( pb && (cur.second < static_cast<int64_t>(2*d+1)) && *p == *(p-diaglen)+1 );
 					pb -= 1;
 					p -= diaglen;
 					cur.first -= 1;

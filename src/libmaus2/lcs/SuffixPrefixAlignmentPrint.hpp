@@ -121,6 +121,8 @@ namespace libmaus2
 							astr << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				astr << std::string(ita,a.end());
@@ -147,6 +149,8 @@ namespace libmaus2
 						case STEP_INS:
 							bstr << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}

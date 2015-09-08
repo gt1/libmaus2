@@ -17,6 +17,7 @@
 */
 #include <libmaus2/autoarray/AutoArray.hpp>
 
+#if 0
 static std::ostream & printRegister(std::ostream & out, LIBMAUS2_SIMD_WORD_TYPE const reg)
 {
 	LIBMAUS2_SIMD_ELEMENT_TYPE sp[sizeof(reg)/sizeof(LIBMAUS2_SIMD_ELEMENT_TYPE)] __attribute__((aligned(sizeof(reg))));
@@ -50,6 +51,7 @@ static std::string formatRegisterChar(LIBMAUS2_SIMD_WORD_TYPE const reg)
 	printRegisterChar(ostr,reg);
 	return ostr.str();
 }
+#endif
 
 libmaus2::lcs::LIBMAUS2_SIMD_CLASS_NAME::LIBMAUS2_SIMD_CLASS_NAME() : diagmem(0), diagmemsize(0), aspace(0), aspacesize(0), bspace(0), bspacesize(0)
 {

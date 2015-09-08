@@ -83,6 +83,8 @@ namespace libmaus2
 							out << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				out << std::endl;
@@ -99,6 +101,8 @@ namespace libmaus2
 						case STEP_DEL:
 							out << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -134,6 +138,8 @@ namespace libmaus2
 							astr << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				astr << std::string(ita,a.end());
@@ -157,6 +163,8 @@ namespace libmaus2
 						case STEP_DEL:
 							bstr << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -235,6 +243,8 @@ namespace libmaus2
 							astr << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				astr << std::string(ita,itae);
@@ -259,6 +269,8 @@ namespace libmaus2
 						case STEP_DEL:
 							bstr << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
@@ -346,6 +358,8 @@ namespace libmaus2
 							astr << " ";
 							// ita++;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				astr << mapString(std::string(ita,itae),map_function);
@@ -370,6 +384,8 @@ namespace libmaus2
 						case STEP_DEL:
 							bstr << " ";
 							// ita++;
+							break;
+						case STEP_RESET:
 							break;
 					}
 				}
