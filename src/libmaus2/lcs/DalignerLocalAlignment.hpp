@@ -22,6 +22,7 @@
 
 #include <libmaus2/lcs/LocalEditDistanceResult.hpp>
 #include <libmaus2/lcs/EditDistanceTraceContainer.hpp>
+#include <libmaus2/fastx/acgtnMap.hpp>
 
 namespace libmaus2
 {
@@ -38,6 +39,9 @@ namespace libmaus2
 			libmaus2::autoarray::AutoArray<char> A;
 			libmaus2::autoarray::AutoArray<char> B;
 			#endif
+
+			libmaus2::autoarray::AutoArray<uint8_t> UA;
+			libmaus2::autoarray::AutoArray<uint8_t> UB;
 
 			public:
 			DalignerLocalAlignment(
@@ -66,6 +70,31 @@ namespace libmaus2
 				uint8_t const *, uint64_t const, uint8_t const *, uint64_t const
 				#endif
 			);
+
+			template<typename iterator_a, typename iterator_b>
+			LocalEditDistanceResult process(
+				iterator_a aa, iterator_a ae, iterator_b ba, iterator_b be,
+				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_a)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar,
+				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_b)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar
+			)
+			{
+				if ( ae-aa > static_cast<ptrdiff_t>(UA.size()) )
+					UA.resize(ae-aa);
+				if ( be-ba > static_cast<ptrdiff_t>(UB.size()) )
+					UB.resize(be-ba);
+
+				std::copy(aa,ae,UA.begin());
+				std::copy(ba,be,UB.begin());
+
+				for ( ptrdiff_t i = 0; i < (ae-aa); ++i )
+					UA[i] = mapfunction_a(UA[i]);
+				for ( ptrdiff_t i = 0; i < (be-ba); ++i )
+					UB[i] = mapfunction_b(UB[i]);
+
+				LocalEditDistanceResult const R = process(UA.begin(),static_cast<uint64_t>(ae-aa),UB.begin(),static_cast<uint64_t>(be-ba));
+
+				return R;
+			}
 		};
 	}
 }
