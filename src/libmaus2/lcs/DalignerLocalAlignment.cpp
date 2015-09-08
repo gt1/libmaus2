@@ -110,20 +110,38 @@ struct DalignerData
 };
 		
 libmaus2::lcs::DalignerLocalAlignment::DalignerLocalAlignment(
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	double const correlation,
 	int64_t const tspace,
 	float const afreq,
 	float const cfreq,
 	float const gfreq,
 	float const tfreq
+	#else
+	double const,
+	int64_t const,
+	float const,
+	float const,
+	float const,
+	float const	
+	#endif
 )
 {
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	data = new DalignerData(correlation,tspace,afreq,cfreq,gfreq,tfreq);
+	#else
+	libmaus2::exception::LibMausException lme;
+	lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
+	lme.finish();
+	throw lme;	
+	#endif
 }
 
 libmaus2::lcs::DalignerLocalAlignment::~DalignerLocalAlignment()
 {
+	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	delete reinterpret_cast<DalignerData *>(data);
+	#endif
 }
 
 libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::process(
@@ -154,7 +172,7 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	std::copy(b,b+m,B.begin()+1);
 	// terminators in front and back
 	B[0] = 4;
-	A[m+1] = 4;
+	B[m+1] = 4;
 	
 	::std::memset(&(dataobject->align),0,sizeof(dataobject->align));
 	::std::memset(&(dataobject->OVL),0,sizeof(dataobject->OVL));
@@ -166,10 +184,10 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	dataobject->align.path = &(dataobject->OVL.path);
 
 	// compute the trace points
-	Path * path = Local_Alignment(&(dataobject->align),dataobject->spec,dataobject->spec,0,0,0,-1,-1);
+	Path * path = Local_Alignment(&(dataobject->align),dataobject->workdata,dataobject->spec,0,0,0,-1,-1);
 	
 	// compute dense dataobject->alignment	
-	Compute_Trace_PTS(&(dataobject->align),dataobject->spec,Trace_Spacing(dataobject->spec));
+	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec));
 
 	// check for output size
 	if ( EditDistanceTraceContainer::capacity() < n + m )
