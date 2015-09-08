@@ -1176,7 +1176,7 @@ namespace libmaus2
 
 				for ( step_type const * tc = ta; tc != te; ++tc )
 				{
-					if ( (tc-ta >= k) && (e == kmask) )
+					if ( (tc-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
 					{
 						assert ( apos >= k );
 						assert ( bpos >= k );
@@ -1208,7 +1208,7 @@ namespace libmaus2
 					}						
 				}
 
-				if ( (te-ta >= k) && (e == kmask) )
+				if ( (te-ta >= static_cast<ptrdiff_t>(k)) && (e == kmask) )
 				{
 					assert ( apos >= k );
 					assert ( bpos >= k );
