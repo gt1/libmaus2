@@ -111,7 +111,13 @@ namespace libmaus2
 				
 				return out;
 			}
-		
+			
+			template<typename value_type>
+			static value_type identityMapFunction(value_type const & a)
+			{
+				return a;
+			}
+					
 			template<
 				typename a_iterator,
 				typename b_iterator,
@@ -125,7 +131,11 @@ namespace libmaus2
 				b_iterator bend,
 				uint64_t const rlinewidth,
 				alignment_iterator const rta,
-				alignment_iterator const rte
+				alignment_iterator const rte,
+				typename std::iterator_traits<a_iterator>::value_type (*mapfunction_a)(typename std::iterator_traits<a_iterator>::value_type const &) = 
+					identityMapFunction< typename std::iterator_traits<a_iterator>::value_type >,
+				typename std::iterator_traits<b_iterator>::value_type (*mapfunction_b)(typename std::iterator_traits<b_iterator>::value_type const &) = 
+					identityMapFunction< typename std::iterator_traits<b_iterator>::value_type >
 			)
 			{
 				std::ostringstream astr;
@@ -139,7 +149,7 @@ namespace libmaus2
 						case STEP_DEL:
 							if ( ita == aend )
 								std::cerr << "accessing a beyond end." << std::endl;
-							astr << (*ita++);
+							astr << mapfunction_a(*ita++);
 							break;
 						case STEP_INS:
 							astr << " ";
@@ -163,7 +173,7 @@ namespace libmaus2
 						case STEP_INS:
 							if ( itb == bend )
 								std::cerr << "accessing b beyond end." << std::endl;
-							bstr << (*itb++);
+							bstr << mapfunction_b(*itb++);
 							break;
 						case STEP_DEL:
 							bstr << " ";
@@ -230,10 +240,14 @@ namespace libmaus2
 				uint64_t const rlinewidth,
 				alignment_iterator const rta,
 				alignment_iterator const rte,
-				libmaus2::lcs::LocalEditDistanceResult const & LED
+				libmaus2::lcs::LocalEditDistanceResult const & LED,
+				typename std::iterator_traits<a_iterator>::value_type (*mapfunction_a)(typename std::iterator_traits<a_iterator>::value_type const &) = 
+					identityMapFunction< typename std::iterator_traits<a_iterator>::value_type >,
+				typename std::iterator_traits<b_iterator>::value_type (*mapfunction_b)(typename std::iterator_traits<b_iterator>::value_type const &) = 
+					identityMapFunction< typename std::iterator_traits<b_iterator>::value_type >				
 			)
 			{
-				return printAlignmentLines(out,ita+LED.a_clip_left,aend-LED.a_clip_right,itb+LED.b_clip_left,bend-LED.b_clip_right,rlinewidth,rta,rte);
+				return printAlignmentLines(out,ita+LED.a_clip_left,aend-LED.a_clip_right,itb+LED.b_clip_left,bend-LED.b_clip_right,rlinewidth,rta,rte,mapfunction_a,mapfunction_b);
 			}
 
 			template<
