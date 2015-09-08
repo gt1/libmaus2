@@ -31,7 +31,7 @@ namespace libmaus2
 		struct DalignerLocalAlignment : public EditDistanceTraceContainer
 		{
 			typedef DalignerLocalAlignment this_type;
-			typedef typename ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
+			typedef ::libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef LocalEditDistanceResult result_type;
 
 			#if defined(LIBMAUS2_HAVE_DALIGNER)
