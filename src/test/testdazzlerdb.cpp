@@ -39,6 +39,8 @@
 #include "QV.h"
 #endif
 
+#include <libmaus2/lcs/DalignerLocalAlignment.hpp>
+
 uint64_t getColumns()
 {
 	// get window size
@@ -52,11 +54,117 @@ uint64_t getColumns()
 		return 80;
 }
 
+uint8_t remapFunction(uint8_t const & a)
+{
+	return ::libmaus2::fastx::remapChar(a);
+}
+
+#include <libmaus2/random/Random.hpp>
+
 int main(int argc, char * argv[])
 {
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
+
+		#if defined(LIBMAUS2_HAVE_DALIGNER)
+		
+		#if 1
+		{
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			//uint8_t A[] = { 'T','T','A','A','A','G','G'};
+			//uint8_t B[] = { 'G','G','A','A','A','T','T'};
+			uint8_t A[] = { 3,3,0,0,0,2,2};
+			uint8_t B[] = { 2,2,0,0,0,3,3};
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(&A[0],sizeof(A),&B[0],sizeof(B));
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
+				std::cerr,
+				&A[0],
+				&A[0] + sizeof(A),
+				&B[0],
+				&B[0] + sizeof(B),
+				80,
+				DLA.ta,
+				DLA.te,
+				LEDR,
+				remapFunction,
+				remapFunction
+			);
+		}
+		{
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			//uint8_t A[] = { 'T','T','A','A','A','G','G'};
+			//uint8_t B[] = { 'G','G','A','A','A','T','T'};
+			//uint8_t A[] = { 3,3,0,0,0,2,2};
+			//uint8_t B[] = { 2,2,0,0,3,3};
+			uint8_t A[] = { 3,3,0,0,0,0,2,2};
+			uint8_t B[] = { 2,2,0,0,1,0,0,3,3};
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(&A[0],sizeof(A),&B[0],sizeof(B));
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
+				std::cerr,
+				&A[0],
+				&A[0] + sizeof(A),
+				&B[0],
+				&B[0] + sizeof(B),
+				80,
+				DLA.ta,
+				DLA.te,
+				LEDR,
+				remapFunction,
+				remapFunction
+			);
+		}
+		#endif
+		
+		{
+			std::vector<uint8_t> vecA, vecB, vecC, vecD, vecE;
+			for ( uint64_t i = 0; i < 512; ++i )
+			{
+				vecA.push_back(::libmaus2::random::Random::rand8()%4);
+				vecB.push_back(::libmaus2::random::Random::rand8()%4);
+			}
+			for ( uint64_t i = 0; i < 8192; ++i )
+			{
+				vecC.push_back(::libmaus2::random::Random::rand8()%4);
+			}
+			for ( uint64_t i = 0; i < 512; ++i )
+			{
+				vecD.push_back(::libmaus2::random::Random::rand8()%4);
+				vecE.push_back(::libmaus2::random::Random::rand8()%4);
+			}
+			
+			std::string const sa = 
+				std::string(vecA.begin(),vecA.end()) + 
+				std::string(vecC.begin(),vecC.end()) + 
+				std::string(vecD.begin(),vecD.end());
+			std::string const sb = 
+				std::string(vecB.begin(),vecB.end()) + 
+				std::string(vecC.begin(),vecC.end()) + 
+				std::string(vecE.begin(),vecE.end());
+				
+			libmaus2::autoarray::AutoArray<uint8_t> A(sa.size());
+			libmaus2::autoarray::AutoArray<uint8_t> B(sb.size());
+			std::copy(sa.begin(),sa.end(),A.begin());
+			std::copy(sb.begin(),sb.end(),B.begin());
+			
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			uint64_t const frontclip = vecA.size() - 128;
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(A.begin()+frontclip,A.size()-frontclip,B.begin()+frontclip,B.size()-frontclip);
+						
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
+				std::cerr,
+				A.begin()+frontclip,A.end(),
+				B.begin()+frontclip,B.end(),
+				80,
+				DLA.ta,
+				DLA.te,
+				LEDR,
+				remapFunction,
+				remapFunction
+			);
+			std::cerr << LEDR << std::endl;
+		}
+		#endif
 
 		#if defined(LIBMAUS2_HAVE_DALIGNER)
 		{

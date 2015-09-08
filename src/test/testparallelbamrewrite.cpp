@@ -764,7 +764,7 @@ namespace libmaus2
 					bgzfDeflateOutputBufferFreeList.put(obuf);
 					checkSmallBlockCompressionPending();				
 				}
-				virtual void bgzfOutputBlockWritten(uint64_t const /* streamid */, int64_t const blockid, uint64_t const subid, uint64_t const /* n */)
+				virtual void bgzfOutputBlockWritten(uint64_t const /* streamid */, int64_t const blockid, uint64_t const /* subid */, uint64_t const /* n */)
 				{
 					{
 						libmaus2::parallel::ScopePosixSpinLock lwritePendingQueueLock(writePendingQueueLock);
@@ -818,7 +818,7 @@ namespace libmaus2
 					if ( 
 						writePendingQueue.size() &&
 						writePendingQueue.top().blockid == writeNext.first &&
-						writePendingQueue.top().subid == writeNext.second
+						static_cast<int64_t>(writePendingQueue.top().subid) == static_cast<int64_t>(writeNext.second)
 					)
 					{
 						WriteBlockWorkPackage * package = writeWorkPackages.getPackage();
@@ -961,7 +961,7 @@ namespace libmaus2
 				void fragmentAlignmentBufferRewriteFragmentComplete(
 					AlignmentBuffer::shared_ptr_type & algn,
 					FragmentAlignmentBuffer::shared_ptr_type & FAB,
-					uint64_t const j
+					uint64_t const /* j */
 				)
 				{
 					bool blockFinished = false;

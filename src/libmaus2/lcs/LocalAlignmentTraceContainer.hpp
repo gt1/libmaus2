@@ -20,14 +20,14 @@
 #if ! defined(LIBMAUS2_LCS_LOCALALIGNMENTTRACECONTAINER_HPP)
 #define LIBMAUS2_LCS_LOCALALIGNMENTTRACECONTAINER_HPP
 
-#include <libmaus2/lcs/LocalPenaltyConstants.hpp>
+#include <libmaus2/lcs/PenaltyConstants.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 
 namespace libmaus2
 {
 	namespace lcs
 	{
-		struct LocalAlignmentTraceContainer : public LocalPenaltyConstants
+		struct LocalAlignmentTraceContainer : public PenaltyConstants
 		{
 			private:
 			LocalAlignmentTraceContainer & operator=(LocalAlignmentTraceContainer const &);

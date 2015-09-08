@@ -165,7 +165,7 @@ void printCRCASMNoCopy(uint8_t const * A, size_t const n, sha2_func const func, 
 	uint8_t const * pa = pe - rest;
 
 	// rest of message fits into next block (padding and length may not though)
-	assert ( pe-pa < sha2_blocksize );
+	assert ( pe-pa < static_cast< ::std::ptrdiff_t >(sha2_blocksize) );
 	// copy rest of data
 	std::copy(pa,pe,&temp[0]);
 	// put padding marker
@@ -229,7 +229,7 @@ void printCRCASM512NoCopy(uint8_t const * A, size_t const n, sha2_512_func const
 	uint8_t const * pa = pe - rest;
 
 	// rest of message fits into next block (padding and length may not though)
-	assert ( pe-pa < sha2_blocksize );
+	assert ( pe-pa < static_cast< ::std::ptrdiff_t>(sha2_blocksize) );
 	// copy rest of data
 	std::copy(pa,pe,&temp[0]);
 	// put padding marker

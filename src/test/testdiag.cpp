@@ -161,7 +161,9 @@ void align(std::vector<std::string> const & A, uint64_t const radius)
 	}
 
 	std::vector<int64_t> coord(NB.k);	
+	#if 0
 	uint64_t const mask = (1ull<<NB.shift)-1;
+	#endif
 	uint64_t const loops = ::libmaus2::math::ipow(NB.w,NB.k1);
 	
 	for ( uint64_t z = 0; z < A[0].size(); ++z )

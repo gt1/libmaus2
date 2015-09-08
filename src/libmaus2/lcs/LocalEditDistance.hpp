@@ -28,7 +28,7 @@
 #include <libmaus2/lcs/LocalEditDistanceResult.hpp>
 #include <libmaus2/lcs/LocalEditDistanceTraceContainer.hpp>
 #include <libmaus2/lcs/LocalBaseConstants.hpp>
-#include <libmaus2/lcs/LocalPenaltyConstants.hpp>
+#include <libmaus2/lcs/PenaltyConstants.hpp>
 #include <libmaus2/lcs/LocalAlignmentTraceContainer.hpp>
 #include <map>
 #include <iostream>
@@ -55,7 +55,7 @@ namespace libmaus2
 			uint64_t m1;
 
 			// matrix stored column wise
-			typedef std::pair < similarity_type, step_type > element_type;
+			typedef std::pair < similarity_type, PenaltyConstants::step_type > element_type;
 			::libmaus2::autoarray::AutoArray<element_type> M;
 			
 			void setup(
@@ -132,7 +132,7 @@ namespace libmaus2
 				element_type * maxel = p;
 
 				for ( uint64_t i = 0; i < n1; ++i )
-					*(p++) = element_type(0,STEP_RESET);
+					*(p++) = element_type(0,PenaltyConstants::STEP_RESET);
 					
 				element_type * q = M.begin();
 
@@ -149,13 +149,13 @@ namespace libmaus2
 					int64_t const psc = q->first-penalty_ins;
 					if ( psc >= 0 )
 					{
-						*p = element_type(psc,STEP_INS);
+						*p = element_type(psc,PenaltyConstants::STEP_INS);
 
 						if ( p->first > maxel->first )
 							maxel = p;
 					}
 					else
-						*p = element_type(0,STEP_RESET);
+						*p = element_type(0,PenaltyConstants::STEP_RESET);
 						
 					
 					for ( iterator_a aa = a; aa != ae; ++aa )
@@ -185,20 +185,20 @@ namespace libmaus2
 								{
 									if ( left >= diag )
 										// left
-										*p = element_type(left,STEP_DEL);
+										*p = element_type(left,PenaltyConstants::STEP_DEL);
 									else							
 										// diag
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 								}
 								// top >= left
 								else
 								{
 									if ( top >= diag )
 										// top
-										*p = element_type(top,STEP_INS);
+										*p = element_type(top,PenaltyConstants::STEP_INS);
 									else
 										// diag
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 								}
 								break;
 							case diag_del_ins:
@@ -206,25 +206,25 @@ namespace libmaus2
 								{
 									if ( diag >= top )
 										// diag
-										*p = element_type(diag,dmatch ? STEP_MATCH : STEP_MISMATCH);
+										*p = element_type(diag,dmatch ? PenaltyConstants::STEP_MATCH : PenaltyConstants::STEP_MISMATCH);
 									else
 										// top
-										*p = element_type(top,STEP_INS);
+										*p = element_type(top,PenaltyConstants::STEP_INS);
 								}
 								else
 								{
 									if ( left >= top )
 										// left
-										*p = element_type(left,STEP_DEL);
+										*p = element_type(left,PenaltyConstants::STEP_DEL);
 									else
 										// top
-										*p = element_type(top,STEP_INS);
+										*p = element_type(top,PenaltyConstants::STEP_INS);
 								}
 								break;
 						}	
 
 						if ( p->first < 0 )
-							*p = element_type(0,STEP_RESET);
+							*p = element_type(0,PenaltyConstants::STEP_RESET);
 						else if ( p->first > maxel->first )
 							maxel = p;
 					}	
@@ -250,29 +250,29 @@ namespace libmaus2
 				uint64_t nummat = 0;
 				uint64_t nummis = 0;
 
-				while ( pq->second != STEP_RESET )
+				while ( pq->second != PenaltyConstants::STEP_RESET )
 				{
 					*(--ta) = pq->second;
 					
 					switch ( pq->second )
 					{
 						// previous row
-						case STEP_INS:
+						case PenaltyConstants::STEP_INS:
 							pq -= n1;
 							numins++;
 							break;
 						// previous column
-						case STEP_DEL:
+						case PenaltyConstants::STEP_DEL:
 							pq -= 1;
 							numdel++;
 							break;
 						// diagonal
-						case STEP_MATCH:
+						case PenaltyConstants::STEP_MATCH:
 							pq -= (n1+1);
 							nummat++;
 							break;
 						// diagonal
-						case STEP_MISMATCH:
+						case PenaltyConstants::STEP_MISMATCH:
 							pq -= (n1+1);
 							nummis++;
 							break;

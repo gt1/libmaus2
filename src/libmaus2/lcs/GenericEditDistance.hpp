@@ -655,6 +655,8 @@ namespace libmaus2
 							numins++;
 							tt = (tt-k21)+1;
 							break;
+						case STEP_RESET:
+							break;
 					}
 				}
 				ta = tc;

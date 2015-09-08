@@ -586,6 +586,8 @@ namespace libmaus2
 								numdel++;
 								p -= 1; // (p-k21)+1;
 								break;
+							case STEP_RESET:
+								break;
 						}
 					}
 

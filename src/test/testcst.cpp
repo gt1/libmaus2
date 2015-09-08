@@ -191,8 +191,10 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 		if ( text[i] == 0 )
 			tpos.push_back(i);
 	std::cerr << "done." << std::endl;
-			
+	
+	#if 0		
 	uint64_t const emask = libmaus2::math::lowbits(k);
+	#endif
 	uint64_t const emask1 = k ? libmaus2::math::lowbits(k-1) : 0;
 
 	for ( uint64_t j = 0; j < tpos.size(); ++j )
@@ -289,7 +291,7 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								)
 								#if 1
 								&&
-								std::abs(static_cast<int64_t>(p0)-static_cast<int64_t>(p1)) >= k
+								std::abs(static_cast<int64_t>(p0)-static_cast<int64_t>(p1)) >= static_cast<int64_t>(k)
 								#endif
 							)
 							{
@@ -318,7 +320,10 @@ void enumerateMulitpleKMers(libmaus2::suffixtree::CompressedSuffixTree const & C
 								#endif
 
 								libmaus2::lcs::NDextendDNAMapped1 nd;
-								bool const ok = nd.process<char const *, char const *>(
+								#if 0
+								bool const ok = 
+								#endif
+									nd.process<char const *, char const *>(
 									text.begin()+ep0,text.size()-ep0,
 									text.begin()+ep1,text.size()-ep1,
 									std::numeric_limits<uint64_t>::max(),
