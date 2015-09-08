@@ -247,6 +247,7 @@ namespace libmaus2
 						case STEP_MISMATCH: out.put('-'); break;
 						case STEP_INS: out.put('I'); break;
 						case STEP_DEL: out.put('D'); break;
+						case STEP_RESET: out.put('R'); break;
 					}
 				}
 			}

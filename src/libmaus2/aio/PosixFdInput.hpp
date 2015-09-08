@@ -343,7 +343,13 @@ namespace libmaus2
 				return getOptimalIOBlockSize(fd, filename);
 			}
 			
-			static int64_t getOptimalIOBlockSize(int const fd, std::string const & filename)
+			static int64_t getOptimalIOBlockSize(
+			#if defined(LIBMAUS2_HAVE_STATFS)
+				int const fd, std::string const & filename
+			#else
+				int const, std::string const &
+			#endif
+			)
 			{
 				#if defined(LIBMAUS2_HAVE_STATFS)
 				struct statfs buf;
