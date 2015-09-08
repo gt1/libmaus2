@@ -24,7 +24,9 @@
 #endif
 		
 libmaus2::lcs::DalignerNP::DalignerNP() 
+#if defined(LIBMAUS2_HAVE_DALIGNER)
 : data(0)
+#endif
 {
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
 	data = New_Work_Data();
