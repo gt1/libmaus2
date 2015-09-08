@@ -26,6 +26,7 @@
 #include <libmaus2/lcs/ND.hpp>
 #include <libmaus2/lcs/NDextend.hpp>
 #include <libmaus2/dazzler/db/OutputBase.hpp>
+#include <libmaus2/lcs/LocalAlignmentPrint.hpp>
 
 #include <libmaus2/dazzler/align/SortingOverlapOutputBuffer.hpp>
 
