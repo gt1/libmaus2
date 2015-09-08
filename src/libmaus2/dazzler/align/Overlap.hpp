@@ -273,23 +273,15 @@ namespace libmaus2
 
 					return path;
 				}
-				
-				/**
-				 * compute alignment trace
-				 *
-				 * @param aptr base sequence of aread
-				 * @param bptr base sequence of bread if isInverse() returns false, reverse complement of bread if isInverse() returns true
-				 * @param tspace trace point spacing
-				 * @param ATC trace container for storing trace
-				 * @param aligner aligner
-				 **/
-				void computeTrace(
+
+				static void computeTrace(
+					Path const & path,
 					uint8_t const * aptr,
 					uint8_t const * bptr,
 					int64_t const tspace,
 					libmaus2::lcs::AlignmentTraceContainer & ATC,
 					libmaus2::lcs::Aligner & aligner
-				) const
+				)
 				{
 					// current point on A
 					int32_t a_i = ( path.abpos / tspace ) * tspace;
@@ -323,6 +315,27 @@ namespace libmaus2
 						b_i = b_i_1;
 						a_i = a_i_1;
 					}
+				}
+
+				
+				/**
+				 * compute alignment trace
+				 *
+				 * @param aptr base sequence of aread
+				 * @param bptr base sequence of bread if isInverse() returns false, reverse complement of bread if isInverse() returns true
+				 * @param tspace trace point spacing
+				 * @param ATC trace container for storing trace
+				 * @param aligner aligner
+				 **/
+				void computeTrace(
+					uint8_t const * aptr,
+					uint8_t const * bptr,
+					int64_t const tspace,
+					libmaus2::lcs::AlignmentTraceContainer & ATC,
+					libmaus2::lcs::Aligner & aligner
+				) const
+				{
+					computeTrace(path,aptr,bptr,tspace,ATC,aligner);
 				}
 
 				/**
