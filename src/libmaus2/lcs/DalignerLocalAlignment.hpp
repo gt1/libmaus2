@@ -68,13 +68,25 @@ namespace libmaus2
 		
 			public:
 			DalignerLocalAlignment(
+				#if defined(LIBMAUS2_HAVE_DALIGNER)
 				double const correlation = 0.70,
 				int64_t const tspace = 100,
 				float const afreq = 0.25,
 				float const cfreq = 0.25,
 				float const gfreq = 0.25,
 				float const tfreq = 0.25
-			) : spec(0), workdata(0)
+				#else
+				double const = 0.70,
+				int64_t const = 100,
+				float const = 0.25,
+				float const = 0.25,
+				float const = 0.25,
+				float const = 0.25
+				#endif
+			) 
+			#if defined(LIBMAUS2_HAVE_DALIGNER)
+			: spec(0), workdata(0)
+			#endif
 			{
 				#if defined(LIBMAUS2_HAVE_DALIGNER)
 			        float freq[] = { afreq, cfreq, gfreq, tfreq };
@@ -106,7 +118,13 @@ namespace libmaus2
 			        #endif
 			}
 			
-			LocalEditDistanceResult process(uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m)
+			LocalEditDistanceResult process(
+				#if defined(LIBMAUS2_HAVE_DALIGNER)
+				uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m
+				#else
+				uint8_t const *, uint64_t const, uint8_t const *, uint64_t const
+				#endif
+			)
 			{
 				#if defined(LIBMAUS2_HAVE_DALIGNER)
 				assert ( spec );
