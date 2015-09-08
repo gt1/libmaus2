@@ -169,7 +169,7 @@ namespace libmaus2
 				int d = 1;
 				if ( DP[fdiag].offset != fdiagoff )
 				{
-					if ( trace.size() < id+3 )
+					if ( static_cast<int64_t>(trace.size()) < id+3 )
 						trace.resize(id+3);
 						
 					{
@@ -258,7 +258,7 @@ namespace libmaus2
 				}
 				for ( ; DP[fdiag].offset != fdiagoff; ++d )
 				{
-					if ( trace.size() < id + (2*d+1) )
+					if ( static_cast<int64_t>(trace.size()) < id + (2*d+1) )
 					{
 						static uint64_t const cnt = 11;
 						static uint64_t const div = 10;
