@@ -834,7 +834,7 @@ namespace libmaus2
 							break;
 					}
 					
-					if ( score < 0 )
+					if ( score <= 0 )
 					{
 						score = 0;
 						tne = tc;
