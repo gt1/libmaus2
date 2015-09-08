@@ -29,15 +29,7 @@
 
 uint64_t getFileLength(std::string const & textfilename)
 {
-	std::ifstream istr(textfilename.c_str(),std::ios::binary);
-	
-	if ( ! istr.is_open() )
-		throw std::runtime_error("Failed to open file.");
-	
-	istr.seekg(0,std::ios_base::end);
-	uint64_t const n = istr.tellg();
-
-	return n;
+	return libmaus2::util::GetFileSize::getFileSize(textfilename);
 }
 
 ::libmaus2::autoarray::AutoArray<uint64_t> getSymbolFrequencies(std::string const & textfilename)
