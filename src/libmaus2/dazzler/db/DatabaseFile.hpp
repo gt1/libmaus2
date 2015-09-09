@@ -905,7 +905,7 @@ namespace libmaus2
 				void getReadDataVector(
 					std::vector<uint64_t> const & I,
 					libmaus2::autoarray::AutoArray<char> & B,
-					libmaus2::autoarray::AutoArray<uint64_t> O
+					libmaus2::autoarray::AutoArray<uint64_t> & O
 				) const
 				{
 					B.resize(0);
@@ -967,6 +967,57 @@ namespace libmaus2
 
 						decodeRead(*Pbasestr,B.begin() + O[j],R.rlen);
 					}
+				}
+
+				uint64_t getReadDataVectorMemInterval(
+					uint64_t const low,
+					uint64_t const maxmem,
+					libmaus2::autoarray::AutoArray<char> & B,
+					libmaus2::autoarray::AutoArray<uint64_t> & O
+				) const
+				{
+					B.resize(0);
+					O.resize(1);
+					O[0] = 0;
+					
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					
+					uint64_t h = low;
+					uint64_t m = 0;
+					while ( h < size() && m < maxmem )
+					{
+						uint64_t const mappedindex = Ptrim->select1(h);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						Read const R(*Pidxfile);
+						m += R.rlen;
+						h += 1;
+					}				
+					
+					O.resize(h-low+1);
+					O[0] = 0;
+					B.resize(m);
+
+					libmaus2::aio::InputStream::unique_ptr_type Pbasestr(openBaseStream());
+					for ( uint64_t j = low; j < h; ++j )
+					{
+						uint64_t const mappedindex = Ptrim->select1(j);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						Read const R(*Pidxfile);
+						O[j-low+1] = O[j-low] + R.rlen;
+						if ( static_cast<int64_t>(Pbasestr->tellg()) != R.boff )
+							Pbasestr->seekg(R.boff,std::ios::beg);
+
+						decodeRead(*Pbasestr,B.begin() + O[j-low],R.rlen);
+					}
+					
+					return h;
 				}
 
 
