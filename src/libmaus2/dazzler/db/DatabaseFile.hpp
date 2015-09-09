@@ -1016,6 +1016,54 @@ namespace libmaus2
 					return h;
 				}
 
+				std::pair<uint64_t,uint64_t> getReadDataVectorMemInterval(
+					uint64_t const low,
+					uint64_t const high,
+					uint64_t const maxmem,
+					libmaus2::autoarray::AutoArray<char> & B,
+					libmaus2::autoarray::AutoArray<uint64_t> & O
+				) const
+				{
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					
+					uint64_t h = low;
+					uint64_t m = 0;
+					while ( h < size() && h < high && m < maxmem )
+					{
+						uint64_t const mappedindex = Ptrim->select1(h);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						Read const R(*Pidxfile);
+						m += R.rlen;
+						h += 1;
+					}				
+					
+					O.resize(h-low+1);
+					O[0] = 0;
+					B.resize(m);
+
+					libmaus2::aio::InputStream::unique_ptr_type Pbasestr(openBaseStream());
+					for ( uint64_t j = low; j < h; ++j )
+					{
+						uint64_t const mappedindex = Ptrim->select1(j);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						Read const R(*Pidxfile);
+						O[j-low+1] = O[j-low] + R.rlen;
+						if ( static_cast<int64_t>(Pbasestr->tellg()) != R.boff )
+							Pbasestr->seekg(R.boff,std::ios::beg);
+
+						decodeRead(*Pbasestr,B.begin() + O[j-low],R.rlen);
+					}
+					
+					return std::pair<uint64_t,uint64_t>(h,m);
+				}
+
 				template<typename iterator>
 				iterator getReadDataVectorMemInterval(
 					iterator ita, iterator ite,
