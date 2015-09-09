@@ -46,12 +46,14 @@ namespace libmaus2
 						return !isInverse();
 					else if ( path.abpos != O.path.abpos )
 						return path.abpos < O.path.abpos;
+					#if 0
 					else if ( path.aepos != O.path.aepos )
 						return path.aepos < O.path.aepos;
 					else if ( path.bbpos != O.path.bbpos )
 						return path.bbpos < O.path.bbpos;
 					else if ( path.bepos != O.path.bepos )
 						return path.bepos < O.path.bepos;
+					#endif
 					else
 						return false;
 				}

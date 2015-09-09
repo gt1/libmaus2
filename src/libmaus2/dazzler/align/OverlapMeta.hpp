@@ -46,12 +46,14 @@ namespace libmaus2
 						return !inv;
 					else if ( abpos != O.abpos )
 						return abpos < O.abpos;
+					#if 0
 					else if ( aepos != O.aepos )
 						return aepos < O.aepos;
 					else if ( bbpos != O.bbpos )
 						return bbpos < O.bbpos;
 					else if ( bepos != O.bepos )
 						return bepos < O.bepos;
+					#endif
 					else
 						return false;
 				}

@@ -1,3 +1,10 @@
+libmaus2 (2.0.63-1) unstable; urgency=medium
+
+  * adding getNovl method in AlignmentFile
+  * restrict comparisons of Overlap/OverlapMeta objects to the fields used by DALIGNER's LAsort/LAmerge
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 09 Sep 2015 10:12:45 +0200
+
 libmaus2 (2.0.62-1) unstable; urgency=medium
 
   * fix compilation with gcc 4.1.2 
