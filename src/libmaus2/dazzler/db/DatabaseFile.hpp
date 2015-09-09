@@ -863,6 +863,113 @@ namespace libmaus2
 					}
 				}
 
+				void getReadVector(std::vector<uint64_t> const & I, std::vector<Read> & V) const
+				{
+					V.resize(0);
+					
+					if ( ! I.size() )
+						return;
+					
+					V.resize(I.size());
+					
+					for ( uint64_t i = 1; i < I.size(); ++i )
+						if ( I[i-1] >= I[i] )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "DatabaseFile::getReadVector: index vector is not strictly increasing" << std::endl;
+							lme.finish();
+							throw lme;							
+						}
+					if ( I.back() >= size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getReadVector: index vector contains values out of range" << std::endl;
+						lme.finish();
+						throw lme;							
+					}
+					
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					
+					for ( uint64_t j = 0; j < I.size(); ++j )
+					{
+						uint64_t const mappedindex = Ptrim->select1(I[j]);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						V[j].deserialise(*Pidxfile);
+					}					
+				}
+
+				void getReadDataVector(
+					std::vector<uint64_t> const & I,
+					libmaus2::autoarray::AutoArray<char> & B,
+					libmaus2::autoarray::AutoArray<uint64_t> O
+				) const
+				{
+					B.resize(0);
+					O.resize(1);
+					O[0] = 0;
+					
+					if ( ! I.size() )
+						return;
+					
+					O.resize(I.size()+1);
+					
+					for ( uint64_t i = 1; i < I.size(); ++i )
+						if ( I[i-1] >= I[i] )
+						{
+							libmaus2::exception::LibMausException lme;
+							lme.getStream() << "DatabaseFile::getReadVector: index vector is not strictly increasing" << std::endl;
+							lme.finish();
+							throw lme;							
+						}
+					if ( I.back() >= size() )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "DatabaseFile::getReadVector: index vector contains values out of range" << std::endl;
+						lme.finish();
+						throw lme;							
+					}
+					
+					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
+					std::istream & idxfile = *Pidxfile;
+					
+					for ( uint64_t j = 0; j < I.size(); ++j )
+					{
+						uint64_t const mappedindex = Ptrim->select1(I[j]);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						Read const R(*Pidxfile);
+						O[j] = R.rlen;
+					}					
+					
+					O.prefixSums();
+					assert ( O.size() );
+					B.resize(O[O.size()-1]);
+
+					libmaus2::aio::InputStream::unique_ptr_type Pbasestr(openBaseStream());
+
+					for ( uint64_t j = 0; j < I.size(); ++j )
+					{
+						uint64_t const mappedindex = Ptrim->select1(I[j]);
+
+						if ( static_cast<int64_t>(idxfile.tellg()) != static_cast<int64_t>(indexoffset + mappedindex * Read::serialisedSize) )
+							idxfile.seekg(indexoffset + mappedindex * Read::serialisedSize);
+						
+						Read const R(*Pidxfile);
+						assert ( static_cast<int64_t>(O[j+1]-O[j]) == R.rlen );
+						if ( static_cast<int64_t>(Pbasestr->tellg()) != R.boff )
+							Pbasestr->seekg(R.boff,std::ios::beg);
+
+						decodeRead(*Pbasestr,B.begin() + O[j],R.rlen);
+					}
+				}
+
+
 				void getReadLengthInterval(size_t const low, size_t const high, std::vector<uint64_t> & V) const
 				{
 					V.resize(0);
@@ -941,7 +1048,7 @@ namespace libmaus2
 					return decodeRead(*Pbpsfile,A,R.rlen);
 				}
 
-				libmaus2::aio::InputStream::unique_ptr_type openBaseStream()
+				libmaus2::aio::InputStream::unique_ptr_type openBaseStream() const
 				{
 					libmaus2::aio::InputStream::unique_ptr_type Pbpsfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(bpspath));
 					return UNIQUE_PTR_MOVE(Pbpsfile);
