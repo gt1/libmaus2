@@ -184,6 +184,13 @@ namespace libmaus2
 					this_type algn(ISI);
 					return algn.tspace;
 				}
+
+				static int64_t getNovl(std::string const & aligns)
+				{
+					libmaus2::aio::InputStreamInstance ISI(aligns);
+					this_type algn(ISI);
+					return algn.novl;
+				}
 				
 				static int64_t getTSpace(std::vector<std::string> const & Valigns)
 				{
