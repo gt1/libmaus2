@@ -976,10 +976,6 @@ namespace libmaus2
 					libmaus2::autoarray::AutoArray<uint64_t> & O
 				) const
 				{
-					B.resize(0);
-					O.resize(1);
-					O[0] = 0;
-					
 					libmaus2::aio::InputStream::unique_ptr_type Pidxfile(libmaus2::aio::InputStreamFactoryContainer::constructUnique(idxpath));
 					std::istream & idxfile = *Pidxfile;
 					
