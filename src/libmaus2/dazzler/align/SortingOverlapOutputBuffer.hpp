@@ -28,6 +28,7 @@
 #include <libmaus2/util/TempFileRemovalContainer.hpp>
 #include <libmaus2/aio/OutputStreamFactoryContainer.hpp>
 #include <libmaus2/dazzler/align/AlignmentWriter.hpp>
+#include <libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp>
 #include <queue>
 		
 namespace libmaus2
@@ -147,6 +148,84 @@ namespace libmaus2
 					libmaus2::aio::FileRemoval::removeFile(tmpfilename);
 				}
 				
+				static std::vector<std::string> mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilenameprefix, uint64_t const numthreads, bool const regtmp = false)
+				{
+					OverlapMetaIteratorGet G(infilenames);
+					std::vector<uint64_t> const B = G.getBlockStarts(numthreads);
+					int64_t const tspace = libmaus2::dazzler::align::AlignmentFile::getTSpace(infilenames);
+
+					std::vector<std::string> VO(numthreads);
+					libmaus2::parallel::PosixSpinLock L;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
+					for ( uint64_t i = 0; i < numthreads; ++i )
+					{
+						uint64_t const low = B[i];
+						uint64_t const high = B[i+1];
+
+						std::ostringstream fnostr;
+						fnostr << outfilenameprefix << "." << std::setw(6) << std::setfill('0') << i << std::setw(0) << ".las";
+						std::string const fn = fnostr.str();
+
+						{
+							libmaus2::parallel::ScopePosixSpinLock slock(L);
+							VO[i] = fn;
+							std::cerr << "[D] writing [" << low << "," << high << ") to " << fn << std::endl;
+						}
+
+						if ( regtmp )
+						{
+							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
+							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
+						}
+
+						libmaus2::dazzler::align::AlignmentWriter AW(fn,tspace);
+
+						std::priority_queue<
+							std::pair<uint64_t,libmaus2::dazzler::align::Overlap>,
+							std::vector< std::pair<uint64_t,libmaus2::dazzler::align::Overlap> >,
+							OverlapHeapComparator
+						> Q;
+
+						libmaus2::autoarray::AutoArray<AlignmentFileRegion::unique_ptr_type> I(infilenames.size());
+						Overlap OVL;
+						for ( uint64_t i = 0; i < infilenames.size(); ++i )
+						{
+							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[i],low,high));
+							I[i] = UNIQUE_PTR_MOVE(Tptr);
+							if ( I[i]->getNextOverlap(OVL) )
+								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(i,OVL));
+						}
+
+						bool haveprev = false;
+						libmaus2::dazzler::align::Overlap OVLprev;
+
+						while ( Q.size() )
+						{
+							std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const P = Q.top();
+							Q.pop();
+
+							if ( haveprev )
+							{
+								bool const ok = !(P.second < OVLprev);
+								assert ( ok );
+							}
+
+							AW.put(P.second);
+
+							if ( I[P.first]->getNextOverlap(OVL) )
+								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(P.first,OVL));
+
+							haveprev = true;
+							OVLprev = P.second;
+						}
+					}
+
+					return VO;
+				}
+
 				static void mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilename)
 				{
 					libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(infilenames.size());
