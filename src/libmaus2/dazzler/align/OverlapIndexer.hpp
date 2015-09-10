@@ -264,6 +264,16 @@ namespace libmaus2
 					return UNIQUE_PTR_MOVE(Tptr);
 				}
 
+				static AlignmentFileRegion::unique_ptr_type openAlignmentFile(std::string const & aligns)
+				{
+					int64_t const max = getMaximumARead(aligns);
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile;
+					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn;
+					openAlignmentFileRegion(aligns,0,max+1,Pfile,Palgn);
+					AlignmentFileRegion::unique_ptr_type Tptr(new AlignmentFileRegion(Pfile,Palgn));
+					return UNIQUE_PTR_MOVE(Tptr);
+				}
+
 				static std::string constructIndex(std::string const & aligns, std::ostream * verbstr = 0)
 				{
 					std::string const indexfn = getIndexName(aligns);
