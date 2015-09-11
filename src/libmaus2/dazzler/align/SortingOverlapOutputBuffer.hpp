@@ -225,6 +225,18 @@ namespace libmaus2
 
 					return VO;
 				}
+				
+				static void removeFileAndIndex(std::string const infilename)
+				{
+					libmaus2::aio::FileRemoval::removeFile(infilename);
+					libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilename));					
+				}
+				
+				static void removeFileAndIndex(std::vector<std::string> const & infilenames)
+				{
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+						removeFileAndIndex(infilenames[i]);
+				}
 
 				static void catFiles(std::vector<std::string> const & infilenames, std::string const & outfilename, bool const removeinput = false)
 				{
@@ -239,8 +251,7 @@ namespace libmaus2
 						Pfile.reset();
 						if ( removeinput )
 						{
-							libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
-							libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[i]));
+							removeFileAndIndex(infilenames[i]);
 						}
 					}
 				}
