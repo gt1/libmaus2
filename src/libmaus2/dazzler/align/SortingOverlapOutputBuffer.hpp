@@ -226,6 +226,25 @@ namespace libmaus2
 					return VO;
 				}
 
+				static void catFiles(std::vector<std::string> const & infilenames, std::string const & outfilename, bool const removeinput = false)
+				{
+					int64_t const tspace = libmaus2::dazzler::align::AlignmentFile::getTSpace(infilenames);
+					libmaus2::dazzler::align::AlignmentWriter AW(outfilename,tspace);
+					for ( uint64_t i = 0; i < infilenames.size(); ++i )
+					{
+						libmaus2::dazzler::align::AlignmentFileRegion::unique_ptr_type Pfile(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFile(infilenames[i]));
+						libmaus2::dazzler::align::Overlap OVL;
+						while ( Pfile->getNextOverlap(OVL) )
+							AW.put(OVL);
+						Pfile.reset();
+						if ( removeinput )
+						{
+							libmaus2::aio::FileRemoval::removeFile(infilenames[i]);
+							libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[i]));
+						}
+					}
+				}
+
 				static void mergeFiles(std::vector<std::string> const & infilenames, std::string const & outfilename)
 				{
 					libmaus2::autoarray::AutoArray<libmaus2::aio::InputStreamInstance::unique_ptr_type> AISI(infilenames.size());
