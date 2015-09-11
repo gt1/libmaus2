@@ -254,7 +254,7 @@ libmaus2dazzlerdb_include_HEADERS = libmaus2/dazzler/db/IndexBase.hpp  libmaus2/
 	libmaus2/dazzler/db/GetByteCounter.hpp libmaus2/dazzler/db/Read.hpp libmaus2/dazzler/db/OutputBase.hpp \
 	libmaus2/dazzler/db/TrackAnnoInterface.hpp libmaus2/dazzler/db/TrackAnno.hpp \
 	libmaus2/dazzler/db/Track.hpp libmaus2/dazzler/db/InqualContainer.hpp libmaus2/dazzler/db/PartTrackContainer.hpp \
-	libmaus2/dazzler/db/ReadLRUContainer.hpp libmaus2/dazzler/db/SatsContainer.hpp
+	libmaus2/dazzler/db/ReadLRUContainer.hpp libmaus2/dazzler/db/SatsContainer.hpp libmaus2/dazzler/db/ReadContainer.hpp
 	
 libmaus2dazzleralign_includedir=$(includedir)/libmaus2/dazzler/align
 libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp libmaus2/dazzler/align/Path.hpp libmaus2/dazzler/align/Overlap.hpp \
@@ -263,7 +263,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/OverlapHeapComparator.hpp libmaus2/dazzler/align/SortingOverlapBlockInput.hpp \
 	libmaus2/dazzler/align/SortingOverlapOutputBufferMerger.hpp libmaus2/dazzler/align/AlignmentSplitWriter.hpp \
 	libmaus2/dazzler/align/OverlapMeta.hpp libmaus2/dazzler/align/OverlapIndexerBase.hpp \
-	libmaus2/dazzler/align/OverlapIndexer.hpp libmaus2/dazzler/align/AlignmentWriter.hpp
+	libmaus2/dazzler/align/OverlapIndexer.hpp libmaus2/dazzler/align/AlignmentWriter.hpp \
+	libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp libmaus2/dazzler/align/AlignmentFileRegion.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
