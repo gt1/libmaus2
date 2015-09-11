@@ -1253,6 +1253,7 @@ namespace libmaus2
 					{
 						Read R(*Pidxfile);
 						
+						// do we keep the read after filtering?
 						bool const keep = 
 							(all || (R.flags & Read::DB_BEST) != 0) 
 							&&
