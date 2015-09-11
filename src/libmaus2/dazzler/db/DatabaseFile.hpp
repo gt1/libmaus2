@@ -1253,6 +1253,7 @@ namespace libmaus2
 					{
 						Read R(*Pidxfile);
 						
+						// do we keep the read after filtering?
 						bool const keep = 
 							(all || (R.flags & Read::DB_BEST) != 0) 
 							&&
@@ -1364,6 +1365,31 @@ namespace libmaus2
 				std::string getTrackDataFileName(std::string const & trackname) const
 				{
 					return getTrackDataFileName(path,root,part,trackname);
+				}
+				
+				bool haveTrackAnno(std::string const & trackname, int64_t const rpart = -1) const
+				{
+					int64_t const part = (rpart >= 0) ? rpart : this->part;
+
+					std::string annoname;
+
+					// check whether annotation/track is specific to this block
+					if ( 
+						part &&
+						libmaus2::aio::InputStreamFactoryContainer::tryOpen(
+							this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(part,0) + "." + trackname + ".anno" 
+						)
+					)
+					{
+						annoname = this->path + "/" + "." + this->root + "." + libmaus2::util::NumberSerialisation::formatNumber(part,0) + "." + trackname + ".anno";
+					}
+					// no, try whole database
+					else
+					{
+						annoname = this->path + "/" + "." + this->root + "." + trackname + ".anno";
+					}
+					
+					return libmaus2::aio::InputStreamFactoryContainer::tryOpen(annoname);
 				}
 
 				Track::unique_ptr_type readTrack(std::string const & trackname, int64_t const rpart = -1) const

@@ -1,3 +1,20 @@
+libmaus2 (2.0.66-1) unstable; urgency=medium
+
+  * add ReadContainer class  
+  * add removeFileAndIndex method in OverlapIndexer class
+  * add option to load only a single block in ApproximateRunPartContainer class  
+  * fix bug where we threw an exception if there was no data for a read in ApproximateRunPartContainer class  
+  * add option to load only data for a single block in PartTrackContainer class  
+  * add catFiles method in SortingOverlapOutputBuffer class  
+  * add haveTrackAnno method in DatabaseFile class  
+  * add parallel merging function in SortingOverlapOutputBuffer  
+  * add openAlignmentFile method in OverlapIndexer  
+  * add getReadStartPosition method in OverlapIndexer class  
+  * add AlignmentFileRegion class and method in OverlapIndexer to produce such objects  
+  * add OverlapMetaIteratorGet for computing block bound for parallel merging  
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 11 Sep 2015 14:07:30 +0200
+
 libmaus2 (2.0.65-1) unstable; urgency=medium
 
   * add getReadDataVectorMemInterval method in DatabaseFile

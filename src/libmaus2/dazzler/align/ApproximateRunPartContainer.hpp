@@ -30,8 +30,8 @@ namespace libmaus2
 		{
 			struct ApproximateRunPartContainer : public libmaus2::dazzler::db::PartTrackContainer
 			{
-				ApproximateRunPartContainer(libmaus2::dazzler::db::DatabaseFile const & DB)
-				: PartTrackContainer(DB,"app_runs") 
+				ApproximateRunPartContainer(libmaus2::dazzler::db::DatabaseFile const & DB, int64_t const blockid = -1)
+				: PartTrackContainer(DB,"app_runs",blockid) 
 				{
 				}
 
@@ -56,7 +56,7 @@ namespace libmaus2
 					std::istringstream appistr(appdata);
 					
 					uint64_t roffset = 0;
-					uint64_t const numel = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(appistr,roffset);
+					uint64_t const numel = len ? libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(appistr,roffset) : 0;
 					std::vector<libmaus2::dazzler::align::ApproximateRun> V(numel);
 					for ( uint64_t i = 0; i < numel; ++i )
 						V[i].deserialise(appistr);
