@@ -146,20 +146,24 @@ namespace libmaus2
 						libmaus2::dazzler::align::AlignmentFile::serialiseHeader(DOSI,novl,tspace);
 						DOSI.seekp(dpos,std::ios::beg);
 					}
+					// flush alignment stream
+					DOSI.flush();
+					// reset alignment file handle
+					PDOSI.reset();
 				
+					// finalise index if we are producing any
 					if ( PEMIG )
 					{
 						PEMIG->flush();
 						PEMIG.reset();
 					}
 					
+					// flush and close index stream
 					if ( PIOSI )
 					{
 						PIOSI->flush();
 						PIOSI.reset();
 					}
-					DOSI.flush();
-					PDOSI.reset();
 				}
 				
 				void put(libmaus2::dazzler::align::Overlap const & OVL)
