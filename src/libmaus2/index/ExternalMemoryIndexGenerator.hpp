@@ -133,7 +133,9 @@ namespace libmaus2
 						uint64_t gpos = levelstarts[level];
 						uint64_t ppos = gpos + incnt * record_size;
 						
+						// expected position of get pointer after handling level
 						uint64_t const egpos = ppos;
+						// expected position of put pointer after handling level
 						uint64_t const eppos = ppos + outcnt * record_size;
 						
 						levelstarts.push_back(ppos);
@@ -148,7 +150,7 @@ namespace libmaus2
 							uint64_t pfirst = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);
 							uint64_t psecond = libmaus2::util::NumberSerialisation::deserialiseNumber(stream);							
 							D.deserialise(stream);
-							
+
 							gpos += 2*sizeof(uint64_t) + object_size;
 							
 							if ( (j & inner_index_mask) == 0 )
@@ -187,7 +189,8 @@ namespace libmaus2
 							wc = wa;
 						}
 						
-						assert ( static_cast<off_t>(stream.tellg()) == static_cast<off_t>(egpos) );
+						bool const pok = static_cast<off_t>(stream.tellg()) == static_cast<off_t>(egpos);
+						assert ( pok );
 						assert ( ppos == eppos );
 						
 						incnt = outcnt;

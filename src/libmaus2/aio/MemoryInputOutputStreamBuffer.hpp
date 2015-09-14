@@ -258,7 +258,7 @@ namespace libmaus2
 				// set buffer pointers
 				setg(buffer.begin(),buffer.begin(),buffer.begin()+g);
 
-				// update start of buffer position
+				// update end of buffer position
 				readpos += g;
 
 				if ( g )
@@ -318,7 +318,9 @@ namespace libmaus2
 				{
 					if ( which == std::ios_base::in )
 					{
-						return seekpos(readpos + (gptr()-eback()),which);
+						int64_t const bufpart = egptr() - eback();
+						assert ( static_cast<int64_t>(readpos) >= bufpart );
+						return seekpos((readpos - bufpart) + (gptr()-eback()) + off,which);
 					}
 					else if ( which == std::ios_base::out )
 					{

@@ -195,7 +195,6 @@ namespace libmaus2
 							if ( !I0.intersection(I1).isEmpty() )
 								R.push_back(&V[i]);
 						}
-							
 					}
 
 					// std::cerr << level << "," << q.first << "," << q.second.first << "," << q.second.second << "," << basebin << "," << div << "," << bin << std::endl;
@@ -226,6 +225,25 @@ namespace libmaus2
 					}
 				}
 				
+				#if defined(LIBMAUS2_GEOMETRY_RANGESET_DEBUG)
+				std::vector<element_type const *> RR;
+				for ( typename std::map< uint64_t,std::vector<element_type> >::const_iterator ita = bins.begin(); ita != bins.end(); ++ita )
+				{
+					std::vector<element_type> const & V = ita->second;
+					for ( uint64_t i = 0; i < V.size(); ++i )
+					{
+						libmaus2::math::IntegerInterval<uint64_t> I0(elem.getFrom(),elem.getTo()-1);
+						libmaus2::math::IntegerInterval<uint64_t> I1(V[i].getFrom(),V[i].getTo()-1);
+						if ( !I0.intersection(I1).isEmpty() )
+							RR.push_back(&V[i]);
+					}
+				}
+				assert ( R.size() == RR.size() );
+				std::set < element_type const * > SA(R.begin(),R.end());
+				std::set < element_type const * > SB(RR.begin(),RR.end());
+				assert ( SA == SB );
+				#endif
+
 				return R;
 			}
 		};
