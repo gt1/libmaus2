@@ -166,7 +166,8 @@ namespace libmaus2
 
 				while ( n )
 				{
-					ssize_t const w = ::write(fd,p,n);
+					size_t const towrite = std::min(n,static_cast<uint64_t>(optblocksize));
+					ssize_t const w = ::write(fd,p,towrite);
 					
 					if ( w < 0 )
 					{
@@ -202,8 +203,8 @@ namespace libmaus2
 			PosixFdOutputStreamBuffer(int const rfd, int64_t const rbuffersize)
 			: fd(rfd), 
 			  closefd(false), 
-			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,std::string()) : rbuffersize),
-			  buffersize(optblocksize), 
+			  optblocksize(getOptimalIOBlockSize(fd,std::string())),
+			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize), 
 			  buffer(buffersize,false),
 			  writepos(0)
 			{
@@ -213,9 +214,9 @@ namespace libmaus2
 			PosixFdOutputStreamBuffer(std::string const & fn, int64_t const rbuffersize)
 			: 
 			  fd(doOpen(fn)), 
-			  closefd(true), 
-			  optblocksize((rbuffersize < 0) ? getOptimalIOBlockSize(fd,fn) : rbuffersize),
-			  buffersize(optblocksize), 
+			  closefd(true),
+			  optblocksize(getOptimalIOBlockSize(fd,fn)),
+			  buffersize((rbuffersize <= 0) ? optblocksize : rbuffersize), 
 			  buffer(buffersize,false),
 			  writepos(0)
 			{
