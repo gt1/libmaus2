@@ -20,6 +20,7 @@
 #include <libmaus2/types/types.hpp>
 #include <libmaus2/autoarray/AutoArray.hpp>
 #include <libmaus2/util/stringFunctions.hpp>
+#include <libmaus2/aio/PosixFdInput.hpp>
 #include <limits>
 #include <cstdlib>
 #include <sstream>
@@ -320,3 +321,123 @@ bool const libmaus2::lcs::NDextend1234Pass::passtable[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
+
+static std::map<std::string,uint64_t> getPosixFdInputBlockSizeOverride()
+{
+	std::map<std::string,uint64_t> M;
+
+	char const * envstr = getenv("LIBMAUS2_POSIXFDINPUT_BLOCKSIZE_OVERRIDE");
+
+	if ( envstr )
+	{
+		std::string const senvstr(envstr);
+
+		std::string::size_type p = 0;
+
+		while ( p < senvstr.size() )
+		{
+			std::string::size_type h = p;
+			while (
+				h < senvstr.size() &&
+				(
+					senvstr[h] != ':'
+					||
+					(
+						senvstr[h] == ':' &&
+						h+1 < senvstr.size() &&
+						senvstr[h+1] == ':'
+					)
+				)
+			)
+			{
+				if ( senvstr[h] != ':' )
+					++h;
+				else
+					h += 2;
+			}
+
+			assert ( h == senvstr.size() || senvstr[h] == ':' );
+
+			std::string const ppart = senvstr.substr(p,h-p);
+			std::vector<char> vpart(ppart.begin(),ppart.end());
+
+			uint64_t o = 0;
+			for ( uint64_t i = 0; i < vpart.size(); )
+				if ( vpart[i] != ':' )
+					vpart[o++] = vpart[i++];
+				else
+				{
+					assert ( i+1 < vpart.size() && vpart[i+1] == ':' );
+					vpart[o++] = vpart[i];
+					i += 2;
+				}
+			vpart.resize(o);
+			std::string const part(vpart.begin(),vpart.end());
+
+			if ( part.find('=') != std::string::npos )
+			{
+				std::string::size_type const m = part.find('=');
+				std::string const key = part.substr(0,m);
+				std::string const val = part.substr(m+1);
+
+				std::istringstream istr(val);
+				uint64_t u = 0;
+
+				istr >> u;
+				bool ok = true;
+
+				if ( istr )
+				{
+					uint64_t multiplier = 1;
+
+					if ( istr.peek() != std::istream::traits_type::eof() )
+					{
+						char const unit = istr.get();
+
+						if ( istr.peek() == std::istream::traits_type::eof() )
+						{
+							switch ( unit )
+							{
+								case 'k': multiplier = 1024ull; break;
+								case 'K': multiplier = 1000ull; break;
+								case 'm': multiplier = 1024ull*1024ull; break;
+								case 'M': multiplier = 1000ull*1000ull; break;
+								case 'g': multiplier = 1024ull*1024ull*1024ull; break;
+								case 'G': multiplier = 1000ull*1000ull*1000ull; break;
+								case 't': multiplier = 1024ull*1024ull*1024ull*1024ull; break;
+								case 'T': multiplier = 1000ull*1000ull*1000ull*1000ull; break;
+								case 'p': multiplier = 1024ull*1024ull*1024ull*1024ull*1024ull; break;
+								case 'P': multiplier = 1000ull*1000ull*1000ull*1000ull*1000ull; break;
+								case 'e': multiplier = 1024ull*1024ull*1024ull*1024ull*1024ull*1024ull; break;
+								case 'E': multiplier = 1000ull*1000ull*1000ull*1000ull*1000ull*1000ull; break;
+								default: ok = false; break;
+							}
+
+							if ( ok )
+								u *= multiplier;
+						}
+						else
+						{
+							ok = false;
+						}
+					}
+				}
+				else
+				{
+					ok = false;
+				}
+
+				if ( ok && u > 0 )
+				{
+					M[key] = u;
+				}
+			}
+
+			p = h+1;
+		}
+	}
+
+	return M;
+}
+
+std::map<std::string,uint64_t> const libmaus2::aio::PosixFdInput::blocksizeoverride = getPosixFdInputBlockSizeOverride();

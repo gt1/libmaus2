@@ -57,6 +57,8 @@ namespace libmaus2
 			ssize_t gcnt;
 			bool const closeOnDeconstruct;
 			
+			static std::map<std::string,uint64_t> const blocksizeoverride;
+
 			public:
 			static int getDefaultFlags()
 			{
@@ -344,13 +346,26 @@ namespace libmaus2
 			}
 			
 			static int64_t getOptimalIOBlockSize(
-			#if defined(LIBMAUS2_HAVE_STATFS)
-				int const fd, std::string const & filename
-			#else
-				int const, std::string const &
-			#endif
+				#if defined(LIBMAUS2_HAVE_STATFS)
+				int const fd,
+				#else
+				int const,
+				#endif
+				std::string const & filename
 			)
 			{
+				int64_t override = -1;
+				for ( std::map<std::string,uint64_t>::const_iterator ita = blocksizeoverride.begin(); ita != blocksizeoverride.end(); ++ita )
+				{
+					std::string const & key = ita->first;
+
+					if ( key.size() <= filename.size() && filename.substr(0,key.size()) == key )
+						override = static_cast<int64_t>(ita->second);
+				}
+
+				if ( override > 0 )
+					return override;
+
 				#if defined(LIBMAUS2_HAVE_STATFS)
 				struct statfs buf;
 				int r = -1;
