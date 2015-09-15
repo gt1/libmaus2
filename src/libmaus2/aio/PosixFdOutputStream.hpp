@@ -31,12 +31,12 @@ namespace libmaus2
 			typedef libmaus2::util::unique_ptr<this_type>::type unique_ptr_type;
 			typedef libmaus2::util::shared_ptr<this_type>::type shared_ptr_type;
 		
-			PosixFdOutputStream(int const rfd, uint64_t const rbuffersize = 64*1024)
+			PosixFdOutputStream(int const rfd, uint64_t const rbuffersize = -1)
 			: PosixFdOutputStreamBuffer(rfd,rbuffersize), std::ostream(this)
 			{
 				exceptions(std::ios::badbit);
 			}
-			PosixFdOutputStream(std::string const & rfilename, uint64_t const rbuffersize = 64*1024)
+			PosixFdOutputStream(std::string const & rfilename, uint64_t const rbuffersize = -1)
 			: PosixFdOutputStreamBuffer(rfilename,rbuffersize), std::ostream(this)
 			{
 				exceptions(std::ios::badbit);
