@@ -58,6 +58,8 @@ namespace libmaus2
 					return s;
 				}
 			};
+			
+			std::ostream & operator<<(std::ostream & out, TandemVector const & TV);
 		}
 	}
 }
