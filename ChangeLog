@@ -1,3 +1,9 @@
+libmaus2 (2.0.74-1) unstable; urgency=medium
+
+  * fix race condition in sortAndMerge function of SortingOverlapOutputBuffer class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 16 Sep 2015 21:05:05 +0200
+
 libmaus2 (2.0.73-1) unstable; urgency=medium
 
   * fix merge block construction in OverlapMetaIteratorGet 
