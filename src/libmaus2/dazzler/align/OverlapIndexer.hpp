@@ -264,9 +264,12 @@ namespace libmaus2
 						throw lme;
 					}
 
-					int64_t const numabove = Palgn->novl-Palgn->alre; 
+					int64_t const numabove = Palgn->novl-Palgn->alre;
+					int64_t const abovestart = Palgn->alre;
 
 					openAlignmentFileAtRead(aligns,afrom,Pfile,Palgn);
+
+					int64_t const regionstart = Palgn->alre;
 
 					std::streampos const gposbelow = Pfile->tellg();
 
@@ -283,7 +286,7 @@ namespace libmaus2
 					else
 						Palgn->novl = 0;
 
-					return OpenAlignmentFileRegionInfo(gposbelow,gposabove,Palgn->alre,Palgn->alre+Palgn->novl);
+					return OpenAlignmentFileRegionInfo(gposbelow,gposabove,regionstart,abovestart);
 				}
 
 				static AlignmentFileRegion::unique_ptr_type openAlignmentFileRegion(
