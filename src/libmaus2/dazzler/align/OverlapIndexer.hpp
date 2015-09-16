@@ -227,8 +227,21 @@ namespace libmaus2
 					return aread;
 				}
 				
+				struct OpenAlignmentFileRegionInfo
+				{
+					std::streampos gposbelow;
+					std::streampos gposabove;
+					uint64_t algnlow;
+					uint64_t algnhigh;
+
+					OpenAlignmentFileRegionInfo() {}
+					OpenAlignmentFileRegionInfo(std::streampos const rgposbelow, std::streampos const rgposabove, uint64_t const ralgnlow, uint64_t const ralgnhigh)
+					: gposbelow(rgposbelow), gposabove(rgposabove), algnlow(ralgnlow), algnhigh(ralgnhigh)
+					{
+					}
+				};
 				
-				static void openAlignmentFileRegion(
+				static OpenAlignmentFileRegionInfo openAlignmentFileRegion(
 					std::string const & aligns,
 					int64_t afrom, // lower bound, included
 					int64_t ato, // upper bound, not included
@@ -238,17 +251,53 @@ namespace libmaus2
 				{
 					if ( ato < afrom )
 						ato = afrom;
-				
+
 					openAlignmentFileAtRead(aligns,ato,Pfile,Palgn);
-					
+
+					std::streampos const gposabove = Pfile->tellg();
+
+					if ( gposabove < 0 )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "OverlapIndexer::openAlignmentFileRegion: tellg() failed" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
 					int64_t const numabove = Palgn->novl-Palgn->alre; 
-					
+
 					openAlignmentFileAtRead(aligns,afrom,Pfile,Palgn);
-					
+
+					std::streampos const gposbelow = Pfile->tellg();
+
+					if ( gposbelow < 0 )
+					{
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "OverlapIndexer::openAlignmentFileRegion: tellg() failed" << std::endl;
+						lme.finish();
+						throw lme;
+					}
+
 					if ( Palgn->novl >= numabove )
 						Palgn->novl -= numabove;
 					else
 						Palgn->novl = 0;
+
+					return OpenAlignmentFileRegionInfo(gposbelow,gposabove,Palgn->alre,Palgn->alre+Palgn->novl);
+				}
+
+				static AlignmentFileRegion::unique_ptr_type openAlignmentFileRegion(
+					std::string const & aligns,
+					int64_t afrom, // lower bound, included
+					int64_t ato, // upper bound, not included
+					OpenAlignmentFileRegionInfo & info
+				)
+				{
+					libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile;
+					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn;
+					info = openAlignmentFileRegion(aligns,afrom,ato,Pfile,Palgn);
+					AlignmentFileRegion::unique_ptr_type Tptr(new AlignmentFileRegion(Pfile,Palgn));
+					return UNIQUE_PTR_MOVE(Tptr);
 				}
 
 				static AlignmentFileRegion::unique_ptr_type openAlignmentFileRegion(
@@ -257,10 +306,8 @@ namespace libmaus2
 					int64_t ato // upper bound, not included
 				)
 				{
-					libmaus2::aio::InputStreamInstance::unique_ptr_type Pfile;
-					libmaus2::dazzler::align::AlignmentFile::unique_ptr_type Palgn;
-					openAlignmentFileRegion(aligns,afrom,ato,Pfile,Palgn);
-					AlignmentFileRegion::unique_ptr_type Tptr(new AlignmentFileRegion(Pfile,Palgn));
+					OpenAlignmentFileRegionInfo info;
+					AlignmentFileRegion::unique_ptr_type Tptr(openAlignmentFileRegion(aligns,afrom,ato,info));
 					return UNIQUE_PTR_MOVE(Tptr);
 				}
 
