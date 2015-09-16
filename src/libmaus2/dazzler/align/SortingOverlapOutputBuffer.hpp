@@ -573,9 +573,19 @@ namespace libmaus2
 					}
 				}
 
-				static void sortAndMerge(std::vector<std::string> infilenames, std::string const & outputfilename, std::string const & tmpfilebase, uint64_t const mergefanin = 64)
+				static uint64_t getDefaultMergeFanIn()
+				{
+					return 64u;
+				}
+
+				static void sortAndMerge(std::vector<std::string> infilenames, std::string const & outputfilename, std::string const & tmpfilebase, uint64_t const mergefanin = getDefaultMergeFanIn(), uint64_t const numthreads = 1)
 				{
 					uint64_t tmpid = 0;
+					libmaus2::parallel::PosixSpinLock S;
+
+					#if defined(_OPENMP)
+					#pragma omp parallel for schedule(dynamic,1) num_threads(numthreads)
+					#endif
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
 					{
 						std::ostringstream fnostr;
@@ -584,15 +594,17 @@ namespace libmaus2
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 						libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
 						libmaus2::dazzler::align::SortingOverlapOutputBuffer::sortFile(infilenames[i],fn);
+
+						libmaus2::parallel::ScopePosixSpinLock slock(S);
 						infilenames[i] = fn;
 					}
-					
+
 					while ( infilenames.size() > 1 )
 					{
 						std::vector<std::string> ninfilenames;
-						
+
 						uint64_t const numpack = (infilenames.size() + mergefanin - 1)/mergefanin;
-						
+
 						for ( uint64_t j = 0; j < numpack; ++j )
 						{
 							uint64_t const low = j * mergefanin;
@@ -603,7 +615,7 @@ namespace libmaus2
 							std::string const fn = fnostr.str();
 							libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 							libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
-							libmaus2::dazzler::align::SortingOverlapOutputBuffer::mergeFiles(tomerge,fn);
+							libmaus2::dazzler::align::SortingOverlapOutputBuffer::mergeFilesParallel(tomerge,fn,numthreads);
 							ninfilenames.push_back(fn);
 							for ( uint64_t i = low; i < high; ++i )
 							{
@@ -611,10 +623,10 @@ namespace libmaus2
 								libmaus2::aio::FileRemoval::removeFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(infilenames[i]));
 							}
 						}
-						
+
 						infilenames = ninfilenames;
 					}
-					
+
 					assert ( infilenames.size() == 1 );
 
 					libmaus2::aio::OutputStreamFactoryContainer::rename(infilenames[0],outputfilename);
