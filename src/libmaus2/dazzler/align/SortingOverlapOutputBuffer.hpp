@@ -580,7 +580,7 @@ namespace libmaus2
 
 				static void sortAndMerge(std::vector<std::string> infilenames, std::string const & outputfilename, std::string const & tmpfilebase, uint64_t const mergefanin = getDefaultMergeFanIn(), uint64_t const numthreads = 1)
 				{
-					uint64_t tmpid = 0;
+					uint64_t volatile tmpid = 0;
 					libmaus2::parallel::PosixSpinLock S;
 
 					#if defined(_OPENMP)
@@ -589,7 +589,10 @@ namespace libmaus2
 					for ( uint64_t i = 0; i < infilenames.size(); ++i )
 					{
 						std::ostringstream fnostr;
+						{
+						libmaus2::parallel::ScopePosixSpinLock slock(S);
 						fnostr << tmpfilebase << "_" << (tmpid++);
+						}
 						std::string const fn = fnostr.str();
 						libmaus2::util::TempFileRemovalContainer::addTempFile(fn);
 						libmaus2::util::TempFileRemovalContainer::addTempFile(libmaus2::dazzler::align::OverlapIndexer::getIndexName(fn));
