@@ -87,6 +87,11 @@ namespace libmaus2
 					return offset;
 				}
 
+				static uint64_t getSerialisedHeaderSize()
+				{
+					return sizeof(uint64_t) + sizeof(uint32_t);
+				}
+
 				AlignmentFile()
 				: putbackslotactive(false)
 				{
