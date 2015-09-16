@@ -220,7 +220,9 @@ libmaus2_la_SOURCES = libmaus2/StaticInitialization.cpp \
 	libmaus2/dazzler/align/ApproximateRun.cpp \
 	libmaus2/suffixsort/BwtMergeBlockSortRequest.cpp \
 	libmaus2/dazzler/align/OverlapMeta.cpp \
-	libmaus2/lcs/DalignerLocalAlignment.cpp
+	libmaus2/lcs/DalignerLocalAlignment.cpp \
+	libmaus2/dazzler/align/Tandem.cpp \
+	libmaus2/dazzler/align/TandemVector.cpp
 
 noinst_HEADERS = libmaus2/lz/lz4.h
 
@@ -265,7 +267,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/OverlapMeta.hpp libmaus2/dazzler/align/OverlapIndexerBase.hpp \
 	libmaus2/dazzler/align/OverlapIndexer.hpp libmaus2/dazzler/align/AlignmentWriter.hpp \
 	libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp libmaus2/dazzler/align/AlignmentFileRegion.hpp \
-	libmaus2/dazzler/align/CompactRunPartContainer.hpp
+	libmaus2/dazzler/align/CompactRunPartContainer.hpp \
+	libmaus2/dazzler/align/Tandem.hpp libmaus2/dazzler/align/TandemVector.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
