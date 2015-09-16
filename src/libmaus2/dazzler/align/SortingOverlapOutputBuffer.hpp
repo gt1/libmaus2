@@ -259,9 +259,34 @@ namespace libmaus2
 						for ( uint64_t j = 0; j < infilenames.size(); ++j )
 						{
 							libmaus2::dazzler::align::OverlapIndexer::OpenAlignmentFileRegionInfo info;
-							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[i],low,high,info));
+							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high,info));
 							numovl += (info.algnhigh - info.algnlow);
 							numbytes += (info.gposabove - info.gposbelow);
+
+							#if 0
+							uint64_t dnumovl = 0;
+							std::streampos spbef = Tptr->Pfile->tellg();
+							assert ( info.gposbelow == spbef );
+							Overlap OVL;
+							while ( Tptr->getNextOverlap(OVL) )
+							{
+								dnumovl += 1;
+							}
+							std::streampos spaft = Tptr->Pfile->tellg();
+							bool const ok = ((spaft - spbef) == (info.gposabove - info.gposbelow));
+							if ( ! ok )
+							{
+								std::cerr << "[E] expecting " << (info.gposabove - info.gposbelow) << " got real " << (spaft - spbef) << std::endl;
+								assert ( ok );
+							}
+
+							bool const dok = (dnumovl == (info.algnhigh - info.algnlow));
+							if ( ! dok )
+							{
+								std::cerr << "[E] algn expecting " << (info.algnhigh - info.algnlow) << " got " << dnumovl << std::endl;
+								assert ( dok );
+							}
+							#endif
 						}
 
 						gnumovl += numovl;
@@ -343,19 +368,38 @@ namespace libmaus2
 						// open input files
 						libmaus2::autoarray::AutoArray<AlignmentFileRegion::unique_ptr_type> I(infilenames.size());
 						Overlap OVL;
-						for ( uint64_t i = 0; i < infilenames.size(); ++i )
+						#if 0
+						uint64_t ocnt = 0;
+						#endif
+						for ( uint64_t j = 0; j < infilenames.size(); ++j )
 						{
-							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[i],low,high));
-							I[i] = UNIQUE_PTR_MOVE(Tptr);
-							if ( I[i]->getNextOverlap(OVL) )
-								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(i,OVL));
+							#if 0
+							{
+							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high));
+							while ( Tptr->getNextOverlap(OVL) )
+								++ocnt;
+							}
+							#endif
+
+							AlignmentFileRegion::unique_ptr_type Tptr(libmaus2::dazzler::align::OverlapIndexer::openAlignmentFileRegion(infilenames[j],low,high));
+							I[j] = UNIQUE_PTR_MOVE(Tptr);
+							if ( I[j]->getNextOverlap(OVL) )
+								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(j,OVL));
 						}
+						#if 0
+						if ( ocnt != NA[i+1]-NA[i]  )
+						{
+							std::cerr << "[E] ocnt=" << ocnt << " NA[i+1]-NA[i]=" << NA[i+1]-NA[i] << std::endl;
+							assert ( ocnt == NA[i+1]-NA[i] );
+						}
+						#endif
 
 						bool haveprev = false;
 						libmaus2::dazzler::align::Overlap OVLprev;
 						// number of index entries written
 						uint64_t icnt = 0;
 
+						uint64_t na = 0;
 						while ( Q.size() )
 						{
 							std::pair<uint64_t,libmaus2::dazzler::align::Overlap> const P = Q.top();
@@ -378,6 +422,7 @@ namespace libmaus2
 							algnid++;
 
 							pptr += P.second.serialiseWithPath(*Optr,small);
+							na += 1;
 
 							if ( I[P.first]->getNextOverlap(OVL) )
 								Q.push(std::pair<uint64_t,libmaus2::dazzler::align::Overlap>(P.first,OVL));
@@ -386,12 +431,15 @@ namespace libmaus2
 							OVLprev = P.second;
 						}
 
-						// sanity checks, we should be at end of block now
-						assert ( Optr->tellp() >= 0 );
-						assert ( Optr->tellp() == static_cast<int64_t>(NB[i+1]) );
+						assert ( na == (NA[i+1]-NA[i]) );
 
 						// flush output file
 						Optr->flush();
+
+						// sanity checks, we should be at end of block now
+						assert ( Optr->tellp() >= 0 );
+						assert ( Optr->tellp() == static_cast<int64_t>(NB[i+1]));
+
 						// close output file
 						Optr.reset();
 
