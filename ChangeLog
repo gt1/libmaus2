@@ -1,3 +1,9 @@
+libmaus2 (2.0.71-1) unstable; urgency=medium
+
+  * add mergeFilesParrallel method of SortingOverlapOutputBuffer 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 16 Sep 2015 13:26:40 +0200
+
 libmaus2 (2.0.70-1) unstable; urgency=medium
 
   * use optimal i/o block size instead of 64k default when constructing PosixFd based output streams 
