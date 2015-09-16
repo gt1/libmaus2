@@ -39,10 +39,11 @@ namespace libmaus2
 				std::vector<std::string> IV;
 				libmaus2::autoarray::AutoArray<index_type::unique_ptr_type> I;
 				uint64_t t;
+				int64_t minaread;
 				int64_t maxaread;
 				
 				OverlapMetaIteratorGet(std::vector<std::string> const & rV)
-				: V(rV), IV(V.size()), I(V.size()), t(0), maxaread(-1)
+				: V(rV), IV(V.size()), I(V.size()), t(0), minaread(std::numeric_limits<int64_t>::max()), maxaread(-1)
 				{
 					for ( uint64_t i = 0; i < V.size(); ++i )
 					{
@@ -50,6 +51,7 @@ namespace libmaus2
 						index_type::unique_ptr_type Tptr(new index_type(IV[i]));
 						I[i] = UNIQUE_PTR_MOVE(Tptr);
 						t += I[i]->size();
+						minaread = std::min(minaread,libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(V[i]));
 						maxaread = std::max(maxaread,libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(V[i]));
 					}
 				}
@@ -71,7 +73,7 @@ namespace libmaus2
 				
 				iterator_type begin()
 				{
-					return iterator_type(this,0);
+					return iterator_type(this,minaread);
 				}
 
 				iterator_type end()
@@ -81,16 +83,25 @@ namespace libmaus2
 				
 				std::vector<uint64_t> getBlockStarts(uint64_t const numblocks)
 				{
-					iterator_type const ita = begin();
-					iterator_type const ite = end();
-					uint64_t const range = t;
-					uint64_t const q = numblocks ? ((range + numblocks - 1) / numblocks) : 0;
 					std::vector<uint64_t> Q(numblocks+1);
-				
-					for ( uint64_t i = 0; i < numblocks; ++i )
-						Q[i] = std::lower_bound(ita,ite,i*q).i;
-						
-					Q[numblocks] = t;
+
+					if ( maxaread >= minaread )
+					{
+						iterator_type const ita = begin();
+						iterator_type const ite = end();
+
+						uint64_t const range = t;
+						uint64_t const q = numblocks ? ((range + numblocks - 1) / numblocks) : 0;
+
+						for ( uint64_t i = 0; i < numblocks; ++i )
+							Q[i] = std::lower_bound(ita,ite,i*q).i;
+
+						Q[numblocks] = ite.i; // upper bound
+
+						// sanity check
+						for ( uint64_t i = 1; i < Q.size(); ++i )
+							assert (Q[i-1] <= Q[i]);
+					}
 											
 					return Q;
 				}
