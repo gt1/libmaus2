@@ -17,7 +17,7 @@
 */
 #include <libmaus2/dazzler/align/TandemVector.hpp>
 
-std::ostream & operator<<(std::ostream & out, libmaus2::dazzler::align::TandemVector const & T)
+std::ostream & libmaus2::dazzler::align::operator<<(std::ostream & out, libmaus2::dazzler::align::TandemVector const & T)
 {
 	out << "TandemVector(";
 	for ( uint64_t i = 0; i < T.size(); ++i )
