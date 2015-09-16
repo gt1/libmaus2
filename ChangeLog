@@ -1,3 +1,9 @@
+libmaus2 (2.0.73-1) unstable; urgency=medium
+
+  * fix merge block construction in OverlapMetaIteratorGet 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 16 Sep 2015 17:50:51 +0200
+
 libmaus2 (2.0.72-1) unstable; urgency=medium
 
   * add parallelism in sortAndMerge method of SortingOverlapOutputBuffer class 
