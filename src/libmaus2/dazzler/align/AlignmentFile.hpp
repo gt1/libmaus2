@@ -147,7 +147,13 @@ namespace libmaus2
 					s += OVL.deserialise(in);
 					OVL.path.path.resize(OVL.path.tlen/2);
 						
-					assert ( OVL.path.tlen % 2 == 0 );
+					if ( (OVL.path.tlen % 2) != 0 )
+					{					
+						libmaus2::exception::LibMausException lme;
+						lme.getStream() << "AlignmentFile: path.tlen is not a multiple of 2" << std::endl;
+						lme.finish();
+						throw lme;
+					}
 						
 					if ( small )
 					{

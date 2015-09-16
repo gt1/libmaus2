@@ -106,7 +106,7 @@ namespace libmaus2
 					return offset;
 				}
 				
-				void deserialise(std::istream & in)
+				uint64_t deserialise(std::istream & in)
 				{
 					uint64_t offset = 0;
 					aread = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
@@ -116,6 +116,7 @@ namespace libmaus2
 					aepos = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 					bbpos = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
 					bepos = libmaus2::dazzler::db::InputBase::getLittleEndianInteger8(in,offset);
+					return offset;
 				}
 			};
 			
