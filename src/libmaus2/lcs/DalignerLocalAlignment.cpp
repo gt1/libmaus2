@@ -293,26 +293,19 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		}
 	}
 
-	#if 0
-	std::pair<uint64_t,uint64_t> PP = prefixPositive(1,1,1,1);
-	std::pair<uint64_t,uint64_t> PS = suffixPositive(1,1,1,1);
-	#endif
-	std::pair<uint64_t,uint64_t> PP(0,0);
-	std::pair<uint64_t,uint64_t> PS(0,0);
-
 	AlignmentStatistics const AS = getAlignmentStatistics();
 
 	// return counts
 	return LocalEditDistanceResult(
 		AS.insertions,AS.deletions,AS.matches,AS.mismatches,
 		// front clipping on a
-		npath->bbpos + PP.first,
+		npath->bbpos,
 		// back clipping on a
-		n-npath->bepos + PS.first,
+		n-npath->bepos,
 		// front clipping on b
-		npath->abpos + PP.second,
+		npath->abpos,
 		// back clipping on b
-		m-npath->aepos + PS.second
+		m-npath->aepos
 	);
 	#else
 	libmaus2::exception::LibMausException lme;
