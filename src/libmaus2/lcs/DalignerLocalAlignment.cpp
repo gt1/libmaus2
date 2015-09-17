@@ -156,7 +156,7 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	DalignerData * dataobject = reinterpret_cast<DalignerData *>(data);
 	assert ( dataobject->spec );
 	assert ( dataobject->spec );
-	
+
 	bool const selfie = (a==b) && (n==m);
 
 	libmaus2::autoarray::AutoArray<char> & A = CA;
@@ -166,13 +166,13 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		A.resize(n+2);
 	if ( (m+2) > B.size() )
 		B.resize(m+2);
-	
-	// text	
+
+	// text
 	std::copy(a,a+n,A.begin()+1);
 	// terminators in front and back
 	A[0] = 4;
 	A[n+1] = 4;
-	
+
 	if ( ! selfie )
 	{
 		// text
@@ -181,18 +181,18 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		B[0] = 4;
 		B[m+1] = 4;
 	}
-	
+
 	::std::memset(&(dataobject->align),0,sizeof(dataobject->align));
 	::std::memset(&(dataobject->OVL),0,sizeof(dataobject->OVL));
-		
+
 	dataobject->align.bseq = A.begin()+1;
 	dataobject->align.aseq = B.begin()+1;
 	dataobject->align.blen = n;
-	dataobject->align.alen = m;				
+	dataobject->align.alen = m;
 	dataobject->align.path = &(dataobject->OVL.path);
 
 	// compute the trace points
-	Path * path = Local_Alignment(
+	Local_Alignment(
 		&(dataobject->align),
 		dataobject->workdata,
 		dataobject->spec,
@@ -200,79 +200,82 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 		static_cast<int64_t>(seedposb)-static_cast<int64_t>(seedposa),
 		seedposb+seedposa /* anti diagonal */,-1,-1);
 
-	// compute dense dataobject->alignment	
+	// compute dense dataobject->alignment
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec));
 
 	// check for output size
 	if ( EditDistanceTraceContainer::capacity() < n + m )
 		resize(n + m);
-		
+
 	ta = trace.begin();
 	te = trace.begin();
 
-	// uint64_t const nused = path->aepos - path->abpos;
-	uint64_t const mused = path->bepos - path->bbpos;
-
 	// extract edit operations
-	int const * trace = reinterpret_cast<int const *>(dataobject->align.path->trace);
-	int i = 1; // on B, MAT,MIS,INS
-	int j = 1; // on A, MAT,MIS,DEL
-	char const * tp = B.begin() + path->bbpos;
-	char const * qp = A.begin() + path->abpos;
+	Path *npath = dataobject->align.path;
+	int const tlen = dataobject->align.path->tlen;
+	int const * trace = reinterpret_cast<int const *>(npath->trace);
+	int i = npath->abpos + 1;
+	int j = npath->bbpos + 1;
+	uint8_t const * tp = b - 1;
+	uint8_t const * qp = a - 1;
 	uint64_t nummat = 0, nummis = 0, numins = 0, numdel = 0;
-	for ( int k = 0; k < dataobject->align.path->tlen; ++k )
+
+	for ( int k = 0; k < tlen; ++k )
 	{
 		if ( trace[k] < 0 )
 		{
 			int p = -trace[k];
+
 			while ( i < p )
 			{
 				char const tc = tp[i++];
 				char const qc = qp[j++];
 				bool const eq = tc == qc;
-				
+
 				if ( eq )
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;		
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
 					nummat += 1;
 				}
 				else
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;						
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
 					nummis += 1;
 				}
 			}
 
 			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
-			numdel += 1;						
+			numdel += 1;
 			++j;
 		}
 		else
 		{
 			int p = trace[k];
+
 			while ( j < p )
 			{
 				char const tc = tp[i++];
 				char const qc = qp[j++];
 				bool const eq = tc == qc;
-				
+
 				if ( eq )
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;		
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MATCH;
 					nummat += 1;
 				}
 				else
 				{
-					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;						
+					*(te++)	= libmaus2::lcs::BaseConstants::STEP_MISMATCH;
 					nummis += 1;
 				}
 			}
 			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
-			numins += 1;						
+			numins += 1;
 			++i;
 		}
 	}
-	while ( i <= static_cast<int>(mused) )
+
+	while ( i <= static_cast<int>(npath->aepos) )
 	{
 		char const tc = tp[i++];
 		char const qc = qp[j++];
@@ -289,28 +292,32 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 			nummis += 1;
 		}
 	}
-	
+
+	#if 0
 	std::pair<uint64_t,uint64_t> PP = prefixPositive(1,1,1,1);
 	std::pair<uint64_t,uint64_t> PS = suffixPositive(1,1,1,1);
-	
+	#endif
+	std::pair<uint64_t,uint64_t> PP(0,0);
+	std::pair<uint64_t,uint64_t> PS(0,0);
+
 	AlignmentStatistics const AS = getAlignmentStatistics();
-	
+
 	// return counts
 	return LocalEditDistanceResult(
 		AS.insertions,AS.deletions,AS.matches,AS.mismatches,
 		// front clipping on a
-		path->abpos + PP.first,
+		npath->bbpos + PP.first,
 		// back clipping on a
-		n-path->aepos + PS.first,
+		n-npath->bepos + PS.first,
 		// front clipping on b
-		path->bbpos + PP.second,
+		npath->abpos + PP.second,
 		// back clipping on b
-		m-path->bepos + PS.second
+		m-npath->aepos + PS.second
 	);
 	#else
 	libmaus2::exception::LibMausException lme;
 	lme.getStream() << "DalignerLocalAlignment: libmaus2 is compiled without DALIGNER support" << std::endl;
 	lme.finish();
-	throw lme;			        
+	throw lme;
 	#endif
-}	
+}
