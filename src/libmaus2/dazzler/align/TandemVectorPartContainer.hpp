@@ -41,23 +41,27 @@ namespace libmaus2
 					uint64_t const blockid = DB.getBlockForIdTrimmed(readid);
 					assert ( blockid >= 1 );
 					assert ( blockid <= DB.numblocks );
-					libmaus2::dazzler::db::Track const & track = libmaus2::dazzler::db::PartTrackContainer::getTrack(blockid);
-					std::pair<uint64_t,uint64_t> const B = DB.getTrimmedBlockInterval(blockid);
-					assert ( readid >= B.first );
-					assert ( readid < B.second );
-					libmaus2::dazzler::db::TrackAnnoInterface const & anno = track.getAnno();
-					uint64_t const offset = anno[readid-B.first];
-					uint64_t const len = anno[readid+1-B.first] - offset;
-					if ( len )
+					
+					if ( libmaus2::dazzler::db::PartTrackContainer::haveBlock(blockid) )
 					{
-						assert ( track.Adata );
-						assert ( offset <= track.Adata->size() );
-						assert ( offset + len <= track.Adata->size() );
-						std::string const appdata(
-							track.Adata->begin() + offset,
-							track.Adata->begin() + offset + len);
-						std::istringstream appistr(appdata);
-						V.deserialise(appistr);
+						libmaus2::dazzler::db::Track const & track = libmaus2::dazzler::db::PartTrackContainer::getTrack(blockid);
+						std::pair<uint64_t,uint64_t> const B = DB.getTrimmedBlockInterval(blockid);
+						assert ( readid >= B.first );
+						assert ( readid < B.second );
+						libmaus2::dazzler::db::TrackAnnoInterface const & anno = track.getAnno();
+						uint64_t const offset = anno[readid-B.first];
+						uint64_t const len = anno[readid+1-B.first] - offset;
+						if ( len )
+						{
+							assert ( track.Adata );
+							assert ( offset <= track.Adata->size() );
+							assert ( offset + len <= track.Adata->size() );
+							std::string const appdata(
+								track.Adata->begin() + offset,
+								track.Adata->begin() + offset + len);
+							std::istringstream appistr(appdata);
+							V.deserialise(appistr);
+						}
 					}
 
 					return V;
