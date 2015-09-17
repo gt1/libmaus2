@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <libmaus2/dazzler/align/TandemVectorPartContainer.hpp>
 #include <libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp>
 #include <libmaus2/dazzler/align/AlignmentWriter.hpp>
 
@@ -78,7 +79,7 @@ int main(int argc, char * argv[])
 			//uint8_t B[] = { 'G','G','A','A','A','T','T'};
 			uint8_t A[] = { 3,3,0,0,0,2,2};
 			uint8_t B[] = { 2,2,0,0,0,3,3};
-			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(&A[0],sizeof(A),&B[0],sizeof(B));
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(&A[0],sizeof(A),2,&B[0],sizeof(B),2);
 			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
 				std::cerr,
 				&A[0],
@@ -101,7 +102,7 @@ int main(int argc, char * argv[])
 			//uint8_t B[] = { 2,2,0,0,3,3};
 			uint8_t A[] = { 3,3,0,0,0,0,2,2};
 			uint8_t B[] = { 2,2,0,0,1,0,0,3,3};
-			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(&A[0],sizeof(A),&B[0],sizeof(B));
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(&A[0],sizeof(A),4,&B[0],sizeof(B),5);
 			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
 				std::cerr,
 				&A[0],
@@ -123,6 +124,7 @@ int main(int argc, char * argv[])
 			for ( uint64_t i = 0; i < 512; ++i )
 			{
 				vecA.push_back(::libmaus2::random::Random::rand8()%4);
+				vecB.push_back(::libmaus2::random::Random::rand8()%4);
 				vecB.push_back(::libmaus2::random::Random::rand8()%4);
 			}
 			for ( uint64_t i = 0; i < 8192; ++i )
@@ -149,14 +151,17 @@ int main(int argc, char * argv[])
 			std::copy(sa.begin(),sa.end(),A.begin());
 			std::copy(sb.begin(),sb.end(),B.begin());
 			
+			{
 			libmaus2::lcs::DalignerLocalAlignment DLA;
-			uint64_t const frontclip = vecA.size() - 128;
-			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(A.begin()+frontclip,A.size()-frontclip,B.begin()+frontclip,B.size()-frontclip);
-						
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(
+				A.begin(),A.size(),vecA.size(),
+				B.begin(),B.size(),vecB.size()
+			);
+
 			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
 				std::cerr,
-				A.begin()+frontclip,A.end(),
-				B.begin()+frontclip,B.end(),
+				A.begin(),A.end(),
+				B.begin(),B.end(),
 				80,
 				DLA.ta,
 				DLA.te,
@@ -165,6 +170,28 @@ int main(int argc, char * argv[])
 				remapFunction
 			);
 			std::cerr << LEDR << std::endl;
+			}
+
+			{
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(
+				A.begin(),A.size(),vecA.size() + vecC.size()/2,
+				B.begin(),B.size(),vecB.size() + vecC.size()/2
+			);
+						
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
+				std::cerr,
+				A.begin(),A.end(),
+				B.begin(),B.end(),
+				80,
+				DLA.ta,
+				DLA.te,
+				LEDR,
+				remapFunction,
+				remapFunction
+			);
+			std::cerr << LEDR << std::endl;
+			}
 		}
 		#endif
 

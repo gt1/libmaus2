@@ -65,15 +65,16 @@ namespace libmaus2
 			
 			LocalEditDistanceResult process(
 				#if defined(LIBMAUS2_HAVE_DALIGNER)
-				uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m
+				uint8_t const * a, uint64_t const n, uint64_t const seedposa, uint8_t const * b, uint64_t const m, uint64_t const seedposb
 				#else
-				uint8_t const *, uint64_t const, uint8_t const *, uint64_t const
+				uint8_t const *, uint64_t const, uint64_t const, uint8_t const *, uint64_t const, uint64_t const
 				#endif
 			);
 
 			template<typename iterator_a, typename iterator_b>
 			LocalEditDistanceResult process(
-				iterator_a aa, iterator_a ae, iterator_b ba, iterator_b be,
+				iterator_a aa, iterator_a ae, uint64_t const seedposa,
+				iterator_b ba, iterator_b be, uint64_t const seedposb,
 				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_a)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar,
 				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_b)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar
 			)
@@ -91,7 +92,7 @@ namespace libmaus2
 				for ( ptrdiff_t i = 0; i < (be-ba); ++i )
 					UB[i] = mapfunction_b(UB[i]);
 
-				LocalEditDistanceResult const R = process(UA.begin(),static_cast<uint64_t>(ae-aa),UB.begin(),static_cast<uint64_t>(be-ba));
+				LocalEditDistanceResult const R = process(UA.begin(),static_cast<uint64_t>(ae-aa),seedposa,UB.begin(),static_cast<uint64_t>(be-ba),seedposb);
 
 				return R;
 			}
