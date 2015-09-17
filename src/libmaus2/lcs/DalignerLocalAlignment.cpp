@@ -290,9 +290,13 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	// return counts
 	return LocalEditDistanceResult(
 		AS.insertions,AS.deletions,AS.matches,AS.mismatches,
+		// front clipping on a
 		path->abpos + PP.first,
+		// back clipping on a
 		n-path->aepos + PS.first,
+		// front clipping on b
 		path->bbpos + PP.second,
+		// back clipping on b
 		m-path->bepos + PS.second
 	);
 	#else
