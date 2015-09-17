@@ -235,13 +235,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 				}
 			}
 
-			#if 0						
-			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
-			numins += 1;
-			#else
 			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
 			numdel += 1;						
-			#endif
 			++j;
 		}
 		else
@@ -264,13 +259,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 					nummis += 1;
 				}
 			}
-			#if 0
-			*(te++)	= libmaus2::lcs::BaseConstants::STEP_DEL;
-			numdel += 1;
-			#else
 			*(te++)	= libmaus2::lcs::BaseConstants::STEP_INS;
 			numins += 1;						
-			#endif
 			++i;
 		}
 	}
