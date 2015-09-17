@@ -146,9 +146,9 @@ libmaus2::lcs::DalignerLocalAlignment::~DalignerLocalAlignment()
 
 libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::process(
 	#if defined(LIBMAUS2_HAVE_DALIGNER)
-	uint8_t const * a, uint64_t const n, uint8_t const * b, uint64_t const m
+	uint8_t const * a, uint64_t const n, uint64_t const seedposa, uint8_t const * b, uint64_t const m, uint64_t const seedposb
 	#else
-	uint8_t const *, uint64_t const, uint8_t const *, uint64_t const
+	uint8_t const *, uint64_t const, uint64_t const, uint8_t const *, uint64_t const, uint64_t const
 	#endif
 )
 {
@@ -184,8 +184,14 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	dataobject->align.path = &(dataobject->OVL.path);
 
 	// compute the trace points
-	Path * path = Local_Alignment(&(dataobject->align),dataobject->workdata,dataobject->spec,0,0,0,-1,-1);
-	
+	Path * path = Local_Alignment(
+		&(dataobject->align),
+		dataobject->workdata,
+		dataobject->spec,
+		static_cast<int64_t>(seedposb)-static_cast<int64_t>(seedposa),
+		static_cast<int64_t>(seedposb)-static_cast<int64_t>(seedposa),
+		seedposb+seedposa /* anti diagonal */,-1,-1);
+
 	// compute dense dataobject->alignment	
 	Compute_Trace_PTS(&(dataobject->align),dataobject->workdata,Trace_Spacing(dataobject->spec));
 
@@ -203,8 +209,8 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	int const * trace = reinterpret_cast<int const *>(dataobject->align.path->trace);
 	int i = 1; // on B, MAT,MIS,INS
 	int j = 1; // on A, MAT,MIS,DEL
-	char const * tp = B.begin() + path->abpos;
-	char const * qp = A.begin() + path->bbpos;
+	char const * tp = B.begin() + path->bbpos;
+	char const * qp = A.begin() + path->abpos;
 	uint64_t nummat = 0, nummis = 0, numins = 0, numdel = 0;
 	for ( int k = 0; k < dataobject->align.path->tlen; ++k )
 	{
