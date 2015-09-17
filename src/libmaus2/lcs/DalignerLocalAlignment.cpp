@@ -157,6 +157,11 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	assert ( dataobject->spec );
 	assert ( dataobject->spec );
 	
+	bool const selfie = (a==b) && (n==m);
+
+	libmaus2::autoarray::AutoArray<char> & A = CA;
+	libmaus2::autoarray::AutoArray<char> & B = selfie ? CA : CB;
+
 	if ( (n+2) > A.size() )
 		A.resize(n+2);
 	if ( (m+2) > B.size() )
@@ -168,11 +173,14 @@ libmaus2::lcs::LocalEditDistanceResult libmaus2::lcs::DalignerLocalAlignment::pr
 	A[0] = 4;
 	A[n+1] = 4;
 	
-	// text
-	std::copy(b,b+m,B.begin()+1);
-	// terminators in front and back
-	B[0] = 4;
-	B[m+1] = 4;
+	if ( ! selfie )
+	{
+		// text
+		std::copy(b,b+m,B.begin()+1);
+		// terminators in front and back
+		B[0] = 4;
+		B[m+1] = 4;
+	}
 	
 	::std::memset(&(dataobject->align),0,sizeof(dataobject->align));
 	::std::memset(&(dataobject->OVL),0,sizeof(dataobject->OVL));
