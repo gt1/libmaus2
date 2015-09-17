@@ -268,7 +268,8 @@ libmaus2dazzleralign_include_HEADERS = libmaus2/dazzler/align/AlignmentFile.hpp 
 	libmaus2/dazzler/align/OverlapIndexer.hpp libmaus2/dazzler/align/AlignmentWriter.hpp \
 	libmaus2/dazzler/align/OverlapMetaIteratorGet.hpp libmaus2/dazzler/align/AlignmentFileRegion.hpp \
 	libmaus2/dazzler/align/CompactRunPartContainer.hpp \
-	libmaus2/dazzler/align/Tandem.hpp libmaus2/dazzler/align/TandemVector.hpp
+	libmaus2/dazzler/align/Tandem.hpp libmaus2/dazzler/align/TandemVector.hpp \
+	libmaus2/dazzler/align/TandemVectorPartContainer.hpp
 
 libmaus2autoarray_includedir=$(includedir)/libmaus2/autoarray/
 libmaus2autoarray_include_HEADERS = libmaus2/autoarray/AutoArray.hpp libmaus2/autoarray/AutoArray2d.hpp libmaus2/autoarray/AutoArrayMultiMap.hpp
