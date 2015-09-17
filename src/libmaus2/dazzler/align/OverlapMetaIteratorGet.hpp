@@ -51,8 +51,16 @@ namespace libmaus2
 						index_type::unique_ptr_type Tptr(new index_type(IV[i]));
 						I[i] = UNIQUE_PTR_MOVE(Tptr);
 						t += I[i]->size();
-						minaread = std::min(minaread,libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(V[i]));
-						maxaread = std::max(maxaread,libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(V[i]));
+
+						int64_t const fileminaread = libmaus2::dazzler::align::OverlapIndexer::getMinimumARead(V[i]);
+
+						if ( fileminaread >= 0 )
+						{
+							int64_t const filemaxaread = libmaus2::dazzler::align::OverlapIndexer::getMaximumARead(V[i]);
+
+							minaread = std::min(minaread,fileminaread);
+							maxaread = std::max(maxaread,filemaxaread);
+						}
 					}
 				}
 			
@@ -100,7 +108,19 @@ namespace libmaus2
 
 						// sanity check
 						for ( uint64_t i = 1; i < Q.size(); ++i )
-							assert (Q[i-1] <= Q[i]);
+						{
+							if ( ! (Q[i-1] <= Q[i]) )
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "OverlapMetaIteratorGet::getBlockStarts(): monotonicity check failed on vector ";
+								for ( uint64_t j = 0; j < Q.size(); ++j )
+									lme.getStream() << Q[j] << ";";
+								lme.getStream() << std::endl;
+								lme.getStream() << "minaread=" << minaread << " maxaread=" << maxaread << std::endl;
+								lme.finish();
+								throw lme;
+							}
+						}
 					}
 											
 					return Q;
