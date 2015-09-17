@@ -117,6 +117,54 @@ int main(int argc, char * argv[])
 				remapFunction
 			);
 		}
+		{
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			//uint8_t A[] = { 'T','T','A','A','A','G','G'};
+			//uint8_t B[] = { 'G','G','A','A','A','T','T'};
+			//uint8_t A[] = { 3,3,0,0,0,2,2};
+			//uint8_t B[] = { 2,2,0,0,3,3};
+			uint8_t A[] = { 3,3,0,0,2,2,0,0,2,2};
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(
+				&A[0],sizeof(A),2,
+				&A[0],sizeof(A),6
+			);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
+				std::cerr,
+				&A[0],
+				&A[0] + sizeof(A),
+				&A[0],
+				&A[0] + sizeof(A),
+				80,
+				DLA.ta,
+				DLA.te,
+				LEDR,
+				remapFunction,
+				remapFunction
+			);
+		}
+		{
+			libmaus2::lcs::DalignerLocalAlignment DLA;
+			//uint8_t A[] = { 'T','T','A','A','A','G','G'};
+			//uint8_t B[] = { 'G','G','A','A','A','T','T'};
+			//uint8_t A[] = { 3,3,0,0,0,2,2};
+			//uint8_t B[] = { 2,2,0,0,3,3};
+			std::string A = "TTAAGGAAGG";
+			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(
+				A.begin(),A.end(),2,
+				A.begin(),A.end(),6
+			);
+			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(
+				std::cerr,
+				A.begin(),
+				A.end(),
+				A.begin(),
+				A.end(),
+				80,
+				DLA.ta,
+				DLA.te,
+				LEDR
+			);
+		}
 		#endif
 		
 		{
@@ -139,10 +187,13 @@ int main(int argc, char * argv[])
 			
 			std::string const sa = 
 				std::string(vecA.begin(),vecA.end()) + 
-				std::string(vecC.begin(),vecC.end()) + 
+				std::string(vecC.begin(),vecC.end())
+				+ '\0' +
+				std::string(vecC.begin(),vecC.end()) +
 				std::string(vecD.begin(),vecD.end());
 			std::string const sb = 
 				std::string(vecB.begin(),vecB.end()) + 
+				std::string(vecC.begin(),vecC.end()) + 
 				std::string(vecC.begin(),vecC.end()) + 
 				std::string(vecE.begin(),vecE.end());
 				
@@ -175,8 +226,8 @@ int main(int argc, char * argv[])
 			{
 			libmaus2::lcs::DalignerLocalAlignment DLA;
 			libmaus2::lcs::LocalEditDistanceResult LEDR = DLA.process(
-				A.begin(),A.size(),vecA.size() + vecC.size()/2,
-				B.begin(),B.size(),vecB.size() + vecC.size()/2
+				A.begin(),A.size(),vecA.size(),
+				B.begin(),B.size(),vecB.size()
 			);
 						
 			libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(

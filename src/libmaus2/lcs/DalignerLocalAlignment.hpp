@@ -36,8 +36,8 @@ namespace libmaus2
 
 			#if defined(LIBMAUS2_HAVE_DALIGNER)
 			void * data;
-			libmaus2::autoarray::AutoArray<char> A;
-			libmaus2::autoarray::AutoArray<char> B;
+			libmaus2::autoarray::AutoArray<char> CA;
+			libmaus2::autoarray::AutoArray<char> CB;
 			#endif
 
 			libmaus2::autoarray::AutoArray<uint8_t> UA;
@@ -76,7 +76,7 @@ namespace libmaus2
 				iterator_a aa, iterator_a ae, uint64_t const seedposa,
 				iterator_b ba, iterator_b be, uint64_t const seedposb,
 				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_a)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar,
-				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_b)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar
+				typename ::std::iterator_traits<iterator_b>::value_type (*mapfunction_b)(typename ::std::iterator_traits<iterator_b>::value_type) = libmaus2::fastx::mapChar
 			)
 			{
 				if ( ae-aa > static_cast<ptrdiff_t>(UA.size()) )
@@ -95,6 +95,52 @@ namespace libmaus2
 				LocalEditDistanceResult const R = process(UA.begin(),static_cast<uint64_t>(ae-aa),seedposa,UB.begin(),static_cast<uint64_t>(be-ba),seedposb);
 
 				return R;
+			}
+
+			template<typename iterator_a>
+			LocalEditDistanceResult process(
+				iterator_a aa, iterator_a ae, uint64_t const seedposa,
+				iterator_a ba, iterator_a be, uint64_t const seedposb,
+				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_a)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar,
+				typename ::std::iterator_traits<iterator_a>::value_type (*mapfunction_b)(typename ::std::iterator_traits<iterator_a>::value_type) = libmaus2::fastx::mapChar
+			)
+			{
+				if ( (aa != ba) || (ae != be) )
+				{
+					if ( ae-aa > static_cast<ptrdiff_t>(UA.size()) )
+						UA.resize(ae-aa);
+					if ( be-ba > static_cast<ptrdiff_t>(UB.size()) )
+						UB.resize(be-ba);
+
+					std::copy(aa,ae,UA.begin());
+					std::copy(ba,be,UB.begin());
+
+					for ( ptrdiff_t i = 0; i < (ae-aa); ++i )
+						UA[i] = mapfunction_a(UA[i]);
+					for ( ptrdiff_t i = 0; i < (be-ba); ++i )
+						UB[i] = mapfunction_b(UB[i]);
+
+					LocalEditDistanceResult const R = process(UA.begin(),static_cast<uint64_t>(ae-aa),seedposa,UB.begin(),static_cast<uint64_t>(be-ba),seedposb);
+
+					return R;
+				}
+				else
+				{
+					assert ( aa == ba );
+					assert ( ae == be );
+
+					if ( ae-aa > static_cast<ptrdiff_t>(UA.size()) )
+						UA.resize(ae-aa);
+
+					std::copy(aa,ae,UA.begin());
+
+					for ( ptrdiff_t i = 0; i < (ae-aa); ++i )
+						UA[i] = mapfunction_a(UA[i]);
+
+					LocalEditDistanceResult const R = process(UA.begin(),static_cast<uint64_t>(ae-aa),seedposa,UA.begin(),static_cast<uint64_t>(be-ba),seedposb);
+
+					return R;
+				}
 			}
 		};
 	}

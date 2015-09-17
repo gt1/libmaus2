@@ -21,6 +21,7 @@
 
 #include <libmaus2/lcs/LocalBaseConstants.hpp>
 #include <libmaus2/lcs/LocalEditDistanceResult.hpp>
+#include <libmaus2/lcs/AlignmentTraceContainer.hpp>
 #include <iostream>
 #include <sstream>
 
@@ -138,6 +139,9 @@ namespace libmaus2
 					identityMapFunction< typename std::iterator_traits<b_iterator>::value_type >
 			)
 			{
+				uint64_t const l_a = aend - ita;
+				uint64_t const l_b = bend - itb;
+
 				std::ostringstream astr;
 								
 				for ( alignment_iterator ta = rta; ta != rte; ++ta )
@@ -148,7 +152,14 @@ namespace libmaus2
 						case STEP_MISMATCH:
 						case STEP_DEL:
 							if ( ita == aend )
-								std::cerr << "accessing a beyond end." << std::endl;
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "LocalAlignmentPrint::printAlignmentLines: accessing a beyond end" << std::endl;
+								lme.getStream() << AlignmentTraceContainer::getAlignmentStatistics(rta,rte) << std::endl;
+								lme.getStream() << "l_a=" << l_a << " l_b=" << l_b << std::endl;
+								lme.finish();
+								throw lme;
+							}
 							astr << mapfunction_a(*ita++);
 							break;
 						case STEP_INS:
@@ -159,7 +170,8 @@ namespace libmaus2
 							break;
 					}
 				}
-				astr << std::string(ita,aend);
+				while ( ita != aend )
+					astr << mapfunction_a(*ita++);
 				
 				std::ostringstream bstr;
 				// out << std::string(SPR.aclip,' ') << std::endl;
@@ -172,7 +184,14 @@ namespace libmaus2
 						case STEP_MISMATCH:
 						case STEP_INS:
 							if ( itb == bend )
-								std::cerr << "accessing b beyond end." << std::endl;
+							{
+								libmaus2::exception::LibMausException lme;
+								lme.getStream() << "LocalAlignmentPrint::printAlignmentLines: accessing b beyond end" << std::endl;
+								lme.getStream() << AlignmentTraceContainer::getAlignmentStatistics(rta,rte) << std::endl;
+								lme.getStream() << "l_a=" << l_a << " l_b=" << l_b << std::endl;
+								lme.finish();
+								throw lme;
+							}
 							bstr << mapfunction_b(*itb++);
 							break;
 						case STEP_DEL:
@@ -183,7 +202,8 @@ namespace libmaus2
 							break;
 					}
 				}
-				bstr << std::string(itb,bend);
+				while ( itb != bend )
+					bstr <<  mapfunction_b(*itb++);
 				
 				std::ostringstream cstr;
 				printTrace(cstr,rta,rte);
