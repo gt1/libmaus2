@@ -28,8 +28,8 @@ namespace libmaus2
 		{
 			struct InqualContainer : public PartTrackContainer
 			{
-				InqualContainer(libmaus2::dazzler::db::DatabaseFile const & rDB)
-				: PartTrackContainer(rDB,"inqual")
+				InqualContainer(libmaus2::dazzler::db::DatabaseFile const & rDB, int64_t const blockid = -1)
+				: PartTrackContainer(rDB,"inqual",blockid)
 				{
 				}
 				
