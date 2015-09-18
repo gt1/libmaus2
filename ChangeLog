@@ -1,3 +1,9 @@
+libmaus2 (2.0.79-1) unstable; urgency=medium
+
+  * add getPeriods, getIntegerRoots and getSmallestIntegerRoot functions in SuccinctBorderArray class
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 18 Sep 2015 14:40:37 +0200
+
 libmaus2 (2.0.78-1) unstable; urgency=medium
 
   * add RepetetiveKmerFreqEstimate class

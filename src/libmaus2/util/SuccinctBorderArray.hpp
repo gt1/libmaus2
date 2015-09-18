@@ -27,6 +27,8 @@ namespace libmaus2
 	{
 		struct SuccinctBorderArray
 		{
+			typedef SuccinctBorderArray this_type;
+		
 			private:
 			struct SuccinctBorderArrayAccessor
 			{
@@ -128,6 +130,51 @@ namespace libmaus2
 					ok = ok && ( s.substr(0,S[i]) == s.substr(i+1-S[i],S[i]) );
 					
 				return ok;
+			}
+			
+			std::vector<uint64_t> getPeriods() const
+			{
+				int64_t i = static_cast<int64_t>(size())-1;
+				std::vector<uint64_t> P;
+				
+				while ( i > 0 && S[i] )
+				{
+					P.push_back(size() - S[i]);
+					i = S[i]-1;
+				}
+				
+				return P;
+			}
+
+			std::vector<uint64_t> getIntegerRoots() const
+			{
+				int64_t i = static_cast<int64_t>(size())-1;
+				std::vector<uint64_t> P;
+				
+				while ( i > 0 && S[i] )
+				{
+					if ( size() % (size() - S[i]) == 0 )
+						P.push_back(size() - S[i]);
+					i = S[i]-1;
+				}
+				
+				return P;
+			}
+			
+			int64_t getSmallestIntegerRoot() const
+			{
+				std::vector<uint64_t> const V = getIntegerRoots();
+				
+				if ( V.size() )
+					return static_cast<int64_t>(V[0]);
+				else
+					return -1;
+			}
+			
+			static int64_t getSmallestIntegerRoot(std::string const & s)
+			{
+				this_type const obj(s);
+				return obj.getSmallestIntegerRoot();
 			}
 			
 			/**
