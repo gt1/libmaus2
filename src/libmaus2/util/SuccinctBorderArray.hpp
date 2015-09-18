@@ -177,6 +177,16 @@ namespace libmaus2
 				return obj.getSmallestIntegerRoot();
 			}
 			
+			static std::string getSmmalestIntegerRootAsString(std::string const & s)
+			{
+				int64_t const l = getSmallestIntegerRoot(s);
+				
+				if ( l < 0 )
+					return std::string();
+				else
+					return s.substr(0,l);
+			}
+			
 			/**
 			 * call checkString function for given string
 			 **/
