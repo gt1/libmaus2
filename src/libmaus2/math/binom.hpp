@@ -132,6 +132,34 @@ namespace libmaus2
 				}
 				return r;
 			}
+
+			static double binomRowUpper(double const p, uint64_t const k, uint64_t const n)
+			{
+				double r = 0;
+				double const q = 1-p;
+				double const tp = 1.0;
+				double const tq = slowPow(q,n);
+				double f = 1.0 * tp * tq;
+				
+				for ( uint64_t i = 0; i < k; ++i )
+				{
+					f *= p;
+					f /= q;
+					f /= (i+1);
+					f *= (n-i);
+				}
+
+				for ( uint64_t i = k; i <= n; ++i )
+				{
+					r += f;
+					f *= p;
+					f /= q;
+					f /= (i+1);
+					f *= (n-i);
+				}
+				
+				return r;
+			}
 		};
 	}
 }

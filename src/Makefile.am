@@ -988,7 +988,8 @@ libmaus2math_include_HEADERS=\
 	libmaus2/math/UnsignedInteger.hpp \
 	libmaus2/math/Rational.hpp \
 	libmaus2/math/BernoulliNumber.hpp \
-	libmaus2/math/Faulhaber.hpp
+	libmaus2/math/Faulhaber.hpp \
+	libmaus2/math/RepetetiveKmerFreqEstimate.hpp
 
 libmaus2rl_includedir=$(includedir)/libmaus2/rl
 libmaus2rl_include_HEADERS=\
