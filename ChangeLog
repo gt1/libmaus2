@@ -1,3 +1,9 @@
+libmaus2 (2.0.81-1) unstable; urgency=medium
+
+  * fix getSmallestIntegerRootAsString function name in SuccinctBorderArray 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 18 Sep 2015 15:07:51 +0200
+
 libmaus2 (2.0.80-1) unstable; urgency=medium
 
   * add getSmmalestIntegerRootAsString function in SuccinctBorderArray class
