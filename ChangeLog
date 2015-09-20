@@ -1,3 +1,10 @@
+libmaus2 (2.0.82-1) unstable; urgency=medium
+
+  * add off_a and off_b parameters for getKMatchOffsets function of AlignmentTraceContainer class
+  * add blockid argument in InqualContainer constructor
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sun, 20 Sep 2015 21:15:05 +0200
+
 libmaus2 (2.0.81-1) unstable; urgency=medium
 
   * fix getSmallestIntegerRootAsString function name in SuccinctBorderArray 
