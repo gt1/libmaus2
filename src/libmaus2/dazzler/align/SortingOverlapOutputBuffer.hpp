@@ -348,7 +348,7 @@ namespace libmaus2
 						Optr->seekp(NB[i]);
 						// sanity check
 						assert ( Optr->tellp() >= 0 );
-						assert ( Optr->tellp() == static_cast<int64_t>(NB[i]) );
+						assert ( static_cast<int64_t>(Optr->tellp()) == static_cast<int64_t>(NB[i]) );
 						// output pointer
 						uint64_t pptr = NB[i];
 
@@ -438,7 +438,7 @@ namespace libmaus2
 
 						// sanity checks, we should be at end of block now
 						assert ( Optr->tellp() >= 0 );
-						assert ( Optr->tellp() == static_cast<int64_t>(NB[i+1]));
+						assert ( static_cast<int64_t>(Optr->tellp()) == static_cast<int64_t>(NB[i+1]));
 
 						// close output file
 						Optr.reset();
