@@ -1,3 +1,9 @@
+libmaus2 (2.0.84-1) unstable; urgency=medium
+
+  * fix compilation without gmp and with older versions of gcc 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Mon, 21 Sep 2015 20:55:31 +0200
+
 libmaus2 (2.0.83-1) unstable; urgency=medium
 
   * add alternative code in RepetetiveKmerFreqEstimate class based on GMP fixed point numbers

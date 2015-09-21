@@ -313,7 +313,7 @@ libmaus2::math::GmpFloat libmaus2::math::operator+(
 	#if defined(LIBMAUS2_HAVE_GMP)	
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
-		0
+		0;
 	#endif
 	libmaus2::math::GmpFloat R(0,outprec);
 	#if defined(LIBMAUS2_HAVE_GMP)
@@ -337,7 +337,7 @@ libmaus2::math::GmpFloat libmaus2::math::operator-(
 	#if defined(LIBMAUS2_HAVE_GMP)	
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
-		0
+		0;
 	#endif
 	libmaus2::math::GmpFloat R(0,outprec);
 	#if defined(LIBMAUS2_HAVE_GMP)
@@ -361,7 +361,7 @@ libmaus2::math::GmpFloat libmaus2::math::operator*(
 	#if defined(LIBMAUS2_HAVE_GMP)	
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
-		0
+		0;
 	#endif
 	libmaus2::math::GmpFloat R(0,outprec);
 	#if defined(LIBMAUS2_HAVE_GMP)
@@ -385,7 +385,7 @@ libmaus2::math::GmpFloat libmaus2::math::operator/(
 	#if defined(LIBMAUS2_HAVE_GMP)	
 		std::max(mpf_get_prec(decode(A.v)),mpf_get_prec(decode(B.v)));
 	#else
-		0
+		0;
 	#endif
 	libmaus2::math::GmpFloat R(0,outprec);
 	#if defined(LIBMAUS2_HAVE_GMP)
