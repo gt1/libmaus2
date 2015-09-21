@@ -57,6 +57,27 @@ namespace libmaus2
 				
 			return c;
 		}
+
+		inline unsigned int numbits64(uint64_t n)
+		{
+			unsigned int c = 0;
+			if ( n & 0xFFFFFFFF00000000ull )
+				n >>= 32, c += 32;
+			if ( n & 0xFFFF0000ull )
+				n >>= 16, c += 16;
+			if ( n & 0xFF00ull )
+				n >>= 8, c+=8;
+			if ( n & 0xF0ull )
+				n >>= 4, c+= 4;
+			if ( n & 0xCull )
+				n >>= 2, c+= 2;
+			if ( n & 0x2ull )
+				n >>= 1, c+= 1;
+			if ( n )
+				n >>= 1, c+= 1;
+
+			return c;
+		}
 		
 		struct NumBits8
 		{

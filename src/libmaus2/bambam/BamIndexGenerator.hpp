@@ -562,8 +562,8 @@ namespace libmaus2
 									
 									// linear chunk of last mapped position (or position if unmapped)
 									int64_t const thislinchunkid =
-										(algn.isMapped() ?((algn.getPos()+algn.getReferenceLength())-1) : algn.getPos()) >> 14;
-										
+										(algn.isMapped() ?((algn.getPos() + (int64_t)algn.getReferenceLength())-1) : algn.getPos()) >> 14;
+
 									// check if this alignment is in a different linear chunk than the previous one
 									if ( 
 										algn.isMapped() 
