@@ -22,6 +22,7 @@
 #include <libmaus2/util/unique_ptr.hpp>
 #include <libmaus2/util/shared_ptr.hpp>
 #include <libmaus2/math/gcd.hpp>
+#include <cmath>
 
 namespace libmaus2
 {
