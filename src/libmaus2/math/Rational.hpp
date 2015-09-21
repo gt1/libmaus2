@@ -50,31 +50,72 @@ namespace libmaus2
 
 			static N gcd(N a, N b)
 			{
-				if ( a < 0 )
+				if ( a < N() )
 					a = -a;
-				if ( b < 0 )
+				if ( b < N() )
 					b = -b;
 					
-				while ( b )
+				while ( b != N() )
 				{
 					N const ob = b;
 					b = a % b;
 					a = ob;
 				}
-				
+
 				return a;
 			}
 
 			static N lcm(N a, N b)
 			{
-				return (a*b)/gcd(a,b);
+				assert ( a != N() );
+				assert ( b != N() );
+
+				N const g = gcd(a,b);
+				N l = (a*b)/g;
+
+				if ( (!(l == N())) && ((l % a) == N()) && ((l % b) == N()) )
+					return l;
+
+				l = (a/g)*(b/g);
+
+				if ( (!(l == N())) && ((l % a) == N()) && ((l % b) == N()) )
+					return l;
+
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "Rational<>::lcm: unable to compute exact result for a=" << a << " b=" << b << std::endl;
+				lme.finish();
+				throw lme;
+			}
+
+			static N mult(N a, N b)
+			{
+				N p = a * b;
+
+				if ( (a == N()) || (b == N()) )
+					return p;
+
+				if (
+					((p % a) == N())
+					&&
+					((p % b) == N())
+					&&
+					((p / a) == b)
+					&&
+					((p / b) == a)
+				)
+					return p;
+
+				libmaus2::exception::LibMausException lme;
+				lme.getStream() << "Rational<>::mult: unable to compute exact result for a=" << a << " b=" << b << std::endl;
+				lme.finish();
+				throw lme;
 			}
 
 			N c;
 			N d;
 			
-			Rational() : c(0), d(1) {}
-			Rational(N const rc) : c(rc), d(1) {}
+			Rational() : c(N()), d(N(1)) {}
+			Rational(N const rc) : c(rc), d(N(1)) {}
 			Rational(N const rc, N const rd) : c(rc), d(rd) 
 			{
 				if ( d == N() )
@@ -85,49 +126,80 @@ namespace libmaus2
 					throw lme;
 				}
 
-				if ( d < 0 )
+				if ( d < N() )
 				{
 					d = -d;
 					c = -c;
 				}
 				
 				N const g = gcd(c,d);
-				c /= g;
-				d /= g;
+				c = (c/g);
+				d = (d/g);
 				
-				assert ( d > 0 );
+				assert ( !(d < N()) );
 			}
 			
+			static Rational<N> doubleToRational(double v, unsigned int const bindig = 8*sizeof(double))
+			{
+				Rational<N> R(N(),N(1));
+				bool neg = false;
+				if ( v < 0.0 )
+				{
+					neg = true;
+					v = -v;
+				}
+
+				double const intv = std::floor(v);
+				R.c = N(static_cast<int64_t>(intv));
+				v -= intv;
+
+				for ( unsigned int i = 1; i <= bindig && v; ++i )
+				{
+					v *= 2.0;
+					double const fl = std::floor(v);
+					v -= fl;
+					R += Rational(N(static_cast<int>(fl)),N(static_cast<int64_t>(1ull << i)));
+				}
+
+				if ( neg )
+					R.c = -R.c;
+
+				return R;
+			}
+
 			Rational<N> & operator=(Rational<N> const & o)
 			{
-				if ( this != &o )
+				if ( ! (this == &o) )
 				{
 					c = o.c;
 					d = o.d;
 				}
 				return *this;
 			}
-			
+
 			Rational<N> & operator+=(Rational<N> const & o)
 			{
+				assert ( d != N() );
+				assert ( o.d != N() );
+
 				N tc = c;
 				N td = d;
 				N oc = o.c;
 				N od = o.d;
-				
+
 				N sd = lcm(td,od);
-				tc *= (sd / td);
-				oc *= (sd / od);
+				tc = mult(tc,(sd / td));
+				oc = mult(oc,(sd / od));
 				N sc = tc + oc;
-				
+
 				N const g = gcd(sc,sd);
-				
-				sc /= g;
-				sd /= g;
-				
+
+				sc = (sc/g);
+				sd = (sd/g);
+
 				c = sc;
 				d = sd;
-				
+
 				return *this;
 			}
 
@@ -137,20 +209,20 @@ namespace libmaus2
 				N td = d;
 				N oc = o.c;
 				N od = o.d;
-				
+
 				N sd = lcm(td,od);
-				tc *= (sd / td);
-				oc *= (sd / od);
+				tc = mult(tc,(sd / td));
+				oc = mult(oc,(sd / od));
 				N sc = tc - oc;
-				
+
 				N const g = gcd(sc,sd);
-				
-				sc /= g;
-				sd /= g;
-				
+
+				sc = sc/g;
+				sd = sd/g;
+
 				c = sc;
 				d = sd;
-				
+
 				return *this;
 			}
 			
@@ -160,17 +232,17 @@ namespace libmaus2
 				N od = o.d;
 				
 				N const g_c_od = gcd(c,od);
-				c /= g_c_od;
-				od /= g_c_od;
+				c = c/g_c_od;
+				od = od/g_c_od;
 				
 				N const g_oc_d = gcd(oc,d);
-				oc /= g_oc_d;
-				d /= g_oc_d;
+				oc = oc/g_oc_d;
+				d = d/g_oc_d;
 				
-				c *= oc;
-				d *= od;
+				c = mult(c,oc);
+				d = mult(d,od);
 				
-				assert ( gcd(c,d) == 1 );
+				assert ( gcd(c,d) == N(1) );
 								
 				return *this;
 			}
@@ -189,17 +261,17 @@ namespace libmaus2
 				N od = o.c;
 				
 				N const g_c_od = gcd(c,od);
-				c /= g_c_od;
-				od /= g_c_od;
+				c = c/g_c_od;
+				od = od/g_c_od;
 				
 				N const g_oc_d = gcd(oc,d);
-				oc /= g_oc_d;
-				d /= g_oc_d;
+				oc = oc/g_oc_d;
+				d = d/g_oc_d;
 				
-				c *= oc;
-				d *= od;
+				c = mult(c,oc);
+				d = mult(d,od);
 
-				assert ( gcd(c,d) == 1 );
+				assert ( gcd(c,d) == N(1) );
 				
 				return *this;
 			}
@@ -209,21 +281,68 @@ namespace libmaus2
 				return static_cast<double>(c) / static_cast<double>(d);
 			}
 			
+			double toDouble(unsigned int const bindig = 64) const
+			{
+				Rational<N> R = *this;
+
+				if ( R.c == N() )
+					return 0;
+
+				bool neg = R.c < N();
+
+				if ( neg )
+					R.c = -R.c;
+
+				N intv = R.c / R.d;
+				R.c -= R.d * intv;
+
+				double v = 0.0;
+				v += static_cast<double>(intv);
+
+				assert ( R.c < R.d );
+
+				double a = 0.5;
+				for ( unsigned int d = 1; d <= bindig; ++d )
+				{
+					R.c *= N(2);
+
+					if ( R.c >= R.d )
+					{
+						R.c -= R.d;
+						assert ( R.c < R.d );
+						v += a;
+					}
+
+					a *= 0.5;
+				}
+
+				if ( neg )
+					v = -v;
+
+				return v;
+			}
+
 			bool operator<(Rational<N> const & O) const
 			{
 				return (*this - O).c < N();
 			}
 			bool operator<=(Rational<N> const & O) const
 			{
-				return (*this - O).c <= N();
+				return
+					(*this < O)
+					||
+					(*this == O);
 			}
 			bool operator>(Rational<N> const & O) const
 			{
-				return (*this - O).c > N();
+				return N() < (*this - O).c;
 			}
 			bool operator>=(Rational<N> const & O) const
 			{
-				return (*this - O).c >= N();
+				return
+					(*this > O)
+					||
+					(*this == O);
 			}
 			bool operator==(Rational<N> const & O) const
 			{
@@ -231,7 +350,7 @@ namespace libmaus2
 			}
 			bool operator!=(Rational<N> const & O) const
 			{
-				return (*this - O).c != N();
+				return !(*this == O);
 			}
 			
 			Rational<N> operator-() const
